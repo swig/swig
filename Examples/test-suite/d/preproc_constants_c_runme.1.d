@@ -51,6 +51,8 @@ void main() {
   static assert(is(int == typeof(EXPR_MINUS())));
   static assert(is(int == typeof(EXPR_LSHIFT())));
   static assert(is(int == typeof(EXPR_RSHIFT())));
+  static assert(is(int == typeof(EXPR_LT())));
+  static assert(is(int == typeof(EXPR_GT())));
   static assert(is(int == typeof(EXPR_LTE())));
   static assert(is(int == typeof(EXPR_GTE())));
   static assert(is(int == typeof(EXPR_INEQUALITY())));

@@ -65,10 +65,12 @@ typedef struct swig_guile_clientdata {
 #define SWIG_IsPointer(object) \
   SWIG_Guile_IsPointer(object)
 #define SWIG_contract_assert(expr, msg)				\
-  if (!(expr))							\
-    scm_error(scm_from_locale_symbol("swig-contract-assertion-failed"),	\
-	      (char *) FUNC_NAME, (char *) msg,			\
-	      SCM_EOL, SCM_BOOL_F); else
+  do { \
+    if (!(expr))							\
+      scm_error(scm_from_locale_symbol("swig-contract-assertion-failed"),	\
+                (char *) FUNC_NAME, (char *) msg,			\
+                SCM_EOL, SCM_BOOL_F); \
+  } while (0)
 
 /* for C++ member pointers, ie, member methods */
 #define SWIG_ConvertMember(obj, ptr, sz, ty) \

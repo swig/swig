@@ -93,6 +93,7 @@
 #define WARN_PARSE_NESTED_TEMPLATE    324
 #define WARN_PARSE_NAMED_NESTED_CLASS 325
 #define WARN_PARSE_EXTEND_NAME        326
+#define WARN_PARSE_EXTERN_TEMPLATE    327
 
 #define WARN_CPP11_LAMBDA             340
 #define WARN_CPP11_ALIAS_DECLARATION  341  /* redundant now */
@@ -147,7 +148,7 @@
 #define WARN_IGNORE_OPERATOR_DELARR     395	/* delete [] */
 #define WARN_IGNORE_OPERATOR_REF        396	/* operator *() */
 
-/* 394-399 are reserved */
+/* please leave 350-399 free for WARN_IGNORE_OPERATOR_* */
 
 /* -- Type system and typemaps -- */
 
@@ -157,9 +158,9 @@
 #define WARN_TYPE_REDEFINED           404
 #define WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED 405
 
-#define WARN_TYPEMAP_SOURCETARGET     450
+#define WARN_TYPEMAP_SOURCETARGET     450 /* No longer issued */
 #define WARN_TYPEMAP_CHARLEAK         451
-#define WARN_TYPEMAP_SWIGTYPE         452
+#define WARN_TYPEMAP_SWIGTYPE         452 /* No longer issued */
 #define WARN_TYPEMAP_APPLY_UNDEF      453
 #define WARN_TYPEMAP_SWIGTYPELEAK     454
 
@@ -212,6 +213,7 @@
 #define WARN_LANG_EXTEND_DESTRUCTOR   523
 #define WARN_LANG_EXPERIMENTAL        524
 #define WARN_LANG_DIRECTOR_FINAL      525
+#define WARN_LANG_USING_NAME_DIFFERENT 526
 
 /* -- Doxygen comments -- */
 
@@ -223,7 +225,7 @@
 #define WARN_DOXYGEN_UNKNOWN_CHARACTER        565
 #define WARN_DOXYGEN_UNEXPECTED_ITERATOR_VALUE  566
 
-/* -- Reserved (600-799) -- */
+/* -- Reserved (600-699) -- */
 
 /* -- Language module specific warnings (700 - 899) -- */
 
@@ -277,6 +279,7 @@
 #define WARN_JAVA_TYPEMAP_DIRECTORIN_NODESC   824
 #define WARN_JAVA_NO_DIRECTORCONNECT_ATTR     825
 #define WARN_JAVA_NSPACE_WITHOUT_PACKAGE      826
+#define WARN_JAVA_TYPEMAP_INTERFACEMODIFIERS_UNDEF 847
 
 /* please leave 810-829 free for Java */
 
@@ -297,22 +300,11 @@
 #define WARN_CSHARP_EXCODE                    844
 #define WARN_CSHARP_CANTHROW                  845
 #define WARN_CSHARP_NO_DIRECTORCONNECT_ATTR   846
+#define WARN_CSHARP_TYPEMAP_INTERFACEMODIFIERS_UNDEF 847
 
 /* please leave 830-849 free for C# */
 
-#define WARN_MODULA3_TYPEMAP_TYPE_UNDEF        850
-#define WARN_MODULA3_TYPEMAP_GETCPTR_UNDEF     851
-#define WARN_MODULA3_TYPEMAP_CLASSMOD_UNDEF    852
-#define WARN_MODULA3_TYPEMAP_PTRCONSTMOD_UNDEF 853
-#define WARN_MODULA3_TYPEMAP_MULTIPLE_RETURN   854
-#define WARN_MODULA3_MULTIPLE_INHERITANCE      855
-#define WARN_MODULA3_TYPECONSTRUCTOR_UNKNOWN   856
-#define WARN_MODULA3_UNKNOWN_PRAGMA            857
-#define WARN_MODULA3_BAD_ENUMERATION           858
-#define WARN_MODULA3_DOUBLE_ID                 859
-#define WARN_MODULA3_BAD_IMPORT                860
-
-/* please leave 850-869 free for Modula 3 */
+/* 850-860 were used by Modula 3 (removed in SWIG 4.1.0) - avoid reusing for now */
 
 #define WARN_PHP_MULTIPLE_INHERITANCE         870
 #define WARN_PHP_UNKNOWN_PRAGMA               871

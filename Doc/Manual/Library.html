@@ -44,6 +44,7 @@
 <li><a href="#Library_nn16">Utility Libraries</a>
 <ul>
 <li><a href="#Library_nn17">exception.i</a>
+<li><a href="#Library_attributes">attribute.i</a>
 </ul>
 </ul>
 </div>
@@ -2106,6 +2107,225 @@ For example:
 }
 </pre>
 </div>
+
+
+<H3><a name="Library_attributes">12.5.2 attribute.i</a></H3>
+
+
+<p>
+The attribute library contains a set of macros to convert a pair of set/get methods
+into a "native" attribute/property.
+</p>
+
+<p>
+Use <tt>%attribute</tt> when you have a pair of get/set methods to a
+primitive type like:
+</p>
+
+<div class="code">
+<pre>
+%include "attribute.i"
+%attribute(A, int, a, get_a, set_a);
+
+struct A {
+  int get_a() const;
+  void set_a(int aa);
+};
+</pre>
+</div>
+
+<p>
+and you want to provide that variable as an attribute in the target
+language. This example only works for primitive types, not derived
+types.
+Now you can use the attributes like so (in Python):
+</p>
+
+<div class="targetlang">
+<pre>
+x = A()
+x.a = 3        # calls A::set_a(3)
+print(x.a)     # calls A::get_a() const
+</pre>
+</div>
+
+<p>
+If you don't provide a 'set' method, a 'read-only' attribute
+is generated, ie, like:
+</p>
+
+<div class="code">
+<pre>
+%attribute(A, int, c, get_c);
+</pre>
+</div>
+
+<p>
+Use <tt>%attributeref</tt> when you have const/non-const reference
+access methods for primitive types or class/structs, like:
+</p>
+
+<div class="code">
+<pre>
+%attributeref(A, int, b);
+
+struct A {
+  const int &amp; b() const;
+  int &amp; b();
+};
+
+%attributeref(B, int, c);
+
+struct B {
+  int &amp; c();
+};
+</pre>
+</div>
+
+<p>
+Use the attributes like so (in Python):
+</p>
+
+<div class="targetlang">
+<pre>
+x = A()
+x.b = 3        # calls A::b()
+print(x.b)     # calls A::b() const
+</pre>
+</div>
+
+<p>
+You can also use
+</p>
+
+<div class="code">
+<pre>
+%attributeref(Class, AttributeType, AttributeName, AccessorMethod)
+</pre>
+</div>
+
+<p>
+if the internal C++ reference methods have a different name from the
+attribute you want, so
+</p>
+
+<div class="code">
+<pre>
+%attributeref(B, int, d, c);
+</pre>
+</div>
+
+<p>
+is the same as the last example, but instead of the attribute 'c' being
+called 'c', it is called 'd'.
+</p>
+
+<p>
+Use <tt>%attribute2</tt> instead of <tt>%attribute</tt> to indicate
+that reference-pointer translation is required.
+Use <tt>%attribute2</tt> instead of <tt>%attribute</tt> in cases like
+this:
+</p>
+
+<div class="code">
+<pre>
+%attribute2(MyClass, MyFoo, Foo, GetFoo, SetFoo);
+%inline %{
+  struct MyFoo {
+    int x;
+  };
+  class MyClass {
+    MyFoo foo;
+  public:
+    MyFoo &amp; GetFoo() { return foo; }
+    void SetFoo(const MyFoo &amp;other) { foo = other; }
+  };
+%}
+</pre>
+</div>
+
+<p>
+Here, the data type of the property is a wrapped type <tt>MyFoo</tt> and on
+the C++ side it is passed by reference. The problem is that the SWIG
+wrapper will pass around a pointer (MyFoo *) which is not compatible
+with the reference type of the accessors (MyFoo &amp;). Therefore, if you
+use <tt>%attribute</tt>, you'll get an error from your C/C++
+compiler. <tt>%attribute2</tt> translates between a pointer and a
+reference to eliminate the error. In case you're confused, let's make
+it simple: just use <tt>%attribute</tt> at first, but if the C/C++
+compiler gives an error while compiling the wrapper,
+try <tt>%attribute2</tt> instead.
+</p>
+
+<p>
+NOTE: remember that if the type contains commas, such as
+<tt>std::pair&lt;int, int&gt;</tt>, you need to use the macro like:
+</p>
+
+<div class="code">
+<pre>
+%attributeref(A, %arg(std::pair&lt;int, int&gt;), pval);
+</pre>
+</div>
+
+<p>
+where <tt>%arg()</tt> 'normalizes' the type to be understood as a single
+argument, otherwise the macro will get confused by the comma.
+</p>
+
+<p>
+The <tt>%attributeval</tt> is the same as <tt>%attribute</tt>, but
+should be used when the type is a class/struct (ie a non-primitive
+type) and when the get and set methods return/pass by value. The
+following is very similar to the above example, but note that the
+access is by value rather than reference.
+</p>
+
+<div class="code">
+<pre>
+%attributeval(MyClassVal, MyFoo, ReadWriteFoo, GetFoo, SetFoo);
+%attributeval(MyClassVal, MyFoo, ReadOnlyFoo, GetFoo);
+%inline %{
+  class MyClassVal {
+    MyFoo foo;
+  public:
+    MyFoo GetFoo() { return foo; }
+    void SetFoo(MyFoo other) { foo = other; }
+  };
+%}
+</pre>
+</div>
+
+<p>
+The <tt>%attributestring</tt> is the same as <tt>%attributeval</tt>,
+but should be used for string class types, which are unusual as they
+are a class on the C++ side, but normally an immutable/primitive type
+in the target language. Example usage for <tt>std::string</tt>:
+</p>
+
+<div class="code">
+<pre>
+%include &lt;std_string.i&gt;
+%attributestring(MyStringyClass, std::string, ReadWriteString, GetString, SetString);
+%attributestring(MyStringyClass, std::string, ReadOnlyString, GetString);
+%inline %{
+  class MyStringyClass {
+    std::string str;
+  public:
+    MyStringyClass(const std::string &amp;val) : str(val) {}
+    std::string GetString() { return str; }
+    void SetString(std::string other) { str = other; }
+  };
+%}
+</pre>
+</div>
+
+<p>
+The <tt>%attributestring</tt> also works for class types that
+have <tt>%naturalvar</tt> turned on and so is also useful for
+shared_ptr which has <tt>%naturalvar</tt> turned on in
+<tt>%shared_ptr</tt>.
+</p>
 
 
 </body>

@@ -33,7 +33,7 @@ endif
 a = director_basic.A1(1);
 
 if (a.rg(2) != 2)
-  error
+  error("failed");
 endif
 
 function self=OctClass()
@@ -62,16 +62,16 @@ bd = dd.cmethod(b);
 
 cc.method(b);
 if (c.cmethod != 7)
-  error
+  error("failed");
 endif
 
 if (bc.x != 34)
-  error
+  error("failed");
 endif
 
 
 if (bd.x != 16)
-  error
+  error("failed");
 endif
 
 

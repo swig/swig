@@ -13,6 +13,7 @@
 %}
 
 %{
+#include <string.h>
 struct A {};
 %}
 

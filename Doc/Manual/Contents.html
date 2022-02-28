@@ -91,15 +91,15 @@
 </ul>
 <li><a href="Windows.html#Windows_other_compilers">Instructions for using the Examples with other compilers</a>
 </ul>
-<li><a href="Windows.html#Windows_cygwin_mingw">SWIG on Cygwin and MinGW</a>
-<ul>
 <li><a href="Windows.html#Windows_swig_exe">Building swig.exe on Windows</a>
 <ul>
+<li><a href="Windows.html#Windows_cmake">Building swig.exe using CMake</a>
+<li><a href="Windows.html#Windows_msys2">Building swig.exe using MSYS2</a>
 <li><a href="Windows.html#Windows_mingw_msys">Building swig.exe using MinGW and MSYS</a>
 <li><a href="Windows.html#Windows_cygwin">Building swig.exe using Cygwin</a>
-<li><a href="Windows.html#Windows_building_alternatives">Building swig.exe alternatives</a>
-</ul>
+<ul>
 <li><a href="Windows.html#Windows_examples_cygwin">Running the examples on Windows using Cygwin</a>
+</ul>
 </ul>
 <li><a href="Windows.html#Windows_interface_file">Microsoft extensions and other Windows quirks</a>
 </ul>
@@ -171,6 +171,7 @@
 <li><a href="SWIG.html#SWIG_rename_ignore">Renaming and ignoring declarations</a>
 <ul>
 <li><a href="SWIG.html#SWIG_nn29">Simple renaming of specific identifiers</a>
+<li><a href="SWIG.html#SWIG_ignore">Ignoring identifiers</a>
 <li><a href="SWIG.html#SWIG_advanced_renaming">Advanced renaming support</a>
 <li><a href="SWIG.html#SWIG_limiting_renaming">Limiting global renaming rules</a>
 <li><a href="SWIG.html#SWIG_chosen_unignore">Ignoring everything then wrapping a few selected symbols</a>
@@ -250,6 +251,9 @@
 </ul>
 <li><a href="SWIGPlus.html#SWIGPlus_nn28">Overloaded operators</a>
 <li><a href="SWIGPlus.html#SWIGPlus_class_extension">Class extension</a>
+<ul>
+<li><a href="SWIGPlus.html#SWIGPlus_replacing_methods">Replacing class methods</a>
+</ul>
 <li><a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a>
 <ul>
 <li><a href="SWIGPlus.html#SWIGPlus_template_directive">The %template directive</a>
@@ -445,6 +449,7 @@
 <li><a href="Library.html#Library_nn16">Utility Libraries</a>
 <ul>
 <li><a href="Library.html#Library_nn17">exception.i</a>
+<li><a href="Library.html#Library_attributes">attribute.i</a>
 </ul>
 </ul>
 </div>
@@ -1473,7 +1478,10 @@
 </ul>
 <li><a href="Python.html#Python_python3support">Python 3 Support</a>
 <ul>
-<li><a href="Python.html#Python_nn74">Function annotation</a>
+<li><a href="Python.html#Python_nn74">Function annotations</a>
+<ul>
+<li><a href="Python.html#Python_annotations_c">C/C++ annotation types</a>
+</ul>
 <li><a href="Python.html#Python_nn75">Buffer interface</a>
 <li><a href="Python.html#Python_nn76">Abstract base classes</a>
 <li><a href="Python.html#Python_nn77">Byte string output conversion</a>

@@ -104,11 +104,7 @@ int Tcl_AppInit(Tcl_Interp *interp)
      * then no user-specific startup file will be run under any conditions.
      */
 
-#if TCL_MAJOR_VERSION >= 8 || TCL_MAJOR_VERSION == 7 && TCL_MINOR_VERSION >= 5
    Tcl_SetVar(interp, (char *) "tcl_rcFileName",SWIG_RcFileName,TCL_GLOBAL_ONLY);
-#else
-   tcl_RcFileName = SWIG_RcFileName;
-#endif
 
 /* For Macintosh might also want this */
 

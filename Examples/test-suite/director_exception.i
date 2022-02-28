@@ -18,22 +18,7 @@ namespace Swig {
 
 %include "std_string.i"
 
-#ifdef SWIGPHP
-
-%feature("director:except") {
-  if ($error == FAILURE) {
-    Swig::DirectorMethodException::raise("$symname");
-  }
-}
-
-%exception {
-  try { $action }
-  catch (Swig::DirectorException &) { SWIG_fail; }
-}
-
-#endif
-
-#ifdef SWIGPYTHON
+#if defined SWIGPHP || defined SWIGPYTHON
 
 %feature("director:except") {
   if ($error != NULL) {
@@ -63,7 +48,7 @@ namespace Swig {
 %feature("director:except") {
   jthrowable $error = jenv->ExceptionOccurred();
   if ($error) {
-    // Dont clear exception, still be active when return to java execution
+    // Don't clear exception, still be active when return to java execution
     // Essentially ignore exception occurred -- old behavior.
     return $null;
   }

@@ -1,7 +1,5 @@
 <?php
 
-	require "example.php";
-
 	# First create some objects using the pointer library.
 
 	print "Testing the pointer library\n";
@@ -43,5 +41,3 @@
 	# $q = $a[0]
 	# $r = $a[1]
 	# print "	42/37 = $q remainder $r\n";
-
-?>

@@ -20,18 +20,14 @@
 }
 
 
-%define SedCmd "%(command:sed -e 's/\([a-z]\)/\U\\1/' -e 's/\(_\)\([a-z]\)/\U\\2/g' <<<)s" %enddef
-
 %rename(CamelCase1) camel_case_1;
-%rename(SedCmd)     camel_case_2;
+%rename("%(camelcase)s") camel_case_2;
 %rename("%(ctitle)s") camel_case_3;
 
 
 %rename("%(utitle)s") CamelCase_5;
 
-%define awk_cmd "%(command:awk '/^i/{print toupper($1)}' <<<)s" %enddef
-
-%rename(awk_cmd) "";
+%rename("%(regex:/\\(.*i.*\\)/\\U\\1/)s") "";
 
 %rename("%(title)s",regexmatch$parentNode$type="enum .*") "";
 

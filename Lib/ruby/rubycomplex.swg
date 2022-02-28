@@ -36,12 +36,12 @@ SWIGINTERN int SWIG_Is_Complex( VALUE obj ) {
 
 SWIGINTERN VALUE SWIG_Complex_Real(VALUE obj) {
   static ID real_id = rb_intern("real");
-  return rb_funcall(obj, real_id, 0);
+  return rb_funcall2(obj, real_id, 0, 0);
 }
 
 SWIGINTERN VALUE SWIG_Complex_Imaginary(VALUE obj) {
   static ID imag_id = rb_intern("imag");
-  return rb_funcall(obj, imag_id, 0);
+  return rb_funcall2(obj, imag_id, 0, 0);
 }
 }
 
@@ -127,7 +127,7 @@ SWIG_AsVal(Type)(VALUE o, Type *val)
     float re;
     int res = SWIG_AddCast(SWIG_AsVal(float)(o, &re));
     if (SWIG_IsOK(res)) {
-      if (val) *val = Constructor(re, 0.0);
+      if (val) *val = Constructor(re, 0.0f);
       return res;
     }
   }

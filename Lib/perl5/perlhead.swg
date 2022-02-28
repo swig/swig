@@ -8,22 +8,9 @@ extern "C" {
 #include "perl.h"
 #include "XSUB.h"
 
-/* Add in functionality missing in older versions of Perl. Much of this is based on Devel-PPPort on cpan. */
-
-/* Add PERL_REVISION, PERL_VERSION, PERL_SUBVERSION if missing */
-#ifndef PERL_REVISION
-#  if !defined(__PATCHLEVEL_H_INCLUDED__) && !(defined(PATCHLEVEL) && defined(SUBVERSION))
-#    define PERL_PATCHLEVEL_H_IMPLICIT
-#    include <patchlevel.h>
-#  endif
-#  if !(defined(PERL_VERSION) || (defined(SUBVERSION) && defined(PATCHLEVEL)))
-#    include <could_not_find_Perl_patchlevel.h>
-#  endif
-#  ifndef PERL_REVISION
-#    define PERL_REVISION       (5)
-#    define PERL_VERSION        PATCHLEVEL
-#    define PERL_SUBVERSION     SUBVERSION
-#  endif
+/* PERL_REVISION was added in Perl 5.6. */
+#if !defined PERL_REVISION || (PERL_REVISION-0 == 5 && PERL_VERSION-0 < 8)
+# error SWIG requires Perl >= 5.8.0
 #endif
 
 #if defined(WIN32) && defined(PERL_OBJECT) && !defined(PerlIO_exportFILE)
@@ -36,15 +23,6 @@ extern "C" {
 
 #ifndef SvUOK
 # define SvUOK(sv)           SvIOK_UV(sv)
-#endif
-
-#if ((PERL_VERSION < 4) || ((PERL_VERSION == 4) && (PERL_SUBVERSION <= 5)))
-#  define PL_sv_undef               sv_undef
-#  define PL_na	                    na
-#  define PL_errgv                  errgv
-#  define PL_sv_no                  sv_no
-#  define PL_sv_yes                 sv_yes
-#  define PL_markstack_ptr          markstack_ptr
 #endif
 
 #ifndef IVSIZE

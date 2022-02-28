@@ -225,7 +225,7 @@ void removeNode(Node *n) {
   /* Delete attributes */
   Delattr(n,"parentNode");
   Delattr(n,"nextSibling");
-  Delattr(n,"prevSibling");
+  Delattr(n,"previousSibling");
 }
 
 /* -----------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 %module cpp11_std_array
 
-#if defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGJAVA) || defined(SWIGCSHARP)
+#if defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGGO)
 
 %{
 #include <array>

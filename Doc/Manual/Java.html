@@ -644,7 +644,7 @@ java::
 
 <p>
 To build the DLL and compile the java code, run NMAKE (you may need to run <tt>vcvars32</tt> first). 
-This is a pretty simplistic Makefile, but hopefully its enough to get you started.
+This is a pretty simplistic Makefile, but hopefully it's enough to get you started.
 Of course you may want to make changes for it to work for C++ by adding in the -c++ command line option for swig and replacing .c with .cxx.
 </p>
 
@@ -4030,7 +4030,7 @@ repetitive duplication of the <code>director:except</code> feature code
 for each director method.
 To mitigate this, a second approach is provided via typemaps in a
 fashion analogous to
-the <a href="Typemaps.html#throws_typemap">"throws" typemap</a>.
+the <a href="Typemaps.html#Typemaps_throws_typemap">"throws" typemap</a>.
 The "throws" typemap provides a way to map all the C++
 exceptions listed in a method's defined exceptions (either from
 a C++ <em>exception specification</em> or a <code>%catches</code>
@@ -4081,7 +4081,7 @@ has the <code>$directorthrowshandlers</code> special variable replaced with the 
 the relevant "directorthrows" typemaps, for each and every exception defined for the method. 
 The relevant exceptions can be defined either with a C++ exception
 specification or <code>%catches</code> as described for the
-<a href="Typemaps.html#throws_typemap">"throws" typemap</a>.
+<a href="Typemaps.html#Typemaps_throws_typemap">"throws" typemap</a>.
 </p>
 
 <p>
@@ -6610,6 +6610,15 @@ Below shows an example modifying the finalizer, assuming the <tt>delete</tt> met
 
 </div>
 
+<p><tt>%typemap(javainterfacemodifiers)</tt></p>
+<div class="indent">
+Interface modifiers for the Java interface generated when using the <tt>interface</tt> feature, see <a href="Java.html#Java_interfaces">Java interfaces</a> section. The default is "public interface".
+<p>
+<b>Compatibility note:</b> This typemap was added in SWIG-4.1.0.
+</p>
+
+</div>
+
 <p><tt>%typemap(javainterfacecode, declaration="...", cptrmethod="...")</tt></p>
 <div class="indent">
 <p>
@@ -6709,7 +6718,7 @@ The "javaimports" typemap is ignored if the enum class is wrapped by an inner Ja
 <div class="code">
 <pre>
 [ javaimports typemap ]
-public interface [ javainterfacename ] {
+[ javainterfacemodifiers typemap ] [ javainterfacename ] {
 [ javainterfacecode:cptrmethod typemap attribute ]
 ... interface declarations ...
 }
@@ -9054,6 +9063,11 @@ Here the default typemaps work for <tt>int</tt> and <tt>char *</tt>.
 </p>
 
 <p>
+Note that if you're wanting to effectively <b>replace</b> the JNI code generated for a C/C++ function then you'll need to use <tt>%ignore</tt> as well
+to tell SWIG not to automatically generate a JNI wrapper for it.
+</p>
+
+<p>
 In summary the <tt>%native</tt> directive is telling SWIG to generate the Java code to access the JNI C code, but not the JNI C function itself.
 This directive is only really useful if you want to mix your own hand crafted JNI code and the SWIG generated code into one Java class or package.
 </p>
@@ -9086,7 +9100,7 @@ This method normally calls the C++ destructor or <tt>free()</tt> for C code.
 <p>
 The generated code can be debugged using both a Java debugger and a C++ debugger using the usual debugging techniques.
 Breakpoints can be set in either Java or C++ code and so both can be debugged simultaneously.
-Most debuggers do not understand both Java and C++, with one noteable exception of Sun Studio, 
+Most debuggers do not understand both Java and C++, with one notable exception of Sun Studio, 
 where it is possible to step from Java code into a JNI method within one environment.
 </p>
 

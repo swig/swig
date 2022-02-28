@@ -396,7 +396,7 @@ void Swig_nested_name_unnamed_c_structs(Node *n) {
 	Delete(ins);
 	Delattr(c, "nested:outer");
       } else {
-	// global unnamed struct - ignore it and it's instances
+	// global unnamed struct - ignore it and its instances
 	SetFlag(c, "feature:ignore");
 	while (next && Getattr(next, "nested:unnamedtype") == c) {
 	  SetFlag(next, "feature:ignore");

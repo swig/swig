@@ -90,7 +90,7 @@ struct FinalOverrideMethods {
     virtual void override(int) {}
     virtual ~FinalOverrideMethods() = default;
 };
-struct FinalOverrideVariables {
+struct FinalOverrideVars {
     int final;
     double override;
 };

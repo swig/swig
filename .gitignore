@@ -150,6 +150,8 @@ Examples/guile/*/my-guile
 
 # Java
 Examples/test-suite/java/*/
+Examples/test-suite/java/expected.txt
+Examples/test-suite/java/got.txt
 Examples/java/*/*.java
 !Examples/java/*/runme.java
 Examples/java/doxygen/javadocs
@@ -182,11 +184,8 @@ Examples/perl5/*/*.pm
 
 # PHP
 Examples/test-suite/php/php_*.h
-Examples/test-suite/php/*.php
-!Examples/test-suite/php/*runme.php
-!Examples/test-suite/php/skel.php
 Examples/php/*/php_*.h
-Examples/php/*/example.php
+Examples/php/pragmas/example.php
 
 # Python
 #   Based on https://github.com/github/gitignore/blob/master/Python.gitignore

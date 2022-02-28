@@ -1587,6 +1587,9 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
   Node         *node;
 };
 
+// Define special token END for end of input.
+%token END 0
+
 %token <id> ID
 %token <str> HBLOCK
 %token <id> POUND 
@@ -1596,7 +1599,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
 %token <intvalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
-%token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD
+%token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD ELLIPSIS
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token BEGINFILE ENDOFFILE
 %token ILLEGAL CONSTANT
@@ -1671,11 +1674,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <p>        templateparameter ;
 %type <id>       templcpptype cpptype classkey classkeyopt access_specifier;
 %type <node>     base_specifier;
-%type <str>      ellipsis variadic;
+%type <str>      variadic;
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
-%type <dtype>    expr exprnum exprcompound valexpr exprmem;
+%type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem callparms callptail;
 %type <id>       ename ;
 %type <id>       less_valparms_greater;
 %type <str>      type_qualifier;
@@ -1860,7 +1863,7 @@ extend_directive : EXTEND options classkeyopt idcolon LBRACE {
 		 } else {
 		   /* Previous typedef class definition.  Use its symbol table.
 		      Deprecated, just the real name should be used. 
-		      Note that %extend before the class typedef never worked, only %extend after the class typdef. */
+		      Note that %extend before the class typedef never worked, only %extend after the class typedef. */
 		   prev_symtab = Swig_symbol_setscope(Getattr(cls, "symtab"));
 		   current_class = cls;
 		   SWIG_WARN_NODE_BEGIN(cls);
@@ -2009,6 +2012,10 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
                | CONSTANT error SEMI {
 		 Swig_warning(WARN_PARSE_BAD_VALUE,cparse_file,cparse_line,"Bad constant value (ignored).\n");
 		 $$ = 0;
+	       }
+	       | CONSTANT error END {
+		 Swig_error(cparse_file,cparse_line,"Missing semicolon (';') after %%constant.\n");
+		 SWIG_exit(EXIT_FAILURE);
 	       }
                ;
 
@@ -2963,6 +2970,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             String *nname = NewStringf("__dummy_%d__", cnt++);
                             Swig_cparse_template_expand(templnode,nname,temparms,tscope);
                             Setattr(templnode,"sym:name",nname);
+                            SetFlag(templnode,"hidden");
 			    Delete(nname);
                             Setattr(templnode,"feature:onlychildren", "typemap,typemapitem,typemapcopy,typedef,types,fragment,apply");
 			    if ($3) {
@@ -3126,14 +3134,22 @@ c_declaration   : c_decl {
 		    Setattr($$,"name",$2);
 		    appendChild($$,n);
 		    while (n) {
-		      SwigType *decl = Getattr(n,"decl");
-		      if (SwigType_isfunction(decl) && !Equal(Getattr(n, "storage"), "typedef")) {
+		      String *s = Getattr(n, "storage");
+		      if (s) {
+			if (Strstr(s, "thread_local")) {
+			  Insert(s,0,"externc ");
+			} else if (!Equal(s, "typedef")) {
+			  Setattr(n,"storage","externc");
+			}
+		      } else {
 			Setattr(n,"storage","externc");
 		      }
 		      n = nextSibling(n);
 		    }
 		  } else {
-		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
+		    if (!Equal($2,"C++")) {
+		      Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
+		    }
 		    $$ = new_node("extern");
 		    Setattr($$,"name",$2);
 		    appendChild($$,firstChild($5));
@@ -3355,9 +3371,9 @@ c_decl_tail    : SEMI {
                | error {
 		   $$ = 0;
 		   if (yychar == RPAREN) {
-		       Swig_error(cparse_file, cparse_line, "Unexpected ')'.\n");
+		       Swig_error(cparse_file, cparse_line, "Unexpected closing parenthesis (')').\n");
 		   } else {
-		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon.\n");
+		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon (';').\n");
 		   }
 		   SWIG_exit(EXIT_FAILURE);
                }
@@ -3376,6 +3392,10 @@ cpp_alternate_rettype : primitive_type { $$ = $1; }
 */
               | TYPE_RAW { $$ = $1; }
               | idcolon { $$ = $1; }
+              | idcolon AND {
+                $$ = $1;
+                SwigType_add_reference($$);
+              }
               | decltype { $$ = $1; }
               ;
 
@@ -4355,18 +4375,30 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			parsing_template_declaration = 0;
                 }
 
-		/* Explicit template instantiation */
+		/* Class template explicit instantiation definition */
                 | TEMPLATE cpptype idcolon {
 		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
                   $$ = 0; 
 		}
 
-		/* Explicit template instantiation without the translation unit */
+		/* Function template explicit instantiation definition */
+		| TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
+			Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
+                  $$ = 0; 
+		}
+
+		/* Class template explicit instantiation declaration (extern template) */
 		| EXTERN TEMPLATE cpptype idcolon {
-		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
+		  Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
                   $$ = 0; 
                 }
-                ;
+
+		/* Function template explicit instantiation declaration (extern template) */
+		| EXTERN TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
+			Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
+                  $$ = 0; 
+		}
+		;
 
 cpp_template_possible:  c_decl {
 		  $$ = $1;
@@ -5062,7 +5094,13 @@ extern_string :  EXTERN string {
 
 storage_class  : EXTERN { $$ = "extern"; }
 	       | extern_string { $$ = $1; }
-	       | extern_string THREAD_LOCAL { $$ = "thread_local"; }
+	       | extern_string THREAD_LOCAL {
+                if (Equal($1, "extern")) {
+                  $$ = "extern thread_local";
+                } else {
+                  $$ = "externc thread_local";
+                }
+	       }
 	       | extern_string TYPEDEF { $$ = "typedef"; }
                | STATIC { $$ = "static"; }
                | TYPEDEF { $$ = "typedef"; }
@@ -5143,7 +5181,7 @@ parm_no_dox	: rawtype parameter_declarator {
                     Setattr($$,"value",$7.val);
                   }
                 }
-                | PERIOD PERIOD PERIOD {
+                | ELLIPSIS {
 		  SwigType *t = NewString("v(...)");
 		  $$ = NewParmWithoutFileLineInfo(t, 0);
 		  previousNode = currentNode;
@@ -5229,6 +5267,20 @@ valparm        : parm {
 		  Setattr($$,"value",$1.val);
                }
                ;
+
+callparms      : valexpr callptail {
+		 $$ = $1;
+		 Printf($$.val, "%s", $2);
+	       }
+	       | empty { $$.val = NewStringEmpty(); }
+	       ;
+
+callptail      : COMMA valexpr callptail {
+		 $$.val = NewStringf(",%s%s", $2, $3);
+		 $$.type = 0;
+	       }
+	       | empty { $$.val = NewStringEmpty(); }
+	       ;
 
 def_args       : EQUAL definetype { 
                   $$ = $2; 
@@ -5488,16 +5540,16 @@ declarator :  pointer notso_direct_declarator {
            
            /* Variadic versions eg. MyClasses&... myIds */
            
-           |  pointer PERIOD PERIOD PERIOD notso_direct_declarator {
-              $$ = $5;
+           |  pointer ELLIPSIS notso_direct_declarator {
+              $$ = $3;
 	      if ($$.type) {
 		SwigType_push($1,$$.type);
 		Delete($$.type);
 	      }
 	      $$.type = $1;
            }
-           | pointer AND PERIOD PERIOD PERIOD notso_direct_declarator {
-              $$ = $6;
+           | pointer AND ELLIPSIS notso_direct_declarator {
+              $$ = $4;
 	      SwigType_add_reference($1);
               if ($$.type) {
 		SwigType_push($1,$$.type);
@@ -5505,8 +5557,8 @@ declarator :  pointer notso_direct_declarator {
 	      }
 	      $$.type = $1;
            }
-           | pointer LAND PERIOD PERIOD PERIOD notso_direct_declarator {
-              $$ = $6;
+           | pointer LAND ELLIPSIS notso_direct_declarator {
+              $$ = $4;
 	      SwigType_add_rvalue_reference($1);
               if ($$.type) {
 		SwigType_push($1,$$.type);
@@ -5514,34 +5566,34 @@ declarator :  pointer notso_direct_declarator {
 	      }
 	      $$.type = $1;
            }
-           | PERIOD PERIOD PERIOD direct_declarator {
-              $$ = $4;
+           | ELLIPSIS direct_declarator {
+              $$ = $2;
 	      if (!$$.type) $$.type = NewStringEmpty();
            }
-           | AND PERIOD PERIOD PERIOD notso_direct_declarator {
-	     $$ = $5;
+           | AND ELLIPSIS notso_direct_declarator {
+	     $$ = $3;
 	     $$.type = NewStringEmpty();
 	     SwigType_add_reference($$.type);
-	     if ($5.type) {
-	       SwigType_push($$.type,$5.type);
-	       Delete($5.type);
+	     if ($3.type) {
+	       SwigType_push($$.type,$3.type);
+	       Delete($3.type);
 	     }
            }
-           | LAND PERIOD PERIOD PERIOD notso_direct_declarator {
+           | LAND ELLIPSIS notso_direct_declarator {
 	     /* Introduced in C++11, move operator && */
              /* Adds one S/R conflict */
-	     $$ = $5;
+	     $$ = $3;
 	     $$.type = NewStringEmpty();
 	     SwigType_add_rvalue_reference($$.type);
-	     if ($5.type) {
-	       SwigType_push($$.type,$5.type);
-	       Delete($5.type);
+	     if ($3.type) {
+	       SwigType_push($$.type,$3.type);
+	       Delete($3.type);
 	     }
            }
-           | idcolon DSTAR PERIOD PERIOD PERIOD notso_direct_declarator { 
+           | idcolon DSTAR ELLIPSIS notso_direct_declarator {
 	     SwigType *t = NewStringEmpty();
 
-	     $$ = $6;
+	     $$ = $4;
 	     SwigType_add_memberpointer(t,$1);
 	     if ($$.type) {
 	       SwigType_push(t,$$.type);
@@ -5549,9 +5601,9 @@ declarator :  pointer notso_direct_declarator {
 	     }
 	     $$.type = t;
 	     } 
-           | pointer idcolon DSTAR PERIOD PERIOD PERIOD notso_direct_declarator { 
+           | pointer idcolon DSTAR ELLIPSIS notso_direct_declarator {
 	     SwigType *t = NewStringEmpty();
-	     $$ = $7;
+	     $$ = $5;
 	     SwigType_add_memberpointer(t,$2);
 	     SwigType_push($1,t);
 	     if ($$.type) {
@@ -5561,8 +5613,8 @@ declarator :  pointer notso_direct_declarator {
 	     $$.type = $1;
 	     Delete(t);
 	   }
-           | pointer idcolon DSTAR AND PERIOD PERIOD PERIOD notso_direct_declarator { 
-	     $$ = $8;
+           | pointer idcolon DSTAR AND ELLIPSIS notso_direct_declarator {
+	     $$ = $6;
 	     SwigType_add_memberpointer($1,$2);
 	     SwigType_add_reference($1);
 	     if ($$.type) {
@@ -5571,8 +5623,8 @@ declarator :  pointer notso_direct_declarator {
 	     }
 	     $$.type = $1;
 	   }
-           | pointer idcolon DSTAR LAND PERIOD PERIOD PERIOD notso_direct_declarator { 
-	     $$ = $8;
+           | pointer idcolon DSTAR LAND ELLIPSIS notso_direct_declarator {
+	     $$ = $6;
 	     SwigType_add_memberpointer($1,$2);
 	     SwigType_add_rvalue_reference($1);
 	     if ($$.type) {
@@ -5581,9 +5633,9 @@ declarator :  pointer notso_direct_declarator {
 	     }
 	     $$.type = $1;
 	   }
-           | idcolon DSTAR AND PERIOD PERIOD PERIOD notso_direct_declarator { 
+           | idcolon DSTAR AND ELLIPSIS notso_direct_declarator {
 	     SwigType *t = NewStringEmpty();
-	     $$ = $7;
+	     $$ = $5;
 	     SwigType_add_memberpointer(t,$1);
 	     SwigType_add_reference(t);
 	     if ($$.type) {
@@ -5592,9 +5644,9 @@ declarator :  pointer notso_direct_declarator {
 	     } 
 	     $$.type = t;
 	   }
-           | idcolon DSTAR LAND PERIOD PERIOD PERIOD notso_direct_declarator { 
+           | idcolon DSTAR LAND ELLIPSIS notso_direct_declarator {
 	     SwigType *t = NewStringEmpty();
-	     $$ = $7;
+	     $$ = $5;
 	     SwigType_add_memberpointer(t,$1);
 	     SwigType_add_rvalue_reference(t);
 	     if ($$.type) {
@@ -6232,19 +6284,19 @@ primitive_type_list : type_specifier {
 			} else if (Cmp($1.type,"double") == 0) {
 			  if (Cmp($2.type,"long") == 0) {
 			    $$.type = NewString("long double");
-			  } else if (Cmp($2.type,"complex") == 0) {
-			    $$.type = NewString("double complex");
+			  } else if (Cmp($2.type,"_Complex") == 0) {
+			    $$.type = NewString("double _Complex");
 			  } else {
 			    err = 1;
 			  }
 			} else if (Cmp($1.type,"float") == 0) {
-			  if (Cmp($2.type,"complex") == 0) {
-			    $$.type = NewString("float complex");
+			  if (Cmp($2.type,"_Complex") == 0) {
+			    $$.type = NewString("float _Complex");
 			  } else {
 			    err = 1;
 			  }
-			} else if (Cmp($1.type,"complex") == 0) {
-			  $$.type = NewStringf("%s complex", $2.type);
+			} else if (Cmp($1.type,"_Complex") == 0) {
+			  $$.type = NewStringf("%s _Complex", $2.type);
 			} else {
 			  err = 1;
 			}
@@ -6294,7 +6346,7 @@ type_specifier : TYPE_INT {
                     $$.type = 0;
                 }
                | TYPE_COMPLEX { 
-                    $$.type = NewString("complex");
+                    $$.type = NewString("_Complex");
                     $$.us = 0;
                 }
                | TYPE_NON_ISO_INT8 { 
@@ -6505,23 +6557,38 @@ exprmem        : ID ARROW ID {
 		 $$.val = NewStringf("%s->%s", $1, $3);
 		 $$.type = 0;
 	       }
+	       | ID ARROW ID LPAREN callparms RPAREN {
+		 $$.val = NewStringf("%s->%s(%s)", $1, $3, $5);
+		 $$.type = 0;
+	       }
 	       | exprmem ARROW ID {
 		 $$ = $1;
 		 Printf($$.val, "->%s", $3);
 	       }
-/* This generates a shift-reduce
+	       | exprmem ARROW ID LPAREN callparms RPAREN {
+		 $$ = $1;
+		 Printf($$.val, "->%s(%s)", $3, $5);
+	       }
 	       | ID PERIOD ID {
 		 $$.val = NewStringf("%s.%s", $1, $3);
 		 $$.type = 0;
 	       }
-*/
+	       | ID PERIOD ID LPAREN callparms RPAREN {
+		 $$.val = NewStringf("%s.%s(%s)", $1, $3, $5);
+		 $$.type = 0;
+	       }
 	       | exprmem PERIOD ID {
 		 $$ = $1;
 		 Printf($$.val, ".%s", $3);
 	       }
+	       | exprmem PERIOD ID LPAREN callparms RPAREN {
+		 $$ = $1;
+		 Printf($$.val, ".%s(%s)", $3, $5);
+	       }
 	       ;
 
-valexpr        : exprnum {
+/* Non-compound expression */
+exprsimple     : exprnum {
 		    $$ = $1;
                }
                | exprmem {
@@ -6536,12 +6603,30 @@ valexpr        : exprnum {
 		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
 		  $$.type = T_ULONG;
                }
-               | SIZEOF PERIOD PERIOD PERIOD LPAREN type parameter_declarator RPAREN {
-		  SwigType_push($6,$7.type);
-		  $$.val = NewStringf("sizeof...(%s)",SwigType_str($6,0));
+               | SIZEOF ELLIPSIS LPAREN type parameter_declarator RPAREN {
+		  SwigType_push($4,$5.type);
+		  $$.val = NewStringf("sizeof...(%s)",SwigType_str($4,0));
 		  $$.type = T_ULONG;
                }
-               | exprcompound { $$ = $1; }
+	       /* We don't support all valid expressions here currently - e.g.
+		* sizeof(<unaryop> x) doesn't work - but those are unlikely to
+		* be seen in real code.
+		*
+		* Note: sizeof(x) is not handled here, but instead by the rule
+		* for sizeof(<type>) because it matches that syntactically.
+		*/
+	       | SIZEOF LPAREN exprsimple RPAREN {
+		  $$.val = NewStringf("sizeof(%s)", $3.val);
+		 $$.type = T_ULONG;
+	       }
+	       /* `sizeof expr` without parentheses is valid for an expression,
+		* but not for a type.  This doesn't support `sizeof x` in
+		* addition to the case not supported above.
+		*/
+	       | SIZEOF exprsimple {
+		  $$.val = NewStringf("sizeof(%s)", $2.val);
+		  $$.type = T_ULONG;
+	       }
 	       | wstring {
 		    $$.val = $1;
 		    $$.rawval = NewStringf("L\"%s\"", $$.val);
@@ -6575,6 +6660,11 @@ valexpr        : exprnum {
 		  $$.nexcept = 0;
 		  $$.final = 0;
 	       }
+
+               ;
+
+valexpr        : exprsimple { $$ = $1; }
+	       | exprcompound { $$ = $1; }
 
 /* grouping */
                |  LPAREN expr RPAREN %prec CAST {
@@ -6654,7 +6744,7 @@ valexpr        : exprnum {
 		 $$ = $2;
                  $$.val = NewStringf("*%s",$2.val);
 	       }
-               ;
+	       ;
 
 exprnum        :  NUM_INT { $$ = $1; }
                |  NUM_FLOAT { $$ = $1; }
@@ -6722,16 +6812,24 @@ exprcompound   : expr PLUS expr {
 		 $$.val = NewStringf("%s!=%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-/* Sadly this causes 2 reduce-reduce conflicts with templates.  FIXME resolve these.
-               | expr GREATERTHAN expr {
-		 $$.val = NewStringf("%s > %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
+	       /* Trying to parse `>` in the general case results in conflicts
+		* in the parser, but all user-reported cases are actually inside
+		* parentheses and we can handle that case.
+		*/
+	       | LPAREN expr GREATERTHAN expr RPAREN {
+		 $$.val = NewStringf("%s > %s", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-               | expr LESSTHAN expr {
-		 $$.val = NewStringf("%s < %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
+
+	       /* Similarly for `<` except trying to handle exprcompound on the
+		* left side gives a shift/reduce conflict, so also restrict
+		* handling to non-compound subexpressions there.  Again this
+		* covers all user-reported cases.
+		*/
+               | LPAREN exprsimple LESSTHAN expr RPAREN {
+		 $$.val = NewStringf("%s < %s", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-*/
                | expr GREATERTHANOREQUALTO expr {
 		 $$.val = NewStringf("%s >= %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
@@ -6778,13 +6876,8 @@ exprcompound   : expr PLUS expr {
                }
                ;
 
-ellipsis      : PERIOD PERIOD PERIOD {
+variadic      : ELLIPSIS {
 	        $$ = NewString("...");
-	      }
-	      ;
-
-variadic      : ellipsis {
-	        $$ = $1;
 	      }
 	      | empty {
 	        $$ = 0;
@@ -6875,11 +6968,11 @@ templcpptype   : CLASS {
                    $$ = (char *)"typename"; 
 		   if (!inherit_list) last_cpptype = $$;
                }
-               | CLASS PERIOD PERIOD PERIOD { 
+               | CLASS ELLIPSIS {
                    $$ = (char *)"class..."; 
 		   if (!inherit_list) last_cpptype = $$;
                }
-               | TYPENAME PERIOD PERIOD PERIOD { 
+               | TYPENAME ELLIPSIS {
                    $$ = (char *)"typename..."; 
 		   if (!inherit_list) last_cpptype = $$;
                }
@@ -7085,8 +7178,8 @@ ctor_initializer : COLON mem_initializer_list
 
 mem_initializer_list : mem_initializer
                | mem_initializer_list COMMA mem_initializer
-               | mem_initializer PERIOD PERIOD PERIOD
-               | mem_initializer_list COMMA mem_initializer PERIOD PERIOD PERIOD
+               | mem_initializer ELLIPSIS
+               | mem_initializer_list COMMA mem_initializer ELLIPSIS
                ;
 
 mem_initializer : idcolon LPAREN {

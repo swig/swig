@@ -16,11 +16,13 @@ CPP_TEST_CASES += \
 	li_cstring \
 	li_cdata_carrays_cpp \
 	li_reference \
+	memberin1 \
 	director_nestedmodule \
 
 C_TEST_CASES += \
 	li_cstring \
 	li_cdata_carrays \
+	multivalue \
 
 include $(srcdir)/../common.mk
 

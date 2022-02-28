@@ -7,8 +7,7 @@ chell = li_attribute_template.Cintint(1, 2, 3)
 
 def rassert(what, master):
     if what != master:
-        print what
-        raise RuntimeError
+        raise RuntimeError("what: {}".format(what))
 
 # Testing primitive by value attribute
 rassert(chell.a, 1)

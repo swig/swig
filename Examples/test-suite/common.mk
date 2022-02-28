@@ -102,6 +102,7 @@ C_TEST_BROKEN += \
 # C++ test cases. (Can be run individually using: make testcase.cpptest)
 CPP_TEST_CASES += \
 	abstract_access \
+	abstract_basecast \
 	abstract_inherit \
 	abstract_inherit_ok \
 	abstract_signature \
@@ -134,6 +135,7 @@ CPP_TEST_CASES += \
 	char_binary \
 	char_strings \
 	chartest \
+	class_case \
 	class_scope_namespace \
 	class_forward \
 	class_ignore \
@@ -141,6 +143,7 @@ CPP_TEST_CASES += \
 	compactdefaultargs \
 	const_const_2 \
 	constant_directive \
+	constant_expr \
 	constant_pointers \
 	constover \
 	constructor_copy \
@@ -184,6 +187,7 @@ CPP_TEST_CASES += \
 	director_classes \
 	director_classic \
 	director_constructor \
+	director_comparison_operators \
 	director_conversion_operators \
 	director_default \
 	director_detect \
@@ -210,6 +214,7 @@ CPP_TEST_CASES += \
 	director_protected_overloaded \
 	director_redefined \
 	director_ref \
+	director_simple \
 	director_smartptr \
 	director_thread \
 	director_unroll \
@@ -232,6 +237,7 @@ CPP_TEST_CASES += \
 	evil_diamond_ns \
 	evil_diamond_prop \
 	exception_classname \
+	exception_memory_leak \
 	exception_order \
 	extend \
 	extend_constructor_destructor \
@@ -313,6 +319,7 @@ CPP_TEST_CASES += \
 	namespace_forward_declaration \
 	namespace_nested \
 	namespace_spaces \
+	namespace_struct \
 	namespace_template \
 	namespace_typedef_class \
 	namespace_typemap \
@@ -330,7 +337,7 @@ CPP_TEST_CASES += \
 	nested_ignore \
 	nested_inheritance_interface \
 	nested_in_template \
-	nested_scope \
+	nested_scope_flat \
 	nested_template_base \
 	nested_workaround \
 	newobject1 \
@@ -418,6 +425,7 @@ CPP_TEST_CASES += \
 	struct_value \
 	swig_exception \
 	symbol_clash \
+	sym \
 	template_arg_replace \
 	template_arg_scope \
 	template_arg_typename \
@@ -460,6 +468,7 @@ CPP_TEST_CASES += \
 	template_using_directive_and_declaration_forward \
 	template_using_directive_typedef \
 	template_nested \
+	template_nested_flat \
 	template_nested_typemaps \
 	template_ns \
 	template_ns2 \
@@ -545,6 +554,7 @@ CPP_TEST_CASES += \
 	using_directive_and_declaration_forward \
 	using_extend \
 	using_inherit \
+	using_member \
 	using_namespace \
 	using_namespace_loop \
 	using_pointers \
@@ -675,7 +685,7 @@ ifndef SKIP_CPP_STD_CASES
 CPP_TEST_CASES += ${CPP_STD_TEST_CASES}
 endif
 
-ifneq (,$(HAVE_CXX11_COMPILER))
+ifeq (1,$(HAVE_CXX11))
 CPP_TEST_CASES += $(CPP11_TEST_CASES)
 endif
 
@@ -686,8 +696,10 @@ C_TEST_CASES += \
 	c_delete \
 	c_delete_function \
 	char_constant \
+	command_line_define \
 	const_const \
-	constant_expr \
+	constant_expr_c \
+	contract_c \
 	default_args_c \
 	empty_c \
 	enums \
@@ -718,6 +730,7 @@ C_TEST_CASES += \
 	nested_extend_c \
 	nested_structs \
 	newobject2 \
+	not_c_keywords \
 	overload_extend_c \
 	overload_extend2 \
 	preproc \
@@ -754,6 +767,7 @@ MULTI_CPP_TEST_CASES += \
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw
 preproc_include.ctest: SWIGOPT += -includeall
+command_line_define.ctest: SWIGOPT += -DFOO
 
 # Allow modules to define temporarily failing tests.
 C_TEST_CASES := $(filter-out $(FAILING_C_TESTS),$(C_TEST_CASES))
@@ -857,8 +871,6 @@ setup = \
 	else								  \
 	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi
-
-
 
 #######################################################################
 # Clean

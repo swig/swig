@@ -32,13 +32,13 @@ check(14, o.byval1cpr(None))
 check(15, o.byval2cpr(None))
 check(16, o.byval2cpr(x))
 
-# forward class declaration
-check(17, o.byval1forwardptr(x))
-check(18, o.byval1forwardptr(None))
+# fwd class declaration
+check(17, o.byval1fwdptr(x))
+check(18, o.byval1fwdptr(None))
 
-check(19, o.byval2forwardptr(None))
-check(20, o.byval2forwardptr(x))
+check(19, o.byval2fwdptr(None))
+check(20, o.byval2fwdptr(x))
 
-check(21, o.byval1forwardref(x))
+check(21, o.byval1fwdref(x))
 
-check(22, o.byval2forwardref(x))
+check(22, o.byval2fwdref(x))

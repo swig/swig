@@ -338,7 +338,7 @@ String *partial_arg(String *s, String *p) {
   }
   prefix = NewStringWithSize(cp, (int)(c - cp));
   newarg = Copy(s);
-  Replace(newarg, prefix, "", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+  Replace(newarg, prefix, "", DOH_REPLACE_FIRST);
   Delete(prefix);
   return newarg;
 }
@@ -930,6 +930,7 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, Symtab *tscope) {
     String *nodeType = nodeType(n);
     int isclass = 0;
     assert(Equal(nodeType, "template"));
+    (void)nodeType;
     isclass = (Equal(Getattr(n, "templatetype"), "class"));
     if (!isclass) {
       /* If not a templated class we must have a templated function.

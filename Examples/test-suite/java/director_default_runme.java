@@ -16,22 +16,29 @@ public class director_default_runme {
     {
       director_default_MyFoo a = new director_default_MyFoo();
       a = new director_default_MyFoo(10);
+      a.delete();
     }
 
-    director_default_MyFoo a = new director_default_MyFoo();
-    if (!a.GetMsg().equals("director_default_MyFoo-default")) {
-      throw new RuntimeException ( "Test 1 failed" );
-    }
-    if (!a.GetMsg("boo").equals("director_default_MyFoo-boo")) {
-      throw new RuntimeException ( "Test 2 failed" );
+    {
+      director_default_MyFoo a = new director_default_MyFoo();
+      if (!a.GetMsg().equals("director_default_MyFoo-default")) {
+        throw new RuntimeException ( "Test 1 failed" );
+      }
+      if (!a.GetMsg("boo").equals("director_default_MyFoo-boo")) {
+        throw new RuntimeException ( "Test 2 failed" );
+      }
+      a.delete();
     }
 
-    Foo b = new Foo();
-    if (!b.GetMsg().equals("Foo-default")) {
-      throw new RuntimeException ( "Test 1 failed" );
-    }
-    if (!b.GetMsg("boo").equals("Foo-boo")) {
-      throw new RuntimeException ( "Test 2 failed" );
+    {
+      Foo b = new Foo();
+      if (!b.GetMsg().equals("Foo-default")) {
+        throw new RuntimeException ( "Test 1 failed" );
+      }
+      if (!b.GetMsg("boo").equals("Foo-boo")) {
+        throw new RuntimeException ( "Test 2 failed" );
+      }
+      b.delete();
     }
 
   }

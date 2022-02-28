@@ -307,7 +307,7 @@ typedef struct {
 
 /* Contract support */
 #define SWIG_contract_assert(expr, msg)  \
-  if (!(expr)) { SWIG_Lua_pusherrstring(L, (char *) msg); goto fail; } else
+  do { if (!(expr)) { SWIG_Lua_pusherrstring(L, (char *) msg); goto fail; } } while (0)
 
 
 /* helper #defines */
@@ -826,7 +826,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get_item(lua_State *L, swig_type_info *type, i
   /* NEW: looks for the __getitem() fn
   this is a user provided get fn */
   SWIG_Lua_get_table(L,"__getitem"); /* find the __getitem fn */
-  if (lua_iscfunction(L,-1))  /* if its there */
+  if (lua_iscfunction(L,-1))  /* if it's there */
   {  /* found it so call the fn & return its value */
     lua_pushvalue(L,substack_start+1);  /* the userdata */
     lua_pushvalue(L,substack_start+2);  /* the parameter */
@@ -883,7 +883,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int SW
   lua_pushvalue(L,substack_start+2);  /* key */
   lua_rawget(L,-2);  /* look for the fn */
   lua_remove(L,-2); /* stack tidy, remove .fn table */
-  if (lua_isfunction(L,-1)) /* note: if its a C function or lua function */
+  if (lua_isfunction(L,-1)) /* note: if it's a C function or lua function */
   {  /* found it so return the fn & let lua call it */
     lua_remove(L,-2); /* stack tidy, remove metatable */
     if(ret)
@@ -966,7 +966,7 @@ SWIGINTERN int  SWIG_Lua_class_do_set(lua_State *L, swig_type_info *type, int fi
   /* NEW: looks for the __setitem() fn
   this is a user provided set fn */
   SWIG_Lua_get_table(L,"__setitem"); /* find the fn */
-  if (lua_iscfunction(L,-1))  /* if its there */
+  if (lua_iscfunction(L,-1))  /* if it's there */
   {  /* found it so call the fn & return its value */
     lua_pushvalue(L,substack_start+1);  /* the userdata */
     lua_pushvalue(L,substack_start+2);  /* the parameter */
@@ -1343,15 +1343,15 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L, swig_lua_clas
 SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L); /*forward declaration*/
 
 /* The real function that resolves a metamethod.
- * Function searches given class and all it's bases(recursively) for first instance of something that is
- * not equal to SWIG_Lua_resolve_metatmethod. (Almost always this 'something' is actual metamethod implementation
+ * Function searches given class and all its bases (recursively) for first instance of something that is
+ * not equal to SWIG_Lua_resolve_metamethod. (Almost always this 'something' is actual metamethod implementation
  * and it is a SWIG-generated C function.). It returns value on the top of the L and there is no garbage below the
  * answer.
  * Returns 1 if found, 0 otherwise.
  * clss is class which metatable we will search for method
  * metamethod_name_idx is index in L where metamethod name (as string) lies
- * skip_check allows to skip searching metamethod in givel clss and immideatelly go to searching in bases. skip_check
- * is not caried to subsequent recursive calls - false is always passed. It is set to true only at first call from
+ * skip_check allows skipping searching metamethod in the given class and immediately going to searching in bases. skip_check
+ * is not carried to subsequent recursive calls - false is always passed. It is set to true only at first call from
  * SWIG_Lua_resolve_metamethod
  * */
 SWIGINTERN int SWIG_Lua_do_resolve_metamethod(lua_State *L, const swig_lua_class *clss, int metamethod_name_idx,
@@ -1497,7 +1497,7 @@ SWIGINTERN void SWIG_Lua_add_class_user_metamethods(lua_State *L, swig_lua_class
     }
   }
 
-  lua_pop(L,1); /* remove inheritable metatmethods table */
+  lua_pop(L,1); /* remove inheritable metamethods table */
 
   /* Special handling for __tostring method */
   lua_pushstring(L, "__tostring");
@@ -1796,7 +1796,7 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type
 
 SWIGRUNTIME void* SWIG_Lua_MustGetPtr(lua_State *L,int index,swig_type_info *type,int flags,
        int argnum,const char *func_name){
-  void *result;
+  void *result = 0;
   if (!SWIG_IsOK(SWIG_ConvertPtr(L,index,&result,type,flags))){
     luaL_error (L,"Error in %s, expected a %s at argument number %d\n",
 		func_name,(type && type->str)?type->str:"void*",argnum);

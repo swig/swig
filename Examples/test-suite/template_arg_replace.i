@@ -6,7 +6,7 @@
 
 template <typename T, int r, int c> class test_Matrix { 
 public: 
- void Func(const test_Matrix<T,r,c> &m) { }; 
+ void Func(const test_Matrix<T,r,c> &m) { }
 }; 
 %} 
 

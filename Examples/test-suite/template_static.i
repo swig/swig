@@ -19,6 +19,7 @@ template<class T> int foo<T>::test = 0;
 namespace toto {
   class Foo {
   public:
+      static int test;
       template<class T>
       static double bar(int i) {
 	return 1.0;
@@ -28,6 +29,7 @@ namespace toto {
       int i;
   };
 } 
+int toto::Foo::test = 5;
 %}
 
 %template(bar_double) toto::Foo::bar<double>; 

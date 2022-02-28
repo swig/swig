@@ -10,7 +10,7 @@ class li_boost_shared_ptr_runme:
 
     def main(self):
         if (debug):
-            print "Started"
+            print("Started")
 
         li_boost_shared_ptr.cvar.debug_shared = debug
 
@@ -20,7 +20,7 @@ class li_boost_shared_ptr_runme:
             self.runtest()
 
         # Expect 1 instance - the one global variable (GlobalValue)
-        if (li_boost_shared_ptr.Klass_getTotal_count() != 1):
+        if (li_boost_shared_ptr.Klass.getTotal_count() != 1):
             raise RuntimeError("Klass.total_count=%s" %
                                li_boost_shared_ptr.Klass.getTotal_count())
 
@@ -32,7 +32,7 @@ class li_boost_shared_ptr_runme:
                     "shared_ptr wrapper count=%s" % wrapper_count)
 
         if (debug):
-            print "Finished"
+            print("Finished")
 
     def runtest(self):
         # simple shared_ptr usage - created in C++
@@ -167,6 +167,19 @@ class li_boost_shared_ptr_runme:
             raise RuntimeError("Failed to catch null pointer")
         except ValueError:
             pass
+
+        # test null pointers emitted from C++
+        k = li_boost_shared_ptr.sp_pointer_null()
+        if (li_boost_shared_ptr.smartpointertest(k) != None):
+            raise RuntimeError("return was not null")
+
+        k = li_boost_shared_ptr.null_sp_pointer()
+        if (li_boost_shared_ptr.smartpointertest(k) != None):
+            raise RuntimeError("return was not null")
+
+        k = li_boost_shared_ptr.sp_value_null()
+        if (li_boost_shared_ptr.smartpointertest(k) != None):
+            raise RuntimeError("return was not null")
 
         # $owner
         k = li_boost_shared_ptr.pointerownertest()

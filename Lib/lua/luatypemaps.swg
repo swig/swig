@@ -24,7 +24,7 @@
 // additional check for unsigned numbers, to not permit negative input
 %typemap(in,checkfn="lua_isnumber") unsigned int,
              unsigned short, unsigned long, unsigned char
-%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative")
+%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative");
 $1 = ($type)lua_tonumber(L, $input);%}
 
 %typemap(out) int,short,long,
@@ -39,12 +39,12 @@ $1 = ($type)lua_tonumber(L, $input);%}
 // SWIG assumes that this code will need a pointer to int to be passed in
 // (this might be ok for objects by const ref, but not for numeric primitives)
 // therefore we add a set of typemaps to fix this (for both in & out)
-%typemap(in,checkfn="lua_isnumber") const int&($basetype temp)
-%{ temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
+%typemap(in,checkfn="lua_isnumber") const int&($*1_ltype temp)
+%{ temp=($*1_ltype)lua_tonumber(L,$input); $1=&temp;%}
 
-%typemap(in,checkfn="lua_isnumber") const unsigned int&($basetype temp)
-%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative")
-temp=($basetype)lua_tonumber(L,$input); $1=&temp;%}
+%typemap(in,checkfn="lua_isnumber") const unsigned int&($*1_ltype temp)
+%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative");
+temp=($*1_ltype)lua_tonumber(L,$input); $1=&temp;%}
 
 %typemap(out) const int&, const unsigned int&
 %{  lua_pushnumber(L, (lua_Number) *$1); SWIG_arg++;%}
@@ -237,13 +237,13 @@ $1=($1_ltype)&temp;%}
 // therefore a special wrapping functions SWIG_ConvertMember() & SWIG_NewMemberObj() were written
 %typemap(in,checkfn="lua_isuserdata") SWIGTYPE (CLASS::*)
 %{
-  if (!SWIG_IsOK(SWIG_ConvertMember(L,$input,(void*)(&$1),sizeof($type),$descriptor)))
+  if (!SWIG_IsOK(SWIG_ConvertMember(L,$input,(void*)(&$1),sizeof($1),$descriptor)))
     SWIG_fail_ptr("$symname",$argnum,$descriptor);
 %}
 
 %typemap(out) SWIGTYPE (CLASS::*)
-%{ 
-  SWIG_NewMemberObj(L,(void*)(&$1),sizeof($type),$descriptor); SWIG_arg++; 
+%{
+  SWIG_NewMemberObj(L,(void*)(&$1),sizeof($1),$descriptor); SWIG_arg++;
 %}
 
 
@@ -252,7 +252,7 @@ $1=($1_ltype)&temp;%}
 
 /* void* is a special case
 A function void fn(void*) should take any kind of pointer as a parameter (just like C/C++ does)
-but if its an output, then it should be wrapped like any other SWIG object (using default typemap)
+but if it's an output, then it should be wrapped like any other SWIG object (using default typemap)
 */
 %typemap(in,checkfn="SWIG_isptrtype") void*
 %{$1=($1_ltype)SWIG_MustGetPtr(L,$input,0,0,$argnum,"$symname");%}
@@ -285,7 +285,7 @@ parameters match which function
 
 // unfortunately lua only considers one type of number
 // so all numbers (int,float,double) match
-// you could add an advanced fn to get type & check if its integral
+// you could add an advanced fn to get type & check if it's integral
 %typecheck(SWIG_TYPECHECK_INTEGER)
 	 int, short, long,
  	 unsigned int, unsigned short, unsigned long,
@@ -396,7 +396,7 @@ parameters match which function
  *                          Specials
  * ----------------------------------------------------------------------------- */
 // swig::LANGUAGE_OBJ was added to allow containers of native objects
-// however its rather difficult to do this in lua, as you cannot hold pointers
+// however it's rather difficult to do this in lua, as you cannot hold pointers
 // to native objects (they are held in the interpreter)
 // therefore for now: just ignoring this feature
 #ifdef __cplusplus

@@ -166,7 +166,7 @@ public:
    */
   virtual int exitClass(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked at the beginning of the variableHandler.
@@ -178,7 +178,7 @@ public:
    */
   virtual int exitVariable(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked at the beginning of the functionHandler.
@@ -190,7 +190,7 @@ public:
    */
   virtual int exitFunction(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked by functionWrapper callback after call to Language::functionWrapper.
@@ -727,7 +727,7 @@ Node *JSEmitter::getBaseClass(Node *n) {
  /* -----------------------------------------------------------------------------
   * JSEmitter::emitWrapperFunction() :  dispatches emitter functions.
   *
-  * This allows to have small sized, dedicated emitting functions.
+  * This allows having small sized, dedicated emitting functions.
   * All state dependent branching is done here.
   * ----------------------------------------------------------------------------- */
 
@@ -994,7 +994,7 @@ int JSEmitter::emitDtor(Node *n) {
      {
      SWIG_PRV_DATA* t = (SWIG_PRV_DATA*)JSObjectGetPrivate(thisObject);
      if(t && t->swigCMemOwn) free ((${type}*)t->swigCObject);
-     if(t) free(t);
+     free(t);
      }
      %}
 
@@ -1007,7 +1007,7 @@ int JSEmitter::emitDtor(Node *n) {
      ${type}* arg1 = (${type}*)t->swigCObject;
      ${destructor_action}
      }
-     if(t) free(t);
+     free(t);
 
      Based on what I saw in the Lua and Ruby modules, I use Getattr(n, "wrap:action")
      to decide if the user has a preferred destructor action.
@@ -1143,7 +1143,7 @@ int JSEmitter::emitConstant(Node *n) {
   String *rawval = Getattr(n, "rawval");
   String *value = rawval ? rawval : Getattr(n, "value");
 
-  // HACK: forcing usage of cppvalue for v8 (which turned out to fix typdef_struct.i, et. al)
+  // HACK: forcing usage of cppvalue for v8 (which turned out to fix typedef_struct.i, et. al)
   if (State::IsSet(state.globals(FORCE_CPP)) && Getattr(n, "cppvalue") != NULL) {
     value = Getattr(n, "cppvalue");
   }
@@ -1255,7 +1255,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
   // Note: this dispatcher function gets called after the last overloaded function has been created.
   // At this time, n.wrap:name contains the name of the last wrapper function.
   // To get a valid function name for the dispatcher function we take the last wrapper name and
-  // substract the extension "sym:overname",
+  // subtract the extension "sym:overname",
   String *wrap_name = NewString(Getattr(n, "wrap:name"));
   String *overname = Getattr(n, "sym:overname");
 
@@ -1575,7 +1575,8 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
       Printf(arg, "argv[%d]", i);
       break;
     default:
-      throw "Illegal state.";
+      Printf(stderr, "Illegal MarshallingMode.");
+      SWIG_exit(EXIT_FAILURE);
     }
     tm = emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
@@ -2212,7 +2213,8 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
       Printf(arg, "args[%d]", i);
       break;
     default:
-      throw "Illegal state.";
+      Printf(stderr, "Illegal MarshallingMode.");
+      SWIG_exit(EXIT_FAILURE);
     }
 
     tm = emitInputTypemap(n, p, wrapper, arg);

@@ -63,12 +63,14 @@ using IntArray = Int[];
 
 // Test that SWIG understands these new types
 
+%{
+Int mult2(Int x) { return x * 2; }
+%}
 %callback("%s_cb");
 Int mult2(Int x);
 %nocallback;
 
 %inline %{
-Int mult2(Int x) { return x * 2; }
 IntPtr allocate_int() { return new Int(12); }
 void free_int(int* ptr) { delete ptr; }
 void inplace_mult2(IntRef x) { x *= 2; }

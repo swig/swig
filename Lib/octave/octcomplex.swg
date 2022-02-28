@@ -2,7 +2,7 @@
   Defines the As/From conversors for double/float complex, you need to
   provide complex Type, the Name you want to use in the conversors,
   the complex Constructor method, and the Real and Imag complex
-  accesor methods.
+  accessor methods.
 
   See the std_complex.i and ccomplex.i for concrete examples.
 */
@@ -73,7 +73,7 @@
 	int res = SWIG_AddCast(SWIG_AsVal(float)(ov, &d));
 	if (SWIG_IsOK(res)) {
 	  if (val)
-	    *val = Constructor(d, 0.0);
+	    *val = Constructor(d, 0.0f);
 	  return res;
 	}
       }
