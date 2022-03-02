@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-02: olly
+	    #891 Give error for typemap argument without a value.  Previously
+	    SWIG segfaulted.
+
 2022-02-27: wsfulton
             [Python] #735 #1561 Function annotations containing C/C++ types are no longer
             generated when using the -py3 option. Function annotations support has been

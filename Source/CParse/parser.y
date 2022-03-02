@@ -2723,26 +2723,34 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 /* typemap method type (lang,method) or (method) */
 
 typemap_type   : kwargs {
-		 Hash *p;
-		 String *name;
-		 p = nextSibling($1);
+		 String *name = Getattr($1, "name");
+		 Hash *p = nextSibling($1);
 		 if (p && (!Getattr(p,"value"))) {
  		   /* this is the deprecated two argument typemap form */
  		   Swig_warning(WARN_DEPRECATED_TYPEMAP_LANG,cparse_file, cparse_line,
 				"Specifying the language name in %%typemap is deprecated - use #ifdef SWIG<LANG> instead.\n");
 		   /* two argument typemap form */
-		   name = Getattr($1,"name");
+		   Printf(stdout, "name=%s typemap_lang=%s\n", name, typemap_lang);
 		   if (!name || (Strcmp(name,typemap_lang))) {
-		     $$.method = 0;
-		     $$.kwargs = 0;
+		     name = 0;
+		     p = 0;
 		   } else {
-		     $$.method = Getattr(p,"name");
-		     $$.kwargs = nextSibling(p);
+		     name = Getattr(p,"name");
+		     p = nextSibling(p);
 		   }
 		 } else {
 		   /* one-argument typemap-form */
-		   $$.method = Getattr($1,"name");
-		   $$.kwargs = p;
+		 }
+		 $$.method = name;
+		 $$.kwargs = p;
+		 while (p) {
+		   if (!Getattr(p, "value")) {
+		     Swig_error(cparse_file, cparse_line,
+				"%%typemap argument '%s' is missing value\n", Getattr(p, "name"));
+		     /* Set to empty value to avoid segfaults later. */
+		     Setattr(p, "value", NewStringEmpty());
+		   }
+		   p = nextSibling(p);
 		 }
                 }
                ;

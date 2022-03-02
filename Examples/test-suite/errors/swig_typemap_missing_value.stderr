@@ -1,0 +1,1 @@
+swig_typemap_missing_value.i:3: Error: %typemap argument 'foo' is missing value
