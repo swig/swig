@@ -2395,20 +2395,20 @@ public:
   }
 
   /* ------------------------------------------------------------
-   * returnPropertyAnnotation()
+   * variableAnnotation()
    *
-   * Helper function for constructing a property annotation
-   * return a empty string for Python 2.x
+   * Helper function for constructing a variable annotation
    * ------------------------------------------------------------ */
 
-  String *returnPropertyAnnotation(Node *n) {
-    String *ret = 0;
-     ret = Getattr(n, "type");
-      if (ret) {
-          ret = SwigType_str(ret, 0);
-      }
-    return (ret && py3) ? NewStringf(": \"%s\"", ret)
-	: NewString("");
+  String *variableAnnotation(Node *n) {
+    String *type = Getattr(n, "type");
+    if (type)
+      type = SwigType_str(type, 0);
+    bool anno = Equal(Getattr(n, "feature:python:annotations"), "c") ? true : false;
+    anno = GetFlag(n, "feature:python:annotations:novar") ? false : anno;
+    String *annotation = (type && anno) ? NewStringf(": \"%s\"", type) : NewString("");
+    Delete(type);
+    return annotation;
   }
 
   /* ------------------------------------------------------------
@@ -5059,12 +5059,14 @@ public:
       String *setname = Swig_name_set(NSPACE_TODO, mname);
       String *getname = Swig_name_get(NSPACE_TODO, mname);
       int assignable = is_assignable(n);
-      Printv(f_shadow, tab4, symname, returnPropertyAnnotation(n), " = property(", module, ".", getname, NIL);
+      String *variable_annotation = variableAnnotation(n);
+      Printv(f_shadow, tab4, symname, variable_annotation, " = property(", module, ".", getname, NIL);
       if (assignable)
 	Printv(f_shadow, ", ", module, ".", setname, NIL);
       if (have_docstring(n))
 	Printv(f_shadow, ", doc=", docstring(n, AUTODOC_VAR, tab4), NIL);
       Printv(f_shadow, ")\n", NIL);
+      Delete(variable_annotation);
       Delete(mname);
       Delete(setname);
       Delete(getname);

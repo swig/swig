@@ -49,6 +49,7 @@ CPP_TEST_CASES += \
 	primitive_types \
 	python_abstractbase \
 	python_annotations_c \
+	python_annotations_variable_c \
 	python_append \
 	python_builtin \
 	python_destructor_exception \

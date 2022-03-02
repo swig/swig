@@ -7,6 +7,37 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-02: geographika, wsfulton
+            [Python] #1951 Add Python variable annotations support.
+
+            Both function annotations and variable annotations are turned on using the
+            "python:annotations" feature. Example:
+
+              %feature("python:annotations", "c");
+
+              struct V {
+                float val;
+              };
+
+            The generated code contains a variable annotation containing the C float type:
+
+              class V(object):
+                  val: "float" = property(_example.V_val_get, _example.V_val_set)
+                  ...
+
+            Python 3.5 and earlier do not support variable annotations, so variable
+            annotations can be turned off with a "python:annotations:novar" feature flag.
+            Example turning on function annotations but not variable annotations globally:
+
+              %feature("python:annotations", "c");
+              %feature("python:annotations:novar");
+
+            or via the command line:
+
+              -features python:annotations=c,python:annotations:novar
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2022-03-02: olly
 	    #891 Give error for typemap argument without a value.  Previously
 	    SWIG segfaulted.
@@ -22,6 +53,8 @@ Version 4.1.0 (in progress)
             or by using the command line argument:
 
               -features python:annotations=c
+
+            Also see entry dated 2022-03-02, regarding variable annotations.
 
             *** POTENTIAL INCOMPATIBILITY ***
 
