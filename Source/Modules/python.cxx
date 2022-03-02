@@ -819,7 +819,8 @@ public:
     Printf(f_wrappers, "%s\n", methods);
     Append(methods_proxydocs, "\t { NULL, NULL, 0, NULL }\n");
     Append(methods_proxydocs, "};\n");
-    Printf(f_wrappers, "%s\n", methods_proxydocs);
+    if ((fastproxy && !builtin) || have_fast_proxy_static_member_method_callback)
+      Printf(f_wrappers, "%s\n", methods_proxydocs);
 
     if (builtin) {
       Dump(f_builtins, f_wrappers);
