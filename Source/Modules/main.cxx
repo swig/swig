@@ -471,9 +471,7 @@ static void getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strncmp(argv[i], "-I", 2) == 0) {
 	// Add a new directory search path
-	char *a = Swig_copy_string(argv[i] + 2);
-	Swig_add_directory((DOH *) a);
-	free(a);
+	Swig_add_directory((String_or_char*)(argv[i] + 2));
 	Swig_mark_arg(i);
       } else if (strncmp(argv[i], "-D", 2) == 0) {
 	String *d = NewString(argv[i] + 2);

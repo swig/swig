@@ -947,20 +947,16 @@ public:
 
 	if (!is_setter) {
 	  /* Strip off "-get" */
-	  char *pws_name = (char *) malloc(sizeof(char) * (len - 3));
-	  strncpy(pws_name, pc, len - 3);
-	  pws_name[len - 4] = 0;
 	  if (struct_member == 2) {
 	    /* There was a setter, so create a procedure with setter */
 	    Printf(f_init, "scm_c_define");
-	    Printf(f_init, "(\"%s\", " "scm_make_procedure_with_setter(getter, setter));\n", pws_name);
+	    Printf(f_init, "(\"%.*s\", " "scm_make_procedure_with_setter(getter, setter));\n", pc, len - 4);
 	  } else {
 	    /* There was no setter, so make an alias to the getter */
 	    Printf(f_init, "scm_c_define");
-	    Printf(f_init, "(\"%s\", getter);\n", pws_name);
+	    Printf(f_init, "(\"%.*s\", getter);\n", pc, len - 4);
 	  }
-	  Printf(exported_symbols, "\"%s\", ", pws_name);
-	  free(pws_name);
+	  Printf(exported_symbols, "\"%.*s\", ", pc, len - 4);
 	}
       } else {
 	/* Register the function */
