@@ -2730,7 +2730,6 @@ typemap_type   : kwargs {
  		   Swig_warning(WARN_DEPRECATED_TYPEMAP_LANG,cparse_file, cparse_line,
 				"Specifying the language name in %%typemap is deprecated - use #ifdef SWIG<LANG> instead.\n");
 		   /* two argument typemap form */
-		   Printf(stdout, "name=%s typemap_lang=%s\n", name, typemap_lang);
 		   if (!name || (Strcmp(name,typemap_lang))) {
 		     name = 0;
 		     p = 0;
