@@ -936,7 +936,7 @@ int JSEmitter::emitDtor(Node *n) {
   SwigType *type = state.clazz(TYPE);
   String *p_classtype = SwigType_add_pointer(state.clazz(TYPE));
   String *ctype = SwigType_lstr(p_classtype, "");
-  String *free = NewString("");
+  String *jsfree = NewString("");
 
   // (Taken from JSCore implementation.)
   /* The if (Extend) block was taken from the Ruby implementation.
@@ -979,9 +979,9 @@ int JSEmitter::emitDtor(Node *n) {
   // TODO: generate dtors more similar to other wrappers
   // EW: I think this is wrong. delete should only be used when new was used to create. If malloc was used, free needs to be used.
   if (SwigType_isarray(type)) {
-    Printf(free, "delete [] (%s)", ctype);
+    Printf(jsfree, "delete [] (%s)", ctype);
   } else {
-    Printf(free, "delete (%s)", ctype);
+    Printf(jsfree, "delete (%s)", ctype);
   }
 
   String *destructor_action = Getattr(n, "wrap:action");
@@ -1031,7 +1031,7 @@ int JSEmitter::emitDtor(Node *n) {
     state.clazz(DTOR, wrap_name);
     t_dtor.replace("${classname_mangled}", state.clazz(NAME_MANGLED))
 	.replace("$jswrapper", wrap_name)
-	.replace("$jsfree", free)
+	.replace("$jsfree", jsfree)
 	.replace("$jstype", ctype);
 
     t_dtor.replace("${destructor_action}", destructor_action);
@@ -1041,14 +1041,14 @@ int JSEmitter::emitDtor(Node *n) {
     state.clazz(DTOR, wrap_name);
     t_dtor.replace("$jsmangledname", state.clazz(NAME_MANGLED))
 	.replace("$jswrapper", wrap_name)
-	.replace("$jsfree", free)
+	.replace("$jsfree", jsfree)
 	.replace("$jstype", ctype)
 	.pretty_print(f_wrappers);
   }
 
   Delete(p_classtype);
   Delete(ctype);
-  Delete(free);
+  Delete(jsfree);
 
   return SWIG_OK;
 }
