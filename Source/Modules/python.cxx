@@ -819,7 +819,8 @@ public:
     Printf(f_wrappers, "%s\n", methods);
     Append(methods_proxydocs, "\t { NULL, NULL, 0, NULL }\n");
     Append(methods_proxydocs, "};\n");
-    Printf(f_wrappers, "%s\n", methods_proxydocs);
+    if ((fastproxy && !builtin) || have_fast_proxy_static_member_method_callback)
+      Printf(f_wrappers, "%s\n", methods_proxydocs);
 
     if (builtin) {
       Dump(f_builtins, f_wrappers);
@@ -2392,6 +2393,23 @@ public:
     }
     bool funcanno = Equal(Getattr(n, "feature:python:annotations"), "c") ? true : false;
     return (ret && funcanno) ? NewStringf(" -> \"%s\"", ret) : NewString("");
+  }
+
+  /* ------------------------------------------------------------
+   * variableAnnotation()
+   *
+   * Helper function for constructing a variable annotation
+   * ------------------------------------------------------------ */
+
+  String *variableAnnotation(Node *n) {
+    String *type = Getattr(n, "type");
+    if (type)
+      type = SwigType_str(type, 0);
+    bool anno = Equal(Getattr(n, "feature:python:annotations"), "c") ? true : false;
+    anno = GetFlag(n, "feature:python:annotations:novar") ? false : anno;
+    String *annotation = (type && anno) ? NewStringf(": \"%s\"", type) : NewString("");
+    Delete(type);
+    return annotation;
   }
 
   /* ------------------------------------------------------------
@@ -5042,12 +5060,14 @@ public:
       String *setname = Swig_name_set(NSPACE_TODO, mname);
       String *getname = Swig_name_get(NSPACE_TODO, mname);
       int assignable = is_assignable(n);
-      Printv(f_shadow, tab4, symname, " = property(", module, ".", getname, NIL);
+      String *variable_annotation = variableAnnotation(n);
+      Printv(f_shadow, tab4, symname, variable_annotation, " = property(", module, ".", getname, NIL);
       if (assignable)
 	Printv(f_shadow, ", ", module, ".", setname, NIL);
       if (have_docstring(n))
 	Printv(f_shadow, ", doc=", docstring(n, AUTODOC_VAR, tab4), NIL);
       Printv(f_shadow, ")\n", NIL);
+      Delete(variable_annotation);
       Delete(mname);
       Delete(setname);
       Delete(getname);

@@ -109,7 +109,7 @@ class check {
       else unset($extra[$func]);
     }
     $extra = array_filter(array_keys($extra),
-			  function ($e) { return !preg_match('/_[gs]et$/', $e); });
+			  function ($e) { return !preg_match('/_[gs]et$|^is_python_/', $e); });
     if ($missing) $message[]=sprintf("Functions missing: %s",join(",",$missing));
     if ($message) return check::fail(join("\n  ",$message));
     if ($extra) $message[]=sprintf("These extra functions are defined: %s",join(",",$extra));

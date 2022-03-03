@@ -133,7 +133,7 @@
 </ul>
 <li><a href="#Python_python3support">Python 3 Support</a>
 <ul>
-<li><a href="#Python_nn74">Function annotations</a>
+<li><a href="#Python_annotations">Python function annotations and variable annotations</a>
 <ul>
 <li><a href="#Python_annotations_c">C/C++ annotation types</a>
 </ul>
@@ -2534,6 +2534,12 @@ import A
 assert(issubclass(B.Derived, A.Base))
 </pre></div>
 </li>
+
+
+<li><p><a href="#Python_annotations">Python annotations</a> are not supported.
+</p>
+</li>
+
 </ul>
 
 <H4><a name="Python_builtin_overloads">33.4.2.2 Operator overloads and slots -- use them!</a></H4>
@@ -3992,7 +3998,7 @@ Also included in the table for comparison is using the <tt>-builtin</tt> option 
 
 <p>
 Although the <tt>-fastproxy</tt> option results in faster code over the default, the generated proxy code is not as user-friendly
-as docstring/doxygen comments and functions with default values are not visible in the generated Python proxy class.
+as docstring/doxygen comments, <a href="#Python_annotations">Python annotations</a> and functions with default values are not visible in the generated Python proxy class.
 The <tt>-olddefs</tt> option can rectify this.
 </p>
 
@@ -6756,13 +6762,17 @@ The following are Python 3 new features that are currently supported by
 SWIG.
 </p>
 
-<H3><a name="Python_nn74">33.12.1 Function annotations</a></H3>
+<H3><a name="Python_annotations">33.12.1 Python function annotations and variable annotations</a></H3>
 
 
 <p>
 Python 3 supports function annotations as defined in
 <a href="https://www.python.org/dev/peps/pep-3107/">PEP 3107</a>.
-Annotation support is via a <tt>python:annotations</tt>
+Python 3.6 and later additionally support variable annotations as defined in
+<a href="https://www.python.org/dev/peps/pep-526/">PEP 526</a>.
+Note that currently there is no annotations support in SWIG for the <tt>-builtin</tt> nor
+the <tt>-fastproxy</tt> option.
+Annotations are added via the <tt>python:annotations</tt>
 <a href="Customization.html#Customization_features">%feature directives</a>.
 SWIG currently supports one type of function annotation.
 </p>
@@ -6771,7 +6781,7 @@ SWIG currently supports one type of function annotation.
 
 
 <p>
-The <tt>%feature("python:annotations", "c")</tt> directive generates function annotations
+The <tt>%feature("python:annotations", "c")</tt> directive generates annotations
 containing C/C++ types. For example:
 </p>
 
@@ -6781,16 +6791,16 @@ int *global_ints(int &amp;ri);
 </pre></div>
 
 <p>
-The generated code then contains function annotations containing the C types:
+The generated code then contains function annotations containing the C++ types:
 </p>
 
 <div class="targetlang"><pre>
 def global_ints(ri: "int &amp;") -&gt; "int *":
-    return _python_annotations_c.global_ints(ri)
+    return _example.global_ints(ri)
 </pre></div>
 
 <p>
-There are some limitations with annotations support, for example, overloaded functions use
+There are some limitations with function annotations support, for example, overloaded functions use
 <tt>*args</tt> or <tt>**kwargs</tt> when keyword arguments are enabled.
 The parameter names and types are then not shown. For example, with input:
 </p>
@@ -6807,13 +6817,65 @@ Only the return type is annotated.
 
 <div class="targetlang"><pre>
 def global_overloaded(*args) -&gt; "int *":
-    return _python_annotations_c.global_overloaded(*args)
+    return _example.global_overloaded(*args)
 </pre></div>
 
 <p>
+Below is an example demonstrating variable annotations.
+</p>
+
+<div class="code"><pre>
+%feature("python:annotations", "c");
+
+struct V {
+  float val;
+};
+</pre></div>
+
+<p>
+The generated code contains a variable annotation containing the C <tt>float</tt> type:
+</p>
+
+<div class="targetlang"><pre>
+class V(object):
+    val: "float" = property(_example.V_val_get, _example.V_val_set)
+    ...
+</pre></div>
+
+<p>
+Variable annotations are only supported from Python 3.6. If you need to support earlier versions of Python, you'll need to turn variable annotations off via the <tt>python:annotations:novar</tt> feature flag.
+It is quite easy to support function annotations but turn off variable annotations. The next example shows how to do this for all variables.
+</p>
+
+<div class="code"><pre>
+%feature("python:annotations", "c");  // Turn on function annotations and variable annotations globally
+%feature("python:annotations:novar"); // Turn off variable annotations globally
+
+struct V {
+  float val;
+  void vv(float *v) const;
+};
+</pre></div>
+
+<p>
+The resulting code will work with versions older than Python 3.6 as the variable annotations are turned off:
+</p>
+
+<div class="targetlang"><pre>
+class V(object):
+    val = property(_example.V_val_get, _example.V_val_set)
+
+    def vv(self, v: "float *") -&gt; "void":
+        return _example.V_vv(self, v)
+    ...
+</pre></div>
+
+
+<p>
 <b>Compatibility Note:</b> SWIG-4.1.0 changed the way that function annotations are generated.
-Prior versions required the <tt>-py3</tt> option which enabled function annotation support
+Prior versions required the <tt>-py3</tt> option to generate function annotation support
 containing C/C++ types instead of supporting <tt>%feature("python:annotations", "c")</tt>.
+Variable annotations were also added in SWIG-4.1.0.
 </p>
 
 <H3><a name="Python_nn75">33.12.2 Buffer interface</a></H3>

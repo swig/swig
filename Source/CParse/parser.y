@@ -32,7 +32,7 @@
 
 /* We do this for portability */
 #undef alloca
-#define alloca malloc
+#define alloca Malloc
 
 /* -----------------------------------------------------------------------------
  *                               Externals
@@ -2723,26 +2723,23 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 /* typemap method type (lang,method) or (method) */
 
 typemap_type   : kwargs {
-		 Hash *p;
-		 String *name;
-		 p = nextSibling($1);
-		 if (p && (!Getattr(p,"value"))) {
- 		   /* this is the deprecated two argument typemap form */
- 		   Swig_warning(WARN_DEPRECATED_TYPEMAP_LANG,cparse_file, cparse_line,
-				"Specifying the language name in %%typemap is deprecated - use #ifdef SWIG<LANG> instead.\n");
-		   /* two argument typemap form */
-		   name = Getattr($1,"name");
-		   if (!name || (Strcmp(name,typemap_lang))) {
-		     $$.method = 0;
-		     $$.kwargs = 0;
-		   } else {
-		     $$.method = Getattr(p,"name");
-		     $$.kwargs = nextSibling(p);
+		 String *name = Getattr($1, "name");
+		 Hash *p = nextSibling($1);
+		 $$.method = name;
+		 $$.kwargs = p;
+		 if (Getattr($1, "value")) {
+		   Swig_error(cparse_file, cparse_line,
+			      "%%typemap method shouldn't have a value specified.\n");
+		 }
+		 while (p) {
+		   if (!Getattr(p, "value")) {
+		     Swig_error(cparse_file, cparse_line,
+				"%%typemap attribute '%s' is missing its value.  If this is specifying the target language, that's no longer supported: use #ifdef SWIG<LANG> instead.\n",
+				Getattr(p, "name"));
+		     /* Set to empty value to avoid segfaults later. */
+		     Setattr(p, "value", NewStringEmpty());
 		   }
-		 } else {
-		   /* one-argument typemap-form */
-		   $$.method = Getattr($1,"name");
-		   $$.kwargs = p;
+		   p = nextSibling(p);
 		 }
                 }
                ;

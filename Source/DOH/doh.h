@@ -122,6 +122,10 @@
 #define DohIterator        DOH_NAMESPACE(Iterator)
 #define DohFirst           DOH_NAMESPACE(First)
 #define DohNext            DOH_NAMESPACE(Next)
+#define DohMalloc          DOH_NAMESPACE(Malloc)
+#define DohRealloc         DOH_NAMESPACE(Realloc)
+#define DohCalloc          DOH_NAMESPACE(Calloc)
+#define DohFree            DOH_NAMESPACE(Free)
 #endif
 
 #define DOH_MAJOR_VERSION 0
@@ -163,12 +167,11 @@ typedef struct {
 
 /* Memory management */
 
-#ifndef DohMalloc
-#define DohMalloc malloc
-#endif
-#ifndef DohRealloc
-#define DohRealloc realloc
-#endif
+/* Wrappers around malloc(), realloc() and calloc() which never return NULL. */
+extern void *DohMalloc(size_t size);
+extern void *DohRealloc(void *ptr, size_t size);
+extern void *DohCalloc(size_t n, size_t size);
+
 #ifndef DohFree
 #define DohFree free
 #endif
@@ -440,6 +443,10 @@ extern void DohMemoryDebug(void);
 #define Next               DohNext
 #define Iterator           DohIterator
 #define SortList           DohSortList
+#define Malloc             DohMalloc
+#define Realloc            DohRealloc
+#define Calloc             DohCalloc
+#define Free               DohFree
 #endif
 
 #ifdef NIL
