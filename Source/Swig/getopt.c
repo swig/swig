@@ -32,16 +32,12 @@ static int *marked;
  * ----------------------------------------------------------------------------- */
 
 void Swig_init_args(int argc, char **argv) {
-  int i;
   assert(argc > 0);
   assert(argv);
 
   numargs = argc;
   args = argv;
-  marked = (int *) malloc(numargs * sizeof(int));
-  for (i = 0; i < argc; i++) {
-    marked[i] = 0;
-  }
+  marked = (int *) Calloc(numargs, sizeof(int));
   marked[0] = 1;
 }
 

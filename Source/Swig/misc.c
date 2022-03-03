@@ -36,7 +36,7 @@ static char *fake_version = 0;
 char *Swig_copy_string(const char *s) {
   char *c = 0;
   if (s) {
-    c = (char *) malloc(strlen(s) + 1);
+    c = (char *) Malloc(strlen(s) + 1);
     strcpy(c, s);
   }
   return c;
@@ -1251,7 +1251,7 @@ void Swig_offset_string(String *s, int number) {
   if ((Char(s))[len-1] == '\n')
     --lines;
   /* allocate a temporary storage for a padded string */
-  res = (char*)malloc(len + lines * number * 2 + 1);
+  res = (char*)Malloc(len + lines * number * 2 + 1);
   res[len + lines * number * 2] = 0;
 
   /* copy lines to res, prepending tabs to each line */
@@ -1275,7 +1275,7 @@ void Swig_offset_string(String *s, int number) {
   /* replace 's' contents with 'res' */
   Clear(s);
   Append(s, res);
-  free(res);
+  Free(res);
 }
 
 
@@ -1458,11 +1458,11 @@ String *Swig_string_regex(String *s) {
 
 String *Swig_pcre_version(void) {
   int len = pcre2_config(PCRE2_CONFIG_VERSION, NULL);
-  char *buf = malloc(len);
+  char *buf = Malloc(len);
   String *result;
   pcre2_config(PCRE2_CONFIG_VERSION, buf);
   result = NewStringf("PCRE2 Version: %s", buf);
-  free(buf);
+  Free(buf);
   return result;
 }
 

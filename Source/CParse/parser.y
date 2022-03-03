@@ -32,7 +32,7 @@
 
 /* We do this for portability */
 #undef alloca
-#define alloca malloc
+#define alloca Malloc
 
 /* -----------------------------------------------------------------------------
  *                               Externals
