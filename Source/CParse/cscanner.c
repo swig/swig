@@ -573,6 +573,9 @@ int yylex(void) {
     scanner_init();
   }
 
+  Delete(cparse_unknown_directive);
+  cparse_unknown_directive = NULL;
+
   if (next_token) {
     l = next_token;
     next_token = 0;
@@ -951,9 +954,6 @@ int yylex(void) {
 	return (yylex());
 
     } else {
-      Delete(cparse_unknown_directive);
-      cparse_unknown_directive = NULL;
-
       /* SWIG directives */
       if (strcmp(yytext, "%module") == 0)
 	return (MODULE);
