@@ -23,4 +23,8 @@ isPointer = false
 int a;
 int test2(int b = 9%a) { return b; }
 
+/* Example from manual. */
+#include <array>
+void bar(std::array<int, (1<2? 100 : 50)> *x) { }
+
 %}

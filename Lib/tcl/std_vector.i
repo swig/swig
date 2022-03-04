@@ -50,6 +50,7 @@ int Tcl_GetBoolFromObj(Tcl_Interp *interp, Tcl_Obj *o, bool *val) {
 int SwigString_AsString(Tcl_Interp *interp, Tcl_Obj *o, std::string *val) {
     int len;
     const char* temp = Tcl_GetStringFromObj(o, &len);
+    (void)interp;
     if (temp == NULL)
         return TCL_ERROR;
     val->assign(temp, len);

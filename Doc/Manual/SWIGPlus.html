@@ -3057,22 +3057,24 @@ is expected in an interface file.  For example:
 <div class="code">
 <pre>
 void foo(vector&lt;int&gt; *a, int n);
-void bar(list&lt;int, 100&gt; *x);
+void bar(std::array&lt;int, 100&gt; *x);
 </pre>
 </div>
 
 <p>
 There are some restrictions on the use of non-type arguments.  Simple literals
-are supported, and so are some constant expressions.  However, use of '&lt;'
-and '&gt;' within a constant expressions currently is not supported by SWIG
-('&lt;=' and '&gt;=' are though).  For example:
+are supported, and so are most constant expressions.  However, there are some
+limitations on the use of '&lt;' and '&gt;' in constant expressions (but note
+that '&lt;=' and '&gt;=' are fully supported).  For example:
 </p>
 
 <div class="code">
 <pre>
-void bar(list&lt;int, 100&gt; *x);                // OK
-void bar(list&lt;int, 2*50&gt; *x);               // OK
-void bar(list&lt;int, (2&gt;1 ? 100 : 50)&gt; *x)    // Not supported
+void bar(std::array&lt;int, 100&gt; *x);                // OK
+void bar(std::array&lt;int, 2*50&gt; *x);               // OK
+void bar(std::array&lt;int, (1&lt;2 ? 100 : 50)&gt; *x)    // OK
+void bar(std::array&lt;int, 1&lt;2 ? 100 : 50&gt; *x)      // Not supported
+void bar(std::array&lt;int, (2&gt;1 ? 100 : 50)&gt; *x)    // Not supported
 </pre>
 </div>
 
