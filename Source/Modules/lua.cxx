@@ -304,7 +304,7 @@ public:
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     f_runtime = NewString("");
     f_init = NewString("");

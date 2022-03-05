@@ -1782,7 +1782,7 @@ declaration    : swig_directive { $$ = $1; }
 		  } else {
 		      Swig_error(cparse_file, cparse_line, "Syntax error in input(1).\n");
 		  }
-		  SWIG_exit(EXIT_FAILURE);
+		  Exit(EXIT_FAILURE);
                }
 /* Out of class constructor/destructor declarations */
                | c_constructor_decl { 
@@ -2015,7 +2015,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 	       }
 	       | CONSTANT error END {
 		 Swig_error(cparse_file,cparse_line,"Missing semicolon (';') after %%constant.\n");
-		 SWIG_exit(EXIT_FAILURE);
+		 Exit(EXIT_FAILURE);
 	       }
                ;
 
@@ -3372,7 +3372,7 @@ c_decl_tail    : SEMI {
 		   } else {
 		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon (';').\n");
 		   }
-		   SWIG_exit(EXIT_FAILURE);
+		   Exit(EXIT_FAILURE);
                }
               ;
 
@@ -3666,7 +3666,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		    }
 		    if (err) {
 		      Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
-		      SWIG_exit(EXIT_FAILURE);
+		      Exit(EXIT_FAILURE);
 		    }
                 }
                 ;
@@ -4661,7 +4661,7 @@ cpp_members  : cpp_member cpp_members {
 	       int start_line = cparse_line;
 	       skip_decl();
 	       Swig_error(cparse_file,start_line,"Syntax error in input(3).\n");
-	       SWIG_exit(EXIT_FAILURE);
+	       Exit(EXIT_FAILURE);
 	       } cpp_members { 
 		 $$ = $3;
    	     }

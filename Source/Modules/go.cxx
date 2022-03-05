@@ -337,7 +337,7 @@ private:
 
     if (saw_nocgo_flag) {
       Printf(stderr, "SWIG -go: -no-cgo option is no longer supported\n");
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (gccgo_flag && !pkgpath_option && !prefix_option) {
@@ -356,7 +356,7 @@ private:
     // for this test to simply be taken out.
     if (intgo_type_size == 0 && !display_help) {
       Printf(stderr, "SWIG -go: -intgosize option required but not specified\n");
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (intgo_type_size == 32) {
@@ -453,7 +453,7 @@ private:
     FILE *swig_input = Swig_open(swig_filename);
     if (swig_input == NULL) {
       FileErrorDisplay(swig_filename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     String *swig_input_content = Swig_read_file(swig_input);
     siphash(&hash, Char(swig_input_content), Len(swig_input_content));
@@ -467,25 +467,25 @@ private:
     f_c_begin = NewFile(c_filename, "w", SWIG_output_files());
     if (!f_c_begin) {
       FileErrorDisplay(c_filename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (directorsEnabled()) {
       if (!c_filename_h) {
 	Printf(stderr, "Unable to determine outfile_h\n");
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       f_c_directors_h = NewFile(c_filename_h, "w", SWIG_output_files());
       if (!f_c_directors_h) {
 	FileErrorDisplay(c_filename_h);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
 
     f_go_begin = NewFile(go_filename, "w", SWIG_output_files());
     if (!f_go_begin) {
       FileErrorDisplay(go_filename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     f_c_runtime = NewString("");

@@ -316,24 +316,24 @@ public:
 
     if (!outfile) {
       Printf(stderr, "Unable to determine outfile\n");
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (directorsEnabled()) {
       if (!outfile_h) {
         Printf(stderr, "Unable to determine outfile_h\n");
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
 
@@ -670,7 +670,7 @@ public:
 	f_single_out = NewFile(filen, "w", SWIG_output_files());
 	if (!f_single_out) {
 	  FileErrorDisplay(filen);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 	Append(filenames_list, Copy(filen));
 	Delete(filen);
@@ -684,7 +684,7 @@ public:
       File *f = NewFile(filen, "w", SWIG_output_files());
       if (!f) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -2122,12 +2122,12 @@ public:
 	full_imclass_name = NewStringf("%s", imclass_name);
 	if (Cmp(proxy_class_name, imclass_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 
 	if (Cmp(proxy_class_name, module_class_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
       } else {
 	if (namespce) {
@@ -3660,7 +3660,7 @@ public:
       if (newdir_error) {
 	Printf(stderr, "%s\n", newdir_error);
 	Delete(newdir_error);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Printv(output_directory, nspace_subdirectory, SWIG_FILE_DELIMITER, 0);
       Delete(nspace_subdirectory);

@@ -126,6 +126,8 @@
 #define DohRealloc         DOH_NAMESPACE(Realloc)
 #define DohCalloc          DOH_NAMESPACE(Calloc)
 #define DohFree            DOH_NAMESPACE(Free)
+#define DohSetExitHandler  DOH_NAMESPACE(SetExitHandler)
+#define DohExit            DOH_NAMESPACE(Exit)
 #endif
 
 #define DOH_MAJOR_VERSION 0
@@ -273,6 +275,24 @@ extern void DohSetMaxHashExpand(int count);
 extern int DohGetMaxHashExpand(void);
 extern void DohSetmark(DOH *obj, int x);
 extern int DohGetmark(DOH *obj);
+
+/* Set the function for DohExit() to call instead of exit().
+ *
+ * The registered function can perform clean up, etc and then should call
+ * exit(status) to end the process.  Bear in mind that this can be called
+ * after malloc() has failed, so avoiding allocating additional memory in
+ * the registered function is a good idea.
+ *
+ * The registered function is unregistered by DohExit() before calling it to
+ * avoid the potential for infinite loops.
+ *
+ * Note: This is sort of like C's atexit(), only for DohExit().  However
+ * only one function can be registered (setting a new function overrides the
+ * previous one) and the registered function is passed the exit status and
+ * should itself call exit().
+ */
+extern void DohSetExitHandler(void (*new_handler)(int));
+extern void DohExit(int status);
 
 /* -----------------------------------------------------------------------------
  * Strings.
@@ -447,6 +467,8 @@ extern void DohMemoryDebug(void);
 #define Realloc            DohRealloc
 #define Calloc             DohCalloc
 #define Free               DohFree
+#define SetExitHandler     DohSetExitHandler
+#define Exit               DohExit
 #endif
 
 #ifdef NIL

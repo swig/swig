@@ -833,7 +833,7 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_MODEQUAL;
       } else if (c == '}') {
 	Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous '%%}'\n");
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       } else {
 	retract(s, 1);
 	return SWIG_TOKEN_PERCENT;

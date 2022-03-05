@@ -99,10 +99,10 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stdout);
-	  SWIG_exit(0);
+	  Exit(EXIT_SUCCESS);
 	} else if (strcmp(argv[i], "-where") == 0) {
 	  PrintIncludeArg();
-	  SWIG_exit(0);
+	  Exit(EXIT_SUCCESS);
 	} else if (strcmp(argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {
 	    prefix = NewString(argv[i + 1]);
@@ -228,7 +228,7 @@ public:
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     f_runtime = NewString("");
     f_init = NewString("");
@@ -311,12 +311,12 @@ public:
     String *mlfilen = NewStringf("%s%s", SWIG_output_directory(), mlfile);
     if ((f_mlout = NewFile(mlfilen, "w", SWIG_output_files())) == 0) {
       FileErrorDisplay(mlfilen);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     String *mlifilen = NewStringf("%s%s", SWIG_output_directory(), mlifile);
     if ((f_mliout = NewFile(mlifilen, "w", SWIG_output_files())) == 0) {
       FileErrorDisplay(mlifilen);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     emitBanner(f_mlout);
     emitBanner(f_mliout);

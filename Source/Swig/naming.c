@@ -1108,7 +1108,7 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
     Swig_error("SWIG", Getline(n),
                "Invalid regex \"%s\": compilation failed at %d: %s\n",
                Char(pattern), errpos, err);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   pcre2_match_data *match_data = 0;
@@ -1124,7 +1124,7 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
     Swig_error("SWIG", Getline(n),
                "Matching \"%s\" against regex \"%s\" failed: %d\n",
                Char(s), Char(pattern), rc);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   return 1;
@@ -1137,7 +1137,7 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
   (void)s;
   Swig_error("SWIG", Getline(n),
              "PCRE regex matching is not available in this SWIG build.\n");
-  SWIG_exit(EXIT_FAILURE);
+  Exit(EXIT_FAILURE);
   return 0;
 }
 

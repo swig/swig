@@ -342,7 +342,7 @@ public:
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     f_runtime = NewStringEmpty();
 
@@ -366,7 +366,7 @@ public:
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
 
@@ -438,7 +438,7 @@ public:
     f_h = NewFile(filen, "w", SWIG_output_files());
     if (!f_h) {
       FileErrorDisplay(filen);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     Swig_banner(f_h);
@@ -651,7 +651,7 @@ public:
       File *f_phpcode = NewFile(php_filename, "w", SWIG_output_files());
       if (!f_phpcode) {
 	FileErrorDisplay(php_filename);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
 
       Printf(f_phpcode, "<?php\n\n");

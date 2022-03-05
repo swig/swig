@@ -183,7 +183,7 @@ public:
     beginSection = NewFile(outputFilename, "w", SWIG_output_files());
     if (!beginSection) {
       FileErrorDisplay(outputFilename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     runtimeSection = NewString("");
     initSection = NewString("");
@@ -824,7 +824,7 @@ public:
     builderFile = NewFile(builderFilename, "w", SWIG_output_files());
     if (!builderFile) {
       FileErrorDisplay(builderFilename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     emitBanner(builderFile);
 
@@ -949,7 +949,7 @@ public:
     gatewayXMLFile = NewFile(gatewayXMLFilename, "w", SWIG_output_files());
     if (!gatewayXMLFile) {
       FileErrorDisplay(gatewayXMLFilename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     // Add a slightly modified SWIG banner to the gateway XML ("--modify" is illegal in XML)
     gatewayXML = NewString("");
@@ -1066,7 +1066,7 @@ public:
     loaderFile = NewFile(loaderFilename, "w", SWIG_output_files());
     if (!loaderFile) {
       FileErrorDisplay(loaderFilename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     emitBanner(loaderFile);

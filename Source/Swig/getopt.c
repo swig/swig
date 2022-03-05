@@ -83,11 +83,11 @@ void Swig_check_options(int check_input) {
   }
   if (error) {
     Printf(stderr, "Use 'swig -help' for available options.\n");
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
   if (check_input && marked[numargs - 1]) {
     Printf(stderr, "Must specify an input file. Use -help for available options.\n");
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 }
 
@@ -100,5 +100,5 @@ void Swig_check_options(int check_input) {
 void Swig_arg_error(void) {
   Printf(stderr, "SWIG : Unable to parse command line options.\n");
   Printf(stderr, "Use 'swig -help' for available options.\n");
-  SWIG_exit(EXIT_FAILURE);
+  Exit(EXIT_FAILURE);
 }

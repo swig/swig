@@ -371,24 +371,24 @@ public:
 
     if (!outfile) {
       Printf(stderr, "Unable to determine outfile\n");
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (directorsEnabled()) {
       if (!outfile_h) {
         Printf(stderr, "Unable to determine outfile_h\n");
-        SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
 
@@ -521,7 +521,7 @@ public:
       File *f_im = NewFile(filen, "w", SWIG_output_files());
       if (!f_im) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -576,7 +576,7 @@ public:
       File *f_module = NewFile(filen, "w", SWIG_output_files());
       if (!f_module) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -635,7 +635,7 @@ public:
       File *f_module = NewFile(filen, "w", SWIG_output_files());
       if (!f_module) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -1343,7 +1343,7 @@ public:
 	  File *f_enum = NewFile(filen, "w", SWIG_output_files());
 	  if (!f_enum) {
 	    FileErrorDisplay(filen);
-	    SWIG_exit(EXIT_FAILURE);
+	    Exit(EXIT_FAILURE);
 	  }
 	  Append(filenames_list, Copy(filen));
 	  Delete(filen);
@@ -2215,12 +2215,12 @@ public:
 
 	if (Cmp(proxy_class_name, imclass_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 
 	if (Cmp(proxy_class_name, module_class_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
       } else {
 	if (outerClassesPrefix) {
@@ -2260,7 +2260,7 @@ public:
 	f_proxy = NewFile(filen, "w", SWIG_output_files());
 	if (!f_proxy) {
 	  FileErrorDisplay(filen);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 	Append(filenames_list, Copy(filen));
 	Delete(filen);
@@ -2294,7 +2294,7 @@ public:
 	f_interface = NewFile(filen, "w", SWIG_output_files());
 	if (!f_interface) {
 	  FileErrorDisplay(filen);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 	Append(filenames_list, filen); // file name ownership goes to the list
 	emitBanner(f_interface);
@@ -3497,7 +3497,7 @@ public:
     File *f_swigtype = NewFile(filen, "w", SWIG_output_files());
     if (!f_swigtype) {
       FileErrorDisplay(filen);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     Append(filenames_list, Copy(filen));
     Delete(filen);
@@ -3712,7 +3712,7 @@ public:
       if (newdir_error) {
 	Printf(stderr, "%s\n", newdir_error);
 	Delete(newdir_error);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Printv(output_directory, nspace_subdirectory, SWIG_FILE_DELIMITER, 0);
       Delete(nspace_subdirectory);

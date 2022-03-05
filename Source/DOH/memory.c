@@ -235,6 +235,26 @@ void DohMemoryDebug(void) {
 
 }
 
+/* Function to call instead of exit(). */
+static void (*doh_exit_handler)(int) = NULL;
+
+void DohSetExitHandler(void (*new_handler)(int)) {
+  doh_exit_handler = new_handler;
+}
+
+void DohExit(int status) {
+  if (doh_exit_handler) {
+    void (*handler)(int) = doh_exit_handler;
+    /* Unset the handler to avoid infinite loops if it tries to do something
+     * which calls DohExit() (e.g. calling Malloc() and that failing).
+     */
+    doh_exit_handler = NULL;
+    handler(status);
+  } else {
+    exit(status);
+  }
+}
+
 static void allocation_failed(size_t n, size_t size) {
   /* Report and exit as directly as possible to try to avoid further issues due
    * to lack of memory. */
@@ -251,7 +271,7 @@ static void allocation_failed(size_t n, size_t size) {
     fprintf(stderr, "Failed to allocate %lu*%lu bytes\n", (unsigned long)n, (unsigned long)size);
 #endif
   }
-  exit(EXIT_FAILURE);
+  DohExit(EXIT_FAILURE);
 }
 
 void *DohMalloc(size_t size) {

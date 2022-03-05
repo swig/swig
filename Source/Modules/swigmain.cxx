@@ -247,7 +247,7 @@ int main(int margc, char **margv) {
 	    Printf(stderr, "Target language option %s (%s) is no longer supported.\n", language_module->name, language_module->help);
 	  else
 	    Printf(stderr, "Target language option %s is no longer supported.\n", language_module->name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
       } else if ((strcmp(argv[i], "-help") == 0) || (strcmp(argv[i], "--help") == 0)) {
 	if (strcmp(argv[i], "--help") == 0)

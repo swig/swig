@@ -90,7 +90,7 @@ static void collect_interface_base_classes(Node *n) {
 	if (!GetFlag(base.item, "feature:ignore")) {
 	  if (!Getattr(base.item, "feature:interface")) {
 	    Swig_error(Getfile(n), Getline(n), "Base class '%s' of '%s' is not similarly marked as an interface.\n", SwigType_namestr(Getattr(base.item, "name")), SwigType_namestr(Getattr(n, "name")));
-	    SWIG_exit(EXIT_FAILURE);
+	    Exit(EXIT_FAILURE);
 	  }
 	}
       }
@@ -114,7 +114,7 @@ static void process_interface_name(Node *n) {
     String *interface_name = Getattr(n, "feature:interface:name");
     if (!Len(interface_name)) {
       Swig_error(Getfile(n), Getline(n), "The interface feature for '%s' is missing the name attribute.\n", SwigType_namestr(Getattr(n, "name")));
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     if (Strchr(interface_name, '%')) {
       String *name = NewStringf(interface_name, Getattr(n, "sym:name"));

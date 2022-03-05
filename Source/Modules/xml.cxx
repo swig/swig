@@ -52,7 +52,7 @@ public:
 	out = NewFile(outfile, "w", SWIG_output_files());
 	if (!out) {
 	  FileErrorDisplay(outfile);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 	continue;
       }
@@ -89,7 +89,7 @@ public:
       out = NewFile(outfile, "w", SWIG_output_files());
       if (!out) {
 	FileErrorDisplay(outfile);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
     Printf(out, "<?xml version=\"1.0\" ?> \n");
@@ -310,7 +310,7 @@ void Swig_print_xml(DOH *obj, String *filename) {
     out = NewFile(filename, "w", SWIG_output_files());
     if (!out) {
       FileErrorDisplay(filename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
   }
 

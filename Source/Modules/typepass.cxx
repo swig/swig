@@ -969,7 +969,7 @@ class TypePass:private Dispatcher {
       if (Getattr(c, "sym:overloaded") != checkoverloaded) {
         Printf(stdout, "sym:overloaded error c:%p checkoverloaded:%p\n", c, checkoverloaded);
         Swig_print_node(c);
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
 
       String *decl = Strcmp(nodeType(c), "using") == 0 ? NewString("------") : Getattr(c, "decl");
@@ -977,7 +977,7 @@ class TypePass:private Dispatcher {
       if (!Getattr(c, "sym:overloaded")) {
         Printf(stdout, "sym:overloaded error.....%p\n", c);
         Swig_print_node(c);
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
       c = Getattr(c, "sym:nextSibling");
     }
