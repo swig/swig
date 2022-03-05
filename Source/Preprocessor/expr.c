@@ -443,7 +443,7 @@ int Preprocessor_expr(DOH *s, int *error) {
 
     default:
       fprintf(stderr, "Internal error in expression evaluator.\n");
-      abort();
+      Exit(EXIT_FAILURE);
     }
   }
 

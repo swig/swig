@@ -476,7 +476,8 @@ public:
       Printf(f_init, "}\n");
       break;
     default:
-      abort();			// for now
+      fputs("Fatal internal error: Invalid Guile linkage setting.\n", stderr);
+      Exit(EXIT_FAILURE);
     }
 
     if (scmstub) {

@@ -18,10 +18,6 @@
  * DohDelete()
  * ----------------------------------------------------------------------------- */
 
-#ifndef SWIG_DEBUG_DELETE
-#define SWIG_DEBUG_DELETE 0
-#endif
-
 void DohDelete(DOH *obj) {
   DohBase *b = (DohBase *) obj;
   DohObjInfo *objinfo;
@@ -29,13 +25,8 @@ void DohDelete(DOH *obj) {
   if (!obj)
     return;
   if (!DohCheck(b)) {
-#if SWIG_DEBUG_DELETE
-    fputs("DOH: Fatal error. Attempt to delete a non-doh object.\n", stderr);
-    abort();
-#else
-    assert(0);
-#endif
-    return;
+    fputs("Fatal internal error: Attempt to delete a non-DOH object.\n", stderr);
+    Exit(EXIT_FAILURE);
   }
   if (b->flag_intern)
     return;
@@ -64,13 +55,8 @@ DOH *DohCopy(const DOH *obj) {
   if (!obj)
     return 0;
   if (!DohCheck(b)) {
-#if SWIG_DEBUG_DELETE
-    fputs("DOH: Fatal error. Attempt to copy a non-doh object.\n", stderr);
-    abort();
-#else
-    assert(0);
-#endif
-    return 0;
+    fputs("Fatal internal error: Attempt to copy a non-DOH object.\n", stderr);
+    Exit(EXIT_FAILURE);
   }
   objinfo = b->type;
   if (objinfo->doh_copy) {

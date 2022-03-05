@@ -398,26 +398,18 @@ public:
    */
 
   void oc_SwigType_del_reference(SwigType *t) {
-    char *c = Char(t);
-    if (strncmp(c, "q(", 2) == 0) {
-      Delete(SwigType_pop(t));
-      c = Char(t);
+    if (SwigType_isqualifier(t)) {
+      SwigType_del_qualifier(t);
     }
-    if (strncmp(c, "r.", 2)) {
-      printf("Fatal error. SwigType_del_pointer applied to non-pointer.\n");
-      abort();
-    }
-    Replace(t, "r.", "", DOH_REPLACE_FIRST);
+    SwigType_del_reference(t);
   }
 
   void oc_SwigType_del_array(SwigType *t) {
-    char *c = Char(t);
-    if (strncmp(c, "q(", 2) == 0) {
-      Delete(SwigType_pop(t));
-      c = Char(t);
+    if (SwigType_isqualifier(t)) {
+      SwigType_del_qualifier(t);
     }
-    if (strncmp(c, "a(", 2) == 0) {
-      Delete(SwigType_pop(t));
+    if (SwigType_isarray(t)) {
+      SwigType_del_array(t);
     }
   }
 

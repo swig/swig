@@ -2055,8 +2055,7 @@ String *Preprocessor_parse(String *s) {
       break;
     default:
       Printf(stderr, "cpp: Invalid parser state %d\n", state);
-      abort();
-      break;
+      Exit(EXIT_FAILURE);
     }
   }
   while (level > 0) {
