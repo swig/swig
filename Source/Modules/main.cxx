@@ -1417,6 +1417,4 @@ static void SWIG_exit_handler(int status) {
       }
     }
   }
-
-  exit(status);
 }

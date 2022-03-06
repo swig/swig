@@ -250,9 +250,8 @@ void DohExit(int status) {
      */
     doh_exit_handler = NULL;
     handler(status);
-  } else {
-    exit(status);
   }
+  doh_internal_exit(status);
 }
 
 static void allocation_failed(size_t n, size_t size) {
@@ -275,19 +274,19 @@ static void allocation_failed(size_t n, size_t size) {
 }
 
 void *DohMalloc(size_t size) {
-  void *p = malloc(size);
+  void *p = doh_internal_malloc(size);
   if (!p) allocation_failed(1, size);
   return p;
 }
 
 void *DohRealloc(void *ptr, size_t size) {
-  void *p = realloc(ptr, size);
+  void *p = doh_internal_realloc(ptr, size);
   if (!p) allocation_failed(1, size);
   return p;
 }
 
 void *DohCalloc(size_t n, size_t size) {
-  void *p = calloc(n, size);
+  void *p = doh_internal_calloc(n, size);
   if (!p) allocation_failed(n, size);
   return p;
 }

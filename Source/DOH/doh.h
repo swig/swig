@@ -18,8 +18,9 @@
 #include "swigconfig.h"
 #endif
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /* Set the namespace prefix for DOH API functions. This can be used to control
    visibility of the functions in libraries */
@@ -278,18 +279,18 @@ extern int DohGetmark(DOH *obj);
 
 /* Set the function for DohExit() to call instead of exit().
  *
- * The registered function can perform clean up, etc and then should call
- * exit(status) to end the process.  Bear in mind that this can be called
- * after malloc() has failed, so avoiding allocating additional memory in
- * the registered function is a good idea.
+ * The registered function can perform clean up, etc.  It should simply
+ * return when done and then exit() will get called.  Bear in mind that
+ * the handler function can be called after malloc() has failed, so it's
+ * a good idea for it to avoid allocating additional memory.
  *
- * The registered function is unregistered by DohExit() before calling it to
- * avoid the potential for infinite loops.
+ * The registered handler function is unregistered by DohExit() before calling
+ * it to avoid the potential for infinite loops.
  *
  * Note: This is sort of like C's atexit(), only for DohExit().  However
  * only one function can be registered (setting a new function overrides the
- * previous one) and the registered function is passed the exit status and
- * should itself call exit().
+ * previous one) and the registered function is passed the exit status so can
+ * vary its actions based on that.
  */
 extern void DohSetExitHandler(void (*new_handler)(int));
 extern void DohExit(int status);
@@ -477,5 +478,29 @@ extern void DohMemoryDebug(void);
 
 #define NIL  (char *) NULL
 
+/* Defines to allow use of poisoned identifiers.
+ *
+ * For DOH-internal use only!
+ */
+#define doh_internal_calloc calloc
+#define doh_internal_exit exit
+/* doh_internal_free not needed as Free() is a macro defined above. */
+#define doh_internal_malloc malloc
+#define doh_internal_realloc realloc
+
+#ifdef __GNUC__
+/* Use Malloc(), Realloc(), Calloc(), and Free() instead (which will exit with
+ * an error rather than return NULL).
+ */
+# ifndef DOH_NO_POISON_MALLOC_FREE
+/* This works around bison's template checking if malloc and free are defined,
+ * which triggers GCC's poison checks.
+ */
+#  pragma GCC poison malloc free
+# pragma GCC poison realloc calloc
+# endif
+/* Use Exit() instead (which will remove output files on error). */
+# pragma GCC poison abort exit
+#endif
 
 #endif				/* DOH_H */

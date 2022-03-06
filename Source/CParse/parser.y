@@ -25,6 +25,15 @@
 %{
 #define yylex yylex
 
+/* doh.h uses #pragma GCC posion with GCC to prevent direct calls to certain
+ * standard C library functions being introduced, but those cause errors due
+ * to checks like `#if defined YYMALLOC || defined malloc` in the bison
+ * template code.  We can't easily arrange to include headers after that
+ * template code, so instead we disable the problematic poisoning for this
+ * file.
+ */
+#define DOH_NO_POISON_MALLOC_FREE
+
 #include "swig.h"
 #include "cparse.h"
 #include "preprocessor.h"
@@ -33,6 +42,9 @@
 /* We do this for portability */
 #undef alloca
 #define alloca Malloc
+
+#define YYMALLOC Malloc
+#define YYFREE Free
 
 /* -----------------------------------------------------------------------------
  *                               Externals
