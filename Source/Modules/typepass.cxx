@@ -1039,6 +1039,21 @@ class TypePass:private Dispatcher {
 	      Node *unodes = 0, *last_unodes = 0;
 	      int ccount = 0;
 	      String *symname = Getattr(n, "sym:name");
+
+	      // The overloaded functions in scope may not yet have had their parameters normalized yet (in cDeclaration).
+	      // Happens if the functions were declared after the using declaration. So use a normalized copy.
+	      List *n_decl_list = NewList();
+	      Node *over = Getattr(n, "sym:overloaded");
+	      while (over) {
+		String *odecl = Copy(Getattr(over, "decl"));
+		if (odecl) {
+		  normalize_type(odecl);
+		  Append(n_decl_list, odecl);
+		  Delete(odecl);
+		}
+		over = Getattr(over, "sym:nextSibling");
+	      }
+
 	      while (c) {
 		if (Strcmp(nodeType(c), "cdecl") == 0) {
 		  if (!(Swig_storage_isstatic(c)
@@ -1049,30 +1064,28 @@ class TypePass:private Dispatcher {
 
 		    String *csymname = Getattr(c, "sym:name");
 		    if (!csymname || (Strcmp(csymname, symname) == 0)) {
-		      {
-			String *decl = Getattr(c, "decl");
-			Node *over = Getattr(n, "sym:overloaded");
-			int match = 0;
-			while (over) {
-			  String *odecl = Getattr(over, "decl");
-			  if (Cmp(decl, odecl) == 0) {
-			    match = 1;
-			    break;
-			  }
-			  over = Getattr(over, "sym:nextSibling");
-			}
-			if (match) {
-			  /* Don't generate a method if the method is overridden in this class,
-			   * for example don't generate another m(bool) should there be a Base::m(bool) :
-			   * struct Derived : Base {
-			   *   void m(bool);
-			   *   using Base::m;
-			   * };
-			   */
-			  c = Getattr(c, "csym:nextSibling");
-			  continue;
+		      String *decl = Getattr(c, "decl");
+		      int match = 0;
+
+		      for (Iterator it = First(n_decl_list); it.item; it = Next(it)) {
+			String *odecl = it.item;
+			if (Cmp(decl, odecl) == 0) {
+			  match = 1;
+			  break;
 			}
 		      }
+		      if (match) {
+			/* Don't generate a method if the method is overridden in this class,
+			 * for example don't generate another m(bool) should there be a Base::m(bool) :
+			 * struct Derived : Base {
+			 *   void m(bool);
+			 *   using Base::m;
+			 * };
+			 */
+			c = Getattr(c, "csym:nextSibling");
+			continue;
+		      }
+
 		      Node *nn = copyNode(c);
 		      Setfile(nn, Getfile(n));
 		      Setline(nn, Getline(n));
@@ -1206,6 +1219,7 @@ class TypePass:private Dispatcher {
 #endif
 		clean_overloaded(n);	// Needed?
 	      }
+	      Delete(n_decl_list);
 	    }
 	  }
 	} else if ((Strcmp(ntype, "class") == 0) || ((Strcmp(ntype, "classforward") == 0))) {
