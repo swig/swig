@@ -7,6 +7,8 @@ class check {
 
   private static $_extension = null;
 
+  private static $_werror = false;
+
   // This is called automatically at the end of this file.
   static function init() {
     foreach(get_included_files() as $f) {
@@ -19,6 +21,10 @@ class check {
     }
 
     self::$_extension = new ReflectionExtension($module_name);
+  }
+
+  static function werror($v) {
+    self::$_werror = $v;
   }
 
   static function classname($string,$object) {
@@ -139,6 +145,23 @@ class check {
 
   }
 
+  static function constants($constants) {
+    if (! is_array($constants)) $constants=array($constants);
+    $message=array();
+    $missing=array();
+    $extra = self::$_extension->getConstants();
+    unset($extra['swig_runtime_data_type_pointer']);
+    foreach($constants as $constant) {
+      if (! defined($constant)) $missing[]=$constant;
+      else unset($extra[$constant]);
+    }
+    if ($missing) $message[]=sprintf("Constants missing: %s",join(",",$missing));
+    if ($message) return check::fail(join("\n  ",$message));
+    if ($extra) $message[]=sprintf("These extra constants are defined: %s",join(",",array_keys($extra)));
+    if ($message) return check::warn(join("\n  ",$message));
+    return TRUE;
+  }
+
   static function functionref($a,$type,$message) {
     if (! preg_match("/^_[a-f0-9]+$type$/i", $a))
       return check::fail($message);
@@ -167,6 +190,7 @@ class check {
 
   static function warn($pattern) {
     $args=func_get_args();
+    if (self::$_werror) self::fail($pattern);
     print("Warning on: ".call_user_func_array("sprintf",$args)."\n");
     return FALSE;
   }
