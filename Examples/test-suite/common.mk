@@ -88,7 +88,6 @@ CPP_TEST_BROKEN += \
 	extend_variable \
 	li_boost_shared_ptr_template \
 	nested_private \
-	rename_camel \
 	template_default_pointer \
 	template_private_assignment \
 	template_expr \
@@ -377,6 +376,7 @@ CPP_TEST_CASES += \
 	rename2 \
 	rename3 \
 	rename4 \
+	rename_camel \
 	rename_rstrip_encoder \
 	rename_scope \
 	rename_simple \
