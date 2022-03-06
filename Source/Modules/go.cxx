@@ -377,7 +377,7 @@ private:
   /* ---------------------------------------------------------------------
    * top()
    *
-   * For 6g/8g, we are going to create the following files:
+   * For gc, we are going to create the following files:
    *
    * 1) A .c or .cxx file compiled with gcc.  This file will contain
    *    function wrappers.  Each wrapper will take a pointer to a
@@ -5284,7 +5284,7 @@ private:
    * gcCTypeForGoValue()
    *
    * Given a type, return the C/C++ type which will be used to catch
-   * the value in Go.  This is the 6g/8g version.
+   * the value in Go.  This is the gc version.
    * ---------------------------------------------------------------------- */
 
   String *gcCTypeForGoValue(Node *n, SwigType *type, String *name) {
@@ -5293,7 +5293,19 @@ private:
 
     String *tail = NewString("");
     SwigType *t = SwigType_typedef_resolve_all(type);
-    if (!SwigType_isreference(t)) {
+    bool is_const_ref = false;
+    if (SwigType_isreference(t)) {
+      SwigType* tt = Copy(t);
+      SwigType_del_reference(tt);
+      if (SwigType_isqualifier(tt)) {
+	String* q = SwigType_parm(tt);
+	if (Strcmp(q, "const") == 0) {
+	  is_const_ref = true;
+	}
+      }
+      Delete(tt);
+    }
+    if (!is_const_ref) {
       while (Strncmp(gt, "*", 1) == 0) {
 	Replace(gt, "*", "", DOH_REPLACE_FIRST);
 	Printv(tail, "*", NULL);
@@ -5434,17 +5446,6 @@ private:
     Append(ret, name);
     Delete(tail);
     return ret;
-  }
-
-  /* ----------------------------------------------------------------------
-   * gccgoCTypeForGoValue()
-   *
-   * Given a type, return the C/C++ type which will be used to catch
-   * the value in Go.  This is the gccgo version.
-   * ---------------------------------------------------------------------- */
-
-  String *gccgoCTypeForGoValue(Node *n, SwigType *type, String *name) {
-    return gcCTypeForGoValue(n, type, name);
   }
 
   /* ----------------------------------------------------------------------
