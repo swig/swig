@@ -2330,20 +2330,24 @@ shared_ptr which has <tt>%naturalvar</tt> turned on in
 <tt>%shared_ptr</tt>.
 </p>
 
-<H4><a name="Library_attribute_templates">12.5.2.1 &percnt;attribute and C++ templates</a></H4>
-<tt>%attribute</tt> and friends have to be used on fully instantiated templates. For example
+<H4><a name="Library_attribute_templates">12.5.2.1 %attribute and C++ templates</a></H4>
+<p>
+  <tt>%attribute</tt> and friends have to be used on fully specified classes. For example
+</p>
 <div class="code">
 <pre>
 %attributeref(A&lt;int&gt;, int, a);
 %inline %{
-  template &lt;class T&gt; struct A
-  {
+  template &lt;class T&gt; struct A {
     T a() const;
-    void a(T&);
+    void a(T &);
   };
 %}
 </pre>
 </div>
-This means that it has to be repeated if you want to use different instantiations.
+<p>
+Note the use of a template-id (i.e., <tt>A&lt;int&gt;</lt> not <tt>A&lt;T&gt;</tt> or just <tt>A</tt>).
+This means that <tt>%attribute</tt> statements have to be repeated for any template-id that you want to use with <tt>%template</tt>.
+</p>
 </body>
 </html>
