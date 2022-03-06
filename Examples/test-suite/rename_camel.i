@@ -5,7 +5,7 @@
 
 %inline {
   struct GeometryFactory {
-    void createPointFromInternalCoord(int);
+    void createPointFromInternalCoord(int) {}
     void BIG_METHOD(int) {}
   };  
 
@@ -34,28 +34,28 @@
 // utitle is an alias for undercase.
 %rename("%(utitle)s") UnderCase3;
 
-// This should upper-case "import", but "hi_there" should be handled by the
-// rule below and become "Hi_there".
-%rename("%(regex:/(.*i.*)/\\U\\1/)s") "";
+// This should change upper-case "import", but "hi_there" should be handled by the
+// rule below and become "HI_THERE".
+%rename("%(regex:/(.*i.*)/\\u\\1/)s") "";
 
-%rename("%(title)s",regexmatch$parentNode$type="enum .*") "";
+%rename("%(upper)s",regexmatch$parentNode$type="enum .*") "";
 
 %inline 
 {
-  int CamelCase(int);
-  int camel_case_1(int);
-  int camel_case_2(int);
-  int camel_case_3(int);
+  void CamelCase(int) {}
+  void camel_case_1(int) {}
+  void camel_case_2(int) {}
+  void camel_case_3(int) {}
 
-  int under_case(int);
-  int UnderCase1(int);
-  int UnderCase2(int);
-  int UnderCase3(int);
+  void under_case(int) {}
+  void UnderCase1(int) {}
+  void UnderCase2(int) {}
+  void UnderCase3(int) {}
 
-  int lowerCamelCase(int);
-  int Lower_camel_case_1(int);
-  int Lower_camel_case_2(int);
-  int Lower_camel_case_3(int);
+  void lowerCamelCase(int) {}
+  void Lower_camel_case_1(int) {}
+  void Lower_camel_case_2(int) {}
+  void Lower_camel_case_3(int) {}
 
   enum HelloEnum {
     hello, hi_there
@@ -65,15 +65,11 @@
     bye, see_you
   };
 
-  int import(int);
-  int foo(int);
-  
+  void import(int) {}
+  void foo(int) {}
 }
 
 %rename("%(lowercase)s",sourcefmt="%(regex:/GSL_(.*)/\\1/)s",%$isfunction) "";
 %inline {
   void GSL_Hello() {}
 }
-
-
-
