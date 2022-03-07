@@ -1093,6 +1093,9 @@ class TypePass:private Dispatcher {
 		      Setattr(nn, "access", Getattr(n, "access"));
 		      if (!Getattr(nn, "sym:name"))
 			Setattr(nn, "sym:name", symname);
+		      Symtab *st = Getattr(n, "sym:symtab");
+		      assert(st);
+		      Setattr(nn, "sym:symtab", st);
 
 		      if (!GetFlag(nn, "feature:ignore")) {
 			ParmList *parms = CopyParmList(Getattr(c, "parms"));
