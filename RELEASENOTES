@@ -10,6 +10,10 @@ published on the SWIG web site at http://swig.org/release.html.
 SWIG-4.1.0 summary:
 - Add PHP 8 support.
 - PHP wrapping is now done entirely via PHP's C API - no more .php wrapper.
+- Perl 5.8.0 is now the oldest version SWIG supports.
+- Common cases of `<` and `>` comparisons in constant expressions are now
+  supported.
+- GitHub Actions is now used instead of Travis CI for continuous integration.
 
 SWIG-4.0.2 summary:
 - A few fixes around doxygen comment handling.

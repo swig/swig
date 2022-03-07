@@ -1520,7 +1520,7 @@ function
 nil
 &gt;
 </pre></div>
-<p> This behaviour was changed. Now unless -squash-bases option is provided, Derived store a list of it's bases and if some symbol is not found in it's own service tables
+<p> This behaviour was changed. Now unless -squash-bases option is provided, Derived stores a list of its bases and if some symbol is not found in its own service tables
 then its bases are searched for it. Option -squash-bases will effectively return old behaviour.
 </p>
 
@@ -1638,7 +1638,7 @@ More details can be found in the <a href="Library.html#Library_carrays">carrays.
 
 <div class="code"><pre>// using the C-array
 %include &lt;carrays.i&gt;
-// this declares a batch of function for manipulating C integer arrays
+// this declares a batch of functions for manipulating C integer arrays
 %array_functions(int, int)
 
 extern void sort_int(int* arr, int len); // the function to wrap
@@ -1997,10 +1997,10 @@ So when 'p:Print()' is called, the __index looks on the object metatable for a '
 In theory, you can play with this usertable &amp; add new features, but remember that it is a shared table between all instances of one class, and you could very easily corrupt the functions in all the instances.
 </p>
 <p>
-Note: Both the opaque structures (like the FILE*) and normal wrapped classes/structs use the same 'swig_lua_userdata' structure. Though the opaque structures has do not have a metatable attached, or any information on how to dispose of them when the interpreter has finished with them.
+Note: Both the opaque structures (like the FILE*) and normal wrapped classes/structs use the same 'swig_lua_userdata' structure. Though the opaque structures do not have a metatable attached, or any information on how to dispose of them when the interpreter has finished with them.
 </p>
 <p>
-Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the class' metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming its an operator overload.
+Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the class' metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming it's an operator overload.
 </p>
 <H3><a name="Lua_nn38">29.7.3 Memory management</a></H3>
 

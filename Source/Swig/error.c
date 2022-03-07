@@ -209,14 +209,14 @@ void Swig_warnfilter(const_String_or_char_ptr wlist, int add) {
 	  Insert(filter, 0, "-");
 	}
       } else {
-	char *temp = (char *)malloc(sizeof(char)*strlen(c) + 2);
+	char *temp = (char *)Malloc(sizeof(char)*strlen(c) + 2);
 	if (isdigit((int) *c)) {
 	  sprintf(temp, "-%s", c);
 	} else {
 	  strcpy(temp, c);
 	}
 	Replace(filter, temp, "", DOH_REPLACE_FIRST);
-        free(temp);
+	Free(temp);
       }
     }
     c = strtok(NULL, ", ");

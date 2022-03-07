@@ -1,7 +1,7 @@
-<?
+<?php
 require "tests.php";
 
-check::functions(array('is_python_builtin'));
+check::functions(array());
 check::classes(array('A','E1','E2','E3','exception_order','ET_i','ET_d'));
 check::globals(array('efoovar','foovar','cfoovar'));
 
@@ -35,3 +35,5 @@ try {
 } catch (Exception $e) {
     check::equal($e->getMessage(), 'C++ E2 * exception thrown', '');
 }
+
+check::done();

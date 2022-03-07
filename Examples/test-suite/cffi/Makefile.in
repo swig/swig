@@ -44,7 +44,7 @@ run_testcase = \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(CFFI) -batch -s $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
-# Clean: (does nothing, we dont generate extra cffi code)
+# Clean: (does nothing, we don't generate extra cffi code)
 %.clean:
 	@rm -f $*.fasl
 	@rm -f $*.lisp

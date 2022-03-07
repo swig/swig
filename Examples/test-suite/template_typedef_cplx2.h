@@ -113,6 +113,8 @@ namespace vfncs {
 #ifndef SWIG
 
 // Initialize these static class members
+// XXX Since this is a header file, the following creates the symbols in *each* SWIG _wrap.cxx file. Linking the resulting SWIG modules together may result in
+// duplicate symbol link errors.
 
 const char* const arith_traits< double, double >::arg_type = "double";
 const char* const arith_traits< double, double >::res_type = "double";

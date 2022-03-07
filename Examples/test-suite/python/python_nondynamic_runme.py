@@ -1,9 +1,5 @@
 import python_nondynamic
 
-def is_python_modern():
-    """Return True if SWIG is generating Python code using -modern. Works only if %python_nondynamic has been used."""
-    return hasattr(python_nondynamic, "_swig_setattr_nondynamic_class_variable")
-
 def debug_print(s):
     show_debug = False
     if show_debug:
@@ -66,7 +62,7 @@ except AttributeError as e:
 cc = python_nondynamic.C()
 cc.d = 3
 
-# An inconsistency between builtin and (non-builtin/modern).
+# An inconsistency between builtin and non-builtin.
 # Class variables cannot be set on builtin types, like other Python builtins, eg list.classvar=111 fails
 if python_nondynamic.is_python_builtin():
     try:
@@ -78,8 +74,8 @@ if python_nondynamic.is_python_builtin():
 else:
     python_nondynamic.C.classvar = 111
 
-if is_python_modern() and not python_nondynamic.is_python_builtin():
-    # Not working with builtin or non-modern :(
+if not python_nondynamic.is_python_builtin():
+    # Not working with builtin :(
     try:
         B.a = 10
         raise RuntimeError("B should not allow adding a class variable by setting it as an instance variable")

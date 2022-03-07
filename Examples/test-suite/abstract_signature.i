@@ -7,8 +7,8 @@
 class abstract_foo 
 { 
 public: 
-  abstract_foo() { }; 
-  virtual ~abstract_foo() { }; 
+  abstract_foo() { }
+  virtual ~abstract_foo() { }
   virtual int   meth(int meth_param) = 0; 
 }; 
  
@@ -16,9 +16,9 @@ public:
 class abstract_bar : public abstract_foo 
 { 
 public: 
-  abstract_bar() { }; 
+  abstract_bar() { }
  
-  virtual ~abstract_bar() { }; 
+  virtual ~abstract_bar() { }
   virtual int   meth(int meth_param) = 0; 
   int           meth(int meth_param_1, int meth_param_2) { return 0; }
 }; 

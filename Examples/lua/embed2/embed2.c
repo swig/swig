@@ -41,7 +41,7 @@ extern int luaopen_example(lua_State*L);
 
 /* This is an example of how to call the Lua function
     int add(int,int) 
-  its very tedious, but gives you an idea of the issues involved.
+  it's very tedious, but gives you an idea of the issues involved.
   (look below for a better idea)
 */
 int call_add(lua_State *L,int a,int b,int* res) {
@@ -75,7 +75,7 @@ int call_add(lua_State *L,int a,int b,int* res) {
   return 1;
 }
 
-/* This is a variargs call function for calling from C into Lua.
+/* This is a varargs call function for calling from C into Lua.
 Original Code from Programming in Lua (PIL) by Roberto Ierusalimschy
 ISBN 85-903798-1-7 
 http://www.lua.org/pil/25.3.html
@@ -186,7 +186,7 @@ int main(int argc,char* argv[]) {
   luaopen_base(L);
   luaopen_string(L);
   luaopen_math(L);
-  printf("[C] now loading the SWIG wrappered library\n");
+  printf("[C] now loading the SWIG wrapped library\n");
   luaopen_example(L);
   printf("[C] all looks ok\n");
   printf("\n");
@@ -226,8 +226,8 @@ int main(int argc,char* argv[]) {
   printf("\n");
   printf("[C] Note: no protection if you mess up the va-args, this is C\n");
   printf("\n");
-  printf("[C] Finally we will call the wrappered gcd function gdc(6,9):\n");
-  printf("[C] This will pass the values to Lua, then call the wrappered function\n");
+  printf("[C] Finally we will call the wrapped gcd function gdc(6,9):\n");
+  printf("[C] This will pass the values to Lua, then call the wrapped function\n");
   printf("    Which will get the values from Lua, call the C code \n");
   printf("    and return the value to Lua and eventually back to C\n");
   printf("[C] Certainly not the best way to do it :-)\n");

@@ -51,6 +51,8 @@ check::equal(gettype(preproc_constants_c::EXPR_PLUS), "integer", "preproc_consta
 check::equal(gettype(preproc_constants_c::EXPR_MINUS), "integer", "preproc_constants.EXPR_MINUS has unexpected type");
 check::equal(gettype(preproc_constants_c::EXPR_LSHIFT), "integer", "preproc_constants.EXPR_LSHIFT has unexpected type");
 check::equal(gettype(preproc_constants_c::EXPR_RSHIFT), "integer", "preproc_constants.EXPR_RSHIFT has unexpected type");
+check::equal(gettype(preproc_constants_c::EXPR_LT), "integer", "preproc_constants.EXPR_LTE has unexpected type");
+check::equal(gettype(preproc_constants_c::EXPR_GT), "integer", "preproc_constants.EXPR_GTE has unexpected type");
 check::equal(gettype(preproc_constants_c::EXPR_LTE), "integer", "preproc_constants.EXPR_LTE has unexpected type");
 check::equal(gettype(preproc_constants_c::EXPR_GTE), "integer", "preproc_constants.EXPR_GTE has unexpected type");
 check::equal(gettype(preproc_constants_c::EXPR_INEQUALITY), "integer", "preproc_constants.EXPR_INEQUALITY has unexpected type");
@@ -64,3 +66,5 @@ check::equal(gettype(preproc_constants_c::EXPR_CONDITIONAL), "double", "preproc_
 check::equal(gettype(preproc_constants_c::EXPR_MIXED1), "double", "preproc_constants.EXPR_MIXED1 has unexpected type");
 check::equal(gettype(preproc_constants_c::EXPR_WCHAR_MAX), "integer", "preproc_constants.EXPR_WCHAR_MAX has unexpected type");
 check::equal(gettype(preproc_constants_c::EXPR_WCHAR_MIN), "integer", "preproc_constants.EXPR_WCHAR_MIN has unexpected type");
+
+check::done();

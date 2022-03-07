@@ -14,6 +14,8 @@
            return *this;
        }
    public:
+       Foo() { }
+       Foo(const Foo &f) { } // copy ctor can still be public, however.
        void bar() { }
    };
 

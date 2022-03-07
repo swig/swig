@@ -7,6 +7,431 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-07: olly
+	    [Javascript] #682 Fix handling of functions which take void*.
+
+2022-03-06: olly
+	    SWIG should now reliably exit with status 0 if the run was
+	    successful and status 1 if there was an error (or a warning and
+	    -Werror was in effect).
+
+	    Previously in some situations SWIG would try to exit with the
+	    status set to the number of errors encountered, but that's
+	    problematic - for example if there were 256 errors this would
+	    result in exit status 0 on most platforms.  Also some error
+	    statuses have special meanings e.g. those defined by <sysexits.h>.
+	    Also SWIG/Javascript tried to exit with status -1 in a few places
+	    (which typically results in exit status 255).
+
+2022-03-03: olly
+	    #1901 #2223 SWIG should now always exit cleanly if memory
+	    allocation fails, including removing any output files created
+	    during the current run.
+
+	    Previously most places in the code didn't check for a NULL return
+	    from malloc()/realloc()/calloc() at all, typically resulting in
+	    undefined behaviour; some places used assert() to check for a NULL
+	    return (which is a misuse of assert() and such checks disappear if
+	    built with NDEBUG defined leaving us back with undefined
+	    behaviour).
+
+2022-03-03: olly
+	    #891 Report errors for typemap attributes without a value
+	    (previously SWIG segfaulted) and for typemap types with a value
+	    (previously the value was quietly ignored).
+
+	    The old way of specifying a language name in the typemap attributes
+	    is no longer supported (it has been deprecated for 16 years).
+
+2022-03-02: geographika, wsfulton
+            [Python] #1951 Add Python variable annotations support.
+
+            Both function annotations and variable annotations are turned on using the
+            "python:annotations" feature. Example:
+
+              %feature("python:annotations", "c");
+
+              struct V {
+                float val;
+              };
+
+            The generated code contains a variable annotation containing the C float type:
+
+              class V(object):
+                  val: "float" = property(_example.V_val_get, _example.V_val_set)
+                  ...
+
+            Python 3.5 and earlier do not support variable annotations, so variable
+            annotations can be turned off with a "python:annotations:novar" feature flag.
+            Example turning on function annotations but not variable annotations globally:
+
+              %feature("python:annotations", "c");
+              %feature("python:annotations:novar");
+
+            or via the command line:
+
+              -features python:annotations=c,python:annotations:novar
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2022-02-27: wsfulton
+            [Python] #735 #1561 Function annotations containing C/C++ types are no longer
+            generated when using the -py3 option. Function annotations support has been
+            moved to a feature to provide finer grained control. It can be turned on
+            globally by adding:
+
+              %feature("python:annotations", "c");
+
+            or by using the command line argument:
+
+              -features python:annotations=c
+
+            Also see entry dated 2022-03-02, regarding variable annotations.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2022-02-26: wsfulton
+            #655 #1840 Add new warning WARN_LANG_USING_NAME_DIFFERENT to warn when a
+            method introduced by a using declaration in a derived class cannot
+            be used due to a conflict in names.
+
+2022-02-24: olly
+	    #1465 An invalid preprocessor expression is reported as a pair of
+	    warnings with the second giving a more detailed message from the
+	    expression evaluator.  Previously SWIG prefixed the second message
+	    with "Error:" - that was confusing as it's actually only a warning
+	    by default so we've now dropped this prefix.
+
+	    Before:
+
+	    x.i:1: Warning 202: Could not evaluate expression '1.2'
+	    x.i:1: Warning 202: Error: 'Floating point constant in preprocessor expression'
+
+	    Now:
+
+	    x.i:1: Warning 202: Could not evaluate expression '1.2'
+	    x.i:1: Warning 202: Floating point constant in preprocessor expression
+
+2022-02-23: olly
+	    #1384 Fix a preprocessor expression evaluation bug.  A
+	    subexpression in parentheses lost its string/int type flag and
+	    instead used whatever type was left in the stack entry from
+	    previous use.  In practice we mostly got away with this because
+	    most preprocessor expressions are integer, but it could have
+	    resulted in a preprocessor expression incorrectly evaluating as
+	    zero.  If -Wextra was in use you got a warning:
+
+	    Warning 202: Error: 'Can't mix strings and integers in expression'
+
+2022-02-21: davidcl
+	    [Scilab] Improve 5.5.2, 6.0.0 and 6.1.0 support.
+
+	    For Scilab 5, long names are reduced to small names preserving the 
+	    class prefix and accessor suffix (get or set).
+
+	    For Scilab 6, long names with the class prefix and accessor suffix
+	    should be used on the user code.
+
+	    The `-targetversion` option has been removed as the generated code
+	    now detects the Scilab version in loader.sce or builder.sce.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2022-02-20: wsfulton
+            Fix %warnfilter warning suppress for warning 315 SWIGWARN_PARSE_USING_UNDEF.
+
+2022-02-17: olly
+	    [PHP] https://sourceforge.net/p/swig/bugs/1211/
+	    Fix to call cleanup code in exception situations and not to invoke
+	    the freearg typemap twice in certain situations.
+
+2022-02-15: olly
+	    #300 #368 Improve parser handling of % followed immediately by
+	    an identifier.  If it's not a recognised directive the scanner
+	    now emits MODULO and then rescans what follows, and if the parser
+	    then gives a syntax error we report it as an unknown directive.
+	    This means that `a%b` is now allowed in an expression, and that
+	    things like `%std::vector<std::string>` now give an error rather
+	    than being quietly ignored.
+
+2022-02-11: adr26
+            [Python] #2154 Fix memory leak.
+
+            SWIG python objects were being freed after the corresponding SWIG
+            module information was destroyed in Python 3, causing leaks when as
+            a result the object destructor could not be invoked. To prevent this
+            misordering, SWIG python objects now obtain a reference to the
+            Python capsule wrapping the module information, so that the module
+            information is correctly destroyed after all SWIG python objects
+            have been freed (and corresponding destructors invoked).
+
+2022-02-10: olly
+	    [Tcl] https://sourceforge.net/p/swig/bugs/1207/
+	    https://sourceforge.net/p/swig/bugs/1213/
+
+	    Fix Tcl generic input typemap for std::vector.
+
+2022-02-07: sethrj
+            #2196 Add alternative syntax for specifying fragments in typemaps.
+
+            New syntax:
+              %typemap("in", fragment="frag1", fragment="frag2", fragment="frag3") {...}
+            which is equivalent to:
+              %typemap(in, fragment="frag1,frag2,frag3") {...}
+
+
+2022-02-07: olly
+	    #1806 Remove support for the "command" encoder, which was mostly
+	    intended for use in `%rename` - most uses can be achieved using
+	    the "regex" encoder, so we recommend using that instead.
+
+	    The "command" encoder suffers from a number of issues - as the
+	    documentation for it admitted, "[it] is extremely slow compared to
+	    all the other [encoders] as it involves spawning a separate process
+	    and using it for many declarations is not recommended" and that it
+	    "should generally be avoided because of performance
+	    considerations".
+
+	    But it's also not portable.  The design assumes that `/bin/sh`
+	    supports `<<<` but that's a bash-specific feature so it doesn't
+	    work on platforms where `/bin/sh` is not bash - it fails on
+	    Debian, Ubuntu and probably some other Linux distros, plus most
+	    non-Linux platforms.  Microsoft Windows doesn't even have a
+	    /bin/sh as standard.
+
+	    Finally, no escaping of the passed string is done, so it has
+	    potential security issues (though at least with %rename the input
+	    is limited to valid C/C++ symbol names).
+
+2022-02-06: olly
+	    #2193 -DFOO on the SWIG command line now sets FOO to 1 for
+	    consistency with C/C++ compiler preprocessors.  Previously
+	    SWIG set FOO to an empty value.
+
+2022-02-06: sethrj
+	    #2194 Classes that are non-assignable due to const data or const
+	    reference members are now automatically detected.
+
+2022-02-04: friedrichatgc
+	    [Octave] #1672 Fix for isobject for Octave 4.4 - 6.0.
+
+2022-02-03: olly
+	    [C#] #283 #998 Fix memory leak in directorin typemap for
+	    std::string.
+
+2022-02-03: olly
+	    [Python] #967 Make `self` parameter available to user typemaps.
+
+2022-02-03: teythoon
+	    [Python] #801 Fix -Wunused-parameter warnings with builtin,
+
+2022-02-03: teythoon
+	    #801 Fix -Wstrict-prototypes warnings in generated pointer
+	    functions.
+
+2022-02-03: olly
+	    #660 https://sourceforge.net/p/swig/bugs/1081/
+	    Default parameter values containing method calls are now parsed and
+	    handled - e.g. `x->foo(3,4)` and `y.z()`.
+
+2022-02-02: olly
+	    [Ruby] https://sourceforge.net/p/swig/bugs/1136/ Fix remove of prefix
+	    from method name to only remove it at the start.
+
+2022-02-01: olly
+	    #231 Handle returning an object by reference in a C++ trailing
+	    return type.
+
+2022-02-01: davidcl
+            [Scilab] #745 use SWIG_<module>_Init() as a C module init function.
+
+2022-02-01: olly
+	    [OCaml] #2083 Fix to work when CAML_SAFE_STRING is on, which it is
+	    by default in recent Ocaml releases.
+
+2022-01-31: mreeez
+	    https://sourceforge.net/p/swig/bugs/1147/
+	    Fix copyToR() generated for a struct in a namespace.
+
+2022-01-29: fschlimb
+	    #655 Better handling of using declarations.
+
+2022-01-29: dontpanic92
+	    [Go] #676 Fix code generated for a C++ class with a non-capitalised
+	    name.
+
+2022-01-26: trex58
+	    #1919 #1921 #1923 Various fixes for AIX portability.
+
+2022-01-26: olly
+	    #1935 Don't crash on an unclosed HTML tag in a doxygen comment
+	    when -doxygen is specified.
+
+2022-01-25: olly
+	    Constant expressions now support member access with `.` such as
+	    `foo.bar`.  Previous this only worked in a case like `x->foo.bar`.
+
+2022-01-25: olly
+	    #2091 Support most cases of `sizeof` applied to an expression
+	    in constant expressions.  Previously there was only support for
+	    `sizeof(<type>)` and expressions which syntactically look like a
+	    type (such as `sizeof(foo)`).
+
+2022-01-25: olly
+	    #80 #635 https://sourceforge.net/p/swig/bugs/1139/
+	    Add support for parsing common cases of `<` and `>` comparisons
+	    in constant expressions.  Adding full support for these seems hard
+	    to do without introducing conflicts into the parser grammar, but in
+	    fact all reported cases have had parentheses around the comparison
+	    and we can support that with a few restrictions on the left side of
+	    `<`.
+
+2022-01-25: wsfulton
+            New warning 327 for extern templates, eg:
+
+              extern template class std::vector<int>;
+              extern template void Func<int>();
+
+            results in warning
+
+              example.i:3: Warning 327: Extern template ignored.
+              example.i:4: Warning 327: Extern template ignored.
+
+            Extern template classes previously resulted in warning 320.
+
+2022-01-24: romintomasetti
+            #2131 #2157 C++11 extern function template parsing error fix.
+
+2022-01-21: wsfulton
+            #2120 #2138 Replace legacy PCRE dependency with PCRE2.
+            This requires changes for building SWIG from source. See updated
+            html documentation in Preface.html and Windows.html. Updated
+            instructions are also shown when running ./configure if PCRE2 is not
+            found. Note that debian based systems can install PCRE2 using:
+
+              apt install libpcre2-dev
+
+            Note that https://github.com/swig/swig/wiki/Getting-Started also has
+            updated information for building from source.
+
+2022-01-19: olly
+	    [PHP] #2027 Automatically generate PHP type declarations for PHP 8.
+	    The generate code still compiles for PHP 7.x, but without type
+	    declarations since PHP 7.x has much more limited type declaration
+	    support.
+
+2022-01-18: olly
+	    [Perl] #1629 Perl 5.8.0 is now the oldest version we aim to support.
+
+2022-01-14: wsfulton
+            [Python] Fix %callback and specifying the callback function as a
+            static member function using Python staticmethod syntax, such as
+            Klass.memberfunction instead of Klass_memberfunction when using
+            -builtin and -fastproxy.
+
+2022-01-11: wsfulton
+            [Python] Accept keyword arguments accessing static member functions when
+            using -builtin and kwargs feature and Python class staticmethod syntax.
+            The missing keyword argument support was only when using the
+            class staticmethod syntax, such as Klass.memberfunction, and not when
+            using the flat static method syntax, such as Klass_memberfunction.
+
+2022-01-04: juierror
+            [Go] #2045 Add support for std::array in std_array.i.
+
+2021-12-18: olly
+	    [PHP] Add PHP keyword 'readonly' (added in 8.1) to the list SWIG
+	    knows to automatically rename.  This keyword is special in that PHP
+	    allows it to be used as a function (or method) name.
+
+2021-12-07: vstinner
+            [Python] #2116 Python 3.11 support: use Py_SET_TYPE()
+
+2021-12-05: rwf1
+            [Octave] #2020 #1893 Add support for Octave 6 up to and including 6.4.
+            Also add support for compiling with -Bsymbolic which is used by default
+            by mkoctfile.
+
+2021-12-02: jsenn
+            [Python] #2102 Fixed crashes when using embedded Python interpreters. 
+
+2021-11-12: wsfulton
+            [Javascript] v8 and node only. Fix mismatched new char[] and free()
+            when wrapping C code char arrays. Now calloc is now used instead of
+            new char[] in SWIG_AsCharPtrAndSize.
+
+2021-10-03: ajrh1
+            [Perl] #2074: Avoid -Wmisleading-indentation in generated code
+            when using gcc11.
+
+2021-10-03: jschueller
+            [CMake] #2065: Add option to enable or disable PCRE support.
+
+2021-09-16: ianlancetaylor
+            [Go] Improved _cgo_panic implementation.
+
+2021-09-16: ianlancetaylor
+            [Go] Don't use crosscall2 for panicking. Instead rely on documented
+            and exported interfaces.
+
+2021-09-14: ianlancetaylor
+            [Go] Remove -no-cgo option (long unsupported in Go)
+
+2021-05-04: olly
+	    [PHP] #2014 Throw PHP exceptions instead of using PHP errors
+
+	    PHP exceptions can be caught and handled if desired, but if they
+	    aren't caught then PHP exits in much the same way as it does for a
+	    PHP error.
+
+	    In particular this means parameter type errors and some other cases
+	    in SWIG-generated wrappers now throw a PHP exception, which matches
+	    how PHP's native parameter handling deals with similar situations.
+
+	    `SWIG_ErrorCode()`, `SWIG_ErrorMsg()`, `SWIG_FAIL()` and `goto thrown;`
+	    are no longer supported (these are really all internal implementation
+	    details and none are documented aside from brief mentions in CHANGES
+	    for the first three).  I wasn't able to find any uses in user interface
+	    files at least in FOSS code via code search tools.
+
+	    If you are using these:
+
+	    Use `SWIG_PHP_Error(code,msg);` instead of `SWIG_ErrorCode(code);
+	    SWIG_ErrorMsg(msg);` (which will throw a PHP exception in SWIG >= 4.1
+	    and do the same as the individual calls in older SWIG).
+
+	    `SWIG_FAIL();` and `goto thrown;` can typically be replaced with
+	    `SWIG_fail;`.  This will probably also work with older SWIG, but
+	    please test with your wrappers if this is important to you.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2021-05-17: adr26
+            [Python] #1985 Fix memory leaks:
+
+            1. Python object references were being incorrectly retained by
+            SwigPyClientData, causing swig_varlink_dealloc() never to run / free
+            memory. SwigPyClientData_New() / SwigPyClientData_Del() were updated
+            to fix the object reference counting, causing swig_varlink_dealloc()
+            to run and the memory swig_varlink owns to be freed.
+
+            2. SwigPyClientData itself was not freed by SwigPyClientData_Del(),
+            causing another heap leak. The required free() was added to
+            SwigPyClientData_Del()
+
+            3. Fix reference counting/leak of python cached type query
+
+            4. Fix reference counting/leak of SwigPyObject dict (-builtin)
+
+            5. Python object reference counting fixes for out-of-memory
+            scenarios were added to: SWIG_Python_RaiseOrModifyTypeError(),
+            SWIG_Python_AppendOutput(), SwigPyClientData_New(),
+            SwigPyObject_get___dict__() and SwigPyObject_format()
+
+            6. Add error handling for PyModule_AddObject() to
+            SWIG_Python_SetModule() (failure could be caused by OOM or a name
+            clash caused by malicious code)
+
 2021-05-13: olly
 	    [UFFI] #2009 Remove code for Common Lisp UFFI.  We dropped support
 	    for it in SWIG 4.0.0 and nobody has stepped forward to revive it in

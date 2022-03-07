@@ -19,7 +19,8 @@ static bool SWIG_init_user(octave_swig_type* module_ns);
 SWIGINTERN bool SWIG_Octave_LoadModule(std::string name) {
   bool retn = false;
   {
-#if SWIG_OCTAVE_PREREQ(4,2,0)
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+#elif SWIG_OCTAVE_PREREQ(4,2,0)
     octave::unwind_protect frame;
     frame.protect_var(discard_error_messages);          discard_error_messages = true;
     frame.protect_var(discard_warning_messages);        discard_warning_messages = true;
@@ -62,7 +63,8 @@ SWIGINTERN bool SWIG_Octave_LoadModule(std::string name) {
 SWIGINTERN bool SWIG_Octave_InstallFunction(octave_function *octloadfcn, std::string name) {
   bool retn = false;
   {
-#if SWIG_OCTAVE_PREREQ(4,2,0)
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+#elif SWIG_OCTAVE_PREREQ(4,2,0)
     octave::unwind_protect frame;
     frame.protect_var(discard_error_messages);          discard_error_messages = true;
     frame.protect_var(discard_warning_messages);        discard_warning_messages = true;
@@ -295,9 +297,11 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
       for (int i = 0; i < types.numel(); ++i) {
         if (types(i) == octave_swig_ref::static_type_name()) {
           register_octave_swig_ref = false;
+          octave_swig_ref::set_type_id(i);
         }
         if (types(i) == octave_swig_packed::static_type_name()) {
           register_octave_swig_packed = false;
+	  octave_swig_packed::set_type_id(i);
         }
       }
       if (register_octave_swig_ref) {
@@ -314,7 +318,11 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
     SWIG_InitializeModule(0);
     SWIG_PropagateClientData();
 
-#if SWIG_OCTAVE_PREREQ(4,4,0)
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+    octave::tree_evaluator& tree_eval = octave::interpreter::the_interpreter()->get_evaluator();
+    octave::call_stack& stack = tree_eval.get_call_stack();
+    octave_function *me = stack.current_function();
+#elif SWIG_OCTAVE_PREREQ(4,4,0)
     octave::call_stack& stack = octave::interpreter::the_interpreter()->get_call_stack();
     octave_function *me = stack.current();
 #else

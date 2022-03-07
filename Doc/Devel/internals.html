@@ -441,12 +441,12 @@ Resulting output:
 
 <blockquote>
 <pre>
-hash len: 5
-get: hashval2
-hash item: hashval5 [h5]
-hash item: hashval1 [h1]
-hash item: hashval2 [h2]
-hash item: hashval3 [h3]
+list len: 5
+get: listval2
+list item: newlistval1
+list item: listval2
+list item: listval3
+list item: listval5
 </pre>
 </blockquote>
 
@@ -494,12 +494,12 @@ Resulting output:
 
 <blockquote>
 <pre>
-list len: 5
-get: listval2
-list item: newlistval1
-list item: listval2
-list item: listval3
-list item: listval5
+hash len: 5
+get: hashval2
+hash item: hashval5 [h5]
+hash item: hashval1 [h1]
+hash item: hashval2 [h2]
+hash item: hashval3 [h3]
 </pre>
 </blockquote>
 
@@ -519,7 +519,27 @@ list item: listval5
 <h3>2.10 Utility functions </h3>
 </a>
 
-[ TODO ]
+<p>
+DOH wraps some standard C library functions - these wrapped versions should
+always be used in code in the SWIG tool itself (but not in generated code).
+When compiling with GCC or clang, the original library function names are
+marked as "poisoned" symbols so you should get an error if you accidentally
+use one of the unwrapped functions.  These functions are:
+
+<ul>
+    <li><tt>Calloc(m,n)</tt> : wrapper for <tt>calloc(m,n)</tt> which exits on memory failure so never returns <tt>NULL</tt>.
+    <li><tt>Malloc(n)</tt> : wrapper for <tt>malloc(n)</tt> which exits on memory failure so never returns <tt>NULL</tt>.
+    <li><tt>Realloc(p,n)</tt> : wrapper for <tt>realloc(p,n)</tt> which exits on memory failure so never returns <tt>NULL</tt>.
+    <li><tt>Free(p)</tt> : wrapper for <tt>free(p)</tt> (doesn't currently do anything special, really done for consistency with <tt>Malloc()</tt> etc).
+    <li><tt>Exit(r)</tt> : wrapper for <tt>exit(r)</tt> which for SWIG removes generated files if <tt>r&gt;0</tt>.
+</ul>
+
+<tt>abort()</tt> is also poisoned - please use <tt>Exit(EXIT_FAILURE)</tt> instead so that generated files are removed.
+</p>
+
+<p>
+[ TODO document others ]
+</p>
 
 <a name="3" href="#i3">
 <h2>3. Types and Typemaps</h2>
@@ -1194,12 +1214,12 @@ that are used after they have been deleted. This is because the DOH memory alloc
 grabs a chunk of memory from the C memory allocator and manages the usage internally.
 Stale DOH object usage can be checked for by defining <tt>DOH_DEBUG_MEMORY_POOLS</tt> in 
 <tt>memory.c</tt>. If an attempt to use an object is made after the reference count is
-zero, an assertion is triggered instead of quietly re-using the stale object...
+zero, a fatal error is triggered instead of quietly re-using the stale object:
 </p>
 
 <blockquote>
 <pre>
-swig: DOH/memory.c:91: DohCheck: Assertion `!DOH_object_already_deleted' failed.
+Fatal internal error: Attempt to delete a non-DOH object.
 </pre>
 </blockquote>
 
@@ -1209,7 +1229,7 @@ only recommended for diagnosing memory corruption problems.
 </p>
 
 <hr>
-Copyright (C) 1999-2010 SWIG Development Team.
+Copyright (C) 1999-2022 SWIG Development Team.
 
 </body>
 </html>

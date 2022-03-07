@@ -7,7 +7,7 @@
 // Test truncating variables, constants, functions identifier names
 
 %inline %{
-// these identifier names wont be truncated
+// these identifier names won't be truncated
 int gvar_identifier_name = -1;
 #define CONS_IDENTIFIER_NAME -11
 int function_identifier_name() { return -21; };

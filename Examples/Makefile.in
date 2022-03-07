@@ -1357,6 +1357,7 @@ r_clean:
 SCILAB = @SCILAB@
 SCILAB_INC= @SCILABINCLUDE@
 SCILAB_OPT = @SCILABOPT@
+SCILAB_VERSION = @SCILAB_VERSION@
 SCILAB_LIBPREFIX = lib
 
 # ----------------------------------------------------------------
@@ -1389,7 +1390,7 @@ scilab_run:
 # -----------------------------------------------------------------
 
 scilab_version:
-	echo `$(SCILAB) -version | head -1`
+	echo `$(SCILAB) -nwni -version | head -1`
 
 # -----------------------------------------------------------------
 # Cleaning the scilab examples
@@ -1471,6 +1472,10 @@ go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
 	export CGO_LDFLAGS; \
 	(cd $(GOPATHDIR)/ && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o $(GOPACKAGE)); \
+	stat=$$?; \
+	if test $$stat != 0; then \
+	  exit $$stat; \
+	fi; \
 	if $(GOGCC); then \
 	  cp $(GOPATHDIR)/$(GOPACKAGE) $(GOPATHDIR)/$(GOPACKAGE:.a=.gox); \
 	fi; \
@@ -1479,6 +1484,10 @@ go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 	  mkdir gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=) 2>/dev/null || true; \
 	  cp $(GOPATHDIR)/* gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=)/; \
 	  (cd gopath/$(GOMOD)/src/runme && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o runme $(RUNME).go); \
+	  stat=$$?; \
+	  if test $$stat != 0; then \
+	    exit $$stat; \
+	  fi; \
 	  cp gopath/$(GOMOD)/src/runme/runme $(RUNME); \
 	fi
 
@@ -1522,6 +1531,10 @@ go_cpp: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
 	export CGO_LDFLAGS; \
 	(cd $(GOPATHDIR) && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o $(GOPACKAGE)); \
+	stat=$$?; \
+	if test $$stat != 0; then \
+	  exit $$stat; \
+	fi; \
 	if $(GOGCC); then \
 	  cp $(GOPATHDIR)/$(GOPACKAGE) $(GOPATHDIR)/$(GOPACKAGE:.a=.gox); \
 	fi; \
@@ -1530,6 +1543,10 @@ go_cpp: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 	  mkdir gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=) 2>/dev/null || true; \
 	  cp $(GOPATHDIR)/* gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=)/; \
 	  (cd gopath/$(GOMOD)/src/runme && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o runme $(RUNME).go); \
+	  stat=$$?; \
+	  if test $$stat != 0; then \
+	    exit $$stat; \
+	  fi; \
 	  cp gopath/$(GOMOD)/src/runme/runme $(RUNME); \
 	fi
 

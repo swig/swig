@@ -58,10 +58,18 @@ void CheckRetTypemapUsed() {
    /* hello */ delete[] result;
 }
 
+%{
+#include <string.h>
+%}
+
 %inline {
   class FFoo {
   public:
-    char * Bar(bool b) const { return (char *)"x"; }
+    char * Bar(bool b) const {
+      char *ret = new char[2];
+      strcpy(ret, b ? "1" : "0");
+      return ret;
+    }
   };
 }
 

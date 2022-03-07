@@ -144,14 +144,39 @@ When either of these is used from a target language, a runtime call is made to o
 <H3><a name="CPlusPlus11_extern_template">7.2.3 Extern template</a></H3>
 
 
-<p>SWIG correctly parses the keywords <tt>extern template</tt>.
+<p>SWIG correctly parses <tt>extern template</tt> explicit instantiation declarations.
 However, this template instantiation suppression in a translation unit has no relevance outside of the C++ compiler and so is not used by SWIG.
-SWIG only uses <tt>%template</tt> for instantiating and wrapping templates.</p>
+SWIG only uses <tt>%template</tt> for instantiating and wrapping templates.
+Consider the class template below:
+</p>
 
 <div class="code"><pre>
-template class std::vector&lt;int&gt;;        // C++03 explicit instantiation in C++
-extern template class std::vector&lt;int&gt;; // C++11 explicit instantiation suppression in C++
-%template(VectorInt) std::vector&lt;int&gt;;  // SWIG instantiation
+// Class template
+template class std::vector&lt;int&gt;;        // C++03 template explicit instantiation definition in C++
+extern template class std::vector&lt;int&gt;; // C++11 template explicit instantiation declaration (extern template)
+%template(VectorInt) std::vector&lt;int&gt;;  // SWIG template instantiation
+</pre></div>
+
+<p>
+The above result in warnings:
+</p>
+
+<div class="shell">
+<pre>
+example.i:2: Warning 320: Explicit template instantiation ignored.
+example.i:3: Warning 327: Extern template ignored.
+</pre>
+</div>
+
+<p>
+Similarly for the function template below:
+</p>
+
+<div class="code"><pre>
+// Function template
+template void Func&lt;int&gt;();              // C++03 template explicit instantiation definition in C++
+extern template void Func&lt;int&gt;();       // C++11 template explicit instantiation declaration (extern template)
+%template(FuncInt) Func&lt;int&gt;;           // SWIG template instantiation
 </pre></div>
 
 <H3><a name="CPlusPlus11_initializer_lists">7.2.4 Initializer lists</a></H3>

@@ -164,7 +164,7 @@ SWIGINTERN void SWIG_OCamlThrowException(SWIG_OCamlExceptionCodes code, const ch
   CAMLreturn0;
 }
 
-#define SWIG_contract_assert(expr, msg) if(!(expr)) {SWIG_OCamlThrowException(SWIG_OCamlRuntimeException, msg);}
+#define SWIG_contract_assert(expr, msg) do { if(!(expr)) {SWIG_OCamlThrowException(SWIG_OCamlRuntimeException, msg);} } while (0)
 
     SWIGINTERN int
     SWIG_GetPtr(void *source, void **result, swig_type_info *type, swig_type_info *result_type);

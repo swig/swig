@@ -72,7 +72,7 @@ multiple output values, they are returned in the form of a Python tuple.
 
 For example, suppose you were trying to wrap the modf() function in the
 C math library which splits x into integral and fractional parts (and
-returns the integer part in one of its parameters).K:
+returns the integer part in one of its parameters) :
 
         double modf(double x, double *ip);
 

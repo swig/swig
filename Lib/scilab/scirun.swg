@@ -47,10 +47,8 @@ static char *SWIG_Scilab_GetFuncName(void) {
   return SwigFuncName;
 }
 static void SWIG_Scilab_SetFuncName(char *funcName) {
-  if (SwigFuncName != NULL) {
-    free(SwigFuncName);
-    SwigFuncName = NULL;
-  }
+  free(SwigFuncName);
+  SwigFuncName = NULL;
   if (funcName) {
     SwigFuncName = (char *)malloc(strlen(funcName) + 1);
     if (SwigFuncName)

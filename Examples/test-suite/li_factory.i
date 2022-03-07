@@ -16,34 +16,33 @@
   struct Geometry {
     enum GeomType{
       POINT,
-      CIRCLE
+      CIRCLE,
+      SHAPELESS
     };
-    
-    virtual ~Geometry() {}    
+
+    virtual ~Geometry() {}
     virtual int draw() = 0;
     static Geometry *create(GeomType i);
-		virtual Geometry *clone() = 0;
+    virtual Geometry *clone() = 0;
   };
 
   struct Point : Geometry  {
     int draw() { return 1; }
-    double width() { return 1.0; }    
-		Geometry *clone() { return new Point(); }
+    double width() { return 1.0; }
+    Geometry *clone() { return new Point(); }
   };
 
   struct Circle : Geometry  {
     int draw() { return 2; }
-    double radius() { return 1.5; }      
-		Geometry *clone() { return new Circle(); }
-  }; 
+    double radius() { return 1.5; }
+    Geometry *clone() { return new Circle(); }
+  };
 
   Geometry *Geometry::create(GeomType type) {
     switch (type) {
     case POINT: return new Point();
-    case CIRCLE: return new Circle(); 
+    case CIRCLE: return new Circle();
     default: return 0;
     }
   }
 }
-
-

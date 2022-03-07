@@ -969,7 +969,7 @@ class TypePass:private Dispatcher {
       if (Getattr(c, "sym:overloaded") != checkoverloaded) {
         Printf(stdout, "sym:overloaded error c:%p checkoverloaded:%p\n", c, checkoverloaded);
         Swig_print_node(c);
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
 
       String *decl = Strcmp(nodeType(c), "using") == 0 ? NewString("------") : Getattr(c, "decl");
@@ -977,7 +977,7 @@ class TypePass:private Dispatcher {
       if (!Getattr(c, "sym:overloaded")) {
         Printf(stdout, "sym:overloaded error.....%p\n", c);
         Swig_print_node(c);
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
       c = Getattr(c, "sym:nextSibling");
     }
@@ -1047,13 +1047,6 @@ class TypePass:private Dispatcher {
 			|| (Getattr(c, "feature:extend") && !Getattr(c, "code"))
 			|| GetFlag(c, "feature:ignore"))) {
 
-		    /* Don't generate a method if the method is overridden in this class, 
-		     * for example don't generate another m(bool) should there be a Base::m(bool) :
-		     * struct Derived : Base { 
-		     *   void m(bool);
-		     *   using Base::m;
-		     * };
-		     */
 		    String *csymname = Getattr(c, "sym:name");
 		    if (!csymname || (Strcmp(csymname, symname) == 0)) {
 		      {
@@ -1069,11 +1062,20 @@ class TypePass:private Dispatcher {
 			  over = Getattr(over, "sym:nextSibling");
 			}
 			if (match) {
+			  /* Don't generate a method if the method is overridden in this class,
+			   * for example don't generate another m(bool) should there be a Base::m(bool) :
+			   * struct Derived : Base {
+			   *   void m(bool);
+			   *   using Base::m;
+			   * };
+			   */
 			  c = Getattr(c, "csym:nextSibling");
 			  continue;
 			}
 		      }
 		      Node *nn = copyNode(c);
+		      Setfile(nn, Getfile(n));
+		      Setline(nn, Getline(n));
 		      Delattr(nn, "access");	// access might be different from the method in the base class
 		      Setattr(nn, "access", Getattr(n, "access"));
 		      if (!Getattr(nn, "sym:name"))
@@ -1117,6 +1119,9 @@ class TypePass:private Dispatcher {
 		      } else {
 			Delete(nn);
 		      }
+		    } else {
+		      Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(n), Getline(n), "Using declaration %s, with name '%s', is not actually using\n", SwigType_namestr(Getattr(n, "uname")), symname);
+		      Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(c), Getline(c), "the method from %s, with name '%s', as the names are different.\n", Swig_name_decl(c), csymname);
 		    }
 		  }
 		}

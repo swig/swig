@@ -2,6 +2,8 @@ lines(0);
 warning('off');
 ilib_verbose(0);
 
+ver = getversion('scilab');
+
 // Get test name (used in swigtest.quit file)
 [units, typ, names] = file(1);
 swigtestname = strsubst(fileparts(names, "fname"), "_runme", "");
@@ -23,7 +25,12 @@ end
 
 // Module initialization
 try
-    moduleInit = sprintf("%s_Init()", swigtestname);
+    if ver(1) < 6 then
+        entry = stripblanks(part(swigtestname, 1:24-5));
+    else
+        entry = swigtestname;
+    end
+    moduleInit = sprintf("%s_Init()", entry);
     execstr(moduleInit);
 catch
     mfprintf(0, "*** MODULE INIT FAILED ***\n");

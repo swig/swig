@@ -14,7 +14,18 @@
 
 #ifdef SWIGPHP
 %{
-#define SWIG_exception(code, msg) do { zend_throw_exception(NULL, (char*)msg, code); goto thrown; } while (0)
+#if PHP_MAJOR_VERSION >= 8
+# define SWIG_HANDLE_VALUE_ERROR_FOR_PHP8(code) code == SWIG_ValueError ? zend_ce_value_error :
+#else
+# define SWIG_HANDLE_VALUE_ERROR_FOR_PHP8(code)
+#endif
+#define SWIG_exception(code, msg) do { zend_throw_exception( \
+    code == SWIG_TypeError ? zend_ce_type_error : \
+    SWIG_HANDLE_VALUE_ERROR_FOR_PHP8(code) \
+    code == SWIG_DivisionByZero ? zend_ce_division_by_zero_error : \
+    code == SWIG_SyntaxError ? zend_ce_parse_error : \
+    code == SWIG_OverflowError ? zend_ce_arithmetic_error : \
+    NULL, msg, code); SWIG_fail; } while (0)
 %}
 #endif
 

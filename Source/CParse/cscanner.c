@@ -214,13 +214,13 @@ void skip_decl(void) {
     tok = Scanner_token(scan);
     if (tok == 0) {
       if (!Swig_error_count()) {
-	Swig_error(cparse_file, start_line, "Missing semicolon. Reached end of input.\n");
+	Swig_error(cparse_file, start_line, "Missing semicolon (';'). Reached end of input.\n");
       }
       return;
     }
     if (tok == SWIG_TOKEN_LBRACE) {
       if (Scanner_skip_balanced(scan,'{','}') < 0) {
-	Swig_error(cparse_file, start_line, "Missing '}'. Reached end of input.\n");
+	Swig_error(cparse_file, start_line, "Missing closing brace ('}'). Reached end of input.\n");
       }
       break;
     }
@@ -267,7 +267,7 @@ static int yylook(void) {
     case SWIG_TOKEN_RBRACE:
       num_brace--;
       if (num_brace < 0) {
-	Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous '}'\n");
+	Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous closing brace ('}')\n");
 	num_brace = 0;
       } else {
 	return RBRACE;
@@ -351,6 +351,9 @@ static int yylook(void) {
       }
       break;
       
+    case SWIG_TOKEN_ELLIPSIS:
+      return ELLIPSIS;
+
       /* Look for multi-character sequences */
       
     case SWIG_TOKEN_RSTRING:
@@ -569,6 +572,9 @@ int yylex(void) {
   if (!scan_init) {
     scanner_init();
   }
+
+  Delete(cparse_unknown_directive);
+  cparse_unknown_directive = NULL;
 
   if (next_token) {
     l = next_token;
@@ -948,9 +954,6 @@ int yylex(void) {
 	return (yylex());
 
     } else {
-      Delete(cparse_unknown_directive);
-      cparse_unknown_directive = NULL;
-
       /* SWIG directives */
       if (strcmp(yytext, "%module") == 0)
 	return (MODULE);
@@ -1028,8 +1031,23 @@ int yylex(void) {
       if (strcmp(yytext, "%warn") == 0)
 	return (WARN);
 
-      /* Note down the apparently unknown directive for error reporting. */
+      /* Note down the apparently unknown directive for error reporting - if
+       * we end up reporting a generic syntax error we'll instead report an
+       * error for his as an unknown directive.  Then we treat it as MODULO
+       * (`%`) followed by an identifier and if that parses OK then
+       * `cparse_unknown_directive` doesn't get used.
+       *
+       * This allows `a%b` to be handled in expressions without a space after
+       * the operator.
+       */
       cparse_unknown_directive = NewString(yytext);
+      String *stext = NewString(yytext + 1);
+      Seek(stext,0,SEEK_SET);
+      Setfile(stext,cparse_file);
+      Setline(stext,cparse_line);
+      Scanner_push(scan,stext);
+      Delete(stext);
+      return (MODULO);
     }
     /* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 

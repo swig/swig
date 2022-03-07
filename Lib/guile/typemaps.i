@@ -322,8 +322,8 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
 /* SWIG_scm2str makes a malloc'ed copy of the string, so get rid of it after
    the function call. */
 
-%typemap (freearg) char * "if (must_free$argnum && $1) SWIG_free($1);";
-%typemap (freearg) char **INPUT, char **BOTH "if (must_free$argnum && (*$1)) SWIG_free(*$1);"
+%typemap (freearg) char * "if (must_free$argnum) SWIG_free($1);";
+%typemap (freearg) char **INPUT, char **BOTH "if (must_free$argnum) SWIG_free(*$1);"
 %typemap (freearg) char **OUTPUT "SWIG_free(*$1);"
   
 /* But this shall not apply if we try to pass a single char by
@@ -334,7 +334,7 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
 /* If we set a string variable, delete the old result first, unless const. */
 
 %typemap (varin) char * {
-    if ($1) free($1);
+    free($1);
     $1 = ($1_ltype) SWIG_scm2str($input);
 }
 

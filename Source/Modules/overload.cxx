@@ -21,6 +21,7 @@
 String *argv_template_string;
 String *argc_template_string;
 
+namespace {
 struct Overloaded {
   Node *n;			/* Node                               */
   int argc;			/* Argument count                     */
@@ -28,6 +29,7 @@ struct Overloaded {
   int error;			/* Ambiguity error                    */
   bool implicitconv_function;	/* For ordering implicitconv functions*/
 };
+}
 
 static int fast_dispatch_mode = 0;
 static int cast_dispatch_mode = 0;

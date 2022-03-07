@@ -2,8 +2,8 @@
 
 require "tests.php";
 
-// Check functions
-check::functions(array('is_python_builtin'));
+// No new functions
+check::functions(array());
 // Check classes.
 check::classes(array('Exc','Test','threads_exception'));
 // No new vars
@@ -40,3 +40,5 @@ foreach (Array(1,2,3,4) as $i) {
     } catch (Exception $e) {
     }
 }
+
+check::done();

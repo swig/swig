@@ -18,7 +18,6 @@ C_TEST_CASES += \
 
 CPP_TEST_CASES += \
 	r_double_delete \
-	r_memory_leak \
 	r_overload_array \
 	r_sexp \
         r_overload_comma \

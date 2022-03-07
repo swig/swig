@@ -18,8 +18,9 @@
 #include "swigconfig.h"
 #endif
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /* Set the namespace prefix for DOH API functions. This can be used to control
    visibility of the functions in libraries */
@@ -122,6 +123,12 @@
 #define DohIterator        DOH_NAMESPACE(Iterator)
 #define DohFirst           DOH_NAMESPACE(First)
 #define DohNext            DOH_NAMESPACE(Next)
+#define DohMalloc          DOH_NAMESPACE(Malloc)
+#define DohRealloc         DOH_NAMESPACE(Realloc)
+#define DohCalloc          DOH_NAMESPACE(Calloc)
+#define DohFree            DOH_NAMESPACE(Free)
+#define DohSetExitHandler  DOH_NAMESPACE(SetExitHandler)
+#define DohExit            DOH_NAMESPACE(Exit)
 #endif
 
 #define DOH_MAJOR_VERSION 0
@@ -163,12 +170,11 @@ typedef struct {
 
 /* Memory management */
 
-#ifndef DohMalloc
-#define DohMalloc malloc
-#endif
-#ifndef DohRealloc
-#define DohRealloc realloc
-#endif
+/* Wrappers around malloc(), realloc() and calloc() which never return NULL. */
+extern void *DohMalloc(size_t size);
+extern void *DohRealloc(void *ptr, size_t size);
+extern void *DohCalloc(size_t n, size_t size);
+
 #ifndef DohFree
 #define DohFree free
 #endif
@@ -271,6 +277,24 @@ extern int DohGetMaxHashExpand(void);
 extern void DohSetmark(DOH *obj, int x);
 extern int DohGetmark(DOH *obj);
 
+/* Set the function for DohExit() to call instead of exit().
+ *
+ * The registered function can perform clean up, etc.  It should simply
+ * return when done and then exit() will get called.  Bear in mind that
+ * the handler function can be called after malloc() has failed, so it's
+ * a good idea for it to avoid allocating additional memory.
+ *
+ * The registered handler function is unregistered by DohExit() before calling
+ * it to avoid the potential for infinite loops.
+ *
+ * Note: This is sort of like C's atexit(), only for DohExit().  However
+ * only one function can be registered (setting a new function overrides the
+ * previous one) and the registered function is passed the exit status so can
+ * vary its actions based on that.
+ */
+extern void DohSetExitHandler(void (*new_handler)(int));
+extern void DohExit(int status);
+
 /* -----------------------------------------------------------------------------
  * Strings.
  * ----------------------------------------------------------------------------- */
@@ -364,7 +388,7 @@ extern void DohMemoryDebug(void);
 #define Push(s,x)          DohInsertitem(s,DOH_BEGIN,x)
 #define Len                DohLen
 #define Data               DohData
-#define Char               (char *) Data
+#define Char(X)            ((char *) Data(X))
 #define Cmp                DohCmp
 #define Equal              DohEqual
 #define Setline            DohSetline
@@ -440,6 +464,12 @@ extern void DohMemoryDebug(void);
 #define Next               DohNext
 #define Iterator           DohIterator
 #define SortList           DohSortList
+#define Malloc             DohMalloc
+#define Realloc            DohRealloc
+#define Calloc             DohCalloc
+#define Free               DohFree
+#define SetExitHandler     DohSetExitHandler
+#define Exit               DohExit
 #endif
 
 #ifdef NIL
@@ -448,5 +478,29 @@ extern void DohMemoryDebug(void);
 
 #define NIL  (char *) NULL
 
+/* Defines to allow use of poisoned identifiers.
+ *
+ * For DOH-internal use only!
+ */
+#define doh_internal_calloc calloc
+#define doh_internal_exit exit
+/* doh_internal_free not needed as Free() is a macro defined above. */
+#define doh_internal_malloc malloc
+#define doh_internal_realloc realloc
+
+#ifdef __GNUC__
+/* Use Malloc(), Realloc(), Calloc(), and Free() instead (which will exit with
+ * an error rather than return NULL).
+ */
+# ifndef DOH_NO_POISON_MALLOC_FREE
+/* This works around bison's template checking if malloc and free are defined,
+ * which triggers GCC's poison checks.
+ */
+#  pragma GCC poison malloc free
+# pragma GCC poison realloc calloc
+# endif
+/* Use Exit() instead (which will remove output files on error). */
+# pragma GCC poison abort exit
+#endif
 
 #endif				/* DOH_H */

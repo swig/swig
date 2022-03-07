@@ -805,7 +805,7 @@ int R::DumpCode(Node *n) {
   File *scode = NewFile(output_filename, "w", SWIG_output_files());
   if (!scode) {
     FileErrorDisplay(output_filename);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
   Delete(output_filename);
 
@@ -820,7 +820,7 @@ int R::DumpCode(Node *n) {
   File *runtime = NewFile(outfile,"w", SWIG_output_files());
   if (!runtime) {
     FileErrorDisplay(outfile);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   Printf(runtime, "%s", f_begin);
@@ -837,7 +837,7 @@ int R::DumpCode(Node *n) {
     File *ns = NewFile(output_filename, "w", SWIG_output_files());
     if (!ns) {
       FileErrorDisplay(output_filename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     Delete(output_filename);
 
@@ -1301,13 +1301,14 @@ void R::addAccessor(String *memberName, Wrapper *wrapper, String *name,
 
 #define MAX_OVERLOAD 256
 
+namespace {
 struct Overloaded {
   Node      *n;          /* Node                               */
   int        argc;       /* Argument count                     */
   ParmList  *parms;      /* Parameters used for overload check */
   int        error;      /* Ambiguity error                    */
 };
-
+}
 
 List * R::Swig_overload_rank(Node *n,
 	                     bool script_lang_wrapping) {
@@ -2568,7 +2569,7 @@ int R::generateCopyRoutines(Node *n) {
 
 
   Printf(sfile, "# Start definition of copy methods for %s\n", rclassName);
-  Printf(sfile, "setMethod('copyToR', '_p_%s', CopyToR%s);\n", rclassName,
+  Printf(sfile, "setMethod('copyToR', '_p%s', CopyToR%s);\n", mangledName,
 	 mangledName);
   Printf(sfile, "setMethod('copyToC', '%s', CopyToC%s);\n\n", rclassName,
 	 mangledName);
@@ -2739,7 +2740,7 @@ void R::main(int argc, char *argv[]) {
     } else if (strcmp(argv[i], "-nocppcast") == 0) {
       Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
       Swig_mark_arg(i);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (debugMode) {
