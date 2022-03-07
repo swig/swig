@@ -122,7 +122,7 @@ SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef ob
   }
   assert(ptr);
   *ptr = NULL;
-  if (cdata->info == info) {
+  if (!info || cdata->info == info) {
     *ptr = cdata->swigCObject;
   } else {
     swig_cast_info *tc = SWIG_TypeCheckStruct(cdata->info, info);
