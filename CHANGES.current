@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-07: Omar Medina
+	    [Tcl] https://sourceforge.net/p/swig/bugs/1290/
+	    Fix SWIG_AsWCharPtrAndSize() to actually assign to result
+	    variable.  It looks like SWIG/Tcl wide character handling is
+	    currently fundamentally broken except on systems which use wide
+	    characters as the system encoding, but this should fix wrapping
+	    functions which take a wide string as a parameter on Microsoft
+	    Windows.
+
 2022-03-07: olly
 	    [Javascript] #682 Fix handling of functions which take void*.
 
