@@ -261,12 +261,16 @@ int checkAttribute(Node *n, const_String_or_char_ptr name, const_String_or_char_
  * ns   - namespace for the view name for saving any attributes under
  * n    - node
  * ...  - list of attribute names of type char*
- * This method checks that the attribute names exist in the node n and asserts if
- * not. Assert will only occur unless the attribute is optional. An attribute is
- * optional if it is prefixed by ?, eg "?value". If the attribute name is prefixed
- * by * or ?, eg "*value" then a copy of the attribute is saved. The saved
- * attributes will be restored on a subsequent call to Swig_restore(). All the
- * saved attributes are saved in the view namespace (prefixed by ns).
+ *
+ * An attribute is optional if it is prefixed by ?, eg "?value".  All
+ * non-optional attributes are checked for on node n and if any do not exist
+ * SWIG exits with a fatal error.
+ *
+ * If the attribute name is prefixed by * or ?, eg "*value" then a copy of the
+ * attribute is saved. The saved attributes will be restored on a subsequent
+ * call to Swig_restore(). All the saved attributes are saved in the view
+ * namespace (prefixed by ns).
+ *
  * This function can be called more than once with different namespaces.
  * ----------------------------------------------------------------------------- */
 
@@ -291,7 +295,7 @@ void Swig_require(const char *ns, Node *n, ...) {
     obj = Getattr(n, name);
     if (!opt && !obj) {
       Swig_error(Getfile(n), Getline(n), "Fatal error (Swig_require).  Missing attribute '%s' in node '%s'.\n", name, nodeType(n));
-      assert(obj);
+      Exit(EXIT_FAILURE);
     }
     if (!obj)
       obj = DohNone;
