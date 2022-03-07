@@ -154,6 +154,17 @@ Version 4.1.0 (in progress)
 	    things like `%std::vector<std::string>` now give an error rather
 	    than being quietly ignored.
 
+2022-02-11: adr26
+            [Python] #2154 Fix memory leak.
+
+            SWIG python objects were being freed after the corresponding SWIG
+            module information was destroyed in Python 3, causing leaks when as
+            a result the object destructor could not be invoked. To prevent this
+            misordering, SWIG python objects now obtain a reference to the
+            Python capsule wrapping the module information, so that the module
+            information is correctly destroyed after all SWIG python objects
+            have been freed (and corresponding destructors invoked).
+
 2022-02-10: olly
 	    [Tcl] https://sourceforge.net/p/swig/bugs/1207/
 	    https://sourceforge.net/p/swig/bugs/1213/
