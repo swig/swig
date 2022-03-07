@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-07: olly
+	    [Javascript] #682 Fix handling of functions which take void*.
+
 2022-03-06: olly
 	    SWIG should now reliably exit with status 0 if the run was
 	    successful and status 1 if there was an error (or a warning and
