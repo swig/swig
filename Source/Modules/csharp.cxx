@@ -2553,8 +2553,8 @@ public:
 	Replaceall(imcall, "$imfuncname", intermediary_function_name);
 	String *excode = NewString("");
 	Node *directorNode = Getattr(n, "directorNode");
-	if (directorNode) {
-	  UpcallData *udata = Getattr(directorNode, "upcalldata");
+	UpcallData *udata = directorNode ? Getattr(directorNode, "upcalldata") : 0;
+	if (udata) {
 	  String *methid = Getattr(udata, "class_methodidx");
 
 	  if (!Cmp(return_type, "void"))

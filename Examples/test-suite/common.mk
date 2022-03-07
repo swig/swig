@@ -218,6 +218,7 @@ CPP_TEST_CASES += \
 	director_thread \
 	director_unroll \
 	director_using \
+	director_using_member_scopes \
 	director_void \
 	director_wombat \
 	disown \
