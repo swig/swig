@@ -11,6 +11,15 @@
 # include <corecrt.h>
 #endif
 
+#if defined(__cplusplus) && __cplusplus >= 201703L
+/* Avoid using "register" keyword removed in C++17 in Python 2.7 headers. */
+# define register
+/* Additionally disable checks for redefined keywords when using MSVC. */
+# if defined(_MSC_VER)
+#  define _ALLOW_KEYWORD_MACROS
+# endif
+#endif
+
 #if defined(_DEBUG) && defined(SWIG_PYTHON_INTERPRETER_NO_DEBUG)
 /* Use debug wrappers with the Python release dll */
 # undef _DEBUG
