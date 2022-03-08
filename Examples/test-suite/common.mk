@@ -170,6 +170,7 @@ CPP_TEST_CASES += \
 	cpp17_nested_namespaces \
 	cpp17_nspace_nested_namespaces \
 	cpp17_u8_char_literals \
+	cpp20_spaceship_operator \
 	curiously_recurring_template_pattern \
 	default_args \
 	default_arg_expressions \
