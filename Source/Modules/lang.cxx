@@ -1855,10 +1855,6 @@ static String *vtable_method_id(Node *n) {
  * Language::unrollVirtualMethods()
  * ---------------------------------------------------------------------- */
 int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_director, int &virtual_destructor, int protectedbase) {
-  Node *ni;
-  String *nodeType;
-  String *classname;
-  String *decl;
   bool first_base = false;
   // recurse through all base classes to build the vtable
   List *bl = Getattr(n, "bases");
@@ -1883,10 +1879,10 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
     }
   }
   // find the methods that need directors
-  classname = Getattr(n, "name");
-  for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
+  String *classname = Getattr(n, "name");
+  for (Node *ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
     /* we only need to check the virtual members */
-    nodeType = Getattr(ni, "nodeType");
+    String *nodeType = Getattr(ni, "nodeType");
     int is_using = (Cmp(nodeType, "using") == 0);
     Node *nn = is_using ? firstChild(ni) : ni; /* assume there is only one child node for "using" nodes */
     if (is_using) {
@@ -1902,7 +1898,7 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
     /* we need to add methods(cdecl) and destructor (to check for throw decl) */
     int is_destructor = (Cmp(nodeType, "destructor") == 0);
     if ((Cmp(nodeType, "cdecl") == 0) || is_destructor) {
-      decl = Getattr(nn, "decl");
+      String *decl = Getattr(nn, "decl");
       /* extra check for function type and proper access */
       if (SwigType_isfunction(decl) && (((!protectedbase || dirprot_mode()) && is_public(nn)) || need_nonpublic_member(nn))) {
 	String *name = Getattr(nn, "name");
