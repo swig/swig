@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-08: olly
+	    #1006 SWIG now copes with an interface filename specified on the
+	    command line which contains a closing parenthesis `)`, and more
+	    generally with attributes to `%include` and `%import` which
+	    are quoted and contain parentheses.
+
 2022-03-07: Omar Medina
 	    [Tcl] https://sourceforge.net/p/swig/bugs/1290/
 	    Fix SWIG_AsWCharPtrAndSize() to actually assign to result

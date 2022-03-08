@@ -741,14 +741,35 @@ static String *get_options(String *str) {
     opt = NewString("(");
     while (((c = Getc(str)) != EOF)) {
       Putc(c, opt);
-      if (c == ')') {
-	level--;
-	if (!level)
-	  return opt;
+      switch (c) {
+	case ')':
+	  level--;
+	  if (!level)
+	    return opt;
+	  break;
+	case '(':
+	  level++;
+	  break;
+	case '"':
+	  /* Skip over quoted strings */
+	  while (1) {
+	    c = Getc(str);
+	    if (c == EOF)
+	      goto bad;
+	    Putc(c, opt);
+	    if (c == '"')
+	      break;
+	    if (c == '\\') {
+	      c = Getc(str);
+	      if (c == EOF)
+		goto bad;
+	      Putc(c, opt);
+	    }
+	  }
+	  break;
       }
-      if (c == '(')
-	level++;
     }
+bad:
     Delete(opt);
     return 0;
   } else {
