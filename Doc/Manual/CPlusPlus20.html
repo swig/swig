@@ -34,6 +34,21 @@ Work has only just begun on adding C++20 support.
 
 <H2><a name="CPlusPlus20_core_language_changes">10.2 Core language changes</a></H2>
 
+<H3><a name="CPlusPlus20_spaceship_operator">10.2.1 Spaceship operator</a></H3>
+
+<p>
+SWIG supports the spaceship operator <tt>&lt;=&gt;</tt> in constant
+expressions.  To simplifying handling the return value is currently
+treated as an integer rather than <tt>std::strong_ordering</tt>, etc.
+In practice we think that should do the right thing in most cases.
+</p>
+
+<p>
+SWIG also recognises <tt>operator&lt;=&gt;</tt> which can be wrapped
+if renamed.  There's not currently any default renaming for the operator
+or attempts to automatically map it to a three-way comparison operator
+in any target languages that have one.
+</p>
 
 <H2><a name="CPlusPlus20_standard_library_changes">10.3 Standard library changes</a></H2>
 
