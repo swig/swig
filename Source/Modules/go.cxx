@@ -1262,9 +1262,15 @@ private:
 
       String *goin = goGetattr(p, "tmap:goin");
       if (goin == NULL) {
-	Printv(f_go_wrappers, "\t", ivar, " := ", ln, NULL);
+	Printv(f_go_wrappers, "\t", ivar, " := ", NULL);
+	bool need_close = false;
 	if ((i == 0 && info->is_destructor) || ((i > 0 || !info->receiver || info->base || info->is_constructor) && goTypeIsInterface(p, pt))) {
-	  Printv(f_go_wrappers, ".Swigcptr()", NULL);
+	  Printv(f_go_wrappers, "getSwigcptr(", NULL);
+	  need_close = true;
+	}
+	Printv(f_go_wrappers, ln, NULL);
+	if (need_close) {
+	  Printv(f_go_wrappers, ")", NULL);
 	}
 	Printv(f_go_wrappers, "\n", NULL);
 	Setattr(p, "emit:goinput", ln);
@@ -2506,7 +2512,7 @@ private:
       Printv(interfaces, "\tSwigIs", go_base_name, "()\n", NULL);
 
       Printv(f_go_wrappers, "func (p ", go_type_name, ") SwigGet", go_base_name, "() ", go_base_type, " {\n", NULL);
-      Printv(f_go_wrappers, "\treturn ", go_base_type_name, "(p.Swigcptr())\n", NULL);
+      Printv(f_go_wrappers, "\treturn ", go_base_type_name, "(getSwigcptr(p))\n", NULL);
       Printv(f_go_wrappers, "}\n\n", NULL);
 
       Printv(interfaces, "\tSwigGet", go_base_name, "() ", go_base_type, "\n", NULL);
@@ -2708,7 +2714,7 @@ private:
     Printv(f_go_wrappers, "}\n\n", NULL);
 
     Printv(f_go_wrappers, "func (p *", director_struct_name, ") Swigcptr() uintptr {\n", NULL);
-    Printv(f_go_wrappers, "\treturn p.", go_type_name, ".Swigcptr()\n", NULL);
+    Printv(f_go_wrappers, "\treturn getSwigcptr(p.", go_type_name, ")\n", NULL);
     Printv(f_go_wrappers, "}\n\n", NULL);
 
     Printv(f_go_wrappers, "func (p *", director_struct_name, ") SwigIs", go_name, "() {\n", NULL);
@@ -2866,9 +2872,15 @@ private:
 
 	String *goin = goGetattr(p, "tmap:goin");
 	if (goin == NULL) {
-	  Printv(f_go_wrappers, "\t", ivar, " := ", ln, NULL);
+	  Printv(f_go_wrappers, "\t", ivar, " := ", NULL);
+	  bool need_close = false;
 	  if (goTypeIsInterface(p, pt)) {
-	    Printv(f_go_wrappers, ".Swigcptr()", NULL);
+	    Printv(f_go_wrappers, "getSwigcptr(", NULL);
+	    need_close = true;
+	  }
+	  Printv(f_go_wrappers, ln, NULL);
+	  if (need_close) {
+	    Printv(f_go_wrappers, ")", NULL);
 	  }
 	  Printv(f_go_wrappers, "\n", NULL);
 	} else {
@@ -3461,9 +3473,15 @@ private:
 	  // the goin typemap.
 	  String *goin = goGetattr(p, "tmap:goin");
 	  if (goin == NULL) {
-	    Printv(f_go_wrappers, "\t", ivar, " := ", ln, NULL);
+	    Printv(f_go_wrappers, "\t", ivar, " := ", NULL);
+	    bool need_close = false;
 	    if (goTypeIsInterface(p, pt)) {
-	      Printv(f_go_wrappers, ".Swigcptr()", NULL);
+	      Printv(f_go_wrappers, "getSwigcptr(", NULL);
+	      need_close = true;
+	    }
+	    Printv(f_go_wrappers, ln, NULL);
+	    if (need_close) {
+	      Printv(f_go_wrappers, ")", NULL);
 	    }
 	    Printv(f_go_wrappers, "\n", NULL);
 	  } else {
@@ -3709,9 +3727,15 @@ private:
 
 	  String *goin = goGetattr(p, "tmap:goin");
 	  if (goin == NULL) {
-	    Printv(f_go_wrappers, "\t", ivar, " := ", ln, NULL);
+	    Printv(f_go_wrappers, "\t", ivar, " := ", NULL);
+	    bool need_close = false;
 	    if (goTypeIsInterface(p, pt)) {
-	      Printv(f_go_wrappers, ".Swigcptr()", NULL);
+	      Printv(f_go_wrappers, "getSwigcptr(", NULL);
+	      need_close = true;
+	    }
+	    Printv(f_go_wrappers, ln, NULL);
+	    if (need_close) {
+	      Printv(f_go_wrappers, ")", NULL);
 	    }
 	    Printv(f_go_wrappers, "\n", NULL);
 	  } else {
@@ -3830,7 +3854,7 @@ private:
 	if (SwigType_type(result) != T_VOID) {
 	  Printv(call, "swig_r = ", NULL);
 	  if (result_is_interface) {
-	    Printv(call, result_wrapper, "(", NULL);
+	    Printv(call, result_wrapper, "(getSwigcptr(", NULL);
 	  }
 	}
 	Printv(call, "swig_p.", go_with_over_name, "(", NULL);
@@ -3890,7 +3914,7 @@ private:
 	Printv(call, ")", NULL);
 
 	if (result_is_interface) {
-	  Printv(call, ".Swigcptr())", NULL);
+	  Printv(call, "))", NULL);
 	}
 	Printv(call, "\n", NULL);
 

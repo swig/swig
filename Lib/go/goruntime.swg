@@ -149,6 +149,17 @@ type _swig_fnptr *byte
 type _swig_memberptr *byte
 %}
 
+/* Convert a Go interface value into a C++ pointer.  */
+
+%insert(go_header) %{
+func getSwigcptr(v interface { Swigcptr() uintptr }) uintptr {
+	if v == nil {
+		return 0
+	}
+	return v.Swigcptr()
+}
+%}
+
 /* For directors we need C++ to track a Go pointer.  Since we can't
    pass a Go pointer into C++, we use a map to track the pointers on
    the Go side.  */
