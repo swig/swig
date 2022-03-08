@@ -46,7 +46,7 @@
 <li><a href="#Library_nn17">exception.i</a>
 <li><a href="#Library_attributes">attribute.i</a>
 <ul>
-<li><a href="#Library_attribute_templates">&percnt;attribute and C++ templates</a></li>
+<li><a href="#Library_attribute_templates">%attribute and C++ templates</a>
 </ul>
 </ul>
 </ul>
@@ -2331,6 +2331,8 @@ shared_ptr which has <tt>%naturalvar</tt> turned on in
 </p>
 
 <H4><a name="Library_attribute_templates">12.5.2.1 %attribute and C++ templates</a></H4>
+
+
 <p>
   <tt>%attribute</tt> and friends have to be used on fully specified classes. For example
 </p>
@@ -2340,7 +2342,7 @@ shared_ptr which has <tt>%naturalvar</tt> turned on in
 %inline %{
   template &lt;class T&gt; struct A {
     T a() const;
-    void a(T &);
+    void a(T &amp;);
   };
 %}
 </pre>
