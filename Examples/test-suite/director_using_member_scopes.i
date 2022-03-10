@@ -2,7 +2,7 @@
 
 // Similar to using_member_scopes but for directors
 
-#if !defined(SWIGGO)
+#if !defined(SWIGGO) // TODO: fix Go crash
 
 %feature("director");
 // Python,Java,C# no diffs in generated code when adding in nodirector. Go not happy even without %nodirector.
@@ -18,13 +18,36 @@ namespace OgreBites
     class ApplicationContextBase {
     public:
         virtual ~ApplicationContextBase() {}
-        virtual void setWindowGrab(NativeWindowType* win, bool grab = true) {}
-        void setWindowGrab(bool grab = true) {}
+        virtual int setWindowGrab(NativeWindowType* win, bool grab = true) { return 0; }
+        int setWindowGrab(bool grab = true) { return 5; }
+
+        static int call_setWindowGrab(ApplicationContextBase* ptr, NativeWindowType* win, bool grab) { return ptr->setWindowGrab(win, grab); }
     };
     class ApplicationContextSDL : public ApplicationContextBase {
     public:
         using ApplicationContextBase::setWindowGrab;
-        void setWindowGrab(NativeWindowType* win, bool grab) {} // This should not be added again as it exists in base class
+        int setWindowGrab(NativeWindowType* win, bool grab) { return 10; } // This should not be added again as it exists in base class
+
+        static int call_setWindowGrab(ApplicationContextSDL* ptr, NativeWindowType* win, bool grab) { return ptr->setWindowGrab(win, grab); }
+    };
+
+    class ACB {
+    public:
+        virtual ~ACB() {}
+        virtual int setWindowGrab(NativeWindowType* win, bool grab = true) { return 0; }
+        virtual int setWindowGrab(const char *s, int val) { return 1; } // Additional method compared to ApplicationContextBase
+        int setWindowGrab(bool grab = true) { return 5; }
+
+        static int call_setWindowGrab(ACB* ptr, NativeWindowType* win, bool grab) { return ptr->setWindowGrab(win, grab); }
+        static int call_setWindowGrab(ACB* ptr, const char *s, int val) { return ptr->setWindowGrab(s, val); }
+    };
+    class ACSDL : public ACB {
+    public:
+        using ACB::setWindowGrab; // This introduces two methods, not one method like ApplicationContextSDL
+        int setWindowGrab(NativeWindowType* win, bool grab) { return 10; } // This should not be added again as it exists in base class
+
+        static int call_setWindowGrab(ACSDL* ptr, NativeWindowType* win, bool grab) { return ptr->setWindowGrab(win, grab); }
+        static int call_setWindowGrab(ACSDL* ptr, const char *s, int val) { return ptr->setWindowGrab(s, val); }
     };
 }
 %}

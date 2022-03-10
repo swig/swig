@@ -1948,16 +1948,14 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int &virtual
 
   // find the methods that need directors
   String *classname = Getattr(n, "name");
-  for (Node *ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
+  for (Node *ni = firstChild(n); ni; ni = nextSibling(ni)) {
     /* we only need to check the virtual members */
-    String *nodeType = Getattr(ni, "nodeType");
-    int is_using = (Cmp(nodeType, "using") == 0);
-    Node *nn = is_using ? firstChild(ni) : ni; /* assume there is only one child node for "using" nodes */
-    if (is_using) {
-      if (!nn)
-	continue; // A using node with no added functions, or a using node with private access
+    if (Equal(nodeType(ni), "using")) {
+      for (Node *nn = firstChild(ni); nn; nn = Getattr(nn, "sym:nextSibling")) {
+	unrollOneVirtualMethod(classname, nn, parent, vm, virtual_destructor, protectedbase);
+      }
     }
-    unrollOneVirtualMethod(classname, nn, parent, vm, virtual_destructor, protectedbase);
+    unrollOneVirtualMethod(classname, ni, parent, vm, virtual_destructor, protectedbase);
   }
 
   /*
