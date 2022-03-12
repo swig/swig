@@ -496,11 +496,15 @@ extern void DohMemoryDebug(void);
 /* This works around bison's template checking if malloc and free are defined,
  * which triggers GCC's poison checks.
  */
+/*
 #  pragma GCC poison malloc free
 # pragma GCC poison realloc calloc
+*/
 # endif
 /* Use Exit() instead (which will remove output files on error). */
+/*
 # pragma GCC poison abort exit
+*/
 #endif
 
 #endif				/* DOH_H */
