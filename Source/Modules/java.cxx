@@ -1332,10 +1332,7 @@ public:
 	  // Add extra indentation
 	  Replaceall(enum_code, "\n", "\n  ");
 	  Replaceall(enum_code, "  \n", "\n");
-	  if (GetFlag(getCurrentClass(), "feature:interface"))
-	    Printv(interface_class_code, "  ", enum_code, "\n\n", NIL);
-	  else
-	    Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
+	  Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
 	} else {
 	  // Global enums are defined in their own file
 	  String *output_directory = outputDirectory(nspace);
