@@ -65,7 +65,7 @@ static List *collect_interface_methods(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 static void collect_interface_bases(Hash *bases, Node *n) {
-  if (Getattr(n, "feature:interface")) {
+  if (GetFlag(n, "feature:interface")) {
     String *name = Getattr(n, "interface:name");
     if (!Getattr(bases, name))
       Setattr(bases, name, n);
@@ -74,7 +74,7 @@ static void collect_interface_bases(Hash *bases, Node *n) {
   if (List *baselist = Getattr(n, "bases")) {
     for (Iterator base = First(baselist); base.item; base = Next(base)) {
       if (!GetFlag(base.item, "feature:ignore")) {
-	if (Getattr(base.item, "feature:interface"))
+	if (GetFlag(base.item, "feature:interface"))
 	  collect_interface_bases(bases, base.item);
       }
     }
@@ -92,12 +92,12 @@ static void collect_interface_bases(Hash *bases, Node *n) {
  * ----------------------------------------------------------------------------- */
 
 static void collect_interface_base_classes(Node *n) {
-  if (Getattr(n, "feature:interface")) {
+  if (GetFlag(n, "feature:interface")) {
     // check all bases are also interfaces
     if (List *baselist = Getattr(n, "bases")) {
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
 	if (!GetFlag(base.item, "feature:ignore")) {
-	  if (!Getattr(base.item, "feature:interface")) {
+	  if (!GetFlag(base.item, "feature:interface")) {
 	    Swig_error(Getfile(n), Getline(n), "Base class '%s' of '%s' is not similarly marked as an interface.\n", SwigType_namestr(Getattr(base.item, "name")), SwigType_namestr(Getattr(n, "name")));
 	    Exit(EXIT_FAILURE);
 	  }
@@ -119,7 +119,7 @@ static void collect_interface_base_classes(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 static void process_interface_name(Node *n) {
-  if (Getattr(n, "feature:interface")) {
+  if (GetFlag(n, "feature:interface")) {
     String *interface_name = Getattr(n, "feature:interface:name");
     if (!Len(interface_name)) {
       Swig_error(Getfile(n), Getline(n), "The interface feature for '%s' is missing the name attribute.\n", SwigType_namestr(Getattr(n, "name")));
@@ -148,7 +148,7 @@ void Swig_interface_propagate_methods(Node *n) {
     process_interface_name(n);
     collect_interface_base_classes(n);
     List *methods = collect_interface_methods(n);
-    bool is_interface = Getattr(n, "feature:interface") != 0;
+    bool is_interface = GetFlag(n, "feature:interface");
     for (Iterator mi = First(methods); mi.item; mi = Next(mi)) {
       if (!is_interface && GetFlag(mi.item, "abstract"))
 	continue;
