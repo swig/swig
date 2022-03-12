@@ -830,6 +830,8 @@ public:
 
     builderFunctionCount = 0;
     builderCode = NewString("");
+    builderCode5 = NewString("");
+    builderCode6 = NewString("");
     Printf(builderCode, "mode(-1);\n");
     Printf(builderCode, "lines(0);\n");	/* Useful for automatic tests */
 
@@ -933,8 +935,8 @@ public:
     Printf(builderCode, "if ierr <> 0 then\n");
     Printf(builderCode, "  error(ierr, err_msg);\n");
     Printf(builderCode, "end\n");
-    Write(builderFile, builderCode, Len(builderCode));
-    
+    Printv(builderFile, builderCode, NIL);
+
     Delete(builderCode);
     Delete(builderFile);
   }
