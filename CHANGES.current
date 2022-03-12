@@ -7,6 +7,23 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-12: wsfulton
+            #1277 Fixes for the family of %interface macros, %interface,
+            %interface_impl and %interface_custom fixes for overloaded methods
+            in an inheritance chain.
+
+            When C++ methods are not able to be overloaded in a derived class,
+            such as when they differ by just const, or the target language
+            parameters types are identical even when the C++ parameter types
+            are different, SWIG will ignore one of the overloaded methods with
+            a warning. A %ignore is required to explicitly ignore one of the
+            overloaded methods to avoid the warning message. Methods added
+            in the derived classes due to one of the %interface macros are now
+            similarly ignored/not added to the derived class.
+
+            The methods added to the derived classes can now also be modified
+            via %feature and %rename.
+
 2022-03-08: olly
 	    #1006 SWIG now copes with an interface filename specified on the
 	    command line which contains a closing parenthesis `)`, and more
@@ -625,7 +642,6 @@ Version 4.1.0 (in progress)
             For example:
 
               %typemap(csinterfacemodifiers) X "internal interface"
-
 
 2020-09-24: geefr
             [C#] #1868 Fix wchar_t* csvarout typemap for member variable wrappers.
