@@ -2323,7 +2323,7 @@ public:
     String *pre_code = NewString("");
     String *post_code = NewString("");
     String *terminator_code = NewString("");
-    bool is_interface = GetFlag(parentNode(n), "feature:interface")
+    bool is_interface = GetFlag(parentNode(n), "feature:interface") && !checkAttribute(n, "kind", "variable")
       && !static_flag && Getattr(n, "interface:owner") == 0;
 
     if (!proxy_flag)

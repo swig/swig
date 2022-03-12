@@ -8,6 +8,15 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-03-12: wsfulton
+            #1524 %interface family of macros no longer contain the getter/setter
+            methods for wrapping variables. The interface only contains
+            virtual and non-virtual instance methods, that is, no static methods.
+            Enums are also no longer added to the interface (affects Java only where
+            they were missing from the proxy class, C# never had them in the interface).
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2022-03-12: wsfulton
             #1277 Fixes for the family of %interface macros, %interface,
             %interface_impl and %interface_custom fixes for overloaded methods
             in an inheritance chain.

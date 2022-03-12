@@ -3547,6 +3547,12 @@ added to the proxy class implementing that interface.
 </p>
 
 <p>
+The Java interface only ever contains virtual and non-virtual instance methods from the wrapped C++ class.
+Any static methods, enums or variables in the wrapped C++ class are not supported and are not added to the interface.
+They are of course still available in the Java proxy class.
+</p>
+
+<p>
 Wherever a class marked as an interface is used, such as the <tt>UseBases</tt> method in the example,
 the interface name is used as the type in the Java layer:
 </p>

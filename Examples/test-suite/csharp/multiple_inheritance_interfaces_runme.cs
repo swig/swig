@@ -83,5 +83,7 @@ public class multiple_inheritance_interfaces_runme {
     d.ia(10);
     d.ia("bye");
     d.ia("bye", false);
+
+    UndesirablesSwigImpl.UndesiredStaticMethod(UndesirablesSwigImpl.UndesiredEnum.UndesiredEnum1);
   }
 }
