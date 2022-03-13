@@ -107,7 +107,19 @@ SWIG_Python_FixMethods(PyMethodDef *methods, const swig_const_info *const_table,
   }
 } 
 
+#ifdef __cplusplus
+}
+#endif
+
+%}
+
 #if defined SWIGPYTHON_FASTPROXY && !defined SWIGPYTHON_BUILTIN
+
+%init %{
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* -----------------------------------------------------------------------------
  * Method creation and docstring support functions
@@ -167,11 +179,15 @@ SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyO
   return PyStaticMethod_New(func);
 }
 
-#endif
-
 #ifdef __cplusplus
 }
 #endif
+
+%}
+
+#endif
+
+%init %{
 
 /* -----------------------------------------------------------------------------*
  *  Partial Init method
