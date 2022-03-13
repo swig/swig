@@ -252,7 +252,7 @@ public:
 
     // Add Builder footer code and save
     if (generateBuilder) {
-      saveBuilderFile(gatewayName);
+      saveBuilderFile(gatewayLibraryName);
     }
 
     /* Close the init function and rename with module name */
@@ -345,7 +345,7 @@ public:
     }
 
     /* Write the wrapper function definition (standard Scilab gateway function prototype) */
-    Printv(wrapper->def, "int ", overloadedName, "(SWIG_GatewayParameters) {", NIL);
+    Printv(wrapper->def, "SWIGEXPORT int ", overloadedName, "(SWIG_GatewayParameters) {", NIL);
 
     /* Emit all of the local variables for holding arguments */
     // E.g.: double arg1;
@@ -556,7 +556,7 @@ public:
     String *dispatch = Swig_overload_dispatch(node, "return %s(SWIG_GatewayArguments);", &maxargs);
     String *tmp = NewString("");
 
-    Printv(wrapper->def, "int ", wrapperName, "(SWIG_GatewayParameters) {\n", NIL);
+    Printv(wrapper->def, "SWIGEXPORT int ", wrapperName, "(SWIG_GatewayParameters) {\n", NIL);
 
     /* Get the number of the parameters */
     Wrapper_add_local(wrapper, "argc", "int argc = SWIG_NbInputArgument(pvApiCtx)");
@@ -600,7 +600,7 @@ public:
     String *scilabGetSmallFunctionName = Swig_name_get(NSPACE_TODO, smallVariableName);
 
     Setattr(node, "wrap:name", getFunctionName);
-    Printv(getFunctionWrapper->def, "int ", getFunctionName, "(SWIG_GatewayParameters) {\n", NIL);
+    Printv(getFunctionWrapper->def, "SWIGEXPORT int ", getFunctionName, "(SWIG_GatewayParameters) {\n", NIL);
 
     /* Check the number of input and output */
     Printf(getFunctionWrapper->def, "SWIG_CheckInputArgument(pvApiCtx, 0, 0);\n");
@@ -630,7 +630,7 @@ public:
       String *scilabSetSmallFunctionName = Swig_name_set(NSPACE_TODO, smallVariableName);
 
       Setattr(node, "wrap:name", setFunctionName);
-      Printv(setFunctionWrapper->def, "int ", setFunctionName, "(SWIG_GatewayParameters) {\n", NIL);
+      Printv(setFunctionWrapper->def, "SWIGEXPORT int ", setFunctionName, "(SWIG_GatewayParameters) {\n", NIL);
 
       /* Check the number of input and output */
       Printf(setFunctionWrapper->def, "SWIG_CheckInputArgument(pvApiCtx, 1, 1);\n");
@@ -830,6 +830,8 @@ public:
 
     builderFunctionCount = 0;
     builderCode = NewString("");
+    builderCode5 = NewString("");
+    builderCode6 = NewString("");
     Printf(builderCode, "mode(-1);\n");
     Printf(builderCode, "lines(0);\n");	/* Useful for automatic tests */
 
@@ -933,7 +935,7 @@ public:
     Printf(builderCode, "if ierr <> 0 then\n");
     Printf(builderCode, "  error(ierr, err_msg);\n");
     Printf(builderCode, "end\n");
-    Write(builderFile, builderCode, Len(builderCode));
+      Printv(builderFile, builderCode, NIL);
     
     Delete(builderCode);
     Delete(builderFile);
@@ -998,7 +1000,7 @@ public:
     Printf(gatewayHeaderV6, "#ifdef __cplusplus\n");
     Printf(gatewayHeaderV6, "extern \"C\"\n");
     Printf(gatewayHeaderV6, "#endif\n");
-    Printf(gatewayHeaderV6, "int %s(wchar_t *pwstFuncName) {\n", gatewayLibraryName);
+    Printf(gatewayHeaderV6, "SWIGEXPORT int %s(wchar_t *pwstFuncName) {\n", gatewayLibraryName);
     Printf(gatewayHeaderV6, "\n");
   }
 
@@ -1029,7 +1031,7 @@ public:
     Printf(gatewayHeaderV5, "#ifdef __cplusplus\n");
     Printf(gatewayHeaderV5, "extern \"C\" {\n");
     Printf(gatewayHeaderV5, "#endif\n");
-    Printf(gatewayHeaderV5, "int C2F(%s)() {\n", gatewayLibraryName);
+    Printf(gatewayHeaderV5, "SWIGEXPORT int C2F(%s)() {\n", gatewayLibraryName);
     Printf(gatewayHeaderV5, "  Rhs = Max(0, Rhs);\n");
     Printf(gatewayHeaderV5, "  if (*(Tab[Fin-1].f) != NULL) {\n");
     Printf(gatewayHeaderV5, "    if(pvApiCtx == NULL) {\n");
