@@ -308,6 +308,7 @@ CPP_TEST_CASES += \
 	multiple_inheritance_abstract \
 	multiple_inheritance_interfaces \
 	multiple_inheritance_nspace \
+	multiple_inheritance_overload \
 	multiple_inheritance_shared_ptr \
 	name_cxx \
 	name_warnings \

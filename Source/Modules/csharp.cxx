@@ -1806,7 +1806,7 @@ public:
       if (baselist) {
 	Iterator base = First(baselist);
 	while (base.item) {
-	  if (!(GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface"))) {
+	  if (!(GetFlag(base.item, "feature:ignore") || GetFlag(base.item, "feature:interface"))) {
 	    SwigType *baseclassname = Getattr(base.item, "name");
 	    if (!c_baseclassname) {
 	      String *name = getProxyName(baseclassname);
@@ -2045,7 +2045,7 @@ public:
     if (List *baselist = Getattr(n, "bases")) {
       String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
-	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
+	if (GetFlag(base.item, "feature:ignore") || !GetFlag(base.item, "feature:interface"))
 	  continue; // TODO: warn about skipped non-interface bases
 	String *base_iname = Getattr(base.item, "interface:name");
 	if (!bases)
@@ -2096,7 +2096,7 @@ public:
 
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
-      String *interface_name = Getattr(n, "feature:interface") ? Getattr(n, "interface:name") : 0;
+      String *interface_name = GetFlag(n, "feature:interface") ? Getattr(n, "interface:name") : 0;
       if (Node *outer = Getattr(n, "nested:outer")) {
 	String *outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
 	for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
@@ -2152,7 +2152,7 @@ public:
       destructor_call = NewString("");
       proxy_class_constants_code = NewString("");
 
-      if (Getattr(n, "feature:interface")) {
+      if (GetFlag(n, "feature:interface")) {
 	interface_class_code = NewString("");
 	String *output_directory = outputDirectory(nspace);
 	f_interface = getOutputFile(output_directory, interface_name);
@@ -2323,7 +2323,7 @@ public:
     String *pre_code = NewString("");
     String *post_code = NewString("");
     String *terminator_code = NewString("");
-    bool is_interface = Getattr(parentNode(n), "feature:interface") != 0 
+    bool is_interface = GetFlag(parentNode(n), "feature:interface") && !checkAttribute(n, "kind", "variable")
       && !static_flag && Getattr(n, "interface:owner") == 0;
 
     if (!proxy_flag)

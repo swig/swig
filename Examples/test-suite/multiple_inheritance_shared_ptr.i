@@ -48,7 +48,7 @@
 %shared_ptr(Space::Bottom2)
 %shared_ptr(Space::Bottom3)
 
-%include "swiginterface.i"
+%include <swiginterface.i>
 SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(, Space::ABase1)
 SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(, Space::CBase1)
 SWIG_SHARED_PTR_INTERFACE_TYPEMAPS(, Space::CBase2)
