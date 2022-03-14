@@ -488,7 +488,7 @@ extern void DohMemoryDebug(void);
 #define doh_internal_malloc malloc
 #define doh_internal_realloc realloc
 
-#ifdef __GNUC__
+#if defined __GNUC__ && defined DOH_POISON
 /* Use Malloc(), Realloc(), Calloc(), and Free() instead (which will exit with
  * an error rather than return NULL).
  */
@@ -496,15 +496,11 @@ extern void DohMemoryDebug(void);
 /* This works around bison's template checking if malloc and free are defined,
  * which triggers GCC's poison checks.
  */
-/*
 #  pragma GCC poison malloc free
-# pragma GCC poison realloc calloc
-*/
 # endif
+# pragma GCC poison realloc calloc
 /* Use Exit() instead (which will remove output files on error). */
-/*
 # pragma GCC poison abort exit
-*/
 #endif
 
 #endif				/* DOH_H */
