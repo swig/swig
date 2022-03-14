@@ -26,7 +26,7 @@ namespace OgreBites
     class ApplicationContextSDL : public ApplicationContextBase {
     public:
         using ApplicationContextBase::setWindowGrab;
-        int setWindowGrab(NativeWindowType* win, bool grab) { return 10; } // This should not be added again as it exists in base class
+        int setWindowGrab(NativeWindowType* win, bool grab = true) { return 10; } // This should not be added again as it exists in base class
 
         static int call_setWindowGrab(ApplicationContextSDL* ptr, NativeWindowType* win, bool grab) { return ptr->setWindowGrab(win, grab); }
     };
@@ -44,7 +44,7 @@ namespace OgreBites
     class ACSDL : public ACB {
     public:
         using ACB::setWindowGrab; // This introduces two methods, not one method like ApplicationContextSDL
-        int setWindowGrab(NativeWindowType* win, bool grab) { return 10; } // This should not be added again as it exists in base class
+        int setWindowGrab(NativeWindowType* win, bool grab = true) { return 10; } // This should not be added again as it exists in base class
 
         static int call_setWindowGrab(ACSDL* ptr, NativeWindowType* win, bool grab) { return ptr->setWindowGrab(win, grab); }
         static int call_setWindowGrab(ACSDL* ptr, const char *s, int val) { return ptr->setWindowGrab(s, val); }

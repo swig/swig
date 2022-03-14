@@ -16,7 +16,7 @@ namespace OgreBites
     class ApplicationContextSDL : public ApplicationContextBase {
     public:
         using ApplicationContextBase::setWindowGrab;
-        void setWindowGrab(NativeWindowType* win, bool grab) {} // This should not be added again as it exists in base class
+        void setWindowGrab(NativeWindowType* win, bool grab = true) {} // This should not be added again as it exists in base class
     };
 /*
 typedef not working yet
