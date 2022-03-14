@@ -23,6 +23,8 @@ environment:
   - SWIGLANG: python
     VSVER: 14
     VER: 27
+  - BUILDSYSTEM: cmake
+    VSVER: 14
   - SWIGLANG: python
     VSVER: 15
     VER: 38
@@ -34,18 +36,22 @@ environment:
     PY3: 3
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
   - SWIGLANG: python
+    VSVER: 17
+    VER: 310
+    PY3: 3
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+  - SWIGLANG: python
     OSVARIANT: cygwin
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: java
     OSVARIANT: mingw
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: python
     OSVARIANT: mingw
     WITHLANG: python
-    VER: 37
+    VER: 310
     PY3: 3
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-  - BUILDSYSTEM: cmake
-    VSVER: 14
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 
 matrix:
   allow_failures:
@@ -77,7 +83,7 @@ install:
       $env:VSARCH=""
     } else {
       $env:PCRE_PLATFORM="x64"
-      $env:JAVA_HOME="C:/Program Files/Java/jdk15"
+      $env:JAVA_HOME="C:/Program Files/Java/jdk17"
       $env:VCVARS_PLATFORM="amd64"
       $env:LANG_PLATFORM="-x64"
       $env:CYGWINBIN="C:\cygwin64\bin"
@@ -94,7 +100,10 @@ install:
       $env:CYGWIN="nodosfilewarning"
       $env:CC="cccl"
       $env:CXX="cccl"
-      if ($env:VSVER -ge 16) {
+      if ($env:VSVER -ge 17) {
+        $env:VCVARSBAT="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars$env:MBITS.bat"
+        $env:BOOSTROOT="C:/Libraries/boost_1_77_0"
+      } elseif ($env:VSVER -eq 16) {
         $env:VCVARSBAT="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars$env:MBITS.bat"
         $env:BOOSTROOT="C:/Libraries/boost_1_73_0"
       } elseif ($env:VSVER -eq 15) {
