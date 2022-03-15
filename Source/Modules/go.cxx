@@ -1463,7 +1463,7 @@ private:
       p = getParm(p);
 
       SwigType *pt = Copy(Getattr(p, "type"));
-      if (SwigType_isarray(pt)) {
+      if (SwigType_isarray(pt) && Getattr(p, "tmap:gotype") == NULL) {
 	SwigType_del_array(pt);
 	SwigType_add_pointer(pt);
       }
@@ -5109,7 +5109,7 @@ private:
     }
 
     String *t = Copy(type);
-    if (SwigType_isarray(t)) {
+    if (SwigType_isarray(t) && Getattr(n, "tmap:gotype") == NULL) {
       SwigType_del_array(t);
       SwigType_add_pointer(t);
     }
