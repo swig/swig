@@ -30,8 +30,7 @@ jobs:
       matrix:
         include:
         - SWIGLANG: ""
-          env:
-            CPPFLAGS: -DDOH_POISON
+          CPPFLAGS: "-DDOH_POISON"
         - SWIGLANG: ""
           GCC: 7
         - SWIGLANG: ""
@@ -322,6 +321,7 @@ jobs:
       GCC: ${{ matrix.GCC }}
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
+      CPPFLAGS: ${{ matrix.CPPFLAGS }}
 
     steps:
     - name: Checkout
