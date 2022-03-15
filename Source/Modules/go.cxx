@@ -351,14 +351,6 @@ private:
       Preprocessor_define("SWIGGO_GCCGO 1", 0);
     }
 
-    // This test may be removed in the future, when we can assume that
-    // everybody has upgraded to Go 1.1.  The code below is prepared
-    // for this test to simply be taken out.
-    if (intgo_type_size == 0 && !display_help) {
-      Printf(stderr, "SWIG -go: -intgosize option required but not specified\n");
-      Exit(EXIT_FAILURE);
-    }
-
     if (intgo_type_size == 32) {
       Preprocessor_define("SWIGGO_INTGO_SIZE 32", 0);
     } else if (intgo_type_size == 64) {

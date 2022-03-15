@@ -24,6 +24,7 @@ static void* Swig_malloc(int c) {
 %}
 
 %insert(cgo_comment_typedefs) %{
+#include <stddef.h>
 #include <stdint.h>
 %}
 

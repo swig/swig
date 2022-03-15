@@ -2482,18 +2482,9 @@ else
     go1.[012]*)
       AC_MSG_RESULT([yes - minimum version is 1.3])
       GO=
-      GOOPT="-intgosize 32"
       ;;
     *)
       AC_MSG_RESULT([no])
-      case "$(go env GOARCH)" in
-      amd64 | arm64 | ppc64*)
-        GOOPT="-intgosize 64"
-	;;
-      *)
-        GOOPT="-intgosize 32"
-	;;
-      esac
       ;;
     esac
   fi
@@ -2514,13 +2505,6 @@ else
         AC_MSG_RESULT([no])
         if test "$go_version" -lt 480; then
           GCCGOOPT="-intgosize 32"
-        else
-          AC_CHECK_SIZEOF([void *], [4])
-          if test "$ac_cv_sizeof_void_p" = "8"; then
-            GCCGOOPT="-intgosize 64"
-          else
-            GCCGOOPT="-intgosize 32"
-          fi
         fi
       fi
     fi
