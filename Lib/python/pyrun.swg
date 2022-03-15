@@ -998,6 +998,9 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
     sobj->dict = 0;
 #endif
     if (own == SWIG_POINTER_OWN) {
+      /* Obtain a reference to the Python capsule wrapping the module information, so that the
+       * module information is correctly destroyed after all SWIG python objects have been freed
+       * by the GC (and corresponding destructors invoked) */
       Py_XINCREF(Swig_Capsule_global);
     }
   }
