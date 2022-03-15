@@ -2,7 +2,7 @@
 
 import example
 
-print("Variables =", example.cvar)
+print("Variables = " + str(example.cvar))
 
 # Try to set the values of some global variables
 
