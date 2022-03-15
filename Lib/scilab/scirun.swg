@@ -434,7 +434,7 @@ SWIG_Scilab_NewMemberObj(void *pvApiCtx, int iVarOut, void *ptr, int sz, swig_ty
 #ifdef __cplusplus
 extern "C"
 #endif
-int SWIG_this(SWIG_GatewayParameters) {
+SWIGEXPORT int SWIG_this(SWIG_GatewayParameters) {
   void *ptrValue = NULL;
   if (SwigScilabPtrToObject(pvApiCtx, 1, &ptrValue, NULL, 0, fname) == SWIG_OK) {
     SWIG_Scilab_SetOutputPosition(1);
@@ -451,7 +451,7 @@ int SWIG_this(SWIG_GatewayParameters) {
 #ifdef __cplusplus
 extern "C"
 #endif
-int SWIG_ptr(SWIG_GatewayParameters) {
+SWIGEXPORT int SWIG_ptr(SWIG_GatewayParameters) {
   if (SWIG_NbInputArgument(pvApiCtx) > 0) {
     SciErr sciErr;
     int *piAddrVar1 = NULL;
