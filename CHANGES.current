@@ -33,6 +33,12 @@ Version 4.1.0 (in progress)
             The methods added to the derived classes can now also be modified
             via %feature and %rename.
 
+2022-03-08: ianlancetaylor
+	    [Go] Treat a nil argument as a NULL pointer.
+
+2022-03-08: ianlancetaylor
+	    [Go] Add documentation notes about thread local storage.
+
 2022-03-08: olly
 	    #1006 SWIG now copes with an interface filename specified on the
 	    command line which contains a closing parenthesis `)`, and more
@@ -69,6 +75,11 @@ Version 4.1.0 (in progress)
             from a base class when the using declaration is declared before the method
             declaration. Problem occurred when within a namespace and the parameter types
             in the method signatures were not fully qualified.
+2022-03-05: ianlancetaylor
+	    [Go] Treat non-const references as pointers.
+
+2022-03-05: ianlancetaylor
+	    In SWIG Go testsuite, fail test if "go build" fails.
 
 2022-03-03: olly
 	    #1901 #2223 SWIG should now always exit cleanly if memory
