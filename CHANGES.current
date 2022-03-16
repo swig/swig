@@ -8,6 +8,9 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-03-15: ianlancetaylor
+	    [Go] Add typemaps for std::string*.
+
+2022-03-15: ianlancetaylor
 	    [Go] Don't convert arrays to pointers if there is a "gotype"
 	    typemap entry.
 

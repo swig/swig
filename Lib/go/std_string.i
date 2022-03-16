@@ -88,4 +88,54 @@ class string;
 %typemap(godirectorin,fragment="CopyString") const string &
 %{ $result = swigCopyString($input) %}
 
+
+%typemap(gotype) string * "*string"
+
+%typemap(in) string * (string temp)
+%{
+  temp.assign($input->p, $input->n);
+  $1 = &temp;
+%}
+
+%typemap(godirectorout) string *
+%{
+  {
+    p := Swig_malloc(len(*$input))
+    s := (*[1<<30]byte)(unsafe.Pointer(p))[:len(*$input)]
+    copy(s, *$input)
+    $result = (*string)(unsafe.Pointer(&s))
+  }
+%}
+
+%typemap(directorout) string * (string temp)
+%{
+  temp.assign($input->p, $input->n);
+  $result = &temp;
+  free($input.p);
+%}
+
+%typemap(out,fragment="AllocateString") string * (_gostring_ temp)
+%{
+  temp = Swig_AllocateString($1->data(), $1->length());
+  $result = &temp;
+%}
+
+%typemap(goout,fragment="CopyString") string *
+%{ *$result = swigCopyString(*$1) %}
+
+%typemap(directorin,fragment="AllocateString") string * (_gostring_ temp)
+%{
+  temp = Swig_AllocateString($1->data(), $1->length());
+  $input = &temp;
+%}
+
+%typemap(godirectorin,fragment="CopyString") string *
+%{ *$result = swigCopyString(*$input); %}
+
+%typemap(argout,fragment="AllocateString") string *
+%{ *$input = Swig_AllocateString($1->data(), $1->length()); %}
+
+%typemap(goargout,fragment="CopyString") string *
+%{ *$input = swigCopyString(*$1) %}
+
 }
