@@ -3312,7 +3312,7 @@ public:
       Wrapper_print(f, f_wrappers);
     }
 
-    bool use_static_method = flat_static_method || !in_class || (Cmp(storage, "friend") == 0);
+    bool use_static_method = flat_static_method || !in_class || constructor || (Cmp(storage, "friend") == 0);
     /* Now register the function with the interpreter.   */
     if (!Getattr(n, "sym:overloaded")) {
       if (!builtin_self && (use_static_method || !builtin))
