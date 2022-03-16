@@ -42,6 +42,7 @@ environment:
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: python
     OSVARIANT: cygwin
+    PY3: 3
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: java
     OSVARIANT: mingw
@@ -52,10 +53,10 @@ environment:
     PY3: 3
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 
-matrix:
-  allow_failures:
-  - SWIGLANG: python
-    OSVARIANT: cygwin
+#matrix:
+#  allow_failures:
+#  - SWIGLANG: python
+#    OSVARIANT: cygwin
 
 # Skip stale commits (pull requests only), see https://github.com/appveyor/ci/issues/38#issuecomment-70628826
 init:
@@ -139,7 +140,7 @@ install:
 - if "%OSVARIANT%"=="" bash -c "cl.exe /? 2>&1 | head -n 1"
 - if "%OSVARIANT%"=="" bash -c "which csc.exe"
 - if "%OSVARIANT%"=="" bash -c "csc.exe /? | head -n 1"
-- if "%OSVARIANT%"=="cygwin" %CYGWINSETUP% --quiet-mode --packages python2-devel,libpcre2-devel,libboost-devel > cygwin-install.txt || bash -c "cat cygwin-install.txt"
+- if "%OSVARIANT%"=="cygwin" %CYGWINSETUP% --quiet-mode --packages python3-devel,libpcre2-devel,libboost-devel > cygwin-install.txt || bash -c "cat cygwin-install.txt"
 - if "%OSVARIANT%"=="mingw" bash -c "pacman --noconfirm --sync mingw%MBITS%/mingw-w64-%MARCH%-autotools mingw%MBITS%/mingw-w64-%MARCH%-pcre2 mingw%MBITS%/mingw-w64-%MARCH%-boost mingw%MBITS%/mingw-w64-%MARCH%-python"
 - if not "%WITHLANG%"=="" set SWIGWITHLANG==%WITHLANG%
 - if not "%WITHLANG%"=="" where %WITHLANG%
