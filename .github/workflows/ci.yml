@@ -67,6 +67,10 @@ jobs:
         - SWIGLANG: go
           VER: '1.17'
         - SWIGLANG: guile
+        - SWIGLANG: guile
+          VER: '2.2'
+        - SWIGLANG: guile
+          VER: '3.0'
         - SWIGLANG: java
         - SWIGLANG: javascript
           ENGINE: node

@@ -62,7 +62,7 @@ case "$SWIGLANG" in
 		esac
 		;;
 	"guile")
-		$RETRY sudo apt-get -qq install guile-2.0-dev
+		$RETRY sudo apt-get -qq install guile-${VER:-2.0}-dev
 		;;
 	"lua")
 		if [[ -z "$VER" ]]; then
