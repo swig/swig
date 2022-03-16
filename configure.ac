@@ -927,6 +927,12 @@ else
         fi
       done
       if test -z "$PY3LIB"; then
+        # Last resort
+        if test -d $PY3EPREFIX/$PY3LIBDIR; then
+          PY3LIB="$PY3EPREFIX/$PY3LIBDIR"
+        fi
+      fi
+      if test -z "$PY3LIB"; then
         AC_MSG_RESULT([Not found])
       else
         AC_MSG_RESULT($PY3LIB)
@@ -946,6 +952,7 @@ else
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
   *-*-cygwin* | *-*-mingw*)
+    # PYTHON3DYNAMICLINKING ought to be replaced by $PY3CONFIG --ldflags
     PYTHON3DYNAMICLINKING="-L$PY3LIB $PY3LINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;
