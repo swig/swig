@@ -49,7 +49,6 @@ environment:
   - SWIGLANG: python
     OSVARIANT: mingw
     WITHLANG: python
-    VER: 310
     PY3: 3
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 
@@ -135,13 +134,13 @@ install:
 - if "%OSVARIANT%"=="" appveyor-retry appveyor DownloadFile https://github.com/PhilipHazel/pcre2/archive/refs/tags/pcre2-10.39.zip
 - if "%OSVARIANT%"=="" 7z x pcre2-10.39.zip
 - if "%OSVARIANT%"=="" set PCRE_ROOT=C:/pcre
-- if not "%OSVARIANT%"=="cygwin" set PATH=C:\Python%VER%%LANG_PLATFORM%;%PATH%
+- if "%OSVARIANT%"=="" set PATH=C:\Python%VER%%LANG_PLATFORM%;%PATH%
 - if "%OSVARIANT%"=="" bash -c "which cl.exe"
 - if "%OSVARIANT%"=="" bash -c "cl.exe /? 2>&1 | head -n 1"
 - if "%OSVARIANT%"=="" bash -c "which csc.exe"
 - if "%OSVARIANT%"=="" bash -c "csc.exe /? | head -n 1"
 - if "%OSVARIANT%"=="cygwin" %CYGWINSETUP% --quiet-mode --packages python2-devel,libpcre2-devel,libboost-devel > cygwin-install.txt || bash -c "cat cygwin-install.txt"
-- if "%OSVARIANT%"=="mingw" bash -c "pacman --noconfirm --sync mingw%MBITS%/mingw-w64-%MARCH%-autotools mingw%MBITS%/mingw-w64-%MARCH%-pcre2 mingw%MBITS%/mingw-w64-%MARCH%-boost"
+- if "%OSVARIANT%"=="mingw" bash -c "pacman --noconfirm --sync mingw%MBITS%/mingw-w64-%MARCH%-autotools mingw%MBITS%/mingw-w64-%MARCH%-pcre2 mingw%MBITS%/mingw-w64-%MARCH%-boost mingw%MBITS%/mingw-w64-%MARCH%-python"
 - if not "%WITHLANG%"=="" set SWIGWITHLANG==%WITHLANG%
 - if not "%WITHLANG%"=="" where %WITHLANG%
 - bash -c "which $CC"
