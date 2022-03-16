@@ -35,7 +35,7 @@ wchar_t* test_wchar_overload(wchar_t *x) {
    return x;
 }
 
-std::wstring test_value(std::wstring x) {
+std::wstring test_value(const std::wstring& x) {
    return x;
 }
 

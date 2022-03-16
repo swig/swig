@@ -125,7 +125,7 @@ SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner)
     else
       SCM_NEWSMOB2(smob, swig_tag, ptr, (void *) type);
 
-    if (!cdata || SCM_NULLP(cdata->goops_class) || swig_make_func == SCM_EOL ) {
+    if (!cdata || scm_is_null(cdata->goops_class) || swig_make_func == SCM_EOL ) {
       return smob;
     } else {
       /* the scm_make() C function only handles the creation of gf,
@@ -145,7 +145,7 @@ SWIGINTERN unsigned long
 SWIG_Guile_PointerAddress(SCM object)
 {
   SCM smob = SWIG_Guile_GetSmob(object);
-  if (SCM_NULLP(smob)) return 0;
+  if (scm_is_null(smob)) return 0;
   else if (SCM_SMOB_PREDICATE(swig_tag, smob)
 	   || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)
 	   || SCM_SMOB_PREDICATE(swig_destroyed_tag, smob)) {
@@ -158,7 +158,7 @@ SWIGINTERN swig_type_info *
 SWIG_Guile_PointerType(SCM object)
 {
   SCM smob = SWIG_Guile_GetSmob(object);
-  if (SCM_NULLP(smob)) return NULL;
+  if (scm_is_null(smob)) return NULL;
   else if (SCM_SMOB_PREDICATE(swig_tag, smob)
 	   || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)
 	   || SCM_SMOB_PREDICATE(swig_destroyed_tag, smob)) {
@@ -186,7 +186,7 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
   swig_type_info *from;
   SCM smob = SWIG_Guile_GetSmob(s);
 
-  if (SCM_NULLP(smob)) {
+  if (scm_is_null(smob)) {
     *result = NULL;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
 #if SCM_MAJOR_VERSION >= 2
@@ -252,7 +252,7 @@ SWIGINTERN void
 SWIG_Guile_MarkPointerNoncollectable(SCM s)
 {
   SCM smob = SWIG_Guile_GetSmob(s);
-  if (!SCM_NULLP(smob)) {
+  if (!scm_is_null(smob)) {
     if (SWIG_Guile_IsValidSmob(smob)) {
       SCM_SET_CELL_TYPE(smob, swig_tag);
     }
@@ -265,7 +265,7 @@ SWIGINTERN void
 SWIG_Guile_MarkPointerDestroyed(SCM s)
 {
   SCM smob = SWIG_Guile_GetSmob(s);
-  if (!SCM_NULLP(smob)) {
+  if (!scm_is_null(smob)) {
     if (SWIG_Guile_IsValidSmob(smob)) {
       SCM_SET_CELL_TYPE(smob, swig_destroyed_tag);
     }
@@ -486,20 +486,20 @@ SWIG_Guile_GetArgs (SCM *dest, SCM rest,
   int i;
   int num_args_passed = 0;
   for (i = 0; i<reqargs; i++) {
-    if (!SCM_CONSP(rest))
+    if (!scm_is_pair(rest))
       scm_wrong_num_args(scm_from_utf8_string(procname ? (char *) procname : "unknown procedure"));
     *dest++ = SCM_CAR(rest);
     rest = SCM_CDR(rest);
     num_args_passed++;
   }
-  for (i = 0; i<optargs && SCM_CONSP(rest); i++) {
+  for (i = 0; i<optargs && scm_is_pair(rest); i++) {
     *dest++ = SCM_CAR(rest);
     rest = SCM_CDR(rest);
     num_args_passed++;
   }
   for (; i<optargs; i++)
     *dest++ = SCM_UNDEFINED;
-  if (!SCM_NULLP(rest))
+  if (!scm_is_null(rest))
       scm_wrong_num_args(scm_from_utf8_string(procname ? (char *) procname : "unknown procedure"));
   return num_args_passed;
 }

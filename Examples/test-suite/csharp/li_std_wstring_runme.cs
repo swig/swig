@@ -84,7 +84,10 @@ public class runme
 
         {
             // Unicode strings
+	    char unicodechar = '\u73a9';  // Chinese character for father, man
+	    string unicodeString = unicodechar.ToString();
             string[] test_strings = {
+		unicodeString,
                 "JP: 日本語", "DE: Kröpeliner Straße" , "RU: Война и мир", "EN: War and Peace"
             };
 
