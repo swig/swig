@@ -2,7 +2,7 @@
 # Makefile for python test-suite
 #######################################################################
 
-ifeq (,$(PY3))
+ifneq (,$(PY2))
   PYBIN = @PYTHON@
 else
   PYBIN = @PYTHON3@

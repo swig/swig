@@ -24,7 +24,7 @@ jobs:
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY3 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
       matrix:
@@ -113,45 +113,37 @@ jobs:
         - SWIGLANG: php
           VER: '8.1'
         - SWIGLANG: python
+          PY2: 2
         - SWIGLANG: python
-          PY3: 3
           VER: '3.2'
           os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
         - SWIGLANG: python
-          PY3: 3
           VER: '3.3'
           os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
         - SWIGLANG: python
-          PY3: 3
           VER: '3.4'
           os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
         - SWIGLANG: python
-          PY3: 3
           VER: '3.5'
         - SWIGLANG: python
-          PY3: 3
           VER: '3.6'
         - SWIGLANG: python
-          PY3: 3
           VER: '3.7'
         - SWIGLANG: python
-          PY3: 3
           VER: '3.8'
         - SWIGLANG: python
-          PY3: 3
           VER: '3.9'
         - SWIGLANG: python
-          PY3: 3
           VER: '3.10'
         - SWIGLANG: python
+          PY2: 2
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
+          PY2: 2
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
-          PY3: 3
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
-          PY3: 3
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: r
         - SWIGLANG: ruby
@@ -210,7 +202,6 @@ jobs:
           CSTD: gnu11
         - SWIGLANG: python
           CPPSTD: c++11
-          PY3: 3
         - SWIGLANG: r
           CPPSTD: c++11
         - SWIGLANG: ruby
@@ -245,7 +236,6 @@ jobs:
           CSTD: gnu11
         - SWIGLANG: python
           CPPSTD: c++14
-          PY3: 3
         - SWIGLANG: r
           CPPSTD: c++14
         - SWIGLANG: ruby
@@ -290,7 +280,6 @@ jobs:
         - SWIGLANG: python
           CPPSTD: c++17
           GCC: 11
-          PY3: 3
         - SWIGLANG: r
           CPPSTD: c++17
           GCC: 11
@@ -314,7 +303,7 @@ jobs:
 
     env:
       SWIGLANG: ${{ matrix.SWIGLANG }}
-      PY3: ${{ matrix.PY3 }}
+      PY2: ${{ matrix.PY2 }}
       VER: ${{ matrix.VER }}
       ENGINE: ${{ matrix.ENGINE }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
