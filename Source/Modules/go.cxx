@@ -244,7 +244,6 @@ private:
   virtual void main(int argc, char *argv[]) {
 
     SWIG_library_directory("go");
-    bool display_help = false;
     bool saw_nocgo_flag = false;
 
     // Process command line options.
@@ -329,7 +328,6 @@ private:
 	    Swig_arg_error();
 	  }
 	} else if (strcmp(argv[i], "-help") == 0) {
-	  display_help = true;
 	  Printf(stdout, "%s\n", usage);
 	}
       }
