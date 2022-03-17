@@ -82,8 +82,8 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(ctype) unsigned short,     const unsigned short &     "unsigned short"
 %typemap(ctype) int,                const int &                "int"
 %typemap(ctype) unsigned int,       const unsigned int &       "unsigned int"
-%typemap(ctype) long,               const long &               "int"
-%typemap(ctype) unsigned long,      const unsigned long &      "unsigned int"
+%typemap(ctype) long,               const long &               "long"
+%typemap(ctype) unsigned long,      const unsigned long &      "unsigned long"
 %typemap(ctype) long long,          const long long &          "long long"
 %typemap(ctype) unsigned long long, const unsigned long long & "unsigned long long"
 %typemap(ctype) float,              const float &              "float"
@@ -98,8 +98,13 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(imtype) unsigned short,     const unsigned short &     "ushort"
 %typemap(imtype) int,                const int &                "int"
 %typemap(imtype) unsigned int,       const unsigned int &       "uint"
+#if defined(SWIGWORDSIZE64)
+%typemap(imtype) long,               const long &               "long"
+%typemap(imtype) unsigned long,      const unsigned long &      "ulong"
+#else
 %typemap(imtype) long,               const long &               "int"
 %typemap(imtype) unsigned long,      const unsigned long &      "uint"
+#endif
 %typemap(imtype) long long,          const long long &          "long"
 %typemap(imtype) unsigned long long, const unsigned long long & "ulong"
 %typemap(imtype) float,              const float &              "float"
@@ -114,8 +119,13 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(cstype) unsigned short,     const unsigned short &     "ushort"
 %typemap(cstype) int,                const int &                "int"
 %typemap(cstype) unsigned int,       const unsigned int &       "uint"
+#if defined(SWIGWORDSIZE64)
+%typemap(cstype) long,               const long &               "long"
+%typemap(cstype) unsigned long,      const unsigned long &      "ulong"
+#else
 %typemap(cstype) long,               const long &               "int"
 %typemap(cstype) unsigned long,      const unsigned long &      "uint"
+#endif
 %typemap(cstype) long long,          const long long &          "long"
 %typemap(cstype) unsigned long long, const unsigned long long & "ulong"
 %typemap(cstype) float,              const float &              "float"
@@ -201,9 +211,9 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(directorin) short              "$input = $1;"
 %typemap(directorin) unsigned short     "$input = $1;"
 %typemap(directorin) int                "$input = $1;"
-%typemap(directorin) unsigned int       "$input = (unsigned int)$1;"
+%typemap(directorin) unsigned int       "$input = $1;"
 %typemap(directorin) long               "$input = $1;"
-%typemap(directorin) unsigned long      "$input = $1;"
+%typemap(directorin) unsigned long      "$input = (unsigned long)$1;"
 %typemap(directorin) long long          "$input = $1;"
 %typemap(directorin) unsigned long long "$input = $1;"
 %typemap(directorin) float              "$input = $1;"
@@ -246,9 +256,9 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(out) short              %{ $result = $1; %}
 %typemap(out) unsigned short     %{ $result = $1; %}
 %typemap(out) int                %{ $result = $1; %}
-%typemap(out) unsigned int       %{ $result = (unsigned int)$1; %}
+%typemap(out) unsigned int       %{ $result = $1; %}
 %typemap(out) long               %{ $result = $1; %}
-%typemap(out) unsigned long      %{ $result = $1; %}
+%typemap(out) unsigned long      %{ $result = (unsigned long)$1; %}
 %typemap(out) long long          %{ $result = $1; %}
 %typemap(out) unsigned long long %{ $result = $1; %}
 %typemap(out) float              %{ $result = $1; %}
@@ -327,7 +337,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(directorin) const short &          "$input = $1;"
 %typemap(directorin) const unsigned short & "$input = $1;"
 %typemap(directorin) const int &            "$input = $1;"
-%typemap(directorin) const unsigned int &   "$input = (unsigned int)$1;"
+%typemap(directorin) const unsigned int &   "$input = $1;"
 %typemap(directorin) const long &           "$input = $1;"
 %typemap(directorin) const unsigned long &  "$input = $1;"
 %typemap(directorin) const long long &      "$input = $1;"
@@ -373,9 +383,9 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(out) const short &              %{ $result = *$1; %}
 %typemap(out) const unsigned short &     %{ $result = *$1; %}
 %typemap(out) const int &                %{ $result = *$1; %}
-%typemap(out) const unsigned int &       %{ $result = (unsigned int)*$1; %}
+%typemap(out) const unsigned int &       %{ $result = *$1; %}
 %typemap(out) const long &               %{ $result = *$1; %}
-%typemap(out) const unsigned long &      %{ $result = *$1; %}
+%typemap(out) const unsigned long &      %{ $result = (unsigned long)*$1; %}
 %typemap(out) const long long &          %{ $result = *$1; %}
 %typemap(out) const unsigned long long & %{ $result = *$1; %}
 %typemap(out) const float &              %{ $result = *$1; %}
@@ -519,6 +529,31 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     const unsigned short &
     ""
 
+#if defined(SWIGWORDSIZE64)
+%typecheck(SWIG_TYPECHECK_INT32)
+    int,
+    const int &
+    ""
+
+%typecheck(SWIG_TYPECHECK_UINT32)
+    unsigned int,
+    const unsigned int &
+    ""
+
+%typecheck(SWIG_TYPECHECK_INT64)
+    long, 
+    long long, 
+    const long &, 
+    const long long &
+    ""
+
+%typecheck(SWIG_TYPECHECK_UINT64)
+    unsigned long, 
+    unsigned long long, 
+    const unsigned long &, 
+    const unsigned long long &
+    ""
+#else
 %typecheck(SWIG_TYPECHECK_INT32)
     int, 
     long, 
@@ -542,6 +577,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     unsigned long long,
     const unsigned long long &
     ""
+#endif
 
 %typecheck(SWIG_TYPECHECK_FLOAT)
     float,
@@ -659,6 +695,24 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     uint ret = $imcall;$excode
     return ret;
   }
+#if defined(SWIGWORDSIZE64)
+%typemap(csout, excode=SWIGEXCODE) long,               const long &               {
+    long ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) unsigned long,      const unsigned long &      {
+    ulong ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) long long,          const long long &          {
+    long ret = $imcall;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) unsigned long long, const unsigned long long & {
+    ulong ret = $imcall;$excode
+    return ret;
+  }
+#else
 %typemap(csout, excode=SWIGEXCODE) long,               const long &               {
     int ret = $imcall;$excode
     return ret;
@@ -675,6 +729,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     ulong ret = $imcall;$excode
     return ret;
   }
+#endif
 %typemap(csout, excode=SWIGEXCODE) float,              const float &              {
     float ret = $imcall;$excode
     return ret;
@@ -765,6 +820,28 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
       uint ret = $imcall;$excode
       return ret;
     } %}
+#if defined(SWIGWORDSIZE64)
+%typemap(csvarout, excode=SWIGEXCODE2) long,               const long &               %{
+    get {
+      long ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) unsigned long,      const unsigned long &      %{
+    get {
+      ulong ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) long long,          const long long &          %{
+    get {
+      long ret = $imcall;$excode
+      return ret;
+    } %}
+%typemap(csvarout, excode=SWIGEXCODE2) unsigned long long, const unsigned long long & %{
+    get {
+      ulong ret = $imcall;$excode
+      return ret;
+    } %}
+#else
 %typemap(csvarout, excode=SWIGEXCODE2) long,               const long &               %{
     get {
       int ret = $imcall;$excode
@@ -785,6 +862,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
       ulong ret = $imcall;$excode
       return ret;
     } %}
+#endif
 %typemap(csvarout, excode=SWIGEXCODE2) float,              const float &              %{
     get {
       float ret = $imcall;$excode
@@ -1062,17 +1140,23 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 %pragma(csharp) imclassclassmodifiers="class"
 %pragma(csharp) moduleclassmodifiers="public class"
 
-/* 64-bit architecture specific typemaps */
-#if defined(SWIGWORDSIZE64)
-%apply long long { long };
-%apply unsigned long long { unsigned long };
-%apply const long long & { const long & };
-%apply const unsigned long long & { const unsigned long & };
+/* Some ANSI C typemaps */
+
+#if defined(SWIGWORDSIZE64) && !defined(SWIGINT64ISLONGLONG)
+%apply unsigned long int { size_t };
+%apply const unsigned long int & { const size_t & };
+#else
+%apply unsigned long long int { size_t };
+%apply const unsigned long long int & { const size_t & };
 #endif
 
-/* size_t maps to C# 32-bit uint type */
-%apply unsigned int { size_t };
-%apply const unsigned int & { const size_t & };
+#if defined(SWIGWORDSIZE64) && !defined(SWIGINT64ISLONGLONG)
+%apply long int { ptrdiff_t };
+%apply const long int & { const ptrdiff_t & };
+#else
+%apply long long int { ptrdiff_t };
+%apply const long long int & { const ptrdiff_t & };
+#endif
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }

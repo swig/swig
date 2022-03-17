@@ -116,10 +116,6 @@ CSHARP_ARRAYS(unsigned long, uint)
 CSHARP_ARRAYS(long, long)
 CSHARP_ARRAYS(unsigned long, ulong)
 #endif
-%typemap(in, fragment="long_check_wordsize") long INPUT[], unsigned long INPUT[] "$1 = $input;"
-%typemap(in, fragment="long_check_wordsize") long OUTPUT[], unsigned long OUTPUT[] "$1 = $input;"
-%typemap(in, fragment="long_check_wordsize") long INOUT[], unsigned long INOUT[] "$1 = $input;"
-
 // By default C# will marshal bools as 4 bytes
 // UnmanagedType.I1 will change this to 1 byte
 // FIXME - When running on mono ArraySubType appears to be ignored and bools will be marshalled as 4-byte
@@ -192,11 +188,10 @@ CSHARP_ARRAYS_FIXED(double, double)
 CSHARP_ARRAYS_FIXED(bool, bool)
 
 // 32-bit/64-bit architecture specific typemaps - special handling to ensure sizeof(long) on C side matches size used on C# side
-#ifdef !SWIGWORDSIZE64
+#if !defined(SWIGWORDSIZE64)
 CSHARP_ARRAYS_FIXED(long, int)
 CSHARP_ARRAYS_FIXED(unsigned long, uint)
 #else
 CSHARP_ARRAYS_FIXED(long, long)
 CSHARP_ARRAYS_FIXED(unsigned long, ulong)
 #endif
-%typemap(in, fragment="long_check_wordsize") long FIXED[], unsigned long FIXED[] "$1 = $input;"

@@ -242,39 +242,24 @@ INOUT_TYPEMAP(double,             double,               double,   DOUBLE_PTR)
 
 // 32-bit/64-bit architecture specific typemaps - marshal as 32-bit by default
 #if !defined(SWIGWORDSIZE64)
-INPUT_TYPEMAP(long,               int,                 int)
-INPUT_TYPEMAP(unsigned long,      unsigned int,        uint)
+INPUT_TYPEMAP(long,               long,                 int)
+INPUT_TYPEMAP(unsigned long,      unsigned long,        uint)
 
-OUTPUT_TYPEMAP(long,              int,                 int,       INT32_PTR)
-OUTPUT_TYPEMAP(unsigned long,     unsigned int,        uint,      UINT32_PTR)
+OUTPUT_TYPEMAP(long,              long,                 int,      INT32_PTR)
+OUTPUT_TYPEMAP(unsigned long,     unsigned long,        uint,     UINT32_PTR)
 
-INOUT_TYPEMAP(long,               int,                 int,       INT32_PTR)
-INOUT_TYPEMAP(unsigned long,      unsigned int,        uint,      UINT32_PTR)
+INOUT_TYPEMAP(long,               long,                 int,      INT32_PTR)
+INOUT_TYPEMAP(unsigned long,      unsigned long,        uint,     UINT32_PTR)
 #else
-INPUT_TYPEMAP(long,               long long,           int)
-INPUT_TYPEMAP(unsigned long,      unsigned long long,  uint)
+INPUT_TYPEMAP(long,               long,                 long)
+INPUT_TYPEMAP(unsigned long,      unsigned long,        ulong)
 
-OUTPUT_TYPEMAP(long,              long long,           int,       INT64_PTR)
-OUTPUT_TYPEMAP(unsigned long,     unsigned long long,  uint,      UINT64_PTR)
+OUTPUT_TYPEMAP(long,              long,                 long,     INT64_PTR)
+OUTPUT_TYPEMAP(unsigned long,     unsigned long,        ulong,    UINT64_PTR)
 
-INOUT_TYPEMAP(long,               long long,           int,       INT64_PTR)
-INOUT_TYPEMAP(unsigned long,      unsigned long long,  uint,      UINT64_PTR)
+INOUT_TYPEMAP(long,               long,                 long,     INT64_PTR)
+INOUT_TYPEMAP(unsigned long,      unsigned long,        ulong,    UINT64_PTR)
 #endif
-%typemap(in) long INPUT[] ($*1_ltype tempinput), unsigned long INPUT[] ($*1_ltype tempinput)
-%{tempinput = ($*1_ltype)*$input;
-  $1 = &tempinput;%}
-
-%typemap(in) long OUTPUT[] ($*1_ltype tempoutput), unsigned long OUTPUT[] ($*1_ltype tempoutput)
-%{$1 = &tempoutput;%}
-
-%typemap(in) long INOUT[] ($*1_ltype tempinout), unsigned long INOUT[] ($*1_ltype tempinout)
-%{tempinout = ($*1_ltype)*$input;
-  $1 = &tempinout;%}
-
-%typemap(argout) long OUTPUT[], unsigned long OUTPUT[] "*$input = *$1;"
-%typemap(argout) long INOUT[], unsigned long INOUT[] "*$input = *$1;"
-
-
 #undef INPUT_TYPEMAP
 #undef OUTPUT_TYPEMAP
 #undef INOUT_TYPEMAP

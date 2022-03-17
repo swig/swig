@@ -99,6 +99,9 @@
 
 %fragment("long_check_wordsize32", "header", fragment="<limits.h>") %{
 #if !defined(SWIG_NO_WORDSIZE32_CHECK)
+#ifndef LONG_MAX
+#include <limits.h>
+#endif
 #if (__WORDSIZE == 64) || (LONG_MAX != INT_MAX)
 # error "SWIG generated code is invalid on this 64-bit architecture, please regenerate without defining SWIGWORDSIZE32 or define SWIGWORDSIZE64"
 #endif
@@ -107,6 +110,9 @@
 
 %fragment("long_check_wordsize64", "header", fragment="<limits.h>") %{
 #if !defined(SWIG_NO_WORDSIZE64_CHECK)
+#ifndef LONG_MAX
+#include <limits.h>
+#endif
 #if (__WORDSIZE == 32) || (LONG_MAX == INT_MAX)
 # error "SWIG generated code is invalid on this 32-bit architecture, please regenerate without defining SWIGWORDSIZE64 or define SWIGWORDSIZE32"
 #endif
