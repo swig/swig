@@ -655,14 +655,14 @@ PYLIB=
 PYLINK=
 PYPACKAGE=
 
-AC_ARG_WITH(python, AS_HELP_STRING([--without-python], [Disable Python])
-AS_HELP_STRING([--with-python=path], [Set location of Python executable]),[ PYBIN="$withval"], [PYBIN="$alllang_default"])
+AC_ARG_WITH(python, AS_HELP_STRING([--without-python], [Don't probe for Python 2.x])
+AS_HELP_STRING([--with-python=path], [Set location of Python 2.x executable]), [PYBIN="$withval"], [PYBIN="$alllang_default"])
 
 # First, check for "--without-python" or "--with-python=no".
 if test x"${PYBIN}" = xno; then
-  AC_MSG_NOTICE([Disabling Python])
+  AC_MSG_NOTICE([Disabling Python 2.x probe])
 else
-  # First figure out the name of the Python executable
+  # First figure out the name of the Python 2.x executable
   if test "x$PYBIN" = xyes; then
     AC_CHECK_PROGS(PYTHON, [python python2.7])
   else
@@ -677,20 +677,20 @@ else
     if test -z "$PYVER"; then
       PYVER=0
     else
-      AC_MSG_CHECKING(for Python os.name)
+      AC_MSG_CHECKING(for Python 2.x os.name)
       PYOSNAME=`($PYTHON -c "import sys, os; sys.stdout.write(os.name)") 2>/dev/null`
       AC_MSG_RESULT($PYOSNAME)
-      AC_MSG_CHECKING(for Python path separator)
+      AC_MSG_CHECKING(for Python 2.x path separator)
       PYSEPARATOR=`($PYTHON -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
       AC_MSG_RESULT($PYSEPARATOR)
     fi
   fi
 
   if test $PYVER -eq 1 -o $PYVER -eq 2; then
-    AC_MSG_CHECKING(for Python prefix)
+    AC_MSG_CHECKING(for Python 2.x prefix)
     PYPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYPREFIX)
-    AC_MSG_CHECKING(for Python exec-prefix)
+    AC_MSG_CHECKING(for Python 2.x exec-prefix)
     PYEPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.exec_prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYEPREFIX)
 
@@ -699,13 +699,13 @@ else
       PYPREFIX=`echo "$PYPREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
       PYTHON_SO=.pyd
 
-      AC_MSG_CHECKING(for Python header files)
+      AC_MSG_CHECKING(for Python 2.x header files)
       if test -r $PYPREFIX/include/Python.h; then
         PYINCLUDE="-I$PYPREFIX/include"
       fi
       AC_MSG_RESULT($PYINCLUDE)
 
-      AC_MSG_CHECKING(for Python library directory)
+      AC_MSG_CHECKING(for Python 2.x library directory)
       if test -d $PYPREFIX/libs; then
         PYLIB=$PYPREFIX/libs
         PYLINKFILE=`ls $PYLIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
@@ -719,7 +719,7 @@ else
       # Note: I could not think of a standard way to get the version string from different versions.
       # This trick pulls it out of the file location for a standard library file.
 
-      AC_MSG_CHECKING(for Python version)
+      AC_MSG_CHECKING(for Python 2.x version)
 
       # Need to do this hack since autoconf replaces __file__ with the name of the configure file
       filehack="file__"
@@ -728,7 +728,7 @@ else
 
       # Find the directory for libraries this is necessary to deal with
       # platforms that can have apps built for multiple archs: e.g. x86_64
-      AC_MSG_CHECKING(for Python lib dir)
+      AC_MSG_CHECKING(for Python 2.x lib dir)
       PYLIBDIR=`($PYTHON -c "import sys; sys.stdout.write(sys.lib)") 2>/dev/null`
       if test -z "$PYLIBDIR"; then
         # Fedora patch Python to add sys.lib, for other distros we assume "lib".
@@ -738,7 +738,7 @@ else
 
       # Set the include directory
 
-      AC_MSG_CHECKING(for Python header files)
+      AC_MSG_CHECKING(for Python 2.x header files)
       if test -r $PYPREFIX/include/$PYVERSION/Python.h; then
         PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/$PYLIBDIR/$PYVERSION/config"
       fi
@@ -750,7 +750,7 @@ else
       AC_MSG_RESULT($PYINCLUDE)
 
       # Set the library directory blindly.   This probably won't work with older versions
-      AC_MSG_CHECKING(for Python library directory)
+      AC_MSG_CHECKING(for Python 2.x library directory)
       dirs="$PYVERSION/config $PYVERSION/$PYLIBDIR python/$PYLIBDIR"
       for i in $dirs; do
         if test -d $PYEPREFIX/$PYLIBDIR/$i; then
@@ -767,7 +767,7 @@ else
     else
       AC_MSG_RESULT($PYLIB)
     fi
-    AC_MSG_CHECKING(for Python library)
+    AC_MSG_CHECKING(for Python 2.x library)
     if test -z "$PYLINK"; then
       AC_MSG_RESULT(Not found)
     else
@@ -800,12 +800,12 @@ PY3LIB=
 PY3LINK=
 PY3PACKAGE=
 
-AC_ARG_WITH(python3, AS_HELP_STRING([--without-python3], [Disable Python 3.x support])
-AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]),[ PY3BIN="$withval"], [PY3BIN="$alllang_default"])
+AC_ARG_WITH(python3, AS_HELP_STRING([--without-python3], [Don't probe for Python 3.x])
+AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]), [PY3BIN="$withval"], [PY3BIN="$alllang_default"])
 
 # First, check for "--without-python3" or "--with-python3=no".
 if test x"${PY3BIN}" = xno; then
-  AC_MSG_NOTICE([Disabling Python 3.x support])
+  AC_MSG_NOTICE([Disabling Python 3.x probe])
 else
   if test -z "$PYVER"; then
     PYVER=0
