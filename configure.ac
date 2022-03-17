@@ -708,7 +708,7 @@ else
       AC_MSG_CHECKING(for Python library directory)
       if test -d $PYPREFIX/libs; then
         PYLIB=$PYPREFIX/libs
-        PYLINKFILE=`ls $PYLIB/python*.lib | grep "python[[0-9]][[0-9]]\.lib"`
+        PYLINKFILE=`ls $PYLIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
         if test -r "$PYLINKFILE"; then
           PYLINK=-l`basename $PYLINKFILE | sed -e 's/\.lib$//'`
         else
@@ -864,7 +864,7 @@ else
       AC_MSG_CHECKING(for Python 3.x library directory)
       if test -d $PY3PREFIX/libs; then
         PY3LIB=$PY3PREFIX/libs
-        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\.lib"`
+        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
         if test -r "$PY3LINKFILE"; then
           PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
         else
@@ -927,6 +927,12 @@ else
         fi
       done
       if test -z "$PY3LIB"; then
+        # Last resort
+        if test -d $PY3EPREFIX/$PY3LIBDIR; then
+          PY3LIB="$PY3EPREFIX/$PY3LIBDIR"
+        fi
+      fi
+      if test -z "$PY3LIB"; then
         AC_MSG_RESULT([Not found])
       else
         AC_MSG_RESULT($PY3LIB)
@@ -946,6 +952,7 @@ else
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
   *-*-cygwin* | *-*-mingw*)
+    # PYTHON3DYNAMICLINKING ought to be replaced by $PY3CONFIG --ldflags
     PYTHON3DYNAMICLINKING="-L$PY3LIB $PY3LINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;

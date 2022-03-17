@@ -60,7 +60,7 @@ class wstring;
  %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") wstring %{
-  jsize $1_len = $1.length();
+  jsize $1_len = (jsize)$1.length();
   jchar *$1_conv_buf = new jchar[$1_len];
   for (jsize i = 0; i < $1_len; ++i) {
     $1_conv_buf[i] = (jchar)$1[i];
@@ -71,7 +71,7 @@ class wstring;
 %}
 
 %typemap(out) wstring
-%{jsize $1_len = $1.length();
+%{jsize $1_len = (jsize)$1.length();
   jchar *conv_buf = new jchar[$1_len];
   for (jsize i = 0; i < $1_len; ++i) {
     conv_buf[i] = (jchar)$1[i];
@@ -138,7 +138,7 @@ class wstring;
   jenv->ReleaseStringChars($input, $1_pstr); %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") const wstring & %{
-  jsize $1_len = $1.length();
+  jsize $1_len = (jsize)$1.length();
   jchar *$1_conv_buf = new jchar[$1_len];
   for (jsize i = 0; i < $1_len; ++i) {
     $1_conv_buf[i] = (jchar)($1)[i];
@@ -149,7 +149,7 @@ class wstring;
 %}
 
 %typemap(out) const wstring & 
-%{jsize $1_len = $1->length();
+%{jsize $1_len = (jsize)$1->length();
   jchar *conv_buf = new jchar[$1_len];
   for (jsize i = 0; i < $1_len; ++i) {
     conv_buf[i] = (jchar)(*$1)[i];
