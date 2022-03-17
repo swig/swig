@@ -98,14 +98,20 @@ case "$SWIGLANG" in
 		;;
 	"python")
 		pip install --user pycodestyle
+		if [[ "$PY2" ]]; then
+			WITHLANG=$SWIGLANG
+		else
+			WITHLANG=${SWIGLANG}3
+		fi
 		if [[ "$VER" ]]; then
 			$RETRY sudo add-apt-repository -y ppa:deadsnakes/ppa
 			$RETRY sudo apt-get -qq update
 			$RETRY sudo apt-get -qq install python${VER}-dev
-			WITHLANG=$SWIGLANG$PY3=$SWIGLANG$VER
+			WITHLANG=$WITHLANG=$SWIGLANG$VER
+		elif [[ "$PY2" ]]; then
+			$RETRY sudo apt-get install -qq python-dev
 		else
-			$RETRY sudo apt-get install -qq python${PY3}-dev
-			WITHLANG=$SWIGLANG$PY3
+			$RETRY sudo apt-get install -qq python3-dev
 		fi
 		;;
 	"r")
