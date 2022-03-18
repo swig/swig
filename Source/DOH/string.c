@@ -610,11 +610,13 @@ static char *match_identifier(char *base, char *s, char *token, int tokenlen) {
     if (!s)
       return 0;
     if ((s > base) && (isalnum((int) *(s - 1)) || (*(s - 1) == '_'))) {
-      s += tokenlen;
+      /* We could advance by tokenlen if strstr(s, token) matches can't overlap. */
+      ++s;
       continue;
     }
     if (isalnum((int) *(s + tokenlen)) || (*(s + tokenlen) == '_')) {
-      s += tokenlen;
+      /* We could advance by tokenlen if strstr(s, token) matches can't overlap. */
+      ++s;
       continue;
     }
     return s;
@@ -624,12 +626,14 @@ static char *match_identifier(char *base, char *s, char *token, int tokenlen) {
 
 
 static char *match_identifier_begin(char *base, char *s, char *token, int tokenlen) {
+  (void)tokenlen;
   while (s) {
     s = strstr(s, token);
     if (!s)
       return 0;
     if ((s > base) && (isalnum((int) *(s - 1)) || (*(s - 1) == '_'))) {
-      s += tokenlen;
+      /* We could advance by tokenlen if strstr(s, token) matches can't overlap. */
+      ++s;
       continue;
     }
     return s;
@@ -644,7 +648,8 @@ static char *match_identifier_end(char *base, char *s, char *token, int tokenlen
     if (!s)
       return 0;
     if (isalnum((int) *(s + tokenlen)) || (*(s + tokenlen) == '_')) {
-      s += tokenlen;
+      /* We could advance by tokenlen if strstr(s, token) matches can't overlap. */
+      ++s;
       continue;
     }
     return s;
@@ -659,7 +664,8 @@ static char *match_number_end(char *base, char *s, char *token, int tokenlen) {
     if (!s)
       return 0;
     if (isdigit((int) *(s + tokenlen))) {
-      s += tokenlen;
+      /* We could advance by tokenlen if strstr(s, token) matches can't overlap. */
+      ++s;
       continue;
     }
     return s;
