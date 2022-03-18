@@ -140,6 +140,8 @@ install:
 - if "%OSVARIANT%"=="mingw" bash -c "pacman --noconfirm --sync mingw%MBITS%/mingw-w64-%MARCH%-autotools mingw%MBITS%/mingw-w64-%MARCH%-pcre2 mingw%MBITS%/mingw-w64-%MARCH%-boost mingw%MBITS%/mingw-w64-%MARCH%-python"
 - if not "%WITHLANG%"=="" set SWIGWITHLANG==%WITHLANG%
 - if not "%WITHLANG%"=="" where %WITHLANG%
+  if "%SWIGLANG%"=="python" set PY3=3
+  if "%PY2%"="2" set PY3=
 - bash -c "which $CC"
 - bash -c "which $CXX"
 - bash -c "$CC --version | head -n 1"
@@ -159,7 +161,7 @@ build_script:
 - if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && cd pcre2-pcre2-10.39 && ./autogen.sh && ./configure CC=$CC CXX=$CXX CFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' --prefix=%PCRE_ROOT% --disable-shared && time make -s -j%MAKEJOBS% LN_S=cp && make install && cd .. && cp -v %PCRE_ROOT%/lib/libpcre2-8.lib %PCRE_ROOT%/lib/pcre2-8.lib"
   # Open dummy file descriptor to fix error on cygwin: ./configure: line 560: 0: Bad file descriptor
 - if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure --disable-dependency-tracking --disable-ccache --enable-cpp11-testing CC=$CC CXX=$CXX CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' PCRE2_CFLAGS='-I%PCRE_ROOT%/include -DPCRE2_STATIC' PCRE2_LIBS='-L%PCRE_ROOT%/lib/ -lpcre2-8' --without-perl5 --without-go --with-boost=%BOOSTROOT% || cat config.log"
-- if not "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && x=${PY2:-x3} && PY3=${x:1} && time ./configure CC=%CC% CXX=%CXX% --without-alllang --with-$SWIGLANG$PY3$SWIGWITHLANG --enable-cpp11-testing || cat config.log"
+- if not "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure CC=%CC% CXX=%CXX% --without-alllang --with-$SWIGLANG$PY3$SWIGWITHLANG --enable-cpp11-testing || cat config.log"
 - bash -c "time make -s -j%MAKEJOBS%"
 
 test_script:
