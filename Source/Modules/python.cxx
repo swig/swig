@@ -4234,6 +4234,9 @@ public:
     printSlot(f, getSlot(n, "feature:python:am_await"), "am_await", "unaryfunc");
     printSlot(f, getSlot(n, "feature:python:am_aiter"), "am_aiter", "unaryfunc");
     printSlot(f, getSlot(n, "feature:python:am_anext"), "am_anext", "unaryfunc");
+    Printv(f, "# if PY_VERSION_HEX >= 0x030a0000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:am_send"), "am_send", "sendfunc");
+    Printv(f, "# endif\n", NIL);
     Printf(f, "  },\n");
     Printv(f, "#endif\n", NIL);
 

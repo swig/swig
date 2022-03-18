@@ -1686,7 +1686,7 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
 #endif
   PyObject *pointer = PyCapsule_New((void *) swig_module, SWIGPY_CAPSULE_NAME, SWIG_Python_DestroyModule);
   if (pointer && module) {
-    if (PyModule_AddObject(module, "type_pointer_capsule" SWIG_TYPE_TABLE_NAME, pointer) == 0) {
+    if (PyModule_AddObject(module, SWIGPY_CAPSULE_ATTR_NAME, pointer) == 0) {
       Swig_Capsule_global = pointer;
     } else {
       Py_DECREF(pointer);
