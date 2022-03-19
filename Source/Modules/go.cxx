@@ -2204,76 +2204,9 @@ private:
     }
 
     for (Node *ni = Getattr(base, "firstChild"); ni; ni = nextSibling(ni)) {
-
-      if (GetFlag(ni, "feature:ignore")) {
-	continue;
-      }
-
-      if (!is_public(ni)) {
-	continue;
-      }
-
-      String *type = Getattr(ni, "nodeType");
-      if (Strcmp(type, "constructor") == 0 || Strcmp(type, "destructor") == 0 || Strcmp(type, "enum") == 0 || Strcmp(type, "using") == 0 || Strcmp(type, "classforward") == 0 || Strcmp(type, "template") == 0) {
-	continue;
-      }
-      String *storage = Getattr(ni, "storage");
-      if (storage && (Strcmp(storage, "typedef") == 0 || Strcmp(storage, "friend") == 0)) {
-	continue;
-      }
-
-      String *mname = Getattr(ni, "sym:name");
-      if (!mname) {
-	continue;
-      }
-
-      String *lname = Getattr(ni, "name");
-      if (Getattr(class_methods, lname)) {
-	continue;
-      }
-      if (Getattr(local, lname)) {
-	continue;
-      }
-      Setattr(local, lname, NewString(""));
-
-      String *ty = NewString(Getattr(ni, "type"));
-      SwigType_push(ty, Getattr(ni, "decl"));
-      String *fullty = SwigType_typedef_resolve_all(ty);
-      bool is_function = SwigType_isfunction(fullty) ? true : false;
-      Delete(ty);
-      Delete(fullty);
-
-      if (is_function) {
-	int r = goBaseMethod(n, bases, ni);
-	if (r != SWIG_OK) {
-	  return r;
-	}
-
-	if (Getattr(ni, "sym:overloaded")) {
-	  for (Node *on = Getattr(ni, "sym:nextSibling"); on; on = Getattr(on, "sym:nextSibling")) {
-	    r = goBaseMethod(n, bases, on);
-	    if (r != SWIG_OK) {
-	      return r;
-	    }
-	  }
-
-	  String *receiver = class_receiver;
-	  bool is_static = isStatic(ni);
-	  if (is_static) {
-	    receiver = NULL;
-	  }
-	  String *go_name = buildGoName(Getattr(ni, "sym:name"), is_static, false);
-	  r = makeDispatchFunction(ni, go_name, receiver, is_static, NULL, false);
-	  Delete(go_name);
-	  if (r != SWIG_OK) {
-	    return r;
-	  }
-	}
-      } else {
-	int r = goBaseVariable(n, bases, ni);
-	if (r != SWIG_OK) {
-	  return r;
-	}
+      int r = goBaseEntry(n, bases, local, ni);
+      if (r != SWIG_OK) {
+	return r;
       }
     }
 
@@ -2292,6 +2225,105 @@ private:
 
     return SWIG_OK;
   }
+
+  /* ------------------------------------------------------------
+   * goBaseEntry()
+   *
+   * Implement one entry defined in a parent class for a child class.
+   * n is the child class.
+   * ------------------------------------------------------------ */
+
+  int goBaseEntry(Node* n, List* bases, Hash *local, Node* entry) {
+    if (GetFlag(entry, "feature:ignore")) {
+      return SWIG_OK;
+    }
+
+    if (!is_public(entry)) {
+      return SWIG_OK;
+    }
+
+    String *type = Getattr(entry, "nodeType");
+    if (Strcmp(type, "constructor") == 0 || Strcmp(type, "destructor") == 0 || Strcmp(type, "enum") == 0 || Strcmp(type, "using") == 0 || Strcmp(type, "classforward") == 0 || Strcmp(type, "template") == 0) {
+      return SWIG_OK;
+    }
+
+    if (Strcmp(type, "extend") == 0) {
+      for (Node* extend = firstChild(entry); extend; extend = nextSibling(extend)) {
+	if (isStatic(extend)) {
+	  // If we don't do this, the extend_default test case fails.
+	  continue;
+	}
+
+	int r = goBaseEntry(n, bases, local, extend);
+	if (r != SWIG_OK) {
+	  return r;
+	}
+      }
+      return SWIG_OK;
+    }
+
+    String *storage = Getattr(entry, "storage");
+    if (storage && (Strcmp(storage, "typedef") == 0 || Strcmp(storage, "friend") == 0)) {
+      return SWIG_OK;
+    }
+
+    String *mname = Getattr(entry, "sym:name");
+    if (!mname) {
+      return SWIG_OK;
+    }
+
+    String *lname = Getattr(entry, "name");
+    if (Getattr(class_methods, lname)) {
+      return SWIG_OK;
+    }
+    if (Getattr(local, lname)) {
+      return SWIG_OK;
+    }
+    Setattr(local, lname, NewString(""));
+
+    String *ty = NewString(Getattr(entry, "type"));
+    SwigType_push(ty, Getattr(entry, "decl"));
+    String *fullty = SwigType_typedef_resolve_all(ty);
+    bool is_function = SwigType_isfunction(fullty) ? true : false;
+    Delete(ty);
+    Delete(fullty);
+
+    if (is_function) {
+      int r = goBaseMethod(n, bases, entry);
+      if (r != SWIG_OK) {
+	return r;
+      }
+
+      if (Getattr(entry, "sym:overloaded")) {
+	for (Node *on = Getattr(entry, "sym:nextSibling"); on; on = Getattr(on, "sym:nextSibling")) {
+	  r = goBaseMethod(n, bases, on);
+	  if (r != SWIG_OK) {
+	    return r;
+	  }
+	}
+
+	String *receiver = class_receiver;
+	bool is_static = isStatic(entry);
+	if (is_static) {
+	  receiver = NULL;
+	}
+	String *go_name = buildGoName(Getattr(entry, "sym:name"), is_static, false);
+	r = makeDispatchFunction(entry, go_name, receiver, is_static, NULL, false);
+	Delete(go_name);
+	if (r != SWIG_OK) {
+	    return r;
+	}
+      }
+    } else {
+      int r = goBaseVariable(n, bases, entry);
+      if (r != SWIG_OK) {
+	return r;
+      }
+    }
+
+    return SWIG_OK;
+  }
+
 
   /* ------------------------------------------------------------
    * goBaseMethod()
@@ -2347,7 +2379,13 @@ private:
       }
     }
 
-    int r = makeWrappers(method, go_name, overname, wname, bases, Getattr(method, "parms"), result, is_static);
+    // A method added by %extend in a base class may have void parms.
+    ParmList* parms = Getattr(method, "parms");
+    if (parms != NULL && SwigType_type(Getattr(parms, "type")) == T_VOID) {
+      parms = NULL;
+    }
+
+    int r = makeWrappers(method, go_name, overname, wname, bases, parms, result, is_static);
 
     Swig_restore(method);
 

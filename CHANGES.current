@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-18: ianlancetaylor
+	    [Go] #337 Implement %extend base methods in child classes.
+
 2022-03-17: olly
 	    [Python] #1779 SWIG's Python test-suite and examples are now
 	    run with Python 3 by default.  To run them with Python 2, set
