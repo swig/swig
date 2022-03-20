@@ -66,7 +66,7 @@ static int skip_tochar(String *s, int ch, String *out) {
       break;
     if (c == '\\') {
       c = Getc(s);
-      if (c != EOF && out)
+      if ((c != EOF) && (out))
 	Putc(c, out);
     }
   }
@@ -1155,7 +1155,7 @@ static DOH *Preprocessor_replace(DOH *s) {
 	      Seek(s, -1, SEEK_CUR);
 	    }
 	    lenargs = Len(args);
-	    if (!args || !lenargs) {
+	    if ((!args) || (!lenargs)) {
 	      /* This is not a defined() operator. */
 	      Append(ns, id);
 	      state = 0;
@@ -1770,7 +1770,7 @@ String *Preprocessor_parse(String *s) {
 	}
       } else if (Equal(id, kpp_line)) {
       } else if (Equal(id, kpp_include)) {
-	if ((include_all || import_all) && allow) {
+	if (((include_all) || (import_all)) && (allow)) {
 	  String *s1, *s2, *fn;
 	  String *dirname;
 	  int sysfile = 0;

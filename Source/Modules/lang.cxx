@@ -653,7 +653,7 @@ int Language::includeDirective(Node *n) {
 
 int Language::insertDirective(Node *n) {
   /* %insert directive */
-  if (!ImportMode || Getattr(n, "generated")) {
+  if ((!ImportMode) || Getattr(n, "generated")) {
     String *code = Getattr(n, "code");
     String *section = Getattr(n, "section");
     File *f = 0;
@@ -2703,7 +2703,7 @@ int Language::constructorDeclaration(Node *n) {
     over = Swig_symbol_isoverloaded(n);
     if (over)
       over = first_nontemplate(over);
-    if (over && !overloading) {
+    if ((over) && (!overloading)) {
       /* If the symbol is overloaded.  We check to see if it is a copy constructor.  If so, 
          we invoke copyconstructorHandler() as a special case. */
       if (Getattr(n, "copy_constructor") && (!Getattr(CurrentClass, "has_copy_constructor"))) {
@@ -3332,7 +3332,7 @@ Node *Language::classLookup(const SwigType *s) {
 	break;
       nstab = Getattr(n, "sym:symtab");
       n = 0;
-      if (!nstab || nstab == stab) {
+      if ((!nstab) || (nstab == stab)) {
 	break;
       }
       stab = nstab;
@@ -3420,7 +3420,7 @@ Node *Language::enumLookup(SwigType *s) {
 	break;
       nstab = Getattr(n, "sym:symtab");
       n = 0;
-      if (!nstab || nstab == stab) {
+      if ((!nstab) || (nstab == stab)) {
 	break;
       }
       stab = nstab;

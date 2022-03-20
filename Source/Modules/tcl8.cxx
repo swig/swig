@@ -807,7 +807,7 @@ public:
       b = First(baselist);
       while (b.item) {
 	String *bname = Getattr(b.item, "name");
-	if (!bname || GetFlag(b.item, "feature:ignore") || !Getattr(b.item, "module")) {
+	if ((!bname) || GetFlag(b.item, "feature:ignore") || (!Getattr(b.item, "module"))) {
 	  b = Next(b);
 	  continue;
 	}

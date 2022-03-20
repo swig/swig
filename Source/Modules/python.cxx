@@ -3474,7 +3474,7 @@ public:
       if (builtin)
 	Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", global_name);
       have_globals = 1;
-      if (!builtin && shadow && (!(shadow & PYSHADOW_MEMBER))) {
+      if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
 	Printf(f_shadow_stubs, "%s = %s.%s\n", global_name, module, global_name);
       }
     }
@@ -3632,7 +3632,7 @@ public:
 
     if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$value", value);
-      if (needs_swigconstant(n) && !builtin && shadow && !(shadow & PYSHADOW_MEMBER) && (!in_class || !Getattr(n, "feature:python:callback"))) {
+      if (needs_swigconstant(n) && !builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
 	// Generate `*_swigconstant()` method which registers the new constant.
 	//
 	// *_swigconstant methods are required for constants of class type.
@@ -3670,7 +3670,7 @@ public:
       return SWIG_NOWRAP;
     }
 
-    if (!builtin && shadow && !(shadow & PYSHADOW_MEMBER)) {
+    if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
       String *f_s;
       if (!in_class) {
 	f_s = f_shadow;

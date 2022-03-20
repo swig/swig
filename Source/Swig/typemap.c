@@ -1207,7 +1207,7 @@ static void typemap_locals(String *s, ParmList *l, Wrapper *f, int argnum) {
 	/* If the user gave us $type as the name of the local variable, we'll use
 	   the passed datatype instead */
 
-	if (argnum >= 0 && !isglobal) {
+	if ((argnum >= 0) && (!isglobal)) {
 	  Printf(str, "%s%d", pn, argnum);
 	} else {
 	  Append(str, pn);

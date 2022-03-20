@@ -363,7 +363,7 @@ static DOH *name_object_get(Hash *namehash, String *tname, SwigType *decl, SwigT
   Hash *n = Getattr(namehash, tname);
   if (n) {
     rn = get_object(n, decl);
-    if (!rn && ncdecl)
+    if ((!rn) && ncdecl)
       rn = get_object(n, ncdecl);
     if (!rn)
       rn = get_object(n, 0);
@@ -380,7 +380,7 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
     return 0;
 
   /* DB: This removed to more tightly control feature/name matching */
-  /*  if (decl && SwigType_isqualifierdecl) {
+  /*  if ((decl) && (SwigType_isqualifier(decl))) {
      ncdecl = strchr(Char(decl),'.');
      ncdecl++;
      }

@@ -450,7 +450,7 @@ int DohPrintv(DOHFile * f, ...) {
   va_start(ap, f);
   while (1) {
     obj = va_arg(ap, void *);
-    if (!obj || obj == DohNone)
+    if ((!obj) || (obj == DohNone))
       break;
     if (DohCheck(obj)) {
       ret += DohDump(obj, f);
@@ -475,7 +475,7 @@ int DohCopyto(DOH *in, DOH *out) {
   char *cw;
   char buffer[16384];
 
-  if (!in || !out)
+  if ((!in) || (!out))
     return 0;
   while (1) {
     ret = Read(in, buffer, 16384);

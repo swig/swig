@@ -372,7 +372,7 @@ SWIG_Perl_ConvertPacked(SWIG_MAYBE_PERL_OBJECT SV *obj, void *ptr, int sz, swig_
   swig_cast_info *tc;
   const char  *c = 0;
 
-  if (!obj || !SvOK(obj)) return SWIG_ERROR;
+  if ((!obj) || (!SvOK(obj))) return SWIG_ERROR;
   c = SvPV_nolen(obj);
   /* Pointer values must start with leading underscore */
   if (*c != '_') return SWIG_ERROR;

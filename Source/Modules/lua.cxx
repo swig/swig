@@ -1422,7 +1422,7 @@ public:
       b = First(baselist);
       while (b.item) {
 	String *bname = Getattr(b.item, "name");
-	if (!bname || GetFlag(b.item, "feature:ignore") || !Getattr(b.item, "module")) {
+	if ((!bname) || GetFlag(b.item, "feature:ignore") || (!Getattr(b.item, "module"))) {
 	  b = Next(b);
 	  continue;
 	}
@@ -1972,7 +1972,7 @@ public:
     // For the sake of compiling with -Wall -Werror we print constants
     // only when necessary
     int need_constants = 0;
-    if ((elua_ltr || eluac_ltr) && old_metatable_bindings)
+    if ( (elua_ltr || eluac_ltr) && (old_metatable_bindings) )
       need_constants = 1;
     else if (!is_instance) // static part need constants tab
       need_constants = 1;
