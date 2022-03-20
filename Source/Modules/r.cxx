@@ -1362,7 +1362,7 @@ List * R::Swig_overload_rank(Node *n,
 	  Parm *p2 = nodes[j].parms;
 	  int   differ = 0;
 	  int   num_checked = 0;
-	  while (p1 && p2 && (num_checked < nodes[i].argc)) {
+	  while (p1 && p2 && num_checked < nodes[i].argc) {
 	    if (debugMode) {
 	      Printf(stdout,"p1 = '%s', p2 = '%s'\n", Getattr(p1,"type"), Getattr(p2,"type"));
 	    }
@@ -1379,12 +1379,12 @@ List * R::Swig_overload_rank(Node *n,
 	    if (debugMode) {
 	      Printf(stdout,"t1 = '%s', t2 = '%s'\n", t1, t2);
 	    }
-	    if ((!t1) && (!nodes[i].error)) {
+	    if (!t1 && !nodes[i].error) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[i].n), Getline(nodes[i].n),
 			   "Overloaded method %s not supported (incomplete type checking rule - no precedence level in typecheck typemap for '%s').\n",
 			   Swig_name_decl(nodes[i].n), SwigType_str(Getattr(p1, "type"), 0));
 	      nodes[i].error = 1;
-	    } else if ((!t2) && (!nodes[j].error)) {
+	    } else if (!t2 && !nodes[j].error) {
 	      Swig_warning(WARN_TYPEMAP_TYPECHECK, Getfile(nodes[j].n), Getline(nodes[j].n),
 			   "Overloaded method %s not supported (incomplete type checking rule - no precedence level in typecheck typemap for '%s').\n",
 			   Swig_name_decl(nodes[j].n), SwigType_str(Getattr(p2, "type"), 0));

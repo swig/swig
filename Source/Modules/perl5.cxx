@@ -935,7 +935,7 @@ public:
        * Create a stub for this function, provided it's not a member function
        * -------------------------------------------------------------------- */
 
-      if ((blessed) && (!member_func)) {
+      if (blessed && !member_func) {
 	Printv(func_stubs, "*", iname, " = *", cmodule, "::", iname, ";\n", NIL);
       }
 
@@ -1257,7 +1257,7 @@ public:
       if (verbose > 0) {
 	fprintf(stdout, "setclassname: Found actualpackage: %s\n", Char(actualpackage));
       }
-      if ((!compat) && (!Strchr(symname,':'))) {
+      if (!compat && !Strchr(symname,':')) {
 	fullname = NewStringf("%s::%s",actualpackage,symname);
       } else {
 	fullname = NewString(symname);
@@ -1896,7 +1896,7 @@ public:
     String *code = Getattr(n, "code");
     String *section = Getattr(n, "section");
 
-    if ((!ImportMode) && (Cmp(section, "perl") == 0)) {
+    if (!ImportMode && Cmp(section, "perl") == 0) {
       Printv(additional_perl_code, code, NIL);
     } else {
       Language::insertDirective(n);

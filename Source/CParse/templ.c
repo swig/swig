@@ -810,7 +810,7 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
 success:
   Delete(tname);
   Delete(possiblepartials);
-  if ((template_debug) && (n)) {
+  if (template_debug && n) {
     /*
     Printf(stdout, "Node: %p\n", n);
     Swig_print_node(n);
@@ -868,7 +868,7 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, Symtab *tscope) {
 	Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", name);
       }
 
-      if ((template_debug) && (n)) {
+      if (template_debug && n) {
 	Printf(stdout, "Templated function found: %p\n", n);
 	Swig_print_node(n);
       }

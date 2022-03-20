@@ -2621,7 +2621,7 @@ void Language::main(int argc, char *argv[]) {
         } else {
           Swig_arg_error();
         }
-      } else if ((strcmp(argv[i], "-proxy") == 0)) {
+      } else if (strcmp(argv[i], "-proxy") == 0) {
         proxy_flag = 1;
         Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-keyword") == 0) {

@@ -39,6 +39,7 @@ environment:
     VER: 310
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: python
+    PY2: 2
     OSVARIANT: cygwin
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: java
@@ -140,8 +141,8 @@ install:
 - if "%OSVARIANT%"=="mingw" bash -c "pacman --noconfirm --sync mingw%MBITS%/mingw-w64-%MARCH%-autotools mingw%MBITS%/mingw-w64-%MARCH%-pcre2 mingw%MBITS%/mingw-w64-%MARCH%-boost mingw%MBITS%/mingw-w64-%MARCH%-python"
 - if not "%WITHLANG%"=="" set SWIGWITHLANG==%WITHLANG%
 - if not "%WITHLANG%"=="" where %WITHLANG%
-  if "%SWIGLANG%"=="python" set PY3=3
-  if "%PY2%"="2" set PY3=
+- if "%SWIGLANG%"=="python" set PY3=3
+- if "%PY2%"="2" set PY3=
 - bash -c "which $CC"
 - bash -c "which $CXX"
 - bash -c "$CC --version | head -n 1"

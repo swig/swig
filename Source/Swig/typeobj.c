@@ -1196,7 +1196,7 @@ String *SwigType_prefix(const SwigType *t) {
     if (*d == '>') {
       int nest = 1;
       d--;
-      while ((d > c) && (nest)) {
+      while ((d > c) && nest) {
 	if (*d == '>')
 	  nest++;
 	if (*d == '<')
@@ -1208,7 +1208,7 @@ String *SwigType_prefix(const SwigType *t) {
       /* Skip over params */
       int nparen = 1;
       d--;
-      while ((d > c) && (nparen)) {
+      while ((d > c) && nparen) {
 	if (*d == ')')
 	  nparen++;
 	if (*d == '(')

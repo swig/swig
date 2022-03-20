@@ -1730,7 +1730,7 @@ program        :  interface {
 		   Setattr($1,"classes",classes); 
 		   Setattr($1,"name",ModuleName);
 		   
-		   if ((!module_node) && ModuleName) {
+		   if (!module_node && ModuleName) {
 		     module_node = new_node("module");
 		     Setattr(module_node,"name",ModuleName);
 		   }

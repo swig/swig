@@ -318,7 +318,7 @@ SWIG_TypeCheckStruct(const swig_type_info *from, swig_type_info *ty) {
 */
 SWIGRUNTIMEINLINE void *
 SWIG_TypeCast(swig_cast_info *ty, void *ptr, int *newmemory) {
-  return ((!ty) || (!ty->converter)) ? ptr : (*ty->converter)(ptr, newmemory);
+  return (!ty || !ty->converter) ? ptr : (*ty->converter)(ptr, newmemory);
 }
 
 /*
@@ -328,7 +328,7 @@ SWIGRUNTIME swig_type_info *
 SWIG_TypeDynamicCast(swig_type_info *ty, void **ptr) {
   swig_type_info *lastty = ty;
   if (!ty || !ty->dcast) return ty;
-  while (ty && (ty->dcast)) {
+  while (ty && ty->dcast) {
     ty = (*ty->dcast)(ptr);
     if (ty) lastty = ty;
   }
