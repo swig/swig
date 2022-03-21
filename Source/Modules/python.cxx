@@ -93,6 +93,7 @@ static int castmode = 0;
 static int extranative = 0;
 static int nortti = 0;
 static int relativeimport = 0;
+static int flat_static_method = 0;
 
 /* flags for the make_autodoc function */
 namespace {
@@ -118,6 +119,7 @@ Python Options (available with -python)\n\
      -doxygen        - Convert C++ doxygen comments to pydoc comments in proxy classes\n\
      -extranative    - Return extra native wrappers for C++ std containers wherever possible\n\
      -fastproxy      - Use fast proxy mechanism for member methods\n\
+     -flatstaticmethod         - Generate additional flattened Python methods for C++ static methods\n\
      -globals <name> - Set <name> used to access C global variable (default: 'cvar')\n\
      -interface <mod>- Set low-level C/C++ module name to <mod> (default: module name prefixed by '_')\n\
      -keyword        - Use keyword arguments\n";
@@ -372,6 +374,9 @@ public:
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-extranative") == 0) {
 	  extranative = 1;
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-flatstaticmethod") == 0) {
+	  flat_static_method = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-noh") == 0) {
 	  no_header_file = 1;
@@ -2532,7 +2537,7 @@ public:
   /* ------------------------------------------------------------
    * dispatchFunction()
    * ------------------------------------------------------------ */
-  void dispatchFunction(Node *n, String *linkage, int funpack = 0, bool builtin_self = false, bool builtin_ctor = false, bool director_class = false) {
+  void dispatchFunction(Node *n, String *linkage, int funpack = 0, bool builtin_self = false, bool builtin_ctor = false, bool director_class = false, bool use_static_method = false) {
     /* Last node in overloaded chain */
 
     bool add_self = builtin_self && (!builtin_ctor || director_class);
@@ -2636,11 +2641,11 @@ public:
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
     Node *p = Getattr(n, "sym:previousSibling");
-    if (!builtin_self)
+    if (!builtin_self && (use_static_method || !builtin))
       add_method(symname, wname, 0, p);
 
     /* Create a shadow for this function (if enabled and not in a member function) */
-    if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+    if (!builtin && shadow && (!(shadow & PYSHADOW_MEMBER)) && use_static_method) {
       emitFunctionShadowHelper(n, in_class ? f_shadow_stubs : f_shadow, symname, 0);
     }
     DelWrapper(f);
@@ -3307,18 +3312,19 @@ public:
       Wrapper_print(f, f_wrappers);
     }
 
+    bool use_static_method = flat_static_method || !Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage");
     /* Now register the function with the interpreter.   */
     if (!Getattr(n, "sym:overloaded")) {
-      if (!builtin_self)
+      if (!builtin_self && (use_static_method || !builtin))
 	add_method(iname, wname, allow_kwargs, n, funpack, num_required, num_arguments);
 
       /* Create a shadow for this function (if enabled and not in a member function) */
-      if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+      if (!builtin && shadow && (!(shadow & PYSHADOW_MEMBER)) && use_static_method) {
 	emitFunctionShadowHelper(n, in_class ? f_shadow_stubs : f_shadow, iname, allow_kwargs);
       }
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
-	dispatchFunction(n, linkage, funpack, builtin_self, builtin_ctor, director_class);
+	dispatchFunction(n, linkage, funpack, builtin_self, builtin_ctor, director_class, use_static_method);
       }
     }
 

@@ -100,7 +100,7 @@ LIBS         = -L.
 VALGRIND_OPT += --suppressions=pythonswig.supp
 
 # Custom tests - tests with additional commandline options
-#python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
+python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 
 # Rules for the different types of tests
 %.cpptest:
