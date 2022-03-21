@@ -957,7 +957,7 @@ swig -python -help
 <tr><td>-doxygen        </td><td>Convert C++ doxygen comments to pydoc comments in proxy classes</td></tr>
 <tr><td>-extranative    </td><td>Return extra native wrappers for C++ std containers wherever possible</td></tr>
 <tr><td>-fastproxy      </td><td>Use fast proxy mechanism for member methods</td></tr>
-<tr><td>-flatstaticmethod </td><td>Generate Foo_bar for static method Foo::bar</td></tr>
+<tr><td>-flatstaticmethod </td><td>Generate additional flattened Python methods for C++ static methods</td></tr>
 <tr><td>-globals &lt;name&gt; </td><td>Set &lt;name&gt; used to access C global variable (default: 'cvar')</td></tr>
 <tr><td>-interface &lt;mod&gt;</td><td>Set low-level C/C++ module name to &lt;mod&gt; (default: module name prefixed by '_')</td></tr>
 <tr><td>-keyword        </td><td>Use keyword arguments</td></tr>
@@ -1626,6 +1626,8 @@ In Python, the static member can be accessed in three different ways:
 
 <p>
 The last technique is only available when using the <tt>-flatstaticmethod</tt> option.
+This option is not recommended, it is only available for backwards compatibility
+as ancient versions of Python did not have Python class methods.
 </p>
 
 <p>

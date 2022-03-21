@@ -119,7 +119,7 @@ Python Options (available with -python)\n\
      -doxygen        - Convert C++ doxygen comments to pydoc comments in proxy classes\n\
      -extranative    - Return extra native wrappers for C++ std containers wherever possible\n\
      -fastproxy      - Use fast proxy mechanism for member methods\n\
-     -flatstaticmethod         - Generate Foo_bar for static method Foo::bar\n\
+     -flatstaticmethod         - Generate additional flattened Python methods for C++ static methods\n\
      -globals <name> - Set <name> used to access C global variable (default: 'cvar')\n\
      -interface <mod>- Set low-level C/C++ module name to <mod> (default: module name prefixed by '_')\n\
      -keyword        - Use keyword arguments\n";
@@ -2645,7 +2645,7 @@ public:
       add_method(symname, wname, 0, p);
 
     /* Create a shadow for this function (if enabled and not in a member function) */
-    if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (use_static_method)) {
+    if (!builtin && shadow && (!(shadow & PYSHADOW_MEMBER)) && use_static_method) {
       emitFunctionShadowHelper(n, in_class ? f_shadow_stubs : f_shadow, symname, 0);
     }
     DelWrapper(f);
@@ -3312,14 +3312,14 @@ public:
       Wrapper_print(f, f_wrappers);
     }
 
-    bool use_static_method = flat_static_method || !in_class || constructor || (Cmp(storage, "friend") == 0);
+    bool use_static_method = flat_static_method || !Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage");
     /* Now register the function with the interpreter.   */
     if (!Getattr(n, "sym:overloaded")) {
       if (!builtin_self && (use_static_method || !builtin))
 	add_method(iname, wname, allow_kwargs, n, funpack, num_required, num_arguments);
 
       /* Create a shadow for this function (if enabled and not in a member function) */
-      if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (use_static_method)) {
+      if (!builtin && shadow && (!(shadow & PYSHADOW_MEMBER)) && use_static_method) {
 	emitFunctionShadowHelper(n, in_class ? f_shadow_stubs : f_shadow, iname, allow_kwargs);
       }
     } else {

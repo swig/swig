@@ -7,6 +7,20 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-21: jschueller, jim-easterbrook, wsfulton
+            [Python] #2137 C++ static member functions no longer generate a "flattened"
+            name in the Python module. For example:
+
+              s = example.Spam()
+              s.foo()               # Spam::foo() via an instance
+              example.Spam.foo()    # Spam::foo() using class method
+              example.Spam_foo()    # Spam::foo() "flattened" name
+
+            The "flattened" name is no longer generated, but can be generated
+            by using the new -flatstaticmethod option.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2022-03-17: olly
 	    [Python] #1779 SWIG's Python test-suite and examples are now
 	    run with Python 3 by default.  To run them with Python 2, set
