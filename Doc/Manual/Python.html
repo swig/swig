@@ -7036,10 +7036,11 @@ modify the buffer.
 
 
 <p>
-By including <tt>pyabc.i</tt> and using the <tt>-py3</tt> command
-line option when calling SWIG, the proxy classes of the STL containers
+By including <tt>pyabc.i</tt> in your interface file,
+the proxy classes of the STL containers
 will automatically gain an appropriate abstract base class from the
-<tt>collections.abc</tt> module. For
+<tt>collections.abc</tt> module for Python 3.3 and later, otherwise from the
+<tt>collections</tt> module. For
 example, the following SWIG interface:
 </p>
 
@@ -7056,8 +7057,10 @@ namespace std {
 
 <p>
 will generate a Python proxy class <tt>Mapii</tt> inheriting from
-<tt>collections.abc.MutableMap</tt> and a proxy class <tt>IntList</tt>
-inheriting from <tt>collections.abc.MutableSequence</tt>.
+<tt>collections.abc.MutableMap</tt> for Python 3.3 and later, or <tt>collections.MutableMap</tt>
+for earlier versions and a proxy class <tt>IntList</tt>
+inheriting from <tt>collections.abc.MutableSequence</tt> for Python 3.3 or later,
+or <tt>collections.MutableSequence</tt> for earlier versions.
 </p>
 
 <p>
@@ -7066,7 +7069,9 @@ used to define an abstract base class for your own C++ class:
 </p>
 
 <div class="code"><pre>
-%pythonabc(MySet, collections.abc.MutableSet);
+%pythonabc(MySet, collections.abc.MutableSet); # Python 3.3 and later
+%pythonabc(MySet, collections.MutableSet);     # Prior to Python 3.3
+%pythonabc(MySet, "collections.abc.MutableSet if _swig_python_version_info &gt;= (3, 3) else collections.MutableSet"); # All Python versions
 </pre></div>
 
 <p>
@@ -7080,6 +7085,8 @@ For details of abstract base class, please see
 of the classes in the <tt>collections</tt> module in Python 3.7.
 The <tt>collections.abc</tt> module was introduced in Python 3.3 and hence this feature
 requires Python 3.3 or later.
+SWIG-4.1.0 introduced the flexibility of using
+either the <tt>collections.abc</tt> module for Python 3.3 and later or the <tt>collections</tt> module for earlier Python versions.
 </p>
 
 <H3><a name="Python_nn77">33.12.4 Byte string output conversion</a></H3>

@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-21: wsfulton
+            [Python] #1779 pyabc.i for abstract base classes now supports versions of
+            Python prior to 3.3 by using the collection module for these older versions.
+            Python-3.3 and later continue to use the collections.abc module.
+            The -py3 option no longer has any effect on the %pythonabc feature.
+
 2022-03-21: jschueller, jim-easterbrook, wsfulton
             [Python] #2137 C++ static member functions no longer generate a "flattened"
             name in the Python module. For example:

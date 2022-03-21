@@ -4480,10 +4480,9 @@ public:
 
       /* dealing with abstract base class */
       String *abcs = Getattr(n, "feature:python:abc");
-      if (py3 && abcs) {
-	if (Len(base_class)) {
+      if (abcs) {
+	if (Len(base_class) > 0)
 	  Printv(base_class, ", ", NIL);
-	}
 	Printv(base_class, abcs, NIL);
       }
 
