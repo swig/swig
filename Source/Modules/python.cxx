@@ -69,8 +69,6 @@ static int no_header_file = 0;
 static int max_bases = 0;
 static int builtin_bases_needed = 0;
 
-static int py3 = 0;
-
 /* C++ Support + Shadow Classes */
 
 static int have_constructor = 0;
@@ -131,7 +129,6 @@ static const char *usage3 = "\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions when using -fastproxy\n\
-     -py3            - Generate code with Python 3 specific features and syntax\n\
      -relativeimport - Use relative Python imports\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options:\n\
@@ -396,10 +393,6 @@ public:
 	  fputs(usage1, stdout);
 	  fputs(usage2, stdout);
 	  fputs(usage3, stdout);
-	} else if (strcmp(argv[i], "-py3") == 0) {
-	  py3 = 1;
-	  Preprocessor_define("SWIGPYTHON_PY3", 0);
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-builtin") == 0) {
 	  builtin = 1;
 	  Preprocessor_define("SWIGPYTHON_BUILTIN", 0);
@@ -415,7 +408,10 @@ public:
 		   strcmp(argv[i], "-modernargs") == 0 ||
 		   strcmp(argv[i], "-noproxydel") == 0 ||
 		   strcmp(argv[i], "-safecstrings") == 0) {
-	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
+	  Printf(stderr, "Deprecated command line option: %s. Ignored, this option is now always on.\n", argv[i]);
+	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-py3") == 0) {
+	  Printf(stderr, "Deprecated command line option: %s. Ignored, this option is no longer supported.\n", argv[i]);
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-aliasobj0") == 0 ||
 		   strcmp(argv[i], "-buildnone") == 0 ||
@@ -443,7 +439,7 @@ public:
 		   strcmp(argv[i], "-oldrepr") == 0 ||
 		   strcmp(argv[i], "-outputtuple") == 0 ||
 		   strcmp(argv[i], "-proxydel") == 0) {
-	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
+	  Printf(stderr, "Deprecated command line option: %s. This option is no longer available.\n", argv[i]);
 	  Swig_mark_arg(i);
 	  Exit(EXIT_FAILURE);
 	}
@@ -871,13 +867,8 @@ public:
 	Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
 
       Printv(f_shadow_py, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
-      if (py3) {
-	Printv(f_shadow_py, "if _swig_python_version_info < (3, 0):\n", NULL);
-	Printv(f_shadow_py, tab4, "raise RuntimeError(\"Python 3.x or later required\")\n\n", NULL);
-      } else {
-	Printv(f_shadow_py, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
-	Printv(f_shadow_py, tab4, "raise RuntimeError(\"Python 2.7 or later required\")\n\n", NULL);
-      }
+      Printv(f_shadow_py, "if _swig_python_version_info < (2, 7, 0):\n", NULL);
+      Printv(f_shadow_py, tab4, "raise RuntimeError(\"Python 2.7 or later required\")\n\n", NULL);
 
       if (Len(f_shadow_after_begin) > 0)
 	Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);

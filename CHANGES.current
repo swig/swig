@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-23: wsfulton
+            [Python] #1779 The -py3 option is deprecated and now has no effect on the
+            code generated. Use of this option results in a deprecated warning.
+            The related SWIGPYTHON_PY3 macro that this option defined is no longer generated.
+
+            Note that %pythonnondynamic feature generates a metaclass that works on both
+            Python 2 and Python 3.
+
 2022-03-21: wsfulton
             [Python] #1779 pyabc.i for abstract base classes now supports versions of
             Python prior to 3.3 by using the collection module for these older versions.
