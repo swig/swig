@@ -4498,10 +4498,8 @@ public:
 	  Delete(rname);
 	}
       } else {
-	if (!py3) {
-	  if (GetFlag(n, "feature:python:nondynamic"))
-	    Printv(f_shadow, "@_swig_add_metaclass(_SwigNonDynamicMeta)\n", NIL);
-	}
+	if (GetFlag(n, "feature:python:nondynamic"))
+	  Printv(f_shadow, "@_swig_add_metaclass(_SwigNonDynamicMeta)\n", NIL);
 	Printv(f_shadow, "class ", class_name, NIL);
 
 	if (Len(base_class)) {
@@ -4511,9 +4509,11 @@ public:
 	    Printf(f_shadow, "(Exception)");
 	  } else {
 	    Printf(f_shadow, "(object");
-	    if (py3 && GetFlag(n, "feature:python:nondynamic")) {
+	    /* Replace @_swig_add_metaclass above with below when support for python 2.7 is dropped
+	    if (GetFlag(n, "feature:python:nondynamic")) {
 	      Printf(f_shadow, ", metaclass=_SwigNonDynamicMeta");
 	    }
+	    */
 	    Printf(f_shadow, ")");
 	  }
 	}
