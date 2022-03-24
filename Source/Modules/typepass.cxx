@@ -1159,14 +1159,30 @@ class TypePass:private Dispatcher {
 	       * which is hacked. */
 	      if (Getattr(n, "sym:overloaded")) {
 		int cnt = 0;
+		Node *ps = Getattr(n, "sym:previousSibling");
+		Node *ns = Getattr(n, "sym:nextSibling");
+		Node *fc = firstChild(n);
+		Node *firstoverloaded = Getattr(n, "sym:overloaded");
 #ifdef DEBUG_OVERLOADED
-		Node *debugnode = n;
-		show_overloaded(n);
+		show_overloaded(firstoverloaded);
 #endif
-		if (!firstChild(n)) {
+
+		if (firstoverloaded == n) {
+		  // This 'using' node we are cutting out was the first node in the overloaded list. 
+		  // Change the first node in the list
+		  Delattr(firstoverloaded, "sym:overloaded");
+		  firstoverloaded = fc ? fc : ns;
+
+		  // Correct all the sibling overloaded methods (before adding in new methods)
+		  Node *nnn = ns;
+		  while (nnn) {
+		    Setattr(nnn, "sym:overloaded", firstoverloaded);
+		    nnn = Getattr(nnn, "sym:nextSibling");
+		  }
+		}
+
+		if (!fc) {
 		  // Remove from overloaded list ('using' node does not actually end up adding in any methods)
-		  Node *ps = Getattr(n, "sym:previousSibling");
-		  Node *ns = Getattr(n, "sym:nextSibling");
 		  if (ps) {
 		    Setattr(ps, "sym:nextSibling", ns);
 		  }
@@ -1174,24 +1190,8 @@ class TypePass:private Dispatcher {
 		    Setattr(ns, "sym:previousSibling", ps);
 		  }
 		} else {
-		  // The 'using' node results in methods being added in - slot in the these methods here 
-		  Node *ps = Getattr(n, "sym:previousSibling");
-		  Node *ns = Getattr(n, "sym:nextSibling");
-		  Node *fc = firstChild(n);
+		  // The 'using' node results in methods being added in - slot in these methods here
 		  Node *pp = fc;
-
-		  Node *firstoverloaded = Getattr(n, "sym:overloaded");
-		  if (firstoverloaded == n) {
-		    // This 'using' node we are cutting out was the first node in the overloaded list. 
-		    // Change the first node in the list to its first sibling
-		    Delattr(firstoverloaded, "sym:overloaded");
-		    Node *nnn = Getattr(firstoverloaded, "sym:nextSibling");
-		    firstoverloaded = fc;
-		    while (nnn) {
-		      Setattr(nnn, "sym:overloaded", firstoverloaded);
-		      nnn = Getattr(nnn, "sym:nextSibling");
-		    }
-		  }
 		  while (pp) {
 		    Node *ppn = Getattr(pp, "sym:nextSibling");
 		    Setattr(pp, "sym:overloaded", firstoverloaded);
@@ -1209,18 +1209,15 @@ class TypePass:private Dispatcher {
 		    Setattr(ns, "sym:previousSibling", pp);
 		    Setattr(pp, "sym:nextSibling", ns);
 		  }
-#ifdef DEBUG_OVERLOADED
-		  debugnode = firstoverloaded;
-#endif
 		}
 		Delattr(n, "sym:previousSibling");
 		Delattr(n, "sym:nextSibling");
 		Delattr(n, "sym:overloaded");
 		Delattr(n, "sym:overname");
+		clean_overloaded(firstoverloaded);
 #ifdef DEBUG_OVERLOADED
-		show_overloaded(debugnode);
+		show_overloaded(firstoverloaded);
 #endif
-		clean_overloaded(n);	// Needed?
 	      }
 	      Delete(n_decl_list);
 	    }

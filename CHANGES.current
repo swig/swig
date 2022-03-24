@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-24: wsfulton
+            #2244 Fix using declaration in derived class bugs when all the base
+            class's overloaded methods were overridden in the derived class -
+            fixes "multiply defined" errors.
+
 2022-03-23: wsfulton
             [Python] #1779 The -py3 option is deprecated and now has no effect on the
             code generated. Use of this option results in a deprecated warning.

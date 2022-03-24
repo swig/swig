@@ -29,3 +29,57 @@ typedef not working yet
 */
 }
 %}
+
+
+%inline %{
+// Test using declaration in various positions before and after overloaded methods
+// Testing where the derived class overrides all the base class methods (and more)
+namespace Bites
+{
+  struct Base
+  {
+    virtual ~Base() {}
+    virtual void grab() {}
+    virtual void grab(int i) {}
+  };
+  struct Derived1 : public Base
+  {
+    using Base::grab;
+    virtual void grab() {}
+    virtual void grab(int i) {}
+  };
+  struct Derived2 : public Base
+  {
+    using Base::grab;
+    virtual void grab() {}
+    virtual void grab(int i) {}
+    virtual void grab(int i, double d) {}
+  };
+  struct Derived3 : public Base
+  {
+    virtual void grab() {}
+    using Base::grab;
+    virtual void grab(int i) {}
+  };
+  struct Derived4 : public Base
+  {
+    virtual void grab() {}
+    using Base::grab;
+    virtual void grab(int i) {}
+    virtual void grab(int i, double d) {}
+  };
+  struct Derived5 : public Base
+  {
+    virtual void grab() {}
+    virtual void grab(int i) {}
+    using Base::grab;
+  };
+  struct Derived6 : public Base
+  {
+    virtual void grab() {}
+    virtual void grab(int i) {}
+    virtual void grab(int i, double d) {}
+    using Base::grab;
+  };
+}
+%}
