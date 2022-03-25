@@ -339,7 +339,6 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	Setattr(nodes[i].n, "overload:ignore", "1");
       Append(result, nodes[i].n);
       // Printf(stdout,"[ %d ] %d    %s\n", i, nodes[i].implicitconv_function, ParmList_errorstr(nodes[i].parms));
-      // Swig_print_node(nodes[i].n);
       if (i == nnodes-1 || nodes[i].argc != nodes[i+1].argc) {
 	if (argc_changed_index+2 < nnodes && (nodes[argc_changed_index+1].argc == nodes[argc_changed_index+2].argc)) {
 	  // Add additional implicitconv functions in same order as already ranked.
@@ -351,7 +350,6 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
 	      SetFlag(nodes[j].n, "implicitconvtypecheckoff");
 	      Append(result, nodes[j].n);
 	      // Printf(stdout,"[ %d ] %d +  %s\n", j, nodes[j].implicitconv_function, ParmList_errorstr(nodes[j].parms));
-	      // Swig_print_node(nodes[j].n);
 	    }
 	  }
 	}

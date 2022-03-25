@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-25: wsfulton
+            The debug command line options that display parse tree nodes
+            (-debug-module, -debug-top, -debug-symtabs) now display previously hidden
+            linked list pointers which are useful for debugging parse trees.
+
+            Added new command line option -debug-quiet. This suppresses the display
+            of most linked list pointers and symbol table pointers in the parse tree nodes.
+
+            The keys in the parse tree node are now shown in alphabetical order.
+
 2022-03-24: wsfulton
             #2244 Fix using declaration in derived class bugs when all the base
             class's overloaded methods were overridden in the derived class -

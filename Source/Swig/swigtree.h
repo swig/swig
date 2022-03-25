@@ -51,3 +51,4 @@ extern void  Swig_restore(Node *node);
 extern void Swig_print_tags(File *obj, Node *root);
 extern void Swig_print_tree(Node *obj);
 extern void Swig_print_node(Node *obj);
+extern int Swig_print_quiet(int quiet);

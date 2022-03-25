@@ -74,6 +74,7 @@ static const char *usage1 = (const char *) "\
      -debug-symbols  - Display target language symbols in the symbol tables\n\
      -debug-csymbols - Display C symbols in the symbol tables\n\
      -debug-lsymbols - Display target language layer symbols\n\
+     -debug-quiet    - Display less parse tree node debug info when using other -debug options\n\
      -debug-tags     - Display information about the tags found in the interface\n\
      -debug-template - Display information for debugging templates\n\
      -debug-top <n>  - Display entire parse tree at stages 1-4, <n> is a csv list of stages\n\
@@ -778,6 +779,9 @@ static void getoptions(int argc, char *argv[]) {
       } else if (strncmp(argv[i], "-w", 2) == 0) {
 	Swig_mark_arg(i);
 	Swig_warnfilter(argv[i] + 2, 1);
+      } else if (strcmp(argv[i], "-debug-quiet") == 0) {
+	Swig_print_quiet(1);
+	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-debug-symtabs") == 0) {
 	dump_symtabs = 1;
 	Swig_mark_arg(i);

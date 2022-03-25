@@ -1542,8 +1542,6 @@ List * R::Swig_overload_rank(Node *n,
       if (nodes[i].error)
 	Setattr(nodes[i].n, "overload:ignore", "1");
       Append(result,nodes[i].n);
-      //      Printf(stdout,"[ %d ] %s\n", i, ParmList_errorstr(nodes[i].parms));
-      //      Swig_print_node(nodes[i].n);
     }
   }
   return result;
