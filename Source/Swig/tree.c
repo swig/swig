@@ -95,7 +95,7 @@ void Swig_print_node(Node *obj) {
     DOH *value = Getattr(obj, k);
     if (Equal(k, "nodeType") || (*(Char(k)) == '$')) {
       /* Do nothing */
-    } else if (debug_quiet && (Equal(k, "nodeType") || Equal(k, "firstChild") || Equal(k, "lastChild") || Equal(k, "parentNode") || Equal(k, "nextSibling") ||
+    } else if (debug_quiet && (Equal(k, "firstChild") || Equal(k, "lastChild") || Equal(k, "parentNode") || Equal(k, "nextSibling") ||
 	Equal(k, "previousSibling") || Equal(k, "symtab") || Equal(k, "csymtab") || Equal(k, "sym:symtab") || Equal(k, "sym:nextSibling") ||
 	Equal(k, "sym:previousSibling") || Equal(k, "csym:nextSibling") || Equal(k, "csym:previousSibling"))) {
       /* Do nothing */
