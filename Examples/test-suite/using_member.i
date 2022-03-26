@@ -46,6 +46,7 @@ namespace one {
             class BB : public two::three::AA
             {
             public:
+// TODO: two::three::AA::great not introduced
                 using two::three::AA::great;
                 int great(bool) {return 2;}
                 int jj() {return 3;}
