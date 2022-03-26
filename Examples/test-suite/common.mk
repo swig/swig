@@ -831,6 +831,13 @@ endif
 partialcheck:
 	$(MAKE) check CC=true CXX=true LDSHARED=true CXXSHARED=true RUNTOOL=true COMPILETOOL=true
 
+swig_and_compile_cpp_helper = \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
+	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
+	LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT=$(2) NOLINK=true \
+	TARGET="$(TARGETPREFIX)$(1)$(TARGETSUFFIX)" INTERFACEDIR='$(INTERFACEDIR)' INTERFACE="$(1).i" \
+	$(LANGUAGE)$(VARIANT)_cpp
+
 swig_and_compile_cpp =  \
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
@@ -847,11 +854,7 @@ swig_and_compile_c =  \
 
 swig_and_compile_multi_cpp = \
 	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
-	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
-	  LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
-	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR='$(INTERFACEDIR)' INTERFACE="$$f.i" \
-	  $(LANGUAGE)$(VARIANT)_cpp; \
+	  $(call swig_and_compile_cpp_helper,$${f},'$(SWIGOPT)'); \
 	done
 
 swig_and_compile_external =  \

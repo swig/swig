@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-03-26: eltoder
+            [Python] #1684 Use different capsule names with and without -builtin
+
+            Types generated with and without -builtin are not compatible. Mixing
+            them in a common type list leads to crashes. Avoid this by using
+            different capsule names: "type_pointer_capsule" without -builtin and
+            "type_pointer_capsule_builtin" with.
+
 2022-03-25: wsfulton
             The debug command line options that display parse tree nodes
             (-debug-module, -debug-top, -debug-symtabs) now display previously hidden
