@@ -787,6 +787,7 @@ BROKEN_TEST_CASES = 	$(CPP_TEST_BROKEN:=.cpptest) \
 			$(C_TEST_BROKEN:=.ctest)
 
 ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
+			$(CPP11_TEST_CASES:=.clean) \
 			$(C_TEST_CASES:=.clean) \
 			$(MULTI_CPP_TEST_CASES:=.clean) \
 			$(CPP_TEST_BROKEN:=.clean) \
