@@ -43,7 +43,7 @@ INCLUDES = -I$(abs_top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 
 %.multicpptest:
 	$(setup)
-	$(call go_multicpp_setup,$*)
+	$(go_multicpp_setup)
 	+for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
 	  $(call swig_and_compile_cpp_helper,$${f},'$(SWIGOPT)') GOMOD="$*"; \
 	done
@@ -55,7 +55,7 @@ li_windows.cpptest:
 
 go_subdir_import.multicpptest:
 	$(setup)
-	$(call go_multicpp_setup,go_subdir_import)
+	$(go_multicpp_setup)
 	mkdir -p testdir/go_subdir_import 2>/dev/null || true
 	mkdir -p gopath/go_subdir_import/src/testdir/go_subdir_import 2>/dev/null || true
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
