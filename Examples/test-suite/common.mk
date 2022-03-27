@@ -814,6 +814,8 @@ check-cpp: $(CPP_TEST_CASES:=.cpptest)
 
 check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
 
+check-multicpp: $(MULTI_CPP_TEST_CASES:=.multicpptest)
+
 ifdef HAS_DOXYGEN
 check-doxygen: $(DOXYGEN_TEST_CASES:=.cpptest)
 endif
