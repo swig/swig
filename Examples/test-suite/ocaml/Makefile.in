@@ -25,10 +25,12 @@ director_enum \
 director_primitives \
 director_redefined \
 director_string \
+director_using_member_scopes \
 enum_thorough \
 li_windows \
 member_pointer_const \
 preproc_constants \
+rename_camel \
 smart_pointer_inherit \
 
 FAILING_C_TESTS = \
