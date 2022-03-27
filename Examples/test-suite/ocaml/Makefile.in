@@ -17,6 +17,8 @@ FAILING_CPP_TESTS = \
 allprotected \
 apply_signed_char \
 apply_strings \
+cpp11_director_enums \
+cpp11_strongly_typed_enumerations \
 cpp_enum \
 default_constructor \
 director_binary_string \

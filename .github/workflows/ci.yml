@@ -296,6 +296,7 @@ jobs:
         - SWIGLANG: mzscheme
           continue-on-error: true
         - SWIGLANG: ocaml
+          CPPSTD: c++17
           continue-on-error: true
           os: ubuntu-18.04 # ocaml-4.08 in ubuntu-20.04 not yet working
       # Run all of them, as opposed to aborting when one fails
