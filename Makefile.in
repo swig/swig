@@ -29,7 +29,6 @@ TARGET      = $(TARGET_NOEXE)@EXEEXT@
 SOURCE      = Source
 CCACHE      = CCache
 DOCS        = Doc/Manual
-HAVE_CXX11  = @HAVE_CXX11@
 
 swig: libfiles source ccache
 
@@ -249,7 +248,7 @@ check-%-test-suite:
 	  echo warning: cannot $(ACTION) $* test-suite "(no dir $$dir)";\
 	else								\
 	  echo $(ACTION)ing $* test-suite;				\
-	  (cd $$dir && $(MAKE) $(FLAGS) $(ACTION) HAVE_CXX11=$(HAVE_CXX11)) \
+	  (cd $$dir && $(MAKE) $(FLAGS) $(ACTION))			\
 	  || passed=false;						\
 	fi;								\
 	test $$passed = true
