@@ -97,6 +97,7 @@ extra_objects: swig.cmi swig.cmo swigp4.cmi
 
 $(C_TEST_CASES:=.ctest): extra_objects
 $(CPP_TEST_CASES:=.cpptest): extra_objects
+$(CPP11_TEST_CASES:=.cpptest): extra_objects
 $(MULTI_CPP_TEST_CASES:=.multicpptest): extra_objects
 
 # Clean
