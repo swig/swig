@@ -80,6 +80,7 @@ static void print_indent(int l) {
 void Swig_print_node(Node *obj) {
   Iterator ki;
   Node *cobj;
+  List *keys = Keys(obj);
 
   print_indent(0);
   if (debug_quiet)
@@ -87,7 +88,6 @@ void Swig_print_node(Node *obj) {
   else
     Printf(stdout, "+++ %s - %p ----------------------------------------\n", nodeType(obj), obj);
 
-  List *keys = Keys(obj);
   SortList(keys, 0);
   ki = First(keys);
   while (ki.item) {

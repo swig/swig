@@ -1101,6 +1101,7 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
   int errornum;
   size_t errpos;
   int rc;
+  pcre2_match_data *match_data = 0;
 
   compiled_pat = pcre2_compile((PCRE2_SPTR8)Char(pattern), PCRE2_ZERO_TERMINATED, 0, &errornum, &errpos, NULL);
   if (!compiled_pat) {
@@ -1111,7 +1112,6 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
     Exit(EXIT_FAILURE);
   }
 
-  pcre2_match_data *match_data = 0;
   match_data = pcre2_match_data_create_from_pattern (compiled_pat, NULL);
   rc = pcre2_match(compiled_pat, (PCRE2_SPTR8)Char(s), PCRE2_ZERO_TERMINATED, 0, 0, match_data, 0);
   pcre2_code_free(compiled_pat);
