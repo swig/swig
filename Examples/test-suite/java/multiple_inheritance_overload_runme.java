@@ -36,7 +36,7 @@ public class multiple_inheritance_overload_runme {
 
     check(d1.AnotherMethod(i) != 0, "d1.AnotherMethod failed");
 
-    Base db1 = BaseSwigImpl.inout(d1);
+    Base db1 = BaseSwigImpl.in_out(d1);
     check(db1.Method(i) != 0, "db1.Method failed");
     check(db1.MethodForRenaming(i) != 0, "db1.MethodForRenaming failed");
     check(db1.MethodForRenamingConst(i) != 1, "db1.MethodForRenamingConst failed");
@@ -54,7 +54,7 @@ public class multiple_inheritance_overload_runme {
 
     check(m1.AnotherMethod(i) != 0, "m1.AnotherMethod failed");
 
-    Base mb2 = BaseSwigImpl.inout(m1);
+    Base mb2 = BaseSwigImpl.in_out(m1);
     check(mb2.Method(i) != 0, "mb2.Method failed");
     check(mb2.MethodForRenaming(i) != 0, "mb2.MethodForRenaming failed");
     check(mb2.MethodForRenamingConst(i) != 1, "mb2.MethodForRenamingConst failed");

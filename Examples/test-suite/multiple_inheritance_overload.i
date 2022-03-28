@@ -47,7 +47,7 @@ public:
   virtual int SimilarOverloadedMethod(Integer i) { return 0; }
   virtual int SimilarOverloadedMethod(unsigned short i) { return 1; }
   virtual ~Base() {}
-  static Base *inout(Base *p) { return p; }
+  static Base *in_out(Base *p) { return p; }
 };
 
 class Derived : public Base, public AnotherSpace::AnotherBase
