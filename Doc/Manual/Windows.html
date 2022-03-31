@@ -248,16 +248,9 @@ For fully working build steps always check the Continuous Integration (CI) setup
         and save to a folder e.g. <tt>C:\Tools\Bison</tt>
     </li>
     <li>
-        Unfortunately, PCRE2 is not yet available on Nuget. Instead we will use CMake to build and install <a href="https://www.pcre.org/">PCRE2</a> to <tt>C:\Tools\pcre2</tt> using the following commands:
-        <div class="shell"><pre>
-cd C:\
-SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;%PATH%
-git clone https://github.com/PhilipHazel/pcre2.git
-cd pcre2
-cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX=C:/Tools/pcre2 -S . -B build
-cmake --build build --config Release --target install
-        </pre></div>
-        Alternatively, set <tt>WITH_PCRE=OFF</tt> to disable PCRE2 support if you are sure you do not require it.
+        Install the <a href="https://www.nuget.org/packages/pcre2/">PCRE2 Nuget package</a> using the following command: <pre>C:\Tools\nuget install PCRE2 -Version 10.39 -OutputDirectory C:\Tools\pcre2</pre>.
+        Note this is a x64 build, if this is not suitable PCRE2 can be built from source using <a href="https://github.com/PhilipHazel/pcre2/">https://github.com/PhilipHazel/pcre2/</a>.
+        Alternatively, set <tt>WITH_PCRE=OFF</tt> to disable PCRE2 support if you are sure you do not require it. 
     </li>
     <li>
         We will also need the SWIG source code. Either download a zipped archive from GitHub, or if git is installed clone the latest codebase
@@ -271,10 +264,12 @@ cmake --build build --config Release --target install
         architecture. We add the required build tools to the system PATH, and then
         build a Release version of SWIG. If all runs successfully a new swig.exe should be generated in the <tt>C:/swig/install2/bin</tt> folder.
     </p>
-    <div class="shell"> <pre>
+    </li>
+</ol>
+<div class="shell"><pre>
 cd C:\swig
 SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\Bison.3.7.4\bin;%PATH%
-SET PCRE_ROOT=C:/Tools/pcre2
+SET PCRE_ROOT=C:\Tools\pcre2\PCRE2.10.39.0
 SET PCRE_PLATFORM=x64
 cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/DPCRE2_STATIC" ^
 -DCMAKE_CXX_FLAGS="/DPCRE2_STATIC" -DPCRE2_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE2_LIBRARY=%PCRE_ROOT%/lib/pcre2-8-static.lib -S . -B build
@@ -283,9 +278,8 @@ cmake --build build --config Release --target install
 REM to test the exe
 cd install2/bin
 swig.exe -help
-    </pre></div>
-    </li>
-</ol>
+</pre></div>
+
 <p>
     In addition to Release builds you can create a Debug build using:
 </p>
