@@ -6,8 +6,6 @@ AUTOMAKE_OPTIONS = foreign nostdinc subdir-objects 1.7.2
 SOURCE_DIR=$(top_srcdir)/Source
 BUILD_SOURCE_DIR=$(top_builddir)/Source
 
-SWIG_CXX_DEFS = @SWILL@
-
 AM_CPPFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
 		-I$(BUILD_SOURCE_DIR)/CParse	\
 		-I$(SOURCE_DIR)/Include		\
@@ -18,7 +16,7 @@ AM_CPPFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
 		-I$(SOURCE_DIR)/Swig		\
 		-I$(SOURCE_DIR)/Modules
 
-AM_CXXFLAGS =	$(SWIG_CXX_DEFS)
+AM_CXXFLAGS =
 
 AM_YFLAGS = -d
 
@@ -46,7 +44,6 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Doxygen/pydoc.cxx		\
 		Doxygen/pydoc.h			\
 		Modules/allocate.cxx		\
-		Modules/browser.cxx		\
 		Modules/contract.cxx		\
 		Modules/csharp.cxx		\
 		Modules/d.cxx			\
@@ -98,7 +95,6 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Swig/wrapfunc.c
 
 bin_PROGRAMS = eswig
-eswig_LDADD   = @SWIGLIBS@
 
 # Override the link stage to avoid using Libtool
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@

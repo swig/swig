@@ -430,15 +430,13 @@ extern "C" {
   void Swig_print_with_location(DOH *object, int count = -1);
 }
 
+void Swig_default_allocators(Node *n);
+void Swig_process_types(Node *n);
+
 /* Contracts */
 void Swig_contracts(Node *n);
 void Swig_contract_mode_set(int flag);
 int Swig_contract_mode_get();
-
-/* Browser */
-void Swig_browser(Node *n, int);
-void Swig_default_allocators(Node *n);
-void Swig_process_types(Node *n);
 
 /* Nested classes */
 void Swig_nested_process_classes(Node *n);

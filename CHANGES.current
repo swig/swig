@@ -7,6 +7,25 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-04-01: olly
+	    Remove -browse command line option
+
+	    This option was undocumented.  If used it quietly did nothing
+	    unless you'd installed the SWILL library before building SWIG, but
+	    SWILL is no longer maintained and hasn't seen a release since
+	    2008-04-10.
+
+	    It's clear nobody has used this functionality for some time as the
+	    code to support it in SWIG isn't actually valid ISO C++:
+
+	    Modules/browser.cxx: In member function ‘void Browser::show_attributes(Node*)’:
+	    Modules/browser.cxx:57:23: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+	    57 |         char *trunc = "";
+	       |                       ^~
+	    Modules/browser.cxx:61:21: warning: ISO C++ forbids converting a string constant to ‘char*’ [-Wwrite-strings]
+	    61 |             trunc = "...";
+	       |                     ^~~~~
+
 2022-03-26: eltoder
             [Python] #1684 Use different capsule names with and without -builtin
 
