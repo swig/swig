@@ -194,7 +194,6 @@ static int dump_tags = 0;
 static int dump_module = 0;
 static int dump_top = 0;
 static int dump_xml = 0;
-static int browse = 0;
 static int dump_typedef = 0;
 static int dump_classes = 0;
 static int werror = 0;
@@ -850,9 +849,6 @@ static void getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-nocontract") == 0) {
 	Swig_mark_arg(i);
 	Swig_contract_mode_set(0);
-      } else if (strcmp(argv[i], "-browse") == 0) {
-	browse = 1;
-	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-debug-typedef") == 0) || (strcmp(argv[i], "-dump_typedef") == 0)) {
 	dump_typedef = 1;
 	Swig_mark_arg(i);
@@ -1335,9 +1331,6 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
 	lang->top(top);
 
-	if (browse) {
-	  Swig_browser(top, 0);
-	}
 	Delete(infile_filename);
 	Delete(basename);
       }

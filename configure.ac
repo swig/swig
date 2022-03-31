@@ -460,10 +460,6 @@ AC_SEARCH_LIBS(t_open, nsl) # SVR4
 AC_SEARCH_LIBS(gethostbyname, inet) # Sequent
 AC_SEARCH_LIBS(socket, socket) # SVR4 sockets
 
-AC_CHECK_LIB(swill, swill_init, [SWIGLIBS="-lswill $LIBS" SWILL="-DSWIG_SWILL"])
-AC_SUBST(SWIGLIBS)
-AC_SUBST(SWILL)
-
 # check for --with-libm=...
 AC_SUBST(LIBM)
 LIBM=-lm

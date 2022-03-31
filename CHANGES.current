@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-04-01: olly
+	    Remove undocumented and non-functional -browse command line option.
+
 2022-03-26: eltoder
             [Python] #1684 Use different capsule names with and without -builtin
 
