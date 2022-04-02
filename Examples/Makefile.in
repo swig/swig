@@ -1626,8 +1626,7 @@ d_run:
 # -----------------------------------------------------------------
 
 d_version:
-	# Needs improvement!
-	echo D version guess - $(D_VERSION)
+	($(DCOMPILER) --version 2> /dev/null || $(DCOMPILER)) | head -n 3
 
 # -----------------------------------------------------------------
 # Clean the D examples
