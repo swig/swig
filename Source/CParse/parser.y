@@ -4670,9 +4670,7 @@ cpp_members  : cpp_member cpp_members {
              | include_directive { $$ = $1; }
              | empty { $$ = 0;}
 	     | error {
-	       int start_line = cparse_line;
-	       skip_decl();
-	       Swig_error(cparse_file,start_line,"Syntax error in input(3).\n");
+	       Swig_error(cparse_file,cparse_line,"Syntax error in input(3).\n");
 	       Exit(EXIT_FAILURE);
 	       } cpp_members { 
 		 $$ = $3;
