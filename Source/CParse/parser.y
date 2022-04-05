@@ -6743,10 +6743,6 @@ valexpr        : exprsimple { $$ = $1; }
 		 $$ = $2;
                  $$.val = NewStringf("&%s",$2.val);
 	       }
-               | LAND expr {
-		 $$ = $2;
-                 $$.val = NewStringf("&&%s",$2.val);
-	       }
                | STAR expr {
 		 $$ = $2;
                  $$.val = NewStringf("*%s",$2.val);
