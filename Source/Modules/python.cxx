@@ -876,8 +876,10 @@ public:
 	Printv(f_shadow_py, default_import_code, NIL);
       }
 
-      Printv(f_shadow_py, "\n", f_shadow, "\n", NIL);
-      Printv(f_shadow_py, f_shadow_stubs, "\n", NIL);
+      if (Len(f_shadow) > 0)
+	Printv(f_shadow_py, "\n", f_shadow, "\n", NIL);
+      if (Len(f_shadow_stubs) > 0)
+	Printv(f_shadow_py, f_shadow_stubs, "\n", NIL);
       Delete(f_shadow_py);
     }
 
@@ -2635,7 +2637,7 @@ public:
       add_method(symname, wname, 0, p);
 
     /* Create a shadow for this function (if enabled and not in a member function) */
-    if (!builtin && shadow && (!(shadow & PYSHADOW_MEMBER)) && use_static_method) {
+    if (!builtin && shadow && !(shadow & PYSHADOW_MEMBER) && use_static_method) {
       emitFunctionShadowHelper(n, in_class ? f_shadow_stubs : f_shadow, symname, 0);
     }
     DelWrapper(f);
@@ -3309,9 +3311,10 @@ public:
 	add_method(iname, wname, allow_kwargs, n, funpack, num_required, num_arguments);
 
       /* Create a shadow for this function (if enabled and not in a member function) */
-      if (!builtin && shadow && (!(shadow & PYSHADOW_MEMBER)) && use_static_method) {
+      if (!builtin && shadow && !(shadow & PYSHADOW_MEMBER) && use_static_method) {
 	emitFunctionShadowHelper(n, in_class ? f_shadow_stubs : f_shadow, iname, allow_kwargs);
       }
+
     } else {
       if (!Getattr(n, "sym:nextSibling")) {
 	dispatchFunction(n, linkage, funpack, builtin_self, builtin_ctor, director_class, use_static_method);
@@ -3470,7 +3473,7 @@ public:
       if (builtin)
 	Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", global_name);
       have_globals = 1;
-      if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+      if (!builtin && shadow && !(shadow & PYSHADOW_MEMBER)) {
 	Printf(f_shadow_stubs, "%s = %s.%s\n", global_name, module, global_name);
       }
     }
@@ -3628,7 +3631,7 @@ public:
 
     if ((tm = Swig_typemap_lookup("constcode", n, name, 0))) {
       Replaceall(tm, "$value", value);
-      if (needs_swigconstant(n) && !builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER)) && (!in_class || !Getattr(n, "feature:python:callback"))) {
+      if (needs_swigconstant(n) && !builtin && shadow && !(shadow & PYSHADOW_MEMBER) && (!in_class || !Getattr(n, "feature:python:callback"))) {
 	// Generate `*_swigconstant()` method which registers the new constant.
 	//
 	// *_swigconstant methods are required for constants of class type.
@@ -3666,7 +3669,7 @@ public:
       return SWIG_NOWRAP;
     }
 
-    if (!builtin && (shadow) && (!(shadow & PYSHADOW_MEMBER))) {
+    if (!builtin && shadow && !(shadow & PYSHADOW_MEMBER)) {
       String *f_s;
       if (!in_class) {
 	f_s = f_shadow;
@@ -4617,7 +4620,8 @@ public:
       }
 
       shadow_indent = 0;
-      Printf(f_shadow_file, "%s\n", f_shadow_stubs);
+      if (Len(f_shadow_stubs) > 0)
+	Printf(f_shadow_file, "%s\n", f_shadow_stubs);
       Clear(f_shadow_stubs);
     }
 
