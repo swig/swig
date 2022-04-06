@@ -1,5 +1,4 @@
 platform:
-- x86
 - x64
 
 skip_commits:
@@ -18,8 +17,6 @@ environment:
     VSVER: 12
   - SWIGLANG: csharp
     VSVER: 14
-  - SWIGLANG: java
-    VSVER: 14
   - SWIGLANG: python
     VSVER: 14
     VER: 27
@@ -34,9 +31,28 @@ environment:
     VSVER: 16
     VER: 39
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+  - SWIGLANG: csharp
+    VSVER: 17
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+  - SWIGLANG: csharp
+    VSVER: 17
+    Platform: x86
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+  - SWIGLANG: java
+    VSVER: 17
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+  - SWIGLANG: java
+    VSVER: 17
+    Platform: x86
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: python
     VSVER: 17
     VER: 310
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+  - SWIGLANG: python
+    VSVER: 17
+    VER: 310
+    Platform: x86
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: python
     OSVARIANT: cygwin
@@ -160,8 +176,8 @@ build_script:
 - if "%BUILDSYSTEM%"=="cmake" cmake --version && cmake -G "Visual Studio 14 2015%VSARCH%" -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/WX /DPCRE2_STATIC" -DCMAKE_CXX_FLAGS="/WX /DPCRE2_STATIC" -DPCRE2_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE2_LIBRARY=%PCRE_ROOT%/lib/pcre2-8-static.lib -DBISON_EXECUTABLE=C:/cygwin/bin/bison.exe . && cmake --build . --config Release --target install && ctest --output-on-failure -V -C Release && appveyor exit
 - if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && cd pcre2-pcre2-10.39 && ./autogen.sh && ./configure CC=$CC CXX=$CXX CFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' --prefix=%PCRE_ROOT% --disable-shared && time make -s -j%MAKEJOBS% LN_S=cp && make install && cd .. && cp -v %PCRE_ROOT%/lib/libpcre2-8.lib %PCRE_ROOT%/lib/pcre2-8.lib"
   # Open dummy file descriptor to fix error on cygwin: ./configure: line 560: 0: Bad file descriptor
-- if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure --disable-dependency-tracking --disable-ccache --enable-cpp11-testing CC=$CC CXX=$CXX CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' PCRE2_CFLAGS='-I%PCRE_ROOT%/include -DPCRE2_STATIC' PCRE2_LIBS='-L%PCRE_ROOT%/lib/ -lpcre2-8' --without-perl5 --without-go --with-boost=%BOOSTROOT% || cat config.log"
-- if not "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure CC=%CC% CXX=%CXX% --without-alllang --with-$SWIGLANG$PY3$SWIGWITHLANG --enable-cpp11-testing || cat config.log"
+- if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure --disable-dependency-tracking --disable-ccache CC=$CC CXX=$CXX CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' PCRE2_CFLAGS='-I%PCRE_ROOT%/include -DPCRE2_STATIC' PCRE2_LIBS='-L%PCRE_ROOT%/lib/ -lpcre2-8' --without-perl5 --without-go --with-boost=%BOOSTROOT% || cat config.log"
+- if not "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure CC=%CC% CXX=%CXX% --without-alllang --with-$SWIGLANG$PY3$SWIGWITHLANG || cat config.log"
 - bash -c "time make -s -j%MAKEJOBS%"
 
 test_script:

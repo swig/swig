@@ -8,6 +8,18 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-04-06: wsfulton
+            ./configure now enables C++11 and later C++ standards testing by default (when
+            running: 'make check').
+
+            The options to control this testing are the same:
+
+              ./configure --enable-cpp11-testing
+              ./configure --disable-cpp11-testing
+
+            But the former is now the default and the latter can be used to turn off C++11 and
+            later C++ standards testing.
+
+2022-04-06: wsfulton
             [Python] #1635 The "autodoc" feature no longer overrides Doxygen comments
             in the generated docstring.
 

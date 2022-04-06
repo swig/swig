@@ -282,7 +282,7 @@ fi
 AC_MSG_RESULT($LINKFORSHARED)
 
 # Optional CFLAGS used to silence/enhance compiler warnings on some platforms.
-AC_MSG_CHECKING(PLATCFLAGS)
+AC_MSG_CHECKING(CFLAGS to use for testing (PLATCFLAGS))
 case $host in
   *-*-solaris*) if test "$GCC" = yes
     then PLATCFLAGS=
@@ -295,8 +295,8 @@ esac
 AC_MSG_RESULT($PLATCFLAGS)
 
 # Add switch if necessary to enable C++11 support - just for tests
-AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--enable-cpp11-testing], [enable C++11 testing if supported by compiler (default disabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=no])
-AC_MSG_CHECKING([whether to attempt to enable C++11 testing])
+AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--disable-cpp11-testing], [disable C++11 and later C++ standards testing even if supported by compiler (default enabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=yes])
+AC_MSG_CHECKING([whether to attempt to enable C++11 and later C++ standards testing])
 AC_MSG_RESULT([$enable_cpp11_testing])
 
 PLATCXXFLAGS="$PLATCFLAGS"
@@ -307,7 +307,7 @@ if test x"$enable_cpp11_testing" = xyes; then
   # Test for c++17
   CXXCPP=" "
   AX_CXX_COMPILE_STDCXX(17, [noext], [optional])
-  AC_MSG_CHECKING([whether C++17 and earlier testing is enabled])
+  AC_MSG_CHECKING([whether C++11 to C++17 testing is enabled])
   if test "$HAVE_CXX17" = "1"; then
     AC_MSG_RESULT([yes])
     PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
@@ -320,7 +320,7 @@ if test x"$enable_cpp11_testing" = xyes; then
     CXXCPP=" "
     CXX=$CXX_SAVED
     AX_CXX_COMPILE_STDCXX(14, [noext], [optional])
-    AC_MSG_CHECKING([whether C++14 and earlier testing is enabled])
+    AC_MSG_CHECKING([whether C++11 to C++14 testing is enabled])
     if test "$HAVE_CXX14" = "1"; then
       AC_MSG_RESULT([yes])
       PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
@@ -332,16 +332,14 @@ if test x"$enable_cpp11_testing" = xyes; then
       CXXCPP=" "
       CXX=$CXX_SAVED
       AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
-      AC_MSG_CHECKING([whether C++11 and earlier testing is enabled])
+      AC_MSG_CHECKING([whether C++11 testing is enabled])
       if test "$HAVE_CXX11" = "1"; then
         AC_MSG_RESULT([yes])
         PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
       else
         AC_MSG_RESULT([no])
       fi
-
     fi
-
   fi
 
   CXX=$CXX_SAVED
@@ -361,6 +359,10 @@ case $host in
     fi;;
   *) ;;
 esac
+
+AC_MSG_CHECKING(CXXFLAGS to use for testing (PLATCXXFLAGS))
+PLATCXXFLAGS=$(echo $PLATCXXFLAGS | xargs) # Trim whitespace
+AC_MSG_RESULT([$PLATCXXFLAGS])
 
 # Check for compiler pre-compiled header support
 AC_MSG_CHECKING([if compiler supports pre-compiled headers])
