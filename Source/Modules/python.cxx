@@ -737,10 +737,10 @@ public:
 	     tab4, tab4, "if name in (\"this\", \"thisown\"):\n",
 	     tab4, tab4, tab4, "set(self, name, value)\n",
 #else
-	     tab4, tab4, "if name == \"thisown\":\n",
-	     tab4, tab4, tab4, "self.this.own(value)\n",
-	     tab4, tab4, "elif name == \"this\":\n",
+	     tab4, tab4, "if name == \"this\":\n",
 	     tab4, tab4, tab4, "set(self, name, value)\n",
+	     tab4, tab4, "elif name == \"thisown\":\n",
+	     tab4, tab4, tab4, "self.this.own(value)\n",
 #endif
 	     tab4, tab4, "elif hasattr(self, name) and isinstance(getattr(type(self), name), property):\n",
 	     tab4, tab4, tab4, "set(self, name, value)\n",
