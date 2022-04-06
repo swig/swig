@@ -733,15 +733,10 @@ public:
       Printv(f_shadow,  "\n",
 	     "def _swig_setattr_nondynamic_instance_variable(set):\n",
 	     tab4, "def set_instance_attr(self, name, value):\n",
-#ifdef USE_THISOWN
-	     tab4, tab4, "if name in (\"this\", \"thisown\"):\n",
-	     tab4, tab4, tab4, "set(self, name, value)\n",
-#else
 	     tab4, tab4, "if name == \"this\":\n",
 	     tab4, tab4, tab4, "set(self, name, value)\n",
 	     tab4, tab4, "elif name == \"thisown\":\n",
 	     tab4, tab4, tab4, "self.this.own(value)\n",
-#endif
 	     tab4, tab4, "elif hasattr(self, name) and isinstance(getattr(type(self), name), property):\n",
 	     tab4, tab4, tab4, "set(self, name, value)\n",
 	     tab4, tab4, "else:\n",
@@ -3903,11 +3898,7 @@ public:
 	String *symname = Getattr(n, "sym:name");
 	String *mrename = Swig_name_disown(NSPACE_TODO, symname);	//Getattr(n, "name"));
 	Printv(f_shadow, tab4, "def __disown__(self):\n", NIL);
-#ifdef USE_THISOWN
-	Printv(f_shadow, tab8, "self.thisown = 0\n", NIL);
-#else
 	Printv(f_shadow, tab8, "self.this.disown()\n", NIL);
-#endif
 	Printv(f_shadow, tab8, module, ".", mrename, "(self)\n", NIL);
 	Printv(f_shadow, tab8, "return weakref.proxy(self)\n", NIL);
 	Delete(mrename);
@@ -4969,9 +4960,6 @@ public:
 	      if (have_pythonprepend(n))
 		Printv(f_shadow_stubs, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
 	      Printv(f_shadow_stubs, tab4, "val = ", funcCall(subfunc, callParms), "\n", NIL);
-#ifdef USE_THISOWN
-	      Printv(f_shadow_stubs, tab4, "val.thisown = 1\n", NIL);
-#endif
 	      if (have_pythonappend(n))
 		Printv(f_shadow_stubs, indent_pythoncode(pythonappend(n), tab4, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
 	      Printv(f_shadow_stubs, tab4, "return val\n", NIL);
@@ -5027,12 +5015,6 @@ public:
 	  Printv(f_shadow, tab8, docstring(n, AUTODOC_DTOR, tab8), "\n", NIL);
 	if (have_pythonprepend(n))
 	  Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
-#ifdef USE_THISOWN
-	Printv(f_shadow, tab8, "try:\n", NIL);
-	Printv(f_shadow, tab8, tab4, "if self.thisown:", module, ".", Swig_name_destroy(NSPACE_TODO, symname), "(self)\n", NIL);
-	Printv(f_shadow, tab8, "except __builtin__.Exception: pass\n", NIL);
-#else
-#endif
 	if (have_pythonappend(n))
 	  Printv(f_shadow, indent_pythoncode(pythonappend(n), tab8, Getfile(n), Getline(n), "%pythonappend or %feature(\"pythonappend\")"), "\n", NIL);
 	Printv(f_shadow, tab8, "pass\n", NIL);
