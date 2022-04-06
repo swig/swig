@@ -7,6 +7,20 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-04-06: wsfulton
+            [Python] #1635 The "autodoc" feature no longer overrides Doxygen comments
+            in the generated docstring.
+
+            If a "docstring" feature is present it will still override a Doxygen comment.
+            If the "autodoc" feature is also present, the combined "autodoc" and "docstring"
+            will override the Doxygen comment. If no "docstring" is present then the
+            "autodoc" feature will not be generated when there is a Doxygen comment.
+
+            This way the "autodoc" feature can be specified and used to provide documentation
+            for 'missing' Doxygen comments.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2022-04-01: olly
 	    Remove undocumented and non-functional -browse command line option.
 

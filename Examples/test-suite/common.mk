@@ -638,6 +638,7 @@ endif
 ifdef HAS_DOXYGEN
 DOXYGEN_TEST_CASES += \
 	doxygen_alias \
+	doxygen_autodoc_docstring \
 	doxygen_basic_notranslate \
 	doxygen_basic_translate \
 	doxygen_basic_translate_style2 \

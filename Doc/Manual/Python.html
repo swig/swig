@@ -114,6 +114,7 @@
 <li><a href="#Python_nn70">%feature("autodoc", "docstring")</a>
 </ul>
 <li><a href="#Python_nn71">%feature("docstring")</a>
+<li><a href="#Python_doxygen_docstrings">Doxygen comments</a>
 </ul>
 <li><a href="#Python_nn72">Python Packages</a>
 <ul>
@@ -150,6 +151,7 @@
 </ul>
 </div>
 <!-- INDEX -->
+
 
 
 <p>
@@ -5897,6 +5899,28 @@ with more than one line.
 """
 </pre>
 </div>
+
+<H3><a name="Python_doxygen_docstrings">33.10.4 Doxygen comments</a></H3>
+
+
+<p>
+Please see the separate <a href="Doxygen.html#Doxygen">Doxygen</a> chapter for information
+on making use of C++ Doxygen comments and translating them into Python docstring comments.
+</p>
+
+<p>
+Note that when generating docstrings and Doxygen comments have also been turned on,
+the <a href="#Python_nn71">docstring feature</a> will take precedence over a Doxygen comment.
+If the <a href="#Python_nn67">autodoc feature</a> is also turned on, then it will be
+used in conjunction with the docstring feature.
+However, if there is no docstring feature present and there is a Doxygen comment, then the autodoc docstring will not be generated. The Doxygen comment alone will be used.
+</p>
+
+<p>
+This way, if the autodoc feature is specified globally it will fill in any missing
+Doxygen documentation comments.
+Doxygen comments can be overridden by using the docstring feature.
+</p>
 
 <H2><a name="Python_nn72">33.11 Python Packages</a></H2>
 

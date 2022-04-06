@@ -1492,16 +1492,18 @@ public:
   /* ------------------------------------------------------------
    * build_combined_docstring()
    *
-   * Build the full docstring which may be a combination of the
-   * explicit docstring and autodoc string or, if none of them
-   * is specified, obtained by translating Doxygen comment to
-   * Python.
+   * Build the full docstring:
+   * Use the docstring if there is one present otherwise
+   * use the Doxygen comment if there is one present.
+   * Ignore autodoc if there is a Doxygen comment, otherwise
+   * create the autodoc string and append to any docstring.
    *
    * Return new string to be deleted by caller (never NIL but
    * may be empty if there is no docstring).
    * ------------------------------------------------------------ */
 
   String *build_combined_docstring(Node *n, autodoc_t ad_type, const String *indent = "", bool low_level = false) {
+    bool add_autodoc = true;
     String *docstr = Getattr(n, "feature:docstring");
     if (docstr) {
       // Simplify the code below by just ignoring empty docstrings.
@@ -1519,26 +1521,10 @@ public:
       }
     }
 
-    if (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc")) {
-      String *autodoc = make_autodoc(n, ad_type, low_level);
-      if (autodoc && Len(autodoc) > 0) {
-	if (docstr) {
-	  Append(autodoc, "\n");
-	  Append(autodoc, docstr);
-	}
-
-	String *tmp = autodoc;
-	autodoc = docstr;
-	docstr = tmp;
-      }
-
-      Delete(autodoc);
-    }
-
     if (!docstr) {
-      if (doxygen) {
+      if (doxygen && doxygenTranslator->hasDocumentation(n)) {
 	docstr = Getattr(n, "python:docstring");
-	if (!docstr && doxygenTranslator->hasDocumentation(n)) {
+	if (!docstr) {
 	  docstr = doxygenTranslator->getDocumentation(n, 0);
 
 	  // Avoid rebuilding it again the next time: notice that we can't do
@@ -1554,7 +1540,24 @@ public:
 	  // the cached object!
 	  docstr = Copy(docstr);
 	}
+	add_autodoc = false;
       }
+    }
+
+    if (add_autodoc && Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc")) {
+      String *autodoc = make_autodoc(n, ad_type, low_level);
+      if (autodoc && Len(autodoc) > 0) {
+	if (docstr) {
+	  Append(autodoc, "\n");
+	  Append(autodoc, docstr);
+	}
+
+	String *tmp = autodoc;
+	autodoc = docstr;
+	docstr = tmp;
+      }
+
+      Delete(autodoc);
     }
 
     if (!docstr)
