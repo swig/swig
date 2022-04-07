@@ -238,7 +238,7 @@ private:
    * Method for Adding a Simple Command
    * Format: @command
    * Plain commands, such as newline etc, they contain no other data
-   *  \n \\ \@ \& \$ \# \< \> \%
+   *  \n \\ \@ \& \$ \# \< \> \% \{ \}
    */
   void addSimpleCommand(const std::string &theCommand, DoxygenEntityList &doxyList);
   /*

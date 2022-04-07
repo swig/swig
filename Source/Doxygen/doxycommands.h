@@ -44,6 +44,8 @@ const int sectionIndicatorsSize = sizeof(sectionIndicators) / sizeof(*sectionInd
 const char *simpleCommands[] = {
   // the first line are escaped chars, except \~, which is a language ID command.
   "n", "$", "@", "\\", "&", "~", "<", ">", "#", "%", "\"", ".", "::",
+  // Member groups, which we currently ignore.
+  "{", "}",
   "endcond",
   "callgraph", "callergraph", "showinitializer", "hideinitializer", "internal",
   "nosubgrouping", "public", "publicsection", "private", "privatesection",

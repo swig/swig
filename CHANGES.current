@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-04-07: olly
+	    #1750 SWIG now recognises and ignores Doxygen group commands `@{` and `@}`.
+
 2022-04-06: wsfulton
             ./configure now enables C++11 and later C++ standards testing by default (when
             running: 'make check').
