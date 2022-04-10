@@ -940,7 +940,7 @@ int R::OutputClassMethodsTable(File *) {
  * The entries are indexed by <class name>_set and
  * <class_name>_get. Each entry is a List *.
 
- * out - the stram where the code is to be written. This is the S
+ * out - the stream where the code is to be written. This is the S
  * code stream as we generate only S code here.
  * --------------------------------------------------------------*/
 
