@@ -59,7 +59,7 @@ dnl To make configuring easier, check for a locally built PCRE using the Tools/p
 if test x"${with_pcre}" = xyes ; then
   AC_MSG_CHECKING([whether to use local PCRE2])
   local_pcre_config=no
-  if test -z $PCRE2_CONFIG; then
+  if test -z "$PCRE2_CONFIG"; then
     if test -f `pwd`/pcre/pcre-swig-install/bin/pcre2-config; then
       PCRE2_CONFIG=`pwd`/pcre/pcre-swig-install/bin/pcre2-config
       local_pcre_config=$PCRE2_CONFIG
