@@ -4,7 +4,7 @@
 # tridge@samba.org
 
 if test -n "$CC"; then
- COMPILER="$CC"
+ COMPILER="$CC $CFLAGS"
 else
  COMPILER=cc
 fi
