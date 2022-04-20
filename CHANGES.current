@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-04-20: cminyard
+	    Fix an issue where newlines were not properly generated
+	    for godirectorin typemaps.  If you have a virtual function
+	    not assigned to zero, in some cases it won't generate a
+	    newline and you will see errors:
+	      example.go:1508:3: expected ';', found swig_r
+	    when compiling the go code.
+
+	    Also add an example of using goin and godirectorin and add
+	    a test for this situation.
+
 2022-04-11: robinst
 	    #2257 Fix new Ruby 3.2 warning "undefining the allocator of T_DATA
 	    class swig_runtime_data".
