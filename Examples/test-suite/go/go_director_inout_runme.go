@@ -34,6 +34,15 @@ func (p *GoMyClass) S3(s *string) {
 	*s = "R3"
 }
 
+func (p *GoMyClass) S4(s []string) {
+	if s[0] != "T1" {
+		panic(s)
+	}
+	if s[1] != "T2" {
+		panic(s)
+	}
+}
+
 func main() {
 	a := wrap.NewDirectorMyClass(&GoMyClass{})
 	m := map[string]interface{}{
@@ -55,6 +64,8 @@ func main() {
 	if str != "R3" {
 		panic(str)
 	}
+
+	a.CallS4([]string{ "T1", "T2" })
 
 	a = wrap.NewDirectorMyClass(nil)
 	s = a.Adjust(m)

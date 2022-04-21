@@ -3518,7 +3518,7 @@ private:
 	    goin = Copy(goin);
 	    Replaceall(goin, "$input", ln);
 	    Replaceall(goin, "$result", ivar);
-	    Printv(f_go_wrappers, goin, NULL);
+	    Printv(f_go_wrappers, goin, "\n", NULL);
 	    Delete(goin);
 	  }
 
@@ -3772,7 +3772,7 @@ private:
 	    goin = Copy(goin);
 	    Replaceall(goin, "$input", ln);
 	    Replaceall(goin, "$result", ivar);
-	    Printv(f_go_wrappers, goin, NULL);
+	    Printv(f_go_wrappers, goin, "\n", NULL);
 	    Delete(goin);
 	  }
 
