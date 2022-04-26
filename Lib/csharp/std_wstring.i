@@ -2,7 +2,9 @@
  * std_wstring.i
  *
  * Typemaps for std::wstring and const std::wstring&
- * These are mapped to a C# String and are passed around by value.
+ * std::wstring is mapped to a C# Unicode string (UTF16) and is passed around by value.
+ * std::wstring support includes wchar_t as a 2 byte type (Windows) and a 4 byte type
+ * (most Unix systems).
  *
  * To use non-const std::wstring references use the following %apply.  Note 
  * that they are passed by value.
@@ -17,11 +19,11 @@
 
 %fragment("Swig_csharp_UTF16ToWString", "header") %{
 /* For converting from .NET UTF16 (2 byte unicode) strings. wchar_t is 2 bytes on Windows, 4 bytes on Linux. */
-static std::wstring Swig_csharp_UTF16ToWString(const wchar_t *str) {
+static std::wstring Swig_csharp_UTF16ToWString(const unsigned short *str) {
   if (sizeof(wchar_t) == 2) {
-    return std::wstring(str);
+    return std::wstring((wchar_t *)str);
   } else {
-    const unsigned short *pBegin((const unsigned short *)(str));
+    const unsigned short *pBegin(str);
     const unsigned short *ptr(pBegin);
 
     while (*ptr != 0)
@@ -44,7 +46,7 @@ namespace std {
 class wstring;
 
 // wstring
-%typemap(ctype, out="void *") wstring "wchar_t *"
+%typemap(ctype, out="void *") wstring "unsigned short *"
 %typemap(imtype,
          inattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]",
          outattributes="[return: global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]"
@@ -84,7 +86,7 @@ class wstring;
    return $null; %}
 
 // const wstring &
-%typemap(ctype, out="void *") const wstring & "wchar_t *"
+%typemap(ctype, out="void *") const wstring & "unsigned short *"
 %typemap(imtype,
          inattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]",
          outattributes="[return: global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]"

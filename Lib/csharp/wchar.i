@@ -2,10 +2,11 @@
  * wchar.i
  *
  * Typemaps for the wchar_t type
- * These are mapped to a C# String and are passed around by value.
+ * wchar_t * is mapped to a C# Unicode string (UTF16) and is passed around by value.
+ * wchar_t * support includes wchar_t as a 2 byte type (Windows) and a 4 byte type
+ * (most Unix systems).
  *
  * Support code for wide strings can be turned off by defining SWIG_CSHARP_NO_WSTRING_HELPER
- *
  * ----------------------------------------------------------------------------- */
 
 #if !defined(SWIG_CSHARP_NO_WSTRING_HELPER)
@@ -101,14 +102,14 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterWStringCallback_$module(SWIG_CSharpWStri
 
 %fragment("Swig_csharp_UTF16ToWCharPtr", "header") %{
 /* For converting from .NET UTF16 (2 byte unicode) strings. wchar_t is 2 bytes on Windows, 4 bytes on Linux. */
-static wchar_t * Swig_csharp_UTF16ToWCharPtr(const wchar_t *str) {
+static wchar_t * Swig_csharp_UTF16ToWCharPtr(const unsigned short *str) {
   if (sizeof(wchar_t) == 2) {
     return (wchar_t *)str;
   } else {
     wchar_t *result = 0;
 
     if (str) {
-      const unsigned short *pBegin((const unsigned short *)(str));
+      const unsigned short *pBegin(str);
       const unsigned short *pEnd(pBegin);
       wchar_t *ptr = 0;
 
@@ -142,7 +143,7 @@ static void Swig_csharp_UTF16ToWCharPtrFree(wchar_t *str) {
 }
 %}
 
-%typemap(ctype, out="void *") wchar_t * "wchar_t *"
+%typemap(ctype, out="void *") wchar_t * "unsigned short *"
 %typemap(imtype,
          inattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]",
          outattributes="[return: global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]"
@@ -167,7 +168,7 @@ static void Swig_csharp_UTF16ToWCharPtrFree(wchar_t *str) {
 %typemap(in, fragment="Swig_csharp_UTF16ToWCharPtr") wchar_t *
 %{ $1 = Swig_csharp_UTF16ToWCharPtr($input); %}
 
-%typemap(out) wchar_t * %{ $result = $1 ? SWIG_csharp_wstring_callback((wchar_t *)$1) : 0; %}
+%typemap(out) wchar_t * %{ $result = $1 ? SWIG_csharp_wstring_callback($1) : 0; %}
 
 %typemap(freearg, fragment="Swig_csharp_UTF16ToWCharPtrFree") wchar_t *
 %{ Swig_csharp_UTF16ToWCharPtrFree($1); %}
