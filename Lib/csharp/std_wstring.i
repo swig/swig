@@ -81,8 +81,7 @@ class wstring;
 %typemap(typecheck) wstring = wchar_t *;
 
 %typemap(throws, canthrow=1) wstring
-%{ std::string message($1.begin(), $1.end());
-   SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, message.c_str());
+%{ SWIG_csharp_ApplicationException_callback($1.c_str(), (int)$1.size());
    return $null; %}
 
 // const wstring &
@@ -136,8 +135,7 @@ class wstring;
 %typemap(typecheck) const wstring & = wchar_t *;
 
 %typemap(throws, canthrow=1) const wstring &
-%{ std::string message($1.begin(), $1.end());
-   SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, message.c_str());
+%{ SWIG_csharp_ApplicationException_callback($1.c_str(), (int)$1.size());
    return $null; %}
 
 }

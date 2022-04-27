@@ -103,9 +103,23 @@ bool test_equal_ru(const std::wstring &s) {
   return test_equal(RU_WSTRING, s);
 }
 
-void test_throw() TESTCASE_THROW1(std::wstring){
+void test_throw() TESTCASE_THROW1(std::wstring) {
   static std::wstring x = L"throwing test_throw";
-  
+  throw x;
+}
+
+void test_throw_wchar_t_ptr() TESTCASE_THROW1(std::wstring) {
+  static std::wstring x = JP_WSTRING;
+  throw x;
+}
+
+void test_throw_jp() TESTCASE_THROW1(std::wstring) {
+  static std::wstring x = JP_WSTRING;
+  throw x;
+}
+
+void test_throw_ref_jp() TESTCASE_THROW1(const std::wstring&) {
+  static std::wstring x = JP_WSTRING;
   throw x;
 }
 

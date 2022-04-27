@@ -105,6 +105,24 @@ public class runme
             check_equal(e.Message, "throwing test_throw");
         }
 
+        try {
+            li_std_wstring.test_throw_jp();
+        } catch (Exception e) {
+            check_equal(e.Message, "JP: 日本語");
+        }
+
+        try {
+            li_std_wstring.test_throw_ref_jp();
+        } catch (Exception e) {
+            check_equal(e.Message, "JP: 日本語");
+        }
+
+        try {
+            li_std_wstring.test_throw_wchar_t_ptr();
+        } catch (Exception e) {
+            check_equal(e.Message, "JP: 日本語");
+        }
+
         x = "abc\0def";
         // Unlike other languages, embedded NULL in std::string not supported
         // check_equal(li_std_wstring.test_value(x), x);

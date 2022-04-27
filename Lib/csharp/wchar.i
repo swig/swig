@@ -39,7 +39,7 @@ static void * SWIG_csharp_wstring_callback(const wchar_t *s) {
     [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterWStringCallback_$module")]
     public static extern void SWIGRegisterWStringCallback_$module(SWIGWStringDelegate wstringUTF16Delegate, SWIGWStringDelegate wstringUTF32Delegate);
 
-    static string CreateWStringFromUTF16([global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]global::System.IntPtr cString, int length) {
+    public static string CreateWStringFromUTF16([global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]global::System.IntPtr cString, int length) {
       return global::System.Runtime.InteropServices.Marshal.PtrToStringUni(cString, length);
     }
 
@@ -71,6 +71,71 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterWStringCallback_$module(SWIG_CSharpWStri
 %}
 #endif // SWIG_CSHARP_WSTRING_HELPER_
 #endif // SWIG_CSHARP_NO_WSTRING_HELPER
+
+#if !defined(SWIG_CSHARP_NO_WSTRING_EXCEPTION_HELPER)
+#if !defined(SWIG_CSHARP_WSTRING_EXCEPTION_HELPER_)
+#define SWIG_CSHARP_WSTRING_EXCEPTION_HELPER_
+
+%insert(runtime) %{
+/* Callback for returning strings to C# without leaking memory */
+typedef void (SWIGSTDCALL* SWIG_CSharpWStringExceptionHelperCallback)(const wchar_t *, int length);
+static SWIG_CSharpWStringExceptionHelperCallback SWIG_csharp_ApplicationException_callback = NULL;
+%}
+
+%pragma(csharp) imclasscode=%{
+  protected class SWIGWStringExceptionHelper {
+
+    [return: global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]
+    public delegate void SWIGWStringExceptionDelegate(global::System.IntPtr message, int length);
+    static SWIGWStringExceptionDelegate applicationExceptionUTF16Delegate = new SWIGWStringExceptionDelegate(SetPendingApplicationExceptionUTF16);
+    static SWIGWStringExceptionDelegate applicationExceptionUTF32Delegate = new SWIGWStringExceptionDelegate(SetPendingApplicationExceptionUTF32);
+
+    [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterWStringExceptionCallback_$module")]
+    public static extern void SWIGRegisterWStringExceptionCallback_$module(SWIGWStringExceptionDelegate applicationExceptionUTF16Delegate, SWIGWStringExceptionDelegate applicationExceptionUTF32Delegate);
+
+    static string CreateWStringFromUTF16([global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]global::System.IntPtr cString, int length) {
+      return global::System.Runtime.InteropServices.Marshal.PtrToStringUni(cString, length);
+    }
+
+    public static string CreateWStringFromUTF32([global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]global::System.IntPtr cString, int length) {
+      if (length == 0)
+        return string.Empty;
+
+      byte[] buffer = new byte[length * 4];
+      global::System.Runtime.InteropServices.Marshal.Copy(cString, buffer, 0, buffer.Length);
+      byte[] utf8buffer = global::System.Text.Encoding.Convert(global::System.Text.Encoding.UTF32, global::System.Text.Encoding.UTF8, buffer);
+      return global::System.Text.Encoding.Default.GetString(utf8buffer);
+    }
+
+    static void SetPendingApplicationExceptionUTF16([global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]global::System.IntPtr cString, int length) {
+      string message = SWIGWStringHelper.CreateWStringFromUTF16(cString, length);
+      SWIGPendingException.Set(new global::System.ApplicationException(message, SWIGPendingException.Retrieve()));
+    }
+
+    static void SetPendingApplicationExceptionUTF32([global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]global::System.IntPtr cString, int length) {
+      string message = SWIGWStringHelper.CreateWStringFromUTF32(cString, length);
+      SWIGPendingException.Set(new global::System.ApplicationException(message, SWIGPendingException.Retrieve()));
+    }
+
+    static SWIGWStringExceptionHelper() {
+      SWIGRegisterWStringExceptionCallback_$module(applicationExceptionUTF16Delegate, applicationExceptionUTF32Delegate);
+    }
+  }
+
+  static protected SWIGWStringExceptionHelper swigWStringExceptionHelper = new SWIGWStringExceptionHelper();
+%}
+
+%insert(runtime) %{
+#ifdef __cplusplus
+extern "C"
+#endif
+SWIGEXPORT void SWIGSTDCALL SWIGRegisterWStringExceptionCallback_$module(SWIG_CSharpWStringExceptionHelperCallback callback_utf16, SWIG_CSharpWStringExceptionHelperCallback callback_utf32) {
+  SWIG_csharp_ApplicationException_callback = sizeof(wchar_t) == 2 ? callback_utf16 : callback_utf32;
+}
+%}
+
+#endif // SWIG_CSHARP_WSTRING_EXCEPTION_HELPER_
+#endif // SWIG_CSHARP_NO_WSTRING_EXCEPTION_HELPER
 
 
 // wchar_t
@@ -174,6 +239,10 @@ static void Swig_csharp_UTF16ToWCharPtrFree(wchar_t *str) {
 %{ Swig_csharp_UTF16ToWCharPtrFree($1); %}
 
 %typemap(typecheck) wchar_t * = char *;
+
+%typemap(throws, canthrow=1, fragment="<wchar.h>") wchar_t *
+%{ SWIG_csharp_ApplicationException_callback($1, (int)wcslen($1));
+   return $null; %}
 
 
 /* Default typemap for handling wchar_t * members (based on char * in swig.swg) */
