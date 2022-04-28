@@ -17,8 +17,8 @@
 #include <iostream>
 
 struct OutputType {
-  int val;
-  OutputType(int v) : val(v) {}
+  int valu;
+  OutputType(int v) : valu(v) {}
 };
 
 // Raw literal

@@ -25,7 +25,7 @@
 %{
 #define yylex yylex
 
-/* doh.h uses #pragma GCC posion with GCC to prevent direct calls to certain
+/* doh.h uses #pragma GCC poison with GCC to prevent direct calls to certain
  * standard C library functions being introduced, but those cause errors due
  * to checks like `#if defined YYMALLOC || defined malloc` in the bison
  * template code.  We can't easily arrange to include headers after that
@@ -4670,9 +4670,7 @@ cpp_members  : cpp_member cpp_members {
              | include_directive { $$ = $1; }
              | empty { $$ = 0;}
 	     | error {
-	       int start_line = cparse_line;
-	       skip_decl();
-	       Swig_error(cparse_file,start_line,"Syntax error in input(3).\n");
+	       Swig_error(cparse_file,cparse_line,"Syntax error in input(3).\n");
 	       Exit(EXIT_FAILURE);
 	       } cpp_members { 
 		 $$ = $3;
@@ -6744,10 +6742,6 @@ valexpr        : exprsimple { $$ = $1; }
                | AND expr {
 		 $$ = $2;
                  $$.val = NewStringf("&%s",$2.val);
-	       }
-               | LAND expr {
-		 $$ = $2;
-                 $$.val = NewStringf("&&%s",$2.val);
 	       }
                | STAR expr {
 		 $$ = $2;

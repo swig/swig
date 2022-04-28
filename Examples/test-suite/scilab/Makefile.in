@@ -7,6 +7,7 @@ SCILAB       = @SCILAB@
 SCILAB_OPT   = @SCILABOPT@
 SCRIPTSUFFIX = _runme.sci
 
+HAVE_CXX11   = @HAVE_CXX11@
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@

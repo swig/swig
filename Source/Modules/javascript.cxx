@@ -760,13 +760,10 @@ int JSEmitter::emitWrapperFunction(Node *n) {
 	ret = emitSetter(n, is_member, is_static);
       } else if (is_getter) {
 	ret = emitGetter(n, is_member, is_static);
-      } else {
-	Swig_print_node(n);
       }
 
     } else {
       Printf(stderr, "Warning: unsupported wrapper function type\n");
-      Swig_print_node(n);
       ret = SWIG_ERROR;
     }
   } else {
@@ -778,7 +775,6 @@ int JSEmitter::emitWrapperFunction(Node *n) {
       ret = emitDtor(n);
     } else {
       Printf(stderr, "Warning: unsupported wrapper function type");
-      Swig_print_node(n);
       ret = SWIG_ERROR;
     }
   }
@@ -1409,7 +1405,6 @@ int JSEmitter::switchNamespace(Node *n) {
   String *_nspace = lang->getNSpace();
   if (!Equal(nspace, _nspace)) {
     Printf(stdout, "##### Custom vs Language::getNSpace(): %s | %s\n", nspace, _nspace);
-    Swig_print_node(n);
   }
 #endif
 

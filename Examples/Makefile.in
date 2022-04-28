@@ -309,7 +309,7 @@ perl5_clean:
 PYTHON_FLAGS =
 
 # Make sure these locate your Python installation
-ifeq (,$(PY3))
+ifneq (,$(PY2))
   PYTHON_INCLUDE= $(DEFS) @PYINCLUDE@
   PYTHON_LIB    = @PYLIB@
   PYTHON        = @PYTHON@ $(PYTHON_FLAGS)
@@ -320,7 +320,7 @@ else
 endif
 
 # Extra Python specific linking options
-ifeq (,$(PY3))
+ifneq (,$(PY2))
   PYTHON_DLNK   = @PYTHONDYNAMICLINKING@
   PYTHON_LINK   = @PYLINK@
 else
@@ -328,13 +328,6 @@ else
   PYTHON_LINK   = @PY3LINK@
 endif
 PYTHON_SO     = @PYTHON_SO@
-
-# SWIG option for Python3
-ifeq (,$(PY3))
-  SWIGOPTPY3 =
-else
-  SWIGOPTPY3 = -py3
-endif
 
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,W291,W391
@@ -344,7 +337,7 @@ PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,W291,W391
 # ----------------------------------------------------------------
 
 python: $(SRCDIR_SRCS)
-	$(SWIG) -python $(SWIGOPTPY3) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(SWIG) -python $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 
@@ -353,7 +346,7 @@ python: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 python_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -python $(SWIGOPTPY3) -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(SWIG) -python -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 
@@ -369,12 +362,12 @@ TKINTER =
 PYTHON_LIBOPTS = $(PYTHON_LINK) @LIBS@ $(TKINTER) $(SYSLIBS)
 
 python_static: $(SRCDIR_SRCS)
-	$(SWIG) -python $(SWIGOPTPY3) -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(SWIG) -python -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
 	$(PYTHON_INCLUDE) $(LIBS) -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
 
 python_static_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -python $(SWIGOPTPY3) -c++ -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(SWIG) -python -c++ -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
 	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
 
@@ -1633,8 +1626,7 @@ d_run:
 # -----------------------------------------------------------------
 
 d_version:
-	# Needs improvement!
-	echo D version guess - $(D_VERSION)
+	($(DCOMPILER) --version 2> /dev/null || $(DCOMPILER)) | head -n 3
 
 # -----------------------------------------------------------------
 # Clean the D examples

@@ -34,8 +34,8 @@
 // utitle is an alias for undercase.
 %rename("%(utitle)s") UnderCase3;
 
-// This should change upper-case "import", but "hi_there" should be handled by the
-// rule below and become "HI_THERE".
+// This should change "import" to "Import", but "hi_there" should be handled by
+// the rule below and become "HI_THERE".
 %rename("%(regex:/(.*i.*)/\\u\\1/)s") "";
 
 %rename("%(upper)s",regexmatch$parentNode$type="enum .*") "";

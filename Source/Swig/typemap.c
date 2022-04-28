@@ -1443,7 +1443,6 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
      * ie, not use the typemap code, otherwise both f and actioncode must be non null. */
     if (actioncode) {
       const String *result_equals = NewStringf("%s = ", Swig_cresult_name());
-      clname = Copy(actioncode);
       /* check that the code in the typemap can be used in this optimal way.
        * The code should be in the form "result = ...;\n". We need to extract
        * the "..." part. This may not be possible for various reasons, eg
@@ -1451,22 +1450,17 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
        * hack and circumvents the normal requirement for a temporary variable 
        * to hold the result returned from a wrapped function call.
        */
-      if (Strncmp(clname, result_equals, 9) == 0) {
-        int numreplacements = Replace(clname, result_equals, "", DOH_REPLACE_ID_BEGIN);
-        if (numreplacements == 1) {
-          numreplacements = Replace(clname, ";\n", "", DOH_REPLACE_ID_END);
-          if (numreplacements == 1) {
-            if (Strchr(clname, ';') == 0) {
-              lname = clname;
-              actioncode = 0;
-              optimal_substitution = 1;
-            }
-          }
-        }
-      }
-      if (!optimal_substitution) {
+      if (Strncmp(actioncode, result_equals, Len(result_equals)) == 0 &&
+	  Strchr(actioncode, ';') == Char(actioncode) + Len(actioncode) - 2 &&
+	  Char(actioncode)[Len(actioncode) - 1] == '\n') {
+	clname = NewStringWithSize(Char(actioncode) + Len(result_equals),
+				   Len(actioncode) - Len(result_equals) - 2);
+	lname = clname;
+	actioncode = 0;
+	optimal_substitution = 1;
+      } else {
 	Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(node), Getline(node), "Method %s usage of the optimal attribute ignored\n", Swig_name_decl(node));
-	Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(s), Getline(s), "in the out typemap as the following cannot be used to generate optimal code: %s\n", clname);
+	Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(s), Getline(s), "in the out typemap as the following cannot be used to generate optimal code: %s\n", actioncode);
 	delete_optimal_attribute = 1;
       }
     } else {

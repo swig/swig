@@ -998,6 +998,9 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
     sobj->dict = 0;
 #endif
     if (own == SWIG_POINTER_OWN) {
+      /* Obtain a reference to the Python capsule wrapping the module information, so that the
+       * module information is correctly destroyed after all SWIG python objects have been freed
+       * by the GC (and corresponding destructors invoked) */
       Py_XINCREF(Swig_Capsule_global);
     }
   }
@@ -1683,7 +1686,7 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
 #endif
   PyObject *pointer = PyCapsule_New((void *) swig_module, SWIGPY_CAPSULE_NAME, SWIG_Python_DestroyModule);
   if (pointer && module) {
-    if (PyModule_AddObject(module, "type_pointer_capsule" SWIG_TYPE_TABLE_NAME, pointer) == 0) {
+    if (PyModule_AddObject(module, SWIGPY_CAPSULE_ATTR_NAME, pointer) == 0) {
       Swig_Capsule_global = pointer;
     } else {
       Py_DECREF(pointer);

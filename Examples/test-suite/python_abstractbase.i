@@ -24,9 +24,3 @@ bool is_python_builtin() { return true; }
 bool is_python_builtin() { return false; }
 #endif
 %}
-
-#ifdef SWIGPYTHON_PY3 // set when using -py3
-#define is_swig_py3 1
-#else
-#define is_swig_py3 0
-#endif

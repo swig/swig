@@ -457,7 +457,7 @@
 %{ free($1); %}
 
 %typemap(freearg) char *&
-%{ free(*$1); %}
+%{ free(temp$argnum); %}
 
 %typemap(out,fragment="AllocateString")
 	char *, char *&, char[ANY], char[]

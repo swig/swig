@@ -6,6 +6,7 @@ LANGUAGE     = mzscheme
 MZSCHEME     = mzscheme
 SCRIPTSUFFIX = _runme.scm
 
+HAVE_CXX11   = @HAVE_CXX11@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -19,6 +20,11 @@ char_strings \
 chartest \
 class_scope_weird \
 constant_pointers \
+cpp11_alternate_function_syntax \
+cpp11_director_enums \
+cpp11_ref_qualifiers \
+cpp11_rvalue_reference2 \
+cpp11_strongly_typed_enumerations \
 cpp_basic \
 cpp_enum \
 curiously_recurring_template_pattern \

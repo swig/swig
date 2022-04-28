@@ -16,6 +16,20 @@
 #include <stdarg.h>
 #include <assert.h>
 
+static int debug_quiet = 0;
+
+/* -----------------------------------------------------------------------------
+ * Swig_print_quiet()
+ *
+ * Set quiet mode when printing a parse tree node
+ * ----------------------------------------------------------------------------- */
+
+int Swig_print_quiet(int quiet) {
+  int previous_quiet = debug_quiet;
+  debug_quiet = quiet;
+  return previous_quiet;
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_print_tags()
  *
@@ -66,33 +80,42 @@ static void print_indent(int l) {
 void Swig_print_node(Node *obj) {
   Iterator ki;
   Node *cobj;
+  List *keys = Keys(obj);
 
   print_indent(0);
-  Printf(stdout, "+++ %s - %p ----------------------------------------\n", nodeType(obj), obj);
-  ki = First(obj);
-  while (ki.key) {
-    String *k = ki.key;
-    if ((Cmp(k, "nodeType") == 0) || (Cmp(k, "firstChild") == 0) || (Cmp(k, "lastChild") == 0) ||
-	(Cmp(k, "parentNode") == 0) || (Cmp(k, "nextSibling") == 0) || (Cmp(k, "previousSibling") == 0) || (*(Char(k)) == '$')) {
+  if (debug_quiet)
+    Printf(stdout, "+++ %s ----------------------------------------\n", nodeType(obj));
+  else
+    Printf(stdout, "+++ %s - %p ----------------------------------------\n", nodeType(obj), obj);
+
+  SortList(keys, 0);
+  ki = First(keys);
+  while (ki.item) {
+    String *k = ki.item;
+    DOH *value = Getattr(obj, k);
+    if (Equal(k, "nodeType") || (*(Char(k)) == '$')) {
       /* Do nothing */
-    } else if (Cmp(k, "kwargs") == 0 || Cmp(k, "parms") == 0 || Cmp(k, "wrap:parms") == 0 ||
-	       Cmp(k, "pattern") == 0 || Cmp(k, "templateparms") == 0 || Cmp(k, "throws") == 0) {
+    } else if (debug_quiet && (Equal(k, "firstChild") || Equal(k, "lastChild") || Equal(k, "parentNode") || Equal(k, "nextSibling") ||
+	Equal(k, "previousSibling") || Equal(k, "symtab") || Equal(k, "csymtab") || Equal(k, "sym:symtab") || Equal(k, "sym:nextSibling") ||
+	Equal(k, "sym:previousSibling") || Equal(k, "csym:nextSibling") || Equal(k, "csym:previousSibling"))) {
+      /* Do nothing */
+    } else if (Equal(k, "kwargs") || Equal(k, "parms") || Equal(k, "wrap:parms") || Equal(k, "pattern") || Equal(k, "templateparms") || Equal(k, "throws")) {
       print_indent(2);
       /* Differentiate parameter lists by displaying within single quotes */
-      Printf(stdout, "%-12s - \'%s\'\n", k, ParmList_str_defaultargs(Getattr(obj, k)));
+      Printf(stdout, "%-12s - \'%s\'\n", k, ParmList_str_defaultargs(value));
     } else {
       DOH *o;
       const char *trunc = "";
       print_indent(2);
-      if (DohIsString(Getattr(obj, k))) {
-	o = Str(Getattr(obj, k));
+      if (DohIsString(value)) {
+	o = Str(value);
 	if (Len(o) > 80) {
 	  trunc = "...";
 	}
 	Printf(stdout, "%-12s - \"%(escape)-0.80s%s\"\n", k, o, trunc);
 	Delete(o);
       } else {
-	Printf(stdout, "%-12s - %p\n", k, Getattr(obj, k));
+	Printf(stdout, "%-12s - %p\n", k, value);
       }
     }
     ki = Next(ki);
@@ -107,6 +130,7 @@ void Swig_print_node(Node *obj) {
     print_indent(1);
     Printf(stdout, "\n");
   }
+  Delete(keys);
 }
 
 /* -----------------------------------------------------------------------------

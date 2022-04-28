@@ -29,6 +29,8 @@
 <li><a href="#Go_class_inheritance">Go Class Inheritance</a>
 </ul>
 <li><a href="#Go_templates">Go Templates</a>
+<li><a href="#Go_threads">Go and C/C++ Threads</a>
+<li><a href="#Go_exceptions">Go and C++ Exceptions</a>
 <li><a href="#Go_director_classes">Go Director Classes</a>
 <ul>
 <li><a href="#Go_director_example_cpp_code">Example C++ code</a>
@@ -176,10 +178,10 @@ swig -go -help
 <td>-intgosize &lt;s&gt;</td>
 <td>Set the size for the Go type <tt>int</tt>.  This controls the size
   that the C/C++ code expects to see.  The &lt;s&gt; argument should
-  be 32 or 64.  This option is currently required during the
+  be 32 or 64.  This option was required during the
   transition from Go 1.0 to Go 1.1, as the size of <tt>int</tt> on
-  64-bit x86 systems changes between those releases (from 32 bits to
-  64 bits).  In the future the option may become optional, and SWIG
+  64-bit x86 systems changed between those releases (from 32 bits to
+  64 bits).  It was made optional in SWIG 4.1.0 and if not specified SWIG
   will assume that the size of <tt>int</tt> is the size of a C
   pointer.</td>
 </tr>
@@ -494,10 +496,6 @@ The usage of Go finalizers is problematic with C++'s RAII idiom as it isn't
 predictable when the finalizer will run and this might require a Close or Delete
 method to be added the Go object that stores a C++ object to mitigate.
 </li>
-<li>
-The Go finalizer function typically runs in a different OS thread which can be
-problematic with C++ code that uses thread-local storage.
-</li>
 </ul>
 
 <p>
@@ -557,8 +555,37 @@ In order to use C++ templates in Go, you must tell SWIG to create
 wrappers for a particular template instantiation.  To do this, use
 the <tt>%template</tt> directive.
 
+<H3><a name="Go_threads">25.4.7 Go and C/C++ Threads</a></H3>
 
-<H3><a name="Go_director_classes">25.4.7 Go Director Classes</a></H3>
+
+<p>
+C and C++ code can use operating system threads and thread local
+storage.  Go code uses goroutines, which are multiplexed onto
+operating system threads.  This multiplexing means that Go code can
+change to run on a different thread at any time.  C/C++ code, on the
+other hand, may assume that it runs on a single thread; this is true
+in particular if the C/C++ code uses thread local storage.
+</p>
+
+<p>
+In order to use Go code with C/C++ code that expects to run on a
+single thread, the Go code must call
+the <a href="https://pkg.go.dev/runtime#LockOSThread"><code>runtime.LockOSThread</code></a>
+function to lock the goroutine onto a single thread.
+</p>
+
+<H3><a name="Go_exceptions">25.4.8 Go and C++ Exceptions</a></H3>
+
+
+<p>
+C++ exceptions do not interoperate with Go code.  Attempts to throw
+C++ exceptions through a Go caller are unreliable: in many cases the
+C++ exception handler will be unable to unwind the stack, and the
+program will crash.  The only safe way to handle C++ exceptions is to
+catch them in C++ before returning to Go.
+</p>
+
+<H3><a name="Go_director_classes">25.4.9 Go Director Classes</a></H3>
 
 
 <p>
@@ -576,7 +603,7 @@ completely to avoid common pitfalls with directors in Go.
 </p>
 
 
-<H4><a name="Go_director_example_cpp_code">25.4.7.1 Example C++ code</a></H4>
+<H4><a name="Go_director_example_cpp_code">25.4.9.1 Example C++ code</a></H4>
 
 
 <p>
@@ -648,7 +675,7 @@ be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.
 </p>
 
 
-<H4><a name="Go_director_enable">25.4.7.2 Enable director feature</a></H4>
+<H4><a name="Go_director_enable">25.4.9.2 Enable director feature</a></H4>
 
 
 <p>
@@ -683,7 +710,7 @@ documentation on directors.
 </p>
 
 
-<H4><a name="Go_director_ctor_dtor">25.4.7.3 Constructor and destructor</a></H4>
+<H4><a name="Go_director_ctor_dtor">25.4.9.3 Constructor and destructor</a></H4>
 
 
 <p>
@@ -736,7 +763,7 @@ embedding</a>.
 </p>
 
 
-<H4><a name="Go_director_overriding">25.4.7.4 Override virtual methods</a></H4>
+<H4><a name="Go_director_overriding">25.4.9.4 Override virtual methods</a></H4>
 
 
 <p>
@@ -804,7 +831,7 @@ the Go methods.
 </p>
 
 
-<H4><a name="Go_director_base_methods">25.4.7.5 Call base methods</a></H4>
+<H4><a name="Go_director_base_methods">25.4.9.5 Call base methods</a></H4>
 
 
 <p>
@@ -841,7 +868,7 @@ be found in <a href="#Go_director_foobargo_class">the end of the guide</a>.
 </p>
 
 
-<H4><a name="Go_director_subclass">25.4.7.6 Subclass via embedding</a></H4>
+<H4><a name="Go_director_subclass">25.4.9.6 Subclass via embedding</a></H4>
 
 
 <p>
@@ -909,7 +936,7 @@ class.
 </p>
 
 
-<H4><a name="Go_director_finalizer">25.4.7.7 Memory management with runtime.SetFinalizer</a></H4>
+<H4><a name="Go_director_finalizer">25.4.9.7 Memory management with runtime.SetFinalizer</a></H4>
 
 
 <p>
@@ -974,7 +1001,7 @@ before using <tt>runtime.SetFinalizer</tt> to know all of its gotchas.
 </p>
 
 
-<H4><a name="Go_director_foobargo_class">25.4.7.8 Complete FooBarGo example class</a></H4>
+<H4><a name="Go_director_foobargo_class">25.4.9.8 Complete FooBarGo example class</a></H4>
 
 
 <p>
@@ -1103,7 +1130,7 @@ SWIG/Examples/go/director/</a>.
 </p>
 
 
-<H3><a name="Go_primitive_type_mappings">25.4.8 Default Go primitive type mappings</a></H3>
+<H3><a name="Go_primitive_type_mappings">25.4.10 Default Go primitive type mappings</a></H3>
 
 
 <p>
@@ -1210,7 +1237,7 @@ that typemap, or add new values, to control how C/C++ types are mapped
 into Go types.
 </p>
 
-<H3><a name="Go_output_arguments">25.4.9 Output arguments</a></H3>
+<H3><a name="Go_output_arguments">25.4.11 Output arguments</a></H3>
 
 
 <p>Because of limitations in the way output arguments are processed in swig,
@@ -1263,7 +1290,7 @@ void f(char *output);
 </pre>
 </div>
 
-<H3><a name="Go_adding_additional_code">25.4.10 Adding additional go code</a></H3>
+<H3><a name="Go_adding_additional_code">25.4.12 Adding additional go code</a></H3>
 
 
 <p>Often the APIs generated by swig are not very natural in go, especially if
@@ -1358,7 +1385,7 @@ func bar() {
 </pre>
 </div>
 
-<H3><a name="Go_typemaps">25.4.11 Go typemaps</a></H3>
+<H3><a name="Go_typemaps">25.4.13 Go typemaps</a></H3>
 
 
 <p>

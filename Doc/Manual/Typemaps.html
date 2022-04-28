@@ -1060,9 +1060,11 @@ The matching rules can be observed in practice by using the debugging options al
 
 
 <p>
-Typemaps are matched using both a type and a name (typically the name of a argument).  For a given
-<tt>TYPE NAME</tt> pair, the following rules are applied, in order, to find a match.  The first typemap found
-is used.
+Typemaps are matched using both a type and a name (typically the name of an
+argument, but in the case of <tt>out</tt> typemaps, the name of a function,
+qualified by the class name if it's a class method).  For a given <tt>TYPE
+NAME</tt> pair, the following rules are applied, in order, to find a match.
+The first typemap found is used.
 </p>
 
 <ul>

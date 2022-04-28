@@ -2,9 +2,26 @@
    and its templating capabilities introduced in C++11. */
 %module cpp11_result_of
 
+// std::result_of is deprecated in C++17
+// Replace std implementation with a simple implementation in order to continue testing with C++17 compilers and later
+
 %inline %{
-#include <functional>
 typedef double(*fn_ptr)(double);
+%}
+
+%{
+#if __cplusplus >= 201703L
+namespace std {
+  // Forward declaration of result_of
+  template<typename Func> struct result_of;
+  // Add in the required partial specialization of result_of
+  template<> struct result_of< fn_ptr(double) > {
+    typedef double type;
+  };
+}
+#else
+#include <functional>
+#endif
 %}
 
 namespace std {
@@ -34,13 +51,6 @@ std::result_of< fn_ptr(double) >::type test_result_alternative1(double(*fun)(dou
 }
 %}
 
-%{
-// Another alternative approach using decltype (not very SWIG friendly)
-std::result_of< decltype(square)&(double) >::type test_result_alternative2(double(*fun)(double), double arg) {
-  return fun(arg);
-}
-%}
-
 %inline %{
 #include <iostream>
 
@@ -49,7 +59,6 @@ void cpp_testing() {
   std::cout << "result: " << test_result_impl<double(*)(double), double>(square, 4) << std::endl;
   std::cout << "result: " << test_result_impl< fn_ptr, double >(square, 5) << std::endl;
   std::cout << "result: " << test_result_alternative1(square, 6) << std::endl;
-  std::cout << "result: " << test_result_alternative2(square, 7) << std::endl;
 }
 %}
 

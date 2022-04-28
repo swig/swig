@@ -4,7 +4,7 @@
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance */
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
-%include "swiginterface.i"
+%include <swiginterface.i>
 %interface_custom("A", "IA", IA)
 %interface_custom("B", "IB", IB)
 %interface_custom("%(strip:[I])s", "I%s", IC) // same as %interface_custom("C", "IC", IC)
@@ -47,6 +47,33 @@ struct T : IQ {};
 struct U : R {};
 struct V : S {};
 struct W : T {};
+%}
+
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+%interface_impl(Undesirables);
+#endif
+
+%inline %{
+// Don't put variables and enums into interface
+class Undesirables
+{
+public:
+  Undesirables() : UndesiredVariable() {}
+  virtual ~Undesirables() {}
+  virtual void Method(int i) = 0;
+
+  enum UndesiredEnum { UndesiredEnum1, UndesiredEnum2 };
+  static void UndesiredStaticMethod(UndesiredEnum e) {}
+  int UndesiredVariable;
+  static int UndesiredStaticVariable;
+  static const int UndesiredStaticConstVariable = 0;
+};
+
+int Undesirables::UndesiredStaticVariable = 0;
+
+struct UndesirablesDerived : Undesirables {
+  virtual void Method(int i) {}
+};
 %}
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)

@@ -1,7 +1,7 @@
 %module python_annotations_c
 
 // Tests the C/C++ annotations that were automatically added by using -py3 before swig-4.1.0
-// In swig-4.1.0 and later, the feature below is needed as annotations are no longer generated with -py3
+// In swig-4.1.0 and later, the feature below is needed as the -py3 option was dropped
 %feature("python:annotations", "c") mymethod;
 %feature("python:annotations", "c") makeT<short>;
 %feature("python:annotations", "c") global_ints;

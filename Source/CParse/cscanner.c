@@ -955,6 +955,7 @@ int yylex(void) {
 
     } else {
       /* SWIG directives */
+      String *stext = 0;
       if (strcmp(yytext, "%module") == 0)
 	return (MODULE);
       if (strcmp(yytext, "%insert") == 0)
@@ -1041,7 +1042,7 @@ int yylex(void) {
        * the operator.
        */
       cparse_unknown_directive = NewString(yytext);
-      String *stext = NewString(yytext + 1);
+      stext = NewString(yytext + 1);
       Seek(stext,0,SEEK_SET);
       Setfile(stext,cparse_file);
       Setline(stext,cparse_line);

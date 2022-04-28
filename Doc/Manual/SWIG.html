@@ -156,6 +156,7 @@ General Options
      -debug-symbols  - Display target language symbols in the symbol tables
      -debug-csymbols - Display C symbols in the symbol tables
      -debug-lsymbols - Display target language layer symbols
+     -debug-quiet    - Display less parse tree node debug info when using other -debug options
      -debug-tags     - Display information about the tags found in the interface
      -debug-template - Display information for debugging templates
      -debug-top &lt;n&gt;  - Display entire parse tree at stages 1-4, &lt;n&gt; is a csv list of stages
@@ -2187,18 +2188,19 @@ of the expression.
 <p>
 For a comprehensive understanding of how the matching works, the internal
 <a href="Extending.html#Extending_nn8">parse tree</a> needs to be examined using the
-command line option: <tt>-debug-module 1</tt>.
+command line option: <tt>-debug-module 1 -debug-quiet</tt>.
 A snippet of the resulting output might be:
 </p>
 
 <div class="shell">
 <pre>
-            +++ destructor - 0x7fc10ea05af0 ----------------------------------------
-            | name         - "~Shape"
-            | ismember     - "1"
-            | sym:name     - "~Shape"
+            +++ destructor ----------------------------------------
             | access       - "public"
+            | decl         - "f()."
+            | ismember     - "1"
+            | name         - "~Shape"
             | storage      - "virtual"
+            | sym:name     - "~Shape"
 </pre>
 </div>
 

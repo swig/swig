@@ -74,6 +74,7 @@ static const char *usage1 = (const char *) "\
      -debug-symbols  - Display target language symbols in the symbol tables\n\
      -debug-csymbols - Display C symbols in the symbol tables\n\
      -debug-lsymbols - Display target language layer symbols\n\
+     -debug-quiet    - Display less parse tree node debug info when using other -debug options\n\
      -debug-tags     - Display information about the tags found in the interface\n\
      -debug-template - Display information for debugging templates\n\
      -debug-top <n>  - Display entire parse tree at stages 1-4, <n> is a csv list of stages\n\
@@ -193,7 +194,6 @@ static int dump_tags = 0;
 static int dump_module = 0;
 static int dump_top = 0;
 static int dump_xml = 0;
-static int browse = 0;
 static int dump_typedef = 0;
 static int dump_classes = 0;
 static int werror = 0;
@@ -778,6 +778,9 @@ static void getoptions(int argc, char *argv[]) {
       } else if (strncmp(argv[i], "-w", 2) == 0) {
 	Swig_mark_arg(i);
 	Swig_warnfilter(argv[i] + 2, 1);
+      } else if (strcmp(argv[i], "-debug-quiet") == 0) {
+	Swig_print_quiet(1);
+	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-debug-symtabs") == 0) {
 	dump_symtabs = 1;
 	Swig_mark_arg(i);
@@ -846,9 +849,6 @@ static void getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-nocontract") == 0) {
 	Swig_mark_arg(i);
 	Swig_contract_mode_set(0);
-      } else if (strcmp(argv[i], "-browse") == 0) {
-	browse = 1;
-	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-debug-typedef") == 0) || (strcmp(argv[i], "-dump_typedef") == 0)) {
 	dump_typedef = 1;
 	Swig_mark_arg(i);
@@ -1331,9 +1331,6 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
 	lang->top(top);
 
-	if (browse) {
-	  Swig_browser(top, 0);
-	}
 	Delete(infile_filename);
 	Delete(basename);
       }
