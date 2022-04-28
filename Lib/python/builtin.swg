@@ -212,9 +212,9 @@ SwigPyStaticVar_Type(void) {
       0,                                        /* tp_itemsize */
       (destructor)SwigPyStaticVar_dealloc,      /* tp_dealloc */
 #if PY_VERSION_HEX < 0x030800b4
-      (printfunc)0,                             /*tp_print*/
+      (printfunc)0,                             /* tp_print */
 #else
-      (Py_ssize_t)0,                            /*tp_vectorcall_offset*/
+      (Py_ssize_t)0,                            /* tp_vectorcall_offset */
 #endif
       0,                                        /* tp_getattr */
       0,                                        /* tp_setattr */
@@ -300,9 +300,9 @@ SwigPyObjectType(void) {
       0,                                        /* tp_itemsize */
       0,                                        /* tp_dealloc */
 #if PY_VERSION_HEX < 0x030800b4
-      (printfunc)0,                             /*tp_print*/
+      (printfunc)0,                             /* tp_print */
 #else
-      (Py_ssize_t)0,                            /*tp_vectorcall_offset*/
+      (Py_ssize_t)0,                            /* tp_vectorcall_offset */
 #endif
       0,                                        /* tp_getattr */
       0,                                        /* tp_setattr */
