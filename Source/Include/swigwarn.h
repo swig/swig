@@ -163,6 +163,7 @@
 #define WARN_TYPEMAP_SWIGTYPE         452 /* No longer issued */
 #define WARN_TYPEMAP_APPLY_UNDEF      453
 #define WARN_TYPEMAP_SWIGTYPELEAK     454
+#define WARN_TYPEMAP_WCHARLEAK        455
 
 #define WARN_TYPEMAP_IN_UNDEF         460
 #define WARN_TYPEMAP_OUT_UNDEF        461

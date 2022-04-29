@@ -18,6 +18,9 @@ Version 4.1.0 (in progress)
 	    Also add an example of using goin and godirectorin and add
 	    a test for this situation.
 
+2022-04-29: jason-daly, JerryJoyce, wsfulton
+	    [C#] #1233 Add wchar_t * and std::wstring Unicode string support on Linux.
+
 2022-04-11: robinst
 	    #2257 Fix new Ruby 3.2 warning "undefining the allocator of T_DATA
 	    class swig_runtime_data".
