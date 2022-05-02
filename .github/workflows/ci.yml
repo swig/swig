@@ -96,7 +96,6 @@ jobs:
         - SWIGLANG: octave
           CPPSTD: c++11
         - SWIGLANG: octave
-          VER: '6.4'
           CPPSTD: c++11
         - SWIGLANG: perl5
         - SWIGLANG: php
@@ -300,6 +299,9 @@ jobs:
           GCC: 11
           continue-on-error: true
           os: ubuntu-18.04 # ocaml-4.08 in ubuntu-20.04 not yet working
+        # Currently broken
+        - SWIGLANG: ruby
+          VER: '2.6'
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
