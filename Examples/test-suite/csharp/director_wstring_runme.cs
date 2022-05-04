@@ -17,9 +17,18 @@ public class runme
         if (b.get_first() != "hello world!")
             throw new ApplicationException("Incorrect get_first:" + b.get_first());
 
+        /*
         b.call_process_func();
-
         if (b.smem != "hello")
+            throw new ApplicationException("Incorrect smem:" + b.smem);
+            */
+
+        b.call_process_wstring_func();
+        if (b.smem != "hello (wstring)")
+            throw new ApplicationException("Incorrect smem:" + b.smem);
+
+        b.call_process_wstring_ref_func();
+        if (b.smem != "hello (wstring ref)")
             throw new ApplicationException("Incorrect smem:" + b.smem);
     }
 }
@@ -37,5 +46,13 @@ class director_wstring_B : A
     public override void process_text(String s)
     {
         this.smem = s;
+    }
+    public override void process_wstring_text(String s)
+    {
+        this.smem = s + " (wstring)";
+    }
+    public override void process_wstring_ref_text(String s)
+    {
+        this.smem = s + " (wstring ref)";
     }
 }

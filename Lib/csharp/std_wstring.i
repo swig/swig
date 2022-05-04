@@ -70,7 +70,7 @@ class wstring;
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null wstring", 0);
     return $null;
    }
-   $result.assign($input); %}
+   $result = Swig_csharp_UTF16ToWString($input); %}
 
 %typemap(directorin) wstring %{ $input = SWIG_csharp_wstring_with_length_callback($1.c_str(), (int)$1.size()); %}
 
@@ -121,10 +121,10 @@ class wstring;
    }
    /* possible thread/reentrant code problem */
    static std::wstring $1_str;
-   $1_str = $input;
+   $1_str = Swig_csharp_UTF16ToWString($input);
    $result = &$1_str; %}
 
-%typemap(directorin) const wstring & %{ $input = SWIG_csharp_wstring_with_length_callback($1.c_str(), (int)$1->size()); %}
+%typemap(directorin) const wstring & %{ $input = SWIG_csharp_wstring_with_length_callback($1.c_str(), (int)$1.size()); %}
 
 %typemap(csvarin, excode=SWIGEXCODE2) const wstring & %{
     set {

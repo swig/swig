@@ -41,13 +41,12 @@ struct A
 
 
 #if !defined(SWIGCSHARP)
-  virtual void process_text(const wchar_t *text) 
-  {
-  }
+  virtual void process_text(const wchar_t *text) {}
 #else
-  virtual void process_text(const std::wstring& text)
-  {
-  }
+// temp until wchar_t* fixed
+  virtual void process_text(std::wstring text) {}
+  virtual void process_wstring_text(std::wstring text) {}
+  virtual void process_wstring_ref_text(const std::wstring& text) {}
 #endif
 
   virtual std::wstring multiple_params_val(const std::wstring& p1, const std::wstring& p2, std::wstring p3, std::wstring p4) const
@@ -57,6 +56,8 @@ struct A
   { return get_first(); }
   
   void call_process_func() { process_text(L"hello"); }
+  void call_process_wstring_func() { process_wstring_text(L"hello"); }
+  void call_process_wstring_ref_func() { process_wstring_ref_text(L"hello"); }
  };
  
  %}
