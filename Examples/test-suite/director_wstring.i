@@ -39,15 +39,11 @@ struct A
 
   std::vector<std::wstring> m_strings;
 
+  virtual const wchar_t * wchar_out() { return L"ciao"; }
 
-#if !defined(SWIGCSHARP)
   virtual void process_text(const wchar_t *text) {}
-#else
-// temp until wchar_t* fixed
-  virtual void process_text(std::wstring text) {}
   virtual void process_wstring_text(std::wstring text) {}
   virtual void process_wstring_ref_text(const std::wstring& text) {}
-#endif
 
   virtual std::wstring multiple_params_val(const std::wstring& p1, const std::wstring& p2, std::wstring p3, std::wstring p4) const
   { return get_first(); }

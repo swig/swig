@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-05-04: wsfulton
+            [C#] Add C# wchar_t * director typemaps
+
 2022-04-20: cminyard
 	    Fix an issue where newlines were not properly generated
 	    for godirectorin typemaps.  If you have a virtual function

@@ -211,9 +211,13 @@ static void Swig_csharp_UTF16ToWCharPtrFree(wchar_t *str) {
 %typemap(ctype, out="void *") wchar_t * "unsigned short *"
 %typemap(imtype,
          inattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]",
-         outattributes="[return: global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]"
+         outattributes="[return: global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]",
+         directorinattributes="[global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]",
+         directoroutattributes="[return: global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]"
          ) wchar_t * "string"
 %typemap(cstype) wchar_t * "string"
+%typemap(csdirectorin) wchar_t * "$iminput"
+%typemap(csdirectorout) wchar_t * "$cscall"
 
 %typemap(csin) wchar_t * "$csinput"
 %typemap(csout, excode=SWIGEXCODE) wchar_t * {
@@ -237,6 +241,11 @@ static void Swig_csharp_UTF16ToWCharPtrFree(wchar_t *str) {
 
 %typemap(freearg, fragment="Swig_csharp_UTF16ToWCharPtrFree") wchar_t *
 %{ Swig_csharp_UTF16ToWCharPtrFree($1); %}
+
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) wchar_t *
+%{ $result = Swig_csharp_UTF16ToWCharPtr($input); %}
+
+%typemap(directorin) wchar_t * %{ $input = SWIG_csharp_wstring_with_length_callback($1, (int)wcslen($1)); %}
 
 %typemap(typecheck) wchar_t * = char *;
 
