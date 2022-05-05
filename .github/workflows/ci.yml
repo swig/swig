@@ -116,6 +116,7 @@ jobs:
         - SWIGLANG: python
           VER: '3.2'
           os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
+          continue-on-error: true # broken packages problem
         - SWIGLANG: python
           VER: '3.3'
           os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
@@ -166,6 +167,7 @@ jobs:
           VER: '2.5'
         - SWIGLANG: ruby
           VER: '2.6'
+          continue-on-error: true # Sometimes fails, see https://github.com/swig/swig/issues/2115
         - SWIGLANG: ruby
           VER: '2.7'
         - SWIGLANG: ruby
@@ -299,14 +301,6 @@ jobs:
           GCC: 11
           continue-on-error: true
           os: ubuntu-18.04 # ocaml-4.08 in ubuntu-20.04 not yet working
-        # Currently broken
-        - SWIGLANG: ruby
-          VER: '2.6'
-          continue-on-error: true
-        - SWIGLANG: python
-          VER: '3.2'
-          os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
-          continue-on-error: true
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
