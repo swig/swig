@@ -75,6 +75,7 @@ SWIG_JSC_FromCharPtrAndSize(JSContextRef context, const char* carray, size_t siz
 }
 
 %define %_typemap2_string(StringCode, CharCode,
+			 WarningLeakMsg,
 			 Char, CharName,
 			 SWIG_AsCharPtrAndSize,
 			 SWIG_FromCharPtrAndSize,
@@ -166,6 +167,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 
 %_typemap_string(StringCode,
                  Char,
+                 WarningLeakMsg,
                  SWIG_AsCharPtrAndSize,
                  SWIG_FromCharPtrAndSize,
                  SWIG_CharPtrLen,
