@@ -167,7 +167,6 @@ jobs:
           VER: '2.5'
         - SWIGLANG: ruby
           VER: '2.6'
-          continue-on-error: true # Sometimes fails, see https://github.com/swig/swig/issues/2115
         - SWIGLANG: ruby
           VER: '2.7'
         - SWIGLANG: ruby
