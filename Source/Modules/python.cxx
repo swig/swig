@@ -4145,7 +4145,11 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_basicsize", tp_basicsize), "tp_basicsize");
     printSlot(f, getSlot(n, "feature:python:tp_itemsize"), "tp_itemsize");
     printSlot(f, getSlot(n, "feature:python:tp_dealloc", tp_dealloc_bad), "tp_dealloc", "destructor");
+    Printv(f, "#if PY_VERSION_HEX < 0x030800b4\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_print"), "tp_print", "printfunc");
+    Printv(f, "#else\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:tp_vectorcall_offset"), "tp_vectorcall_offset", "Py_ssize_t");
+    Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_getattr"), "tp_getattr", "getattrfunc");
     printSlot(f, getSlot(n, "feature:python:tp_setattr"), "tp_setattr", "setattrfunc");
     Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
