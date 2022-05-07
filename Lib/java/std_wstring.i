@@ -88,9 +88,12 @@ class wstring;
 //%typemap(typecheck) wstring = wchar_t *;
 
 %typemap(throws) wstring
-%{ std::string message($1.begin(), $1.end());
-   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, message.c_str());
-   return $null; %}
+%{std::string message($1.size(), '\0');
+  for (size_t i = 0; i < $1.size(); ++i) {
+    message[i] = (char)$1[i];
+  }
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, message.c_str());
+  return $null; %}
 
 // const wstring &
 %typemap(jni) const wstring & "jstring"
@@ -166,9 +169,12 @@ class wstring;
 //%typemap(typecheck) const wstring & = wchar_t *;
 
 %typemap(throws) const wstring &
-%{ std::string message($1.begin(), $1.end());
-   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, message.c_str());
-   return $null; %}
+%{std::string message($1.size(), '\0');
+  for (size_t i = 0; i < $1.size(); ++i) {
+    message[i] = (char)$1[i];
+  }
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, message.c_str());
+  return $null; %}
 
 }
 
