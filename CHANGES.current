@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-05-07: KrisThielemans
+            [Python] Fix "too many initializers for 'PyHeapTypeObject'" errors
+            using PyPy 3.8 and later.
+
 2022-05-04: wsfulton
             [C#] Add C# wchar_t * director typemaps
 
