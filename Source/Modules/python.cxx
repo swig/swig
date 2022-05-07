@@ -12,13 +12,12 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
-#include <limits.h>
 #include "cparse.h"
+#include <limits.h>
 #include <ctype.h>
 #include <errno.h>
-#include "pydoc.h"
-
 #include <stdint.h>
+#include "pydoc.h"
 
 #define PYSHADOW_MEMBER  0x2
 #define WARN_PYTHON_MULTIPLE_INH 405

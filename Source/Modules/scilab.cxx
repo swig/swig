@@ -11,9 +11,9 @@
  * Scilab language module for SWIG.
  * --------------------------------------------------------------------------*/
 
+#include "swigmod.h"
 #include <cstddef>
 #include <cstdlib>
-#include "swigmod.h"
 
 static const int SCILAB_IDENTIFIER_NAME_CHAR_MAX = 24;
 

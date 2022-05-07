@@ -11,7 +11,7 @@
  * Various utility functions.
  * ----------------------------------------------------------------------------- */
 
-#include <swigmod.h>
+#include "swigmod.h"
 
 int is_public(Node *n) {
   String *access = Getattr(n, "access");
