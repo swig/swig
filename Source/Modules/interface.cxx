@@ -148,7 +148,7 @@ void Swig_interface_propagate_methods(Node *n) {
     process_interface_name(n);
     collect_interface_base_classes(n);
     List *methods = collect_interface_methods(n);
-    bool is_interface = GetFlag(n, "feature:interface");
+    bool is_interface = GetFlag(n, "feature:interface") ? true : false;
     for (Iterator mi = First(methods); mi.item; mi = Next(mi)) {
       if (!is_interface && GetFlag(mi.item, "abstract"))
 	continue;
