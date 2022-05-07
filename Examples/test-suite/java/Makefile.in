@@ -133,6 +133,7 @@ run_testcase = \
 	@if [ -d $(JAVA_PACKAGE) ]; then \
 	  rm -rf $(JAVA_PACKAGE); \
 	fi
+	@rm -f $*_runme.class
 
 clean:
 	@rm -f *.class hs_err*.log
