@@ -6,7 +6,11 @@ SWIGINTERN Py_hash_t
 SwigPyObject_hash(PyObject *obj) {
   SwigPyObject *sobj = (SwigPyObject *)obj;
   void *ptr = sobj->ptr;
+#if PY_VERSION_HEX < 0x03020000
+  return (Py_hash_t)(Py_ssize_t)ptr;
+#else
   return (Py_hash_t)ptr;
+#endif
 }
 
 SWIGINTERN Py_hash_t
