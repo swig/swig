@@ -21,6 +21,11 @@
   $2[i] = NULL;
 }
 
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING_ARRAY) (int ARGC, char **ARGV) {
+  int len;
+  $1 = Tcl_ListObjLength(interp, $input, &len) == TCL_OK;
+}
+
 %typemap(freearg) (int ARGC, char **ARGV) {
   if ($2 != NULL) {
     free((void *)$2);

@@ -24,6 +24,11 @@
   $2[i] = NULL;
 }
 
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING_ARRAY) (int ARGC, char **ARGV) {
+  AV *av = (AV *)SvRV($input);
+  $1 = SvTYPE(av) == SVt_PVAV;
+}
+
 %typemap(freearg) (int ARGC, char **ARGV) {
   if ($2 != NULL) {
     free((void *)$2);
