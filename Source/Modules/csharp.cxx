@@ -1966,7 +1966,10 @@ public:
 	Printf(proxy_class_code, "  private bool SwigDerivedClassHasMethod(string methodName, global::System.Type[] methodTypes) {\n");
 	Printf(proxy_class_code,
 	       "    global::System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(methodName, global::System.Reflection.BindingFlags.Public | global::System.Reflection.BindingFlags.NonPublic | global::System.Reflection.BindingFlags.Instance, null, methodTypes, null);\n");
-	Printf(proxy_class_code, "    bool hasDerivedMethod = methodInfo.DeclaringType.IsSubclassOf(typeof(%s));\n", proxy_class_name);
+	Printf(proxy_class_code, "    bool hasDerivedMethod = false;\n", proxy_class_name);
+	Printf(proxy_class_code, "    if (methodInfo != null && methodInfo.DeclaringType != null) {\n", proxy_class_name);
+	Printf(proxy_class_code, "      hasDerivedMethod = methodInfo.DeclaringType.IsSubclassOf(typeof(%s));\n", proxy_class_name);
+	Printf(proxy_class_code, "    }\n", proxy_class_name);
 	/* Could add this code to cover corner case where the GetMethod() returns a method which allows type
 	 * promotion, eg it will return foo(double), if looking for foo(int).
 	 if (hasDerivedMethod) {
