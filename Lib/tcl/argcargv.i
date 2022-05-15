@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------
- * --- Argc & Argv ---
+ * SWIG library containing argc and argv multi-argument typemaps
  * ------------------------------------------------------------ */
 
 %typemap(in) (int ARGC, char **ARGV) {

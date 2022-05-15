@@ -1,17 +1,16 @@
 /* ------------------------------------------------------------
- * --- Argc & Argv ---
- * ------------------------------------------------------------
- *
- *  Use it as follow:
- *
- *    %apply (int ARGC, char **ARGV) { (size_t argc, const char **argv) }
- *    extern int mainApp(size_t argc, const char **argv);
- *
- *  then in the lua:
- *
- *    args = { "arg0", "arg1" }
- *    mainApp(args);
- *
+ * SWIG library containing argc and argv multi-argument typemaps
+
+   Use it as follows:
+
+     %apply (int ARGC, char **ARGV) { (size_t argc, const char **argv) }
+     extern int mainApp(size_t argc, const char **argv);
+
+   then from lua:
+
+     args = { "arg0", "arg1" }
+     mainApp(args);
+
  * ------------------------------------------------------------ */
 
 %{
