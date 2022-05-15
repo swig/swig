@@ -14,6 +14,7 @@
 <li><a href="#Library_nn2">The %include directive and library search path</a>
 <li><a href="#Library_nn3">C arrays and pointers</a>
 <ul>
+<li><a href="#Library_argcargv">argcargv.i</a>
 <li><a href="#Library_nn4">cpointer.i</a>
 <li><a href="#Library_carrays">carrays.i</a>
 <li><a href="#Library_nn6">cmalloc.i</a>
@@ -115,7 +116,48 @@ pointers as class-like objects.   Since these functions provide direct access to
 memory, their use is potentially unsafe and you should exercise caution.
 </p>
 
-<H3><a name="Library_nn4">12.2.1 cpointer.i</a></H3>
+<H3><a name="Library_argcargv">12.2.1 argcargv.i</a></H3>
+
+
+<p>
+The argcargv.i library is a simple library providing multi-argument typemaps for handling C
+argc argv command line argument C string arrays.
+The <tt>argc</tt> parameter contains the argument count and <tt>argv</tt> contains the argument vector array.
+</p>
+
+<p>
+This library provides the following multi-argument typemap:
+</p>
+
+<p>
+<b><tt>(int ARGC, char **ARGV)</tt></b>
+</p>
+
+<p>
+Apply this multi-argument typemap to your use case, for example:
+</p>
+
+<div class="code">
+<pre>
+%apply (int ARGC, char **ARGV) { (size_t argc, const char **argv) }
+
+int mainApp(size_t argc, const char **argv);
+</pre>
+</div>
+
+<p>
+then from Ruby:
+</p>
+
+<div class="targetlang">
+<pre>
+$args = ["myarg1", "myarg2"]
+mainApp(args);
+</pre>
+</div>
+
+
+<H3><a name="Library_nn4">12.2.2 cpointer.i</a></H3>
 
 
 <p>
@@ -331,7 +373,7 @@ In this example,  the function <tt>int_to_uint()</tt> would be used to cast type
 <b>Note:</b> When working with simple pointers, typemaps can often be used to provide more seamless operation.
 </p>
 
-<H3><a name="Library_carrays">12.2.2 carrays.i</a></H3>
+<H3><a name="Library_carrays">12.2.3 carrays.i</a></H3>
 
 
 <p>
@@ -510,7 +552,7 @@ used with types of <tt>char</tt> or <tt>char *</tt>.
 SWIG's default handling of these types is to handle them as character strings and the two macros do not do enough to change this.
 </p>
 
-<H3><a name="Library_nn6">12.2.3 cmalloc.i</a></H3>
+<H3><a name="Library_nn6">12.2.4 cmalloc.i</a></H3>
 
 
 <p>
@@ -671,7 +713,7 @@ Now, in a script:
 </pre>
 </div>
 
-<H3><a name="Library_nn7">12.2.4 cdata.i</a></H3>
+<H3><a name="Library_nn7">12.2.5 cdata.i</a></H3>
 
 
 <p>
