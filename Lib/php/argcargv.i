@@ -2,10 +2,6 @@
  * --- Argc & Argv ---
  * ------------------------------------------------------------ */
 
-%typemap(default) (int ARGC, char **ARGV) {
-  $1 = 0; $2 = NULL;
-}
-
 %typemap(in) (int ARGC, char **ARGV) {
   int len, i;
   zval *val;
