@@ -20,7 +20,6 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
-	argcargvtest \
 	callback \
 	complextest \
 	director_stl \
