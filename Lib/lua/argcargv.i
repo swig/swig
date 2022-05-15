@@ -9,7 +9,7 @@
    then from lua:
 
      args = { "arg0", "arg1" }
-     mainApp(args);
+     mainApp(args)
 
  * ------------------------------------------------------------ */
 

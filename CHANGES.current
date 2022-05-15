@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-05-15: erezgeva, eiselekd
+            [Lua, Perl, PHP, Tcl] #2275 #2276 Add argcargv.i library containing
+            (int ARGC, char **ARGV) multi-argument typemaps.
+
+            Document this library in Typemaps.html.
+
 2022-05-04: wsfulton
             [C#] Add C# wchar_t * director typemaps
 

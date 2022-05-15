@@ -7,15 +7,14 @@
 
      %inline %{
 
-     int mainApp(size_t argc, const char **argv)
-     {
+     int mainApp(size_t argc, const char **argv) {
        return argc;
      }
 
    then from ruby:
 
-     args = ["asdf", "asdf2"]
-     mainApp(args);
+     $args = ["asdf", "asdf2"]
+     mainApp(args)
 
  * ------------------------------------------------------------ */
 
