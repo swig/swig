@@ -101,7 +101,7 @@ namespace swig {
   inline Sequence*
   getslice(const Sequence* self, Difference i, Difference j) {
     typename Sequence::size_type size = self->size();
-    typename Sequence::size_type ii = swig::check_index(i, size, (i == size && j == size));
+    typename Sequence::size_type ii = swig::check_index(i, size, (i == (Difference)size && j == (Difference)size));
     typename Sequence::size_type jj = swig::slice_index(j, size);
 
     if (jj > ii) {
@@ -135,6 +135,8 @@ namespace swig {
       std::advance(sb,ii);
       std::advance(se,jj);
       self->erase(sb,se);
+      sb = self->begin();
+      std::advance(sb,ii);
       self->insert(sb, v.begin(), v.end());
     }
   }
@@ -338,7 +340,7 @@ namespace swig
     typedef T value_type;
     typedef T* pointer;
     typedef int difference_type;
-    typedef int size_type;
+    typedef std::size_t size_type;
     typedef const pointer const_pointer;
     typedef RubySequence_InputIterator<T, reference> iterator;
     typedef RubySequence_InputIterator<T, const_reference> const_iterator;
@@ -849,7 +851,7 @@ namespace swig
           i = len + i;
       }
       Sequence::difference_type j = length + i;
-      if ( j > static_cast<Sequence::difference_type>(len) ) {
+      if ( j > static_cast<Sequence::difference_type>(len) && v.size() > 0 ) {
         swig::resize( $self, j, *(v.begin()) );
       }
 
