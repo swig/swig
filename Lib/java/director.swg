@@ -53,18 +53,6 @@ SWIGINTERN int Swig::GetThreadName(char *name, size_t len) {
 
 #if defined(SWIG_JAVA_DETACH_ON_THREAD_END)
 #include <pthread.h>
-namespace {
-
-  void detach(void* jvm) {
-    static_cast<JavaVM*>(jvm)->DetachCurrentThread();
-  }
-
-  pthread_key_t detachKey;
-  void makeDetachKey() {
-    pthread_key_create(&detachKey, detach);
-  }
-
-}
 #endif
 
 namespace Swig {
@@ -149,12 +137,29 @@ namespace Swig {
       }
     }
 
+#if defined(SWIG_JAVA_DETACH_ON_THREAD_END)
+    static void detach(void* jvm) {
+      static_cast<JavaVM*>(jvm)->DetachCurrentThread();
+    }
+
+    static void makeDetachKey() {
+      pthread_key_create(&detach_key_, detach);
+    }
+
+    /* thread-local key to register a destructor */
+    static pthread_key_t detach_key_;
+#endif
+
   private:
     /* pointer to Java object */
     jobject jthis_;
     /* Local or global reference flag */
     bool weak_global_;
   };
+
+#if defined(SWIG_JAVA_DETACH_ON_THREAD_END)
+  pthread_key_t JObjectWrapper::detach_key_;
+#endif
 
   /* Local JNI reference deleter */
   class LocalRefGuard {
@@ -224,8 +229,8 @@ namespace Swig {
         // See https://developer.android.com/training/articles/perf-jni#threads
         static pthread_once_t once = PTHREAD_ONCE_INIT;
 
-        pthread_once(&once, makeDetachKey);
-        pthread_setspecific(detachKey, director->swig_jvm_);
+        pthread_once(&once, JObjectWrapper::makeDetachKey);
+        pthread_setspecific(JObjectWrapper::detach_key_, director->swig_jvm_);
 #endif
       }
       ~JNIEnvWrapper() {
