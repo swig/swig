@@ -1363,9 +1363,9 @@ static int look(Scanner *s) {
 
       if ((c = nextchar(s)) == 0) {
         return SWIG_TOKEN_LBRACKET;
-      else if (c == '[')
+      } else if (c == '[') {
         return SWIG_TOKEN_LLBRACKET;
-      else {
+      } else {
         retract(s, 1);
         return SWIG_TOKEN_LBRACKET;
       }
@@ -1375,9 +1375,9 @@ static int look(Scanner *s) {
     case 103:
       if ((c = nextchar(s)) == 0) {
         return SWIG_TOKEN_RBRACKET;
-      else if (c == ']')
+      } else if (c == ']') {
         return SWIG_TOKEN_RRBRACKET;
-      else {
+      } else {
         retract(s, 1);
         return SWIG_TOKEN_RBRACKET;
       }

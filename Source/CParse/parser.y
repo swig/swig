@@ -1612,7 +1612,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <intvalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD ELLIPSIS
-%token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET LLBRACKET RRBRACKET
+%token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
+%token LLBRACKET RRBRACKET  /* C++11 Attribute specifier sequence */
 %token BEGINFILE ENDOFFILE
 %token ILLEGAL CONSTANT
 %token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
@@ -1715,6 +1716,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     lambda_introducer lambda_body;
 %type <pl>       lambda_tail;
 %type <str>      virt_specifier_seq virt_specifier_seq_opt;
+%type <pl>       cpp_attributes;
 
 %%
 
@@ -7033,6 +7035,8 @@ virt_specifier_seq : OVERRIDE {
                    $$ = NewString("1");
 	       }
                ;
+
+cpp_attributes : LLBRACKET parms RRBRACKET { };
 
 virt_specifier_seq_opt : virt_specifier_seq {
                    $$ = $1;
