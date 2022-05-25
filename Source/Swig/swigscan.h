@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -8,7 +8,7 @@
  *
  * swigscan.h
  *
- * C/C++ scanner. 
+ * C/C++ scanner.
  * ----------------------------------------------------------------------------- */
 
 typedef struct Scanner Scanner;
@@ -71,6 +71,8 @@ extern void         Scanner_locator(Scanner *, String *loc);
 #define   SWIG_TOKEN_WSTRING      33       /* L"str" */
 #define   SWIG_TOKEN_WCHAR        34       /* L'c' */
 #define   SWIG_TOKEN_ELLIPSIS     35       /* ... */
+#define   SWIG_TOKEN_LLBRACKET    36       /* [[ */
+#define   SWIG_TOKEN_RRBRACKET    37       /* ]] */
 
 #define   SWIG_TOKEN_ILLEGAL      99
 #define   SWIG_TOKEN_ERROR        -1
