@@ -2,9 +2,9 @@
 
 %inline %{
 
-[[noreturn]] void noReturn() { };
-[[nodiscard]] bool noDiscard() { return true; }}
-[[nodiscard, deprecated("This has been replaced")]] void noDiscardDeprecated() { return true; }
+[[noreturn]] void noReturn() { throw; }
+[[nodiscard]] bool noDiscard() { return true; }
+[[nodiscard, deprecated("This has been replaced")]] bool noDiscardDeprecated() { return true; }
 void maybeUnused1([[maybe_unused]] bool b) { }
 bool maybeUnused2(bool a, [[maybe_unused]] bool b) { return a; }
 
@@ -14,7 +14,7 @@ bool maybeUnused2(bool a, [[maybe_unused]] bool b) { return a; }
     return true;
   } else [[unlikely]] {
     if(a) {
-      return true,
+      return true;
     }
   }
   return false;
