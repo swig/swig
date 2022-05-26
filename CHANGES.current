@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-05-26: rokups
+            [C#] #1323 Modify SwigDerivedClassHasMethod for a more efficient director
+            implementation when calling virtual methods that are not overidden.
+
 2022-05-15: erezgeva, eiselekd
             [Lua, Perl, Octave, PHP, Tcl] #2275 #2276 #2283 Add argcargv.i library containing
             (int ARGC, char **ARGV) multi-argument typemaps.
