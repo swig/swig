@@ -14,6 +14,14 @@
 #ifndef SWIG_NO_PY_SSIZE_T_CLEAN
 #define PY_SSIZE_T_CLEAN
 #endif
+
+#if __GNUC__ >= 7
+#pragma GCC diagnostic push
+#if defined(__cplusplus) && __cplusplus >=201703L
+#pragma GCC diagnostic ignored "-Wregister" /* For python-2.7 headers that use register */
+#endif
+#endif
+
 #if defined(_DEBUG) && defined(SWIG_PYTHON_INTERPRETER_NO_DEBUG)
 /* Use debug wrappers with the Python release dll */
 # undef _DEBUG
@@ -21,6 +29,10 @@
 # define _DEBUG 1
 #else
 # include <Python.h>
+#endif
+
+#if __GNUC__ >= 7
+#pragma GCC diagnostic pop
 #endif
 %}
 
