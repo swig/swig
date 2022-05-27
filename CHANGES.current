@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-05-27: xypron
+            [Python] #2277 Define PY_SSIZE_T_CLEAN macro before #include "Python.h" as
+            recommended in Python 3.7 and later.
+
+            To avoid this macro definition, add the following to your interface file so
+            that SWIG_NO_PY_SSIZE_T_CLEAN is defined at the beginning of the C++ wrappers:
+
+              %begin %{
+              #define SWIG_NO_PY_SSIZE_T_CLEAN
+              %}
+
 2022-05-26: rokups
             [C#] #1323 Modify SwigDerivedClassHasMethod for a more efficient director
             implementation when calling virtual methods that are not overidden.
