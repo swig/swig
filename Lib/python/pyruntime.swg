@@ -11,7 +11,7 @@
 # include <corecrt.h>
 #endif
 
-#ifndef PY_SSIZE_T_CLEAN
+#ifndef SWIG_NO_PY_SSIZE_T_CLEAN
 #define PY_SSIZE_T_CLEAN
 #endif
 #if defined(_DEBUG) && defined(SWIG_PYTHON_INTERPRETER_NO_DEBUG)
