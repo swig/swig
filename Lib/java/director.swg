@@ -138,11 +138,11 @@ namespace Swig {
     }
 
 #if defined(SWIG_JAVA_DETACH_ON_THREAD_END)
-    static void detach(void* jvm) {
-      static_cast<JavaVM*>(jvm)->DetachCurrentThread();
+    static void detach(void *jvm) {
+      static_cast<JavaVM *>(jvm)->DetachCurrentThread();
     }
 
-    static void makeDetachKey() {
+    static void make_detach_key() {
       pthread_key_create(&detach_key_, detach);
     }
 
@@ -229,7 +229,7 @@ namespace Swig {
         // See https://developer.android.com/training/articles/perf-jni#threads
         static pthread_once_t once = PTHREAD_ONCE_INIT;
 
-        pthread_once(&once, JObjectWrapper::makeDetachKey);
+        pthread_once(&once, JObjectWrapper::make_detach_key);
         pthread_setspecific(JObjectWrapper::detach_key_, director->swig_jvm_);
 #endif
       }
