@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-05-30: wsfulton
+            [C#, D] Add new special variable expansion: $imfuncname.
+            Expands to the function name called in the intermediary class.
+
+2022-05-30: LindleyF
+            [Java] #2042 Add new special variable expansion: $imfuncname.
+            Expands to the function name called in the intermediary class.
+
 2022-05-28: jkuebart
             [Java] On some versions of Android, specifically Android 6,
             detaching the current thread from the JVM after every invocation
