@@ -2898,6 +2898,7 @@ private:
       } else {
 	Replaceall(imcall, "$imfuncname", intermediary_function_name);
       }
+      Replaceall(tm, "$imfuncname", intermediary_function_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_D_TYPEMAP_DOUT_UNDEF, input_file, line_number,
@@ -3100,6 +3101,7 @@ private:
       else
 	Replaceall(tm, "$owner", "false");
       replaceClassname(tm, t);
+      Replaceall(tm, "$imfuncname", overloaded_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_D_TYPEMAP_DOUT_UNDEF, input_file, line_number,

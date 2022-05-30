@@ -2572,6 +2572,7 @@ public:
       } else {
 	Replaceall(imcall, "$imfuncname", intermediary_function_name);
       }
+      Replaceall(tm, "$imfuncname", intermediary_function_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csout typemap defined for %s\n", SwigType_str(t, 0));
@@ -2615,6 +2616,7 @@ public:
 	if ((tm = Swig_typemap_lookup("csvarin", variable_parm, "", 0))) {
 	  substituteClassname(cvariable_type, tm);
 	  Replaceall(tm, "$csinput", "value");
+          Replaceall(tm, "$imfuncname", intermediary_function_name);
 	  Replaceall(tm, "$imcall", imcall);
 	  excodeSubstitute(n, tm, "csvarin", variable_parm);
 	  Printf(proxy_class_code, "%s", tm);
@@ -2629,6 +2631,7 @@ public:
 	  else
 	    Replaceall(tm, "$owner", "false");
 	  substituteClassname(t, tm);
+          Replaceall(tm, "$imfuncname", intermediary_function_name);
 	  Replaceall(tm, "$imcall", imcall);
 	  excodeSubstitute(n, tm, "csvarout", n);
 	  Printf(proxy_class_code, "%s", tm);
@@ -3141,6 +3144,7 @@ public:
       else
 	Replaceall(tm, "$owner", "false");
       substituteClassname(t, tm);
+      Replaceall(tm, "$imfuncname", overloaded_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csout typemap defined for %s\n", SwigType_str(t, 0));
@@ -3179,6 +3183,7 @@ public:
 	if ((tm = Getattr(p, "tmap:csvarin"))) {
 	  substituteClassname(pt, tm);
 	  Replaceall(tm, "$csinput", "value");
+	  Replaceall(tm, "$imfuncname", overloaded_name);
 	  Replaceall(tm, "$imcall", imcall);
 	  excodeSubstitute(n, tm, "csvarin", p);
 	  Printf(module_class_code, "%s", tm);
@@ -3193,6 +3198,7 @@ public:
 	  else
 	    Replaceall(tm, "$owner", "false");
 	  substituteClassname(t, tm);
+	  Replaceall(tm, "$imfuncname", overloaded_name);
 	  Replaceall(tm, "$imcall", imcall);
 	  excodeSubstitute(n, tm, "csvarout", n);
 	  Printf(module_class_code, "%s", tm);
