@@ -7,6 +7,25 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-06-04: sethrj
+            Enhance $typemap to support typemap attributes.
+
+              $typemap(method:attribute, typepattern)
+
+            For example:
+
+              %typemap(cstype, out="object") XClass "XClass"
+              %typemap(cscode) BarClass %{
+                $typemap(cstype:out, XClass) bar() {
+                  return null;
+                }
+
+              which expands to
+
+                object bar() {
+                  return null;
+                }
+
 2022-05-30: wsfulton
             [C#, D] Add new special variable expansion: $imfuncname.
             Expands to the function name called in the intermediary class.
