@@ -152,7 +152,7 @@ void JavaDocConverter::fillStaticTables() {
   tagHandlers["f{"] = make_pair(&JavaDocConverter::handleTagVerbatim, "");
 
   tagHandlers["warning"] = make_pair(&JavaDocConverter::handleTagMessage, "Warning: ");
-  // this command just prints it's contents
+  // this command just prints its contents
   // (it is internal command of swig's parser, contains plain text)
   tagHandlers["plainstd::string"] = make_pair(&JavaDocConverter::handlePlainString, "");
   tagHandlers["plainstd::endl"] = make_pair(&JavaDocConverter::handleNewLine, "");

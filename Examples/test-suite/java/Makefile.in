@@ -11,6 +11,7 @@ JAVA_TOOLS_JAR     = @JAVA_TOOLS_JAR@
 SCRIPTSUFFIX = _runme.java
 SKIP_DOXYGEN_TEST_CASES = @JAVA_SKIP_DOXYGEN_TEST_CASES@
 
+HAVE_CXX11   = @HAVE_CXX11@
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
@@ -132,6 +133,7 @@ run_testcase = \
 	@if [ -d $(JAVA_PACKAGE) ]; then \
 	  rm -rf $(JAVA_PACKAGE); \
 	fi
+	@rm -f $*_runme.class
 
 clean:
 	@rm -f *.class hs_err*.log

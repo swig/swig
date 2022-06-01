@@ -31,6 +31,7 @@ SWIG_wcsnlen(const wchar_t* s, size_t maxlen)
 
 %include <typemaps/strings.swg>
 %typemaps_string(%checkcode(UNISTRING), %checkcode(UNICHAR),
+		 SWIGWARN_TYPEMAP_WCHARLEAK_MSG,
 		 wchar_t, WChar, SWIG_AsWCharPtrAndSize, SWIG_FromWCharPtrAndSize,
 		 wcslen, SWIG_wcsnlen,
 		"<wchar.h>", WCHAR_MIN, WCHAR_MAX)

@@ -9,6 +9,7 @@ SCRIPTSUFFIX = _runme.js
 OBJEXT = @OBJEXT@
 SO = @SO@
 
+HAVE_CXX11   = @HAVE_CXX11@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -47,10 +48,6 @@ ifeq (node,$(JSENGINE))
   SWIGOPT += -v8 -DBUILDING_NODE_EXTENSION=1
 
   # shut up some warnings
-  # contract macro has an empty 'else' at the end...
-  aggregate.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
-  contract.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
-  contract_c.ctest: GYP_CFLAGS = \"-Wno-empty-body\"
 
   # dunno... ignoring generously
   apply_signed_char.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"

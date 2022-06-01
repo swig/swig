@@ -9,6 +9,7 @@ OCAMLPP      = -pp "camlp4o ./swigp4.cmo"
 VARIANT      = _static
 SCRIPTSUFFIX = _runme.ml
 
+HAVE_CXX11   = @HAVE_CXX11@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -17,6 +18,8 @@ FAILING_CPP_TESTS = \
 allprotected \
 apply_signed_char \
 apply_strings \
+cpp11_director_enums \
+cpp11_strongly_typed_enumerations \
 cpp_enum \
 default_constructor \
 director_binary_string \
@@ -25,10 +28,12 @@ director_enum \
 director_primitives \
 director_redefined \
 director_string \
+director_using_member_scopes \
 enum_thorough \
 li_windows \
 member_pointer_const \
 preproc_constants \
+rename_camel \
 smart_pointer_inherit \
 
 FAILING_C_TESTS = \
@@ -93,6 +98,7 @@ extra_objects: swig.cmi swig.cmo swigp4.cmi
 
 $(C_TEST_CASES:=.ctest): extra_objects
 $(CPP_TEST_CASES:=.cpptest): extra_objects
+$(CPP11_TEST_CASES:=.cpptest): extra_objects
 $(MULTI_CPP_TEST_CASES:=.multicpptest): extra_objects
 
 # Clean
@@ -106,6 +112,6 @@ clean:
 	rm -f import_stl_a.ml import_stl_b.ml
 	rm -f imports_a.ml imports_b.ml
 	rm -f mod_a.ml mod_b.ml
-	rm -f multi_import_a.ml multi_import_b.ml
+	rm -f multi_import_a.ml multi_import_b.ml multi_import_d.ml
 	rm -f packageoption_a.ml packageoption_b.ml packageoption_c.ml
 	rm -f template_typedef_cplx2.ml

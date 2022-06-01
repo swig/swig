@@ -59,7 +59,7 @@ dnl To make configuring easier, check for a locally built PCRE using the Tools/p
 if test x"${with_pcre}" = xyes ; then
   AC_MSG_CHECKING([whether to use local PCRE2])
   local_pcre_config=no
-  if test -z $PCRE2_CONFIG; then
+  if test -z "$PCRE2_CONFIG"; then
     if test -f `pwd`/pcre/pcre-swig-install/bin/pcre2-config; then
       PCRE2_CONFIG=`pwd`/pcre/pcre-swig-install/bin/pcre2-config
       local_pcre_config=$PCRE2_CONFIG
@@ -282,7 +282,7 @@ fi
 AC_MSG_RESULT($LINKFORSHARED)
 
 # Optional CFLAGS used to silence/enhance compiler warnings on some platforms.
-AC_MSG_CHECKING(PLATCFLAGS)
+AC_MSG_CHECKING(CFLAGS to use for testing (PLATCFLAGS))
 case $host in
   *-*-solaris*) if test "$GCC" = yes
     then PLATCFLAGS=
@@ -295,8 +295,8 @@ esac
 AC_MSG_RESULT($PLATCFLAGS)
 
 # Add switch if necessary to enable C++11 support - just for tests
-AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--enable-cpp11-testing], [enable C++11 testing if supported by compiler (default disabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=no])
-AC_MSG_CHECKING([whether to attempt to enable C++11 testing])
+AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--disable-cpp11-testing], [disable C++11 and later C++ standards testing even if supported by compiler (default enabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=yes])
+AC_MSG_CHECKING([whether to attempt to enable C++11 and later C++ standards testing])
 AC_MSG_RESULT([$enable_cpp11_testing])
 
 PLATCXXFLAGS="$PLATCFLAGS"
@@ -307,7 +307,7 @@ if test x"$enable_cpp11_testing" = xyes; then
   # Test for c++17
   CXXCPP=" "
   AX_CXX_COMPILE_STDCXX(17, [noext], [optional])
-  AC_MSG_CHECKING([whether C++17 and earlier testing is enabled])
+  AC_MSG_CHECKING([whether C++11 to C++17 testing is enabled])
   if test "$HAVE_CXX17" = "1"; then
     AC_MSG_RESULT([yes])
     PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
@@ -320,7 +320,7 @@ if test x"$enable_cpp11_testing" = xyes; then
     CXXCPP=" "
     CXX=$CXX_SAVED
     AX_CXX_COMPILE_STDCXX(14, [noext], [optional])
-    AC_MSG_CHECKING([whether C++14 and earlier testing is enabled])
+    AC_MSG_CHECKING([whether C++11 to C++14 testing is enabled])
     if test "$HAVE_CXX14" = "1"; then
       AC_MSG_RESULT([yes])
       PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
@@ -332,16 +332,14 @@ if test x"$enable_cpp11_testing" = xyes; then
       CXXCPP=" "
       CXX=$CXX_SAVED
       AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
-      AC_MSG_CHECKING([whether C++11 and earlier testing is enabled])
+      AC_MSG_CHECKING([whether C++11 testing is enabled])
       if test "$HAVE_CXX11" = "1"; then
         AC_MSG_RESULT([yes])
         PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
       else
         AC_MSG_RESULT([no])
       fi
-
     fi
-
   fi
 
   CXX=$CXX_SAVED
@@ -361,6 +359,10 @@ case $host in
     fi;;
   *) ;;
 esac
+
+AC_MSG_CHECKING(CXXFLAGS to use for testing (PLATCXXFLAGS))
+PLATCXXFLAGS=$(echo $PLATCXXFLAGS | xargs) # Trim whitespace
+AC_MSG_RESULT([$PLATCXXFLAGS])
 
 # Check for compiler pre-compiled header support
 AC_MSG_CHECKING([if compiler supports pre-compiled headers])
@@ -465,10 +467,6 @@ dnl the library if the function isn't already available without it.
 AC_SEARCH_LIBS(t_open, nsl) # SVR4
 AC_SEARCH_LIBS(gethostbyname, inet) # Sequent
 AC_SEARCH_LIBS(socket, socket) # SVR4 sockets
-
-AC_CHECK_LIB(swill, swill_init, [SWIGLIBS="-lswill $LIBS" SWILL="-DSWIG_SWILL"])
-AC_SUBST(SWIGLIBS)
-AC_SUBST(SWILL)
 
 # check for --with-libm=...
 AC_SUBST(LIBM)
@@ -661,14 +659,14 @@ PYLIB=
 PYLINK=
 PYPACKAGE=
 
-AC_ARG_WITH(python, AS_HELP_STRING([--without-python], [Disable Python])
-AS_HELP_STRING([--with-python=path], [Set location of Python executable]),[ PYBIN="$withval"], [PYBIN="$alllang_default"])
+AC_ARG_WITH(python, AS_HELP_STRING([--without-python], [Don't probe for Python 2.x])
+AS_HELP_STRING([--with-python=path], [Set location of Python 2.x executable]), [PYBIN="$withval"], [PYBIN="$alllang_default"])
 
 # First, check for "--without-python" or "--with-python=no".
 if test x"${PYBIN}" = xno; then
-  AC_MSG_NOTICE([Disabling Python])
+  AC_MSG_NOTICE([Disabling Python 2.x probe])
 else
-  # First figure out the name of the Python executable
+  # First figure out the name of the Python 2.x executable
   if test "x$PYBIN" = xyes; then
     AC_CHECK_PROGS(PYTHON, [python python2.7])
   else
@@ -683,20 +681,20 @@ else
     if test -z "$PYVER"; then
       PYVER=0
     else
-      AC_MSG_CHECKING(for Python os.name)
+      AC_MSG_CHECKING(for Python 2.x os.name)
       PYOSNAME=`($PYTHON -c "import sys, os; sys.stdout.write(os.name)") 2>/dev/null`
       AC_MSG_RESULT($PYOSNAME)
-      AC_MSG_CHECKING(for Python path separator)
+      AC_MSG_CHECKING(for Python 2.x path separator)
       PYSEPARATOR=`($PYTHON -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
       AC_MSG_RESULT($PYSEPARATOR)
     fi
   fi
 
   if test $PYVER -eq 1 -o $PYVER -eq 2; then
-    AC_MSG_CHECKING(for Python prefix)
+    AC_MSG_CHECKING(for Python 2.x prefix)
     PYPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYPREFIX)
-    AC_MSG_CHECKING(for Python exec-prefix)
+    AC_MSG_CHECKING(for Python 2.x exec-prefix)
     PYEPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.exec_prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYEPREFIX)
 
@@ -705,16 +703,16 @@ else
       PYPREFIX=`echo "$PYPREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
       PYTHON_SO=.pyd
 
-      AC_MSG_CHECKING(for Python header files)
+      AC_MSG_CHECKING(for Python 2.x header files)
       if test -r $PYPREFIX/include/Python.h; then
         PYINCLUDE="-I$PYPREFIX/include"
       fi
       AC_MSG_RESULT($PYINCLUDE)
 
-      AC_MSG_CHECKING(for Python library directory)
+      AC_MSG_CHECKING(for Python 2.x library directory)
       if test -d $PYPREFIX/libs; then
         PYLIB=$PYPREFIX/libs
-        PYLINKFILE=`ls $PYLIB/python*.lib | grep "python[[0-9]][[0-9]]\.lib"`
+        PYLINKFILE=`ls $PYLIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
         if test -r "$PYLINKFILE"; then
           PYLINK=-l`basename $PYLINKFILE | sed -e 's/\.lib$//'`
         else
@@ -725,7 +723,7 @@ else
       # Note: I could not think of a standard way to get the version string from different versions.
       # This trick pulls it out of the file location for a standard library file.
 
-      AC_MSG_CHECKING(for Python version)
+      AC_MSG_CHECKING(for Python 2.x version)
 
       # Need to do this hack since autoconf replaces __file__ with the name of the configure file
       filehack="file__"
@@ -734,7 +732,7 @@ else
 
       # Find the directory for libraries this is necessary to deal with
       # platforms that can have apps built for multiple archs: e.g. x86_64
-      AC_MSG_CHECKING(for Python lib dir)
+      AC_MSG_CHECKING(for Python 2.x lib dir)
       PYLIBDIR=`($PYTHON -c "import sys; sys.stdout.write(sys.lib)") 2>/dev/null`
       if test -z "$PYLIBDIR"; then
         # Fedora patch Python to add sys.lib, for other distros we assume "lib".
@@ -744,7 +742,7 @@ else
 
       # Set the include directory
 
-      AC_MSG_CHECKING(for Python header files)
+      AC_MSG_CHECKING(for Python 2.x header files)
       if test -r $PYPREFIX/include/$PYVERSION/Python.h; then
         PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/$PYLIBDIR/$PYVERSION/config"
       fi
@@ -756,7 +754,7 @@ else
       AC_MSG_RESULT($PYINCLUDE)
 
       # Set the library directory blindly.   This probably won't work with older versions
-      AC_MSG_CHECKING(for Python library directory)
+      AC_MSG_CHECKING(for Python 2.x library directory)
       dirs="$PYVERSION/config $PYVERSION/$PYLIBDIR python/$PYLIBDIR"
       for i in $dirs; do
         if test -d $PYEPREFIX/$PYLIBDIR/$i; then
@@ -773,7 +771,7 @@ else
     else
       AC_MSG_RESULT($PYLIB)
     fi
-    AC_MSG_CHECKING(for Python library)
+    AC_MSG_CHECKING(for Python 2.x library)
     if test -z "$PYLINK"; then
       AC_MSG_RESULT(Not found)
     else
@@ -806,12 +804,12 @@ PY3LIB=
 PY3LINK=
 PY3PACKAGE=
 
-AC_ARG_WITH(python3, AS_HELP_STRING([--without-python3], [Disable Python 3.x support])
-AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]),[ PY3BIN="$withval"], [PY3BIN="$alllang_default"])
+AC_ARG_WITH(python3, AS_HELP_STRING([--without-python3], [Don't probe for Python 3.x])
+AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]), [PY3BIN="$withval"], [PY3BIN="$alllang_default"])
 
 # First, check for "--without-python3" or "--with-python3=no".
 if test x"${PY3BIN}" = xno; then
-  AC_MSG_NOTICE([Disabling Python 3.x support])
+  AC_MSG_NOTICE([Disabling Python 3.x probe])
 else
   if test -z "$PYVER"; then
     PYVER=0
@@ -870,7 +868,7 @@ else
       AC_MSG_CHECKING(for Python 3.x library directory)
       if test -d $PY3PREFIX/libs; then
         PY3LIB=$PY3PREFIX/libs
-        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\.lib"`
+        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
         if test -r "$PY3LINKFILE"; then
           PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
         else
@@ -933,6 +931,12 @@ else
         fi
       done
       if test -z "$PY3LIB"; then
+        # Last resort
+        if test -d $PY3EPREFIX/$PY3LIBDIR; then
+          PY3LIB="$PY3EPREFIX/$PY3LIBDIR"
+        fi
+      fi
+      if test -z "$PY3LIB"; then
         AC_MSG_RESULT([Not found])
       else
         AC_MSG_RESULT($PY3LIB)
@@ -952,6 +956,7 @@ else
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
   *-*-cygwin* | *-*-mingw*)
+    # PYTHON3DYNAMICLINKING ought to be replaced by $PY3CONFIG --ldflags
     PYTHON3DYNAMICLINKING="-L$PY3LIB $PY3LINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;
@@ -1224,7 +1229,7 @@ if test x"${SCILABBIN}" = xno; then
 else
   # Check for Scilab executable
   if test "x$SCILABBIN" = xyes; then
-    AC_CHECK_PROGS(SCILAB, scilab)
+    AC_PATH_PROG(SCILAB, scilab)
   else
     AC_MSG_CHECKING(for scilab)
     if test -f "$SCILABBIN"; then
@@ -1237,18 +1242,18 @@ else
 
   if test -n "$SCILAB"; then
     # Check for Scilab version (needs api_scilab so needs version 5.3.3 or higher)
-    SCILAB_FULL_VERSION=`$SCILAB -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
+    SCILAB_VERSION=`$SCILAB -nwni -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
 
     AC_MSG_CHECKING(Scilab version is 5.3.3 or higher)
-    SCILAB_MAJOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f1`
-    SCILAB_MINOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f2`
-    SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f3`
-    SCILAB_VERSION="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
+    SCILAB_MAJOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f1`
+    SCILAB_MINOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f2`
+    SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_VERSION | cut -d. -f3`
+    SCILAB_VERSION_NO_DOTS="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
 
-    if test $SCILAB_VERSION -ge 533; then
-      AC_MSG_RESULT(yes)
+    if test -n "$SCILAB_VERSION_NO_DOTS" && test "$SCILAB_VERSION_NO_DOTS" -ge 533; then
+      AC_MSG_RESULT(yes - $SCILAB_VERSION)
     else
-      AC_MSG_RESULT(no)
+      AC_MSG_RESULT(no - $SCILAB_VERSION)
       SCILAB=
     fi
 
@@ -1256,22 +1261,27 @@ else
       # Set Scilab startup options depending on version
       AC_MSG_CHECKING(for Scilab startup options)
       SCILABOPT="-nwni -nb"
-      if test $SCILAB_VERSION -ge 540; then
+      if test $SCILAB_VERSION_NO_DOTS -ge 540; then
         SCILABOPT+=" -noatomsautoload"
       fi
-      if test $SCILAB_VERSION -ge 600; then
+      if test $SCILAB_VERSION_NO_DOTS -ge 600; then
         SCILABOPT+=" -quit"
       fi
       AC_MSG_RESULT($SCILABOPT)
 
       # Check for Scilab header files
       AC_MSG_CHECKING(for Scilab header files)
+      headers="`AS_DIRNAME(["$SCILAB"])`/../include"
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
+      elif test -d "$SCI"; then
+        dirs="$SCI/include $SCI/../../include"
+      elif test -d "$headers"; then
+        dirs="$headers"
       elif test -n "$PKG_CONFIG "; then
         dirs=`$PKG_CONFIG  scilab --cflags-only-I | sed -e 's/-I//g'`
       else
-        dirs=""
+        dirs="/usr/include"
       fi
       for i in $dirs; do
         if test -r $i/api_scilab.h; then
@@ -1296,6 +1306,7 @@ fi
 AC_SUBST(SCILAB)
 AC_SUBST(SCILABINCLUDE)
 AC_SUBST(SCILABOPT)
+AC_SUBST(SCILAB_VERSION)
 
 
 #----------------------------------------------------------------
@@ -2482,18 +2493,9 @@ else
     go1.[012]*)
       AC_MSG_RESULT([yes - minimum version is 1.3])
       GO=
-      GOOPT="-intgosize 32"
       ;;
     *)
       AC_MSG_RESULT([no])
-      case "$(go env GOARCH)" in
-      amd64 | arm64 | ppc64*)
-        GOOPT="-intgosize 64"
-	;;
-      *)
-        GOOPT="-intgosize 32"
-	;;
-      esac
       ;;
     esac
   fi
@@ -2514,13 +2516,6 @@ else
         AC_MSG_RESULT([no])
         if test "$go_version" -lt 480; then
           GCCGOOPT="-intgosize 32"
-        else
-          AC_CHECK_SIZEOF([void *], [4])
-          if test "$ac_cv_sizeof_void_p" = "8"; then
-            GCCGOOPT="-intgosize 64"
-          else
-            GCCGOOPT="-intgosize 32"
-          fi
         fi
       fi
     fi
@@ -2581,7 +2576,7 @@ _ACEOF
   fi
 
   if test -z "$D2COMPILERBIN" ; then
-    AC_CHECK_PROGS(D2COMPILER, dmd gdmd)
+    AC_CHECK_PROGS(D2COMPILER, dmd gdmd ldmd2 ldc2)
 
     if test -n "$D2COMPILER" ; then
       AC_MSG_CHECKING(whether the D2 compiler works)

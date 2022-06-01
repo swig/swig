@@ -132,6 +132,14 @@ public class doxygen_parsing_runme {
     wantedComments.put("doxygen_parsing.doxygen_parsingConstants.CONSTANT_VALUE",
     		"The constant comment \n" +
     		"");
+    wantedComments.put("doxygen_parsing.Foo1750.getA()",
+	        "");
+    wantedComments.put("doxygen_parsing.Foo1750.getB()",
+	        "");
+    wantedComments.put("doxygen_parsing.Foo1750.setA(int)",
+	        "");
+    wantedComments.put("doxygen_parsing.Foo1750.setB(int)",
+	        "");
     
     // and ask the parser to check comments for us
     System.exit(CommentParser.check(wantedComments));

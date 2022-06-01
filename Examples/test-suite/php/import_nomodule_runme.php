@@ -2,7 +2,8 @@
 
 require "tests.php";
 
-check::functions(array('is_python_builtin'));
+// No new functions
+check::functions(array());
 check::classes(array('import_nomodule'));
 // No new globals
 check::globals(array());

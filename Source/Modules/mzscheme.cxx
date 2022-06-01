@@ -12,7 +12,6 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
-
 #include <ctype.h>
 
 static const char *usage = "\
@@ -66,7 +65,7 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stdout);
-	  SWIG_exit(0);
+	  Exit(EXIT_SUCCESS);
 	} else if (strcmp(argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {
 	    prefix = NewString(argv[i + 1]);
@@ -130,7 +129,7 @@ public:
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     f_runtime = NewString("");
     f_init = NewString("");

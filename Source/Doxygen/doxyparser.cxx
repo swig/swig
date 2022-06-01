@@ -1249,13 +1249,13 @@ void DoxygenParser::processHtmlTags(size_t &pos, const std::string &line) {
       // for example <A ...>, <IMG ...>, ...
       if (isEndHtmlTag) {
         m_tokenListIt = m_tokenList.end();
-        printListError(WARN_DOXYGEN_HTML_ERROR, "Doxygen HTML error for tag " + cmd + ": Illegal end HTML tag without '>' found.");
+        printListError(WARN_DOXYGEN_HTML_ERROR, "Doxygen HTML error for tag " + cmd + ": Illegal end HTML tag without greater-than ('>') found.");
       }
 
       endHtmlPos = line.find(">", pos);
       if (endHtmlPos == string::npos) {
         m_tokenListIt = m_tokenList.end();
-        printListError(WARN_DOXYGEN_HTML_ERROR, "Doxygen HTML error for tag " + cmd + ": HTML tag without '>' found.");
+        printListError(WARN_DOXYGEN_HTML_ERROR, "Doxygen HTML error for tag " + cmd + ": HTML tag without greater-than ('>') found.");
       }
       // add args of HTML command, like link URL, image URL, ...
       m_tokenList.push_back(Token(PLAINSTRING, line.substr(pos, endHtmlPos - pos)));

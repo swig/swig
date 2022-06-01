@@ -7,8 +7,6 @@
 %module cpp_basic
 
 %newobject Bar::testFoo;
-/* Add copy constructor to 'Foo' */
-%copyctor Foo;
 
 %{
 #if defined(__SUNPRO_CC)
@@ -79,10 +77,16 @@ class Bar {
     Foo *testFoo(int a, Foo *f) {
       return new Foo(2 * a + (f ? f->num : 0) + fval.num);
     }
-/* Const member data means this class can't be assigned.
+/* Const member data and references mean this class can't be assigned.
 private:
     Bar& operator=(const Bar&);
 */
+};
+
+// This class is valid C++ but cannot be assigned to because it has const member data.
+struct JustConst {
+explicit JustConst(int i_inp) : i(i_inp) {}
+const int i;
 };
 
 %}

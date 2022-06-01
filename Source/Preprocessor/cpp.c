@@ -741,14 +741,35 @@ static String *get_options(String *str) {
     opt = NewString("(");
     while (((c = Getc(str)) != EOF)) {
       Putc(c, opt);
-      if (c == ')') {
-	level--;
-	if (!level)
-	  return opt;
+      switch (c) {
+	case ')':
+	  level--;
+	  if (!level)
+	    return opt;
+	  break;
+	case '(':
+	  level++;
+	  break;
+	case '"':
+	  /* Skip over quoted strings */
+	  while (1) {
+	    c = Getc(str);
+	    if (c == EOF)
+	      goto bad;
+	    Putc(c, opt);
+	    if (c == '"')
+	      break;
+	    if (c == '\\') {
+	      c = Getc(str);
+	      if (c == EOF)
+		goto bad;
+	      Putc(c, opt);
+	    }
+	  }
+	  break;
       }
-      if (c == '(')
-	level++;
     }
+bad:
     Delete(opt);
     return 0;
   } else {
@@ -1686,7 +1707,7 @@ String *Preprocessor_parse(String *s) {
 	      Seek(value, 0, SEEK_SET);
 	      Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Could not evaluate expression '%s'\n", value);
 	      if (msg)
-		Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Error: '%s'\n", msg);
+		Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "%s\n", msg);
 	      allow = 0;
 	    } else {
 	      if (val == 0)
@@ -1720,7 +1741,7 @@ String *Preprocessor_parse(String *s) {
 		Seek(value, 0, SEEK_SET);
 		Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Could not evaluate expression '%s'\n", value);
 		if (msg)
-		  Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "Error: '%s'\n", msg);
+		  Swig_warning(WARN_PP_EVALUATION, Getfile(value), Getline(value), "%s\n", msg);
 		allow = 0;
 	      } else {
 		if (val)
@@ -2055,8 +2076,7 @@ String *Preprocessor_parse(String *s) {
       break;
     default:
       Printf(stderr, "cpp: Invalid parser state %d\n", state);
-      abort();
-      break;
+      Exit(EXIT_FAILURE);
     }
   }
   while (level > 0) {

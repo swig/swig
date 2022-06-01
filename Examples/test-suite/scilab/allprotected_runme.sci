@@ -21,10 +21,10 @@ checkequal(PubBase_virtualMethod(pubBase), "PublicBase", "PubBase_virtualMethod(
 class = PubBase_instanceMethod(pubBase, klass);
 checkequal(Klass_getName(class), "allprotected_klass", "Klass_getName(PubBase_instanceMethod(pubBase, klass))");
 
-class = PubBase_instanceOverload(pubBase, klass);
+class = PubBase_instanceOverloaded(pubBase, klass);
 checkequal(Klass_getName(class), "allprotected_klass", "Klass_getName(PubBase_instanceOverloaded(pubBase, klass))");
 
-class = PubBase_instanceOverload(pubBase, klass, "allprotected_klass2");
+class = PubBase_instanceOverloaded(pubBase, klass, "allprotected_klass2");
 checkequal(Klass_getName(class), "allprotected_klass2", "Klass_getName(PubBase_instanceOverloaded(pubBase, klass, ""allprotected_klass2""))");
 
 class = PubBase_staticMethod(klass);
@@ -40,12 +40,22 @@ checkequal(Klass_getName(class), "allprotected_klass3", "Klass_getName(PubBase_s
 checkequal(PubBase_EnumVal1_get(), 0, "PubBase_EnumVal1_get()");
 checkequal(PubBase_EnumVal2_get(), 1, "(PubBase_EnumVal2_get()");
 
+v=getversion("scilab");
+if v(1) < 6 then
+    PubBase_instanceMemb_set(pubBase, 12);
+    checkequal(PubBase_instanceMemb_get(pubBase), 12, "PubBase_instanceMemb_get(pubBase)");
+else
+    PubBase_instanceMemberVariable_set(pubBase, 12);
+    checkequal(PubBase_instanceMemberVariable_get(pubBase), 12, "PubBase_instanceMemberVariable_get(pubBase)");
+end
 
-PubBase_instanceMemb_set(pubBase, 12);
-checkequal(PubBase_instanceMemb_get(pubBase), 12, "PubBase_instanceMemb_get(pubBase)");
-
-checkequal(PubBase_staticConstM_get(), 20, "PubBase_staticConstM_get()");
-checkequal(PubBase_staticMember_get(), 10, "PubBase_staticMember_get()")
+if v(1) < 6 then
+    checkequal(PubBase_staticConstM_get(), 20, "PubBase_staticConstMemberVariable_get()");
+    checkequal(PubBase_staticMember_get(), 10, "PubBase_staticMemberVariable_get()")
+else
+    checkequal(PubBase_staticConstMemberVariable_get(), 20, "PubBase_staticConstMemberVariable_get()");
+    checkequal(PubBase_staticMemberVariable_get(), 10, "PubBase_staticMemberVariable_get()")
+end
 
 PubBase_stringMember_set(pubBase, "dummy");
 checkequal(PubBase_stringMember_get(pubBase), "dummy", "PubBase_stringMember_get()");

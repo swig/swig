@@ -5,7 +5,7 @@
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance or %interface */
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
-%include "swiginterface.i"
+%include <swiginterface.i>
 %interface(IA)
 #endif
 

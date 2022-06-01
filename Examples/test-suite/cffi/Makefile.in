@@ -6,6 +6,7 @@ LANGUAGE     = cffi
 CFFI         = @CFFIBIN@
 SCRIPTSUFFIX = _runme.lisp
 
+HAVE_CXX11   = @HAVE_CXX11@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -43,7 +44,7 @@ run_testcase = \
 	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(CFFI) -batch -s $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
-# Clean: (does nothing, we dont generate extra cffi code)
+# Clean: (does nothing, we don't generate extra cffi code)
 %.clean:
 	@exit 0
 

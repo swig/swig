@@ -24,6 +24,7 @@ static void* Swig_malloc(int c) {
 %}
 
 %insert(cgo_comment_typedefs) %{
+#include <stddef.h>
 #include <stdint.h>
 %}
 
@@ -147,6 +148,17 @@ var Swig_escape_val interface{}
 %insert(go_header) %{
 type _swig_fnptr *byte
 type _swig_memberptr *byte
+%}
+
+/* Convert a Go interface value into a C++ pointer.  */
+
+%insert(go_header) %{
+func getSwigcptr(v interface { Swigcptr() uintptr }) uintptr {
+	if v == nil {
+		return 0
+	}
+	return v.Swigcptr()
+}
 %}
 
 /* For directors we need C++ to track a Go pointer.  Since we can't

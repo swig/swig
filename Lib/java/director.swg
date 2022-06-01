@@ -51,6 +51,10 @@ SWIGINTERN int Swig::GetThreadName(char *name, size_t len) {
 
 #endif
 
+#if defined(SWIG_JAVA_DETACH_ON_THREAD_END)
+#include <pthread.h>
+#endif
+
 namespace Swig {
 
   /* Java object wrapper */
@@ -133,12 +137,29 @@ namespace Swig {
       }
     }
 
+#if defined(SWIG_JAVA_DETACH_ON_THREAD_END)
+    static void detach(void *jvm) {
+      static_cast<JavaVM *>(jvm)->DetachCurrentThread();
+    }
+
+    static void make_detach_key() {
+      pthread_key_create(&detach_key_, detach);
+    }
+
+    /* thread-local key to register a destructor */
+    static pthread_key_t detach_key_;
+#endif
+
   private:
     /* pointer to Java object */
     jobject jthis_;
     /* Local or global reference flag */
     bool weak_global_;
   };
+
+#if defined(SWIG_JAVA_DETACH_ON_THREAD_END)
+  pthread_key_t JObjectWrapper::detach_key_;
+#endif
 
   /* Local JNI reference deleter */
   class LocalRefGuard {
@@ -201,9 +222,19 @@ namespace Swig {
 #else
         director_->swig_jvm_->AttachCurrentThread(jenv, &args);
 #endif
+
+#if defined(SWIG_JAVA_DETACH_ON_THREAD_END)
+        // At least on Android 6, detaching after every call causes a memory leak.
+        // Instead, register a thread desructor and detach only when the thread ends.
+        // See https://developer.android.com/training/articles/perf-jni#threads
+        static pthread_once_t once = PTHREAD_ONCE_INIT;
+
+        pthread_once(&once, JObjectWrapper::make_detach_key);
+        pthread_setspecific(JObjectWrapper::detach_key_, director->swig_jvm_);
+#endif
       }
       ~JNIEnvWrapper() {
-#if !defined(SWIG_JAVA_NO_DETACH_CURRENT_THREAD)
+#if !defined(SWIG_JAVA_DETACH_ON_THREAD_END) && !defined(SWIG_JAVA_NO_DETACH_CURRENT_THREAD)
         // Some JVMs, eg jdk-1.4.2 and lower on Solaris have a bug and crash with the DetachCurrentThread call.
         // However, without this call, the JVM hangs on exit when the thread was not created by the JVM and creates a memory leak.
         if (env_status == JNI_EDETACHED)

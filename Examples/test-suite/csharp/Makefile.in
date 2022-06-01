@@ -8,6 +8,7 @@ CSHARPCILINTERPRETER  = @CSHARPCILINTERPRETER@
 CSHARPCILINTERPRETER_FLAGS = @CSHARPCILINTERPRETER_FLAGS@
 CSHARPCONVERTPATH     = @top_srcdir@/@CSHARPCONVERTPATH@
 
+HAVE_CXX11   = @HAVE_CXX11@
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
@@ -24,6 +25,7 @@ CPP_TEST_CASES = \
 	csharp_namespace_system_collision \
 	csharp_prepost \
 	csharp_typemaps \
+	director_wstring \
 	enum_thorough_simple \
 	enum_thorough_typesafe \
 	exception_partial_info \

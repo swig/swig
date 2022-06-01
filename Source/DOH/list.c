@@ -27,7 +27,6 @@ extern DohObjInfo DohListType;
 static
 void more(List *l) {
   l->items = (void **) DohRealloc(l->items, l->maxitems * 2 * sizeof(void *));
-  assert(l->items);
   l->maxitems *= 2;
 }
 
@@ -346,15 +345,10 @@ DohObjInfo DohListType = {
 #define MAXLISTITEMS 8
 
 DOH *DohNewList(void) {
-  List *l;
-  int i;
-  l = (List *) DohMalloc(sizeof(List));
+  List *l = (List *) DohMalloc(sizeof(List));
   l->nitems = 0;
   l->maxitems = MAXLISTITEMS;
-  l->items = (void **) DohMalloc(l->maxitems * sizeof(void *));
-  for (i = 0; i < MAXLISTITEMS; i++) {
-    l->items[i] = 0;
-  }
+  l->items = (void **) DohCalloc(l->maxitems, sizeof(void *));
   l->file = 0;
   l->line = 0;
   return DohObjMalloc(&DohListType, l);

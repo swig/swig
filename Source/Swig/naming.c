@@ -1101,6 +1101,7 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
   int errornum;
   size_t errpos;
   int rc;
+  pcre2_match_data *match_data = 0;
 
   compiled_pat = pcre2_compile((PCRE2_SPTR8)Char(pattern), PCRE2_ZERO_TERMINATED, 0, &errornum, &errpos, NULL);
   if (!compiled_pat) {
@@ -1108,10 +1109,9 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
     Swig_error("SWIG", Getline(n),
                "Invalid regex \"%s\": compilation failed at %d: %s\n",
                Char(pattern), errpos, err);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
-  pcre2_match_data *match_data = 0;
   match_data = pcre2_match_data_create_from_pattern (compiled_pat, NULL);
   rc = pcre2_match(compiled_pat, (PCRE2_SPTR8)Char(s), PCRE2_ZERO_TERMINATED, 0, 0, match_data, 0);
   pcre2_code_free(compiled_pat);
@@ -1124,7 +1124,7 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
     Swig_error("SWIG", Getline(n),
                "Matching \"%s\" against regex \"%s\" failed: %d\n",
                Char(s), Char(pattern), rc);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   return 1;
@@ -1137,7 +1137,7 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
   (void)s;
   Swig_error("SWIG", Getline(n),
              "PCRE regex matching is not available in this SWIG build.\n");
-  SWIG_exit(EXIT_FAILURE);
+  Exit(EXIT_FAILURE);
   return 0;
 }
 
@@ -1532,9 +1532,9 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 	       * is not possible to implemented targeted warning suppression on one parameter in one function. */
 	      int suppress_parameter_rename_warning = Equal(nodeType(n), "parm");
 	      if (!suppress_parameter_rename_warning) {
-	      SWIG_WARN_NODE_BEGIN(n);
+		SWIG_WARN_NODE_BEGIN(n);
 	      Swig_warning(0, Getfile(n), Getline(n), "%s%s", msg, suffix);
-	      SWIG_WARN_NODE_END(n);
+		SWIG_WARN_NODE_END(n);
 	      }
 	    } else {
 	      Swig_warning(0, Getfile(name), Getline(name), "%s%s", msg, suffix);

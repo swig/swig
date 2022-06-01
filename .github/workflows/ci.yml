@@ -24,12 +24,13 @@ jobs:
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY3 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
       matrix:
         include:
         - SWIGLANG: ""
+          CPPFLAGS: "-DDOH_POISON"
         - SWIGLANG: ""
           GCC: 7
         - SWIGLANG: ""
@@ -97,7 +98,6 @@ jobs:
         - SWIGLANG: octave
           CPPSTD: c++11
         - SWIGLANG: octave
-          VER: '6.4'
           CPPSTD: c++11
         - SWIGLANG: perl5
         - SWIGLANG: php
@@ -114,45 +114,38 @@ jobs:
         - SWIGLANG: php
           VER: '8.1'
         - SWIGLANG: python
+          PY2: 2
         - SWIGLANG: python
-          PY3: 3
           VER: '3.2'
           os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
+          continue-on-error: true # broken packages problem
         - SWIGLANG: python
-          PY3: 3
           VER: '3.3'
           os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
         - SWIGLANG: python
-          PY3: 3
           VER: '3.4'
           os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
         - SWIGLANG: python
-          PY3: 3
           VER: '3.5'
         - SWIGLANG: python
-          PY3: 3
           VER: '3.6'
         - SWIGLANG: python
-          PY3: 3
           VER: '3.7'
         - SWIGLANG: python
-          PY3: 3
           VER: '3.8'
         - SWIGLANG: python
-          PY3: 3
           VER: '3.9'
         - SWIGLANG: python
-          PY3: 3
           VER: '3.10'
         - SWIGLANG: python
+          PY2: 2
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
+          PY2: 2
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
-          PY3: 3
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
-          PY3: 3
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: r
         - SWIGLANG: ruby
@@ -182,7 +175,10 @@ jobs:
           VER: '3.0'
           CPPSTD: c++11
         - SWIGLANG: scilab
-          os: ubuntu-18.04 # scilab-6.1 in ubuntu-20.04 not yet working
+          VER: '5.5.2'
+        - SWIGLANG: scilab
+          os: ubuntu-18.04 # scilab 6.0
+        - SWIGLANG: scilab
         - SWIGLANG: tcl
         # c++11 testing
         - SWIGLANG: csharp
@@ -210,14 +206,12 @@ jobs:
           CSTD: gnu11
         - SWIGLANG: python
           CPPSTD: c++11
-          PY3: 3
         - SWIGLANG: r
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
         - SWIGLANG: scilab
           CPPSTD: c++11
-          os: ubuntu-18.04 # scilab-6.1 in ubuntu-20.04 not yet working
         - SWIGLANG: tcl
           CPPSTD: c++11
         # c++14 testing
@@ -246,14 +240,12 @@ jobs:
           CSTD: gnu11
         - SWIGLANG: python
           CPPSTD: c++14
-          PY3: 3
         - SWIGLANG: r
           CPPSTD: c++14
         - SWIGLANG: ruby
           CPPSTD: c++14
         - SWIGLANG: scilab
           CPPSTD: c++14
-          os: ubuntu-18.04 # scilab-6.1 in ubuntu-20.04 not yet working
         - SWIGLANG: tcl
           CPPSTD: c++14
         # c++17 testing (using gcc11)
@@ -296,7 +288,6 @@ jobs:
         - SWIGLANG: python
           CPPSTD: c++17
           GCC: 11
-          PY3: 3
         - SWIGLANG: r
           CPPSTD: c++17
           GCC: 11
@@ -306,7 +297,6 @@ jobs:
         - SWIGLANG: scilab
           CPPSTD: c++17
           GCC: 11
-          os: ubuntu-18.04 # scilab-6.1 in ubuntu-20.04 not yet working
         - SWIGLANG: tcl
           CPPSTD: c++17
           GCC: 11
@@ -314,6 +304,8 @@ jobs:
         - SWIGLANG: mzscheme
           continue-on-error: true
         - SWIGLANG: ocaml
+          CPPSTD: c++17
+          GCC: 11
           continue-on-error: true
           os: ubuntu-18.04 # ocaml-4.08 in ubuntu-20.04 not yet working
       # Run all of them, as opposed to aborting when one fails
@@ -321,13 +313,14 @@ jobs:
 
     env:
       SWIGLANG: ${{ matrix.SWIGLANG }}
-      PY3: ${{ matrix.PY3 }}
+      PY2: ${{ matrix.PY2 }}
       VER: ${{ matrix.VER }}
       ENGINE: ${{ matrix.ENGINE }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
       GCC: ${{ matrix.GCC }}
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
+      CPPFLAGS: ${{ matrix.CPPFLAGS }}
       FCSTD: ${{ matrix.FCSTD }}
 
     steps:
@@ -412,7 +405,8 @@ jobs:
             esac
             echo CSTD="$CSTD" >> $GITHUB_ENV
           fi
-          if test -n "$CPPSTD"; then CONFIGOPTS+=(--enable-cpp11-testing "CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
+          if test -z "$CPPSTD"; then CONFIGOPTS+=("--disable-cpp11-testing"); fi
+          if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
           if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
           if test -n "$FCSTD"; then CONFIGOPTS+=("FCFLAGS=-std=$FCSTD $FCFLAGS"); fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi

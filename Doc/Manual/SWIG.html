@@ -155,6 +155,7 @@ General Options
      -debug-symbols  - Display target language symbols in the symbol tables
      -debug-csymbols - Display C symbols in the symbol tables
      -debug-lsymbols - Display target language layer symbols
+     -debug-quiet    - Display less parse tree node debug info when using other -debug options
      -debug-tags     - Display information about the tags found in the interface
      -debug-template - Display information for debugging templates
      -debug-top &lt;n&gt;  - Display entire parse tree at stages 1-4, &lt;n&gt; is a csv list of stages
@@ -2064,23 +2065,10 @@ and a more descriptive one, but the two functions are otherwise equivalent:
     <tt>%rename("regex:/(\\w+)_(.*)/\\u\\2/")</tt></td>
     <td><tt>prefix_print</tt></td><td><tt>Print</tt></td>
 </tr>
-<tr>
-    <td><tt>command:cmd</tt></td>
-    <td>Output of an external command <tt>cmd</tt> with the string passed to
-    it as input. Notice that this function is extremely slow compared to all
-    the other ones as it involves spawning a separate process and using it for
-    many declarations is not recommended. The <i>cmd</i> is not enclosed in
-    square brackets but must be terminated with a triple <tt>'&lt;'</tt> sign,
-    e.g. <tt>%rename("command:tr&nbsp;-d&nbsp;aeiou &lt;&lt;&lt;")</tt>
-    (nonsensical example removing all vowels)</td>
-    <td><tt>Print</tt></td><td><tt>Prnt</tt></td>
-</tr>
 </table>
 
 <p>
-The most general function of all of the above ones (not counting
-<tt>command</tt> which is even more powerful in principle but which should
-generally be avoided because of performance considerations) is the
+The most general function of all of the above ones is the
 <tt>regex</tt> one. Here are some more examples of its use:
 </p>
 
@@ -2160,11 +2148,15 @@ the match to class declarations only (in C++) and <tt>match="enumitem"</tt>
 restricts it to the enum elements. SWIG also provides convenience macros for
 such match expressions, for example
 </p>
+
 <div class="code">
 <pre>
 %rename("%(title)s", %$isenumitem) "";
+// same as:
+%rename("%(title)s", match="enumitem") "";
 </pre>
 </div>
+
 <p>
 will capitalize the names of all the enum elements but not change the case of
 the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>,
@@ -2172,6 +2164,56 @@ the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>,
 and <tt>%$isvariable</tt> can be used. Many other checks are possible and this
 documentation is not exhaustive, see the "%rename predicates" section in
 <tt>swig.swg</tt> for the full list of supported match expressions.
+</p>
+
+<p>
+A logical not is also possible by using <tt>notmatch</tt>.
+For example, <tt>notmatch="enumitem"</tt> will restrict the
+match to all items that are not enum elements.
+There is also a <tt>%$not</tt> macro which simply expands to "not".
+Be careful using this as some of the other macros in <tt>swig.swg</tt>
+are complex expressions and so it will only "notmatch" the first part
+of the expression.
+</p>
+
+<div class="code">
+<pre>
+%rename("%(title)s", %$not %$isenumitem) "";
+// same as:
+%rename("%(title)s", notmatch="enumitem") "";
+</pre>
+</div>
+
+<p>
+For a comprehensive understanding of how the matching works, the internal
+<a href="Extending.html#Extending_nn8">parse tree</a> needs to be examined using the
+command line option: <tt>-debug-module 1 -debug-quiet</tt>.
+A snippet of the resulting output might be:
+</p>
+
+<div class="shell">
+<pre>
+            +++ destructor ----------------------------------------
+            | access       - "public"
+            | decl         - "f()."
+            | ismember     - "1"
+            | name         - "~Shape"
+            | storage      - "virtual"
+            | sym:name     - "~Shape"
+</pre>
+</div>
+
+<p>
+Here the node type is a "destructor" and in order to match all destructor nodes, use
+<tt>match="destructor"</tt>. To match one of the listed attributes in the node,
+such as when the storage is virtual, use <tt>match$storage="virtual"</tt>.
+This will match all nodes that have a storage attribute set to "virtual".
+To match only virtual destructors, combine them and use <tt>match="destructor", match$storage="virtual"</tt>.
+</p>
+
+<p>
+While the vast majority of these internal parse tree nodes are unlikely to change from one version of
+SWIG to the next, <b>use these matching rules at your own risk</b> as there are no guarantees that they will not change.
 </p>
 
 <p>
@@ -2773,6 +2815,11 @@ void Foo_w_set(FOO *f, WORD value) {
 </pre>
 </div>
 
+<p>
+If you have accessor methods that you want to use as attributes in the
+target language, you can make them appear as data members using
+<a href="Library.html#Library_attributes">attributes.i</a>.
+</p>
 
 <p>
 <b>Compatibility Note:</b>  SWIG-1.3.11 and earlier releases transformed all non-primitive member datatypes
@@ -3015,6 +3062,11 @@ typedef struct Vector {
 } Vector;
 </pre>
 </div>
+
+<p>
+You'll also need to use these names if you want to directly call methods added
+using <tt>%extend</tt> from other C/C++ code.
+</p>
 
 <p>
 The name used for %extend should be the name of the struct and not the name of any typedef to the struct.

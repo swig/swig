@@ -14,6 +14,9 @@
 
 #include "dohint.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #ifndef DOH_POOL_SIZE
 #define DOH_POOL_SIZE         4194304
 #endif
@@ -48,10 +51,7 @@ static int pools_initialized = 0;
 static void CreatePool() {
   Pool *p = 0;
   p = (Pool *) DohMalloc(sizeof(Pool));
-  assert(p);
-  p->ptr = (DohBase *) DohMalloc(sizeof(DohBase) * PoolSize);
-  assert(p->ptr);
-  memset(p->ptr, 0, sizeof(DohBase) * PoolSize);
+  p->ptr = (DohBase *) DohCalloc(PoolSize, sizeof(DohBase));
   p->len = PoolSize;
   p->blen = PoolSize * sizeof(DohBase);
   p->current = 0;
@@ -233,4 +233,60 @@ void DohMemoryDebug(void) {
   }
 #endif
 
+}
+
+/* Function to call instead of exit(). */
+static void (*doh_exit_handler)(int) = NULL;
+
+void DohSetExitHandler(void (*new_handler)(int)) {
+  doh_exit_handler = new_handler;
+}
+
+void DohExit(int status) {
+  if (doh_exit_handler) {
+    void (*handler)(int) = doh_exit_handler;
+    /* Unset the handler to avoid infinite loops if it tries to do something
+     * which calls DohExit() (e.g. calling Malloc() and that failing).
+     */
+    doh_exit_handler = NULL;
+    handler(status);
+  }
+  doh_internal_exit(status);
+}
+
+static void allocation_failed(size_t n, size_t size) {
+  /* Report and exit as directly as possible to try to avoid further issues due
+   * to lack of memory. */
+  if (n == 1) {
+#if defined __STDC_VERSION__ && __STDC_VERSION__-0 >= 19901L
+    fprintf(stderr, "Failed to allocate %zu bytes\n", size);
+#else
+    fprintf(stderr, "Failed to allocate %lu bytes\n", (unsigned long)size);
+#endif
+  } else {
+#if defined __STDC_VERSION__ && __STDC_VERSION__-0 >= 19901L
+    fprintf(stderr, "Failed to allocate %zu*%zu bytes\n", n, size);
+#else
+    fprintf(stderr, "Failed to allocate %lu*%lu bytes\n", (unsigned long)n, (unsigned long)size);
+#endif
+  }
+  DohExit(EXIT_FAILURE);
+}
+
+void *DohMalloc(size_t size) {
+  void *p = doh_internal_malloc(size);
+  if (!p) allocation_failed(1, size);
+  return p;
+}
+
+void *DohRealloc(void *ptr, size_t size) {
+  void *p = doh_internal_realloc(ptr, size);
+  if (!p) allocation_failed(1, size);
+  return p;
+}
+
+void *DohCalloc(size_t n, size_t size) {
+  void *p = doh_internal_calloc(n, size);
+  if (!p) allocation_failed(n, size);
+  return p;
 }

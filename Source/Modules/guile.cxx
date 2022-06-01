@@ -12,7 +12,6 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
-
 #include <ctype.h>
 
 // Note string broken in half for compilers that can't handle long strings
@@ -132,7 +131,7 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stdout);
-	  SWIG_exit(EXIT_SUCCESS);
+	  Exit(EXIT_SUCCESS);
 	} else if (strcmp(argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {
 	    prefix = NewString(argv[i + 1]);
@@ -176,7 +175,7 @@ public:
 	    procdoc = NewFile(argv[i + 1], "w", SWIG_output_files());
 	    if (!procdoc) {
 	      FileErrorDisplay(argv[i + 1]);
-	      SWIG_exit(EXIT_FAILURE);
+	      Exit(EXIT_FAILURE);
 	    }
 	    Swig_mark_arg(i);
 	    Swig_mark_arg(i + 1);
@@ -255,7 +254,7 @@ public:
     if (goops) {
       if (linkage != GUILE_LSTYLE_PASSIVE && linkage != GUILE_LSTYLE_MODULE) {
 	Printf(stderr, "guile: GOOPS support requires passive or module linkage\n");
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
 
@@ -298,7 +297,7 @@ public:
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     f_runtime = NewString("");
     f_init = NewString("");
@@ -476,7 +475,8 @@ public:
       Printf(f_init, "}\n");
       break;
     default:
-      abort();			// for now
+      fputs("Fatal internal error: Invalid Guile linkage setting.\n", stderr);
+      Exit(EXIT_FAILURE);
     }
 
     if (scmstub) {
@@ -495,7 +495,7 @@ public:
       File *scmstubfile = NewFile(fname, "w", SWIG_output_files());
       if (!scmstubfile) {
 	FileErrorDisplay(fname);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Delete(fname);
 
@@ -526,7 +526,7 @@ public:
       File *goopsfile = NewFile(fname, "w", SWIG_output_files());
       if (!goopsfile) {
 	FileErrorDisplay(fname);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Delete(fname);
       Swig_banner_target_lang(goopsfile, ";;;");
@@ -947,20 +947,16 @@ public:
 
 	if (!is_setter) {
 	  /* Strip off "-get" */
-	  char *pws_name = (char *) malloc(sizeof(char) * (len - 3));
-	  strncpy(pws_name, pc, len - 3);
-	  pws_name[len - 4] = 0;
 	  if (struct_member == 2) {
 	    /* There was a setter, so create a procedure with setter */
 	    Printf(f_init, "scm_c_define");
-	    Printf(f_init, "(\"%s\", " "scm_make_procedure_with_setter(getter, setter));\n", pws_name);
+	    Printf(f_init, "(\"%.*s\", " "scm_make_procedure_with_setter(getter, setter));\n", pc, len - 4);
 	  } else {
 	    /* There was no setter, so make an alias to the getter */
 	    Printf(f_init, "scm_c_define");
-	    Printf(f_init, "(\"%s\", getter);\n", pws_name);
+	    Printf(f_init, "(\"%.*s\", getter);\n", pc, len - 4);
 	  }
-	  Printf(exported_symbols, "\"%s\", ", pws_name);
-	  free(pws_name);
+	  Printf(exported_symbols, "\"%.*s\", ", pc, len - 4);
 	}
       } else {
 	/* Register the function */

@@ -236,7 +236,7 @@ class Allocate:public Dispatcher {
 	      // Found a polymorphic method.
 	      // Mark the polymorphic method, in case the virtual keyword was not used.
 	      Setattr(n, "storage", "virtual");
-	      if (!Getattr(b, "feature:interface")) { // interface implementation neither hides nor overrides
+	      if (!GetFlag(b, "feature:interface")) { // interface implementation neither hides nor overrides
 		if (both_have_public_access || both_have_protected_access) {
 		  if (!is_non_public_base(inclass, b))
 		    Setattr(n, "override", base);	// Note C# definition of override, ie access must be the same
@@ -815,15 +815,14 @@ Allocate():
     /* check whether the member node n is defined in class node in class's bases */
     class_member_is_defined_in_bases(n, inclass);
 
+    /* Check to see if this is a static member or not.  If so, we add an attribute
+       cplus:staticbase that saves the current class */
+
     if (Swig_storage_isstatic(n)) {
-      /* Static member data: add an attribute cplus:staticbase that saves the current class */
       Setattr(n, "cplus:staticbase", inclass);
     } else if (Cmp(Getattr(n, "kind"), "variable") == 0) {
       /* Check member variable to determine whether assignment is valid */
-      if (GetFlag(n, "feature:immutable")) {
-        /* Can't assign a class with an immutable member variable */
-        Setattr(inclass, "allocate:noassign", "1");
-      } else if (SwigType_isreference(Getattr(n, "decl"))) {
+      if (SwigType_isreference(Getattr(n, "type"))) {
         /* Can't assign a class with reference member data */
         Setattr(inclass, "allocate:noassign", "1");
       }

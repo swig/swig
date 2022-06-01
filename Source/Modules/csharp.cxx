@@ -12,8 +12,8 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
-#include <limits.h>		// for INT_MAX
 #include "cparse.h"
+#include <limits.h>		// for INT_MAX
 #include <ctype.h>
 
 /* Hash type used for upcalls from C/C++ */
@@ -316,24 +316,24 @@ public:
 
     if (!outfile) {
       Printf(stderr, "Unable to determine outfile\n");
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (directorsEnabled()) {
       if (!outfile_h) {
         Printf(stderr, "Unable to determine outfile_h\n");
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
 
@@ -670,7 +670,7 @@ public:
 	f_single_out = NewFile(filen, "w", SWIG_output_files());
 	if (!f_single_out) {
 	  FileErrorDisplay(filen);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 	Append(filenames_list, Copy(filen));
 	Delete(filen);
@@ -684,7 +684,7 @@ public:
       File *f = NewFile(filen, "w", SWIG_output_files());
       if (!f) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -1806,7 +1806,7 @@ public:
       if (baselist) {
 	Iterator base = First(baselist);
 	while (base.item) {
-	  if (!(GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface"))) {
+	  if (!(GetFlag(base.item, "feature:ignore") || GetFlag(base.item, "feature:interface"))) {
 	    SwigType *baseclassname = Getattr(base.item, "name");
 	    if (!c_baseclassname) {
 	      String *name = getProxyName(baseclassname);
@@ -1964,9 +1964,32 @@ public:
 	// Only emit if there is at least one director method
 	Printf(proxy_class_code, "\n");
 	Printf(proxy_class_code, "  private bool SwigDerivedClassHasMethod(string methodName, global::System.Type[] methodTypes) {\n");
-	Printf(proxy_class_code,
-	       "    global::System.Reflection.MethodInfo methodInfo = this.GetType().GetMethod(methodName, global::System.Reflection.BindingFlags.Public | global::System.Reflection.BindingFlags.NonPublic | global::System.Reflection.BindingFlags.Instance, null, methodTypes, null);\n");
-	Printf(proxy_class_code, "    bool hasDerivedMethod = methodInfo.DeclaringType.IsSubclassOf(typeof(%s));\n", proxy_class_name);
+	Printf(proxy_class_code, "    global::System.Reflection.MethodInfo[] methodInfos = this.GetType().GetMethods(\n");
+	Printf(proxy_class_code, "        global::System.Reflection.BindingFlags.Public | global::System.Reflection.BindingFlags.NonPublic | global::System.Reflection.BindingFlags.Instance);\n");
+	Printf(proxy_class_code, "    foreach (global::System.Reflection.MethodInfo methodInfo in methodInfos) {\n");
+	Printf(proxy_class_code, "      if (methodInfo.DeclaringType == null)\n");
+	Printf(proxy_class_code, "        continue;\n\n");
+	Printf(proxy_class_code, "      if (methodInfo.Name != methodName)\n");
+	Printf(proxy_class_code, "        continue;\n\n");
+	Printf(proxy_class_code, "      var parameters = methodInfo.GetParameters();\n");
+	Printf(proxy_class_code, "      if (parameters.Length != methodTypes.Length)\n");
+	Printf(proxy_class_code, "        continue;\n\n");
+	Printf(proxy_class_code, "      bool parametersMatch = true;\n");
+	Printf(proxy_class_code, "      for (var i = 0; i < parameters.Length; i++) {\n");
+	Printf(proxy_class_code, "        if (parameters[i].ParameterType != methodTypes[i]) {\n");
+	Printf(proxy_class_code, "          parametersMatch = false;\n");
+	Printf(proxy_class_code, "          break;\n");
+	Printf(proxy_class_code, "        }\n");
+	Printf(proxy_class_code, "      }\n\n");
+	Printf(proxy_class_code, "      if (!parametersMatch)\n");
+	Printf(proxy_class_code, "        continue;\n\n");
+	Printf(proxy_class_code, "      if (methodInfo.IsVirtual && (methodInfo.DeclaringType.IsSubclassOf(typeof(%s))) &&\n", proxy_class_name);
+	Printf(proxy_class_code, "        methodInfo.DeclaringType != methodInfo.GetBaseDefinition().DeclaringType) {\n");
+	Printf(proxy_class_code, "        return true;\n");
+	Printf(proxy_class_code, "      }\n");
+	Printf(proxy_class_code, "    }\n\n");
+  Printf(proxy_class_code, "    return false;\n");
+
 	/* Could add this code to cover corner case where the GetMethod() returns a method which allows type
 	 * promotion, eg it will return foo(double), if looking for foo(int).
 	 if (hasDerivedMethod) {
@@ -1986,7 +2009,7 @@ public:
 	 }
 	 }
 	 */
-	Printf(proxy_class_code, "    return hasDerivedMethod;\n");
+	//Printf(proxy_class_code, "    return hasDerivedMethod;\n");
 	Printf(proxy_class_code, "  }\n");
       }
 
@@ -2045,7 +2068,7 @@ public:
     if (List *baselist = Getattr(n, "bases")) {
       String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
-	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
+	if (GetFlag(base.item, "feature:ignore") || !GetFlag(base.item, "feature:interface"))
 	  continue; // TODO: warn about skipped non-interface bases
 	String *base_iname = Getattr(base.item, "interface:name");
 	if (!bases)
@@ -2096,7 +2119,7 @@ public:
 
     if (proxy_flag) {
       proxy_class_name = NewString(Getattr(n, "sym:name"));
-      String *interface_name = Getattr(n, "feature:interface") ? Getattr(n, "interface:name") : 0;
+      String *interface_name = GetFlag(n, "feature:interface") ? Getattr(n, "interface:name") : 0;
       if (Node *outer = Getattr(n, "nested:outer")) {
 	String *outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
 	for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
@@ -2122,12 +2145,12 @@ public:
 	full_imclass_name = NewStringf("%s", imclass_name);
 	if (Cmp(proxy_class_name, imclass_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 
 	if (Cmp(proxy_class_name, module_class_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
       } else {
 	if (namespce) {
@@ -2152,7 +2175,7 @@ public:
       destructor_call = NewString("");
       proxy_class_constants_code = NewString("");
 
-      if (Getattr(n, "feature:interface")) {
+      if (GetFlag(n, "feature:interface")) {
 	interface_class_code = NewString("");
 	String *output_directory = outputDirectory(nspace);
 	f_interface = getOutputFile(output_directory, interface_name);
@@ -2323,7 +2346,7 @@ public:
     String *pre_code = NewString("");
     String *post_code = NewString("");
     String *terminator_code = NewString("");
-    bool is_interface = Getattr(parentNode(n), "feature:interface") != 0 
+    bool is_interface = GetFlag(parentNode(n), "feature:interface") && !checkAttribute(n, "kind", "variable")
       && !static_flag && Getattr(n, "interface:owner") == 0;
 
     if (!proxy_flag)
@@ -2553,8 +2576,8 @@ public:
 	Replaceall(imcall, "$imfuncname", intermediary_function_name);
 	String *excode = NewString("");
 	Node *directorNode = Getattr(n, "directorNode");
-	if (directorNode) {
-	  UpcallData *udata = Getattr(directorNode, "upcalldata");
+	UpcallData *udata = directorNode ? Getattr(directorNode, "upcalldata") : 0;
+	if (udata) {
 	  String *methid = Getattr(udata, "class_methodidx");
 
 	  if (!Cmp(return_type, "void"))
@@ -2572,6 +2595,7 @@ public:
       } else {
 	Replaceall(imcall, "$imfuncname", intermediary_function_name);
       }
+      Replaceall(tm, "$imfuncname", intermediary_function_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csout typemap defined for %s\n", SwigType_str(t, 0));
@@ -2615,6 +2639,7 @@ public:
 	if ((tm = Swig_typemap_lookup("csvarin", variable_parm, "", 0))) {
 	  substituteClassname(cvariable_type, tm);
 	  Replaceall(tm, "$csinput", "value");
+          Replaceall(tm, "$imfuncname", intermediary_function_name);
 	  Replaceall(tm, "$imcall", imcall);
 	  excodeSubstitute(n, tm, "csvarin", variable_parm);
 	  Printf(proxy_class_code, "%s", tm);
@@ -2629,6 +2654,7 @@ public:
 	  else
 	    Replaceall(tm, "$owner", "false");
 	  substituteClassname(t, tm);
+          Replaceall(tm, "$imfuncname", intermediary_function_name);
 	  Replaceall(tm, "$imcall", imcall);
 	  excodeSubstitute(n, tm, "csvarout", n);
 	  Printf(proxy_class_code, "%s", tm);
@@ -3141,6 +3167,7 @@ public:
       else
 	Replaceall(tm, "$owner", "false");
       substituteClassname(t, tm);
+      Replaceall(tm, "$imfuncname", overloaded_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No csout typemap defined for %s\n", SwigType_str(t, 0));
@@ -3179,6 +3206,7 @@ public:
 	if ((tm = Getattr(p, "tmap:csvarin"))) {
 	  substituteClassname(pt, tm);
 	  Replaceall(tm, "$csinput", "value");
+	  Replaceall(tm, "$imfuncname", overloaded_name);
 	  Replaceall(tm, "$imcall", imcall);
 	  excodeSubstitute(n, tm, "csvarin", p);
 	  Printf(module_class_code, "%s", tm);
@@ -3193,6 +3221,7 @@ public:
 	  else
 	    Replaceall(tm, "$owner", "false");
 	  substituteClassname(t, tm);
+	  Replaceall(tm, "$imfuncname", overloaded_name);
 	  Replaceall(tm, "$imcall", imcall);
 	  excodeSubstitute(n, tm, "csvarout", n);
 	  Printf(module_class_code, "%s", tm);
@@ -3660,7 +3689,7 @@ public:
       if (newdir_error) {
 	Printf(stderr, "%s\n", newdir_error);
 	Delete(newdir_error);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Printv(output_directory, nspace_subdirectory, SWIG_FILE_DELIMITER, 0);
       Delete(nspace_subdirectory);

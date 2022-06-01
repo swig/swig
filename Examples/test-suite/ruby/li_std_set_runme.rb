@@ -56,11 +56,15 @@ m.value == 'c'
 s = LanguageSet.new
 s.insert([1,2])
 s.insert(1)
-s.insert("hello")
+# There is a reference count issue that needs fixing, see https://github.com/swig/swig/issues/2115
+# Workaround is to create hello variable containing a string and use it instead of just "hello"
+hello = "hello"
+s.insert(hello)
 #s.to_a == [1,[1,2],'hello']  # sort order: s.sort {|a,b| a.hash <=> b.hash}
 # Test above is flawed as LanguageSet sorts by each element's hash, so the order will change from one invocation to the next. Sort a conversion to array instead.
+GC.start
 sa = s.to_a.sort { |x, y| x.to_s <=> y.to_s }
-sa == [1,[1,2],'hello']
+sa == [1,[1,2],hello]
 
 EOF
 

@@ -1,6 +1,6 @@
 %module using2
 
-%warnfilter(SWIGWARN_PARSE_USING_UNDEF);
+%warnfilter(SWIGWARN_PARSE_USING_UNDEF) ::baz;
 
 using ::baz;
 

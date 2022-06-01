@@ -462,187 +462,220 @@ the stage being processed.
 There are a number of other parse tree display options, for example, <tt>swig -debug-module &lt;n&gt;</tt> will
 avoid displaying system parse information and only display the parse tree pertaining to the user's module at
 stage <tt>n</tt> of processing.
+Adding the <tt>-debug-quiet</tt> option is recommended as it removes some noise which is not usually needed,
+that is, the display of many linked list pointers and symbol table pointers.
 </p>
 
 <div class="shell">
 <pre>
-$ swig -c++ -python -debug-module 4 example.i
-      +++ include ----------------------------------------
-      | name         - "example.i"
+$ swig -c++ -python -debug-module 1 -debug-quiet example.i
+debug-module stage 1
++++ module ----------------------------------------
+| name         - "example"
+| 
++++ insert ----------------------------------------
+| code         - "\n#include \"example.h\"\n"
+| 
++++ include ----------------------------------------
+| name         - "example.h"
 
-            +++ module ----------------------------------------
-            | name         - "example"
-            |
-            +++ insert ----------------------------------------
-            | code         - "\n#include \"example.h\"\n"
-            |
-            +++ include ----------------------------------------
-            | name         - "example.h"
+      +++ class ----------------------------------------
+      | abstracts    - 0x7f4f15182930
+      | allows_typedef - "1"
+      | kind         - "class"
+      | name         - "Shape"
+      | sym:name     - "Shape"
 
-                  +++ class ----------------------------------------
-                  | abstract     - "1"
-                  | sym:name     - "Shape"
-                  | name         - "Shape"
-                  | kind         - "class"
-                  | symtab       - 0x40194140
-                  | sym:symtab   - 0x40191078
+            +++ access ----------------------------------------
+            | kind         - "public"
+            | 
+            +++ constructor ----------------------------------------
+            | access       - "public"
+            | code         - "{\n    nshapes++;\n  }"
+            | decl         - "f()."
+            | feature:new  - "1"
+            | ismember     - "1"
+            | name         - "Shape"
+            | sym:name     - "Shape"
+            | 
+            +++ destructor ----------------------------------------
+            | access       - "public"
+            | code         - "{\n    nshapes--;\n  }"
+            | decl         - "f()."
+            | ismember     - "1"
+            | name         - "~Shape"
+            | storage      - "virtual"
+            | sym:name     - "~Shape"
+            | 
+            +++ cdecl ----------------------------------------
+            | access       - "public"
+            | decl         - ""
+            | ismember     - "1"
+            | kind         - "variable"
+            | name         - "x"
+            | sym:name     - "x"
+            | type         - "double"
+            | 
+            +++ cdecl ----------------------------------------
+            | access       - "public"
+            | decl         - ""
+            | ismember     - "1"
+            | kind         - "variable"
+            | name         - "y"
+            | sym:name     - "y"
+            | type         - "double"
+            | 
+            +++ cdecl ----------------------------------------
+            | access       - "public"
+            | decl         - "f(double,double)."
+            | ismember     - "1"
+            | kind         - "function"
+            | name         - "move"
+            | parms        - 'double dx,double dy'
+            | sym:name     - "move"
+            | type         - "void"
+            | 
+            +++ cdecl ----------------------------------------
+            | abstract     - "1"
+            | access       - "public"
+            | decl         - "f()."
+            | ismember     - "1"
+            | kind         - "function"
+            | name         - "area"
+            | storage      - "virtual"
+            | sym:name     - "area"
+            | type         - "double"
+            | value        - "0"
+            | valuetype    - "int"
+            | 
+            +++ cdecl ----------------------------------------
+            | abstract     - "1"
+            | access       - "public"
+            | decl         - "f()."
+            | ismember     - "1"
+            | kind         - "function"
+            | name         - "perimeter"
+            | storage      - "virtual"
+            | sym:name     - "perimeter"
+            | type         - "double"
+            | value        - "0"
+            | valuetype    - "int"
+            | 
+            +++ cdecl ----------------------------------------
+            | access       - "public"
+            | decl         - ""
+            | ismember     - "1"
+            | kind         - "variable"
+            | name         - "nshapes"
+            | storage      - "static"
+            | sym:name     - "nshapes"
+            | type         - "int"
+            | 
+      +++ class ----------------------------------------
+      | allows_typedef - "1"
+      | baselist     - 0x7f4f15182ad0
+      | kind         - "class"
+      | name         - "Circle"
+      | privatebaselist - 0x7f4f15182b10
+      | protectedbaselist - 0x7f4f15182af0
+      | sym:name     - "Circle"
 
-                        +++ access ----------------------------------------
-                        | kind         - "public"
-                        |
-                        +++ constructor ----------------------------------------
-                        | sym:name     - "Shape"
-                        | name         - "Shape"
-                        | decl         - "f()."
-                        | code         - "{\n    nshapes++;\n  }"
-                        | sym:symtab   - 0x40194140
-                        |
-                        +++ destructor ----------------------------------------
-                        | sym:name     - "~Shape"
-                        | name         - "~Shape"
-                        | storage      - "virtual"
-                        | code         - "{\n    nshapes--;\n  }"
-                        | sym:symtab   - 0x40194140
-                        |
-                        +++ cdecl ----------------------------------------
-                        | sym:name     - "x"
-                        | name         - "x"
-                        | decl         - ""
-                        | type         - "double"
-                        | sym:symtab   - 0x40194140
-                        |
-                        +++ cdecl ----------------------------------------
-                        | sym:name     - "y"
-                        | name         - "y"
-                        | decl         - ""
-                        | type         - "double"
-                        | sym:symtab   - 0x40194140
-                        |
-                        +++ cdecl ----------------------------------------
-                        | sym:name     - "move"
-                        | name         - "move"
-                        | decl         - "f(double, double)."
-                        | parms        - double, double
-                        | type         - "void"
-                        | sym:symtab   - 0x40194140
-                        |
-                        +++ cdecl ----------------------------------------
-                        | sym:name     - "area"
-                        | name         - "area"
-                        | decl         - "f(void)."
-                        | parms        - void
-                        | storage      - "virtual"
-                        | value        - "0"
-                        | type         - "double"
-                        | sym:symtab   - 0x40194140
-                        |
-                        +++ cdecl ----------------------------------------
-                        | sym:name     - "perimeter"
-                        | name         - "perimeter"
-                        | decl         - "f(void)."
-                        | parms        - void
-                        | storage      - "virtual"
-                        | value        - "0"
-                        | type         - "double"
-                        | sym:symtab   - 0x40194140
-                        |
-                        +++ cdecl ----------------------------------------
-                        | sym:name     - "nshapes"
-                        | name         - "nshapes"
-                        | decl         - ""
-                        | storage      - "static"
-                        | type         - "int"
-                        | sym:symtab   - 0x40194140
-                        |
-                  +++ class ----------------------------------------
-                  | sym:name     - "Circle"
-                  | name         - "Circle"
-                  | kind         - "class"
-                  | bases        - 0x40194510
-                  | symtab       - 0x40194538
-                  | sym:symtab   - 0x40191078
+            +++ access ----------------------------------------
+            | kind         - "private"
+            | 
+            +++ cdecl ----------------------------------------
+            | access       - "private"
+            | decl         - ""
+            | ismember     - "1"
+            | kind         - "variable"
+            | name         - "radius"
+            | type         - "double"
+            | 
+            +++ access ----------------------------------------
+            | kind         - "public"
+            | 
+            +++ constructor ----------------------------------------
+            | access       - "public"
+            | code         - "{ }"
+            | decl         - "f(double)."
+            | feature:new  - "1"
+            | ismember     - "1"
+            | name         - "Circle"
+            | parms        - 'double r'
+            | sym:name     - "Circle"
+            | 
+            +++ cdecl ----------------------------------------
+            | access       - "public"
+            | decl         - "f()."
+            | ismember     - "1"
+            | kind         - "function"
+            | name         - "area"
+            | storage      - "virtual"
+            | sym:name     - "area"
+            | type         - "double"
+            | 
+            +++ cdecl ----------------------------------------
+            | access       - "public"
+            | decl         - "f()."
+            | ismember     - "1"
+            | kind         - "function"
+            | name         - "perimeter"
+            | storage      - "virtual"
+            | sym:name     - "perimeter"
+            | type         - "double"
+            | 
+      +++ class ----------------------------------------
+      | allows_typedef - "1"
+      | baselist     - 0x7f4f15183830
+      | kind         - "class"
+      | name         - "Square"
+      | privatebaselist - 0x7f4f15183870
+      | protectedbaselist - 0x7f4f15183850
+      | sym:name     - "Square"
 
-                        +++ access ----------------------------------------
-                        | kind         - "private"
-                        |
-                        +++ cdecl ----------------------------------------
-                        | name         - "radius"
-                        | decl         - ""
-                        | type         - "double"
-                        |
-                        +++ access ----------------------------------------
-                        | kind         - "public"
-                        |
-                        +++ constructor ----------------------------------------
-                        | sym:name     - "Circle"
-                        | name         - "Circle"
-                        | parms        - double
-                        | decl         - "f(double)."
-                        | code         - "{ }"
-                        | sym:symtab   - 0x40194538
-                        |
-                        +++ cdecl ----------------------------------------
-                        | sym:name     - "area"
-                        | name         - "area"
-                        | decl         - "f(void)."
-                        | parms        - void
-                        | storage      - "virtual"
-                        | type         - "double"
-                        | sym:symtab   - 0x40194538
-                        |
-                        +++ cdecl ----------------------------------------
-                        | sym:name     - "perimeter"
-                        | name         - "perimeter"
-                        | decl         - "f(void)."
-                        | parms        - void
-                        | storage      - "virtual"
-                        | type         - "double"
-                        | sym:symtab   - 0x40194538
-                        |
-                  +++ class ----------------------------------------
-                  | sym:name     - "Square"
-                  | name         - "Square"
-                  | kind         - "class"
-                  | bases        - 0x40194760
-                  | symtab       - 0x40194788
-                  | sym:symtab   - 0x40191078
-
-                        +++ access ----------------------------------------
-                        | kind         - "private"
-                        |
-                        +++ cdecl ----------------------------------------
-                        | name         - "width"
-                        | decl         - ""
-                        | type         - "double"
-                        |
-                        +++ access ----------------------------------------
-                        | kind         - "public"
-                        |
-                        +++ constructor ----------------------------------------
-                        | sym:name     - "Square"
-                        | name         - "Square"
-                        | parms        - double
-                        | decl         - "f(double)."
-                        | code         - "{ }"
-                        | sym:symtab   - 0x40194788
-                        |
-                        +++ cdecl ----------------------------------------
-                        | sym:name     - "area"
-                        | name         - "area"
-                        | decl         - "f(void)."
-                        | parms        - void
-                        | storage      - "virtual"
-                        | type         - "double"
-                        | sym:symtab   - 0x40194788
-                        |
-                        +++ cdecl ----------------------------------------
-                        | sym:name     - "perimeter"
-                        | name         - "perimeter"
-                        | decl         - "f(void)."
-                        | parms        - void
-                        | storage      - "virtual"
-                        | type         - "double"
-                        | sym:symtab   - 0x40194788
+            +++ access ----------------------------------------
+            | kind         - "private"
+            | 
+            +++ cdecl ----------------------------------------
+            | access       - "private"
+            | decl         - ""
+            | ismember     - "1"
+            | kind         - "variable"
+            | name         - "width"
+            | type         - "double"
+            | 
+            +++ access ----------------------------------------
+            | kind         - "public"
+            | 
+            +++ constructor ----------------------------------------
+            | access       - "public"
+            | code         - "{ }"
+            | decl         - "f(double)."
+            | feature:new  - "1"
+            | ismember     - "1"
+            | name         - "Square"
+            | parms        - 'double w'
+            | sym:name     - "Square"
+            | 
+            +++ cdecl ----------------------------------------
+            | access       - "public"
+            | decl         - "f()."
+            | ismember     - "1"
+            | kind         - "function"
+            | name         - "area"
+            | storage      - "virtual"
+            | sym:name     - "area"
+            | type         - "double"
+            | 
+            +++ cdecl ----------------------------------------
+            | access       - "public"
+            | decl         - "f()."
+            | ismember     - "1"
+            | kind         - "function"
+            | name         - "perimeter"
+            | storage      - "virtual"
+            | sym:name     - "perimeter"
+            | type         - "double"
 </pre>
 </div>
 
@@ -698,31 +731,28 @@ The parse tree can be viewed after the final stage of processing by running SWIG
 
 <div class="shell">
 <pre>
-$ swig -debug-top 4 example.i
+$ swig -debug-top 1 -debug-quiet example.i
 ...
             +++ cdecl ----------------------------------------
-            | sym:name     - "foo_i"
-            | name         - "foo"
             | decl         - "f(int)."
+            | name         - "foo"
             | parms        - int
+            | sym:name     - "foo_i"
             | type         - "void"
-            | sym:symtab   - 0x40165078
             |
             +++ cdecl ----------------------------------------
-            | sym:name     - "foo_d"
-            | name         - "foo"
             | decl         - "f(double)."
+            | name         - "foo"
             | parms        - double
+            | sym:name     - "foo_d"
             | type         - "void"
-            | sym:symtab   - 0x40165078
             |
             +++ cdecl ----------------------------------------
-            | sym:name     - "foo"
-            | name         - "foo"
             | decl         - "f(p.Bar)."
+            | name         - "foo"
             | parms        - Bar *
+            | sym:name     - "foo"
             | type         - "void"
-            | sym:symtab   - 0x40165078
 </pre>
 </div>
 
@@ -787,19 +817,18 @@ public:
 The behavior of <tt>%feature</tt> is very easy to describe--it simply
 attaches a new attribute to any parse tree node that matches the
 given prototype.   When a feature is added, it shows up as an attribute in the <tt>feature:</tt> namespace.
-You can see this when running with the <tt>-debug-top 4</tt> option.   For example:
+You can see this when running with the <tt>-debug-top 4 -debug-quiet</tt> option.   For example:
 </p>
 
 <div class="shell">
 <pre>
  +++ cdecl ----------------------------------------
- | sym:name     - "getitem"
- | name         - "getitem"
  | decl         - "f(int).p."
- | parms        - int
- | type         - "Object"
  | feature:except - "{\n    try {\n       $action\n    } catc..."
- | sym:symtab   - 0x40168ac8
+ | name         - "getitem"
+ | parms        - int
+ | sym:name     - "getitem"
+ | type         - "Object"
  |
 </pre>
 </div>
@@ -1130,6 +1159,11 @@ DOH_REPLACE_FIRST     - Replace first occurrence only.
 
 <p>
 Returns the number of replacements made (if any).
+</p>
+
+<p>
+At most one of <tt>DOH_REPLACE_ANY</tt> and <tt>DOH_REPLACE_FIRST</tt> should be specified.
+<tt>DOH_REPLACE_ANY</tt> is the default if neither is specified.
 </p>
 
 </div>
@@ -2802,7 +2836,7 @@ int Python::top(Node *n) {
   f_begin = NewFile(outfile, "w", SWIG_output_files());
   if (!f_begin) {
     FileErrorDisplay(outfile);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
   f_runtime = NewString("");
   f_init = NewString("");
@@ -2986,7 +3020,7 @@ virtual int functionWrapper(Node *n) {
   /* create the wrapper object */
   Wrapper *wrapper = NewWrapper();
 
-  /* create the functions wrappered name */
+  /* create the wrapper function's name */
   String *wname = Swig_name_wrapper(iname);
 
   /* deal with overloading */
@@ -2995,7 +3029,7 @@ virtual int functionWrapper(Node *n) {
   /* write the wrapper function definition */
   Printv(wrapper-&gt;def, "RETURN_TYPE ", wname, "(ARGS) {", NIL);
 
-  /* if any additional local variable needed, add them now */
+  /* if any additional local variables are needed, add them now */
   ...
 
   /* write the list of locals/arguments required */
@@ -3760,6 +3794,7 @@ There are various command line options which can aid debugging a SWIG interface 
 -debug-symbols    - Display target language symbols in the symbol tables
 -debug-csymbols   - Display C symbols in the symbol tables
 -debug-lsymbols   - Display target language layer symbols
+-debug-quiet      - Display less parse tree node debug info when using other -debug options
 -debug-tags       - Display information about the tags found in the interface
 -debug-template   - Display information for debugging templates
 -debug-top &lt;n&gt;    - Display entire parse tree at stages 1-4, &lt;n&gt; is a csv list of stages

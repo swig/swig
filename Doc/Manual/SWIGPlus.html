@@ -1125,7 +1125,7 @@ customization features.
 <p>
  SWIG wraps class members that are public following the C++
  conventions, i.e., by explicit public declaration or by the use of
- the <tt>using</tt> directive. In general, anything specified in a
+ <tt>using</tt> declarations. In general, anything specified in a
  private or protected section will be ignored, although the internal
  code generator sometimes looks at the contents of the private and
  protected sections so that it can properly generate code for default
@@ -2083,7 +2083,6 @@ or for statically typed languages like Java:
 <pre>
 example.i:4: Warning 516: Overloaded method foo(long) ignored,
 example.i:3: Warning 516: using foo(int) instead.
-at example.i:3 used.
 </pre>
 </div>
 
@@ -2330,8 +2329,8 @@ also apply to <tt>%ignore</tt>.  For example:
 <div class="code">
 <pre>
 %ignore foo(double);          // Ignore all foo(double)
-%ignore Spam::foo;            // Ignore foo in class Spam
-%ignore Spam::foo(double);    // Ignore foo(double) in class Spam
+%ignore Spam::foo;            // Ignore foo in class Spam (and foo in any derived classes)
+%ignore Spam::foo(double);    // Ignore foo(double) in class Spam (and foo in any derived classes)
 %ignore *::foo(double);       // Ignore foo(double) in all classes
 </pre>
 </div>
@@ -2385,6 +2384,53 @@ scope qualifier has higher precedence than a parameterized name in
 global scope (e.g., a renaming of <tt>Spam::foo</tt> takes precedence
 over a renaming of <tt>foo(int)</tt>).</p>
 </li>
+
+<li><p>
+Renaming a class member, using an unparameterized but qualified name, such as <tt>Spam::foo</tt>, also applies to members in all derived classes
+that have members with the same name.
+This can be used to simply rename a method, across an entire class hierarchy for all overloaded and non-overloaded methods.
+This also applies to methods introduced via <tt>using</tt> declarations, see
+<a href="#SWIGPlus_nn35">Using declarations and inheritance</a>.
+For example:
+</p>
+
+<div class="code">
+<pre>
+%rename(foo_new) Spam::foo;
+
+class Spam {
+public:
+  virtual void foo(int);      // Renamed to foo_new
+};
+
+class Bar : public Spam {
+public:
+  virtual void foo(int);      // Renamed to foo_new
+  void foo(bool, short, int); // Renamed to foo_new
+};
+
+class Grok : public Bar {
+public:
+  virtual void foo(int);      // Renamed to foo_new
+  void foo(bool, int);        // Renamed to foo_new
+  void foo(const char *);     // Renamed to foo_new
+  void foo(Bar *);            // Renamed to foo_new
+};
+
+class Spok : public Grok {
+public:
+  void foo();                 // Renamed to foo_new
+};
+
+class Knock : public Spok {
+public:
+  using Grok::foo;            // Introduced methods renamed to foo_new
+};
+</pre>
+</div>
+
+</li>
+
 
 <li><p>
 The order in which <tt>%rename</tt> directives are defined does not matter
@@ -3011,22 +3057,24 @@ is expected in an interface file.  For example:
 <div class="code">
 <pre>
 void foo(vector&lt;int&gt; *a, int n);
-void bar(list&lt;int, 100&gt; *x);
+void bar(std::array&lt;int, 100&gt; *x);
 </pre>
 </div>
 
 <p>
 There are some restrictions on the use of non-type arguments.  Simple literals
-are supported, and so are some constant expressions.  However, use of '&lt;'
-and '&gt;' within a constant expressions currently is not supported by SWIG
-('&lt;=' and '&gt;=' are though).  For example:
+are supported, and so are most constant expressions.  However, there are some
+limitations on the use of '&lt;' and '&gt;' in constant expressions (but note
+that '&lt;=' and '&gt;=' are fully supported).  For example:
 </p>
 
 <div class="code">
 <pre>
-void bar(list&lt;int, 100&gt; *x);                // OK
-void bar(list&lt;int, 2*50&gt; *x);               // OK
-void bar(list&lt;int, (2&gt;1 ? 100 : 50)&gt; *x)    // Not supported
+void bar(std::array&lt;int, 100&gt; *x);                // OK
+void bar(std::array&lt;int, 2*50&gt; *x);               // OK
+void bar(std::array&lt;int, (1&lt;2 ? 100 : 50)&gt; *x)    // OK
+void bar(std::array&lt;int, 1&lt;2 ? 100 : 50&gt; *x)      // Not supported
+void bar(std::array&lt;int, (2&gt;1 ? 100 : 50)&gt; *x)    // Not supported
 </pre>
 </div>
 
@@ -4073,23 +4121,23 @@ math::Complex c;
 <p>
 At this level, namespaces are relatively easy to manage.  However, things start to get 
 very ugly when you throw in the other ways a namespace can be used.  For example,
-selective symbols can be exported from a namespace with <tt>using</tt>.
+selective symbols can be exported from a namespace with a <tt>using</tt> declaration:
 </p>
 
 <div class="code">
 <pre>
-using math::Complex;
+using math::Complex;                // Using declaration
 double magnitude(Complex *c);       // Namespace prefix stripped
 </pre>
 </div>
 
 <p>
-Similarly, the contents of an entire namespace can be made available like this:
+Similarly, the contents of an entire namespace can be made available via a <tt>using</tt> directive:
 </p>
 
 <div class="code">
 <pre>
-using namespace math;
+using namespace math;               // Using directive
 double x = sin(1.0);
 double magnitude(Complex *c);
 </pre>
@@ -4246,9 +4294,11 @@ Similarly, <tt>%ignore</tt> can be used to ignore declarations.
 </p>
 
 <p>
-<tt>using</tt> declarations do not have any effect on the generated wrapper
-code. They are ignored by SWIG language modules and they do not result in any
-code.  However, these declarations <em>are</em> used by the internal type
+C++ <tt>using</tt> directives and <tt>using</tt> declarations
+do not add any code to the generated wrapper code.
+However, there is an exception in one context, see <a href="#SWIGPlus_nn35">Using declarations and inheritance</a>
+for introducing members of a base class into a derived class definition.
+C++ <tt>using</tt> declarations and directives <em>are</em> used by the internal type
 system to track type-names. Therefore, if you have code like this:
 </p>
 
@@ -5172,7 +5222,7 @@ exit              # 'a' is released, SWIG unref 'a' called in the destructor wra
 
 
 <p>
-<tt>using</tt> declarations are sometimes used to adjust access to members of
+C++ <tt>using</tt> declarations are sometimes used to introduce members of
 base classes.  For example:
 </p>
 
@@ -5180,7 +5230,7 @@ base classes.  For example:
 <pre>
 class Foo {
 public:
-  int  blah(int x);
+  int blah(int x);
 };
 
 class Bar {
@@ -5228,7 +5278,8 @@ you wrap this code in Python, the module works just like you would expect:
 </div>
 
 <p>
-<tt>using</tt> declarations can also be used to change access when applicable.  For example:
+C++ <tt>using</tt> declarations can also be used to change access when applicable.
+For example, protected methods in a base class can be made public in a derived class:
 </p>
 
 <div class="code">
@@ -5261,15 +5312,15 @@ ignored in a base class, it will also be ignored by a <tt>using</tt> declaration
 
 <p>
 Because a <tt>using</tt> declaration does not provide fine-grained
-control over the declarations that get imported, it may be difficult
+control over the declarations that get imported, because a single <tt>using</tt> declaration
+may introduce multiple methods, it may be difficult
 to manage such declarations in applications that make heavy use of
 SWIG customization features.  If you can't get <tt>using</tt> to work
-correctly, you can always change the interface to the following:
+correctly, you can always modify the C++ code to handle SWIG differently such as:
 </p>
 
 <div class="code">
 <pre>
-
 class FooBar : public Foo, public Bar {
 public:
 #ifndef SWIG
@@ -5286,12 +5337,35 @@ public:
 </div>
 
 <p>
+If the C++ code being wrapped cannot be changed, make judicious usage of <tt>%extend</tt> and <tt>%rename</tt>
+to ignore and unignore declarations. The example below is effectively the same as above:
+</p>
+
+<div class="code">
+<pre>
+%extend FooBar {
+  int blah(int x) { return $self-&gt;Foo::blah(x); }
+  double blah(double x) { return $self-&gt;Bar::blah(x); }
+}
+%ignore FooBar::blah; // ignore all FooBar::blah below
+%rename("") FooBar::blah(const char *x); // parameterized unignore
+
+class FooBar : public Foo, public Bar {
+public:
+  using Foo::blah;
+  using Bar::blah;
+  char *blah(const char *x);
+};
+</pre>
+</div>
+
+<p>
 <b>Notes:</b>
 </p>
 
 <ul>
-<li><p>If a derived class redefines a method defined in a base class, then a <tt>using</tt> declaration
-won't cause a conflict.  For example:</p>
+<li><p>If a derived class introduces a method defined in a base class via a <tt>using</tt> declaration,
+there won't be a conflict due to incorrect additional methods.  For example:</p>
 
 <div class="code">
 <pre>
@@ -5303,14 +5377,14 @@ public:
 
 class Bar : public Foo {
 public:
-  using Foo::blah;    // Only imports blah(double);
+  using Foo::blah;    // Only introduces blah(double);
   int blah(int);
 };
 </pre>
 </div>
 
-<li><p>Resolving ambiguity in overloading may prevent declarations from being
-imported by <tt>using</tt>.  For example:
+<li><p>Renaming methods may prevent methods from being
+introduced into the derived class via <tt>using</tt> declarations.  For example:
 </p>
 
 <div class="code">
@@ -5324,11 +5398,38 @@ public:
 
 class Bar : public Foo {
 public:
-  using Foo::blah;     // Only imports blah(int)
+  using Foo::blah;     // Only introduces blah(int)
   double blah(double x);
 };
 </pre>
 </div>
+
+<p>
+The problem here is <tt>Foo::blah</tt> is renamed to <tt>blah_long</tt> in the target language, but
+the <tt>using</tt> declaration in Bar is not renamed in the target language and thinks all introduced methods should simply
+be called <tt>blah</tt>.
+It is not clear what target language names should be used in Bar and so the conflicting names are effectively ignored
+as they are not introduced into the derived class for the target language wrappers.
+In such situations SWIG will emit a warning:
+</p>
+
+<div class="shell">
+<pre>
+example.i:15: Warning 526: Using declaration Foo::blah, with name 'blah', is not actually using
+example.i:10: Warning 526: the method from Foo::blah(long), with name 'blah_long', as the names are different.
+</pre>
+</div>
+
+<p>
+<b>Compatibility Note:</b>
+This warning message was introduced in SWIG-4.1.0.
+Prior versions also effectively ignored the using declaration for the same reasons, but were silent about it.
+</p>
+
+<p>
+If methods really need different names, please use of combinations of <tt>%rename</tt>, <tt>%ignore</tt> and <tt>%extend</tt> to achieve the desired outcome.
+</p>
+
 </ul>
 
 <H2><a name="SWIGPlus_nested_classes">6.27 Nested classes</a></H2>

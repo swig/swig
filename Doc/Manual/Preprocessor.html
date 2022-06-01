@@ -99,8 +99,23 @@ header files without generating any wrappers.
 <p>
 SWIG fully supports the use of <tt>#if</tt>, <tt>#ifdef</tt>,
 <tt>#ifndef</tt>, <tt>#else</tt>, <tt>#endif</tt> to conditionally
-include parts of an interface.  The following symbols are predefined
-by SWIG when it is parsing the interface:
+include parts of an interface.
+</p>
+
+<p>
+SWIG's preprocessor conditionals support the standard C/C++ preprocessor
+integer expressions.  As a SWIG-specific extension, string equality and
+inequality tests are also supported, for example:
+</p>
+
+<div class="code">
+<pre>
+#if defined __cplusplus &amp;&amp; (#__VA_ARGS__ != "" || #TYPE == "void")
+</pre>
+</div>
+
+<p>
+The following symbols are predefined by SWIG when it is parsing the interface:
 </p>
 
 <div class="code"><pre>
@@ -154,7 +169,6 @@ SWIG_D_VERSION                  Unsigned integer target version when using D
 SWIGGO_CGO                      Defined when using Go for cgo
 SWIGGO_GCCGO                    Defined when using Go for gccgo
 SWIGGO_INTGO_SIZE               Size of the Go type int when using Go (32 or 64)
-SWIGPYTHON_PY3                  Defined when using Python with -py3
 SWIGPYTHON_BUILTIN              Defined when using Python with -builtin
 SWIG_RUBY_AUTORENAME            Defined when using Ruby with -autorename
 </pre></div>

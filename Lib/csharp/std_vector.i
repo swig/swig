@@ -63,7 +63,7 @@
       return (int)capacity();
     }
     set {
-      if (value < size())
+      if (value < 0 || ($typemap(cstype, size_t))value < size())
         throw new global::System.ArgumentOutOfRangeException("Capacity");
       reserve(($typemap(cstype, size_t))value);
     }

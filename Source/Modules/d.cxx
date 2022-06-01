@@ -378,24 +378,24 @@ public:
 
     if (!outfile) {
       Printf(stderr, "Unable to determine outfile\n");
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (directorsEnabled()) {
       if (!outfile_h) {
 	Printf(stderr, "Unable to determine outfile_h\n");
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
 
@@ -518,7 +518,7 @@ public:
       File *im_d_file = NewFile(filen, "w", SWIG_output_files());
       if (!im_d_file) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -549,7 +549,7 @@ public:
       File *proxy_d_file = NewFile(filen, "w", SWIG_output_files());
       if (!proxy_d_file) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -583,7 +583,7 @@ public:
       File *file = NewFile(filename, "w", SWIG_output_files());
       if (!file) {
 	FileErrorDisplay(filename);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Delete(filename);
 
@@ -863,7 +863,7 @@ public:
 	File *class_file = NewFile(filename, "w", SWIG_output_files());
 	if (!class_file) {
 	  FileErrorDisplay(filename);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 	Append(filenames_list, Copy(filename));
 	Delete(filename);
@@ -1335,7 +1335,7 @@ public:
       Delete(output_directory);
       if (!class_file) {
 	FileErrorDisplay(filename);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filename));
       Delete(filename);
@@ -2898,6 +2898,7 @@ private:
       } else {
 	Replaceall(imcall, "$imfuncname", intermediary_function_name);
       }
+      Replaceall(tm, "$imfuncname", intermediary_function_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_D_TYPEMAP_DOUT_UNDEF, input_file, line_number,
@@ -3100,6 +3101,7 @@ private:
       else
 	Replaceall(tm, "$owner", "false");
       replaceClassname(tm, t);
+      Replaceall(tm, "$imfuncname", overloaded_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_D_TYPEMAP_DOUT_UNDEF, input_file, line_number,
@@ -3434,7 +3436,7 @@ private:
       class_file = NewFile(filename, "w", SWIG_output_files());
       if (!class_file) {
 	FileErrorDisplay(filename);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filename));
       Delete(filename);
@@ -3756,7 +3758,7 @@ private:
 	Swig_error(input_file, line_number,
 	  "Class name cannot be equal to intermediary D module name: %s\n",
 	  class_name);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
 
       String *nspace = getNSpace();
@@ -3769,7 +3771,7 @@ private:
 	    Swig_error(input_file, line_number,
 	      "Class name cannot be the same as the root package it is in: %s\n",
 	      class_name);
-	    SWIG_exit(EXIT_FAILURE);
+	    Exit(EXIT_FAILURE);
 	  }
 	  Delete(dotless_package);
 	} else {
@@ -3778,7 +3780,7 @@ private:
 	    Swig_error(input_file, line_number,
 	      "Class name cannot be the same as the outermost namespace it is in: %s\n",
 	      class_name);
-	    SWIG_exit(EXIT_FAILURE);
+	    Exit(EXIT_FAILURE);
 	  }
 	  Delete(outer);
 	}
@@ -3790,7 +3792,7 @@ private:
 	  Swig_error(input_file, line_number,
 	    "Class name cannot be the same as the innermost namespace it is in: %s\n",
 	    class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 	Delete(inner);
       } else {
@@ -3798,7 +3800,7 @@ private:
 	  Swig_error(input_file, line_number,
 	    "Class name cannot be equal to proxy D module name: %s\n",
 	    class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
       }
     }
@@ -4498,7 +4500,7 @@ private:
       if (newdir_error) {
 	Printf(stderr, "%s\n", newdir_error);
 	Delete(newdir_error);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Printv(output_directory, nspace_subdirectory, SWIG_FILE_DELIMITER, 0);
       Delete(nspace_subdirectory);

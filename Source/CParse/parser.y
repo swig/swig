@@ -25,6 +25,15 @@
 %{
 #define yylex yylex
 
+/* doh.h uses #pragma GCC poison with GCC to prevent direct calls to certain
+ * standard C library functions being introduced, but those cause errors due
+ * to checks like `#if defined YYMALLOC || defined malloc` in the bison
+ * template code.  We can't easily arrange to include headers after that
+ * template code, so instead we disable the problematic poisoning for this
+ * file.
+ */
+#define DOH_NO_POISON_MALLOC_FREE
+
 #include "swig.h"
 #include "cparse.h"
 #include "preprocessor.h"
@@ -32,7 +41,10 @@
 
 /* We do this for portability */
 #undef alloca
-#define alloca malloc
+#define alloca Malloc
+
+#define YYMALLOC Malloc
+#define YYFREE Free
 
 /* -----------------------------------------------------------------------------
  *                               Externals
@@ -1678,7 +1690,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
-%type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
+%type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem callparms callptail;
 %type <id>       ename ;
 %type <id>       less_valparms_greater;
 %type <str>      type_qualifier;
@@ -1782,7 +1794,7 @@ declaration    : swig_directive { $$ = $1; }
 		  } else {
 		      Swig_error(cparse_file, cparse_line, "Syntax error in input(1).\n");
 		  }
-		  SWIG_exit(EXIT_FAILURE);
+		  Exit(EXIT_FAILURE);
                }
 /* Out of class constructor/destructor declarations */
                | c_constructor_decl { 
@@ -1863,7 +1875,7 @@ extend_directive : EXTEND options classkeyopt idcolon LBRACE {
 		 } else {
 		   /* Previous typedef class definition.  Use its symbol table.
 		      Deprecated, just the real name should be used. 
-		      Note that %extend before the class typedef never worked, only %extend after the class typdef. */
+		      Note that %extend before the class typedef never worked, only %extend after the class typedef. */
 		   prev_symtab = Swig_symbol_setscope(Getattr(cls, "symtab"));
 		   current_class = cls;
 		   SWIG_WARN_NODE_BEGIN(cls);
@@ -2014,8 +2026,8 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		 $$ = 0;
 	       }
 	       | CONSTANT error END {
-		 Swig_error(cparse_file,cparse_line,"Missing ';' after %%constant.\n");
-		 SWIG_exit(EXIT_FAILURE);
+		 Swig_error(cparse_file,cparse_line,"Missing semicolon (';') after %%constant.\n");
+		 Exit(EXIT_FAILURE);
 	       }
                ;
 
@@ -2723,26 +2735,23 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 /* typemap method type (lang,method) or (method) */
 
 typemap_type   : kwargs {
-		 Hash *p;
-		 String *name;
-		 p = nextSibling($1);
-		 if (p && (!Getattr(p,"value"))) {
- 		   /* this is the deprecated two argument typemap form */
- 		   Swig_warning(WARN_DEPRECATED_TYPEMAP_LANG,cparse_file, cparse_line,
-				"Specifying the language name in %%typemap is deprecated - use #ifdef SWIG<LANG> instead.\n");
-		   /* two argument typemap form */
-		   name = Getattr($1,"name");
-		   if (!name || (Strcmp(name,typemap_lang))) {
-		     $$.method = 0;
-		     $$.kwargs = 0;
-		   } else {
-		     $$.method = Getattr(p,"name");
-		     $$.kwargs = nextSibling(p);
+		 String *name = Getattr($1, "name");
+		 Hash *p = nextSibling($1);
+		 $$.method = name;
+		 $$.kwargs = p;
+		 if (Getattr($1, "value")) {
+		   Swig_error(cparse_file, cparse_line,
+			      "%%typemap method shouldn't have a value specified.\n");
+		 }
+		 while (p) {
+		   if (!Getattr(p, "value")) {
+		     Swig_error(cparse_file, cparse_line,
+				"%%typemap attribute '%s' is missing its value.  If this is specifying the target language, that's no longer supported: use #ifdef SWIG<LANG> instead.\n",
+				Getattr(p, "name"));
+		     /* Set to empty value to avoid segfaults later. */
+		     Setattr(p, "value", NewStringEmpty());
 		   }
-		 } else {
-		   /* one-argument typemap-form */
-		   $$.method = Getattr($1,"name");
-		   $$.kwargs = p;
+		   p = nextSibling(p);
 		 }
                 }
                ;
@@ -3134,13 +3143,22 @@ c_declaration   : c_decl {
 		    Setattr($$,"name",$2);
 		    appendChild($$,n);
 		    while (n) {
-		      if (!Equal(Getattr(n, "storage"), "typedef")) {
+		      String *s = Getattr(n, "storage");
+		      if (s) {
+			if (Strstr(s, "thread_local")) {
+			  Insert(s,0,"externc ");
+			} else if (!Equal(s, "typedef")) {
+			  Setattr(n,"storage","externc");
+			}
+		      } else {
 			Setattr(n,"storage","externc");
 		      }
 		      n = nextSibling(n);
 		    }
 		  } else {
-		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
+		    if (!Equal($2,"C++")) {
+		      Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
+		    }
 		    $$ = new_node("extern");
 		    Setattr($$,"name",$2);
 		    appendChild($$,firstChild($5));
@@ -3362,11 +3380,11 @@ c_decl_tail    : SEMI {
                | error {
 		   $$ = 0;
 		   if (yychar == RPAREN) {
-		       Swig_error(cparse_file, cparse_line, "Unexpected ')'.\n");
+		       Swig_error(cparse_file, cparse_line, "Unexpected closing parenthesis (')').\n");
 		   } else {
-		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon.\n");
+		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon (';').\n");
 		   }
-		   SWIG_exit(EXIT_FAILURE);
+		   Exit(EXIT_FAILURE);
                }
               ;
 
@@ -3660,7 +3678,7 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		    }
 		    if (err) {
 		      Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
-		      SWIG_exit(EXIT_FAILURE);
+		      Exit(EXIT_FAILURE);
 		    }
                 }
                 ;
@@ -4477,7 +4495,6 @@ cpp_using_decl : USING idcolon SEMI {
                   $$ = new_node("using");
 		  Setattr($$,"uname",uname);
 		  Setattr($$,"name", name);
-		  Swig_symbol_add_using(name, uname, $$);
 		  Delete(uname);
 		  Delete(name);
 		  add_symbols($$);
@@ -4653,10 +4670,8 @@ cpp_members  : cpp_member cpp_members {
              | include_directive { $$ = $1; }
              | empty { $$ = 0;}
 	     | error {
-	       int start_line = cparse_line;
-	       skip_decl();
-	       Swig_error(cparse_file,start_line,"Syntax error in input(3).\n");
-	       SWIG_exit(EXIT_FAILURE);
+	       Swig_error(cparse_file,cparse_line,"Syntax error in input(3).\n");
+	       Exit(EXIT_FAILURE);
 	       } cpp_members { 
 		 $$ = $3;
    	     }
@@ -5086,7 +5101,13 @@ extern_string :  EXTERN string {
 
 storage_class  : EXTERN { $$ = "extern"; }
 	       | extern_string { $$ = $1; }
-	       | extern_string THREAD_LOCAL { $$ = "thread_local"; }
+	       | extern_string THREAD_LOCAL {
+                if (Equal($1, "extern")) {
+                  $$ = "extern thread_local";
+                } else {
+                  $$ = "externc thread_local";
+                }
+	       }
 	       | extern_string TYPEDEF { $$ = "typedef"; }
                | STATIC { $$ = "static"; }
                | TYPEDEF { $$ = "typedef"; }
@@ -5253,6 +5274,20 @@ valparm        : parm {
 		  Setattr($$,"value",$1.val);
                }
                ;
+
+callparms      : valexpr callptail {
+		 $$ = $1;
+		 Printf($$.val, "%s", $2);
+	       }
+	       | empty { $$.val = NewStringEmpty(); }
+	       ;
+
+callptail      : COMMA valexpr callptail {
+		 $$.val = NewStringf(",%s%s", $2, $3);
+		 $$.type = 0;
+	       }
+	       | empty { $$.val = NewStringEmpty(); }
+	       ;
 
 def_args       : EQUAL definetype { 
                   $$ = $2; 
@@ -6529,17 +6564,33 @@ exprmem        : ID ARROW ID {
 		 $$.val = NewStringf("%s->%s", $1, $3);
 		 $$.type = 0;
 	       }
+	       | ID ARROW ID LPAREN callparms RPAREN {
+		 $$.val = NewStringf("%s->%s(%s)", $1, $3, $5);
+		 $$.type = 0;
+	       }
 	       | exprmem ARROW ID {
 		 $$ = $1;
 		 Printf($$.val, "->%s", $3);
+	       }
+	       | exprmem ARROW ID LPAREN callparms RPAREN {
+		 $$ = $1;
+		 Printf($$.val, "->%s(%s)", $3, $5);
 	       }
 	       | ID PERIOD ID {
 		 $$.val = NewStringf("%s.%s", $1, $3);
 		 $$.type = 0;
 	       }
+	       | ID PERIOD ID LPAREN callparms RPAREN {
+		 $$.val = NewStringf("%s.%s(%s)", $1, $3, $5);
+		 $$.type = 0;
+	       }
 	       | exprmem PERIOD ID {
 		 $$ = $1;
 		 Printf($$.val, ".%s", $3);
+	       }
+	       | exprmem PERIOD ID LPAREN callparms RPAREN {
+		 $$ = $1;
+		 Printf($$.val, ".%s(%s)", $3, $5);
 	       }
 	       ;
 
@@ -6691,10 +6742,6 @@ valexpr        : exprsimple { $$ = $1; }
                | AND expr {
 		 $$ = $2;
                  $$.val = NewStringf("&%s",$2.val);
-	       }
-               | LAND expr {
-		 $$ = $2;
-                 $$.val = NewStringf("&&%s",$2.val);
 	       }
                | STAR expr {
 		 $$ = $2;

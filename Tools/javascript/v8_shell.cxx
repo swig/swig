@@ -257,7 +257,7 @@ SwigV8ReturnValue V8Shell::Require(const SwigV8Arguments &args) {
 
   if (args.Length() != 1) {
     printf("Illegal arguments for `require`");
-  };
+  }
 
   v8::String::Utf8Value str(args[0]);
   const char *cstr = V8Shell::ToCString(str);

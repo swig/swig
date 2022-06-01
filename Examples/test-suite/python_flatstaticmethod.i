@@ -11,6 +11,10 @@
 %typemap(in) (int c, int d) "$1 = 0; $2 = 0;";
 %typemap(doc,name="hello",type="Tuple") (int c, int d) "hello: int tuple[2]";
 
+%extend A {
+static int staticextended(int i) { return i; }
+}
+
 %inline %{
   struct A {
     static int bar(int a) {

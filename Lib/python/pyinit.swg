@@ -8,6 +8,8 @@
 %fragment("<stddef.h>"); // For offsetof
 #endif
 
+#if defined SWIGPYTHON_FASTPROXY && !defined SWIGPYTHON_BUILTIN
+
 %insert(runtime) %{
 #ifdef __cplusplus
 extern "C" {
@@ -23,6 +25,8 @@ SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyO
 }
 #endif
 %}
+
+#endif
 
 %init %{
 
@@ -103,6 +107,20 @@ SWIG_Python_FixMethods(PyMethodDef *methods, const swig_const_info *const_table,
   }
 } 
 
+#ifdef __cplusplus
+}
+#endif
+
+%}
+
+#if defined SWIGPYTHON_FASTPROXY && !defined SWIGPYTHON_BUILTIN
+
+%init %{
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* -----------------------------------------------------------------------------
  * Method creation and docstring support functions
  * ----------------------------------------------------------------------------- */
@@ -164,6 +182,12 @@ SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyO
 #ifdef __cplusplus
 }
 #endif
+
+%}
+
+#endif
+
+%init %{
 
 /* -----------------------------------------------------------------------------*
  *  Partial Init method
