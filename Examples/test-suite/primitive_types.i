@@ -34,19 +34,19 @@
 
   to the following:
 
-  %typemap(in) const char & ($1_basetype temp),
-             const signed char & ($1_basetype temp),
-             const unsigned char & ($1_basetype temp),
-             const short & ($1_basetype temp),
-             const unsigned short & ($1_basetype temp),
-             const int & ($1_basetype temp),
-             const unsigned int & ($1_basetype temp),
-             const long & ($1_basetype temp),
-             const unsigned long & ($1_basetype temp),
-             const long long & ($1_basetype temp),
-             const float & ($1_basetype temp),
-             const double & ($1_basetype temp)
-  %{ temp = ($1_basetype)$input;  $1 = &temp; %}
+  %typemap(in) const char & ($basetype temp), 
+             const signed char & ($basetype temp), 
+             const unsigned char & ($basetype temp), 
+             const short & ($basetype temp), 
+             const unsigned short & ($basetype temp), 
+             const int & ($basetype temp), 
+             const unsigned int & ($basetype temp), 
+             const long & ($basetype temp), 
+             const unsigned long & ($basetype temp), 
+             const long long & ($basetype temp), 
+             const float & ($basetype temp), 
+             const double & ($basetype temp)
+  %{ temp = ($basetype)$input;  $1 = &temp; %}
 
   the other typical change is to add the enum SWIGTYPE to the
   integer throws typemaps:
