@@ -2455,13 +2455,39 @@ The result is the following expansion
 </pre>
 </div>
 
+<H4><a name="Typemaps_special_macro_typemap_attribute">14.4.4.3 $typemap(method:attribute, typepattern)</a></H4>
+
 <p>
-The first argument, the typemap method, can look up the attribute of a
-typemap by appending a colon and the keyword. For example,
-<tt>$typemap(directorin:descriptor, $type)</tt>  would be replaced by <tt>"D"</tt> if <tt>type</tt> is a <tt>double</tt>.
+An enhanced version of <tt>$typemap</tt> provides access to typemap attributes by
+appending a colon and the attribute name after the attribute name. In the example below,
+"cstype" is the typemap method and "out" is the typemap attribute.
+<p>
+
+<div class="code">
+<pre>
+%typemap(cstype, out="object") XClass "XClass"
+%typemap(cscode) BarClass %{
+  $typemap(cstype:out, XClass) bar()
+  {
+    return null;
+  }
+</pre>
+</div>
+<p>
+which expands to
 </p>
+<div class="code">
+<pre>
+  object bar()
+  {
+    return null;
+  }
+</pre>
+</div>
+
 <p>
-<em>New in SWIG 4.1.</em>
+<b>Compatibility note: </b> Support for typemap attributes in <tt>$typemap</tt>
+was introduced in SWIG-4.1.0.
 </p>
 
 <H3><a name="Typemaps_special_variable_attributes">14.4.5 Special variables and typemap attributes</a></H3>
