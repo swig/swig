@@ -224,7 +224,6 @@ CPP_TEST_CASES += \
 	disown \
 	dynamic_cast \
 	empty \
-	enum_callback \
 	enum_ignore \
 	enum_plus \
 	enum_rename \
