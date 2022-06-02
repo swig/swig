@@ -104,11 +104,13 @@ SWIGEXPORT const char* SWIG_FORTRAN_ERROR_STR() {
 #ifdef __cplusplus
 
 %fragment("<string>");
-%fragment("<cctype>");
 %fragment("<stdexcept>");
 
 %insert("header") {
 extern "C" {
+
+#include <cctype>
+
 // Call this function before any new action
 SWIGEXPORT void SWIG_check_unhandled_exception_impl(const char* decl) {
   if (SWIG_FORTRAN_ERROR_INT != 0) {

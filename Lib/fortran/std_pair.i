@@ -2,7 +2,9 @@
  * std_pair.i
  * ------------------------------------------------------------------------- */
 
-%fragment("<utility>");
+%{
+#include <utility>
+%}
 
 namespace std {
 
