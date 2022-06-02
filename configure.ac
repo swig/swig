@@ -325,7 +325,7 @@ if test x"$enable_cpp11_testing" = xyes; then
       AC_MSG_RESULT([yes])
       PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
       HAVE_CXX11="1"
-  else
+    else
       AC_MSG_RESULT([no])
 
       # Test for c++11
@@ -2660,11 +2660,18 @@ else
   esac
 fi
 
+# Do not prefix library file names with "lib" on Windows.
+case $host in
+*-*-cygwin* | *-*-mingw*) FORTRANLIBPREFIX="";;
+*)FORTRANLIBPREFIX="lib";;
+esac
+
 AC_SUBST(FC)
 AC_SUBST(FCFLAGS)
 AC_SUBST(FCLIBS)
 AC_SUBST(FORTRANLDSHARED)
 AC_SUBST(FORTRANCXXSHARED)
+AC_SUBST(FORTRANLIBPREFIX)
 
 
 #----------------------------------------------------------------

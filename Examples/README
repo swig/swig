@@ -27,7 +27,7 @@ the rules of thumb for making C++ work:
 
          ld -G $(OBJS) -L/opt/SUNWspro/lib -lCrun -o module.so
 
-    This can be set by modifying the setting of CXX_DLLIBS in the
+    This can be set by modifying the setting of CPP_DLLIBS in the
     Makefile.
 
 
