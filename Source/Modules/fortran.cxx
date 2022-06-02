@@ -2869,7 +2869,8 @@ int FORTRAN::enumDeclaration(Node *n) {
   }
 
   if (!fsymtab) {
-    fsymtab = NewHash();
+    // Use module scope
+    fsymtab = this->symbolScopeLookup(NULL);
   }
   if (fsymname) {
     String *lower_fsymname = Swig_string_lower(fsymname);
