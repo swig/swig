@@ -39,10 +39,13 @@ struct NameWrap {
 private:
   Name name;
 };
+
+// Global variable for testing whether examplekw was touched
+int accessed_examplekw = 0;
 %}
 
 // check $1 and $input get expanded properly when used from $typemap()
-%typemap(in) Name *GENERIC ($*1_type temp)
+%typemap(in, examplekw="accessed_examplekw=1;") Name *GENERIC ($*1_type temp)
 %{
   /*%typemap(in) Name *GENERIC start */
   temp = Name("$specialname");
@@ -80,6 +83,7 @@ static const char *nameDescriptor = "$descriptor(Name)";
 %typemap(in) Name *jack {
 // %typemap(in) Name *jack start
 $typemap(in, Name *GENERIC)
+$typemap(in:examplekw, Name *GENERIC)
 // %typemap(in) Name *jack end
 }
 

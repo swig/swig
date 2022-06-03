@@ -511,7 +511,12 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
   if (sm) {
     /* Got a typemap.  Need to only merge attributes for methods that match our signature */
     Iterator ki;
+    Hash *deferred_add;
     match = 1;
+
+    /* Since typemap_register can modify the `sm` hash, we *cannot* call typemap_register while iterating over sm. 
+     * Create a temporary hash of typemaps to add immediately after. */
+    deferred_add = NewHash();
     for (ki = First(sm); ki.key; ki = Next(ki)) {
       /* Check for a signature match with the source signature */
       if ((count_args(ki.key) == narg) && (Strstr(ki.key, ssig))) {
@@ -521,34 +526,36 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
 	Replace(nkey, ssig, dsig, DOH_REPLACE_ANY);
 
 	/* Make sure the typemap doesn't already exist in the target map */
-
 	oldm = Getattr(tm, nkey);
 	if (!oldm || (!Getattr(tm, "code"))) {
 	  String *code;
-	  ParmList *locals;
-	  ParmList *kwargs;
 	  Hash *sm1 = ki.item;
 
 	  code = Getattr(sm1, "code");
-	  locals = Getattr(sm1, "locals");
-	  kwargs = Getattr(sm1, "kwargs");
 	  if (code) {
-	    String *src_str = ParmList_str_multibrackets(src);
-	    String *dest_str = ParmList_str_multibrackets(dest);
-	    String *source_directive = NewStringf("apply %s { %s }", src_str, dest_str);
-
 	    Replace(nkey, dsig, "", DOH_REPLACE_ANY);
 	    Replace(nkey, "tmap:", "", DOH_REPLACE_ANY);
-	    typemap_register(nkey, dest, code, locals, kwargs, source_directive);
-
-	    Delete(source_directive);
-	    Delete(dest_str);
-	    Delete(src_str);
+	    Setattr(deferred_add, nkey, sm1);
 	  }
 	}
 	Delete(nkey);
       }
     }
+
+    /* After assembling the key/item pairs, add the resulting typemaps */
+    for (ki = First(deferred_add); ki.key; ki = Next(ki)) {
+      Hash *sm1 = ki.item;
+      String *src_str = ParmList_str_multibrackets(src);
+      String *dest_str = ParmList_str_multibrackets(dest);
+      String *source_directive = NewStringf("apply %s { %s }", src_str, dest_str);
+
+      typemap_register(ki.key, dest, Getattr(sm1, "code"), Getattr(sm1, "locals"), Getattr(sm1, "kwargs"), source_directive);
+
+      Delete(source_directive);
+      Delete(dest_str);
+      Delete(src_str);
+    }
+    Delete(deferred_add);
   }
   Delete(ssig);
   Delete(dsig);
@@ -2084,6 +2091,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	  Printf(stdout, "Swig_typemap_attach_parms:  embedded\n");
 #endif
 	  if (already_substituting < 10) {
+	    char* found_colon;
 	    already_substituting++;
 	    if ((in_typemap_search_multi == 0) && typemap_search_debug) {
 	      String *dtypemap = NewString(dollar_typemap);
@@ -2091,7 +2099,15 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	      Printf(stdout, "  Containing: %s\n", dtypemap);
 	      Delete(dtypemap);
 	    }
-	    Swig_typemap_attach_parms(tmap_method, to_match_parms, f);
+	    found_colon = Strchr(tmap_method, ':');
+	    if (found_colon) {
+	      /* Substitute from a keyword argument to a typemap. Avoid emitting local variables from the attached typemap by passing NULL for the file. */
+	      String *temp_tmap_method = NewStringWithSize(Char(tmap_method), found_colon - Char(tmap_method));
+	      Swig_typemap_attach_parms(temp_tmap_method, to_match_parms, NULL);
+	      Delete(temp_tmap_method);
+	    } else {
+	      Swig_typemap_attach_parms(tmap_method, to_match_parms, f);
+	    }
 	    already_substituting--;
 
 	    /* Look for the typemap code */
