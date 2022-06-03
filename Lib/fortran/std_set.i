@@ -15,7 +15,7 @@ public:
   // Typedefs
   typedef _Key value_type;
   typedef _Key key_type;
-  typedef std::size_t size_type;
+  typedef size_t size_type;
   typedef ptrdiff_t difference_type;
   typedef value_type *pointer;
   typedef const value_type *const_pointer;
