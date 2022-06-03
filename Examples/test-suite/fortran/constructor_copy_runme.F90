@@ -13,7 +13,7 @@ subroutine test_assignment
   use constructor_copy
   use ISO_C_BINDING
   implicit none
-  type(Bari) :: a, b, c
+  type(Bari) :: a, b
 
   ASSERT(.not. c_associated(a%swigdata%cptr))
   ASSERT(a%swigdata%cmemflags == 0)
