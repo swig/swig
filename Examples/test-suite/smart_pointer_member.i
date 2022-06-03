@@ -18,7 +18,7 @@
 
     friend int foo(Foo* foo) { return 0;}
   };
-
+  
   class Bar {
     Foo *f;
   public:
@@ -39,13 +39,13 @@
     }
   };
 
-
-  int get_y(Bar *b)
+  
+  int get_y(Bar *b) 
   {
     return (*b)->y;
   }
-
-  int get_z(Bar *b)
+  
+  int get_z(Bar *b) 
   {
     return (*b)->z;
   }

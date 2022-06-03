@@ -512,9 +512,8 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
     /* Got a typemap.  Need to only merge attributes for methods that match our signature */
     Iterator ki;
     Hash *deferred_add;
-    
     match = 1;
-    
+
     /* Since typemap_register can modify the `sm` hash, we *cannot* call typemap_register while iterating over sm. 
      * Create a temporary hash of typemaps to add immediately after. */
     deferred_add = NewHash();
@@ -525,7 +524,7 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
 	/* A typemap we have to copy */
 	String *nkey = Copy(ki.key);
 	Replace(nkey, ssig, dsig, DOH_REPLACE_ANY);
-        
+
 	/* Make sure the typemap doesn't already exist in the target map */
 	oldm = Getattr(tm, nkey);
 	if (!oldm || (!Getattr(tm, "code"))) {

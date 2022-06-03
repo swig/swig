@@ -65,6 +65,7 @@ TARGETSUFFIX =
 SWIGOPT    = -outcurrentdir -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 INCLUDES   = -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 LIBS       = -L.
+LIBPREFIX  = lib
 ACTION     = check
 INTERFACEDIR = ../
 SRCDIR     = $(srcdir)/

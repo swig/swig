@@ -6,3 +6,4 @@ def check(flag):
 
 four = double_an_int(2)
 check(four == 4)
+

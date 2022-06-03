@@ -68,7 +68,7 @@ public:
 
 /* This class does not get a default constructor */
 class DD: public D {
-
+	
 };
 
 /* No default constructor.  A is okay, but D is not */
@@ -101,7 +101,7 @@ public:
    void foo(int, int) { }
    friend void bar(F *);
    void destroy() { delete this; }
-
+    
 };
 
 void bar(F *) { }
@@ -111,7 +111,7 @@ void bar(F *) { }
 #endif
 
 // Single inheritance, base has private destructor
-class FFF : public F {
+class FFF : public F { 
 };
 
 // Multiple inheritance, one base has private destructor
@@ -133,11 +133,11 @@ public:
   static void destroy(G *g) { delete g; }
 };
 
-class GG : public G {
+class GG : public G { 
 };
 
 template <class T>
-class HH_T
+class HH_T 
 {
 
 
@@ -146,16 +146,16 @@ public:
   HH_T(int i,int j)
   {
   }
-
+  
 
 protected:
   HH_T();
-
+  
 };
-
-
+ 
+ 
 %}
-
+ 
 
 %template(HH) HH_T<int>;
 
@@ -172,7 +172,7 @@ protected:
 // It's unclear to me what this typedef is trying to do. The result compiles
 // with Python but does not compile in Fortran. The OSRSpatialReferenceShadow
 // class is untested in any language.
-typedef void OSRSpatialReferenceShadow;
+typedef void OSRSpatialReferenceShadow; 
 #endif
 
 class OSRSpatialReferenceShadow {
@@ -182,7 +182,7 @@ public:
     OSRSpatialReferenceShadow( char const * wkt = "" ) {
       return 0;
     }
-  }
+  } 
 };
 
 %inline %{
@@ -192,4 +192,4 @@ bool is_python_builtin() { return true; }
 bool is_python_builtin() { return false; }
 #endif
 %}
-
+  

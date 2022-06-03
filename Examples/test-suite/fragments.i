@@ -6,7 +6,7 @@
 int foobar(int a)
 {
   return a;
-}
+}  
 %}
 
 /*
@@ -18,7 +18,7 @@ int foobar(int a)
 int bar(int a)
 {
   return foobar(a);
-}
+}  
 %}
 
 %typemap(in,fragment="Hi") int hola "$1 = 123;";
@@ -28,7 +28,7 @@ int bar(int a)
 
 int bar(int a);
 
-int foo(int hola)
+int foo(int hola) 
 {
   return bar(hola);
 }

@@ -3,7 +3,6 @@ This test case tests that various types of arrays are working.
 */
 
 %module arrays
-
 %{
 #include <stdlib.h>
 %}
@@ -11,7 +10,6 @@ This test case tests that various types of arrays are working.
 #if defined(SWIGSCILAB)
 %rename(ArrSt) ArrayStruct;
 #endif
-
 
 %inline %{
 #define ARRAY_LEN 2
@@ -79,11 +77,10 @@ void array_pointer_func(int (*x)[10]) {}
 %inline %{
 typedef float FLOAT;
 
-typedef FLOAT cartPosition_t[3];
+typedef FLOAT cartPosition_t[3]; 
 
 typedef struct {
 cartPosition_t p;
 } CartPoseData_t;
 
 %}
-

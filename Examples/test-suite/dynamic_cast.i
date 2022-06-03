@@ -19,7 +19,7 @@
 class Foo {
 public:
   virtual ~Foo() { }
-
+  
   virtual Foo *blah() {
     return this;
   }

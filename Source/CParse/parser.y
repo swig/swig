@@ -4392,9 +4392,9 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 
 		/* Function template explicit instantiation definition */
 		| TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
-		  Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
+			Swig_warning(WARN_PARSE_EXPLICIT_TEMPLATE, cparse_file, cparse_line, "Explicit template instantiation ignored.\n");
                   $$ = 0; 
-                }
+		}
 
 		/* Class template explicit instantiation declaration (extern template) */
 		| EXTERN TEMPLATE cpptype idcolon {
@@ -4407,7 +4407,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
                   $$ = 0; 
 		}
-                ;
+		;
 
 cpp_template_possible:  c_decl {
 		  $$ = $1;
@@ -4927,7 +4927,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		if ($7.val) {
 		  Setattr($$,"value",$7.val);
 		}
-		 Setattr($$,"refqualifier",$7.refqualifier);
+		Setattr($$,"refqualifier",$7.refqualifier);
 		Setattr($$,"decl",t);
 		Setattr($$,"parms",$5);
 		Setattr($$,"conversion_operator","1");
@@ -5049,7 +5049,7 @@ cpp_vend       : cpp_const SEMI {
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
-                     $$.nexcept = $1.nexcept; 
+                     $$.nexcept = $1.nexcept;
                      $$.final = $1.final;
                }
                | cpp_const LBRACE { 
@@ -5060,7 +5060,7 @@ cpp_vend       : cpp_const SEMI {
                      $$.bitfield = 0;
                      $$.throws = $1.throws; 
                      $$.throwf = $1.throwf; 
-                     $$.nexcept = $1.nexcept; 
+                     $$.nexcept = $1.nexcept;
                      $$.final = $1.final;
                }
                ;
@@ -6446,7 +6446,7 @@ constant_directives : constant_directive
 optional_ignored_defines
 		: constant_directives
 		| empty
-		           ;
+		;
 
 /* Enum lists - any #define macros (constant directives) within the enum list are ignored. Trailing commas accepted. */
 
@@ -6457,13 +6457,13 @@ optional_ignored_defines
 
 enumlist	: enumlist_item {
 		  Setattr($1,"_last",$1);
-		 $$ = $1;
-	       }
+		  $$ = $1;
+		}
 		| enumlist_item DOXYGENPOSTSTRING {
 		  Setattr($1,"_last",$1);
 		  set_comment($1, $2);
-		 $$ = $1;
-	       }
+		  $$ = $1;
+		}
 		| enumlist_item COMMA enumlist {
 		  if ($3) {
 		    set_nextSibling($1, $3);
@@ -6471,7 +6471,7 @@ enumlist	: enumlist_item {
 		    Setattr($3,"_last",NULL);
 		  } else {
 		    Setattr($1,"_last",$1);
-		}
+		  }
 		  $$ = $1;
 		}
 		| enumlist_item COMMA DOXYGENPOSTSTRING enumlist {
@@ -6481,7 +6481,7 @@ enumlist	: enumlist_item {
 		    Setattr($4,"_last",NULL);
 		  } else {
 		    Setattr($1,"_last",$1);
-	       }
+		  }
 		  set_comment($1, $3);
 		  $$ = $1;
 		}
@@ -6502,7 +6502,7 @@ edecl_with_dox	: edecl {
 		  $$ = $2;
 		  set_comment($2, $1);
 		}
-	       ;
+		;
 
 edecl          :  identifier {
 		   SwigType *type = NewSwigType(T_INT);
@@ -6633,7 +6633,7 @@ exprsimple     : exprnum {
 	       | SIZEOF exprsimple {
 		  $$.val = NewStringf("sizeof(%s)", $2.val);
 		  $$.type = T_ULONG;
-               }
+	       }
 	       | wstring {
 		    $$.val = $1;
 		    $$.rawval = NewStringf("L\"%s\"", $$.val);
@@ -6747,7 +6747,7 @@ valexpr        : exprsimple { $$ = $1; }
 		 $$ = $2;
                  $$.val = NewStringf("*%s",$2.val);
 	       }
-               ;
+	       ;
 
 exprnum        :  NUM_INT { $$ = $1; }
                |  NUM_FLOAT { $$ = $1; }

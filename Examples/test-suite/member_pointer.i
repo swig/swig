@@ -17,7 +17,7 @@ public:
   virtual ~Shape() {
     nshapes--;
   };
-  double  x, y;
+  double  x, y;   
   double  *z;
 
   void    move(double dx, double dy);
@@ -34,7 +34,7 @@ public:
   virtual double area(void);
   virtual double perimeter(void);
 };
-
+  
 class Square : public Shape {
 private:
   double width;

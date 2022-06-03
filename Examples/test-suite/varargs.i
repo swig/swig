@@ -8,10 +8,6 @@
 #include <string.h>
 %}
 
-%{
-#include <string.h>
-%}
-
 %inline %{
 char *test(const char *fmt, ...) {
   return (char *) fmt;

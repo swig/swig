@@ -1084,7 +1084,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
      */
     if (code) {
       if (Getattr(n, "sym:overloaded")) {
-      Append(mangled, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
+	Append(mangled, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
       } else {
 	Append(mangled, "__SWIG");
       }
