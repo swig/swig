@@ -14,8 +14,8 @@
 namespace std
 {
 #endif
-typedef unsigned long size_t;
-typedef long ptrdiff_t;
+typedef unsigned long long size_t;
+typedef long long ptrdiff_t;
 #ifdef __cplusplus
 }
 using std::size_t;
