@@ -536,10 +536,10 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
 	  if (code) {
 	    Replace(nkey, dsig, "", DOH_REPLACE_ANY);
 	    Replace(nkey, "tmap:", "", DOH_REPLACE_ANY);
-            Setattr(deferred_add, nkey, sm1);
-          }
-          Delete(nkey);
-        }
+	    Setattr(deferred_add, nkey, sm1);
+	  }
+	}
+	Delete(nkey);
       }
     }
 
@@ -2100,10 +2100,11 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	      Printf(stdout, "  Containing: %s\n", dtypemap);
 	      Delete(dtypemap);
 	    }
-	    found_colon = Strstr(tmap_method, ":");
+	    found_colon = Strchr(tmap_method, ':');
 	    if (found_colon) {
+	      /* Substitute from a keyword argument to a typemap. Avoid emitting local variables from the attached typemap by passing NULL for the file. */
 	      String *temp_tmap_method = NewStringWithSize(Char(tmap_method), found_colon - Char(tmap_method));
-	      Swig_typemap_attach_parms(temp_tmap_method, to_match_parms, f);
+	      Swig_typemap_attach_parms(temp_tmap_method, to_match_parms, NULL);
 	      Delete(temp_tmap_method);
 	    } else {
 	      Swig_typemap_attach_parms(tmap_method, to_match_parms, f);
