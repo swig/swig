@@ -10,18 +10,6 @@
 
 %include <typemaps/swigmacros.swg>
 
-#ifdef __cplusplus
-namespace std
-{
-#endif
-typedef unsigned long long size_t;
-typedef long long ptrdiff_t;
-#ifdef __cplusplus
-}
-using std::size_t;
-using std::ptrdiff_t;
-#endif
-
 /* -------------------------------------------------------------------------
  * FRAGMENTS
  * ------------------------------------------------------------------------- */
