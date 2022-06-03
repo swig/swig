@@ -512,9 +512,8 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
     /* Got a typemap.  Need to only merge attributes for methods that match our signature */
     Iterator ki;
     Hash *deferred_add;
-    
     match = 1;
-    
+
     /* Since typemap_register can modify the `sm` hash, we *cannot* call typemap_register while iterating over sm. 
      * Create a temporary hash of typemaps to add immediately after. */
     deferred_add = NewHash();
@@ -525,7 +524,7 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
 	/* A typemap we have to copy */
 	String *nkey = Copy(ki.key);
 	Replace(nkey, ssig, dsig, DOH_REPLACE_ANY);
-        
+
 	/* Make sure the typemap doesn't already exist in the target map */
 	oldm = Getattr(tm, nkey);
 	if (!oldm || (!Getattr(tm, "code"))) {
@@ -536,10 +535,10 @@ int Swig_typemap_apply(ParmList *src, ParmList *dest) {
 	  if (code) {
 	    Replace(nkey, dsig, "", DOH_REPLACE_ANY);
 	    Replace(nkey, "tmap:", "", DOH_REPLACE_ANY);
-            Setattr(deferred_add, nkey, sm1);
-          }
-          Delete(nkey);
-        }
+	    Setattr(deferred_add, nkey, sm1);
+	  }
+	}
+	Delete(nkey);
       }
     }
 
@@ -1286,7 +1285,7 @@ static void typemap_merge_fragment_kwargs(Parm *kw) {
 	fragment = thisfragment;
 	prev_kw = kw;
       } else {
-	/* Concatentate to previously found fragment */
+	/* Concatenate to previously found fragment */
 	Printv(fragment, ",", thisfragment, NULL);
 	reattach_kw = prev_kw;
       }
@@ -1451,7 +1450,6 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
      * ie, not use the typemap code, otherwise both f and actioncode must be non null. */
     if (actioncode) {
       const String *result_equals = NewStringf("%s = ", Swig_cresult_name());
-      clname = Copy(actioncode);
       /* check that the code in the typemap can be used in this optimal way.
        * The code should be in the form "result = ...;\n". We need to extract
        * the "..." part. This may not be possible for various reasons, eg
@@ -1459,22 +1457,17 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
        * hack and circumvents the normal requirement for a temporary variable 
        * to hold the result returned from a wrapped function call.
        */
-      if (Strncmp(clname, result_equals, 9) == 0) {
-        int numreplacements = Replace(clname, result_equals, "", DOH_REPLACE_ID_BEGIN);
-        if (numreplacements == 1) {
-          numreplacements = Replace(clname, ";\n", "", DOH_REPLACE_ID_END);
-          if (numreplacements == 1) {
-            if (Strchr(clname, ';') == 0) {
-              lname = clname;
-              actioncode = 0;
-              optimal_substitution = 1;
-            }
-          }
-        }
-      }
-      if (!optimal_substitution) {
+      if (Strncmp(actioncode, result_equals, Len(result_equals)) == 0 &&
+	  Strchr(actioncode, ';') == Char(actioncode) + Len(actioncode) - 2 &&
+	  Char(actioncode)[Len(actioncode) - 1] == '\n') {
+	clname = NewStringWithSize(Char(actioncode) + Len(result_equals),
+				   Len(actioncode) - Len(result_equals) - 2);
+	lname = clname;
+	actioncode = 0;
+	optimal_substitution = 1;
+      } else {
 	Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(node), Getline(node), "Method %s usage of the optimal attribute ignored\n", Swig_name_decl(node));
-	Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(s), Getline(s), "in the out typemap as the following cannot be used to generate optimal code: %s\n", clname);
+	Swig_warning(WARN_TYPEMAP_OUT_OPTIMAL_IGNORED, Getfile(s), Getline(s), "in the out typemap as the following cannot be used to generate optimal code: %s\n", actioncode);
 	delete_optimal_attribute = 1;
       }
     } else {
@@ -2106,10 +2099,11 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	      Printf(stdout, "  Containing: %s\n", dtypemap);
 	      Delete(dtypemap);
 	    }
-	    found_colon = Strstr(tmap_method, ":");
+	    found_colon = Strchr(tmap_method, ':');
 	    if (found_colon) {
+	      /* Substitute from a keyword argument to a typemap. Avoid emitting local variables from the attached typemap by passing NULL for the file. */
 	      String *temp_tmap_method = NewStringWithSize(Char(tmap_method), found_colon - Char(tmap_method));
-	      Swig_typemap_attach_parms(temp_tmap_method, to_match_parms, f);
+	      Swig_typemap_attach_parms(temp_tmap_method, to_match_parms, NULL);
 	      Delete(temp_tmap_method);
 	    } else {
 	      Swig_typemap_attach_parms(tmap_method, to_match_parms, f);

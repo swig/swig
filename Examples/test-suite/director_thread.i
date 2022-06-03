@@ -104,7 +104,7 @@ extern "C" {
 %#endif
       MilliSecondSleep(500);
     }
-    
+
     void setThreadName() {
 %#ifdef _WIN32
 %#else

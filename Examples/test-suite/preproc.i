@@ -11,6 +11,22 @@
 #pragma SWIG nowarn=890                                      /* lots of Go name conflicts */
 #pragma SWIG nowarn=206                                      /* Unexpected tokens after #endif directive. */
 
+/* Regression test: in SWIG < 4.1.0 this triggered the two #error cases.
+ * Github issue #1384
+ */
+#if "" != ""
+#endif
+#if 1 && (!0)
+// Should go here
+#else
+# error BUG
+#endif
+#if ((("" == ""))) || (1 && (!1))
+// Should go here
+#else
+# error BUG
+#endif
+
 %{
 #if defined(__clang__)
 /*Suppress: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]*/

@@ -19,6 +19,7 @@
 
 %define %_typemap_string(StringCode, 
 			 Char,
+			 WarningLeakMsg,
 			 SWIG_AsCharPtrAndSize,
 			 SWIG_FromCharPtrAndSize,
 			 SWIG_CharPtrLen,
@@ -86,7 +87,7 @@
   }
 }
 
-%typemap(varin,fragment=#SWIG_AsCharPtrAndSize,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const Char * {
+%typemap(varin,fragment=#SWIG_AsCharPtrAndSize,warning=WarningLeakMsg) const Char * {
   Char *cptr = 0; size_t csize = 0; int alloc = SWIG_NEWOBJ;
   int res = SWIG_AsCharPtrAndSize($input, &cptr, &csize, &alloc);
   if (!SWIG_IsOK(res)) {
@@ -117,7 +118,7 @@
   }
 }
 
-%typemap(memberin,noblock=1,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const Char * {
+%typemap(memberin,noblock=1,warning=WarningLeakMsg) const Char * {
   if ($input) {
     size_t size = SWIG_CharPtrLen(%reinterpret_cast(%reinterpret_cast($input, const Char *), const Char *)) + 1;
     $1 = ($1_type)SWIG_NewCopyCharArray($input, size, Char);
@@ -138,7 +139,7 @@
   }
 }
 
-%typemap(globalin,noblock=1,warning=SWIGWARN_TYPEMAP_CHARLEAK_MSG) const Char * {
+%typemap(globalin,noblock=1,warning=WarningLeakMsg) const Char * {
   if ($input) {
     size_t size = SWIG_CharPtrLen($input) + 1;
     $1 = ($1_type)SWIG_NewCopyCharArray($input, size, Char);
@@ -501,6 +502,7 @@
 
 #ifndef %_typemap2_string
 %define %_typemap2_string(StringCode, CharCode,
+			 WarningLeakMsg,
 			 Char, CharName,
 			 SWIG_AsCharPtrAndSize,
 			 SWIG_FromCharPtrAndSize,
@@ -591,6 +593,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 
 %_typemap_string(StringCode, 
 		 Char,
+		 WarningLeakMsg,
 		 SWIG_AsCharPtrAndSize,
 		 SWIG_FromCharPtrAndSize,
 		 SWIG_CharPtrLen,
@@ -609,6 +612,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
  * ------------------------------------------------------------ */
 
 %define %typemaps_string(StringCode, CharCode,
+			 WarningLeakMsg,
 			 Char, CharName,
 			 SWIG_AsCharPtrAndSize,
 			 SWIG_FromCharPtrAndSize,
@@ -616,6 +620,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 			 SWIG_CharBufLen,
 			 FragLimits, CHAR_MIN, CHAR_MAX)
 %_typemap2_string(StringCode, CharCode,
+		  WarningLeakMsg,
 		  Char, CharName,
 		  SWIG_AsCharPtrAndSize,
 		  SWIG_FromCharPtrAndSize,
@@ -631,6 +636,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
  * ------------------------------------------------------------ */
 
 %define %typemaps_string_alloc(StringCode, CharCode,
+			       WarningLeakMsg,
 			       Char, CharName,
 			       SWIG_AsCharPtrAndSize,
 			       SWIG_FromCharPtrAndSize,
@@ -640,6 +646,7 @@ SWIG_AsVal_dec(Char)(SWIG_Object obj, Char *val)
 			       SWIG_DeleteCharArray,
 			       FragLimits, CHAR_MIN, CHAR_MAX)
 %_typemap2_string(StringCode, CharCode,
+		  WarningLeakMsg,
 		  Char, CharName,
 		  SWIG_AsCharPtrAndSize,
 		  SWIG_FromCharPtrAndSize,

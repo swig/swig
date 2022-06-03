@@ -1,0 +1,2 @@
+cpp_using_declaration_overload.i:7: Warning 512: Overloaded method Derived::m(bool) const ignored,
+cpp_using_declaration_overload.i:8: Warning 512: using non-const method Derived::m(bool) instead.

@@ -7,6 +7,463 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-05-30: wsfulton
+            [C#, D] Add new special variable expansion: $imfuncname.
+            Expands to the function name called in the intermediary class.
+
+2022-05-30: LindleyF
+            [Java] #2042 Add new special variable expansion: $imfuncname.
+            Expands to the function name called in the intermediary class.
+
+2022-05-28: jkuebart
+            [Java] On some versions of Android, specifically Android 6,
+            detaching the current thread from the JVM after every invocation
+            causes a memory leak.
+
+            Offer SWIG_JAVA_DETACH_ON_THREAD_END to configure a behaviour
+            where the JVM is only detached in the thread destructor.
+
+            See https://developer.android.com/training/articles/perf-jni#threads.
+
+2022-05-27: xypron
+            [Python] #2277 Define PY_SSIZE_T_CLEAN macro before #include "Python.h" as
+            recommended in Python 3.7 and later.
+
+            To avoid this macro definition, add the following to your interface file so
+            that SWIG_NO_PY_SSIZE_T_CLEAN is defined at the beginning of the C++ wrappers:
+
+              %begin %{
+              #define SWIG_NO_PY_SSIZE_T_CLEAN
+              %}
+
+2022-05-26: rokups
+            [C#] #1323 Modify SwigDerivedClassHasMethod for a more efficient director
+            implementation when calling virtual methods that are not overidden.
+
+2022-05-15: erezgeva, eiselekd
+            [Lua, Perl, Octave, PHP, Tcl] #2275 #2276 #2283 Add argcargv.i library containing
+            (int ARGC, char **ARGV) multi-argument typemaps.
+
+            Document this library in Typemaps.html.
+
+2022-05-07: KrisThielemans
+            [Python] Fix "too many initializers for 'PyHeapTypeObject'" errors
+            using PyPy 3.8 and later.
+
+2022-05-04: wsfulton
+            [C#] Add C# wchar_t * director typemaps
+
+2022-04-20: cminyard
+	    Fix an issue where newlines were not properly generated
+	    for godirectorin typemaps.  If you have a virtual function
+	    not assigned to zero, in some cases it won't generate a
+	    newline and you will see errors:
+	      example.go:1508:3: expected ';', found swig_r
+	    when compiling the go code.
+
+	    Also add an example of using goin and godirectorin and add
+	    a test for this situation.
+
+2022-04-29: jason-daly, JerryJoyce, wsfulton
+	    [C#] #1233 Add wchar_t * and std::wstring Unicode string support on Linux.
+
+2022-04-11: robinst
+	    #2257 Fix new Ruby 3.2 warning "undefining the allocator of T_DATA
+	    class swig_runtime_data".
+
+2022-04-07: olly
+	    #1750 SWIG now recognises and ignores Doxygen group commands `@{` and `@}`.
+
+2022-04-06: wsfulton
+            ./configure now enables C++11 and later C++ standards testing by default (when
+            running: 'make check').
+
+            The options to control this testing are the same:
+
+              ./configure --enable-cpp11-testing
+              ./configure --disable-cpp11-testing
+
+            But the former is now the default and the latter can be used to turn off C++11 and
+            later C++ standards testing.
+
+2022-04-06: wsfulton
+            [Python] #1635 The "autodoc" feature no longer overrides Doxygen comments
+            in the generated docstring.
+
+            If a "docstring" feature is present it will still override a Doxygen comment.
+            If the "autodoc" feature is also present, the combined "autodoc" and "docstring"
+            will override the Doxygen comment. If no "docstring" is present then the
+            "autodoc" feature will not be generated when there is a Doxygen comment.
+
+            This way the "autodoc" feature can be specified and used to provide documentation
+            for 'missing' Doxygen comments.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2022-04-01: olly
+	    Remove undocumented and non-functional -browse command line option.
+
+2022-03-26: eltoder
+            [Python] #1684 Use different capsule names with and without -builtin
+
+            Types generated with and without -builtin are not compatible. Mixing
+            them in a common type list leads to crashes. Avoid this by using
+            different capsule names: "type_pointer_capsule" without -builtin and
+            "type_pointer_capsule_builtin" with.
+
+2022-03-25: wsfulton
+            The debug command line options that display parse tree nodes
+            (-debug-module, -debug-top, -debug-symtabs) now display previously hidden
+            linked list pointers which are useful for debugging parse trees.
+
+            Added new command line option -debug-quiet. This suppresses the display
+            of most linked list pointers and symbol table pointers in the parse tree nodes.
+
+            The keys in the parse tree node are now shown in alphabetical order.
+
+2022-03-24: wsfulton
+            #2244 Fix using declaration in derived class bugs when all the base
+            class's overloaded methods were overridden in the derived class -
+            fixes "multiply defined" errors.
+
+2022-03-23: wsfulton
+            [Python] #1779 The -py3 option is deprecated and now has no effect on the
+            code generated. Use of this option results in a deprecated warning.
+            The related SWIGPYTHON_PY3 macro that this option defined is no longer generated.
+
+            Note that %pythonnondynamic feature generates a metaclass that works on both
+            Python 2 and Python 3.
+
+2022-03-21: wsfulton
+            [Python] #1779 pyabc.i for abstract base classes now supports versions of
+            Python prior to 3.3 by using the collection module for these older versions.
+            Python-3.3 and later continue to use the collections.abc module.
+            The -py3 option no longer has any effect on the %pythonabc feature.
+
+2022-03-21: jschueller, jim-easterbrook, wsfulton
+            [Python] #2137 C++ static member functions no longer generate a "flattened"
+            name in the Python module. For example:
+
+              s = example.Spam()
+              s.foo()               # Spam::foo() via an instance
+              example.Spam.foo()    # Spam::foo() using class method
+              example.Spam_foo()    # Spam::foo() "flattened" name
+
+            The "flattened" name is no longer generated, but can be generated
+            by using the new -flatstaticmethod option.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2022-03-18: ianlancetaylor
+	    [Go] #337 Implement %extend base methods in child classes.
+
+2022-03-17: olly
+	    [Python] #1779 SWIG's Python test-suite and examples are now
+	    run with Python 3 by default.  To run them with Python 2, set
+	    PY2 to a non-empty value, e.g.:
+
+	    make check-python-test-suite PY2=1
+
+2022-03-16: olly
+	    [Go] #683 -intgosize is now optional - if not specified the
+	    generated C/C++ wrapper code will use ptrdiff_t for intgo and
+	    size_t for uintgo.
+
+2022-03-15: ianlancetaylor
+	    [Go] Add typemaps for std::string*.
+
+2022-03-15: ianlancetaylor
+	    [Go] Don't convert arrays to pointers if there is a "gotype"
+	    typemap entry.
+
+2022-03-15: ianlancetaylor
+	    [Go] Add documentation note about Go and C++ exceptions.
+
+2022-03-12: wsfulton
+            #1524 %interface family of macros no longer contain the getter/setter
+            methods for wrapping variables. The interface only contains
+            virtual and non-virtual instance methods, that is, no static methods.
+            Enums are also no longer added to the interface (affects Java only where
+            they were missing from the proxy class, C# never had them in the interface).
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2022-03-12: wsfulton
+            #1277 Fixes for the family of %interface macros, %interface,
+            %interface_impl and %interface_custom fixes for overloaded methods
+            in an inheritance chain.
+
+            When C++ methods are not able to be overloaded in a derived class,
+            such as when they differ by just const, or the target language
+            parameters types are identical even when the C++ parameter types
+            are different, SWIG will ignore one of the overloaded methods with
+            a warning. A %ignore is required to explicitly ignore one of the
+            overloaded methods to avoid the warning message. Methods added
+            in the derived classes due to one of the %interface macros are now
+            similarly ignored/not added to the derived class.
+
+            The methods added to the derived classes can now also be modified
+            via %feature and %rename.
+
+2022-03-08: ianlancetaylor
+	    [Go] Treat a nil argument as a NULL pointer.
+
+2022-03-08: ianlancetaylor
+	    [Go] Add documentation notes about thread local storage.
+
+2022-03-08: olly
+	    #1006 SWIG now copes with an interface filename specified on the
+	    command line which contains a closing parenthesis `)`, and more
+	    generally with attributes to `%include` and `%import` which
+	    are quoted and contain parentheses.
+
+2022-03-07: Omar Medina
+	    [Tcl] https://sourceforge.net/p/swig/bugs/1290/
+	    Fix SWIG_AsWCharPtrAndSize() to actually assign to result
+	    variable.  It looks like SWIG/Tcl wide character handling is
+	    currently fundamentally broken except on systems which use wide
+	    characters as the system encoding, but this should fix wrapping
+	    functions which take a wide string as a parameter on Microsoft
+	    Windows.
+
+2022-03-07: olly
+	    [Javascript] #682 Fix handling of functions which take void*.
+
+2022-03-06: olly
+	    SWIG should now reliably exit with status 0 if the run was
+	    successful and status 1 if there was an error (or a warning and
+	    -Werror was in effect).
+
+	    Previously in some situations SWIG would try to exit with the
+	    status set to the number of errors encountered, but that's
+	    problematic - for example if there were 256 errors this would
+	    result in exit status 0 on most platforms.  Also some error
+	    statuses have special meanings e.g. those defined by <sysexits.h>.
+	    Also SWIG/Javascript tried to exit with status -1 in a few places
+	    (which typically results in exit status 255).
+
+2022-03-05: wsfulton
+            #1441 Fix using declaration in derived class incorrectly introducing a method
+            from a base class when the using declaration is declared before the method
+            declaration. Problem occurred when within a namespace and the parameter types
+            in the method signatures were not fully qualified.
+2022-03-05: ianlancetaylor
+	    [Go] Treat non-const references as pointers.
+
+2022-03-05: ianlancetaylor
+	    In SWIG Go testsuite, fail test if "go build" fails.
+
+2022-03-03: olly
+	    #1901 #2223 SWIG should now always exit cleanly if memory
+	    allocation fails, including removing any output files created
+	    during the current run.
+
+	    Previously most places in the code didn't check for a NULL return
+	    from malloc()/realloc()/calloc() at all, typically resulting in
+	    undefined behaviour; some places used assert() to check for a NULL
+	    return (which is a misuse of assert() and such checks disappear if
+	    built with NDEBUG defined leaving us back with undefined
+	    behaviour).
+
+2022-03-03: olly
+	    #891 Report errors for typemap attributes without a value
+	    (previously SWIG segfaulted) and for typemap types with a value
+	    (previously the value was quietly ignored).
+
+	    The old way of specifying a language name in the typemap attributes
+	    is no longer supported (it has been deprecated for 16 years).
+
+2022-03-02: geographika, wsfulton
+            [Python] #1951 Add Python variable annotations support.
+
+            Both function annotations and variable annotations are turned on using the
+            "python:annotations" feature. Example:
+
+              %feature("python:annotations", "c");
+
+              struct V {
+                float val;
+              };
+
+            The generated code contains a variable annotation containing the C float type:
+
+              class V(object):
+                  val: "float" = property(_example.V_val_get, _example.V_val_set)
+                  ...
+
+            Python 3.5 and earlier do not support variable annotations, so variable
+            annotations can be turned off with a "python:annotations:novar" feature flag.
+            Example turning on function annotations but not variable annotations globally:
+
+              %feature("python:annotations", "c");
+              %feature("python:annotations:novar");
+
+            or via the command line:
+
+              -features python:annotations=c,python:annotations:novar
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2022-02-27: wsfulton
+            [Python] #735 #1561 Function annotations containing C/C++ types are no longer
+            generated when using the -py3 option. Function annotations support has been
+            moved to a feature to provide finer grained control. It can be turned on
+            globally by adding:
+
+              %feature("python:annotations", "c");
+
+            or by using the command line argument:
+
+              -features python:annotations=c
+
+            Also see entry dated 2022-03-02, regarding variable annotations.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2022-02-26: wsfulton
+            #655 #1840 Add new warning WARN_LANG_USING_NAME_DIFFERENT to warn when a
+            method introduced by a using declaration in a derived class cannot
+            be used due to a conflict in names.
+
+2022-02-24: olly
+	    #1465 An invalid preprocessor expression is reported as a pair of
+	    warnings with the second giving a more detailed message from the
+	    expression evaluator.  Previously SWIG prefixed the second message
+	    with "Error:" - that was confusing as it's actually only a warning
+	    by default so we've now dropped this prefix.
+
+	    Before:
+
+	    x.i:1: Warning 202: Could not evaluate expression '1.2'
+	    x.i:1: Warning 202: Error: 'Floating point constant in preprocessor expression'
+
+	    Now:
+
+	    x.i:1: Warning 202: Could not evaluate expression '1.2'
+	    x.i:1: Warning 202: Floating point constant in preprocessor expression
+
+2022-02-23: olly
+	    #1384 Fix a preprocessor expression evaluation bug.  A
+	    subexpression in parentheses lost its string/int type flag and
+	    instead used whatever type was left in the stack entry from
+	    previous use.  In practice we mostly got away with this because
+	    most preprocessor expressions are integer, but it could have
+	    resulted in a preprocessor expression incorrectly evaluating as
+	    zero.  If -Wextra was in use you got a warning:
+
+	    Warning 202: Error: 'Can't mix strings and integers in expression'
+
+2022-02-21: davidcl
+	    [Scilab] Improve 5.5.2, 6.0.0 and 6.1.0 support.
+
+	    For Scilab 5, long names are reduced to small names preserving the 
+	    class prefix and accessor suffix (get or set).
+
+	    For Scilab 6, long names with the class prefix and accessor suffix
+	    should be used on the user code.
+
+	    The `-targetversion` option has been removed as the generated code
+	    now detects the Scilab version in loader.sce or builder.sce.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2022-02-20: wsfulton
+            Fix %warnfilter warning suppress for warning 315 SWIGWARN_PARSE_USING_UNDEF.
+
+2022-02-17: olly
+	    [PHP] https://sourceforge.net/p/swig/bugs/1211/
+	    Fix to call cleanup code in exception situations and not to invoke
+	    the freearg typemap twice in certain situations.
+
+2022-02-15: olly
+	    #300 #368 Improve parser handling of % followed immediately by
+	    an identifier.  If it's not a recognised directive the scanner
+	    now emits MODULO and then rescans what follows, and if the parser
+	    then gives a syntax error we report it as an unknown directive.
+	    This means that `a%b` is now allowed in an expression, and that
+	    things like `%std::vector<std::string>` now give an error rather
+	    than being quietly ignored.
+
+2022-02-11: adr26
+            [Python] #2154 Fix memory leak.
+
+            SWIG python objects were being freed after the corresponding SWIG
+            module information was destroyed in Python 3, causing leaks when as
+            a result the object destructor could not be invoked. To prevent this
+            misordering, SWIG python objects now obtain a reference to the
+            Python capsule wrapping the module information, so that the module
+            information is correctly destroyed after all SWIG python objects
+            have been freed (and corresponding destructors invoked).
+
+2022-02-10: olly
+	    [Tcl] https://sourceforge.net/p/swig/bugs/1207/
+	    https://sourceforge.net/p/swig/bugs/1213/
+
+	    Fix Tcl generic input typemap for std::vector.
+
+2022-02-07: sethrj
+            #2196 Add alternative syntax for specifying fragments in typemaps.
+
+            New syntax:
+              %typemap("in", fragment="frag1", fragment="frag2", fragment="frag3") {...}
+            which is equivalent to:
+              %typemap(in, fragment="frag1,frag2,frag3") {...}
+
+
+2022-02-07: olly
+	    #1806 Remove support for the "command" encoder, which was mostly
+	    intended for use in `%rename` - most uses can be achieved using
+	    the "regex" encoder, so we recommend using that instead.
+
+	    The "command" encoder suffers from a number of issues - as the
+	    documentation for it admitted, "[it] is extremely slow compared to
+	    all the other [encoders] as it involves spawning a separate process
+	    and using it for many declarations is not recommended" and that it
+	    "should generally be avoided because of performance
+	    considerations".
+
+	    But it's also not portable.  The design assumes that `/bin/sh`
+	    supports `<<<` but that's a bash-specific feature so it doesn't
+	    work on platforms where `/bin/sh` is not bash - it fails on
+	    Debian, Ubuntu and probably some other Linux distros, plus most
+	    non-Linux platforms.  Microsoft Windows doesn't even have a
+	    /bin/sh as standard.
+
+	    Finally, no escaping of the passed string is done, so it has
+	    potential security issues (though at least with %rename the input
+	    is limited to valid C/C++ symbol names).
+
+2022-02-06: olly
+	    #2193 -DFOO on the SWIG command line now sets FOO to 1 for
+	    consistency with C/C++ compiler preprocessors.  Previously
+	    SWIG set FOO to an empty value.
+
+2022-02-06: sethrj
+	    #2194 Classes that are non-assignable due to const data or const
+	    reference members are now automatically detected.
+
+2022-02-04: friedrichatgc
+	    [Octave] #1672 Fix for isobject for Octave 4.4 - 6.0.
+
+2022-02-03: olly
+	    [C#] #283 #998 Fix memory leak in directorin typemap for
+	    std::string.
+
+2022-02-03: olly
+	    [Python] #967 Make `self` parameter available to user typemaps.
+
+2022-02-03: teythoon
+	    [Python] #801 Fix -Wunused-parameter warnings with builtin,
+
+2022-02-03: teythoon
+	    #801 Fix -Wstrict-prototypes warnings in generated pointer
+	    functions.
+
+2022-02-03: olly
+	    #660 https://sourceforge.net/p/swig/bugs/1081/
+	    Default parameter values containing method calls are now parsed and
+	    handled - e.g. `x->foo(3,4)` and `y.z()`.
+
 2022-02-02: olly
 	    [Ruby] https://sourceforge.net/p/swig/bugs/1136/ Fix remove of prefix
 	    from method name to only remove it at the start.
@@ -30,7 +487,7 @@ Version 4.1.0 (in progress)
 	    #655 Better handling of using declarations.
 
 2022-01-29: dontpanic92
-	    #676 Fix code generated for a C++ class with a non-capitalised
+	    [Go] #676 Fix code generated for a C++ class with a non-capitalised
 	    name.
 
 2022-01-26: trex58
@@ -377,7 +834,6 @@ Version 4.1.0 (in progress)
             For example:
 
               %typemap(csinterfacemodifiers) X "internal interface"
-
 
 2020-09-24: geefr
             [C#] #1868 Fix wchar_t* csvarout typemap for member variable wrappers.

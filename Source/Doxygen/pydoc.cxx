@@ -302,7 +302,7 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["ref"] = make_handler(&PyDocConverter::handleTagRef);
   tagHandlers["result"] = tagHandlers["return"] = tagHandlers["returns"] = make_handler(&PyDocConverter::handleTagReturn);
 
-  // this command just prints it's contents
+  // this command just prints its contents
   // (it is internal command of swig's parser, contains plain text)
   tagHandlers["plainstd::string"] = make_handler(&PyDocConverter::handlePlainString);
   tagHandlers["plainstd::endl"] = make_handler(&PyDocConverter::handleNewLine);

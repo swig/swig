@@ -60,7 +60,7 @@ and issues an error message if any unconsumed arguments are found.
 <b><tt>void Swig_check_options()</tt></b>
 <blockquote>
 Checks all command line options to see if they have all been processed.  If not, an error message is generated and
-execution terminates with a call to <tt>exit()</tt>.   This function is currently invoked in <tt>Source/Modules/main.cxx</tt> just before SWIG starts any processing of input files.
+SWIG exits.   This function is currently invoked in <tt>Source/Modules/main.cxx</tt> just before SWIG starts any processing of input files.
 </blockquote>
 
 <h2>Utility Function</h2>
@@ -68,7 +68,7 @@ execution terminates with a call to <tt>exit()</tt>.   This function is currentl
 <b><tt>void Swig_arg_error())</tt></b>
 
 <blockquote>
-A generic function that issues an error message about being unable to parse command line options.  SWIG is terminated by a call to <tt>exit()</tt>.
+A generic function that issues an error message about being unable to parse command line options and SWIG exits.
 
 </body>
 </html>

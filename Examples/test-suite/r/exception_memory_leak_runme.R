@@ -1,8 +1,8 @@
 clargs <- commandArgs(trailing=TRUE)
 source(file.path(clargs[1], "unittest.R"))
 
-dyn.load(paste("r_memory_leak", .Platform$dynlib.ext, sep=""))
-source("r_memory_leak.R")
+dyn.load(paste("exception_memory_leak", .Platform$dynlib.ext, sep=""))
+source("exception_memory_leak.R")
 cacheMetaData(1)
 
 a <- Foo();
@@ -13,6 +13,7 @@ unittest(Foo_get_count(), 2);
 # Normal behaviour
 invisible(trigger_internal_swig_exception("no problem", a));
 unittest(Foo_get_count(), 2);
+unittest(Foo_get_freearg_count(), 1);
 # SWIG exception introduced
 result <- tryCatch({
   trigger_internal_swig_exception("null", b);
@@ -24,3 +25,4 @@ result <- tryCatch({
   unittest(1,1);
 })
 unittest(Foo_get_count(), 2);
+unittest(Foo_get_freearg_count(), 2);

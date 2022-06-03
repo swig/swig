@@ -17,6 +17,6 @@ class MyObject extends SpObject{
 
 $m = new MyObject();
 check::equal($m->dummy(), 666, "1st call");
-check::equal($m->dummy(), 666, "2st call"); // Locked system
+check::equal($m->dummy(), 666, "2nd call"); // Locked system
 
 check::done();

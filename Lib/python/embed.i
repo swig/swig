@@ -29,8 +29,22 @@ As far as I know, this module is C++ safe.
 #endif
 
 %wrapper %{
+#ifndef SWIG_NO_PY_SSIZE_T_CLEAN
+#define PY_SSIZE_T_CLEAN
+#endif
+
+#if __GNUC__ >= 7
+#pragma GCC diagnostic push
+#if defined(__cplusplus) && __cplusplus >=201703L
+#pragma GCC diagnostic ignored "-Wregister" /* For python-2.7 headers that use register */
+#endif
+#endif
 
 #include <Python.h>
+
+#if __GNUC__ >= 7
+#pragma GCC diagnostic pop
+#endif
 
 #ifdef __cplusplus
 extern "C"

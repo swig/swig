@@ -116,6 +116,7 @@ double (Shape::*perimetervar)(void) const = &Shape::perimeter;
 PerimeterFunc_td perimetervar_td = &Shape::perimeter;
 %}
 
+
 /* Some constants */
 %constant double (Shape::*AREAPT)(void) const = &Shape::area;
 %constant double (Shape::*PERIMPT)(void) const = &Shape::perimeter;

@@ -28,7 +28,7 @@ const char C_end_statement[] = ";\n";
 
 Wrapper *NewWrapper(void) {
   Wrapper *w;
-  w = (Wrapper *) malloc(sizeof(Wrapper));
+  w = (Wrapper *) Malloc(sizeof(Wrapper));
   w->localh = NewHash();
   w->locals = NewStringEmpty();
   w->code = NewStringEmpty();
@@ -48,7 +48,7 @@ void DelWrapper(Wrapper *w) {
   Delete(w->locals);
   Delete(w->code);
   Delete(w->def);
-  free(w);
+  Free(w);
 }
 
 /* -----------------------------------------------------------------------------
@@ -394,7 +394,7 @@ void Wrapper_print(Wrapper *w, File *f) {
   str = NewStringEmpty();
   Printf(str, "%s\n", w->def);
   if (Len(w->locals) > 0)
-    Printf(str, "%s\n", w->locals);
+  Printf(str, "%s\n", w->locals);
   Printf(str, "%s\n", w->code);
   if (Compact_mode == 1)
     Wrapper_compact_print(str, f);

@@ -191,7 +191,7 @@
     if (!(Z_ISREF($input) && Z_ISNULL_P(Z_REFVAL($input)))) {
       /* wasn't a pre/ref/thing, OR anything like an int thing */
       zend_throw_exception(zend_ce_type_error, "Type error in argument $arg of $symname", 0);
-      return;
+      goto fail;
     }
   }
   force=0;
@@ -555,18 +555,18 @@
                  unsigned long,
                  unsigned short %{
   zend_throw_exception(NULL, "C++ $1_type exception thrown", $1);
-  return;
+  goto fail;
 %}
 
 %typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY] %{
   (void)$1;
   zend_throw_exception(NULL, "C++ $1_type exception thrown", 0);
-  return;
+  goto fail;
 %}
 
 %typemap(throws) char * %{
   zend_throw_exception(NULL, $1, 0);
-  return;
+  goto fail;
 %}
 
 /* Array reference typemaps */

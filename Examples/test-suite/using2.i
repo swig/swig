@@ -1,6 +1,6 @@
 %module using2
 
-%warnfilter(SWIGWARN_PARSE_USING_UNDEF);
+%warnfilter(SWIGWARN_PARSE_USING_UNDEF) ::baz;
 
 using ::baz;
 
@@ -26,5 +26,5 @@ using Y::Foo;
 
 int spam(Foo::value_type x) { return x; }
 
-
+ 
 %}

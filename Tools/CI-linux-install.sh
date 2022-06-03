@@ -105,14 +105,20 @@ case "$SWIGLANG" in
 		;;
 	"python")
 		pip install --user pycodestyle
+		if [[ "$PY2" ]]; then
+			WITHLANG=$SWIGLANG
+		else
+			WITHLANG=${SWIGLANG}3
+		fi
 		if [[ "$VER" ]]; then
 			$RETRY sudo add-apt-repository -y ppa:deadsnakes/ppa
 			$RETRY sudo apt-get -qq update
 			$RETRY sudo apt-get -qq install python${VER}-dev
-			WITHLANG=$SWIGLANG$PY3=$SWIGLANG$VER
+			WITHLANG=$WITHLANG=$SWIGLANG$VER
+		elif [[ "$PY2" ]]; then
+			$RETRY sudo apt-get install -qq python-dev
 		else
-			$RETRY sudo apt-get install -qq python${PY3}-dev
-			WITHLANG=$SWIGLANG$PY3
+			$RETRY sudo apt-get install -qq python3-dev
 		fi
 		;;
 	"r")
@@ -144,11 +150,14 @@ case "$SWIGLANG" in
 		fi
 		;;
 	"scilab")
-		# Travis has the wrong version of Java pre-installed resulting in error using scilab:
-		# /usr/bin/scilab-bin: error while loading shared libraries: libjava.so: cannot open shared object file: No such file or directory
-		echo "JAVA_HOME was set to $JAVA_HOME"
-		unset JAVA_HOME
-		$RETRY sudo apt-get -qq install scilab
+		if [[ -z "$VER" ]]; then
+			$RETRY sudo apt-get -qq install scilab
+		else
+			$RETRY wget --progress=dot:giga "https://www.scilab.org/download/$VER/scilab-$VER.bin.linux-x86_64.tar.gz"
+			# $HOME/.local/bin is in PATH and writeable
+			mkdir -p "$HOME/.local"
+			tar -xzf "scilab-$VER.bin.linux-x86_64.tar.gz" --strip-components=1 -C "$HOME/.local"
+		fi	
 		;;
 	"tcl")
 		$RETRY sudo apt-get -qq install tcl-dev

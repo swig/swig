@@ -51,7 +51,7 @@ namespace std {
 
     %typemap(throws) string, const string& %{
         zend_throw_exception(NULL, $1.c_str(), 0);
-        return;
+        goto fail;
     %}
 
     %typemap(in, phptype="string") const string & ($*1_ltype temp) %{

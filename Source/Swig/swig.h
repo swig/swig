@@ -157,7 +157,6 @@ extern "C" {
   extern int SwigType_isreference_return(const SwigType *t);
   extern int SwigType_isrvalue_reference(const SwigType *t);
   extern int SwigType_isarray(const SwigType *t);
-  extern int SwigType_isarraypointer(const SwigType *t);
   extern int SwigType_prefix_is_simple_1D_array(const SwigType *t);
   extern int SwigType_isfunction(const SwigType *t);
   extern int SwigType_isqualifier(const SwigType *t);
@@ -222,7 +221,6 @@ extern "C" {
   extern void Swig_symbol_print_tables_summary(void);
   extern void Swig_symbol_print_symbols(void);
   extern void Swig_symbol_print_csymbols(void);
-  extern void Swig_symbol_add_using(String *name, String *uname, Node *n);
   extern void Swig_symbol_init(void);
   extern void Swig_symbol_setscopename(const_String_or_char_ptr name);
   extern String *Swig_symbol_getscopename(void);
@@ -441,8 +439,6 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Language_replace_special_variables(String *method, String *tm, Parm *parm);
   extern void Swig_print(DOH *object, int count);
   extern void Swig_print_with_location(DOH *object, int count);
-  extern void SWIG_exit(int exit_code);
-
 
 /* -- template init -- */
   extern void SwigType_template_init(void);

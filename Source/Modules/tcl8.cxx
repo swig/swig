@@ -113,7 +113,7 @@ public:
 	} else if (strcmp(argv[i], "-nocppcast") == 0) {
 	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
 	  Swig_mark_arg(i);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
       }
     }
@@ -138,7 +138,7 @@ public:
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     f_runtime = NewString("");
     f_init = NewString("");
@@ -182,7 +182,7 @@ public:
 
       if ((f_shadow = NewFile(filen, "w", SWIG_output_files())) == 0) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       f_shadow_stubs = NewString("");
 
@@ -889,7 +889,7 @@ public:
       //  Add methods
       if (have_methods) {
 	Printv(ptrclass, imethods, NIL);
-      };
+      }
 
       //  Close out the pointer class
       Printv(ptrclass, "}\n\n", NIL);
@@ -947,7 +947,7 @@ public:
     if (!itcl) {
       Printv(cmd_tab, tab4, "{ SWIG_prefix \"", class_name, "\", (swig_wrapper_func) SWIG_ObjectConstructor, (ClientData)&_wrap_class_", mangled_classname,
 	     "},\n", NIL);
-    };
+    }
 
     Delete(t);
     Delete(mangled_classname);
@@ -1023,7 +1023,7 @@ public:
 	Printv(imethods, "{ ", ns_name, "::", class_name, "_", realname, " $swigobj", NIL);
       } else {
 	Printv(imethods, "{ ", class_name, "_", realname, " $swigobj", NIL);
-      };
+      }
 
       pnum = 0;
       for (p = l; p; p = nextSibling(p)) {

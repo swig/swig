@@ -11,7 +11,7 @@ public:
 class DerivedClass : public BaseClass {
 public:
 
-    void g() { }
+    virtual void g() { }
 
     BaseClass& f() {
         return *this;

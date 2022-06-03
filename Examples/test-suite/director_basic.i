@@ -71,11 +71,12 @@
  %}
 
  %typemap(cscode) MyClass %{
+   // low level implementation check for checking MyOverriddenClass
    public void testSwigDerivedClassHasMethod() {
      if (SwigDerivedClassHasMethod("nonVirtual", swigMethodTypes3))
-       throw new global::System.Exception("non-overriding non-virtual method would be when connecting director");
+       throw new global::System.Exception("SwigDerivedClassHasMethod failed checking a non-overriding non-virtual method (nonVirtual)");
      if (SwigDerivedClassHasMethod("nonOverride", swigMethodTypes4))
-       throw new global::System.Exception("non-overriding virtual method would be when connecting director");
+       throw new global::System.Exception("SwigDerivedClassHasMethod failed checking a non-overriding method (nonOverride)");
    }
  %}
 

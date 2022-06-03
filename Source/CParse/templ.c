@@ -249,7 +249,7 @@ String *partial_arg(String *s, String *p) {
   }
   prefix = NewStringWithSize(cp, (int)(c - cp));
   newarg = Copy(s);
-  Replace(newarg, prefix, "", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+  Replace(newarg, prefix, "", DOH_REPLACE_FIRST);
   Delete(prefix);
   return newarg;
 }
@@ -620,7 +620,7 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
 	int parms_len = ParmList_len(parms);
 	int *priorities_row;
 	max_possible_partials = Len(partials);
-	priorities_matrix = (int *)malloc(sizeof(int) * max_possible_partials * parms_len); /* slightly wasteful allocation for max possible matches */
+	priorities_matrix = (int *)Malloc(sizeof(int) * max_possible_partials * parms_len); /* slightly wasteful allocation for max possible matches */
 	priorities_row = priorities_matrix;
 	for (pi = First(partials); pi.item; pi = Next(pi)) {
 	  Parm *p = parms;
@@ -818,7 +818,7 @@ success:
     Printf(stdout, "    chosen template:'%s'\n", Getattr(n, "name"));
   }
   Delete(parms);
-  free(priorities_matrix);
+  Free(priorities_matrix);
   return n;
 }
 

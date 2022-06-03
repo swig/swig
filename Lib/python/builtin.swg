@@ -6,7 +6,11 @@ SWIGINTERN Py_hash_t
 SwigPyObject_hash(PyObject *obj) {
   SwigPyObject *sobj = (SwigPyObject *)obj;
   void *ptr = sobj->ptr;
+#if PY_VERSION_HEX < 0x03020000
+  return (Py_hash_t)(Py_ssize_t)ptr;
+#else
   return (Py_hash_t)ptr;
+#endif
 }
 
 SWIGINTERN Py_hash_t
@@ -211,7 +215,11 @@ SwigPyStaticVar_Type(void) {
       sizeof(PyGetSetDescrObject),              /* tp_basicsize */
       0,                                        /* tp_itemsize */
       (destructor)SwigPyStaticVar_dealloc,      /* tp_dealloc */
-      0,                                        /* tp_print */
+#if PY_VERSION_HEX < 0x030800b4
+      (printfunc)0,                             /* tp_print */
+#else
+      (Py_ssize_t)0,                            /* tp_vectorcall_offset */
+#endif
       0,                                        /* tp_getattr */
       0,                                        /* tp_setattr */
       0,                                        /* tp_compare */
@@ -295,7 +303,11 @@ SwigPyObjectType(void) {
       PyType_Type.tp_basicsize,                 /* tp_basicsize */
       0,                                        /* tp_itemsize */
       0,                                        /* tp_dealloc */
-      0,                                        /* tp_print */
+#if PY_VERSION_HEX < 0x030800b4
+      (printfunc)0,                             /* tp_print */
+#else
+      (Py_ssize_t)0,                            /* tp_vectorcall_offset */
+#endif
       0,                                        /* tp_getattr */
       0,                                        /* tp_setattr */
       0,                                        /* tp_compare */

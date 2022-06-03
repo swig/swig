@@ -24,7 +24,7 @@ jobs:
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY3 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
       matrix:
@@ -42,13 +42,14 @@ jobs:
 
     env:
       SWIGLANG: ${{ matrix.SWIGLANG }}
-      PY3: ${{ matrix.PY3 }}
+      PY2: ${{ matrix.PY2 }}
       VER: ${{ matrix.VER }}
       ENGINE: ${{ matrix.ENGINE }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
       GCC: ${{ matrix.GCC }}
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
+      CPPFLAGS: ${{ matrix.CPPFLAGS }}
       FCSTD: ${{ matrix.FCSTD }}
 
     steps:
@@ -133,7 +134,8 @@ jobs:
             esac
             echo CSTD="$CSTD" >> $GITHUB_ENV
           fi
-          if test -n "$CPPSTD"; then CONFIGOPTS+=(--enable-cpp11-testing "CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
+          if test -z "$CPPSTD"; then CONFIGOPTS+=("--disable-cpp11-testing"); fi
+          if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
           if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
           if test -n "$FCSTD"; then CONFIGOPTS+=("FCFLAGS=-std=$FCSTD $FCFLAGS"); fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi

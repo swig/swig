@@ -304,11 +304,6 @@ The following table lists the Scilab specific command line options in addition t
 <td>Generate the gateway XML with the given &lt;gateway_id&gt;</td>
 </tr>
 
-<tr>
-<td><tt>-targetversion</tt></td>
-<td>Generate for Scilab target (major) version</td>
-</tr>
-
 </table>
 
 <p>
@@ -341,10 +336,6 @@ In Scilab 5.x, identifier names are composed of 24 characters maximum (this limi
 </p>
 <p>This can cause ambiguities, especially when wrapping structs/classes, for which the wrapped function name is composed of the struct/class name and field names.
 In these cases, the <a href="SWIG.html#SWIG_rename_ignore">%rename directive</a> can be used to choose a different Scilab name.
-</p>
-
-<p>
-Note: truncations can be disabled by specifying the target version 6 of Scilab in the <tt>targetversion</tt> argument (i.e. <tt>-targetversion 6</tt>).
 </p>
 
 <H3><a name="Scilab_wrapping_functions">37.3.3 Functions</a></H3>
@@ -768,7 +759,7 @@ Pointers are supported by SWIG. A pointer can be returned from a wrapped C/C++ f
 Also, thanks to the SWIG runtime which stores information about types, pointer types are tracked between exchanges Scilab and the native code. Indeed pointer types are stored alongside the pointer address.
 A pointer is mapped to a Scilab structure (<a href="https://help.scilab.org/docs/5.5.2/en_US/tlist.html">tlist</a>), which contains as fields the pointer address and the pointer type (in fact a pointer to the type information structure in the SWIG runtime).
 <br>
-Why a native pointer is not mapped to a Scilab pointer (type name: "pointer", type ID: 128) ? The big advantage of mapping to a <tt>tlist</tt> is that it exposes a new type for the pointer in Scilab, type which can be acessed in Scilab with the <a href="https://help.scilab.org/docs/5.5.2/en_US/typeof.html">typeof</a> function, and manipulated using the <a href="https://help.scilab.org/docs/5.5.2/en_US/overloading.html">overloading</a> mechanism.
+Why a native pointer is not mapped to a Scilab pointer (type name: "pointer", type ID: 128) ? The big advantage of mapping to a <tt>tlist</tt> is that it exposes a new type for the pointer in Scilab, type which can be accessed in Scilab with the <a href="https://help.scilab.org/docs/5.5.2/en_US/typeof.html">typeof</a> function, and manipulated using the <a href="https://help.scilab.org/docs/5.5.2/en_US/overloading.html">overloading</a> mechanism.
 </p>
 
 <p>
@@ -776,7 +767,7 @@ Notes:
 </p>
 <ul>
 <li>type tracking needs the SWIG runtime to be first initialized with the appropriate function (see the <a href="#Scilab_module_initialization">Module initialization</a> section).</li>
-<li>for any reason, if a wrapped pointer type is unknown (or if the SWIG runtime is not initialized), SWIG maps it to a Scilab pointer. Also, a Scilab pointer is always accepted as a pointer argument of a wrapped function. The drawaback is that pointer type is lost.</li>
+<li>for any reason, if a wrapped pointer type is unknown (or if the SWIG runtime is not initialized), SWIG maps it to a Scilab pointer. Also, a Scilab pointer is always accepted as a pointer argument of a wrapped function. The drawback is that pointer type is lost.</li>
 </ul>
 
 <p>

@@ -644,7 +644,7 @@ java::
 
 <p>
 To build the DLL and compile the java code, run NMAKE (you may need to run <tt>vcvars32</tt> first). 
-This is a pretty simplistic Makefile, but hopefully its enough to get you started.
+This is a pretty simplistic Makefile, but hopefully it's enough to get you started.
 Of course you may want to make changes for it to work for C++ by adding in the -c++ command line option for swig and replacing .c with .cxx.
 </p>
 
@@ -3434,9 +3434,11 @@ Consider the following C++ code:
 namespace Space {
   struct Base1 {
     virtual void Method1();
+    virtual Base1();
   };
   struct Base2 {
     virtual void Method2();
+    virtual Base2();
   };
   struct Derived : Base1, Base2 {
   };
@@ -3453,7 +3455,7 @@ SWIG generates a warning for the above code:
 
 <div class="shell">
 <pre>
-example.i:10: Warning 813: Warning for Derived, base Base2 ignored. 
+example.i:12: Warning 813: Warning for Derived, base Base2 ignored.
 Multiple inheritance is not supported in Java.
 </pre>
 </div>
@@ -3506,7 +3508,7 @@ public class Base1SwigImpl implements Base1 {
 </div>
 
 <p>
-In fact any class deriving from <tt>Base</tt> will now implement the interface instead of
+In fact any class using <tt>Base</tt> as an immediate base class will now implement the interface instead of
 deriving from it (or ignoring the base in the case of multiple base classes).
 Hence the <tt>Derived</tt> proxy class will now implement both bases:
 </p>
@@ -3534,6 +3536,21 @@ public class Derived implements Base1, Base2 {
 }
 </pre>
 </div>
+
+<p>
+The proxy class has methods added to it, from the implemented bases, so that
+the underlying C++ implementation can be called.
+In the example above, <tt>Method1</tt> and <tt>Method2</tt> have been added from the implemented bases.
+If a method is ignored in the base, such as via <tt>%ignore</tt>, then that method
+will be excluded from the interface and there will not be an additional method
+added to the proxy class implementing that interface.
+</p>
+
+<p>
+The Java interface only ever contains virtual and non-virtual instance methods from the wrapped C++ class.
+Any static methods, enums or variables in the wrapped C++ class are not supported and are not added to the interface.
+They are of course still available in the Java proxy class.
+</p>
 
 <p>
 Wherever a class marked as an interface is used, such as the <tt>UseBases</tt> method in the example,
@@ -6437,6 +6454,12 @@ This special variable expands to the module name, as specified by <tt>%module</t
 <b><tt>$imclassname</tt></b><br>
 This special variable expands to the intermediary class name. Usually this is the same as '$moduleJNI',
 unless the jniclassname attribute is specified in the <a href="Java.html#Java_module_directive">%module directive</a>.
+</p>
+
+<p>
+<b><tt>$imfuncname</tt></b><br>
+This special variable expands to the name of the function in the intermediary class that will be used in $jnicall.
+Like, $jnicall, this special variable is only expanded in the "javaout" typemap.
 </p>
 
 <p>

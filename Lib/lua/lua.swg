@@ -151,7 +151,7 @@ The python/lua ones are great, but C++ ones I don't like
 (mainly because I cannot get the stack trace out of it)
 Therefore I have not bothered to try doing much in this
 
-Therefore currently its just enough to get a few test cases running ok
+Therefore currently it's just enough to get a few test cases running ok
 
 note: if you wish to throw anything related to std::exception
 use %include <std_except.i> instead
@@ -191,7 +191,7 @@ use %include <std_except.i> instead
 Throwing object is a serious problem:
 Assuming some code throws a 'FooBar'
 There are a few options:
-- return a pointer to it: but its unclear how long this will last for.
+- return a pointer to it: but it's unclear how long this will last for.
 - return a copy of it: but not all objects are copyable
 	(see exception_partial_info in the test suite for a case where you cannot do this)
 - convert to a string & throw that
@@ -224,7 +224,7 @@ SWIG_fail;%}
 
 
 // note: no support for object pointers
-// its not clear how long the pointer is valid for, therefore not supporting it
+// it's not clear how long the pointer is valid for, therefore not supporting it
 
 /* -----------------------------------------------------------------------------
  *                          extras

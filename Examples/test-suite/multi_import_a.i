@@ -2,9 +2,7 @@
 
 %module multi_import_a
 
-#ifndef SWIGGO
 %import multi_import_d.i
-#endif
 %import "multi_import_b.i"
 
 %{
@@ -16,3 +14,7 @@ class ZZZ : public XXX
 public:
    int testz();
 };
+
+%inline %{
+void use_www_a(const WWW& w) {w.nullop();}
+%}

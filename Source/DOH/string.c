@@ -229,7 +229,6 @@ static void DohString_append(DOH *so, const DOHString_or_char *str) {
     if (newlen >= newmaxsize - 1)
       newmaxsize = newlen + 1;
     s->str = (char *) DohRealloc(s->str, newmaxsize);
-    assert(s->str);
     s->maxsize = newmaxsize;
   }
   tc = s->str;
@@ -296,7 +295,6 @@ static int String_insert(DOH *so, int pos, DOH *str) {
   while (s->maxsize <= s->len + len) {
     int newsize = 2 * s->maxsize;
     s->str = (char *) DohRealloc(s->str, newsize);
-    assert(s->str);
     s->maxsize = newsize;
   }
   memmove(s->str + pos + len, s->str + pos, (s->len - pos));
@@ -424,7 +422,6 @@ static int String_write(DOH *so, const void *buffer, int len) {
   newlen = s->sp + len + 1;
   if (newlen > s->maxsize) {
     s->str = (char *) DohRealloc(s->str, newlen);
-    assert(s->str);
     s->maxsize = newlen;
     s->len = s->sp + len;
   }
@@ -517,7 +514,6 @@ static int String_putc(DOH *so, int ch) {
     if (len > (maxsize - 2)) {
       maxsize *= 2;
       tc = (char *) DohRealloc(tc, maxsize);
-      assert(tc);
       s->maxsize = (int) maxsize;
       s->str = tc;
     }
@@ -614,11 +610,13 @@ static char *match_identifier(char *base, char *s, char *token, int tokenlen) {
     if (!s)
       return 0;
     if ((s > base) && (isalnum((int) *(s - 1)) || (*(s - 1) == '_'))) {
-      s += tokenlen;
+      /* We could advance by tokenlen if strstr(s, token) matches can't overlap. */
+      ++s;
       continue;
     }
     if (isalnum((int) *(s + tokenlen)) || (*(s + tokenlen) == '_')) {
-      s += tokenlen;
+      /* We could advance by tokenlen if strstr(s, token) matches can't overlap. */
+      ++s;
       continue;
     }
     return s;
@@ -628,12 +626,14 @@ static char *match_identifier(char *base, char *s, char *token, int tokenlen) {
 
 
 static char *match_identifier_begin(char *base, char *s, char *token, int tokenlen) {
+  (void)tokenlen;
   while (s) {
     s = strstr(s, token);
     if (!s)
       return 0;
     if ((s > base) && (isalnum((int) *(s - 1)) || (*(s - 1) == '_'))) {
-      s += tokenlen;
+      /* We could advance by tokenlen if strstr(s, token) matches can't overlap. */
+      ++s;
       continue;
     }
     return s;
@@ -648,7 +648,8 @@ static char *match_identifier_end(char *base, char *s, char *token, int tokenlen
     if (!s)
       return 0;
     if (isalnum((int) *(s + tokenlen)) || (*(s + tokenlen) == '_')) {
-      s += tokenlen;
+      /* We could advance by tokenlen if strstr(s, token) matches can't overlap. */
+      ++s;
       continue;
     }
     return s;
@@ -663,7 +664,8 @@ static char *match_number_end(char *base, char *s, char *token, int tokenlen) {
     if (!s)
       return 0;
     if (isdigit((int) *(s + tokenlen))) {
-      s += tokenlen;
+      /* We could advance by tokenlen if strstr(s, token) matches can't overlap. */
+      ++s;
       continue;
     }
     return s;
@@ -923,7 +925,6 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
       newsize *= 2;
 
     ns = (char *) DohMalloc(newsize);
-    assert(ns);
     t = ns;
     s = first;
 

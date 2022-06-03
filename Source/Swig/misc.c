@@ -36,7 +36,7 @@ static char *fake_version = 0;
 char *Swig_copy_string(const char *s) {
   char *c = 0;
   if (s) {
-    c = (char *) malloc(strlen(s) + 1);
+    c = (char *) Malloc(strlen(s) + 1);
     strcpy(c, s);
   }
   return c;
@@ -1157,46 +1157,14 @@ int Swig_scopename_check(const String *s) {
 /* -----------------------------------------------------------------------------
  * Swig_string_command()
  *
- * Executes a external command via popen with the string as a command
- * line parameter. For example:
- *
- *  Printf(stderr,"%(command:sed 's/[a-z]/\U\\1/' <<<)s","hello") -> Hello
+ * Feature removed in SWIG 4.1.0.
  * ----------------------------------------------------------------------------- */
-#if defined(_MSC_VER)
-#  define popen _popen
-#  define pclose _pclose
-#  if !defined(HAVE_POPEN)
-#    define HAVE_POPEN 1
-#  endif
-#else
-#  if !defined(_WIN32)
-/* These Posix functions are not ISO C and so are not always defined in stdio.h */
-extern FILE *popen(const char *command, const char *type);
-extern int pclose(FILE *stream);
-#  endif
-#endif
 
 String *Swig_string_command(String *s) {
-  String *res = NewStringEmpty();
-#if defined(HAVE_POPEN)
-  if (Len(s)) {
-    char *command = Char(s);
-    FILE *fp = popen(command, "r");
-    if (fp) {
-      char buffer[1025];
-      while (fscanf(fp, "%1024s", buffer) != EOF) {
-	Append(res, buffer);
-      }
-      pclose(fp);
-    } else {
-      Swig_error("SWIG", Getline(s), "Command encoder fails attempting '%s'.\n", s);
-      SWIG_exit(EXIT_FAILURE);
-    }
-  }
-#endif
-  return res;
+  Swig_error("SWIG", Getline(s), "Command encoder no longer supported - use regex encoder instead.\n");
+  Exit(EXIT_FAILURE);
+  return 0;
 }
-
 
 /* -----------------------------------------------------------------------------
  * Swig_string_strip()
@@ -1283,7 +1251,7 @@ void Swig_offset_string(String *s, int number) {
   if ((Char(s))[len-1] == '\n')
     --lines;
   /* allocate a temporary storage for a padded string */
-  res = (char*)malloc(len + lines * number * 2 + 1);
+  res = (char*)Malloc(len + lines * number * 2 + 1);
   res[len + lines * number * 2] = 0;
 
   /* copy lines to res, prepending tabs to each line */
@@ -1307,7 +1275,7 @@ void Swig_offset_string(String *s, int number) {
   /* replace 's' contents with 'res' */
   Clear(s);
   Append(s, res);
-  free(res);
+  Free(res);
 }
 
 
@@ -1341,7 +1309,7 @@ static int split_regex_pattern_subst(String *s, String **pattern, String **subst
 
 err_out:
   Swig_error("SWIG", Getline(s), "Invalid regex substitution: '%s'.\n", s);
-  SWIG_exit(EXIT_FAILURE);
+  Exit(EXIT_FAILURE);
   return 0;
 }
 
@@ -1467,7 +1435,7 @@ String *Swig_string_regex(String *s) {
       pcre2_get_error_message (pcre_errornum, pcre_error, sizeof pcre_error);
       Swig_error("SWIG", Getline(s), "PCRE compilation failed: '%s' in '%s':%i.\n",
           pcre_error, Char(pattern), pcre_errorpos);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     match_data = pcre2_match_data_create_from_pattern (compiled_pat, NULL);
     rc = pcre2_match(compiled_pat, (PCRE2_SPTR8)input, PCRE2_ZERO_TERMINATED, 0, 0, match_data, NULL);
@@ -1477,7 +1445,7 @@ String *Swig_string_regex(String *s) {
     } else if (rc != PCRE2_ERROR_NOMATCH) {
       Swig_error("SWIG", Getline(s), "PCRE execution failed: error %d while matching \"%s\" using \"%s\".\n",
 	rc, Char(pattern), input);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
   }
 
@@ -1490,11 +1458,11 @@ String *Swig_string_regex(String *s) {
 
 String *Swig_pcre_version(void) {
   int len = pcre2_config(PCRE2_CONFIG_VERSION, NULL);
-  char *buf = malloc(len);
+  char *buf = Malloc(len);
   String *result;
   pcre2_config(PCRE2_CONFIG_VERSION, buf);
   result = NewStringf("PCRE2 Version: %s", buf);
-  free(buf);
+  Free(buf);
   return result;
 }
 
@@ -1502,7 +1470,7 @@ String *Swig_pcre_version(void) {
 
 String *Swig_string_regex(String *s) {
   Swig_error("SWIG", Getline(s), "PCRE regex support not enabled in this SWIG build.\n");
-  SWIG_exit(EXIT_FAILURE);
+  Exit(EXIT_FAILURE);
   return 0;
 }
 

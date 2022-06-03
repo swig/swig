@@ -6,8 +6,6 @@ AUTOMAKE_OPTIONS = foreign nostdinc subdir-objects 1.7.2
 SOURCE_DIR=$(top_srcdir)/Source
 BUILD_SOURCE_DIR=$(top_builddir)/Source
 
-SWIG_CXX_DEFS = @SWILL@
-
 AM_CPPFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
 		-I$(BUILD_SOURCE_DIR)/CParse	\
 		-I$(SOURCE_DIR)/Include		\
@@ -18,7 +16,7 @@ AM_CPPFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
 		-I$(SOURCE_DIR)/Swig		\
 		-I$(SOURCE_DIR)/Modules
 
-AM_CXXFLAGS =	$(SWIG_CXX_DEFS)
+AM_CXXFLAGS =
 
 AM_YFLAGS = -d
 
@@ -46,7 +44,6 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Doxygen/pydoc.cxx		\
 		Doxygen/pydoc.h			\
 		Modules/allocate.cxx		\
-		Modules/browser.cxx		\
 		Modules/contract.cxx		\
 		Modules/csharp.cxx		\
 		Modules/d.cxx			\
@@ -62,7 +59,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Modules/lua.cxx			\
 		Modules/main.cxx		\
 		Modules/mzscheme.cxx		\
-		Modules/nested.cxx  \
+		Modules/nested.cxx		\
 		Modules/ocaml.cxx		\
 		Modules/octave.cxx		\
 		Modules/overload.cxx		\
@@ -99,7 +96,6 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Swig/wrapfunc.c
 
 bin_PROGRAMS = eswig
-eswig_LDADD   = @SWIGLIBS@
 
 # Override the link stage to avoid using Libtool
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
@@ -136,9 +132,9 @@ beautify:
 	mkdir $(INDENTBAKSDIR)/Preprocessor
 	mkdir $(INDENTBAKSDIR)/Swig
 	mkdir $(INDENTBAKSDIR)/Include
-	(csources=`find $(SOURCE_DIR) -name "*.c"` && \
-	hsources=`find $(SOURCE_DIR) -name "*.h"` && \
-	cxxsources=`find $(SOURCE_DIR) -name "*.cxx"` && \
+	(csources=`find . -name "*.c"` && \
+	hsources=`find . -name "*.h"` && \
+	cxxsources=`find . -name "*.cxx"` && \
 	for file in $$csources $$hsources $$cxxsources; do \
 	  $(MAKE) beautify-file INDENTFILE=$$file; \
 	done; )
@@ -151,21 +147,3 @@ beautify-file:
 	indent -kr --honour-newlines --line-length160 --indent-level2 --braces-on-func-def-line --leave-optional-blank-lines $(SWIGTYPEDEFS) $(INDENTFILE) -o $(INDENTFILE).tmp;
 	cat $(INDENTFILE).tmp | sed -e 's/const const /const /' > $(INDENTFILE);
 	rm $(INDENTFILE).tmp;
-
-# Beautify the code using clang-format.
-# This works well on both C and C++ code. It requires the LLVM/Clang tools to be installed.
-# Single files can be beautified with the format-file target, eg: 'make format-file INDENTFILE=chosenfile.c'
-
-format:
-	(csources=`find $(SOURCE_DIR) -name "*.c"` && \
-	hsources=`find $(SOURCE_DIR) -name "*.h"` && \
-	cxxsources=`find $(SOURCE_DIR) -name "*.cxx"` && \
-	for file in $$csources $$hsources $$cxxsources; do \
-	  $(MAKE) format-file INDENTFILE=$$file; \
-	done; )
-
-
-format-file:
-	test -n "$(INDENTFILE)" || (echo INDENTFILE not defined && exit 1;)
-	test -e $(INDENTFILE) || (echo File does not exist: $(INDENTFILE) && exit 1;)
-	clang-format -i $(INDENTFILE)

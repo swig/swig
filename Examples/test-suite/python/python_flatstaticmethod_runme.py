@@ -83,3 +83,10 @@ if A.defargs(1) != 21:
 
 if A.defargs(1, 2) != 3:
     raise RuntimeError
+
+# %extend
+if A_staticextended(11) != 11:
+    raise RuntimeError
+
+if A.staticextended(11) != 11:
+    raise RuntimeError

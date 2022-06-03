@@ -4,5 +4,6 @@ Any testcases which have _runme.py appended after the testcase name will be dete
 
 The _runme.py files needs to work for both Python 2.x and 3.x.
 
-You can run make with PY3=y to run test case with Python 3.x, eg.
-  $ make voidtest.cpptest PY3=y
+By default testcases are run with Python 3.  You can run make with PY2=1 to run test case with Python 2, eg.
+
+  $ make voidtest.cpptest PY2=1

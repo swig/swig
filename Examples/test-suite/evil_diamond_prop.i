@@ -12,7 +12,7 @@
 
 %inline %{
 
-class foo {
+class foo { 
   public:
     int _foo;
     foo() : _foo(1) {}

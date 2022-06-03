@@ -107,6 +107,22 @@ public class TestThread {
        Console.Error.WriteLine("Test failed (thread " + threadId + "): " + e.Message);
        Failed = true;
      }
+
+    // $imfuncname substitution
+    ProxyA pa = new ProxyA();
+    if (pa.imfuncname_test() != 123)
+      throw new ApplicationException("imfuncname_test is not 123");
+    if (ProxyA.imfuncname_static_test() != 234)
+      throw new ApplicationException("imfuncname_test is not 234");
+    if (csharp_typemaps.imfuncname_global_test() != 345)
+      throw new ApplicationException("imfuncname_test is not 345");
+
+    pa.variab = 1000;
+    if (pa.variab != 1000 + 111 + 222)
+      throw new ApplicationException("pa.variab is not 1333");
+    csharp_typemaps.global_variab = 1000;
+    if (csharp_typemaps.global_variab != 1000 + 333 + 444)
+      throw new ApplicationException("csharp_typemaps.variab is not 1777");
    }
 }
 

@@ -20,7 +20,7 @@ import java.lang.*; // for Exception
 %typemap(javainterfaces) NS::Greeting "EventListener";
 %typemap(javacode) NS::Greeting %{
   public static final long serialVersionUID = 0x52151000; // Suppress ecj warning
-  // Pure Java code generated using %typemap(javacode)
+  // Pure Java code generated using %typemap(javacode) 
   public void sayhello() {
     hello();
   }
@@ -125,3 +125,20 @@ void global_method_constwithout(const ConstWithout *p) {}
 %}
 
 
+// $imfuncname substitution
+%typemap(javaout) int imfuncname_test {
+    return $moduleJNI.$imfuncname(swigCPtr, this) + 123;
+  }
+%typemap(javaout) int imfuncname_static_test {
+    return $moduleJNI.$imfuncname() + 234;
+  }
+%typemap(javaout) int imfuncname_global_test {
+    return $moduleJNI.$imfuncname() + 345;
+  }
+%inline %{
+struct ProxyA {
+  int imfuncname_test() { return 0; }
+  static int imfuncname_static_test() { return 0; }
+};
+int imfuncname_global_test() { return 0; }
+%}

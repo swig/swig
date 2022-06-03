@@ -6,7 +6,7 @@
 int foobar(int a)
 {
   return a;
-}
+}  
 %}
 
 /*
@@ -18,7 +18,7 @@ int foobar(int a)
 int bar(int a)
 {
   return foobar(a);
-}
+}  
 %}
 
 %typemap(in,fragment="Hi") int hola "$1 = 123;";
@@ -28,22 +28,42 @@ int bar(int a)
 
 int bar(int a);
 
-int foo(int hola)
+int foo(int hola) 
 {
   return bar(hola);
 }
 
 %}
 
+/* Instantiate multiple fragments at once using fragments in comma separated list */
+typedef int comma_frag3;
+
+%fragment("comma_frag1","header", noblock=1) {
+typedef int comma_frag1;
+}
+
+%fragment("comma_frag2","header", noblock=1, noblock=1) {
+typedef comma_frag1 comma_frag2;
+}
+
+%fragment("comma_frag3","header",
+          fragment="comma_frag1,comma_frag2")
+%{typedef comma_frag2 comma_frag3;%}
+
+%fragment("comma_frag3");
+%inline %{
+comma_frag3 my_comma_frag_int = 0;
+%}
+
+
 /* Instantiate multiple fragments at once using multiple keywords */
-typedef int int_infrag3;
 typedef int explicit_frag3;
 
 %fragment("explicit_frag1","header", noblock=1) {
 typedef int explicit_frag1;
 }
 
-%fragment("explicit_frag2","header", noblock=1, noblock=1) {
+%fragment("explicit_frag2","header", noblock=1) {
 typedef explicit_frag1 explicit_frag2;
 }
 
@@ -71,6 +91,7 @@ typedef int_infrag1 int_infrag2;
 typedef int int_infrag1;
 %}
 %fragment("infrag2","runtime") %{
+__second_infrag2_fragment_is_ignored_this_will_not_compile_if_emitted_
 typedef int_infrag1 int_infrag2;
 %}
 

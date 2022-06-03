@@ -29,6 +29,7 @@ SWIG_AsWCharPtrAndSize(Tcl_Obj *obj, wchar_t** cptr, size_t* psize, int *alloc)
       Tcl_UtfToExternal(0, encoding, src, srcLen, flags, statePtr, dst,
 			dstLen, &srcRead, &dstWrote, &dstChars);
       
+      *cptr = (wchar_t*)dst;
       if (alloc) *alloc = SWIG_NEWOBJ;
     }
     if (psize) *psize = len + 1;

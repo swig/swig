@@ -925,7 +925,7 @@ void FORTRAN::write_wrapper(String *filename) {
   File *out = NewFile(filename, "w", SWIG_output_files());
   if (!out) {
     FileErrorDisplay(filename);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   // Write SWIG auto-generation banner
@@ -960,7 +960,7 @@ void FORTRAN::write_header(String *filename, String *include_guard) {
   File *out = NewFile(filename, "w", SWIG_output_files());
   if (!out) {
     FileErrorDisplay(filename);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   // Write SWIG auto-generation banner
@@ -979,7 +979,7 @@ void FORTRAN::write_module(String *filename) {
   File *out = NewFile(filename, "w", SWIG_output_files());
   if (!out) {
     FileErrorDisplay(filename);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   // Write SWIG auto-generation banner
@@ -2869,7 +2869,8 @@ int FORTRAN::enumDeclaration(Node *n) {
   }
 
   if (!fsymtab) {
-    fsymtab = NewHash();
+    // Use module scope
+    fsymtab = this->symbolScopeLookup(NULL);
   }
   if (fsymname) {
     String *lower_fsymname = Swig_string_lower(fsymname);

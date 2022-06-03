@@ -1084,7 +1084,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
      */
     if (code) {
       if (Getattr(n, "sym:overloaded")) {
-      Append(mangled, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
+	Append(mangled, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
       } else {
 	Append(mangled, "__SWIG");
       }
@@ -1435,9 +1435,9 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
     String *cres;
     String *code = Getattr(n, "code");
 
-    String *membername = Swig_name_member(0, classname, name);
-    String *sname = Swig_name_set(0, membername);
-    String *mangled = Swig_name_mangle(sname);
+    String *sname = Swig_name_set(0, name);
+    String *membername = Swig_name_member(0, classname, sname);
+    String *mangled = Swig_name_mangle(membername);
 
     if (code) {
       /* I don't think this ever gets run - WSF */
@@ -1517,9 +1517,9 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
     String *cres;
     String *code = Getattr(n, "code");
 
-    String *membername = Swig_name_member(0, classname, name);
-    String *gname = Swig_name_get(0, membername);
-    String *mangled = Swig_name_mangle(gname);
+    String *gname = Swig_name_get(0, name);
+    String *membername = Swig_name_member(0, classname, gname);
+    String *mangled = Swig_name_mangle(membername);
 
     if (code) {
       /* I don't think this ever gets run - WSF */
