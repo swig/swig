@@ -240,9 +240,7 @@
   if ((long long)LONG_MIN <= $1 && $1 <= (long long)LONG_MAX) {
     RETVAL_LONG((long)($1));
   } else {
-    char temp[256];
-    sprintf(temp, "%lld", (long long)$1);
-    RETVAL_STRING(temp);
+    RETVAL_NEW_STR(zend_strpprintf(0, "%lld", (long long)$1));
   }
 %}
 %typemap(out, phptype="int|string") unsigned long long
@@ -250,9 +248,7 @@
   if ($1 <= (unsigned long long)LONG_MAX) {
     RETVAL_LONG((long)($1));
   } else {
-    char temp[256];
-    sprintf(temp, "%llu", (unsigned long long)$1);
-    RETVAL_STRING(temp);
+    RETVAL_NEW_STR(zend_strpprintf(0, "%llu", (unsigned long long)$1));
   }
 %}
 
@@ -286,9 +282,7 @@
   if ((long long)LONG_MIN <= *$1 && *$1 <= (long long)LONG_MAX) {
     RETVAL_LONG((long)(*$1));
   } else {
-    char temp[256];
-    sprintf(temp, "%lld", (long long)(*$1));
-    RETVAL_STRING(temp);
+    RETVAL_NEW_STR(zend_strpprintf(0, "%lld", (long long)(*$1)));
   }
 %}
 %typemap(out, phptype="int|string") const unsigned long long &
@@ -296,9 +290,7 @@
   if (*$1 <= (unsigned long long)LONG_MAX) {
     RETVAL_LONG((long)(*$1));
   } else {
-    char temp[256];
-    sprintf(temp, "%llu", (unsigned long long)(*$1));
-    RETVAL_STRING(temp);
+    RETVAL_NEW_STR(zend_strpprintf(0, "%llu", (unsigned long long)(*$1)));
   }
 %}
 

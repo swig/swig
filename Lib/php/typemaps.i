@@ -122,9 +122,7 @@ INT_TYPEMAP(long long);
   if ((long long)LONG_MIN <= temp$argnum && temp$argnum <= (long long)LONG_MAX) {
     ZVAL_LONG(&o, (long)temp$argnum);
   } else {
-    char temp[256];
-    sprintf(temp, "%lld", (long long)temp$argnum);
-    ZVAL_STRING(&o, temp);
+    ZVAL_NEW_STR(&o, zend_strpprintf(0, "%lld", (long long)temp$argnum));
   }
   t_output_helper($result, &o);
 }
@@ -138,9 +136,7 @@ INT_TYPEMAP(long long);
   if ((long long)LONG_MIN <= lvalue$argnum && lvalue$argnum <= (long long)LONG_MAX) {
     ZVAL_LONG(&$arg, (long)temp$argnum);
   } else {
-    char temp[256];
-    sprintf(temp, "%lld", (long long)lvalue$argnum);
-    ZVAL_STRING(&$arg, temp);
+    ZVAL_NEW_STR(&$arg, zend_strpprintf(0, "%lld", (long long)lvalue$argnum));
   }
 %}
 %typemap(argout) long long &OUTPUT
@@ -148,9 +144,7 @@ INT_TYPEMAP(long long);
   if ((long long)LONG_MIN <= *arg$argnum && *arg$argnum <= (long long)LONG_MAX) {
     ZVAL_LONG($result, (long)(*arg$argnum));
   } else {
-    char temp[256];
-    sprintf(temp, "%lld", (long long)(*arg$argnum));
-    ZVAL_STRING($result, temp);
+    ZVAL_NEW_STR($result, zend_strpprintf(0, "%lld", (long long)(*arg$argnum)));
   }
 %}
 
@@ -161,9 +155,7 @@ INT_TYPEMAP(unsigned long long);
   if (temp$argnum <= (unsigned long long)LONG_MAX) {
     ZVAL_LONG(&o, temp$argnum);
   } else {
-    char temp[256];
-    sprintf(temp, "%llu", (unsigned long long)temp$argnum);
-    ZVAL_STRING(&o, temp);
+    ZVAL_NEW_STR(&o, zend_strpprintf(0, "%llu", (unsigned long long)temp$argnum));
   }
   t_output_helper($result, &o);
 }
@@ -177,9 +169,7 @@ INT_TYPEMAP(unsigned long long);
   if (lvalue$argnum <= (unsigned long long)LONG_MAX) {
     ZVAL_LONG($arg, (long)(lvalue$argnum));
   } else {
-    char temp[256];
-    sprintf(temp, "%llu", (unsigned long long)lvalue$argnum);
-    ZVAL_STRING((*$arg), temp);
+    ZVAL_NEW_STR((*$arg), zend_strpprintf(0, "%llu", (unsigned long long)lvalue$argnum));
   }
 %}
 %typemap(argout) unsigned long long &OUTPUT
@@ -187,9 +177,7 @@ INT_TYPEMAP(unsigned long long);
   if (*arg$argnum <= (unsigned long long)LONG_MAX) {
     ZVAL_LONG($result, (long)(*arg$argnum));
   } else {
-    char temp[256];
-    sprintf(temp, "%llu", (unsigned long long)(*arg$argnum));
-    ZVAL_STRING($result, temp);
+    ZVAL_NEW_STR($result, zend_strpprintf(0, "%llu", (unsigned long long)(*arg$argnum)));
   }
 %}
 

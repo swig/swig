@@ -151,14 +151,12 @@ static void SwigPHP_emit_pointer_type_registrations() {
   Printf(s_wrappers, "static int swig_ptr_cast_object(zend_object *zobj, zval *retval, int type) {\n");
   Append(s_wrappers, "#endif\n");
   Printf(s_wrappers, "  if (type == IS_STRING) {\n");
-  Printf(s_wrappers, "    char buf[80];\n");
   Append(s_wrappers, "#if PHP_MAJOR_VERSION < 8\n");
   Printf(s_wrappers, "    swig_object_wrapper *obj = SWIG_Z_FETCH_OBJ_P(z);\n");
   Append(s_wrappers, "#else\n");
   Printf(s_wrappers, "    swig_object_wrapper *obj = swig_php_fetch_object(zobj);\n");
   Append(s_wrappers, "#endif\n");
-  Printv(s_wrappers, "    sprintf(buf, \"SWIGPointer(%p,owned=%d)\", obj->ptr, obj->newobject);\n", NIL);
-  Printf(s_wrappers, "    ZVAL_STRING(retval, buf);\n");
+  Printv(s_wrappers, "    ZVAL_NEW_STR(retval, zend_strpprintf(0, \"SWIGPointer(%p,owned=%d)\", obj->ptr, obj->newobject));\n", NIL);
   Printf(s_wrappers, "    return SUCCESS;\n");
   Printf(s_wrappers, "  }\n");
   Printf(s_wrappers, "  return FAILURE;\n");
