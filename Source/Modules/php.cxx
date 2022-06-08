@@ -63,6 +63,7 @@ static String *pragma_phpinfo;
 static String *pragma_version;
 
 static String *class_name = NULL;
+static String *base_class = NULL;
 static String *destructor_action = NULL;
 static String *magic_set = NULL;
 static String *magic_get = NULL;
@@ -923,9 +924,10 @@ public:
     return n && Getattr(n, "classtype") != NULL;
   }
 
-  void generate_magic_property_methods(Node *class_node, String *base_class) {
-    if (Equal(base_class, "Exception") || !is_class_wrapped(base_class)) {
-      base_class = NULL;
+  void generate_magic_property_methods(Node *class_node) {
+    String *swig_base = base_class;
+    if (Equal(swig_base, "Exception") || !is_class_wrapped(swig_base)) {
+      swig_base = NULL;
     }
 
     static bool generated_magic_arginfo = false;
@@ -976,8 +978,8 @@ public:
 		      "}\n", NIL);
     }
     Printf(f->code, "} else {\n");
-    if (base_class) {
-      Printf(f->code, "PHP_MN(%s%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", prefix, base_class);
+    if (swig_base) {
+      Printf(f->code, "PHP_MN(%s%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", prefix, swig_base);
     } else {
       Printf(f->code, "add_property_zval_ex(ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), &args[1]);\n}\n");
     }
@@ -1008,8 +1010,8 @@ public:
     Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
     Printf(f->code, "if(arg->newobject) {\nRETVAL_LONG(1);\n}\nelse {\nRETVAL_LONG(0);\n}\n}\n\n");
     Printf(f->code, "else {\n");
-    if (base_class) {
-      Printf(f->code, "PHP_MN(%s%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", prefix, base_class);
+    if (swig_base) {
+      Printf(f->code, "PHP_MN(%s%s___get)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", prefix, swig_base);
     } else {
       // __get is only called if the property isn't set on the zend_object.
       Printf(f->code, "RETVAL_NULL();\n}\n");
@@ -1041,8 +1043,8 @@ public:
       Append(f->code, magic_isset);
     }
     Printf(f->code, "else {\n");
-    if (base_class) {
-      Printf(f->code, "PHP_MN(%s%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", prefix, base_class);
+    if (swig_base) {
+      Printf(f->code, "PHP_MN(%s%s___isset)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n}\n", prefix, swig_base);
     } else {
       // __isset is only called if the property isn't set on the zend_object.
       Printf(f->code, "RETVAL_FALSE;\n}\n");
@@ -1586,9 +1588,9 @@ public:
 
   virtual int classHandler(Node *n) {
     String *symname = Getattr(n, "sym:name");
-    String *base_class = NULL;
 
     class_name = symname;
+    base_class = NULL;
     destructor_action = NULL;
 
     Printf(all_cs_entry, "static const zend_function_entry class_%s_functions[] = {\n", class_name);
@@ -1799,10 +1801,11 @@ public:
     Printf(s_oinit, "#endif\n");
     Printf(s_oinit, "\n");
 
-    generate_magic_property_methods(n, base_class);
+    generate_magic_property_methods(n);
     Printf(all_cs_entry, " ZEND_FE_END\n};\n\n");
 
     class_name = NULL;
+    base_class = NULL;
     return SWIG_OK;
   }
 
