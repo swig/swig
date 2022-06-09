@@ -2249,11 +2249,13 @@ public:
 	if (tm)
 	  tm = Copy(tm);
       }
-      if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
-	Replaceall(tm, "$error", "EG(exception)");
-	Printv(w->code, Str(tm), "\n", NIL);
+      if (!tm || Len(tm) == 0 || Equal(tm, "1")) {
+	// Skip marshalling the return value as there isn't one.
+	tm = NewString("if ($error) SWIG_fail;");
       }
-      Append(w->code, "}\n");
+
+      Replaceall(tm, "$error", "EG(exception)");
+      Printv(w->code, Str(tm), "\n}\n{\n", NIL);
       Delete(tm);
 
       /* marshal return value from PHP to C/C++ type */
@@ -2300,6 +2302,8 @@ public:
 	  p = nextSibling(p);
 	}
       }
+
+      Append(w->code, "}\n");
 
       Delete(cleanup);
       Delete(outarg);
