@@ -102,7 +102,7 @@ static String *swig_wrapped_interface_ce() {
 static Hash *arginfo_used;
 
 /* Track non-class pointer types we need to to wrap */
-static Hash *zend_types = 0;
+static Hash *raw_pointer_types = 0;
 
 static int shadow = 1;
 
@@ -124,10 +124,10 @@ extern "C" {
 }
 
 static void SwigPHP_emit_pointer_type_registrations() {
-  if (!zend_types)
+  if (!raw_pointer_types)
     return;
 
-  Iterator ki = First(zend_types);
+  Iterator ki = First(raw_pointer_types);
   if (!ki.key)
     return;
 
@@ -2381,9 +2381,9 @@ void PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribute
 	// fails at runtime and the error isn't very helpful).  We could
 	// check the condition
 	//
-	//   zend_types && Getattr(zend_types, SwigType_manglestr(type))
+	//   raw_pointer_types && Getattr(raw_pointer_types, SwigType_manglestr(type))
 	//
-	// except that zend_types may not have been fully filled in when
+	// except that raw_pointer_types may not have been fully filled in when
 	// we are called.
 	Append(merge_list, NewStringf("SWIG\\%s", SwigType_manglestr(type)));
       }
@@ -2402,10 +2402,10 @@ extern "C" {
 static void typetrace(const SwigType *ty, String *mangled, String *clientdata) {
   if (maininstance->classLookup(ty) == NULL) {
     // a non-class pointer
-    if (!zend_types) {
-      zend_types = NewHash();
+    if (!raw_pointer_types) {
+      raw_pointer_types = NewHash();
     }
-    Setattr(zend_types, mangled, mangled);
+    Setattr(raw_pointer_types, mangled, mangled);
   }
   if (r_prevtracefunc)
     (*r_prevtracefunc) (ty, mangled, clientdata);
