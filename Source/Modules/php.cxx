@@ -185,10 +185,27 @@ static void SwigPHP_emit_pointer_type_registrations() {
   }
 }
 
+static Hash *create_php_type_flags() {
+  Hash *h = NewHash();
+  Setattr(h, "array", "MAY_BE_ARRAY");
+  Setattr(h, "bool", "MAY_BE_BOOL");
+  Setattr(h, "callable", "MAY_BE_CALLABLE");
+  Setattr(h, "float", "MAY_BE_DOUBLE");
+  Setattr(h, "int", "MAY_BE_LONG");
+  Setattr(h, "iterable", "MAY_BE_ITERABLE");
+  Setattr(h, "mixed", "MAY_BE_MIXED");
+  Setattr(h, "null", "MAY_BE_NULL");
+  Setattr(h, "object", "MAY_BE_OBJECT");
+  Setattr(h, "resource", "MAY_BE_RESOURCE");
+  Setattr(h, "string", "MAY_BE_STRING");
+  Setattr(h, "void", "MAY_BE_VOID");
+  return h;
+}
+
+static Hash *php_type_flags = create_php_type_flags();
+
 // Class encapsulating the machinery to add PHP type declarations.
 class PHPTypes {
-  Hash *phptypes;
-
   // List with an entry for each parameter and one for the return type.
   //
   // We assemble the types in here before emitting them so for an overloaded
@@ -201,26 +218,14 @@ class PHPTypes {
   List *byref;
 
 public:
-  PHPTypes() : phptypes(NewHash()), merged_types(NULL), byref(NULL) {
-    Setattr(phptypes, "array", "MAY_BE_ARRAY");
-    Setattr(phptypes, "bool", "MAY_BE_BOOL");
-    Setattr(phptypes, "callable", "MAY_BE_CALLABLE");
-    Setattr(phptypes, "float", "MAY_BE_DOUBLE");
-    Setattr(phptypes, "int", "MAY_BE_LONG");
-    Setattr(phptypes, "iterable", "MAY_BE_ITERABLE");
-    Setattr(phptypes, "mixed", "MAY_BE_MIXED");
-    Setattr(phptypes, "null", "MAY_BE_NULL");
-    Setattr(phptypes, "object", "MAY_BE_OBJECT");
-    Setattr(phptypes, "resource", "MAY_BE_RESOURCE");
-    Setattr(phptypes, "string", "MAY_BE_STRING");
-    Setattr(phptypes, "void", "MAY_BE_VOID");
-  }
+  PHPTypes() : merged_types(NewList()), byref(NULL) { }
 
-  void reset() {
+  PHPTypes(const PHPTypes *o)
+    : merged_types(Copy(o->merged_types)), byref(Copy(o->byref)) { }
+
+  ~PHPTypes() {
     Delete(merged_types);
-    merged_types = NewList();
     Delete(byref);
-    byref = NULL;
   }
 
   // key is 0 for return type, or >= 1 for parameters numbered from 1
@@ -238,7 +243,7 @@ public:
 	  // Skip duplicates when merging.
 	  continue;
 	}
-	String *c = Getattr(phptypes, i.item);
+	String *c = Getattr(php_type_flags, i.item);
 	if (c) {
 	  if (Len(result) > 0) Append(result, "|");
 	  Append(result, c);
@@ -272,9 +277,18 @@ public:
   }
 };
 
-class PHP : public Language {
-  PHPTypes phptypes;
+static PHPTypes *phptypes = NULL;
 
+// Track if the current phptypes is for a non-class function.
+static PHPTypes *non_class_phptypes = NULL;
+
+// class + ":" + method -> PHPTypes*
+static Hash *all_phptypes = NewHash();
+
+// php_class_name -> php_parent_class_name
+static Hash *php_parent_class = NewHash();
+
+class PHP : public Language {
 public:
   PHP() {
     director_language = 1;
@@ -728,7 +742,7 @@ public:
 	// it inherits from is directed, which is what we care about here.
 	// Using (!is_member_director(n)) would get it wrong for testcase
 	// director_frob.
-	out_phptype = phptypes.get_phptype(0, out_phpclasses);
+	out_phptype = phptypes->get_phptype(0, out_phpclasses);
       }
     }
 
@@ -763,17 +777,17 @@ public:
       String *phpclasses = NewStringEmpty();
       String *phptype = NULL;
       if (GetFlag(n, "feature:php:type")) {
-	phptype = phptypes.get_phptype(param_count, phpclasses);
+	phptype = phptypes->get_phptype(param_count, phpclasses);
       }
 
       int byref;
       if (!dispatch) {
 	byref = GetFlag(p, "tmap:in:byref");
-	if (byref) phptypes.set_byref(param_count);
+	if (byref) phptypes->set_byref(param_count);
       } else {
 	// If any overload takes a particular parameter by reference then the
 	// dispatch function also needs to take that parameter by reference.
-	byref = phptypes.get_byref(param_count);
+	byref = phptypes->get_byref(param_count);
       }
 
       // FIXME: Should we be doing byref for return value as well?
@@ -1141,12 +1155,6 @@ public:
 	return SWIG_ERROR;
     }
 
-    if (!Getattr(n, "sym:previousSibling")) {
-      // First function of an overloaded group or a function which isn't part
-      // of a group so reset the phptype information.
-      phptypes.reset();
-    }
-
     if (constructor) {
       wname = NewString("__construct");
     } else if (wrapperType == membervar) {
@@ -1195,6 +1203,40 @@ public:
       Setattr(n, "wrap:name", wname);
       (void)emit_action(n);
       return SWIG_OK;
+    }
+
+    if (!Getattr(n, "sym:previousSibling")) {
+      // First function of an overloaded group or a function which isn't part
+      // of a group so reset the phptype information.
+      if (non_class_phptypes) {
+	delete non_class_phptypes;
+	non_class_phptypes = NULL;
+      }
+      phptypes = NULL;
+
+      if (class_name) {
+	// See if there's a parent class which implements this method, and if
+	// so copy the PHPTypes of that method as a starting point as we need
+	// to be compatible with it (whether it is virtual or not).
+	String *parent = class_name;
+	while ((parent = Getattr(php_parent_class, parent)) != NULL) {
+	  String *key = NewStringf("%s:%s", parent, wname);
+	  PHPTypes *p = (PHPTypes*)GetVoid(all_phptypes, key);
+	  Delete(key);
+	  if (p) {
+	    phptypes = new PHPTypes(p);
+	    break;
+	  }
+	}
+      }
+      if (!phptypes) {
+	phptypes = new PHPTypes();
+      }
+      if (class_name) {
+	SetVoid(all_phptypes, NewStringf("%s:%s", class_name, wname), phptypes);
+      } else {
+	non_class_phptypes = phptypes;
+      }
     }
 
     f = NewWrapper();
@@ -1313,7 +1355,7 @@ public:
 	continue;
       }
 
-      phptypes.process_phptype(p, i + 1, "tmap:in:phptype");
+      phptypes->process_phptype(p, i + 1, "tmap:in:phptype");
 
       String *source = NewStringf("args[%d]", i);
       Replaceall(tm, "$input", source);
@@ -1399,7 +1441,7 @@ public:
     }
     emit_return_variable(n, d, f);
 
-    phptypes.process_phptype(n, 0, "tmap:out:phptype");
+    phptypes->process_phptype(n, 0, "tmap:out:phptype");
 
     if (outarg) {
       Printv(f->code, outarg, NIL);
@@ -1643,6 +1685,7 @@ public:
       Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class_ex(&internal_ce, zend_ce_exception);\n", class_name);
     } else if (is_class_wrapped(base_class)) {
       Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class_ex(&internal_ce, SWIG_Php_ce_%s);\n", class_name, base_class);
+      Setattr(php_parent_class, class_name, base_class);
     } else {
       Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class(&internal_ce);\n", class_name);
     }
