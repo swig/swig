@@ -14,7 +14,7 @@ if (PHP_MAJOR_VERSION < 8) {
   class PHPDerived extends Base {
     function Val($x) { return $x; }
     function Ref($x) { return $x; }
-    function Ptr($x) { var_dump($x); return $x; }
+    function Ptr($x) { return $x; }
     function ConstPtrRef($x) { return $x; }
     function FullyOverloaded($x) {
       $rv = parent::FullyOverloaded($x);
@@ -41,8 +41,12 @@ if (PHP_MAJOR_VERSION < 8) {
   class PHPDerived extends Base {
     function Val(DoubleHolder $x) { return $x; }
     function Ref(DoubleHolder $x) { return $x; }
-    function Ptr(?DoubleHolder $x) { var_dump($x); return $x; }
-    function ConstPtrRef(?DoubleHolder $x) { return $x; }
+    // PHP 7.0 fails to parse the `?` - revert once we drop 7.0 support:
+    // function Ptr(?DoubleHolder $x) { return $x; }
+    function Ptr($x) { return $x; }
+    // PHP 7.0 fails to parse the `?` - revert once we drop 7.0 support:
+    // function ConstPtrRef(?DoubleHolder $x) { return $x; }
+    function ConstPtrRef($x) { return $x; }
     function FullyOverloaded($x) {
       $rv = parent::FullyOverloaded($x);
       $rv = preg_replace('/Base/', 'PHPDerived', $rv);
