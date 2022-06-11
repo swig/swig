@@ -13,6 +13,7 @@
  */
 
 #include "swigmod.h"
+#include <algorithm>
 #include <ctype.h>
 #include <errno.h>
 
@@ -269,11 +270,18 @@ public:
     while (Len(byref) <= key) {
       Append(byref, None);
     }
+    // If any overload takes a particular parameter by reference then the
+    // dispatch function also needs to take that parameter by reference so
+    // we can just set unconditionally here.
     Setitem(byref, key, ""); // Just needs to be something != None.
   }
 
   int get_byref(int key) const {
     return byref && key < Len(byref) && Getitem(byref, key) != None;
+  }
+
+  int size() const {
+    return std::max(Len(merged_types), Len(byref));
   }
 };
 
@@ -759,36 +767,12 @@ public:
       Printf(arginfo_code, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_###, 0, 0, %d)\n", num_required);
     }
 
-    if (Getattr(n, "defaultargs")) {
-      // Include parameters with default values in the arginfo.
-      l = Getattr(Getattr(n, "defaultargs"), "parms");
-    }
-    int param_count = 0;
-    for (Parm *p = l; p; p = Getattr(p, "tmap:in:next")) {
-      String *tmap_in_numinputs = Getattr(p, "tmap:in:numinputs");
-      // tmap:in:numinputs is unset for varargs, which we don't count here.
-      if (!tmap_in_numinputs || Equal(tmap_in_numinputs, "0")) {
-	/* Ignored parameter */
-	continue;
-      }
-
-      ++param_count;
-
+    int phptypes_size = phptypes->size();
+    for (int param_count = 1; param_count < phptypes_size; ++param_count) {
       String *phpclasses = NewStringEmpty();
-      String *phptype = NULL;
-      if (GetFlag(n, "feature:php:type")) {
-	phptype = phptypes->get_phptype(param_count, phpclasses);
-      }
+      String *phptype = phptypes->get_phptype(param_count, phpclasses);
 
-      int byref;
-      if (!dispatch) {
-	byref = GetFlag(p, "tmap:in:byref");
-	if (byref) phptypes->set_byref(param_count);
-      } else {
-	// If any overload takes a particular parameter by reference then the
-	// dispatch function also needs to take that parameter by reference.
-	byref = phptypes->get_byref(param_count);
-      }
+      int byref = phptypes->get_byref(param_count);
 
       // FIXME: Should we be doing byref for return value as well?
 
@@ -1356,6 +1340,7 @@ public:
       }
 
       phptypes->process_phptype(p, i + 1, "tmap:in:phptype");
+      if (GetFlag(p, "tmap:in:byref")) phptypes->set_byref(i + 1);
 
       String *source = NewStringf("args[%d]", i);
       Replaceall(tm, "$input", source);
