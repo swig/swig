@@ -42,39 +42,49 @@ check::equal($f->double_if_void_ptr_is_null(6, Null), 12, "\$f->double_if_void_p
 
 check::equal($f->double_if_void_ptr_is_null(7), 14, "\$f->double_if_void_ptr_is_null(7)");
 
+# For the testcases below PHP < 7.3 emits an error, while newer versions throw
+# an exception.  We handle the older versions by suppressing the error with `@`,
+# then checking for the created object being Null if the PHP version is < 7.3.
+
 try {
-    $f = new Foo(1);
-    check::fail("Foo::Foo ignore is not working");
+    @$f = new Foo(1);
+    if (!(PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3 && $f === null))
+      check::fail("Foo::Foo ignore is not working");
 } catch (ArgumentCountError $e) {
 }
 
 try {
-    $f = new Foo(1, 2);
-    check::fail("Foo::Foo ignore is not working");
+    @$f = new Foo(1, 2);
+    if (!(PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3 && $f === null))
+      check::fail("Foo::Foo ignore is not working");
 } catch (ArgumentCountError $e) {
 }
 
 try {
-    $f = new Foo(1, 2, 3);
-    check::fail("Foo::Foo ignore is not working");
+    @$f = new Foo(1, 2, 3);
+    if (!(PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3 && $f === null))
+      check::fail("Foo::Foo ignore is not working");
 } catch (ArgumentCountError $e) {
 }
 
 try {
-    $m = $f->meth(1);
-    check::fail("Foo::meth ignore is not working");
+    @$m = $f->meth(1);
+    if (!(PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3 && $f === null))
+      check::fail("Foo::meth ignore is not working");
 } catch (Error $e) {
 }
 
 try {
-    $m = $f->meth(1, 2);
-    check::fail("Foo::meth ignore is not working");
+    @$m = $f->meth(1, 2);
+    if (!(PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3 && $f === null))
+      check::fail("Foo::meth ignore is not working");
 } catch (Error $e) {
 }
 
 try {
-    $m = $f->meth(1, 2, 3);
-    check::fail("Foo::meth ignore is not working");
+    @$m = $f->meth(1, 2, 3);
+    if (!(PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3 && $f === null))
+      check::fail("Foo::meth ignore is not working");
 } catch (Error $e) {
 }
 
