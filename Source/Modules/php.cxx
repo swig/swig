@@ -218,15 +218,29 @@ class PHPTypes {
   // the dispatch function.  If NULL, no parameters are passed by reference.
   List *byref;
 
+  // Used to clamp the required number of parameters in the arginfo to be
+  // compatible with any parent class version of the method.
+  int required_clamp;
+
 public:
-  PHPTypes() : merged_types(NewList()), byref(NULL) { }
+  PHPTypes(int num_required)
+    : merged_types(NewList()),
+      byref(NULL),
+      required_clamp(num_required) { }
 
   PHPTypes(const PHPTypes *o)
-    : merged_types(Copy(o->merged_types)), byref(Copy(o->byref)) { }
+    : merged_types(Copy(o->merged_types)),
+      byref(Copy(o->byref)),
+      required_clamp(o->required_clamp) { }
 
   ~PHPTypes() {
     Delete(merged_types);
     Delete(byref);
+  }
+
+  int adjust_num_required(int num_required) {
+    required_clamp = std::min(num_required, required_clamp);
+    return required_clamp;
   }
 
   // key is 0 for return type, or >= 1 for parameters numbered from 1
@@ -712,7 +726,7 @@ public:
       }
     }
 
-    int num_required = emit_num_required(l);
+    int num_required = phptypes->adjust_num_required(emit_num_required(l));
 
     // We want to only emit each different arginfo once, as that reduces the
     // size of both the generated source code and the compiled extension
@@ -1214,7 +1228,7 @@ public:
 	}
       }
       if (!phptypes) {
-	phptypes = new PHPTypes();
+	phptypes = new PHPTypes(emit_num_required(l));
       }
       if (class_name) {
 	SetVoid(all_phptypes, NewStringf("%s:%s", class_name, wname), phptypes);
