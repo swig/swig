@@ -46,46 +46,48 @@ check::equal($f->double_if_void_ptr_is_null(7), 14, "\$f->double_if_void_ptr_is_
 # an exception.  We handle the older versions by suppressing the error with `@`,
 # then checking for the created object being Null if the PHP version is < 7.3.
 
+if (PHP_MAJOR_VERSION == 7) {
+  $old_error_handler = set_error_handler(function($n,$s,$f,$l){throw preg_match('/^Wrong parameter count/', $s) ? new ArgumentCountError($s) : new Error($s);});
+}
+
 try {
-    @$f = new Foo(1);
-    if (!(PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3 && $f === null))
-      check::fail("Foo::Foo ignore is not working");
+    $f = new Foo(1);
+    check::fail("Foo::Foo ignore is not working");
 } catch (ArgumentCountError $e) {
 }
 
 try {
-    @$f = new Foo(1, 2);
-    if (!(PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3 && $f === null))
-      check::fail("Foo::Foo ignore is not working");
+    $f = new Foo(1, 2);
+    check::fail("Foo::Foo ignore is not working");
 } catch (ArgumentCountError $e) {
 }
 
 try {
-    @$f = new Foo(1, 2, 3);
-    if (!(PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3 && $f === null))
-      check::fail("Foo::Foo ignore is not working");
+    $f = new Foo(1, 2, 3);
+    check::fail("Foo::Foo ignore is not working");
 } catch (ArgumentCountError $e) {
 }
 
 try {
-    @$m = $f->meth(1);
-    if (!(PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3 && $f === null))
-      check::fail("Foo::meth ignore is not working");
+    $m = $f->meth(1);
+    check::fail("Foo::meth ignore is not working");
 } catch (Error $e) {
 }
 
 try {
-    @$m = $f->meth(1, 2);
-    if (!(PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3 && $f === null))
-      check::fail("Foo::meth ignore is not working");
+    $m = $f->meth(1, 2);
+    check::fail("Foo::meth ignore is not working");
 } catch (Error $e) {
 }
 
 try {
-    @$m = $f->meth(1, 2, 3);
-    if (!(PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3 && $f === null))
-      check::fail("Foo::meth ignore is not working");
+    $m = $f->meth(1, 2, 3);
+    check::fail("Foo::meth ignore is not working");
 } catch (Error $e) {
+}
+
+if (PHP_MAJOR_VERSION == 7) {
+  set_error_handler($old_error_handler);
 }
 
 check::equal(Klass::inc(100, new Klass(22))->val, 122, "Klass::inc failed");
