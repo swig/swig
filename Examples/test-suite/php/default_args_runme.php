@@ -47,6 +47,10 @@ check::equal($f->double_if_void_ptr_is_null(7), 14, "\$f->double_if_void_ptr_is_
 # then checking for the created object being Null if the PHP version is < 7.3.
 
 if (PHP_MAJOR_VERSION == 7) {
+  if (PHP_MINOR_VERSION == 0) {
+    # ArgumentCountError was added in PHP 7.1.
+    class ArgumentCountError extends Error {}
+  }
   $old_error_handler = set_error_handler(function($n,$s,$f,$l){throw preg_match('/^Wrong parameter count/', $s) ? new ArgumentCountError($s) : new Error($s);});
 }
 
