@@ -109,7 +109,7 @@ SWIGEXPORT const char* SWIG_FORTRAN_ERROR_STR() {
 %insert("header") {
 extern "C" {
 
-#include <cctype>
+%#include <cctype>
 
 // Call this function before any new action
 SWIGEXPORT void SWIG_check_unhandled_exception_impl(const char* decl) {
