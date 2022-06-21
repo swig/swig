@@ -201,15 +201,6 @@
 ;;;SWIG wrapper code ends here
 %}
 
-#ifdef __cplusplus
-%typemap(out) SWIGTYPE                     "$result = new $1_type($1);";
-#else
-%typemap(out) SWIGTYPE {
-  $result = ($&1_ltype) malloc(sizeof($1_type));
-  memmove($result, &$1, sizeof($1_type));
-}
-#endif
-
 //////////////////////////////////////////////////////////////
 
 /* name conversion for overloaded operators. */
