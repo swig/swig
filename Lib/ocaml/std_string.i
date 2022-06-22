@@ -83,9 +83,18 @@ class wstring;
   $result = caml_val_string_len($1.c_str(),$1.size());
 }
 
+%typemap(varout) string {
+  $result = caml_val_string_len($1.c_str(),$1.size());
+}
+
 %typemap(out) string * {
 	$result = caml_val_string_len((*$1).c_str(),(*$1).size());
 }
+
+%typemap(varout) string * {
+	$result = caml_val_string_len((*$1).c_str(),(*$1).size());
+}
+
 %typemap(typecheck) string, const string & = char *;
 }
 

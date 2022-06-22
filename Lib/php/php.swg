@@ -443,7 +443,7 @@
 %typemap(out, phptype="SWIGTYPE") SWIGTYPE
 {
 #ifdef __cplusplus
-  $&1_ltype resultobj = new $1_ltype((const $1_ltype &) $1);
+  $&1_ltype resultobj = new $1_ltype($1);
 #else
   $&1_ltype resultobj = ($&1_ltype) malloc(sizeof($1_type));
   memcpy(resultobj, &$1, sizeof($1_type));

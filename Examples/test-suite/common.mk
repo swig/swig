@@ -597,6 +597,7 @@ CPP11_TEST_CASES += \
 	cpp11_initializer_list \
 	cpp11_initializer_list_extend \
 	cpp11_lambda_functions \
+	cpp11_move_only \
 	cpp11_move_only_valuewrapper \
 	cpp11_noexcept \
 	cpp11_null_pointer_constant \

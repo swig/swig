@@ -93,10 +93,14 @@
     $1 = *(($&1_ltype) caml_ptr_val($input,$&1_descriptor)) ;
 }
 
+%typemap(varout) SWIGTYPE {
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)&$1, $&1_descriptor);
+}
+
 #ifdef __cplusplus
 
 %typemap(out) SWIGTYPE {
-    $&1_ltype temp = new $ltype((const $1_ltype &) $1);
+    $&1_ltype temp = new $1_ltype($1);
     $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)temp, $&1_descriptor);
 }
 
@@ -109,6 +113,10 @@
 }
 
 #endif
+
+%typemap(varout) SWIGTYPE * {
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)$1, $1_descriptor);
+}
 
 %typemap(directorin) SWIGTYPE {
     $&ltype temp = new $ltype((const $ltype &)$1);
