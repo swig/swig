@@ -103,7 +103,7 @@ $(MULTI_CPP_TEST_CASES:=.multicpptest): extra_objects
 
 # Clean
 %.clean:
-	@rm -f $*.ml $*.mli $*_runme;
+	@rm -f $*_wrap.* $*.cmo $*.cmi $*.ml $*.mli $*_runme;
 	@if test $(srcdir) != .; then rm -f $(ml_runme); fi
 
 clean:
