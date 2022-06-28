@@ -20,6 +20,6 @@ bool maybeUnused2(bool a, [[maybe_unused]] bool b) { return a; }
   return false;
 }
 
-struct [[nodiscard]] error_info { };
+struct [[nodiscard]] S { };
 
 %}

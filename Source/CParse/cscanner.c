@@ -355,7 +355,10 @@ static int yylook(void) {
       return ELLIPSIS;
 
     case SWIG_TOKEN_LLBRACKET:
-      return LLBRACKET;
+      do {
+        tok = Scanner_token(scan);
+      } while (tok != SWIG_TOKEN_RRBRACKET);
+      break;
 
     case SWIG_TOKEN_RRBRACKET:
       return RRBRACKET;
