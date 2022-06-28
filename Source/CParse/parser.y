@@ -1716,7 +1716,6 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     lambda_introducer lambda_body;
 %type <pl>       lambda_tail;
 %type <str>      virt_specifier_seq virt_specifier_seq_opt;
-%type <pl>       cpp_attributes;
 
 %%
 
@@ -7035,8 +7034,6 @@ virt_specifier_seq : OVERRIDE {
                    $$ = NewString("1");
 	       }
                ;
-
-cpp_attributes : LLBRACKET parms RRBRACKET { };
 
 virt_specifier_seq_opt : virt_specifier_seq {
                    $$ = $1;
