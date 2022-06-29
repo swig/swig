@@ -683,7 +683,7 @@ public:
 #else
   operator T&() const { return *pointer.ptr; }
 #endif
-  T *operator&() { return pointer.ptr; }
+  T *operator&() const { return pointer.ptr; }
 };%}
 
 /*
