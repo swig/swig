@@ -2167,10 +2167,6 @@ public:
 
       Parm *p;
 
-      int outputs = 0;
-      if (!is_void)
-	outputs++;
-
       /* build argument list and type conversion string */
       idx = 0;
       p = l;
@@ -2179,9 +2175,6 @@ public:
 	  p = Getattr(p, "tmap:in:next");
 	  continue;
 	}
-
-	if (Getattr(p, "tmap:directorargout") != 0)
-	  outputs++;
 
 	String *pname = Getattr(p, "name");
 	String *ptype = Getattr(p, "type");
