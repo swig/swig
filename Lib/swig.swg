@@ -602,6 +602,10 @@ namespace std {
  *  Runtime code
  * ----------------------------------------------------------------------------- */
 
+
+%insert("runtime") "swiglabels.swg"
+
+
 /*  The SwigValueWrapper class  */
 
 /*  
@@ -702,9 +706,4 @@ template <typename T> T SwigValueInit() {
 #endif
 %}
 #endif
-
-/*  The swiglabels  */
-
-%insert("runtime") "swiglabels.swg"
-
 
