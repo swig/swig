@@ -123,7 +123,7 @@ void Swig_cparse_cplusplusout(int v) {
  * Initialize buffers
  * ------------------------------------------------------------------------- */
 
-void scanner_init() {
+void scanner_init(void) {
   scan = NewScanner();
   Scanner_idstart(scan,"%");
   scan_init = 1;
@@ -528,11 +528,11 @@ void scanner_set_location(String *file, int line) {
   Scanner_set_location(scan,file,line-1);
 }
 
-void scanner_check_typedef() {
+void scanner_check_typedef(void) {
   check_typedef = 1;
 }
 
-void scanner_ignore_typedef() {
+void scanner_ignore_typedef(void) {
   check_typedef = 0;
 }
 
@@ -540,7 +540,7 @@ void scanner_last_id(int x) {
   last_id = x;
 }
 
-void scanner_clear_rename() {
+void scanner_clear_rename(void) {
   rename_active = 0;
 }
 
@@ -554,7 +554,7 @@ void scanner_set_main_input_file(String *file) {
   main_input_file = file;
 }
 
-String *scanner_get_main_input_file() {
+String *scanner_get_main_input_file(void) {
   return main_input_file;
 }
 

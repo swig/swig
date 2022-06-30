@@ -1497,7 +1497,7 @@ int Swig_is_generated_overload(Node *n) {
  * Initialize the SWIG core
  * ----------------------------------------------------------------------------- */
 
-void Swig_init() {
+void Swig_init(void) {
   /* Set some useful string encoding methods */
   DohEncoding("escape", Swig_string_escape);
   DohEncoding("hexescape", Swig_string_hexescape);

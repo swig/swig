@@ -48,7 +48,7 @@ static int pools_initialized = 0;
  * CreatePool() - Create a new memory pool 
  * ---------------------------------------------------------------------- */
 
-static void CreatePool() {
+static void CreatePool(void) {
   Pool *p = 0;
   p = (Pool *) DohMalloc(sizeof(Pool));
   p->ptr = (DohBase *) DohCalloc(PoolSize, sizeof(DohBase));
@@ -65,7 +65,7 @@ static void CreatePool() {
  * InitPools() - Initialize the memory allocator
  * ---------------------------------------------------------------------- */
 
-static void InitPools() {
+static void InitPools(void) {
   if (pools_initialized)
     return;
   CreatePool();			/* Create initial pool */

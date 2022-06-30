@@ -145,7 +145,7 @@ static List *Swig_search_path_any(int syspath) {
   return slist;
 }
 
-List *Swig_search_path() {
+List *Swig_search_path(void) {
   return Swig_search_path_any(0);
 }
 
@@ -376,6 +376,6 @@ String *Swig_file_dirname(const_String_or_char_ptr filename) {
 /*
  * Swig_file_debug()
  */
-void Swig_file_debug_set() {
+void Swig_file_debug_set(void) {
   file_debug = 1;
 }

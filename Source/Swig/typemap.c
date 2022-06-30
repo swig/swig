@@ -151,7 +151,7 @@ static void set_typemap(const SwigType *type, Hash **tmhash) {
  * Initialize the typemap system
  * ----------------------------------------------------------------------------- */
 
-void Swig_typemap_init() {
+void Swig_typemap_init(void) {
   typemaps = NewHash();
 }
 
@@ -2170,7 +2170,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
  * Display all typemaps
  * ----------------------------------------------------------------------------- */
 
-void Swig_typemap_debug() {
+void Swig_typemap_debug(void) {
   int nesting_level = 2;
   Printf(stdout, "---[ typemaps ]--------------------------------------------------------------\n");
   Swig_print(typemaps, nesting_level);
