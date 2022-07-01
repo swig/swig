@@ -26,7 +26,7 @@ C_TEST_CASES += \
 	li_cdata_carrays \
 	multivalue \
 
-# These fail with PHP8 currently.  Aiming to fix before 4.1 release.  See #2181.
+# These fail with PHP8 currently.  Aiming to fix before 4.1 release.  See #2151.
 FAILING_CPP_TESTS = \
 	director_redefined \
 	director_using_member_scopes \
