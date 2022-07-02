@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-07-02: wsfulton
+            #1722 [C#, Java, Python, Ruby] Add std::unique_ptr support. Ported from std::auto_ptr.
+            Use the %unique_ptr(T) macro as follows for usage std::unique_ptr<T>. For example, for
+            a class called Klass:
+
+              %include "std_unique_ptr.i"
+              %unique_ptr(Klass)
+
+            Support is currently limited to only returning a std::unique_ptr from a function.
+
 2022-06-29: wsfulton
             #999 #1044 Enhance SWIGTYPE "out" typemaps to use std::move when copying
             objects, thereby making use of move semantics when wrapping a function returning

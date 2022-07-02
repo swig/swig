@@ -612,6 +612,7 @@ CPP11_TEST_CASES += \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
 	cpp11_std_array \
+	cpp11_std_unique_ptr \
 	cpp11_strongly_typed_enumerations \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
