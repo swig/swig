@@ -96,6 +96,9 @@ class wstring;
 }
 
 %typemap(typecheck) string, const string & = char *;
+
+%typemap(throws) string, const string & "SWIG_OCamlThrowException(SWIG_OCamlRuntimeException, $1.c_str());"
+
 }
 
 #ifdef ENABLE_CHARPTR_ARRAY
