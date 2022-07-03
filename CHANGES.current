@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-07-03: wsfulton
+            Performane optimisation for directors for classes passed by value. The directorin
+            typemaps in the director methods now use std::move on the input parameter when
+            copying the object from the stack to the heap prior to the callback into the target
+            language, thereby taking advantage of move semantics if available.
+
 2022-07-02: wsfulton
             #1722 [C#, Java, Python, Ruby] Add std::unique_ptr support. Ported from std::auto_ptr.
             Use the %unique_ptr(T) macro as follows for usage std::unique_ptr<T>. For example, for

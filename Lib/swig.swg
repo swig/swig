@@ -703,6 +703,15 @@ public:
 template <typename T> T SwigValueInit() {
   return T();
 }
+%}
+
+%insert("runtime") %{
+#if __cplusplus >=201103L
+# define SWIG_STD_MOVE(OBJ) std::move(OBJ)
+#else
+# define SWIG_STD_MOVE(OBJ) OBJ
+#endif
+
 #endif
 %}
 #endif

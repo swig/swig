@@ -119,7 +119,7 @@
 }
 
 %typemap(directorin) SWIGTYPE {
-    $&ltype temp = new $ltype((const $ltype &)$1);
+    $&ltype temp = new $1_ltype(SWIG_STD_MOVE($1));
     swig_result = SWIG_Ocaml_ptr_to_val("create_$ltype_from_ptr", (void *)temp, $&1_descriptor);
     args = caml_list_append(args, swig_result);
 }

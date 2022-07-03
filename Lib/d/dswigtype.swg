@@ -62,7 +62,7 @@
 #endif
 
 %typemap(directorin) SWIGTYPE
-  "$input = (void *)new $1_ltype((const $1_ltype &)$1);"
+  "$input = (void *)new $1_ltype(SWIG_STD_MOVE($1));"
 %typemap(directorout) SWIGTYPE
 %{ if (!$input) {
      SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "Unexpected null return for type $1_type");
