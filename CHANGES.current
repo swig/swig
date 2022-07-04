@@ -7,6 +7,55 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-07-03: wsfulton
+            Performane optimisation for directors for classes passed by value. The directorin
+            typemaps in the director methods now use std::move on the input parameter when
+            copying the object from the stack to the heap prior to the callback into the target
+            language, thereby taking advantage of move semantics if available.
+
+2022-07-02: wsfulton
+            #1722 [C#, Java, Python, Ruby] Add std::unique_ptr support. Ported from std::auto_ptr.
+            Use the %unique_ptr(T) macro as follows for usage std::unique_ptr<T>. For example, for
+            a class called Klass:
+
+              %include "std_unique_ptr.i"
+              %unique_ptr(Klass)
+
+            Support is currently limited to only returning a std::unique_ptr from a function.
+
+2022-06-29: wsfulton
+            #999 #1044 Enhance SWIGTYPE "out" typemaps to use std::move when copying
+            objects, thereby making use of move semantics when wrapping a function returning
+            by value if the returned type supports move semantics.
+
+            Wrapping functions that return move only types 'by value' now work out the box
+            without having to provide custom typemaps.
+
+            The implementation removed all casts in the "out" typemaps to allow the compiler to
+            appropriately choose calling a move constructor, where possible, otherwise a copy
+            constructor. The implementation alsoand required modifying SwigValueWrapper to
+            change a cast operator from:
+
+              SwigValueWrapper::operator T&() const;
+
+            to
+
+              #if __cplusplus >=201103L
+                SwigValueWrapper::operator T&&() const;
+              #else
+                SwigValueWrapper::operator T&() const;
+              #endif
+
+            This is not backwards compatible for C++11 and later when using the valuewrapper feature
+            if a cast is explicitly being made in user supplied "out" typemaps. Suggested change
+            in custom "out" typemaps for C++11 and later code:
+
+            1. Try remove the cast altogether to let the compiler use an appropriate implicit cast.
+            2. Change the cast, for example, from static_cast<X &> to static_cast<X &&>, using the
+               __cplusplus macro if all versions of C++ need to be supported.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2022-06-15: wsfulton
             #2039 Add move assignment operator to SwigValueWrapper used by the
             valuewrapper feature.

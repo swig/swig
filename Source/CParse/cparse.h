@@ -43,7 +43,7 @@ extern "C" {
   extern void scanner_clear_rename(void);
   extern void scanner_set_location(String *file, int line);
   extern void scanner_set_main_input_file(String *file);
-  extern String *scanner_get_main_input_file();
+  extern String *scanner_get_main_input_file(void);
   extern void Swig_cparse_follow_locators(int);
   extern void start_inline(char *, int);
   extern String *scanner_ccode;

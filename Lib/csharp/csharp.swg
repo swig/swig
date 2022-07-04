@@ -399,7 +399,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{ $result = new $1_ltype((const $1_ltype &)$1); %}
+%{ $result = new $1_ltype($1); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
@@ -409,7 +409,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 #endif
 
 %typemap(directorin) SWIGTYPE 
-%{ $input = (void *)new $1_ltype((const $1_ltype &)$1); %}
+%{ $input = (void *)new $1_ltype(SWIG_STD_MOVE($1)); %}
 %typemap(csdirectorin) SWIGTYPE "new $&csclassname($iminput, true)"
 %typemap(csdirectorout) SWIGTYPE "$&csclassname.getCPtr($cscall).Handle"
 

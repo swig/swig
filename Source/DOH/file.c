@@ -35,7 +35,7 @@ typedef struct {
  * reference count of the underlying DOH objects.
  * ----------------------------------------------------------------------------- */
 
-static DOHList *open_files_list_instance() {
+static DOHList *open_files_list_instance(void) {
   static DOHList *all_open_files = 0;
   if (!all_open_files)
     all_open_files = DohNewList();
@@ -73,7 +73,7 @@ static void open_files_list_remove(DohFile *f) {
  * Close all opened files, to be called on program termination
  * ----------------------------------------------------------------------------- */
 
-void DohCloseAllOpenFiles() {
+void DohCloseAllOpenFiles(void) {
   int i;
   DOHList *all_open_files = open_files_list_instance();
   for (i = 0; i < DohLen(all_open_files); i++) {

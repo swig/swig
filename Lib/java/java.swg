@@ -665,7 +665,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{ *($&1_ltype*)&$result = new $1_ltype((const $1_ltype &)$1); %}
+%{ *($&1_ltype*)&$result = new $1_ltype($1); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
@@ -676,7 +676,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
 %typemap(directorin,descriptor="L$packagepath/$&javaclassname;") SWIGTYPE 
 %{ $input = 0;
-   *(($&1_ltype*)&$input) = new $1_ltype((const $1_ltype &)$1); %}
+   *(($&1_ltype*)&$input) = new $1_ltype(SWIG_STD_MOVE($1)); %}
 %typemap(javadirectorin) SWIGTYPE "new $&javaclassname($jniinput, true)"
 %typemap(javadirectorout) SWIGTYPE "$&javaclassname.getCPtr($javacall)"
 

@@ -19,7 +19,7 @@ static int template_debug = 0;
 
 const char *baselists[3];
 
-void SwigType_template_init() {
+void SwigType_template_init(void) {
   baselists[0] = "baselist";
   baselists[1] = "protectedbaselist";
   baselists[2] = "privatebaselist";

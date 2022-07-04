@@ -598,6 +598,7 @@ CPP11_TEST_CASES += \
 	cpp11_initializer_list \
 	cpp11_initializer_list_extend \
 	cpp11_lambda_functions \
+	cpp11_move_only \
 	cpp11_move_only_valuewrapper \
 	cpp11_noexcept \
 	cpp11_null_pointer_constant \
@@ -612,6 +613,7 @@ CPP11_TEST_CASES += \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
 	cpp11_std_array \
+	cpp11_std_unique_ptr \
 	cpp11_strongly_typed_enumerations \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \

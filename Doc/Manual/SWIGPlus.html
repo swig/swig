@@ -584,7 +584,7 @@ automatically generate a wrapper for one.
 
 <li>
 If a C++ class does not declare an explicit copy constructor, SWIG will
-automatically generate a wrapper for one if the <tt>%copyctor</tt> is used.
+automatically generate a wrapper for one if <tt>%copyctor</tt> is used.
 </li>
 
 <li>
@@ -1352,16 +1352,19 @@ following:
 <div class="code">
 <pre>
 Vector *wrap_cross_product(Vector *a, Vector *b) {
-  Vector x = *a;
-  Vector y = *b;
-  Vector r = cross_product(x, y);
+  Vector x;
+  Vector y;
+  Vector r;
+  x = *a;
+  y = *b;
+  r = cross_product(x, y);
   return new Vector(r);
 }</pre>
 </div>
 
 <p>
-In order for the wrapper code to compile, <tt>Vector</tt> must define a copy constructor and a 
-default constructor.
+In order for the wrapper code to compile, <tt>Vector</tt> must define a default constructor, copy assignment operator (and/or a move assignment operator for C++11 and later).
+The <a href="CPlusPlus11.html#CPlusPlus11_move_only">Movable and move-only types</a> section should be read regarding C++11 move semantics and return by value.
 </p>
 
 <p>
@@ -1374,9 +1377,12 @@ called the "Fulton Transform".  This produces a wrapper that looks like this:
 <div class="code">
 <pre>
 Vector cross_product(Vector *a, Vector *b) {
-  SwigValueWrapper&lt;Vector&gt; x = *a;
-  SwigValueWrapper&lt;Vector&gt; y = *b;
-  SwigValueWrapper&lt;Vector&gt; r = cross_product(x, y);
+  SwigValueWrapper&lt;Vector&gt; x;
+  SwigValueWrapper&lt;Vector&gt; y;
+  SwigValueWrapper&lt;Vector&gt; r;
+  x = *a;
+  y = *b;
+  r = cross_product(x, y);
   return new Vector(r);
 }
 </pre>

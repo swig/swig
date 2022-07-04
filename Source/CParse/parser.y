@@ -50,7 +50,7 @@
  *                               Externals
  * ----------------------------------------------------------------------------- */
 
-int  yyparse();
+int  yyparse(void);
 
 /* NEW Variables */
 
@@ -349,7 +349,7 @@ static String *make_name(Node *n, String *name,SwigType *decl) {
 }
 
 /* Generate an unnamed identifier */
-static String *make_unnamed() {
+static String *make_unnamed(void) {
   unnamed++;
   return NewStringf("$unnamed%d$",unnamed);
 }
@@ -874,7 +874,7 @@ static void add_typedef_name(Node *n, Node *declnode, String *oldName, Symtab *c
 
 /* If the class name is qualified.  We need to create or lookup namespace entries */
 
-static Symtab *set_scope_to_global() {
+static Symtab *set_scope_to_global(void) {
   Symtab *symtab = Swig_symbol_global_scope();
   Swig_symbol_setscope(symtab);
   return symtab;

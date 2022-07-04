@@ -443,7 +443,7 @@
 %typemap(out, phptype="SWIGTYPE") SWIGTYPE
 {
 #ifdef __cplusplus
-  $&1_ltype resultobj = new $1_ltype((const $1_ltype &) $1);
+  $&1_ltype resultobj = new $1_ltype($1);
 #else
   $&1_ltype resultobj = ($&1_ltype) malloc(sizeof($1_type));
   memcpy(resultobj, &$1, sizeof($1_type));
@@ -454,7 +454,7 @@
 %typemap(directorin) SWIGTYPE
 %{
   ZVAL_UNDEF($input);
-  SWIG_SetPointerZval($input, SWIG_as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&1_descriptor, 1);
+  SWIG_SetPointerZval($input, SWIG_as_voidptr(new $1_ltype(SWIG_STD_MOVE($1))), $&1_descriptor, 1);
 %}
 
 %typemap(out, phptype="void") void "";

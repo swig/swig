@@ -52,7 +52,7 @@ static int expr_init = 0;	/* Initialization flag */
 static const char *errmsg = 0;	/* Parsing error       */
 
 /* Initialize the precedence table for various operators.  Low values have higher precedence */
-static void init_precedence() {
+static void init_precedence(void) {
   prec[SWIG_TOKEN_NOT] = 10;
   prec[OP_UMINUS] = 10;
   prec[OP_UPLUS] = 10;
@@ -85,7 +85,7 @@ static void init_precedence() {
 
 /* Reduce a single operator on the stack */
 /* return 0 on failure, 1 on success */
-static int reduce_op() {
+static int reduce_op(void) {
   long op_token = stack[sp - 1].value;
   assert(sp > 0);
   assert(stack[sp - 1].op == EXPR_OP);
@@ -474,6 +474,6 @@ extra_rparen:
  * Return error message set by the evaluator (if any)
  * ----------------------------------------------------------------------------- */
 
-const char *Preprocessor_expr_error() {
+const char *Preprocessor_expr_error(void) {
   return errmsg;
 }

@@ -825,6 +825,7 @@ public:
 
 	//Printf(f_init,"/* Register base : %s */\n", bmangle);
 	//Printf(f_init,"swig_%s_bases[%d] = (swig_class *) SWIG_TypeQuery(\"%s *\")->clientdata;\n",  mangled_classname, index, SwigType_namestr(bname));
+	(void)index;
 	b = Next(b);
 	index++;
 	Putc(',', base_class);

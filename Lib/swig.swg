@@ -602,6 +602,10 @@ namespace std {
  *  Runtime code
  * ----------------------------------------------------------------------------- */
 
+
+%insert("runtime") "swiglabels.swg"
+
+
 /*  The SwigValueWrapper class  */
 
 /*  
@@ -677,11 +681,13 @@ template<typename T> class SwigValueWrapper {
 public:
   SwigValueWrapper() : pointer(0) { }
   SwigValueWrapper& operator=(const T& t) { SwigSmartPointer tmp(new T(t)); pointer = tmp; return *this; }
-#if __cplusplus >= 201103L
+#if __cplusplus >=201103L
   SwigValueWrapper& operator=(T&& t) { SwigSmartPointer tmp(new T(std::move(t))); pointer = tmp; return *this; }
-#endif
+  operator T&&() const { return std::move(*pointer.ptr); }
+#else
   operator T&() const { return *pointer.ptr; }
-  T *operator&() { return pointer.ptr; }
+#endif
+  T *operator&() const { return pointer.ptr; }
 };%}
 
 /*
@@ -697,12 +703,16 @@ public:
 template <typename T> T SwigValueInit() {
   return T();
 }
+%}
+
+%insert("runtime") %{
+#if __cplusplus >=201103L
+# define SWIG_STD_MOVE(OBJ) std::move(OBJ)
+#else
+# define SWIG_STD_MOVE(OBJ) OBJ
+#endif
+
 #endif
 %}
 #endif
-
-/*  The swiglabels  */
-
-%insert("runtime") "swiglabels.swg"
-
 
