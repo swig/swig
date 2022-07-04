@@ -213,7 +213,7 @@ SWIG_fail;%}
 //	%apply SWIGTYPE EXCEPTION_BY_VAL {FooBar};
 //	%apply SWIGTYPE& EXCEPTION_BY_VAL {FooBar&}; // note: need & twice
 %typemap(throws) SWIGTYPE EXCEPTION_BY_VAL
-%{SWIG_NewPointerObj(L,(void *)new $1_ltype(($1_ltype &) $1),$&1_descriptor,1);
+%{SWIG_NewPointerObj(L,(void *)new $1_ltype($1),$&1_descriptor,1);
 SWIG_fail;%}
 
 // similar for object reference
