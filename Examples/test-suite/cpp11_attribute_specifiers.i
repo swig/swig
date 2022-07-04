@@ -11,7 +11,6 @@
 
 #if defined(__clang__)
 #pragma clang diagnostic push
-// Suppress 'auto_ptr<>' is deprecated
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #pragma clang diagnostic ignored "-Wattributes"
 #pragma clang diagnostic ignored "-Wunused-variable"

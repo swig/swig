@@ -1,5 +1,5 @@
-/* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3
+/* ----------------------------------------------------------------------------- 
+ * This file is part of SWIG, which is licensed as a whole under version 3 
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -208,7 +208,7 @@ void Scanner_idstart(Scanner *s, const char *id) {
 
 /* -----------------------------------------------------------------------------
  * nextchar()
- *
+ * 
  * Returns the next character from the scanner or 0 if end of the string.
  * ----------------------------------------------------------------------------- */
 static char nextchar(Scanner *s) {
@@ -225,14 +225,14 @@ static char nextchar(Scanner *s) {
     s->line = Getline(s->str);
     DohIncref(s->str);
   }
-  if ((nc == '\n') && (!s->freeze_line))
+  if ((nc == '\n') && (!s->freeze_line)) 
     s->line++;
   Putc(nc,s->text);
   return (char)nc;
 }
 
 /* -----------------------------------------------------------------------------
- * set_error()
+ * set_error() 
  *
  * Sets error information on the scanner.
  * ----------------------------------------------------------------------------- */
@@ -386,7 +386,7 @@ static void retract(Scanner *s, int n) {
 
 /* -----------------------------------------------------------------------------
  * get_escape()
- *
+ * 
  * Get escape sequence.  Called when a backslash is found in a string
  * ----------------------------------------------------------------------------- */
 
@@ -452,7 +452,7 @@ static void get_escape(Scanner *s) {
 	return;
       }
       if (c == '\"') {
-	Delitem(s->text, DOH_END);
+	Delitem(s->text, DOH_END);	
 	Append(s->text,"\"");
 	return;
       }
@@ -543,7 +543,7 @@ static int look(Scanner *s) {
         return (0);
       if (c == '%')
 	state = 4;		/* Possibly a SWIG directive */
-
+      
       /* Look for possible identifiers or unicode/delimiter strings */
       else if ((isalpha(c)) || (c == '_') ||
 	       (s->idstart && strchr(s->idstart, c))) {
@@ -707,7 +707,7 @@ static int look(Scanner *s) {
 	state=20;
 	break;
       }
-
+      
       if ((c = nextchar(s)) == 0) {
 	Swig_error(cparse_file, cparse_start_line, "Unterminated string\n");
 	return SWIG_TOKEN_ERROR;
@@ -720,7 +720,7 @@ static int look(Scanner *s) {
 	temp[0] = c;
 	Append( str_delimiter, temp );
       }
-
+    
       break;
 
     case 20:			/* Inside the string */
@@ -728,7 +728,7 @@ static int look(Scanner *s) {
 	Swig_error(cparse_file, cparse_start_line, "Unterminated string\n");
 	return SWIG_TOKEN_ERROR;
       }
-
+      
       if (!str_delimiter) { /* Ordinary string: "value" */
 	if (c == '\"') {
 	  Delitem(s->text, DOH_END);
@@ -747,7 +747,7 @@ static int look(Scanner *s) {
 	    Append( end_delimiter, temp );
 	    i++;
 	  }
-
+	  
 	  if (Strcmp( str_delimiter, end_delimiter )==0) {
 	    int len = Len(s->text);
 	    Delslice(s->text, len - 2 - Len(str_delimiter), len); /* Delete ending )XXXX" */
@@ -766,7 +766,7 @@ static int look(Scanner *s) {
 	  }
 	}
       }
-
+      
       break;
 
     case 3:			/* Maybe a not equals */
@@ -916,7 +916,7 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_GREATERTHAN;
       }
       break;
-
+    
     case 7:			/* Identifier or true/false or unicode/custom delimiter string */
       if (c == 'R') { /* Possibly CUSTOM DELIMITER string */
 	state = 72;
@@ -930,7 +930,7 @@ static int look(Scanner *s) {
 	state = 70;
 	break;
       }
-
+      
       if ((c = nextchar(s)) == 0) {
 	state = 76;
       }
@@ -964,7 +964,7 @@ static int look(Scanner *s) {
 	state = 76;
       }
       break;
-
+    
     case 71:			/* Possibly u8 string/char */
       if ((c = nextchar(s)) == 0) {
 	state = 76;
@@ -984,7 +984,7 @@ static int look(Scanner *s) {
 	retract(s, 2); /* Definitely an identifier. Retract 8" */
 	state = 70;
       }
-
+      
       break;
 
     case 72:			/* Possibly CUSTOM DELIMITER string */
@@ -1010,7 +1010,7 @@ static int look(Scanner *s) {
 	}
 	state = 70;
       }
-
+      
       break;
 
     case 75:			/* Special identifier $ */
@@ -1853,7 +1853,7 @@ void Scanner_locator(Scanner *s, String *loc) {
     {
       String *fn = NewStringEmpty();
       /*      Putc(c, fn); */
-
+      
       while ((c = Getc(loc)) != EOF) {
 	if ((c == '@') || (c == ','))
 	  break;
@@ -1870,7 +1870,7 @@ void Scanner_locator(Scanner *s, String *loc) {
       }
       cparse_line = atoi(Char(fn));
       Clear(fn);
-
+      
       /* Get the rest of it */
       while ((c = Getc(loc)) != EOF) {
 	if (c == '@')
