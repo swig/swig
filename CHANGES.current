@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-09-29: olly
+	    #2303 SWIG's internal hash tables now use a better hash function.
+
+	    The old hash function only considerd the last five characters
+	    plus the least significant bit of the last-but-sixth character,
+	    which as you might guess generated a lot of many-way collisions.
+
+	    This change seems to give about a 4% reduction in wallclock time
+	    for processing li_std_list_wrap.i from the testsuite for Python.
+	    The hash collision rate for this example drops from 39% to 0!
+
 2022-09-29: wsfulton
             #2303 Type tables are now output in a fixed order whereas previously
             the order may change with any minor input code change. This shouldn't
