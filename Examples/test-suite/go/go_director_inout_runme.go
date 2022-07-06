@@ -67,6 +67,9 @@ func main() {
 
 	a.CallS4([]string{ "T1", "T2" })
 
+	a.S5(&str)
+	a.S5(nil)
+
 	a = wrap.NewDirectorMyClass(nil)
 	s = a.Adjust(m)
 	if s.Str != `{"first":"second"}` {

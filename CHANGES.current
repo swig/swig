@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-07-05: ianlancetaylor
+	    [Go] #2245 Handle NULL pointers for string* conversions.
+	    Rearrange generation of director methods and rename
+	    receiver argument from p to swig_p.
+
 2022-07-03: wsfulton
             Performane optimisation for directors for classes passed by value. The directorin
             typemaps in the director methods now use std::move on the input parameter when
