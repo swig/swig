@@ -354,6 +354,18 @@ static int yylook(void) {
     case SWIG_TOKEN_ELLIPSIS:
       return ELLIPSIS;
 
+    case SWIG_TOKEN_LLBRACKET:
+      do {
+        tok = Scanner_token(scan);
+      } while ((tok != SWIG_TOKEN_RRBRACKET) && (tok > 0));
+      if (tok <= 0) {
+        Swig_error(cparse_file, cparse_line, "Unbalanced double brackets, missing closing (']]'). Reached end of input.\n");
+      }
+      break;
+
+    case SWIG_TOKEN_RRBRACKET:
+      return RRBRACKET;
+
       /* Look for multi-character sequences */
       
     case SWIG_TOKEN_RSTRING:
