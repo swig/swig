@@ -27,8 +27,8 @@ public class cpp11_move_only_runme {
     using (MovableCopyable mo = new MovableCopyable(222)) {
       Counter.check_counts(1, 0, 0, 0, 0, 0);
       MovableCopyable.take(mo);
-      Counter.check_counts(2, 1, 1, 0, 0, 2);
+      Counter.check_counts(2, 0, 1, 1, 0, 2);
     }
-    Counter.check_counts(2, 1, 1, 0, 0, 3);
+    Counter.check_counts(2, 0, 1, 1, 0, 3);
   }
 }
