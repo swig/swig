@@ -38,4 +38,6 @@ bool maybeUnused2(bool a, [[maybe_unused]] bool b) { return a; }
 
 struct [[nodiscard]] S { };
 
+const char *test_string_literal() { return "Test [[ and ]] in string literal"; }
+
 %}
