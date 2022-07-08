@@ -364,7 +364,9 @@ static int yylook(void) {
       break;
 
     case SWIG_TOKEN_RRBRACKET:
-      return RRBRACKET;
+      /* Turn an unmatched ]] back into two ] - e.g. `a[a[0]]` */
+      scanner_next_token(RBRACKET);
+      return RBRACKET;
 
       /* Look for multi-character sequences */
       
