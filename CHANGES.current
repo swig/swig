@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-07-07: jmarrec
+	    #1158 #2286 Add basic support for C++11 attributes.  These are now
+	    crudely ignored by SWIG's parser's tokeniser, which is better that
+	    failing with a parse error.
+
 2022-07-05: ianlancetaylor
 	    [Go] #2245 Handle NULL pointers for string* conversions.
 	    Rearrange generation of director methods and rename
