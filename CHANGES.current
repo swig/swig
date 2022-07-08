@@ -18,7 +18,7 @@ Version 4.1.0 (in progress)
 	    receiver argument from p to swig_p.
 
 2022-07-03: wsfulton
-            Performane optimisation for directors for classes passed by value. The directorin
+            Performance optimisation for directors for classes passed by value. The directorin
             typemaps in the director methods now use std::move on the input parameter when
             copying the object from the stack to the heap prior to the callback into the target
             language, thereby taking advantage of move semantics if available.
@@ -43,7 +43,7 @@ Version 4.1.0 (in progress)
 
             The implementation removed all casts in the "out" typemaps to allow the compiler to
             appropriately choose calling a move constructor, where possible, otherwise a copy
-            constructor. The implementation alsoand required modifying SwigValueWrapper to
+            constructor. The implementation also required modifying SwigValueWrapper to
             change a cast operator from:
 
               SwigValueWrapper::operator T&() const;
@@ -120,7 +120,7 @@ Version 4.1.0 (in progress)
 
 2022-05-26: rokups
             [C#] #1323 Modify SwigDerivedClassHasMethod for a more efficient director
-            implementation when calling virtual methods that are not overidden.
+            implementation when calling virtual methods that are not overridden.
 
 2022-05-15: erezgeva, eiselekd
             [Lua, Perl, Octave, PHP, Tcl] #2275 #2276 #2283 Add argcargv.i library containing
