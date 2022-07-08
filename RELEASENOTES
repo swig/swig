@@ -14,6 +14,7 @@ SWIG-4.1.0 summary:
 - Common cases of `<` and `>` comparisons in constant expressions are now
   supported.
 - GitHub Actions is now used instead of Travis CI for continuous integration.
+- The "XML" target language has been reclassified as "Experimental".
 
 SWIG-4.0.2 summary:
 - A few fixes around doxygen comment handling.
