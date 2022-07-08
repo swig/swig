@@ -20,8 +20,42 @@ public class cpp11_std_unique_ptr_runme {
     }
   }
 
+  private static void checkCount(int expected_count) {
+    int actual_count = Klass.getTotal_count();
+    if (actual_count != expected_count)
+      throw new RuntimeException("Counts incorrect, expected:" + expected_count + " actual:" + actual_count);
+  }
+
   public static void main(String argv[]) throws Throwable
   {
+    // unique_ptr as input
+    {
+      Klass kin = new Klass("KlassInput");
+      checkCount(1);
+      String s = cpp11_std_unique_ptr.takeKlassUniquePtr(kin);
+      checkCount(0);
+      if (!s.equals("KlassInput"))
+        throw new RuntimeException("Incorrect string: " + s);
+      if (!cpp11_std_unique_ptr.is_nullptr(kin))
+        throw new RuntimeException("is_nullptr failed");
+      kin.delete(); // Should not fail, even though already deleted
+      checkCount(0);
+    }
+
+    {
+      KlassInheritance kini = new KlassInheritance("KlassInheritanceInput");
+      checkCount(1);
+      String s = cpp11_std_unique_ptr.takeKlassUniquePtr(kini);
+      checkCount(0);
+      if (!s.equals("KlassInheritanceInput"))
+        throw new RuntimeException("Incorrect string: " + s);
+      if (!cpp11_std_unique_ptr.is_nullptr(kini))
+        throw new RuntimeException("is_nullptr failed");
+      kini.delete(); // Should not fail, even though already deleted
+      checkCount(0);
+    }
+
+    // unique_ptr as output
     Klass k1 = cpp11_std_unique_ptr.makeKlassUniquePtr("first");
     if (!k1.getLabel().equals("first"))
       throw new RuntimeException("wrong object label");

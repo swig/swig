@@ -8,19 +8,42 @@
  * ----------------------------------------------------------------------------- */
 
 %define %unique_ptr(TYPE)
+
 %typemap (jni) std::unique_ptr< TYPE > "jlong"
 %typemap (jtype) std::unique_ptr< TYPE > "long"
 %typemap (jstype) std::unique_ptr< TYPE > "$typemap(jstype, TYPE)"
+
+%typemap(in) std::unique_ptr< TYPE > (TYPE *unique_temp)
+%{ unique_temp = *(TYPE **)&$input;
+  $1.reset(unique_temp); %}
+
+%typemap(javain) std::unique_ptr< TYPE > "$typemap(jstype, TYPE).swigRelease($javainput)"
 
 %typemap (out) std::unique_ptr< TYPE > %{
    jlong lpp = 0;
    *(TYPE **) &lpp = $1.release();
    $result = lpp;
 %}
+
 %typemap(javaout) std::unique_ptr< TYPE > {
      long cPtr = $jnicall;
      return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
    }
+
+%typemap(javarelease) TYPE %{
+  protected static long swigRelease($javaclassname obj) {
+    long ptr = 0;
+    if (obj != null) {
+      if (!obj.swigCMemOwn)
+        throw new RuntimeException("Cannot release ownership as memory is not owned");
+      ptr = obj.swigCPtr;
+      obj.swigCMemOwn = false;
+      obj.delete();
+    }
+    return ptr;
+  }
+%}
+
 %template() std::unique_ptr< TYPE >;
 %enddef
 

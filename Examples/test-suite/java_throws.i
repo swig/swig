@@ -192,6 +192,21 @@ try {
     }
   }
 %}
+%typemap(javarelease) SWIGTYPE %{
+  protected static long swigRelease($javaclassname obj) {
+    long ptr = 0;
+    if (obj != null) {
+      ptr = obj.swigCPtr;
+      obj.swigCMemOwn = false;
+      try {
+        obj.delete();
+      } catch (MyException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return ptr;
+  }
+%}
 
 %inline %{
 struct NoExceptTest {
