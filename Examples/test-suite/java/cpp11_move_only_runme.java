@@ -14,6 +14,7 @@ public class cpp11_move_only_runme {
 
   public static void main(String argv[]) {
 
+    // Output
     {
       Counter.reset_counts();
       MoveOnly mo = MoveOnly.create();
@@ -32,6 +33,17 @@ public class cpp11_move_only_runme {
     {
       Counter.reset_counts();
       MovableCopyable mo = MovableCopyable.createConst();
+      mo.delete();
+      Counter.check_counts(2, 1, 1, 0, 0, 3);
+    }
+
+    // Input
+    {
+      Counter.reset_counts();
+      MovableCopyable mo = new MovableCopyable(222);
+      Counter.check_counts(1, 0, 0, 0, 0, 0);
+      MovableCopyable.take(mo);
+      Counter.check_counts(2, 1, 1, 0, 0, 2);
       mo.delete();
       Counter.check_counts(2, 1, 1, 0, 0, 3);
     }
