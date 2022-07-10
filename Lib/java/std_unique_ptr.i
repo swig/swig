@@ -30,20 +30,6 @@
      return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
    }
 
-%typemap(javarelease) TYPE %{
-  protected static long swigRelease($javaclassname obj) {
-    long ptr = 0;
-    if (obj != null) {
-      if (!obj.swigCMemOwn)
-        throw new RuntimeException("Cannot release ownership as memory is not owned");
-      ptr = obj.swigCPtr;
-      obj.swigCMemOwn = false;
-      obj.delete();
-    }
-    return ptr;
-  }
-%}
-
 %template() std::unique_ptr< TYPE >;
 %enddef
 

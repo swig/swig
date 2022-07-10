@@ -2025,8 +2025,6 @@ public:
 	   typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),	// main body of class
 	   NIL);
 
-    Printv(proxy_class_def, typemapLookup(n, "javarelease", typemap_lookup_type, WARN_NONE), NIL);
-
     // C++ destructor is wrapped by the delete method
     // Note that the method name is specified in a typemap attribute called methodname
     String *destruct = NewString("");
