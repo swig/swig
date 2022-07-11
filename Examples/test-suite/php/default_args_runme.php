@@ -42,9 +42,10 @@ check::equal($f->double_if_void_ptr_is_null(6, Null), 12, "\$f->double_if_void_p
 
 check::equal($f->double_if_void_ptr_is_null(7), 14, "\$f->double_if_void_ptr_is_null(7)");
 
-# For the testcases below PHP < 7.3 emits an error, while newer versions throw
-# an exception.  We handle the older versions by suppressing the error with `@`,
-# then checking for the created object being Null if the PHP version is < 7.3.
+# For the testcases below, PHP 7 emits an error, while PHP 8 throws an
+# exception.  To simplify the testcases we install an error handler function
+# for PHP7 which throws an ArgumentCountError exception (which we have to
+# define ourselves for PHP 7.0).
 
 if (PHP_MAJOR_VERSION == 7) {
   if (PHP_MINOR_VERSION == 0) {
