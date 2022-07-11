@@ -1613,11 +1613,6 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int classDeclaration(Node *n) {
-    if (!Getattr(n, "feature:onlychildren")) {
-      String *symname = Getattr(n, "sym:name");
-      Setattr(n, "php:proxy", symname);
-    }
-
     return Language::classDeclaration(n);
   }
 
