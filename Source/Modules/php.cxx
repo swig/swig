@@ -220,31 +220,15 @@ class PHPTypes {
 
   // Used to clamp the required number of parameters in the arginfo to be
   // compatible with any parent class version of the method.
-  int required_clamp;
+  int num_required;
 
-public:
-  PHPTypes(int num_required)
-    : merged_types(NewList()),
-      byref(NULL),
-      required_clamp(num_required) { }
-
-  PHPTypes(const PHPTypes *o)
-    : merged_types(Copy(o->merged_types)),
-      byref(Copy(o->byref)),
-      required_clamp(o->required_clamp) { }
-
-  ~PHPTypes() {
-    Delete(merged_types);
-    Delete(byref);
+  int get_byref(int key) const {
+    return byref && key < Len(byref) && Getitem(byref, key) != None;
   }
 
-  int adjust_num_required(int num_required) {
-    required_clamp = std::min(num_required, required_clamp);
-    return required_clamp;
+  int size() const {
+    return std::max(Len(merged_types), Len(byref));
   }
-
-  // key is 0 for return type, or >= 1 for parameters numbered from 1
-  void process_phptype(Node *n, int key, const String_or_char *attribute_name);
 
   String *get_phptype(int key, String *classtypes) {
     Clear(classtypes);
@@ -277,6 +261,29 @@ public:
     return result;
   }
 
+public:
+  PHPTypes(int num_required_)
+    : merged_types(NewList()),
+      byref(NULL),
+      num_required(num_required_) { }
+
+  PHPTypes(const PHPTypes *o)
+    : merged_types(Copy(o->merged_types)),
+      byref(Copy(o->byref)),
+      num_required(o->num_required) { }
+
+  ~PHPTypes() {
+    Delete(merged_types);
+    Delete(byref);
+  }
+
+  void adjust_num_required(int num_required_) {
+    num_required = std::min(num_required, num_required_);
+  }
+
+  // key is 0 for return type, or >= 1 for parameters numbered from 1
+  void process_phptype(Node *n, int key, const String_or_char *attribute_name);
+
   void set_byref(int key) {
     if (!byref) {
       byref = NewList();
@@ -290,12 +297,124 @@ public:
     Setitem(byref, key, ""); // Just needs to be something != None.
   }
 
-  int get_byref(int key) const {
-    return byref && key < Len(byref) && Getitem(byref, key) != None;
-  }
+  void emit_arginfo(String *fname, String *cname, Node *n, String *modes, bool dispatch) {
+    // We want to only emit each different arginfo once, as that reduces the
+    // size of both the generated source code and the compiled extension
+    // module.  The parameters at this level are just named arg1, arg2, etc
+    // so the arginfo will be the same for any function with the same number
+    // of parameters and (if present) PHP type declarations for parameters and
+    // return type.
+    //
+    // We generate the arginfo we want (taking care to normalise, e.g. the
+    // lists of types are unique and in sorted order), then use the
+    // arginfo_used Hash to see if we've already generated it.
 
-  int size() const {
-    return std::max(Len(merged_types), Len(byref));
+    // Don't add a return type declaration for a constructor (because there
+    // is no return type as far as PHP is concerned).
+    String *out_phptype = NULL;
+    String *out_phpclasses = NewStringEmpty();
+    if (!Equal(fname, "__construct")) {
+      String *php_type_flag = GetFlagAttr(n, "feature:php:type");
+      if (Equal(php_type_flag, "1") ||
+	  (php_type_flag && !Getattr(n, "directorNode"))) {
+	// We provide a simple way to generate PHP return type declarations
+	// except for directed methods.  The point of directors is to allow
+	// subclassing in the target language, and if the wrapped method has
+	// a return type declaration then an overriding method in user code
+	// needs to have a compatible declaration.
+	//
+	// The upshot of this is that enabling return type declarations for
+	// existing bindings would break compatibility with user code written
+	// for an older version.  For parameters however the situation is
+	// different because if the parent class declares types for parameters
+	// a subclass overriding the function will be compatible whether it
+	// declares them or not.
+	//
+	// directorNode being present seems to indicate if this method or one
+	// it inherits from is directed, which is what we care about here.
+	// Using (!is_member_director(n)) would get it wrong for testcase
+	// director_frob.
+	out_phptype = get_phptype(0, out_phpclasses);
+      }
+    }
+
+    // ### in arginfo_code will be replaced with the id once that is known.
+    String *arginfo_code = NewStringEmpty();
+    if (out_phptype) {
+      if (Len(out_phpclasses)) {
+	Replace(out_phpclasses, "\\", "\\\\", DOH_REPLACE_ANY);
+	Printf(arginfo_code, "ZEND_BEGIN_ARG_WITH_RETURN_OBJ_TYPE_MASK_EX(swig_arginfo_###, 0, %d, %s, %s)\n", num_required, out_phpclasses, out_phptype);
+      } else {
+	Printf(arginfo_code, "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_arginfo_###, 0, %d, %s)\n", num_required, out_phptype);
+      }
+    } else {
+      Printf(arginfo_code, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_###, 0, 0, %d)\n", num_required);
+    }
+
+    int phptypes_size = size();
+    for (int param_count = 1; param_count < phptypes_size; ++param_count) {
+      String *phpclasses = NewStringEmpty();
+      String *phptype = get_phptype(param_count, phpclasses);
+
+      int byref = get_byref(param_count);
+
+      // FIXME: Should we be doing byref for return value as well?
+
+      if (phptype) {
+	if (Len(phpclasses)) {
+	  // We need to double any backslashes (which are PHP namespace
+	  // separators) in the PHP class names as they get turned into
+	  // C strings by the ZEND_ARG_OBJ_TYPE_MASK macro.
+	  Replace(phpclasses, "\\", "\\\\", DOH_REPLACE_ANY);
+	  Printf(arginfo_code, " ZEND_ARG_OBJ_TYPE_MASK(%d,arg%d,%s,%s,NULL)\n", byref, param_count, phpclasses, phptype);
+	} else {
+	  Printf(arginfo_code, " ZEND_ARG_TYPE_MASK(%d,arg%d,%s,NULL)\n", byref, param_count, phptype);
+	}
+      } else {
+	Printf(arginfo_code, " ZEND_ARG_INFO(%d,arg%d)\n", byref, param_count);
+      }
+    }
+    Printf(arginfo_code, "ZEND_END_ARG_INFO()\n");
+
+    String *arginfo_id_new = Getattr(n, "sym:name");
+    String *arginfo_id = Getattr(arginfo_used, arginfo_code);
+    if (arginfo_id) {
+      Printf(s_arginfo, "#define swig_arginfo_%s swig_arginfo_%s\n", arginfo_id_new, arginfo_id);
+    } else {
+      // Not had this arginfo before.
+      Setattr(arginfo_used, arginfo_code, arginfo_id_new);
+      arginfo_code = Copy(arginfo_code);
+      Replace(arginfo_code, "###", arginfo_id_new, DOH_REPLACE_FIRST);
+      Append(s_arginfo, arginfo_code);
+    }
+    Delete(arginfo_code);
+    arginfo_code = NULL;
+
+    String *s = cs_entry;
+    if (!s) s = s_entry;
+    if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
+      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id_new, modes);
+    } else {
+      if (dispatch) {
+	if (wrap_nonclass_global) {
+	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
+	}
+
+	if (wrap_nonclass_fake_class) {
+	  (void)fake_class_name();
+	  Printf(fake_cs_entry, " ZEND_NAMED_ME(%(lower)s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
+	}
+      } else {
+	if (wrap_nonclass_global) {
+	  Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_id_new);
+	}
+
+	if (wrap_nonclass_fake_class) {
+	  String *fake_class = fake_class_name();
+	  Printf(fake_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", fake_class, fname, arginfo_id_new);
+	}
+      }
+    }
   }
 };
 
@@ -726,125 +845,9 @@ public:
       }
     }
 
-    int num_required = phptypes->adjust_num_required(emit_num_required(l));
+    phptypes->adjust_num_required(emit_num_required(l));
 
-    // We want to only emit each different arginfo once, as that reduces the
-    // size of both the generated source code and the compiled extension
-    // module.  The parameters at this level are just named arg1, arg2, etc
-    // so the arginfo will be the same for any function with the same number
-    // of parameters and (if present) PHP type declarations for parameters and
-    // return type.
-    //
-    // We generate the arginfo we want (taking care to normalise, e.g. the
-    // lists of types are unique and in sorted order), then use the
-    // arginfo_used Hash to see if we've already generated it.
-
-    // Don't add a return type declaration for a constructor (because there
-    // is no return type as far as PHP is concerned).
-    String *out_phptype = NULL;
-    String *out_phpclasses = NewStringEmpty();
-    if (!Equal(fname, "__construct")) {
-      String *php_type_flag = GetFlagAttr(n, "feature:php:type");
-      if (Equal(php_type_flag, "1") ||
-	  (php_type_flag && !Getattr(n, "directorNode"))) {
-	// We provide a simple way to generate PHP return type declarations
-	// except for directed methods.  The point of directors is to allow
-	// subclassing in the target language, and if the wrapped method has
-	// a return type declaration then an overriding method in user code
-	// needs to have a compatible declaration.
-	//
-	// The upshot of this is that enabling return type declarations for
-	// existing bindings would break compatibility with user code written
-	// for an older version.  For parameters however the situation is
-	// different because if the parent class declares types for parameters
-	// a subclass overriding the function will be compatible whether it
-	// declares them or not.
-	//
-	// directorNode being present seems to indicate if this method or one
-	// it inherits from is directed, which is what we care about here.
-	// Using (!is_member_director(n)) would get it wrong for testcase
-	// director_frob.
-	out_phptype = phptypes->get_phptype(0, out_phpclasses);
-      }
-    }
-
-    // ### in arginfo_code will be replaced with the id once that is known.
-    String *arginfo_code = NewStringEmpty();
-    if (out_phptype) {
-      if (Len(out_phpclasses)) {
-	Replace(out_phpclasses, "\\", "\\\\", DOH_REPLACE_ANY);
-	Printf(arginfo_code, "ZEND_BEGIN_ARG_WITH_RETURN_OBJ_TYPE_MASK_EX(swig_arginfo_###, 0, %d, %s, %s)\n", num_required, out_phpclasses, out_phptype);
-      } else {
-	Printf(arginfo_code, "ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(swig_arginfo_###, 0, %d, %s)\n", num_required, out_phptype);
-      }
-    } else {
-      Printf(arginfo_code, "ZEND_BEGIN_ARG_INFO_EX(swig_arginfo_###, 0, 0, %d)\n", num_required);
-    }
-
-    int phptypes_size = phptypes->size();
-    for (int param_count = 1; param_count < phptypes_size; ++param_count) {
-      String *phpclasses = NewStringEmpty();
-      String *phptype = phptypes->get_phptype(param_count, phpclasses);
-
-      int byref = phptypes->get_byref(param_count);
-
-      // FIXME: Should we be doing byref for return value as well?
-
-      if (phptype) {
-	if (Len(phpclasses)) {
-	  // We need to double any backslashes (which are PHP namespace
-	  // separators) in the PHP class names as they get turned into
-	  // C strings by the ZEND_ARG_OBJ_TYPE_MASK macro.
-	  Replace(phpclasses, "\\", "\\\\", DOH_REPLACE_ANY);
-	  Printf(arginfo_code, " ZEND_ARG_OBJ_TYPE_MASK(%d,arg%d,%s,%s,NULL)\n", byref, param_count, phpclasses, phptype);
-	} else {
-	  Printf(arginfo_code, " ZEND_ARG_TYPE_MASK(%d,arg%d,%s,NULL)\n", byref, param_count, phptype);
-	}
-      } else {
-	Printf(arginfo_code, " ZEND_ARG_INFO(%d,arg%d)\n", byref, param_count);
-      }
-    }
-    Printf(arginfo_code, "ZEND_END_ARG_INFO()\n");
-
-    String *arginfo_id_new = Getattr(n, "sym:name");
-    String *arginfo_id = Getattr(arginfo_used, arginfo_code);
-    if (arginfo_id) {
-      Printf(s_arginfo, "#define swig_arginfo_%s swig_arginfo_%s\n", arginfo_id_new, arginfo_id);
-    } else {
-      // Not had this arginfo before.
-      Setattr(arginfo_used, arginfo_code, arginfo_id_new);
-      arginfo_code = Copy(arginfo_code);
-      Replace(arginfo_code, "###", arginfo_id_new, DOH_REPLACE_FIRST);
-      Append(s_arginfo, arginfo_code);
-    }
-    Delete(arginfo_code);
-    arginfo_code = NULL;
-
-    String *s = cs_entry;
-    if (!s) s = s_entry;
-    if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id_new, modes);
-    } else {
-      if (dispatch) {
-	if (wrap_nonclass_global) {
-	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
-	}
-
-	if (wrap_nonclass_fake_class) {
-	  (void)fake_class_name();
-	  Printf(fake_cs_entry, " ZEND_NAMED_ME(%(lower)s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
-	}
-      } else {
-	if (wrap_nonclass_global) {
-	  Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_id_new);
-	}
-
-	if (wrap_nonclass_fake_class) {
-	  String *fake_class = fake_class_name();
-	  Printf(fake_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", fake_class, fname, arginfo_id_new);
-	}
-      }
-    }
+    phptypes->emit_arginfo(fname, cname, n, modes, dispatch);
   }
 
   /* ------------------------------------------------------------
