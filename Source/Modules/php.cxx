@@ -297,7 +297,7 @@ public:
     Setitem(byref, key, ""); // Just needs to be something != None.
   }
 
-  void emit_arginfo(String *fname, String *cname, Node *n, String *modes, bool dispatch) {
+  void emit_arginfo(String *fname, Node *n) {
     // We want to only emit each different arginfo once, as that reduces the
     // size of both the generated source code and the compiled extension
     // module.  The parameters at this level are just named arg1, arg2, etc
@@ -389,32 +389,6 @@ public:
     }
     Delete(arginfo_code);
     arginfo_code = NULL;
-
-    String *s = cs_entry;
-    if (!s) s = s_entry;
-    if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id_new, modes);
-    } else {
-      if (dispatch) {
-	if (wrap_nonclass_global) {
-	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
-	}
-
-	if (wrap_nonclass_fake_class) {
-	  (void)fake_class_name();
-	  Printf(fake_cs_entry, " ZEND_NAMED_ME(%(lower)s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
-	}
-      } else {
-	if (wrap_nonclass_global) {
-	  Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_id_new);
-	}
-
-	if (wrap_nonclass_fake_class) {
-	  String *fake_class = fake_class_name();
-	  Printf(fake_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", fake_class, fname, arginfo_id_new);
-	}
-      }
-    }
   }
 };
 
@@ -847,7 +821,34 @@ public:
 
     phptypes->adjust_num_required(emit_num_required(l));
 
-    phptypes->emit_arginfo(fname, cname, n, modes, dispatch);
+    phptypes->emit_arginfo(fname, n);
+
+    String *arginfo_id_new = Getattr(n, "sym:name");
+    String *s = cs_entry;
+    if (!s) s = s_entry;
+    if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
+      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id_new, modes);
+    } else {
+      if (dispatch) {
+	if (wrap_nonclass_global) {
+	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
+	}
+
+	if (wrap_nonclass_fake_class) {
+	  (void)fake_class_name();
+	  Printf(fake_cs_entry, " ZEND_NAMED_ME(%(lower)s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
+	}
+      } else {
+	if (wrap_nonclass_global) {
+	  Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_id_new);
+	}
+
+	if (wrap_nonclass_fake_class) {
+	  String *fake_class = fake_class_name();
+	  Printf(fake_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", fake_class, fname, arginfo_id_new);
+	}
+      }
+    }
   }
 
   /* ------------------------------------------------------------
