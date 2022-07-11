@@ -307,11 +307,10 @@ functions.
 </p>
 
 <p>
-SWIG honors the <tt>%immutable</tt> modifier by not generating code
-for the <tt>_set</tt> method.  This provides read-only access to the
-variable from the php script.  Attempting to access the <tt>_set</tt>
-method will result in a php fatal error because the function is
-undefined.
+SWIG honors the <tt>%immutable</tt> modifier by not generating a
+<tt>_set</tt> method (so attempting to call it will give a PHP fatal
+error).  A <tt>_get</tt> method is still generated so this provides read-only
+access to the variable from the PHP script.
 </p>
 
 <p>
@@ -700,8 +699,7 @@ Member variables and methods are accessed using the <tt>-&gt;</tt> operator.
 
 <p>
 The <tt>-noproxy</tt> option flattens the object structure and
-generates collections of named functions (these are the functions
-which the PHP class wrappers call).  The above example results
+generates collections of named functions.  The above example results
 in the following PHP functions:
 </p>
 
