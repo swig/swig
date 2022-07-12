@@ -157,11 +157,7 @@ SWIGINTERN PyObject *SWIG_PyInstanceMethod_New(PyObject *SWIGUNUSEDPARM(self), P
     if (ml)
       func = PyCFunction_NewEx(ml, funcobj->m_self, funcobj->m_module);
   }
-#if PY_VERSION_HEX >= 0x03000000
   return PyInstanceMethod_New(func);
-#else
-  return PyMethod_New(func, NULL, NULL);
-#endif
 }
 
 /* -----------------------------------------------------------------------------
@@ -198,15 +194,9 @@ extern "C"
 #endif
 
 SWIGEXPORT 
-#if PY_VERSION_HEX >= 0x03000000
-  PyObject*
-#else
-  void
-#endif
-SWIG_init(void) {
+PyObject* SWIG_init(void) {
   PyObject *m, *d, *md, *globals;
 
-#if PY_VERSION_HEX >= 0x03000000
   static struct PyModuleDef SWIG_module = {
     PyModuleDef_HEAD_INIT,
     SWIG_name,
@@ -218,7 +208,6 @@ SWIG_init(void) {
     NULL,
     NULL
   };
-#endif
 
 #if defined(SWIGPYTHON_BUILTIN)
   static SwigPyClientData SwigPyObject_clientdata = {0, 0, 0, 0, 0, 0, 0};
@@ -271,11 +260,7 @@ SWIG_init(void) {
   /* Fix SwigMethods to carry the callback ptrs when needed */
   SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_type_initial);
 
-#if PY_VERSION_HEX >= 0x03000000
   m = PyModule_Create(&SWIG_module);
-#else
-  m = Py_InitModule(SWIG_name, SwigMethods);
-#endif
 
   md = d = PyModule_GetDict(m);
   (void)md;
@@ -293,11 +278,7 @@ SWIG_init(void) {
     SwigPyObject_clientdata.pytype = swigpyobject;
   } else if (swigpyobject->tp_basicsize != cd->pytype->tp_basicsize) {
     PyErr_SetString(PyExc_RuntimeError, "Import error: attempted to load two incompatible swig-generated modules.");
-# if PY_VERSION_HEX >= 0x03000000
     return NULL;
-# else
-    return;
-# endif
   }
 
   /* All objects have a 'this' attribute */

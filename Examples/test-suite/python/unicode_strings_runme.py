@@ -13,20 +13,6 @@ def check(s1, s2):
     if s1 != s2:
         raise RuntimeError("{} != {}".format(s1, s2))
 
-# Testing SWIG_PYTHON_2_UNICODE flag which allows unicode strings to be passed to C
-if sys.version_info[0:2] < (3, 0):
-    # Python 3.0-3.2 results in a SyntaxError when using u"" string literals, so we use a
-    # convoluted unicode string construction using unicode() and unichr().
-    # Conventional Python 2 syntax shown in comments.
-    check(unicode_strings.charstring("hello1"), "hello1")
-    check(unicode_strings.charstring(str(unicode("hello2"))), "hello2") # u"hello2"
-    check(unicode_strings.charstring(unicode("hello3")), "hello3") # u"hello3"
-    check(unicode_strings.charstring(str("hello4")), "hello4")
-    unicode_strings.charstring(unicode("hell" + unichr(0xb0) + "5")) # u"hell\xb05"
-    unicode_strings.charstring(unicode("hell" + unichr(0x00f6) +"6")) # u"hell\u00f66"
-    low_surrogate_string = unichr(0xdcff) # u"\udcff"
-    unicode_strings.instring(low_surrogate_string)
-else:
     low_surrogate_string = "\udcff"
     try:
         unicode_strings.instring(low_surrogate_string)

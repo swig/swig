@@ -347,7 +347,7 @@ Finally, let's build a module for Python (shown for Irix).
 
 <div class="shell"><pre>
 unix &gt; <b>swig -python example.i</b>
-unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include/python2.0</b>
+unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include/python3.9</b>
 unix &gt; <b>gcc -shared example.o example_wrap.o -o _example.so</b>
 unix &gt; <b>python</b>
 Python 2.0 (#6, Feb 21 2001, 13:29:45)

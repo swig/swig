@@ -7,12 +7,8 @@
  *
  * ----------------------------------------------------------------------------- */
 
-#if PY_VERSION_HEX < 0x02070000 /* 2.7.0 */
-# error "This version of SWIG only supports Python >= 2.7"
-#endif
-
-#if PY_VERSION_HEX >= 0x03000000 && PY_VERSION_HEX < 0x03020000
-# error "This version of SWIG only supports Python 3 >= 3.2"
+#if PY_VERSION_HEX < 0x03030000 /* 3.3.0 */
+# error "This version of SWIG only supports Python >= 3.3"
 #endif
 
 /* Common SWIG API */
@@ -241,16 +237,11 @@ typedef struct swig_varlinkobject {
 
 SWIGINTERN PyObject *
 swig_varlink_repr(swig_varlinkobject *SWIGUNUSEDPARM(v)) {
-#if PY_VERSION_HEX >= 0x03000000
   return PyUnicode_InternFromString("<Swig global variables>");
-#else
-  return PyString_FromString("<Swig global variables>");
-#endif
 }
 
 SWIGINTERN PyObject *
 swig_varlink_str(swig_varlinkobject *v) {
-#if PY_VERSION_HEX >= 0x03000000
   PyObject *str = PyUnicode_InternFromString("(");
   PyObject *tail;
   PyObject *joined;
@@ -274,15 +265,6 @@ swig_varlink_str(swig_varlinkobject *v) {
   Py_DecRef(str);
   Py_DecRef(tail);
   str = joined;
-#else
-  PyObject *str = PyString_FromString("(");
-  swig_globalvar *var;
-  for (var = v->vars; var; var=var->next) {
-    PyString_ConcatAndDel(&str,PyString_FromString(var->name));
-    if (var->next) PyString_ConcatAndDel(&str,PyString_FromString(", "));
-  }
-  PyString_ConcatAndDel(&str,PyString_FromString(")"));
-#endif
   return str;
 }
 
@@ -338,12 +320,7 @@ swig_varlink_type(void) {
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp = {
-#if PY_VERSION_HEX >= 0x03000000
       PyVarObject_HEAD_INIT(NULL, 0)
-#else
-      PyObject_HEAD_INIT(NULL)
-      0,                                  /* ob_size */
-#endif
       "swigvarlink",                      /* tp_name */
       sizeof(swig_varlinkobject),         /* tp_basicsize */
       0,                                  /* tp_itemsize */
@@ -607,11 +584,7 @@ SwigPyObject_format(const char* fmt, SwigPyObject *v)
       PyTuple_SET_ITEM(args, 0, val);
       ofmt = SWIG_Python_str_FromChar(fmt);
       if (ofmt) {
-#if PY_VERSION_HEX >= 0x03000000
         res = PyUnicode_Format(ofmt,args);
-#else
-        res = PyString_Format(ofmt,args);
-#endif
         Py_DECREF(ofmt);
       }
     }
@@ -640,14 +613,10 @@ SwigPyObject_repr(SwigPyObject *v)
   if (repr && v->next) {
     PyObject *nrep = SwigPyObject_repr((SwigPyObject *)v->next);
     if (nrep) {
-# if PY_VERSION_HEX >= 0x03000000
       PyObject *joined = PyUnicode_Concat(repr, nrep);
       Py_DecRef(repr);
       Py_DecRef(nrep);
       repr = joined;
-# else
-      PyString_ConcatAndDel(&repr,nrep);
-# endif
     } else {
       Py_DecRef(repr);
       repr = NULL;
@@ -672,7 +641,6 @@ SwigPyObject_compare(SwigPyObject *v, SwigPyObject *w)
   return (i < j) ? -1 : ((i > j) ? 1 : 0);
 }
 
-/* Added for Python 3.x, would it also be useful for Python 2.x? */
 SWIGRUNTIME PyObject*
 SwigPyObject_richcompare(SwigPyObject *v, SwigPyObject *w, int op)
 {
@@ -865,9 +833,6 @@ SwigPyObject_TypeOnce(void) {
     (binaryfunc)0, /*nb_subtract*/
     (binaryfunc)0, /*nb_multiply*/
     /* nb_divide removed in Python 3 */
-#if PY_VERSION_HEX < 0x03000000
-    (binaryfunc)0, /*nb_divide*/
-#endif
     (binaryfunc)0, /*nb_remainder*/
     (binaryfunc)0, /*nb_divmod*/
     (ternaryfunc)0,/*nb_power*/
@@ -881,26 +846,13 @@ SwigPyObject_TypeOnce(void) {
     0,		   /*nb_and*/
     0,		   /*nb_xor*/
     0,		   /*nb_or*/
-#if PY_VERSION_HEX < 0x03000000
-    0,   /*nb_coerce*/
-#endif
     (unaryfunc)SwigPyObject_long, /*nb_int*/
-#if PY_VERSION_HEX < 0x03000000
-    (unaryfunc)SwigPyObject_long, /*nb_long*/
-#else
     0, /*nb_reserved*/
-#endif
     (unaryfunc)0,                 /*nb_float*/
-#if PY_VERSION_HEX < 0x03000000
-    (unaryfunc)SwigPyObject_oct,  /*nb_oct*/
-    (unaryfunc)SwigPyObject_hex,  /*nb_hex*/
-#endif
 #if PY_VERSION_HEX >= 0x03050000 /* 3.5 */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_inplace_matrix_multiply */
-#elif PY_VERSION_HEX >= 0x03000000 /* 3.0 */
+#else /* 3.0 */
     0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_index, nb_inplace_divide removed */
-#else
-    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 /* nb_inplace_add -> nb_index */
 #endif
   };
 
@@ -908,12 +860,7 @@ SwigPyObject_TypeOnce(void) {
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp = {
-#if PY_VERSION_HEX >= 0x03000000
       PyVarObject_HEAD_INIT(NULL, 0)
-#else
-      PyObject_HEAD_INIT(NULL)
-      0,                                    /* ob_size */
-#endif
       "SwigPyObject",                       /* tp_name */
       sizeof(SwigPyObject),                 /* tp_basicsize */
       0,                                    /* tp_itemsize */
@@ -925,11 +872,7 @@ SwigPyObject_TypeOnce(void) {
 #endif
       (getattrfunc)0,                       /* tp_getattr */
       (setattrfunc)0,                       /* tp_setattr */
-#if PY_VERSION_HEX >= 0x03000000
       0, /* tp_reserved in 3.0.1, tp_compare in 3.0.0 but not used */
-#else
-      (cmpfunc)SwigPyObject_compare,        /* tp_compare */
-#endif
       (reprfunc)SwigPyObject_repr,          /* tp_repr */
       &SwigPyObject_as_number,              /* tp_as_number */
       0,                                    /* tp_as_sequence */
@@ -1088,12 +1031,7 @@ SwigPyPacked_TypeOnce(void) {
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp = {
-#if PY_VERSION_HEX>=0x03000000
       PyVarObject_HEAD_INIT(NULL, 0)
-#else
-      PyObject_HEAD_INIT(NULL)
-      0,                                    /* ob_size */
-#endif
       "SwigPyPacked",                       /* tp_name */
       sizeof(SwigPyPacked),                 /* tp_basicsize */
       0,                                    /* tp_itemsize */
@@ -1105,11 +1043,7 @@ SwigPyPacked_TypeOnce(void) {
 #endif
       (getattrfunc)0,                       /* tp_getattr */
       (setattrfunc)0,                       /* tp_setattr */
-#if PY_VERSION_HEX>=0x03000000
       0, /* tp_reserved in 3.0.1 */
-#else
-      (cmpfunc)SwigPyPacked_compare,        /* tp_compare */
-#endif
       (reprfunc)SwigPyPacked_repr,          /* tp_repr */
       0,                                    /* tp_as_number */
       0,                                    /* tp_as_sequence */
@@ -1222,9 +1156,7 @@ SWIG_This(void)
 /* #define SWIG_PYTHON_SLOW_GETSET_THIS */
 
 /* TODO: I don't know how to implement the fast getset in Python 3 right now */
-#if PY_VERSION_HEX>=0x03000000
 #define SWIG_PYTHON_SLOW_GETSET_THIS 
-#endif
 
 SWIGRUNTIME SwigPyObject *
 SWIG_Python_GetSwigThis(PyObject *pyobj) 
@@ -1495,7 +1427,6 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
 #endif
     }
   } else {
-#if PY_VERSION_HEX >= 0x03000000
     PyObject *empty_args = PyTuple_New(0);
     if (empty_args) {
       PyObject *empty_kwargs = PyDict_New();
@@ -1513,14 +1444,6 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
       }
       Py_DECREF(empty_args);
     }
-#else
-    PyObject *dict = PyDict_New();
-    if (dict) {
-      PyDict_SetItem(dict, SWIG_This(), swig_this);
-      inst = PyInstance_NewRaw(data->newargs, dict);
-      Py_DECREF(dict);
-    }
-#endif
   }
   return inst;
 }
@@ -1689,13 +1612,8 @@ SWIG_Python_DestroyModule(PyObject *obj)
 
 SWIGRUNTIME void
 SWIG_Python_SetModule(swig_module_info *swig_module) {
-#if PY_VERSION_HEX >= 0x03000000
  /* Add a dummy module object into sys.modules */
   PyObject *module = PyImport_AddModule("swig_runtime_data" SWIG_RUNTIME_VERSION);
-#else
-  static PyMethodDef swig_empty_runtime_method_table[] = { {NULL, NULL, 0, NULL} }; /* Sentinel */
-  PyObject *module = Py_InitModule("swig_runtime_data" SWIG_RUNTIME_VERSION, swig_empty_runtime_method_table);
-#endif
   PyObject *pointer = PyCapsule_New((void *) swig_module, SWIGPY_CAPSULE_NAME, SWIG_Python_DestroyModule);
   if (pointer && module) {
     if (PyModule_AddObject(module, SWIGPY_CAPSULE_ATTR_NAME, pointer) == 0) {

@@ -6,25 +6,14 @@ SWIGINTERN Py_hash_t
 SwigPyObject_hash(PyObject *obj) {
   SwigPyObject *sobj = (SwigPyObject *)obj;
   void *ptr = sobj->ptr;
-#if PY_VERSION_HEX < 0x03020000
-  return (Py_hash_t)(Py_ssize_t)ptr;
-#else
   return (Py_hash_t)ptr;
-#endif
 }
 
 SWIGINTERN Py_hash_t
 SWIG_PyNumber_AsPyHash(PyObject *obj) {
   Py_hash_t result = -1;
-#if PY_VERSION_HEX < 0x03020000
-  if (PyInt_Check(obj))
-    result = PyInt_AsLong(obj);
-  else if (PyLong_Check(obj))
-    result = PyLong_AsLong(obj);
-#else
   if (PyNumber_Check(obj))
     result = PyNumber_AsSsize_t(obj, NULL);
-#endif
   else
     PyErr_Format(PyExc_TypeError, "Wrong type for hash function");
   return PyErr_Occurred() ? -1 : result;
@@ -129,12 +118,7 @@ SwigPyStaticVar_dealloc(PyDescrObject *descr) {
 
 SWIGINTERN PyObject *
 SwigPyStaticVar_repr(PyGetSetDescrObject *descr) {
-#if PY_VERSION_HEX >= 0x03000000
-
   return PyUnicode_FromFormat("<class attribute '%S' of type '%s'>", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
-#else
-  return PyString_FromFormat("<class attribute '%s' of type '%s'>", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
-#endif
 }
 
 SWIGINTERN int
@@ -149,11 +133,7 @@ SWIGINTERN PyObject *
 SwigPyStaticVar_get(PyGetSetDescrObject *descr, PyObject *obj, PyObject *SWIGUNUSEDPARM(type)) {
   if (descr->d_getset->get != NULL)
     return descr->d_getset->get(obj, descr->d_getset->closure);
-#if PY_VERSION_HEX >= 0x03000000
   PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not readable", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
-#else
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not readable", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
-#endif
   return NULL;
 }
 
@@ -161,11 +141,7 @@ SWIGINTERN int
 SwigPyStaticVar_set(PyGetSetDescrObject *descr, PyObject *obj, PyObject *value) {
   if (descr->d_getset->set != NULL)
     return descr->d_getset->set(obj, value, descr->d_getset->closure);
-#if PY_VERSION_HEX >= 0x03000000
   PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not writable", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
-#else
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not writable", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
-#endif
   return -1;
 }
 
@@ -183,17 +159,9 @@ SwigPyObjectType_setattro(PyObject *typeobject, PyObject *name, PyObject *value)
     local_set = attribute->ob_type->tp_descr_set;
     if (local_set != NULL)
       return local_set(attribute, (PyObject *)type, value);
-#if PY_VERSION_HEX >= 0x03000000
     PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%.50s.%.400S'", type->tp_name, name);
-#else 
-    PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%.50s.%.400s'", type->tp_name, PyString_AS_STRING(name));
-#endif
   } else {
-#if PY_VERSION_HEX >= 0x03000000
     PyErr_Format(PyExc_AttributeError, "type '%.50s' has no attribute '%.400S'", type->tp_name, name);
-#else
-    PyErr_Format(PyExc_AttributeError, "type '%.50s' has no attribute '%.400s'", type->tp_name, PyString_AS_STRING(name));
-#endif
   }
 
   return -1;
@@ -205,12 +173,7 @@ SwigPyStaticVar_Type(void) {
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp = {
-#if PY_VERSION_HEX >= 0x03000000
       PyVarObject_HEAD_INIT(&PyType_Type, 0)
-#else
-      PyObject_HEAD_INIT(&PyType_Type)
-      0,                                        /* ob_size */
-#endif
       "swig_static_var_getset_descriptor",      /* tp_name */
       sizeof(PyGetSetDescrObject),              /* tp_basicsize */
       0,                                        /* tp_itemsize */
@@ -293,12 +256,7 @@ SwigPyObjectType(void) {
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp = {
-#if PY_VERSION_HEX >= 0x03000000
       PyVarObject_HEAD_INIT(&PyType_Type, 0)
-#else
-      PyObject_HEAD_INIT(&PyType_Type)
-      0,                                        /* ob_size */
-#endif
       "SwigPyObjectType",                       /* tp_name */
       PyType_Type.tp_basicsize,                 /* tp_basicsize */
       0,                                        /* tp_itemsize */

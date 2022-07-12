@@ -24,7 +24,7 @@ jobs:
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+    name: ${{ matrix.SWIGLANG || 'none' }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
       matrix:
@@ -112,12 +112,6 @@ jobs:
         - SWIGLANG: php
           VER: '8.1'
         - SWIGLANG: python
-          PY2: 2
-        - SWIGLANG: python
-          VER: '3.2'
-          os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
-          continue-on-error: true # broken packages problem
-        - SWIGLANG: python
           VER: '3.3'
           os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
         - SWIGLANG: python
@@ -135,12 +129,6 @@ jobs:
           VER: '3.9'
         - SWIGLANG: python
           VER: '3.10'
-        - SWIGLANG: python
-          PY2: 2
-          SWIG_FEATURES: -builtin
-        - SWIGLANG: python
-          PY2: 2
-          SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
@@ -305,7 +293,6 @@ jobs:
 
     env:
       SWIGLANG: ${{ matrix.SWIGLANG }}
-      PY2: ${{ matrix.PY2 }}
       VER: ${{ matrix.VER }}
       ENGINE: ${{ matrix.ENGINE }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
