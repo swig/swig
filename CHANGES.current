@@ -8,6 +8,15 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-07-12: wsfulton
+            Performance optimisation for parameters passed by value that are C++11 movable.
+            The C++ wrappers create a temporary variable for a parameter to be passed to a
+            function. This is initially default constructed and then copy assigned from the
+            instance being passed in from the target language. This is unchanged, however,
+            when the temporary variable is passed to wrapped function, it is now done using
+            std::move. If the type is move constructible, the move constructor will be used
+            instead of the copy constructor.
+
+2022-07-12: wsfulton
             [Perl] Add std::auto_ptr support in std_auto_ptr.i library file.
 
 2022-07-12: erezgeva

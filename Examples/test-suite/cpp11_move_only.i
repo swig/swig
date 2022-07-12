@@ -27,6 +27,8 @@ struct MoveOnly {
 
   static MoveOnly create() { return MoveOnly(111); }
   // static const MoveOnly createConst() { return MoveOnly(111); } // not supported by default
+
+  // static void take(MoveOnly mo) { if (debug) cout << "take(MoveOnly)" << " " << &mo << endl; }
 };
 %}
 
@@ -48,5 +50,7 @@ struct MovableCopyable {
 
   static MovableCopyable create() { return MovableCopyable(111); }
   static const MovableCopyable createConst() { return MovableCopyable(111); }
+
+  static void take(MovableCopyable mc) { if (debug) cout << "take(MovableCopyable)" << " " << &mc << endl; }
 };
 %}
