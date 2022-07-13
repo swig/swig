@@ -205,6 +205,17 @@ static Hash *create_php_type_flags() {
 
 static Hash *php_type_flags = create_php_type_flags();
 
+// php_class + ":" + php_method -> PHPTypes*
+// ":" + php_function -> PHPTypes*
+static Hash *all_phptypes = NewHash();
+
+// php_class_name -> php_parent_class_name
+static Hash *php_parent_class = NewHash();
+
+// Track if a method is directed in a descendent class.
+// php_class + ":" + php_method -> boolean (using SetFlag()/GetFlag()).
+static Hash *has_directed_descendent = NewHash();
+
 // Class encapsulating the machinery to add PHP type declarations.
 class PHPTypes {
   // List with an entry for each parameter and one for the return type.
@@ -333,7 +344,7 @@ public:
     Setitem(byref, key, ""); // Just needs to be something != None.
   }
 
-  void emit_arginfo() {
+  void emit_arginfo(String *key) {
     // We want to only emit each different arginfo once, as that reduces the
     // size of both the generated source code and the compiled extension
     // module.  The parameters at this level are just named arg1, arg2, etc
@@ -346,7 +357,9 @@ public:
     // arginfo_used Hash to see if we've already generated it.
     String *out_phptype = NULL;
     String *out_phpclasses = NewStringEmpty();
-    if (php_type_flag > 0 || (php_type_flag && !has_director_node)) {
+    if (php_type_flag &&
+	(php_type_flag > 0 || !has_director_node) &&
+	!GetFlag(has_directed_descendent, key)) {
       // We provide a simple way to generate PHP return type declarations
       // except for directed methods.  The point of directors is to allow
       // subclassing in the target language, and if the wrapped method has
@@ -421,13 +434,6 @@ public:
 };
 
 static PHPTypes *phptypes = NULL;
-
-// php_class + ":" + php_method -> PHPTypes*
-// ":" + php_function -> PHPTypes*
-static Hash *all_phptypes = NewHash();
-
-// php_class_name -> php_parent_class_name
-static Hash *php_parent_class = NewHash();
 
 class PHP : public Language {
 public:
@@ -628,7 +634,7 @@ public:
     /* Emit all the arginfo */
     for (Iterator ki = First(all_phptypes); ki.key; ki = Next(ki)) {
       PHPTypes *p = (PHPTypes*)Data(ki.item);
-      p->emit_arginfo();
+      p->emit_arginfo(ki.key);
     }
 
     SwigPHP_emit_pointer_type_registrations();
@@ -1421,6 +1427,13 @@ public:
       Append(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
       Wrapper_add_local(f, "upcall", "bool upcall = false");
       Printf(f->code, "upcall = (director && (director->swig_get_self()==Z_OBJ_P(ZEND_THIS)));\n");
+
+      String *parent = class_name;
+      while ((parent = Getattr(php_parent_class, parent)) != NULL) {
+	// Mark this method name as having a directed descendent for all
+	// classes we're derived from.
+	SetFlag(has_directed_descendent, NewStringf("%s:%s", parent, wname));
+      }
     }
 
     Swig_director_emit_dynamic_cast(n, f);
