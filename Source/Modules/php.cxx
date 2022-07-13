@@ -218,6 +218,15 @@ class PHPTypes {
   // the dispatch function.  If NULL, no parameters are passed by reference.
   List *byref;
 
+  // The id string used in the name of the arginfo for this object.
+  String *arginfo_id;
+
+  // The feature:php:type value: 0, 1 or -1 for "compatibility".
+  int php_type_flag;
+
+  // Does the node for this have directorNode set?
+  bool has_director_node;
+
   // Used to clamp the required number of parameters in the arginfo to be
   // compatible with any parent class version of the method.
   int num_required;
@@ -261,24 +270,51 @@ class PHPTypes {
     return result;
   }
 
+  void init(Node *n) {
+    String *php_type_feature = Getattr(n, "feature:php:type");
+    php_type_flag = 0;
+    if (php_type_feature != NULL) {
+      if (Equal(php_type_feature, "1")) {
+	php_type_flag = 1;
+      } else if (!Equal(php_type_feature, "0")) {
+	php_type_flag = -1;
+      }
+    }
+    arginfo_id = Copy(Getattr(n, "sym:name"));
+    has_director_node = (Getattr(n, "directorNode") != NULL);
+  }
+
 public:
-  PHPTypes(int num_required_)
+  PHPTypes(Node *n, int num_required_)
     : merged_types(NewList()),
       byref(NULL),
-      num_required(num_required_) { }
+      num_required(num_required_) {
+    init(n);
+  }
 
-  PHPTypes(const PHPTypes *o)
+  PHPTypes(Node *n, const PHPTypes *o)
     : merged_types(Copy(o->merged_types)),
       byref(Copy(o->byref)),
-      num_required(o->num_required) { }
+      num_required(o->num_required) {
+    init(n);
+  }
 
   ~PHPTypes() {
     Delete(merged_types);
     Delete(byref);
   }
 
-  void adjust_num_required(int num_required_) {
+  void adjust(int num_required_, bool php_constructor) {
     num_required = std::min(num_required, num_required_);
+    if (php_constructor) {
+      // Don't add a return type declaration for a PHP __construct method
+      // (because there it has no return type as far as PHP is concerned).
+      php_type_flag = 0;
+    }
+  }
+
+  String *get_arginfo_id() const {
+    return arginfo_id;
   }
 
   // key is 0 for return type, or >= 1 for parameters numbered from 1
@@ -297,7 +333,7 @@ public:
     Setitem(byref, key, ""); // Just needs to be something != None.
   }
 
-  void emit_arginfo(String *fname, Node *n) {
+  void emit_arginfo() {
     // We want to only emit each different arginfo once, as that reduces the
     // size of both the generated source code and the compiled extension
     // module.  The parameters at this level are just named arg1, arg2, etc
@@ -308,34 +344,27 @@ public:
     // We generate the arginfo we want (taking care to normalise, e.g. the
     // lists of types are unique and in sorted order), then use the
     // arginfo_used Hash to see if we've already generated it.
-
-    // Don't add a return type declaration for a constructor (because there
-    // is no return type as far as PHP is concerned).
     String *out_phptype = NULL;
     String *out_phpclasses = NewStringEmpty();
-    if (!Equal(fname, "__construct")) {
-      String *php_type_flag = GetFlagAttr(n, "feature:php:type");
-      if (Equal(php_type_flag, "1") ||
-	  (php_type_flag && !Getattr(n, "directorNode"))) {
-	// We provide a simple way to generate PHP return type declarations
-	// except for directed methods.  The point of directors is to allow
-	// subclassing in the target language, and if the wrapped method has
-	// a return type declaration then an overriding method in user code
-	// needs to have a compatible declaration.
-	//
-	// The upshot of this is that enabling return type declarations for
-	// existing bindings would break compatibility with user code written
-	// for an older version.  For parameters however the situation is
-	// different because if the parent class declares types for parameters
-	// a subclass overriding the function will be compatible whether it
-	// declares them or not.
-	//
-	// directorNode being present seems to indicate if this method or one
-	// it inherits from is directed, which is what we care about here.
-	// Using (!is_member_director(n)) would get it wrong for testcase
-	// director_frob.
-	out_phptype = get_phptype(0, out_phpclasses);
-      }
+    if (php_type_flag > 0 || (php_type_flag && !has_director_node)) {
+      // We provide a simple way to generate PHP return type declarations
+      // except for directed methods.  The point of directors is to allow
+      // subclassing in the target language, and if the wrapped method has
+      // a return type declaration then an overriding method in user code
+      // needs to have a compatible declaration.
+      //
+      // The upshot of this is that enabling return type declarations for
+      // existing bindings would break compatibility with user code written
+      // for an older version.  For parameters however the situation is
+      // different because if the parent class declares types for parameters
+      // a subclass overriding the function will be compatible whether it
+      // declares them or not.
+      //
+      // directorNode being present seems to indicate if this method or one
+      // it inherits from is directed, which is what we care about here.
+      // Using (!is_member_director(n)) would get it wrong for testcase
+      // director_frob.
+      out_phptype = get_phptype(0, out_phpclasses);
     }
 
     // ### in arginfo_code will be replaced with the id once that is known.
@@ -376,15 +405,14 @@ public:
     }
     Printf(arginfo_code, "ZEND_END_ARG_INFO()\n");
 
-    String *arginfo_id_new = Getattr(n, "sym:name");
-    String *arginfo_id = Getattr(arginfo_used, arginfo_code);
-    if (arginfo_id) {
-      Printf(s_arginfo, "#define swig_arginfo_%s swig_arginfo_%s\n", arginfo_id_new, arginfo_id);
+    String *arginfo_id_same = Getattr(arginfo_used, arginfo_code);
+    if (arginfo_id_same) {
+      Printf(s_arginfo, "#define swig_arginfo_%s swig_arginfo_%s\n", arginfo_id, arginfo_id_same);
     } else {
       // Not had this arginfo before.
-      Setattr(arginfo_used, arginfo_code, arginfo_id_new);
+      Setattr(arginfo_used, arginfo_code, arginfo_id);
       arginfo_code = Copy(arginfo_code);
-      Replace(arginfo_code, "###", arginfo_id_new, DOH_REPLACE_FIRST);
+      Replace(arginfo_code, "###", arginfo_id, DOH_REPLACE_FIRST);
       Append(s_arginfo, arginfo_code);
     }
     Delete(arginfo_code);
@@ -394,10 +422,8 @@ public:
 
 static PHPTypes *phptypes = NULL;
 
-// Track if the current phptypes is for a non-class function.
-static PHPTypes *non_class_phptypes = NULL;
-
-// class + ":" + method -> PHPTypes*
+// php_class + ":" + php_method -> PHPTypes*
+// ":" + php_function -> PHPTypes*
 static Hash *all_phptypes = NewHash();
 
 // php_class_name -> php_parent_class_name
@@ -598,6 +624,12 @@ public:
 
     /* Emit all of the code */
     Language::top(n);
+
+    /* Emit all the arginfo */
+    for (Iterator ki = First(all_phptypes); ki.key; ki = Next(ki)) {
+      PHPTypes *p = (PHPTypes*)Data(ki.item);
+      p->emit_arginfo();
+    }
 
     SwigPHP_emit_pointer_type_registrations();
     Dump(s_creation, s_header);
@@ -808,7 +840,7 @@ public:
 	  wrapperType != staticmembervar &&
 	  !Equal(fname, "__construct")) {
 	// Skip the first entry in the parameter list which is the this pointer.
-	l = Getattr(l, "tmap:in:next");
+	if (l) l = Getattr(l, "tmap:in:next");
 	// FIXME: does this throw the phptype key value off?
       }
     } else {
@@ -819,33 +851,31 @@ public:
       }
     }
 
-    phptypes->adjust_num_required(emit_num_required(l));
+    phptypes->adjust(emit_num_required(l), Equal(fname, "__construct"));
 
-    phptypes->emit_arginfo(fname, n);
-
-    String *arginfo_id_new = Getattr(n, "sym:name");
+    String *arginfo_id = phptypes->get_arginfo_id();
     String *s = cs_entry;
     if (!s) s = s_entry;
     if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
-      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id_new, modes);
+      Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id, modes);
     } else {
       if (dispatch) {
 	if (wrap_nonclass_global) {
-	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
+	  Printf(s, " ZEND_NAMED_FE(%(lower)s,%s,swig_arginfo_%s)\n", Getattr(n, "sym:name"), fname, arginfo_id);
 	}
 
 	if (wrap_nonclass_fake_class) {
 	  (void)fake_class_name();
-	  Printf(fake_cs_entry, " ZEND_NAMED_ME(%(lower)s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", Getattr(n, "sym:name"), fname, arginfo_id_new);
+	  Printf(fake_cs_entry, " ZEND_NAMED_ME(%(lower)s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", Getattr(n, "sym:name"), fname, arginfo_id);
 	}
       } else {
 	if (wrap_nonclass_global) {
-	  Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_id_new);
+	  Printf(s, " PHP_FE(%s,swig_arginfo_%s)\n", fname, arginfo_id);
 	}
 
 	if (wrap_nonclass_fake_class) {
 	  String *fake_class = fake_class_name();
-	  Printf(fake_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", fake_class, fname, arginfo_id_new);
+	  Printf(fake_cs_entry, " PHP_ME(%s,%s,swig_arginfo_%s,ZEND_ACC_PUBLIC|ZEND_ACC_STATIC)\n", fake_class, fname, arginfo_id);
 	}
       }
     }
@@ -870,8 +900,8 @@ public:
     bool constructorRenameOverload = false;
 
     if (constructor) {
-      // Renamed constructor - turn into static factory method
-      if (Cmp(class_name, Getattr(n, "constructorHandler:sym:name")) != 0) {
+      if (!Equal(class_name, Getattr(n, "constructorHandler:sym:name"))) {
+	// Renamed constructor - turn into static factory method
 	constructorRenameOverload = true;
 	wname = Copy(Getattr(n, "constructorHandler:sym:name"));
       } else {
@@ -1158,7 +1188,12 @@ public:
     }
 
     if (constructor) {
-      wname = NewString("__construct");
+      if (!Equal(class_name, Getattr(n, "constructorHandler:sym:name"))) {
+	// Renamed constructor - turn into static factory method
+	wname = Copy(Getattr(n, "constructorHandler:sym:name"));
+      } else {
+	wname = NewString("__construct");
+      }
     } else if (wrapperType == membervar) {
       wname = Copy(Getattr(n, "membervariableHandler:sym:name"));
       if (is_setter_method(n)) {
@@ -1210,34 +1245,35 @@ public:
     if (!Getattr(n, "sym:previousSibling") && !static_getter) {
       // First function of an overloaded group or a function which isn't part
       // of a group so reset the phptype information.
-      if (non_class_phptypes) {
-	delete non_class_phptypes;
-	non_class_phptypes = NULL;
-      }
       phptypes = NULL;
 
-      if (class_name) {
-	// See if there's a parent class which implements this method, and if
-	// so copy the PHPTypes of that method as a starting point as we need
-	// to be compatible with it (whether it is virtual or not).
-	String *parent = class_name;
-	while ((parent = Getattr(php_parent_class, parent)) != NULL) {
-	  String *key = NewStringf("%s:%s", parent, wname);
-	  PHPTypes *p = (PHPTypes*)GetVoid(all_phptypes, key);
-	  Delete(key);
-	  if (p) {
-	    phptypes = new PHPTypes(p);
-	    break;
+      String *key = NewStringf("%s:%s", class_name, wname);
+      PHPTypes *p = (PHPTypes*)GetVoid(all_phptypes, key);
+      if (p) {
+	// We already have an entry - this happens when overloads are created
+	// by %extend, for instance.
+	phptypes = p;
+	Delete(key);
+      } else {
+	if (class_name) {
+	  // See if there's a parent class which implements this method, and if
+	  // so copy the PHPTypes of that method as a starting point as we need
+	  // to be compatible with it (whether it is virtual or not).
+	  String *parent = class_name;
+	  while ((parent = Getattr(php_parent_class, parent)) != NULL) {
+	    String *k = NewStringf("%s:%s", parent, wname);
+	    PHPTypes *p = (PHPTypes*)GetVoid(all_phptypes, k);
+	    Delete(key);
+	    if (p) {
+	      phptypes = new PHPTypes(n, p);
+	      break;
+	    }
 	  }
 	}
-      }
-      if (!phptypes) {
-	phptypes = new PHPTypes(emit_num_required(l));
-      }
-      if (class_name) {
-	SetVoid(all_phptypes, NewStringf("%s:%s", class_name, wname), phptypes);
-      } else {
-	non_class_phptypes = phptypes;
+	if (!phptypes) {
+	  phptypes = new PHPTypes(n, emit_num_required(l));
+	}
+	SetVoid(all_phptypes, key, phptypes);
       }
     }
 
