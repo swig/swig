@@ -57,8 +57,7 @@ inline bool operator==( const EqualOpWrong& first, const EqualOpWrong& second )
 %}
 
 /* 
-  in order to wrapper this correctly
-  we need to extend the class
+  in order to wrap this correctly we need to extend the class
   to make the friends & non members part of the class
 */
 %extend EqualOpDefined {
