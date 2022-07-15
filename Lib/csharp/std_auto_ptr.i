@@ -9,7 +9,7 @@
 
 %define %auto_ptr(TYPE)
 %typemap (ctype) std::auto_ptr< TYPE > "void *"
-%typemap (imtype, out="System.IntPtr") std::auto_ptr< TYPE > "HandleRef"
+%typemap (imtype, out="System.IntPtr") std::auto_ptr< TYPE > "global::System.Runtime.InteropServices.HandleRef"
 %typemap (cstype) std::auto_ptr< TYPE > "$typemap(cstype, TYPE)"
 %typemap (out) std::auto_ptr< TYPE > %{
    $result = (void *)$1.release();

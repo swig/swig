@@ -9,8 +9,14 @@
 
 %define %unique_ptr(TYPE)
 %typemap (ctype) std::unique_ptr< TYPE > "void *"
-%typemap (imtype, out="System.IntPtr") std::unique_ptr< TYPE > "HandleRef"
+%typemap (imtype, out="System.IntPtr") std::unique_ptr< TYPE > "global::System.Runtime.InteropServices.HandleRef"
 %typemap (cstype) std::unique_ptr< TYPE > "$typemap(cstype, TYPE)"
+
+%typemap(in) std::unique_ptr< TYPE >
+%{ $1.reset((TYPE *)$input); %}
+
+%typemap(csin) std::unique_ptr< TYPE > "$typemap(cstype, TYPE).swigRelease($csinput)"
+
 %typemap (out) std::unique_ptr< TYPE > %{
    $result = (void *)$1.release();
 %}
@@ -23,5 +29,5 @@
 %enddef
 
 namespace std {
-   template <class T> class unique_ptr {};
+  template <class T> class unique_ptr {};
 } 
