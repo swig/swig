@@ -1357,12 +1357,19 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
     }
   }
   if (sobj) {
-    if (own)
-      *own = *own | sobj->own;
-    if (flags & SWIG_POINTER_DISOWN) {
-      sobj->own = 0;
+    if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !sobj->own) {
+      res = SWIG_ERROR_RELEASE_NOT_OWNED;
+    } else {
+      if (own)
+        *own = *own | sobj->own;
+      if (flags & SWIG_POINTER_DISOWN) {
+        sobj->own = 0;
+      }
+      if (flags & SWIG_POINTER_CLEAR) {
+        sobj->ptr = 0;
+      }
+      res = SWIG_OK;
     }
-    res = SWIG_OK;
   } else {
     if (implicit_conv) {
       SwigPyClientData *data = ty ? (SwigPyClientData *) ty->clientdata : 0;

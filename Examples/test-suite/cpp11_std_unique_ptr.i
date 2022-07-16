@@ -53,7 +53,7 @@ struct KlassInheritance : virtual Klass {
   }
 };
 
-#if defined(SWIGJAVA) || defined (SWIGCSHARP)
+#if defined(SWIGJAVA) || defined (SWIGCSHARP) || defined(SWIGPYTHON)
 std::string takeKlassUniquePtr(std::unique_ptr<Klass> k) {
   return std::string(k->getLabel());
 }
