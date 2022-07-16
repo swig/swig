@@ -43,6 +43,27 @@ public class cpp11_std_unique_ptr_runme {
     }
 
     {
+      Klass kin = new Klass("KlassInput");
+      checkCount(1);
+      String s = cpp11_std_unique_ptr.takeKlassUniquePtr(kin);
+      checkCount(0);
+      if (!s.equals("KlassInput"))
+        throw new RuntimeException("Incorrect string: " + s);
+      if (!cpp11_std_unique_ptr.is_nullptr(kin))
+        throw new RuntimeException("is_nullptr failed");
+      boolean exception_thrown = false;
+      try {
+        cpp11_std_unique_ptr.takeKlassUniquePtr(kin);
+      } catch (RuntimeException e) {
+        exception_thrown = true;
+      }
+      if (!exception_thrown)
+          throw new RuntimeException("double usage of takeKlassUniquePtr should have been an error");
+      kin.delete(); // Should not fail, even though already deleted
+      checkCount(0);
+    }
+
+    {
       KlassInheritance kini = new KlassInheritance("KlassInheritanceInput");
       checkCount(1);
       String s = cpp11_std_unique_ptr.takeKlassUniquePtr(kini);
