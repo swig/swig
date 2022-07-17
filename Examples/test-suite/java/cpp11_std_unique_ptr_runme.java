@@ -64,6 +64,21 @@ public class cpp11_std_unique_ptr_runme {
     }
 
     {
+      Klass kin = new Klass("KlassInput");
+      boolean exception_thrown = false;
+      try {
+        Klass notowned = cpp11_std_unique_ptr.get_not_owned_ptr(kin);
+        cpp11_std_unique_ptr.takeKlassUniquePtr(notowned);
+      } catch (RuntimeException e) {
+        exception_thrown = true;
+      }
+      if (!exception_thrown)
+        throw new RuntimeException("Should have thrown 'Cannot release ownership as memory is not owned' error");
+      kin.delete();
+      checkCount(0);
+    }
+
+    {
       KlassInheritance kini = new KlassInheritance("KlassInheritanceInput");
       checkCount(1);
       String s = cpp11_std_unique_ptr.takeKlassUniquePtr(kini);

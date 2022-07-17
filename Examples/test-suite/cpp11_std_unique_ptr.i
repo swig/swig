@@ -63,6 +63,10 @@ bool is_nullptr(Klass *p) {
   return p == nullptr;
 }
 
+Klass *get_not_owned_ptr(Klass *p) {
+  return p;
+}
+
 std::unique_ptr<Klass> makeKlassUniquePtr(const char* label) {
   return std::unique_ptr<Klass>(new Klass(label));
 }
