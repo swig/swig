@@ -1,10 +1,11 @@
 /* -----------------------------------------------------------------------------
  * std_unique_ptr.i
  *
- * The typemaps here allow handling functions returning std::unique_ptr<>,
- * which is the most common use of this type. If you have functions taking it
- * as parameter, these typemaps can't be used for them and you need to do
- * something else (e.g. use shared_ptr<> which SWIG supports fully).
+ * SWIG library file for handling std::unique_ptr.
+ * Memory ownership is passed from the std::unique_ptr C++ layer to the proxy
+ * class when returning a std::unique_ptr from a function.
+ * Memory ownership is passed from the proxy class to the std::unique_ptr in the
+ * C++ layer when passed as a parameter to a wrapped function.
  * ----------------------------------------------------------------------------- */
 
 %define %unique_ptr(TYPE)
@@ -20,19 +21,19 @@
 %typemap(javain) std::unique_ptr< TYPE > "$typemap(jstype, TYPE).swigRelease($javainput)"
 
 %typemap (out) std::unique_ptr< TYPE > %{
-   jlong lpp = 0;
-   *(TYPE **) &lpp = $1.release();
-   $result = lpp;
+  jlong lpp = 0;
+  *(TYPE **) &lpp = $1.release();
+  $result = lpp;
 %}
 
 %typemap(javaout) std::unique_ptr< TYPE > {
-     long cPtr = $jnicall;
-     return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
-   }
+    long cPtr = $jnicall;
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+  }
 
 %template() std::unique_ptr< TYPE >;
 %enddef
 
 namespace std {
-   template <class T> class unique_ptr {};
-} 
+  template <class T> class unique_ptr {};
+}
