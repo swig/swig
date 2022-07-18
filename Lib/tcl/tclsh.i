@@ -33,10 +33,6 @@ char *SWIG_RcFileName = "~/.myapprc";
 #endif
 
 
-#ifdef MAC_TCL
-extern int		MacintoshInit _ANSI_ARGS_((void));
-#endif
-
 int Tcl_AppInit(Tcl_Interp *interp){
 
   if (Tcl_Init(interp) == TCL_ERROR) 
@@ -55,19 +51,6 @@ int Tcl_AppInit(Tcl_Interp *interp){
 }
 
 int main(int argc, char **argv) {
-#ifdef MAC_TCL
-    char *newArgv[2];
-    
-    if (MacintoshInit()  != TCL_OK) {
-	Tcl_Exit(1);
-    }
-
-    argc = 1;
-    newArgv[0] = "tclsh";
-    newArgv[1] = NULL;
-    argv = newArgv;
-#endif
-
   Tcl_Main(argc, argv, Tcl_AppInit);
   return(0);
 

@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-07-19: olly
+	    Remove remaining support code for classic macos, which has not been
+	    supported by Apple for over 20 years now.
+
 2022-07-12: wsfulton
             Performance optimisation for parameters passed by value that are C++11 movable.
             The C++ wrappers create a temporary variable for a parameter to be passed to a

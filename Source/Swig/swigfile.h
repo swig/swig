@@ -34,9 +34,7 @@ extern void   Swig_file_debug_set(void);
 
 /* Delimiter used in accessing files and directories */
 
-#if defined(MACSWIG)
-#  define SWIG_FILE_DELIMITER ":"
-#elif defined(_WIN32)
+#if defined(_WIN32)
 #  define SWIG_FILE_DELIMITER "\\"
 #else
 #  define SWIG_FILE_DELIMITER "/"

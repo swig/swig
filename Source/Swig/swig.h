@@ -14,9 +14,7 @@
 #ifndef SWIGCORE_H_
 #define SWIGCORE_H_
 
-#ifndef MACSWIG
 #include "swigconfig.h"
-#endif
 
 #include <stdio.h>
 #include <string.h>
