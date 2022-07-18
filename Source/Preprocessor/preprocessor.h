@@ -11,8 +11,8 @@
  * SWIG preprocessor module.
  * ----------------------------------------------------------------------------- */
 
-#ifndef SWIG_PREPROCESSOR_H_
-#define SWIG_PREPROCESSOR_H_
+#ifndef SWIG_PREPROCESSOR_H
+#define SWIG_PREPROCESSOR_H
 
 #include "swigwarn.h"
 

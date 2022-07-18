@@ -22,8 +22,8 @@
  * This file is used as the input for generating Lib/swigwarn.swg.
  * ----------------------------------------------------------------------------- */
 
-#ifndef SWIGWARN_H_
-#define SWIGWARN_H_
+#ifndef SWIG_SWIGWARN_H
+#define SWIG_SWIGWARN_H
 
 #define WARN_NONE                     0
 

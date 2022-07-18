@@ -9,8 +9,8 @@
 //     g++ -c -include octheaders.hpp ...
 //
 
-#if !defined(_SWIG_OCTAVE_OCTHEADERS_HPP)
-#define _SWIG_OCTAVE_OCTHEADERS_HPP
+#if !defined(SWIG_OCTAVE_OCTHEADERS_HPP)
+#define SWIG_OCTAVE_OCTHEADERS_HPP
 
 // Required C++ headers
 #include <cstdlib>
@@ -127,4 +127,4 @@
 #include <octave/call-stack.h>
 #endif
 
-#endif // !defined(_SWIG_OCTAVE_OCTHEADERS_HPP)
+#endif // !defined(SWIG_OCTAVE_OCTHEADERS_HPP)

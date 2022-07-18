@@ -11,8 +11,8 @@
  * SWIG parser module.
  * ----------------------------------------------------------------------------- */
 
-#ifndef SWIG_CPARSE_H_
-#define SWIG_CPARSE_H_
+#ifndef SWIG_CPARSE_H
+#define SWIG_CPARSE_H
 
 #include "swig.h"
 #include "swigwarn.h"

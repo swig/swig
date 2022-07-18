@@ -1,5 +1,5 @@
-#ifndef _EXAMPLE_H_
-#define _EXAMPLE_H_
+#ifndef EXAMPLE_H
+#define EXAMPLE_H
 
 #include <vector>
 #include <string>
@@ -46,4 +46,4 @@ public:
 	Animal* get_animal(size_t i) const;
 };
 
-#endif /*_EXAMPLE_H_*/
+#endif /* EXAMPLE_H */

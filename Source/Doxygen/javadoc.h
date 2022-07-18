@@ -11,8 +11,8 @@
  * Module to return documentation for nodes formatted for JavaDoc
  * ----------------------------------------------------------------------------- */
 
-#ifndef JAVADOCCONVERTER_H_
-#define JAVADOCCONVERTER_H_
+#ifndef SWIG_JAVADOC_H
+#define SWIG_JAVADOC_H
 
 #include "doxytranslator.h"
 #include <map>
