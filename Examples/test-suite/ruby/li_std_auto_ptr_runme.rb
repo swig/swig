@@ -11,6 +11,97 @@ def gc_check(expected_count)
 #  swig_assert_equal_simple(expected_count, Li_std_auto_ptr::Klass::getTotal_count())
 end
 
+def checkCount(expected_count)
+    actual_count = Li_std_auto_ptr::Klass.getTotal_count()
+    if (actual_count != expected_count)
+        raise RuntimeError, "Counts incorrect, expected:" + expected_count + " actual:" + actual_count
+    end
+end
+
+
+# auto_ptr as input
+kin = Li_std_auto_ptr::Klass.new("KlassInput")
+checkCount(1)
+s = Li_std_auto_ptr.takeKlassAutoPtr(kin)
+checkCount(0)
+if (s != "KlassInput")
+    raise RuntimeError, "Incorrect string: " + s
+end
+exception_thrown = false
+begin
+    Li_std_auto_ptr.is_nullptr(kin)
+rescue ObjectPreviouslyDeleted
+    exception_thrown = true
+end
+if (!exception_thrown)
+    raise RuntimeError, "is_nullptr failed to throw"
+end
+kin = nil
+checkCount(0)
+
+kin = Li_std_auto_ptr::Klass.new("KlassInput")
+checkCount(1)
+s = Li_std_auto_ptr.takeKlassAutoPtr(kin)
+checkCount(0)
+if (s != "KlassInput")
+    raise RuntimeError, "Incorrect string: " + s
+end
+exception_thrown = false
+begin
+    Li_std_auto_ptr.is_nullptr(kin)
+rescue ObjectPreviouslyDeleted
+    exception_thrown = true
+end
+if (!exception_thrown)
+    raise RuntimeError, "is_nullptr failed to throw"
+end
+exception_thrown = false
+begin
+    Li_std_auto_ptr.takeKlassAutoPtr(kin)
+rescue RuntimeError => e
+    # puts e.message
+    exception_thrown = true
+end
+if (!exception_thrown)
+    raise RuntimeError, "double usage of takeKlassAutoPtr should have been an error"
+end
+kin = nil
+checkCount(0)
+
+kin = Li_std_auto_ptr::Klass.new("KlassInput")
+exception_thrown = false
+begin
+    notowned = Li_std_auto_ptr::get_not_owned_ptr(kin)
+    Li_std_auto_ptr::takeKlassAutoPtr(notowned)
+rescue RuntimeError
+    exception_thrown = true
+end
+if (!exception_thrown)
+  raise RuntimeError, "Should have thrown 'Cannot release ownership as memory is not owned' error"
+end
+Li_std_auto_ptr.takeKlassAutoPtr(kin) # Ensure object is deleted (can't rely on GC)
+checkCount(0)
+
+kini = Li_std_auto_ptr::KlassInheritance.new("KlassInheritanceInput")
+checkCount(1)
+s = Li_std_auto_ptr.takeKlassAutoPtr(kini)
+checkCount(0)
+if (s != "KlassInheritanceInput")
+    raise RuntimeError, "Incorrect string: " + s
+end
+exception_thrown = false
+begin
+    Li_std_auto_ptr.is_nullptr(kini)
+rescue ObjectPreviouslyDeleted
+    exception_thrown = true
+end
+if (!exception_thrown)
+    raise RuntimeError, "is_nullptr failed to throw"
+end
+kini = nil
+checkCount(0)
+
+# auto_ptr as output
 k1 = Li_std_auto_ptr::makeKlassAutoPtr("first")
 k2 = Li_std_auto_ptr::makeKlassAutoPtr("second")
 swig_assert_equal_simple(2, Li_std_auto_ptr::Klass::getTotal_count())
