@@ -218,7 +218,7 @@ void Swig_filename_correct(String *filename) {
     if (fname[0] == '/' && fname[1] == '/')
       network_path = 1;
   }
-#if defined(_WIN32) || defined(MACSWIG)
+#if defined(_WIN32)
   /* accept Unix path separator on non-Unix systems */
   Replaceall(filename, "/", SWIG_FILE_DELIMITER);
 #endif

@@ -14,9 +14,7 @@
 #ifndef SWIG_DOH_H
 #define SWIG_DOH_H
 
-#ifndef MACSWIG
 #include "swigconfig.h"
-#endif
 
 #include <stdarg.h>
 #include <stdio.h>

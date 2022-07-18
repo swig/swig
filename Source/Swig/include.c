@@ -110,11 +110,7 @@ static List *Swig_search_path_any(int syspath) {
   assert(slist);
   filename = NewStringEmpty();
   assert(filename);
-#ifdef MACSWIG
-  Printf(filename, "%s", SWIG_FILE_DELIMITER);
-#else
   Printf(filename, ".%s", SWIG_FILE_DELIMITER);
-#endif
   Append(slist, filename);
   Delete(filename);
   
