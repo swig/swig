@@ -11,8 +11,8 @@
  *     This file describes internally managed objects.
  * ----------------------------------------------------------------------------- */
 
-#ifndef _DOHINT_H
-#define _DOHINT_H
+#ifndef SWIG_DOHINT_H
+#define SWIG_DOHINT_H
 
 #include "doh.h"
 
@@ -128,4 +128,4 @@ typedef struct {
 extern DOH *DohObjMalloc(DohObjInfo *type, void *data);	/* Allocate a DOH object */
 extern void DohObjFree(DOH *ptr);	/* Free a DOH object     */
 
-#endif				/* DOHINT_H */
+#endif				/* SWIG_DOHINT_H */

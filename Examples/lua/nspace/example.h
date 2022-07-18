@@ -1,5 +1,5 @@
-#ifndef _example_guardian_
-#define _example_guardian_
+#ifndef EXAMPLE_H
+#define EXAMPLE_H
 
 int module_function() { return 7; }
 int module_variable = 9;

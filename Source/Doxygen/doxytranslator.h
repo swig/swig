@@ -12,8 +12,8 @@
  * systems.
  * ----------------------------------------------------------------------------- */
 
-#ifndef DOXYGENTRANSLATOR_H_
-#define DOXYGENTRANSLATOR_H_
+#ifndef SWIG_DOXYTRANSLATOR_H
+#define SWIG_DOXYTRANSLATOR_H
 
 #include "swig.h"
 #include "doxyentity.h"

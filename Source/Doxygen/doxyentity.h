@@ -11,8 +11,8 @@
  * Part of the Doxygen comment translation module of SWIG.
  * ----------------------------------------------------------------------------- */
 
-#ifndef DOXYGENENTITY_H_
-#define DOXYGENENTITY_H_
+#ifndef SWIG_DOXYENTITY_H
+#define SWIG_DOXYENTITY_H
 
 #include <string>
 #include <list>

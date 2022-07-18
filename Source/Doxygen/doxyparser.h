@@ -9,8 +9,8 @@
  * doxyparser.h
  * ----------------------------------------------------------------------------- */
 
-#ifndef DOXYGENPARSER_H_
-#define DOXYGENPARSER_H_
+#ifndef SWIG_DOXYPARSER_H
+#define SWIG_DOXYPARSER_H
 #include <string>
 #include <list>
 #include <map>
