@@ -1,4 +1,4 @@
-/*  Errors in SWIG */
+/* SWIG Errors applicable to all language modules, values are reserved from -1 to -99 */
 #define  SWIG_UnknownError    	   -1
 #define  SWIG_IOError        	   -2
 #define  SWIG_RuntimeError   	   -3
@@ -12,5 +12,4 @@
 #define  SWIG_AttributeError 	   -11
 #define  SWIG_MemoryError    	   -12
 #define  SWIG_NullReferenceError   -13
-
 

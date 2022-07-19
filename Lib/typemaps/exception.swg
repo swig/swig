@@ -19,6 +19,7 @@
 #endif  
 #define %varnullref_fmt(_type,_name)       %nullref_fmt() %varfail_fmt(_type, _name)  		   
 #define %outnullref_fmt(_type)             %nullref_fmt() %outfail_fmt(_type)         
+#define %releasenotownedfail_fmt(_type,_name,_argn)    "in method '" `_name` "', cannot release ownership as memory is not owned for argument " `_argn`" of type '" `_type`"'"
 
 /* setting an error */
 #define %error(code,msg...)               SWIG_Error(code, msg)
