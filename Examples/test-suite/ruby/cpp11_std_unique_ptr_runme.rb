@@ -73,7 +73,10 @@ exception_thrown = false
 begin
     notowned = Cpp11_std_unique_ptr::get_not_owned_ptr(kin)
     Cpp11_std_unique_ptr::takeKlassUniquePtr(notowned)
-rescue RuntimeError
+rescue RuntimeError => e
+    if (!e.to_s.include? "cannot release ownership as memory is not owned")
+      raise RuntimeError, "incorrect exception message"
+    end
     exception_thrown = true
 end
 if (!exception_thrown)

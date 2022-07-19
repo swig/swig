@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-07-19: wsfulton
+            #692 [C#, Java, Perl, Python, Ruby] std::unique_ptr and std::auto_ptr typemaps
+            provided for inputs types in std_unique_ptr.i and std_auto_ptr.i.
+
+            Now these smart pointers can be used as input parameters to functions. A proxy
+            class instance transfers memory ownership of the underlying C++ object from the
+            proxy class to a smart pointer instance passed to the wrapped function.
+
 2022-07-12: wsfulton
             Performance optimisation for parameters passed by value that are C++11 movable.
             The C++ wrappers create a temporary variable for a parameter to be passed to a

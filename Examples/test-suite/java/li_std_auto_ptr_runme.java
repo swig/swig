@@ -55,6 +55,8 @@ public class li_std_auto_ptr_runme {
       try {
         li_std_auto_ptr.takeKlassAutoPtr(kin);
       } catch (RuntimeException e) {
+        if (!e.getMessage().contains("Cannot release ownership as memory is not owned"))
+          throw new RuntimeException("incorrect exception message");
         exception_thrown = true;
       }
       if (!exception_thrown)
@@ -70,6 +72,8 @@ public class li_std_auto_ptr_runme {
         Klass notowned = li_std_auto_ptr.get_not_owned_ptr(kin);
         li_std_auto_ptr.takeKlassAutoPtr(notowned);
       } catch (RuntimeException e) {
+        if (!e.getMessage().contains("Cannot release ownership as memory is not owned"))
+          throw new RuntimeException("incorrect exception message");
         exception_thrown = true;
       }
       if (!exception_thrown)

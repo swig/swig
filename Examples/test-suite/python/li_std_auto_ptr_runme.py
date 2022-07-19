@@ -33,6 +33,8 @@ exception_thrown = False
 try:
     s = takeKlassAutoPtr(kin)
 except RuntimeError as e:
+    if "cannot release ownership as memory is not owned" not in str(e):
+        raise RuntimeError("incorrect exception message");
     exception_thrown = True
 if not exception_thrown:
     raise RuntimeError("double usage of takeKlassAutoPtr should have been an error")

@@ -55,6 +55,8 @@ public class cpp11_std_unique_ptr_runme {
       try {
         cpp11_std_unique_ptr.takeKlassUniquePtr(kin);
       } catch (RuntimeException e) {
+        if (!e.getMessage().contains("Cannot release ownership as memory is not owned"))
+          throw new RuntimeException("incorrect exception message");
         exception_thrown = true;
       }
       if (!exception_thrown)
@@ -70,6 +72,8 @@ public class cpp11_std_unique_ptr_runme {
         Klass notowned = cpp11_std_unique_ptr.get_not_owned_ptr(kin);
         cpp11_std_unique_ptr.takeKlassUniquePtr(notowned);
       } catch (RuntimeException e) {
+        if (!e.getMessage().contains("Cannot release ownership as memory is not owned"))
+          throw new RuntimeException("incorrect exception message");
         exception_thrown = true;
       }
       if (!exception_thrown)

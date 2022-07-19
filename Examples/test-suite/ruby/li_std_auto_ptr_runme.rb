@@ -74,6 +74,9 @@ begin
     notowned = Li_std_auto_ptr::get_not_owned_ptr(kin)
     Li_std_auto_ptr::takeKlassAutoPtr(notowned)
 rescue RuntimeError
+    if (!e.to_s.include? "cannot release ownership as memory is not owned")
+      raise RuntimeError, "incorrect exception message"
+    end
     exception_thrown = true
 end
 if (!exception_thrown)

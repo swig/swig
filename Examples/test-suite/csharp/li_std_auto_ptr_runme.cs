@@ -41,7 +41,9 @@ public class li_std_auto_ptr_runme {
           bool exception_thrown = false;
           try {
             li_std_auto_ptr.takeKlassAutoPtr(kin);
-          } catch (ApplicationException) {
+          } catch (ApplicationException e) {
+            if (!e.Message.Contains("Cannot release ownership as memory is not owned"))
+              throw new ApplicationException("incorrect exception message");
             exception_thrown = true;
           }
           if (!exception_thrown)
@@ -52,10 +54,12 @@ public class li_std_auto_ptr_runme {
         using (Klass kin = new Klass("KlassInput")) {
             bool exception_thrown = false;
             try {
-                Klass notowned = li_std_auto_ptr.get_not_owned_ptr(kin);
-                li_std_auto_ptr.takeKlassAutoPtr(notowned);
-            } catch (ApplicationException) {
-                exception_thrown = true;
+              Klass notowned = li_std_auto_ptr.get_not_owned_ptr(kin);
+              li_std_auto_ptr.takeKlassAutoPtr(notowned);
+            } catch (ApplicationException e) {
+              if (!e.Message.Contains("Cannot release ownership as memory is not owned"))
+                throw new ApplicationException("incorrect exception message");
+              exception_thrown = true;
             }
             if (!exception_thrown)
                 throw new ApplicationException("Should have thrown 'Cannot release ownership as memory is not owned' error");
