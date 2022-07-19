@@ -1758,7 +1758,6 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
       } else {
 	PyErr_Format(type, "%s %s", errmesg, mesg);
       }
-      SWIG_Python_str_DelForPy3(tmp);
       Py_DECREF(old_str);
     }
     return 1;
@@ -1810,7 +1809,6 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
 	if (cstr) {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s(%s)' is received",
 		       type, otype, cstr);
-          SWIG_Python_str_DelForPy3(cstr);
 	} else {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
 		       type, otype);
