@@ -11,8 +11,8 @@
 # error "This version of SWIG only supports Python >= 2.7"
 #endif
 
-#if PY_VERSION_HEX >= 0x03000000 && PY_VERSION_HEX < 0x03020000
-# error "This version of SWIG only supports Python 3 >= 3.2"
+#if PY_VERSION_HEX >= 0x03000000 && PY_VERSION_HEX < 0x03030000
+# error "This version of SWIG only supports Python 3 >= 3.3"
 #endif
 
 /* Common SWIG API */
@@ -1758,7 +1758,6 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
       } else {
 	PyErr_Format(type, "%s %s", errmesg, mesg);
       }
-      SWIG_Python_str_DelForPy3(tmp);
       Py_DECREF(old_str);
     }
     return 1;
@@ -1810,7 +1809,6 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
 	if (cstr) {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s(%s)' is received",
 		       type, otype, cstr);
-          SWIG_Python_str_DelForPy3(cstr);
 	} else {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
 		       type, otype);

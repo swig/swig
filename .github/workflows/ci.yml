@@ -112,10 +112,6 @@ jobs:
         - SWIGLANG: python
           PY2: 2
         - SWIGLANG: python
-          VER: '3.2'
-          os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
-          continue-on-error: true # broken packages problem
-        - SWIGLANG: python
           VER: '3.3'
           os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
         - SWIGLANG: python
