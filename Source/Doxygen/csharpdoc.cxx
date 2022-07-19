@@ -282,7 +282,7 @@ void CSharpDocConverter::fillStaticTables() {
   tagHandlers["par"] = make_handler(&CSharpDocConverter::handleTagPar);
   tagHandlers["param"] = tagHandlers["tparam"] = make_handler(&CSharpDocConverter::handleTagParam);
   tagHandlers["ref"] = make_handler(&CSharpDocConverter::handleTagRef);
-  tagHandlers["result"] = tagHandlers["return"] = tagHandlers["returns"] = make_handler(&CSharpDocConverter::handleParagraph, "returns");
+  tagHandlers["result"] = tagHandlers["return"] = tagHandlers["returns"] = make_handler(&CSharpDocConverter::handleTagReturn);
 
   // this command just prints its contents
   // (it is internal command of swig's parser, contains plain text)
@@ -640,9 +640,10 @@ void CSharpDocConverter::handleTagMessage(DoxygenEntity &tag, std::string &trans
 }
 
 void CSharpDocConverter::handleTagSee(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
-  translatedComment += "<seealso cref=\"";
-  translatedComment += translateSubtree(tag);
-  translatedComment += "\">\n";
+  //translatedComment += "<see also cref=\"";
+  //translatedComment += translateSubtree(tag);
+  //eraseTrailingSpaceNewLines(translatedComment);
+  //translatedComment += "\">\n";
 }
 
 void CSharpDocConverter::handleTagChar(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
@@ -703,7 +704,8 @@ void CSharpDocConverter::handleTagReturn(DoxygenEntity &tag, std::string &transl
   IndentGuard indent(translatedComment, m_indent);
 
   translatedComment += "<returns>";
-  handleParagraph(tag, translatedComment);
+  translatedComment += translateSubtree(tag);
+  eraseTrailingSpaceNewLines(translatedComment);
   translatedComment += "</returns> \n";
 }
 
