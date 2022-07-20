@@ -200,6 +200,7 @@ CPP_TEST_CASES += \
 	director_frob \
 	director_ignore \
 	director_keywords \
+	director_multiple_inheritance \
 	director_namespace_clash \
 	director_nested \
 	director_nspace \
