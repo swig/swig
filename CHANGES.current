@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-07-20: wsfulton
+            [C#, Java] Ensure the order of interfaces generated in proxy interfaces for the
+            %interface family of macros is the same as that parsed from the bases in C++.
+
 2022-07-20: jicks, Ingener74, olly
 	    #422 [Python] Fix mishandling of a Python class inheriting from
 	    multiple SWIG-wrapped director classes.
