@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-07-20: jicks, Ingener74, olly
+	    #422 [Python] Fix mishandling of a Python class inheriting from
+	    multiple SWIG-wrapped director classes.
+
 2022-07-19: wsfulton
             #692 [C#, Java, Perl, Python, Ruby] std::unique_ptr and std::auto_ptr typemaps
             provided for inputs types in std_unique_ptr.i and std_auto_ptr.i.
