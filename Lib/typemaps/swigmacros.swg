@@ -109,15 +109,7 @@ nocppval
 #endif
 %enddef
 
-/* insert the SWIGVERSION in the interface and the wrapper code */
-#if SWIG_VERSION
-%insert("header") {
-%define_as(SWIGVERSION,  SWIG_VERSION)
-%#define SWIG_VERSION SWIGVERSION
-}
-#endif
-
-
+%include <typemaps/swigversion.swg>
 
 /* -----------------------------------------------------------------------------
  * Casting operators

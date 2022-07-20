@@ -515,6 +515,8 @@ private:
     }
 
     Printf(f_c_runtime, "#define SWIGMODULE %s\n", module);
+    Printf(f_c_runtime, "#ifndef SWIGGO\n#define SWIGGO\n#endif\n\n");
+
     if (gccgo_flag) {
       Printf(f_c_runtime, "#define SWIGGO_PREFIX %s\n", go_prefix);
     }

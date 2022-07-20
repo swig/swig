@@ -4,6 +4,8 @@
  * PHP configuration file
  * ----------------------------------------------------------------------------- */
 
+%include <typemaps/swigversion.swg>
+
 // Default to generating PHP type declarations (for PHP >= 8) except for
 // cases which are liable to cause compatibility issues with existing
 // bindings.

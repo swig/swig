@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-04: olly
+	    #1050 Consistently define SWIG_VERSION both at SWIG-time and in
+	    the generated wrapper.  Best practice remains to check at SWIG-time
+	    where possible because that results in smaller generated wrapper
+	    sources.
+
+	    SWIGGO and SWIGJAVASCRIPT are now defined in the generated wrappers
+	    to match behaviour for all other target languages.
+
+	    The undocumented SWIGVERSION macro is no longer defined.
+
 2022-09-29: olly
 	    #2303 SWIG's internal hash tables now use a better hash function.
 

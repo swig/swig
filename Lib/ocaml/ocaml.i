@@ -4,6 +4,8 @@
  * SWIG Configuration File for Ocaml
  * ----------------------------------------------------------------------------- */
 
+%include <typemaps/swigversion.swg>
+
 /* Insert common stuff */
 %insert(runtime) "swigrun.swg"
 

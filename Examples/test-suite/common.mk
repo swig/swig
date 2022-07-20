@@ -788,6 +788,7 @@ C_TEST_CASES += \
 	preproc_gcc_output \
 	preproc_include \
 	preproc_line_file \
+	preproc_predefined \
 	register_par \
 	ret_by_value \
 	simple_array \

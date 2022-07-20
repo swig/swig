@@ -1615,6 +1615,8 @@ int JSCEmitter::initialize(Node *n) {
 
   Swig_banner(f_wrap_cpp);
 
+  Printf(f_runtime, "#ifndef SWIGJAVASCRIPT\n#define SWIGJAVASCRIPT\n#endif\n\n");
+
   return SWIG_OK;
 }
 
@@ -1944,6 +1946,8 @@ int V8Emitter::initialize(Node *n) {
   state.globals(FORCE_CPP, NewString("1"));
 
   Swig_banner(f_wrap_cpp);
+
+  Printf(f_runtime, "#ifndef SWIGJAVASCRIPT\n#define SWIGJAVASCRIPT\n#endif\n\n");
 
   return SWIG_OK;
 }
