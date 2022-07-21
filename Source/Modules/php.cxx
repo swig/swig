@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 
 static const char *usage = "\
 PHP Options (available with -php7)\n\
@@ -218,6 +219,10 @@ static Hash *php_parent_class = NewHash();
 // php_class + ":" + php_method -> boolean (using SetFlag()/GetFlag()).
 static Hash *has_directed_descendent = NewHash();
 
+// Track required return type for parent class methods.
+// php_class + ":" + php_method -> List of php types.
+static Hash *parent_class_method_return_type = NewHash();
+
 // Class encapsulating the machinery to add PHP type declarations.
 class PHPTypes {
   // List with an entry for each parameter and one for the return type.
@@ -252,10 +257,21 @@ class PHPTypes {
     return std::max(Len(merged_types), Len(byref));
   }
 
-  String *get_phptype(int key, String *classtypes) {
+  String *get_phptype(int key, String *classtypes, List *more_return_types = NULL) {
     Clear(classtypes);
+    // We want to minimise the list of class types by not redundantly listing
+    // a class for which a super-class is also listed.  This canonicalisation
+    // allows for more sharing of arginfo (which reduces module size), makes
+    // for a cleaner list if it's shown to the user, and also will speed up
+    // module load a bit.
+    Hash *classes = NewHash();
     DOH *types = Getitem(merged_types, key);
     String *result = NewStringEmpty();
+    if (more_return_types) {
+      if (types != None) {
+	merge_type_lists(types, more_return_types);
+      }
+    }
     if (types != None) {
       SortList(types, NULL);
       String *prev = NULL;
@@ -269,13 +285,36 @@ class PHPTypes {
 	  if (Len(result) > 0) Append(result, "|");
 	  Append(result, c);
 	} else {
-	  if (Len(classtypes) > 0) Append(classtypes, "|");
-	  Append(classtypes, prefix);
-	  Append(classtypes, i.item);
+	  SetFlag(classes, i.item);
 	}
 	prev = i.item;
       }
     }
+
+    // Remove entries for which a super-class is also listed.
+    Iterator i = First(classes);
+    while (i.key) {
+      String *this_class = i.key;
+      // We must advance the iterator early so we don't delete the element it
+      // points to.
+      i = Next(i);
+      String *parent = this_class;
+      while ((parent = Getattr(php_parent_class, parent)) != NULL) {
+	if (GetFlag(classes, parent)) {
+	  Delattr(classes, this_class);
+	  break;
+	}
+      }
+    }
+
+    List *sorted_classes = SortedKeys(classes, Strcmp);
+    for (i = First(sorted_classes); i.item; i = Next(i)) {
+      if (Len(classtypes) > 0) Append(classtypes, "|");
+      Append(classtypes, prefix);
+      Append(classtypes, i.item);
+    }
+    Delete(sorted_classes);
+
     // Make the mask 0 if there are only class names specified.
     if (Len(result) == 0) {
       Append(result, "0");
@@ -283,7 +322,11 @@ class PHPTypes {
     return result;
   }
 
-  void init(Node *n) {
+public:
+  PHPTypes(Node *n)
+    : merged_types(NewList()),
+      byref(NULL),
+      num_required(INT_MAX) {
     String *php_type_feature = Getattr(n, "feature:php:type");
     php_type_flag = 0;
     if (php_type_feature != NULL) {
@@ -295,21 +338,6 @@ class PHPTypes {
     }
     arginfo_id = Copy(Getattr(n, "sym:name"));
     has_director_node = (Getattr(n, "directorNode") != NULL);
-  }
-
-public:
-  PHPTypes(Node *n, int num_required_)
-    : merged_types(NewList()),
-      byref(NULL),
-      num_required(num_required_) {
-    init(n);
-  }
-
-  PHPTypes(Node *n, const PHPTypes *o)
-    : merged_types(Copy(o->merged_types)),
-      byref(Copy(o->byref)),
-      num_required(o->num_required) {
-    init(n);
   }
 
   ~PHPTypes() {
@@ -331,7 +359,15 @@ public:
   }
 
   // key is 0 for return type, or >= 1 for parameters numbered from 1
-  void process_phptype(Node *n, int key, const String_or_char *attribute_name);
+  List *process_phptype(Node *n, int key, const String_or_char *attribute_name);
+
+  // Merge entries from o_merge_list into merge_list, skipping any entries
+  // already present.
+  //
+  // Both merge_list and o_merge_list should be in sorted order.
+  static void merge_type_lists(List *merge_list, List *o_merge_list);
+
+  void merge_from(const PHPTypes* o);
 
   void set_byref(int key) {
     if (!byref) {
@@ -346,7 +382,34 @@ public:
     Setitem(byref, key, ""); // Just needs to be something != None.
   }
 
-  void emit_arginfo(String *key) {
+  void emit_arginfo(DOH *item, String *key) {
+    Setmark(item, 1);
+    char *colon_ptr = Strchr(key, ':');
+    assert(colon_ptr);
+    int colon = colon_ptr - Char(key);
+    if (colon > 0 && Strcmp(colon_ptr + 1, "__construct") != 0) {
+      // See if there's a parent class which implements this method, and if so
+      // emit its arginfo and then merge its PHPTypes into ours as we need to
+      // be compatible with it (whether it is virtual or not).
+      String *this_class = NewStringWithSize(Char(key), colon);
+      String *parent = this_class;
+      while ((parent = Getattr(php_parent_class, parent)) != NULL) {
+	String *k = NewStringf("%s%s", parent, colon_ptr);
+	DOH *item = Getattr(all_phptypes, k);
+	if (item) {
+	  PHPTypes *p = (PHPTypes*)Data(item);
+	  if (!Getmark(item)) {
+	    p->emit_arginfo(item, k);
+	  }
+	  merge_from(p);
+	  Delete(k);
+	  break;
+	}
+	Delete(k);
+      }
+      Delete(this_class);
+    }
+
     // We want to only emit each different arginfo once, as that reduces the
     // size of both the generated source code and the compiled extension
     // module.  The parameters at this level are just named arg1, arg2, etc
@@ -359,27 +422,28 @@ public:
     // arginfo_used Hash to see if we've already generated it.
     String *out_phptype = NULL;
     String *out_phpclasses = NewStringEmpty();
-    if (php_type_flag &&
-	(php_type_flag > 0 || !has_director_node) &&
-	!GetFlag(has_directed_descendent, key)) {
-      // We provide a simple way to generate PHP return type declarations
-      // except for directed methods.  The point of directors is to allow
-      // subclassing in the target language, and if the wrapped method has
-      // a return type declaration then an overriding method in user code
-      // needs to have a compatible declaration.
-      //
-      // The upshot of this is that enabling return type declarations for
-      // existing bindings would break compatibility with user code written
-      // for an older version.  For parameters however the situation is
-      // different because if the parent class declares types for parameters
-      // a subclass overriding the function will be compatible whether it
-      // declares them or not.
-      //
-      // directorNode being present seems to indicate if this method or one
-      // it inherits from is directed, which is what we care about here.
-      // Using (!is_member_director(n)) would get it wrong for testcase
-      // director_frob.
-      out_phptype = get_phptype(0, out_phpclasses);
+
+    // We provide a simple way to generate PHP return type declarations
+    // except for directed methods.  The point of directors is to allow
+    // subclassing in the target language, and if the wrapped method has
+    // a return type declaration then an overriding method in user code
+    // needs to have a compatible declaration.
+    //
+    // The upshot of this is that enabling return type declarations for
+    // existing bindings would break compatibility with user code written
+    // for an older version.  For parameters however the situation is
+    // different because if the parent class declares types for parameters
+    // a subclass overriding the function will be compatible whether it
+    // declares them or not.
+    //
+    // directorNode being present seems to indicate if this method or one
+    // it inherits from is directed, which is what we care about here.
+    // Using (!is_member_director(n)) would get it wrong for testcase
+    // director_frob.
+    if (php_type_flag && (php_type_flag > 0 || !has_director_node)) {
+      if (!GetFlag(has_directed_descendent, key)) {
+	out_phptype = get_phptype(0, out_phpclasses, Getattr(parent_class_method_return_type, key));
+      }
     }
 
     // ### in arginfo_code will be replaced with the id once that is known.
@@ -660,10 +724,19 @@ public:
     /* Emit all of the code */
     Language::top(n);
 
-    /* Emit all the arginfo */
-    for (Iterator ki = First(all_phptypes); ki.key; ki = Next(ki)) {
-      PHPTypes *p = (PHPTypes*)Data(ki.item);
-      p->emit_arginfo(ki.key);
+    /* Emit all the arginfo.  We sort the keys so the output order doesn't depend on
+     * hashkey order.
+     */
+    {
+      List *sorted_keys = SortedKeys(all_phptypes, Strcmp);
+      for (Iterator k = First(sorted_keys); k.item; k = Next(k)) {
+	DOH *val = Getattr(all_phptypes, k.item);
+	if (!Getmark(val)) {
+	  PHPTypes *p = (PHPTypes*)Data(val);
+	  p->emit_arginfo(val, k.item);
+	}
+      }
+      Delete(sorted_keys);
     }
 
     SwigPHP_emit_pointer_type_registrations();
@@ -1277,9 +1350,8 @@ public:
       return SWIG_OK;
     }
 
-    if (!Getattr(n, "sym:previousSibling") && !static_getter) {
-      // First function of an overloaded group or a function which isn't part
-      // of a group so reset the phptype information.
+    if (!static_getter) {
+      // Create or find existing PHPTypes.
       phptypes = NULL;
 
       String *key;
@@ -1291,29 +1363,11 @@ public:
 
       PHPTypes *p = (PHPTypes*)GetVoid(all_phptypes, key);
       if (p) {
-	// We already have an entry - this happens when overloads are created
-	// by %extend, for instance.
+	// We already have an entry so use it.
 	phptypes = p;
 	Delete(key);
       } else {
-	if (class_name) {
-	  // See if there's a parent class which implements this method, and if
-	  // so copy the PHPTypes of that method as a starting point as we need
-	  // to be compatible with it (whether it is virtual or not).
-	  String *parent = class_name;
-	  while ((parent = Getattr(php_parent_class, parent)) != NULL) {
-	    String *k = NewStringf("%s:%s", parent, wname);
-	    PHPTypes *p = (PHPTypes*)GetVoid(all_phptypes, k);
-	    Delete(key);
-	    if (p) {
-	      phptypes = new PHPTypes(n, p);
-	      break;
-	    }
-	  }
-	}
-	if (!phptypes) {
-	  phptypes = new PHPTypes(n, emit_num_required(l));
-	}
+	phptypes = new PHPTypes(n);
 	SetVoid(all_phptypes, key, phptypes);
       }
     }
@@ -1462,15 +1516,6 @@ public:
       Append(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
       Wrapper_add_local(f, "upcall", "bool upcall = false");
       Printf(f->code, "upcall = (director && (director->swig_get_self()==Z_OBJ_P(ZEND_THIS)));\n");
-
-      if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
-	String *parent = class_name;
-	while ((parent = Getattr(php_parent_class, parent)) != NULL) {
-	  // Mark this method name as having a directed descendent for all
-	  // classes we're derived from.
-	  SetFlag(has_directed_descendent, NewStringf("%s:%s", parent, wname));
-	}
-      }
     }
 
     Swig_director_emit_dynamic_cast(n, f);
@@ -1530,7 +1575,33 @@ public:
     }
     emit_return_variable(n, d, f);
 
-    phptypes->process_phptype(n, 0, "tmap:out:phptype");
+    List *return_types = phptypes->process_phptype(n, 0, "tmap:out:phptype");
+
+    if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
+      if (is_member_director(n)) {
+	String *parent = class_name;
+	while ((parent = Getattr(php_parent_class, parent)) != NULL) {
+	  // Mark this method name as having no return type declaration for all
+	  // classes we're derived from.
+	  SetFlag(has_directed_descendent, NewStringf("%s:%s", parent, wname));
+	}
+      } else if (return_types) {
+	String *parent = class_name;
+	while ((parent = Getattr(php_parent_class, parent)) != NULL) {
+	  String *key = NewStringf("%s:%s", parent, wname);
+	  // The parent class method needs to have a superset of the possible
+	  // return types of methods with the same name in subclasses.
+	  List *v = Getattr(parent_class_method_return_type, key);
+	  if (!v) {
+	    // New entry.
+	    Setattr(parent_class_method_return_type, key, Copy(return_types));
+	  } else {
+	    // Update existing entry.
+	    PHPTypes::merge_type_lists(v, return_types);
+	  }
+	}
+      }
+    }
 
     if (outarg) {
       Printv(f->code, outarg, NIL);
@@ -2451,7 +2522,7 @@ public:
 
 static PHP *maininstance = 0;
 
-void PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribute_name) {
+List *PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribute_name) {
 
   while (Len(merged_types) <= key) {
     Append(merged_types, NewList());
@@ -2465,11 +2536,11 @@ void PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribute
     // declaration for this parameter/return value (you can't store NULL as a
     // value in a DOH List).
     Setitem(merged_types, key, None);
-    return;
+    return NULL;
   }
 
   DOH *merge_list = Getitem(merged_types, key);
-  if (merge_list == None) return;
+  if (merge_list == None) return NULL;
 
   List *types = Split(phptype, '|', -1);
   String *first_type = Getitem(types, 0);
@@ -2524,6 +2595,67 @@ void PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribute
       Append(merge_list, i.item);
     }
     prev = i.item;
+  }
+  SortList(merge_list, NULL);
+  return merge_list;
+}
+
+void PHPTypes::merge_type_lists(List *merge_list, List *o_merge_list) {
+  int i = 0, j = 0;
+  while (j < Len(o_merge_list)) {
+    String *candidate = Getitem(o_merge_list, j);
+    while (i < Len(merge_list)) {
+      int cmp = Cmp(Getitem(merge_list, i), candidate);
+      if (cmp == 0)
+	goto handled;
+      if (cmp > 0)
+	break;
+      ++i;
+    }
+    Insert(merge_list, i, candidate);
+    ++i;
+handled:
+    ++j;
+  }
+}
+
+void PHPTypes::merge_from(const PHPTypes* o) {
+  num_required = std::min(num_required, o->num_required);
+
+  if (o->byref) {
+    if (byref == NULL) {
+      byref = Copy(o->byref);
+    } else {
+      int len = std::min(Len(byref), Len(o->byref));
+      // Start at 1 because we only want to merge parameter types, and key 0 is
+      // the return type.
+      for (int key = 1; key < len; ++key) {
+	if (Getitem(byref, key) == None &&
+	    Getitem(o->byref, key) != None) {
+	  Setitem(byref, key, "");
+	}
+      }
+      for (int key = len; key < Len(o->byref); ++key) {
+	Append(byref, Getitem(o->byref, key));
+      }
+    }
+  }
+
+  int len = std::min(Len(merged_types), Len(o->merged_types));
+  for (int key = 0; key < len; ++key) {
+    DOH *merge_list = Getitem(merged_types, key);
+    // None trumps anything else in the merge.
+    if (merge_list == None) continue;
+    DOH *o_merge_list = Getitem(o->merged_types, key);
+    if (o_merge_list == None) {
+      Setitem(merged_types, key, None);
+      continue;
+    }
+    merge_type_lists(merge_list, o_merge_list);
+  }
+  // Copy over any additional entries.
+  for (int key = len; key < Len(o->merged_types); ++key) {
+    Append(merged_types, Copy(Getitem(o->merged_types, key)));
   }
 }
 
