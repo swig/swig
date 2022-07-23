@@ -869,7 +869,7 @@ public:
   void create_command(String *cname, String *fname, Node *n, bool dispatch, String *modes = NULL) {
     // This is for the single main zend_function_entry record
     ParmList *l = Getattr(n, "parms");
-    if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
+    if (cname && !Equal(Getattr(n, "storage"), "friend")) {
       Printf(f_h, "static PHP_METHOD(%s%s,%s);\n", prefix, cname, fname);
       if (wrapperType != staticmemberfn &&
 	  wrapperType != staticmembervar &&
@@ -891,7 +891,7 @@ public:
     String *arginfo_id = phptypes->get_arginfo_id();
     String *s = cs_entry;
     if (!s) s = s_entry;
-    if (cname && Cmp(Getattr(n, "storage"), "friend") != 0) {
+    if (cname && !Equal(Getattr(n, "storage"), "friend")) {
       Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id, modes);
     } else {
       if (dispatch) {
@@ -961,7 +961,7 @@ public:
 
     create_command(class_name, wname, n, true, modes);
 
-    if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
+    if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
       Printv(f->def, "static PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
     } else {
       Printv(f->def, "static ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
@@ -1251,7 +1251,7 @@ public:
 
       if (is_getter_method(n)) {
 	// This is to overcome types that can't be set and hence no setter.
-	if (Cmp(Getattr(n, "feature:immutable"), "1") != 0)
+	if (!Equal(Getattr(n, "feature:immutable"), "1"))
 	  static_getter = true;
       }
     } else if (wrapperType == staticmemberfn) {
@@ -1329,7 +1329,7 @@ public:
 
     if (!overloaded) {
       if (!static_getter) {
-	if (class_name && Cmp(Getattr(n, "storage"), "friend") != 0) {
+	if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
 	  Printv(f->def, "static PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
 	} else {
 	  if (wrap_nonclass_global) {
