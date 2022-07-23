@@ -1253,7 +1253,13 @@ public:
       // of a group so reset the phptype information.
       phptypes = NULL;
 
-      String *key = NewStringf("%s:%s", class_name, wname);
+      String *key;
+      if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
+	key = NewStringf("%s:%s", class_name, wname);
+      } else {
+	key = NewStringf(":%s", wname);
+      }
+
       PHPTypes *p = (PHPTypes*)GetVoid(all_phptypes, key);
       if (p) {
 	// We already have an entry - this happens when overloads are created
@@ -1428,11 +1434,13 @@ public:
       Wrapper_add_local(f, "upcall", "bool upcall = false");
       Printf(f->code, "upcall = (director && (director->swig_get_self()==Z_OBJ_P(ZEND_THIS)));\n");
 
-      String *parent = class_name;
-      while ((parent = Getattr(php_parent_class, parent)) != NULL) {
-	// Mark this method name as having a directed descendent for all
-	// classes we're derived from.
-	SetFlag(has_directed_descendent, NewStringf("%s:%s", parent, wname));
+      if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
+	String *parent = class_name;
+	while ((parent = Getattr(php_parent_class, parent)) != NULL) {
+	  // Mark this method name as having a directed descendent for all
+	  // classes we're derived from.
+	  SetFlag(has_directed_descendent, NewStringf("%s:%s", parent, wname));
+	}
       }
     }
 
