@@ -79,7 +79,7 @@
   if (!SWIG_IsOK(res)) {
     %variable_fail(res,"$type","$name");
   }
-  if ($1) SWIG_DeleteCharArray($1);
+  SWIG_DeleteCharArray($1);
   if (alloc == SWIG_NEWOBJ) {
     $1 = cptr;
   } else {
@@ -109,7 +109,7 @@
 /* memberin */
 
 %typemap(memberin,noblock=1) Char * {
-  if ($1) SWIG_DeleteCharArray($1);
+  SWIG_DeleteCharArray($1);
   if ($input) {
     size_t size = SWIG_CharPtrLen(%reinterpret_cast($input, const Char *)) + 1;
     $1 = ($1_type)SWIG_NewCopyCharArray(%reinterpret_cast($input, const Char *), size, Char);
@@ -130,7 +130,7 @@
 /* globalin */
 
 %typemap(globalin,noblock=1) Char * {
-  if ($1) SWIG_DeleteCharArray($1);
+  SWIG_DeleteCharArray($1);
   if ($input) {
     size_t size = SWIG_CharPtrLen(%reinterpret_cast(%reinterpret_cast($input, const Char *), const Char *)) + 1;
     $1 = ($1_type)SWIG_NewCopyCharArray($input, size, Char);
