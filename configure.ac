@@ -304,40 +304,52 @@ if test x"$enable_cpp11_testing" = xyes; then
   CXX_SAVED=$CXX
   CXXCPP_SAVED=$CXXCPP
 
-  # Test for c++17
+  # Test for c++20
   CXXCPP=" "
-  AX_CXX_COMPILE_STDCXX(17, [noext], [optional])
-  AC_MSG_CHECKING([whether C++11 to C++17 testing is enabled])
-  if test "$HAVE_CXX17" = "1"; then
+  AX_CXX_COMPILE_STDCXX(20, [noext], [optional])
+  AC_MSG_CHECKING([whether C++11 to C++20 testing is enabled])
+  if test "$HAVE_CXX20" = "1"; then
     AC_MSG_RESULT([yes])
     PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+    HAVE_CXX17="1"
     HAVE_CXX14="1"
     HAVE_CXX11="1"
   else
-    AC_MSG_RESULT([no])
-
-    # Test for c++14
+    # Test for c++17
     CXXCPP=" "
-    CXX=$CXX_SAVED
-    AX_CXX_COMPILE_STDCXX(14, [noext], [optional])
-    AC_MSG_CHECKING([whether C++11 to C++14 testing is enabled])
-    if test "$HAVE_CXX14" = "1"; then
+    AX_CXX_COMPILE_STDCXX(17, [noext], [optional])
+    AC_MSG_CHECKING([whether C++11 to C++17 testing is enabled])
+    if test "$HAVE_CXX17" = "1"; then
       AC_MSG_RESULT([yes])
       PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+      HAVE_CXX14="1"
       HAVE_CXX11="1"
     else
       AC_MSG_RESULT([no])
 
-      # Test for c++11
+      # Test for c++14
       CXXCPP=" "
       CXX=$CXX_SAVED
-      AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
-      AC_MSG_CHECKING([whether C++11 testing is enabled])
-      if test "$HAVE_CXX11" = "1"; then
+      AX_CXX_COMPILE_STDCXX(14, [noext], [optional])
+      AC_MSG_CHECKING([whether C++11 to C++14 testing is enabled])
+      if test "$HAVE_CXX14" = "1"; then
         AC_MSG_RESULT([yes])
         PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+        HAVE_CXX11="1"
       else
         AC_MSG_RESULT([no])
+
+        # Test for c++11
+        CXXCPP=" "
+        CXX=$CXX_SAVED
+        AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
+        AC_MSG_CHECKING([whether C++11 testing is enabled])
+        if test "$HAVE_CXX11" = "1"; then
+          AC_MSG_RESULT([yes])
+          PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+        else
+          AC_MSG_RESULT([no])
+        fi
       fi
     fi
   fi
@@ -346,6 +358,9 @@ if test x"$enable_cpp11_testing" = xyes; then
   CXXCPP=$CXXCPP_SAVED
 fi
 AC_SUBST(HAVE_CXX11)
+AC_SUBST(HAVE_CXX14)
+AC_SUBST(HAVE_CXX17)
+AC_SUBST(HAVE_CXX20)
 
 # On darwin 10.7,10.8,10.9 using clang++, need to ensure using
 # libc++ for tests and examples to run under mono. May affect

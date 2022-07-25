@@ -91,7 +91,10 @@ CPP_TEST_BROKEN += \
 	template_default_pointer \
 	template_private_assignment \
 	template_expr \
-	$(CPP11_TEST_BROKEN)
+	$(CPP11_TEST_BROKEN) \
+	$(CPP14_TEST_BROKEN) \
+	$(CPP17_TEST_BROKEN) \
+	$(CPP20_TEST_BROKEN)
 
 
 # Broken C test cases. (Can be run individually using: make testcase.ctest)
@@ -632,6 +635,24 @@ CPP11_TEST_BROKEN = \
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
 
+# C++14 test cases.
+CPP14_TEST_CASES += \
+
+# Broken C++14 test cases.
+CPP14_TEST_BROKEN = \
+
+# C++17 test cases.
+CPP17_TEST_CASES += \
+
+# Broken C++17 test cases.
+CPP17_TEST_BROKEN = \
+
+# C++20 test cases.
+CPP20_TEST_CASES += \
+
+# Broken C++20 test cases.
+CPP20_TEST_BROKEN = \
+
 # Doxygen support test cases: can only be used with languages supporting
 # Doxygen comment translation (currently Python and Java) and only if not
 # disabled by configure via SKIP_DOXYGEN_TEST_CASES.
@@ -697,6 +718,18 @@ endif
 
 ifeq (1,$(HAVE_CXX11))
 CPP_TEST_CASES += $(CPP11_TEST_CASES)
+endif
+
+ifeq (1,$(HAVE_CXX14))
+CPP_TEST_CASES += $(CPP14_TEST_CASES)
+endif
+
+ifeq (1,$(HAVE_CXX17))
+CPP_TEST_CASES += $(CPP17_TEST_CASES)
+endif
+
+ifeq (1,$(HAVE_CXX20))
+CPP_TEST_CASES += $(CPP20_TEST_CASES)
 endif
 
 # C test cases. (Can be run individually using: make testcase.ctest)
@@ -783,6 +816,9 @@ command_line_define.ctest: SWIGOPT += -DFOO
 C_TEST_CASES := $(filter-out $(FAILING_C_TESTS),$(C_TEST_CASES))
 CPP_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP_TEST_CASES))
 CPP11_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP11_TEST_CASES))
+CPP14_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP14_TEST_CASES))
+CPP17_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP17_TEST_CASES))
+CPP20_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP20_TEST_CASES))
 MULTI_CPP_TEST_CASES := $(filter-out $(FAILING_MULTI_CPP_TESTS),$(MULTI_CPP_TEST_CASES))
 
 
@@ -796,6 +832,9 @@ BROKEN_TEST_CASES = 	$(CPP_TEST_BROKEN:=.cpptest) \
 
 ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
 			$(CPP11_TEST_CASES:=.clean) \
+			$(CPP14_TEST_CASES:=.clean) \
+			$(CPP17_TEST_CASES:=.clean) \
+			$(CPP20_TEST_CASES:=.clean) \
 			$(C_TEST_CASES:=.clean) \
 			$(MULTI_CPP_TEST_CASES:=.clean) \
 			$(CPP_TEST_BROKEN:=.clean) \
@@ -823,6 +862,12 @@ check-c: $(C_TEST_CASES:=.ctest)
 check-cpp: $(CPP_TEST_CASES:=.cpptest)
 
 check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
+
+check-cpp14: $(CPP14_TEST_CASES:=.cpptest)
+
+check-cpp17: $(CPP17_TEST_CASES:=.cpptest)
+
+check-cpp20: $(CPP20_TEST_CASES:=.cpptest)
 
 check-multicpp: $(MULTI_CPP_TEST_CASES:=.multicpptest)
 
