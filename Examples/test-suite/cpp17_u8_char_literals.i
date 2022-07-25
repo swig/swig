@@ -8,7 +8,8 @@
 #endif
 %}
 
-// UTF-8 character literals will (apparently) have type char8_t in C++20.
+// UTF-8 character literals are type `char` in C++17 but `char8_t` in C++20,
+// but the latter can be assigned to `char`.
 char a = u8'a';
 char u = u8'u';
 char u8 = u8'8';
