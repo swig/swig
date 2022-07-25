@@ -318,7 +318,12 @@ int Preprocessor_expr(DOH *s, int *error) {
       if ((token == SWIG_TOKEN_INT) || (token == SWIG_TOKEN_UINT) || (token == SWIG_TOKEN_LONG) || (token == SWIG_TOKEN_ULONG)) {
 	/* A number.  Reduce EXPR_TOP to an EXPR_VALUE */
 	char *c = Char(Scanner_text(scan));
-	stack[sp].value = (long) strtol(c, 0, 0);
+	if (c[0] == '0' && (c[1] == 'b' || c[1] == 'B')) {
+	  // strtol() doesn't handle binary constants.
+	  stack[sp].value = (long) strtol(c + 2, 0, 2);
+	} else {
+	  stack[sp].value = (long) strtol(c, 0, 0);
+	}
 	stack[sp].svalue = 0;
 	stack[sp].op = EXPR_VALUE;
       } else if ((token == SWIG_TOKEN_MINUS) || (token == SWIG_TOKEN_PLUS) || (token == SWIG_TOKEN_LNOT) || (token == SWIG_TOKEN_NOT)) {

@@ -1,5 +1,9 @@
 %module cpp14_binary_integer_literals
 
+#if 0b100 < 4
+# error binary constant in preprocessor expression failed
+#endif
+
 %inline %{
 int b1 = 0b1;
 int b2 = 0b10;
