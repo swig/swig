@@ -168,11 +168,6 @@ CPP_TEST_CASES += \
 	cpp_parameters \
 	cpp_static \
 	cpp_typedef \
-	cpp14_binary_integer_literals \
-	cpp17_hex_floating_literals \
-	cpp17_nested_namespaces \
-	cpp17_nspace_nested_namespaces \
-	cpp17_u8_char_literals \
 	curiously_recurring_template_pattern \
 	default_args \
 	default_arg_expressions \
@@ -637,12 +632,17 @@ CPP11_TEST_BROKEN = \
 
 # C++14 test cases.
 CPP14_TEST_CASES += \
+	cpp14_binary_integer_literals \
 
 # Broken C++14 test cases.
 CPP14_TEST_BROKEN = \
 
 # C++17 test cases.
 CPP17_TEST_CASES += \
+	cpp17_hex_floating_literals \
+	cpp17_nested_namespaces \
+	cpp17_nspace_nested_namespaces \
+	cpp17_u8_char_literals \
 
 # Broken C++17 test cases.
 CPP17_TEST_BROKEN = \
