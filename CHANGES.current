@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-07-26: olly
+	    [Tcl] https://sourceforge.net/p/swig/bugs/977/
+	    Fix handling of long long on 32-bit platforms.  This fix raises
+	    SWIG's minimum supported Tcl version to 8.4.0 (which was released
+	    just under 20 years ago).
+
 2022-07-20: wsfulton
             [C#, Java] Ensure the order of interfaces generated in proxy interfaces for the
             %interface family of macros is the same as that parsed from the bases in C++.
