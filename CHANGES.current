@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-07-27: ZackerySpytz, olly
+	    #1622 Add support for the C++20 spaceship operator (<=>).
+
 2022-07-26: olly
 	    [Tcl] https://sourceforge.net/p/swig/bugs/977/
 	    Fix handling of long long on 32-bit platforms.  This fix raises

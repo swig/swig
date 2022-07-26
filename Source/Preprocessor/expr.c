@@ -10,6 +10,11 @@
  *
  * Integer arithmetic expression evaluator used to handle expressions
  * encountered during preprocessing.
+ *
+ * Note that this is used for expressions in `#if` and the like, but not
+ * for expressions in `#define` which SWIG wraps as constants - for those
+ * we inject a `%constant` directive which is handled by the parser in
+ * `Source/CParse/parser.y`.
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"

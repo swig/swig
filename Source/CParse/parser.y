@@ -1951,6 +1951,9 @@ clear_directive : CLEAR tm_list SEMI {
 /* ------------------------------------------------------------
    %constant name = value;
    %constant type name = value;
+
+   Note: Source/Preprocessor/cpp.c injects `%constant X = Y;` for
+   each `#define X Y` so that's handled here too.
    ------------------------------------------------------------ */
 
 constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
