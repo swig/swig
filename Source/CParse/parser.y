@@ -3442,12 +3442,14 @@ lambda_introducer : LBRACKET {
 		  $$ = 0;
 	        }
 		;
+
 lambda_template : LESSTHAN {
 		  skip_balanced('<','>');
 		  $$ = 0;
-              }
-              | empty { $$ = 0; }
-              ;
+		}
+		| empty { $$ = 0; }
+		;
+
 lambda_body : LBRACE {
 		  skip_balanced('{','}');
 		  $$ = 0;
