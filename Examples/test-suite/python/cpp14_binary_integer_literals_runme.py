@@ -14,3 +14,12 @@ if cvar.b4 != 4:
 
 if cvar.b5 != 5:
     raise RuntimeError
+
+if b6 != 6:
+    raise RuntimeError
+
+if b7 != 7:
+    raise RuntimeError
+
+if b8 != 8:
+    raise RuntimeError

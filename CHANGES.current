@@ -16,6 +16,9 @@ Version 4.1.0 (in progress)
 2022-07-26: olly
             Fix incorrect operator precedence in preprocessor expressions.
 
+2022-07-25: olly
+	    Support for C++14 binary integer literals in preprocessor expressions.
+
 2022-07-20: wsfulton
             [C#, Java] Ensure the order of interfaces generated in proxy interfaces for the
             %interface family of macros is the same as that parsed from the bases in C++.
