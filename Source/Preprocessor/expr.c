@@ -54,6 +54,7 @@ static const char *errmsg = 0;	/* Parsing error       */
 /* Initialize the precedence table for various operators.  Low values have higher precedence */
 static void init_precedence(void) {
   prec[SWIG_TOKEN_NOT] = 10;
+  prec[SWIG_TOKEN_LNOT] = 10;
   prec[OP_UMINUS] = 10;
   prec[OP_UPLUS] = 10;
   prec[SWIG_TOKEN_STAR] = 20;
@@ -63,16 +64,15 @@ static void init_precedence(void) {
   prec[SWIG_TOKEN_MINUS] = 30;
   prec[SWIG_TOKEN_LSHIFT] = 40;
   prec[SWIG_TOKEN_RSHIFT] = 40;
-  prec[SWIG_TOKEN_AND] = 50;
-  prec[SWIG_TOKEN_XOR] = 60;
-  prec[SWIG_TOKEN_OR] = 70;
-  prec[SWIG_TOKEN_EQUALTO] = 80;
-  prec[SWIG_TOKEN_NOTEQUAL] = 80;
-  prec[SWIG_TOKEN_LESSTHAN] = 80;
-  prec[SWIG_TOKEN_GREATERTHAN] = 80;
-  prec[SWIG_TOKEN_LTEQUAL] = 80;
-  prec[SWIG_TOKEN_GTEQUAL] = 80;
-  prec[SWIG_TOKEN_LNOT] = 90;
+  prec[SWIG_TOKEN_LESSTHAN] = 50;
+  prec[SWIG_TOKEN_GREATERTHAN] = 50;
+  prec[SWIG_TOKEN_LTEQUAL] = 50;
+  prec[SWIG_TOKEN_GTEQUAL] = 50;
+  prec[SWIG_TOKEN_EQUALTO] = 60;
+  prec[SWIG_TOKEN_NOTEQUAL] = 60;
+  prec[SWIG_TOKEN_AND] = 70;
+  prec[SWIG_TOKEN_XOR] = 80;
+  prec[SWIG_TOKEN_OR] = 90;
   prec[SWIG_TOKEN_LAND] = 100;
   prec[SWIG_TOKEN_LOR] = 110;
   expr_init = 1;
