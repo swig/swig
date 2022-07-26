@@ -4,7 +4,7 @@ require "tests.php";
 
 check::functions(array('fn_taking_arrays','newintpointer','setintfrompointer','getintfrompointer','array_pointer_func'));
 check::classes(array('arrays','SimpleStruct','ArrayStruct','CartPoseData_t'));
-check::globals(array());
+check::globals(array('array_shifted_size'));
 
 $ss=new simplestruct();
 check::classname('simplestruct',$ss);
