@@ -8,6 +8,12 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-07-26: olly
+	    [Tcl] https://sourceforge.net/p/swig/bugs/977/
+	    Fix handling of long long on 32-bit platforms.  This fix raises
+	    SWIG's minimum supported Tcl version to 8.4.0 (which was released
+	    just under 20 years ago).
+
+2022-07-26: olly
             Fix incorrect operator precedence in preprocessor expressions.
 
 2022-07-20: wsfulton
