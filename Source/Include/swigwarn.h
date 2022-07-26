@@ -147,6 +147,7 @@
 #define WARN_IGNORE_OPERATOR_NEWARR     394	/* new [] */
 #define WARN_IGNORE_OPERATOR_DELARR     395	/* delete [] */
 #define WARN_IGNORE_OPERATOR_REF        396	/* operator *() */
+#define WARN_IGNORE_OPERATOR_LTEQUALGT  397	/* <=> */
 
 /* please leave 350-399 free for WARN_IGNORE_OPERATOR_* */
 

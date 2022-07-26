@@ -116,3 +116,4 @@ extern void         Scanner_locator(Scanner *, String *loc);
 #define   SWIG_TOKEN_MODEQUAL     134      /* %= */
 #define   SWIG_TOKEN_ARROW        135      /* -> */
 #define   SWIG_TOKEN_ARROWSTAR    136      /* ->* */
+#define   SWIG_TOKEN_LTEQUALGT    137      /* <=> */

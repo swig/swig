@@ -445,6 +445,8 @@ int Preprocessor_expr(DOH *s, int *error) {
 	stack[sp - 1].svalue = stack[sp].svalue;
 	sp--;
 	break;
+      case SWIG_TOKEN_LTEQUALGT:
+	goto spaceship_not_allowed;
       default:
 	goto syntax_error_expected_operator;
 	break;
@@ -474,6 +476,11 @@ reduce_error:
 
 extra_rparen:
   errmsg = "Extra \')\'";
+  *error = 1;
+  return 0;
+
+spaceship_not_allowed:
+  errmsg = "Spaceship operator (<=>) not allowed in preprocessor expression";
   *error = 1;
   return 0;
 }

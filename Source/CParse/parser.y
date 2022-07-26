@@ -1626,7 +1626,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token TYPEMAP EXCEPT ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
 %token WARN 
 %token LESSTHAN GREATERTHAN DELETE_KW DEFAULT
-%token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO
+%token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO LESSEQUALGREATER
 %token ARROW
 %token QUESTIONMARK
 %token TYPES PARMS
@@ -1648,6 +1648,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %left  AND
 %left  EQUALTO NOTEQUALTO
 %left  GREATERTHAN LESSTHAN GREATERTHANOREQUALTO LESSTHANOREQUALTO
+%left  LESSEQUALGREATER
 %left  LSHIFT RSHIFT
 %left  PLUS MINUS
 %left  STAR SLASH MODULO
@@ -6843,6 +6844,15 @@ exprcompound   : expr PLUS expr {
                | expr LESSTHANOREQUALTO expr {
 		 $$.val = NewStringf("%s <= %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
+	       }
+	       | expr LESSEQUALGREATER expr {
+		 $$.val = NewStringf("%s <=> %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
+		 // Really `<=>` returns one of `std::strong_ordering`,
+		 // `std::partial_ordering` or `std::weak_ordering`, but we
+		 // fake it by treating the return value as `int`.  The main
+		 // thing to do with the return value in this context is to
+		 // compare it with 0, for which `int` does the job.
+		 $$.type = T_INT;
 	       }
 	       | expr QUESTIONMARK expr COLON expr %prec QUESTIONMARK {
 		 $$.val = NewStringf("%s?%s:%s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3), COMPOUND_EXPR_VAL($5));

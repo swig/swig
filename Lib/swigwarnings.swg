@@ -108,6 +108,7 @@
 %define SWIGWARN_IGNORE_OPERATOR_NEWARR_MSG     "394:operator new[] ignored"  %enddef
 %define SWIGWARN_IGNORE_OPERATOR_DELARR_MSG     "395:operator delete[] ignored"  %enddef
 %define SWIGWARN_IGNORE_OPERATOR_REF_MSG        "396:operator*() ignored" %enddef
+%define SWIGWARN_IGNORE_OPERATOR_LTEQUALGT_MSG  "397:operator<=> ignored" %enddef
 
 #define %ignoreoperator(Oper) %ignorewarn(SWIGWARN_IGNORE_OPERATOR_##Oper##_MSG)
 
