@@ -8,6 +8,9 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-07-27: ZackerySpytz, olly
+	    #1678 Support parsing C++20 templated lambdas.
+
+2022-07-27: ZackerySpytz, olly
 	    #1622 Add support for the C++20 spaceship operator (<=>).
 
 2022-07-26: olly

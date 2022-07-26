@@ -1713,7 +1713,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
 %type <node>     featattr;
-%type <node>     lambda_introducer lambda_body;
+%type <node>     lambda_introducer lambda_body lambda_template;
 %type <pl>       lambda_tail;
 %type <str>      virt_specifier_seq virt_specifier_seq_opt;
 
@@ -3420,17 +3420,17 @@ cpp_alternate_rettype : primitive_type { $$ = $1; }
    auto myFunc = [](int x, int y) throw() -> int { return x+y; };
    auto six = [](int x, int y) { return x+y; }(4, 2);
    ------------------------------------------------------------ */
-cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
+cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$3);
 		  add_symbols($$);
 	        }
-                | storage_class AUTO idcolon EQUAL lambda_introducer LPAREN parms RPAREN cpp_const ARROW type lambda_body lambda_tail {
+                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const ARROW type lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$3);
 		  add_symbols($$);
 		}
-                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_body lambda_tail {
+                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$3);
 		  add_symbols($$);
@@ -3441,6 +3441,13 @@ lambda_introducer : LBRACKET {
 		  skip_balanced('[',']');
 		  $$ = 0;
 	        }
+		;
+
+lambda_template : LESSTHAN {
+		  skip_balanced('<','>');
+		  $$ = 0;
+		}
+		| empty { $$ = 0; }
 		;
 
 lambda_body : LBRACE {
