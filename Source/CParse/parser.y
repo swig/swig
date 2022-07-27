@@ -6803,7 +6803,11 @@ exprcompound   : expr PLUS expr {
 		 $$.type = promote($1.type,$3.type);
 	       }
                | expr LSHIFT expr {
-		 $$.val = NewStringf("%s << %s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
+		 /* To avoid confusing SWIG's type system, we replace `<<` with
+		  * `SWIG_LSHIFT` here, then define the latter as a macro in
+		  * the generated wrapper file.
+		  */
+		 $$.val = NewStringf("%s SWIG_LSHIFT %s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = promote_type($1.type);
 	       }
                | expr RSHIFT expr {
