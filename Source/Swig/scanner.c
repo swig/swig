@@ -896,7 +896,7 @@ static int look(Scanner *s) {
       else if (c == '=') {
 	if ((c = nextchar(s)) == 0) {
 	  return SWIG_TOKEN_LTEQUAL;
-	} else if (c == '>') { /* Spaceship operator */
+	} else if (c == '>' && cparse_cplusplus) { /* Spaceship operator */
 	  return SWIG_TOKEN_LTEQUALGT;
 	} else {
 	  retract(s, 1);
