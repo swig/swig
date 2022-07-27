@@ -121,8 +121,3 @@
 #ifdef __INTEL_COMPILER
 # pragma warning disable 592
 #endif
-
-/* We replace `<<` with `SWIG_LSHIFT` in constant expressions to avoid
- * confusing SWIG's type system into thinking there's a template.
- */
-#define SWIG_LSHIFT <<
