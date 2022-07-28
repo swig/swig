@@ -191,7 +191,7 @@ tcl:  $(SRCDIR_SRCS)
 	$(TCLLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO) $(TCL_LINK)
 
 # -----------------------------------------------------------
-# Build a Tcl7.5 dynamic loadable module for C++
+# Build a Tcl dynamic loadable module for C++
 # -----------------------------------------------------------
 
 tcl_cpp: $(SRCDIR_SRCS)
