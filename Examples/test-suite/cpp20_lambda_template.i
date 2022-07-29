@@ -2,7 +2,7 @@
 
 // We just want to test that SWIG doesn't choke parsing this so suppress:
 // Warning 340: Lambda expressions and closures are not fully supported yet.
-%warnfilter(WARN_CPP11_LAMBDA);
+%warnfilter(SWIGWARN_CPP11_LAMBDA);
 
 %include <std_vector.i>
 
