@@ -315,6 +315,8 @@ if test x"$enable_cpp11_testing" = xyes; then
     HAVE_CXX14="1"
     HAVE_CXX11="1"
   else
+    AC_MSG_RESULT([no])
+
     # Test for c++17
     CXXCPP=" "
     AX_CXX_COMPILE_STDCXX(17, [noext], [optional])
