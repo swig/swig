@@ -8,6 +8,23 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-07-30: wsfulton
+            C++20 has deprecated std::basic_string<>::reserve() and the C++11 method
+            std::basic_string<>::shrink_to_fit() is a replacement that can be used.
+            std_string.i and std_wstring.i provided wrappers for reserve with the following
+            template instantiations:
+
+              %template(string) std::basic_string<char>;
+              %template(wstring) std::basic_string<wchar_t>;
+
+            The reserve method is no longer wrapped, however the shrink_to_fit() method
+            can be used as an alternative from the target language (the generated wrappers
+            call reserve() instead if C++<=20).
+
+            Note that std::basic_string<>::reserve(size_t n) is still wrapped unchanged.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2022-07-30: wsfulton
             [Tcl] Add support for std::unique_ptr in std_unique_ptr.i.
             Add support for std::auto_ptr in std_auto_ptr.i.
 
