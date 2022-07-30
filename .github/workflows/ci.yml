@@ -42,6 +42,9 @@ jobs:
         - SWIGLANG: ""
           GCC: 11
         - SWIGLANG: ""
+          GCC: 12
+          os: ubuntu-22.04
+        - SWIGLANG: ""
           compiler: clang
         - SWIGLANG: csharp
         # D support can't be enabled because dmd 2.066 fails to build anything
@@ -286,6 +289,12 @@ jobs:
         - SWIGLANG: tcl
           CPPSTD: c++17
           GCC: 11
+        # c++20 testing (using gcc12)
+        # ubuntu-22.04 is currently experimental on Github Actions, so limit to just one language for now
+        - SWIGLANG: python
+          CPPSTD: c++20
+          GCC: 12
+          os: ubuntu-22.04
         # Experimental languages (these are allowed to fail)
         - SWIGLANG: mzscheme
           continue-on-error: true
