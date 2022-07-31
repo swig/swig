@@ -1,10 +1,12 @@
 #if __GNUC__ >= 7
 #pragma GCC diagnostic push
+#if defined(__cplusplus)
 #pragma GCC diagnostic ignored "-Wregister"
 #if __GNUC__ >= 10
 #pragma GCC diagnostic ignored "-Wvolatile"
 #if __GNUC__ >= 11
 #pragma GCC diagnostic ignored "-Wdeprecated-enum-enum-conversion"
+#endif
 #endif
 #endif
 #endif
