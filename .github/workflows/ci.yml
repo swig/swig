@@ -392,6 +392,7 @@ jobs:
               c++11) export CSTD=c11 ;;
               c++14) export CSTD=c11 ;;
               c++17) export CSTD=c17 ;;
+              c++20) export CSTD=c20 ;;
             esac
             echo CSTD="$CSTD" >> $GITHUB_ENV
           fi
