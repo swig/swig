@@ -133,6 +133,8 @@ jobs:
         - SWIGLANG: python
           VER: '3.10'
         - SWIGLANG: python
+          VER: '3.11'
+        - SWIGLANG: python
           PY2: 2
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
