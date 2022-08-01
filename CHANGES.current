@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-08-01: wsfulton
+            [Python] Add initialisers for additional members in PyHeapTypeObject
+            (builtin mode) for Python-3.11 - _ht_tpname, _spec_cache.
+
 2022-07-30: wsfulton
             C++20 has deprecated std::basic_string<>::reserve() and the C++11 method
             std::basic_string<>::shrink_to_fit() is a replacement that can be used.
