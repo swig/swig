@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-08-02: wsfulton
+            [Octave] Add support for std::unique_ptr in std_unique_ptr.i.
+            Add support for std::auto_ptr in std_auto_ptr.i.
+
 2022-08-01: wsfulton
             [Python] Add initialisers for additional members in PyHeapTypeObject
             (builtin mode) for Python-3.11 - _ht_tpname, _spec_cache.
