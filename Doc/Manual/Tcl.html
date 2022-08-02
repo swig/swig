@@ -79,9 +79,9 @@
 </p>
 
 <p>
-This chapter discusses SWIG's support of Tcl. SWIG currently requires
-Tcl 8.0 or a later release.   Earlier releases of SWIG supported Tcl 7.x, but
-this is no longer supported.
+This chapter discusses SWIG's support of Tcl. Since SWIG 4.1.0, Tcl 8.4 or a
+later release is required.  Prior to that earlier Tcl 8.x releases were also
+supported.
 </p>
 
 <H2><a name="Tcl_nn2">37.1 Preliminaries</a></H2>
@@ -3137,9 +3137,8 @@ For example:
 
 
 <p>
-Tcl 7.4 introduced the idea of an extension package.  By default, SWIG
-generates all of the code necessary to create a package. To set the package version,
-simply use the <tt>-pkgversion</tt> option. For example:
+SWIG generates all of the code necessary to create a Tcl extension package.
+To set the package version use the <tt>-pkgversion</tt> option. For example:
 </p>
 
 <div class="code">
@@ -3150,7 +3149,7 @@ simply use the <tt>-pkgversion</tt> option. For example:
 
 <p>
 After building the SWIG generated module, you need to execute
-the "<tt>pkg_mkIndex</tt>" command inside tclsh.  For example :
+the <tt>pkg_mkIndex</tt> command inside tclsh.  For example :
 </p>
 
 <div class="code"><pre>
@@ -3430,7 +3429,7 @@ interesting things.
 
 <p>
 For background information about the Tcl Stubs feature, see
-<a href="http://www.tcl.tk/doc/howto/stubs.html">http://www.tcl.tk/doc/howto/stubs.html</a>.
+<a href="https://www.tcl.tk/doc/howto/stubs.html">https://www.tcl.tk/doc/howto/stubs.html</a>.
 </p>
 
 <p>
@@ -3440,11 +3439,17 @@ feature if compiled with <tt>-DUSE_TCL_STUBS</tt>.
 
 <p>
 As of SWIG 1.3.40, the generated C/C++ wrapper will use the Tk Stubs
-feature if compiled with <tt>-DUSE_TK_STUBS</tt>.  Also, you can override
-the minimum version to support which is passed to <tt>Tcl_InitStubs()</tt>
-and <tt>Tk_InitStubs()</tt> with <tt>-DSWIG_TCL_STUBS_VERSION="8.3"</tt>
-or the version being compiled with using
-<tt>-DSWIG_TCL_STUBS_VERSION=TCL_VERSION</tt>.
+feature if compiled with <tt>-DUSE_TK_STUBS</tt>.
+</p>
+
+<p>
+By default SWIG sets the minimum Tcl version to support to the 8.4
+as that's the minimum Tcl version we aim to support (since SWIG 4.1.0; before
+this SWIG set it to 8.1, which was the first Tcl version with the stubs
+mechanism). This minimum version is passed to <tt>Tcl_InitStubs()</tt> and
+<tt>Tk_InitStubs()</tt>. You can override with a specific version using
+<tt>-DSWIG_TCL_STUBS_VERSION="8.5"</tt> or set it to the Tcl version being
+compiled with using <tt>-DSWIG_TCL_STUBS_VERSION=TCL_VERSION</tt>.
 </p>
 
 </body>

@@ -15,7 +15,7 @@ import pkg1.foo
 
 print("  Finished importing pkg1.foo")
 
-if not(pkg1.foo.count() == 3):
+if not pkg1.foo.count() == 3:
     raise RuntimeError("test failed")
 
 commandline = sys.executable + " -m pkg1.foo"

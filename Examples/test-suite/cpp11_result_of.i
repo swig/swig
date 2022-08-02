@@ -55,10 +55,10 @@ std::result_of< fn_ptr(double) >::type test_result_alternative1(double(*fun)(dou
 #include <iostream>
 
 void cpp_testing() {
-  std::cout << "result: " << test_result_impl(square, 3) << std::endl;
-  std::cout << "result: " << test_result_impl<double(*)(double), double>(square, 4) << std::endl;
-  std::cout << "result: " << test_result_impl< fn_ptr, double >(square, 5) << std::endl;
-  std::cout << "result: " << test_result_alternative1(square, 6) << std::endl;
+  std::cout << "result: " << test_result_impl(square, 3.0) << std::endl;
+  std::cout << "result: " << test_result_impl<double(*)(double), double>(square, 4.0) << std::endl;
+  std::cout << "result: " << test_result_impl< fn_ptr, double >(square, 5.0) << std::endl;
+  std::cout << "result: " << test_result_alternative1(square, 6.0) << std::endl;
 }
 %}
 

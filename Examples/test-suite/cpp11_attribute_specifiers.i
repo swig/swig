@@ -17,6 +17,10 @@
 #pragma clang diagnostic ignored "-Wunused-parameter"
 #endif
 
+#if defined(_MSC_VER)
+#pragma warning(disable : 4996) // For the deprecated attributes in this testcase
+#endif
+
 
 [[noreturn]] void noReturn() { throw; }
 [[nodiscard]] bool noDiscard() { return true; }

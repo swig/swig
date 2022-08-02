@@ -2,6 +2,12 @@
  * guile_scm_run.swg
  * ----------------------------------------------------------------------------- */
 
+#if __GNUC__ >= 10
+#if defined(__cplusplus)
+#pragma GCC diagnostic ignored "-Wvolatile" /* For 'volatile SCM *' in at least Guile 3.0 and earlier */
+#endif
+#endif
+
 #include <libguile.h>
 #include <stdio.h>
 #include <string.h>

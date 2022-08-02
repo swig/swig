@@ -1702,7 +1702,9 @@ void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr cl
 
   if (t) {
     char *ct = Char(t);
-    if (strchr(ct, '<') && !(strstr(ct, "<("))) {
+    const char *lt = strchr(ct, '<');
+    /* Allow for `<<` operator in constant expression for array size. */
+    if (lt && lt[1] != '(' && lt[1] != '<') {
       Printf(stdout, "Bad template type passed to SwigType_remember: %s\n", t);
       assert(0);
     }

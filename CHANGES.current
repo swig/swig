@@ -7,6 +7,53 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-08-02: wsfulton
+            [Octave] Add support for std::unique_ptr in std_unique_ptr.i.
+            Add support for std::auto_ptr in std_auto_ptr.i.
+
+2022-08-01: wsfulton
+            [Python] Add initialisers for additional members in PyHeapTypeObject
+            (builtin mode) for Python-3.11 - _ht_tpname, _spec_cache.
+
+2022-07-30: wsfulton
+            C++20 has deprecated std::basic_string<>::reserve() and the C++11 method
+            std::basic_string<>::shrink_to_fit() is a replacement that can be used.
+            std_string.i and std_wstring.i provided wrappers for reserve with the following
+            template instantiations:
+
+              %template(string) std::basic_string<char>;
+              %template(wstring) std::basic_string<wchar_t>;
+
+            The reserve method is no longer wrapped, however the shrink_to_fit() method
+            can be used as an alternative from the target language (the generated wrappers
+            call reserve() instead if C++<=20).
+
+            Note that std::basic_string<>::reserve(size_t n) is still wrapped unchanged.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2022-07-30: wsfulton
+            [Tcl] Add support for std::unique_ptr in std_unique_ptr.i.
+            Add support for std::auto_ptr in std_auto_ptr.i.
+
+2022-07-27: ZackerySpytz, olly
+	    #1678 Support parsing C++20 templated lambdas.
+
+2022-07-27: ZackerySpytz, olly
+	    #1622 Add support for the C++20 spaceship operator (<=>).
+
+2022-07-26: olly
+	    [Tcl] https://sourceforge.net/p/swig/bugs/977/
+	    Fix handling of long long on 32-bit platforms.  This fix raises
+	    SWIG's minimum supported Tcl version to 8.4.0 (which was released
+	    just under 20 years ago).
+
+2022-07-26: olly
+            Fix incorrect operator precedence in preprocessor expressions.
+
+2022-07-25: olly
+	    Support for C++14 binary integer literals in preprocessor expressions.
+
 2022-07-20: wsfulton
             [C#, Java] Ensure the order of interfaces generated in proxy interfaces for the
             %interface family of macros is the same as that parsed from the bases in C++.

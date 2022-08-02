@@ -194,7 +194,7 @@ class check {
   }
 
   static function fail($pattern) {
-    fail_(null, $pattern);
+    check::fail_(null, $pattern);
   }
 
   static function warn($pattern) {
