@@ -1,0 +1,5 @@
+{
+    "makefile.extensionOutputFolder": "./.vscode",
+    "cmake.configureOnOpen": false,
+    "C_Cpp.errorSquiggles": "Enabled"
+}

@@ -3,7 +3,7 @@
 %}
 
 %insert(init) %{
-
+// TODO: Need to fix this file.
 SWIGRUNTIME void
 SWIG_V8_SetModule(v8::Local<v8::Context> context, swig_module_info *swig_module) {
   v8::Local<v8::Object> global_obj = context->Global();
