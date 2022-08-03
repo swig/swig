@@ -97,6 +97,11 @@ jobs:
           CPPSTD: c++14
         - SWIGLANG: javascript
           ENGINE: jsc
+          VER: '4.0'
+        - SWIGLANG: javascript
+          ENGINE: jsc
+          VER: '4.1'
+          os: ubuntu-22.04
         - SWIGLANG: lua
         - SWIGLANG: lua
           VER: '5.3'
