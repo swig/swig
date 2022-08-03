@@ -737,9 +737,9 @@ ifeq (node, $(ENGINE))
 endif
 ifeq (jsc, $(ENGINE))
 	@if [ "@JSCOREVERSION@" != "" ]; then \
-	  echo "@JSCOREVERSION@"; \
+	  echo "JavaScriptCore: @JSCOREVERSION@"; \
 	else \
-	  echo "Unknown JavascriptCore version."; \
+	  echo "Unknown JavaScriptCore version."; \
 	fi
 endif
 ifeq (v8, $(ENGINE))
