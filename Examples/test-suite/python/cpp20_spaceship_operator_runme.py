@@ -4,7 +4,7 @@ def check_equal(a, b):
     if a != b:
         raise RuntimeError("{} is not equal to {}".format(a, b))
 
-# check_equal(ALIEN, true)
+check_equal(ALIEN, 1)
 check_equal(SPACE, 1)
 check_equal(COMET, 1)
 check_equal(cvar.v, 42)
