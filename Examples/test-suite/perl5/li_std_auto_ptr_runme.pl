@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 24;
+use Test::More tests => 25;
 BEGIN { use_ok('li_std_auto_ptr') }
 require_ok('li_std_auto_ptr');
 
@@ -41,11 +41,12 @@ sub checkCount {
 
 {
   my $kin = new li_std_auto_ptr::Klass("KlassInput");
+  my $notowned = li_std_auto_ptr::get_not_owned_ptr($kin);
   eval {
-    my $notowned = li_std_auto_ptr::get_not_owned_ptr($kin);
     li_std_auto_ptr::takeKlassAutoPtr($notowned);
   };
   like($@, qr/\bcannot release ownership as memory is not owned\b/, "double usage of takeKlassAutoPtr should be an error");
+  checkCount(1);
   undef $kin;
   checkCount(0);
 }

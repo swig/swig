@@ -70,8 +70,8 @@ checkCount(0)
 
 kin = Li_std_auto_ptr::Klass.new("KlassInput")
 exception_thrown = false
+notowned = Li_std_auto_ptr::get_not_owned_ptr(kin)
 begin
-    notowned = Li_std_auto_ptr::get_not_owned_ptr(kin)
     Li_std_auto_ptr::takeKlassAutoPtr(notowned)
 rescue RuntimeError
     if (!e.to_s.include? "cannot release ownership as memory is not owned")
@@ -82,6 +82,7 @@ end
 if (!exception_thrown)
   raise RuntimeError, "Should have thrown 'Cannot release ownership as memory is not owned' error"
 end
+checkCount(1)
 Li_std_auto_ptr.takeKlassAutoPtr(kin) # Ensure object is deleted (can't rely on GC)
 checkCount(0)
 

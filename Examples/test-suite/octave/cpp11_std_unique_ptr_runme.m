@@ -54,8 +54,8 @@ checkCount(0);
 
 kin = Klass("KlassInput");
 exception_thrown = false;
+notowned = get_not_owned_ptr(kin);
 try
-  notowned = get_not_owned_ptr(kin);
   takeKlassUniquePtr(notowned);
 catch e
   if (isempty(strfind(e.message, "cannot release ownership as memory is not owned")))
@@ -66,6 +66,7 @@ end_try_catch
 if (!exception_thrown)
   error("Should have thrown 'Cannot release ownership as memory is not owned' error");
 endif
+checkCount(1);
 clear kin;
 checkCount(0);
 

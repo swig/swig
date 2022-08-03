@@ -43,13 +43,14 @@ checkCount(0)
 
 kin = Klass("KlassInput")
 exception_thrown = False
+notowned = get_not_owned_ptr(kin)
 try:
-    notowned = get_not_owned_ptr(kin)
     takeKlassAutoPtr(notowned)
 except RuntimeError as e:
     exception_thrown = True
 if not exception_thrown:
   raise RuntimeError("Should have thrown 'Cannot release ownership as memory is not owned' error")
+checkCount(1)
 del kin
 checkCount(0)
 

@@ -70,8 +70,8 @@ checkCount(0)
 
 kin = Cpp11_std_unique_ptr::Klass.new("KlassInput")
 exception_thrown = false
+notowned = Cpp11_std_unique_ptr::get_not_owned_ptr(kin)
 begin
-    notowned = Cpp11_std_unique_ptr::get_not_owned_ptr(kin)
     Cpp11_std_unique_ptr::takeKlassUniquePtr(notowned)
 rescue RuntimeError => e
     if (!e.to_s.include? "cannot release ownership as memory is not owned")
@@ -82,6 +82,7 @@ end
 if (!exception_thrown)
   raise RuntimeError, "Should have thrown 'Cannot release ownership as memory is not owned' error"
 end
+checkCount(1)
 Cpp11_std_unique_ptr.takeKlassUniquePtr(kin) # Ensure object is deleted (can't rely on GC)
 checkCount(0)
 

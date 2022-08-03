@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 24;
+use Test::More tests => 25;
 BEGIN { use_ok('cpp11_std_unique_ptr') }
 require_ok('cpp11_std_unique_ptr');
 
@@ -41,11 +41,12 @@ sub checkCount {
 
 {
   my $kin = new cpp11_std_unique_ptr::Klass("KlassInput");
+  my $notowned = cpp11_std_unique_ptr::get_not_owned_ptr($kin);
   eval {
-    my $notowned = cpp11_std_unique_ptr::get_not_owned_ptr($kin);
     cpp11_std_unique_ptr::takeKlassUniquePtr($notowned);
   };
   like($@, qr/\bcannot release ownership as memory is not owned\b/, "double usage of takeKlassUniquePtr should be an error");
+  checkCount(1);
   undef $kin;
   checkCount(0);
 }

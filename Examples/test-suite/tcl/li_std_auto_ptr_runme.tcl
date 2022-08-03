@@ -61,8 +61,8 @@ checkCount 0
 
 Klass kin "KlassInput"
 set exception_thrown 0
+set notowned [get_not_owned_ptr kin]
 if [ catch {
-  set notowned [get_not_owned_ptr kin]
   takeKlassAutoPtr notowned
 } ] {
   set exception_thrown 1
@@ -70,6 +70,7 @@ if [ catch {
 if {!$exception_thrown} {
   error "Should have thrown 'Cannot release ownership as memory is not owned' error"
 }
+checkCount 1
 kin -delete
 checkCount 0
 
