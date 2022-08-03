@@ -135,8 +135,15 @@ SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef ob
     }
   }
 
-  if (flags & SWIG_POINTER_DISOWN) {
-    cdata->swigCMemOwn = false;
+  if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !cdata->swigCMemOwn) {
+    return SWIG_ERROR_RELEASE_NOT_OWNED;
+  } else {
+    if (flags & SWIG_POINTER_DISOWN) {
+      cdata->swigCMemOwn = false;
+    }
+    if (flags & SWIG_POINTER_CLEAR) {
+      cdata->swigCObject = 0;
+    }
   }
 
   return SWIG_OK;

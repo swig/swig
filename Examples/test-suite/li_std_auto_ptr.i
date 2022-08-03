@@ -12,7 +12,7 @@
 #endif
 %}
 
-#if defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGPERL) || defined(SWIGTCL) || defined(SWIGOCTAVE)
+#if defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGPERL) || defined(SWIGTCL) || defined(SWIGOCTAVE) || defined(SWIGJAVASCRIPT)
 
 %include "std_string.i"
 %include "std_auto_ptr.i"
