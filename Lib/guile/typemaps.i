@@ -425,7 +425,7 @@ typedef unsigned long SCM;
 %typecheck(SWIG_TYPECHECK_BOOL)
 	bool, bool&, const bool&
 {
-  $1 = SCM_BOOLP($input) ? 1 : 0;
+  $1 = scm_is_bool($input) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_DOUBLE)
