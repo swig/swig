@@ -52,16 +52,16 @@ This section details guile-specific support in SWIG.
 
 
 <p>
-SWIG is known to work with Guile versions 2.0.x, 2.2.x and 3.0.x. We believe
-it still works with 1.8.x, but we're no longer able to easily test this.
-Support for version 1.6.x has been dropped. The last version of SWIG that still
-works with Guile version 1.6.x is SWIG 2.0.9.
+SWIG is known to work with Guile versions 2.0.x, 2.2.x and 3.0.x (these are
+all tested via CI). SWIG probably still works with Guile 1.8.x but we're no
+longer able to regularly test this either in CI or by hand. Support for Guile
+1.6.x has been dropped (SWIG 2.0.9 was the last version of SWIG to support it).
 
 <p>
 Note that starting with guile 2.0, the guile sources can be compiled for
 improved performance. This is currently not tested with swig
 so your mileage may vary. To be safe set environment variable
-GUILE_AUTO_COMPILE to 0 when using swig generated guile code.
+<tt>GUILE_AUTO_COMPILE</tt> to 0 when using swig generated guile code.
 
 <H2><a name="Guile_nn2">26.2 Meaning of "Module"</a></H2>
 
