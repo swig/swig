@@ -93,7 +93,7 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: javascript
           ENGINE: node
-          VER: '17'
+          VER: '18'
           CPPSTD: c++14
         - SWIGLANG: javascript
           ENGINE: jsc
@@ -270,7 +270,7 @@ jobs:
           GCC: 11
         - SWIGLANG: javascript
           ENGINE: node
-          VER: '17'
+          VER: '18'
           CPPSTD: c++17
           GCC: 11
         - SWIGLANG: lua
