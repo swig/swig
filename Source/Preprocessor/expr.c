@@ -324,7 +324,7 @@ int Preprocessor_expr(DOH *s, int *error) {
 	/* A number.  Reduce EXPR_TOP to an EXPR_VALUE */
 	char *c = Char(Scanner_text(scan));
 	if (c[0] == '0' && (c[1] == 'b' || c[1] == 'B')) {
-	  // strtol() doesn't handle binary constants.
+	  /* strtol() doesn't handle binary constants */
 	  stack[sp].value = (long) strtol(c + 2, 0, 2);
 	} else {
 	  stack[sp].value = (long) strtol(c, 0, 0);
