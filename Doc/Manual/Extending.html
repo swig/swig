@@ -3622,7 +3622,7 @@ A target language is given the 'Supported' status when
 <li>
   It passes all of the main SWIG test-suite.
   The main test-suite is defined by the tests in the C_TEST_CASES, CPP_TEST_CASES and MULTI_CPP_TEST_CASES lists in Examples/test-suite/common.mk.
-  The tests in CPP11_TEST_CASES will also be required in the near future.
+  All the newer C++ standard tests need to work and are grouped together, such as CPP11_TEST_CASES for C++11. These more 'modern' C++ standards are only tested though if the compiler is detected as supporting the given standard.
 </li>
 <li>
   The test-suite must also include at least twenty wide-ranging runtime tests.
