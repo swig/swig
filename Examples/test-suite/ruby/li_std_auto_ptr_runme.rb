@@ -18,6 +18,16 @@ def checkCount(expected_count)
     end
 end
 
+# Test raw pointer handling involving virtual inheritance
+kini = Li_std_auto_ptr::KlassInheritance.new("KlassInheritanceInput")
+checkCount(1)
+s = Li_std_auto_ptr.takeKlassAutoPtr(kini)
+if (s != "KlassInheritanceInput")
+    raise RuntimeError, "Incorrect string: " + s
+end
+kini = nil
+checkCount(0)
+
 
 # auto_ptr as input
 kin = Li_std_auto_ptr::Klass.new("KlassInput")

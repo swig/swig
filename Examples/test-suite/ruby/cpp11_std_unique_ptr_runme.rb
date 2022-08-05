@@ -18,6 +18,16 @@ def checkCount(expected_count)
     end
 end
 
+# Test raw pointer handling involving virtual inheritance
+kini = Cpp11_std_unique_ptr::KlassInheritance.new("KlassInheritanceInput")
+checkCount(1)
+s = Cpp11_std_unique_ptr.takeKlassUniquePtr(kini)
+if (s != "KlassInheritanceInput")
+    raise RuntimeError, "Incorrect string: " + s
+end
+kini = nil
+checkCount(0)
+
 
 # unique_ptr as input
 kin = Cpp11_std_unique_ptr::Klass.new("KlassInput")

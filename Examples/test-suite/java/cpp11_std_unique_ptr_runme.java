@@ -28,6 +28,17 @@ public class cpp11_std_unique_ptr_runme {
 
   public static void main(String argv[]) throws Throwable
   {
+    // Test raw pointer handling involving virtual inheritance
+    {
+      KlassInheritance kini = new KlassInheritance("KlassInheritanceInput");
+      checkCount(1);
+      String s = cpp11_std_unique_ptr.useKlassRawPtr(kini);
+      if (!s.equals("KlassInheritanceInput"))
+        throw new RuntimeException("Incorrect string: " + s);
+      kini.delete();
+      checkCount(0);
+    }
+
     // unique_ptr as input
     {
       Klass kin = new Klass("KlassInput");
@@ -102,42 +113,17 @@ public class cpp11_std_unique_ptr_runme {
       throw new RuntimeException("wrong object label");
 
     Klass k2 = cpp11_std_unique_ptr.makeKlassUniquePtr("second");
-    if (Klass.getTotal_count() != 2)
-      throw new RuntimeException("number of objects should be 2");
+    checkCount(2);
 
+    k1.delete();
     k1 = null;
-    {
-      int countdown = 500;
-      int expectedCount = 1;
-      while (true) {
-        WaitForGC();
-        if (--countdown == 0)
-          break;
-        if (Klass.getTotal_count() == expectedCount)
-          break;
-      }
-      int actualCount = Klass.getTotal_count();
-      if (actualCount != expectedCount)
-        System.err.println("GC failed to run (cpp11_std_unique_ptr 1). Expected count: " + expectedCount + " Actual count: " + actualCount); // Finalizers are not guaranteed to be run and sometimes they just don't
-    }
+    checkCount(1);
 
     if (!k2.getLabel().equals("second"))
       throw new RuntimeException("wrong object label");
 
+    k2.delete();
     k2 = null;
-    {
-      int countdown = 500;
-      int expectedCount = 0;
-      while (true) {
-        WaitForGC();
-        if (--countdown == 0)
-          break;
-        if (Klass.getTotal_count() == expectedCount)
-          break;
-      };
-      int actualCount = Klass.getTotal_count();
-      if (actualCount != expectedCount)
-        System.err.println("GC failed to run (cpp11_std_unique_ptr 2). Expected count: " + expectedCount + " Actual count: " + actualCount); // Finalizers are not guaranteed to be run and sometimes they just don't
-    }
+    checkCount(0);
   }
 }

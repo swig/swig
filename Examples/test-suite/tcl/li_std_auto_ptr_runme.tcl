@@ -15,6 +15,13 @@ proc checkCount {expected_count} {
 # Not copied from cpp11_std_unique_ptr_runme.tcl
 ################################# Tcl pointer recycling bug end
 
+# Test raw pointer handling involving virtual inheritance
+KlassInheritance kini "KlassInheritanceInput"
+checkCount 1
+set s [takeKlassAutoPtr kini]
+kini -delete
+checkCount 0
+
 
 # auto_ptr as input
 Klass kin "KlassInput"
@@ -93,20 +100,14 @@ checkCount 0
 # auto_ptr as output
 set k1 [makeKlassAutoPtr "first"]
 set k2 [makeKlassAutoPtr "second"]
-if {[Klass_getTotal_count] != 2} {
-  error "number of objects should be 2"
-}
+checkCount 2
 
 $k1 -delete
-if {[Klass_getTotal_count] != 1} {
-  error "number of objects should be 1"
-}
+checkCount 1
 
 if {[$k2 getLabel] != "second"} {
   error "wrong object label"
 }
 
 $k2 -delete
-if {[Klass_getTotal_count] != 0} {
-  error "no objects should be left"
-}
+checkCount 0

@@ -5,6 +5,16 @@ def checkCount(expected_count):
     if (actual_count != expected_count):
         raise RuntimeError("Counts incorrect, expected:" + expected_count + " actual:" + actual_count)
 
+# Test raw pointer handling involving virtual inheritance
+kini = KlassInheritance("KlassInheritanceInput")
+checkCount(1)
+s = takeKlassAutoPtr(kini)
+if s != "KlassInheritanceInput":
+    raise RuntimeError("Incorrect string: " + s)
+del kini
+checkCount(0)
+
+
 # auto_ptr as input
 kin = Klass("KlassInput")
 checkCount(1)
@@ -70,16 +80,13 @@ checkCount(0)
 # auto_ptr as output
 k1 = makeKlassAutoPtr("first")
 k2 = makeKlassAutoPtr("second")
-if Klass.getTotal_count() != 2:
-    raise "number of objects should be 2"
+checkCount(2)
 
 del k1
-if Klass.getTotal_count() != 1:
-    raise "number of objects should be 1"
+checkCount(1)
 
 if k2.getLabel() != "second":
     raise "wrong object label"
 
 del k2
-if Klass.getTotal_count() != 0:
-    raise "no objects should be left"
+checkCount(0)

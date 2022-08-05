@@ -93,17 +93,14 @@ void main() {
     throw new Exception("wrong object label");
 
   Klass k2 = makeKlassAutoPtr("second");
-  if (Klass.getTotal_count() != 2)
-    throw new Exception("number of objects should be 2");
+  checkCount(2);
 
   k1.dispose();
-  if (Klass.getTotal_count() != 1)
-      throw new Exception("number of objects should be 1");
+  checkCount(1);
 
   if (k2.getLabel() != "second")
       throw new Exception("wrong object label");
 
   k2.dispose();
-  if (Klass.getTotal_count() != 0)
-      throw new Exception("no objects should be left");
+  checkCount(0);
 }

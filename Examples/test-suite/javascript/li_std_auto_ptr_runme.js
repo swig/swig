@@ -6,6 +6,20 @@ var checkCount = function(expected_count) {
     throw new Error("Counts incorrect, expected:" + expected_count + " actual:" + actual_count);
 }
 
+// Test raw pointer handling involving virtual inheritance
+{
+  kini = new li_std_auto_ptr.KlassInheritance("KlassInheritanceInput");
+  checkCount(1);
+  s = li_std_auto_ptr.useKlassRawPtr(kini);
+  if (s !== "KlassInheritanceInput")
+    throw new Error("Incorrect string: " + s);
+  // delete kini;
+  // Above not deleting the C++ object(node v12) - can't reliably control GC
+  li_std_auto_ptr.takeKlassAutoPtr(kini);
+  checkCount(0);
+}
+
+
 // auto_ptr as input
 {
   kin = new li_std_auto_ptr.Klass("KlassInput");
@@ -82,14 +96,12 @@ if (k1.getLabel() !== "first")
   throw new Error("wrong object label");
 
 k2 = li_std_auto_ptr.makeKlassAutoPtr("second");
-if (li_std_auto_ptr.Klass.getTotal_count() != 2)
-  throw new Error("number of objects should be 2");
+checkCount(2);
 
 // delete k1;
-// Above not deleting the C++ object(node v12), not sure why, use below as workaround
+// Above not deleting the C++ object(node v12) - can't reliably control GC
 li_std_auto_ptr.takeKlassAutoPtr(k1);
-if (li_std_auto_ptr.Klass.getTotal_count() != 1)
-  throw new Error("number of objects should be 1");
+checkCount(1);
 
 if (k2.getLabel() !== "second")
   throw new Error("wrong object label");
@@ -97,5 +109,4 @@ if (k2.getLabel() !== "second")
 // delete k2;
 // Above not deleting the C++ object(node v12) - can't reliably control GC
 li_std_auto_ptr.takeKlassAutoPtr(k2);
-if (li_std_auto_ptr.Klass.getTotal_count() != 0)
-  throw new Error("no objects should be left");
+checkCount(0);

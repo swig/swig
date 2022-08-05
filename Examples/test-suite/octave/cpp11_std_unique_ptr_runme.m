@@ -12,6 +12,16 @@ function checkCount(expected_count)
   endif
 end
 
+# Test raw pointer handling involving virtual inheritance
+kini = KlassInheritance("KlassInheritanceInput");
+checkCount(1);
+s = takeKlassUniquePtr(kini);
+if (!strcmp(s, "KlassInheritanceInput"))
+  error("Incorrect string: %s", s);
+endif
+clear kini;
+checkCount(0);
+
 
 # unique_ptr as input
 kin = Klass("KlassInput");
@@ -91,20 +101,14 @@ if (!strcmp(k1.getLabel(), "first"))
 endif
 
 k2 = makeKlassUniquePtr("second");
-if (Klass_getTotal_count() != 2)
-  error("number of objects should be 2");
-endif
+checkCount(2);
 
 clear k1;
-if (Klass.getTotal_count() != 1)
-  error("number of objects should be 1");
-endif
+checkCount(1);
 
 if (!strcmp(k2.getLabel(), "second"))
   error("wrong object label");
 endif
 
 clear k2;
-if (Klass.getTotal_count() != 0)
-  error("no objects should be left");
-endif
+checkCount(0);

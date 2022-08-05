@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 25;
+use Test::More tests => 28;
 BEGIN { use_ok('cpp11_std_unique_ptr') }
 require_ok('cpp11_std_unique_ptr');
 
@@ -11,6 +11,17 @@ sub checkCount {
   my $actual_count = cpp11_std_unique_ptr::Klass::getTotal_count();
   is($actual_count, $expected_count, "Counts incorrect, expected: $expected_count actual: $actual_count");
 }
+
+# Test raw pointer handling involving virtual inheritance
+{
+  my $kini = new cpp11_std_unique_ptr::KlassInheritance("KlassInheritanceInput");
+  checkCount(1);
+  my $s = cpp11_std_unique_ptr::takeKlassUniquePtr($kini);
+  is($s, "KlassInheritanceInput", "Incorrect string: $s");
+  undef $kini;
+  checkCount(0);
+}
+
 
 # unique_ptr as input
 {
@@ -65,12 +76,12 @@ sub checkCount {
 # unique_ptr as output
 my $k1 = cpp11_std_unique_ptr::makeKlassUniquePtr("first");
 my $k2 = cpp11_std_unique_ptr::makeKlassUniquePtr("second");
-is(cpp11_std_unique_ptr::Klass::getTotal_count, 2, "have 2 pointers");
+checkCount(2);
 
 undef $k1;
-is(cpp11_std_unique_ptr::Klass::getTotal_count, 1, "left 1 pointer");
+checkCount(1);
 
 is($k2->getLabel, "second", "proper label");
 
 undef $k2;
-is(cpp11_std_unique_ptr::Klass::getTotal_count, 0, "remove all pointers");
+checkCount(0);
