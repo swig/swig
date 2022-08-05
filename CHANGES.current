@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-08-05: wsfulton
+            [D] Add support for std::unique_ptr in std_unique_ptr.i.
+            Add support for std::auto_ptr in std_auto_ptr.i.
+
 2022-08-03: wsfulton
             [Javascript] Add support for std::unique_ptr in std_unique_ptr.i.
             Add support for std::auto_ptr in std_auto_ptr.i.
