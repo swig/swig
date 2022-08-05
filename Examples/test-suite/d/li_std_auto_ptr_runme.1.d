@@ -13,6 +13,16 @@ void checkCount(int expected_count) {
 }
 
 void main() {
+  // Test raw pointer handling involving virtual inheritance
+  {
+    scope KlassInheritance kini = new KlassInheritance("KlassInheritanceInput");
+    checkCount(1);
+    string s = useKlassRawPtr(kini);
+    if (s != "KlassInheritanceInput")
+      throw new Exception("Incorrect string: " ~ s);
+  }
+  checkCount(0);
+
   // auto_ptr as input
   {
     scope Klass kin = new Klass("KlassInput");
@@ -65,7 +75,6 @@ void main() {
   }
   checkCount(0);
 
-  /*
   {
     scope KlassInheritance kini = new KlassInheritance("KlassInheritanceInput");
     checkCount(1);
@@ -77,7 +86,6 @@ void main() {
       throw new Exception("is_nullptr failed");
   } // dispose should not fail, even though already deleted
   checkCount(0);
-  */
 
   // auto_ptr as output
   Klass k1 = makeKlassAutoPtr("first");

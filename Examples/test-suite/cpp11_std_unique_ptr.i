@@ -10,6 +10,7 @@
 %inline %{
 #include <memory>
 #include <string>
+//#include <iostream>
 #include "swig_examples_lock.h"
 
 class Klass {
@@ -53,8 +54,18 @@ struct KlassInheritance : virtual Klass {
   }
 };
 
+std::string useKlassRawPtr(Klass* k) {
+//  std::cout << "useKlassRawPtr " << std::hex << (Klass*)k << std::endl;
+  std::string s(k->getLabel());
+//  std::cout << "useKlassRawPtr string: " << s << std::endl;
+  return s;
+}
+
 std::string takeKlassUniquePtr(std::unique_ptr<Klass> k) {
-  return std::string(k->getLabel());
+//  std::cout << "takeKlassUniquePtr " << std::hex << (Klass*)k.get() << std::endl;
+  std::string s(k->getLabel());
+//  std::cout << "takeKlassUniquePtr string: " << s << std::endl;
+  return s;
 }
 
 bool is_nullptr(Klass *p) {

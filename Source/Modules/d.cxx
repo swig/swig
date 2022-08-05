@@ -3402,7 +3402,7 @@ private:
     } else {
       Printv(upcasts_code,
 	"SWIGEXPORT ", baseclassname, " * ", upcast_wrapper_name,
-	  "(", baseclassname, " *objectRef) {\n",
+	  "(", classname, " *objectRef) {\n",
 	"    return (", baseclassname, " *)objectRef;\n"
 	"}\n",
 	"\n", NIL);

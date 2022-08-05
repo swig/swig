@@ -15,6 +15,7 @@
 #if defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGPERL) || defined(SWIGTCL) || defined(SWIGOCTAVE) || defined(SWIGJAVASCRIPT) || defined(SWIGD)
 
 %include "std_string.i"
+//#include <iostream>
 %include "std_auto_ptr.i"
 
 %auto_ptr(Klass)
@@ -100,9 +101,20 @@ struct KlassInheritance : virtual Klass {
   }
 };
 
-std::string takeKlassAutoPtr(std::auto_ptr<Klass> k) {
-  return std::string(k->getLabel());
+std::string useKlassRawPtr(Klass* k) {
+//  std::cout << "useKlassRawPtr " << std::hex << (Klass*)k << std::endl;
+  std::string s(k->getLabel());
+//  std::cout << "useKlassRawPtr string: " << s << std::endl;
+  return s;
 }
+
+std::string takeKlassAutoPtr(std::auto_ptr<Klass> k) {
+//  std::cout << "takeKlassAutoPtr " << std::hex << (Klass*)k.get() << std::endl;
+  std::string s(k->getLabel());
+//  std::cout << "takeKlassAutoPtr string: " << s << std::endl;
+  return s;
+}
+
 
 bool is_nullptr(Klass *p) {
   return p == 0;
