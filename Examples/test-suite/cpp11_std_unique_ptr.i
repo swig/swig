@@ -1,6 +1,6 @@
 %module cpp11_std_unique_ptr
 
-#if defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGPERL) || defined(SWIGTCL) || defined(SWIGOCTAVE) || defined(SWIGJAVASCRIPT) || defined(SWIGD)
+#if defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGPERL) || defined(SWIGTCL) || defined(SWIGOCTAVE) || defined(SWIGJAVASCRIPT) || defined(SWIGD) || defined(SWIGPHP)
 
 %include "std_string.i"
 %include "std_unique_ptr.i"
@@ -66,6 +66,10 @@ std::string takeKlassUniquePtr(std::unique_ptr<Klass> k) {
   std::string s(k->getLabel());
 //  std::cout << "takeKlassUniquePtr string: " << s << std::endl;
   return s;
+}
+
+Klass *make_null() {
+  return nullptr;
 }
 
 bool is_nullptr(Klass *p) {
