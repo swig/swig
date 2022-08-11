@@ -2430,6 +2430,7 @@ if test "$LUABIN"; then
   if test "$LUA_VERSION" = "5.0"; then
     LUALINK="$LUALINK -llualib"
   fi
+  LUALINK="$LUALINK -pthread"
 
   LIBS=$lua_save_LIBS	# restore LIBS
 fi
