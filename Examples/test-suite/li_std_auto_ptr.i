@@ -12,7 +12,7 @@
 #endif
 %}
 
-#if defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGPERL) || defined(SWIGTCL) || defined(SWIGOCTAVE) || defined(SWIGJAVASCRIPT) || defined(SWIGD) || (SWIGPHP)
+#if !(defined(SWIGGO) || defined(SWIGOCAML) || defined(SWIGMZSCHEME) || defined(SWIGR) || defined(SWIGSCILAB))
 
 %include "std_string.i"
 //#include <iostream>

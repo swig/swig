@@ -1,6 +1,6 @@
 %module cpp11_std_unique_ptr
 
-#if defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGPYTHON) || defined(SWIGRUBY) || defined(SWIGPERL) || defined(SWIGTCL) || defined(SWIGOCTAVE) || defined(SWIGJAVASCRIPT) || defined(SWIGD) || defined(SWIGPHP)
+#if !(defined(SWIGGO) || defined(SWIGOCAML) || defined(SWIGMZSCHEME) || defined(SWIGR) || defined(SWIGSCILAB))
 
 %include "std_string.i"
 %include "std_unique_ptr.i"
