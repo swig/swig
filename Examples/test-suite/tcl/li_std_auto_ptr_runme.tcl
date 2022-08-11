@@ -18,7 +18,7 @@ proc checkCount {expected_count} {
 # Test raw pointer handling involving virtual inheritance
 KlassInheritance kini "KlassInheritanceInput"
 checkCount 1
-set s [takeKlassAutoPtr kini]
+set s [useKlassRawPtr kini]
 kini -delete
 checkCount 0
 

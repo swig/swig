@@ -10,7 +10,7 @@ function checkCount($expected_count) {
 # Test raw pointer handling involving virtual inheritance
 $kini = new KlassInheritance("KlassInheritanceInput");
 checkCount(1);
-$s = takeKlassAutoPtr($kini);
+$s = useKlassRawPtr($kini);
 check::equal($s, "KlassInheritanceInput", "Incorrect string: $s");
 $kini = NULL;
 checkCount(0);

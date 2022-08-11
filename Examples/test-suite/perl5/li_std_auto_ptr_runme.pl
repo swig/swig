@@ -16,7 +16,7 @@ sub checkCount {
 {
   my $kini = new li_std_auto_ptr::KlassInheritance("KlassInheritanceInput");
   checkCount(1);
-  my $s = li_std_auto_ptr::takeKlassAutoPtr($kini);
+  my $s = li_std_auto_ptr::useKlassRawPtr($kini);
   is($s, "KlassInheritanceInput", "Incorrect string: $s");
   undef $kini;
   checkCount(0);

@@ -16,7 +16,7 @@ sub checkCount {
 {
   my $kini = new cpp11_std_unique_ptr::KlassInheritance("KlassInheritanceInput");
   checkCount(1);
-  my $s = cpp11_std_unique_ptr::takeKlassUniquePtr($kini);
+  my $s = cpp11_std_unique_ptr::useKlassRawPtr($kini);
   is($s, "KlassInheritanceInput", "Incorrect string: $s");
   undef $kini;
   checkCount(0);

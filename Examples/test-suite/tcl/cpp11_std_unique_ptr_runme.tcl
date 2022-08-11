@@ -47,7 +47,7 @@ checkCount 0
 # Test raw pointer handling involving virtual inheritance
 KlassInheritance kini "KlassInheritanceInput"
 checkCount 1
-set s [takeKlassUniquePtr kini]
+set s [useKlassRawPtr kini]
 kini -delete
 checkCount 0
 

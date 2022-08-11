@@ -21,11 +21,12 @@ end
 # Test raw pointer handling involving virtual inheritance
 kini = Li_std_auto_ptr::KlassInheritance.new("KlassInheritanceInput")
 checkCount(1)
-s = Li_std_auto_ptr.takeKlassAutoPtr(kini)
+s = Li_std_auto_ptr.useKlassRawPtr(kini)
 if (s != "KlassInheritanceInput")
     raise RuntimeError, "Incorrect string: " + s
 end
-kini = nil
+# kini = nil
+Li_std_auto_ptr.takeKlassAutoPtr(kini) # Ensure object is deleted (can't rely on GC)
 checkCount(0)
 
 

@@ -8,7 +8,7 @@ def checkCount(expected_count):
 # Test raw pointer handling involving virtual inheritance
 kini = KlassInheritance("KlassInheritanceInput")
 checkCount(1)
-s = takeKlassUniquePtr(kini)
+s = useKlassRawPtr(kini)
 if s != "KlassInheritanceInput":
     raise RuntimeError("Incorrect string: " + s)
 del kini

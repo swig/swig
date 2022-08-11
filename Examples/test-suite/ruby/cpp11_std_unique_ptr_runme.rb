@@ -21,11 +21,12 @@ end
 # Test raw pointer handling involving virtual inheritance
 kini = Cpp11_std_unique_ptr::KlassInheritance.new("KlassInheritanceInput")
 checkCount(1)
-s = Cpp11_std_unique_ptr.takeKlassUniquePtr(kini)
+s = Cpp11_std_unique_ptr.useKlassRawPtr(kini)
 if (s != "KlassInheritanceInput")
     raise RuntimeError, "Incorrect string: " + s
 end
-kini = nil
+# kini = nil
+Cpp11_std_unique_ptr.takeKlassUniquePtr(kini) # Ensure object is deleted (can't rely on GC)
 checkCount(0)
 
 

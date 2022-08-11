@@ -15,7 +15,7 @@ end
 # Test raw pointer handling involving virtual inheritance
 kini = KlassInheritance("KlassInheritanceInput");
 checkCount(1);
-s = takeKlassAutoPtr(kini);
+s = useKlassRawPtr(kini);
 if (!strcmp(s, "KlassInheritanceInput"))
   error("Incorrect string: %s", s);
 endif
