@@ -82,14 +82,9 @@ static TargetLanguageModule modules[] = {
   {"-tcl", swig_tcl, NULL, Supported},
   {"-tcl8", swig_tcl, "Tcl 8", Supported},
   {"-uffi", NULL, "Common Lisp / UFFI", Disabled},
-  {"-xml", swig_xml, "XML", Supported},
+  {"-xml", swig_xml, "XML", Experimental},
   {NULL, NULL, NULL, Disabled}
 };
-
-#ifdef MACSWIG
-#include <console.h>
-#include <SIOUX.h>
-#endif
 
 //-----------------------------------------------------------------
 // main()
@@ -223,11 +218,6 @@ int main(int margc, char **margv) {
 
   SWIG_merge_envopt(getenv("SWIG_FEATURES"), margc, margv, &argc, &argv);
   merge_options_files(&argc, &argv);
-
-#ifdef MACSWIG
-  SIOUXSettings.asktosaveonclose = false;
-  argc = ccommand(&argv);
-#endif
 
   Swig_init_args(argc, argv);
 

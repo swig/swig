@@ -4,15 +4,15 @@
 // Just the following languages tested
 #if defined (SWIGCSHARP) || defined (SWIGD)
 %typemap(out, optimal="1") SWIGTYPE %{
-  $result = new $1_ltype((const $1_ltype &)$1);
+  $result = new $1_ltype($1);
 %}
 #elif defined (SWIGJAVA)
 %typemap(out, optimal="1") SWIGTYPE %{ 
-  *($&1_ltype*)&$result = new $1_ltype((const $1_ltype &)$1);
+  *($&1_ltype*)&$result = new $1_ltype($1);
 %}
 #elif defined (SWIGUTL)
 %typemap(out,noblock="1", optimal="1") SWIGTYPE {
-  %set_output(SWIG_NewPointerObj(%new_copy($1, $ltype), $&descriptor, SWIG_POINTER_OWN | %newpointer_flags));
+  %set_output(SWIG_NewPointerObj(new $1_ltype($1), $&descriptor, SWIG_POINTER_OWN | %newpointer_flags));
 }
 #endif
 
@@ -32,8 +32,13 @@ struct XX {
   XX(const XX &other) { if (debug) cout << "XX(const XX &)" << endl; }
   XX& operator =(const XX &other) { if (debug) cout << "operator=(const XX &)" << endl; return *this; }
   ~XX() { if (debug) cout << "~XX()" << endl; }
-  static XX create() { 
+
+// Note: best observed RVO for C#, Java and Python with g++-6 to g++-10 (just one constructor and one destructor call)
+  static XX create() {
     return XX(123);
+  }
+  static const XX createConst() {
+    return XX(456);
   }
   static bool debug;
 };

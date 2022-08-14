@@ -4,8 +4,6 @@
 
 #ifdef SWIGGUILE_SCM
 
-/* Hook the runtime module initialization
-   into the shared initialization function SWIG_Guile_Init. */
 %runtime %{
 /* Hook the runtime module initialization
    into the shared initialization function SWIG_Guile_Init. */

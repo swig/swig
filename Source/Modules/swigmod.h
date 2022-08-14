@@ -11,8 +11,8 @@
  * Main header file for SWIG modules.
  * ----------------------------------------------------------------------------- */
 
-#ifndef SWIG_SWIGMOD_H_
-#define SWIG_SWIGMOD_H_
+#ifndef SWIG_SWIGMOD_H
+#define SWIG_SWIGMOD_H
 
 #include "swig.h"
 #include "preprocessor.h"

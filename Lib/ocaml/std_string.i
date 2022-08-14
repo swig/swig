@@ -83,10 +83,22 @@ class wstring;
   $result = caml_val_string_len($1.c_str(),$1.size());
 }
 
+%typemap(varout) string {
+  $result = caml_val_string_len($1.c_str(),$1.size());
+}
+
 %typemap(out) string * {
 	$result = caml_val_string_len((*$1).c_str(),(*$1).size());
 }
+
+%typemap(varout) string * {
+	$result = caml_val_string_len((*$1).c_str(),(*$1).size());
+}
+
 %typemap(typecheck) string, const string & = char *;
+
+%typemap(throws) string, const string & "SWIG_OCamlThrowException(SWIG_OCamlRuntimeException, $1.c_str());"
+
 }
 
 #ifdef ENABLE_CHARPTR_ARRAY

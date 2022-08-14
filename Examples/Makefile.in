@@ -46,8 +46,8 @@ TARGET     =
 CC         = @CC@
 CXX        = @CXX@
 CPPFLAGS   = $(SRCDIR_INCLUDE)
-CFLAGS     = @PLATCFLAGS@
-CXXFLAGS   = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@
+CFLAGS     = @PLATCFLAGS@ $(EXTRA_CFLAGS)
+CXXFLAGS   = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ $(EXTRA_CXXFLAGS)
 LDFLAGS    =
 prefix     = @prefix@
 exec_prefix= @exec_prefix@
@@ -191,7 +191,7 @@ tcl:  $(SRCDIR_SRCS)
 	$(TCLLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO) $(TCL_LINK)
 
 # -----------------------------------------------------------
-# Build a Tcl7.5 dynamic loadable module for C++
+# Build a Tcl dynamic loadable module for C++
 # -----------------------------------------------------------
 
 tcl_cpp: $(SRCDIR_SRCS)
@@ -737,9 +737,9 @@ ifeq (node, $(ENGINE))
 endif
 ifeq (jsc, $(ENGINE))
 	@if [ "@JSCOREVERSION@" != "" ]; then \
-	  echo "@JSCOREVERSION@"; \
+	  echo "JavaScriptCore: @JSCOREVERSION@"; \
 	else \
-	  echo "Unknown JavascriptCore version."; \
+	  echo "Unknown JavaScriptCore version."; \
 	fi
 endif
 ifeq (v8, $(ENGINE))
@@ -1071,7 +1071,7 @@ php_cpp: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 php_run:
-	$(RUNTOOL) $(PHP) -n -d extension_dir=. -d extension=$(PHP_EXTENSION) -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});include($$argv[1]);' $(PHP_SCRIPT) $(RUNPIPE)
+	$(RUNTOOL) $(PHP) -n -d extension_dir=. -d extension=$(PHP_EXTENSION) -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});if(strlen($$argv[1]))include($$argv[1]);' '$(PHP_SCRIPT)' $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display

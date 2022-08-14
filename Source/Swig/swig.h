@@ -11,12 +11,10 @@
  * Header file for the SWIG core.
  * ----------------------------------------------------------------------------- */
 
-#ifndef SWIGCORE_H_
-#define SWIGCORE_H_
+#ifndef SWIG_SWIG_H
+#define SWIG_SWIG_H
 
-#ifndef MACSWIG
 #include "swigconfig.h"
-#endif
 
 #include <stdio.h>
 #include <string.h>

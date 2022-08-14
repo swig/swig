@@ -1757,6 +1757,7 @@ SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State *L,void *ptr,swig_type_info *t
  (if possible) */
 SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type_info *type,int flags)
 {
+  int ret = SWIG_ERROR;
   swig_lua_userdata *usr;
   swig_cast_info *cast;
   /* special case: lua nil => NULL pointer */
@@ -1773,25 +1774,36 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type
   usr=(swig_lua_userdata*)lua_touserdata(L,index);  /* get data */
   if (usr)
   {
+    if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !usr->own)
+    {
+      return SWIG_ERROR_RELEASE_NOT_OWNED;
+    }
     if (flags & SWIG_POINTER_DISOWN) /* must disown the object */
     {
-        usr->own=0;
+      usr->own = 0;
     }
     if (!type)            /* special cast void*, no casting fn */
     {
       *ptr=usr->ptr;
-      return SWIG_OK; /* ok */
+      ret = SWIG_OK;
     }
-    cast=SWIG_TypeCheckStruct(usr->type,type); /* performs normal type checking */
-    if (cast)
+    else
     {
-      int newmemory = 0;
-      *ptr=SWIG_TypeCast(cast,usr->ptr,&newmemory);
-      assert(!newmemory); /* newmemory handling not yet implemented */
-      return SWIG_OK;  /* ok */
+      cast=SWIG_TypeCheckStruct(usr->type,type); /* performs normal type checking */
+      if (cast)
+      {
+        int newmemory = 0;
+        *ptr=SWIG_TypeCast(cast,usr->ptr,&newmemory);
+        assert(!newmemory); /* newmemory handling not yet implemented */
+        ret = SWIG_OK;
+      }
+    }
+    if ((ret == SWIG_OK) && (flags & SWIG_POINTER_CLEAR))
+    {
+      usr->ptr = 0;
     }
   }
-  return SWIG_ERROR;  /* error */
+  return ret;
 }
 
 SWIGRUNTIME void* SWIG_Lua_MustGetPtr(lua_State *L,int index,swig_type_info *type,int flags,

@@ -1,5 +1,5 @@
-#ifndef TEST_SUITE_REFCOUNT_H__
-#define TEST_SUITE_REFCOUNT_H__
+#ifndef TEST_SUITE_REFCOUNT_H
+#define TEST_SUITE_REFCOUNT_H
 
 struct RCObjBase  {
   /*!
@@ -195,4 +195,4 @@ RCPtr<T>& RCPtr<T>::operator=(const RCPtr& rhs)
 
 
 
-#endif //TEST_SUITE_REFCOUNT_H__
+#endif // TEST_SUITE_REFCOUNT_H

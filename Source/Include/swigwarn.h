@@ -22,8 +22,8 @@
  * This file is used as the input for generating Lib/swigwarn.swg.
  * ----------------------------------------------------------------------------- */
 
-#ifndef SWIGWARN_H_
-#define SWIGWARN_H_
+#ifndef SWIG_SWIGWARN_H
+#define SWIG_SWIGWARN_H
 
 #define WARN_NONE                     0
 
@@ -147,6 +147,7 @@
 #define WARN_IGNORE_OPERATOR_NEWARR     394	/* new [] */
 #define WARN_IGNORE_OPERATOR_DELARR     395	/* delete [] */
 #define WARN_IGNORE_OPERATOR_REF        396	/* operator *() */
+#define WARN_IGNORE_OPERATOR_LTEQUALGT  397	/* <=> */
 
 /* please leave 350-399 free for WARN_IGNORE_OPERATOR_* */
 

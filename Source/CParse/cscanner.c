@@ -123,7 +123,7 @@ void Swig_cparse_cplusplusout(int v) {
  * Initialize buffers
  * ------------------------------------------------------------------------- */
 
-void scanner_init() {
+void scanner_init(void) {
   scan = NewScanner();
   Scanner_idstart(scan,"%");
   scan_init = 1;
@@ -331,6 +331,8 @@ static int yylook(void) {
       return COLON;
     case SWIG_TOKEN_DCOLONSTAR:
       return DSTAR;
+    case SWIG_TOKEN_LTEQUALGT:
+      return LESSEQUALGREATER;
       
     case SWIG_TOKEN_DCOLON:
       {
@@ -353,6 +355,20 @@ static int yylook(void) {
       
     case SWIG_TOKEN_ELLIPSIS:
       return ELLIPSIS;
+
+    case SWIG_TOKEN_LLBRACKET:
+      do {
+        tok = Scanner_token(scan);
+      } while ((tok != SWIG_TOKEN_RRBRACKET) && (tok > 0));
+      if (tok <= 0) {
+        Swig_error(cparse_file, cparse_line, "Unbalanced double brackets, missing closing (']]'). Reached end of input.\n");
+      }
+      break;
+
+    case SWIG_TOKEN_RRBRACKET:
+      /* Turn an unmatched ]] back into two ] - e.g. `a[a[0]]` */
+      scanner_next_token(RBRACKET);
+      return RBRACKET;
 
       /* Look for multi-character sequences */
       
@@ -528,11 +544,11 @@ void scanner_set_location(String *file, int line) {
   Scanner_set_location(scan,file,line-1);
 }
 
-void scanner_check_typedef() {
+void scanner_check_typedef(void) {
   check_typedef = 1;
 }
 
-void scanner_ignore_typedef() {
+void scanner_ignore_typedef(void) {
   check_typedef = 0;
 }
 
@@ -540,7 +556,7 @@ void scanner_last_id(int x) {
   last_id = x;
 }
 
-void scanner_clear_rename() {
+void scanner_clear_rename(void) {
   rename_active = 0;
 }
 
@@ -554,7 +570,7 @@ void scanner_set_main_input_file(String *file) {
   main_input_file = file;
 }
 
-String *scanner_get_main_input_file() {
+String *scanner_get_main_input_file(void) {
   return main_input_file;
 }
 

@@ -7,6 +7,196 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-08-11: wsfulton
+            [Lua] Add support for std::unique_ptr in std_unique_ptr.i.
+            Add support for std::auto_ptr in std_auto_ptr.i.
+
+2022-08-05: wsfulton
+            [D] Fix occasional undefined behaviour with inheritance hierarchies, particularly
+            when using virtual inheritance as the pointers weren't correctly upcast from derived
+            class to base class when stored in the base's proxy class.
+
+2022-08-05: wsfulton
+            [D] Add support for std::unique_ptr in std_unique_ptr.i.
+            Add support for std::auto_ptr in std_auto_ptr.i.
+
+2022-08-03: wsfulton
+            [Javascript] Add support for std::unique_ptr in std_unique_ptr.i.
+            Add support for std::auto_ptr in std_auto_ptr.i.
+
+2022-08-02: wsfulton
+            [Octave] Add support for std::unique_ptr in std_unique_ptr.i.
+            Add support for std::auto_ptr in std_auto_ptr.i.
+
+2022-08-01: wsfulton
+            [Python] Add initialisers for additional members in PyHeapTypeObject
+            (builtin mode) for Python-3.11 - _ht_tpname, _spec_cache.
+
+2022-07-30: wsfulton
+            C++20 has deprecated std::basic_string<>::reserve() and the C++11 method
+            std::basic_string<>::shrink_to_fit() is a replacement that can be used.
+            std_string.i and std_wstring.i provided wrappers for reserve with the following
+            template instantiations:
+
+              %template(string) std::basic_string<char>;
+              %template(wstring) std::basic_string<wchar_t>;
+
+            The reserve method is no longer wrapped, however the shrink_to_fit() method
+            can be used as an alternative from the target language (the generated wrappers
+            call reserve() instead if C++<=20).
+
+            Note that std::basic_string<>::reserve(size_t n) is still wrapped unchanged.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2022-07-30: wsfulton
+            [Tcl] Add support for std::unique_ptr in std_unique_ptr.i.
+            Add support for std::auto_ptr in std_auto_ptr.i.
+
+2022-07-27: ZackerySpytz, olly
+	    #1678 Support parsing C++20 templated lambdas.
+
+2022-07-27: ZackerySpytz, olly
+	    #1622 Add support for the C++20 spaceship operator (<=>).
+
+2022-07-26: olly
+	    [Tcl] https://sourceforge.net/p/swig/bugs/977/
+	    Fix handling of long long on 32-bit platforms.  This fix raises
+	    SWIG's minimum supported Tcl version to 8.4.0 (which was released
+	    just under 20 years ago).
+
+2022-07-26: olly
+            Fix incorrect operator precedence in preprocessor expressions.
+
+2022-07-25: olly
+	    Support for C++14 binary integer literals in preprocessor expressions.
+
+2022-07-20: wsfulton
+            [C#, Java] Ensure the order of interfaces generated in proxy interfaces for the
+            %interface family of macros is the same as that parsed from the bases in C++.
+
+2022-07-20: jicks, Ingener74, olly
+	    #422 [Python] Fix mishandling of a Python class inheriting from
+	    multiple SWIG-wrapped director classes.
+
+2022-07-19: wsfulton
+            #692 [C#, Java, Perl, Python, Ruby] std::unique_ptr and std::auto_ptr typemaps
+            provided for inputs types in std_unique_ptr.i and std_auto_ptr.i.
+
+            Now these smart pointers can be used as input parameters to functions. A proxy
+            class instance transfers memory ownership of the underlying C++ object from the
+            proxy class to a smart pointer instance passed to the wrapped function.
+
+2022-07-19: jschueller
+	    [Python] #2314 Drop support for Python 3.2.
+
+2022-07-19: olly
+	    Remove remaining support code for classic macos, which has not been
+	    supported by Apple for over 20 years now.
+
+2022-07-12: wsfulton
+            Performance optimisation for parameters passed by value that are C++11 movable.
+            The C++ wrappers create a temporary variable for a parameter to be passed to a
+            function. This is initially default constructed and then copy assigned from the
+            instance being passed in from the target language. This is unchanged, however,
+            when the temporary variable is passed to wrapped function, it is now done using
+            std::move. If the type is move constructible, the move constructor will be used
+            instead of the copy constructor.
+
+2022-07-12: wsfulton
+            [Perl] Add std::auto_ptr support in std_auto_ptr.i library file.
+
+2022-07-12: erezgeva
+            [Perl] Add std::unique_ptr support in std_unique_ptr.i library file.
+
+2022-07-07: olly
+	    [xml] #2213 XML has been moved to "Experimental" target language
+	    status. It's not in good shape and is likely to be removed unless
+	    somebody steps up to bring it up to the expected standard (it fails
+	    to even meet the criteria for "Experimental" currently).
+
+2022-07-07: jmarrec
+	    #1158 #2286 Add basic support for C++11 attributes.  These are now
+	    crudely ignored by SWIG's parser's tokeniser, which is better that
+	    failing with a parse error.
+
+2022-07-05: ianlancetaylor
+	    [Go] #2245 Handle NULL pointers for string* conversions.
+	    Rearrange generation of director methods and rename
+	    receiver argument from p to swig_p.
+
+2022-07-03: wsfulton
+            Performance optimisation for directors for classes passed by value. The directorin
+            typemaps in the director methods now use std::move on the input parameter when
+            copying the object from the stack to the heap prior to the callback into the target
+            language, thereby taking advantage of move semantics if available.
+
+2022-07-02: wsfulton
+            #1722 [C#, Java, Python, Ruby] Add std::unique_ptr support. Ported from std::auto_ptr.
+            Use the %unique_ptr(T) macro as follows for usage std::unique_ptr<T>. For example, for
+            a class called Klass:
+
+              %include "std_unique_ptr.i"
+              %unique_ptr(Klass)
+
+            Support is currently limited to only returning a std::unique_ptr from a function.
+
+2022-06-29: wsfulton
+            #999 #1044 Enhance SWIGTYPE "out" typemaps to use std::move when copying
+            objects, thereby making use of move semantics when wrapping a function returning
+            by value if the returned type supports move semantics.
+
+            Wrapping functions that return move only types 'by value' now work out the box
+            without having to provide custom typemaps.
+
+            The implementation removed all casts in the "out" typemaps to allow the compiler to
+            appropriately choose calling a move constructor, where possible, otherwise a copy
+            constructor. The implementation also required modifying SwigValueWrapper to
+            change a cast operator from:
+
+              SwigValueWrapper::operator T&() const;
+
+            to
+
+              #if __cplusplus >=201103L
+                SwigValueWrapper::operator T&&() const;
+              #else
+                SwigValueWrapper::operator T&() const;
+              #endif
+
+            This is not backwards compatible for C++11 and later when using the valuewrapper feature
+            if a cast is explicitly being made in user supplied "out" typemaps. Suggested change
+            in custom "out" typemaps for C++11 and later code:
+
+            1. Try remove the cast altogether to let the compiler use an appropriate implicit cast.
+            2. Change the cast, for example, from static_cast<X &> to static_cast<X &&>, using the
+               __cplusplus macro if all versions of C++ need to be supported.
+
+            *** POTENTIAL INCOMPATIBILITY ***
+
+2022-06-15: wsfulton
+            #2039 Add move assignment operator to SwigValueWrapper used by the
+            valuewrapper feature.
+
+2022-06-04: sethrj
+            Enhance $typemap to support typemap attributes.
+
+              $typemap(method:attribute, typepattern)
+
+            For example:
+
+              %typemap(cstype, out="object") XClass "XClass"
+              %typemap(cscode) BarClass %{
+                $typemap(cstype:out, XClass) bar() {
+                  return null;
+                }
+
+              which expands to
+
+                object bar() {
+                  return null;
+                }
+
 2022-05-30: wsfulton
             [C#, D] Add new special variable expansion: $imfuncname.
             Expands to the function name called in the intermediary class.
@@ -38,7 +228,7 @@ Version 4.1.0 (in progress)
 
 2022-05-26: rokups
             [C#] #1323 Modify SwigDerivedClassHasMethod for a more efficient director
-            implementation when calling virtual methods that are not overidden.
+            implementation when calling virtual methods that are not overridden.
 
 2022-05-15: erezgeva, eiselekd
             [Lua, Perl, Octave, PHP, Tcl] #2275 #2276 #2283 Add argcargv.i library containing

@@ -210,6 +210,7 @@ SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_
   swig_cast_info *tc;
   void *voidptr = (void *)0;
   SV *tsv = 0;
+  int check_owned_pointer_release = (flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE;
 
   if (own)
     *own = 0;
@@ -286,13 +287,14 @@ SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_
   /* 
    *  DISOWN implementation: we need a perl guru to check this one.
    */
-  if (tsv && (flags & SWIG_POINTER_DISOWN)) {
+  if (tsv && ((flags & SWIG_POINTER_DISOWN) || check_owned_pointer_release)) {
     /* 
      *  almost copy paste code from below SWIG_POINTER_OWN setting
      */
     SV *obj = sv;
     HV *stash = SvSTASH(SvRV(obj));
     GV *gv = *(GV**)hv_fetch(stash, "OWNER", 5, TRUE);
+    int owned = 0;
     if (isGV(gv)) {
       HV *hv = GvHVn(gv);
       /*
@@ -300,10 +302,21 @@ SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_
        * Hence, to remove ownership, we delete the entry.
        */
       if (hv_exists_ent(hv, obj, 0)) {
-	hv_delete_ent(hv, obj, 0, 0);
+        owned = 1;
+        if (flags & SWIG_POINTER_DISOWN) {
+          hv_delete_ent(hv, obj, 0, 0);
+        }
       }
     }
+    if (check_owned_pointer_release && !owned) {
+      return SWIG_ERROR_RELEASE_NOT_OWNED;
+    }
   }
+
+  if (tsv && (flags & SWIG_POINTER_CLEAR)) {
+    SvIV_set(tsv, 0);
+  }
+
   return SWIG_OK;
 }
 

@@ -1486,19 +1486,12 @@ public:
       int i;
       char source[256];
 
-      int outputs = 0;
-      if (!is_void)
-	outputs++;
-
       /* build argument list and type conversion string */
       for (i = 0, idx = 0, p = l; i < num_arguments; i++) {
 
 	while (Getattr(p, "tmap:ignore")) {
 	  p = Getattr(p, "tmap:ignore:next");
 	}
-
-	if (Getattr(p, "tmap:directorargout") != 0)
-	  outputs++;
 
 	String *pname = Getattr(p, "name");
 	String *ptype = Getattr(p, "type");

@@ -40,6 +40,7 @@
 <li><a href="#Library_shared_ptr_templates">shared_ptr and templates</a>
 <li><a href="#Library_shared_ptr_directors">shared_ptr and directors</a>
 </ul>
+<li><a href="#Library_std_unique_ptr">unique_ptr smart pointer</a>
 <li><a href="#Library_std_auto_ptr">auto_ptr smart pointer</a>
 </ul>
 <li><a href="#Library_nn16">Utility Libraries</a>
@@ -2040,38 +2041,41 @@ The SWIG code below shows the required ordering:
 The languages that support shared_ptr also have support for using shared_ptr with directors.
 </p>
 
-
-<H3><a name="Library_std_auto_ptr">12.4.5 auto_ptr smart pointer</a></H3>
+<H3><a name="Library_std_unique_ptr">12.4.5 unique_ptr smart pointer</a></H3>
 
 
 <p>
-While <tt>std::auto_ptr</tt> is deprecated in C++11, some existing code may
-still be using it, so SWIG provides limited support for this class:
-<tt>std_auto_ptr.i</tt> defines the typemaps which apply to the functions
-returning objects of this type. Any other use of <tt>std_auto_ptr.i</tt> is not
-directly supported.
+The <tt>std_unique_ptr.i</tt> library file provides SWIG's unique_ptr support.
+It defines typemaps and a macro, <tt>%unique_ptr(T)</tt>, to use for handling
+<tt>std::unique_ptr&lt;T&gt;</tt> for a type <tt>T</tt>.
+The type <tt>T</tt> must be non-primitive.
+This macro should be used before any code declaring or using type <tt>T</tt>.
+Ordering requirements for using this smart pointer macro are the same as the
+equivalent <tt>%shared_ptr(T)</tt> macro covered in the previous section.
 </p>
 
 <p>
-A typical example of use would be
+Example usage of a <tt>std::unique_ptr</tt> being returned from a function is shown below.
 </p>
+
 <div class="code">
 <pre>
-%include &lt;std_auto_ptr.i&gt;
+%include &lt;std_unique_ptr.i&gt;
 
-%auto_ptr(Klass)
+%unique_ptr(Klass)
 %inline %{
+#include &lt;memory&gt;
 class Klass {
 public:
   // Factory function creating objects of this class:
-  static std::auto_ptr&lt;Klass&gt; Create(int value) {
-    return std::auto_ptr&lt;Klass&gt;(new Klass(value));
+  static std::unique_ptr&lt;Klass&gt; Create(int value) {
+    return std::unique_ptr&lt;Klass&gt;(new Klass(value));
   }
 
   int getValue() const { return m_value; }
 
 private:
-  DerivedIntValue(int value) : m_value(value) {}
+  Klass(int value) : m_value(value) {}
   int m_value;
 };
 %}
@@ -2089,6 +2093,144 @@ Klass k = Klass.Create(17);
 int value = k.getValue();
 </pre>
 </div>
+
+<p>
+The implementation simply calls <tt>std::unique_ptr::release()</tt> to obtain
+the underlying raw pointer. The pointer is then used to create a target language
+proxy class in the same way that SWIG handles a C++ function returning a class by value.
+The target language proxy class then owns the memory pointed to by the raw pointer
+and memory handling is identical to normal SWIG proxy class handling of the underlying C++ memory.
+Note that an object returned by value is first copied/moved from the stack onto the heap in order to obtain
+a raw pointer on the heap, whereas the underlying raw pointer in <tt>std::unique_ptr</tt> already points to an object the heap.
+</p>
+
+<p>
+Note that the implementation is quite different to the <tt>std::shared_ptr</tt> smart pointer,
+where the proxy class manages the underlying C++ memory as a pointer to a shared_ptr instead of a plain raw pointer.
+</p>
+
+<p>
+A possibly less common usage of this smart pointer is as a parameter to a function.
+When used like this it indicates that memory usage of the object pointed to by the underlying pointer
+is transferred to the function being called.
+The code that SWIG generates assumes this happens.
+First, it is assumed that a proxy class already owns the underlying C++ object and is used to pass the object to the C++ function being called.
+Second, the ownership is transferred from the proxy class to the C++ function being called and
+lifetime is then controlled by the function.
+Finally, it is assumed the lifetime of the object may not last beyond returning from the C++ function
+and hence the proxy class can no longer be used.
+</p>
+
+<p>
+Consider expanding the example above with a function that takes a <tt>std::unique_ptr</tt> as follows:
+</p>
+
+<div class="code">
+<pre>
+void take(std::unique_ptr&lt;Klass&gt;);
+</pre>
+</div>
+
+<p>
+and use from C#:
+</p>
+
+<div class="targetlang">
+<pre>
+Klass k = Klass.Create(17); // create an instance of Klass any way you like
+int value = k.getValue();   // ok
+example.take(k);            // memory ownership passes from C# layer to C++ layer
+int v = k.getValue();       // don't do this - invalid use of k
+</pre>
+</div>
+
+<p>
+Attempts to use <tt>k</tt> after the ownership has been passed into the <tt>take</tt> function
+should not be attempted.
+The implementation sets the proxy class to an invalid state by setting the class's underlying
+C++ pointer to null after the return from the <tt>take</tt> function.
+Subsequent use of an invalid proxy class instance is very much dependent on the implementation
+in the target language and ranges from a segfault to giving a nice error.
+Consider implementing additional checks via the 'check' typemap.
+</p>
+
+<p>
+Attempts to pass ownership from a proxy class to a <tt>std::unique</tt> parameter more than once will result
+in a "Cannot release ownership as memory is not owned" exception. For example, if <tt>example.take(k)</tt> in the example above is called twice.
+</p>
+
+<p>
+<b>Compatibility note:</b> Support for <tt>std::unique_ptr</tt> was added in SWIG-4.1.0.
+</p>
+
+<H3><a name="Library_std_auto_ptr">12.4.6 auto_ptr smart pointer</a></H3>
+
+
+<p>
+While <tt>std::auto_ptr</tt> is deprecated in C++11, some existing code may
+still be using it. SWIG provides support for this class which is nearly identical
+to <tt>std::unique_ptr</tt>.
+</p>
+
+<p>
+The <tt>std_auto_ptr.i</tt> library file provides SWIG's auto_ptr support.
+It defines typemaps and a macro, <tt>%auto_ptr(T)</tt>, to use for handling
+<tt>std::auto_ptr&lt;T&gt;</tt> for a type <tt>T</tt>.
+The type <tt>T</tt> must be non-primitive.
+This macro should be used before any code declaring or using type <tt>T</tt>.
+Ordering requirements for using this smart pointer macro are the same as the
+equivalent <tt>%shared_ptr(T)</tt> and <tt>%unique_ptr</tt> macros covered in
+the previous two sections.
+</p>
+
+<p>
+Example usage of a <tt>std::auto_ptr</tt> being returned from a function is shown below.
+</p>
+
+<div class="code">
+<pre>
+%include &lt;std_auto_ptr.i&gt;
+
+%auto_ptr(Klass)
+%inline %{
+#include &lt;memory&gt;
+class Klass {
+public:
+  // Factory function creating objects of this class:
+  static std::auto_ptr&lt;Klass&gt; Create(int value) {
+    return std::auto_ptr&lt;Klass&gt;(new Klass(value));
+  }
+
+  int getValue() const { return m_value; }
+
+private:
+  Klass(int value) : m_value(value) {}
+  int m_value;
+};
+%}
+</pre>
+</div>
+
+<p>
+The returned objects can be used naturally from the target language, e.g. from
+C#:
+</p>
+
+<div class="targetlang">
+<pre>
+Klass k = Klass.Create(17);
+int value = k.getValue();
+</pre>
+</div>
+
+<p>
+The implementation simply calls <tt>std::auto_ptr::release()</tt> to obtain the underlying raw pointer.
+That is, it works the same way covered in the previous section for <tt>std::unique_ptr</tt>.
+</p>
+
+<p>
+Input parameters also work the same way as <tt>std::unique_ptr</tt> covered in the previous section.
+</p>
 
 <H2><a name="Library_nn16">12.5 Utility Libraries</a></H2>
 

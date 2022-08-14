@@ -48,6 +48,7 @@
 <ul>
 <li><a href="#Typemaps_special_macro_descriptor">$descriptor(type)</a>
 <li><a href="#Typemaps_special_macro_typemap">$typemap(method, typepattern)</a>
+<li><a href="#Typemaps_special_macro_typemap_attribute">$typemap(method:attribute, typepattern)</a>
 </ul>
 <li><a href="#Typemaps_special_variable_attributes">Special variables and typemap attributes</a>
 <li><a href="#Typemaps_special_variables_and_macros">Special variables combined with special variable macros</a>
@@ -2459,11 +2460,12 @@ The result is the following expansion
 
 <H4><a name="Typemaps_special_macro_typemap_attribute">14.4.4.3 $typemap(method:attribute, typepattern)</a></H4>
 
+
 <p>
 An enhanced version of <tt>$typemap</tt> provides access to typemap attributes by
-appending a colon and the attribute name after the attribute name. In the example below,
+appending a colon and the attribute name after the method name. In the example below,
 "cstype" is the typemap method and "out" is the typemap attribute.
-<p>
+</p>
 
 <div class="code">
 <pre>
@@ -3362,7 +3364,7 @@ Consider running the following code through SWIG:
 <div class="code">
 <pre>
 %typemap(out) SWIGTYPE %{
-  $result = new $1_ltype((const $1_ltype &amp;)$1);
+  $result = new $1_ltype($1);
 %}
 
 %inline %{
@@ -3412,7 +3414,7 @@ If the typemap code is kept the same and just the "optimal" attribute specified 
 <div class="code">
 <pre>
 %typemap(out, optimal="1") SWIGTYPE %{
-  $result = new $1_ltype((const $1_ltype &amp;)$1);
+  $result = new $1_ltype($1);
 %}
 </pre>
 </div>
@@ -3439,7 +3441,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_XX_create() {
   void * jresult ;
   XX result;
   result = XX::create();
-  jresult = new XX((const XX &amp;)result);
+  jresult = new XX(result);
   return jresult;
 }
 
@@ -3454,7 +3456,7 @@ With the "optimal" attribute, the code is:
 <pre>
 SWIGEXPORT void * SWIGSTDCALL CSharp_XX_create() {
   void * jresult ;
-  jresult = new XX((const XX &amp;)XX::create());
+  jresult = new XX(XX::create());
   return jresult;
 }
 </pre>
@@ -3511,7 +3513,7 @@ It should be clear that the above code cannot be used as the argument to the cop
 </p>
 
 <p>
-Secondly, if the typemaps uses <tt>$1</tt> more than once, then multiple calls to the wrapped function
+Secondly, if the typemap uses <tt>$1</tt> more than once, then multiple calls to the wrapped function
 will be made. Obviously that is not very optimal.
 In fact SWIG attempts to detect this and will issue a warning something like:
 </p>

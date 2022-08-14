@@ -21,7 +21,7 @@ Perl 5 Options (available with -perl5)\n\
      -const          - Wrap constants as constants and not variables (implies -proxy)\n\
      -nopm           - Do not generate the .pm file\n\
      -noproxy        - Don't create proxy classes\n\
-     -proxy          - Create proxy classes\n\
+     -proxy          - Create proxy classes (enabled by default)\n\
      -static         - Omit code related to dynamic loading\n\
 \n";
 

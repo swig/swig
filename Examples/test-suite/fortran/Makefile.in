@@ -61,6 +61,7 @@ FAILING_CPP_TESTS += \
 	director_frob \
 	director_ignore \
 	director_keywords \
+	director_multiple_inheritance \
 	director_namespace_clash \
 	director_nested \
 	director_nspace \
@@ -85,6 +86,7 @@ FAILING_CPP_TESTS += \
 	global_scope_types \
 	grouping \
 	li_boost_shared_ptr_director \
+	li_std_auto_ptr \
 	member_funcptr_galore \
 	member_pointer \
 	member_pointer_const \

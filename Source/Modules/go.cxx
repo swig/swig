@@ -3580,11 +3580,162 @@ private:
 
       Printv(f_go_wrappers, "}\n\n", NULL);
 
-      // Define a method in the C++ director class that the C++ upcall
-      // function can call.  This permits an upcall to a protected
-      // method.
-
       if (!GetFlag(n, "abstract")) {
+	// Define a function that uses the Go director type that other
+	// methods in the Go type can call to get parent methods.
+
+	Printv(f_go_wrappers, "func Director", cn, go_with_over_name, "(swig_p ", cn, NULL);
+
+	p = parms;
+	for (int i = 0; i < parm_count; ++i) {
+	  p = getParm(p);
+	  Printv(f_go_wrappers, ", ", Getattr(p, "lname"), " ", NULL);
+	  String *tm = goType(p, Getattr(p, "type"));
+	  Printv(f_go_wrappers, tm, NULL);
+	  Delete(tm);
+	  p = nextParm(p);
+	}
+
+	Printv(f_go_wrappers, ")", NULL);
+
+	if (SwigType_type(result) != T_VOID) {
+	  String *tm = goType(n, result);
+	  Printv(f_go_wrappers, " ", tm, NULL);
+	  Delete(tm);
+	}
+
+	Printv(f_go_wrappers, " {\n", NULL);
+
+	String *ret_type = NULL;
+	bool memcpy_ret = false;
+	String *wt = NULL;
+	String *goout = NULL;
+	if (SwigType_type(result) != T_VOID) {
+	  ret_type = goImType(n, result);
+	  Printv(f_go_wrappers, "\tvar swig_r ", ret_type, "\n", NULL);
+	  goout = goTypemapLookup("goout", n, "swig_r");
+
+	  bool c_struct_type;
+	  Delete(cgoTypeForGoValue(n, result, &c_struct_type));
+	  if (c_struct_type) {
+	    memcpy_ret = true;
+	  }
+	}
+
+	String *call = NewString("");
+
+	Printv(call, "\t", NULL);
+	if (SwigType_type(result) != T_VOID) {
+	  if (memcpy_ret) {
+	    Printv(call, "swig_r_p := ", NULL);
+	  } else {
+	    Printv(call, "swig_r = (", ret_type, ")(", NULL);
+	  }
+	  if (goTypeIsInterface(n, result)) {
+	    wt = goWrapperType(n, result, true);
+	    Printv(call, "(", wt, ")(", NULL);
+	  }
+	}
+
+	Printv(call, "C.", upcall_wname, "(C.uintptr_t(swig_p.(*",
+	       director_struct_name, ").", go_type_name, ")", NULL);
+
+	p = parms;
+	for (int i = 0; i < parm_count; ++i) {
+	  Printv(call, ", ", NULL);
+	  p = getParm(p);
+	  SwigType *pt = Getattr(p, "type");
+
+	  String *ivar = NewStringf("_swig_i_%d", i);
+
+	  String *ln = Copy(Getattr(p, "lname"));
+
+	  String *goin = goGetattr(p, "tmap:goin");
+	  if (goin == NULL) {
+	    Printv(f_go_wrappers, "\t", ivar, " := ", NULL);
+	    bool need_close = false;
+	    if (goTypeIsInterface(p, pt)) {
+	      Printv(f_go_wrappers, "getSwigcptr(", NULL);
+	      need_close = true;
+	    }
+	    Printv(f_go_wrappers, ln, NULL);
+	    if (need_close) {
+	      Printv(f_go_wrappers, ")", NULL);
+	    }
+	    Printv(f_go_wrappers, "\n", NULL);
+	  } else {
+	    String *itm = goImType(p, pt);
+	    Printv(f_go_wrappers, "\tvar ", ivar, " ", itm, "\n", NULL);
+	    goin = Copy(goin);
+	    Replaceall(goin, "$input", ln);
+	    Replaceall(goin, "$result", ivar);
+	    Printv(f_go_wrappers, goin, "\n", NULL);
+	    Delete(goin);
+	  }
+
+	  Setattr(p, "emit:goinput", ivar);
+
+	  bool c_struct_type;
+	  String *ct = cgoTypeForGoValue(p, pt, &c_struct_type);
+	  if (c_struct_type) {
+	    Printv(call, "*(*C.", ct, ")(unsafe.Pointer(&", ivar, "))", NULL);
+	  } else {
+	    Printv(call, "C.", ct, "(", ivar, ")", NULL);
+	  }
+
+	  Delete(ln);
+
+	  p = nextParm(p);
+	}
+
+	Printv(call, ")", NULL);
+
+	if (wt) {
+	  // Close the type conversion to the wrapper type.
+	  Printv(call, ")", NULL);
+	}
+	if (SwigType_type(result) != T_VOID && !memcpy_ret) {
+	  // Close the type conversion of the return value.
+	  Printv(call, ")", NULL);
+	}
+
+	Printv(call, "\n", NULL);
+
+	Printv(f_go_wrappers, call, NULL);
+	Delete(call);
+
+	if (memcpy_ret) {
+	  Printv(f_go_wrappers, "\tswig_r = *(*", ret_type, ")(unsafe.Pointer(&swig_r_p))\n", NULL);
+	}
+
+	goargout(parms);
+
+	if (SwigType_type(result) != T_VOID) {
+	  if (goout == NULL) {
+	    Printv(f_go_wrappers, "\treturn swig_r\n", NULL);
+	  } else {
+	    String *tm = goType(n, result);
+	    Printv(f_go_wrappers, "\tvar swig_r_1 ", tm, "\n", NULL);
+	    Replaceall(goout, "$input", "swig_r");
+	    Replaceall(goout, "$result", "swig_r_1");
+	    Printv(f_go_wrappers, goout, "\n", NULL);
+	    Printv(f_go_wrappers, "\treturn swig_r_1\n", NULL);
+	  }
+	}
+
+	Printv(f_go_wrappers, "}\n\n", NULL);
+
+	if (ret_type) {
+	  Delete(ret_type);
+	}
+	if (wt) {
+	  Delete(wt);
+	}
+
+	// Define a method in the C++ director class that the C++
+	// upcall function can call.  This permits an upcall to a
+	// protected method.
+
 	String *upcall_method_name = NewString("_swig_upcall_");
 	Append(upcall_method_name, name);
 	if (overname) {
@@ -3683,157 +3834,6 @@ private:
 
 	Swig_restore(n);
 	Delete(upcall_method_name);
-
-	// Define a function that uses the Go director type that other
-	// methods in the Go type can call to get parent methods.
-
-	Printv(f_go_wrappers, "func Director", cn, go_with_over_name, "(p ", cn, NULL);
-
-	p = parms;
-	for (int i = 0; i < parm_count; ++i) {
-	  p = getParm(p);
-	  Printv(f_go_wrappers, ", ", Getattr(p, "lname"), " ", NULL);
-	  String *tm = goType(p, Getattr(p, "type"));
-	  Printv(f_go_wrappers, tm, NULL);
-	  Delete(tm);
-	  p = nextParm(p);
-	}
-
-	Printv(f_go_wrappers, ")", NULL);
-
-	if (SwigType_type(result) != T_VOID) {
-	  String *tm = goType(n, result);
-	  Printv(f_go_wrappers, " ", tm, NULL);
-	  Delete(tm);
-	}
-
-	Printv(f_go_wrappers, " {\n", NULL);
-
-	String *ret_type = NULL;
-	bool memcpy_ret = false;
-	String *wt = NULL;
-	String *goout = NULL;
-	if (SwigType_type(result) != T_VOID) {
-	  ret_type = goImType(n, result);
-	  Printv(f_go_wrappers, "\tvar swig_r ", ret_type, "\n", NULL);
-	  goout = goTypemapLookup("goout", n, "swig_r");
-
-	  bool c_struct_type;
-	  Delete(cgoTypeForGoValue(n, result, &c_struct_type));
-	  if (c_struct_type) {
-	    memcpy_ret = true;
-	  }
-	}
-
-	String *call = NewString("");
-
-	Printv(call, "\t", NULL);
-	if (SwigType_type(result) != T_VOID) {
-	  if (memcpy_ret) {
-	    Printv(call, "swig_r_p := ", NULL);
-	  } else {
-	    Printv(call, "swig_r = (", ret_type, ")(", NULL);
-	  }
-	  if (goTypeIsInterface(n, result)) {
-	    wt = goWrapperType(n, result, true);
-	    Printv(call, "(", wt, ")(", NULL);
-	  }
-	}
-
-	Printv(call, "C.", upcall_wname, "(C.uintptr_t(p.(*",
-	       director_struct_name, ").", go_type_name, ")", NULL);
-
-	p = parms;
-	for (int i = 0; i < parm_count; ++i) {
-	  Printv(call, ", ", NULL);
-	  p = getParm(p);
-	  SwigType *pt = Getattr(p, "type");
-
-	  String *ivar = NewStringf("_swig_i_%d", i);
-
-	  String *ln = Copy(Getattr(p, "lname"));
-
-	  String *goin = goGetattr(p, "tmap:goin");
-	  if (goin == NULL) {
-	    Printv(f_go_wrappers, "\t", ivar, " := ", NULL);
-	    bool need_close = false;
-	    if (goTypeIsInterface(p, pt)) {
-	      Printv(f_go_wrappers, "getSwigcptr(", NULL);
-	      need_close = true;
-	    }
-	    Printv(f_go_wrappers, ln, NULL);
-	    if (need_close) {
-	      Printv(f_go_wrappers, ")", NULL);
-	    }
-	    Printv(f_go_wrappers, "\n", NULL);
-	  } else {
-	    String *itm = goImType(p, pt);
-	    Printv(f_go_wrappers, "\tvar ", ivar, " ", itm, "\n", NULL);
-	    goin = Copy(goin);
-	    Replaceall(goin, "$input", ln);
-	    Replaceall(goin, "$result", ivar);
-	    Printv(f_go_wrappers, goin, "\n", NULL);
-	    Delete(goin);
-	  }
-
-	  Setattr(p, "emit:goinput", ivar);
-
-	  bool c_struct_type;
-	  String *ct = cgoTypeForGoValue(p, pt, &c_struct_type);
-	  if (c_struct_type) {
-	    Printv(call, "*(*C.", ct, ")(unsafe.Pointer(&", ivar, "))", NULL);
-	  } else {
-	    Printv(call, "C.", ct, "(", ivar, ")", NULL);
-	  }
-
-	  Delete(ln);
-
-	  p = nextParm(p);
-	}
-
-	Printv(call, ")", NULL);
-
-	if (wt) {
-	  // Close the type conversion to the wrapper type.
-	  Printv(call, ")", NULL);
-	}
-	if (SwigType_type(result) != T_VOID && !memcpy_ret) {
-	  // Close the type conversion of the return value.
-	  Printv(call, ")", NULL);
-	}
-
-	Printv(call, "\n", NULL);
-
-	Printv(f_go_wrappers, call, NULL);
-	Delete(call);
-
-	if (memcpy_ret) {
-	  Printv(f_go_wrappers, "\tswig_r = *(*", ret_type, ")(unsafe.Pointer(&swig_r_p))\n", NULL);
-	}
-
-	goargout(parms);
-
-	if (SwigType_type(result) != T_VOID) {
-	  if (goout == NULL) {
-	    Printv(f_go_wrappers, "\treturn swig_r\n", NULL);
-	  } else {
-	    String *tm = goType(n, result);
-	    Printv(f_go_wrappers, "\tvar swig_r_1 ", tm, "\n", NULL);
-	    Replaceall(goout, "$input", "swig_r");
-	    Replaceall(goout, "$result", "swig_r_1");
-	    Printv(f_go_wrappers, goout, "\n", NULL);
-	    Printv(f_go_wrappers, "\treturn swig_r_1\n", NULL);
-	  }
-	}
-
-	Printv(f_go_wrappers, "}\n\n", NULL);
-
-	if (ret_type) {
-	  Delete(ret_type);
-	}
-	if (wt) {
-	  Delete(wt);
-	}
       }
 
       // The Go function which invokes the method.  This is called by

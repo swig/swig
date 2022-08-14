@@ -15,6 +15,9 @@
 <li><a href="#CPlusPlus11_core_language_changes">Core language changes</a>
 <ul>
 <li><a href="#CPlusPlus11_rvalue_reference_and_move_semantics">Rvalue reference and move semantics</a>
+<ul>
+<li><a href="#CPlusPlus11_move_only">Movable and move-only types</a>
+</ul>
 <li><a href="#CPlusPlus11_generalized_constant_expressions">Generalized constant expressions</a>
 <li><a href="#CPlusPlus11_extern_template">Extern template</a>
 <li><a href="#CPlusPlus11_initializer_lists">Initializer lists</a>
@@ -122,6 +125,82 @@ The plan is to ignore move constructors by default in a future version of SWIG. 
 example.i:18: Warning 503: Can't wrap 'operator =' unless renamed to a valid identifier.
 </pre>
 </div>
+
+<H4><a name="CPlusPlus11_move_only">7.2.1.1 Movable and move-only types</a></H4>
+
+
+<p>
+SWIG has traditionally relied on wrapped C++ types to be copy constructible or copy assignable, either via an explicit or implicit copy constructor and copy assignment operator.
+Prior to C++11, a function could not return nor take a type by value that was not copyable.
+In C++11 this is no longer the case. A type can also be movable if it has has a move constructor and a move assignment operator.
+A move-only type is movable but not copyable; it has both the copy constructor and copy assignment operator deleted.
+Movable types can appear in function signatures for passing 'by value' and in C++11 the object can then be moved rather than copied.
+</p>
+
+<p>
+SWIG has been enhanced with support for both copyable and/or movable types but this is currently just for function return values.
+</p>
+
+<p>
+The support for function return values is generically implemented in the "out" <tt>SWIGTYPE</tt> typemap which supports any type, including copyable, movable and move-only types.
+The typemap code is very simple and written so that the compiler will call the move constructor if possible,
+otherwise the copy constructor:
+</p>
+
+<div class="code"><pre>
+%typemap(out) SWIGTYPE %{
+  $result = new $1_ltype($1);
+%}
+</pre></div>
+
+<p>
+The above typemap is for C# and when used to wrap a move-only type such as:
+</p>
+
+<div class="code"><pre>
+struct MoveOnly {
+  int  val;
+  MoveOnly(): val(0)  {}
+
+  MoveOnly(const MoveOnly &amp;) = delete;
+  MoveOnly(MoveOnly &amp;&amp;) = default;
+
+  MoveOnly &amp; operator=(const MoveOnly &amp;) = delete;
+  MoveOnly &amp; operator=(MoveOnly &amp;&amp;) = default;
+
+  static MoveOnly create() { return MoveOnly(); }
+};
+</pre></div>
+
+<p>
+will generate wrapper code for the <tt>create</tt> factory method:
+</p>
+
+<div class="code"><pre>
+SWIGEXPORT void * SWIGSTDCALL CSharp_MoveOnly_create() {
+  void * jresult ;
+  SwigValueWrapper&lt; MoveOnly &gt; result;
+
+  result = MoveOnly::create();
+  jresult = new MoveOnly(result);
+  return jresult;
+}
+</pre></div>
+
+<p>
+<tt>SwigValueWrapper</tt> is covered in <a href="SWIGPlus.html#SWIGPlus_nn19">Pass and return by value</a>.
+Note that the generated code could be optimised further using the <a href="Typemaps.html#Typemaps_optimal">"optimal" attribute</a> in the "out" typemap.
+</p>
+
+<p>
+There is currently only partial support for move-only types as
+support for move-only types used as a parameter in a function, that are passed 'by value', is not yet available.
+</p>
+
+<p>
+<b>Compatibility note:</b>
+SWIG-4.1.0 introduced support for taking advantage of types with move semantics and wrapping functions that return movable or move-only types 'by value'.
+</p>
 
 
 <H3><a name="CPlusPlus11_generalized_constant_expressions">7.2.2 Generalized constant expressions</a></H3>
@@ -1010,7 +1089,9 @@ Use the preprocessor to work around this for now:
 
 
 <p>
-Attributes such as those shown below, are not yet supported and will give a syntax error.
+Attributes such as those shown below, are supported since SWIG 4.1.0 but are
+currently crudely ignored by the parser's tokeniser so they have no effect on
+SWIG's code generation.
 </p>
 
 <div class="code"><pre>
@@ -1157,8 +1238,10 @@ While SWIG could provide wrappers for the new C++11 regular expressions classes,
 
 <p>
 SWIG provides special smart pointer handling for <tt>std::shared_ptr</tt> in the same way it has support for <tt>boost::shared_ptr</tt>.
-Please see the <a href="Library.html#Library_std_shared_ptr">shared_ptr smart pointer</a> library section.
-There is no special smart pointer handling available for <tt>std::weak_ptr</tt> and <tt>std::unique_ptr</tt> yet.
+Please see the <a href="Library.html#Library_std_shared_ptr">shared_ptr smart pointer</a>
+and <a href="Library.html#Library_std_unique_ptr">unique_ptr smart pointer</a> library sections.
+There is no special smart pointer handling available for <tt>std::weak_ptr</tt>.
+
 </p>
 
 <H3><a name="CPlusPlus11_extensible_random_number_facility">7.3.6 Extensible random number facility</a></H3>

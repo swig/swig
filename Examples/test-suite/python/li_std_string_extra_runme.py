@@ -15,6 +15,11 @@ if li_std_string_extra.test_value(x) != x:
 if li_std_string_extra.test_const_reference(x) != x:
     raise RuntimeError("bad string mapping")
 
+s = li_std_string_extra.string("1234567890")
+size = s.size()
+if size != 10:
+    raise "Incorrect size"
+s.shrink_to_fit()
 
 s = li_std_string_extra.string("he")
 #s += "ll"

@@ -11,8 +11,8 @@
 # error "This version of SWIG only supports Python >= 2.7"
 #endif
 
-#if PY_VERSION_HEX >= 0x03000000 && PY_VERSION_HEX < 0x03020000
-# error "This version of SWIG only supports Python 3 >= 3.2"
+#if PY_VERSION_HEX >= 0x03000000 && PY_VERSION_HEX < 0x03030000
+# error "This version of SWIG only supports Python 3 >= 3.3"
 #endif
 
 /* Common SWIG API */
@@ -792,6 +792,7 @@ SwigPyObject_append(PyObject* v, PyObject* next)
     PyErr_SetString(PyExc_TypeError, "Attempt to append a non SwigPyObject");
     return NULL;
   }
+  ((SwigPyObject *)next)->next = sobj->next;
   sobj->next = next;
   Py_INCREF(next);
   return SWIG_Py_Void();
@@ -1357,12 +1358,19 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
     }
   }
   if (sobj) {
-    if (own)
-      *own = *own | sobj->own;
-    if (flags & SWIG_POINTER_DISOWN) {
-      sobj->own = 0;
+    if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !sobj->own) {
+      res = SWIG_ERROR_RELEASE_NOT_OWNED;
+    } else {
+      if (own)
+        *own = *own | sobj->own;
+      if (flags & SWIG_POINTER_DISOWN) {
+        sobj->own = 0;
+      }
+      if (flags & SWIG_POINTER_CLEAR) {
+        sobj->ptr = 0;
+      }
+      res = SWIG_OK;
     }
-    res = SWIG_OK;
   } else {
     if (implicit_conv) {
       SwigPyClientData *data = ty ? (SwigPyClientData *) ty->clientdata : 0;
@@ -1758,7 +1766,6 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
       } else {
 	PyErr_Format(type, "%s %s", errmesg, mesg);
       }
-      SWIG_Python_str_DelForPy3(tmp);
       Py_DECREF(old_str);
     }
     return 1;
@@ -1810,7 +1817,6 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
 	if (cstr) {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s(%s)' is received",
 		       type, otype, cstr);
-          SWIG_Python_str_DelForPy3(cstr);
 	} else {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
 		       type, otype);
