@@ -208,10 +208,20 @@ SWIG_ConvertPtrAndOwn(zval *z, void **ptr, swig_type_info *ty, int flags, swig_o
 	  *ptr = NULL;
 	}
       }
-      if (*ptr == NULL) return SWIG_ERROR;
-      if (flags & SWIG_POINTER_DISOWN) {
-	value->newobject = 0;
+
+      if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !value->newobject) {
+        return SWIG_ERROR_RELEASE_NOT_OWNED;
+      } else {
+        if (*ptr == NULL)
+          return SWIG_ERROR; /* should be SWIG_NullReferenceError?? */
+        if (flags & SWIG_POINTER_DISOWN) {
+          value->newobject = 0;
+        }
+        if (flags & SWIG_POINTER_CLEAR) {
+          value->ptr = 0;
+        }
       }
+
       return SWIG_OK;
     }
     case IS_NULL:

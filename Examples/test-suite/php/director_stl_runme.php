@@ -26,7 +26,7 @@ class MyFoo extends Foo {
     return $v;
   }
 
-  function vsecond($v1, $v2) {
+  function vsecond($v1, $v2 = NULL) {
     return $v2;
   }
 }

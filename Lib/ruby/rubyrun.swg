@@ -281,6 +281,11 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
     own->own = 0;
   }
     
+  if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE)) {
+    if (!RDATA(obj)->dfree)
+      return SWIG_ERROR_RELEASE_NOT_OWNED;
+  }
+
   /* Check to see if the input object is giving up ownership
      of the underlying C struct or C++ object.  If so then we
      need to reset the destructor since the Ruby object no 
@@ -292,7 +297,7 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
       swig_class *sklass = (swig_class *) ty->clientdata;
       track = sklass->trackObjects;
     }
-		
+
     if (track) {
       /* We are tracking objects for this class.  Thus we change the destructor
        * to SWIG_RubyRemoveTracking.  This allows us to
@@ -304,6 +309,10 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
     } else {    
       RDATA(obj)->dfree = 0;
     }
+  }
+
+  if (flags & SWIG_POINTER_CLEAR) {
+    DATA_PTR(obj) = 0;
   }
 
   /* Do type-checking if type info was provided */

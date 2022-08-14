@@ -596,10 +596,6 @@ static int look(Scanner *s) {
 	state = 3;
       else if (c == '\\')
 	return SWIG_TOKEN_BACKSLASH;
-      else if (c == '[')
-	return SWIG_TOKEN_LBRACKET;
-      else if (c == ']')
-	return SWIG_TOKEN_RBRACKET;
       else if (c == '@')
 	return SWIG_TOKEN_AT;
       else if (c == '$')
@@ -637,6 +633,10 @@ static int look(Scanner *s) {
 
       else if (c == '.')
 	state = 100;		/* Maybe a number, maybe ellipsis, just a period */
+      else if (c == '[')
+        state = 102;            /* Maybe a bracket or a double bracket */
+      else if (c == ']')
+        state = 103;            /* Maybe a bracket or a double bracket */
       else if (isdigit(c))
 	state = 8;		/* A numerical value */
       else
@@ -893,9 +893,16 @@ static int look(Scanner *s) {
       }
       if (c == '<')
 	state = 240;
-      else if (c == '=')
-	return SWIG_TOKEN_LTEQUAL;
-      else {
+      else if (c == '=') {
+	if ((c = nextchar(s)) == 0) {
+	  return SWIG_TOKEN_LTEQUAL;
+	} else if (c == '>' && cparse_cplusplus) { /* Spaceship operator */
+	  return SWIG_TOKEN_LTEQUALGT;
+	} else {
+	  retract(s, 1);
+	  return SWIG_TOKEN_LTEQUAL;
+	}
+      } else {
 	retract(s, 1);
 	brackets_increment(s);
 	return SWIG_TOKEN_LESSTHAN;
@@ -1355,6 +1362,31 @@ static int look(Scanner *s) {
       } else {
 	retract(s, 2);
 	return SWIG_TOKEN_PERIOD;
+      }
+      break;
+
+    /* A left bracket or a double left bracket */
+    case 102:
+
+      if ((c = nextchar(s)) == 0) {
+        return SWIG_TOKEN_LBRACKET;
+      } else if (c == '[') {
+        return SWIG_TOKEN_LLBRACKET;
+      } else {
+        retract(s, 1);
+        return SWIG_TOKEN_LBRACKET;
+      }
+      break;
+
+    /* a right bracket or a double right bracket */
+    case 103:
+      if ((c = nextchar(s)) == 0) {
+        return SWIG_TOKEN_RBRACKET;
+      } else if (c == ']') {
+        return SWIG_TOKEN_RRBRACKET;
+      } else {
+        retract(s, 1);
+        return SWIG_TOKEN_RBRACKET;
       }
       break;
 

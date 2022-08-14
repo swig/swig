@@ -1,0 +1,2 @@
+cpp_pp_expressions_bad.i:5: Warning 202: Could not evaluate expression '(4 <=> 2) < 0'
+cpp_pp_expressions_bad.i:5: Warning 202: Spaceship operator (<=>) not allowed in preprocessor expression

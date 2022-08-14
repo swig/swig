@@ -193,6 +193,37 @@ try {
   }
 %}
 
+%typemap(javabody) SWIGTYPE %{
+  private transient long swigCPtr;
+  protected transient boolean swigCMemOwn;
+
+  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
+    swigCMemOwn = cMemoryOwn;
+    swigCPtr = cPtr;
+  }
+
+  protected static long getCPtr($javaclassname obj) {
+    return (obj == null) ? 0 : obj.swigCPtr;
+  }
+
+  protected static long swigRelease($javaclassname obj) {
+    long ptr = 0;
+    if (obj != null) {
+      if (!obj.swigCMemOwn)
+        throw new RuntimeException("Cannot release ownership as memory is not owned");
+      ptr = obj.swigCPtr;
+      obj.swigCMemOwn = false;
+      try {
+        obj.delete();
+      } catch (MyException e) {
+        throw new RuntimeException(e);
+      }
+    }
+    return ptr;
+  }
+%}
+
+
 %inline %{
 struct NoExceptTest {
   unsigned int noExceptionPlease() { return 123; }

@@ -97,7 +97,6 @@ String *Swig_director_declaration(Node *n) {
 
 String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
   String *func;
-  int i = 0;
   int comma = 0;
   Parm *p = parms;
   SwigType *pt;
@@ -115,7 +114,6 @@ String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
       pname = Getattr(p, "name");
       Printf(func, "%s", pname);
       comma = 1;
-      i++;
     }
     p = nextSibling(p);
   }

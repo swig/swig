@@ -11,8 +11,8 @@
  * Module to return documentation for nodes formatted for PyDoc
  * ----------------------------------------------------------------------------- */
 
-#ifndef PYDOCCONVERTER_H_
-#define PYDOCCONVERTER_H_
+#ifndef SWIG_PYDOC_H
+#define SWIG_PYDOC_H
 
 #include <list>
 #include <string>

@@ -34,11 +34,11 @@
 %{
 #include <vector>
 
-Tcl_Obj* SwigString_FromString(const std::string &s) {
+SWIGINTERN Tcl_Obj* SwigString_FromString(const std::string &s) {
     return Tcl_NewStringObj(s.data(), (int)s.length());
 }
 
-int Tcl_GetBoolFromObj(Tcl_Interp *interp, Tcl_Obj *o, bool *val) {
+SWIGINTERN int Tcl_GetBoolFromObj(Tcl_Interp *interp, Tcl_Obj *o, bool *val) {
   int v;
   int res = Tcl_GetBooleanFromObj(interp, o, &v);
   if (res == TCL_OK) {
@@ -47,7 +47,7 @@ int Tcl_GetBoolFromObj(Tcl_Interp *interp, Tcl_Obj *o, bool *val) {
   return res;  
 }
  
-int SwigString_AsString(Tcl_Interp *interp, Tcl_Obj *o, std::string *val) {
+SWIGINTERN int SwigString_AsString(Tcl_Interp *interp, Tcl_Obj *o, std::string *val) {
     int len;
     const char* temp = Tcl_GetStringFromObj(o, &len);
     (void)interp;

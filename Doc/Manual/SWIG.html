@@ -134,11 +134,11 @@ Supported Target Language Options
      -ruby           - Generate Ruby wrappers
      -scilab         - Generate Scilab wrappers
      -tcl8           - Generate Tcl 8 wrappers
-     -xml            - Generate XML wrappers
 
 Experimental Target Language Options
      -mzscheme       - Generate MzScheme/Racket wrappers
      -ocaml          - Generate OCaml wrappers
+     -xml            - Generate XML wrappers
 
 General Options
      -addextern      - Add extra extern declarations
@@ -2529,6 +2529,45 @@ handle C++ are described in the next section.
 </p>
 
 <p>
+ISO C has a separate tag name space in which the names of structures,
+unions and enumerated types are put, which is separate from the
+name space for ordinary identifiers (function names, object names,
+typedef names, enumeration constants).  For example, this is valid
+ISO C because <tt>Foo</tt> the struct tag and <tt>Foo</tt> the function
+name are in different name spaces:
+</p>
+
+<div class="code"><pre>
+struct Foo {
+  int bar;
+};
+
+int Foo(void) { return 42; }
+</pre></div>
+
+<p>
+SWIG doesn't currently implement this separate tag name space and
+for the above example you'll get:
+</p>
+
+<div class="code"><pre>
+foo.i:5: Warning 302: Identifier 'Foo' redefined (ignored),
+foo.i:1: Warning 302: previous definition of 'Foo'.
+</pre></div>
+
+<p>
+In practice this rarely actually causes problems, particular because
+SWIG has special handling for <tt>typedef</tt> so cases such as this
+work:
+</p>
+
+<div class="code"><pre>
+typedef struct Foo {
+  int bar;
+} Foo;
+</pre></div>
+
+<p>
 If SWIG encounters the definition of a structure or union, it
 creates a set of accessor functions. Although SWIG does not need
 structure definitions to build an interface, providing definitions
@@ -2539,8 +2578,7 @@ to an individual member. For example, the declaration :</p>
 <div class="code"><pre>
 struct Vector {
   double x, y, z;
-}
-
+};
 </pre></div>
 
 <p>

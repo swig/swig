@@ -168,24 +168,33 @@ class check {
     return TRUE;
   }
 
-  static function equal($a,$b,$message) {
-    if (! ($a===$b)) return check::fail($message . ": '$a'!=='$b'");
+  static function equal($a,$b,$message=null) {
+    if (! ($a===$b)) return check::fail_($message, "'$a'!=='$b'");
     return TRUE;
   }
 
-  static function equivalent($a,$b,$message) {
-    if (! ($a==$b)) return check::fail($message . ": '$a'!='$b'");
+  static function equivalent($a,$b,$message=null) {
+    if (! ($a==$b)) return check::fail_($message, "'$a'!='$b'");
     return TRUE;
   }
 
-  static function isnull($a,$message) {
+  static function isnull($a,$message=null) {
     return check::equal($a,NULL,$message);
   }
 
-  static function fail($pattern) {
+  private static function fail_($message, $pattern) {
+    $bt = debug_backtrace(0);
+    $bt = $bt[array_key_last($bt)-1];
+    print("{$bt['file']}:{$bt['line']}: Failed on: ");
+    if ($message !== NULL) print("$message: ");
     $args=func_get_args();
-    print("Failed on: ".call_user_func_array("sprintf",$args)."\n");
+    array_shift($args);
+    print(call_user_func_array("sprintf",$args)."\n");
     exit(1);
+  }
+
+  static function fail($pattern) {
+    check::fail_(null, $pattern);
   }
 
   static function warn($pattern) {

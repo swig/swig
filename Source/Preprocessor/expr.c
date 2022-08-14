@@ -10,6 +10,11 @@
  *
  * Integer arithmetic expression evaluator used to handle expressions
  * encountered during preprocessing.
+ *
+ * Note that this is used for expressions in `#if` and the like, but not
+ * for expressions in `#define` which SWIG wraps as constants - for those
+ * we inject a `%constant` directive which is handled by the parser in
+ * `Source/CParse/parser.y`.
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
@@ -52,8 +57,9 @@ static int expr_init = 0;	/* Initialization flag */
 static const char *errmsg = 0;	/* Parsing error       */
 
 /* Initialize the precedence table for various operators.  Low values have higher precedence */
-static void init_precedence() {
+static void init_precedence(void) {
   prec[SWIG_TOKEN_NOT] = 10;
+  prec[SWIG_TOKEN_LNOT] = 10;
   prec[OP_UMINUS] = 10;
   prec[OP_UPLUS] = 10;
   prec[SWIG_TOKEN_STAR] = 20;
@@ -63,16 +69,15 @@ static void init_precedence() {
   prec[SWIG_TOKEN_MINUS] = 30;
   prec[SWIG_TOKEN_LSHIFT] = 40;
   prec[SWIG_TOKEN_RSHIFT] = 40;
-  prec[SWIG_TOKEN_AND] = 50;
-  prec[SWIG_TOKEN_XOR] = 60;
-  prec[SWIG_TOKEN_OR] = 70;
-  prec[SWIG_TOKEN_EQUALTO] = 80;
-  prec[SWIG_TOKEN_NOTEQUAL] = 80;
-  prec[SWIG_TOKEN_LESSTHAN] = 80;
-  prec[SWIG_TOKEN_GREATERTHAN] = 80;
-  prec[SWIG_TOKEN_LTEQUAL] = 80;
-  prec[SWIG_TOKEN_GTEQUAL] = 80;
-  prec[SWIG_TOKEN_LNOT] = 90;
+  prec[SWIG_TOKEN_LESSTHAN] = 50;
+  prec[SWIG_TOKEN_GREATERTHAN] = 50;
+  prec[SWIG_TOKEN_LTEQUAL] = 50;
+  prec[SWIG_TOKEN_GTEQUAL] = 50;
+  prec[SWIG_TOKEN_EQUALTO] = 60;
+  prec[SWIG_TOKEN_NOTEQUAL] = 60;
+  prec[SWIG_TOKEN_AND] = 70;
+  prec[SWIG_TOKEN_XOR] = 80;
+  prec[SWIG_TOKEN_OR] = 90;
   prec[SWIG_TOKEN_LAND] = 100;
   prec[SWIG_TOKEN_LOR] = 110;
   expr_init = 1;
@@ -85,7 +90,7 @@ static void init_precedence() {
 
 /* Reduce a single operator on the stack */
 /* return 0 on failure, 1 on success */
-static int reduce_op() {
+static int reduce_op(void) {
   long op_token = stack[sp - 1].value;
   assert(sp > 0);
   assert(stack[sp - 1].op == EXPR_OP);
@@ -318,7 +323,12 @@ int Preprocessor_expr(DOH *s, int *error) {
       if ((token == SWIG_TOKEN_INT) || (token == SWIG_TOKEN_UINT) || (token == SWIG_TOKEN_LONG) || (token == SWIG_TOKEN_ULONG)) {
 	/* A number.  Reduce EXPR_TOP to an EXPR_VALUE */
 	char *c = Char(Scanner_text(scan));
-	stack[sp].value = (long) strtol(c, 0, 0);
+	if (c[0] == '0' && (c[1] == 'b' || c[1] == 'B')) {
+	  /* strtol() doesn't handle binary constants */
+	  stack[sp].value = (long) strtol(c + 2, 0, 2);
+	} else {
+	  stack[sp].value = (long) strtol(c, 0, 0);
+	}
 	stack[sp].svalue = 0;
 	stack[sp].op = EXPR_VALUE;
       } else if ((token == SWIG_TOKEN_MINUS) || (token == SWIG_TOKEN_PLUS) || (token == SWIG_TOKEN_LNOT) || (token == SWIG_TOKEN_NOT)) {
@@ -435,6 +445,8 @@ int Preprocessor_expr(DOH *s, int *error) {
 	stack[sp - 1].svalue = stack[sp].svalue;
 	sp--;
 	break;
+      case SWIG_TOKEN_LTEQUALGT:
+	goto spaceship_not_allowed;
       default:
 	goto syntax_error_expected_operator;
 	break;
@@ -466,6 +478,11 @@ extra_rparen:
   errmsg = "Extra \')\'";
   *error = 1;
   return 0;
+
+spaceship_not_allowed:
+  errmsg = "Spaceship operator (<=>) not allowed in preprocessor expression";
+  *error = 1;
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -474,6 +491,6 @@ extra_rparen:
  * Return error message set by the evaluator (if any)
  * ----------------------------------------------------------------------------- */
 
-const char *Preprocessor_expr_error() {
+const char *Preprocessor_expr_error(void) {
   return errmsg;
 }

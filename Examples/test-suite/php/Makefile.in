@@ -6,6 +6,9 @@ LANGUAGE     = php
 SCRIPTSUFFIX = _runme.php
 
 HAVE_CXX11   = @HAVE_CXX11@
+HAVE_CXX14   = @HAVE_CXX14@
+HAVE_CXX17   = @HAVE_CXX17@
+HAVE_CXX20   = @HAVE_CXX20@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -68,18 +71,18 @@ missingtests: missingcpptests missingctests
 	@echo ' $(MULTI_CPP_TEST_CASES) '|grep -F -v ' $* ' >/dev/null ||\
 	    $(MAKE) $*.multicpptest
 
-# Runs the testcase. Tries to run testcase_runme.php, and if that's not
-# found, runs testcase.php, except for multicpptests.
+# Runs the testcase. Tries to run testcase_runme.php, and if that's not found,
+# at least test that the module loads without errors, except for multicpptests.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION=$(TARGETPREFIX)$*@PHP_SO@ PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL='$(RUNTOOL)' php_run; \
-	elif [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*.php -a ! -f $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION=$(TARGETPREFIX)$*@PHP_SO@ PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*.php RUNTOOL='$(RUNTOOL)' php_run; \
+	elif [ ! -f $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION=$(TARGETPREFIX)$*@PHP_SO@ PHP_SCRIPT= RUNTOOL='$(RUNTOOL)' php_run; \
 	fi
 
-# Clean: remove the generated .php file
+# Clean: remove the generated PHP-specific files
 %.clean:
-	@rm -f $*.php php_$*.h
+	@rm -f php_$*.h
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' php_clean

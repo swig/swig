@@ -180,7 +180,7 @@ int Swig_value_wrapper_mode(int mode) {
 }
 
 
-static void flush_cache() {
+static void flush_cache(void) {
   typedef_resolve_cache = 0;
   typedef_all_cache = 0;
   typedef_qualified_cache = 0;
@@ -188,7 +188,7 @@ static void flush_cache() {
 
 /* Initialize the scoping system */
 
-void SwigType_typesystem_init() {
+void SwigType_typesystem_init(void) {
   if (global_scope)
     Delete(global_scope);
   if (scopes)
@@ -407,7 +407,7 @@ void SwigType_using_scope(Typetab *scope) {
  * table for the scope that was popped off.
  * ----------------------------------------------------------------------------- */
 
-Typetab *SwigType_pop_scope() {
+Typetab *SwigType_pop_scope(void) {
   Typetab *t, *old = current_scope;
   t = Getattr(current_scope, "parent");
   if (!t)
@@ -1702,7 +1702,9 @@ void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr cl
 
   if (t) {
     char *ct = Char(t);
-    if (strchr(ct, '<') && !(strstr(ct, "<("))) {
+    const char *lt = strchr(ct, '<');
+    /* Allow for `<<` operator in constant expression for array size. */
+    if (lt && lt[1] != '(' && lt[1] != '<') {
       Printf(stdout, "Bad template type passed to SwigType_remember: %s\n", t);
       assert(0);
     }
@@ -2093,7 +2095,7 @@ static int SwigType_compare_mangled(const DOH *a, const DOH *b) {
  * Returns the sorted list of mangled type names that should be exported into the
  * wrapper file.
  * ----------------------------------------------------------------------------- */
-List *SwigType_get_sorted_mangled_list() {
+List *SwigType_get_sorted_mangled_list(void) {
   List *l = Keys(r_mangled);
   SortList(l, SwigType_compare_mangled);
   return l;

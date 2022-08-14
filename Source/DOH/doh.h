@@ -11,12 +11,10 @@
  *     This file describes of the externally visible functions in DOH.
  * ----------------------------------------------------------------------------- */
 
-#ifndef _DOH_H
-#define _DOH_H
+#ifndef SWIG_DOH_H
+#define SWIG_DOH_H
 
-#ifndef MACSWIG
 #include "swigconfig.h"
-#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -503,4 +501,4 @@ extern void DohMemoryDebug(void);
 # pragma GCC poison abort exit
 #endif
 
-#endif				/* DOH_H */
+#endif				/* SWIG_DOH_H */

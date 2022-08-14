@@ -22,19 +22,19 @@ check::equal($a->ping(), "MyFoo::ping()", "MyFoo::ping failed");
 check::equal($a->pong(), "Foo::pong();MyFoo::ping()", "MyFoo::pong failed");
 
 class MyExample1 extends Example1 {
-  function Color($r, $g, $b) {
+  function Color($r, $g = NULL, $b = NULL) {
     return $r;
   }
 }
 
 class MyExample2 extends Example1 {
-  function Color($r, $g, $b) {
+  function Color($r, $g = NULL, $b = NULL) {
     return $g;
   }
 }
 
 class MyExample3 extends Example1 {
-  function Color($r, $g, $b) {
+  function Color($r, $g = NULL, $b = NULL) {
     return $b;
   }
 }

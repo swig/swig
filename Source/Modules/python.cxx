@@ -4348,8 +4348,19 @@ public:
     printSlot(f, getSlot(n, "feature:python:ht_cached_keys"), "ht_cached_keys");
     Printv(f, "#endif\n", NIL);
 
+    // PyObject *ht_module;
     Printv(f, "#if PY_VERSION_HEX >= 0x03090000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:ht_module"), "ht_module", "PyObject *");
+    Printv(f, "#endif\n", NIL);
+
+    // char *_ht_tpname;
+    Printv(f, "#if PY_VERSION_HEX >= 0x030b0000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:_ht_tpname"), "_ht_tpname", "char *");
+
+    // struct _specialization_cache _spec_cache;
+    Printf(f, "  {\n");
+    printSlot(f, getSlot(n, "feature:python:getitem"), "getitem", "PyObject *");
+    Printf(f, "  }\n");
     Printv(f, "#endif\n", NIL);
     Printf(f, "};\n\n");
 

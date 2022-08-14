@@ -50,7 +50,7 @@
  *                               Externals
  * ----------------------------------------------------------------------------- */
 
-int  yyparse();
+int  yyparse(void);
 
 /* NEW Variables */
 
@@ -349,7 +349,7 @@ static String *make_name(Node *n, String *name,SwigType *decl) {
 }
 
 /* Generate an unnamed identifier */
-static String *make_unnamed() {
+static String *make_unnamed(void) {
   unnamed++;
   return NewStringf("$unnamed%d$",unnamed);
 }
@@ -874,7 +874,7 @@ static void add_typedef_name(Node *n, Node *declnode, String *oldName, Symtab *c
 
 /* If the class name is qualified.  We need to create or lookup namespace entries */
 
-static Symtab *set_scope_to_global() {
+static Symtab *set_scope_to_global(void) {
   Symtab *symtab = Swig_symbol_global_scope();
   Swig_symbol_setscope(symtab);
   return symtab;
@@ -1626,7 +1626,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token TYPEMAP EXCEPT ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
 %token WARN 
 %token LESSTHAN GREATERTHAN DELETE_KW DEFAULT
-%token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO
+%token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO LESSEQUALGREATER
 %token ARROW
 %token QUESTIONMARK
 %token TYPES PARMS
@@ -1648,6 +1648,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %left  AND
 %left  EQUALTO NOTEQUALTO
 %left  GREATERTHAN LESSTHAN GREATERTHANOREQUALTO LESSTHANOREQUALTO
+%left  LESSEQUALGREATER
 %left  LSHIFT RSHIFT
 %left  PLUS MINUS
 %left  STAR SLASH MODULO
@@ -1712,7 +1713,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
 %type <node>     featattr;
-%type <node>     lambda_introducer lambda_body;
+%type <node>     lambda_introducer lambda_body lambda_template;
 %type <pl>       lambda_tail;
 %type <str>      virt_specifier_seq virt_specifier_seq_opt;
 
@@ -1951,6 +1952,9 @@ clear_directive : CLEAR tm_list SEMI {
 /* ------------------------------------------------------------
    %constant name = value;
    %constant type name = value;
+
+   Note: Source/Preprocessor/cpp.c injects `%constant X = Y;` for
+   each `#define X Y` so that's handled here too.
    ------------------------------------------------------------ */
 
 constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
@@ -3416,17 +3420,17 @@ cpp_alternate_rettype : primitive_type { $$ = $1; }
    auto myFunc = [](int x, int y) throw() -> int { return x+y; };
    auto six = [](int x, int y) { return x+y; }(4, 2);
    ------------------------------------------------------------ */
-cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
+cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$3);
 		  add_symbols($$);
 	        }
-                | storage_class AUTO idcolon EQUAL lambda_introducer LPAREN parms RPAREN cpp_const ARROW type lambda_body lambda_tail {
+                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const ARROW type lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$3);
 		  add_symbols($$);
 		}
-                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_body lambda_tail {
+                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$3);
 		  add_symbols($$);
@@ -3437,6 +3441,13 @@ lambda_introducer : LBRACKET {
 		  skip_balanced('[',']');
 		  $$ = 0;
 	        }
+		;
+
+lambda_template : LESSTHAN {
+		  skip_balanced('<','>');
+		  $$ = 0;
+		}
+		| empty { $$ = 0; }
 		;
 
 lambda_body : LBRACE {
@@ -6840,6 +6851,15 @@ exprcompound   : expr PLUS expr {
                | expr LESSTHANOREQUALTO expr {
 		 $$.val = NewStringf("%s <= %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
+	       }
+	       | expr LESSEQUALGREATER expr {
+		 $$.val = NewStringf("%s <=> %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
+		 /* Really `<=>` returns one of `std::strong_ordering`,
+		  * `std::partial_ordering` or `std::weak_ordering`, but we
+		  * fake it by treating the return value as `int`.  The main
+		  * thing to do with the return value in this context is to
+		  * compare it with 0, for which `int` does the job. */
+		 $$.type = T_INT;
 	       }
 	       | expr QUESTIONMARK expr COLON expr %prec QUESTIONMARK {
 		 $$.val = NewStringf("%s?%s:%s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3), COMPOUND_EXPR_VAL($5));

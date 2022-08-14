@@ -1,4 +1,3 @@
-// This is a copy of the multiple_inheritance_abstract test
 %module(ruby_minherit="1") multiple_inheritance_abstract
 
 %warnfilter(SWIGWARN_D_MULTIPLE_INHERITANCE,

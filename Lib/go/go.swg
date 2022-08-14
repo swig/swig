@@ -625,7 +625,7 @@
 %typemap(goout) SWIGTYPE ""
 
 %typemap(directorin) SWIGTYPE
-%{ $input = new $1_ltype((const $1_ltype &)$1); %}
+%{ $input = new $1_ltype(SWIG_STD_MOVE($1)); %}
 
 %typemap(godirectorin) SWIGTYPE ""
 

@@ -69,6 +69,7 @@ see bottom for a set of possible tests
 #endif
 
 #ifdef SWIGPHP
+// "And" and "Or" can't be used as function names in PHP.
 %rename(AndOperator) operator &&;
 %rename(OrOperator) operator ||;
 #endif
@@ -174,8 +175,7 @@ inline bool operator>=(const Op& a,const Op& b){return a.i>=b.i;}
   Op operator-(const Op& a,const Op& b){return Op(a.i-b.i);}
 %}
 
-// in order to wrapper this correctly
-// we need to extend the class
+// in order to wrap this correctly we need to extend the class
 // to make the friends & non members part of the class
 %extend Op{
         Op operator &&(const Op& b){return Op($self->i&&b.i);}

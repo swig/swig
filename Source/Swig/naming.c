@@ -744,28 +744,28 @@ void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *d
  * ----------------------------------------------------------------------------- */
 
 static Hash *namewarn_hash = 0;
-static Hash *name_namewarn_hash() {
+static Hash *name_namewarn_hash(void) {
   if (!namewarn_hash)
     namewarn_hash = NewHash();
   return namewarn_hash;
 }
 
 static Hash *rename_hash = 0;
-static Hash *name_rename_hash() {
+static Hash *name_rename_hash(void) {
   if (!rename_hash)
     rename_hash = NewHash();
   return rename_hash;
 }
 
 static List *namewarn_list = 0;
-static List *name_namewarn_list() {
+static List *name_namewarn_list(void) {
   if (!namewarn_list)
     namewarn_list = NewList();
   return namewarn_list;
 }
 
 static List *rename_list = 0;
-static List *name_rename_list() {
+static List *name_rename_list(void) {
   if (!rename_list)
     rename_list = NewList();
   return rename_list;

@@ -225,6 +225,7 @@ class MyClass {
   virtual void S2(std::string& s) = 0;
   virtual void S3(std::string* s) = 0;
   virtual void S4(const char * const *strarray);
+  virtual int S5(const std::string* s);
 };
 
 void MyClass::S1(std::string s) {
@@ -237,6 +238,14 @@ void MyClass::S4(const char * const *strarray) {
 
 void MyClass::CallS4(const char * const *strarray) {
     this->S4(strarray);
+}
+
+int MyClass::S5(const std::string* s) {
+    if (s) {
+        return (*s)[0];
+    } else {
+        return 0;
+    }
 }
 
 %}

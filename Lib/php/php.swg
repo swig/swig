@@ -240,9 +240,7 @@
   if ((long long)LONG_MIN <= $1 && $1 <= (long long)LONG_MAX) {
     RETVAL_LONG((long)($1));
   } else {
-    char temp[256];
-    sprintf(temp, "%lld", (long long)$1);
-    RETVAL_STRING(temp);
+    RETVAL_NEW_STR(zend_strpprintf(0, "%lld", (long long)$1));
   }
 %}
 %typemap(out, phptype="int|string") unsigned long long
@@ -250,9 +248,7 @@
   if ($1 <= (unsigned long long)LONG_MAX) {
     RETVAL_LONG((long)($1));
   } else {
-    char temp[256];
-    sprintf(temp, "%llu", (unsigned long long)$1);
-    RETVAL_STRING(temp);
+    RETVAL_NEW_STR(zend_strpprintf(0, "%llu", (unsigned long long)$1));
   }
 %}
 
@@ -286,9 +282,7 @@
   if ((long long)LONG_MIN <= *$1 && *$1 <= (long long)LONG_MAX) {
     RETVAL_LONG((long)(*$1));
   } else {
-    char temp[256];
-    sprintf(temp, "%lld", (long long)(*$1));
-    RETVAL_STRING(temp);
+    RETVAL_NEW_STR(zend_strpprintf(0, "%lld", (long long)(*$1)));
   }
 %}
 %typemap(out, phptype="int|string") const unsigned long long &
@@ -296,9 +290,7 @@
   if (*$1 <= (unsigned long long)LONG_MAX) {
     RETVAL_LONG((long)(*$1));
   } else {
-    char temp[256];
-    sprintf(temp, "%llu", (unsigned long long)(*$1));
-    RETVAL_STRING(temp);
+    RETVAL_NEW_STR(zend_strpprintf(0, "%llu", (unsigned long long)(*$1)));
   }
 %}
 
@@ -451,7 +443,7 @@
 %typemap(out, phptype="SWIGTYPE") SWIGTYPE
 {
 #ifdef __cplusplus
-  $&1_ltype resultobj = new $1_ltype((const $1_ltype &) $1);
+  $&1_ltype resultobj = new $1_ltype($1);
 #else
   $&1_ltype resultobj = ($&1_ltype) malloc(sizeof($1_type));
   memcpy(resultobj, &$1, sizeof($1_type));
@@ -462,7 +454,7 @@
 %typemap(directorin) SWIGTYPE
 %{
   ZVAL_UNDEF($input);
-  SWIG_SetPointerZval($input, SWIG_as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&1_descriptor, 1);
+  SWIG_SetPointerZval($input, SWIG_as_voidptr(new $1_ltype(SWIG_STD_MOVE($1))), $&1_descriptor, 1);
 %}
 
 %typemap(out, phptype="void") void "";

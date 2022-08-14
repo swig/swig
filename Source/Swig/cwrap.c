@@ -427,10 +427,14 @@ String *Swig_cfunction_call(const_String_or_char_ptr name, ParmList *parms) {
       String *rcaststr = SwigType_rcaststr(rpt, pname);
 
       if (comma) {
-	Printv(func, ",", rcaststr, NIL);
-      } else {
-	Append(func, rcaststr);
+	Append(func, ",");
       }
+
+      if (cparse_cplusplus && SwigType_type(rpt) == T_USER)
+	Printv(func, "SWIG_STD_MOVE(", rcaststr, ")", NIL);
+      else
+	Printv(func, rcaststr, NIL);
+
       Delete(rpt);
       Delete(pname);
       Delete(rcaststr);

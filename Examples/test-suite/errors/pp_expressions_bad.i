@@ -66,3 +66,9 @@
 /* Unary + was a no-op and so this didn't give an error in SWIG < 4.1.0. */
 #if "1" == +"1"
 #endif
+
+/* Spaceship operator doesn't seem to be allowed in preprocessor expressions,
+ * and isn't valid in C at all.
+ */
+#if (4 <=> 2) < 0
+#endif

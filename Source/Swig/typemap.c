@@ -151,7 +151,7 @@ static void set_typemap(const SwigType *type, Hash **tmhash) {
  * Initialize the typemap system
  * ----------------------------------------------------------------------------- */
 
-void Swig_typemap_init() {
+void Swig_typemap_init(void) {
   typemaps = NewHash();
 }
 
@@ -2102,7 +2102,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
 	    found_colon = Strchr(tmap_method, ':');
 	    if (found_colon) {
 	      /* Substitute from a keyword argument to a typemap. Avoid emitting local variables from the attached typemap by passing NULL for the file. */
-	      String *temp_tmap_method = NewStringWithSize(Char(tmap_method), found_colon - Char(tmap_method));
+	      String *temp_tmap_method = NewStringWithSize(Char(tmap_method), (int)(found_colon - Char(tmap_method)));
 	      Swig_typemap_attach_parms(temp_tmap_method, to_match_parms, NULL);
 	      Delete(temp_tmap_method);
 	    } else {
@@ -2170,7 +2170,7 @@ static void replace_embedded_typemap(String *s, ParmList *parm_sublist, Wrapper 
  * Display all typemaps
  * ----------------------------------------------------------------------------- */
 
-void Swig_typemap_debug() {
+void Swig_typemap_debug(void) {
   int nesting_level = 2;
   Printf(stdout, "---[ typemaps ]--------------------------------------------------------------\n");
   Swig_print(typemaps, nesting_level);

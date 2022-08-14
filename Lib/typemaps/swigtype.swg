@@ -146,9 +146,15 @@
 }
 
 /* Return by value */
+#ifdef __cplusplus
 %typemap(out, noblock=1) SWIGTYPE {
-  %set_output(SWIG_NewPointerObj(%new_copy($1, $ltype), $&descriptor, SWIG_POINTER_OWN | %newpointer_flags));
+  %set_output(SWIG_NewPointerObj((new $1_ltype($1)), $&descriptor, SWIG_POINTER_OWN | %newpointer_flags));
 }
+#else
+%typemap(out, noblock=1) SWIGTYPE {
+  %set_output(SWIG_NewPointerObj(%new_copy($1, $1_ltype), $&descriptor, SWIG_POINTER_OWN | %newpointer_flags));
+}
+#endif
 
 /* -----------------------------------------------------------------------------
  * --- Variable input --- 
@@ -411,7 +417,7 @@
 /* directorin */
 
 %typemap(directorin,noblock=1) SWIGTYPE {
-  $input = SWIG_NewPointerObj(%as_voidptr(new $1_ltype((const $1_ltype &)$1)), $&descriptor, SWIG_POINTER_OWN | %newpointer_flags);
+  $input = SWIG_NewPointerObj(%as_voidptr(new $1_ltype(SWIG_STD_MOVE($1))), $&descriptor, SWIG_POINTER_OWN | %newpointer_flags);
 }
 
 %typemap(directorin,noblock=1) SWIGTYPE * {
@@ -534,7 +540,7 @@
  * ------------------------------------------------------------ */
 
 %typemap(throws,noblock=1) SWIGTYPE {
-  %raise(SWIG_NewPointerObj(%new_copy($1, $ltype),$&descriptor,SWIG_POINTER_OWN), "$type", $&descriptor);
+  %raise(SWIG_NewPointerObj(%new_copy($1, $1_ltype),$&descriptor,SWIG_POINTER_OWN), "$type", $&descriptor);
 }
 
 %typemap(throws,noblock=1) SWIGTYPE * {
@@ -703,9 +709,15 @@
 
 /* INSTANCE typemap */
 
+#ifdef __cplusplus
+%typemap(out,noblock=1) SWIGTYPE INSTANCE {
+  %set_output(SWIG_NewInstanceObj((new $1_ltype($1)), $&1_descriptor, SWIG_POINTER_OWN | %newinstance_flags));
+}
+#else
 %typemap(out,noblock=1) SWIGTYPE INSTANCE {
   %set_output(SWIG_NewInstanceObj(%new_copy($1, $1_ltype), $&1_descriptor, SWIG_POINTER_OWN | %newinstance_flags));
 }
+#endif
 
 %typemap(out,noblock=1) SWIGTYPE *INSTANCE, SWIGTYPE &INSTANCE, SWIGTYPE INSTANCE[] {
   %set_output(SWIG_NewInstanceObj(%as_voidptr($1), $1_descriptor, $owner | %newinstance_flags));

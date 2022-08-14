@@ -1699,10 +1699,9 @@ public:
    * addInterfaceNameAndUpcasts()
    * ----------------------------------------------------------------------------- */
 
-  void addInterfaceNameAndUpcasts(SwigType *smart, String *interface_list, String *interface_upcasts, Hash *base_list, SwigType *c_classname) {
-    List *keys = Keys(base_list);
-    for (Iterator it = First(keys); it.item; it = Next(it)) {
-      Node *base = Getattr(base_list, it.item);
+  void addInterfaceNameAndUpcasts(SwigType *smart, String *interface_list, String *interface_upcasts, List *base_list, SwigType *c_classname) {
+    for (Iterator it = First(base_list); it.item; it = Next(it)) {
+      Node *base = it.item;
       SwigType *c_baseclassname = Getattr(base, "name");
       String *interface_name = Getattr(base, "interface:name");
       if (Len(interface_list))
@@ -1729,7 +1728,6 @@ public:
       Delete(cptr_method_name);
       Delete(interface_code);
     }
-    Delete(keys);
   }
 
   /* -----------------------------------------------------------------------------
@@ -1825,7 +1823,7 @@ public:
 	}
       }
     }
-    Hash *interface_bases = Getattr(n, "interface:bases");
+    List *interface_bases = Getattr(n, "interface:bases");
     if (interface_bases)
       addInterfaceNameAndUpcasts(smart, interface_list, interface_upcasts, interface_bases, c_classname);
 

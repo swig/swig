@@ -29,10 +29,9 @@ static bool interface_feature_enabled = false;
 
 static List *collect_interface_methods(Node *n) {
   List *methods = NewList();
-  if (Hash *bases = Getattr(n, "interface:bases")) {
-    List *keys = Keys(bases);
-    for (Iterator base = First(keys); base.item; base = Next(base)) {
-      Node *cls = Getattr(bases, base.item);
+  if (List *bases = Getattr(n, "interface:bases")) {
+    for (Iterator base = First(bases); base.item; base = Next(base)) {
+      Node *cls = base.item;
       if (cls == n)
 	continue;
       for (Node *child = firstChild(cls); child; child = nextSibling(child)) {
@@ -55,7 +54,6 @@ static List *collect_interface_methods(Node *n) {
 	}
       }
     }
-    Delete(keys);
   }
   return methods;
 }
@@ -64,11 +62,11 @@ static List *collect_interface_methods(Node *n) {
  * collect_interface_bases
  * ----------------------------------------------------------------------------- */
 
-static void collect_interface_bases(Hash *bases, Node *n) {
+static void collect_interface_bases(List *bases, Node *n) {
   if (GetFlag(n, "feature:interface")) {
     String *name = Getattr(n, "interface:name");
     if (!Getattr(bases, name))
-      Setattr(bases, name, n);
+      Append(bases, n);
   }
 
   if (List *baselist = Getattr(n, "bases")) {
@@ -106,7 +104,7 @@ static void collect_interface_base_classes(Node *n) {
     }
   }
 
-  Hash *interface_bases = NewHash();
+  List *interface_bases = NewList();
   collect_interface_bases(interface_bases, n);
   if (Len(interface_bases) == 0)
     Delete(interface_bases);

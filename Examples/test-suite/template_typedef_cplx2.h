@@ -1,5 +1,5 @@
-#ifndef ___typedef_import_h__
-#define ___typedef_import_h__
+#ifndef TEMPLATE_TYPEDEF_CPLX2_H
+#define TEMPLATE_TYPEDEF_CPLX2_H
 
 #ifdef SWIG
 %module template_typedef_cplx2;
@@ -174,4 +174,4 @@ namespace vfncs {
 
 #endif
 
-#endif //___template_typedef_h__
+#endif // TEMPLATE_TYPEDEF_CPLX2_H

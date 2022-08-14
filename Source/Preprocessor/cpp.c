@@ -1356,14 +1356,14 @@ static void add_chunk(DOH *ns, DOH *chunk, int allow) {
   push/pop_imported(): helper functions for defining and undefining
   SWIGIMPORTED (when %importing a file).
  */
-static void push_imported() {
+static void push_imported(void) {
   if (imported_depth == 0) {
     Preprocessor_define("SWIGIMPORTED 1", 0);
   }
   ++imported_depth;
 }
 
-static void pop_imported() {
+static void pop_imported(void) {
   --imported_depth;
   if (imported_depth == 0) {
     Preprocessor_undef("SWIGIMPORTED");

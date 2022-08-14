@@ -91,7 +91,10 @@ CPP_TEST_BROKEN += \
 	template_default_pointer \
 	template_private_assignment \
 	template_expr \
-	$(CPP11_TEST_BROKEN)
+	$(CPP11_TEST_BROKEN) \
+	$(CPP14_TEST_BROKEN) \
+	$(CPP17_TEST_BROKEN) \
+	$(CPP20_TEST_BROKEN)
 
 
 # Broken C test cases. (Can be run individually using: make testcase.ctest)
@@ -165,11 +168,6 @@ CPP_TEST_CASES += \
 	cpp_parameters \
 	cpp_static \
 	cpp_typedef \
-	cpp14_binary_integer_literals \
-	cpp17_hex_floating_literals \
-	cpp17_nested_namespaces \
-	cpp17_nspace_nested_namespaces \
-	cpp17_u8_char_literals \
 	curiously_recurring_template_pattern \
 	default_args \
 	default_arg_expressions \
@@ -200,6 +198,7 @@ CPP_TEST_CASES += \
 	director_frob \
 	director_ignore \
 	director_keywords \
+	director_multiple_inheritance \
 	director_namespace_clash \
 	director_nested \
 	director_nspace \
@@ -583,6 +582,7 @@ CPP11_TEST_CASES += \
 	cpp11_alias_nested_template_scoping \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
+	cpp11_attribute_specifiers \
 	cpp11_constexpr \
 	cpp11_decltype \
 	cpp11_default_delete \
@@ -597,6 +597,8 @@ CPP11_TEST_CASES += \
 	cpp11_initializer_list \
 	cpp11_initializer_list_extend \
 	cpp11_lambda_functions \
+	cpp11_move_only \
+	cpp11_move_only_valuewrapper \
 	cpp11_noexcept \
 	cpp11_null_pointer_constant \
 	cpp11_raw_string_literals \
@@ -607,9 +609,11 @@ CPP11_TEST_CASES += \
 	cpp11_rvalue_reference \
 	cpp11_rvalue_reference2 \
 	cpp11_rvalue_reference3 \
+	cpp11_rvalue_reference_move_input \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
 	cpp11_std_array \
+	cpp11_std_unique_ptr \
 	cpp11_strongly_typed_enumerations \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
@@ -625,6 +629,31 @@ CPP11_TEST_CASES += \
 CPP11_TEST_BROKEN = \
 #	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
+
+# C++14 test cases.
+CPP14_TEST_CASES += \
+	cpp14_binary_integer_literals \
+
+# Broken C++14 test cases.
+CPP14_TEST_BROKEN = \
+
+# C++17 test cases.
+CPP17_TEST_CASES += \
+	cpp17_hex_floating_literals \
+	cpp17_nested_namespaces \
+	cpp17_nspace_nested_namespaces \
+	cpp17_u8_char_literals \
+
+# Broken C++17 test cases.
+CPP17_TEST_BROKEN = \
+
+# C++20 test cases.
+CPP20_TEST_CASES += \
+	cpp20_lambda_template \
+	cpp20_spaceship_operator \
+
+# Broken C++20 test cases.
+CPP20_TEST_BROKEN = \
 
 # Doxygen support test cases: can only be used with languages supporting
 # Doxygen comment translation (currently Python and Java) and only if not
@@ -693,6 +722,18 @@ ifeq (1,$(HAVE_CXX11))
 CPP_TEST_CASES += $(CPP11_TEST_CASES)
 endif
 
+ifeq (1,$(HAVE_CXX14))
+CPP_TEST_CASES += $(CPP14_TEST_CASES)
+endif
+
+ifeq (1,$(HAVE_CXX17))
+CPP_TEST_CASES += $(CPP17_TEST_CASES)
+endif
+
+ifeq (1,$(HAVE_CXX20))
+CPP_TEST_CASES += $(CPP20_TEST_CASES)
+endif
+
 # C test cases. (Can be run individually using: make testcase.ctest)
 C_TEST_CASES += \
 	arrays \
@@ -740,6 +781,7 @@ C_TEST_CASES += \
 	preproc \
 	preproc_constants_c \
 	preproc_defined \
+	preproc_expr \
 	preproc_gcc_output \
 	preproc_include \
 	preproc_line_file \
@@ -777,6 +819,9 @@ command_line_define.ctest: SWIGOPT += -DFOO
 C_TEST_CASES := $(filter-out $(FAILING_C_TESTS),$(C_TEST_CASES))
 CPP_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP_TEST_CASES))
 CPP11_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP11_TEST_CASES))
+CPP14_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP14_TEST_CASES))
+CPP17_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP17_TEST_CASES))
+CPP20_TEST_CASES := $(filter-out $(FAILING_CPP_TESTS),$(CPP20_TEST_CASES))
 MULTI_CPP_TEST_CASES := $(filter-out $(FAILING_MULTI_CPP_TESTS),$(MULTI_CPP_TEST_CASES))
 
 
@@ -790,6 +835,9 @@ BROKEN_TEST_CASES = 	$(CPP_TEST_BROKEN:=.cpptest) \
 
 ALL_CLEAN = 		$(CPP_TEST_CASES:=.clean) \
 			$(CPP11_TEST_CASES:=.clean) \
+			$(CPP14_TEST_CASES:=.clean) \
+			$(CPP17_TEST_CASES:=.clean) \
+			$(CPP20_TEST_CASES:=.clean) \
 			$(C_TEST_CASES:=.clean) \
 			$(MULTI_CPP_TEST_CASES:=.clean) \
 			$(CPP_TEST_BROKEN:=.clean) \
@@ -817,6 +865,12 @@ check-c: $(C_TEST_CASES:=.ctest)
 check-cpp: $(CPP_TEST_CASES:=.cpptest)
 
 check-cpp11: $(CPP11_TEST_CASES:=.cpptest)
+
+check-cpp14: $(CPP14_TEST_CASES:=.cpptest)
+
+check-cpp17: $(CPP17_TEST_CASES:=.cpptest)
+
+check-cpp20: $(CPP20_TEST_CASES:=.cpptest)
 
 check-multicpp: $(MULTI_CPP_TEST_CASES:=.multicpptest)
 
