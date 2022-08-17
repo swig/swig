@@ -1,5 +1,5 @@
 (define-macro (check test)
-  `(if (not ,test) (error "Error in test" ',test)))
+  `(unless ,test (error "Error in test" ',test)))
 
 (define foo1 (Foo-makeFoo))
 (check (= (Foo-fooCount) 1))
