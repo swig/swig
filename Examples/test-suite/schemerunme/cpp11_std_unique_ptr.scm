@@ -1,13 +1,13 @@
 (define checkCount
   (lambda (expected-count)
     (define actual-count (Klass-getTotal-count))
-    (if (not (= actual-count expected-count)) (error "Counts incorrect, expected:" expected-count " actual:" actual-count))))
+    (unless (= actual-count expected-count) (error (format "Counts incorrect, expected:~a actual:~a" expected-count  actual-count)))))
 
 ; Test raw pointer handling involving virtual inheritance
 (define kini (new-KlassInheritance "KlassInheritanceInput"))
 (checkCount 1)
 (define s (useKlassRawPtr kini))
-(if (not (string=? s "KlassInheritanceInput"))
+(unless (string=? s "KlassInheritanceInput")
   (error "Incorrect string: " s))
 (delete-Klass kini)
 (checkCount 0)
@@ -17,9 +17,9 @@
 (checkCount 1)
 (define s (takeKlassUniquePtr kin))
 (checkCount 0)
-(if (not (string=? s "KlassInput"))
+(unless (string=? s "KlassInput")
   (error "Incorrect string: " s))
-(if (not (is-nullptr kin))
+(unless (is-nullptr kin)
   (error "is_nullptr failed"))
 (delete-Klass kin) ; Should not fail, even though already deleted
 (checkCount 0)
@@ -28,9 +28,9 @@
 (checkCount 1)
 (define s (takeKlassUniquePtr kin))
 (checkCount 0)
-(if (not (string=? s "KlassInput"))
+(unless (string=? s "KlassInput")
   (error "Incorrect string: " s))
-(if (not (is-nullptr kin))
+(unless (is-nullptr kin)
   (error "is_nullptr failed"))
 (expect-throw 'misc-error 
               (takeKlassUniquePtr kin))
@@ -51,9 +51,9 @@
 (checkCount 1)
 (define s (takeKlassUniquePtr kini))
 (checkCount 0)
-(if (not (string=? s "KlassInheritanceInput"))
+(unless (string=? s "KlassInheritanceInput")
   (error "Incorrect string: " s))
-(if (not (is-nullptr kini))
+(unless (is-nullptr kini)
   (error "is_nullptr failed"))
 (delete-Klass kini) ; Should not fail, even though already deleted
 (checkCount 0)
@@ -66,7 +66,7 @@
 (delete-Klass k1)
 (checkCount 1)
 
-(if (not (string=? (Klass-getLabel k2) "second"))
+(unless (string=? (Klass-getLabel k2) "second")
   (error "wrong object label" ))
 
 (delete-Klass k2)
