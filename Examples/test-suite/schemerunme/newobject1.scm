@@ -7,10 +7,12 @@
 (define foo2 (Foo-makeMore foo1))
 (check (= (Foo-fooCount) 2))
 
-(delete-Foo foo1)
+(set! foo1 '())
+(gc)
 (check (= (Foo-fooCount) 1))
 
-(delete-Foo foo2)
+(set! foo2 '())
+(gc)
 (check (= (Foo-fooCount) 0))
 
 (exit 0)

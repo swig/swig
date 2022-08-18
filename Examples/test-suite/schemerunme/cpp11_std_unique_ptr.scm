@@ -9,7 +9,7 @@
 (define s (useKlassRawPtr kini))
 (unless (string=? s "KlassInheritanceInput")
   (error "Incorrect string: " s))
-(delete-Klass kini)
+(set! kini '()) (gc)
 (checkCount 0)
 
 ; unique_ptr as input
@@ -21,7 +21,7 @@
   (error "Incorrect string: " s))
 (unless (is-nullptr kin)
   (error "is_nullptr failed"))
-(delete-Klass kin) ; Should not fail, even though already deleted
+(set! kini '()) (gc) ; Should not fail, even though already deleted
 (checkCount 0)
 
 (define kin (new-Klass "KlassInput"))
@@ -35,7 +35,7 @@
 (expect-throw 'misc-error 
               (takeKlassUniquePtr kin))
 ; TODO: check the exception message
-(delete-Klass kin) ; Should not fail, even though already deleted
+(set! kin '()) (gc) ; Should not fail, even though already deleted
 (checkCount 0)
 
 (define kin (new-Klass "KlassInput"))
@@ -44,7 +44,7 @@
               (takeKlassUniquePtr notowned))
 ; TODO: check the exception message
 (checkCount 1)
-(delete-Klass kin)
+(set! kin '()) (gc)
 (checkCount 0)
 
 (define kini (new-KlassInheritance "KlassInheritanceInput"))
@@ -55,7 +55,7 @@
   (error "Incorrect string: " s))
 (unless (is-nullptr kini)
   (error "is_nullptr failed"))
-(delete-Klass kini) ; Should not fail, even though already deleted
+(set! kini '()) (gc) ; Should not fail, even though already deleted
 (checkCount 0)
 
 ; unique_ptr as output
@@ -63,13 +63,13 @@
 (define k2 (makeKlassUniquePtr "second"))
 (checkCount 2)
 
-(delete-Klass k1)
+(set! k1 '()) (gc)
 (checkCount 1)
 
 (unless (string=? (Klass-getLabel k2) "second")
   (error "wrong object label" ))
 
-(delete-Klass k2)
+(set! k2 '()) (gc)
 (checkCount 0)
 
 (exit 0)
