@@ -12,7 +12,7 @@
 #endif
 %}
 
-#if !(defined(SWIGGO) || defined(SWIGOCAML) || defined(SWIGMZSCHEME) || defined(SWIGR) || defined(SWIGSCILAB))
+#if !(defined(SWIGGO) || defined(SWIGOCAML) || defined(SWIGR) || defined(SWIGSCILAB))
 
 %include "std_string.i"
 //#include <iostream>

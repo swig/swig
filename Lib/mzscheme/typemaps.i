@@ -2,6 +2,12 @@
  * typemaps.i
  * ----------------------------------------------------------------------------- */
 
+#define %set_output(obj)                  $result = obj
+#define %set_varoutput(obj)               $result = obj
+#define %argument_fail(code, type, name, argn)	scheme_wrong_type(FUNC_NAME, type, argn, argc, argv);
+#define %as_voidptr(ptr)		(void*)(ptr)
+
+
 /* The MzScheme module handles all types uniformly via typemaps. Here
    are the definitions.  */
 
@@ -290,7 +296,6 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
 //    $1 = ($1_ltype) SWIG_Guile_scm2newstr($input, &temp);
 //    $2 = ($2_ltype) temp;
 //}
-
 
 /* ------------------------------------------------------------
  * Typechecking rules
