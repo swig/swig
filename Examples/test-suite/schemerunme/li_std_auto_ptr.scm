@@ -1,15 +1,15 @@
 (define checkCount
   (lambda (expected-count)
     (define actual-count (Klass-getTotal-count))
-    (if (not (= actual-count expected-count)) (error "Counts incorrect, expected:" expected-count " actual:" actual-count))))
+    (unless (= actual-count expected-count) (error (format "Counts incorrect, expected:~a actual:~a" expected-count  actual-count)))))
 
 ; Test raw pointer handling involving virtual inheritance
 (define kini (new-KlassInheritance "KlassInheritanceInput"))
 (checkCount 1)
 (define s (useKlassRawPtr kini))
-(if (not (string=? s "KlassInheritanceInput"))
+(unless (string=? s "KlassInheritanceInput")
   (error "Incorrect string: " s))
-(delete-Klass kini)
+(set! kini '()) (gc)
 (checkCount 0)
 
 ; auto_ptr as input
@@ -17,25 +17,25 @@
 (checkCount 1)
 (define s (takeKlassAutoPtr kin))
 (checkCount 0)
-(if (not (string=? s "KlassInput"))
+(unless (string=? s "KlassInput")
   (error "Incorrect string: " s))
-(if (not (is-nullptr kin))
+(unless (is-nullptr kin)
   (error "is_nullptr failed"))
-(delete-Klass kin) ; Should not fail, even though already deleted
+(set! kini '()) (gc) ; Should not fail, even though already deleted
 (checkCount 0)
 
 (define kin (new-Klass "KlassInput"))
 (checkCount 1)
 (define s (takeKlassAutoPtr kin))
 (checkCount 0)
-(if (not (string=? s "KlassInput"))
+(unless (string=? s "KlassInput")
   (error "Incorrect string: " s))
-(if (not (is-nullptr kin))
+(unless (is-nullptr kin)
   (error "is_nullptr failed"))
 (expect-throw 'misc-error 
               (takeKlassAutoPtr kin))
 ; TODO: check the exception message
-(delete-Klass kin) ; Should not fail, even though already deleted
+(set! kin '()) (gc) ; Should not fail, even though already deleted
 (checkCount 0)
 
 (define kin (new-Klass "KlassInput"))
@@ -44,18 +44,18 @@
               (takeKlassAutoPtr notowned))
 ; TODO: check the exception message
 (checkCount 1)
-(delete-Klass kin)
+(set! kin '()) (gc)
 (checkCount 0)
 
 (define kini (new-KlassInheritance "KlassInheritanceInput"))
 (checkCount 1)
 (define s (takeKlassAutoPtr kini))
 (checkCount 0)
-(if (not (string=? s "KlassInheritanceInput"))
+(unless (string=? s "KlassInheritanceInput")
   (error "Incorrect string: " s))
-(if (not (is-nullptr kini))
+(unless (is-nullptr kini)
   (error "is_nullptr failed"))
-(delete-Klass kini) ; Should not fail, even though already deleted
+(set! kini '()) (gc) ; Should not fail, even though already deleted
 (checkCount 0)
 
 ; auto_ptr as output
@@ -63,13 +63,13 @@
 (define k2 (makeKlassAutoPtr "second"))
 (checkCount 2)
 
-(delete-Klass k1)
+(set! k1 '()) (gc)
 (checkCount 1)
 
-(if (not (string=? (Klass-getLabel k2) "second"))
+(unless (string=? (Klass-getLabel k2) "second")
   (error "wrong object label" ))
 
-(delete-Klass k2)
+(set! k2 '()) (gc)
 (checkCount 0)
 
 (exit 0)
