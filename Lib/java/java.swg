@@ -692,12 +692,12 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 }
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type is null");
     return $null;
   } %}
 %typemap(in, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter) %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type is null");
     return $null;
   }
   rvrdeleter.reset($1); %}

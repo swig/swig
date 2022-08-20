@@ -1,19 +1,8 @@
-
-import cpp11_rvalue_reference_move_input.*;
+using System;
+using cpp11_rvalue_reference_move_inputNamespace;
 
 public class cpp11_rvalue_reference_move_input_runme {
-
-  static {
-    try {
-	System.loadLibrary("cpp11_rvalue_reference_move_input");
-    } catch (UnsatisfiedLinkError e) {
-      System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
-      System.exit(1);
-    }
-  }
-
-  public static void main(String argv[]) {
-
+  public static void Main() {
     {
       // Function containing rvalue reference parameter
       Counter.reset_counts();
@@ -22,8 +11,8 @@ public class cpp11_rvalue_reference_move_input_runme {
       MovableCopyable.movein(mo);
       Counter.check_counts(1, 0, 0, 1, 0, 2);
       if (!MovableCopyable.is_nullptr(mo))
-        throw new RuntimeException("is_nullptr failed");
-      mo.delete();
+        throw new ApplicationException("is_nullptr failed");
+      mo.Dispose();
       Counter.check_counts(1, 0, 0, 1, 0, 2);
     }
 
@@ -35,10 +24,10 @@ public class cpp11_rvalue_reference_move_input_runme {
       MovableCopyable mo_moved = new MovableCopyable(mo);
       Counter.check_counts(1, 0, 0, 1, 0, 1);
       if (!MovableCopyable.is_nullptr(mo))
-        throw new RuntimeException("is_nullptr failed");
-      mo.delete();
+        throw new ApplicationException("is_nullptr failed");
+      mo.Dispose();
       Counter.check_counts(1, 0, 0, 1, 0, 1);
-      mo_moved.delete();
+      mo_moved.Dispose();
       Counter.check_counts(1, 0, 0, 1, 0, 2);
     }
 
@@ -51,26 +40,26 @@ public class cpp11_rvalue_reference_move_input_runme {
       mo111.MoveAssign(mo222);
       Counter.check_counts(2, 0, 0, 0, 1, 1);
       if (!MovableCopyable.is_nullptr(mo222))
-        throw new RuntimeException("is_nullptr failed");
-      mo222.delete();
+        throw new ApplicationException("is_nullptr failed");
+      mo222.Dispose();
       Counter.check_counts(2, 0, 0, 0, 1, 1);
-      mo111.delete();
+      mo111.Dispose();
       Counter.check_counts(2, 0, 0, 0, 1, 2);
     }
 
     {
       // null check
       Counter.reset_counts();
-      boolean exception_thrown = false;
+      bool exception_thrown = false;
       try {
         MovableCopyable.movein(null);
-      } catch (NullPointerException e) {
-        if (!e.getMessage().contains("MovableCopyable && is null"))
-          throw new RuntimeException("incorrect exception message");
+      } catch (ArgumentNullException e) {
+        if (!e.Message.Contains("MovableCopyable && is null"))
+          throw new ApplicationException("incorrect exception message:" + e);
         exception_thrown = true;
       }
       if (!exception_thrown)
-        throw new RuntimeException("Should have thrown null error");
+        throw new ApplicationException("Should have thrown null error");
       Counter.check_counts(0, 0, 0, 0, 0, 0);
     }
   }

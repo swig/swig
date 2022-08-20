@@ -178,6 +178,11 @@ class check {
     return TRUE;
   }
 
+  static function str_contains($a,$b,$message=null) {
+    # Use strpos as PHP function str_contains requires PHP 8
+    return check::equal(strpos($a,$b)!==false,true,$message);
+  }
+
   static function isnull($a,$message=null) {
     return check::equal($a,NULL,$message);
   }

@@ -4,7 +4,7 @@
 
 #define %set_output(obj)                  $result = obj
 #define %set_varoutput(obj)               $result = obj
-#define %argument_fail(code, type, name, argn)	scheme_wrong_type(FUNC_NAME, type, argn, argc, argv);
+#define %argument_fail(code, type, name, argn)	scheme_wrong_type(FUNC_NAME, type, argn, argc, argv)
 #define %as_voidptr(ptr)		(void*)(ptr)
 
 
@@ -72,9 +72,23 @@
 
 #ifdef __cplusplus
 
-%typemap(in) SWIGTYPE &, SWIGTYPE && { 
+%typemap(in) SWIGTYPE & {
   $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
-  if ($1 == NULL) scheme_signal_error("swig-type-error (null reference)");
+  if ($1 == NULL) scheme_signal_error(FUNC_NAME ": swig-type-error (null reference)");
+}
+
+%typemap(in, noblock=1, fragment="<memory>") SWIGTYPE && (void *argp = 0, int res = 0, std::unique_ptr<$*1_ltype> rvrdeleter) {
+  res = SWIG_ConvertPtr($input, &argp, $descriptor, SWIG_POINTER_RELEASE);
+  if (!SWIG_IsOK(res)) {
+    if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {
+      scheme_signal_error(FUNC_NAME ": cannot release ownership as memory is not owned for argument $argnum of type '$1_type'");
+    } else {
+      %argument_fail(res, "$1_type", $symname, $argnum);
+    }
+  }
+  if (argp == NULL) scheme_signal_error(FUNC_NAME ": swig-type-error (null reference)");
+  $1 = ($1_ltype)argp;
+  rvrdeleter.reset($1);
 }
 
 %typemap(out) SWIGTYPE &, SWIGTYPE && {

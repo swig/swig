@@ -8,9 +8,6 @@
  * C++ layer when passed as a parameter to a wrapped function.
  * ----------------------------------------------------------------------------- */
 
-#define %argument_fail(code, type, name, argn)	scheme_wrong_type(FUNC_NAME, type, argn, argc, argv);
-#define %set_output(obj)                  $result = obj
-
 %define %auto_ptr(TYPE)
 %typemap(in, noblock=1) std::auto_ptr< TYPE > (void *argp = 0, int res = 0) {
   res = SWIG_ConvertPtr($input, &argp, $descriptor(TYPE *), SWIG_POINTER_RELEASE);

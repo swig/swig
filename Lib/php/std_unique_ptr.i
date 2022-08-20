@@ -13,10 +13,10 @@
   res = SWIG_ConvertPtr(&$input, &argp, $descriptor(TYPE *), SWIG_POINTER_RELEASE);
   if (!SWIG_IsOK(res)) {
     if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {
-      zend_type_error("Cannot release ownership as memory is not owned for argument $argnum of type 'TYPE *' of $symname");
+      zend_type_error("Cannot release ownership as memory is not owned for argument $argnum of $descriptor(TYPE *) of $symname");
       return;
     } else {
-      zend_type_error("Expected TYPE * for argument $argnum of $symname");
+      zend_type_error("Expected $descriptor(TYPE *) for argument $argnum of $symname");
       return;
     }
   }

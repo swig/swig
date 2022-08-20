@@ -68,13 +68,18 @@
 #endif
 
 /* Rvalue reference */
-%typemap(in, noblock=1) SWIGTYPE && (void *argp = 0, int res = 0) {
-  res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);
+%typemap(in, noblock=1, fragment="<memory>") SWIGTYPE && (void *argp = 0, int res = 0, std::unique_ptr<$*1_ltype> rvrdeleter) {
+  res = SWIG_ConvertPtr($input, &argp, $descriptor, SWIG_POINTER_RELEASE | %convertptr_flags);
   if (!SWIG_IsOK(res)) {
-    %argument_fail(res, "$type", $symname, $argnum); 
+    if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {
+      %releasenotowned_fail(res, "$type", $symname, $argnum);
+    } else {
+      %argument_fail(res, "$type", $symname, $argnum); 
+    }
   }
   if (!argp) { %argument_nullref("$type", $symname, $argnum); }
   $1 = %reinterpret_cast(argp, $ltype);
+  rvrdeleter.reset($1);
 }
 %typemap(freearg) SWIGTYPE && ""
 
