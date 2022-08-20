@@ -700,7 +700,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
     return $null;
   } %}
-%typemap(freearg) SWIGTYPE && %{ delete $1; %};
+%typemap(freearg) SWIGTYPE && %{ delete $1; %}
 %typemap(out) SWIGTYPE *
 %{ *($&1_ltype)&$result = $1; %} 
 %typemap(out, fragment="SWIG_PackData", noblock=1) SWIGTYPE (CLASS::*) {

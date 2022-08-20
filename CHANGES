@@ -19614,8 +19614,8 @@ Version 1.3.12 (June 2, 2002)
             typemap must exactly match up with the "in" or "ignore"
             typemap.  For example:
 
-                 %typemap(in) (char *data, int len) { ... };
-                 %typemap(freearg) char *data { ... }; 
+                 %typemap(in) (char *data, int len) { ... }
+                 %typemap(freearg) char *data { ... }
 
                  void foo(char *data, int len);
 
