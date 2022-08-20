@@ -31,7 +31,7 @@ jobs:
           nuget install PCRE2 -Version 10.39 -OutputDirectory C:\Tools\pcre2
 
     - name: Build
-      working-directory: build/build
+      shell: cmd
       run: |
           SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\Bison.3.7.4\bin;%PATH%
           SET PCRE_ROOT=C:\Tools\pcre2\PCRE2.10.39.0
@@ -41,6 +41,7 @@ jobs:
           cmake --build build --config Release --target install
 
     - name: Test
+      shell: cmd
       working-directory: install2/bin
       run: |
           swig.exe -help
