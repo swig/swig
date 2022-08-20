@@ -668,7 +668,7 @@ results.  For example:
 
 <div class="code">
 <pre>
-%typemap(newfree) char * "free($1);";
+%typemap(newfree) char * "free($1);"
 ...
 %newobject strdup;
 ...

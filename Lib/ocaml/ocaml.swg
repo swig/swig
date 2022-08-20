@@ -188,12 +188,12 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* Void */
 
-%typemap(out) void "$result = Val_unit;";
+%typemap(out) void "$result = Val_unit;"
 
 /* Pass through value */
 
-%typemap (in) CAML_VALUE "$1=$input;";
-%typemap (out) CAML_VALUE "$result=$1;";
+%typemap (in) CAML_VALUE "$1=$input;"
+%typemap (out) CAML_VALUE "$result=$1;"
 
 #if 0
 %include <carray.i>

@@ -139,7 +139,7 @@
 %rename(MyJavaException2) MyNS::Exception2;
 %rename(MyJavaUnexpected) MyNS::Unexpected;
 
-%typemap(javabase) ::MyNS::Exception1,::MyNS::Exception2,::MyNS::Unexpected "java.lang.Exception";
+%typemap(javabase) ::MyNS::Exception1,::MyNS::Exception2,::MyNS::Unexpected "java.lang.Exception"
 %rename(getMessage) what() const;  // Rename all what() methods
 
 namespace MyNS {

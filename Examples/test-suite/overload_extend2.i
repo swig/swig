@@ -1,6 +1,6 @@
 %module overload_extend2
 
-%typemap(default) int int2 "$1=1000;";
+%typemap(default) int int2 "$1=1000;"
 
 %inline %{
 typedef struct Foo {

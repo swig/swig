@@ -266,7 +266,7 @@
   }
   $1 = %reinterpret_cast(temp, $1_ltype);
 }
-%typemap(freearg) Char [ANY], const Char [ANY] "";
+%typemap(freearg) Char [ANY], const Char [ANY] ""
 
 %typemap(in,noblock=1,fragment=#SWIG_AsCharArray) const Char (&)[ANY] (Char temp[$1_dim0], int res)
 {  
@@ -276,7 +276,7 @@
   }
   $1 = &temp;
 }
-%typemap(freearg) const Char (&)[ANY] "";
+%typemap(freearg) const Char (&)[ANY] ""
 
 %typemap(out,fragment=#SWIG_FromCharPtrAndSize,fragment=#SWIG_CharBufLen)
   Char [ANY], const Char[ANY] 

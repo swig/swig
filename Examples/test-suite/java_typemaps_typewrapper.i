@@ -3,7 +3,7 @@
 %module java_typemaps_typewrapper
 
 
-%typemap(javaimports) SWIGTYPE * "import java.math.*;";
+%typemap(javaimports) SWIGTYPE * "import java.math.*;"
 %typemap(javacode) Farewell * %{
   public static $javaclassname CreateNullPointer() {
     return new $javaclassname();
@@ -12,15 +12,15 @@
     // BigDecimal requires the java.math library
   }
 %}
-%typemap(javaclassmodifiers) Farewell * "public final class";
+%typemap(javaclassmodifiers) Farewell * "public final class"
 
 %typemap(javaimports) Greeting * %{
 import java.util.*; // for EventListener
 import java.lang.*; // for Exception
 %};
 
-%typemap(javabase) Greeting * "Exception";
-%typemap(javainterfaces) Greeting * "EventListener";
+%typemap(javabase) Greeting * "Exception"
+%typemap(javainterfaces) Greeting * "EventListener"
 %typemap(javacode) Greeting * %{
   public static final long serialVersionUID = 0x52151000; // Suppress ecj warning
   // Pure Java code generated using %typemap(javacode) 

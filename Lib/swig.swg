@@ -448,9 +448,9 @@ namespace std {
 /* Set up the typemap for handling new return strings */
 
 #ifdef __cplusplus
-%typemap(newfree) char * "delete [] $1;";
+%typemap(newfree) char * "delete [] $1;"
 #else
-%typemap(newfree) char * "free($1);";
+%typemap(newfree) char * "free($1);"
 #endif
 
 /* Default typemap for handling char * members */

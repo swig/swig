@@ -14,7 +14,7 @@
 %typemap(in) void * {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, NULL, $argnum, 0);
 }
-%typemap(freearg) void * "";
+%typemap(freearg) void * ""
 
 %typemap(varin) SWIGTYPE * {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0);
@@ -321,14 +321,14 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
 /* SWIG_scm2str makes a malloc'ed copy of the string, so get rid of it after
    the function call. */
 
-%typemap (freearg) char * "if (must_free$argnum) SWIG_free($1);";
+%typemap (freearg) char * "if (must_free$argnum) SWIG_free($1);"
 %typemap (freearg) char **INPUT, char **BOTH "if (must_free$argnum) SWIG_free(*$1);"
 %typemap (freearg) char **OUTPUT "SWIG_free(*$1);"
   
 /* But this shall not apply if we try to pass a single char by
    reference. */
 
-%typemap (freearg) char *OUTPUT, char *BOTH "";
+%typemap (freearg) char *OUTPUT, char *BOTH ""
 
 /* If we set a string variable, delete the old result first, unless const. */
 
@@ -348,13 +348,13 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
 
 /* Void */
 
-%typemap (out,doc="") void "gswig_result = SCM_UNSPECIFIED;";
+%typemap (out,doc="") void "gswig_result = SCM_UNSPECIFIED;"
 
 /* SCM is passed through */
 
 typedef unsigned long SCM;
-%typemap (in) SCM "$1=$input;";
-%typemap (out) SCM "$result=$1;";
+%typemap (in) SCM "$1=$input;"
+%typemap (out) SCM "$result=$1;"
 %typecheck(SWIG_TYPECHECK_POINTER) SCM "$1=1;";
 
 /* ------------------------------------------------------------

@@ -457,7 +457,7 @@
   SWIG_SetPointerZval($input, SWIG_as_voidptr(new $1_ltype(SWIG_STD_MOVE($1))), $&1_descriptor, 1);
 %}
 
-%typemap(out, phptype="void") void "";
+%typemap(out, phptype="void") void ""
 
 %typemap(out, phptype="string") char [ANY]
 {

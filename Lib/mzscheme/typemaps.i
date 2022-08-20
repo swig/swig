@@ -111,8 +111,8 @@
   $1 = ($1_type) SWIG_convert_int($input);
 }
 
-%typemap(out) enum SWIGTYPE "$result = scheme_make_integer_value($1);";
-%typemap(varout) enum SWIGTYPE "$result = scheme_make_integer_value($1);";
+%typemap(out) enum SWIGTYPE "$result = scheme_make_integer_value($1);"
+%typemap(varout) enum SWIGTYPE "$result = scheme_make_integer_value($1);"
 
 
 /* Pass-by-value */
@@ -278,12 +278,12 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
 
 /* Void */
 
-%typemap(out) void "$result = scheme_void;";
+%typemap(out) void "$result = scheme_void;"
 
 /* Pass through Scheme_Object * */
 
-%typemap (in) Scheme_Object * "$1=$input;";
-%typemap (out) Scheme_Object * "$result=$1;";
+%typemap (in) Scheme_Object * "$1=$input;"
+%typemap (out) Scheme_Object * "$result=$1;"
 %typecheck(SWIG_TYPECHECK_POINTER) Scheme_Object * "$1=1;";
 
 

@@ -264,7 +264,7 @@ Let's edit the interface file such that the C type "div_t*" is changed
 <div class="code"><pre>
 %module test
 
-%typemap(cin) div_t* ":my-pointer";
+%typemap(cin) div_t* ":my-pointer"
 
 %feature("intern_function", "1");
 %feature("export");

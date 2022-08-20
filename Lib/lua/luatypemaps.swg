@@ -248,7 +248,7 @@ $1=($1_ltype)&temp;%}
 
 
 // void (must be empty without the SWIG_arg++)
-%typemap(out) void "";
+%typemap(out) void ""
 
 /* void* is a special case
 A function void fn(void*) should take any kind of pointer as a parameter (just like C/C++ does)

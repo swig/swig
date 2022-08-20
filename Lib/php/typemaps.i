@@ -31,8 +31,8 @@
   temp = (Z_TYPE($input) == IS_TRUE);
   $1 = &temp;
 %}
-%typemap(argout) TYPE *INPUT, TYPE &INPUT "";
-%typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp), TYPE &OUTPUT(TYPE temp) "$1 = &temp;";
+%typemap(argout) TYPE *INPUT, TYPE &INPUT ""
+%typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp), TYPE &OUTPUT(TYPE temp) "$1 = &temp;"
 %typemap(argout,fragment="t_output_helper") TYPE *OUTPUT, TYPE &OUTPUT
 {
   zval o;
@@ -57,8 +57,8 @@
   temp = (TYPE) zval_get_double(&$input);
   $1 = &temp;
 %}
-%typemap(argout) TYPE *INPUT, TYPE &INPUT "";
-%typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp), TYPE &OUTPUT(TYPE temp) "$1 = &temp;";
+%typemap(argout) TYPE *INPUT, TYPE &INPUT ""
+%typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp), TYPE &OUTPUT(TYPE temp) "$1 = &temp;"
 %typemap(argout,fragment="t_output_helper") TYPE *OUTPUT, TYPE &OUTPUT
 {
   zval o;
@@ -82,8 +82,8 @@
   temp = (TYPE) zval_get_long(&$input);
   $1 = &temp;
 %}
-%typemap(argout) TYPE *INPUT, TYPE &INPUT "";
-%typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp), TYPE &OUTPUT(TYPE temp) "$1 = &temp;";
+%typemap(argout) TYPE *INPUT, TYPE &INPUT ""
+%typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp), TYPE &OUTPUT(TYPE temp) "$1 = &temp;"
 %typemap(argout,fragment="t_output_helper") TYPE *OUTPUT, TYPE &OUTPUT
 {
   zval o;

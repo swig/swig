@@ -54,7 +54,7 @@
 }
 %}
 
-%typemap(classconsttab) SWIGTYPE (CLASS::*) "";
+%typemap(classconsttab) SWIGTYPE (CLASS::*) ""
 
 %typemap(consttab) int,
                    unsigned int,
@@ -100,4 +100,4 @@
 }
 
 /* Handled as a global variable. */
-%typemap(consttab) SWIGTYPE (CLASS::*) "";
+%typemap(consttab) SWIGTYPE (CLASS::*) ""
