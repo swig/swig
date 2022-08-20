@@ -44,4 +44,4 @@ jobs:
       shell: cmd
       working-directory: install2/bin
       run: |
-          swig.exe -help
+          swig.exe -version
