@@ -8,16 +8,6 @@ skip_commits:
     - 'Doc/**'
     - 'Tools/CI-*'
 
-environment:
-  global:
-    MAKEJOBS: 2
-
-  matrix:
-    VSVER: 16
-    VER: 39
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-
-
 init:
   - nuget install CMake-win64 -Version 3.15.5 -OutputDirectory C:\Tools\CMake
   - nuget install Bison -Version 3.7.4 -OutputDirectory C:\Tools\bison
