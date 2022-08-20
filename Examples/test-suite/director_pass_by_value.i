@@ -1,9 +1,5 @@
 %module(directors="1") director_pass_by_value
 
-#if defined(SWIGD)
-%rename(trace) debug;
-#endif
-
 %director DirectorPassByValueAbstractBase;
 
 %include "cpp11_move_only_helper.i"
@@ -14,17 +10,17 @@
 %inline %{
 #include <iostream>
 using namespace std;
-int debug = false;
+int trace = false;
 struct PassedByValue {
-  PassedByValue(int v = 0x12345678) { val = v; if (debug) cout << "PassedByValue(0x" << hex << val << ")" << " " << this << endl; Counter::normal_constructor++; }
+  PassedByValue(int v = 0x12345678) { val = v; if (trace) cout << "PassedByValue(0x" << hex << val << ")" << " " << this << endl; Counter::normal_constructor++; }
 
-  PassedByValue(const PassedByValue &other) { val = other.val; if (debug) cout << "PassedByValue(const PassedByValue &)" << " " << this << " " << &other << endl; Counter::copy_constructor++;}
-  PassedByValue & operator=(const PassedByValue &other) { val = other.val; if (debug) cout << "operator=(const PassedByValue &)" << " " << this << " " << &other << endl; Counter::copy_assignment++; return *this; }
+  PassedByValue(const PassedByValue &other) { val = other.val; if (trace) cout << "PassedByValue(const PassedByValue &)" << " " << this << " " << &other << endl; Counter::copy_constructor++;}
+  PassedByValue & operator=(const PassedByValue &other) { val = other.val; if (trace) cout << "operator=(const PassedByValue &)" << " " << this << " " << &other << endl; Counter::copy_assignment++; return *this; }
 
 #if __cplusplus >= 201103L
-  PassedByValue(PassedByValue &&other) noexcept { val = other.val; if (debug) cout << "PassedByValue(PassedByValue &&)" << " " << this << endl; Counter::move_constructor++; }
-  PassedByValue & operator=(PassedByValue &&other) noexcept { val = other.val; if (debug) cout << "operator=(PassedByValue &&)" << " " << this << endl; Counter::move_assignment++; return *this; }
-  ~PassedByValue() { if (debug) cout << "~PassedByValue()" << " " << this << endl; Counter::destructor++; }
+  PassedByValue(PassedByValue &&other) noexcept { val = other.val; if (trace) cout << "PassedByValue(PassedByValue &&)" << " " << this << endl; Counter::move_constructor++; }
+  PassedByValue & operator=(PassedByValue &&other) noexcept { val = other.val; if (trace) cout << "operator=(PassedByValue &&)" << " " << this << endl; Counter::move_assignment++; return *this; }
+  ~PassedByValue() { if (trace) cout << "~PassedByValue()" << " " << this << endl; Counter::destructor++; }
 #endif
 
   int getVal() { return val; }

@@ -30,7 +30,7 @@ public class runme
 
     static private void check_equal(string a, string b)
     {
-        if (li_std_wstring.debug) {
+        if (li_std_wstring.trace) {
             Console.WriteLine("check_equal {0} {1}", a, b);
             display_bytes(a);
             display_bytes(b);
@@ -150,7 +150,7 @@ public class runme
 
             foreach (string expected in test_strings)
             {
-                if (li_std_wstring.debug)
+                if (li_std_wstring.trace)
                     Console.WriteLine("expected (C#): " + expected);
                 string received = li_std_wstring.test_value(expected);
                 check_equal(received, expected);

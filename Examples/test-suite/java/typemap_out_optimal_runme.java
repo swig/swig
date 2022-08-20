@@ -13,7 +13,7 @@ public class typemap_out_optimal_runme {
   }
 
   public static void main(String argv[]) {
-    XX.setDebug(false);
+    XX.setTrace(false);
     {
       XX x = XX.create();
       x.delete();

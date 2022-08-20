@@ -23,7 +23,7 @@
 #include <string>
 #include <iostream>
 
-bool debug = false;
+bool trace = false;
 
 void show_wstring_bytes(const std::wstring &s) {
   unsigned char *p = (unsigned char *)s.data();
@@ -59,7 +59,7 @@ wchar_t* test_wchar_overload(wchar_t *x) {
 }
 
 std::wstring test_value(std::wstring x) {
-  if (debug) {
+  if (trace) {
     std::wcout << "received(C++): " /*<< x */<< std::endl;
     show_wstring_bytes(x);
   }
@@ -80,7 +80,7 @@ void test_reference(std::wstring &x) {
 }
 
 bool test_equal(const wchar_t *wcs, const std::wstring& s) {
-  if (debug) {
+  if (trace) {
     show_wstring_bytes(wcs);
     show_wstring_bytes(s);
   }

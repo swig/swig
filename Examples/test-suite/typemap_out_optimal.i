@@ -18,20 +18,16 @@
 
 %ignore XX::operator=;
 
-#ifdef SWIGD
-%rename(trace) XX::debug;
-#endif
-
 %inline %{
 #include <iostream>
 using namespace std;
 
 struct XX {
-  XX() { if (debug) cout << "XX()" << endl; }
-  XX(int i) { if (debug) cout << "XX(" << i << ")" << endl; }
-  XX(const XX &other) { if (debug) cout << "XX(const XX &)" << endl; }
-  XX& operator =(const XX &other) { if (debug) cout << "operator=(const XX &)" << endl; return *this; }
-  ~XX() { if (debug) cout << "~XX()" << endl; }
+  XX() { if (trace) cout << "XX()" << endl; }
+  XX(int i) { if (trace) cout << "XX(" << i << ")" << endl; }
+  XX(const XX &other) { if (trace) cout << "XX(const XX &)" << endl; }
+  XX& operator =(const XX &other) { if (trace) cout << "operator=(const XX &)" << endl; return *this; }
+  ~XX() { if (trace) cout << "~XX()" << endl; }
 
 // Note: best observed RVO for C#, Java and Python with g++-6 to g++-10 (just one constructor and one destructor call)
   static XX create() {
@@ -40,8 +36,8 @@ struct XX {
   static const XX createConst() {
     return XX(456);
   }
-  static bool debug;
+  static bool trace;
 };
-bool XX::debug = true;
+bool XX::trace = true;
 %}
 
