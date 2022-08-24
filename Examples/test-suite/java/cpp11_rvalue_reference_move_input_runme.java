@@ -56,5 +56,21 @@ public class cpp11_rvalue_reference_move_input_runme {
       mo111.delete();
       Counter.check_counts(2, 0, 0, 0, 1, 2);
     }
+
+    {
+      // null check
+      Counter.reset_counts();
+      boolean exception_thrown = false;
+      try {
+        MovableCopyable.movein(null);
+      } catch (NullPointerException e) {
+        if (!e.getMessage().contains("MovableCopyable && is null"))
+          throw new RuntimeException("incorrect exception message");
+        exception_thrown = true;
+      }
+      if (!exception_thrown)
+        throw new RuntimeException("Should have thrown null error");
+      Counter.check_counts(0, 0, 0, 0, 0, 0);
+    }
   }
 }
