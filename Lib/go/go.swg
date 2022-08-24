@@ -388,8 +388,9 @@
 %typemap(gotype) SWIGTYPE &&
 %{$gotypename%}
 
-%typemap(in) SWIGTYPE &&
-%{ $1 = *($&1_ltype)&$input; %}
+%typemap(in, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter)
+%{ $1 = *($&1_ltype)&$input;
+rvrdeleter.reset($1); %}
 
 %typemap(out) SWIGTYPE &&
 %{ *($&1_ltype)&$result = $1; %}

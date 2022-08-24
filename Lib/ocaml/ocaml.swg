@@ -40,9 +40,10 @@
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
 }
 
-%typemap(in) SWIGTYPE && {
+%typemap(in, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter) %{
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
-}
+    rvrdeleter.reset($1);
+%}
 
 %typemap(varin) SWIGTYPE & {
     $1 = *(($ltype) caml_ptr_val($input,$1_descriptor));
