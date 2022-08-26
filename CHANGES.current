@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-08-26: wsfulton
+            [Racket] SWIG now converts a C/C++ NULL pointer into a null value by calling
+            scheme_make_null(), so that scheme's null? is true for a NULL C/C++ pointer value.
+
 2022-08-18: wsfulton
             [Racket] Add support for std::unique_ptr in std_unique_ptr.i.
             Add support for std::auto_ptr in std_auto_ptr.i.

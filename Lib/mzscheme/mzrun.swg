@@ -144,16 +144,20 @@ mz_free_swig(void *p, void *data) {
 
 static Scheme_Object *
 SWIG_MzScheme_NewPointerObj(void *ptr, swig_type_info *type, int owner) {
-  struct swig_mz_proxy *new_proxy;
-  new_proxy = (struct swig_mz_proxy *) scheme_malloc(sizeof(struct swig_mz_proxy));
-  new_proxy->mztype = swig_type;
-  new_proxy->type = type;
-  new_proxy->object = ptr;
-  new_proxy->own = owner & SWIG_POINTER_OWN;
-  if (new_proxy->own) {
-    scheme_add_finalizer(new_proxy, mz_free_swig, NULL);
+  if (ptr) {
+    struct swig_mz_proxy *new_proxy;
+    new_proxy = (struct swig_mz_proxy *) scheme_malloc(sizeof(struct swig_mz_proxy));
+    new_proxy->mztype = swig_type;
+    new_proxy->type = type;
+    new_proxy->object = ptr;
+    new_proxy->own = owner & SWIG_POINTER_OWN;
+    if (new_proxy->own) {
+      scheme_add_finalizer(new_proxy, mz_free_swig, NULL);
+    }
+    return (Scheme_Object *) new_proxy;
+  } else {
+    return scheme_make_null();
   }
-  return (Scheme_Object *) new_proxy;
 }
 
 static int
