@@ -58,6 +58,14 @@
 (set! kini '()) (gc) ; Should not fail, even though already deleted
 (checkCount 0)
 
+(define null '())
+(takeKlassAutoPtr null)
+(define nullnil #nil)
+(takeKlassAutoPtr nullnil)
+(takeKlassAutoPtr (make-null))
+(checkCount 0)
+
+
 ; auto_ptr as output
 (define k1 (makeKlassAutoPtr "first"))
 (define k2 (makeKlassAutoPtr "second"))
@@ -71,5 +79,8 @@
 
 (set! k2 '()) (gc)
 (checkCount 0)
+
+(unless (null? (makeNullAutoPtr))
+  (error "null failure"))
 
 (exit 0)

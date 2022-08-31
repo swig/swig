@@ -1,3 +1,12 @@
+(load-extension "cpp11_std_unique_ptr.so")
+(require (lib "defmacro.ss"))
+
+; Copied from ../schemerunme/cpp11_std_unique_ptr.scm and modified for exceptions
+
+; Define an equivalent to Guile's gc procedure
+(define-macro (gc)
+  `(collect-garbage 'major))
+
 (define checkCount
   (lambda (expected-count)
     (define actual-count (Klass-getTotal-count))
@@ -32,17 +41,24 @@
   (error "Incorrect string: " s))
 (unless (is-nullptr kin)
   (error "is_nullptr failed"))
-(expect-throw 'misc-error 
-              (takeKlassUniquePtr kin))
-; TODO: check the exception message
+
+(define exception_thrown "no exception thrown for kin")
+(with-handlers ([exn:fail? (lambda (exn)
+                             (set! exception_thrown (exn-message exn)))])
+  (takeKlassUniquePtr kin))
+(unless (string=? exception_thrown "takeKlassUniquePtr: cannot release ownership as memory is not owned for argument 1 of type 'Klass *'")
+  (error "Wrong or no exception thrown: " exception_thrown))
 (set! kin '()) (gc) ; Should not fail, even though already deleted
 (checkCount 0)
 
 (define kin (new-Klass "KlassInput"))
 (define notowned (get-not-owned-ptr kin))
-(expect-throw 'misc-error 
-              (takeKlassUniquePtr notowned))
-; TODO: check the exception message
+(set! exception_thrown "no exception thrown for notowned")
+(with-handlers ([exn:fail? (lambda (exn)
+                             (set! exception_thrown (exn-message exn)))])
+  (takeKlassUniquePtr notowned))
+(unless (string=? exception_thrown "takeKlassUniquePtr: cannot release ownership as memory is not owned for argument 1 of type 'Klass *'")
+  (error "Wrong or no exception thrown: " exception_thrown))
 (checkCount 1)
 (set! kin '()) (gc)
 (checkCount 0)
@@ -60,8 +76,6 @@
 
 (define null '())
 (takeKlassUniquePtr null)
-(define nullnil #nil)
-(takeKlassUniquePtr nullnil)
 (takeKlassUniquePtr (make-null))
 (checkCount 0)
 

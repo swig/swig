@@ -107,6 +107,11 @@ public class cpp11_std_unique_ptr_runme {
       checkCount(0);
     }
 
+    cpp11_std_unique_ptr.takeKlassUniquePtr(null);
+    cpp11_std_unique_ptr.takeKlassUniquePtr(cpp11_std_unique_ptr.make_null());
+    checkCount(0);
+
+
     // unique_ptr as output
     Klass k1 = cpp11_std_unique_ptr.makeKlassUniquePtr("first");
     if (!k1.getLabel().equals("first"))
@@ -125,5 +130,8 @@ public class cpp11_std_unique_ptr_runme {
     k2.delete();
     k2 = null;
     checkCount(0);
+
+    if (cpp11_std_unique_ptr.makeNullUniquePtr() != null)
+      throw new RuntimeException("null failure");
   }
 }

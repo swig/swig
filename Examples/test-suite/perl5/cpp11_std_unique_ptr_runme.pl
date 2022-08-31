@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 28;
+use Test::More tests => 30;
 BEGIN { use_ok('cpp11_std_unique_ptr') }
 require_ok('cpp11_std_unique_ptr');
 
@@ -73,6 +73,11 @@ sub checkCount {
   checkCount(0);
 }
 
+cpp11_std_unique_ptr::takeKlassUniquePtr(undef);
+cpp11_std_unique_ptr::takeKlassUniquePtr(cpp11_std_unique_ptr::make_null());
+checkCount(0);
+
+
 # unique_ptr as output
 my $k1 = cpp11_std_unique_ptr::makeKlassUniquePtr("first");
 my $k2 = cpp11_std_unique_ptr::makeKlassUniquePtr("second");
@@ -85,3 +90,5 @@ is($k2->getLabel, "second", "proper label");
 
 undef $k2;
 checkCount(0);
+
+is(cpp11_std_unique_ptr::makeNullUniquePtr(), undef);

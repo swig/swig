@@ -77,6 +77,11 @@ end
 kini = nil -- Should not fail, even though already deleted
 checkCount(0)
 
+li_std_auto_ptr.takeKlassAutoPtr(nil);
+li_std_auto_ptr.takeKlassAutoPtr(li_std_auto_ptr.make_null());
+checkCount(0);
+
+
 -- auto_ptr as output
 k1 = li_std_auto_ptr.makeKlassAutoPtr("first")
 k2 = li_std_auto_ptr.makeKlassAutoPtr("second")
@@ -91,3 +96,5 @@ end
 
 k2 = nil
 checkCount(0)
+
+assert(li_std_auto_ptr.makeNullAutoPtr() == nil)

@@ -107,6 +107,11 @@ public class li_std_auto_ptr_runme {
       checkCount(0);
     }
 
+    li_std_auto_ptr.takeKlassAutoPtr(null);
+    li_std_auto_ptr.takeKlassAutoPtr(li_std_auto_ptr.make_null());
+    checkCount(0);
+
+
     // auto_ptr as output
     Klass k1 = li_std_auto_ptr.makeKlassAutoPtr("first");
     if (!k1.getLabel().equals("first"))
@@ -125,5 +130,8 @@ public class li_std_auto_ptr_runme {
     k2.delete();
     k2 = null;
     checkCount(0);
+
+    if (li_std_auto_ptr.makeNullAutoPtr() != null)
+      throw new RuntimeException("null failure");
   }
 }

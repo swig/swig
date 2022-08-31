@@ -126,6 +126,11 @@ if {![is_nullptr kini]} {
 kini -delete # Should not fail, even though already deleted
 checkCount 0
 
+takeKlassUniquePtr "NULL"
+takeKlassUniquePtr [make_null]
+checkCount 0
+
+
 # unique_ptr as output
 set k1 [makeKlassUniquePtr "first"]
 set k2 [makeKlassUniquePtr "second"]
@@ -140,3 +145,7 @@ if {[$k2 getLabel] != "second"} {
 
 $k2 -delete
 checkCount 0
+
+if {[makeNullUniquePtr] != "NULL"} {
+  error "null failure"
+}

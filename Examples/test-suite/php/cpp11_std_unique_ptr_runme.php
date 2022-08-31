@@ -79,6 +79,11 @@ try {
 $kini = NULL; # Should not fail, even though already deleted
 checkCount(0);
 
+takeKlassUniquePtr(NULL);
+takeKlassUniquePtr(make_null());
+checkCount(0);
+
+
 # unique_ptr as output
 $k1 = makeKlassUniquePtr("first");
 $k2 = makeKlassUniquePtr("second");
@@ -91,5 +96,7 @@ check::equal($k2->getLabel(), "second", "proper label");
 
 $k2 = NULL;
 checkCount(0);
+
+check::equal(makeNullUniquePtr(), NULL);
 
 check::done();

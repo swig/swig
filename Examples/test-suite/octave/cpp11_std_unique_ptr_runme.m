@@ -93,6 +93,13 @@ endif
 clear kini; # Should not fail, even though already deleted
 checkCount(0);
 
+null = []; # NULL pointer
+null_ptr = make_null();
+takeKlassUniquePtr([]);
+takeKlassUniquePtr(null);
+takeKlassUniquePtr(null_ptr);
+checkCount(0);
+
 
 # unique_ptr as output
 k1 = makeKlassUniquePtr("first");
@@ -112,3 +119,8 @@ endif
 
 clear k2;
 checkCount(0);
+
+null_smart_prt = makeNullUniquePtr();
+assert(ismatrix(null_smart_prt))
+assert(size(null_smart_prt) == size([]))
+assert(isequal([], null_smart_prt))

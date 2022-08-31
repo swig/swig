@@ -87,6 +87,11 @@ void main() {
   } // dispose should not fail, even though already deleted
   checkCount(0);
 
+  takeKlassAutoPtr(null);
+  takeKlassAutoPtr(make_null());
+  checkCount(0);
+
+
   // auto_ptr as output
   Klass k1 = makeKlassAutoPtr("first");
   if (k1.getLabel() != "first")
@@ -103,4 +108,7 @@ void main() {
 
   k2.dispose();
   checkCount(0);
+
+  if (makeNullAutoPtr() !is null)
+    throw new Exception("null failure");
 }

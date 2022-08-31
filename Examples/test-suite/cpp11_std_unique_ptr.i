@@ -63,7 +63,7 @@ std::string useKlassRawPtr(Klass* k) {
 
 std::string takeKlassUniquePtr(std::unique_ptr<Klass> k) {
 //  std::cout << "takeKlassUniquePtr " << std::hex << (Klass*)k.get() << std::endl;
-  std::string s(k->getLabel());
+  std::string s(k ? k->getLabel() : "null smart pointer");
 //  std::cout << "takeKlassUniquePtr string: " << s << std::endl;
   return s;
 }
@@ -82,6 +82,10 @@ Klass *get_not_owned_ptr(Klass *p) {
 
 std::unique_ptr<Klass> makeKlassUniquePtr(const char* label) {
   return std::unique_ptr<Klass>(new Klass(label));
+}
+
+std::unique_ptr<Klass> makeNullUniquePtr() {
+  return std::unique_ptr<Klass>();
 }
 
 %}

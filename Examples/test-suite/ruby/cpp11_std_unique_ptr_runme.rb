@@ -116,6 +116,11 @@ end
 kini = nil
 checkCount(0)
 
+Cpp11_std_unique_ptr::takeKlassUniquePtr(nil)
+Cpp11_std_unique_ptr::takeKlassUniquePtr(Cpp11_std_unique_ptr::make_null())
+checkCount(0)
+
+
 # unique_ptr as output
 k1 = Cpp11_std_unique_ptr::makeKlassUniquePtr("first")
 k2 = Cpp11_std_unique_ptr::makeKlassUniquePtr("second")
@@ -131,3 +136,4 @@ gc_check(1)
 k2 = nil
 gc_check(0)
 
+swig_assert_equal_simple(Cpp11_std_unique_ptr::makeNullUniquePtr(), nil)

@@ -77,6 +77,11 @@ if not is_nullptr(kini):
 del kini # Should not fail, even though already deleted
 checkCount(0)
 
+takeKlassAutoPtr(None)
+takeKlassAutoPtr(make_null())
+checkCount(0)
+
+
 # auto_ptr as output
 k1 = makeKlassAutoPtr("first")
 k2 = makeKlassAutoPtr("second")
@@ -90,3 +95,6 @@ if k2.getLabel() != "second":
 
 del k2
 checkCount(0)
+
+if (makeNullAutoPtr() != None):
+  raise RuntimeError("null failure")
