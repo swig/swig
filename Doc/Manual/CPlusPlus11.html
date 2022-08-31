@@ -98,6 +98,7 @@ class MyClass {
 ...
   std::vector&lt;int&gt; numbers;
 public:
+  MyClass() : numbers() {}
   MyClass(MyClass &amp;&amp;other) : numbers(std::move(other.numbers)) {}
   MyClass &amp; operator=(MyClass &amp;&amp;other) {
     numbers = std::move(other.numbers);
@@ -107,8 +108,8 @@ public:
 </pre></div>
 
 <p>
-Rvalue references are designed for C++ temporaries and so are not very useful when used from non-C++ target languages.
-Generally you would just ignore them via <tt>%ignore</tt> before parsing the class.
+Rvalue references are designed for C++ temporaries and are not particularly useful when used from non-C++ target languages.
+You could just ignore them via <tt>%ignore</tt> before parsing the class.
 For example, ignore the move constructor:
 </p>
 
@@ -117,7 +118,39 @@ For example, ignore the move constructor:
 </pre></div>
 
 <p>
-The plan is to ignore move constructors by default in a future version of SWIG. Note that both normal assignment operators as well as move assignment operators are ignored by default in most target languages with the following warning:
+However, if you do wrap a function/contructor with an rvalue reference and pass a proxy class to it, SWIG will assume that after the call, the rvalue reference parameter will have been 'moved'.
+The proxy class passed as the rvalue reference, will own the underlying C++ object up until it is used as an rvalue reference parameter.
+Afterwards, the proxy class will have the underlying C++ pointer set to the nullptr so that the proxy class instance cannot be used again and the underlying (moved from) C++ object will be deleted after the function/constructor call has returned.
+</p>
+
+<p>
+In this way, the SWIG proxy class works much like an exclusively owned smart pointer (think of <tt>std::unique_ptr</tt>), passing ownership to the called C++ function/constructor.
+Let's consider an example in Java using the wrapped proxy class from above:
+</p>
+
+<div class="targetlang"><pre>
+MyClass mc = new MyClass();
+MyClass mc1 = new MyClass(mc); // move constructor
+MyClass mc2 = new MyClass(mc); // move constructor fails
+</pre></div>
+
+<p>
+The second call to the move constructor will fail as the <tt>mc</tt> proxy instance has been moved.
+Each target language handles the moved proxy class slightly differently, but typically you'll get an exception such as in Java:
+</p>
+
+<div class="shell">
+<pre>
+Exception in thread "main" java.lang.RuntimeException: Cannot release ownership as memory is not owned
+	at MyClass.swigRelease(MyClass.java:27)
+	at MyClass.<init>(MyClass.java:55)
+	at runme.main(runme.java:18)
+</pre>
+</div>
+
+
+<p>
+Note that both normal copy assignment operators as well as move assignment operators are ignored by default in the target languages with the following warning:
 </p>
 
 <div class="shell">
@@ -125,6 +158,30 @@ The plan is to ignore move constructors by default in a future version of SWIG. 
 example.i:18: Warning 503: Can't wrap 'operator =' unless renamed to a valid identifier.
 </pre>
 </div>
+
+<p>
+Using a <tt>%rename</tt> will remove the warning, however, a <tt>%rename</tt> makes the move constructor available from the target language:
+</p>
+<div class="code"><pre>
+%rename(MoveAssign) MyClass::operator=(MyClass &amp;&amp;);
+</pre></div>
+
+<p>
+You can then use the move assignment operator, but like the move constructor example above, you cannot use
+a proxy class once it has been moved:
+</p>
+
+<div class="targetlang"><pre>
+MyClass mc = new MyClass();
+MyClass mc2 = mc.MoveAssign(mc);
+MyClass mc3 = mc.MoveAssign(mc); // Use of mc again will fail
+</pre></div>
+
+<p>
+<b>Compatibility note:</b>
+SWIG-4.1.0 changed the way that rvalue references were handled and implemented typemaps assuming that the
+proxy class would transfer ownership of the underlying C++ object when a function/constructor with an rvalue reference parameter was called.
+</p>
 
 <H4><a name="CPlusPlus11_move_only">7.2.1.1 Movable and move-only types</a></H4>
 

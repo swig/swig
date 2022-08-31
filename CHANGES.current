@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-08-31: wsfulton
+            #999 Improve move semantics when using rvalue references.
+            The SWIGTYPE && input typemaps now assume the object has been moved.
+
+            These typemaps have been changed assuming that after the function call,
+            the rvalue reference parameter has been moved. The parameter's proxy class
+            that owns the C++ object thus has the underlying pointer set to null
+            so that the (moved from, but still valid) C++ object cannot be used again
+            and the the object is additionally deleted.
+
 2022-08-28: wsfulton
             [Octave] SWIG now marshalls a C/C++ NULL pointer into the null matrix, [].
             SWIG has always marshalled the null matrix into a NULL pointer; this remains
