@@ -6,4 +6,4 @@
 (define-macro (gc)
   `(collect-garbage 'major))
 
-(load "../schemerunme/newobject1.scm")
+(load (build-path (path-only (path->complete-path (find-system-path 'run-file))) "../schemerunme/newobject1.scm"))
