@@ -44,6 +44,7 @@ namespace std {
       auto_ptr(auto_ptr&& a) : ptr(a.ptr) { a.ptr = 0;}
       ~auto_ptr() { delete ptr; }
       T *release() { T *p = ptr; ptr = 0; return p; }
+      T* get() const { return ptr; }
       void reset(T *p = 0) { delete ptr; ptr = p; }
       T &operator*() const { return *ptr; }
       T *operator->() const { return ptr; }
