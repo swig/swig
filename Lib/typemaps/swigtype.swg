@@ -74,30 +74,6 @@
 }
 %typemap(freearg) SWIGTYPE && ""
 
-#if defined(__cplusplus) && defined(%implicitconv_flag)
-%typemap(in,noblock=1,implicitconv=1) const SWIGTYPE && (void *argp = 0, int res = 0) {
-  res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags | %implicitconv_flag);
-  if (!SWIG_IsOK(res)) {
-    %argument_fail(res, "$type", $symname, $argnum); 
-  }
-  if (!argp) { %argument_nullref("$type", $symname, $argnum); }
-  $1 = %reinterpret_cast(argp, $ltype);
-}
-%typemap(freearg,noblock=1,match="in",implicitconv=1) const SWIGTYPE &&
-{
-  if (SWIG_IsNewObj(res$argnum)) %delete($1);
-}
-#else
-%typemap(in,noblock=1) const SWIGTYPE && (void *argp, int res = 0) {
-  res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);
-  if (!SWIG_IsOK(res)) {
-    %argument_fail(res, "$type", $symname, $argnum); 
-  }
-  if (!argp) { %argument_nullref("$type", $symname, $argnum); }
-  $1 = %reinterpret_cast(argp, $ltype);
-}
-#endif
-
 /* By value */
 #if defined(__cplusplus) && defined(%implicitconv_flag)
 %typemap(in,implicitconv=1) SWIGTYPE (void *argp, int res = 0) {
