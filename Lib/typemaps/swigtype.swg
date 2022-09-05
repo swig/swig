@@ -56,15 +56,6 @@
 {
   if (SWIG_IsNewObj(res$argnum)) %delete($1);
 }
-#else
-%typemap(in,noblock=1) const SWIGTYPE & (void *argp, int res = 0) {
-  res = SWIG_ConvertPtr($input, &argp, $descriptor, %convertptr_flags);
-  if (!SWIG_IsOK(res)) {
-    %argument_fail(res, "$type", $symname, $argnum); 
-  }
-  if (!argp) { %argument_nullref("$type", $symname, $argnum); }
-  $1 = %reinterpret_cast(argp, $ltype);
-}
 #endif
 
 /* Rvalue reference */
@@ -400,6 +391,7 @@
   int res = SWIG_ConvertPtr($input, &vptr, $descriptor, SWIG_POINTER_NO_NULL);
   $1 = SWIG_CheckState(res);
 }
+
 %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER,noblock=1) const SWIGTYPE && {
   void *vptr = 0;
   int res = SWIG_ConvertPtr($input, &vptr, $descriptor, SWIG_POINTER_NO_NULL);
