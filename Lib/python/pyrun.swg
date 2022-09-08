@@ -1515,7 +1515,7 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
             Py_DECREF(inst);
             inst = 0;
           } else {
-            Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+            PyType_Modified(Py_TYPE(inst));
           }
         }
       }
