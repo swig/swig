@@ -58,6 +58,14 @@
 (set! kini '()) (gc) ; Should not fail, even though already deleted
 (checkCount 0)
 
+(define null '())
+(takeKlassUniquePtr null)
+(define nullnil #nil)
+(takeKlassUniquePtr nullnil)
+(takeKlassUniquePtr (make-null))
+(checkCount 0)
+
+
 ; unique_ptr as output
 (define k1 (makeKlassUniquePtr "first"))
 (define k2 (makeKlassUniquePtr "second"))
@@ -71,5 +79,8 @@
 
 (set! k2 '()) (gc)
 (checkCount 0)
+
+(unless (null? (makeNullUniquePtr))
+  (error "null failure"))
 
 (exit 0)

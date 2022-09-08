@@ -66,7 +66,7 @@ public class runme
             li_std_wstring.test_reference(null);
             throw new Exception("NULL check failed");
         } catch (ArgumentNullException e) {
-            if (!e.Message.Contains("type is null"))
+            if (!e.Message.Contains("is null"))
                 throw new Exception("Missing text " + e);
         }
         try {

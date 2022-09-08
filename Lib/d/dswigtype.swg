@@ -122,7 +122,7 @@
 
 %typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if (!$1) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "$1_type type is null");
+    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "$1_type is null");
     return $null;
   } %}
 %typemap(out) SWIGTYPE & "$result = (void *)$1;"
@@ -157,11 +157,12 @@
  * Rvalue reference conversion typemaps.
  */
 
-%typemap(in, canthrow=1) SWIGTYPE && %{ $1 = ($1_ltype)$input;
+%typemap(in, canthrow=1, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter) %{ $1 = ($1_ltype)$input;
   if (!$1) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "$1_type type is null");
+    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "$1_type is null");
     return $null;
-  } %}
+  }
+  rvrdeleter.reset($1); %}
 %typemap(out) SWIGTYPE && "$result = (void *)$1;"
 
 %typemap(directorin) SWIGTYPE &&
@@ -182,7 +183,7 @@
 
 %typemap(din,
   nativepointer="cast(void*)$dinput"
-) SWIGTYPE && "$dclassname.swigGetCPtr($dinput)"
+) SWIGTYPE && "$dclassname.swigRelease($dinput)"
 %typemap(dout, excode=SWIGEXCODE,
   nativepointer="{\n  auto ret = cast($dtype)$imcall;$excode\n  return ret;\n}") SWIGTYPE && {
   $dclassname ret = new $dclassname($imcall, $owner);$excode

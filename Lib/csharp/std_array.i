@@ -16,7 +16,7 @@
 
 
 %define SWIG_STD_ARRAY_INTERNAL(T, N)
-%typemap(csinterfaces) std::array< T, N > "global::System.IDisposable, global::System.Collections.IEnumerable\n    , global::System.Collections.Generic.IEnumerable<$typemap(cstype, T)>\n";
+%typemap(csinterfaces) std::array< T, N > "global::System.IDisposable, global::System.Collections.IEnumerable\n    , global::System.Collections.Generic.IEnumerable<$typemap(cstype, T)>\n"
 %proxycode %{
   public $csclassname(global::System.Collections.ICollection c) : this() {
     if (c == null)

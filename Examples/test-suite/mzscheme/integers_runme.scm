@@ -6,4 +6,4 @@
      ,form
      #f))
 
-(load "../schemerunme/integers.scm")
+(load (build-path (path-only (path->complete-path (find-system-path 'run-file))) "../schemerunme/integers.scm"))

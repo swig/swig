@@ -420,14 +420,15 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %}
 %typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if (!$1) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type type is null", 0);
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type is null", 0);
     return $null;
   } %}
-%typemap(in, canthrow=1) SWIGTYPE && %{ $1 = ($1_ltype)$input;
+%typemap(in, canthrow=1, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter) %{ $1 = ($1_ltype)$input;
   if (!$1) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type type is null", 0);
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "$1_type is null", 0);
     return $null;
-  } %}
+  }
+  rvrdeleter.reset($1); %}
 %typemap(out) SWIGTYPE * %{ $result = (void *)$1; %} 
 %typemap(out, fragment="SWIG_PackData") SWIGTYPE (CLASS::*) %{
   char buf[128];
@@ -613,7 +614,8 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     "$csinput"
 %typemap(csin) char *, char *&, char[ANY], char[] "$csinput"
 %typemap(csin) SWIGTYPE "$&csclassname.getCPtr($csinput)"
-%typemap(csin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] "$csclassname.getCPtr($csinput)"
+%typemap(csin) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$csclassname.getCPtr($csinput)"
+%typemap(csin) SWIGTYPE && "$csclassname.swigRelease($csinput)"
 %typemap(csin) SWIGTYPE (CLASS::*) "$csclassname.getCMemberPtr($csinput)"
 
 /* The csout typemap is used for converting function return types from the return type

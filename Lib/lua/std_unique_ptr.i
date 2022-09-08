@@ -9,7 +9,7 @@
  * ----------------------------------------------------------------------------- */
 
 %define %unique_ptr(TYPE)
-%typemap(in, checkfn="lua_isuserdata", noblock=1) std::unique_ptr< TYPE > (void *argp = 0, int res = 0) {
+%typemap(in, checkfn="SWIG_isptrtype", noblock=1) std::unique_ptr< TYPE > (void *argp = 0, int res = 0) {
   res = SWIG_ConvertPtr(L, $input, &argp, $descriptor(TYPE *), SWIG_POINTER_RELEASE);
   if (!SWIG_IsOK(res)) {
     if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {

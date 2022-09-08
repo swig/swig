@@ -53,7 +53,7 @@ SWIG_InitializeModule(0);
       assert(all(sapply($input, class) == "$R_class"));
   %}
 
-%typemap(out) void "";
+%typemap(out) void ""
 
 %typemap(in) int *, int[ANY],
 	     signed int *, signed int[ANY],

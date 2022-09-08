@@ -28,7 +28,7 @@ namespace std {
 template <class T>
 class set {
 
-%typemap(csinterfaces) std::set<T> "global::System.IDisposable, global::System.Collections.Generic.ISet<$typemap(cstype, T)>\n";
+%typemap(csinterfaces) std::set<T> "global::System.IDisposable, global::System.Collections.Generic.ISet<$typemap(cstype, T)>\n"
 %proxycode %{
   void global::System.Collections.Generic.ICollection<$typemap(cstype, T)>.Add($typemap(cstype, T) item) {
       ((global::System.Collections.Generic.ISet<$typemap(cstype, T)>)this).Add(item);

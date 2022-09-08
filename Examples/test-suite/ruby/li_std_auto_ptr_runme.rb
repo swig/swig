@@ -116,6 +116,11 @@ end
 kini = nil
 checkCount(0)
 
+Li_std_auto_ptr::takeKlassAutoPtr(nil)
+Li_std_auto_ptr::takeKlassAutoPtr(Li_std_auto_ptr::make_null())
+checkCount(0)
+
+
 # auto_ptr as output
 k1 = Li_std_auto_ptr::makeKlassAutoPtr("first")
 k2 = Li_std_auto_ptr::makeKlassAutoPtr("second")
@@ -131,3 +136,4 @@ gc_check(1)
 k2 = nil
 gc_check(0)
 
+swig_assert_equal_simple(Li_std_auto_ptr::makeNullAutoPtr(), nil)

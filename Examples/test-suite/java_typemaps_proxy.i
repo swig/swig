@@ -3,21 +3,21 @@
 %module java_typemaps_proxy
 
 
-%typemap(javaimports) SWIGTYPE "import java.math.*;";
+%typemap(javaimports) SWIGTYPE "import java.math.*;"
 %typemap(javacode) NS::Farewell %{
   public void saybye(BigDecimal num_times) {
     // BigDecimal requires the java.math library
   }
 %}
-%typemap(javaclassmodifiers) NS::Farewell "public final class";
+%typemap(javaclassmodifiers) NS::Farewell "public final class"
 
 %typemap(javaimports) NS::Greeting %{
 import java.util.*; // for EventListener
 import java.lang.*; // for Exception
 %};
 
-%typemap(javabase) NS::Greeting "Exception";
-%typemap(javainterfaces) NS::Greeting "EventListener";
+%typemap(javabase) NS::Greeting "Exception"
+%typemap(javainterfaces) NS::Greeting "EventListener"
 %typemap(javacode) NS::Greeting %{
   public static final long serialVersionUID = 0x52151000; // Suppress ecj warning
   // Pure Java code generated using %typemap(javacode) 
@@ -60,7 +60,7 @@ import java.lang.*; // for Exception
 %}
 
 // get rid of the finalize method for NS::Farewell
-%typemap(javafinalize) NS::Farewell "";
+%typemap(javafinalize) NS::Farewell ""
 
 // Test typemaps are being found for templated classes
 %typemap(javacode) NS::Adieu<int**> %{
@@ -89,7 +89,7 @@ namespace NS {
 %template(AdieuIntPtrPtr) NS::Adieu<int**>;
 
 // Check the premature garbage collection prevention parameter can be turned off
-%typemap(jtype, nopgcpp="1") Without * "long";
+%typemap(jtype, nopgcpp="1") Without * "long"
 %pragma(java) jniclassclassmodifiers="public class"
 
 %inline %{
@@ -109,7 +109,7 @@ struct With {
 void global_method_with(With *p) {}
 %}
 
-%typemap(jtype, nopgcpp="1") const ConstWithout * "long";
+%typemap(jtype, nopgcpp="1") const ConstWithout * "long"
 %inline %{
 class ConstWithout {
 public:

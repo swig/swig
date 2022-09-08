@@ -88,7 +88,7 @@ int ioTest() { return 0; }
 %}
 
 // except feature (%javaexception) specifying a checked exception class for the throws clause
-%typemap(javabase) MyException "Throwable";
+%typemap(javabase) MyException "Throwable"
 %typemap(javacode) MyException %{
   public static final long serialVersionUID = 0x52151000; // Suppress ecj warning
 %}

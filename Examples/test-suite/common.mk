@@ -609,7 +609,7 @@ CPP11_TEST_CASES += \
 	cpp11_rvalue_reference \
 	cpp11_rvalue_reference2 \
 	cpp11_rvalue_reference3 \
-	cpp11_rvalue_reference_move_input \
+	cpp11_rvalue_reference_move \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
 	cpp11_std_array \
