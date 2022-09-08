@@ -1,7 +1,7 @@
-module cpp11_rvalue_reference_move_input_runme;
+module cpp11_rvalue_reference_move_runme;
 
-import cpp11_rvalue_reference_move_input.Counter;
-import cpp11_rvalue_reference_move_input.MovableCopyable;
+import cpp11_rvalue_reference_move.Counter;
+import cpp11_rvalue_reference_move.MovableCopyable;
 import std.algorithm;
 
 void main() {
@@ -63,5 +63,25 @@ void main() {
     if (!exception_thrown)
       throw new Exception("Should have thrown null error");
     Counter.check_counts(0, 0, 0, 0, 0, 0);
+  }
+
+  {
+    // output
+    Counter.reset_counts();
+    MovableCopyable mc = MovableCopyable.moveout(1234);
+    Counter.check_counts(2, 0, 0, 0, 1, 1);
+    MovableCopyable.check_numbers_match(mc, 1234);
+
+    bool exception_thrown = false;
+    try {
+      MovableCopyable.movein(mc);
+    } catch (Exception e) {
+      if (!canFind(e.msg, "Cannot release ownership as memory is not owned"))
+        throw new Exception("incorrect exception message: " ~ e.msg);
+      exception_thrown = true;
+    }
+    if (!exception_thrown)
+      throw new Exception("Should have thrown 'Cannot release ownership as memory is not owned' error");
+    Counter.check_counts(2, 0, 0, 0, 1, 1);
   }
 }

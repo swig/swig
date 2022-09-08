@@ -16,6 +16,8 @@
 <ul>
 <li><a href="#CPlusPlus11_rvalue_reference_and_move_semantics">Rvalue reference and move semantics</a>
 <ul>
+<li><a href="#CPlusPlus11_rvalue_reference_inputs">Rvalue reference inputs</a>
+<li><a href="#CPlusPlus11_rvalue_reference_outputs">Rvalue reference outputs</a>
 <li><a href="#CPlusPlus11_move_only">Movable and move-only types</a>
 </ul>
 <li><a href="#CPlusPlus11_generalized_constant_expressions">Generalized constant expressions</a>
@@ -109,7 +111,7 @@ public:
 
 <p>
 Rvalue references are designed for C++ temporaries and are not particularly useful when used from non-C++ target languages.
-You could just ignore them via <tt>%ignore</tt> before parsing the class.
+One option is to just ignore them via <tt>%ignore</tt>.
 For example, ignore the move constructor:
 </p>
 
@@ -117,8 +119,17 @@ For example, ignore the move constructor:
 %ignore MyClass::MyClass(MyClass &amp;&amp;);
 </pre></div>
 
+<H4><a name="CPlusPlus11_rvalue_reference_inputs">7.2.1.1 Rvalue reference inputs</a></H4>
+
+
 <p>
-However, if you do wrap a function/contructor with an rvalue reference and pass a proxy class to it, SWIG will assume that after the call, the rvalue reference parameter will have been 'moved'.
+Rvalue reference parameters are useful as input parameters in C++ for implementing move semantics, such as,
+in the move constructor and move assignment operator.
+This type of usage can be useful from target languages too to avoid copying large objects.
+</p>
+
+<p>
+If you do wrap a function/contructor with an rvalue reference parameter and pass a proxy class to it, SWIG will assume that after the call, the rvalue reference parameter object will have been 'moved'.
 The proxy class passed as the rvalue reference, will own the underlying C++ object up until it is used as an rvalue reference parameter.
 Afterwards, the proxy class will have the underlying C++ pointer set to the nullptr so that the proxy class instance cannot be used again and the underlying (moved from) C++ object will be deleted after the function/constructor call has returned.
 </p>
@@ -136,15 +147,15 @@ MyClass mc2 = new MyClass(mc); // move constructor fails
 
 <p>
 The second call to the move constructor will fail as the <tt>mc</tt> proxy instance has been moved.
-Each target language handles the moved proxy class slightly differently, but typically you'll get an exception such as in Java:
+Each target language handles the moved proxy class slightly differently when attempting to move it again, but typically you'll get an exception such as in Java:
 </p>
 
 <div class="shell">
 <pre>
 Exception in thread "main" java.lang.RuntimeException: Cannot release ownership as memory is not owned
-	at MyClass.swigRelease(MyClass.java:27)
-	at MyClass.<init>(MyClass.java:55)
-	at runme.main(runme.java:18)
+        at MyClass.swigRelease(MyClass.java:27)
+        at MyClass.&lt;init&gt;(MyClass.java:55)
+        at runme.main(runme.java:18)
 </pre>
 </div>
 
@@ -160,15 +171,15 @@ example.i:18: Warning 503: Can't wrap 'operator =' unless renamed to a valid ide
 </div>
 
 <p>
-Using a <tt>%rename</tt> will remove the warning, however, a <tt>%rename</tt> makes the move constructor available from the target language:
+Using a <tt>%rename</tt> will remove the warning and also makes the move assignment operator available from the target language:
 </p>
 <div class="code"><pre>
 %rename(MoveAssign) MyClass::operator=(MyClass &amp;&amp;);
 </pre></div>
 
 <p>
-You can then use the move assignment operator, but like the move constructor example above, you cannot use
-a proxy class once it has been moved:
+You can then use it, but like the move constructor example above, you cannot use
+a proxy class once it has already been moved:
 </p>
 
 <div class="targetlang"><pre>
@@ -178,12 +189,58 @@ MyClass mc3 = mc.MoveAssign(mc); // Use of mc again will fail
 </pre></div>
 
 <p>
-<b>Compatibility note:</b>
-SWIG-4.1.0 changed the way that rvalue references were handled and implemented typemaps assuming that the
-proxy class would transfer ownership of the underlying C++ object when a function/constructor with an rvalue reference parameter was called.
+It is of course perfectly possible in C++ for a function/constructor to not move an object passed to it in an rvalue reference parameter. The assumption that SWIG makes would then not hold and customisation of the appropriate input typemaps would be required.
+For scripting languages, this would be for the 'in' typemap and for the non-scripting languages additional typemaps such as the 'javain' typemap, which is used to set the memory ownership of the underlying C++ object for Java, would also need copying and modifying appropriately.
 </p>
 
-<H4><a name="CPlusPlus11_move_only">7.2.1.1 Movable and move-only types</a></H4>
+<p>
+<b>Compatibility note:</b>
+SWIG-4.1.0 changed the way that rvalue reference parameters were handled and implemented typemaps assuming that the
+proxy class owns the underlying C++ object and transfers ownership of the object when a function/constructor with an rvalue reference parameter is called.
+</p>
+
+<H4><a name="CPlusPlus11_rvalue_reference_outputs">7.2.1.2 Rvalue reference outputs</a></H4>
+
+
+<p>
+While rvalue reference parameter inputs are not uncommon in C++ and can be usefully utilised from target languages, this cannot be said for rvalue reference outputs.
+Firstly, it is quite unusual in C++ to have functions that return an rvalue reference.
+Secondly, these cases are nigh on impossible to use from a target language.
+The main problem is these references are for C++ compiler temporaries used on the stack and the target languages use objects on the heap
+and the concept of compiler temporary objects doesn't make sense from another language.
+</p>
+
+<p>
+Using <tt>MyClass</tt> from earlier and this C++ code:
+</p>
+
+<div class="code"><pre>
+void use(MyClass &amp;&amp;mc);
+MyClass &amp;&amp; get1();
+MyClass &amp; get2();
+</pre></div>
+
+<p>
+SWIG wraps the <tt>get1</tt> and <tt>get2</tt> functions more or less identically.
+The returned references are converted into pointers that are not owned by the target language.
+It means that the following perfectly valid C++ has no equivalent in any of the target languages:
+</p>
+
+<div class="code"><pre>
+use(get1());
+use(std::move(get2()));
+</pre></div>
+
+<p>
+An attempt to call the equivalent <tt>use(get1())</tt> from one of the target languages will result in the ownership failure mentioned in the previous section as the object being passed to the <tt>use</tt> function is not owned by the proxy class.
+In order to own the object, it would need to be cloned for the object to move from the stack to the heap, for which an appropriate clone function would be required, but may not even be available.
+Note that a move constructor or copy constructor may slice the object when inheritance is involved.
+Alternatively, customising the input rvalue reference typemap, as mentioned in the previous section, could remove the ownership requirement.
+Another alternative would be to modify the output rvalue reference typemap to always clone the rvalue reference object.
+Fortunately you're highly unlikely to have to solve any of these issues!
+</p>
+
+<H4><a name="CPlusPlus11_move_only">7.2.1.3 Movable and move-only types</a></H4>
 
 
 <p>

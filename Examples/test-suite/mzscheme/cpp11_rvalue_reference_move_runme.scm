@@ -1,7 +1,7 @@
-(load-extension "cpp11_rvalue_reference_move_input.so")
+(load-extension "cpp11_rvalue_reference_move.so")
 (require (lib "defmacro.ss"))
 
-; Copied from ../schemerunme/cpp11_rvalue_reference_move_input.scm and modified for exceptions
+; Copied from ../schemerunme/cpp11_rvalue_reference_move.scm and modified for exceptions
 
 ; Function containing rvalue reference parameter
 (Counter-reset-counts)
@@ -50,5 +50,19 @@
 (unless (string=? exception_thrown "MovableCopyable-movein: swig-type-error (null reference)")
   (error (format "incorrect exception message: ~a" exception_thrown)))
 (Counter-check-counts 0 0 0 0 0 0)
+
+; output
+(Counter-reset-counts)
+(define mc (MovableCopyable-moveout 1234))
+(Counter-check-counts 2 0 0 0 1 1)
+(MovableCopyable-check-numbers-match mc 1234)
+
+(define exception_thrown "no exception thrown for kin")
+(with-handlers ([exn:fail? (lambda (exn)
+                             (set! exception_thrown (exn-message exn)))])
+  (MovableCopyable-movein mc))
+(unless (string-contains? exception_thrown "cannot release ownership as memory is not owned")
+  (error (format "incorrect exception message: ~a" exception_thrown)))
+(Counter-check-counts 2 0 0 0 1 1)
 
 (exit 0)

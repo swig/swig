@@ -1,4 +1,4 @@
-from cpp11_rvalue_reference_move_input import *
+from cpp11_rvalue_reference_move import *
 
 # Function containing rvalue reference parameter
 Counter.reset_counts()
@@ -50,3 +50,20 @@ except ValueError as e:
 if not exception_thrown:
     raise RuntimeError("Should have thrown null error")
 Counter.check_counts(0, 0, 0, 0, 0, 0)
+
+# output
+Counter.reset_counts()
+mc = MovableCopyable.moveout(1234)
+Counter.check_counts(2, 0, 0, 0, 1, 1)
+MovableCopyable.check_numbers_match(mc, 1234)
+
+exception_thrown = False
+try:
+    MovableCopyable.movein(mc)
+except RuntimeError as e:
+    if "cannot release ownership as memory is not owned" not in str(e):
+        raise RuntimeError("incorrect exception message:" + str(e))
+    exception_thrown = True
+if not exception_thrown:
+    raise RuntimeError("Should have thrown 'Cannot release ownership as memory is not owned' error")
+Counter.check_counts(2, 0, 0, 0, 1, 1)

@@ -1,11 +1,11 @@
 
-import cpp11_rvalue_reference_move_input.*;
+import cpp11_rvalue_reference_move.*;
 
-public class cpp11_rvalue_reference_move_input_runme {
+public class cpp11_rvalue_reference_move_runme {
 
   static {
     try {
-	System.loadLibrary("cpp11_rvalue_reference_move_input");
+	System.loadLibrary("cpp11_rvalue_reference_move");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -72,6 +72,26 @@ public class cpp11_rvalue_reference_move_input_runme {
       if (!exception_thrown)
         throw new RuntimeException("Should have thrown null error");
       Counter.check_counts(0, 0, 0, 0, 0, 0);
+    }
+
+    {
+      // output
+      Counter.reset_counts();
+      MovableCopyable mc = MovableCopyable.moveout(1234);
+      Counter.check_counts(2, 0, 0, 0, 1, 1);
+      MovableCopyable.check_numbers_match(mc, 1234);
+
+      boolean exception_thrown = false;
+      try {
+        MovableCopyable.movein(mc);
+      } catch (RuntimeException e) {
+        if (!e.getMessage().contains("Cannot release ownership as memory is not owned"))
+          throw new RuntimeException("incorrect exception message");
+        exception_thrown = true;
+      }
+      if (!exception_thrown)
+        throw new RuntimeException("Should have thrown 'Cannot release ownership as memory is not owned' error");
+      Counter.check_counts(2, 0, 0, 0, 1, 1);
     }
   }
 }

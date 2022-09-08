@@ -1,7 +1,7 @@
 using System;
-using cpp11_rvalue_reference_move_inputNamespace;
+using cpp11_rvalue_reference_moveNamespace;
 
-public class cpp11_rvalue_reference_move_input_runme {
+public class cpp11_rvalue_reference_move_runme {
   public static void Main() {
     {
       // Function containing rvalue reference parameter
@@ -61,6 +61,26 @@ public class cpp11_rvalue_reference_move_input_runme {
       if (!exception_thrown)
         throw new ApplicationException("Should have thrown null error");
       Counter.check_counts(0, 0, 0, 0, 0, 0);
+    }
+
+    {
+      // output
+      Counter.reset_counts();
+      MovableCopyable mc = MovableCopyable.moveout(1234);
+      Counter.check_counts(2, 0, 0, 0, 1, 1);
+      MovableCopyable.check_numbers_match(mc, 1234);
+
+      bool exception_thrown = false;
+      try {
+        MovableCopyable.movein(mc);
+      } catch (ApplicationException e) {
+        if (!e.Message.Contains("Cannot release ownership as memory is not owned"))
+          throw new ApplicationException("incorrect exception message");
+        exception_thrown = true;
+      }
+      if (!exception_thrown)
+        throw new ApplicationException("Should have thrown 'Cannot release ownership as memory is not owned' error");
+      Counter.check_counts(2, 0, 0, 0, 1, 1);
     }
   }
 }

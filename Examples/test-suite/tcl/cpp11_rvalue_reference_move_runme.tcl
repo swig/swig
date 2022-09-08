@@ -1,5 +1,5 @@
 
-if [ catch { load ./cpp11_rvalue_reference_move_input[info sharedlibextension] cpp11_rvalue_reference_move_input} err_msg ] {
+if [ catch { load ./cpp11_rvalue_reference_move[info sharedlibextension] cpp11_rvalue_reference_move} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 
@@ -60,3 +60,23 @@ if {!$exception_thrown} {
   error "Should have thrown null error"
 }
 Counter_check_counts 0  0  0  0  0  0
+
+# output
+Counter_reset_counts
+set mc [MovableCopyable_moveout 1234]
+Counter_check_counts  2  0  0  0  1  1
+MovableCopyable_check_numbers_match $mc 1234
+
+set exception_thrown 0
+if [ catch {
+  MovableCopyable_movein $mc
+} e ] {
+  if {[string first "cannot release ownership as memory is not owned" $e] == -1} {
+    error "incorrect exception message: $e"
+  }
+  set exception_thrown 1
+}
+if {!$exception_thrown} {
+  error "Should have thrown 'Cannot release ownership as memory is not owned' error"
+}
+Counter_check_counts  2  0  0  0  1  1

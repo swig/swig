@@ -43,4 +43,15 @@
 ; TODO: check the exception message
 (Counter-check-counts 0 0 0 0 0 0)
 
+; output
+(Counter-reset-counts)
+(define mc (MovableCopyable-moveout 1234))
+(Counter-check-counts 2 0 0 0 1 1)
+(MovableCopyable-check-numbers-match mc 1234)
+
+(expect-throw 'misc-error
+              (MovableCopyable-movein mc))
+; TODO: check the exception message
+(Counter-check-counts 2 0 0 0 1 1)
+
 (exit 0)
