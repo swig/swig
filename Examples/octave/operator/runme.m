@@ -46,6 +46,7 @@ if swig_octave_prereq(3,8,0)
   printf("exp(a) = %s\n", disp(exp(a)));
 endif
 
-# concatenation operator
-g = [a, b, c];
-printf("g   = %s\n",disp(g));
+# concatenation operator, note: calls @swig_ref/horzcat.m
+# g = [a, b, c];
+# printf("g   = %s\n",disp(g));
+# Above temporarily removed as broken in octave-7.2.0, see https://github.com/swig/swig/issues/2353
