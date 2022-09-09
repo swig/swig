@@ -17,6 +17,8 @@ Version 4.1.0 (in progress)
             so that the (moved from, but still valid) C++ object cannot be used again
             and the the object is additionally deleted.
 
+            *** POTENTIAL INCOMPATIBILITY ***
+
 2022-08-28: wsfulton
             [Octave] SWIG now marshalls a C/C++ NULL pointer into the null matrix, [].
             SWIG has always marshalled the null matrix into a NULL pointer; this remains
@@ -122,11 +124,11 @@ Version 4.1.0 (in progress)
 	    supported by Apple for over 20 years now.
 
 2022-07-12: wsfulton
-            Performance optimisation for parameters passed by value that are C++11 movable.
+            #999 Performance optimisation for parameters passed by value that are C++11 movable.
             The C++ wrappers create a temporary variable for a parameter to be passed to a
             function. This is initially default constructed and then copy assigned from the
             instance being passed in from the target language. This is unchanged, however,
-            when the temporary variable is passed to wrapped function, it is now done using
+            when the temporary variable is passed to the wrapped function, it is now done using
             std::move. If the type is move constructible, the move constructor will be used
             instead of the copy constructor.
 
@@ -153,7 +155,7 @@ Version 4.1.0 (in progress)
 	    receiver argument from p to swig_p.
 
 2022-07-03: wsfulton
-            Performance optimisation for directors for classes passed by value. The directorin
+            #999 Performance optimisation for directors for classes passed by value. The directorin
             typemaps in the director methods now use std::move on the input parameter when
             copying the object from the stack to the heap prior to the callback into the target
             language, thereby taking advantage of move semantics if available.
