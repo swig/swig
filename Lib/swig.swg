@@ -665,7 +665,9 @@ namespace std {
  */
 
 #ifdef __cplusplus
-%insert("runtime") %{
+// Placed in the header section to ensure the language specific header files are
+// the first included headers and not <utility>
+%insert("header") %{
 #ifdef __cplusplus
 #include <utility>
 /* SwigValueWrapper is described in swig.swg */
@@ -688,7 +690,7 @@ public:
   operator T&() const { return *pointer.ptr; }
 #endif
   T *operator&() const { return pointer.ptr; }
-};%}
+};
 
 /*
  * SwigValueInit() is a generic initialisation solution as the following approach:
@@ -699,13 +701,10 @@ public:
  * 
  *       unsigned int c_result = unsigned int();
  */
-%insert("runtime") %{
 template <typename T> T SwigValueInit() {
   return T();
 }
-%}
 
-%insert("runtime") %{
 #if __cplusplus >=201103L
 # define SWIG_STD_MOVE(OBJ) std::move(OBJ)
 #else
