@@ -19,9 +19,8 @@
 /* Use debug wrappers with the Python release dll */
 
 #if defined(_MSC_VER) && _MSC_VER >= 1929
-/* Workaround what seems to be a bug in the Python headers with MSVC 2022.
- * https://github.com/swig/swig/issues/2090
- */
+/* Workaround compilation errors when redefining _DEBUG in MSVC 2019 version 16.10 and later
+ * See https://github.com/swig/swig/issues/2090 */
 # include <corecrt.h>
 #endif
 
