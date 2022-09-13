@@ -111,7 +111,10 @@ check::equal($tricky->value_m01(10), -1, "trickyvalue_m01 failed");
 check::equal($tricky->booltest2(), True, "booltest2 failed");
 
 check::equal($tricky->max_32bit_int1(), 0x7FFFFFFF, "max_32bit_int1 failed");
-check::equal($tricky->min_32bit_int1(), -2147483648, "min_32bit_int1 failed");
+// On 32-bit platforms -2147483648 is a PHP float (rather than
+// PHP int on 64-bit platforms) so only check equivalence rather
+// than strict equality.
+check::equivalent($tricky->min_32bit_int1(), -2147483648, "min_32bit_int1 failed");
 check::equal($tricky->max_32bit_int2(), 0x7FFFFFFF, "max_32bit_int2 failed");
 
 $tricky->too_big_32bit_int1();
