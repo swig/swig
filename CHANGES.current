@@ -657,6 +657,12 @@ Version 4.1.0 (in progress)
 	    consistency with C/C++ compiler preprocessors.  Previously
 	    SWIG set FOO to an empty value.
 
+	    Existing invocations of SWIG with `-DFOO` where the empty value
+	    matters can be updated to `-DFOO=` which should work with both
+	    old and new releases of SWIG.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2022-02-06: sethrj
 	    #2194 Classes that are non-assignable due to const data or const
 	    reference members are now automatically detected.
