@@ -220,6 +220,8 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
         *result = SWIG_TypeCast(cast, (void *) SCM_CELL_WORD_1(smob), &newmemory);
         assert(!newmemory); /* newmemory handling not yet implemented */
         ret = SWIG_OK;
+      } else {
+        return SWIG_ERROR;
       }
     } else {
       *result = (void *) SCM_CELL_WORD_1(smob);
