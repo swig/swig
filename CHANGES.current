@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-09-17: wsfulton
+            [Guile] Add error checking to SWIGTYPE and SWIGTYPE & in typemaps to prevent
+            seg faults when passing #nil to these parameter types.
+
 2022-09-16: wsfulton
             #999 Provide SWIGTYPE MOVE typemaps in swigmove.i for implementing full
             move semantics when passing parameters by value.

@@ -14,8 +14,13 @@
 
 /* Pointers */
 
-%typemap(in) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] {
+%typemap(in) SWIGTYPE *, SWIGTYPE [] {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
+}
+%typemap(in) SWIGTYPE & ($1_ltype argp) {
+  argp = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
+  if (!argp) { %argument_nullref("$1_type", $symname, $argnum); }
+  $1 = argp;
 }
 %typemap(in, noblock=1, fragment="<memory>") SWIGTYPE && (void *argp = 0, int res = 0, std::unique_ptr<$*1_ltype> rvrdeleter) {
   res = SWIG_ConvertPtr($input, &argp, $descriptor, SWIG_POINTER_RELEASE);
@@ -136,8 +141,9 @@
 
 /* Pass-by-value */
 
-%typemap(in) SWIGTYPE($&1_ltype argp) {
+%typemap(in) SWIGTYPE ($&1_ltype argp) {
   argp = ($&1_ltype)SWIG_MustGetPtr($input, $&1_descriptor, $argnum, 0);
+  if (!argp) { %argument_nullref("$1_type", $symname, $argnum); }
   $1 = *argp;
 }
 
