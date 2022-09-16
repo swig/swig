@@ -633,7 +633,7 @@ extern "C" Language *swig_javascript(void) {
  * ----------------------------------------------------------------------------- */
 
 JSEmitter::JSEmitter(JSEmitter::JSEngine engine)
-:  engine(engine), templates(NewHash()), namespaces(NULL), current_namespace(NULL), defaultResultName(NewString("result")), f_wrappers(NULL) {
+:  engine(engine), templates(NewHash()), namespaces(NULL), current_namespace(NULL), defaultResultName(NewString(Swig_cresult_name())), f_wrappers(NULL) {
 }
 
 /* -----------------------------------------------------------------------------
@@ -885,7 +885,7 @@ int JSEmitter::emitCtor(Node *n) {
   Delete(wrapper->code);
   wrapper->code = NewString("");
 
-  Printf(wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"), 0));
+  Printf(wrapper->locals, "%s%s;", SwigType_str(Getattr(n, "type"), 0), Swig_cresult_name());
 
   marshalInputArgs(n, params, wrapper, Ctor, true, false);
   String *action = emit_action(n);
@@ -1315,7 +1315,7 @@ void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, Strin
   // adds a declaration for the result variable
   if (emitReturnVariable)
     emit_return_variable(n, type, wrapper);
-  // if not given, use default result identifier ('result') for output typemap
+  // if not given, use default result identifier for output typemap
   if (cresult == 0)
     cresult = defaultResultName;
 
