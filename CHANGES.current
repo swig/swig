@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-09-16: wsfulton
+            #999 Provide SWIGTYPE MOVE typemaps in swigmove.i for implementing full
+            move semantics when passing parameters by value.
+
 2022-08-31: wsfulton
             #999 Improve move semantics when using rvalue references.
             The SWIGTYPE && input typemaps now assume the object has been moved.
