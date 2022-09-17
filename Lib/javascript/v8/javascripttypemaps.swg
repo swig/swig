@@ -37,7 +37,7 @@
 #define SWIG_SetConstant(name, obj)
 
 /* raise */
-#define SWIG_Raise(obj, type, desc)  SWIG_V8_Raise(type)
+#define SWIG_Raise(obj, type, desc)  SWIG_V8_Raise(obj, type)
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>

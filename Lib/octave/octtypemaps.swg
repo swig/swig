@@ -32,7 +32,7 @@
 #define SWIG_SetConstant(name, obj)     SWIG_Octave_SetConstant(module_ns,name,obj) 
 
 // raise
-#define SWIG_Octave_Raise(OBJ, TYPE, DESC) error("C++ side threw an exception of type " TYPE)
+#define SWIG_Octave_Raise(OBJ, TYPE, DESC) error(OBJ.is_string() ? OBJ.string_value().c_str() : "C++ side threw an exception of type " TYPE)
 #define SWIG_Raise(obj, type, desc)     SWIG_Octave_Raise(obj, type, desc)
 
 // Include the unified typemap library

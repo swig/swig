@@ -8,6 +8,11 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-09-17: wsfulton
+            [Javascript, Octave, R] Improve exceptions for %catches and exception
+            specifications for native types. String exception messages are shown as
+            the exception message instead of just the type of the exception.
+
+2022-09-17: wsfulton
             Add missing typecheck typemaps for std::auto_ptr and std::unique_ptr to
             fix overloading when using these types.
 
