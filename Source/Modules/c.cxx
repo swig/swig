@@ -969,6 +969,39 @@ private:
 
 
 /*
+  Return true if the class, or one of its base classes, uses multiple inheritance, i.e. has more than one base class.
+
+  The output first_base parameter is optional and is filled with the first base class (if any).
+*/
+bool uses_multiple_inheritance(Node* n, scoped_dohptr* first_base_out = NULL) {
+  if (first_base_out)
+    first_base_out->reset();
+
+  List* const baselist = Getattr(n, "bases");
+  if (!baselist)
+    return false;
+
+  scoped_dohptr first_base;
+  for (Iterator i = First(baselist); i.item; i = Next(i)) {
+    if (Checkattr(i.item, "feature:ignore", "1"))
+      continue;
+
+    if (first_base)
+      return true;
+
+    if (uses_multiple_inheritance(i.item))
+      return true;
+
+    first_base = Copy(i.item);
+  }
+
+  if (first_base_out)
+    *first_base_out = first_base;
+
+  return false;
+}
+
+/*
   cxx_class_wrapper
 
   Outputs the declaration of the class wrapping the given one if we're generating C++ wrappers, i.e. if the provided cxx_wrappers object is initialized.
@@ -991,27 +1024,18 @@ public:
     String* const classname = Getattr(n, "sym:name");
 
     scoped_dohptr base_classes(NewStringEmpty());
-    if (List *baselist = Getattr(n, "bases")) {
-      for (Iterator i = First(baselist); i.item; i = Next(i)) {
-	if (Checkattr(i.item, "feature:ignore", "1"))
-	  continue;
+    if (uses_multiple_inheritance(n, &first_base_)) {
+      Swig_warning(WARN_C_UNSUPPORTTED, Getfile(n), Getline(n),
+	"Multiple inheritance not supported yet, skipping C++ wrapper generation for %s\n",
+	classname
+      );
 
-	if (first_base_) {
-	  Swig_warning(WARN_C_UNSUPPORTTED, Getfile(n), Getline(n),
-	    "Multiple inheritance not supported yet, skipping C++ wrapper generation for %s\n",
-	    classname
-	  );
-
-	  // Return before initializing class_node_, so that the dtor won't output anything neither.
-	  return;
-	}
-
-	first_base_ = Copy(i.item);
-      }
-
-      if (first_base_)
-	Printv(base_classes, " : public ", Getattr(first_base_, "sym:name"), NIL);
+      // Return before initializing class_node_, so that the dtor won't output anything neither.
+      return;
     }
+
+    if (first_base_)
+      Printv(base_classes, " : public ", Getattr(first_base_, "sym:name"), NIL);
 
     Printv(cxx_wrappers_.sect_types,
       "class ", classname, ";\n",
