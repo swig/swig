@@ -58,6 +58,7 @@ FAILING_CPP_TESTS := \
     li_attribute \
     li_attribute_template \
     li_boost_shared_ptr_attribute \
+    li_std_auto_ptr \
     li_std_deque \
     li_std_wstring \
     li_windows \
