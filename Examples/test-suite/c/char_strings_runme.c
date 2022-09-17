@@ -8,8 +8,8 @@ int main() {
   char *CPLUSPLUS_MSG = "A message from the deep dark world of C++, where anything is possible.";
   char *OTHERLAND_MSG = "Little message from the safe world.";
 
-  long count = 10000;
-  long i = 0;
+  int count = 10000;
+  int i = 0;
 
   // get functions
   for (i=0; i<count; i++) {
