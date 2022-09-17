@@ -26,7 +26,7 @@
 /* K is the C++ key type, T is the C++ value type */
 %define SWIG_STD_MAP_INTERNAL(K, T, C)
 
-%typemap(csinterfaces) std::map< K, T, C > "global::System.IDisposable \n    , global::System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n";
+%typemap(csinterfaces) std::map< K, T, C > "global::System.IDisposable \n    , global::System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n"
 %proxycode %{
 
   public $typemap(cstype, T) this[$typemap(cstype, K) key] {

@@ -359,8 +359,8 @@ SwigType *SwigType_del_pointer(SwigType *t) {
     c++;
   }
   if (strncmp(c, "p.", 2)) {
-    printf("Fatal error. SwigType_del_pointer applied to non-pointer.\n");
-    abort();
+    printf("Fatal error: SwigType_del_pointer applied to non-pointer.\n");
+    Exit(EXIT_FAILURE);
   }
   Delslice(t, 0, (int)((c - s) + 2));
   return t;
@@ -402,9 +402,10 @@ SwigType *SwigType_add_reference(SwigType *t) {
 
 SwigType *SwigType_del_reference(SwigType *t) {
   char *c = Char(t);
-  int check = strncmp(c, "r.", 2);
-  assert(check == 0);
-  (void)check;
+  if (strncmp(c, "r.", 2)) {
+    printf("Fatal error: SwigType_del_reference applied to non-reference.\n");
+    Exit(EXIT_FAILURE);
+  }
   Delslice(t, 0, 2);
   return t;
 }
@@ -438,9 +439,10 @@ SwigType *SwigType_add_rvalue_reference(SwigType *t) {
 
 SwigType *SwigType_del_rvalue_reference(SwigType *t) {
   char *c = Char(t);
-  int check = strncmp(c, "z.", 2);
-  assert(check == 0);
-  (void)check;
+  if (strncmp(c, "z.", 2)) {
+    fprintf(stderr, "Fatal error: SwigType_del_rvalue_reference() applied to non-rvalue-reference.\n");
+    Exit(EXIT_FAILURE);
+  }
   Delslice(t, 0, 2);
   return t;
 }
@@ -643,9 +645,10 @@ SwigType *SwigType_add_array(SwigType *t, const_String_or_char_ptr size) {
 
 SwigType *SwigType_del_array(SwigType *t) {
   char *c = Char(t);
-  int check = strncmp(c, "a(", 2);
-  assert(check == 0);
-  (void)check;
+  if (strncmp(c, "a(", 2)) {
+    fprintf(stderr, "Fatal error: SwigType_del_array() applied to non-array.\n");
+    Exit(EXIT_FAILURE);
+  }
   Delslice(t, 0, element_size(c));
   return t;
 }
@@ -738,8 +741,10 @@ void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
   char *c = Char(t);
 
   start = c;
-  if (strncmp(c, "a(", 2))
-    abort();
+  if (strncmp(c, "a(", 2)) {
+    fprintf(stderr, "Fatal error: SwigType_array_type applied to non-array.\n");
+    Exit(EXIT_FAILURE);
+  }
 
   while (c && (strncmp(c, "a(", 2) == 0) && (n > 0)) {
     c = strchr(c, '.');
@@ -831,8 +836,8 @@ SwigType *SwigType_pop_function(SwigType *t) {
     c = Char(t);
   }
   if (strncmp(c, "f(", 2)) {
-    printf("Fatal error. SwigType_pop_function applied to non-function.\n");
-    abort();
+    fprintf(stderr, "Fatal error. SwigType_pop_function applied to non-function.\n");
+    Exit(EXIT_FAILURE);
   }
   g = SwigType_pop(t);
   if (f)

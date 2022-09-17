@@ -805,7 +805,7 @@ int R::DumpCode(Node *n) {
   File *scode = NewFile(output_filename, "w", SWIG_output_files());
   if (!scode) {
     FileErrorDisplay(output_filename);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
   Delete(output_filename);
 
@@ -820,7 +820,7 @@ int R::DumpCode(Node *n) {
   File *runtime = NewFile(outfile,"w", SWIG_output_files());
   if (!runtime) {
     FileErrorDisplay(outfile);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   Printf(runtime, "%s", f_begin);
@@ -837,7 +837,7 @@ int R::DumpCode(Node *n) {
     File *ns = NewFile(output_filename, "w", SWIG_output_files());
     if (!ns) {
       FileErrorDisplay(output_filename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     Delete(output_filename);
 
@@ -940,7 +940,7 @@ int R::OutputClassMethodsTable(File *) {
  * The entries are indexed by <class name>_set and
  * <class_name>_get. Each entry is a List *.
 
- * out - the stram where the code is to be written. This is the S
+ * out - the stream where the code is to be written. This is the S
  * code stream as we generate only S code here.
  * --------------------------------------------------------------*/
 
@@ -1542,8 +1542,6 @@ List * R::Swig_overload_rank(Node *n,
       if (nodes[i].error)
 	Setattr(nodes[i].n, "overload:ignore", "1");
       Append(result,nodes[i].n);
-      //      Printf(stdout,"[ %d ] %s\n", i, ParmList_errorstr(nodes[i].parms));
-      //      Swig_print_node(nodes[i].n);
     }
   }
   return result;
@@ -2569,7 +2567,7 @@ int R::generateCopyRoutines(Node *n) {
 
 
   Printf(sfile, "# Start definition of copy methods for %s\n", rclassName);
-  Printf(sfile, "setMethod('copyToR', '_p_%s', CopyToR%s);\n", rclassName,
+  Printf(sfile, "setMethod('copyToR', '_p%s', CopyToR%s);\n", mangledName,
 	 mangledName);
   Printf(sfile, "setMethod('copyToC', '%s', CopyToC%s);\n\n", rclassName,
 	 mangledName);
@@ -2740,7 +2738,7 @@ void R::main(int argc, char *argv[]) {
     } else if (strcmp(argv[i], "-nocppcast") == 0) {
       Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
       Swig_mark_arg(i);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (debugMode) {

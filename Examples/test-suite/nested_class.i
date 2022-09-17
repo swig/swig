@@ -133,8 +133,13 @@ struct Outer {
     Integer x;
   } InnerClass4Typedef;
 
-#ifdef _MSC_VER
-  int Outer::foo(){ return 1; } // should correctly ignore qualification here (#508)
+#ifdef SWIG
+  // SWIG should ignore the redundant qualification here (#508)...
+  int Outer::foo(){ return 1; }
+#else
+  // ..but that redundant qualification is actually invalid and many compilers
+  // now reject it with an error, so feed a valid version to the compiler.
+  int foo(){ return 1; }
 #endif
 
   typedef struct {
@@ -201,7 +206,7 @@ struct Outer {
     Integer xx;
   } MultipleInstanceAnonDerived1, MultipleInstanceAnonDerived2, *MultipleInstanceAnonDerived3, MultipleInstanceAnonDerived4[2];
 
-#if defined(__GNUC__) || defined(_MSC_VER) || defined(SWIG)
+#if (defined(__GNUC__) && __GNUC__ < 12) || defined(_MSC_VER) || defined(SWIG)
 /* some compilers do not accept these */
   struct : public InnerMultiple {
     Integer xx;

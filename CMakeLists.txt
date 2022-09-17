@@ -73,11 +73,11 @@ if (MSVC)
   set (CMAKE_CXX_FLAGS "/EHsc ${CMAKE_CXX_FLAGS}")
 endif ()
 
-option (WITH_PCRE "Enable pcre" ON)
+option (WITH_PCRE "Enable PCRE" ON)
 if (WITH_PCRE)
-  find_package (PCRE REQUIRED)
+  find_package (PCRE2 REQUIRED)
   set (HAVE_PCRE 1)
-  include_directories (${PCRE_INCLUDE_DIRS})
+  include_directories (${PCRE2_INCLUDE_DIRS})
 endif()
 
 if (WIN32)
@@ -145,8 +145,8 @@ add_executable (swig
   ${PROJECT_BINARY_DIR}/Source/CParse/parser.c
   ${PROJECT_BINARY_DIR}/Source/CParse/parser.h
 )
-if (PCRE_FOUND)
-  target_link_libraries (swig ${PCRE_LIBRARIES})
+if (PCRE2_FOUND)
+  target_link_libraries (swig ${PCRE2_LIBRARIES})
 endif ()
 install (TARGETS swig DESTINATION bin)
 
@@ -160,6 +160,7 @@ include (CPack)
 # few tests
 enable_testing ()
 add_test (NAME cmd_version COMMAND swig -version)
+add_test (NAME cmd_pcreversion COMMAND swig -pcreversion)
 add_test (NAME cmd_swiglib COMMAND swig -swiglib)
 add_test (NAME cmd_external_runtime COMMAND swig -external-runtime ext_rt.h)
 set_tests_properties(cmd_external_runtime PROPERTIES ENVIRONMENT "SWIG_LIB=${PROJECT_SOURCE_DIR}/Lib")

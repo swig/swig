@@ -171,7 +171,16 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 
     octave_function* function_value(bool = false) { return this; }
 
+#if SWIG_OCTAVE_PREREQ(6,0,0)
     octave_value_list call(octave::tree_evaluator& tw, int nargout = 0, const octave_value_list& args = octave_value_list()) {
+      return execute(tw,nargout,args);
+    }
+#endif
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+    octave_value_list execute(octave::tree_evaluator& tw, int nargout = 0, const octave_value_list& args = octave_value_list()) {
+#else
+    octave_value_list call(octave::tree_evaluator& tw, int nargout = 0, const octave_value_list& args = octave_value_list()) {
+#endif
       octave_value_list all_args;
       all_args.append(first_args);
       all_args.append(args);
@@ -223,7 +232,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 
     const swig_type_info *construct_type;	// type of special type object
     std::vector < type_ptr_pair > types;	// our c++ base classes
-    int own;			// whether we call c++ destructors when we die
+    int thisown; // whether we call c++ destructors when we die
 
     typedef std::pair < const swig_octave_member *, octave_value > member_value_pair;
     typedef std::map < std::string, member_value_pair > member_map;
@@ -403,7 +412,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 
     octave_swig_type(void *_ptr = 0, const swig_type_info *_type = 0, int _own = 0,
 		     bool _always_static = false)
-      :	module(0), construct_type(_ptr ? 0 : _type), own(_own), 
+      :	module(0), construct_type(_ptr ? 0 : _type), thisown(_own), 
       always_static(_always_static) {
       if (_type || _ptr)
 	types.push_back(std::make_pair(_type, _ptr));
@@ -417,7 +426,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
     ~octave_swig_type() {
-      if (own) {
+      if (thisown) {
 	++count;
 	for (unsigned int j = 0; j < types.size(); ++j) {
 	  if (!types[j].first || !types[j].first->clientdata)
@@ -456,10 +465,20 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
         // Fill in dim_vector 
         for (int k=0;k<ndim;k++) {
           const octave_value& obj = c(k);
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+          try {
+            d.elem(k) = obj.int_value();
+          }
+          catch (octave::execution_exception& oee) {
+            // __dims__ should return a cell filled with integers
+            return dim_vector(1,1);
+          }
+#else
           d.elem(k) = obj.int_value();
           
           // __dims__ should return a cell filled with integers
           if (error_state) return dim_vector(1,1);
+#endif
         }
         return d;
 #if SWIG_OCTAVE_PREREQ(4,4,0)
@@ -468,8 +487,18 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       } else if (out.is_matrix_type() || out.is_numeric_type() ) {
 #endif
         if (out.rows()==1 || out.columns()==1) {
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+           Array<int> a;
+           try {
+             a = out.int_vector_value();
+           }
+           catch (octave::execution_exception& oee) {
+             return dim_vector(1,1);
+           }
+#else
            Array<int> a = out.int_vector_value();
            if (error_state) return dim_vector(1,1);
+#endif
            dim_vector d;
            d.resize(a.numel() < 2 ? 2 : a.numel());
            d(0) = d(1) = 1;
@@ -530,7 +559,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
     void merge(octave_swig_type &rhs) {
-      rhs.own = 0;
+      rhs.thisown = 0;
       for (unsigned int j = 0; j < rhs.types.size(); ++j) {
 	assert(!rhs.types[j].second.destroyed);
 #ifdef SWIG_DIRECTORS
@@ -553,35 +582,56 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     swig_member_const_iterator swig_members_begin() { return members.begin(); }
     swig_member_const_iterator swig_members_end() { return members.end(); }
 
-    int cast(void **vptr, swig_type_info *type, int *_own, int flags) {
+    int cast(void **vptr, swig_type_info *type, int *own, int flags) {
       int res = SWIG_ERROR;
-      if (_own)
-	*_own = own;
-      if (flags &SWIG_POINTER_DISOWN)
-	own = 0;
+      int clear_pointer = 0;
+
+      if (own)
+	*own = 0;
+      if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !thisown) {
+	return SWIG_ERROR_RELEASE_NOT_OWNED;
+      } else {
+	if (own)
+	  *own = *own | thisown;
+	if (flags & SWIG_POINTER_DISOWN) {
+	  thisown = 0;
+	}
+	if (flags & SWIG_POINTER_CLEAR) {
+	  clear_pointer = 1;
+	}
+      }
+
       if (!type && types.size()) {
-	if(vptr)
+	if (vptr) {
           *vptr = types[0].second.ptr;
+	  if (clear_pointer)
+	    types[0].second.ptr = 0;
+        }
         return SWIG_OK;
       }
       for (unsigned int j = 0; j < types.size(); ++j)
 	if (type == types[j].first) {
-	  if(vptr)
+	  if (vptr) {
             *vptr = types[j].second.ptr;
+	    if (clear_pointer)
+	      types[j].second.ptr = 0;
+	  }
           return SWIG_OK;
         }
       for (unsigned int j = 0; j < types.size(); ++j) {
 	swig_cast_info *tc = SWIG_TypeCheck(types[j].first->name, type);
 	if (!tc)
 	  continue;
-        if(vptr) {
+	if (vptr) {
 	  int newmemory = 0;
 	  *vptr = SWIG_TypeCast(tc, types[j].second.ptr, &newmemory);
-	    if (newmemory == SWIG_CAST_NEW_MEMORY) {
-              assert(_own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
-              if (_own)
-                *_own = *_own | SWIG_CAST_NEW_MEMORY;
-            }
+	  if (newmemory == SWIG_CAST_NEW_MEMORY) {
+	    assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+	    if (own)
+	      *own = *own | SWIG_CAST_NEW_MEMORY;
+	  }
+	  if (clear_pointer)
+	    types[j].second.ptr = 0;
         }
         res = SWIG_OK;
         break;
@@ -590,7 +640,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
     bool is_owned() const {
-      return own;
+      return thisown;
     }
 
 #ifdef SWIG_DIRECTORS
@@ -631,7 +681,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return true;
     }
 
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+    virtual bool isstruct() const {
+#else
     virtual bool is_map() const {
+#endif
       return true;
     }
 
@@ -779,7 +833,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return as_value();
     }
 
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    virtual bool isobject() const {
+#else
     virtual bool is_object() const {
+#endif
       return true;
     }
 
@@ -874,7 +932,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
     virtual bool load_binary (std::istream& is, bool swap, 
-			      oct_mach_info::float_format fmt) {
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+			      octave::mach_info::float_format fmt) {
+#else
+                             oct_mach_info::float_format fmt) {
+#endif
       return true;
     }
 
@@ -1084,8 +1146,13 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     bool is_defined() const
       { return ptr->is_defined(); }
 
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+    virtual bool isstruct() const
+      { return ptr->isstruct(); }
+#else
     virtual bool is_map() const 
       { return ptr->is_map(); }
+#endif
 
     virtual octave_value subsref(const std::string &ops, const std::list < octave_value_list > &idx) 
       { return ptr->subsref(ops, idx); }
@@ -1096,8 +1163,13 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     octave_value subsasgn(const std::string &ops, const std::list < octave_value_list > &idx, const octave_value &rhs)
       { return ptr->subsasgn(ops, idx, rhs); }
 
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    virtual bool isobject() const
+      { return ptr->isobject(); }
+#else
     virtual bool is_object() const 
       { return ptr->is_object(); }
+#endif
 
     virtual bool is_string() const 
       { return ptr->is_string(); }
@@ -1142,7 +1214,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       { return ptr->save_binary(os, save_as_floats); }
 
     virtual bool load_binary (std::istream& is, bool swap, 
-			      oct_mach_info::float_format fmt)
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+			      octave::mach_info::float_format fmt)
+#else
+                             oct_mach_info::float_format fmt)
+#endif
       { return ptr->load_binary(is, swap, fmt); }
 
 #if defined (HAVE_HDF5)
@@ -1177,6 +1253,10 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     void print(std::ostream &os, bool pr_as_read_syntax = false) const
 #endif
       { return ptr->print(os, pr_as_read_syntax); }
+
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+      static void set_type_id(int type_id) { t_id=type_id; }
+#endif
 
     virtual type_conv_info numeric_conversion_function(void) const {
       return octave_base_value::type_conv_info (default_numeric_conversion_function,
@@ -1257,7 +1337,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
     virtual bool load_binary (std::istream& is, bool swap, 
-			      oct_mach_info::float_format fmt) {
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+			      octave::mach_info::float_format fmt) {
+#else
+                             oct_mach_info::float_format fmt) {
+#endif
       return true;
     }
 
@@ -1283,6 +1367,10 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return true;
     }
 # endif
+#endif
+
+#if SWIG_OCTAVE_PREREQ(4,4,0)
+    static void set_type_id(int type_id) { t_id=type_id; }
 #endif
 
   private:
@@ -1459,12 +1547,15 @@ octave_value_typeinfo::register_binary_op(octave_value::op_##name,tid1,tid2,swig
 SWIGRUNTIME octave_value SWIG_Octave_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   int own = (flags &SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
 
+  if (ptr) {
 #ifdef SWIG_DIRECTORS
-  Swig::Director *d = Swig::get_rtdir(ptr);
-  if (d && Swig::swig_director_get_self(d))
-    return Swig::swig_director_get_self(d)->as_value();
+    Swig::Director *d = Swig::get_rtdir(ptr);
+    if (d && Swig::swig_director_get_self(d))
+      return Swig::swig_director_get_self(d)->as_value();
 #endif
-  return Swig::swig_value_ref(new octave_swig_type(ptr, type, own));
+    return Swig::swig_value_ref(new octave_swig_type(ptr, type, own));
+  }
+  return octave_value(Matrix()); // null matrix
 }
 
 SWIGRUNTIME int SWIG_Octave_ConvertPtrAndOwn(octave_value ov, void **ptr, swig_type_info *type, int flags, int *own) {
@@ -1507,16 +1598,24 @@ SWIGRUNTIMEINLINE void SWIG_Octave_SetConstant(octave_swig_type *module_ns, cons
 }
 
 SWIGRUNTIMEINLINE octave_value SWIG_Octave_GetGlobalValue(std::string name) {
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+  octave::interpreter *interp = octave::interpreter::the_interpreter ();
+  return interp->global_varval(name);
+#else
 #if SWIG_OCTAVE_PREREQ(4,4,0)
   octave::symbol_table& symtab = octave::interpreter::the_interpreter()->get_symbol_table();
   return symtab.global_varval(name);
 #else
   return get_global_value(name, true);
 #endif
+#endif
 }
 
 SWIGRUNTIME void SWIG_Octave_SetGlobalValue(std::string name, const octave_value& value) {
-#if SWIG_OCTAVE_PREREQ(4,4,0)
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+  octave::interpreter *interp = octave::interpreter::the_interpreter ();
+  interp->global_assign(name, value);
+#elif SWIG_OCTAVE_PREREQ(4,4,0)
   octave::symbol_table& symtab = octave::interpreter::the_interpreter()->get_symbol_table();
   symtab.global_assign(name, value);
 #else
@@ -1526,10 +1625,20 @@ SWIGRUNTIME void SWIG_Octave_SetGlobalValue(std::string name, const octave_value
 
 SWIGRUNTIME void SWIG_Octave_LinkGlobalValue(std::string name) {
 #if SWIG_OCTAVE_PREREQ(4,4,0)
-  octave::symbol_table& symtab = octave::interpreter::the_interpreter()->get_symbol_table();
   octave::symbol_scope symscope = octave::interpreter::the_interpreter()->get_current_scope();
+#if SWIG_OCTAVE_PREREQ(6,0,0)
+  octave::interpreter *interp = octave::interpreter::the_interpreter ();
+  interp->assign(name, interp->global_varval(name));
+  octave::tree_evaluator& tree_eval = interp->get_evaluator();
+  octave::call_stack& callStack = tree_eval.get_call_stack();
+  std::shared_ptr<octave::stack_frame> stackFrame = callStack.get_current_stack_frame();
+  octave::symbol_record sym=symscope.lookup_symbol(name);
+  stackFrame->mark_global(sym);
+#else
+  octave::symbol_table& symtab = octave::interpreter::the_interpreter()->get_symbol_table();
   symscope.assign(name, symtab.global_varval(name));
   symscope.mark_global(name);
+#endif
 #else
 #if !SWIG_OCTAVE_PREREQ(3,2,0)
   link_to_global_variable(curr_sym_tab->lookup(name, true));

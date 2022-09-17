@@ -56,7 +56,7 @@ static void brackets_clear(Scanner *);
 
 Scanner *NewScanner(void) {
   Scanner *s;
-  s = (Scanner *) malloc(sizeof(Scanner));
+  s = (Scanner *) Malloc(sizeof(Scanner));
   s->line = 1;
   s->file = 0;
   s->nexttoken = -1;
@@ -88,8 +88,8 @@ void DelScanner(Scanner *s) {
   Delete(s->file);
   Delete(s->error);
   Delete(s->str);
-  free(s->idstart);
-  free(s); 
+  Free(s->idstart);
+  Free(s);
 }
 
 /* -----------------------------------------------------------------------------
@@ -202,7 +202,7 @@ int Scanner_start_line(Scanner *s) {
  * ----------------------------------------------------------------------------- */
 
 void Scanner_idstart(Scanner *s, const char *id) {
-  free(s->idstart);
+  Free(s->idstart);
   s->idstart = Swig_copy_string(id);
 }
 
@@ -336,9 +336,9 @@ static void brackets_reset(Scanner *s) {
  * Usually called when '(' is found.
  * ----------------------------------------------------------------------------- */
 static void brackets_push(Scanner *s) {
-  int *newInt = (int *)malloc(sizeof(int));
+  int *newInt = (int *)Malloc(sizeof(int));
   *newInt = 0;
-  Push(s->brackets, NewVoid(newInt, free));
+  Push(s->brackets, NewVoid(newInt, Free));
 }
 
 /* -----------------------------------------------------------------------------
@@ -596,10 +596,6 @@ static int look(Scanner *s) {
 	state = 3;
       else if (c == '\\')
 	return SWIG_TOKEN_BACKSLASH;
-      else if (c == '[')
-	return SWIG_TOKEN_LBRACKET;
-      else if (c == ']')
-	return SWIG_TOKEN_RBRACKET;
       else if (c == '@')
 	return SWIG_TOKEN_AT;
       else if (c == '$')
@@ -636,7 +632,11 @@ static int look(Scanner *s) {
       }
 
       else if (c == '.')
-	state = 100;		/* Maybe a number, maybe just a period */
+	state = 100;		/* Maybe a number, maybe ellipsis, just a period */
+      else if (c == '[')
+        state = 102;            /* Maybe a bracket or a double bracket */
+      else if (c == ']')
+        state = 103;            /* Maybe a bracket or a double bracket */
       else if (isdigit(c))
 	state = 8;		/* A numerical value */
       else
@@ -833,7 +833,7 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_MODEQUAL;
       } else if (c == '}') {
 	Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous '%%}'\n");
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       } else {
 	retract(s, 1);
 	return SWIG_TOKEN_PERCENT;
@@ -893,9 +893,16 @@ static int look(Scanner *s) {
       }
       if (c == '<')
 	state = 240;
-      else if (c == '=')
-	return SWIG_TOKEN_LTEQUAL;
-      else {
+      else if (c == '=') {
+	if ((c = nextchar(s)) == 0) {
+	  return SWIG_TOKEN_LTEQUAL;
+	} else if (c == '>' && cparse_cplusplus) { /* Spaceship operator */
+	  return SWIG_TOKEN_LTEQUALGT;
+	} else {
+	  retract(s, 1);
+	  return SWIG_TOKEN_LTEQUAL;
+	}
+      } else {
 	retract(s, 1);
 	brackets_increment(s);
 	return SWIG_TOKEN_LESSTHAN;
@@ -1330,16 +1337,56 @@ static int look(Scanner *s) {
       }
       break;
 
-      /* A period or maybe a floating point number */
+      /* A period or an ellipsis or maybe a floating point number */
 
     case 100:
       if ((c = nextchar(s)) == 0)
 	return (0);
       if (isdigit(c))
 	state = 81;
+      else if (c == '.')
+	state = 101;
       else {
 	retract(s, 1);
 	return SWIG_TOKEN_PERIOD;
+      }
+      break;
+
+      /* An ellipsis */
+
+    case 101:
+      if ((c = nextchar(s)) == 0)
+	return (0);
+      if (c == '.') {
+	return SWIG_TOKEN_ELLIPSIS;
+      } else {
+	retract(s, 2);
+	return SWIG_TOKEN_PERIOD;
+      }
+      break;
+
+    /* A left bracket or a double left bracket */
+    case 102:
+
+      if ((c = nextchar(s)) == 0) {
+        return SWIG_TOKEN_LBRACKET;
+      } else if (c == '[') {
+        return SWIG_TOKEN_LLBRACKET;
+      } else {
+        retract(s, 1);
+        return SWIG_TOKEN_LBRACKET;
+      }
+      break;
+
+    /* a right bracket or a double right bracket */
+    case 103:
+      if ((c = nextchar(s)) == 0) {
+        return SWIG_TOKEN_RBRACKET;
+      } else if (c == ']') {
+        return SWIG_TOKEN_RRBRACKET;
+      } else {
+        retract(s, 1);
+        return SWIG_TOKEN_RBRACKET;
       }
       break;
 
@@ -1796,14 +1843,14 @@ void Scanner_locator(Scanner *s, String *loc) {
 	cparse_file = locs->filename;
 	cparse_line = locs->line_number;
 	l = locs->next;
-	free(locs);
+	Free(locs);
 	locs = l;
       }
       return;
     }
 
     /* We're going to push a new location */
-    l = (Locator *) malloc(sizeof(Locator));
+    l = (Locator *) Malloc(sizeof(Locator));
     l->filename = cparse_file;
     l->line_number = cparse_line;
     l->next = locs;

@@ -20,6 +20,7 @@ struct ExtendMe {
 
 %{
 #include <map>
+#include <string.h>
 std::map<ExtendMe*, char *> ExtendMeStringMap;
 void ADD_PREFIX(ExtendMe_thing_set)(ExtendMe *self, const char *val) {
   char *old_val = ExtendMeStringMap[self];

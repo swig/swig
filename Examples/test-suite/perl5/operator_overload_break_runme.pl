@@ -4,15 +4,6 @@ use Test::More tests => 9;
 
 use operator_overload_break;
 
-# Workaround for 
-#   ok( not (expression) , "test description" );
-# does not working in older versions of Perl, eg 5.004_04
-sub ok_not ($;$) {
-    my($test, $name) = @_;
-    $test = not $test;
-    ok($test, $name);
-}
-
 pass("loaded");
 
 my $op = operator_overload_break::Op->new(5);
@@ -32,7 +23,7 @@ $op->{k} = 22;
 ok((10 == (32 - $op)),
    "reversed subtraction");
 
-ok_not((3 == $op),
+ok(not(3 == $op),
        'not equal');
 
 $op->{k} = 3;

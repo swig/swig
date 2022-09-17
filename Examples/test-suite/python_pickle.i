@@ -14,7 +14,7 @@ def __reduce__(self):
 #else
   // Equivalent to Python code above
   PyObject *__reduce__() {
-    if (debug)
+    if (trace)
       std::cout << "In C++ __reduce__" << std::endl;
     PyObject *args = PyTuple_New(1);
     PyTuple_SetItem(args, 0, SWIG_From_std_string(self->msg));
@@ -39,12 +39,12 @@ def __reduce__(self):
 %inline %{
 #include <iostream>
 
-bool debug = false;
+bool trace = false;
 
 struct PickleMe {
   std::string msg;
   PickleMe(const std::string& msg) : msg(msg) {
-    if (debug)
+    if (trace)
       std::cout << "In C++ constructor " << " [" << msg << "]" << std::endl;
   }
 };

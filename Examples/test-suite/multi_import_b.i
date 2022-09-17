@@ -11,3 +11,7 @@ class YYY : public XXX
 public:
         int testy();
 };
+
+%inline %{
+void use_www_b(const WWW& w) {w.nullop();}
+%}

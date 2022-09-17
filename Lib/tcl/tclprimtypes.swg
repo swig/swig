@@ -136,30 +136,13 @@ SWIG_From_dec(long long)(long long value)
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(Tcl_Obj *obj, long long *val)
 {
-  long v;
-  if (Tcl_GetLongFromObj(0,obj, &v) == TCL_OK) {
+  Tcl_WideInt v;
+  if (Tcl_GetWideIntFromObj(0, obj, &v) == TCL_OK) {
+    if (sizeof(v) > sizeof(*val) && (v < LLONG_MIN || v > LLONG_MAX)) {
+      return SWIG_OverflowError;
+    }
     if (val) *val = v;
     return SWIG_OK;
-  } else {
-    int len = 0;
-    const char *nptr = Tcl_GetStringFromObj(obj, &len);
-    if (nptr && len > 0) {
-      char *endptr;
-      long long v;
-      errno = 0;
-      v = strtoll(nptr, &endptr,0);
-      if (nptr[0] == '\0' || *endptr != '\0')
-	return SWIG_TypeError;
-      if ((v == LLONG_MAX || v == LLONG_MIN) && errno == ERANGE) {
-	errno = 0;
-	return SWIG_OverflowError;
-      } else {
-	if (*endptr == '\0') {
-	  if (val) *val = v;
-	  return SWIG_OK;
-	}
-      }
-    }
   }
   return SWIG_TypeError;
 }

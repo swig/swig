@@ -15,6 +15,8 @@
 #include "swig.h"
 #include "cparse.h"
 
+extern int UseWrapperSuffix; // from main.cxx
+
 static const char *cresult_variable_name = "result";
 
 static Parm *nonvoid_parms(Parm *p) {
@@ -427,10 +429,14 @@ String *Swig_cfunction_call(const_String_or_char_ptr name, ParmList *parms) {
       String *rcaststr = SwigType_rcaststr(rpt, pname);
 
       if (comma) {
-	Printv(func, ",", rcaststr, NIL);
-      } else {
-	Append(func, rcaststr);
+	Append(func, ",");
       }
+
+      if (cparse_cplusplus && SwigType_type(rpt) == T_USER)
+	Printv(func, "SWIG_STD_MOVE(", rcaststr, ")", NIL);
+      else
+	Printv(func, rcaststr, NIL);
+
       Delete(rpt);
       Delete(pname);
       Delete(rcaststr);
@@ -1079,13 +1085,13 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
        in C.
 
        But when not using the suffix used for overloaded functions, we still need to ensure that the
-       wrapper name doesn't conflict with any wrapper functions, so make it sufficiently unique by
-       appending a suffix similar to the one used for overloaded functions to it.
+       wrapper name doesn't conflict with any wrapper functions for some languages, so optionally make
+       it sufficiently unique by appending a suffix similar to the one used for overloaded functions to it.
      */
     if (code) {
       if (Getattr(n, "sym:overloaded")) {
 	Append(mangled, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
-      } else {
+      } else if (UseWrapperSuffix) {
 	Append(mangled, "__SWIG");
       }
     }

@@ -1,10 +1,10 @@
 %module xxx
 
-%namewarn("314:'key1' is a keyword, renaming to '_key1'", rename="_%s") "key1";
-%namewarn("314:'key2' is a keyword, renaming to '_key2'", rename="_%s") "key2";
-%namewarn("314:'key3' is a keyword, renaming to '_key3'", rename="_%s") "key3";
-%namewarn("314:'key4' is a keyword, renaming to '_key4'", rename="_%s") "key4";
-%namewarn("314:'key5' is a keyword, renaming to '_key5'", rename="_%s") "key5";
+%namewarn("314:'key1' is a keyword", rename="_%s") "key1";
+%namewarn("314:'key2' is a keyword", rename="_%s") "key2";
+%namewarn("314:'key3' is a keyword", rename="_%s") "key3";
+%namewarn("314:'key4' is a keyword", rename="_%s") "key4";
+%namewarn("314:'key5' is a keyword", rename="_%s") "key5";
 
 // Non-templated
 %ignore KlassA::key1;

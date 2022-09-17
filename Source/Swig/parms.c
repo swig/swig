@@ -149,7 +149,7 @@ int ParmList_len(ParmList *p) {
  * get_empty_type()
  * ---------------------------------------------------------------------- */
 
-static SwigType *get_empty_type() {
+static SwigType *get_empty_type(void) {
   return NewStringEmpty();
 }
 

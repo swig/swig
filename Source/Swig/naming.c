@@ -771,28 +771,28 @@ void Swig_feature_set(Hash *features, const_String_or_char_ptr name, SwigType *d
  * ----------------------------------------------------------------------------- */
 
 static Hash *namewarn_hash = 0;
-static Hash *name_namewarn_hash() {
+static Hash *name_namewarn_hash(void) {
   if (!namewarn_hash)
     namewarn_hash = NewHash();
   return namewarn_hash;
 }
 
 static Hash *rename_hash = 0;
-static Hash *name_rename_hash() {
+static Hash *name_rename_hash(void) {
   if (!rename_hash)
     rename_hash = NewHash();
   return rename_hash;
 }
 
 static List *namewarn_list = 0;
-static List *name_namewarn_list() {
+static List *name_namewarn_list(void) {
   if (!namewarn_list)
     namewarn_list = NewList();
   return namewarn_list;
 }
 
 static List *rename_list = 0;
-static List *name_rename_list() {
+static List *name_rename_list(void) {
   if (!rename_list)
     rename_list = NewList();
   return rename_list;
@@ -1119,33 +1119,39 @@ static DOH *get_lattr(Node *n, List *lattr) {
 }
 
 #ifdef HAVE_PCRE
-#include <pcre.h>
+#define PCRE2_CODE_UNIT_WIDTH 8
+#include <pcre2.h>
 
 static int name_regexmatch_value(Node *n, String *pattern, String *s) {
-  pcre *compiled_pat;
-  const char *err;
-  int errpos;
+  pcre2_code *compiled_pat;
+  PCRE2_UCHAR err[256];
+  int errornum;
+  size_t errpos;
   int rc;
+  pcre2_match_data *match_data = 0;
 
-  compiled_pat = pcre_compile(Char(pattern), 0, &err, &errpos, NULL);
+  compiled_pat = pcre2_compile((PCRE2_SPTR8)Char(pattern), PCRE2_ZERO_TERMINATED, 0, &errornum, &errpos, NULL);
   if (!compiled_pat) {
+    pcre2_get_error_message (errornum, err, sizeof err);
     Swig_error("SWIG", Getline(n),
                "Invalid regex \"%s\": compilation failed at %d: %s\n",
                Char(pattern), errpos, err);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
-  rc = pcre_exec(compiled_pat, NULL, Char(s), Len(s), 0, 0, NULL, 0);
-  pcre_free(compiled_pat);
+  match_data = pcre2_match_data_create_from_pattern (compiled_pat, NULL);
+  rc = pcre2_match(compiled_pat, (PCRE2_SPTR8)Char(s), PCRE2_ZERO_TERMINATED, 0, 0, match_data, 0);
+  pcre2_code_free(compiled_pat);
+  pcre2_match_data_free(match_data);
 
-  if (rc == PCRE_ERROR_NOMATCH)
+  if (rc == PCRE2_ERROR_NOMATCH)
     return 0;
 
   if (rc < 0 ) {
     Swig_error("SWIG", Getline(n),
                "Matching \"%s\" against regex \"%s\" failed: %d\n",
                Char(s), Char(pattern), rc);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   return 1;
@@ -1158,7 +1164,7 @@ static int name_regexmatch_value(Node *n, String *pattern, String *s) {
   (void)s;
   Swig_error("SWIG", Getline(n),
              "PCRE regex matching is not available in this SWIG build.\n");
-  SWIG_exit(EXIT_FAILURE);
+  Exit(EXIT_FAILURE);
   return 0;
 }
 
@@ -1538,6 +1544,15 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 	result = apply_rename(n, rename, fullname, prefix, name);
 	if ((msg) && (Len(msg))) {
 	  if (!Getmeta(nname, "already_warned")) {
+	    String* suffix = 0;
+	    if (Strcmp(result, "$ignore") == 0) {
+	      suffix = NewStringf(": ignoring '%s'\n", name);
+	    } else if (Strcmp(result, name) != 0) {
+	      suffix = NewStringf(", renaming to '%s'\n", result);
+	    } else {
+	      /* No rename was performed */
+	      suffix = NewString("\n");
+	    }
 	    if (n) {
 	      /* Parameter renaming is not fully implemented. Mainly because there is no C/C++ syntax to
 	       * for %rename to fully qualify a function's parameter name from outside the function. Hence it
@@ -1545,13 +1560,14 @@ String *Swig_name_make(Node *n, String *prefix, const_String_or_char_ptr cname, 
 	      int suppress_parameter_rename_warning = Equal(nodeType(n), "parm");
 	      if (!suppress_parameter_rename_warning) {
 		SWIG_WARN_NODE_BEGIN(n);
-		Swig_warning(0, Getfile(n), Getline(n), "%s\n", msg);
+	      Swig_warning(0, Getfile(n), Getline(n), "%s%s", msg, suffix);
 		SWIG_WARN_NODE_END(n);
 	      }
 	    } else {
-	      Swig_warning(0, Getfile(name), Getline(name), "%s\n", msg);
+	      Swig_warning(0, Getfile(name), Getline(name), "%s%s", msg, suffix);
 	    }
 	    Setmeta(nname, "already_warned", "1");
+	    Delete(suffix);
 	  }
 	}
       }

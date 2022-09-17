@@ -40,7 +40,7 @@
 %typemap(javadirectorout) CTYPE *const& "$javacall.$*interfacename_GetInterfaceCPtr()"
 %typemap(directorin,descriptor="L$packagepath/$&javainterfacename;") CTYPE
 %{ $input = 0;
-   *(($&1_ltype*)&$input) = new $1_ltype((const $1_ltype &)$1); %}
+   *(($&1_ltype*)&$input) = new $1_ltype(SWIG_STD_MOVE($1)); %}
 %typemap(directorin,descriptor="L$packagepath/$javainterfacename;") CTYPE *, CTYPE []
 %{ *(($&1_ltype)&$input) = ($1_ltype) $1; %}
 %typemap(directorin,descriptor="L$packagepath/$javainterfacename;") CTYPE &

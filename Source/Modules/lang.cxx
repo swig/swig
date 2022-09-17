@@ -77,6 +77,7 @@ static Hash *classhash;
 extern int GenerateDefault;
 extern int ForceExtern;
 extern int AddExtern;
+extern int UseWrapperSuffix;
 
 /* import modes */
 
@@ -1324,7 +1325,7 @@ int Language::staticmemberfunctionHandler(Node *n) {
       // See Swig_MethodToFunction() for the explanation of this code.
       if (Getattr(n, "sym:overloaded")) {
 	Append(cname, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
-      } else {
+      } else if (UseWrapperSuffix) {
 	Append(cname, "__SWIG");
       }
 
@@ -1845,20 +1846,82 @@ static String *vtable_method_id(Node *n) {
   String *tmp = SwigType_pop_function(local_decl);
   Delete(local_decl);
   local_decl = tmp;
-  Node *method_id = NewStringf("%s|%s", name, local_decl);
+  String *method_id = NewStringf("%s|%s", name, local_decl);
   Delete(local_decl);
   return method_id;
 }
 
+/* ----------------------------------------------------------------------
+ * Language::unrollOneVirtualMethod()
+ * ---------------------------------------------------------------------- */
+
+void Language::unrollOneVirtualMethod(String *classname, Node *n, Node *parent, List *vm, int &virtual_destructor, int protectedbase) {
+  if (!checkAttribute(n, "storage", "virtual"))
+    return;
+  if (GetFlag(n, "final"))
+    return;
+
+  String *nodeType = Getattr(n, "nodeType");
+
+  /* we need to add methods(cdecl) and destructor (to check for throw decl) */
+  int is_destructor = (Cmp(nodeType, "destructor") == 0);
+  if ((Cmp(nodeType, "cdecl") == 0) || is_destructor) {
+    String *decl = Getattr(n, "decl");
+    /* extra check for function type and proper access */
+    if (SwigType_isfunction(decl) && (((!protectedbase || dirprot_mode()) && is_public(n)) || need_nonpublic_member(n))) {
+      String *name = Getattr(n, "name");
+      String *method_id = is_destructor ? NewStringf("~destructor") : vtable_method_id(n);
+      /* Make sure that the new method overwrites the existing: */
+      int len = Len(vm);
+      const int DO_NOT_REPLACE = -1;
+      int replace = DO_NOT_REPLACE;
+      for (int i = 0; i < len; i++) {
+	Node *item = Getitem(vm, i);
+	String *check_vmid = Getattr(item, "vmid");
+
+	if (Strcmp(method_id, check_vmid) == 0) {
+	  replace = i;
+	  break;
+	}
+      }
+      /* filling a new method item */
+      String *fqdname = NewStringf("%s::%s", classname, name);
+      Hash *item = NewHash();
+      Setattr(item, "fqdname", fqdname);
+      Node *m = Copy(n);
+
+      /* Store the complete return type - needed for non-simple return types (pointers, references etc.) */
+      SwigType *ty = NewString(Getattr(m, "type"));
+      SwigType_push(ty, decl);
+      if (SwigType_isqualifier(ty)) {
+	Delete(SwigType_pop(ty));
+      }
+      Delete(SwigType_pop_function(ty));
+      Setattr(m, "returntype", ty);
+
+      String *mname = NewStringf("%s::%s", Getattr(parent, "name"), name);
+      /* apply the features of the original method found in the base class */
+      Swig_features_get(Swig_cparse_features(), 0, mname, Getattr(m, "decl"), m);
+      Setattr(item, "methodNode", m);
+      Setattr(item, "vmid", method_id);
+      if (replace == DO_NOT_REPLACE)
+	Append(vm, item);
+      else
+	Setitem(vm, replace, item);
+      Setattr(n, "directorNode", m);
+
+      Delete(mname);
+    }
+    if (is_destructor) {
+      virtual_destructor = 1;
+    }
+  }
+}
 
 /* ----------------------------------------------------------------------
  * Language::unrollVirtualMethods()
  * ---------------------------------------------------------------------- */
-int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_director, int &virtual_destructor, int protectedbase) {
-  Node *ni;
-  String *nodeType;
-  String *classname;
-  String *decl;
+int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int &virtual_destructor, int protectedbase) {
   bool first_base = false;
   // recurse through all base classes to build the vtable
   List *bl = Getattr(n, "bases");
@@ -1867,10 +1930,11 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
     for (bi = First(bl); bi.item; bi = Next(bi)) {
       if (first_base && !director_multiple_inheritance)
 	break;
-      unrollVirtualMethods(bi.item, parent, vm, default_director, virtual_destructor);
+      unrollVirtualMethods(bi.item, parent, vm, virtual_destructor);
       first_base = true;
     }
   }
+
   // recurse through all protected base classes to build the vtable, as needed
   bl = Getattr(n, "protectedbases");
   if (bl) {
@@ -1878,88 +1942,28 @@ int Language::unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_
     for (bi = First(bl); bi.item; bi = Next(bi)) {
       if (first_base && !director_multiple_inheritance)
 	break;
-      unrollVirtualMethods(bi.item, parent, vm, default_director, virtual_destructor, 1);
+      unrollVirtualMethods(bi.item, parent, vm, virtual_destructor, 1);
       first_base = true;
     }
   }
+
   // find the methods that need directors
-  classname = Getattr(n, "name");
-  for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
+  String *classname = Getattr(n, "name");
+  for (Node *ni = firstChild(n); ni; ni = nextSibling(ni)) {
     /* we only need to check the virtual members */
-    nodeType = Getattr(ni, "nodeType");
-    int is_using = (Cmp(nodeType, "using") == 0);
-    Node *nn = is_using ? firstChild(ni) : ni; /* assume there is only one child node for "using" nodes */
-    if (is_using) {
-      if (nn)
-	nodeType = Getattr(nn, "nodeType");
-      else
-	continue; // A private "using" node
-    }
-    if (!checkAttribute(nn, "storage", "virtual"))
-      continue;
-    if (GetFlag(nn, "final"))
-      continue;
-    /* we need to add methods(cdecl) and destructor (to check for throw decl) */
-    int is_destructor = (Cmp(nodeType, "destructor") == 0);
-    if ((Cmp(nodeType, "cdecl") == 0) || is_destructor) {
-      decl = Getattr(nn, "decl");
-      /* extra check for function type and proper access */
-      if (SwigType_isfunction(decl) && (((!protectedbase || dirprot_mode()) && is_public(nn)) || need_nonpublic_member(nn))) {
-	String *name = Getattr(nn, "name");
-	Node *method_id = is_destructor ? NewStringf("~destructor") : vtable_method_id(nn);
-	/* Make sure that the new method overwrites the existing: */
-	int len = Len(vm);
-	const int DO_NOT_REPLACE = -1;
-	int replace = DO_NOT_REPLACE;
-	for (int i = 0; i < len; i++) {
-	  Node *item = Getitem(vm, i);
-	  String *check_vmid = Getattr(item, "vmid");
-
-	  if (Strcmp(method_id, check_vmid) == 0) {
-	    replace = i;
-	    break;
-	  }
-	}
-	/* filling a new method item */
-	String *fqdname = NewStringf("%s::%s", classname, name);
-	Hash *item = NewHash();
-	Setattr(item, "fqdname", fqdname);
-	Node *m = Copy(nn);
-
-	/* Store the complete return type - needed for non-simple return types (pointers, references etc.) */
-	SwigType *ty = NewString(Getattr(m, "type"));
-	SwigType_push(ty, decl);
-	if (SwigType_isqualifier(ty)) {
-	  Delete(SwigType_pop(ty));
-	}
-	Delete(SwigType_pop_function(ty));
-	Setattr(m, "returntype", ty);
-
-	String *mname = NewStringf("%s::%s", Getattr(parent, "name"), name);
-	/* apply the features of the original method found in the base class */
-	Swig_features_get(Swig_cparse_features(), 0, mname, Getattr(m, "decl"), m);
-	Setattr(item, "methodNode", m);
-	Setattr(item, "vmid", method_id);
-	if (replace == DO_NOT_REPLACE)
-	  Append(vm, item);
-	else
-	  Setitem(vm, replace, item);
-	Setattr(nn, "directorNode", m);
-
-	Delete(mname);
-      }
-      if (is_destructor) {
-	virtual_destructor = 1;
+    if (Equal(nodeType(ni), "using")) {
+      for (Node *nn = firstChild(ni); nn; nn = Getattr(nn, "sym:nextSibling")) {
+	unrollOneVirtualMethod(classname, nn, parent, vm, virtual_destructor, protectedbase);
       }
     }
+    unrollOneVirtualMethod(classname, ni, parent, vm, virtual_destructor, protectedbase);
   }
 
   /*
      We delete all the nodirector methods. This prevents the
      generation of 'empty' director classes.
 
-     But this has to be done outside the previous 'for'
-     and the recursive loop!.
+     Done once we've collated all the virtual methods into vm.
    */
   if (n == parent) {
     int len = Len(vm);
@@ -2196,7 +2200,7 @@ int Language::classDirector(Node *n) {
   }
   List *vtable = NewList();
   int virtual_destructor = 0;
-  unrollVirtualMethods(n, n, vtable, 0, virtual_destructor);
+  unrollVirtualMethods(n, n, vtable, virtual_destructor);
 
   // Emit all the using base::member statements for non virtual members (allprotected mode)
   Node *ni;
@@ -3788,7 +3792,7 @@ int Language::abstractClassTest(Node *n) {
 #endif
     for (int i = 0; i < labs; i++) {
       Node *ni = Getitem(abstracts, i);
-      Node *method_id = vtable_method_id(ni);
+      String *method_id = vtable_method_id(ni);
       if (!method_id)
 	continue;
       bool exists_item = false;

@@ -84,14 +84,14 @@ x.B()
 print("\nTesting some dynamic casts\n")
 x = d.toBase()
 
-y = foo.Foo_fromBase(x)
+y = foo.Foo.fromBase(x)
 print("  Spam -> Base -> Foo : {} swig".format("bad" if y else "good"))
 
-y = bar.Bar_fromBase(x)
+y = bar.Bar.fromBase(x)
 print("  Spam -> Base -> Bar : {} swig".format("good" if y else "bad"))
 
-y = spam.Spam_fromBase(x)
+y = spam.Spam.fromBase(x)
 print("  Spam -> Base -> Spam : {} swig".format("good" if y else "bad"))
 
-y = spam.Spam_fromBase(b)
+y = spam.Spam.fromBase(b)
 print("  Foo -> Spam : {} swig".format("bad" if y else "good"))

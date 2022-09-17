@@ -1,5 +1,5 @@
-#ifndef ___typedef_import_h__
-#define ___typedef_import_h__
+#ifndef TEMPLATE_TYPEDEF_CPLX2_H
+#define TEMPLATE_TYPEDEF_CPLX2_H
 
 #ifdef SWIG
 %module template_typedef_cplx2;
@@ -113,6 +113,8 @@ namespace vfncs {
 #ifndef SWIG
 
 // Initialize these static class members
+// XXX Since this is a header file, the following creates the symbols in *each* SWIG _wrap.cxx file. Linking the resulting SWIG modules together may result in
+// duplicate symbol link errors.
 
 const char* const arith_traits< double, double >::arg_type = "double";
 const char* const arith_traits< double, double >::res_type = "double";
@@ -172,4 +174,4 @@ namespace vfncs {
 
 #endif
 
-#endif //___template_typedef_h__
+#endif // TEMPLATE_TYPEDEF_CPLX2_H

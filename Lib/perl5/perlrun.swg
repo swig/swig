@@ -6,13 +6,8 @@
  * type checking.
  * ----------------------------------------------------------------------------- */
 
-#ifdef PERL_OBJECT
-#define SWIG_PERL_OBJECT_DECL CPerlObj *SWIGUNUSEDPARM(pPerl),
-#define SWIG_PERL_OBJECT_CALL pPerl,
-#else
 #define SWIG_PERL_OBJECT_DECL
 #define SWIG_PERL_OBJECT_CALL
-#endif
 
 /* Common SWIG API */
 
@@ -88,31 +83,11 @@ extern "C" {
 #endif
 
 /* Macro to call an XS function */
-#ifdef PERL_OBJECT 
-#  define SWIG_CALLXS(_name) _name(cv,pPerl) 
-#else 
-#  ifndef MULTIPLICITY 
-#    define SWIG_CALLXS(_name) _name(cv) 
-#  else 
-#    define SWIG_CALLXS(_name) _name(PERL_GET_THX, cv) 
-#  endif 
-#endif 
-
-#ifdef PERL_OBJECT
-#define MAGIC_PPERL  CPerlObj *pPerl = (CPerlObj *) this;
-
-#ifdef __cplusplus
-extern "C" {
+#ifndef MULTIPLICITY
+#  define SWIG_CALLXS(_name) _name(cv)
+#else
+#  define SWIG_CALLXS(_name) _name(PERL_GET_THX, cv)
 #endif
-typedef int (CPerlObj::*SwigMagicFunc)(SV *, MAGIC *);
-#ifdef __cplusplus
-}
-#endif
-
-#define SWIG_MAGIC(a,b) (SV *a, MAGIC *b)
-#define SWIGCLASS_STATIC
-
-#else /* PERL_OBJECT */
 
 #define MAGIC_PPERL
 #define SWIGCLASS_STATIC static SWIGUNUSED
@@ -141,24 +116,14 @@ typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
 #endif
 
 #endif /* MULTIPLICITY */
-#endif /* PERL_OBJECT */
 
-#  ifdef PERL_OBJECT
-#    define SWIG_croak_null() SWIG_Perl_croak_null(pPerl)
-static void SWIGUNUSED SWIG_Perl_croak_null(CPerlObj *pPerl)
-#  else
 static void SWIGUNUSED SWIG_croak_null()
-#  endif
 {
   SV *err = get_sv("@", GV_ADD);
-#  if (PERL_VERSION < 6)
-  croak("%_", err);
-#  else
   if (sv_isobject(err))
     croak(0);
   else
     croak("%s", SvPV_nolen(err));
-#  endif
 }
 
 
@@ -245,6 +210,7 @@ SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_
   swig_cast_info *tc;
   void *voidptr = (void *)0;
   SV *tsv = 0;
+  int check_owned_pointer_release = (flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE;
 
   if (own)
     *own = 0;
@@ -321,13 +287,14 @@ SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_
   /* 
    *  DISOWN implementation: we need a perl guru to check this one.
    */
-  if (tsv && (flags & SWIG_POINTER_DISOWN)) {
+  if (tsv && ((flags & SWIG_POINTER_DISOWN) || check_owned_pointer_release)) {
     /* 
      *  almost copy paste code from below SWIG_POINTER_OWN setting
      */
     SV *obj = sv;
     HV *stash = SvSTASH(SvRV(obj));
     GV *gv = *(GV**)hv_fetch(stash, "OWNER", 5, TRUE);
+    int owned = 0;
     if (isGV(gv)) {
       HV *hv = GvHVn(gv);
       /*
@@ -335,10 +302,21 @@ SWIG_Perl_ConvertPtrAndOwn(SWIG_MAYBE_PERL_OBJECT SV *sv, void **ptr, swig_type_
        * Hence, to remove ownership, we delete the entry.
        */
       if (hv_exists_ent(hv, obj, 0)) {
-	hv_delete_ent(hv, obj, 0, 0);
+        owned = 1;
+        if (flags & SWIG_POINTER_DISOWN) {
+          hv_delete_ent(hv, obj, 0, 0);
+        }
       }
     }
+    if (check_owned_pointer_release && !owned) {
+      return SWIG_ERROR_RELEASE_NOT_OWNED;
+    }
   }
+
+  if (tsv && (flags & SWIG_POINTER_CLEAR)) {
+    SvIV_set(tsv, 0);
+  }
+
   return SWIG_OK;
 }
 
@@ -462,20 +440,15 @@ typedef struct {
 } swig_variable_info;
 
 /* Magic variable code */
-#ifndef PERL_OBJECT
-# ifdef __cplusplus
+#ifdef __cplusplus
 #  define swig_create_magic(s,a,b,c) _swig_create_magic(s,const_cast<char*>(a),b,c)
-# else
-#  define swig_create_magic(s,a,b,c) _swig_create_magic(s,(char*)(a),b,c)
-# endif
-# ifndef MULTIPLICITY
-SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *)) 
-# else
-SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*, SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *)) 
-# endif
 #else
-#  define swig_create_magic(s,a,b,c) _swig_create_magic(pPerl,s,a,b,c)
-SWIGRUNTIME void _swig_create_magic(CPerlObj *pPerl, SV *sv, const char *name, int (CPerlObj::*set)(SV *, MAGIC *), int (CPerlObj::*get)(SV *, MAGIC *)) 
+#  define swig_create_magic(s,a,b,c) _swig_create_magic(s,(char*)(a),b,c)
+#endif
+#ifndef MULTIPLICITY
+SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(SV *, MAGIC *), int (*get)(SV *,MAGIC *))
+#else
+SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(struct interpreter*, SV *, MAGIC *), int (*get)(struct interpreter*, SV *,MAGIC *))
 #endif
 {
   MAGIC *mg;

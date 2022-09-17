@@ -2,6 +2,8 @@
 
 import example
 
+print("Variables = " + str(example.cvar))
+
 # Try to set the values of some global variables
 
 example.cvar.ivar = 42
@@ -22,7 +24,7 @@ example.cvar.name = "Bill"
 
 # Now print out the values of the variables
 
-print("Variables (values printed from Python)")
+print("\nVariables (values printed from Python)")
 
 print("ivar      = %s" % example.cvar.ivar)
 print("svar      = %s" % example.cvar.svar)

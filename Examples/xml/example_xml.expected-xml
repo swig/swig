@@ -441,7 +441,7 @@ static void _ptrset(SV *_PTRVALUE, SV *value, int index, char *type) {
   } else if (strcmp(type,"char *") == 0) {
     char *c = SvPV(value,PL_na);
     char **ca = (char **) ptr;
-    if (ca[index]) free(ca[index]);
+    free(ca[index]);
     if (strcmp(c,"NULL") == 0) {
       ca[index] = 0;
     } else {
@@ -532,8 +532,7 @@ void _ptrfree(SV *_PTRVALUE) {
       }
     }
   }
-  if (ptr)
-    free((char *) ptr);
+  free((char *) ptr);
 }
 
                     </swigxml:code>

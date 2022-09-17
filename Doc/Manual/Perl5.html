@@ -91,10 +91,10 @@
 <p>
 This chapter describes SWIG's support of Perl5. Although the Perl5
 module is one of the earliest SWIG modules, it has continued to evolve
-and has been improved greatly with the help of SWIG users. For the
-best results, it is recommended that SWIG be used with Perl 5.8 or
-later. We're no longer testing regularly with older versions, but
-Perl 5.6 seems to mostly work, while older versions don't.
+and has been improved greatly with the help of SWIG users. As of SWIG
+4.1.0, the minimum version of Perl we aim to support is Perl 5.8.0.
+We can no longer easily test with older versions, and they no longer
+seem to be in active use.
 </p>
 
 <H2><a name="Perl5_nn2">31.1 Overview</a></H2>
@@ -680,7 +680,6 @@ files(s) field".
 installation under "Additional include directories".
 
 <li>Define the symbols WIN32 and MSWIN32 under preprocessor options.
-If using the ActiveWare port, also define the symbol PERL_OBJECT.
 Note that all extensions to the ActiveWare port must be compiled with
 the C++ compiler since Perl has been encapsulated in a C++ class.
 
@@ -1065,7 +1064,7 @@ int *Foo_x_get(Foo *self) {
 <p>
 If you want to set an array member, you will need to supply a "memberin" typemap
 described later in this chapter.  As a special case, SWIG does generate
-code to set array members of type <tt>char</tt> (allowing you to store a Python
+code to set array members of type <tt>char</tt> (allowing you to store a Perl
 string in the structure).
 </p>
 
@@ -1494,7 +1493,7 @@ as well as a special error code:
 <div class="code">
 <pre>
 /* send message, return number of bytes sent, along with success code */
-int send_message(char *text, int len, int *success);
+int send_message(char *text, int *success);
 </pre>
 </div>
 
@@ -1736,7 +1735,7 @@ See the chapter on "<a href="Customization.html#Customization">Customization fea
 
 <div class="code">
 <pre>
-%except(python) {
+%except(perl5) {
   try {
     $function
   }
@@ -2320,7 +2319,7 @@ typedef struct {
 
 <p>
 By default, SWIG doesn't know how to the handle the values structure
-member it's an array, not a pointer.  In this case, SWIG makes the array member
+member because it's an array, not a pointer.  In this case, SWIG makes the array member
 read-only.   Reading will simply return a pointer to the first item in the array.
 To make the member writable, a "memberin" typemap can be used.
 </p>
@@ -2651,8 +2650,8 @@ constructors and destructors for the package and are always named
 "new" and "DESTROY".  The constructor always returns a tied hash
 table.  This hash table is used to access the member variables of a
 structure in addition to being able to invoke member functions.  The
-<tt>%OWNER</tt> and <tt>%BLESSEDMEMBERS</tt> hash tables are used
-internally and described shortly.
+<tt>%OWNER</tt> and <tt>%BLESSEDMEMBERS</tt> hash tables are
+implementation details used internally and described shortly.
 </p>
 
 <p>
@@ -2740,8 +2739,15 @@ to a C function that remembers the object, and then destroy the
 corresponding Perl object (this situation turns out to come up
 frequently when constructing objects like linked lists and trees).
 When C takes possession of an object, you can change Perl's ownership
-by simply deleting the object from the <tt>%OWNER</tt> hash.  This is
-done using the <tt>DISOWN</tt> method.
+by calling the <tt>DISOWN</tt> method (which will delete the object
+from the internal <tt>%OWNER</tt> hash).
+</p>
+
+<p>
+The <tt>%OWNER</tt> hash is an implementation detail, discussed here
+only to help clarify the operation of <tt>ACQUIRE</tt> and <tt>DISOWN</tt>.
+You should not access <tt>%OWNER</tt> directly - the details of how it
+works (and possibly even its existence) may change in future SWIG versions.
 </p>
 
 <div class="targetlang"><pre>

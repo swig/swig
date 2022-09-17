@@ -134,7 +134,7 @@ int CFFI::top(Node *n) {
   File *f_lisp = NewFile(lisp_filename, "w", SWIG_output_files());
   if (!f_lisp) {
     FileErrorDisplay(lisp_filename);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   if (CPlusPlus || CWrap) {
@@ -142,7 +142,7 @@ int CFFI::top(Node *n) {
     if (!f_begin) {
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     String *clos_filename = NewString("");
@@ -151,7 +151,7 @@ int CFFI::top(Node *n) {
     if (!f_clos) {
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
   } else {
     f_begin = NewString("");
@@ -217,7 +217,7 @@ int CFFI::classHandler(Node *n) {
   } else {
     Printf(stderr, "Don't know how to deal with %s kind of class yet.\n", kind);
     Printf(stderr, " (name: %s)\n", name);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
     return SWIG_OK;
   }
 
@@ -873,7 +873,7 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
   if (Strcmp(kind, "struct") != 0 && Strcmp(kind, "union") != 0) {
     Printf(stderr, "Don't know how to deal with %s kind of class yet.\n", kind);
     Printf(stderr, " (name: %s)\n", name);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
   String *lisp_name = lispify_name(n, name, "'classname");
 
@@ -909,7 +909,7 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
       //               nodeType(c),
       //               Getattr(c, "name"),
       //               Getattr(c, "type"));
-      //       SWIG_exit(EXIT_FAILURE);
+      //       Exit(EXIT_FAILURE);
     } else {
       SwigType *childType = NewStringf("%s%s", Getattr(c, "decl"), Getattr(c, "type"));
 
@@ -981,27 +981,14 @@ String *CFFI::lispify_name(Node *n, String *ty, const char *flag, bool kw) {
 /* utilities */
 /* returns new string w/ parens stripped */
 String *CFFI::strip_parens(String *string) {
-  char *s = Char(string), *p;
+  char *s = Char(string);
   int len = Len(string);
-  String *res;
 
   if (len == 0 || s[0] != '(' || s[len - 1] != ')') {
     return NewString(string);
   }
 
-  p = (char *) malloc(len - 2 + 1);
-  if (!p) {
-    Printf(stderr, "Malloc failed\n");
-    SWIG_exit(EXIT_FAILURE);
-  }
-
-  strncpy(p, s + 1, len - 1);
-  p[len - 2] = 0;   /* null terminate */
-
-  res = NewString(p);
-  free(p);
-
-  return res;
+  return NewStringWithSize(s + 1, len - 2);
 }
 
 String *CFFI::trim(String *str) {

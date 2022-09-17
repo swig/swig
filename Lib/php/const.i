@@ -12,22 +12,22 @@
                         unsigned char,
                         signed char,
                         enum SWIGTYPE %{
-  zend_declare_class_constant_long(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, ($1_type)$value);
+  zend_declare_class_constant_long(SWIG_Php_ce_$class, "$const_name", sizeof("$const_name") - 1, ($1_type)($value));
 %}
 
 %typemap(classconsttab) bool %{
-  zend_declare_class_constant_bool(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, ($1_type)$value);
+  zend_declare_class_constant_bool(SWIG_Php_ce_$class, "$const_name", sizeof("$const_name") - 1, ($1_type)($value));
 %}
 
 %typemap(classconsttab) float,
                         double %{
-  zend_declare_class_constant_double(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, $value);
+  zend_declare_class_constant_double(SWIG_Php_ce_$class, "$const_name", sizeof("$const_name") - 1, $value);
 %}
 
 %typemap(classconsttab) char %{
 {
   char swig_char = $value;
-  zend_declare_class_constant_stringl(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, &swig_char, 1);
+  zend_declare_class_constant_stringl(SWIG_Php_ce_$class, "$const_name", sizeof("$const_name") - 1, &swig_char, 1);
 }
 %}
 
@@ -35,7 +35,7 @@
                         const char *,
                         char [],
                         const char [] %{
-  zend_declare_class_constant_string(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, $value);
+  zend_declare_class_constant_string(SWIG_Php_ce_$class, "$const_name", sizeof("$const_name") - 1, $value);
 %}
 
 // This creates a zend_object to wrap the pointer, and we can't do that
@@ -48,13 +48,13 @@
 {
   zval z;
   ZVAL_UNDEF(&z);
-  SWIG_SetPointerZval(&z, (void*)$value, $1_descriptor, 0);
+  SWIG_SetPointerZval(&z, (void*)($value), $1_descriptor, 0);
   zval_copy_ctor(&z);
-  zend_declare_class_constant(SWIGTYPE_$class_ce, "$const_name", sizeof("$const_name") - 1, &z);
+  zend_declare_class_constant(SWIG_Php_ce_$class, "$const_name", sizeof("$const_name") - 1, &z);
 }
 %}
 
-%typemap(classconsttab) SWIGTYPE (CLASS::*) "";
+%typemap(classconsttab) SWIGTYPE (CLASS::*) ""
 
 %typemap(consttab) int,
                    unsigned int,
@@ -65,10 +65,10 @@
                    unsigned char,
                    signed char,
                    enum SWIGTYPE
-  "SWIG_LONG_CONSTANT($symname, ($1_type)$value);";
+  "SWIG_LONG_CONSTANT($symname, ($1_type)($value));";
 
 %typemap(consttab) bool
-  "SWIG_BOOL_CONSTANT($symname, ($1_type)$value);";
+  "SWIG_BOOL_CONSTANT($symname, ($1_type)($value));";
 
 %typemap(consttab) float,
                    double
@@ -92,7 +92,7 @@
                    SWIGTYPE [] {
   zend_constant c;
   ZVAL_UNDEF(&c.value);
-  SWIG_SetPointerZval(&c.value, (void*)$value, $1_descriptor, 0);
+  SWIG_SetPointerZval(&c.value, (void*)($value), $1_descriptor, 0);
   zval_copy_ctor(&c.value);
   c.name = zend_string_init("$symname", sizeof("$symname") - 1, 0);
   SWIG_ZEND_CONSTANT_SET_FLAGS(&c, CONST_CS, module_number);
@@ -100,4 +100,4 @@
 }
 
 /* Handled as a global variable. */
-%typemap(consttab) SWIGTYPE (CLASS::*) "";
+%typemap(consttab) SWIGTYPE (CLASS::*) ""

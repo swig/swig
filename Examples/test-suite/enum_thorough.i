@@ -89,8 +89,6 @@ struct SpeedClass {
   const colour myColour2;
   speedtd1 mySpeedtd1;
   SpeedClass() : myColour2(red), mySpeedtd1(slow) { }
-private:
-  SpeedClass& operator=(const SpeedClass&);
 };
 
 int                            speedTest0(int s) { return s; }

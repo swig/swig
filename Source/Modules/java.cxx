@@ -12,8 +12,8 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
-#include <limits.h>		// for INT_MAX
 #include "cparse.h"
+#include <limits.h>		// for INT_MAX
 #include <ctype.h>
 #include "javadoc.h"
 
@@ -371,24 +371,24 @@ public:
 
     if (!outfile) {
       Printf(stderr, "Unable to determine outfile\n");
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (directorsEnabled()) {
       if (!outfile_h) {
         Printf(stderr, "Unable to determine outfile_h\n");
-        SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
 
@@ -521,7 +521,7 @@ public:
       File *f_im = NewFile(filen, "w", SWIG_output_files());
       if (!f_im) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -576,7 +576,7 @@ public:
       File *f_module = NewFile(filen, "w", SWIG_output_files());
       if (!f_module) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -635,7 +635,7 @@ public:
       File *f_module = NewFile(filen, "w", SWIG_output_files());
       if (!f_module) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -1332,10 +1332,7 @@ public:
 	  // Add extra indentation
 	  Replaceall(enum_code, "\n", "\n  ");
 	  Replaceall(enum_code, "  \n", "\n");
-	  if (GetFlag(getCurrentClass(), "feature:interface"))
-	    Printv(interface_class_code, "  ", enum_code, "\n\n", NIL);
-	  else
-	    Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
+	  Printv(proxy_class_constants_code, "  ", enum_code, "\n\n", NIL);
 	} else {
 	  // Global enums are defined in their own file
 	  String *output_directory = outputDirectory(nspace);
@@ -1343,7 +1340,7 @@ public:
 	  File *f_enum = NewFile(filen, "w", SWIG_output_files());
 	  if (!f_enum) {
 	    FileErrorDisplay(filen);
-	    SWIG_exit(EXIT_FAILURE);
+	    Exit(EXIT_FAILURE);
 	  }
 	  Append(filenames_list, Copy(filen));
 	  Delete(filen);
@@ -1843,10 +1840,9 @@ public:
    * addInterfaceNameAndUpcasts()
    * ----------------------------------------------------------------------------- */
 
-  void addInterfaceNameAndUpcasts(SwigType *smart, String *interface_list, String *interface_upcasts, Hash *base_list, SwigType *c_classname) {
-    List *keys = Keys(base_list);
-    for (Iterator it = First(keys); it.item; it = Next(it)) {
-      Node *base = Getattr(base_list, it.item);
+  void addInterfaceNameAndUpcasts(SwigType *smart, String *interface_list, String *interface_upcasts, List *base_list, SwigType *c_classname) {
+    for (Iterator it = First(base_list); it.item; it = Next(it)) {
+      Node *base = it.item;
       SwigType *c_baseclassname = Getattr(base, "name");
       String *interface_name = Getattr(base, "interface:name");
       if (Len(interface_list))
@@ -1873,7 +1869,6 @@ public:
       Delete(cptr_method_name);
       Delete(interface_code);
     }
-    Delete(keys);
   }
 
   /* -----------------------------------------------------------------------------
@@ -1959,7 +1954,7 @@ public:
       if (baselist) {
 	Iterator base = First(baselist);
 	while (base.item) {
-	  if (!(GetFlag(base.item, "feature:ignore") || Getattr(base.item, "feature:interface"))) {
+	  if (!(GetFlag(base.item, "feature:ignore") || GetFlag(base.item, "feature:interface"))) {
 	    SwigType *baseclassname = Getattr(base.item, "name");
 	    if (!c_baseclassname) {
 	      String *name = getProxyName(baseclassname);
@@ -1979,7 +1974,7 @@ public:
       }
     }
 
-    Hash *interface_bases = Getattr(n, "interface:bases");
+    List *interface_bases = Getattr(n, "interface:bases");
     if (interface_bases)
       addInterfaceNameAndUpcasts(smart, interface_list, interface_upcasts, interface_bases, c_classname);
 
@@ -2140,7 +2135,7 @@ public:
     if (List *baselist = Getattr(n, "bases")) {
       String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
-	if (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "feature:interface"))
+	if (GetFlag(base.item, "feature:ignore") || !GetFlag(base.item, "feature:interface"))
 	  continue; // TODO: warn about skipped non-interface bases
 	String *base_iname = Getattr(base.item, "interface:name");
 	if (!bases)
@@ -2215,12 +2210,12 @@ public:
 
 	if (Cmp(proxy_class_name, imclass_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to intermediary class name: %s\n", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 
 	if (Cmp(proxy_class_name, module_class_name) == 0) {
 	  Printf(stderr, "Class name cannot be equal to module class name: %s\n", proxy_class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
       } else {
 	if (outerClassesPrefix) {
@@ -2236,7 +2231,7 @@ public:
 	}
       }
 
-      String *interface_name = Getattr(n, "feature:interface") ? Getattr(n, "interface:name") : 0;
+      String *interface_name = GetFlag(n, "feature:interface") ? Getattr(n, "interface:name") : 0;
       if (outerClassesPrefix) {
 	String *fnspace = nspace ? NewStringf("%s.%s", nspace, outerClassesPrefix) : outerClassesPrefix;
 	if (!addSymbol(proxy_class_name, n, fnspace))
@@ -2260,7 +2255,7 @@ public:
 	f_proxy = NewFile(filen, "w", SWIG_output_files());
 	if (!f_proxy) {
 	  FileErrorDisplay(filen);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 	Append(filenames_list, Copy(filen));
 	Delete(filen);
@@ -2287,14 +2282,14 @@ public:
       destructor_throws_clause = NewString("");
       proxy_class_constants_code = NewString("");
 
-      if (Getattr(n, "feature:interface")) {
+      if (GetFlag(n, "feature:interface")) {
         interface_class_code = NewString("");
 	String *output_directory = outputDirectory(nspace);
 	String *filen = NewStringf("%s%s.java", output_directory, interface_name);
 	f_interface = NewFile(filen, "w", SWIG_output_files());
 	if (!f_interface) {
 	  FileErrorDisplay(filen);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 	Append(filenames_list, filen); // file name ownership goes to the list
 	emitBanner(f_interface);
@@ -2462,7 +2457,7 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
-    bool is_interface = Getattr(parentNode(n), "feature:interface") != 0 
+    bool is_interface = GetFlag(parentNode(n), "feature:interface") && !checkAttribute(n, "kind", "variable")
       && !static_flag && Getattr(n, "interface:owner") == 0;
 
     if (!proxy_flag)
@@ -2694,6 +2689,7 @@ public:
 	Replaceall(imcall, "$imfuncname", intermediary_function_name);
       }
 
+      Replaceall(tm, "$imfuncname", intermediary_function_name);
       Replaceall(tm, "$jnicall", imcall);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, "No javaout typemap defined for %s\n", SwigType_str(t, 0));
@@ -3179,6 +3175,7 @@ public:
       else
 	Replaceall(tm, "$owner", "false");
       substituteClassname(t, tm);
+      Replaceall(tm, "$imfuncname", overloaded_name);
       Replaceall(tm, "$jnicall", imcall);
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JAVAOUT_UNDEF, input_file, line_number, "No javaout typemap defined for %s\n", SwigType_str(t, 0));
@@ -3497,7 +3494,7 @@ public:
     File *f_swigtype = NewFile(filen, "w", SWIG_output_files());
     if (!f_swigtype) {
       FileErrorDisplay(filen);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     Append(filenames_list, Copy(filen));
     Delete(filen);
@@ -3712,7 +3709,7 @@ public:
       if (newdir_error) {
 	Printf(stderr, "%s\n", newdir_error);
 	Delete(newdir_error);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Printv(output_directory, nspace_subdirectory, SWIG_FILE_DELIMITER, 0);
       Delete(nspace_subdirectory);

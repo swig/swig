@@ -18,9 +18,9 @@
    virtual std::string pong() { return "Foo::pong();" + ping(); }
    virtual std::string getA() { return this->a_; }
    virtual void setA(std::string a) { this->a_ = a; }
+   virtual void setAByRef(const std::string &a) { this->a_ = a; }
 
    static Foo* get_self(Foo *slf) {return slf;}
-   
  };
 
  %}
@@ -37,9 +37,9 @@
    virtual std::string pong();
    virtual std::string getA();
    virtual void setA(std::string a);
+   virtual void setAByRef(const std::string &a);
    
    static Foo* get_self(Foo *slf);
-   
  };
 
  %{

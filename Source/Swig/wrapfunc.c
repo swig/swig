@@ -27,7 +27,7 @@ static int Max_line_size = 128;
 
 Wrapper *NewWrapper(void) {
   Wrapper *w;
-  w = (Wrapper *) malloc(sizeof(Wrapper));
+  w = (Wrapper *) Malloc(sizeof(Wrapper));
   w->localh = NewHash();
   w->locals = NewStringEmpty();
   w->code = NewStringEmpty();
@@ -46,7 +46,7 @@ void DelWrapper(Wrapper *w) {
   Delete(w->locals);
   Delete(w->code);
   Delete(w->def);
-  free(w);
+  Free(w);
 }
 
 /* -----------------------------------------------------------------------------

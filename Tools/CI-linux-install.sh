@@ -12,8 +12,7 @@ else
 fi
 
 $RETRY sudo apt-get -qq install libboost-dev libpcre3-dev
-# testflags.py needs python
-$RETRY sudo apt-get install -qq python
+# Note: testflags.py needs python, but python is pre-installed
 
 WITHLANG=$SWIGLANG
 
@@ -55,7 +54,7 @@ case "$SWIGLANG" in
 				fi
 				;;
 			"jsc")
-				$RETRY sudo apt-get install -qq libwebkitgtk-dev
+				$RETRY sudo apt-get install -qq libjavascriptcoregtk-${VER}-dev
 				;;
 			"v8")
 				$RETRY sudo apt-get install -qq libv8-dev
@@ -63,7 +62,7 @@ case "$SWIGLANG" in
 		esac
 		;;
 	"guile")
-		$RETRY sudo apt-get -qq install guile-2.0-dev
+		$RETRY sudo apt-get -qq install guile-${VER:-2.0}-dev
 		;;
 	"lua")
 		if [[ -z "$VER" ]]; then
@@ -79,8 +78,14 @@ case "$SWIGLANG" in
 		$RETRY sudo apt-get -qq install ocaml camlp4
 		;;
 	"octave")
-		$RETRY sudo apt-get -qq update
-		$RETRY sudo apt-get -qq install liboctave-dev
+		if [[ "$VER" ]]; then
+			$RETRY sudo add-apt-repository -y ppa:devacom/science
+			$RETRY sudo apt-get -qq update
+			$RETRY sudo apt-get -qq install "liboctave-dev=$VER.*"
+		else
+			$RETRY sudo apt-get -qq update
+			$RETRY sudo apt-get -qq install liboctave-dev
+		fi
 		;;
 	"php")
 		if [[ "$VER" ]]; then
@@ -92,14 +97,20 @@ case "$SWIGLANG" in
 		;;
 	"python")
 		pip install --user pycodestyle
+		if [[ "$PY2" ]]; then
+			WITHLANG=$SWIGLANG
+		else
+			WITHLANG=${SWIGLANG}3
+		fi
 		if [[ "$VER" ]]; then
 			$RETRY sudo add-apt-repository -y ppa:deadsnakes/ppa
 			$RETRY sudo apt-get -qq update
 			$RETRY sudo apt-get -qq install python${VER}-dev
-			WITHLANG=$SWIGLANG$PY3=$SWIGLANG$VER
-                else
-		        $RETRY sudo apt-get install -qq python${PY3}-dev
-		        WITHLANG=$SWIGLANG$PY3
+			WITHLANG=$WITHLANG=$SWIGLANG$VER
+		elif [[ "$PY2" ]]; then
+			$RETRY sudo apt-get install -qq python-dev
+		else
+			$RETRY sudo apt-get install -qq python3-dev
 		fi
 		;;
 	"r")
@@ -120,22 +131,29 @@ case "$SWIGLANG" in
 			source $HOME/.rvm/scripts/rvm
 			set -x
 		fi
-		if [[ "$VER" == "2.7" || "$VER" == "3.0" ]]; then
-			# Ruby 2.7+ support is currently only rvm master (30 Dec 2019)
-			$RETRY rvm get master
-			rvm reload
-			rvm list known
-		fi
+		case "$VER" in
+			2.7 | 3.0 | 3.1 )
+				# Ruby 2.7+ support is currently only rvm master (30 Dec 2019)
+			        set +x
+				$RETRY rvm get master
+				rvm reload
+				rvm list known
+			        set -x
+				;;
+		esac
 		if [[ "$VER" ]]; then
 			$RETRY rvm install $VER
 		fi
 		;;
 	"scilab")
-		# Travis has the wrong version of Java pre-installed resulting in error using scilab:
-		# /usr/bin/scilab-bin: error while loading shared libraries: libjava.so: cannot open shared object file: No such file or directory
-		echo "JAVA_HOME was set to $JAVA_HOME"
-		unset JAVA_HOME
-		$RETRY sudo apt-get -qq install scilab
+		if [[ -z "$VER" ]]; then
+			$RETRY sudo apt-get -qq install scilab
+		else
+			$RETRY wget --progress=dot:giga "https://www.scilab.org/download/$VER/scilab-$VER.bin.linux-x86_64.tar.gz"
+			# $HOME/.local/bin is in PATH and writeable
+			mkdir -p "$HOME/.local"
+			tar -xzf "scilab-$VER.bin.linux-x86_64.tar.gz" --strip-components=1 -C "$HOME/.local"
+		fi	
 		;;
 	"tcl")
 		$RETRY sudo apt-get -qq install tcl-dev

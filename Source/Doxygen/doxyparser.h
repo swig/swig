@@ -9,8 +9,8 @@
  * doxyparser.h
  * ----------------------------------------------------------------------------- */
 
-#ifndef DOXYGENPARSER_H_
-#define DOXYGENPARSER_H_
+#ifndef SWIG_DOXYPARSER_H
+#define SWIG_DOXYPARSER_H
 #include <string>
 #include <list>
 #include <map>
@@ -238,7 +238,7 @@ private:
    * Method for Adding a Simple Command
    * Format: @command
    * Plain commands, such as newline etc, they contain no other data
-   *  \n \\ \@ \& \$ \# \< \> \%
+   *  \n \\ \@ \& \$ \# \< \> \% \{ \}
    */
   void addSimpleCommand(const std::string &theCommand, DoxygenEntityList &doxyList);
   /*

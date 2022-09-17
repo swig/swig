@@ -12,10 +12,16 @@ public class typemap_out_optimal_runme {
     }
   }
 
-  public static XX x = null;
   public static void main(String argv[]) {
-    XX.setDebug(false);
-    x = XX.create();
+    XX.setTrace(false);
+    {
+      XX x = XX.create();
+      x.delete();
+    }
+    {
+      XX x = XX.createConst();
+      x.delete();
+    }
   }
 }
 

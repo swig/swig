@@ -119,7 +119,7 @@ multiple output values, they are returned in the form of a Ruby Array.
          
 For example, suppose you were trying to wrap the modf() function in the
 C math library which splits x into integral and fractional parts (and
-returns the integer part in one of its parameters).K:
+returns the integer part in one of its parameters) :
 
         double modf(double x, double *ip);
 
@@ -139,7 +139,7 @@ output values.
 */
 
 %define OUTPUT_TYPEMAP(type, converter, convtype)
-%typemap(in,numinputs=0) type *OUTPUT($*1_ltype temp), type &OUTPUT($*1_ltype temp) "$1 = &temp;";
+%typemap(in,numinputs=0) type *OUTPUT($*1_ltype temp), type &OUTPUT($*1_ltype temp) "$1 = &temp;"
 %typemap(argout, fragment="output_helper") type *OUTPUT, type &OUTPUT {
    VALUE o = converter(convtype (*$1));
    $result = output_helper($result, o);
@@ -161,7 +161,7 @@ OUTPUT_TYPEMAP(double, rb_float_new, (double));
 
 #undef OUTPUT_TYPEMAP
 
-%typemap(in,numinputs=0) bool *OUTPUT(bool temp), bool &OUTPUT(bool temp) "$1 = &temp;";
+%typemap(in,numinputs=0) bool *OUTPUT(bool temp), bool &OUTPUT(bool temp) "$1 = &temp;"
 %typemap(argout, fragment="output_helper") bool *OUTPUT, bool &OUTPUT {
     VALUE o = (*$1) ? Qtrue : Qfalse;
     $result = output_helper($result, o);

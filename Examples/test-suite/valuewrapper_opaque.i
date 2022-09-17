@@ -14,7 +14,7 @@ class C;
 %{
 template<typename T> class TemplateClass {
 public:
-TemplateClass<T>(T a) {}
+TemplateClass(T a) {}
 };
 
 struct B

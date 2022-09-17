@@ -166,7 +166,7 @@ public:
    */
   virtual int exitClass(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked at the beginning of the variableHandler.
@@ -178,7 +178,7 @@ public:
    */
   virtual int exitVariable(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked at the beginning of the functionHandler.
@@ -190,7 +190,7 @@ public:
    */
   virtual int exitFunction(Node *) {
     return SWIG_OK;
-  };
+  }
 
   /**
    * Invoked by functionWrapper callback after call to Language::functionWrapper.
@@ -537,21 +537,21 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       if (strcmp(argv[i], "-v8") == 0) {
       	if (engine != -1) {
 	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
-	  SWIG_exit(-1);
+	  Exit(EXIT_FAILURE);
       	}
 	Swig_mark_arg(i);
 	engine = JSEmitter::V8;
       } else if (strcmp(argv[i], "-jsc") == 0) {
       	if (engine != -1) {
 	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
-	  SWIG_exit(-1);
+	  Exit(EXIT_FAILURE);
       	}
 	Swig_mark_arg(i);
 	engine = JSEmitter::JavascriptCore;
       } else if (strcmp(argv[i], "-node") == 0) {
       	if (engine != -1) {
 	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
-	  SWIG_exit(-1);
+	  Exit(EXIT_FAILURE);
       	}
 	Swig_mark_arg(i);
 	engine = JSEmitter::NodeJS;
@@ -595,7 +595,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
   default:
     {
       Printf(stderr, "SWIG Javascript: Unknown engine. Please specify one of '-jsc', '-v8' or '-node'.\n");
-      SWIG_exit(-1);
+      Exit(EXIT_FAILURE);
       break;
     }
   }
@@ -666,7 +666,7 @@ Template JSEmitter::getTemplate(const String *name) {
 
   if (!templ) {
     Printf(stderr, "Could not find template %s\n.", name);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   Template t(templ, name);
@@ -760,13 +760,10 @@ int JSEmitter::emitWrapperFunction(Node *n) {
 	ret = emitSetter(n, is_member, is_static);
       } else if (is_getter) {
 	ret = emitGetter(n, is_member, is_static);
-      } else {
-	Swig_print_node(n);
       }
 
     } else {
       Printf(stderr, "Warning: unsupported wrapper function type\n");
-      Swig_print_node(n);
       ret = SWIG_ERROR;
     }
   } else {
@@ -778,7 +775,6 @@ int JSEmitter::emitWrapperFunction(Node *n) {
       ret = emitDtor(n);
     } else {
       Printf(stderr, "Warning: unsupported wrapper function type");
-      Swig_print_node(n);
       ret = SWIG_ERROR;
     }
   }
@@ -936,7 +932,7 @@ int JSEmitter::emitDtor(Node *n) {
   SwigType *type = state.clazz(TYPE);
   String *p_classtype = SwigType_add_pointer(state.clazz(TYPE));
   String *ctype = SwigType_lstr(p_classtype, "");
-  String *free = NewString("");
+  String *jsfree = NewString("");
 
   // (Taken from JSCore implementation.)
   /* The if (Extend) block was taken from the Ruby implementation.
@@ -979,9 +975,9 @@ int JSEmitter::emitDtor(Node *n) {
   // TODO: generate dtors more similar to other wrappers
   // EW: I think this is wrong. delete should only be used when new was used to create. If malloc was used, free needs to be used.
   if (SwigType_isarray(type)) {
-    Printf(free, "delete [] (%s)", ctype);
+    Printf(jsfree, "delete [] (%s)", ctype);
   } else {
-    Printf(free, "delete (%s)", ctype);
+    Printf(jsfree, "delete (%s)", ctype);
   }
 
   String *destructor_action = Getattr(n, "wrap:action");
@@ -994,7 +990,7 @@ int JSEmitter::emitDtor(Node *n) {
      {
      SWIG_PRV_DATA* t = (SWIG_PRV_DATA*)JSObjectGetPrivate(thisObject);
      if(t && t->swigCMemOwn) free ((${type}*)t->swigCObject);
-     if(t) free(t);
+     free(t);
      }
      %}
 
@@ -1007,7 +1003,7 @@ int JSEmitter::emitDtor(Node *n) {
      ${type}* arg1 = (${type}*)t->swigCObject;
      ${destructor_action}
      }
-     if(t) free(t);
+     free(t);
 
      Based on what I saw in the Lua and Ruby modules, I use Getattr(n, "wrap:action")
      to decide if the user has a preferred destructor action.
@@ -1031,7 +1027,7 @@ int JSEmitter::emitDtor(Node *n) {
     state.clazz(DTOR, wrap_name);
     t_dtor.replace("${classname_mangled}", state.clazz(NAME_MANGLED))
 	.replace("$jswrapper", wrap_name)
-	.replace("$jsfree", free)
+	.replace("$jsfree", jsfree)
 	.replace("$jstype", ctype);
 
     t_dtor.replace("${destructor_action}", destructor_action);
@@ -1041,14 +1037,14 @@ int JSEmitter::emitDtor(Node *n) {
     state.clazz(DTOR, wrap_name);
     t_dtor.replace("$jsmangledname", state.clazz(NAME_MANGLED))
 	.replace("$jswrapper", wrap_name)
-	.replace("$jsfree", free)
+	.replace("$jsfree", jsfree)
 	.replace("$jstype", ctype)
 	.pretty_print(f_wrappers);
   }
 
   Delete(p_classtype);
   Delete(ctype);
-  Delete(free);
+  Delete(jsfree);
 
   return SWIG_OK;
 }
@@ -1143,7 +1139,7 @@ int JSEmitter::emitConstant(Node *n) {
   String *rawval = Getattr(n, "rawval");
   String *value = rawval ? rawval : Getattr(n, "value");
 
-  // HACK: forcing usage of cppvalue for v8 (which turned out to fix typdef_struct.i, et. al)
+  // HACK: forcing usage of cppvalue for v8 (which turned out to fix typedef_struct.i, et. al)
   if (State::IsSet(state.globals(FORCE_CPP)) && Getattr(n, "cppvalue") != NULL) {
     value = Getattr(n, "cppvalue");
   }
@@ -1409,7 +1405,6 @@ int JSEmitter::switchNamespace(Node *n) {
   String *_nspace = lang->getNSpace();
   if (!Equal(nspace, _nspace)) {
     Printf(stdout, "##### Custom vs Language::getNSpace(): %s | %s\n", nspace, _nspace);
-    Swig_print_node(n);
   }
 #endif
 
@@ -1576,7 +1571,7 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
       break;
     default:
       Printf(stderr, "Illegal MarshallingMode.");
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     tm = emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
@@ -1599,7 +1594,7 @@ int JSCEmitter::initialize(Node *n) {
   f_wrap_cpp = NewFile(outfile, "w", SWIG_output_files());
   if (!f_wrap_cpp) {
     FileErrorDisplay(outfile);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   /* Initialization of members */
@@ -1920,7 +1915,7 @@ int V8Emitter::initialize(Node *n) {
   f_wrap_cpp = NewFile(outfile, "w", SWIG_output_files());
   if (!f_wrap_cpp) {
     FileErrorDisplay(outfile);
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   f_runtime = NewString("");
@@ -2214,7 +2209,7 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
       break;
     default:
       Printf(stderr, "Illegal MarshallingMode.");
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     tm = emitInputTypemap(n, p, wrapper, arg);
@@ -2370,7 +2365,7 @@ Template::Template(const String *code_) {
 
   if (!code_) {
     Printf(stdout, "Template code was null. Illegal input for template.");
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
   code = NewString(code_);
   templateName = NewString("");
@@ -2380,7 +2375,7 @@ Template::Template(const String *code_, const String *templateName_) {
 
   if (!code_) {
     Printf(stdout, "Template code was null. Illegal input for template.");
-    SWIG_exit(EXIT_FAILURE);
+    Exit(EXIT_FAILURE);
   }
 
   code = NewString(code_);

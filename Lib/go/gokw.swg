@@ -1,6 +1,6 @@
 /* Rename keywords.  */
 
-#define GOKW(x) %keywordwarn("'" `x` "' is a Go keyword, renaming to 'X"`x`"'",rename="X%s")  `x`
+#define GOKW(x) %keywordwarn("'" `x` "' is a Go keyword",rename="X%s")  `x`
 #define GOBN(x) %builtinwarn("'" `x` "' conflicts with a built-in name in Go")  "::"`x`
 
 GOKW(break);

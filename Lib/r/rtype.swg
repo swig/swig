@@ -3,26 +3,26 @@
    for use in class representations. 
  */
 
-%typemap("rtype") int, int *, int &      "integer";
-%typemap("rtype") long, long *, long &      "integer";
-%typemap("rtype") float, float*, float & "numeric";
-%typemap("rtype") double, double*, double & "numeric";
-%typemap("rtype") char *, char ** "character";
-%typemap("rtype") char            "character";
-%typemap("rtype") string, string *, string & "character";
-%typemap("rtype") std::string, std::string *, std::string & "character";
-%typemap("rtype") bool, bool *    "logical";
-%typemap("rtype") enum SWIGTYPE   "character";
-%typemap("rtype") enum SWIGTYPE *   "character";
-%typemap("rtype") enum SWIGTYPE *const   "character";
-%typemap("rtype") enum SWIGTYPE &  "character";
-%typemap("rtype") const enum SWIGTYPE &  "character";
-%typemap("rtype") enum SWIGTYPE &&  "character";
-%typemap("rtype") SWIGTYPE * "$R_class";
-%typemap("rtype") SWIGTYPE *const "$R_class";
-%typemap("rtype") SWIGTYPE & "$R_class";
-%typemap("rtype") SWIGTYPE && "$R_class";
-%typemap("rtype") SWIGTYPE "$&R_class";
+%typemap("rtype") int, int *, int & "integer"
+%typemap("rtype") long, long *, long & "integer"
+%typemap("rtype") float, float*, float & "numeric"
+%typemap("rtype") double, double*, double & "numeric"
+%typemap("rtype") char *, char ** "character"
+%typemap("rtype") char "character"
+%typemap("rtype") string, string *, string & "character"
+%typemap("rtype") std::string, std::string *, std::string & "character"
+%typemap("rtype") bool, bool * "logical"
+%typemap("rtype") enum SWIGTYPE "character"
+%typemap("rtype") enum SWIGTYPE * "character"
+%typemap("rtype") enum SWIGTYPE *const "character"
+%typemap("rtype") enum SWIGTYPE & "character"
+%typemap("rtype") const enum SWIGTYPE & "character"
+%typemap("rtype") enum SWIGTYPE && "character"
+%typemap("rtype") SWIGTYPE * "$R_class"
+%typemap("rtype") SWIGTYPE *const "$R_class"
+%typemap("rtype") SWIGTYPE & "$R_class"
+%typemap("rtype") SWIGTYPE && "$R_class"
+%typemap("rtype") SWIGTYPE "$&R_class"
 
 %typemap("rtypecheck") int, int &, long, long &
   %{ (is.integer($arg) || is.numeric($arg)) && length($arg) == 1 %}

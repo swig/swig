@@ -59,7 +59,7 @@
 %typemap(in,noblock=1,numinputs=0) TYPEMAP (Char temp[MAX+1])  {
   $1 = ($1_ltype) temp;
 }
-%typemap(freearg,match="in") TYPEMAP "";
+%typemap(freearg,match="in") TYPEMAP ""
 %typemap(argout,noblock=1,fragment= #SWIG_FromCharPtr ) TYPEMAP {
   $1[MAX] = 0;  
   %append_output(SWIG_FromCharPtr($1));
@@ -85,7 +85,7 @@
 %typemap(in,noblock=1,numinputs=0) TYPEMAP(Char temp[SIZE]) {
   $1 = ($1_ltype) temp;
 }
-%typemap(freearg,match="in") TYPEMAP "";
+%typemap(freearg,match="in") TYPEMAP ""
 %typemap(argout,noblock=1,fragment= #SWIG_FromCharPtrAndSize) TYPEMAP {
   %append_output(SWIG_FromCharPtrAndSize($1,SIZE));
 }
@@ -122,7 +122,7 @@
   temp[n - 1] = 0;                                                             
   $1 = ($1_ltype) temp;                                                    
 }
-%typemap(freearg,match="in") TYPEMAP "";
+%typemap(freearg,match="in") TYPEMAP ""
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtr) TYPEMAP {
   $1[MAX] = 0;
   %append_output(SWIG_FromCharPtr($1));
@@ -160,7 +160,7 @@
   if (alloc == SWIG_NEWOBJ) %delete_array(t);
   $1[n-1] = 0;
 }
-%typemap(freearg,match="in") TYPEMAP "";
+%typemap(freearg,match="in") TYPEMAP ""
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtr) TYPEMAP { 
   %append_output(SWIG_FromCharPtr($1));
   %delete_array($1);                                  
@@ -247,7 +247,7 @@
 %typemap(in,noblock=1,numinputs=0) TYPEMAP($*1_ltype temp = 0) {
   $1 = &temp;
 }
-%typemap(freearg,match="in") TYPEMAP "";
+%typemap(freearg,match="in") TYPEMAP ""
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtr) TYPEMAP { 
   if (*$1) {
     %append_output(SWIG_FromCharPtr(*$1));
@@ -275,7 +275,7 @@
 %typemap(in,noblock=1,numinputs=0) (TYPEMAP, SIZE) ($*1_ltype temp = 0, $*2_ltype tempn) {
   $1 = &temp; $2 = &tempn;
 }
-%typemap(freearg,match="in") (TYPEMAP,SIZE) "";
+%typemap(freearg,match="in") (TYPEMAP,SIZE) ""
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtrAndSize)(TYPEMAP,SIZE) {   
   if (*$1) {
     %append_output(SWIG_FromCharPtrAndSize(*$1,*$2));

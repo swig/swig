@@ -969,7 +969,7 @@ class TypePass:private Dispatcher {
       if (Getattr(c, "sym:overloaded") != checkoverloaded) {
         Printf(stdout, "sym:overloaded error c:%p checkoverloaded:%p\n", c, checkoverloaded);
         Swig_print_node(c);
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
 
       String *decl = Strcmp(nodeType(c), "using") == 0 ? NewString("------") : Getattr(c, "decl");
@@ -977,7 +977,7 @@ class TypePass:private Dispatcher {
       if (!Getattr(c, "sym:overloaded")) {
         Printf(stdout, "sym:overloaded error.....%p\n", c);
         Swig_print_node(c);
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
       c = Getattr(c, "sym:nextSibling");
     }
@@ -1039,6 +1039,21 @@ class TypePass:private Dispatcher {
 	      Node *unodes = 0, *last_unodes = 0;
 	      int ccount = 0;
 	      String *symname = Getattr(n, "sym:name");
+
+	      // The overloaded functions in scope may not yet have had their parameters normalized yet (in cDeclaration).
+	      // Happens if the functions were declared after the using declaration. So use a normalized copy.
+	      List *n_decl_list = NewList();
+	      Node *over = Getattr(n, "sym:overloaded");
+	      while (over) {
+		String *odecl = Copy(Getattr(over, "decl"));
+		if (odecl) {
+		  normalize_type(odecl);
+		  Append(n_decl_list, odecl);
+		  Delete(odecl);
+		}
+		over = Getattr(over, "sym:nextSibling");
+	      }
+
 	      while (c) {
 		if (Strcmp(nodeType(c), "cdecl") == 0) {
 		  if (!(Swig_storage_isstatic(c)
@@ -1047,37 +1062,40 @@ class TypePass:private Dispatcher {
 			|| (Getattr(c, "feature:extend") && !Getattr(c, "code"))
 			|| GetFlag(c, "feature:ignore"))) {
 
-		    /* Don't generate a method if the method is overridden in this class, 
-		     * for example don't generate another m(bool) should there be a Base::m(bool) :
-		     * struct Derived : Base { 
-		     *   void m(bool);
-		     *   using Base::m;
-		     * };
-		     */
 		    String *csymname = Getattr(c, "sym:name");
 		    if (!csymname || (Strcmp(csymname, symname) == 0)) {
-		      {
-			String *decl = Getattr(c, "decl");
-			Node *over = Getattr(n, "sym:overloaded");
-			int match = 0;
-			while (over) {
-			  String *odecl = Getattr(over, "decl");
-			  if (Cmp(decl, odecl) == 0) {
-			    match = 1;
-			    break;
-			  }
-			  over = Getattr(over, "sym:nextSibling");
-			}
-			if (match) {
-			  c = Getattr(c, "csym:nextSibling");
-			  continue;
+		      String *decl = Getattr(c, "decl");
+		      int match = 0;
+
+		      for (Iterator it = First(n_decl_list); it.item; it = Next(it)) {
+			String *odecl = it.item;
+			if (Cmp(decl, odecl) == 0) {
+			  match = 1;
+			  break;
 			}
 		      }
+		      if (match) {
+			/* Don't generate a method if the method is overridden in this class,
+			 * for example don't generate another m(bool) should there be a Base::m(bool) :
+			 * struct Derived : Base {
+			 *   void m(bool);
+			 *   using Base::m;
+			 * };
+			 */
+			c = Getattr(c, "csym:nextSibling");
+			continue;
+		      }
+
 		      Node *nn = copyNode(c);
+		      Setfile(nn, Getfile(n));
+		      Setline(nn, Getline(n));
 		      Delattr(nn, "access");	// access might be different from the method in the base class
 		      Setattr(nn, "access", Getattr(n, "access"));
 		      if (!Getattr(nn, "sym:name"))
 			Setattr(nn, "sym:name", symname);
+		      Symtab *st = Getattr(n, "sym:symtab");
+		      assert(st);
+		      Setattr(nn, "sym:symtab", st);
 
 		      if (!GetFlag(nn, "feature:ignore")) {
 			ParmList *parms = CopyParmList(Getattr(c, "parms"));
@@ -1117,6 +1135,9 @@ class TypePass:private Dispatcher {
 		      } else {
 			Delete(nn);
 		      }
+		    } else {
+		      Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(n), Getline(n), "Using declaration %s, with name '%s', is not actually using\n", SwigType_namestr(Getattr(n, "uname")), symname);
+		      Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(c), Getline(c), "the method from %s, with name '%s', as the names are different.\n", Swig_name_decl(c), csymname);
 		    }
 		  }
 		}
@@ -1138,14 +1159,30 @@ class TypePass:private Dispatcher {
 	       * which is hacked. */
 	      if (Getattr(n, "sym:overloaded")) {
 		int cnt = 0;
+		Node *ps = Getattr(n, "sym:previousSibling");
+		Node *ns = Getattr(n, "sym:nextSibling");
+		Node *fc = firstChild(n);
+		Node *firstoverloaded = Getattr(n, "sym:overloaded");
 #ifdef DEBUG_OVERLOADED
-		Node *debugnode = n;
-		show_overloaded(n);
+		show_overloaded(firstoverloaded);
 #endif
-		if (!firstChild(n)) {
+
+		if (firstoverloaded == n) {
+		  // This 'using' node we are cutting out was the first node in the overloaded list. 
+		  // Change the first node in the list
+		  Delattr(firstoverloaded, "sym:overloaded");
+		  firstoverloaded = fc ? fc : ns;
+
+		  // Correct all the sibling overloaded methods (before adding in new methods)
+		  Node *nnn = ns;
+		  while (nnn) {
+		    Setattr(nnn, "sym:overloaded", firstoverloaded);
+		    nnn = Getattr(nnn, "sym:nextSibling");
+		  }
+		}
+
+		if (!fc) {
 		  // Remove from overloaded list ('using' node does not actually end up adding in any methods)
-		  Node *ps = Getattr(n, "sym:previousSibling");
-		  Node *ns = Getattr(n, "sym:nextSibling");
 		  if (ps) {
 		    Setattr(ps, "sym:nextSibling", ns);
 		  }
@@ -1153,24 +1190,8 @@ class TypePass:private Dispatcher {
 		    Setattr(ns, "sym:previousSibling", ps);
 		  }
 		} else {
-		  // The 'using' node results in methods being added in - slot in the these methods here 
-		  Node *ps = Getattr(n, "sym:previousSibling");
-		  Node *ns = Getattr(n, "sym:nextSibling");
-		  Node *fc = firstChild(n);
+		  // The 'using' node results in methods being added in - slot in these methods here
 		  Node *pp = fc;
-
-		  Node *firstoverloaded = Getattr(n, "sym:overloaded");
-		  if (firstoverloaded == n) {
-		    // This 'using' node we are cutting out was the first node in the overloaded list. 
-		    // Change the first node in the list to its first sibling
-		    Delattr(firstoverloaded, "sym:overloaded");
-		    Node *nnn = Getattr(firstoverloaded, "sym:nextSibling");
-		    firstoverloaded = fc;
-		    while (nnn) {
-		      Setattr(nnn, "sym:overloaded", firstoverloaded);
-		      nnn = Getattr(nnn, "sym:nextSibling");
-		    }
-		  }
 		  while (pp) {
 		    Node *ppn = Getattr(pp, "sym:nextSibling");
 		    Setattr(pp, "sym:overloaded", firstoverloaded);
@@ -1188,19 +1209,17 @@ class TypePass:private Dispatcher {
 		    Setattr(ns, "sym:previousSibling", pp);
 		    Setattr(pp, "sym:nextSibling", ns);
 		  }
-#ifdef DEBUG_OVERLOADED
-		  debugnode = firstoverloaded;
-#endif
 		}
 		Delattr(n, "sym:previousSibling");
 		Delattr(n, "sym:nextSibling");
 		Delattr(n, "sym:overloaded");
 		Delattr(n, "sym:overname");
+		clean_overloaded(firstoverloaded);
 #ifdef DEBUG_OVERLOADED
-		show_overloaded(debugnode);
+		show_overloaded(firstoverloaded);
 #endif
-		clean_overloaded(n);	// Needed?
 	      }
+	      Delete(n_decl_list);
 	    }
 	  }
 	} else if ((Strcmp(ntype, "class") == 0) || ((Strcmp(ntype, "classforward") == 0))) {

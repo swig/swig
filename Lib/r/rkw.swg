@@ -2,8 +2,8 @@
   Warnings for R keywords, built-in names and bad names.
 */
 
-#define RKW(x) %keywordwarn("'" `x` "' is a R keyword, renaming to '_" `x`"'", rename="_%s")  `x`
-#define RSWIGKW(x) %keywordwarn("'" `x` "' is a SWIG R reserved parameter name, renaming to '_" `x`"'", rename="_%s")  `x`
+#define RKW(x) %keywordwarn("'" `x` "' is a R keyword", rename="_%s")  `x`
+#define RSWIGKW(x) %keywordwarn("'" `x` "' is a SWIG R reserved parameter name", rename="_%s")  `x`
 
 /*
   Warnings for R reserved words taken from

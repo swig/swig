@@ -55,7 +55,7 @@ typedef struct {
     return %new_instance(TYPE);
   }
   ~NAME() {
-    if ($self) %delete($self);
+    %delete($self);
   }
 }
 
@@ -105,7 +105,7 @@ typedef struct {
 
 %define %pointer_functions(TYPE,NAME)
 %{
-  static TYPE *new_##NAME() { 
+  static TYPE *new_##NAME(void) {
     return %new_instance(TYPE);
   }
   
@@ -114,7 +114,7 @@ typedef struct {
   }
 
   static void delete_##NAME(TYPE *obj) { 
-    if (obj) %delete(obj);
+    %delete(obj);
   }
 
   static void NAME ##_assign(TYPE *obj, TYPE value) {
@@ -126,7 +126,7 @@ typedef struct {
   }
 %}
 
-TYPE *new_##NAME();
+TYPE *new_##NAME(void);
 TYPE *copy_##NAME(TYPE value);
 void  delete_##NAME(TYPE *obj);
 void  NAME##_assign(TYPE *obj, TYPE value);

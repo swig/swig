@@ -48,46 +48,47 @@ fi
 dnl PCRE
 AC_ARG_WITH([pcre],
   [AS_HELP_STRING([--without-pcre],
-                  [Disable support for regular expressions using PCRE])],
+                  [Disable support for regular expressions using PCRE2])],
   [],
   [with_pcre=yes])
 
-AC_MSG_CHECKING([whether to enable PCRE support])
+AC_MSG_CHECKING([whether to enable PCRE2 support])
 AC_MSG_RESULT([$with_pcre])
 
 dnl To make configuring easier, check for a locally built PCRE using the Tools/pcre-build.sh script
 if test x"${with_pcre}" = xyes ; then
-  AC_MSG_CHECKING([whether to use local PCRE])
+  AC_MSG_CHECKING([whether to use local PCRE2])
   local_pcre_config=no
-  if test -z $PCRE_CONFIG; then
-    if test -f `pwd`/pcre/pcre-swig-install/bin/pcre-config; then
-      PCRE_CONFIG=`pwd`/pcre/pcre-swig-install/bin/pcre-config
-      local_pcre_config=$PCRE_CONFIG
+  if test -z "$PCRE2_CONFIG"; then
+    if test -f `pwd`/pcre/pcre-swig-install/bin/pcre2-config; then
+      PCRE2_CONFIG=`pwd`/pcre/pcre-swig-install/bin/pcre2-config
+      local_pcre_config=$PCRE2_CONFIG
     fi
   fi
   AC_MSG_RESULT([$local_pcre_config])
 fi
 AS_IF([test "x$with_pcre" != xno],
-  [AX_PATH_GENERIC([pcre],
+  [AX_PATH_GENERIC([pcre2],
     [], dnl Minimal version of PCRE we need -- accept any
     [], dnl custom sed script for version parsing is not needed
-    [AC_DEFINE([HAVE_PCRE], [1], [Define if you have PCRE library])
-     LIBS="$LIBS $PCRE_LIBS"
-     CPPFLAGS="$CPPFLAGS $PCRE_CFLAGS"
+    [AC_DEFINE([HAVE_PCRE], [1], [Define if you have PCRE2 library])
+     LIBS="$LIBS $PCRE2_LIBS"
+     CPPFLAGS="$CPPFLAGS $PCRE2_CFLAGS"
     ],
     [AC_MSG_FAILURE([
-        Cannot find pcre-config script from PCRE (Perl Compatible Regular Expressions)
+        Cannot find pcre2-config script from PCRE2 (Perl Compatible Regular Expressions)
         library package. This dependency is needed for configure to complete,
         Either:
-        - Install the PCRE developer package on your system (preferred approach).
-        - Download the PCRE source tarball, build and install on your system
+        - Install the PCRE2 developer package on your system (preferred approach).
+        - Download the PCRE2 source tarball, build and install on your system
           as you would for any package built from source distribution.
-        - Use the Tools/pcre-build.sh script to build PCRE just for SWIG to statically
+        - Use the Tools/pcre-build.sh script to build PCRE2 just for SWIG to statically
           link against. Run 'Tools/pcre-build.sh --help' for instructions.
-          (quite easy and does not require privileges to install PCRE on your system)
+          (quite easy and does not require privileges to install PCRE2 on your system)
         - Use configure --without-pcre to disable regular expressions support in SWIG
           (not recommended).])
-    ])
+    ],
+    [],[],[--libs8])
   ])
 
 
@@ -143,7 +144,7 @@ AC_MSG_CHECKING(LDSHARED)
 if test -z "$LDSHARED"
 then
 	case $host in
-	*-*-aix*) LDSHARED="\$(srcdir)/ld_so_aix \$(CC)";;
+	*-*-aix*) LDSHARED="$CC -shared";;
 	*-*-cygwin* | *-*-mingw*)
             if test "$GCC" = yes; then
                 LDSHARED="\$(CC) -shared"
@@ -281,20 +282,21 @@ fi
 AC_MSG_RESULT($LINKFORSHARED)
 
 # Optional CFLAGS used to silence/enhance compiler warnings on some platforms.
-AC_MSG_CHECKING(PLATCFLAGS)
+AC_MSG_CHECKING(CFLAGS to use for testing (PLATCFLAGS))
 case $host in
   *-*-solaris*) if test "$GCC" = yes
     then PLATCFLAGS=
     else PLATCFLAGS=
       #    else PLATCFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
     fi;;
+  *-*-aix*) PLATCFLAGS="$CFLAGS";;
   *) PLATCFLAGS=
 esac
 AC_MSG_RESULT($PLATCFLAGS)
 
 # Add switch if necessary to enable C++11 support - just for tests
-AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--enable-cpp11-testing], [enable C++11 testing if supported by compiler (default disabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=no])
-AC_MSG_CHECKING([whether to attempt to enable C++11 testing])
+AC_ARG_ENABLE([cpp11-testing], AS_HELP_STRING([--disable-cpp11-testing], [disable C++11 and later C++ standards testing even if supported by compiler (default enabled)]), [enable_cpp11_testing=$enableval], [enable_cpp11_testing=yes])
+AC_MSG_CHECKING([whether to attempt to enable C++11 and later C++ standards testing])
 AC_MSG_RESULT([$enable_cpp11_testing])
 
 PLATCXXFLAGS="$PLATCFLAGS"
@@ -302,50 +304,65 @@ if test x"$enable_cpp11_testing" = xyes; then
   CXX_SAVED=$CXX
   CXXCPP_SAVED=$CXXCPP
 
-  # Test for c++17
+  # Test for c++20
   CXXCPP=" "
-  AX_CXX_COMPILE_STDCXX(17, [noext], [optional])
-  AC_MSG_CHECKING([whether C++17 and earlier testing is enabled])
-  if test "$HAVE_CXX17" = "1"; then
+  AX_CXX_COMPILE_STDCXX(20, [noext], [optional])
+  AC_MSG_CHECKING([whether C++11 to C++20 testing is enabled])
+  if test "$HAVE_CXX20" = "1"; then
     AC_MSG_RESULT([yes])
     PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+    HAVE_CXX17="1"
     HAVE_CXX14="1"
     HAVE_CXX11="1"
   else
     AC_MSG_RESULT([no])
 
-    # Test for c++14
+    # Test for c++17
     CXXCPP=" "
-    CXX=$CXX_SAVED
-    AX_CXX_COMPILE_STDCXX(14, [noext], [optional])
-    AC_MSG_CHECKING([whether C++14 and earlier testing is enabled])
-    if test "$HAVE_CXX14" = "1"; then
+    AX_CXX_COMPILE_STDCXX(17, [noext], [optional])
+    AC_MSG_CHECKING([whether C++11 to C++17 testing is enabled])
+    if test "$HAVE_CXX17" = "1"; then
       AC_MSG_RESULT([yes])
       PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+      HAVE_CXX14="1"
       HAVE_CXX11="1"
     else
       AC_MSG_RESULT([no])
 
-      # Test for c++11
+      # Test for c++14
       CXXCPP=" "
       CXX=$CXX_SAVED
-      AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
-      AC_MSG_CHECKING([whether C++11 and earlier testing is enabled])
-      if test "$HAVE_CXX11" = "1"; then
+      AX_CXX_COMPILE_STDCXX(14, [noext], [optional])
+      AC_MSG_CHECKING([whether C++11 to C++14 testing is enabled])
+      if test "$HAVE_CXX14" = "1"; then
         AC_MSG_RESULT([yes])
         PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+        HAVE_CXX11="1"
       else
         AC_MSG_RESULT([no])
+
+        # Test for c++11
+        CXXCPP=" "
+        CXX=$CXX_SAVED
+        AX_CXX_COMPILE_STDCXX(11, [noext], [optional])
+        AC_MSG_CHECKING([whether C++11 testing is enabled])
+        if test "$HAVE_CXX11" = "1"; then
+          AC_MSG_RESULT([yes])
+          PLATCXXFLAGS="$CXXCPP $PLATCXXFLAGS"
+        else
+          AC_MSG_RESULT([no])
+        fi
       fi
-
     fi
-
   fi
 
   CXX=$CXX_SAVED
   CXXCPP=$CXXCPP_SAVED
 fi
 AC_SUBST(HAVE_CXX11)
+AC_SUBST(HAVE_CXX14)
+AC_SUBST(HAVE_CXX17)
+AC_SUBST(HAVE_CXX20)
 
 # On darwin 10.7,10.8,10.9 using clang++, need to ensure using
 # libc++ for tests and examples to run under mono. May affect
@@ -359,6 +376,10 @@ case $host in
     fi;;
   *) ;;
 esac
+
+AC_MSG_CHECKING(CXXFLAGS to use for testing (PLATCXXFLAGS))
+PLATCXXFLAGS=$(echo $PLATCXXFLAGS | xargs) # Trim whitespace
+AC_MSG_RESULT([$PLATCXXFLAGS])
 
 # Check for compiler pre-compiled header support
 AC_MSG_CHECKING([if compiler supports pre-compiled headers])
@@ -457,10 +478,6 @@ dnl the library if the function isn't already available without it.
 AC_SEARCH_LIBS(t_open, nsl) # SVR4
 AC_SEARCH_LIBS(gethostbyname, inet) # Sequent
 AC_SEARCH_LIBS(socket, socket) # SVR4 sockets
-
-AC_CHECK_LIB(swill, swill_init, [SWIGLIBS="-lswill $LIBS" SWILL="-DSWIG_SWILL"])
-AC_SUBST(SWIGLIBS)
-AC_SUBST(SWILL)
 
 # check for --with-libm=...
 AC_SUBST(LIBM)
@@ -653,14 +670,14 @@ PYLIB=
 PYLINK=
 PYPACKAGE=
 
-AC_ARG_WITH(python, AS_HELP_STRING([--without-python], [Disable Python])
-AS_HELP_STRING([--with-python=path], [Set location of Python executable]),[ PYBIN="$withval"], [PYBIN="$alllang_default"])
+AC_ARG_WITH(python, AS_HELP_STRING([--without-python], [Don't probe for Python 2.x])
+AS_HELP_STRING([--with-python=path], [Set location of Python 2.x executable]), [PYBIN="$withval"], [PYBIN="$alllang_default"])
 
 # First, check for "--without-python" or "--with-python=no".
 if test x"${PYBIN}" = xno; then
-  AC_MSG_NOTICE([Disabling Python])
+  AC_MSG_NOTICE([Disabling Python 2.x probe])
 else
-  # First figure out the name of the Python executable
+  # First figure out the name of the Python 2.x executable
   if test "x$PYBIN" = xyes; then
     AC_CHECK_PROGS(PYTHON, [python python2.7])
   else
@@ -675,20 +692,20 @@ else
     if test -z "$PYVER"; then
       PYVER=0
     else
-      AC_MSG_CHECKING(for Python os.name)
+      AC_MSG_CHECKING(for Python 2.x os.name)
       PYOSNAME=`($PYTHON -c "import sys, os; sys.stdout.write(os.name)") 2>/dev/null`
       AC_MSG_RESULT($PYOSNAME)
-      AC_MSG_CHECKING(for Python path separator)
+      AC_MSG_CHECKING(for Python 2.x path separator)
       PYSEPARATOR=`($PYTHON -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
       AC_MSG_RESULT($PYSEPARATOR)
     fi
   fi
 
   if test $PYVER -eq 1 -o $PYVER -eq 2; then
-    AC_MSG_CHECKING(for Python prefix)
+    AC_MSG_CHECKING(for Python 2.x prefix)
     PYPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYPREFIX)
-    AC_MSG_CHECKING(for Python exec-prefix)
+    AC_MSG_CHECKING(for Python 2.x exec-prefix)
     PYEPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.exec_prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYEPREFIX)
 
@@ -697,16 +714,16 @@ else
       PYPREFIX=`echo "$PYPREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
       PYTHON_SO=.pyd
 
-      AC_MSG_CHECKING(for Python header files)
+      AC_MSG_CHECKING(for Python 2.x header files)
       if test -r $PYPREFIX/include/Python.h; then
         PYINCLUDE="-I$PYPREFIX/include"
       fi
       AC_MSG_RESULT($PYINCLUDE)
 
-      AC_MSG_CHECKING(for Python library directory)
+      AC_MSG_CHECKING(for Python 2.x library directory)
       if test -d $PYPREFIX/libs; then
         PYLIB=$PYPREFIX/libs
-        PYLINKFILE=`ls $PYLIB/python*.lib | grep "python[[0-9]][[0-9]]\.lib"`
+        PYLINKFILE=`ls $PYLIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
         if test -r "$PYLINKFILE"; then
           PYLINK=-l`basename $PYLINKFILE | sed -e 's/\.lib$//'`
         else
@@ -717,7 +734,7 @@ else
       # Note: I could not think of a standard way to get the version string from different versions.
       # This trick pulls it out of the file location for a standard library file.
 
-      AC_MSG_CHECKING(for Python version)
+      AC_MSG_CHECKING(for Python 2.x version)
 
       # Need to do this hack since autoconf replaces __file__ with the name of the configure file
       filehack="file__"
@@ -726,7 +743,7 @@ else
 
       # Find the directory for libraries this is necessary to deal with
       # platforms that can have apps built for multiple archs: e.g. x86_64
-      AC_MSG_CHECKING(for Python lib dir)
+      AC_MSG_CHECKING(for Python 2.x lib dir)
       PYLIBDIR=`($PYTHON -c "import sys; sys.stdout.write(sys.lib)") 2>/dev/null`
       if test -z "$PYLIBDIR"; then
         # Fedora patch Python to add sys.lib, for other distros we assume "lib".
@@ -736,7 +753,7 @@ else
 
       # Set the include directory
 
-      AC_MSG_CHECKING(for Python header files)
+      AC_MSG_CHECKING(for Python 2.x header files)
       if test -r $PYPREFIX/include/$PYVERSION/Python.h; then
         PYINCLUDE="-I$PYPREFIX/include/$PYVERSION -I$PYEPREFIX/$PYLIBDIR/$PYVERSION/config"
       fi
@@ -748,7 +765,7 @@ else
       AC_MSG_RESULT($PYINCLUDE)
 
       # Set the library directory blindly.   This probably won't work with older versions
-      AC_MSG_CHECKING(for Python library directory)
+      AC_MSG_CHECKING(for Python 2.x library directory)
       dirs="$PYVERSION/config $PYVERSION/$PYLIBDIR python/$PYLIBDIR"
       for i in $dirs; do
         if test -d $PYEPREFIX/$PYLIBDIR/$i; then
@@ -765,7 +782,7 @@ else
     else
       AC_MSG_RESULT($PYLIB)
     fi
-    AC_MSG_CHECKING(for Python library)
+    AC_MSG_CHECKING(for Python 2.x library)
     if test -z "$PYLINK"; then
       AC_MSG_RESULT(Not found)
     else
@@ -778,6 +795,9 @@ else
   *-*-cygwin* | *-*-mingw*)
     PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
+    ;;
+  *-*-aix*)
+    PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
     ;;
   *)PYTHONDYNAMICLINKING="";;
   esac
@@ -798,12 +818,12 @@ PY3LIB=
 PY3LINK=
 PY3PACKAGE=
 
-AC_ARG_WITH(python3, AS_HELP_STRING([--without-python3], [Disable Python 3.x support])
-AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]),[ PY3BIN="$withval"], [PY3BIN="$alllang_default"])
+AC_ARG_WITH(python3, AS_HELP_STRING([--without-python3], [Don't probe for Python 3.x])
+AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]), [PY3BIN="$withval"], [PY3BIN="$alllang_default"])
 
 # First, check for "--without-python3" or "--with-python3=no".
 if test x"${PY3BIN}" = xno; then
-  AC_MSG_NOTICE([Disabling Python 3.x support])
+  AC_MSG_NOTICE([Disabling Python 3.x probe])
 else
   if test -z "$PYVER"; then
     PYVER=0
@@ -812,7 +832,7 @@ else
     if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
       PYTHON3="$PYTHON"
     else
-      for py_ver in 3 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
+      for py_ver in 3 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
         AC_CHECK_PROGS(PYTHON3, [python$py_ver])
         if test -n "$PYTHON3"; then
           AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
@@ -862,7 +882,7 @@ else
       AC_MSG_CHECKING(for Python 3.x library directory)
       if test -d $PY3PREFIX/libs; then
         PY3LIB=$PY3PREFIX/libs
-        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\.lib"`
+        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
         if test -r "$PY3LINKFILE"; then
           PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
         else
@@ -925,6 +945,12 @@ else
         fi
       done
       if test -z "$PY3LIB"; then
+        # Last resort
+        if test -d $PY3EPREFIX/$PY3LIBDIR; then
+          PY3LIB="$PY3EPREFIX/$PY3LIBDIR"
+        fi
+      fi
+      if test -z "$PY3LIB"; then
         AC_MSG_RESULT([Not found])
       else
         AC_MSG_RESULT($PY3LIB)
@@ -944,8 +970,12 @@ else
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
   *-*-cygwin* | *-*-mingw*)
+    # PYTHON3DYNAMICLINKING ought to be replaced by $PY3CONFIG --ldflags
     PYTHON3DYNAMICLINKING="-L$PY3LIB $PY3LINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
+    ;;
+  *-*-aix*)
+    PYTHON3DYNAMICLINKING="-L$PY3LIB $PY3LINK"
     ;;
   *)PYTHON3DYNAMICLINKING="";;
   esac
@@ -983,7 +1013,7 @@ else
 # First figure out what the name of Perl5 is
 
 if test "x$PERLBIN" = xyes; then
-AC_CHECK_PROGS(PERL, perl perl5.6.1 perl5.6.0 perl5.004 perl5.003 perl5.002 perl5.001 perl5 perl)
+AC_CHECK_PROGS(PERL, perl perl5)
 else
 PERL="$PERLBIN"
 fi
@@ -1216,7 +1246,7 @@ if test x"${SCILABBIN}" = xno; then
 else
   # Check for Scilab executable
   if test "x$SCILABBIN" = xyes; then
-    AC_CHECK_PROGS(SCILAB, scilab)
+    AC_PATH_PROG(SCILAB, scilab)
   else
     AC_MSG_CHECKING(for scilab)
     if test -f "$SCILABBIN"; then
@@ -1229,18 +1259,18 @@ else
 
   if test -n "$SCILAB"; then
     # Check for Scilab version (needs api_scilab so needs version 5.3.3 or higher)
-    SCILAB_FULL_VERSION=`$SCILAB -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
+    SCILAB_VERSION=`$SCILAB -nwni -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
 
     AC_MSG_CHECKING(Scilab version is 5.3.3 or higher)
-    SCILAB_MAJOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f1`
-    SCILAB_MINOR_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f2`
-    SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_FULL_VERSION | cut -d. -f3`
-    SCILAB_VERSION="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
+    SCILAB_MAJOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f1`
+    SCILAB_MINOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f2`
+    SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_VERSION | cut -d. -f3`
+    SCILAB_VERSION_NO_DOTS="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
 
-    if test $SCILAB_VERSION -ge 533; then
-      AC_MSG_RESULT(yes)
+    if test -n "$SCILAB_VERSION_NO_DOTS" && test "$SCILAB_VERSION_NO_DOTS" -ge 533; then
+      AC_MSG_RESULT(yes - $SCILAB_VERSION)
     else
-      AC_MSG_RESULT(no)
+      AC_MSG_RESULT(no - $SCILAB_VERSION)
       SCILAB=
     fi
 
@@ -1248,22 +1278,27 @@ else
       # Set Scilab startup options depending on version
       AC_MSG_CHECKING(for Scilab startup options)
       SCILABOPT="-nwni -nb"
-      if test $SCILAB_VERSION -ge 540; then
+      if test $SCILAB_VERSION_NO_DOTS -ge 540; then
         SCILABOPT+=" -noatomsautoload"
       fi
-      if test $SCILAB_VERSION -ge 600; then
+      if test $SCILAB_VERSION_NO_DOTS -ge 600; then
         SCILABOPT+=" -quit"
       fi
       AC_MSG_RESULT($SCILABOPT)
 
       # Check for Scilab header files
       AC_MSG_CHECKING(for Scilab header files)
+      headers="`AS_DIRNAME(["$SCILAB"])`/../include"
       if test "$SCILABINCDIR" != ""; then
         dirs="$SCILABINCDIR"
+      elif test -d "$SCI"; then
+        dirs="$SCI/include $SCI/../../include"
+      elif test -d "$headers"; then
+        dirs="$headers"
       elif test -n "$PKG_CONFIG "; then
         dirs=`$PKG_CONFIG  scilab --cflags-only-I | sed -e 's/-I//g'`
       else
-        dirs=""
+        dirs="/usr/include"
       fi
       for i in $dirs; do
         if test -r $i/api_scilab.h; then
@@ -1288,6 +1323,7 @@ fi
 AC_SUBST(SCILAB)
 AC_SUBST(SCILABINCLUDE)
 AC_SUBST(SCILABOPT)
+AC_SUBST(SCILAB_VERSION)
 
 
 #----------------------------------------------------------------
@@ -1604,69 +1640,60 @@ else
   fi
 
   #----------------------------------------------------------------
-  # Look for JavascriptCore (Webkit) settings (JSCOREINCDIR, JSCOREDYNAMICLINKING)
+  # Look for JavaScriptCore (Webkit) settings
   #----------------------------------------------------------------
 
   # check for include files
-  AC_MSG_CHECKING(for JavaScriptCore/JavaScript.h)
-  AC_ARG_WITH(jscoreinc, [  --with-jscoreinc=path      Set location of Javascript include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
-
-  JSCOREVERSION=
-
-  if test -z "$JSCOREINCDIR"; then
-    JSCOREINCDIR="/usr/include/ /usr/local/include/"
-
-    # Add in default directory for JavaScriptCore headers for Linux and Mac OS X
-    case $host in
-    *-*-linux*)
-      JSCOREINCDIR="/usr/include/webkit-1.0/ /usr/include/webkitgtk-1.0/ /usr/local/include/webkit-1.0/JavaScriptCore/ $JSCOREINCDIR"
-      ;;
-    *-*-darwin*)
-      JSCOREINCDIR="/System/Library/Frameworks/JavaScriptCore.framework/Headers/ $JSCOREINCDIR"
-      ;;
-    *)
-      ;;
-    esac
-  fi
-
-  for d in $JSCOREINCDIR ; do
-    if test -r "$d/JavaScriptCore/JavaScript.h" || test -r "$d/JavaScript.h" ; then
-      AC_MSG_RESULT($d)
-      JSCOREINCDIR=$d
-      JSCOREINC=-I\"$d\"
-      break
-    fi
-  done
-
-  if test "$JSCOREINC" = "" ; then
-    AC_MSG_RESULT(not found)
-  fi
-
+  AC_ARG_WITH(jscoreinc, [  --with-jscoreinc=path      Set location of JavaScriptCore/Webkit include directory], [JSCOREINCDIR="$withval"], [JSCOREINCDIR=])
   # check for JavaScriptCore/Webkit libraries
   AC_ARG_WITH(jscorelib,[  --with-jscorelib=path      Set location of the JavaScriptCore/Webkit library directory],[JSCORELIB="-L$withval"], [JSCORELIB=])
 
-  if test -z "$JSCORELIB" -a -n "$PKG_CONFIG "; then
-    AC_MSG_CHECKING(for JavaScriptCore/Webkit library)
-    if $PKG_CONFIG  javascriptcoregtk-4.0 2>/dev/null ; then
-      JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-4.0`
-      JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-4.0`
-      JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-4.0`
-    elif $PKG_CONFIG  javascriptcoregtk-3.0 2>/dev/null ; then
-      JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-3.0`
-      JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-3.0`
-      JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-3.0`
-    elif $PKG_CONFIG  javascriptcoregtk-1.0 2>/dev/null ; then
-      JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-1.0`
-      JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-1.0`
+  JSCOREVERSION=
+
+  if test -z "$JSCOREINCDIR" -a -n "$JSCORELIB"; then
+    AC_MSG_ERROR([Either both or none of --with-jcoreinc --with-jscorelib should be specified])
+  elif test -n "$JSCOREINCDIR" -a -z "$JSCORELIB"; then
+    AC_MSG_ERROR([Either both or none of --with-jcoreinc --with-jscorelib should be specified])
+  elif test -z "$JSCOREINCDIR" -a -z "$JSCORELIB"; then
+    if test -z "$JSCORELIB" -a -n "$PKG_CONFIG "; then
+      AC_MSG_CHECKING(for JavaScriptCore/Webkit)
+      if $PKG_CONFIG  javascriptcoregtk-4.1 2>/dev/null ; then
+        JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-4.1`
+        JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-4.1`
+        JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-4.1`
+      elif $PKG_CONFIG  javascriptcoregtk-4.0 2>/dev/null ; then
+        JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-4.0`
+        JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-4.0`
+        JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-4.0`
+      elif $PKG_CONFIG  javascriptcoregtk-3.0 2>/dev/null ; then
+        JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-3.0`
+        JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-3.0`
+        JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-3.0`
+      elif $PKG_CONFIG  javascriptcoregtk-1.0 2>/dev/null ; then
+        JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-1.0`
+        JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-1.0`
+      fi
+      if test -z "$JSCORELIB"; then
+        AC_MSG_RESULT(not found)
+        JSCENABLED=
+      else
+        AC_MSG_RESULT([version $JSCOREVERSION])
+        AC_MSG_CHECKING(for JavaScriptCore/Webkit include flags)
+        AC_MSG_RESULT([$JSCOREINC])
+        AC_MSG_CHECKING(for JavaScriptCore/Webkit link flags)
+        AC_MSG_RESULT([$JSCORELIB])
+        JSCOREDYNAMICLINKING="$JSCORELIB"
+        JSCENABLED=1
+      fi
     fi
-    if test -z "$JSCORELIB"; then
-      AC_MSG_RESULT(not found)
-      JSCENABLED=
-    else
-      AC_MSG_RESULT([$JSCORELIB])
-      JSCOREDYNAMICLINKING="$JSCORELIB"
-      JSCENABLED=1
-    fi
+  else
+    AC_MSG_CHECKING(for JavaScriptCore/Webkit include flags)
+    JSCOREINC=-I\"$JSCOREINCDIR\"
+    AC_MSG_RESULT([$JSCOREINC])
+    AC_MSG_CHECKING(for JavaScriptCore/Webkit link flags)
+    AC_MSG_RESULT([$JSCORELIB])
+    JSCOREDYNAMICLINKING="$JSCORELIB"
+    JSCENABLED=1
   fi
 
   #----------------------------------------------------------------
@@ -2082,7 +2109,7 @@ if test x"${PHPBIN}" = xno; then
     PHP=
 else
     if test "x$PHPBIN" = xyes; then
-      AC_CHECK_PROGS(PHP, [php8.0 php7.4 php7.3 php7.2 php7.1 php7.0 php])
+      AC_CHECK_PROGS(PHP, [php8.1 php8.0 php7.4 php7.3 php7.2 php7.1 php7.0 php])
     else
       PHP=$PHPBIN
     fi
@@ -2403,6 +2430,7 @@ if test "$LUABIN"; then
   if test "$LUA_VERSION" = "5.0"; then
     LUALINK="$LUALINK -llualib"
   fi
+  LUALINK="$LUALINK -pthread"
 
   LIBS=$lua_save_LIBS	# restore LIBS
 fi
@@ -2503,18 +2531,9 @@ else
     go1.[012]*)
       AC_MSG_RESULT([yes - minimum version is 1.3])
       GO=
-      GOOPT="-intgosize 32"
       ;;
     *)
       AC_MSG_RESULT([no])
-      case "$(go env GOARCH)" in
-      amd64 | arm64 | ppc64*)
-        GOOPT="-intgosize 64"
-	;;
-      *)
-        GOOPT="-intgosize 32"
-	;;
-      esac
       ;;
     esac
   fi
@@ -2535,13 +2554,6 @@ else
         AC_MSG_RESULT([no])
         if test "$go_version" -lt 480; then
           GCCGOOPT="-intgosize 32"
-        else
-          AC_CHECK_SIZEOF([void *], [4])
-          if test "$ac_cv_sizeof_void_p" = "8"; then
-            GCCGOOPT="-intgosize 64"
-          else
-            GCCGOOPT="-intgosize 32"
-          fi
         fi
       fi
     fi
@@ -2602,7 +2614,7 @@ _ACEOF
   fi
 
   if test -z "$D2COMPILERBIN" ; then
-    AC_CHECK_PROGS(D2COMPILER, dmd gdmd)
+    AC_CHECK_PROGS(D2COMPILER, dmd gdmd ldmd2 ldc2)
 
     if test -n "$D2COMPILER" ; then
       AC_MSG_CHECKING(whether the D2 compiler works)

@@ -1,11 +1,10 @@
-// This is a copy of the multiple_inheritance_abstract test
 %module(ruby_minherit="1") multiple_inheritance_abstract
 
 %warnfilter(SWIGWARN_D_MULTIPLE_INHERITANCE,
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE); /* languages not supporting multiple inheritance */
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
-%include "swiginterface.i"
+%include <swiginterface.i>
 %interface_impl(Space::ABase1)
 %interface_impl(Space::CBase1)
 %interface_impl(Space::CBase2)

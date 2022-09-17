@@ -35,7 +35,7 @@
     $1 = *ptr;
     if (SWIG_IsNewObj(res)) %delete(ptr);
   }
-  %typemap(freearg) Type "";
+  %typemap(freearg) Type ""
   %typemap(in,fragment=frag) const Type & (int res = SWIG_OLDOBJ) {
     Type *ptr = (Type *)0;
     res = asptr_meth($input, &ptr);

@@ -2,6 +2,12 @@
  * guile_scm_run.swg
  * ----------------------------------------------------------------------------- */
 
+#if __GNUC__ >= 10
+#if defined(__cplusplus)
+#pragma GCC diagnostic ignored "-Wvolatile" /* For 'volatile SCM *' in at least Guile 3.0 and earlier */
+#endif
+#endif
+
 #include <libguile.h>
 #include <stdio.h>
 #include <string.h>
@@ -65,10 +71,12 @@ typedef struct swig_guile_clientdata {
 #define SWIG_IsPointer(object) \
   SWIG_Guile_IsPointer(object)
 #define SWIG_contract_assert(expr, msg)				\
-  if (!(expr))							\
-    scm_error(scm_from_locale_symbol("swig-contract-assertion-failed"),	\
-	      (char *) FUNC_NAME, (char *) msg,			\
-	      SCM_EOL, SCM_BOOL_F); else
+  do { \
+    if (!(expr))							\
+      scm_error(scm_from_locale_symbol("swig-contract-assertion-failed"),	\
+                (char *) FUNC_NAME, (char *) msg,			\
+                SCM_EOL, SCM_BOOL_F); \
+  } while (0)
 
 /* for C++ member pointers, ie, member methods */
 #define SWIG_ConvertMember(obj, ptr, sz, ty) \
@@ -110,6 +118,8 @@ static SCM swig_symbol = SCM_EOL;
   ( !scm_is_null(x) && SCM_INSTANCEP(x) && scm_is_true(scm_slot_exists_p(x, swig_symbol)) \
       ? scm_slot_ref(x, swig_symbol) : (x) )
 
+SWIGINTERN void SWIG_Guile_MarkPointerNoncollectable(SCM s);
+
 SWIGINTERN SCM
 SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner)
 {
@@ -123,7 +133,7 @@ SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner)
     else
       SCM_NEWSMOB2(smob, swig_tag, ptr, (void *) type);
 
-    if (!cdata || SCM_NULLP(cdata->goops_class) || swig_make_func == SCM_EOL ) {
+    if (!cdata || scm_is_null(cdata->goops_class) || swig_make_func == SCM_EOL ) {
       return smob;
     } else {
       /* the scm_make() C function only handles the creation of gf,
@@ -143,7 +153,7 @@ SWIGINTERN unsigned long
 SWIG_Guile_PointerAddress(SCM object)
 {
   SCM smob = SWIG_Guile_GetSmob(object);
-  if (SCM_NULLP(smob)) return 0;
+  if (scm_is_null(smob)) return 0;
   else if (SCM_SMOB_PREDICATE(swig_tag, smob)
 	   || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)
 	   || SCM_SMOB_PREDICATE(swig_destroyed_tag, smob)) {
@@ -156,7 +166,7 @@ SWIGINTERN swig_type_info *
 SWIG_Guile_PointerType(SCM object)
 {
   SCM smob = SWIG_Guile_GetSmob(object);
-  if (SCM_NULLP(smob)) return NULL;
+  if (scm_is_null(smob)) return NULL;
   else if (SCM_SMOB_PREDICATE(swig_tag, smob)
 	   || SCM_SMOB_PREDICATE(swig_collectable_tag, smob)
 	   || SCM_SMOB_PREDICATE(swig_destroyed_tag, smob)) {
@@ -183,8 +193,9 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
   swig_cast_info *cast;
   swig_type_info *from;
   SCM smob = SWIG_Guile_GetSmob(s);
+  int ret = SWIG_ERROR;
 
-  if (SCM_NULLP(smob)) {
+  if (scm_is_null(smob)) {
     *result = NULL;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
 #if SCM_MAJOR_VERSION >= 2
@@ -195,22 +206,36 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
   } else if (SWIG_Guile_IsValidSmob(smob)) {
     from = (swig_type_info *) SCM_CELL_WORD_2(smob);
     if (!from) return SWIG_ERROR;
+
+    if ((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) {
+      if ((SCM_CELL_TYPE(smob) == swig_collectable_tag && SCM_CELL_WORD_1(smob) == 0) || SCM_CELL_TYPE(smob) == swig_tag) {
+        return SWIG_ERROR_RELEASE_NOT_OWNED;
+      }
+    }
+
     if (type) {
       cast = SWIG_TypeCheckStruct(from, type);
       if (cast) {
         int newmemory = 0;
         *result = SWIG_TypeCast(cast, (void *) SCM_CELL_WORD_1(smob), &newmemory);
         assert(!newmemory); /* newmemory handling not yet implemented */
-        return SWIG_OK;
+        ret = SWIG_OK;
       } else {
         return SWIG_ERROR;
       }
     } else {
       *result = (void *) SCM_CELL_WORD_1(smob);
-      return SWIG_OK;
+      ret = SWIG_OK;
+    }
+
+    if (flags & SWIG_POINTER_DISOWN) {
+      SWIG_Guile_MarkPointerNoncollectable(smob);
+    }
+    if (flags & SWIG_POINTER_CLEAR) {
+      SCM_SET_CELL_WORD_1(smob, 0);
     }
   }
-  return SWIG_ERROR;
+  return ret;
 }
 
 SWIGINTERNINLINE void *
@@ -250,7 +275,7 @@ SWIGINTERN void
 SWIG_Guile_MarkPointerNoncollectable(SCM s)
 {
   SCM smob = SWIG_Guile_GetSmob(s);
-  if (!SCM_NULLP(smob)) {
+  if (!scm_is_null(smob)) {
     if (SWIG_Guile_IsValidSmob(smob)) {
       SCM_SET_CELL_TYPE(smob, swig_tag);
     }
@@ -263,7 +288,7 @@ SWIGINTERN void
 SWIG_Guile_MarkPointerDestroyed(SCM s)
 {
   SCM smob = SWIG_Guile_GetSmob(s);
-  if (!SCM_NULLP(smob)) {
+  if (!scm_is_null(smob)) {
     if (SWIG_Guile_IsValidSmob(smob)) {
       SCM_SET_CELL_TYPE(smob, swig_destroyed_tag);
     }
@@ -484,20 +509,20 @@ SWIG_Guile_GetArgs (SCM *dest, SCM rest,
   int i;
   int num_args_passed = 0;
   for (i = 0; i<reqargs; i++) {
-    if (!SCM_CONSP(rest))
+    if (!scm_is_pair(rest))
       scm_wrong_num_args(scm_from_utf8_string(procname ? (char *) procname : "unknown procedure"));
     *dest++ = SCM_CAR(rest);
     rest = SCM_CDR(rest);
     num_args_passed++;
   }
-  for (i = 0; i<optargs && SCM_CONSP(rest); i++) {
+  for (i = 0; i<optargs && scm_is_pair(rest); i++) {
     *dest++ = SCM_CAR(rest);
     rest = SCM_CDR(rest);
     num_args_passed++;
   }
   for (; i<optargs; i++)
     *dest++ = SCM_UNDEFINED;
-  if (!SCM_NULLP(rest))
+  if (!scm_is_null(rest))
       scm_wrong_num_args(scm_from_utf8_string(procname ? (char *) procname : "unknown procedure"));
   return num_args_passed;
 }

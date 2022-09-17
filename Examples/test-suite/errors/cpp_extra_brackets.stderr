@@ -1,1 +1,1 @@
-cpp_extra_brackets.i:5: Error: Unexpected ')'.
+cpp_extra_brackets.i:5: Error: Unexpected closing parenthesis (')').

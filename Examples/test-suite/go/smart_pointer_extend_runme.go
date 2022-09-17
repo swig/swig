@@ -22,6 +22,10 @@ func main() {
 		panic(0)
 	}
 
+	if d.Bar() != p.Bar() {
+		panic(0)
+	}
+
 	if CBaseHello() != p.Hello() {
 		panic(0)
 	}

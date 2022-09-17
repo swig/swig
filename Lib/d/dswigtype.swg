@@ -20,6 +20,10 @@
 %typemap(imtype) SWIGTYPE & "void*"
 %typemap(dtype, nativepointer="$dtype") SWIGTYPE & "$dclassname"
 
+%typemap(ctype) SWIGTYPE && "void *"
+%typemap(imtype) SWIGTYPE && "void*"
+%typemap(dtype, nativepointer="$dtype") SWIGTYPE && "$dclassname"
+
 %typemap(ctype) SWIGTYPE *const& "void *"
 %typemap(imtype) SWIGTYPE *const& "void*"
 %typemap(dtype) SWIGTYPE *const& "$*dclassname"
@@ -28,6 +32,7 @@
     SWIGTYPE,
     SWIGTYPE *,
     SWIGTYPE &,
+    SWIGTYPE &&,
     SWIGTYPE [],
     SWIGTYPE *const&
   ""
@@ -47,7 +52,7 @@
 
 %typemap(out) SWIGTYPE
 #ifdef __cplusplus
-%{ $result = new $1_ltype((const $1_ltype &)$1); %}
+%{ $result = new $1_ltype($1); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
@@ -57,7 +62,7 @@
 #endif
 
 %typemap(directorin) SWIGTYPE
-  "$input = (void *)new $1_ltype((const $1_ltype &)$1);"
+  "$input = (void *)new $1_ltype(SWIG_STD_MOVE($1));"
 %typemap(directorout) SWIGTYPE
 %{ if (!$input) {
      SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "Unexpected null return for type $1_type");
@@ -117,7 +122,7 @@
 
 %typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if (!$1) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "$1_type type is null");
+    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "$1_type is null");
     return $null;
   } %}
 %typemap(out) SWIGTYPE & "$result = (void *)$1;"
@@ -149,6 +154,44 @@
 
 
 /*
+ * Rvalue reference conversion typemaps.
+ */
+
+%typemap(in, canthrow=1, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter) %{ $1 = ($1_ltype)$input;
+  if (!$1) {
+    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "$1_type is null");
+    return $null;
+  }
+  rvrdeleter.reset($1); %}
+%typemap(out) SWIGTYPE && "$result = (void *)$1;"
+
+%typemap(directorin) SWIGTYPE &&
+  "$input = ($1_ltype) &$1;"
+%typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &&
+%{ if (!$input) {
+     SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "Unexpected null return for type $1_type");
+     return $null;
+   }
+   $result = ($1_ltype)$input; %}
+
+%typemap(ddirectorin,
+  nativepointer="cast($dtype)$winput"
+) SWIGTYPE && "new $dclassname($winput, false)"
+%typemap(ddirectorout,
+  nativepointer="cast(void*)$dcall"
+) SWIGTYPE && "$dclassname.swigGetCPtr($dcall)"
+
+%typemap(din,
+  nativepointer="cast(void*)$dinput"
+) SWIGTYPE && "$dclassname.swigRelease($dinput)"
+%typemap(dout, excode=SWIGEXCODE,
+  nativepointer="{\n  auto ret = cast($dtype)$imcall;$excode\n  return ret;\n}") SWIGTYPE && {
+  $dclassname ret = new $dclassname($imcall, $owner);$excode
+  return ret;
+}
+
+
+/*
  * Array conversion typemaps.
  */
 
@@ -164,6 +207,7 @@
 
 // Treat references to arrays like references to a single element.
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 
 /*

@@ -48,7 +48,7 @@ namespace Swig {
 %feature("director:except") {
   jthrowable $error = jenv->ExceptionOccurred();
   if ($error) {
-    // Dont clear exception, still be active when return to java execution
+    // Don't clear exception, still be active when return to java execution
     // Essentially ignore exception occurred -- old behavior.
     return $null;
   }

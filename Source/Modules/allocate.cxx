@@ -197,7 +197,7 @@ class Allocate:public Dispatcher {
 	      // Found a polymorphic method.
 	      // Mark the polymorphic method, in case the virtual keyword was not used.
 	      Setattr(n, "storage", "virtual");
-	      if (!Getattr(b, "feature:interface")) { // interface implementation neither hides nor overrides
+	      if (!GetFlag(b, "feature:interface")) { // interface implementation neither hides nor overrides
 		if (both_have_public_access || both_have_protected_access) {
 		  if (!is_non_public_base(inclass, b))
 		    Setattr(n, "override", base);	// Note C# definition of override, ie access must be the same
@@ -779,6 +779,12 @@ Allocate():
 
       if (Swig_storage_isstatic(n)) {
 	Setattr(n, "cplus:staticbase", inclass);
+      } else if (Cmp(Getattr(n, "kind"), "variable") == 0) {
+        /* Check member variable to determine whether assignment is valid */
+        if (SwigType_isreference(Getattr(n, "type"))) {
+          /* Can't assign a class with reference member data */
+	  Setattr(inclass, "allocate:noassign", "1");
+        }
       }
 
       String *name = Getattr(n, "name");

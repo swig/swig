@@ -11,12 +11,10 @@
  * Header file for the SWIG core.
  * ----------------------------------------------------------------------------- */
 
-#ifndef SWIGCORE_H_
-#define SWIGCORE_H_
+#ifndef SWIG_SWIG_H
+#define SWIG_SWIG_H
 
-#ifndef MACSWIG
 #include "swigconfig.h"
-#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -440,8 +438,6 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Language_replace_special_variables(String *method, String *tm, Parm *parm);
   extern void Swig_print(DOH *object, int count);
   extern void Swig_print_with_location(DOH *object, int count);
-  extern void SWIG_exit(int exit_code);
-
 
 /* -- template init -- */
   extern void SwigType_template_init(void);
