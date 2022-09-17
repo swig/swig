@@ -116,7 +116,7 @@ int main() {
     sprintf(ping, "%s%d", OTHERLAND_MSG, i);
     char *pong = char_strings_CharPingPong(ping);
     if (strcmp(ping, pong) != 0) {
-      fprintf(stderr, "Test PingPong 1 failed.\nExpected:%d\nReceived:%d\n", ping, pong);
+      fprintf(stderr, "Test PingPong 1 failed.\nExpected:%s\nReceived:%s\n", ping, pong);
       exit(1);
     }
   }
