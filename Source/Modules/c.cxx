@@ -1790,7 +1790,7 @@ public:
     const scoped_dohptr f_wrappers_cxx(NewFile(outfile, "w", SWIG_output_files()));
     if (!f_wrappers_cxx) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     Swig_banner(f_wrappers_cxx);
@@ -1800,7 +1800,7 @@ public:
     const scoped_dohptr f_wrappers_h(NewFile(outfile_h, "w", SWIG_output_files()));
     if (!f_wrappers_h) {
       FileErrorDisplay(outfile_h);
-        SWIG_exit(EXIT_FAILURE);
+        Exit(EXIT_FAILURE);
       }
 
     Swig_banner(f_wrappers_h);
