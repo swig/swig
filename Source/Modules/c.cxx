@@ -702,15 +702,33 @@ private:
     } else {
       String* classname;
       if (Node* const class_node = Language::instance()->classLookup(type)) {
-	// Special case: if this is a pointer passed by (const) reference, we return just the pointer directly because we don't have any pointer-valued variable
-	// to give out a reference to.
-	if (typeKind == Type_Ptr && strncmp(Char(resolved_type), "r.q(const).", 11) == 0) {
-	  scoped_dohptr deref_type(Copy(resolved_type));
-	  Delslice(deref_type, 0, 11);
-	  typestr = SwigType_str(deref_type, 0);
-	} else {
-	  typestr = SwigType_str(resolved_type, 0);
+	// Deal with some special cases:
+	switch (typeKind) {
+	  case Type_Ptr:
+	    // If this is a pointer passed by const reference, we return just the pointer directly because we don't have any pointer-valued variable to give out
+	    // a reference to.
+	    if (strncmp(Char(resolved_type), "r.q(const).", 11) == 0) {
+	      scoped_dohptr deref_type(Copy(resolved_type));
+	      Delslice(deref_type, 0, 11);
+	      typestr = SwigType_str(deref_type, 0);
+	    }
+	    break;
+
+	  case Type_Obj:
+	    // Const objects are just objects for our purposes here, remove the const from them to avoid having "const const" in the output.
+	    if (SwigType_isconst(resolved_type))
+	      SwigType_del_qualifier(resolved_type);
+	    break;
+
+	  case Type_Ref:
+	  case Type_Enm:
+	  case Type_Max:
+	    // Nothing special to do.
+	    break;
 	}
+
+	if (!typestr)
+	  typestr = SwigType_str(resolved_type, 0);
 
 	classname = Getattr(class_node, "sym:name");
 
