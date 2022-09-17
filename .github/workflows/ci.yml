@@ -50,7 +50,7 @@ jobs:
         - SWIGLANG: ""
           compiler: clang
         - SWIGLANG: c
-          CPP11: 1
+          CPPSTD: c++11
         - SWIGLANG: csharp
         # D support can't be enabled because dmd 2.066 fails to build anything
         # under Ubuntu 18.04 due to its standard library (libphobos2.a) not
