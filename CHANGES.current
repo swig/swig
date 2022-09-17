@@ -8,6 +8,10 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-09-17: wsfulton
+            Add missing typecheck typemaps for std::auto_ptr and std::unique_ptr to
+            fix overloading when using these types.
+
+2022-09-17: wsfulton
             [Guile] Add error checking to SWIGTYPE and SWIGTYPE & in typemaps to prevent
             seg faults when passing #nil to these parameter types.
 

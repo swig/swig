@@ -25,6 +25,12 @@
   %set_output(SWIG_NewPointerObj($1.release(), $descriptor(TYPE *), SWIG_POINTER_OWN | %newpointer_flags));
 %}
 
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *", noblock=1) std::auto_ptr< TYPE > {
+  void *vptr = 0;
+  int res = SWIG_ConvertPtr($input, &vptr, $descriptor(TYPE *), 0);
+  $1 = SWIG_CheckState(res);
+}
+
 %template() std::auto_ptr< TYPE >;
 %enddef
 

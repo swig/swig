@@ -65,6 +65,15 @@
 (takeKlassUniquePtr (make-null))
 (checkCount 0)
 
+; overloaded parameters
+(unless (= (overloadTest) 0)
+  (error "overloadTest failed"))
+(unless (= (overloadTest nullnil) 1)
+  (error "overloadTest failed"))
+(unless (= (overloadTest (new-Klass "over")) 1)
+  (error "overloadTest failed"))
+(checkCount 0)
+
 
 ; unique_ptr as output
 (define k1 (makeKlassUniquePtr "first"))

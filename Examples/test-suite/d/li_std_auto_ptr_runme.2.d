@@ -91,6 +91,15 @@ void main() {
   takeKlassAutoPtr(make_null());
   checkCount(0);
 
+  // overloaded parameters
+  if (overloadTest() != 0)
+    throw new Exception("overloadTest failed");
+  if (overloadTest(null) != 1)
+    throw new Exception("overloadTest failed");
+  if (overloadTest(new Klass("over")) != 1)
+    throw new Exception("overloadTest failed");
+  checkCount(0);
+
 
   // auto_ptr as output
   Klass k1 = makeKlassAutoPtr("first");

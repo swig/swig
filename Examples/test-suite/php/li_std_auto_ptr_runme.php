@@ -83,6 +83,12 @@ takeKlassAutoPtr(NULL);
 takeKlassAutoPtr(make_null());
 checkCount(0);
 
+# overloaded parameters
+check::equal(overloadTest(), 0, "overloadTest failed");
+check::equal(overloadTest(NULL), 1, "overloadTest failed");
+check::equal(overloadTest(new Klass("over")), 1, "overloadTest failed");
+checkCount(0);
+
 
 # auto_ptr as output
 $k1 = makeKlassAutoPtr("first");

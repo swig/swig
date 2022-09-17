@@ -81,6 +81,18 @@ cpp11_std_unique_ptr.takeKlassUniquePtr(nil);
 cpp11_std_unique_ptr.takeKlassUniquePtr(cpp11_std_unique_ptr.make_null());
 checkCount(0);
 
+-- overloaded parameters
+if not (cpp11_std_unique_ptr.overloadTest() == 0) then
+  error("overloadTest failed")
+end
+if not (cpp11_std_unique_ptr.overloadTest(nil) == 1) then
+  error("overloadTest failed")
+end
+if not (cpp11_std_unique_ptr.overloadTest(cpp11_std_unique_ptr.Klass("over")) == 1) then
+  error("overloadTest failed")
+end
+checkCount(0)
+
 
 -- unique_ptr as output
 k1 = cpp11_std_unique_ptr.makeKlassUniquePtr("first")

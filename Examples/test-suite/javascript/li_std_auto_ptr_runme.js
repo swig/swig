@@ -94,6 +94,15 @@ li_std_auto_ptr.takeKlassAutoPtr(null);
 li_std_auto_ptr.takeKlassAutoPtr(li_std_auto_ptr.make_null());
 checkCount(0);
 
+// overloaded parameters
+if (li_std_auto_ptr.overloadTest() != 0)
+  throw new RuntimeException("overloadTest failed");
+if (li_std_auto_ptr.overloadTest(null) != 1)
+  throw new RuntimeException("overloadTest failed");
+if (li_std_auto_ptr.overloadTest(new li_std_auto_ptr.Klass("over")) != 1)
+  throw new RuntimeException("overloadTest failed");
+checkCount(0);
+
 
 // auto_ptr as output
 k1 = li_std_auto_ptr.makeKlassAutoPtr("first");

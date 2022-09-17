@@ -130,6 +130,18 @@ takeKlassUniquePtr "NULL"
 takeKlassUniquePtr [make_null]
 checkCount 0
 
+# overloaded parameters
+if {[overloadTest] != 0} {
+  error "overloadTest failed"
+}
+if {[overloadTest "NULL"] != 1} {
+  error "overloadTest failed"
+}
+if {[overloadTest [Klass k "over"]] != 1} {
+  error "overloadTest failed"
+}
+checkCount 0
+
 
 # unique_ptr as output
 set k1 [makeKlassUniquePtr "first"]

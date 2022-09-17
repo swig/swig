@@ -120,6 +120,18 @@ Li_std_auto_ptr::takeKlassAutoPtr(nil)
 Li_std_auto_ptr::takeKlassAutoPtr(Li_std_auto_ptr::make_null())
 checkCount(0)
 
+# overloaded parameters
+if (Li_std_auto_ptr::overloadTest() != 0)
+  raise RuntimeError, "overloadTest failed"
+end
+if (Li_std_auto_ptr::overloadTest(nil) != 1)
+  raise RuntimeError, "overloadTest failed"
+end
+if (Li_std_auto_ptr::overloadTest(Li_std_auto_ptr::Klass.new("over")) != 1)
+  raise RuntimeError, "overloadTest failed"
+end
+checkCount(0);
+
 
 # auto_ptr as output
 k1 = Li_std_auto_ptr::makeKlassAutoPtr("first")

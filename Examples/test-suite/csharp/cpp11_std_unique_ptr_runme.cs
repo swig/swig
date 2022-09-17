@@ -91,6 +91,15 @@ public class cpp11_std_unique_ptr_runme {
         cpp11_std_unique_ptr.takeKlassUniquePtr(cpp11_std_unique_ptr.make_null());
         checkCount(0);
 
+        // overloaded parameters
+        if (cpp11_std_unique_ptr.overloadTest() != 0)
+          throw new ApplicationException("overloadTest failed");
+        if (cpp11_std_unique_ptr.overloadTest(null) != 1)
+          throw new ApplicationException("overloadTest failed");
+        if (cpp11_std_unique_ptr.overloadTest(new Klass("over")) != 1)
+          throw new ApplicationException("overloadTest failed");
+        checkCount(0);
+
 
         // unique_ptr as output
         Klass k1 = cpp11_std_unique_ptr.makeKlassUniquePtr("first");

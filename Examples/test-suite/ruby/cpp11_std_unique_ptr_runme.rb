@@ -120,6 +120,18 @@ Cpp11_std_unique_ptr::takeKlassUniquePtr(nil)
 Cpp11_std_unique_ptr::takeKlassUniquePtr(Cpp11_std_unique_ptr::make_null())
 checkCount(0)
 
+# overloaded parameters
+if (Cpp11_std_unique_ptr::overloadTest() != 0)
+  raise RuntimeError, "overloadTest failed"
+end
+if (Cpp11_std_unique_ptr::overloadTest(nil) != 1)
+  raise RuntimeError, "overloadTest failed"
+end
+if (Cpp11_std_unique_ptr::overloadTest(Cpp11_std_unique_ptr::Klass.new("over")) != 1)
+  raise RuntimeError, "overloadTest failed"
+end
+checkCount(0);
+
 
 # unique_ptr as output
 k1 = Cpp11_std_unique_ptr::makeKlassUniquePtr("first")

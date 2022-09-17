@@ -100,6 +100,18 @@ takeKlassUniquePtr(null);
 takeKlassUniquePtr(null_ptr);
 checkCount(0);
 
+# overloaded parameters
+if (overloadTest() != 0)
+  error("overloadTest failed");
+endif
+if (overloadTest(null) != 1)
+  error("overloadTest failed");
+endif
+if (overloadTest(Klass("over")) != 1)
+  error("overloadTest failed");
+endif
+checkCount(0);
+
 
 # unique_ptr as output
 k1 = makeKlassUniquePtr("first");

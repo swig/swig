@@ -14,6 +14,8 @@
 
 #if !(defined(SWIGGO) || defined(SWIGOCAML) || defined(SWIGR) || defined(SWIGSCILAB))
 
+%warnfilter(509, 516) overloadTest(Klass);
+
 %include "std_string.i"
 //#include <iostream>
 %include "std_auto_ptr.i"
@@ -134,6 +136,18 @@ std::auto_ptr<Klass> makeKlassAutoPtr(const char* label) {
 
 std::auto_ptr<Klass> makeNullAutoPtr() {
   return std::auto_ptr<Klass>();
+}
+
+int overloadTest() {
+  return 0;
+}
+
+int overloadTest(std::auto_ptr<Klass> kover) {
+  return 1;
+}
+
+int overloadTest(Klass k) {
+  return 2;
 }
 
 %}

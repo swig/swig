@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 30;
+use Test::More tests => 34;
 BEGIN { use_ok('li_std_auto_ptr') }
 require_ok('li_std_auto_ptr');
 
@@ -75,6 +75,12 @@ sub checkCount {
 
 li_std_auto_ptr::takeKlassAutoPtr(undef);
 li_std_auto_ptr::takeKlassAutoPtr(li_std_auto_ptr::make_null());
+checkCount(0);
+
+# overloaded parameters
+is(li_std_auto_ptr::overloadTest(), 0, "overloadTest failed");
+is(li_std_auto_ptr::overloadTest(undef), 1, "overloadTest failed");
+is(li_std_auto_ptr::overloadTest(new li_std_auto_ptr::Klass("over")), 1, "overloadTest failed");
 checkCount(0);
 
 

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 30;
+use Test::More tests => 34;
 BEGIN { use_ok('cpp11_std_unique_ptr') }
 require_ok('cpp11_std_unique_ptr');
 
@@ -75,6 +75,12 @@ sub checkCount {
 
 cpp11_std_unique_ptr::takeKlassUniquePtr(undef);
 cpp11_std_unique_ptr::takeKlassUniquePtr(cpp11_std_unique_ptr::make_null());
+checkCount(0);
+
+# overloaded parameters
+is(cpp11_std_unique_ptr::overloadTest(), 0, "overloadTest failed");
+is(cpp11_std_unique_ptr::overloadTest(undef), 1, "overloadTest failed");
+is(cpp11_std_unique_ptr::overloadTest(new cpp11_std_unique_ptr::Klass("over")), 1, "overloadTest failed");
 checkCount(0);
 
 

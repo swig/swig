@@ -81,6 +81,15 @@ takeKlassAutoPtr(None)
 takeKlassAutoPtr(make_null())
 checkCount(0)
 
+# overloaded parameters
+if overloadTest() != 0:
+  raise RuntimeError("overloadTest failed")
+if overloadTest(None) != 1:
+  raise RuntimeError("overloadTest failed")
+if overloadTest(Klass("over")) != 1:
+  raise RuntimeError("overloadTest failed")
+checkCount(0);
+
 
 # auto_ptr as output
 k1 = makeKlassAutoPtr("first")

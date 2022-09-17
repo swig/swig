@@ -2,6 +2,8 @@
 
 #if !(defined(SWIGGO) || defined(SWIGOCAML) || defined(SWIGR) || defined(SWIGSCILAB))
 
+%warnfilter(509, 516) overloadTest(Klass);
+
 %include "std_string.i"
 %include "std_unique_ptr.i"
 
@@ -86,6 +88,18 @@ std::unique_ptr<Klass> makeKlassUniquePtr(const char* label) {
 
 std::unique_ptr<Klass> makeNullUniquePtr() {
   return std::unique_ptr<Klass>();
+}
+
+int overloadTest() {
+  return 0;
+}
+
+int overloadTest(std::unique_ptr<Klass> kover) {
+  return 1;
+}
+
+int overloadTest(Klass k) {
+  return 2;
 }
 
 %}
