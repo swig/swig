@@ -77,6 +77,9 @@ static Hash *classhash;
 extern int GenerateDefault;
 extern int ForceExtern;
 extern int AddExtern;
+extern "C" {
+  extern int UseWrapperSuffix;
+}
 
 /* import modes */
 
@@ -1324,7 +1327,7 @@ int Language::staticmemberfunctionHandler(Node *n) {
       // See Swig_MethodToFunction() for the explanation of this code.
       if (Getattr(n, "sym:overloaded")) {
 	Append(cname, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
-      } else {
+      } else if (UseWrapperSuffix) {
 	Append(cname, "__SWIG");
       }
 

@@ -37,6 +37,9 @@ int Verbose = 0;
 int AddExtern = 0;
 int NoExcept = 0;
 int SwigRuntime = 0;		// 0 = no option, 1 = -runtime, 2 = -noruntime
+extern "C" {
+  int UseWrapperSuffix = 0;	// If 1, append suffix to non-overloaded functions too.
+}
 
 /* Suppress warning messages for private inheritance, preprocessor evaluation etc...
    WARN_PP_EVALUATION                           202
