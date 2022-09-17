@@ -15,6 +15,8 @@
 #include "swig.h"
 #include "cparse.h"
 
+extern int UseWrapperSuffix; // from main.cxx
+
 static const char *cresult_variable_name = "result";
 
 static Parm *nonvoid_parms(Parm *p) {
@@ -1083,13 +1085,13 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
        in C.
 
        But when not using the suffix used for overloaded functions, we still need to ensure that the
-       wrapper name doesn't conflict with any wrapper functions, so make it sufficiently unique by
-       appending a suffix similar to the one used for overloaded functions to it.
+       wrapper name doesn't conflict with any wrapper functions for some languages, so optionally make
+       it sufficiently unique by appending a suffix similar to the one used for overloaded functions to it.
      */
     if (code) {
       if (Getattr(n, "sym:overloaded")) {
 	Append(mangled, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
-      } else {
+      } else if (UseWrapperSuffix) {
 	Append(mangled, "__SWIG");
       }
     }
