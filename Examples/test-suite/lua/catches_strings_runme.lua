@@ -8,3 +8,6 @@ setmetatable(env, {__index=function (t,i) error("undefined global variable `"..i
 
 s, msg = pcall(function() catches_strings.StringsThrower.charstring() end)
 assert(s == false and msg:find("charstring message", 1, true))
+
+s, msg = pcall(function() catches_strings.StringsThrower.stdstring() end)
+assert(s == false and msg:find("stdstring message", 1, true))

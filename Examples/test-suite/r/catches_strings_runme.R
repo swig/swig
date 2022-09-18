@@ -13,3 +13,12 @@ tryCatch({
 }
 )
 unittest(exception_thrown, TRUE)
+
+exception_thrown = FALSE
+tryCatch({
+    StringsThrower_stdstring()
+}, error = function(e) {
+    exception_thrown <<- grepl(e$message, "stdstring message", fixed=TRUE)
+}
+)
+unittest(exception_thrown, TRUE)

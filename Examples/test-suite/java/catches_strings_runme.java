@@ -24,5 +24,18 @@ public class catches_strings_runme {
       if (!exception_thrown)
         throw new RuntimeException("Should have thrown an exception");
     }
+
+    {
+      boolean exception_thrown = false;
+      try {
+        StringsThrower.stdstring();
+      } catch (RuntimeException e) {
+        if (!e.getMessage().contains("stdstring message"))
+          throw new RuntimeException("incorrect exception message");
+        exception_thrown = true;
+      }
+      if (!exception_thrown)
+        throw new RuntimeException("Should have thrown an exception");
+    }
   }
 }

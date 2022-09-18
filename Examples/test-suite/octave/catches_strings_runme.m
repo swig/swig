@@ -17,3 +17,16 @@ end_try_catch
 if (!exception_thrown)
   error("Should have thrown an exception");
 endif
+
+exception_thrown = false;
+try
+  StringsThrower.stdstring();
+catch e
+  if (isempty(strfind(e.message, "stdstring message")))
+    error("incorrect exception message: %s", e.message)
+  endif
+  exception_thrown = true;
+end_try_catch
+if (!exception_thrown)
+  error("Should have thrown an exception");
+endif

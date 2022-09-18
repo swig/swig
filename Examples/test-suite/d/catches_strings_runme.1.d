@@ -17,4 +17,16 @@ void main() {
     if (!exception_thrown)
       throw new Exception("Should have thrown an exception");
   }
+  {
+    bool exception_thrown = false;
+    try {
+      StringsThrower.stdstring();
+    } catch (Exception e) {
+      if (!canFind(e.msg, "stdstring message"))
+        throw new Exception("incorrect exception message:" ~ e.msg);
+      exception_thrown = true;
+    }
+    if (!exception_thrown)
+      throw new Exception("Should have thrown an exception");
+  }
 }

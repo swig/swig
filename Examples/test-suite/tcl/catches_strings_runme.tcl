@@ -16,3 +16,16 @@ if [ catch {
 if {!$exception_thrown} {
   error "Should have thrown an exception"
 }
+
+set exception_thrown 0
+if [ catch {
+  StringsThrower_stdstring
+} e ] {
+  if {[string first "stdstring message" $e] == -1} {
+    error "incorrect exception message: $e"
+  }
+  set exception_thrown 1
+}
+if {!$exception_thrown} {
+  error "Should have thrown an exception"
+}

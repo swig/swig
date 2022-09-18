@@ -52,6 +52,9 @@ class string;
 %typemap(godirectorin,fragment="CopyString") string
 %{ $result = swigCopyString($input) %}
 
+%typemap(throws) string
+%{ _swig_gopanic($1.c_str()); %}
+
 %typemap(in) const string &
 %{
   $*1_ltype $1_str($input.p, $input.n);
@@ -87,6 +90,9 @@ class string;
 
 %typemap(godirectorin,fragment="CopyString") const string &
 %{ $result = swigCopyString($input) %}
+
+%typemap(throws) const string &
+%{ _swig_gopanic($1.c_str()); %}
 
 
 %typemap(gotype) string * "*string"
