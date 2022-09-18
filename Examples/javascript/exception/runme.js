@@ -45,7 +45,7 @@ catch(error){
   if(error == -1) {
     console.log("t.hosed() did not throw");
   } else {
-    console.log("successfully caught throw in Test::hosed() :" + error + " " + error.code + " " + error.msg);
+    console.log("successfully caught throw in Test::hosed() :" + error);
   }
 }
 

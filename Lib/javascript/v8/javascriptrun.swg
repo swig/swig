@@ -97,7 +97,7 @@ SWIGINTERN void SWIG_V8_Raise(const char *msg) {
 }
 
 SWIGINTERN void SWIG_V8_Raise(SWIGV8_VALUE obj, const char *msg) {
-  SWIGV8_THROW_EXCEPTION(obj);
+  SWIGV8_THROW_EXCEPTION(v8::Exception::Error(SWIGV8_TO_STRING(obj)));
 }
 
 
