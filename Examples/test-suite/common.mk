@@ -133,6 +133,7 @@ CPP_TEST_CASES += \
 	bloody_hell \
 	bools \
 	catches \
+	catches_strings \
 	cast_operator \
 	casts \
 	char_binary \
