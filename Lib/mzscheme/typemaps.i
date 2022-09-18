@@ -290,6 +290,10 @@ REF_MAP(float, SCHEME_REALP, scheme_real_to_double,
 REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
 	   scheme_make_double, real);
 
+%typemap(throws) char * {
+  scheme_signal_error("%s: %s", FUNC_NAME, $1);
+}
+
 /* Void */
 
 %typemap(out) void "$result = scheme_void;"
