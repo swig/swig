@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-09-19: wsfulton
+            #2316 Remove swig.spec file and srcrpm makefile target. These are very out of date
+            and don't seem to be used by RPM based Linux distributions which have their
+            own version of swig.spec.
+
 2022-09-17: wsfulton
             [Go, Guile, Racket, Scilab] Add throws typemaps for std::string so that thrown
             string exception messages can be seen.

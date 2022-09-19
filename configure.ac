@@ -2837,7 +2837,6 @@ AC_SUBST(SWIG_LIB_SET)
 
 AC_CONFIG_FILES([
     Makefile
-    swig.spec
     Examples/Makefile
     Examples/d/example.mk
     Examples/xml/Makefile

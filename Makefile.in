@@ -340,7 +340,7 @@ clean-ccache:
 # DISTCLEAN - clean what configure built
 #####################################################################
 
-DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log preinst-swig
+DISTCLEAN-DEAD = config.status config.log config.cache Makefile mkmf.log preinst-swig
 
 distclean-helper: distclean-test-suite distclean-examples distclean-tools distclean-dead
 
@@ -504,15 +504,6 @@ dist:
 	@echo "'make dist' not implemented - use Tools/mkdist.py instead - e.g.:"
 	@echo "Tools/mkdist.py @VERSION@ master"
 	@false
-
-srcrpm:
-	rm -fr $(srpm) $(srpm).src.rpm
-	echo "TODO: update to use git instead of cvs"
-	cvs export -d $(srpm) -r HEAD SWIG
-	cp swig.spec $(srpm)
-	tar -cf - $(srpm) | gzip --best > $(srpm).tar.gz
-	rm -fr $(srpm)
-	rpmbuild -ts $(srpm).tar.gz
 
 # Update the autoconf files for detecting host/targets. Automake will do this in
 # version 1.10 for our case of not having a top level Makefile.am. Until then we

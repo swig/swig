@@ -81,7 +81,6 @@ Tools/javascript/Makefile
 config.log
 config.status
 preinst-swig
-swig.spec
 
 # Build Artifacts
 .dirstamp
