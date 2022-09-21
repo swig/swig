@@ -223,6 +223,7 @@ CPP_TEST_CASES += \
 	director_void \
 	director_wombat \
 	disown \
+	duplicate_class_name_in_ns \
 	dynamic_cast \
 	empty \
 	enum_ignore \

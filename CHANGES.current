@@ -8,6 +8,13 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-09-19: wsfulton
+            #1484 Fixes for class inheritance with the same name in different namespaces
+            such as:
+
+              namespace A { class Bar {}; }
+              namespace B { template<typename T, typename U> class Bar : public A::Bar {}; }
+
+2022-09-19: wsfulton
             #2316 Remove swig.spec file and srcrpm makefile target. These are very out of date
             and don't seem to be used by RPM based Linux distributions which have their
             own version of swig.spec.
