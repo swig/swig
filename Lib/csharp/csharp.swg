@@ -1142,8 +1142,21 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 
 /* Some ANSI C typemaps */
 
-%apply unsigned long { size_t };
-%apply const unsigned long & { const size_t & };
+#if defined(SWIGWORDSIZE64) && !defined(SWIGINT64ISLONGLONG)
+%apply unsigned long int { size_t };
+%apply const unsigned long int & { const size_t & };
+#else
+%apply unsigned long long int { size_t };
+%apply const unsigned long long int & { const size_t & };
+#endif
+
+#if defined(SWIGWORDSIZE64) && !defined(SWIGINT64ISLONGLONG)
+%apply long int { ptrdiff_t };
+%apply const long int & { const ptrdiff_t & };
+#else
+%apply long long int { ptrdiff_t };
+%apply const long long int & { const ptrdiff_t & };
+#endif
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
