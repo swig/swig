@@ -1964,6 +1964,26 @@ int SwigType_issubtype(const SwigType *t1, const SwigType *t2) {
 }
 
 /* -----------------------------------------------------------------------------
+ * compare_strings()
+ *
+ * Helper function to sort a list of strings
+ * ----------------------------------------------------------------------------- */
+static int compare_strings(const DOH *a, const DOH *b) {
+  return strcmp((char *) Data(a), (char *) Data(b));
+}
+
+/* -----------------------------------------------------------------------------
+ * sorted_list_from_hash()
+ *
+ * Returns a sorted list of the keys in the given hash
+ * ----------------------------------------------------------------------------- */
+static List *sorted_list_from_hash(Hash *h) {
+  List *l = Keys(h);
+  SortList(l, compare_strings);
+  return l;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_inherit_equiv()
  *
  * Modify the type table to handle C++ inheritance
@@ -1976,6 +1996,7 @@ void SwigType_inherit_equiv(File *out) {
   Hash *sub;
   Hash *rh;
   List *rlist;
+  List *r_resolved_sorted_keys;
   Iterator rk, bk, ck;
 
   if (!conversions)
@@ -1983,10 +2004,11 @@ void SwigType_inherit_equiv(File *out) {
   if (!subclass)
     subclass = NewHash();
 
-  rk = First(r_resolved);
-  while (rk.key) {
+  r_resolved_sorted_keys = sorted_list_from_hash(r_resolved);
+  rk = First(r_resolved_sorted_keys);
+  while (rk.item) {
     /* rkey is a fully qualified type.  We strip all of the type constructors off of it just to get the base */
-    base = SwigType_base(rk.key);
+    base = SwigType_base(rk.item);
     /* Check to see whether the base is recorded in the subclass table */
     sub = Getattr(subclass, base);
     Delete(base);
@@ -1997,26 +2019,26 @@ void SwigType_inherit_equiv(File *out) {
 
     /* This type has subclasses.  We now need to walk through these subtypes and generate pointer conversion functions */
 
-    rh = Getattr(r_resolved, rk.key);
+    rh = Getattr(r_resolved, rk.item);
     rlist = NewList();
     for (ck = First(rh); ck.key; ck = Next(ck)) {
       Append(rlist, ck.key);
     }
-    /*    Printf(stdout,"rk.key = '%s'\n", rk.key);
+    /*    Printf(stdout,"rk.item = '%s'\n", rk.item);
        Printf(stdout,"rh = %p '%s'\n", rh,rh); */
 
     bk = First(sub);
     while (bk.key) {
-      prefix = SwigType_prefix(rk.key);
+      prefix = SwigType_prefix(rk.item);
       Append(prefix, bk.key);
       /*      Printf(stdout,"set %p = '%s' : '%s'\n", rh, SwigType_manglestr(prefix),prefix); */
       mprefix = SwigType_manglestr(prefix);
       Setattr(rh, mprefix, prefix);
-      mkey = SwigType_manglestr(rk.key);
+      mkey = SwigType_manglestr(rk.item);
       ckey = NewStringf("%s+%s", mprefix, mkey);
       if (!Getattr(conversions, ckey)) {
 	String *convname = NewStringf("%sTo%s", mprefix, mkey);
-	String *lkey = SwigType_lstr(rk.key, 0);
+	String *lkey = SwigType_lstr(rk.item, 0);
 	String *lprefix = SwigType_lstr(prefix, 0);
         Hash *subhash = Getattr(sub, bk.key);
         String *convcode = Getattr(subhash, "convcode");
@@ -2082,25 +2104,8 @@ void SwigType_inherit_equiv(File *out) {
     rk = Next(rk);
     Delete(rlist);
   }
+  Delete(r_resolved_sorted_keys);
 }
-
-/* Helper function to sort the mangled list */
-static int SwigType_compare_mangled(const DOH *a, const DOH *b) {
-  return strcmp((char *) Data(a), (char *) Data(b));
-}
-
-/* -----------------------------------------------------------------------------
- * SwigType_get_sorted_mangled_list()
- *
- * Returns the sorted list of mangled type names that should be exported into the
- * wrapper file.
- * ----------------------------------------------------------------------------- */
-List *SwigType_get_sorted_mangled_list(void) {
-  List *l = Keys(r_mangled);
-  SortList(l, SwigType_compare_mangled);
-  return l;
-}
-
 
 /* -----------------------------------------------------------------------------
  * SwigType_type_table()
@@ -2157,7 +2162,7 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
 
   Printf(f_forward, "\n/* -------- TYPES TABLE (BEGIN) -------- */\n\n");
 
-  mangled_list = SwigType_get_sorted_mangled_list();
+  mangled_list = sorted_list_from_hash(r_mangled);
   for (ki = First(mangled_list); ki.item; ki = Next(ki)) {
     List *el;
     Iterator ei;
@@ -2229,7 +2234,7 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
     Printf(types, "\"%s\", \"%s\", 0, 0, (void*)%s, 0};\n", ki.item, nt, cd);
 
     el = SwigType_equivalent_mangle(ki.item, 0, 0);
-    SortList(el, SwigType_compare_mangled);
+    SortList(el, compare_strings);
     for (ei = First(el); ei.item; ei = Next(ei)) {
       String *ckey;
       String *conv;
@@ -2260,7 +2265,7 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
     Delete(rt);
   }
   /* print the tables in the proper order */
-  SortList(table_list, SwigType_compare_mangled);
+  SortList(table_list, compare_strings);
   i = 0;
   for (ki = First(table_list); ki.item; ki = Next(ki)) {
     Printf(f_forward, "#define SWIGTYPE%s swig_types[%d]\n", ki.item, i++);
