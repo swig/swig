@@ -2170,8 +2170,10 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
     Hash *lthash;
     Iterator ltiter;
     Hash *nthash;
+    String *cast_temp_conv;
 
     cast_temp = NewStringEmpty();
+    cast_temp_conv = NewStringEmpty();
 
     Printv(types, "static swig_type_info _swigt_", ki.item, " = {", NIL);
     Append(table_list, ki.item);
@@ -2227,13 +2229,14 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
     Printf(types, "\"%s\", \"%s\", 0, 0, (void*)%s, 0};\n", ki.item, nt, cd);
 
     el = SwigType_equivalent_mangle(ki.item, 0, 0);
+    SortList(el, SwigType_compare_mangled);
     for (ei = First(el); ei.item; ei = Next(ei)) {
       String *ckey;
       String *conv;
       ckey = NewStringf("%s+%s", ei.item, ki.item);
       conv = Getattr(conversions, ckey);
       if (conv) {
-	Printf(cast_temp, "  {&_swigt_%s, %s, 0, 0},", ei.item, conv);
+	Printf(cast_temp_conv, "  {&_swigt_%s, %s, 0, 0},", ei.item, conv);
       } else {
 	Printf(cast_temp, "  {&_swigt_%s, 0, 0, 0},", ei.item);
       }
@@ -2250,7 +2253,8 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
       }
     }
     Delete(el);
-    Printf(cast, "%s{0, 0, 0, 0}};\n", cast_temp);
+    Printf(cast, "%s%s{0, 0, 0, 0}};\n", cast_temp, cast_temp_conv);
+    Delete(cast_temp_conv);
     Delete(cast_temp);
     Delete(nt);
     Delete(rt);
