@@ -2007,6 +2007,7 @@ void SwigType_inherit_equiv(File *out) {
   r_resolved_sorted_keys = sorted_list_from_hash(r_resolved);
   rk = First(r_resolved_sorted_keys);
   while (rk.item) {
+    List *sub_sorted_keys;
     /* rkey is a fully qualified type.  We strip all of the type constructors off of it just to get the base */
     base = SwigType_base(rk.item);
     /* Check to see whether the base is recorded in the subclass table */
@@ -2027,10 +2028,11 @@ void SwigType_inherit_equiv(File *out) {
     /*    Printf(stdout,"rk.item = '%s'\n", rk.item);
        Printf(stdout,"rh = %p '%s'\n", rh,rh); */
 
-    bk = First(sub);
-    while (bk.key) {
+    sub_sorted_keys = sorted_list_from_hash(sub);
+    bk = First(sub_sorted_keys);
+    while (bk.item) {
       prefix = SwigType_prefix(rk.item);
-      Append(prefix, bk.key);
+      Append(prefix, bk.item);
       /*      Printf(stdout,"set %p = '%s' : '%s'\n", rh, SwigType_manglestr(prefix),prefix); */
       mprefix = SwigType_manglestr(prefix);
       Setattr(rh, mprefix, prefix);
@@ -2040,7 +2042,7 @@ void SwigType_inherit_equiv(File *out) {
 	String *convname = NewStringf("%sTo%s", mprefix, mkey);
 	String *lkey = SwigType_lstr(rk.item, 0);
 	String *lprefix = SwigType_lstr(prefix, 0);
-        Hash *subhash = Getattr(sub, bk.key);
+        Hash *subhash = Getattr(sub, bk.item);
         String *convcode = Getattr(subhash, "convcode");
         if (convcode) {
           char *newmemoryused = Strstr(convcode, "newmemory"); /* see if newmemory parameter is used in order to avoid unused parameter warnings */
@@ -2101,6 +2103,7 @@ void SwigType_inherit_equiv(File *out) {
       Delete(mkey);
       bk = Next(bk);
     }
+    Delete(sub_sorted_keys);
     rk = Next(rk);
     Delete(rlist);
   }
