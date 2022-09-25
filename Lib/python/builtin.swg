@@ -404,8 +404,8 @@ SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
   return descr;
 }
 
-SWIGINTERN void
-SwigPyBuiltin_InitBases(PyTypeObject *type, PyTypeObject **bases) {
+SWIGINTERN PyObject*
+SwigPyBuiltin_InitBases(PyTypeObject **bases) {
   Py_ssize_t base_count = 0;
   PyTypeObject **b;
   PyObject *tuple;
@@ -415,8 +415,6 @@ SwigPyBuiltin_InitBases(PyTypeObject *type, PyTypeObject **bases) {
     bases[0] = SwigPyObject_type();
     bases[1] = NULL;
   }
-  type->tp_base = bases[0];
-  SWIG_Py_INCREF((PyObject *)bases[0]);
   for (b = bases; *b != NULL; ++b)
     ++base_count;
   tuple = PyTuple_New(base_count);
@@ -424,7 +422,7 @@ SwigPyBuiltin_InitBases(PyTypeObject *type, PyTypeObject **bases) {
     SWIG_Py_INCREF((PyObject *)bases[i]);
     PyTuple_SET_ITEM(tuple, i, (PyObject *)bases[i]);
   }
-  type->tp_bases = tuple;
+  return tuple;
 }
 
 SWIGINTERN PyObject *

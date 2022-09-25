@@ -58,6 +58,7 @@ static String *builtin_tp_init = 0;
 static String *builtin_methods = 0;
 static String *builtin_default_unref = 0;
 static String *builtin_closures_code = 0;
+static String *f_varlinks = 0;
 
 static String *methods;
 static String *methods_proxydocs;
@@ -555,6 +556,7 @@ public:
     class_members = NewHash();
     builtin_methods = NewString("");
     builtin_default_unref = NewString("delete $self;");
+    f_varlinks = NewString("");
 
     if (builtin) {
       f_builtins = NewString("");
@@ -836,6 +838,8 @@ public:
 
     initialize_threads(f_init);
 
+    Dump(f_varlinks, f_init);
+
     Printf(f_init, "#if PY_VERSION_HEX >= 0x03000000\n");
     Printf(f_init, "  return m;\n");
     Printf(f_init, "#else\n");
@@ -915,6 +919,7 @@ public:
     Delete(f_directors_h);
     Delete(f_runtime);
     Delete(f_begin);
+    Delete(f_varlinks);
 
     return SWIG_OK;
   }
@@ -3538,10 +3543,10 @@ public:
     Wrapper_print(getf, f_wrappers);
 
     /* Now add this to the variable linking mechanism */
-    Printf(f_init, "\t SWIG_addvarlink(globals, \"%s\", %s, %s);\n", iname, vargetname, varsetname);
+    Printf(f_varlinks, "\t SWIG_addvarlink(globals, \"%s\", %s, %s);\n", iname, vargetname, varsetname);
     if (builtin && shadow && !assignable && !in_class) {
-      Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", PyObject_GetAttrString(globals, \"%s\"));\n", iname, iname);
-      Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", iname);
+      Printf(f_varlinks, "\t PyDict_SetItemString(md, \"%s\", PyObject_GetAttrString(globals, \"%s\"));\n", iname, iname);
+      Printf(f_varlinks, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", iname);
     }
     Delete(vargetname);
     Delete(varsetname);
@@ -3941,8 +3946,7 @@ public:
     String *mname = SwigType_manglestr(sname);
 
     Printf(f_init, "\n/* type '%s' */\n", rname);
-    Printf(f_init, "    builtin_pytype = (PyTypeObject *)&SwigPyBuiltin_%s_type;\n", mname);
-    Printf(f_init, "    builtin_pytype->tp_dict = d = PyDict_New();\n");
+    Printf(f_init, "    d = PyDict_New();\n");
 
     Delete(sname);
     Delete(rname);
@@ -3960,17 +3964,10 @@ public:
     String *pmname = SwigType_manglestr(pname);
     String *templ = NewStringf("SwigPyBuiltin_%s", mname);
     int funpack = fastunpack;
-    static String *tp_new = NewString("PyType_GenericNew");
 
     if (have_builtin_static_member_method_callback) {
       Printf(f_init, "  SWIG_Python_FixMethods(SwigPyBuiltin_%s_methods, swig_const_table, swig_types, swig_type_initial);\n", mname);
     }
-
-    Printv(f_init, "  SwigPyBuiltin_SetMetaType(builtin_pytype, metatype);\n", NIL);
-
-    // We can’t statically initialize a structure member with a function defined in another C module
-    // So this is done in the initialization function instead, see https://docs.python.org/2/extending/newtypes.html
-    Printf(f_init, "  builtin_pytype->tp_new = %s;\n", getSlot(n, "feature:python:tp_new", tp_new));
 
     Printv(f_init, "  builtin_base_count = 0;\n", NIL);
     List *baselist = Getattr(n, "bases");
@@ -4002,7 +3999,6 @@ public:
 	max_bases = base_count;
     }
     Printv(f_init, "  builtin_bases[builtin_base_count] = NULL;\n", NIL);
-    Printv(f_init, "  SwigPyBuiltin_InitBases(builtin_pytype, builtin_bases);\n", NIL);
     builtin_bases_needed = 1;
 
     // Check for non-public destructor, in which case tp_dealloc will issue
@@ -4363,6 +4359,24 @@ public:
     Printf(f, "  }\n");
     Printv(f, "#endif\n", NIL);
     Printf(f, "};\n\n");
+    Printf(f, "static PyTypeObject* create_%s_type(PyTypeObject* type, PyTypeObject** bases, PyObject* dict) {\n", templ);
+    Printv(f, "  PyObject* tuple_bases;\n", NIL);
+    Printf(f, "  PyTypeObject* pytype = (PyTypeObject*)&%s_type;\n", templ);
+    Printf(f, "  pytype->tp_dict = dict;\n");
+    Printv(f, "  SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);
+    static String *tp_new = NewString("PyType_GenericNew");
+    Printf(f, "  pytype->tp_new = %s;\n", getSlot(n, "feature:python:tp_new", tp_new));
+    Printv(f, "  tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
+    Printv(f, "  pytype->tp_base = bases[0];\n", NIL);
+    Printv(f, "  Py_INCREF(pytype->tp_base);\n", NIL);
+    Printv(f, "  pytype->tp_bases = tuple_bases;\n", NIL);
+    Printv(f, "  if (PyType_Ready(pytype) < 0) {\n", NIL);
+    Printf(f, "    PyErr_SetString(PyExc_TypeError, \"Could not create type '%s'.\");\n", symname);
+    Printv(f, "    return NULL;\n", NIL);
+    Printv(f, "  }\n", NIL);
+    Printf(f, "  return pytype;\n");
+    Printf(f, "}\n\n");
+
 
     String *clientdata = NewString("");
     Printf(clientdata, "&%s_clientdata", templ);
@@ -4378,22 +4392,20 @@ public:
       Delete(psmart);
     }
 
-    String *clientdata_klass = NewString("0");
-    if (GetFlag(n, "feature:implicitconv")) {
-      Clear(clientdata_klass);
-      Printf(clientdata_klass, "(PyObject *) &%s_type", templ);
-    }
+    Printf(f, "SWIGINTERN SwigPyClientData %s_clientdata = {0, 0, 0, 0, 0, 0, 0};\n\n", templ);
 
-    Printf(f, "SWIGINTERN SwigPyClientData %s_clientdata = {%s, 0, 0, 0, 0, 0, (PyTypeObject *)&%s_type};\n\n", templ, clientdata_klass, templ);
-
-    Printv(f_init, "    if (PyType_Ready(builtin_pytype) < 0) {\n", NIL);
-    Printf(f_init, "      PyErr_SetString(PyExc_TypeError, \"Could not create type '%s'.\");\n", symname);
+    Printf(f_init, "    builtin_pytype = create_%s_type(metatype, builtin_bases, d);\n", templ);
+    Printf(f_init, "    if(!builtin_pytype) {\n", templ);
     Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     Printv(f_init, "      return NULL;\n", NIL);
     Printv(f_init, "#else\n", NIL);
     Printv(f_init, "      return;\n", NIL);
     Printv(f_init, "#endif\n", NIL);
     Printv(f_init, "    }\n", NIL);
+    Printf(f_init, "    SwigPyBuiltin_%s_clientdata.pytype = builtin_pytype;\n", mname);
+    if (GetFlag(n, "feature:implicitconv")) {
+      Printf(f_init, "    SwigPyBuiltin_%s_clientdata.klass = (PyObject*)builtin_pytype;\n", mname);
+    }
     Printv(f_init, "    SWIG_Py_INCREF((PyObject *)builtin_pytype);\n", NIL);
     Printf(f_init, "    PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype);\n", symname);
     Printf(f_init, "    SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", symname);
@@ -4415,7 +4427,6 @@ public:
     Delete(quoted_symname);
     Delete(quoted_tp_doc_str);
     Delete(tp_init);
-    Delete(clientdata_klass);
     Delete(richcompare_func);
     Delete(getset_name);
     Delete(methods_name);
