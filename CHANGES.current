@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-09-29: wsfulton
+            #2303 Type tables are now output in a fixed order whereas previously
+            the order may change with any minor input code change. This shouldn't
+            affect users except SWIG_TypePrettyName may output a different C/C++
+            typedef to a type - it's used mostly for showing errors when the type
+            passed to a function is wrong.
+
 2022-09-29: olly
 	    [PHP] Dynamic class properties are no longer supported by default.
 

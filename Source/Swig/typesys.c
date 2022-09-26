@@ -2136,22 +2136,22 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
    /*#define DEBUG 1*/
 #ifdef DEBUG
   Printf(stdout, "---r_mangled---\n");
-  Printf(stdout, "%s\n", r_mangled);
+  Swig_print(r_mangled, 2);
 
   Printf(stdout, "---r_resolved---\n");
-  Printf(stdout, "%s\n", r_resolved);
+  Swig_print(r_resolved, 2);
 
   Printf(stdout, "---r_ltype---\n");
-  Printf(stdout, "%s\n", r_ltype);
+  Swig_print(r_ltype, 2);
 
   Printf(stdout, "---subclass---\n");
-  Printf(stdout, "%s\n", subclass);
+  Swig_print(subclass, 2);
 
   Printf(stdout, "---conversions---\n");
-  Printf(stdout, "%s\n", conversions);
+  Swig_print(conversions, 2);
 
   Printf(stdout, "---r_clientdata---\n");
-  Printf(stdout, "%s\n", r_clientdata);
+  Swig_print(r_clientdata, 2);
 
 #endif
   table = NewStringEmpty();
@@ -2169,8 +2169,6 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
   for (ki = First(mangled_list); ki.item; ki = Next(ki)) {
     List *el;
     Iterator ei;
-    SwigType *lt;
-    SwigType *rt = 0;
     String *nt;
     String *ln;
     String *rn;
@@ -2179,6 +2177,8 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
     Iterator ltiter;
     Hash *nthash;
     String *cast_temp_conv;
+    String *resolved_lstr = 0;
+    List *ntlist;
 
     cast_temp = NewStringEmpty();
     cast_temp_conv = NewStringEmpty();
@@ -2197,8 +2197,8 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
     nthash = NewHash();
     ltiter = First(lthash);
     while (ltiter.key) {
-      lt = ltiter.key;
-      rt = SwigType_typedef_resolve_all(lt);
+      SwigType *lt = ltiter.key;
+      SwigType *rt = SwigType_typedef_resolve_all(lt);
       /* we save the original type and the fully resolved version */
       ln = SwigType_lstr(lt, 0);
       rn = SwigType_lstr(rt, 0);
@@ -2207,6 +2207,12 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
       } else {
 	Setattr(nthash, rn, "1");
 	Setattr(nthash, ln, "1");
+      }
+      if (!resolved_lstr) {
+	resolved_lstr = Copy(rn);
+      } else if (Len(rn) < Len(resolved_lstr)) {
+	Delete(resolved_lstr);
+	resolved_lstr = Copy(rn);
       }
       if (SwigType_istemplate(rt)) {
         String *dt = Swig_symbol_template_deftype(rt, 0);
@@ -2217,22 +2223,38 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
         Delete(dt);
         Delete(dn);
       }
+      Delete(rt);
+      Delete(rn);
+      Delete(ln);
 
       ltiter = Next(ltiter);
     }
 
     /* now build nt */
-    ltiter = First(nthash);
+    ntlist = sorted_list_from_hash(nthash);
+    ltiter = First(ntlist);
     nt = 0;
-    while (ltiter.key) {
-      if (nt) {
-	 Printf(nt, "|%s", ltiter.key);
-      } else {
-	 nt = NewString(ltiter.key);
+    while (ltiter.item) {
+      if (!Equal(resolved_lstr, ltiter.item)) {
+	if (nt) {
+	   Printf(nt, "|%s", ltiter.item);
+	} else {
+	   nt = NewString(ltiter.item);
+	}
       }
       ltiter = Next(ltiter);
     }
+    /* Last in list is a resolved type used by SWIG_TypePrettyName.
+     * There can be more than one resolved type and the chosen one is simply the
+     * shortest in length, arguably the most user friendly/readable. */
+    if (nt) {
+       Printf(nt, "|%s", resolved_lstr);
+    } else {
+       nt = NewString(resolved_lstr);
+    }
+    Delete(ntlist);
     Delete(nthash);
+    Delete(resolved_lstr);
 
     Printf(types, "\"%s\", \"%s\", 0, 0, (void*)%s, 0};\n", ki.item, nt, cd);
 
@@ -2265,7 +2287,6 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
     Delete(cast_temp_conv);
     Delete(cast_temp);
     Delete(nt);
-    Delete(rt);
   }
   /* print the tables in the proper order */
   SortList(table_list, compare_strings);
