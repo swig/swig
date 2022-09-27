@@ -31,7 +31,7 @@ jobs:
           nuget install Bison -Version 3.7.4 -OutputDirectory C:\Tools\bison
           nuget install PCRE2 -Version 10.39 -OutputDirectory C:\Tools\pcre2
 
-    - name: Build and Install
+    - name: Build
       shell: powershell
       run: |
           $env:PATH="C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\Bison.3.7.4\bin;" + $env:PATH
@@ -45,7 +45,12 @@ jobs:
           -DPCRE2_INCLUDE_DIR="$PCRE_ROOT/include" `
           -DPCRE2_LIBRARY="$PCRE_ROOT/lib/pcre2-8-static.lib" `
           -S . -B build
-          cmake --build build --config Release --target install
+          cmake --build build --config Release
+
+    - name: Install
+      shell: powershell
+      run: |
+          cmake --install build --config Release
 
     - name: Test
       shell: powershell

@@ -282,7 +282,8 @@ cmake -G "Visual Studio 16 2019" -A "x64" `
 -DPCRE2_LIBRARY="$PCRE_ROOT/lib/pcre2-8-static.lib" `
 -S . -B build
 
-cmake --build build --config Release --target install
+cmake --build build --config Release
+cmake --install build --config Release
 
 # to test the exe built correctly
 cd install2/bin
