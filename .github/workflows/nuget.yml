@@ -45,6 +45,10 @@ jobs:
           -DPCRE2_INCLUDE_DIR="$PCRE_ROOT/include" `
           -DPCRE2_LIBRARY="$PCRE_ROOT/lib/pcre2-8-static.lib" `
           -S . -B build
+
+    - name: Install
+      shell: powershell
+      run: |
           cmake --build build --config Release --target install
 
     - name: Test
