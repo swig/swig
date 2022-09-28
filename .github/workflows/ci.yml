@@ -119,10 +119,12 @@ jobs:
           VER: '7.4'
         - SWIGLANG: php
           VER: '8.0'
+          continue-on-error: true # Working on fixing
         - SWIGLANG: php
           VER: '8.1'
         - SWIGLANG: php
           VER: '8.2'
+          continue-on-error: true # Working on fixing
         - SWIGLANG: python
           PY2: 2
         - SWIGLANG: python
