@@ -148,6 +148,8 @@ static void SwigPHP_emit_pointer_type_registrations() {
   Printf(s_wrappers, "/* Implement __toString equivalent, since that worked for the old-style resource wrapped pointers. */\n");
   Append(s_wrappers, "#if PHP_MAJOR_VERSION < 8\n");
   Printf(s_wrappers, "static int swig_ptr_cast_object(zval *z, zval *retval, int type) {\n");
+  Append(s_wrappers, "#elif PHP_MAJOR_VERSION > 8 || PHP_MINOR_VERSION >= 2\n");
+  Printf(s_wrappers, "static ZEND_RESULT_CODE swig_ptr_cast_object(zend_object *zobj, zval *retval, int type) {\n");
   Append(s_wrappers, "#else\n");
   Printf(s_wrappers, "static int swig_ptr_cast_object(zend_object *zobj, zval *retval, int type) {\n");
   Append(s_wrappers, "#endif\n");
