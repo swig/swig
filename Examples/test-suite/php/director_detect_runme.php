@@ -10,6 +10,8 @@ check::classes(array('A','Foo','Bar'));
 check::globals(array());
 
 class MyBar extends Bar {
+  public $val;
+
   function __construct($val = 2) {
     parent::__construct();
     $this->val = $val;
