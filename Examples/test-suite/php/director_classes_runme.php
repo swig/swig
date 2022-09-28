@@ -90,23 +90,23 @@ function makeCalls($caller, $base) {
   check::equal($caller->PtrCall($dh)->val, $dh->val, "$bname.Ptr");
   check::equal($caller->ConstPtrRefCall($dh)->val, $dh->val, "$bname.ConstPtrRef");
   check::equal($caller->FullyOverloadedCall(1),
-	       "${bname}::FullyOverloaded(int)",
+	       "{$bname}::FullyOverloaded(int)",
 	       "$bname.FullyOverloaded(int)");
   check::equal($caller->FullyOverloadedCall(false),
-	       "${bname}::FullyOverloaded(bool)",
+	       "{$bname}::FullyOverloaded(bool)",
 	       "$bname.FullyOverloaded(bool)");
   // This next one is TODO for Perl with PerlDerived.
   check::equal($caller->SemiOverloadedCall(-678),
-	       "${bname}::SemiOverloaded(int)",
+	       "{$bname}::SemiOverloaded(int)",
 	       "$bname.SemiOverloaded(int)");
   check::equal($caller->SemiOverloadedCall(false),
 	       "Base::SemiOverloaded(bool)",
 	       "$bname.SemiOverloaded(bool)");
   check::equal($caller->DefaultParmsCall(10, 2.2),
-	       "${bname}::DefaultParms(int, double)",
+	       "{$bname}::DefaultParms(int, double)",
 	       "$bname.DefaultParms(int, double)");
   check::equal($caller->DefaultParmsCall(10),
-	       "${bname}::DefaultParms(int)",
+	       "{$bname}::DefaultParms(int)",
 	       "$bname.DefaultParms(int)");
   $caller->reset();
 }
