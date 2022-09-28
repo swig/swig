@@ -545,6 +545,14 @@ public:
 
     Swig_banner(f_begin);
 
+    // We need to include php.h before string.h gets included, at least with
+    // PHP 8.2.  Otherwise string.h is included without _GNU_SOURCE being
+    // included and memrchr() doesn't get declared, and then inline code in
+    // the PHP headers defines _GNU_SOURCE, includes string.h (which is a
+    // no op thanks to the include gaurds), then tries to use memrchr() and
+    // fails.
+    Append(f_runtime, "#include \"php.h\"\n\n");
+
     Printf(f_runtime, "\n\n#ifndef SWIGPHP\n#define SWIGPHP\n#endif\n\n");
 
     if (directorsEnabled()) {
