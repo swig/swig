@@ -551,9 +551,28 @@ public:
     // the PHP headers defines _GNU_SOURCE, includes string.h (which is a
     // no op thanks to the include gaurds), then tries to use memrchr() and
     // fails.
-    Append(f_runtime, "#include \"php.h\"\n\n");
+    //
+    // We also need to suppress -Wdeclaration-after-statement if enabled
+    // since with PHP 8.2 zend_operators.h contains inline code which triggers
+    // this warning and our testsuite uses with option and -Werror.  I don't
+    // see a good way to only do this within our testsuite, but disabling
+    // it globally like this shouldn't be problematic.
+    Append(f_runtime,
+	   "\n"
+	   "#if defined __GNUC__ && !defined __cplusplus\n"
+	   "# if __GNUC__ >= 4\n"
+	   "#  pragma GCC diagnostic push\n"
+	   "#  pragma GCC diagnostic ignored \"-Wdeclaration-after-statement\"\n"
+	   "# endif\n"
+	   "#endif\n"
+	   "#include \"php.h\"\n"
+	   "#if defined __GNUC__ && !defined __cplusplus\n"
+	   "# if __GNUC__ >= 4\n"
+	   "#  pragma GCC diagnostic pop\n"
+	   "# endif\n"
+	   "#endif\n\n");
 
-    Printf(f_runtime, "\n\n#ifndef SWIGPHP\n#define SWIGPHP\n#endif\n\n");
+    Printf(f_runtime, "#ifndef SWIGPHP\n#define SWIGPHP\n#endif\n\n");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
