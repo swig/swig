@@ -4,6 +4,8 @@
 
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) global_cint;       /* Ruby, wrong constant name */
 
+%feature("php:allowdynamicproperties", 1) Foo; /* Allow PHP-specific custom property testing in _runme.php */
+
 %module cpp_basic
 
 %newobject Bar::testFoo;

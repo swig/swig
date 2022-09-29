@@ -7,6 +7,29 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-09-29: olly
+	    [PHP] Dynamic class properties are no longer supported by default.
+
+	    Historically PHP has supported dynamic class properties and SWIG
+	    has implemented them too (because we implement the magic __get(),
+	    __set() and __isset() methods we need to include explicit
+	    handling).
+
+	    PHP 8.2 deprecates dynamic class properties - initially they'll
+	    warn, and apparently they'll not work by default in PHP 9.0:
+	    https://wiki.php.net/rfc/deprecate_dynamic_properties
+
+	    In PHP code dynamic properties can be enabled for a class by
+	    marking that class with the attribute `#[AllowDynamicProperties]`.
+
+	    To follow this PHP change, in SWIG you now need to specify
+	    `%feature("php:allowdynamicproperties", 1) Foo;` (or
+	    `%feature("php:allowdynamicproperties", 1)` to enable it for
+	    all wrapped classes).  Unknown features are ignored, so you can add
+	    it unconditionally and it'll work with older SWIG too.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2022-09-19: wsfulton
             #1484 Fixes for class inheritance with the same name in different namespaces
             such as:
