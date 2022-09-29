@@ -115,7 +115,7 @@ Version 4.0.2 (8 Jun 2020)
 
 2020-01-13: wsfulton
             [Python] #1595 Python -builtin constructors silently ignored keyword arguments.
-            Instead of silenty ignoring them, now a "TypeError: f() takes no keyword arguments"
+            Instead of silently ignoring them, now a "TypeError: f() takes no keyword arguments"
             exception is thrown if keyword arguments are used. Hence constructors and normal methods/
             functions behave in the same way. Note, -keyword should be used with -builtin to obtain
             keyword argument support.
@@ -200,7 +200,7 @@ Version 4.0.1 (21 Aug 2019)
                   VectorOverload(std::vector< Number,std::allocator< Number > >)
                   VectorOverload(std::vector< int,std::allocator< int > >)
 
-            The problem was due to some error handling that was not cleared during typehecking.
+            The problem was due to some error handling that was not cleared during typechecking.
             In this case an error was not cleared when the elements in the list failed the
             typecheck for converting to X. Only occurs in Python 3+.
 
