@@ -4,6 +4,8 @@
 // This doesn't really directly test functionality in type_traits as it doesn't provide
 // much for use by target languages, rather it tests usage of it.
 
+%warnfilter(509) elaborate;
+
 %inline %{
 #include <type_traits>
 
