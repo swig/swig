@@ -2092,9 +2092,21 @@ int R::functionWrapper(Node *n) {
       Node * parent = Getattr(n, "parentNode");
       String * smartname = Getattr(parent, "feature:smartptr");
       if (smartname) {
-	smartname = getRClassName(smartname, 1, 1);
-	Replaceall(tm, "$R_class", smartname);
-	Delete(smartname);
+        String * classtypeobj = NewString(Getattr(parent, "classtypeobj")); // this is the correct name, e.g. ClassName(int)
+        String * classtype = NewString(Getattr(parent, "classtype")); // this is the "wrong" name e.g. ClassName<int>
+
+        // we replace inside smartname ClassName<int> with ClassName<int>
+        String * smartname_fixed = NewString(smartname);
+        Replaceall(classtype, " ", ""); // classtype actually has spaces inside so we remove them
+        Replaceall(smartname_fixed, classtype, classtypeobj);
+
+        String * smartname_fixed_rclass = getRClassName(smartname_fixed, 1, 1);
+        Replaceall(tm, "$R_class", smartname_fixed_rclass);
+
+        Delete(classtypeobj);
+        Delete(classtype);
+        Delete(smartname_fixed);
+        Delete(smartname_fixed_rclass);
       }
     }
     if (debugMode) {
