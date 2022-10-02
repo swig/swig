@@ -2095,7 +2095,7 @@ int R::functionWrapper(Node *n) {
         String * classtypeobj = NewString(Getattr(parent, "classtypeobj")); // this is the correct name, e.g. ClassName(int)
         String * classtype = NewString(Getattr(parent, "classtype")); // this is the "wrong" name e.g. ClassName<int>
 
-        // we replace inside smartname ClassName<int> with ClassName<int>
+        // we replace inside smartname ClassName<int> with ClassName(int)
         String * smartname_fixed = NewString(smartname);
         Replaceall(classtype, " ", ""); // classtype actually has spaces inside so we remove them
         Replaceall(smartname_fixed, classtype, classtypeobj);
