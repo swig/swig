@@ -592,6 +592,7 @@ CPP11_TEST_CASES += \
 	cpp11_director_enums \
 	cpp11_directors \
 	cpp11_explicit_conversion_operators \
+	cpp11_final_class \
 	cpp11_final_directors \
 	cpp11_final_override \
 	cpp11_function_objects \
@@ -755,6 +756,7 @@ C_TEST_CASES += \
 	enum_macro \
 	enum_missing \
 	extern_declaration \
+	final_c \
 	funcptr \
 	function_typedef \
 	global_functions \

@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-05: olly, wsfulton
+            #672 Add support for parsing C++11 final classes such as:
+
+              class X final {};
+
+            This no longer gives a syntax error.
+
 2022-10-05: wsfulton
             [OCaml] Fix %rename for enum items. Previously the rename had no effect.
 

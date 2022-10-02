@@ -891,6 +891,19 @@ struct DerivedStruct : BaseStruct {
 };
 </pre></div>
 
+<p>
+Classes can also be marked as final, such as
+</p>
+
+<div class="code"><pre>
+struct FinalDerivedStruct final : BaseStruct {
+  virtual void ab() const override;
+};
+</pre></div>
+
+<p>
+<b>Compatibility note:</b> Final methods were supported much earlier than final classes. SWIG-4.1.0 was the first version to support classes marked as final.
+</p>
 
 <H3><a name="CPlusPlus11_null_pointer_constant">7.2.12 Null pointer constant</a></H3>
 
