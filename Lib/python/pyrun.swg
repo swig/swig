@@ -335,10 +335,19 @@ swig_varlink_setattr(PyObject *o, char *n, PyObject *p) {
   return res;
 }
 
+#if PY_VERSION_HEX >= 0x03090000 || (!defined(SWIGPYTHON_BUILTIN) && PY_VERSION_HEX >= 0x03040000)
+#define SWIG_HEAPTYPES
+#endif
+
+#ifdef SWIG_HEAPTYPES
+static PyTypeObject* py3varlink_type = NULL;
+#endif
+
+
 SWIGINTERN PyTypeObject*
 swig_varlink_type(void) {
   static char varlink__doc__[] = "Swig var link object";
-#ifndef Py_LIMITED_API
+#ifndef SWIG_HEAPTYPES
   static PyTypeObject varlink_type;
   static int type_init = 0;
   if (!type_init) {
@@ -406,22 +415,32 @@ swig_varlink_type(void) {
       return NULL;
   }
   return &varlink_type;
-#else // Py_LIMITED_API
-  PyType_Slot slots[] = {
-    { Py_tp_dealloc, (void*)swig_varlink_dealloc },
-    { Py_tp_repr, (void*)swig_varlink_repr },
-    { Py_tp_getattr, (void*)swig_varlink_getattr },
-    { Py_tp_setattr, (void*)swig_varlink_setattr },
-    { Py_tp_str, (void*)swig_varlink_str },
-    { Py_tp_doc, (void*)varlink__doc__ },
-    { 0, NULL }
-  };
-  PyType_Spec spec = {};
-  spec.name = "swigvarlink";
-  spec.basicsize = sizeof(swig_varlinkobject);
-  spec.slots = slots;
-  return (PyTypeObject*)PyType_FromSpec(&spec);
-#endif // Py_LIMITED_API
+
+#else
+  if(!py3varlink_type)
+  {
+      PyType_Slot slots[] = {
+      { Py_tp_dealloc, (void*)swig_varlink_dealloc },
+      { Py_tp_repr, (void*)swig_varlink_repr },
+      { Py_tp_getattr, (void*)swig_varlink_getattr },
+      { Py_tp_setattr, (void*)swig_varlink_setattr },
+      { Py_tp_str, (void*)swig_varlink_str },
+      { Py_tp_doc, (void*)varlink__doc__ },
+      { 0, NULL }
+    };
+    PyType_Spec spec = {
+      "swigvarlink",
+      sizeof(swig_varlinkobject),
+      0,
+      0,
+      slots
+    };
+    py3varlink_type = (PyTypeObject*)PyType_FromSpec(&spec);
+  }
+
+  return py3varlink_type;
+#endif
+
 }
 
 /* Create a variable linking object for use later */
@@ -895,10 +914,17 @@ swigobject_methods[] = {
   {0, 0, 0, 0}  
 };
 
+#ifdef SWIG_HEAPTYPES
+static PyTypeObject* py3swigpyobject_type = NULL;
+#endif
+
+
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_TypeOnce(void) {
   static char swigobject_doc[] = "Swig object carries a C/C++ instance pointer";
-#ifndef Py_LIMITED_API
+
+#ifndef SWIG_HEAPTYPES
+
   static PyNumberMethods SwigPyObject_as_number = {
     (binaryfunc)0, /*nb_add*/
     (binaryfunc)0, /*nb_subtract*/
@@ -1033,24 +1059,41 @@ SwigPyObject_TypeOnce(void) {
       return NULL;
   }
   return &swigpyobject_type;
-#else // Py_LIMITED_API
-  PyType_Slot slots[] = {
-    { Py_tp_dealloc, (void*)SwigPyObject_dealloc },
-    { Py_tp_repr, (void*)SwigPyObject_repr },
-    { Py_tp_getattro, (void*)PyObject_GenericGetAttr },
-    { Py_tp_doc, (void*)swigobject_doc },
-    { Py_tp_richcompare, (void*)SwigPyObject_richcompare },
-    { Py_tp_methods, (void*)swigobject_methods },
-    { Py_nb_int, (void*)SwigPyObject_long },
-    { 0, NULL }
-  };
-  PyType_Spec spec = {};
-  spec.name = "SwigPyObject";
-  spec.basicsize = sizeof(SwigPyObject);
-  spec.flags = Py_TPFLAGS_DEFAULT;
-  spec.slots = slots;
-  return (PyTypeObject*)PyType_FromSpec(&spec);
-#endif // Py_LIMITED_API
+#else
+
+  if(!py3swigpyobject_type)
+  {
+#ifdef SWIGPYTHON_BUILTIN
+    static PyMemberDef members[] = {
+      {(char*)"__dictoffset__", T_PYSSIZET, offsetof(SwigPyObject, dict), READONLY, NULL},
+      {NULL, 0, 0, 0, NULL}
+    };
+#endif
+    PyType_Slot slots[] = {
+      { Py_tp_dealloc, (void*)SwigPyObject_dealloc },
+      { Py_tp_repr, (void*)SwigPyObject_repr },
+      { Py_tp_getattro, (void*)PyObject_GenericGetAttr },
+      { Py_tp_doc, (void*)swigobject_doc },
+      { Py_tp_richcompare, (void*)SwigPyObject_richcompare },
+      { Py_tp_methods, (void*)swigobject_methods },
+#ifdef SWIGPYTHON_BUILTIN
+      { Py_tp_members, (void*)members },
+#endif
+      { Py_nb_int, (void*)SwigPyObject_long },
+      { 0, NULL }
+      };
+    PyType_Spec spec = {
+      "SwigPyObject",
+      sizeof(SwigPyObject),
+      0,
+      Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+      slots
+    };
+    py3swigpyobject_type = (PyTypeObject*)PyType_FromSpec(&spec);
+  }
+  return py3swigpyobject_type;
+
+#endif
 }
 
 SWIGRUNTIME PyObject *
@@ -1153,10 +1196,15 @@ SwigPyPacked_dealloc(PyObject *v)
   PyObject_DEL(v);
 }
 
+#ifdef SWIG_HEAPTYPES
+static PyTypeObject* py3swigpypacked = NULL;
+#endif
+
+
 SWIGRUNTIME PyTypeObject*
 SwigPyPacked_TypeOnce(void) {
   static char swigpacked_doc[] = "Swig object carries a C/C++ instance pointer";
-#ifndef Py_LIMITED_API
+#ifndef SWIG_HEAPTYPES
   static PyTypeObject swigpypacked_type;
   static int type_init = 0;
   if (!type_init) {
@@ -1248,20 +1296,28 @@ SwigPyPacked_TypeOnce(void) {
   }
   return &swigpypacked_type;
 #else
-  PyType_Slot slots[] = {
-    { Py_tp_dealloc, (void*)SwigPyPacked_dealloc },
-    { Py_tp_repr, (void*)SwigPyPacked_repr },
-    { Py_tp_str, (void*)SwigPyPacked_str },
-    { Py_tp_getattro, (void*)PyObject_GenericGetAttr },
-    { Py_tp_doc, swigpacked_doc },
-    { 0, NULL }
-  };
-  PyType_Spec spec = {};
-  spec.name = "SwigPyPacked";
-  spec.basicsize = sizeof(SwigPyPacked);
-  spec.flags = Py_TPFLAGS_DEFAULT;
-  spec.slots = slots;
-  return (PyTypeObject*)PyType_FromSpec(&spec);
+  if (!py3swigpypacked)
+  {
+    PyType_Slot slots[] = {
+     { Py_tp_dealloc, (void*)SwigPyPacked_dealloc },
+     { Py_tp_repr, (void*)SwigPyPacked_repr },
+     { Py_tp_str, (void*)SwigPyPacked_str },
+     { Py_tp_getattro, (void*)PyObject_GenericGetAttr },
+     { Py_tp_doc, swigpacked_doc },
+     { 0, NULL }
+    };
+    PyType_Spec spec = {
+      "SwigPyPacked",
+      sizeof(SwigPyPacked),
+      0,
+      Py_TPFLAGS_DEFAULT,
+      slots
+    };
+    py3swigpypacked = (PyTypeObject*)PyType_FromSpec(&spec);
+  }
+
+  return py3swigpypacked;
+
 #endif
 }
 
