@@ -151,6 +151,16 @@ static void printSlot(File *f, String *slotval, const char *slotname, const char
   Delete(slotval_override);
 }
 
+static void printSlot2(File *f, String *slotval, const char *slotname, const char *functype = NULL) {
+  String *slotval_override = 0;
+  if (functype && Strcmp(slotval, "0") == 0)
+    slotval = slotval_override = NewStringf("(%s) %s", functype, slotval);
+  int len = Len(slotval);
+  int fieldwidth = len > 41 ? (len > 61 ? 0 : 61 - len) : 41 - len;
+  Printf(f, "{ Py_%s,%*s(void*)%s },\n", slotname, fieldwidth, "", slotval);
+  Delete(slotval_override);
+}
+
 static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
   static const char *functypes[] = {
     "unaryfunc", "SWIGPY_UNARYFUNC_CLOSURE",
@@ -4114,6 +4124,7 @@ public:
     String *tp_as_mapping = NewStringf("&%s_type.as_mapping", templ);
     String *tp_as_buffer = NewStringf("&%s_type.as_buffer", templ);
 
+    Printv(f, "#ifndef SWIG_HEAPTYPES\n", NIL);
     Printf(f, "static PyHeapTypeObject %s_type = {\n", templ);
 
     // PyTypeObject ht_type
@@ -4377,6 +4388,115 @@ public:
     Printf(f, "  return pytype;\n");
     Printf(f, "}\n\n");
 
+    Printv(f, "#else\n", NIL);
+
+    Printf(f, "static PyTypeObject* create_%s_type(PyTypeObject* type, PyTypeObject** bases, PyObject* dict) {\n", templ);
+    Printf(f, "  PyMemberDef members[] = {\n");
+    Printf(f, "  {(char*)\"__dictoffset__\", T_PYSSIZET, %s, READONLY, NULL},\n", getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default));
+    Printf(f, "  {NULL, 0, 0, 0, NULL}};\n");
+    Printf(f, "  PyType_Slot slots[] = {\n");
+    printSlot2(f, getSlot(n, "feature:python:tp_init", tp_init), "tp_init", "initproc");
+    printSlot2(f, getSlot(n, "feature:python:tp_dealloc", tp_dealloc_bad), "tp_dealloc", "destructor");
+    printSlot2(f, getSlot(n, "feature:python:tp_alloc"), "tp_alloc", "allocfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_free"), "tp_free", "freefunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_is_gc"), "tp_is_gc", "inquiry");
+    printSlot2(f, getSlot(n, "feature:python:tp_del"), "tp_del", "destructor");
+
+    if (have_docstring(n)) {
+      String *ds = cdocstring(n, AUTODOC_CLASS);
+      String *tp_doc = NewString("");
+      Printf(tp_doc, "\"%s\"", ds);
+      Delete(ds);
+      printSlot2(f, tp_doc, "tp_doc");
+      Delete(tp_doc);
+    } else {
+      printSlot2(f, quoted_tp_doc_str, "tp_doc");
+    }
+    printSlot2(f, getSlot(n, "feature:python:tp_repr"), "tp_repr", "reprfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_str"), "tp_str", "reprfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_traverse"), "tp_traverse", "traverseproc");
+    printSlot2(f, getSlot(n, "feature:python:tp_clear"), "tp_clear", "inquiry");
+    printSlot2(f, getSlot(n, "feature:python:tp_richcompare", richcompare_func), "tp_richcompare", "richcmpfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_methods", methods_name), "tp_methods");
+    printSlot2(f, getSlot(n, "feature:python:tp_getset", getset_name), "tp_getset");
+    printSlot2(f, getSlot(n, "feature:python:tp_hash", tp_hash), "tp_hash", "hashfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_call"), "tp_call", "ternaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_getattro"), "tp_getattro", "getattrofunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_setattro"), "tp_setattro", "setattrofunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_descr_get"), "tp_descr_get", "descrgetfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_descr_set"), "tp_descr_set", "descrsetfunc");
+    printSlot2(f, getSlot(n, "feature:python:mp_length"), "mp_length", "lenfunc");
+    printSlot2(f, getSlot(n, "feature:python:mp_subscript"), "mp_subscript", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:mp_ass_subscript"), "mp_ass_subscript", "objobjargproc");
+    printSlot2(f, getSlot(n, "feature:python:tp_iter"), "tp_iter", "getiterfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_iternext"), "tp_iternext", "iternextfunc");
+    //
+    // nb_* slots
+    printSlot2(f, getSlot(n, "feature:python:nb_add"), "nb_add", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_subtract"), "nb_subtract", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_multiply"), "nb_multiply", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_remainder"), "nb_remainder", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_divmod"), "nb_divmod", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_power"), "nb_power", "ternaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_negative"), "nb_negative", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_positive"), "nb_positive", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_absolute"), "nb_absolute", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_nonzero"), "nb_bool", "inquiry");
+    printSlot2(f, getSlot(n, "feature:python:nb_invert"), "nb_invert", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_lshift"), "nb_lshift", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_rshift"), "nb_rshift", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_and"), "nb_and", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_xor"), "nb_xor", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_or"), "nb_or", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_int"), "nb_int", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_float"), "nb_float", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_add"), "nb_inplace_add", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_subtract"), "nb_inplace_subtract", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_multiply"), "nb_inplace_multiply", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_remainder"), "nb_inplace_remainder", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_power"), "nb_inplace_power", "ternaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_lshift"), "nb_inplace_lshift", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_rshift"), "nb_inplace_rshift", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_and"), "nb_inplace_and", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_xor"), "nb_inplace_xor", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_or"), "nb_inplace_or", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_floor_divide"), "nb_floor_divide", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_divide"), "nb_true_divide", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_floor_divide"), "nb_inplace_floor_divide", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_divide"), "nb_inplace_true_divide", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_index"), "nb_index", "unaryfunc");
+
+    // sequence
+    printSlot2(f, getSlot(n, "feature:python:sq_length"), "sq_length", "lenfunc");
+    printSlot2(f, getSlot(n, "feature:python:sq_concat"), "sq_concat", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:sq_repeat"), "sq_repeat", "ssizeargfunc");
+    printSlot2(f, getSlot(n, "feature:python:sq_item"), "sq_item", "ssizeargfunc");
+    printSlot2(f, getSlot(n, "feature:python:sq_ass_item"), "sq_ass_item", "ssizeobjargproc");
+    printSlot2(f, getSlot(n, "feature:python:sq_contains"), "sq_contains", "objobjproc");
+    printSlot2(f, getSlot(n, "feature:python:sq_inplace_concat"), "sq_inplace_concat", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:sq_inplace_repeat"), "sq_inplace_repeat", "ssizeargfunc");
+
+    Printf(f, "  {Py_tp_members, members},\n");
+    Printf(f, "  { 0, NULL}\n");
+    Printf(f, "  };\n");
+    Printf(f, "PyType_Spec spec = {\n");
+    Printf(f, "  %s,\n", quoted_symname);
+    Printf(f, "  sizeof(SwigPyObject),\n");
+    Printf(f, "  0,\n");
+    Printf(f, "  %s,\n", getSlot(n, "feature:python:tp_flags", tp_flags_py3), "tp_flags");
+    Printf(f, "  slots\n");
+    Printf(f, "  };\n");
+    Printv(f, "  PyObject* tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
+    Printf(f, "  PyTypeObject* pytype = (PyTypeObject*)PyType_FromSpecWithBases(&spec, tuple_bases);\n");
+    Printf(f, "  PyDict_Merge(pytype->tp_dict, dict, 1);\n");
+    Printv(f, "  SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);
+    Printf(f, "  PyType_Modified(pytype);\n");
+    Printf(f, "  Py_DECREF(dict);\n");
+    Printf(f, "  return pytype;\n");
+
+    Printv(f, "}\n", NULL);
+
+    Printv(f, "#endif\n", NIL);
 
     String *clientdata = NewString("");
     Printf(clientdata, "&%s_clientdata", templ);
