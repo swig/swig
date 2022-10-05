@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-06: wsfulton
+            [Java] #Fix quoting for doxygen \image command to quote the output
+            file name generated into the html src attribute.
+
 2022-10-05: benjamin-sch
             [Python] added an interpreter counter to fix deinitialization
             issues if multiple subinterpreters are used

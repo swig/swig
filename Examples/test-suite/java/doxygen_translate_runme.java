@@ -69,7 +69,8 @@ public class doxygen_translate_runme {
     		" This is printed if not}\n" +
     		" \n" +
     		" \n" +
-    		" <img src=testImage.bmp alt=\"Hello, world!\"/>\n" +
+    		" <img src=\"testImage.bmp\" alt=\"Hello, world!\"/>\n" +
+    		" <img src=\"test image.jpg\" alt=\"Test jpeg\"/>\n" +
     		" \n" +
     		" <ul> \n" +
     		" \n" +

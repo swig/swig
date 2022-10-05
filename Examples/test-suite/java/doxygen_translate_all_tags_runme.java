@@ -81,7 +81,7 @@ public class doxygen_translate_all_tags_runme {
     		" If not: SOMECONDITION {\n" +
     		" This is printed if not \n" +
     		" }\n" +
-    		" <img src=testImage.bmp alt=\"Hello, world!\" />\n" +
+    		" <img src=\"testImage.bmp\" alt=\"Hello, world!\"/>\n" +
     		" Some text \n" +
     		" describing invariant. \n");
     

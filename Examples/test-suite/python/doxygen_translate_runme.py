@@ -58,6 +58,7 @@ If not: SOMECONDITION {
 }
 
 Image: testImage.bmp("Hello, world!")
+Image: "test image.jpg"("Test jpeg")
 
 
 

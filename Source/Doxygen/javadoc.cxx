@@ -463,7 +463,11 @@ void JavaDocConverter::handleTagImage(DoxygenEntity &tag, std::string &translate
   if (it != tag.entityList.end())
     title = it->data;
 
-  translatedComment += "<img src=" + file;
+  translatedComment += "<img src=";
+  if (file.size() >= 2 && file[0] == '"' and file[file.size() - 1] == '"')
+    translatedComment += file;
+  else
+    translatedComment += "\"" + file + "\"";
   if (title.size())
     translatedComment += " alt=" + title;
 
