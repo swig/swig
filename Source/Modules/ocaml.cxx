@@ -1238,6 +1238,7 @@ public:
 
   int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n, "name");
+    String *symname = Getattr(n, "sym:name");
     SwigType *qtype = 0;
 
     if (name_qualifier_type) {
@@ -1245,8 +1246,8 @@ public:
       Printv(qtype, name, NIL);
     }
 
-    if (const_enum && qtype && name && !Getattr(seen_enumvalues, name)) {
-      Setattr(seen_enumvalues, name, "true");
+    if (const_enum && qtype && symname && !Getattr(seen_enumvalues, symname)) {
+      Setattr(seen_enumvalues, symname, "true");
       SetFlag(n, "feature:immutable");
       Setattr(n, "feature:enumvalue", "1");	// this does not appear to be used
 
@@ -1255,10 +1256,10 @@ public:
       String *evname = SwigType_manglestr(qtype);
       Insert(evname, 0, "SWIG_ENUM_");
 
-      Setattr(n, "feature:enumvname", name);
+      Setattr(n, "feature:enumvname", symname);
       Setattr(n, "feature:symname", evname);
       Delete(evname);
-      Printf(f_enumtypes_value, "| `%s\n", name);
+      Printf(f_enumtypes_value, "| `%s\n", symname);
 
       return Language::enumvalueDeclaration(n);
     } else
