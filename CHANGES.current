@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-05: benjamin-sch
+            [Python] added an interpreter counter to fix deinitialization
+            issues if multiple subinterpreters are used
+
 2022-10-05: olly, wsfulton
             #672 Add support for parsing C++11 final classes such as:
 
