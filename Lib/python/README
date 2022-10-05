@@ -101,4 +101,3 @@ std_container.i		general common code for the STD/STL containers
 
 std_vectora.i		vector + allocator (allocators are now supported in STD/STL)
 typemaps.i		old in/out typemaps (doesn't need to be included)
-defarg.swg		for processing default arguments with shadow classes
