@@ -2,6 +2,10 @@
 
 %include "cpp11_move_only_helper.i"
 
+#if defined(SWIGOCAML)
+%rename(valu) val;
+#endif
+
 %ignore MoveOnly::operator=;
 //%valuewrapper MoveOnly; // SWIG sets %valuewrapper by default for move-only types
 
