@@ -1,5 +1,5 @@
 %module xxx
-/* Note: needs -Wextra to see these warnings */
+
 
 /* Divide by zero */
 #define ZERO 0

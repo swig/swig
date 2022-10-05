@@ -41,8 +41,9 @@ extern "C" {
   int UseWrapperSuffix = 0;	// If 1, append suffix to non-overloaded functions too.
 }
 
-/* Suppress warning messages for private inheritance, preprocessor evaluation etc...
-   WARN_PP_EVALUATION                           202
+/* Suppress warning messages for private inheritance, etc by default.
+   These are enabled by command line option -Wextra.
+
    WARN_PARSE_PRIVATE_INHERIT                   309
    WARN_PARSE_BUILTIN_NAME                      321
    WARN_PARSE_REDUNDANT                         322
@@ -50,7 +51,7 @@ extern "C" {
    WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED       405
    WARN_LANG_OVERLOAD_CONST                     512
  */
-#define EXTRA_WARNINGS "202,309,403,405,512,321,322"
+#define EXTRA_WARNINGS "309,403,405,512,321,322"
 
 extern "C" {
   extern String *ModuleName;
