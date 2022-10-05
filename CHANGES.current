@@ -7,6 +7,23 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-05: olly
+	    #1465 Report errors in preprocessor expressions by default
+
+	    Until now SWIG quietly ignored such errors unless -Wextra (or -Wall
+	    which implies -Wextra) was passed, but this is unhelpful as it tends
+	    to hide genuine problems.  To illustrate this point, enabling this
+	    warning by default revealed a typo in the preproc_defined.i
+	    testcase in SWIG's own testsuite.
+
+	    If you really don't want to see this warning, you can suppress it
+	    with command line option -w202 or by using this in your interface
+	    file:
+
+	    %warnfilter(SWIGWARN_PP_EVALUATION);
+
+	    Both will work with older versions of SWIG too.
+
 2022-10-04: olly
 	    #1050 Consistently define SWIG_VERSION both at SWIG-time and in
 	    the generated wrapper.  Best practice remains to check at SWIG-time
