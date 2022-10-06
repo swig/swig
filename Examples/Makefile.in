@@ -203,46 +203,6 @@ android_clean:
 	rm -rf obj
 
 ##################################################################
-#####                       CFFI                            ######
-##################################################################
-
-CFFI = @CFFIBIN@
-CFFI_SCRIPT=$(RUNME).lisp
-
-cffi: $(SRCDIR_SRCS)
-	$(SWIG) -cffi $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-#	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCDIR_SRCS)
-#	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-cffi_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -cffi $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-# -----------------------------------------------------------------
-# Run CFFI example
-# -----------------------------------------------------------------
-
-cffi_run:
-	$(RUNTOOL) $(CFFI) -batch -s $(CFFI_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-cffi_version:
-	$(CFFI) --version
-
-# -----------------------------------------------------------------
-# Cleaning the CFFI examples
-# -----------------------------------------------------------------
-
-cffi_clean:
-	rm -f *_wrap* *~ .~*
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
-
-##################################################################
 #####                       CSHARP                          ######
 ##################################################################
 
