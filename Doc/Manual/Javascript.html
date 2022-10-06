@@ -279,7 +279,7 @@ extern bool example_initialize(JSGlobalContextRef context, JSObjectRef* exports)
 <H4><a name="Javascript_gtk">28.3.2.2 GTK</a></H4>
 
 
-<p>There is general information about programming GTK at <a href="https://developer.gnome.org/gtk2/">GTK documentation</a> and in the <a href="https://developer.gnome.org/gtk-tutorial/">GTK tutorial</a>, and for Webkit there is a <a href="http://webkitgtk.org/reference/webkitgtk/stable/index.html">Webkit GTK+ API Reference</a>.</p>
+<p>There is general information about programming GTK at <a href="https://developer.gnome.org/gtk2/">GTK documentation</a> and in the <a href="https://developer.gnome.org/gtk-tutorial/">GTK tutorial</a>, and for Webkit there is a <a href="https://webkitgtk.org/reference/webkitgtk/stable/index.html">Webkit GTK+ API Reference</a>.</p>
 <p>An integration of a native extension 'example' would look like this:</p>
 <div class="code">
 <pre>
@@ -310,7 +310,7 @@ int main(int argc, char* argv[])
   ...
 
   // Load a web page into the browser instance
-  webkit_web_view_load_uri(webView, "http://www.webkitgtk.org/");
+  webkit_web_view_load_uri(webView, "https://www.webkitgtk.org/");
 
   ...
 
@@ -465,7 +465,7 @@ example.Foo = 3.1415926;</pre>
 </div>
 <p>First the module <code>example</code> is loaded from the previously built extension. Global methods and variables are available in the scope of the module.</p>
 
-<p><b>Note</b>: ECMAScript 5, the currently implemented Javascript standard, does not have modules. <code>node.js</code> and other implementations provide this mechanism defined by the <a href="http://wiki.commonjs.org/wiki/CommonJS">CommonJS</a> group. For browsers this is provided by <a href="http://browserify.org">Browserify</a>, for instance.</p>
+<p><b>Note</b>: ECMAScript 5, the currently implemented Javascript standard, does not have modules. <code>node.js</code> and other implementations provide this mechanism defined by the <a href="https://wiki.commonjs.org/wiki/CommonJS">CommonJS</a> group. For browsers this is provided by <a href="https://browserify.org">Browserify</a>, for instance.</p>
 
 <H3><a name="Javascript_class_example">28.4.2 Class</a></H3>
 
