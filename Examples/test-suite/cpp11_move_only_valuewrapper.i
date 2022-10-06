@@ -4,7 +4,7 @@
  * This test case checks SwigValueWrapper and move assignment.
  * Although not necessary, the test case was developed testing with C++98 compatibility for comparing improvements.
  * C++11 and later is of course required for the move assignment support.
- * C++98 is not actually necesary now as the test-suite only runs this test with compilers that support C++11 and later.
+ * C++98 is not actually necessary now as the test-suite only runs this test with compilers that support C++11 and later.
 */
 
 %{
