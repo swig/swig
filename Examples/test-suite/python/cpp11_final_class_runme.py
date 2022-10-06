@@ -49,14 +49,17 @@ fv9 = FinalVar9()
 yy = fv9.final
 
 fv10 = FinalVar10()
-fv10.a10(y)
 fv10.b10(y)
 
-fe1 = FinalEnum1()
-fe1.enum_in(FinalEnum1.final)
-
-fe2 = FinalEnum2()
-fe2f = fe2.final
+# Removed due to Visual C++ compiler limitations
+# fv11 = FinalVar11()
+# fv11.a11(y)
+#
+# fe1 = FinalEnum1()
+# fe1.enum_in(FinalEnum1.final)
+#
+# fe2 = FinalEnum2()
+# fe2f = fe2.final
 
 s3f = Space3_final()
 s3f.fmethod();

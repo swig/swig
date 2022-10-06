@@ -8,7 +8,7 @@
 %rename(Space1_final) Space1::final::final;
 #endif
 #if defined(SWIGOCAML)
-%rename(finale) Space2::FinalEnum1::final;
+%rename(finale) BrokenSpace::FinalEnum1::final;
 #endif
 
 %inline %{
@@ -105,8 +105,21 @@ struct FinalVar9 {
   Y final{9};
 };
 struct FinalVar10 {
-  void a10(class Y final) {}
   void b10(Y final) {}
+};
+}
+%}
+
+// Unfortunately the use of final in BrokenSpace does not work with Visual C++
+// so we limit testing to parsing these by SWIG and then ignoring it all.
+%ignore BrokenSpace::FinalVar11;
+%ignore BrokenSpace::FinalEnum1;
+%ignore BrokenSpace::FinalEnum2;
+
+namespace BrokenSpace {
+using Space2::Y;
+struct FinalVar11 {
+  void a11(class Y final) {}
 };
 struct FinalEnum1 {
   enum Enum1 { one, two, final };
@@ -117,7 +130,6 @@ struct FinalEnum2 {
   enum Enum2 final;
 };
 }
-%}
 
 %rename(Space3_final) Space3::final;
 %inline %{
