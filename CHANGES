@@ -3302,7 +3302,7 @@ Version 3.0.0 (16 Mar 2014)
             project has been further extended. The C++11 support is comprehensive, but by no means complete
             or without limitations. Full details for each new feature in C++11 is covered in the
             CPlusPlus11.html chapter in the documentation which is included in SWIG and also available
-            online at http://www.swig.org/Doc3.0/CPlusPlus11.html.
+            online at https://www.swig.org/Doc3.0/CPlusPlus11.html.
 
 2014-03-14: v-for-vandal
             [Lua] Numerous Lua improvements:
@@ -5784,7 +5784,7 @@ Version 2.0.0 (2 June 2010)
 
 2010-02-27: wsfulton
             License code changes: SWIG Source is GPL-v3 and library code license is now clearer
-            and is provided under a very permissive license. See http://www.swig.org/legal.html.
+            and is provided under a very permissive license. See https://www.swig.org/legal.html.
 
 2010-02-13: wsfulton
             [Ruby] A few fixes for compiling under ruby-1.9.x including patch from 'Nibble'.

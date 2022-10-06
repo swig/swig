@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * main.cxx
  *
@@ -1329,7 +1329,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	if (tlm->status == Experimental) {
 	  Swig_warning(WARN_LANG_EXPERIMENTAL, "SWIG", 1, "Experimental target language. "
 	    "Target language %s specified by %s is an experimental language. "
-	    "Please read about SWIG experimental languages, http://swig.org/Doc4.0/Introduction.html#Introduction_experimental_status.\n",
+	    "Please read about SWIG experimental languages, https://swig.org/Doc4.0/Introduction.html#Introduction_experimental_status.\n",
 	    tlm->help ? tlm->help : "", tlm->name);
 	}
 

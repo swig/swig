@@ -5,7 +5,7 @@ and CHANGES files.
 Release Notes
 =============
 Detailed release notes are available with the release and are also
-published on the SWIG web site at http://swig.org/release.html.
+published on the SWIG web site at https://swig.org/release.html.
 
 SWIG-4.1.0 summary:
 - Add PHP 8 support.
@@ -131,7 +131,7 @@ SWIG-3.0.1 summary:
 SWIG-3.0.0 summary:
 - This is a major new release focusing primarily on C++ improvements.
 - C++11 support added. Please see documentation for details of supported
-  features: http://www.swig.org/Doc3.0/CPlusPlus11.html
+  features: https://www.swig.org/Doc3.0/CPlusPlus11.html
 - Nested class support added. This has been taken full advantage of in
   Java and C#. Other languages can use the nested classes, but require
   further work for a more natural integration into the target language.
@@ -238,7 +238,7 @@ SWIG-2.0.1 summary:
   and Python language modules.
 
 SWIG-2.0.0 summary:
-- License changes, see LICENSE file and http://www.swig.org/legal.html.
+- License changes, see LICENSE file and https://www.swig.org/legal.html.
 - Much better nested class/struct support.
 - Much improved template partial specialization and explicit
   specialization handling.
