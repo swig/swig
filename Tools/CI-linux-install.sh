@@ -18,6 +18,14 @@ WITHLANG=$SWIGLANG
 
 case "$SWIGLANG" in
 	"")     ;;
+	"cffi")
+		export PATH=$HOME/.roswell/bin:$PATH
+		export ROSWELL_INSTALL_DIR=$HOME/.roswell
+		$RETRY wget -qO- https://raw.githubusercontent.com/roswell/roswell/release/scripts/install-for-ci.sh | sh
+		$RETRY mkdir -p ${ROSWELL_INSTALL_DIR}/bin
+		$RETRY cp Tools/cffi/cffi.ros ${ROSWELL_INSTALL_DIR}/bin/cffi
+		$RETRY chmod +x ${ROSWELL_INSTALL_DIR}/bin/cffi
+		;;
 	"csharp")
 		$RETRY sudo apt-get -qq install mono-devel
 		;;

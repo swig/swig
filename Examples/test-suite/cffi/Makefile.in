@@ -19,6 +19,7 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 # no C++ tests for now
 CPP_TEST_CASES =
+CPP11_TEST_CASES =
 #C_TEST_CASES +=
 
 # Custom tests - tests with additional commandline options
@@ -26,9 +27,9 @@ CPP_TEST_CASES =
 
 # Rules for the different types of tests
 %.cpptest:
-	$(setup)
-	+$(swig_and_compile_cpp)
-	$(run_testcase)
+	#$(setup)
+	#+$(swig_and_compile_cpp)
+	#$(run_testcase)
 
 %.ctest:
 	$(setup)
@@ -36,9 +37,9 @@ CPP_TEST_CASES =
 	$(run_testcase)
 
 %.multicpptest:
-	$(setup)
-	+$(swig_and_compile_multi_cpp)
-	$(run_testcase)
+	#$(setup)
+	#+$(swig_and_compile_multi_cpp)
+	#$(run_testcase)
 
 # Runs the testcase. A testcase is only run if
 # a file is found which has _runme.lisp appended after the testcase name.
@@ -49,7 +50,8 @@ run_testcase = \
 
 # Clean: (does nothing, we don't generate extra cffi code)
 %.clean:
-	@exit 0
+	@rm -f $*.fasl
+	@rm -f $*.lisp
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' cffi_clean

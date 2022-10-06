@@ -6,6 +6,10 @@
 set -e # exit on failure (same as -o errexit)
 
 case "$SWIGLANG" in
+	"cffi")
+		export ROSWELL_INSTALL_DIR=$HOME/.roswell
+		export PATH=${ROSWELL_INSTALL_DIR}/bin:$PATH
+		;;
 	"go")
 		if [[ "$VER" ]]; then
 		  eval "$($HOME/bin/gimme ${VER}.x)"

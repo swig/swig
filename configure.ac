@@ -2627,6 +2627,28 @@ AC_SUBST(D2COMPILER)
 AC_SUBST(DDEFAULTVERSION)
 AC_SUBST(DLIBPREFIX)
 
+
+#----------------------------------------------------------------
+# Look for cffi helper script
+#----------------------------------------------------------------
+
+AC_ARG_WITH(cffi, AS_HELP_STRING([--without-cffi], [Disable CFFI])
+AS_HELP_STRING([--with-cffi=path], [Set location of CFFI helper script]),[CFFIBIN="$withval"], [CFFIBIN="$alllang_default"])
+
+if test x"${CFFIBIN}" = xno; then
+  AC_MSG_NOTICE([Disabling CFFI])
+  CFFIBIN=
+else
+  if test "x$CFFIBIN" = xyes; then
+    AC_PATH_PROG(CFFIBIN, cffi)
+  else
+    CFFIBIN="$CFFIBIN"
+  fi
+fi
+
+AC_SUBST(CFFIBIN)
+
+
 #----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
@@ -2734,6 +2756,12 @@ if test -z "$RBIN" ; then
     SKIP_R="1"
 fi
 AC_SUBST(SKIP_R)
+
+SKIP_CFFI=
+if test -z "$CFFIBIN"; then
+    SKIP_CFFI="1"
+fi
+AC_SUBST(SKIP_CFFI)
 
 SKIP_SCILAB=
 if test -z "$SCILAB"; then
@@ -2856,6 +2884,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/scilab/Makefile
     Examples/test-suite/tcl/Makefile
     Examples/test-suite/lua/Makefile
+    Examples/test-suite/cffi/Makefile
     Examples/test-suite/r/Makefile
     Examples/test-suite/go/Makefile
     Source/Makefile
@@ -2903,6 +2932,7 @@ EOF
 AC_OUTPUT
 
 langs=""
+test -n "$SKIP_CFFI"		|| langs="${langs}cffi "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
 test -n "$SKIP_GO"		|| langs="${langs}go "
