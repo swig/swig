@@ -5377,10 +5377,9 @@ int SWIG_ConvertPtr(PyObject *obj, void **ptr, swig_type_info *ty, int flags)</t
 Converts a Python object <tt>obj</tt> to a C pointer.  The result of the conversion is placed
 into the pointer located at <tt>ptr</tt>.  <tt>ty</tt> is a SWIG type descriptor structure.
 <tt>flags</tt> is used to handle error checking and other aspects of conversion.  It is the
-bitwise-or of several flag values including <tt>SWIG_POINTER_EXCEPTION</tt> and
-<tt>SWIG_POINTER_DISOWN</tt>.   The first flag makes the function raise an exception on type
-error.  The second flag additionally
-steals ownership of an object. Returns 0 on success and -1 on error.
+bitwise-or of several flag values including <tt>SWIG_POINTER_DISOWN</tt> (which steals
+ownership of the object) and <tt>SWIG_POINTER_NO_NULL</tt> (which makes the conversion fail
+if the C pointer would be <tt>NULL</tt>). Returns 0 on success and -1 on error.
 </div>
 
 <p>
