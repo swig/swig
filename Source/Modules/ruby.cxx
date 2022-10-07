@@ -1880,9 +1880,7 @@ public:
              */
             bool unwrap = false;
             String *decl = Getattr(n, "decl");
-            int is_pointer = SwigType_ispointer_return(decl);
-            int is_reference = SwigType_isreference_return(decl);
-            if (is_pointer || is_reference) {
+            if (SwigType_refptr_count_return(decl) == 1) {
               String *type = Getattr(n, "type");
               Node *parent = Swig_methodclass(n);
               Node *modname = Getattr(parent, "module");

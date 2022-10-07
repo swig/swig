@@ -3159,9 +3159,7 @@ public:
 #if 1
       int unwrap = 0;
       String *decl = Getattr(n, "decl");
-      int is_pointer = SwigType_ispointer_return(decl);
-      int is_reference = SwigType_isreference_return(decl);
-      if (is_pointer || is_reference) {
+      if (SwigType_refptr_count_return(decl) == 1) {
 	String *type = Getattr(n, "type");
 	//Node *classNode = Swig_methodclass(n);
 	//Node *module = Getattr(classNode, "module");

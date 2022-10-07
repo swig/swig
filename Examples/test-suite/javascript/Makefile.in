@@ -59,6 +59,7 @@ ifeq (node,$(JSENGINE))
   director_basic.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   member_funcptr_galore.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+  director_unwrap_result.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
 	setup_node = \
 		test -d $* || mkdir $* && \
