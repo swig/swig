@@ -1,0 +1,676 @@
+clargs <- commandArgs(trailing=TRUE)
+source(file.path(clargs[1], "unittest.R"))
+#source("unittest.R")
+
+dyn.load(paste("li_boost_shared_ptr", .Platform$dynlib.ext, sep=""))
+source("li_boost_shared_ptr.R")
+cacheMetaData(1)
+
+# simple shared_ptr usage - created in C++
+
+invisible(debug_shared(TRUE))
+unittest(debug_shared(), TRUE)
+
+
+# Expect 1 instance - the one global variable (GlobalValue)
+unittest(Klass_getTotal_count(), 1)
+
+# Change loop count to run for a long time to monitor memory
+unittest(shared_ptr_wrapper_count(), NOT_COUNTING())
+
+
+#
+# test suite to be run in a loop
+#
+
+testSuite_verifyCount <- function(expected, k) {
+	got = use_count(k)
+	unittest(expected, got);
+}
+
+testSuite <- function() {
+
+	# simple shared_ptr usage - created in C++
+  {
+    k = Klass("me oh my")
+    val = k$getValue()
+    unittest("me oh my", val)
+    testSuite_verifyCount(1, k)
+  }
+
+	# simple shared_ptr usage - not created in C++
+	{
+	  k = factorycreate()
+	  val = k$getValue()
+	  unittest("factorycreate", val)
+	  testSuite_verifyCount(1, k)
+	}
+
+	# pass by shared_ptr
+	{
+	  k = Klass("me oh my")
+	  kret = smartpointertest(k)
+	  val = kret$getValue()
+	  unittest("me oh my smartpointertest", val)
+	  testSuite_verifyCount(2, k)
+	  testSuite_verifyCount(2, kret)
+	}
+
+	# pass by shared_ptr pointer
+	{
+	  k = Klass("me oh my")
+	  kret = smartpointerpointertest(k)
+	  val = kret$getValue()
+	  unittest("me oh my smartpointerpointertest", val)
+	  testSuite_verifyCount(2, k)
+	  testSuite_verifyCount(2, kret)
+	}
+
+	# pass by shared_ptr reference
+	{
+	  k = Klass("me oh my")
+	  kret = smartpointerreftest(k)
+	  val = kret$getValue()
+	  unittest("me oh my smartpointerreftest", val)
+	  testSuite_verifyCount(2, k)
+	  testSuite_verifyCount(2, kret)
+	}
+
+	if (FALSE) {
+	  # pass by shared_ptr pointer reference
+	  k = Klass("me oh my")
+	  kret = smartpointerpointerreftest(k) # undefined class _p_p_SwigBoost__shared_ptrT_Space__Klass_t
+	  val = kret$getValue()
+	  unittest("me oh my smartpointerpointerreftest", val)
+	  testSuite_verifyCount(2, k)
+	  testSuite_verifyCount(2, kret)
+	}
+
+	if (FALSE) {
+	  # pass by shared_ptr pointer reference
+	  k = Klass("me oh my");
+	  kret = smartpointerpointerreftest(k); # undefined class _p_p_SwigBoost__shared_ptrT_Space__Klass_t
+	  val = kret$getValue()
+	  unittest("me oh my smartpointerpointerreftest", val);
+	  testSuite_verifyCount(2, k);
+	  testSuite_verifyCount(2, kret);
+	}
+
+	# const pass by shared_ptr
+	{
+	  k = Klass("me oh my");
+	  kret = constsmartpointertest(k);
+	  val = Klass_getValue(kret) # kret$getValue(); - method not defined
+	  unittest("me oh my", val);
+	  testSuite_verifyCount(2, k);
+	  # testSuite_verifyCount(2, kret); # -> use_count not defined on _p_SwigBoost__shared_ptrT_Space__Klass_const_t
+	}
+
+  # pass by value
+  {
+    k = Klass("me oh my");
+    kret = valuetest(k);
+    val = kret$getValue();
+    unittest("me oh my valuetest", val);
+    testSuite_verifyCount(1, k);
+    # testSuite_verifyCount(1, kret); # -> use_count not defined on _p_Space__Klass
+  }
+
+  # pass by pointer
+  {
+    k = Klass("me oh my");
+    kret = pointertest(k);
+    val = kret$getValue();
+    unittest("me oh my pointertest", val);
+    testSuite_verifyCount(1, k);
+    # testSuite_verifyCount(1, kret); # -> use_count not defined on _p_Space__Klass
+  }
+
+  # pass by reference
+  {
+    k = Klass("me oh my");
+    kret = reftest(k);
+    val = kret$getValue();
+    unittest("me oh my reftest", val);
+    testSuite_verifyCount(1, k);
+    #testSuite_verifyCount(1, kret); # -> use_count not defined on _p_Space__Klass
+  }
+
+  # pass by pointer reference
+  if (FALSE) {
+    k = Klass("me oh my");
+    kret = pointerreftest(k); # -> class not defined _p_p_Space__Klass
+    val = kret$getValue();
+    unittest("me oh my pointerreftest", val);
+    testSuite_verifyCount(1, k);
+    testSuite_verifyCount(1, kret);
+  }
+
+  # null tests
+  {
+    k = NULL
+
+    if (!is.null(smartpointertest(k))) {
+      stop("return was not null");
+    }
+
+    if (!is.null(smartpointerpointertest(k))) {
+      stop("return was not null");
+    }
+
+    if (!is.null(smartpointerreftest(k))) {
+      stop("return was not null");
+    }
+
+    if (!is.null(smartpointerpointerreftest(k))) {
+      stop("return was not null");
+    }
+
+    if (nullsmartpointerpointertest(k) != "null pointer") {
+      stop("not null smartpointer pointer");
+    }
+
+    bNotCatched = F
+    try({
+      valuetest(k);
+      bNotCatched = T
+    }, silent = T)
+    if (bNotCatched) {
+      stop("Failed to catch null pointer");
+    }
+
+   if (!is.null(pointertest(k))) {
+      stop("return was not null");
+    }
+
+    bNotCatched = F
+    try({
+      reftest(k);
+      bNotCatched = T
+    }, silent = T)
+    if (bNotCatched) {
+      stop("Failed to catch null pointer");
+    }
+  }
+
+  # $owner
+  {
+    k = pointerownertest();
+    val = k$getValue();
+    unittest("pointerownertest", val);
+    # testSuite_verifyCount(1, k); # -> use_count not defined for _p_Space__Klass
+  }
+
+  {
+    k = smartpointerpointerownertest();
+    val = k$getValue();
+    unittest("smartpointerpointerownertest", val);
+    testSuite_verifyCount(1, k);
+  }
+
+  #
+  # ###################### Derived classes ######################
+  #
+
+  # derived pass by shared_ptr
+  {
+    k = KlassDerived("me oh my");
+    kret = derivedsmartptrtest(k);
+    val = kret$getValue();
+    unittest("me oh my derivedsmartptrtest-Derived", val);
+    testSuite_verifyCount(2, k);
+    testSuite_verifyCount(2, kret);
+    # testSuite_verifyCount(4, k); # includes two extra references for upcasts
+    # testSuite_verifyCount(4, kret);
+  }
+
+  # derived pass by shared_ptr pointer
+  {
+    k = KlassDerived("me oh my");
+    kret = derivedsmartptrpointertest(k);
+    val = kret$getValue();
+    unittest("me oh my derivedsmartptrpointertest-Derived", val);
+    testSuite_verifyCount(2, k);
+    testSuite_verifyCount(2, kret);
+    # testSuite_verifyCount(4, k); # includes two extra references for upcasts in the proxy classes
+    # testSuite_verifyCount(4, kret);
+  }
+
+  # derived pass by shared_ptr ref
+  {
+    k = KlassDerived("me oh my");
+    kret = derivedsmartptrreftest(k);
+    val = kret$getValue();
+    unittest("me oh my derivedsmartptrreftest-Derived", val);
+    testSuite_verifyCount(2, k);
+    testSuite_verifyCount(2, kret);
+    #testSuite_verifyCount(4, k); # includes two extra references for upcasts in the proxy classes
+    #testSuite_verifyCount(4, kret);
+  }
+
+  # derived pass by shared_ptr pointer ref
+  if (FALSE) {
+    k = KlassDerived("me oh my");
+    kret = derivedsmartptrpointerreftest(k); # undefined class _p_p_SwigBoost__shared_ptrT_Space__KlassDerived_t
+    val = kret$getValue();
+    unittest("me oh my derivedsmartptrpointerreftest-Derived", val);
+    testSuite_verifyCount(4, k); # includes two extra references for upcasts in the proxy classes
+    testSuite_verifyCount(4, kret);
+  }
+
+  # derived pass by pointer
+  {
+    k = KlassDerived("me oh my");
+    kret = derivedpointertest(k);
+    val = kret$getValue();
+    unittest("me oh my derivedpointertest-Derived", val);
+    testSuite_verifyCount(1, k);
+    # testSuite_verifyCount(1, kret); -> use_count not defined for _p_Space__KlassDerived
+
+    # testSuite_verifyCount(2, k); # includes an extra reference for the upcast in the proxy class
+    # testSuite_verifyCount(2, kret);
+  }
+
+  # derived pass by ref
+  {
+    k = KlassDerived("me oh my");
+    kret = derivedreftest(k);
+    val = kret$getValue();
+    unittest("me oh my derivedreftest-Derived", val);
+    testSuite_verifyCount(1, k);
+    #testSuite_verifyCount(1, kret); --> use_count not defined for _p_Space__KlassDerived
+
+    #testSuite_verifyCount(2, k); # includes an extra reference for the upcast in the proxy class
+    #testSuite_verifyCount(2, kret);
+  }
+
+
+  #
+  # ###################### Derived and base class mixed ######################
+  #
+
+  # pass by shared_ptr (mixed)
+  {
+    k = KlassDerived("me oh my");
+    kret = smartpointertest(k);
+    val = kret$getValue();
+    unittest("me oh my smartpointertest-Derived", val);
+    testSuite_verifyCount(3, k); # an extra reference for the upcast in the proxy class
+    testSuite_verifyCount(3, kret);
+  }
+
+  # pass by shared_ptr pointer (mixed)
+  {
+    k = KlassDerived("me oh my");
+    kret = smartpointerpointertest(k);
+    val = kret$getValue();
+    unittest("me oh my smartpointerpointertest-Derived", val);
+    testSuite_verifyCount(3, k); # an extra reference for the upcast in the proxy class
+    testSuite_verifyCount(3, kret);
+  }
+
+  # pass by shared_ptr reference (mixed)
+  {
+    k = KlassDerived("me oh my");
+    kret = smartpointerreftest(k);
+    val = kret$getValue();
+    unittest("me oh my smartpointerreftest-Derived", val);
+    testSuite_verifyCount(3, k); # an extra reference for the upcast in the proxy class
+    testSuite_verifyCount(3, kret);
+  }
+
+  # pass by shared_ptr pointer reference (mixed)
+  if (FALSE) {
+    k = KlassDerived("me oh my");
+    kret = smartpointerpointerreftest(k); # -> undefined _p_p_SwigBoost__shared_ptrT_Space__Klass_t
+    val = kret$getValue();
+    unittest("me oh my smartpointerpointerreftest-Derived", val);
+    testSuite_verifyCount(3, k); # an extra reference for the upcast in the proxy class
+    testSuite_verifyCount(3, kret);
+  }
+
+  # pass by value (mixed)
+  {
+    k = KlassDerived("me oh my");
+    kret = valuetest(k);
+    val = kret$getValue();
+    unittest("me oh my valuetest", val); # note slicing
+    testSuite_verifyCount(2, k); # an extra reference for the upcast in the proxy class
+    # testSuite_verifyCount(1, kret); # -> use count undefined for _p_Space__Klass
+  }
+
+  # pass by pointer (mixed)
+  {
+    k = KlassDerived("me oh my");
+    kret = pointertest(k);
+    val = kret$getValue();
+    unittest("me oh my pointertest-Derived", val);
+    testSuite_verifyCount(2, k); # an extra reference for the upcast in the proxy class
+    # testSuite_verifyCount(1, kret); # -> use count undefined for _p_Space__Klass
+  }
+
+  # pass by ref (mixed)
+  {
+    k = KlassDerived("me oh my");
+    kret = reftest(k);
+    val = kret$getValue();
+    unittest("me oh my reftest-Derived", val);
+    testSuite_verifyCount(2, k); # an extra reference for the upcast in the proxy class
+    # testSuite_verifyCount(1, kret); # -> use count undefined for _p_Space__Klass
+  }
+
+  # 3rd derived class
+  {
+    k = Klass3rdDerived("me oh my");
+    val = k$getValue();
+    unittest("me oh my-3rdDerived", val);
+    testSuite_verifyCount(1, k);
+    #testSuite_verifyCount(3, k); # 3 classes in inheritance chain == 3 swigCPtr values
+
+    val = test3rdupcast(k);
+    unittest("me oh my-3rdDerived", val);
+    testSuite_verifyCount(2, k);
+    #testSuite_verifyCount(3, k);
+  }
+
+
+  #
+  # ################ Member variables ####################
+  #
+
+  # smart pointer by value
+  {
+    m = MemberVariables();
+    k = Klass("smart member value");
+    MemberVariables_SmartMemberValue_set(self = m, s_SmartMemberValue = k)
+
+    val = k$getValue();
+    unittest("smart member value", val);
+    testSuite_verifyCount(2, k);
+
+    kmember = MemberVariables_SmartMemberPointer_get(self = m)
+    val = kmember$getValue();
+    unittest("smart member value", val);
+    testSuite_verifyCount(3, kmember);
+    testSuite_verifyCount(3, k);
+
+    delete_MemberVariables(m)
+    testSuite_verifyCount(2, kmember); # these should be -1 wrt to the previous test ?
+    testSuite_verifyCount(2, k);
+  }
+
+  # smart pointer by pointer
+  {
+    m = MemberVariables();
+    k = Klass("smart member pointer");
+    MemberVariables_SmartMemberPointer_set(self = m , s_SmartMemberPointer = k);
+    val = k$getValue();
+    unittest("smart member pointer", val);
+    testSuite_verifyCount(1, k);
+
+    kmember = MemberVariables_SmartMemberPointer_get(self = m)
+    val = kmember$getValue();
+    unittest("smart member pointer", val);
+    testSuite_verifyCount(2, kmember);
+    testSuite_verifyCount(2, k);
+
+    delete_MemberVariables(m);
+    testSuite_verifyCount(2, kmember);
+    testSuite_verifyCount(2, k);
+  }
+
+  # smart pointer by reference
+  {
+    m = MemberVariables();
+    k = Klass("smart member reference");
+    MemberVariables_SmartMemberReference_set(self = m , s_SmartMemberReference = k); # m$setSmartMemberReference(k);
+    val = k$getValue();
+    unittest("smart member reference", val);
+    testSuite_verifyCount(2, k);
+
+    kmember = MemberVariables_SmartMemberPointer_get(self = m)
+    val = kmember$getValue();
+    unittest("smart member reference", val);
+    testSuite_verifyCount(3, kmember);
+    testSuite_verifyCount(3, k);
+
+    # The C++ reference refers to SmartMemberValue...
+    kmemberVal = MemberVariables_SmartMemberReference_get(self = m)
+    val = kmember$getValue();
+    unittest("smart member reference", val);
+    testSuite_verifyCount(4, kmemberVal);
+    testSuite_verifyCount(4, kmember);
+    testSuite_verifyCount(4, k);
+
+    delete_MemberVariables(m);
+    testSuite_verifyCount(3, kmemberVal); # should be one less than the previous one
+    testSuite_verifyCount(3, kmember);
+    testSuite_verifyCount(3, k);
+  }
+
+  # plain by value
+  {
+    m = MemberVariables();
+    k = Klass("plain member value");
+    MemberVariables_MemberValue_set(self = m, s_MemberValue = k); # m$setMemberValue(k);
+    val = k$getValue();
+    unittest("plain member value", val);
+    testSuite_verifyCount(1, k);
+
+    kmember = MemberVariables_MemberValue_get(m); # m$getMemberValue();
+    val = kmember$getValue();
+    unittest("plain member value", val);
+    # testSuite_verifyCount(1, kmember); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, k);
+
+    delete_MemberVariables(m); # m.delete();
+    # testSuite_verifyCount(1, kmember); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, k);
+  }
+
+  # plain by pointer
+  {
+    m = MemberVariables();
+    k = Klass("plain member pointer");
+    MemberVariables_MemberPointer_set(self = m, s_MemberPointer = k); # m$setMemberPointer(k);
+    val = k$getValue();
+    unittest("plain member pointer", val);
+    testSuite_verifyCount(1, k);
+
+    kmember = MemberVariables_MemberPointer_get(self = m); # m$getMemberPointer();
+    val = kmember$getValue();
+    unittest("plain member pointer", val);
+    # testSuite_verifyCount(1, kmember); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, k);
+
+    delete_MemberVariables(m); # m.delete();
+    # testSuite_verifyCount(1, kmember); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, k);
+  }
+
+  # plain by reference
+  {
+    m = MemberVariables();
+    k = Klass("plain member reference");
+    MemberVariables_MemberReference_set(self = m, s_MemberReference = k); # m$setMemberReference(k);
+    val = k$getValue();
+    unittest("plain member reference", val);
+    testSuite_verifyCount(1, k);
+
+    kmember = MemberVariables_MemberReference_get(self = m); #m$getMemberReference();
+    val = kmember$getValue();
+    unittest("plain member reference", val);
+    # testSuite_verifyCount(1, kmember); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, k);
+
+    delete_MemberVariables(m); # m.delete();
+    # testSuite_verifyCount(1, kmember); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, k);
+  }
+
+  # null member variables
+  {
+    m = MemberVariables();
+
+    # shared_ptr by value
+    k = MemberVariables_SmartMemberValue_get(self = m); # k = m$getSmartMemberValue();
+    if (!is.null(k))
+      stop("expected null");
+
+    MemberVariables_SmartMemberValue_set(self = m, s_SmartMemberValue = NULL); #m$setSmartMemberValue(null);
+    k = MemberVariables_SmartMemberValue_get(self = m); #m$getSmartMemberValue();
+    if (!is.null(k))
+      stop("expected null");
+    #testSuite_verifyCount(0, k);
+
+    # plain by value
+    bNotCatched = F
+    try({
+      MemberVariables_MemberValue_set(self = m, s_MemberValue = NULL)
+      bNotCatched = T
+    }, silent = T)
+    if (bNotCatched) {
+      stop("Failed to catch null pointer")
+    }
+
+  }
+
+
+  #
+  # ################ Global variables ####################
+  #
+
+  # smart pointer
+  {
+    kglobal = GlobalSmartValue_get();
+    if (!is.null(kglobal))
+      stop("expected null");
+
+    k = Klass("smart global value");
+    GlobalSmartValue_set(k);
+    testSuite_verifyCount(2, k);
+
+    kglobal = GlobalSmartValue_get();
+    val = kglobal$getValue();
+    unittest("smart global value", val);
+    testSuite_verifyCount(3, kglobal);
+    testSuite_verifyCount(3, k);
+    unittest("smart global value", GlobalSmartValue_get()$getValue());
+
+    GlobalSmartValue_set(NULL);
+  }
+
+  # plain value
+  {
+    k = Klass("global value");
+    GlobalValue_set(k);
+    testSuite_verifyCount(1, k);
+
+    kglobal = GlobalValue_get();
+    val = kglobal$getValue();
+    unittest("global value", val);
+    # testSuite_verifyCount(1, kglobal); # -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, k);
+    unittest("global value", GlobalValue_get()$getValue());
+
+    bNotCatched = F
+    try({
+      GlobalValue_set(NULL)
+      bNotCatched = T
+    }, silent = T)
+    if (bNotCatched) {
+      stop("Failed to catch null pointer")
+    }
+  }
+
+  # plain pointer
+  {
+    kglobal = GlobalPointer_get();
+    if (!is.null(kglobal))
+      stop("expected null");
+
+    k = Klass("global pointer");
+    GlobalPointer_set(k);
+    testSuite_verifyCount(1, k);
+
+    kglobal = GlobalPointer_get();
+    val = kglobal$getValue();
+    unittest("global pointer", val);
+    # testSuite_verifyCount(1, kglobal); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, k);
+    GlobalPointer_set(NULL);
+  }
+
+  # plain reference
+  {
+    k = Klass("global reference");
+    GlobalReference_set(k);
+    testSuite_verifyCount(1, k);
+
+    kglobal = GlobalReference_get();
+    val = kglobal$getValue();
+    unittest("global reference", val);
+    # testSuite_verifyCount(1, kglobal); # -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, k);
+
+    bNotCatched = F
+    try({
+      GlobalReference_set(NULL)
+      bNotCatched = T
+    }, silent = T)
+    if (bNotCatched) {
+      stop("Failed to catch null pointer")
+    }
+  }
+
+
+
+
+
+
+  #
+  # ###################### Templates ######################
+  #
+  {
+    pid = PairIntDouble(10, 20.2);
+    if (BaseIntDouble_baseVal1_get(pid) != 20 || BaseIntDouble_baseVal2_get(pid) != 40.4)
+      stop("Base values wrong");
+    if (PairIntDouble_val1_get(pid) != 10 || PairIntDouble_val2_get(pid) != 20.2)
+      stop("Derived Values wrong");
+  }
+
+}
+
+
+# actually do the tests
+for (i in 1:10) {
+  print(paste("Start Loop: ", i))
+  testSuite()
+  print(paste("End Loop: ", i))
+}
+
+
+# wait for the GC to collect unused objects
+
+for (i in 1:10) {
+  invisible(gc(verbose = F, full = T))
+
+  if (Klass_getTotal_count() == 1) {
+    break
+  }
+
+  print(paste("Still waiting for GC to collect ", Klass_getTotal_count()-1, " objects, ", i))
+  Sys.sleep(1)
+}
+
+# Expect
+unittest(shared_ptr_wrapper_count(), NOT_COUNTING())
+
+# Expect 1 instance - the one global variable (GlobalValue)
+# -> documented bug - gc does not work on some objects - https://www.swig.org/Doc4.0/SWIGDocumentation.html#R_nn2
+if (FALSE) {
+  unittest(Klass_getTotal_count(), 1)
+}
+
+
+q(save="no")
