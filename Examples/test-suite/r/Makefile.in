@@ -25,8 +25,7 @@ CPP_TEST_CASES += \
 	r_overload_array \
 	r_sexp \
         r_overload_comma \
-	r_use_isnull \
-	li_boost_shared_ptr
+	r_use_isnull
 
 # These tests are failing because enums currently cannot handle
 # arithmetic expressions
