@@ -16,7 +16,7 @@ Version 4.1.0 (in progress)
             [Python, Ruby] #1811 #1823 Fix invalid code generated in some cases when
             returning a pointer or reference to a director-enabled class instance.
             This previously only worked in very simple cases, now return types are
-            resolved to fix. A bug in template instantations using pointers also
+            resolved to fix. A bug in template instantiations using pointers also
             works now.
 
 2022-10-06: wsfulton
@@ -42,6 +42,7 @@ Version 4.1.0 (in progress)
 2022-10-05: benjamin-sch
             [Python] added an interpreter counter to fix deinitialization
             issues if multiple subinterpreters are used
+
 2022-10-05: olly, wsfulton
             #672 Add support for parsing C++11 final classes such as:
 
