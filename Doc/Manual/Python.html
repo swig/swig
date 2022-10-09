@@ -3128,9 +3128,7 @@ likely cause your program to segfault.
 <p>
 To help ensure that no references to the Python object remain after
 calling <tt>__disown__()</tt>, this method returns a weak reference to
-the Python object. Weak references are only available in Python versions
-2.1 and higher, so for older versions you must explicitly delete all
-references. Here is an example:
+the Python object. Here is an example:
 </p>
 
 <div class="code">
