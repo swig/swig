@@ -20,3 +20,5 @@ function checkAll(val) {
 }
 
 checkAll(3902408827)
+checkAll(Number.MAX_SAFE_INTEGER)
+checkAll(Number.MIN_SAFE_INTEGER)
