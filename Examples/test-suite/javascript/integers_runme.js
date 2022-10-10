@@ -1,16 +1,22 @@
 var integers = require("integers");
 
-function checkOne(val, fn) {
-  ret = fn(val)
+function checkOne(val, signed, typeName) {
+  typeName = (signed ? 'signed_' : 'unsigned_') + typeName
+
+  var size = integers[typeName + '_size']()
+  if ((!signed && val < 0) || (size < 8))
+    return // out of range, skip test
+
+  ret = integers[typeName + '_identity'](val)
   if (ret !== val)
     throw "Incorrect value: expected " + val + ", got " + ret
 }
 
 function checkAll(val) {
-  checkOne(val, integers.signed_long_identity)
-  checkOne(val, integers.unsigned_long_identity)
-  checkOne(val, integers.signed_long_long_identity)
-  checkOne(val, integers.unsigned_long_long_identity)
+  checkOne(val, true, 'long')
+  checkOne(val, false, 'long')
+  checkOne(val, true, 'long_long')
+  checkOne(val, false, 'long_long')
 }
 
 checkAll(3902408827)
