@@ -140,7 +140,6 @@ extern "C" {
   extern String *SwigType_pop(SwigType *t);
   extern void SwigType_push(SwigType *t, String *s);
   extern SwigType *SwigType_last(SwigType *t);
-  extern int SwigType_refptr_count_return(const SwigType *t);
   extern List *SwigType_parmlist(const SwigType *p);
   extern String *SwigType_parm(const SwigType *p);
   extern String *SwigType_str(const SwigType *s, const_String_or_char_ptr id);

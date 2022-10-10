@@ -25,6 +25,8 @@ class Element {
       return &selfptr;
     }
 };
+typedef Element * element_ptr_t;
+typedef Element & element_ref_t;
 
 class Storage {
   public:
@@ -43,6 +45,15 @@ class Storage {
       return getIt();
     }
     Element *&getElementPtrRef() {
+      return *getIt();
+    }
+    element_ref_t getElementRefTypedef() {
+      return **getIt();
+    }
+    element_ptr_t getElementPtrTypedef() {
+      return *getIt();
+    }
+    element_ptr_t &getElementPtrRefTypedef() {
       return *getIt();
     }
 };

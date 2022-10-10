@@ -41,11 +41,25 @@ swig_assert_equal('s.getElementPtr', 'e', binding)
 swig_assert_equal('s.getElementRef.class', 'MyElement', binding)
 swig_assert_equal('s.getElementRef', 'e', binding)
 
+# this shows that the director class was unwrapped:
+swig_assert_equal('s.getElementPtrTypedef.class', 'MyElement', binding)
+swig_assert_equal('s.getElementPtrTypedef', 'e', binding)
+
+# this shows that the director class was unwrapped:
+swig_assert_equal('s.getElementRefTypedef.class', 'MyElement', binding)
+swig_assert_equal('s.getElementRefTypedef', 'e', binding)
+
+# this is not unwrapped:
 swig_assert_equal('s.getElementPtrPtr.class', 'SWIG::TYPE_p_p_Element', binding)
 swig_assert_equal('s.getElementPtrPtr.class', 'SWIG::TYPE_p_p_Element', binding)
 
+# this is not unwrapped:
 swig_assert_equal('s.getElementPtrRef.class', 'SWIG::TYPE_p_p_Element', binding)
 swig_assert_equal('s.getElementPtrRef.class', 'SWIG::TYPE_p_p_Element', binding)
+
+# this is not unwrapped:
+swig_assert_equal('s.getElementPtrRefTypedef.class', 'SWIG::TYPE_p_p_Element', binding)
+swig_assert_equal('s.getElementPtrRefTypedef.class', 'SWIG::TYPE_p_p_Element', binding)
 
 ############################
 # test with a template class

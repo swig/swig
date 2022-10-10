@@ -233,3 +233,38 @@ void Swig_director_parms_fixup(ParmList *parms) {
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_director_can_unwrap()
+ *
+ * Determine whether a function's return type can be returned as an existing
+ * target language object instead of creating a new target language object.
+ * Must be a director class and only for return by pointer or reference only
+ * (not by value or by pointer to pointer etc).
+ * ----------------------------------------------------------------------------- */
+
+bool Swig_director_can_unwrap(Node *n) {
+
+  // FIXME: this will not try to unwrap directors returned as non-director
+  //        base class pointers!
+
+  bool unwrap = false;
+
+  String *type = Getattr(n, "type");
+  SwigType *t = SwigType_typedef_resolve_all(type);
+  SwigType *t1 = SwigType_strip_qualifiers(t);
+  SwigType *prefix = SwigType_prefix(t1);
+
+  if (Strcmp(prefix, "p.") == 0 || Strcmp(prefix, "r.") == 0) {
+    Node *parent = Swig_methodclass(n);
+    Node *module = Getattr(parent, "module");
+    Node *target = Swig_directormap(module, t1);
+    if (target)
+      unwrap = true;
+  }
+
+  Delete(prefix);
+  Delete(t1);
+  Delete(t);
+
+  return unwrap;
+}

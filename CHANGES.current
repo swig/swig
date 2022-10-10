@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-10: treitmayr, wsfulton
+            [Python, Ruby] #1811 #1823 Fix invalid code generated in some cases when
+            returning a pointer or reference to a director-enabled class instance.
+            This previously only worked in very simple cases, now return types are
+            resolved to fix. A bug in template instantations using pointers also
+            works now.
+
 2022-10-06: wsfulton
 	    [CFFI] #1966 #2200 Remove code for Common Lisp CFFI.  We dropped support
 	    for it in SWIG 4.0.0 by disabling it as the first stage. This is the

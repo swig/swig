@@ -405,6 +405,7 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
 String *Swig_director_declaration(Node *n);
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
 void Swig_director_parms_fixup(ParmList *parms);
+bool Swig_director_can_unwrap(Node *n);
 /* directors.cxx end */
 
 /* Utilities */

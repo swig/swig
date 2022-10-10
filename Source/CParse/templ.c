@@ -248,7 +248,7 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
 static void cparse_fix_function_decl(String *name, SwigType *decl, SwigType *type) {
   String *prefix;
   int prefixLen;
-  SwigType* last;
+  SwigType *last;
 
   /* The type's prefix is what potentially has to be moved to the end of 'decl' */
   prefix = SwigType_prefix(type);
@@ -275,8 +275,7 @@ static void cparse_fix_function_decl(String *name, SwigType *decl, SwigType *typ
     Append(decl, prefix);
     Delslice(type, 0, prefixLen);
     if (template_debug) {
-      Printf(stdout, "    change function '%s' to type='%s', decl='%s'\n",
-	     name, type, decl);
+      Printf(stdout, "    change function '%s' to type='%s', decl='%s'\n", name, type, decl);
     }
   }
 
@@ -510,7 +509,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       }
     }
   }
-
   cparse_postprocess_expanded_template(n);
 
   /* Patch bases */
