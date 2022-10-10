@@ -496,10 +496,6 @@ uninstall-ccache:
 # DIST and other maintenance
 ############################################################################
 
-# distribution directory
-dd = @PACKAGE_NAME@-@PACKAGE_VERSION@
-srpm = @PACKAGE_NAME@-@PACKAGE_VERSION@
-
 dist:
 	@echo "'make dist' not implemented - use Tools/mkdist.py instead - e.g.:"
 	@echo "Tools/mkdist.py @VERSION@ master"
