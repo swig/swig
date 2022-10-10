@@ -1647,20 +1647,13 @@ public:
     /* any existing helper functions to handle this? */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	/* A little explanation:
-	 * The director_enum test case makes a method whose return type
-	 * is an enum type.  returntype here is "int".  gcc complains
-	 * about an implicit enum conversion, and although i don't strictly
-	 * agree with it, I'm working on fixing the error:
-	 *
-	 * Below is what I came up with.  It's not great but it should
-	 * always essentially work.
-	 */
+	String *rettype = SwigType_str(returntype, 0);
 	if (!SwigType_isreference(returntype)) {
-	  Printf(w->code, "CAMLreturn_type((%s)c_result);\n", SwigType_lstr(returntype, ""));
+	  Printf(w->code, "CAMLreturn_type((%s)c_result);\n", rettype);
 	} else {
-	  Printf(w->code, "CAMLreturn_type(*c_result);\n");
+	  Printf(w->code, "CAMLreturn_type((%s)*c_result);\n", rettype);
 	}
+	Delete(rettype);
       }
     } else {
       Printf(w->code, "CAMLreturn0;\n");
