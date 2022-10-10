@@ -216,6 +216,7 @@ CPP_TEST_CASES += \
 	director_ref \
 	director_simple \
 	director_smartptr \
+	director_template \
 	director_thread \
 	director_unroll \
 	director_unwrap_result \

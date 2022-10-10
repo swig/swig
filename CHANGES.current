@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-10: wsfulton
+            #2160 Fix compile error when using templates with more than one template
+            parameter and used as an input parameter in a virtual method in a
+            director class (problem affecting most of the scripting languages).
+
 2022-10-10: treitmayr, wsfulton
             [Python, Ruby] #1811 #1823 Fix invalid code generated in some cases when
             returning a pointer or reference to a director-enabled class instance.
