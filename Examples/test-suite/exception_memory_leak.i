@@ -1,6 +1,7 @@
 %module exception_memory_leak
 
 %include <std_string.i>
+%include <exception.i>
 
 %typemap(in) Foo* foo
 {
@@ -11,10 +12,14 @@
   Foo::inc_freearg_count();
   delete $1;
 }
-%typemap(out) Foo* verify_no_memory_leak
+%typemap(out) Foo* trigger_internal_swig_exception
 {
-  if ($1 == NULL)
-    SWIG_exception_fail(SWIG_RuntimeError, "Let's see how the bindings manage this exception!");
+  if ($1 == NULL) {
+    SWIG_exception(SWIG_RuntimeError, "Let's see how the bindings manage this exception!");
+#ifdef SWIG_fail
+    SWIG_fail;
+#endif
+  }
   $1 = NULL;
 }
 
