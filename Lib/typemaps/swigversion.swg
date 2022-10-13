@@ -12,6 +12,5 @@
 %insert("header") {
 %define_swig_version_()
 %#define SWIG_VERSION SWIG_VERSION_
-%#undef SWIG_VERSION_
 }
 #undef %define_swig_version_

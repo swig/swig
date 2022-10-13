@@ -10,6 +10,16 @@
 #endif
 %}
 
+%define %generate_swig_version_from_preprocessor()%#define SWIG_VERSION_FROM_SWIG_PREPROCESSOR SWIG_VERSION %enddef
+%insert("header") {
+%generate_swig_version_from_preprocessor()
+}
+%insert("header") %{
+#if SWIG_VERSION != SWIG_VERSION_FROM_SWIG_PREPROCESSOR
+# error SWIG_VERSION in SWIG preprocessor does not match SWIG_VERSION from C preprocessor
+#endif
+%}
+
 /* Test that SWIGVERSION is NOT defined at SWIG-time or in the wrapper.
  * It used to be defined in the wrapper as a side-effect of how SWIG_VERSION
  * was defined in the wrapper but was never documented and is redundant.
