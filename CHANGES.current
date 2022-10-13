@@ -290,12 +290,6 @@ Version 4.1.0 (in progress)
 2022-07-12: erezgeva
             [Perl] Add std::unique_ptr support in std_unique_ptr.i library file.
 
-2022-07-07: olly
-	    [xml] #2213 XML has been moved to "Experimental" target language
-	    status. It's not in good shape and is likely to be removed unless
-	    somebody steps up to bring it up to the expected standard (it fails
-	    to even meet the criteria for "Experimental" currently).
-
 2022-07-07: jmarrec
 	    #1158 #2286 Add basic support for C++11 attributes.  These are now
 	    crudely ignored by SWIG's parser's tokeniser, which is better that

@@ -80,7 +80,7 @@ static TargetLanguageModule modules[] = {
   {"-tcl", swig_tcl, NULL, Supported},
   {"-tcl8", swig_tcl, "Tcl 8", Supported},
   {"-uffi", NULL, "Common Lisp / UFFI", Disabled},
-  {"-xml", swig_xml, "XML", Experimental},
+  {"-xml", swig_xml, "XML", Supported},
   {NULL, NULL, NULL, Disabled}
 };
 
