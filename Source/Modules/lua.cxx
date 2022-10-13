@@ -556,6 +556,12 @@ public:
        this line adds this into the wrapper code
        NEW LANGUAGE NOTE:END *********************************************** */
     Printv(f->def, "static int ", wname, "(lua_State* L) {", NIL);
+    // SWIG_fail in lua leads to a call to lua_error() which calls longjmp()
+    // which means the destructors of any live function-local C++ objects won't
+    // get run.  To avoid this happening, we wrap almost everything in the
+    // function in a block, and end that right before lua_error() at which
+    // point those destructors will get called.
+    if (CPlusPlus) Append(f->def, "\n{");
 
     /* NEW LANGUAGE NOTE:***********************************************
        this prints the list of args, eg for a C fn
@@ -766,10 +772,12 @@ public:
     /* Close the function */
     Printv(f->code, "return SWIG_arg;\n", NIL);
     // add the failure cleanup code:
-    Printv(f->code, "\nif(0) SWIG_fail;\n", NIL);
-    Printv(f->code, "\nfail:\n", NIL);
-    Printv(f->code, "$cleanup", "lua_error(L);\n", NIL);
-    Printv(f->code, "return SWIG_arg;\n", NIL);
+    Printv(f->code, "\nfail: SWIGUNUSED;\n", "$cleanup", NIL);
+    if (CPlusPlus) Append(f->code, "}\n");
+    Printv(f->code, "lua_error(L);\n", NIL);
+    // lua_error() calls longjmp() but we need a dummy return to avoid compiler
+    // warnings.
+    Printv(f->code, "return 0;\n", NIL);
     Printf(f->code, "}\n");
 
     /* Substitute the cleanup code */

@@ -22,6 +22,13 @@
   }
   $1 = NULL;
 }
+%typemap(out) Foo trigger_internal_swig_exception
+{
+  SWIG_exception(SWIG_RuntimeError, "Let's see how the bindings manage this exception!");
+#ifdef SWIG_fail
+  SWIG_fail;
+#endif
+}
 
 %inline %{
   #include <string>
@@ -45,6 +52,11 @@
   static Foo* trigger_internal_swig_exception(const std::string& message, Foo* foo)
   {
     return (message == "null") ? NULL : foo;
+  }
+
+  static Foo trigger_internal_swig_exception(const std::string& message)
+  {
+    return Foo();
   }
 
 %}
