@@ -18,6 +18,10 @@ check::equal(Foo::get_count(), 2, "Should have 2 Foo objects");
 check::equal(Foo::get_freearg_count(), 1, "freearg should have been used once");
 
 // SWIG exception triggered and handled.
-trigger_internal_swig_exception("null", $b);
+try {
+    trigger_internal_swig_exception("null", $b);
+    check::fail("Expected exception not thrown");
+} catch (Exception $e) {
+}
 check::equal(Foo::get_count(), 2, "Should have 2 Foo objects");
 check::equal(Foo::get_freearg_count(), 2, "freearg should have been used twice");
