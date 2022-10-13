@@ -1087,7 +1087,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGRUBY\n#define SWIGRUBY\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "RUBY");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");

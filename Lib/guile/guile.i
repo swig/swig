@@ -4,8 +4,6 @@
  * SWIG Configuration File for Guile.
  * ----------------------------------------------------------------------------- */
 
-%include <typemaps/swigversion.swg>
-
 /* Macro for inserting Scheme code into the stub */
 #define %scheme	    %insert("scheme")
 #define %goops      %insert("goops")

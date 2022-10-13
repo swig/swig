@@ -472,7 +472,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGD\n#define SWIGD\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "D");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");

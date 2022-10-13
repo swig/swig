@@ -63,6 +63,44 @@ const char *Swig_package_version(void) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_package_version_hex()
+ *
+ * Return the package version in hex format "0xAABBCC" such as "0x040200" for 4.2.0
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_package_version_hex(void) {
+  String *package_version = NewString(Swig_package_version());
+  char *token = strtok(Char(package_version), ".");
+  String *vers = NewString("SWIG_VERSION 0x");
+  int count = 0;
+  while (token) {
+    int len = (int)strlen(token);
+    assert(len == 1 || len == 2);
+    Printf(vers, "%s%s", (len == 1) ? "0" : "", token);
+    token = strtok(NULL, ".");
+    count++;
+  }
+  Delete(package_version);
+  assert(count == 3); // Check version format is correct
+  return vers;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_obligatory_macros()
+ *
+ * Generates the SWIG_VERSION and SWIGXXX macros where XXX is the target language
+ * name (must be provided uppercase).
+ * ----------------------------------------------------------------------------- */
+
+void Swig_obligatory_macros(String *f_runtime, const char *language) {
+  String *version_hex = Swig_package_version_hex();
+  Printf(f_runtime, "\n\n");
+  Printf(f_runtime, "#define %s\n", version_hex);
+  Printf(f_runtime, "#define SWIG%s\n", language);
+  Delete(version_hex);
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_banner()
  *
  * Emits the SWIG identifying banner for the C/C++ wrapper file.

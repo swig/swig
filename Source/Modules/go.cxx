@@ -512,6 +512,9 @@ private:
     Swig_register_filebyname("cgo_comment_typedefs", f_cgo_comment_typedefs);
 
     Swig_banner(f_c_begin);
+
+    Swig_obligatory_macros(f_c_runtime, "GO");
+
     if (CPlusPlus) {
       Printf(f_c_begin, "\n// source: %s\n\n", swig_filename);
     } else {
@@ -519,7 +522,6 @@ private:
     }
 
     Printf(f_c_runtime, "#define SWIGMODULE %s\n", module);
-    Printf(f_c_runtime, "#ifndef SWIGGO\n#define SWIGGO\n#endif\n\n");
 
     if (gccgo_flag) {
       Printf(f_c_runtime, "#define SWIGGO_PREFIX %s\n", go_prefix);

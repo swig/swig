@@ -308,6 +308,8 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern char *Swig_copy_string(const char *c);
   extern void Swig_set_fakeversion(const char *version);
   extern const char *Swig_package_version(void);
+  extern String *Swig_package_version_hex(void);
+  extern void Swig_obligatory_macros(String *f_runtime, const char *language);
   extern void Swig_banner(File *f);
   extern void Swig_banner_target_lang(File *f, const_String_or_char_ptr commentchar);
   extern String *Swig_strip_c_comments(const String *s);

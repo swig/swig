@@ -161,7 +161,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGTCL\n#define SWIGTCL\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "TCL");
 
     /* Set the module name, namespace, and prefix */
 

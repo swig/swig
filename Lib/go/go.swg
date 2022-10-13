@@ -4,8 +4,6 @@
  * Go configuration module.
  * ------------------------------------------------------------ */
 
-%include <typemaps/swigversion.swg>
-
 %include <gostring.swg>
 
 /* Code insertion directives */

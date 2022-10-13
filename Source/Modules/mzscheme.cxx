@@ -147,7 +147,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGMZSCHEME\n#define SWIGMZSCHEME\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "MZSCHEME");
 
     module = Getattr(n, "name");
 

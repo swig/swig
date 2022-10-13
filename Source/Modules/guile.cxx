@@ -321,7 +321,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGGUILE\n#define SWIGGUILE\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "GUILE");
 
     /* Write out directives and declarations */
 

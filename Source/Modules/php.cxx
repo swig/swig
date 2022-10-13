@@ -609,6 +609,12 @@ public:
 
     Swig_banner(f_begin);
 
+    Swig_obligatory_macros(f_runtime, "PHP");
+
+    if (directorsEnabled()) {
+      Printf(f_runtime, "#define SWIG_DIRECTORS\n");
+    }
+
     // We need to include php.h before string.h gets included, at least with
     // PHP 8.2.  Otherwise string.h is included without _GNU_SOURCE being
     // included and memrchr() doesn't get declared, and then inline code in
@@ -635,12 +641,6 @@ public:
 	   "#  pragma GCC diagnostic pop\n"
 	   "# endif\n"
 	   "#endif\n\n");
-
-    Printf(f_runtime, "#ifndef SWIGPHP\n#define SWIGPHP\n#endif\n\n");
-
-    if (directorsEnabled()) {
-      Printf(f_runtime, "#define SWIG_DIRECTORS\n");
-    }
 
     /* Set the module name */
     module = Copy(Getattr(n, "name"));

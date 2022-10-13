@@ -399,7 +399,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGCSHARP\n#define SWIGCSHARP\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "CSHARP");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");

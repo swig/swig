@@ -911,25 +911,11 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   Preprocessor_define((DOH *) "SWIG 1", 0);
   Preprocessor_define((DOH *) "__STDC__", 0);
 
-  // Set the SWIG version value in format 0xAABBCC from package version expected to be in format A.B.C
-  String *package_version = NewString(PACKAGE_VERSION); /* Note that the fakeversion has not been set at this point */
-  char *token = strtok(Char(package_version), ".");
-  String *vers = NewString("SWIG_VERSION 0x");
-  int count = 0;
-  while (token) {
-    int len = (int)strlen(token);
-    assert(len == 1 || len == 2);
-    Printf(vers, "%s%s", (len == 1) ? "0" : "", token);
-    token = strtok(NULL, ".");
-    count++;
-  }
-  Delete(package_version);
-  assert(count == 3);		// Check version format is correct
-
-  /* Turn on contracts */
+  String *vers = Swig_package_version_hex();
+  Preprocessor_define(vers, 0);
+  Delete(vers);
 
   Swig_contract_mode_set(1);
-  Preprocessor_define(vers, 0);
 
   /* Turn off directors mode */
   Wrapper_director_mode_set(0);

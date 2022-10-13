@@ -48,7 +48,6 @@ std_strings.swg		Common macros to implemented the std::string/std::wstring typem
 strings.swg		Common macros and typemaps for string and wstring (char *, wchar_t *)
 
 swigmacros.swg		Basic macros 
-swigversion.swg		Define SWIG_VERSION
 fragments.swg		Macros for fragment manipulations
 
 

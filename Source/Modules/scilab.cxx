@@ -200,7 +200,7 @@ public:
     /* Output module initialization code */
     Swig_banner(beginSection);
 
-    Printf(runtimeSection, "\n\n#ifndef SWIGSCILAB\n#define SWIGSCILAB\n#endif\n\n");
+    Swig_obligatory_macros(runtimeSection, "SCILAB");
 
     // Gateway header source merged with wrapper source in nobuilder mode
     if (!generateBuilder)

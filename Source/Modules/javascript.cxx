@@ -1615,7 +1615,7 @@ int JSCEmitter::initialize(Node *n) {
 
   Swig_banner(f_wrap_cpp);
 
-  Printf(f_runtime, "#ifndef SWIGJAVASCRIPT\n#define SWIGJAVASCRIPT\n#endif\n\n");
+  Swig_obligatory_macros(f_runtime, "JAVASCRIPT");
 
   return SWIG_OK;
 }
@@ -1947,7 +1947,7 @@ int V8Emitter::initialize(Node *n) {
 
   Swig_banner(f_wrap_cpp);
 
-  Printf(f_runtime, "#ifndef SWIGJAVASCRIPT\n#define SWIGJAVASCRIPT\n#endif\n\n");
+  Swig_obligatory_macros(f_runtime, "JAVASCRIPT");
 
   return SWIG_OK;
 }

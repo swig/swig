@@ -4,8 +4,6 @@
  * C# typemaps
  * ----------------------------------------------------------------------------- */
 
-%include <typemaps/swigversion.swg>
-
 %include <csharphead.swg>
 
 /* The ctype, imtype and cstype typemaps work together and so there should be one of each. 

@@ -5,8 +5,6 @@
  * This file is parsed by SWIG before reading any other interface file.
  * ----------------------------------------------------------------------------- */
 
-%include <typemaps/swigversion.swg>
-
 /* Include headers */
 %runtime "swigrun.swg"     // Common C API type-checking code
 %runtime "swigerrors.swg"  // SWIG errors

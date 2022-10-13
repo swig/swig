@@ -740,8 +740,7 @@ int R::top(Node *n) {
 
   Swig_banner(f_begin);
 
-  Printf(f_runtime, "\n\n#ifndef SWIGR\n#define SWIGR\n#endif\n\n");
-
+  Swig_obligatory_macros(f_runtime, "R");
 
   Swig_banner_target_lang(s_init, "#");
   outputCommandLineArguments(s_init);

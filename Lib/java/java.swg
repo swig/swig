@@ -4,8 +4,6 @@
  * Java typemaps
  * ----------------------------------------------------------------------------- */
 
-%include <typemaps/swigversion.swg>
-
 %include <javahead.swg>
 
 /* The jni, jtype and jstype typemaps work together and so there should be one of each. 

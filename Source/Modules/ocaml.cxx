@@ -276,7 +276,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGOCAML\n#define SWIGOCAML\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "OCAML");
 
     Printf(f_runtime, "#define SWIG_MODULE \"%s\"\n", module);
     /* Module name */
