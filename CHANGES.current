@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-13: wsfulton
+            [R] Add missing SWIGTYPE *const& typemaps for supporting pointers
+            by const reference.
+
 2022-10-10: wsfulton
             #2160 Fix compile error when using templates with more than one template
             parameter and used as an input parameter in a virtual method in a

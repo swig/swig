@@ -14,12 +14,13 @@
 %typemap("rtype") bool, bool * "logical"
 %typemap("rtype") enum SWIGTYPE "character"
 %typemap("rtype") enum SWIGTYPE * "character"
-%typemap("rtype") enum SWIGTYPE *const "character"
+%typemap("rtype") enum SWIGTYPE *const& "character"
 %typemap("rtype") enum SWIGTYPE & "character"
 %typemap("rtype") const enum SWIGTYPE & "character"
 %typemap("rtype") enum SWIGTYPE && "character"
 %typemap("rtype") SWIGTYPE * "$R_class"
 %typemap("rtype") SWIGTYPE *const "$R_class"
+%typemap("rtype") SWIGTYPE *const& "$*R_class"
 %typemap("rtype") SWIGTYPE & "$R_class"
 %typemap("rtype") SWIGTYPE && "$R_class"
 %typemap("rtype") SWIGTYPE "$&R_class"
@@ -93,7 +94,7 @@
 %typemap(scoercein) enum SWIGTYPE *const
   %{  $input = enumToInteger($input, "$R_class"); %}
 
-%typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE *const, SWIGTYPE &, SWIGTYPE &&
+%typemap(scoercein) SWIGTYPE, SWIGTYPE *, SWIGTYPE *const, SWIGTYPE *const&, SWIGTYPE &, SWIGTYPE &&
  %{ if (inherits($input, "ExternalReference")) $input = slot($input,"ref"); %}
 
 /*
@@ -171,6 +172,10 @@ string &, std::string &
 %typemap(scoerceout) SWIGTYPE *const
   %{ $result <- if (is.null($result)) $result
   else new("$R_class", ref=$result); %}
+
+%typemap(scoerceout) SWIGTYPE *const&
+  %{ $result <- if (is.null($result)) $result
+  else new("$*R_class", ref=$result); %}
 
 
 /* Override the SWIGTYPE * above. */
