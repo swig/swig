@@ -10,6 +10,18 @@
 #endif
 %}
 
+/* Test that SWIG_VERSION has a plausible value - in particular catch if
+ * it isn't defined to a numeric value (which will get replaced by 0).
+ */
+#if SWIG_VERSION < 0x040100
+# error SWIG_VERSION value not plausible at SWIG-time
+#endif
+%{
+#if SWIG_VERSION < 0x040100
+# error SWIG_VERSION value not plausible in the generated wrapper
+#endif
+%}
+
 %define %generate_swig_version_from_preprocessor()%#define SWIG_VERSION_FROM_SWIG_PREPROCESSOR SWIG_VERSION %enddef
 %insert("header") {
 %generate_swig_version_from_preprocessor()
