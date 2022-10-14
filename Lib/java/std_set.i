@@ -96,6 +96,10 @@ class set {
       public boolean hasNext() {
         return curr.isNot(end);
       }
+
+      public void remove() {
+        throw new java.lang.UnsupportedOperationException();
+      }
     }.init();
   }
 
