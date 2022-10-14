@@ -8,6 +8,11 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-10-14: olly
+	    [R] Arrange that destructors of local C++ objects in the wrapper
+	    function get run on SWIG_fail (which calls Rf_error() which calls
+	    longjmp()).
+
+2022-10-14: olly
 	    [Lua] Arrange that destructors of local C++ objects in the wrapper
 	    function get run on SWIG_fail (which calls lua_error() which calls
 	    longjmp()).
