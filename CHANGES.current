@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-14: murillo128
+	    [Javascript] #2109 Tweak unsigned long and unsigned long long typemaps
+            to create a v8::Number instead of v8::Integer if the value exceeds
+            the size of v8::Integer. Note that the v8::Number value will be
+            imprecise if the value is > MAX_SAFE_INTEGER.
+
 2022-10-14: olly
 	    [R] Arrange that destructors of local C++ objects in the wrapper
 	    function get run on SWIG_fail (which calls Rf_error() which calls
