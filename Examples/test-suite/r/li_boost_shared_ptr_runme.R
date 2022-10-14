@@ -161,13 +161,13 @@ testSuite <- function() {
   }
 
   # pass by pointer reference
-  if (FALSE) {
+  {
     k = Klass("me oh my");
     kret = pointerreftest(k); # -> class not defined _p_p_Space__Klass
     val = kret$getValue();
     unittest("me oh my pointerreftest", val);
     testSuite_verifyCount(1, k);
-    testSuite_verifyCount(1, kret);
+    # testSuite_verifyCount(1, kret); # -> use_count not defined on _p_Space__Klass
   }
 
   # null tests
