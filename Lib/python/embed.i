@@ -29,7 +29,7 @@ As far as I know, this module is C++ safe.
 #endif
 
 %wrapper %{
-#ifndef SWIG_NO_PY_SSIZE_T_CLEAN
+#if !defined(PY_SSIZE_T_CLEAN) && !defined(SWIG_NO_PY_SSIZE_T_CLEAN)
 #define PY_SSIZE_T_CLEAN
 #endif
 
