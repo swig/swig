@@ -81,7 +81,7 @@ int SWIG_AsVal_dec(long)(SWIGV8_VALUE obj, long* val)
 SWIGINTERNINLINE
 SWIGV8_VALUE SWIG_From_dec(unsigned long)(unsigned long value)
 {
-  return SWIGV8_INTEGER_NEW_UNS(value);
+  return value <= UINT32_MAX ? (SWIGV8_VALUE)SWIGV8_INTEGER_NEW_UNS(value) : (SWIGV8_VALUE)SWIGV8_NUMBER_NEW(static_cast<double>(value));
 }
 }
 
@@ -149,7 +149,7 @@ int SWIG_AsVal_dec(long long)(SWIGV8_VALUE obj, long long* val)
 SWIGINTERNINLINE
 SWIGV8_VALUE SWIG_From_dec(unsigned long long)(unsigned long long value)
 {
-  return SWIGV8_INTEGER_NEW_UNS(value);
+  return value <= UINT32_MAX ? (SWIGV8_VALUE)SWIGV8_INTEGER_NEW_UNS(value) : (SWIGV8_VALUE)SWIGV8_NUMBER_NEW(static_cast<double>(value));
 }
 %#endif
 }
