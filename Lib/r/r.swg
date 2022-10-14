@@ -27,7 +27,7 @@ SWIGEXPORT void SWIG_init(void) {
 %end_block %enddef
 
 %runtime %{
-void SWIG_R_Raise(SEXP obj, const char *msg) {
+SWIGINTERN void SWIG_R_Raise(SEXP obj, const char *msg) {
   Rf_error(Rf_isString(obj) ? CHAR(Rf_asChar(obj)) : msg);
 }
 %}
