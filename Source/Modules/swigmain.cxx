@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * swigmain.cxx
  *
@@ -80,7 +80,7 @@ static TargetLanguageModule modules[] = {
   {"-tcl", swig_tcl, NULL, Supported},
   {"-tcl8", swig_tcl, "Tcl 8", Supported},
   {"-uffi", NULL, "Common Lisp / UFFI", Disabled},
-  {"-xml", swig_xml, "XML", Experimental},
+  {"-xml", swig_xml, "XML", Supported},
   {NULL, NULL, NULL, Disabled}
 };
 

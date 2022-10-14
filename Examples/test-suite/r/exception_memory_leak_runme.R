@@ -14,7 +14,7 @@ unittest(Foo_get_count(), 2);
 invisible(trigger_internal_swig_exception("no problem", a));
 unittest(Foo_get_count(), 2);
 unittest(Foo_get_freearg_count(), 1);
-# SWIG exception introduced
+# SWIG exception introduced (return new object case).
 result <- tryCatch({
   trigger_internal_swig_exception("null", b);
 }, warning = function(w) {
@@ -26,3 +26,14 @@ result <- tryCatch({
 })
 unittest(Foo_get_count(), 2);
 unittest(Foo_get_freearg_count(), 2);
+# SWIG exception introduced (return by value case).
+result <- tryCatch({
+  trigger_internal_swig_exception("null");
+}, warning = function(w) {
+  # print("        Hum... We received a warning, but this should be an error");
+  unittest(1,0);
+}, error = function(e) {
+  # print("        Gotcha!");
+  unittest(1,1);
+})
+unittest(Foo_get_count(), 2);

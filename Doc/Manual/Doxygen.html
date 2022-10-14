@@ -67,7 +67,7 @@ supported.
 <p>
 The Doxygen Translation module of SWIG adds an extra layer of
 functionality to SWIG, allowing automated translation of <a href=
-"http://www.doxygen.nl/manual/">Doxygen</a> formatted comments
+"https://www.doxygen.nl/manual/">Doxygen</a> formatted comments
 from input files into a documentation language more suited for the
 target language.  Currently this module only translates into Javadoc
 and Pydoc for the SWIG Java and Python modules.
@@ -83,14 +83,14 @@ Code</a> proposal from Summer 2008.
 <p>
 To make use of the comment translation system, your documentation
 comments must be in properly formatted <a href=
-"http://www.doxygen.nl/manual/">Doxygen.</a> Doxygen comments can be
+"https://www.doxygen.nl/manual/">Doxygen.</a> Doxygen comments can be
 present in your main SWIG interface file or any header file that it
 imports.  You are advised to be validate that your comments compile
 properly with Doxygen before you try to translate them.  Doxygen
 itself is a more comprehensive tool and can provide you better feedback for
 correcting any syntax errors that may be present.  Please look at
 Doxygen's <a href=
-"http://www.doxygen.nl/manual/docblocks.html"> Documenting the
+"https://www.doxygen.nl/manual/docblocks.html"> Documenting the
 code</a> for the full comment format specifications.  However, SWIG's
 Doxygen parser will still report many errors and warnings found
 in comments (like unterminated strings or missing ending tags).
@@ -98,7 +98,7 @@ in comments (like unterminated strings or missing ending tags).
 
 <p>
 Currently, the whole subset of Doxygen comment styles is supported
-(See <a href="http://www.doxygen.nl/manual/docblocks.html">
+(See <a href="https://www.doxygen.nl/manual/docblocks.html">
 Documenting the code</a>). Here they are:
 </p>
 
@@ -298,7 +298,7 @@ make much sense for the other languages without explicit ownership management.
 <p>
 Doxygen syntax is rather rich and, in addition to simple commands such as
 <tt>@transferfull</tt>, it is also possible to define commands with arguments.
-As explained in <a href="http://www.doxygen.nl/manual/commands.html">Doxygen documentation</a>,
+As explained in <a href="https://www.doxygen.nl/manual/commands.html">Doxygen documentation</a>,
 the arguments can have a range of a single word, everything until the end of
 line or everything until the end of the next paragraph. Currently, only the "end
 of line" case is supported using the <tt>range="line"</tt> argument of the
@@ -1079,7 +1079,7 @@ class Shape(_object):
 <p>
 If any parameters of a function or a method are documented in the Doxygen comment,
 their description is copied into the generated output using
-<a href="http://sphinx-doc.org/">Sphinx </a> documentation conventions. For example
+<a href="https://www.sphinx-doc.org/">Sphinx </a> documentation conventions. For example
 </p>
 <div class="code"><pre>
 /**
@@ -1167,7 +1167,7 @@ completely (doxygen:notranslate feature).  Then SWIG will just copy
 the comments to the proxy file and reformat them if needed, but all
 the comment content will be left as is. As Doxygen doesn't support
 special commands in Python comments
-(see <a href="http://www.doxygen.nl/manual/docblocks.html#pythonblocks">Doxygen
+(see <a href="https://www.doxygen.nl/manual/docblocks.html#pythonblocks">Doxygen
 docs</a>), you may want to use some tool like doxypy
 (<a href="https://pypi.org/project/doxypy/">doxypy</a>)
 to do the work.

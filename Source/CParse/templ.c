@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * templ.c
  *
@@ -234,6 +234,94 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * cparse_fix_function_decl()
+ *
+ * Move the prefix of the "type" attribute (excluding any trailing qualifier)
+ * to the end of the "decl" attribute.
+ * Examples:
+ *   decl="f().", type="p.q(const).char"  => decl="f().p.", type="q(const).char"
+ *   decl="f().p.", type="p.SomeClass"    => decl="f().p.p.", type="SomeClass"
+ *   decl="f().", type="r.q(const).p.int" => decl="f().r.q(const).p.", type="int"
+ * ----------------------------------------------------------------------------- */
+
+static void cparse_fix_function_decl(String *name, SwigType *decl, SwigType *type) {
+  String *prefix;
+  int prefixLen;
+  SwigType *last;
+
+  /* The type's prefix is what potentially has to be moved to the end of 'decl' */
+  prefix = SwigType_prefix(type);
+
+  /* First some parts (qualifier and array) have to be removed from prefix
+     in order to remain in the 'type' attribute. */
+  last = SwigType_last(prefix);
+  while (last) {
+    if (SwigType_isqualifier(last) || SwigType_isarray(last)) {
+      /* Keep this part in the 'type' */
+      Delslice(prefix, Len(prefix) - Len(last), DOH_END);
+      Delete(last);
+      last = SwigType_last(prefix);
+    } else {
+      /* Done with processing prefix */
+      Delete(last);
+      last = 0;
+    }
+  }
+
+  /* Transfer prefix from the 'type' to the 'decl' attribute */
+  prefixLen = Len(prefix);
+  if (prefixLen > 0) {
+    Append(decl, prefix);
+    Delslice(type, 0, prefixLen);
+    if (template_debug) {
+      Printf(stdout, "    change function '%s' to type='%s', decl='%s'\n", name, type, decl);
+    }
+  }
+
+  Delete(prefix);
+}
+
+/* -----------------------------------------------------------------------------
+ * cparse_postprocess_expanded_template()
+ *
+ * This function postprocesses the given node after template expansion.
+ * Currently the only task to perform is fixing function decl and type attributes.
+ * ----------------------------------------------------------------------------- */
+
+static void cparse_postprocess_expanded_template(Node *n) {
+  String *nodeType;
+  if (!n)
+    return;
+  nodeType = nodeType(n);
+  if (Getattr(n, "error"))
+    return;
+
+  if (Equal(nodeType, "cdecl")) {
+    /* A simple C declaration */
+    SwigType *d = Getattr(n, "decl");
+    if (d && SwigType_isfunction(d)) {
+      /* A function node */
+      SwigType *t = Getattr(n, "type");
+      if (t) {
+	String *name = Getattr(n, "name");
+	cparse_fix_function_decl(name, d, t);
+      }
+    }
+  } else {
+    /* Look for any children */
+    Node *cn = firstChild(n);
+    while (cn) {
+      cparse_postprocess_expanded_template(cn);
+      cn = nextSibling(cn);
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * partial_arg()
+ * ----------------------------------------------------------------------------- */
+
 static
 String *partial_arg(String *s, String *p) {
   char *c;
@@ -421,6 +509,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       }
     }
   }
+  cparse_postprocess_expanded_template(n);
 
   /* Patch bases */
   {

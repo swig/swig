@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * swigmod.h
  *
@@ -405,6 +405,7 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
 String *Swig_director_declaration(Node *n);
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
 void Swig_director_parms_fixup(ParmList *parms);
+bool Swig_director_can_unwrap(Node *n);
 /* directors.cxx end */
 
 /* Utilities */

@@ -60,7 +60,7 @@ Usage within the Unix like environments MinGW and Cygwin is also detailed.
 SWIG does not come with the usual Windows type installation program, however it is quite easy to get started. The main steps are:
 </p>
 <ul>
-        <li>Download the swigwin zip package from the <a href="http://www.swig.org">SWIG website</a> and unzip into a directory. This is all that needs downloading for the Windows platform.
+        <li>Download the swigwin zip package from the <a href="https://www.swig.org">SWIG website</a> and unzip into a directory. This is all that needs downloading for the Windows platform.
         <li>Set environment variables as described in the <a href="#Windows_examples">SWIG Windows Examples</a> section in order to run examples using Visual C++.
 </ul>
 
@@ -220,7 +220,7 @@ Normally this is not needed, so most people will want to ignore this section.
 
 <p>
 There are various ways to build the SWIG executable including <a href="https://cmake.org/">CMake</a> which is able to generate project files for building with Visual Studio.
-SWIG can also be compiled and run using <a href="https://www.msys2.org/">MSYS2</a>, <a href="http://www.cygwin.com">Cygwin</a> or <a href="http://www.mingw.org">MinGW</a>, all of which provide a Unix like front end to Windows and comes free with the gcc C/C++ compiler.
+SWIG can also be compiled and run using <a href="https://www.msys2.org/">MSYS2</a>, <a href="https://www.cygwin.com">Cygwin</a> or <a href="https://osdn.net/projects/mingw/">MinGW</a>, all of which provide a Unix like front end to Windows and comes free with the gcc C/C++ compiler.
 </p>
 
 
@@ -240,7 +240,7 @@ For fully working build steps always check the Continuous Integration (CI) setup
     </li>
     <li>
         Install <a href="https://www.nuget.org/packages/CMake-win64/">CMake-win64 Nuget package</a> using the following command: <pre>C:\Tools\nuget install CMake-win64 -Version 3.15.5 -OutputDirectory C:\Tools\CMake</pre>
-        Using PowerShell the equivalent syntax is: <pre>&"C:\Tools\nuget" install CMake-win64 -Version 3.15.5 -OutputDirectory C:\Tools\CMake</pre>
+        Using PowerShell the equivalent syntax is: <pre>&amp; "C:\Tools\nuget" install CMake-win64 -Version 3.15.5 -OutputDirectory C:\Tools\CMake</pre>
         Alternatively you can download CMake from <a href="https://cmake.org/download/">https://cmake.org/download/</a>.
     </li>
     <li>
@@ -364,13 +364,13 @@ The short abbreviated instructions follow...
 </p>
 
 <ul>
-    <li>Install MinGW and MSYS from the <a href="http://www.mingw.org">MinGW</a> site. This provides a Unix environment on Windows.
+    <li>Install MinGW and MSYS from the <a href="https://osdn.net/projects/mingw/">MinGW</a> site. This provides a Unix environment on Windows.
     <li>Follow the usual Unix instructions in the README file in the SWIG root directory to build swig.exe from the MinGW command prompt.
 </ul>
 
 <p>
 The step by step instructions to download and install MinGW and MSYS, then download and build the latest version of SWIG from Github follow...
-Note that the instructions for obtaining SWIG from Github are also online at <a href="http://www.swig.org/svn.html">SWIG Bleeding Edge</a>.
+Note that the instructions for obtaining SWIG from Github are also online at <a href="https://www.swig.org/svn.html">SWIG Bleeding Edge</a>.
 </p>
 
 <p>
@@ -380,8 +380,7 @@ Execute the steps in the order shown and don't use spaces in path names. In fact
 
 <ol>
   <li>
-  Download the following packages from the <a href="http://www.mingw.org/download.shtml">MinGW download page</a>
-  or <a href="https://sourceforge.net/projects/mingw/files/">MinGW SourceForge download page</a>.
+  Download the following packages from the <a href="https://osdn.net/projects/mingw/releases/">MinGW download page</a>.
   Note that at the time of writing, the majority of these are in the Current
   release list and some are in the Snapshot or Previous release list.
   <ul>
@@ -453,7 +452,7 @@ the autotools will fail miserably on those.
   <li>
 The PCRE2 third party library needs to be built next.
 Download the latest PCRE2 source tarball, such as <tt>pcre2-10.39.tar.bz2</tt>, from
-<a href=http://www.pcre.org>www.pcre.org</a> and place in the <tt>/usr/src/swig</tt> directory.
+<a href=https://www.pcre.org>www.pcre.org</a> and place in the <tt>/usr/src/swig</tt> directory.
 Build PCRE2 as a static library using the Tools/pcre-build.sh script as follows:
 
 <div class="shell"><pre>

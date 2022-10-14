@@ -5,7 +5,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * r.cxx
  *
@@ -740,8 +740,7 @@ int R::top(Node *n) {
 
   Swig_banner(f_begin);
 
-  Printf(f_runtime, "\n\n#ifndef SWIGR\n#define SWIGR\n#endif\n\n");
-
+  Swig_obligatory_macros(f_runtime, "R");
 
   Swig_banner_target_lang(s_init, "#");
   outputCommandLineArguments(s_init);
@@ -1971,6 +1970,13 @@ int R::functionWrapper(Node *n) {
   }
 
   Printv(f->def, ")\n{\n", NIL);
+  // SWIG_fail in R leads to a call to Rf_error() which calls longjmp()
+  // which means the destructors of any live function-local C++ objects won't
+  // get run.  To avoid this happening, we wrap almost everything in the
+  // function in a block, and end that right before Rf_error() at which
+  // point those destructors will get called.
+  if (CPlusPlus) Append(f->def, "{\n");
+
   Printv(sfun->def, ")\n{\n", NIL);
 
 
@@ -2135,6 +2141,7 @@ int R::functionWrapper(Node *n) {
   if (need_cleanup) {
     Printv(f->code, cleanup, NIL);
   }
+  if (CPlusPlus) Append(f->code, "}\n");
   Printv(f->code, "  Rf_error(\"%s %s\", SWIG_ErrorType(SWIG_lasterror_code), SWIG_lasterror_msg);\n", NIL);
   Printv(f->code, "  return R_NilValue;\n", NIL);
   Delete(cleanup);

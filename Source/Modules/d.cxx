@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * d.cxx
  *
@@ -472,7 +472,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGD\n#define SWIGD\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "D");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");

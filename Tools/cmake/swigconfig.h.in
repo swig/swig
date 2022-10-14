@@ -46,7 +46,7 @@
 #define PACKAGE "swig"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "http://www.swig.org"
+#define PACKAGE_BUGREPORT "https://www.swig.org"
 
 /* Define to the full name of this package. */
 #define PACKAGE_NAME "swig"

@@ -1656,21 +1656,24 @@ SWIG_Python_TypeCache(void) {
 
 SWIGRUNTIME swig_module_info *
 SWIG_Python_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
+#ifdef SWIG_LINK_RUNTIME
   static void *type_pointer = (void *)0;
   /* first check if module already created */
   if (!type_pointer) {
-#ifdef SWIG_LINK_RUNTIME
     type_pointer = SWIG_ReturnGlobalTypeList((void *)0);
-#else
-    type_pointer = PyCapsule_Import(SWIGPY_CAPSULE_NAME, 0);
-    if (PyErr_Occurred()) {
-      PyErr_Clear();
-      type_pointer = (void *)0;
-    }
-#endif
   }
+#else
+  void *type_pointer = PyCapsule_Import(SWIGPY_CAPSULE_NAME, 0);
+  if (PyErr_Occurred()) {
+    PyErr_Clear();
+    type_pointer = (void *)0;
+  }
+#endif
   return (swig_module_info *) type_pointer;
 }
+
+
+static int interpreter_counter = 0; // how many (sub-)interpreters are using swig_module's types
 
 SWIGRUNTIME void
 SWIG_Python_DestroyModule(PyObject *obj)
@@ -1678,6 +1681,8 @@ SWIG_Python_DestroyModule(PyObject *obj)
   swig_module_info *swig_module = (swig_module_info *) PyCapsule_GetPointer(obj, SWIGPY_CAPSULE_NAME);
   swig_type_info **types = swig_module->types;
   size_t i;
+  if (--interpreter_counter != 0) // another sub-interpreter may still be using the swig_module's types
+    return;
   for (i =0; i < swig_module->size; ++i) {
     swig_type_info *ty = types[i];
     if (ty->owndata) {
@@ -1707,6 +1712,7 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
   PyObject *pointer = PyCapsule_New((void *) swig_module, SWIGPY_CAPSULE_NAME, SWIG_Python_DestroyModule);
   if (pointer && module) {
     if (PyModule_AddObject(module, SWIGPY_CAPSULE_ATTR_NAME, pointer) == 0) {
+      ++interpreter_counter;
       Swig_Capsule_global = pointer;
     } else {
       Py_DECREF(pointer);
@@ -1838,12 +1844,6 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int SWIGUNUSEDPARM(arg
   void *result;
   if (SWIG_Python_ConvertPtr(obj, &result, ty, flags) == -1) {
     PyErr_Clear();
-#if SWIG_POINTER_EXCEPTION
-    if (flags) {
-      SWIG_Python_TypeError(SWIG_TypePrettyName(ty), obj);
-      SWIG_Python_ArgFail(argnum);
-    }
-#endif
   }
   return result;
 }

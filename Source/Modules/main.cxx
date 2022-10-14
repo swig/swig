@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * main.cxx
  *
@@ -41,8 +41,9 @@ extern "C" {
   int UseWrapperSuffix = 0;	// If 1, append suffix to non-overloaded functions too.
 }
 
-/* Suppress warning messages for private inheritance, preprocessor evaluation etc...
-   WARN_PP_EVALUATION                           202
+/* Suppress warning messages for private inheritance, etc by default.
+   These are enabled by command line option -Wextra.
+
    WARN_PARSE_PRIVATE_INHERIT                   309
    WARN_PARSE_BUILTIN_NAME                      321
    WARN_PARSE_REDUNDANT                         322
@@ -50,7 +51,7 @@ extern "C" {
    WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED       405
    WARN_LANG_OVERLOAD_CONST                     512
  */
-#define EXTRA_WARNINGS "202,309,403,405,512,321,322"
+#define EXTRA_WARNINGS "309,403,405,512,321,322"
 
 extern "C" {
   extern String *ModuleName;
@@ -910,25 +911,11 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   Preprocessor_define((DOH *) "SWIG 1", 0);
   Preprocessor_define((DOH *) "__STDC__", 0);
 
-  // Set the SWIG version value in format 0xAABBCC from package version expected to be in format A.B.C
-  String *package_version = NewString(PACKAGE_VERSION); /* Note that the fakeversion has not been set at this point */
-  char *token = strtok(Char(package_version), ".");
-  String *vers = NewString("SWIG_VERSION 0x");
-  int count = 0;
-  while (token) {
-    int len = (int)strlen(token);
-    assert(len == 1 || len == 2);
-    Printf(vers, "%s%s", (len == 1) ? "0" : "", token);
-    token = strtok(NULL, ".");
-    count++;
-  }
-  Delete(package_version);
-  assert(count == 3);		// Check version format is correct
-
-  /* Turn on contracts */
+  String *vers = Swig_package_version_hex();
+  Preprocessor_define(vers, 0);
+  Delete(vers);
 
   Swig_contract_mode_set(1);
-  Preprocessor_define(vers, 0);
 
   /* Turn off directors mode */
   Wrapper_director_mode_set(0);
@@ -1328,7 +1315,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	if (tlm->status == Experimental) {
 	  Swig_warning(WARN_LANG_EXPERIMENTAL, "SWIG", 1, "Experimental target language. "
 	    "Target language %s specified by %s is an experimental language. "
-	    "Please read about SWIG experimental languages, http://swig.org/Doc4.0/Introduction.html#Introduction_experimental_status.\n",
+	    "Please read about SWIG experimental languages, https://swig.org/Doc4.0/Introduction.html#Introduction_experimental_status.\n",
 	    tlm->help ? tlm->help : "", tlm->name);
 	}
 

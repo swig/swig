@@ -216,8 +216,10 @@ CPP_TEST_CASES += \
 	director_ref \
 	director_simple \
 	director_smartptr \
+	director_template \
 	director_thread \
 	director_unroll \
+	director_unwrap_result \
 	director_using \
 	director_using_member_scopes \
 	director_void \
@@ -592,6 +594,7 @@ CPP11_TEST_CASES += \
 	cpp11_director_enums \
 	cpp11_directors \
 	cpp11_explicit_conversion_operators \
+	cpp11_final_class \
 	cpp11_final_directors \
 	cpp11_final_override \
 	cpp11_function_objects \
@@ -755,6 +758,7 @@ C_TEST_CASES += \
 	enum_macro \
 	enum_missing \
 	extern_declaration \
+	final_c \
 	funcptr \
 	function_typedef \
 	global_functions \
@@ -788,6 +792,7 @@ C_TEST_CASES += \
 	preproc_gcc_output \
 	preproc_include \
 	preproc_line_file \
+	preproc_predefined \
 	register_par \
 	ret_by_value \
 	simple_array \

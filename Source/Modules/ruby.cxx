@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * ruby.cxx
  *
@@ -1087,7 +1087,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGRUBY\n#define SWIGRUBY\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "RUBY");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
@@ -1871,26 +1871,8 @@ public:
             else
               Replaceall(tm, "$owner", "0");
 
-#if 1
-            // FIXME: this will not try to unwrap directors returned as non-director
-            //        base class pointers!
-
-            /* New addition to unwrap director return values so that the original
-             * Ruby object is returned instead. 
-             */
-            bool unwrap = false;
-            String *decl = Getattr(n, "decl");
-            int is_pointer = SwigType_ispointer_return(decl);
-            int is_reference = SwigType_isreference_return(decl);
-            if (is_pointer || is_reference) {
-              String *type = Getattr(n, "type");
-              Node *parent = Swig_methodclass(n);
-              Node *modname = Getattr(parent, "module");
-              Node *target = Swig_directormap(modname, type);
-              if (target)
-                unwrap = true;
-            }
-            if (unwrap) {
+            // Unwrap return values that are director classes so that the original Ruby object is returned instead. 
+            if (Swig_director_can_unwrap(n)) {
               Wrapper_add_local(f, "director", "Swig::Director *director = 0");
               Printf(f->code, "director = dynamic_cast<Swig::Director *>(%s);\n", Swig_cresult_name());
               Printf(f->code, "if (director) {\n");
@@ -1902,9 +1884,7 @@ public:
             } else {
               Printf(f->code, "%s\n", tm);
             }
-#else
-            Printf(f->code, "%s\n", tm);
-#endif
+
             Delete(tm);
           } else {
             Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s.\n", SwigType_str(t, 0));

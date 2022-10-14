@@ -390,7 +390,7 @@
 /* directorin */
 
 %typemap(directorin,noblock=1) SWIGTYPE {
-  $input = SWIG_NewPointerObj(%as_voidptr(new $1_ltype(SWIG_STD_MOVE($1))), $&descriptor, SWIG_POINTER_OWN | %newpointer_flags);
+  $input = SWIG_NewPointerObj((new $1_ltype(SWIG_STD_MOVE($1))), $&descriptor, SWIG_POINTER_OWN | %newpointer_flags);
 }
 
 %typemap(directorin,noblock=1) SWIGTYPE * {
