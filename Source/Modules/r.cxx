@@ -2091,21 +2091,16 @@ int R::functionWrapper(Node *n) {
     if (constructor) {
       Node * parent = Getattr(n, "parentNode");
       String * smartname = Getattr(parent, "feature:smartptr");
-      if (smartname) {
-        String * classtypeobj = Getattr(parent, "classtypeobj"); // this is the correct name, e.g. ClassName(int)
-        String * classtype = NewString(Getattr(parent, "classtype")); // this is the "wrong" name e.g. ClassName<int>
-
-        // we replace inside smartname ClassName<int> with ClassName(int)
-        String * smartname_fixed = NewString(smartname);
-        Replaceall(classtype, " ", ""); // classtype actually has spaces inside so we remove them
-        Replaceall(smartname_fixed, classtype, classtypeobj);
-
-        String * smartname_fixed_rclass = getRClassName(smartname_fixed, 1, 1);
-        Replaceall(tm, "$R_class", smartname_fixed_rclass);
-
-        Delete(classtype);
-        Delete(smartname_fixed);
-        Delete(smartname_fixed_rclass);
+      if (smartname) { // SmartName handling - has to be aligned to the other implementation in this file
+        SwigType *spt = Swig_cparse_type(smartname);
+        String *smart = SwigType_typedef_resolve_all(spt);
+        String *smart_rname = SwigType_manglestr(smart);
+        String *smart_rname_p = NewStringf("_p%s", smart_rname);
+        Replaceall(tm, "$R_class", smart_rname_p);
+        Delete(spt);
+        Delete(smart);
+        Delete(smart_rname);
+        Delete(smart_rname_p);
       }
     }
     if (debugMode) {
@@ -2334,7 +2329,7 @@ void R::registerClass(Node *n) {
     Printf(s_classes, "setClass('%s', contains = %s)\n", sname, base);
     Delete(base);
     String *smartptr = Getattr(n, "feature:smartptr");
-    if (smartptr) {
+    if (smartptr) {// SmartName handling - has to be aligned to the other implementation in this file
       List *l = Getattr(n, "bases");
       SwigType *spt = Swig_cparse_type(smartptr);
       String *smart = SwigType_typedef_resolve_all(spt);
