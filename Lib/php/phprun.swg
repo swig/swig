@@ -193,7 +193,7 @@ SWIG_ConvertPtrAndOwn(zval *z, void **ptr, swig_type_info *ty, int flags, swig_o
 	/* They don't care about the target type, so just pass on the pointer! */
 	*ptr = value->ptr;
       } else {
-	swig_cast_info *tc = SWIG_TypeCheckStruct(value->type, ty);
+	swig_cast_info *tc = SWIG_TypeCheck(value->type->name, ty);
 	if (tc) {
 	  int newmemory = 0;
 	  *ptr = SWIG_TypeCast(tc, value->ptr, &newmemory);

@@ -9,18 +9,19 @@ class check {
 
   private static $_werror = false;
 
-  // This is called automatically at the end of this file.
-  static function init() {
-    foreach(get_included_files() as $f) {
-      $module_name = preg_filter('/.*\/([^\/]+)_runme\.php$/', '\1', $f);
-      if ($module_name !== null) break;
+  static function get_extension() {
+    if (self::$_extension === null) {
+      foreach(get_included_files() as $f) {
+	$module_name = preg_filter('/.*\/([^\/]+)_runme\.php$/', '\1', $f);
+	if ($module_name !== null) break;
+      }
+      if ($module_name === null) {
+	print("Failed to determine module name from get_included_files()\n");
+	exit(1);
+      }
+      self::$_extension = new ReflectionExtension($module_name);
     }
-    if ($module_name === null) {
-      print("Failed to determine module name from get_included_files()\n");
-      exit(1);
-    }
-
-    self::$_extension = new ReflectionExtension($module_name);
+    return self::$_extension;
   }
 
   static function werror($v) {
@@ -92,7 +93,7 @@ class check {
     if (! is_array($classes)) $classes=array($classes);
     $message=array();
     $missing=array();
-    $extra = array_flip(array_filter(self::$_extension->getClassNames(),
+    $extra = array_flip(array_filter(self::get_extension()->getClassNames(),
 				     function ($e) { return !preg_match('/^SWIG\\\\/', $e); }));
     foreach($classes as $class) {
       if (! class_exists($class)) $missing[]=$class;
@@ -109,7 +110,7 @@ class check {
     if (! is_array($functions)) $functions=array($functions);
     $message=array();
     $missing=array();
-    $extra = self::$_extension->getFunctions();
+    $extra = self::get_extension()->getFunctions();
     foreach ($functions as $func) {
       if (! function_exists($func)) $missing[]=$func;
       else unset($extra[$func]);
@@ -127,7 +128,7 @@ class check {
     if (! is_array($globals)) $globals=array($globals);
     $message=array();
     $missing=array();
-    $extra = self::$_extension->getFunctions();
+    $extra = self::get_extension()->getFunctions();
     foreach ($globals as $glob) {
       if (! function_exists($glob . "_get") && ! function_exists($glob . "_set")) $missing[]=$glob;
       else {
@@ -149,7 +150,7 @@ class check {
     if (! is_array($constants)) $constants=array($constants);
     $message=array();
     $missing=array();
-    $extra = self::$_extension->getConstants();
+    $extra = self::get_extension()->getConstants();
     unset($extra['swig_runtime_data_type_pointer']);
     foreach($constants as $constant) {
       if (! defined($constant)) $missing[]=$constant;
@@ -213,5 +214,3 @@ class check {
 #    print $_SERVER[argv][0]." ok\n";
   }
 }
-
-check::init();
