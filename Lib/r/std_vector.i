@@ -660,6 +660,27 @@
       }
     };
 
+  template <>
+    struct traits_from_ptr<std::vector<std::vector<std::basic_string<char> > > > {
+      static SEXP from (std::vector< std::vector<std::basic_string<char> > > *val, int owner = 0) {
+        SEXP result;
+        // allocate the R list
+        PROTECT(result = Rf_allocVector(VECSXP, val->size()));
+        for (unsigned pos = 0; pos < val->size(); pos++)
+          {
+            // allocate the R vector
+            SET_VECTOR_ELT(result, pos, Rf_allocVector(STRSXP, val->at(pos).size()));
+            // Fill the R vector
+            for (unsigned vpos = 0; vpos < val->at(pos).size(); ++vpos)
+              {
+                CHARACTER_POINTER(VECTOR_ELT(result, pos))[vpos] = Rf_mkChar(val->at(pos).at(vpos).c_str());
+              }
+          }
+        UNPROTECT(1);
+        return(result);
+      }
+    };
+
   template <typename T>
     struct traits_from_ptr< std::vector < std::vector< T > > > {
     static SEXP from (std::vector < std::vector< T > > *val, int owner = 0) {
@@ -887,8 +908,6 @@ std::vector< std::basic_string<char> > *,
    std::vector< std::basic_string<char> > & 
 %{    %}
 
-%apply std::vector< std::basic_string<char> > { std::vector< std::string> };
-
 // all the related integer vectors
 // signed
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<signed char>);
@@ -1005,6 +1024,13 @@ std::vector< std::basic_string<char> > *,
 %typemap("rtype") std::vector<std::vector<bool> >, std::vector<std::vector<bool> > *, std::vector<std::vector<bool> > & "list"
 %typemap("scoercein") std::vector< std::vector<bool> >, std::vector<std::vector<bool> > *, std::vector<std::vector<bool> > & "$input = lapply($input, as.logical);"
 
+%typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<std::vector<std::basic_string<char> > >);
+%traits_type_name(std::vector< std::vector<std::basic_string<char> > >);
+%typemap("rtypecheck") std::vector<std::vector<std::basic_string<char> > >, std::vector<std::vector<std::basic_string<char> > > *, std::vector<std::vector<std::basic_string<char> > > &
+   %{ is.list($arg) && all(sapply($arg , is.character)) %}
+%typemap("rtype") std::vector<std::vector<std::basic_string<char> > >, std::vector<std::vector<std::basic_string<char> > > *, std::vector<std::vector<std::basic_string<char> > > & "list"
+%typemap("scoercein") std::vector< std::vector<std::basic_string<char> > >, std::vector<std::vector<std::basic_string<char> > > *, std::vector<std::vector<std::basic_string<char> > > & "$input = lapply($input, as.character);"
+
 // we don't want these to be given R classes as they
 // have already been turned into R vectors.
 %typemap(scoerceout) std::vector<double>,
@@ -1049,7 +1075,10 @@ std::vector< std::basic_string<char> > *,
    std::vector< std::vector<double> >&,
    std::vector< std::vector<bool> >,
    std::vector< std::vector<bool> >*,
-   std::vector< std::vector<bool> >&
+   std::vector< std::vector<bool> >&,
+   std::vector< std::vector<std::basic_string<char> > >,
+   std::vector< std::vector<std::basic_string<char> > >*,
+   std::vector< std::vector<std::basic_string<char> > >&
  %{    %}
 
 #if defined(SWIGWORDSIZE64)
@@ -1071,3 +1100,6 @@ std::vector< std::basic_string<char> > *,
  %{    %}
 
 #endif
+
+%apply std::vector< std::basic_string<char> > { std::vector<std::string> };
+%apply std::vector< std::vector< std::basic_string<char> > > { std::vector< std::vector<std::string> > };
