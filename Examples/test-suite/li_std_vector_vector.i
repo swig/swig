@@ -12,37 +12,55 @@ namespace std {
 
 %inline %{
 std::vector<std::string> make_vector_int() {
-    std::vector<std::string> v = {"1", "2", "3", "4", "5"};
+    std::string x[5] = {"1", "2", "3", "4", "5"};
+    std::vector<std::string> v;
+    for (size_t i = 0; i < 5; ++i)
+      v.push_back(x[i]);
     return v;
 }
 
 std::vector<std::vector<int> > make_vector_vector_int() {
+    int x[5] = {1, 2, 3, 4, 5};
     std::vector<std::vector<int> > vv;
-    std::vector<int> v = {1, 2, 3, 4, 5};
+    std::vector<int> v;
+    for (size_t i = 0; i < 5; ++i)
+      v.push_back(x[i]);
     vv.push_back(v);
     return vv;
 }
 
 std::vector<bool> make_vector_bool() {
-    std::vector<bool> v = {true, false, false, false, true};
+    bool x[5] = {true, false, false, false, true};
+    std::vector<bool> v;
+    for (size_t i = 0; i < 5; ++i)
+      v.push_back(x[i]);
     return v;
 }
 
 std::vector<std::vector<bool> > make_vector_vector_bool() {
+    bool x[5] = {false, true, true, true, false};
     std::vector<std::vector<bool> > vv;
-    std::vector<bool> v = {false, true, true, true, false};
+    std::vector<bool> v;
+    for (size_t i = 0; i < 5; ++i)
+      v.push_back(x[i]);
     vv.push_back(v);
     return vv;
 }
 
 std::vector<std::string> make_vector_string() {
-    std::vector<std::string> v = {"aa", "bb", "cc", "dd", "ee"};
+    std::string x[5] = {"aa", "bb", "cc", "dd", "ee"};
+    std::vector<std::string> v;
+    for (size_t i = 0; i < 5; ++i)
+      v.push_back(x[i]);
     return v;
 }
 
 std::vector<std::vector<std::string> > make_vector_vector_string() {
+    std::string x[5] = {"1", "2", "3", "4", "5"};
     std::vector<std::vector<std::string> > vv;
-    std::vector<std::string> v = {"1", "2", "3", "4", "5"};
+    std::vector<std::string> v;
+    for (size_t i = 0; i < 5; ++i)
+      v.push_back(x[i]);
     vv.push_back(v);
     return vv;
 }
