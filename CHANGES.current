@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-19: olly
+	    [Lua] #2126 Fix type resolution between multiple SWIG-wrapped
+	    modules.
+
 2022-10-17: wsfulton
             [R] #2385 Add support for std::vector<std::vector<std::string>>.
 
