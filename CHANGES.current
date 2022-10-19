@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-17: wsfulton
+            [R] #2385 Add support for std::vector<std::vector<std::string>>.
+
 2022-10-14: murillo128
 	    [Javascript] #2109 Tweak unsigned long and unsigned long long typemaps
             to create a v8::Number instead of v8::Integer if the value exceeds

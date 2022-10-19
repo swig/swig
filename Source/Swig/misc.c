@@ -81,7 +81,7 @@ String *Swig_package_version_hex(void) {
     count++;
   }
   Delete(package_version);
-  assert(count == 3); // Check version format is correct
+  assert(count == 3); /* Check version format is correct */
   return vers;
 }
 

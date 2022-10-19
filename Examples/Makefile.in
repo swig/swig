@@ -1215,6 +1215,9 @@ php_cpp: $(SRCDIR_SRCS)
 php_run:
 	$(RUNTOOL) $(PHP) -n -d extension_dir=. -d extension=$(PHP_EXTENSION) -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});if(strlen($$argv[1]))include($$argv[1]);' '$(PHP_SCRIPT)' $(RUNPIPE)
 
+php_run_multi:
+	$(RUNTOOL) $(PHP) -n -d extension_dir=. `while read e ; do echo ' -d extension=$(TARGETPREFIX)'"$$e"'@PHP_SO@' ; done < $(PHP_EXTENSION_LIST)` -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});if(strlen($$argv[1]))include($$argv[1]);' '$(PHP_SCRIPT)' $(RUNPIPE)
+
 # -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------

@@ -1836,13 +1836,18 @@ public:
       base_class = NewString("Exception");
     }
 
-    if (Equal(base_class, "Exception")) {
+    if (!base_class) {
+      Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class(&internal_ce);\n", class_name);
+    } else if (Equal(base_class, "Exception")) {
       Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class_ex(&internal_ce, zend_ce_exception);\n", class_name);
     } else if (is_class_wrapped(base_class)) {
       Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class_ex(&internal_ce, SWIG_Php_ce_%s);\n", class_name, base_class);
       Setattr(php_parent_class, class_name, base_class);
     } else {
-      Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class(&internal_ce);\n", class_name);
+      Printf(s_oinit, "  {\n");
+      Printf(s_oinit, "    swig_type_info *type_info = SWIG_MangledTypeQueryModule(swig_module.next, &swig_module, \"_p_%s\");\n", base_class);
+      Printf(s_oinit, "    SWIG_Php_ce_%s = zend_register_internal_class_ex(&internal_ce, (zend_class_entry*)(type_info ? type_info->clientdata : NULL));\n", class_name);
+      Printf(s_oinit, "  }\n");
     }
 
     if (Getattr(n, "abstracts") && !GetFlag(n, "feature:notabstract")) {

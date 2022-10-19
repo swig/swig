@@ -33,7 +33,7 @@
 
 // raise
 %runtime %{
-void SWIG_Octave_Raise(const octave_value &obj, const char *type) {
+SWIGINTERN void SWIG_Octave_Raise(const octave_value &obj, const char *type) {
   if (obj.is_string())
     error("%s", obj.string_value().c_str());
   else
