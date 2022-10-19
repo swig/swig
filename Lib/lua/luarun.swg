@@ -1789,7 +1789,7 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type
     }
     else
     {
-      cast=SWIG_TypeCheck(usr->type->name,type); /* performs normal type checking */
+      cast=SWIG_TypeCheckStruct(usr->type,type); /* performs normal type checking */
       if (cast)
       {
         int newmemory = 0;
