@@ -183,6 +183,7 @@ void Swig_interface_propagate_methods(Node *n) {
 	if (Strcmp(symname, "$ignore") != 0) {
 	  Symtab *oldscope = Swig_symbol_setscope(Getattr(n, "symtab"));
 	  Node *on = Swig_symbol_add(symname, cn);
+	  (void)on;
 	  assert(on == cn);
 
 	  // Features from the copied base class method are already present, now add in features specific to the added method in the derived class
