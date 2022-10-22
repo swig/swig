@@ -46,6 +46,7 @@ class CSHARP:public Language {
   bool global_variable_flag;	// Flag for when wrapping a global variable
   bool old_variable_names;	// Flag for old style variable names in the intermediary class
   bool generate_property_declaration_flag;	// Flag for generating properties
+  bool mono_aot_compatibility_flag;	// Flag for generating directors compatible with Mono AOT
 
   String *imclass_name;		// intermediary class name
   String *module_class_name;	// module class name
@@ -77,6 +78,8 @@ class CSHARP:public Language {
   String *director_delegate_callback;	// Director callback method that delegates are set to call
   String *director_delegate_definitions;	// Director delegates definitions in proxy class
   String *director_delegate_instances;	// Director delegates member variables in proxy class
+  String *director_mono_aot_delegate_definitions;	// Director delegates definitions in proxy class
+  String *director_mono_aot_delegate_instances;	// Director delegates member variables in proxy class
   String *director_method_types;	// Director method types
   String *director_connect_parms;	// Director delegates parameter list for director connect call
   String *destructor_call;	//C++ destructor call if any
@@ -152,6 +155,8 @@ public:
       director_delegate_callback(NULL),
       director_delegate_definitions(NULL),
       director_delegate_instances(NULL),
+      director_mono_aot_delegate_definitions(NULL),
+      director_mono_aot_delegate_instances(NULL),
       director_method_types(NULL),
       director_connect_parms(NULL),
       destructor_call(NULL),
@@ -264,7 +269,11 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
-	} else if (strcmp(argv[i], "-help") == 0) {
+	} else if (strcmp(argv[i], "-monoaotcompat") == 0) {
+	  Swig_mark_arg(i);
+	  mono_aot_compatibility_flag = true;
+	}
+	 else if (strcmp(argv[i], "-help") == 0) {
 	  Printf(stdout, "%s\n", usage);
 	}
       }
@@ -272,6 +281,10 @@ public:
 
     // Add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGCSHARP 1", 0);
+
+    if (mono_aot_compatibility_flag) {
+      Preprocessor_define("SWIG_CSHARP_MONO_AOT_COMPATIBILITY 1", 0);
+    }
 
     // Add typemap definitions
     SWIG_typemap_lang("csharp");
@@ -1957,15 +1970,31 @@ public:
 	String *method = Getattr(udata, "method");
 	String *methid = Getattr(udata, "class_methodidx");
 	String *overname = Getattr(udata, "overname");
-	Printf(proxy_class_code, "    if (SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s))\n", method, methid);
-	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirectorMethod%s);\n", methid, proxy_class_name, methid, overname);
+
+	if (mono_aot_compatibility_flag) {
+	  Printf(proxy_class_code, "    global::System.IntPtr swigDelegate%sgcHandlePtr = global::System.IntPtr.Zero;\n", methid);
+	}
+	Printf(proxy_class_code, "    if (SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s)) {\n", method, methid);
+	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirector%s);\n", methid, proxy_class_name, methid, overname);
+	if (mono_aot_compatibility_flag) {
+	  Printf(proxy_class_code, "      swigDelegate%sdispatcher = new SwigDelegate%s_%s_Dispatcher(SwigDirector%s_Dispatcher);\n", methid, proxy_class_name, methid, overname);
+	  Printf(proxy_class_code, "      global::System.Runtime.InteropServices.GCHandle swigDelegate%sgcHandle = global::System.Runtime.InteropServices.GCHandle.Alloc(swigDelegate%s, global::System.Runtime.InteropServices.GCHandleType.Weak);\n", methid, methid);
+	  Printf(proxy_class_code, "      swigDelegate%sgcHandlePtr = global::System.Runtime.InteropServices.GCHandle.ToIntPtr(swigDelegate%sgcHandle);\n", methid, methid);
+	}
+	Append(proxy_class_code, "    }\n");
+
       }
       String *director_connect_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "director_connect");
       Printf(proxy_class_code, "    %s.%s(swigCPtr", imclass_name, director_connect_method_name);
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
 	UpcallData *udata = Getitem(dmethods_seq, i);
 	String *methid = Getattr(udata, "class_methodidx");
-	Printf(proxy_class_code, ", swigDelegate%s", methid);
+	if (!mono_aot_compatibility_flag) {
+	  Printf(proxy_class_code, ", swigDelegate%s", methid);
+	} else {
+	  Printf(proxy_class_code, ", swigDelegate%sdispatcher", methid);
+	  Printf(proxy_class_code, ", swigDelegate%sgcHandlePtr", methid);
+	}
       }
       Printf(proxy_class_code, ");\n");
       Printf(proxy_class_code, "  }\n");
@@ -2006,6 +2035,10 @@ public:
 	Printv(proxy_class_code, "\n", director_delegate_definitions, NIL);
       if (Len(director_delegate_instances) > 0)
 	Printv(proxy_class_code, "\n", director_delegate_instances, NIL);
+      if (Len(director_mono_aot_delegate_definitions) > 0)
+	Printv(proxy_class_code, "\n", director_mono_aot_delegate_definitions, NIL);
+      if (Len(director_mono_aot_delegate_instances) > 0)
+	Printv(proxy_class_code, "\n", director_mono_aot_delegate_instances, NIL);
       if (Len(director_method_types) > 0)
 	Printv(proxy_class_code, "\n", director_method_types, NIL);
 
@@ -2019,6 +2052,10 @@ public:
       director_delegate_definitions = NULL;
       Delete(director_delegate_instances);
       director_delegate_instances = NULL;
+      Delete(director_mono_aot_delegate_definitions);
+      director_mono_aot_delegate_definitions = NULL;
+      Delete(director_mono_aot_delegate_instances);
+      director_mono_aot_delegate_instances = NULL;
       Delete(director_method_types);
       director_method_types = NULL;
       Delete(director_connect_parms);
@@ -3769,9 +3806,21 @@ public:
       Printf(code_wrap->def, ", ");
       if (i != first_class_dmethod)
 	Printf(code_wrap->code, ", ");
-      Printf(code_wrap->def, "%s::SWIG_Callback%s_t callback%s", dirclassname, methid, methid);
+      if (!mono_aot_compatibility_flag)	{
+	Printf(code_wrap->def, "%s::SWIG_Callback%s_t callback%s", dirclassname, methid, methid);
+      } else {
+	Printf(code_wrap->def, "%s::SWIG_Callback%s_Dispatcher_t callback%sStatic, ", dirclassname, methid, methid);      
+	Printf(code_wrap->def, "void* callback%s", methid);      
+	Printf(code_wrap->code, "callback%sStatic, ", methid);
+      }
+      
       Printf(code_wrap->code, "callback%s", methid);
-      Printf(imclass_class_code, ", %s.SwigDelegate%s_%s delegate%s", qualified_classname, sym_name, methid, methid);
+      if (!mono_aot_compatibility_flag) {
+	Printf(imclass_class_code, ", %s.SwigDelegate%s_%s delegate%s", qualified_classname, sym_name, methid, methid);
+      } else { 
+	Printf(imclass_class_code, ", %s.SwigDelegate%s_%s_Dispatcher delegate%s_dispatcher", qualified_classname, sym_name, methid, methid);
+	Printf(imclass_class_code, ", global::System.IntPtr delegate%sgcHandlePtr", methid);
+      }
     }
 
     Printf(code_wrap->def, ") {\n");
@@ -3827,11 +3876,16 @@ public:
     String *imclass_dmethod;
     String *callback_typedef_parms = NewString("");
     String *delegate_parms = NewString("");
+    String *mono_aot_dispatcher_parms = NewString("");
     String *proxy_method_types = NewString("");
     String *callback_def = NewString("");
     String *callback_code = NewString("");
+    String *callback_mono_aot_def = NewString("");
+    String *callback_mono_aot_code = NewString("");
     String *imcall_args = NewString("");
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
+    UpcallData *udata = 0;
+    String *methid = 0;
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
     // isn't at this point, so we have to manufacture it ourselves. At least
@@ -3841,6 +3895,13 @@ public:
     imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(getNSpace(), getClassPrefix(), overloaded_name));
 
     qualified_return = SwigType_rcaststr(returntype, "c_result");
+
+    if (!ignored_method) {
+      /* Emit the actual upcall through */	    
+      udata = addUpcallMethod(imclass_dmethod, symname, decl, overloaded_name);
+      methid = Getattr(udata, "class_methodidx");
+      Setattr(n, "upcalldata", udata);
+    }
 
     if (!is_void && (!ignored_method || pure_virtual)) {
       if (!SwigType_isclass(returntype)) {
@@ -3902,13 +3963,26 @@ public:
 	Printf(callback_def, "  %s\n", im_directoroutattributes);
 	if (!ignored_method)
 	  Printf(director_delegate_definitions, "  %s\n", im_directoroutattributes);
-      }
 
-      Printf(callback_def, "  private %s SwigDirectorMethod%s(", tm, overloaded_name);
+	if (mono_aot_compatibility_flag) {
+	  Printf(callback_mono_aot_def, "  %s\n", im_directoroutattributes);
+	  if (!ignored_method)
+	    Printf(director_mono_aot_delegate_definitions, "  %s\n", im_directoroutattributes);
+	}  
+      }
+      if (mono_aot_compatibility_flag && !ignored_method) {
+	Printf(callback_mono_aot_def, "\n  [%s.MonoPInvokeCallback(typeof(SwigDelegate%s_%s_Dispatcher))]\n", imclass_name, classname, methid);
+	Printf(callback_mono_aot_def, "  private static %s SwigDirector%s_Dispatcher(", tm, overloaded_name);
+      }
+      Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
+
       if (!ignored_method) {
 	const String *csdirectordelegatemodifiers = Getattr(n, "feature:csdirectordelegatemodifiers");
 	String *modifiers = (csdirectordelegatemodifiers ? NewStringf("%s%s", csdirectordelegatemodifiers, Len(csdirectordelegatemodifiers) > 0 ? " " : "") : NewStringf("public "));
 	Printf(director_delegate_definitions, "  %sdelegate %s", modifiers, tm);
+	if (mono_aot_compatibility_flag) {
+	  Printf(director_mono_aot_delegate_definitions, "  %sdelegate %s", modifiers, tm);
+	}
 	Delete(modifiers);
       }
     } else {
@@ -4055,10 +4129,12 @@ public:
 
 	      if (i > 0) {
 		Printf(delegate_parms, ", ");
+		Printf(mono_aot_dispatcher_parms, ", ");
 		Printf(proxy_method_types, ", ");
 		Printf(imcall_args, ", ");
 	      }
 	      Printf(delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, tm, ln);
+	      Printf(mono_aot_dispatcher_parms, "%s", ln);
 
 	      if (Cmp(din, ln)) {
 		Printv(imcall_args, din, NIL);
@@ -4159,12 +4235,29 @@ public:
     Printf(callback_def, "%s)", delegate_parms);
     Printf(callback_def, " {\n");
 
+    if (mono_aot_compatibility_flag) {
+      Printf(callback_mono_aot_def, "global::System.IntPtr swigDelegate%s_%s_Handle%s%s)", classname, methid, ParmList_len(l) > 0 ? ", " : "", delegate_parms);
+      Printf(callback_mono_aot_def, " {\n");	    
+    }
+
     /* Emit the intermediate class's upcall to the actual class */
 
     String *upcall = NewStringf("%s(%s)", symname, imcall_args);
+    String *upcall_mono_aot = NewStringf("delegateSwigDelegate%s_%s(%s)", classname, methid, mono_aot_dispatcher_parms);
 
     if ((tm = Swig_typemap_lookup("csdirectorout", n, "", 0))) {
       substituteClassname(returntype, tm);
+
+      String *tm2 = NewStringEmpty();
+      if (mono_aot_compatibility_flag) {
+	Printf(tm2, "global::System.Runtime.InteropServices.GCHandle gcHandle = global::System.Runtime.InteropServices.GCHandle.FromIntPtr(swigDelegate%s_%s_Handle);\n", classname, methid);
+	Printf(tm2, "    SwigDelegate%s_%s delegateSwigDelegate%s_%s = (SwigDelegate%s_%s) gcHandle.Target;\n", classname, methid, classname, methid, classname, methid);
+	if (!is_void)
+	  Printf(tm2, "    return ");
+	Append(tm2, tm);
+	Replaceall(tm2, tm, upcall_mono_aot);
+      }
+
       Replaceall(tm, "$cscall", upcall);
       if (!is_void)
 	Insert(tm, 0, "return ");
@@ -4174,27 +4267,44 @@ public:
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
       bool is_terminator_code = Len(terminator_code) > 0;
-      if (is_pre_code && is_post_code)
+      if (is_pre_code && is_post_code) {
 	Printf(callback_code, "%s\n    try {\n      %s;\n    } finally {\n%s\n    }\n", pre_code, tm, post_code);
-      else if (is_pre_code)
+	Printf(callback_mono_aot_code, "%s\n    try {\n      %s;\n    } finally {\n%s\n    }\n", pre_code, tm2, post_code);
+      }
+      else if (is_pre_code) {
 	Printf(callback_code, "%s\n    %s;\n", pre_code, tm);
-      else if (is_post_code)
+	Printf(callback_mono_aot_code, "%s\n    %s;\n", pre_code, tm2);
+      }
+      else if (is_post_code) {
 	Printf(callback_code, "    try {\n      %s;\n    } finally {\n%s\n    }\n", tm, post_code);
-      else
+	Printf(callback_mono_aot_code, "    try {\n      %s;\n    } finally {\n%s\n    }\n", tm2, post_code);
+      }
+      else {
 	Printf(callback_code, "    %s;\n", tm);
-      if (is_terminator_code)
+	Printf(callback_mono_aot_code, "    %s;\n", tm2);
+      }
+      if (is_terminator_code) {
 	Printv(callback_code, "\n", terminator_code, NIL);
+	Printv(callback_mono_aot_code, "\n", terminator_code, NIL);
+      }
+
+      Delete(tm2);
     }
 
     Printf(callback_code, "  }\n");
+    Printf(callback_mono_aot_code, "  }\n");
     Delete(upcall);
 
     if (!ignored_method) {
       if (!is_void)
 	Printf(w->code, "jresult = (%s) ", c_ret_type);
 
-      Printf(w->code, "swig_callback%s(%s);\n", overloaded_name, jupcall_args);
-
+      if (!mono_aot_compatibility_flag)  {
+	Printf(w->code, "swig_callback%s(%s);\n", overloaded_name, jupcall_args);
+      } else {
+	Printf(w->code, "swig_callback%s_dispatcher(swig_callback%s%s%s);\n", overloaded_name, overloaded_name, Len(jupcall_args) > 0 ? ", " : "", jupcall_args);
+      }
+ 
       if (!is_void) {
 	String *jresult_str = NewString("jresult");
 	String *result_str = NewString("c_result");
@@ -4258,8 +4368,11 @@ public:
       } else {
 	Replaceall(w->code, "$null", "");
       }
-      if (!ignored_method)
+      if (!ignored_method) {
 	Printv(director_delegate_callback, "\n", callback_def, callback_code, NIL);
+	if (mono_aot_compatibility_flag)
+	  Printv(director_delegate_callback, callback_mono_aot_def, callback_mono_aot_code, NIL);
+      }
       if (!Getattr(n, "defaultargs")) {
 	Replaceall(w->code, "$symname", symname);
 	Wrapper_print(w, f_directors);
@@ -4269,18 +4382,26 @@ public:
     }
 
     if (!ignored_method) {
-      /* Emit the actual upcall through */
-      UpcallData *udata = addUpcallMethod(imclass_dmethod, symname, decl, overloaded_name);
-      String *methid = Getattr(udata, "class_methodidx");
-      Setattr(n, "upcalldata", udata);
       /*
       Printf(stdout, "setting upcalldata, nodeType: %s %s::%s %p\n", nodeType(n), classname, Getattr(n, "name"), n);
       */
 
-      Printf(director_callback_typedefs, "    typedef %s (SWIGSTDCALL* SWIG_Callback%s_t)(", c_ret_type, methid);
+      Printf(director_callback_typedefs, "    typedef %s (SWIGSTDCALL* SWIG_Callback%s%s_t)(", c_ret_type, methid, mono_aot_compatibility_flag ? "_Dispatcher" : "");
+      if (mono_aot_compatibility_flag) {
+	Printf(director_callback_typedefs, "Swig::GCHandle", callback_typedef_parms);      
+	if (Len(callback_typedef_parms) > 0) 
+	  Printf(director_callback_typedefs, ", ");      
+      }
       Printf(director_callback_typedefs, "%s);\n", callback_typedef_parms);
-      Printf(director_callbacks, "    SWIG_Callback%s_t swig_callback%s;\n", methid, overloaded_name);
-
+      if (!mono_aot_compatibility_flag) {
+	Printf(director_callbacks, "    SWIG_Callback%s_t swig_callback%s;\n", methid, overloaded_name);
+      } else {
+	Printf(director_callbacks, "    SWIG_Callback%s_Dispatcher_t swig_callback%s_dispatcher;\n", methid, overloaded_name);
+	Printf(director_callbacks, "    Swig::GCHandle swig_callback%s;\n", overloaded_name);
+	Printf(director_mono_aot_delegate_definitions, " SwigDelegate%s_%s_Dispatcher(global::System.IntPtr swigDelegate%s_%s_Handle%s%s);\n", classname, methid, classname, methid, ParmList_len(l) > 0 ? ", " : "",delegate_parms);
+	Printf(director_mono_aot_delegate_instances, "  private SwigDelegate%s_%s_Dispatcher swigDelegate%sdispatcher;\n", classname, methid, methid);
+      }
+      
       Printf(director_delegate_definitions, " SwigDelegate%s_%s(%s);\n", classname, methid, delegate_parms);
       Printf(director_delegate_instances, "  private SwigDelegate%s_%s swigDelegate%s;\n", classname, methid, methid);
       Printf(director_method_types, "  private static global::System.Type[] swigMethodTypes%s = new global::System.Type[] { %s };\n", methid, proxy_method_types);
@@ -4297,6 +4418,8 @@ public:
     Delete(proxy_method_types);
     Delete(callback_def);
     Delete(callback_code);
+    Delete(callback_mono_aot_def);
+    Delete(callback_mono_aot_code);
     Delete(dirclassname);
     DelWrapper(w);
 
@@ -4406,6 +4529,8 @@ public:
     director_delegate_callback = NewString("");
     director_delegate_definitions = NewString("");
     director_delegate_instances = NewString("");
+    director_mono_aot_delegate_definitions = NewString("");
+    director_mono_aot_delegate_instances = NewString("");
     director_method_types = NewString("");
     director_connect_parms = NewString("");
 
@@ -4418,6 +4543,8 @@ public:
     String *old_director_delegate_callback = director_delegate_callback;
     String *old_director_delegate_definitions = director_delegate_definitions;
     String *old_director_delegate_instances = director_delegate_instances;
+    String *old_director_mono_aot_delegate_definitions = director_mono_aot_delegate_definitions;
+    String *old_director_mono_aot_delegate_instances = director_mono_aot_delegate_instances;
     String *old_director_method_types = director_method_types;
     String *old_director_connect_parms = director_connect_parms;
 
@@ -4429,6 +4556,8 @@ public:
     director_delegate_callback = old_director_delegate_callback;
     director_delegate_definitions = old_director_delegate_definitions;
     director_delegate_instances = old_director_delegate_instances;
+    director_mono_aot_delegate_definitions = old_director_mono_aot_delegate_definitions;
+    director_mono_aot_delegate_instances = old_director_mono_aot_delegate_instances;
     director_method_types = old_director_method_types;
     director_connect_parms = old_director_connect_parms;
 
@@ -4487,8 +4616,15 @@ public:
       String *methid = Getattr(udata, "class_methodidx");
       String *overname = Getattr(udata, "overname");
 
-      Printf(f_directors_h, "SWIG_Callback%s_t callback%s", methid, overname);
-      Printf(w->def, "SWIG_Callback%s_t callback%s", methid, overname);
+      if (!mono_aot_compatibility_flag) {
+	Printf(f_directors_h, "SWIG_Callback%s_t callback%s", methid, overname);
+	Printf(w->def, "SWIG_Callback%s_t callback%s", methid, overname);
+      } else {
+	Printf(f_directors_h, "SWIG_Callback%s_Dispatcher_t callback%s_dispatcher, Swig::GCHandle callback%s", methid, overname, overname);
+	Printf(w->def, "SWIG_Callback%s_Dispatcher_t callback%s_dispatcher, Swig::GCHandle callback%s", methid, overname, overname);
+	Printf(w->code, "swig_callback%s_dispatcher = callback%s_dispatcher;\n", overname, overname);
+      }
+
       Printf(w->code, "swig_callback%s = callback%s;\n", overname, overname);
       if (i != curr_class_dmethod - 1) {
 	Printf(f_directors_h, ", ");
@@ -4511,6 +4647,8 @@ public:
     for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
       String *overname = Getattr(udata, "overname");
+      if (mono_aot_compatibility_flag)
+	Printf(w->code, "swig_callback%s_dispatcher = 0;\n", overname);
       Printf(w->code, "swig_callback%s = 0;\n", overname);
     }
     Printf(w->code, "}");
@@ -4595,4 +4733,6 @@ C# Options (available with -csharp)\n\
                        of proxy classes\n\
      -oldvarnames    - Old intermediary method names for variable wrappers\n\
      -outfile <file> - Write all C# into a single <file> located in the output directory\n\
+     -monoaotcompat  - Generate directors that are compatible with Mono AOT compilation limitations\n\
 \n";
+
