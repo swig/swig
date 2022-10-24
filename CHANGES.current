@@ -8,6 +8,11 @@ Version 4.1.0 (in progress)
 ===========================
 
 2022-10-24: wsfulton
+            [R] Add support for special variable replacement in the $typemap()
+            special variable macro for R specific typemaps (rtype, rtypecheck,
+            scoercein, scoereout).
+
+2022-10-24: wsfulton
 	    [R] Polymorphism in the wrappers was only working for C++ classes,
             now this works for C++ structs too.
 

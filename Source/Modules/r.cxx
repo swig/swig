@@ -242,8 +242,8 @@ public:
     return status;
   }
 
-  // Not used:
   String *runtimeCode();
+  void replaceSpecialVariables(String *method, String *tm, Parm *parm);
 
 protected:
   int addRegistrationRoutine(String *rname, int nargs);
@@ -2664,6 +2664,16 @@ String * R::runtimeCode() {
     s = NewString("");
   }
   return s;
+}
+
+/*----------------------------------------------------------------------
+ * replaceSpecialVariables()
+ *--------------------------------------------------------------------*/
+
+void R::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+  (void)method;
+  SwigType *type = Getattr(parm, "type");
+  replaceRClass(tm, type);
 }
 
 
