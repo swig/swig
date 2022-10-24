@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-24: wsfulton, AndLLA
+            [R] #2386 Fix problems in shared_ptr wrappers where the class names
+            were not consistent when using the shared_ptr template or the actual
+            underlying type.
+
 2022-10-24: wsfulton
             [R] Add support for special variable replacement in the $typemap()
             special variable macro for R specific typemaps (rtype, rtypecheck,

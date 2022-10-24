@@ -83,7 +83,7 @@ testSuite <- function() {
 	if (FALSE) {
 	  # pass by shared_ptr pointer reference
 	  k = Klass("me oh my")
-	  kret = smartpointerpointerreftest(k) # undefined class _p_p_SwigBoost__shared_ptrT_Space__Klass_t
+	  kret = smartpointerpointerreftest(k)
 	  val = kret$getValue()
 	  unittest("me oh my smartpointerpointerreftest", val)
 	  testSuite_verifyCount(2, k)
@@ -93,7 +93,7 @@ testSuite <- function() {
 	if (FALSE) {
 	  # pass by shared_ptr pointer reference
 	  k = Klass("me oh my");
-	  kret = smartpointerpointerreftest(k); # undefined class _p_p_SwigBoost__shared_ptrT_Space__Klass_t
+	  kret = smartpointerpointerreftest(k);
 	  val = kret$getValue()
 	  unittest("me oh my smartpointerpointerreftest", val);
 	  testSuite_verifyCount(2, k);
@@ -104,10 +104,10 @@ testSuite <- function() {
 	{
 	  k = Klass("me oh my");
 	  kret = constsmartpointertest(k);
-	  val = Klass_getValue(kret) # kret$getValue(); - method not defined
+	  val = Klass_getValue(kret);
 	  unittest("me oh my", val);
 	  testSuite_verifyCount(2, k);
-	  # testSuite_verifyCount(2, kret); # -> use_count not defined on _p_SwigBoost__shared_ptrT_Space__Klass_const_t
+	  testSuite_verifyCount(2, kret);
 	}
 
   # const pass by shared_ptr pointer
@@ -117,7 +117,7 @@ testSuite <- function() {
     val = Klass_getValue(kret)
     unittest("me oh my", val)
     testSuite_verifyCount(2, k)
-    # testSuite_verifyCount(2, kret) # -> use_count not defined on _p_SwigBoost__shared_ptrT_Space__Klass_const_t
+    testSuite_verifyCount(2, kret)
   }
 
   # const pass by shared_ptr reference
@@ -127,7 +127,7 @@ testSuite <- function() {
     val = Klass_getValue(kret)
     unittest("me oh my", val)
     testSuite_verifyCount(2, k)
-    # testSuite_verifyCount(2, kret) # -> use_count not defined for _p_SwigBoost__shared_ptrT_Space__Klass_const_t
+    testSuite_verifyCount(2, kret)
   }
 
   # pass by value
@@ -137,7 +137,7 @@ testSuite <- function() {
     val = kret$getValue();
     unittest("me oh my valuetest", val);
     testSuite_verifyCount(1, k);
-    # testSuite_verifyCount(1, kret); # -> use_count not defined on _p_Space__Klass
+    testSuite_verifyCount(1, kret);
   }
 
   # pass by pointer
@@ -147,7 +147,7 @@ testSuite <- function() {
     val = kret$getValue();
     unittest("me oh my pointertest", val);
     testSuite_verifyCount(1, k);
-    # testSuite_verifyCount(1, kret); # -> use_count not defined on _p_Space__Klass
+    testSuite_verifyCount(1, kret);
   }
 
   # pass by reference
@@ -157,17 +157,17 @@ testSuite <- function() {
     val = kret$getValue();
     unittest("me oh my reftest", val);
     testSuite_verifyCount(1, k);
-    #testSuite_verifyCount(1, kret); # -> use_count not defined on _p_Space__Klass
+    testSuite_verifyCount(1, kret);
   }
 
   # pass by pointer reference
   {
     k = Klass("me oh my");
-    kret = pointerreftest(k); # -> class not defined _p_p_Space__Klass
+    kret = pointerreftest(k);
     val = kret$getValue();
     unittest("me oh my pointerreftest", val);
     testSuite_verifyCount(1, k);
-    # testSuite_verifyCount(1, kret); # -> use_count not defined on _p_Space__Klass
+    testSuite_verifyCount(1, kret);
   }
 
   # null tests
@@ -239,7 +239,7 @@ testSuite <- function() {
     k = pointerownertest();
     val = k$getValue();
     unittest("pointerownertest", val);
-    # testSuite_verifyCount(1, k); # -> use_count not defined for _p_Space__Klass
+    testSuite_verifyCount(1, k);
   }
 
   {
@@ -286,7 +286,7 @@ testSuite <- function() {
   # pass by shared_ptr pointer reference (mixed)
   if (FALSE) {
     k = KlassDerived("me oh my");
-    kret = smartpointerpointerreftest(k); # undefined class _p_p_SwigBoost__shared_ptrT_Space__Klass_t
+    kret = smartpointerpointerreftest(k);
     val = kret$getValue();
     unittest("me oh my derivedsmartptrpointerreftest-Derived", val);
     testSuite_verifyCount(2, k); # includes two extra references for upcasts in the proxy classes
@@ -313,7 +313,7 @@ testSuite <- function() {
     val = kret$getValue();
     unittest("me oh my derivedpointertest-Derived", val);
     testSuite_verifyCount(1, k);
-    # testSuite_verifyCount(1, kret); -> use_count not defined for _p_Space__KlassDerived
+    testSuite_verifyCount(1, kret);
   }
 
   # pass by ref (mixed)
@@ -340,12 +340,12 @@ testSuite <- function() {
     unittest(overload_rawbyval(k), "rawbyval")
     unittest(overload_rawbyref(k), "rawbyref")
     unittest(overload_rawbyptr(k), "rawbyptr")
-    # unittest(overload_rawbyptrref(k), "rawbyptrref") --> undefined for _p_SwigBoost__shared_ptrT_Space__Klass_t
+    unittest(overload_rawbyptrref(k), "rawbyptrref")
 
     unittest(overload_smartbyval(k), "smartbyval")
     unittest(overload_smartbyref(k), "smartbyref")
     unittest(overload_smartbyptr(k), "smartbyptr")
-    # unittest(overload_smartbyptrref(k), "smartbyptrref") --> undefined for _p_SwigBoost__shared_ptrT_Space__Klass_t
+    unittest(overload_smartbyptrref(k), "smartbyptrref")
   }
 
   # Derived class
@@ -355,12 +355,12 @@ testSuite <- function() {
     unittest(overload_rawbyval(k), "rawbyval")
     unittest(overload_rawbyref(k), "rawbyref")
     unittest(overload_rawbyptr(k), "rawbyptr")
-    # unittest(overload_rawbyptrref(k), "rawbyptrref") --> undefined for _p_SwigBoost__shared_ptrT_Space__KlassDerived_t
+    unittest(overload_rawbyptrref(k), "rawbyptrref")
 
     unittest(overload_smartbyval(k), "smartbyval")
     unittest(overload_smartbyref(k), "smartbyref")
     unittest(overload_smartbyptr(k), "smartbyptr")
-    # unittest(overload_smartbyptrref(k), "smartbyptrref") --> undefined for _p_SwigBoost__shared_ptrT_Space__KlassDerived_t
+    unittest(overload_smartbyptrref(k), "smartbyptrref")
   }
 
   # 3rd derived class
@@ -370,12 +370,12 @@ testSuite <- function() {
     unittest(overload_rawbyval(k), "rawbyval")
     unittest(overload_rawbyref(k), "rawbyref")
     unittest(overload_rawbyptr(k), "rawbyptr")
-    # unittest(overload_rawbyptrref(k), "rawbyptrref") --> undefined for _p_SwigBoost__shared_ptrT_Space__Klass3rdDerived_t
+    unittest(overload_rawbyptrref(k), "rawbyptrref")
 
     unittest(overload_smartbyval(k), "smartbyval")
     unittest(overload_smartbyref(k), "smartbyref")
     unittest(overload_smartbyptr(k), "smartbyptr")
-    # unittest(overload_smartbyptrref(k), "smartbyptrref") --> undefined for _p_SwigBoost__shared_ptrT_Space__Klass3rdDerived_t
+    unittest(overload_smartbyptrref(k), "smartbyptrref")
   }
 
   #
@@ -573,7 +573,7 @@ testSuite <- function() {
     kglobal = GlobalValue_get();
     val = kglobal$getValue();
     unittest("global value", val);
-    # testSuite_verifyCount(1, kglobal); # -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, kglobal);
     testSuite_verifyCount(1, k);
     unittest("global value", GlobalValue_get()$getValue());
 
@@ -600,7 +600,7 @@ testSuite <- function() {
     kglobal = GlobalPointer_get();
     val = kglobal$getValue();
     unittest("global pointer", val);
-    # testSuite_verifyCount(1, kglobal); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, kglobal);
     testSuite_verifyCount(1, k);
     GlobalPointer_set(NULL);
   }
@@ -614,7 +614,7 @@ testSuite <- function() {
     kglobal = GlobalReference_get();
     val = kglobal$getValue();
     unittest("global reference", val);
-    # testSuite_verifyCount(1, kglobal); # -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, kglobal);
     testSuite_verifyCount(1, k);
 
     bNotCatched = F
@@ -652,16 +652,16 @@ for (i in 1:10) {
 
 # wait for the GC to collect unused objects
 
-for (i in 1:10) {
-  invisible(gc(verbose = F, full = T))
-
-  if (Klass_getTotal_count() == 1) {
-    break
-  }
-
-  print(paste("Still waiting for GC to collect ", Klass_getTotal_count()-1, " objects, ", i))
-  Sys.sleep(1)
-}
+#for (i in 1:10) {
+#  invisible(gc(verbose = F, full = T))
+#
+#  if (Klass_getTotal_count() == 1) {
+#    break
+#  }
+#
+#  print(paste("Still waiting for GC to collect ", Klass_getTotal_count()-1, " objects, ", i))
+#  Sys.sleep(1)
+#}
 
 # Expect
 unittest(shared_ptr_wrapper_count(), NOT_COUNTING())
