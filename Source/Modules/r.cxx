@@ -2088,15 +2088,6 @@ int R::functionWrapper(Node *n) {
   /*If the user gave us something to convert the result in  */
   if ((tm = Swig_typemap_lookup("scoerceout", n, Swig_cresult_name(), sfun))) {
     Replaceall(tm,"$result","ans");
-    if (constructor) {
-      Node * parent = Getattr(n, "parentNode");
-      String * smartname = Getattr(parent, "feature:smartptr");
-      if (smartname) {
-	smartname = getRClassName(smartname, 1, 1);
-	Replaceall(tm, "$R_class", smartname);
-	Delete(smartname);
-      }
-    }
     if (debugMode) {
       Printf(stdout, "Calling replace B: %s, %s, %s\n", Getattr(n, "type"), Getattr(n, "sym:name"), getNSpace());
     }
@@ -2322,31 +2313,6 @@ void R::registerClass(Node *n) {
 
     Printf(s_classes, "setClass('%s', contains = %s)\n", sname, base);
     Delete(base);
-    String *smartptr = Getattr(n, "feature:smartptr");
-    if (smartptr) {
-      List *l = Getattr(n, "bases");
-      SwigType *spt = Swig_cparse_type(smartptr);
-      String *smart = SwigType_typedef_resolve_all(spt);
-      String *smart_rname = SwigType_manglestr(smart);
-      Printf(s_classes, "setClass('_p%s', contains = c('%s'", smart_rname, sname);
-      Delete(spt);
-      Delete(smart);
-      Delete(smart_rname);
-      for(int i = 0; i < Len(l); i++) {
-	Node * b = Getitem(l, i);
-	smartptr = Getattr(b, "feature:smartptr");
-	if (smartptr) {
-	  spt = Swig_cparse_type(smartptr);
-	  smart = SwigType_typedef_resolve_all(spt);
-	  smart_rname = SwigType_manglestr(smart);
-	  Printf(s_classes, ", '_p%s'", smart_rname);
-	  Delete(spt);
-	  Delete(smart);
-	  Delete(smart_rname);
-	}
-      }
-      Printf(s_classes, "))\n");
-    }
   }
 }
 

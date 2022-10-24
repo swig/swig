@@ -3,6 +3,7 @@ unittest <- function (x,y) {
     print("PASS")
   } else {
     print("FAIL")
+    print(paste(x, " != ", y))
     stop("Test failed")
   }
 }
