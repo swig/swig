@@ -2,7 +2,7 @@ unittest <- function (x,y) {
   if (all(x==y)) {
     print("PASS")
   } else {
-    print("FAIL") 
+    print("FAIL")
     print(paste(x, " != ", y))
     stop("Test failed")
   }

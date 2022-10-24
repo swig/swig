@@ -4,8 +4,26 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 4.1.0 (in progress)
+Version 4.1.0 (24 Oct 2022)
 ===========================
+
+2022-10-24: wsfulton, AndLLA
+            [R] #2386 Fix problems in shared_ptr wrappers where the class names
+            were not consistent when using the shared_ptr template or the actual
+            underlying type.
+
+2022-10-24: wsfulton
+            [R] Add support for special variable replacement in the $typemap()
+            special variable macro for R specific typemaps (rtype, rtypecheck,
+            scoercein, scoereout).
+
+2022-10-24: wsfulton
+	    [R] Polymorphism in the wrappers was only working for C++ classes,
+            now this works for C++ structs too.
+
+2022-10-19: olly
+	    [Lua] #2126 Fix type resolution between multiple SWIG-wrapped
+	    modules.
 
 2022-10-17: wsfulton
             [R] #2385 Add support for std::vector<std::vector<std::string>>.

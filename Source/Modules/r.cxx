@@ -215,8 +215,7 @@ public:
 
   int typedefHandler(Node *n);
 
-  static List *Swig_overload_rank(Node *n,
-	                          bool script_lang_wrapping);
+  static List *Swig_overload_rank(Node *n, bool script_lang_wrapping);
 
   int memberfunctionHandler(Node *n) {
     if (debugMode)
@@ -243,8 +242,8 @@ public:
     return status;
   }
 
-  // Not used:
   String *runtimeCode();
+  void replaceSpecialVariables(String *method, String *tm, Parm *parm);
 
 protected:
   int addRegistrationRoutine(String *rname, int nargs);
@@ -2089,21 +2088,6 @@ int R::functionWrapper(Node *n) {
   /*If the user gave us something to convert the result in  */
   if ((tm = Swig_typemap_lookup("scoerceout", n, Swig_cresult_name(), sfun))) {
     Replaceall(tm,"$result","ans");
-    if (constructor) {
-      Node * parent = Getattr(n, "parentNode");
-      String * smartname = Getattr(parent, "feature:smartptr");
-      if (smartname) { // SmartName handling - has to be aligned to the other implementation in this file
-        SwigType *spt = Swig_cparse_type(smartname);
-        String *smart = SwigType_typedef_resolve_all(spt);
-        String *smart_rname = SwigType_manglestr(smart);
-        String *smart_rname_p = NewStringf("_p%s", smart_rname);
-        Replaceall(tm, "$R_class", smart_rname_p);
-        Delete(spt);
-        Delete(smart);
-        Delete(smart_rname);
-        Delete(smart_rname_p);
-      }
-    }
     if (debugMode) {
       Printf(stdout, "Calling replace B: %s, %s, %s\n", Getattr(n, "type"), Getattr(n, "sym:name"), getNSpace());
     }
@@ -2301,7 +2285,6 @@ int R::outputRegistrationRoutines(File *out) {
 
 void R::registerClass(Node *n) {
   String *name = Getattr(n, "name");
-  String *kind = Getattr(n, "kind");
 
   if (debugMode)
     Swig_print_node(n);
@@ -2310,7 +2293,7 @@ void R::registerClass(Node *n) {
     Setattr(SClassDefs, sname, sname);
     String *base;
 
-    if(Strcmp(kind, "class") == 0) {
+    if (CPlusPlus && (Strcmp(nodeType(n), "class") == 0)) {
       base = NewString("");
       List *l = Getattr(n, "bases");
       if(Len(l)) {
@@ -2330,31 +2313,6 @@ void R::registerClass(Node *n) {
 
     Printf(s_classes, "setClass('%s', contains = %s)\n", sname, base);
     Delete(base);
-    String *smartptr = Getattr(n, "feature:smartptr");
-    if (smartptr) {// SmartName handling - has to be aligned to the other implementation in this file
-      List *l = Getattr(n, "bases");
-      SwigType *spt = Swig_cparse_type(smartptr);
-      String *smart = SwigType_typedef_resolve_all(spt);
-      String *smart_rname = SwigType_manglestr(smart);
-      Printf(s_classes, "setClass('_p%s', contains = c('%s'", smart_rname, sname);
-      Delete(spt);
-      Delete(smart);
-      Delete(smart_rname);
-      for(int i = 0; i < Len(l); i++) {
-	Node * b = Getitem(l, i);
-	smartptr = Getattr(b, "feature:smartptr");
-	if (smartptr) {
-	  spt = Swig_cparse_type(smartptr);
-	  smart = SwigType_typedef_resolve_all(spt);
-	  smart_rname = SwigType_manglestr(smart);
-	  Printf(s_classes, ", '_p%s'", smart_rname);
-	  Delete(spt);
-	  Delete(smart);
-	  Delete(smart_rname);
-	}
-      }
-      Printf(s_classes, "))\n");
-    }
   }
 }
 
@@ -2672,6 +2630,16 @@ String * R::runtimeCode() {
     s = NewString("");
   }
   return s;
+}
+
+/*----------------------------------------------------------------------
+ * replaceSpecialVariables()
+ *--------------------------------------------------------------------*/
+
+void R::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+  (void)method;
+  SwigType *type = Getattr(parm, "type");
+  replaceRClass(tm, type);
 }
 
 

@@ -240,7 +240,7 @@ typedef struct swig_varlinkobject {
 } swig_varlinkobject;
 
 SWIGINTERN PyObject *
-swig_varlink_repr(swig_varlinkobject *SWIGUNUSEDPARM(v)) {
+swig_varlink_repr(PyObject *SWIGUNUSEDPARM(v)) {
 #if PY_VERSION_HEX >= 0x03000000
   return PyUnicode_InternFromString("<Swig global variables>");
 #else
@@ -249,7 +249,8 @@ swig_varlink_repr(swig_varlinkobject *SWIGUNUSEDPARM(v)) {
 }
 
 SWIGINTERN PyObject *
-swig_varlink_str(swig_varlinkobject *v) {
+swig_varlink_str(PyObject *o) {
+  swig_varlinkobject *v = (swig_varlinkobject *) o;
 #if PY_VERSION_HEX >= 0x03000000
   PyObject *str = PyUnicode_InternFromString("(");
   PyObject *tail;
@@ -287,7 +288,8 @@ swig_varlink_str(swig_varlinkobject *v) {
 }
 
 SWIGINTERN void
-swig_varlink_dealloc(swig_varlinkobject *v) {
+swig_varlink_dealloc(PyObject *o) {
+  swig_varlinkobject *v = (swig_varlinkobject *) o;
   swig_globalvar *var = v->vars;
   while (var) {
     swig_globalvar *n = var->next;
@@ -298,7 +300,8 @@ swig_varlink_dealloc(swig_varlinkobject *v) {
 }
 
 SWIGINTERN PyObject *
-swig_varlink_getattr(swig_varlinkobject *v, char *n) {
+swig_varlink_getattr(PyObject *o, char *n) {
+  swig_varlinkobject *v = (swig_varlinkobject *) o;
   PyObject *res = NULL;
   swig_globalvar *var = v->vars;
   while (var) {
@@ -315,7 +318,8 @@ swig_varlink_getattr(swig_varlinkobject *v, char *n) {
 }
 
 SWIGINTERN int
-swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
+swig_varlink_setattr(PyObject *o, char *n, PyObject *p) {
+  swig_varlinkobject *v = (swig_varlinkobject *) o;
   int res = 1;
   swig_globalvar *var = v->vars;
   while (var) {

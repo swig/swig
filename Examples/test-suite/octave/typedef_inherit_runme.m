@@ -30,3 +30,8 @@ x = typedef_inherit.do_blah2(d);
 if (!strcmp(x,"Grok::blah"))
     error("Whoa! Bad return", x)
 endif
+
+x = d.far();
+if (!strcmp(x,"Spam::far"))
+    error("Whoa! Bad return", x)
+endif
