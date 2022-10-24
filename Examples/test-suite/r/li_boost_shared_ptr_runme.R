@@ -80,7 +80,7 @@ testSuite <- function() {
     testSuite_verifyCount(2, kret)
   }
 
-  if (FALSE) {
+  {
     # pass by shared_ptr pointer reference
     k = Klass("me oh my")
     kret = smartpointerpointerreftest(k)
@@ -90,7 +90,7 @@ testSuite <- function() {
     testSuite_verifyCount(2, kret)
   }
 
-  if (FALSE) {
+  {
     # pass by shared_ptr pointer reference
     k = Klass("me oh my");
     kret = smartpointerpointerreftest(k);
@@ -288,7 +288,7 @@ testSuite <- function() {
     k = KlassDerived("me oh my");
     kret = smartpointerpointerreftest(k);
     val = kret$getValue();
-    unittest("me oh my derivedsmartptrpointerreftest-Derived", val);
+    unittest("me oh my derivedsmartptrpointerreftest-Derived", val); # fails "me oh my derivedsmartptrpointerreftest-Derived  !=  me oh my smartpointerpointerreftest-Derived"
     testSuite_verifyCount(2, k); # includes two extra references for upcasts in the proxy classes
     testSuite_verifyCount(2, kret);
   }
@@ -300,9 +300,10 @@ testSuite <- function() {
     val = kret$getValue()
     unittest("me oh my valuetest", val)  # note slicing
     testSuite_verifyCount(2, k)
-    # testSuite_verifyCount(2, kret) --> use count not defined for _p_Space__Klass
+    testSuite_verifyCount(1, kret)
 
-    # testSuite_verifyCount(1, k) # this is the python expected reference counting
+    # --> these are the python expected counting
+    # testSuite_verifyCount(1, k) 
     # testSuite_verifyCount(1, kret)
   }
 
@@ -323,9 +324,10 @@ testSuite <- function() {
     val = kret$getValue();
     unittest("me oh my reftest-Derived", val);
     testSuite_verifyCount(2, k);
-    #testSuite_verifyCount(2, kret); --> use_count not defined for _p_Space__KlassDerived
+    testSuite_verifyCount(1, kret);
 
-    #testSuite_verifyCount(1, k); # --> this is the python expected counting
+    # --> these are the python expected counting
+    #testSuite_verifyCount(1, k);
     #testSuite_verifyCount(1, kret);
   }
 
@@ -464,11 +466,11 @@ testSuite <- function() {
     kmember = MemberVariables_MemberValue_get(m); # m$getMemberValue();
     val = kmember$getValue();
     unittest("plain member value", val);
-    # testSuite_verifyCount(1, kmember); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, kmember);
     testSuite_verifyCount(1, k);
 
     delete_MemberVariables(m); # m.delete();
-    # testSuite_verifyCount(1, kmember); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, kmember);
     testSuite_verifyCount(1, k);
   }
 
@@ -484,11 +486,11 @@ testSuite <- function() {
     kmember = MemberVariables_MemberPointer_get(self = m); # m$getMemberPointer();
     val = kmember$getValue();
     unittest("plain member pointer", val);
-    # testSuite_verifyCount(1, kmember); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, kmember);
     testSuite_verifyCount(1, k);
 
     delete_MemberVariables(m); # m.delete();
-    # testSuite_verifyCount(1, kmember); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, kmember);
     testSuite_verifyCount(1, k);
   }
 
@@ -504,11 +506,11 @@ testSuite <- function() {
     kmember = MemberVariables_MemberReference_get(self = m); #m$getMemberReference();
     val = kmember$getValue();
     unittest("plain member reference", val);
-    # testSuite_verifyCount(1, kmember); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, kmember); # -> use_count undefined for _p_Space__Klass
     testSuite_verifyCount(1, k);
 
     delete_MemberVariables(m); # m.delete();
-    # testSuite_verifyCount(1, kmember); -> use_count undefined for _p_Space__Klass
+    testSuite_verifyCount(1, kmember); #-> use_count undefined for _p_Space__Klass
     testSuite_verifyCount(1, k);
   }
 
@@ -525,7 +527,7 @@ testSuite <- function() {
     k = MemberVariables_SmartMemberValue_get(self = m); #m$getSmartMemberValue();
     if (!is.null(k))
       stop("expected null");
-    #testSuite_verifyCount(0, k);
+    #testSuite_verifyCount(0, k); # this does not work for nulls 
 
     # plain by value
     bNotCatched = F
