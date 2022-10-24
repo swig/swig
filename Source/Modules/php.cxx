@@ -386,7 +386,7 @@ public:
     Setmark(item, 1);
     char *colon_ptr = Strchr(key, ':');
     assert(colon_ptr);
-    int colon = colon_ptr - Char(key);
+    int colon = (int)(colon_ptr - Char(key));
     if (colon > 0 && Strcmp(colon_ptr + 1, "__construct") != 0) {
       // See if there's a parent class which implements this method, and if so
       // emit its arginfo and then merge its PHPTypes into ours as we need to
@@ -959,7 +959,7 @@ public:
       }
     }
 
-    phptypes->adjust(emit_num_required(l), Equal(fname, "__construct"));
+    phptypes->adjust(emit_num_required(l), Equal(fname, "__construct") ? true : false);
 
     String *arginfo_id = phptypes->get_arginfo_id();
     String *s = cs_entry;
