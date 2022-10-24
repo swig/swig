@@ -1270,5 +1270,5 @@ Version 4.1.0 (in progress)
             #1843 [Python] Compilation error fix in SwigPyBuiltin_SetMetaType when using PyPy.
 
 2020-06-14: ZackerySpytz
-            #1642 #1809 Fix virtual comparison operators in director classes - remove incorrect
-            space in the function name, for example, operator= = is now operator==.
+            #1642 #1809 Fix virtual comparison operators in director classes by removing an
+            incorrect space in the function name (for example, operator= = is now operator==).

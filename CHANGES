@@ -27,7 +27,7 @@ Version 4.0.2 (8 Jun 2020)
             [D] #1593 Replace broken imports when using newer versions of D.
 
 2020-05-29: ZackerySpytz
-            [Python] #1716 Performance improvements converting strings when using Python >= 3.3.
+            [Python] #1716 Performance improvements when converting strings when using Python >= 3.3.
 
 2020-05-28: ZackerySpytz
             #1776 Quite dramatically decrease run times when generating very large interface files by changing
@@ -74,8 +74,8 @@ Version 4.0.2 (8 Jun 2020)
             [Ruby] #1651 Add std::auto_ptr<> typemaps.
 
 2020-01-31: ZackerySpytz
-            [Python] #1700 More robust error checking for failures in calls to Python C API:
-            PyBytes_AsStringAndSize() and PyString_AsStringAndSize().
+            [Python] #1700 The Python C API functions PyBytes_AsStringAndSize() and
+            PyString_AsStringAndSize() are now checked for failure.
 
 2020-01-31: vadz
             [Python] #1710 Fix crash parsing empty docstrings.
