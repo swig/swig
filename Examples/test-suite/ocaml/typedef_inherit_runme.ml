@@ -7,5 +7,6 @@ let _ =
   assert (_do_blah (b) as string = "Bar::blah");
   let c = new_Spam '() and d = new_Grok '() in
   assert (_do_blah2 (c) as string = "Spam::blah");
-  assert (_do_blah2 (d) as string = "Grok::blah")
+  assert (_do_blah2 (d) as string = "Grok::blah");
+  assert (d -> far() as string = "Spam::far")
 ;;

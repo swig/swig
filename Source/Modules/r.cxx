@@ -215,8 +215,7 @@ public:
 
   int typedefHandler(Node *n);
 
-  static List *Swig_overload_rank(Node *n,
-	                          bool script_lang_wrapping);
+  static List *Swig_overload_rank(Node *n, bool script_lang_wrapping);
 
   int memberfunctionHandler(Node *n) {
     if (debugMode)
@@ -2295,7 +2294,6 @@ int R::outputRegistrationRoutines(File *out) {
 
 void R::registerClass(Node *n) {
   String *name = Getattr(n, "name");
-  String *kind = Getattr(n, "kind");
 
   if (debugMode)
     Swig_print_node(n);
@@ -2304,7 +2302,7 @@ void R::registerClass(Node *n) {
     Setattr(SClassDefs, sname, sname);
     String *base;
 
-    if(Strcmp(kind, "class") == 0) {
+    if (CPlusPlus && (Strcmp(nodeType(n), "class") == 0)) {
       base = NewString("");
       List *l = Getattr(n, "bases");
       if(Len(l)) {

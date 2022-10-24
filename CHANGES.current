@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.0 (in progress)
 ===========================
 
+2022-10-24: wsfulton
+	    [R] Polymorphism in the wrappers was only working for C++ classes,
+            now this works for C++ structs too.
+
 2022-10-19: olly
 	    [Lua] #2126 Fix type resolution between multiple SWIG-wrapped
 	    modules.
