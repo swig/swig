@@ -24,8 +24,8 @@ unittest(shared_ptr_wrapper_count(), NOT_COUNTING())
 #
 
 testSuite_verifyCount <- function(expected, k) {
-	got = use_count(k)
-	unittest(expected, got);
+  got = use_count(k)
+  unittest(expected, got);
 }
 
 testSuite <- function() {
@@ -34,7 +34,7 @@ testSuite <- function() {
   # Reference Implementation is li_boost_shared_ptr_runme.py
   #
 
-	# simple shared_ptr usage - created in C++
+  # simple shared_ptr usage - created in C++
   {
     k = Klass("me oh my")
     val = k$getValue()
@@ -42,73 +42,73 @@ testSuite <- function() {
     testSuite_verifyCount(1, k)
   }
 
-	# simple shared_ptr usage - not created in C++
-	{
-	  k = factorycreate()
-	  val = k$getValue()
-	  unittest("factorycreate", val)
-	  testSuite_verifyCount(1, k)
-	}
+  # simple shared_ptr usage - not created in C++
+  {
+    k = factorycreate()
+    val = k$getValue()
+    unittest("factorycreate", val)
+    testSuite_verifyCount(1, k)
+  }
 
-	# pass by shared_ptr
-	{
-	  k = Klass("me oh my")
-	  kret = smartpointertest(k)
-	  val = kret$getValue()
-	  unittest("me oh my smartpointertest", val)
-	  testSuite_verifyCount(2, k)
-	  testSuite_verifyCount(2, kret)
-	}
+  # pass by shared_ptr
+  {
+    k = Klass("me oh my")
+    kret = smartpointertest(k)
+    val = kret$getValue()
+    unittest("me oh my smartpointertest", val)
+    testSuite_verifyCount(2, k)
+    testSuite_verifyCount(2, kret)
+  }
 
-	# pass by shared_ptr pointer
-	{
-	  k = Klass("me oh my")
-	  kret = smartpointerpointertest(k)
-	  val = kret$getValue()
-	  unittest("me oh my smartpointerpointertest", val)
-	  testSuite_verifyCount(2, k)
-	  testSuite_verifyCount(2, kret)
-	}
+  # pass by shared_ptr pointer
+  {
+    k = Klass("me oh my")
+    kret = smartpointerpointertest(k)
+    val = kret$getValue()
+    unittest("me oh my smartpointerpointertest", val)
+    testSuite_verifyCount(2, k)
+    testSuite_verifyCount(2, kret)
+  }
 
-	# pass by shared_ptr reference
-	{
-	  k = Klass("me oh my")
-	  kret = smartpointerreftest(k)
-	  val = kret$getValue()
-	  unittest("me oh my smartpointerreftest", val)
-	  testSuite_verifyCount(2, k)
-	  testSuite_verifyCount(2, kret)
-	}
+  # pass by shared_ptr reference
+  {
+    k = Klass("me oh my")
+    kret = smartpointerreftest(k)
+    val = kret$getValue()
+    unittest("me oh my smartpointerreftest", val)
+    testSuite_verifyCount(2, k)
+    testSuite_verifyCount(2, kret)
+  }
 
-	if (FALSE) {
-	  # pass by shared_ptr pointer reference
-	  k = Klass("me oh my")
-	  kret = smartpointerpointerreftest(k)
-	  val = kret$getValue()
-	  unittest("me oh my smartpointerpointerreftest", val)
-	  testSuite_verifyCount(2, k)
-	  testSuite_verifyCount(2, kret)
-	}
+  if (FALSE) {
+    # pass by shared_ptr pointer reference
+    k = Klass("me oh my")
+    kret = smartpointerpointerreftest(k)
+    val = kret$getValue()
+    unittest("me oh my smartpointerpointerreftest", val)
+    testSuite_verifyCount(2, k)
+    testSuite_verifyCount(2, kret)
+  }
 
-	if (FALSE) {
-	  # pass by shared_ptr pointer reference
-	  k = Klass("me oh my");
-	  kret = smartpointerpointerreftest(k);
-	  val = kret$getValue()
-	  unittest("me oh my smartpointerpointerreftest", val);
-	  testSuite_verifyCount(2, k);
-	  testSuite_verifyCount(2, kret);
-	}
+  if (FALSE) {
+    # pass by shared_ptr pointer reference
+    k = Klass("me oh my");
+    kret = smartpointerpointerreftest(k);
+    val = kret$getValue()
+    unittest("me oh my smartpointerpointerreftest", val);
+    testSuite_verifyCount(2, k);
+    testSuite_verifyCount(2, kret);
+  }
 
-	# const pass by shared_ptr
-	{
-	  k = Klass("me oh my");
-	  kret = constsmartpointertest(k);
-	  val = Klass_getValue(kret);
-	  unittest("me oh my", val);
-	  testSuite_verifyCount(2, k);
-	  testSuite_verifyCount(2, kret);
-	}
+  # const pass by shared_ptr
+  {
+    k = Klass("me oh my");
+    kret = constsmartpointertest(k);
+    val = Klass_getValue(kret);
+    unittest("me oh my", val);
+    testSuite_verifyCount(2, k);
+    testSuite_verifyCount(2, kret);
+  }
 
   # const pass by shared_ptr pointer
   {
