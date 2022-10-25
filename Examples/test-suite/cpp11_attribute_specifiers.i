@@ -19,6 +19,7 @@
 
 #if defined(_MSC_VER)
 #pragma warning(disable : 4996) // For the deprecated attributes in this testcase
+#pragma warning(disable : 5030) // attribute is not recognized ('likely' and 'unlikely')
 #endif
 
 
