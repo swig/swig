@@ -11,3 +11,13 @@ Version 4.1.1 (in progress)
             [R] #2386 Fix memory leak in R shared_ptr wrappers.
             Fix leak when a cast up a class inheritance chain is required.
 
+2022-10-26: wsfulton
+            [R] Improve R wrapper error message when calling overloaded methods
+            when incorrect types passed are passed to the overloaded methods.
+
+            Old unhelpful error message:
+              Error in f(...) : could not find function "f"
+
+            Example of new improved error message:
+              Error in use_count(k) :
+                cannot find overloaded function for use_count with argtypes (NULL)

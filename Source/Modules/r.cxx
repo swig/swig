@@ -1566,7 +1566,8 @@ void R::dispatchFunction(Node *n) {
   Printv(f->code,
 	 "argtypes <- mapply(class, list(...));\n",
 	 "argv <- list(...);\n",
-	 "argc <- length(argtypes);\n", NIL );
+	 "argc <- length(argtypes);\n",
+	 "f <- NULL;\n", NIL);
 
   Printf(f->code, "# dispatch functions %d\n", nfunc);
   int cur_args = -1;
@@ -1649,11 +1650,12 @@ void R::dispatchFunction(Node *n) {
     }
   }
   if (cur_args != -1) {
-    Printf(f->code, "} else {\n"
-	   "stop(\"cannot find overloaded function for %s with argtypes (\","
-	   "toString(argtypes),\")\");\n"
-	   "}", sfname);
+    Printf(f->code, "};\n");
   }
+  Printf(f->code, "if (is.null(f)) {\n"
+      "stop(\"cannot find overloaded function for %s with argtypes (\","
+      "toString(argtypes),\")\");\n"
+      "}", sfname);
   Printv(f->code, ";\nf(...)", NIL);
   Printv(f->code, ";\n}", NIL);
   Wrapper_print(f, sfile);
