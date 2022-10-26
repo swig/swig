@@ -570,7 +570,7 @@ testSuite <- function() {
     k = m$SmartMemberValue;
     if (!is.null(k))
       stop("expected null");
-    #testSuite_verifyCount(0, k); # this does not work for nulls
+    testSuite_verifyCount(0, k); # this does not work for nulls
 
     # plain by value
     bNotCatched = F
