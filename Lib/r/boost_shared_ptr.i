@@ -400,6 +400,12 @@
                      SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
   "$typemap(rtype, TYPE)"
 
+%typemap(rtypecheck) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+  "(extends($argtype, '$typemap(rtype, TYPE)') && length($arg) == 1) || is.null($arg)"
+
 %typemap(scoercein)  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
                      SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
                      SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,

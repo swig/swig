@@ -21,3 +21,7 @@ Version 4.2.0 (in progress)
             Example of new improved error message:
               Error in use_count(k) :
                 cannot find overloaded function for use_count with argtypes (NULL)
+
+2022-10-27: wsfulton
+            [R] Allow NULL to be used in overloaded functions taking shared_ptr.
+            Also fixes special variable $argtype expansion in rtypecheck typemaps.

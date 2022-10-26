@@ -512,7 +512,7 @@ testSuite <- function() {
     testSuite_verifyCount(1, kmember);
     testSuite_verifyCount(1, k);
 
-    delete_MemberVariables(m); # m.delete();
+    delete_MemberVariables(m);
     testSuite_verifyCount(1, kmember);
     testSuite_verifyCount(1, k);
   }
@@ -532,7 +532,7 @@ testSuite <- function() {
     testSuite_verifyCount(1, kmember);
     testSuite_verifyCount(1, k);
 
-    delete_MemberVariables(m); # m.delete();
+    delete_MemberVariables(m);
     testSuite_verifyCount(1, kmember);
     testSuite_verifyCount(1, k);
   }
@@ -552,7 +552,7 @@ testSuite <- function() {
     testSuite_verifyCount(1, kmember);
     testSuite_verifyCount(1, k);
 
-    delete_MemberVariables(m); # m.delete();
+    delete_MemberVariables(m);
     testSuite_verifyCount(1, kmember);
     testSuite_verifyCount(1, k);
   }
@@ -570,7 +570,7 @@ testSuite <- function() {
     k = m$SmartMemberValue;
     if (!is.null(k))
       stop("expected null");
-    testSuite_verifyCount(0, k); # this does not work for nulls
+    testSuite_verifyCount(0, k);
 
     # plain by value
     bNotCatched = F
