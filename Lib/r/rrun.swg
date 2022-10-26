@@ -15,8 +15,9 @@ extern "C" {
 #endif
 
 /* for raw pointer */
+#define SWIG_R_ConvertPtr(obj, pptr, type, flags)       SWIG_R_ConvertPtrAndOwn(obj, pptr, type, flags, 0)
 #define SWIG_ConvertPtr(obj, pptr, type, flags)         SWIG_R_ConvertPtr(obj, pptr, type, flags)
-#define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_R_ConvertPtr(obj, pptr, type, flags)
+#define SWIG_ConvertPtrAndOwn(obj,pptr,type,flags,own)  SWIG_R_ConvertPtrAndOwn(obj, pptr, type, flags, own)
 #define SWIG_NewPointerObj(ptr, type, flags)            SWIG_R_NewPointerObj(ptr, type, flags)
 
 #include <stdio.h>
@@ -314,9 +315,11 @@ SWIG_R_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
 
 /* Convert a pointer value */
 SWIGRUNTIMEINLINE int
-SWIG_R_ConvertPtr(SEXP obj, void **ptr, swig_type_info *ty, int flags) {
+SWIG_R_ConvertPtrAndOwn(SEXP obj, void **ptr, swig_type_info *ty, int flags, int *own) {
   void *vptr;
   if (!obj) return SWIG_ERROR;
+  if (own)
+    *own = 0;
   if (obj == R_NilValue) {
     if (ptr) *ptr = NULL;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
@@ -331,8 +334,15 @@ SWIG_R_ConvertPtr(SEXP obj, void **ptr, swig_type_info *ty, int flags) {
     } else {
       swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
       int newmemory = 0;
-      if (ptr) *ptr = SWIG_TypeCast(tc,vptr,&newmemory);
-      assert(!newmemory); /* newmemory handling not yet implemented */
+      if (ptr) {
+        int newmemory = 0;
+        *ptr = SWIG_TypeCast(tc, vptr, &newmemory);
+        if (newmemory == SWIG_CAST_NEW_MEMORY) {
+          assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+          if (own)
+            *own = *own | SWIG_CAST_NEW_MEMORY;
+        }
+      }
     }
   } else {
       if (ptr) *ptr = vptr;

@@ -7,3 +7,7 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.1 (in progress)
 ===========================
 
+2022-10-26: wsfulton
+            [R] #2386 Fix memory leak in R shared_ptr wrappers.
+            Fix leak when a cast up a class inheritance chain is required.
+

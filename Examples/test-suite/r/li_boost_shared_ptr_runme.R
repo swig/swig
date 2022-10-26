@@ -80,8 +80,8 @@ testSuite <- function() {
     testSuite_verifyCount(2, kret)
   }
 
+  # pass by shared_ptr pointer reference
   {
-    # pass by shared_ptr pointer reference
     k = Klass("me oh my")
     kret = smartpointerpointerreftest(k)
     val = kret$getValue()
@@ -312,8 +312,8 @@ testSuite <- function() {
     kret = smartpointertest(k)
     val = kret$getValue()
     unittest("me oh my smartpointertest-Derived", val)
-    #testSuite_verifyCount(2, k)
-    #testSuite_verifyCount(2, kret)
+    testSuite_verifyCount(2, k)
+    testSuite_verifyCount(2, kret)
   }
 
   # pass by shared_ptr pointer (mixed)
@@ -322,8 +322,8 @@ testSuite <- function() {
     kret = smartpointerpointertest(k)
     val = kret$getValue()
     unittest("me oh my smartpointerpointertest-Derived", val)
-    #testSuite_verifyCount(2, k)
-    #testSuite_verifyCount(2, kret)
+    testSuite_verifyCount(2, k)
+    testSuite_verifyCount(2, kret)
   }
 
   # pass by shared_ptr reference (mixed)
@@ -332,8 +332,8 @@ testSuite <- function() {
     kret = smartpointerreftest(k)
     val = kret$getValue()
     unittest("me oh my smartpointerreftest-Derived", val)
-    #testSuite_verifyCount(2, k)
-    #testSuite_verifyCount(2, kret)
+    testSuite_verifyCount(2, k)
+    testSuite_verifyCount(2, kret)
   }
 
   # pass by shared_ptr pointer reference (mixed)
@@ -342,8 +342,8 @@ testSuite <- function() {
     kret = smartpointerpointerreftest(k)
     val = kret$getValue()
     unittest("me oh my smartpointerpointerreftest-Derived", val)
-    #testSuite_verifyCount(2, k)
-    #testSuite_verifyCount(2, kret)
+    testSuite_verifyCount(2, k)
+    testSuite_verifyCount(2, kret)
   }
 
   # pass by value (mixed)
@@ -352,8 +352,8 @@ testSuite <- function() {
     kret = valuetest(k)
     val = kret$getValue()
     unittest("me oh my valuetest", val)  # note slicing
-    #testSuite_verifyCount(1, k)
-    #testSuite_verifyCount(1, kret)
+    testSuite_verifyCount(1, k)
+    testSuite_verifyCount(1, kret)
   }
 
   # pass by pointer (mixed)
@@ -362,8 +362,8 @@ testSuite <- function() {
     kret = pointertest(k)
     val = kret$getValue()
     unittest("me oh my pointertest-Derived", val)
-    #testSuite_verifyCount(1, k)
-    #testSuite_verifyCount(1, kret)
+    testSuite_verifyCount(1, k)
+    testSuite_verifyCount(1, kret)
   }
 
   # pass by ref (mixed)
@@ -372,8 +372,8 @@ testSuite <- function() {
     kret = reftest(k)
     val = kret$getValue()
     unittest("me oh my reftest-Derived", val)
-    #testSuite_verifyCount(1, k)
-    #testSuite_verifyCount(1, kret)
+    testSuite_verifyCount(1, k)
+    testSuite_verifyCount(1, kret)
   }
 
 
@@ -420,7 +420,7 @@ testSuite <- function() {
     testSuite_verifyCount(1, k)
     val = test3rdupcast(k)
     unittest("me oh my-3rdDerived", val)
-#    testSuite_verifyCount(1, k)
+    testSuite_verifyCount(1, k)
   }
 
   #
