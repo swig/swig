@@ -1595,7 +1595,7 @@ void R::dispatchFunction(Node *n) {
 	first_compare = false;
       }
       Printv(f->code, "if (", NIL);
-      for (p =pi, j = 0 ; j < num_arguments ; j++) {
+      for (p = pi, j = 0 ; j < num_arguments ; j++) {
 	if (debugMode) {
 	  Swig_print_node(p);
 	}
@@ -1606,21 +1606,24 @@ void R::dispatchFunction(Node *n) {
 
 	String *tmcheck = Swig_typemap_lookup("rtypecheck", p, "", 0);
 	if (tmcheck) {
-	  String *tmp = NewString("");
-	  Printf(tmp, "argv[[%d]]", j+1);
-	  Replaceall(tmcheck, "$arg", tmp);
-	  Printf(tmp, "argtype[%d]", j+1);
-	  Replaceall(tmcheck, "$argtype", tmp);
+	  String *tmp_argtype = NewStringf("argtypes[%d]", j+1);
+	  Replaceall(tmcheck, "$argtype", tmp_argtype);
+	  String *tmp_arg = NewStringf("argv[[%d]]", j+1);
+	  Replaceall(tmcheck, "$arg", tmp_arg);
 	  if (tm) {
 	    Replaceall(tmcheck, "$rtype", tm);
 	  }
 	  if (debugMode) {
 	    Printf(stdout, "<rtypecheck>%s\n", tmcheck);
 	  }
-	  Printf(f->code, "%s(%s)",
-		 j == 0 ? "" : " && ",
-		 tmcheck);
+	  if (num_arguments == 1) {
+	    Printf(f->code, "%s", tmcheck);
+	  } else {
+	    Printf(f->code, "%s(%s)", j == 0 ? "" : " && ", tmcheck);
+	  }
 	  p = Getattr(p, "tmap:in:next");
+	  Delete(tmp_arg);
+	  Delete(tmp_argtype);
 	  continue;
 	}
 	// Below should be migrated into rtypecheck typemaps
