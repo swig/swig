@@ -90,16 +90,6 @@ testSuite <- function() {
     testSuite_verifyCount(2, kret)
   }
 
-  {
-    # pass by shared_ptr pointer reference
-    k = Klass("me oh my");
-    kret = smartpointerpointerreftest(k);
-    val = kret$getValue()
-    unittest("me oh my smartpointerpointerreftest", val);
-    testSuite_verifyCount(2, k);
-    testSuite_verifyCount(2, kret);
-  }
-
   # const pass by shared_ptr
   {
     k = Klass("me oh my");
@@ -250,47 +240,110 @@ testSuite <- function() {
   }
 
   #
-  # ###################### Derived and base class mixed ######################
+  # ###################### Derived class ######################
   #
 
+  # derived pass by shared_ptr
+  {
+    k = KlassDerived("me oh my")
+    kret = derivedsmartptrtest(k)
+    val = kret$getValue()
+    unittest("me oh my derivedsmartptrtest-Derived", val)
+    testSuite_verifyCount(2, k)
+    testSuite_verifyCount(2, kret)
+  }
+
+  # derived pass by shared_ptr pointer
+  {
+    k = KlassDerived("me oh my")
+    kret = derivedsmartptrpointertest(k)
+    val = kret$getValue()
+    unittest("me oh my derivedsmartptrpointertest-Derived", val)
+    testSuite_verifyCount(2, k)
+    testSuite_verifyCount(2, kret)
+  }
+
+  # derived pass by shared_ptr ref
+  {
+    k = KlassDerived("me oh my")
+    kret = derivedsmartptrreftest(k)
+    val = kret$getValue()
+    unittest("me oh my derivedsmartptrreftest-Derived", val)
+    testSuite_verifyCount(2, k)
+    testSuite_verifyCount(2, kret)
+  }
+
+  # derived pass by shared_ptr pointer ref
+  {
+    k = KlassDerived("me oh my")
+    kret = derivedsmartptrpointerreftest(k)
+    val = kret$getValue()
+    unittest("me oh my derivedsmartptrpointerreftest-Derived", val)
+    testSuite_verifyCount(2, k)
+    testSuite_verifyCount(2, kret)
+  }
+
+  # derived pass by pointer
+  {
+    k = KlassDerived("me oh my")
+    kret = derivedpointertest(k)
+    val = kret$getValue()
+    unittest("me oh my derivedpointertest-Derived", val)
+    testSuite_verifyCount(1, k)
+    testSuite_verifyCount(1, kret)
+  }
+
+  # derived pass by ref
+  {
+    k = KlassDerived("me oh my")
+    kret = derivedreftest(k)
+    val = kret$getValue()
+    unittest("me oh my derivedreftest-Derived", val)
+    testSuite_verifyCount(1, k)
+    testSuite_verifyCount(1, kret)
+  }
+
+  #
+  # ###################### Derived and base class mixed ######################
+  #
   # pass by shared_ptr (mixed)
   {
-    k = KlassDerived("me oh my");
-    kret = derivedsmartptrtest(k);
-    val = kret$getValue();
-    unittest("me oh my derivedsmartptrtest-Derived", val);
-    testSuite_verifyCount(2, k);
-    testSuite_verifyCount(2, kret);
+    k = KlassDerived("me oh my")
+    kret = smartpointertest(k)
+    val = kret$getValue()
+    unittest("me oh my smartpointertest-Derived", val)
+    #testSuite_verifyCount(2, k)
+    #testSuite_verifyCount(2, kret)
   }
 
   # pass by shared_ptr pointer (mixed)
   {
-    k = KlassDerived("me oh my");
-    kret = derivedsmartptrpointertest(k);
-    val = kret$getValue();
-    unittest("me oh my derivedsmartptrpointertest-Derived", val);
-    testSuite_verifyCount(2, k);
-    testSuite_verifyCount(2, kret);
+    k = KlassDerived("me oh my")
+    kret = smartpointerpointertest(k)
+    val = kret$getValue()
+    unittest("me oh my smartpointerpointertest-Derived", val)
+    #testSuite_verifyCount(2, k)
+    #testSuite_verifyCount(2, kret)
   }
 
-  # pass by shared_ptr ref (mixed)
+  # pass by shared_ptr reference (mixed)
   {
-    k = KlassDerived("me oh my");
-    kret = derivedsmartptrreftest(k);
-    val = kret$getValue();
-    unittest("me oh my derivedsmartptrreftest-Derived", val);
-    testSuite_verifyCount(2, k);
-    testSuite_verifyCount(2, kret);
+    k = KlassDerived("me oh my")
+    kret = smartpointerreftest(k)
+    val = kret$getValue()
+    unittest("me oh my smartpointerreftest-Derived", val)
+    #testSuite_verifyCount(2, k)
+    #testSuite_verifyCount(2, kret)
   }
 
   # pass by shared_ptr pointer reference (mixed)
   {
-    k = KlassDerived("me oh my");
-    kret = smartpointerpointerreftest(k);
-    val = kret$getValue();
-    unittest("me oh my smartpointerpointerreftest-Derived", val);
-    #testSuite_verifyCount(2, k); # includes two extra references for upcasts in the proxy classes
-    #testSuite_verifyCount(2, kret);
+    k = KlassDerived("me oh my")
+    kret = smartpointerpointerreftest(k)
+    val = kret$getValue()
+    unittest("me oh my smartpointerpointerreftest-Derived", val)
+    #testSuite_verifyCount(2, k)
+    #testSuite_verifyCount(2, kret)
   }
 
   # pass by value (mixed)
@@ -299,37 +352,30 @@ testSuite <- function() {
     kret = valuetest(k)
     val = kret$getValue()
     unittest("me oh my valuetest", val)  # note slicing
-    testSuite_verifyCount(2, k)
-    testSuite_verifyCount(1, kret)
-
-    # --> these are the python expected counting
-    # testSuite_verifyCount(1, k)
-    # testSuite_verifyCount(1, kret)
+    #testSuite_verifyCount(1, k)
+    #testSuite_verifyCount(1, kret)
   }
 
   # pass by pointer (mixed)
   {
-    k = KlassDerived("me oh my");
-    kret = derivedpointertest(k);
-    val = kret$getValue();
-    unittest("me oh my derivedpointertest-Derived", val);
-    testSuite_verifyCount(1, k);
-    testSuite_verifyCount(1, kret);
+    k = KlassDerived("me oh my")
+    kret = pointertest(k)
+    val = kret$getValue()
+    unittest("me oh my pointertest-Derived", val)
+    #testSuite_verifyCount(1, k)
+    #testSuite_verifyCount(1, kret)
   }
 
   # pass by ref (mixed)
   {
-    k = KlassDerived("me oh my");
-    kret = reftest(k);
-    val = kret$getValue();
-    unittest("me oh my reftest-Derived", val);
-    testSuite_verifyCount(2, k);
-    testSuite_verifyCount(1, kret);
-
-    # --> these are the python expected counting
-    #testSuite_verifyCount(1, k);
-    #testSuite_verifyCount(1, kret);
+    k = KlassDerived("me oh my")
+    kret = reftest(k)
+    val = kret$getValue()
+    unittest("me oh my reftest-Derived", val)
+    #testSuite_verifyCount(1, k)
+    #testSuite_verifyCount(1, kret)
   }
+
 
   #
   # ################# Overloading tests ##################
@@ -369,15 +415,12 @@ testSuite <- function() {
   {
     k = Klass3rdDerived("me oh my")
 
-    unittest(overload_rawbyval(k), "rawbyval")
-    unittest(overload_rawbyref(k), "rawbyref")
-    unittest(overload_rawbyptr(k), "rawbyptr")
-    unittest(overload_rawbyptrref(k), "rawbyptrref")
-
-    unittest(overload_smartbyval(k), "smartbyval")
-    unittest(overload_smartbyref(k), "smartbyref")
-    unittest(overload_smartbyptr(k), "smartbyptr")
-    unittest(overload_smartbyptrref(k), "smartbyptrref")
+    val = k$getValue()
+    unittest("me oh my-3rdDerived", val)
+    testSuite_verifyCount(1, k)
+    val = test3rdupcast(k)
+    unittest("me oh my-3rdDerived", val)
+#    testSuite_verifyCount(1, k)
   }
 
   #
@@ -394,7 +437,7 @@ testSuite <- function() {
     unittest("smart member value", val);
     testSuite_verifyCount(2, k);
 
-    kmember = m$SmartMemberPointer;
+    kmember = m$SmartMemberValue;
     val = kmember$getValue();
     unittest("smart member value", val);
     testSuite_verifyCount(3, kmember);
@@ -434,14 +477,14 @@ testSuite <- function() {
     unittest("smart member reference", val);
     testSuite_verifyCount(2, k);
 
-    kmember = m$SmartMemberPointer;
+    kmember = m$SmartMemberReference;
     val = kmember$getValue();
     unittest("smart member reference", val);
     testSuite_verifyCount(3, kmember);
     testSuite_verifyCount(3, k);
 
     # The C++ reference refers to SmartMemberValue...
-    kmemberVal = m$SmartMemberReference;
+    kmemberVal = m$SmartMemberValue;
     val = kmember$getValue();
     unittest("smart member reference", val);
     testSuite_verifyCount(4, kmemberVal);
@@ -634,9 +677,9 @@ testSuite <- function() {
   #
   {
     pid = PairIntDouble(10, 20.2);
-    if (BaseIntDouble_baseVal1_get(pid) != 20 || BaseIntDouble_baseVal2_get(pid) != 40.4)
+    if (pid$baseVal1 != 20 || pid$baseVal2 != 40.4)
       stop("Base values wrong");
-    if (PairIntDouble_val1_get(pid) != 10 || PairIntDouble_val2_get(pid) != 20.2)
+    if (pid$val1 != 10 || pid$val2 != 20.2)
       stop("Derived Values wrong");
   }
 
