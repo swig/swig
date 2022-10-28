@@ -25,3 +25,28 @@ Version 4.2.0 (in progress)
 2022-10-27: wsfulton
             [R] Allow NULL to be used in overloaded functions taking shared_ptr.
             Also fixes special variable $argtype expansion in rtypecheck typemaps.
+
+2022-10-28: wsfulton
+            [R] R rtypecheck typemaps
+
+            Further switch to use rtypecheck typemaps instead of hard coded logic.
+            The full switch to typemaps is deferred until swig-4.2 as it can't be fully
+            backwards compatible. For now a warning is provided to help the
+            transition. It provides the full typemap that should be placed into
+            a user's interface file, for example:
+
+            %typemap("rtype") int32_t * "integer"
+            void testmethod(int32_t * i);
+            void testmethod();
+
+            If there is no rtypecheck typemap for int32_t *, the warning shown is:
+
+              example.i:7: Warning 750: Optional rtypecheck code is deprecated. Add the
+              following typemap to fix as the next version of SWIG will not work without it:
+              %typemap("rtypecheck") int32_t * %{ (is.integer($arg) || is.numeric($arg)) %}
+
+            The warning is shown for any code that previously used "numeric", "integer" or
+            "character" for the rtype typemap. Copying the rtypecheck typemap as
+            shown into the user interface file will provide the appropriate fix and
+            the warning will disappear. This is important to do as swig-4.2 will
+            not be able to provide this helpful warning.
