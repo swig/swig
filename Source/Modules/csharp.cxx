@@ -47,8 +47,8 @@ class CSHARP:public Language {
   bool global_variable_flag;	// Flag for when wrapping a global variable
   bool old_variable_names;	// Flag for old style variable names in the intermediary class
   bool generate_property_declaration_flag;	// Flag for generating properties
-  bool doxygen;			//flag enabling comment processing
-  bool comment_creation_chatter; //flag for getting information about where comments were created
+  bool doxygen;			// Flag enabling doxygen comment processing
+  bool comment_creation_chatter; // Flag for getting information about where comments were created
 
   String *imclass_name;		// intermediary class name
   String *module_class_name;	// module class name
@@ -261,21 +261,17 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
-  }
-  else if ((strcmp(argv[i], "-doxygen") == 0)) {
-    Swig_mark_arg(i);
-    doxygen = true;
-    scan_doxygen_comments = true;
-  }
-  else if ((strcmp(argv[i], "-debug-doxygen-translator") == 0)) {
-    Swig_mark_arg(i);
-    doxygen_translator_flags |= DoxygenTranslator::debug_translator;
-  }
-  else if ((strcmp(argv[i], "-debug-doxygen-parser") == 0)) {
-    Swig_mark_arg(i);
-    doxygen_translator_flags |= DoxygenTranslator::debug_parser;
-  }
-  else if ((strcmp(argv[i], "-noproxy") == 0)) {
+    } else if ((strcmp(argv[i], "-doxygen") == 0)) {
+      Swig_mark_arg(i);
+      doxygen = true;
+      scan_doxygen_comments = true;
+    } else if ((strcmp(argv[i], "-debug-doxygen-translator") == 0)) {
+      Swig_mark_arg(i);
+      doxygen_translator_flags |= DoxygenTranslator::debug_translator;
+    } else if ((strcmp(argv[i], "-debug-doxygen-parser") == 0)) {
+      Swig_mark_arg(i);
+      doxygen_translator_flags |= DoxygenTranslator::debug_parser;
+    } else if ((strcmp(argv[i], "-noproxy") == 0)) {
 	  Swig_mark_arg(i);
 	  proxy_flag = false;
 	} else if (strcmp(argv[i], "-oldvarnames") == 0) {
