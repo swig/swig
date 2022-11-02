@@ -639,6 +639,7 @@ CPP11_TEST_BROKEN = \
 # C++14 test cases.
 CPP14_TEST_CASES += \
 	cpp14_binary_integer_literals \
+	cpp14_enable_if_t \
 
 # Broken C++14 test cases.
 CPP14_TEST_BROKEN = \
