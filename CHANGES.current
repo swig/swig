@@ -50,3 +50,9 @@ Version 4.2.0 (in progress)
             shown into the user interface file will provide the appropriate fix and
             the warning will disappear. This is important to do as swig-4.2 will
             not be able to provide this helpful warning.
+
+2022-11-02: wsfulton
+            #2418 Fix infinite loop handling non-type template parameters.
+
+            Fixes infinite loop due to () brackets in a non-type template
+            parameter containing an expression.
