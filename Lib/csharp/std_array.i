@@ -26,7 +26,7 @@
     foreach ($typemap(cstype, T) elem in c) {
       if (i >= end)
         break;
-      this[i++] = elem;
+      this[i++] = element;
     }
   }
 
