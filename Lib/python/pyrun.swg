@@ -66,6 +66,61 @@
 
 /* Runtime API implementation */
 
+SWIGINTERNINLINE Py_ssize_t SWIG_PyList_Size(PyObject* o)
+{
+#ifdef Py_LIMITED_API
+  return PyList_Size(o);
+#else
+  return PyList_GET_SIZE(o);
+#endif
+}
+
+SWIGINTERNINLINE void SWIG_PyList_SetItem(PyObject* o, Py_ssize_t index, PyObject* item)
+{
+#ifdef Py_LIMITED_API
+  PyList_SetItem(o, index, item);
+#else
+  PyList_SET_ITEM(o, index, item);
+#endif
+}
+
+SWIGINTERNINLINE PyObject* SWIG_PyList_GetItem(PyObject* o, Py_ssize_t index)
+{
+#ifdef Py_LIMITED_API
+  return PyList_GetItem(o, index);
+#else
+  return PyList_GET_ITEM(o, index);
+#endif
+}
+
+SWIGINTERNINLINE Py_ssize_t SWIG_PyTuple_Size(PyObject* o)
+{
+#ifdef Py_LIMITED_API
+  return PyTuple_Size(o);
+#else
+  return PyTuple_GET_SIZE(o);
+#endif
+}
+
+SWIGINTERNINLINE void SWIG_PyTuple_SetItem(PyObject* o, Py_ssize_t index, PyObject* item)
+{
+#ifdef Py_LIMITED_API
+  PyTuple_SetItem(o, index, item);
+#else
+  PyTuple_SET_ITEM(o, index, item);
+#endif
+}
+
+SWIGINTERNINLINE PyObject* SWIG_PyTuple_GetItem(PyObject* o, Py_ssize_t index)
+{
+#ifdef Py_LIMITED_API
+  return PyTuple_GetItem(o, index);
+#else
+  return PyTuple_GET_ITEM(o, index);
+#endif
+}
+
+
 /* Error manipulation */
 
 SWIGINTERN void 
@@ -128,7 +183,7 @@ SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
       PyObject *o2 = result;
       result = PyList_New(1);
       if (result) {
-        PyList_SET_ITEM(result, 0, o2);
+        SWIG_PyList_SetItem(result, 0, o2);
       } else {
         Py_DECREF(obj);
         return o2;
@@ -166,7 +221,7 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
     PyErr_SetString(PyExc_SystemError, "UnpackTuple() argument list is not a tuple");
     return 0;
   } else {
-    Py_ssize_t l = PyTuple_GET_SIZE(args);
+    Py_ssize_t l = SWIG_PyTuple_Size(args);
     if (l < min) {
       PyErr_Format(PyExc_TypeError, "%s expected %s%d arguments, got %d", 
 		   name, (min == max ? "" : "at least "), (int)min, (int)l);
@@ -178,7 +233,7 @@ SWIG_Python_UnpackTuple(PyObject *args, const char *name, Py_ssize_t min, Py_ssi
     } else {
       Py_ssize_t i;
       for (i = 0; i < l; ++i) {
-	objs[i] = PyTuple_GET_ITEM(args, i);
+	objs[i] = SWIG_PyTuple_GetItem(args, i);
       }
       for (; l < max; ++l) {
 	objs[l] = 0;
@@ -524,7 +579,7 @@ SwigPyClientData_New(PyObject* obj)
         data->newargs = PyTuple_New(1);
         if (data->newargs) {
           Py_INCREF(obj);
-          PyTuple_SET_ITEM(data->newargs, 0, obj);
+          SWIG_PyTuple_SetItem(data->newargs, 0, obj);
         } else {
           Py_DECREF(data->newraw);
           Py_DECREF(data->klass);
@@ -543,7 +598,7 @@ SwigPyClientData_New(PyObject* obj)
       data->destroy = 0;
     }
     if (data->destroy) {
-      data->delargs = !(PyCFunction_GET_FLAGS(data->destroy) & METH_O);
+      data->delargs = !(PyCFunction_GetFlags(data->destroy) & METH_O);
     } else {
       data->delargs = 0;
     }
@@ -608,7 +663,7 @@ SwigPyObject_format(const char* fmt, SwigPyObject *v)
     PyObject *val = SwigPyObject_long(v);
     if (val) {
       PyObject *ofmt;
-      PyTuple_SET_ITEM(args, 0, val);
+      SWIG_PyTuple_SetItem(args, 0, val);
       ofmt = SWIG_Python_str_FromChar(fmt);
       if (ofmt) {
 #if PY_VERSION_HEX >= 0x03000000
@@ -762,8 +817,8 @@ SwigPyObject_dealloc(PyObject *v)
         }
         Py_XDECREF(tmp);
       } else {
-        PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
-        PyObject *mself = PyCFunction_GET_SELF(destroy);
+        PyCFunction meth = PyCFunction_GetFunction(destroy);
+        PyObject *mself = PyCFunction_GetSelf(destroy);
         res = ((*meth)(mself, v));
       }
       if (!res)

@@ -37,8 +37,8 @@
       static int asval(PyObject *obj, std::pair<T,U> *val) {
 	int res = SWIG_ERROR;
 	if (PyTuple_Check(obj)) {
-	  if (PyTuple_GET_SIZE(obj) == 2) {
-	    res = get_pair(PyTuple_GET_ITEM(obj,0),PyTuple_GET_ITEM(obj,1), val);
+	  if (SWIG_PyTuple_Size(obj) == 2) {
+	    res = get_pair(SWIG_PyTuple_GetItem(obj,0),PyTuple_GetItem(obj,1), val);
 	  }
 	} else if (PySequence_Check(obj)) {
 	  if (PySequence_Size(obj) == 2) {
@@ -94,8 +94,8 @@
       static int asptr(PyObject *obj, std::pair<T,U> **val) {
 	int res = SWIG_ERROR;
 	if (PyTuple_Check(obj)) {
-	  if (PyTuple_GET_SIZE(obj) == 2) {
-	    res = get_pair(PyTuple_GET_ITEM(obj,0),PyTuple_GET_ITEM(obj,1), val);
+	  if (SWIG_PyTuple_Size(obj) == 2) {
+	    res = get_pair(SWIG_PyTuple_GetItem(obj,0),PyTuple_GetItem(obj,1), val);
 	  }
 	} else if (PySequence_Check(obj)) {
 	  if (PySequence_Size(obj) == 2) {
@@ -118,8 +118,8 @@
     struct traits_from<std::pair<T,U> >   {
       static PyObject *from(const std::pair<T,U>& val) {
 	PyObject* obj = PyTuple_New(2);
-	PyTuple_SetItem(obj,0,swig::from(val.first));
-	PyTuple_SetItem(obj,1,swig::from(val.second));
+	SWIG_PyTuple_SetItem(obj,0,swig::from(val.first));
+	SWIG_PyTuple_SetItem(obj,1,swig::from(val.second));
 	return obj;
       }
     };
@@ -137,8 +137,8 @@ SwigPython_std_pair_repr (PyObject *o)
 {
     PyObject *tuple = PyTuple_New(2);
     assert(tuple);
-    PyTuple_SET_ITEM(tuple, 0, PyObject_GetAttrString(o, (char*) "first"));
-    PyTuple_SET_ITEM(tuple, 1, PyObject_GetAttrString(o, (char*) "second"));
+    PyTuple_SetItem(tuple, 0, PyObject_GetAttrString(o, (char*) "first"));
+    PyTuple_SetItem(tuple, 1, PyObject_GetAttrString(o, (char*) "second"));
     PyObject *result = PyObject_Repr(tuple);
     Py_DECREF(tuple);
     return result;

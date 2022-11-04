@@ -208,7 +208,7 @@
       PyObject* keyList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
       for (Py_ssize_t j = 0; j < pysize; ++i, ++j) {
-	PyList_SET_ITEM(keyList, j, swig::from(i->first));
+	SWIG_PyList_SetItem(keyList, j, swig::from(i->first));
       }
       SWIG_PYTHON_THREAD_END_BLOCK;
       return keyList;
@@ -226,7 +226,7 @@
       PyObject* valList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
       for (Py_ssize_t j = 0; j < pysize; ++i, ++j) {
-	PyList_SET_ITEM(valList, j, swig::from(i->second));
+	SWIG_PyList_SetItem(valList, j, swig::from(i->second));
       }
       SWIG_PYTHON_THREAD_END_BLOCK;
       return valList;
@@ -244,7 +244,7 @@
       PyObject* itemList = PyList_New(pysize);
       Map::const_iterator i = self->begin();
       for (Py_ssize_t j = 0; j < pysize; ++i, ++j) {
-	PyList_SET_ITEM(itemList, j, swig::from(*i));
+	SWIG_PyList_SetItem(itemList, j, swig::from(*i));
       }
       SWIG_PYTHON_THREAD_END_BLOCK;
       return itemList;
