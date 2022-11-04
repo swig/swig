@@ -1978,7 +1978,7 @@ public:
 	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirector%s);\n", methid, proxy_class_name, methid, overname);
 	if (mono_aot_compatibility_flag) {
 	  Printf(proxy_class_code, "      swigDelegate%sdispatcher = new SwigDelegate%s_%s_Dispatcher(SwigDirector%s_Dispatcher);\n", methid, proxy_class_name, methid, overname);
-	  Printf(proxy_class_code, "      global::System.Runtime.InteropServices.GCHandle swigDelegate%sgcHandle = global::System.Runtime.InteropServices.GCHandle.Alloc(swigDelegate%s, global::System.Runtime.InteropServices.GCHandleType.Weak);\n", methid, methid);
+	  Printf(proxy_class_code, "      global::System.Runtime.InteropServices.GCHandle swigDelegate%sgcHandle = global::System.Runtime.InteropServices.GCHandle.Alloc(swigDelegate%s, global::System.Runtime.InteropServices.GCHandleType.Normal);\n", methid, methid);
 	  Printf(proxy_class_code, "      swigDelegate%sgcHandlePtr = global::System.Runtime.InteropServices.GCHandle.ToIntPtr(swigDelegate%sgcHandle);\n", methid, methid);
 	}
 	Append(proxy_class_code, "    }\n");
