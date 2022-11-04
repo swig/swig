@@ -7,8 +7,8 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
-2023-12-20: vadz, vadimcn, wangito33, wsfulton
-            [Python] #1613 #1687 #1727 #2190 #2727 Add support for the Python stable
+2023-12-20: vadz, vadimcn, wangito33, wsfulton, clintonstimpson
+            [Python] #1613 #1687 #1727 #2190 #2727 #2428 Add support for the Python stable
             ABI using default Python options. Code is generated that compiles when
             setting the C macro Py_LIMITED_API to 0x03040000 (at C/C++ compile time).
             Note that the -builtin, -fast (used by -O) options are not supported.
