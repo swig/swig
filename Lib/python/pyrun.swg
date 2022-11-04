@@ -713,14 +713,26 @@ SwigPyObject_type(void) {
 
 SWIGRUNTIMEINLINE int
 SwigPyObject_Check(PyObject *op) {
-#ifdef SWIGPYTHON_BUILTIN
   PyTypeObject *target_tp = SwigPyObject_type();
-  if (PyType_IsSubtype(op->ob_type, target_tp))
+  PyTypeObject *op_type = Py_TYPE(op);
+#ifdef SWIGPYTHON_BUILTIN
+  if (PyType_IsSubtype(op_type, target_tp))
     return 1;
-  return (strcmp(op->ob_type->tp_name, "SwigPyObject") == 0);
+  return (strcmp(op_type->tp_name, "SwigPyObject") == 0);
 #else
-  return (Py_TYPE(op) == SwigPyObject_type())
-    || (strcmp(Py_TYPE(op)->tp_name,"SwigPyObject") == 0);
+  if(op_type == target_tp)
+    return 1;
+# ifdef Py_LIMITED_API
+  int cmp;
+  PyObject *tp_name = PyObject_GetAttrString((PyObject*)op_type, "__name__");
+  if (!tp_name)
+    return 0;
+  cmp = PyUnicode_CompareWithASCIIString(tp_name, "SwigPyObject");
+  Py_DECREF(tp_name);
+  return cmp == 0;
+# else
+  return (strcmp(op_type->tp_name, "SwigPyObject") == 0);
+# endif
 #endif
 }
 
@@ -1072,8 +1084,20 @@ SwigPyPacked_type(void) {
 
 SWIGRUNTIMEINLINE int
 SwigPyPacked_Check(PyObject *op) {
-  return ((op)->ob_type == SwigPyPacked_TypeOnce()) 
-    || (strcmp((op)->ob_type->tp_name,"SwigPyPacked") == 0);
+  PyTypeObject* op_type = Py_TYPE(op);
+  if (op_type == SwigPyPacked_TypeOnce())
+    return 1;
+#ifdef Py_LIMITED_API
+  int cmp;
+  PyObject *tp_name = PyObject_GetAttrString((PyObject*)op_type, "__name__");
+  if (!tp_name)
+    return 0;
+  cmp = PyUnicode_CompareWithASCIIString(tp_name, "SwigPyPacked");
+  Py_DECREF(tp_name);
+  return cmp == 0;
+#else
+  return (strcmp(op_type->tp_name,"SwigPyPacked") == 0);
+#endif
 }
 
 SWIGRUNTIME void
