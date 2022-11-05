@@ -7,24 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.1 (in progress)
 ===========================
 
-2022-10-26: wsfulton
-            [R] #2386 Fix memory leak in R shared_ptr wrappers.
-            Fix leak when a cast up a class inheritance chain is required.
+2022-11-02: wsfulton
+            #2418 Fix infinite loop handling non-type template parameters.
 
-2022-10-26: wsfulton
-            [R] Improve R wrapper error message when calling overloaded methods
-            when incorrect types passed are passed to the overloaded methods.
-
-            Old unhelpful error message:
-              Error in f(...) : could not find function "f"
-
-            Example of new improved error message:
-              Error in use_count(k) :
-                cannot find overloaded function for use_count with argtypes (NULL)
-
-2022-10-27: wsfulton
-            [R] Allow NULL to be used in overloaded functions taking shared_ptr.
-            Also fixes special variable $argtype expansion in rtypecheck typemaps.
+            Fixes infinite loop due to () brackets in a non-type template
+            parameter containing an expression.
 
 2022-10-28: wsfulton
             [R] R rtypecheck typemaps
@@ -51,8 +38,21 @@ Version 4.1.1 (in progress)
             the warning will disappear. This is important to do as swig-4.2 will
             not be able to provide this helpful warning.
 
-2022-11-02: wsfulton
-            #2418 Fix infinite loop handling non-type template parameters.
+2022-10-27: wsfulton
+            [R] Allow NULL to be used in overloaded functions taking shared_ptr.
+            Also fixes special variable $argtype expansion in rtypecheck typemaps.
 
-            Fixes infinite loop due to () brackets in a non-type template
-            parameter containing an expression.
+2022-10-26: wsfulton
+            [R] Improve R wrapper error message when calling overloaded methods
+            when incorrect types passed are passed to the overloaded methods.
+
+            Old unhelpful error message:
+              Error in f(...) : could not find function "f"
+
+            Example of new improved error message:
+              Error in use_count(k) :
+                cannot find overloaded function for use_count with argtypes (NULL)
+
+2022-10-26: wsfulton
+            [R] #2386 Fix memory leak in R shared_ptr wrappers.
+            Fix leak when a cast up a class inheritance chain is required.
