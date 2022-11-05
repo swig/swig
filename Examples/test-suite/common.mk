@@ -639,13 +639,13 @@ CPP11_TEST_BROKEN = \
 # C++14 test cases.
 CPP14_TEST_CASES += \
 	cpp14_binary_integer_literals \
-	cpp14_enable_if_t \
 
 # Broken C++14 test cases.
 CPP14_TEST_BROKEN = \
 
 # C++17 test cases.
 CPP17_TEST_CASES += \
+	cpp17_enable_if_t \
 	cpp17_hex_floating_literals \
 	cpp17_nested_namespaces \
 	cpp17_nspace_nested_namespaces \
