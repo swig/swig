@@ -1,4 +1,4 @@
-%module cpp14_enable_if_t
+%module cpp17_enable_if_t
 
 // test use of enable_if_t but without full %template instantiation, that is no enable_if_t definition is parsed
 
