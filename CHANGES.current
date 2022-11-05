@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.1 (in progress)
 ===========================
 
+2022-11-05: wsfulton
+            #2417 Fix -swiglib for Windows when building with CMake.
+
 2022-11-02: wsfulton
             #2418 Fix infinite loop handling non-type template parameters.
 
