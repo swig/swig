@@ -13,6 +13,9 @@ on:
       - 'Doc/**'
       - 'appveyor.yml'
 
+permissions:
+  contents: read  #  to fetch code (actions/checkout)
+
 jobs:
   build:
 
