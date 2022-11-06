@@ -3,6 +3,11 @@
 // test use of enable_if_t but without full %template instantiation, that is no enable_if_t definition is parsed
 
 %inline %{
+#if defined(_MSC_VER) && _MSC_VER < 1920
+#define or ||
+#define and &&
+#endif
+
 #include <type_traits>
 typedef int node_t;
 typedef int position_t;
