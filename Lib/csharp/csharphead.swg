@@ -418,14 +418,11 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
       SwigFreeDelegate dispatcher = new SwigFreeDelegate(SwigFree);
       }
     [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="CSharp_SwigDirectorAssignFree_$module")]
-    public static extern void CSharp_SwigDirectorAssignFree_$module(SwigFreeDelegate stringDelegate);
+    public static extern void CSharp_SwigDirectorAssignFree_$module(SwigFreeDelegate freeDelegate);
   }
 %}
 
-
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
 %insert(runtime) %{
-/* Represents a GCHandle to a callback */
 typedef char * (SWIGSTDCALL* SWIG_CSharpFreeCallback)(void*); 
 static SWIG_CSharpFreeCallback SWIG_csharp_free_callback = NULL;
 
