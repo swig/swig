@@ -405,6 +405,40 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
 %}
 #endif // SWIG_CSHARP_NO_EXCEPTION_HELPER
 
+
+#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
+%pragma(csharp) imclasscode=%{
+  public static class SWIGGCHandleHelper{
+    public delegate void SwigFreeDelegate(global::System.IntPtr ptr);
+    [$imclassname.MonoPInvokeCallback(typeof(SwigFreeDelegate))]
+    static void SwigFree(IntPtr ptr) {
+      System.Runtime.InteropServices.GCHandle.FromIntPtr(ptr).Free();
+    }
+    static SWIGGCHandleHelper(){
+      SwigFreeDelegate dispatcher = new SwigFreeDelegate(SwigFree);
+      }
+    [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="CSharp_SwigDirectorAssignFree_$module")]
+    public static extern void CSharp_SwigDirectorAssignFree_$module(SwigFreeDelegate stringDelegate);
+  }
+%}
+
+
+#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
+%insert(runtime) %{
+/* Represents a GCHandle to a callback */
+typedef char * (SWIGSTDCALL* SWIG_CSharpFreeCallback)(void*); 
+static SWIG_CSharpFreeCallback SWIG_csharp_free_callback = NULL;
+
+#ifdef __cplusplus
+extern "C" 
+#endif
+SWIGEXPORT void SWIGSTDCALL CSharp_SwigDirectorAssignFree_$module(SWIG_CSharpFreeCallback callback) {
+  SWIG_csharp_free_callback = callback;
+}
+%}
+#endif
+
+
 #if !defined(SWIG_CSHARP_NO_STRING_HELPER)
 %insert(runtime) %{
 /* Callback for returning strings to C# without leaking memory */
