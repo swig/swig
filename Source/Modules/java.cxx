@@ -1883,16 +1883,10 @@ public:
 
     Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method_name);
 
-    String *classname = SwigType_namestr(c_classname);
-    String *baseclassname = SwigType_namestr(c_baseclassname);
     if (smart) {
+      SwigType *bsmart = Swig_smartptr_upcast(smart, c_classname, c_baseclassname);
       String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(smart);
-
-      // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
-      SwigType *rclassname = SwigType_typedef_resolve_all(classname);
-      SwigType *rbaseclassname = SwigType_typedef_resolve_all(baseclassname);
-      Replaceall(bsmartnamestr, rclassname, rbaseclassname);
+      String *bsmartnamestr = SwigType_namestr(bsmart);
 
       Printv(upcasts_code,
 	  "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
@@ -1905,11 +1899,13 @@ public:
 	  "    return baseptr;\n"
 	  "}\n", "\n", NIL);
 
-      Delete(rbaseclassname);
-      Delete(rclassname);
       Delete(bsmartnamestr);
       Delete(smartnamestr);
+      Delete(bsmart);
     } else {
+      String *classname = SwigType_namestr(c_classname);
+      String *baseclassname = SwigType_namestr(c_baseclassname);
+
       Printv(upcasts_code,
 	  "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
 	  "    jlong baseptr = 0;\n"
@@ -1918,10 +1914,11 @@ public:
 	  "    *(", baseclassname, " **)&baseptr = *(", classname, " **)&jarg1;\n"
 	  "    return baseptr;\n"
 	  "}\n", "\n", NIL);
+
+      Delete(baseclassname);
+      Delete(classname);
     }
 
-    Delete(baseclassname);
-    Delete(classname);
     Delete(wname);
     Delete(jniname);
   }

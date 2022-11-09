@@ -423,6 +423,7 @@ void Wrapper_cast_dispatch_mode_set(int);
 void Wrapper_naturalvar_mode_set(int);
 
 void clean_overloaded(Node *n);
+SwigType *Swig_smartptr_upcast(SwigType *smart, SwigType *c_classname, SwigType *c_baseclassname);
 
 extern "C" {
   const char *Swig_to_string(DOH *object, int count = -1);

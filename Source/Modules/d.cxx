@@ -3374,19 +3374,15 @@ private:
     String *upcast_name = Swig_name_member(getNSpace(), d_class_name, (smart != 0 ? "SmartPtrUpcast" : "Upcast"));
     String *upcast_wrapper_name = Swig_name_wrapper(upcast_name);
 
-    writeImDModuleFunction(upcast_name, "void*", "(void* objectRef)",
-      upcast_wrapper_name);
+    writeImDModuleFunction(upcast_name, "void*", "(void* objectRef)", upcast_wrapper_name);
 
     String *classname = SwigType_namestr(c_classname);
     String *baseclassname = SwigType_namestr(c_baseclassname);
-    if (smart) {
-      String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(smart);
 
-      // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
-      SwigType *rclassname = SwigType_typedef_resolve_all(classname);
-      SwigType *rbaseclassname = SwigType_typedef_resolve_all(baseclassname);
-      Replaceall(bsmartnamestr, rclassname, rbaseclassname);
+    if (smart) {
+      SwigType *bsmart = Swig_smartptr_upcast(smart, c_classname, c_baseclassname);
+      String *smartnamestr = SwigType_namestr(smart);
+      String *bsmartnamestr = SwigType_namestr(bsmart);
 
       Printv(upcasts_code,
 	"SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
@@ -3395,10 +3391,9 @@ private:
 	"}\n",
 	"\n", NIL);
 
-      Delete(rbaseclassname);
-      Delete(rclassname);
       Delete(bsmartnamestr);
       Delete(smartnamestr);
+      Delete(bsmart);
     } else {
       Printv(upcasts_code,
 	"SWIGEXPORT ", baseclassname, " * ", upcast_wrapper_name,
@@ -3413,8 +3408,8 @@ private:
 
     Delete(baseclassname);
     Delete(classname);
-    Delete(upcast_name);
     Delete(upcast_wrapper_name);
+    Delete(upcast_name);
     Delete(smart);
   }
 

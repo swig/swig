@@ -254,7 +254,7 @@ class TypePass:private Dispatcher {
     int i;
     for (i = 0; i < len; i++) {
       Node *n = Getitem(ilist, i);
-      String *bname = Getattr(n, "name");
+      SwigType *bname = Getattr(n, "name");
       Node *bclass = n;		/* Getattr(n,"class"); */
       Hash *scopes = Getattr(bclass, "typescope");
       SwigType_inherit(clsname, bname, cast, 0);
@@ -266,36 +266,20 @@ class TypePass:private Dispatcher {
 	    /* Record a (fake) inheritance relationship between smart pointer
 	       and smart pointer to base class, so that smart pointer upcasts
 	       are automatically generated. */
-	    SwigType *bsmart = Copy(smart);
-
-	    // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
-	    SwigType *rclsname = SwigType_typedef_resolve_all(clsname);
-	    SwigType *rbname = SwigType_typedef_resolve_all(bname);
-	    int replace_count = Replaceall(bsmart, rclsname, rbname);
-	    if (replace_count == 0) {
-	      // If no replacement made, it will be because rclsname is fully resolved, but the
-	      // type in the smartptr feature used a typedef or not fully resolved name.
-	      String *firstname = Getattr(first, "name");
-	      Replaceall(bsmart, firstname, rbname);
-	    }
-	    // The code above currently creates a smartptr of the base class by substitution, replacing Derived
-	    // with Base resulting in something like: 'smartptr< Derived >' from 'smartptr< Base >'. Instead
-	    // the feature:smartptr should be used as it also contains 'smartptr< Base >' as specified by the user.
-	    // A similar fix should also be done in upcastsCode in java.cxx, csharp.cxx and writeClassUpcast in d.cxx.
-	    // Printf(stdout, "smartcomparison %s <=> %s\n", SwigType_namestr(bsmart), Getattr(bclass, "feature:smartptr"));
-
-	    Delete(rclsname);
-	    Delete(rbname);
+	    SwigType *bsmart = Swig_smartptr_upcast(smart, clsname, bname);
 	    String *smartnamestr = SwigType_namestr(smart);
 	    String *bsmartnamestr = SwigType_namestr(bsmart);
+
 	    /* construct casting code */
 	    String *convcode = NewStringf("\n    *newmemory = SWIG_CAST_NEW_MEMORY;\n    return (void *) new %s(*(%s *)$from);\n", bsmartnamestr, smartnamestr);
-	    Delete(bsmartnamestr);
-	    Delete(smartnamestr);
+
 	    /* setup inheritance relationship between smart pointer templates */
 	    SwigType_inherit(smart, bsmart, 0, convcode);
 	    if (!GetFlag(bclass, "feature:smartptr"))
 	      Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(bclass, "name")), SwigType_namestr(Getattr(first, "name")));
+
+	    Delete(bsmartnamestr);
+	    Delete(smartnamestr);
 	    Delete(convcode);
 	    Delete(bsmart);
 	  }
