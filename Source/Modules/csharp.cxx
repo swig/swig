@@ -4573,6 +4573,8 @@ public:
     String *dirclassname = directorClassName(current_class);
     Wrapper *w = NewWrapper();
 
+    Printf(w->def, "SWIG_csharp_free_callback(swig_callback%s);//def\n", "test");
+    Printf(w->code, "SWIG_csharp_free_callback(swig_callback%s);//code\n", "test");
     if (Getattr(n, "noexcept")) {
       Printf(f_directors_h, "    virtual ~%s() noexcept;\n", dirclassname);
       Printf(w->def, "%s::~%s() noexcept {\n", dirclassname, dirclassname);
