@@ -4582,13 +4582,16 @@ public:
     } else {
       Printf(f_directors_h, "    virtual ~%s();\n", dirclassname);
       Printf(w->def, "%s::~%s() {\n", dirclassname, dirclassname);
+   
     }
-    if (mono_aot_compatibility_flag)
-    for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
-      UpcallData *udata = Getitem(dmethods_seq, i);
-      String *overname = Getattr(udata, "overname");
-      Printf(w->code, "SWIG_csharp_free_callback(swig_callback%s);\n", overname);
+    if (mono_aot_compatibility_flag) {
+        for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+            UpcallData* udata = Getitem(dmethods_seq, i);
+            String* overname = Getattr(udata, "overname");
+            Printf(w->code, "SWIG_csharp_free_callback(swig_callback%s);//code\n", overname);
+        }
     }
+
     Printv(w->code, "}\n", NIL);
 
     Wrapper_print(w, f_directors);
@@ -4653,7 +4656,7 @@ public:
       UpcallData *udata = Getitem(dmethods_seq, i);
       String *overname = Getattr(udata, "overname");
       if (mono_aot_compatibility_flag)
-	Printf(w->code, "swig_callback%s_dispatcher = 0;\n", overname);
+	   Printf(w->code, "swig_callback%s_dispatcher = 0;\n", overname);
       Printf(w->code, "swig_callback%s = 0;\n", overname);
     }
     Printf(w->code, "}");
