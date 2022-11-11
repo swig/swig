@@ -416,10 +416,10 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
     }
     static SWIGGCHandleHelper(){
       SwigFreeDelegate dispatcher = new SwigFreeDelegate(SwigFree);
-      CSharp_SwigDirectorAssignGCHandleFree_$module(dispatcher);
+      CSharp_SwigAssignGCHandleFree_$module(dispatcher);
       }
-    [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="CSharp_SwigDirectorAssignGCHandleFree_$module")]
-    public static extern void CSharp_SwigDirectorAssignGCHandleFree_$module(SwigFreeDelegate freeDelegate);
+    [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="CSharp_SwigAssignGCHandleFree_$module")]
+    public static extern void CSharp_SwigAssignGCHandleFree_$module(SwigFreeDelegate freeDelegate);
   }
 %}
 
@@ -430,7 +430,7 @@ SWIG_CSharpGCHandleFreeCallback SWIG_csharp_gchandle_free_callback = NULL;
 #ifdef __cplusplus
 extern "C" 
 #endif
-SWIGEXPORT void SWIGSTDCALL CSharp_SwigDirectorAssignGCHandleFree_$module(SWIG_CSharpGCHandleFreeCallback callback) {
+SWIGEXPORT void SWIGSTDCALL CSharp_SwigAssignGCHandleFree_$module(SWIG_CSharpGCHandleFreeCallback callback) {
   SWIG_csharp_gchandle_free_callback = callback;
 }
 %}
