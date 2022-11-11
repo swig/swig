@@ -4588,7 +4588,7 @@ public:
         for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
             UpcallData* udata = Getitem(dmethods_seq, i);
             String* overname = Getattr(udata, "overname");
-            Printf(w->code, "SWIG_csharp_free_callback(swig_callback%s);//code\n", overname);
+            Printf(w->code, "SWIG_csharp_gchandle_free_callback(swig_callback%s);\n", overname);
         }
     }
 
