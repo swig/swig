@@ -1190,7 +1190,9 @@ static String *manglestr_default(const SwigType *s) {
   SwigType *type = ss;
 
   if (SwigType_istemplate(ss)) {
-    SwigType *ty = Swig_symbol_template_deftype(ss, 0);
+    SwigType *dt = Swig_symbol_template_deftype(ss, 0);
+    String *ty = Swig_symbol_type_qualify(dt, 0);
+    Delete(dt);
     Delete(ss);
     ss = ty;
     type = ss;
