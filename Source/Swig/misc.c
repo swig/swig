@@ -703,6 +703,31 @@ String *Swig_string_typecode(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_string_mangle_type()
+ * 
+ * Same as Swig_string_mangle, but converting internal SwigType * to a human
+ * readable string of the type (for templates). Simplifies a type that is a
+ * template to the default template if possible.
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_string_mangle_type(const SwigType *s) {
+  String *mangled = 0;
+  String *b = Copy(s);
+  if (SwigType_istemplate(b)) {
+    String *st = Swig_symbol_template_deftype(b, 0);
+    String *sq = Swig_symbol_type_qualify(st, 0);
+    String *t = SwigType_namestr(sq);
+    Delete(st);
+    Delete(sq);
+    Delete(b);
+    b = t;
+  }
+  mangled = Swig_string_mangle(b);
+  Delete(b);
+  return mangled;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_string_mangle()
  * 
  * Take a string and mangle it by stripping all non-valid C identifier
@@ -725,32 +750,12 @@ String *Swig_string_typecode(String *s) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_mangle(const String *s) {
-#if 0
-  /* old mangling, not suitable for using in macros */
-  String *t = Copy(s);
-  char *c = Char(t);
-  while (*c) {
-    if (!isalnum(*c))
-      *c = '_';
-    c++;
-  }
-  return t;
-#else
   String *result = NewStringEmpty();
   int space = 0;
   int state = 0;
   char *pc, *cb;
-  String *b = Copy(s);
-  if (SwigType_istemplate(b)) {
-    String *st = Swig_symbol_template_deftype(b, 0);
-    String *sq = Swig_symbol_type_qualify(st, 0);
-    String *t = SwigType_namestr(sq);
-    Delete(st);
-    Delete(sq);
-    Delete(b);
-    b = t;
-  }
-  pc = cb = Char(b);
+
+  pc = cb = Char(s);
   while (*pc) {
     char c = *pc;
     if (isalnum((int) c) || (c == '_')) {
@@ -856,9 +861,7 @@ String *Swig_string_mangle(const String *s) {
     }
     ++pc;
   }
-  Delete(b);
   return result;
-#endif
 }
 
 String *Swig_string_emangle(String *s) {

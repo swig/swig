@@ -196,9 +196,11 @@ String *Swig_name_wrapper(const_String_or_char_ptr fname) {
 String *Swig_name_member(const_String_or_char_ptr nspace, const_String_or_char_ptr classname, const_String_or_char_ptr membername) {
   String *r;
   String *rclassname;
+  String *rmembername;
   char *cname;
 
   rclassname = SwigType_namestr(classname);
+  rmembername = SwigType_namestr(membername);
   r = get_naming_format_for("member", "%n%c_%m");
   cname = Char(rclassname);
   if ((strncmp(cname, "struct ", 7) == 0) || ((strncmp(cname, "class ", 6) == 0)) || ((strncmp(cname, "union ", 6) == 0))) {
@@ -206,9 +208,10 @@ String *Swig_name_member(const_String_or_char_ptr nspace, const_String_or_char_p
   }
   replace_nspace(r, nspace);
   Replace(r, "%c", cname, DOH_REPLACE_ANY);
-  Replace(r, "%m", membername, DOH_REPLACE_ANY);
+  Replace(r, "%m", rmembername, DOH_REPLACE_ANY);
   /*  name_mangle(r); */
   Delete(rclassname);
+  Delete(rmembername);
   return r;
 }
 

@@ -4656,8 +4656,8 @@ private:
    * 'X'.
    * ---------------------------------------------------------------------- */
 
-  String *exportedName(String *name) {
-    String *copy = Copy(name);
+  String *exportedName(SwigType *name) {
+    SwigType *copy = Copy(name);
     char c = *Char(copy);
     if (islower(c)) {
       char l[2];
@@ -4677,7 +4677,7 @@ private:
       u[2] = '\0';
       Replace(copy, l, u, DOH_REPLACE_FIRST);
     }
-    String *ret = Swig_name_mangle(copy);
+    String *ret = Swig_string_mangle_type(copy);
     Delete(copy);
     return ret;
   }
@@ -5556,11 +5556,11 @@ private:
       return NewString("int");
     }
 
-    String *type = Getattr(n, "enumtype");
+    SwigType *type = Getattr(n, "enumtype");
     assert(type);
     char *p = Char(type);
     int len = Len(type);
-    String *s = NewString("");
+    SwigType *s = NewString("");
     bool capitalize = true;
     for (int i = 0; i < len; ++i, ++p) {
       if (*p == ':') {
@@ -5576,7 +5576,7 @@ private:
       }
     }
 
-    ret = Swig_name_mangle(s);
+    ret = Swig_string_mangle_type(s);
     Delete(s);
     return ret;
   }

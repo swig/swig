@@ -1310,9 +1310,11 @@ int Language::staticmemberfunctionHandler(Node *n) {
     else
       cname = NewStringf("%s::%s", sname, name);
   } else {
-    String *mname = Swig_name_mangle(ClassName);
+    String *classname_str = SwigType_namestr(ClassName);
+    String *mname = Swig_name_mangle(classname_str);
     cname = Swig_name_member(NSpace, mname, name);
     Delete(mname);
+    Delete(classname_str);
   }
   mrename = Swig_name_member(NSpace, ClassPrefix, symname);
 

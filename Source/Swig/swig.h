@@ -324,6 +324,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern int Swig_storage_isstatic(Node *n);
   extern String *Swig_string_escape(String *s);
   extern String *Swig_string_mangle(const String *s);
+  extern String *Swig_string_mangle_type(const SwigType *s);
   extern void Swig_scopename_split(const String *s, String **prefix, String **last);
   extern String *Swig_scopename_prefix(const String *s);
   extern String *Swig_scopename_last(const String *s);
