@@ -1943,7 +1943,7 @@ public:
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
     SwigType *returntype = Getattr(n, "type");
-    String *overloaded_name = getOverloadedName(n);
+    String *overloaded_name = 0;
     String *storage = Getattr(n, "storage");
     String *value = Getattr(n, "value");
     String *decl = Getattr(n, "decl");
@@ -1962,7 +1962,6 @@ public:
     String *qualified_name = NewStringf("%s::%s", dirclassname, name);
     SwigType *c_ret_type = NULL;
     String *dcallback_call_args = NewString("");
-    String *imclass_dmethod;
     String *callback_typedef_parms = NewString("");
     String *delegate_parms = NewString("");
     String *proxy_method_param_list = NewString("");
@@ -1977,7 +1976,8 @@ public:
     // we're consistent with the sym:overload name in functionWrapper. (?? when
     // does the overloaded method name get set?)
 
-    imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(getNSpace(), classname, overloaded_name));
+    if (!ignored_method)
+      overloaded_name = getOverloadedName(n);
 
     qualified_return = SwigType_rcaststr(returntype, "c_result");
 
@@ -2381,8 +2381,9 @@ public:
 	dp_return_type = NewString("");
       }
 
+      String *member_name = Swig_name_member(getNSpace(), classname, overloaded_name);
+      String *imclass_dmethod = NewStringf("SwigDirector_%s", member_name);
       UpcallData *udata = addUpcallMethod(imclass_dmethod, symname, decl, overloaded_name, dp_return_type, proxy_method_param_list);
-      Delete(dp_return_type);
 
       // Write the global callback function pointer on the C code.
       String *methid = Getattr(udata, "class_methodidx");
@@ -2396,6 +2397,10 @@ public:
       String *dirClassName = directorClassName(parent);
       Printf(proxy_callback_type, "%s_Callback%s", dirClassName, methid);
       Printf(im_dmodule_code, "alias extern(C) %s function(void*%s) %s;\n", proxy_callback_return_type, delegate_parms, proxy_callback_type);
+
+      Delete(imclass_dmethod);
+      Delete(member_name);
+      Delete(dp_return_type);
       Delete(proxy_callback_type);
       Delete(dirClassName);
     }
@@ -4281,6 +4286,7 @@ private:
    * D::getOverloadedName()
    * --------------------------------------------------------------------------- */
   String *getOverloadedName(Node *n) const {
+
     // A void* parameter is used for all wrapped classes in the wrapper code.
     // Thus, the wrapper function names for overloaded functions are postfixed
     // with a counter string to make them unique.
