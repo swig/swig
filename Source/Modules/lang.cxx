@@ -1311,7 +1311,7 @@ int Language::staticmemberfunctionHandler(Node *n) {
       cname = NewStringf("%s::%s", sname, name);
   } else {
     String *classname_str = SwigType_namestr(ClassName);
-    String *mname = Swig_name_mangle(classname_str);
+    String *mname = Swig_name_mangle_string(classname_str);
     cname = Swig_name_member(NSpace, mname, name);
     Delete(mname);
     Delete(classname_str);
@@ -1321,7 +1321,7 @@ int Language::staticmemberfunctionHandler(Node *n) {
   if (Extend) {
     String *code = Getattr(n, "code");
     String *defaultargs = Getattr(n, "defaultargs");
-    String *mangled = Swig_name_mangle(mrename);
+    String *mangled = Swig_name_mangle_string(mrename);
     Delete(mrename);
     mrename = mangled;
 
@@ -1335,7 +1335,7 @@ int Language::staticmemberfunctionHandler(Node *n) {
 
       if (!defaultargs) {
 	/* Hmmm. An added static member.  We have to create a little wrapper for this */
-	String *mangled_cname = Swig_name_mangle(cname);
+	String *mangled_cname = Swig_name_mangle_string(cname);
 	Swig_add_extension_code(n, mangled_cname, parms, type, code, CPlusPlus, 0);
 	Setattr(n, "extendname", mangled_cname);
 	Delete(mangled_cname);

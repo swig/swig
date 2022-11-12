@@ -1461,7 +1461,7 @@ Hash *JSEmitter::createNamespaceEntry(const char *_name, const char *parent, con
   Hash *entry = NewHash();
   String *name = NewString(_name);
   Setattr(entry, NAME, Swig_scopename_last(name));
-  Setattr(entry, NAME_MANGLED, Swig_name_mangle(name));
+  Setattr(entry, NAME_MANGLED, Swig_name_mangle_string(name));
   Setattr(entry, PARENT, NewString(parent));
   Setattr(entry, PARENT_MANGLED, NewString(parent_mangled));
 

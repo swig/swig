@@ -1293,7 +1293,7 @@ static void typemap_merge_fragment_kwargs(Parm *kw) {
 	reattach_kw = prev_kw;
       }
       if (kwtype) {
-        String *mangle = Swig_string_mangle_type(kwtype);
+        String *mangle = Swig_name_mangle_type(kwtype);
         Append(fragment, mangle);
         Delete(mangle);
         /* Remove 'type' from kwargs so it's not duplicated later */
@@ -1541,7 +1541,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
       Delete(parm_sublist);
     }
     if (kwtype) {
-      String *mangle = Swig_string_mangle_type(kwtype);
+      String *mangle = Swig_name_mangle_type(kwtype);
       Append(value, mangle);
       Delete(mangle);
     }

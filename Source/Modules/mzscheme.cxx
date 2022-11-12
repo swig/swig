@@ -569,7 +569,7 @@ public:
 
     // Make a static variable;
 
-    Printf(var_name, "_wrap_const_%s", Swig_name_mangle(Getattr(n, "sym:name")));
+    Printf(var_name, "_wrap_const_%s", Swig_name_mangle_string(Getattr(n, "sym:name")));
 
     // Build the name for scheme.
     Printv(proc_name, iname, NIL);
@@ -656,7 +656,7 @@ public:
     convert_proto_tab = NewString("");
 
     struct_name = Getattr(n, "sym:name");
-    mangled_struct_name = Swig_name_mangle(Getattr(n, "sym:name"));
+    mangled_struct_name = Swig_name_mangle_string(Getattr(n, "sym:name"));
 
     Printv(scm_structname, struct_name, NIL);
     Replaceall(scm_structname, "_", "-");

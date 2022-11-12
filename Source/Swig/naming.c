@@ -157,20 +157,167 @@ static void replace_nspace(String *name, const_String_or_char_ptr nspace) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_name_mangle()
- *
- * Converts all of the non-identifier characters of a string to underscores.
+ * Swig_name_mangle_type()
+ * 
+ * Same as Swig_name_mangle_string, but converting internal SwigType * to a human
+ * readable string of the type (for templates). Simplifies a type that is a
+ * template to the default template if possible.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_name_mangle(const_String_or_char_ptr s) {
-#if 0
-  String *r = NewString(s);
-  name_mangle(r);
-  return r;
-#else
-  return Swig_string_mangle(s);
-#endif
+String *Swig_name_mangle_type(const SwigType *s) {
+  String *mangled = 0;
+  String *b = Copy(s);
+  if (SwigType_istemplate(b)) {
+    String *st = Swig_symbol_template_deftype(b, 0);
+    String *sq = Swig_symbol_type_qualify(st, 0);
+    String *t = SwigType_namestr(sq);
+    Delete(st);
+    Delete(sq);
+    Delete(b);
+    b = t;
+  }
+  mangled = Swig_name_mangle_string(b);
+  Delete(b);
+  return mangled;
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_name_mangle_string()
+ * 
+ * Take a string and mangle it by stripping all non-valid C identifier
+ * characters.
+ *
+ * This routine skips unnecessary blank spaces, therefore mangling
+ * 'char *' and 'char*', 'std::pair<int, int >' and
+ * 'std::pair<int,int>', produce the same result.
+ *
+ * However, note that 'long long' and 'long_long' produce different
+ * mangled strings.
+ *
+ * The mangling method still is not 'perfect', for example std::pair and
+ * std_pair return the same mangling. This is just a little better
+ * than before, but it seems to be enough for most of the purposes.
+ *
+ * Having a perfect mangling will break some examples and code which
+ * assume, for example, that A::get_value will be mangled as
+ * A_get_value. 
+ * ----------------------------------------------------------------------------- */
+
+String *Swig_name_mangle_string(const String *s) {
+  String *result = NewStringEmpty();
+  int space = 0;
+  int state = 0;
+  char *pc, *cb;
+
+  pc = cb = Char(s);
+  while (*pc) {
+    char c = *pc;
+    if (isalnum((int) c) || (c == '_')) {
+      state = 1;
+      if (space && (space == state)) {
+	Append(result, "_SS_");
+      }
+      space = 0;
+      Printf(result, "%c", (int) c);
+
+    } else {
+      if (isspace((int) c)) {
+	space = state;
+	++pc;
+	continue;
+      } else {
+	state = 3;
+	space = 0;
+      }
+      switch (c) {
+      case '.':
+	if ((cb != pc) && (*(pc - 1) == 'p')) {
+	  Append(result, "_");
+	  ++pc;
+	  continue;
+	} else {
+	  c = 'f';
+	}
+	break;
+      case ':':
+	if (*(pc + 1) == ':') {
+	  Append(result, "_");
+	  ++pc;
+	  ++pc;
+	  continue;
+	}
+	break;
+      case '*':
+	c = 'm';
+	break;
+      case '&':
+	c = 'A';
+	break;
+      case '<':
+	c = 'l';
+	break;
+      case '>':
+	c = 'g';
+	break;
+      case '=':
+	c = 'e';
+	break;
+      case ',':
+	c = 'c';
+	break;
+      case '(':
+	c = 'p';
+	break;
+      case ')':
+	c = 'P';
+	break;
+      case '[':
+	c = 'b';
+	break;
+      case ']':
+	c = 'B';
+	break;
+      case '^':
+	c = 'x';
+	break;
+      case '|':
+	c = 'o';
+	break;
+      case '~':
+	c = 'n';
+	break;
+      case '!':
+	c = 'N';
+	break;
+      case '%':
+	c = 'M';
+	break;
+      case '?':
+	c = 'q';
+	break;
+      case '+':
+	c = 'a';
+	break;
+      case '-':
+	c = 's';
+	break;
+      case '/':
+	c = 'd';
+	break;
+      default:
+	break;
+      }
+      if (isalpha((int) c)) {
+	Printf(result, "_S%c_", (int) c);
+      } else {
+	Printf(result, "_S%02X_", (int) c);
+      }
+    }
+    ++pc;
+  }
+  return result;
+}
+
 
 /* -----------------------------------------------------------------------------
  * Swig_name_wrapper()

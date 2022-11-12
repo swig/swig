@@ -740,7 +740,7 @@ public:
       return SWIG_ERROR;
 
     real_classname = Getattr(n, "name");
-    mangled_classname = Swig_string_mangle_type(real_classname);
+    mangled_classname = Swig_name_mangle_type(real_classname);
 
     if (Getattr(emitted, mangled_classname))
       return SWIG_NOWRAP;
@@ -816,7 +816,7 @@ public:
 	  Printv(base_classes, bname, " ", NIL);
 	  Printv(base_class_init, "    ", bname, "Ptr::constructor $ptr\n", NIL);
 	}
-	String *bmangle = Swig_string_mangle_type(bname);
+	String *bmangle = Swig_name_mangle_type(bname);
 	//      Printv(f_wrappers,"extern swig_class _wrap_class_", bmangle, ";\n", NIL);
 	//      Printf(base_class,"&_wrap_class_%s",bmangle);
 	Printf(base_class, "0");

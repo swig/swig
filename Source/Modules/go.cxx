@@ -4677,7 +4677,7 @@ private:
       u[2] = '\0';
       Replace(copy, l, u, DOH_REPLACE_FIRST);
     }
-    String *ret = Swig_string_mangle_type(copy);
+    String *ret = Swig_name_mangle_type(copy);
     Delete(copy);
     return ret;
   }
@@ -4725,7 +4725,7 @@ private:
     Append(nw, c3);
     Delete(c2);
     Delete(c3);
-    String *ret = Swig_name_mangle(nw);
+    String *ret = Swig_name_mangle_string(nw);
     Delete(nw);
     return ret;
   }
@@ -4742,7 +4742,7 @@ private:
   String *buildGoWrapperName(String *name, String *overname) {
     String *s1 = NewString("_swig_wrap_");
     Append(s1, name);
-    String *s2 = Swig_name_mangle(s1);
+    String *s2 = Swig_name_mangle_string(s1);
     Delete(s1);
     if (overname) {
       Append(s2, overname);
@@ -5576,7 +5576,7 @@ private:
       }
     }
 
-    ret = Swig_string_mangle_type(s);
+    ret = Swig_name_mangle_type(s);
     Delete(s);
     return ret;
   }

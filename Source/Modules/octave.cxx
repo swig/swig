@@ -946,7 +946,7 @@ public:
     // This is a bug, due to the fact that swig_type -> octave_class mapping
     // is 1-to-n.
     static Hash *emitted = NewHash();
-    String *mangled_classname = Swig_string_mangle_type(Getattr(n, "name"));
+    String *mangled_classname = Swig_name_mangle_type(Getattr(n, "name"));
     if (Getattr(emitted, mangled_classname)) {
       Delete(mangled_classname);
       return SWIG_NOWRAP;
