@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2022-11-13: olly
+	    [PHP] #2419 Update the documentation to reflect that SWIG 4.1.0
+	    dropped support for -noproxy when generating PHP wrappers.
+
 2022-11-05: wsfulton
             #2417 Fix -swiglib for Windows when building with CMake.
 
