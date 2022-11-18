@@ -409,17 +409,22 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
 #if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
 %pragma(csharp) imclasscode=%{
   public static class SWIGGCHandleHelper{
+    private static freeDelegate;
+
     public delegate void SwigFreeDelegate(global::System.IntPtr ptr);
+    
     [$imclassname.MonoPInvokeCallback(typeof(SwigFreeDelegate))]
     static void SwigFree(IntPtr ptr) {
       System.Runtime.InteropServices.GCHandle.FromIntPtr(ptr).Free();
     }
+
     static SWIGGCHandleHelper(){
-      SwigFreeDelegate dispatcher = new SwigFreeDelegate(SwigFree);
-      CSharp_SwigAssignGCHandleFree_$module(dispatcher);
+      freeDelegate = new SwigFreeDelegate(SwigFree);
+      SWIGRegisterGCHandleFreeCallback_$module(dispatcher);
       }
-    [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="CSharp_SwigAssignGCHandleFree_$module")]
-    public static extern void CSharp_SwigAssignGCHandleFree_$module(SwigFreeDelegate freeDelegate);
+
+    [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterGCHandleFreeCallback_$module")]
+    public static extern void SWIGRegisterGCHandleFreeCallback_$module(SwigFreeDelegate freeDelegate);
   }
 %}
 
@@ -430,7 +435,7 @@ SWIG_CSharpGCHandleFreeCallback SWIG_csharp_gchandle_free_callback = NULL;
 #ifdef __cplusplus
 extern "C" 
 #endif
-SWIGEXPORT void SWIGSTDCALL CSharp_SwigAssignGCHandleFree_$module(SWIG_CSharpGCHandleFreeCallback callback) {
+SWIGEXPORT void SWIGSTDCALL SWIGRegisterGCHandleFreeCallback_$module(SWIG_CSharpGCHandleFreeCallback callback) {
   SWIG_csharp_gchandle_free_callback = callback;
 }
 %}
@@ -458,6 +463,7 @@ static SWIG_CSharpStringHelperCallback SWIG_csharp_string_callback = NULL;
 %}
 #endif
 %pragma(csharp) imclasscode=%{
+    [$imclassname.MonoPInvokeCallback(typeof(SWIGStringDelegate))]
     static string CreateString(string cString) {
       return cString;
     }
