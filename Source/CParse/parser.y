@@ -2822,6 +2822,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  Symtab *tscope = 0;
 		  int     specialized = 0;
 		  int     variadic = 0;
+		  String *symname = $3 ? NewString($3) : 0;
 
 		  $$ = 0;
 
@@ -2841,7 +2842,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 		    This is closer to the C++ (typedef) behavior.
 		  */
-		  n = Swig_cparse_template_locate($5,$7,tscope);
+		  n = Swig_cparse_template_locate($5, $7, symname, tscope);
 
 		  /* Patch the argument types to respect namespaces */
 		  p = $7;
@@ -2966,7 +2967,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Setattr(templnode,"sym:typename","1");
                           }
 			  /* for now, nested %template is allowed only in the same scope as the template declaration */
-                          if ($3 && !(nnisclass && ((outer_class && (outer_class != Getattr(nn, "nested:outer")))
+                          if (symname && !(nnisclass && ((outer_class && (outer_class != Getattr(nn, "nested:outer")))
 			    ||(extendmode && current_class && (current_class != Getattr(nn, "nested:outer")))))) {
 			    /*
 			       Comment this out for 1.3.28. We need to
@@ -2974,11 +2975,10 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			       move %ignore from using %rename to use
 			       %feature(ignore).
 
-			       String *symname = Swig_name_make(templnode,0,$3,0,0);
+			       String *symname = Swig_name_make(templnode, 0, symname, 0, 0);
 			    */
-			    String *symname = NewString($3);
-                            Swig_cparse_template_expand(templnode,symname,temparms,tscope);
-                            Setattr(templnode,"sym:name",symname);
+                            Swig_cparse_template_expand(templnode, symname, temparms, tscope);
+                            Setattr(templnode, "sym:name", symname);
                           } else {
                             static int cnt = 0;
                             String *nname = NewStringf("__dummy_%d__", cnt++);
@@ -2987,7 +2987,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             SetFlag(templnode,"hidden");
 			    Delete(nname);
                             Setattr(templnode,"feature:onlychildren", "typemap,typemapitem,typemapcopy,typedef,types,fragment,apply");
-			    if ($3) {
+			    if (symname) {
 			      Swig_warning(WARN_PARSE_NESTED_TEMPLATE, cparse_file, cparse_line, "Named nested template instantiations not supported. Processing as if no name was given to %%template().\n");
 			    }
                           }
@@ -3106,6 +3106,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 	          Swig_symbol_setscope(tscope);
 		  Delete(Namespaceprefix);
 		  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		  Delete(symname);
                 }
                ;
 

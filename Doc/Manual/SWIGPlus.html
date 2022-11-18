@@ -57,6 +57,7 @@
 <li><a href="#SWIGPlus_template_functions">Function templates</a>
 <li><a href="#SWIGPlus_template_classes">Default template arguments</a>
 <li><a href="#SWIGPlus_template_class_inheritance">Template base classes</a>
+<li><a href="#SWIGPlus_template_empty">Empty template instantiation</a>
 <li><a href="#SWIGPlus_template_specialization">Template specialization</a>
 <li><a href="#SWIGPlus_template_member">Member templates</a>
 <li><a href="#SWIGPlus_template_scoping">Scoping and templates</a>
@@ -3261,9 +3262,27 @@ void foo(List&lt;Integer&gt; *x);
 In this case, <tt>List&lt;Integer&gt;</tt> is exactly the same type as
 <tt>List&lt;int&gt;</tt>.  Any use of <tt>List&lt;Integer&gt;</tt> is mapped back to the 
 instantiation of <tt>List&lt;int&gt;</tt> created earlier.  Therefore, it is
-not necessary to instantiate a new class for the type <tt>Integer</tt> (doing so is
-redundant and will simply result in code bloat).
+not correct to instantiate a new class for the type <tt>Integer</tt>.
+An attempt to do so such as:
 </p>
+
+<div class="code">
+<pre>
+%template(intList) List&lt;int&gt;;
+%template(IntegerList) List&lt;Integer&gt;;   // Ignored
+</pre>
+</div>
+
+<p>
+will result in the duplicate instantiation being ignored with a warning:
+</p>
+
+<div class="shell">
+<pre>
+example.i:48: Warning 404: Duplicate template instantiation of 'List&lt; Integer &gt;' with name 'IntegerList' ignored,
+example.i:47: Warning 404: previous instantiation of 'List&lt; int &gt;' with name 'intList'.
+</pre>
+</div>
 
 <p>
 The template provided to <tt>%template</tt> for instantiation must be the actual template and not a typedef to a template.
@@ -3333,36 +3352,49 @@ original template definition.  Template default arguments are supported.  For ex
 
 <div class="code">
 <pre>
-template vector&lt;typename T, int max=100&gt; class vector {
+template &lt;typename T, int max=100&gt; class vector {
 ...
 };
 
-%template(intvec) vector&lt;int&gt;;           // OK
+%template(intvec) vector&lt;int&gt;;            // OK
 %template(vec1000) vector&lt;int, 1000&gt;;     // OK
 </pre>
 </div>
 
 <p>
 The <tt>%template</tt> directive should not be used to wrap the same
-template instantiation more than once in the same scope.  This will
-generate an error.  For example:
+template instantiation more than once. This also applies to default parameters
+where a template parameter specified in the instantiation is the same as the default parameter.
+For example:
 </p>
 
 <div class="code">
 <pre>
-%template(intList) List&lt;int&gt;;
-%template(Listint) List&lt;int&gt;;    // Error.   Template already wrapped.
+%template(vec) vector&lt;double&gt;;            // OK
+%template(vec100) vector&lt;double, 100&gt;;    // Ignored
 </pre>
 </div>
 
 <p>
-This error is caused because the template expansion results in two
-identical classes with the same name.  This generates a symbol table
-conflict.  Besides, it probably more efficient to only wrap a specific
-instantiation only once in order to reduce the potential for code
-bloat.
+will warn:
 </p>
 
+<div class="shell">
+<pre>
+example.i:59: Warning 404: Duplicate template instantiation of 'vector&lt; double,100 &gt;' with name 'vec100' ignored,
+example.i:58: Warning 404: previous instantiation of 'vector&lt; double &gt;' with name 'vec'.
+</pre>
+</div>
+
+<p>
+If this was not ignored, the template expansion would result in two identical classes.
+An identical instantiation is only wrapped once in order to reduce code bloat.
+</p>
+
+<p>
+<b>Compatibility Note</b>:  Versions prior to SWIG-4.2.0 would sometimes not detect and prevent duplicate
+instantiations, such as when the wrapped name was different.
+</p>
 <H3><a name="SWIGPlus_template_class_inheritance">6.18.4 Template base classes</a></H3>
 
 
@@ -3430,20 +3462,6 @@ Don't worry--if you get the order wrong, SWIG should generate a warning message.
 </p>
 
 <p>
-Occasionally, you may need to tell SWIG about base classes that are defined by templates,
-but which aren't supposed to be wrapped.  Since SWIG is not able to automatically
-instantiate templates for this purpose, you must do it manually.  To do this, simply
-use the empty template instantiation, that is, <tt>%template</tt> with no name.  For example:
-</p>
-
-<div class="code">
-<pre>
-// Instantiate traits&lt;double, double&gt;, but don't wrap it.
-%template() traits&lt;double, double&gt;;
-</pre>
-</div>
-
-<p>
 If you have to instantiate a lot of different classes for many different types,
 you might consider writing a SWIG macro.  For example:
 </p>
@@ -3468,7 +3486,66 @@ TEMPLATE_WRAP(PairStringInt, std::pair&lt;string, int&gt;)
 Note the use of a vararg macro for the type T. If this wasn't used, the comma in the templated type in the last example would not be possible.
 </p>
 
-<H3><a name="SWIGPlus_template_specialization">6.18.5 Template specialization</a></H3>
+<H3><a name="SWIGPlus_template_empty">6.18.5 Empty template instantiation</a></H3>
+
+
+<p>
+Occasionally, you may need to tell SWIG about classes that are defined by templates,
+but which aren't supposed to be wrapped.  Since SWIG is not able to automatically
+instantiate templates for this purpose, you must do it manually.  To do this, simply
+use <tt>%template()</tt>, that is the empty template instantiation that omits providing a name.  For example:
+</p>
+
+<div class="code">
+<pre>
+template&lt;typename T&gt; struct Traits {
+  typedef T type;
+};
+%}
+
+%template() Traits&lt;int&gt;; // instantiate Traits&lt;int&gt;, but don't wrap it
+
+void traitor(Traits&lt;int&gt;::type val);
+</pre>
+</div>
+
+<p>
+Without a template instantiation, SWIG does not know that the first parameter to the <tt>traitor</tt>
+function is type int and passing an integer to this function from any target language won't work.
+The empty template instantiation adds the appropriate type information into SWIG's type system, without
+forcing one to wrap the <tt>Traits</tt> class.
+</p>
+
+<p>
+Duplicate template instantiation are not allowed, as described in the
+<a href="#SWIGPlus_template_classes">Default template arguments</a> section above.
+There is one exception where a named template instantiation can be followed by an empty template instantiation.
+Duplicate empty template instantiations are silently ignored, unlike duplicate named template instantiations.
+</p>
+
+<p>
+Unlike template class instantiations, template function instantiations must have a name.
+Consider the following:
+</p>
+
+<div class="code">
+<pre>
+template&lt;class T&gt; T tfunc(T x) { };
+%template() tfunc&lt;double&gt;;
+</pre>
+</div>
+
+<p>
+The empty template instantiation will be ignored with:
+</p>
+
+<div class="shell">
+<pre>
+example.i:9: Warning 519: %template() contains no name. Template method ignored: tfunc&lt; double &gt;(double)
+</pre>
+</div>
+
+<H3><a name="SWIGPlus_template_specialization">6.18.6 Template specialization</a></H3>
 
 
 <p>
@@ -3558,7 +3635,7 @@ SWIG implements template argument deduction so that the following partial specia
 </pre>
 </div>
 
-<H3><a name="SWIGPlus_template_member">6.18.6 Member templates</a></H3>
+<H3><a name="SWIGPlus_template_member">6.18.7 Member templates</a></H3>
 
 
 <p>
@@ -3770,7 +3847,7 @@ constructor, that will dispatch the proper call depending on the argument
 type.
 </p>
 
-<H3><a name="SWIGPlus_template_scoping">6.18.7 Scoping and templates</a></H3>
+<H3><a name="SWIGPlus_template_scoping">6.18.8 Scoping and templates</a></H3>
 
 
 <p>
@@ -3871,7 +3948,7 @@ template class C&lt;int&gt;;
 </p>
 
  
-<H3><a name="SWIGPlus_template_more">6.18.8 More on templates</a></H3>
+<H3><a name="SWIGPlus_template_more">6.18.9 More on templates</a></H3>
 
 
 <p>

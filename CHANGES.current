@@ -7,6 +7,50 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2022-11-18: wsfulton
+            Duplicate class template instantiations via %template now issue a warning and are ignored.
+
+                %template(Aint) A<int>;
+                %template(Aint2) A<int>; // Now ignored and issues a warning
+
+            example.i:7: Warning 404: Duplicate template instantiation of 'A< int >' with name 'Aint2' ignored,
+            example.i:6: Warning 404: previous instantiation of 'A< int >' with name 'Aint'.
+
+            A single empty template instantiation before a named instantiation is the one exception
+            for allowing duplicate template instantiations as the empty template instantation does not
+            create a wrapper for the template, it merely adds the instantiation into SWIG's internal
+            type system.
+            Duplicate empty template instantiations are quietly ignored.
+
+                %template() B<int>;
+                %template(Bint) B<int>; // OK
+
+                %template() C<int>;
+                %template() C<int>; // Quietly ignored now
+                %template(Cint) C<int>; // OK
+
+            Note that default template parameters are considered when looking for duplicates such as:
+
+                template <typename T, typename U = short> struct D {};
+                %template(Dint) D<int>;
+                %template(Dintshort) D<int, short>;
+
+            example.i:7: Warning 404: Duplicate template instantiation of 'D< int,short >' with name 'Dintshort' ignored,
+            example.i:6: Warning 404: previous instantiation of 'D< int >' with name 'Dint'.
+
+            Note that the following always was ignored, but that was because the chosen name was a
+            duplicate rather than the template being a duplicate:
+
+                %template(Eint) E<int>;
+                %template(Eint) E<int>; // Always has been ignored as a redefined identifier
+
+            The old warning was:
+
+            example.i:7: Warning 302: Identifier 'Eint' redefined (ignored) (Renamed from 'E< int >'),
+            example.i:6: Warning 302: previous definition of 'Eint' (Renamed from 'E< int >').
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2022-11-05: wsfulton
             #2417 Fix -swiglib for Windows when building with CMake.
 
