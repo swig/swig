@@ -409,18 +409,18 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
 #if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
 %pragma(csharp) imclasscode=%{
   public static class SWIGGCHandleHelper{
-    private static freeDelegate;
+    private static SwigFreeDelegate freeDelegate;
 
     public delegate void SwigFreeDelegate(global::System.IntPtr ptr);
     
     [$imclassname.MonoPInvokeCallback(typeof(SwigFreeDelegate))]
-    static void SwigFree(IntPtr ptr) {
+    static void SwigFree(global::System.IntPtr ptr) {
       System.Runtime.InteropServices.GCHandle.FromIntPtr(ptr).Free();
     }
 
     static SWIGGCHandleHelper(){
       freeDelegate = new SwigFreeDelegate(SwigFree);
-      SWIGRegisterGCHandleFreeCallback_$module(dispatcher);
+      SWIGRegisterGCHandleFreeCallback_$module(freeDelegate);
       }
 
     [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterGCHandleFreeCallback_$module")]
@@ -463,7 +463,6 @@ static SWIG_CSharpStringHelperCallback SWIG_csharp_string_callback = NULL;
 %}
 #endif
 %pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(SWIGStringDelegate))]
     static string CreateString(string cString) {
       return cString;
     }
