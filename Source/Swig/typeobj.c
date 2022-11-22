@@ -1234,17 +1234,20 @@ String *SwigType_prefix(const SwigType *t) {
 
   while (d > c) {
     d--;
-    if (*d == '>') {
+    if (*d == '>' && (d > c) && *(d - 1) == ')') {
+      /* skip over template parameters */
       int nest = 1;
       d--;
+      d--;
       while ((d > c) && (nest)) {
-	if (*d == '>')
+	if (*d == '>' && *(d - 1) == ')')
 	  nest++;
-	if (*d == '<')
+	if (*d == '<' && *(d + 1) == '(')
 	  nest--;
 	d--;
       }
     }
+
     if (*d == ')') {
       /* Skip over params */
       int nparen = 1;
@@ -1259,10 +1262,10 @@ String *SwigType_prefix(const SwigType *t) {
     }
 
     if (*d == '.') {
-      char t = *(d + 1);
+      char x = *(d + 1);
       *(d + 1) = 0;
       r = NewString(c);
-      *(d + 1) = t;
+      *(d + 1) = x;
       return r;
     }
   }
