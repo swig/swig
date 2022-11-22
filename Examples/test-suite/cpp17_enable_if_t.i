@@ -44,9 +44,6 @@ void tester() {
 template <typename T, std::enable_if_t<sizeof(T) <= 4>>
 void destId(T el) {}
 
-/*
-not yet fixed
 template <typename T, std::enable_if_t<sizeof(T) >= 3>>
 void destId(const T& el) {}
-*/
 %}

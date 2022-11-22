@@ -1043,16 +1043,17 @@ String *SwigType_templateprefix(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_templatesuffix(const SwigType *t) {
-  const char *c;
+  const char *c, *d;
   c = Char(t);
-  while (*c) {
+  d = c + strlen(c);
+  while (d > c) {
     if ((*c == '<') && (*(c + 1) == '(')) {
       int nest = 1;
       c++;
-      while (*c && nest) {
-	if (*c == '<')
+      while ((d > c) && nest) {
+	if (*c == '<' && *(c + 1) == '(')
 	  nest++;
-	if (*c == '>')
+	if (*c == '>' && *(c - 1) == ')')
 	  nest--;
 	c++;
       }
@@ -1120,18 +1121,19 @@ String *SwigType_istemplate_only_templateprefix(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_templateargs(const SwigType *t) {
-  const char *c;
+  const char *c, *d;
   const char *start;
   c = Char(t);
-  while (*c) {
+  d = c + strlen(c);
+  while (d > c) {
     if ((*c == '<') && (*(c + 1) == '(')) {
       int nest = 1;
       start = c;
       c++;
-      while (*c && nest) {
-	if (*c == '<')
+      while ((d > c) && nest) {
+	if (*c == '<' && *(c + 1) == '(')
 	  nest++;
-	if (*c == '>')
+	if (*c == '>' && *(c - 1) == ')')
 	  nest--;
 	c++;
       }

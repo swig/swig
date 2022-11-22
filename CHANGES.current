@@ -8,7 +8,8 @@ Version 4.2.0 (in progress)
 ===========================
 
 2022-11-22: wsfulton
-            #1037 Fix seg fault handling template parameter expressions containing '<='.
+            #1037 Fix seg fault handling template parameter expressions containing '<='
+            or '>='.
 
 2022-11-18: wsfulton
             Duplicate class template instantiations via %template now issue a warning and are ignored.
