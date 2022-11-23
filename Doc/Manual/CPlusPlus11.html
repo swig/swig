@@ -1106,7 +1106,7 @@ initializers) with some limitations. The following code is correctly parsed:</p>
 template &lt;typename... BaseClasses&gt; class ClassName : public BaseClasses... {
 public:
   ClassName (BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
-}
+};
 </pre></div>
 
 <p>
