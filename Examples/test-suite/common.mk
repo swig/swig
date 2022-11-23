@@ -90,7 +90,6 @@ CPP_TEST_BROKEN += \
 	nested_private \
 	template_default_pointer \
 	template_private_assignment \
-	template_expr \
 	$(CPP11_TEST_BROKEN) \
 	$(CPP14_TEST_BROKEN) \
 	$(CPP17_TEST_BROKEN) \
@@ -459,6 +458,7 @@ CPP_TEST_CASES += \
 	template_enum_ns_inherit \
 	template_enum_typedef \
 	template_explicit \
+	template_expr \
 	template_extend1 \
 	template_extend2 \
 	template_extend_overload \
