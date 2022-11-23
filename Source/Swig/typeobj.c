@@ -1181,20 +1181,9 @@ SwigType *SwigType_base(const SwigType *t) {
       c++;
       continue;
     }
-    if (*c == '<') {
-      /* Skip over template---it's part of the base name */
-      int ntemp = 1;
-      c++;
-      while ((*c) && (ntemp > 0)) {
-	if (*c == '>')
-	  ntemp--;
-	else if (*c == '<')
-	  ntemp++;
-	c++;
-      }
-      if (ntemp)
-	break;
-      continue;
+    if (*c == '<' && *(c + 1) == '(') {
+      /* start of template parameters --- the remainder is part of the base */
+      break;
     }
     if (*c == '(') {
       /* Skip over params */
