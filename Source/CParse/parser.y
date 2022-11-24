@@ -6581,7 +6581,7 @@ exprmem        : ID ARROW ID {
 		 $$.type = 0;
 	       }
 	       | ID ARROW ID LPAREN callparms RPAREN {
-		 $$.val = NewStringf("%s->%s(%s)", $1, $3, $5);
+		 $$.val = NewStringf("%s->%s(%s)", $1, $3, $5.val);
 		 $$.type = 0;
 	       }
 	       | exprmem ARROW ID {
@@ -6590,14 +6590,14 @@ exprmem        : ID ARROW ID {
 	       }
 	       | exprmem ARROW ID LPAREN callparms RPAREN {
 		 $$ = $1;
-		 Printf($$.val, "->%s(%s)", $3, $5);
+		 Printf($$.val, "->%s(%s)", $3, $5.val);
 	       }
 	       | ID PERIOD ID {
 		 $$.val = NewStringf("%s.%s", $1, $3);
 		 $$.type = 0;
 	       }
 	       | ID PERIOD ID LPAREN callparms RPAREN {
-		 $$.val = NewStringf("%s.%s(%s)", $1, $3, $5);
+		 $$.val = NewStringf("%s.%s(%s)", $1, $3, $5.val);
 		 $$.type = 0;
 	       }
 	       | exprmem PERIOD ID {
@@ -6606,7 +6606,7 @@ exprmem        : ID ARROW ID {
 	       }
 	       | exprmem PERIOD ID LPAREN callparms RPAREN {
 		 $$ = $1;
-		 Printf($$.val, ".%s(%s)", $3, $5);
+		 Printf($$.val, ".%s(%s)", $3, $5.val);
 	       }
 	       ;
 
