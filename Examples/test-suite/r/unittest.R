@@ -18,10 +18,16 @@ unittesttol <- function(x,y,z) {
 }
 
 unittest_sequence <- function (x,y) {
-  if (setequal(x, y)) {
-    print("PASS")
-  } else {
-    print("FAIL")
-    stop("Test failed")
-  }
+  x = as.vector(x)
+  y = as.vector(y)
+  
+  try(expr = {
+    if (!any(x != y)) {
+      print("PASS")
+      return()
+    }
+  }, silent = T)
+  
+  print("FAIL")
+  stop("Test failed")
 }

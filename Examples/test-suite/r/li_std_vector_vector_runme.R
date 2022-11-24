@@ -17,7 +17,7 @@ print(v)
 v = make_vector_vector_bool()
 unittest(length(v), 1)
 print(v)
-unittest_sequence(v[[1]], list(FALSE, TRUE, TRUE, TRUE, FALSE)) # Does not actually fail if no match, arg, needs fixing
+unittest_sequence(v[[1]], list(FALSE, TRUE, TRUE, TRUE, FALSE))
 
 v = make_vector_string()
 unittest_sequence(v, list("aa", "bb", "cc", "dd", "ee"))
