@@ -5294,13 +5294,13 @@ valparm        : parm {
 
 callparms      : valexpr callptail {
 		 $$ = $1;
-		 Printf($$.val, "%s", $2);
+		 Printf($$.val, "%s", $2.val);
 	       }
 	       | empty { $$.val = NewStringEmpty(); }
 	       ;
 
 callptail      : COMMA valexpr callptail {
-		 $$.val = NewStringf(",%s%s", $2, $3);
+		 $$.val = NewStringf(",%s%s", $2.val, $3.val);
 		 $$.type = 0;
 	       }
 	       | empty { $$.val = NewStringEmpty(); }
