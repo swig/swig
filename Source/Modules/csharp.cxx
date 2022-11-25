@@ -15,7 +15,7 @@
 #include <limits.h>		// for INT_MAX
 #include "cparse.h"
 #include <ctype.h>
-
+#include <iostream>
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
 
@@ -1942,6 +1942,7 @@ public:
       Printv(proxy_class_def, typemapLookup(n, derived ? "csdispose_derived" : "csdispose", typemap_lookup_type, WARN_NONE), NIL);
       // Dispose(bool disposing) method
       Printv(destruct, tm, NIL);
+      Printf(stdout, "%s",tm);
       if (*Char(destructor_call))
 	Replaceall(destruct, "$imcall", destructor_call);
       else
@@ -1959,10 +1960,53 @@ public:
     if (*Char(interface_upcasts))
       Printv(proxy_class_def, interface_upcasts, NIL);
 
+    bool makeUnsafe = false;
+    if(mono_aot_compatibility_flag){
+            Printf(stdout, "Comment: Iterating through functions to find string params and mark them as unsafe.\n");//make sure this is called before others
+      //Iterate through functions, check if they have unblittable string parameters
+      for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+        UpcallData *udata = Getitem(dmethods_seq, i);
+        bool unsafemethod = false;
+        ParmList *param = Getattr(udata, "parms");
+        while (param)
+        {
+          String *type = Getattr(param, "type");
+          if (!type && Cmp(type, "string")) {
+            makeUnsafe = true;
+            if(!unsafemethod){
+              unsafemethod = transaction_safe;
+              Setattr(udata, "safety", NewString("unsafe"));
+            }
+            Setattr(param, "safety", NewString("unsafe"));
+          }
+          param = nextSibling(param);
+        }
+      }
+    }
+      //...
+    
+
+
+      //step 2.
+      //Setattr(udata, "safety", "unsafe"); //assign a safe/unsafe state like this
+
+      //store in a boolean if at least 1 param was a string
+
+      //add unsafe to private void SwigDirectorConnect() if the above bool is true
+
+      //step 3.
+      //based on "safety" attribute
+      // SwigDirector%s will always be safe
+      // SwigDirector%s_Dispatcher will be unsafe. Furthermore, inside the code of dispatcher function, the args with string params will be wrapped with `new string()`
+      // unsafe will be added to  public delegate void SwigDelegate%s_%s_Dispatcher
+
+
+
+
     if (feature_director) {
       // Generate director connect method
       // put this in classDirectorEnd ???
-      Printf(proxy_class_code, "  private void SwigDirectorConnect() {\n");
+      Printf(proxy_class_code, "  %sprivate void SwigDirectorConnect() {\n", (makeUnsafe ? "unsafe " : ""));
 
       int i;
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
@@ -1970,6 +2014,7 @@ public:
 	String *method = Getattr(udata, "method");
 	String *methid = Getattr(udata, "class_methodidx");
 	String *overname = Getattr(udata, "overname");
+   
 
 	if (mono_aot_compatibility_flag) {
 	  Printf(proxy_class_code, "    global::System.IntPtr swigDelegate%sgcHandlePtr = global::System.IntPtr.Zero;\n", methid);
@@ -3971,8 +4016,9 @@ public:
 	}  
       }
       if (mono_aot_compatibility_flag && !ignored_method) {
-	Printf(callback_mono_aot_def, "\n  [%s.MonoPInvokeCallback(typeof(SwigDelegate%s_%s_Dispatcher))]\n", imclass_name, classname, methid);
-	Printf(callback_mono_aot_def, "  private static %s SwigDirector%s_Dispatcher(", tm, overloaded_name);
+         Printf(stdout, "Comment: Getting safety of method in classDirectorMethod()\n");
+        Printf(callback_mono_aot_def, "\n  [%s.MonoPInvokeCallback(typeof(SwigDelegate%s_%s_Dispatcher))]\n", imclass_name, classname, methid);
+        Printf(callback_mono_aot_def, "  %sprivate static %s SwigDirector%s_Dispatcher(", Cmp(Getattr(udata, "safety"), "unsafe") ? "unsafe " : "" , tm, overloaded_name);
       }
       Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
 
@@ -4036,6 +4082,7 @@ public:
 
     if (!ignored_method)
       Printf(w->code, "} else {\n");
+         Printf(stdout, "Setting director param values \n");
 
     /* Go through argument list, convert from native to C# */
     for (i = 0, p = l; p; ++i) {
@@ -4046,6 +4093,9 @@ public:
 
       SwigType *pt = Getattr(p, "type");
       String *ln = makeParameterName(n, p, i, false);
+               Printf(stdout,"Type in=%s paramNamein=%s   " ,pt,ln);
+
+
       String *c_param_type = NULL;
       String *c_decl = NewString("");
       String *arg = NewString("");
@@ -4135,7 +4185,7 @@ public:
 	      }
 	      Printf(delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, tm, ln);
 	      Printf(mono_aot_dispatcher_parms, "%s", ln);
-
+        Printf(stdout," final_ln=",ln);
 	      if (Cmp(din, ln)) {
 		Printv(imcall_args, din, NIL);
 	      } else
@@ -4190,7 +4240,7 @@ public:
     /* header declaration, start wrapper definition */
     String *target;
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
-    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
+    target = Swig_method_decl(rtype, decl, qualified_name,l, 0);
     Printf(w->def, "%s", target);
     Delete(qualified_name);
     Delete(target);
