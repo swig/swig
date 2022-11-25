@@ -1962,7 +1962,10 @@ public:
     if (feature_director) {
       // Generate director connect method
       // put this in classDirectorEnd ???
-      Printf(proxy_class_code, "  private void SwigDirectorConnect() {\n");
+        if (mono_aot_compatibility_flag)
+            Printf(proxy_class_code, "  unsafe private void SwigDirectorConnect() {\n");
+        else
+            Printf(proxy_class_code, "  private void SwigDirectorConnect() {\n");
 
       int i;
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
@@ -3971,14 +3974,16 @@ public:
 	}  
       }
       if (mono_aot_compatibility_flag && !ignored_method) {
-	Printf(callback_mono_aot_def, "\n  [%s.MonoPInvokeCallback(typeof(SwigDelegate%s_%s_Dispatcher))]\n", imclass_name, classname, methid);
-	Printf(callback_mono_aot_def, "  private static %s SwigDirector%s_Dispatcher(", tm, overloaded_name);
+	    Printf(callback_mono_aot_def, "\n  [%s.MonoPInvokeCallback(typeof(SwigDelegate%s_%s_Dispatcher))]\n", imclass_name, classname, methid);
+	    Printf(callback_mono_aot_def, "  unsafe private static %s SwigDirector%s_Dispatcher(", tm, overloaded_name);
+        Printf(callback_def, "  unsafe private %s SwigDirector%s(", tm, overloaded_name);
       }
-      Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
+      else
+        Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
 
       if (!ignored_method) {
 	const String *csdirectordelegatemodifiers = Getattr(n, "feature:csdirectordelegatemodifiers");
-	String *modifiers = (csdirectordelegatemodifiers ? NewStringf("%s%s", csdirectordelegatemodifiers, Len(csdirectordelegatemodifiers) > 0 ? " " : "") : NewStringf("public "));
+	String *modifiers = (csdirectordelegatemodifiers ? NewStringf("%s%s", csdirectordelegatemodifiers, Len(csdirectordelegatemodifiers) > 0 ? " " : "") : (mono_aot_compatibility_flag ? NewStringf("public unsafe ") : NewStringf("public ")));
 	Printf(director_delegate_definitions, "  %sdelegate %s", modifiers, tm);
 	if (mono_aot_compatibility_flag) {
 	  Printf(director_mono_aot_delegate_definitions, "  %sdelegate %s", modifiers, tm);
@@ -4186,6 +4191,11 @@ public:
       Delete(arg);
       Delete(c_decl);
     }
+    if (mono_aot_compatibility_flag)
+    {
+        Replaceall(delegate_parms, "string", "char *");
+    }
+
 
     /* header declaration, start wrapper definition */
     String *target;
