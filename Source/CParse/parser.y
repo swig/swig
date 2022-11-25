@@ -4488,8 +4488,9 @@ templateparameters : templateparameter templateparameterstail {
                    | empty { $$ = 0; }
                    ;
 
-templateparameter : templcpptype {
+templateparameter : templcpptype def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewString($1), 0);
+		    Setattr($$, "value", $2.rawval ? $2.rawval : $2.val);
                   }
                   | parm {
                     $$ = $1;

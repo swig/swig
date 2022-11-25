@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.1 (in progress)
 ===========================
 
+2022-11-25: wsfulton
+            #961 Fix syntax error parsing unnamed template parameters with a default value.
+
 2022-11-25: olly
 	    #2447 Fix undefined behaviour in swig's parser when handling
 	    default parameter expressions containing method calls.
