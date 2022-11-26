@@ -8,6 +8,10 @@ Version 4.2.0 (in progress)
 ===========================
 
 2022-11-26: wsfulton
+            #2449 Fix undefined behaviour in ccache-swig calculating md4 hashes and possibly
+            also handling errors when CCACHE_CPP2 is set.
+
+2022-11-26: wsfulton
             #1589 #1590 Slightly better decltype() support for expressions, such as:
 
               int i,j;
