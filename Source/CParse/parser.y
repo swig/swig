@@ -6241,11 +6241,12 @@ type_right     : primitive_type { $$ = $1;
                }
                ;
 
-decltype       : DECLTYPE LPAREN idcolon RPAREN {
-                 Node *n = Swig_symbol_clookup($3,0);
+decltype       : DECLTYPE LPAREN expr RPAREN {
+                 Node *n = Swig_symbol_clookup($3.val, 0);
                  if (!n) {
-		   Swig_error(cparse_file, cparse_line, "Identifier %s not defined.\n", $3);
-                   $$ = $3;
+		   Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", $3.val);
+
+		   $$ = NewStringf("decltype(%s)", $3.val);
                  } else {
                    $$ = Getattr(n, "type");
                  }
