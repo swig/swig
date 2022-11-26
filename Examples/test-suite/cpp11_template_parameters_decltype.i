@@ -18,7 +18,7 @@
 %inline %{
 // Github issue #1590
 struct Converter {
-  std::string to_json() const {}
+  std::string to_json() const { return std::string(); }
 };
 struct Json {
   Json(std::string s) {}
