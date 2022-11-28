@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.1.1 (30 Nov 2022)
 ===========================
 
+2022-11-29: bero
+            Fix mismatch between #pragma GCC diagnostic push and pop statements
+
 2022-11-26: wsfulton
             #2449 Fix undefined behaviour in ccache-swig calculating md4 hashes and possibly
             also handling errors when CCACHE_CPP2 is set.
