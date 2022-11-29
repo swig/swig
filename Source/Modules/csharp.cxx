@@ -15,7 +15,7 @@
 #include <limits.h>		// for INT_MAX
 #include "cparse.h"
 #include <ctype.h>
-#include <iostream>
+
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
 
@@ -1964,7 +1964,7 @@ public:
     if(mono_aot_compatibility_flag){
             Printf(stdout, "Comment: Iterating through functions to find string params and mark them as unsafe.\n");//make sure this is called before others
       //Iterate through functions, check if they have unblittable string parameters
-      for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+      for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
         UpcallData *udata = Getitem(dmethods_seq, i);
         bool unsafemethod = false;
         ParmList *param = Getattr(udata, "parms");
@@ -1974,7 +1974,7 @@ public:
           if (!type && Cmp(type, "string")) {
             makeUnsafe = true;
             if(!unsafemethod){
-              unsafemethod = transaction_safe;
+              unsafemethod = true;
               Setattr(udata, "safety", NewString("unsafe"));
             }
             Setattr(param, "safety", NewString("unsafe"));
