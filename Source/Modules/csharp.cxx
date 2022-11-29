@@ -1942,6 +1942,7 @@ public:
       Printv(proxy_class_def, typemapLookup(n, derived ? "csdispose_derived" : "csdispose", typemap_lookup_type, WARN_NONE), NIL);
       // Dispose(bool disposing) method
       Printv(destruct, tm, NIL);
+      Printf(stdout, "%s",tm);
       if (*Char(destructor_call))
 	Replaceall(destruct, "$imcall", destructor_call);
       else
@@ -1961,7 +1962,7 @@ public:
 
     bool makeUnsafe = false;
     if(mono_aot_compatibility_flag){
-      std::cout << "Comment: Iterating through functions to find string params and mark them as unsafe.\n"; //make sure this is called before others
+            Printf(stdout, "Comment: Iterating through functions to find string params and mark them as unsafe.\n");//make sure this is called before others
       //Iterate through functions, check if they have unblittable string parameters
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
         UpcallData *udata = Getitem(dmethods_seq, i);
@@ -4015,7 +4016,7 @@ public:
 	}  
       }
       if (mono_aot_compatibility_flag && !ignored_method) {
-        std::cout << "Comment: Getting safety of method in classDirectorMethod()\n"; //make sure this is called before others
+         Printf(stdout, "Comment: Getting safety of method in classDirectorMethod()\n");
         Printf(callback_mono_aot_def, "\n  [%s.MonoPInvokeCallback(typeof(SwigDelegate%s_%s_Dispatcher))]\n", imclass_name, classname, methid);
         Printf(callback_mono_aot_def, "  %sprivate static %s SwigDirector%s_Dispatcher(", Cmp(Getattr(udata, "safety"), "unsafe") ? "unsafe " : "" , tm, overloaded_name);
       }
@@ -4081,7 +4082,7 @@ public:
 
     if (!ignored_method)
       Printf(w->code, "} else {\n");
-      std::cout<<"Setting director param values\n";
+         Printf(stdout, "Setting director param values \n");
 
     /* Go through argument list, convert from native to C# */
     for (i = 0, p = l; p; ++i) {
@@ -4092,12 +4093,12 @@ public:
 
       SwigType *pt = Getattr(p, "type");
       String *ln = makeParameterName(n, p, i, false);
-            std::cout<<"static void SwigDirector param values\n";
+               Printf(stdout,"Type in=%s paramNamein=%s   " ,pt,ln);
+
 
       String *c_param_type = NULL;
       String *c_decl = NewString("");
       String *arg = NewString("");
-      std::cout<<"Type in="<<pt<<" paramNamein="<<ln<<"\n";
 
       Printf(arg, "j%s", ln);
 
@@ -4143,7 +4144,6 @@ public:
             const String *im_directorinattributes = Getattr(p, "tmap:imtype:directorinattributes");
 
 	    String *din = Copy(Getattr(p, "tmap:csdirectorin"));
-      std::cout << "tmap:csdirectorin   din="<<din<<"   pt="<<pt<<"   ln="<<ln; 
 
 	    if (din) {
 	      Replaceall(din, "$module", module_class_name);
@@ -4185,7 +4185,7 @@ public:
 	      }
 	      Printf(delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, tm, ln);
 	      Printf(mono_aot_dispatcher_parms, "%s", ln);
-        std::cout << "    final_ln="<<ln<<"\n";
+        Printf(stdout," final_ln=",ln);
 	      if (Cmp(din, ln)) {
 		Printv(imcall_args, din, NIL);
 	      } else
