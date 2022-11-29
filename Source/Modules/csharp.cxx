@@ -728,6 +728,7 @@ public:
     Setattr(new_udata, "class_methodidx", class_methodidx);
     Setattr(new_udata, "decl", Copy(decl));
     Setattr(new_udata, "overname", Copy(overloaded_name));
+    Setattr(new_udata, "parms", Copy(overloaded_name));
 
     Delete(key);
     return new_udata;
@@ -1942,7 +1943,6 @@ public:
       Printv(proxy_class_def, typemapLookup(n, derived ? "csdispose_derived" : "csdispose", typemap_lookup_type, WARN_NONE), NIL);
       // Dispose(bool disposing) method
       Printv(destruct, tm, NIL);
-      Printf(stdout, "%s",tm);
       if (*Char(destructor_call))
 	Replaceall(destruct, "$imcall", destructor_call);
       else
@@ -1960,53 +1960,10 @@ public:
     if (*Char(interface_upcasts))
       Printv(proxy_class_def, interface_upcasts, NIL);
 
-    bool makeUnsafe = false;
-    if(mono_aot_compatibility_flag){
-            Printf(stdout, "Comment: Iterating through functions to find string params and mark them as unsafe.\n");//make sure this is called before others
-      //Iterate through functions, check if they have unblittable string parameters
-      for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
-        UpcallData *udata = Getitem(dmethods_seq, i);
-        bool unsafemethod = false;
-        ParmList *param = Getattr(udata, "parms");
-        while (param)
-        {
-          String *type = Getattr(param, "type");
-          if (!type && Cmp(type, "string")) {
-            makeUnsafe = true;
-            if(!unsafemethod){
-              unsafemethod = true;
-              Setattr(udata, "safety", NewString("unsafe"));
-            }
-            Setattr(param, "safety", NewString("unsafe"));
-          }
-          param = nextSibling(param);
-        }
-      }
-    }
-      //...
-    
-
-
-      //step 2.
-      //Setattr(udata, "safety", "unsafe"); //assign a safe/unsafe state like this
-
-      //store in a boolean if at least 1 param was a string
-
-      //add unsafe to private void SwigDirectorConnect() if the above bool is true
-
-      //step 3.
-      //based on "safety" attribute
-      // SwigDirector%s will always be safe
-      // SwigDirector%s_Dispatcher will be unsafe. Furthermore, inside the code of dispatcher function, the args with string params will be wrapped with `new string()`
-      // unsafe will be added to  public delegate void SwigDelegate%s_%s_Dispatcher
-
-
-
-
     if (feature_director) {
       // Generate director connect method
       // put this in classDirectorEnd ???
-      Printf(proxy_class_code, "  %sprivate void SwigDirectorConnect() {\n", (makeUnsafe ? "unsafe " : ""));
+      Printf(proxy_class_code, "  %sprivate void SwigDirectorConnect() {\n", (mono_aot_compatibility_flag ? "unsafe " : ""));
 
       int i;
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
@@ -3931,6 +3888,7 @@ public:
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
     UpcallData *udata = 0;
     String *methid = 0;
+    bool unsafe = false;
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
     // isn't at this point, so we have to manufacture it ourselves. At least
@@ -3940,7 +3898,7 @@ public:
     imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(getNSpace(), getClassPrefix(), overloaded_name));
 
     qualified_return = SwigType_rcaststr(returntype, "c_result");
-
+  //instead do the check in here and hope for the best
     if (!ignored_method) {
       /* Emit the actual upcall through */	    
       udata = addUpcallMethod(imclass_dmethod, symname, decl, overloaded_name);
@@ -4016,20 +3974,34 @@ public:
 	}  
       }
       if (mono_aot_compatibility_flag && !ignored_method) {
-         Printf(stdout, "Comment: Getting safety of method in classDirectorMethod()\n");
+        for (i = 0, p = l; p; ++i) {
+          if ((tm = Getattr(p, "tmap:imtype"))) {
+            String *imtypeout = Getattr(p, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
+            if (imtypeout){
+              Printf(stdout, "override with tmap:imtype:out %s", imtypeout);
+              tm = imtypeout;   
+            }
+            Printf(stdout, "typemap is %s \n", tm);
+            if(Cmp(tm,"string")==0){
+              unsafe = true; 
+              break;
+            }
+          }
+          p = nextSibling(p);
+        }
         Printf(callback_mono_aot_def, "\n  [%s.MonoPInvokeCallback(typeof(SwigDelegate%s_%s_Dispatcher))]\n", imclass_name, classname, methid);
-        Printf(callback_mono_aot_def, "  %sprivate static %s SwigDirector%s_Dispatcher(", Cmp(Getattr(udata, "safety"), "unsafe") ? "unsafe " : "" , tm, overloaded_name);
+        Printf(callback_mono_aot_def, "  %sprivate static %s SwigDirector%s_Dispatcher(", unsafe?"unsafe ":"" , tm, overloaded_name);
       }
       Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
 
       if (!ignored_method) {
-	const String *csdirectordelegatemodifiers = Getattr(n, "feature:csdirectordelegatemodifiers");
-	String *modifiers = (csdirectordelegatemodifiers ? NewStringf("%s%s", csdirectordelegatemodifiers, Len(csdirectordelegatemodifiers) > 0 ? " " : "") : NewStringf("public "));
-	Printf(director_delegate_definitions, "  %sdelegate %s", modifiers, tm);
-	if (mono_aot_compatibility_flag) {
-	  Printf(director_mono_aot_delegate_definitions, "  %sdelegate %s", modifiers, tm);
-	}
-	Delete(modifiers);
+        const String *csdirectordelegatemodifiers = Getattr(n, "feature:csdirectordelegatemodifiers");
+        String *modifiers = (csdirectordelegatemodifiers ? NewStringf("%s%s", csdirectordelegatemodifiers, Len(csdirectordelegatemodifiers) > 0 ? " " : "") : NewStringf("public "));
+        Printf(director_delegate_definitions, "  %sdelegate %s", modifiers, tm);
+        if (mono_aot_compatibility_flag) {
+          Printf(director_mono_aot_delegate_definitions, " %s %sdelegate %s", unsafe ? "unsafe ":"", modifiers, tm);
+        }
+        Delete(modifiers);
       }
     } else {
       Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(returntype, 0));
@@ -4082,7 +4054,6 @@ public:
 
     if (!ignored_method)
       Printf(w->code, "} else {\n");
-         Printf(stdout, "Setting director param values \n");
 
     /* Go through argument list, convert from native to C# */
     for (i = 0, p = l; p; ++i) {
@@ -4093,9 +4064,6 @@ public:
 
       SwigType *pt = Getattr(p, "type");
       String *ln = makeParameterName(n, p, i, false);
-               Printf(stdout,"Type in=%s paramNamein=%s   " ,pt,ln);
-
-
       String *c_param_type = NULL;
       String *c_decl = NewString("");
       String *arg = NewString("");
@@ -4141,7 +4109,7 @@ public:
 	    String *imtypeout = Getattr(p, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
 	    if (imtypeout)
 	      tm = imtypeout;
-            const String *im_directorinattributes = Getattr(p, "tmap:imtype:directorinattributes");
+      const String *im_directorinattributes = Getattr(p, "tmap:imtype:directorinattributes");
 
 	    String *din = Copy(Getattr(p, "tmap:csdirectorin"));
 
@@ -4183,9 +4151,11 @@ public:
 		Printf(proxy_method_types, ", ");
 		Printf(imcall_args, ", ");
 	      }
-	      Printf(delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, tm, ln);
-	      Printf(mono_aot_dispatcher_parms, "%s", ln);
-        Printf(stdout," final_ln=",ln);
+        Printf(delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, tm, ln);
+        if(mono_aot_compatibility_flag && Cmp(tm, "string") == 0)
+          Printf(mono_aot_dispatcher_parms, "new string(%s)", ln);
+        else
+          Printf(mono_aot_dispatcher_parms, "%s", ln);
 	      if (Cmp(din, ln)) {
 		Printv(imcall_args, din, NIL);
 	      } else
@@ -4281,7 +4251,9 @@ public:
     Append(declaration, ";\n");
 
     /* Finish off the inherited upcall's definition */
-
+    if(mono_aot_compatibility_flag && unsafe){
+      Replaceall(delegate_parms, "string", "char*");
+    }
     Printf(callback_def, "%s)", delegate_parms);
     Printf(callback_def, " {\n");
 

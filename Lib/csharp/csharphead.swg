@@ -5,8 +5,7 @@
  * Support code for strings if the SWIG_CSHARP_NO_STRING_HELPER is not defined
  * ----------------------------------------------------------------------------- */
 
-#define SWIG_CSHARP_NO_STRING_HELPER
-#if defined(SWIG_CSHARP_NO_STRING_HELPER)
+#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
 %insert(runtime) %{
 #define SWIG_csharp_string_callback const_cast<char*>
 %}
@@ -147,25 +146,6 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
 
 %pragma(csharp) imclasscode=%{
   protected class SWIGExceptionHelper {
-    public delegate void ExceptionDelegate(string message); 
-    public delegate void ExceptionArgumentDelegate(string message, string paramName);
-
-    static ExceptionDelegate applicationDelegate = new ExceptionDelegate(SetPendingApplicationException);
-    static ExceptionDelegate arithmeticDelegate = new ExceptionDelegate(SetPendingArithmeticException);
-    static ExceptionDelegate divideByZeroDelegate = new ExceptionDelegate(SetPendingDivideByZeroException);
-    static ExceptionDelegate indexOutOfRangeDelegate = new ExceptionDelegate(SetPendingIndexOutOfRangeException);
-    static ExceptionDelegate invalidCastDelegate = new ExceptionDelegate(SetPendingInvalidCastException);
-    static ExceptionDelegate invalidOperationDelegate = new ExceptionDelegate(SetPendingInvalidOperationException);
-    static ExceptionDelegate ioDelegate = new ExceptionDelegate(SetPendingIOException);
-    static ExceptionDelegate nullReferenceDelegate = new ExceptionDelegate(SetPendingNullReferenceException);
-    static ExceptionDelegate outOfMemoryDelegate = new ExceptionDelegate(SetPendingOutOfMemoryException);
-    static ExceptionDelegate overflowDelegate = new ExceptionDelegate(SetPendingOverflowException);
-    static ExceptionDelegate systemDelegate = new ExceptionDelegate(SetPendingSystemException);
-
-    static ExceptionArgumentDelegate argumentDelegate = new ExceptionArgumentDelegate(SetPendingArgumentException);
-    static ExceptionArgumentDelegate argumentNullDelegate = new ExceptionArgumentDelegate(SetPendingArgumentNullException);
-    static ExceptionArgumentDelegate argumentOutOfRangeDelegate = new ExceptionArgumentDelegate(SetPendingArgumentOutOfRangeException);
-
     [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterExceptionCallbacks_$module")]
     public static extern void SWIGRegisterExceptionCallbacks_$module(
                                 ExceptionDelegate applicationDelegate,
@@ -188,161 +168,168 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
 %}
 #if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
 %pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionDelegate))]
+    unsafe public delegate void ExceptionDelegate(char* message); 
+    unsafe public delegate void ExceptionArgumentDelegate(char* message, char* paramName);
+    unsafe static ExceptionDelegate applicationDelegate = new ExceptionDelegate(SetPendingApplicationException);
+    unsafe static ExceptionDelegate arithmeticDelegate = new ExceptionDelegate(SetPendingArithmeticException);
+    unsafe static ExceptionDelegate divideByZeroDelegate = new ExceptionDelegate(SetPendingDivideByZeroException);
+    unsafe static ExceptionDelegate indexOutOfRangeDelegate = new ExceptionDelegate(SetPendingIndexOutOfRangeException);
+    unsafe static ExceptionDelegate invalidCastDelegate = new ExceptionDelegate(SetPendingInvalidCastException);
+    unsafe static ExceptionDelegate invalidOperationDelegate = new ExceptionDelegate(SetPendingInvalidOperationException);
+    unsafe static ExceptionDelegate ioDelegate = new ExceptionDelegate(SetPendingIOException);
+    unsafe static ExceptionDelegate nullReferenceDelegate = new ExceptionDelegate(SetPendingNullReferenceException);
+    unsafe static ExceptionDelegate outOfMemoryDelegate = new ExceptionDelegate(SetPendingOutOfMemoryException);
+    unsafe static ExceptionDelegate overflowDelegate = new ExceptionDelegate(SetPendingOverflowException);
+    unsafe static ExceptionDelegate systemDelegate = new ExceptionDelegate(SetPendingSystemException);
+
+    unsafe static ExceptionArgumentDelegate argumentDelegate = new ExceptionArgumentDelegate(SetPendingArgumentException);
+    unsafe static ExceptionArgumentDelegate argumentNullDelegate = new ExceptionArgumentDelegate(SetPendingArgumentNullException);
+    unsafe static ExceptionArgumentDelegate argumentOutOfRangeDelegate = new ExceptionArgumentDelegate(SetPendingArgumentOutOfRangeException);
+
+    unsafe static void SetPendingApplicationException(char* message) {
+      SWIGPendingException.Set(new global::System.ApplicationException(new string(message), SWIGPendingException.Retrieve()));
+    }
+
+    unsafe static void SetPendingArithmeticException(char* message) {
+      SWIGPendingException.Set(new global::System.ArithmeticException(new string(message), SWIGPendingException.Retrieve()));
+    }
+
+    unsafe static void SetPendingDivideByZeroException(char* message) {
+      SWIGPendingException.Set(new global::System.DivideByZeroException(new string(message), SWIGPendingException.Retrieve()));
+    }
+
+    unsafe static void SetPendingIndexOutOfRangeException(char* message) {
+      SWIGPendingException.Set(new global::System.IndexOutOfRangeException(new string(message), SWIGPendingException.Retrieve()));
+    }
+
+    unsafe static void SetPendingInvalidCastException(char* message) {
+      SWIGPendingException.Set(new global::System.InvalidCastException(new string(message), SWIGPendingException.Retrieve()));
+    }
+
+    unsafe static void SetPendingInvalidOperationException(char* message) {
+      SWIGPendingException.Set(new global::System.InvalidOperationException(new string(message), SWIGPendingException.Retrieve()));
+    }
+
+    unsafe static void SetPendingIOException(char* message) {
+      SWIGPendingException.Set(new global::System.IO.IOException(new string(message), SWIGPendingException.Retrieve()));
+    }
+
+    unsafe static void SetPendingNullReferenceException(char* message) {
+      SWIGPendingException.Set(new global::System.NullReferenceException(new string(message), SWIGPendingException.Retrieve()));
+    }
+
+    unsafe static void SetPendingOutOfMemoryException(char* message) {
+      SWIGPendingException.Set(new global::System.OutOfMemoryException(new string(message), SWIGPendingException.Retrieve()));
+    }
+
+    unsafe static void SetPendingOverflowException(char* message) {
+      SWIGPendingException.Set(new global::System.OverflowException(new string(message), SWIGPendingException.Retrieve()));
+    }
+
+    unsafe static void SetPendingSystemException(char* message) {
+      SWIGPendingException.Set(new global::System.SystemException(new string(message), SWIGPendingException.Retrieve()));
+    }
+
+    unsafe static void SetPendingArgumentException(char* message, char* paramName) {
+      SWIGPendingException.Set(new global::System.ArgumentException(new string(message), new string(paramName), SWIGPendingException.Retrieve()));
+    }
+
+    unsafe static void SetPendingArgumentNullException(char* message, char* paramName) {
+      global::System.Exception e = SWIGPendingException.Retrieve();
+      string message_text = new string(message);
+      if (e != null) message_text += " Inner Exception: " + e.Message;
+      SWIGPendingException.Set(new global::System.ArgumentNullException(new string(paramName), message_text));
+    }
+
+    unsafe static void SetPendingArgumentOutOfRangeException(char* message, char* paramName) {
+      global::System.Exception e = SWIGPendingException.Retrieve();
+      string message_text = new string(message);
+      if (e != null) message_text += " Inner Exception: " + e.Message;
+      SWIGPendingException.Set(new global::System.ArgumentOutOfRangeException(new string(paramName), message_text));
+    }
 %}
-#endif
+#else
 %pragma(csharp) imclasscode=%{
+    public delegate void ExceptionDelegate(string message); 
+    public delegate void ExceptionArgumentDelegate(string message, string paramName);
+    static ExceptionDelegate applicationDelegate = new ExceptionDelegate(SetPendingApplicationException);
+    static ExceptionDelegate arithmeticDelegate = new ExceptionDelegate(SetPendingArithmeticException);
+    static ExceptionDelegate divideByZeroDelegate = new ExceptionDelegate(SetPendingDivideByZeroException);
+    static ExceptionDelegate indexOutOfRangeDelegate = new ExceptionDelegate(SetPendingIndexOutOfRangeException);
+    static ExceptionDelegate invalidCastDelegate = new ExceptionDelegate(SetPendingInvalidCastException);
+    static ExceptionDelegate invalidOperationDelegate = new ExceptionDelegate(SetPendingInvalidOperationException);
+    static ExceptionDelegate ioDelegate = new ExceptionDelegate(SetPendingIOException);
+    static ExceptionDelegate nullReferenceDelegate = new ExceptionDelegate(SetPendingNullReferenceException);
+    static ExceptionDelegate outOfMemoryDelegate = new ExceptionDelegate(SetPendingOutOfMemoryException);
+    static ExceptionDelegate overflowDelegate = new ExceptionDelegate(SetPendingOverflowException);
+    static ExceptionDelegate systemDelegate = new ExceptionDelegate(SetPendingSystemException);
+
+    static ExceptionArgumentDelegate argumentDelegate = new ExceptionArgumentDelegate(SetPendingArgumentException);
+    static ExceptionArgumentDelegate argumentNullDelegate = new ExceptionArgumentDelegate(SetPendingArgumentNullException);
+    static ExceptionArgumentDelegate argumentOutOfRangeDelegate = new ExceptionArgumentDelegate(SetPendingArgumentOutOfRangeException);
+
     static void SetPendingApplicationException(string message) {
       SWIGPendingException.Set(new global::System.ApplicationException(message, SWIGPendingException.Retrieve()));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingArithmeticException(string message) {
       SWIGPendingException.Set(new global::System.ArithmeticException(message, SWIGPendingException.Retrieve()));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingDivideByZeroException(string message) {
       SWIGPendingException.Set(new global::System.DivideByZeroException(message, SWIGPendingException.Retrieve()));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingIndexOutOfRangeException(string message) {
       SWIGPendingException.Set(new global::System.IndexOutOfRangeException(message, SWIGPendingException.Retrieve()));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingInvalidCastException(string message) {
       SWIGPendingException.Set(new global::System.InvalidCastException(message, SWIGPendingException.Retrieve()));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingInvalidOperationException(string message) {
       SWIGPendingException.Set(new global::System.InvalidOperationException(message, SWIGPendingException.Retrieve()));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingIOException(string message) {
       SWIGPendingException.Set(new global::System.IO.IOException(message, SWIGPendingException.Retrieve()));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingNullReferenceException(string message) {
       SWIGPendingException.Set(new global::System.NullReferenceException(message, SWIGPendingException.Retrieve()));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingOutOfMemoryException(string message) {
       SWIGPendingException.Set(new global::System.OutOfMemoryException(message, SWIGPendingException.Retrieve()));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingOverflowException(string message) {
       SWIGPendingException.Set(new global::System.OverflowException(message, SWIGPendingException.Retrieve()));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingSystemException(string message) {
       SWIGPendingException.Set(new global::System.SystemException(message, SWIGPendingException.Retrieve()));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionArgumentDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingArgumentException(string message, string paramName) {
       SWIGPendingException.Set(new global::System.ArgumentException(message, paramName, SWIGPendingException.Retrieve()));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionArgumentDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingArgumentNullException(string message, string paramName) {
       global::System.Exception e = SWIGPendingException.Retrieve();
       if (e != null) message = message + " Inner Exception: " + e.Message;
       SWIGPendingException.Set(new global::System.ArgumentNullException(paramName, message));
     }
 
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(ExceptionArgumentDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static void SetPendingArgumentOutOfRangeException(string message, string paramName) {
       global::System.Exception e = SWIGPendingException.Retrieve();
       if (e != null) message = message + " Inner Exception: " + e.Message;
       SWIGPendingException.Set(new global::System.ArgumentOutOfRangeException(paramName, message));
     }
-
+%}
+#endif
+%pragma(csharp) imclasscode=%{
     static SWIGExceptionHelper() {
       SWIGRegisterExceptionCallbacks_$module(
                                 applicationDelegate,
@@ -450,6 +437,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterGCHandleFreeCallback_$module(SWIG_CSharp
 
 
 #if !defined(SWIG_CSHARP_NO_STRING_HELPER)
+#if !defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
 %insert(runtime) %{
 /* Callback for returning strings to C# without leaking memory */
 typedef char * (SWIGSTDCALL* SWIG_CSharpStringHelperCallback)(const char *);
@@ -463,13 +451,7 @@ static SWIG_CSharpStringHelperCallback SWIG_csharp_string_callback = NULL;
 
     [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterStringCallback_$module")]
     public static extern void SWIGRegisterStringCallback_$module(SWIGStringDelegate stringDelegate);
-%}
-#if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
-%pragma(csharp) imclasscode=%{
-    [$imclassname.MonoPInvokeCallback(typeof(SWIGStringDelegate))]
-%}
-#endif
-%pragma(csharp) imclasscode=%{
+
     static string CreateString(string cString) {
       return cString;
     }
@@ -490,6 +472,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterStringCallback_$module(SWIG_CSharpString
   SWIG_csharp_string_callback = callback;
 }
 %}
+#endif // SWIG_CSHARP_MONO_AOT_COMPATIBILITY
 #endif // SWIG_CSHARP_NO_STRING_HELPER
 
 #if !defined(SWIG_CSHARP_NO_IMCLASS_STATIC_CONSTRUCTOR)
