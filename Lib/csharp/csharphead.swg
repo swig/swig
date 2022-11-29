@@ -5,6 +5,13 @@
  * Support code for strings if the SWIG_CSHARP_NO_STRING_HELPER is not defined
  * ----------------------------------------------------------------------------- */
 
+#define SWIG_CSHARP_NO_STRING_HELPER
+#if defined(SWIG_CSHARP_NO_STRING_HELPER)
+%insert(runtime) %{
+#define SWIG_csharp_string_callback const_cast<char*>
+%}
+#endif
+
 %insert(runtime) %{
 #include <stdlib.h>
 #include <string.h>
