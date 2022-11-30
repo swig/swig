@@ -687,16 +687,34 @@ JSINCLUDES = @JSCOREINC@ @JSV8INC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
 NODEJS = @NODEJS@
 NODEGYP = @NODEGYP@
+ifneq (, $(ENGINE))
+    JSENGINE=$(ENGINE)
+else
+ifneq (, $(NODEJS))
+    JSENGINE=node
+else
+ifneq (, @JSCENABLED@)
+    JSENGINE=jsc
+else
+ifneq (, @JSV8ENABLED@)
+    JSENGINE=v8
+else
+    # Shouldn't happen, but avoid empty value if it does.
+    JSENGINE=node
+endif
+endif
+endif
+endif
 
 # ----------------------------------------------------------------
 # Creating and building Javascript wrappers
 # ----------------------------------------------------------------
 
 javascript_wrapper:
-	$(SWIG) -javascript $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
+	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
 
 javascript_wrapper_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -javascript -c++ $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
+	$(SWIG) -javascript -c++ $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
 
 javascript_build: $(SRCDIR_SRCS)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)

@@ -25,9 +25,22 @@ SWIGEXE   = $(top_builddir)/swig
 SWIG_LIB_DIR = $(top_srcdir)/Lib
 
 ifneq (, $(ENGINE))
-	JSENGINE=$(ENGINE)
+    JSENGINE=$(ENGINE)
 else
-	JSENGINE=node
+ifneq (, $(NODEJS))
+    JSENGINE=node
+else
+ifneq (, @JSCENABLED@)
+    JSENGINE=jsc
+else
+ifneq (, @JSV8ENABLED@)
+    JSENGINE=v8
+else
+    # Shouldn't happen, but avoid empty value if it does.
+    JSENGINE=node
+endif
+endif
+endif
 endif
 
 ifneq (, $(V8_VERSION))
@@ -47,9 +60,9 @@ _setup = \
 	  echo "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;     \
 	fi;
 
-ifeq (node,$(JSENGINE))
+SWIGOPT += -$(JSENGINE)
 
-  SWIGOPT += -node
+ifeq (node,$(JSENGINE))
 
   # shut up some warnings
 
@@ -104,8 +117,6 @@ ifeq (node,$(JSENGINE))
 		$(_setup)
 
 else
-
-  SWIGOPT += -$(JSENGINE)
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
