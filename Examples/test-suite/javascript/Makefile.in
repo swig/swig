@@ -49,7 +49,7 @@ _setup = \
 
 ifeq (node,$(JSENGINE))
 
-  SWIGOPT += -v8 -DBUILDING_NODE_EXTENSION=1
+  SWIGOPT += -node
 
   # shut up some warnings
 

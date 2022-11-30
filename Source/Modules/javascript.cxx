@@ -566,6 +566,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
   }
 
   switch (engine) {
+  case JSEmitter::NodeJS:
   case JSEmitter::V8:
     {
       emitter = swig_javascript_create_V8Emitter();
@@ -575,6 +576,9 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       if (!cparse_cplusplus) {
 	Swig_cparse_cplusplusout(1);
       }
+      if (engine == JSEmitter::NodeJS) {
+	Preprocessor_define("BUILDING_NODE_EXTENSION 1", 0);
+      }
       break;
     }
   case JSEmitter::JavascriptCore:
@@ -582,14 +586,6 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       emitter = swig_javascript_create_JSCEmitter();
       Preprocessor_define("SWIG_JAVASCRIPT_JSC 1", 0);
       SWIG_library_directory("javascript/jsc");
-      break;
-    }
-  case JSEmitter::NodeJS:
-    {
-      emitter = swig_javascript_create_V8Emitter();
-      Preprocessor_define("SWIG_JAVASCRIPT_V8 1", 0);
-      Preprocessor_define("BUILDING_NODE_EXTENSION 1", 0);
-      SWIG_library_directory("javascript/v8");
       break;
     }
   default:
