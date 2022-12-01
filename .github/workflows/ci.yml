@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: master
     paths-ignore:
       - 'CHANGES*'
       - 'Doc/**'
