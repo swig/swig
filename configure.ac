@@ -2668,8 +2668,8 @@ else
         FORTRANCXXSHARED='$(CXX) -dynamiclib'
         ;;
       *)
-        FORTRANLDSHARED='$(LDSHARED)'
-        FORTRANCXXSHARED='$(CXXSHARED)'
+        FORTRANLDSHARED='$(LDSHARED) -pthread'
+        FORTRANCXXSHARED='$(CXXSHARED) -pthread'
         ;;
   esac
 fi
