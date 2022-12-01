@@ -11,9 +11,9 @@ namespace std {
 };
 
 %inline %{
-std::vector<std::string> make_vector_int() {
-    std::string x[5] = {"1", "2", "3", "4", "5"};
-    std::vector<std::string> v;
+std::vector<int> make_vector_int() {
+    int x[5] = {1, 2, 3, 4, 5};
+    std::vector<int> v;
     for (size_t i = 0; i < 5; ++i)
       v.push_back(x[i]);
     return v;

@@ -6,12 +6,7 @@ source("li_std_vector_vector.R")
 cacheMetaData(1)
 
 v = make_vector_int()
-
-if (FALSE) {
-  # this test will fail because v is a vector of strings and not ints
-  unittest_sequence(v, as.integer(c(1, 2, 3, 4, 5)))
-}
-
+unittest_sequence(v, as.integer(c(1, 2, 3, 4, 5)))
 
 v = make_vector_vector_int()
 unittest(length(v), 1)
