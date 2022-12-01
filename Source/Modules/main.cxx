@@ -909,10 +909,6 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
   // Set the SWIG version value in format 0xAABBCC from package version expected to be in format A.B.C
   String *package_version = NewString(PACKAGE_VERSION); /* Note that the fakeversion has not been set at this point */
-  if (char *token = strstr(Char(package_version), "+")) {
-    // Remove '+' suffix
-    *token = '\0';
-  }
   char *token = strtok(Char(package_version), ".");
   String *vers = NewString("SWIG_VERSION 0x");
   int count = 0;
