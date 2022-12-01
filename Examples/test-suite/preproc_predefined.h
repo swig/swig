@@ -2,6 +2,7 @@
 #if (0\
   +defined(SWIGCSHARP)\
   +defined(SWIGD)\
+  +defined(SWIGFORTRAN)\
   +defined(SWIGGO)\
   +defined(SWIGGUILE)\
   +defined(SWIGJAVA)\
