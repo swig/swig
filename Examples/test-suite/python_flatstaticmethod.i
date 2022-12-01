@@ -8,8 +8,8 @@
 %feature("autodoc","0") A::func0static; // names
 %feature("autodoc","1") A::func1static; // names + types
 // special typemap and its docs
-%typemap(in) (int c, int d) "$1 = 0; $2 = 0;";
-%typemap(doc,name="hello",type="Tuple") (int c, int d) "hello: int tuple[2]";
+%typemap(in) (int c, int d) "$1 = 0; $2 = 0;"
+%typemap(doc,name="hello",type="Tuple") (int c, int d) "hello: int tuple[2]"
 
 %extend A {
 static int staticextended(int i) { return i; }

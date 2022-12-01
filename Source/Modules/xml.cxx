@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * xml.cxx
  *
@@ -118,7 +118,7 @@ public:
     String *k;
     indent_level += 4;
     print_indent(0);
-    Printf(out, "<attributelist id=\"%ld\" addr=\"%p\" >\n", ++id, obj);
+    Printf(out, "<attributelist id=\"%ld\" addr=\"%p\">\n", ++id, obj);
     indent_level += 4;
     Iterator ki;
     ki = First(obj);
@@ -175,7 +175,7 @@ public:
     }
     indent_level -= 4;
     print_indent(0);
-    Printf(out, "</attributelist >\n");
+    Printf(out, "</attributelist>\n");
     indent_level -= 4;
   }
 
@@ -183,7 +183,7 @@ public:
     Node *cobj;
 
     print_indent(0);
-    Printf(out, "<%s id=\"%ld\" addr=\"%p\" >\n", nodeType(obj), ++id, obj);
+    Printf(out, "<%s id=\"%ld\" addr=\"%p\">\n", nodeType(obj), ++id, obj);
     Xml_print_attributes(obj);
     cobj = firstChild(obj);
     if (cobj) {
@@ -196,32 +196,32 @@ public:
       Printf(out, "\n");
     }
     print_indent(0);
-    Printf(out, "</%s >\n", nodeType(obj));
+    Printf(out, "</%s>\n", nodeType(obj));
   }
 
 
   void Xml_print_parmlist(ParmList *p, const char* markup = "parmlist") {
 
     print_indent(0);
-    Printf(out, "<%s id=\"%ld\" addr=\"%p\" >\n", markup, ++id, p);
+    Printf(out, "<%s id=\"%ld\" addr=\"%p\">\n", markup, ++id, p);
     indent_level += 4;
     while (p) {
       print_indent(0);
       Printf(out, "<parm id=\"%ld\">\n", ++id);
       Xml_print_attributes(p);
       print_indent(0);
-      Printf(out, "</parm >\n");
+      Printf(out, "</parm>\n");
       p = nextSibling(p);
     }
     indent_level -= 4;
     print_indent(0);
-    Printf(out, "</%s >\n", markup);
+    Printf(out, "</%s>\n", markup);
   }
 
   void Xml_print_baselist(List *p) {
 
     print_indent(0);
-    Printf(out, "<baselist id=\"%ld\" addr=\"%p\" >\n", ++id, p);
+    Printf(out, "<baselist id=\"%ld\" addr=\"%p\">\n", ++id, p);
     indent_level += 4;
     Iterator s;
     for (s = First(p); s.item; s = Next(s)) {
@@ -232,7 +232,7 @@ public:
     }
     indent_level -= 4;
     print_indent(0);
-    Printf(out, "</baselist >\n");
+    Printf(out, "</baselist>\n");
   }
 
   String *Xml_escape_string(String *str) {
@@ -272,21 +272,21 @@ public:
   void Xml_print_hash(Hash *p, const char *markup) {
 
     print_indent(0);
-    Printf(out, "<%s id=\"%ld\" addr=\"%p\" >\n", markup, ++id, p);
+    Printf(out, "<%s id=\"%ld\" addr=\"%p\">\n", markup, ++id, p);
     Xml_print_attributes(p);
     indent_level += 4;
     Iterator n = First(p);
     while (n.key) {
       print_indent(0);
-      Printf(out, "<%ssitem id=\"%ld\" addr=\"%p\" >\n", markup, ++id, n.item);
+      Printf(out, "<%ssitem id=\"%ld\" addr=\"%p\">\n", markup, ++id, n.item);
       Xml_print_attributes(n.item);
       print_indent(0);
-      Printf(out, "</%ssitem >\n", markup);
+      Printf(out, "</%ssitem>\n", markup);
       n = Next(n);
     }
     indent_level -= 4;
     print_indent(0);
-    Printf(out, "</%s >\n", markup);
+    Printf(out, "</%s>\n", markup);
   }
 
 };

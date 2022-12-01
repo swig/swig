@@ -4,7 +4,7 @@ and the C/C++ part is not in any package at all.  Historically SWIG has
 supported this sort of thing.
 From SWIG 4.0.0 onwards, split modules are not supported by default.
 The %module directive needs to be customised with the moduleimport attribute
-in order to import the a global C/C++ module.
+in order to import a global C/C++ module.
 
 vanilla        # "plane Jane" module both halves in pkg1
 vanilla_split  # python 1/2 in pkg1 C 1/2 in global namespace

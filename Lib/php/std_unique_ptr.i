@@ -13,10 +13,10 @@
   res = SWIG_ConvertPtr(&$input, &argp, $descriptor(TYPE *), SWIG_POINTER_RELEASE);
   if (!SWIG_IsOK(res)) {
     if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {
-      zend_type_error("Cannot release ownership as memory is not owned for argument $argnum of type 'TYPE *' of $symname");
+      zend_type_error("Cannot release ownership as memory is not owned for argument $argnum of $descriptor(TYPE *) of $symname");
       return;
     } else {
-      zend_type_error("Expected TYPE * for argument $argnum of $symname");
+      zend_type_error("Expected $descriptor(TYPE *) for argument $argnum of $symname");
       return;
     }
   }
@@ -26,6 +26,12 @@
 %typemap (out) std::unique_ptr< TYPE > %{
   SWIG_SetPointerZval($result, (void *)$1.release(), $descriptor(TYPE *), SWIG_POINTER_OWN);
 %}
+
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *", noblock=1) std::unique_ptr< TYPE > {
+  void *vptr = 0;
+  int res = SWIG_ConvertPtr(&$input, &vptr, $descriptor(TYPE *), 0);
+  $1 = SWIG_CheckState(res);
+}
 
 %template() std::unique_ptr< TYPE >;
 %enddef

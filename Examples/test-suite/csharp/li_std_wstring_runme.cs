@@ -30,7 +30,7 @@ public class runme
 
     static private void check_equal(string a, string b)
     {
-        if (li_std_wstring.debug) {
+        if (li_std_wstring.trace) {
             Console.WriteLine("check_equal {0} {1}", a, b);
             display_bytes(a);
             display_bytes(b);
@@ -66,7 +66,7 @@ public class runme
             li_std_wstring.test_reference(null);
             throw new Exception("NULL check failed");
         } catch (ArgumentNullException e) {
-            if (!e.Message.Contains("type is null"))
+            if (!e.Message.Contains("is null"))
                 throw new Exception("Missing text " + e);
         }
         try {
@@ -150,7 +150,7 @@ public class runme
 
             foreach (string expected in test_strings)
             {
-                if (li_std_wstring.debug)
+                if (li_std_wstring.trace)
                     Console.WriteLine("expected (C#): " + expected);
                 string received = li_std_wstring.test_value(expected);
                 check_equal(received, expected);

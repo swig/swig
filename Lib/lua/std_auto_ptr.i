@@ -9,7 +9,7 @@
  * ----------------------------------------------------------------------------- */
 
 %define %auto_ptr(TYPE)
-%typemap(in, checkfn="lua_isuserdata", noblock=1) std::auto_ptr< TYPE > (void *argp = 0, int res = 0) {
+%typemap(in, checkfn="SWIG_isptrtype", noblock=1) std::auto_ptr< TYPE > (void *argp = 0, int res = 0) {
   res = SWIG_ConvertPtr(L, $input, &argp, $descriptor(TYPE *), SWIG_POINTER_RELEASE);
   if (!SWIG_IsOK(res)) {
     if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {
@@ -24,6 +24,12 @@
 %typemap (out) std::auto_ptr< TYPE > %{
   SWIG_NewPointerObj(L, $1.release(), $descriptor(TYPE *), SWIG_POINTER_OWN); SWIG_arg++;
 %}
+
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *", noblock=1) std::auto_ptr< TYPE > {
+  void *vptr = 0;
+  int res = SWIG_ConvertPtr(L, $input, &vptr, $descriptor(TYPE *), 0);
+  $1 = SWIG_CheckState(res);
+}
 
 %template() std::auto_ptr< TYPE >;
 %enddef

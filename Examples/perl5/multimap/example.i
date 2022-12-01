@@ -15,7 +15,7 @@ extern int squareCubed (int n, int *OUTPUT);
 
 extern int    gcd(int x, int y);
 
-%typemap(arginit) (int argc, char *argv[]) "$2 = 0;";
+%typemap(arginit) (int argc, char *argv[]) "$2 = 0;"
 
 %typemap(in) (int argc, char *argv[]) {
   AV *tempav;

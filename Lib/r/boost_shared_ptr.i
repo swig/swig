@@ -394,6 +394,25 @@
 #error "typemaps for $1_type not available"
 %}
 
+%typemap(rtype)      SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+  "$typemap(rtype, TYPE)"
+
+%typemap(scoercein)  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+ %{ if (inherits($input, "ExternalReference")) $input = slot($input,"ref"); %}
+
+%typemap(scoerceout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+  %{ $result <- if (is.null($result)) $result
+  else new("$typemap(rtype, TYPE)", ref=$result); %}
+
 
 %template() SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;
 

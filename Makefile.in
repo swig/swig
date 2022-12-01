@@ -58,24 +58,24 @@ docs-main:
 # All the languages SWIG speaks (when it wants to)
 #####################################################################
 
-skip-tcl	= test -n "@SKIP_TCL@"
-skip-perl5	= test -n "@SKIP_PERL5@"
-skip-python	= test -n "@SKIP_PYTHON@"
-skip-java	= test -n "@SKIP_JAVA@"
+skip-csharp	= test -n "@SKIP_CSHARP@"
+skip-d		= test -n "@SKIP_D@"
+skip-fortran	= test -n "@SKIP_FORTRAN@"
+skip-go		= test -n "@SKIP_GO@"
 skip-guile	= test -n "@SKIP_GUILE@"
+skip-java	= test -n "@SKIP_JAVA@"
+skip-javascript	= test -n "@SKIP_JAVASCRIPT@"
+skip-lua    	= test -n "@SKIP_LUA@"
 skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
-skip-ruby	= test -n "@SKIP_RUBY@"
-skip-php	= test -n "@SKIP_PHP@"
 skip-ocaml      = test -n "@SKIP_OCAML@"
 skip-octave     = test -n "@SKIP_OCTAVE@"
-skip-csharp	= test -n "@SKIP_CSHARP@"
-skip-lua    	= test -n "@SKIP_LUA@"
+skip-perl5	= test -n "@SKIP_PERL5@"
+skip-php	= test -n "@SKIP_PHP@"
+skip-python	= test -n "@SKIP_PYTHON@"
 skip-r		= test -n "@SKIP_R@"
+skip-ruby	= test -n "@SKIP_RUBY@"
 skip-scilab     = test -n "@SKIP_SCILAB@"
-skip-go		= test -n "@SKIP_GO@"
-skip-d		= test -n "@SKIP_D@"
-skip-javascript	= test -n "@SKIP_JAVASCRIPT@"
-skip-fortran	= test -n "@SKIP_FORTRAN@"
+skip-tcl	= test -n "@SKIP_TCL@"
 
 # Additional dependencies for some tests
 skip-android    = test -n "@SKIP_ANDROID@"
@@ -100,49 +100,49 @@ check-aliveness:
 	test -x ./$(TARGET)
 	./$(TARGET) -version
 	./$(TARGET) -help
-	@$(skip-tcl)      || ./$(TARGET) -tcl        -help
-	@$(skip-perl5)    || ./$(TARGET) -perl       -help
-	@$(skip-python)   || ./$(TARGET) -python     -help
-	@$(skip-java)     || ./$(TARGET) -java       -help
+	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
+	@$(skip-d) 	  || ./$(TARGET) -d          -help
+	@$(skip-fortran) || ./$(TARGET) -fortran -help
+	@$(skip-go)	  || ./$(TARGET) -go         -help
 	@$(skip-guile)    || ./$(TARGET) -guile      -help
+	@$(skip-java)     || ./$(TARGET) -java       -help
+	@$(skip-javascript) || ./$(TARGET) -javascript -help
+	@$(skip-lua)      || ./$(TARGET) -lua        -help
 	@$(skip-mzscheme) || ./$(TARGET) -mzscheme   -help
-	@$(skip-ruby)     || ./$(TARGET) -ruby       -help
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml      -help
 	@$(skip-octave)   || ./$(TARGET) -octave     -help
+	@$(skip-perl5)    || ./$(TARGET) -perl       -help
 	@$(skip-php)      || ./$(TARGET) -php7       -help
-	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
-	@$(skip-lua)      || ./$(TARGET) -lua        -help
+	@$(skip-python)   || ./$(TARGET) -python     -help
 	@$(skip-r) 	  || ./$(TARGET) -r          -help
+	@$(skip-ruby)     || ./$(TARGET) -ruby       -help
 	@$(skip-scilab)   || ./$(TARGET) -scilab     -help
-	@$(skip-go)	  || ./$(TARGET) -go         -help
-	@$(skip-d) 	  || ./$(TARGET) -d          -help
-	@$(skip-javascript) || ./$(TARGET) -javascript -help
-	@$(skip-fortran) || ./$(TARGET) -fortran -help
+	@$(skip-tcl)      || ./$(TARGET) -tcl        -help
 
 check-ccache:
 	test -z "$(ENABLE_CCACHE)" || (cd $(CCACHE) && $(MAKE) check)
 
 # Checks / displays versions of each target language
 check-versions:					\
-	check-tcl-version			\
-	check-perl5-version			\
-	check-python-version			\
-	check-java-version			\
-	check-javascript-version			\
 	check-android-version			\
+	check-csharp-version			\
+	check-d-version				\
+	check-fortran-version			\
+	check-go-version			\
 	check-guile-version			\
+	check-java-version			\
+	check-javascript-version		\
+	check-lua-version			\
 	check-mzscheme-version			\
-	check-ruby-version			\
 	check-ocaml-version			\
 	check-octave-version			\
+	check-perl5-version			\
 	check-php-version			\
-	check-csharp-version			\
-	check-lua-version			\
+	check-python-version			\
 	check-r-version				\
+	check-ruby-version			\
 	check-scilab-version			\
-	check-go-version			\
-	check-d-version \
-	check-fortran-version
+	check-tcl-version			\
 
 # all examples
 check-%-version :
@@ -159,45 +159,45 @@ check-%-version :
 
 # Checks examples for compilation (does not run them)
 check-examples:					\
-	check-tcl-examples			\
-	check-perl5-examples			\
-	check-python-examples			\
-	check-java-examples			\
 	check-android-examples			\
+	check-csharp-examples			\
+	check-d-examples			\
+	check-fortran-examples			\
+	check-go-examples			\
 	check-guile-examples			\
+	check-java-examples			\
+	check-javascript-examples		\
+	check-lua-examples			\
 	check-mzscheme-examples			\
-	check-ruby-examples			\
 	check-ocaml-examples			\
 	check-octave-examples			\
+	check-perl5-examples			\
 	check-php-examples			\
-	check-csharp-examples                   \
-	check-lua-examples			\
+	check-python-examples			\
 	check-r-examples			\
+	check-ruby-examples			\
 	check-scilab-examples			\
-	check-go-examples			\
-	check-d-examples			\
-	check-javascript-examples \
-	check-fortran-examples
+	check-tcl-examples			\
 
-tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
-perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
-python_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/python/check.list)
-java_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/java/check.list)
 android_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/android/check.list)
+csharp_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/csharp/check.list)
+d_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/d/check.list)
+fortran_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/fortran/check.list)
+go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
 guile_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/guile/check.list)
+java_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/java/check.list)
+javascript_examples:=$(shell sed '/^\#/d' $(srcdir)/Examples/javascript/check.list)
+lua_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/lua/check.list)
 mzscheme_examples  :=$(shell sed '/^\#/d' $(srcdir)/Examples/mzscheme/check.list)
-ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
 octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
+perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
 php_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/php/check.list)
-csharp_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/csharp/check.list)
-lua_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/lua/check.list)
+python_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/python/check.list)
 r_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/r/check.list)
+ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
-go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
-d_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/d/check.list)
-javascript_examples:=$(shell sed '/^\#/d' $(srcdir)/Examples/javascript/check.list)
-fortran_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/fortran/check.list)
+tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 
 # all examples
 check-%-examples :
@@ -222,24 +222,24 @@ check-%-examples :
 # Checks testcases in the test-suite excluding those which are known to be broken
 check-test-suite:				\
 	check-errors-test-suite			\
-	check-tcl-test-suite			\
-	check-perl5-test-suite			\
-	check-python-test-suite			\
-	check-java-test-suite			\
+	check-csharp-test-suite			\
+	check-d-test-suite			\
+	check-fortran-test-suite			\
+	check-go-test-suite			\
 	check-guile-test-suite			\
+	check-java-test-suite			\
+	check-javascript-test-suite		\
+	check-lua-test-suite			\
 	check-mzscheme-test-suite		\
-	check-ruby-test-suite			\
 	check-ocaml-test-suite			\
 	check-octave-test-suite			\
+	check-perl5-test-suite			\
 	check-php-test-suite			\
-	check-csharp-test-suite			\
-	check-lua-test-suite			\
+	check-python-test-suite			\
 	check-r-test-suite			\
+	check-ruby-test-suite			\
 	check-scilab-test-suite			\
-	check-go-test-suite			\
-	check-d-test-suite			\
-	check-javascript-test-suite			\
-	check-fortran-test-suite
+	check-tcl-test-suite			\
 
 check-%-test-suite:
 	@if test -z "$(skip-$*)"; then					\
@@ -270,48 +270,48 @@ check: check-aliveness check-ccache check-versions check-examples check-test-sui
 
 # Run known-to-be-broken as well as not broken testcases in the test-suite
 all-test-suite:					\
-	all-tcl-test-suite			\
-	all-perl5-test-suite			\
-	all-python-test-suite			\
-	all-java-test-suite			\
+	all-csharp-test-suite			\
+	all-d-test-suite			\
+	all-fortran-test-suite			\
+	all-go-test-suite			\
 	all-guile-test-suite			\
+	all-java-test-suite			\
+	all-javascript-test-suite		\
+	all-lua-test-suite			\
 	all-mzscheme-test-suite			\
-	all-ruby-test-suite			\
 	all-ocaml-test-suite			\
 	all-octave-test-suite			\
+	all-perl5-test-suite			\
 	all-php-test-suite			\
-	all-csharp-test-suite			\
-	all-lua-test-suite			\
+	all-python-test-suite			\
 	all-r-test-suite			\
+	all-ruby-test-suite			\
 	all-scilab-test-suite   		\
-	all-go-test-suite			\
-	all-d-test-suite			\
-	all-javascript-test-suite \
-	all-fortran-test-suite
+	all-tcl-test-suite			\
 
 all-%-test-suite:
 	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=all
 
 # Run known-to-be-broken testcases in the test-suite
 broken-test-suite:				\
-	broken-tcl-test-suite			\
-	broken-perl5-test-suite			\
-	broken-python-test-suite		\
-	broken-java-test-suite			\
+	broken-csharp-test-suite		\
+	broken-d-test-suite			\
+	broken-fortran-test-suite			\
+	broken-go-test-suite			\
 	broken-guile-test-suite			\
+	broken-java-test-suite			\
+	broken-javascript-test-suite		\
+	broken-lua-test-suite			\
 	broken-mzscheme-test-suite		\
-	broken-ruby-test-suite			\
 	broken-ocaml-test-suite			\
 	broken-octave-test-suite		\
+	broken-perl5-test-suite			\
 	broken-php-test-suite			\
-	broken-csharp-test-suite		\
-	broken-lua-test-suite			\
+	broken-python-test-suite		\
 	broken-r-test-suite			\
-	broken-scilab-test-suite           	\
-	broken-go-test-suite			\
-	broken-d-test-suite			\
-	broken-javascript-test-suite \
-	broken-fortran-test-suite
+	broken-ruby-test-suite			\
+	broken-scilab-test-suite		\
+	broken-tcl-test-suite			\
 
 broken-%-test-suite:
 	@$(MAKE) $(FLAGS) check-$*-test-suite ACTION=broken
@@ -348,7 +348,7 @@ clean-ccache:
 # DISTCLEAN - clean what configure built
 #####################################################################
 
-DISTCLEAN-DEAD = config.status config.log config.cache swig.spec Makefile mkmf.log preinst-swig
+DISTCLEAN-DEAD = config.status config.log config.cache Makefile mkmf.log preinst-swig
 
 distclean-helper: distclean-test-suite distclean-examples distclean-tools distclean-dead
 
@@ -504,23 +504,10 @@ uninstall-ccache:
 # DIST and other maintenance
 ############################################################################
 
-# distribution directory
-dd = @PACKAGE_NAME@-@PACKAGE_VERSION@
-srpm = @PACKAGE_NAME@-@PACKAGE_VERSION@
-
 dist:
 	@echo "'make dist' not implemented - use Tools/mkdist.py instead - e.g.:"
 	@echo "Tools/mkdist.py @VERSION@ master"
 	@false
-
-srcrpm:
-	rm -fr $(srpm) $(srpm).src.rpm
-	echo "TODO: update to use git instead of cvs"
-	cvs export -d $(srpm) -r HEAD SWIG
-	cp swig.spec $(srpm)
-	tar -cf - $(srpm) | gzip --best > $(srpm).tar.gz
-	rm -fr $(srpm)
-	rpmbuild -ts $(srpm).tar.gz
 
 # Update the autoconf files for detecting host/targets. Automake will do this in
 # version 1.10 for our case of not having a top level Makefile.am. Until then we

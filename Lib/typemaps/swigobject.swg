@@ -2,7 +2,7 @@
  * Language Object *  - Just pass straight through unmodified
  * ------------------------------------------------------------ */
 
-%typemap(in)   SWIG_Object "$1 = $input;";
+%typemap(in)   SWIG_Object "$1 = $input;"
 
 %typemap(in,noblock=1)   SWIG_Object const & ($*ltype temp)
 {
@@ -30,8 +30,8 @@
 
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
 
-%typemap(directorin) SWIG_Object "$input = $1;";
-%typemap(directorout) SWIG_Object "$result = $input;";
+%typemap(directorin) SWIG_Object "$input = $1;"
+%typemap(directorout) SWIG_Object "$result = $input;"
 
 #endif /* SWIG_DIRECTOR_TYPEMAPS */
 

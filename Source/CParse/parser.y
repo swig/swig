@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * parser.y
  *
@@ -13,14 +13,14 @@
  * some point.  Beware.
  * ----------------------------------------------------------------------------- */
 
-/* There are 6 known shift-reduce conflicts in this file, fail compilation if any
-   more are introduced.
+/* There are a small number of known shift-reduce conflicts in this file, fail
+   compilation if any more are introduced.
 
    Please don't increase the number of the conflicts if at all possible. And if
    you really have no choice but to do it, make sure you clearly document each
    new conflict in this file.
  */
-%expect 6
+%expect 7
 
 %{
 #define yylex yylex
@@ -1716,6 +1716,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     lambda_introducer lambda_body lambda_template;
 %type <pl>       lambda_tail;
 %type <str>      virt_specifier_seq virt_specifier_seq_opt;
+%type <str>      class_virt_specifier_opt;
 
 %%
 
@@ -3708,7 +3709,11 @@ cpp_declaration : cpp_class_decl {  $$ = $1; }
 
 
 /* A simple class/struct/union definition */
-cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
+
+/* Note that class_virt_specifier_opt for supporting final classes introduces one shift-reduce conflict
+   with C style variable declarations, such as: struct X final; */
+
+cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit LBRACE {
                    String *prefix;
                    List *bases = 0;
 		   Node *scope = 0;
@@ -3716,10 +3721,10 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   $<node>$ = new_node("class");
 		   Setline($<node>$,cparse_start_line);
 		   Setattr($<node>$,"kind",$2);
-		   if ($4) {
-		     Setattr($<node>$,"baselist", Getattr($4,"public"));
-		     Setattr($<node>$,"protectedbaselist", Getattr($4,"protected"));
-		     Setattr($<node>$,"privatebaselist", Getattr($4,"private"));
+		   if ($5) {
+		     Setattr($<node>$,"baselist", Getattr($5,"public"));
+		     Setattr($<node>$,"protectedbaselist", Getattr($5,"protected"));
+		     Setattr($<node>$,"privatebaselist", Getattr($5,"private"));
 		   }
 		   Setattr($<node>$,"allows_typedef","1");
 
@@ -3747,8 +3752,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Setattr($<node>$, "Classprefix", $3);
 		   Classprefix = NewString($3);
 		   /* Deal with inheritance  */
-		   if ($4)
-		     bases = Swig_make_inherit_list($3,Getattr($4,"public"),Namespaceprefix);
+		   if ($5)
+		     bases = Swig_make_inherit_list($3,Getattr($5,"public"),Namespaceprefix);
 		   prefix = SwigType_istemplate_templateprefix($3);
 		   if (prefix) {
 		     String *fbase, *tbase;
@@ -3828,7 +3833,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   Delattr($$, "prev_symtab");
 		   
 		   /* Check for pure-abstract class */
-		   Setattr($$,"abstracts", pure_abstracts($7));
+		   Setattr($$,"abstracts", pure_abstracts($8));
 		   
 		   /* This bit of code merges in a previously defined %extend directive (if any) */
 		   {
@@ -3844,12 +3849,12 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   scpname = Swig_symbol_qualifiedscopename(0);
 		   Setattr(classes, scpname, $$);
 
-		   appendChild($$, $7);
+		   appendChild($$, $8);
 		   
 		   if (am) 
 		     Swig_extend_append_previous($$, am);
 
-		   p = $9;
+		   p = $10;
 		   if (p && !nscope_inner) {
 		     if (!cparse_cplusplus && currentOuterClass)
 		       appendChild(currentOuterClass, p);
@@ -3873,8 +3878,8 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     }
 		     p = nextSibling(p);
 		   }
-		   if ($9 && Cmp($1,"typedef") == 0)
-		     add_typedef_name($$, $9, $3, cscope, scpname);
+		   if ($10 && Cmp($1,"typedef") == 0)
+		     add_typedef_name($$, $10, $3, cscope, scpname);
 		   Delete(scpname);
 
 		   if (cplus_mode != CPLUS_PUBLIC) {
@@ -3896,12 +3901,12 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		   if (cplus_mode == CPLUS_PRIVATE) {
 		     $$ = 0; /* skip private nested classes */
 		   } else if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
-		     $$ = nested_forward_declaration($1, $2, $3, Copy($3), $9);
+		     $$ = nested_forward_declaration($1, $2, $3, Copy($3), $10);
 		   } else if (nscope_inner) {
 		     /* this is tricky */
 		     /* we add the declaration in the original namespace */
 		     if (Strcmp(nodeType(nscope_inner), "class") == 0 && cparse_cplusplus && ignore_nested_classes && !GetFlag($$, "feature:flatnested"))
-		       $$ = nested_forward_declaration($1, $2, $3, Copy($3), $9);
+		       $$ = nested_forward_declaration($1, $2, $3, Copy($3), $10);
 		     appendChild(nscope_inner, $$);
 		     Swig_symbol_setscope(Getattr(nscope_inner, "symtab"));
 		     Delete(Namespaceprefix);
@@ -3913,14 +3918,14 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     Swig_symbol_setscope(cscope);
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		     add_symbols($9);
+		     add_symbols($10);
 		     if (nscope) {
 		       $$ = nscope; /* here we return recreated namespace tower instead of the class itself */
-		       if ($9) {
-			 appendSibling($$, $9);
+		       if ($10) {
+			 appendSibling($$, $10);
 		       }
 		     } else if (!SwigType_istemplate(ty) && template_parameters == 0) { /* for template we need the class itself */
-		       $$ = $9;
+		       $$ = $10;
 		     }
 		   } else {
 		     Delete(yyrename);
@@ -3931,7 +3936,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 			 outer = Getattr(outer, "nested:outer");
 		       appendSibling(outer, $$);
 		       Swig_symbol_setscope(cscope); /* declaration goes in the parent scope */
-		       add_symbols($9);
+		       add_symbols($10);
 		       set_scope_to_global();
 		       Delete(Namespaceprefix);
 		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
@@ -3944,7 +3949,7 @@ cpp_class_decl  : storage_class cpptype idcolon inherit LBRACE {
 		     } else {
 		       yyrename = Copy(Getattr($<node>$, "class_rename"));
 		       add_symbols($$);
-		       add_symbols($9);
+		       add_symbols($10);
 		       Delattr($$, "class_rename");
 		     }
 		   }
@@ -7056,6 +7061,14 @@ virt_specifier_seq : OVERRIDE {
 
 virt_specifier_seq_opt : virt_specifier_seq {
                    $$ = $1;
+               }
+               | empty {
+                   $$ = 0;
+               }
+               ;
+
+class_virt_specifier_opt : FINAL {
+                   $$ = NewString("1");
                }
                | empty {
                    $$ = 0;

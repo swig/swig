@@ -8,13 +8,13 @@ def check(p):
     if msg != "hi there":
         raise RuntimeError("Bad, got: " + msg)
 
-python_pickle.cvar.debug = False
+python_pickle.cvar.trace = False
 
 p = python_pickle.PickleMe("hi there")
 check(p)
 
 r = p.__reduce__()
-if python_pickle.cvar.debug:
+if python_pickle.cvar.trace:
     print("__reduce__ returned: {}".format(r))
 pickle_string = pickle.dumps(p)
 newp = pickle.loads(pickle_string)

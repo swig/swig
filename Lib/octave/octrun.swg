@@ -1547,12 +1547,15 @@ octave_value_typeinfo::register_binary_op(octave_value::op_##name,tid1,tid2,swig
 SWIGRUNTIME octave_value SWIG_Octave_NewPointerObj(void *ptr, swig_type_info *type, int flags) {
   int own = (flags &SWIG_POINTER_OWN) ? SWIG_POINTER_OWN : 0;
 
+  if (ptr) {
 #ifdef SWIG_DIRECTORS
-  Swig::Director *d = Swig::get_rtdir(ptr);
-  if (d && Swig::swig_director_get_self(d))
-    return Swig::swig_director_get_self(d)->as_value();
+    Swig::Director *d = Swig::get_rtdir(ptr);
+    if (d && Swig::swig_director_get_self(d))
+      return Swig::swig_director_get_self(d)->as_value();
 #endif
-  return Swig::swig_value_ref(new octave_swig_type(ptr, type, own));
+    return Swig::swig_value_ref(new octave_swig_type(ptr, type, own));
+  }
+  return octave_value(Matrix()); // null matrix
 }
 
 SWIGRUNTIME int SWIG_Octave_ConvertPtrAndOwn(octave_value ov, void **ptr, swig_type_info *type, int flags, int *own) {

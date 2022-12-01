@@ -5,7 +5,7 @@
 #include <stdlib.h>
 %}
 
-%typemap(default) double y "$1=1000;";
+%typemap(default) double y "$1=1000;"
 #endif
 
 #ifdef SWIGLUA

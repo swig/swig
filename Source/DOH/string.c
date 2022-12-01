@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * string.c
  *
@@ -180,19 +180,27 @@ static int String_hash(DOH *so) {
   if (s->hashkey >= 0) {
     return s->hashkey;
   } else {
-    char *c = s->str;
+    /* We use the djb2 hash function: https://theartincode.stanis.me/008-djb2/
+     *
+     * One difference is we use initial seed 0.  It seems the usual seed value
+     * is intended to help spread out hash values, which is beneficial if
+     * linear probing is used but DOH Hash uses a chain of buckets instead, and
+     * grouped hash values are probably more cache friendly.  In tests using
+     * 0 seems slightly faster anyway.
+     */
+    const char *c = s->str;
     unsigned int len = s->len > 50 ? 50 : s->len;
     unsigned int h = 0;
     unsigned int mlen = len >> 2;
     unsigned int i = mlen;
     for (; i; --i) {
-      h = (h << 5) + *(c++);
-      h = (h << 5) + *(c++);
-      h = (h << 5) + *(c++);
-      h = (h << 5) + *(c++);
+      h = h + (h << 5) + *(c++);
+      h = h + (h << 5) + *(c++);
+      h = h + (h << 5) + *(c++);
+      h = h + (h << 5) + *(c++);
     }
     for (i = len - (mlen << 2); i; --i) {
-      h = (h << 5) + *(c++);
+      h = h + (h << 5) + *(c++);
     }
     h &= 0x7fffffff;
     s->hashkey = (int)h;

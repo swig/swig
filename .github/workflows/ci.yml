@@ -13,6 +13,9 @@ on:
       - 'Doc/**'
       - 'appveyor.yml'
 
+permissions:
+  contents: read
+
 jobs:
   build:
 
@@ -111,8 +114,11 @@ jobs:
         - SWIGLANG: php
           VER: '7.4'
         - SWIGLANG: php
+          VER: '8.0'
         - SWIGLANG: php
           VER: '8.1'
+        - SWIGLANG: php
+          VER: '8.2'
         - SWIGLANG: python
           PY2: 2
         - SWIGLANG: python

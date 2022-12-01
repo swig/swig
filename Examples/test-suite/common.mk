@@ -133,6 +133,7 @@ CPP_TEST_CASES += \
 	bloody_hell \
 	bools \
 	catches \
+	catches_strings \
 	cast_operator \
 	casts \
 	char_binary \
@@ -215,13 +216,16 @@ CPP_TEST_CASES += \
 	director_ref \
 	director_simple \
 	director_smartptr \
+	director_template \
 	director_thread \
 	director_unroll \
+	director_unwrap_result \
 	director_using \
 	director_using_member_scopes \
 	director_void \
 	director_wombat \
 	disown \
+	duplicate_class_name_in_ns \
 	dynamic_cast \
 	empty \
 	enum_ignore \
@@ -590,6 +594,7 @@ CPP11_TEST_CASES += \
 	cpp11_director_enums \
 	cpp11_directors \
 	cpp11_explicit_conversion_operators \
+	cpp11_final_class \
 	cpp11_final_directors \
 	cpp11_final_override \
 	cpp11_function_objects \
@@ -597,8 +602,9 @@ CPP11_TEST_CASES += \
 	cpp11_initializer_list \
 	cpp11_initializer_list_extend \
 	cpp11_lambda_functions \
-	cpp11_move_only \
-	cpp11_move_only_valuewrapper \
+        cpp11_move_only \
+        cpp11_move_typemaps \
+        cpp11_move_only_valuewrapper \
 	cpp11_noexcept \
 	cpp11_null_pointer_constant \
 	cpp11_raw_string_literals \
@@ -609,7 +615,7 @@ CPP11_TEST_CASES += \
 	cpp11_rvalue_reference \
 	cpp11_rvalue_reference2 \
 	cpp11_rvalue_reference3 \
-	cpp11_rvalue_reference_move_input \
+	cpp11_rvalue_reference_move \
 	cpp11_sizeof_object \
 	cpp11_static_assert \
 	cpp11_std_array \
@@ -708,6 +714,7 @@ CPP_STD_TEST_CASES += \
 	li_std_vector_enum \
 	li_std_vector_member_var\
 	li_std_vector_ptr \
+	li_std_vector_vector \
 	li_std_wstring \
 	smart_pointer_inherit \
 	template_typedef_fnc \
@@ -752,6 +759,7 @@ C_TEST_CASES += \
 	enum_macro \
 	enum_missing \
 	extern_declaration \
+	final_c \
 	funcptr \
 	function_typedef \
 	global_functions \
@@ -785,6 +793,7 @@ C_TEST_CASES += \
 	preproc_gcc_output \
 	preproc_include \
 	preproc_line_file \
+	preproc_predefined \
 	register_par \
 	ret_by_value \
 	simple_array \

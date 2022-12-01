@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * ocaml.cxx
  *
@@ -276,7 +276,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGOCAML\n#define SWIGOCAML\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "OCAML");
 
     Printf(f_runtime, "#define SWIG_MODULE \"%s\"\n", module);
     /* Module name */
@@ -1238,6 +1238,7 @@ public:
 
   int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n, "name");
+    String *symname = Getattr(n, "sym:name");
     SwigType *qtype = 0;
 
     if (name_qualifier_type) {
@@ -1245,8 +1246,8 @@ public:
       Printv(qtype, name, NIL);
     }
 
-    if (const_enum && qtype && name && !Getattr(seen_enumvalues, name)) {
-      Setattr(seen_enumvalues, name, "true");
+    if (const_enum && qtype && symname && !Getattr(seen_enumvalues, symname)) {
+      Setattr(seen_enumvalues, symname, "true");
       SetFlag(n, "feature:immutable");
       Setattr(n, "feature:enumvalue", "1");	// this does not appear to be used
 
@@ -1255,10 +1256,10 @@ public:
       String *evname = SwigType_manglestr(qtype);
       Insert(evname, 0, "SWIG_ENUM_");
 
-      Setattr(n, "feature:enumvname", name);
+      Setattr(n, "feature:enumvname", symname);
       Setattr(n, "feature:symname", evname);
       Delete(evname);
-      Printf(f_enumtypes_value, "| `%s\n", name);
+      Printf(f_enumtypes_value, "| `%s\n", symname);
 
       return Language::enumvalueDeclaration(n);
     } else
@@ -1646,20 +1647,13 @@ public:
     /* any existing helper functions to handle this? */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	/* A little explanation:
-	 * The director_enum test case makes a method whose return type
-	 * is an enum type.  returntype here is "int".  gcc complains
-	 * about an implicit enum conversion, and although i don't strictly
-	 * agree with it, I'm working on fixing the error:
-	 *
-	 * Below is what I came up with.  It's not great but it should
-	 * always essentially work.
-	 */
+	String *rettype = SwigType_str(returntype, 0);
 	if (!SwigType_isreference(returntype)) {
-	  Printf(w->code, "CAMLreturn_type((%s)c_result);\n", SwigType_lstr(returntype, ""));
+	  Printf(w->code, "CAMLreturn_type((%s)c_result);\n", rettype);
 	} else {
-	  Printf(w->code, "CAMLreturn_type(*c_result);\n");
+	  Printf(w->code, "CAMLreturn_type((%s)*c_result);\n", rettype);
 	}
+	Delete(rettype);
       }
     } else {
       Printf(w->code, "CAMLreturn0;\n");

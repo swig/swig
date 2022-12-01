@@ -60,7 +60,7 @@ Usage within the Unix like environments MinGW and Cygwin is also detailed.
 SWIG does not come with the usual Windows type installation program, however it is quite easy to get started. The main steps are:
 </p>
 <ul>
-        <li>Download the swigwin zip package from the <a href="http://www.swig.org">SWIG website</a> and unzip into a directory. This is all that needs downloading for the Windows platform.
+        <li>Download the swigwin zip package from the <a href="https://www.swig.org">SWIG website</a> and unzip into a directory. This is all that needs downloading for the Windows platform.
         <li>Set environment variables as described in the <a href="#Windows_examples">SWIG Windows Examples</a> section in order to run examples using Visual C++.
 </ul>
 
@@ -220,7 +220,7 @@ Normally this is not needed, so most people will want to ignore this section.
 
 <p>
 There are various ways to build the SWIG executable including <a href="https://cmake.org/">CMake</a> which is able to generate project files for building with Visual Studio.
-SWIG can also be compiled and run using <a href="https://www.msys2.org/">MSYS2</a>, <a href="http://www.cygwin.com">Cygwin</a> or <a href="http://www.mingw.org">MinGW</a>, all of which provide a Unix like front end to Windows and comes free with the gcc C/C++ compiler.
+SWIG can also be compiled and run using <a href="https://www.msys2.org/">MSYS2</a>, <a href="https://www.cygwin.com">Cygwin</a> or <a href="https://osdn.net/projects/mingw/">MinGW</a>, all of which provide a Unix like front end to Windows and comes free with the gcc C/C++ compiler.
 </p>
 
 
@@ -230,7 +230,7 @@ SWIG can also be compiled and run using <a href="https://www.msys2.org/">MSYS2</
 <p>
 SWIG can be built using <a href="https://cmake.org/">CMake</a> and Visual Studio rather than autotools. As with the other approaches to 
 building SWIG the dependencies need to be installed. The steps below are one of a number of ways of installing the dependencies without requiring Cygwin or MinGW.
-For fully working build steps always check the Continuous Integration (CI) setups currently detailed in the <a href="https://github.com/swig/swig/blob/master/appveyor.yml">Appveyor YAML file</a>.
+For fully working build steps always check the Continuous Integration (CI) setups currently detailed in the <a href="https://github.com/swig/swig/tree/master/.github/workflows/nuget.yml">GitHub Actions YAML file</a>.
 </p>
 
 <ol>
@@ -240,6 +240,7 @@ For fully working build steps always check the Continuous Integration (CI) setup
     </li>
     <li>
         Install <a href="https://www.nuget.org/packages/CMake-win64/">CMake-win64 Nuget package</a> using the following command: <pre>C:\Tools\nuget install CMake-win64 -Version 3.15.5 -OutputDirectory C:\Tools\CMake</pre>
+        Using PowerShell the equivalent syntax is: <pre>&amp; "C:\Tools\nuget" install CMake-win64 -Version 3.15.5 -OutputDirectory C:\Tools\CMake</pre>
         Alternatively you can download CMake from <a href="https://cmake.org/download/">https://cmake.org/download/</a>.
     </li>
     <li>
@@ -248,44 +249,48 @@ For fully working build steps always check the Continuous Integration (CI) setup
         and save to a folder e.g. <tt>C:\Tools\Bison</tt>
     </li>
     <li>
-        Unfortunately, PCRE2 is not yet available on Nuget. Instead we will use CMake to build and install <a href="https://www.pcre.org/">PCRE2</a> to <tt>C:\Tools\pcre2</tt> using the following commands:
-        <div class="shell"><pre>
-cd C:\
-SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;%PATH%
-git clone https://github.com/PhilipHazel/pcre2.git
-cd pcre2
-cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX=C:/Tools/pcre2 -S . -B build
-cmake --build build --config Release --target install
-        </pre></div>
-        Alternatively, set <tt>WITH_PCRE=OFF</tt> to disable PCRE2 support if you are sure you do not require it.
+        Install the <a href="https://www.nuget.org/packages/pcre2/">PCRE2 Nuget package</a> using the following command: <pre>C:\Tools\nuget install PCRE2 -Version 10.39 -OutputDirectory C:\Tools\pcre2</pre>
+        Note this is a x64 build, if this is not suitable PCRE2 can be built from source using <a href="https://github.com/PhilipHazel/pcre2/">https://github.com/PhilipHazel/pcre2/</a>.
+        Alternatively, set <tt>WITH_PCRE=OFF</tt> to disable PCRE2 support if you are sure you do not require it. 
     </li>
     <li>
         We will also need the SWIG source code. Either download a zipped archive from GitHub, or if git is installed clone the latest codebase
-        using <pre>git clone https://github.com/swig/swig.git</pre>
+        using: <pre>git clone https://github.com/swig/swig.git</pre>
         In this example we are assuming the source code is available at <tt>C:\swig</tt>
     </li>
     <li>
     <p>
-        Now we have all the required dependencies we can build SWIG using the commands below. We are assuming Visual Studio 2019 is installed. For other versions of Visual Studio change <tt>"Visual Studio 16 2019 -A x64"</tt> to the relevant
+        Now we have all the required dependencies we can build SWIG using PowerShell and the commands below. We are assuming Visual Studio 2019 is installed. For other versions of Visual Studio change <tt>"Visual Studio 16 2019 -A x64"</tt> to the relevant
         <a href="https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html#visual-studio-generators">Visual Studio Generator</a> and
         architecture. We add the required build tools to the system PATH, and then
         build a Release version of SWIG. If all runs successfully a new swig.exe should be generated in the <tt>C:/swig/install2/bin</tt> folder.
     </p>
-    <div class="shell"> <pre>
-cd C:\swig
-SET PATH=C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\Bison.3.7.4\bin;%PATH%
-SET PCRE_ROOT=C:/Tools/pcre2
-SET PCRE_PLATFORM=x64
-cmake -G "Visual Studio 16 2019" -A x64 -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/DPCRE2_STATIC" ^
--DCMAKE_CXX_FLAGS="/DPCRE2_STATIC" -DPCRE2_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE2_LIBRARY=%PCRE_ROOT%/lib/pcre2-8-static.lib -S . -B build
-cmake --build build --config Release --target install
-
-REM to test the exe
-cd install2/bin
-swig.exe -help
-    </pre></div>
     </li>
 </ol>
+<div class="shell"><pre>
+cd C:\swig
+
+$env:PATH="C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\Bison.3.7.4\bin;" + $env:PATH
+$PCRE_ROOT="C:\Tools\pcre2\PCRE2.10.39.0"
+$PCRE_PLATFORM="x64"
+
+cmake -G "Visual Studio 16 2019" -A "x64" `
+-DCMAKE_INSTALL_PREFIX="C:/swig/install2" `
+-DCMAKE_C_FLAGS="/DPCRE2_STATIC" `
+-DCMAKE_CXX_FLAGS="/DPCRE2_STATIC" `
+-DPCRE2_INCLUDE_DIR="$PCRE_ROOT/include" `
+-DPCRE2_LIBRARY="$PCRE_ROOT/lib/pcre2-8-static.lib" `
+-S . -B build
+
+cmake --build build --config Release
+cmake --install build --config Release
+
+# to test the exe built correctly
+cd install2/bin
+./swig.exe -version
+./swig.exe -help
+</pre></div>
+
 <p>
     In addition to Release builds you can create a Debug build using:
 </p>
@@ -359,13 +364,13 @@ The short abbreviated instructions follow...
 </p>
 
 <ul>
-    <li>Install MinGW and MSYS from the <a href="http://www.mingw.org">MinGW</a> site. This provides a Unix environment on Windows.
+    <li>Install MinGW and MSYS from the <a href="https://osdn.net/projects/mingw/">MinGW</a> site. This provides a Unix environment on Windows.
     <li>Follow the usual Unix instructions in the README file in the SWIG root directory to build swig.exe from the MinGW command prompt.
 </ul>
 
 <p>
 The step by step instructions to download and install MinGW and MSYS, then download and build the latest version of SWIG from Github follow...
-Note that the instructions for obtaining SWIG from Github are also online at <a href="http://www.swig.org/svn.html">SWIG Bleeding Edge</a>.
+Note that the instructions for obtaining SWIG from Github are also online at <a href="https://www.swig.org/svn.html">SWIG Bleeding Edge</a>.
 </p>
 
 <p>
@@ -375,8 +380,7 @@ Execute the steps in the order shown and don't use spaces in path names. In fact
 
 <ol>
   <li>
-  Download the following packages from the <a href="http://www.mingw.org/download.shtml">MinGW download page</a>
-  or <a href="https://sourceforge.net/projects/mingw/files/">MinGW SourceForge download page</a>.
+  Download the following packages from the <a href="https://osdn.net/projects/mingw/releases/">MinGW download page</a>.
   Note that at the time of writing, the majority of these are in the Current
   release list and some are in the Snapshot or Previous release list.
   <ul>
@@ -448,7 +452,7 @@ the autotools will fail miserably on those.
   <li>
 The PCRE2 third party library needs to be built next.
 Download the latest PCRE2 source tarball, such as <tt>pcre2-10.39.tar.bz2</tt>, from
-<a href=http://www.pcre.org>www.pcre.org</a> and place in the <tt>/usr/src/swig</tt> directory.
+<a href=https://www.pcre.org>www.pcre.org</a> and place in the <tt>/usr/src/swig</tt> directory.
 Build PCRE2 as a static library using the Tools/pcre-build.sh script as follows:
 
 <div class="shell"><pre>

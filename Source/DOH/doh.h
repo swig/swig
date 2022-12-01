@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * doh.h
  *
@@ -52,6 +52,7 @@
 #define DohSetattr         DOH_NAMESPACE(Setattr)
 #define DohDelattr         DOH_NAMESPACE(Delattr)
 #define DohKeys            DOH_NAMESPACE(Keys)
+#define DohSortedKeys      DOH_NAMESPACE(SortedKeys)
 #define DohGetInt          DOH_NAMESPACE(GetInt)
 #define DohGetDouble       DOH_NAMESPACE(GetDouble)
 #define DohGetChar         DOH_NAMESPACE(GetChar)
@@ -201,6 +202,7 @@ extern int DohSetattr(DOH *obj, const DOHString_or_char *name, const DOHObj_or_c
 extern int DohDelattr(DOH *obj, const DOHString_or_char *name);
 extern int DohCheckattr(DOH *obj, const DOHString_or_char *name, const DOHString_or_char *value);
 extern DOH *DohKeys(DOH *obj);
+extern DOH *DohSortedKeys(DOH *obj, int (*cmp) (const DOH *, const DOH *));
 extern int DohGetInt(DOH *obj, const DOHString_or_char *name);
 extern void DohSetInt(DOH *obj, const DOHString_or_char *name, int);
 extern double DohGetDouble(DOH *obj, const DOHString_or_char *name);
@@ -444,6 +446,7 @@ extern void DohMemoryDebug(void);
 #define FileErrorDisplay   DohFileErrorDisplay
 #define NewVoid            DohNewVoid
 #define Keys               DohKeys
+#define SortedKeys         DohSortedKeys
 #define Strcmp             DohStrcmp
 #define Strncmp            DohStrncmp
 #define Strstr             DohStrstr

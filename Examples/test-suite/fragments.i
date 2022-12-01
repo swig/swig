@@ -21,7 +21,7 @@ int bar(int a)
 }  
 %}
 
-%typemap(in,fragment="Hi") int hola "$1 = 123;";
+%typemap(in,fragment="Hi") int hola "$1 = 123;"
 
 
 %inline %{

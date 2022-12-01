@@ -118,6 +118,8 @@ static SCM swig_symbol = SCM_EOL;
   ( !scm_is_null(x) && SCM_INSTANCEP(x) && scm_is_true(scm_slot_exists_p(x, swig_symbol)) \
       ? scm_slot_ref(x, swig_symbol) : (x) )
 
+SWIGINTERN void SWIG_Guile_MarkPointerNoncollectable(SCM s);
+
 SWIGINTERN SCM
 SWIG_Guile_NewPointerObj(void *ptr, swig_type_info *type, int owner)
 {
@@ -191,6 +193,7 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
   swig_cast_info *cast;
   swig_type_info *from;
   SCM smob = SWIG_Guile_GetSmob(s);
+  int ret = SWIG_ERROR;
 
   if (scm_is_null(smob)) {
     *result = NULL;
@@ -203,22 +206,36 @@ SWIG_Guile_ConvertPtr(SCM s, void **result, swig_type_info *type, int flags)
   } else if (SWIG_Guile_IsValidSmob(smob)) {
     from = (swig_type_info *) SCM_CELL_WORD_2(smob);
     if (!from) return SWIG_ERROR;
+
+    if ((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) {
+      if ((SCM_CELL_TYPE(smob) == swig_collectable_tag && SCM_CELL_WORD_1(smob) == 0) || SCM_CELL_TYPE(smob) == swig_tag) {
+        return SWIG_ERROR_RELEASE_NOT_OWNED;
+      }
+    }
+
     if (type) {
       cast = SWIG_TypeCheckStruct(from, type);
       if (cast) {
         int newmemory = 0;
         *result = SWIG_TypeCast(cast, (void *) SCM_CELL_WORD_1(smob), &newmemory);
         assert(!newmemory); /* newmemory handling not yet implemented */
-        return SWIG_OK;
+        ret = SWIG_OK;
       } else {
         return SWIG_ERROR;
       }
     } else {
       *result = (void *) SCM_CELL_WORD_1(smob);
-      return SWIG_OK;
+      ret = SWIG_OK;
+    }
+
+    if (flags & SWIG_POINTER_DISOWN) {
+      SWIG_Guile_MarkPointerNoncollectable(smob);
+    }
+    if (flags & SWIG_POINTER_CLEAR) {
+      SCM_SET_CELL_WORD_1(smob, 0);
     }
   }
-  return SWIG_ERROR;
+  return ret;
 }
 
 SWIGINTERNINLINE void *

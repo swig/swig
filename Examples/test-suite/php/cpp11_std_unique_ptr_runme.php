@@ -40,20 +40,27 @@ try {
     check::fail("is_nullptr check");
 } catch (TypeError $e) {
 }
+$exception_thrown = false;
 try {
+  takeKlassUniquePtr($kin);
 } catch (TypeError $e) {
-  check::equal($e->getMessage(), "Cannot release ownership as memory is not owned for argument 1 of type 'Klass *' of takeKlassUniquePtr", "Unexpected exception: {$e->getMessage()}");
+  check::equal($e->getMessage(), "Cannot release ownership as memory is not owned for argument 1 of SWIGTYPE_p_Klass of takeKlassUniquePtr", "Unexpected exception: {$e->getMessage()}");
+  $exception_thrown = true;
 }
+check::equal($exception_thrown, true, "double usage of takeKlassUniquePtr should have been an error");
 $kin = NULL; # Should not fail, even though already deleted
 checkCount(0);
 
 $kin = new Klass("KlassInput");
+$exception_thrown = false;
 $notowned = get_not_owned_ptr($kin);
 try {
   takeKlassUniquePtr($notowned);
 } catch (TypeError $e) {
-  check::equal($e->getMessage(), "Cannot release ownership as memory is not owned for argument 1 of type 'Klass *' of takeKlassUniquePtr", "Unexpected exception: {$e->getMessage()}");
+  check::equal($e->getMessage(), "Cannot release ownership as memory is not owned for argument 1 of SWIGTYPE_p_Klass of takeKlassUniquePtr", "Unexpected exception: {$e->getMessage()}");
+  $exception_thrown = true;
 }
+check::equal($exception_thrown, true, "double usage of takeKlassUniquePtr should have been an error");
 checkCount(1);
 $kin = NULL;
 checkCount(0);
@@ -72,6 +79,17 @@ try {
 $kini = NULL; # Should not fail, even though already deleted
 checkCount(0);
 
+takeKlassUniquePtr(NULL);
+takeKlassUniquePtr(make_null());
+checkCount(0);
+
+# overloaded parameters
+check::equal(overloadTest(), 0, "overloadTest failed");
+check::equal(overloadTest(NULL), 1, "overloadTest failed");
+check::equal(overloadTest(new Klass("over")), 1, "overloadTest failed");
+checkCount(0);
+
+
 # unique_ptr as output
 $k1 = makeKlassUniquePtr("first");
 $k2 = makeKlassUniquePtr("second");
@@ -84,5 +102,7 @@ check::equal($k2->getLabel(), "second", "proper label");
 
 $k2 = NULL;
 checkCount(0);
+
+check::equal(makeNullUniquePtr(), NULL);
 
 check::done();

@@ -57,10 +57,18 @@ missingtests: missingcpptests missingctests
 	+$(swig_and_compile_c)
 	+$(run_testcase)
 
+# Trying to load the modules for imports.multicpptest fails with:
+#
+# Warning: Function registration failed - duplicate name - global_test in Unknown on line 0
+# Segmentation fault
+#
+# This was previously hidden because we didn't even try to load the modules for
+# .multicpptest testcases, so for now just do the parts of the test we did
+# before.  FIXME: Fix this!
 %.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
-	+$(run_testcase)
+	+[ "$*" = "imports" ] || $(run_multi_testcase)
 
 # Smart target
 %.test:
@@ -72,12 +80,21 @@ missingtests: missingcpptests missingctests
 	    $(MAKE) $*.multicpptest
 
 # Runs the testcase. Tries to run testcase_runme.php, and if that's not found,
-# at least test that the module loads without errors, except for multicpptests.
+# at least test that the module loads without errors.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION=$(TARGETPREFIX)$*@PHP_SO@ PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL='$(RUNTOOL)' php_run; \
-	elif [ ! -f $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then \
+	else \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION=$(TARGETPREFIX)$*@PHP_SO@ PHP_SCRIPT= RUNTOOL='$(RUNTOOL)' php_run; \
+	fi
+
+# Runs a multicpptest testcase. Tries to run testcase_runme.php, and if that's
+# not found, at least test that the modules load without errors.
+run_multi_testcase = \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION_LIST=$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL='$(RUNTOOL)' php_run_multi; \
+	else \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION_LIST=$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list PHP_SCRIPT= RUNTOOL='$(RUNTOOL)' php_run_multi; \
 	fi
 
 # Clean: remove the generated PHP-specific files

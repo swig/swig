@@ -4218,7 +4218,7 @@ You can copy the code below into an interface file and run SWIG on it and examin
 %}
 
 // Expose C++ exception as a Java Exception by changing the Java base class and providing a getMessage()
-%typemap(javabase) MyNS::MyException "java.lang.RuntimeException";
+%typemap(javabase) MyNS::MyException "java.lang.RuntimeException"
 %rename(getMessage) MyNS::MyException::whatsup;
 
 %inline %{
@@ -7065,7 +7065,7 @@ The corrected interface file looks like:
 <pre>
 // class Foo is handled in a different interface file:
 %import "Foo.i"
-%typemap("javapackage") Foo, Foo *, Foo &amp; "com.wombat.foo";
+%typemap("javapackage") Foo, Foo *, Foo &amp; "com.wombat.foo"
 %feature("director") Example;
 
 %inline {
@@ -7093,11 +7093,11 @@ Note the helper macros below, <code>OTHER_PACKAGE_SPEC</code> and <code>ANOTHER_
                                             "package.for.most.classes";
 
 %define OTHER_PACKAGE_SPEC(TYPE...)
-%typemap("javapackage") TYPE, TYPE *, TYPE &amp; "package.for.other.classes";
+%typemap("javapackage") TYPE, TYPE *, TYPE &amp; "package.for.other.classes"
 %enddef
 
 %define ANOTHER_PACKAGE_SPEC(TYPE...)
-%typemap("javapackage") TYPE, TYPE *, TYPE &amp; "package.for.another.set";
+%typemap("javapackage") TYPE, TYPE *, TYPE &amp; "package.for.another.set"
 %enddef
 
 OTHER_PACKAGE_SPEC(Package_2_class_one)
@@ -7291,7 +7291,7 @@ The typemaps to use then are as follows:
 
 <div class="code">
 <pre>
-%typemap(javabase) FileException "java.lang.Exception";
+%typemap(javabase) FileException "java.lang.Exception"
 %typemap(javacode) FileException %{
   public String getMessage() {
     return what();

@@ -8,6 +8,7 @@ NODEJS = @NODEJS@
 SCRIPTSUFFIX = _runme.js
 OBJEXT = @OBJEXT@
 SO = @SO@
+GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@
 
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
@@ -59,10 +60,11 @@ ifeq (node,$(JSENGINE))
   director_basic.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   member_funcptr_galore.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+  director_unwrap_result.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
 	setup_node = \
 		test -d $* || mkdir $* && \
-		sed -e 's|$$testcase|$*|g; s|$$cflags|$(GYP_CFLAGS)|g; s|$$srcdir|$(srcdir)|g' \
+		sed -e 's|$$testcase|$*|g; s|$$cflags|$(GYP_CFLAGS)|g; s|$$cxxflags|"$(GYP_CXXFLAGS)"|g; s|$$srcdir|$(srcdir)|g' \
 			$(srcdir)/node_template/binding.gyp.in > $*/binding.gyp && \
 		sed -e 's|$$testcase|$*|g;' \
 			$(srcdir)/node_template/index.js.in > $*/index.js

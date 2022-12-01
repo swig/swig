@@ -165,6 +165,15 @@ to provide additional diagnostics.  These warnings can be turned on using the
 </div>
 
 <p>
+Preprocessor warning 202 ("Could not evaluate expression <em>expr</em>.") was
+formally off by default and enabled by <tt>-Wextra</tt>, but since SWIG 4.1.0
+this warning is on by default because suppressing it tends to hide genuine
+problems.  If you really don't want to see it, you can suppress it with
+<tt>-w202</tt> or using <tt>%warnfilter</tt> as described below. Both will work
+with older versions of SWIG too.
+</p>
+
+<p>
 To selectively turn on extra warning messages, you can use the directives and options in the
 previous section--simply add a "+" to all warning numbers.  For example:
 </p>
@@ -211,7 +220,7 @@ You can of course also enable all warnings and suppress a select few, for exampl
 </div>
 
 <p>
-The warnings on the right take precedence over the warnings on the left, so in the above example <tt>-Wextra</tt> adds numerous warnings including 452, but then <tt>-w309,452</tt> overrides this and so 452 is suppressesed.
+The warnings on the right take precedence over the warnings on the left, so in the above example <tt>-Wextra</tt> adds numerous warnings including 452, but then <tt>-w309,452</tt> overrides this and so 452 is suppressed.
 </p>
 
 <p>

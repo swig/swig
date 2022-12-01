@@ -1707,7 +1707,7 @@ For example: </p>
 <div class="code">
 <pre>%rename("is_it_safe?") is_it_safe();
 
-%typemap(out) int is_it_safe "$result = ($1 != 0) ? Qtrue : Qfalse;";
+%typemap(out) int is_it_safe "$result = ($1 != 0) ? Qtrue : Qfalse;"
 
 int is_it_safe();</pre>
 </div>

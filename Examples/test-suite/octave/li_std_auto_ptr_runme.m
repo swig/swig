@@ -93,6 +93,25 @@ endif
 clear kini; # Should not fail, even though already deleted
 checkCount(0);
 
+null = []; # NULL pointer
+null_ptr = make_null();
+takeKlassAutoPtr([]);
+takeKlassAutoPtr(null);
+takeKlassAutoPtr(null_ptr);
+checkCount(0);
+
+# overloaded parameters
+if (overloadTest() != 0)
+  error("overloadTest failed");
+endif
+if (overloadTest(null) != 1)
+  error("overloadTest failed");
+endif
+if (overloadTest(Klass("over")) != 1)
+  error("overloadTest failed");
+endif
+checkCount(0);
+
 
 # auto_ptr as output
 k1 = makeKlassAutoPtr("first");
@@ -112,3 +131,8 @@ endif
 
 clear k2;
 checkCount(0);
+
+null_smart_prt = makeNullAutoPtr();
+assert(ismatrix(null_smart_prt))
+assert(size(null_smart_prt) == size([]))
+assert(isequal([], null_smart_prt))

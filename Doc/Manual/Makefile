@@ -1,7 +1,7 @@
 # Makefile for generating the SWIG documentation
 #
 # Note that the htmldoc package needs to be installed. wkhtmltopdf patched with qt is also required
-# and can be installed from http://wkhtmltopdf.org/downloads.html.
+# and the prebuilt binaries can be installed from https://wkhtmltopdf.org/downloads.html.
 #
 # The .html files are first processed and updated with chapter numbering and anchor names
 # are added to the HTML headings using the python scripts. The htmldoc program is then
@@ -43,8 +43,8 @@ check:
 #  3) <pre> <tt> <code> elements do not always select a fixed-width font - try installing the
 #     Courier font to fix - these have been added to style.css.
 generate: SWIGDocumentation.html
-	wkhtmltopdf --version | grep "with patched qt" || (echo "wkhtmltopdf is not the patched qt version and so cannot be used - download it from http://wkhtmltopdf.org/downloads.html" && false)
-	wkhtmltopdf --margin-top 20mm --margin-bottom 20mm --margin-left 10mm --margin-right 10mm --header-font-size 6 --footer-font-size 6 --header-spacing 6 --footer-spacing 6 --header-center '[doctitle]' --footer-left '[subsection]' --footer-right '[page]' SWIGDocumentation.html SWIGDocumentation.pdf
+	wkhtmltopdf --version | grep "with patched qt" || (echo "wkhtmltopdf is not the patched qt version and so cannot be used - download it from https://wkhtmltopdf.org/downloads.html" && false)
+	wkhtmltopdf --margin-top 20mm --margin-bottom 20mm --margin-left 10mm --margin-right 10mm --header-font-size 6 --footer-font-size 6 --header-spacing 6 --footer-spacing 6 --header-center '[doctitle]' --footer-left '[subsection]' --footer-right '[page]' --allow . SWIGDocumentation.html SWIGDocumentation.pdf
 
 SWIGDocumentation.html: swightml.book
 	htmldoc --batch swightml.book || true

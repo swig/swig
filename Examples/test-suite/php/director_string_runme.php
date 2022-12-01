@@ -10,6 +10,8 @@ check::classes(array('A','StringVector'));
 check::globals(array());
 
 class B extends A {
+  public $smem;
+
   function get_first() {
     return parent::get_first() . " world!";
   }

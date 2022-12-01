@@ -10,7 +10,7 @@ try{
   if(error == -1) {
     console.log("t.unknown() didn't throw");
   } else {
-    console.log("successfully caught throw in Test::unknown().");
+    console.log("successfully caught throw in Test::unknown() :" + error);
   }
 }
 
@@ -22,7 +22,7 @@ catch(error){
   if(error == -1) {
     console.log("t.simple() did not throw");
   } else {
-    console.log("successfully caught throw in Test::simple().");
+    console.log("successfully caught throw in Test::simple() :" + error);
   }
 }
 
@@ -33,7 +33,7 @@ try{
   if(error == -1) {
     console.log("t.message() did not throw");
   } else {
-    console.log("successfully caught throw in Test::message().");
+    console.log("successfully caught throw in Test::message() :" + error);
   }
 }
     
@@ -45,7 +45,7 @@ catch(error){
   if(error == -1) {
     console.log("t.hosed() did not throw");
   } else {
-    console.log("successfully caught throw in Test::hosed().");
+    console.log("successfully caught throw in Test::hosed() :" + error);
   }
 }
 
@@ -58,7 +58,7 @@ for (var i=1; i<4; i++) {
     if(error == -1) {
       console.log("t.multi(" + i + ") did not throw");
     } else {
-      console.log("successfully caught throw in Test::multi().");
+      console.log("successfully caught throw in Test::multi() :" + error);
     }
   }
-}    
+}

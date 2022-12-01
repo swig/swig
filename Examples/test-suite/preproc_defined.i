@@ -86,7 +86,7 @@ struct Defined {
 void defined_not(TYPE);
 #endif
 
-#if !( defined(AAA) \
+#if !( defined(AAA) &&\
  defined(BBB) \\
 && defined(CCC) )
 void bumpf_not(TYPE);

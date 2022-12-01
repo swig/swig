@@ -30,6 +30,7 @@
 <li><a href="#Php_nn2_6_3">Static Member Variables</a>
 <li><a href="#Php_nn2_6_4">Static Member Functions</a>
 <li><a href="#Php_nn2_6_5">Specifying Implemented Interfaces</a>
+<li><a href="#Php_nn2_6_6">Dynamic Properties</a>
 </ul>
 <li><a href="#Php_nn2_7">PHP Pragmas, Startup and Shutdown code</a>
 </ul>
@@ -836,14 +837,61 @@ so:
 </p>
 
 <div class="code"><pre>
-%typemap("phpinterfaces") MyIterator "Iterator";
+%typemap("phpinterfaces") MyIterator "Iterator"
 </pre></div>
 
 <p>
 If there are multiple interfaces, just list them separated by commas.
 </p>
 
-<H3><a name="Php_nn2_7">33.2.7 PHP Pragmas, Startup and Shutdown code</a></H3>
+
+<H4><a name="Php_nn2_6_6">32.2.6.6 Dynamic Properties</a></H4>
+
+
+<p>
+Historically PHP has supported dynamic class properties and SWIG
+has implemented them too (because we implement the magic <tt>__get()</tt>,
+<tt>__set()</tt> and <tt>__isset()</tt> methods we need to include explicit
+handling).
+</p>
+
+<p>
+PHP 8.2 <a
+href="https://wiki.php.net/rfc/deprecate_dynamic_properties">deprecates
+dynamic class properties</a> - initially they'll warn, and apparently they'll
+not work by default in PHP 9.0.
+</p>
+
+<p>
+In PHP code dynamic properties can be enabled for a class by
+marking that class with the attribute <tt>#[AllowDynamicProperties]</tt>.
+</p>
+
+<p>
+To follow this PHP change, as of SWIG 4.1.0 you now need enable dynamic
+properties for any classes you want to support them.  To enable for class
+<tt>Foo</tt>:
+</p>
+
+<div class="code"><pre>
+%feature("php:allowdynamicproperties", 1) Foo;
+</pre></div>
+
+<p>
+or to enable them for all wrapped classes:
+</p>
+
+<div class="code"><pre>
+%feature("php:allowdynamicproperties", 1);
+</pre></div>
+
+<p>
+Note that unknown features are ignored, so you can add use these
+unconditionally in your interface file and it'll work with older SWIG too.
+</p>
+
+
+<H3><a name="Php_nn2_7">32.2.7 PHP Pragmas, Startup and Shutdown code</a></H3>
 
 
 <p>

@@ -148,6 +148,14 @@ SWIGXML                         Defined when using XML
 </pre></div>
 
 <p>
+SWIG also defines <tt>SWIG_VERSION</tt> and a target language macro in
+the generated wrapper file (since SWIG 4.1.0 - in older versions these
+were defined for some target languages but this wasn't consistent).  Best
+practice is to use SWIG-time conditional checks because that results in smaller
+generated wrapper sources.
+</p>
+
+<p>
 In addition, SWIG defines the following set of standard C/C++ macros:
 </p>
 
