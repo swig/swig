@@ -70,9 +70,14 @@ const char *Swig_package_version(void) {
 
 String *Swig_package_version_hex(void) {
   String *package_version = NewString(Swig_package_version());
-  char *token = strtok(Char(package_version), ".");
+  char *token;
   String *vers = NewString("SWIG_VERSION 0x");
   int count = 0;
+  if (token = strstr(Char(package_version), "+")) {
+    // Remove '+' suffix
+    *token = '\0';
+  }
+  token = strtok(Char(package_version), ".");
   while (token) {
     int len = (int)strlen(token);
     assert(len == 1 || len == 2);
