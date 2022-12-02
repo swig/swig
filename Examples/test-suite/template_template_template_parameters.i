@@ -11,6 +11,7 @@ template <class TT>
 class A {
 public:
   TT attributes;
+  virtual ~A() {}
 };
 
 template <template<class> class A, class T> 
