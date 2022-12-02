@@ -4485,8 +4485,7 @@ templateparameter : templcpptype def_args {
 		    Parm *p = $1;
 		    $$ = $1;
 
-		    /* TODO: also slice off the name from the "type" */
-		    /* Rip out the parameter names */
+		    /* Correct the 'type name' parameter string, split into the appropriate "name" and "type" attributes */
 		    String *name = Getattr(p, "name");
 		    if (!name) {
 		      String *type = Getattr(p, "type");
@@ -4494,10 +4493,12 @@ templateparameter : templcpptype def_args {
 			/* A 'class T' parameter */
 			const char *t = Strchr(type, ' ');
 			Setattr(p, "name", t + 1);
+			Setattr(p, "type", NewStringWithSize(type, t - Char(type)));
 		      } else if ((Strncmp(type, "class... ", 9) == 0) || (Strncmp(type, "typename... ", 12) == 0)) {
 			/* Variadic template args */
 			const char *t = Strchr(type, ' ');
 			Setattr(p, "name", t + 1);
+			Setattr(p, "type", NewStringWithSize(type, t - Char(type)));
 			Setattr(p, "variadic", "1");
 		      }
 		    }
