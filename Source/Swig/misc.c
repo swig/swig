@@ -73,7 +73,8 @@ String *Swig_package_version_hex(void) {
   char *token;
   String *vers = NewString("SWIG_VERSION 0x");
   int count = 0;
-  if (token = strstr(Char(package_version), "+")) {
+  token = strstr(Char(package_version), "+");
+  if (token) {
     // Remove '+' suffix
     *token = '\0';
   }
