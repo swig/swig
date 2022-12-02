@@ -144,7 +144,7 @@
 %rename(renamed2arg) Foo::renameme(int x) const;
 %rename(renamed1arg) Foo::renameme() const;
 
-%typemap(default) double* null_by_default "$1=0;";
+%typemap(default) double* null_by_default "$1=0;"
 
 %inline %{
   typedef void* MyHandle;

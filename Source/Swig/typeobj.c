@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * typeobj.c
  *
@@ -205,6 +205,47 @@ SwigType *SwigType_pop(SwigType *t) {
   if (*c == '.') {
     Delitem(t, 0);
   }
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_last()
+ * 
+ * Return the last element of the given (partial) type.
+ * For example:
+ *   t:      q(const).p.
+ *   result: p.
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_last(SwigType *t) {
+  SwigType *result;
+  char *c;
+  char *last;
+  int sz = 0;
+
+  if (!t)
+    return 0;
+
+  /* Find the last element */
+  c = Char(t);
+  last = 0;
+  while (*c) {
+    last = c;
+    sz = element_size(c);
+    c = c + sz;
+    if (*c == '.') {
+      c++;
+      sz++;
+    }
+  }
+
+  /* Extract the last element */
+  if (last) {
+    result = NewStringWithSize(last, sz);
+  } else {
+    result = 0;
+  }
+
   return result;
 }
 

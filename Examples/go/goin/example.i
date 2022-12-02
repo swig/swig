@@ -42,8 +42,8 @@ void *string_to_uintptr(char *in)
 
 // These typemaps convert between an array of strings in Go and a
 // const char** that is NULL terminated in C++.
-%typemap(gotype) (const char * const *) "[]string";
-%typemap(imtype) (const char * const *) "uintptr";
+%typemap(gotype) (const char * const *) "[]string"
+%typemap(imtype) (const char * const *) "uintptr"
 %typemap(goin) (const char * const *) {
 	if $input == nil || len($input) == 0 {
 		$result = 0

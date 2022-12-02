@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * interface.cxx
  *
@@ -183,6 +183,7 @@ void Swig_interface_propagate_methods(Node *n) {
 	if (Strcmp(symname, "$ignore") != 0) {
 	  Symtab *oldscope = Swig_symbol_setscope(Getattr(n, "symtab"));
 	  Node *on = Swig_symbol_add(symname, cn);
+	  (void)on;
 	  assert(on == cn);
 
 	  // Features from the copied base class method are already present, now add in features specific to the added method in the derived class

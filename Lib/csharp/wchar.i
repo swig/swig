@@ -49,8 +49,7 @@ static void * SWIG_csharp_wstring_callback(const wchar_t *s) {
 
       byte[] buffer = new byte[length * 4];
       global::System.Runtime.InteropServices.Marshal.Copy(cString, buffer, 0, buffer.Length);
-      byte[] utf8buffer = global::System.Text.Encoding.Convert(global::System.Text.Encoding.UTF32, global::System.Text.Encoding.UTF8, buffer);
-      return global::System.Text.Encoding.Default.GetString(utf8buffer);
+      return global::System.Text.Encoding.UTF32.GetString(buffer);
     }
 
     static SWIGWStringHelper() {
@@ -102,9 +101,7 @@ static SWIG_CSharpWStringExceptionHelperCallback SWIG_csharp_ApplicationExceptio
         return string.Empty;
 
       byte[] buffer = new byte[length * 4];
-      global::System.Runtime.InteropServices.Marshal.Copy(cString, buffer, 0, buffer.Length);
-      byte[] utf8buffer = global::System.Text.Encoding.Convert(global::System.Text.Encoding.UTF32, global::System.Text.Encoding.UTF8, buffer);
-      return global::System.Text.Encoding.Default.GetString(utf8buffer);
+      return global::System.Text.Encoding.UTF32.GetString(buffer);
     }
 
     static void SetPendingApplicationExceptionUTF16([global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]global::System.IntPtr cString, int length) {

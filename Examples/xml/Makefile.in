@@ -5,11 +5,9 @@ top_srcdir	= @top_srcdir@
 top_builddir	= @top_builddir@
 
 SWIGEXE         = $(top_builddir)/swig
-# Suppress "experimental target language" warning
-SWIGOPT         = -w524
 SWIG_LIB_DIR    = $(top_srcdir)/Lib
 SWIG_LIB_SET    = @SWIG_LIB_SET@
-SWIGINVOKE      = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE) $(SWIGOPT)
+SWIGINVOKE      = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
 
 cleanup		= tail +2 \
 		  | sed -e 's/ident="ID[0-9A-F]*"//g' \

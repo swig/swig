@@ -90,6 +90,20 @@ var checkCount = function(expected_count) {
   checkCount(0);
 }
 
+cpp11_std_unique_ptr.takeKlassUniquePtr(null);
+cpp11_std_unique_ptr.takeKlassUniquePtr(cpp11_std_unique_ptr.make_null());
+checkCount(0);
+
+// overloaded parameters
+if (cpp11_std_unique_ptr.overloadTest() != 0)
+  throw new RuntimeException("overloadTest failed");
+if (cpp11_std_unique_ptr.overloadTest(null) != 1)
+  throw new RuntimeException("overloadTest failed");
+if (cpp11_std_unique_ptr.overloadTest(new cpp11_std_unique_ptr.Klass("over")) != 1)
+  throw new RuntimeException("overloadTest failed");
+checkCount(0);
+
+
 // unique_ptr as output
 k1 = cpp11_std_unique_ptr.makeKlassUniquePtr("first");
 if (k1.getLabel() !== "first")
@@ -110,3 +124,6 @@ if (k2.getLabel() !== "second")
 // Above not deleting the C++ object(node v12) - can't reliably control GC
 cpp11_std_unique_ptr.takeKlassUniquePtr(k2);
 checkCount(0);
+
+if (cpp11_std_unique_ptr.makeNullUniquePtr() != null)
+  throw new Error("null failure");

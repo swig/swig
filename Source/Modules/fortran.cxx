@@ -856,7 +856,6 @@ int FORTRAN::top(Node *n) {
     }
   }
 
-  Printf(f_runtime, "\n\n#ifndef SWIGFORTRAN\n#define SWIGFORTRAN\n#endif\n\n");
   if (directorsEnabled()) {
     Printf(f_runtime, "#define SWIG_DIRECTORS\n");
 
@@ -930,6 +929,8 @@ void FORTRAN::write_wrapper(String *filename) {
 
   // Write SWIG auto-generation banner
   Swig_banner(out);
+
+  Swig_obligatory_macros(f_runtime, "FORTRAN");
 
   // Write different sections
   Dump(f_begin, out);

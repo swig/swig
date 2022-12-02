@@ -78,7 +78,9 @@ FAILING_CPP_TESTS += \
 	director_ref \
 	director_smartptr \
 	director_string \
+	director_template \
 	director_unroll \
+	director_unwrap_result \
 	director_using \
 	director_using_member_scopes \
 	director_void \

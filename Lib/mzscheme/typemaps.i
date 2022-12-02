@@ -2,6 +2,12 @@
  * typemaps.i
  * ----------------------------------------------------------------------------- */
 
+#define %set_output(obj)                  $result = obj
+#define %set_varoutput(obj)               $result = obj
+#define %argument_fail(code, type, name, argn)	scheme_wrong_type(FUNC_NAME, type, argn, argc, argv)
+#define %as_voidptr(ptr)		(void*)(ptr)
+
+
 /* The MzScheme module handles all types uniformly via typemaps. Here
    are the definitions.  */
 
@@ -66,9 +72,23 @@
 
 #ifdef __cplusplus
 
-%typemap(in) SWIGTYPE &, SWIGTYPE && { 
+%typemap(in) SWIGTYPE & {
   $1 = ($ltype) SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
-  if ($1 == NULL) scheme_signal_error("swig-type-error (null reference)");
+  if ($1 == NULL) scheme_signal_error(FUNC_NAME ": swig-type-error (null reference)");
+}
+
+%typemap(in, noblock=1, fragment="<memory>") SWIGTYPE && (void *argp = 0, int res = 0, std::unique_ptr<$*1_ltype> rvrdeleter) {
+  res = SWIG_ConvertPtr($input, &argp, $descriptor, SWIG_POINTER_RELEASE);
+  if (!SWIG_IsOK(res)) {
+    if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {
+      scheme_signal_error(FUNC_NAME ": cannot release ownership as memory is not owned for argument $argnum of type '$1_type'");
+    } else {
+      %argument_fail(res, "$1_type", $symname, $argnum);
+    }
+  }
+  if (argp == NULL) scheme_signal_error(FUNC_NAME ": swig-type-error (null reference)");
+  $1 = ($1_ltype)argp;
+  rvrdeleter.reset($1);
 }
 
 %typemap(out) SWIGTYPE &, SWIGTYPE && {
@@ -105,8 +125,8 @@
   $1 = ($1_type) SWIG_convert_int($input);
 }
 
-%typemap(out) enum SWIGTYPE "$result = scheme_make_integer_value($1);";
-%typemap(varout) enum SWIGTYPE "$result = scheme_make_integer_value($1);";
+%typemap(out) enum SWIGTYPE "$result = scheme_make_integer_value($1);"
+%typemap(varout) enum SWIGTYPE "$result = scheme_make_integer_value($1);"
 
 
 /* Pass-by-value */
@@ -270,14 +290,18 @@ REF_MAP(float, SCHEME_REALP, scheme_real_to_double,
 REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
 	   scheme_make_double, real);
 
+%typemap(throws) char * {
+  scheme_signal_error("%s: %s", FUNC_NAME, $1);
+}
+
 /* Void */
 
-%typemap(out) void "$result = scheme_void;";
+%typemap(out) void "$result = scheme_void;"
 
 /* Pass through Scheme_Object * */
 
-%typemap (in) Scheme_Object * "$1=$input;";
-%typemap (out) Scheme_Object * "$result=$1;";
+%typemap (in) Scheme_Object * "$1=$input;"
+%typemap (out) Scheme_Object * "$result=$1;"
 %typecheck(SWIG_TYPECHECK_POINTER) Scheme_Object * "$1=1;";
 
 
@@ -290,7 +314,6 @@ REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
 //    $1 = ($1_ltype) SWIG_Guile_scm2newstr($input, &temp);
 //    $2 = ($2_ltype) temp;
 //}
-
 
 /* ------------------------------------------------------------
  * Typechecking rules

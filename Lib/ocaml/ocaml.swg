@@ -40,9 +40,10 @@
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
 }
 
-%typemap(in) SWIGTYPE && {
+%typemap(in, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter) %{
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
-}
+    rvrdeleter.reset($1);
+%}
 
 %typemap(varin) SWIGTYPE & {
     $1 = *(($ltype) caml_ptr_val($input,$1_descriptor));
@@ -188,12 +189,12 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* Void */
 
-%typemap(out) void "$result = Val_unit;";
+%typemap(out) void "$result = Val_unit;"
 
 /* Pass through value */
 
-%typemap (in) CAML_VALUE "$1=$input;";
-%typemap (out) CAML_VALUE "$result=$1;";
+%typemap (in) CAML_VALUE "$1=$input;"
+%typemap (out) CAML_VALUE "$result=$1;"
 
 #if 0
 %include <carray.i>
@@ -310,7 +311,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
-%apply SWIGTYPE && { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

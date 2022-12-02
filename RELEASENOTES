@@ -5,17 +5,29 @@ and CHANGES files.
 Release Notes
 =============
 Detailed release notes are available with the release and are also
-published on the SWIG web site at http://swig.org/release.html.
+published on the SWIG web site at https://swig.org/release.html.
 
 SWIG-4.1.0 summary:
+- Add Javascript Node v12-v18 support, remove support prior to v6.
+- Octave 6.0 to 6.4 support added.
 - Add PHP 8 support.
 - PHP wrapping is now done entirely via PHP's C API - no more .php wrapper.
 - Perl 5.8.0 is now the oldest version SWIG supports.
 - Python 3.3 is now the oldest Python 3 version SWIG supports.
-- Common cases of `<` and `>` comparisons in constant expressions are now
-  supported.
+- Python 3.9-3.11 support added.
+- Various memory leak fixes in Python generated code.
+- Scilab 5.5-6.1 support improved.
+- Many improvements for each and every target language.
+- Various preprocessor expression handling improvements.
+- Improved C99, C++11, C++14, C++17 support. Start adding C++20 standard.
+- Make SWIG much more move semantics friendly.
+- Add C++ std::unique_ptr support.
+- Few minor C++ template handling improvements.
+- Various C++ using declaration fixes.
+- Few fixes for handling Doxygen comments.
 - GitHub Actions is now used instead of Travis CI for continuous integration.
-- The "XML" target language has been reclassified as "Experimental".
+- Add building SWIG using CMake as a secondary build system.
+- Update optional SWIG build dependency for regex support from PCRE to PCRE2.
 
 SWIG-4.0.2 summary:
 - A few fixes around doxygen comment handling.
@@ -131,7 +143,7 @@ SWIG-3.0.1 summary:
 SWIG-3.0.0 summary:
 - This is a major new release focusing primarily on C++ improvements.
 - C++11 support added. Please see documentation for details of supported
-  features: http://www.swig.org/Doc3.0/CPlusPlus11.html
+  features: https://www.swig.org/Doc3.0/CPlusPlus11.html
 - Nested class support added. This has been taken full advantage of in
   Java and C#. Other languages can use the nested classes, but require
   further work for a more natural integration into the target language.
@@ -238,7 +250,7 @@ SWIG-2.0.1 summary:
   and Python language modules.
 
 SWIG-2.0.0 summary:
-- License changes, see LICENSE file and http://www.swig.org/legal.html.
+- License changes, see LICENSE file and https://www.swig.org/legal.html.
 - Much better nested class/struct support.
 - Much improved template partial specialization and explicit
   specialization handling.

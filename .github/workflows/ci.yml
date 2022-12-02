@@ -2,6 +2,7 @@ name: CI
 
 on:
   push:
+    branches: master
     paths-ignore:
       - 'CHANGES*'
       - 'Doc/**'
@@ -12,6 +13,9 @@ on:
       - 'CHANGES*'
       - 'Doc/**'
       - 'appveyor.yml'
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -30,7 +34,6 @@ jobs:
       matrix:
         include:
         - SWIGLANG: fortran
-          CPPSTD: c++11
         - SWIGLANG: fortran
           CPPSTD: c++11
         - SWIGLANG: fortran
@@ -119,7 +122,7 @@ jobs:
           ls -la $(which $CC) $(which $CXX)
           $CC --version
           $CXX --version
-          $FC --version
+          if test -n "$FC"; then $FC --version; fi
 
     - name: Configure
       run: |
@@ -176,7 +179,7 @@ jobs:
             # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
             cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)
             cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)
-            fcflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --fcflags --std=$FCSTD --compiler=$FC)
+            if -n "$FC"; then fcflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --fcflags --std=$FCSTD --compiler=$FC); fi
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
             make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"

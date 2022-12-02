@@ -1,6 +1,8 @@
 %module cpp11_std_unique_ptr
 
-#if !(defined(SWIGGO) || defined(SWIGGUILE) || defined(SWIGOCAML) || defined(SWIGMZSCHEME) || defined(SWIGR) || defined(SWIGSCILAB))
+#if !(defined(SWIGGO) || defined(SWIGOCAML) || defined(SWIGR) || defined(SWIGSCILAB))
+
+%warnfilter(509, 516) overloadTest(Klass);
 
 %include "std_string.i"
 %include "std_unique_ptr.i"
@@ -63,7 +65,7 @@ std::string useKlassRawPtr(Klass* k) {
 
 std::string takeKlassUniquePtr(std::unique_ptr<Klass> k) {
 //  std::cout << "takeKlassUniquePtr " << std::hex << (Klass*)k.get() << std::endl;
-  std::string s(k->getLabel());
+  std::string s(k ? k->getLabel() : "null smart pointer");
 //  std::cout << "takeKlassUniquePtr string: " << s << std::endl;
   return s;
 }
@@ -82,6 +84,22 @@ Klass *get_not_owned_ptr(Klass *p) {
 
 std::unique_ptr<Klass> makeKlassUniquePtr(const char* label) {
   return std::unique_ptr<Klass>(new Klass(label));
+}
+
+std::unique_ptr<Klass> makeNullUniquePtr() {
+  return std::unique_ptr<Klass>();
+}
+
+int overloadTest() {
+  return 0;
+}
+
+int overloadTest(std::unique_ptr<Klass> kover) {
+  return 1;
+}
+
+int overloadTest(Klass k) {
+  return 2;
 }
 
 %}

@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * swig.h
  *
@@ -139,6 +139,7 @@ extern "C" {
   extern List *SwigType_split(const SwigType *t);
   extern String *SwigType_pop(SwigType *t);
   extern void SwigType_push(SwigType *t, String *s);
+  extern SwigType *SwigType_last(SwigType *t);
   extern List *SwigType_parmlist(const SwigType *p);
   extern String *SwigType_parm(const SwigType *p);
   extern String *SwigType_str(const SwigType *s, const_String_or_char_ptr id);
@@ -307,6 +308,8 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern char *Swig_copy_string(const char *c);
   extern void Swig_set_fakeversion(const char *version);
   extern const char *Swig_package_version(void);
+  extern String *Swig_package_version_hex(void);
+  extern void Swig_obligatory_macros(String *f_runtime, const char *language);
   extern void Swig_banner(File *f);
   extern void Swig_banner_target_lang(File *f, const_String_or_char_ptr commentchar);
   extern String *Swig_strip_c_comments(const String *s);

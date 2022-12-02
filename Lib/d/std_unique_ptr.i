@@ -32,6 +32,8 @@
   return ret;
 }
 
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *") std::unique_ptr< TYPE > ""
+
 %template() std::unique_ptr< TYPE >;
 %enddef
 

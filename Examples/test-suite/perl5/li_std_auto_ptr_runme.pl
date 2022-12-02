@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 28;
+use Test::More tests => 34;
 BEGIN { use_ok('li_std_auto_ptr') }
 require_ok('li_std_auto_ptr');
 
@@ -73,6 +73,17 @@ sub checkCount {
   checkCount(0);
 }
 
+li_std_auto_ptr::takeKlassAutoPtr(undef);
+li_std_auto_ptr::takeKlassAutoPtr(li_std_auto_ptr::make_null());
+checkCount(0);
+
+# overloaded parameters
+is(li_std_auto_ptr::overloadTest(), 0, "overloadTest failed");
+is(li_std_auto_ptr::overloadTest(undef), 1, "overloadTest failed");
+is(li_std_auto_ptr::overloadTest(new li_std_auto_ptr::Klass("over")), 1, "overloadTest failed");
+checkCount(0);
+
+
 # auto_ptr as output
 my $k1 = li_std_auto_ptr::makeKlassAutoPtr("first");
 my $k2 = li_std_auto_ptr::makeKlassAutoPtr("second");
@@ -85,3 +96,5 @@ is($k2->getLabel, "second", "proper label");
 
 undef $k2;
 checkCount(0);
+
+is(li_std_auto_ptr::makeNullAutoPtr(), undef);

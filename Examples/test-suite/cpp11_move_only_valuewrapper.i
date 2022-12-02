@@ -4,7 +4,7 @@
  * This test case checks SwigValueWrapper and move assignment.
  * Although not necessary, the test case was developed testing with C++98 compatibility for comparing improvements.
  * C++11 and later is of course required for the move assignment support.
- * C++98 is not actually necesary now as the test-suite only runs this test with compilers that support C++11 and later.
+ * C++98 is not actually necessary now as the test-suite only runs this test with compilers that support C++11 and later.
 */
 
 %{
@@ -37,26 +37,22 @@ namespace std {
 #endif
 %}
 
-#if defined(SWIGD)
-%rename(trace) debug;
-#endif
-
 %include "cpp11_move_only_helper.i"
 
 %valuewrapper XXX;
 %ignore XXX::operator=;
 
 %inline %{
-bool debug = false;
+bool trace = false;
 struct XXX {
-  XXX(int i = 0) { if (debug) cout << "XXX(" << i << ")" << " " << this << endl; Counter::normal_constructor++; }
-  XXX(const XXX &other) { if (debug) cout << "XXX(const XXX &)" << " " << this << " " << &other << endl; Counter::copy_constructor++;}
-  XXX & operator=(const XXX &other) { if (debug) cout << "operator=(const XXX &)" << " " << this << " " << &other << endl; Counter::copy_assignment++; return *this; }
+  XXX(int i = 0) { if (trace) cout << "XXX(" << i << ")" << " " << this << endl; Counter::normal_constructor++; }
+  XXX(const XXX &other) { if (trace) cout << "XXX(const XXX &)" << " " << this << " " << &other << endl; Counter::copy_constructor++;}
+  XXX & operator=(const XXX &other) { if (trace) cout << "operator=(const XXX &)" << " " << this << " " << &other << endl; Counter::copy_assignment++; return *this; }
 #if defined(__cplusplus) && __cplusplus >= 201103L
-  XXX(XXX &&other) noexcept { if (debug) cout << "XXX(XXX &&)" << " " << this << endl; Counter::move_constructor++; }
-  XXX & operator=(XXX &&other) noexcept { if (debug) cout << "operator=(XXX &&)" << " " << this << endl; Counter::move_assignment++; return *this; }
+  XXX(XXX &&other) noexcept { if (trace) cout << "XXX(XXX &&)" << " " << this << endl; Counter::move_constructor++; }
+  XXX & operator=(XXX &&other) noexcept { if (trace) cout << "operator=(XXX &&)" << " " << this << endl; Counter::move_assignment++; return *this; }
 #endif
-  ~XXX() { if (debug) cout << "~XXX()" << " " << this << endl; Counter::destructor++; }
+  ~XXX() { if (trace) cout << "~XXX()" << " " << this << endl; Counter::destructor++; }
 };
 
 bool has_cplusplus11() {
@@ -73,7 +69,7 @@ void cleanup(std::unique_ptr<XXX>* p);
 
 %{
 std::unique_ptr<XXX> makeUniqueXXX() {
-  if (debug) cout << "makeUniqueXXX()" << endl;
+  if (trace) cout << "makeUniqueXXX()" << endl;
   return std::unique_ptr<XXX>(new XXX(11));
 }
 void cleanup(std::unique_ptr<XXX>* p) {
@@ -84,15 +80,15 @@ typedef XXX UUU;
 
 %inline %{
 XXX createXXX() {
-  if (debug) cout << "createXXX()" << endl;
+  if (trace) cout << "createXXX()" << endl;
   return XXX(111);
 }
 XXX createXXX2() {
-  if (debug) cout << "createXXX2()" << endl;
+  if (trace) cout << "createXXX2()" << endl;
   return XXX(222);
 }
 UUU createUnknownType() {
-  if (debug) cout << "createXXX2()" << endl;
+  if (trace) cout << "createXXX2()" << endl;
   return XXX(222);
 }
 struct YYY {};

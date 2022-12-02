@@ -90,6 +90,20 @@ var checkCount = function(expected_count) {
   checkCount(0);
 }
 
+li_std_auto_ptr.takeKlassAutoPtr(null);
+li_std_auto_ptr.takeKlassAutoPtr(li_std_auto_ptr.make_null());
+checkCount(0);
+
+// overloaded parameters
+if (li_std_auto_ptr.overloadTest() != 0)
+  throw new RuntimeException("overloadTest failed");
+if (li_std_auto_ptr.overloadTest(null) != 1)
+  throw new RuntimeException("overloadTest failed");
+if (li_std_auto_ptr.overloadTest(new li_std_auto_ptr.Klass("over")) != 1)
+  throw new RuntimeException("overloadTest failed");
+checkCount(0);
+
+
 // auto_ptr as output
 k1 = li_std_auto_ptr.makeKlassAutoPtr("first");
 if (k1.getLabel() !== "first")
@@ -109,4 +123,8 @@ if (k2.getLabel() !== "second")
 // delete k2;
 // Above not deleting the C++ object(node v12) - can't reliably control GC
 li_std_auto_ptr.takeKlassAutoPtr(k2);
+
+if (li_std_auto_ptr.makeNullAutoPtr() != null)
+  throw new Error("null failure");
+
 checkCount(0);

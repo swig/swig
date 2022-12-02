@@ -77,6 +77,23 @@ end
 kini = nil -- Should not fail, even though already deleted
 checkCount(0)
 
+li_std_auto_ptr.takeKlassAutoPtr(nil);
+li_std_auto_ptr.takeKlassAutoPtr(li_std_auto_ptr.make_null());
+checkCount(0);
+
+-- overloaded parameters
+if not (li_std_auto_ptr.overloadTest() == 0) then
+  error("overloadTest failed")
+end
+if not (li_std_auto_ptr.overloadTest(nil) == 1) then
+  error("overloadTest failed")
+end
+if not (li_std_auto_ptr.overloadTest(li_std_auto_ptr.Klass("over")) == 1) then
+  error("overloadTest failed")
+end
+checkCount(0)
+
+
 -- auto_ptr as output
 k1 = li_std_auto_ptr.makeKlassAutoPtr("first")
 k2 = li_std_auto_ptr.makeKlassAutoPtr("second")
@@ -91,3 +108,5 @@ end
 
 k2 = nil
 checkCount(0)
+
+assert(li_std_auto_ptr.makeNullAutoPtr() == nil)

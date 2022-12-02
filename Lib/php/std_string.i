@@ -86,5 +86,5 @@ namespace std {
 
     /* SWIG will apply the non-const typemap above to const string& without
      * this more specific typemap. */
-    %typemap(argout) const string & "";
+    %typemap(argout) const string & ""
 }

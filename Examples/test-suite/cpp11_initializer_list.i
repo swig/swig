@@ -10,7 +10,7 @@
   $1 = {"Ab", "Fab"};
 %}
 
-%begin %{
+%runtime %{
 #if __GNUC__ >= 9
 /* warning: ‘new’ of initializer_list does not extend the lifetime of the underlying array [-Winit-list-lifetime] */
 /* incorrect warning for C::C(std::initializer_list<const char *>) */
@@ -39,7 +39,7 @@ class C {
 public:
   C(std::initializer_list<const char *> init) {
     for (auto& val : init)
-      joined += val;
+      joined = joined + val;
   }
   C() {}
   const char * get_joined_string() {

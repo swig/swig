@@ -46,6 +46,6 @@ if swig_octave_prereq(3,8,0)
   printf("exp(a) = %s\n", disp(exp(a)));
 endif
 
-# concatenation operator
+# concatenation operator, note: calls @swig_ref/horzcat.m
 g = [a, b, c];
 printf("g   = %s\n",disp(g));

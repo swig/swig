@@ -31,6 +31,8 @@
     return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *") std::auto_ptr< TYPE > ""
+
 %template() std::auto_ptr< TYPE >;
 %enddef
 

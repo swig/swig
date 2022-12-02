@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * base.c 
  *
@@ -372,6 +372,18 @@ DOH *DohKeys(DOH *obj) {
     return (objinfo->doh_hash->doh_keys) (b);
   }
   return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ * DohSortedKeys()
+ * ----------------------------------------------------------------------------- */
+
+DOH *DohSortedKeys(DOH *obj, int (*cmp) (const DOH *, const DOH *)) {
+  DOHList *keys = DohKeys(obj);
+  if (keys) {
+    DohSortList(keys, cmp);
+  }
+  return keys;
 }
 
 /* -----------------------------------------------------------------------------

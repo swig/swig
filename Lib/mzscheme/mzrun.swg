@@ -125,6 +125,7 @@ struct swig_mz_proxy {
   Scheme_Type mztype;
   swig_type_info *type;
   void *object;
+  int own;
 };
 
 static Scheme_Type swig_type;
@@ -135,7 +136,7 @@ mz_free_swig(void *p, void *data) {
   if (SCHEME_NULLP((Scheme_Object*)p) || SCHEME_TYPE((Scheme_Object*)p) != swig_type)
     return;
   if (proxy->type) {
-    if (proxy->type->clientdata) {
+    if (proxy->type->clientdata && proxy->own) {
       ((Scheme_Prim *)proxy->type->clientdata)(1, (Scheme_Object **)&proxy);
     }
   }
@@ -143,42 +144,61 @@ mz_free_swig(void *p, void *data) {
 
 static Scheme_Object *
 SWIG_MzScheme_NewPointerObj(void *ptr, swig_type_info *type, int owner) {
-  struct swig_mz_proxy *new_proxy;
-  new_proxy = (struct swig_mz_proxy *) scheme_malloc(sizeof(struct swig_mz_proxy));
-  new_proxy->mztype = swig_type;
-  new_proxy->type = type;
-  new_proxy->object = ptr;
-  if (owner) {
-    scheme_add_finalizer(new_proxy, mz_free_swig, NULL);
+  if (ptr) {
+    struct swig_mz_proxy *new_proxy;
+    new_proxy = (struct swig_mz_proxy *) scheme_malloc(sizeof(struct swig_mz_proxy));
+    new_proxy->mztype = swig_type;
+    new_proxy->type = type;
+    new_proxy->object = ptr;
+    new_proxy->own = owner & SWIG_POINTER_OWN;
+    if (new_proxy->own) {
+      scheme_add_finalizer(new_proxy, mz_free_swig, NULL);
+    }
+    return (Scheme_Object *) new_proxy;
+  } else {
+    return scheme_make_null();
   }
-  return (Scheme_Object *) new_proxy;
 }
 
 static int
 SWIG_MzScheme_ConvertPtr(Scheme_Object *s, void **result, swig_type_info *type, int flags) {
   swig_cast_info *cast;
+  int ret = SWIG_ERROR;
 
   if (SCHEME_NULLP(s)) {
     *result = NULL;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   } else if (SCHEME_TYPE(s) == swig_type) {
     struct swig_mz_proxy *proxy = (struct swig_mz_proxy *) s;
+
+    if ((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE && !proxy->own) {
+      return SWIG_ERROR_RELEASE_NOT_OWNED;
+    }
+
     if (type) {
       cast = SWIG_TypeCheckStruct(proxy->type, type);
       if (cast) {
         int newmemory = 0;
         *result = SWIG_TypeCast(cast, proxy->object, &newmemory);
         assert(!newmemory); /* newmemory handling not yet implemented */
-        return 0;
+        ret = SWIG_OK;
       } else {
-        return 1;
+        return SWIG_ERROR;
       }
     } else {
       *result = proxy->object;
-      return 0;
+      ret = SWIG_OK;
+    }
+
+    if (flags & SWIG_POINTER_DISOWN) {
+      scheme_subtract_finalizer(proxy, mz_free_swig, NULL);
+      proxy->own = 0;
+    }
+    if (flags & SWIG_POINTER_CLEAR) {
+      proxy->object = 0;
     }
   }
-  return 1;
+  return ret;
 }
 
 static SWIGINLINE void *

@@ -96,6 +96,11 @@ SWIGINTERN void SWIG_V8_Raise(const char *msg) {
   SWIGV8_THROW_EXCEPTION(v8::Exception::Error(SWIGV8_STRING_NEW(msg)));
 }
 
+SWIGINTERN void SWIG_V8_Raise(SWIGV8_VALUE obj, const char *msg) {
+  SWIGV8_THROW_EXCEPTION(v8::Exception::Error(SWIGV8_TO_STRING(obj)));
+}
+
+
 /*
   Note: There are two contexts for handling errors.
   A static V8ErrorHandler is used in not overloaded methods.

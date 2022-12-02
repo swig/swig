@@ -77,6 +77,20 @@ if not is_nullptr(kini):
 del kini # Should not fail, even though already deleted
 checkCount(0)
 
+takeKlassUniquePtr(None)
+takeKlassUniquePtr(make_null())
+checkCount(0)
+
+# overloaded parameters
+if overloadTest() != 0:
+  raise RuntimeError("overloadTest failed")
+if overloadTest(None) != 1:
+  raise RuntimeError("overloadTest failed")
+if overloadTest(Klass("over")) != 1:
+  raise RuntimeError("overloadTest failed")
+checkCount(0);
+
+
 # unique_ptr as output
 k1 = makeKlassUniquePtr("first")
 k2 = makeKlassUniquePtr("second")
@@ -90,3 +104,6 @@ if k2.getLabel() != "second":
 
 del k2
 checkCount(0)
+
+if (makeNullUniquePtr() != None):
+  raise RuntimeError("null failure")

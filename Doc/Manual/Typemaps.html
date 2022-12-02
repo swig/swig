@@ -787,7 +787,7 @@ Here are some examples of valid typemap specifications:
 %typemap(in) int {
   $1 = PyInt_AsLong($input);
 }
-%typemap(in) int "$1 = PyInt_AsLong($input);";
+%typemap(in) int "$1 = PyInt_AsLong($input);"
 %typemap(in) int %{ 
   $1 = PyInt_AsLong($input);
 %}
@@ -803,7 +803,7 @@ Here are some examples of valid typemap specifications:
 }
 
 /* Typemap with modifiers */
-%typemap(in, doc="integer") int "$1 = scm_to_int($input);";
+%typemap(in, doc="integer") int "$1 = scm_to_int($input);"
 
 /* Typemap applied to patterns of multiple arguments */
 %typemap(in) (char *str, int len),
@@ -1356,13 +1356,13 @@ const reference are written like this:
 
 <div class="code">
 <pre>
-%typemap(in) int           "... convert to int ...";
-%typemap(in) short         "... convert to short ...";
-%typemap(in) float         "... convert to float ...";
+%typemap(in) int           "... convert to int ..."
+%typemap(in) short         "... convert to short ..."
+%typemap(in) float         "... convert to float ..."
 ...
-%typemap(in) const int &amp;   "... convert ...";
-%typemap(in) const short &amp; "... convert ...";
-%typemap(in) const float &amp; "... convert ...";
+%typemap(in) const int &amp;   "... convert ..."
+%typemap(in) const short &amp; "... convert ..."
+%typemap(in) const float &amp; "... convert ..."
 ...
 </pre>
 </div>
@@ -1382,16 +1382,16 @@ Below is a list of the typical default types supplied by language modules, showi
 
 <div class="code">
 <pre>
-%typemap(in) SWIGTYPE &amp;            { ... default reference handling ...                       };
-%typemap(in) SWIGTYPE *            { ... default pointer handling ...                         };
-%typemap(in) SWIGTYPE *const       { ... default pointer const handling ...                   };
-%typemap(in) SWIGTYPE *const&amp;      { ... default pointer const reference handling ...         };
-%typemap(in) SWIGTYPE[ANY]         { ... 1D fixed size arrays handling ...                    };
-%typemap(in) SWIGTYPE []           { ... unknown sized array handling ...                     };
-%typemap(in) enum SWIGTYPE         { ... default handling for enum values ...                 };
-%typemap(in) const enum SWIGTYPE &amp; { ... default handling for const enum reference values ... };
-%typemap(in) SWIGTYPE (CLASS::*)   { ... default pointer member handling ...                  };
-%typemap(in) SWIGTYPE              { ... simple default handling ...                          };
+%typemap(in) SWIGTYPE &amp;            { ... default reference handling ...                       }
+%typemap(in) SWIGTYPE *            { ... default pointer handling ...                         }
+%typemap(in) SWIGTYPE *const       { ... default pointer const handling ...                   }
+%typemap(in) SWIGTYPE *const&amp;      { ... default pointer const reference handling ...         }
+%typemap(in) SWIGTYPE[ANY]         { ... 1D fixed size arrays handling ...                    }
+%typemap(in) SWIGTYPE []           { ... unknown sized array handling ...                     }
+%typemap(in) enum SWIGTYPE         { ... default handling for enum values ...                 }
+%typemap(in) const enum SWIGTYPE &amp; { ... default handling for const enum reference values ... }
+%typemap(in) SWIGTYPE (CLASS::*)   { ... default pointer member handling ...                  }
+%typemap(in) SWIGTYPE              { ... simple default handling ...                          }
 </pre>
 </div>
 
@@ -1943,7 +1943,7 @@ Occasionally, typemap code will be specified using a few alternative forms.  For
 
 <div class="code">
 <pre>
-%typemap(in) int "$1 = PyInt_AsLong($input);";
+%typemap(in) int "$1 = PyInt_AsLong($input);"
 %typemap(in) int %{
 $1 = PyInt_AsLong($input);
 %}

@@ -59,6 +59,7 @@
  * \endif
  * 
  * \image html testImage.bmp "Hello, world!" width=10cm
+ * \image html "test image.jpg" "Test jpeg" width=10cm
  * 
  * <ul>
  * 

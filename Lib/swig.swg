@@ -448,9 +448,9 @@ namespace std {
 /* Set up the typemap for handling new return strings */
 
 #ifdef __cplusplus
-%typemap(newfree) char * "delete [] $1;";
+%typemap(newfree) char * "delete [] $1;"
 #else
-%typemap(newfree) char * "free($1);";
+%typemap(newfree) char * "free($1);"
 #endif
 
 /* Default typemap for handling char * members */
@@ -656,6 +656,16 @@ namespace std {
  *       arg1 = *inarg1;       // Assignment from a pointer
  *       arg1 = Vector(1,2,3); // Assignment from a value  
  *
+ * SwigValueWrapper is a drop in replacement to modify normal value semantics by
+ * using the heap instead of the stack to copy/move the underlying object it is
+ * managing. Smart pointers also manage an underlying object on the heap, so
+ * SwigValueWrapper has characteristics of a smart pointer. The reset function
+ * is specific smart pointer functionality, but cannot be a non-static member as
+ * when SWIG modifies typemap code it assumes non-static member function calls
+ * are routed to the underlying object, changing for example $1.f() to (&x)->f().
+ * The reset function was added as an optimisation to avoid some copying/moving
+ * and to take ownership of an object already created on the heap.
+ *
  * The class offers a strong guarantee of exception safety.
  * With regards to the implementation, the private SwigSmartPointer nested class is
  * a simple smart pointer providing exception safety, much like std::auto_ptr.
@@ -665,7 +675,9 @@ namespace std {
  */
 
 #ifdef __cplusplus
-%insert("runtime") %{
+// Placed in the header section to ensure the language specific header files are
+// the first included headers and not <utility>
+%insert("header") %{
 #ifdef __cplusplus
 #include <utility>
 /* SwigValueWrapper is described in swig.swg */
@@ -675,6 +687,7 @@ template<typename T> class SwigValueWrapper {
     SwigSmartPointer(T *p) : ptr(p) { }
     ~SwigSmartPointer() { delete ptr; }
     SwigSmartPointer& operator=(SwigSmartPointer& rhs) { T* oldptr = ptr; ptr = 0; delete oldptr; ptr = rhs.ptr; rhs.ptr = 0; return *this; }
+    void reset(T *p) { T* oldptr = ptr; ptr = 0; delete oldptr; ptr = p; }
   } pointer;
   SwigValueWrapper& operator=(const SwigValueWrapper<T>& rhs);
   SwigValueWrapper(const SwigValueWrapper<T>& rhs);
@@ -688,7 +701,8 @@ public:
   operator T&() const { return *pointer.ptr; }
 #endif
   T *operator&() const { return pointer.ptr; }
-};%}
+  static void reset(SwigValueWrapper& t, T *p) { t.pointer.reset(p); }
+};
 
 /*
  * SwigValueInit() is a generic initialisation solution as the following approach:
@@ -699,13 +713,10 @@ public:
  * 
  *       unsigned int c_result = unsigned int();
  */
-%insert("runtime") %{
 template <typename T> T SwigValueInit() {
   return T();
 }
-%}
 
-%insert("runtime") %{
 #if __cplusplus >=201103L
 # define SWIG_STD_MOVE(OBJ) std::move(OBJ)
 #else

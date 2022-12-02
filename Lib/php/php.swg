@@ -125,13 +125,30 @@
   swig_acquire_ownership_obj((void*)$result, own);
 %}
 
-%typemap(in, phptype="SWIGTYPE") SWIGTYPE &,
-             SWIGTYPE &&
+%typemap(in, phptype="SWIGTYPE") SWIGTYPE &
 %{
   if (SWIG_ConvertPtr(&$input, (void **) &$1, $1_descriptor, 0) < 0 || $1 == NULL) {
     zend_type_error("Expected $1_descriptor for argument $argnum of $symname");
     return;
   }
+%}
+%typemap(in, fragment="<memory>") SWIGTYPE && (void *argp = 0, int res = 0, std::unique_ptr<$*1_ltype> rvrdeleter) %{
+  res = SWIG_ConvertPtr(&$input, &argp, $descriptor, SWIG_POINTER_RELEASE);
+  if (!SWIG_IsOK(res)) {
+    if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {
+      zend_type_error("Cannot release ownership as memory is not owned for argument $argnum of $1_descriptor of $symname");
+      return;
+    } else {
+      zend_type_error("Expected $1_descriptor for argument $argnum of $symname");
+      return;
+    }
+  }
+  if (!argp) {
+    zend_type_error("Invalid null reference for argument $argnum of $1_descriptor of $symname");
+    return;
+  }
+  $1 = ($1_ltype)argp;
+  rvrdeleter.reset($1);
 %}
 
 %typemap(directorout) SWIGTYPE & ($1_ltype tmp),
@@ -454,10 +471,10 @@
 %typemap(directorin) SWIGTYPE
 %{
   ZVAL_UNDEF($input);
-  SWIG_SetPointerZval($input, SWIG_as_voidptr(new $1_ltype(SWIG_STD_MOVE($1))), $&1_descriptor, 1);
+  SWIG_SetPointerZval($input, (new $1_ltype(SWIG_STD_MOVE($1))), $&1_descriptor, 1);
 %}
 
-%typemap(out, phptype="void") void "";
+%typemap(out, phptype="void") void ""
 
 %typemap(out, phptype="string") char [ANY]
 {
