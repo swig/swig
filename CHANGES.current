@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2022-12-02: wsfulton
+            #624 #1021 Improved template template parameters support. Previously, specifying more
+            than one simple template template parameter resulted in a parse error. Now
+            multiple template template parameters are working including instantiation with
+            %template. Example:
+
+              template <template<template<class> class, class> class Op, template<class> class X, class Y>
+              class C { ... };
+
 2022-11-29: bero
             Fix mismatch between #pragma GCC diagnostic push and pop statements
 

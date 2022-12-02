@@ -1681,7 +1681,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <dtype>    initializer cpp_const exception_specification cv_ref_qualifier qualifiers_exception_specification;
 %type <id>       storage_class extern_string;
 %type <pl>       parms  ptail rawparms varargs_parms ;
-%type <pl>       templateparameters templateparameterstail;
+%type <pl>       templateparameterstail;
 %type <p>        parm_no_dox parm valparm rawvalparms valparms valptail ;
 %type <p>        typemap_parm tm_list tm_tail ;
 %type <p>        templateparameter ;
@@ -4446,43 +4446,7 @@ cpp_template_possible:  c_decl {
                 }
                 ;
 
-template_parms  : templateparameters {
-		   /* Rip out the parameter names */
-		  Parm *p = $1;
-		  $$ = $1;
-
-		  while (p) {
-		    String *name = Getattr(p,"name");
-		    if (!name) {
-		      /* Hmmm. Maybe it's a 'class T' parameter */
-		      char *type = Char(Getattr(p,"type"));
-		      /* Template template parameter */
-		      if (strncmp(type,"template<class> ",16) == 0) {
-			type += 16;
-		      }
-		      if ((strncmp(type,"class ",6) == 0) || (strncmp(type,"typename ", 9) == 0)) {
-			char *t = strchr(type,' ');
-			Setattr(p,"name", t+1);
-		      } else 
-                      /* Variadic template args */
-		      if ((strncmp(type,"class... ",9) == 0) || (strncmp(type,"typename... ", 12) == 0)) {
-			char *t = strchr(type,' ');
-			Setattr(p,"name", t+1);
-			Setattr(p,"variadic", "1");
-		      } else {
-			/*
-			 Swig_error(cparse_file, cparse_line, "Missing template parameter name\n");
-			 $$.rparms = 0;
-			 $$.parms = 0;
-			 break; */
-		      }
-		    }
-		    p = nextSibling(p);
-		  }
-                 }
-                 ;
-
-templateparameters : templateparameter templateparameterstail {
+template_parms : templateparameter templateparameterstail {
                       set_nextSibling($1,$2);
                       $$ = $1;
                    }
@@ -4491,10 +4455,52 @@ templateparameters : templateparameter templateparameterstail {
 
 templateparameter : templcpptype def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewString($1), 0);
+		    previousNode = currentNode;
+		    currentNode = $$;
+		    Setfile($$, cparse_file);
+		    Setline($$, cparse_line);
 		    Setattr($$, "value", $2.rawval ? $2.rawval : $2.val);
-                  }
-                  | parm {
-                    $$ = $1;
+		  }
+		  | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype idcolon def_args {
+		    $$ = NewParmWithoutFileLineInfo(NewStringf("template< %s > %s %s", ParmList_str_defaultargs($3), $5, $6), $6);
+		    previousNode = currentNode;
+		    currentNode = $$;
+		    Setfile($$, cparse_file);
+		    Setline($$, cparse_line);
+		    if ($7.val) {
+		      Setattr($$, "value", $7.val);
+		    }
+		  }
+		  | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype def_args {
+		    $$ = NewParmWithoutFileLineInfo(NewStringf("template< %s > %s", ParmList_str_defaultargs($3), $5), 0);
+		    previousNode = currentNode;
+		    currentNode = $$;
+		    Setfile($$, cparse_file);
+		    Setline($$, cparse_line);
+		    if ($6.val) {
+		      Setattr($$, "value", $6.val);
+		    }
+		  }
+		  | parm {
+		    Parm *p = $1;
+		    $$ = $1;
+
+		    /* TODO: also slice off the name from the "type" */
+		    /* Rip out the parameter names */
+		    String *name = Getattr(p, "name");
+		    if (!name) {
+		      String *type = Getattr(p, "type");
+		      if ((Strncmp(type, "class ", 6) == 0) || (Strncmp(type, "typename ", 9) == 0)) {
+			/* A 'class T' parameter */
+			const char *t = Strchr(type, ' ');
+			Setattr(p, "name", t + 1);
+		      } else if ((Strncmp(type, "class... ", 9) == 0) || (Strncmp(type, "typename... ", 12) == 0)) {
+			/* Variadic template args */
+			const char *t = Strchr(type, ' ');
+			Setattr(p, "name", t + 1);
+			Setattr(p, "variadic", "1");
+		      }
+		    }
                   }
                   ;
 
@@ -5195,17 +5201,6 @@ parm_no_dox	: rawtype parameter_declarator {
 		     Setattr($$,"value",$2.defarg);
 		   }
 		}
-
-                | TEMPLATE LESSTHAN cpptype GREATERTHAN cpptype idcolon def_args {
-                  $$ = NewParmWithoutFileLineInfo(NewStringf("template<class> %s %s", $5,$6), 0);
-		  previousNode = currentNode;
-		  currentNode = $$;
-		  Setfile($$,cparse_file);
-		  Setline($$,cparse_line);
-                  if ($7.val) {
-                    Setattr($$,"value",$7.val);
-                  }
-                }
                 | ELLIPSIS {
 		  SwigType *t = NewString("v(...)");
 		  $$ = NewParmWithoutFileLineInfo(t, 0);
