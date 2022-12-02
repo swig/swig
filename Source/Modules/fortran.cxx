@@ -2354,7 +2354,7 @@ int FORTRAN::classDeclaration(Node *n) {
   // Define policy
   if (CPlusPlus) {
     if (SwigType *name = Getattr(n, "name")) {
-      String *policystr = Swig_string_mangle(name);
+      String *policystr = Swig_name_mangle_string(name);
       Insert(policystr, 0, "SWIGPOLICY_");
       Setattr(n, "fortran:policy", policystr);
 
