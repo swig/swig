@@ -271,7 +271,8 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern void Swig_name_register(const_String_or_char_ptr method, const_String_or_char_ptr format);
   extern void Swig_name_unregister(const_String_or_char_ptr method);
-  extern String *Swig_name_mangle(const_String_or_char_ptr s);
+  extern String *Swig_name_mangle_string(const String *s);
+  extern String *Swig_name_mangle_type(const SwigType *s);
   extern String *Swig_name_wrapper(const_String_or_char_ptr fname);
   extern String *Swig_name_member(const_String_or_char_ptr nspace, const_String_or_char_ptr classname, const_String_or_char_ptr membername);
   extern String *Swig_name_get(const_String_or_char_ptr nspace, const_String_or_char_ptr vname);
@@ -323,7 +324,6 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern int Swig_storage_isstatic_custom(Node *n, const_String_or_char_ptr storage);
   extern int Swig_storage_isstatic(Node *n);
   extern String *Swig_string_escape(String *s);
-  extern String *Swig_string_mangle(const String *s);
   extern void Swig_scopename_split(const String *s, String **prefix, String **last);
   extern String *Swig_scopename_prefix(const String *s);
   extern String *Swig_scopename_last(const String *s);

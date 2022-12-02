@@ -605,7 +605,7 @@ static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, const
  * Search for a template that matches name with given parameters.
  * ----------------------------------------------------------------------------- */
 
-static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
+static Node *template_locate(String *name, Parm *tparms, String *symname, Symtab *tscope) {
   Node *n = 0;
   String *tname = 0;
   Node *templ;
@@ -626,7 +626,10 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
     tname = Copy(name);
     SwigType_add_template(tname, tparms);
     Printf(stdout, "\n");
-    Swig_diagnostic(cparse_file, cparse_line, "template_debug: Searching for match to: '%s'\n", tname);
+    if (symname)
+      Swig_diagnostic(cparse_file, cparse_line, "Template debug: Searching for match to: '%s' for instantiation of template named '%s'\n", tname, symname);
+    else
+      Swig_diagnostic(cparse_file, cparse_line, "Template debug: Searching for match to: '%s' for instantiation of empty template\n", tname);
     Delete(tname);
     tname = 0;
   }
@@ -682,11 +685,39 @@ static Node *template_locate(String *name, Parm *tparms, Symtab *tscope) {
 	}
 	tn = Getattr(n, "template");
 	if (tn) {
-	  if (template_debug) {
-	    Printf(stdout, "    previous instantiation found: '%s'\n", Getattr(n, "name"));
+	  /* Previously wrapped by a template instantiation */
+	  Node *previous_named_instantiation = GetFlag(n, "hidden") ? Getattr(n, "csym:nextSibling") : n; /* "hidden" is set when "sym:name" is a __dummy_ name */
+	  if (!symname) {
+	    /* Quietly ignore empty template instantiations if there is a previous (empty or non-empty) template instantiation */
+	    if (template_debug) {
+	      if (previous_named_instantiation)
+		Printf(stdout, "    previous instantiation with name '%s' found: '%s' - duplicate empty template instantiation ignored\n", Getattr(previous_named_instantiation, "sym:name"), Getattr(n, "name"));
+	      else
+		Printf(stdout, "    previous empty template instantiation found: '%s' - duplicate empty template instantiation ignored\n", Getattr(n, "name"));
+	    }
+	    return 0;
 	  }
+	  /* Accept a second instantiation only if previous template instantiation is empty */
+	  if (previous_named_instantiation) {
+	    String *previous_name = Getattr(previous_named_instantiation, "name");
+	    String *previous_symname = Getattr(previous_named_instantiation, "sym:name");
+	    String *unprocessed_tname = Copy(name);
+	    SwigType_add_template(unprocessed_tname, tparms);
+
+	    if (template_debug)
+	      Printf(stdout, "    previous instantiation with name '%s' found: '%s' - duplicate instantiation ignored\n", previous_symname, Getattr(n, "name"));
+	    SWIG_WARN_NODE_BEGIN(n);
+	    Swig_warning(WARN_TYPE_REDEFINED, cparse_file, cparse_line, "Duplicate template instantiation of '%s' with name '%s' ignored,\n", SwigType_namestr(unprocessed_tname), symname);
+	    Swig_warning(WARN_TYPE_REDEFINED, Getfile(n), Getline(n), "previous instantiation of '%s' with name '%s'.\n", SwigType_namestr(previous_name), previous_symname);
+	    SWIG_WARN_NODE_END(n);
+
+	    Delete(unprocessed_tname);
+	    return 0;
+	  }
+	  if (template_debug)
+	    Printf(stdout, "    previous empty template instantiation found: '%s' - using as duplicate instantiation overrides empty template instantiation\n", Getattr(n, "name"));
 	  n = tn;
-	  goto success;	  /* Previously wrapped by a template instantiation */
+	  goto success;
 	}
 	Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", name, nodeType(n));
 	Delete(tname);
@@ -929,8 +960,8 @@ success:
  * template exists.
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_cparse_template_locate(String *name, Parm *tparms, Symtab *tscope) {
-  Node *n = template_locate(name, tparms, tscope);	/* this function does what we want for templated classes */
+Node *Swig_cparse_template_locate(String *name, Parm *tparms, String *symname, Symtab *tscope) {
+  Node *n = template_locate(name, tparms, symname, tscope); /* this function does what we want for templated classes */
 
   if (n) {
     String *nodeType = nodeType(n);

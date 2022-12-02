@@ -69,6 +69,8 @@ static Hash *typemaps;
  * resolving the template parameters.
  *
  * This is a copy and modification of feature_identifier_fix in parser.y.
+ * Also, Swig_smartptr_upcast() could be removed if SwigType_typedef_resolve_all
+ * is fixed to resolve all template parameters like below.
  * ----------------------------------------------------------------------------- */
 
 static SwigType *typemap_identifier_fix(const SwigType *s) {
@@ -102,6 +104,7 @@ static Hash *get_typemap(const SwigType *type) {
     dtype = Swig_symbol_type_qualify(ty, 0);
     type = dtype;
     Delete(ty);
+    Delete(rty);
   }
 
   /* remove unary scope operator (::) prefix indicating global scope for looking up in the hashmap */
@@ -1290,7 +1293,7 @@ static void typemap_merge_fragment_kwargs(Parm *kw) {
 	reattach_kw = prev_kw;
       }
       if (kwtype) {
-        String *mangle = Swig_string_mangle(kwtype);
+        String *mangle = Swig_name_mangle_type(kwtype);
         Append(fragment, mangle);
         Delete(mangle);
         /* Remove 'type' from kwargs so it's not duplicated later */
@@ -1538,7 +1541,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
       Delete(parm_sublist);
     }
     if (kwtype) {
-      String *mangle = Swig_string_mangle(kwtype);
+      String *mangle = Swig_name_mangle_type(kwtype);
       Append(value, mangle);
       Delete(mangle);
     }

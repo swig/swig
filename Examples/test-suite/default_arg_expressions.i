@@ -29,7 +29,7 @@ struct TfToken {
 struct Tokens {
   const TfToken face;
   const TfToken *pface;
-  const TfToken& g_face() const { return face; }
+  const TfToken& g_face(int = 0, int = 0) const { return face; }
   const TfToken* g_pface() const { return pface; }
   Tokens() : face(), pface(&face) {}
 };
@@ -68,4 +68,6 @@ void CreateMaterialBindSubsetu(int num = UsdGeomTokensPtr->g_pface()->g_val().g_
 void CreateMaterialBindSubsetv(int num = UsdGeomTokensPtr->g_pface()->g_ptr()->g_val()) {}
 void CreateMaterialBindSubsetw(int num = UsdGeomTokensPtr->g_face().g_val().g_val()) {}
 void CreateMaterialBindSubsetx(int num = UsdGeomTokens.g_face().g_val().g_val()) {}
+void CreateMaterialBindSubsety(int num = UsdGeomTokens.g_face(1).g_val().g_val()) {}
+void CreateMaterialBindSubsetz(int num = UsdGeomTokens.g_face(1,2).g_val().g_val()) {}
 %}

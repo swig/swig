@@ -3,6 +3,7 @@
    for use in class representations. 
  */
 
+%typemap("rtype") bool, bool * "logical"
 %typemap("rtype") int, int *, int & "integer"
 %typemap("rtype") long, long *, long & "integer"
 %typemap("rtype") float, float*, float & "numeric"
@@ -11,7 +12,6 @@
 %typemap("rtype") char "character"
 %typemap("rtype") string, string *, string & "character"
 %typemap("rtype") std::string, std::string *, std::string & "character"
-%typemap("rtype") bool, bool * "logical"
 %typemap("rtype") enum SWIGTYPE "character"
 %typemap("rtype") enum SWIGTYPE * "character"
 %typemap("rtype") enum SWIGTYPE *const& "character"
@@ -30,8 +30,7 @@
 %typemap("rtypecheck") int *, long *
   %{ is.integer($arg) || is.numeric($arg) %}
 
-
-%typemap("rtypecheck") float, double
+%typemap("rtypecheck") float, float &, double, double &
   %{ is.numeric($arg) && length($arg) == 1 %}
 %typemap("rtypecheck") float *, double *
   %{ is.numeric($arg) %}
@@ -40,6 +39,41 @@
   %{ is.logical($arg) && length($arg) == 1 %}
 %typemap("rtypecheck") bool *
   %{ is.logical($arg) %}
+
+%typemap("rtypecheck") char
+  %{ is.character($arg) && length($arg) == 1 %}
+%typemap("rtypecheck") char *, char **
+  %{ is.character($arg) %}
+
+%typemap("rtypecheck") string, string &
+  %{ is.character($arg) && length($arg) == 1 %}
+%typemap("rtypecheck") string *
+  %{ is.character($arg) %}
+
+%typemap("rtypecheck") std::string, std::string &
+  %{ is.character($arg) && length($arg) == 1 %}
+%typemap("rtypecheck") std::string *
+  %{ is.character($arg) %}
+
+%typemap("rtypecheck") enum SWIGTYPE, enum SWIGTYPE *const&, enum SWIGTYPE &, const enum SWIGTYPE &, enum SWIGTYPE &&
+  %{ is.character($arg) && length($arg) == 1 %}
+%typemap("rtypecheck") enum SWIGTYPE *
+  %{ is.character($arg) %}
+
+#if 0
+// Replacement rtypecheck typemaps (for swig-4.2, see r.cxx)
+%typemap("rtypecheck") SWIGTYPE *
+  %{ extends($argtype, '$R_class') || is.null($arg) %}
+
+%typemap("rtypecheck") SWIGTYPE &, SWIGTYPE &&
+  %{ extends($argtype, '$R_class') && length($arg) == 1 %}
+
+%typemap("rtypecheck") SWIGTYPE *const&
+  %{ extends($argtype, '$*R_class') && length($arg) == 1 %}
+
+%typemap("rtypecheck") SWIGTYPE
+  %{ extends($argtype, '$&R_class') && length($arg) == 1 %}
+#endif
 
 /*
   Set up type checks to insure overloading precedence.

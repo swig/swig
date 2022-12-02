@@ -85,7 +85,7 @@ public:
 
     /* Mangled name */
     Delete(mname);
-    mname = Swig_name_mangle(cname);
+    mname = Swig_name_mangle_string(cname);
 
     /* Renamed class name */
     Clear(name);

@@ -1396,7 +1396,7 @@ public:
     SwigType *ct = NewStringf("p.%s", Getattr(n, "name"));
     swigtype_ptr = SwigType_manglestr(ct);
 
-    String *mangled_classname = Swig_name_mangle(Getattr(n, "sym:name"));
+    String *mangled_classname = Swig_name_mangle_string(Getattr(n, "sym:name"));
     /* Export clientdata structure */
     Printf(f_runtime, "static swig_guile_clientdata _swig_guile_clientdata%s = { NULL, SCM_EOL };\n", mangled_classname);
 

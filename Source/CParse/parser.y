@@ -2822,6 +2822,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  Symtab *tscope = 0;
 		  int     specialized = 0;
 		  int     variadic = 0;
+		  String *symname = $3 ? NewString($3) : 0;
 
 		  $$ = 0;
 
@@ -2841,7 +2842,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 		    This is closer to the C++ (typedef) behavior.
 		  */
-		  n = Swig_cparse_template_locate($5,$7,tscope);
+		  n = Swig_cparse_template_locate($5, $7, symname, tscope);
 
 		  /* Patch the argument types to respect namespaces */
 		  p = $7;
@@ -2966,7 +2967,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             Setattr(templnode,"sym:typename","1");
                           }
 			  /* for now, nested %template is allowed only in the same scope as the template declaration */
-                          if ($3 && !(nnisclass && ((outer_class && (outer_class != Getattr(nn, "nested:outer")))
+                          if (symname && !(nnisclass && ((outer_class && (outer_class != Getattr(nn, "nested:outer")))
 			    ||(extendmode && current_class && (current_class != Getattr(nn, "nested:outer")))))) {
 			    /*
 			       Comment this out for 1.3.28. We need to
@@ -2974,11 +2975,10 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			       move %ignore from using %rename to use
 			       %feature(ignore).
 
-			       String *symname = Swig_name_make(templnode,0,$3,0,0);
+			       String *symname = Swig_name_make(templnode, 0, symname, 0, 0);
 			    */
-			    String *symname = NewString($3);
-                            Swig_cparse_template_expand(templnode,symname,temparms,tscope);
-                            Setattr(templnode,"sym:name",symname);
+                            Swig_cparse_template_expand(templnode, symname, temparms, tscope);
+                            Setattr(templnode, "sym:name", symname);
                           } else {
                             static int cnt = 0;
                             String *nname = NewStringf("__dummy_%d__", cnt++);
@@ -2987,7 +2987,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                             SetFlag(templnode,"hidden");
 			    Delete(nname);
                             Setattr(templnode,"feature:onlychildren", "typemap,typemapitem,typemapcopy,typedef,types,fragment,apply");
-			    if ($3) {
+			    if (symname) {
 			      Swig_warning(WARN_PARSE_NESTED_TEMPLATE, cparse_file, cparse_line, "Named nested template instantiations not supported. Processing as if no name was given to %%template().\n");
 			    }
                           }
@@ -3106,6 +3106,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 	          Swig_symbol_setscope(tscope);
 		  Delete(Namespaceprefix);
 		  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+		  Delete(symname);
                 }
                ;
 
@@ -4488,8 +4489,9 @@ templateparameters : templateparameter templateparameterstail {
                    | empty { $$ = 0; }
                    ;
 
-templateparameter : templcpptype {
+templateparameter : templcpptype def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewString($1), 0);
+		    Setattr($$, "value", $2.rawval ? $2.rawval : $2.val);
                   }
                   | parm {
                     $$ = $1;
@@ -5293,13 +5295,13 @@ valparm        : parm {
 
 callparms      : valexpr callptail {
 		 $$ = $1;
-		 Printf($$.val, "%s", $2);
+		 Printf($$.val, "%s", $2.val);
 	       }
 	       | empty { $$.val = NewStringEmpty(); }
 	       ;
 
 callptail      : COMMA valexpr callptail {
-		 $$.val = NewStringf(",%s%s", $2, $3);
+		 $$.val = NewStringf(",%s%s", $2.val, $3.val);
 		 $$.type = 0;
 	       }
 	       | empty { $$.val = NewStringEmpty(); }
@@ -6239,11 +6241,12 @@ type_right     : primitive_type { $$ = $1;
                }
                ;
 
-decltype       : DECLTYPE LPAREN idcolon RPAREN {
-                 Node *n = Swig_symbol_clookup($3,0);
+decltype       : DECLTYPE LPAREN expr RPAREN {
+                 Node *n = Swig_symbol_clookup($3.val, 0);
                  if (!n) {
-		   Swig_error(cparse_file, cparse_line, "Identifier %s not defined.\n", $3);
-                   $$ = $3;
+		   Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", $3.val);
+
+		   $$ = NewStringf("decltype(%s)", $3.val);
                  } else {
                    $$ = Getattr(n, "type");
                  }
@@ -6581,7 +6584,7 @@ exprmem        : ID ARROW ID {
 		 $$.type = 0;
 	       }
 	       | ID ARROW ID LPAREN callparms RPAREN {
-		 $$.val = NewStringf("%s->%s(%s)", $1, $3, $5);
+		 $$.val = NewStringf("%s->%s(%s)", $1, $3, $5.val);
 		 $$.type = 0;
 	       }
 	       | exprmem ARROW ID {
@@ -6590,14 +6593,14 @@ exprmem        : ID ARROW ID {
 	       }
 	       | exprmem ARROW ID LPAREN callparms RPAREN {
 		 $$ = $1;
-		 Printf($$.val, "->%s(%s)", $3, $5);
+		 Printf($$.val, "->%s(%s)", $3, $5.val);
 	       }
 	       | ID PERIOD ID {
 		 $$.val = NewStringf("%s.%s", $1, $3);
 		 $$.type = 0;
 	       }
 	       | ID PERIOD ID LPAREN callparms RPAREN {
-		 $$.val = NewStringf("%s.%s(%s)", $1, $3, $5);
+		 $$.val = NewStringf("%s.%s(%s)", $1, $3, $5.val);
 		 $$.type = 0;
 	       }
 	       | exprmem PERIOD ID {
@@ -6606,7 +6609,7 @@ exprmem        : ID ARROW ID {
 	       }
 	       | exprmem PERIOD ID LPAREN callparms RPAREN {
 		 $$ = $1;
-		 Printf($$.val, ".%s(%s)", $3, $5);
+		 Printf($$.val, ".%s(%s)", $3, $5.val);
 	       }
 	       ;
 

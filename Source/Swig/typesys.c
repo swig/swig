@@ -1148,6 +1148,7 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
 	Append(qprefix, "<(");
 	pi = First(parms);
 	while ((p = pi.item)) {
+	  /* TODO: the logic here should be synchronised with that in symbol_template_qualify() in symbol.c */
 	  String *qt = SwigType_typedef_qualified(p);
 	  if (Equal(qt, p)) {	/*  && (!Swig_scopename_check(qt))) */
 	    /* No change in value.  It is entirely possible that the parameter is an integer value.
@@ -1564,11 +1565,7 @@ SwigType *SwigType_alttype(const SwigType *t, int local_tmap) {
   }
 
   if (use_wrapper) {
-    /* Need a space before the type in case it starts "::" (since the <:
-     * token is a digraph for [ in C++.  Also need a space after the
-     * type in case it ends with ">" since then we form the token ">>".
-     */
-    w = NewStringf("SwigValueWrapper< %s >", td);
+    w = NewStringf("SwigValueWrapper<(%s)>", td);
   }
   Delete(td);
   return w;

@@ -99,6 +99,7 @@
 #define WARN_CPP11_ALIAS_DECLARATION  341  /* redundant now */
 #define WARN_CPP11_ALIAS_TEMPLATE     342  /* redundant now */
 #define WARN_CPP11_VARIADIC_TEMPLATE  343
+#define WARN_CPP11_DECLTYPE           344
 
 #define WARN_IGNORE_OPERATOR_NEW        350	/* new */
 #define WARN_IGNORE_OPERATOR_DELETE     351	/* delete */
@@ -257,7 +258,11 @@
 
 #define WARN_PYTHON_INDENT_MISMATCH           740
 
-/* please leave 740-759 free for Python */
+/* please leave 740-749 free for Python */
+
+#define WARN_R_MISSING_RTYPECHECK_TYPEMAP     750
+
+/* please leave 750-759 free for R */
 
 #define WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF    760
 #define WARN_FORTRAN_TYPEMAP_FTYPE_UNDEF    761

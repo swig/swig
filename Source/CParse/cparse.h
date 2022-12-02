@@ -66,7 +66,7 @@ extern "C" {
 
 /* templ.c */
   extern int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab *tscope);
-  extern Node *Swig_cparse_template_locate(String *name, ParmList *tparms, Symtab *tscope);
+  extern Node *Swig_cparse_template_locate(String *name, ParmList *tparms, String *symname, Symtab *tscope);
   extern void Swig_cparse_debug_templates(int);
 
 #ifdef __cplusplus

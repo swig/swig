@@ -1269,7 +1269,7 @@ public:
       full_proxy_class_name = NewStringf("%s.%s", nspace, proxy_class_name);
 
     assert(full_proxy_class_name);
-    mangled_full_proxy_class_name = Swig_name_mangle(full_proxy_class_name);
+    mangled_full_proxy_class_name = Swig_name_mangle_string(full_proxy_class_name);
 
     SwigType *t = Copy(Getattr(n, "name"));
     SwigType *fr_t = SwigType_typedef_resolve_all(t);	/* Create fully resolved type */
@@ -1803,7 +1803,7 @@ public:
     if (nspace == 0 || Len(nspace) == 0)
       mangled_name = NewString("SwigModule");
     else
-      mangled_name = Swig_name_mangle(nspace);
+      mangled_name = Swig_name_mangle_string(nspace);
     String *cname = NewStringf("swig_%s", mangled_name);
 
     Setattr(carrays_hash, "cname", cname);

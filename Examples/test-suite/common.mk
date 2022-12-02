@@ -90,7 +90,6 @@ CPP_TEST_BROKEN += \
 	nested_private \
 	template_default_pointer \
 	template_private_assignment \
-	template_expr \
 	$(CPP11_TEST_BROKEN) \
 	$(CPP14_TEST_BROKEN) \
 	$(CPP17_TEST_BROKEN) \
@@ -459,6 +458,7 @@ CPP_TEST_CASES += \
 	template_enum_ns_inherit \
 	template_enum_typedef \
 	template_explicit \
+	template_expr \
 	template_extend1 \
 	template_extend2 \
 	template_extend_overload \
@@ -624,6 +624,7 @@ CPP11_TEST_CASES += \
 	cpp11_thread_local \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
+	cpp11_template_parameters_decltype \
 	cpp11_template_typedefs \
 	cpp11_type_traits \
 	cpp11_type_aliasing \
@@ -645,6 +646,7 @@ CPP14_TEST_BROKEN = \
 
 # C++17 test cases.
 CPP17_TEST_CASES += \
+	cpp17_enable_if_t \
 	cpp17_hex_floating_literals \
 	cpp17_nested_namespaces \
 	cpp17_nspace_nested_namespaces \

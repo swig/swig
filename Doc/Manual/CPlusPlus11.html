@@ -720,18 +720,45 @@ AltStruct var2{2, 4.3};   // calls the constructor
 <H3><a name="CPlusPlus11_type_inference">7.2.6 Type inference</a></H3>
 
 
-<p>SWIG supports <tt>decltype()</tt> with some limitations. Single
-variables are allowed, however, expressions are not supported yet. For
+<p>SWIG supports <tt>decltype()</tt> with limitations. Single
+variables are allowed, however, non-trivial expressions are not supported very well. For
 example, the following code will work:</p>
 <div class="code"><pre>
 int i;
 decltype(i) j;
 </pre></div>
 
-<p>However, using an expression inside the decltype results in syntax error:</p>
+<p>SWIG is able to deduce that the variable, <tt>i</tt>, is type <tt>int</tt>.
+</p>
+
+<p>
+Using a non-trivial expression for the decltype results in a warning:</p>
 <div class="code"><pre>
 int i; int j;
-decltype(i+j) k;  // syntax error
+decltype(i+j) k;  // Warning 344: Unable to deduce decltype for 'i+j'.
+</pre></div>
+
+<p>
+This warning should be viewed as  a prompt to add in a manual ignore of the variable/function as
+in most cases the generated code will not compile.
+For the example above, ignore the symbol that uses decltype and perhaps additionally
+suppress the warning as follows:
+</p>
+
+<div class="code"><pre>
+#pragma SWIG nowarn=SWIGWARN_CPP11_DECLTYPE
+%ignore k;
+</pre></div>
+
+<p>
+If an ignore is not acceptable, a workaround is to redefine the symbol with the actual type, for example:
+</p>
+
+<div class="code"><pre>
+int k; // define k with the actual type
+%ignore k; // ignore the real definition of k
+int i; int j;
+decltype(i+j) k;  // Warning 344: Unable to deduce decltype for 'i+j'.
 </pre></div>
 
 <p>SWIG does not support <tt>auto</tt> as a type specifier for variables, only
@@ -1106,7 +1133,7 @@ initializers) with some limitations. The following code is correctly parsed:</p>
 template &lt;typename... BaseClasses&gt; class ClassName : public BaseClasses... {
 public:
   ClassName (BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
-}
+};
 </pre></div>
 
 <p>

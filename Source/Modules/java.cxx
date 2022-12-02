@@ -1883,16 +1883,10 @@ public:
 
     Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method_name);
 
-    String *classname = SwigType_namestr(c_classname);
-    String *baseclassname = SwigType_namestr(c_baseclassname);
     if (smart) {
+      SwigType *bsmart = Swig_smartptr_upcast(smart, c_classname, c_baseclassname);
       String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(smart);
-
-      // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
-      SwigType *rclassname = SwigType_typedef_resolve_all(classname);
-      SwigType *rbaseclassname = SwigType_typedef_resolve_all(baseclassname);
-      Replaceall(bsmartnamestr, rclassname, rbaseclassname);
+      String *bsmartnamestr = SwigType_namestr(bsmart);
 
       Printv(upcasts_code,
 	  "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
@@ -1905,11 +1899,13 @@ public:
 	  "    return baseptr;\n"
 	  "}\n", "\n", NIL);
 
-      Delete(rbaseclassname);
-      Delete(rclassname);
       Delete(bsmartnamestr);
       Delete(smartnamestr);
+      Delete(bsmart);
     } else {
+      String *classname = SwigType_namestr(c_classname);
+      String *baseclassname = SwigType_namestr(c_baseclassname);
+
       Printv(upcasts_code,
 	  "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
 	  "    jlong baseptr = 0;\n"
@@ -1918,10 +1914,11 @@ public:
 	  "    *(", baseclassname, " **)&baseptr = *(", classname, " **)&jarg1;\n"
 	  "    return baseptr;\n"
 	  "}\n", "\n", NIL);
+
+      Delete(baseclassname);
+      Delete(classname);
     }
 
-    Delete(baseclassname);
-    Delete(classname);
     Delete(wname);
     Delete(jniname);
   }
@@ -2991,7 +2988,7 @@ public:
      * a Java long is used for all classes in the SWIG intermediary class.
      * The intermediary class methods are thus mangled when overloaded to give
      * a unique name. */
-    String *overloaded_name = NewStringf("%s", Getattr(n, "sym:name"));
+    String *overloaded_name = Copy(Getattr(n, "sym:name"));
 
     if (Getattr(n, "sym:overloaded")) {
       Printv(overloaded_name, Getattr(n, "sym:overname"), NIL);
@@ -4006,7 +4003,7 @@ public:
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
     SwigType *returntype = Getattr(n, "type");
-    String *overloaded_name = getOverloadedName(n);
+    String *overloaded_name = 0;
     String *storage = Getattr(n, "storage");
     String *value = Getattr(n, "value");
     String *decl = Getattr(n, "decl");
@@ -4029,7 +4026,7 @@ public:
     String *classret_desc = NewString("");
     SwigType *c_ret_type = NULL;
     String *jupcall_args = NewString("swigjobj");
-    String *imclass_dmethod;
+    String *imclass_dmethod = 0;
     String *callback_def = NewString("");
     String *callback_code = NewString("");
     String *imcall_args = NewString("");
@@ -4042,7 +4039,11 @@ public:
     // we're consistent with the sym:overload name in functionWrapper. (?? when
     // does the overloaded method name get set?)
 
-    imclass_dmethod = NewStringf("%s", Swig_name_member(getNSpace(), dirclassname, overloaded_name));
+    if (!ignored_method) {
+      overloaded_name = getOverloadedName(n);
+      imclass_dmethod = Swig_name_member(getNSpace(), dirclassname, overloaded_name);
+    }
+
 
     qualified_return = SwigType_rcaststr(returntype, "c_result");
 
@@ -4095,12 +4096,14 @@ public:
       }
     }
 
-    /* Create the intermediate class wrapper */
-    tm = Swig_typemap_lookup("jtype", n, "", 0);
-    if (tm) {
-      Printf(callback_def, "  public static %s %s(%s jself", tm, imclass_dmethod, qualified_classname);
-    } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s\n", SwigType_str(returntype, 0));
+    if (!ignored_method) {
+      /* Create the intermediate class wrapper */
+      tm = Swig_typemap_lookup("jtype", n, "", 0);
+      if (tm) {
+	Printf(callback_def, "  public static %s %s(%s jself", tm, imclass_dmethod, qualified_classname);
+      } else {
+	Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s\n", SwigType_str(returntype, 0));
+      }
     }
 
     String *cdesc = NULL;

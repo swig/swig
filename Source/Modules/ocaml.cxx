@@ -1181,6 +1181,7 @@ public:
   /*
    * Produce the symbol name that ocaml will use when referring to the 
    * target item.  I wonder if there's a better way to do this:
+   * (WF - use Swig_name_mangle_string/Swig_name_mangle_type)
    *
    * I shudder to think about doing it with a hash lookup, but that would
    * make a couple of things easier:
@@ -1209,6 +1210,8 @@ public:
     Replaceall(out, "=", "_xx_equals");
     Replaceall(out, "/", "_xx_slash");
     Replaceall(out, ".", "_xx_dot");
+    Replaceall(out, "?", "_xx_question");
+    Replaceall(out, ":", "_xx_colon");
     return out;
   }
 

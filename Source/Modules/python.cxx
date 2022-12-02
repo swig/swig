@@ -1898,16 +1898,20 @@ public:
 	    String *str = Getattr(n, "feature:docstring");
 	    if (!str || Len(str) == 0) {
 	      if (builtin) {
-		String *name = Getattr(n, "name");
-		String *rname = add_explicit_scope(SwigType_namestr(name));
+		SwigType *name = Getattr(n, "name");
+		SwigType *sname = add_explicit_scope(name);
+		String *rname = SwigType_namestr(sname);
 		Printf(doc, "%s", rname);
+		Delete(sname);
 		Delete(rname);
 	      } else {
+		String *classname_str = SwigType_namestr(real_classname);
 		if (CPlusPlus) {
-		  Printf(doc, "Proxy of C++ %s class.", SwigType_namestr(real_classname));
+		  Printf(doc, "Proxy of C++ %s class.", classname_str);
 		} else {
-		  Printf(doc, "Proxy of C %s struct.", SwigType_namestr(real_classname));
+		  Printf(doc, "Proxy of C %s struct.", classname_str);
 		}
+		Delete(classname_str);
 	      }
 	    }
 	  }
@@ -3922,35 +3926,36 @@ public:
    * classHandler()
    * ------------------------------------------------------------ */
 
-  String *add_explicit_scope(String *s) {
+  SwigType *add_explicit_scope(SwigType *s) {
     if (!Strstr(s, "::")) {
-      String *ss = NewStringf("::%s", s);
-      Delete(s);
-      s = ss;
+      return NewStringf("::%s", s);
     }
-    return s;
+    return Copy(s);
   }
 
   void builtin_pre_decl(Node *n) {
-    String *name = Getattr(n, "name");
-    String *rname = add_explicit_scope(SwigType_namestr(name));
-    String *mname = SwigType_manglestr(rname);
+    SwigType *name = Getattr(n, "name");
+    SwigType *sname = add_explicit_scope(name);
+    String *rname = SwigType_namestr(sname);
+    String *mname = SwigType_manglestr(sname);
 
     Printf(f_init, "\n/* type '%s' */\n", rname);
     Printf(f_init, "    builtin_pytype = (PyTypeObject *)&SwigPyBuiltin_%s_type;\n", mname);
     Printf(f_init, "    builtin_pytype->tp_dict = d = PyDict_New();\n");
 
+    Delete(sname);
     Delete(rname);
     Delete(mname);
   }
 
   void builtin_post_decl(File *f, Node *n) {
-    String *name = Getattr(n, "name");
-    String *pname = Copy(name);
+    SwigType *name = Getattr(n, "name");
+    SwigType *pname = Copy(name);
     SwigType_add_pointer(pname);
     String *symname = Getattr(n, "sym:name");
-    String *rname = add_explicit_scope(SwigType_namestr(name));
-    String *mname = SwigType_manglestr(rname);
+    SwigType *sname = add_explicit_scope(name);
+    String *rname = SwigType_namestr(sname);
+    String *mname = SwigType_manglestr(sname);
     String *pmname = SwigType_manglestr(pname);
     String *templ = NewStringf("SwigPyBuiltin_%s", mname);
     int funpack = fastunpack;
@@ -4381,9 +4386,10 @@ public:
 
     Delete(clientdata);
     Delete(smart);
+    Delete(sname);
     Delete(rname);
-    Delete(pname);
     Delete(mname);
+    Delete(pname);
     Delete(pmname);
     Delete(templ);
     Delete(tp_flags);
@@ -4480,9 +4486,11 @@ public:
 	  Setattr(n, "feature:python:tp_doc", ds);
 	  Delete(ds);
 	} else {
-	  String *name = Getattr(n, "name");
-	  String *rname = add_explicit_scope(SwigType_namestr(name));
+	  SwigType *name = Getattr(n, "name");
+	  SwigType *sname = add_explicit_scope(name);
+	  String *rname = SwigType_namestr(sname);
 	  Setattr(n, "feature:python:tp_doc", rname);
+	  Delete(sname);
 	  Delete(rname);
 	}
       } else {

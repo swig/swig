@@ -1043,16 +1043,17 @@ String *SwigType_templateprefix(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_templatesuffix(const SwigType *t) {
-  const char *c;
+  const char *c, *d;
   c = Char(t);
-  while (*c) {
+  d = c + strlen(c);
+  while (d > c) {
     if ((*c == '<') && (*(c + 1) == '(')) {
       int nest = 1;
       c++;
-      while (*c && nest) {
-	if (*c == '<')
+      while ((d > c) && nest) {
+	if (*c == '<' && *(c + 1) == '(')
 	  nest++;
-	if (*c == '>')
+	if (*c == '>' && *(c - 1) == ')')
 	  nest--;
 	c++;
       }
@@ -1120,18 +1121,19 @@ String *SwigType_istemplate_only_templateprefix(const SwigType *t) {
  * ----------------------------------------------------------------------------- */
 
 String *SwigType_templateargs(const SwigType *t) {
-  const char *c;
+  const char *c, *d;
   const char *start;
   c = Char(t);
-  while (*c) {
+  d = c + strlen(c);
+  while (d > c) {
     if ((*c == '<') && (*(c + 1) == '(')) {
       int nest = 1;
       start = c;
       c++;
-      while (*c && nest) {
-	if (*c == '<')
+      while ((d > c) && nest) {
+	if (*c == '<' && *(c + 1) == '(')
 	  nest++;
-	if (*c == '>')
+	if (*c == '>' && *(c - 1) == ')')
 	  nest--;
 	c++;
       }
@@ -1179,20 +1181,9 @@ SwigType *SwigType_base(const SwigType *t) {
       c++;
       continue;
     }
-    if (*c == '<') {
-      /* Skip over template---it's part of the base name */
-      int ntemp = 1;
-      c++;
-      while ((*c) && (ntemp > 0)) {
-	if (*c == '>')
-	  ntemp--;
-	else if (*c == '<')
-	  ntemp++;
-	c++;
-      }
-      if (ntemp)
-	break;
-      continue;
+    if (*c == '<' && *(c + 1) == '(') {
+      /* start of template parameters --- the remainder is part of the base */
+      break;
     }
     if (*c == '(') {
       /* Skip over params */
@@ -1234,17 +1225,20 @@ String *SwigType_prefix(const SwigType *t) {
 
   while (d > c) {
     d--;
-    if (*d == '>') {
+    if (*d == '>' && (d > c) && *(d - 1) == ')') {
+      /* skip over template parameters */
       int nest = 1;
       d--;
+      d--;
       while ((d > c) && (nest)) {
-	if (*d == '>')
+	if (*d == '>' && *(d - 1) == ')')
 	  nest++;
-	if (*d == '<')
+	if (*d == '<' && *(d + 1) == '(')
 	  nest--;
 	d--;
       }
     }
+
     if (*d == ')') {
       /* Skip over params */
       int nparen = 1;
@@ -1259,10 +1253,10 @@ String *SwigType_prefix(const SwigType *t) {
     }
 
     if (*d == '.') {
-      char t = *(d + 1);
+      char x = *(d + 1);
       *(d + 1) = 0;
       r = NewString(c);
-      *(d + 1) = t;
+      *(d + 1) = x;
       return r;
     }
   }
