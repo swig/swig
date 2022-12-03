@@ -95,13 +95,36 @@
     class ClassWithNestedEnum {
     public:
         /**
-         * Enum description.
+         * ENested description.
          */
         typedef enum {ONE,  ///< desc of one
                       TWO,  ///< desc of two
                       THREE ///< desc of three
         } ENested;
 
+        /**
+         * ENestedOdd description.
+         */
+        typedef enum {ODD_ONE   ///< desc of odd_one
+                     ,ODD_TWO   ///< desc of odd_two
+                     ,ODD_THREE ///< desc of odd_three
+        } ENestedOdd;
+
+        /**
+         * ENestedOddPartial1 description.
+         */
+        typedef enum {ODD_PARTIAL1_ONE
+                     ,ODD_PARTIAL1_TWO   ///< desc of odd_partial1_two
+                     ,ODD_PARTIAL1_THREE ///< desc of odd_partial1_three
+        } ENestedOddPartial1;
+
+        /**
+         * ENestedOddPartial3 description.
+         */
+        typedef enum {ODD_PARTIAL3_ONE   ///< desc of odd_partial3_one
+                     ,ODD_PARTIAL3_TWO   ///< desc of odd_partial3_two
+                     ,ODD_PARTIAL3_THREE
+        } ENestedOddPartial3;
     };
 
     /// @return This is a bad place for this tag, but it should be ignored.

@@ -97,7 +97,7 @@ public class doxygen_misc_constructs_runme {
     		"\n");
 
     wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENested",
-    		" Enum description.\n" +
+    		" ENested description.\n" +
     		"\n");
 
     wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENested.ONE",
@@ -108,6 +108,42 @@ public class doxygen_misc_constructs_runme {
 
     wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENested.THREE",
     		" desc of three\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOdd",
+    		" ENestedOdd description.\n" +
+    		"\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOdd.ODD_ONE",
+    		" desc of odd_one\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOdd.ODD_TWO",
+    		" desc of odd_two\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOdd.ODD_THREE",
+    		" desc of odd_three\n");
+
+    wantedComments.put("doxygen_misc_constructs.StructWithReturnComment",
+    		" @return This is a bad place for this tag, but it should be ignored.");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial1",
+    		" ENestedOddPartial1 description.\n" +
+    		"\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial1.ODD_PARTIAL1_THREE",
+    		" desc of odd_partial1_three\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial1.ODD_PARTIAL1_TWO",
+    		" desc of odd_partial1_two\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial3",
+    		" ENestedOddPartial3 description.\n" +
+    		"\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial3.ODD_PARTIAL3_ONE",
+    		" desc of odd_partial3_one\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial3.ODD_PARTIAL3_TWO",
+    		" desc of odd_partial3_two\n");
 
     wantedComments.put("doxygen_misc_constructs.StructWithReturnComment",
     		" @return This is a bad place for this tag, but it should be ignored.");

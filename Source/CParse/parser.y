@@ -6489,6 +6489,17 @@ enumlist	: enumlist_item {
 		  }
 		  $$ = $1;
 		}
+		| enumlist_item DOXYGENPOSTSTRING COMMA enumlist {
+		  if ($4) {
+		    set_nextSibling($1, $4);
+		    Setattr($1,"_last",Getattr($4,"_last"));
+		    Setattr($4,"_last",NULL);
+		  } else {
+		    Setattr($1,"_last",$1);
+		  }
+		  set_comment($1, $2);
+		  $$ = $1;
+		}
 		| enumlist_item COMMA DOXYGENPOSTSTRING enumlist {
 		  if ($4) {
 		    set_nextSibling($1, $4);

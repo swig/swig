@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2022-12-03: wsfulton
+            #1715 Fix syntax error parsing of unconventionally placed Doxygen post
+            comments for enum items.
+
 2022-12-02: wsfulton
             #624 #1021 Improved template template parameters support. Previously, specifying more
             than one simple template template parameter resulted in a parse error. Now
