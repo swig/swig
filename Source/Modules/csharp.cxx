@@ -3862,6 +3862,7 @@ public:
     String *post_code = NewString("");
     String *terminator_code = NewString("");
     String *tm;
+    String *tm2;
     Parm *p;
     int i;
     Wrapper *w = NewWrapper();
@@ -3975,14 +3976,14 @@ public:
       }
       if (mono_aot_compatibility_flag && !ignored_method) {
         for (i = 0, p = l; p; ++i) {
-          if ((tm = Getattr(p, "tmap:imtype"))) {
+          if ((tm2 = Getattr(p, "tmap:imtype"))) {
             String *imtypeout = Getattr(p, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
             if (imtypeout){
               Printf(stdout, "override with tmap:imtype:out %s", imtypeout);
-              tm = imtypeout;   
+              tm2 = imtypeout;   
             }
             Printf(stdout, "typemap is %s \n", tm);
-            if(Cmp(tm,"string")==0){
+            if(Cmp(tm2,"string")==0){
               unsafe = true; 
               break;
             }
@@ -4151,11 +4152,15 @@ public:
 		Printf(proxy_method_types, ", ");
 		Printf(imcall_args, ", ");
 	      }
-        Printf(delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, tm, ln);
-        if(mono_aot_compatibility_flag && Cmp(tm, "string") == 0)
+        if(mono_aot_compatibility_flag && Cmp(tm, "string") == 0){
+          Printf(delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, "char *", ln);
           Printf(mono_aot_dispatcher_parms, "new string(%s)", ln);
+        }
         else
+        {
+          Printf(delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, tm, ln);
           Printf(mono_aot_dispatcher_parms, "%s", ln);
+        }
 	      if (Cmp(din, ln)) {
 		Printv(imcall_args, din, NIL);
 	      } else
@@ -4251,9 +4256,6 @@ public:
     Append(declaration, ";\n");
 
     /* Finish off the inherited upcall's definition */
-    if(mono_aot_compatibility_flag && unsafe){
-      Replaceall(delegate_parms, "string", "char*");
-    }
     Printf(callback_def, "%s)", delegate_parms);
     Printf(callback_def, " {\n");
 
@@ -4420,8 +4422,8 @@ public:
       } else {
 	Printf(director_callbacks, "    SWIG_Callback%s_Dispatcher_t swig_callback%s_dispatcher;\n", methid, overloaded_name);
 	Printf(director_callbacks, "    Swig::GCHandle swig_callback%s;\n", overloaded_name);
-	Printf(director_mono_aot_delegate_definitions, " SwigDelegate%s_%s_Dispatcher(global::System.IntPtr swigDelegate%s_%s_Handle%s%s);\n", classname, methid, classname, methid, ParmList_len(l) > 0 ? ", " : "",delegate_parms);
-	Printf(director_mono_aot_delegate_instances, "  private SwigDelegate%s_%s_Dispatcher swigDelegate%sdispatcher;\n", classname, methid, methid);
+	Printf(director_mono_aot_delegate_definitions, " %sSwigDelegate%s_%s_Dispatcher(global::System.IntPtr swigDelegate%s_%s_Handle%s%s);\n",unsafe?"unsafe ":"", classname, methid, classname, methid, ParmList_len(l) > 0 ? ", " : "",delegate_parms);
+	Printf(director_mono_aot_delegate_instances, "  private %sSwigDelegate%s_%s_Dispatcher swigDelegate%sdispatcher;\n",unsafe?"unsafe ":"", classname, methid, methid);
       }
       
       Printf(director_delegate_definitions, " SwigDelegate%s_%s(%s);\n", classname, methid, delegate_parms);
