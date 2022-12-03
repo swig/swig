@@ -6479,6 +6479,11 @@ enumlist	: enumlist_item {
 		  set_comment($1, $2);
 		  $$ = $1;
 		}
+		| enumlist_item DOXYGENSTRING {
+		  Setattr($1, "_last", $1);
+		  set_comment($1, $2);
+		  $$ = $1;
+		}
 		| enumlist_item COMMA enumlist {
 		  if ($3) {
 		    set_nextSibling($1, $3);

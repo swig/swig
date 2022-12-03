@@ -8,6 +8,9 @@ Version 4.2.0 (in progress)
 ===========================
 
 2022-12-03: wsfulton
+            #1609 Fix syntax error parsing of Doxygen comments after last enum item.
+
+2022-12-03: wsfulton
             #1715 Fix syntax error parsing of unconventionally placed Doxygen post
             comments for enum items.
 

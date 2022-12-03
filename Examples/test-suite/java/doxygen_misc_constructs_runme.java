@@ -145,6 +145,19 @@ public class doxygen_misc_constructs_runme {
     wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial3.ODD_PARTIAL3_TWO",
     		" desc of odd_partial3_two\n");
 
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.TESTENUM",
+    		" Description for TESTENUM.\n" +
+    		"\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.TESTENUM.TEST_NONE",
+    		" something for none\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.TESTENUM.TEST_ONE",
+    		" something for one\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.TESTENUM.TEST_TWO",
+    		" something for two  something more for two\n");
+
     wantedComments.put("doxygen_misc_constructs.StructWithReturnComment",
     		" @return This is a bad place for this tag, but it should be ignored.");
 

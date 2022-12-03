@@ -125,6 +125,17 @@
                      ,ODD_PARTIAL3_TWO   ///< desc of odd_partial3_two
                      ,ODD_PARTIAL3_THREE
         } ENestedOddPartial3;
+
+        /** Description for TESTENUM. */
+        enum TESTENUM
+        {
+          /** something for none */
+          TEST_NONE = 0,
+          /** something for one */
+          TEST_ONE,
+          /** something for two */
+          TEST_TWO  /** something more for two */
+        };
     };
 
     /// @return This is a bad place for this tag, but it should be ignored.
