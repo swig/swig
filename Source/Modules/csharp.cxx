@@ -3967,6 +3967,16 @@ public:
 	Printf(callback_def, "  %s\n", im_directoroutattributes);
 	if (!ignored_method)
 	  Printf(director_delegate_definitions, "  %s\n", im_directoroutattributes);
+ Swig_director_parms_fixup(l);
+
+    /* Attach the standard typemaps */
+    Swig_typemap_attach_parms("out", l, 0);
+    Swig_typemap_attach_parms("ctype", l, 0);
+    Swig_typemap_attach_parms("imtype", l, 0);
+    Swig_typemap_attach_parms("cstype", l, 0);
+    Swig_typemap_attach_parms("directorin", l, w);
+    Swig_typemap_attach_parms("csdirectorin", l, 0);
+    Swig_typemap_attach_parms("directorargout", l, w);
 
 	if (mono_aot_compatibility_flag) {
 	  Printf(callback_mono_aot_def, "  %s\n", im_directoroutattributes);
@@ -4020,17 +4030,7 @@ public:
       output_director = false;
     }
 
-    Swig_director_parms_fixup(l);
-
-    /* Attach the standard typemaps */
-    Swig_typemap_attach_parms("out", l, 0);
-    Swig_typemap_attach_parms("ctype", l, 0);
-    Swig_typemap_attach_parms("imtype", l, 0);
-    Swig_typemap_attach_parms("cstype", l, 0);
-    Swig_typemap_attach_parms("directorin", l, w);
-    Swig_typemap_attach_parms("csdirectorin", l, 0);
-    Swig_typemap_attach_parms("directorargout", l, w);
-
+   
     /* Preamble code */
     if (!ignored_method)
       Printf(w->code, "if (!swig_callback%s) {\n", overloaded_name);
