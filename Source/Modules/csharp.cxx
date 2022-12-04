@@ -3986,89 +3986,26 @@ public:
     Swig_typemap_attach_parms("csdirectorin", l, 0);
     Swig_typemap_attach_parms("directorargout", l, w);
 
-///////Test
-{
-    String *test_tm;
-
-for (i = 0, p = l; p; ++i) {
-      /* Is this superfluous? */
-      while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
-	      p = Getattr(p, "tmap:directorin:next");
-      }
-
-      SwigType *pt = Getattr(p, "type");
-      String *ln = makeParameterName(n, p, i, false);
-      String *c_param_type = NULL;
-      String *c_decl = NewString("");
-      String *arg = NewString("");
-      Printf(stdout, "1. TM is %s", Getattr(p, "tmap:imtype"));
-      Printf(arg, "j%s", ln);
-
-      /* Get parameter's intermediary C type */
-      if ((c_param_type = Getattr(p, "tmap:ctype"))) {
-	String *ctypeout = Getattr(p, "tmap:ctype:out");	// the type in the ctype typemap's out attribute overrides the type in the typemap
-	if (ctypeout){
-	  c_param_type = ctypeout; Printf(stdout, "1. ctypeout");
-  }
-  }
-
-	Printf(c_decl, "%s %s", c_param_type, arg);
-	// if (!ignored_method)
-	  // Wrapper_add_localv(w, arg, c_decl, (!(SwigType_ispointer(pt) || SwigType_isreference(pt)) ? "" : "= 0"), NIL);
-  Printf(stdout, "2. TM is %s", test_tm);
-
-	if ((test_tm = Getattr(p, "tmap:directorin"))) {
-    Printf(stdout, "1. TM is %s", Getattr(p, "tmap:imtype"));
-
-	  if ((test_tm = Getattr(p, "tmap:imtype"))) {
-
-	    String *imtypeout = Getattr(p, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
-	    if (imtypeout)
-	      test_tm = imtypeout;
-      Printf(stdout, "3. TM is %s", test_tm);
-
-	    String *din = Copy(Getattr(p, "tmap:csdirectorin"));
-	    if (din) {
-	      Replaceall(din, "$module", module_class_name);
-	      Replaceall(din, "$imclassname", imclass_name);
-	      substituteClassname(pt, din);
-	      Replaceall(din, "$iminput", ln);
-        Printf(stdout, "4. TM is %s\n", test_tm);
-        if(mono_aot_compatibility_flag && Cmp(test_tm, "string") == 0){
-            Printf(stdout, "5. Its a string!\n");
-            unsafe = true; 
-            break;
-        }
-            /* Get the C# parameter type */
-	      if ((test_tm = Getattr(p, "tmap:cstype"))) 
-		      substituteClassname(pt, test_tm);
-      }
-    }
-	  p = Getattr(p, "tmap:directorin:next");
-	} else {
-	  p = nextSibling(p);
-    Printf(stdout, "0. Skipping!\n");
-	}
-}
-}
-
-
       if (mono_aot_compatibility_flag && !ignored_method) {
         String *tm2;
         for (i = 0, p = l; p; ++i) {
-          if ((tm2 = Getattr(p, "tmap:imtype"))) {
-            String *imtypeout = Getattr(p, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
-            if (imtypeout){
-              Printf(stdout, "override with tmap:imtype:out %s", imtypeout);
-              tm2 = imtypeout;   
-            }
-            Printf(stdout, "typemap is %s \n", tm);
-            if(Cmp(tm2,"string")==0){
-              unsafe = true; 
-              break;
-            }
+          while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
+            p = Getattr(p, "tmap:directorin:next");
           }
-          p = nextSibling(p);
+          if ((tm2 = Getattr(p, "tmap:directorin"))) {
+            if ((tm2 = Getattr(p, "tmap:imtype"))) {
+              String *imtypeout = Getattr(p, "tmap:imtype:out");	
+              if (imtypeout)
+                tm2 = imtypeout;
+              if(Cmp(tm2, "string") == 0){
+                  unsafe = true; 
+                  break;
+              }
+            }
+            p = Getattr(p, "tmap:directorin:next");
+          } else {
+            p = nextSibling(p);
+          }
         }
         Printf(callback_mono_aot_def, "\n  [%s.MonoPInvokeCallback(typeof(SwigDelegate%s_%s_Dispatcher))]\n", imclass_name, classname, methid);
         Printf(callback_mono_aot_def, "  %sprivate static %s SwigDirector%s_Dispatcher(", unsafe?"unsafe ":"" , tm, overloaded_name);
@@ -4084,9 +4021,6 @@ for (i = 0, p = l; p; ++i) {
         }
         Delete(modifiers);
       }
-    } else {
-Printf(stdout, "1. ctypeout");
-    }
 
     if ((c_ret_type = Swig_typemap_lookup("ctype", n, "", 0))) {
       if (!is_void && !ignored_method) {
