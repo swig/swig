@@ -3862,7 +3862,6 @@ public:
     String *post_code = NewString("");
     String *terminator_code = NewString("");
     String *tm;
-    String *tm2;
     Parm *p;
     int i;
     Wrapper *w = NewWrapper();
@@ -3967,7 +3966,16 @@ public:
 	Printf(callback_def, "  %s\n", im_directoroutattributes);
 	if (!ignored_method)
 	  Printf(director_delegate_definitions, "  %s\n", im_directoroutattributes);
- Swig_director_parms_fixup(l);
+
+	if (mono_aot_compatibility_flag) {
+	  Printf(callback_mono_aot_def, "  %s\n", im_directoroutattributes);
+	  if (!ignored_method)
+	    Printf(director_mono_aot_delegate_definitions, "  %s\n", im_directoroutattributes);
+	}  
+      }
+
+
+    Swig_director_parms_fixup(l);
 
     /* Attach the standard typemaps */
     Swig_typemap_attach_parms("out", l, 0);
@@ -3978,12 +3986,71 @@ public:
     Swig_typemap_attach_parms("csdirectorin", l, 0);
     Swig_typemap_attach_parms("directorargout", l, w);
 
-	if (mono_aot_compatibility_flag) {
-	  Printf(callback_mono_aot_def, "  %s\n", im_directoroutattributes);
-	  if (!ignored_method)
-	    Printf(director_mono_aot_delegate_definitions, "  %s\n", im_directoroutattributes);
-	}  
+///////Test
+{
+    String *test_tm;
+
+for (i = 0, p = l; p; ++i) {
+      /* Is this superfluous? */
+      while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
+	      p = Getattr(p, "tmap:directorin:next");
       }
+
+      SwigType *pt = Getattr(p, "type");
+      String *ln = makeParameterName(n, p, i, false);
+      String *c_param_type = NULL;
+      String *c_decl = NewString("");
+      String *arg = NewString("");
+      Printf(stdout, "1. TM is %s", Getattr(p, "tmap:imtype"));
+      Printf(arg, "j%s", ln);
+
+      /* Get parameter's intermediary C type */
+      if ((c_param_type = Getattr(p, "tmap:ctype"))) {
+	String *ctypeout = Getattr(p, "tmap:ctype:out");	// the type in the ctype typemap's out attribute overrides the type in the typemap
+	if (ctypeout){
+	  c_param_type = ctypeout; Printf(stdout, "1. ctypeout");
+  }
+  }
+
+	Printf(c_decl, "%s %s", c_param_type, arg);
+	// if (!ignored_method)
+	  // Wrapper_add_localv(w, arg, c_decl, (!(SwigType_ispointer(pt) || SwigType_isreference(pt)) ? "" : "= 0"), NIL);
+  Printf(stdout, "2. TM is %s", test_tm);
+
+	if ((test_tm = Getattr(p, "tmap:directorin"))) {
+    Printf(stdout, "1. TM is %s", Getattr(p, "tmap:imtype"));
+
+	  if ((test_tm = Getattr(p, "tmap:imtype"))) {
+
+	    String *imtypeout = Getattr(p, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
+	    if (imtypeout)
+	      test_tm = imtypeout;
+      Printf(stdout, "3. TM is %s", test_tm);
+
+	    String *din = Copy(Getattr(p, "tmap:csdirectorin"));
+	    if (din) {
+	      Replaceall(din, "$module", module_class_name);
+	      Replaceall(din, "$imclassname", imclass_name);
+	      substituteClassname(pt, din);
+	      Replaceall(din, "$iminput", ln);
+        Printf(stdout, "4. TM is %s\n", test_tm);
+        if(mono_aot_compatibility_flag && Cmp(test_tm, "string") == 0){
+            Printf(stdout, "5. Its a string!\n");
+        }
+            /* Get the C# parameter type */
+	      if ((test_tm = Getattr(p, "tmap:cstype"))) 
+		      substituteClassname(pt, test_tm);
+      }
+    }
+	  p = Getattr(p, "tmap:directorin:next");
+	} else {
+	  p = nextSibling(p);
+    Printf(stdout, "0. Skipping!\n");
+	}
+}
+}
+//END----------------------------------------------
+
       if (mono_aot_compatibility_flag && !ignored_method) {
         for (i = 0, p = l; p; ++i) {
           if ((tm2 = Getattr(p, "tmap:imtype"))) {
@@ -4015,7 +4082,7 @@ public:
         Delete(modifiers);
       }
     } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(returntype, 0));
+Printf(stdout, "1. ctypeout");
     }
 
     if ((c_ret_type = Swig_typemap_lookup("ctype", n, "", 0))) {
@@ -4030,7 +4097,6 @@ public:
       output_director = false;
     }
 
-   
     /* Preamble code */
     if (!ignored_method)
       Printf(w->code, "if (!swig_callback%s) {\n", overloaded_name);
