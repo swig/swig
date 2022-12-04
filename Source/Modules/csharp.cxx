@@ -4036,6 +4036,8 @@ for (i = 0, p = l; p; ++i) {
         Printf(stdout, "4. TM is %s\n", test_tm);
         if(mono_aot_compatibility_flag && Cmp(test_tm, "string") == 0){
             Printf(stdout, "5. Its a string!\n");
+            unsafe = true; 
+            break;
         }
             /* Get the C# parameter type */
 	      if ((test_tm = Getattr(p, "tmap:cstype"))) 
@@ -4049,9 +4051,10 @@ for (i = 0, p = l; p; ++i) {
 	}
 }
 }
-//END----------------------------------------------
+
 
       if (mono_aot_compatibility_flag && !ignored_method) {
+        String *tm2;
         for (i = 0, p = l; p; ++i) {
           if ((tm2 = Getattr(p, "tmap:imtype"))) {
             String *imtypeout = Getattr(p, "tmap:imtype:out");	// the type in the imtype typemap's out attribute overrides the type in the typemap
