@@ -3878,6 +3878,7 @@ public:
     String *imclass_dmethod;
     String *callback_typedef_parms = NewString("");
     String *delegate_parms = NewString("");
+    String *mono_aot_blitable_delegate_parms = NewString("");
     String *mono_aot_dispatcher_parms = NewString("");
     String *proxy_method_types = NewString("");
     String *callback_def = NewString("");
@@ -4150,18 +4151,23 @@ public:
 
 	      if (i > 0) {
 		Printf(delegate_parms, ", ");
+		Printf(mono_aot_blitable_delegate_parms, ", ");
 		Printf(mono_aot_dispatcher_parms, ", ");
 		Printf(proxy_method_types, ", ");
 		Printf(imcall_args, ", ");
 	      }
-        if(mono_aot_compatibility_flag && Cmp(tm, "string") == 0){
-          Printf(delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, "char *", ln);
-          Printf(mono_aot_dispatcher_parms, "new string(%s)", ln);
-        }
-        else
+        Printf(delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, tm, ln);
+        if(mono_aot_compatibility_flag)
         {
-          Printf(delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, tm, ln);
-          Printf(mono_aot_dispatcher_parms, "%s", ln);
+          if(Cmp(tm, "string") == 0){
+            Printf(mono_aot_blitable_delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, "char *", ln);
+            Printf(mono_aot_dispatcher_parms, "new string(%s)", ln);
+          }
+          else
+          {
+            Printf(mono_aot_blitable_delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, tm, ln);
+            Printf(mono_aot_dispatcher_parms, "%s", ln);
+          }
         }
 	      if (Cmp(din, ln)) {
 		Printv(imcall_args, din, NIL);
@@ -4262,7 +4268,7 @@ public:
     Printf(callback_def, " {\n");
 
     if (mono_aot_compatibility_flag) {
-      Printf(callback_mono_aot_def, "global::System.IntPtr swigDelegate%s_%s_Handle%s%s)", classname, methid, ParmList_len(l) > 0 ? ", " : "", delegate_parms);
+      Printf(callback_mono_aot_def, "global::System.IntPtr swigDelegate%s_%s_Handle%s%s)", classname, methid, ParmList_len(l) > 0 ? ", " : "", mono_aot_blitable_delegate_parms);
       Printf(callback_mono_aot_def, " {\n");	    
     }
 
@@ -4424,7 +4430,7 @@ public:
       } else {
 	Printf(director_callbacks, "    SWIG_Callback%s_Dispatcher_t swig_callback%s_dispatcher;\n", methid, overloaded_name);
 	Printf(director_callbacks, "    Swig::GCHandle swig_callback%s;\n", overloaded_name);
-	Printf(director_mono_aot_delegate_definitions, " %sSwigDelegate%s_%s_Dispatcher(global::System.IntPtr swigDelegate%s_%s_Handle%s%s);\n",unsafe?"unsafe ":"", classname, methid, classname, methid, ParmList_len(l) > 0 ? ", " : "",delegate_parms);
+	Printf(director_mono_aot_delegate_definitions, " SwigDelegate%s_%s_Dispatcher(global::System.IntPtr swigDelegate%s_%s_Handle%s%s);\n", classname, methid, classname, methid, ParmList_len(l) > 0 ? ", " : "",mono_aot_blitable_delegate_parms);
 	Printf(director_mono_aot_delegate_instances, "  private %sSwigDelegate%s_%s_Dispatcher swigDelegate%sdispatcher;\n",unsafe?"unsafe ":"", classname, methid, methid);
       }
       
@@ -4441,6 +4447,7 @@ public:
     Delete(declaration);
     Delete(callback_typedef_parms);
     Delete(delegate_parms);
+    Delete(mono_aot_blitable_delegate_parms);
     Delete(proxy_method_types);
     Delete(callback_def);
     Delete(callback_code);
