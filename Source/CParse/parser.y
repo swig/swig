@@ -76,12 +76,11 @@ static int      template_reduce = 0;
 static int      cparse_externc = 0;
 int		ignore_nested_classes = 0;
 int		kwargs_supported = 0;
+
 /* -----------------------------------------------------------------------------
  *                            Doxygen Comment Globals
  * ----------------------------------------------------------------------------- */
 static String *currentDeclComment = NULL; /* Comment of C/C++ declaration. */
-static Node *previousNode = NULL; /* Pointer to the previous node (for post comments) */
-static Node *currentNode = NULL; /* Pointer to the current node (for post comments) */
 
 /* -----------------------------------------------------------------------------
  *                            Assist Functions
@@ -96,9 +95,6 @@ static void yyerror (const char *e) {
 
 static Node *new_node(const_String_or_char_ptr tag) {
   Node *n = Swig_cparse_new_node(tag);
-  /* Remember the previous node in case it will need a post-comment */
-  previousNode = currentNode;
-  currentNode = n;
   return n;
 }
 
@@ -1680,7 +1676,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       identifier;
 %type <dtype>    initializer cpp_const exception_specification cv_ref_qualifier qualifiers_exception_specification;
 %type <id>       storage_class extern_string;
-%type <pl>       parms  ptail rawparms varargs_parms ;
+%type <pl>       parms rawparms varargs_parms ;
 %type <pl>       templateparameterstail;
 %type <p>        parm_no_dox parm valparm rawvalparms valparms valptail ;
 %type <p>        typemap_parm tm_list tm_tail ;
@@ -4455,16 +4451,12 @@ template_parms : templateparameter templateparameterstail {
 
 templateparameter : templcpptype def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewString($1), 0);
-		    previousNode = currentNode;
-		    currentNode = $$;
 		    Setfile($$, cparse_file);
 		    Setline($$, cparse_line);
 		    Setattr($$, "value", $2.rawval ? $2.rawval : $2.val);
 		  }
 		  | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype idcolon def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewStringf("template< %s > %s %s", ParmList_str_defaultargs($3), $5, $6), $6);
-		    previousNode = currentNode;
-		    currentNode = $$;
 		    Setfile($$, cparse_file);
 		    Setline($$, cparse_line);
 		    if ($7.val) {
@@ -4473,8 +4465,6 @@ templateparameter : templcpptype def_args {
 		  }
 		  | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewStringf("template< %s > %s", ParmList_str_defaultargs($3), $5), 0);
-		    previousNode = currentNode;
-		    currentNode = $$;
 		    Setfile($$, cparse_file);
 		    Setline($$, cparse_line);
 		    if ($6.val) {
@@ -5167,35 +5157,47 @@ parms          : rawparms {
                }
     	       ;
 
-rawparms          : parm ptail {
-                  set_nextSibling($1,$2);
-                  $$ = $1;
+/* rawparms constructs parameter lists and deal with quirks of doxygen post strings (after the parameter's comma */
+rawparms	: parm {
+		  $$ = $1;
 		}
-               | empty {
+		| parm DOXYGENPOSTSTRING {
+		  set_comment($1, $2);
+		  $$ = $1;
+		}
+		| parm DOXYGENSTRING {
+		  /* Misplaced doxygen string, attach it to previous parameter, like Doxygen does */
+		  set_comment($1, $2);
+		  $$ = $1;
+		}
+		| parm COMMA parms {
+		  if ($3) {
+		    set_nextSibling($1, $3);
+		  }
+		  $$ = $1;
+		}
+		| parm DOXYGENPOSTSTRING COMMA parms {
+		  if ($4) {
+		    set_nextSibling($1, $4);
+		  }
+		  set_comment($1, $2);
+		  $$ = $1;
+		}
+		| parm COMMA DOXYGENPOSTSTRING parms {
+		  if ($4) {
+		    set_nextSibling($1, $4);
+		  }
+		  set_comment($1, $3);
+		  $$ = $1;
+		}
+		| empty {
 		  $$ = 0;
-		  previousNode = currentNode;
-		  currentNode=0;
-	       }
-               ;
-
-ptail          : COMMA parm ptail {
-                 set_nextSibling($2,$3);
-		 $$ = $2;
-                }
-	       | COMMA DOXYGENPOSTSTRING parm ptail {
-		 set_comment(previousNode, $2);
-                 set_nextSibling($3, $4);
-		 $$ = $3;
-               }
-               | empty { $$ = 0; }
-               ;
-
+		}
+		;
 
 parm_no_dox	: rawtype parameter_declarator {
                    SwigType_push($1,$2.type);
 		   $$ = NewParmWithoutFileLineInfo($1,$2.id);
-		   previousNode = currentNode;
-		   currentNode = $$;
 		   Setfile($$,cparse_file);
 		   Setline($$,cparse_line);
 		   if ($2.defarg) {
@@ -5205,8 +5207,6 @@ parm_no_dox	: rawtype parameter_declarator {
                 | ELLIPSIS {
 		  SwigType *t = NewString("v(...)");
 		  $$ = NewParmWithoutFileLineInfo(t, 0);
-		  previousNode = currentNode;
-		  currentNode = $$;
 		  Setfile($$,cparse_file);
 		  Setline($$,cparse_line);
 		}
@@ -5218,10 +5218,6 @@ parm		: parm_no_dox {
 		| DOXYGENSTRING parm_no_dox {
 		  $$ = $2;
 		  set_comment($2, $1);
-		}
-		| parm_no_dox DOXYGENPOSTSTRING {
-		  $$ = $1;
-		  set_comment($1, $2);
 		}
 		;
 
@@ -6481,6 +6477,7 @@ enumlist	: enumlist_item {
 		}
 		| enumlist_item DOXYGENSTRING {
 		  Setattr($1, "_last", $1);
+		  /* Misplaced doxygen string, attach it to previous parameter, like Doxygen does */
 		  set_comment($1, $2);
 		  $$ = $1;
 		}

@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2022-12-05: wsfulton
+            #2023 Fix garbled Doxygen post comments in parameter lists.
+            Fix syntax error parsing a trailing Doxygen comment in parameter lists.
+
 2022-12-03: wsfulton
             #1609 Fix syntax error parsing of Doxygen comments after last enum item.
 

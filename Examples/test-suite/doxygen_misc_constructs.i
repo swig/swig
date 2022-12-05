@@ -138,6 +138,27 @@
         };
     };
 
+    /// SIOBeam struct description
+    struct SIOBeam {
+
+      /** testfunction - testing extra trailing doc comment */
+      void testfunction(
+          /** testfunction aaa parm */
+          int testf_aaa,
+          /** testfunction bbb parm */
+          double testf_bbb,
+          /** testfunction ccc parm */
+          bool testf_ccc /** testfunction more for two parm */
+          ) {}
+
+      /// Constructor for input from an existing SIO file
+      explicit SIOBeam(
+          const char * filename,   ///< Name of input SIO file.
+          int elevationOrder=1, ///< Interpolation order (0-3) in elevation
+          int bearingOrder=1   ///< Interpolation order (0-3) in bearing
+          ) {}
+    };
+
     /// @return This is a bad place for this tag, but it should be ignored.
     struct StructWithReturnComment {};
 
