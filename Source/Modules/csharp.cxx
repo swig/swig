@@ -3972,8 +3972,7 @@ public:
 	  if (!ignored_method)
 	    Printf(director_mono_aot_delegate_definitions, "  %s\n", im_directoroutattributes);
 	}  
-      }
-
+}
 
     Swig_director_parms_fixup(l);
 
@@ -3992,20 +3991,20 @@ public:
           while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
             p = Getattr(p, "tmap:directorin:next");
           }
-          if ((tm2 = Getattr(p, "tmap:directorin"))) {
-            if ((tm2 = Getattr(p, "tmap:imtype"))) {
-              String *imtypeout = Getattr(p, "tmap:imtype:out");	
-              if (imtypeout)
-                tm2 = imtypeout;
-              if(Cmp(tm2, "string") == 0){
-                  unsafe = true; 
-                  break;
-              }
-            }
-            p = Getattr(p, "tmap:directorin:next");
-          } else {
-            p = nextSibling(p);
-          }
+  if ((tm2 = Getattr(p, "tmap:directorin"))) {
+    if ((tm2 = Getattr(p, "tmap:imtype"))) {
+      String *imtypeout = Getattr(p, "tmap:imtype:out");	
+      if (imtypeout)
+        tm2 = imtypeout;
+      if(Cmp(tm2, "string") == 0){
+    unsafe = true; 
+    break;
+      }
+    }
+    p = Getattr(p, "tmap:directorin:next");
+  } else {
+    p = nextSibling(p);
+  }
         }
         Printf(callback_mono_aot_def, "\n  [%s.MonoPInvokeCallback(typeof(SwigDelegate%s_%s_Dispatcher))]\n", imclass_name, classname, methid);
         Printf(callback_mono_aot_def, "  %sprivate static %s SwigDirector%s_Dispatcher(", unsafe?"unsafe ":"" , tm, overloaded_name);
@@ -4017,11 +4016,11 @@ public:
         String *modifiers = (csdirectordelegatemodifiers ? NewStringf("%s%s", csdirectordelegatemodifiers, Len(csdirectordelegatemodifiers) > 0 ? " " : "") : NewStringf("public "));
         Printf(director_delegate_definitions, "  %sdelegate %s", modifiers, tm);
         if (mono_aot_compatibility_flag) {
-          Printf(director_mono_aot_delegate_definitions, " %s %sdelegate %s", unsafe ? "unsafe ":"", modifiers, tm);
+          Printf(director_mono_aot_delegate_definitions, "  %s%sdelegate %s", unsafe ? "unsafe ":"", modifiers, tm);
         }
         Delete(modifiers);
       }
-
+    }
     if ((c_ret_type = Swig_typemap_lookup("ctype", n, "", 0))) {
       if (!is_void && !ignored_method) {
 	String *jretval_decl = NewStringf("%s jresult", c_ret_type);
