@@ -199,6 +199,16 @@ public class doxygen_misc_constructs_runme {
 " <br>\n" +
 "        And this is not a list item any more.\n" +
     		"");
+
+    wantedComments.put("doxygen_misc_constructs.IncorrectlyDocumentedMembers",
+    		" Incorrectly documented members, these should be post document comments, Github issue #1636");
+
+    wantedComments.put("doxygen_misc_constructs.IncorrectlyDocumentedMembers.setBbbb(int)",
+    		" really for bbbb value");
+
+    wantedComments.put("doxygen_misc_constructs.IncorrectlyDocumentedMembers.getBbbb()",
+    		" really for bbbb value");
+
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.isNoSpaceValidA()",
     		" This comment without space after '*' is valid in Doxygen.\n" +
     		"\n" +

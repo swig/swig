@@ -132,6 +132,14 @@ public class doxygen_parsing_runme {
     wantedComments.put("doxygen_parsing.doxygen_parsingConstants.CONSTANT_VALUE",
     		"The constant comment \n" +
     		"");
+    wantedComments.put("doxygen_parsing.Foo1636.getGroupmember1()",
+	        "groupmember1 description");
+    wantedComments.put("doxygen_parsing.Foo1636.setGroupmember1(int)",
+	        "groupmember1 description");
+    wantedComments.put("doxygen_parsing.Foo1636.getGroupmember2()",
+	        "groupmember2 description");
+    wantedComments.put("doxygen_parsing.Foo1636.setGroupmember2(int)",
+	        "groupmember2 description");
     wantedComments.put("doxygen_parsing.Foo1750.getA()",
 	        "");
     wantedComments.put("doxygen_parsing.Foo1750.getB()",

@@ -4668,7 +4668,11 @@ cpp_members  : cpp_member cpp_members {
 		   } else {
 		     $$ = $2;
 		   }
-             }
+	     }
+	     | cpp_member DOXYGENSTRING {
+	       /* Misplaced doxygen string after a member, quietly ignore, like Doxygen does */
+	       $$ = $1;
+	     }
              | EXTEND LBRACE { 
 	       extendmode = 1;
 	       if (cplus_mode != CPLUS_PUBLIC) {

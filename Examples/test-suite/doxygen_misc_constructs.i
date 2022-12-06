@@ -176,6 +176,13 @@
      */
     void showList() { }
 
+    /** Incorrectly documented members, these should be post document comments, Github issue #1636 */
+    struct IncorrectlyDocumentedMembers
+    {
+      int aaaa; //! really for bbbb value
+      int bbbb; //! not for bbbb value, is quietly ignored by Doxygen and SWIG
+    };
+
     #include "doxygen_misc_constructs.h"
 
 %}
