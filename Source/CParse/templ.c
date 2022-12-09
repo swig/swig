@@ -322,8 +322,7 @@ static void cparse_postprocess_expanded_template(Node *n) {
  * partial_arg()
  * ----------------------------------------------------------------------------- */
 
-static
-String *partial_arg(String *s, String *p) {
+static String *partial_arg(String *s, String *p) {
   char *c;
   char *cp = Char(p);
   String *prefix;
@@ -1004,4 +1003,77 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, String *symname, S
   }
 
   return n;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_cparse_template_parms_expand()
+ *
+ * instantiated_parameters: template parameters passed to %template
+ * temparms_inputs: template parameters to use as starting point
+ * targs: primary template parameters, default args copied from here
+ * nn: template node (just used for warning)
+ *
+ * Expand the instantiated_parameters and return a parameter list with default
+ * arguments filled in where necessary.
+ * ----------------------------------------------------------------------------- */
+
+ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parameters, ParmList *temparms_input, Parm *targs, Node *nn) {
+  Parm *p;
+  Parm *tp;
+  int def_supplied = 0;
+  ParmList *temparms = CopyParmList(temparms_input);
+
+  p = instantiated_parameters;
+  tp = temparms;
+
+  if (!p && ParmList_len(p) != ParmList_len(temparms)) {
+    /* we have no template parameters supplied in %template for a template that has default args*/
+    p = tp;
+    def_supplied = 1;
+  }
+
+  while (p) {
+    String *value = Getattr(p, "value");
+    if (def_supplied) {
+      Setattr(p, "default", "1");
+    }
+    if (value) {
+      Setattr(tp, "value", value);
+    } else {
+      SwigType *ty = Getattr(p, "type");
+      if (ty) {
+	Setattr(tp, "type", ty);
+      }
+      Delattr(tp, "value");
+    }
+    /* fix default arg values */
+    if (targs) {
+      Parm *pi = temparms;
+      Parm *ti = targs;
+      String *tv = Getattr(tp, "value");
+      if (!tv) tv = Getattr(tp, "type");
+      while(pi != tp && ti && pi) {
+	String *name = Getattr(ti, "name");
+	String *value = Getattr(pi, "value");
+	if (!value) value = Getattr(pi, "type");
+	Replaceid(tv, name, value);
+	pi = nextSibling(pi);
+	ti = nextSibling(ti);
+      }
+    }
+
+    p = nextSibling(p);
+    tp = nextSibling(tp);
+    if (!p && tp) {
+      p = tp;
+      def_supplied = 1;
+    } else if (p && !tp) { /* Variadic template - tp < p */
+      SWIG_WARN_NODE_BEGIN(nn);
+      Swig_warning(WARN_CPP11_VARIADIC_TEMPLATE, cparse_file,  cparse_line, "Only the first variadic template argument is currently supported.\n");
+      SWIG_WARN_NODE_END(nn);
+      break;
+    }
+  }
+
+  return temparms;
 }

@@ -2812,11 +2812,11 @@ types_directive : TYPES LPAREN parms RPAREN stringbracesemi {
    ------------------------------------------------------------ */
 
 template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN valparms GREATERTHAN SEMI {
-                  Parm *p, *tp;
+                  Parm *p;
 		  Node *n;
 		  Node *outer_class = currentOuterClass;
 		  Symtab *tscope = 0;
-		  int     specialized = 0;
+		  int     specialized = 0; /* fully specialized (an explicit specialization) */
 		  int     variadic = 0;
 		  String *symname = $3 ? NewString($3) : 0;
 
@@ -2892,65 +2892,12 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           continue;
                         } else {
 			  String *tname = Copy($5);
-                          int def_supplied = 0;
-                          /* Expand the template */
-			  Node *templ = Swig_symbol_clookup($5,0);
-			  Parm *targs = templ ? Getattr(templ,"templateparms") : 0;
+			  /* Expand the template */
+			  Node *primary_template = Swig_symbol_clookup(tname, 0);
+			  ParmList *targs = primary_template ? Getattr(primary_template, "templateparms") : 0;
+			  ParmList *temparms_input = specialized ? $7 : tparms;
 
-                          ParmList *temparms;
-                          if (specialized) temparms = CopyParmList($7);
-                          else temparms = CopyParmList(tparms);
-
-                          /* Create typedef's and arguments */
-                          p = $7;
-                          tp = temparms;
-                          if (!p && ParmList_len(p) != ParmList_len(temparms)) {
-                            /* we have no template parameters supplied in %template for a template that has default args*/
-                            p = tp;
-                            def_supplied = 1;
-                          }
-
-                          while (p) {
-                            String *value = Getattr(p,"value");
-                            if (def_supplied) {
-                              Setattr(p,"default","1");
-                            }
-                            if (value) {
-                              Setattr(tp,"value",value);
-                            } else {
-                              SwigType *ty = Getattr(p,"type");
-                              if (ty) {
-                                Setattr(tp,"type",ty);
-                              }
-                              Delattr(tp,"value");
-                            }
-			    /* fix default arg values */
-			    if (targs) {
-			      Parm *pi = temparms;
-			      Parm *ti = targs;
-			      String *tv = Getattr(tp,"value");
-			      if (!tv) tv = Getattr(tp,"type");
-			      while(pi != tp && ti && pi) {
-				String *name = Getattr(ti,"name");
-				String *value = Getattr(pi,"value");
-				if (!value) value = Getattr(pi,"type");
-				Replaceid(tv, name, value);
-				pi = nextSibling(pi);
-				ti = nextSibling(ti);
-			      }
-			    }
-                            p = nextSibling(p);
-                            tp = nextSibling(tp);
-                            if (!p && tp) {
-                              p = tp;
-                              def_supplied = 1;
-                            } else if (p && !tp) { /* Variadic template - tp < p */
-			      SWIG_WARN_NODE_BEGIN(nn);
-                              Swig_warning(WARN_CPP11_VARIADIC_TEMPLATE,cparse_file, cparse_line,"Only the first variadic template argument is currently supported.\n");
-			      SWIG_WARN_NODE_END(nn);
-                              break;
-                            }
-                          }
+			  ParmList *temparms = Swig_cparse_template_parms_expand($7, temparms_input, targs, nn);
 
                           templnode = copy_node(nn);
 			  update_nested_classes(templnode); /* update classes nested within template */
