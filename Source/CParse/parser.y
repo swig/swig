@@ -2892,12 +2892,10 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           continue;
                         } else {
 			  String *tname = Copy($5);
-			  /* Expand the template */
 			  Node *primary_template = Swig_symbol_clookup(tname, 0);
-			  ParmList *targs = primary_template ? Getattr(primary_template, "templateparms") : 0;
-			  ParmList *temparms_input = specialized ? $7 : tparms;
 
-			  ParmList *temparms = Swig_cparse_template_parms_expand($7, temparms_input, targs, nn);
+			  /* Expand the template */
+			  ParmList *temparms = Swig_cparse_template_parms_expand($7, primary_template);
 
                           templnode = copy_node(nn);
 			  update_nested_classes(templnode); /* update classes nested within template */

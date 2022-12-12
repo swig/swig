@@ -113,7 +113,47 @@ ParmList *CopyParmList(ParmList *p) {
 }
 
 /* -----------------------------------------------------------------------------
- * int ParmList_numrequired().  Return number of required arguments
+ * ParmList_join()
+ *
+ * Join two parameter lists. Appends p2 to the end of p.
+ * No copies are made.
+ * Returns start of joined parameter list.
+ * ----------------------------------------------------------------------------- */
+
+ParmList *ParmList_join(ParmList *p, ParmList *p2) {
+  Parm *firstparm = p ? p : p2;
+  Parm *lastparm = p;
+  while (p) {
+    p = nextSibling(p);
+    if (p)
+      lastparm = p;
+  }
+  if (lastparm)
+    set_nextSibling(lastparm, p2);
+
+  return firstparm;
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_nth_parm()
+ *
+ * return the nth parameter (0 based) in the parameter list
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_nth_parm(ParmList *p, unsigned int n) {
+  while (p) {
+    if (n == 0)
+      break;
+    n--;
+    p = nextSibling(p);
+  }
+  return p;
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_numrequired()
+ *
+ * Return number of required arguments
  * ----------------------------------------------------------------------------- */
 
 int ParmList_numrequired(ParmList *p) {

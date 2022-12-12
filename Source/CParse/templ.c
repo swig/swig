@@ -1006,74 +1006,109 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, String *symname, S
 }
 
 /* -----------------------------------------------------------------------------
+ * merge_parameters()
+ *
+ * expanded_templateparms are the template parameters passed to %template.
+ * This function adds missing parameter name and type attributes from the chosen
+ * template (templateparms).
+ *
+ * Grab the parameter names from templateparms.
+ * Non-type template parameters have no type information in expanded_templateparms.
+ * Grab them from templateparms.
+ * ----------------------------------------------------------------------------- */
+
+static void merge_parameters(ParmList *expanded_templateparms, ParmList *templateparms) {
+  Parm *p = expanded_templateparms;
+  Parm *tp = templateparms;
+  while (p && tp) {
+    Setattr(p, "name", Getattr(tp, "name"));
+    if (!Getattr(p, "type"))
+      Setattr(p, "type", Getattr(tp, "type"));
+    p = nextSibling(p);
+    tp = nextSibling(tp);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * mark_defaults()
+ *
+ * Mark all the template parameters that are expanded from a default value
+ * ----------------------------------------------------------------------------- */
+
+static void mark_defaults(ParmList *defaults) {
+  Parm *tp = defaults;
+  while (tp) {
+    Setattr(tp, "default", "1");
+    tp = nextSibling(tp);
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * expand_defaults()
+ *
+ * Replace parameter types in default argument values, example:
+ * input:  int K,int T,class C=Less<(K)>
+ * output: int K,int T,class C=Less<(int)>
+ * ----------------------------------------------------------------------------- */
+
+static void expand_defaults(ParmList *expanded_templateparms) {
+  Parm *tp = expanded_templateparms;
+  while (tp) {
+    Parm *p = expanded_templateparms;
+    String *tv = Getattr(tp, "value");
+    if (!tv)
+      tv = Getattr(tp, "type");
+    while(p) {
+      String *name = Getattr(p, "name");
+      String *value = Getattr(p, "value");
+      if (!value)
+	value = Getattr(p, "type");
+      if (name)
+	Replaceid(tv, name, value);
+      p = nextSibling(p);
+    }
+    tp = nextSibling(tp);
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_cparse_template_parms_expand()
  *
  * instantiated_parameters: template parameters passed to %template
- * temparms_inputs: template parameters to use as starting point
- * targs: primary template parameters, default args copied from here
- * nn: template node (just used for warning)
+ * primary: primary template node
  *
  * Expand the instantiated_parameters and return a parameter list with default
  * arguments filled in where necessary.
  * ----------------------------------------------------------------------------- */
 
-ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parameters, ParmList *temparms_input, Parm *targs, Node *nn) {
-  Parm *p;
-  Parm *tp;
-  int def_supplied = 0;
-  ParmList *temparms = CopyParmList(temparms_input);
+ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parameters, Node *primary) {
+  ParmList *expanded_templateparms = 0;
+  ParmList *templateparms = Getattr(primary, "templateparms");
 
-  p = instantiated_parameters;
-  tp = temparms;
-
-  if (!p && ParmList_len(p) != ParmList_len(temparms)) {
-    /* we have no template parameters supplied in %template for a template that has default args*/
-    p = tp;
-    def_supplied = 1;
+  if (Equal(Getattr(primary, "templatetype"), "class")) {
+    /* Templated class */
+    expanded_templateparms = CopyParmList(instantiated_parameters);
+    merge_parameters(expanded_templateparms, templateparms);
+    /* Add default arguments from chosen template */
+    ParmList *defaults_start = ParmList_nth_parm(templateparms, ParmList_len(instantiated_parameters));
+    if (defaults_start) {
+      ParmList *defaults = CopyParmList(defaults_start);
+      mark_defaults(defaults);
+      expanded_templateparms = ParmList_join(expanded_templateparms, defaults);
+      expand_defaults(expanded_templateparms);
+    }
+  } else {
+    /* Templated function */
+    /* TODO: Default template parameters support was only added in C++11 */
+    expanded_templateparms = CopyParmList(instantiated_parameters);
+    merge_parameters(expanded_templateparms, templateparms);
   }
 
-  while (p) {
-    String *value = Getattr(p, "value");
-    if (def_supplied) {
-      Setattr(p, "default", "1");
-    }
-    if (value) {
-      Setattr(tp, "value", value);
-    } else {
-      SwigType *ty = Getattr(p, "type");
-      if (ty) {
-	Setattr(tp, "type", ty);
-      }
-      Delattr(tp, "value");
-    }
-    /* fix default arg values */
-    if (targs) {
-      Parm *pi = temparms;
-      Parm *ti = targs;
-      String *tv = Getattr(tp, "value");
-      if (!tv) tv = Getattr(tp, "type");
-      while(pi != tp && ti && pi) {
-	String *name = Getattr(ti, "name");
-	String *value = Getattr(pi, "value");
-	if (!value) value = Getattr(pi, "type");
-	Replaceid(tv, name, value);
-	pi = nextSibling(pi);
-	ti = nextSibling(ti);
-      }
-    }
-
-    p = nextSibling(p);
-    tp = nextSibling(tp);
-    if (!p && tp) {
-      p = tp;
-      def_supplied = 1;
-    } else if (p && !tp) { /* Variadic template - tp < p */
-      SWIG_WARN_NODE_BEGIN(nn);
-      Swig_warning(WARN_CPP11_VARIADIC_TEMPLATE, cparse_file,  cparse_line, "Only the first variadic template argument is currently supported.\n");
-      SWIG_WARN_NODE_END(nn);
-      break;
-    }
+  if (templateparms && (ParmList_len(templateparms) < ParmList_len(expanded_templateparms))) {
+    SWIG_WARN_NODE_BEGIN(nn);
+    Swig_warning(WARN_CPP11_VARIADIC_TEMPLATE, cparse_file,  cparse_line, "Only the first variadic template argument is currently supported.\n");
+    SWIG_WARN_NODE_END(nn);
   }
 
-  return temparms;
+  return expanded_templateparms;
 }
