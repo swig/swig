@@ -122,11 +122,10 @@ ParmList *CopyParmList(ParmList *p) {
 
 ParmList *ParmList_join(ParmList *p, ParmList *p2) {
   Parm *firstparm = p ? p : p2;
-  Parm *lastparm = p;
+  Parm *lastparm = 0;
   while (p) {
+    lastparm = p;
     p = nextSibling(p);
-    if (p)
-      lastparm = p;
   }
   if (lastparm)
     set_nextSibling(lastparm, p2);
@@ -135,19 +134,57 @@ ParmList *ParmList_join(ParmList *p, ParmList *p2) {
 }
 
 /* -----------------------------------------------------------------------------
+ * ParmList_replace_last()
+ *
+ * Delete last parameter in p and replace it with parameter list p2.
+ * p must have at least one element, that is, must not be NULL.
+ * Return beginning of modified parameter list.
+ * ----------------------------------------------------------------------------- */
+
+ParmList *ParmList_replace_last(ParmList *p, ParmList *p2) {
+  ParmList *start = p;
+  int len = ParmList_len(p);
+  assert(p);
+  if (len == 1) {
+    start = p2;
+  } else if (len > 1) {
+    Parm *secondlastparm = ParmList_nth_parm(p, len - 2);
+    set_nextSibling(secondlastparm, p2);
+  }
+  return start;
+}
+
+/* -----------------------------------------------------------------------------
  * ParmList_nth_parm()
  *
  * return the nth parameter (0 based) in the parameter list
+ * return NULL if there are not enough parameters in the list
  * ----------------------------------------------------------------------------- */
 
 Parm *ParmList_nth_parm(ParmList *p, unsigned int n) {
   while (p) {
-    if (n == 0)
+    if (n == 0) {
       break;
+    }
     n--;
     p = nextSibling(p);
   }
   return p;
+}
+
+/* -----------------------------------------------------------------------------
+ * ParmList_variadic_parm()
+ *
+ * Return the variadic parm (last in list if it is variadic), NULL otherwise
+ * ----------------------------------------------------------------------------- */
+
+Parm *ParmList_variadic_parm(ParmList *p) {
+  Parm *lastparm = 0;
+  while (p) {
+    lastparm = p;
+    p = nextSibling(p);
+  }
+  return lastparm && SwigType_isvariadic(Getattr(lastparm, "type")) ? lastparm : 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -303,10 +340,10 @@ int ParmList_has_defaultargs(ParmList *p) {
  * ---------------------------------------------------------------------- */
 
 int ParmList_has_varargs(ParmList *p) {
-  Parm *lp = 0;
+  Parm *lastparm = 0;
   while (p) {
-    lp = p;
+    lastparm = p;
     p = nextSibling(p);
   }
-  return lp ? SwigType_isvarargs(Getattr(lp, "type")) : 0;
+  return lastparm ? SwigType_isvarargs(Getattr(lastparm, "type")) : 0;
 }

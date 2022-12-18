@@ -45,6 +45,7 @@
  *  'p.'                = Pointer (*)
  *  'r.'                = Reference or ref-qualifier (&)
  *  'z.'                = Rvalue reference or ref-qualifier (&&)
+ *  'v.'                = Variadic (...)
  *  'a(n).'             = Array of size n  [n]
  *  'f(..,..).'         = Function with arguments  (args)
  *  'q(str).'           = Qualifier, such as const or volatile (cv-qualifier)
@@ -79,6 +80,7 @@
  *       SwigType_add_pointer()
  *       SwigType_add_reference()
  *       SwigType_add_rvalue_reference()
+ *       SwigType_add_variadic()
  *       SwigType_add_array()
  *
  * These are used to build new types.  There are also functions to undo these
@@ -87,6 +89,7 @@
  *       SwigType_del_pointer()
  *       SwigType_del_reference()
  *       SwigType_del_rvalue_reference()
+ *       SwigType_del_variadic()
  *       SwigType_del_array()
  *
  * In addition, there are query functions
@@ -94,6 +97,7 @@
  *       SwigType_ispointer()
  *       SwigType_isreference()
  *       SwigType_isrvalue_reference()
+ *       SwigType_isvariadic()
  *       SwigType_isarray()
  *
  * Finally, there are some data extraction functions that can be used to
@@ -494,6 +498,43 @@ int SwigType_isrvalue_reference(const SwigType *t) {
     return 0;
   c = Char(t);
   if (strncmp(c, "z.", 2) == 0) {
+    return 1;
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
+ *                                 Variadic
+ *
+ * SwigType_add_variadic()
+ * SwigType_del_variadic()
+ * SwigType_isvariadic()
+ *
+ * Add, remove, and test if a type is a variadic.  The deletion and query
+ * functions take into account qualifiers (if any).
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_add_variadic(SwigType *t) {
+  Insert(t, 0, "v.");
+  return t;
+}
+
+SwigType *SwigType_del_variadic(SwigType *t) {
+  char *c = Char(t);
+  if (strncmp(c, "v.", 2)) {
+    printf("Fatal error: SwigType_del_variadic applied to non-variadic.\n");
+    Exit(EXIT_FAILURE);
+  }
+  Delslice(t, 0, 2);
+  return t;
+}
+
+int SwigType_isvariadic(const SwigType *t) {
+  char *c;
+  if (!t)
+    return 0;
+  c = Char(t);
+  if (strncmp(c, "v.", 2) == 0) {
     return 1;
   }
   return 0;

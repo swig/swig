@@ -114,6 +114,10 @@ void Swig_print_node(Node *obj) {
 	}
 	Printf(stdout, "%-12s - \"%(escape)-0.80s%s\"\n", k, o, trunc);
 	Delete(o);
+/*
+      } else if (DohIsSequence(value)) {
+	Printf(stdout, "%-12s - %s\n", k, value);
+*/
       } else {
 	Printf(stdout, "%-12s - %p\n", k, value);
       }

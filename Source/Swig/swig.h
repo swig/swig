@@ -129,6 +129,8 @@ extern "C" {
   extern SwigType *SwigType_del_reference(SwigType *t);
   extern SwigType *SwigType_add_rvalue_reference(SwigType *t);
   extern SwigType *SwigType_del_rvalue_reference(SwigType *t);
+  extern SwigType *SwigType_add_variadic(SwigType *t);
+  extern SwigType *SwigType_del_variadic(SwigType *t);
   extern SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual);
   extern SwigType *SwigType_del_qualifier(SwigType *t);
   extern SwigType *SwigType_add_function(SwigType *t, ParmList *parms);
@@ -155,6 +157,7 @@ extern "C" {
   extern int SwigType_isreference(const SwigType *t);
   extern int SwigType_isreference_return(const SwigType *t);
   extern int SwigType_isrvalue_reference(const SwigType *t);
+  extern int SwigType_isvariadic(const SwigType *t);
   extern int SwigType_isarray(const SwigType *t);
   extern int SwigType_prefix_is_simple_1D_array(const SwigType *t);
   extern int SwigType_isfunction(const SwigType *t);

@@ -42,6 +42,7 @@
  *  'p.'                = Pointer (*)
  *  'r.'                = Reference (&)
  *  'z.'                = Rvalue reference (&&)
+ *  'v.'                = Variadic (...)
  *  'a(n).'             = Array of size n  [n]
  *  'f(..,..).'         = Function with arguments  (args)
  *  'q(str).'           = Qualifier, such as const or volatile (cv-qualifier)
@@ -620,6 +621,12 @@ String *SwigType_str(const SwigType *s, const_String_or_char_ptr id) {
     } else if (SwigType_isrvalue_reference(element)) {
       if (!member_function_qualifiers)
 	Insert(result, 0, "&&");
+      if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
+	Insert(result, 0, "(");
+	Append(result, ")");
+      }
+    } else if (SwigType_isvariadic(element)) {
+      Insert(result, 0, "...");
       if ((forwardelement) && ((SwigType_isfunction(forwardelement) || (SwigType_isarray(forwardelement))))) {
 	Insert(result, 0, "(");
 	Append(result, ")");

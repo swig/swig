@@ -2879,7 +2879,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                         Parm *tparms = Getattr(nn,"templateparms");
                         if (!tparms) {
                           specialized = 1;
-                        } else if (Getattr(tparms,"variadic") && strncmp(Char(Getattr(tparms,"variadic")), "1", 1)==0) {
+                        } else if (ParmList_variadic_parm(tparms)) {
                           variadic = 1;
                         }
                         if (nnisclass && !variadic && !specialized && (ParmList_len($7) > ParmList_len(tparms))) {
@@ -4429,12 +4429,12 @@ templateparameter : templcpptype def_args {
 			const char *t = Strchr(type, ' ');
 			Setattr(p, "name", t + 1);
 			Setattr(p, "type", NewStringWithSize(type, t - Char(type)));
-		      } else if ((Strncmp(type, "class... ", 9) == 0) || (Strncmp(type, "typename... ", 12) == 0)) {
+		      } else if ((Strncmp(type, "v.class ", 8) == 0) || (Strncmp(type, "v.typename ", 11) == 0)) {
 			/* Variadic template args */
 			const char *t = Strchr(type, ' ');
 			Setattr(p, "name", t + 1);
 			Setattr(p, "type", NewStringWithSize(type, t - Char(type)));
-			Setattr(p, "variadic", "1");
+			SetFlag(p, "variadic");
 		      }
 		    }
                   }
@@ -5540,6 +5540,8 @@ declarator :  pointer notso_direct_declarator {
 	     $$ = $3;
 	     $$.type = NewStringEmpty();
 	     SwigType_add_reference($$.type);
+	     SwigType_add_variadic($$.type);
+/* TODO: add other SwigType_add_variadic */
 	     if ($3.type) {
 	       SwigType_push($$.type,$3.type);
 	       Delete($3.type);
@@ -6923,8 +6925,11 @@ base_specifier : opt_virtual {
                  } else {
 		   Setattr($$,"access","public");
 		 }
-		 if ($4)
+		 if ($4) {
+/*TODO: remove "variadic" flag */
 		   SetFlag($$, "variadic");
+		   SwigType_add_variadic(Getattr($$, "name"));
+		 }
                }
 	       | opt_virtual access_specifier {
 		 $<intvalue>$ = cparse_line;
@@ -6939,8 +6944,10 @@ base_specifier : opt_virtual {
 	         if (Strcmp($2,"public") != 0) {
 		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, Getfile($$), Getline($$), "%s inheritance from base '%s' (ignored).\n", $2, SwigType_namestr($5));
 		 }
-		 if ($6)
+		 if ($6) {
 		   SetFlag($$, "variadic");
+		   SwigType_add_variadic(Getattr($$, "name"));
+		 }
                }
                ;
 
@@ -6958,11 +6965,13 @@ templcpptype   : CLASS {
 		   if (!inherit_list) last_cpptype = $$;
                }
                | CLASS ELLIPSIS {
-                   $$ = (char *)"class..."; 
+		   /* TODO: call SwigType_add_variadic() instead */
+		   $$ = (char *)"v.class";
 		   if (!inherit_list) last_cpptype = $$;
                }
                | TYPENAME ELLIPSIS {
-                   $$ = (char *)"typename..."; 
+		   /* TODO: call SwigType_add_variadic() instead */
+		   $$ = (char *)"v.typename";
 		   if (!inherit_list) last_cpptype = $$;
                }
                ;

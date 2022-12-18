@@ -26,6 +26,13 @@ void SwigType_template_init(void) {
 }
 
 
+/* -----------------------------------------------------------------------------
+ * add_parms()
+ *
+ * Add the value and type of each parameter into patchlist and typelist
+ * (List of String/SwigType) for later template parameter substitutions.
+ * ----------------------------------------------------------------------------- */
+
 static void add_parms(ParmList *p, List *patchlist, List *typelist, int is_pattern) {
   while (p) {
     SwigType *ty = Getattr(p, "type");
@@ -44,6 +51,58 @@ static void add_parms(ParmList *p, List *patchlist, List *typelist, int is_patte
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * expand_variadic_parms()
+ *
+ * Expand variadic parameter in the parameter list stored as attribute in n. For example:
+ *   template <typename... T> struct X : { X(T&... tt); }
+ *   %template(XABC) X<A,B,C>;
+ * inputs for the constructor parameter list will be for attribute = "parms":
+ *   Getattr(n, attribute)   : v.r.T tt
+ *   unexpanded_variadic_parm: v.typename T
+ *   expanded_variadic_parms : A,B,C
+ * results in:
+ *   Getattr(n, attribute)   : r.A,r.B,r.C
+ * that is, template is expanded as: struct XABC : { X(A&,B&,C&); }
+ * Note that there are no parameter names are in the expanded parameter list.
+ * Nothing happens if the parameter list has no variadic parameters.
+ * ----------------------------------------------------------------------------- */
+
+static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
+  ParmList *p = Getattr(n, attribute);
+  Parm *variadic = ParmList_variadic_parm(p);
+  if (variadic) {
+    if (unexpanded_variadic_parm) {
+      SwigType *type = Getattr(variadic, "type");
+      String *unexpanded_name = Getattr(unexpanded_variadic_parm, "name");
+      ParmList *expanded = CopyParmList(expanded_variadic_parms);
+      Parm *ep = expanded;
+      while (ep) {
+	SwigType *newtype = Copy(type);
+	SwigType_del_variadic(newtype);
+	Replaceid(newtype, unexpanded_name, Getattr(ep, "type"));
+	Setattr(ep, "type", newtype);
+	ep = nextSibling(ep);
+      }
+      expanded = ParmList_replace_last(p, expanded);
+      Setattr(n, attribute, expanded);
+    }
+  }
+}
+
+/* -----------------------------------------------------------------------------
+ * expand_parms()
+ *
+ * Expand variadic parameters in parameter lists and add parameters to patchlist
+ * and typelist for later template parameter substitutions.
+ * ----------------------------------------------------------------------------- */
+
+static void expand_parms(Node *n, const char *attribute, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms, List *patchlist, List *typelist, int is_pattern) {
+  ParmList *p;
+  expand_variadic_parms(n, attribute, unexpanded_variadic_parm, expanded_variadic_parms);
+  p = Getattr(n, attribute);
+  add_parms(p, patchlist, typelist, is_pattern);
+}
 void Swig_cparse_debug_templates(int x) {
   template_debug = x;
 }
@@ -56,7 +115,7 @@ void Swig_cparse_debug_templates(int x) {
  * template parameters
  * ----------------------------------------------------------------------------- */
 
-static void cparse_template_expand(Node *templnode, Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist) {
+static void cparse_template_expand(Node *templnode, Node *n, String *tname, String *rname, String *templateargs, List *patchlist, List *typelist, List *cpatchlist, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
   static int expanded = 0;
   String *nodeType;
   if (!n)
@@ -70,7 +129,7 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     if (!expanded) {
       expanded = 1;
       set_nodeType(n, Getattr(n, "templatetype"));
-      cparse_template_expand(templnode, n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
+      cparse_template_expand(templnode, n, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
       expanded = 0;
       return;
     } else {
@@ -78,7 +137,7 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
       /* Member templates */
 
       set_nodeType(n, Getattr(n, "templatetype"));
-      cparse_template_expand(templnode, n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
+      cparse_template_expand(templnode, n, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
       set_nodeType(n, "template");
       return;
     }
@@ -113,8 +172,8 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
       Append(typelist, Getattr(n, "name"));
     }
 
-    add_parms(Getattr(n, "parms"), cpatchlist, typelist, 0);
-    add_parms(Getattr(n, "throws"), cpatchlist, typelist, 0);
+    expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
+    expand_parms(n, "throws", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
 
   } else if (Equal(nodeType, "class")) {
     /* Patch base classes */
@@ -127,8 +186,27 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
 	  int ilen = Len(bases);
 	  for (i = 0; i < ilen; i++) {
 	    String *name = Copy(Getitem(bases, i));
-	    Setitem(bases, i, name);
-	    Append(typelist, name);
+	    if (SwigType_isvariadic(name)) {
+	      Parm *parm = NewParmWithoutFileLineInfo(name, 0);
+	      Node *temp_parm_node = NewHash();
+	      Setattr(temp_parm_node, "variadicbaseparms", parm);
+	      assert(i == ilen - 1);
+	      Delitem(bases, i);
+	      expand_variadic_parms(temp_parm_node, "variadicbaseparms", unexpanded_variadic_parm, expanded_variadic_parms);
+	      {
+		Parm *vp = Getattr(temp_parm_node, "variadicbaseparms");
+		while (vp) {
+		  String *name = Copy(Getattr(vp, "type"));
+		  Append(bases, name);
+		  Append(typelist, name);
+		  vp = nextSibling(vp);
+		}
+	      }
+	      Delete(temp_parm_node);
+	    } else {
+	      Setitem(bases, i, name);
+	      Append(typelist, name);
+	    }
 	  }
 	}
       }
@@ -137,7 +215,7 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     {
       Node *cn = firstChild(n);
       while (cn) {
-	cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist);
+	cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
 	cn = nextSibling(cn);
       }
     }
@@ -180,8 +258,8 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     }
     Append(cpatchlist, Getattr(n, "code"));
     Append(typelist, Getattr(n, "decl"));
-    add_parms(Getattr(n, "parms"), cpatchlist, typelist, 0);
-    add_parms(Getattr(n, "throws"), cpatchlist, typelist, 0);
+    expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
+    expand_parms(n, "throws", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
   } else if (Equal(nodeType, "destructor")) {
     /* We only need to patch the dtor of the template itself, not the destructors of any nested classes, so check that the parent of this node is the root
      * template node, with the special exception for %extend which adds its methods under an intermediate node. */
@@ -222,13 +300,13 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     Append(cpatchlist, Getattr(n, "code"));
     Append(typelist, Getattr(n, "type"));
     Append(typelist, Getattr(n, "decl"));
-    add_parms(Getattr(n, "parms"), cpatchlist, typelist, 0);
-    add_parms(Getattr(n, "kwargs"), cpatchlist, typelist, 0);
-    add_parms(Getattr(n, "pattern"), cpatchlist, typelist, 1);
-    add_parms(Getattr(n, "throws"), cpatchlist, typelist, 0);
+    expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
+    expand_parms(n, "kwargs", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
+    expand_parms(n, "pattern", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 1);
+    expand_parms(n, "throws", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
     cn = firstChild(n);
     while (cn) {
-      cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist);
+      cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
       cn = nextSibling(cn);
     }
   }
@@ -351,18 +429,14 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   String *tname;
   String *iname;
   String *tbase;
+  Parm *unexpanded_variadic_parm = 0;
+  ParmList *expanded_variadic_parms = 0;
   patchlist = NewList();
   cpatchlist = NewList();
   typelist = NewList();
 
-  {
-    String *tmp = NewStringEmpty();
-    if (tparms) {
-      SwigType_add_template(tmp, tparms);
-    }
-    templateargs = Copy(tmp);
-    Delete(tmp);
-  }
+  templateargs = NewStringEmpty();
+  SwigType_add_template(templateargs, tparms);
 
   tname = Copy(Getattr(n, "name"));
   tbase = Swig_scopename_last(tname);
@@ -400,10 +474,15 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
     }
   */
 
+  ParmList *templateparms = Getattr(n, "templateparms");
+  unexpanded_variadic_parm = ParmList_variadic_parm(templateparms);
+  if (unexpanded_variadic_parm)
+    expanded_variadic_parms = ParmList_nth_parm(tparms, ParmList_len(templateparms) - 1);
+
   /*  Printf(stdout,"targs = '%s'\n", templateargs);
      Printf(stdout,"rname = '%s'\n", rname);
      Printf(stdout,"tname = '%s'\n", tname);  */
-  cparse_template_expand(n, n, tname, rname, templateargs, patchlist, typelist, cpatchlist);
+  cparse_template_expand(n, n, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
 
   /* Set the name */
   {
@@ -472,6 +551,9 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	    */
 	    Node * tynode = Swig_symbol_clookup(s, 0);
 	    String *tyname  = tynode ? Getattr(tynode, "sym:name") : 0;
+	    /*
+	    Printf(stdout, "  replacing %s with %s to %s or %s to %s\n", s, name, dvalue, tbase, iname);
+	    */
 	    if (!tyname || !tsname || !Equal(tyname, tsname) || Getattr(tynode, "templatetype")) {
 	      SwigType_typename_replace(s, name, dvalue);
 	      SwigType_typename_replace(s, tbase, iname);
@@ -1015,9 +1097,11 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, String *symname, S
  * Grab the parameter names from templateparms.
  * Non-type template parameters have no type information in expanded_templateparms.
  * Grab them from templateparms.
+ *
+ * Return 1 if there are variadic template parameters, 0 otherwise.
  * ----------------------------------------------------------------------------- */
 
-static void merge_parameters(ParmList *expanded_templateparms, ParmList *templateparms) {
+static int merge_parameters(ParmList *expanded_templateparms, ParmList *templateparms) {
   Parm *p = expanded_templateparms;
   Parm *tp = templateparms;
   while (p && tp) {
@@ -1027,6 +1111,7 @@ static void merge_parameters(ParmList *expanded_templateparms, ParmList *templat
     p = nextSibling(p);
     tp = nextSibling(tp);
   }
+  return ParmList_variadic_parm(templateparms) ? 1 : 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1088,26 +1173,22 @@ ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parameters, N
   if (Equal(Getattr(primary, "templatetype"), "class")) {
     /* Templated class */
     expanded_templateparms = CopyParmList(instantiated_parameters);
-    merge_parameters(expanded_templateparms, templateparms);
-    /* Add default arguments from chosen template */
-    ParmList *defaults_start = ParmList_nth_parm(templateparms, ParmList_len(instantiated_parameters));
-    if (defaults_start) {
-      ParmList *defaults = CopyParmList(defaults_start);
-      mark_defaults(defaults);
-      expanded_templateparms = ParmList_join(expanded_templateparms, defaults);
-      expand_defaults(expanded_templateparms);
+    int variadic = merge_parameters(expanded_templateparms, templateparms);
+    /* Add default arguments from primary template */
+    if (!variadic) {
+      ParmList *defaults_start = ParmList_nth_parm(templateparms, ParmList_len(instantiated_parameters));
+      if (defaults_start) {
+	ParmList *defaults = CopyParmList(defaults_start);
+	mark_defaults(defaults);
+	expanded_templateparms = ParmList_join(expanded_templateparms, defaults);
+	expand_defaults(expanded_templateparms);
+      }
     }
   } else {
     /* Templated function */
     /* TODO: Default template parameters support was only added in C++11 */
     expanded_templateparms = CopyParmList(instantiated_parameters);
     merge_parameters(expanded_templateparms, templateparms);
-  }
-
-  if (templateparms && (ParmList_len(templateparms) < ParmList_len(expanded_templateparms))) {
-    SWIG_WARN_NODE_BEGIN(nn);
-    Swig_warning(WARN_CPP11_VARIADIC_TEMPLATE, cparse_file,  cparse_line, "Only the first variadic template argument is currently supported.\n");
-    SWIG_WARN_NODE_END(nn);
   }
 
   return expanded_templateparms;
