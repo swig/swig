@@ -4434,7 +4434,6 @@ templateparameter : templcpptype def_args {
 			const char *t = Strchr(type, ' ');
 			Setattr(p, "name", t + 1);
 			Setattr(p, "type", NewStringWithSize(type, t - Char(type)));
-			SetFlag(p, "variadic");
 		      }
 		    }
                   }
@@ -5513,6 +5512,7 @@ declarator :  pointer notso_direct_declarator {
 		Delete($$.type);
 	      }
 	      $$.type = $1;
+	      SwigType_add_variadic($$.type);
            }
            | pointer AND ELLIPSIS notso_direct_declarator {
               $$ = $4;
@@ -5522,6 +5522,7 @@ declarator :  pointer notso_direct_declarator {
 		Delete($$.type);
 	      }
 	      $$.type = $1;
+	      SwigType_add_variadic($$.type);
            }
            | pointer LAND ELLIPSIS notso_direct_declarator {
               $$ = $4;
@@ -5531,17 +5532,18 @@ declarator :  pointer notso_direct_declarator {
 		Delete($$.type);
 	      }
 	      $$.type = $1;
+	      SwigType_add_variadic($$.type);
            }
            | ELLIPSIS direct_declarator {
               $$ = $2;
 	      if (!$$.type) $$.type = NewStringEmpty();
+	      SwigType_add_variadic($$.type);
            }
            | AND ELLIPSIS notso_direct_declarator {
 	     $$ = $3;
 	     $$.type = NewStringEmpty();
 	     SwigType_add_reference($$.type);
 	     SwigType_add_variadic($$.type);
-/* TODO: add other SwigType_add_variadic */
 	     if ($3.type) {
 	       SwigType_push($$.type,$3.type);
 	       Delete($3.type);
@@ -5553,6 +5555,7 @@ declarator :  pointer notso_direct_declarator {
 	     $$ = $3;
 	     $$.type = NewStringEmpty();
 	     SwigType_add_rvalue_reference($$.type);
+	     SwigType_add_variadic($$.type);
 	     if ($3.type) {
 	       SwigType_push($$.type,$3.type);
 	       Delete($3.type);
@@ -5563,6 +5566,7 @@ declarator :  pointer notso_direct_declarator {
 
 	     $$ = $4;
 	     SwigType_add_memberpointer(t,$1);
+	     SwigType_add_variadic(t);
 	     if ($$.type) {
 	       SwigType_push(t,$$.type);
 	       Delete($$.type);
@@ -5573,6 +5577,7 @@ declarator :  pointer notso_direct_declarator {
 	     SwigType *t = NewStringEmpty();
 	     $$ = $5;
 	     SwigType_add_memberpointer(t,$2);
+	     SwigType_add_variadic(t);
 	     SwigType_push($1,t);
 	     if ($$.type) {
 	       SwigType_push($1,$$.type);
@@ -5585,6 +5590,7 @@ declarator :  pointer notso_direct_declarator {
 	     $$ = $6;
 	     SwigType_add_memberpointer($1,$2);
 	     SwigType_add_reference($1);
+	     SwigType_add_variadic($1);
 	     if ($$.type) {
 	       SwigType_push($1,$$.type);
 	       Delete($$.type);
@@ -5595,6 +5601,7 @@ declarator :  pointer notso_direct_declarator {
 	     $$ = $6;
 	     SwigType_add_memberpointer($1,$2);
 	     SwigType_add_rvalue_reference($1);
+	     SwigType_add_variadic($1);
 	     if ($$.type) {
 	       SwigType_push($1,$$.type);
 	       Delete($$.type);
@@ -5606,6 +5613,7 @@ declarator :  pointer notso_direct_declarator {
 	     $$ = $5;
 	     SwigType_add_memberpointer(t,$1);
 	     SwigType_add_reference(t);
+	     SwigType_add_variadic(t);
 	     if ($$.type) {
 	       SwigType_push(t,$$.type);
 	       Delete($$.type);
@@ -5617,6 +5625,7 @@ declarator :  pointer notso_direct_declarator {
 	     $$ = $5;
 	     SwigType_add_memberpointer(t,$1);
 	     SwigType_add_rvalue_reference(t);
+	     SwigType_add_variadic(t);
 	     if ($$.type) {
 	       SwigType_push(t,$$.type);
 	       Delete($$.type);
@@ -6926,8 +6935,6 @@ base_specifier : opt_virtual {
 		   Setattr($$,"access","public");
 		 }
 		 if ($4) {
-/*TODO: remove "variadic" flag */
-		   SetFlag($$, "variadic");
 		   SwigType_add_variadic(Getattr($$, "name"));
 		 }
                }
@@ -6945,7 +6952,6 @@ base_specifier : opt_virtual {
 		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, Getfile($$), Getline($$), "%s inheritance from base '%s' (ignored).\n", $2, SwigType_namestr($5));
 		 }
 		 if ($6) {
-		   SetFlag($$, "variadic");
 		   SwigType_add_variadic(Getattr($$, "name"));
 		 }
                }

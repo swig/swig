@@ -138,3 +138,20 @@ public:
 %template (LotsInherit2) LotsInherit<A,B>;
 %template (LotsInherit3) LotsInherit<A,B,C>;
 %template (LotsInherit4) LotsInherit<A,B,C,D>;
+
+
+%inline %{
+template <typename... V> struct VariadicParms {
+public:
+  void ParmsPtr(V*... vparms_p) {}
+  void ParmsPtrRef(V*&... vparms_pr) {}
+  void ParmsPtrRValueRef(V*&&... vparms_rvr) {}
+  void ParmsVal(V... vparms_v) {}
+  void ParmsRef(V&... vparms_r) {}
+  void ParmsConstRef(const V&... vparms_cr) {}
+};
+%}
+
+%template(VariadicParms1) VariadicParms<A>;
+%template(VariadicParms2) VariadicParms<A,B>;
+%template(VariadicParms3) VariadicParms<A,B,C>;
