@@ -66,7 +66,7 @@ static String  *Classprefix = 0;
 static String  *Namespaceprefix = 0;
 static int      inclass = 0;
 static Node    *currentOuterClass = 0; /* for nested classes */
-static const char *last_cpptype = 0;
+static String  *last_cpptype = 0;
 static int      inherit_list = 0;
 static Parm    *template_parameters = 0;
 static int      parsing_template_declaration = 0;
@@ -1178,7 +1178,7 @@ static void update_nested_classes(Node *n)
  * Create the nested class/struct/union as a forward declaration.
  * ----------------------------------------------------------------------------- */
 
-static Node *nested_forward_declaration(const char *storage, const char *kind, String *sname, String *name, Node *cpp_opt_declarators) {
+static Node *nested_forward_declaration(const char *storage, const String *kind, String *sname, String *name, Node *cpp_opt_declarators) {
   Node *nn = 0;
 
   if (sname) {
@@ -1681,7 +1681,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <p>        parm_no_dox parm valparm rawvalparms valparms valptail ;
 %type <p>        typemap_parm tm_list tm_tail ;
 %type <p>        templateparameter ;
-%type <id>       templcpptype cpptype classkey classkeyopt access_specifier;
+%type <type>     templcpptype cpptype classkey classkeyopt;
+%type <id>       access_specifier;
 %type <node>     base_specifier;
 %type <str>      variadic;
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
@@ -3710,7 +3711,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		     Delete(fbase);
 		     Delete(tbase);
 		   }
-                   if (strcmp($2,"class") == 0) {
+                   if (Strcmp($2, "class") == 0) {
 		     cplus_mode = CPLUS_PRIVATE;
 		   } else {
 		     cplus_mode = CPLUS_PUBLIC;
@@ -3927,7 +3928,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       Swig_features_get(Swig_cparse_features(), Namespaceprefix, 0, 0, $<node>$);
 	       /* save yyrename to the class attribute, to be used later in add_symbols()*/
 	       Setattr($<node>$, "class_rename", make_name($<node>$,0,0));
-	       if (strcmp($2,"class") == 0) {
+	       if (Strcmp($2, "class") == 0) {
 		 cplus_mode = CPLUS_PRIVATE;
 	       } else {
 		 cplus_mode = CPLUS_PUBLIC;
@@ -4395,7 +4396,7 @@ template_parms : templateparameter templateparameterstail {
                    ;
 
 templateparameter : templcpptype def_args {
-		    $$ = NewParmWithoutFileLineInfo(NewString($1), 0);
+		    $$ = NewParmWithoutFileLineInfo($1, 0);
 		    Setfile($$, cparse_file);
 		    Setline($$, cparse_line);
 		    Setattr($$, "value", $2.rawval ? $2.rawval : $2.val);
@@ -6962,22 +6963,22 @@ access_specifier :  PUBLIC { $$ = (char*)"public"; }
                | PROTECTED { $$ = (char*)"protected"; }
                ;
 
-templcpptype   : CLASS { 
-                   $$ = (char*)"class"; 
+templcpptype   : CLASS {
+                   $$ = NewString("class");
 		   if (!inherit_list) last_cpptype = $$;
                }
-               | TYPENAME { 
-                   $$ = (char *)"typename"; 
+               | TYPENAME {
+                   $$ = NewString("typename");
 		   if (!inherit_list) last_cpptype = $$;
                }
                | CLASS ELLIPSIS {
-		   /* TODO: call SwigType_add_variadic() instead */
-		   $$ = (char *)"v.class";
+		   $$ = NewString("class");
+		   $$ = SwigType_add_variadic($$);
 		   if (!inherit_list) last_cpptype = $$;
                }
                | TYPENAME ELLIPSIS {
-		   /* TODO: call SwigType_add_variadic() instead */
-		   $$ = (char *)"v.typename";
+		   $$ = NewString("typename");
+		   $$ = SwigType_add_variadic($$);
 		   if (!inherit_list) last_cpptype = $$;
                }
                ;
@@ -6985,26 +6986,26 @@ templcpptype   : CLASS {
 cpptype        : templcpptype {
                  $$ = $1;
                }
-               | STRUCT { 
-                   $$ = (char*)"struct"; 
+               | STRUCT {
+                   $$ = NewString("struct");
 		   if (!inherit_list) last_cpptype = $$;
                }
                | UNION {
-                   $$ = (char*)"union"; 
+                   $$ = NewString("union");
 		   if (!inherit_list) last_cpptype = $$;
                }
                ;
 
 classkey       : CLASS {
-                   $$ = (char*)"class";
+                   $$ = NewString("class");
 		   if (!inherit_list) last_cpptype = $$;
                }
                | STRUCT {
-                   $$ = (char*)"struct";
+                   $$ = NewString("struct");
 		   if (!inherit_list) last_cpptype = $$;
                }
                | UNION {
-                   $$ = (char*)"union";
+                   $$ = NewString("union");
 		   if (!inherit_list) last_cpptype = $$;
                }
                ;
