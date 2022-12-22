@@ -1125,36 +1125,69 @@ union P {
 <H3><a name="CPlusPlus11_variadic_templates">7.2.18 Variadic templates</a></H3>
 
 
-<p>SWIG supports the variadic templates syntax (inside the &lt;&gt;
-block, variadic class inheritance and variadic constructor and
-initializers) with some limitations. The following code is correctly parsed:</p>
+<p>SWIG supports the variadic templates including the &lt;&gt;
+variadic class inheritance, variadic methods, variadic constructors and
+initializers. Example:</p>
 
 <div class="code"><pre>
 template &lt;typename... BaseClasses&gt; class ClassName : public BaseClasses... {
 public:
-  ClassName (BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
+  ClassName(BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
+  void InstanceMethod(const BaseClasses&amp;... baseClasses) {}
 };
 </pre></div>
 
 <p>
-For now however, the <tt>%template</tt> directive only accepts one parameter substitution
-for the variable template parameters.
+The <tt>%template</tt> directive works as expected for variable template parameters.
 </p>
 
 <div class="code"><pre>
-%template(MyVariant1) ClassName&lt;&gt;         // zero argument not supported yet
-%template(MyVariant2) ClassName&lt;int&gt;      // ok
-%template(MyVariant3) ClassName&lt;int, int&gt; // too many arguments not supported yet
+struct A {
+  virtual void amethod();
+  virtual ~A();
+};
+struct B {
+  virtual void bmethod();
+  virtual ~B();
+};
+%template(ClassName0) ClassName&lt;&gt;
+%template(ClassName1) ClassName&lt;A&gt;
+%template(ClassName2) ClassName&lt;A, B&gt;
 </pre></div>
 
-<p>Support for the variadic <tt>sizeof()</tt> function is correctly parsed:</p>
+<p>
+Example usage from say Python:
+</p>
+
+<div class="targetlang"><pre>
+cn0 = ClassName0()
+cn0.InstanceMethod()
+
+a = A()
+cn1 = ClassName1(a)
+cn1.amethod()
+cn1.InstanceMethod(a)
+
+b = B()
+cn2 = ClassName2(a, b)
+cn2.InstanceMethod(a, b)
+cn2.amethod()
+cn2.bmethod()
+</pre></div>
+
+<p>Support for the variadic <tt>sizeof()</tt> function also works:</p>
 
 <div class="code"><pre>
-const int SIZE = sizeof...(ClassName&lt;int, int&gt;);
+const int SIZE = sizeof...(ClassName&lt;A, B&gt;);
 </pre></div>
 
 <p>
 In the above example <tt>SIZE</tt> is of course wrapped as a constant.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.2.0 was the first version to fully support variadic templates.
+SWIG-3.0.0 provided initial support and was limited to only one variadic parameter.
 </p>
 
 <H3><a name="CPlusPlus11_new_char_literals">7.2.19 New character literals</a></H3>

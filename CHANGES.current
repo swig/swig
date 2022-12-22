@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2022-12-22: wsfulton
+            Complete support for C++11 variadic templates. Support was previously limited
+            to just one template parameter. Now zero or more template parameters are supported.
+
 2022-12-06: wsfulton
             #1636 Fix syntax error for misplaced Doxygen comment after struct/class member.
             Fix syntax error using Doxygen member groups syntax, "///*}", when used after
