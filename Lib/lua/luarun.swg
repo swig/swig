@@ -87,7 +87,7 @@ typedef struct swig_elua_entry {
 #endif
 
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
-#  define SWIG_LUA_CONSTTAB_INT(B, C) LSTRKEY(B), LNUMVAL(C)
+#  define SWIG_LUA_CONSTTAB_INT(B, C...) LSTRKEY(B), LNUMVAL(C)
 #  define SWIG_LUA_CONSTTAB_FLOAT(B, C) LSTRKEY(B), LNUMVAL(C)
 #  define SWIG_LUA_CONSTTAB_STRING(B, C) LSTRKEY(B), LSTRVAL(C)
 #  define SWIG_LUA_CONSTTAB_CHAR(B, C) LSTRKEY(B), LNUMVAL(C)
@@ -103,7 +103,7 @@ typedef struct swig_elua_entry {
 #define SWIG_LUA_CONSTTAB_BINARY(B, S, C, D) LSTRKEY(B), LNILVAL
 #endif
 #else /* SWIG_LUA_FLAVOR_LUA */
-#  define SWIG_LUA_CONSTTAB_INT(B, C) SWIG_LUA_INT, (char *)B, (long)C, 0, 0, 0
+#  define SWIG_LUA_CONSTTAB_INT(B, C...) SWIG_LUA_INT, (char *)B, (long)C, 0, 0, 0
 #  define SWIG_LUA_CONSTTAB_FLOAT(B, C) SWIG_LUA_FLOAT, (char *)B, 0, (double)C, 0, 0
 #  define SWIG_LUA_CONSTTAB_STRING(B, C) SWIG_LUA_STRING, (char *)B, 0, 0, (void *)C, 0
 #  define SWIG_LUA_CONSTTAB_CHAR(B, C) SWIG_LUA_CHAR, (char *)B, (long)C, 0, 0, 0
