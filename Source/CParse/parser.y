@@ -5535,11 +5535,6 @@ declarator :  pointer notso_direct_declarator {
 	      $$.type = $1;
 	      SwigType_add_variadic($$.type);
            }
-           | ELLIPSIS direct_declarator {
-              $$ = $2;
-	      if (!$$.type) $$.type = NewStringEmpty();
-	      SwigType_add_variadic($$.type);
-           }
            | AND ELLIPSIS notso_direct_declarator {
 	     $$ = $3;
 	     $$.type = NewStringEmpty();
@@ -6169,6 +6164,10 @@ rawtype        : type_qualifier type_right {
 		  $$ = $2;
 	          SwigType_push($$,$3);
 	          SwigType_push($$,$1);
+	       }
+	       | rawtype ELLIPSIS {
+		  $$ = $1;
+		  SwigType_add_variadic($$);
 	       }
                ;
 

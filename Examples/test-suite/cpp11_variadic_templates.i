@@ -143,15 +143,38 @@ public:
 %inline %{
 template <typename... V> struct VariadicParms {
 public:
+  void ParmsVal(V... vparms_v) {}
   void ParmsPtr(V*... vparms_p) {}
   void ParmsPtrRef(V*&... vparms_pr) {}
   void ParmsPtrRValueRef(V*&&... vparms_rvr) {}
-  void ParmsVal(V... vparms_v) {}
   void ParmsRef(V&... vparms_r) {}
+  void ParmsRValueRef(V&&... vparms_r) {}
   void ParmsConstRef(const V&... vparms_cr) {}
+
+// TODO
+//  void ParmsFuncPtr(int (*)(V...)) {}
 };
 %}
 
 %template(VariadicParms1) VariadicParms<A>;
 %template(VariadicParms2) VariadicParms<A,B>;
 %template(VariadicParms3) VariadicParms<A,B,C>;
+
+
+// #1863
+%inline %{
+class Container {
+public:
+template<typename... Args>
+static void notifyMyTypes(void (fn)(Args...));
+};
+%}
+%{
+template<typename... Args>
+  void Container::notifyMyTypes(void (fn)(Args...)) {}
+
+// Explicit template instantiations
+template void Container::notifyMyTypes<>(void (tt)());
+template void Container::notifyMyTypes<int>(void (tt)(int));
+template void Container::notifyMyTypes<int, double>(void (tt)(int, double));
+%}
