@@ -287,6 +287,7 @@ String *SwigType_parm(const SwigType *t) {
  * SwigType_split()
  *
  * Splits a type into its component parts and returns a list of string.
+ * The component parts of SwigType are split by '.'.
  * ----------------------------------------------------------------------------- */
 
 List *SwigType_split(const SwigType *t) {
@@ -312,7 +313,7 @@ List *SwigType_split(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_parmlist()
  *
- * Splits a comma separated list of parameters into its component parts
+ * Splits a comma separated list of SwigType * parameters into its component parts
  * The input is expected to contain the parameter list within () brackets
  * Returns 0 if no argument list in the input, ie there are no round brackets ()
  * Returns an empty List if there are no parameters in the () brackets
@@ -320,12 +321,12 @@ List *SwigType_split(const SwigType *t) {
  *
  *     Foo(std::string,p.f().Bar<(int,double)>)
  *
- * returns 2 elements in the list:
+ * returns 2 SwigType * elements in the list:
  *    std::string
  *    p.f().Bar<(int,double)>
  * ----------------------------------------------------------------------------- */
  
-List *SwigType_parmlist(const String *p) {
+List *SwigType_parmlist(const SwigType *p) {
   String *item = 0;
   List *list;
   char *c;
@@ -864,26 +865,42 @@ SwigType *SwigType_array_type(const SwigType *ty) {
  *                                    Functions
  *
  * SwigType_add_function()
+ * SwigType_function_parms_only()
  * SwigType_isfunction()
  * SwigType_pop_function()
  *
  * Add, remove, and test for function types.
  * ----------------------------------------------------------------------------- */
 
-/* Returns the function type, t, constructed from the parameters, parms */
-SwigType *SwigType_add_function(SwigType *t, ParmList *parms) {
-  String *pstr;
-  Parm *p;
+/* -----------------------------------------------------------------------------
+ * SwigType_function_parms_only()
+ *
+ * Creates a comma separated list of SwigType strings from parms
+ * ----------------------------------------------------------------------------- */
 
-  Insert(t, 0, ").");
-  pstr = NewString("f(");
+SwigType *SwigType_function_parms_only(ParmList *parms) {
+  Parm *p;
+  SwigType *t = NewString("");
   for (p = parms; p; p = nextSibling(p)) {
     if (p != parms)
-      Putc(',', pstr);
-    Append(pstr, Getattr(p, "type"));
+      Putc(',', t);
+    Append(t, Getattr(p, "type"));
   }
-  Insert(t, 0, pstr);
-  Delete(pstr);
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_add_function()
+ *
+ * Returns the function type, t, constructed from the parameters, parms
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_add_function(SwigType *t, ParmList *parms) {
+  SwigType *fparms = SwigType_function_parms_only(parms);
+  Insert(fparms, 0, "f(");
+  Append(fparms, ").");
+  Insert(t, 0, fparms);
+  Delete(fparms);
   return t;
 }
 

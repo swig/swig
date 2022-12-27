@@ -7,8 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2022-12-27: wsfulton
+            Fix instantiation of variadic class templates containing parameter pack arguments that
+            are function pointers.
+
+              template <typename... V> struct VariadicParms {
+                void ParmsFuncPtrVal(int (*)(V...)) {}
+              };
+
+              %template(VariadicParms0) VariadicParms<>;
+              %template(VariadicParms1) VariadicParms<A>;
+
 2022-12-23: wsfulton
-            #1863 Fix syntax error parsing variadic template parameter pack arguments that
+            #1863 Fix syntax error parsing variadic templates containing parameter pack arguments that
             are function pointers.
 
 2022-12-22: wsfulton

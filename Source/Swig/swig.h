@@ -137,6 +137,7 @@ extern "C" {
   extern SwigType *SwigType_add_template(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_pop_function(SwigType *t);
   extern SwigType *SwigType_pop_function_qualifiers(SwigType *t);
+  extern SwigType *SwigType_function_parms_only(ParmList *parms);
   extern ParmList *SwigType_function_parms(const SwigType *t, Node *file_line_node);
   extern List *SwigType_split(const SwigType *t);
   extern String *SwigType_pop(SwigType *t);
@@ -187,6 +188,7 @@ extern "C" {
   extern SwigType *SwigType_default_create(const SwigType *ty);
   extern SwigType *SwigType_default_deduce(const SwigType *t);
   extern void SwigType_typename_replace(SwigType *t, String *pat, String *rep);
+  extern void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms);
   extern SwigType *SwigType_remove_global_scope_prefix(const SwigType *t);
   extern SwigType *SwigType_alttype(const SwigType *t, int ltmap);
 

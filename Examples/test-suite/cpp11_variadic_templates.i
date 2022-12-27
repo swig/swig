@@ -139,8 +139,13 @@ public:
 %template (LotsInherit3) LotsInherit<A,B,C>;
 %template (LotsInherit4) LotsInherit<A,B,C,D>;
 
-
 %inline %{
+struct KlassMemFuncs {
+  int memfunc0() { return 0; }
+  int memfunc1() { return 1; }
+  int memfunc2() { return 2; }
+  int memfunc3() { return 3; }
+};
 template <typename... V> struct VariadicParms {
 public:
   void ParmsVal(V... vparms_v) {}
@@ -151,14 +156,38 @@ public:
   void ParmsRValueRef(V&&... vparms_r) {}
   void ParmsConstRef(const V&... vparms_cr) {}
 
+  void ParmsFuncPtrVal(int (*)(V...)) {}
+  void ParmsMemFuncPtrVal(int (KlassMemFuncs::*)(V...)) {}
 // TODO
-//  void ParmsFuncPtr(int (*)(V...)) {}
+//  void ParmsFuncPtrRef(int (*)(V&...)) {}
 };
 %}
 
+%template(VariadicParms0) VariadicParms<>;
 %template(VariadicParms1) VariadicParms<A>;
 %template(VariadicParms2) VariadicParms<A,B>;
 %template(VariadicParms3) VariadicParms<A,B,C>;
+
+%inline %{
+template <typename... V> struct FixedAndVariadicParms {
+public:
+  void ParmsVal(short shortvar, V... vparms_v) {}
+  void ParmsPtr(short shortvar, V*... vparms_p) {}
+  void ParmsPtrRef(short shortvar, V*&... vparms_pr) {}
+  void ParmsPtrRValueRef(short shortvar, V*&&... vparms_rvr) {}
+  void ParmsRef(short shortvar, V&... vparms_r) {}
+  void ParmsRValueRef(short shortvar, V&&... vparms_r) {}
+  void ParmsConstRef(short shortvar, const V&... vparms_cr) {}
+
+  void ParmsFuncPtrVal(short shortvar, int (*)(short, V...)) {}
+  void ParmsMemFuncPtrVal(int (KlassMemFuncs::*)(V...)) {}
+};
+%}
+
+%template(FixedAndVariadicParms0) FixedAndVariadicParms<>;
+%template(FixedAndVariadicParms1) FixedAndVariadicParms<A>;
+%template(FixedAndVariadicParms2) FixedAndVariadicParms<A,B>;
+%template(FixedAndVariadicParms3) FixedAndVariadicParms<A,B,C>;
 
 
 // #1863
@@ -167,11 +196,13 @@ class Container {
 public:
 template<typename... Args>
 static void notifyMyTypes(void (fn)(Args...));
+//static void notifyMyTypes(void (*fn)(Args...));
 };
 %}
 %{
 template<typename... Args>
   void Container::notifyMyTypes(void (fn)(Args...)) {}
+//  void Container::notifyMyTypes(void (*fn)(Args...)) {}
 
 // Explicit template instantiations
 template void Container::notifyMyTypes<>(void (tt)());

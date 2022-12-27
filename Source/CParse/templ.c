@@ -25,6 +25,9 @@ void SwigType_template_init(void) {
   baselists[2] = "privatebaselist";
 }
 
+void Swig_cparse_debug_templates(int x) {
+  template_debug = x;
+}
 
 /* -----------------------------------------------------------------------------
  * add_parms()
@@ -70,9 +73,9 @@ static void add_parms(ParmList *p, List *patchlist, List *typelist, int is_patte
 
 static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
   ParmList *p = Getattr(n, attribute);
-  Parm *variadic = ParmList_variadic_parm(p);
-  if (variadic) {
-    if (unexpanded_variadic_parm) {
+  if (unexpanded_variadic_parm) {
+    Parm *variadic = ParmList_variadic_parm(p);
+    if (variadic) {
       SwigType *type = Getattr(variadic, "type");
       String *unexpanded_name = Getattr(unexpanded_variadic_parm, "name");
       ParmList *expanded = CopyParmList(expanded_variadic_parms);
@@ -102,9 +105,6 @@ static void expand_parms(Node *n, const char *attribute, Parm *unexpanded_variad
   expand_variadic_parms(n, attribute, unexpanded_variadic_parm, expanded_variadic_parms);
   p = Getattr(n, attribute);
   add_parms(p, patchlist, typelist, is_pattern);
-}
-void Swig_cparse_debug_templates(int x) {
-  template_debug = x;
 }
 
 /* -----------------------------------------------------------------------------
@@ -254,7 +254,6 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
 	  Delete(tmp);
 	}
       }
-      /* Setattr(n,"sym:name",name); */
     }
     Append(cpatchlist, Getattr(n, "code"));
     Append(typelist, Getattr(n, "decl"));
@@ -282,7 +281,6 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
 	  Replace(name, tname, rname, DOH_REPLACE_ANY);
 	}
       }
-      /* Setattr(n,"sym:name",name); */
       Append(cpatchlist, Getattr(n, "code"));
     }
   } else if (Equal(nodeType, "using")) {
@@ -431,9 +429,9 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   String *tbase;
   Parm *unexpanded_variadic_parm = 0;
   ParmList *expanded_variadic_parms = 0;
-  patchlist = NewList();
-  cpatchlist = NewList();
-  typelist = NewList();
+  patchlist = NewList();  /* List of String * ("name" and "value" attributes) */
+  cpatchlist = NewList(); /* List of String * (code) */
+  typelist = NewList();   /* List of SwigType * types */
 
   templateargs = NewStringEmpty();
   SwigType_add_template(templateargs, tparms);
@@ -499,7 +497,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
     Parm *p = tparms;
     /*    Printf(stdout,"%s\n", ParmList_str_defaultargs(tp)); */
 
-    if (tp) {
+    if (p && tp) {
       Symtab *tsdecl = Getattr(n, "sym:symtab");
       String *tsname = Getattr(n, "sym:name");
       while (p && tp) {
@@ -542,17 +540,22 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	  }
 	  sz = Len(typelist);
 	  for (i = 0; i < sz; i++) {
-	    String *s = Getitem(typelist, i);
+	    SwigType *s = Getitem(typelist, i);
+
+	    assert(!SwigType_isvariadic(s)); /* All parameters should have already been expanded, this is for function that contain variadic parameters only, such as f(v.p.V) */
+	    SwigType_variadic_replace(s, unexpanded_variadic_parm, expanded_variadic_parms);
+
 	    /*
 	      The approach of 'trivially' replacing template arguments is kind of fragile.
 	      In particular if types with similar name in different namespaces appear.
 	      We will not replace template args if a type/class exists with the same
 	      name which is not a template.
 	    */
-	    Node * tynode = Swig_symbol_clookup(s, 0);
+	    Node *tynode = Swig_symbol_clookup(s, 0);
 	    String *tyname  = tynode ? Getattr(tynode, "sym:name") : 0;
 	    /*
 	    Printf(stdout, "  replacing %s with %s to %s or %s to %s\n", s, name, dvalue, tbase, iname);
+	    Printf(stdout, "    %d %s to %s\n", tp == unexpanded_variadic_parm, name, ParmList_str_defaultargs(expanded_variadic_parms));
 	    */
 	    if (!tyname || !tsname || !Equal(tyname, tsname) || Getattr(tynode, "templatetype")) {
 	      SwigType_typename_replace(s, name, dvalue);
@@ -586,6 +589,8 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       sz = Len(typelist);
       for (i = 0; i < sz; i++) {
 	String *s = Getitem(typelist, i);
+	assert(!SwigType_isvariadic(s)); /* All parameters should have already been expanded, this is for function that contain variadic parameters only, such as f(v.p.V) */
+	SwigType_variadic_replace(s, unexpanded_variadic_parm, expanded_variadic_parms);
 	SwigType_typename_replace(s, tbase, iname);
       }
     }

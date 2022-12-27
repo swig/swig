@@ -1393,6 +1393,72 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_variadic_replace()
+ *
+ * Replaces variadic parameter with a list of (zero or more) parameters.
+ * Needed for variadic templates.
+ * ----------------------------------------------------------------------------- */
+
+void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms) {
+  String *nt;
+  int i, ilen;
+  List *elem;
+  if (!unexpanded_variadic_parm)
+    return;
+
+  if (SwigType_isvariadic(t)) {
+    /* Based on expand_variadic_parms() but input is single SwigType (t) instead of ParmList */
+    String *unexpanded_name = Getattr(unexpanded_variadic_parm, "name");
+    ParmList *expanded = CopyParmList(expanded_variadic_parms);
+    Parm *ep = expanded;
+    while (ep) {
+      SwigType *newtype = Copy(t);
+      SwigType_del_variadic(newtype);
+      Replaceid(newtype, unexpanded_name, Getattr(ep, "type"));
+      Setattr(ep, "type", newtype);
+      ep = nextSibling(ep);
+    }
+    Clear(t);
+    SwigType *fparms = SwigType_function_parms_only(expanded);
+    Append(t, fparms);
+    Delete(expanded);
+
+    return;
+  }
+  nt = NewStringEmpty();
+  elem = SwigType_split(t);
+  ilen = Len(elem);
+  for (i = 0; i < ilen; i++) {
+    String *e = Getitem(elem, i);
+    if (SwigType_isfunction(e)) {
+      int j, jlen;
+      List *fparms = SwigType_parmlist(e);
+      Clear(e);
+      Append(e, "f(");
+      jlen = Len(fparms);
+      for (j = 0; j < jlen; j++) {
+	SwigType *type = Getitem(fparms, j);
+	SwigType_variadic_replace(type, unexpanded_variadic_parm, expanded_variadic_parms);
+	if (Len(type) > 0) {
+	  if (j != 0)
+	    Putc(',', e);
+	  Append(e, type);
+	} else {
+	  assert(j == jlen - 1); /* A variadic parm was replaced with zero parms, variadic parms are only changed at the end of the list */
+	}
+      }
+      Append(e, ").");
+      Delete(fparms);
+    }
+    Append(nt, e);
+  }
+  Clear(t);
+  Append(t, nt);
+  Delete(nt);
+  Delete(elem);
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_remove_global_scope_prefix()
  *
  * Removes the unary scope operator (::) prefix indicating global scope in all 
