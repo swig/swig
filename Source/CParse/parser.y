@@ -1684,7 +1684,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <type>     templcpptype cpptype classkey classkeyopt;
 %type <id>       access_specifier;
 %type <node>     base_specifier;
-%type <str>      variadic;
+%type <str>      variadic_opt;
 %type <type>     type rawtype type_right anon_bitfield_type decltype ;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
@@ -5877,11 +5877,12 @@ direct_declarator : idcolon {
 		  }
                   ;
 
-abstract_declarator : pointer {
+abstract_declarator : pointer variadic_opt {
 		    $$.type = $1;
                     $$.id = 0;
 		    $$.parms = 0;
 		    $$.have_parms = 0;
+		    if ($2) SwigType_add_variadic($$.type);
                   }
                   | pointer direct_abstract_declarator { 
                      $$ = $2;
@@ -5889,19 +5890,21 @@ abstract_declarator : pointer {
 		     $$.type = $1;
 		     Delete($2.type);
                   }
-                  | pointer AND {
+                  | pointer AND variadic_opt {
 		    $$.type = $1;
 		    SwigType_add_reference($$.type);
 		    $$.id = 0;
 		    $$.parms = 0;
 		    $$.have_parms = 0;
+		    if ($3) SwigType_add_variadic($$.type);
 		  }
-                  | pointer LAND {
+                  | pointer LAND variadic_opt {
 		    $$.type = $1;
 		    SwigType_add_rvalue_reference($$.type);
 		    $$.id = 0;
 		    $$.parms = 0;
 		    $$.have_parms = 0;
+		    if ($3) SwigType_add_variadic($$.type);
 		  }
                   | pointer AND direct_abstract_declarator {
 		    $$ = $3;
@@ -5942,19 +5945,21 @@ abstract_declarator : pointer {
 		      Delete($2.type);
 		    }
                   }
-                  | AND {
+                  | AND variadic_opt {
                     $$.id = 0;
                     $$.parms = 0;
 		    $$.have_parms = 0;
                     $$.type = NewStringEmpty();
 		    SwigType_add_reference($$.type);
+		    if ($2) SwigType_add_variadic($$.type);
                   }
-                  | LAND {
+                  | LAND variadic_opt {
                     $$.id = 0;
                     $$.parms = 0;
 		    $$.have_parms = 0;
                     $$.type = NewStringEmpty();
 		    SwigType_add_rvalue_reference($$.type);
+		    if ($2) SwigType_add_variadic($$.type);
                   }
                   | idcolon DSTAR { 
 		    $$.type = NewStringEmpty();
@@ -6155,7 +6160,9 @@ rawtype        : type_qualifier type_right {
                    $$ = $2;
 	           SwigType_push($$,$1);
                }
-               | type_right { $$ = $1; }
+	       | type_right {
+		  $$ = $1;
+	       }
                | type_right type_qualifier {
 		  $$ = $1;
 	          SwigType_push($$,$2);
@@ -6876,7 +6883,7 @@ exprcompound   : expr PLUS expr {
                }
                ;
 
-variadic      : ELLIPSIS {
+variadic_opt  : ELLIPSIS {
 	        $$ = NewString("...");
 	      }
 	      | empty {
@@ -6921,7 +6928,7 @@ base_list      : base_specifier {
 
 base_specifier : opt_virtual {
 		 $<intvalue>$ = cparse_line;
-	       } idcolon variadic {
+	       } idcolon variadic_opt {
 		 $$ = NewHash();
 		 Setfile($$,cparse_file);
 		 Setline($$,$<intvalue>2);
@@ -6940,7 +6947,7 @@ base_specifier : opt_virtual {
                }
 	       | opt_virtual access_specifier {
 		 $<intvalue>$ = cparse_line;
-	       } opt_virtual idcolon variadic {
+	       } opt_virtual idcolon variadic_opt {
 		 $$ = NewHash();
 		 Setfile($$,cparse_file);
 		 Setline($$,$<intvalue>3);

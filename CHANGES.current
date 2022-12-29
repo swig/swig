@@ -7,6 +7,33 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2022-12-29: wsfulton
+            #1863 Syntax error fixes parsing more elaborate parameter pack arguments that are
+            used in function pointers, member function pointers:
+
+              template <typename... V> struct VariadicParms {
+                void ParmsFuncPtrPtr(int (*)(V*...)) {}
+                void ParmsFuncPtrPtrRef(int (*)(V*&...)) {}
+                void ParmsFuncPtrPtrRValueRef(int (*)(V*&&...)) {}
+                void ParmsFuncPtrRef(int (*)(V&...)) {}
+                void ParmsFuncPtrRValueRef(int (*)(V&&...)) {}
+
+                void ParmsMemFuncPtrPtr(int (KlassMemFuncs::*)(V*...)) {}
+                void ParmsMemFuncPtrPtrRef(int (KlassMemFuncs::*)(V*&...)) {}
+                void ParmsMemFuncPtrPtrRValueRef(int (KlassMemFuncs::*)(V*&&...)) {}
+                void ParmsMemFuncPtrRef(int (KlassMemFuncs::*)(V&...)) {}
+                void ParmsMemFuncPtrRValueRef(int (KlassMemFuncs::*)(V&&...)) {}
+              };
+
+              %template(VariadicParms0) VariadicParms<>;
+              %template(VariadicParms1) VariadicParms<A>;
+
+            Also in various other places such as within noexcept specifiers:
+
+              template<typename T, typename... Args>
+              void emplace(Args &&... args) noexcept(
+                  std::is_nothrow_constructible<T, Args &&...>::value);
+
 2022-12-27: wsfulton
             Fix instantiation of variadic class templates containing parameter pack arguments that
             are function pointers.

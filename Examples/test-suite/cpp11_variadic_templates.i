@@ -147,7 +147,6 @@ struct KlassMemFuncs {
   int memfunc3() { return 3; }
 };
 template <typename... V> struct VariadicParms {
-public:
   void ParmsVal(V... vparms_v) {}
   void ParmsPtr(V*... vparms_p) {}
   void ParmsPtrRef(V*&... vparms_pr) {}
@@ -157,9 +156,20 @@ public:
   void ParmsConstRef(const V&... vparms_cr) {}
 
   void ParmsFuncPtrVal(int (*)(V...)) {}
+  void ParmsFuncPtrPtr(int (*)(V*...)) {}
+  void ParmsFuncPtrPtrRef(int (*)(V*&...)) {}
+  void ParmsFuncPtrPtrRValueRef(int (*)(V*&&...)) {}
+  void ParmsFuncPtrRef(int (*)(V&...)) {}
+  void ParmsFuncPtrRValueRef(int (*)(V&&...)) {}
+  void ParmsFuncPtrConstRef(int (*)(const V&...)) {}
+
   void ParmsMemFuncPtrVal(int (KlassMemFuncs::*)(V...)) {}
-// TODO
-//  void ParmsFuncPtrRef(int (*)(V&...)) {}
+  void ParmsMemFuncPtrPtr(int (KlassMemFuncs::*)(V*...)) {}
+  void ParmsMemFuncPtrPtrRef(int (KlassMemFuncs::*)(V*&...)) {}
+  void ParmsMemFuncPtrPtrRValueRef(int (KlassMemFuncs::*)(V*&&...)) {}
+  void ParmsMemFuncPtrRef(int (KlassMemFuncs::*)(V&...)) {}
+  void ParmsMemFuncPtrRValueRef(int (KlassMemFuncs::*)(V&&...)) {}
+  void ParmsMemFuncPtrConstRef(int (KlassMemFuncs::*)(const V&...)) {}
 };
 %}
 
@@ -209,3 +219,17 @@ template void Container::notifyMyTypes<>(void (tt)());
 template void Container::notifyMyTypes<int>(void (tt)(int));
 template void Container::notifyMyTypes<int, double>(void (tt)(int, double));
 %}
+
+// #1863
+%inline %{
+#include <type_traits>
+class EmplaceContainer {
+public:
+template<typename T, typename... Args>
+void emplace(Args &&... args) noexcept(
+    std::is_nothrow_constructible<T, Args &&...>::value) {}
+};
+%}
+
+%template(emplace) EmplaceContainer::emplace<int,A>;
+//%template(emplace) EmplaceContainer::emplace<int,A,B,C>;
