@@ -80,6 +80,8 @@
 #   else
 #     define SWIGEXPORT __declspec(dllexport)
 #   endif
+# elif defined(__EMSCRIPTEN__)
+#   define SWIGEXPORT EMSCRIPTEN_KEEPALIVE
 # else
 #   if defined(__GNUC__) && defined(GCC_HASCLASSVISIBILITY)
 #     define SWIGEXPORT __attribute__ ((visibility("default")))
