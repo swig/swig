@@ -434,8 +434,6 @@ static void SWIGUNUSED SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpExcepti
 #if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
 %pragma(csharp) imclasscode=%{
   public static class SWIGGCHandleHelper{
-    private static SwigFreeDelegate freeDelegate;
-
     public delegate void SwigFreeDelegate(global::System.IntPtr ptr);
     
     [$imclassname.MonoPInvokeCallback(typeof(SwigFreeDelegate))]
@@ -444,9 +442,8 @@ static void SWIGUNUSED SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpExcepti
     }
 
     static SWIGGCHandleHelper(){
-      freeDelegate = new SwigFreeDelegate(SwigFree);
-      SWIGRegisterGCHandleFreeCallback_$module(freeDelegate);
-      }
+      SWIGRegisterGCHandleFreeCallback_$module(SwigFree);
+    }
 
     [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterGCHandleFreeCallback_$module")]
     public static extern void SWIGRegisterGCHandleFreeCallback_$module(SwigFreeDelegate freeDelegate);
