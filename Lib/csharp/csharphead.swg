@@ -243,7 +243,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
       SWIGPendingException.Set(new global::System.ArgumentOutOfRangeException(global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(paramName), message_text));
     }
     static SWIGExceptionHelper() {
-      SWIGRegisterExceptionCallbacks_EmscriptenLib(
+      SWIGRegisterExceptionCallbacks_$module(
         SetPendingApplicationException,
         SetPendingArithmeticException,
         SetPendingDivideByZeroException,
@@ -255,7 +255,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
         SetPendingOutOfMemoryException,
         SetPendingOverflowException,
         SetPendingSystemException);
-      SWIGRegisterExceptionCallbacksArgument_EmscriptenLib(
+      SWIGRegisterExceptionCallbacksArgument_$module(
         SetPendingArgumentException,
         SetPendingArgumentNullException,
         SetPendingArgumentOutOfRangeException);
