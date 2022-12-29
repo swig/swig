@@ -7,7 +7,7 @@
 
 #if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
 %insert(runtime) %{
-#define SWIG_csharp_string_callback const_cast<global::System.IntPtr>
+#define SWIG_csharp_string_callback const_cast<char*>
 %}
 #endif
 
@@ -24,6 +24,14 @@
   public class MonoPInvokeCallbackAttribute : global::System.Attribute {
     public MonoPInvokeCallbackAttribute(global::System.Type t) {
     }
+  }
+
+  [global::System.Runtime.CompilerServices.ModuleInitializer]
+  internal static void Init()
+  {
+      swigExceptionHelper = new SWIGExceptionHelper();
+      swigGCHandleHelper = new SWIGGCHandleHelper();
+
   }
 %}
 #endif
@@ -252,6 +260,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
         SetPendingArgumentOutOfRangeException);
     }
   }
+  protected static SWIGExceptionHelper swigExceptionHelper;
 %}
 #else
 %pragma(csharp) imclasscode=%{
@@ -352,11 +361,10 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
                                 argumentOutOfRangeDelegate);
     }
   }
+  protected static SWIGExceptionHelper swigExceptionHelper = new SWIGExceptionHelper();
 %}
 #endif
 %pragma(csharp) imclasscode=%{
-
-  protected static SWIGExceptionHelper swigExceptionHelper = new SWIGExceptionHelper();
 
   public class SWIGPendingException {
     [global::System.ThreadStatic]
@@ -433,7 +441,7 @@ static void SWIGUNUSED SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpExcepti
 
 #if defined(SWIG_CSHARP_MONO_AOT_COMPATIBILITY)
 %pragma(csharp) imclasscode=%{
-  public static class SWIGGCHandleHelper{
+  public class SWIGGCHandleHelper{
     public delegate void SwigFreeDelegate(global::System.IntPtr ptr);
     
     [$imclassname.MonoPInvokeCallback(typeof(SwigFreeDelegate))]
@@ -448,7 +456,9 @@ static void SWIGUNUSED SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpExcepti
     [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterGCHandleFreeCallback_$module")]
     public static extern void SWIGRegisterGCHandleFreeCallback_$module(SwigFreeDelegate freeDelegate);
   }
+  private static SWIGGCHandleHelper swigGCHandleHelper;
 %}
+
 
 %insert(runtime) %{
 typedef void (SWIGSTDCALL* SWIG_CSharpGCHandleFreeCallback)(void*); 
