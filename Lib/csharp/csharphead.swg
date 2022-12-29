@@ -25,15 +25,16 @@
     public MonoPInvokeCallbackAttribute(global::System.Type t) {
     }
   }
-
+%}
+%pragma(csharp) modulecode=%{
   [global::System.Runtime.CompilerServices.ModuleInitializer]
   internal static void Init()
   {
-      swigExceptionHelper = new SWIGExceptionHelper();
-      swigGCHandleHelper = new SWIGGCHandleHelper();
-
+    System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof($imclassname.SWIGGCHandleHelper).TypeHandle);
+    System.Runtime.CompilerServices.RuntimeHelpers.RunClassConstructor(typeof($imclassname.SWIGPendingException).TypeHandle);
   }
 %}
+
 #endif
 
 #if !defined(SWIG_CSHARP_NO_EXCEPTION_HELPER)
@@ -153,7 +154,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
 %}
 
 %pragma(csharp) imclasscode=%{
-  protected class SWIGExceptionHelper {
+  internal class SWIGExceptionHelper {
     [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterExceptionCallbacks_$module")]
     public static extern void SWIGRegisterExceptionCallbacks_$module(
                                 ExceptionDelegate applicationDelegate,
@@ -260,7 +261,6 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
         SetPendingArgumentOutOfRangeException);
     }
   }
-  protected static SWIGExceptionHelper swigExceptionHelper;
 %}
 #else
 %pragma(csharp) imclasscode=%{
@@ -456,7 +456,6 @@ static void SWIGUNUSED SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpExcepti
     [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterGCHandleFreeCallback_$module")]
     public static extern void SWIGRegisterGCHandleFreeCallback_$module(SwigFreeDelegate freeDelegate);
   }
-  private static SWIGGCHandleHelper swigGCHandleHelper;
 %}
 
 
