@@ -6969,23 +6969,15 @@ access_specifier :  PUBLIC { $$ = (char*)"public"; }
                | PROTECTED { $$ = (char*)"protected"; }
                ;
 
-templcpptype   : CLASS {
+templcpptype   : CLASS variadic_opt {
                    $$ = NewString("class");
 		   if (!inherit_list) last_cpptype = $$;
+		   if ($2) SwigType_add_variadic($$);
                }
-               | TYPENAME {
+               | TYPENAME variadic_opt {
                    $$ = NewString("typename");
 		   if (!inherit_list) last_cpptype = $$;
-               }
-               | CLASS ELLIPSIS {
-		   $$ = NewString("class");
-		   $$ = SwigType_add_variadic($$);
-		   if (!inherit_list) last_cpptype = $$;
-               }
-               | TYPENAME ELLIPSIS {
-		   $$ = NewString("typename");
-		   $$ = SwigType_add_variadic($$);
-		   if (!inherit_list) last_cpptype = $$;
+		   if ($2) SwigType_add_variadic($$);
                }
                ;
 
