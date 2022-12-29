@@ -1963,7 +1963,7 @@ public:
     if (feature_director) {
       // Generate director connect method
       // put this in classDirectorEnd ???
-      Printf(proxy_class_code, "  %sprivate void SwigDirectorConnect() {\n", (mono_aot_compatibility_flag ? "unsafe " : ""));
+      Printf(proxy_class_code, "  private void SwigDirectorConnect() {\n");
 
       int i;
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
@@ -3889,7 +3889,6 @@ public:
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
     UpcallData *udata = 0;
     String *methid = 0;
-    bool unsafe = false;
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
     // isn't at this point, so we have to manufacture it ourselves. At least
@@ -3987,28 +3986,8 @@ public:
     Swig_typemap_attach_parms("directorargout", l, w);
 
       if (mono_aot_compatibility_flag && !ignored_method) {
-        String *tm2;
-        for (i = 0, p = l; p; ++i) {
-          while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
-            p = Getattr(p, "tmap:directorin:next");
-          }
-  if ((tm2 = Getattr(p, "tmap:directorin"))) {
-    if ((tm2 = Getattr(p, "tmap:imtype"))) {
-      String *imtypeout = Getattr(p, "tmap:imtype:out");	
-      if (imtypeout)
-        tm2 = imtypeout;
-      if(Cmp(tm2, "string") == 0){
-    unsafe = true; 
-    break;
-      }
-    }
-    p = Getattr(p, "tmap:directorin:next");
-  } else {
-    p = nextSibling(p);
-  }
-        }
         Printf(callback_mono_aot_def, "\n  [%s.MonoPInvokeCallback(typeof(SwigDelegate%s_%s_Dispatcher))]\n", imclass_name, classname, methid);
-        Printf(callback_mono_aot_def, "  %sprivate static %s SwigDirector%s_Dispatcher(", unsafe?"unsafe ":"" , tm, overloaded_name);
+        Printf(callback_mono_aot_def, "  private static %s SwigDirector%s_Dispatcher(", tm, overloaded_name);
       }
       Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
 
@@ -4017,7 +3996,7 @@ public:
         String *modifiers = (csdirectordelegatemodifiers ? NewStringf("%s%s", csdirectordelegatemodifiers, Len(csdirectordelegatemodifiers) > 0 ? " " : "") : NewStringf("public "));
         Printf(director_delegate_definitions, "  %sdelegate %s", modifiers, tm);
         if (mono_aot_compatibility_flag) {
-          Printf(director_mono_aot_delegate_definitions, "  %s%sdelegate %s", unsafe ? "unsafe ":"", modifiers, tm);
+          Printf(director_mono_aot_delegate_definitions, "  %sdelegate %s", modifiers, tm);
         }
         Delete(modifiers);
       }
@@ -4160,8 +4139,8 @@ public:
         if(mono_aot_compatibility_flag)
         {
           if(Cmp(tm, "string") == 0){
-            Printf(mono_aot_blitable_delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, "char *", ln);
-            Printf(mono_aot_dispatcher_parms, "new string(%s)", ln);
+            Printf(mono_aot_blitable_delegate_parms, "%s%s %s", im_directorinattributes ? im_directorinattributes : empty_string, "global::System.IntPtr", ln);
+            Printf(mono_aot_dispatcher_parms, "global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(%s)", ln);
           }
           else
           {
@@ -4431,7 +4410,7 @@ public:
 	Printf(director_callbacks, "    SWIG_Callback%s_Dispatcher_t swig_callback%s_dispatcher;\n", methid, overloaded_name);
 	Printf(director_callbacks, "    Swig::GCHandle swig_callback%s;\n", overloaded_name);
 	Printf(director_mono_aot_delegate_definitions, " SwigDelegate%s_%s_Dispatcher(global::System.IntPtr swigDelegate%s_%s_Handle%s%s);\n", classname, methid, classname, methid, ParmList_len(l) > 0 ? ", " : "",mono_aot_blitable_delegate_parms);
-	Printf(director_mono_aot_delegate_instances, "  private %sSwigDelegate%s_%s_Dispatcher swigDelegate%sdispatcher;\n",unsafe?"unsafe ":"", classname, methid, methid);
+	Printf(director_mono_aot_delegate_instances, "  private SwigDelegate%s_%s_Dispatcher swigDelegate%sdispatcher;\n", classname, methid, methid);
       }
       
       Printf(director_delegate_definitions, " SwigDelegate%s_%s(%s);\n", classname, methid, delegate_parms);
