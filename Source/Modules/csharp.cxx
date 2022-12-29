@@ -79,7 +79,6 @@ class CSHARP:public Language {
   String *director_delegate_definitions;	// Director delegates definitions in proxy class
   String *director_delegate_instances;	// Director delegates member variables in proxy class
   String *director_mono_aot_delegate_definitions;	// Director delegates definitions in proxy class
-  String *director_mono_aot_delegate_instances;	// Director delegates member variables in proxy class
   String *director_method_types;	// Director method types
   String *director_connect_parms;	// Director delegates parameter list for director connect call
   String *destructor_call;	//C++ destructor call if any
@@ -156,7 +155,6 @@ public:
       director_delegate_definitions(NULL),
       director_delegate_instances(NULL),
       director_mono_aot_delegate_definitions(NULL),
-      director_mono_aot_delegate_instances(NULL),
       director_method_types(NULL),
       director_connect_parms(NULL),
       destructor_call(NULL),
@@ -1979,7 +1977,6 @@ public:
 	Printf(proxy_class_code, "    if (SwigDerivedClassHasMethod(\"%s\", swigMethodTypes%s)) {\n", method, methid);
 	Printf(proxy_class_code, "      swigDelegate%s = new SwigDelegate%s_%s(SwigDirector%s);\n", methid, proxy_class_name, methid, overname);
 	if (mono_aot_compatibility_flag) {
-	  Printf(proxy_class_code, "      swigDelegate%sdispatcher = new SwigDelegate%s_%s_Dispatcher(SwigDirector%s_Dispatcher);\n", methid, proxy_class_name, methid, overname);
 	  Printf(proxy_class_code, "      global::System.Runtime.InteropServices.GCHandle swigDelegate%sgcHandle = global::System.Runtime.InteropServices.GCHandle.Alloc(swigDelegate%s, global::System.Runtime.InteropServices.GCHandleType.Weak);\n", methid, methid);
 	  Printf(proxy_class_code, "      swigDelegate%sgcHandlePtr = global::System.Runtime.InteropServices.GCHandle.ToIntPtr(swigDelegate%sgcHandle);\n", methid, methid);
 	}
@@ -1991,10 +1988,12 @@ public:
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
 	UpcallData *udata = Getitem(dmethods_seq, i);
 	String *methid = Getattr(udata, "class_methodidx");
+  String *overname = Getattr(udata, "overname");
 	if (!mono_aot_compatibility_flag) {
 	  Printf(proxy_class_code, ", swigDelegate%s", methid);
 	} else {
-	  Printf(proxy_class_code, ", swigDelegate%sdispatcher", methid);
+    
+    Printf(proxy_class_code, ", SwigDirector%s_Dispatcher", overname);
 	  Printf(proxy_class_code, ", swigDelegate%sgcHandlePtr", methid);
 	}
       }
@@ -2039,8 +2038,6 @@ public:
 	Printv(proxy_class_code, "\n", director_delegate_instances, NIL);
       if (Len(director_mono_aot_delegate_definitions) > 0)
 	Printv(proxy_class_code, "\n", director_mono_aot_delegate_definitions, NIL);
-      if (Len(director_mono_aot_delegate_instances) > 0)
-	Printv(proxy_class_code, "\n", director_mono_aot_delegate_instances, NIL);
       if (Len(director_method_types) > 0)
 	Printv(proxy_class_code, "\n", director_method_types, NIL);
 
@@ -2056,8 +2053,6 @@ public:
       director_delegate_instances = NULL;
       Delete(director_mono_aot_delegate_definitions);
       director_mono_aot_delegate_definitions = NULL;
-      Delete(director_mono_aot_delegate_instances);
-      director_mono_aot_delegate_instances = NULL;
       Delete(director_method_types);
       director_method_types = NULL;
       Delete(director_connect_parms);
@@ -4410,7 +4405,6 @@ public:
 	Printf(director_callbacks, "    SWIG_Callback%s_Dispatcher_t swig_callback%s_dispatcher;\n", methid, overloaded_name);
 	Printf(director_callbacks, "    Swig::GCHandle swig_callback%s;\n", overloaded_name);
 	Printf(director_mono_aot_delegate_definitions, " SwigDelegate%s_%s_Dispatcher(global::System.IntPtr swigDelegate%s_%s_Handle%s%s);\n", classname, methid, classname, methid, ParmList_len(l) > 0 ? ", " : "",mono_aot_blitable_delegate_parms);
-	Printf(director_mono_aot_delegate_instances, "  private SwigDelegate%s_%s_Dispatcher swigDelegate%sdispatcher;\n", classname, methid, methid);
       }
       
       Printf(director_delegate_definitions, " SwigDelegate%s_%s(%s);\n", classname, methid, delegate_parms);
@@ -4542,7 +4536,6 @@ public:
     director_delegate_definitions = NewString("");
     director_delegate_instances = NewString("");
     director_mono_aot_delegate_definitions = NewString("");
-    director_mono_aot_delegate_instances = NewString("");
     director_method_types = NewString("");
     director_connect_parms = NewString("");
 
@@ -4556,7 +4549,6 @@ public:
     String *old_director_delegate_definitions = director_delegate_definitions;
     String *old_director_delegate_instances = director_delegate_instances;
     String *old_director_mono_aot_delegate_definitions = director_mono_aot_delegate_definitions;
-    String *old_director_mono_aot_delegate_instances = director_mono_aot_delegate_instances;
     String *old_director_method_types = director_method_types;
     String *old_director_connect_parms = director_connect_parms;
 
@@ -4569,7 +4561,6 @@ public:
     director_delegate_definitions = old_director_delegate_definitions;
     director_delegate_instances = old_director_delegate_instances;
     director_mono_aot_delegate_definitions = old_director_mono_aot_delegate_definitions;
-    director_mono_aot_delegate_instances = old_director_mono_aot_delegate_instances;
     director_method_types = old_director_method_types;
     director_connect_parms = old_director_connect_parms;
 
