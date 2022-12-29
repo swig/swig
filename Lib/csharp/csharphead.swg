@@ -170,21 +170,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
 %pragma(csharp) imclasscode=%{
     public delegate void ExceptionDelegate(global::System.IntPtr message); 
     public delegate void ExceptionArgumentDelegate(global::System.IntPtr message, global::System.IntPtr paramName);
-    static ExceptionDelegate applicationDelegate = new ExceptionDelegate(SetPendingApplicationException);
-    static ExceptionDelegate arithmeticDelegate = new ExceptionDelegate(SetPendingArithmeticException);
-    static ExceptionDelegate divideByZeroDelegate = new ExceptionDelegate(SetPendingDivideByZeroException);
-    static ExceptionDelegate indexOutOfRangeDelegate = new ExceptionDelegate(SetPendingIndexOutOfRangeException);
-    static ExceptionDelegate invalidCastDelegate = new ExceptionDelegate(SetPendingInvalidCastException);
-    static ExceptionDelegate invalidOperationDelegate = new ExceptionDelegate(SetPendingInvalidOperationException);
-    static ExceptionDelegate ioDelegate = new ExceptionDelegate(SetPendingIOException);
-    static ExceptionDelegate nullReferenceDelegate = new ExceptionDelegate(SetPendingNullReferenceException);
-    static ExceptionDelegate outOfMemoryDelegate = new ExceptionDelegate(SetPendingOutOfMemoryException);
-    static ExceptionDelegate overflowDelegate = new ExceptionDelegate(SetPendingOverflowException);
-    static ExceptionDelegate systemDelegate = new ExceptionDelegate(SetPendingSystemException);
-
-    static ExceptionArgumentDelegate argumentDelegate = new ExceptionArgumentDelegate(SetPendingArgumentException);
-    static ExceptionArgumentDelegate argumentNullDelegate = new ExceptionArgumentDelegate(SetPendingArgumentNullException);
-    static ExceptionArgumentDelegate argumentOutOfRangeDelegate = new ExceptionArgumentDelegate(SetPendingArgumentOutOfRangeException);
+   
     [$imclassname.MonoPInvokeCallback(typeof(ExceptionDelegate))]
     static void SetPendingApplicationException(global::System.IntPtr message) {
       SWIGPendingException.Set(new global::System.ApplicationException(global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(message), SWIGPendingException.Retrieve()));
@@ -247,6 +233,25 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
       if (e != null) message_text += " Inner Exception: " + e.Message;
       SWIGPendingException.Set(new global::System.ArgumentOutOfRangeException(global::System.Runtime.InteropServices.Marshal.PtrToStringUTF8(paramName), message_text));
     }
+    static SWIGExceptionHelper() {
+      SWIGRegisterExceptionCallbacks_EmscriptenLib(
+        SetPendingApplicationException,
+        SetPendingArithmeticException,
+        SetPendingDivideByZeroException,
+        SetPendingIndexOutOfRangeException,
+        SetPendingInvalidCastException,
+        SetPendingInvalidOperationException,
+        SetPendingIOException,
+        SetPendingNullReferenceException,
+        SetPendingOutOfMemoryException,
+        SetPendingOverflowException,
+        SetPendingSystemException);
+      SWIGRegisterExceptionCallbacksArgument_EmscriptenLib(
+        SetPendingArgumentException,
+        SetPendingArgumentNullException,
+        SetPendingArgumentOutOfRangeException);
+    }
+  }
 %}
 #else
 %pragma(csharp) imclasscode=%{
@@ -327,9 +332,6 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
       if (e != null) message = message + " Inner Exception: " + e.Message;
       SWIGPendingException.Set(new global::System.ArgumentOutOfRangeException(paramName, message));
     }
-%}
-#endif
-%pragma(csharp) imclasscode=%{
     static SWIGExceptionHelper() {
       SWIGRegisterExceptionCallbacks_$module(
                                 applicationDelegate,
@@ -350,6 +352,9 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterExceptionArgumentCallbacks_$module(
                                 argumentOutOfRangeDelegate);
     }
   }
+%}
+#endif
+%pragma(csharp) imclasscode=%{
 
   protected static SWIGExceptionHelper swigExceptionHelper = new SWIGExceptionHelper();
 
