@@ -3834,9 +3834,8 @@ public:
 	        Printf(mono_aot_swig_connect_dispatchers_imclasscode, ", ");
         }
 	Printf(mono_aot_swig_connect_dispatchers_def, "%s::SWIG_Callback%s_Dispatcher_t callback%sStatic", dirclassname, methid, methid);      
-	Printf(mono_aot_swig_connect_dispatchers_code, "callback%sStatic", dirclassname, methid, methid);      
+	Printf(mono_aot_swig_connect_dispatchers_code, "callback%sStatic", methid);      
 	Printf(code_wrap->def, "void* callback%s", methid);      
-	Printf(code_wrap->code, "callback%sStatic, ", methid);
       }
       
       Printf(code_wrap->code, "callback%s", methid);
