@@ -155,6 +155,7 @@ template <typename... V> struct VariadicParms {
   void ParmsRValueRef(V&&... vparms_r) {}
   void ParmsConstRef(const V&... vparms_cr) {}
 
+  // Conventional unnamed parameter function ptr
   void ParmsFuncPtrVal(int (*)(V...)) {}
   void ParmsFuncPtrPtr(int (*)(V*...)) {}
   void ParmsFuncPtrPtrRef(int (*)(V*&...)) {}
@@ -163,6 +164,25 @@ template <typename... V> struct VariadicParms {
   void ParmsFuncPtrRValueRef(int (*)(V&&...)) {}
   void ParmsFuncPtrConstRef(int (*)(const V&...)) {}
 
+  // Unconventional unnamed parameter function ptr
+  void ParmsFuncUnnamedVal(int (V...)) {}
+  void ParmsFuncUnnamedPtr(int (V*...)) {}
+  void ParmsFuncUnnamedPtrRef(int (V*&...)) {}
+  void ParmsFuncUnnamedPtrRValueRef(int (V*&&...)) {}
+  void ParmsFuncUnnamedRef(int (V&...)) {}
+  void ParmsFuncUnnamedRValueRef(int (V&&...)) {}
+  void ParmsFuncUnnamedConstRef(int (const V&...)) {}
+
+  // Unconventional named parameter function ptr
+  void ParmsFuncNamedVal(int fn(V...)) {}
+  void ParmsFuncNamedPtr(int fn(V*...)) {}
+  void ParmsFuncNamedPtrRef(int fn(V*&...)) {}
+  void ParmsFuncNamedPtrRValueRef(int fn(V*&&...)) {}
+  void ParmsFuncNamedRef(int fn(V&...)) {}
+  void ParmsFuncNamedRValueRef(int fn(V&&...)) {}
+  void ParmsFuncNamedConstRef(int fn(const V&...)) {}
+
+  // Conventional unnamed parameter member function ptr
   void ParmsMemFuncPtrVal(int (KlassMemFuncs::*)(V...)) {}
   void ParmsMemFuncPtrPtr(int (KlassMemFuncs::*)(V*...)) {}
   void ParmsMemFuncPtrPtrRef(int (KlassMemFuncs::*)(V*&...)) {}
@@ -205,20 +225,27 @@ public:
 class Container {
 public:
 template<typename... Args>
-static void notifyMyTypes(void (fn)(Args...));
-//static void notifyMyTypes(void (*fn)(Args...));
+  static void notifyMyTypes(void (fn)(Args...)); // unconventional function (ptr)
+template<typename... Args>
+  static void notifyMyTypesA(void (*fn)(Args...)) {} // conventional function ptr
+template<typename... Args>
+  static void notifyMyTypesB(void fn(Args...)) {}; // unconventional function (ptr)
 };
 %}
 %{
 template<typename... Args>
   void Container::notifyMyTypes(void (fn)(Args...)) {}
-//  void Container::notifyMyTypes(void (*fn)(Args...)) {}
 
 // Explicit template instantiations
 template void Container::notifyMyTypes<>(void (tt)());
 template void Container::notifyMyTypes<int>(void (tt)(int));
 template void Container::notifyMyTypes<int, double>(void (tt)(int, double));
 %}
+
+// Not supported (most vexing parse), see Extending.html#Extending_nn7
+//%template(ContainerNotifyMyTypes1) Container::notifyMyTypes<int>;
+%template(ContainerNotifyMyTypesA1) Container::notifyMyTypesA<int>;
+%template(ContainerNotifyMyTypesB1) Container::notifyMyTypesB<int>;
 
 // #1863
 %inline %{
@@ -232,4 +259,5 @@ void emplace(Args &&... args) noexcept(
 %}
 
 %template(emplace) EmplaceContainer::emplace<int,A>;
+// TODO
 //%template(emplace) EmplaceContainer::emplace<int,A,B,C>;
