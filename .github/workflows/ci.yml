@@ -187,6 +187,7 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: scilab
           VER: '5.5.2'
+          continue-on-error: true # downloads have moved, awaiting URL redirect
         - SWIGLANG: scilab
           os: ubuntu-18.04 # scilab 6.0
         - SWIGLANG: scilab
