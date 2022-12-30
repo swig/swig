@@ -1992,13 +1992,25 @@ public:
 	if (!mono_aot_compatibility_flag) {
 	  Printf(proxy_class_code, ", swigDelegate%s", methid);
 	} else {
-    
-    Printf(proxy_class_code, ", SwigDirector%s_Dispatcher", overname);
+    // Printf(proxy_class_code, ", SwigDirector%s_Dispatcher", overname);
 	  Printf(proxy_class_code, ", swigDelegate%sgcHandlePtr", methid);
 	}
       }
       Printf(proxy_class_code, ");\n");
       Printf(proxy_class_code, "  }\n");
+      if(mono_aot_compatibility_flag){
+        Printf(proxy_class_code, "  [global::System.Runtime.CompilerServices.ModuleInitializer]\n  internal static void SwigDirectorConnectDispatchers() {\n");
+        Printf(proxy_class_code, "    %s.%s_dispatchers(", imclass_name, director_connect_method_name);
+        for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+          UpcallData *udata = Getitem(dmethods_seq, i);
+          String *overname = Getattr(udata, "overname");
+          if(i != first_class_dmethod)
+            Printf(proxy_class_code, ", ");
+          Printf(proxy_class_code, "SwigDirector%s_Dispatcher", overname);
+        }
+        Printf(proxy_class_code, ");\n  }\n");
+      }
+
 
       if (first_class_dmethod < curr_class_dmethod) {
 	// Only emit if there is at least one director method
@@ -3815,7 +3827,8 @@ public:
       if (!mono_aot_compatibility_flag)	{
 	Printf(code_wrap->def, "%s::SWIG_Callback%s_t callback%s", dirclassname, methid, methid);
       } else {
-        if(i > 0){
+        if (i != first_class_dmethod)
+        {
 	        Printf(mono_aot_swig_connect_dispatchers_code, ", ");
 	        Printf(mono_aot_swig_connect_dispatchers_def, ", ");
 	        Printf(mono_aot_swig_connect_dispatchers_imclasscode, ", ");
@@ -4425,7 +4438,7 @@ public:
       if (!mono_aot_compatibility_flag) {
 	Printf(director_callbacks, "    SWIG_Callback%s_t swig_callback%s;\n", methid, overloaded_name);
       } else {
-	Printf(director_callbacks, "    static SWIG_Callback%s_Dispatcher_t swig_callback%s_dispatcher = 0;\n", methid, overloaded_name);
+	Printf(director_callbacks, "    static SWIG_Callback%s_Dispatcher_t swig_callback%s_dispatcher;\n", methid, overloaded_name);
 	Printf(director_callbacks, "    Swig::GCHandle swig_callback%s;\n", overloaded_name);
 	Printf(director_mono_aot_delegate_definitions, " SwigDelegate%s_%s_Dispatcher(global::System.IntPtr swigDelegate%s_%s_Handle%s%s);\n", classname, methid, classname, methid, ParmList_len(l) > 0 ? ", " : "",mono_aot_blitable_delegate_parms);
       }
@@ -4643,8 +4656,6 @@ public:
     if (Len(director_callback_typedefs) > 0) {
       Printf(f_directors_h, "\n%s", director_callback_typedefs);
     }
-
-    Printf(w->def, "void %s::swig_connect_director(", dirclassname);
 
     for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
