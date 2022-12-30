@@ -3843,7 +3843,6 @@ public:
       Printf(code_wrap->code, "%s){\n", mono_aot_swig_connect_dispatchers_def);
       Printf(code_wrap->code, "%s);\n}\n\n", mono_aot_swig_connect_dispatchers_code);
       Printf(imclass_class_code, "\n%s);\n", mono_aot_swig_connect_dispatchers_imclasscode);
-      code_wrap->code
     }
 
     Wrapper_print(code_wrap, f_wrappers);
