@@ -3768,6 +3768,9 @@ public:
     String *nspace = getNSpace();
     String *dirClassName = directorClassName(n);
     String *smartptr = Getattr(n, "feature:smartptr");
+    String *mono_aot_swig_connect_dispatchers_def = NewString("");
+    String *mono_aot_swig_connect_dispatchers_code = NewString("");
+    String *mono_aot_swig_connect_dispatchers_imclasscode = NewString("");
     if (!GetFlag(n, "feature:flatnested")) {
       for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
 
@@ -3783,6 +3786,12 @@ public:
 
     Wrapper *code_wrap = NewWrapper();
     Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
+    if(mono_aot_compatibility_flag){
+      Printv(mono_aot_swig_connect_dispatchers_imclasscode, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "_dispatchers\")]\n", NIL);
+      Printf(mono_aot_swig_connect_dispatchers_imclasscode, "  public static extern void %s_dispatchers(", swig_director_connect);
+      Printf(mono_aot_swig_connect_dispatchers_def, "SWIGEXPORT void SWIGSTDCALL %s_dispatchers(", wname);
+      Printf(mono_aot_swig_connect_dispatchers_code, "  %s::swig_connect_director_dispatchers(", norm_name);
+    }
 
     if (smartptr) {
       Printf(code_wrap->code, "  %s *obj = (%s *)objarg;\n", smartptr, smartptr);
@@ -3806,7 +3815,13 @@ public:
       if (!mono_aot_compatibility_flag)	{
 	Printf(code_wrap->def, "%s::SWIG_Callback%s_t callback%s", dirclassname, methid, methid);
       } else {
-	Printf(code_wrap->def, "%s::SWIG_Callback%s_Dispatcher_t callback%sStatic, ", dirclassname, methid, methid);      
+        if(i > 0){
+	        Printf(mono_aot_swig_connect_dispatchers_code, ", ");
+	        Printf(mono_aot_swig_connect_dispatchers_def, ", ");
+	        Printf(mono_aot_swig_connect_dispatchers_imclasscode, ", ");
+        }
+	Printf(mono_aot_swig_connect_dispatchers_def, "%s::SWIG_Callback%s_Dispatcher_t callback%sStatic", dirclassname, methid, methid);      
+	Printf(mono_aot_swig_connect_dispatchers_code, "callback%sStatic", dirclassname, methid, methid);      
 	Printf(code_wrap->def, "void* callback%s", methid);      
 	Printf(code_wrap->code, "callback%sStatic, ", methid);
       }
@@ -3815,7 +3830,7 @@ public:
       if (!mono_aot_compatibility_flag) {
 	Printf(imclass_class_code, ", %s.SwigDelegate%s_%s delegate%s", qualified_classname, sym_name, methid, methid);
       } else { 
-	Printf(imclass_class_code, ", %s.SwigDelegate%s_%s_Dispatcher delegate%s_dispatcher", qualified_classname, sym_name, methid, methid);
+	Printf(mono_aot_swig_connect_dispatchers_imclasscode, "%s.SwigDelegate%s_%s_Dispatcher delegate%s_dispatcher", qualified_classname, sym_name, methid, methid);
 	Printf(imclass_class_code, ", global::System.IntPtr delegate%sgcHandlePtr", methid);
       }
     }
@@ -3824,10 +3839,19 @@ public:
     Printf(code_wrap->code, ");\n");
     Printf(imclass_class_code, ");\n");
     Printf(code_wrap->code, "}\n");
+    if(mono_aot_compatibility_flag){
+      Printf(code_wrap->code, "%s){\n", mono_aot_swig_connect_dispatchers_def);
+      Printf(code_wrap->code, "%s);\n}\n\n", mono_aot_swig_connect_dispatchers_code);
+      Printf(imclass_class_code, "\n%s);\n", mono_aot_swig_connect_dispatchers_imclasscode);
+      code_wrap->code
+    }
 
     Wrapper_print(code_wrap, f_wrappers);
     DelWrapper(code_wrap);
 
+    Delete(mono_aot_swig_connect_dispatchers_code);
+    Delete(mono_aot_swig_connect_dispatchers_def);
+    Delete(mono_aot_swig_connect_dispatchers_imclasscode);
     Delete(wname);
     Delete(swig_director_connect);
     Delete(qualified_classname);
@@ -4402,7 +4426,7 @@ public:
       if (!mono_aot_compatibility_flag) {
 	Printf(director_callbacks, "    SWIG_Callback%s_t swig_callback%s;\n", methid, overloaded_name);
       } else {
-	Printf(director_callbacks, "    SWIG_Callback%s_Dispatcher_t swig_callback%s_dispatcher;\n", methid, overloaded_name);
+	Printf(director_callbacks, "    static SWIG_Callback%s_Dispatcher_t swig_callback%s_dispatcher = 0;\n", methid, overloaded_name);
 	Printf(director_callbacks, "    Swig::GCHandle swig_callback%s;\n", overloaded_name);
 	Printf(director_mono_aot_delegate_definitions, " SwigDelegate%s_%s_Dispatcher(global::System.IntPtr swigDelegate%s_%s_Handle%s%s);\n", classname, methid, classname, methid, ParmList_len(l) > 0 ? ", " : "",mono_aot_blitable_delegate_parms);
       }
@@ -4611,14 +4635,15 @@ public:
   int classDirectorEnd(Node *n) {
     int i;
     String *dirclassname = directorClassName(n);
-
+    String *connect_director_params = NewString("");
+    String *connect_director_code = NewString("");
+    String *connect_director_dispatcher_params = NewString("");
+    String *connect_director_dispatcher_code = NewString("");
     Wrapper *w = NewWrapper();
 
     if (Len(director_callback_typedefs) > 0) {
       Printf(f_directors_h, "\n%s", director_callback_typedefs);
     }
-
-    Printf(f_directors_h, "    void swig_connect_director(");
 
     Printf(w->def, "void %s::swig_connect_director(", dirclassname);
 
@@ -4628,38 +4653,41 @@ public:
       String *overname = Getattr(udata, "overname");
 
       if (!mono_aot_compatibility_flag) {
-	Printf(f_directors_h, "SWIG_Callback%s_t callback%s", methid, overname);
-	Printf(w->def, "SWIG_Callback%s_t callback%s", methid, overname);
+	Printf(connect_director_params, "SWIG_Callback%s_t callback%s", methid, overname);
       } else {
-	Printf(f_directors_h, "SWIG_Callback%s_Dispatcher_t callback%s_dispatcher, Swig::GCHandle callback%s", methid, overname, overname);
-	Printf(w->def, "SWIG_Callback%s_Dispatcher_t callback%s_dispatcher, Swig::GCHandle callback%s", methid, overname, overname);
-	Printf(w->code, "swig_callback%s_dispatcher = callback%s_dispatcher;\n", overname, overname);
+	Printf(connect_director_params, "Swig::GCHandle callback%s", overname);
+	Printf(connect_director_dispatcher_params, "SWIG_Callback%s_Dispatcher_t callback%s_dispatcher", methid, overname);
+	Printf(connect_director_dispatcher_code, "swig_callback%s_dispatcher = callback%s_dispatcher;\n", overname, overname);
       }
 
-      Printf(w->code, "swig_callback%s = callback%s;\n", overname, overname);
+      Printf(connect_director_code, "swig_callback%s = callback%s;\n", overname, overname);
       if (i != curr_class_dmethod - 1) {
-	Printf(f_directors_h, ", ");
-	Printf(w->def, ", ");
+        Printf(connect_director_params, ", ");
+        if(mono_aot_compatibility_flag){
+          Printf(connect_director_dispatcher_params, ", ");
+        }
       }
     }
+    Printv(f_directors_h, "    void swig_connect_director(", connect_director_params, ");\n", NIL);
+    Printf(w->def, "void %s::swig_connect_director(%s) {\n", dirclassname, connect_director_params);
+    Printf(w->code, "%s\n}\n\n", connect_director_code);
 
-    Printf(f_directors_h, ");\n");
-    Printf(w->def, ") {");
-
+    if(mono_aot_compatibility_flag){
+      Printv(f_directors_h, "    static void swig_connect_director_dispatchers(", connect_director_dispatcher_params, ");\n", NIL);
+      Printf(w->code, "void %s::swig_connect_director_dispatchers(%s) {\n", dirclassname, connect_director_dispatcher_params);
+      Printf(w->code, "%s\n}\n\n", connect_director_dispatcher_code);
+    }
 
     if (Len(director_callbacks) > 0) {
       Printf(f_directors_h, "\nprivate:\n%s", director_callbacks);
     }
     Printf(f_directors_h, "    void swig_init_callbacks();\n");
     Printf(f_directors_h, "};\n\n");
-    Printf(w->code, "}\n\n");
 
     Printf(w->code, "void %s::swig_init_callbacks() {\n", dirclassname);
     for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
       UpcallData *udata = Getitem(dmethods_seq, i);
       String *overname = Getattr(udata, "overname");
-      if (mono_aot_compatibility_flag)
-	   Printf(w->code, "swig_callback%s_dispatcher = 0;\n", overname);
       Printf(w->code, "swig_callback%s = 0;\n", overname);
     }
     Printf(w->code, "}");
@@ -4668,7 +4696,10 @@ public:
 
     DelWrapper(w);
     Delete(dirclassname);
-
+    Delete(connect_director_params);
+    Delete(connect_director_code);
+    Delete(connect_director_dispatcher_params);
+    Delete(connect_director_dispatcher_code);
     return Language::classDirectorEnd(n);
   }
 
