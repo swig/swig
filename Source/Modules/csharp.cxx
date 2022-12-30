@@ -3802,7 +3802,7 @@ public:
       Printv(mono_aot_swig_connect_dispatchers_imclasscode, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "_dispatchers\")]\n", NIL);
       Printf(mono_aot_swig_connect_dispatchers_imclasscode, "  public static extern void %s_dispatchers(", swig_director_connect);
       Printf(mono_aot_swig_connect_dispatchers_def, "SWIGEXPORT void SWIGSTDCALL %s_dispatchers(", wname);
-      Printf(mono_aot_swig_connect_dispatchers_code, "  %s::swig_connect_director_dispatchers(", norm_name);
+      Printf(mono_aot_swig_connect_dispatchers_code, "  %s::swig_connect_director_dispatchers(", dirClassName);
     }
 
     if (smartptr) {
