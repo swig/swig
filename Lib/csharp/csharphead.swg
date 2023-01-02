@@ -461,13 +461,13 @@ static void SWIGUNUSED SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpExcepti
 
 %insert(runtime) %{
 typedef void (SWIGSTDCALL* SWIG_CSharpGCHandleFreeCallback)(void*); 
-SWIG_CSharpGCHandleFreeCallback SWIG_csharp_gchandle_free_callback = NULL;
+SWIG_CSharpGCHandleFreeCallback SWIG_csharp_gchandle_free_callback_$module = NULL;
 
 #ifdef __cplusplus
 extern "C" 
 #endif
 SWIGEXPORT void SWIGSTDCALL SWIGRegisterGCHandleFreeCallback_$module(SWIG_CSharpGCHandleFreeCallback callback) {
-  SWIG_csharp_gchandle_free_callback = callback;
+  SWIG_csharp_gchandle_free_callback_$module = callback;
 }
 %}
 #endif
