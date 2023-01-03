@@ -1746,7 +1746,7 @@ SwigType *Swig_symbol_typedef_reduce(const SwigType *ty, Symtab *tab) {
 
   n = Swig_symbol_clookup(base, tab);
   if (!n) {
-    if (SwigType_istemplate(ty)) {
+    if (SwigType_istemplate(base)) {
       SwigType *qt = Swig_symbol_template_reduce(base, tab);
       Append(prefix, qt);
       Delete(qt);

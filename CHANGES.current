@@ -8,6 +8,12 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-01-03: wsfulton
+            #983 Fix seg fault when instantiating templates with parameters that are function
+            parameters containing templates, such as:
+
+              %template(MyC) C<int(std::vector<int>)>;
+
+2023-01-03: wsfulton
             Complete support for C++11 variadic function templates. Support was previously limited
             to just one template parameter. Now zero or more template parameters are supported
             in the %template instantiation.
