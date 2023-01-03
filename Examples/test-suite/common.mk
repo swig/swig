@@ -632,6 +632,7 @@ CPP11_TEST_CASES += \
 	cpp11_uniform_initialization \
 	cpp11_unrestricted_unions \
 	cpp11_userdefined_literals \
+	cpp11_variadic_function_templates \
 	cpp11_variadic_templates \
 
 # Broken C++11 test cases.
