@@ -691,7 +691,7 @@ static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, const
  * Search for a template that matches name with given parameters.
  * ----------------------------------------------------------------------------- */
 
-static Node *template_locate(String *name, Parm *tparms, String *symname, Symtab *tscope) {
+static Node *template_locate(String *name, Parm *instantiated_parms, String *symname, Symtab *tscope) {
   Node *n = 0;
   String *tname = 0;
   Node *templ;
@@ -705,12 +705,9 @@ static Node *template_locate(String *name, Parm *tparms, String *symname, Symtab
   int max_possible_partials = 0;
   int posslen = 0;
 
-  /* Search for primary (unspecialized) template */
-  templ = Swig_symbol_clookup(name, 0);
-
   if (template_debug) {
     tname = Copy(name);
-    SwigType_add_template(tname, tparms);
+    SwigType_add_template(tname, instantiated_parms);
     Printf(stdout, "\n");
     if (symname)
       Swig_diagnostic(cparse_file, cparse_line, "Template debug: Searching for match to: '%s' for instantiation of template named '%s'\n", tname, symname);
@@ -720,9 +717,16 @@ static Node *template_locate(String *name, Parm *tparms, String *symname, Symtab
     tname = 0;
   }
 
+  /* Search for primary (unspecialized) template */
+  templ = Swig_symbol_clookup(name, 0);
+
   if (templ) {
+    if (template_debug) {
+      Printf(stdout, "    found primary template <%s> '%s'\n", ParmList_str_defaultargs(Getattr(templ, "templateparms")), Getattr(templ, "name"));
+    }
+
     tname = Copy(name);
-    parms = CopyParmList(tparms);
+    parms = CopyParmList(instantiated_parms);
 
     /* All template specializations must be in the primary template's scope, store the symbol table for this scope for specialization lookups */
     primary_scope = Getattr(templ, "sym:symtab");
@@ -788,7 +792,7 @@ static Node *template_locate(String *name, Parm *tparms, String *symname, Symtab
 	    String *previous_name = Getattr(previous_named_instantiation, "name");
 	    String *previous_symname = Getattr(previous_named_instantiation, "sym:name");
 	    String *unprocessed_tname = Copy(name);
-	    SwigType_add_template(unprocessed_tname, tparms);
+	    SwigType_add_template(unprocessed_tname, instantiated_parms);
 
 	    if (template_debug)
 	      Printf(stdout, "    previous instantiation with name '%s' found: '%s' - duplicate instantiation ignored\n", previous_symname, Getattr(n, "name"));
@@ -1040,14 +1044,15 @@ success:
 /* -----------------------------------------------------------------------------
  * Swig_cparse_template_locate()
  *
- * Search for a template that matches name with given parameters.
- * For templated classes finds the specialized template should there be one.
- * For templated functions finds the unspecialized template even if a specialized
- * template exists.
+ * Search for a template that matches name with given parameters and mark it for instantiation.
+ * For templated classes marks the specialized template should there be one.
+ * For templated functions marks all the unspecialized templates even if specialized
+ * templates exists.
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_cparse_template_locate(String *name, Parm *tparms, String *symname, Symtab *tscope) {
-  Node *n = template_locate(name, tparms, symname, tscope); /* this function does what we want for templated classes */
+Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String *symname, Symtab *tscope) {
+  Node *match = 0;
+  Node *n = template_locate(name, instantiated_parms, symname, tscope); /* this function does what we want for templated classes */
 
   if (n) {
     String *nodeType = nodeType(n);
@@ -1055,7 +1060,22 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, String *symname, S
     assert(Equal(nodeType, "template"));
     (void)nodeType;
     isclass = (Equal(Getattr(n, "templatetype"), "class"));
-    if (!isclass) {
+
+    if (isclass) {
+      Parm *tparmsfound = Getattr(n, "templateparms");
+      int specialized = !tparmsfound; /* fully specialized (an explicit specialization) */
+      int variadic = ParmList_variadic_parm(tparmsfound) != 0;
+      if (!specialized) {
+	if (!variadic && (ParmList_len(instantiated_parms) > ParmList_len(tparmsfound))) {
+	  Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparmsfound));
+	} else if (ParmList_len(instantiated_parms) < ParmList_numrequired(tparmsfound) - (variadic ? 1 : 0)) { /* Variadic parameter is optional */
+	  Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. %d required.\n", (ParmList_numrequired(tparmsfound) - (variadic ? 1 : 0)) );
+	}
+      }
+      SetFlag(n, "instantiate");
+      match = n;
+    } else {
+      Node *firstn = 0;
       /* If not a templated class we must have a templated function.
          The template found is not necessarily the one we want when dealing with templated
          functions. We don't want any specialized templated functions as they won't have
@@ -1064,32 +1084,63 @@ Node *Swig_cparse_template_locate(String *name, Parm *tparms, String *symname, S
          templated function with different numbers of template parameters. */
 
       if (template_debug) {
-	Printf(stdout, "    Not a templated class, seeking most appropriate templated function\n");
+	Printf(stdout, "    Not a templated class, seeking all appropriate primary templated functions\n");
       }
 
-      n = Swig_symbol_clookup_local(name, 0);
+      firstn = Swig_symbol_clookup_local(name, 0);
+      n = firstn;
+      /* First look for all overloaded functions (non-variadic) template matches.
+       * Looking for all template parameter matches only (not function parameter matches) 
+       * as %template instantiation uses template parameters without any function parameters. */
       while (n) {
-	Parm *tparmsfound = Getattr(n, "templateparms");
-	if (ParmList_len(tparms) == ParmList_len(tparmsfound)) {
-	  /* successful match */
-	  break;
+	if (Strcmp(nodeType(n), "template") == 0) {
+	  Parm *tparmsfound = Getattr(n, "templateparms");
+	  if (!ParmList_variadic_parm(tparmsfound)) {
+	    if (ParmList_len(instantiated_parms) == ParmList_len(tparmsfound)) {
+	      /* successful match */
+	      if (template_debug) {
+		Printf(stdout, "    found: template <%s> '%s' (%s)\n", ParmList_str_defaultargs(Getattr(n, "templateparms")), name, ParmList_str_defaultargs(Getattr(n, "parms")));
+	      }
+	      SetFlag(n, "instantiate");
+	      if (!match)
+		match = n; /* first match */
+	    }
+	  }
 	}
-	/* repeat until we find a match with correct number of templated parameters */
+	/* repeat to find all matches with correct number of templated parameters */
 	n = Getattr(n, "sym:nextSibling");
       }
 
-      if (!n) {
-	Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", name);
+      /* Only consider variadic templates if there are no non-variadic template matches */
+      if (!match) {
+	n = firstn;
+	while (n) {
+	  if (Strcmp(nodeType(n), "template") == 0) {
+	    Parm *tparmsfound = Getattr(n, "templateparms");
+	    if (ParmList_variadic_parm(tparmsfound)) {
+	      if (ParmList_len(instantiated_parms) >= ParmList_len(tparmsfound) - 1) {
+		/* successful variadic match */
+		if (template_debug) {
+		  Printf(stdout, "    found: template <%s> '%s' (%s)\n", ParmList_str_defaultargs(Getattr(n, "templateparms")), name, ParmList_str_defaultargs(Getattr(n, "parms")));
+		}
+		SetFlag(n, "instantiate");
+		if (!match)
+		  match = n; /* first match */
+	      }
+	    }
+	  }
+	  /* repeat to find all matches with correct number of templated parameters */
+	  n = Getattr(n, "sym:nextSibling");
+	}
       }
 
-      if ((template_debug) && (n)) {
-	Printf(stdout, "Templated function found: %p\n", n);
-	Swig_print_node(n);
+      if (!match) {
+	Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", name);
       }
     }
   }
 
-  return n;
+  return match;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1164,24 +1215,24 @@ static void expand_defaults(ParmList *expanded_templateparms) {
 /* -----------------------------------------------------------------------------
  * Swig_cparse_template_parms_expand()
  *
- * instantiated_parameters: template parameters passed to %template
+ * instantiated_parms: template parameters passed to %template
  * primary: primary template node
  *
- * Expand the instantiated_parameters and return a parameter list with default
+ * Expand the instantiated_parms and return a parameter list with default
  * arguments filled in where necessary.
  * ----------------------------------------------------------------------------- */
 
-ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parameters, Node *primary) {
+ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parms, Node *primary) {
   ParmList *expanded_templateparms = 0;
   ParmList *templateparms = Getattr(primary, "templateparms");
 
   if (Equal(Getattr(primary, "templatetype"), "class")) {
     /* Templated class */
-    expanded_templateparms = CopyParmList(instantiated_parameters);
+    expanded_templateparms = CopyParmList(instantiated_parms);
     int variadic = merge_parameters(expanded_templateparms, templateparms);
     /* Add default arguments from primary template */
     if (!variadic) {
-      ParmList *defaults_start = ParmList_nth_parm(templateparms, ParmList_len(instantiated_parameters));
+      ParmList *defaults_start = ParmList_nth_parm(templateparms, ParmList_len(instantiated_parms));
       if (defaults_start) {
 	ParmList *defaults = CopyParmList(defaults_start);
 	mark_defaults(defaults);
@@ -1192,7 +1243,7 @@ ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parameters, N
   } else {
     /* Templated function */
     /* TODO: Default template parameters support was only added in C++11 */
-    expanded_templateparms = CopyParmList(instantiated_parameters);
+    expanded_templateparms = CopyParmList(instantiated_parms);
     merge_parameters(expanded_templateparms, templateparms);
   }
 

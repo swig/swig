@@ -2817,8 +2817,6 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  Node *n;
 		  Node *outer_class = currentOuterClass;
 		  Symtab *tscope = 0;
-		  int     specialized = 0; /* fully specialized (an explicit specialization) */
-		  int     variadic = 0;
 		  String *symname = $3 ? NewString($3) : 0;
 
 		  $$ = 0;
@@ -2875,23 +2873,12 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                     Node *linkliststart = 0;
                     while (nn) {
                       Node *templnode = 0;
-                      if (Strcmp(nodeType(nn),"template") == 0) {
-                        int nnisclass = (Strcmp(Getattr(nn,"templatetype"),"class") == 0); /* if not a templated class it is a templated function */
-                        Parm *tparms = Getattr(nn,"templateparms");
-                        if (!tparms) {
-                          specialized = 1;
-                        } else if (ParmList_variadic_parm(tparms)) {
-                          variadic = 1;
-                        }
-                        if (nnisclass && !variadic && !specialized && (ParmList_len($7) > ParmList_len(tparms))) {
-                          Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparms));
-                        } else if (nnisclass && !specialized && ((ParmList_len($7) < (ParmList_numrequired(tparms) - (variadic?1:0))))) { /* Variadic parameter is optional */
-                          Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. %d required.\n", (ParmList_numrequired(tparms)-(variadic?1:0)) );
-                        } else if (!nnisclass && ((ParmList_len($7) != ParmList_len(tparms)))) {
-                          /* must be an overloaded templated method - ignore it as it is overloaded with a different number of template parameters */
-                          nn = Getattr(nn,"sym:nextSibling"); /* repeat for overloaded templated functions */
-                          continue;
-                        } else {
+                      if (GetFlag(nn, "instantiate")) {
+			Delattr(nn, "instantiate");
+			{
+			  int nnisclass = (Strcmp(Getattr(nn, "templatetype"), "class") == 0); /* if not a templated class it is a templated function */
+			  Parm *tparms = Getattr(nn, "templateparms");
+			  int specialized = !tparms; /* fully specialized (an explicit specialization) */
 			  String *tname = Copy($5);
 			  Node *primary_template = Swig_symbol_clookup(tname, 0);
 

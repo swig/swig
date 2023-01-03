@@ -78,5 +78,19 @@ void emplace(Args &&... args) noexcept(
 %}
 
 %template(emplace) EmplaceContainer::emplace<int,A>;
-// TODO
-//%template(emplace) EmplaceContainer::emplace<int,A,B,C>;
+%template(emplace) EmplaceContainer::emplace<int,A,B>;
+%template(emplace) EmplaceContainer::emplace<int,A,B,C>;
+%template(emplace) EmplaceContainer::emplace<int,A,B,C,D>;
+
+
+// Overloading mix of variadic and non-variadic templates
+%inline %{
+template<typename T, typename U> int variadicmix1(T t, U u) { return 10; }
+template<typename... T> int variadicmix1(T... t) { return 20; }
+%}
+
+%template(variadicmix1) variadicmix1<>;
+%template(variadicmix1) variadicmix1<A>;
+%template(variadicmix1) variadicmix1<A,B>;
+%template(variadicmix1) variadicmix1<A,B,C>;
+%template(variadicmix1) variadicmix1<int, int>;

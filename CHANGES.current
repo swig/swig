@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-01-03: wsfulton
+            Complete support for C++11 variadic function templates. Support was previously limited
+            to just one template parameter. Now zero or more template parameters are supported
+            in the %template instantiation.
+
 2022-12-29: wsfulton
             #1863 Syntax error fixes parsing more elaborate parameter pack arguments that are
             used in function pointers, member function pointers:
@@ -50,7 +55,7 @@ Version 4.2.0 (in progress)
             are function pointers.
 
 2022-12-22: wsfulton
-            Complete support for C++11 variadic templates. Support was previously limited
+            Complete support for C++11 variadic class templates. Support was previously limited
             to just one template parameter. Now zero or more template parameters are supported.
 
 2022-12-06: wsfulton
