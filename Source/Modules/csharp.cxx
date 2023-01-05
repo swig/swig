@@ -16,6 +16,7 @@
 #include <limits.h>		// for INT_MAX
 #include <ctype.h>
 
+#define DLL_IMPORT_PATH_VARIABLE_NAME "DllImportPath"
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
 
@@ -468,10 +469,12 @@ public:
 	Printv(f_im, "implements ", imclass_interfaces, " ", NIL);
       Printf(f_im, "{\n");
 
+      // Add DllImport string definition
+      Printv(f_im, "\n  private const string " DLL_IMPORT_PATH_VARIABLE_NAME " = \"", dllimport, "\";\n", NIL);
+
       // Add the intermediary class methods
       Replaceall(imclass_class_code, "$module", module_class_name);
       Replaceall(imclass_class_code, "$imclassname", imclass_name);
-      Replaceall(imclass_class_code, "$dllimport", dllimport);
       Printv(f_im, imclass_class_code, NIL);
       Printv(f_im, imclass_cppcasts_code, NIL);
 
@@ -508,9 +511,6 @@ public:
 
       Replaceall(module_class_code, "$imclassname", imclass_name);
       Replaceall(module_class_constants_code, "$imclassname", imclass_name);
-
-      Replaceall(module_class_code, "$dllimport", dllimport);
-      Replaceall(module_class_constants_code, "$dllimport", dllimport);
 
       // Add the wrapper methods
       Printv(f_module, module_class_code, NIL);
@@ -846,7 +846,7 @@ public:
       }
     }
 
-    Printv(imclass_class_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
+    Printv(imclass_class_code, "\n  [global::System.Runtime.InteropServices.DllImport(", DLL_IMPORT_PATH_VARIABLE_NAME ,", EntryPoint=\"", wname, "\")]\n", NIL);
 
     if (im_outattributes)
       Printf(imclass_class_code, "  %s\n", im_outattributes);
@@ -1579,7 +1579,6 @@ public:
     String *section = Getattr(n, "section");
     Replaceall(code, "$module", module_class_name);
     Replaceall(code, "$imclassname", imclass_name);
-    Replaceall(code, "$dllimport", dllimport);
 
     if (!ImportMode && (Cmp(section, "proxycode") == 0)) {
       if (proxy_class_code) {
@@ -1739,7 +1738,7 @@ public:
   void upcastsCode(SwigType *smart, String *upcast_method_name, SwigType *c_classname, SwigType *c_baseclassname) {
     String *wname = Swig_name_wrapper(upcast_method_name);
 
-    Printv(imclass_cppcasts_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
+    Printv(imclass_cppcasts_code, "\n  [global::System.Runtime.InteropServices.DllImport(", DLL_IMPORT_PATH_VARIABLE_NAME, ", EntryPoint=\"", wname, "\")]\n", NIL);
     Printf(imclass_cppcasts_code, "  public static extern global::System.IntPtr %s(global::System.IntPtr jarg1);\n", upcast_method_name);
 
     Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
@@ -2207,11 +2206,6 @@ public:
       Replaceall(proxy_class_code, "$imclassname", full_imclass_name);
       Replaceall(proxy_class_constants_code, "$imclassname", full_imclass_name);
       Replaceall(interface_class_code, "$imclassname", full_imclass_name);
-
-      Replaceall(proxy_class_def, "$dllimport", dllimport);
-      Replaceall(proxy_class_code, "$dllimport", dllimport);
-      Replaceall(proxy_class_constants_code, "$dllimport", dllimport);
-      Replaceall(interface_class_code, "$dllimport", dllimport);
 
       if (!has_outerclass)
 	Printv(f_proxy, proxy_class_def, proxy_class_code, NIL);
@@ -3547,7 +3541,6 @@ public:
     Replaceall(swigtype, "$csclassname", classname);
     Replaceall(swigtype, "$module", module_class_name);
     Replaceall(swigtype, "$imclassname", imclass_name);
-    Replaceall(swigtype, "$dllimport", dllimport);
 
     // For unknown enums
     Replaceall(swigtype, "$enumvalues", "");
@@ -3759,7 +3752,7 @@ public:
     if (nspace)
       Insert(qualified_classname, 0, NewStringf("%s.", nspace));
 
-    Printv(imclass_class_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
+    Printv(imclass_class_code, "\n  [global::System.Runtime.InteropServices.DllImport(", DLL_IMPORT_PATH_VARIABLE_NAME, ", EntryPoint =\"", wname, "\")]\n", NIL);
     Printf(imclass_class_code, "  public static extern void %s(global::System.Runtime.InteropServices.HandleRef jarg1", swig_director_connect);
 
     Wrapper *code_wrap = NewWrapper();
