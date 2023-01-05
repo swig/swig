@@ -951,7 +951,7 @@ public:
   void create_command(String *cname, String *fname, Node *n, bool dispatch, String *modes) {
     // This is for the single main zend_function_entry record
     ParmList *l = Getattr(n, "parms");
-    if (cname && !Equal(Getattr(n, "storage"), "friend")) {
+    if (cname && !Strstr(Getattr(n, "storage"), "friend")) {
       Printf(f_h, "static PHP_METHOD(%s%s,%s);\n", prefix, cname, fname);
       if (wrapperType != staticmemberfn &&
 	  wrapperType != staticmembervar &&
@@ -973,7 +973,7 @@ public:
     String *arginfo_id = phptypes->get_arginfo_id();
     String *s = cs_entry;
     if (!s) s = s_entry;
-    if (cname && !Equal(Getattr(n, "storage"), "friend")) {
+    if (cname && !Strstr(Getattr(n, "storage"), "friend")) {
       Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id, modes);
     } else {
       if (dispatch) {
@@ -1043,7 +1043,7 @@ public:
 
     create_command(class_name, wname, n, true, modes);
 
-    if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
+    if (class_name && !Strstr(Getattr(n, "storage"), "friend")) {
       Printv(f->def, "static PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
     } else {
       Printv(f->def, "static ZEND_NAMED_FUNCTION(", wname, ") {\n", NIL);
@@ -1340,7 +1340,7 @@ public:
       wname = Getattr(n, "staticmemberfunctionHandler:sym:name");
     } else {
       if (class_name) {
-	if (Cmp(Getattr(n, "storage"), "friend") == 0 && Cmp(Getattr(n, "view"), "globalfunctionHandler") == 0) {
+	if (Strstr(Getattr(n, "storage"), "friend") && Cmp(Getattr(n, "view"), "globalfunctionHandler") == 0) {
 	  wname = iname;
 	} else {
 	  wname = Getattr(n, "destructorHandler:sym:name");
@@ -1364,7 +1364,7 @@ public:
       phptypes = NULL;
 
       String *key;
-      if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
+      if (class_name && !Strstr(Getattr(n, "storage"), "friend")) {
 	key = NewStringf("%s:%s", class_name, wname);
       } else {
 	key = NewStringf(":%s", wname);
@@ -1395,7 +1395,7 @@ public:
 
     if (!overloaded) {
       if (!static_getter) {
-	if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
+	if (class_name && !Strstr(Getattr(n, "storage"), "friend")) {
 	  Printv(f->def, "static PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
 	} else {
 	  if (wrap_nonclass_global) {
@@ -1589,7 +1589,7 @@ public:
 
     List *return_types = phptypes->process_phptype(n, 0, "tmap:out:phptype");
 
-    if (class_name && !Equal(Getattr(n, "storage"), "friend")) {
+    if (class_name && !Strstr(Getattr(n, "storage"), "friend")) {
       if (is_member_director(n)) {
 	String *parent = class_name;
 	while ((parent = Getattr(php_parent_class, parent)) != NULL) {

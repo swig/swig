@@ -882,7 +882,7 @@ int Language::cDeclaration(Node *n) {
   /* discards nodes following the access control rules */
   if (cplus_mode != PUBLIC || !is_public(n)) {
     /* except for friends, they are not affected by access control */
-    int isfriend = Cmp(storage, "friend") == 0;
+    int isfriend = (Strstr(storage, "friend") != NULL);
     if (!isfriend) {
       /* Check what the director needs. If the method is pure virtual, it is always needed.
        * Also wrap non-virtual protected members if asked for (allprotected mode). */
@@ -1061,7 +1061,7 @@ int Language::cDeclaration(Node *n) {
 
 int Language::functionHandler(Node *n) {
   String *storage = Getattr(n, "storage");
-  int isfriend = CurrentClass && Cmp(storage, "friend") == 0;
+  int isfriend = CurrentClass && Strstr(storage, "friend");
   int isstatic = CurrentClass && Swig_storage_isstatic(n) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"));
   Parm *p = Getattr(n, "parms");
   if (GetFlag(n, "feature:del")) {

@@ -166,7 +166,7 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
 	Append(cpatchlist, Getattr(n, "sym:name"));
       }
     }
-    if (checkAttribute(n, "storage", "friend")) {
+    if (Strstr(Getattr(n, "storage"), "friend")) {
       String *symname = Getattr(n, "sym:name");
       if (symname) {
 	String *stripped_name = SwigType_templateprefix(symname);

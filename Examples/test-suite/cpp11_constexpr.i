@@ -39,6 +39,9 @@ struct ConstExpressions {
   // Regression tests for https://github.com/swig/swig/issues/284 :
   explicit constexpr ConstExpressions(int) { }
   constexpr explicit ConstExpressions(double) { }
+  // Regression tests for  https://github.com/swig/swig/issues/2079 :
+  constexpr friend bool operator==(ConstExpressions,ConstExpressions) { return true; }
+  friend constexpr bool operator!=(ConstExpressions,ConstExpressions) { return false; }
 };
 %}
 

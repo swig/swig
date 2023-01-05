@@ -231,6 +231,49 @@ static int cplus_mode  = 0;
 #define  CPLUS_PRIVATE   2
 #define  CPLUS_PROTECTED 3
 
+/* storage classes */
+
+#define SWIG_STORAGE_CLASS_EXTERNC	0x0001
+#define SWIG_STORAGE_CLASS_EXTERNCPP	0x0002
+#define SWIG_STORAGE_CLASS_EXTERN	0x0004
+#define SWIG_STORAGE_CLASS_STATIC	0x0008
+#define SWIG_STORAGE_CLASS_TYPEDEF	0x0010
+#define SWIG_STORAGE_CLASS_VIRTUAL	0x0020
+#define SWIG_STORAGE_CLASS_FRIEND	0x0040
+#define SWIG_STORAGE_CLASS_EXPLICIT	0x0080
+#define SWIG_STORAGE_CLASS_CONSTEXPR	0x0100
+#define SWIG_STORAGE_CLASS_THREAD_LOCAL	0x0200
+
+/* Test if multiple bits are set in x. */
+static int multiple_bits_set(unsigned x) { return (x & (x - 1)) != 0; }
+
+static const char* storage_class_string(int c) {
+  switch (c) {
+    case SWIG_STORAGE_CLASS_EXTERNC:
+      return "extern \"C\"";
+    case SWIG_STORAGE_CLASS_EXTERNCPP:
+      return "extern \"C++\"";
+    case SWIG_STORAGE_CLASS_EXTERN:
+      return "extern";
+    case SWIG_STORAGE_CLASS_STATIC:
+      return "static";
+    case SWIG_STORAGE_CLASS_TYPEDEF:
+      return "typedef";
+    case SWIG_STORAGE_CLASS_VIRTUAL:
+      return "virtual";
+    case SWIG_STORAGE_CLASS_FRIEND:
+      return "friend";
+    case SWIG_STORAGE_CLASS_EXPLICIT:
+      return "explicit";
+    case SWIG_STORAGE_CLASS_CONSTEXPR:
+      return "constexpr";
+    case SWIG_STORAGE_CLASS_THREAD_LOCAL:
+      return "thread_local";
+  }
+  assert(0);
+  return "<unknown>";
+}
+
 /* include types */
 static int   import_mode = 0;
 
@@ -352,7 +395,7 @@ static String *make_unnamed(void) {
 
 /* Return if the node is a friend declaration */
 static int is_friend(Node *n) {
-  return Cmp(Getattr(n,"storage"),"friend") == 0;
+  return (Strstr(Getattr(n, "storage"), "friend") != NULL);
 }
 
 static int is_operator(String *name) {
@@ -1150,10 +1193,10 @@ Printf(stdout, "comparing current: [%s] found: [%s]\n", current_scopename, found
 }
  
 /* look for simple typedef name in typedef list */
-static String *try_to_find_a_name_for_unnamed_structure(const char *storage, Node *decls) {
+static String *try_to_find_a_name_for_unnamed_structure(const String *storage, Node *decls) {
   String *name = 0;
   Node *n = decls;
-  if (storage && (strcmp(storage, "typedef") == 0)) {
+  if (storage && Equal(storage, "typedef")) {
     for (; n; n = nextSibling(n)) {
       if (!Len(Getattr(n, "decl"))) {
 	name = Copy(Getattr(n, "name"));
@@ -1183,7 +1226,7 @@ static void update_nested_classes(Node *n)
  * Create the nested class/struct/union as a forward declaration.
  * ----------------------------------------------------------------------------- */
 
-static Node *nested_forward_declaration(const char *storage, const String *kind, String *sname, String *name, Node *cpp_opt_declarators) {
+static Node *nested_forward_declaration(const String *storage, const String *kind, String *sname, String *name, Node *cpp_opt_declarators) {
   Node *nn = 0;
 
   if (sname) {
@@ -1200,10 +1243,10 @@ static Node *nested_forward_declaration(const char *storage, const String *kind,
   /* Add any variable instances. Also add in any further typedefs of the nested type.
      Note that anonymous typedefs (eg typedef struct {...} a, b;) are treated as class forward declarations */
   if (cpp_opt_declarators) {
-    int storage_typedef = (storage && (strcmp(storage, "typedef") == 0));
+    int storage_typedef = (storage && Equal(storage, "typedef"));
     int variable_of_anonymous_type = !sname && !storage_typedef;
     if (!variable_of_anonymous_type) {
-      int anonymous_typedef = !sname && (storage && (strcmp(storage, "typedef") == 0));
+      int anonymous_typedef = !sname && storage_typedef;
       Node *n = cpp_opt_declarators;
       SwigType *type = name;
       while (n) {
@@ -1680,7 +1723,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 /* Misc */
 %type <id>       identifier;
 %type <dtype>    initializer cpp_const exception_specification cv_ref_qualifier qualifiers_exception_specification;
-%type <id>       storage_class extern_string;
+%type <str>      storage_class;
+%type <intvalue> storage_class_raw storage_class_list;
 %type <pl>       parms rawparms varargs_parms ;
 %type <pl>       templateparameterstail;
 %type <p>        parm_no_dox parm valparm rawvalparms valparms valptail ;
@@ -2373,6 +2417,7 @@ native_directive : NATIVE LPAREN identifier RPAREN storage_class identifier SEMI
                  $$ = new_node("native");
 		 Setattr($$,"name",$3);
 		 Setattr($$,"wrap:name",$6);
+		 Delete($5);
 	         add_symbols($$);
 	       }
                | NATIVE LPAREN identifier RPAREN storage_class type declarator SEMI {
@@ -2390,6 +2435,7 @@ native_directive : NATIVE LPAREN identifier RPAREN storage_class identifier SEMI
 		     Setattr($$,"parms",$7.parms);
 		     Setattr($$,"decl",$7.type);
 		 }
+		 Delete($5);
 	         add_symbols($$);
 	       }
                ;
@@ -3361,16 +3407,19 @@ cpp_alternate_rettype : primitive_type { $$ = $1; }
 cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$3);
+		  Delete($1);
 		  add_symbols($$);
 	        }
                 | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const ARROW type lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$3);
+		  Delete($1);
 		  add_symbols($$);
 		}
                 | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template lambda_body lambda_tail {
 		  $$ = new_node("lambda");
 		  Setattr($$,"name",$3);
+		  Delete($1);
 		  add_symbols($$);
 		}
                 ;
@@ -3624,6 +3673,8 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 			Setattr($$,"final",$6.final);
 			err = 0;
 		      }
+		    } else {
+		      Delete($1);
 		    }
 		    if (err) {
 		      Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
@@ -4061,7 +4112,7 @@ cpp_opt_declarators :  SEMI { $$ = 0; }
    ------------------------------------------------------------ */
 
 cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
-              if ($1 && (Strcmp($1,"friend") == 0)) {
+	      if ($1 && Strstr($1, "friend")) {
 		/* Ignore */
                 $$ = 0; 
 	      } else {
@@ -4071,6 +4122,7 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
 		Setattr($$,"sym:weak", "1");
 		add_symbols($$);
 	      }
+	      Delete($1);
              }
              ;
 
@@ -4575,7 +4627,7 @@ cpp_members  : cpp_member cpp_members {
 	       Exit(EXIT_FAILURE);
 	       } cpp_members { 
 		 $$ = $3;
-   	     }
+	     }
              ;
 
 /* ======================================================================
@@ -4608,7 +4660,7 @@ cpp_member_no_dox : c_declaration { $$ = $1; }
              | cpp_conversion_operator { $$ = $1; }
              | cpp_forward_class_decl { $$ = $1; }
 	     | cpp_class_decl { $$ = $1; }
-             | storage_class idcolon SEMI { $$ = 0; }
+             | storage_class idcolon SEMI { $$ = 0; Delete($1); }
              | cpp_using_decl { $$ = $1; }
              | cpp_template_decl { $$ = $1; }
              | cpp_catch_decl { $$ = 0; }
@@ -4661,6 +4713,7 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		  Setattr($$,"value",$6.defarg);
 	      } else {
 		$$ = 0;
+		Delete($1);
               }
               }
               ;
@@ -4967,7 +5020,7 @@ cpp_vend       : cpp_const SEMI {
                ;
 
 
-anonymous_bitfield :  storage_class anon_bitfield_type COLON expr SEMI { };
+anonymous_bitfield :  storage_class anon_bitfield_type COLON expr SEMI { Delete($1); };
 
 /* Equals type_right without the ENUM keyword and cpptype (templates etc.): */
 anon_bitfield_type : primitive_type { $$ = $1;
@@ -4988,45 +5041,79 @@ anon_bitfield_type : primitive_type { $$ = $1;
 /* ====================================================================== 
  *                       PRIMITIVES
  * ====================================================================== */
-extern_string :  EXTERN string {
-                   if (Strcmp($2,"C") == 0) {
-		     $$ = "externc";
-                   } else if (Strcmp($2,"C++") == 0) {
-		     $$ = "extern";
+storage_class  : storage_class_list {
+		 String *r = NewStringEmpty();
+
+		 /* Check for invalid combinations. */
+		 if (multiple_bits_set($1 & (SWIG_STORAGE_CLASS_EXTERN |
+					     SWIG_STORAGE_CLASS_STATIC))) {
+		   Swig_error(cparse_file, cparse_line, "Storage class can't be both 'static' and 'extern'");
+		 }
+		 if (multiple_bits_set($1 & (SWIG_STORAGE_CLASS_EXTERNC |
+					     SWIG_STORAGE_CLASS_EXTERN |
+					     SWIG_STORAGE_CLASS_EXTERNCPP))) {
+		   Swig_error(cparse_file, cparse_line, "Declaration can only be one of 'extern', 'extern \"C\"' and 'extern \"C++\"'");
+		 }
+
+		 if ($1 & SWIG_STORAGE_CLASS_TYPEDEF) {
+		   Append(r, "typedef ");
+		 } else {
+		   if ($1 & SWIG_STORAGE_CLASS_EXTERNC)
+		     Append(r, "externc ");
+		   if ($1 & (SWIG_STORAGE_CLASS_EXTERN|SWIG_STORAGE_CLASS_EXTERNCPP))
+		     Append(r, "extern ");
+		   if ($1 & SWIG_STORAGE_CLASS_STATIC)
+		     Append(r, "static ");
+		 }
+		 if ($1 & SWIG_STORAGE_CLASS_VIRTUAL)
+		   Append(r, "virtual ");
+		 if ($1 & SWIG_STORAGE_CLASS_FRIEND)
+		   Append(r, "friend ");
+		 if ($1 & SWIG_STORAGE_CLASS_EXPLICIT)
+		   Append(r, "explicit ");
+		 if ($1 & SWIG_STORAGE_CLASS_CONSTEXPR)
+		   Append(r, "constexpr ");
+		 if ($1 & SWIG_STORAGE_CLASS_THREAD_LOCAL)
+		   Append(r, "thread_local ");
+		 if (Len(r) == 0) {
+		   Delete(r);
+		   $$ = 0;
+		 } else {
+		   Chop(r);
+		   $$ = r;
+		 }
+	       }
+	       | empty { $$ = 0; }
+	       ;
+
+storage_class_list: storage_class_raw { $$ = $1; }
+	       | storage_class_list storage_class_raw {
+		  if ($1 & $2) {
+		    Swig_error(cparse_file, cparse_line, "Repeated storage class or type specifier '%s'\n", storage_class_string($2));
+		  }
+		  $$ = $1 | $2;
+	       }
+	       ;
+
+storage_class_raw  : EXTERN { $$ = SWIG_STORAGE_CLASS_EXTERN; }
+	       | EXTERN string {
+		   if (Strcmp($2,"C") == 0) {
+		     $$ = SWIG_STORAGE_CLASS_EXTERNC;
+		   } else if (Strcmp($2,"C++") == 0) {
+		     $$ = SWIG_STORAGE_CLASS_EXTERNCPP;
 		   } else {
 		     Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
 		     $$ = 0;
 		   }
-               }
-	       ;
-
-storage_class  : EXTERN { $$ = "extern"; }
-	       | extern_string { $$ = $1; }
-	       | extern_string THREAD_LOCAL {
-                if (Equal($1, "extern")) {
-                  $$ = "extern thread_local";
-                } else {
-                  $$ = "externc thread_local";
-                }
 	       }
-	       | extern_string TYPEDEF { $$ = "typedef"; }
-               | STATIC { $$ = "static"; }
-               | TYPEDEF { $$ = "typedef"; }
-               | VIRTUAL { $$ = "virtual"; }
-               | FRIEND { $$ = "friend"; }
-               | EXPLICIT { $$ = "explicit"; }
-               | CONSTEXPR { $$ = "constexpr"; }
-               | EXPLICIT CONSTEXPR { $$ = "explicit constexpr"; }
-               | CONSTEXPR EXPLICIT { $$ = "explicit constexpr"; }
-               | STATIC CONSTEXPR { $$ = "static constexpr"; }
-               | CONSTEXPR STATIC { $$ = "static constexpr"; }
-               | THREAD_LOCAL { $$ = "thread_local"; }
-               | THREAD_LOCAL STATIC { $$ = "static thread_local"; }
-               | STATIC THREAD_LOCAL { $$ = "static thread_local"; }
-               | EXTERN THREAD_LOCAL { $$ = "extern thread_local"; }
-               | THREAD_LOCAL EXTERN { $$ = "extern thread_local"; }
-               | empty { $$ = 0; }
-               ;
+	       | STATIC { $$ = SWIG_STORAGE_CLASS_STATIC; }
+	       | TYPEDEF { $$ = SWIG_STORAGE_CLASS_TYPEDEF; }
+	       | VIRTUAL { $$ = SWIG_STORAGE_CLASS_VIRTUAL; }
+	       | FRIEND { $$ = SWIG_STORAGE_CLASS_FRIEND; }
+	       | EXPLICIT { $$ = SWIG_STORAGE_CLASS_EXPLICIT; }
+	       | CONSTEXPR { $$ = SWIG_STORAGE_CLASS_CONSTEXPR; }
+	       | THREAD_LOCAL { $$ = SWIG_STORAGE_CLASS_THREAD_LOCAL; }
+	       ;
 
 /* ------------------------------------------------------------------------------
    Function parameter lists

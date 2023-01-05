@@ -1043,7 +1043,7 @@ class TypePass:private Dispatcher {
 		if (Strcmp(nodeType(c), "cdecl") == 0) {
 		  if (!(Swig_storage_isstatic(c)
 			|| checkAttribute(c, "storage", "typedef")
-			|| checkAttribute(c, "storage", "friend")
+			|| Strstr(Getattr(c, "storage"), "friend")
 			|| (Getattr(c, "feature:extend") && !Getattr(c, "code"))
 			|| GetFlag(c, "feature:ignore"))) {
 

@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-05-11: olly
+	    #302 #2079 #2474 Parse storage class more flexibly.
+
+	    Previously we had a hard-coded list of allowed combinations in the
+	    grammar, but this suffers from combinatorial explosion, and results
+	    in a vague `Syntax error in input` error for invalid (and missing)
+	    combinations.
+
+	    This means we now support a number of cases which are valid C++ but
+	    weren't supported, including `friend constexpr` and `virtual
+	    explicit`.
+
 2023-05-08: olly
 	    #1567 Add support for std::string_view (new in C++17) for C#, Java,
 	    Lua and PHP.
