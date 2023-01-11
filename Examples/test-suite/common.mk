@@ -463,6 +463,7 @@ CPP_TEST_CASES += \
 	template_extend2 \
 	template_extend_overload \
 	template_extend_overload_2 \
+	template_function_parm \
 	template_forward \
 	template_inherit \
 	template_inherit_abstract \
