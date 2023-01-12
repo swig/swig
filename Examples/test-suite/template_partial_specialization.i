@@ -130,9 +130,6 @@ namespace AA {  // thinks X is in AA namespace
 namespace Space {
 }
 template<typename T> struct Vector {
-#ifdef SWIG
-  %template() Space::VectorHelper<T>;
-#endif
   void gook(T i) {}
   void geeko(double d) {}
   void geeky(int d) {}
@@ -142,7 +139,6 @@ template<typename T> struct Vector<T *> {
 };
 */
 //}
-%}
 
 %template(VectorIntPtr) Space::Vector<int *>; // should fail as Vector is in global namespace
 // is this a regression - no fails in 1.3.40 too

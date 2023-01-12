@@ -630,57 +630,53 @@ typedef enum { ExactNoMatch = -2, PartiallySpecializedNoMatch = -1, PartiallySpe
  * template parameter type. Typedef reduce 'partial_parm_type' to see if it matches 'type'.
  *
  * type - template parameter type to match against
- * partial_parm_type - partially specialized template type - a possible match
- * partial_parm_type_base - base type of partial_parm_type
+ * partial_parm_type - specialized template type, for example, r.$1 (partially specialized) or r.int (fully specialized)
+ * partial_parm - partially specialized template parameter name, such as, $1 or $2 or $3, etc
  * tscope - template scope
  * specialization_priority - (output) contains a value indicating how good the match is 
  *   (higher is better) only set if return is set to PartiallySpecializedMatch or ExactMatch.
  * ----------------------------------------------------------------------------- */
 
-static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, const char *partial_parm_type_base, Symtab *tscope, int *specialization_priority) {
+static EMatch does_parm_match(SwigType *type, SwigType *partial_parm_type, const char *partial_parm, Symtab *tscope, int *specialization_priority) {
   static const int EXACT_MATCH_PRIORITY = 99999; /* a number bigger than the length of any conceivable type */
-  int matches;
-  int substitutions;
-  EMatch match;
   SwigType *ty = Swig_symbol_typedef_reduce(type, tscope);
-  String *base = SwigType_base(ty);
-  SwigType *t = Copy(partial_parm_type);
-  substitutions = Replaceid(t, partial_parm_type_base, base); /* eg: Replaceid("p.$1", "$1", "int") returns t="p.int" */
-  matches = Equal(ty, t);
+  SwigType *pp_prefix = SwigType_prefix(partial_parm_type);
+  int pp_len = Len(pp_prefix);
+  EMatch match = Strstr(partial_parm_type, partial_parm) == 0 ? ExactNoMatch : PartiallySpecializedNoMatch;
   *specialization_priority = -1;
-  if (substitutions == 1) {
-    /* we have a non-explicit specialized parameter (in partial_parm_type) because a substitution for $1, $2... etc has taken place */
-    SwigType *tt = Copy(partial_parm_type);
-    int len;
-    /*
-       check for match to partial specialization type, for example, all of the following could match the type in the %template:
-       template <typename T> struct XX {};
-       template <typename T> struct XX<T &> {};         // r.$1
-       template <typename T> struct XX<T const&> {};    // r.q(const).$1
-       template <typename T> struct XX<T *const&> {};   // r.q(const).p.$1
-       %template(XXX) XX<int *const&>;                  // r.q(const).p.int
 
-       where type="r.q(const).p.int" will match either of tt="r.", tt="r.q(const)" tt="r.q(const).p"
-    */
-    Replaceid(tt, partial_parm_type_base, ""); /* remove the $1, $2 etc, eg tt="p.$1" => "p." */
-    len = Len(tt);
-    if (Strncmp(tt, ty, len) == 0) {
+  if (Equal(ty, partial_parm_type)) {
+    match = ExactMatch;
+    *specialization_priority = EXACT_MATCH_PRIORITY; /* exact matches always take precedence */
+  } else if (match == PartiallySpecializedNoMatch) {
+    if ((pp_len > 0 && Strncmp(ty, pp_prefix, pp_len) == 0)) {
+      /*
+	 type starts with pp_prefix, so it is a partial specialization type match, for example,
+	 all of the following could match the type in the %template:
+	 template <typename T> struct XX {};
+	 template <typename T> struct XX<T &> {};         // r.$1
+	 template <typename T> struct XX<T const&> {};    // r.q(const).$1
+	 template <typename T> struct XX<T *const&> {};   // r.q(const).p.$1
+	 %template(XXX) XX<int *const&>;                  // r.q(const).p.int
+
+	 where type="r.q(const).p.int" will match either of pp_prefix="r.", pp_prefix="r.q(const)." pp_prefix="r.q(const).p."
+      */
       match = PartiallySpecializedMatch;
-      *specialization_priority = len;
-    } else {
-      match = PartiallySpecializedNoMatch;
+      *specialization_priority = pp_len;
+    } else if (pp_len == 0 && Equal(partial_parm_type, partial_parm)) {
+      /*
+	 type without a prefix match, as in $1 for int
+	 template <typename T, typename U> struct XX {};
+	 template <typename T, typename U> struct XX<T, U &> {};  // $1,r.$2
+	 %template(XXX) XX<int, double&>;                         // int,r.double
+       */
+      match = PartiallySpecializedMatch;
+      *specialization_priority = pp_len;
     }
-    Delete(tt);
-  } else {
-    match = matches ? ExactMatch : ExactNoMatch;
-    if (matches)
-      *specialization_priority = EXACT_MATCH_PRIORITY; /* exact matches always take precedence */
   }
   /*
   Printf(stdout, "      does_parm_match %2d %5d [%s] [%s]\n", match, *specialization_priority, type, partial_parm_type);
   */
-  Delete(t);
-  Delete(base);
   Delete(ty);
   return match;
 }
@@ -721,6 +717,7 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
   templ = Swig_symbol_clookup(name, 0);
 
   if (templ) {
+    /* TODO: check that this is not a specialization (might be a user error specializing a template before a primary template), but note https://stackoverflow.com/questions/9757642/wrapping-specialised-c-template-class-with-swig */
     if (template_debug) {
       Printf(stdout, "    found primary template <%s> '%s'\n", ParmList_str_defaultargs(Getattr(templ, "templateparms")), Getattr(templ, "name"));
     }
@@ -902,9 +899,10 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
        *   T
        *
        *   An ambiguous example when attempting to match as either specialization could match: %template() X<int *, double *>;
-       *   template<typename T1, typename T2> X class {};  // primary template
-       *   template<typename T1> X<T1, double *> class {}; // specialization (1)
-       *   template<typename T2> X<int *, T2> class {};    // specialization (2)
+       *   template<typename T1, typename T2> class X {};  // primary template
+       *   template<typename T1> class X<T1, double *> {}; // specialization (1)
+       *   template<typename T2> class X<int *, T2> {};    // specialization (2)
+       *
        */
       if (template_debug) {
 	int row, col;
