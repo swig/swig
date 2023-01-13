@@ -4069,6 +4069,7 @@ public:
       Printf(w->code, "} else {\n");
 
     /* Go through argument list, convert from native to C# */
+    int valid_params_count = 0;
     for (i = 0, p = l; p; ++i) {
       /* Is this superfluous? */
       while (checkAttribute(p, "tmap:directorin:numinputs", "0")) {
@@ -4207,7 +4208,7 @@ public:
 		SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	    output_director = false;
 	  }
-
+    valid_params_count++;
 	  p = Getattr(p, "tmap:directorin:next");
 
 	} else {
@@ -4228,7 +4229,9 @@ public:
       Delete(arg);
       Delete(c_decl);
     }
-
+    if(valid_params_count > 7 && mono_aot_compatibility_flag){
+       Printf(mono_aot_dispatcher_parms, "\n#error [MONO-AOT-COMPAT] Maximum amount of parameters in a mono pinvoke callback is 7. Change the C/C++ method definition to pack params in a struct\n");
+    }
     /* header declaration, start wrapper definition */
     String *target;
     SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
