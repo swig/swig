@@ -11,6 +11,19 @@ Version 4.2.0 (in progress)
 	    #2492 [python] Fix unused parameter warnings for self parameter in
 	    generated C/C++ wrapper code.
 
+2023-01-14: wsfulton
+            Fix deduction of partially specialized template parameters when the specialized
+            parameter is non-trivial, used in a wrapped method and the type to %template uses
+            typedefs. For example:
+
+              typedef double & DoubleRef;
+              template <typename T> struct XX {};
+              template <typename T> struct XX<T &> { void fn(T t) {} };
+              %template(XXD) XX<DoubleRef>;
+
+            The type of the parameter in the instantiated template for fn is now correctly deduced
+            as double.
+
 2023-01-03: wsfulton
             #983 Fix seg fault when instantiating templates with parameters that are function
             parameters containing templates, such as:

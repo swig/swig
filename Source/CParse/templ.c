@@ -452,10 +452,12 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       ptype = Getattr(p, "type");
       tptype = Getattr(tp, "type");
       if (ptype && tptype) {
-	partial_type = partial_arg(tptype, ptype);
+	SwigType *ty = Swig_symbol_typedef_reduce(tptype, tscope);
+	partial_type = partial_arg(ty, ptype);
 	/*      Printf(stdout,"partial '%s' '%s'  ---> '%s'\n", tptype, ptype, partial_type); */
 	Setattr(tp, "type", partial_type);
 	Delete(partial_type);
+	Delete(ty);
       }
       p = nextSibling(p);
       tp = nextSibling(tp);
