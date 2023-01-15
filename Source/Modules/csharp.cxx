@@ -3919,6 +3919,7 @@ public:
     bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
     UpcallData *udata = 0;
     String *methid = 0;
+    bool mono_aot_fix_return_type = false;
 
     // Kludge Alert: functionWrapper sets sym:overload properly, but it
     // isn't at this point, so we have to manufacture it ourselves. At least
@@ -4014,10 +4015,15 @@ public:
     Swig_typemap_attach_parms("directorin", l, w);
     Swig_typemap_attach_parms("csdirectorin", l, 0);
     Swig_typemap_attach_parms("directorargout", l, w);
-
       if (mono_aot_compatibility_flag && !ignored_method) {
         Printf(callback_mono_aot_def, "\n  [%s.MonoPInvokeCallback(typeof(SwigDelegate%s_%s_Dispatcher))]\n", imclass_name, classname, methid);
-        Printf(callback_mono_aot_def, "  private static %s SwigDirector%s_Dispatcher(", tm, overloaded_name);
+        if(strcmp(tm, "string") == 0)
+        {
+          Printf(callback_mono_aot_def, "  private static global::System.IntPtr SwigDirector%s_Dispatcher(", overloaded_name);
+          mono_aot_fix_return_type = true;
+        }else{
+          Printf(callback_mono_aot_def, "  private static %s SwigDirector%s_Dispatcher(", tm, overloaded_name);
+        }
       }
       Printf(callback_def, "  private %s SwigDirector%s(", tm, overloaded_name);
 
@@ -4287,7 +4293,7 @@ public:
     /* Emit the intermediate class's upcall to the actual class */
 
     String *upcall = NewStringf("%s(%s)", symname, imcall_args);
-    String *upcall_mono_aot = NewStringf("delegateSwigDelegate%s_%s(%s)", classname, methid, mono_aot_dispatcher_parms);
+    String *upcall_mono_aot = mono_aot_fix_return_type ? NewStringf("System.Runtime.InteropServices.Marshal.StringToHGlobalUni(delegateSwigDelegate%s_%s(%s))", classname, methid, mono_aot_dispatcher_parms) : NewStringf("delegateSwigDelegate%s_%s(%s)", classname, methid, mono_aot_dispatcher_parms);
 
     if ((tm = Swig_typemap_lookup("csdirectorout", n, "", 0))) {
       substituteClassname(returntype, tm);
@@ -4629,7 +4635,7 @@ public:
         for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
             UpcallData* udata = Getitem(dmethods_seq, i);
             String* overname = Getattr(udata, "overname");
-            Printf(w->code, "SWIG_csharp_gchandle_free_callback(swig_callback%s);\n", overname);
+            Printf(w->code, "SWIG_csharp_gchandle_free_callback_%s(swig_callback%s);\n", module_class_name, overname);
         }
     }
 
