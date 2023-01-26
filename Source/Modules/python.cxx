@@ -2814,7 +2814,7 @@ public:
       Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, PyObject *args, PyObject *kwargs) {", NIL);
     }
 
-    if (builtin) {
+    if (!builtin) {
       /* Avoid warning if the self parameter is not used. */
       Append(f->code, "(void)self;\n");
     }
