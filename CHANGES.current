@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-XX-XX: degasus
+	    [Python] #2494 Fix integer overflow / undefined behavior in the python cast_mode on
+	    sizeof(long)==8 platforms for the implicit conversion of the edge cases:
+	      long(double(LONG_MAX + 1))
+	      long long(double(LONG_MAX + 1))
+	      unsigned char(double(ULONG_MAX + 1))
+	      unsigned short(double(ULONG_MAX + 1))
+	      unsigned int(double(ULONG_MAX + 1))
+	      unsigned long(double(ULONG_MAX + 1))
+	      unsigned long long(double(ULONG_MAX + 1))
+
 2023-12-03: olly
 	    [Ocaml] Remove -suffix command line option which has emitted a
 	    deprecation warning since SWIG 3.0.4 - if you want to specify

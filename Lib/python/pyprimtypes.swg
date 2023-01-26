@@ -104,7 +104,9 @@ SWIG_AsVal_dec(long)(PyObject *obj, long* val)
     if (!dispatch) {
       double d;
       int res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
-      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, LONG_MIN, LONG_MAX)) {
+      // largest double not larger than LONG_MAX
+      const double long_max = sizeof(long) == 8 ? 0x7ffffffffffffc00LL : LONG_MAX;
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, LONG_MIN, long_max)) {
 	if (val) *val = (long)(d);
 	return res;
       }
@@ -166,7 +168,9 @@ SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val)
     if (!dispatch) {
       double d;
       int res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
-      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, ULONG_MAX)) {
+      // largest double not larger than ULONG_MAX
+      const double ulong_max = sizeof(unsigned long) == 8 ? 0xfffffffffffff800uLL : ULONG_MAX;
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, ulong_max)) {
 	if (val) *val = (unsigned long)(d);
 	return res;
       }
