@@ -408,7 +408,7 @@ Version 4.1.0 (24 Oct 2022)
 
 2022-07-07: jmarrec
 	    #1158 #2286 Add basic support for C++11 attributes.  These are now
-	    crudely ignored by SWIG's parser's tokeniser, which is better that
+	    crudely ignored by SWIG's parser's tokeniser, which is better than
 	    failing with a parse error.
 
 2022-07-05: ianlancetaylor
@@ -728,6 +728,7 @@ Version 4.1.0 (24 Oct 2022)
             from a base class when the using declaration is declared before the method
             declaration. Problem occurred when within a namespace and the parameter types
             in the method signatures were not fully qualified.
+
 2022-03-05: ianlancetaylor
 	    [Go] Treat non-const references as pointers.
 
