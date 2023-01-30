@@ -7,6 +7,24 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-02-15: wsfulton
+            #1300 Further partial template specialization fixes.
+            Fixes when templates are used as a template parameter in a partially specialized
+            instantiation such as:
+
+              template<typename V> struct Vect {};
+              template<class T, typename TT> class Foo { ... };
+              template<class TS, typename TTS> class Foo<Vect<TS>, TTS> { ... };
+              %template(VectInt) Vect<int>;
+              %template(FooVectIntDouble) Foo<Vect<int>, double>; // was previously attempting to use primary template
+
+            Also fixes partial specialization where the same template parameter name is used twice,
+            for example:
+
+              template<typename X, typename Y> struct H { ... };
+              template<typename T> struct H<T, T> { ... };
+              %template(HInts) H<int, int>; // was previously attempting to use primary template
+
 2023-01-27: jschueller
 	    #2492 [python] Fix unused parameter warnings for self parameter in
 	    generated C/C++ wrapper code.

@@ -487,6 +487,7 @@ CPP_TEST_CASES += \
 	template_parameters_global_scope \
 	template_partial_arg \
 	template_partial_specialization \
+	template_partial_specialization_more \
 	template_partial_specialization_typedef \
 	template_qualifier \
 	template_ref_type \

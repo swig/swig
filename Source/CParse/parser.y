@@ -2883,7 +2883,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			  Node *primary_template = Swig_symbol_clookup(tname, 0);
 
 			  /* Expand the template */
-			  ParmList *temparms = Swig_cparse_template_parms_expand($7, primary_template);
+			  ParmList *temparms = Swig_cparse_template_parms_expand($7, primary_template, nn);
 
                           templnode = copy_node(nn);
 			  update_nested_classes(templnode); /* update classes nested within template */
@@ -4128,112 +4128,32 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			    if (!Getattr($$,"sym:weak")) {
 			      Setattr($$,"sym:typename","1");
 			    }
+			    Setattr($$, "primarytemplate", tempn);
+			    Setattr($$, "templateparms", $3);
+			    Delattr($$, "specialization");
+			    Setattr($$, "partialspecialization", "1");
 			    
 			    if (Len(tlist) != ParmList_len(Getattr(tempn,"templateparms"))) {
 			      Swig_error(Getfile($$),Getline($$),"Inconsistent argument count in template partial specialization. %d %d\n", Len(tlist), ParmList_len(Getattr(tempn,"templateparms")));
 			      
 			    } else {
-
-			    /* This code builds the argument list for the partial template
-			       specialization.  This is a little hairy, but the idea is as
-			       follows:
-
-			       $3 contains a list of arguments supplied for the template.
-			       For example template<class T>.
-
-			       tlist is a list of the specialization arguments--which may be
-			       different.  For example class<int,T>.
-
-			       tp is a copy of the arguments in the original template definition.
-       
-			       The patching algorithm walks through the list of supplied
-			       arguments ($3), finds the position in the specialization arguments
-			       (tlist), and then patches the name in the argument list of the
-			       original template.
-			    */
-
-			    {
-			      String *pn;
-			      Parm *p, *p1;
-			      int i, nargs;
-			      Parm *tp = CopyParmList(Getattr(tempn,"templateparms"));
-			      nargs = Len(tlist);
-			      p = $3;
-			      while (p) {
-				for (i = 0; i < nargs; i++){
-				  pn = Getattr(p,"name");
-				  if (Strcmp(pn,SwigType_base(Getitem(tlist,i))) == 0) {
-				    int j;
-				    Parm *p1 = tp;
-				    for (j = 0; j < i; j++) {
-				      p1 = nextSibling(p1);
-				    }
-				    Setattr(p1,"name",pn);
-				    Setattr(p1,"partialarg","1");
-				  }
-				}
-				p = nextSibling(p);
-			      }
-			      p1 = tp;
-			      i = 0;
-			      while (p1) {
-				if (!Getattr(p1,"partialarg")) {
-				  Delattr(p1,"name");
-				  Setattr(p1,"type", Getitem(tlist,i));
-				} 
-				i++;
-				p1 = nextSibling(p1);
-			      }
-			      Setattr($$,"templateparms",tp);
-			      Delete(tp);
-			    }
-  #if 0
-			    /* Patch the parameter list */
-			    if (tempn) {
-			      Parm *p,*p1;
-			      ParmList *tp = CopyParmList(Getattr(tempn,"templateparms"));
-			      p = $3;
-			      p1 = tp;
-			      while (p && p1) {
-				String *pn = Getattr(p,"name");
-				Printf(stdout,"pn = '%s'\n", pn);
-				if (pn) Setattr(p1,"name",pn);
-				else Delattr(p1,"name");
-				pn = Getattr(p,"type");
-				if (pn) Setattr(p1,"type",pn);
-				p = nextSibling(p);
-				p1 = nextSibling(p1);
-			      }
-			      Setattr($$,"templateparms",tp);
-			      Delete(tp);
-			    } else {
-			      Setattr($$,"templateparms",$3);
-			    }
-  #endif
-			    Delattr($$,"specialization");
-			    Setattr($$,"partialspecialization","1");
-			    /* Create a specialized name for matching */
-			    {
+			      /* Create a specialized name with template parameters replaced with $ variables, such as, X<(T1,p.T2) => X<($1,p.$2)> */
 			      Parm *p = $3;
 			      String *fname = NewString(Getattr($$,"name"));
 			      String *ffname = 0;
 			      ParmList *partialparms = 0;
 
 			      char   tmp[32];
-			      int    i, ilen;
+			      int i = 0;
 			      while (p) {
-				String *n = Getattr(p,"name");
-				if (!n) {
+				String *name = Getattr(p,"name");
+				++i;
+				if (!name) {
 				  p = nextSibling(p);
 				  continue;
 				}
-				ilen = Len(tlist);
-				for (i = 0; i < ilen; i++) {
-				  if (Strstr(Getitem(tlist,i),n)) {
-				    sprintf(tmp,"$%d",i+1);
-				    Replaceid(fname,n,tmp);
-				  }
-				}
+				sprintf(tmp, "$%d", i);
+				Replaceid(fname, name, tmp);
 				p = nextSibling(p);
 			      }
 			      /* Patch argument names with typedef */
@@ -4278,7 +4198,6 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			      }
 			      Setattr($$,"partialargs",ffname);
 			      Swig_symbol_cadd(ffname,$$);
-			    }
 			    }
 			    Delete(tlist);
 			    Delete(targs);
