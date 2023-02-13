@@ -1421,24 +1421,10 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 /* String & length */
-%pragma(java) jniclasscode=%{
-  public final static byte[] SWIG_string_to_utf8_bytes(String str) {
-    try {
-      return str.getBytes("UTF-8");
-    } catch(java.lang.Exception e) {}
-    return new byte[0];
-  }
-  public final static String SWIG_utf8_bytes_to_string(byte[] b_utf8) {
-    try {
-      return new String(b_utf8, "UTF-8");
-    } catch(java.lang.Exception e) {}
-    return "";
-  }
-%}
 %typemap(jni)     (const char *STRING, size_t LENGTH) "jbyteArray"
 %typemap(jtype)   (const char *STRING, size_t LENGTH) "byte[]"
 %typemap(jstype)  (const char *STRING, size_t LENGTH) "String"
-%typemap(javain)  (const char *STRING, size_t LENGTH) "$moduleJNI.SWIG_string_to_utf8_bytes($javainput)"
+%typemap(javain)  (const char *STRING, size_t LENGTH) %{($javainput == null) ? null : $javainput.getBytes()%}
 %typemap(freearg) (const char *STRING, size_t LENGTH) ""
 %typemap(in)      (const char *STRING, size_t LENGTH) {
   if ($input) {
@@ -1461,7 +1447,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
-%typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "SWIG_utf8_bytes_to_string($jniinput)"
+%typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "($jniinput == null) ? null : new String($jniinput)"
 %apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
 /* Enable write-back for non-const version */
 %typemap(argout)  (char *STRING, size_t LENGTH) {
