@@ -37,7 +37,7 @@ public:
 %template(VectInt) Vect<int>;
 %template(FooVectIntDouble) Foo<Vect<int>, double>; // was failing
 %template(FooShortPtrDouble) Foo<short*, double>;
-%template(FooVectVectInt) Foo<Vect<Vect<int>>, int>; // was failing
+%template(FooVectVectInt) Foo<Vect<Vect<int> >, int>; // was failing
 
 
 // (2) Same types in both args
@@ -74,9 +74,9 @@ template<typename S1, typename S2> struct Partialler<S2, S1*> { void special(S1*
 // (5) Default args used in specialization, like std::list
 %inline %{
 template <typename A> struct Allocator {};
-template <typename T, class Alloc = Allocator<T>> struct Lyst { void primary(T, Allocator<T>) {} };
+template <typename T, class Alloc = Allocator<T> > struct Lyst { void primary(T, Allocator<T>) {} };
 template <typename TT, class XXAlloc> struct Lyst<TT*, XXAlloc> { void specialized1(TT, XXAlloc) {} };
-template <typename TTT, class YY> struct Lyst<TTT**, Allocator<YY>> { void specialized2(TTT, YY) {} };
+template <typename TTT, class YY> struct Lyst<TTT**, Allocator<YY> > { void specialized2(TTT, YY) {} };
 // TODO  Error: Inconsistent argument count in template partial specialization. 1 2
 //template <typename TTTT> struct Lyst<const TTTT&> { void specialized3(TTTT) {} };
 void test_list() {
@@ -90,7 +90,7 @@ void test_list() {
 
     double mydouble = 0;
     Lyst<double **> lissd;
-    lissd.specialized2(mydouble, (double **)nullptr);
+    lissd.specialized2(mydouble, (double **)0);
 
 //    Lyst<const int&> lissconstint;
 //    lissconstint.specialized3(myint);
@@ -98,6 +98,6 @@ void test_list() {
 %}
 
 %template(LystDouble) Lyst<double>;
-//%template(LystDouble) Lyst<short, Allocator<short>>;
+//%template(LystDouble) Lyst<short, Allocator<short> >;
 %template(LystPlainStructPtr) Lyst<PlainStruct *>;
 %template(LystDoublePtrPtr) Lyst<double **>; // called specialized1 instead of specialized2
