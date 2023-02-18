@@ -201,7 +201,7 @@ template <typename... V> struct VariadicParms {
 %inline %{
 template <typename... V> struct FixedAndVariadicParms {
 public:
-  void ParmsVal(short shortvar, V... vparms_v) {}
+  void ParmsVal(short samename1, V... samename) {}
   void ParmsPtr(short shortvar, V*... vparms_p) {}
   void ParmsPtrRef(short shortvar, V*&... vparms_pr) {}
   void ParmsPtrRValueRef(short shortvar, V*&&... vparms_rvr) {}

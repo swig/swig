@@ -1854,27 +1854,20 @@ int R::functionWrapper(Node *n) {
     int nargs = -1;
     String *funcptr_name = processType(tt, p, &nargs);
 
-    //      SwigType *tp = Getattr(p, "type");
-    String   *name  = Getattr(p,"name");
-    String   *lname  = Getattr(p,"lname");
+    String *name = makeParameterName(n, p, i+1, false);
+    String *lname = Getattr(p, "lname");
 
-    // R keyword renaming
     if (name) {
-      if (Swig_name_warning(p, 0, name, 0)) {
-	name = 0;
-      } else {
-	/* If we have a :: in the parameter name because we are accessing a static member of a class, say, then
-	   we need to remove that prefix. */
-	while (Strstr(name, "::")) {
-	  //XXX need to free.
-	  name = NewStringf("%s", Strchr(name, ':') + 2);
-	  if (debugMode)
-	    Printf(stdout, "+++  parameter name with :: in it %s\n", name);
-	}
+      /* If we have a :: in the parameter name because we are accessing a static member of a class, say, then
+	 we need to remove that prefix. */
+      while (Strstr(name, "::")) {
+	String *oldname = name;
+	name = NewStringf("%s", Strchr(name, ':') + 2);
+	if (debugMode)
+	  Printf(stdout, "+++  parameter name with :: in it %s\n", name);
+	Delete(oldname);
       }
     }
-    if (!name || Len(name) == 0)
-      name = NewStringf("s_arg%d", i+1);
 
     name = replaceInitialDash(name);
 

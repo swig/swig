@@ -78,14 +78,17 @@ static void expand_variadic_parms(Node *n, const char *attribute, Parm *unexpand
     Parm *variadic = ParmList_variadic_parm(p);
     if (variadic) {
       SwigType *type = Getattr(variadic, "type");
+      String *name = Getattr(variadic, "name");
       String *unexpanded_name = Getattr(unexpanded_variadic_parm, "name");
       ParmList *expanded = CopyParmList(expanded_variadic_parms);
       Parm *ep = expanded;
+      int i = 0;
       while (ep) {
 	SwigType *newtype = Copy(type);
 	SwigType_del_variadic(newtype);
 	Replaceid(newtype, unexpanded_name, Getattr(ep, "type"));
 	Setattr(ep, "type", newtype);
+	Setattr(ep, "name", name ? NewStringf("%s%d", name, ++i) : 0);
 	ep = nextSibling(ep);
       }
       expanded = ParmList_replace_last(p, expanded);
