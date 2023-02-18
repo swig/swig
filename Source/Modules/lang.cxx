@@ -3633,15 +3633,20 @@ String *Language::makeParameterName(Node *n, Parm *p, int arg_num, bool setter) 
 
   // Check if parameter name is a duplicate.
   int count = 0;
+  Parm *first_duplicate_parm = 0;
   ParmList *plist = Getattr(n, "parms");
   while (plist) {
-    if ((Cmp(pn, Getattr(plist, "name")) == 0))
+    if ((Cmp(pn, Getattr(plist, "name")) == 0)) {
+      if (!first_duplicate_parm)
+	first_duplicate_parm = plist;
       count++;
+    }
     plist = nextSibling(plist);
   }
 
   // If the parameter has no name at all or has a non-unique name, replace it with "argN".
-  if (!pn || count > 1) {
+  // On the assumption that p is pointer/element in plist, only replace the 2nd and subsequent duplicates
+  if (!pn || (count > 1 && p != first_duplicate_parm)) {
     arg = NewStringf("arg%d", arg_num);
   } else {
     // Otherwise, try to use the original C name, but modify it if necessary to avoid conflicting with the language keywords.
