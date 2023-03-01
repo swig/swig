@@ -4121,10 +4121,10 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			  set_nodeType($$,"template");
 			  /* Template partial specialization */
 			  if (tempn && ($3) && ($6)) {
-			    List   *tlist;
-			    String *targs = SwigType_templateargs(tname);
-			    tlist = SwigType_parmlist(targs);
-			    /*			  Printf(stdout,"targs = '%s' %s\n", targs, tlist); */
+			    ParmList *primary_templateparms = Getattr(tempn, "templateparms");
+			    String *targs = SwigType_templateargs(tname); /* tname contains name and specialized template parameters, for example: X<(p.T,TT)> */
+			    List *tlist = SwigType_parmlist(targs);
+			    int specialization_parms_len = Len(tlist);
 			    if (!Getattr($$,"sym:weak")) {
 			      Setattr($$,"sym:typename","1");
 			    }
@@ -4133,13 +4133,15 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			    Delattr($$, "specialization");
 			    Setattr($$, "partialspecialization", "1");
 			    
-			    if (Len(tlist) != ParmList_len(Getattr(tempn,"templateparms"))) {
-			      Swig_error(Getfile($$),Getline($$),"Inconsistent argument count in template partial specialization. %d %d\n", Len(tlist), ParmList_len(Getattr(tempn,"templateparms")));
+			    if (specialization_parms_len > ParmList_len(primary_templateparms)) {
+			      Swig_error(Getfile($$), Getline($$), "Template partial specialization has more arguments than primary template %d %d.\n", specialization_parms_len, ParmList_len(primary_templateparms));
 			      
+			    } else if (specialization_parms_len < ParmList_numrequired(primary_templateparms)) {
+			      Swig_error(Getfile($$), Getline($$), "Template partial specialization has fewer arguments than primary template %d %d.\n", specialization_parms_len, ParmList_len(primary_templateparms));
 			    } else {
 			      /* Create a specialized name with template parameters replaced with $ variables, such as, X<(T1,p.T2) => X<($1,p.$2)> */
 			      Parm *p = $3;
-			      String *fname = NewString(Getattr($$,"name"));
+			      String *fname = NewString(tname);
 			      String *ffname = 0;
 			      ParmList *partialparms = 0;
 
@@ -4182,6 +4184,27 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 				}
 				Delete(tparms);
 				Append(ffname,")>");
+			      }
+			      {
+				/* Replace each primary template parameter's name and value with $ variables, such as, class Y,class T=Y => class $1,class $2=$1 */
+				ParmList *primary_templateparms_copy = CopyParmList(primary_templateparms);
+				p = primary_templateparms_copy;
+				i = 0;
+				while (p) {
+				  String *name = Getattr(p, "name");
+				  Parm *pp = nextSibling(p);
+				  ++i;
+				  sprintf(tmp, "$%d", i);
+				  while (pp) {
+				    Replaceid(Getattr(pp, "value"), name, tmp);
+				    pp = nextSibling(pp);
+				  }
+				  Setattr(p, "name", NewString(tmp));
+				  p = nextSibling(p);
+				}
+				/* Modify partialparms by adding in missing default values ($ variables) from primary template parameters */
+				partialparms = Swig_cparse_template_partialargs_expand(partialparms, tempn, primary_templateparms_copy);
+				Delete(primary_templateparms_copy);
 			      }
 			      {
 				Node *new_partial = NewHash();

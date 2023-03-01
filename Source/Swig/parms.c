@@ -190,7 +190,8 @@ Parm *ParmList_variadic_parm(ParmList *p) {
 /* -----------------------------------------------------------------------------
  * ParmList_numrequired()
  *
- * Return number of required arguments
+ * Return number of required arguments - the number of arguments excluding
+ * default arguments
  * ----------------------------------------------------------------------------- */
 
 int ParmList_numrequired(ParmList *p) {

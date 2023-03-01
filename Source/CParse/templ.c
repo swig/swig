@@ -498,7 +498,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       p = nextSibling(p);
       tp = nextSibling(tp);
     }
-    assert(ParmList_len(ptargs) == ParmList_len(tparms));
     Delete(ptargs);
   } else {
     Setattr(n, "templateparmsraw", Getattr(n, "templateparms"));
@@ -835,7 +834,7 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
     targs = Getattr(templ, "templateparms");
     expandedparms = Swig_symbol_template_defargs(parms, targs, tscope, primary_scope);
 
-    /* reduce the typedef */
+    /* Qualify template parameters */
     p = expandedparms;
     while (p) {
       SwigType *ty = Getattr(p, "type");
@@ -934,14 +933,13 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
       partials = Getattr(templ, "partials"); /* note that these partial specializations do not include explicit specializations */
       if (partials) {
 	Iterator pi;
-	int parms_len = ParmList_len(parms);
+	int parms_len = ParmList_len(parms); /* max parameters including defaulted parameters from primary template (ie max parameters) */
 	int *priorities_row;
 	max_possible_partials = Len(partials);
 	priorities_matrix = (int *)Malloc(sizeof(int) * max_possible_partials * parms_len); /* slightly wasteful allocation for max possible matches */
 	priorities_row = priorities_matrix;
 	for (pi = First(partials); pi.item; pi = Next(pi)) {
 	  Parm *p = parms;
-	  int all_parameters_match = 1;
 	  int i = 1;
 	  Parm *partialparms = Getattr(pi.item, "partialparms");
 	  Parm *pp = partialparms;
@@ -950,6 +948,7 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
 	    Printf(stdout, "    checking match: '%s' (partial specialization)\n", templcsymname);
 	  }
 	  if (ParmList_len(partialparms) == parms_len) {
+	    int all_parameters_match = 1;
 	    while (p && pp) {
 	      SwigType *t;
 	      t = Getattr(p, "type");
@@ -1165,15 +1164,18 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
       Parm *tparmsfound = Getattr(primary ? primary : n, "templateparms");
       int specialized = !tparmsfound; /* fully specialized (an explicit specialization) */
       int variadic = ParmList_variadic_parm(tparmsfound) != 0;
+      match = n;
       if (!specialized) {
 	if (!variadic && (ParmList_len(instantiated_parms) > ParmList_len(tparmsfound))) {
 	  Swig_error(cparse_file, cparse_line, "Too many template parameters. Maximum of %d.\n", ParmList_len(tparmsfound));
+	  match = 0;
 	} else if (ParmList_len(instantiated_parms) < ParmList_numrequired(tparmsfound) - (variadic ? 1 : 0)) { /* Variadic parameter is optional */
-	  Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. %d required.\n", (ParmList_numrequired(tparmsfound) - (variadic ? 1 : 0)) );
+	  Swig_error(cparse_file, cparse_line, "Not enough template parameters specified. Minimum of %d required.\n", (ParmList_numrequired(tparmsfound) - (variadic ? 1 : 0)) );
+	  match = 0;
 	}
       }
-      SetFlag(n, "instantiate");
-      match = n;
+      if (match)
+	SetFlag(n, "instantiate");
     } else {
       Node *firstn = 0;
       /* If not a templated class we must have a templated function.
@@ -1286,6 +1288,22 @@ static void use_mark_defaults(ParmList *defaults) {
 }
 
 /* -----------------------------------------------------------------------------
+ * use_mark_specialized_defaults()
+ *
+ * Modify extra defaulted parameters ready for adding to specialized template parameters list
+ * ----------------------------------------------------------------------------- */
+
+static void use_mark_specialized_defaults(ParmList *defaults) {
+  Parm *tp = defaults;
+  while (tp) {
+    Setattr(tp, "default", "1");
+    Setattr(tp, "type", Getattr(tp, "value"));
+    Delattr(tp, "name");
+    tp = nextSibling(tp);
+  }
+}
+
+/* -----------------------------------------------------------------------------
  * expand_defaults()
  *
  * Replace parameter types in default argument values, example:
@@ -1324,12 +1342,11 @@ static void expand_defaults(ParmList *expanded_templateparms) {
  * ----------------------------------------------------------------------------- */
 
 ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parms, Node *primary, Node *templ) {
-  ParmList *expanded_templateparms = 0;
+  ParmList *expanded_templateparms = CopyParmList(instantiated_parms);
 
   if (Equal(Getattr(primary, "templatetype"), "class")) {
     /* Templated class */
     ParmList *templateparms = Getattr(primary, "templateparms");
-    expanded_templateparms = CopyParmList(instantiated_parms);
     int variadic = merge_parameters(expanded_templateparms, templateparms);
     /* Add default arguments from primary template */
     if (!variadic) {
@@ -1345,8 +1362,42 @@ ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parms, Node *
     /* Templated function */
     /* TODO: Default template parameters support was only added in C++11 */
     ParmList *templateparms = Getattr(templ, "templateparms");
-    expanded_templateparms = CopyParmList(instantiated_parms);
     merge_parameters(expanded_templateparms, templateparms);
+  }
+
+  return expanded_templateparms;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_cparse_template_partialargs_expand()
+ *
+ * partially_specialized_parms: partially specialized template parameters
+ * primary: primary template node
+ * templateparms: primary template parameters (providing the defaults)
+ *
+ * Expand the partially_specialized_parms and return a parameter list with default
+ * arguments filled in where necessary.
+ * ----------------------------------------------------------------------------- */
+
+ParmList *Swig_cparse_template_partialargs_expand(ParmList *partially_specialized_parms, Node *primary, ParmList *templateparms) {
+  ParmList *expanded_templateparms = CopyParmList(partially_specialized_parms);
+
+  if (Equal(Getattr(primary, "templatetype"), "class")) {
+    /* Templated class */
+    int variadic = ParmList_variadic_parm(templateparms) ? 1 : 0;
+    /* Add default arguments from primary template */
+    if (!variadic) {
+      ParmList *defaults_start = ParmList_nth_parm(templateparms, ParmList_len(partially_specialized_parms));
+      if (defaults_start) {
+	ParmList *defaults = CopyParmList(defaults_start);
+	use_mark_specialized_defaults(defaults);
+	expanded_templateparms = ParmList_join(expanded_templateparms, defaults);
+	expand_defaults(expanded_templateparms);
+      }
+    }
+  } else {
+    /* Templated function */
+    /* TODO: Default template parameters support was only added in C++11 */
   }
 
   return expanded_templateparms;

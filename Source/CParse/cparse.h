@@ -69,6 +69,7 @@ extern "C" {
   extern Node *Swig_cparse_template_locate(String *name, ParmList *tparms, String *symname, Symtab *tscope);
   extern void Swig_cparse_debug_templates(int);
   extern ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parameters, Node *primary, Node *templ);
+  extern ParmList *Swig_cparse_template_partialargs_expand(ParmList *partially_specialized_parms, Node *primary, ParmList *templateparms);
 
 #ifdef __cplusplus
 }

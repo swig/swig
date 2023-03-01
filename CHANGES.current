@@ -7,6 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-03-01: wsfulton
+            Partial template specialization fixes to support default arguments from the primary
+            template's parameter list.
+
+              template<class Y, class T=int> struct X { void primary() {} };
+              // Previously the specialization below resulted in:
+              // Error: Inconsistent argument count in template partial specialization. 1 2
+              template<class YY> struct X<YY*> { void special(YY*) {} };
+
+              // Both of these correctly wrap the partially specialized template
+              %template(StringPtr) X<const char *>;
+              %template(ShortPtr) X<short *, int>;
+
 2023-02-15: wsfulton
             #1300 Further partial template specialization fixes.
             Fixes when templates are used as a template parameter in a partially specialized
