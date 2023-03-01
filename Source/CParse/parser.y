@@ -1436,7 +1436,7 @@ static void default_arguments(Node *n) {
 	  Delete(pl);
         }
 
-        /* copy specific attributes for global (or in a namespace) template functions - these are not templated class methods */
+        /* copy specific attributes for global (or in a namespace) template functions - these are not class template methods */
         if (strcmp(cntype,"template") == 0) {
           Node *templatetype = Getattr(function,"templatetype");
           Node *symtypename = Getattr(function,"sym:typename");
@@ -2876,7 +2876,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                       if (GetFlag(nn, "instantiate")) {
 			Delattr(nn, "instantiate");
 			{
-			  int nnisclass = (Strcmp(Getattr(nn, "templatetype"), "class") == 0); /* if not a templated class it is a templated function */
+			  int nnisclass = (Strcmp(Getattr(nn, "templatetype"), "class") == 0); /* if not a class template it is a function template */
 			  Parm *tparms = Getattr(nn, "templateparms");
 			  int specialized = !tparms; /* fully specialized (an explicit specialization) */
 			  String *tname = Copy($5);
@@ -3006,7 +3006,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           }
                         }
 
-                        /* all the overloaded templated functions are added into a linked list */
+                        /* all the overloaded function templates are added into a linked list */
                         if (!linkliststart)
                           linkliststart = templnode;
                         if (nscope_inner) {
@@ -3027,7 +3027,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                           linklistend = templnode;
                         }
                       }
-                      nn = Getattr(nn,"sym:nextSibling"); /* repeat for overloaded templated functions. If a templated class there will never be a sibling. */
+                      nn = Getattr(nn,"sym:nextSibling"); /* repeat for overloaded function templates. If a class template there will never be a sibling. */
                     }
                     update_defaultargs(linkliststart);
                     update_abstracts(linkliststart);

@@ -1143,14 +1143,14 @@ success:
  * Swig_cparse_template_locate()
  *
  * Search for a template that matches name with given parameters and mark it for instantiation.
- * For templated classes marks the specialized template should there be one.
- * For templated functions marks all the unspecialized templates even if specialized
+ * For class templates marks the specialized template should there be one.
+ * For function templates marks all the unspecialized templates even if specialized
  * templates exists.
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String *symname, Symtab *tscope) {
   Node *match = 0;
-  Node *n = template_locate(name, instantiated_parms, symname, tscope); /* this function does what we want for templated classes */
+  Node *n = template_locate(name, instantiated_parms, symname, tscope); /* this function does what we want for class templates */
 
   if (n) {
     String *nodeType = nodeType(n);
@@ -1178,15 +1178,15 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
 	SetFlag(n, "instantiate");
     } else {
       Node *firstn = 0;
-      /* If not a templated class we must have a templated function.
+      /* If not a class template we must have a function template.
          The template found is not necessarily the one we want when dealing with templated
-         functions. We don't want any specialized templated functions as they won't have
+         functions. We don't want any specialized function templates as they won't have
          the default parameters. Let's look for the unspecialized template. Also make sure
          the number of template parameters is correct as it is possible to overload a
-         templated function with different numbers of template parameters. */
+         function template with different numbers of template parameters. */
 
       if (template_debug) {
-	Printf(stdout, "    Not a templated class, seeking all appropriate primary templated functions\n");
+	Printf(stdout, "    Not a class template, seeking all appropriate primary function templates\n");
       }
 
       firstn = Swig_symbol_clookup_local(name, 0);
@@ -1237,7 +1237,7 @@ Node *Swig_cparse_template_locate(String *name, Parm *instantiated_parms, String
       }
 
       if (!match) {
-	Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", name);
+	Swig_error(cparse_file, cparse_line, "No matching function template '%s' found.\n", name);
       }
     }
   }
@@ -1345,7 +1345,7 @@ ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parms, Node *
   ParmList *expanded_templateparms = CopyParmList(instantiated_parms);
 
   if (Equal(Getattr(primary, "templatetype"), "class")) {
-    /* Templated class */
+    /* Class template */
     ParmList *templateparms = Getattr(primary, "templateparms");
     int variadic = merge_parameters(expanded_templateparms, templateparms);
     /* Add default arguments from primary template */
@@ -1359,7 +1359,7 @@ ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parms, Node *
       }
     }
   } else {
-    /* Templated function */
+    /* Function template */
     /* TODO: Default template parameters support was only added in C++11 */
     ParmList *templateparms = Getattr(templ, "templateparms");
     merge_parameters(expanded_templateparms, templateparms);
@@ -1383,7 +1383,7 @@ ParmList *Swig_cparse_template_partialargs_expand(ParmList *partially_specialize
   ParmList *expanded_templateparms = CopyParmList(partially_specialized_parms);
 
   if (Equal(Getattr(primary, "templatetype"), "class")) {
-    /* Templated class */
+    /* Class template */
     int variadic = ParmList_variadic_parm(templateparms) ? 1 : 0;
     /* Add default arguments from primary template */
     if (!variadic) {
@@ -1396,7 +1396,7 @@ ParmList *Swig_cparse_template_partialargs_expand(ParmList *partially_specialize
       }
     }
   } else {
-    /* Templated function */
+    /* Function template */
     /* TODO: Default template parameters support was only added in C++11 */
   }
 
