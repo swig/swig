@@ -1275,6 +1275,11 @@ String *SwigType_manglestr(const SwigType *s) {
  * SwigType_typename_replace()
  *
  * Replaces a typename in a type with something else.  Needed for templates.
+ * Collapses duplicate const into a single const.
+ * Reference collapsing probably should be implemented here.
+ * Example:
+ *   t=r.q(const).T pat=T rep=int           =>  r.q(const).int
+ *   t=r.q(const).T pat=T rep=q(const).int  =>  r.q(const).int  (duplicate const removed)
  * ----------------------------------------------------------------------------- */
 
 void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
@@ -1297,7 +1302,15 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
     if (SwigType_issimple(e)) {
       if (Equal(e, pat)) {
 	/* Replaces a type of the form 'pat' with 'rep<args>' */
-	Replace(e, pat, rep, DOH_REPLACE_ANY);
+	if (SwigType_isconst(rep) && i > 0 && SwigType_isconst(Getitem(elem, i - 1))) {
+	  /* Collapse duplicate const into a single const */
+	  SwigType *rep_without_const = Copy(rep);
+	  Delete(SwigType_pop(rep_without_const));
+	  Replace(e, pat, rep_without_const, DOH_REPLACE_ANY);
+	  Delete(rep_without_const);
+	} else {
+	  Replace(e, pat, rep, DOH_REPLACE_ANY);
+	}
       } else if (SwigType_istemplate(e)) {
 	/* Replaces a type of the form 'pat<args>' with 'rep' */
 	{

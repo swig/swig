@@ -93,7 +93,7 @@ namespace Two {
   template <typename T1, typename T2> struct TwoParm<T1 *, T2 *>              { void b() {} void bbb(const T2 &t) {} };
   template <typename T1, typename T2> struct TwoParm<T1 *, const T2 *>        { void c() {} void ccc(const T2 &t) {} };
   template <typename T1, typename T2> struct TwoParm<const T1 *, const T2 *>  { void d() {} void ddd(const T2 &t) {} };
-  template <typename T1>              struct TwoParm<T1 *, int *>             { void e() {} /*void eee(const T1 &t) {} TODO */};
+  template <typename T1>              struct TwoParm<T1 *, int *>             { void e() {} void eee(const T1 &t) {} };
   template <typename T1>              struct TwoParm<T1, int>                 { void f() {} };
   template <>                         struct TwoParm<int *, const int *>      { void g() {} };
 }

@@ -7,6 +7,20 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-03-08: wsfulton
+            Fix duplicate const in generated code when template instantiation type is const
+            and use of template parameter is also explicitly const, such as:
+
+              template <typename T> struct Conster {
+                void cccc1(T const& t) {}
+              };
+              %template(ConsterInt) Conster<const int>;
+
+            Above previously led to generated code:
+              (arg1)->cccc1((int const const &)*arg2);
+            instead of
+              (arg1)->cccc1((int const &)*arg2);
+
 2023-03-01: wsfulton
             Partial template specialization fixes to support default arguments from the primary
             template's parameter list.

@@ -501,6 +501,7 @@ CPP_TEST_CASES += \
 	template_tbase_template \
 	template_template_parameters \
 	template_template_template_parameters \
+	template_type_collapse \
 	template_typedef \
 	template_typedef_class_template \
 	template_typedef_cplx \
