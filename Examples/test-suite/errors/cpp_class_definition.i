@@ -1,7 +1,7 @@
 %module xxx
 
-// This should error but doesn't
-#if 0
+
+
 namespace OtherSpace {
   struct L;
 }
@@ -13,7 +13,7 @@ namespace Space11 {
     };
   }
 }
-#endif
+
 
 namespace Space1 {
   struct A;
