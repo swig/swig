@@ -24,3 +24,17 @@ namespace Space2 {
   };
 }
 
+namespace Space2 {
+    struct B;
+}
+
+struct ::Space2::B {
+    int val;
+    B() : val() {}
+};
+
+struct XX;
+// g++: error: global qualification of class name is invalid before ‘{’ token
+struct ::XX {
+  int vvv;
+};

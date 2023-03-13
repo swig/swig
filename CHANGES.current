@@ -7,6 +7,41 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-03-13: wsfulton
+            Improved error checking when using %template to instantiate templates within
+            the correct scope.
+
+            1. When a template is instantiated via %template and uses the unary scope
+            operator ::, an error occurs if the instantiation is attempted within a
+            namespace that does not enclose the instantiated template.
+            For example, the following will now error as ::test::max is not enclosed within test1:
+
+            Error: '::test::max' resolves to 'test::max' and was incorrectly instantiated in
+            scope 'test1' instead of within scope 'test'.
+              namespace test1 {
+                %template(maxchar) ::test::max<char>;
+              }
+
+            2. SWIG previously failed to always detect a template did not exist when using
+            %template. In particular when instantiating a global template incorrectly within
+            namespace. The code below now correctly emits an error:
+
+            Error: Template 'test5::GlobalVector' undefined.
+              namespace test5 {
+              }
+              template<typename T> struct GlobalVector {};
+              %template(GVI) test5::GlobalVector<int>;
+
+2023-03-13: wsfulton
+            Error out if an attempt is made to define a class using the unary scope
+            operator ::. The following is not legal C++ and now results in an error:
+
+            Error: Using the unary scope operator :: in class definition '::Space2::B' is invalid.
+              namespace Space2 {
+                struct B;
+              }
+              struct ::Space2::B {};
+
 2023-03-08: wsfulton
             Fix duplicate const in generated code when template instantiation type is const
             and use of template parameter is also explicitly const, such as:

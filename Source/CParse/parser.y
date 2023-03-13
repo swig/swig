@@ -267,7 +267,7 @@ static String *yyrename = 0;
 
 /* Forward renaming operator */
 
-static String *resolve_create_node_scope(String *cname, int is_class_definition);
+static String *resolve_create_node_scope(String *cname, int is_class_definition, int *errored);
 
 
 Hash *Swig_cparse_features(void) {
@@ -910,37 +910,45 @@ static Node *nscope_inner = 0;
  * The scopes required for the symbol name are resolved and/or created, if required.
  * For example AA::BB::CC as input returns CC and creates the namespace AA then inner 
  * namespace BB in the current scope. */
-static String *resolve_create_node_scope(String *cname, int is_class_definition) {
+static String *resolve_create_node_scope(String *cname_in, int is_class_definition, int *errored) {
   Symtab *gscope = 0;
   Node *cname_node = 0;
+  String *cname = cname_in;
   String *last = Swig_scopename_last(cname);
   nscope = 0;
   nscope_inner = 0;  
+  *errored = 0;
 
-  if (Strncmp(cname,"::" ,2) != 0) {
+  if (Strncmp(cname, "::", 2) == 0) {
     if (is_class_definition) {
-      /* Only lookup symbols which are in scope via a using declaration but not via a using directive.
-         For example find y via 'using x::y' but not y via a 'using namespace x'. */
-      cname_node = Swig_symbol_clookup_no_inherit(cname, 0);
-      if (!cname_node) {
-	Node *full_lookup_node = Swig_symbol_clookup(cname, 0);
-	if (full_lookup_node) {
-	 /* This finds a symbol brought into scope via both a using directive and a using declaration. */
-	  Node *last_node = Swig_symbol_clookup_no_inherit(last, 0);
-	  if (last_node == full_lookup_node)
-	    cname_node = last_node;
-	}
-      }
-    } else {
-      /* For %template, the template needs to be in scope via any means. */
-      cname_node = Swig_symbol_clookup(cname, 0);
+      Swig_error(cparse_file, cparse_line, "Using the unary scope operator :: in class definition '%s' is invalid.\n", cname);
+      *errored = 1;
+      return last;
     }
+    cname = NewString(Char(cname) + 2);
+  }
+  if (is_class_definition) {
+    /* Only lookup symbols which are in scope via a using declaration but not via a using directive.
+       For example find y via 'using x::y' but not y via a 'using namespace x'. */
+    cname_node = Swig_symbol_clookup_no_inherit(cname, 0);
+    if (!cname_node) {
+      Node *full_lookup_node = Swig_symbol_clookup(cname, 0);
+      if (full_lookup_node) {
+       /* This finds a symbol brought into scope via both a using directive and a using declaration. */
+	Node *last_node = Swig_symbol_clookup_no_inherit(last, 0);
+	if (last_node == full_lookup_node)
+	  cname_node = last_node;
+      }
+    }
+  } else {
+    /* For %template, the template needs to be in scope via any means. */
+    cname_node = Swig_symbol_clookup(cname, 0);
   }
 #if RESOLVE_DEBUG
   if (!cname_node)
-    Printf(stdout, "symbol does not yet exist (%d): [%s]\n", is_class_definition, cname);
+    Printf(stdout, "symbol does not yet exist (%d): [%s]\n", is_class_definition, cname_in);
   else
-    Printf(stdout, "symbol does exist (%d): [%s]\n", is_class_definition, cname);
+    Printf(stdout, "symbol does exist (%d): [%s]\n", is_class_definition, cname_in);
 #endif
 
   if (cname_node) {
@@ -1022,8 +1030,8 @@ Printf(stdout, "comparing current: [%s] found: [%s]\n", current_scopename, found
 
 	if (fail) {
 	  String *cname_resolved = NewStringf("%s::%s", found_scopename, last);
-	  Swig_error(cparse_file, cparse_line, "'%s' resolves to '%s' and was incorrectly instantiated in scope '%s' instead of within scope '%s'.\n", cname, cname_resolved, current_scopename, found_scopename);
-	  cname = Copy(last);
+	  Swig_error(cparse_file, cparse_line, "'%s' resolves to '%s' and was incorrectly instantiated in scope '%s' instead of within scope '%s'.\n", cname_in, cname_resolved, current_scopename, found_scopename);
+	  *errored = 1;
 	  Delete(cname_resolved);
 	}
       }
@@ -1032,22 +1040,17 @@ Printf(stdout, "comparing current: [%s] found: [%s]\n", current_scopename, found
       Delete(found_scopename);
     }
   } else if (!is_class_definition) {
-    /* A template instantiation requires a template to be found in scope... fail here too?
-    Swig_error(cparse_file, cparse_line, "No template found to instantiate '%s' with %%template.\n", cname);
-     */
+    /* A template instantiation requires a template to be found in scope */
+    Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", cname_in);
+    *errored = 1;
   }
 
-  if (Swig_scopename_check(cname)) {
+  if (*errored)
+    return last;
+
+  if (Swig_scopename_check(cname) && !*errored) {
     Node   *ns;
     String *prefix = Swig_scopename_prefix(cname);
-    if (prefix && (Strncmp(prefix,"::",2) == 0)) {
-/* I don't think we can use :: global scope to declare classes and hence neither %template. - consider reporting error instead - wsfulton. */
-      /* Use the global scope */
-      String *nprefix = NewString(Char(prefix)+2);
-      Delete(prefix);
-      prefix= nprefix;
-      gscope = set_scope_to_global();
-    }
     if (Len(prefix) == 0) {
       String *base = Copy(last);
       /* Use the global scope, but we need to add a 'global' namespace.  */
@@ -1065,10 +1068,12 @@ Printf(stdout, "comparing current: [%s] found: [%s]\n", current_scopename, found
     ns = Swig_symbol_clookup(prefix,0);
     if (!ns) {
       Swig_error(cparse_file,cparse_line,"Undefined scope '%s'\n", prefix);
+      *errored = 1;
     } else {
       Symtab *nstab = Getattr(ns,"symtab");
       if (!nstab) {
 	Swig_error(cparse_file,cparse_line, "'%s' is not defined as a valid scope.\n", prefix);
+	*errored = 1;
 	ns = 0;
       } else {
 	/* Check if the node scope is the current scope */
@@ -2814,30 +2819,32 @@ types_directive : TYPES LPAREN parms RPAREN stringbracesemi {
 
 template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN valparms GREATERTHAN SEMI {
                   Parm *p;
-		  Node *n;
+		  Node *n = 0;
 		  Node *outer_class = currentOuterClass;
 		  Symtab *tscope = 0;
 		  String *symname = $3 ? NewString($3) : 0;
+		  int errored_flag = 0;
 
 		  $$ = 0;
 
 		  tscope = Swig_symbol_current();          /* Get the current scope */
 
 		  /* If the class name is qualified, we need to create or lookup namespace entries */
-		  $5 = resolve_create_node_scope($5, 0);
+		  $5 = resolve_create_node_scope($5, 0, &errored_flag);
 
-		  if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) {
-		    outer_class	= nscope_inner;
+		  if (!errored_flag) {
+		    if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0)
+		      outer_class = nscope_inner;
+
+		    /*
+		      We use the new namespace entry 'nscope' only to
+		      emit the template node. The template parameters are
+		      resolved in the current 'tscope'.
+
+		      This is closer to the C++ (typedef) behavior.
+		    */
+		    n = Swig_cparse_template_locate($5, $7, symname, tscope);
 		  }
-
-		  /*
-		    We use the new namespace entry 'nscope' only to
-		    emit the template node. The template parameters are
-		    resolved in the current 'tscope'.
-
-		    This is closer to the C++ (typedef) behavior.
-		  */
-		  n = Swig_cparse_template_locate($5, $7, symname, tscope);
 
 		  /* Patch the argument types to respect namespaces */
 		  p = $7;
@@ -3647,6 +3654,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
                    String *prefix;
                    List *bases = 0;
 		   Node *scope = 0;
+		   int errored_flag = 0;
 		   String *code;
 		   $<node>$ = new_node("class");
 		   Setline($<node>$,cparse_start_line);
@@ -3662,7 +3670,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   Setattr($<node>$,"prev_symtab",Swig_symbol_current());
 		  
 		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
-		   scope = resolve_create_node_scope($3, 1);
+		   scope = resolve_create_node_scope($3, 1, &errored_flag);
 		   /* save nscope_inner to the class - it may be overwritten in nested classes*/
 		   Setattr($<node>$, "nested:innerscope", nscope_inner);
 		   Setattr($<node>$, "nested:nscope", nscope);

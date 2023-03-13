@@ -122,24 +122,3 @@ namespace S {
 namespace S {
   %template(X2) X<int *>;
 };
-
-#if 0
-// TODO fix:
-%inline %{
-namespace Space {
-}
-template<typename T> struct Vector {
-  void gook(T i) {}
-  void geeko(double d) {}
-  void geeky(int d) {}
-};
-/*
-template<typename T> struct Vector<T *> {
-};
-*/
-%}
-
-%template(VectorIntPtr) Space::Vector<int *>; // should fail as Vector is in global namespace
-// is this a regression - no fails in 1.3.40 too
-// Note problem is removed by removing empty Space namespace!!
-#endif
