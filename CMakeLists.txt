@@ -170,7 +170,7 @@ endif ()
 if (SWIG_LIB_RELATIVE_TO_EXE)
   target_link_libraries(swig ${CMAKE_DL_LIBS})
 endif()
-install (TARGETS swig DESTINATION bin)
+install (TARGETS swig DESTINATION bin) # TODO: seems like the executable in the zipped swigwin is actually installed at the root...
 
 # 'make package-source' creates tarballs
 set (CPACK_PACKAGE_NAME ${PACKAGE_NAME})

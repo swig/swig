@@ -813,6 +813,7 @@ static void SWIG_exit_handler(int status);
 static String *get_exe_path(void) {
   char buf[MAX_PATH];
   char *p;
+  // TODO: if this is actually in install/bin/, need another call to strrchr
   if (!(GetModuleFileName(0, buf, MAX_PATH) == 0 || (p = strrchr(buf, '\\')) == 0)) {
     *(p + 1) = '\0';
     return NewStringf("%s%s", buf, SWIG_LIB_RELATIVE_PATH); // Native windows installation path
