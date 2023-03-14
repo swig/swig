@@ -810,7 +810,7 @@ static void getoptions(int argc, char *argv[]) {
 static void SWIG_exit_handler(int status);
 
 #if defined(_WIN32)
-static String *get_exe_path(void) {
+static String *get_swig_lib_path(void) {
   char buf[MAX_PATH];
   char *p;
   // TODO: if this is actually in install/bin/, need another call to strrchr
@@ -826,30 +826,24 @@ static String *get_exe_path(void) {
 #include <unistd.h>
 #include <dlfcn.h>
 
-static String *get_exe_path(void) {
+static String *get_swig_lib_path(void) {
   Dl_info info;
   if (dladdr("main", &info)) {
     char realp_buffer[PATH_MAX];
-    char* res = NULL;
-
     // this is /path/to/swig_install/bin/swig
-    res = realpath(info.dli_fname, realp_buffer);
+    const char * res = realpath(info.dli_fname, realp_buffer);
     if (!res) {
       return NewString(SWIG_LIB);
     }
 
     // root dir
-    const char* dir = dirname(dirname(realp_buffer));
-    char dest_buf[PATH_MAX];
-    strcpy(dest_buf, dir);
-    strcat(dest_buf, "/");
-    strcat(dest_buf, SWIG_LIB_RELATIVE_PATH);
-    return NewStringWithSize(dest_buf, strlen(dest_buf));
+    const char* root_dir = dirname(dirname(realp_buffer));
+    return NewStringf("%s/%s", root_dir, SWIG_LIB_RELATIVE_PATH);
   }
   return NewString(SWIG_LIB);
 }
 #else
-static String *get_exe_path(void) {
+static String *get_swig_lib_path(void) {
   return NewString(SWIG_LIB);
 }
 #endif
@@ -888,7 +882,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
   // Check for SWIG_LIB environment variable
   if ((c = getenv("SWIG_LIB")) == (char *) 0) {
-    SwigLib = get_exe_path();
+    SwigLib = get_swig_lib_path();
 #if defined(_WIN32)
     if (Len(SWIG_LIB_WIN_UNIX) > 0) {
       SwigLibWinUnix = NewString(SWIG_LIB_WIN_UNIX); // Unix installation path using a drive letter (for msys/mingw)
