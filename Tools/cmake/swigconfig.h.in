@@ -74,6 +74,12 @@
 /* Compiler that built SWIG */
 #define SWIG_CXX "@CMAKE_CXX_COMPILER@"
 
+/* Whether the path to SWIG_LIB is supposed to be absolute or relative to the executable */
+#cmakedefine SWIG_LIB_RELATIVE_TO_EXE 1
+
+/* Relative path to SWIG system-independent libraries compared to root directory, used only if SWIG_LIB_RELATIVE_TO_EXE is enabled */
+#define SWIG_LIB_RELATIVE_PATH "@SWIG_LIB_RELATIVE_PATH@"
+
 /* Directory for SWIG system-independent libraries */
 #define SWIG_LIB "@CMAKE_INSTALL_PREFIX@/@SWIG_LIB@"
 

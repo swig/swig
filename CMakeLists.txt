@@ -18,13 +18,8 @@ else ()
   message (SEND_ERROR "Could not parse version from configure.ac")
 endif ()
 
-set (SWIG_ROOT ${PROJECT_SOURCE_DIR})
+set(SWIG_ROOT ${PROJECT_SOURCE_DIR})
 
-if (WIN32)
-  set (SWIG_LIB bin/Lib)
-else ()
-  set (SWIG_LIB share/swig/${SWIG_VERSION})
-endif ()
 # Project wide configuration variables
 # ------------------------------------
 
@@ -81,6 +76,26 @@ if (WITH_PCRE)
   find_package (PCRE2 REQUIRED)
   set (HAVE_PCRE 1)
   include_directories (${PCRE2_INCLUDE_DIRS})
+endif()
+
+# SWIG LIB configuration
+# -----------------------
+set(SWIG_LIB_RELATIVE_PATH Lib CACHE STRING "SWIG Library relative folder location compared to root install, only used if SWIG_LIB_RELATIVE_TO_EXE is enabled on UNIX")
+
+if(WIN32)
+  # Always relative
+  set(SWIG_LIB_RELATIVE_TO_EXE ON)
+  set(SWIG_LIB ${SWIG_LIB_RELATIVE_PATH})
+else()
+  option(SWIG_LIB_RELATIVE_TO_EXE "Make SWIG_LIB relative to executable location" OFF)
+  if (SWIG_LIB_RELATIVE_TO_EXE)
+    if (NOT HAVE_UNISTD_H)
+      message(FATAL_ERROR "You don't have unistd.h available when it is required to enable SWIG_LIB_RELATIVE_PATH")
+    endif()
+    set(SWIG_LIB ${SWIG_LIB_RELATIVE_PATH})
+  else()
+    set(SWIG_LIB share/swig/${SWIG_VERSION})
+  endif()
 endif()
 
 #if (WIN32)
@@ -152,6 +167,9 @@ add_executable (swig
 if (PCRE2_FOUND)
   target_link_libraries (swig ${PCRE2_LIBRARIES})
 endif ()
+if (SWIG_LIB_RELATIVE_TO_EXE)
+  target_link_libraries(swig ${CMAKE_DL_LIBS})
+endif()
 install (TARGETS swig DESTINATION bin)
 
 # 'make package-source' creates tarballs
