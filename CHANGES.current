@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-03-22: wsfulton
+            [C#] #2478 Minor enhancements to std::array wrappers in std_array.i.
+
 2023-03-13: wsfulton
             Improved error checking when using %template to instantiate templates within
             the correct scope.
