@@ -69,6 +69,12 @@
     }
   }
 
+  public bool IsEmpty {
+    get {
+      return empty();
+    }
+  }
+
   public int Count {
     get {
       return (int)size();
@@ -203,18 +209,19 @@
     typedef value_type& reference;
     typedef CONST_REFERENCE const_reference;
 
+    vector();
+    vector(const vector &other);
+
     %rename(Clear) clear;
     void clear();
     %rename(Add) push_back;
     void push_back(CTYPE const& x);
     size_type size() const;
+    bool empty() const;
     size_type capacity() const;
     void reserve(size_type n);
     %newobject GetRange(int index, int count);
     %newobject Repeat(CTYPE const& value, int count);
-
-    vector();
-    vector(const vector &other);
 
     %extend {
       vector(int capacity) throw (std::out_of_range) {
@@ -415,4 +422,3 @@ SWIG_STD_VECTOR_ENHANCED(float)
 SWIG_STD_VECTOR_ENHANCED(double)
 SWIG_STD_VECTOR_ENHANCED(std::string) // also requires a %include <std_string.i>
 SWIG_STD_VECTOR_ENHANCED(std::wstring) // also requires a %include <std_wstring.i>
-
