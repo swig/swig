@@ -15,20 +15,10 @@
   public $csclassname(global::System.Collections.ICollection c) : this() {
     if (c == null)
       throw new global::System.ArgumentNullException("c");
+    int count = this.Count;
     int i = 0;
     foreach ($typemap(cstype, CTYPE) element in c) {
-      if (i >= this.Count)
-        break;
-      this[i++] = element;
-    }
-  }
-
-  public $csclassname(global::System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)> c) : this() {
-    if (c == null)
-      throw new global::System.ArgumentNullException("c");
-    int i = 0;
-    foreach ($typemap(cstype, CTYPE) element in c) {
-      if (i >= this.Count)
+      if (i >= count)
         break;
       this[i++] = element;
     }
@@ -57,7 +47,7 @@
 
   public bool IsEmpty {
     get {
-      return (size() == 0);
+      return empty();
     }
   }
 
@@ -195,6 +185,9 @@
     typedef value_type& reference;
     typedef const value_type& const_reference;
 
+    array();
+    array(const array &other);
+
     size_type size() const;
     bool empty() const;
 
@@ -203,9 +196,6 @@
 
     %rename(Swap) swap;
     void swap(array& other);
-
-    array();
-    array(const array &other);
 
     %extend {
       CTYPE getitemcopy(int index) throw (std::out_of_range) {

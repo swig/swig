@@ -209,6 +209,9 @@
     typedef value_type& reference;
     typedef CONST_REFERENCE const_reference;
 
+    vector();
+    vector(const vector &other);
+
     %rename(Clear) clear;
     void clear();
     %rename(Add) push_back;
@@ -219,9 +222,6 @@
     void reserve(size_type n);
     %newobject GetRange(int index, int count);
     %newobject Repeat(CTYPE const& value, int count);
-
-    vector();
-    vector(const vector &other);
 
     %extend {
       vector(int capacity) throw (std::out_of_range) {

@@ -78,5 +78,20 @@ public class cpp11_std_array_runme
         catch (ArgumentOutOfRangeException)
         {
         }
+
+        // ICollection constructor, differently sized
+        ai = new ArrayInt6(new int[] {1, 2, 3});
+        compareContainers(ai, new int[] { 1, 2, 3, 0, 0, 0});
+        ai = new ArrayInt6(new int[] {1, 2, 3, 4, 5, 6, 7, 8});
+        compareContainers(ai, new int[] { 1, 2, 3, 4, 5, 6});
+
+        // ToArray test
+        int[] aiArray = ai.ToArray();
+        for (int i=0; i<ai.Count; i++) {
+          if (aiArray[i] != ai[i])
+            throw new Exception("ToArray failed, index:" + i);
+        }
+        if (ai.Count != aiArray.Length)
+          throw new Exception("ToArray lengths mismatch");
     }
 }
