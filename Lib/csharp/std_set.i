@@ -297,12 +297,14 @@ class set {
       }
 
       const key_type& get_next(std::set<T>::iterator *swigiterator) {
+        (void)$self;
         std::set<T>::iterator iter = *swigiterator;
         (*swigiterator)++;
         return *iter;
       }
 
       void destroy_iterator(std::set<T>::iterator *swigiterator) {
+        (void)$self;
         delete swigiterator;
       }
     }
