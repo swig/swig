@@ -269,14 +269,14 @@
       }
 
       const key_type& get_next_key(std::map< K, T, C >::iterator *swigiterator) {
-        (void)self;
+        (void)$self;
         std::map< K, T, C >::iterator iter = *swigiterator;
         (*swigiterator)++;
         return (*iter).first;
       }
 
       void destroy_iterator(std::map< K, T, C >::iterator *swigiterator) {
-        (void)self;
+        (void)$self;
         delete swigiterator;
       }
     }
