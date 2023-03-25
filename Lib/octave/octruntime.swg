@@ -318,7 +318,10 @@ DEFUN_DLD( SWIG_name, args, nargout, SWIG_name_usage ) {
     SWIG_InitializeModule(0);
     SWIG_PropagateClientData();
 
-#if SWIG_OCTAVE_PREREQ(6,0,0)
+#if SWIG_OCTAVE_PREREQ(8,0,0)
+    octave::tree_evaluator& tree_eval = octave::interpreter::the_interpreter()->get_evaluator();
+    octave_function *me = tree_eval.current_function();
+#elif SWIG_OCTAVE_PREREQ(6,0,0)
     octave::tree_evaluator& tree_eval = octave::interpreter::the_interpreter()->get_evaluator();
     octave::call_stack& stack = tree_eval.get_call_stack();
     octave_function *me = stack.current_function();
