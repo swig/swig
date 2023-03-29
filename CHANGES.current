@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-04-21: degasus
+	    #2519 Fix CanCastAsInteger range check to clear errno first to fix
+	    bogus failures for valid inputs.if errno is set.
+
 2023-04-21: ZackerySpytz
 	    [OCaml] #1439 Fix reference typemaps for std::string
 
