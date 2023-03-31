@@ -8,7 +8,7 @@ end
 
 // Test lib double matrix functions
 disp("Call lib function getDoubleMatrix()");
-doubleMatrix = getDoubleMatrix();
+doubleMatrix = getDoubleMatrix(5, 3);
 disp(doubleMatrix);
 
 disp("Call lib function sumDoubleMatrix()");
@@ -18,6 +18,12 @@ disp(s);
 disp("Call lib function squareDoubleMatrix()");
 sqrd = squareDoubleMatrix(doubleMatrix);
 disp(sqrd);
+
+disp("Extract various indexes");
+disp(extractDoubleMatrix(doubleMatrix, 2));
+disp(extractDoubleMatrix(doubleMatrix, 2:5));
+disp(extractDoubleMatrix(doubleMatrix, :));
+
 
 
 // Test lib integer matrix functions

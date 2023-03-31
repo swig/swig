@@ -56,6 +56,7 @@ SWIG_SciDouble_FromDouble(void *pvApiCtx, int iVarOut, double dblValue, char *fn
 SWIGINTERN int
 SWIG_SciDouble_AsDoubleArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *iCols, double **pdValue, char *fname) {
   SciErr sciErr;
+  int iType = 0;
   int *piAddrVar = NULL;
 
   sciErr = getVarAddressFromPosition(pvApiCtx, iVar, &piAddrVar);
@@ -64,12 +65,23 @@ SWIG_SciDouble_AsDoubleArrayAndSize(void *pvApiCtx, int iVar, int *iRows, int *i
     return SWIG_ERROR;
   }
 
-  if (isDoubleType(pvApiCtx, piAddrVar) && !isVarComplex(pvApiCtx, piAddrVar)) {
+  sciErr = getVarType(pvApiCtx, piAddrVar, &iType);
+  if (sciErr.iErr) {
+    printError(&sciErr, 0);
+    return SWIG_ERROR;
+  }
+
+  if (iType == sci_matrix && !isVarComplex(pvApiCtx, piAddrVar)) {
     sciErr = getMatrixOfDouble(pvApiCtx, piAddrVar, iRows, iCols, pdValue);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
     }
+  }
+  else if (iType == sci_implicit_poly) {
+    *iRows = -1;
+    *iCols = 0;
+    *pdValue = NULL;
   }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A real matrix expected.\n"), fname, iVar);
