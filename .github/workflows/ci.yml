@@ -190,6 +190,8 @@ jobs:
         - SWIGLANG: scilab
           os: ubuntu-18.04 # scilab 6.0
         - SWIGLANG: scilab
+          os: ubuntu-22.04 # scilab 6.1
+        - SWIGLANG: scilab
         - SWIGLANG: tcl
         # c++11 testing
         - SWIGLANG: csharp
