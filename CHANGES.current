@@ -9,7 +9,7 @@ Version 4.2.0 (in progress)
 
 2023-03-31: davidcl 
             [Scilab] Add support for Scilab 2023.x
-            introduce a `-gatewayxml6` options to generate an XML with full names.
+            introduce a `-gatewayxml6` options to generate an XML with full function names.
             #894 extract values with ":" for typemap (int* IN, int IN_SIZE)
 
 2023-03-25: alatina 
