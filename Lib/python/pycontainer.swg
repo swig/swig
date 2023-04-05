@@ -1015,36 +1015,28 @@ namespace swig {
 
   template <class Seq, class T = typename Seq::value_type >
   struct IteratorProtocol {
-    static int assign(PyObject *obj, Seq **seq) {
-      int ret = SWIG_ERROR;
-      PyObject *iter = PyObject_GetIter(obj);
+    static void assign(PyObject *obj, Seq *seq) {
+      SwigVar_PyObject iter = PyObject_GetIter(obj);
       if (iter) {
-        PyObject *item = PyIter_Next(iter);
-        ret = SWIG_OK;
-        if (seq)
-          *seq = new Seq();
+        SwigVar_PyObject item = PyIter_Next(iter);
         while (item) {
-          try {
-            if (seq) {
-              (*seq)->insert((*seq)->end(), swig::as<T>(item));
-            } else {
-              if (!swig::check<T>(item))
-                ret = SWIG_ERROR;
-            }
-          } catch (std::exception& e) {
-            if (seq) {
-              if (!PyErr_Occurred()) {
-                PyErr_SetString(PyExc_TypeError, e.what());
-              }
-            }
-            ret = SWIG_ERROR;
-          }
-          Py_DECREF(item);
-          item = (ret == SWIG_OK) ? PyIter_Next(iter) : 0;
+          seq->insert(seq->end(), swig::as<T>(item));
+          item = PyIter_Next(iter);
         }
-        Py_DECREF(iter);
       }
+    }
 
+    static bool check(PyObject *obj) {
+      int ret = false;
+      SwigVar_PyObject iter = PyObject_GetIter(obj);
+      if (iter) {
+        SwigVar_PyObject item = PyIter_Next(iter);
+        ret = true;
+        while (item) {
+          ret = swig::check<T>(item);
+          item = ret ? PyIter_Next(iter) : 0;
+        }
+      }
       return ret;
     }
   };
@@ -1055,11 +1047,9 @@ namespace swig {
     typedef T value_type;
 
     static bool is_iterable(PyObject *obj) {
-      PyObject *iter = PyObject_GetIter(obj);
-      bool is_iter = iter != 0;
-      Py_XDECREF(iter);
+      SwigVar_PyObject iter = PyObject_GetIter(obj);
       PyErr_Clear();
-      return is_iter;
+      return iter != 0;
     }
 
     static int asptr(PyObject *obj, sequence **seq) {
@@ -1072,7 +1062,22 @@ namespace swig {
 	  return SWIG_OLDOBJ;
 	}
       } else if (is_iterable(obj)) {
-        ret = IteratorProtocol<Seq, T>::assign(obj, seq);
+	try {
+	  if (seq) {
+	    *seq = new sequence();
+            IteratorProtocol<Seq, T>::assign(obj, *seq);
+            if (!PyErr_Occurred())
+              return SWIG_NEWOBJ;
+	  } else {
+	    return IteratorProtocol<Seq, T>::check(obj) ? SWIG_OK : SWIG_ERROR;
+	  }
+	} catch (std::exception& e) {
+          if (seq && !PyErr_Occurred())
+            PyErr_SetString(PyExc_TypeError, e.what());
+	}
+        if (seq)
+          delete *seq;
+	return SWIG_ERROR;
       } else if (PySequence_Check(obj)) {
 	try {
 	  SwigPySequence_Cont<value_type> swigpyseq(obj);

@@ -31,48 +31,38 @@
 
     template <class T, size_t N>
     struct IteratorProtocol<std::array<T, N>, T> {
-      static int assign(PyObject *obj, std::array<T, N> **seq) {
-        int ret = SWIG_ERROR;
-        PyObject *iter = PyObject_GetIter(obj);
-        if (iter) {
-          PyObject *item = PyIter_Next(iter);
-          size_t count = 0;
-          typename std::array<T, N>::iterator array_iter = nullptr;
-          ret = SWIG_OK;
-          if (seq) {
-            *seq = new std::array<T, N>();
-            array_iter = (*seq)->begin();
-          }
-          while (item && (count < N)) {
-            try {
-              if (seq) {
-                *array_iter++ = swig::as<T>(item);
-              } else {
-                if (!swig::check<T>(item))
-                  ret = SWIG_ERROR;
-              }
-            } catch (std::exception& e) {
-              if (seq) {
-                if (!PyErr_Occurred()) {
-                  PyErr_SetString(PyExc_TypeError, e.what());
-                }
-              }
-              ret = SWIG_ERROR;
-            }
-            ++count;
-            Py_DECREF(item);
-            item = (ret == SWIG_OK) ? PyIter_Next(iter) : 0;
-          }
-          if ((ret == SWIG_OK) && (count != N || item)) {
-            PyErr_SetString(PyExc_TypeError, "std::array size does not match source container size");
-            ret = SWIG_ERROR;
-          }
-          Py_XDECREF(item);
-          Py_DECREF(iter);
-          if (seq && (ret == SWIG_ERROR))
-            delete *seq;
-        }
 
+      static void assign(PyObject *obj, std::array<T, N> *seq) {
+        SwigVar_PyObject iter = PyObject_GetIter(obj);
+        if (iter) {
+          SwigVar_PyObject item = PyIter_Next(iter);
+          size_t count = 0;
+          typename std::array<T, N>::iterator array_iter = seq->begin();
+          while (item && (count < N)) {
+            ++count;
+            *array_iter++ = swig::as<T>(item);
+            item = PyIter_Next(iter);
+          }
+          if (count != N || item)
+            throw std::invalid_argument("std::array size does not match source container size");
+        }
+      }
+
+      static bool check(PyObject *obj) {
+        int ret = false;
+        SwigVar_PyObject iter = PyObject_GetIter(obj);
+        if (iter) {
+          SwigVar_PyObject item = PyIter_Next(iter);
+          size_t count = 0;
+          ret = true;
+          while (item && (count < N)) {
+            ++count;
+            ret = swig::check<T>(item);
+            item = ret ? PyIter_Next(iter) : 0;
+          }
+          if (count != N || item)
+            ret = false;
+        }
         return ret;
       }
     };
