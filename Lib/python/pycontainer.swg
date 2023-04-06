@@ -775,17 +775,6 @@ namespace swig {
 	  fragment="SwigPySequence_Cont")
 {
 namespace swig {
-  template <class SwigPySeq, class Seq>
-  inline void
-  assign(const SwigPySeq& swigpyseq, Seq* seq) {
-    // seq->assign(swigpyseq.begin(), swigpyseq.end()); // not used as not always implemented
-    typedef typename SwigPySeq::value_type value_type;
-    typename SwigPySeq::const_iterator it = swigpyseq.begin();
-    for (;it != swigpyseq.end(); ++it) {
-      seq->insert(seq->end(),(value_type)(*it));
-    }
-  }
-
   template <class Seq, class T = typename Seq::value_type >
   struct IteratorProtocol {
     static void assign(PyObject *obj, Seq *seq) {

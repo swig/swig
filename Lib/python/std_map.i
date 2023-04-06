@@ -77,16 +77,6 @@
 %fragment("StdMapTraits","header",fragment="StdMapCommonTraits")
 {
   namespace swig {
-    template <class SwigPySeq, class K, class T, class Compare, class Alloc >
-    inline void
-    assign(const SwigPySeq& swigpyseq, std::map<K,T,Compare,Alloc > *map) {
-      typedef typename std::map<K,T,Compare,Alloc >::value_type value_type;
-      typename SwigPySeq::const_iterator it = swigpyseq.begin();
-      for (;it != swigpyseq.end(); ++it) {
-	map->insert(value_type(it->first, it->second));
-      }
-    }
-
     template <class K, class T, class Compare, class Alloc>
     struct traits_asptr<std::map<K,T,Compare,Alloc > >  {
       typedef std::map<K,T,Compare,Alloc > map_type;

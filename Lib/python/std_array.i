@@ -19,16 +19,6 @@
       }
     };
 
-    template <class SwigPySeq, class T, size_t N>
-    inline void
-    assign(const SwigPySeq& swigpyseq, std::array<T, N>* seq) {
-      if (swigpyseq.size() < seq->size())
-        throw std::invalid_argument("std::array cannot be expanded in size");
-      else if (swigpyseq.size() > seq->size())
-        throw std::invalid_argument("std::array cannot be reduced in size");
-      std::copy(swigpyseq.begin(), swigpyseq.end(), seq->begin());
-    }
-
     template <class T, size_t N>
     struct IteratorProtocol<std::array<T, N>, T> {
 
