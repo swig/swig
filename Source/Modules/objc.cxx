@@ -192,6 +192,9 @@ void OBJECTIVEC::main(int argc, char *argv[]) {
 
   // Set typemap language (historical) 
   SWIG_typemap_lang("objc");
+    
+  // allow overloading
+  allow_overloading();
 }
 
 /* ---------------------------------------------------------------------
