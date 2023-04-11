@@ -42,7 +42,7 @@ static const String * macro_start_file = 0;
 /* Test a character to see if it valid in an identifier (after the first letter) */
 #define isidchar(c) ((isalnum(c)) || (c == '_') || (c == '$'))
 
-static DOH *Preprocessor_replace(DOH *);
+static DOH *Preprocessor_replace(DOH *, DOH *);
 
 /* Skip whitespace */
 static void skip_whitespace(String *s, String *out) {
@@ -707,7 +707,7 @@ static String *get_filename(String *str, int *sysfile) {
       Putc(c, fn);
     if (isspace(c))
       Ungetc(c, str);
-    preprocessed_str = Preprocessor_replace(fn);
+    preprocessed_str = Preprocessor_replace(fn, NULL);
     Seek(preprocessed_str, 0, SEEK_SET);
     Delete(fn);
 
@@ -786,9 +786,10 @@ bad:
  * name - name of the macro
  * args - arguments passed to the macro
  * line_file - only used for line/file name when reporting errors
+ * next - optional next part for macros that arise after expanding
  * ----------------------------------------------------------------------------- */
 
-static String *expand_macro(String *name, List *args, String *line_file) {
+static String *expand_macro(String *name, List *args, String *line_file, String *next) {
   String *ns;
   DOH *symbols, *macro, *margs, *mvalue, *temp, *tempa, *e;
   int i, l;
@@ -903,7 +904,7 @@ static String *expand_macro(String *name, List *args, String *line_file) {
       DOH *arg, *aname;
       String *reparg;
       arg = Getitem(args, i);	/* Get an argument value */
-      reparg = Preprocessor_replace(arg);
+      reparg = Preprocessor_replace(arg, NULL);
       aname = Getitem(margs, i);	/* Get macro argument name */
       if (strstr(Char(ns), "\001")) {
 	/* Try to replace a quoted version of the argument */
@@ -1009,7 +1010,7 @@ static String *expand_macro(String *name, List *args, String *line_file) {
   /* Expand this macro even further */
   Setattr(macro, kpp_expanded, "1");
 
-  e = Preprocessor_replace(ns);
+  e = Preprocessor_replace(ns, line_file);
 
   Delattr(macro, kpp_expanded);
   Delete(ns);
@@ -1047,7 +1048,7 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *Preprocessor_replace(DOH *s)
+ * DOH *Preprocessor_replace(DOH *s, DOH *next)
  *
  * Performs a macro substitution on a string s.  Returns a new string with
  * substitutions applied.   This function works by walking down s and looking
@@ -1057,7 +1058,7 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 
 /* #define SWIG_PUT_BUFF  */
 
-static DOH *Preprocessor_replace(DOH *s) {
+static DOH *Preprocessor_replace(DOH *s, DOH *next) {
   DOH *ns, *symbols, *m;
   int c, i, state = 0;
   String *id = NewStringEmpty();
@@ -1214,7 +1215,7 @@ static DOH *Preprocessor_replace(DOH *s) {
 	  } else {
 	    args = 0;
 	  }
-	  e = expand_macro(id, args, s);
+	  e = expand_macro(id, args, s, next);
 	  if (e) {
 	    Append(ns, e);
 	  }
@@ -1280,11 +1281,23 @@ static DOH *Preprocessor_replace(DOH *s) {
       Replaceall(fn, "\\", "\\\\");
       Printf(ns, "\"%s\"", fn);
       Delete(fn);
-    } else if (Getattr(symbols, id)) {
-      DOH *e;
+    } else if (m = Getattr(symbols, id)) {
       /* Yes.  There is a macro here */
+      /* If it expects arguments, they must from from `next` */
+      DOH *args = 0;
+      DOH *e;
+      int macro_additional_lines = 0;
       /* See if the macro expects arguments */
-      e = expand_macro(id, 0, s);
+      if (Getattr(m, kpp_args) && next) {
+        /* Yep.  We need to go find the arguments and do a substitution */
+        int line = Getline(next);
+        args = find_args(next, 1, id);
+        macro_additional_lines = Getline(next) - line;
+        assert(macro_additional_lines >= 0);
+      } else {
+        args = 0;
+      }
+      e = expand_macro(id, args, s, next);
       if (e)
 	Append(ns, e);
       Delete(e);
@@ -1343,7 +1356,7 @@ static void add_chunk(DOH *ns, DOH *chunk, int allow) {
   DOH *echunk;
   Seek(chunk, 0, SEEK_SET);
   if (allow) {
-    echunk = Preprocessor_replace(chunk);
+    echunk = Preprocessor_replace(chunk, NULL);
     addline(ns, echunk, allow);
     Delete(echunk);
   } else {
@@ -1614,7 +1627,7 @@ String *Preprocessor_parse(String *s) {
 	    copy_location(m, v);
 	    if (Len(v)) {
 	      Swig_error_silent(1);
-	      v1 = Preprocessor_replace(v);
+	      v1 = Preprocessor_replace(v, NULL);
 	      Swig_error_silent(0);
 	      /*              Printf(stdout,"checking '%s'\n", v1); */
 	      if (!checkpp_id(v1)) {
@@ -1696,7 +1709,7 @@ String *Preprocessor_parse(String *s) {
 	  int val;
 	  String *sval;
 	  expand_defined_operator = 1;
-	  sval = Preprocessor_replace(value);
+	  sval = Preprocessor_replace(value, NULL);
 	  start_level = level;
 	  Seek(sval, 0, SEEK_SET);
 	  /*      Printf(stdout,"Evaluating '%s'\n", sval); */
@@ -1732,7 +1745,7 @@ String *Preprocessor_parse(String *s) {
 	    int val;
 	    String *sval;
 	    expand_defined_operator = 1;
-	    sval = Preprocessor_replace(value);
+	    sval = Preprocessor_replace(value, NULL);
 	    Seek(sval, 0, SEEK_SET);
 	    if (Len(sval) > 0) {
 	      val = Preprocessor_expr(sval, &e);
@@ -1823,7 +1836,7 @@ String *Preprocessor_parse(String *s) {
 	  if (*c) {
 	    if (strncmp(c, "nowarn=", 7) == 0) {
 	      String *val = NewString(c + 7);
-	      String *nowarn = Preprocessor_replace(val);
+	      String *nowarn = Preprocessor_replace(val, NULL);
 	      Swig_warnfilter(nowarn, 1);
 	      Delete(nowarn);
 	      Delete(val);
