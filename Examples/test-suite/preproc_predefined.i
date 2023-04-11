@@ -55,6 +55,8 @@
 #endif
 %}
 
+#define __attribute__(x)
+
 /* Test that SWIGxxx is defined at SWIG-time and in the wrapper. */
 %include "preproc_predefined.h"
 %{
