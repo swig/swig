@@ -389,6 +389,20 @@ int OBJECTIVEC::top(Node *n) {
   return SWIG_OK;
 }
 
+/* -----------------------------------------------------------------------------
+* getOverloadedName()
+* ----------------------------------------------------------------------------- */
+  String *getOverloadedName(Node *n) {
+
+    String *overloaded_name = NewStringf("%s", Getattr(n, "sym:name"));
+
+    if (Getattr(n, "sym:overloaded")) {
+      Printv(overloaded_name, Getattr(n, "sym:overname"), NIL);
+    }
+
+    return overloaded_name;
+  }
+
 /* ---------------------------------------------------------------------
  * functionHandler()
  *
@@ -840,6 +854,7 @@ int OBJECTIVEC::variableWrapper(Node *n) {
 int OBJECTIVEC::functionWrapper(Node *n) {
   // Get some useful attributes of this function
   String *symname = Getattr(n, "sym:name");
+  String *overloaded_name = getOverloadedName(n);
   SwigType *type = Getattr(n, "type");
   ParmList *parmlist = Getattr(n, "parms");
   String *crettype = SwigType_str(type, 0);
@@ -855,7 +870,7 @@ int OBJECTIVEC::functionWrapper(Node *n) {
       return SWIG_ERROR;
   }
   // Create the function's wrappered name
-  String *wname = Swig_name_wrapper(symname);
+  String *wname = Swig_name_wrapper(overloaded_name);
 
   // Create the wrapper function object
   Wrapper *wrapper = NewWrapper();
@@ -873,6 +888,8 @@ int OBJECTIVEC::functionWrapper(Node *n) {
 
   // Begin the first line of the function definition
   Printv(wrapper->def, imrettype, " ", wname, "(", NIL);
+    
+  Setattr(n, "wrap:parms", parmlist);
 
   // Make the param list with the intermediate parameter types 
   makeParameterList(parmlist, wrapper);
@@ -955,6 +972,7 @@ int OBJECTIVEC::functionWrapper(Node *n) {
   // Tidy up
   Delete(imrettype);
   Delete(wname);
+  Delete(overloaded_name);
   DelWrapper(wrapper);
   return SWIG_OK;
 }
@@ -966,10 +984,10 @@ int OBJECTIVEC::functionWrapper(Node *n) {
  * --------------------------------------------------------------------- */
 
 int OBJECTIVEC::nativeWrapper(Node *n) {
-  Language::nativeWrapper(n);
-  return SWIG_OK;
+    Language::nativeWrapper(n);
+    return SWIG_OK;
 }
-
+  
 /* -----------------------------------------------------------------------------
  * emitProxyGlobalFunctions()
  *
