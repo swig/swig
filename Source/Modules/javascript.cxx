@@ -127,7 +127,8 @@ public:
    enum JSEngine {
      JavascriptCore,
      V8,
-     NodeJS
+     NodeJS,
+     NAPI
    };
 
    JSEmitter(JSEngine engine);
@@ -295,6 +296,7 @@ protected:
 JSEmitter *swig_javascript_create_JSCEmitter();
 JSEmitter *swig_javascript_create_V8Emitter();
 JSEmitter *swig_javascript_create_NodeJSEmitter();
+JSEmitter *swig_javascript_create_NAPIEmitter();
 
 /**********************************************************************
  * JAVASCRIPT: SWIG module implementation
@@ -514,13 +516,13 @@ int JAVASCRIPT::top(Node *n) {
   return SWIG_OK;
 }
 
-static const char *usage = (char *) "\
+static const char *usage = (char *)"\
 Javascript Options (available with -javascript)\n\
      -jsc                   - creates a JavascriptCore extension \n\
      -v8                    - creates a v8 extension \n\
      -node                  - creates a node.js extension \n\
+     -napi                  - creates a NAPI extension \n\
      -debug-codetemplates   - generates information about the origin of code templates\n";
-
 
 /* ---------------------------------------------------------------------
  * main()
@@ -557,6 +559,13 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       	}
 	Swig_mark_arg(i);
 	engine = JSEmitter::NodeJS;
+      } else if (strcmp(argv[i], "-napi") == 0) {
+      	if (engine != -1) {
+	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
+	  Exit(EXIT_FAILURE);
+      	}
+	Swig_mark_arg(i);
+	engine = JSEmitter::NAPI;
       } else if (strcmp(argv[i], "-debug-codetemplates") == 0) {
 	Swig_mark_arg(i);
 	js_template_enable_debug = true;
@@ -590,9 +599,20 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       SWIG_library_directory("javascript/jsc");
       break;
     }
+  case JSEmitter::NAPI:
+    {
+      emitter = swig_javascript_create_NAPIEmitter();
+      Preprocessor_define("SWIG_JAVASCRIPT_NAPI 1", 0);
+      SWIG_library_directory("javascript/napi");
+      Preprocessor_define("BUILDING_NODE_EXTENSION 1", 0);
+      if (!cparse_cplusplus) {
+	Swig_cparse_cplusplusout(1);
+      }
+      break;
+    }
   default:
     {
-      Printf(stderr, "SWIG Javascript: Unknown engine. Please specify one of '-jsc', '-v8' or '-node'.\n");
+      Printf(stderr, "SWIG Javascript: Unknown engine. Please specify one of '-jsc', '-v8', '-node' or '-napi'.\n");
       Exit(EXIT_FAILURE);
       break;
     }
@@ -876,7 +896,8 @@ int JSEmitter::emitCtor(Node *n) {
 
   emitCleanupCode(n, wrapper, params);
 
-  t_ctor.replace("$jswrapper", wrap_name)
+  t_ctor.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", wrap_name)
       .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
@@ -1055,7 +1076,8 @@ int JSEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
 
   emitCleanupCode(n, wrapper, params);
 
-  t_getter.replace("$jswrapper", wrap_name)
+  t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", wrap_name)
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
       .pretty_print(f_wrappers);
@@ -1093,7 +1115,8 @@ int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
 
   emitCleanupCode(n, wrapper, params);
 
-  t_setter.replace("$jswrapper", wrap_name)
+  t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", wrap_name)
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
       .pretty_print(f_wrappers);
@@ -1151,7 +1174,8 @@ int JSEmitter::emitConstant(Node *n) {
 
   marshalOutput(n, 0, wrapper, NewString(""), value, false);
 
-  t_getter.replace("$jswrapper", wname)
+  t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", wname)
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
       .pretty_print(f_wrappers);
@@ -1190,7 +1214,8 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   emitCleanupCode(n, wrapper, params);
   Replaceall(wrapper->code, "$symname", iname);
 
-  t_function.replace("$jswrapper", wrap_name)
+  t_function.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", wrap_name)
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
       .replace("$jsargcount", Getattr(n, ARGCOUNT))
@@ -2355,8 +2380,480 @@ int V8Emitter::emitNamespaces() {
   return SWIG_OK;
 }
 
+/**********************************************************************
+ * NAPI: JSEmitter implementation for N-API
+ **********************************************************************/
+
+class NAPIEmitter : public JSEmitter {
+
+public:
+  NAPIEmitter();
+
+  virtual ~NAPIEmitter();
+  virtual int initialize(Node *n);
+  virtual int dump(Node *n);
+  virtual int close();
+  virtual int enterClass(Node *n);
+  virtual int exitClass(Node *n);
+  virtual int enterVariable(Node *n);
+  virtual int exitVariable(Node *n);
+  virtual int exitFunction(Node *n);
+
+protected:
+  virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
+                                MarshallingMode mode, bool is_member,
+                                bool is_static);
+  virtual int emitNamespaces();
+
+protected:
+  /* built-in parts */
+  String *f_runtime;
+  String *f_header;
+  String *f_init;
+  String *f_post_init;
+
+  /* part for class templates */
+  String *f_class_templates;
+
+  /* parts for initilizer */
+  String *f_init_namespaces;
+  String *f_init_class_templates;
+  String *f_init_wrappers;
+  String *f_init_inheritance;
+  String *f_init_class_instances;
+  String *f_init_static_wrappers;
+  String *f_init_register_classes;
+  String *f_init_register_namespaces;
+
+  // the output cpp file
+  File *f_wrap_cpp;
+
+  String *NULL_STR;
+  String *VETO_SET;
+  String *moduleName;
+};
+
+NAPIEmitter::NAPIEmitter()
+    : JSEmitter(JSEmitter::NAPI), NULL_STR(NewString("0")),
+      VETO_SET(NewString("JS_veto_set_variable")) {}
+
+NAPIEmitter::~NAPIEmitter() {
+  Delete(NULL_STR);
+  Delete(VETO_SET);
+}
+
+int NAPIEmitter::initialize(Node *n) {
+  JSEmitter::initialize(n);
+
+  moduleName = Getattr(n, "name");
+
+  // Get the output file name
+  String *outfile = Getattr(n, "outfile");
+  f_wrap_cpp = NewFile(outfile, "w", SWIG_output_files());
+  if (!f_wrap_cpp) {
+    FileErrorDisplay(outfile);
+    Exit(EXIT_FAILURE);
+  }
+
+  f_runtime = NewString("");
+  f_header = NewString("");
+  f_class_templates = NewString("");
+  f_init = NewString("");
+  f_post_init = NewString("");
+
+  f_init_namespaces = NewString("");
+  f_init_class_templates = NewString("");
+  f_init_wrappers = NewString("");
+  f_init_inheritance = NewString("");
+  f_init_class_instances = NewString("");
+  f_init_static_wrappers = NewString("");
+  f_init_register_classes = NewString("");
+  f_init_register_namespaces = NewString("");
+
+  // note: this is necessary for built-in generation of SWIG runtime code
+  Swig_register_filebyname("begin", f_wrap_cpp);
+  Swig_register_filebyname("runtime", f_runtime);
+  Swig_register_filebyname("header", f_header);
+  Swig_register_filebyname("wrapper", f_wrappers);
+  Swig_register_filebyname("init", f_init);
+  Swig_register_filebyname("post-init", f_post_init);
+
+  state.globals(FORCE_CPP, NewString("1"));
+
+  Swig_banner(f_wrap_cpp);
+
+  Swig_obligatory_macros(f_runtime, "JAVASCRIPT");
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::dump(Node *n) {
+  /* Get the module name */
+  String *module = Getattr(n, "name");
+
+  Template initializer_define(getTemplate("js_initializer_define"));
+  initializer_define.replace("$jsname", module).pretty_print(f_header);
+
+  SwigType_emit_type_table(f_runtime, f_wrappers);
+
+  Printv(f_wrap_cpp, f_runtime, "\n", 0);
+  Printv(f_wrap_cpp, f_header, "\n", 0);
+  Printv(f_wrap_cpp, f_class_templates, "\n", 0);
+  Printv(f_wrap_cpp, f_wrappers, "\n", 0);
+
+  emitNamespaces();
+
+  // compose the initializer function using a template
+  // filled with sub-parts
+  Template initializer(getTemplate("js_initializer"));
+  initializer.replace("$jsname", moduleName)
+      .replace("$jsnapinspaces", f_init_namespaces)
+      .replace("$jsnapiclasstemplates", f_init_class_templates)
+      .replace("$jsnapiinheritance", f_init_inheritance)
+      .replace("$jsnapiclassinstances", f_init_class_instances)
+      .replace("$jsnapiregisterclasses", f_init_register_classes)
+      .replace("$jsnapiregisternspaces", f_init_register_namespaces);
+  Printv(f_init, initializer.str(), 0);
+
+  Printv(f_wrap_cpp, f_init, 0);
+
+  Printv(f_wrap_cpp, f_post_init, 0);
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::close() {
+  Delete(f_runtime);
+  Delete(f_header);
+  Delete(f_class_templates);
+  Delete(f_init_namespaces);
+  Delete(f_init_class_templates);
+  Delete(f_init_wrappers);
+  Delete(f_init_inheritance);
+  Delete(f_init_class_instances);
+  Delete(f_init_static_wrappers);
+  Delete(f_init_register_classes);
+  Delete(f_init_register_namespaces);
+  Delete(f_init);
+  Delete(f_post_init);
+  Delete(f_wrap_cpp);
+  return SWIG_OK;
+}
+
+int NAPIEmitter::enterClass(Node *n) {
+  JSEmitter::enterClass(n);
+
+  // emit declaration of a NAPI class template
+  Template t_decl_class(getTemplate("jsnapi_class_prologue_template"));
+  t_decl_class.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .trim()
+      .pretty_print(f_class_templates);
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::exitClass(Node *) {
+  if (GetFlag(state.clazz(), IS_ABSTRACT)) {
+    Template t_veto_ctor(getTemplate("js_veto_ctor"));
+    t_veto_ctor.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+        .replace("$jswrapper", state.clazz(CTOR))
+        .replace("$jsname", state.clazz(NAME))
+        .pretty_print(f_wrappers);
+  }
+
+  /* Note: this makes sure that there is a swig_type added for this class */
+  String *clientData = NewString("");
+  Printf(clientData, "&%s_clientData", state.clazz(NAME_MANGLED));
+
+  /* Note: this makes sure that there is a swig_type added for this class */
+  SwigType_remember_clientdata(state.clazz(TYPE_MANGLED), NewString("0"));
+
+  // emit definition of v8 class template
+  Template t_def_class = getTemplate("jsnapi_class_epilogue_template");
+  t_def_class.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsname", state.clazz(NAME))
+      .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+      .replace("$jsdtor", state.clazz(DTOR))
+      .trim()
+      .pretty_print(f_class_templates);
+
+  Template t_class_template = getTemplate("jsnapi_getclass");
+  t_class_template.replace("$jsname", state.clazz(NAME))
+      .replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsnapiwrappers", f_init_wrappers)
+      .replace("$jsnapistaticwrappers", f_init_static_wrappers)
+      .trim()
+      .pretty_print(f_class_templates);
+
+  Template t_class_instance = getTemplate("jsnapi_declare_class_instance");
+  t_class_instance.replace("$jsname", state.clazz(NAME))
+      .replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+      .trim()
+      .pretty_print(f_class_templates);
+
+  //  emit inheritance setup
+  /*Node *baseClass = getBaseClass(n);
+  if (baseClass) {
+    String *base_name = Getattr(baseClass, "name");
+
+    Template t_inherit = getTemplate("jsv8_inherit");
+
+    String *base_name_mangled = SwigType_manglestr(base_name);
+    t_inherit.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+        .replace("$jsbaseclass", base_name_mangled)
+        .trim()
+        .pretty_print(f_init_inheritance);
+    Delete(base_name_mangled);
+  }*/
+  //  emit registration of class template
+  Template t_register = getTemplate("jsnapi_registerclass");
+  t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsname", state.clazz(NAME))
+      .replace("$jsparent", Getattr(state.clazz("nspace"), NAME_MANGLED))
+      .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+      .trim()
+      .pretty_print(f_init_register_classes);
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::enterVariable(Node *n) {
+  JSEmitter::enterVariable(n);
+
+  state.variable(GETTER, NULL_STR);
+  state.variable(SETTER, VETO_SET);
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::exitVariable(Node *n) {
+  if (GetFlag(n, "ismember")) {
+    if (GetFlag(state.variable(), IS_STATIC) ||
+        Equal(Getattr(n, "nodeType"), "enumitem")) {
+      Template t_register = getTemplate("jsnapi_register_static_variable");
+      t_register.replace("$jsparent", state.clazz(NAME_MANGLED))
+          .replace("$jsname", state.variable(NAME))
+          .replace("$jsgetter", state.variable(GETTER))
+          .replace("$jssetter", state.variable(SETTER))
+          .trim()
+          .pretty_print(f_init_static_wrappers);
+    } else {
+      Template t_register = getTemplate("jsnapi_register_member_variable");
+      t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+          .replace("$jsname", state.variable(NAME))
+          .replace("$jsgetter", state.variable(GETTER))
+          .replace("$jssetter", state.variable(SETTER))
+          .trim()
+          .pretty_print(f_init_wrappers);
+    }
+    // emit declaration of a class member function
+    Template t_getter = getTemplate("jsnapi_class_method_declaration");
+    Template t_setter = getTemplate("jsnapi_class_method_declaration");
+    t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+        .replace("$jsname", state.clazz(NAME))
+        .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+        .replace("$jsdtor", state.clazz(DTOR))
+        .replace("$jswrapper", state.variable(GETTER))
+        .trim()
+        .pretty_print(f_class_templates);
+    t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+        .replace("$jsname", state.clazz(NAME))
+        .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+        .replace("$jsdtor", state.clazz(DTOR))
+        .replace("$jswrapper", state.variable(SETTER))
+        .trim()
+        .pretty_print(f_class_templates);
+  } else {
+    // Note: a global variable is treated like a static variable
+    //       with the parent being a nspace object (instead of class object)
+    Template t_register = getTemplate("jsnapi_register_static_variable");
+    t_register.replace("$jsparent", Getattr(current_namespace, NAME_MANGLED))
+        .replace("$jsname", state.variable(NAME))
+        .replace("$jsgetter", state.variable(GETTER))
+        .replace("$jssetter", state.variable(SETTER))
+        .trim()
+        .pretty_print(f_init_wrappers);
+  }
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::exitFunction(Node *n) {
+  bool is_member =
+      GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
+
+  // create a dispatcher for overloaded functions
+  bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
+  if (is_overloaded) {
+    if (!Getattr(n, "sym:nextSibling")) {
+      // state.function(WRAPPER_NAME, Swig_name_wrapper(Getattr(n, "name")));
+      emitFunctionDispatcher(n, is_member);
+    } else {
+      // don't register wrappers of overloaded functions in function tables
+      return SWIG_OK;
+    }
+  }
+  // register the function at the specific context
+  if (is_member) {
+    if (GetFlag(state.function(), IS_STATIC)) {
+      Template t_register = getTemplate("jsnapi_register_static_function");
+      t_register.replace("$jsparent", state.clazz(NAME_MANGLED))
+          .replace("$jsname", state.function(NAME))
+          .replace("$jswrapper", state.function(WRAPPER_NAME))
+          .trim()
+          .pretty_print(f_init_static_wrappers);
+    } else {
+      Template t_register = getTemplate("jsnapi_register_member_function");
+      t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+          .replace("$jsname", state.function(NAME))
+          .replace("$jswrapper", state.function(WRAPPER_NAME))
+          .trim()
+          .pretty_print(f_init_wrappers);
+    }
+
+    // emit declaration of a class member function
+    Template t_def_class = getTemplate("jsnapi_class_method_declaration");
+    t_def_class.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+        .replace("$jsname", state.clazz(NAME))
+        .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+        .replace("$jsdtor", state.clazz(DTOR))
+        .replace("$jswrapper", state.function(WRAPPER_NAME))
+        .trim()
+        .pretty_print(f_class_templates);
+  } else {
+    // Note: a global function is treated like a static function
+    //       with the parent being a nspace object instead of class object
+    Template t_register = getTemplate("jsnapi_register_static_function");
+    t_register.replace("$jsparent", Getattr(current_namespace, NAME_MANGLED))
+        .replace("$jsname", state.function(NAME))
+        .replace("$jswrapper", state.function(WRAPPER_NAME))
+        .trim()
+        .pretty_print(f_init_static_wrappers);
+  }
+
+  return SWIG_OK;
+}
+
+void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
+                                 MarshallingMode mode, bool is_member,
+                                 bool is_static) {
+  Parm *p;
+  String *tm;
+
+  int startIdx = 0;
+  if (is_member && !is_static && mode != Ctor) {
+    startIdx = 1;
+  }
+  // store number of arguments for argument checks
+  int num_args = emit_num_arguments(parms) - startIdx;
+  String *argcount = NewString("");
+  Printf(argcount, "%d", num_args);
+  Setattr(n, ARGCOUNT, argcount);
+
+  int i = 0;
+  for (p = parms; p; i++) {
+    String *arg = NewString("");
+    String *type = Getattr(p, "type");
+
+    // ignore varargs
+    if (SwigType_isvarargs(type))
+      break;
+
+    switch (mode) {
+    case Getter:
+      if (is_member && !is_static && i == 0) {
+        Printv(arg, "info.Holder()", 0);
+      } else {
+        Printf(arg, "args[%d]", i - startIdx);
+      }
+      break;
+    case Function:
+      if (is_member && !is_static && i == 0) {
+        Printv(arg, "args.Holder()", 0);
+      } else {
+        Printf(arg, "args[%d]", i - startIdx);
+      }
+      break;
+    case Setter:
+      if (is_member && !is_static && i == 0) {
+        Printv(arg, "info.Holder()", 0);
+      } else {
+        Printv(arg, "value", 0);
+      }
+      break;
+    case Ctor:
+      Printf(arg, "args[%d]", i);
+      break;
+    default:
+      Printf(stderr, "Illegal MarshallingMode.");
+      Exit(EXIT_FAILURE);
+    }
+
+    tm = emitInputTypemap(n, p, wrapper, arg);
+    Delete(arg);
+
+    if (tm) {
+      p = Getattr(p, "tmap:in:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+}
+
+int NAPIEmitter::emitNamespaces() {
+  Iterator it;
+  for (it = First(namespaces); it.item; it = Next(it)) {
+    Hash *entry = it.item;
+    String *name = Getattr(entry, NAME);
+    String *name_mangled = Getattr(entry, NAME_MANGLED);
+    String *parent = Getattr(entry, PARENT);
+    String *parent_mangled = Getattr(entry, PARENT_MANGLED);
+
+    bool do_create = true;
+    bool do_register = true;
+
+    if (Equal(parent, "")) {
+      do_register = false;
+    }
+    // Note: 'exports' is by convention the name of the object where
+    // globals are stored into
+    if (Equal(name, "exports")) {
+      do_create = false;
+    }
+
+    if (do_create) {
+      // create namespace object and register it to the parent scope
+      Template t_create_ns = getTemplate("jsnapi_create_namespace");
+      t_create_ns.replace("$jsmangledname", name_mangled)
+          .trim()
+          .pretty_print(f_init_namespaces);
+    }
+
+    if (do_register) {
+      Template t_register_ns = getTemplate("jsnapi_register_namespace");
+      t_register_ns.replace("$jsmangledname", name_mangled)
+          .replace("$jsname", name)
+          .replace("$jsparent", parent_mangled)
+          .trim();
+
+      // prepend in order to achieve reversed order of registration statements
+      String *tmp_register_stmt = NewString("");
+      t_register_ns.pretty_print(tmp_register_stmt);
+      Insert(f_init_register_namespaces, 0, tmp_register_stmt);
+      Delete(tmp_register_stmt);
+    }
+  }
+
+  return SWIG_OK;
+}
+
 JSEmitter *swig_javascript_create_V8Emitter() {
   return new V8Emitter();
+}
+
+JSEmitter *swig_javascript_create_NAPIEmitter() {
+  return new NAPIEmitter();
 }
 
 /**********************************************************************
