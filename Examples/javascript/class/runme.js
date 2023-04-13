@@ -7,6 +7,12 @@ c = new example.Circle(10);
 console.log("Created circle " + c);
 s = new example.Square(10);
 console.log("Created square " + s);
+try {
+  new example.Shape();
+  console.error("Should have thrown");
+} catch {
+  console.log("Instantiating abstract class Shape failed");
+}
 
 // ----- Access a static member -----
 console.log("\nA total of " + example.Shape.nshapes + " shapes were created"); // access static member as properties of the class object
@@ -20,6 +26,15 @@ c.x = 20;
 c.y = 30;
 s.x = -10;
 s.y = 5;
+
+// ----- Check inheritance -----
+console.log("Square instanceof Shape: ", s instanceof example.Shape);
+console.log("Square instanceof Circle: ", s instanceof example.Circle);
+console.log("Square instanceof Square: ", s instanceof example.Square);
+
+// ----- Use an inherited method -----
+s.move(1, 1);
+c.move(-1, -1);
 
 console.log("\nHere is their new position:");
 console.log("Circle = (" + c.x + "," + c.y + ")");
