@@ -53,6 +53,12 @@ SWIG_NAPI_GetModule(Napi::Env env) {
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
   SWIG_InitializeModule(env);
 
+  Napi::Function setProto = env.Global()
+                                .Get("Object")
+                                .ToObject()
+                                .Get("setPrototypeOf")
+                                .As<Napi::Function>();
+
   /* create objects for namespaces */
   $jsnapinspaces
 

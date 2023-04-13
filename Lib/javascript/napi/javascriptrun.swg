@@ -20,6 +20,11 @@ class SwigNapiObjectWrap_templ : public Napi::ObjectWrap<T> {
         self(nullptr),
         owned(true) 
         {}
+    SwigNapiObjectWrap_templ(bool, const Napi::CallbackInfo& info) :
+        Napi::ObjectWrap<T>(info),
+        self(nullptr),
+        owned(true) 
+        {}
     virtual ~SwigNapiObjectWrap_templ() {};
 };
 

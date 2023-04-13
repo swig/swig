@@ -1,6 +1,7 @@
 /* -----------------------------------------------------------------------------
  * js_ctor:  template for wrapping a ctor.
  *   - $jswrapper:        wrapper of called ctor
+ *   - $jsparent:         mangled name of parent (or SwigNapiObjectWrap if none)
  *   - $jslocals:         locals part of wrapper
  *   - $jscode:           code part of wrapper
  *   - $jsargcount:       number of arguments
@@ -9,8 +10,9 @@
 
 %fragment("js_ctor", "templates") %{
 template <class T>
+// This is the main constructor
 $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : SwigNapiObjectWrap_templ<T>(info) {
+        : $jsparent_templ<T>(true, info) {
   Napi::Env env = info.Env();
   this->owned = true;
 
@@ -24,12 +26,19 @@ $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
   $jscode
   this->self = result;
 }
+
+// This is the extendable constructor to be used from child classes
+template <class T>
+$jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
+        : $jsparent_templ<T>(true, info) {
+}
 %}
 
 
 /* -----------------------------------------------------------------------------
  * js_veto_ctor:  a vetoing ctor for abstract classes
  *   - $jsmangledname:    mangled name of class
+ *   - $jsparent:         mangled name of parent (or SwigNapiObjectWrap if none)
  * ----------------------------------------------------------------------------- */
 %fragment ("js_veto_ctor", "templates")
 %{
@@ -39,19 +48,26 @@ $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
   Napi::Env env = info.Env();
   SWIG_Error(SWIG_ERROR, "Class $jsname can not be instantiated");
 }
+
+// This is the extendable constructor to be used from child classes
+template <class T>
+$jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
+        : $jsparent_templ<T>(true, info) {
+}
 %}
 
 
 /* -----------------------------------------------------------------------------
  * js_ctor_dispatcher:  dispatcher for overloaded constructors
  *   - $jsmangledname:    mangled name of class
+ *   - $jsparent:         mangled name of parent (or SwigNapiObjectWrap if none)
  *   - $jsdispatchcases:  part containing code for dispatching
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor_dispatcher", "templates")
 %{
 template <class T>
 $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : SwigNapiObjectWrap_templ<T>(info) {
+        : $jsparent_templ<T>(info) {
   Napi::Env env = info.Env();
   Napi::Object self = info.This().ToObject();
 
@@ -63,6 +79,12 @@ $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
 
 fail:
   return env.Undefined();
+}
+
+// This is the extendable constructor to be used from child classes
+template <class T>
+$jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
+        : $jsparent_templ<T>(true, info) {
 }
 %}
 
@@ -127,7 +149,10 @@ $jsmangledname_templ<T>::~$jsmangledname_templ() {
 template <class T>
 ${classname_mangled}_templ<T>::~${classname_mangled}_templ() {
   auto arg1 = reinterpret_cast<$jstype>(this->self);
-  ${destructor_action}
+  if (arg1) {
+    ${destructor_action}
+    this->self = nullptr;
+  }
 }
 %}
 
@@ -268,13 +293,15 @@ fail:
 /* -----------------------------------------------------------------------------
  * jsnapi_class_prologue_template:  template for a class prologue
  *   - $jsmangledname:  mangled class name
+ *   - $jsparent:       mangled name of parent (or SwigNapiObjectWrap if none)
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_class_prologue_template", "templates")
 %{
   template <class T>
-  class $jsmangledname_templ : public SwigNapiObjectWrap_templ<T> {
+  class $jsmangledname_templ : public $jsparent_templ<T> {
     public:
       $jsmangledname_templ(const Napi::CallbackInfo &);
+      $jsmangledname_templ(bool, const Napi::CallbackInfo &);
       virtual ~$jsmangledname_templ();
 %}
 
@@ -399,18 +426,9 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_setup_inheritance", "templates")
 %{
-Napi::Value Inheritance_$jsparent_$jsmangledname(Napi::Env env, Napi::Object exports) {
-  Napi::Function ClassBase = $jsparent_inst::GetClass(env);
-  Napi::Function ClassExtended = $jsmangledname_inst::GetClass(env);
-  Napi::Function setProto = env.Global()
-                                .Get("Object")
-                                .ToObject()
-                                .Get("setPrototypeOf")
-                                .As<Napi::Function>();
-  setProto.Call({ClassExtended, ClassBase});
-  setProto.Call({ClassExtended.Get("prototype"), ClassBase.Get("prototype")});
-  return exports;
-}
+  // Inheritance for $jsmangledname ($jsname) <- $jsparent
+  setProto.Call({$jsmangledname_ctor, $jsparent_ctor});
+  setProto.Call({$jsmangledname_ctor.Get("prototype"), $jsparent_ctor.Get("prototype")});
 %}
 
 /* -----------------------------------------------------------------------------
@@ -446,8 +464,8 @@ Napi::Value Inheritance_$jsparent_$jsmangledname(Napi::Env env, Napi::Object exp
 
 /* -----------------------------------------------------------------------------
  * jsnapi_register_member_variable:  template for a statement that registers a member variable.
- *   - $jsmangledname:  mangled class name
  *   - $jsname:         name of the function
+ *   - $jsmangledname:  mangled class name
  *   - $jsgetter:       wrapper of the getter function
  *   - $jssetter:       wrapper of the setter function
  * ----------------------------------------------------------------------------- */
@@ -459,6 +477,7 @@ Napi::Value Inheritance_$jsparent_$jsmangledname(Napi::Env env, Napi::Object exp
 /* -----------------------------------------------------------------------------
  * jsnapi_register_static_function:  template for a statement that registers a static class function.
  *   - $jsname:         function name
+ *   - $jsmangledname:  mangled class name
  *   - $jswrapper:      wrapper of the function
  *   - $jsparent:       mangled name of parent namespace
  *
@@ -472,6 +491,7 @@ Napi::Value Inheritance_$jsparent_$jsmangledname(Napi::Env env, Napi::Object exp
 /* -----------------------------------------------------------------------------
  * jsnapi_register_static_variable:  template for a statement that registers a static variable.
  *   - $jsname:         variable name
+ *   - $jsmangledname:  mangled class name
  *   - $jsparent:       mangled name of parent namespace
  *   - $jsgetter:       wrapper of the getter function
  *   - $jssetter:       wrapper of the setter function
