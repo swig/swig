@@ -3,7 +3,8 @@
     {
       "target_name": "example",
       "sources": [ "<!(cp $srcdir/example.cxx example-gypcopy.cxx && echo example-gypcopy.cxx)", "example_wrap.cxx" ],
-      "include_dirs": ["$srcdir"]
+      "include_dirs": ["$srcdir"],
+      "cflags_cc": ["-fexceptions"]
     }
   ]
 }
