@@ -7,6 +7,7 @@
 // ----------
 
 %insert(runtime) %{
+#define NAPI_CPP_EXCEPTIONS
 #include <napi.h>
 
 #include <errno.h>

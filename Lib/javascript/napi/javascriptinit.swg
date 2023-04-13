@@ -4,9 +4,13 @@
 
 %insert(init) %{
 
+void noopFinalizer(Napi::Env, swig_module_info *) {}
+
 SWIGRUNTIME void
 SWIG_NAPI_SetModule(Napi::Env env, swig_module_info *swig_module) {
-  env.SetInstanceData(swig_module);
+  // If we don't pass a finalizer, napi will take the liberty
+  // to free the structure
+  env.SetInstanceData<swig_module_info, noopFinalizer>(swig_module);
 }
 
 SWIGRUNTIME swig_module_info *
@@ -47,6 +51,8 @@ SWIG_NAPI_GetModule(Napi::Env env) {
 %fragment("js_initializer", "templates")
 %{
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  SWIG_InitializeModule(env);
+
   /* create objects for namespaces */
   $jsnapinspaces
 
