@@ -29,7 +29,6 @@ SWIG_NAPI_GetModule(Napi::Env env) {
 %}
 
 %insert(init) %{
-NODE_API_MODULE($jsname, Init)
 %}
 
 
@@ -68,4 +67,6 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 
   return exports;
 }
+
+NODE_API_MODULE($jsname, Init)
 %}

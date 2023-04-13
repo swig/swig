@@ -47,13 +47,13 @@
       // Get primitive value from JSObject
       int res = SWIG_AsVal(CTYPE)(jsvalue, &temp);
       if (!SWIG_IsOK(res)) {
-        throw Napi::Error::New(env, "Failed to convert $input to double");
+        SWIG_Error(SWIG_ERROR, "Failed to convert $input to double");
       }
       arg$argnum[i] = temp;
     }
   } else {
     Napi::Env env = input.Env();
-    throw Napi::Error::New(env, "$input is not an array");
+    SWIG_Error(SWIG_ERROR, "$input is not an array");
   }
 }
 

@@ -2463,10 +2463,8 @@ int NAPIEmitter::initialize(Node *n) {
 
   f_init_namespaces = NewString("");
   f_init_class_templates = NewString("");
-  f_init_wrappers = NewString("");
   f_init_inheritance = NewString("");
   f_init_class_instances = NewString("");
-  f_init_static_wrappers = NewString("");
   f_init_register_classes = NewString("");
   f_init_register_namespaces = NewString("");
 
@@ -2549,6 +2547,9 @@ int NAPIEmitter::enterClass(Node *n) {
       .trim()
       .pretty_print(f_class_templates);
 
+  f_init_wrappers = NewString("");
+  f_init_static_wrappers = NewString("");
+
   return SWIG_OK;
 }
 
@@ -2577,18 +2578,18 @@ int NAPIEmitter::exitClass(Node *) {
       .trim()
       .pretty_print(f_class_templates);
 
+  Template t_class_instance = getTemplate("jsnapi_declare_class_instance");
+  t_class_instance.replace("$jsname", state.clazz(NAME))
+      .replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+      .trim()
+      .pretty_print(f_class_templates);
+
   Template t_class_template = getTemplate("jsnapi_getclass");
   t_class_template.replace("$jsname", state.clazz(NAME))
       .replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsnapiwrappers", f_init_wrappers)
       .replace("$jsnapistaticwrappers", f_init_static_wrappers)
-      .trim()
-      .pretty_print(f_class_templates);
-
-  Template t_class_instance = getTemplate("jsnapi_declare_class_instance");
-  t_class_instance.replace("$jsname", state.clazz(NAME))
-      .replace("$jsmangledname", state.clazz(NAME_MANGLED))
-      .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
       .trim()
       .pretty_print(f_class_templates);
 
@@ -2615,6 +2616,8 @@ int NAPIEmitter::exitClass(Node *) {
       .trim()
       .pretty_print(f_init_register_classes);
 
+  Delete(f_init_wrappers);
+  Delete(f_init_static_wrappers);
   return SWIG_OK;
 }
 
@@ -2629,15 +2632,17 @@ int NAPIEmitter::enterVariable(Node *n) {
 
 int NAPIEmitter::exitVariable(Node *n) {
   if (GetFlag(n, "ismember")) {
+    String *modifier = NewStringEmpty();
     if (GetFlag(state.variable(), IS_STATIC) ||
         Equal(Getattr(n, "nodeType"), "enumitem")) {
       Template t_register = getTemplate("jsnapi_register_static_variable");
-      t_register.replace("$jsparent", state.clazz(NAME_MANGLED))
+      t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
           .replace("$jsname", state.variable(NAME))
           .replace("$jsgetter", state.variable(GETTER))
           .replace("$jssetter", state.variable(SETTER))
           .trim()
           .pretty_print(f_init_static_wrappers);
+      Append(modifier, "static");
     } else {
       Template t_register = getTemplate("jsnapi_register_member_variable");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
@@ -2647,14 +2652,16 @@ int NAPIEmitter::exitVariable(Node *n) {
           .trim()
           .pretty_print(f_init_wrappers);
     }
+
     // emit declaration of a class member function
     Template t_getter = getTemplate("jsnapi_class_method_declaration");
-    Template t_setter = getTemplate("jsnapi_class_method_declaration");
+    Template t_setter = getTemplate("jsnapi_class_setter_declaration");
     t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
         .replace("$jsname", state.clazz(NAME))
         .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
         .replace("$jsdtor", state.clazz(DTOR))
         .replace("$jswrapper", state.variable(GETTER))
+        .replace("$jsstatic", modifier)
         .trim()
         .pretty_print(f_class_templates);
     t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
@@ -2662,8 +2669,11 @@ int NAPIEmitter::exitVariable(Node *n) {
         .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
         .replace("$jsdtor", state.clazz(DTOR))
         .replace("$jswrapper", state.variable(SETTER))
+        .replace("$jsstatic", modifier)
         .trim()
         .pretty_print(f_class_templates);
+
+    Delete(modifier);
   } else {
     // Note: a global variable is treated like a static variable
     //       with the parent being a nspace object (instead of class object)
@@ -2682,6 +2692,7 @@ int NAPIEmitter::exitVariable(Node *n) {
 int NAPIEmitter::exitFunction(Node *n) {
   bool is_member =
       GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
+  String *modifier = NewStringEmpty();
 
   // create a dispatcher for overloaded functions
   bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
@@ -2697,6 +2708,7 @@ int NAPIEmitter::exitFunction(Node *n) {
   // register the function at the specific context
   if (is_member) {
     if (GetFlag(state.function(), IS_STATIC)) {
+      Append(modifier, "static");
       Template t_register = getTemplate("jsnapi_register_static_function");
       t_register.replace("$jsparent", state.clazz(NAME_MANGLED))
           .replace("$jsname", state.function(NAME))
@@ -2719,6 +2731,7 @@ int NAPIEmitter::exitFunction(Node *n) {
         .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
         .replace("$jsdtor", state.clazz(DTOR))
         .replace("$jswrapper", state.function(WRAPPER_NAME))
+        .replace("$jsstatic", modifier)
         .trim()
         .pretty_print(f_class_templates);
   } else {
@@ -2732,6 +2745,7 @@ int NAPIEmitter::exitFunction(Node *n) {
         .pretty_print(f_init_static_wrappers);
   }
 
+  Delete(modifier);
   return SWIG_OK;
 }
 
@@ -2763,27 +2777,27 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
     switch (mode) {
     case Getter:
       if (is_member && !is_static && i == 0) {
-        Printv(arg, "info.Holder()", 0);
+        Printv(arg, "info.This()", 0);
       } else {
-        Printf(arg, "args[%d]", i - startIdx);
+        Printf(arg, "info[%d]", i - startIdx);
       }
       break;
     case Function:
       if (is_member && !is_static && i == 0) {
-        Printv(arg, "args.Holder()", 0);
+        Printv(arg, "info.This()", 0);
       } else {
-        Printf(arg, "args[%d]", i - startIdx);
+        Printf(arg, "info[%d]", i - startIdx);
       }
       break;
     case Setter:
       if (is_member && !is_static && i == 0) {
-        Printv(arg, "info.Holder()", 0);
+        Printv(arg, "info.This()", 0);
       } else {
         Printv(arg, "value", 0);
       }
       break;
     case Ctor:
-      Printf(arg, "args[%d]", i);
+      Printf(arg, "info[%d]", i);
       break;
     default:
       Printf(stderr, "Illegal MarshallingMode.");

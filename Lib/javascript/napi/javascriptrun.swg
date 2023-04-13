@@ -2,15 +2,11 @@
  * Error handling
  *
  * ---------------------------------------------------------------------------*/
+using namespace std::string_literals;
 
-
-SWIGINTERN void SWIG_NAPI_Raise(const char *msg) {
-  //SWIGNapi_THROW_EXCEPTION(Napi::Exception::Error(SWIGNAPI_STRING_NEW(msg)));
-}
-
-SWIGINTERN void SWIG_NAPI_Raise(Napi::Value obj, const char *msg) {
-  //SWIGNapi_THROW_EXCEPTION(Napi::Exception::Error(SWIGNAPI_TO_STRING(obj)));
-}
+#define SWIG_Error(code, msg)     throw Napi::Error::New(env, std::to_string(code) + ": "s + msg)
+#define SWIG_exception(code, msg) SWIG_Error(code, msg)
+#define SWIG_fail
 
 typedef Napi::FunctionReference* SWIGNAPI_ClientData;
 
@@ -125,15 +121,15 @@ SWIGRUNTIME Napi::Value _SWIGNapi_wrap_equals(const Napi::CallbackInfo &info) {
   int res1;
   int res2;
 
-  if(info.Length() != 1) throw Napi::Error::New(env, "Illegal number of arguments for equals.");
+  if(info.Length() != 1) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for equals.");
 
   res1 = SWIG_GetInstancePtr(info.This(), &arg1);
   if (!SWIG_IsOK(res1)) {
-    throw Napi::Error::New(env, "Could not get pointer from 'this' object for equals.");
+    SWIG_Error(SWIG_ERROR, "Could not get pointer from 'this' object for equals.");
   }
   res2 = SWIG_GetInstancePtr(info[0], &arg2);
   if (!SWIG_IsOK(res2)) {
-    throw Napi::Error::New(env, SWIG_ArgError(res2) + " in method '" "equals" "', argument " "1"" of type '" "void *""'");
+    SWIG_Error(SWIG_ArgError(res2), " in method '" "equals" "', argument " "1"" of type '" "void *""'");
   }
 
   result = (bool)(arg1 == arg2);
@@ -154,7 +150,7 @@ SWIGRUNTIME Napi::Value _wrap_getCPtr(const Napi::CallbackInfo &info) {
 
   res1 = SWIG_GetInstancePtr(info.This(), &arg1);
   if (!SWIG_IsOK(res1)) {
-    throw Napi::Error::New(env, SWIG_ArgError(res1) + " in method '" "getCPtr" "', argument " "1"" of type '" "void *""'");
+    SWIG_Error(SWIG_ArgError(res1), " in method '" "getCPtr" "', argument " "1"" of type '" "void *""'");
   }
 
   result = (long)arg1;

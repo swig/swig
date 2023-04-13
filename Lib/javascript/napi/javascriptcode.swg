@@ -10,19 +10,19 @@
 %fragment("js_ctor", "templates") %{
 template <class T>
 $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : ObjectWrap<T>(info) {
+        : SwigNapiObjectWrap_templ<T>(info) {
   Napi::Env env = info.Env();
 
-  Napi::Object self = info.This();
+  Napi::Object self = info.This().ToObject();
   this->owned = true;
 
   if (info.Length() == 1 && info[0].IsExternal()) {
-    this->self = info[0].As<Napi::External>().Data();
+    this->self = info[0].As<Napi::External<void>>().Data();
     return;
   }
 
   $jslocals
-  if(info.Length() != $jsargcount) throw Napi::Error::New(env, "Illegal number of arguments for $jswrapper.");
+  if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
 }
 %}
@@ -36,9 +36,9 @@ $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
 %{
 template <class T>
 $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : ObjectWrap<T>(info) {
+        : SwigNapiObjectWrap_templ<T>(info) {
   Napi::Env env = info.Env();
-  throw Napi::Error::New(env, "Class $jsname can not be instantiated");
+  SWIG_Error(SWIG_ERROR, "Class $jsname can not be instantiated");
 }
 %}
 
@@ -52,15 +52,15 @@ $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
 %{
 template <class T>
 $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : ObjectWrap<T>(info) {
+        : SwigNapiObjectWrap_templ<T>(info) {
   Napi::Env env = info.Env();
-  Napi::Object self = info.This();
+  Napi::Object self = info.This().ToObject();
 
   // switch all cases by means of series of if-returns.
   $jsdispatchcases
 
   // default:
-  throw Napi::Error::New(env, "Illegal arguments for construction of $jsmangledname");
+  SWIG_Error(SWIG_ERROR, "Illegal arguments for construction of $jsmangledname");
 
 fail:
   return env.Undefined();
@@ -79,10 +79,10 @@ fail:
 %fragment("js_overloaded_ctor", "templates") %{
 template <class T>
 void $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
-  Napi::Object self = info.This();
+  Napi::Object self = info.This().ToObject();
   this->owned = true;
   $jslocals
-  if(info.Length() != $jsargcount) throw Napi::Error::New(env, "Illegal number of arguments for $jswrapper.");
+  if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
 
 }
@@ -127,6 +127,7 @@ $jsmangledname_templ<T>::~$jsmangledname_templ() {
 %{
 template <class T>
 ${classname_mangled}_templ<T>::~${classname_mangled}_templ() {
+  auto arg1 = reinterpret_cast<$jstype>(this->self);
   ${destructor_action}
 }
 %}
@@ -166,7 +167,7 @@ fail:
 %fragment("js_setter", "templates")
 %{
 template <class T>
-Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
+void $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info, const Napi::Value &value) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
@@ -193,7 +194,7 @@ Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) 
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
-  if(info.Length() != $jsargcount) throw Napi::Error::New(env, "Illegal number of arguments for $jswrapper.");
+  if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
   $jscode
   return jsresult;
@@ -220,7 +221,7 @@ $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Value jsresult;
   $jscode
 
-  throw Napi::Error::New(env, "Illegal arguments for function $jsname.");
+  SWIG_Error(SWIG_ERROR, "Illegal arguments for function $jsname.");
 
   goto fail;
 fail:
@@ -283,11 +284,25 @@ fail:
  * jsnapi_class_method_declaration:  template for a class method declaration
  *   - $jsmangledname:  mangled class name
  *   - $jswrapper:      method name
+ *   - $jsstatic:       static modifier
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_class_method_declaration", "templates")
 %{
-    Napi::Value $jswrapper(const Napi::CallbackInfo &);
+    $jsstatic Napi::Value $jswrapper(const Napi::CallbackInfo &);
 %}
+
+
+/* -----------------------------------------------------------------------------
+ * jsnapi_class_setter_declaration:  template for a class method declaration
+ *   - $jsmangledname:  mangled class name
+ *   - $jswrapper:      method name
+ *   - $jsstatic:       static modifier
+ * ----------------------------------------------------------------------------- */
+%fragment("jsnapi_class_setter_declaration", "templates")
+%{
+    $jsstatic void $jswrapper(const Napi::CallbackInfo &, const Napi::Value &);
+%}
+
 
 
 /* -----------------------------------------------------------------------------
@@ -296,7 +311,6 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_class_epilogue_template", "templates")
 %{
-    static Napi::Function GetClass(Napi::Env);
   };
 %}
 
@@ -311,6 +325,7 @@ fail:
     public:
       using $jsmangledname_templ::$jsmangledname_templ;
       virtual ~$jsmangledname_inst() {};
+      static Napi::Function GetClass(Napi::Env);
   };
 %}
 
@@ -346,9 +361,8 @@ fail:
 %fragment("jsnapi_getclass", "templates")
 %{
   /* Class: $jsname ($jsmangledname) */
-template <class T>
-Napi::Function $jsmangledname_templ<T>::GetClass(Napi::Env env) {
-  return ObjectWrap<jsmangledname_templ>::DefineClass(
+Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
+  return Napi::ObjectWrap<$jsmangledname_inst>::DefineClass(
     env,
     "$jsname",
     {
@@ -428,7 +442,7 @@ Napi::Value Inheritance_$jsparent_$jsmangledname(Napi::Env env, Napi::Object exp
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_member_function", "templates")
 %{
-  ObjectWrap<$jsmangledname_templ>::InstanceMethod("$jsname", &$jsmangledname_templ::$jswrapper),
+  InstanceMethod("$jsname", &$jsmangledname_templ::$jswrapper),
 %}
 
 /* -----------------------------------------------------------------------------
@@ -440,9 +454,7 @@ Napi::Value Inheritance_$jsparent_$jsmangledname(Napi::Env env, Napi::Object exp
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_member_variable", "templates")
 %{
-  ObjectWrap<$jsmangledname_templ>::
-        InstanceAccessor<&$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter>
-        ("$jsname"),
+  InstanceAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter),
 %}
 
 /* -----------------------------------------------------------------------------
@@ -455,7 +467,7 @@ Napi::Value Inheritance_$jsparent_$jsmangledname(Napi::Env env, Napi::Object exp
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_static_function", "templates")
 %{
-  ObjectWrap<$jsmangledname_templ>::StaticMethod("$jsname", &$jsmangledname_templ::$jswrapper),
+  StaticMethod("$jsname", &$jsmangledname_templ::$jswrapper),
 %}
 
 /* -----------------------------------------------------------------------------
@@ -469,7 +481,5 @@ Napi::Value Inheritance_$jsparent_$jsmangledname(Napi::Env env, Napi::Object exp
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_static_variable", "templates")
 %{
-  ObjectWrap<$jsmangledname_inst>::
-        StaticAccessor<&$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter>
-        ("$jsname"),
+  StaticAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter),
 %}
