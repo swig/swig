@@ -157,7 +157,8 @@ SWIG_Ruby_define_class(swig_type_info *type)
     _cSWIG_Pointer = rb_define_class_under(_mSWIG, "Pointer", rb_cObject);
     rb_undef_method(CLASS_OF(_cSWIG_Pointer), "new");
   }
-  VALUE cl = rb_define_class_under(_mSWIG, klass_name, _cSWIG_Pointer);
+  VALUE cl;
+  cl = rb_define_class_under(_mSWIG, klass_name, _cSWIG_Pointer);
   rb_undef_alloc_func(cl);
   free((void *) klass_name);
 }
