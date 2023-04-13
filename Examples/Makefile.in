@@ -752,7 +752,7 @@ javascript_cpp: $(SRCDIR_SRCS) javascript_custom_interpreter
 javascript_custom_interpreter:
 	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
 
-ifeq (node,$(JSENGINE))
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 javascript_run:
 	env NODE_PATH=$$PWD:$(SRCDIR) $(RUNTOOL) $(NODEJS) $(SRCDIR)$(RUNME).js $(RUNPIPE)
 else
@@ -773,7 +773,7 @@ ifeq (, $(ENGINE))
 	  echo "Version depends on the interpreter"; \
 	fi
 endif
-ifeq (node, $(ENGINE))
+ifeq ($(ENGINE), $(filter $(ENGINE), node napi))
 	echo "Node.js: `($(NODEJS) --version)`"
 	echo "node-gyp: `($(NODEGYP) --version)`"
 endif
