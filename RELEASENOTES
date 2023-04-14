@@ -7,6 +7,9 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at https://swig.org/release.html.
 
+SWIG-4.2.0 summary:
+- PHP7 support removed, PHP8 is now the supported PHP version.
+
 SWIG-4.1.1 summary:
 - Couple of stability fixes.
 - Stability fix in ccache-swig when calculating hashes of inputs.

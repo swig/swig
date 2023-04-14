@@ -784,8 +784,9 @@ public:
       Printf(s_init, "#ifdef __cplusplus\n");
       Printf(s_init, "extern \"C\" {\n");
       Printf(s_init, "#endif\n");
-      // We want to write "SWIGEXPORT ZEND_GET_MODULE(%s)" but ZEND_GET_MODULE
-      // in PHP7 has "extern "C" { ... }" around it so we can't do that.
+      // We want to write "SWIGEXPORT ZEND_GET_MODULE(%s)" but the definition
+      // of ZEND_GET_MODULE has "extern "C" { ... }" around it so we can't do
+      // that.
       Printf(s_init, "SWIGEXPORT zend_module_entry *get_module(void) { return &%s_module_entry; }\n", module);
       Printf(s_init, "#ifdef __cplusplus\n");
       Printf(s_init, "}\n");

@@ -1851,17 +1851,15 @@ if test x"${PHPBIN}" = xno; then
     PHP=
 else
     if test "x$PHPBIN" = xyes; then
-      AC_CHECK_PROGS(PHP, [php8.2 php8.1 php8.0 php7.4 php7.3 php7.2 php7.1 php7.0 php])
+      AC_CHECK_PROGS(PHP, [php8.2 php8.1 php8.0 php])
     else
       PHP=$PHPBIN
     fi
 
     if test -n "$PHP"; then
       AC_MSG_CHECKING(for PHP header files)
-      dnl /usr/bin/php7.0 -> /usr/bin/php-config7.0
+      dnl /usr/bin/php8.0 -> /usr/bin/php-config8.0
       case $PHP in
-        *7.*)
-          PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'` ;;
         *8.*)
           PHPCONFIG=`echo "$PHP"|sed 's/8\...*$/-config&/'` ;;
         *)
@@ -1869,7 +1867,7 @@ else
       esac
       php_version=`$PHPCONFIG --version 2>/dev/null`
       case $php_version in
-      7.*|8.*)
+      8.*)
         PHPINC=`$PHPCONFIG --includes 2>/dev/null`
         if test -n "$PHPINC"; then
           AC_MSG_RESULT($PHPINC)
@@ -1880,7 +1878,7 @@ else
       "")
         AC_MSG_RESULT([could not find $PHPCONFIG or obtain PHP version from it]) ;;
       *)
-        AC_MSG_RESULT([found PHP $php_version - not PHP 7 or 8]) ;;
+        AC_MSG_RESULT([found PHP $php_version - not PHP 8]) ;;
       esac
     fi
 fi
