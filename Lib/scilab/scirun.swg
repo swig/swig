@@ -68,7 +68,7 @@ static void SWIG_Scilab_SetApiContext(void *apiCtx) {
 
 /* Argument management functions */
 
-#if SCI_VERSION_MAJOR < 6
+#if SCI_VERSION_MAJOR < 5 || SCI_VERSION_MAJOR == 5 && SCI_VERSION_MINOR < 4
 #define SWIG_CheckInputArgument(pvApiCtx, minInputArgument, maxInputArgument) CheckRhs(minInputArgument, maxInputArgument)
 #define SWIG_CheckInputArgumentAtLeast(pvApiCtx, minInputArgument) CheckRhs(minInputArgument, 256)
 #define SWIG_CheckOutputArgument(pvApiCtx, minOutputArgument, maxOutputArgument) CheckLhs(minOutputArgument, maxOutputArgument)
