@@ -1280,7 +1280,7 @@ static DOH *Preprocessor_replace(DOH *s, DOH *line_file) {
       Replaceall(fn, "\\", "\\\\");
       Printf(ns, "\"%s\"", fn);
       Delete(fn);
-    } else if (m = Getattr(symbols, id)) {
+    } else if ((m = Getattr(symbols, id))) {
       /* Yes.  There is a macro here */
       /* If it expects arguments, they must come from `line_file` */
       DOH *args = 0;
