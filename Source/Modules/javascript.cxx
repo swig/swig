@@ -2387,6 +2387,7 @@ int V8Emitter::emitNamespaces() {
  **********************************************************************/
 
 class NAPIEmitter : public JSEmitter {
+  String *getVetoedName(String *, String *);
 
 public:
   NAPIEmitter();
@@ -2407,6 +2408,7 @@ protected:
                                 bool is_static);
   virtual int emitNamespaces();
   int emitConstant(Node *);
+  int emitFunction(Node *, bool, bool);
 
 protected:
   /* built-in parts */
@@ -2436,7 +2438,7 @@ protected:
 
 NAPIEmitter::NAPIEmitter()
     : JSEmitter(JSEmitter::NAPI), NULL_STR(NewString("0")),
-      VETO_SET(NewString("JS_veto_set_variable")) {}
+      VETO_SET(NewString("nullptr")) {}
 
 NAPIEmitter::~NAPIEmitter() {
   Delete(NULL_STR);
@@ -2645,22 +2647,39 @@ int NAPIEmitter::exitClass(Node *n) {
 int NAPIEmitter::enterVariable(Node *n) {
   JSEmitter::enterVariable(n);
 
-  state.variable(GETTER, NULL_STR);
+  state.variable(GETTER, VETO_SET);
   state.variable(SETTER, VETO_SET);
 
   return SWIG_OK;
 }
 
+String *NAPIEmitter::getVetoedName(String *clazz, String *name) {
+  String *r;
+  if (name == VETO_SET) {
+    return Copy(VETO_SET);
+  }
+  r = NewString("&");
+  Append(r, clazz);
+  Append(r, "_templ::");
+  Append(r, name);
+  return r;
+}
+
 int NAPIEmitter::exitVariable(Node *n) {
   if (GetFlag(n, "ismember")) {
+    String *getterName =
+        getVetoedName(state.clazz(NAME_MANGLED), state.variable(GETTER));
+    String *setterName =
+        getVetoedName(state.clazz(NAME_MANGLED), state.variable(SETTER));
+
     String *modifier = NewStringEmpty();
     if (GetFlag(state.variable(), IS_STATIC) ||
         Equal(Getattr(n, "nodeType"), "enumitem")) {
       Template t_register = getTemplate("jsnapi_register_static_variable");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
           .replace("$jsname", state.variable(NAME))
-          .replace("$jsgetter", state.variable(GETTER))
-          .replace("$jssetter", state.variable(SETTER))
+          .replace("$jsgetter", getterName)
+          .replace("$jssetter", setterName)
           .trim()
           .pretty_print(f_init_static_wrappers);
       Append(modifier, "static");
@@ -2668,15 +2687,14 @@ int NAPIEmitter::exitVariable(Node *n) {
       Template t_register = getTemplate("jsnapi_register_member_variable");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
           .replace("$jsname", state.variable(NAME))
-          .replace("$jsgetter", state.variable(GETTER))
-          .replace("$jssetter", state.variable(SETTER))
+          .replace("$jsgetter", getterName)
+          .replace("$jssetter", setterName)
           .trim()
           .pretty_print(f_init_wrappers);
     }
 
     // emit declaration of a class member function
     Template t_getter = getTemplate("jsnapi_class_method_declaration");
-    Template t_setter = getTemplate("jsnapi_class_setter_declaration");
     t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
         .replace("$jsname", state.clazz(NAME))
         .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
@@ -2685,16 +2703,20 @@ int NAPIEmitter::exitVariable(Node *n) {
         .replace("$jsstatic", modifier)
         .trim()
         .pretty_print(f_class_declarations);
-    t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-        .replace("$jsname", state.clazz(NAME))
-        .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
-        .replace("$jsdtor", state.clazz(DTOR))
-        .replace("$jswrapper", state.variable(SETTER))
-        .replace("$jsstatic", modifier)
-        .trim()
-        .pretty_print(f_class_declarations);
-
+    if (state.variable(SETTER) != VETO_SET) {
+      Template t_setter = getTemplate("jsnapi_class_setter_declaration");
+      t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+          .replace("$jsname", state.clazz(NAME))
+          .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+          .replace("$jsdtor", state.clazz(DTOR))
+          .replace("$jswrapper", state.variable(SETTER))
+          .replace("$jsstatic", modifier)
+          .trim()
+          .pretty_print(f_class_declarations);
+    }
     Delete(modifier);
+    Delete(setterName);
+    Delete(getterName);
   } else {
     Template t_register = getTemplate("jsnapi_register_global_variable");
     t_register.replace("$jsparent", Getattr(current_namespace, NAME_MANGLED))
@@ -2756,12 +2778,12 @@ int NAPIEmitter::exitFunction(Node *n) {
   } else {
     // Note: a global function is treated like a static function
     //       with the parent being a nspace object instead of class object
-    Template t_register = getTemplate("jsnapi_register_static_function");
+    Template t_register = getTemplate("jsnapi_register_global_function");
     t_register.replace("$jsparent", Getattr(current_namespace, NAME_MANGLED))
         .replace("$jsname", state.function(NAME))
         .replace("$jswrapper", state.function(WRAPPER_NAME))
         .trim()
-        .pretty_print(f_init_static_wrappers);
+        .pretty_print(f_init_register_namespaces);
   }
 
   Delete(modifier);
@@ -2901,7 +2923,8 @@ int NAPIEmitter::emitConstant(Node *n) {
     value = Getattr(n, "cppvalue");
   }
 
-  Template t_getter(getTemplate("js_global_getter"));
+  bool is_member = GetFlag(n, "ismember");
+  Template t_getter(getTemplate(is_member ? "js_getter" : "js_global_getter"));
 
   // call the variable methods as a constants are
   // registered in same way
@@ -2931,6 +2954,51 @@ int NAPIEmitter::emitConstant(Node *n) {
       .pretty_print(f_wrappers);
 
   exitVariable(n);
+
+  DelWrapper(wrapper);
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
+  Wrapper *wrapper = NewWrapper();
+  Template t_function(getTemplate(is_member ? "js_function" : "js_global_function"));
+
+  bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
+
+  // prepare the function wrapper name
+  String *iname = Getattr(n, "sym:name");
+  String *wrap_name = Swig_name_wrapper(iname);
+  if (is_overloaded) {
+    t_function = getTemplate("js_overloaded_function");
+    Append(wrap_name, Getattr(n, "sym:overname"));
+  }
+  Setattr(n, "wrap:name", wrap_name);
+  state.function(WRAPPER_NAME, wrap_name);
+
+  // prepare local variables
+  ParmList *params = Getattr(n, "parms");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+
+  // HACK: in test-case `ignore_parameter` emit_attach_parmmaps generates an
+  // extra line of applied typemap. Deleting wrapper->code here fixes the
+  // problem, and seems to have no side effect elsewhere
+  Delete(wrapper->code);
+  wrapper->code = NewString("");
+
+  marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
+  String *action = emit_action(n);
+  marshalOutput(n, params, wrapper, action);
+  emitCleanupCode(n, wrapper, params);
+  Replaceall(wrapper->code, "$symname", iname);
+
+  t_function.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", wrap_name)
+      .replace("$jslocals", wrapper->locals)
+      .replace("$jscode", wrapper->code)
+      .replace("$jsargcount", Getattr(n, ARGCOUNT))
+      .pretty_print(f_wrappers);
 
   DelWrapper(wrapper);
 

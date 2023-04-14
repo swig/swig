@@ -171,8 +171,6 @@ fail:
 #define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIGNapi_ConvertPacked(obj, ptr, sz, ty)
 #define SWIG_NewMemberObj(ptr, sz, type)                SWIGNapi_NewPackedObj(ptr, sz, type)
 
-#define JS_veto_set_variable                            nullptr
-
 
 /* ---------------------------------------------------------------------------
  * Support for IN/OUTPUT typemaps (see Lib/typemaps/inoutlist.swg)

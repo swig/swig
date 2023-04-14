@@ -194,6 +194,43 @@ fail:
 %}
 
 
+/* -----------------------------------------------------------------------------
+ * js_global_function:  template for function wrappers
+ *   - $jswrapper:  wrapper function name
+ *   - $jslocals:   locals part of wrapper
+ *   - $jscode:     code part of wrapper
+ * ----------------------------------------------------------------------------- */
+%fragment("js_global_function", "templates")
+%{
+Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+  Napi::Value jsresult;
+  $jslocals
+  if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+
+  $jscode
+  return jsresult;
+
+  goto fail;
+fail:
+  return env.Undefined();
+}
+%}
+
+
+/* -----------------------------------------------------------------------------
+ * jsnapi_register_global_function:  template for a statement that registers a global function
+ *   - $jsname:         function name
+ *   - $jswrapper:      name of the JS wrapper
+ *
+ * Note: this template is also used for global variables.
+ * ----------------------------------------------------------------------------- */
+%fragment("jsnapi_register_global_function", "templates")
+%{
+  Napi::PropertyDescriptor $jsname = Napi::PropertyDescriptor::Function("$jsname", $jswrapper);
+  exports.DefineProperties({$jsname});
+%}
+
 
 /* -----------------------------------------------------------------------------
  * js_getter:  template for getter function wrappers
@@ -504,12 +541,12 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * jsnapi_register_member_variable:  template for a statement that registers a member variable.
  *   - $jsname:         name of the function
  *   - $jsmangledname:  mangled class name
- *   - $jsgetter:       wrapper of the getter function
- *   - $jssetter:       wrapper of the setter function
+ *   - $jsgetter:       wrapper of the getter function including & and the class prefix
+ *   - $jssetter:       wrapper of the setter function including & and the class prefix
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_member_variable", "templates")
 %{
-  InstanceAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter),
+  InstanceAccessor("$jsname", $jsgetter, $jssetter),
 %}
 
 /* -----------------------------------------------------------------------------
@@ -518,8 +555,6 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  *   - $jsmangledname:  mangled class name
  *   - $jswrapper:      wrapper of the function
  *   - $jsparent:       mangled name of parent namespace
- *
- * Note: this template is also used for global functions.
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_static_function", "templates")
 %{
@@ -531,12 +566,10 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  *   - $jsname:         variable name
  *   - $jsmangledname:  mangled class name
  *   - $jsparent:       mangled name of parent namespace
- *   - $jsgetter:       wrapper of the getter function
- *   - $jssetter:       wrapper of the setter function
- *
- * Note: this template is also used for global variables.
+ *   - $jsgetter:       wrapper of the getter function including & and the class prefix
+ *   - $jssetter:       wrapper of the setter function including & and the class prefix
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_static_variable", "templates")
 %{
-  StaticAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter),
+  StaticAccessor("$jsname", $jsgetter, $jssetter),
 %}
