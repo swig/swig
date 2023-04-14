@@ -40,11 +40,13 @@ SWIG_NAPI_GetModule(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("js_init_inheritance", "templates")
 %{
-  Napi::Function setProto = env.Global()
-                                .Get("Object")
-                                .ToObject()
-                                .Get("setPrototypeOf")
-                                .As<Napi::Function>();
+  Napi::Value jsObjectValue, jsSetProtoValue;
+  Napi::Object jsObject;
+  Napi::Function setProto;
+  NAPI_CHECK_RESULT(env.Global().Get("Object"), jsObjectValue);
+  NAPI_CHECK_RESULT(jsObjectValue.ToObject(), jsObject);
+  NAPI_CHECK_RESULT(jsObject.Get("setPrototypeOf"), jsSetProtoValue);
+  setProto = jsSetProtoValue.As<Napi::Function>();
 %}
 
 /* -----------------------------------------------------------------------------
@@ -79,6 +81,9 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
   $jsnapiregisternspaces
 
   return exports;
+  goto fail;
+fail:
+  return Napi::Object();
 }
 
 NODE_API_MODULE($jsname, Init)

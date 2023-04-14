@@ -4,9 +4,31 @@
  * ---------------------------------------------------------------------------*/
 using namespace std::string_literals;
 
-#define SWIG_Error(code, msg)     throw Napi::Error::New(env, std::to_string(code) + ": "s + msg)
-#define SWIG_exception(code, msg) SWIG_Error(code, msg)
-#define SWIG_fail
+#ifdef NAPI_CPP_EXCEPTIONS
+
+#define SWIG_Error(code, msg)                   throw Napi::Error::New(env, std::to_string(code) + ": "s + msg)
+#define SWIG_exception(code, msg)               SWIG_Error(code, msg)
+#define SWIG_fail                               goto fail
+#define NAPI_CHECK_MAYBE(maybe)                 (maybe)
+#define NAPI_CHECK_RESULT(maybe, result)        (result = maybe)
+
+#else
+
+#define SWIG_Error(code, msg)     do { Napi::Error::New(env, std::to_string(code) + ": "s + msg).ThrowAsJavaScriptException(); SWIG_fail; } while (0)
+#define SWIG_exception(code, msg) do { SWIG_Error(code, msg); SWIG_fail; } while (0)
+#define SWIG_fail                 goto fail
+#define NAPI_CHECK_MAYBE(maybe)                                   \
+                        do {                                      \
+                                if (maybe.IsNothing()) SWIG_fail; \
+                        } while (0)
+#define NAPI_CHECK_RESULT(maybe, result)                        \
+                        do {                                    \
+                                auto r = maybe;                 \
+                                if (r.IsNothing()) SWIG_fail;   \
+                                result = r.Unwrap();            \
+                        } while (0)
+
+#endif
 
 typedef Napi::FunctionReference* SWIGNAPI_ClientData;
 
@@ -34,6 +56,7 @@ class SwigNapiObjectWrap_inst : public SwigNapiObjectWrap_templ<SwigNapiObjectWr
 };
 
 SWIGRUNTIME int SWIG_Napi_ConvertInstancePtr(Napi::Object objRef, void **ptr, swig_type_info *info, int flags) {
+  SwigNapiObjectWrap_inst *ow;
   if(!objRef.IsObject()) return SWIG_ERROR;
 
   if (!info) {
@@ -44,10 +67,12 @@ SWIGRUNTIME int SWIG_Napi_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
     return SWIG_ERROR;
   }
 
-  if (!objRef.InstanceOf(ctor->Value())) {
+  bool instanceOf;
+  NAPI_CHECK_RESULT(objRef.InstanceOf(ctor->Value()), instanceOf);
+  if (!instanceOf) {
     return SWIG_TypeError;
   }
-  SwigNapiObjectWrap_inst *ow = Napi::ObjectWrap<SwigNapiObjectWrap_inst>::Unwrap(objRef);
+  ow = Napi::ObjectWrap<SwigNapiObjectWrap_inst>::Unwrap(objRef);
   *ptr = ow->self;
 
   if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !ow->owned) {
@@ -61,15 +86,20 @@ SWIGRUNTIME int SWIG_Napi_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
     }
   }
   return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
 }
 
 
 SWIGRUNTIME int SWIG_Napi_GetInstancePtr(Napi::Value valRef, void **ptr) {
+  SwigNapiObjectWrap_inst *ow;
   if(!valRef.IsObject()) {
     return SWIG_TypeError;
   }
-  Napi::Object objRef = valRef.ToObject();
-  SwigNapiObjectWrap_inst *ow = Napi::ObjectWrap<SwigNapiObjectWrap_inst>::Unwrap(objRef);
+  Napi::Object objRef;
+  NAPI_CHECK_RESULT(valRef.ToObject(), objRef);
+  ow = Napi::ObjectWrap<SwigNapiObjectWrap_inst>::Unwrap(objRef);
 
   if(ow->self == nullptr) {
     return SWIG_ERROR;
@@ -77,6 +107,9 @@ SWIGRUNTIME int SWIG_Napi_GetInstancePtr(Napi::Value valRef, void **ptr) {
 
   *ptr = ow->self;
   return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
 }
 
 
@@ -89,8 +122,12 @@ SWIGRUNTIME int SWIG_Napi_ConvertPtr(Napi::Value valRef, void **ptr, swig_type_i
   if(!valRef.IsObject()) {
     return SWIG_TypeError;
   }
-  Napi::Object objRef = valRef.ToObject();
+  Napi::Object objRef;
+  NAPI_CHECK_RESULT(valRef.ToObject(), objRef);
   return SWIG_Napi_ConvertInstancePtr(objRef, ptr, info, flags);
+  goto fail;
+fail:
+  return SWIG_ERROR;
 }
 
 SWIGRUNTIME Napi::Value SWIG_Napi_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
@@ -102,8 +139,12 @@ SWIGRUNTIME Napi::Value SWIG_Napi_NewPointerObj(void *ptr, swig_type_info *info,
   }
 
   Napi::External<void> native = Napi::External<void>::New(env, ptr);
-  Napi::Value wrapped = ctor->New({native});
+  Napi::Value wrapped;
+  NAPI_CHECK_RESULT(ctor->New({native}), wrapped);
   return wrapped;
+  goto fail;
+fail:
+  return Napi::Value();
 }
 
 #define SWIG_ConvertPtr(obj, ptr, info, flags)    SWIG_Napi_ConvertPtr(obj, ptr, info, flags)
@@ -143,7 +184,7 @@ SWIGRUNTIME Napi::Value _SWIGNapi_wrap_equals(const Napi::CallbackInfo &info) {
   return jsresult;
   goto fail;
 fail:
-  return env.Undefined();
+  return Napi::Value();
 }
 
 SWIGRUNTIME Napi::Value _wrap_getCPtr(const Napi::CallbackInfo &info) {
@@ -164,7 +205,7 @@ SWIGRUNTIME Napi::Value _wrap_getCPtr(const Napi::CallbackInfo &info) {
   return jsresult;
   goto fail;
 fail:
-  return env.Undefined();
+  return Napi::Value();
 }
 
 

@@ -25,6 +25,9 @@ $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
   if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
   this->self = result;
+  goto fail;
+fail:
+  return;
 }
 
 // This is the extendable constructor to be used from child classes
@@ -47,6 +50,10 @@ $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
         : SwigNapiObjectWrap_templ<T>(info) {
   Napi::Env env = info.Env();
   SWIG_Error(SWIG_ERROR, "Class $jsname can not be instantiated");
+#ifndef NAPI_CPP_EXCEPTIONS
+fail:
+  return;
+#endif
 }
 
 // This is the extendable constructor to be used from child classes
@@ -69,7 +76,8 @@ template <class T>
 $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
         : $jsparent_templ<T>(info) {
   Napi::Env env = info.Env();
-  Napi::Object self = info.This().ToObject();
+  Napi::Object self;
+  NAPI_CHECK_RESULT(info.This().ToObject(), self);
 
   // switch all cases by means of series of if-returns.
   $jsdispatchcases
@@ -77,8 +85,9 @@ $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
   // default:
   SWIG_Error(SWIG_ERROR, "Illegal arguments for construction of $jsmangledname");
 
+  goto fail;
 fail:
-  return env.Undefined();
+  return;
 }
 
 // This is the extendable constructor to be used from child classes
@@ -100,12 +109,16 @@ $jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &in
 %fragment("js_overloaded_ctor", "templates") %{
 template <class T>
 void $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
-  Napi::Object self = info.This().ToObject();
+  Napi::Object self;
+  NAPI_CHECK_RESULT(info.This().ToObject(), self);
   this->owned = true;
   $jslocals
   if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
 
+  goto fail;
+fail:
+  return;
 }
 %}
 
@@ -173,7 +186,7 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
 
   goto fail;
 fail:
-  return env.Undefined();
+  return Napi::Value();
 }
 %}
 
@@ -189,8 +202,10 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_global_variable", "templates")
 %{
-  Napi::PropertyDescriptor $jsname = Napi::PropertyDescriptor::Accessor<$jsgetter, $jssetter>("$jsname");
-  exports.DefineProperties({$jsname});
+  do {
+    Napi::PropertyDescriptor pd = Napi::PropertyDescriptor::Accessor<$jsgetter, $jssetter>("$jsname");
+    NAPI_CHECK_MAYBE(exports.DefineProperties({pd}));
+  } while (0);
 %}
 
 
@@ -213,7 +228,7 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
 
   goto fail;
 fail:
-  return env.Undefined();
+  return Napi::Value();
 }
 %}
 
@@ -227,8 +242,10 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_global_function", "templates")
 %{
-  Napi::PropertyDescriptor $jsname = Napi::PropertyDescriptor::Function("$jsname", $jswrapper);
-  exports.DefineProperties({$jsname});
+  do {
+    Napi::PropertyDescriptor pd = Napi::PropertyDescriptor::Function("$jsname", $jswrapper);
+    NAPI_CHECK_MAYBE(exports.DefineProperties({pd}));
+  } while (0);
 %}
 
 
@@ -251,7 +268,7 @@ Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) 
 
   goto fail;
 fail:
-  return env.Undefined();
+  return Napi::Value();
 }
 %}
 
@@ -300,7 +317,7 @@ Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) 
 
   goto fail;
 fail:
-  return env.Undefined();
+  return Napi::Value();
 }
 %}
 
@@ -324,7 +341,7 @@ $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
 
   goto fail;
 fail:
-  return env.Undefined();
+  return Napi::Value();
 }
 %}
 
@@ -338,7 +355,7 @@ fail:
 %fragment ("js_overloaded_function", "templates")
 %{
 template <class T>
-$jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
+Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
@@ -347,7 +364,7 @@ $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
 
   goto fail;
 fail:
-  return env.Undefined();
+  Napi::Value();
 }
 %}
 
@@ -502,8 +519,13 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
 %fragment("jsnapi_setup_inheritance", "templates")
 %{
   // Inheritance for $jsmangledname ($jsname) <- $jsparent
-  setProto.Call({$jsmangledname_ctor, $jsparent_ctor});
-  setProto.Call({$jsmangledname_ctor.Get("prototype"), $jsparent_ctor.Get("prototype")});
+  do {
+    Napi::Value protoBase, protoSub;
+    NAPI_CHECK_RESULT($jsmangledname_ctor.Get("prototype"), protoSub);
+    NAPI_CHECK_RESULT($jsparent_ctor.Get("prototype"), protoBase);
+    NAPI_CHECK_MAYBE(setProto.Call({$jsmangledname_ctor, $jsparent_ctor}));
+    NAPI_CHECK_MAYBE(setProto.Call({protoSub, protoBase}));
+  } while (0);
 %}
 
 /* -----------------------------------------------------------------------------
@@ -523,7 +545,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_namespace", "templates")
 %{
-  $jsparent_obj.Set("$jsname", $jsmangledname_obj);
+  NAPI_CHECK_MAYBE($jsparent_obj.Set("$jsname", $jsmangledname_obj));
 %}
 
 /* -----------------------------------------------------------------------------

@@ -9,8 +9,8 @@ SWIG_AsCharPtrAndSize(Napi::Value valRef, char** cptr, size_t* psize, int *alloc
   if(valRef.IsString()) {
     Napi::String js_str = valRef.ToString();
 
-    std::string s = js_str.Utf8Value();
-    size_t len = s.size() + 1;
+    std::string str = js_str.Utf8Value();
+    size_t len = str.size() + 1;
     char* cstr = (char*) %new_array(len, char);
     memcpy(cstr, str.data(), len);
     

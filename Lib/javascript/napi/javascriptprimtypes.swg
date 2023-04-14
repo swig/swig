@@ -50,9 +50,16 @@ int SWIG_AsVal_dec(int)(Napi::Value valRef, int* val)
   if (!valRef.IsNumber()) {
     return SWIG_TypeError;
   }
-  if (val) *val = valRef.ToNumber().Int32Value();
+  if (val) {
+    Napi::Number num;
+    NAPI_CHECK_RESULT(valRef.ToNumber(), num);
+    *val = static_cast<int>(num.Int32Value());
+  }
 
   return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
 }
 }
 
@@ -77,9 +84,16 @@ int SWIG_AsVal_dec(long)(Napi::Value obj, long* val)
   if (!obj.IsNumber()) {
     return SWIG_TypeError;
   }
-  if(val) *val = static_cast<long>(obj.ToNumber().Int64Value());
+  if (val) {
+    Napi::Number num;
+    NAPI_CHECK_RESULT(obj.ToNumber(), num);
+    *val = static_cast<long>(num.Int64Value());
+  }
 
   return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
 }
 }
 
@@ -105,9 +119,15 @@ int SWIG_AsVal_dec(unsigned long)(Napi::Value obj, unsigned long *val)
     return SWIG_TypeError;
   }
 
-  if(val) *val = static_cast<unsigned long>(obj.ToNumber().Uint32Value());
-
+  if (val) {
+    Napi::Number num;
+    NAPI_CHECK_RESULT(obj.ToNumber(), num);
+    *val = static_cast<unsigned long>(num.Uint32Value());
+  }
   return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
 }
 }
 
@@ -139,9 +159,15 @@ int SWIG_AsVal_dec(long long)(Napi::Value obj, long long* val)
     return SWIG_TypeError;
   }
 
-  if(val) *val = static_cast<long long>(obj.ToNumber().Int64Value());
-
+  if (val) {
+    Napi::Number num;
+    NAPI_CHECK_RESULT(obj.ToNumber(), num);
+    *val = static_cast<long long>(num.Int64Value());
+  }
   return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
 }
 %#endif
 }
@@ -175,9 +201,15 @@ int SWIG_AsVal_dec(unsigned long long)(Napi::Value obj, unsigned long long *val)
     return SWIG_TypeError;
   }
 
-  if(val) *val = static_cast<unsigned long long>(obj.ToNumber().Int64Value());
-
+  if (val) {
+    Napi::Number num;
+    NAPI_CHECK_RESULT(obj.ToNumber(), num);
+    *val = static_cast<unsigned long long>(num.Int64Value());
+  }
   return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
 }
 %#endif
 }
@@ -203,8 +235,15 @@ int SWIG_AsVal_dec(double)(Napi::Value obj, double *val)
     return SWIG_TypeError;
   }
 
-  if(val) *val = static_cast<double>(obj.ToNumber().DoubleValue());
+  if(val) {
+    Napi::Number num;
+    NAPI_CHECK_RESULT(obj.ToNumber(), num);
+    *val = static_cast<double>(num.DoubleValue());
+  }
 
   return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
 }
 }
