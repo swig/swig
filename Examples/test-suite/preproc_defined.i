@@ -123,3 +123,6 @@ void another_macro_checking(void) {
 #if 0
 # wobble wobble
 #endif
+
+#define __attribute__(x)
+
