@@ -3,7 +3,8 @@
     {
       "target_name": "example",
       "sources": [ "example_wrap.cxx" ],
-      "include_dirs": ["$srcdir"]
+      "include_dirs": ["$srcdir"],
+      "cflags_cc": ["-fexceptions"]
     }
   ]
 }

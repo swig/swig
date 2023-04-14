@@ -2406,6 +2406,7 @@ protected:
                                 MarshallingMode mode, bool is_member,
                                 bool is_static);
   virtual int emitNamespaces();
+  int emitConstant(Node *);
 
 protected:
   /* built-in parts */
@@ -2414,15 +2415,11 @@ protected:
   String *f_init;
   String *f_post_init;
 
-  /* part for class templates */
-  String *f_class_templates;
 
   /* parts for initilizer */
   String *f_init_namespaces;
-  String *f_init_class_templates;
   String *f_init_wrappers;
   String *f_init_inheritance;
-  String *f_init_class_instances;
   String *f_init_static_wrappers;
   String *f_init_register_classes;
   String *f_init_register_namespaces;
@@ -2459,14 +2456,13 @@ int NAPIEmitter::initialize(Node *n) {
 
   f_runtime = NewString("");
   f_header = NewString("");
-  f_class_templates = NewString("");
   f_init = NewString("");
   f_post_init = NewString("");
 
   f_init_namespaces = NewString("");
-  f_init_class_templates = NewString("");
+  f_init_wrappers = NewString("");
   f_init_inheritance = NewString("");
-  f_init_class_instances = NewString("");
+  f_init_static_wrappers = NewString("");
   f_init_register_classes = NewString("");
   f_init_register_namespaces = NewString("");
 
@@ -2498,39 +2494,41 @@ int NAPIEmitter::dump(Node *n) {
 
   Printv(f_wrap_cpp, f_runtime, "\n", 0);
   Printv(f_wrap_cpp, f_header, "\n", 0);
-  Printv(f_wrap_cpp, f_class_templates, "\n", 0);
   Printv(f_wrap_cpp, f_wrappers, "\n", 0);
 
   emitNamespaces();
+
+  String *inheritance = NewStringEmpty();
+  if (Len(f_init_inheritance) > 0) {
+    Template t_inheritance(getTemplate("js_init_inheritance"));
+    t_inheritance.pretty_print(inheritance);
+  }
 
   // compose the initializer function using a template
   // filled with sub-parts
   Template initializer(getTemplate("js_initializer"));
   initializer.replace("$jsname", moduleName)
       .replace("$jsnapinspaces", f_init_namespaces)
-      .replace("$jsnapiclasstemplates", f_init_class_templates)
       .replace("$jsnapiinheritance", f_init_inheritance)
-      .replace("$jsnapiclassinstances", f_init_class_instances)
       .replace("$jsnapiregisterclasses", f_init_register_classes)
-      .replace("$jsnapiregisternspaces", f_init_register_namespaces);
+      .replace("$jsnapiregisternspaces", f_init_register_namespaces)
+      .replace("$jsnapiinheritance", inheritance);
   Printv(f_init, initializer.str(), 0);
 
   Printv(f_wrap_cpp, f_init, 0);
 
   Printv(f_wrap_cpp, f_post_init, 0);
 
+  Delete(inheritance);
   return SWIG_OK;
 }
 
 int NAPIEmitter::close() {
   Delete(f_runtime);
   Delete(f_header);
-  Delete(f_class_templates);
   Delete(f_init_namespaces);
-  Delete(f_init_class_templates);
   Delete(f_init_wrappers);
   Delete(f_init_inheritance);
-  Delete(f_init_class_instances);
   Delete(f_init_static_wrappers);
   Delete(f_init_register_classes);
   Delete(f_init_register_namespaces);
@@ -2585,7 +2583,7 @@ int NAPIEmitter::enterClass(Node *n) {
   t_decl_class.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsparent", baseMangled)
       .trim()
-      .pretty_print(f_class_templates);
+      .pretty_print(f_init_register_classes);
 
   Delete(baseMangled);
   return SWIG_OK;
@@ -2615,14 +2613,14 @@ int NAPIEmitter::exitClass(Node *n) {
       .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
       .replace("$jsdtor", state.clazz(DTOR))
       .trim()
-      .pretty_print(f_class_templates);
+      .pretty_print(f_init_register_classes);
 
   Template t_class_instance = getTemplate("jsnapi_declare_class_instance");
   t_class_instance.replace("$jsname", state.clazz(NAME))
       .replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
       .trim()
-      .pretty_print(f_class_templates);
+      .pretty_print(f_init_register_classes);
 
   Template t_class_template = getTemplate("jsnapi_getclass");
   t_class_template.replace("$jsname", state.clazz(NAME))
@@ -2630,10 +2628,9 @@ int NAPIEmitter::exitClass(Node *n) {
       .replace("$jsnapiwrappers", f_init_wrappers)
       .replace("$jsnapistaticwrappers", f_init_static_wrappers)
       .trim()
-      .pretty_print(f_class_templates);
+      .pretty_print(f_init_register_classes);
 
   /* Save these to be reused in the child classes */
-  String *t;
   Setattr(n, MEMBER_FUNCTIONS, f_init_wrappers);
   Setattr(n, STATIC_FUNCTIONS, f_init_static_wrappers);
   return SWIG_OK;
@@ -2681,7 +2678,7 @@ int NAPIEmitter::exitVariable(Node *n) {
         .replace("$jswrapper", state.variable(GETTER))
         .replace("$jsstatic", modifier)
         .trim()
-        .pretty_print(f_class_templates);
+        .pretty_print(f_init_register_classes);
     t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
         .replace("$jsname", state.clazz(NAME))
         .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
@@ -2689,19 +2686,17 @@ int NAPIEmitter::exitVariable(Node *n) {
         .replace("$jswrapper", state.variable(SETTER))
         .replace("$jsstatic", modifier)
         .trim()
-        .pretty_print(f_class_templates);
+        .pretty_print(f_init_register_classes);
 
     Delete(modifier);
   } else {
-    // Note: a global variable is treated like a static variable
-    //       with the parent being a nspace object (instead of class object)
-    Template t_register = getTemplate("jsnapi_register_static_variable");
+    Template t_register = getTemplate("jsnapi_register_global_variable");
     t_register.replace("$jsparent", Getattr(current_namespace, NAME_MANGLED))
         .replace("$jsname", state.variable(NAME))
         .replace("$jsgetter", state.variable(GETTER))
         .replace("$jssetter", state.variable(SETTER))
         .trim()
-        .pretty_print(f_init_wrappers);
+        .pretty_print(f_init_register_namespaces);
   }
 
   return SWIG_OK;
@@ -2751,7 +2746,7 @@ int NAPIEmitter::exitFunction(Node *n) {
         .replace("$jswrapper", state.function(WRAPPER_NAME))
         .replace("$jsstatic", modifier)
         .trim()
-        .pretty_print(f_class_templates);
+        .pretty_print(f_init_register_classes);
   } else {
     // Note: a global function is treated like a static function
     //       with the parent being a nspace object instead of class object
@@ -2876,6 +2871,62 @@ int NAPIEmitter::emitNamespaces() {
       Delete(tmp_register_stmt);
     }
   }
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::emitConstant(Node *n) {
+  if (!State::IsSet(state.globals(HAS_TEMPLATES))) {
+    return SWIG_ERROR;
+  }
+
+  Wrapper *wrapper = NewWrapper();
+  SwigType *type = Getattr(n, "type");
+  String *name = Getattr(n, "name");
+  String *iname = Getattr(n, "sym:name");
+  String *wname = Swig_name_wrapper(name);
+  String *rawval = Getattr(n, "rawval");
+  String *value = rawval ? rawval : Getattr(n, "value");
+
+  // HACK: forcing usage of cppvalue for v8 (which turned out to fix
+  // typedef_struct.i, et. al)
+  if (State::IsSet(state.globals(FORCE_CPP)) &&
+      Getattr(n, "cppvalue") != NULL) {
+    value = Getattr(n, "cppvalue");
+  }
+
+  Template t_getter(getTemplate("js_global_getter"));
+
+  // call the variable methods as a constants are
+  // registered in same way
+  enterVariable(n);
+  state.variable(GETTER, wname);
+  // TODO: why do we need this?
+  Setattr(n, "wrap:name", wname);
+
+  // special treatment of member pointers
+  if (SwigType_type(type) == T_MPOINTER) {
+    // TODO: this could go into a code-template
+    String *mpointer_wname = NewString("");
+    Printf(mpointer_wname, "_wrapConstant_%s", iname);
+    Setattr(n, "memberpointer:constant:wrap:name", mpointer_wname);
+    String *str = SwigType_str(type, mpointer_wname);
+    Printf(f_wrappers, "static %s = %s;\n", str, value);
+    Delete(str);
+    value = mpointer_wname;
+  }
+
+  marshalOutput(n, 0, wrapper, NewString(""), value, false);
+
+  t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", wname)
+      .replace("$jslocals", wrapper->locals)
+      .replace("$jscode", wrapper->code)
+      .pretty_print(f_wrappers);
+
+  exitVariable(n);
+
+  DelWrapper(wrapper);
 
   return SWIG_OK;
 }

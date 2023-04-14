@@ -720,7 +720,7 @@ else
 endif
 
 javascript_build_cpp: $(SRCDIR_SRCS)
-ifeq (node,$(JSENGINE))
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
 	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else

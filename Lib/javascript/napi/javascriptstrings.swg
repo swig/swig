@@ -41,20 +41,35 @@ SWIG_AsCharPtrAndSize(Napi::Value valRef, char** cptr, size_t* psize, int *alloc
 }
 }
 
-%fragment("SWIG_FromCharPtrAndSize","header",fragment="SWIG_pchar_descriptor") {
+
+%fragment(SWIG_From_frag(char), "header", fragment="SWIG_Env_FromChar") {
+#define SWIG_From_char(c) SWIG_Env_FromChar(env, c)
+}
+%fragment("SWIG_Env_FromChar", "header") {
 SWIGINTERNINLINE Napi::Value
-SWIG_FromCharPtrAndSize(const char* carray, size_t size)
+SWIG_Env_FromChar(Napi::Env env, char c)
+{
+  Napi::String js_str = Napi::String::New(env, &c, 1);
+  return js_str;
+}
+}
+
+
+%fragment("SWIG_FromCharPtr", "header", fragment = "SWIG_Env_FromCharPtrAndSize") {
+#define SWIG_FromCharPtr(charPtr) SWIG_Env_FromCharPtrAndSize(env, charPtr, strlen(charPtr))
+}
+%fragment("SWIG_FromCharPtrAndSize", "header", fragment="SWIG_Env_FromCharPtrAndSize") {
+#define SWIG_FromCharPtrAndSize(carray, size) SWIG_Env_FromCharPtrAndSize(env, carray, size)
+}
+%fragment("SWIG_Env_FromCharPtrAndSize", "header") {
+SWIGINTERNINLINE Napi::Value
+SWIG_Env_FromCharPtrAndSize(Napi::Env env, const char* carray, size_t size)
 {
   if (carray) {
-    if (size > INT_MAX) {
-      // TODO: handle extra long strings
-      return SWIGV8_UNDEFINED();
-    } else {
-      v8::Local<v8::String> js_str = SWIGV8_STRING_NEW2(carray, size);
-      return js_str;
-    }
+    Napi::String js_str = Napi::String::New(env, carray, size);
+    return js_str;
   } else {
-    return SWIGV8_UNDEFINED();
+    return env.Undefined();
   }
 }
 }

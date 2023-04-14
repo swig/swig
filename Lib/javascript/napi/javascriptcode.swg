@@ -156,6 +156,44 @@ ${classname_mangled}_templ<T>::~${classname_mangled}_templ() {
 }
 %}
 
+/* -----------------------------------------------------------------------------
+ * js_global_getter:  template for global getter function wrappers
+ *   - $jswrapper:      wrapper function name
+ *   - $jslocals:       locals part of wrapper
+ *   - $jscode:         code part of wrapper
+ * ----------------------------------------------------------------------------- */
+%fragment("js_global_getter", "templates")
+%{
+Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+  Napi::Value jsresult;
+  $jslocals
+  $jscode
+  return jsresult;
+
+  goto fail;
+fail:
+  return env.Undefined();
+}
+%}
+
+
+/* -----------------------------------------------------------------------------
+ * jsnapi_register_global_variable:  template for a statement that registers a global variable
+ *   - $jsname:         variable name
+ *   - $jsparent:       mangled name of parent namespace
+ *   - $jsgetter:       wrapper of the getter function
+ *   - $jssetter:       wrapper of the setter function
+ *
+ * Note: this template is also used for global variables.
+ * ----------------------------------------------------------------------------- */
+%fragment("jsnapi_register_global_variable", "templates")
+%{
+  Napi::PropertyDescriptor $jsname = Napi::PropertyDescriptor::Accessor<$jsgetter, $jssetter>("$jsname");
+  exports.DefineProperties({$jsname});
+%}
+
+
 
 /* -----------------------------------------------------------------------------
  * js_getter:  template for getter function wrappers
