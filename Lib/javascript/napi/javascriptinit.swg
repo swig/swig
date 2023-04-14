@@ -50,30 +50,30 @@ SWIG_NAPI_GetModule(Napi::Env env) {
 /* -----------------------------------------------------------------------------
  * js_initializer:  template for the module initializer function
  *   - $jsname:                     module name
+ *   - $jsnapipreinheritance:       the previous template
  *   - $jsnapinspaces:              part with code creating namespace objects
  *   - $jsnapiwrappers:             part with code that registers wrapper functions
- *   - $jsnapiinheritance:          part with inherit statements
+ *   - $jsnapiinitinheritance:      part with inherit statements
  *   - $jsnapistaticwrappers:       part with code adding static functions to class objects
  *   - $jsnapiregisterclasses:      part with code that registers class objects in namespaces
  *   - $jsnapiregisternspaces:      part with code that registers namespaces in parent namespaces
- *   - $jsnapiinheritance:          the previous template
  * ----------------------------------------------------------------------------- */
 %fragment("js_initializer", "templates")
 %{
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
   SWIG_InitializeModule(env);
 
-  /* enable inheritance */
-  $jsnapiinheritance
-
   /* create objects for namespaces */
   $jsnapinspaces
 
-  /* setup inheritances */
-  $jsnapiinheritance
-
   /* register classes */
   $jsnapiregisterclasses
+
+  /* enable inheritance */
+  $jsnapipreinheritance
+
+  /* setup inheritances */
+  $jsnapiinitinheritance
 
   /* create and register namespace objects */
   $jsnapiregisternspaces

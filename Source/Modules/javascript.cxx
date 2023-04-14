@@ -2415,6 +2415,8 @@ protected:
   String *f_init;
   String *f_post_init;
 
+  /* class declarations */
+  String *f_class_declarations;
 
   /* parts for initilizer */
   String *f_init_namespaces;
@@ -2459,6 +2461,8 @@ int NAPIEmitter::initialize(Node *n) {
   f_init = NewString("");
   f_post_init = NewString("");
 
+  f_class_declarations = NewString("");
+
   f_init_namespaces = NewString("");
   f_init_wrappers = NewString("");
   f_init_inheritance = NewString("");
@@ -2494,6 +2498,7 @@ int NAPIEmitter::dump(Node *n) {
 
   Printv(f_wrap_cpp, f_runtime, "\n", 0);
   Printv(f_wrap_cpp, f_header, "\n", 0);
+  Printv(f_wrap_cpp, f_class_declarations, "\n", 0);
   Printv(f_wrap_cpp, f_wrappers, "\n", 0);
 
   emitNamespaces();
@@ -2509,10 +2514,10 @@ int NAPIEmitter::dump(Node *n) {
   Template initializer(getTemplate("js_initializer"));
   initializer.replace("$jsname", moduleName)
       .replace("$jsnapinspaces", f_init_namespaces)
-      .replace("$jsnapiinheritance", f_init_inheritance)
+      .replace("$jsnapipreinheritance", inheritance)
+      .replace("$jsnapiinitinheritance", f_init_inheritance)
       .replace("$jsnapiregisterclasses", f_init_register_classes)
-      .replace("$jsnapiregisternspaces", f_init_register_namespaces)
-      .replace("$jsnapiinheritance", inheritance);
+      .replace("$jsnapiregisternspaces", f_init_register_namespaces);
   Printv(f_init, initializer.str(), 0);
 
   Printv(f_wrap_cpp, f_init, 0);
@@ -2526,6 +2531,7 @@ int NAPIEmitter::dump(Node *n) {
 int NAPIEmitter::close() {
   Delete(f_runtime);
   Delete(f_header);
+  Delete(f_class_declarations);
   Delete(f_init_namespaces);
   Delete(f_init_wrappers);
   Delete(f_init_inheritance);
@@ -2567,7 +2573,7 @@ int NAPIEmitter::enterClass(Node *n) {
         .replace("$jswrapper", state.clazz(CTOR))
         .replace("$jsname", state.clazz(NAME))
         .replace("$jsparent", baseMangled)
-        .pretty_print(f_init_register_classes);
+        .pretty_print(f_init_inheritance);
 
     f_init_wrappers = Copy(Getattr(baseClass, MEMBER_FUNCTIONS));
     f_init_static_wrappers = Copy(Getattr(baseClass, STATIC_FUNCTIONS));
@@ -2583,7 +2589,7 @@ int NAPIEmitter::enterClass(Node *n) {
   t_decl_class.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsparent", baseMangled)
       .trim()
-      .pretty_print(f_wrappers);
+      .pretty_print(f_class_declarations);
 
   Delete(baseMangled);
   return SWIG_OK;
@@ -2613,14 +2619,14 @@ int NAPIEmitter::exitClass(Node *n) {
       .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
       .replace("$jsdtor", state.clazz(DTOR))
       .trim()
-      .pretty_print(f_wrappers);
+      .pretty_print(f_class_declarations);
 
   Template t_class_instance = getTemplate("jsnapi_declare_class_instance");
   t_class_instance.replace("$jsname", state.clazz(NAME))
       .replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
       .trim()
-      .pretty_print(f_init_register_classes);
+      .pretty_print(f_class_declarations);
 
   Template t_class_template = getTemplate("jsnapi_getclass");
   t_class_template.replace("$jsname", state.clazz(NAME))
@@ -2628,7 +2634,7 @@ int NAPIEmitter::exitClass(Node *n) {
       .replace("$jsnapiwrappers", f_init_wrappers)
       .replace("$jsnapistaticwrappers", f_init_static_wrappers)
       .trim()
-      .pretty_print(f_init_register_classes);
+      .pretty_print(f_class_declarations);
 
   /* Save these to be reused in the child classes */
   Setattr(n, MEMBER_FUNCTIONS, f_init_wrappers);
@@ -2678,7 +2684,7 @@ int NAPIEmitter::exitVariable(Node *n) {
         .replace("$jswrapper", state.variable(GETTER))
         .replace("$jsstatic", modifier)
         .trim()
-        .pretty_print(f_init_register_classes);
+        .pretty_print(f_class_declarations);
     t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
         .replace("$jsname", state.clazz(NAME))
         .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
@@ -2686,7 +2692,7 @@ int NAPIEmitter::exitVariable(Node *n) {
         .replace("$jswrapper", state.variable(SETTER))
         .replace("$jsstatic", modifier)
         .trim()
-        .pretty_print(f_init_register_classes);
+        .pretty_print(f_class_declarations);
 
     Delete(modifier);
   } else {
@@ -2746,7 +2752,7 @@ int NAPIEmitter::exitFunction(Node *n) {
         .replace("$jswrapper", state.function(WRAPPER_NAME))
         .replace("$jsstatic", modifier)
         .trim()
-        .pretty_print(f_init_register_classes);
+        .pretty_print(f_class_declarations);
   } else {
     // Note: a global function is treated like a static function
     //       with the parent being a nspace object instead of class object
