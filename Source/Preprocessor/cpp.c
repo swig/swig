@@ -785,11 +785,10 @@ bad:
  * of error occurred.
  * name - name of the macro
  * args - arguments passed to the macro
- * line_file - only used for line/file name when reporting errors
- * next - optional next part for macros that arise after expanding
+ * line_file - global context, used for line/file name when reporting errors
  * ----------------------------------------------------------------------------- */
 
-static String *expand_macro(String *name, List *args, String *line_file, String *next) {
+static String *expand_macro(String *name, List *args, String *line_file) {
   String *ns;
   DOH *symbols, *macro, *margs, *mvalue, *temp, *tempa, *e;
   int i, l;
@@ -1048,7 +1047,7 @@ static String *expand_macro(String *name, List *args, String *line_file, String 
 }
 
 /* -----------------------------------------------------------------------------
- * DOH *Preprocessor_replace(DOH *s, DOH *next)
+ * DOH *Preprocessor_replace(DOH *s, DOH *line_file)
  *
  * Performs a macro substitution on a string s.  Returns a new string with
  * substitutions applied.   This function works by walking down s and looking
@@ -1058,7 +1057,7 @@ static String *expand_macro(String *name, List *args, String *line_file, String 
 
 /* #define SWIG_PUT_BUFF  */
 
-static DOH *Preprocessor_replace(DOH *s, DOH *next) {
+static DOH *Preprocessor_replace(DOH *s, DOH *line_file) {
   DOH *ns, *symbols, *m;
   int c, i, state = 0;
   String *id = NewStringEmpty();
@@ -1215,7 +1214,7 @@ static DOH *Preprocessor_replace(DOH *s, DOH *next) {
 	  } else {
 	    args = 0;
 	  }
-	  e = expand_macro(id, args, s, next);
+	  e = expand_macro(id, args, s);
 	  if (e) {
 	    Append(ns, e);
 	  }
@@ -1283,21 +1282,21 @@ static DOH *Preprocessor_replace(DOH *s, DOH *next) {
       Delete(fn);
     } else if (m = Getattr(symbols, id)) {
       /* Yes.  There is a macro here */
-      /* If it expects arguments, they must from from `next` */
+      /* If it expects arguments, they must come from `line_file` */
       DOH *args = 0;
       DOH *e;
       int macro_additional_lines = 0;
       /* See if the macro expects arguments */
-      if (Getattr(m, kpp_args) && next) {
+      if (Getattr(m, kpp_args) && line_file) {
         /* Yep.  We need to go find the arguments and do a substitution */
-        int line = Getline(next);
-        args = find_args(next, 1, id);
-        macro_additional_lines = Getline(next) - line;
+        int line = Getline(line_file);
+        args = find_args(line_file, 1, id);
+        macro_additional_lines = Getline(line_file) - line;
         assert(macro_additional_lines >= 0);
       } else {
         args = 0;
       }
-      e = expand_macro(id, args, s, next);
+      e = expand_macro(id, args, s);
       if (e)
 	Append(ns, e);
       Delete(e);
