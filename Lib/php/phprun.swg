@@ -10,34 +10,13 @@
 extern "C" {
 #endif
 
-#if PHP_MAJOR_VERSION < 7
-# error These bindings need PHP 7 or later - to generate PHP5 bindings use: SWIG < 4.0.0 and swig -php5
+#if PHP_MAJOR_VERSION < 8
+# error These bindings need PHP 8 or later - to generate PHP7 bindings use SWIG < 4.1.0; to generate PHP5 bindings use: SWIG < 4.0.0 and swig -php5
 #endif
 
 #include "zend_inheritance.h"
 #include "zend_exceptions.h"
 #include "zend_inheritance.h"
-
-#if PHP_MAJOR_VERSION == 7
-/* These macros were new in PHP 8.0.  For PHP 7.x we define them to give the
- * same result except without any type declarations.  PHP 7.x supports type
- * declarations, but not for the return type, and alternate types aren't
- * supported, so we don't try to support these.
- */
-# define ZEND_BEGIN_ARG_WITH_RETURN_OBJ_TYPE_MASK_EX(name, byref, num_req, classes, types) \
-    ZEND_BEGIN_ARG_INFO_EX(name, 0, byref, num_req)
-# define ZEND_BEGIN_ARG_WITH_RETURN_TYPE_MASK_EX(name, byref, num_req, types) \
-    ZEND_BEGIN_ARG_INFO_EX(name, 0, byref, num_req)
-
-/* NB We can just ignore `default` here we currently always pass NULL for it
- * (this mechanism for specifying default parameter values was new in PHP 8.0
- * so it's not useful while we still want to support PHP7 too).
- */
-# define ZEND_ARG_OBJ_TYPE_MASK(byref, name, classes, types, default) \
-    ZEND_ARG_INFO(byref, name)
-# define ZEND_ARG_TYPE_MASK(byref, name, types, default) \
-    ZEND_ARG_INFO(byref, name)
-#endif
 
 #include <stdlib.h> /* for abort(), used in generated code. */
 
@@ -49,27 +28,6 @@ extern "C" {
     char swig_char = (V);\
     REGISTER_STRINGL_CONSTANT(#N, &swig_char, 1, CONST_CS | CONST_PERSISTENT);\
 } while (0)
-
-/* ZEND_CONSTANT_SET_FLAGS was new in PHP 7.3. */
-#ifdef ZEND_CONSTANT_SET_FLAGS
-# define SWIG_ZEND_CONSTANT_SET_FLAGS ZEND_CONSTANT_SET_FLAGS
-#else
-# define SWIG_ZEND_CONSTANT_SET_FLAGS(C, F, N) do { (C)->flags = (F); (C)->module_number = (N); } while (0)
-#endif
-
-/* zend_object_alloc was new in PHP 7.3. */
-#if PHP_MAJOR_VERSION == 7 && PHP_MINOR_VERSION < 3
-static zend_always_inline void *zend_object_alloc(size_t obj_size, zend_class_entry *ce) {
-    void *obj = emalloc(obj_size + zend_object_properties_size(ce));
-    memset(obj, 0, obj_size - sizeof(zval));
-    return obj;
-}
-#endif
-
-/* ZEND_THIS was new in PHP 7.4. */
-#ifndef ZEND_THIS
-# define ZEND_THIS &EX(This)
-#endif
 
 #ifdef __cplusplus
 }
@@ -92,27 +50,6 @@ static int default_error_code = E_ERROR;
 #define SWIG_SetModule(clientdata, pointer) SWIG_Php_SetModule(pointer, *(int*)clientdata)
 
 static zend_class_entry SWIG_Php_swig_wrapped_interface_ce;
-
-#if PHP_MAJOR_VERSION == 7
-/* zend_class_implements_interface() was new in PHP 8.0.
- *
- * We could use instanceof_function_ex(C, I, 1) here for 7.4, but for 7.3
- * and earlier that doesn't work, so instead we just provide a compatibility
- * implementation which does what zend_class_implements_interface() does in 8.x
- * and use that for all 7.x so there are fewer variants to worry about testing.
- */
-static int zend_class_implements_interface(const zend_class_entry *class_ce, const zend_class_entry *interface_ce) {
-  uint32_t i;
-  if (class_ce->num_interfaces) {
-    for (i = 0; i < class_ce->num_interfaces; i++) {
-      if (class_ce->interfaces[i] == interface_ce) {
-	return 1;
-      }
-    }
-  }
-  return 0;
-}
-#endif
 
 /* used to wrap returned objects in so we know whether they are newobject
    and need freeing, or not */

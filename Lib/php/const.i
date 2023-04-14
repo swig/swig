@@ -95,7 +95,7 @@
   SWIG_SetPointerZval(&c.value, (void*)($value), $1_descriptor, 0);
   zval_copy_ctor(&c.value);
   c.name = zend_string_init("$symname", sizeof("$symname") - 1, 0);
-  SWIG_ZEND_CONSTANT_SET_FLAGS(&c, CONST_CS, module_number);
+  ZEND_CONSTANT_SET_FLAGS(&c, CONST_CS, module_number);
   zend_register_constant(&c);
 }
 

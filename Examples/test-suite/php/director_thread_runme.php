@@ -3,7 +3,7 @@
 require "tests.php";
 
 # Fails in a ZTS-build of PHP5 - see: https://github.com/swig/swig/pull/155
-# FIXME: Does this still fail in a threaded build of PHP7?
+# FIXME: Does this still fail in a threaded build of PHP8?
 exit(0);
 
 // New functions

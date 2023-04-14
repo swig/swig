@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-04-14: olly
+	    [PHP7] Support for PHP7 has been removed.  PHP7 security support
+	    ended 2022-11-28 so it doesn't make sense to include support for
+	    it in the SWIG 4.2.x release series.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2023-03-25: alatina 
             [Octave] #2512 Add support for Octave 8.1.
 
