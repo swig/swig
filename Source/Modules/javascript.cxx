@@ -2583,7 +2583,7 @@ int NAPIEmitter::enterClass(Node *n) {
   t_decl_class.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsparent", baseMangled)
       .trim()
-      .pretty_print(f_init_register_classes);
+      .pretty_print(f_wrappers);
 
   Delete(baseMangled);
   return SWIG_OK;
@@ -2606,14 +2606,14 @@ int NAPIEmitter::exitClass(Node *n) {
   /* Note: this makes sure that there is a swig_type added for this class */
   SwigType_remember_clientdata(state.clazz(TYPE_MANGLED), NewString("0"));
 
-  // emit definition of v8 class template
+  // emit definition of NAPI class template
   Template t_def_class = getTemplate("jsnapi_class_epilogue_template");
   t_def_class.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsname", state.clazz(NAME))
       .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
       .replace("$jsdtor", state.clazz(DTOR))
       .trim()
-      .pretty_print(f_init_register_classes);
+      .pretty_print(f_wrappers);
 
   Template t_class_instance = getTemplate("jsnapi_declare_class_instance");
   t_class_instance.replace("$jsname", state.clazz(NAME))
