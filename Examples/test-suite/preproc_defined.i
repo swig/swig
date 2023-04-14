@@ -125,4 +125,4 @@ void another_macro_checking(void) {
 #endif
 
 #define __attribute__(x)
-
+%import <preproc_defined.h>

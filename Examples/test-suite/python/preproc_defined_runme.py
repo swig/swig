@@ -3,6 +3,9 @@ import preproc_defined
 if preproc_defined.call_checking() != 1:
     raise RuntimeError
 
+if preproc_defined.y != 8:
+    raise RuntimeError()
+
 d = preproc_defined.Defined()
 d.defined = 10
 
