@@ -12,6 +12,14 @@ using namespace std::string_literals;
 #define NAPI_CHECK_MAYBE(maybe)                 (maybe)
 #define NAPI_CHECK_RESULT(maybe, result)        (result = maybe)
 
+SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
+  throw Napi::Error::New(env, msg);
+}
+
+SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj, const char *msg) {
+  throw Napi::Error(env, obj);
+}
+
 #else
 
 #define SWIG_Error(code, msg)     do { Napi::Error::New(env, std::to_string(code) + ": "s + msg).ThrowAsJavaScriptException(); SWIG_fail; } while (0)
@@ -27,6 +35,17 @@ using namespace std::string_literals;
                                 if (r.IsNothing()) SWIG_fail;   \
                                 result = r.Unwrap();            \
                         } while (0)
+
+SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
+  Napi::Error::New(env, msg).ThrowAsJavaScriptException();
+}
+
+// TODO: Is this a good idea?
+// The other JavaScript SWIG implementations serialize the object to a string
+// when throwing, while this one actually throws the object itself
+SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj, const char *msg) {
+  Napi::Error(env, obj).ThrowAsJavaScriptException();
+}
 
 #endif
 
@@ -114,14 +133,22 @@ fail:
 
 
 SWIGRUNTIME int SWIG_Napi_ConvertPtr(Napi::Value valRef, void **ptr, swig_type_info *info, int flags) {
-  /* special case: JavaScript null => C NULL pointer */
-  if(valRef.IsNull()) {
+  // special case: JavaScript null => C NULL pointer
+  if (valRef.IsNull()) {
     *ptr=0;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
-  if(!valRef.IsObject()) {
+
+  // special case: Uknown type encapsulated w/o wrapper by the next function
+  if (valRef.IsExternal()) {
+   *ptr = valRef.As<Napi::External<void>>().Data();
+   return SWIG_OK;
+  }
+
+  if (!valRef.IsObject()) {
     return SWIG_TypeError;
   }
+
   Napi::Object objRef;
   NAPI_CHECK_RESULT(valRef.ToObject(), objRef);
   return SWIG_Napi_ConvertInstancePtr(objRef, ptr, info, flags);
@@ -130,15 +157,20 @@ fail:
   return SWIG_ERROR;
 }
 
-SWIGRUNTIME Napi::Value SWIG_Napi_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME Napi::Value SWIG_Napi_NewPointerObj(Napi::Env env, void *ptr, swig_type_info *info, int flags) {
+  Napi::External<void> native = Napi::External<void>::New(env, ptr);
+
   Napi::FunctionReference *ctor = reinterpret_cast<SWIGNAPI_ClientData>(info->clientdata);
-  Napi::Env env = ctor->Env();
+ 
+  if (ctor == nullptr) {
+    // This type is not known to SWIG and does not have a wrapper
+    return native;
+  }
 
   if (ptr == nullptr) {
     return env.Null();
   }
 
-  Napi::External<void> native = Napi::External<void>::New(env, ptr);
   Napi::Value wrapped;
   NAPI_CHECK_RESULT(ctor->New({native}), wrapped);
   return wrapped;
@@ -148,13 +180,13 @@ fail:
 }
 
 #define SWIG_ConvertPtr(obj, ptr, info, flags)    SWIG_Napi_ConvertPtr(obj, ptr, info, flags)
-#define SWIG_NewPointerObj(ptr, info, flags)      SWIG_Napi_NewPointerObj(ptr, info, flags)
+#define SWIG_NewPointerObj(ptr, info, flags)      SWIG_Napi_NewPointerObj(env, ptr, info, flags)
 
 #define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_Napi_ConvertInstancePtr(obj, pptr, type, flags)
-#define SWIG_NewInstanceObj(thisvalue, type, flags)     SWIG_Napi_NewPointerObj(thisvalue, type, flags)
+#define SWIG_NewInstanceObj(thisvalue, type, flags)     SWIG_Napi_NewPointerObj(env, thisvalue, type, flags)
 
 #define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_Napi_ConvertPtr(obj, pptr, type, 0)
-#define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_Napi_NewPointerObj(ptr, type, 0)
+#define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_Napi_NewPointerObj(env, ptr, type, 0)
 
 #define SWIG_GetInstancePtr(obj, ptr)    SWIG_Napi_GetInstancePtr(obj, ptr)
 
