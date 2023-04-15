@@ -108,17 +108,19 @@ $jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &in
  * ----------------------------------------------------------------------------- */
 %fragment("js_overloaded_ctor", "templates") %{
 template <class T>
-void $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
+Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
   Napi::Object self;
+  $jslocals
   NAPI_CHECK_RESULT(info.This().ToObject(), self);
   this->owned = true;
-  $jslocals
   if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
+  this->self = result;
 
   goto fail;
 fail:
-  return;
+  return Napi::Value();
 }
 %}
 
@@ -134,6 +136,7 @@ fail:
 %{
   if(info.Length() == $jsargcount) {
     $jswrapper(info);
+    return;
   }
 %}
 

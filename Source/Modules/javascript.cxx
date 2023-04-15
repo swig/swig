@@ -2407,8 +2407,9 @@ protected:
                                 MarshallingMode mode, bool is_member,
                                 bool is_static);
   virtual int emitNamespaces();
-  int emitConstant(Node *);
-  int emitFunction(Node *, bool, bool);
+  virtual int emitConstant(Node *);
+  virtual int emitFunction(Node *, bool, bool);
+  virtual int emitCtor(Node *);
 
 protected:
   /* built-in parts */
@@ -2742,7 +2743,17 @@ int NAPIEmitter::exitFunction(Node *n) {
       // state.function(WRAPPER_NAME, Swig_name_wrapper(Getattr(n, "name")));
       emitFunctionDispatcher(n, is_member);
     } else {
-      // don't register wrappers of overloaded functions in function tables
+      // emit declaration of a class member function
+      Template t_def_class = getTemplate("jsnapi_class_method_declaration");
+      t_def_class.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+          .replace("$jsname", state.clazz(NAME))
+          .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+          .replace("$jsdtor", state.clazz(DTOR))
+          .replace("$jswrapper", state.function(WRAPPER_NAME))
+          .replace("$jsstatic", modifier)
+          .trim()
+          .pretty_print(f_class_declarations);
+      Delete(modifier);
       return SWIG_OK;
     }
   }
@@ -3002,6 +3013,23 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
 
   DelWrapper(wrapper);
 
+  return SWIG_OK;
+}
+
+int NAPIEmitter::emitCtor(Node *n) {
+  int r;
+  
+  r = JSEmitter::emitCtor(n);
+  if (r != SWIG_OK)
+    return r;
+
+  Template t_getter = getTemplate("jsnapi_class_method_declaration");
+  t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", Getattr(n, "wrap:name"))
+      .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+      .replace("$jsstatic", "")
+      .trim()
+      .pretty_print(f_class_declarations);
   return SWIG_OK;
 }
 
