@@ -277,6 +277,10 @@ protected:
 
   virtual const char *getFunctionTemplate(bool);
 
+  virtual const char *getFunctionDispatcherTemplate(bool);
+
+  virtual const char *getOverloadedFunctionTemplate(bool);
+
   virtual const char *getSetterTemplate(bool);
 
   virtual const char *getGetterTemplate(bool);
@@ -875,6 +879,14 @@ const char *JSEmitter::getFunctionTemplate(bool) {
   return "js_function";
 }
 
+const char *JSEmitter::getFunctionDispatcherTemplate(bool) {
+  return "js_function_dispatcher";
+}
+
+const char *JSEmitter::getOverloadedFunctionTemplate(bool) {
+  return "js_overloaded_function";
+}
+
 const char *JSEmitter::getGetterTemplate(bool) {
   return "js_getter";
 }
@@ -1217,7 +1229,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   String *iname = Getattr(n, "sym:name");
   String *wrap_name = Swig_name_wrapper(iname);
   if (is_overloaded) {
-    t_function = getTemplate("js_overloaded_function");
+    t_function = getTemplate(getOverloadedFunctionTemplate(is_member));
     Append(wrap_name, Getattr(n, "sym:overname"));
   }
   Setattr(n, "wrap:name", wrap_name);
@@ -1247,7 +1259,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   return SWIG_OK;
 }
 
-int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
+int JSEmitter::emitFunctionDispatcher(Node *n, bool is_member) {
   Wrapper *wrapper = NewWrapper();
 
   // Generate call list, go to first node
@@ -1271,7 +1283,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
 
   } while ((sibl = Getattr(sibl, "sym:nextSibling")));
 
-  Template t_function(getTemplate("js_function_dispatcher"));
+  Template t_function(getTemplate(getFunctionDispatcherTemplate(is_member)));
 
   // Note: this dispatcher function gets called after the last overloaded function has been created.
   // At this time, n.wrap:name contains the name of the last wrapper function.
@@ -2428,6 +2440,8 @@ protected:
   virtual int emitCtor(Node *);
 
   virtual const char *getFunctionTemplate(bool is_member);
+  virtual const char *getFunctionDispatcherTemplate(bool is_member);
+  virtual const char *getOverloadedFunctionTemplate(bool is_member);
   virtual const char *getSetterTemplate(bool is_member);
   virtual const char *getGetterTemplate(bool is_member);
 
@@ -2569,6 +2583,14 @@ int NAPIEmitter::close() {
 
 const char *NAPIEmitter::getFunctionTemplate(bool is_member) {
   return is_member ? "js_function" : "js_global_function";
+}
+
+const char *NAPIEmitter::getFunctionDispatcherTemplate(bool is_member) {
+  return is_member ? "js_function_dispatcher" : "js_global_function_dispatcher";
+}
+
+const char *NAPIEmitter::getOverloadedFunctionTemplate(bool is_member) {
+  return is_member ? "js_overloaded_function" : "js_global_overloaded_function";
 }
 
 const char *NAPIEmitter::getGetterTemplate(bool is_member) {

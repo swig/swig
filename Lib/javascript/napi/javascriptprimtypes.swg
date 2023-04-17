@@ -22,11 +22,15 @@ SWIGINTERN
 int SWIG_AsVal_dec(bool)(Napi::Value obj, bool *val)
 {
   if(!obj.IsBoolean()) {
-    return SWIG_ERROR;
+    return SWIG_TypeError;
   }
 
-  if (val) *val = obj.ToBoolean();
+  Napi::Boolean b;
+  NAPI_CHECK_RESULT(obj.ToBoolean(), b);
+  if (val) *val = b.Value();
   return SWIG_OK;
+fail:
+  return SWIG_ERROR;
 }
 }
 

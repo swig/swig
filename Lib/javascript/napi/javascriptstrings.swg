@@ -7,7 +7,8 @@ SWIGINTERN int
 SWIG_AsCharPtrAndSize(Napi::Value valRef, char** cptr, size_t* psize, int *alloc)
 {
   if(valRef.IsString()) {
-    Napi::String js_str = valRef.ToString();
+    Napi::String js_str;
+    NAPI_CHECK_RESULT(valRef.ToString(), js_str);
 
     std::string str = js_str.Utf8Value();
     size_t len = str.size() + 1;
@@ -21,9 +22,10 @@ SWIG_AsCharPtrAndSize(Napi::Value valRef, char** cptr, size_t* psize, int *alloc
     return SWIG_OK;
   } else {
     if(valRef.IsObject()) {
-      Napi::Object obj = valRef.ToObject();
-      // try if the object is a wrapped char[]
       swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
+      Napi::Object obj;
+      NAPI_CHECK_RESULT(valRef.ToObject(), obj);
+      // try if the object is a wrapped char[]
       if (pchar_descriptor) {
         void* vptr = 0;
         if (SWIG_ConvertPtr(obj, &vptr, pchar_descriptor, 0) == SWIG_OK) {
@@ -33,11 +35,10 @@ SWIG_AsCharPtrAndSize(Napi::Value valRef, char** cptr, size_t* psize, int *alloc
           return SWIG_OK;
         }
       }
-      return SWIG_TypeError;
-    } else {
-      return SWIG_TypeError;
     }
   }
+fail:
+  return SWIG_TypeError;
 }
 }
 

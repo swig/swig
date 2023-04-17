@@ -289,6 +289,30 @@ fail:
 
 
 /* -----------------------------------------------------------------------------
+ * js_global_function_dispatcher:  template for a global function dispatcher for
+ * global overloaded functions
+ *   - $jswrapper:  wrapper function name
+ *   - $jsname:     name of the wrapped function
+ *   - $jslocals:   locals part of wrapper
+ *   - $jscode:     code part of wrapper
+ * ----------------------------------------------------------------------------- */
+%fragment("js_global_function_dispatcher", "templates")
+%{
+Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+  Napi::Value jsresult;
+  $jscode
+
+  SWIG_Error(SWIG_ERROR, "Illegal arguments for function $jsname.");
+
+  goto fail;
+fail:
+  return Napi::Value();
+}
+%}
+
+
+/* -----------------------------------------------------------------------------
  * jsnapi_register_global_function:  template for a statement that registers a global function
  *   - $jsname:         function name
  *   - $jswrapper:      name of the JS wrapper
@@ -354,9 +378,10 @@ fail:
 
 /* -----------------------------------------------------------------------------
  * js_function:  template for function wrappers
- *   - $jswrapper:  wrapper function name
- *   - $jslocals:   locals part of wrapper
- *   - $jscode:     code part of wrapper
+ *   - $jsmangledname:  mangled class name
+ *   - $jswrapper:      wrapper function name
+ *   - $jslocals:       locals part of wrapper
+ *   - $jscode:         code part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_function", "templates")
 %{
@@ -379,10 +404,11 @@ fail:
 
 /* -----------------------------------------------------------------------------
  * js_function_dispatcher:  template for a function dispatcher for overloaded functions
- *   - $jswrapper:  wrapper function name
- *   - $jsname:     name of the wrapped function
- *   - $jslocals:   locals part of wrapper
- *   - $jscode:     code part of wrapper
+ *   - $jsmangledname:  mangled class name
+ *   - $jswrapper:      wrapper function name
+ *   - $jsname:         name of the wrapped function
+ *   - $jslocals:       locals part of wrapper
+ *   - $jscode:         code part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_function_dispatcher", "templates")
 %{
@@ -419,7 +445,29 @@ Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) 
 
   goto fail;
 fail:
-  Napi::Value();
+  return Napi::Value();
+}
+%}
+
+
+/* -----------------------------------------------------------------------------
+ * js_global_overloaded_function:  template for a global overloaded function
+ *   - $jswrapper:      wrapper function name
+ *   - $jslocals:       locals part of wrapper
+ *   - $jscode:         code part of wrapper
+ * ----------------------------------------------------------------------------- */
+%fragment ("js_global_overloaded_function", "templates")
+%{
+Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+  Napi::Value jsresult;
+  $jslocals
+  $jscode
+  return jsresult;
+
+  goto fail;
+fail:
+  return Napi::Value();
 }
 %}
 
@@ -432,6 +480,40 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_function_dispatch_case", "templates")
 %{
+  if(info.Length() == $jsargcount) {
+#ifdef NAPI_CPP_EXCEPTIONS
+    bool tryNext = false;
+    try {
+      $jswrapper(info);
+    } catch (const Napi::TypeError &) {
+      tryNext = true;
+    } catch (const Napi::Error &e) {
+      throw e;
+    }
+    if (!tryNext)
+      return jsresult;
+#else
+    $jswrapper(info);
+    if (env.IsExceptionPending()) {
+      Napi::Error e = env.GetAndClearPendingException();
+      Napi::Value typeErrorValue;
+      bool isTypeError;
+      Napi::Function typeErrorCons;
+      // Yes, this is ugly
+      // TODO: Fix this in Node.js when the core team grows up
+      NAPI_CHECK_RESULT(env.Global().Get("TypeError"), typeErrorValue);
+      typeErrorCons = typeErrorValue.As<Napi::Function>();
+      NAPI_CHECK_RESULT(e.Value().InstanceOf(typeErrorCons), isTypeError);
+      if (!isTypeError) {
+        // This is not the error you are looking for
+        e.ThrowAsJavaScriptException();
+        SWIG_fail;
+      }
+    } else {
+      return jsresult;
+    }
+#endif
+  }
 %}
 
 /* -----------------------------------------------------------------------------
