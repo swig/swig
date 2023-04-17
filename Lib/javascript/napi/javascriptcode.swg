@@ -14,12 +14,13 @@ template <class T>
 $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
         : $jsparent_templ<T>(true, info) {
   Napi::Env env = info.Env();
-  this->owned = true;
 
   if (info.Length() == 1 && info[0].IsExternal()) {
     this->self = info[0].As<Napi::External<void>>().Data();
+    this->owned = false;
     return;
   }
+  this->owned = true;
 
   $jslocals
   if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
@@ -195,7 +196,7 @@ $jsmangledname_templ<T>::~$jsmangledname_templ() {
 template <class T>
 ${classname_mangled}_templ<T>::~${classname_mangled}_templ() {
   auto arg1 = reinterpret_cast<$jstype>(this->self);
-  if (arg1) {
+  if (this->owned && arg1) {
     ${destructor_action}
     this->self = nullptr;
   }
