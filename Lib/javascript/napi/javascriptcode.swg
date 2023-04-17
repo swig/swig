@@ -50,10 +50,10 @@ $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
         : SwigNapiObjectWrap_templ<T>(info) {
   Napi::Env env = info.Env();
   SWIG_Error(SWIG_ERROR, "Class $jsname can not be instantiated");
-#ifndef NAPI_CPP_EXCEPTIONS
+  return;
+  goto fail;
 fail:
   return;
-#endif
 }
 
 // This is the extendable constructor to be used from child classes
@@ -135,8 +135,38 @@ fail:
 %fragment ("js_ctor_dispatch_case", "templates")
 %{
   if(info.Length() == $jsargcount) {
+#ifdef NAPI_CPP_EXCEPTIONS
+    bool tryNext = false;
+    try {
+      $jswrapper(info);
+    } catch (const Napi::TypeError &) {
+      tryNext = true;
+    } catch (const Napi::Error &e) {
+      throw e;
+    }
+    if (!tryNext)
+      return;
+#else
     $jswrapper(info);
-    return;
+    if (env.IsExceptionPending()) {
+      Napi::Error e = env.GetAndClearPendingException();
+      Napi::Value typeErrorValue;
+      bool isTypeError;
+      Napi::Function typeErrorCons;
+      // Yes, this is ugly
+      // TODO: Fix this in Node.js when the core team grows up
+      NAPI_CHECK_RESULT(env.Global().Get("TypeError"), typeErrorValue);
+      typeErrorCons = typeErrorValue.As<Napi::Function>();
+      NAPI_CHECK_RESULT(e.Value().InstanceOf(typeErrorCons), isTypeError);
+      if (!isTypeError) {
+        // This is not the error you are looking for
+        e.ThrowAsJavaScriptException();
+        SWIG_fail;
+      }
+    } else {
+      return;
+    }
+#endif
   }
 %}
 
@@ -402,9 +432,6 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_function_dispatch_case", "templates")
 %{
-  if(info.Length() == $jsargcount) {
-    $jswrapper(info);
-  }
 %}
 
 /* -----------------------------------------------------------------------------
