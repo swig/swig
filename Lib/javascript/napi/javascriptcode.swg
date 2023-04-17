@@ -235,7 +235,7 @@ fail:
 %{
 void $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
-  Napi::Value value = info.Length() > 1 ? info[0] : Napi::Value();
+  Napi::Value value = info.Length() > 0 ? info[0] : Napi::Value();
   Napi::Value jsresult;
   $jslocals
   $jscode
