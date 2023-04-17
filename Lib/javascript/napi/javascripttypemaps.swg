@@ -31,7 +31,7 @@
 /* Overload of the output/constant/exception/dirout handling */
 
 /* append output */
-#define SWIG_AppendOutput(result, obj) SWIGNAPI_AppendOutput(result, obj)
+#define SWIG_AppendOutput(result, obj) SWIGNapi_AppendOutput(result, obj)
 
 /* set constant */
 #define SWIG_SetConstant(name, obj)
