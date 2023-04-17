@@ -275,6 +275,11 @@ protected:
 
   virtual int emitNamespaces() = 0;
 
+  virtual const char *getFunctionTemplate(bool);
+
+  virtual const char *getSetterTemplate(bool);
+
+  virtual const char *getGetterTemplate(bool);
 
 protected:
 
@@ -866,6 +871,18 @@ int JSEmitter::enterVariable(Node *n) {
   return SWIG_OK;
 }
 
+const char *JSEmitter::getFunctionTemplate(bool) {
+  return "js_function";
+}
+
+const char *JSEmitter::getGetterTemplate(bool) {
+  return "js_getter";
+}
+
+const char *JSEmitter::getSetterTemplate(bool) {
+  return "js_setter";
+}
+
 int JSEmitter::emitCtor(Node *n) {
 
   Wrapper *wrapper = NewWrapper();
@@ -1059,7 +1076,7 @@ int JSEmitter::emitDtor(Node *n) {
 
 int JSEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   Wrapper *wrapper = NewWrapper();
-  Template t_getter(getTemplate("js_getter"));
+  Template t_getter(getTemplate(getGetterTemplate(is_member)));
 
   // prepare wrapper name
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
@@ -1098,7 +1115,7 @@ int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
 
   Wrapper *wrapper = NewWrapper();
 
-  Template t_setter(getTemplate("js_setter"));
+  Template t_setter(getTemplate(getSetterTemplate(is_member)));
 
   // prepare wrapper name
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
@@ -1153,7 +1170,8 @@ int JSEmitter::emitConstant(Node *n) {
     value = Getattr(n, "cppvalue");
   }
 
-  Template t_getter(getTemplate("js_getter"));
+  bool is_member = GetFlag(n, "ismember");
+  Template t_getter(getTemplate(getGetterTemplate(is_member)));
 
   // call the variable methods as a constants are
   // registered in same way
@@ -1191,7 +1209,7 @@ int JSEmitter::emitConstant(Node *n) {
 
 int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   Wrapper *wrapper = NewWrapper();
-  Template t_function(getTemplate("js_function"));
+  Template t_function(getTemplate(getFunctionTemplate(is_member)));
 
   bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
 
@@ -2407,9 +2425,11 @@ protected:
                                 MarshallingMode mode, bool is_member,
                                 bool is_static);
   virtual int emitNamespaces();
-  virtual int emitConstant(Node *);
-  virtual int emitFunction(Node *, bool, bool);
   virtual int emitCtor(Node *);
+
+  virtual const char *getFunctionTemplate(bool is_member);
+  virtual const char *getSetterTemplate(bool is_member);
+  virtual const char *getGetterTemplate(bool is_member);
 
 protected:
   /* built-in parts */
@@ -2545,6 +2565,18 @@ int NAPIEmitter::close() {
   Delete(f_post_init);
   Delete(f_wrap_cpp);
   return SWIG_OK;
+}
+
+const char *NAPIEmitter::getFunctionTemplate(bool is_member) {
+  return is_member ? "js_function" : "js_global_function";
+}
+
+const char *NAPIEmitter::getGetterTemplate(bool is_member) {
+  return is_member ? "js_getter" : "js_global_getter";
+}
+
+const char *NAPIEmitter::getSetterTemplate(bool is_member) {
+  return is_member ? "js_setter" : "js_global_setter";
 }
 
 int NAPIEmitter::enterClass(Node *n) {
@@ -2762,7 +2794,7 @@ int NAPIEmitter::exitFunction(Node *n) {
     if (GetFlag(state.function(), IS_STATIC)) {
       Append(modifier, "static");
       Template t_register = getTemplate("jsnapi_register_static_function");
-      t_register.replace("$jsparent", state.clazz(NAME_MANGLED))
+      t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
           .replace("$jsname", state.function(NAME))
           .replace("$jswrapper", state.function(WRAPPER_NAME))
           .trim()
@@ -2910,108 +2942,6 @@ int NAPIEmitter::emitNamespaces() {
       Delete(tmp_register_stmt);
     }
   }
-
-  return SWIG_OK;
-}
-
-int NAPIEmitter::emitConstant(Node *n) {
-  if (!State::IsSet(state.globals(HAS_TEMPLATES))) {
-    return SWIG_ERROR;
-  }
-
-  Wrapper *wrapper = NewWrapper();
-  SwigType *type = Getattr(n, "type");
-  String *name = Getattr(n, "name");
-  String *iname = Getattr(n, "sym:name");
-  String *wname = Swig_name_wrapper(name);
-  String *rawval = Getattr(n, "rawval");
-  String *value = rawval ? rawval : Getattr(n, "value");
-
-  // HACK: forcing usage of cppvalue for v8 (which turned out to fix
-  // typedef_struct.i, et. al)
-  if (State::IsSet(state.globals(FORCE_CPP)) &&
-      Getattr(n, "cppvalue") != NULL) {
-    value = Getattr(n, "cppvalue");
-  }
-
-  bool is_member = GetFlag(n, "ismember");
-  Template t_getter(getTemplate(is_member ? "js_getter" : "js_global_getter"));
-
-  // call the variable methods as a constants are
-  // registered in same way
-  enterVariable(n);
-  state.variable(GETTER, wname);
-  // TODO: why do we need this?
-  Setattr(n, "wrap:name", wname);
-
-  // special treatment of member pointers
-  if (SwigType_type(type) == T_MPOINTER) {
-    // TODO: this could go into a code-template
-    String *mpointer_wname = NewString("");
-    Printf(mpointer_wname, "_wrapConstant_%s", iname);
-    Setattr(n, "memberpointer:constant:wrap:name", mpointer_wname);
-    String *str = SwigType_str(type, mpointer_wname);
-    Printf(f_wrappers, "static %s = %s;\n", str, value);
-    Delete(str);
-    value = mpointer_wname;
-  }
-
-  marshalOutput(n, 0, wrapper, NewString(""), value, false);
-
-  t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-      .replace("$jswrapper", wname)
-      .replace("$jslocals", wrapper->locals)
-      .replace("$jscode", wrapper->code)
-      .pretty_print(f_wrappers);
-
-  exitVariable(n);
-
-  DelWrapper(wrapper);
-
-  return SWIG_OK;
-}
-
-int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
-  Wrapper *wrapper = NewWrapper();
-  Template t_function(getTemplate(is_member ? "js_function" : "js_global_function"));
-
-  bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
-
-  // prepare the function wrapper name
-  String *iname = Getattr(n, "sym:name");
-  String *wrap_name = Swig_name_wrapper(iname);
-  if (is_overloaded) {
-    t_function = getTemplate("js_overloaded_function");
-    Append(wrap_name, Getattr(n, "sym:overname"));
-  }
-  Setattr(n, "wrap:name", wrap_name);
-  state.function(WRAPPER_NAME, wrap_name);
-
-  // prepare local variables
-  ParmList *params = Getattr(n, "parms");
-  emit_parameter_variables(params, wrapper);
-  emit_attach_parmmaps(params, wrapper);
-
-  // HACK: in test-case `ignore_parameter` emit_attach_parmmaps generates an
-  // extra line of applied typemap. Deleting wrapper->code here fixes the
-  // problem, and seems to have no side effect elsewhere
-  Delete(wrapper->code);
-  wrapper->code = NewString("");
-
-  marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
-  String *action = emit_action(n);
-  marshalOutput(n, params, wrapper, action);
-  emitCleanupCode(n, wrapper, params);
-  Replaceall(wrapper->code, "$symname", iname);
-
-  t_function.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-      .replace("$jswrapper", wrap_name)
-      .replace("$jslocals", wrapper->locals)
-      .replace("$jscode", wrapper->code)
-      .replace("$jsargcount", Getattr(n, ARGCOUNT))
-      .pretty_print(f_wrappers);
-
-  DelWrapper(wrapper);
 
   return SWIG_OK;
 }

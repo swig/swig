@@ -195,9 +195,31 @@ fail:
 
 
 /* -----------------------------------------------------------------------------
+ * js_global_setter:  template for global setter function wrappers
+ *   - $jswrapper:      wrapper function name
+ *   - $jslocals:       locals part of wrapper
+ *   - $jscode:         code part of wrapper
+ * ----------------------------------------------------------------------------- */
+%fragment("js_global_setter", "templates")
+%{
+void $jswrapper(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+  Napi::Value value = info.Length() > 1 ? info[0] : Napi::Value();
+  Napi::Value jsresult;
+  $jslocals
+  $jscode
+  return;
+
+  goto fail;
+fail:
+  return;
+}
+%}
+
+
+/* -----------------------------------------------------------------------------
  * jsnapi_register_global_variable:  template for a statement that registers a global variable
  *   - $jsname:         variable name
- *   - $jsparent:       mangled name of parent namespace
  *   - $jsgetter:       wrapper of the getter function
  *   - $jssetter:       wrapper of the setter function
  *
@@ -460,7 +482,7 @@ fail:
 /* -----------------------------------------------------------------------------
  * jsnapi_inherited_class_prologue_template:  template for a class prologue
  *   - $jsmangledname:  mangled class name
- *   - $jsparent:       mangled name of parent namespace
+ *   - $jsparent:       mangled name of parent class
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_inherited_class_prologue_template", "templates")
 %{
@@ -499,13 +521,14 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * jsnapi_registerclass:  template for regsitering a class object
  *   - $jsname:         class name
  *   - $jsmangledname:  mangled class name
+ *   - $jsparent:       parent namespace
  *   - $jsmangledtype:  mangled class type
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_registerclass", "templates")
 %{
   /* Class: $jsname ($jsmangledname) */
   Napi::Function $jsmangledname_ctor = $jsmangledname_inst::GetClass(env);
-  exports.Set("$jsname", $jsmangledname_ctor);
+  $jsparent.Set("$jsname", $jsmangledname_ctor);
   if (SWIGTYPE_$jsmangledtype->clientdata == 0) {
     Napi::FunctionReference *f = new Napi::FunctionReference();
     *f = Napi::Persistent($jsmangledname_ctor);
@@ -517,7 +540,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * jsnapi_setup_inheritance:  setup inheritance between two classes
  *   - $jsname:         class name
  *   - $jsmangledname:  mangled class name
- *   - $jsparent:       mangled name of parent namespace
+ *   - $jsparent:       mangled name of parent class
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_setup_inheritance", "templates")
 %{
@@ -537,7 +560,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_create_namespace", "templates")
 %{
-  Napi::Object $jsmangledname_obj = Napi::Object::New(env);
+  Napi::Object $jsmangledname = Napi::Object::New(env);
 %}
 
 /* -----------------------------------------------------------------------------
@@ -548,7 +571,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_namespace", "templates")
 %{
-  NAPI_CHECK_MAYBE($jsparent_obj.Set("$jsname", $jsmangledname_obj));
+  NAPI_CHECK_MAYBE($jsparent.Set("$jsname", $jsmangledname));
 %}
 
 /* -----------------------------------------------------------------------------
@@ -579,7 +602,6 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  *   - $jsname:         function name
  *   - $jsmangledname:  mangled class name
  *   - $jswrapper:      wrapper of the function
- *   - $jsparent:       mangled name of parent namespace
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_static_function", "templates")
 %{
@@ -590,7 +612,6 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * jsnapi_register_static_variable:  template for a statement that registers a static variable.
  *   - $jsname:         variable name
  *   - $jsmangledname:  mangled class name
- *   - $jsparent:       mangled name of parent namespace
  *   - $jsgetter:       wrapper of the getter function including & and the class prefix
  *   - $jssetter:       wrapper of the setter function including & and the class prefix
  * ----------------------------------------------------------------------------- */
