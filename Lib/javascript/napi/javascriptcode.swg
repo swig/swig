@@ -717,7 +717,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_member_variable", "templates")
 %{
-  InstanceAccessor("$jsname", &$jsmangledname_inst::$jsgetter, &$jsmangledname_inst::$jssetter),
+  InstanceAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter),
 %}
 
 /* -----------------------------------------------------------------------------
@@ -740,5 +740,5 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_static_variable", "templates")
 %{
-  StaticAccessor("$jsname", &$jsmangledname_inst::$jsgetter, &$jsmangledname_inst::$jssetter),
+  StaticAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter),
 %}
