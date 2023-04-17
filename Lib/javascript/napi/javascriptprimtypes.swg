@@ -67,6 +67,109 @@ fail:
 }
 }
 
+
+/* unsigned int */
+
+%fragment(SWIG_From_frag(unsigned int),"header", fragment="SWIG_Env_FromUInt") {
+#define SWIG_From_unsigned_SS_int(d) SWIG_Env_FromUInt(env, d)
+}
+%fragment("SWIG_Env_FromUInt", "header") {
+SWIGINTERN
+Napi::Value SWIG_Env_FromUInt(Napi::Env env, unsigned int val)
+{
+  return Napi::Number::New(env, val);
+}
+}
+
+%fragment(SWIG_AsVal_frag(unsigned int),"header") {
+SWIGINTERN
+int SWIG_AsVal_dec(unsigned int)(Napi::Value valRef, unsigned int* val)
+{
+  if (!valRef.IsNumber()) {
+    return SWIG_TypeError;
+  }
+  if (val) {
+    Napi::Number num;
+    NAPI_CHECK_RESULT(valRef.ToNumber(), num);
+    *val = static_cast<unsigned int>(num.Uint32Value());
+  }
+
+  return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
+}
+}
+
+
+/* short */
+
+%fragment(SWIG_From_frag(short),"header", fragment="SWIG_Env_FromShort") {
+#define SWIG_From_short(d) SWIG_Env_FromShort(env, d)
+}
+%fragment("SWIG_Env_FromShort", "header") {
+SWIGINTERN
+Napi::Value SWIG_Env_FromShort(Napi::Env env, short val)
+{
+  return Napi::Number::New(env, val);
+}
+}
+
+%fragment(SWIG_AsVal_frag(short),"header") {
+SWIGINTERN
+int SWIG_AsVal_dec(short)(Napi::Value valRef, short* val)
+{
+  if (!valRef.IsNumber()) {
+    return SWIG_TypeError;
+  }
+  if (val) {
+    Napi::Number num;
+    NAPI_CHECK_RESULT(valRef.ToNumber(), num);
+    *val = static_cast<short>(num.Int32Value());
+  }
+
+  return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
+}
+}
+
+
+/* unsigned short */
+
+%fragment(SWIG_From_frag(unsigned short),"header", fragment="SWIG_Env_FromUShort") {
+#define SWIG_From_unsigned_SS_short(d) SWIG_Env_FromUShort(env, d)
+}
+%fragment("SWIG_Env_FromUShort", "header") {
+SWIGINTERN
+Napi::Value SWIG_Env_FromUShort(Napi::Env env, unsigned short val)
+{
+  return Napi::Number::New(env, val);
+}
+}
+
+%fragment(SWIG_AsVal_frag(unsigned short),"header") {
+SWIGINTERN
+int SWIG_AsVal_dec(unsigned short)(Napi::Value valRef, unsigned short* val)
+{
+  if (!valRef.IsNumber()) {
+    return SWIG_TypeError;
+  }
+  if (val) {
+    Napi::Number num;
+    NAPI_CHECK_RESULT(valRef.ToNumber(), num);
+    *val = static_cast<unsigned short>(num.Uint32Value());
+  }
+
+  return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
+}
+}
+
+
 /* long */
 
 %fragment(SWIG_From_frag(long),"header", fragment="SWIG_Env_FromLong") {
@@ -104,11 +207,11 @@ fail:
 /* unsigned long */
 
 %fragment(SWIG_From_frag(unsigned long),"header", fragment="SWIG_Env_FromULong") {
-#define SWIG_From_unsigned_long(d) SWIG_Env_FromULong(env, d)
+#define SWIG_From_unsigned_SS_long(d) SWIG_Env_FromULong(env, d)
 }
 %fragment("SWIG_Env_FromULong", "header") {
 SWIGINTERN
-Napi::Value SWIG_Env_FromUlong(Napi::Env env, unsigned long val)
+Napi::Value SWIG_Env_FromULong(Napi::Env env, unsigned long val)
 {
   return Napi::Number::New(env, val);
 }
@@ -217,6 +320,42 @@ fail:
 }
 %#endif
 }
+
+
+/* float */
+
+%fragment(SWIG_From_frag(float),"header", fragment="SWIG_Env_FromFloat") {
+#define SWIG_From_float(d) SWIG_Env_FromFloat(env, d)
+}
+%fragment("SWIG_Env_FromFloat", "header") {
+SWIGINTERN
+Napi::Value SWIG_Env_FromFloat(Napi::Env env, float val)
+{
+  return Napi::Number::New(env, val);
+}
+}
+
+%fragment(SWIG_AsVal_frag(float),"header") {
+SWIGINTERN
+int SWIG_AsVal_dec(float)(Napi::Value obj, float *val)
+{
+  if(!obj.IsNumber()) {
+    return SWIG_TypeError;
+  }
+
+  if(val) {
+    Napi::Number num;
+    NAPI_CHECK_RESULT(obj.ToNumber(), num);
+    *val = static_cast<float>(num.DoubleValue());
+  }
+
+  return SWIG_OK;
+  goto fail;
+fail:
+  return SWIG_ERROR;
+}
+}
+
 
 /* double */
 

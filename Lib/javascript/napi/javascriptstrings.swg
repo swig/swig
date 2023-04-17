@@ -56,6 +56,34 @@ SWIG_Env_FromChar(Napi::Env env, char c)
 }
 
 
+%fragment(SWIG_From_frag(unsigned char), "header", fragment="SWIG_Env_FromUChar") {
+#define SWIG_From_unsigned_SS_char(c) SWIG_Env_FromUChar(env, c)
+}
+%fragment("SWIG_Env_FromUChar", "header") {
+SWIGINTERNINLINE Napi::Value
+SWIG_Env_FromUChar(Napi::Env env, unsigned char c)
+{
+  auto u = static_cast<char>(c);
+  Napi::String js_str = Napi::String::New(env, &u, 1);
+  return js_str;
+}
+}
+
+
+%fragment(SWIG_From_frag(signed char), "header", fragment="SWIG_Env_FromSChar") {
+#define SWIG_From_signed_SS_char(c) SWIG_Env_FromSChar(env, c)
+}
+%fragment("SWIG_Env_FromSChar", "header") {
+SWIGINTERNINLINE Napi::Value
+SWIG_Env_FromSChar(Napi::Env env, signed char c)
+{
+  auto u = static_cast<char>(c);
+  Napi::String js_str = Napi::String::New(env, &u, 1);
+  return js_str;
+}
+}
+
+
 %fragment("SWIG_FromCharPtr", "header", fragment = "SWIG_Env_FromCharPtrAndSize") {
 #define SWIG_FromCharPtr(charPtr) SWIG_Env_FromCharPtrAndSize(env, charPtr, strlen(charPtr))
 }

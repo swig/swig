@@ -2417,8 +2417,6 @@ int V8Emitter::emitNamespaces() {
  **********************************************************************/
 
 class NAPIEmitter : public JSEmitter {
-  String *getVetoedName(String *, String *);
-
 public:
   NAPIEmitter();
 
@@ -2473,7 +2471,7 @@ protected:
 
 NAPIEmitter::NAPIEmitter()
     : JSEmitter(JSEmitter::NAPI), NULL_STR(NewString("0")),
-      VETO_SET(NewString("nullptr")) {}
+      VETO_SET(NewString("JS_veto_set_variable")) {}
 
 NAPIEmitter::~NAPIEmitter() {
   Delete(NULL_STR);
@@ -2708,33 +2706,18 @@ int NAPIEmitter::enterVariable(Node *n) {
   return SWIG_OK;
 }
 
-String *NAPIEmitter::getVetoedName(String *clazz, String *name) {
-  String *r;
-  if (name == VETO_SET) {
-    return Copy(VETO_SET);
-  }
-  r = NewString("&");
-  Append(r, clazz);
-  Append(r, "_templ::");
-  Append(r, name);
-  return r;
-}
-
 int NAPIEmitter::exitVariable(Node *n) {
   if (GetFlag(n, "ismember")) {
-    String *getterName =
-        getVetoedName(state.clazz(NAME_MANGLED), state.variable(GETTER));
-    String *setterName =
-        getVetoedName(state.clazz(NAME_MANGLED), state.variable(SETTER));
-
     String *modifier = NewStringEmpty();
     if (GetFlag(state.variable(), IS_STATIC) ||
         Equal(Getattr(n, "nodeType"), "enumitem")) {
       Template t_register = getTemplate("jsnapi_register_static_variable");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
           .replace("$jsname", state.variable(NAME))
-          .replace("$jsgetter", getterName)
-          .replace("$jssetter", setterName)
+          .replace("$jsgetter", state.variable(GETTER))
+          .replace("$jssetter", state.variable(SETTER) != VETO_SET
+                                    ? state.variable(SETTER)
+                                    : "JS_veto_set_static_variable")
           .trim()
           .pretty_print(f_init_static_wrappers);
       Append(modifier, "static");
@@ -2742,8 +2725,8 @@ int NAPIEmitter::exitVariable(Node *n) {
       Template t_register = getTemplate("jsnapi_register_member_variable");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
           .replace("$jsname", state.variable(NAME))
-          .replace("$jsgetter", getterName)
-          .replace("$jssetter", setterName)
+          .replace("$jsgetter", state.variable(GETTER))
+          .replace("$jssetter", state.variable(SETTER))
           .trim()
           .pretty_print(f_init_wrappers);
     }
@@ -2770,8 +2753,6 @@ int NAPIEmitter::exitVariable(Node *n) {
           .pretty_print(f_class_declarations);
     }
     Delete(modifier);
-    Delete(setterName);
-    Delete(getterName);
   } else {
     Template t_register = getTemplate("jsnapi_register_global_variable");
     t_register.replace("$jsparent", Getattr(current_namespace, NAME_MANGLED))

@@ -564,7 +564,20 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_class_epilogue_template", "templates")
 %{
-  };
+protected:
+  static void JS_veto_set_static_variable(const Napi::CallbackInfo &, const Napi::Value &);
+  void JS_veto_set_variable(const Napi::CallbackInfo &, const Napi::Value &);
+};
+
+template <class T>
+void $jsmangledname_templ<T>::JS_veto_set_static_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
+  SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
+}
+
+template <class T>
+void $jsmangledname_templ<T>::JS_veto_set_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
+  SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
+}
 %}
 
 
@@ -699,12 +712,12 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * jsnapi_register_member_variable:  template for a statement that registers a member variable.
  *   - $jsname:         name of the function
  *   - $jsmangledname:  mangled class name
- *   - $jsgetter:       wrapper of the getter function including & and the class prefix
- *   - $jssetter:       wrapper of the setter function including & and the class prefix
+ *   - $jsgetter:       wrapper of the getter function
+ *   - $jssetter:       wrapper of the setter function
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_member_variable", "templates")
 %{
-  InstanceAccessor("$jsname", $jsgetter, $jssetter),
+  InstanceAccessor("$jsname", &$jsmangledname_inst::$jsgetter, &$jsmangledname_inst::$jssetter),
 %}
 
 /* -----------------------------------------------------------------------------
@@ -722,10 +735,10 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * jsnapi_register_static_variable:  template for a statement that registers a static variable.
  *   - $jsname:         variable name
  *   - $jsmangledname:  mangled class name
- *   - $jsgetter:       wrapper of the getter function including & and the class prefix
- *   - $jssetter:       wrapper of the setter function including & and the class prefix
+ *   - $jsgetter:       wrapper of the getter function
+ *   - $jssetter:       wrapper of the setter function
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_static_variable", "templates")
 %{
-  StaticAccessor("$jsname", $jsgetter, $jssetter),
+  StaticAccessor("$jsname", &$jsmangledname_inst::$jsgetter, &$jsmangledname_inst::$jssetter),
 %}

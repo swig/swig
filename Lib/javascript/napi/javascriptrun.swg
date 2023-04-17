@@ -66,6 +66,10 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj, const char *msg)
 
 #endif
 
+void JS_veto_set_variable(const Napi::CallbackInfo &info) {
+  SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
+}
+
 typedef Napi::FunctionReference* SWIGNAPI_ClientData;
 
 template <class T>

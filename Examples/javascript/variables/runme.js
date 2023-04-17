@@ -32,10 +32,10 @@ console.log("dvar      = " + example.dvar);
 console.log("cvar      = " + example.cvar);
 console.log("strvar    = " + example.strvar);
 console.log("cstrvar   = " + example.cstrvar);
-console.log("iptrvar   = " + example.iptrvar);
+console.log("iptrvar   = " + example.ptr_print(example.iptrvar));
 console.log("name      = " + example.name);
-console.log("ptptr     = " + example.ptptr + ": " + example.Point_print(example.ptptr));
-console.log("pt        = " + example.pt + ": " + example.Point_print(example.pt));
+console.log("ptptr     = " + example.ptr_print(example.ptptr) + ": " + example.Point_print(example.ptptr));
+console.log("pt        = " + example.ptr_print(example.pt) + ": " + example.Point_print(example.pt));
 
 
 console.log("\nVariables (values printed from C)");
