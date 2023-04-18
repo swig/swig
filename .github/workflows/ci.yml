@@ -177,9 +177,8 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: scilab
           VER: '5.5.2'
-        #- SWIGLANG: scilab
-        #  os: ubuntu-18.04 # scilab 6.0
         - SWIGLANG: scilab
+          VER: '6.0.2'
         - SWIGLANG: tcl
         # c++11 testing
         - SWIGLANG: csharp
