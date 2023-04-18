@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-04-18: davidcl
+	    [Scilab] #894 extract values with ":" for typemap (int* IN, int IN_SIZE)
+
 2023-04-14: olly
 	    [PHP7] Support for PHP7 has been removed.  PHP7 security support
 	    ended 2022-11-28 so it doesn't make sense to include support for
