@@ -1707,6 +1707,14 @@ int JSCEmitter::enterVariable(Node *n) {
 }
 
 int JSCEmitter::exitVariable(Node *n) {
+  // Due to special handling of C++ "static const" member variables
+  // (refer to the comment in lang.cxx:Language::staticmembervariableHandler)
+  // a static const member variable may get transformed into a constant
+  // and be emitted by emitConstant which will result calling exitVariable twice
+  if (GetFlag(n, "symbol_emitted"))
+    return SWIG_OK;
+  SetFlag(n, "symbol_emitted");
+
   Template t_variable(getTemplate("jsc_variable_declaration"));
   t_variable.replace("$jsname", state.variable(NAME))
       .replace("$jsgetter", state.variable(GETTER))
@@ -2085,6 +2093,14 @@ int V8Emitter::enterVariable(Node *n) {
 }
 
 int V8Emitter::exitVariable(Node *n) {
+  // Due to special handling of C++ "static const" member variables
+  // (refer to the comment in lang.cxx:Language::staticmembervariableHandler)
+  // a static const member variable may get transformed into a constant
+  // and be emitted by emitConstant which will result calling exitVariable twice
+  if(GetFlag(n, "symbol_emitted"))
+    return SWIG_OK;
+  SetFlag(n, "symbol_emitted");
+
   if (GetFlag(n, "ismember")) {
     if (GetFlag(state.variable(), IS_STATIC) || Equal(Getattr(n, "nodeType"), "enumitem")) {
       Template t_register = getTemplate("jsv8_register_static_variable");
