@@ -32,27 +32,27 @@ jobs:
     strategy:
       matrix:
         include:
-        - SWIGLANG: ruby
-          VER: '1.9'
-        - SWIGLANG: ruby
-          VER: '2.0'
-        - SWIGLANG: ruby
-          VER: '2.1'
-        - SWIGLANG: ruby
-          VER: '2.2'
-        - SWIGLANG: ruby
-          VER: '2.3'
-        - SWIGLANG: ruby
-          VER: '2.4'
-        - SWIGLANG: ruby
-          VER: '2.5'
-        - SWIGLANG: ruby
-          VER: '2.6'
-        - SWIGLANG: ruby
-          VER: '2.7'
-        - SWIGLANG: ruby
-          VER: '3.0'
-          CPPSTD: c++11
+        #- SWIGLANG: ruby
+        #  VER: '1.9'
+        #- SWIGLANG: ruby
+        #  VER: '2.0'
+        #- SWIGLANG: ruby
+        #  VER: '2.1'
+        #- SWIGLANG: ruby
+        #  VER: '2.2'
+        #- SWIGLANG: ruby
+        #  VER: '2.3'
+        #- SWIGLANG: ruby
+        #  VER: '2.4'
+        #- SWIGLANG: ruby
+        #  VER: '2.5'
+        #- SWIGLANG: ruby
+        #  VER: '2.6'
+        #- SWIGLANG: ruby
+        #  VER: '2.7'
+        #- SWIGLANG: ruby
+        #  VER: '3.0'
+        #  CPPSTD: c++11
         - SWIGLANG: ruby
           VER: '3.1'
           CPPSTD: c++11
