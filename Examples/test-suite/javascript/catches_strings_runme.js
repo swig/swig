@@ -4,7 +4,7 @@ exception_thrown = false;
 try {
   catches_strings.StringsThrower.charstring();
 } catch (e) {
-  if (!e.message.includes("charstring message"))
+  if (!(e.message || e).includes("charstring message"))
     throw new Error("incorrect exception message " + e.message);
   exception_thrown = true;
 }
@@ -15,7 +15,7 @@ exception_thrown = false;
 try {
   catches_strings.StringsThrower.stdstring();
 } catch (e) {
-  if (!e.message.includes("stdstring message"))
+  if (!(e.message || e).includes("stdstring message"))
     throw new Error("incorrect exception message " + e.message);
   exception_thrown = true;
 }
