@@ -25,7 +25,11 @@ case "$SWIGLANG" in
 	"ruby")
 		if ! command -v rvm; then
 			set +x
-			source $HOME/.rvm/scripts/rvm
+			if [ -f /etc/profile.d/rvm.sh ] ; then
+				source /etc/profile.d/rvm.sh
+			elif [ -f $HOME/.rvm/scripts/rvm ] ; then
+				source $HOME/.rvm/scripts/rvm
+			fi
 			set -x
 		fi
 		;;
