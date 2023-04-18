@@ -117,32 +117,35 @@ case "$SWIGLANG" in
 		$RETRY sudo apt-get -qq install r-base
 		;;
 	"ruby")
-		if ! command -v rvm; then
+		if [[ "$VER" ]]; then
 			case "$VER" in
-				1.9 | 2.0 | 2.1 | 2.2 | 2.3 )
-					$RETRY sudo apt-get -qq install libgdbm-dev libncurses5-dev libyaml-dev libssl1.0-dev
+				3.1 | 3.2 )
+					# Ruby 3.1+ support is currently only rvm master (2023-04-19)
+					# YOLO
+					curl -sSL https://rvm.io/mpapis.asc | gpg --import -
+					curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
+					curl -sSL https://get.rvm.io | bash -s stable
+					set +x
+					$RETRY rvm get master
+					rvm reload
+					rvm list known
+					source $HOME/.rvm/scripts/rvm
+					set -x
+					;;
+				* )
+					# Install from PPA as that also contains packages needed for the build.
+					sudo apt-add-repository -y ppa:rael-gc/rvm
+					sudo apt-get update
+					sudo apt-get install rvm
+					sudo usermod -a -G rvm $USER
+					set +x
+					source /etc/profile.d/rvm.sh
+					set -x
 					;;
 			esac
-			# YOLO
-			curl -sSL https://rvm.io/mpapis.asc | gpg --import -
-			curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
-			curl -sSL https://get.rvm.io | bash -s stable
 			set +x
-			source $HOME/.rvm/scripts/rvm
-			set -x
-		fi
-		case "$VER" in
-			2.7 | 3.0 | 3.1 )
-				# Ruby 2.7+ support is currently only rvm master (30 Dec 2019)
-			        set +x
-				$RETRY rvm get master
-				rvm reload
-				rvm list known
-			        set -x
-				;;
-		esac
-		if [[ "$VER" ]]; then
 			$RETRY rvm install $VER
+			set -x
 		fi
 		;;
 	"scilab")
