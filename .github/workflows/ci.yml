@@ -34,8 +34,8 @@ jobs:
         include:
         #- SWIGLANG: ruby
         #  VER: '1.9'
-        #- SWIGLANG: ruby
-        #  VER: '2.0'
+        - SWIGLANG: ruby
+          VER: '2.0'
         #- SWIGLANG: ruby
         #  VER: '2.1'
         #- SWIGLANG: ruby
@@ -53,9 +53,9 @@ jobs:
         #- SWIGLANG: ruby
         #  VER: '3.0'
         #  CPPSTD: c++11
-        - SWIGLANG: ruby
-          VER: '3.1'
-          CPPSTD: c++11
+        #- SWIGLANG: ruby
+        #  VER: '3.1'
+        #  CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
         - SWIGLANG: ruby
