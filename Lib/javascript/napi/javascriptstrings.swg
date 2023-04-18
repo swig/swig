@@ -37,6 +37,7 @@ SWIG_AsCharPtrAndSize(Napi::Value valRef, char** cptr, size_t* psize, int *alloc
       }
     }
   }
+  goto fail;
 fail:
   return SWIG_TypeError;
 }
