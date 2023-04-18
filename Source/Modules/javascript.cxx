@@ -2716,6 +2716,14 @@ int NAPIEmitter::enterVariable(Node *n) {
 }
 
 int NAPIEmitter::exitVariable(Node *n) {
+  // Due to special handling of C++ "static const" member variables
+  // (refer to the comment in lang.cxx:Language::staticmembervariableHandler)
+  // a static const member variable may get transformed into a constant
+  // and be emitted by emitConstant which will result calling exitVariable twice
+  if (GetFlag(n, "symbol_emitted"))
+    return SWIG_OK;
+  SetFlag(n, "symbol_emitted");
+
   if (GetFlag(n, "ismember")) {
     String *modifier = NewStringEmpty();
     if (GetFlag(state.variable(), IS_STATIC) ||

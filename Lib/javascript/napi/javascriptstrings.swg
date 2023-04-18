@@ -75,6 +75,10 @@ SWIG_From_signed_SS_char(Napi::Env env, signed char c)
 }
 }
 
+%fragment("SWIG_FromCharPtr", "header", fragment = "SWIG_FromCharPtrAndSize") {
+// Override the default one with an empty one
+}
+
 %fragment("SWIG_FromCharPtrAndSize", "header") {
 SWIGINTERNINLINE Napi::Value
 SWIG_Env_FromCharPtrAndSize(Napi::Env env, const char* carray, size_t size)
