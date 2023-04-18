@@ -31,7 +31,7 @@
 
 %typemap(in, fragment=NAME) CTYPE[ANY] {
   if ($input.IsArray()) {
-    Napi::Env env = input.Env();
+    Napi::Env env = $input.Env();
     // Convert into Array
     Napi::Array array = $input.As<Napi::Array>();
 
@@ -52,7 +52,7 @@
       arg$argnum[i] = temp;
     }
   } else {
-    Napi::Env env = input.Env();
+    Napi::Env env = $input.Env();
     SWIG_Error(SWIG_ERROR, "$input is not an array");
   }
 }

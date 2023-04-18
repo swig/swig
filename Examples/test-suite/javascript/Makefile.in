@@ -68,7 +68,8 @@ _setup = \
 
 SWIGOPT += -$(JSENGINE)
 
-ifeq (node,$(JSENGINE))
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
+  SWIGOPT += -DBUILDING_NODE_EXTENSION=1
 
   # shut up some warnings
 

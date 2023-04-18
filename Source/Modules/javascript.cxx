@@ -1312,6 +1312,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool is_member) {
 
   // call this here, to replace all variables
   t_function.replace("$jswrapper", final_wrap_name)
+      .replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsname", state.function(NAME))
       .pretty_print(f_wrappers);
 
@@ -2436,6 +2437,7 @@ protected:
                                 bool is_static);
   virtual int emitNamespaces();
   virtual int emitCtor(Node *);
+  virtual int emitClassMethodDeclaration(Node *);
 
   virtual const char *getFunctionTemplate(bool is_member);
   virtual const char *getFunctionDispatcherTemplate(bool is_member);
@@ -2773,36 +2775,38 @@ int NAPIEmitter::exitVariable(Node *n) {
   return SWIG_OK;
 }
 
+int NAPIEmitter::emitClassMethodDeclaration(Node *) {
+  // emit declaration of a class member function
+  Template t_def_class = getTemplate("jsnapi_class_method_declaration");
+  t_def_class.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsname", state.clazz(NAME))
+      .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+      .replace("$jsdtor", state.clazz(DTOR))
+      .replace("$jswrapper", state.function(WRAPPER_NAME))
+      .replace("$jsstatic", GetFlag(state.function(), IS_STATIC) ? "static" : "")
+      .trim()
+      .pretty_print(f_class_declarations);
+
+  return SWIG_OK;
+}
+
 int NAPIEmitter::exitFunction(Node *n) {
   bool is_member =
       GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
-  String *modifier = NewStringEmpty();
 
   // create a dispatcher for overloaded functions
   bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
   if (is_overloaded) {
+    emitClassMethodDeclaration(n);
     if (!Getattr(n, "sym:nextSibling")) {
-      // state.function(WRAPPER_NAME, Swig_name_wrapper(Getattr(n, "name")));
       emitFunctionDispatcher(n, is_member);
-    } else {
-      // emit declaration of a class member function
-      Template t_def_class = getTemplate("jsnapi_class_method_declaration");
-      t_def_class.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-          .replace("$jsname", state.clazz(NAME))
-          .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
-          .replace("$jsdtor", state.clazz(DTOR))
-          .replace("$jswrapper", state.function(WRAPPER_NAME))
-          .replace("$jsstatic", modifier)
-          .trim()
-          .pretty_print(f_class_declarations);
-      Delete(modifier);
-      return SWIG_OK;
+      emitClassMethodDeclaration(n);
     }
+    return SWIG_OK;
   }
   // register the function at the specific context
   if (is_member) {
     if (GetFlag(state.function(), IS_STATIC)) {
-      Append(modifier, "static");
       Template t_register = getTemplate("jsnapi_register_static_function");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
           .replace("$jsname", state.function(NAME))
@@ -2818,16 +2822,7 @@ int NAPIEmitter::exitFunction(Node *n) {
           .pretty_print(f_init_wrappers);
     }
 
-    // emit declaration of a class member function
-    Template t_def_class = getTemplate("jsnapi_class_method_declaration");
-    t_def_class.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-        .replace("$jsname", state.clazz(NAME))
-        .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
-        .replace("$jsdtor", state.clazz(DTOR))
-        .replace("$jswrapper", state.function(WRAPPER_NAME))
-        .replace("$jsstatic", modifier)
-        .trim()
-        .pretty_print(f_class_declarations);
+    emitClassMethodDeclaration(n);
   } else {
     // Note: a global function is treated like a static function
     //       with the parent being a nspace object instead of class object
@@ -2839,7 +2834,6 @@ int NAPIEmitter::exitFunction(Node *n) {
         .pretty_print(f_init_register_namespaces);
   }
 
-  Delete(modifier);
   return SWIG_OK;
 }
 

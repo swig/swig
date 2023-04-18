@@ -6,6 +6,13 @@
  *  Fragment section
  * ------------------------------------------------------------ */
 
+/* These macros are necessary to provide an extra parameter
+   to SWIG_AsVal_dec functions (Napi::Env environment).
+   They must be defined before including `typemaps/fragments.swg`
+*/
+#define SWIG_FROM_DECL_ARGS SWIG_NAPI_FROM_DECL_ARGS
+#define SWIG_FROM_CALL_ARGS SWIG_NAPI_FROM_CALL_ARGS
+
 /* Include fundamental fragemt definitions */
 %include <typemaps/fragments.swg>
 
@@ -38,6 +45,12 @@
 
 /* raise */
 #define SWIG_Raise(obj, type, desc)  SWIG_NAPI_Raise(env, obj, type)
+
+%insert("runtime") %{
+#define SWIG_NAPI_FROM_DECL_ARGS(arg1)              (Napi::Env env, arg1)
+#define SWIG_NAPI_FROM_CALL_ARGS(arg1)              (env, arg1)
+%}
+
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>

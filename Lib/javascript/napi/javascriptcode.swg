@@ -10,6 +10,7 @@
 
 %fragment("js_ctor", "templates") %{
 template <class T>
+// js_ctor
 // This is the main constructor
 $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
         : $jsparent_templ<T>(true, info) {
@@ -46,9 +47,10 @@ $jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &in
  * ----------------------------------------------------------------------------- */
 %fragment ("js_veto_ctor", "templates")
 %{
+// js_veto_ctor
 template <class T>
 $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : SwigNapiObjectWrap_templ<T>(info) {
+        : $jsparent_templ<T>(info) {
   Napi::Env env = info.Env();
   SWIG_Error(SWIG_ERROR, "Class $jsname can not be instantiated");
   return;
@@ -73,9 +75,10 @@ $jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &in
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor_dispatcher", "templates")
 %{
+// js_ctor_dispatcher
 template <class T>
 $jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : $jsparent_templ<T>(info) {
+        : $jsparent_templ<T>(true, info) {
   Napi::Env env = info.Env();
   Napi::Object self;
   NAPI_CHECK_RESULT(info.This().ToObject(), self);
@@ -108,6 +111,7 @@ $jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &in
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
 %fragment("js_overloaded_ctor", "templates") %{
+// js_overloaded_ctor
 template <class T>
 Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
@@ -135,6 +139,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor_dispatch_case", "templates")
 %{
+  // js_ctor_dispatch_case
   if(info.Length() == $jsargcount) {
 #ifdef NAPI_CPP_EXCEPTIONS
     bool tryNext = false;
@@ -179,6 +184,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_dtor", "templates")
 %{
+// js_dtor
 template <class T>
 $jsmangledname_templ<T>::~$jsmangledname_templ() {
 }
@@ -193,6 +199,7 @@ $jsmangledname_templ<T>::~$jsmangledname_templ() {
  * ----------------------------------------------------------------------------- */
 %fragment ("js_dtoroverride", "templates")
 %{
+// js_dtoroverride
 template <class T>
 ${classname_mangled}_templ<T>::~${classname_mangled}_templ() {
   auto arg1 = reinterpret_cast<$jstype>(this->self);
@@ -211,6 +218,7 @@ ${classname_mangled}_templ<T>::~${classname_mangled}_templ() {
  * ----------------------------------------------------------------------------- */
 %fragment("js_global_getter", "templates")
 %{
+// js_global_getter
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
@@ -233,6 +241,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_global_setter", "templates")
 %{
+// js_global_setter
 void $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value value = info.Length() > 0 ? info[0] : Napi::Value();
@@ -258,6 +267,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_global_variable", "templates")
 %{
+  // jsnapi_register_global_variable
   do {
     Napi::PropertyDescriptor pd = Napi::PropertyDescriptor::Accessor<$jsgetter, $jssetter>("$jsname");
     NAPI_CHECK_MAYBE(exports.DefineProperties({pd}));
@@ -273,6 +283,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_global_function", "templates")
 %{
+// js_global_function
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
@@ -299,6 +310,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_global_function_dispatcher", "templates")
 %{
+// js_global_function_dispatcher
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
@@ -322,6 +334,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_global_function", "templates")
 %{
+  // jsnapi_register_global_function
   do {
     Napi::PropertyDescriptor pd = Napi::PropertyDescriptor::Function("$jsname", $jswrapper);
     NAPI_CHECK_MAYBE(exports.DefineProperties({pd}));
@@ -338,6 +351,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_getter", "templates")
 %{
+// js_getter
 template <class T>
 Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
@@ -362,6 +376,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_setter", "templates")
 %{
+// js_setter
 template <class T>
 void $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info, const Napi::Value &value) {
   Napi::Env env = info.Env();
@@ -386,6 +401,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_function", "templates")
 %{
+// js_function
 template <class T>
 Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
@@ -413,8 +429,9 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_function_dispatcher", "templates")
 %{
+// js_function_dispatcher
 template <class T>
-$jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
+Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jscode
@@ -436,6 +453,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_function", "templates")
 %{
+// js_overloaded_function
 template <class T>
 Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
@@ -459,6 +477,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_global_overloaded_function", "templates")
 %{
+// js_global_overloaded_function
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
@@ -481,6 +500,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment ("js_function_dispatch_case", "templates")
 %{
+  // js_function_dispatch_case
   if(info.Length() == $jsargcount) {
 #ifdef NAPI_CPP_EXCEPTIONS
     bool tryNext = false;
@@ -524,6 +544,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_class_prologue_template", "templates")
 %{
+  // jsnapi_class_prologue_template
   template <class T>
   class $jsmangledname_templ : public $jsparent_templ<T> {
     public:
@@ -541,6 +562,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_class_method_declaration", "templates")
 %{
+    // jsnapi_class_method_declaration
     $jsstatic Napi::Value $jswrapper(const Napi::CallbackInfo &);
 %}
 
@@ -553,6 +575,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_class_setter_declaration", "templates")
 %{
+    // jsnapi_class_setter_declaration
     $jsstatic void $jswrapper(const Napi::CallbackInfo &, const Napi::Value &);
 %}
 
@@ -564,6 +587,7 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_class_epilogue_template", "templates")
 %{
+  // jsnapi_class_epilogue_template
   static void JS_veto_set_static_variable(const Napi::CallbackInfo &, const Napi::Value &);
   void JS_veto_set_variable(const Napi::CallbackInfo &, const Napi::Value &);
 };
@@ -586,6 +610,7 @@ void $jsmangledname_templ<T>::JS_veto_set_variable(const Napi::CallbackInfo &inf
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_declare_class_instance", "templates")
 %{
+  // jsnapi_class_instance
   class $jsmangledname_inst : public $jsmangledname_templ<$jsmangledname_inst> {
     public:
       using $jsmangledname_templ::$jsmangledname_templ;
@@ -608,6 +633,7 @@ void $jsmangledname_templ<T>::JS_veto_set_variable(const Napi::CallbackInfo &inf
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_inherited_class_prologue_template", "templates")
 %{
+  // jsnapi_inherited_class_prologue_template
   SWIGNAPI_ClientData $jsmangledname_clientData;
   template <class T>
   class $jsmangledname_templ : public $jsparent_templ<T> {
@@ -626,6 +652,7 @@ void $jsmangledname_templ<T>::JS_veto_set_variable(const Napi::CallbackInfo &inf
 %fragment("jsnapi_getclass", "templates")
 %{
   /* Class: $jsname ($jsmangledname) */
+  // jsnapi_getclass
 Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
   return Napi::ObjectWrap<$jsmangledname_inst>::DefineClass(
     env,
@@ -651,6 +678,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
 %{
 
   /* Class: $jsname ($jsmangledname) */
+  // jsnapi_registerclass
   Napi::Function $jsmangledname_ctor = $jsmangledname_inst::GetClass(env);
   $jsparent.Set("$jsname", $jsmangledname_ctor);
   if (SWIGTYPE_$jsmangledtype->clientdata == nullptr) {
@@ -670,6 +698,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
 %fragment("jsnapi_setup_inheritance", "templates")
 %{
   // Inheritance for $jsmangledname ($jsname) <- $jsparent
+  // jsnapi_setup_inheritance
   do {
     Napi::Value protoBase, protoSub;
     NAPI_CHECK_RESULT($jsmangledname_ctor.Get("prototype"), protoSub);
@@ -685,6 +714,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_create_namespace", "templates")
 %{
+  // jsnapi_create_namespace
   Napi::Object $jsmangledname = Napi::Object::New(env);
 %}
 
@@ -696,6 +726,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_namespace", "templates")
 %{
+  // jsnapi_register_namespace
   NAPI_CHECK_MAYBE($jsparent.Set("$jsname", $jsmangledname));
 %}
 
@@ -719,6 +750,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_member_variable", "templates")
 %{
+  // jsnapi_register_member_variable
   InstanceAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter),
 %}
 
@@ -730,6 +762,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_static_function", "templates")
 %{
+  // jsnapi_register_static_function
   StaticMethod("$jsname", &$jsmangledname_templ::$jswrapper),
 %}
 
@@ -742,5 +775,6 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_static_variable", "templates")
 %{
+  // jsnapi_register_static_variable
   StaticAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter),
 %}
