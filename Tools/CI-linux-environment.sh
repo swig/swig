@@ -27,7 +27,7 @@ case "$SWIGLANG" in
 			set +x
 			if [ -f /etc/profile.d/rvm.sh ] ; then
 				source /etc/profile.d/rvm.sh
-			else
+			elif [ -f $HOME/.rvm/scripts/rvm ] ; then
 				source $HOME/.rvm/scripts/rvm
 			fi
 			set -x
