@@ -4,18 +4,26 @@
 
 %insert(init) %{
 
-void noopFinalizer(Napi::Env, swig_module_info *) {}
+EnvInstanceData::EnvInstanceData(Napi::Env env, swig_module_info *swig_module) :
+env(env), ctor(nullptr), swig_module(swig_module) {
+  ctor = new Napi::FunctionReference*[sizeof(swig_types) / sizeof(swig_types[0])];
+}
+
+EnvInstanceData::~EnvInstanceData() {
+  delete [] ctor;
+}
 
 SWIGRUNTIME void
 SWIG_NAPI_SetModule(Napi::Env env, swig_module_info *swig_module) {
-  // If we don't pass a finalizer, napi will take the liberty
-  // to free the structure
-  env.SetInstanceData<swig_module_info, noopFinalizer>(swig_module);
+  auto data = new EnvInstanceData(env, swig_module);
+  env.SetInstanceData(data);
 }
 
 SWIGRUNTIME swig_module_info *
 SWIG_NAPI_GetModule(Napi::Env env) {
-  return env.GetInstanceData<swig_module_info>();
+  auto data = env.GetInstanceData<EnvInstanceData>();
+  if (data == nullptr) return nullptr;
+  return data->swig_module;
 }
 
 #define SWIG_GetModule(clientdata)                SWIG_NAPI_GetModule(clientdata)
@@ -30,9 +38,6 @@ SWIG_NAPI_GetModule(Napi::Env env) {
 
 %fragment ("js_initializer_define", "templates") %{
 #define SWIGNAPI_INIT $jsname_initialize
-%}
-
-%insert(init) %{
 %}
 
 /* -----------------------------------------------------------------------------

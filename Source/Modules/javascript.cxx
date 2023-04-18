@@ -2467,11 +2467,14 @@ protected:
   String *NULL_STR;
   String *VETO_SET;
   String *moduleName;
+
+  // the current index in the class table
+  size_t class_idx;
 };
 
 NAPIEmitter::NAPIEmitter()
     : JSEmitter(JSEmitter::NAPI), NULL_STR(NewString("0")),
-      VETO_SET(NewString("JS_veto_set_variable")) {}
+      VETO_SET(NewString("JS_veto_set_variable")), class_idx(0) {}
 
 NAPIEmitter::~NAPIEmitter() {
   Delete(NULL_STR);
@@ -2603,13 +2606,17 @@ int NAPIEmitter::enterClass(Node *n) {
   JSEmitter::enterClass(n);
 
   //  emit registration of class template
+  String *idx = NewString("");
+  Printf(idx, "%d", class_idx++);
   Template t_register = getTemplate("jsnapi_registerclass");
   t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsname", state.clazz(NAME))
       .replace("$jsparent", Getattr(state.clazz("nspace"), NAME_MANGLED))
       .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
+      .replace("$jsclassidx", idx)
       .trim()
       .pretty_print(f_init_register_classes);
+  Delete(idx);
 
   // emit inheritance
   String *baseMangled;

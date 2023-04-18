@@ -564,7 +564,6 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_class_epilogue_template", "templates")
 %{
-protected:
   static void JS_veto_set_static_variable(const Napi::CallbackInfo &, const Napi::Value &);
   void JS_veto_set_variable(const Napi::CallbackInfo &, const Napi::Value &);
 };
@@ -646,17 +645,20 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  *   - $jsmangledname:  mangled class name
  *   - $jsparent:       parent namespace
  *   - $jsmangledtype:  mangled class type
+ *   - $jsclassidx:     class index in the class table
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_registerclass", "templates")
 %{
+
   /* Class: $jsname ($jsmangledname) */
   Napi::Function $jsmangledname_ctor = $jsmangledname_inst::GetClass(env);
   $jsparent.Set("$jsname", $jsmangledname_ctor);
-  if (SWIGTYPE_$jsmangledtype->clientdata == 0) {
-    Napi::FunctionReference *f = new Napi::FunctionReference();
-    *f = Napi::Persistent($jsmangledname_ctor);
-    SWIGTYPE_$jsmangledtype->clientdata = f;
+  if (SWIGTYPE_$jsmangledtype->clientdata == nullptr) {
+    SWIGTYPE_$jsmangledtype->clientdata = new size_t($jsclassidx);
   }
+  Napi::FunctionReference *$jsmangledname_ctor_ref = new Napi::FunctionReference();
+  *$jsmangledname_ctor_ref = Napi::Persistent($jsmangledname_ctor);
+  env.GetInstanceData<EnvInstanceData>()->ctor[$jsclassidx] = $jsmangledname_ctor_ref;
 %}
 
 /* -----------------------------------------------------------------------------

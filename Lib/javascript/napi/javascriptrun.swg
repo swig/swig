@@ -70,7 +70,17 @@ void JS_veto_set_variable(const Napi::CallbackInfo &info) {
   SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
 }
 
-typedef Napi::FunctionReference* SWIGNAPI_ClientData;
+struct EnvInstanceData {
+  Napi::Env env;
+  // Per-environment wrapper constructors, indexed by the number in
+  // swig_type->clientdata
+  Napi::FunctionReference **ctor;
+  swig_module_info *swig_module;
+  EnvInstanceData(Napi::Env, swig_module_info *);
+  ~EnvInstanceData();
+};
+
+typedef size_t SWIGNAPI_ClientData;
 
 template <class T>
 class SwigNapiObjectWrap_templ : public Napi::ObjectWrap<T> {
@@ -97,13 +107,19 @@ class SwigNapiObjectWrap_inst : public SwigNapiObjectWrap_templ<SwigNapiObjectWr
 
 SWIGRUNTIME int SWIG_Napi_ConvertInstancePtr(Napi::Object objRef, void **ptr, swig_type_info *info, int flags) {
   SwigNapiObjectWrap_inst *ow;
+  Napi::Env env = objRef.Env();
   if(!objRef.IsObject()) return SWIG_ERROR;
 
   if (!info) {
     return SWIG_ERROR;
   }
-  Napi::FunctionReference *ctor = reinterpret_cast<SWIGNAPI_ClientData>(info->clientdata);
-  if (ctor->IsEmpty()) {
+
+  size_t *idx = reinterpret_cast<SWIGNAPI_ClientData *>(info->clientdata);
+  if (idx == nullptr) {
+    return SWIG_ERROR;
+  }
+  Napi::FunctionReference *ctor = env.GetInstanceData<EnvInstanceData>()->ctor[*idx];
+  if (ctor == nullptr) {
     return SWIG_ERROR;
   }
 
@@ -179,18 +195,20 @@ fail:
 }
 
 SWIGRUNTIME Napi::Value SWIG_Napi_NewPointerObj(Napi::Env env, void *ptr, swig_type_info *info, int flags) {
-  Napi::External<void> native = Napi::External<void>::New(env, ptr);
-
-  Napi::FunctionReference *ctor = reinterpret_cast<SWIGNAPI_ClientData>(info->clientdata);
- 
-  if (ctor == nullptr) {
-    // This type is not known to SWIG and does not have a wrapper
-    return native;
-  }
+  Napi::External<void> native;
 
   if (ptr == nullptr) {
     return env.Null();
   }
+  native = Napi::External<void>::New(env, ptr);
+
+  size_t *idx = reinterpret_cast<SWIGNAPI_ClientData *>(info->clientdata);
+  if (idx == nullptr) {
+    // This type is not known to SWIG and does not have a wrapper
+    return native;
+  }
+
+  Napi::FunctionReference *ctor = env.GetInstanceData<EnvInstanceData>()->ctor[*idx];
 
   Napi::Value wrapped;
   NAPI_CHECK_RESULT(ctor->New({native}), wrapped);
