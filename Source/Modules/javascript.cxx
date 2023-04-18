@@ -2808,9 +2808,9 @@ int NAPIEmitter::exitFunction(Node *n) {
     emitClassMethodDeclaration(n);
     if (!Getattr(n, "sym:nextSibling")) {
       emitFunctionDispatcher(n, is_member);
-      emitClassMethodDeclaration(n);
+    } else {
+      return SWIG_OK;
     }
-    return SWIG_OK;
   }
   // register the function at the specific context
   if (is_member) {
