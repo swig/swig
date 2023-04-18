@@ -75,21 +75,21 @@ jobs:
         - SWIGLANG: guile
           VER: '3.0'
         - SWIGLANG: java
-        - SWIGLANG: javascript
-          ENGINE: node
-          VER: '6'
-          CPPSTD: c++11
-          os: ubuntu-18.04
-        - SWIGLANG: javascript
-          ENGINE: node
-          VER: '8'
-          CPPSTD: c++11
-          os: ubuntu-18.04
-        - SWIGLANG: javascript
-          ENGINE: node
-          VER: '10'
-          CPPSTD: c++11
-          os: ubuntu-18.04
+        #- SWIGLANG: javascript
+        #  ENGINE: node
+        #  VER: '6'
+        #  CPPSTD: c++11
+        #  os: ubuntu-18.04
+        #- SWIGLANG: javascript
+        #  ENGINE: node
+        #  VER: '8'
+        #  CPPSTD: c++11
+        #  os: ubuntu-18.04
+        #- SWIGLANG: javascript
+        #  ENGINE: node
+        #  VER: '10'
+        #  CPPSTD: c++11
+        #  os: ubuntu-18.04
         - SWIGLANG: javascript
           ENGINE: node
           VER: '12'
@@ -115,12 +115,12 @@ jobs:
           VER: '8.2'
         - SWIGLANG: python
           PY2: 2
-        - SWIGLANG: python
-          VER: '3.3'
-          os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
-        - SWIGLANG: python
-          VER: '3.4'
-          os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
+        #- SWIGLANG: python
+        #  VER: '3.3'
+        #  os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
+        #- SWIGLANG: python
+        #  VER: '3.4'
+        #  os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
         - SWIGLANG: python
           VER: '3.5'
         - SWIGLANG: python
@@ -146,21 +146,21 @@ jobs:
         - SWIGLANG: python
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: r
-        - SWIGLANG: ruby
-          VER: '1.9'
-          os: ubuntu-18.04
-        - SWIGLANG: ruby
-          VER: '2.0'
-          os: ubuntu-18.04
-        - SWIGLANG: ruby
-          VER: '2.1'
-          os: ubuntu-18.04
-        - SWIGLANG: ruby
-          VER: '2.2'
-          os: ubuntu-18.04
-        - SWIGLANG: ruby
-          VER: '2.3'
-          os: ubuntu-18.04
+        #- SWIGLANG: ruby
+        #  VER: '1.9'
+        #  os: ubuntu-18.04
+        #- SWIGLANG: ruby
+        #  VER: '2.0'
+        #  os: ubuntu-18.04
+        #- SWIGLANG: ruby
+        #  VER: '2.1'
+        #  os: ubuntu-18.04
+        #- SWIGLANG: ruby
+        #  VER: '2.2'
+        #  os: ubuntu-18.04
+        #- SWIGLANG: ruby
+        #  VER: '2.3'
+        #  os: ubuntu-18.04
         - SWIGLANG: ruby
           VER: '2.4'
         - SWIGLANG: ruby
@@ -177,8 +177,8 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: scilab
           VER: '5.5.2'
-        - SWIGLANG: scilab
-          os: ubuntu-18.04 # scilab 6.0
+        #- SWIGLANG: scilab
+        #  os: ubuntu-18.04 # scilab 6.0
         - SWIGLANG: scilab
           os: ubuntu-22.04 # scilab 6.1
         - SWIGLANG: scilab
@@ -311,11 +311,11 @@ jobs:
         # Experimental languages (these are allowed to fail)
         - SWIGLANG: mzscheme
           continue-on-error: true
-        - SWIGLANG: ocaml
-          CPPSTD: c++17
-          GCC: 11
-          continue-on-error: true
-          os: ubuntu-18.04 # ocaml-4.08 in ubuntu-20.04 not yet working
+        #- SWIGLANG: ocaml
+        #  CPPSTD: c++17
+        #  GCC: 11
+        #  continue-on-error: true
+        #  os: ubuntu-18.04 # ocaml-4.08 in ubuntu-20.04 not yet working
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -332,7 +332,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         submodules: recursive
 
