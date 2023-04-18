@@ -26,6 +26,7 @@ int SWIG_AsVal_dec(bool)(Napi::Value obj, bool *val)
   NAPI_CHECK_RESULT(obj.ToBoolean(), b);
   if (val) *val = b.Value();
   return SWIG_OK;
+  goto fail;
 fail:
   return SWIG_ERROR;
 }

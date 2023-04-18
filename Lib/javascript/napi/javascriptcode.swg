@@ -9,11 +9,11 @@
  * ----------------------------------------------------------------------------- */
 
 %fragment("js_ctor", "templates") %{
-template <class T>
+template <typename SWIG_OBJ_WRAP>
 // js_ctor
 // This is the main constructor
-$jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : $jsparent_templ<T>(true, info) {
+$jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackInfo &info)
+        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
   Napi::Env env = info.Env();
 
   if (info.Length() == 1 && info[0].IsExternal()) {
@@ -33,9 +33,9 @@ fail:
 }
 
 // This is the extendable constructor to be used from child classes
-template <class T>
-$jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
-        : $jsparent_templ<T>(true, info) {
+template <typename SWIG_OBJ_WRAP>
+$jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
+        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
 }
 %}
 
@@ -48,9 +48,9 @@ $jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &in
 %fragment ("js_veto_ctor", "templates")
 %{
 // js_veto_ctor
-template <class T>
-$jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : $jsparent_templ<T>(info) {
+template <typename SWIG_OBJ_WRAP>
+$jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackInfo &info)
+        : $jsparent_templ<SWIG_OBJ_WRAP>(info) {
   Napi::Env env = info.Env();
   SWIG_Error(SWIG_ERROR, "Class $jsname can not be instantiated");
   return;
@@ -60,9 +60,9 @@ fail:
 }
 
 // This is the extendable constructor to be used from child classes
-template <class T>
-$jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
-        : $jsparent_templ<T>(true, info) {
+template <typename SWIG_OBJ_WRAP>
+$jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
+        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
 }
 %}
 
@@ -76,9 +76,9 @@ $jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &in
 %fragment ("js_ctor_dispatcher", "templates")
 %{
 // js_ctor_dispatcher
-template <class T>
-$jsmangledname_templ<T>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : $jsparent_templ<T>(true, info) {
+template <typename SWIG_OBJ_WRAP>
+$jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackInfo &info)
+        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
   Napi::Env env = info.Env();
   Napi::Object self;
   NAPI_CHECK_RESULT(info.This().ToObject(), self);
@@ -95,9 +95,9 @@ fail:
 }
 
 // This is the extendable constructor to be used from child classes
-template <class T>
-$jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
-        : $jsparent_templ<T>(true, info) {
+template <typename SWIG_OBJ_WRAP>
+$jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
+        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
 }
 %}
 
@@ -112,8 +112,8 @@ $jsmangledname_templ<T>::$jsmangledname_templ(bool, const Napi::CallbackInfo &in
  * ----------------------------------------------------------------------------- */
 %fragment("js_overloaded_ctor", "templates") %{
 // js_overloaded_ctor
-template <class T>
-Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
+template <typename SWIG_OBJ_WRAP>
+Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Object self;
   $jslocals
@@ -185,8 +185,8 @@ fail:
 %fragment ("js_dtor", "templates")
 %{
 // js_dtor
-template <class T>
-$jsmangledname_templ<T>::~$jsmangledname_templ() {
+template <typename SWIG_OBJ_WRAP>
+$jsmangledname_templ<SWIG_OBJ_WRAP>::~$jsmangledname_templ() {
 }
 %}
 
@@ -200,8 +200,8 @@ $jsmangledname_templ<T>::~$jsmangledname_templ() {
 %fragment ("js_dtoroverride", "templates")
 %{
 // js_dtoroverride
-template <class T>
-${classname_mangled}_templ<T>::~${classname_mangled}_templ() {
+template <typename SWIG_OBJ_WRAP>
+${classname_mangled}_templ<SWIG_OBJ_WRAP>::~${classname_mangled}_templ() {
   auto arg1 = reinterpret_cast<$jstype>(this->self);
   if (this->owned && arg1) {
     ${destructor_action}
@@ -352,8 +352,8 @@ fail:
 %fragment("js_getter", "templates")
 %{
 // js_getter
-template <class T>
-Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
+template <typename SWIG_OBJ_WRAP>
+Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
@@ -377,8 +377,8 @@ fail:
 %fragment("js_setter", "templates")
 %{
 // js_setter
-template <class T>
-void $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info, const Napi::Value &value) {
+template <typename SWIG_OBJ_WRAP>
+void $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info, const Napi::Value &value) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
@@ -402,8 +402,8 @@ fail:
 %fragment("js_function", "templates")
 %{
 // js_function
-template <class T>
-Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
+template <typename SWIG_OBJ_WRAP>
+Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
@@ -430,8 +430,8 @@ fail:
 %fragment("js_function_dispatcher", "templates")
 %{
 // js_function_dispatcher
-template <class T>
-Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
+template <typename SWIG_OBJ_WRAP>
+Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jscode
@@ -454,8 +454,8 @@ fail:
 %fragment ("js_overloaded_function", "templates")
 %{
 // js_overloaded_function
-template <class T>
-Napi::Value $jsmangledname_templ<T>::$jswrapper(const Napi::CallbackInfo &info) {
+template <typename SWIG_OBJ_WRAP>
+Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
@@ -545,8 +545,8 @@ fail:
 %fragment("jsnapi_class_prologue_template", "templates")
 %{
   // jsnapi_class_prologue_template
-  template <class T>
-  class $jsmangledname_templ : public $jsparent_templ<T> {
+  template <typename SWIG_OBJ_WRAP>
+  class $jsmangledname_templ : public $jsparent_templ<SWIG_OBJ_WRAP> {
     public:
       $jsmangledname_templ(const Napi::CallbackInfo &);
       $jsmangledname_templ(bool, const Napi::CallbackInfo &);
@@ -592,13 +592,13 @@ fail:
   void JS_veto_set_variable(const Napi::CallbackInfo &, const Napi::Value &);
 };
 
-template <class T>
-void $jsmangledname_templ<T>::JS_veto_set_static_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
+template <typename SWIG_OBJ_WRAP>
+void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_static_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
   SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
 }
 
-template <class T>
-void $jsmangledname_templ<T>::JS_veto_set_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
+template <typename SWIG_OBJ_WRAP>
+void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
   SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
 }
 %}
@@ -635,8 +635,8 @@ void $jsmangledname_templ<T>::JS_veto_set_variable(const Napi::CallbackInfo &inf
 %{
   // jsnapi_inherited_class_prologue_template
   SWIGNAPI_ClientData $jsmangledname_clientData;
-  template <class T>
-  class $jsmangledname_templ : public $jsparent_templ<T> {
+  template <typename SWIG_OBJ_WRAP>
+  class $jsmangledname_templ : public $jsparent_templ<SWIG_OBJ_WRAP> {
     public:
       $jsmangledname_templ(const Napi::CallbackInfo& info);
 %}

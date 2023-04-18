@@ -82,18 +82,18 @@ struct EnvInstanceData {
 
 typedef size_t SWIGNAPI_ClientData;
 
-template <class T>
-class SwigNapiObjectWrap_templ : public Napi::ObjectWrap<T> {
+template <typename SWIG_OBJ_WRAP>
+class SwigNapiObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
   public:
     void *self;
     bool owned;
     SwigNapiObjectWrap_templ(const Napi::CallbackInfo& info) :
-        Napi::ObjectWrap<T>(info),
+        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info),
         self(nullptr),
         owned(true) 
         {}
     SwigNapiObjectWrap_templ(bool, const Napi::CallbackInfo& info) :
-        Napi::ObjectWrap<T>(info),
+        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info),
         self(nullptr),
         owned(true) 
         {}
