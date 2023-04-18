@@ -126,10 +126,10 @@ case "$SWIGLANG" in
 					curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
 					curl -sSL https://get.rvm.io | bash -s stable
 					set +x
+					source $HOME/.rvm/scripts/rvm
 					$RETRY rvm get master
 					rvm reload
 					rvm list known
-					source $HOME/.rvm/scripts/rvm
 					set -x
 					;;
 				* )
