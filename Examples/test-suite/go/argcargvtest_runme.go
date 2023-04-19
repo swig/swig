@@ -13,7 +13,10 @@ func main() {
 		panic(rs)
 	}
 
-//	wrap.Mainv("hello", 1)  // Fail compilation!!
+// For dynamically typed languages we test this throws an exception or similar
+// at runtime, but for Go this doesn't even compile (but we can't easily
+// test for that here).
+//	wrap.Mainv("hello", 1)
 
 	wrap.InitializeApp(largs)
 }
