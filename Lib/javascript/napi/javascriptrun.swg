@@ -92,12 +92,14 @@ class SwigNapiObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
   public:
     void *self;
     bool owned;
+    size_t size;
     swig_type_info *info;
     SwigNapiObjectWrap_templ(const Napi::CallbackInfo& info);
     SwigNapiObjectWrap_templ(bool, const Napi::CallbackInfo& info) :
         Napi::ObjectWrap<SWIG_OBJ_WRAP>(info),
         self(nullptr),
         owned(true),
+        size(0),
         info(nullptr)
         {}
     virtual ~SwigNapiObjectWrap_templ() {};
@@ -105,7 +107,7 @@ class SwigNapiObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
 
 template <typename SWIG_OBJ_WRAP>
 SwigNapiObjectWrap_templ<SWIG_OBJ_WRAP>::SwigNapiObjectWrap_templ(const Napi::CallbackInfo& info) :
-        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info), info(nullptr) { 
+        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info), size(0), info(nullptr) { 
   Napi::Env env = info.Env();
   if (info.Length() == 1 && info[0].IsExternal()) {
     // This constructor has been called internally from C++/SWIG
@@ -228,9 +230,11 @@ SWIGRUNTIME Napi::Value SWIG_Napi_NewPointerObj(Napi::Env env, void *ptr, swig_t
   }
   native = Napi::External<void>::New(env, ptr);
 
-  size_t *idx = reinterpret_cast<SWIGNAPI_ClientData *>(info->clientdata);
+  size_t *idx = info != nullptr ?
+        reinterpret_cast<SWIGNAPI_ClientData *>(info->clientdata) :
+        nullptr;
   if (idx == nullptr) {
-    // This type is not known to SWIG and does not have a dedicated wrapper
+    // This type does not have a dedicated wrapper
     ctor = env.GetInstanceData<EnvInstanceData>()->swigNapiObjectWrapCtor;
   } else {
     ctor = env.GetInstanceData<EnvInstanceData>()->ctor[*idx];
@@ -238,14 +242,22 @@ SWIGRUNTIME Napi::Value SWIG_Napi_NewPointerObj(Napi::Env env, void *ptr, swig_t
 
   Napi::Value wrapped;
   NAPI_CHECK_RESULT(ctor->New({native}), wrapped);
+
+  // Preserve the type even if using the generic wrapper
+  if (idx == nullptr && info != nullptr) {
+    Napi::Object obj;
+    NAPI_CHECK_RESULT(wrapped.ToObject(), obj);
+    Napi::ObjectWrap<SwigNapiObjectWrap_inst>::Unwrap(obj)->info = info;
+  }
+
   return wrapped;
   goto fail;
 fail:
   return Napi::Value();
 }
 
-#define SWIG_ConvertPtr(obj, ptr, info, flags)    SWIG_Napi_ConvertPtr(obj, ptr, info, flags)
-#define SWIG_NewPointerObj(ptr, info, flags)      SWIG_Napi_NewPointerObj(env, ptr, info, flags)
+#define SWIG_ConvertPtr(obj, ptr, info, flags)          SWIG_Napi_ConvertPtr(obj, ptr, info, flags)
+#define SWIG_NewPointerObj(ptr, info, flags)            SWIG_Napi_NewPointerObj(env, ptr, info, flags)
 
 #define SWIG_ConvertInstance(obj, pptr, type, flags)    SWIG_Napi_ConvertInstancePtr(obj, pptr, type, flags)
 #define SWIG_NewInstanceObj(thisvalue, type, flags)     SWIG_Napi_NewPointerObj(env, thisvalue, type, flags)
@@ -253,7 +265,7 @@ fail:
 #define SWIG_ConvertFunctionPtr(obj, pptr, type)        SWIG_Napi_ConvertPtr(obj, pptr, type, 0)
 #define SWIG_NewFunctionPtrObj(ptr, type)               SWIG_Napi_NewPointerObj(env, ptr, type, 0)
 
-#define SWIG_GetInstancePtr(obj, ptr)    SWIG_Napi_GetInstancePtr(obj, ptr)
+#define SWIG_GetInstancePtr(obj, ptr)                   SWIG_Napi_GetInstancePtr(obj, ptr)
 
 SWIGRUNTIME Napi::Value _SWIGNapi_wrap_equals(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
@@ -306,8 +318,36 @@ fail:
 }
 
 
+/* ---------------------------------------------------------------------------
+ * PackedData object
+ * (objects visible to JS that do not have a dedicated wrapper but must preserve type)
+ * ---------------------------------------------------------------------------*/
+
+SWIGRUNTIME
+Napi::Value SWIGNapi_NewPackedObj(Napi::Env env, void *data, size_t size, swig_type_info *type) {
+  Napi::Value val = SWIG_Napi_NewPointerObj(env, data, type, 0);
+  Napi::Object obj;
+  if (val.IsEmpty()) goto fail;
+
+  NAPI_CHECK_RESULT(val.ToObject(), obj);
+  Napi::ObjectWrap<SwigNapiObjectWrap_inst>::Unwrap(obj)->size = size;
+
+fail:
+  return val;
+}
+
+SWIGRUNTIME
+int SWIGNapi_ConvertPacked(Napi::Value valRef, void *ptr, size_t size, swig_type_info *type) {
+  void *tmp;
+  if (!SWIG_IsOK(SWIG_Napi_ConvertPtr(valRef, &tmp, type, 0))) {
+    return SWIG_ERROR;
+  }
+  memcpy(ptr, tmp, size);
+  return SWIG_OK;
+}
+
 #define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIGNapi_ConvertPacked(obj, ptr, sz, ty)
-#define SWIG_NewMemberObj(ptr, sz, type)                SWIGNapi_NewPackedObj(ptr, sz, type)
+#define SWIG_NewMemberObj(ptr, sz, type)                SWIGNapi_NewPackedObj(env, ptr, sz, type)
 
 
 /* ---------------------------------------------------------------------------
