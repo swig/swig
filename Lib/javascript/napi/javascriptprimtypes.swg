@@ -257,12 +257,11 @@ fail:
 }
 
 /* unsigned long long */
-// Note: these are copied from 'unsigned long' and probably need fixing
 
 %fragment(SWIG_From_frag(unsigned long long), "header") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN
-Napi::Value SWIG_From_unsigned_long_long(Napi::Env env, unsigned long long val)
+Napi::Value SWIG_From_unsigned_SS_long_SS_long(Napi::Env env, unsigned long long val)
 {
   return Napi::Number::New(env, val);
 }
