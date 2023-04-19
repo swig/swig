@@ -152,15 +152,15 @@ case "$SWIGLANG" in
 		if [[ -z "$VER" ]]; then
 			$RETRY sudo apt-get -qq install scilab
 		else
-			# Download was .gz but switched to .xz for version 2023.0.0.
+			# Starting with version 2023.0.0 the download filename format changed.
 			case $VER in
-				20*) scilab_tarball=scilab-$VER.bin.linux-x86_64.tar.xz ;;
+				20*) scilab_tarball=scilab-$VER.bin.x86_64-pc-linux-gnu.tar.xz ;;
 				*)   scilab_tarball=scilab-$VER.bin.linux-x86_64.tar.gz ;;
 			esac
 			$RETRY wget --progress=dot:giga "https://www.scilab.org/download/$VER/$scilab_tarball"
 			# $HOME/.local/bin is in PATH and writeable
 			mkdir -p "$HOME/.local"
-			tar -xzf "$scilab_tarball" --strip-components=1 -C "$HOME/.local"
+			tar -xf "$scilab_tarball" --strip-components=1 -C "$HOME/.local"
 		fi	
 		;;
 	"tcl")
