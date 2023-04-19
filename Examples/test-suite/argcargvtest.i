@@ -18,11 +18,7 @@ const char* mainv(size_t argc, const char **argv, int idx)
   return argv[idx];
 }   
 
-#ifdef __cplusplus
 void initializeApp(size_t argc, const char **argv, bool setPGid = true, bool isMakeline = false)
-#else
-void initializeApp(size_t argc, const char **argv)
-#endif
 {
 }
 
