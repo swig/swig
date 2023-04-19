@@ -1297,9 +1297,14 @@ static DOH *Preprocessor_replace(DOH *s, DOH *line_file) {
         args = 0;
       }
       e = expand_macro(id, args, s);
-      if (e)
+      if (e) {
 	Append(ns, e);
+      }
+      while (macro_additional_lines--) {
+	Putc('\n', ns);
+      }
       Delete(e);
+      Delete(args);
     } else {
       Append(ns, id);
     }
