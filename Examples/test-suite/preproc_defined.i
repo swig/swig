@@ -123,3 +123,31 @@ void another_macro_checking(void) {
 #if 0
 # wobble wobble
 #endif
+
+/* Regression test for https://sourceforge.net/p/swig/bugs/1163/
+ * ONE(1)(2) should expand to `2` but SWIG was expanding it to `TWO(2)`
+ * which results in the generated C wrapper failing to compile.
+ */
+#define ONE(X) TWO
+#define TWO(X) X
+%constant int a = ONE(1)(2);
+#define XXX TWO
+%constant int b = XXX(42);
+#undef ONE
+#undef TWO
+
+/*
+ * The behaviour of Self-Referential Macros is defined
+ * https://gcc.gnu.org/onlinedocs/gcc-4.8.5/cpp/Self-Referential-Macros.html
+ */
+%inline %{
+int y = 0;
+%}
+
+#define x (4 + y)
+#define y (2 * x)
+
+%constant int z = y;
+
+#undef y
+#undef x
