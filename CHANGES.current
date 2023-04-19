@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-04-19: mmomtchev
+            https://sourceforge.net/p/swig/bugs/1163/ #2525 Fix preprocessor
+            expansion when a macro expands to the name of another macro which
+            takes parameters from the input following the original macro
+            expansion.
+
 2023-03-25: alatina 
             [Octave] #2512 Add support for Octave 8.1.
 
