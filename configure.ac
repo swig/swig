@@ -2404,13 +2404,13 @@ else
     # Check for Scilab version (needs api_scilab so needs version 5.3.3 or higher)
     SCILAB_VERSION=`$SCILAB -nwni -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
 
-    AC_MSG_CHECKING(Scilab version is 5.3.3 or higher)
+    AC_MSG_CHECKING(Scilab version is higher than 5.3.2)
     SCILAB_MAJOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f1`
     SCILAB_MINOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f2`
     SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_VERSION | cut -d. -f3`
-    SCILAB_VERSION_NO_DOTS="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
+    SCILAB_VERSION_NO_DOTS=`printf '%04d%02d%02d' "$SCILAB_MAJOR_VERSION" "$SCILAB_MINOR_VERSION" "$SCILAB_MAINTENANCE_VERSION"`
 
-    if test -n "$SCILAB_VERSION_NO_DOTS" && test "$SCILAB_VERSION_NO_DOTS" -ge 533; then
+    if test "$SCILAB_VERSION_NO_DOTS" -ge 00050303; then
       AC_MSG_RESULT(yes - $SCILAB_VERSION)
     else
       AC_MSG_RESULT(no - $SCILAB_VERSION)
@@ -2421,10 +2421,10 @@ else
       # Set Scilab startup options depending on version
       AC_MSG_CHECKING(for Scilab startup options)
       SCILABOPT="-nwni -nb"
-      if test $SCILAB_VERSION_NO_DOTS -ge 540; then
+      if test "$SCILAB_VERSION_NO_DOTS" -ge 00050400; then
         SCILABOPT+=" -noatomsautoload"
       fi
-      if test $SCILAB_VERSION_NO_DOTS -ge 600; then
+      if test "$SCILAB_VERSION_NO_DOTS" -ge 00060000; then
         SCILABOPT+=" -quit"
       fi
       AC_MSG_RESULT($SCILABOPT)
