@@ -124,29 +124,30 @@ void another_macro_checking(void) {
 # wobble wobble
 #endif
 
-#define __attribute__(x)
-%inline %{
-/*
- * This should not compile in when this bug is present
- * https://github.com/swig/swig/issues/2525
+/* Regression test for https://sourceforge.net/p/swig/bugs/1163/
+ * ONE(1)(2) should expand to `2` but SWIG was expanding it to `TWO(2)`
+ * which results in the generated C wrapper failing to compile.
  */
-#define my_bad_attr __attribute__
-#define my_good_attr(x) __attribute__(x)
-
-int bad my_bad_attr((used));
-int good my_good_attr((used));
+#define ONE(X) TWO
+#define TWO(X) X
+%constant int a = ONE(1)(2);
+#define XXX TWO
+%constant int b = XXX(42);
+#undef ONE
+#undef TWO
 
 /*
  * The behaviour of Self-Referential Macros is defined
  * https://gcc.gnu.org/onlinedocs/gcc-4.8.5/cpp/Self-Referential-Macros.html
  */
+%inline %{
 int y = 0;
+%}
 
 #define x (4 + y)
 #define y (2 * x)
 
-int z = y;
+%constant int z = y;
 
 #undef y
 #undef x
-%}
