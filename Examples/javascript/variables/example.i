@@ -45,6 +45,5 @@ extern int  *new_int(int value);
 extern Point *new_Point(int x, int y);
 extern char  *Point_print(Point *p);
 extern void  pt_print();
-extern const char  *ptr_print(void *);
 %}
 

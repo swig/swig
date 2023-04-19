@@ -105,7 +105,7 @@ class SwigNapiObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
 
 template <typename SWIG_OBJ_WRAP>
 SwigNapiObjectWrap_templ<SWIG_OBJ_WRAP>::SwigNapiObjectWrap_templ(const Napi::CallbackInfo& info) :
-        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info) { 
+        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info), info(nullptr) { 
   Napi::Env env = info.Env();
   if (info.Length() == 1 && info[0].IsExternal()) {
     // This constructor has been called internally from C++/SWIG
@@ -136,10 +136,6 @@ SWIGRUNTIME int SWIG_Napi_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
   Napi::Env env = objRef.Env();
   if(!objRef.IsObject()) return SWIG_ERROR;
 
-  if (!info) {
-    return SWIG_ERROR;
-  }
-
   // Check if this is a SWIG wrapper
   Napi::FunctionReference *ctor = env.GetInstanceData<EnvInstanceData>()->swigNapiObjectWrapCtor;
   bool instanceOf;
@@ -150,8 +146,8 @@ SWIGRUNTIME int SWIG_Napi_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
 
   ow = Napi::ObjectWrap<SwigNapiObjectWrap_inst>::Unwrap(objRef);
 
-  // Now check if the SWIG type is compatible unless the types match exactly
-  if(info && ow->info != info) {
+  // Now check if the SWIG type is compatible unless the types match exactly or the type is unknown
+  if(info && ow->info != info && ow->info != nullptr) {
     swig_cast_info *tc = SWIG_TypeCheckStruct(ow->info, info);
     if (!tc && ow->info->name) {
       tc = SWIG_TypeCheck(ow->info->name, info);
@@ -211,12 +207,6 @@ SWIGRUNTIME int SWIG_Napi_ConvertPtr(Napi::Value valRef, void **ptr, swig_type_i
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
 
-  // special case: Uknown type encapsulated w/o wrapper by the next function
-  if (valRef.IsExternal()) {
-   *ptr = valRef.As<Napi::External<void>>().Data();
-   return SWIG_OK;
-  }
-
   if (!valRef.IsObject()) {
     return SWIG_TypeError;
   }
@@ -231,6 +221,7 @@ fail:
 
 SWIGRUNTIME Napi::Value SWIG_Napi_NewPointerObj(Napi::Env env, void *ptr, swig_type_info *info, int flags) {
   Napi::External<void> native;
+  Napi::FunctionReference *ctor;
 
   if (ptr == nullptr) {
     return env.Null();
@@ -239,11 +230,11 @@ SWIGRUNTIME Napi::Value SWIG_Napi_NewPointerObj(Napi::Env env, void *ptr, swig_t
 
   size_t *idx = reinterpret_cast<SWIGNAPI_ClientData *>(info->clientdata);
   if (idx == nullptr) {
-    // This type is not known to SWIG and does not have a wrapper
-    return native;
+    // This type is not known to SWIG and does not have a dedicated wrapper
+    ctor = env.GetInstanceData<EnvInstanceData>()->swigNapiObjectWrapCtor;
+  } else {
+    ctor = env.GetInstanceData<EnvInstanceData>()->ctor[*idx];
   }
-
-  Napi::FunctionReference *ctor = env.GetInstanceData<EnvInstanceData>()->ctor[*idx];
 
   Napi::Value wrapped;
   NAPI_CHECK_RESULT(ctor->New({native}), wrapped);

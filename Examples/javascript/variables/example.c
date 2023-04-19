@@ -94,17 +94,3 @@ char * Point_print(Point *p) {
 void pt_print() {
   printf("(%d, %d)\n", pt.x, pt.y);
 }
-
-/* 
- * Print a pointer
- *
- * With N-API a pointer to an unknown object type (a void *)
- * is a Napi::External which is a V8::External that cannot
- * be accesses from the JS side
- * (ie it has no .toString()/.toPrimitive())
- */
-const char *ptr_print(void *p) {
-  static char buffer[256];
-  sprintf(buffer, "%p", p);
-  return buffer;
-}
