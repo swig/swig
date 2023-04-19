@@ -21,7 +21,7 @@ SWIG_AsCharPtrAndSize(Napi::Value valRef, char** cptr, size_t* psize, int *alloc
     
     return SWIG_OK;
   } else {
-    if(valRef.IsExternal()) {
+    if(valRef.IsObject()) {
       swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
       Napi::Object obj;
       NAPI_CHECK_RESULT(valRef.ToObject(), obj);
