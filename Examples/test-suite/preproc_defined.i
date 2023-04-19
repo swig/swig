@@ -141,7 +141,7 @@ void another_macro_checking(void) {
  * https://gcc.gnu.org/onlinedocs/gcc-4.8.5/cpp/Self-Referential-Macros.html
  */
 %inline %{
-int y = 0;
+const int y = 0;
 %}
 
 #define x (4 + y)
