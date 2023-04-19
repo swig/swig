@@ -179,6 +179,8 @@ jobs:
           VER: '5.5.2'
         - SWIGLANG: scilab
           VER: '6.0.2'
+        - SWIGLANG: scilab
+          os: ubuntu-22.04 # scilab 6.1.1
         - SWIGLANG: tcl
         # c++11 testing
         - SWIGLANG: csharp
