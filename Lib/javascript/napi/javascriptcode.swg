@@ -6,6 +6,7 @@
  *   - $jscode:           code part of wrapper
  *   - $jsargcount:       number of arguments
  *   - $jsmangledname:    mangled name of class
+ *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
 
 %fragment("js_ctor", "templates") %{
@@ -75,6 +76,7 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::Call
  *   - $jsmangledname:    mangled name of class
  *   - $jsparent:         mangled name of parent (or SwigNapiObjectWrap if none)
  *   - $jsdispatchcases:  part containing code for dispatching
+ *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor_dispatcher", "templates")
 %{
@@ -85,6 +87,7 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackIn
   Napi::Env env = info.Env();
   Napi::Object self;
   NAPI_CHECK_RESULT(info.This().ToObject(), self);
+  this->info = SWIGTYPE_$jsmangledtype;
 
   // switch all cases by means of series of if-returns.
   $jsdispatchcases

@@ -949,6 +949,7 @@ int JSEmitter::emitCtor(Node *n) {
       String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
       Template t_mainctor(getTemplate("js_ctor_dispatcher"));
       t_mainctor.replace("$jswrapper", wrap_name)
+          .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
           .replace("$jsmangledname", state.clazz(NAME_MANGLED))
           .replace("$jsdispatchcases", state.clazz(CTOR_DISPATCHERS))
           .replace("$jsparent", state.clazz(PARENT_MANGLED))
