@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-04-20: erezgeva
+	    [Go] #2533 Implement argcargv.i library for Go.
+
 2023-04-19: davidcl 
             [Scilab] Add support for Scilab 2023.x.
 	    Introduce a `-gatewayxml6` options to generate an XML with full

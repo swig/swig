@@ -1,6 +1,6 @@
 %module argcargvtest
 
-#if !defined(SWIGCSHARP) && !defined(SWIGD) && !defined(SWIGGO) && !defined(SWIGGUILE) && !defined(SWIGJAVA) && !defined(SWIGJAVASCRIPT) && !defined(SWIGMZSCHEME) && !defined(SWIGOCAML) && !defined(SWIGR) && !defined(SWIGSCILAB)
+#if !defined(SWIGCSHARP) && !defined(SWIGD) && !defined(SWIGGUILE) && !defined(SWIGJAVA) && !defined(SWIGJAVASCRIPT) && !defined(SWIGMZSCHEME) && !defined(SWIGOCAML) && !defined(SWIGR) && !defined(SWIGSCILAB)
 %include <argcargv.i>
 
 %apply (int ARGC, char **ARGV) { (size_t argc, const char **argv) }
