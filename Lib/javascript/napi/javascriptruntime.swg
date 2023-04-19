@@ -19,6 +19,7 @@
 #include <limits.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <map>
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */

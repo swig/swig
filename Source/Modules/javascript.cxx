@@ -2698,6 +2698,7 @@ int NAPIEmitter::exitClass(Node *n) {
       .replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsnapiwrappers", f_init_wrappers)
       .replace("$jsnapistaticwrappers", f_init_static_wrappers)
+      .replace("$jsparent", state.clazz(PARENT_MANGLED))
       .trim()
       .pretty_print(f_class_declarations);
 

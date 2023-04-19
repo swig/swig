@@ -54,7 +54,7 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::Call
 // js_veto_ctor
 template <typename SWIG_OBJ_WRAP>
 $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackInfo &info)
-        : $jsparent_templ<SWIG_OBJ_WRAP>(info) {
+        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
   Napi::Env env = info.Env();
   SWIG_Error(SWIG_ERROR, "Class $jsname can not be instantiated");
   return;
@@ -621,6 +621,11 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::Callb
     public:
       using $jsmangledname_templ::$jsmangledname_templ;
       virtual ~$jsmangledname_inst() {};
+      static void GetMembers(
+        Napi::Env,
+        std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &,
+        std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &
+      );
       static Napi::Function GetClass(Napi::Env);
   };
 %}
@@ -660,15 +665,32 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::Callb
   /* Class: $jsname ($jsmangledname) */
   // jsnapi_getclass
 Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
-  return Napi::ObjectWrap<$jsmangledname_inst>::DefineClass(
-    env,
-    "$jsname",
-    {
-      /* register wrapper functions */
-      $jsnapiwrappers
-      /* add static class functions and variables */
-      $jsnapistaticwrappers
-    });
+  std::map<std::string, $jsmangledname_templ::PropertyDescriptor> members, staticMembers;
+  GetMembers(env, members, staticMembers);
+
+  std::vector<$jsmangledname_templ<$jsmangledname_inst>::PropertyDescriptor> symbolTable;
+  for (auto it = members.begin(); it != members.end(); it++)
+    symbolTable.emplace_back(std::move(it->second));
+  for (auto it = staticMembers.begin(); it != staticMembers.end(); it++)
+    symbolTable.emplace_back(std::move(it->second));
+
+  return Napi::ObjectWrap<$jsmangledname_inst>::DefineClass(env, "$jsname", symbolTable);
+}
+
+void $jsmangledname_inst::GetMembers(
+        Napi::Env env,
+        std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &members,
+        std::map<std::string, $jsmangledname_templ::PropertyDescriptor> &staticMembers
+) {
+    std::map<std::string, $jsparent_templ<$jsparent_inst>::PropertyDescriptor> baseMembers, baseStaticMembers;
+    $jsparent_inst::GetMembers(env, baseMembers, baseStaticMembers);
+    members.insert(baseMembers.begin(), baseMembers.end());
+    staticMembers.insert(staticMembers.begin(), staticMembers.end());
+
+    /* register wrapper functions */
+    $jsnapiwrappers
+    /* add static class functions and variables */
+    $jsnapistaticwrappers
 }
 %}
 
@@ -744,7 +766,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_member_function", "templates")
 %{
-  InstanceMethod("$jsname", &$jsmangledname_templ::$jswrapper),
+  members.emplace("$jsname"s, std::move($jsmangledname_templ::InstanceMethod("$jsname", &$jsmangledname_templ::$jswrapper)));
 %}
 
 /* -----------------------------------------------------------------------------
@@ -757,7 +779,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
 %fragment("jsnapi_register_member_variable", "templates")
 %{
   // jsnapi_register_member_variable
-  InstanceAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter),
+  members.emplace("$jsname"s, std::move($jsmangledname_templ::InstanceAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter)));
 %}
 
 /* -----------------------------------------------------------------------------
@@ -769,7 +791,7 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
 %fragment("jsnapi_register_static_function", "templates")
 %{
   // jsnapi_register_static_function
-  StaticMethod("$jsname", &$jsmangledname_templ::$jswrapper),
+  staticMembers.emplace("$jsname"s, std::move(StaticMethod("$jsname", &$jsmangledname_templ::$jswrapper)));
 %}
 
 /* -----------------------------------------------------------------------------
@@ -782,5 +804,5 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
 %fragment("jsnapi_register_static_variable", "templates")
 %{
   // jsnapi_register_static_variable
-  StaticAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter),
+  staticMembers.emplace("$jsname"s, std::move(StaticAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter)));
 %}

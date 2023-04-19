@@ -127,6 +127,11 @@ class SwigNapiObjectWrap_inst : public SwigNapiObjectWrap_templ<SwigNapiObjectWr
 public:
   using SwigNapiObjectWrap_templ::SwigNapiObjectWrap_templ;
   static Napi::Function GetClass(Napi::Env);
+  static void GetMembers(
+    Napi::Env,
+    std::map<std::string, SwigNapiObjectWrap_templ::PropertyDescriptor> &,
+    std::map<std::string, SwigNapiObjectWrap_templ::PropertyDescriptor> &
+  ) {};
 };
 
 Napi::Function SwigNapiObjectWrap_inst::GetClass(Napi::Env env) {
