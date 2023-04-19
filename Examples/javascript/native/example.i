@@ -31,7 +31,7 @@ int placeholder() { return 0; }
         Napi::EscapableHandleScope scope(env);
         const int MY_MAGIC_NUMBER = 5;
         Napi::Value jsresult =
-            SWIG_Env_FromInt(env, static_cast< int >(MY_MAGIC_NUMBER));
+            SWIG_From_int(env, static_cast< int >(MY_MAGIC_NUMBER));
         if (args.Length() != 0)
             SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments.");
         return scope.Escape(jsresult);
