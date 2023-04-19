@@ -5,12 +5,21 @@
 %insert(init) %{
 
 EnvInstanceData::EnvInstanceData(Napi::Env env, swig_module_info *swig_module) :
-env(env), ctor(nullptr), swig_module(swig_module) {
+env(env), swigNapiObjectWrapCtor(nullptr), ctor(nullptr), swig_module(swig_module) {
   ctor = new Napi::FunctionReference*[sizeof(swig_types) / sizeof(swig_types[0])];
+  for (size_t i = 0; i < sizeof(swig_types) / sizeof(swig_types[0]); i++) {
+    ctor[i] = nullptr;
+  }
 }
 
 EnvInstanceData::~EnvInstanceData() {
+  for (size_t i = 0; i < sizeof(swig_types) / sizeof(swig_types[0]); i++) {
+    if (ctor[i] != nullptr)
+      delete ctor[i];
+    ctor[i] = nullptr;
+  }
   delete [] ctor;
+  delete swigNapiObjectWrapCtor;
 }
 
 SWIGRUNTIME void
@@ -69,6 +78,11 @@ SWIG_NAPI_GetModule(Napi::Env env) {
 %{
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
   SWIG_InitializeModule(env);
+
+  Napi::Function SwigNapiObjectWrap_ctor = SwigNapiObjectWrap_inst::GetClass(env);
+  Napi::FunctionReference *SwigNapiObjectWrap_ctor_ref = new Napi::FunctionReference();
+  *SwigNapiObjectWrap_ctor_ref = Napi::Persistent(SwigNapiObjectWrap_ctor);
+  env.GetInstanceData<EnvInstanceData>()->swigNapiObjectWrapCtor = SwigNapiObjectWrap_ctor_ref;
 
   /* create objects for namespaces */
   $jsnapinspaces

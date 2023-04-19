@@ -16,7 +16,10 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackIn
         : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
   Napi::Env env = info.Env();
 
+  this->info = SWIGTYPE_$jsmangledtype;
   if (info.Length() == 1 && info[0].IsExternal()) {
+    // This constructor has been called internally from C++/SWIG
+    // to wrap an already existing C++ object in JS
     this->self = info[0].As<Napi::External<void>>().Data();
     this->owned = false;
     return;
@@ -27,16 +30,16 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackIn
   if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   $jscode
   this->self = result;
+  return;
   goto fail;
 fail:
   return;
 }
 
-// This is the extendable constructor to be used from child classes
+// This is the bypass constructor to be used from child classes
 template <typename SWIG_OBJ_WRAP>
 $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::CallbackInfo &info)
-        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
-}
+        : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {}
 %}
 
 

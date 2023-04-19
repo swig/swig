@@ -2632,13 +2632,6 @@ int NAPIEmitter::enterClass(Node *n) {
     Delete(baseName);
     Delete(jsName);
 
-    Template t_setup_inheritance(getTemplate("jsnapi_setup_inheritance"));
-    t_setup_inheritance.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-        .replace("$jswrapper", state.clazz(CTOR))
-        .replace("$jsname", state.clazz(NAME))
-        .replace("$jsparent", baseMangled)
-        .pretty_print(f_init_inheritance);
-
     f_init_wrappers = Copy(Getattr(baseClass, MEMBER_FUNCTIONS));
     f_init_static_wrappers = Copy(Getattr(baseClass, STATIC_FUNCTIONS));
   } else {
@@ -2647,6 +2640,13 @@ int NAPIEmitter::enterClass(Node *n) {
     f_init_static_wrappers = NewString("");
   }
   state.clazz(PARENT_MANGLED, baseMangled);
+
+  Template t_setup_inheritance(getTemplate("jsnapi_setup_inheritance"));
+  t_setup_inheritance.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", state.clazz(CTOR))
+      .replace("$jsname", state.clazz(NAME))
+      .replace("$jsparent", baseMangled)
+      .pretty_print(f_init_inheritance);
 
   // emit declaration of a NAPI class template
   Template t_decl_class(getTemplate("jsnapi_class_prologue_template"));

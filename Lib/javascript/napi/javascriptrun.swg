@@ -72,6 +72,9 @@ void JS_veto_set_variable(const Napi::CallbackInfo &info) {
 
 struct EnvInstanceData {
   Napi::Env env;
+  // Base class per-environment constructor, used to check
+  // if a JS object is a SWIG wrapper
+  Napi::FunctionReference *swigNapiObjectWrapCtor;
   // Per-environment wrapper constructors, indexed by the number in
   // swig_type->clientdata
   Napi::FunctionReference **ctor;
@@ -82,28 +85,51 @@ struct EnvInstanceData {
 
 typedef size_t SWIGNAPI_ClientData;
 
+// Base class for all wrapped objects,
+// used mostly when unwrapping unknown objects
 template <typename SWIG_OBJ_WRAP>
 class SwigNapiObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
   public:
     void *self;
     bool owned;
-    SwigNapiObjectWrap_templ(const Napi::CallbackInfo& info) :
-        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info),
-        self(nullptr),
-        owned(true) 
-        {}
+    swig_type_info *info;
+    SwigNapiObjectWrap_templ(const Napi::CallbackInfo& info);
     SwigNapiObjectWrap_templ(bool, const Napi::CallbackInfo& info) :
         Napi::ObjectWrap<SWIG_OBJ_WRAP>(info),
         self(nullptr),
-        owned(true) 
+        owned(true),
+        info(nullptr)
         {}
     virtual ~SwigNapiObjectWrap_templ() {};
 };
 
+template <typename SWIG_OBJ_WRAP>
+SwigNapiObjectWrap_templ<SWIG_OBJ_WRAP>::SwigNapiObjectWrap_templ(const Napi::CallbackInfo& info) :
+        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info) { 
+  Napi::Env env = info.Env();
+  if (info.Length() == 1 && info[0].IsExternal()) {
+    // This constructor has been called internally from C++/SWIG
+    // to wrap an already existing C++ object of unknown type in JS
+    this->self = info[0].As<Napi::External<void>>().Data();
+    this->owned = false;
+  } else {
+    SWIG_Error(SWIG_ERROR, "This constructor is not accessible from JS");
+  }
+  return;
+  goto fail;
+fail:
+  return;
+}
+
 class SwigNapiObjectWrap_inst : public SwigNapiObjectWrap_templ<SwigNapiObjectWrap_inst> {
+public:
   using SwigNapiObjectWrap_templ::SwigNapiObjectWrap_templ;
-  virtual ~SwigNapiObjectWrap_inst();
+  static Napi::Function GetClass(Napi::Env);
 };
+
+Napi::Function SwigNapiObjectWrap_inst::GetClass(Napi::Env env) {
+  return Napi::ObjectWrap<SwigNapiObjectWrap_inst>::DefineClass(env, "SwigObject", {});
+}
 
 SWIGRUNTIME int SWIG_Napi_ConvertInstancePtr(Napi::Object objRef, void **ptr, swig_type_info *info, int flags) {
   SwigNapiObjectWrap_inst *ow;
@@ -114,21 +140,30 @@ SWIGRUNTIME int SWIG_Napi_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
     return SWIG_ERROR;
   }
 
-  size_t *idx = reinterpret_cast<SWIGNAPI_ClientData *>(info->clientdata);
-  if (idx == nullptr) {
-    return SWIG_ERROR;
-  }
-  Napi::FunctionReference *ctor = env.GetInstanceData<EnvInstanceData>()->ctor[*idx];
-  if (ctor == nullptr) {
-    return SWIG_ERROR;
-  }
-
+  // Check if this is a SWIG wrapper
+  Napi::FunctionReference *ctor = env.GetInstanceData<EnvInstanceData>()->swigNapiObjectWrapCtor;
   bool instanceOf;
   NAPI_CHECK_RESULT(objRef.InstanceOf(ctor->Value()), instanceOf);
   if (!instanceOf) {
     return SWIG_TypeError;
   }
+
   ow = Napi::ObjectWrap<SwigNapiObjectWrap_inst>::Unwrap(objRef);
+
+  // Now check if the SWIG type is compatible unless the types match exactly
+  if(info && ow->info != info) {
+    swig_cast_info *tc = SWIG_TypeCheckStruct(ow->info, info);
+    if (!tc && ow->info->name) {
+      tc = SWIG_TypeCheck(ow->info->name, info);
+    }
+    bool type_valid = tc != 0;
+    if(!type_valid) {
+      return SWIG_TypeError;
+    }
+    int newmemory = 0;
+    *ptr = SWIG_TypeCast(tc, ow->self, &newmemory);
+    assert(!newmemory); /* newmemory handling not yet implemented */
+  }
   *ptr = ow->self;
 
   if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !ow->owned) {
