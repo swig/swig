@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-04-19: wildmaples
+	    [Ruby] #2527 Fix "undefining the allocator of T_DATA" warning seen
+	    with Ruby 3.2.
+
 2023-04-18: davidcl
 	    [Scilab] #894 extract values with ":" for typemap (int* IN, int IN_SIZE)
 
