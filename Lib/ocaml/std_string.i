@@ -4,18 +4,11 @@
  * SWIG typemaps for std::string
  * ----------------------------------------------------------------------------- */
 
-// ------------------------------------------------------------------------
-// std::string is typemapped by value
-// This can prevent exporting methods which return a string
-// in order for the user to modify it.
-// However, I think I'll wait until someone asks for it...
-// ------------------------------------------------------------------------
-
 %{
 #include <string>
 #include <vector>
 %}
-  
+
 %include <exception.i>
 %include <std_vector.i>
 
@@ -23,10 +16,10 @@ namespace std {
 
 %naturalvar string;
 %naturalvar wstring;
-  
+
 class string;
 class wstring;
-  
+
 /* Overloading check */
 %typemap(in) string {
   if (caml_ptr_check($input))
@@ -36,15 +29,6 @@ class wstring;
 }
 
 %typemap(in) const string & ($*1_ltype temp) {
-  if (caml_ptr_check($input)) {
-    temp.assign((char *)caml_ptr_val($input,0), caml_string_len($input));
-    $1 = &temp;
-  } else {
-    SWIG_exception(SWIG_TypeError, "string expected");
-  }
-}
-
-%typemap(in) string & ($*1_ltype temp) {
   if (caml_ptr_check($input)) {
     temp.assign((char *)caml_ptr_val($input,0), caml_string_len($input));
     $1 = &temp;
@@ -66,8 +50,8 @@ class wstring;
   delete temp;
 }
 
-%typemap(argout) string & {
-  swig_result =	caml_list_append(swig_result,caml_val_string_len((*$1).c_str(), (*$1).size()));
+%typemap(out) const string & {
+    $result = caml_val_string_len((*$1).c_str(), (*$1).size());
 }
 
 %typemap(directorin) string {
@@ -99,6 +83,20 @@ class wstring;
 
 %typemap(throws) string, const string & "SWIG_OCamlThrowException(SWIG_OCamlRuntimeException, $1.c_str());"
 
+%typemap(in) string &INPUT = const string &;
+%typemap(in, numinputs=0) string &OUTPUT ($*1_ltype temp)
+%{ $1 = &temp; %}
+%typemap(argout) string &OUTPUT {
+    swig_result = caml_list_append(swig_result, caml_val_string_len((*$1).c_str(), (*$1).size()));
+}
+%typemap(in) string &INOUT = const string &;
+%typemap(argout) string &INOUT = string &OUTPUT;
+
+%typemap(typecheck) string, const string & = char *;
+
+%typemap(throws) string, const string & {
+    SWIG_OCamlThrowException(SWIG_OCamlRuntimeException, $1.c_str());
+}
 }
 
 #ifdef ENABLE_CHARPTR_ARRAY
