@@ -2627,8 +2627,9 @@ int NAPIEmitter::enterClass(Node *n) {
   SetFlag(n, CTOR);
   if (baseClass && GetFlag(baseClass, CTOR)) {
     String *jsName = NewString("");
-    Printf(jsName, "%s_%s", Getattr(baseClass, "sym:nspace"),
-           Getattr(baseClass, "sym:name"));
+    String *nspace = Getattr(baseClass, "sym:nspace");
+    if (Len(nspace) == 0) nspace = Getattr(current_namespace, NAME_MANGLED);
+    Printf(jsName, "%s_%s", nspace, Getattr(baseClass, "sym:name"));
     baseMangled = SwigType_manglestr(jsName);
     Delete(jsName);
 
