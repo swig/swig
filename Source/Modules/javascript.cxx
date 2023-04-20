@@ -2626,12 +2626,10 @@ int NAPIEmitter::enterClass(Node *n) {
   Node *baseClass = getBaseClass(n);
   Setattr(n, CTOR, "present");
   if (baseClass && Getattr(baseClass, CTOR)) {
-    String *baseName = Getattr(baseClass, "name");
     String *jsName = NewString("");
-    Printf(jsName, "%s_%s", Getattr(current_namespace, NAME_MANGLED),
+    Printf(jsName, "%s_%s", Getattr(baseClass, "sym:nspace"),
            Getattr(baseClass, "sym:name"));
     baseMangled = SwigType_manglestr(jsName);
-    Delete(baseName);
     Delete(jsName);
 
     f_init_wrappers = Copy(Getattr(baseClass, MEMBER_FUNCTIONS));
