@@ -219,9 +219,8 @@ fail:
 }
 
 /* long long */
-// Note: these are copied from 'long' and probably need fixing
 
-%fragment(SWIG_From_frag(long long), "header") {
+%fragment(SWIG_From_frag(long long), "header", fragment="SWIG_LongLongAvailable") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN
 Napi::Value SWIG_From_long_SS_long(Napi::Env env, long long val)
@@ -258,7 +257,7 @@ fail:
 
 /* unsigned long long */
 
-%fragment(SWIG_From_frag(unsigned long long), "header") {
+%fragment(SWIG_From_frag(unsigned long long), "header", fragment="SWIG_LongLongAvailable") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN
 Napi::Value SWIG_From_unsigned_SS_long_SS_long(Napi::Env env, unsigned long long val)
