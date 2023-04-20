@@ -46,17 +46,17 @@ public class multiple_inheritance_interfaces_runme {
     checkBaseAndInterfaces(IC.class, true, "", new String[] {"IA", "IB"});
     checkBaseAndInterfaces(A.class, false, "", new String[] {"IA"});
     checkBaseAndInterfaces(B.class, false, "", new String[] {"IB"});
-    checkBaseAndInterfaces(C.class, false, "", new String[] {"IA", "IB", "IC"});
-    checkBaseAndInterfaces(D.class, false, "", new String[] {"IA", "IB", "IC"});
+    checkBaseAndInterfaces(C.class, false, "", new String[] {"IC", "IA", "IB"});
+    checkBaseAndInterfaces(D.class, false, "", new String[] {"IC", "IA", "IB"});
     checkBaseAndInterfaces(E.class, false, "D", new String[] {});
 
     checkBaseAndInterfaces(IJ.class, true, "", new String[] {});
     checkBaseAndInterfaces(IK.class, true, "", new String[] {"IJ"});
     checkBaseAndInterfaces(IL.class, true, "", new String[] {"IK"});
     checkBaseAndInterfaces(J.class, false, "", new String[] {"IJ"});
-    checkBaseAndInterfaces(K.class, false, "", new String[] {"IJ", "IK"});
-    checkBaseAndInterfaces(L.class, false, "", new String[] {"IJ", "IK", "IL"});
-    checkBaseAndInterfaces(M.class, false, "", new String[] {"IJ", "IK", "IL"});
+    checkBaseAndInterfaces(K.class, false, "", new String[] {"IK", "IJ"});
+    checkBaseAndInterfaces(L.class, false, "", new String[] {"IL", "IK", "IJ"});
+    checkBaseAndInterfaces(M.class, false, "", new String[] {"IL", "IK", "IJ"});
 
     checkBaseAndInterfaces(P.class, false, "", new String[] {});
     checkBaseAndInterfaces(IQ.class, true, "", new String[] {});
@@ -74,5 +74,7 @@ public class multiple_inheritance_interfaces_runme {
     d.ia(10);
     d.ia("bye");
     d.ia("bye", false);
+
+    UndesirablesSwigImpl.UndesiredStaticMethod(UndesirablesSwigImpl.UndesiredEnum.UndesiredEnum1);
   }
 }

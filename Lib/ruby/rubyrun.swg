@@ -157,7 +157,7 @@ SWIG_Ruby_define_class(swig_type_info *type)
     _cSWIG_Pointer = rb_define_class_under(_mSWIG, "Pointer", rb_cObject);
     rb_undef_method(CLASS_OF(_cSWIG_Pointer), "new");
   }
-  rb_define_class_under(_mSWIG, klass_name, _cSWIG_Pointer);
+  rb_undef_alloc_func(rb_define_class_under(_mSWIG, klass_name, _cSWIG_Pointer));
   free((void *) klass_name);
 }
 
@@ -281,6 +281,11 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
     own->own = 0;
   }
     
+  if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE)) {
+    if (!RDATA(obj)->dfree)
+      return SWIG_ERROR_RELEASE_NOT_OWNED;
+  }
+
   /* Check to see if the input object is giving up ownership
      of the underlying C struct or C++ object.  If so then we
      need to reset the destructor since the Ruby object no 
@@ -292,7 +297,7 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
       swig_class *sklass = (swig_class *) ty->clientdata;
       track = sklass->trackObjects;
     }
-		
+
     if (track) {
       /* We are tracking objects for this class.  Thus we change the destructor
        * to SWIG_RubyRemoveTracking.  This allows us to
@@ -304,6 +309,10 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
     } else {    
       RDATA(obj)->dfree = 0;
     }
+  }
+
+  if (flags & SWIG_POINTER_CLEAR) {
+    DATA_PTR(obj) = 0;
   }
 
   /* Do type-checking if type info was provided */
@@ -413,6 +422,7 @@ SWIG_Ruby_SetModule(swig_module_info *pointer)
 {
   /* register a new class */
   VALUE cl = rb_define_class("swig_runtime_data", rb_cObject);
+  rb_undef_alloc_func(cl);
   /* create and store the structure pointer to a global variable */
   swig_runtime_data_type_pointer = Data_Wrap_Struct(cl, 0, 0, pointer);
   rb_define_readonly_variable("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, &swig_runtime_data_type_pointer);
@@ -443,7 +453,7 @@ int SWIG_Ruby_arity( VALUE proc, int minimal )
 {
   if ( rb_respond_to( proc, swig_arity_id ) )
     {
-      VALUE num = rb_funcall( proc, swig_arity_id, 0 );
+      VALUE num = rb_funcall2( proc, swig_arity_id, 0, 0 );
       int arity = NUM2INT(num);
       if ( arity < 0 && (arity+1) < -minimal ) return 1;
       if ( arity == minimal ) return 1;

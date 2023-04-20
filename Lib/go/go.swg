@@ -388,8 +388,9 @@
 %typemap(gotype) SWIGTYPE &&
 %{$gotypename%}
 
-%typemap(in) SWIGTYPE &&
-%{ $1 = *($&1_ltype)&$input; %}
+%typemap(in, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter)
+%{ $1 = *($&1_ltype)&$input;
+rvrdeleter.reset($1); %}
 
 %typemap(out) SWIGTYPE &&
 %{ *($&1_ltype)&$result = $1; %}
@@ -453,8 +454,11 @@
 %}
 
 %typemap(freearg)
-	char *, char *&, char[ANY], char[]
+	char *, char[ANY], char[]
 %{ free($1); %}
+
+%typemap(freearg) char *&
+%{ free(temp$argnum); %}
 
 %typemap(out,fragment="AllocateString")
 	char *, char *&, char[ANY], char[]
@@ -520,6 +524,44 @@
   $2 = ($2_ltype)$input.n;
 %}
 
+/* The int & type needs to convert to intgo.  */
+
+%typemap(gotype) int & "*int"
+
+%typemap(in) int & (int e)
+%{
+  e = (int)*$input;
+  $1 = &e;
+%}
+
+%typemap(out) int &
+%{ $result = new intgo(*$1); %}
+
+%typemap(argout) int &
+%{ *$input = (intgo)e$argnum; %}
+
+%typemap(goout) int & ""
+
+%typemap(directorin) int & (intgo e)
+%{
+  e = (intgo)$1;
+  $input = &e;
+%}
+
+%typemap(godirectorin) int & ""
+
+%typemap(directorout) int &
+%{
+  $*1_ltype f = ($*1_ltype)*$input;
+  $result = ($1_ltype)&f;
+%}
+
+%typemap(directorargout) int &
+%{ $1 = (int)*$input; %}
+
+%typemap(argout) const int & ""
+%typemap(directorargout) const int & ""
+
 /* Enums.  We can't do the right thing for enums in typemap(gotype) so
    we deliberately don't define them.  The right thing would be to
    capitalize the name.  This is instead done in go.cxx.  */
@@ -552,10 +594,7 @@
 %typemap(godirectorin) enum SWIGTYPE & ""
 
 %typemap(directorout) enum SWIGTYPE &
-%{
-  $*1_ltype f = ($*1_ltype)*$input;
-  $result = ($1_ltype)&f;
-%}
+%{ $result = $input; %}
 
 /* Arbitrary type.  This is a type passed by value in the C/C++ code.
    We convert it to a pointer for the Go code.  Note that all basic
@@ -587,7 +626,7 @@
 %typemap(goout) SWIGTYPE ""
 
 %typemap(directorin) SWIGTYPE
-%{ $input = new $1_ltype((const $1_ltype &)$1); %}
+%{ $input = new $1_ltype(SWIG_STD_MOVE($1)); %}
 
 %typemap(godirectorin) SWIGTYPE ""
 

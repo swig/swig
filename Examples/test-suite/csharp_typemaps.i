@@ -136,3 +136,42 @@ namespace Glob {
 bool MVar::svar = false;
 %}
 
+// $imfuncname substitution
+%typemap(csout) int imfuncname_test {
+    return $modulePINVOKE.$imfuncname(swigCPtr) + 123;
+  }
+%typemap(csout) int imfuncname_static_test {
+    return $modulePINVOKE.$imfuncname() + 234;
+  }
+%typemap(csout) int imfuncname_global_test {
+    return $modulePINVOKE.$imfuncname() + 345;
+  }
+
+%typemap(csvarout, excode=SWIGEXCODE2) int variab %{
+    get {
+      int ret = $modulePINVOKE.$imfuncname(swigCPtr) + 222;$excode
+      return ret;
+    } %}
+%typemap(csvarin, excode=SWIGEXCODE2) int variab %{
+    set {
+      $modulePINVOKE.$imfuncname(swigCPtr, value + 111);$excode
+    } %}
+
+%typemap(csvarout, excode=SWIGEXCODE2) int global_variab %{
+    get {
+      int ret = $modulePINVOKE.$imfuncname() + 333;$excode
+      return ret;
+    } %}
+%typemap(csvarin, excode=SWIGEXCODE2) int global_variab %{
+    set {
+      $modulePINVOKE.$imfuncname(value + 444);$excode
+    } %}
+%inline %{
+struct ProxyA {
+  int imfuncname_test() { return 0; }
+  static int imfuncname_static_test() { return 0; }
+  int variab;
+};
+int imfuncname_global_test() { return 0; }
+int global_variab;
+%}

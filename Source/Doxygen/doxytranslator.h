@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * doxytranslator.h
  *
@@ -12,8 +12,8 @@
  * systems.
  * ----------------------------------------------------------------------------- */
 
-#ifndef DOXYGENTRANSLATOR_H_
-#define DOXYGENTRANSLATOR_H_
+#ifndef SWIG_DOXYTRANSLATOR_H
+#define SWIG_DOXYTRANSLATOR_H
 
 #include "swig.h"
 #include "doxyentity.h"

@@ -35,11 +35,6 @@ as follows (this should be included in a code-block) :
 char *SWIG_RcFileName = "~/.wishrc";
 #endif
 
-#ifdef MAC_TCL
-extern int	MacintoshInit _ANSI_ARGS_((void));
-extern int	SetupMainInterp _ANSI_ARGS_((Tcl_Interp *interp));
-#endif
-
 /*
  *----------------------------------------------------------------------
  *
@@ -61,10 +56,9 @@ extern int	SetupMainInterp _ANSI_ARGS_((Tcl_Interp *interp));
 
 int Tcl_AppInit(Tcl_Interp *interp)
 {
-#ifndef MAC_TCL
     Tk_Window main;
     main = Tk_MainWindow(interp);
-#endif
+
     /*
      * Call the init procedures for included packages.  Each call should
      * look like this:
@@ -93,10 +87,6 @@ int Tcl_AppInit(Tcl_Interp *interp)
       return TCL_ERROR;
     }
     
-#ifdef MAC_TCL
-    SetupMainInterp(interp);
-#endif
-        
     /*
      * Specify a user-specific startup file to invoke if the application
      * is run interactively.  Typically the startup file is "~/.apprc"
@@ -104,31 +94,12 @@ int Tcl_AppInit(Tcl_Interp *interp)
      * then no user-specific startup file will be run under any conditions.
      */
 
-   Tcl_SetVar(interp, (char *) "tcl_rcFileName",SWIG_RcFileName,TCL_GLOBAL_ONLY);
-
-/* For Macintosh might also want this */
-
-#ifdef MAC_TCL
-#ifdef SWIG_RcRsrcName
-    Tcl_SetVar(interp, (char *) "tcl_rcRsrcName",SWIG_RcRsrcName,TCL_GLOBAL_ONLY);
-#endif
-#endif
+    Tcl_SetVar(interp, (char *) "tcl_rcFileName",SWIG_RcFileName,TCL_GLOBAL_ONLY);
     return TCL_OK;
 }
 
 #if TK_MAJOR_VERSION >= 4
 int main(int argc, char **argv) {
-
-#ifdef MAC_TCL
-  char *newArgv[2];
-  if (MacintoshInit() != TCL_OK) {
-      Tcl_Exit(1);
-  }
-  argc = 1;
-  newArgv[0] = "Wish";
-  newArgv[1] = NULL;
-  argv = newArgv;
-#endif
   Tk_Main(argc, argv, Tcl_AppInit);
   return(0);
 }

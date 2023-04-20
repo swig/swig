@@ -180,17 +180,14 @@
 
 // Redefine std::set iterator/reverse_iterator typemap
 %typemap(out,noblock=1) iterator, reverse_iterator {
-  $result = SWIG_NewPointerObj(swig::make_set_nonconst_iterator(%static_cast($1,const $type &),
-								self),
-			          swig::Iterator::descriptor(),SWIG_POINTER_OWN);
+  $result = SWIG_NewPointerObj((swig::make_set_nonconst_iterator<$type>($1, self)), swig::Iterator::descriptor(), SWIG_POINTER_OWN);
  }
 
 // Redefine std::set std::pair<iterator, bool> typemap
   %typemap(out,noblock=1,fragment="RubyPairBoolOutputIterator")
   std::pair<iterator, bool> {
     $result = rb_ary_new2(2);
-    rb_ary_push($result, SWIG_NewPointerObj(swig::make_set_nonconst_iterator(%static_cast($1,$type &).first),
-                                            swig::Iterator::descriptor(),SWIG_POINTER_OWN));
+    rb_ary_push($result, SWIG_NewPointerObj((swig::make_set_nonconst_iterator($1.first)), swig::Iterator::descriptor(), SWIG_POINTER_OWN));
     rb_ary_push($result, SWIG_From(bool)(%static_cast($1,const $type &).second));
    }
 

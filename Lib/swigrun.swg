@@ -44,6 +44,8 @@
 #define SWIG_POINTER_DISOWN        0x1
 #define SWIG_CAST_NEW_MEMORY       0x2
 #define SWIG_POINTER_NO_NULL       0x4
+#define SWIG_POINTER_CLEAR         0x8
+#define SWIG_POINTER_RELEASE       (SWIG_POINTER_CLEAR | SWIG_POINTER_DISOWN)
 
 /* Flags for new pointer objects */
 #define SWIG_POINTER_OWN           0x1
@@ -129,7 +131,13 @@
 */
 
 #define SWIG_OK                    (0)
+/* Runtime errors are < 0 */
 #define SWIG_ERROR                 (-1)
+/* Errors in range -1 to -99 are in swigerrors.swg (errors for all languages including those not using the runtime) */
+/* Errors in range -100 to -199 are language specific errors defined in *errors.swg */
+/* Errors < -200 are generic runtime specific errors */
+#define SWIG_ERROR_RELEASE_NOT_OWNED (-200)
+
 #define SWIG_IsOK(r)               (r >= 0)
 #define SWIG_ArgError(r)           ((r != SWIG_ERROR) ? r : SWIG_TypeError)
 
@@ -144,7 +152,7 @@
 #define SWIG_OLDOBJ                (SWIG_OK)
 #define SWIG_NEWOBJ                (SWIG_OK | SWIG_NEWOBJMASK)
 #define SWIG_TMPOBJ                (SWIG_OK | SWIG_TMPOBJMASK)
-/* Check, add and del mask methods */
+/* Check, add and del object mask methods */
 #define SWIG_AddNewMask(r)         (SWIG_IsOK(r) ? (r | SWIG_NEWOBJMASK) : r)
 #define SWIG_DelNewMask(r)         (SWIG_IsOK(r) ? (r & ~SWIG_NEWOBJMASK) : r)
 #define SWIG_IsNewObj(r)           (SWIG_IsOK(r) && (r & SWIG_NEWOBJMASK))
@@ -350,9 +358,9 @@ SWIG_TypeName(const swig_type_info *ty) {
 SWIGRUNTIME const char *
 SWIG_TypePrettyName(const swig_type_info *type) {
   /* The "str" field contains the equivalent pretty names of the
-     type, separated by vertical-bar characters.  We choose
-     to print the last name, as it is often (?) the most
-     specific. */
+     type, separated by vertical-bar characters.  Choose the last
+     name. It should be the most specific; a fully resolved name
+     but not necessarily with default template parameters expanded. */
   if (!type) return NULL;
   if (type->str != NULL) {
     const char *last_name = type->str;

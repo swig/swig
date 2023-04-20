@@ -30,6 +30,6 @@ function checkfail(fn)
 end
 
 -- these should fail
--- example.EXTERN is a nil value, so concatentatin will make it fail
+-- example.EXTERN is a nil value, so concatenation will make it fail
 checkfail(function() print("EXTERN = "..example.EXTERN) end)
 checkfail(function() print("FOO = "..example.FOO) end)

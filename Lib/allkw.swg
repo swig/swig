@@ -1,5 +1,5 @@
-#ifndef __Lib_allkw_swg__
-#define __Lib_allkw_swg__
+#ifndef SWIG_INCLUDED_LIB_ALLKW_SWG
+#define SWIG_INCLUDED_LIB_ALLKW_SWG
 
 
 /*  
@@ -30,4 +30,4 @@
 %include <tcl/tclkw.swg>
 
 
-#endif //__Lib_allkw_swg__
+#endif // SWIG_INCLUDED_LIB_ALLKW_SWG

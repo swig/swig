@@ -62,8 +62,6 @@ struct BoolStructure {
     m_rbool(m_bool2),
     m_const_pbool(m_pbool),
     m_const_rbool(m_rbool) {}
-private:
-  BoolStructure& operator=(const BoolStructure &);
 };
 %}
 

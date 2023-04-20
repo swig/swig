@@ -18,9 +18,9 @@
    virtual std::string pong() { return "Foo::pong();" + ping(); }
    virtual std::string getA() { return this->a_; }
    virtual void setA(std::string a) { this->a_ = a; }
+   virtual void setAByRef(const std::string &a) { this->a_ = a; }
 
    static Foo* get_self(Foo *slf) {return slf;}
-   
  };
 
  %}
@@ -37,9 +37,9 @@
    virtual std::string pong();
    virtual std::string getA();
    virtual void setA(std::string a);
+   virtual void setAByRef(const std::string &a);
    
    static Foo* get_self(Foo *slf);
-   
  };
 
  %{
@@ -54,7 +54,7 @@
  %inline %{
 
  struct A{
-     A(std::complex<int> i, double d=0.0) {}
+     A(std::complex<double> i, double d=0.0) {}
      A(int i, bool j=false) {}
      virtual ~A() {}
 
@@ -65,7 +65,7 @@
  namespace hi  {
 
    struct A1 : public A {
-     A1(std::complex<int> i, double d=0.0) : A(i, d) {}
+     A1(std::complex<double> i, double d=0.0) : A(i, d) {}
      A1(int i, bool j=false) : A(i, j) {}
 
      virtual int ff(int i = 0) {return i;}  

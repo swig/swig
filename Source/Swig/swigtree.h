@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * swigtree.h
  *
@@ -51,3 +51,4 @@ extern void  Swig_restore(Node *node);
 extern void Swig_print_tags(File *obj, Node *root);
 extern void Swig_print_tree(Node *obj);
 extern void Swig_print_node(Node *obj);
+extern int Swig_print_quiet(int quiet);

@@ -1,7 +1,7 @@
 /* php_iterator.i - PHP-specific testcase for wrapping to a PHP Iterator */
 %module php_iterator
 
-%typemap("phpinterfaces") MyIterator "Iterator";
+%typemap("phpinterfaces") MyIterator "Iterator"
 
 %inline %{
 

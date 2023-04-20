@@ -33,7 +33,7 @@
 %}
 %typemap(out, fragment="SWIG_intrusive_deleter") CONST TYPE %{
   //plain value(out)
-  $1_ltype* resultp = new $1_ltype(($1_ltype &)$1);
+  $1_ltype* resultp = new $1_ltype($1);
   intrusive_ptr_add_ref(resultp);
   *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(resultp, SWIG_intrusive_deleter< CONST TYPE >());
 %}
@@ -342,7 +342,7 @@
   }
   $1 = *argp; %}
 %typemap(out) CONST TYPE
-%{ *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1)); %}
+%{ *(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > **)&$result = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype($1)); %}
 
 // plain pointer
 %typemap(in) CONST TYPE * (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{

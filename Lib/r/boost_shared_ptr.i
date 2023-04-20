@@ -35,7 +35,7 @@
   }
 }
 %typemap(out) CONST TYPE {
-  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1));
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype($1));
   %set_output(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
 
@@ -54,12 +54,12 @@
   }
 }
 %typemap(varout) CONST TYPE {
-  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1));
+  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartresult = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype($1));
   %set_varoutput(SWIG_NewPointerObj(%as_voidptr(smartresult), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN));
 }
 
 %typemap(directorin,noblock=1) CONST TYPE (SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *smartarg = 0) %{
-  smartarg = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(($1_ltype &)$1));
+  smartarg = new SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >(new $1_ltype(SWIG_STD_MOVE($1)));
   $input = SWIG_NewPointerObj(%as_voidptr(smartarg), $descriptor(SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< TYPE > *), SWIG_POINTER_OWN | %newpointer_flags);
 %}
 %typemap(directorout,noblock=1) CONST TYPE (void *swig_argp, int swig_res = 0) {
@@ -393,6 +393,31 @@
 %typemap(out) CONST TYPE[], CONST TYPE[ANY], CONST TYPE (CLASS::*) %{
 #error "typemaps for $1_type not available"
 %}
+
+%typemap(rtype)      SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+  "$typemap(rtype, TYPE)"
+
+%typemap(rtypecheck) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+  "(extends($argtype, '$typemap(rtype, TYPE)') && length($arg) == 1) || is.null($arg)"
+
+%typemap(scoercein)  SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+ %{ if (inherits($input, "ExternalReference")) $input = slot($input,"ref"); %}
+
+%typemap(scoerceout) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > &,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *,
+                     SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE > *&
+  %{ $result <- if (is.null($result)) $result
+  else new("$typemap(rtype, TYPE)", ref=$result); %}
 
 
 %template() SWIG_SHARED_PTR_QNAMESPACE::shared_ptr< CONST TYPE >;

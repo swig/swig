@@ -8,7 +8,12 @@ NODEJS = @NODEJS@
 SCRIPTSUFFIX = _runme.js
 OBJEXT = @OBJEXT@
 SO = @SO@
+GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@
 
+HAVE_CXX11   = @HAVE_CXX11@
+HAVE_CXX14   = @HAVE_CXX14@
+HAVE_CXX17   = @HAVE_CXX17@
+HAVE_CXX20   = @HAVE_CXX20@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -47,9 +52,6 @@ ifeq (node,$(JSENGINE))
   SWIGOPT += -v8 -DBUILDING_NODE_EXTENSION=1
 
   # shut up some warnings
-  # contract macro has an empty 'else' at the end...
-  aggregate.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
-  contract.cpptest: GYP_CFLAGS = \"-Wno-empty-body\"
 
   # dunno... ignoring generously
   apply_signed_char.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
@@ -58,10 +60,11 @@ ifeq (node,$(JSENGINE))
   director_basic.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   member_funcptr_galore.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+  director_unwrap_result.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
 	setup_node = \
 		test -d $* || mkdir $* && \
-		sed -e 's|$$testcase|$*|g; s|$$cflags|$(GYP_CFLAGS)|g; s|$$srcdir|$(srcdir)|g' \
+		sed -e 's|$$testcase|$*|g; s|$$cflags|$(GYP_CFLAGS)|g; s|$$cxxflags|"$(GYP_CXXFLAGS)"|g; s|$$srcdir|$(srcdir)|g' \
 			$(srcdir)/node_template/binding.gyp.in > $*/binding.gyp && \
 		sed -e 's|$$testcase|$*|g;' \
 			$(srcdir)/node_template/index.js.in > $*/index.js
@@ -137,7 +140,7 @@ clean:
 		rm -f imports_a$${ext} imports_b$${ext}; \
 		rm -f import_stl_a$${ext} import_stl_b$${ext}; \
 		rm -f mod_a$${ext} mod_b$${ext}; \
-		rm -f multi_import_a$${ext} multi_import_b$${ext}; \
+		rm -f multi_import_a$${ext} multi_import_b$${ext} multi_import_d$${ext}; \
 		rm -f packageoption_a$${ext} packageoption_b$${ext} packageoption_c$${ext}; \
 		rm -f template_typedef_cplx2$${ext}; \
 	done

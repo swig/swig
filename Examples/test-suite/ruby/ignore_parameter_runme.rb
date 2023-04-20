@@ -25,6 +25,7 @@ raise RuntimeError unless sc.daimler(0, 1.0) == "hello"
 raise RuntimeError unless sc.astonmartin("foo", 1.0) == 101
 raise RuntimeError unless sc.bugatti("foo", 0) == 8.8
 raise RuntimeError unless sc.lamborghini() == 101
+raise RuntimeError unless sc.audi() == 8.8
 
 # Constructor tests
 MiniCooper.new(0, 1.0)

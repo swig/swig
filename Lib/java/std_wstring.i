@@ -60,7 +60,7 @@ class wstring;
  %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") wstring %{
-  jsize $1_len = $1.length();
+  jsize $1_len = (jsize)$1.length();
   jchar *$1_conv_buf = new jchar[$1_len];
   for (jsize i = 0; i < $1_len; ++i) {
     $1_conv_buf[i] = (jchar)$1[i];
@@ -71,7 +71,7 @@ class wstring;
 %}
 
 %typemap(out) wstring
-%{jsize $1_len = $1.length();
+%{jsize $1_len = (jsize)$1.length();
   jchar *conv_buf = new jchar[$1_len];
   for (jsize i = 0; i < $1_len; ++i) {
     conv_buf[i] = (jchar)$1[i];
@@ -88,9 +88,12 @@ class wstring;
 //%typemap(typecheck) wstring = wchar_t *;
 
 %typemap(throws) wstring
-%{ std::string message($1.begin(), $1.end());
-   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, message.c_str());
-   return $null; %}
+%{std::string message($1.size(), '\0');
+  for (size_t i = 0; i < $1.size(); ++i) {
+    message[i] = (char)$1[i];
+  }
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, message.c_str());
+  return $null; %}
 
 // const wstring &
 %typemap(jni) const wstring & "jstring"
@@ -138,7 +141,7 @@ class wstring;
   jenv->ReleaseStringChars($input, $1_pstr); %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") const wstring & %{
-  jsize $1_len = $1.length();
+  jsize $1_len = (jsize)$1.length();
   jchar *$1_conv_buf = new jchar[$1_len];
   for (jsize i = 0; i < $1_len; ++i) {
     $1_conv_buf[i] = (jchar)($1)[i];
@@ -149,7 +152,7 @@ class wstring;
 %}
 
 %typemap(out) const wstring & 
-%{jsize $1_len = $1->length();
+%{jsize $1_len = (jsize)$1->length();
   jchar *conv_buf = new jchar[$1_len];
   for (jsize i = 0; i < $1_len; ++i) {
     conv_buf[i] = (jchar)(*$1)[i];
@@ -166,9 +169,12 @@ class wstring;
 //%typemap(typecheck) const wstring & = wchar_t *;
 
 %typemap(throws) const wstring &
-%{ std::string message($1.begin(), $1.end());
-   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, message.c_str());
-   return $null; %}
+%{std::string message($1.size(), '\0');
+  for (size_t i = 0; i < $1.size(); ++i) {
+    message[i] = (char)$1[i];
+  }
+  SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, message.c_str());
+  return $null; %}
 
 }
 

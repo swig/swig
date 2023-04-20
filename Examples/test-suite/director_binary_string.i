@@ -8,6 +8,7 @@
 
 %inline %{
 #include <stdlib.h>
+#include <string.h>
 
 #define BUFFER_SIZE_AA 8
 #define BUFFER_SIZE_BB 5

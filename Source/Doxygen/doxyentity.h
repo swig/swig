@@ -4,15 +4,15 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * doxyentity.h
  *
  * Part of the Doxygen comment translation module of SWIG.
  * ----------------------------------------------------------------------------- */
 
-#ifndef DOXYGENENTITY_H_
-#define DOXYGENENTITY_H_
+#ifndef SWIG_DOXYENTITY_H
+#define SWIG_DOXYENTITY_H
 
 #include <string>
 #include <list>

@@ -26,6 +26,12 @@
 }
 %enddef
 
+%{
+#if __cplusplus >= 202002L
+#define volatile
+#endif
+%}
+
 %inline %{
   typedef struct {
     int a;

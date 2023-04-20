@@ -6,37 +6,37 @@
  * The C# wrapper is made to look and feel like a C# System.Collections.Generic.IReadOnlyList<> collection.
  * ----------------------------------------------------------------------------- */
 
-%{
-#include <algorithm>
-#include <array>
-#include <stdexcept>
-%}
-
 %include <std_common.i>
 
 
-%define SWIG_STD_ARRAY_INTERNAL(T, N)
-%typemap(csinterfaces) std::array< T, N > "global::System.IDisposable, global::System.Collections.IEnumerable\n    , global::System.Collections.Generic.IEnumerable<$typemap(cstype, T)>\n";
+%define SWIG_STD_ARRAY_INTERNAL(CTYPE, N)
+%typemap(csinterfaces) std::array< CTYPE, N > "global::System.IDisposable, global::System.Collections.IEnumerable\n    , global::System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)>\n"
 %proxycode %{
   public $csclassname(global::System.Collections.ICollection c) : this() {
     if (c == null)
       throw new global::System.ArgumentNullException("c");
-    int end = global::System.Math.Min(this.Count, c.Count);
+    int count = this.Count;
     int i = 0;
-    foreach ($typemap(cstype, T) elem in c) {
-      if (i >= end)
+    foreach ($typemap(cstype, CTYPE) element in c) {
+      if (i >= count)
         break;
-      this[i++] = elem;
+      this[i++] = element;
     }
   }
 
-  public int Count {
+  public bool IsFixedSize {
     get {
-      return (int)size();
+      return true;
     }
   }
 
-  public $typemap(cstype, T) this[int index]  {
+  public bool IsReadOnly {
+    get {
+      return false;
+    }
+  }
+
+  public $typemap(cstype, CTYPE) this[int index]  {
     get {
       return getitem(index);
     }
@@ -51,17 +51,29 @@
     }
   }
 
-  public void CopyTo($typemap(cstype, T)[] array)
+  public int Count {
+    get {
+      return (int)size();
+    }
+  }
+
+  public bool IsSynchronized {
+    get {
+      return false;
+    }
+  }
+
+  public void CopyTo($typemap(cstype, CTYPE)[] array)
   {
     CopyTo(0, array, 0, this.Count);
   }
 
-  public void CopyTo($typemap(cstype, T)[] array, int arrayIndex)
+  public void CopyTo($typemap(cstype, CTYPE)[] array, int arrayIndex)
   {
     CopyTo(0, array, arrayIndex, this.Count);
   }
 
-  public void CopyTo(int index, $typemap(cstype, T)[] array, int arrayIndex, int count)
+  public void CopyTo(int index, $typemap(cstype, CTYPE)[] array, int arrayIndex, int count)
   {
     if (array == null)
       throw new global::System.ArgumentNullException("array");
@@ -79,7 +91,13 @@
       array.SetValue(getitemcopy(index+i), arrayIndex+i);
   }
 
-  global::System.Collections.Generic.IEnumerator<$typemap(cstype, T)> global::System.Collections.Generic.IEnumerable<$typemap(cstype, T)>.GetEnumerator() {
+  public $typemap(cstype, CTYPE)[] ToArray() {
+    $typemap(cstype, CTYPE)[] array = new $typemap(cstype, CTYPE)[this.Count];
+    this.CopyTo(array);
+    return array;
+  }
+
+  global::System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)> global::System.Collections.Generic.IEnumerable<$typemap(cstype, CTYPE)>.GetEnumerator() {
     return new $csclassnameEnumerator(this);
   }
 
@@ -97,7 +115,7 @@
   /// collection but not when one of the elements of the collection is modified as it is a bit
   /// tricky to detect unmanaged code that modifies the collection under our feet.
   public sealed class $csclassnameEnumerator : global::System.Collections.IEnumerator
-    , global::System.Collections.Generic.IEnumerator<$typemap(cstype, T)>
+    , global::System.Collections.Generic.IEnumerator<$typemap(cstype, CTYPE)>
   {
     private $csclassname collectionRef;
     private int currentIndex;
@@ -112,7 +130,7 @@
     }
 
     // Type-safe iterator Current
-    public $typemap(cstype, T) Current {
+    public $typemap(cstype, CTYPE) Current {
       get {
         if (currentIndex == -1)
           throw new global::System.InvalidOperationException("Enumeration not started.");
@@ -120,7 +138,7 @@
           throw new global::System.InvalidOperationException("Enumeration finished.");
         if (currentObject == null)
           throw new global::System.InvalidOperationException("Collection modified.");
-        return ($typemap(cstype, T))currentObject;
+        return ($typemap(cstype, CTYPE))currentObject;
       }
     }
 
@@ -161,7 +179,7 @@
   public:
     typedef size_t size_type;
     typedef ptrdiff_t difference_type;
-    typedef T value_type;
+    typedef CTYPE value_type;
     typedef value_type* pointer;
     typedef const value_type* const_pointer;
     typedef value_type& reference;
@@ -180,7 +198,7 @@
     void swap(array& other);
 
     %extend {
-      T getitemcopy(int index) throw (std::out_of_range) {
+      CTYPE getitemcopy(int index) throw (std::out_of_range) {
         if (index>=0 && index<(int)$self->size())
           return (*$self)[index];
         else
@@ -213,6 +231,11 @@
     }
 %enddef
 
+%{
+#include <array>
+#include <algorithm>
+#include <stdexcept>
+%}
 
 %csmethodmodifiers std::array::empty "private"
 %csmethodmodifiers std::array::getitemcopy "private"

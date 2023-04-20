@@ -81,7 +81,7 @@
 %{
   $*1_ltype swig_val;
   CONVERT_IN(swig_val, $*1_ltype, *$input);
-  $1_ltype temp = new $*1_ltype(($*1_ltype)swig_val);
+  $1_ltype temp = new $*1_ltype(swig_val);
   swig_acquire_ownership(temp);
   $result = temp;
 %}

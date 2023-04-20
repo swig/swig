@@ -52,15 +52,16 @@ This section details guile-specific support in SWIG.
 
 
 <p>
-SWIG works with Guile versions 1.8.x and 2.0.x. Support for version
-1.6.x has been dropped. The last version of SWIG that still works with
-Guile version 1.6.x is SWIG 2.0.9.
+SWIG is known to work with Guile versions 2.0.x, 2.2.x and 3.0.x (these are
+all tested via CI). SWIG probably still works with Guile 1.8.x but we're no
+longer able to regularly test this either in CI or by hand. Support for Guile
+1.6.x has been dropped (SWIG 2.0.9 was the last version of SWIG to support it).
 
 <p>
 Note that starting with guile 2.0, the guile sources can be compiled for
 improved performance. This is currently not tested with swig
 so your mileage may vary. To be safe set environment variable
-GUILE_AUTO_COMPILE to 0 when using swig generated guile code.
+<tt>GUILE_AUTO_COMPILE</tt> to 0 when using swig generated guile code.
 
 <H2><a name="Guile_nn2">26.2 Meaning of "Module"</a></H2>
 
@@ -75,7 +76,7 @@ we explicitly prefix the context, e.g., "guile-module".
 
 <p>Guile 1.8 and older could be interfaced using two different api's, the SCM
 or the GH API. The GH interface to guile is deprecated.  Read more about why in the 
-<a href="http://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/GH.html#GH">Guile manual</a>.
+<a href="https://www.gnu.org/software/guile/docs/docs-1.6/guile-ref/GH.html#GH">Guile manual</a>.
 
 <p>Support for the guile GH wrapper code generation has been dropped from SWIG. The last
 version of SWIG that can still generate guile GH wrapper code is 2.0.9. Please
@@ -303,10 +304,12 @@ experimental; the (hobbit4d link) conventions are not well understood.
 Underscores are converted to dashes in identifiers.  Guile support may
 grow an option to inhibit this folding in the future, but no one has
 complained so far.
+</p>
 
-<p>You can use the SWIG directives <code>%name</code> and
-<code>%rename</code> to specify the Guile name of the wrapped
-functions and variables (see CHANGES).
+<p>You can use the <a href="SWIG.html#SWIG_rename_ignore">SWIG
+directive <code>%rename</code></a> to specify the Guile
+names of the wrapped functions and variables.
+</p>
 
 <H2><a name="Guile_nn11">26.6 Typemaps</a></H2>
 

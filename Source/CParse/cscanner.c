@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * scanner.c
  *
@@ -123,7 +123,7 @@ void Swig_cparse_cplusplusout(int v) {
  * Initialize buffers
  * ------------------------------------------------------------------------- */
 
-void scanner_init() {
+void scanner_init(void) {
   scan = NewScanner();
   Scanner_idstart(scan,"%");
   scan_init = 1;
@@ -214,13 +214,13 @@ void skip_decl(void) {
     tok = Scanner_token(scan);
     if (tok == 0) {
       if (!Swig_error_count()) {
-	Swig_error(cparse_file, start_line, "Missing semicolon. Reached end of input.\n");
+	Swig_error(cparse_file, start_line, "Missing semicolon (';'). Reached end of input.\n");
       }
       return;
     }
     if (tok == SWIG_TOKEN_LBRACE) {
       if (Scanner_skip_balanced(scan,'{','}') < 0) {
-	Swig_error(cparse_file, start_line, "Missing '}'. Reached end of input.\n");
+	Swig_error(cparse_file, start_line, "Missing closing brace ('}'). Reached end of input.\n");
       }
       break;
     }
@@ -267,7 +267,7 @@ static int yylook(void) {
     case SWIG_TOKEN_RBRACE:
       num_brace--;
       if (num_brace < 0) {
-	Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous '}'\n");
+	Swig_error(cparse_file, cparse_line, "Syntax error. Extraneous closing brace ('}')\n");
 	num_brace = 0;
       } else {
 	return RBRACE;
@@ -331,6 +331,8 @@ static int yylook(void) {
       return COLON;
     case SWIG_TOKEN_DCOLONSTAR:
       return DSTAR;
+    case SWIG_TOKEN_LTEQUALGT:
+      return LESSEQUALGREATER;
       
     case SWIG_TOKEN_DCOLON:
       {
@@ -353,6 +355,20 @@ static int yylook(void) {
       
     case SWIG_TOKEN_ELLIPSIS:
       return ELLIPSIS;
+
+    case SWIG_TOKEN_LLBRACKET:
+      do {
+        tok = Scanner_token(scan);
+      } while ((tok != SWIG_TOKEN_RRBRACKET) && (tok > 0));
+      if (tok <= 0) {
+        Swig_error(cparse_file, cparse_line, "Unbalanced double brackets, missing closing (']]'). Reached end of input.\n");
+      }
+      break;
+
+    case SWIG_TOKEN_RRBRACKET:
+      /* Turn an unmatched ]] back into two ] - e.g. `a[a[0]]` */
+      scanner_next_token(RBRACKET);
+      return RBRACKET;
 
       /* Look for multi-character sequences */
       
@@ -528,11 +544,11 @@ void scanner_set_location(String *file, int line) {
   Scanner_set_location(scan,file,line-1);
 }
 
-void scanner_check_typedef() {
+void scanner_check_typedef(void) {
   check_typedef = 1;
 }
 
-void scanner_ignore_typedef() {
+void scanner_ignore_typedef(void) {
   check_typedef = 0;
 }
 
@@ -540,7 +556,7 @@ void scanner_last_id(int x) {
   last_id = x;
 }
 
-void scanner_clear_rename() {
+void scanner_clear_rename(void) {
   rename_active = 0;
 }
 
@@ -554,7 +570,7 @@ void scanner_set_main_input_file(String *file) {
   main_input_file = file;
 }
 
-String *scanner_get_main_input_file() {
+String *scanner_get_main_input_file(void) {
   return main_input_file;
 }
 
@@ -572,6 +588,9 @@ int yylex(void) {
   if (!scan_init) {
     scanner_init();
   }
+
+  Delete(cparse_unknown_directive);
+  cparse_unknown_directive = NULL;
 
   if (next_token) {
     l = next_token;
@@ -951,10 +970,8 @@ int yylex(void) {
 	return (yylex());
 
     } else {
-      Delete(cparse_unknown_directive);
-      cparse_unknown_directive = NULL;
-
       /* SWIG directives */
+      String *stext = 0;
       if (strcmp(yytext, "%module") == 0)
 	return (MODULE);
       if (strcmp(yytext, "%insert") == 0)
@@ -1031,8 +1048,23 @@ int yylex(void) {
       if (strcmp(yytext, "%warn") == 0)
 	return (WARN);
 
-      /* Note down the apparently unknown directive for error reporting. */
+      /* Note down the apparently unknown directive for error reporting - if
+       * we end up reporting a generic syntax error we'll instead report an
+       * error for his as an unknown directive.  Then we treat it as MODULO
+       * (`%`) followed by an identifier and if that parses OK then
+       * `cparse_unknown_directive` doesn't get used.
+       *
+       * This allows `a%b` to be handled in expressions without a space after
+       * the operator.
+       */
       cparse_unknown_directive = NewString(yytext);
+      stext = NewString(yytext + 1);
+      Seek(stext,0,SEEK_SET);
+      Setfile(stext,cparse_file);
+      Setline(stext,cparse_line);
+      Scanner_push(scan,stext);
+      Delete(stext);
+      return (MODULO);
     }
     /* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 

@@ -2,7 +2,7 @@
 # Makefile for python test-suite
 #######################################################################
 
-ifeq (,$(PY3))
+ifneq (,$(PY2))
   PYBIN = @PYTHON@
 else
   PYBIN = @PYTHON3@
@@ -14,12 +14,15 @@ SCRIPTSUFFIX = _runme.py
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,E741,W291,W391
 
+HAVE_CXX11   = @HAVE_CXX11@
+HAVE_CXX14   = @HAVE_CXX14@
+HAVE_CXX17   = @HAVE_CXX17@
+HAVE_CXX20   = @HAVE_CXX20@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
-	argcargvtest \
 	callback \
 	complextest \
 	director_stl \
@@ -48,6 +51,8 @@ CPP_TEST_CASES += \
 	li_std_wstring_inherit \
 	primitive_types \
 	python_abstractbase \
+	python_annotations_c \
+	python_annotations_variable_c \
 	python_append \
 	python_builtin \
 	python_destructor_exception \
@@ -91,6 +96,9 @@ C_TEST_CASES += \
 	python_nondynamic \
 	python_varargs_typemap \
 
+MULTI_CPP_TEST_CASES += \
+	python_runtime_data \
+
 include $(srcdir)/../common.mk
 
 # Overridden variables here
@@ -98,7 +106,14 @@ LIBS         = -L.
 VALGRIND_OPT += --suppressions=pythonswig.supp
 
 # Custom tests - tests with additional commandline options
-#python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
+python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
+
+# Make sure just python_runtime_data_builtin.i uses the -builtin option. Note: does not use python_runtime_data.list for all steps.
+python_runtime_data.multicpptest: override SWIG_FEATURES := $(filter-out -builtin,$(SWIG_FEATURES))
+python_runtime_data.multicpptest: override SWIGOPT := $(filter-out -builtin,$(SWIGOPT))
+python_runtime_data.multicpptest: swig_and_compile_multi_cpp = \
+	$(call swig_and_compile_cpp_helper,python_runtime_data_builtin,'$(SWIGOPT) -builtin') && \
+	$(call swig_and_compile_cpp_helper,python_runtime_data_nobuiltin,'$(SWIGOPT)')
 
 # Rules for the different types of tests
 %.cpptest:
@@ -146,8 +161,8 @@ clean:
 	rm -f clientdata_prop_a.py clientdata_prop_b.py import_stl_a.py import_stl_b.py
 	rm -f hugemod.h hugemod_a.i hugemod_b.i hugemod_a.py hugemod_b.py hugemod_runme.py
 	rm -f imports_a.py imports_b.py mod_a.py mod_b.py multi_import_a.py
-	rm -f multi_import_b.py packageoption_a.py packageoption_b.py packageoption_c.py
-	rm -f template_typedef_cplx2.py
+	rm -f multi_import_b.py multi_import_d.py packageoption_a.py packageoption_b.py packageoption_c.py
+	rm -f template_typedef_cplx2.py python_runtime_data_builtin.py python_runtime_data_nobuiltin.py
 
 hugemod_runme = hugemod$(SCRIPTPREFIX)
 

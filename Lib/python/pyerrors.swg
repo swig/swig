@@ -64,7 +64,6 @@ SWIG_Python_AddErrorMsg(const char* mesg)
       PyErr_Format(type, "%s %s", tmp, mesg);
     else
       PyErr_Format(type, "%s", mesg);
-    SWIG_Python_str_DelForPy3(tmp);
     Py_DECREF(old_str);
     Py_DECREF(value);
   } else {

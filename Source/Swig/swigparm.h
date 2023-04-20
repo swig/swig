@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * swigparm.h
  *
@@ -19,10 +19,15 @@ extern Parm      *NewParmNode(SwigType *type, Node *from_node);
 extern Parm      *CopyParm(Parm *p);
 
 /* Parameter lists */
-extern ParmList  *CopyParmList(ParmList *);
-extern ParmList  *CopyParmListMax(ParmList *, int count);
-extern int        ParmList_len(ParmList *);
+extern ParmList  *CopyParmList(ParmList *p);
+extern ParmList  *CopyParmListMax(ParmList *p, int count);
+extern ParmList  *ParmList_join(ParmList *p, ParmList *p2);
+extern ParmList  *ParmList_replace_last(ParmList *p, ParmList *p2);
+extern Parm      *ParmList_nth_parm(ParmList *p, unsigned int n);
+extern Parm      *ParmList_variadic_parm(ParmList *p);
+extern Parm      *ParmList_add_parm(ParmList *p, Parm *newparm);
 extern int        ParmList_numrequired(ParmList *);
+extern int        ParmList_len(ParmList *);
 extern int        ParmList_has_defaultargs(ParmList *p);
 extern int        ParmList_has_varargs(ParmList *p);
 

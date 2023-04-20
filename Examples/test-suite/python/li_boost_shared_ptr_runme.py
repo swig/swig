@@ -168,6 +168,19 @@ class li_boost_shared_ptr_runme:
         except ValueError:
             pass
 
+        # test null pointers emitted from C++
+        k = li_boost_shared_ptr.sp_pointer_null()
+        if (li_boost_shared_ptr.smartpointertest(k) != None):
+            raise RuntimeError("return was not null")
+
+        k = li_boost_shared_ptr.null_sp_pointer()
+        if (li_boost_shared_ptr.smartpointertest(k) != None):
+            raise RuntimeError("return was not null")
+
+        k = li_boost_shared_ptr.sp_value_null()
+        if (li_boost_shared_ptr.smartpointertest(k) != None):
+            raise RuntimeError("return was not null")
+
         # $owner
         k = li_boost_shared_ptr.pointerownertest()
         val = k.getValue()

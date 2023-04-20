@@ -665,7 +665,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
 %typemap(out) SWIGTYPE 
 #ifdef __cplusplus
-%{ *($&1_ltype*)&$result = new $1_ltype((const $1_ltype &)$1); %}
+%{ *($&1_ltype*)&$result = new $1_ltype($1); %}
 #else
 {
   $&1_ltype $1ptr = ($&1_ltype) malloc(sizeof($1_ltype));
@@ -676,7 +676,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
 %typemap(directorin,descriptor="L$packagepath/$&javaclassname;") SWIGTYPE 
 %{ $input = 0;
-   *(($&1_ltype*)&$input) = new $1_ltype((const $1_ltype &)$1); %}
+   *(($&1_ltype*)&$input) = new $1_ltype(SWIG_STD_MOVE($1)); %}
 %typemap(javadirectorin) SWIGTYPE "new $&javaclassname($jniinput, true)"
 %typemap(javadirectorout) SWIGTYPE "$&javaclassname.getCPtr($javacall)"
 
@@ -692,14 +692,15 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 }
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type is null");
     return $null;
   } %}
-%typemap(in) SWIGTYPE && %{ $1 = *($&1_ltype)&$input;
+%typemap(in, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter) %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type reference is null");
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type is null");
     return $null;
-  } %}
+  }
+  rvrdeleter.reset($1); %}
 %typemap(out) SWIGTYPE *
 %{ *($&1_ltype)&$result = $1; %} 
 %typemap(out, fragment="SWIG_PackData", noblock=1) SWIGTYPE (CLASS::*) {
@@ -1101,7 +1102,8 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
                  jobjectArray
     "$javainput"
 %typemap(javain) SWIGTYPE "$&javaclassname.getCPtr($javainput)"
-%typemap(javain) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] "$javaclassname.getCPtr($javainput)"
+%typemap(javain) SWIGTYPE *, SWIGTYPE &, SWIGTYPE [] "$javaclassname.getCPtr($javainput)"
+%typemap(javain) SWIGTYPE && "$javaclassname.swigRelease($javainput)"
 %typemap(javain) SWIGTYPE (CLASS::*) "$javaclassname.getCMemberPtr($javainput)"
 
 /* The javaout typemap is used for converting function return types from the return type
@@ -1216,6 +1218,18 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
+
+  CPTR_VISIBILITY static long swigRelease($javaclassname obj) {
+    long ptr = 0;
+    if (obj != null) {
+      if (!obj.swigCMemOwn)
+        throw new RuntimeException("Cannot release ownership as memory is not owned");
+      ptr = obj.swigCPtr;
+      obj.swigCMemOwn = false;
+      obj.delete();
+    }
+    return ptr;
+  }
 %}
 
 // Derived proxy classes
@@ -1229,6 +1243,18 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
+  }
+
+  CPTR_VISIBILITY static long swigRelease($javaclassname obj) {
+    long ptr = 0;
+    if (obj != null) {
+      if (!obj.swigCMemOwn)
+        throw new RuntimeException("Cannot release ownership as memory is not owned");
+      ptr = obj.swigCPtr;
+      obj.swigCMemOwn = false;
+      obj.delete();
+    }
+    return ptr;
   }
 %}
 %enddef
@@ -1247,6 +1273,10 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   }
 
   CPTR_VISIBILITY static long getCPtr($javaclassname obj) {
+    return (obj == null) ? 0 : obj.swigCPtr;
+  }
+
+  CPTR_VISIBILITY static long swigRelease($javaclassname obj) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}

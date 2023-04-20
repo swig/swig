@@ -30,38 +30,26 @@
 #endif
 
 
-/* Warning: This function will allocate a new string in Python 3,
- * so please call SWIG_Python_str_DelForPy3(x) to free the space.
- */
 SWIGINTERN char*
 SWIG_Python_str_AsChar(PyObject *str)
 {
 #if PY_VERSION_HEX >= 0x03030000
-  return (char *)PyUnicode_AsUTF8(str);
-#elif PY_VERSION_HEX >= 0x03000000
-  char *newstr = 0;
-  str = PyUnicode_AsUTF8String(str);
-  if (str) {
-    char *cstr;
-    Py_ssize_t len;
-    if (PyBytes_AsStringAndSize(str, &cstr, &len) != -1) {
-      newstr = (char *) malloc(len+1);
-      if (newstr)
-        memcpy(newstr, cstr, len+1);
-    }
-    Py_XDECREF(str);
-  }
-  return newstr;
+# if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030A0000
+  return (char*)PyUnicode_AsUTF8AndSize(str, NULL);
+# else
+  PyObject* bytes = PyUnicode_AsUTF8String(str);
+  char* chars = PyBytes_AsString(bytes);
+  Py_DECREF(bytes);
+  return chars;
+# endif
 #else
   return PyString_AsString(str);
 #endif
 }
 
-#if PY_VERSION_HEX >= 0x03030000 || PY_VERSION_HEX < 0x03000000
-#  define SWIG_Python_str_DelForPy3(x)
-#else
-#  define SWIG_Python_str_DelForPy3(x) free( (void*) (x) )
-#endif
+/* Was useful for Python 3.0.x-3.2.x - now provided only for compatibility
+ * with any uses in user interface files. */
+#define SWIG_Python_str_DelForPy3(x)
 
 
 SWIGINTERN PyObject*
@@ -80,7 +68,12 @@ SWIG_Python_str_FromChar(const char *c)
 
 /* SWIGPY_USE_CAPSULE is no longer used within SWIG itself, but some user interface files check for it. */
 # define SWIGPY_USE_CAPSULE
-# define SWIGPY_CAPSULE_NAME ("swig_runtime_data" SWIG_RUNTIME_VERSION ".type_pointer_capsule" SWIG_TYPE_TABLE_NAME)
+#ifdef SWIGPYTHON_BUILTIN
+# define SWIGPY_CAPSULE_ATTR_NAME "type_pointer_capsule_builtin" SWIG_TYPE_TABLE_NAME
+#else
+# define SWIGPY_CAPSULE_ATTR_NAME "type_pointer_capsule" SWIG_TYPE_TABLE_NAME
+#endif
+# define SWIGPY_CAPSULE_NAME ("swig_runtime_data" SWIG_RUNTIME_VERSION "." SWIGPY_CAPSULE_ATTR_NAME)
 
 #if PY_VERSION_HEX < 0x03020000
 #define PyDescr_TYPE(x) (((PyDescrObject *)(x))->d_type)

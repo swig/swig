@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * symbol.c
  *
@@ -12,7 +12,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
-#include "swigwarn.h"
+#include "cparse.h"
 #include <ctype.h>
 
 /* #define SWIG_DEBUG*/
@@ -641,10 +641,11 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
 
   {
     Node *td = n;
-    while (td && Checkattr(td, "nodeType", "cdecl") && Checkattr(td, "storage", "typedef")) {
+    while (td && ((Equal(nodeType(td), "cdecl") && Checkattr(td, "storage", "typedef")) || (Equal(nodeType(td), "using") && !Getattr(n, "namespace")))) {
       SwigType *type;
       Node *td1;
-      type = Copy(Getattr(td, "type"));
+      int using_not_typedef = Equal(nodeType(td), "using");
+      type = Copy(Getattr(td, using_not_typedef ? "uname" : "type"));
       SwigType_push(type, Getattr(td, "decl"));
       td1 = Swig_symbol_clookup(type, 0);
 
@@ -665,9 +666,13 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
          ie, when Foo -> FooBar -> Foo, jump one scope up when possible.
 
        */
-      if (td1 && Checkattr(td1, "storage", "typedef")) {
-	String *st = Getattr(td1, "type");
+      if (td1) {
+	String *st = 0;
 	String *sn = Getattr(td, "name");
+	if (Equal(nodeType(td1), "cdecl") && Checkattr(td1, "storage", "typedef"))
+	  st = Getattr(td1, "type");
+	else if (Equal(nodeType(td1), "using") && !Getattr(td1, "namespace"))
+	  st = Getattr(td1, "uname");
 	if (st && sn && Equal(st, sn)) {
 	  Symtab *sc = Getattr(current_symtab, "parentNode");
 	  if (sc)
@@ -1177,7 +1182,9 @@ Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
     Symtab *un = Getattr(s, "sym:symtab");
     Node *ss = (!Equal(name, uname) || (un != n)) ? Swig_symbol_clookup(uname, un) : 0;	/* avoid infinity loop */
     if (!ss) {
+      SWIG_WARN_NODE_BEGIN(s);
       Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
+      SWIG_WARN_NODE_END(s);
     }
     s = ss;
   }
@@ -1249,7 +1256,9 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, int (*
     Node *ss;
     ss = Swig_symbol_clookup(Getattr(s, "uname"), Getattr(s, "sym:symtab"));
     if (!ss && !checkfunc) {
+      SWIG_WARN_NODE_BEGIN(s);
       Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
+      SWIG_WARN_NODE_END(s);
     }
     s = ss;
   }
@@ -1300,7 +1309,9 @@ Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
   while (s && Checkattr(s, "nodeType", "using")) {
     Node *ss = Swig_symbol_clookup_local(Getattr(s, "uname"), Getattr(s, "sym:symtab"));
     if (!ss) {
+      SWIG_WARN_NODE_BEGIN(s);
       Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
+      SWIG_WARN_NODE_END(s);
     }
     s = ss;
   }
@@ -1348,7 +1359,9 @@ Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, 
   while (s && Checkattr(s, "nodeType", "using")) {
     Node *ss = Swig_symbol_clookup_local_check(Getattr(s, "uname"), Getattr(s, "sym:symtab"), checkfunc);
     if (!ss && !checkfunc) {
+      SWIG_WARN_NODE_BEGIN(s);
       Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
+      SWIG_WARN_NODE_END(s);
     }
     s = ss;
   }
@@ -1505,7 +1518,8 @@ Node *Swig_symbol_isoverloaded(Node *n) {
 static SwigType *symbol_template_qualify(const SwigType *e, Symtab *st) {
   String *tprefix, *tsuffix;
   SwigType *qprefix;
-  List *targs;
+  String *targs;
+  List *targslist;
   Node *tempn;
   Symtab *tscope;
   Iterator ti;
@@ -1528,12 +1542,15 @@ static SwigType *symbol_template_qualify(const SwigType *e, Symtab *st) {
   tprefix = SwigType_templateprefix(e);
   tsuffix = SwigType_templatesuffix(e);
   qprefix = Swig_symbol_type_qualify(tprefix, st);
-  targs = SwigType_parmlist(e);
+  targs = SwigType_templateargs(e);
+  targslist = SwigType_parmlist(targs);
   tempn = Swig_symbol_clookup_local(tprefix, st);
   tscope = tempn ? Getattr(tempn, "sym:symtab") : 0;
   Append(qprefix, "<(");
-  for (ti = First(targs); ti.item;) {
+  for (ti = First(targslist); ti.item;) {
     String *vparm;
+    /* TODO: the logic here should be synchronised with that in SwigType_typedef_qualified() */
+    /* TODO: ti.item might be a non-type parameter possibly within (), eg: (std::is_integral_v<(A)>||std::is_same_v<(A,node_t)>) */
     String *qparm = Swig_symbol_type_qualify(ti.item, st);
     if (tscope && (tscope != st)) {
       String *ty = Swig_symbol_type_qualify(qparm, tscope);
@@ -1555,6 +1572,7 @@ static SwigType *symbol_template_qualify(const SwigType *e, Symtab *st) {
   Delete(tprefix);
   Delete(tsuffix);
   Delete(targs);
+  Delete(targslist);
 #ifdef SWIG_DEBUG
   Printf(stderr, "symbol_temp_qual %s %s\n", e, qprefix);
 #endif
@@ -1728,7 +1746,7 @@ SwigType *Swig_symbol_typedef_reduce(const SwigType *ty, Symtab *tab) {
 
   n = Swig_symbol_clookup(base, tab);
   if (!n) {
-    if (SwigType_istemplate(ty)) {
+    if (SwigType_istemplate(base)) {
       SwigType *qt = Swig_symbol_template_reduce(base, tab);
       Append(prefix, qt);
       Delete(qt);

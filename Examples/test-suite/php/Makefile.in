@@ -5,6 +5,10 @@
 LANGUAGE     = php
 SCRIPTSUFFIX = _runme.php
 
+HAVE_CXX11   = @HAVE_CXX11@
+HAVE_CXX14   = @HAVE_CXX14@
+HAVE_CXX17   = @HAVE_CXX17@
+HAVE_CXX20   = @HAVE_CXX20@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
@@ -53,10 +57,18 @@ missingtests: missingcpptests missingctests
 	+$(swig_and_compile_c)
 	+$(run_testcase)
 
+# Trying to load the modules for imports.multicpptest fails with:
+#
+# Warning: Function registration failed - duplicate name - global_test in Unknown on line 0
+# Segmentation fault
+#
+# This was previously hidden because we didn't even try to load the modules for
+# .multicpptest testcases, so for now just do the parts of the test we did
+# before.  FIXME: Fix this!
 %.multicpptest:
 	$(setup)
 	+$(swig_and_compile_multi_cpp)
-	+$(run_testcase)
+	+[ "$*" = "imports" ] || $(run_multi_testcase)
 
 # Smart target
 %.test:
@@ -67,18 +79,27 @@ missingtests: missingcpptests missingctests
 	@echo ' $(MULTI_CPP_TEST_CASES) '|grep -F -v ' $* ' >/dev/null ||\
 	    $(MAKE) $*.multicpptest
 
-# Runs the testcase. Tries to run testcase_runme.php, and if that's not
-# found, runs testcase.php, except for multicpptests.
+# Runs the testcase. Tries to run testcase_runme.php, and if that's not found,
+# at least test that the module loads without errors.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION=$(TARGETPREFIX)$*@PHP_SO@ PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL='$(RUNTOOL)' php_run; \
-	elif [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*.php -a ! -f $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list ]; then \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION=$(TARGETPREFIX)$*@PHP_SO@ PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*.php RUNTOOL='$(RUNTOOL)' php_run; \
+	else \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION=$(TARGETPREFIX)$*@PHP_SO@ PHP_SCRIPT= RUNTOOL='$(RUNTOOL)' php_run; \
 	fi
 
-# Clean: remove the generated .php file
+# Runs a multicpptest testcase. Tries to run testcase_runme.php, and if that's
+# not found, at least test that the modules load without errors.
+run_multi_testcase = \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION_LIST=$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list PHP_SCRIPT=$(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) RUNTOOL='$(RUNTOOL)' php_run_multi; \
+	else \
+	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile PHP_EXTENSION_LIST=$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list PHP_SCRIPT= RUNTOOL='$(RUNTOOL)' php_run_multi; \
+	fi
+
+# Clean: remove the generated PHP-specific files
 %.clean:
-	@rm -f $*.php php_$*.h
+	@rm -f php_$*.h
 
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' php_clean
@@ -86,6 +107,6 @@ clean:
 	rm -f import_stl_a.php import_stl_b.php php_import_stl_a.h php_import_stl_b.h
 	rm -f imports_a.php imports_b.php php_imports_a.h php_imports_b.h
 	rm -f mod_a.php mod_b.php php_mod_a.h php_mod_b.h
-	rm -f multi_import_a.php multi_import_b.php php_multi_import_a.h php_multi_import_b.h
+	rm -f multi_import_a.php multi_import_b.php multi_import_d.php php_multi_import_a.h php_multi_import_b.h php_multi_import_d.h
 	rm -f packageoption_a.php packageoption_b.php packageoption_c.php php_packageoption_a.h php_packageoption_b.h php_packageoption_c.h
 	rm -f template_typedef_cplx2.php php_template_typedef_cplx2.h

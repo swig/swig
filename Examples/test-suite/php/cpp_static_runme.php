@@ -2,8 +2,8 @@
 
 require "tests.php";
 
-// New functions
-check::functions(array('is_python_builtin'));
+// No new functions
+check::functions(array());
 // New classes
 check::classes(array('StaticMemberTest','StaticFunctionTest','cpp_static','StaticBase','StaticDerived'));
 // No new vars

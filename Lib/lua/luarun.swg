@@ -87,7 +87,7 @@ typedef struct swig_elua_entry {
 #endif
 
 #if (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUA) || (SWIG_LUA_TARGET == SWIG_LUA_FLAVOR_ELUAC)
-#  define SWIG_LUA_CONSTTAB_INT(B, C) LSTRKEY(B), LNUMVAL(C)
+#  define SWIG_LUA_CONSTTAB_INT(B, C...) LSTRKEY(B), LNUMVAL(C)
 #  define SWIG_LUA_CONSTTAB_FLOAT(B, C) LSTRKEY(B), LNUMVAL(C)
 #  define SWIG_LUA_CONSTTAB_STRING(B, C) LSTRKEY(B), LSTRVAL(C)
 #  define SWIG_LUA_CONSTTAB_CHAR(B, C) LSTRKEY(B), LNUMVAL(C)
@@ -103,7 +103,7 @@ typedef struct swig_elua_entry {
 #define SWIG_LUA_CONSTTAB_BINARY(B, S, C, D) LSTRKEY(B), LNILVAL
 #endif
 #else /* SWIG_LUA_FLAVOR_LUA */
-#  define SWIG_LUA_CONSTTAB_INT(B, C) SWIG_LUA_INT, (char *)B, (long)C, 0, 0, 0
+#  define SWIG_LUA_CONSTTAB_INT(B, C...) SWIG_LUA_INT, (char *)B, (long)C, 0, 0, 0
 #  define SWIG_LUA_CONSTTAB_FLOAT(B, C) SWIG_LUA_FLOAT, (char *)B, 0, (double)C, 0, 0
 #  define SWIG_LUA_CONSTTAB_STRING(B, C) SWIG_LUA_STRING, (char *)B, 0, 0, (void *)C, 0
 #  define SWIG_LUA_CONSTTAB_CHAR(B, C) SWIG_LUA_CHAR, (char *)B, (long)C, 0, 0, 0
@@ -307,7 +307,7 @@ typedef struct {
 
 /* Contract support */
 #define SWIG_contract_assert(expr, msg)  \
-  if (!(expr)) { SWIG_Lua_pusherrstring(L, (char *) msg); goto fail; } else
+  do { if (!(expr)) { SWIG_Lua_pusherrstring(L, (char *) msg); goto fail; } } while (0)
 
 
 /* helper #defines */
@@ -826,7 +826,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get_item(lua_State *L, swig_type_info *type, i
   /* NEW: looks for the __getitem() fn
   this is a user provided get fn */
   SWIG_Lua_get_table(L,"__getitem"); /* find the __getitem fn */
-  if (lua_iscfunction(L,-1))  /* if its there */
+  if (lua_iscfunction(L,-1))  /* if it's there */
   {  /* found it so call the fn & return its value */
     lua_pushvalue(L,substack_start+1);  /* the userdata */
     lua_pushvalue(L,substack_start+2);  /* the parameter */
@@ -883,7 +883,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int SW
   lua_pushvalue(L,substack_start+2);  /* key */
   lua_rawget(L,-2);  /* look for the fn */
   lua_remove(L,-2); /* stack tidy, remove .fn table */
-  if (lua_isfunction(L,-1)) /* note: if its a C function or lua function */
+  if (lua_isfunction(L,-1)) /* note: if it's a C function or lua function */
   {  /* found it so return the fn & let lua call it */
     lua_remove(L,-2); /* stack tidy, remove metatable */
     if(ret)
@@ -966,7 +966,7 @@ SWIGINTERN int  SWIG_Lua_class_do_set(lua_State *L, swig_type_info *type, int fi
   /* NEW: looks for the __setitem() fn
   this is a user provided set fn */
   SWIG_Lua_get_table(L,"__setitem"); /* find the fn */
-  if (lua_iscfunction(L,-1))  /* if its there */
+  if (lua_iscfunction(L,-1))  /* if it's there */
   {  /* found it so call the fn & return its value */
     lua_pushvalue(L,substack_start+1);  /* the userdata */
     lua_pushvalue(L,substack_start+2);  /* the parameter */
@@ -1343,7 +1343,7 @@ SWIGINTERN void  SWIG_Lua_add_class_instance_details(lua_State *L, swig_lua_clas
 SWIGRUNTIME int SWIG_Lua_resolve_metamethod(lua_State *L); /*forward declaration*/
 
 /* The real function that resolves a metamethod.
- * Function searches given class and all it's bases(recursively) for first instance of something that is
+ * Function searches given class and all its bases (recursively) for first instance of something that is
  * not equal to SWIG_Lua_resolve_metamethod. (Almost always this 'something' is actual metamethod implementation
  * and it is a SWIG-generated C function.). It returns value on the top of the L and there is no garbage below the
  * answer.
@@ -1757,6 +1757,7 @@ SWIGRUNTIME void SWIG_Lua_NewPointerObj(lua_State *L,void *ptr,swig_type_info *t
  (if possible) */
 SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type_info *type,int flags)
 {
+  int ret = SWIG_ERROR;
   swig_lua_userdata *usr;
   swig_cast_info *cast;
   /* special case: lua nil => NULL pointer */
@@ -1773,25 +1774,36 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type
   usr=(swig_lua_userdata*)lua_touserdata(L,index);  /* get data */
   if (usr)
   {
+    if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !usr->own)
+    {
+      return SWIG_ERROR_RELEASE_NOT_OWNED;
+    }
     if (flags & SWIG_POINTER_DISOWN) /* must disown the object */
     {
-        usr->own=0;
+      usr->own = 0;
     }
     if (!type)            /* special cast void*, no casting fn */
     {
       *ptr=usr->ptr;
-      return SWIG_OK; /* ok */
+      ret = SWIG_OK;
     }
-    cast=SWIG_TypeCheckStruct(usr->type,type); /* performs normal type checking */
-    if (cast)
+    else
     {
-      int newmemory = 0;
-      *ptr=SWIG_TypeCast(cast,usr->ptr,&newmemory);
-      assert(!newmemory); /* newmemory handling not yet implemented */
-      return SWIG_OK;  /* ok */
+      cast=SWIG_TypeCheck(usr->type->name,type); /* performs normal type checking */
+      if (cast)
+      {
+        int newmemory = 0;
+        *ptr=SWIG_TypeCast(cast,usr->ptr,&newmemory);
+        assert(!newmemory); /* newmemory handling not yet implemented */
+        ret = SWIG_OK;
+      }
+    }
+    if ((ret == SWIG_OK) && (flags & SWIG_POINTER_CLEAR))
+    {
+      usr->ptr = 0;
     }
   }
-  return SWIG_ERROR;  /* error */
+  return ret;
 }
 
 SWIGRUNTIME void* SWIG_Lua_MustGetPtr(lua_State *L,int index,swig_type_info *type,int flags,

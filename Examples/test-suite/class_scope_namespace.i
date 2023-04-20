@@ -15,6 +15,7 @@ namespace Space1 {
     void aaa(Space1::SubSpace1::A, SubSpace1::A, A) {}
   }
 }
+void global_namespace_a(A*) {}
 
 namespace Space2 {
   struct B;

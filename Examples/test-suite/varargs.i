@@ -4,6 +4,10 @@
 
 // Default handling of varargs
 
+%{
+#include <string.h>
+%}
+
 %inline %{
 char *test(const char *fmt, ...) {
   return (char *) fmt;

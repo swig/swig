@@ -30,6 +30,7 @@ SWIG_strnlen(const char* s, size_t maxlen)
 
 %include <typemaps/strings.swg>
 %typemaps_string(%checkcode(STRING), %checkcode(CHAR),
+		 SWIGWARN_TYPEMAP_CHARLEAK_MSG,
 		 char, Char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize,
 		 strlen, SWIG_strnlen,
 		"<limits.h>", CHAR_MIN, CHAR_MAX)

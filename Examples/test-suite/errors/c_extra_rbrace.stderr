@@ -1,1 +1,1 @@
-c_extra_rbrace.i:5: Error: Syntax error. Extraneous '}'
+c_extra_rbrace.i:5: Error: Syntax error. Extraneous closing brace ('}')

@@ -40,9 +40,10 @@
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
 }
 
-%typemap(in) SWIGTYPE && {
+%typemap(in, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter) %{
     $1 = ($ltype) caml_ptr_val($input,$1_descriptor);
-}
+    rvrdeleter.reset($1);
+%}
 
 %typemap(varin) SWIGTYPE & {
     $1 = *(($ltype) caml_ptr_val($input,$1_descriptor));
@@ -93,10 +94,14 @@
     $1 = *(($&1_ltype) caml_ptr_val($input,$&1_descriptor)) ;
 }
 
+%typemap(varout) SWIGTYPE {
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)&$1, $&1_descriptor);
+}
+
 #ifdef __cplusplus
 
 %typemap(out) SWIGTYPE {
-    $&1_ltype temp = new $ltype((const $1_ltype &) $1);
+    $&1_ltype temp = new $1_ltype($1);
     $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)temp, $&1_descriptor);
 }
 
@@ -110,8 +115,12 @@
 
 #endif
 
+%typemap(varout) SWIGTYPE * {
+    $result = SWIG_Ocaml_ptr_to_val("create_$ntype_from_ptr", (void *)$1, $1_descriptor);
+}
+
 %typemap(directorin) SWIGTYPE {
-    $&ltype temp = new $ltype((const $ltype &)$1);
+    $&ltype temp = new $1_ltype(SWIG_STD_MOVE($1));
     swig_result = SWIG_Ocaml_ptr_to_val("create_$ltype_from_ptr", (void *)temp, $&1_descriptor);
     args = caml_list_append(args, swig_result);
 }
@@ -180,12 +189,12 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* Void */
 
-%typemap(out) void "$result = Val_unit;";
+%typemap(out) void "$result = Val_unit;"
 
 /* Pass through value */
 
-%typemap (in) CAML_VALUE "$1=$input;";
-%typemap (out) CAML_VALUE "$result=$1;";
+%typemap (in) CAML_VALUE "$1=$input;"
+%typemap (out) CAML_VALUE "$result=$1;"
 
 #if 0
 %include <carray.i>
@@ -302,7 +311,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }
-%apply SWIGTYPE && { SWIGTYPE ((&)[ANY]) }
+%apply SWIGTYPE && { SWIGTYPE ((&&)[ANY]) }
 
 /* const pointers */
 %apply SWIGTYPE * { SWIGTYPE *const }

@@ -55,7 +55,7 @@ struct timeval rb_time_timeval(VALUE);
     if (NIL_P($input))
 	$1 = (time_t)-1;
     else
-	$1 = NUM2LONG(rb_funcall($input, rb_intern("tv_sec"), 0));
+	$1 = NUM2LONG(rb_funcall2($input, rb_intern("tv_sec"), 0, 0));
 }
 
 %typemap(typecheck) time_t

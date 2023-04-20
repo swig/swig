@@ -40,18 +40,18 @@ $importtype(IRemoteAsyncIO)
 #endif
 
 // Modify multiple inherited base classes into inheriting interfaces
-%typemap(javainterfaces) RemoteMpe "IRemoteSyncIO, IRemoteAsyncIO";
-%typemap(javabase, replace="1") RemoteMpe "";
+%typemap(javainterfaces) RemoteMpe "IRemoteSyncIO, IRemoteAsyncIO"
+%typemap(javabase, replace="1") RemoteMpe ""
 
 // Turn the proxy class into an interface
-%typemap(javaclassmodifiers) IRemoteSyncIO "public interface";
-%typemap(javaclassmodifiers) IRemoteAsyncIO "public interface";
-%typemap(javabody) IRemoteSyncIO "";
-%typemap(javabody) IRemoteAsyncIO "";
-%typemap(javafinalize) IRemoteSyncIO "";
-%typemap(javafinalize) IRemoteAsyncIO "";
-%typemap(javadestruct) IRemoteSyncIO "";
-%typemap(javadestruct) IRemoteAsyncIO "";
+%typemap(javaclassmodifiers) IRemoteSyncIO "public interface"
+%typemap(javaclassmodifiers) IRemoteAsyncIO "public interface"
+%typemap(javabody) IRemoteSyncIO ""
+%typemap(javabody) IRemoteAsyncIO ""
+%typemap(javafinalize) IRemoteSyncIO ""
+%typemap(javafinalize) IRemoteAsyncIO ""
+%typemap(javadestruct) IRemoteSyncIO ""
+%typemap(javadestruct) IRemoteAsyncIO ""
 
 // Turn the methods into abstract methods
 %typemap(javaout) void IRemoteSyncIO::syncmethod ";"

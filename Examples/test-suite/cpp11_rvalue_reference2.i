@@ -20,10 +20,10 @@ static const bool PublicGlobalTrue = true;
 static const UserDef PublicUserDef = UserDef();
 struct Thingy {
   typedef int Integer;
-  int val;
+  int valval;
   int &lvalref;
   int &&rvalref;
-  Thingy(int v, int &&rvalv) : val(v), lvalref(val), rvalref(std::move(rvalv)) {}
+  Thingy(int v, int &&rvalv) : valval(v), lvalref(valval), rvalref(std::move(rvalv)) {}
   void refIn(long &i) {}
   void rvalueIn(long &&i) {}
   short && rvalueInOut(short &&i) { return std::move(i); }
@@ -31,10 +31,10 @@ struct Thingy {
   // test both primitive and user defined rvalue reference default arguments and compactdefaultargs
   void compactDefaultArgs(const bool &&b = (const bool &&)PublicGlobalTrue, const UserDef &&u  = (const UserDef &&)PublicUserDef) {}
   void privateDefaultArgs(const bool &&b = (const bool &&)PrivateTrue) {}
-  operator int &&() { return std::move(val); }
-  Thingy(const Thingy& rhs) : val(rhs.val), lvalref(rhs.lvalref), rvalref(std::move(rhs.rvalref)) {}
+  operator int &&() { return std::move(valval); }
+  Thingy(const Thingy& rhs) : valval(rhs.valval), lvalref(rhs.lvalref), rvalref(std::move(rhs.rvalref)) {}
   Thingy& operator=(const Thingy& rhs) {
-    val = rhs.val;
+    valval = rhs.valval;
     lvalref = rhs.lvalref;
     rvalref = rhs.rvalref;
     return *this;

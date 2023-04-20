@@ -78,7 +78,7 @@ extern int count(char *bytes, int len, char c);
 
 %typemap(argout) (char *str, int len) {
   SWIG_APPEND_VALUE(scm_from_locale_stringn($1,$2));
-  if ($1) SWIG_free($1);
+  SWIG_free($1);
 }   
 
 extern void capitalize(char *str, int len);

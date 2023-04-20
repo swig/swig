@@ -19,7 +19,7 @@
 
 // MACRO for use within the std::vector class body
 %define SWIG_STD_VECTOR_MINIMUM_INTERNAL(CSINTERFACE, CONST_REFERENCE, CTYPE...)
-%typemap(csinterfaces) std::vector< CTYPE > "global::System.IDisposable, global::System.Collections.IEnumerable, global::System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n";
+%typemap(csinterfaces) std::vector< CTYPE > "global::System.IDisposable, global::System.Collections.IEnumerable, global::System.Collections.Generic.CSINTERFACE<$typemap(cstype, CTYPE)>\n"
 %proxycode %{
   public $csclassname(global::System.Collections.IEnumerable c) : this() {
     if (c == null)
@@ -63,9 +63,15 @@
       return (int)capacity();
     }
     set {
-      if (value < size())
+      if (value < 0 || ($typemap(cstype, size_t))value < size())
         throw new global::System.ArgumentOutOfRangeException("Capacity");
       reserve(($typemap(cstype, size_t))value);
+    }
+  }
+
+  public bool IsEmpty {
+    get {
+      return empty();
     }
   }
 
@@ -203,18 +209,19 @@
     typedef value_type& reference;
     typedef CONST_REFERENCE const_reference;
 
+    vector();
+    vector(const vector &other);
+
     %rename(Clear) clear;
     void clear();
     %rename(Add) push_back;
     void push_back(CTYPE const& x);
     size_type size() const;
+    bool empty() const;
     size_type capacity() const;
     void reserve(size_type n);
     %newobject GetRange(int index, int count);
     %newobject Repeat(CTYPE const& value, int count);
-
-    vector();
-    vector(const vector &other);
 
     %extend {
       vector(int capacity) throw (std::out_of_range) {
@@ -415,4 +422,3 @@ SWIG_STD_VECTOR_ENHANCED(float)
 SWIG_STD_VECTOR_ENHANCED(double)
 SWIG_STD_VECTOR_ENHANCED(std::string) // also requires a %include <std_string.i>
 SWIG_STD_VECTOR_ENHANCED(std::wstring) // also requires a %include <std_wstring.i>
-

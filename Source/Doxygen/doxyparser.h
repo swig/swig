@@ -4,13 +4,13 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * doxyparser.h
  * ----------------------------------------------------------------------------- */
 
-#ifndef DOXYGENPARSER_H_
-#define DOXYGENPARSER_H_
+#ifndef SWIG_DOXYPARSER_H
+#define SWIG_DOXYPARSER_H
 #include <string>
 #include <list>
 #include <map>
@@ -238,7 +238,7 @@ private:
    * Method for Adding a Simple Command
    * Format: @command
    * Plain commands, such as newline etc, they contain no other data
-   *  \n \\ \@ \& \$ \# \< \> \%
+   *  \n \\ \@ \& \$ \# \< \> \% \{ \}
    */
   void addSimpleCommand(const std::string &theCommand, DoxygenEntityList &doxyList);
   /*

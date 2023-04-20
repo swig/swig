@@ -12,7 +12,7 @@
     template <Polarization P> 
     struct Interface_ : Base 
     { 
-      Interface_(const Base& b) { }; 
+      Interface_(const Base& b) { }
     }; 
     
     template <class Result> 

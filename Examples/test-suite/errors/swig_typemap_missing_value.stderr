@@ -1,0 +1,2 @@
+swig_typemap_missing_value.i:3: Error: %typemap attribute 'foo' is missing its value.  If this is specifying the target language, that's no longer supported: use #ifdef SWIG<LANG> instead.
+swig_typemap_missing_value.i:4: Error: %typemap method shouldn't have a value specified.

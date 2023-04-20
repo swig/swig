@@ -4,9 +4,23 @@
 #include <stdlib.h>
 extern "C" {
 #endif
+
+#if __GNUC__ >= 10
+#if defined(__cplusplus)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wvolatile"
+#endif
+#endif
+
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
+
+#if __GNUC__ >= 10
+#if defined(__cplusplus)
+#pragma GCC diagnostic pop
+#endif
+#endif
 
 /* PERL_REVISION was added in Perl 5.6. */
 #if !defined PERL_REVISION || (PERL_REVISION-0 == 5 && PERL_VERSION-0 < 8)

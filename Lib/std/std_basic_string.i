@@ -55,7 +55,16 @@ namespace std {
 
     size_type capacity() const;
 
-    void reserve(size_type __res_arg = 0);
+    void reserve(size_type __res_arg);
+    %extend {
+      void shrink_to_fit() {
+        %#if __cplusplus >= 202002L
+          self->shrink_to_fit();
+        %#else
+          self->reserve();
+        %#endif
+      }
+    }
 
 
     // Modifiers:

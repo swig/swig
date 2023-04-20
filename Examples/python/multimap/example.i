@@ -39,12 +39,14 @@ extern int    gcd(int x, int y);
 %#if PY_VERSION_HEX >= 0x03000000
     {
       PyObject *utf8str = PyUnicode_AsUTF8String(s);
-      const char *cstr;
+      const char *strtmp = 0;
       if (!utf8str) {
         SWIG_fail;
       }
-      cstr = PyBytes_AsString(utf8str);
-      $2[i] = strdup(cstr);
+      strtmp = PyBytes_AsString(utf8str);
+      $2[i] = (char *)malloc(strlen(strtmp) + 1);
+      if ($2[i])
+        strcpy($2[i], strtmp);
       Py_DECREF(utf8str);
     }
 %#else

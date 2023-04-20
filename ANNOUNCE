@@ -1,8 +1,8 @@
-*** ANNOUNCE: SWIG 4.1.0 (in progress) ***
+*** ANNOUNCE: SWIG 4.2.0 (in progress) ***
 
-http://www.swig.org
+https://www.swig.org
 
-We're pleased to announce SWIG-4.1.0, the latest SWIG release.
+We're pleased to announce SWIG-4.2.0, the latest SWIG release.
 
 What is SWIG?
 =============
@@ -19,20 +19,20 @@ and user interface development for large C/C++ systems.
 Release Notes
 =============
 Detailed release notes are available with the release and are also
-published on the SWIG web site at http://swig.org/release.html.
+published on the SWIG web site at https://swig.org/release.html.
 
 Availability
 ============
 The release is available for download on Sourceforge at
 
-     http://prdownloads.sourceforge.net/swig/swig-4.1.0.tar.gz
+     https://prdownloads.sourceforge.net/swig/swig-4.2.0.tar.gz
 
 A Windows version is also available at
 
-     http://prdownloads.sourceforge.net/swig/swigwin-4.1.0.zip
+     https://prdownloads.sourceforge.net/swig/swigwin-4.2.0.zip
 
 Please report problems with this release to the swig-devel mailing list,
-details at http://www.swig.org/mail.html.
+details at https://www.swig.org/mail.html.
 
 --- The SWIG Developers
 

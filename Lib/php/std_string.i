@@ -11,8 +11,6 @@
 // However, I think I'll wait until someone asks for it...
 // ------------------------------------------------------------------------
 
-%include <exception.i>
-
 %{
 #include <string>
 %}
@@ -45,16 +43,16 @@ namespace std {
         ZVAL_STRINGL($input, $1.data(), $1.size());
     %}
 
-    %typemap(out, phptype="string") const string & %{
+    %typemap(out, phptype="string") const string& %{
         ZVAL_STRINGL($result, $1->data(), $1->size());
     %}
 
     %typemap(throws) string, const string& %{
         zend_throw_exception(NULL, $1.c_str(), 0);
-        return;
+        goto fail;
     %}
 
-    %typemap(in, phptype="string") const string & ($*1_ltype temp) %{
+    %typemap(in, phptype="string") const string& ($*1_ltype temp) %{
         convert_to_string(&$input);
         temp.assign(Z_STRVAL($input), Z_STRLEN($input));
         $1 = &temp;
@@ -62,7 +60,7 @@ namespace std {
 
     /* These next two handle a function which takes a non-const reference to
      * a std::string and modifies the string. */
-    %typemap(in,byref=1, phptype="string") string & ($*1_ltype temp) %{
+    %typemap(in,byref=1, phptype="string") string& ($*1_ltype temp) %{
         {
           zval * p = Z_ISREF($input) ? Z_REFVAL($input) : &$input;
           convert_to_string(p);
@@ -71,14 +69,14 @@ namespace std {
         }
     %}
 
-    %typemap(directorout) string & ($*1_ltype *temp) %{
+    %typemap(directorout) string& ($*1_ltype *temp) %{
         convert_to_string($input);
         temp = new $*1_ltype(Z_STRVAL_P($input), Z_STRLEN_P($input));
         swig_acquire_ownership(temp);
         $result = temp;
     %}
 
-    %typemap(argout) string & %{
+    %typemap(argout) string& %{
       if (Z_ISREF($input)) {
         ZVAL_STRINGL(Z_REFVAL($input), $1->data(), $1->size());
       }
@@ -86,5 +84,5 @@ namespace std {
 
     /* SWIG will apply the non-const typemap above to const string& without
      * this more specific typemap. */
-    %typemap(argout) const string & "";
+    %typemap(argout) const string& ""
 }

@@ -49,7 +49,7 @@
  %inline %{
 
  struct A{
-     A(std::complex<int> i, double d=0.0) {}
+     A(std::complex<double> i, double d=0.0) {}
      A(int i, bool j=false) {}
      virtual ~A() {}
 
@@ -60,7 +60,7 @@
  namespace hi  {
 
    struct A1 : public A {
-     A1(std::complex<int> i, double d=0.0) : A(i, d) {}
+     A1(std::complex<double> i, double d=0.0) : A(i, d) {}
      A1(int i, bool j=false) : A(i, j) {}
 
      virtual int ff(int i = 0) {return i;}  
@@ -71,11 +71,12 @@
  %}
 
  %typemap(cscode) MyClass %{
+   // low level implementation check for checking MyOverriddenClass
    public void testSwigDerivedClassHasMethod() {
      if (SwigDerivedClassHasMethod("nonVirtual", swigMethodTypes3))
-       throw new global::System.Exception("non-overriding non-virtual method would be when connecting director");
+       throw new global::System.Exception("SwigDerivedClassHasMethod failed checking a non-overriding non-virtual method (nonVirtual)");
      if (SwigDerivedClassHasMethod("nonOverride", swigMethodTypes4))
-       throw new global::System.Exception("non-overriding virtual method would be when connecting director");
+       throw new global::System.Exception("SwigDerivedClassHasMethod failed checking a non-overriding method (nonOverride)");
    }
  %}
 

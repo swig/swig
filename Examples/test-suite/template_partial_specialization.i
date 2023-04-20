@@ -111,40 +111,14 @@ template <typename T, int N>                struct ThreeParm<T, N, N> { void a3(
 
 %template(ThreeParmInt) ThreeParm<int, 0, 0>;
 
-#if 0
-// TODO fix:
 %inline %{
-//namespace S {
+namespace S {
   template<typename T> struct X      { void a() {} };
   template<typename T> struct X<T *> { void b() {} };
-//  template<>           struct X<int *> { void c() {} };
-//}
+  template<>           struct X<int *> { void c() {} };
+}
 %}
 
-namespace AA {  // thinks X is in AA namespace
+namespace S {
   %template(X2) X<int *>;
 };
-#endif
-
-#if 0
-namespace Space {
-}
-template<typename T> struct Vector {
-#ifdef SWIG
-  %template() Space::VectorHelper<T>;
-#endif
-  void gook(T i) {}
-  void geeko(double d) {}
-  void geeky(int d) {}
-};
-/*
-template<typename T> struct Vector<T *> {
-};
-*/
-//}
-%}
-
-%template(VectorIntPtr) Space::Vector<int *>; // should fail as Vector is in global namespace
-// is this a regression - no fails in 1.3.40 too
-// Note problem is removed by removing empty Space namespace!!
-#endif

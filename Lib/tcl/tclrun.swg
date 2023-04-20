@@ -122,6 +122,7 @@ SWIG_Tcl_Disown(void *ptr) {
 SWIGRUNTIME int
 SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, const char *c, void **ptr, swig_type_info *ty, int flags) {
   swig_cast_info *tc;
+  const char *cmd_name;
   /* Pointer values must start with leading underscore */
   while (*c != '_') {
     *ptr = (void *) 0;
@@ -157,23 +158,42 @@ SWIG_Tcl_ConvertPtrFromString(Tcl_Interp *interp, const char *c, void **ptr, swi
 
     c = Tcl_GetStringFromObj(Tcl_GetObjResult(interp), NULL);
   }
+  cmd_name = c;
 
   c++;
   c = SWIG_UnpackData(c,ptr,sizeof(void *));
+
   if (ty) {
     tc = c ? SWIG_TypeCheck(c,ty) : 0;
-    if (!tc) {
+    if (tc) {
+      Tcl_CmdInfo info;
+      if (Tcl_GetCommandInfo(interp, cmd_name, &info)) {
+        swig_instance *inst = (swig_instance *)info.objClientData;
+        if (!inst->thisvalue) {
+          *ptr = 0;
+        }
+        assert(inst->thisvalue == *ptr);
+        if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !SWIG_Thisown(inst->thisvalue)) {
+          return SWIG_ERROR_RELEASE_NOT_OWNED;
+        } else {
+          if (flags & SWIG_POINTER_DISOWN) {
+            SWIG_Disown((void *) *ptr);
+          }
+          if (flags & SWIG_POINTER_CLEAR) {
+            inst->thisvalue = 0;
+          }
+          {
+            int newmemory = 0;
+            *ptr = SWIG_TypeCast(tc,(void *) *ptr,&newmemory);
+            assert(!newmemory); /* newmemory handling not yet implemented */
+          }
+        }
+      }
+    } else {
       return SWIG_ERROR;
     }
-    if (flags & SWIG_POINTER_DISOWN) {
-      SWIG_Disown((void *) *ptr);
-    }
-    {
-      int newmemory = 0;
-      *ptr = SWIG_TypeCast(tc,(void *) *ptr,&newmemory);
-      assert(!newmemory); /* newmemory handling not yet implemented */
-    }
   }
+
   return SWIG_OK;
 }
 
@@ -490,9 +510,11 @@ SWIG_Tcl_NewInstanceObj(Tcl_Interp *interp, void *thisvalue, swig_type_info *typ
   /* Check to see if this pointer belongs to a class or not */
   if (thisvalue && (type->clientdata) && (interp)) {
     Tcl_CmdInfo    ci;
+    int has_command;
     char          *name;
     name = Tcl_GetStringFromObj(robj,NULL);
-    if (!Tcl_GetCommandInfo(interp,name, &ci) || (flags)) {
+    has_command = Tcl_GetCommandInfo(interp, name, &ci);
+    if (!has_command || flags) {
       swig_instance *newinst = (swig_instance *) malloc(sizeof(swig_instance));
       newinst->thisptr = Tcl_DuplicateObj(robj);
       Tcl_IncrRefCount(newinst->thisptr);
@@ -502,6 +524,15 @@ SWIG_Tcl_NewInstanceObj(Tcl_Interp *interp, void *thisvalue, swig_type_info *typ
       newinst->cmdtok = Tcl_CreateObjCommand(interp, Tcl_GetStringFromObj(robj,NULL), (swig_wrapper_func) SWIG_MethodCommand, (ClientData) newinst, (swig_delete_func) SWIG_ObjectDelete);
       if (flags) {
         SWIG_Acquire(thisvalue);
+      }
+    } else {
+      swig_instance *inst = (swig_instance *)ci.objClientData;
+      /* Restore thisvalue as SWIG_POINTER_CLEAR may have been used to set it to zero.
+         Occurs when the C pointer is re-used by the memory allocator and the command has
+         been created and not destroyed - bug?? - see cpp11_std_unique_ptr_runme.tcl test. */
+      if (inst->thisvalue != thisvalue) {
+        assert(inst->thisvalue == 0);
+        inst->thisvalue = thisvalue;
       }
     }
   }

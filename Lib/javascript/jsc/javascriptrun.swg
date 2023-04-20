@@ -7,23 +7,27 @@
 #define SWIG_exception(code, msg) do { SWIG_JSC_exception(context, exception, code, msg); SWIG_fail; } while (0)
 #define SWIG_fail                 goto fail
 
-SWIGRUNTIME void SWIG_Javascript_Raise(JSContextRef context, JSValueRef *exception, const char* type) {
-  JSStringRef message = JSStringCreateWithUTF8CString(type);
+SWIGRUNTIME void SWIG_Javascript_Raise_ValueRef(JSContextRef context, JSValueRef *exception, JSValueRef valRef) {
   JSValueRef error_arguments[1]; 
   JSObjectRef exception_object;
-  JSValueRef exception_value;
-  exception_value = JSValueMakeString(context, message);
   /* Converting the result to an object will let JavascriptCore add 
      "sourceURL" (file) and "line" (number) and "message" to the exception,
      instead of just returning a raw string. This is extremely important for debugging your errors.
      Using JSObjectMakeError is better than JSValueToObject because the latter only populates
      "sourceURL" and "line", but not "message" or any others I don't know about.
    */
-  error_arguments[0] = exception_value;
+  error_arguments[0] = valRef;
   exception_object = JSObjectMakeError(context, 1, error_arguments, NULL);
 
   /* Return the exception_object */
   *exception = exception_object;
+}
+
+SWIGRUNTIME void SWIG_Javascript_Raise(JSContextRef context, JSValueRef *exception, const char* msg) {
+  JSStringRef message = JSStringCreateWithUTF8CString(msg);
+  JSValueRef exception_value = JSValueMakeString(context, message);
+
+  SWIG_Javascript_Raise_ValueRef(context, exception, exception_value);
 
   JSStringRelease(message);
 }
@@ -122,7 +126,7 @@ SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef ob
   }
   assert(ptr);
   *ptr = NULL;
-  if (cdata->info == info) {
+  if (!info || cdata->info == info) {
     *ptr = cdata->swigCObject;
   } else {
     swig_cast_info *tc = SWIG_TypeCheckStruct(cdata->info, info);
@@ -135,8 +139,15 @@ SWIGRUNTIME int SWIG_JSC_ConvertInstancePtr(JSContextRef context, JSObjectRef ob
     }
   }
 
-  if (flags & SWIG_POINTER_DISOWN) {
-    cdata->swigCMemOwn = false;
+  if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !cdata->swigCMemOwn) {
+    return SWIG_ERROR_RELEASE_NOT_OWNED;
+  } else {
+    if (flags & SWIG_POINTER_DISOWN) {
+      cdata->swigCMemOwn = false;
+    }
+    if (flags & SWIG_POINTER_CLEAR) {
+      cdata->swigCObject = 0;
+    }
   }
 
   return SWIG_OK;

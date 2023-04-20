@@ -4,65 +4,72 @@
 %rename("%(ctitle)s",%$isvariable,%$ismember) ""; 
 
 %inline {
-  struct GeometryFactory 
-  {
-    void createPointFromInternalCoord(int);
-    void BIG_METHOD(int);
+  struct GeometryFactory {
+    void createPointFromInternalCoord(int) {}
+    void BIG_METHOD(int) {}
   };  
 
   class ByteOrderValues {
     
   public:
-    void readHEX();
+    void readHEX() {}
     static int ENDIAN_BIG;
   };
   
+  int ByteOrderValues::ENDIAN_BIG = 4321;
 }
 
-
-%define SedCmd "%(command:sed -e 's/\([a-z]\)/\U\\1/' -e 's/\(_\)\([a-z]\)/\U\\2/g' <<<)s" %enddef
-
 %rename(CamelCase1) camel_case_1;
-%rename(SedCmd)     camel_case_2;
+%rename("%(camelcase)s") camel_case_2;
+// ctitle is an alias for camelcase.
 %rename("%(ctitle)s") camel_case_3;
 
+%rename(lowerCamelCase1) Lower_camel_case_1;
+%rename("%(lowercamelcase)s") Lower_camel_case_2;
+// lctitle is an alias for lowercamelcase.
+%rename("%(lctitle)s") Lower_camel_case_3;
 
-%rename("%(utitle)s") CamelCase_5;
+%rename(under_case1) UnderCase1;
+%rename("%(undercase)s") UnderCase2;
+// utitle is an alias for undercase.
+%rename("%(utitle)s") UnderCase3;
 
-%define awk_cmd "%(command:awk '/^i/{print toupper($1)}' <<<)s" %enddef
+// This should change "import" to "Import", but "hi_there" should be handled by
+// the rule below and become "HI_THERE".
+%rename("%(regex:/(.*i.*)/\\u\\1/)s") "";
 
-%rename(awk_cmd) "";
-
-%rename("%(title)s",regexmatch$parentNode$type="enum .*") "";
+%rename("%(upper)s",regexmatch$parentNode$type="enum .*") "";
 
 %inline 
 {
-  int camel_case_1(int);
-  int camel_case_2(int);
-  int camel_case_3(int);
-  int camel_case_4(int);
-  int camel_case(int);
-  int CamelCase_5(int);
-  int also_works_here(int);
+  void CamelCase(int) {}
+  void camel_case_1(int) {}
+  void camel_case_2(int) {}
+  void camel_case_3(int) {}
+
+  void under_case(int) {}
+  void UnderCase1(int) {}
+  void UnderCase2(int) {}
+  void UnderCase3(int) {}
+
+  void lowerCamelCase(int) {}
+  void Lower_camel_case_1(int) {}
+  void Lower_camel_case_2(int) {}
+  void Lower_camel_case_3(int) {}
 
   enum HelloEnum {
     hello, hi_there
   };
-  
 
   enum ChaoEnum {
     bye, see_you
   };
 
-  int import(int);
-  int foo(int);
-  
+  void import(int) {}
+  void foo(int) {}
 }
 
 %rename("%(lowercase)s",sourcefmt="%(regex:/GSL_(.*)/\\1/)s",%$isfunction) "";
 %inline {
   void GSL_Hello() {}
 }
-
-
-

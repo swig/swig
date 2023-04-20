@@ -7,7 +7,7 @@ check::functions(array('jaguar','lotus','tvr','ferrari','fiat'));
 // New classes
 check::classes(array('ignore_parameter','SportsCars','MiniCooper','MorrisMinor','FordAnglia','AustinAllegro'));
 // No new vars
-check::globals(array());
+check::globals(array('called_argout'));
 
 check::equal(jaguar(2,3.4),"hello",'jaguar(2,3.4)=="hello"');
 check::equal(lotus("eek",3.4),101,'lotus("eek",3.4)==101');
@@ -17,7 +17,7 @@ check::equal(ferrari(),101,'ferrari(2)==101');
 $sc=new sportscars();
 check::classname("sportscars",$sc);
 check::equal($sc->daimler(2,3.4),"hello",'$sc->daimler(2,3.4)=="hello"');
-check::equal($sc->astonmartin("eek",3.4),101,'$sc->mastonmartin("eek",3.4)==101');
+check::equal($sc->astonmartin("eek",3.4),101,'$sc->astonmartin("eek",3.4)==101');
 check::equal($sc->bugatti("eek",2),8.8,'$sc->bugatti("eek",2)==8.8');
 check::equal($sc->lamborghini(),101,'$sc->lamborghini(2)==101');
 

@@ -50,7 +50,7 @@ public class runme
       myNewBar.x = 10;
 
       // Low level implementation check
-//      my.testSwigDerivedClassHasMethod();
+      my.testSwigDerivedClassHasMethod();
 
       // These should not call the C# implementations as they are not overridden
       int v;

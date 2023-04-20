@@ -16,7 +16,9 @@ thread_local static int tsval;
 extern thread_local int etval;
 thread_local extern int teval;
 extern "C" thread_local int ectval;
+extern "C" { thread_local int ectval2 = 56; }
 extern "C++" thread_local int ecpptval;
+extern "C++" { thread_local int ecpptval2 = 67; }
 
 thread_local int ThreadLocals::stval = 11;
 thread_local int ThreadLocals::tsval = 22;
@@ -30,6 +32,10 @@ thread_local const int ThreadLocals::tscval99;
 // externs
 thread_local int etval = 33;
 thread_local int teval = 44;
+extern "C" {
 thread_local int ectval = 55;
+}
+extern "C++" {
 thread_local int ecpptval = 66;
+}
 %}

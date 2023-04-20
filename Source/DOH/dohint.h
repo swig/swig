@@ -4,15 +4,15 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * dohint.h
  *
  *     This file describes internally managed objects.
  * ----------------------------------------------------------------------------- */
 
-#ifndef _DOHINT_H
-#define _DOHINT_H
+#ifndef SWIG_DOHINT_H
+#define SWIG_DOHINT_H
 
 #include "doh.h"
 
@@ -128,4 +128,4 @@ typedef struct {
 extern DOH *DohObjMalloc(DohObjInfo *type, void *data);	/* Allocate a DOH object */
 extern void DohObjFree(DOH *ptr);	/* Free a DOH object     */
 
-#endif				/* DOHINT_H */
+#endif				/* SWIG_DOHINT_H */

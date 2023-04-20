@@ -19,7 +19,7 @@ b = friends.B(3)
 if friends.mix(a, b) != 5:
     raise RuntimeError
 
-di = friends.D_d(2)
+di = friends.D_i(2)
 dd = friends.D_d(3.3)
 
 # incredible template overloading working just fine

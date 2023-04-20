@@ -9,10 +9,10 @@ a.j = 10
 if a.j != 10:
     raise RuntimeError("Assignment to a.j failed.")
 
-b = a.foo(5)
+b = a.get_number(5)
 if b != 10:
-    raise RuntimeError("foo(5) should return 10.")
+    raise RuntimeError("get_number(5) should return 10.")
 
-b = a.foo(6)
+b = a.get_number(6)
 if b != 0:
-    raise RuntimeError("foo(6) should return 0.")
+    raise RuntimeError("get_number(6) should return 0.")

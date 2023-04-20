@@ -4,17 +4,43 @@
  * Guile-specific typemaps
  * ----------------------------------------------------------------------------- */
 
+/* These are defined with a view to eventually merging with those defined for other target languages in swigtypemaps.swg and exception.swg */
+#define %set_output(obj)                  $result = obj
+#define %set_varoutput(obj)               $result = obj
+#define %argument_fail(_code, _type, _name, _argn)	scm_wrong_type_arg((char *) FUNC_NAME, _argn, $input)
+#define %as_voidptr(ptr)		(void*)(ptr)
+#define %argument_nullref(_type, _name, _argn) scm_misc_error(FUNC_NAME, "invalid null reference for argument " #_argn " of type '" _type "'", SCM_EOL)
+#define %releasenotowned_fail(_code, _type, _name, _argn) scm_misc_error(FUNC_NAME, "cannot release ownership as memory is not owned for argument " #_argn " of type '" _type "'", SCM_EOL)
+
 /* Pointers */
 
-%typemap(in) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] {
+%typemap(in) SWIGTYPE *, SWIGTYPE [] {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
 }
-%typemap(freearg) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] "";
+%typemap(in) SWIGTYPE & ($1_ltype argp) {
+  argp = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, $argnum, 0);
+  if (!argp) { %argument_nullref("$1_type", $symname, $argnum); }
+  $1 = argp;
+}
+%typemap(in, noblock=1, fragment="<memory>") SWIGTYPE && (void *argp = 0, int res = 0, std::unique_ptr<$*1_ltype> rvrdeleter) {
+  res = SWIG_ConvertPtr($input, &argp, $descriptor, SWIG_POINTER_RELEASE);
+  if (!SWIG_IsOK(res)) {
+    if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {
+      %releasenotowned_fail(res, "$1_type", $symname, $argnum);
+    } else {
+      %argument_fail(res, "$1_type", $symname, $argnum);
+    }
+  }
+  if (!argp) { %argument_nullref("$1_type", $symname, $argnum); }
+  $1 = ($1_ltype)argp;
+  rvrdeleter.reset($1);
+}
+%typemap(freearg) SWIGTYPE *, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE [] ""
 
 %typemap(in) void * {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, NULL, $argnum, 0);
 }
-%typemap(freearg) void * "";
+%typemap(freearg) void * ""
 
 %typemap(varin) SWIGTYPE * {
   $1 = ($1_ltype)SWIG_MustGetPtr($input, $descriptor, 1, 0);
@@ -115,8 +141,9 @@
 
 /* Pass-by-value */
 
-%typemap(in) SWIGTYPE($&1_ltype argp) {
+%typemap(in) SWIGTYPE ($&1_ltype argp) {
   argp = ($&1_ltype)SWIG_MustGetPtr($input, $&1_descriptor, $argnum, 0);
+  if (!argp) { %argument_nullref("$1_type", $symname, $argnum); }
   $1 = *argp;
 }
 
@@ -130,7 +157,7 @@
 #ifdef __cplusplus
 {
   $&1_ltype resultptr;
-  resultptr = new $1_ltype((const $1_ltype &) $1);
+  resultptr = new $1_ltype($1);
   $result =  SWIG_NewPointerObj (resultptr, $&1_descriptor, 1);
 } 
 #else
@@ -145,8 +172,7 @@
 %typemap(varout) SWIGTYPE 
 #ifdef __cplusplus
 {
-  $&1_ltype resultptr;
-  resultptr = new $1_ltype((const $1_ltype&) $1);
+  $&1_ltype resultptr = ($&1_ltype)&$1;
   $result =  SWIG_NewPointerObj (resultptr, $&1_descriptor, 0);
 } 
 #else
@@ -322,19 +348,19 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
 /* SWIG_scm2str makes a malloc'ed copy of the string, so get rid of it after
    the function call. */
 
-%typemap (freearg) char * "if (must_free$argnum && $1) SWIG_free($1);";
-%typemap (freearg) char **INPUT, char **BOTH "if (must_free$argnum && (*$1)) SWIG_free(*$1);"
+%typemap (freearg) char * "if (must_free$argnum) SWIG_free($1);"
+%typemap (freearg) char **INPUT, char **BOTH "if (must_free$argnum) SWIG_free(*$1);"
 %typemap (freearg) char **OUTPUT "SWIG_free(*$1);"
   
 /* But this shall not apply if we try to pass a single char by
    reference. */
 
-%typemap (freearg) char *OUTPUT, char *BOTH "";
+%typemap (freearg) char *OUTPUT, char *BOTH ""
 
 /* If we set a string variable, delete the old result first, unless const. */
 
 %typemap (varin) char * {
-    if ($1) free($1);
+    free($1);
     $1 = ($1_ltype) SWIG_scm2str($input);
 }
 
@@ -349,13 +375,13 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
 
 /* Void */
 
-%typemap (out,doc="") void "gswig_result = SCM_UNSPECIFIED;";
+%typemap (out,doc="") void "gswig_result = SCM_UNSPECIFIED;"
 
 /* SCM is passed through */
 
 typedef unsigned long SCM;
-%typemap (in) SCM "$1=$input;";
-%typemap (out) SCM "$result=$1;";
+%typemap (in) SCM "$1=$input;"
+%typemap (out) SCM "$result=$1;"
 %typecheck(SWIG_TYPECHECK_POINTER) SCM "$1=1;";
 
 /* ------------------------------------------------------------
@@ -372,11 +398,6 @@ typedef unsigned long SCM;
  * CLASS::* (member function pointer) typemaps
  * taken from typemaps/swigtype.swg
  * ------------------------------------------------------------ */
-
-#define %set_output(obj)                  $result = obj
-#define %set_varoutput(obj)               $result = obj
-#define %argument_fail(code, type, name, argn)	scm_wrong_type_arg((char *) FUNC_NAME, argn, $input);
-#define %as_voidptr(ptr)		(void*)(ptr)
 
 %typemap(in) SWIGTYPE (CLASS::*) {
   int res = SWIG_ConvertMember($input, %as_voidptr(&$1), sizeof($1), $descriptor);
@@ -426,7 +447,7 @@ typedef unsigned long SCM;
 %typecheck(SWIG_TYPECHECK_BOOL)
 	bool, bool&, const bool&
 {
-  $1 = SCM_BOOLP($input) ? 1 : 0;
+  $1 = scm_is_bool($input) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_DOUBLE)

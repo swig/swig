@@ -77,7 +77,7 @@
 
 
 <p>
-Lua is an extension programming language designed to support general procedural programming with data description facilities. It also offers good support for object-oriented programming, functional programming, and data-driven programming. Lua is intended to be used as a powerful, light-weight configuration language for any program that needs one. Lua is implemented as a library, written in clean C (that is, in the common subset of ISO C and C++). It's also a <em>really</em> tiny language, less than 6000 lines of code, which compiles to &lt;100 kilobytes of binary code. It can be found at <a href="http://www.lua.org">http://www.lua.org</a>
+Lua is an extension programming language designed to support general procedural programming with data description facilities. It also offers good support for object-oriented programming, functional programming, and data-driven programming. Lua is intended to be used as a powerful, light-weight configuration language for any program that needs one. Lua is implemented as a library, written in clean C (that is, in the common subset of ISO C and C++). It's also a <em>really</em> tiny language, less than 6000 lines of code, which compiles to &lt;100 kilobytes of binary code. It can be found at <a href="https://www.lua.org">https://www.lua.org</a>
 </p>
 <p>
 eLua stands for Embedded Lua (can be thought of as a flavor of Lua) and offers the full implementation of the Lua programming language to the embedded world, extending it with specific features for efficient and portable software embedded development. eLua runs on smaller devices like microcontrollers and provides the full features of the regular Lua desktop version. More information on eLua can be found here: <a href="http://www.eluaproject.net">http://www.eluaproject.net</a>
@@ -566,7 +566,7 @@ If the <tt>-no-old-metatable-bindings</tt> option is used, then these old-style 
 </p>
 <p>
 It is worth mentioning, that <tt>example.Test.TEST1</tt> and <tt>example.Test_TEST1</tt> are different entities and changing one does not change the other. 
-Given the fact that these are constantes and they are not supposed to be changed, it is up to you to avoid such issues.
+Given the fact that these are constants and they are not supposed to be changed, it is up to you to avoid such issues.
 </p>
 <H3><a name="Lua_nn12">29.3.5 Pointers</a></H3>
 
@@ -1520,7 +1520,7 @@ function
 nil
 &gt;
 </pre></div>
-<p> This behaviour was changed. Now unless -squash-bases option is provided, Derived store a list of it's bases and if some symbol is not found in it's own service tables
+<p> This behaviour was changed. Now unless -squash-bases option is provided, Derived stores a list of its bases and if some symbol is not found in its own service tables
 then its bases are searched for it. Option -squash-bases will effectively return old behaviour.
 </p>
 
@@ -1638,7 +1638,7 @@ More details can be found in the <a href="Library.html#Library_carrays">carrays.
 
 <div class="code"><pre>// using the C-array
 %include &lt;carrays.i&gt;
-// this declares a batch of function for manipulating C integer arrays
+// this declares a batch of functions for manipulating C integer arrays
 %array_functions(int, int)
 
 extern void sort_int(int* arr, int len); // the function to wrap
@@ -1997,10 +1997,10 @@ So when 'p:Print()' is called, the __index looks on the object metatable for a '
 In theory, you can play with this usertable &amp; add new features, but remember that it is a shared table between all instances of one class, and you could very easily corrupt the functions in all the instances.
 </p>
 <p>
-Note: Both the opaque structures (like the FILE*) and normal wrapped classes/structs use the same 'swig_lua_userdata' structure. Though the opaque structures has do not have a metatable attached, or any information on how to dispose of them when the interpreter has finished with them.
+Note: Both the opaque structures (like the FILE*) and normal wrapped classes/structs use the same 'swig_lua_userdata' structure. Though the opaque structures do not have a metatable attached, or any information on how to dispose of them when the interpreter has finished with them.
 </p>
 <p>
-Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the class' metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming its an operator overload.
+Note: Operator overloads are basically done in the same way, by adding functions such as '__add' &amp; '__call' to the class' metatable. The current implementation is a bit rough as it will add any member function beginning with '__' into the metatable too, assuming it's an operator overload.
 </p>
 <H3><a name="Lua_nn38">29.7.3 Memory management</a></H3>
 

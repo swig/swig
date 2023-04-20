@@ -28,7 +28,7 @@ The basic code looks like this:
 
 However the code below is a mixture of #defines & such, so nowhere as easy to read
 
-To make you code work correctly its not just a matter of %including this file
+To make you code work correctly it's not just a matter of %including this file
 You also have to give SWIG the hints on which to use where
 
 eg
@@ -77,7 +77,7 @@ SWIG_NUMBER_TYPEMAP(enum SWIGTYPE);
 // also for long longs's
 SWIG_NUMBER_TYPEMAP(long long); SWIG_NUMBER_TYPEMAP(unsigned long long); SWIG_NUMBER_TYPEMAP(signed long long);
 
-// note we dont do char, as a char* is probably a string not a ptr to a single char
+// note we don't do char, as a char* is probably a string not a ptr to a single char
 
 // similar for booleans
 %typemap(in,checkfn="lua_isboolean") bool *INPUT(bool temp), bool &INPUT(bool temp)
@@ -188,16 +188,6 @@ int SWIG_read_NAME_num_array(lua_State* L,int index,TYPE *array,int size);
 
 */
 
-/* Reported that you don't need to check for NULL for delete & free
-There probably is some compiler that its not true for, so the code is left here just in case.
-#ifdef __cplusplus	
-#define SWIG_ALLOC_ARRAY(TYPE,LEN) 	new TYPE[LEN]
-#define SWIG_FREE_ARRAY(PTR)		if(PTR){delete[] PTR;}
-#else
-#define SWIG_ALLOC_ARRAY(TYPE,LEN) 	(TYPE *)malloc(LEN*sizeof(TYPE))
-#define SWIG_FREE_ARRAY(PTR)		if(PTR){free(PTR);}
-#endif
-*/
 %{
 #ifdef __cplusplus	/* generic alloc/dealloc fns*/
 #define SWIG_ALLOC_ARRAY(TYPE,LEN) 	new TYPE[LEN]

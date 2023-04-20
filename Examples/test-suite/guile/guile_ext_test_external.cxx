@@ -19,6 +19,6 @@ SCM test_create()
 SCM test_is_pointer(SCM val)
 {
 #define FUNC_NAME "test-is-pointer"
-  return SCM_BOOL(SWIG_IsPointer(val));
+  return scm_from_bool(SWIG_IsPointer(val));
 #undef FUNC_NAME
 }

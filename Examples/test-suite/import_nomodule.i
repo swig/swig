@@ -6,7 +6,9 @@
 // For Python
 %warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS) Bar; // Base class 'Foo' ignored - unknown module name for base. Either import the appropriate module interface file or specify the name of the module in the %import directive. 
 
-%import "import_nomodule.h"
+// The "dummy=" attribute is a regression test for #1006, fixed in SWIG 4.1.0.
+// SWIG didn't used to take quoting into account when finding the closing `)`.
+%import(dummy=")foo\"") "import_nomodule.h"
 
 #if !defined(SWIGJAVA) && !defined(SWIGRUBY) && !defined(SWIGCSHARP) && !defined(SWIGD) && !defined(SWIGPYTHON_BUILTIN) && !defined(SWIGPHP)
 

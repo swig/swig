@@ -13,7 +13,7 @@ public:
 typedef Handle<SomeClass> hSomeClass; 
 class AnotherClass { 
 public: 
-  void someFunc( hSomeClass a = hSomeClass() ) { }; 
+  void someFunc( hSomeClass a = hSomeClass() ) { }
 }; 
 
 %}

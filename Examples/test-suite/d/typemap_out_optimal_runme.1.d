@@ -6,4 +6,5 @@ void main() {
   XX x;
   XX.trace = false;
   x = XX.create();
+  x = XX.createConst();
 }

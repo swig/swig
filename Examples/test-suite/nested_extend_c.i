@@ -12,6 +12,10 @@
 
 #endif
 
+%{
+#include "stdlib.h"
+%}
+
 #if !defined(SWIGOCTAVE) && !defined(SWIG_JAVASCRIPT_V8)
 %extend hiA {
   hiA() {

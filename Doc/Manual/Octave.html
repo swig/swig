@@ -52,7 +52,7 @@
 
 <p>
          Octave is a high-level language intended for numerical programming that is mostly compatible with MATLAB.
-More information can be found at <a href="http://www.gnu.org/software/octave/">Octave web site</a>. 
+More information can be found at <a href="https://www.gnu.org/software/octave/">Octave web site</a>.
 </p>
 
 <p>
@@ -363,6 +363,10 @@ octave:2&gt; f=swigexample.fopen("not there", "r");
 error: value on right hand side of assignment is undefined
 error: evaluating assignment expression near line 2, column 2 </pre></div>
 
+<p>
+NULL C/C++ pointers are represented by the Octave null matrix, <tt>[]</tt>.
+</p>
+
 <H3><a name="Octave_nn13">30.3.6 Structures and C++ classes</a></H3>
 
 
@@ -619,6 +623,16 @@ On the C++ side, the default mappings are as follows:
 
 <p>
 Octave can also utilise friend (i.e. non-member) operators with a simple %rename: see the example in the Examples/octave/operator directory.
+</p>
+
+<p>
+Octave has several operators for which no corresponding C++ operators exist. For example, the Octave code
+</p>
+<div class="targetlang"><pre>
+x=[a,b,c];
+</pre></div>
+<p>
+calls the Octave operator <tt>horzcat</tt> of the class of <tt>a</tt>. Hence, if <tt>a</tt> is of type <tt>swig_ref</tt> you can write an overload for this operator for your wrapped C++ class by placing a file <tt>@swig_ref/horzcat.m</tt> in the Octave load path (like for every Octave class, see <a href="https://docs.octave.org/latest/Creating-a-Class.html">Creating a Class</a>). This Octave function file is then called whenever the above Octave code is executed for a variable of type <tt>swig_ref</tt>.
 </p>
 
 <H3><a name="Octave_nn19">30.3.10 Class extension with %extend</a></H3>

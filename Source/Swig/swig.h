@@ -4,19 +4,17 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * swig.h
  *
  * Header file for the SWIG core.
  * ----------------------------------------------------------------------------- */
 
-#ifndef SWIGCORE_H_
-#define SWIGCORE_H_
+#ifndef SWIG_SWIG_H
+#define SWIG_SWIG_H
 
-#ifndef MACSWIG
 #include "swigconfig.h"
-#endif
 
 #include <stdio.h>
 #include <string.h>
@@ -131,16 +129,20 @@ extern "C" {
   extern SwigType *SwigType_del_reference(SwigType *t);
   extern SwigType *SwigType_add_rvalue_reference(SwigType *t);
   extern SwigType *SwigType_del_rvalue_reference(SwigType *t);
+  extern SwigType *SwigType_add_variadic(SwigType *t);
+  extern SwigType *SwigType_del_variadic(SwigType *t);
   extern SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual);
   extern SwigType *SwigType_del_qualifier(SwigType *t);
   extern SwigType *SwigType_add_function(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_add_template(SwigType *t, ParmList *parms);
   extern SwigType *SwigType_pop_function(SwigType *t);
   extern SwigType *SwigType_pop_function_qualifiers(SwigType *t);
+  extern SwigType *SwigType_function_parms_only(ParmList *parms);
   extern ParmList *SwigType_function_parms(const SwigType *t, Node *file_line_node);
   extern List *SwigType_split(const SwigType *t);
   extern String *SwigType_pop(SwigType *t);
   extern void SwigType_push(SwigType *t, String *s);
+  extern SwigType *SwigType_last(SwigType *t);
   extern List *SwigType_parmlist(const SwigType *p);
   extern String *SwigType_parm(const SwigType *p);
   extern String *SwigType_str(const SwigType *s, const_String_or_char_ptr id);
@@ -156,6 +158,7 @@ extern "C" {
   extern int SwigType_isreference(const SwigType *t);
   extern int SwigType_isreference_return(const SwigType *t);
   extern int SwigType_isrvalue_reference(const SwigType *t);
+  extern int SwigType_isvariadic(const SwigType *t);
   extern int SwigType_isarray(const SwigType *t);
   extern int SwigType_prefix_is_simple_1D_array(const SwigType *t);
   extern int SwigType_isfunction(const SwigType *t);
@@ -185,6 +188,7 @@ extern "C" {
   extern SwigType *SwigType_default_create(const SwigType *ty);
   extern SwigType *SwigType_default_deduce(const SwigType *t);
   extern void SwigType_typename_replace(SwigType *t, String *pat, String *rep);
+  extern void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, ParmList *expanded_variadic_parms);
   extern SwigType *SwigType_remove_global_scope_prefix(const SwigType *t);
   extern SwigType *SwigType_alttype(const SwigType *t, int ltmap);
 
@@ -272,7 +276,8 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern void Swig_name_register(const_String_or_char_ptr method, const_String_or_char_ptr format);
   extern void Swig_name_unregister(const_String_or_char_ptr method);
-  extern String *Swig_name_mangle(const_String_or_char_ptr s);
+  extern String *Swig_name_mangle_string(const String *s);
+  extern String *Swig_name_mangle_type(const SwigType *s);
   extern String *Swig_name_wrapper(const_String_or_char_ptr fname);
   extern String *Swig_name_member(const_String_or_char_ptr nspace, const_String_or_char_ptr classname, const_String_or_char_ptr membername);
   extern String *Swig_name_get(const_String_or_char_ptr nspace, const_String_or_char_ptr vname);
@@ -309,6 +314,8 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern char *Swig_copy_string(const char *c);
   extern void Swig_set_fakeversion(const char *version);
   extern const char *Swig_package_version(void);
+  extern String *Swig_package_version_hex(void);
+  extern void Swig_obligatory_macros(String *f_runtime, const char *language);
   extern void Swig_banner(File *f);
   extern void Swig_banner_target_lang(File *f, const_String_or_char_ptr commentchar);
   extern String *Swig_strip_c_comments(const String *s);
@@ -322,7 +329,6 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern int Swig_storage_isstatic_custom(Node *n, const_String_or_char_ptr storage);
   extern int Swig_storage_isstatic(Node *n);
   extern String *Swig_string_escape(String *s);
-  extern String *Swig_string_mangle(const String *s);
   extern void Swig_scopename_split(const String *s, String **prefix, String **last);
   extern String *Swig_scopename_prefix(const String *s);
   extern String *Swig_scopename_last(const String *s);
@@ -439,8 +445,6 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
   extern void Language_replace_special_variables(String *method, String *tm, Parm *parm);
   extern void Swig_print(DOH *object, int count);
   extern void Swig_print_with_location(DOH *object, int count);
-  extern void SWIG_exit(int exit_code);
-
 
 /* -- template init -- */
   extern void SwigType_template_init(void);

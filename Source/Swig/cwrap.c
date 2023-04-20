@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * cwrap.c
  *
@@ -14,6 +14,8 @@
 
 #include "swig.h"
 #include "cparse.h"
+
+extern int UseWrapperSuffix;
 
 static const char *cresult_variable_name = "result";
 
@@ -427,10 +429,14 @@ String *Swig_cfunction_call(const_String_or_char_ptr name, ParmList *parms) {
       String *rcaststr = SwigType_rcaststr(rpt, pname);
 
       if (comma) {
-	Printv(func, ",", rcaststr, NIL);
-      } else {
-	Append(func, rcaststr);
+	Append(func, ",");
       }
+
+      if (cparse_cplusplus && SwigType_type(rpt) == T_USER)
+	Printv(func, "SWIG_STD_MOVE(", rcaststr, ")", NIL);
+      else
+	Printv(func, rcaststr, NIL);
+
       Delete(rpt);
       Delete(pname);
       Delete(rcaststr);
@@ -1069,7 +1075,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
     String *code = Getattr(n, "code");
     String *cname = Getattr(n, "extendsmartclassname") ? Getattr(n, "extendsmartclassname") : classname;
     String *membername = Swig_name_member(nspace, cname, name);
-    String *mangled = Swig_name_mangle(membername);
+    String *mangled = Swig_name_mangle_string(membername);
     int is_smart_pointer = flags & CWRAP_SMART_POINTER;
 
     type = Getattr(n, "type");
@@ -1079,13 +1085,13 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
        in C.
 
        But when not using the suffix used for overloaded functions, we still need to ensure that the
-       wrapper name doesn't conflict with any wrapper functions, so make it sufficiently unique by
-       appending a suffix similar to the one used for overloaded functions to it.
+       wrapper name doesn't conflict with any wrapper functions for some languages, so optionally make
+       it sufficiently unique by appending a suffix similar to the one used for overloaded functions to it.
      */
     if (code) {
       if (Getattr(n, "sym:overloaded")) {
 	Append(mangled, Getattr(defaultargs ? defaultargs : n, "sym:overname"));
-      } else {
+      } else if (UseWrapperSuffix) {
 	Append(mangled, "__SWIG");
       }
     }
@@ -1232,7 +1238,7 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
     String *defaultargs = Getattr(n, "defaultargs");
     String *code = Getattr(n, "code");
     String *membername = Swig_name_construct(nspace, classname);
-    String *mangled = Swig_name_mangle(membername);
+    String *mangled = Swig_name_mangle_string(membername);
 
     /* Check if the constructor is overloaded.   If so, and it has code attached, we append an extra suffix
        to avoid a name-clash in the generated wrappers.  This allows overloaded constructors to be defined
@@ -1350,7 +1356,7 @@ int Swig_DestructorToFunction(Node *n, const_String_or_char_ptr nspace, String *
     String *call;
     String *membername, *mangled, *code;
     membername = Swig_name_destroy(nspace, classname);
-    mangled = Swig_name_mangle(membername);
+    mangled = Swig_name_mangle_string(membername);
     code = Getattr(n, "code");
     if (code) {
       Swig_add_extension_code(n, mangled, p, type, code, cparse_cplusplus, "self");
@@ -1437,7 +1443,7 @@ int Swig_MembersetToFunction(Node *n, String *classname, int flags) {
 
     String *sname = Swig_name_set(0, name);
     String *membername = Swig_name_member(0, classname, sname);
-    String *mangled = Swig_name_mangle(membername);
+    String *mangled = Swig_name_mangle_string(membername);
 
     if (code) {
       /* I don't think this ever gets run - WSF */
@@ -1519,7 +1525,7 @@ int Swig_MembergetToFunction(Node *n, String *classname, int flags) {
 
     String *gname = Swig_name_get(0, name);
     String *membername = Swig_name_member(0, classname, gname);
-    String *mangled = Swig_name_mangle(membername);
+    String *mangled = Swig_name_mangle_string(membername);
 
     if (code) {
       /* I don't think this ever gets run - WSF */
@@ -1571,7 +1577,7 @@ int Swig_VarsetToFunction(Node *n, int flags) {
 
   if (flags & CWRAP_EXTEND) {
     String *sname = Swig_name_set(0, name);
-    String *mangled = Swig_name_mangle(sname);
+    String *mangled = Swig_name_mangle_string(sname);
     String *call = Swig_cfunction_call(mangled, parms);
     String *cres = NewStringf("%s;", call);
     Setattr(n, "wrap:action", cres);
@@ -1625,7 +1631,7 @@ int Swig_VargetToFunction(Node *n, int flags) {
 
   if (flags & CWRAP_EXTEND) {
     String *sname = Swig_name_get(0, name);
-    String *mangled = Swig_name_mangle(sname);
+    String *mangled = Swig_name_mangle_string(sname);
     call = Swig_cfunction_call(mangled, 0);
     cres = Swig_cresult(ty, Swig_cresult_name(), call);
     Setattr(n, "wrap:action", cres);

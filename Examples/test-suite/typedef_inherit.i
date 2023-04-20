@@ -30,9 +30,13 @@ typedef struct spam {
   {
   }
   
-   virtual char *blah() {     
-       return (char *) "Spam::blah";
-   }
+  virtual char *blah() {
+    return (char *) "Spam::blah";
+  }
+
+  const char *far() {
+    return "Spam::far";
+  }
 } Spam;
 
 struct Grok : public Spam {

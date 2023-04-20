@@ -1,24 +1,20 @@
 /* ------------------------------------------------------------
- * --- Argc & Argv ---
- * ------------------------------------------------------------ */
- 
-/* ------------------------------------------------------------
+ * SWIG library containing argc and argv multi-argument typemaps
 
-   Use it as follow:
+   Use it as follows:
 
      %apply (int ARGC, char **ARGV) { (size_t argc, const char **argv) }
 
      %inline %{
 
-     int mainApp(size_t argc, const char **argv) 
-     {
+     int mainApp(size_t argc, const char **argv) {
        return argc;
      }
 
-   then in the ruby side:
+   then from ruby:
 
-     args = ["asdf", "asdf2"]
-     mainApp(args);
+     $args = ["asdf", "asdf2"]
+     mainApp(args)
 
  * ------------------------------------------------------------ */
 
@@ -31,7 +27,7 @@
     VALUE *ptr = RARRAY_PTR($input);
     for (i=0; i < size; i++, ptr++) {
       $2[i]= StringValuePtr(*ptr);
-    }    
+    }
     $2[i]=NULL;
   } else {
     $1 = 0; $2 = 0;

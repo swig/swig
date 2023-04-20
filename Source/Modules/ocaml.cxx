@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * ocaml.cxx
  *
@@ -12,7 +12,6 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
-
 #include <ctype.h>
 
 static const char *usage = "\
@@ -99,10 +98,10 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stdout);
-	  SWIG_exit(0);
+	  Exit(EXIT_SUCCESS);
 	} else if (strcmp(argv[i], "-where") == 0) {
 	  PrintIncludeArg();
-	  SWIG_exit(0);
+	  Exit(EXIT_SUCCESS);
 	} else if (strcmp(argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {
 	    prefix = NewString(argv[i + 1]);
@@ -228,7 +227,7 @@ public:
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     f_runtime = NewString("");
     f_init = NewString("");
@@ -277,7 +276,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGOCAML\n#define SWIGOCAML\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "OCAML");
 
     Printf(f_runtime, "#define SWIG_MODULE \"%s\"\n", module);
     /* Module name */
@@ -311,12 +310,12 @@ public:
     String *mlfilen = NewStringf("%s%s", SWIG_output_directory(), mlfile);
     if ((f_mlout = NewFile(mlfilen, "w", SWIG_output_files())) == 0) {
       FileErrorDisplay(mlfilen);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     String *mlifilen = NewStringf("%s%s", SWIG_output_directory(), mlifile);
     if ((f_mliout = NewFile(mlifilen, "w", SWIG_output_files())) == 0) {
       FileErrorDisplay(mlifilen);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     emitBanner(f_mlout);
     emitBanner(f_mliout);
@@ -398,26 +397,18 @@ public:
    */
 
   void oc_SwigType_del_reference(SwigType *t) {
-    char *c = Char(t);
-    if (strncmp(c, "q(", 2) == 0) {
-      Delete(SwigType_pop(t));
-      c = Char(t);
+    if (SwigType_isqualifier(t)) {
+      SwigType_del_qualifier(t);
     }
-    if (strncmp(c, "r.", 2)) {
-      printf("Fatal error. SwigType_del_pointer applied to non-pointer.\n");
-      abort();
-    }
-    Replace(t, "r.", "", DOH_REPLACE_ANY | DOH_REPLACE_FIRST);
+    SwigType_del_reference(t);
   }
 
   void oc_SwigType_del_array(SwigType *t) {
-    char *c = Char(t);
-    if (strncmp(c, "q(", 2) == 0) {
-      Delete(SwigType_pop(t));
-      c = Char(t);
+    if (SwigType_isqualifier(t)) {
+      SwigType_del_qualifier(t);
     }
-    if (strncmp(c, "a(", 2) == 0) {
-      Delete(SwigType_pop(t));
+    if (SwigType_isarray(t)) {
+      SwigType_del_array(t);
     }
   }
 
@@ -1190,6 +1181,7 @@ public:
   /*
    * Produce the symbol name that ocaml will use when referring to the 
    * target item.  I wonder if there's a better way to do this:
+   * (WF - use Swig_name_mangle_string/Swig_name_mangle_type)
    *
    * I shudder to think about doing it with a hash lookup, but that would
    * make a couple of things easier:
@@ -1218,6 +1210,8 @@ public:
     Replaceall(out, "=", "_xx_equals");
     Replaceall(out, "/", "_xx_slash");
     Replaceall(out, ".", "_xx_dot");
+    Replaceall(out, "?", "_xx_question");
+    Replaceall(out, ":", "_xx_colon");
     return out;
   }
 
@@ -1247,6 +1241,7 @@ public:
 
   int enumvalueDeclaration(Node *n) {
     String *name = Getattr(n, "name");
+    String *symname = Getattr(n, "sym:name");
     SwigType *qtype = 0;
 
     if (name_qualifier_type) {
@@ -1254,8 +1249,8 @@ public:
       Printv(qtype, name, NIL);
     }
 
-    if (const_enum && qtype && name && !Getattr(seen_enumvalues, name)) {
-      Setattr(seen_enumvalues, name, "true");
+    if (const_enum && qtype && symname && !Getattr(seen_enumvalues, symname)) {
+      Setattr(seen_enumvalues, symname, "true");
       SetFlag(n, "feature:immutable");
       Setattr(n, "feature:enumvalue", "1");	// this does not appear to be used
 
@@ -1264,10 +1259,10 @@ public:
       String *evname = SwigType_manglestr(qtype);
       Insert(evname, 0, "SWIG_ENUM_");
 
-      Setattr(n, "feature:enumvname", name);
+      Setattr(n, "feature:enumvname", symname);
       Setattr(n, "feature:symname", evname);
       Delete(evname);
-      Printf(f_enumtypes_value, "| `%s\n", name);
+      Printf(f_enumtypes_value, "| `%s\n", symname);
 
       return Language::enumvalueDeclaration(n);
     } else
@@ -1495,19 +1490,12 @@ public:
       int i;
       char source[256];
 
-      int outputs = 0;
-      if (!is_void)
-	outputs++;
-
       /* build argument list and type conversion string */
       for (i = 0, idx = 0, p = l; i < num_arguments; i++) {
 
 	while (Getattr(p, "tmap:ignore")) {
 	  p = Getattr(p, "tmap:ignore:next");
 	}
-
-	if (Getattr(p, "tmap:directorargout") != 0)
-	  outputs++;
 
 	String *pname = Getattr(p, "name");
 	String *ptype = Getattr(p, "type");
@@ -1662,20 +1650,13 @@ public:
     /* any existing helper functions to handle this? */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	/* A little explanation:
-	 * The director_enum test case makes a method whose return type
-	 * is an enum type.  returntype here is "int".  gcc complains
-	 * about an implicit enum conversion, and although i don't strictly
-	 * agree with it, I'm working on fixing the error:
-	 *
-	 * Below is what I came up with.  It's not great but it should
-	 * always essentially work.
-	 */
+	String *rettype = SwigType_str(returntype, 0);
 	if (!SwigType_isreference(returntype)) {
-	  Printf(w->code, "CAMLreturn_type((%s)c_result);\n", SwigType_lstr(returntype, ""));
+	  Printf(w->code, "CAMLreturn_type((%s)c_result);\n", rettype);
 	} else {
-	  Printf(w->code, "CAMLreturn_type(*c_result);\n");
+	  Printf(w->code, "CAMLreturn_type((%s)*c_result);\n", rettype);
 	}
+	Delete(rettype);
       }
     } else {
       Printf(w->code, "CAMLreturn0;\n");

@@ -1,0 +1,7 @@
+cpp_using_rename.i:18: Warning 526: Using declaration Base::use_me, with name 'use_me', is not actually using
+cpp_using_rename.i:10: Warning 526: the method from Base::use_me(int), with name 'UseMe', as the names are different.
+cpp_using_rename.i:19: Warning 526: Using declaration Base::use_me_too, with name 'UseMeToo', is not actually using
+cpp_using_rename.i:11: Warning 526: the method from Base::use_me_too(double) const, with name 'use_me_too', as the names are different.
+cpp_using_rename.i:19: Warning 526: Using declaration Base::use_me_too, with name 'UseMeToo', is not actually using
+cpp_using_rename.i:12: Warning 526: the method from Base::use_me_too(bool) const, with name 'use_me_too', as the names are different.
+cpp_using_rename.i:20: Warning 315: Nothing known about 'Base::does_not_exist'.

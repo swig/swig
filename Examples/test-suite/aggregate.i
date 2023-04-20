@@ -6,7 +6,7 @@
    To support contracts, you need to add a macro to the runtime.
    For Python, it looks like this:
 
-#define SWIG_contract_assert(expr, msg)  if (!(expr)) { PyErr_SetString(PyExc_RuntimeError, (char *) msg #expr ); goto fail; } else
+#define SWIG_contract_assert(expr, msg)  do { if (!(expr)) { PyErr_SetString(PyExc_RuntimeError, (char *) msg #expr ); goto fail; } } while (0)
 
    Note: It is used like this:
    SWIG_contract_assert(x == 1, "Some kind of error message");

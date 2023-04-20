@@ -50,4 +50,12 @@ func main() {
 		fmt.Println("for c2.M got", pm, "want", want)
 		panic(pm)
 	}
+
+	c1 := go_inout.NewC1()
+	c2.M2(c1)
+	c2.M2(nil)
+
+	if !go_inout.Strings([]string{"1", "2"}) {
+		panic("Strings failed")
+	}
 }

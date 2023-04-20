@@ -80,7 +80,7 @@
 
 
 <p>
-Scilab is a scientific software package for numerical computations providing a powerful open computing environment for engineering and scientific applications that is mostly compatible with MATLAB. More information can be found at <a href="http://www.scilab.org">www.scilab.org</a>.
+Scilab is a scientific software package for numerical computations providing a powerful open computing environment for engineering and scientific applications that is mostly compatible with MATLAB. More information can be found at <a href="https://www.scilab.org">www.scilab.org</a>.
 </p>
 
 <p>
@@ -96,8 +96,7 @@ SWIG for Scilab supports Linux. Other operating systems haven't been tested.
 </p>
 
 <p>
-Scilab is supported from version 5.3.3 onwards.
-The forthcoming version 6, as of January 2015, is also supported.
+Scilab is supported from version 5.3.3 onwards, the SWIG generated code is supported on both Scilab 5, Scilab 6 and more recent versions.
 </p>
 
 <p>
@@ -305,8 +304,8 @@ The following table lists the Scilab specific command line options in addition t
 </tr>
 
 <tr>
-<td><tt>-targetversion</tt></td>
-<td>Generate for Scilab target (major) version</td>
+<td><tt>-gatewayxml6</tt></td>
+<td>Generate a gateway XML file compatible with Scilab 6</td>
 </tr>
 
 </table>
@@ -341,10 +340,6 @@ In Scilab 5.x, identifier names are composed of 24 characters maximum (this limi
 </p>
 <p>This can cause ambiguities, especially when wrapping structs/classes, for which the wrapped function name is composed of the struct/class name and field names.
 In these cases, the <a href="SWIG.html#SWIG_rename_ignore">%rename directive</a> can be used to choose a different Scilab name.
-</p>
-
-<p>
-Note: truncations can be disabled by specifying the target version 6 of Scilab in the <tt>targetversion</tt> argument (i.e. <tt>-targetversion 6</tt>).
 </p>
 
 <H3><a name="Scilab_wrapping_functions">36.3.3 Functions</a></H3>
@@ -768,7 +763,7 @@ Pointers are supported by SWIG. A pointer can be returned from a wrapped C/C++ f
 Also, thanks to the SWIG runtime which stores information about types, pointer types are tracked between exchanges Scilab and the native code. Indeed pointer types are stored alongside the pointer address.
 A pointer is mapped to a Scilab structure (<a href="https://help.scilab.org/docs/5.5.2/en_US/tlist.html">tlist</a>), which contains as fields the pointer address and the pointer type (in fact a pointer to the type information structure in the SWIG runtime).
 <br>
-Why a native pointer is not mapped to a Scilab pointer (type name: "pointer", type ID: 128) ? The big advantage of mapping to a <tt>tlist</tt> is that it exposes a new type for the pointer in Scilab, type which can be acessed in Scilab with the <a href="https://help.scilab.org/docs/5.5.2/en_US/typeof.html">typeof</a> function, and manipulated using the <a href="https://help.scilab.org/docs/5.5.2/en_US/overloading.html">overloading</a> mechanism.
+Why a native pointer is not mapped to a Scilab pointer (type name: "pointer", type ID: 128) ? The big advantage of mapping to a <tt>tlist</tt> is that it exposes a new type for the pointer in Scilab, type which can be accessed in Scilab with the <a href="https://help.scilab.org/docs/5.5.2/en_US/typeof.html">typeof</a> function, and manipulated using the <a href="https://help.scilab.org/docs/5.5.2/en_US/overloading.html">overloading</a> mechanism.
 </p>
 
 <p>
@@ -776,7 +771,7 @@ Notes:
 </p>
 <ul>
 <li>type tracking needs the SWIG runtime to be first initialized with the appropriate function (see the <a href="#Scilab_module_initialization">Module initialization</a> section).</li>
-<li>for any reason, if a wrapped pointer type is unknown (or if the SWIG runtime is not initialized), SWIG maps it to a Scilab pointer. Also, a Scilab pointer is always accepted as a pointer argument of a wrapped function. The drawaback is that pointer type is lost.</li>
+<li>for any reason, if a wrapped pointer type is unknown (or if the SWIG runtime is not initialized), SWIG maps it to a Scilab pointer. Also, a Scilab pointer is always accepted as a pointer argument of a wrapped function. The drawback is that pointer type is lost.</li>
 </ul>
 
 <p>
@@ -2144,6 +2139,20 @@ clear get_file_path;
 <li><tt><b>fcts</b></tt>: vector of character strings. The name of new Scilab function.</li>
 </ul>
 
+<H3><a name="Scilab_generated_scripts_gateway">36.7.3 Gateway XML files</a></H3>
+
+<p>If you need to post-process the entry points, Scilab gateway files are XML files that can be used to retrieve all SWIG-generated entry points. With these XML files you can write your own <tt>builder_swig.sce</tt> file to add custom Scilab for building or linking the generated code. Documentation stubs can also be generated thanks to these function listings.</tt></p>
+<p>As an example, for a SWIG <a href="Modules.html">module</a> named <tt>fmuswig</tt> the Scilab code below can be used to store all SWIG-generated functions in a variable named <tt>funs</tt></tt>.</p>
+<div class="code"><pre>
+  // src_swig_path is a path to the directory containing the fmuswig.i file
+
+  doc = xmlRead(src_swig_path + "/fmuswig_gateway.xml");
+  names = xmlAsText(xmlXPath(doc, "//gateway/@name"));
+  funs = xmlAsText(xmlXPath(doc, "//gateway/@function"));
+  xmlDelete(doc);
+
+</pre></div>
+
 
 <H2><a name="Scilab_other_resources">36.8 Other resources</a></H2>
 
@@ -2151,7 +2160,7 @@ clear get_file_path;
 <ul>
 <li>Example use cases can be found in the <tt>Examples/scilab</tt> directory.</li>
 <li>The test suite in the <tt>Examples/test-suite/scilab</tt> can be another source of useful use cases.</li>
-<li>The <a href="http://help.scilab.org/docs/5.5.0/en_US/api_scilab.html">Scilab API</a> is used in the generated code and is a useful reference when examining the output.</li>
-<li>This <a href="http://wiki.scilab.org/howto/Create%20a%20toolbox">guide</a> describes the Scilab external modules structure and files, in particular the files that are generated by SWIG for Scilab.</li>
+<li>The <a href="https://help.scilab.org/api_scilab.html">Scilab API</a> is used in the generated code and is a useful reference when examining the output.</li>
+<li>This <a href="https://wiki.scilab.org/howto/Create%20a%20toolbox">guide</a> describes the Scilab external modules structure and files, in particular the files that are generated by SWIG for Scilab.</li>
 </ul>
 

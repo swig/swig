@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * list.c
  *
@@ -27,7 +27,6 @@ extern DohObjInfo DohListType;
 static
 void more(List *l) {
   l->items = (void **) DohRealloc(l->items, l->maxitems * 2 * sizeof(void *));
-  assert(l->items);
   l->maxitems *= 2;
 }
 
@@ -346,15 +345,10 @@ DohObjInfo DohListType = {
 #define MAXLISTITEMS 8
 
 DOH *DohNewList(void) {
-  List *l;
-  int i;
-  l = (List *) DohMalloc(sizeof(List));
+  List *l = (List *) DohMalloc(sizeof(List));
   l->nitems = 0;
   l->maxitems = MAXLISTITEMS;
-  l->items = (void **) DohMalloc(l->maxitems * sizeof(void *));
-  for (i = 0; i < MAXLISTITEMS; i++) {
-    l->items[i] = 0;
-  }
+  l->items = (void **) DohCalloc(l->maxitems, sizeof(void *));
   l->file = 0;
   l->line = 0;
   return DohObjMalloc(&DohListType, l);

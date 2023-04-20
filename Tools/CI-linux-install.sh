@@ -12,8 +12,7 @@ else
 fi
 
 $RETRY sudo apt-get -qq install libboost-dev libpcre3-dev
-# testflags.py needs python
-$RETRY sudo apt-get install -qq python
+# Note: testflags.py needs python, but python is pre-installed
 
 WITHLANG=$SWIGLANG
 
@@ -55,7 +54,7 @@ case "$SWIGLANG" in
 				fi
 				;;
 			"jsc")
-				$RETRY sudo apt-get install -qq libjavascriptcoregtk-4.0-dev
+				$RETRY sudo apt-get install -qq libjavascriptcoregtk-${VER}-dev
 				;;
 			"v8")
 				$RETRY sudo apt-get install -qq libv8-dev
@@ -63,7 +62,7 @@ case "$SWIGLANG" in
 		esac
 		;;
 	"guile")
-		$RETRY sudo apt-get -qq install guile-2.0-dev
+		$RETRY sudo apt-get -qq install guile-${VER:-2.0}-dev
 		;;
 	"lua")
 		if [[ -z "$VER" ]]; then
@@ -98,50 +97,71 @@ case "$SWIGLANG" in
 		;;
 	"python")
 		pip install --user pycodestyle
+		if [[ "$PY2" ]]; then
+			WITHLANG=$SWIGLANG
+		else
+			WITHLANG=${SWIGLANG}3
+		fi
 		if [[ "$VER" ]]; then
 			$RETRY sudo add-apt-repository -y ppa:deadsnakes/ppa
 			$RETRY sudo apt-get -qq update
 			$RETRY sudo apt-get -qq install python${VER}-dev
-			WITHLANG=$SWIGLANG$PY3=$SWIGLANG$VER
+			WITHLANG=$WITHLANG=$SWIGLANG$VER
+		elif [[ "$PY2" ]]; then
+			$RETRY sudo apt-get install -qq python-dev
 		else
-			$RETRY sudo apt-get install -qq python${PY3}-dev
-			WITHLANG=$SWIGLANG$PY3
+			$RETRY sudo apt-get install -qq python3-dev
 		fi
 		;;
 	"r")
 		$RETRY sudo apt-get -qq install r-base
 		;;
 	"ruby")
-		if ! command -v rvm; then
+		if [[ "$VER" ]]; then
 			case "$VER" in
-				1.9 | 2.0 | 2.1 | 2.2 | 2.3 )
-					$RETRY sudo apt-get -qq install libgdbm-dev libncurses5-dev libyaml-dev libssl1.0-dev
+				3.1 | 3.2 )
+					# Ruby 3.1+ support is currently only rvm master (2023-04-19)
+					# YOLO
+					curl -sSL https://rvm.io/mpapis.asc | gpg --import -
+					curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
+					curl -sSL https://get.rvm.io | bash -s stable
+					set +x
+					source $HOME/.rvm/scripts/rvm
+					$RETRY rvm get master
+					rvm reload
+					rvm list known
+					set -x
+					;;
+				* )
+					# Install from PPA as that also contains packages needed for the build.
+					sudo apt-add-repository -y ppa:rael-gc/rvm
+					sudo apt-get update
+					sudo apt-get install rvm
+					sudo usermod -a -G rvm $USER
+					set +x
+					source /etc/profile.d/rvm.sh
+					set -x
 					;;
 			esac
-			# YOLO
-			curl -sSL https://rvm.io/mpapis.asc | gpg --import -
-			curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
-			curl -sSL https://get.rvm.io | bash -s stable
 			set +x
-			source $HOME/.rvm/scripts/rvm
-			set -x
-		fi
-		if [[ "$VER" == "2.7" || "$VER" == "3.0" ]]; then
-			# Ruby 2.7+ support is currently only rvm master (30 Dec 2019)
-			$RETRY rvm get master
-			rvm reload
-			rvm list known
-		fi
-		if [[ "$VER" ]]; then
 			$RETRY rvm install $VER
+			set -x
 		fi
 		;;
 	"scilab")
-		# Travis has the wrong version of Java pre-installed resulting in error using scilab:
-		# /usr/bin/scilab-bin: error while loading shared libraries: libjava.so: cannot open shared object file: No such file or directory
-		echo "JAVA_HOME was set to $JAVA_HOME"
-		unset JAVA_HOME
-		$RETRY sudo apt-get -qq install scilab
+		if [[ -z "$VER" ]]; then
+			$RETRY sudo apt-get -qq install scilab
+		else
+			# Starting with version 2023.0.0 the download filename format changed.
+			case $VER in
+				20*) scilab_tarball=scilab-$VER.bin.x86_64-pc-linux-gnu.tar.xz ;;
+				*)   scilab_tarball=scilab-$VER.bin.linux-x86_64.tar.gz ;;
+			esac
+			$RETRY wget --progress=dot:giga "https://www.scilab.org/download/$VER/$scilab_tarball"
+			# $HOME/.local/bin is in PATH and writeable
+			mkdir -p "$HOME/.local"
+			tar -xf "$scilab_tarball" --strip-components=1 -C "$HOME/.local"
+		fi	
 		;;
 	"tcl")
 		$RETRY sudo apt-get -qq install tcl-dev

@@ -140,6 +140,7 @@
 #define %argument_nullref(type, name, argn)    SWIG_exception_fail(SWIG_ValueError, %argnullref_fmt(type, name, argn))
 #define %variable_fail(code, type, name)       SWIG_exception_fail(%default_code(code), %varfail_fmt(type, name))
 #define %variable_nullref(type, name)          SWIG_exception_fail(SWIG_ValueError, %varnullref_fmt(type, name))
+#define %releasenotowned_fail(code, type, name, argn) SWIG_exception_fail(%default_code(code), %releasenotownedfail_fmt(type, name, argn))
 
 #if defined(SWIG_DIRECTOR_TYPEMAPS)
 #define %dirout_fail(code, type)          SWIG_DirOutFail(%default_code(code), %outfail_fmt(type))

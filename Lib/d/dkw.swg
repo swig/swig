@@ -2,7 +2,7 @@
 #define D_DKW_SWG_
 
 /* Warnings for D keywords */
-#define DKEYWORD(x) %keywordwarn("'" `x` "' is a D keyword, renaming to '_" `x` "'",rename="_%s")  `x`
+#define DKEYWORD(x) %keywordwarn("'" `x` "' is a D keyword",rename="_%s")  `x`
 
 // Source: http://www.digitalmars.com/d/{1.0,2.0}/lex.html and
 DKEYWORD(Error);

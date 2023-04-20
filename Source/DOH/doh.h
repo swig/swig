@@ -4,22 +4,21 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * doh.h
  *
  *     This file describes of the externally visible functions in DOH.
  * ----------------------------------------------------------------------------- */
 
-#ifndef _DOH_H
-#define _DOH_H
+#ifndef SWIG_DOH_H
+#define SWIG_DOH_H
 
-#ifndef MACSWIG
 #include "swigconfig.h"
-#endif
 
-#include <stdio.h>
 #include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 /* Set the namespace prefix for DOH API functions. This can be used to control
    visibility of the functions in libraries */
@@ -53,6 +52,7 @@
 #define DohSetattr         DOH_NAMESPACE(Setattr)
 #define DohDelattr         DOH_NAMESPACE(Delattr)
 #define DohKeys            DOH_NAMESPACE(Keys)
+#define DohSortedKeys      DOH_NAMESPACE(SortedKeys)
 #define DohGetInt          DOH_NAMESPACE(GetInt)
 #define DohGetDouble       DOH_NAMESPACE(GetDouble)
 #define DohGetChar         DOH_NAMESPACE(GetChar)
@@ -122,6 +122,12 @@
 #define DohIterator        DOH_NAMESPACE(Iterator)
 #define DohFirst           DOH_NAMESPACE(First)
 #define DohNext            DOH_NAMESPACE(Next)
+#define DohMalloc          DOH_NAMESPACE(Malloc)
+#define DohRealloc         DOH_NAMESPACE(Realloc)
+#define DohCalloc          DOH_NAMESPACE(Calloc)
+#define DohFree            DOH_NAMESPACE(Free)
+#define DohSetExitHandler  DOH_NAMESPACE(SetExitHandler)
+#define DohExit            DOH_NAMESPACE(Exit)
 #endif
 
 #define DOH_MAJOR_VERSION 0
@@ -163,12 +169,11 @@ typedef struct {
 
 /* Memory management */
 
-#ifndef DohMalloc
-#define DohMalloc malloc
-#endif
-#ifndef DohRealloc
-#define DohRealloc realloc
-#endif
+/* Wrappers around malloc(), realloc() and calloc() which never return NULL. */
+extern void *DohMalloc(size_t size);
+extern void *DohRealloc(void *ptr, size_t size);
+extern void *DohCalloc(size_t n, size_t size);
+
 #ifndef DohFree
 #define DohFree free
 #endif
@@ -197,6 +202,7 @@ extern int DohSetattr(DOH *obj, const DOHString_or_char *name, const DOHObj_or_c
 extern int DohDelattr(DOH *obj, const DOHString_or_char *name);
 extern int DohCheckattr(DOH *obj, const DOHString_or_char *name, const DOHString_or_char *value);
 extern DOH *DohKeys(DOH *obj);
+extern DOH *DohSortedKeys(DOH *obj, int (*cmp) (const DOH *, const DOH *));
 extern int DohGetInt(DOH *obj, const DOHString_or_char *name);
 extern void DohSetInt(DOH *obj, const DOHString_or_char *name, int);
 extern double DohGetDouble(DOH *obj, const DOHString_or_char *name);
@@ -270,6 +276,24 @@ extern void DohSetMaxHashExpand(int count);
 extern int DohGetMaxHashExpand(void);
 extern void DohSetmark(DOH *obj, int x);
 extern int DohGetmark(DOH *obj);
+
+/* Set the function for DohExit() to call instead of exit().
+ *
+ * The registered function can perform clean up, etc.  It should simply
+ * return when done and then exit() will get called.  Bear in mind that
+ * the handler function can be called after malloc() has failed, so it's
+ * a good idea for it to avoid allocating additional memory.
+ *
+ * The registered handler function is unregistered by DohExit() before calling
+ * it to avoid the potential for infinite loops.
+ *
+ * Note: This is sort of like C's atexit(), only for DohExit().  However
+ * only one function can be registered (setting a new function overrides the
+ * previous one) and the registered function is passed the exit status so can
+ * vary its actions based on that.
+ */
+extern void DohSetExitHandler(void (*new_handler)(int));
+extern void DohExit(int status);
 
 /* -----------------------------------------------------------------------------
  * Strings.
@@ -422,6 +446,7 @@ extern void DohMemoryDebug(void);
 #define FileErrorDisplay   DohFileErrorDisplay
 #define NewVoid            DohNewVoid
 #define Keys               DohKeys
+#define SortedKeys         DohSortedKeys
 #define Strcmp             DohStrcmp
 #define Strncmp            DohStrncmp
 #define Strstr             DohStrstr
@@ -440,6 +465,12 @@ extern void DohMemoryDebug(void);
 #define Next               DohNext
 #define Iterator           DohIterator
 #define SortList           DohSortList
+#define Malloc             DohMalloc
+#define Realloc            DohRealloc
+#define Calloc             DohCalloc
+#define Free               DohFree
+#define SetExitHandler     DohSetExitHandler
+#define Exit               DohExit
 #endif
 
 #ifdef NIL
@@ -448,5 +479,29 @@ extern void DohMemoryDebug(void);
 
 #define NIL  (char *) NULL
 
+/* Defines to allow use of poisoned identifiers.
+ *
+ * For DOH-internal use only!
+ */
+#define doh_internal_calloc calloc
+#define doh_internal_exit exit
+/* doh_internal_free not needed as Free() is a macro defined above. */
+#define doh_internal_malloc malloc
+#define doh_internal_realloc realloc
 
-#endif				/* DOH_H */
+#if defined __GNUC__ && defined DOH_POISON
+/* Use Malloc(), Realloc(), Calloc(), and Free() instead (which will exit with
+ * an error rather than return NULL).
+ */
+# ifndef DOH_NO_POISON_MALLOC_FREE
+/* This works around bison's template checking if malloc and free are defined,
+ * which triggers GCC's poison checks.
+ */
+#  pragma GCC poison malloc free
+# endif
+# pragma GCC poison realloc calloc
+/* Use Exit() instead (which will remove output files on error). */
+# pragma GCC poison abort exit
+#endif
+
+#endif				/* SWIG_DOH_H */

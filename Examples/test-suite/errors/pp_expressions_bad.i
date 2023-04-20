@@ -1,5 +1,5 @@
 %module xxx
-/* Note: needs -Wextra to see these warnings */
+
 
 /* Divide by zero */
 #define ZERO 0
@@ -40,4 +40,35 @@
 
 #if(1)
 #warning Warning okay: #if(1)
+#endif
+
+/* The SWIG preprocessor support strings with equality/inequality tests.
+ * Check error cases.
+ */
+#if "TWO" == 1
+#endif
+
+/* This didn't fail prior with SWIG < 4.1.  Github #1384. */
+#if 1 == ("TWO")
+#endif
+
+/* These should all give errors. */
+#if "1"
+#endif
+#if -"1"
+#endif
+#if "1" == -"-1"
+#endif
+#if "1" == !"-1"
+#endif
+#if "1" == ~"1"
+#endif
+/* Unary + was a no-op and so this didn't give an error in SWIG < 4.1.0. */
+#if "1" == +"1"
+#endif
+
+/* Spaceship operator doesn't seem to be allowed in preprocessor expressions,
+ * and isn't valid in C at all.
+ */
+#if (4 <=> 2) < 0
 #endif

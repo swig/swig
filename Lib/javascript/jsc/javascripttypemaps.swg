@@ -41,7 +41,7 @@
 #define SWIG_SetConstant(name, obj)
 
 /* raise */
-#define SWIG_Raise(obj, type, desc)  SWIG_Javascript_Raise(context, exception, type)
+#define SWIG_Raise(obj, type, desc)  SWIG_Javascript_Raise_ValueRef(context, exception, obj)
 
 %insert("runtime") %{
 #define SWIG_JSC_FROM_DECL_ARGS(arg1)              (JSContextRef context, arg1)

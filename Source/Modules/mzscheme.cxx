@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * mzscheme.cxx
  *
@@ -12,7 +12,6 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
-
 #include <ctype.h>
 
 static const char *usage = "\
@@ -66,7 +65,7 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stdout);
-	  SWIG_exit(0);
+	  Exit(EXIT_SUCCESS);
 	} else if (strcmp(argv[i], "-prefix") == 0) {
 	  if (argv[i + 1]) {
 	    prefix = NewString(argv[i + 1]);
@@ -130,7 +129,7 @@ public:
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
     f_runtime = NewString("");
     f_init = NewString("");
@@ -148,7 +147,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGMZSCHEME\n#define SWIGMZSCHEME\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "MZSCHEME");
 
     module = Getattr(n, "name");
 
@@ -570,7 +569,7 @@ public:
 
     // Make a static variable;
 
-    Printf(var_name, "_wrap_const_%s", Swig_name_mangle(Getattr(n, "sym:name")));
+    Printf(var_name, "_wrap_const_%s", Swig_name_mangle_string(Getattr(n, "sym:name")));
 
     // Build the name for scheme.
     Printv(proc_name, iname, NIL);
@@ -642,8 +641,6 @@ public:
    * classHandler()
    * ------------------------------------------------------------ */
   virtual int classHandler(Node *n) {
-    String *mangled_classname = 0;
-    String *real_classname = 0;
     String *scm_structname = NewString("");
     SwigType *ctype_ptr = NewStringf("p.%s", getClassType());
 
@@ -659,13 +656,10 @@ public:
     convert_proto_tab = NewString("");
 
     struct_name = Getattr(n, "sym:name");
-    mangled_struct_name = Swig_name_mangle(Getattr(n, "sym:name"));
+    mangled_struct_name = Swig_name_mangle_string(Getattr(n, "sym:name"));
 
     Printv(scm_structname, struct_name, NIL);
     Replaceall(scm_structname, "_", "-");
-
-    real_classname = Getattr(n, "name");
-    mangled_classname = Swig_name_mangle(real_classname);
 
     Printv(fieldnames_tab, "static const char *_swig_struct_", cls_swigtype, "_field_names[] = { \n", NIL);
 
@@ -696,7 +690,6 @@ public:
 	   " = SWIG_MzScheme_new_scheme_struct(menv, \"", scm_structname, "\", ",
 	   "_swig_struct_", cls_swigtype, "_field_names_cnt,", "(char**) _swig_struct_", cls_swigtype, "_field_names);\n", NIL);
 
-    Delete(mangled_classname);
     Delete(swigtype_ptr);
     swigtype_ptr = 0;
     Delete(fieldnames_tab);

@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * doxycommands.h
  *
@@ -44,6 +44,8 @@ const int sectionIndicatorsSize = sizeof(sectionIndicators) / sizeof(*sectionInd
 const char *simpleCommands[] = {
   // the first line are escaped chars, except \~, which is a language ID command.
   "n", "$", "@", "\\", "&", "~", "<", ">", "#", "%", "\"", ".", "::",
+  // Member groups, which we currently ignore.
+  "{", "}",
   "endcond",
   "callgraph", "callergraph", "showinitializer", "hideinitializer", "internal",
   "nosubgrouping", "public", "publicsection", "private", "privatesection",

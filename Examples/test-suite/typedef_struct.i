@@ -31,6 +31,7 @@
 
 #define MS_NOOVERRIDE -1111
 
+#include <stdlib.h>
 %}
 
 

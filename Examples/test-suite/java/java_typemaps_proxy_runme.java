@@ -76,6 +76,15 @@ public class java_typemaps_proxy_runme {
     java_typemaps_proxyJNI.Without_member_method(nullPtr, nullPtr);
     java_typemaps_proxyJNI.delete_Without(nullPtr);
     java_typemaps_proxyJNI.global_method_without(nullPtr);
+
+    // $imfuncname substitution
+    ProxyA pa = new ProxyA();
+    if (pa.imfuncname_test() != 123)
+      throw new RuntimeException("imfuncname_test is not 123");
+    if (ProxyA.imfuncname_static_test() != 234)
+      throw new RuntimeException("imfuncname_test is not 234");
+    if (java_typemaps_proxy.imfuncname_global_test() != 345)
+      throw new RuntimeException("imfuncname_test is not 345");
   }
 }
 

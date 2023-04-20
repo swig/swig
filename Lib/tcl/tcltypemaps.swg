@@ -77,11 +77,6 @@
 
 #endif
 
-%typemap(throws,noblock=1) SWIGTYPE CLASS {
-  SWIG_set_result(SWIG_NewInstanceObj(%as_voidptr(SWIG_new_copy($1, $1_ltype)), $&1_descriptor, 1));
-  SWIG_fail;
-}
-
 %typemap(out)    SWIGTYPE    =  SWIGTYPE INSTANCE;
 %typemap(out)    SWIGTYPE *  =  SWIGTYPE *INSTANCE;
 %typemap(out)    SWIGTYPE *const  =  SWIGTYPE *;

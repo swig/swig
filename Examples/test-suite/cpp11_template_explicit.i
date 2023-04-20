@@ -12,7 +12,7 @@
 
 template<typename T> class Temper {
 public:
-  T val;
+  T valu;
 };
 
 class A {

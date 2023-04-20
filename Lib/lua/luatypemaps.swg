@@ -24,7 +24,7 @@
 // additional check for unsigned numbers, to not permit negative input
 %typemap(in,checkfn="lua_isnumber") unsigned int,
              unsigned short, unsigned long, unsigned char
-%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative")
+%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative");
 $1 = ($type)lua_tonumber(L, $input);%}
 
 %typemap(out) int,short,long,
@@ -43,7 +43,7 @@ $1 = ($type)lua_tonumber(L, $input);%}
 %{ temp=($*1_ltype)lua_tonumber(L,$input); $1=&temp;%}
 
 %typemap(in,checkfn="lua_isnumber") const unsigned int&($*1_ltype temp)
-%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative")
+%{SWIG_contract_assert((lua_tonumber(L,$input)>=0),"number must not be negative");
 temp=($*1_ltype)lua_tonumber(L,$input); $1=&temp;%}
 
 %typemap(out) const int&, const unsigned int&
@@ -151,11 +151,17 @@ SWIGINTERN int SWIG_lua_isnilstring(lua_State *L, int idx) {
   }
 %}
 
-%typemap(in,checkfn="lua_isuserdata") SWIGTYPE&&
-%{
-  if (!SWIG_IsOK(SWIG_ConvertPtr(L,$input,(void**)&$1,$descriptor,$disown))){
-    SWIG_fail_ptr("$symname",$argnum,$descriptor);
+%typemap(in,checkfn="lua_isuserdata",fragment="<memory>") SWIGTYPE&& (void *argp = 0, int res = 0, std::unique_ptr<$*1_ltype> rvrdeleter) %{
+  res = SWIG_ConvertPtr(L, $input, &argp, $descriptor, SWIG_POINTER_RELEASE);
+  if (!SWIG_IsOK(res)) {
+    if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {
+      lua_pushfstring(L, "Cannot release ownership as memory is not owned for argument $argnum of type '$1_type' in $symname"); SWIG_fail;
+    } else {
+      SWIG_fail_ptr("$symname", $argnum, $descriptor);
+    }
   }
+  $1 = ($1_ltype)argp;
+  rvrdeleter.reset($1);
 %}
 
 // out is simple
@@ -217,7 +223,7 @@ $1=($1_ltype)&temp;%}
 #ifdef __cplusplus
 %typemap(out) SWIGTYPE
 {
-  $&1_ltype resultptr = new $1_ltype((const $1_ltype &) $1);
+  $&1_ltype resultptr = new $1_ltype($1);
   SWIG_NewPointerObj(L,(void *) resultptr,$&1_descriptor,1); SWIG_arg++;
 }
 #else
@@ -248,11 +254,11 @@ $1=($1_ltype)&temp;%}
 
 
 // void (must be empty without the SWIG_arg++)
-%typemap(out) void "";
+%typemap(out) void ""
 
 /* void* is a special case
 A function void fn(void*) should take any kind of pointer as a parameter (just like C/C++ does)
-but if its an output, then it should be wrapped like any other SWIG object (using default typemap)
+but if it's an output, then it should be wrapped like any other SWIG object (using default typemap)
 */
 %typemap(in,checkfn="SWIG_isptrtype") void*
 %{$1=($1_ltype)SWIG_MustGetPtr(L,$input,0,0,$argnum,"$symname");%}
@@ -285,7 +291,7 @@ parameters match which function
 
 // unfortunately lua only considers one type of number
 // so all numbers (int,float,double) match
-// you could add an advanced fn to get type & check if its integral
+// you could add an advanced fn to get type & check if it's integral
 %typecheck(SWIG_TYPECHECK_INTEGER)
 	 int, short, long,
  	 unsigned int, unsigned short, unsigned long,
@@ -396,7 +402,7 @@ parameters match which function
  *                          Specials
  * ----------------------------------------------------------------------------- */
 // swig::LANGUAGE_OBJ was added to allow containers of native objects
-// however its rather difficult to do this in lua, as you cannot hold pointers
+// however it's rather difficult to do this in lua, as you cannot hold pointers
 // to native objects (they are held in the interpreter)
 // therefore for now: just ignoring this feature
 #ifdef __cplusplus

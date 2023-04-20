@@ -5,8 +5,8 @@
 %feature("autodoc");
 
 // special typemap and its docs
-%typemap(in) (int c, int d) "$1 = 0; $2 = 0;";
-%typemap(doc,name="hello",type="Tuple") (int c, int d) "hello: int tuple[2]";
+%typemap(in) (int c, int d) "$1 = 0; $2 = 0;"
+%typemap(doc,name="hello",type="Tuple") (int c, int d) "hello: int tuple[2]"
 
 // testing for different documentation levels
 %feature("autodoc","0") A::func0; // names
@@ -69,8 +69,8 @@
 %typemap(doc) (int c, int d);
 
 // docs for some parameters
-%typemap(doc) int a "a: special comment for parameter a";
-%typemap(doc) int b "b: another special comment for parameter b";
+%typemap(doc) int a "a: special comment for parameter a"
+%typemap(doc) int b "b: another special comment for parameter b"
 
 %feature("autodoc","0") C::C(int a, int b, Hola h); // names
 %feature("autodoc","1") D::D(int a, int b, Hola h); // names + types

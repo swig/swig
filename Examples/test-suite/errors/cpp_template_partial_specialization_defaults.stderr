@@ -1,0 +1,2 @@
+cpp_template_partial_specialization_defaults.i:6: Error: Not enough template parameters specified. Minimum of 1 required.
+cpp_template_partial_specialization_defaults.i:9: Error: Too many template parameters. Maximum of 2.

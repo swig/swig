@@ -4,6 +4,8 @@
 
 %warnfilter(SWIGWARN_RUBY_WRONG_NAME) global_cint;       /* Ruby, wrong constant name */
 
+%feature("php:allowdynamicproperties", 1) Foo; /* Allow PHP-specific custom property testing in _runme.php */
+
 %module cpp_basic
 
 %newobject Bar::testFoo;
@@ -45,6 +47,9 @@ class FooSubSub : public FooSub {
     const char* __str__() const { return "FooSubSub"; }
 };
 
+Foo& get_reference(Foo& other) { return other; }
+const Foo& get_const_reference(const Foo& other) { return other; }
+
 %}
 
 %{
@@ -74,8 +79,16 @@ class Bar {
     Foo *testFoo(int a, Foo *f) {
       return new Foo(2 * a + (f ? f->num : 0) + fval.num);
     }
+/* Const member data and references mean this class can't be assigned.
 private:
     Bar& operator=(const Bar&);
+*/
+};
+
+// This class is valid C++ but cannot be assigned to because it has const member data.
+struct JustConst {
+explicit JustConst(int i_inp) : i(i_inp) {}
+const int i;
 };
 
 %}

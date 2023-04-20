@@ -1,13 +1,10 @@
 /* ------------------------------------------------------------
- * --- Argc & Argv ---
+ * SWIG library containing argc and argv multi-argument typemaps
  * ------------------------------------------------------------ */
 
 %fragment("SWIG_AsArgcArgv","header",fragment="SWIG_AsCharPtrAndSize") {
 SWIGINTERN int
-SWIG_AsArgcArgv(PyObject *input,
-		swig_type_info *ppchar_info,
-		size_t *argc, char ***argv, int *owner)
-{  
+SWIG_AsArgcArgv(PyObject *input, swig_type_info *ppchar_info, size_t *argc, char ***argv, int *owner) {
   void *vptr;
   int res = SWIG_ConvertPtr(input, &vptr, ppchar_info, 0);
   if (!SWIG_IsOK(res)) {
@@ -51,7 +48,7 @@ SWIG_AsArgcArgv(PyObject *input,
   } else {
     /* seems dangerous, but the user asked for it... */
     size_t i = 0;
-    if (argv) { while (*argv[i] != 0) ++i;}    
+    if (argv) { while (*argv[i] != 0) ++i;}
     if (argc) *argc = i;
     if (owner) *owner = 0;
     return SWIG_OK;
@@ -66,10 +63,10 @@ SWIG_AsArgcArgv(PyObject *input,
 
 %typemap(in,noblock=0,fragment="SWIG_AsArgcArgv") (int ARGC, char **ARGV) (int res,char **argv = 0, size_t argc = 0, int owner= 0) {
   res = SWIG_AsArgcArgv($input, $descriptor(char**), &argc, &argv, &owner);
-  if (!SWIG_IsOK(res)) { 
+  if (!SWIG_IsOK(res)) {
     $1 = 0; $2 = 0;
     %argument_fail(SWIG_TypeError, "int ARGC, char **ARGV", $symname, $argnum);
-  } else {  
+  } else {
     $1 = %static_cast(argc,$1_ltype);
     $2 = %static_cast(argv, $2_ltype);
   }

@@ -3,13 +3,15 @@
 require "tests.php";
 
 // New functions
-check::functions(array('launder','is_python_builtin'));
+check::functions(array('launder'));
 // New classes
 check::classes(array('director_exception','Foo','Exception1','Exception2','Base','Bar','ReturnAllTypes'));
 // No new vars
 check::globals(array());
 
 class MyException extends Exception {
+  public $msg;
+
   function __construct($a, $b) {
     $this->msg = $a . $b;
   }

@@ -15,6 +15,11 @@
 <li><a href="#CPlusPlus11_core_language_changes">Core language changes</a>
 <ul>
 <li><a href="#CPlusPlus11_rvalue_reference_and_move_semantics">Rvalue reference and move semantics</a>
+<ul>
+<li><a href="#CPlusPlus11_rvalue_reference_inputs">Rvalue reference inputs</a>
+<li><a href="#CPlusPlus11_rvalue_reference_outputs">Rvalue reference outputs</a>
+<li><a href="#CPlusPlus11_move_only">Movable and move-only types by value</a>
+</ul>
 <li><a href="#CPlusPlus11_generalized_constant_expressions">Generalized constant expressions</a>
 <li><a href="#CPlusPlus11_extern_template">Extern template</a>
 <li><a href="#CPlusPlus11_initializer_lists">Initializer lists</a>
@@ -95,6 +100,7 @@ class MyClass {
 ...
   std::vector&lt;int&gt; numbers;
 public:
+  MyClass() : numbers() {}
   MyClass(MyClass &amp;&amp;other) : numbers(std::move(other.numbers)) {}
   MyClass &amp; operator=(MyClass &amp;&amp;other) {
     numbers = std::move(other.numbers);
@@ -104,8 +110,8 @@ public:
 </pre></div>
 
 <p>
-Rvalue references are designed for C++ temporaries and so are not very useful when used from non-C++ target languages.
-Generally you would just ignore them via <tt>%ignore</tt> before parsing the class.
+Rvalue references are designed for C++ temporaries and are not particularly useful when used from non-C++ target languages.
+One option is to just ignore them via <tt>%ignore</tt>.
 For example, ignore the move constructor:
 </p>
 
@@ -113,8 +119,49 @@ For example, ignore the move constructor:
 %ignore MyClass::MyClass(MyClass &amp;&amp;);
 </pre></div>
 
+<H4><a name="CPlusPlus11_rvalue_reference_inputs">7.2.1.1 Rvalue reference inputs</a></H4>
+
+
 <p>
-The plan is to ignore move constructors by default in a future version of SWIG. Note that both normal assignment operators as well as move assignment operators are ignored by default in most target languages with the following warning:
+Rvalue reference parameters are useful as input parameters in C++ for implementing move semantics, such as,
+in the move constructor and move assignment operator.
+This type of usage can be useful from target languages too to avoid copying large objects.
+</p>
+
+<p>
+If you do wrap a function/contructor with an rvalue reference parameter and pass a proxy class to it, SWIG will assume that after the call, the rvalue reference parameter object will have been 'moved'.
+The proxy class passed as the rvalue reference, will own the underlying C++ object up until it is used as an rvalue reference parameter.
+Afterwards, the proxy class will have the underlying C++ pointer set to the nullptr so that the proxy class instance cannot be used again and the underlying (moved from) C++ object will be deleted after the function/constructor call has returned.
+</p>
+
+<p>
+In this way, the SWIG proxy class works much like an exclusively owned smart pointer (think of <tt>std::unique_ptr</tt>), passing ownership to the called C++ function/constructor.
+Let's consider an example in Java using the wrapped proxy class from above:
+</p>
+
+<div class="targetlang"><pre>
+MyClass mc = new MyClass();
+MyClass mc1 = new MyClass(mc); // move constructor
+MyClass mc2 = new MyClass(mc); // move constructor fails
+</pre></div>
+
+<p>
+The second call to the move constructor will fail as the <tt>mc</tt> proxy instance has been moved.
+Each target language handles the moved proxy class slightly differently when attempting to move it again, but typically you'll get an exception such as in Java:
+</p>
+
+<div class="shell">
+<pre>
+Exception in thread "main" java.lang.RuntimeException: Cannot release ownership as memory is not owned
+        at MyClass.swigRelease(MyClass.java:27)
+        at MyClass.&lt;init&gt;(MyClass.java:55)
+        at runme.main(runme.java:18)
+</pre>
+</div>
+
+
+<p>
+Note that both normal copy assignment operators as well as move assignment operators are ignored by default in the target languages with the following warning:
 </p>
 
 <div class="shell">
@@ -122,6 +169,332 @@ The plan is to ignore move constructors by default in a future version of SWIG. 
 example.i:18: Warning 503: Can't wrap 'operator =' unless renamed to a valid identifier.
 </pre>
 </div>
+
+<p>
+Using a <tt>%rename</tt> will remove the warning and also makes the move assignment operator available from the target language:
+</p>
+<div class="code"><pre>
+%rename(MoveAssign) MyClass::operator=(MyClass &amp;&amp;);
+</pre></div>
+
+<p>
+You can then use it, but like the move constructor example above, you cannot use
+a proxy class once it has already been moved:
+</p>
+
+<div class="targetlang"><pre>
+MyClass mc = new MyClass();
+MyClass mc2 = mc.MoveAssign(mc);
+MyClass mc3 = mc.MoveAssign(mc); // Use of mc again will fail
+</pre></div>
+
+<p>
+It is of course perfectly possible in C++ for a function/constructor to not move an object passed to it in an rvalue reference parameter. The assumption that SWIG makes would then not hold and customisation of the appropriate input typemaps would be required.
+For scripting languages, this would be for the 'in' typemap and for the non-scripting languages additional typemaps such as the 'javain' typemap, which is used to set the memory ownership of the underlying C++ object for Java, would also need copying and modifying appropriately.
+</p>
+
+<p>
+<b>Compatibility note:</b>
+SWIG-4.1.0 changed the way that rvalue reference parameters were handled and implemented typemaps assuming that the
+proxy class owns the underlying C++ object and transfers ownership of the object when a function/constructor with an rvalue reference parameter is called.
+</p>
+
+<H4><a name="CPlusPlus11_rvalue_reference_outputs">7.2.1.2 Rvalue reference outputs</a></H4>
+
+
+<p>
+While rvalue reference parameter inputs are not uncommon in C++ and can be usefully utilised from target languages, this cannot be said for rvalue reference outputs.
+Firstly, it is quite unusual in C++ to have functions that return an rvalue reference.
+Secondly, these cases are nigh on impossible to use from a target language.
+The main problem is these references are for C++ compiler temporaries used on the stack and the target languages use objects on the heap
+and the concept of compiler temporary objects doesn't make sense from another language.
+</p>
+
+<p>
+Using <tt>MyClass</tt> from earlier and this C++ code:
+</p>
+
+<div class="code"><pre>
+void use(MyClass &amp;&amp;mc);
+MyClass &amp;&amp; get1();
+MyClass &amp; get2();
+</pre></div>
+
+<p>
+SWIG wraps the <tt>get1</tt> and <tt>get2</tt> functions more or less identically.
+The returned references are converted into pointers that are not owned by the target language.
+It means that the following perfectly valid C++ has no equivalent in any of the target languages:
+</p>
+
+<div class="code"><pre>
+use(get1());
+use(std::move(get2()));
+</pre></div>
+
+<p>
+An attempt to call the equivalent <tt>use(get1())</tt> from one of the target languages will result in the ownership failure mentioned in the previous section as the object being passed to the <tt>use</tt> function is not owned by the proxy class.
+In order to own the object, it would need to be cloned for the object to move from the stack to the heap, for which an appropriate clone function would be required, but may not even be available.
+Note that a move constructor or copy constructor may slice the object when inheritance is involved.
+Alternatively, customising the input rvalue reference typemap, as mentioned in the previous section, could remove the ownership requirement.
+Another alternative would be to modify the output rvalue reference typemap to always clone the rvalue reference object.
+Fortunately you're highly unlikely to have to solve any of these issues!
+</p>
+
+<H4><a name="CPlusPlus11_move_only">7.2.1.3 Movable and move-only types by value</a></H4>
+
+
+<p>
+SWIG has traditionally relied on wrapped C++ types to be copy constructible or copy assignable, either via an explicit or implicit copy constructor and copy assignment operator.
+Prior to C++11, a function could not return nor take a type by value that was not copyable.
+In C++11 this is no longer the case. A type can also be movable if it has has a move constructor and a move assignment operator.
+A move-only type is movable but not copyable; it has both the copy constructor and copy assignment operator deleted.
+Movable types can appear in function signatures for passing 'by value' and in C++11 the object can then be moved rather than copied.
+</p>
+
+<p>
+SWIG has support for both copyable and/or movable types.
+Support for move semantics is quite seamless when returning by value from a function.
+Support for move semantics is less so and may require some customisation when passing by value to a function.
+First let's consider returning by value from a function.
+</p>
+
+<p>
+The support for function return values is generically implemented in the "out" <tt>SWIGTYPE</tt> typemap which supports any type, including copyable, movable and move-only types.
+The typemap code is very simple and written so that the compiler will call the move constructor if possible,
+otherwise the copy constructor:
+</p>
+
+<div class="code"><pre>
+%typemap(out) SWIGTYPE %{
+  $result = new $1_ltype($1);
+%}
+</pre></div>
+
+<p>
+The above typemap is for C# and when used to wrap a move-only type such as:
+</p>
+
+<div class="code"><pre>
+struct MoveOnly {
+  int  val;
+  MoveOnly(): val(0)  {}
+
+  MoveOnly(const MoveOnly &amp;) = delete;
+  MoveOnly(MoveOnly &amp;&amp;) = default;
+
+  MoveOnly &amp; operator=(const MoveOnly &amp;) = delete;
+  MoveOnly &amp; operator=(MoveOnly &amp;&amp;) = default;
+
+  static MoveOnly create() { return MoveOnly(); }
+  static void take(MoveOnly mo);
+};
+</pre></div>
+
+<p>
+will generate wrapper code for the <tt>create</tt> factory method:
+</p>
+
+<div class="code"><pre>
+SWIGEXPORT void * SWIGSTDCALL CSharp_MoveOnly_create() {
+  void * jresult ;
+  SwigValueWrapper&lt; MoveOnly &gt; result;
+
+  result = MoveOnly::create();
+  jresult = new MoveOnly(result);
+  return jresult;
+}
+</pre></div>
+
+<p>
+<tt>SwigValueWrapper</tt> is covered in <a href="SWIGPlus.html#SWIGPlus_nn19">Pass and return by value</a>.
+Note that the generated code could be optimised further using the <a href="Typemaps.html#Typemaps_optimal">"optimal" attribute</a>
+in the "out" typemap, so if the above typemap is customised as follows (note that this is C# specific):
+</p>
+
+<div class="code"><pre>
+%typemap(out, optimal="1") MoveOnly %{
+  $result = new $1_ltype($1);
+%}
+</pre></div>
+
+<p>
+then the generated code will result in the object being optimally moved:
+</p>
+
+<div class="code"><pre>
+SWIGEXPORT void * SWIGSTDCALL CSharp_MoveOnly_create() {
+  void * jresult ;
+  jresult = new MoveOnly(MoveOnly::create());
+  return jresult;
+}
+</pre></div>
+
+<p>
+Now let's consider passing by value.
+We'll consider three cases; namely types that are:
+</p>
+
+<ol>
+  <li> Copyable and not movable - <tt>CopyOnly</tt>.</li>
+  <li> Copyable and movable - <tt>MovableCopyable</tt>.</li>
+  <li> Movable and not copyable - <tt>MoveOnly</tt>.</li>
+</ol>
+
+<p>
+and for clarification, define these two additional types as follows:
+</p>
+
+<div class="code"><pre>
+struct CopyOnly {
+  int  val;
+  CopyOnly(): val(0)  {}
+
+  CopyOnly(const CopyOnly &amp;) = default;
+  CopyOnly &amp; operator=(const CopyOnly &amp;) = default;
+
+  static CopyOnly create() { return CopyOnly(); }
+  static void take(CopyOnly co);
+};
+
+struct MovableCopyable {
+  int  val;
+  MovableCopyable(): val(0)  {}
+
+  MovableCopyable(const MovableCopyable &amp;) = default;
+  MovableCopyable(MovableCopyable &amp;&amp;) = default;
+  MovableCopyable &amp; operator=(const MovableCopyable &amp;) = default;
+  MovableCopyable &amp; operator=(MovableCopyable &amp;&amp;) = default;
+
+  static MovableCopyable create() { return MovableCopyable(); }
+  static void take(MovableCopyable mc);
+};
+</pre></div>
+
+<p>
+The generated code is shown below for <tt>CopyOnly::take</tt> (with additional comments for when constructors and assignment operators are called).
+While the code shown is C# specific, the generated constructor and/or assignment operator calls are ultimately the same for all target languages.
+</p>
+
+<div class="code"><pre>
+SWIGEXPORT void SWIGSTDCALL CSharp_CopyOnly_take(void * jarg1) {
+  CopyOnly arg1 ; // (a) Default constructor
+  CopyOnly *argp1 ;
+  
+  argp1 = (CopyOnly *)jarg1; 
+  if (!argp1) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Attempt to dereference null CopyOnly", 0);
+    return ;
+  }
+  arg1 = *argp1; // (b) Copy assignment
+  CopyOnly::take(SWIG_STD_MOVE(arg1)); // (c) Copy constructor
+}
+</pre></div>
+
+<p>
+Note that <tt>SWIG_STD_MOVE</tt> is a macro defined as shown below to use <tt>std::move</tt> which is only available from C++11 onwards:
+</p>
+
+<div class="code"><pre>
+#if __cplusplus &gt;=201103L
+# define SWIG_STD_MOVE(OBJ) std::move(OBJ)
+#else
+# define SWIG_STD_MOVE(OBJ) OBJ
+#endif
+</pre></div>
+
+<p>
+Also note: <i>(c) Copy constructor</i>.
+Yes, when passing by value the copy constructor is called for all versions of C++, even C++11 and later even though std::move is specified.
+It's a C++ language feature for types that don't have move semantics!
+</p>
+
+<p>
+The generated code for <tt>MovableCopyable::take</tt> is the same as for <tt>CopyOnly::take</tt>, however, the C++ compiler will choose the move constructor this time where commented <i>(c) Move constructor</i>:
+</p>
+
+<div class="code"><pre>
+SWIGEXPORT void SWIGSTDCALL CSharp_MovableCopyable_take(void * jarg1) {
+  MovableCopyable arg1 ; // (a) Default constructor
+  MovableCopyable *argp1 ;
+  
+  argp1 = (MovableCopyable *)jarg1; 
+  if (!argp1) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Attempt to dereference null MovableCopyable", 0);
+    return ;
+  }
+  arg1 = *argp1; // (b) Copy assignment
+  MovableCopyable::take(SWIG_STD_MOVE(arg1)); // (c) Move constructor
+}
+</pre></div>
+
+<p>
+There are two optimisation opportunities available.
+</p>
+<ol>
+  <li> Remove the default constructor call with the <tt>%feature("valuewrapper")</tt> covered in <a href="SWIGPlus.html#SWIGPlus_nn19">Pass and return by value</a> and replace it with <tt>SwigValueWrapper</tt>.
+  </li>
+  <li> Apply the SWIGTYPE MOVE typemaps which are designed specifically to implement full move semantics when passing parameters by value.
+    They replace the copy assignment with a call to <tt>SwigValueWrapper::reset</tt>, which works much like <tt>std::unique_ptr::reset</tt>.
+    These typemaps could alternatively have replaced the copy assignment with a move assignment, but this is not maximally optimal.
+  </li>
+</ol>
+<p>
+Simply add the following before the <tt>MovableCopyable::take</tt> method is parsed:
+</p>
+
+<div class="code"><pre>
+%valuewrapper MovableCopyable;
+%include &lt;swigmove.i&gt;
+%apply SWIGTYPE MOVE { MovableCopyable }
+</pre></div>
+
+<p>
+will result in this optimal code where just one move constructor is invoked:
+</p>
+
+<div class="code"><pre>
+SWIGEXPORT void SWIGSTDCALL CSharp_MovableCopyable_take(void * jarg1) {
+  SwigValueWrapper&lt; MovableCopyable &gt; arg1 ; // (a) No constructors invoked
+  MovableCopyable *argp1 ;
+  
+  argp1 = (MovableCopyable *)jarg1;
+  if (!argp1) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Attempt to dereference null MovableCopyable", 0);
+    return ;
+  }
+  SwigValueWrapper&lt; MovableCopyable &gt;::reset(arg1, argp1);  // (b) No constructor or assignment operator invoked
+  MovableCopyable::take(SWIG_STD_MOVE(arg1)); // (c) Move constructor
+}
+</pre></div>
+
+<p>
+Note that <tt>SwigValueWrapper</tt> will call the destructor for the pointer passed to it in the <tt>reset</tt> function.
+This pointer is the underlying C++ object that the proxy class owns.
+The details aren't shown, but the 'csin' typemap also generates C# code to ensure that the proxy class releases ownership of the object.
+Please see the 'SWIGTYPE MOVE' typemaps in the swigmove.i file provided for each target language.
+Therefore full move semantics are implemented; ownership is moved from the proxy class into the C++ layer and the net effect
+is the same as using an <a href="#CPlusPlus11_rvalue_reference_inputs">rvalue reference parameter</a> discussed earlier.
+</p>
+
+<p>
+Lastly, let's consider the <tt>MoveOnly::take</tt> function defined earlier.
+By default the generated code fails to compile as <tt>MoveOnly</tt> does not have a copy assignment operator.
+SWIG is not designed to select a different typemap automatically for move-only types and the user
+must apply the SWIGTYPE MOVE typemaps to ensure that only move-only semantics are used.
+However, SWIG is able to automatically use <tt>%feature("valuewrapper")</tt> for move-only
+types so it is not necessary to explicitly use this feature.
+So in this move-only case, simply add the following before <tt>MoveOnly::take</tt> is parsed, which results in the same optimal code shown above for <tt>MovableCopyable</tt>:
+</p>
+
+<div class="code"><pre>
+%include &lt;swigmove.i&gt;
+%apply SWIGTYPE MOVE { MoveOnly }
+</pre></div>
+
+<p>
+<b>Compatibility note:</b>
+SWIG-4.1.0 introduced support for taking advantage of types with move semantics and making it possible to easily use move only types.
+</p>
 
 
 <H3><a name="CPlusPlus11_generalized_constant_expressions">7.2.2 Generalized constant expressions</a></H3>
@@ -347,18 +720,45 @@ AltStruct var2{2, 4.3};   // calls the constructor
 <H3><a name="CPlusPlus11_type_inference">7.2.6 Type inference</a></H3>
 
 
-<p>SWIG supports <tt>decltype()</tt> with some limitations. Single
-variables are allowed, however, expressions are not supported yet. For
+<p>SWIG supports <tt>decltype()</tt> with limitations. Single
+variables are allowed, however, non-trivial expressions are not supported very well. For
 example, the following code will work:</p>
 <div class="code"><pre>
 int i;
 decltype(i) j;
 </pre></div>
 
-<p>However, using an expression inside the decltype results in syntax error:</p>
+<p>SWIG is able to deduce that the variable, <tt>i</tt>, is type <tt>int</tt>.
+</p>
+
+<p>
+Using a non-trivial expression for the decltype results in a warning:</p>
 <div class="code"><pre>
 int i; int j;
-decltype(i+j) k;  // syntax error
+decltype(i+j) k;  // Warning 344: Unable to deduce decltype for 'i+j'.
+</pre></div>
+
+<p>
+This warning should be viewed as  a prompt to add in a manual ignore of the variable/function as
+in most cases the generated code will not compile.
+For the example above, ignore the symbol that uses decltype and perhaps additionally
+suppress the warning as follows:
+</p>
+
+<div class="code"><pre>
+#pragma SWIG nowarn=SWIGWARN_CPP11_DECLTYPE
+%ignore k;
+</pre></div>
+
+<p>
+If an ignore is not acceptable, a workaround is to redefine the symbol with the actual type, for example:
+</p>
+
+<div class="code"><pre>
+int k; // define k with the actual type
+%ignore k; // ignore the real definition of k
+int i; int j;
+decltype(i+j) k;  // Warning 344: Unable to deduce decltype for 'i+j'.
 </pre></div>
 
 <p>SWIG does not support <tt>auto</tt> as a type specifier for variables, only
@@ -518,6 +918,19 @@ struct DerivedStruct : BaseStruct {
 };
 </pre></div>
 
+<p>
+Classes can also be marked as final, such as
+</p>
+
+<div class="code"><pre>
+struct FinalDerivedStruct final : BaseStruct {
+  virtual void ab() const override;
+};
+</pre></div>
+
+<p>
+<b>Compatibility note:</b> Final methods were supported much earlier than final classes. SWIG-4.1.0 was the first version to support classes marked as final.
+</p>
 
 <H3><a name="CPlusPlus11_null_pointer_constant">7.2.12 Null pointer constant</a></H3>
 
@@ -712,36 +1125,69 @@ union P {
 <H3><a name="CPlusPlus11_variadic_templates">7.2.18 Variadic templates</a></H3>
 
 
-<p>SWIG supports the variadic templates syntax (inside the &lt;&gt;
-block, variadic class inheritance and variadic constructor and
-initializers) with some limitations. The following code is correctly parsed:</p>
+<p>SWIG supports the variadic templates including the &lt;&gt;
+variadic class inheritance, variadic methods, variadic constructors and
+initializers. Example:</p>
 
 <div class="code"><pre>
 template &lt;typename... BaseClasses&gt; class ClassName : public BaseClasses... {
 public:
-  ClassName (BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
-}
+  ClassName(BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
+  void InstanceMethod(const BaseClasses&amp;... baseClasses) {}
+};
 </pre></div>
 
 <p>
-For now however, the <tt>%template</tt> directive only accepts one parameter substitution
-for the variable template parameters.
+The <tt>%template</tt> directive works as expected for variable template parameters.
 </p>
 
 <div class="code"><pre>
-%template(MyVariant1) ClassName&lt;&gt;         // zero argument not supported yet
-%template(MyVariant2) ClassName&lt;int&gt;      // ok
-%template(MyVariant3) ClassName&lt;int, int&gt; // too many arguments not supported yet
+struct A {
+  virtual void amethod();
+  virtual ~A();
+};
+struct B {
+  virtual void bmethod();
+  virtual ~B();
+};
+%template(ClassName0) ClassName&lt;&gt;
+%template(ClassName1) ClassName&lt;A&gt;
+%template(ClassName2) ClassName&lt;A, B&gt;
 </pre></div>
 
-<p>Support for the variadic <tt>sizeof()</tt> function is correctly parsed:</p>
+<p>
+Example usage from say Python:
+</p>
+
+<div class="targetlang"><pre>
+cn0 = ClassName0()
+cn0.InstanceMethod()
+
+a = A()
+cn1 = ClassName1(a)
+cn1.amethod()
+cn1.InstanceMethod(a)
+
+b = B()
+cn2 = ClassName2(a, b)
+cn2.InstanceMethod(a, b)
+cn2.amethod()
+cn2.bmethod()
+</pre></div>
+
+<p>Support for the variadic <tt>sizeof()</tt> function also works:</p>
 
 <div class="code"><pre>
-const int SIZE = sizeof...(ClassName&lt;int, int&gt;);
+const int SIZE = sizeof...(ClassName&lt;A, B&gt;);
 </pre></div>
 
 <p>
 In the above example <tt>SIZE</tt> is of course wrapped as a constant.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.2.0 was the first version to fully support variadic templates.
+SWIG-3.0.0 provided initial support and was limited to only one variadic parameter.
 </p>
 
 <H3><a name="CPlusPlus11_new_char_literals">7.2.19 New character literals</a></H3>
@@ -1010,7 +1456,9 @@ Use the preprocessor to work around this for now:
 
 
 <p>
-Attributes such as those shown below, are not yet supported and will give a syntax error.
+Attributes such as those shown below, are supported since SWIG 4.1.0 but are
+currently crudely ignored by the parser's tokeniser so they have no effect on
+SWIG's code generation.
 </p>
 
 <div class="code"><pre>
@@ -1157,8 +1605,10 @@ While SWIG could provide wrappers for the new C++11 regular expressions classes,
 
 <p>
 SWIG provides special smart pointer handling for <tt>std::shared_ptr</tt> in the same way it has support for <tt>boost::shared_ptr</tt>.
-Please see the <a href="Library.html#Library_std_shared_ptr">shared_ptr smart pointer</a> library section.
-There is no special smart pointer handling available for <tt>std::weak_ptr</tt> and <tt>std::unique_ptr</tt> yet.
+Please see the <a href="Library.html#Library_std_shared_ptr">shared_ptr smart pointer</a>
+and <a href="Library.html#Library_std_unique_ptr">unique_ptr smart pointer</a> library sections.
+There is no special smart pointer handling available for <tt>std::weak_ptr</tt>.
+
 </p>
 
 <H3><a name="CPlusPlus11_extensible_random_number_facility">7.3.6 Extensible random number facility</a></H3>

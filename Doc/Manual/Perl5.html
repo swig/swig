@@ -604,7 +604,7 @@ source has a list of macros that are known to conflict with either standard head
 other headers.  But if you get macro type conflicts from other macros not included
 in Lib/perl5/noembed.h while compiling the wrapper, you will
 have to find the macro that conflicts and add an #undef into the .i file.  Please report
-any conflicting macros you find to <a href="http://www.swig.org/mail.html">swig-user mailing list</a>.
+any conflicting macros you find to <a href="https://www.swig.org/mail.html">swig-user mailing list</a>.
 </p>
 
 <H3><a name="Perl5_nn10">31.2.7 Compiling for 64-bit platforms</a></H3>
@@ -1064,7 +1064,7 @@ int *Foo_x_get(Foo *self) {
 <p>
 If you want to set an array member, you will need to supply a "memberin" typemap
 described later in this chapter.  As a special case, SWIG does generate
-code to set array members of type <tt>char</tt> (allowing you to store a Python
+code to set array members of type <tt>char</tt> (allowing you to store a Perl
 string in the structure).
 </p>
 
@@ -1493,7 +1493,7 @@ as well as a special error code:
 <div class="code">
 <pre>
 /* send message, return number of bytes sent, along with success code */
-int send_message(char *text, int len, int *success);
+int send_message(char *text, int *success);
 </pre>
 </div>
 
@@ -1735,7 +1735,7 @@ See the chapter on "<a href="Customization.html#Customization">Customization fea
 
 <div class="code">
 <pre>
-%except(python) {
+%except(perl5) {
   try {
     $function
   }
@@ -2319,7 +2319,7 @@ typedef struct {
 
 <p>
 By default, SWIG doesn't know how to the handle the values structure
-member it's an array, not a pointer.  In this case, SWIG makes the array member
+member because it's an array, not a pointer.  In this case, SWIG makes the array member
 read-only.   Reading will simply return a pointer to the first item in the array.
 To make the member writable, a "memberin" typemap can be used.
 </p>
@@ -2747,7 +2747,7 @@ from the internal <tt>%OWNER</tt> hash).
 The <tt>%OWNER</tt> hash is an implementation detail, discussed here
 only to help clarify the operation of <tt>ACQUIRE</tt> and <tt>DISOWN</tt>.
 You should not access <tt>%OWNER</tt> directly - the details of how it
-works (and possibly even its existence) may chance in future SWIG versions.
+works (and possibly even its existence) may change in future SWIG versions.
 </p>
 
 <div class="targetlang"><pre>

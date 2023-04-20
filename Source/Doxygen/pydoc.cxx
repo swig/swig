@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * pydoc.cxx
  *
@@ -302,7 +302,7 @@ void PyDocConverter::fillStaticTables() {
   tagHandlers["ref"] = make_handler(&PyDocConverter::handleTagRef);
   tagHandlers["result"] = tagHandlers["return"] = tagHandlers["returns"] = make_handler(&PyDocConverter::handleTagReturn);
 
-  // this command just prints it's contents
+  // this command just prints its contents
   // (it is internal command of swig's parser, contains plain text)
   tagHandlers["plainstd::string"] = make_handler(&PyDocConverter::handlePlainString);
   tagHandlers["plainstd::endl"] = make_handler(&PyDocConverter::handleNewLine);

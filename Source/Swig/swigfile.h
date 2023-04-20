@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * swigfile.h
  *
@@ -30,13 +30,11 @@ extern String *Swig_file_extension(const_String_or_char_ptr filename);
 extern String *Swig_file_basename(const_String_or_char_ptr filename);
 extern String *Swig_file_filename(const_String_or_char_ptr filename);
 extern String *Swig_file_dirname(const_String_or_char_ptr filename);
-extern void   Swig_file_debug_set();
+extern void   Swig_file_debug_set(void);
 
 /* Delimiter used in accessing files and directories */
 
-#if defined(MACSWIG)
-#  define SWIG_FILE_DELIMITER ":"
-#elif defined(_WIN32)
+#if defined(_WIN32)
 #  define SWIG_FILE_DELIMITER "\\"
 #else
 #  define SWIG_FILE_DELIMITER "/"

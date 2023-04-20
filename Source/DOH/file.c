@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * file.c
  *
@@ -35,7 +35,7 @@ typedef struct {
  * reference count of the underlying DOH objects.
  * ----------------------------------------------------------------------------- */
 
-static DOHList *open_files_list_instance() {
+static DOHList *open_files_list_instance(void) {
   static DOHList *all_open_files = 0;
   if (!all_open_files)
     all_open_files = DohNewList();
@@ -73,7 +73,7 @@ static void open_files_list_remove(DohFile *f) {
  * Close all opened files, to be called on program termination
  * ----------------------------------------------------------------------------- */
 
-void DohCloseAllOpenFiles() {
+void DohCloseAllOpenFiles(void) {
   int i;
   DOHList *all_open_files = open_files_list_instance();
   for (i = 0; i < DohLen(all_open_files); i++) {
@@ -291,10 +291,6 @@ DOH *DohNewFile(DOHString *filename, const char *mode, DOHList *newfiles) {
     return 0;
 
   f = (DohFile *) DohMalloc(sizeof(DohFile));
-  if (!f) {
-    fclose(file);
-    return 0;
-  }
   if (newfiles)
     Append(newfiles, filename);
   f->filep = file;
@@ -314,8 +310,6 @@ DOH *DohNewFile(DOHString *filename, const char *mode, DOHList *newfiles) {
 DOH *DohNewFileFromFile(FILE *file) {
   DohFile *f;
   f = (DohFile *) DohMalloc(sizeof(DohFile));
-  if (!f)
-    return 0;
   f->filep = file;
   f->fd = 0;
   f->closeondel = 0;
@@ -331,8 +325,6 @@ DOH *DohNewFileFromFile(FILE *file) {
 DOH *DohNewFileFromFd(int fd) {
   DohFile *f;
   f = (DohFile *) DohMalloc(sizeof(DohFile));
-  if (!f)
-    return 0;
   f->filep = 0;
   f->fd = fd;
   f->closeondel = 0;

@@ -32,6 +32,8 @@ public class director_pass_by_value_runme {
           break;
       };
     }
+    if (director_pass_by_value.has_cplusplus11())
+      Counter.check_counts(1, 0, 0, 1, 0, 1); // check move constructor called and just one destructor
     // bug was the passByVal 'global' object was destroyed after the call to virtualMethod had finished.
     int ret = director_pass_by_value_runme.passByVal.getVal();
     if (ret != 0x12345678)

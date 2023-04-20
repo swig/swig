@@ -44,7 +44,7 @@
 # define SWIG_SHARED_PTR_NAMESPACE SwigBoost
 #endif
 
-#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -242,6 +242,10 @@ std::string nullsmartpointerpointertest(SwigBoost::shared_ptr<Klass>* k) {
   else
     return "also not null";
 }
+
+SwigBoost::shared_ptr<Klass>* sp_pointer_null() { return NULL; }
+SwigBoost::shared_ptr<Klass>* null_sp_pointer() { static SwigBoost::shared_ptr<Klass> static_sp; return &static_sp; }
+SwigBoost::shared_ptr<Klass> sp_value_null() { return SwigBoost::shared_ptr<Klass>(); }
 // $owner
 Klass *pointerownertest() {
   return new Klass("pointerownertest");
@@ -264,6 +268,7 @@ long use_count(const SwigBoost::shared_ptr<KlassDerived>& sptr) {
 long use_count(const SwigBoost::shared_ptr<Klass>& sptr) {
   return sptr.use_count();
 }
+
 const SwigBoost::shared_ptr<Klass>& ref_1() {
   static SwigBoost::shared_ptr<Klass> sptr;
   return sptr;

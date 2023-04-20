@@ -12,7 +12,7 @@
 #include <stdio.h>
 
 /* Contract support. */
-#define SWIG_contract_assert(nullreturn, expr, msg) if (!(expr)) {SWIG_DSetPendingException(SWIG_DException, msg); return nullreturn; } else
+#define SWIG_contract_assert(nullreturn, expr, msg) do { if (!(expr)) {SWIG_DSetPendingException(SWIG_DException, msg); return nullreturn; } } while (0)
 %}
 
 

@@ -91,16 +91,15 @@
 </ul>
 <li><a href="Windows.html#Windows_other_compilers">Instructions for using the Examples with other compilers</a>
 </ul>
-<li><a href="Windows.html#Windows_cygwin_mingw">SWIG on Cygwin and MinGW</a>
-<ul>
 <li><a href="Windows.html#Windows_swig_exe">Building swig.exe on Windows</a>
 <ul>
 <li><a href="Windows.html#Windows_cmake">Building swig.exe using CMake</a>
 <li><a href="Windows.html#Windows_msys2">Building swig.exe using MSYS2</a>
 <li><a href="Windows.html#Windows_mingw_msys">Building swig.exe using MinGW and MSYS</a>
 <li><a href="Windows.html#Windows_cygwin">Building swig.exe using Cygwin</a>
-</ul>
+<ul>
 <li><a href="Windows.html#Windows_examples_cygwin">Running the examples on Windows using Cygwin</a>
+</ul>
 </ul>
 <li><a href="Windows.html#Windows_interface_file">Microsoft extensions and other Windows quirks</a>
 </ul>
@@ -172,6 +171,7 @@
 <li><a href="SWIG.html#SWIG_rename_ignore">Renaming and ignoring declarations</a>
 <ul>
 <li><a href="SWIG.html#SWIG_nn29">Simple renaming of specific identifiers</a>
+<li><a href="SWIG.html#SWIG_ignore">Ignoring identifiers</a>
 <li><a href="SWIG.html#SWIG_advanced_renaming">Advanced renaming support</a>
 <li><a href="SWIG.html#SWIG_limiting_renaming">Limiting global renaming rules</a>
 <li><a href="SWIG.html#SWIG_chosen_unignore">Ignoring everything then wrapping a few selected symbols</a>
@@ -251,12 +251,16 @@
 </ul>
 <li><a href="SWIGPlus.html#SWIGPlus_nn28">Overloaded operators</a>
 <li><a href="SWIGPlus.html#SWIGPlus_class_extension">Class extension</a>
+<ul>
+<li><a href="SWIGPlus.html#SWIGPlus_replacing_methods">Replacing class methods</a>
+</ul>
 <li><a href="SWIGPlus.html#SWIGPlus_nn30">Templates</a>
 <ul>
 <li><a href="SWIGPlus.html#SWIGPlus_template_directive">The %template directive</a>
 <li><a href="SWIGPlus.html#SWIGPlus_template_functions">Function templates</a>
 <li><a href="SWIGPlus.html#SWIGPlus_template_classes">Default template arguments</a>
 <li><a href="SWIGPlus.html#SWIGPlus_template_class_inheritance">Template base classes</a>
+<li><a href="SWIGPlus.html#SWIGPlus_template_empty">Empty template instantiation</a>
 <li><a href="SWIGPlus.html#SWIGPlus_template_specialization">Template specialization</a>
 <li><a href="SWIGPlus.html#SWIGPlus_template_member">Member templates</a>
 <li><a href="SWIGPlus.html#SWIGPlus_template_scoping">Scoping and templates</a>
@@ -294,6 +298,11 @@
 <li><a href="CPlusPlus11.html#CPlusPlus11_core_language_changes">Core language changes</a>
 <ul>
 <li><a href="CPlusPlus11.html#CPlusPlus11_rvalue_reference_and_move_semantics">Rvalue reference and move semantics</a>
+<ul>
+<li><a href="CPlusPlus11.html#CPlusPlus11_rvalue_reference_inputs">Rvalue reference inputs</a>
+<li><a href="CPlusPlus11.html#CPlusPlus11_rvalue_reference_outputs">Rvalue reference outputs</a>
+<li><a href="CPlusPlus11.html#CPlusPlus11_move_only">Movable and move-only types by value</a>
+</ul>
 <li><a href="CPlusPlus11.html#CPlusPlus11_generalized_constant_expressions">Generalized constant expressions</a>
 <li><a href="CPlusPlus11.html#CPlusPlus11_extern_template">Extern template</a>
 <li><a href="CPlusPlus11.html#CPlusPlus11_initializer_lists">Initializer lists</a>
@@ -380,6 +389,10 @@
 <ul>
 <li><a href="CPlusPlus20.html#CPlusPlus20_introduction">Introduction</a>
 <li><a href="CPlusPlus20.html#CPlusPlus20_core_language_changes">Core language changes</a>
+<ul>
+<li><a href="CPlusPlus20.html#CPlusPlus20_spaceship_operator">Spaceship operator</a>
+<li><a href="CPlusPlus20.html#CPlusPlus20_lambda_templates">Lambda templates</a>
+</ul>
 <li><a href="CPlusPlus20.html#CPlusPlus20_standard_library_changes">Standard library changes</a>
 </ul>
 </div>
@@ -416,6 +429,7 @@
 <li><a href="Library.html#Library_nn2">The %include directive and library search path</a>
 <li><a href="Library.html#Library_nn3">C arrays and pointers</a>
 <ul>
+<li><a href="Library.html#Library_argcargv">argcargv.i</a>
 <li><a href="Library.html#Library_nn4">cpointer.i</a>
 <li><a href="Library.html#Library_carrays">carrays.i</a>
 <li><a href="Library.html#Library_nn6">cmalloc.i</a>
@@ -441,11 +455,16 @@
 <li><a href="Library.html#Library_shared_ptr_templates">shared_ptr and templates</a>
 <li><a href="Library.html#Library_shared_ptr_directors">shared_ptr and directors</a>
 </ul>
+<li><a href="Library.html#Library_std_unique_ptr">unique_ptr smart pointer</a>
 <li><a href="Library.html#Library_std_auto_ptr">auto_ptr smart pointer</a>
 </ul>
 <li><a href="Library.html#Library_nn16">Utility Libraries</a>
 <ul>
 <li><a href="Library.html#Library_nn17">exception.i</a>
+<li><a href="Library.html#Library_attributes">attribute.i</a>
+<ul>
+<li><a href="Library.html#Library_attribute_templates">%attribute and C++ templates</a>
+</ul>
 </ul>
 </ul>
 </div>
@@ -516,6 +535,7 @@
 <ul>
 <li><a href="Typemaps.html#Typemaps_special_macro_descriptor">$descriptor(type)</a>
 <li><a href="Typemaps.html#Typemaps_special_macro_typemap">$typemap(method, typepattern)</a>
+<li><a href="Typemaps.html#Typemaps_special_macro_typemap_attribute">$typemap(method:attribute, typepattern)</a>
 </ul>
 <li><a href="Typemaps.html#Typemaps_special_variable_attributes">Special variables and typemap attributes</a>
 <li><a href="Typemaps.html#Typemaps_special_variables_and_macros">Special variables combined with special variable macros</a>
@@ -870,6 +890,8 @@
 <li><a href="Go.html#Go_class_inheritance">Go Class Inheritance</a>
 </ul>
 <li><a href="Go.html#Go_templates">Go Templates</a>
+<li><a href="Go.html#Go_threads">Go and C/C++ Threads</a>
+<li><a href="Go.html#Go_exceptions">Go and C++ Exceptions</a>
 <li><a href="Go.html#Go_director_classes">Go Director Classes</a>
 <ul>
 <li><a href="Go.html#Go_director_example_cpp_code">Example C++ code</a>
@@ -1330,6 +1352,7 @@
 <li><a href="Php.html#Php_nn2_6_3">Static Member Variables</a>
 <li><a href="Php.html#Php_nn2_6_4">Static Member Functions</a>
 <li><a href="Php.html#Php_nn2_6_5">Specifying Implemented Interfaces</a>
+<li><a href="Php.html#Php_nn2_6_6">Dynamic Properties</a>
 </ul>
 <li><a href="Php.html#Php_nn2_7">PHP Pragmas, Startup and Shutdown code</a>
 </ul>
@@ -1455,6 +1478,7 @@
 <li><a href="Python.html#Python_nn70">%feature("autodoc", "docstring")</a>
 </ul>
 <li><a href="Python.html#Python_nn71">%feature("docstring")</a>
+<li><a href="Python.html#Python_doxygen_docstrings">Doxygen comments</a>
 </ul>
 <li><a href="Python.html#Python_nn72">Python Packages</a>
 <ul>
@@ -1474,7 +1498,10 @@
 </ul>
 <li><a href="Python.html#Python_python3support">Python 3 Support</a>
 <ul>
-<li><a href="Python.html#Python_nn74">Function annotation</a>
+<li><a href="Python.html#Python_annotations">Python function annotations and variable annotations</a>
+<ul>
+<li><a href="Python.html#Python_annotations_c">C/C++ annotation types</a>
+</ul>
 <li><a href="Python.html#Python_nn75">Buffer interface</a>
 <li><a href="Python.html#Python_nn76">Abstract base classes</a>
 <li><a href="Python.html#Python_nn77">Byte string output conversion</a>

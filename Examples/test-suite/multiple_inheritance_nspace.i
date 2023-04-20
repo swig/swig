@@ -10,7 +10,7 @@
 #endif
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
-%include "swiginterface.i"
+%include <swiginterface.i>
 %interface(Space::ABase1)
 %interface(Space::CBase1)
 %interface(Space::CBase2)

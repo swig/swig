@@ -12,6 +12,10 @@ SCRIPTSUFFIX	= _runme.go
 
 SO = @SO@
 
+HAVE_CXX11   = @HAVE_CXX11@
+HAVE_CXX14   = @HAVE_CXX14@
+HAVE_CXX17   = @HAVE_CXX17@
+HAVE_CXX20   = @HAVE_CXX20@
 srcdir         = @srcdir@
 top_srcdir     = @top_srcdir@
 top_builddir   = @top_builddir@
@@ -43,17 +47,9 @@ INCLUDES = -I$(abs_top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 
 %.multicpptest:
 	$(setup)
-	mkdir -p gopath/$*/src 2>/dev/null || true
-	if ! test -d gopath/$*/src/swigtests; then \
-	  (cd gopath/$*/src && ln -s . swigtests); \
-	fi
+	$(go_multicpp_setup)
 	+for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
-	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
-	  LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
-	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR='$(INTERFACEDIR)' INTERFACE="$$f.i" \
-	  GOMOD="$*" \
-	  $(LANGUAGE)$(VARIANT)_cpp; \
+	  $(call swig_and_compile_cpp_helper,$${f},'$(SWIGOPT)') GOMOD="$*"; \
 	done
 	$(run_multi_testcase)
 
@@ -61,28 +57,9 @@ li_windows.cpptest:
 	# Does not work because go build won't build li_windows.go,
 	# because file names with "windows" are only built on Windows.
 
-multi_import.multicpptest:
-	$(setup)
-	mkdir -p gopath/multi_import/src 2>/dev/null || true
-	if ! test -d gopath/multi_import/src/swigtests; then \
-	  (cd gopath/multi_import/src && ln -s . swigtests); \
-	fi
-	for f in multi_import_b multi_import_a; do \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
-	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
-	  LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
-	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR='$(INTERFACEDIR)' INTERFACE="$$f.i" \
-	  GOMOD="multi_import" \
-	  $(LANGUAGE)$(VARIANT)_cpp; \
-	done
-	$(run_multi_testcase)
-
 go_subdir_import.multicpptest:
 	$(setup)
-	mkdir -p gopath/go_subdir_import/src 2>/dev/null || true
-	if ! test -d gopath/go_subdir_import/src/swigtests; then \
-	  (cd gopath/go_subdir_import/src && ln -s . swigtests); \
-	fi
+	$(go_multicpp_setup)
 	mkdir -p testdir/go_subdir_import 2>/dev/null || true
 	mkdir -p gopath/go_subdir_import/src/testdir/go_subdir_import 2>/dev/null || true
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
@@ -93,15 +70,16 @@ go_subdir_import.multicpptest:
 	INTERFACE='testdir/go_subdir_import/go_subdir_import_b.i' \
 	GOMOD="go_subdir_import" \
 	$(LANGUAGE)$(VARIANT)_cpp;
-	for f in testdir/go_subdir_import/go_subdir_import_c go_subdir_import_a ; do \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(CXXSRCS)' \
-	  SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
-	  LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT='$(SWIGOPT)' NOLINK=true \
-	  TARGET="$(TARGETPREFIX)$${f}$(TARGETSUFFIX)" INTERFACEDIR='$(INTERFACEDIR)' INTERFACE="$$f.i" \
-	  GOMOD="go_subdir_import" \
-	  $(LANGUAGE)$(VARIANT)_cpp; \
+	+for f in testdir/go_subdir_import/go_subdir_import_c go_subdir_import_a ; do \
+	  $(call swig_and_compile_cpp_helper,$${f},'$(SWIGOPT)') GOMOD="go_subdir_import"; \
 	done
 	$(run_multi_testcase)
+
+go_multicpp_setup = \
+	mkdir -p gopath/$*/src 2>/dev/null || true; \
+	if ! test -d gopath/$*/src/swigtests; then \
+	  (cd gopath/$*/src && ln -s . swigtests); \
+	fi
 
 # Runs the testcase.
 run_testcase = \
@@ -181,6 +159,7 @@ clean:
 	rm -f mod_a.go mod_a.gox mod_b.go mod_b.gox
 	rm -f multi_import_a.go multi_import_a.gox
 	rm -f multi_import_b.go multi_import_b.gox
+	rm -f multi_import_d.go multi_import_d.gox
 	rm -f packageoption_a.go packageoption_a.gox
 	rm -f packageoption_b.go packageoption_b.gox
 	rm -f packageoption_c.go packageoption_c.gox

@@ -36,7 +36,7 @@ test_const_pointer(cobj)
 -- swig doesn't appear to diff between const object ptrs & object ptrs very well
 test_pointer(cobj)	-- this wants an non const object (give it a const one!)
 
--- refs are also wrappered as ptrs (unless the correct typemaps are applied)
+-- refs are also wrapped as ptrs (unless the correct typemaps are applied)
 robj=test_reference_out()
 assert(is_std_string(robj) and robj:c_str()=="test_reference_out message")	-- check type & value
 

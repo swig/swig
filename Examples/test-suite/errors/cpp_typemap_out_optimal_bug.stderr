@@ -1,0 +1,4 @@
+cpp_typemap_out_optimal_bug.i:40: Warning 474: Method XX::create() usage of the optimal attribute ignored
+cpp_typemap_out_optimal_bug.i:15: Warning 474: in the out typemap as the following cannot be used to generate optimal code: result = XX::create();
+{while(sleep(1)){}}
+

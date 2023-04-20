@@ -2,6 +2,7 @@
 %module namespace_typemap
 
 %{
+#include <string.h>
 namespace test {
    /* A minimalistic string class */
    class string_class {
@@ -15,7 +16,7 @@ namespace test {
 	strcpy(data,s);
       }
      ~string_class() {
-        if (data) delete [] data;
+        delete [] data;
       }
       char *c_str() {
         return data;

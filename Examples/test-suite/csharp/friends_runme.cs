@@ -22,7 +22,7 @@ public class friends_runme {
     if (friends.mix(a,b) != 5)
       throw new Exception("failed");
 
-    D_d di = new D_d(2);
+    D_i di = new D_i(2);
     D_d dd = new D_d(3.3);
 
     // incredible template overloading working just fine

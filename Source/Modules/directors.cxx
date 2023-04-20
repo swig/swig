@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * directors.cxx
  *
@@ -97,7 +97,6 @@ String *Swig_director_declaration(Node *n) {
 
 String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
   String *func;
-  int i = 0;
   int comma = 0;
   Parm *p = parms;
   SwigType *pt;
@@ -115,7 +114,6 @@ String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
       pname = Getattr(p, "name");
       Printf(func, "%s", pname);
       comma = 1;
-      i++;
     }
     p = nextSibling(p);
   }
@@ -235,3 +233,38 @@ void Swig_director_parms_fixup(ParmList *parms) {
   }
 }
 
+/* -----------------------------------------------------------------------------
+ * Swig_director_can_unwrap()
+ *
+ * Determine whether a function's return type can be returned as an existing
+ * target language object instead of creating a new target language object.
+ * Must be a director class and only for return by pointer or reference only
+ * (not by value or by pointer to pointer etc).
+ * ----------------------------------------------------------------------------- */
+
+bool Swig_director_can_unwrap(Node *n) {
+
+  // FIXME: this will not try to unwrap directors returned as non-director
+  //        base class pointers!
+
+  bool unwrap = false;
+
+  String *type = Getattr(n, "type");
+  SwigType *t = SwigType_typedef_resolve_all(type);
+  SwigType *t1 = SwigType_strip_qualifiers(t);
+  SwigType *prefix = SwigType_prefix(t1);
+
+  if (Strcmp(prefix, "p.") == 0 || Strcmp(prefix, "r.") == 0) {
+    Node *parent = Swig_methodclass(n);
+    Node *module = Getattr(parent, "module");
+    Node *target = Swig_directormap(module, t1);
+    if (target)
+      unwrap = true;
+  }
+
+  Delete(prefix);
+  Delete(t1);
+  Delete(t);
+
+  return unwrap;
+}

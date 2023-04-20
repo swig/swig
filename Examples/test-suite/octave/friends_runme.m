@@ -29,7 +29,7 @@ if (friends.mix(a,b) != 5)
   error("failed");
 endif
 
-di = friends.D_d(2);
+di = friends.D_i(2);
 dd = friends.D_d(3.3);
 
 				# incredible template overloading working just fine

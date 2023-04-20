@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * nested.cxx
  *
@@ -396,7 +396,7 @@ void Swig_nested_name_unnamed_c_structs(Node *n) {
 	Delete(ins);
 	Delattr(c, "nested:outer");
       } else {
-	// global unnamed struct - ignore it and it's instances
+	// global unnamed struct - ignore it and its instances
 	SetFlag(c, "feature:ignore");
 	while (next && Getattr(next, "nested:unnamedtype") == c) {
 	  SetFlag(next, "feature:ignore");

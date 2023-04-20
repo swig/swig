@@ -119,6 +119,10 @@ public:
 // File: derived_module.i
 %module derived_module
 
+%{
+#include "base.h"
+%}
+
 %import "base_module.i"
 
 %inline %{
@@ -155,6 +159,10 @@ The <tt>derived_module.i</tt> file shown above could be replaced with the follow
 <div class="code"><pre>
 // File: derived_module.i
 %module derived_module
+
+%{
+#include "base.h"
+%}
 
 %import(module="base_module") "base.h"
 

@@ -47,6 +47,7 @@
 <li><a href="#SWIG_rename_ignore">Renaming and ignoring declarations</a>
 <ul>
 <li><a href="#SWIG_nn29">Simple renaming of specific identifiers</a>
+<li><a href="#SWIG_ignore">Ignoring identifiers</a>
 <li><a href="#SWIG_advanced_renaming">Advanced renaming support</a>
 <li><a href="#SWIG_limiting_renaming">Limiting global renaming rules</a>
 <li><a href="#SWIG_chosen_unignore">Ignoring everything then wrapping a few selected symbols</a>
@@ -127,7 +128,7 @@ Supported Target Language Options
      -lua            - Generate Lua wrappers
      -octave         - Generate Octave wrappers
      -perl5          - Generate Perl 5 wrappers
-     -php7           - Generate PHP 7 or later wrappers
+     -php7           - Generate PHP 8 or later wrappers
      -python         - Generate Python wrappers
      -r              - Generate R (aka GNU S) wrappers
      -ruby           - Generate Ruby wrappers
@@ -154,6 +155,7 @@ General Options
      -debug-symbols  - Display target language symbols in the symbol tables
      -debug-csymbols - Display C symbols in the symbol tables
      -debug-lsymbols - Display target language layer symbols
+     -debug-quiet    - Display less parse tree node debug info when using other -debug options
      -debug-tags     - Display information about the tags found in the interface
      -debug-template - Display information for debugging templates
      -debug-top &lt;n&gt;  - Display entire parse tree at stages 1-4, &lt;n&gt; is a csv list of stages
@@ -217,7 +219,7 @@ General Options
      -Wall           - Remove all warning suppression, also implies -Wextra
      -Wallkw         - Enable keyword warnings for all the supported languages
      -Werror         - Treat warnings as errors
-     -Wextra         - Adds the following additional warnings: 202,309,403,405,512,321,322
+     -Wextra         - Adds the following additional warnings: 309,403,405,512,321,322
      -w&lt;list&gt;        - Suppress/add warning messages, eg -w401,+321 - see Warnings.html
      -xmlout &lt;file&gt;  - Write XML version of the parse tree to &lt;file&gt; after normal processing
 </pre></div>
@@ -1469,14 +1471,14 @@ SWIG generates the following code:
 <pre>
 /* C mode */
 void foo_set(char *value) {
-  if (foo) free(foo);
+  free(foo);
   foo = (char *) malloc(strlen(value)+1);
   strcpy(foo, value);
 }
 
 /* C++ mode.  When -c++ option is used */
 void foo_set(char *value) {
-  if (foo) delete [] foo;
+  delete [] foo;
   foo = new char[strlen(value)+1];
   strcpy(foo, value);
 }
@@ -1842,6 +1844,25 @@ all to `output' by specifying :</p>
 </pre></div>
 
 <p>
+A new <tt>%rename</tt> for the same name will replace the current
+<tt>%rename</tt> for all uses after it in the file, and setting the
+new name to "" will remove the rename.  So, for instance, if you
+wanted to rename some things in one file and not in another, you could
+do:
+</p>
+
+<div class="code">
+<pre>
+  %rename(print1) print;
+  %include "header1.h" //Anything "print" in here will become "print1"
+  %rename(print2) print;
+  %include "header2.h" //Anything "print" in here will become "print2"
+  %rename("") print;
+  %include "header3.h" //Anything "print" in here will remain "print"
+</pre>
+</div>
+
+<p>
 SWIG does not normally perform any checks to see if the functions it wraps are
 already defined in the target scripting language. However, if you are
 careful about namespaces and your use of modules, you can usually
@@ -1856,6 +1877,9 @@ If you are using the <tt>%rename</tt> directive and C++, make sure you read the
 <a href="SWIGPlus.html#SWIGPlus_ambiguity_resolution_renaming">Renaming and ambiguity resolution</a>
 for method overloading and default arguments.
 </p>
+
+<H4><a name="SWIG_ignore">5.4.7.2 Ignoring identifiers</a></H4>
+
 
 <p>
 Closely related to <tt>%rename</tt> is the <tt>%ignore</tt> directive.  <tt>%ignore</tt> instructs SWIG
@@ -1896,7 +1920,7 @@ This directive is still supported, but it is deprecated and should probably be a
 directive is more powerful and better supports wrapping of raw header file information.
 </p>
 
-<H4><a name="SWIG_advanced_renaming">5.4.7.2 Advanced renaming support</a></H4>
+<H4><a name="SWIG_advanced_renaming">5.4.7.3 Advanced renaming support</a></H4>
 
 
 <p>
@@ -2022,7 +2046,7 @@ and a more descriptive one, but the two functions are otherwise equivalent:
     <td>String after (Perl-like) regex substitution operation. This function
     allows applying arbitrary regular expressions to the identifier names. The
     <i>pattern</i> part is a regular expression in Perl syntax (as supported
-    by the <a href="http://www.pcre.org/">Perl Compatible Regular Expressions</a>)
+    by the <a href="https://www.pcre.org/">Perl Compatible Regular Expressions</a>)
     (PCRE2 library) and the <i>subst</i> string
     can contain back-references of the form <tt>\N</tt> where <tt>N</tt> is a digit
     from 0 to 9, or one of the following escape sequences: <tt>\l</tt>, <tt>\L</tt>,
@@ -2041,23 +2065,10 @@ and a more descriptive one, but the two functions are otherwise equivalent:
     <tt>%rename("regex:/(\\w+)_(.*)/\\u\\2/")</tt></td>
     <td><tt>prefix_print</tt></td><td><tt>Print</tt></td>
 </tr>
-<tr>
-    <td><tt>command:cmd</tt></td>
-    <td>Output of an external command <tt>cmd</tt> with the string passed to
-    it as input. Notice that this function is extremely slow compared to all
-    the other ones as it involves spawning a separate process and using it for
-    many declarations is not recommended. The <i>cmd</i> is not enclosed in
-    square brackets but must be terminated with a triple <tt>'&lt;'</tt> sign,
-    e.g. <tt>%rename("command:tr&nbsp;-d&nbsp;aeiou &lt;&lt;&lt;")</tt>
-    (nonsensical example removing all vowels)</td>
-    <td><tt>Print</tt></td><td><tt>Prnt</tt></td>
-</tr>
 </table>
 
 <p>
-The most general function of all of the above ones (not counting
-<tt>command</tt> which is even more powerful in principle but which should
-generally be avoided because of performance considerations) is the
+The most general function of all of the above ones is the
 <tt>regex</tt> one. Here are some more examples of its use:
 </p>
 
@@ -2105,7 +2116,7 @@ are exactly equivalent and <tt>%rename</tt> can be used to selectively ignore
 multiple declarations using the previously described matching possibilities.
 </p>
 
-<H4><a name="SWIG_limiting_renaming">5.4.7.3 Limiting global renaming rules</a></H4>
+<H4><a name="SWIG_limiting_renaming">5.4.7.4 Limiting global renaming rules</a></H4>
 
 
 <p>
@@ -2137,11 +2148,15 @@ the match to class declarations only (in C++) and <tt>match="enumitem"</tt>
 restricts it to the enum elements. SWIG also provides convenience macros for
 such match expressions, for example
 </p>
+
 <div class="code">
 <pre>
 %rename("%(title)s", %$isenumitem) "";
+// same as:
+%rename("%(title)s", match="enumitem") "";
 </pre>
 </div>
+
 <p>
 will capitalize the names of all the enum elements but not change the case of
 the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>,
@@ -2149,6 +2164,56 @@ the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>,
 and <tt>%$isvariable</tt> can be used. Many other checks are possible and this
 documentation is not exhaustive, see the "%rename predicates" section in
 <tt>swig.swg</tt> for the full list of supported match expressions.
+</p>
+
+<p>
+A logical not is also possible by using <tt>notmatch</tt>.
+For example, <tt>notmatch="enumitem"</tt> will restrict the
+match to all items that are not enum elements.
+There is also a <tt>%$not</tt> macro which simply expands to "not".
+Be careful using this as some of the other macros in <tt>swig.swg</tt>
+are complex expressions and so it will only "notmatch" the first part
+of the expression.
+</p>
+
+<div class="code">
+<pre>
+%rename("%(title)s", %$not %$isenumitem) "";
+// same as:
+%rename("%(title)s", notmatch="enumitem") "";
+</pre>
+</div>
+
+<p>
+For a comprehensive understanding of how the matching works, the internal
+<a href="Extending.html#Extending_nn8">parse tree</a> needs to be examined using the
+command line option: <tt>-debug-module 1 -debug-quiet</tt>.
+A snippet of the resulting output might be:
+</p>
+
+<div class="shell">
+<pre>
+            +++ destructor ----------------------------------------
+            | access       - "public"
+            | decl         - "f()."
+            | ismember     - "1"
+            | name         - "~Shape"
+            | storage      - "virtual"
+            | sym:name     - "~Shape"
+</pre>
+</div>
+
+<p>
+Here the node type is a "destructor" and in order to match all destructor nodes, use
+<tt>match="destructor"</tt>. To match one of the listed attributes in the node,
+such as when the storage is virtual, use <tt>match$storage="virtual"</tt>.
+This will match all nodes that have a storage attribute set to "virtual".
+To match only virtual destructors, combine them and use <tt>match="destructor", match$storage="virtual"</tt>.
+</p>
+
+<p>
+While the vast majority of these internal parse tree nodes are unlikely to change from one version of
+SWIG to the next, <b>use these matching rules at your own risk</b> as there are no guarantees that they will not change.
 </p>
 
 <p>
@@ -2203,7 +2268,7 @@ wrap C++ overloaded functions and methods or C++ methods which use default argum
 </p>
 
 
-<H4><a name="SWIG_chosen_unignore">5.4.7.4 Ignoring everything then wrapping a few selected symbols</a></H4>
+<H4><a name="SWIG_chosen_unignore">5.4.7.5 Ignoring everything then wrapping a few selected symbols</a></H4>
 
 
 <p>
@@ -2227,6 +2292,23 @@ the following approach could be taken:
 %rename("%s") Star::shine; // named method
 
 %include "myheader.h"
+
+%rename("%s") ""; // Undo the %ignore
+</pre>
+</div>
+
+<p>
+If <tt>Star</tt> was in the <tt>Galaxy</tt> namespace, you would need
+to unignore the namespace, too, and add the namespace to all the
+renames:
+</p>
+
+<div class="code">
+<pre>
+%rename("%s") Galaxy;
+%rename("%s") Galaxy::Star;
+%rename("%s") Galaxy::Star::Star;
+...
 </pre>
 </div>
 
@@ -2241,6 +2323,7 @@ members of the class, so when the chosen class is unignored, all of its methods 
 %rename($ignore, %$isclass) ""; // Only ignore all classes
 %rename("%s") Star; // Unignore 'Star'
 %include "myheader.h"
+%rename("%s", %$isclass) ""; // Stop ignoring all classes
 </pre>
 </div>
 
@@ -2446,6 +2529,45 @@ handle C++ are described in the next section.
 </p>
 
 <p>
+ISO C has a separate tag name space in which the names of structures,
+unions and enumerated types are put, which is separate from the
+name space for ordinary identifiers (function names, object names,
+typedef names, enumeration constants).  For example, this is valid
+ISO C because <tt>Foo</tt> the struct tag and <tt>Foo</tt> the function
+name are in different name spaces:
+</p>
+
+<div class="code"><pre>
+struct Foo {
+  int bar;
+};
+
+int Foo(void) { return 42; }
+</pre></div>
+
+<p>
+SWIG doesn't currently implement this separate tag name space and
+for the above example you'll get:
+</p>
+
+<div class="code"><pre>
+foo.i:5: Warning 302: Identifier 'Foo' redefined (ignored),
+foo.i:1: Warning 302: previous definition of 'Foo'.
+</pre></div>
+
+<p>
+In practice this rarely actually causes problems, particular because
+SWIG has special handling for <tt>typedef</tt> so cases such as this
+work:
+</p>
+
+<div class="code"><pre>
+typedef struct Foo {
+  int bar;
+} Foo;
+</pre></div>
+
+<p>
 If SWIG encounters the definition of a structure or union, it
 creates a set of accessor functions. Although SWIG does not need
 structure definitions to build an interface, providing definitions
@@ -2456,8 +2578,7 @@ to an individual member. For example, the declaration :</p>
 <div class="code"><pre>
 struct Vector {
   double x, y, z;
-}
-
+};
 </pre></div>
 
 <p>
@@ -2594,8 +2715,7 @@ char *Foo_name_get(Foo *obj) {
 }
 
 char *Foo_name_set(Foo *obj, char *c) {
-  if (obj-&gt;name)
-    free(obj-&gt;name);
+  free(obj-&gt;name);
   obj-&gt;name = (char *) malloc(strlen(c)+1);
   strcpy(obj-&gt;name, c);
   return obj-&gt;name;
@@ -2733,6 +2853,11 @@ void Foo_w_set(FOO *f, WORD value) {
 </pre>
 </div>
 
+<p>
+If you have accessor methods that you want to use as attributes in the
+target language, you can make them appear as data members using
+<a href="Library.html#Library_attributes">attributes.i</a>.
+</p>
 
 <p>
 <b>Compatibility Note:</b>  SWIG-1.3.11 and earlier releases transformed all non-primitive member datatypes
@@ -2975,6 +3100,11 @@ typedef struct Vector {
 } Vector;
 </pre>
 </div>
+
+<p>
+You'll also need to use these names if you want to directly call methods added
+using <tt>%extend</tt> from other C/C++ code.
+</p>
 
 <p>
 The name used for %extend should be the name of the struct and not the name of any typedef to the struct.
@@ -3534,8 +3664,8 @@ In the process of building an interface, SWIG may encounter syntax errors or
 other problems.  The best way to deal with this is to simply copy the offending
 code into a separate interface file and edit it.   However, the SWIG developers
 have worked very hard to improve the SWIG parser--you should report parsing errors
-to the <a href="http://www.swig.org/mail.html">swig-devel mailing list</a> or to the 
-<a href="http://www.swig.org/bugs.html">SWIG bug tracker</a>.
+to the <a href="https://www.swig.org/mail.html">swig-devel mailing list</a> or to the
+<a href="https://www.swig.org/bugs.html">SWIG bug tracker</a>.
 </p>
 
 <H3><a name="SWIG_nn47">5.7.2 The SWIG interface file</a></H3>

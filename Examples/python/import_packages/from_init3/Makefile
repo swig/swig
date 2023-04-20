@@ -1,7 +1,7 @@
 TOP        = ../../..
 LIBS       =
 
-ifeq (,$(PY3))
+ifneq (,$(PY2))
   PKG1DIR  = "py2"
 else
   PKG1DIR  = "py3"

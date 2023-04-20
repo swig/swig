@@ -239,5 +239,47 @@ class C1 {
 };
 
 class C2 : public C1 {
+ public:
+  void M2(C1*) {}
 };
+%}
+
+%typemap(gotype) (char *ps[], int cs) "[]string"
+
+%typemap(in) (char *ps[], int cs)
+%{
+  {
+    int i;
+    _gostring_* a;
+
+    $2 = $input.len;
+    a = (_gostring_*) $input.array;
+    $1 = (char **) malloc (($2 + 1) * sizeof (char *));
+    for (i = 0; i < $2; i++) {
+      _gostring_ *ps = &a[i];
+      $1[i] = (char *) malloc(ps->n + 1);
+      memcpy($1[i], ps->p, ps->n);
+      $1[i][ps->n] = '\0';
+    }
+    $1[i] = NULL;
+  }
+%}
+
+%typemap(freearg) (char *ps[], int cs)
+%{
+  {
+    int i;
+
+    for (i = 0; i < $2; i++) {
+      free($1[i]);
+    }
+    free($1);
+  }
+%}
+
+%inline
+%{
+bool Strings(char *ps[], int cs) {
+  return cs == 2 && strcmp(ps[0], "1") == 0 && strcmp(ps[1], "2") == 0 & ps[2] == NULL;
+}
 %}

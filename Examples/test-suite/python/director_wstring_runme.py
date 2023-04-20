@@ -12,6 +12,12 @@ class B(A):
     def process_text(self, s):
         self.smem = s
 
+    def process_wstring_text(self, s):
+        self.smem = s + " (wstring)"
+
+    def process_wstring_ref_text(self, s):
+        self.smem = s + " (wstring ref)"
+
 
 b = B("hello")
 
@@ -23,4 +29,14 @@ if b.get_first() != "hello world!":
 b.call_process_func()
 
 if b.smem != "hello":
+    raise RuntimeError("smem: {}".format(smem))
+
+b.call_process_wstring_func()
+
+if b.smem != "hello (wstring)":
+    raise RuntimeError("smem: {}".format(smem))
+
+b.call_process_wstring_ref_func()
+
+if b.smem != "hello (wstring ref)":
     raise RuntimeError("smem: {}".format(smem))

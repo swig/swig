@@ -11,8 +11,8 @@
 # error "This version of SWIG only supports Python >= 2.7"
 #endif
 
-#if PY_VERSION_HEX >= 0x03000000 && PY_VERSION_HEX < 0x03020000
-# error "This version of SWIG only supports Python 3 >= 3.2"
+#if PY_VERSION_HEX >= 0x03000000 && PY_VERSION_HEX < 0x03030000
+# error "This version of SWIG only supports Python 3 >= 3.3"
 #endif
 
 /* Common SWIG API */
@@ -240,7 +240,7 @@ typedef struct swig_varlinkobject {
 } swig_varlinkobject;
 
 SWIGINTERN PyObject *
-swig_varlink_repr(swig_varlinkobject *SWIGUNUSEDPARM(v)) {
+swig_varlink_repr(PyObject *SWIGUNUSEDPARM(v)) {
 #if PY_VERSION_HEX >= 0x03000000
   return PyUnicode_InternFromString("<Swig global variables>");
 #else
@@ -249,7 +249,8 @@ swig_varlink_repr(swig_varlinkobject *SWIGUNUSEDPARM(v)) {
 }
 
 SWIGINTERN PyObject *
-swig_varlink_str(swig_varlinkobject *v) {
+swig_varlink_str(PyObject *o) {
+  swig_varlinkobject *v = (swig_varlinkobject *) o;
 #if PY_VERSION_HEX >= 0x03000000
   PyObject *str = PyUnicode_InternFromString("(");
   PyObject *tail;
@@ -287,7 +288,8 @@ swig_varlink_str(swig_varlinkobject *v) {
 }
 
 SWIGINTERN void
-swig_varlink_dealloc(swig_varlinkobject *v) {
+swig_varlink_dealloc(PyObject *o) {
+  swig_varlinkobject *v = (swig_varlinkobject *) o;
   swig_globalvar *var = v->vars;
   while (var) {
     swig_globalvar *n = var->next;
@@ -298,7 +300,8 @@ swig_varlink_dealloc(swig_varlinkobject *v) {
 }
 
 SWIGINTERN PyObject *
-swig_varlink_getattr(swig_varlinkobject *v, char *n) {
+swig_varlink_getattr(PyObject *o, char *n) {
+  swig_varlinkobject *v = (swig_varlinkobject *) o;
   PyObject *res = NULL;
   swig_globalvar *var = v->vars;
   while (var) {
@@ -315,7 +318,8 @@ swig_varlink_getattr(swig_varlinkobject *v, char *n) {
 }
 
 SWIGINTERN int
-swig_varlink_setattr(swig_varlinkobject *v, char *n, PyObject *p) {
+swig_varlink_setattr(PyObject *o, char *n, PyObject *p) {
+  swig_varlinkobject *v = (swig_varlinkobject *) o;
   int res = 1;
   swig_globalvar *var = v->vars;
   while (var) {
@@ -348,7 +352,11 @@ swig_varlink_type(void) {
       sizeof(swig_varlinkobject),         /* tp_basicsize */
       0,                                  /* tp_itemsize */
       (destructor) swig_varlink_dealloc,  /* tp_dealloc */
-      0,                                  /* tp_print */
+#if PY_VERSION_HEX < 0x030800b4
+      (printfunc)0,                       /*tp_print*/
+#else
+      (Py_ssize_t)0,                      /*tp_vectorcall_offset*/
+#endif
       (getattrfunc) swig_varlink_getattr, /* tp_getattr */
       (setattrfunc) swig_varlink_setattr, /* tp_setattr */
       0,                                  /* tp_compare */
@@ -719,6 +727,8 @@ SwigPyObject_Check(PyObject *op) {
 SWIGRUNTIME PyObject *
 SwigPyObject_New(void *ptr, swig_type_info *ty, int own);
 
+static PyObject* Swig_Capsule_global = NULL;
+
 SWIGRUNTIME void
 SwigPyObject_dealloc(PyObject *v)
 {
@@ -769,7 +779,8 @@ SwigPyObject_dealloc(PyObject *v)
       printf("swig/python detected a memory leak of type '%s', no destructor found.\n", (name ? name : "unknown"));
     }
 #endif
-  } 
+    Py_XDECREF(Swig_Capsule_global);
+  }
   Py_XDECREF(next);
 #ifdef SWIGPYTHON_BUILTIN
   Py_XDECREF(sobj->dict);
@@ -785,6 +796,7 @@ SwigPyObject_append(PyObject* v, PyObject* next)
     PyErr_SetString(PyExc_TypeError, "Attempt to append a non SwigPyObject");
     return NULL;
   }
+  ((SwigPyObject *)next)->next = sobj->next;
   sobj->next = next;
   Py_INCREF(next);
   return SWIG_Py_Void();
@@ -911,7 +923,11 @@ SwigPyObject_TypeOnce(void) {
       sizeof(SwigPyObject),                 /* tp_basicsize */
       0,                                    /* tp_itemsize */
       (destructor)SwigPyObject_dealloc,     /* tp_dealloc */
-      0,                                    /* tp_print */
+#if PY_VERSION_HEX < 0x030800b4
+      (printfunc)0,                         /*tp_print*/
+#else
+      (Py_ssize_t)0,                        /*tp_vectorcall_offset*/
+#endif
       (getattrfunc)0,                       /* tp_getattr */
       (setattrfunc)0,                       /* tp_setattr */
 #if PY_VERSION_HEX >= 0x03000000
@@ -994,6 +1010,12 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
 #ifdef SWIGPYTHON_BUILTIN
     sobj->dict = 0;
 #endif
+    if (own == SWIG_POINTER_OWN) {
+      /* Obtain a reference to the Python capsule wrapping the module information, so that the
+       * module information is correctly destroyed after all SWIG python objects have been freed
+       * by the GC (and corresponding destructors invoked) */
+      Py_XINCREF(Swig_Capsule_global);
+    }
   }
   return (PyObject *)sobj;
 }
@@ -1081,7 +1103,11 @@ SwigPyPacked_TypeOnce(void) {
       sizeof(SwigPyPacked),                 /* tp_basicsize */
       0,                                    /* tp_itemsize */
       (destructor)SwigPyPacked_dealloc,     /* tp_dealloc */
-      0,                                    /* tp_print */
+#if PY_VERSION_HEX < 0x030800b4
+      (printfunc)0,                         /*tp_print*/
+#else
+      (Py_ssize_t)0,                        /*tp_vectorcall_offset*/
+#endif
       (getattrfunc)0,                       /* tp_getattr */
       (setattrfunc)0,                       /* tp_setattr */
 #if PY_VERSION_HEX>=0x03000000
@@ -1336,12 +1362,19 @@ SWIG_Python_ConvertPtrAndOwn(PyObject *obj, void **ptr, swig_type_info *ty, int 
     }
   }
   if (sobj) {
-    if (own)
-      *own = *own | sobj->own;
-    if (flags & SWIG_POINTER_DISOWN) {
-      sobj->own = 0;
+    if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !sobj->own) {
+      res = SWIG_ERROR_RELEASE_NOT_OWNED;
+    } else {
+      if (own)
+        *own = *own | sobj->own;
+      if (flags & SWIG_POINTER_DISOWN) {
+        sobj->own = 0;
+      }
+      if (flags & SWIG_POINTER_CLEAR) {
+        sobj->ptr = 0;
+      }
+      res = SWIG_OK;
     }
-    res = SWIG_OK;
   } else {
     if (implicit_conv) {
       SwigPyClientData *data = ty ? (SwigPyClientData *) ty->clientdata : 0;
@@ -1486,7 +1519,7 @@ SWIG_Python_NewShadowInstance(SwigPyClientData *data, PyObject *swig_this)
             Py_DECREF(inst);
             inst = 0;
           } else {
-            Py_TYPE(inst)->tp_flags &= ~Py_TPFLAGS_VALID_VERSION_TAG;
+            PyType_Modified(Py_TYPE(inst));
           }
         }
       }
@@ -1627,21 +1660,24 @@ SWIG_Python_TypeCache(void) {
 
 SWIGRUNTIME swig_module_info *
 SWIG_Python_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
+#ifdef SWIG_LINK_RUNTIME
   static void *type_pointer = (void *)0;
   /* first check if module already created */
   if (!type_pointer) {
-#ifdef SWIG_LINK_RUNTIME
     type_pointer = SWIG_ReturnGlobalTypeList((void *)0);
-#else
-    type_pointer = PyCapsule_Import(SWIGPY_CAPSULE_NAME, 0);
-    if (PyErr_Occurred()) {
-      PyErr_Clear();
-      type_pointer = (void *)0;
-    }
-#endif
   }
+#else
+  void *type_pointer = PyCapsule_Import(SWIGPY_CAPSULE_NAME, 0);
+  if (PyErr_Occurred()) {
+    PyErr_Clear();
+    type_pointer = (void *)0;
+  }
+#endif
   return (swig_module_info *) type_pointer;
 }
+
+
+static int interpreter_counter = 0; // how many (sub-)interpreters are using swig_module's types
 
 SWIGRUNTIME void
 SWIG_Python_DestroyModule(PyObject *obj)
@@ -1649,6 +1685,8 @@ SWIG_Python_DestroyModule(PyObject *obj)
   swig_module_info *swig_module = (swig_module_info *) PyCapsule_GetPointer(obj, SWIGPY_CAPSULE_NAME);
   swig_type_info **types = swig_module->types;
   size_t i;
+  if (--interpreter_counter != 0) // another sub-interpreter may still be using the swig_module's types
+    return;
   for (i =0; i < swig_module->size; ++i) {
     swig_type_info *ty = types[i];
     if (ty->owndata) {
@@ -1663,6 +1701,7 @@ SWIG_Python_DestroyModule(PyObject *obj)
   Swig_Globals_global = NULL;
   Py_DECREF(SWIG_Python_TypeCache());
   Swig_TypeCache_global = NULL;
+  Swig_Capsule_global = NULL;
 }
 
 SWIGRUNTIME void
@@ -1676,7 +1715,10 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
 #endif
   PyObject *pointer = PyCapsule_New((void *) swig_module, SWIGPY_CAPSULE_NAME, SWIG_Python_DestroyModule);
   if (pointer && module) {
-    if (PyModule_AddObject(module, "type_pointer_capsule" SWIG_TYPE_TABLE_NAME, pointer) != 0) {
+    if (PyModule_AddObject(module, SWIGPY_CAPSULE_ATTR_NAME, pointer) == 0) {
+      ++interpreter_counter;
+      Swig_Capsule_global = pointer;
+    } else {
       Py_DECREF(pointer);
     }
   } else {
@@ -1734,7 +1776,6 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
       } else {
 	PyErr_Format(type, "%s %s", errmesg, mesg);
       }
-      SWIG_Python_str_DelForPy3(tmp);
       Py_DECREF(old_str);
     }
     return 1;
@@ -1786,7 +1827,6 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
 	if (cstr) {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s(%s)' is received",
 		       type, otype, cstr);
-          SWIG_Python_str_DelForPy3(cstr);
 	} else {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
 		       type, otype);
@@ -1808,12 +1848,6 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int SWIGUNUSEDPARM(arg
   void *result;
   if (SWIG_Python_ConvertPtr(obj, &result, ty, flags) == -1) {
     PyErr_Clear();
-#if SWIG_POINTER_EXCEPTION
-    if (flags) {
-      SWIG_Python_TypeError(SWIG_TypePrettyName(ty), obj);
-      SWIG_Python_ArgFail(argnum);
-    }
-#endif
   }
   return result;
 }

@@ -6,7 +6,7 @@ import zipfile
 
 def run_except_on_windows(commandline, env=None):
     if os.name != "nt" and sys.platform != "cygwin":
-        # Strange failures on windows/cygin/mingw
+        # Strange failures on windows/cygwin/mingw
         subprocess.check_call(commandline, env=env, shell=True)
         print("  Finished running: " + commandline)
 

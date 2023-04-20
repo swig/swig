@@ -25,15 +25,13 @@ case "$SWIGLANG" in
 	"ruby")
 		if ! command -v rvm; then
 			set +x
-			source $HOME/.rvm/scripts/rvm
+			if [ -f /etc/profile.d/rvm.sh ] ; then
+				source /etc/profile.d/rvm.sh
+			elif [ -f $HOME/.rvm/scripts/rvm ] ; then
+				source $HOME/.rvm/scripts/rvm
+			fi
 			set -x
 		fi
-		;;
-	"scilab")
-		# Travis has the wrong version of Java pre-installed resulting in error using scilab:
-		# /usr/bin/scilab-bin: error while loading shared libraries: libjava.so: cannot open shared object file: No such file or directory
-		echo "JAVA_HOME was set to $JAVA_HOME"
-		unset JAVA_HOME
 		;;
 	*)	;;
 esac

@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * d.cxx
  *
@@ -378,24 +378,24 @@ public:
 
     if (!outfile) {
       Printf(stderr, "Unable to determine outfile\n");
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     f_begin = NewFile(outfile, "w", SWIG_output_files());
     if (!f_begin) {
       FileErrorDisplay(outfile);
-      SWIG_exit(EXIT_FAILURE);
+      Exit(EXIT_FAILURE);
     }
 
     if (directorsEnabled()) {
       if (!outfile_h) {
 	Printf(stderr, "Unable to determine outfile_h\n");
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
     }
 
@@ -472,7 +472,7 @@ public:
 
     Swig_banner(f_begin);
 
-    Printf(f_runtime, "\n\n#ifndef SWIGD\n#define SWIGD\n#endif\n\n");
+    Swig_obligatory_macros(f_runtime, "D");
 
     if (directorsEnabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
@@ -518,7 +518,7 @@ public:
       File *im_d_file = NewFile(filen, "w", SWIG_output_files());
       if (!im_d_file) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -549,7 +549,7 @@ public:
       File *proxy_d_file = NewFile(filen, "w", SWIG_output_files());
       if (!proxy_d_file) {
 	FileErrorDisplay(filen);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filen));
       Delete(filen);
@@ -583,7 +583,7 @@ public:
       File *file = NewFile(filename, "w", SWIG_output_files());
       if (!file) {
 	FileErrorDisplay(filename);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Delete(filename);
 
@@ -863,7 +863,7 @@ public:
 	File *class_file = NewFile(filename, "w", SWIG_output_files());
 	if (!class_file) {
 	  FileErrorDisplay(filename);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 	Append(filenames_list, Copy(filename));
 	Delete(filename);
@@ -1335,7 +1335,7 @@ public:
       Delete(output_directory);
       if (!class_file) {
 	FileErrorDisplay(filename);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filename));
       Delete(filename);
@@ -1943,7 +1943,7 @@ public:
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
     SwigType *returntype = Getattr(n, "type");
-    String *overloaded_name = getOverloadedName(n);
+    String *overloaded_name = 0;
     String *storage = Getattr(n, "storage");
     String *value = Getattr(n, "value");
     String *decl = Getattr(n, "decl");
@@ -1962,7 +1962,6 @@ public:
     String *qualified_name = NewStringf("%s::%s", dirclassname, name);
     SwigType *c_ret_type = NULL;
     String *dcallback_call_args = NewString("");
-    String *imclass_dmethod;
     String *callback_typedef_parms = NewString("");
     String *delegate_parms = NewString("");
     String *proxy_method_param_list = NewString("");
@@ -1977,7 +1976,8 @@ public:
     // we're consistent with the sym:overload name in functionWrapper. (?? when
     // does the overloaded method name get set?)
 
-    imclass_dmethod = NewStringf("SwigDirector_%s", Swig_name_member(getNSpace(), classname, overloaded_name));
+    if (!ignored_method)
+      overloaded_name = getOverloadedName(n);
 
     qualified_return = SwigType_rcaststr(returntype, "c_result");
 
@@ -2381,8 +2381,9 @@ public:
 	dp_return_type = NewString("");
       }
 
+      String *member_name = Swig_name_member(getNSpace(), classname, overloaded_name);
+      String *imclass_dmethod = NewStringf("SwigDirector_%s", member_name);
       UpcallData *udata = addUpcallMethod(imclass_dmethod, symname, decl, overloaded_name, dp_return_type, proxy_method_param_list);
-      Delete(dp_return_type);
 
       // Write the global callback function pointer on the C code.
       String *methid = Getattr(udata, "class_methodidx");
@@ -2396,6 +2397,10 @@ public:
       String *dirClassName = directorClassName(parent);
       Printf(proxy_callback_type, "%s_Callback%s", dirClassName, methid);
       Printf(im_dmodule_code, "alias extern(C) %s function(void*%s) %s;\n", proxy_callback_return_type, delegate_parms, proxy_callback_type);
+
+      Delete(imclass_dmethod);
+      Delete(member_name);
+      Delete(dp_return_type);
       Delete(proxy_callback_type);
       Delete(dirClassName);
     }
@@ -2898,6 +2903,7 @@ private:
       } else {
 	Replaceall(imcall, "$imfuncname", intermediary_function_name);
       }
+      Replaceall(tm, "$imfuncname", intermediary_function_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_D_TYPEMAP_DOUT_UNDEF, input_file, line_number,
@@ -3100,6 +3106,7 @@ private:
       else
 	Replaceall(tm, "$owner", "false");
       replaceClassname(tm, t);
+      Replaceall(tm, "$imfuncname", overloaded_name);
       Replaceall(tm, "$imcall", imcall);
     } else {
       Swig_warning(WARN_D_TYPEMAP_DOUT_UNDEF, input_file, line_number,
@@ -3372,19 +3379,15 @@ private:
     String *upcast_name = Swig_name_member(getNSpace(), d_class_name, (smart != 0 ? "SmartPtrUpcast" : "Upcast"));
     String *upcast_wrapper_name = Swig_name_wrapper(upcast_name);
 
-    writeImDModuleFunction(upcast_name, "void*", "(void* objectRef)",
-      upcast_wrapper_name);
+    writeImDModuleFunction(upcast_name, "void*", "(void* objectRef)", upcast_wrapper_name);
 
     String *classname = SwigType_namestr(c_classname);
     String *baseclassname = SwigType_namestr(c_baseclassname);
-    if (smart) {
-      String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(smart);
 
-      // TODO: SwigType_typedef_resolve_all on a String instead of SwigType is incorrect for templates
-      SwigType *rclassname = SwigType_typedef_resolve_all(classname);
-      SwigType *rbaseclassname = SwigType_typedef_resolve_all(baseclassname);
-      Replaceall(bsmartnamestr, rclassname, rbaseclassname);
+    if (smart) {
+      SwigType *bsmart = Swig_smartptr_upcast(smart, c_classname, c_baseclassname);
+      String *smartnamestr = SwigType_namestr(smart);
+      String *bsmartnamestr = SwigType_namestr(bsmart);
 
       Printv(upcasts_code,
 	"SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
@@ -3393,14 +3396,13 @@ private:
 	"}\n",
 	"\n", NIL);
 
-      Delete(rbaseclassname);
-      Delete(rclassname);
       Delete(bsmartnamestr);
       Delete(smartnamestr);
+      Delete(bsmart);
     } else {
       Printv(upcasts_code,
 	"SWIGEXPORT ", baseclassname, " * ", upcast_wrapper_name,
-	  "(", baseclassname, " *objectRef) {\n",
+	  "(", classname, " *objectRef) {\n",
 	"    return (", baseclassname, " *)objectRef;\n"
 	"}\n",
 	"\n", NIL);
@@ -3411,8 +3413,8 @@ private:
 
     Delete(baseclassname);
     Delete(classname);
-    Delete(upcast_name);
     Delete(upcast_wrapper_name);
+    Delete(upcast_name);
     Delete(smart);
   }
 
@@ -3434,7 +3436,7 @@ private:
       class_file = NewFile(filename, "w", SWIG_output_files());
       if (!class_file) {
 	FileErrorDisplay(filename);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Append(filenames_list, Copy(filename));
       Delete(filename);
@@ -3756,7 +3758,7 @@ private:
 	Swig_error(input_file, line_number,
 	  "Class name cannot be equal to intermediary D module name: %s\n",
 	  class_name);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
 
       String *nspace = getNSpace();
@@ -3769,7 +3771,7 @@ private:
 	    Swig_error(input_file, line_number,
 	      "Class name cannot be the same as the root package it is in: %s\n",
 	      class_name);
-	    SWIG_exit(EXIT_FAILURE);
+	    Exit(EXIT_FAILURE);
 	  }
 	  Delete(dotless_package);
 	} else {
@@ -3778,7 +3780,7 @@ private:
 	    Swig_error(input_file, line_number,
 	      "Class name cannot be the same as the outermost namespace it is in: %s\n",
 	      class_name);
-	    SWIG_exit(EXIT_FAILURE);
+	    Exit(EXIT_FAILURE);
 	  }
 	  Delete(outer);
 	}
@@ -3790,7 +3792,7 @@ private:
 	  Swig_error(input_file, line_number,
 	    "Class name cannot be the same as the innermost namespace it is in: %s\n",
 	    class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
 	Delete(inner);
       } else {
@@ -3798,7 +3800,7 @@ private:
 	  Swig_error(input_file, line_number,
 	    "Class name cannot be equal to proxy D module name: %s\n",
 	    class_name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
       }
     }
@@ -4284,6 +4286,7 @@ private:
    * D::getOverloadedName()
    * --------------------------------------------------------------------------- */
   String *getOverloadedName(Node *n) const {
+
     // A void* parameter is used for all wrapped classes in the wrapper code.
     // Thus, the wrapper function names for overloaded functions are postfixed
     // with a counter string to make them unique.
@@ -4498,7 +4501,7 @@ private:
       if (newdir_error) {
 	Printf(stderr, "%s\n", newdir_error);
 	Delete(newdir_error);
-	SWIG_exit(EXIT_FAILURE);
+	Exit(EXIT_FAILURE);
       }
       Printv(output_directory, nspace_subdirectory, SWIG_FILE_DELIMITER, 0);
       Delete(nspace_subdirectory);

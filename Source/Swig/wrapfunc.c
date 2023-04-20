@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * wrapfunc.c
  *
@@ -27,7 +27,7 @@ static int Max_line_size = 128;
 
 Wrapper *NewWrapper(void) {
   Wrapper *w;
-  w = (Wrapper *) malloc(sizeof(Wrapper));
+  w = (Wrapper *) Malloc(sizeof(Wrapper));
   w->localh = NewHash();
   w->locals = NewStringEmpty();
   w->code = NewStringEmpty();
@@ -46,7 +46,7 @@ void DelWrapper(Wrapper *w) {
   Delete(w->locals);
   Delete(w->code);
   Delete(w->def);
-  free(w);
+  Free(w);
 }
 
 /* -----------------------------------------------------------------------------

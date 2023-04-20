@@ -1,0 +1,62 @@
+name: Windows Nuget Build
+
+on:
+  push:
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'appveyor.yml'
+  pull_request:
+    branches: master
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'appveyor.yml'
+
+permissions:
+  contents: read  #  to fetch code (actions/checkout)
+
+jobs:
+  build:
+
+    runs-on: windows-2019
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Install Dependencies
+      shell: powershell
+      run: |
+          nuget install CMake-win64 -Version 3.15.5 -OutputDirectory C:\Tools\CMake
+          nuget install Bison -Version 3.7.4 -OutputDirectory C:\Tools\bison
+          nuget install PCRE2 -Version 10.39 -OutputDirectory C:\Tools\pcre2
+
+    - name: Build
+      shell: powershell
+      run: |
+          $env:PATH="C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\Bison.3.7.4\bin;" + $env:PATH
+          $PCRE_ROOT="C:\Tools\pcre2\PCRE2.10.39.0"
+          $PCRE_PLATFORM="x64"
+          $WORKING_DIR=(Get-Location).ToString() -replace "\\","/"
+          cmake -G "Visual Studio 16 2019" -A "x64" `
+          -DCMAKE_INSTALL_PREFIX="$WORKING_DIR/install2" `
+          -DCMAKE_C_FLAGS="/DPCRE2_STATIC" `
+          -DCMAKE_CXX_FLAGS="/DPCRE2_STATIC" `
+          -DPCRE2_INCLUDE_DIR="$PCRE_ROOT/include" `
+          -DPCRE2_LIBRARY="$PCRE_ROOT/lib/pcre2-8-static.lib" `
+          -S . -B build
+          cmake --build build --config Release
+
+    - name: Install
+      shell: powershell
+      run: |
+          cmake --install build --config Release
+
+    - name: Test
+      shell: powershell
+      working-directory: install2/bin
+      run: |
+          swig.exe -version

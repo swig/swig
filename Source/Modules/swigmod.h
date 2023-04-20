@@ -4,15 +4,15 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * swigmod.h
  *
  * Main header file for SWIG modules.
  * ----------------------------------------------------------------------------- */
 
-#ifndef SWIG_SWIGMOD_H_
-#define SWIG_SWIGMOD_H_
+#ifndef SWIG_SWIGMOD_H
+#define SWIG_SWIGMOD_H
 
 #include "swig.h"
 #include "preprocessor.h"
@@ -196,7 +196,7 @@ public:
   virtual int classDirector(Node *n);
   virtual int classDirectorInit(Node *n);
   virtual int classDirectorEnd(Node *n);
-  virtual int unrollVirtualMethods(Node *n, Node *parent, List *vm, int default_director, int &virtual_destructor, int protectedbase = 0);
+  virtual int unrollVirtualMethods(Node *n, Node *parent, List *vm, int &virtual_destructor, int protectedbase = 0);
   virtual int classDirectorConstructor(Node *n);
   virtual int classDirectorDefaultConstructor(Node *n);
   virtual int classDirectorMethod(Node *n, Node *parent, String *super);
@@ -346,6 +346,8 @@ protected:
   class DoxygenTranslator *doxygenTranslator;
 
 private:
+  void unrollOneVirtualMethod(String *classname, Node *n, Node *parent, List *vm, int &virtual_destructor, int protectedbase);
+
   Hash *symtabs; /* symbol tables */
   int overloading;
   int multiinput;
@@ -403,6 +405,7 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
 String *Swig_director_declaration(Node *n);
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
 void Swig_director_parms_fixup(ParmList *parms);
+bool Swig_director_can_unwrap(Node *n);
 /* directors.cxx end */
 
 /* Utilities */
@@ -420,6 +423,7 @@ void Wrapper_cast_dispatch_mode_set(int);
 void Wrapper_naturalvar_mode_set(int);
 
 void clean_overloaded(Node *n);
+SwigType *Swig_smartptr_upcast(SwigType *smart, SwigType *c_classname, SwigType *c_baseclassname);
 
 extern "C" {
   const char *Swig_to_string(DOH *object, int count = -1);
@@ -428,15 +432,13 @@ extern "C" {
   void Swig_print_with_location(DOH *object, int count = -1);
 }
 
+void Swig_default_allocators(Node *n);
+void Swig_process_types(Node *n);
+
 /* Contracts */
 void Swig_contracts(Node *n);
 void Swig_contract_mode_set(int flag);
 int Swig_contract_mode_get();
-
-/* Browser */
-void Swig_browser(Node *n, int);
-void Swig_default_allocators(Node *n);
-void Swig_process_types(Node *n);
 
 /* Nested classes */
 void Swig_nested_process_classes(Node *n);

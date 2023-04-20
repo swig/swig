@@ -95,13 +95,68 @@
     class ClassWithNestedEnum {
     public:
         /**
-         * Enum description.
+         * ENested description.
          */
         typedef enum {ONE,  ///< desc of one
                       TWO,  ///< desc of two
                       THREE ///< desc of three
         } ENested;
 
+        /**
+         * ENestedOdd description.
+         */
+        typedef enum {ODD_ONE   ///< desc of odd_one
+                     ,ODD_TWO   ///< desc of odd_two
+                     ,ODD_THREE ///< desc of odd_three
+        } ENestedOdd;
+
+        /**
+         * ENestedOddPartial1 description.
+         */
+        typedef enum {ODD_PARTIAL1_ONE
+                     ,ODD_PARTIAL1_TWO   ///< desc of odd_partial1_two
+                     ,ODD_PARTIAL1_THREE ///< desc of odd_partial1_three
+        } ENestedOddPartial1;
+
+        /**
+         * ENestedOddPartial3 description.
+         */
+        typedef enum {ODD_PARTIAL3_ONE   ///< desc of odd_partial3_one
+                     ,ODD_PARTIAL3_TWO   ///< desc of odd_partial3_two
+                     ,ODD_PARTIAL3_THREE
+        } ENestedOddPartial3;
+
+        /** Description for TESTENUM. */
+        enum TESTENUM
+        {
+          /** something for none */
+          TEST_NONE = 0,
+          /** something for one */
+          TEST_ONE,
+          /** something for two */
+          TEST_TWO  /** something more for two */
+        };
+    };
+
+    /// SIOBeam struct description
+    struct SIOBeam {
+
+      /** testfunction - testing extra trailing doc comment */
+      void testfunction(
+          /** testfunction aaa parm */
+          int testf_aaa,
+          /** testfunction bbb parm */
+          double testf_bbb,
+          /** testfunction ccc parm */
+          bool testf_ccc /** testfunction more for two parm */
+          ) {}
+
+      /// Constructor for input from an existing SIO file
+      explicit SIOBeam(
+          const char * filename,   ///< Name of input SIO file.
+          int elevationOrder=1, ///< Interpolation order (0-3) in elevation
+          int bearingOrder=1   ///< Interpolation order (0-3) in bearing
+          ) {}
     };
 
     /// @return This is a bad place for this tag, but it should be ignored.
@@ -120,6 +175,13 @@
         And this is not a list item any more.
      */
     void showList() { }
+
+    /** Incorrectly documented members, these should be post document comments, Github issue #1636 */
+    struct IncorrectlyDocumentedMembers
+    {
+      int aaaa; //! really for bbbb value
+      int bbbb; //! not for bbbb value, is quietly ignored by Doxygen and SWIG
+    };
 
     #include "doxygen_misc_constructs.h"
 

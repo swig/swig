@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * include.c
  *
@@ -110,11 +110,7 @@ static List *Swig_search_path_any(int syspath) {
   assert(slist);
   filename = NewStringEmpty();
   assert(filename);
-#ifdef MACSWIG
-  Printf(filename, "%s", SWIG_FILE_DELIMITER);
-#else
   Printf(filename, ".%s", SWIG_FILE_DELIMITER);
-#endif
   Append(slist, filename);
   Delete(filename);
   
@@ -145,7 +141,7 @@ static List *Swig_search_path_any(int syspath) {
   return slist;
 }
 
-List *Swig_search_path() {
+List *Swig_search_path(void) {
   return Swig_search_path_any(0);
 }
 
@@ -376,6 +372,6 @@ String *Swig_file_dirname(const_String_or_char_ptr filename) {
 /*
  * Swig_file_debug()
  */
-void Swig_file_debug_set() {
+void Swig_file_debug_set(void) {
   file_debug = 1;
 }

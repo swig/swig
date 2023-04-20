@@ -45,7 +45,7 @@ LIBS          =
 #     SWIGCC    = Compiler used to compile the wrapper file
 
 SWIG          = $(exec_prefix)/bin/swig
-SWIGOPT       = -tcl # use -tcl8 for Tcl 8.0
+SWIGOPT       = -tcl
 SWIGCC        = $(CC)
 
 # SWIG Library files.  Uncomment if rebuilding tclsh

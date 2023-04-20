@@ -1,0 +1,6 @@
+cpp_template_class_repeat.i:5: Warning 404: Duplicate template instantiation of 'A< int >' with name 'Aint2' ignored,
+cpp_template_class_repeat.i:4: Warning 404: previous instantiation of 'A< int >' with name 'Aint'.
+cpp_template_class_repeat.i:18: Warning 404: Duplicate template instantiation of 'D< int,short >' with name 'Dintshort' ignored,
+cpp_template_class_repeat.i:17: Warning 404: previous instantiation of 'D< int >' with name 'Dint'.
+cpp_template_class_repeat.i:22: Warning 404: Duplicate template instantiation of 'E< int >' with name 'Eint' ignored,
+cpp_template_class_repeat.i:21: Warning 404: previous instantiation of 'E< int >' with name 'Eint'.

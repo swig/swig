@@ -20,8 +20,11 @@ endif ()
 
 set (SWIG_ROOT ${PROJECT_SOURCE_DIR})
 
-set (SWIG_LIB share/swig/${SWIG_VERSION})
-
+if (WIN32)
+  set (SWIG_LIB bin/Lib)
+else ()
+  set (SWIG_LIB share/swig/${SWIG_VERSION})
+endif ()
 # Project wide configuration variables
 # ------------------------------------
 
@@ -80,10 +83,10 @@ if (WITH_PCRE)
   include_directories (${PCRE2_INCLUDE_DIRS})
 endif()
 
-if (WIN32)
-  file (TO_NATIVE_PATH ${CMAKE_INSTALL_PREFIX}/${SWIG_LIB} SWIG_LIB_WIN_UNIX)
-  string (REGEX REPLACE "\\\\" "\\\\\\\\" SWIG_LIB_WIN_UNIX "${SWIG_LIB_WIN_UNIX}")
-endif ()
+#if (WIN32)
+#  file (TO_NATIVE_PATH ${CMAKE_INSTALL_PREFIX}/${SWIG_LIB} SWIG_LIB_WIN_UNIX)
+#  string (REGEX REPLACE "\\\\" "\\\\\\\\" SWIG_LIB_WIN_UNIX "${SWIG_LIB_WIN_UNIX}")
+#endif ()
 configure_file (${SWIG_ROOT}/Tools/cmake/swigconfig.h.in
                 ${CMAKE_CURRENT_BINARY_DIR}/Source/Include/swigconfig.h)
 
@@ -127,6 +130,7 @@ install (FILES ${CMAKE_CURRENT_BINARY_DIR}/swigwarn.swg DESTINATION ${SWIG_LIB})
 # ---------
 file (GLOB DOH_SOURCES ${SWIG_SOURCE_DIR}/DOH/*.c)
 file (GLOB CPARSE_SOURCES ${SWIG_SOURCE_DIR}/CParse/*.c)
+list (REMOVE_ITEM CPARSE_SOURCES ${SWIG_SOURCE_DIR}/CParse/parser.c)
 list (APPEND CPARSE_SOURCES)
 file (GLOB PREPROCESSOR_SOURCES ${SWIG_SOURCE_DIR}/Preprocessor/*.c)
 file (GLOB CORE_SOURCES ${SWIG_SOURCE_DIR}/Swig/*.c)

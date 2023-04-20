@@ -52,6 +52,13 @@ namespace std {
         $result = scheme_make_string($1->c_str());
     }
 
+    %typemap(throws) string {
+      scheme_signal_error("%s: %s", FUNC_NAME, $1.c_str());
+    }
+
+    %typemap(throws) const string & {
+      scheme_signal_error("%s: %s", FUNC_NAME, $1.c_str());
+    }
 }
 
 

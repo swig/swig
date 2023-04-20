@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * hash.c
  *
@@ -173,10 +173,7 @@ static void resize(Hash *h) {
     p = p + 2;
   }
 
-  table = (HashNode **) DohMalloc(newsize * sizeof(HashNode *));
-  for (i = 0; i < newsize; i++) {
-    table[i] = 0;
-  }
+  table = (HashNode **) DohCalloc(newsize, sizeof(HashNode *));
 
   /* Walk down the old set of nodes and re-place */
   h->hashsize = newsize;

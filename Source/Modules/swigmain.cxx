@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * swigmain.cxx
  *
@@ -70,7 +70,7 @@ static TargetLanguageModule modules[] = {
   {"-perl5", swig_perl5, "Perl 5", Supported},
   {"-php", swig_php, NULL, Supported},
   {"-php5", NULL, "PHP 5", Disabled},
-  {"-php7", swig_php, "PHP 7", Supported},
+  {"-php7", swig_php, "PHP 8 or later", Supported},
   {"-pike", NULL, "Pike", Disabled},
   {"-python", swig_python, "Python", Supported},
   {"-r", swig_r, "R (aka GNU S)", Supported},
@@ -84,11 +84,6 @@ static TargetLanguageModule modules[] = {
   {NULL, NULL, NULL, Disabled}
 };
 
-#ifdef MACSWIG
-#include <console.h>
-#include <SIOUX.h>
-#endif
-
 //-----------------------------------------------------------------
 // main()
 //
@@ -98,15 +93,15 @@ static TargetLanguageModule modules[] = {
 void SWIG_merge_envopt(const char *env, int oargc, char *oargv[], int *nargc, char ***nargv) {
   if (!env) {
     *nargc = oargc;
-    *nargv = (char **)malloc(sizeof(char *) * (oargc + 1));
+    *nargv = (char **)Malloc(sizeof(char *) * (oargc + 1));
     memcpy(*nargv, oargv, sizeof(char *) * (oargc + 1));
     return;
   }
 
   int argc = 1;
   int arge = oargc + 1024;
-  char **argv = (char **) malloc(sizeof(char *) * (arge + 1));
-  char *buffer = (char *) malloc(2048);
+  char **argv = (char **) Malloc(sizeof(char *) * (arge + 1));
+  char *buffer = (char *) Malloc(2048);
   char *b = buffer;
   char *be = b + 1023;
   const char *c = env;
@@ -139,11 +134,11 @@ static void insert_option(int *argc, char ***argv, int index, char const *start,
   size_t option_len = end - start;
 
   // Preserve the NULL pointer at argv[argc]
-  new_argv = (char **)realloc(new_argv, (new_argc + 2) * sizeof(char *));
+  new_argv = (char **)Realloc(new_argv, (new_argc + 2) * sizeof(char *));
   memmove(&new_argv[index + 1], &new_argv[index], sizeof(char *) * (new_argc + 1 - index));
   new_argc++;
 
-  new_argv[index] = (char *)malloc(option_len + 1);
+  new_argv[index] = (char *)Malloc(option_len + 1);
   memcpy(new_argv[index], start, option_len);
   new_argv[index][option_len] = '\0';
 
@@ -222,11 +217,6 @@ int main(int margc, char **margv) {
   SWIG_merge_envopt(getenv("SWIG_FEATURES"), margc, margv, &argc, &argv);
   merge_options_files(&argc, &argv);
 
-#ifdef MACSWIG
-  SIOUXSettings.asktosaveonclose = false;
-  argc = ccommand(&argv);
-#endif
-
   Swig_init_args(argc, argv);
 
   /* Get options */
@@ -247,7 +237,7 @@ int main(int margc, char **margv) {
 	    Printf(stderr, "Target language option %s (%s) is no longer supported.\n", language_module->name, language_module->help);
 	  else
 	    Printf(stderr, "Target language option %s is no longer supported.\n", language_module->name);
-	  SWIG_exit(EXIT_FAILURE);
+	  Exit(EXIT_FAILURE);
 	}
       } else if ((strcmp(argv[i], "-help") == 0) || (strcmp(argv[i], "--help") == 0)) {
 	if (strcmp(argv[i], "--help") == 0)

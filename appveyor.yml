@@ -1,5 +1,4 @@
 platform:
-- x86
 - x64
 
 skip_commits:
@@ -18,39 +17,58 @@ environment:
     VSVER: 12
   - SWIGLANG: csharp
     VSVER: 14
-  - SWIGLANG: java
-    VSVER: 14
   - SWIGLANG: python
     VSVER: 14
     VER: 27
+    PY2: 2
+  - BUILDSYSTEM: cmake
+    VSVER: 14
   - SWIGLANG: python
     VSVER: 15
     VER: 38
-    PY3: 3
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
   - SWIGLANG: python
     VSVER: 16
     VER: 39
-    PY3: 3
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+  - SWIGLANG: csharp
+    VSVER: 17
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+  - SWIGLANG: csharp
+    VSVER: 17
+    Platform: x86
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+  - SWIGLANG: java
+    VSVER: 17
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+  - SWIGLANG: java
+    VSVER: 17
+    Platform: x86
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+  - SWIGLANG: python
+    VSVER: 17
+    VER: 310
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+  - SWIGLANG: python
+    VSVER: 17
+    VER: 310
+    Platform: x86
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: python
     OSVARIANT: cygwin
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: java
     OSVARIANT: mingw
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: python
     OSVARIANT: mingw
     WITHLANG: python
-    VER: 37
-    PY3: 3
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-  - BUILDSYSTEM: cmake
-    VSVER: 14
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 
-matrix:
-  allow_failures:
-  - SWIGLANG: python
-    OSVARIANT: cygwin
+#matrix:
+#  allow_failures:
+#  - SWIGLANG: python
+#    OSVARIANT: cygwin
 
 # Skip stale commits (pull requests only), see https://github.com/appveyor/ci/issues/38#issuecomment-70628826
 init:
@@ -77,7 +95,7 @@ install:
       $env:VSARCH=""
     } else {
       $env:PCRE_PLATFORM="x64"
-      $env:JAVA_HOME="C:/Program Files/Java/jdk15"
+      $env:JAVA_HOME="C:/Program Files/Java/jdk17"
       $env:VCVARS_PLATFORM="amd64"
       $env:LANG_PLATFORM="-x64"
       $env:CYGWINBIN="C:\cygwin64\bin"
@@ -94,7 +112,10 @@ install:
       $env:CYGWIN="nodosfilewarning"
       $env:CC="cccl"
       $env:CXX="cccl"
-      if ($env:VSVER -ge 16) {
+      if ($env:VSVER -ge 17) {
+        $env:VCVARSBAT="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars$env:MBITS.bat"
+        $env:BOOSTROOT="C:/Libraries/boost_1_77_0"
+      } elseif ($env:VSVER -eq 16) {
         $env:VCVARSBAT="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars$env:MBITS.bat"
         $env:BOOSTROOT="C:/Libraries/boost_1_73_0"
       } elseif ($env:VSVER -eq 15) {
@@ -117,24 +138,23 @@ install:
       $env:MSYSTEM="MINGW$env:MBITS" # This is important for msys2
       $env:CC="gcc"
       $env:CXX="g++"
-      if ($env:MBITS -eq "64" -and $env:SWIGLANG -eq "python") {
-        $env:CHECK_OPTIONS2="CFLAGS+=-DMS_WIN64 CXXFLAGS+=-DMS_WIN64"
-      }
     }
 - if "%OSVARIANT%"=="" bash -c "cd /usr/bin && curl --retry 15 -s -L https://github.com/swig/cccl/archive/cccl-1.2.tar.gz | tar -xz --strip 1 cccl-cccl-1.2/cccl"
 - if "%OSVARIANT%"=="" call "%VCVARSBAT%" %VCVARSARG%
 - if "%OSVARIANT%"=="" appveyor-retry appveyor DownloadFile https://github.com/PhilipHazel/pcre2/archive/refs/tags/pcre2-10.39.zip
 - if "%OSVARIANT%"=="" 7z x pcre2-10.39.zip
 - if "%OSVARIANT%"=="" set PCRE_ROOT=C:/pcre
-- if not "%OSVARIANT%"=="cygwin" set PATH=C:\Python%VER%%LANG_PLATFORM%;%PATH%
+- if "%OSVARIANT%"=="" set PATH=C:\Python%VER%%LANG_PLATFORM%;%PATH%
 - if "%OSVARIANT%"=="" bash -c "which cl.exe"
 - if "%OSVARIANT%"=="" bash -c "cl.exe /? 2>&1 | head -n 1"
 - if "%OSVARIANT%"=="" bash -c "which csc.exe"
 - if "%OSVARIANT%"=="" bash -c "csc.exe /? | head -n 1"
-- if "%OSVARIANT%"=="cygwin" %CYGWINSETUP% --quiet-mode --packages python2-devel,libpcre2-devel,libboost-devel > cygwin-install.txt || bash -c "cat cygwin-install.txt"
-- if "%OSVARIANT%"=="mingw" bash -c "pacman --noconfirm --sync mingw%MBITS%/mingw-w64-%MARCH%-autotools mingw%MBITS%/mingw-w64-%MARCH%-pcre2 mingw%MBITS%/mingw-w64-%MARCH%-boost"
+- if "%OSVARIANT%"=="cygwin" %CYGWINSETUP% --quiet-mode --packages python3-devel,libpcre2-devel,libboost-devel > cygwin-install.txt || bash -c "cat cygwin-install.txt"
+- if "%OSVARIANT%"=="mingw" bash -c "pacman --noconfirm --sync mingw%MBITS%/mingw-w64-%MARCH%-autotools mingw%MBITS%/mingw-w64-%MARCH%-pcre2 mingw%MBITS%/mingw-w64-%MARCH%-boost mingw%MBITS%/mingw-w64-%MARCH%-python"
 - if not "%WITHLANG%"=="" set SWIGWITHLANG==%WITHLANG%
 - if not "%WITHLANG%"=="" where %WITHLANG%
+- if "%SWIGLANG%"=="python" set PY3=3
+- if "%PY2%"=="2" set PY3=
 - bash -c "which $CC"
 - bash -c "which $CXX"
 - bash -c "$CC --version | head -n 1"
@@ -150,11 +170,11 @@ build_script:
 - set CCCL_OPTIONS=--cccl-muffle /W3 /EHsc
 - set CHECK_OPTIONS=CSHARPOPTIONS=-platform:%Platform%
 - if "%BUILDSYSTEM%"=="cmake" cd pcre2-pcre2-10.39 && cmake -G "Visual Studio 14 2015%VSARCH%" -DCMAKE_INSTALL_PREFIX="%PCRE_ROOT:\=/%" . && cmake --build . --config Release --target install && cd ..
-- if "%BUILDSYSTEM%"=="cmake" cmake --version && cmake -G "Visual Studio 14 2015%VSARCH%" -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/WX /DPCRE_STATIC" -DCMAKE_CXX_FLAGS="/WX /DPCRE2_STATIC" -DPCRE2_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE2_LIBRARY=%PCRE_ROOT%/lib/pcre2-8-static.lib -DBISON_EXECUTABLE=C:/cygwin/bin/bison.exe . && cmake --build . --config Release --target install && ctest --output-on-failure -V -C Release && appveyor exit
+- if "%BUILDSYSTEM%"=="cmake" cmake --version && cmake -G "Visual Studio 14 2015%VSARCH%" -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/WX /DPCRE2_STATIC" -DCMAKE_CXX_FLAGS="/WX /DPCRE2_STATIC" -DPCRE2_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE2_LIBRARY=%PCRE_ROOT%/lib/pcre2-8-static.lib -DBISON_EXECUTABLE=C:/cygwin/bin/bison.exe . && cmake --build . --config Release --target install && ctest --output-on-failure -V -C Release && appveyor exit
 - if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && cd pcre2-pcre2-10.39 && ./autogen.sh && ./configure CC=$CC CXX=$CXX CFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' --prefix=%PCRE_ROOT% --disable-shared && time make -s -j%MAKEJOBS% LN_S=cp && make install && cd .. && cp -v %PCRE_ROOT%/lib/libpcre2-8.lib %PCRE_ROOT%/lib/pcre2-8.lib"
   # Open dummy file descriptor to fix error on cygwin: ./configure: line 560: 0: Bad file descriptor
-- if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure --disable-dependency-tracking --disable-ccache --enable-cpp11-testing CC=$CC CXX=$CXX CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' PCRE2_CFLAGS='-I%PCRE_ROOT%/include -DPCRE2_STATIC' PCRE2_LIBS='-L%PCRE_ROOT%/lib/ -lpcre2-8' --without-perl5 --without-go --with-boost=%BOOSTROOT% || cat config.log"
-- if not "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure CC=%CC% CXX=%CXX% --without-alllang --with-$SWIGLANG$PY3$SWIGWITHLANG --enable-cpp11-testing || cat config.log"
+- if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure --disable-dependency-tracking --disable-ccache CC=$CC CXX=$CXX CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' PCRE2_CFLAGS='-I%PCRE_ROOT%/include -DPCRE2_STATIC' PCRE2_LIBS='-L%PCRE_ROOT%/lib/ -lpcre2-8' --without-perl5 --without-go --with-boost=%BOOSTROOT% || cat config.log"
+- if not "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure CC=%CC% CXX=%CXX% --without-alllang --with-$SWIGLANG$PY3$SWIGWITHLANG || cat config.log"
 - bash -c "time make -s -j%MAKEJOBS%"
 
 test_script:

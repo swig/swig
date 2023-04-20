@@ -133,6 +133,25 @@ struct SomeAnotherStruct
 	}
 };
 
+struct Foo1636
+{
+  ///@{
+  /// groupmember1 description
+  int groupmember1;
+  /// groupmember2 description
+  int groupmember2;
+  ///@}
+};
+
+struct Foo1750
+{
+  /// @name Group name
+  /// @{
+  int a;
+  /// @}
+  int b;
+};
+
 #ifdef SWIGPYTHON_BUILTIN
 bool is_python_builtin() { return true; }
 #else

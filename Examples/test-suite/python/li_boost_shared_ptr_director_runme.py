@@ -1,5 +1,9 @@
 from li_boost_shared_ptr_director import *
 
+def swig_assert_equal(a, b):
+	if a != b:
+		raise RuntimeError(str(a) + " != " + str(b))
+
 class Derived(Base):
     def __init__(self, flag):
         self.return_none = flag
@@ -59,22 +63,22 @@ class Derived(Base):
 a = Derived(False)
 b = Derived(True)
 
-assert call_ret_c_shared_ptr(a) ==  1
-assert call_ret_c_shared_ptr(b) == -1
-assert call_ret_c_by_value(a)   ==  1
+swig_assert_equal(call_ret_c_shared_ptr(a), 1)
+swig_assert_equal(call_ret_c_shared_ptr(b), -1)
+swig_assert_equal(call_ret_c_by_value(a),   1)
 
-assert call_take_c_by_value(a)                  == 5
-assert call_take_c_by_ref(a)                    == 6
-assert call_take_c_by_pointer(a)                == 7
-assert call_take_c_by_pointer_ref(a)            == 8
-assert call_take_c_shared_ptr_by_value(a)       == 9
-assert call_take_c_shared_ptr_by_ref(a)         == 10
-assert call_take_c_shared_ptr_by_pointer(a)     == 11
-assert call_take_c_shared_ptr_by_pointer_ref(a) == 12
+swig_assert_equal(call_take_c_by_value(a),                  5)
+swig_assert_equal(call_take_c_by_ref(a),                    6)
+swig_assert_equal(call_take_c_by_pointer(a),                7)
+swig_assert_equal(call_take_c_by_pointer_ref(a),            8)
+swig_assert_equal(call_take_c_shared_ptr_by_value(a),       9)
+swig_assert_equal(call_take_c_shared_ptr_by_ref(a),         10)
+swig_assert_equal(call_take_c_shared_ptr_by_pointer(a),     11)
+swig_assert_equal(call_take_c_shared_ptr_by_pointer_ref(a), 12)
 
-assert call_take_c_by_pointer_with_null(a)                == -2
-assert call_take_c_by_pointer_ref_with_null(a)            == -3
-assert call_take_c_shared_ptr_by_value_with_null(a)       == -4
-assert call_take_c_shared_ptr_by_ref_with_null(a)         == -5
-assert call_take_c_shared_ptr_by_pointer_with_null(a)     == -6
-assert call_take_c_shared_ptr_by_pointer_ref_with_null(a) == -7
+swig_assert_equal(call_take_c_by_pointer_with_null(a),                -2)
+swig_assert_equal(call_take_c_by_pointer_ref_with_null(a),            -3)
+swig_assert_equal(call_take_c_shared_ptr_by_value_with_null(a),       -4)
+swig_assert_equal(call_take_c_shared_ptr_by_ref_with_null(a),         -5)
+swig_assert_equal(call_take_c_shared_ptr_by_pointer_with_null(a),     -6)
+swig_assert_equal(call_take_c_shared_ptr_by_pointer_ref_with_null(a), -7)

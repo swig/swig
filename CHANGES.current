@@ -4,382 +4,285 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 4.1.0 (in progress)
+Version 4.2.0 (in progress)
 ===========================
 
-2022-01-26: trex58
-	    #1919 #1921 #1923 Various fixes for AIX portability.
+2023-04-21: olly
+	    #2183 Fix #ifdef and #ifndef to work inside a %define.  Previously
+	    they were silently ignored in this context (but #if defined already
+	    worked here if you need a workaround which works for older
+	    versions).
 
-2022-01-26: olly
-	    #1935 Don't crash on an unclosed HTML tag in a doxygen comment
-	    when -doxygen is specified.
+2023-04-20: erezgeva
+	    [Go] #2533 Implement argcargv.i library for Go.
 
-2022-01-25: olly
-	    Constant expressions now support member access with `.` such as
-	    `foo.bar`.  Previous this only worked in a case like `x->foo.bar`.
+2023-04-19: davidcl 
+            [Scilab] Add support for Scilab 2023.x.
+	    Introduce a `-gatewayxml6` options to generate an XML with full
+	    function names.
 
-2022-01-25: olly
-	    #2091 Support most cases of `sizeof` applied to an expression
-	    in constant expressions.  Previously there was only support for
-	    `sizeof(<type>)` and expressions which syntactically look like a
-	    type (such as `sizeof(foo)`).
+2023-04-19: mmomtchev
+	    https://sourceforge.net/p/swig/bugs/1163/ #1882 #2525
+	    Fix preprocessor expansion when a macro expands to the name of
+	    another macro which takes parameters from the input following the
+	    original macro expansion.
 
-2022-01-25: olly
-	    #80 #635 https://sourceforge.net/p/swig/bugs/1139/
-	    Add support for parsing common cases of `<` and `>` comparisons
-	    in constant expressions.  Adding full support for these seems hard
-	    to do without introducing conflicts into the parser grammar, but in
-	    fact all reported cases have had parentheses around the comparison
-	    and we can support that with a few restrictions on the left side of
-	    `<`.
+2023-04-19: wildmaples
+	    [Ruby] #2527 Fix "undefining the allocator of T_DATA" warning seen
+	    with Ruby 3.2.
 
-2022-01-25: wsfulton
-            New warning 327 for extern templates, eg:
+2023-04-18: davidcl
+	    [Scilab] #894 extract values with ":" for typemap (int* IN, int IN_SIZE)
 
-              extern template class std::vector<int>;
-              extern template void Func<int>();
-
-            results in warning
-
-              example.i:3: Warning 327: Extern template ignored.
-              example.i:4: Warning 327: Extern template ignored.
-
-            Extern template classes previously resulted in warning 320.
-
-2022-01-24: romintomasetti
-            #2131 #2157 C++11 extern function template parsing error fix.
-
-2022-01-21: wsfulton
-            #2120 #2138 Replace legacy PCRE dependency with PCRE2.
-            This requires changes for building SWIG from source. See updated
-            html documentation in Preface.html and Windows.html. Updated
-            instructions are also shown when running ./configure if PCRE2 is not
-            found. Note that debian based systems can install PCRE2 using:
-
-              apt install libpcre2-dev
-
-            Note that https://github.com/swig/swig/wiki/Getting-Started also has
-            updated information for building from source.
-
-2022-01-19: olly
-	    [PHP] #2027 Automatically generate PHP type declarations for PHP 8.
-	    The generate code still compiles for PHP 7.x, but without type
-	    declarations since PHP 7.x has much more limited type declaration
-	    support.
-
-2022-01-18: olly
-	    [Perl] #1629 Perl 5.8.0 is now the oldest version we aim to support.
-
-2022-01-14: wsfulton
-            [Python] Fix %callback and specifying the callback function as a
-            static member function using Python staticmethod syntax, such as
-            Klass.memberfunction instead of Klass_memberfunction when using
-            -builtin and -fastproxy.
-
-2022-01-11: wsfulton
-            [Python] Accept keyword arguments accessing static member functions when
-            using -builtin and kwargs feature and Python class staticmethod syntax.
-            The missing keyword argument support was only when using the
-            class staticmethod syntax, such as Klass.memberfunction, and not when
-            using the flat static method syntax, such as Klass_memberfunction.
-
-2022-01-04: juierror
-            [Go] #2045 Add support for std::array in std_array.i.
-
-2021-12-18: olly
-	    [PHP] Add PHP keyword 'readonly' (added in 8.1) to the list SWIG
-	    knows to automatically rename.  This keyword is special in that PHP
-	    allows it to be used as a function (or method) name.
-
-2021-12-07: vstinner
-            [Python] #2116 Python 3.11 support: use Py_SET_TYPE()
-
-2021-12-05: rwf1
-            [Octave] #2020 #1893 Add support for Octave 6 up to and including 6.4.
-            Also add support for compiling with -Bsymbolic which is used by default
-            by mkoctfile.
-
-2021-12-02: jsenn
-            [Python] #2102 Fixed crashes when using embedded Python interpreters. 
-
-2021-11-12: wsfulton
-            [Javascript] v8 and node only. Fix mismatched new char[] and free()
-            when wrapping C code char arrays. Now calloc is now used instead of
-            new char[] in SWIG_AsCharPtrAndSize.
-
-2021-10-03: ajrh1
-            [Perl] #2074: Avoid -Wmisleading-indentation in generated code
-            when using gcc11.
-
-2021-10-03: jschueller
-            [CMake] #2065: Add option to enable or disable PCRE support.
-
-2021-09-16: ianlancetaylor
-            [Go] Improved _cgo_panic implementation.
-
-2021-09-16: ianlancetaylor
-            [Go] Don't use crosscall2 for panicking. Instead rely on documented
-            and exported interfaces.
-
-2021-09-14: ianlancetaylor
-            [Go] Remove -no-cgo option (long unsupported in Go)
-
-2021-05-04: olly
-	    [PHP] #2014 Throw PHP exceptions instead of using PHP errors
-
-	    PHP exceptions can be caught and handled if desired, but if they
-	    aren't caught then PHP exits in much the same way as it does for a
-	    PHP error.
-
-	    In particular this means parameter type errors and some other cases
-	    in SWIG-generated wrappers now throw a PHP exception, which matches
-	    how PHP's native parameter handling deals with similar situations.
-
-	    `SWIG_ErrorCode()`, `SWIG_ErrorMsg()`, `SWIG_FAIL()` and `goto thrown;`
-	    are no longer supported (these are really all internal implementation
-	    details and none are documented aside from brief mentions in CHANGES
-	    for the first three).  I wasn't able to find any uses in user interface
-	    files at least in FOSS code via code search tools.
-
-	    If you are using these:
-
-	    Use `SWIG_PHP_Error(code,msg);` instead of `SWIG_ErrorCode(code);
-	    SWIG_ErrorMsg(msg);` (which will throw a PHP exception in SWIG >= 4.1
-	    and do the same as the individual calls in older SWIG).
-
-	    `SWIG_FAIL();` and `goto thrown;` can typically be replaced with
-	    `SWIG_fail;`.  This will probably also work with older SWIG, but
-	    please test with your wrappers if this is important to you.
+2023-04-14: olly
+	    [PHP7] Support for PHP7 has been removed.  PHP7 security support
+	    ended 2022-11-28 so it doesn't make sense to include support for
+	    it in the SWIG 4.2.x release series.
 
 	    *** POTENTIAL INCOMPATIBILITY ***
 
-2021-05-17: adr26
-            [Python] #1985 Fix memory leaks:
+2023-03-25: alatina 
+            [Octave] #2512 Add support for Octave 8.1.
 
-            1. Python object references were being incorrectly retained by
-            SwigPyClientData, causing swig_varlink_dealloc() never to run / free
-            memory. SwigPyClientData_New() / SwigPyClientData_Del() were updated
-            to fix the object reference counting, causing swig_varlink_dealloc()
-            to run and the memory swig_varlink owns to be freed.
+2023-03-22: wsfulton
+            [C#] #2478 Minor enhancements to std::array wrappers in std_array.i.
 
-            2. SwigPyClientData itself was not freed by SwigPyClientData_Del(),
-            causing another heap leak. The required free() was added to
-            SwigPyClientData_Del()
+2023-03-13: wsfulton
+            Improved error checking when using %template to instantiate templates within
+            the correct scope.
 
-            3. Fix reference counting/leak of python cached type query
+            1. When a template is instantiated via %template and uses the unary scope
+            operator ::, an error occurs if the instantiation is attempted within a
+            namespace that does not enclose the instantiated template.
+            For example, the following will now error as ::test::max is not enclosed within test1:
 
-            4. Fix reference counting/leak of SwigPyObject dict (-builtin)
+            Error: '::test::max' resolves to 'test::max' and was incorrectly instantiated in
+            scope 'test1' instead of within scope 'test'.
+              namespace test1 {
+                %template(maxchar) ::test::max<char>;
+              }
 
-            5. Python object reference counting fixes for out-of-memory
-            scenarios were added to: SWIG_Python_RaiseOrModifyTypeError(),
-            SWIG_Python_AppendOutput(), SwigPyClientData_New(),
-            SwigPyObject_get___dict__() and SwigPyObject_format()
+            2. SWIG previously failed to always detect a template did not exist when using
+            %template. In particular when instantiating a global template incorrectly within
+            namespace. The code below now correctly emits an error:
 
-            6. Add error handling for PyModule_AddObject() to
-            SWIG_Python_SetModule() (failure could be caused by OOM or a name
-            clash caused by malicious code)
+            Error: Template 'test5::GlobalVector' undefined.
+              namespace test5 {
+              }
+              template<typename T> struct GlobalVector {};
+              %template(GVI) test5::GlobalVector<int>;
 
-2021-05-13: olly
-	    [UFFI] #2009 Remove code for Common Lisp UFFI.  We dropped support
-	    for it in SWIG 4.0.0 and nobody has stepped forward to revive it in
-	    over 2 years.
+2023-03-13: wsfulton
+            Error out if an attempt is made to define a class using the unary scope
+            operator ::. The following is not legal C++ and now results in an error:
 
-2021-05-13: olly
-	    [S-EXP] #2009 Remove code for Common Lisp S-Exp.  We dropped
-	    support for it in SWIG 4.0.0 and nobody has stepped forward to
-	    revive it in over 2 years.
+            Error: Using the unary scope operator :: in class definition '::Space2::B' is invalid.
+              namespace Space2 {
+                struct B;
+              }
+              struct ::Space2::B {};
 
-2021-05-13: olly
-	    [Pike] #2009 Remove code for Pike.  We dropped support for it in
-	    SWIG 4.0.0 and nobody has stepped forward to revive it in over 2
-	    years.
+2023-03-08: wsfulton
+            Fix duplicate const in generated code when template instantiation type is const
+            and use of template parameter is also explicitly const, such as:
 
-2021-05-13: olly
-	    [Modula3] #2009 Remove code for Modula3.  We dropped support for it
-	    in SWIG 4.0.0 and nobody has stepped forward to revive it in over 2
-	    years.
+              template <typename T> struct Conster {
+                void cccc1(T const& t) {}
+              };
+              %template(ConsterInt) Conster<const int>;
 
-2021-05-13: olly
-	    [CLISP] #2009 Remove code for GNU Common Lisp.  We dropped support
-	    for it in SWIG 4.0.0 and nobody has stepped forward to revive it in
-	    over 2 years.
+            Above previously led to generated code:
+              (arg1)->cccc1((int const const &)*arg2);
+            instead of
+              (arg1)->cccc1((int const &)*arg2);
 
-2021-05-13: olly
-	    [Chicken] #2009 Remove code for Chicken.  We dropped support for it
-	    in SWIG 4.0.0 and nobody has stepped forward to revive it in over 2
-	    years.
+2023-03-01: wsfulton
+            Partial template specialization fixes to support default arguments from the primary
+            template's parameter list.
 
-2021-05-13: olly
-	    [Allegrocl] #2009 Remove code for Allegro Common Lisp.  We dropped
-	    support for it in SWIG 4.0.0 and nobody has stepped forward to
-	    revive it in over 2 years.
+              template<class Y, class T=int> struct X { void primary() {} };
+              // Previously the specialization below resulted in:
+              // Error: Inconsistent argument count in template partial specialization. 1 2
+              template<class YY> struct X<YY*> { void special(YY*) {} };
 
-2021-05-04: olly
-	    [PHP] #1982 #1457 https://sourceforge.net/p/swig/bugs/1339/
-	    SWIG now only use PHP's C API to implement its wrappers, and no
-	    longer generates PHP code to define classes.  The wrappers should
-	    be almost entirely compatible with those generated before, but
-	    faster and without some previously hard-to-fix bugs.
+              // Both of these correctly wrap the partially specialized template
+              %template(StringPtr) X<const char *>;
+              %template(ShortPtr) X<short *, int>;
 
-	    The main notable difference is SWIG no longer generates a .php
-	    wrapper at all by default (only if %pragma(php) code=... or
-	    %pragma(php) include=... are specified in the interface file).
-	    This also means you need to load the module via extension=...
-	    in php.ini, rather than letting the dl() in the generated
-	    .php wrapper load it (but dl() has only worked for command-line
-	    PHP for some years now).
+2023-02-15: wsfulton
+            #1300 Further partial template specialization fixes.
+            Fixes when templates are used as a template parameter in a partially specialized
+            instantiation such as:
+
+              template<typename V> struct Vect {};
+              template<class T, typename TT> class Foo { ... };
+              template<class TS, typename TTS> class Foo<Vect<TS>, TTS> { ... };
+              %template(VectInt) Vect<int>;
+              %template(FooVectIntDouble) Foo<Vect<int>, double>; // was previously attempting to use primary template
+
+            Also fixes partial specialization where the same template parameter name is used twice,
+            for example:
+
+              template<typename X, typename Y> struct H { ... };
+              template<typename T> struct H<T, T> { ... };
+              %template(HInts) H<int, int>; // was previously attempting to use primary template
+
+2023-01-27: jschueller
+	    #2492 [python] Fix unused parameter warnings for self parameter in
+	    generated C/C++ wrapper code.
+
+2023-01-14: wsfulton
+            Fix deduction of partially specialized template parameters when the specialized
+            parameter is non-trivial, used in a wrapped method and the type to %template uses
+            typedefs. For example:
+
+              typedef double & DoubleRef;
+              template <typename T> struct XX {};
+              template <typename T> struct XX<T &> { void fn(T t) {} };
+              %template(XXD) XX<DoubleRef>;
+
+            The type of the parameter in the instantiated template for fn is now correctly deduced
+            as double.
+
+2023-01-03: wsfulton
+            #983 Fix seg fault when instantiating templates with parameters that are function
+            parameters containing templates, such as:
+
+              %template(MyC) C<int(std::vector<int>)>;
+
+2023-01-03: wsfulton
+            Complete support for C++11 variadic function templates. Support was previously limited
+            to just one template parameter. Now zero or more template parameters are supported
+            in the %template instantiation.
+
+2022-12-29: wsfulton
+            #1863 Syntax error fixes parsing more elaborate parameter pack arguments that are
+            used in function pointers, member function pointers:
+
+              template <typename... V> struct VariadicParms {
+                void ParmsFuncPtrPtr(int (*)(V*...)) {}
+                void ParmsFuncPtrPtrRef(int (*)(V*&...)) {}
+                void ParmsFuncPtrPtrRValueRef(int (*)(V*&&...)) {}
+                void ParmsFuncPtrRef(int (*)(V&...)) {}
+                void ParmsFuncPtrRValueRef(int (*)(V&&...)) {}
+
+                void ParmsMemFuncPtrPtr(int (KlassMemFuncs::*)(V*...)) {}
+                void ParmsMemFuncPtrPtrRef(int (KlassMemFuncs::*)(V*&...)) {}
+                void ParmsMemFuncPtrPtrRValueRef(int (KlassMemFuncs::*)(V*&&...)) {}
+                void ParmsMemFuncPtrRef(int (KlassMemFuncs::*)(V&...)) {}
+                void ParmsMemFuncPtrRValueRef(int (KlassMemFuncs::*)(V&&...)) {}
+              };
+
+              %template(VariadicParms0) VariadicParms<>;
+              %template(VariadicParms1) VariadicParms<A>;
+
+            Also in various other places such as within noexcept specifiers:
+
+              template<typename T, typename... Args>
+              void emplace(Args &&... args) noexcept(
+                  std::is_nothrow_constructible<T, Args &&...>::value);
+
+2022-12-27: wsfulton
+            Fix instantiation of variadic class templates containing parameter pack arguments that
+            are function pointers.
+
+              template <typename... V> struct VariadicParms {
+                void ParmsFuncPtrVal(int (*)(V...)) {}
+              };
+
+              %template(VariadicParms0) VariadicParms<>;
+              %template(VariadicParms1) VariadicParms<A>;
+
+2022-12-23: wsfulton
+            #1863 Fix syntax error parsing variadic templates containing parameter pack arguments that
+            are function pointers.
+
+2022-12-22: wsfulton
+            Complete support for C++11 variadic class templates. Support was previously limited
+            to just one template parameter. Now zero or more template parameters are supported.
+
+2022-12-06: wsfulton
+            #1636 Fix syntax error for misplaced Doxygen comment after struct/class member.
+            Fix syntax error using Doxygen member groups syntax, "///*}", when used after
+            final struct/class member.
+
+2022-12-05: wsfulton
+            #2023 Fix garbled Doxygen post comments in parameter lists.
+            Fix syntax error parsing a trailing Doxygen comment in parameter lists.
+
+2022-12-03: wsfulton
+            #1609 Fix syntax error parsing of Doxygen comments after last enum item.
+
+2022-12-03: wsfulton
+            #1715 Fix syntax error parsing of unconventionally placed Doxygen post
+            comments for enum items.
+
+2022-12-02: wsfulton
+            #624 #1021 Improved template template parameters support. Previously, specifying more
+            than one simple template template parameter resulted in a parse error. Now
+            multiple template template parameters are working including instantiation with
+            %template. Example:
+
+              template <template<template<class> class, class> class Op, template<class> class X, class Y>
+              class C { ... };
+
+2022-11-26: wsfulton
+            #1589 #1590 Slightly better decltype() support for expressions, such as:
+
+              int i,j;
+              ...  decltype(i+j) ...
+              ...  decltype(&i) ...
+
+            These result in a warning for non-trivial expressions which SWIG cannot evaluate:
+
+              Warning 344: Unable to deduce decltype for 'i+j'.
+
+            See 'Type Inference' in CPlusPlus.html for workarounds.
+
+2022-11-22: wsfulton
+            #1037 Fix seg fault handling template parameter expressions containing '<='
+            or '>='.
+
+2022-11-18: wsfulton
+            Duplicate class template instantiations via %template now issue a warning and are ignored.
+
+                %template(Aint) A<int>;
+                %template(Aint2) A<int>; // Now ignored and issues a warning
+
+            example.i:7: Warning 404: Duplicate template instantiation of 'A< int >' with name 'Aint2' ignored,
+            example.i:6: Warning 404: previous instantiation of 'A< int >' with name 'Aint'.
+
+            A single empty template instantiation before a named instantiation is the one exception
+            for allowing duplicate template instantiations as the empty template instantation does not
+            create a wrapper for the template, it merely adds the instantiation into SWIG's internal
+            type system.
+            Duplicate empty template instantiations are quietly ignored.
+
+                %template() B<int>;
+                %template(Bint) B<int>; // OK
+
+                %template() C<int>;
+                %template() C<int>; // Quietly ignored now
+                %template(Cint) C<int>; // OK
+
+            Note that default template parameters are considered when looking for duplicates such as:
+
+                template <typename T, typename U = short> struct D {};
+                %template(Dint) D<int>;
+                %template(Dintshort) D<int, short>;
+
+            example.i:7: Warning 404: Duplicate template instantiation of 'D< int,short >' with name 'Dintshort' ignored,
+            example.i:6: Warning 404: previous instantiation of 'D< int >' with name 'Dint'.
+
+            Note that the following always was ignored, but that was because the chosen name was a
+            duplicate rather than the template being a duplicate:
+
+                %template(Eint) E<int>;
+                %template(Eint) E<int>; // Always has been ignored as a redefined identifier
+
+            The old warning was:
+
+            example.i:7: Warning 302: Identifier 'Eint' redefined (ignored) (Renamed from 'E< int >'),
+            example.i:6: Warning 302: previous definition of 'Eint' (Renamed from 'E< int >').
 
 	    *** POTENTIAL INCOMPATIBILITY ***
-
-2021-04-30: olly
-	    #1984 Remove support for $source and $target.
-	    These were officially deprecated in 2001, and attempts to use them have
-	    resulted in a warning (including a pointer to what to update them to)
-	    for most if not all of that time.
-
-2021-04-27: wsfulton
-            #1987 [Java] Fix %interface family of macros for returning by const
-            pointer reference.
-
-2021-04-19: olly
-	    Fix use of uninitialised variable in the generated code for an
-	    empty typecheck typemap, such as the dummy one we include for
-	    std::initializer_list.
-
-2021-04-12: olly
-	    #1777 [Python] Specifying -py3 now generates a check for Python
-	    version >= 3.0.
-
-2021-03-26: olly
-	    [PHP] Add PHP keywords 'fn' (added in 7.4) and 'match' (added in
-	    8.0) to the list SWIG knows to automatically rename.
-
-2021-03-23: wsfulton
-            #1942 [Python] Fix compilation error in wrappers when using -builtin
-            and wrapping varargs in constructors.
-
-2021-03-22: goto40
-            #1977 Fix handling of template template parameters.
-
-2021-03-21: olly
-	    #1929, #1978 [PHP] Add support for PHP 8.
-
-2021-03-19: wsfulton
-            #1610 Remove -ansi from default compilation flags.
-
-2021-03-19: dot-asm
-            #1934 [Java] Clean up typemaps for long long arrays.
-
-2021-03-19: olly
-	    #1527 [PHP] Improve PHP object creation in directorin case.
-	    Reportedly the code we were using in this case gave segfaults in
-	    PHP 7.2 and later - we've been unable to reproduce these, but the
-	    new approach is also simpler and should be bit faster too.
-
-2021-03-18: olly
-	    #1655 [PHP] Fix char* typecheck typemap to accept PHP Null like the
-	    corresponding in typemap does.
-
-2021-03-18: olly
-	    #1900, #1905 [PHP] Fix wrapping of overloaded directed methods with
-	    non-void return.
-
-2021-03-11: murillo128
-            #1498 [Javascript] Support type conversion.
-
-2021-03-06: nshmyrev
-            #872 [Javascript] Various typemap issues in arrays_javascript.i fixed.
-
-2021-03-03: vaughamhong
-            #577 [Javascript] Implemented SetModule/GetModule for JSC to allow type sharing
-            across modules.
-
-2021-03-01: xantares, Oliver Buchtala, geographika
-            #1040 Add support for building SWIG with CMake. See documentation in Windows.html.
-
-2021-03-01: vadz
-            #1952 Fix incorrect warning "Unknown Doxygen command: ."
-
-2021-02-28: p2k
-            #969 [Javascript] v8/node - prevent crash calling a constructor without new keyword.
-
-2021-02-28: alecmev
-            #405 #1121 [Javascript] Fix OUTPUT typemaps on methods that don't return void.
-            The output value is appended to the return value.
-
-2021-02-26: murillo128, wsfulton
-            #1269 [Javascript] Fix handling of large positive unsigned long and
-            unsigned long long values.
-
-2021-02-24: tomleavy, yegorich, tungntpham
-            #1746 [Javascript] Add support for Node v12, v14 and v16.
-            SWIG support for Node is now for v6 and later only.
-
-2020-02-09: ZackerySpytz
-            #1872 Fix typos in attribute2ref macros.
-
-2020-10-10: wsfulton
-            [Javascript] Fix so that ccomplex.i interface to file can be used.
-
-2020-10-10: wsfulton
-            #252 complex can now be used as a C identifier and doesn't give a syntax error.
-
-2020-10-10: lpsinger
-            #1770 Correct C complex support.
-            _Complex is now parsed as a keyword rather than complex as per the C99 standard.
-            The complex macro is available in the ccomplex.i library file along with other
-            complex number handling provided by the complex.h header.
-
-2020-10-07: ZackerySpytz
-            [Python] #1812 Fix the error handling for the PyObject_GetBuffer() calls in
-            pybuffer.i.
-
-2020-10-07: treitmayr
-            #1824 Add missing space in director method declaration returning
-            const pointer.
-
-2020-10-07: adelva1984
-            #1859 Remove all (two) exceptions from SWIG executable.
-
-2020-09-25: wsfulton
-            [C#, Java] #1874 Add ability to change the modifiers for the interface
-            generated when using the %interface macros.
-
-            For C# use the 'csinterfacemodifiers' typemap.
-            For Java use the 'javainterfacemodifiers' typemap.
-
-            For example:
-
-              %typemap(csinterfacemodifiers) X "internal interface"
-
-
-2020-09-24: geefr
-            [C#] #1868 Fix wchar_t* csvarout typemap for member variable wrappers.
-
-2020-08-28: wsfulton
-            [Java] #1862 Fix crashes in swig_connect_director during director class construction
-            when using the director class from multiple threads - a race condition initialising
-            block scope static variables. The fix is guaranteed when using C++11, but most
-            compilers also fix it when using C++03/C++98.
-
-2020-08-16: wsfulton
-            [Python] Add missing initializer for member ‘_heaptypeobject::ht_module’ when using
-            -builtin to complete Python 3.9 support.
-
-2020-08-16: wsfulton
-            [Python] Remove PyEval_InitThreads() call for Python 3.7 and later as Python calls
-            it automatically now. This removes a deprecation warning when using Python 3.9.
-
-2020-08-15: wsfulton
-            [Python] All Python examples and tests are written to be Python 2 and Python 3
-            compatible, removing the need for 2to3 to run the examples or test-suite.
-
-2020-08-13: wsfulton
-            [C#] Add support for void *VOID_INT_PTR for member variables.
-
-2020-07-29: chrisburr
-            #1843 [Python] Compilation error fix in SwigPyBuiltin_SetMetaType when using PyPy.
-
-2020-06-14: ZackerySpytz
-            #1642 #1809 Fix virtual comparison operators in director classes - remove incorrect
-            space in the function name, for example, operator= = is now operator==.

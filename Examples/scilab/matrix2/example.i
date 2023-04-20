@@ -4,6 +4,7 @@
 
 %apply (double *IN, int IN_ROWCOUNT, int IN_COLCOUNT) { (double *inputMatrix, int nbRow, int nbCol) }
 %apply (double **OUT, int *OUT_ROWCOUNT, int *OUT_COLCOUNT) { (double **resultMatrix, int *nbRowRes, int *nbColRes) }
+%apply (int *IN, int IN_SIZE) { (int* indexes, int nbIndexes) }
 
 %apply (int *IN, int IN_ROWCOUNT, int IN_COLCOUNT) { (int *inputMatrix, int nbRow, int nbCol) }
 %apply (int **OUT, int *OUT_ROWCOUNT, int *OUT_COLCOUNT) { (int **resultMatrix, int *nbRowRes, int *nbColRes) }
@@ -14,7 +15,8 @@
 %inline %{
   extern double sumDoubleMatrix(double *inputMatrix, int nbRow, int nbCol);
   extern void squareDoubleMatrix(double *inputMatrix, int nbRow, int nbCol, double **resultMatrix, int *nbRowRes, int *nbColRes);
-  extern void getDoubleMatrix(double **resultMatrix, int *nbRowRes, int *nbColRes);
+  extern void getDoubleMatrix(int nbRow, int nbCol,double **resultMatrix, int *nbRowRes, int *nbColRes);
+  extern void extractDoubleMatrix(double *inputMatrix, int nbRow, int nbCol, int* indexes, int nbIndexes, double **resultMatrix, int *nbRowRes, int *nbColRes);
 
   extern int sumIntegerMatrix(int *inputMatrix, int nbRow, int nbCol);
   extern void squareIntegerMatrix(int *inputMatrix, int nbRow, int nbCol, int **resultMatrix, int *nbRowRes, int *nbColRes);

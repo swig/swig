@@ -4,15 +4,15 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * pydoc.h
  *
  * Module to return documentation for nodes formatted for PyDoc
  * ----------------------------------------------------------------------------- */
 
-#ifndef PYDOCCONVERTER_H_
-#define PYDOCCONVERTER_H_
+#ifndef SWIG_PYDOC_H
+#define SWIG_PYDOC_H
 
 #include <list>
 #include <string>

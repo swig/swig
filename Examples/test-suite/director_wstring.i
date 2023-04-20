@@ -39,10 +39,11 @@ struct A
 
   std::vector<std::wstring> m_strings;
 
+  virtual const wchar_t * wchar_out() { return L"ciao"; }
 
-  virtual void process_text(const wchar_t *text) 
-  {
-  }
+  virtual void process_text(const wchar_t *text) {}
+  virtual void process_wstring_text(std::wstring text) {}
+  virtual void process_wstring_ref_text(const std::wstring& text) {}
 
   virtual std::wstring multiple_params_val(const std::wstring& p1, const std::wstring& p2, std::wstring p3, std::wstring p4) const
   { return get_first(); }
@@ -51,6 +52,8 @@ struct A
   { return get_first(); }
   
   void call_process_func() { process_text(L"hello"); }
+  void call_process_wstring_func() { process_wstring_text(L"hello"); }
+  void call_process_wstring_ref_func() { process_wstring_ref_text(L"hello"); }
  };
  
  %}

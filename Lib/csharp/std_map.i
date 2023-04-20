@@ -26,7 +26,7 @@
 /* K is the C++ key type, T is the C++ value type */
 %define SWIG_STD_MAP_INTERNAL(K, T, C)
 
-%typemap(csinterfaces) std::map< K, T, C > "global::System.IDisposable \n    , global::System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n";
+%typemap(csinterfaces) std::map< K, T, C > "global::System.IDisposable \n    , global::System.Collections.Generic.IDictionary<$typemap(cstype, K), $typemap(cstype, T)>\n"
 %proxycode %{
 
   public $typemap(cstype, T) this[$typemap(cstype, K) key] {
@@ -269,12 +269,14 @@
       }
 
       const key_type& get_next_key(std::map< K, T, C >::iterator *swigiterator) {
+        (void)$self;
         std::map< K, T, C >::iterator iter = *swigiterator;
         (*swigiterator)++;
         return (*iter).first;
       }
 
       void destroy_iterator(std::map< K, T, C >::iterator *swigiterator) {
+        (void)$self;
         delete swigiterator;
       }
     }
@@ -309,4 +311,3 @@ namespace std {
 %define specialize_std_map_on_both(K,CHECK_K,CONVERT_K_FROM,CONVERT_K_TO, T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO)
 #warning "specialize_std_map_on_both ignored - macro is deprecated and no longer necessary"
 %enddef
-
