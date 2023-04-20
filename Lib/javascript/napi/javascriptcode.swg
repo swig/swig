@@ -276,7 +276,7 @@ fail:
   // jsnapi_register_global_variable
   do {
     Napi::PropertyDescriptor pd = Napi::PropertyDescriptor::Accessor<$jsgetter, $jssetter>("$jsname");
-    NAPI_CHECK_MAYBE(exports.DefineProperties({pd}));
+    NAPI_CHECK_MAYBE($jsparent.DefineProperties({pd}));
   } while (0);
 %}
 
