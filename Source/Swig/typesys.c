@@ -1705,7 +1705,7 @@ void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr cl
        *
        * unsigned char myarray[std::numeric_limits<unsigned char>::max()]; // #2486
        */
-      Swig_error(Getfile(t), Getline(t), "Array size expressions containing a '<' character not fully supported");
+      Swig_error(Getfile(t), Getline(t), "Array size expressions containing a '<' character not fully supported\n");
       Exit(EXIT_FAILURE);
     }
   }
