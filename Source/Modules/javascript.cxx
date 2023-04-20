@@ -1206,7 +1206,6 @@ int JSEmitter::emitConstant(Node *n) {
     Delete(str);
     value = mpointer_wname;
   }
-  SetFlag(n, "constant");
 
   marshalOutput(n, 0, wrapper, NewString(""), value, false);
 
@@ -1217,6 +1216,9 @@ int JSEmitter::emitConstant(Node *n) {
       .pretty_print(f_wrappers);
 
   exitVariable(n);
+  // This is the counterpart to the "constant" test in
+  // exitVariable
+  SetFlag(n, "constant");
 
   DelWrapper(wrapper);
 
