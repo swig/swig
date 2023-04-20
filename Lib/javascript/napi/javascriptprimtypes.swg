@@ -224,7 +224,7 @@ fail:
 %fragment(SWIG_From_frag(long long), "header") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN
-Napi::Value SWIG_From_long_long(Napi::Env env, long long val)
+Napi::Value SWIG_From_long_SS_long(Napi::Env env, long long val)
 {
   return Napi::Number::New(env, val);
 }
