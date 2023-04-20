@@ -1216,8 +1216,10 @@ int JSEmitter::emitConstant(Node *n) {
       .pretty_print(f_wrappers);
 
   exitVariable(n);
+
   // This is the counterpart to the "constant" test in
-  // exitVariable
+  // exitVariable, it prevents double setting of
+  // symbols that are both constants and variables
   SetFlag(n, "constant");
 
   DelWrapper(wrapper);
@@ -2714,6 +2716,10 @@ int NAPIEmitter::exitClass(Node *n) {
 }
 
 int NAPIEmitter::enterVariable(Node *n) {
+  // Somehow, this is not always reset
+  // (some constructs like smart pointers reuse Nodes)
+  UnsetFlag(n, "constant");
+
   JSEmitter::enterVariable(n);
 
   state.variable(GETTER, VETO_SET);
@@ -2727,8 +2733,9 @@ int NAPIEmitter::exitVariable(Node *n) {
   // (refer to the comment in lang.cxx:Language::staticmembervariableHandler)
   // a static const member variable may get transformed into a constant
   // and be emitted by emitConstant which will result calling exitVariable twice
-  if (GetFlag(n, "constant"))
+  if (GetFlag(n, "constant")) {
     return SWIG_OK;
+  }
 
   if (GetFlag(n, "ismember")) {
     String *modifier = NewStringEmpty();
