@@ -668,11 +668,11 @@ Napi::Function $jsmangledname_inst::GetClass(Napi::Env env) {
   std::map<std::string, $jsmangledname_templ::PropertyDescriptor> members, staticMembers;
   GetMembers(env, members, staticMembers);
 
-  std::vector<$jsmangledname_templ<$jsmangledname_inst>::PropertyDescriptor> symbolTable;
+  std::vector<$jsmangledname_inst::PropertyDescriptor> symbolTable;
   for (auto it = members.begin(); it != members.end(); it++)
-    symbolTable.emplace_back(std::move(it->second));
+    symbolTable.push_back(it->second);
   for (auto it = staticMembers.begin(); it != staticMembers.end(); it++)
-    symbolTable.emplace_back(std::move(it->second));
+    symbolTable.push_back(it->second);
 
   return Napi::ObjectWrap<$jsmangledname_inst>::DefineClass(env, "$jsname", symbolTable);
 }
@@ -766,7 +766,8 @@ void $jsmangledname_inst::GetMembers(
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_member_function", "templates")
 %{
-  members.emplace("$jsname"s, std::move($jsmangledname_templ::InstanceMethod("$jsname", &$jsmangledname_templ::$jswrapper)));
+  // jsnapi_member_function_descriptor
+  members.insert({"$jsname"s, $jsmangledname_templ::InstanceMethod("$jsname", &$jsmangledname_templ::$jswrapper)});
 %}
 
 /* -----------------------------------------------------------------------------
@@ -779,7 +780,7 @@ void $jsmangledname_inst::GetMembers(
 %fragment("jsnapi_register_member_variable", "templates")
 %{
   // jsnapi_register_member_variable
-  members.emplace("$jsname"s, std::move($jsmangledname_templ::InstanceAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter)));
+  members.insert({"$jsname"s, $jsmangledname_templ::InstanceAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter)});
 %}
 
 /* -----------------------------------------------------------------------------
@@ -791,7 +792,7 @@ void $jsmangledname_inst::GetMembers(
 %fragment("jsnapi_register_static_function", "templates")
 %{
   // jsnapi_register_static_function
-  staticMembers.emplace("$jsname"s, std::move(StaticMethod("$jsname", &$jsmangledname_templ::$jswrapper)));
+  staticMembers.insert({"$jsname"s, StaticMethod("$jsname", &$jsmangledname_templ::$jswrapper)});
 %}
 
 /* -----------------------------------------------------------------------------
@@ -804,5 +805,5 @@ void $jsmangledname_inst::GetMembers(
 %fragment("jsnapi_register_static_variable", "templates")
 %{
   // jsnapi_register_static_variable
-  staticMembers.emplace("$jsname"s, std::move(StaticAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter)));
+  staticMembers.insert({"$jsname"s, StaticAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter)});
 %}
