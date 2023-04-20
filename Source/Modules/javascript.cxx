@@ -2624,7 +2624,7 @@ int NAPIEmitter::enterClass(Node *n) {
   // emit inheritance
   String *baseMangled;
   Node *baseClass = getBaseClass(n);
-  if (baseClass) {
+  if (baseClass && Getattr(baseClass, CTOR)) {
     String *baseName = Getattr(baseClass, "name");
     String *jsName = NewString("");
     Printf(jsName, "%s_%s", Getattr(current_namespace, NAME_MANGLED),
