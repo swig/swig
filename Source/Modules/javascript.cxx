@@ -1206,6 +1206,7 @@ int JSEmitter::emitConstant(Node *n) {
     Delete(str);
     value = mpointer_wname;
   }
+  SetFlag(n, "constant");
 
   marshalOutput(n, 0, wrapper, NewString(""), value, false);
 
@@ -2724,9 +2725,8 @@ int NAPIEmitter::exitVariable(Node *n) {
   // (refer to the comment in lang.cxx:Language::staticmembervariableHandler)
   // a static const member variable may get transformed into a constant
   // and be emitted by emitConstant which will result calling exitVariable twice
-  if (GetFlag(n, "symbol_emitted"))
+  if (GetFlag(n, "constant"))
     return SWIG_OK;
-  SetFlag(n, "symbol_emitted");
 
   if (GetFlag(n, "ismember")) {
     String *modifier = NewStringEmpty();
