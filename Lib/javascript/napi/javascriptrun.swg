@@ -370,10 +370,11 @@ int SWIGNapi_ConvertPacked(Napi::Value valRef, void *ptr, size_t size, swig_type
 SWIGRUNTIME
 
 Napi::Value SWIGNapi_AppendOutput(Napi::Value result, Napi::Value obj) {
+  Napi::Env env = result.Env();
   if (result.IsUndefined()) {
-    result = Napi::Array::New(0);
+    result = Napi::Array::New(env);
   } else if (!result.IsArray()) {
-    Napi::Array tmparr = Napi::Array::New(0);
+    Napi::Array tmparr = Napi::Array::New(env);
     tmparr.Set(static_cast<uint32_t>(0), result);
     result = tmparr;
   }
