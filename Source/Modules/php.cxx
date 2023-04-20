@@ -147,19 +147,13 @@ static void SwigPHP_emit_pointer_type_registrations() {
   Printf(s_wrappers, "}\n\n");
 
   Printf(s_wrappers, "/* Implement __toString equivalent, since that worked for the old-style resource wrapped pointers. */\n");
-  Append(s_wrappers, "#if PHP_MAJOR_VERSION < 8\n");
-  Printf(s_wrappers, "static int swig_ptr_cast_object(zval *z, zval *retval, int type) {\n");
-  Append(s_wrappers, "#elif PHP_MAJOR_VERSION > 8 || PHP_MINOR_VERSION >= 2\n");
+  Append(s_wrappers, "#if PHP_MAJOR_VERSION > 8 || PHP_MINOR_VERSION >= 2\n");
   Printf(s_wrappers, "static ZEND_RESULT_CODE swig_ptr_cast_object(zend_object *zobj, zval *retval, int type) {\n");
   Append(s_wrappers, "#else\n");
   Printf(s_wrappers, "static int swig_ptr_cast_object(zend_object *zobj, zval *retval, int type) {\n");
   Append(s_wrappers, "#endif\n");
   Printf(s_wrappers, "  if (type == IS_STRING) {\n");
-  Append(s_wrappers, "#if PHP_MAJOR_VERSION < 8\n");
-  Printf(s_wrappers, "    swig_object_wrapper *obj = SWIG_Z_FETCH_OBJ_P(z);\n");
-  Append(s_wrappers, "#else\n");
   Printf(s_wrappers, "    swig_object_wrapper *obj = swig_php_fetch_object(zobj);\n");
-  Append(s_wrappers, "#endif\n");
   Printv(s_wrappers, "    ZVAL_NEW_STR(retval, zend_strpprintf(0, \"SWIGPointer(%p,owned=%d)\", obj->ptr, obj->newobject));\n", NIL);
   Printf(s_wrappers, "    return SUCCESS;\n");
   Printf(s_wrappers, "  }\n");
@@ -2394,16 +2388,10 @@ public:
 
       const char *funcname = GetChar(n, "sym:name");
       Append(w->code, "{\n");
-      Append(w->code, "#if PHP_MAJOR_VERSION < 8\n");
-      Printf(w->code, "zval swig_funcname;\n");
-      Printf(w->code, "ZVAL_STRINGL(&swig_funcname, \"%s\", %d);\n", funcname, strlen(funcname));
-      Printf(w->code, "call_user_function(EG(function_table), &swig_self, &swig_funcname, &swig_zval_result, %d, args);\n", idx);
-      Append(w->code, "#else\n");
       Printf(w->code, "zend_string *swig_funcname = zend_string_init(\"%s\", %d, 0);\n", funcname, strlen(funcname));
       Append(w->code, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ(swig_self), swig_funcname, NULL);\n");
       Append(w->code, "zend_string_release(swig_funcname);\n");
       Printf(w->code, "if (swig_zend_func) zend_call_known_instance_method(swig_zend_func, Z_OBJ(swig_self), &swig_zval_result, %d, args);\n", idx);
-      Append(w->code, "#endif\n");
 
       /* exception handling */
       tm = Swig_typemap_lookup("director:except", n, Swig_cresult_name(), 0);

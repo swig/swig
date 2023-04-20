@@ -126,19 +126,17 @@ check::equal(chartest5(), "B", "chartest5()");
 
 check::equal(chartest6(), "C", "chartest6()");
 
-if (PHP_MAJOR_VERSION >= 8) {
-  // Regression test for bug in initial implementation of PHP type declarations.
-  $p = (new ReflectionMethod('TrickyInPython', 'value_m1'))->getParameters();
-  // empty array in buggy version
-  check::equal(count($p), 2, "Expected 2 parameters");
-  check::equal((string)$p[0]->getType(), 'int', "Expected int parameter");
-  check::equal((string)$p[1]->getType(), 'int', "Expected int parameter");
+// Regression test for bug in initial implementation of PHP type declarations.
+$p = (new ReflectionMethod('TrickyInPython', 'value_m1'))->getParameters();
+// empty array in buggy version
+check::equal(count($p), 2, "Expected 2 parameters");
+check::equal((string)$p[0]->getType(), 'int', "Expected int parameter");
+check::equal((string)$p[1]->getType(), 'int', "Expected int parameter");
 
-  $p = (new ReflectionMethod('EnumClass', 'blah'))->getParameters();
-  // empty array in buggy version
-  check::equal(count($p), 2, "Expected 2 parameters");
-  check::equal((string)$p[0]->getType(), 'int', "Expected int parameter");
-  check::equal((string)$p[1]->getType(), 'int', "Expected int parameter");
-}
+$p = (new ReflectionMethod('EnumClass', 'blah'))->getParameters();
+// empty array in buggy version
+check::equal(count($p), 2, "Expected 2 parameters");
+check::equal((string)$p[0]->getType(), 'int', "Expected int parameter");
+check::equal((string)$p[1]->getType(), 'int', "Expected int parameter");
 
 check::done();
