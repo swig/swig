@@ -511,7 +511,7 @@ fail:
 #ifdef NAPI_CPP_EXCEPTIONS
     bool tryNext = false;
     try {
-      $jswrapper(info);
+      jsresult = $jswrapper(info);
     } catch (const Napi::TypeError &) {
       tryNext = true;
     } catch (const Napi::Error &e) {

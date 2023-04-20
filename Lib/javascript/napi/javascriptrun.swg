@@ -166,8 +166,9 @@ SWIGRUNTIME int SWIG_Napi_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
     int newmemory = 0;
     *ptr = SWIG_TypeCast(tc, ow->self, &newmemory);
     assert(!newmemory); /* newmemory handling not yet implemented */
+  } else {
+    *ptr = ow->self;
   }
-  *ptr = ow->self;
 
   if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !ow->owned) {
     return SWIG_ERROR_RELEASE_NOT_OWNED;
@@ -253,6 +254,12 @@ SWIGRUNTIME Napi::Value SWIG_Napi_NewPointerObj(Napi::Env env, void *ptr, swig_t
     Napi::Object obj;
     NAPI_CHECK_RESULT(wrapped.ToObject(), obj);
     Napi::ObjectWrap<SwigNapiObjectWrap_inst>::Unwrap(obj)->info = info;
+  }
+
+  if ((flags & SWIG_POINTER_OWN) == SWIG_POINTER_OWN) {
+    Napi::Object obj;
+    NAPI_CHECK_RESULT(wrapped.ToObject(), obj);
+    Napi::ObjectWrap<SwigNapiObjectWrap_inst>::Unwrap(obj)->owned = true;
   }
 
   return wrapped;
