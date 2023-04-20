@@ -11,6 +11,8 @@
 // For MMM() and NNN()
 #pragma clang diagnostic ignored "-Wconstexpr-not-const"
 #endif
+
+#include <limits>
 %}
 
 %ignore operator==(ConstExpressions,ConstExpressions);
@@ -58,6 +60,10 @@ int Array200[ConstExpressions::KKK];
 int Array300[ConstExpressions::LLL];
 //int Array400[ConstExpressions::MMM()];
 //int Array500[ConstExpressions::NNN()];
+
+// Regression test for https://github.com/swig/swig/issues/2486 fixed in 4.2.0
+// (the array size is constexpr in C++11):
+unsigned char myarray[std::numeric_limits<unsigned char>::max()];
 %}
 
 %{

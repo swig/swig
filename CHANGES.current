@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-06-20: olly
+	    #2486 Fix handling of template in array size, which was being
+	    rejected by SWIG because the type string contains '<' not followed
+	    by '('.  Drop this check as it should be unnecessary now since the
+	    fixes for #1036 ensure that template parameters are enclosed within
+	    '<(' and ')>'.
+
 2023-06-16: olly
 	    [Java] Remove deprecated command line options which have done
 	    nothing except emit a deprecation message since 2002 or before:
