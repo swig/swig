@@ -1191,14 +1191,36 @@ static DOH *Preprocessor_replace(DOH *s, DOH *line_file) {
 	} else if (Equal(kpp_hash_if, id) || Equal(kpp_hash_elif, id)) {
 	  expand_defined_operator = 1;
 	  Append(ns, id);
-	  /*
-	} else if (Equal("%#if", id) || Equal("%#ifdef", id)) {
-	  Swig_warning(998, Getfile(s), Getline(s), "Found: %s preprocessor directive.\n", id);
-	  Append(ns, id);
 	} else if (Equal("#ifdef", id) || Equal("#ifndef", id)) {
-	  Swig_warning(998, Getfile(s), Getline(s), "The %s preprocessor directive does not work in macros, try #if instead.\n", id);
-	  Append(ns, id);
-	  */
+	  /* Evaluate the defined-ness check and substitute `#if 0` or `#if 1`. */
+	  int allow = 0;
+	  skip_whitespace(s, 0);
+	  c = Getc(s);
+	  if (isidchar(c)) {
+	    DOH *arg = NewStringEmpty();
+	    Putc(c, arg);
+	    while (((c = Getc(s)) != EOF)) {
+	      if (!isidchar(c)) {
+		Ungetc(c, s);
+		break;
+	      }
+	      Putc(c, arg);
+	    }
+	    if (Equal("#ifdef", id)) {
+	      if (Getattr(symbols, arg)) allow = 1;
+	    } else {
+	      if (!Getattr(symbols, arg)) allow = 1;
+	    }
+	    Delete(arg);
+	  } else {
+	    Ungetc(c, s);
+	    Swig_error(Getfile(s), Getline(s), "Missing identifier for %s.\n", id);
+	  }
+	  if (allow) {
+	    Append(ns, "#if 1");
+	  } else {
+	    Append(ns, "#if 0");
+	  }
 	} else if ((m = Getattr(symbols, id))) {
 	  /* See if the macro is defined in the preprocessor symbol table */
 	  DOH *args = 0;

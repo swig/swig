@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-04-21: olly
+	    #2183 Fix #ifdef and #ifndef to work inside a %define.  Previously
+	    they were silently ignored in this context (but #if defined already
+	    worked here if you need a workaround which works for older
+	    versions).
+
 2023-04-20: erezgeva
 	    [Go] #2533 Implement argcargv.i library for Go.
 
