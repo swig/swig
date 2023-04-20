@@ -653,7 +653,6 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::Callb
 %}
 
 
-
 /* -----------------------------------------------------------------------------
  * jsnapi_getclass:  template for creating a class object
  *   - $jsname:         class name

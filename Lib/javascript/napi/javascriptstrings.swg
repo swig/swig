@@ -93,6 +93,6 @@ SWIG_Env_FromCharPtrAndSize(Napi::Env env, const char* carray, size_t size)
 }
 
 %insert(runtime) %{
-#define SWIG_FromCharPtrAndSize(cptr, size)  SWIG_Env_FromCharPtrAndSize(env, cptr, size)
-#define SWIG_FromCharPtr(cptr) SWIG_Env_FromCharPtrAndSize(env, cptr, strlen(cptr))
+#define SWIG_FromCharPtrAndSize(cptr, size) SWIG_Env_FromCharPtrAndSize(env, cptr, size)
+#define SWIG_FromCharPtr(cptr)              SWIG_Env_FromCharPtrAndSize(env, cptr, strlen(cptr))
 %}
