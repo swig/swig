@@ -273,6 +273,7 @@ fail:
 /* -----------------------------------------------------------------------------
  * jsnapi_register_global_variable:  template for a statement that registers a global variable
  *   - $jsname:         variable name
+ *   - $jsparent:       parent namespace
  *   - $jsgetter:       wrapper of the getter function
  *   - $jssetter:       wrapper of the setter function
  *
@@ -341,6 +342,7 @@ fail:
 /* -----------------------------------------------------------------------------
  * jsnapi_register_global_function:  template for a statement that registers a global function
  *   - $jsname:         function name
+ *   - $jsparent:       parent namespace
  *   - $jswrapper:      name of the JS wrapper
  *
  * Note: this template is also used for global variables.
@@ -350,7 +352,7 @@ fail:
   // jsnapi_register_global_function
   do {
     Napi::PropertyDescriptor pd = Napi::PropertyDescriptor::Function("$jsname", $jswrapper);
-    NAPI_CHECK_MAYBE(exports.DefineProperties({pd}));
+    NAPI_CHECK_MAYBE($jsparent.DefineProperties({pd}));
   } while (0);
 %}
 
