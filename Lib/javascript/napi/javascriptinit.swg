@@ -49,6 +49,11 @@ SWIG_NAPI_GetModule(Napi::Env env) {
 #define SWIGNAPI_INIT $jsname_initialize
 %}
 
+%insert(init) %{
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  SWIG_InitializeModule(env);
+%}
+
 /* -----------------------------------------------------------------------------
  * js_init_inheritance:  template for enabling the inheritance
  * ----------------------------------------------------------------------------- */
@@ -76,9 +81,6 @@ SWIG_NAPI_GetModule(Napi::Env env) {
  * ----------------------------------------------------------------------------- */
 %fragment("js_initializer", "templates")
 %{
-Napi::Object Init(Napi::Env env, Napi::Object exports) {
-  SWIG_InitializeModule(env);
-
   Napi::Function SwigNapiObjectWrap_ctor = SwigNapiObjectWrap_inst::GetClass(env);
   Napi::FunctionReference *SwigNapiObjectWrap_ctor_ref = new Napi::FunctionReference();
   *SwigNapiObjectWrap_ctor_ref = Napi::Persistent(SwigNapiObjectWrap_ctor);
