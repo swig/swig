@@ -88,6 +88,13 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackIn
   Napi::Object self;
   NAPI_CHECK_RESULT(info.This().ToObject(), self);
   this->info = SWIGTYPE_$jsmangledtype;
+  if (info.Length() == 1 && info[0].IsExternal()) {
+    // This constructor has been called internally from C++/SWIG
+    // to wrap an already existing C++ object in JS
+    this->self = info[0].As<Napi::External<void>>().Data();
+    this->owned = false;
+    return;
+  }
 
   // switch all cases by means of series of if-returns.
   $jsdispatchcases
