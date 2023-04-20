@@ -14,9 +14,9 @@ let _ =
 
   let k = new_Klass '() in
   assert (k -> KlassTMethodBoolRenamed (true) as bool = true);
-  assert (k -> KlassTMethodBool (true) = C_void);
+  assert (k -> KlassTMethodBool () = C_void);
   assert (_Klass_KlassStaticTMethodBoolRenamed '(true) as bool = true);
-  assert (_Klass_KlassStaticTMethodBool '(true) = C_void);
+  assert (_Klass_KlassStaticTMethodBool '() = C_void);
 
   let cp = new_ComponentProperties '() in
   assert (cp -> adda ("key1", "val1", "key2", 22.2) = C_void);
