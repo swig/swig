@@ -1700,7 +1700,8 @@ void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr cl
   if (t) {
     char *ct = Char(t);
     const char *lt = strchr(ct, '<');
-    if (lt && lt[1] != '(') {
+    /* Allow for `<<` operator in constant expression for array size. */
+    if (lt && lt[1] != '(' && lt[1] != '<') {
       /* We special case `<<` above, but most cases aren't handled, for example:
        *
        * unsigned char myarray[std::numeric_limits<unsigned char>::max()]; // #2486
