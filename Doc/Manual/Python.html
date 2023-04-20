@@ -94,7 +94,7 @@
 </ul>
 <li><a href="#Python_nn58">Typemap Examples</a>
 <ul>
-<li><a href="#Python_nn59">Converting  Python list to a char ** </a>
+<li><a href="#Python_nn59">Converting a Python list to a char ** </a>
 <li><a href="#Python_nn60">Expanding a Python object into multiple arguments</a>
 <li><a href="#Python_nn61">Using typemaps to return arguments</a>
 <li><a href="#Python_nn62">Mapping Python tuples into small arrays</a>
@@ -4933,84 +4933,17 @@ might look at the files "<tt>python.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 </p>
 
-<H3><a name="Python_nn59">33.9.1 Converting  Python list to a char ** </a></H3>
+<H3><a name="Python_nn59">33.9.1 Converting a Python list to a char ** </a></H3>
 
 
 <p>
 A common problem in many C programs is the processing of command line
 arguments, which are usually passed in an array of NULL terminated
-strings.  The following SWIG interface file allows a Python list
-object to be used as a <tt>char **</tt> object.
+strings.  SWIG provides typemaps which allow passing a Python list
+or tuple - see
+<a href="Library.html#Library_argcargv">argcargv.i</a>.
 </p>
 
-<div class="code"><pre>
-%module argv
-
-// This tells SWIG to treat char ** as a special case
-%typemap(in) char ** {
-  /* Check if is a list */
-  if (PyList_Check($input)) {
-    int size = PyList_Size($input);
-    int i = 0;
-    $1 = (char **) malloc((size+1)*sizeof(char *));
-    for (i = 0; i &lt; size; i++) {
-      PyObject *o = PyList_GetItem($input, i);
-      if (PyString_Check(o)) {
-        $1[i] = PyString_AsString(PyList_GetItem($input, i));
-      } else {
-        PyErr_SetString(PyExc_TypeError, "list must contain strings");
-        SWIG_fail;
-      }
-    }
-    $1[i] = 0;
-  } else {
-    PyErr_SetString(PyExc_TypeError, "not a list");
-    SWIG_fail;
-  }
-}
-
-// This cleans up the char ** array we malloc'd before the function call
-%typemap(freearg) char ** {
-  free((char *) $1);
-}
-
-// Now a test function
-%inline %{
-int print_args(char **argv) {
-  int i = 0;
-  while (argv[i]) {
-    printf("argv[%d] = %s\n", i, argv[i]);
-    i++;
-  }
-  return i;
-}
-%}
-
-</pre></div>
-
-<p>
-When this module is compiled, the wrapped C function now operates as
-follows :
-</p>
-
-<div class="targetlang"><pre>
-&gt;&gt;&gt; from argv import *
-&gt;&gt;&gt; print_args(["Dave", "Mike", "Mary", "Jane", "John"])
-argv[0] = Dave
-argv[1] = Mike
-argv[2] = Mary
-argv[3] = Jane
-argv[4] = John
-5
-</pre></div>
-
-<p>
-In the example, two different typemaps are used.  The "in" typemap is
-used to receive an input argument and convert it to a C array.  Since dynamic
-memory allocation is used to allocate memory for the array, the
-"freearg" typemap is used to later release this memory after the execution of
-the C function.
-</p>
 
 <H3><a name="Python_nn60">33.9.2 Expanding a Python object into multiple arguments</a></H3>
 
