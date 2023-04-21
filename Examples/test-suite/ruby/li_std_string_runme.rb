@@ -122,6 +122,9 @@ s = test_reference_inout("hello")
 if (s != "hellohello")
   raise RuntimeError
 end
+if (test_reference_output() != "output")
+  raise RuntimeError
+end
 
 
 if (stdstring_empty() != "")

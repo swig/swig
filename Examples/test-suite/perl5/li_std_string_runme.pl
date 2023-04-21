@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 30;
+use Test::More tests => 31;
 BEGIN { use_ok('li_std_string') }
 require_ok('li_std_string');
 
@@ -77,6 +77,7 @@ is(li_std_string::test_reference_input("hello"), "hello", "reference_input");
 
 is(li_std_string::test_reference_inout("hello"), "hellohello", "reference_inout");
 
+is(li_std_string::test_reference_output(), "output", "reference_output");
 
 no strict;
 my $gen1 = new li_std_string::Foo();
