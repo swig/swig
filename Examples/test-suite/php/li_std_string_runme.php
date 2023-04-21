@@ -49,6 +49,24 @@ Structure::StaticMemberString2($s);
 check::equal(Structure::StaticMemberString2(), $s, "StaticMemberString2 test 2");
 check::equal(Structure::ConstStaticMemberString(), "const static member string", "ConstStaticMemberString test");
 
+// Test INPUT, INOUT and OUTPUT string& typemaps:
+$input = "hello";
+check::equal(li_std_string::test_reference_input($input), "hello");
+// $input should be unchanged - this check is to catch if we incorrectly used
+// the default string& typemap:
+check::equal($input, "hello");
+$s = li_std_string::test_reference_inout($input);
+check::equal($s, "hellohello");
+// $input should be unchanged - this check is to catch if we incorrectly used
+// the default string& typemap:
+check::equal($input, "hello");
+check::equal(li_std_string::test_reference_output(), "output");
+
+// Test default PHP wrapping of std::string& as a by-ref PHP string parameter:
+$s = "byref";
+check::equal(li_std_string::test_reference_php($s), null);
+check::equal($s, "byref.php");
+
 // This used to give "Undefined variable: r"
 li_std_string::test_const_reference_returning_void("foo");
 
