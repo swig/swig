@@ -209,7 +209,7 @@ int SWIG_AsVal_dec(unsigned long)(Napi::Value obj, unsigned long *val)
   if (val) {
     Napi::Number num;
     NAPI_CHECK_RESULT(obj.ToNumber(), num);
-    *val = static_cast<unsigned long>(num.Uint32Value());
+    *val = static_cast<unsigned long>(num.Int64Value());
   }
   return SWIG_OK;
   goto fail;
