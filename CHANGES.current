@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-04-21: mmomtchev
+	    [Javascript] Fix naming of internal C++ helper for wrapping
+	    variables for node to use the "getter" naming scheme rather
+	    than the function wrapping one.  In practice this didn't actually
+	    cause problems because Node wrappers are always compiled as C++
+	    and the parameters are always different even if the names are
+	    the same.
+
 2023-04-21: olly
 	    [PHP] Support INPUT,INOUT,OUTPUT for std::string&.
 
