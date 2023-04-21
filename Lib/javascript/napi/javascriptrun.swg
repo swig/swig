@@ -2,8 +2,6 @@
  * Error handling
  *
  * ---------------------------------------------------------------------------*/
-using namespace std::string_literals;
-
 #define NAPI_MAKE_EXCEPTION(code, msg)                                      \
 
 #ifdef NAPI_CPP_EXCEPTIONS
