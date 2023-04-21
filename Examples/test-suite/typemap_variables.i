@@ -14,7 +14,7 @@
 #endif
 
 // For Javascript V8 we can not use '0' for out typemaps
-#if defined(SWIG_JAVASCRIPT_V8)
+#if defined(SWIG_JAVASCRIPT_V8) || defined(SWIG_JAVASCRIPT_NAPI)
 %header %{
 #define OUT_NULL_VALUE SWIGV8_NULL()
 %}
