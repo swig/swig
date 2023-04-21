@@ -44,6 +44,12 @@ test_reference(robj)
 test_reference(obj)	-- object ptr is ok
 test_reference(cobj)	-- obj const ptr is also ok
 
+-- Test INPUT, INOUT and OUTPUT string& typemaps:
+assert(test_reference_input("hello")=="hello")
+s=test_reference_inout("hello")
+assert(s=="hellohello")
+assert(test_reference_output()=="output")
+
 -- throwing string
 ok,ex=pcall(test_throw)
 assert(ok==false and type(ex)=="string")	-- failed & threw string

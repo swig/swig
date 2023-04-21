@@ -1,7 +1,7 @@
 %module li_std_string
 %include <std_string.i>
 
-#if defined(SWIGPHP) || defined(SWIGUTL)
+#if defined(SWIGLUA) || defined(SWIGPHP) || defined(SWIGUTL)
 %apply std::string& INPUT { std::string &input }
 %apply std::string& INOUT { std::string &inout }
 %apply std::string& OUTPUT { std::string &output }
