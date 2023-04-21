@@ -8,11 +8,11 @@ using namespace std::string_literals;
 
 #ifdef NAPI_CPP_EXCEPTIONS
 
-#define SWIG_Error(code, msg)                   \
-        do {                                    \
-          if ((code) == SWIG_TypeError)                                              \
-            throw Napi::TypeError::New(env, std::to_string(code) + ": "s + (msg));   \
-          throw Napi::Error::New(env, std::to_string(code) + ": "s + (msg));         \
+#define SWIG_Error(code, msg)                       \
+        do {                                        \
+          if ((code) == SWIG_TypeError)             \
+            throw Napi::TypeError::New(env, msg);   \
+          throw Napi::Error::New(env, msg);         \
         } while (0)
 #define SWIG_exception(code, msg)               SWIG_Error(code, msg)
 #define SWIG_fail                               goto fail
@@ -29,16 +29,16 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj, const char *msg)
 
 #else
 
-#define SWIG_Error(code, msg)                                                  \
-        do {                                                                   \
-          if ((code) == SWIG_TypeError) {                                      \
-            Napi::TypeError::New(env, std::to_string(code) + ": "s + (msg)).   \
-              ThrowAsJavaScriptException();                                    \
-            SWIG_fail;                                                         \
-          }                                                                    \
-          Napi::Error::New(env, std::to_string(code) + ": "s + (msg)).         \
-            ThrowAsJavaScriptException();                                      \
-          SWIG_fail;                                                           \
+#define SWIG_Error(code, msg)                 \
+        do {                                  \
+          if ((code) == SWIG_TypeError) {     \
+            Napi::TypeError::New(env, msg).   \
+              ThrowAsJavaScriptException();   \
+            SWIG_fail;                        \
+          }                                   \
+          Napi::Error::New(env, msg).         \
+            ThrowAsJavaScriptException();     \
+          SWIG_fail;                          \
         } while (0)
 #define SWIG_exception(code, msg) do { SWIG_Error(code, msg); SWIG_fail; } while (0)
 #define SWIG_fail                 goto fail
@@ -46,11 +46,11 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj, const char *msg)
         do {                                      \
                 if (maybe.IsNothing()) SWIG_fail; \
         } while (0)
-#define NAPI_CHECK_RESULT(maybe, result)        \
-        do {                                    \
-                auto r = maybe;                 \
-                if (r.IsNothing()) SWIG_fail;   \
-                result = r.Unwrap();            \
+#define NAPI_CHECK_RESULT(maybe, result)          \
+        do {                                      \
+                auto r = maybe;                   \
+                if (r.IsNothing()) SWIG_fail;     \
+                result = r.Unwrap();              \
         } while (0)
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
