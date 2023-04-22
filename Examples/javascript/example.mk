@@ -13,7 +13,11 @@ SWIGEXE        = $(SWIG_TOP)/swig
 SWIG_LIB_DIR   = $(SWIG_TOP)/$(TOP_BUILDDIR_TO_TOP_SRCDIR)Lib
 TARGET         = example
 INTERFACE      = example.i
-SWIGOPT        = -DV8_VERSION=$(JSV8_VERSION)
+SWIGOPT        =
+
+ifneq (jsc, $(ENGINE))
+SWIGOPT += -DV8_VERSION=$(JSV8_VERSION)
+endif
 
 check: build
 	$(MAKE) -f $(EXAMPLES_TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' javascript_run
