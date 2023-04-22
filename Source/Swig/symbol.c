@@ -902,6 +902,10 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
         /* When the storage classes do not match, this is not overloading */
         c = 0;
       }
+      if (static_overloading == 3 && Cmp(cstorage, nstorage) != 0) {
+        /* When the storage classes do not match, this is not allowed at all */
+        return c;
+      }
     }
 
     /* Okay. Walk down the list of symbols and see if we get a declarator match */

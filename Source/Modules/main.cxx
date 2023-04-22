@@ -935,6 +935,9 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
     case Language::SOS_Separate:
       static_overloading = 2;
       break;
+    case Language::SOS_NoMixing:
+      static_overloading = 3;
+      break;
   }
 
   kwargs_supported = lang->kwargsSupport() ? 1 : 0;

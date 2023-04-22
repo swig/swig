@@ -318,11 +318,13 @@ public:
 
   /* Does the target language support overloading of static members */
   enum StaticOverloadingSupport {
-      SOS_None,  // Static members cannot be overloaded (like C++03)
-      SOS_Mixed, // Mixed overloading of static and instance members is allowed
-                 // (like Perl)
-      SOS_Separate // Static and instance members use different namespaces (like
-                   // JS and C++11)
+      SOS_None,     // Static members cannot be overloaded (like C++03)
+      SOS_Mixed,    // Mixed overloading of static and instance members is allowed
+                    // (like Perl)
+      SOS_Separate, // Static and instance members use different namespaces
+                    // (like JS and C++11)
+      SOS_NoMixing  // Static is allowed, but mixing static and instance is
+                    // is not (like PHP)
   };
 
   /* Allow overloading of static functions */

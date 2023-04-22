@@ -2514,8 +2514,8 @@ public:
   }
 
   virtual Language::StaticOverloadingSupport staticOverloadingSupport() const {
-    // In PHP static members cannot be overloaded
-    return Language::StaticOverloadingSupport::SOS_None;
+    // In PHP static members cannot be overloaded with instance members
+    return Language::StaticOverloadingSupport::SOS_NoMixing;
   }
 };				/* class PHP */
 
