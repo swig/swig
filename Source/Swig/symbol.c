@@ -879,11 +879,6 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
     /* Look at storage class to see if compatible */
     cstorage = Getattr(c, "storage");
     nstorage = Getattr(n, "storage");
-    Printf(stdout, "node=%s (%s), first=%s (%s)\n",
-        Getattr(n, "name"),
-        nstorage,
-        Getattr(c, "name"),
-        cstorage);
 
     /* If either one is declared as typedef, forget it. We're hosed */
     if (Cmp(cstorage, "typedef") == 0) {
@@ -896,6 +891,7 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
     if (Cmp(cstorage, "static") == 0 || Cmp(nstorage, "static") == 0) {
       if (static_overloading == 0) {
         /* No static overloading at all */
+        /* TODO: Is this really necessary?? */
         return c;
       }
       if (static_overloading == 2 && Cmp(cstorage, nstorage) != 0) {

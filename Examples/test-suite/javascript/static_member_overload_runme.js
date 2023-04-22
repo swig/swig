@@ -12,5 +12,5 @@ try {
 
 try {
   static_member_overload.Foo.sum(1, 2);
-  throw new Error('instance member should have failed');
+  throw new Error('static member should have failed');
 } catch {}
