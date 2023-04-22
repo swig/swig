@@ -20,7 +20,10 @@ SWIGOPT += -DV8_VERSION=$(JSV8_VERSION)
 endif
 
 check: build
-	$(MAKE) -f $(EXAMPLES_TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' javascript_run
+	echo "*** Examples/javascript build target - files in $$PWD are:"
+	ls -l
+	echo "***"
+	$(MAKE) --no-silent -f $(EXAMPLES_TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' javascript_run
 
 build:
 	$(MAKE) -f $(EXAMPLES_TOP)/Makefile SRCDIR='$(SRCDIR)' CXXSRCS='$(SRCS)' \
