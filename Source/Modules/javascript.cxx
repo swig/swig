@@ -1174,7 +1174,6 @@ int JSEmitter::emitConstant(Node *n) {
 
   Wrapper *wrapper = NewWrapper();
   SwigType *type = Getattr(n, "type");
-  String *name = Getattr(n, "name");
   String *iname = Getattr(n, "sym:name");
   String *wname = Swig_name_get(Getattr(current_namespace, NAME_MANGLED), iname);
   String *rawval = Getattr(n, "rawval");
