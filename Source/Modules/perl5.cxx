@@ -2488,6 +2488,10 @@ public:
     }
     return SWIG_OK;
   }
+
+  virtual Language::StaticOverloadingSupport staticOverloadingSupport() const {
+    return Language::StaticOverloadingSupport::SOS_Mixed;
+  }
 };
 
 /* -----------------------------------------------------------------------------

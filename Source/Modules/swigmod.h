@@ -316,6 +316,18 @@ public:
   */
   virtual NestedClassSupport nestedClassesSupport() const;
 
+  /* Does the target language support overloading of static members */
+  enum StaticOverloadingSupport {
+      SOS_None,  // Static members cannot be overloaded (like C++03)
+      SOS_Mixed, // Mixed overloading of static and instance members is allowed
+                 // (like Perl)
+      SOS_Separate // Static and instance members use different namespaces (like
+                   // JS and C++11)
+  };
+
+  /* Allow overloading of static functions */
+  virtual Language::StaticOverloadingSupport staticOverloadingSupport() const;
+
   /* Returns true if the target language supports key word arguments (kwargs) */
   virtual bool kwargsSupport() const;
 

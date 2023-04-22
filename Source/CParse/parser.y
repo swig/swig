@@ -75,6 +75,7 @@ static int      compact_default_args = 0;
 static int      template_reduce = 0;
 static int      cparse_externc = 0;
 int		ignore_nested_classes = 0;
+int             static_overloading = 1;
 int		kwargs_supported = 0;
 
 /* -----------------------------------------------------------------------------

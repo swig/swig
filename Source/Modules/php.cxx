@@ -2512,6 +2512,11 @@ public:
     wrapperType = standard;
     return result;
   }
+
+  virtual Language::StaticOverloadingSupport staticOverloadingSupport() const {
+    // In PHP static members cannot be overloaded
+    return Language::StaticOverloadingSupport::SOS_None;
+  }
 };				/* class PHP */
 
 static PHP *maininstance = 0;

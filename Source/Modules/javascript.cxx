@@ -308,6 +308,11 @@ public:
     delete emitter;
   }
 
+  virtual Language::StaticOverloadingSupport staticOverloadingSupport() const {
+    // In JS static and instance members do not share the same namespace
+    return Language::StaticOverloadingSupport::SOS_Separate;
+  }
+
   virtual int functionHandler(Node *n);
   virtual int globalfunctionHandler(Node *n);
   virtual int variableHandler(Node *n);
@@ -1190,6 +1195,9 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   if (is_overloaded) {
     t_function = getTemplate("js_overloaded_function");
     Append(wrap_name, Getattr(n, "sym:overname"));
+  }
+  if (is_static) {
+    Append(wrap_name, "_static");
   }
   Setattr(n, "wrap:name", wrap_name);
   state.function(WRAPPER_NAME, wrap_name);

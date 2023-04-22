@@ -3462,6 +3462,16 @@ void Language::allow_overloading(int val) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Language::staticOverloadingSupport()
+ * -----------------------------------------------------------------------------
+ */
+
+Language::StaticOverloadingSupport Language::staticOverloadingSupport() const {
+  // TODO: Maybe the default one should be SOS_NONE
+  return Language::StaticOverloadingSupport::SOS_Mixed;
+}
+
+/* -----------------------------------------------------------------------------
  * Language::allow_multiple_input()
  * ----------------------------------------------------------------------------- */
 

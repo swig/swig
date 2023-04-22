@@ -56,6 +56,7 @@ extern "C" {
 extern "C" {
   extern String *ModuleName;
   extern int ignore_nested_classes;
+  extern int static_overloading;
   extern int kwargs_supported;
 }
 
@@ -923,6 +924,18 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
   // Inform the parser if the nested classes should be ignored unless explicitly told otherwise via feature:flatnested
   ignore_nested_classes = lang->nestedClassesSupport() == Language::NCS_Unknown ? 1 : 0;
+  switch (lang->staticOverloadingSupport()) {
+    case Language::SOS_None:
+      static_overloading = 0;
+      break;
+    default:
+    case Language::SOS_Mixed:
+      static_overloading = 1;
+      break;
+    case Language::SOS_Separate:
+      static_overloading = 2;
+      break;
+  }
 
   kwargs_supported = lang->kwargsSupport() ? 1 : 0;
 

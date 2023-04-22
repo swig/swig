@@ -178,6 +178,8 @@ static int use_inherit = 1;
 
 /* common attribute keys, to avoid calling find_key all the times */
 
+/* language features */
+extern int static_overloading;
 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_print_tables()
@@ -877,6 +879,11 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
     /* Look at storage class to see if compatible */
     cstorage = Getattr(c, "storage");
     nstorage = Getattr(n, "storage");
+    Printf(stdout, "node=%s (%s), first=%s (%s)\n",
+        Getattr(n, "name"),
+        nstorage,
+        Getattr(c, "name"),
+        cstorage);
 
     /* If either one is declared as typedef, forget it. We're hosed */
     if (Cmp(cstorage, "typedef") == 0) {
@@ -884,6 +891,17 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
     }
     if (Cmp(nstorage, "typedef") == 0) {
       return c;
+    }
+
+    if (Cmp(cstorage, "static") == 0 || Cmp(nstorage, "static") == 0) {
+      if (static_overloading == 0) {
+        /* No static overloading at all */
+        return c;
+      }
+      if (static_overloading == 2 && Cmp(cstorage, nstorage) != 0) {
+        /* When the storage classes do not match, this is not overloading */
+        c = 0;
+      }
     }
 
     /* Okay. Walk down the list of symbols and see if we get a declarator match */
@@ -914,20 +932,24 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
 	pn++;
       }
     }
-    /* Well, we made it this far.  Guess we can drop the symbol in place */
-    Setattr(n, "sym:symtab", current_symtab);
-    Setattr(n, "sym:name", symname);
-    /* Printf(stdout,"%s %p\n", Getattr(n,"sym:overname"), current_symtab); */
-    assert(!Getattr(n, "sym:overname"));
-    overname = NewStringf("__SWIG_%d", pn);
-    Setattr(n, "sym:overname", overname);
-    /*Printf(stdout,"%s %s %s\n", symname, Getattr(n,"decl"), Getattr(n,"sym:overname")); */
-    Setattr(cl, "sym:nextSibling", n);
-    Setattr(n, "sym:previousSibling", cl);
-    Setattr(cl, "sym:overloaded", c);
-    Setattr(n, "sym:overloaded", c);
-    Delete(overname);
-    return n;
+
+    if (c) {
+      /* Well, we made it this far.  Guess we can drop the symbol in place */
+      Setattr(n, "sym:symtab", current_symtab);
+      Setattr(n, "sym:name", symname);
+      /* Printf(stdout,"%s %p\n", Getattr(n,"sym:overname"), current_symtab); */
+      assert(!Getattr(n, "sym:overname"));
+      overname = NewStringf("__SWIG_%d", pn);
+      Setattr(n, "sym:overname", overname);
+      /*Printf(stdout,"%s %s %s\n", symname, Getattr(n,"decl"),
+       * Getattr(n,"sym:overname")); */
+      Setattr(cl, "sym:nextSibling", n);
+      Setattr(n, "sym:previousSibling", cl);
+      Setattr(cl, "sym:overloaded", c);
+      Setattr(n, "sym:overloaded", c);
+      Delete(overname);
+      return n;
+    }
   }
 
   /* No conflict.  Just add it */
