@@ -22,6 +22,11 @@ endif
 check: build
 	echo "*** Examples/javascript build target - files in $$PWD are:"
 	ls -l
+	echo "*** and in SRCDIR=$(SRCDIR):"
+	ls -l '$(SRCDIR)'
+	echo "***"
+	echo "SRCS=$(SRCS)"
+	echo "CXXSRCS=$(CXXSRCS)"
 	echo "***"
 	$(MAKE) -f $(EXAMPLES_TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' javascript_run
 
