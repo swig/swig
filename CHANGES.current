@@ -7,6 +7,28 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-04-23: olly
+	    [Javascript] #2453 The testsuite and examples now select which
+	    Javascript engine to test based on what was detected by configure.
+	    Previously they'd always test with node you specified a different
+	    engine (e.g. with `ENGINE=jsc` on the make command line).  Now you
+	    only need to specify ENGINE if you have more than one engine
+	    installed.
+
+2023-04-23: olly
+	    [Javascript] Turn on C++ output when wrapping for node, like
+	    we already do when wrapping for V8-without-node.
+
+	    The testsuite was masking this bug by using SWIG options
+	    `-v8 -DBUILDING_NODE_EXTENSION=1` rather than `-node` when testing
+	    with nodejs, while the javascript examples were masking this by
+	    all getting processed with -c++.
+
+	    This shouldn't be an incompatible change for users, as if you're
+	    wrapping a C API you'd have to be working around the problem before
+	    this change (like our testsuite and examples were), and this change
+	    shouldn't break your workaround - it just makes it unnecessary.
+
 2023-04-21: mmomtchev
 	    [Javascript] Fix naming of internal C++ helper for wrapping
 	    variables for node to use the "getter" naming scheme rather
