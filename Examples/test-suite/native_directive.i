@@ -48,8 +48,8 @@ extern "C" JNIEXPORT jint JNICALL Java_native_1directive_native_1directiveJNI_Co
 
 #ifdef SWIGJAVASCRIPT
 %native(CountAlphaCharacters) void JavaScript_alpha_count();
+#if defined(SWIG_JAVASCRIPT_NAPI)      /* engine = napi */
 %{
-#if defined(NAPI_VERSION)      /* engine = napi */
 
 static Napi::Value JavaScript_alpha_count(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
@@ -74,7 +74,9 @@ fail:
   return Napi::Value();
 }
 
-#elif defined(SWIG_V8_VERSION) /* engine = node || v8 */
+%}
+#elif defined(SWIG_JAVASCRIPT_V8) /* engine = node || v8 */
+%{
 
 static SwigV8ReturnValue JavaScript_alpha_count(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
@@ -97,7 +99,9 @@ fail:
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
 }
 
-#else /* engine = jsc */
+%}
+#elif defined(SWIG_JAVASCRIPT_JSC) /* engine = jsc */
+%{
 
 static JSValueRef JavaScript_alpha_count(JSContextRef context, JSObjectRef function,
   JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
@@ -121,7 +125,11 @@ fail:
   return JSValueMakeUndefined(context);
 }
 
-#endif /* engine */
 %}
+#else
+%{
+#error No valid JS engine configured
+%}
+#endif /* engine */
 #endif /* SWIGJAVASCRIPT */
 
