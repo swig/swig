@@ -33,7 +33,7 @@
 /* Javascript types */
 
 #define SWIG_Object                     Napi::Value
-#define VOID_Object                     SWIG_Object()
+#define VOID_Object                     env.Undefined()
 
 /* Overload of the output/constant/exception/dirout handling */
 
