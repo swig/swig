@@ -40,8 +40,8 @@
   }
   else {
     char errmsg[100];
-    sprintf(errmsg, "Size of input data (%d) is too big (maximum is %d)",
-      iRows*iCols, $1_dim0);
+    SWIG_snprintf2(errmsg, sizeof(errmsg), "Size of input data (%d) is too big (maximum is %d)",
+                   iRows*iCols, $1_dim0);
     SWIG_exception_fail(SWIG_OverflowError, errmsg);
   }
 }

@@ -25,7 +25,7 @@
  *
  *     %cstring_bounded_output(char *outx, 512);
  *     void foo(char *outx) {
- *         sprintf(outx,"blah blah\n");
+ *         strcpy(outx,"blah blah\n");
  *     }
  *
  */
@@ -144,7 +144,7 @@
  *
  *     %cstring_output_maxsize(char *outx, int max) {
  *     void foo(char *outx, int max) {
- *         sprintf(outx,"blah blah\n");
+ *         strcpy(outx,"blah blah\n");
  *     }
  */
 
@@ -175,7 +175,7 @@
  *
  *     %cstring_output_maxsize(char *outx, int *max) {
  *     void foo(char *outx, int *max) {
- *         sprintf(outx,"blah blah\n");
+ *         strcpy(outx,"blah blah\n");
  *         *max = strlen(outx);  
  *     }
  */
@@ -213,7 +213,7 @@
  *     %cstring_output_allocated(char **outx, free($1));
  *     void foo(char **outx) {
  *         *outx = (char *) malloc(512);
- *         sprintf(outx,"blah blah\n");
+ *         strcpy(outx,"blah blah\n");
  *     }
  */
 
@@ -241,7 +241,7 @@
  *     %cstring_output_allocated(char **outx, int *sz, free($1));
  *     void foo(char **outx, int *sz) {
  *         *outx = (char *) malloc(512);
- *         sprintf(outx,"blah blah\n");
+ *         strcpy(outx,"blah blah\n");
  *         *sz = strlen(outx);
  *     }
  */

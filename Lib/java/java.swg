@@ -1039,7 +1039,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
                  unsigned long, 
                  unsigned short
 %{ char error_msg[256];
-   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
+   SWIG_snprintf(error_msg, sizeof(error_msg), "C++ $1_type exception thrown, value: %d", $1);
    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, error_msg);
    return $null; %}
 
