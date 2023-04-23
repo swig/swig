@@ -839,11 +839,13 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
 
       /* Hmmm.  This appears to be okay.  Make sure the symbol table refers to the allow_type node */
 
+      Setattr(current, symname, td);
       if (td != c) {
-	Setattr(current, symname, td);
-	Setattr(td, "sym:symtab", current_symtab);
+        Setattr(td, "sym:symtab", current_symtab);
 	Setattr(td, "sym:name", symname);
       }
+      Setattr(n, "sym:symtab", current_symtab);
+      Setattr(n, "sym:name", symname);
       return n;
     }
 
