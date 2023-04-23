@@ -33,18 +33,18 @@
 /* Javascript types */
 
 #define SWIG_Object                     Napi::Value
-#define VOID_Object                     env.Undefined()
+#define VOID_Object                     SWIG_Object()
 
 /* Overload of the output/constant/exception/dirout handling */
 
 /* append output */
-#define SWIG_AppendOutput(result, obj) SWIGNapi_AppendOutput(result, obj)
+#define SWIG_AppendOutput(result, obj)  SWIGNapi_AppendOutput(env, result, obj)
 
 /* set constant */
 #define SWIG_SetConstant(name, obj)
 
 /* raise */
-#define SWIG_Raise(obj, type, desc)  SWIG_NAPI_Raise(env, obj, type)
+#define SWIG_Raise(...)                 SWIG_NAPI_Raise(env, __VA_ARGS__)
 
 %insert("runtime") %{
 #define SWIG_NAPI_FROM_DECL_ARGS(arg1)              (Napi::Env env, arg1)
