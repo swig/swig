@@ -51,11 +51,11 @@ class wstring;
 }
 
 %typemap(out) const string & {
-    $result = caml_val_string_len((*$1).c_str(), (*$1).size());
+    $result = caml_val_string_len((*$1).data(), (*$1).size());
 }
 
 %typemap(directorin) string {
-    swig_result = caml_val_string_len($1.c_str(), $1.size());
+    swig_result = caml_val_string_len($1.data(), $1.size());
     args = caml_list_append(args, swig_result);
 }
 
@@ -64,19 +64,19 @@ class wstring;
 }
 
 %typemap(out) string {
-  $result = caml_val_string_len($1.c_str(),$1.size());
+  $result = caml_val_string_len($1.data(),$1.size());
 }
 
 %typemap(varout) string {
-  $result = caml_val_string_len($1.c_str(),$1.size());
+  $result = caml_val_string_len($1.data(),$1.size());
 }
 
 %typemap(out) string * {
-	$result = caml_val_string_len((*$1).c_str(),(*$1).size());
+	$result = caml_val_string_len((*$1).data(),(*$1).size());
 }
 
 %typemap(varout) string * {
-	$result = caml_val_string_len((*$1).c_str(),(*$1).size());
+	$result = caml_val_string_len((*$1).data(),(*$1).size());
 }
 
 %typemap(typecheck) string, const string & = char *;
@@ -87,7 +87,7 @@ class wstring;
 %typemap(in, numinputs=0) string &OUTPUT ($*1_ltype temp)
 %{ $1 = &temp; %}
 %typemap(argout) string &OUTPUT {
-    swig_result = caml_list_append(swig_result, caml_val_string_len((*$1).c_str(), (*$1).size()));
+    swig_result = caml_list_append(swig_result, caml_val_string_len((*$1).data(), (*$1).size()));
 }
 %typemap(in) string &INOUT = const string &;
 %typemap(argout) string &INOUT = string &OUTPUT;
