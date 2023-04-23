@@ -110,7 +110,7 @@ const char* Ruby_Format_TypeError( const char* msg,
     }
 
   str = rb_str_cat2( str, "Expected argument " );
-  sprintf( buf, "%d of type ", argn-1 );
+  SWIG_snprintf( buf, sizeof( buf), "%d of type ", argn-1 );
   str = rb_str_cat2( str, buf );
   str = rb_str_cat2( str, type );
   str = rb_str_cat2( str, ", but got " );

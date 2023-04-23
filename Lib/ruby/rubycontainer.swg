@@ -186,7 +186,7 @@ namespace swig
 	return swig::as<T>(item);
       } catch (const std::invalid_argument& e) {
 	char msg[1024];
-	sprintf(msg, "in sequence element %d ", _index);
+	SWIG_snprintf(msg, sizeof(msg), "in sequence element %d ", _index);
 	VALUE lastErr = rb_gv_get("$!");
 	if ( lastErr == Qnil ) {
 	  %type_error(swig::type_name<T>());

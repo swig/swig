@@ -7,6 +7,25 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-04-27: olly
+	    #2502 Allow using snprintf() instead of sprintf() in wrappers.
+
+	    We aim to produce code that works with C90 or C++98 so we can't
+	    assume snprintf() is available, but it almost always is (even
+	    on systems from before it was standardised) so having a way to
+	    use it is helpful.
+
+	    We enable this automatically if the compiler claims conformance
+	    with at least C90 or C++98 and check SWIG_HAVE_SNPRINTF to allow
+	    turning on manually, but disable if SWIG_NO_SNPRINTF if defined.
+
+	    The fallback is to call sprintf() without a buffer size check,
+	    which is what we've done until now.  Adding a check after the
+	    call seems of limited benefit - if the buffer was overflowed
+	    then it's too late to block it , and most of our uses either have a
+	    fixed maximum possible size or dynamically allocate a buffer that's
+	    large enough.
+
 2023-04-26: mmomtchev
 	    [Javascript] Take into account numinputs when counting arguments.
 
