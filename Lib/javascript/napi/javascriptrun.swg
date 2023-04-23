@@ -2,18 +2,31 @@
  * Error handling
  *
  * ---------------------------------------------------------------------------*/
-#define NAPI_MAKE_EXCEPTION(code, msg)                                      \
+
+/*
+ * We support several forms:
+ *
+ * SWIG_Raise("Error message")
+ * which creates an Error object with the error message
+ *
+ * SWIG_Raise(SWIG_TypeError, "Type error")
+ * which creates the specified error type with the message
+ *
+ * SWIG_Raise(obj)
+ * which throws the object itself
+ *
+ * SWIG_Raise(obj, "Exception const &", SWIGType_p_Exception)
+ * which also throws the object itself and discards the unneeded extra type info
+ *
+ * These must be functions instead of macros to use the C++ overloading to
+ * resolve the arguments
+ */
+#define SWIG_exception(code, msg)               SWIG_Error(code, msg)
+#define SWIG_fail                               goto fail
 
 #ifdef NAPI_CPP_EXCEPTIONS
 
-#define SWIG_Error(code, msg)                       \
-        do {                                        \
-          if ((code) == SWIG_TypeError)             \
-            throw Napi::TypeError::New(env, msg);   \
-          throw Napi::Error::New(env, msg);         \
-        } while (0)
-#define SWIG_exception(code, msg)               SWIG_Error(code, msg)
-#define SWIG_fail                               goto fail
+#define SWIG_Error(code, msg)                   SWIG_NAPI_Raise(env, code, msg)
 #define NAPI_CHECK_MAYBE(maybe)                 (maybe)
 #define NAPI_CHECK_RESULT(maybe, result)        (result = maybe)
 
@@ -21,29 +34,34 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
   throw Napi::Error::New(env, msg);
 }
 
-SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj, const char *msg) {
+SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
+  switch(type) {
+    default:
+    case SWIG_IOError:
+    case SWIG_MemoryError:
+    case SWIG_SystemError:
+    case SWIG_RuntimeError:
+    case SWIG_DivisionByZero:
+    case SWIG_SyntaxError:
+      throw Napi::Error::New(env, msg);
+    case SWIG_OverflowError:
+    case SWIG_IndexError:
+      throw Napi::RangeError::New(env, msg);
+    case SWIG_ValueError:
+    case SWIG_TypeError:
+      throw Napi::TypeError::New(env, msg);
+  }
+}
+
+SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
+        const char *msg = nullptr, swig_type_info *info = nullptr) {
   throw Napi::Error(env, obj);
 }
 
 #else
 
-#define SWIG_Error(code, msg)                 \
-        do {                                  \
-          if ((code) == SWIG_TypeError) {     \
-            Napi::TypeError::New(env, msg).   \
-              ThrowAsJavaScriptException();   \
-            SWIG_fail;                        \
-          }                                   \
-          Napi::Error::New(env, msg).         \
-            ThrowAsJavaScriptException();     \
-          SWIG_fail;                          \
-        } while (0)
-#define SWIG_exception(code, msg) do { SWIG_Error(code, msg); SWIG_fail; } while (0)
-#define SWIG_fail                 goto fail
-#define NAPI_CHECK_MAYBE(maybe)                   \
-        do {                                      \
-                if (maybe.IsNothing()) SWIG_fail; \
-        } while (0)
+#define SWIG_Error(code, msg)     do { SWIG_NAPI_Raise(env, code, msg); SWIG_fail; } while (0)
+#define NAPI_CHECK_MAYBE(maybe)   do { if (maybe.IsNothing()) SWIG_fail; } while (0)
 #define NAPI_CHECK_RESULT(maybe, result)          \
         do {                                      \
                 auto r = maybe;                   \
@@ -55,10 +73,30 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
   Napi::Error::New(env, msg).ThrowAsJavaScriptException();
 }
 
-// TODO: Is this a good idea?
-// The other JavaScript SWIG implementations serialize the object to a string
-// when throwing, while this one actually throws the object itself
-SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj, const char *msg) {
+SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
+  switch(type) {
+    default:
+    case SWIG_IOError:
+    case SWIG_MemoryError:
+    case SWIG_SystemError:
+    case SWIG_RuntimeError:
+    case SWIG_DivisionByZero:
+    case SWIG_SyntaxError:
+      Napi::Error::New(env, msg).ThrowAsJavaScriptException();
+      return;
+    case SWIG_OverflowError:
+    case SWIG_IndexError:
+      Napi::RangeError::New(env, msg).ThrowAsJavaScriptException();
+      return;
+    case SWIG_ValueError:
+    case SWIG_TypeError:
+      Napi::TypeError::New(env, msg).ThrowAsJavaScriptException();
+      return;
+  }
+}
+
+SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
+        const char *msg = nullptr, swig_type_info *info = nullptr) {
   Napi::Error(env, obj).ThrowAsJavaScriptException();
 }
 
@@ -367,8 +405,7 @@ int SWIGNapi_ConvertPacked(Napi::Value valRef, void *ptr, size_t size, swig_type
 
 SWIGRUNTIME
 
-Napi::Value SWIGNapi_AppendOutput(Napi::Value result, Napi::Value obj) {
-  Napi::Env env = result.Env();
+Napi::Value SWIGNapi_AppendOutput(Napi::Env env, Napi::Value result, Napi::Value obj) {
   if (result.IsUndefined()) {
     result = Napi::Array::New(env);
   } else if (!result.IsArray()) {
