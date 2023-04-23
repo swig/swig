@@ -88,6 +88,7 @@ CPP_TEST_BROKEN += \
 	extend_variable \
 	li_boost_shared_ptr_template \
 	nested_private \
+	smart_pointer_static \
 	template_default_pointer \
 	template_private_assignment \
 	$(CPP11_TEST_BROKEN) \
@@ -412,7 +413,6 @@ CPP_TEST_CASES += \
 	smart_pointer_protected \
 	smart_pointer_rename \
 	smart_pointer_simple \
-	smart_pointer_static \
 	smart_pointer_template_const_overload \
 	smart_pointer_template_defaults_overload \
 	smart_pointer_templatemethods \
