@@ -218,7 +218,8 @@ SWIG_MzScheme_Malloc(size_t size, const char *func_name) {
   void *p = malloc(size);
   if (p == NULL) {
     scheme_signal_error("swig-memory-error");
-  } else return p;
+  }
+  return p;
 }
 
 static Scheme_Object *
