@@ -73,7 +73,6 @@ CPP_TEST_CASES += \
 	swigobject \
 	template_matrix \
 
-#	li_std_carray
 #	director_profile
 
 CPP11_TEST_CASES = \
