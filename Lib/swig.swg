@@ -361,13 +361,13 @@ static int NAME(TYPE x) {
 %define SWIG_TYPECHECK_STDUNISTRING 115    %enddef
 %define SWIG_TYPECHECK_UNISTRING    120    %enddef
 %define SWIG_TYPECHECK_CHAR         130    %enddef
-%define SWIG_TYPECHECK_STDSTRING    135    %enddef
-%define SWIG_TYPECHECK_STRING       140    %enddef
 /* Give std::string_view a slightly higher precedence because if there are
  * overloaded forms then it may be more efficient to pass as std::string_view
  * (e.g. to pass as std::string requires copying the data into a std::string).
  */
-%define SWIG_TYPECHECK_STRINGVIEW   141    %enddef
+%define SWIG_TYPECHECK_STRINGVIEW   134    %enddef
+%define SWIG_TYPECHECK_STDSTRING    135    %enddef
+%define SWIG_TYPECHECK_STRING       140    %enddef
 %define SWIG_TYPECHECK_PAIR         150    %enddef
 %define SWIG_TYPECHECK_STDARRAY     155    %enddef
 %define SWIG_TYPECHECK_VECTOR       160    %enddef
