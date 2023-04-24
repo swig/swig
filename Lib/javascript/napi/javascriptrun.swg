@@ -130,8 +130,8 @@ class SwigNapiObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
     bool owned;
     size_t size;
     swig_type_info *info;
-    SwigNapiObjectWrap_templ(const Napi::CallbackInfo& info);
-    SwigNapiObjectWrap_templ(bool, const Napi::CallbackInfo& info) :
+    SwigNapiObjectWrap_templ(const Napi::CallbackInfo &info);
+    SwigNapiObjectWrap_templ(bool, const Napi::CallbackInfo &info) :
         Napi::ObjectWrap<SWIG_OBJ_WRAP>(info),
         self(nullptr),
         owned(true),
@@ -139,10 +139,12 @@ class SwigNapiObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
         info(nullptr)
         {}
     virtual ~SwigNapiObjectWrap_templ() {};
+
+    Napi::Value ToString(const Napi::CallbackInfo &info);
 };
 
 template <typename SWIG_OBJ_WRAP>
-SwigNapiObjectWrap_templ<SWIG_OBJ_WRAP>::SwigNapiObjectWrap_templ(const Napi::CallbackInfo& info) :
+SwigNapiObjectWrap_templ<SWIG_OBJ_WRAP>::SwigNapiObjectWrap_templ(const Napi::CallbackInfo &info) :
         Napi::ObjectWrap<SWIG_OBJ_WRAP>(info), size(0), info(nullptr) { 
   Napi::Env env = info.Env();
   if (info.Length() == 1 && info[0].IsExternal()) {
@@ -159,6 +161,16 @@ fail:
   return;
 }
 
+template <typename SWIG_OBJ_WRAP>
+Napi::Value SwigNapiObjectWrap_templ<SWIG_OBJ_WRAP>::ToString(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+  static char repr[128];
+  snprintf(repr, sizeof(repr), "{SwigObject %s (%s) at %p %s}",
+    this->info->name, this->info->str, this->self,
+    this->owned ? "[owned]" : "[copy]");
+  return Napi::String::New(env, repr);
+}
+
 class SwigNapiObjectWrap_inst : public SwigNapiObjectWrap_templ<SwigNapiObjectWrap_inst> {
 public:
   using SwigNapiObjectWrap_templ::SwigNapiObjectWrap_templ;
@@ -167,8 +179,16 @@ public:
     Napi::Env,
     std::map<std::string, SwigNapiObjectWrap_templ::PropertyDescriptor> &,
     std::map<std::string, SwigNapiObjectWrap_templ::PropertyDescriptor> &
-  ) {};
+  );
 };
+
+void SwigNapiObjectWrap_inst::GetMembers(
+        Napi::Env env,
+        std::map<std::string, SwigNapiObjectWrap_templ::PropertyDescriptor> &members,
+        std::map<std::string, SwigNapiObjectWrap_templ::PropertyDescriptor> &
+) {
+  members.insert({"toString", SwigNapiObjectWrap_templ::InstanceMethod("toString", &SwigNapiObjectWrap_templ::ToString)});
+}
 
 Napi::Function SwigNapiObjectWrap_inst::GetClass(Napi::Env env) {
   return Napi::ObjectWrap<SwigNapiObjectWrap_inst>::DefineClass(env, "SwigObject", {});
