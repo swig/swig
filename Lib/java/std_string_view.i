@@ -34,11 +34,14 @@ class string_view;
    }
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
    if (!$1_pstr) return $null;
-   $1 = std::string_view($1_pstr);
-   /* FIXME: std::string_view requires the string data to remain valid while the string_view is in use. */
-   /* jenv->ReleaseStringUTFChars($input, $1_pstr); */ %}
+   $1 = std::string_view($1_pstr); %}
 
-%typemap(directorout) string_view
+/* std::string_view requires the string data to remain valid while the
+ * string_view is in use. */
+%typemap(freearg) string_view
+%{ jenv->ReleaseStringUTFChars($input, $1_pstr); %}
+
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) string_view
 %{ if(!$input) {
      if (!jenv->ExceptionCheck()) {
        SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
@@ -47,8 +50,10 @@ class string_view;
    }
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
    if (!$1_pstr) return $null;
-   $result = std::string_view($1_pstr);
-   /* jenv->ReleaseStringUTFChars($input, $1_pstr); */ %}
+   /* possible thread/reentrant code problem */
+   static std::string $1_str($1_pstr);
+   $result = std::string_view($1_str);
+   jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
 /* std::string_view::data() isn't zero-byte terminated, but NewStringUTF()
  * requires a zero byte so it seems we have to make a copy (ick).  The
@@ -88,8 +93,12 @@ class string_view;
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
    if (!$1_pstr) return $null;
    $*1_ltype $1_str($1_pstr);
-   $1 = &$1_str;
-   /* jenv->ReleaseStringUTFChars($input, $1_pstr); */ %}
+   $1 = &$1_str; %}
+
+/* std::string_view requires the string data to remain valid while the
+ * string_view is in use. */
+%typemap(freearg) const string_view &
+%{ jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const string_view &
 %{ if(!$input) {
@@ -99,10 +108,10 @@ class string_view;
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
    if (!$1_pstr) return $null;
    /* possible thread/reentrant code problem */
-   static $*1_ltype $1_str;
-   $1_str = $1_pstr;
+   static std::string $1_str($1_pstr);
+   static $*1_ltype $1_strview($1_str);
    $result = &$1_str;
-   /* jenv->ReleaseStringUTFChars($input, $1_pstr); */ %}
+   jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") const string_view &
 %{ $input = jenv->NewStringUTF(std::string($1).c_str());
