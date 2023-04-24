@@ -56,6 +56,11 @@ namespace std {
         goto fail;
     %}
 
+    %typemap(throws) string*, const string* %{
+        zend_throw_exception(NULL, $1->c_str(), 0);
+        goto fail;
+    %}
+
     %typemap(in, phptype="string") const string& ($*1_ltype temp) %{
         convert_to_string(&$input);
         temp.assign(Z_STRVAL($input), Z_STRLEN($input));

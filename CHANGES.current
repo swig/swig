@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-04-24: olly
+	    [PHP] Add throws typemaps for std:string* and const std::string*.
+
 2023-04-23: olly
 	    [Javascript] #2453 The testsuite and examples now select which
 	    Javascript engine to test based on what was detected by configure.

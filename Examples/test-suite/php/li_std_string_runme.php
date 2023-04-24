@@ -67,6 +67,32 @@ $s = "byref";
 check::equal(li_std_string::test_reference_php($s), null);
 check::equal($s, "byref.php");
 
+// Test throwing strings:
+try {
+    test_throw();
+    check::fail("test_throw() didn't throw");
+} catch (Exception $s) {
+    check::equal($s->getMessage(), "test_throw message");
+}
+try {
+    test_const_reference_throw();
+    check::fail("test_const_reference_throw() didn't throw");
+} catch (Exception $s) {
+    check::equal($s->getMessage(), "test_const_reference_throw message");
+}
+try {
+    test_pointer_throw();
+    check::fail("test_pointer_throw() didn't throw");
+} catch (Exception $s) {
+    check::equal($s->getMessage(), "foo");
+}
+try {
+    test_const_pointer_throw();
+    check::fail("test_const_pointer_throw() didn't throw");
+} catch (Exception $s) {
+    check::equal($s->getMessage(), "foo");
+}
+
 // This used to give "Undefined variable: r"
 li_std_string::test_const_reference_returning_void("foo");
 
