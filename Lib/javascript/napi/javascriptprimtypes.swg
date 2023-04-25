@@ -80,6 +80,9 @@ int SWIG_AsVal_dec(unsigned int)(Napi::Value valRef, unsigned int* val)
   if (!valRef.IsNumber()) {
     return SWIG_TypeError;
   }
+  if (valRef.ToNumber().Int64Value() < 0) {
+    return SWIG_TypeError;
+  }
   if (val) {
     Napi::Number num;
     NAPI_CHECK_RESULT(valRef.ToNumber(), num);
@@ -140,6 +143,9 @@ SWIGINTERN
 int SWIG_AsVal_dec(unsigned short)(Napi::Value valRef, unsigned short* val)
 {
   if (!valRef.IsNumber()) {
+    return SWIG_TypeError;
+  }
+  if (valRef.ToNumber().Int64Value() < 0) {
     return SWIG_TypeError;
   }
   if (val) {
@@ -205,7 +211,9 @@ int SWIG_AsVal_dec(unsigned long)(Napi::Value obj, unsigned long *val)
   if(!obj.IsNumber()) {
     return SWIG_TypeError;
   }
-
+  if (valRef.ToNumber().Int64Value() < 0) {
+    return SWIG_TypeError;
+  }
   if (val) {
     Napi::Number num;
     NAPI_CHECK_RESULT(obj.ToNumber(), num);
@@ -279,7 +287,9 @@ int SWIG_AsVal_dec(unsigned long long)(Napi::Value obj, unsigned long long *val)
   if(!obj.IsNumber()) {
     return SWIG_TypeError;
   }
-
+  if (valRef.ToNumber().Int64Value() < 0) {
+    return SWIG_TypeError;
+  }
   if (val) {
     Napi::Number num;
     NAPI_CHECK_RESULT(obj.ToNumber(), num);
