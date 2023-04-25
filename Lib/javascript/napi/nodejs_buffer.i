@@ -7,6 +7,7 @@
  * or to discriminate by argument names:
  * %typemap(in)        (void *data, size_t length) = (const void* buffer_data, const size_t buffer_len);
  * %typemap(typecheck) (void *data, size_t length) = (const void* buffer_data, const size_t buffer_len);
+ *
  */
 
 %typemap(in) (const void* buffer_data, const size_t buffer_len) {
@@ -23,9 +24,14 @@
   $1 = $input.IsBuffer();
 }
 
-%typemap(argout) (const void* buffer_data, const size_t buffer_len) {
+%typemap(in, numinputs=0) (void **buffer_data, size_t *buffer_len) (void *temp_data, size_t temp_len) {
+  $1 = &temp_data;
+  $2 = &temp_len;
+}
+%typemap(argout) (void **buffer_data, size_t *buffer_len) {
   if ($1 != nullptr) {
-    $result = Napi::Buffer<char>::New(env, reinterpret_cast<char *>($1), $2);
+    Napi::Buffer<char> buf = Napi::Buffer<char>::Copy(env, reinterpret_cast<char *>(*$1), *$2);
+    NAPI_CHECK_RESULT(buf.As<Napi::Value>(), $result);
   } else {
     $result = env.Null();
   }
