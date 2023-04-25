@@ -211,7 +211,7 @@ int SWIG_AsVal_dec(unsigned long)(Napi::Value obj, unsigned long *val)
   if(!obj.IsNumber()) {
     return SWIG_TypeError;
   }
-  if (valRef.ToNumber().Int64Value() < 0) {
+  if (obj.ToNumber().Int64Value() < 0) {
     return SWIG_TypeError;
   }
   if (val) {
@@ -287,7 +287,7 @@ int SWIG_AsVal_dec(unsigned long long)(Napi::Value obj, unsigned long long *val)
   if(!obj.IsNumber()) {
     return SWIG_TypeError;
   }
-  if (valRef.ToNumber().Int64Value() < 0) {
+  if (obj.ToNumber().Int64Value() < 0) {
     return SWIG_TypeError;
   }
   if (val) {
