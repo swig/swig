@@ -7,7 +7,6 @@
  * or to discriminate by argument names:
  * %typemap(in)        (void *data, size_t length) = (const void* buffer_data, const size_t buffer_len);
  * %typemap(typecheck) (void *data, size_t length) = (const void* buffer_data, const size_t buffer_len);
- *
  */
 
 %typemap(in) (const void* buffer_data, const size_t buffer_len) {
@@ -23,6 +22,16 @@
 %typemap(typecheck, precedence=SWIG_TYPECHECK_VOIDPTR) (const void* buffer_data, const size_t buffer_len) {
   $1 = $input.IsBuffer();
 }
+
+
+/*
+ * In order to use the argout typemap, the function must have the following signature:
+ *
+ * void buffer(void **buffer_data, size_t *buffer_len)
+ *
+ * In this case, this function will be wrapped by a JS function that takes
+ * no arguments (because of numinputs=0) and returns a Buffer
+ */
 
 %typemap(in, numinputs=0) (void **buffer_data, size_t *buffer_len) (void *temp_data, size_t temp_len) {
   $1 = &temp_data;
