@@ -39,23 +39,12 @@ stringPtr = test_reference_out()
 test_reference(stringPtr)
 
 -- Global variables
-s = "initial string";
-assert(cpp17_string_view.GlobalString2=="global string 2")
-
-cpp17_string_view.GlobalString2 = s
-assert(cpp17_string_view.GlobalString2==s)
 assert(cpp17_string_view.ConstGlobalString=="const global string")
 
 -- Member variables
 myStructure = Structure()
-assert(myStructure.MemberString2=="member string 2")
-myStructure.MemberString2 = s
-assert(myStructure.MemberString2==s)
 assert(myStructure.ConstMemberString=="const member string")
 
-assert(Structure.StaticMemberString2=="static member string 2")
-Structure.StaticMemberString2 = s
-assert(Structure.StaticMemberString2==s)
 assert(Structure.ConstStaticMemberString=="const static member string")
 
 test_const_reference_returning_void("foo")

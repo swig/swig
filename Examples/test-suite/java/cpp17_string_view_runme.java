@@ -78,30 +78,14 @@ public class cpp17_string_view_runme {
       }
 
       // Global variables
-      String s = "initial string";
-      if (!cpp17_string_view.getGlobalString2().equals("global string 2"))
-        throw new Exception("GlobalString2 test 1");
-      cpp17_string_view.setGlobalString2(s);
-      if (!cpp17_string_view.getGlobalString2().equals(s))
-        throw new Exception("GlobalString2 test 2");
       if (!cpp17_string_view.getConstGlobalString().equals("const global string"))
         throw new Exception("ConstGlobalString test");
 
       // Member variables
       Structure myStructure = new Structure();
-      if (!myStructure.getMemberString2().equals("member string 2"))
-        throw new Exception("MemberString2 test 1");
-      myStructure.setMemberString2(s);
-      if (!myStructure.getMemberString2().equals(s))
-        throw new Exception("MemberString2 test 2");
       if (!myStructure.getConstMemberString().equals("const member string"))
         throw new Exception("ConstMemberString test");
 
-      if (!Structure.getStaticMemberString2().equals("static member string 2"))
-        throw new Exception("StaticMemberString2 test 1");
-      Structure.setStaticMemberString2(s);
-      if (!Structure.getStaticMemberString2().equals(s))
-        throw new Exception("StaticMemberString2 test 2");
       if (!Structure.getConstStaticMemberString().equals("const static member string"))
         throw new Exception("ConstStaticMemberString test");
   }

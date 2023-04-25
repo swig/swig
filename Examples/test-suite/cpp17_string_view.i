@@ -72,36 +72,22 @@ void test_const_pointer_throw() TESTCASE_THROW1(const std::string_view *) {
 %}
 
 #ifdef SWIGSCILAB
-%rename(St) MemberString;
-%rename(Str) MemberString;
-%rename(Str2) MemberString2;
-%rename(StaticStr) StaticMemberString;
-%rename(StaticStr2) StaticMemberString2;
 %rename(ConstStr) ConstMemberString;
 %rename(ConstStaticStr) ConstStaticMemberString;
 #endif
 
 %inline %{
-std::string_view GlobalString;
-std::string_view GlobalString2 = "global string 2";
 const std::string_view ConstGlobalString = "const global string";
 
 struct Structure {
-  std::string_view MemberString;
-  std::string_view MemberString2;
-  static std::string_view StaticMemberString;
-  static std::string_view StaticMemberString2;
-
   const std::string_view ConstMemberString;
   static const std::string_view ConstStaticMemberString;
 
-  Structure() : MemberString2("member string 2"), ConstMemberString("const member string") {}
+  Structure() : ConstMemberString("const member string") {}
 };
 %}
 
 %{
-  std::string_view Structure::StaticMemberString = "static member string";
-  std::string_view Structure::StaticMemberString2 = "static member string 2";
   const std::string_view Structure::ConstStaticMemberString = "const static member string";
 %}
 
