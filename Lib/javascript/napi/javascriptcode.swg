@@ -775,7 +775,9 @@ void $jsmangledname_inst::GetMembers(
 %fragment("jsnapi_register_member_function", "templates")
 %{
   // jsnapi_member_function_descriptor
-  members.insert({"$jsname", $jsmangledname_templ::InstanceMethod("$jsname", &$jsmangledname_templ::$jswrapper)});
+  members.insert({"$jsname",
+        $jsmangledname_templ::InstanceMethod("$jsname",
+                &$jsmangledname_templ::$jswrapper, napi_default_method)});
 %}
 
 /* -----------------------------------------------------------------------------
@@ -788,7 +790,11 @@ void $jsmangledname_inst::GetMembers(
 %fragment("jsnapi_register_member_variable", "templates")
 %{
   // jsnapi_register_member_variable
-  members.insert({"$jsname", $jsmangledname_templ::InstanceAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter)});
+  members.insert({"$jsname",
+        $jsmangledname_templ::InstanceAccessor("$jsname",
+                &$jsmangledname_templ::$jsgetter,
+                &$jsmangledname_templ::$jssetter,
+                napi_default_jsproperty)});
 %}
 
 /* -----------------------------------------------------------------------------
@@ -800,7 +806,8 @@ void $jsmangledname_inst::GetMembers(
 %fragment("jsnapi_register_static_function", "templates")
 %{
   // jsnapi_register_static_function
-  staticMembers.insert({"$jsname", StaticMethod("$jsname", &$jsmangledname_templ::$jswrapper)});
+  staticMembers.insert({"$jsname",
+        StaticMethod("$jsname", &$jsmangledname_templ::$jswrapper, napi_default_method)});
 %}
 
 /* -----------------------------------------------------------------------------
@@ -813,5 +820,9 @@ void $jsmangledname_inst::GetMembers(
 %fragment("jsnapi_register_static_variable", "templates")
 %{
   // jsnapi_register_static_variable
-  staticMembers.insert({"$jsname", StaticAccessor("$jsname", &$jsmangledname_templ::$jsgetter, &$jsmangledname_templ::$jssetter)});
+  staticMembers.insert({"$jsname",
+        StaticAccessor("$jsname",
+                &$jsmangledname_templ::$jsgetter,
+                &$jsmangledname_templ::$jssetter,
+                napi_default_jsproperty)});
 %}
