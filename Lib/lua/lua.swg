@@ -18,8 +18,9 @@
  *                          constants typemaps
  * ----------------------------------------------------------------------------- */
 // this basically adds to a table of constants
+/* Extra `(`...`)` here are to handle $value being e.g. `SizeOf< int,int >::size`. */
 %typemap(consttab) int, unsigned int, short, unsigned short, long, unsigned long, unsigned char, signed char, bool, enum SWIGTYPE
-       {SWIG_LUA_CONSTTAB_INT("$symname", $value)}
+       {SWIG_LUA_CONSTTAB_INT("$symname", ($value))}
 
 %typemap(consttab) float, double
        {SWIG_LUA_CONSTTAB_FLOAT("$symname", $value)}
