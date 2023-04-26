@@ -279,3 +279,9 @@ try:
     raise RuntimeError("Zero step not caught")
 except ValueError:
     pass
+
+# Construct from set (Iterator protocol, not Sequence protocol)
+ps = {11, 22, 33}
+iv = vector_int(ps)
+il = vector_int(ps)
+compare_containers(list(ps), iv, il)

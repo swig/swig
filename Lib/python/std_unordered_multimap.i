@@ -6,16 +6,6 @@
 %fragment("StdUnorderedMultimapTraits","header",fragment="StdMapCommonTraits",fragment="StdUnorderedMapForwardIteratorTraits")
 {
   namespace swig {
-    template <class SwigPySeq, class K, class T, class Hash, class Compare, class Alloc>
-    inline void 
-    assign(const SwigPySeq& swigpyseq, std::unordered_multimap<K,T,Hash,Compare,Alloc> *unordered_multimap) {
-      typedef typename std::unordered_multimap<K,T,Hash,Compare,Alloc>::value_type value_type;
-      typename SwigPySeq::const_iterator it = swigpyseq.begin();
-      for (;it != swigpyseq.end(); ++it) {
-	unordered_multimap->insert(value_type(it->first, it->second));
-      }
-    }
-
     template <class K, class T, class Hash, class Compare, class Alloc>
     struct traits_reserve<std::unordered_multimap<K,T,Hash,Compare,Alloc> >  {
       static void reserve(std::unordered_multimap<K,T,Hash,Compare,Alloc> &seq, typename std::unordered_multimap<K,T,Hash,Compare,Alloc>::size_type n) {

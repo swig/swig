@@ -5,17 +5,6 @@
 %fragment("StdUnorderedSetTraits","header",fragment="StdSequenceTraits")
 %{
   namespace swig {
-    template <class SwigPySeq, class Key, class Hash, class Compare, class Alloc>
-    inline void 
-    assign(const SwigPySeq& swigpyseq, std::unordered_set<Key,Hash,Compare,Alloc>* seq) {
-      // seq->insert(swigpyseq.begin(), swigpyseq.end()); // not used as not always implemented
-      typedef typename SwigPySeq::value_type value_type;
-      typename SwigPySeq::const_iterator it = swigpyseq.begin();
-      for (;it != swigpyseq.end(); ++it) {
-	seq->insert(seq->end(),(value_type)(*it));
-      }
-    }
-
     template <class Key, class Hash, class Compare, class Alloc>
     struct traits_reserve<std::unordered_set<Key,Hash,Compare,Alloc> >  {
       static void reserve(std::unordered_set<Key,Hash,Compare,Alloc> &seq, typename std::unordered_set<Key,Hash,Compare,Alloc>::size_type n) {
