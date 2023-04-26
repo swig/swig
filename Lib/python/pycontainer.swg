@@ -456,12 +456,6 @@ namespace swig {
 }
 }
 
-%fragment("SwigPySequence_Cont","header",
-	  fragment="StdTraits",
-	  fragment="SwigPySequence_Base",
-	  fragment="SwigPyIterator_T")
-{}
-
 %define %swig_sequence_iterator(Sequence...)
   %swig_sequence_iterator_with_making_function(swig::make_output_iterator,Sequence...)
 %enddef
@@ -477,12 +471,12 @@ namespace swig {
   class const_iterator;
   class const_reverse_iterator;
 
-  %typemap(out,noblock=1,fragment="SwigPySequence_Cont")
+  %typemap(out,noblock=1,fragment="SwigPyIterator_T")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
     $result = SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &)),
 				 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN);
   }
-  %typemap(out,noblock=1,fragment="SwigPySequence_Cont")
+  %typemap(out,noblock=1,fragment="SwigPyIterator_T")
     std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
     $result = PyTuple_New(2);
     PyTuple_SetItem($result,0,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &).first),
@@ -491,7 +485,7 @@ namespace swig {
 						 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));    
   }
 
-  %fragment("SwigPyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="SwigPySequence_Cont") {}
+  %fragment("SwigPyPairBoolOutputIterator","header",fragment=SWIG_From_frag(bool),fragment="SwigPyIterator_T") {}
 
   %typemap(out,noblock=1,fragment="SwigPyPairBoolOutputIterator")
     std::pair<iterator, bool>, std::pair<const_iterator, bool> {
@@ -501,7 +495,7 @@ namespace swig {
     PyTuple_SetItem($result,1,SWIG_From(bool)(%static_cast($1,const $type &).second));
   }
 
-  %typemap(in,noblock=1,fragment="SwigPySequence_Cont")
+  %typemap(in,noblock=1,fragment="SwigPyIterator_T")
     iterator(swig::SwigPyIterator *iter = 0, int res),
     reverse_iterator(swig::SwigPyIterator *iter = 0, int res),
     const_iterator(swig::SwigPyIterator *iter = 0, int res),
@@ -519,14 +513,14 @@ namespace swig {
     }
   }
 
-  %typecheck(%checkcode(ITERATOR),noblock=1,fragment="SwigPySequence_Cont")
+  %typecheck(%checkcode(ITERATOR),noblock=1,fragment="SwigPyIterator_T")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
     swig::SwigPyIterator *iter = 0;
     int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::SwigPyIterator::descriptor(), 0);
     $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::SwigPyIterator_T<$type > *>(iter) != 0));
   }
 
-  %fragment("SwigPySequence_Cont");
+  %fragment("SwigPyIterator_T");
 
   %newobject iterator(PyObject **PYTHON_SELF);
   %extend  {
@@ -772,7 +766,7 @@ namespace swig {
 
 %fragment("StdSequenceTraits","header",
 	  fragment="StdTraits",
-	  fragment="SwigPySequence_Cont")
+	  fragment="SwigPySequence_Base")
 {
 namespace swig {
   template <class Seq, class T = typename Seq::value_type >
