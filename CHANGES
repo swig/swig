@@ -13896,7 +13896,7 @@ Version 1.3.24 (December 14, 2004)
 	      array or vector.
 
 	      Also, a PySwigPacked object was adding to carry a member
-	      method pointer, but this is probably a temporal solution
+	      method pointer, but this is probably a temporary solution
 	      until a more general object for methods is added.
 
 	      Be aware that to simplify maintaining and compatibility
