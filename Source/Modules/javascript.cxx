@@ -1524,7 +1524,7 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
 
   // process arguments
   int i = 0;
-  for (p = parms; p; i++) {
+  for (p = parms; p;) {
     String *arg = NewString("");
     String *type = Getattr(p, "type");
 
@@ -1537,19 +1537,24 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
     case Function:
       if (is_member && !is_static && i == 0) {
 	Printv(arg, "thisObject", 0);
+        i++;
       } else {
 	Printf(arg, "argv[%d]", i - startIdx);
+        i += GetInt(p, "tmap:in:numinputs");
       }
       break;
     case Setter:
       if (is_member && !is_static && i == 0) {
 	Printv(arg, "thisObject", 0);
+        i++;
       } else {
 	Printv(arg, "value", 0);
+        i++;
       }
       break;
     case Ctor:
       Printf(arg, "argv[%d]", i);
+      i += GetInt(p, "tmap:in:numinputs");
       break;
     default:
       Printf(stderr, "Illegal MarshallingMode.");
