@@ -264,8 +264,6 @@ protected:
    */
   Node *getBaseClass(Node *n);
 
-  Parm *skipIgnoredArgs(Parm *p);
-
   virtual int createNamespace(String *scope);
 
   virtual Hash *createNamespaceEntry(const char *name, const char *parent, const char *parent_mangled);
@@ -687,17 +685,6 @@ int JSEmitter::initialize(Node * /*n */ ) {
   f_wrappers = NewString("");
 
   return SWIG_OK;
-}
-
-/* ---------------------------------------------------------------------
- * skipIgnoredArgs()
- * --------------------------------------------------------------------- */
-
-Parm *JSEmitter::skipIgnoredArgs(Parm *p) {
-  while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-    p = Getattr(p, "tmap:in:next");
-  }
-  return p;
 }
 
 /* -----------------------------------------------------------------------------
@@ -2173,7 +2160,7 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
   Setattr(n, ARGCOUNT, argcount);
 
   int i = 0;
-  for (p = parms; p; i++) {
+  for (p = parms; p;) {
     String *arg = NewString("");
     String *type = Getattr(p, "type");
 
@@ -2185,26 +2172,33 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
     case Getter:
       if (is_member && !is_static && i == 0) {
 	Printv(arg, "info.Holder()", 0);
+        i++;
       } else {
-	Printf(arg, "args[%d]", i - startIdx);
+        Printf(arg, "args[%d]", i - startIdx);
+        i += GetInt(p, "tmap:in:numinputs");
       }
       break;
     case Function:
       if (is_member && !is_static && i == 0) {
 	Printv(arg, "args.Holder()", 0);
+        i++;
       } else {
 	Printf(arg, "args[%d]", i - startIdx);
+        i += GetInt(p, "tmap:in:numinputs");
       }
       break;
     case Setter:
       if (is_member && !is_static && i == 0) {
 	Printv(arg, "info.Holder()", 0);
+        i++;
       } else {
 	Printv(arg, "value", 0);
+        i++;
       }
       break;
     case Ctor:
       Printf(arg, "args[%d]", i);
+      i += GetInt(p, "tmap:in:numinputs");
       break;
     default:
       Printf(stderr, "Illegal MarshallingMode.");
