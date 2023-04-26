@@ -1,8 +1,8 @@
 %module(directors="1") director_string_view;
-%include <stl.i>
 
-#ifndef SWIG_STL_UNIMPL
+#if defined SWIGCSHARP || defined SWIGJAVA || defined SWIGLUA || defined SWIGPHP
 
+%include std_string.i
 %include std_string_view.i
 
 // Using thread unsafe wrapping
