@@ -2874,7 +2874,7 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
   Setattr(n, ARGCOUNT, argcount);
 
   int i = 0;
-  for (p = parms; p; i++) {
+  for (p = parms; p;) {
     String *arg = NewString("");
     String *type = Getattr(p, "type");
 
@@ -2886,26 +2886,33 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
     case Getter:
       if (is_member && !is_static && i == 0) {
         Printv(arg, "info.This()", 0);
+        i++;
       } else {
         Printf(arg, "info[%d]", i - startIdx);
+        i += GetInt(p, "tmap:in:numinputs");
       }
       break;
     case Function:
       if (is_member && !is_static && i == 0) {
         Printv(arg, "info.This()", 0);
+        i++;
       } else {
         Printf(arg, "info[%d]", i - startIdx);
+        i += GetInt(p, "tmap:in:numinputs");
       }
       break;
     case Setter:
       if (is_member && !is_static && i == 0) {
         Printv(arg, "info.This()", 0);
+        i++;
       } else {
         Printv(arg, "value", 0);
+        i++;
       }
       break;
     case Ctor:
       Printf(arg, "info[%d]", i);
+      i++;
       break;
     default:
       Printf(stderr, "Illegal MarshallingMode.");
