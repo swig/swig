@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-04-26: mmomtchev
+	    [Javascript] Take into account numinputs when counting arguments.
+
 2023-04-24: olly
 	    [PHP] Add throws typemaps for std:string* and const std::string*.
 
