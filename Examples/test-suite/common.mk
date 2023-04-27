@@ -812,6 +812,7 @@ C_TEST_CASES += \
 	struct_initialization \
 	typedef_classforward_same_name \
 	typedef_struct \
+	typemap_check \
 	typemap_subst \
 	union_parameter \
 	unions \
