@@ -537,6 +537,7 @@ CPP_TEST_CASES += \
 	typedef_typedef \
 	typemap_arrays \
 	typemap_array_qualifiers \
+	typemap_check \
 	typemap_delete \
 	typemap_directorout \
 	typemap_documentation \
@@ -812,7 +813,6 @@ C_TEST_CASES += \
 	struct_initialization \
 	typedef_classforward_same_name \
 	typedef_struct \
-	typemap_check \
 	typemap_subst \
 	union_parameter \
 	unions \
