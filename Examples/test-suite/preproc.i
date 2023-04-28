@@ -435,7 +435,7 @@ const int BAR = 6;
 /* This has probably always worked, but make sure that the fix to accept
    an empty X doesn't stop a non-empty X from working: */
 FOO(int x)
-/* FOO() didn't used to get expanded here, causing:
+/* FOO2() didn't used to get expanded here, causing:
    Syntax error in input(1). */
 FOO2()
 /* Check BAR2() still gets expanded here. */
