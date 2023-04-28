@@ -16,13 +16,14 @@ Version 4.2.0 (in progress)
 	    use it is helpful.
 
 	    We enable this automatically if the compiler claims conformance
-	    with at least C90 or C++98 and check SWIG_HAVE_SNPRINTF to allow
-	    turning on manually, but disable if SWIG_NO_SNPRINTF if defined.
+	    with at least C99 or C++11. It can also be enabled manually by
+	    defining SWIG_HAVE_SNPRINTF.  Define SWIG_NO_SNPRINTF to disable
+	    completely.
 
 	    The fallback is to call sprintf() without a buffer size check,
 	    which is what we've done until now.  Adding a check after the
 	    call seems of limited benefit - if the buffer was overflowed
-	    then it's too late to block it , and most of our uses either have a
+	    then it's too late to block it, and most of our uses either have a
 	    fixed maximum possible size or dynamically allocate a buffer that's
 	    large enough.
 
