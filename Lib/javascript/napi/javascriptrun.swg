@@ -166,7 +166,7 @@ Napi::Value SwigNapiObjectWrap_templ<SWIG_OBJ_WRAP>::ToString(const Napi::Callba
   Napi::Env env = info.Env();
   static char repr[128];
   snprintf(repr, sizeof(repr), "{SwigObject %s (%s) at %p %s}",
-    this->info->name, this->info->str, this->self,
+    this->info->name, SWIG_TypePrettyName(this->info), this->self,
     this->owned ? "[owned]" : "[copy]");
   return Napi::String::New(env, repr);
 }
