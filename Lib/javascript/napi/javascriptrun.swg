@@ -165,8 +165,11 @@ template <typename SWIG_OBJ_WRAP>
 Napi::Value SwigNapiObjectWrap_templ<SWIG_OBJ_WRAP>::ToString(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   static char repr[128];
+  char *name = SWIG_TypePrettyName(this->info);
   snprintf(repr, sizeof(repr), "{SwigObject %s (%s) at %p %s}",
-    this->info->name, SWIG_TypePrettyName(this->info), this->self,
+    this->info ? this->info->name : 'unknown',
+    name ? name : 'unknown',
+    this->self,
     this->owned ? "[owned]" : "[copy]");
   return Napi::String::New(env, repr);
 }
