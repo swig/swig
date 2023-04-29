@@ -52,6 +52,7 @@ SWIG_NAPI_GetModule(Napi::Env env) {
 %insert(init) %{
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
   SWIG_InitializeModule(env);
+  SWIG_PropagateClientData();
 %}
 
 /* -----------------------------------------------------------------------------
