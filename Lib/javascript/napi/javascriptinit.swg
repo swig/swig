@@ -6,14 +6,14 @@
 
 EnvInstanceData::EnvInstanceData(Napi::Env env, swig_module_info *swig_module) :
 env(env), swigNapiObjectWrapCtor(nullptr), ctor(nullptr), swig_module(swig_module) {
-  ctor = new Napi::FunctionReference*[swig_module->size];
-  for (size_t i = 0; i < sizeof(swig_module->size); i++) {
+  ctor = new Napi::FunctionReference*[swig_module->size + 1];
+  for (size_t i = 0; i <= swig_module->size; i++) {
     ctor[i] = nullptr;
   }
 }
 
 EnvInstanceData::~EnvInstanceData() {
-  for (size_t i = 0; i < swig_module->size; i++) {
+  for (size_t i = 0; i <= swig_module->size; i++) {
     if (ctor[i] != nullptr)
       delete ctor[i];
     ctor[i] = nullptr;
