@@ -167,8 +167,8 @@ Napi::Value SwigNapiObjectWrap_templ<SWIG_OBJ_WRAP>::ToString(const Napi::Callba
   static char repr[128];
   char *name = SWIG_TypePrettyName(this->info);
   snprintf(repr, sizeof(repr), "{SwigObject %s (%s) at %p %s}",
-    this->info ? this->info->name : 'unknown',
-    name ? name : 'unknown',
+    this->info ? this->info->name : "unknown",
+    name ? name : "unknown",
     this->self,
     this->owned ? "[owned]" : "[copy]");
   return Napi::String::New(env, repr);
