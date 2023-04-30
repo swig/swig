@@ -67,8 +67,8 @@ If you have used typedef to change type-names, you can also do this :
 
 %include <exception.i>
 
-#ifdef SWIGCSHARP
-// Required attribute for C# exception handling
+#if defined(SWIGCSHARP) || defined(SWIGD)
+// Required attribute for C# and D exception handling
 #define SWIGCSHARPCANTHROW , canthrow=1
 #else
 #define SWIGCSHARPCANTHROW
