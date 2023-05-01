@@ -60,5 +60,5 @@
  * the applying of user-defined typemaps to this unless specifically told to
  */
 %typemap(in) SWIGTYPE *self %{
-  $1 = this->self;
+  $1 = reinterpret_cast<$ltype>(this->self);
 %}
