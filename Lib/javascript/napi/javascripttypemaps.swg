@@ -54,3 +54,11 @@
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
+
+/* 
+ * NAPI already does this for us and it has the added benefit of preventing
+ * the applying of user-defined typemaps to this unless specifically told to
+ */
+%typemap(in) SWIGTYPE *self %{
+  $1 = this;
+%}
