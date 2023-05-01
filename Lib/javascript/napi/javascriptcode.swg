@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
  * js_ctor:  template for wrapping a ctor.
  *   - $jswrapper:        wrapper of called ctor
- *   - $jsparent:         mangled name of parent (or SwigNapiObjectWrap if none)
+ *   - $jsparent:         mangled name of parent (or SWIG_NAPI_ObjectWrap if none)
  *   - $jslocals:         locals part of wrapper
  *   - $jscode:           code part of wrapper
  *   - $jsargcount:       number of arguments
@@ -47,7 +47,7 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::Call
 /* -----------------------------------------------------------------------------
  * js_veto_ctor:  a vetoing ctor for abstract classes
  *   - $jsmangledname:    mangled name of class
- *   - $jsparent:         mangled name of parent (or SwigNapiObjectWrap if none)
+ *   - $jsparent:         mangled name of parent (or SWIG_NAPI_ObjectWrap if none)
  * ----------------------------------------------------------------------------- */
 %fragment ("js_veto_ctor", "templates")
 %{
@@ -74,7 +74,7 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::Call
 /* -----------------------------------------------------------------------------
  * js_ctor_dispatcher:  dispatcher for overloaded constructors
  *   - $jsmangledname:    mangled name of class
- *   - $jsparent:         mangled name of parent (or SwigNapiObjectWrap if none)
+ *   - $jsparent:         mangled name of parent (or SWIG_NAPI_ObjectWrap if none)
  *   - $jsdispatchcases:  part containing code for dispatching
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
@@ -555,7 +555,7 @@ fail:
 /* -----------------------------------------------------------------------------
  * jsnapi_class_prologue_template:  template for a class prologue
  *   - $jsmangledname:  mangled class name
- *   - $jsparent:       mangled name of parent (or SwigNapiObjectWrap if none)
+ *   - $jsparent:       mangled name of parent (or SWIG_NAPI_ObjectWrap if none)
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_class_prologue_template", "templates")
 %{
@@ -654,7 +654,7 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::Callb
 %fragment("jsnapi_inherited_class_prologue_template", "templates")
 %{
   // jsnapi_inherited_class_prologue_template
-  SWIGNAPI_ClientData $jsmangledname_clientData;
+  SWIG_NAPI_ClientData $jsmangledname_clientData;
   template <typename SWIG_OBJ_WRAP>
   class $jsmangledname_templ : public $jsparent_templ<SWIG_OBJ_WRAP> {
     public:

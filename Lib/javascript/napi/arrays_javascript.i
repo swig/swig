@@ -22,10 +22,10 @@
  * ----------------------------------------------------------------------------- */
 
 
-%fragment("SWIG_NAPIGetIntProperty", "header", fragment=SWIG_AsVal_frag(int)) {}
-%fragment("SWIG_NAPIGetNumberProperty", "header", fragment=SWIG_AsVal_frag(double)) {}
-%fragment("SWIG_NAPIOutInt", "header", fragment=SWIG_From_frag(int)) {}
-%fragment("SWIG_NAPIOutNumber", "header", fragment=SWIG_From_frag(double)) {}
+%fragment("SWIG_NAPI_GetIntProperty", "header", fragment=SWIG_AsVal_frag(int)) {}
+%fragment("SWIG_NAPI_GetNumberProperty", "header", fragment=SWIG_AsVal_frag(double)) {}
+%fragment("SWIG_NAPI_OutInt", "header", fragment=SWIG_From_frag(int)) {}
+%fragment("SWIG_NAPI_OutNumber", "header", fragment=SWIG_From_frag(double)) {}
 
 %define JAVASCRIPT_ARRAYS_IN_DECL(NAME, CTYPE, ANY, ANYLENGTH)
 
@@ -78,11 +78,11 @@
 
 %enddef
 
-JAVASCRIPT_ARRAYS_IN_DECL("SWIG_NAPIGetIntProperty", int, , array.Length())
-JAVASCRIPT_ARRAYS_IN_DECL("SWIG_NAPIGetIntProperty", int, ANY, $1_dim0)
-JAVASCRIPT_ARRAYS_IN_DECL("SWIG_NAPIGetNumberProperty", double, , array.Length())
-JAVASCRIPT_ARRAYS_IN_DECL("SWIG_NAPIGetNumberProperty", double, ANY, $1_dim0)
+JAVASCRIPT_ARRAYS_IN_DECL("SWIG_NAPI_GetIntProperty", int, , array.Length())
+JAVASCRIPT_ARRAYS_IN_DECL("SWIG_NAPI_GetIntProperty", int, ANY, $1_dim0)
+JAVASCRIPT_ARRAYS_IN_DECL("SWIG_NAPI_GetNumberProperty", double, , array.Length())
+JAVASCRIPT_ARRAYS_IN_DECL("SWIG_NAPI_GetNumberProperty", double, ANY, $1_dim0)
 
-JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_NAPIOutInt", int)
-JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_NAPIOutNumber", double)
+JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_NAPI_OutInt", int)
+JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_NAPI_OutNumber", double)
 

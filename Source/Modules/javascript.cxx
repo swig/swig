@@ -2642,7 +2642,7 @@ int NAPIEmitter::enterClass(Node *n) {
     f_init_wrappers = Copy(Getattr(baseClass, MEMBER_FUNCTIONS));
     f_init_static_wrappers = Copy(Getattr(baseClass, STATIC_FUNCTIONS));
   } else {
-    baseMangled = NewString("SwigNapiObjectWrap");
+    baseMangled = NewString("SWIG_NAPI_ObjectWrap");
     f_init_wrappers = NewString("");
     f_init_static_wrappers = NewString("");
   }
