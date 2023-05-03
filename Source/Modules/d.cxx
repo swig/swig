@@ -44,7 +44,7 @@ class D : public Language {
   // written to their own files.
   bool split_proxy_dmodule;
 
-  // The major D version targeted (currently 1 or 2).
+  // The major D version targeted (currently 2).
   unsigned short d_version;
 
   /*
@@ -232,7 +232,7 @@ public:
       f_directors_h(NULL),
       filenames_list(NULL),
       split_proxy_dmodule(false),
-      d_version(1),
+      d_version(2),
       native_function_flag(false),
       static_flag(false),
       variable_wrapper_flag(false),
@@ -296,7 +296,7 @@ public:
       if (argv[i]) {
 	if ((strcmp(argv[i], "-d2") == 0)) {
       	  Swig_mark_arg(i);
-      	  d_version = 2;
+      	  //d_version = 2;
       	} else if (strcmp(argv[i], "-wrapperlibrary") == 0) {
 	  if (argv[i + 1]) {
 	    wrap_library_name = NewString("");
@@ -1472,14 +1472,7 @@ public:
       attributes = Copy(is_public(n) ? public_string : protected_string);
     }
 
-    if (d_version == 1) {
-      if (static_flag) {
-	Printv(attributes, " static", NIL);
-      }
-      Printf(constants_code, "\n%s const %s %s = ", attributes, return_type, itemname);
-    } else {
-      Printf(constants_code, "\n%s enum %s %s = ", attributes, return_type, itemname);
-    }
+    Printf(constants_code, "\n%s enum %s %s = ", attributes, return_type, itemname);
     Delete(attributes);
 
     // Retrieve the override value set via %dconstvalue, if any.
@@ -2838,7 +2831,7 @@ private:
     Printf(imcall, ")");
     Printf(function_code, ") ");
 
-    if (d_version > 1 && wrapping_member_flag) {
+    if (wrapping_member_flag) {
       Printf(function_code, "@property ");
     }
 
@@ -3073,7 +3066,7 @@ private:
     Printf(imcall, ")");
     Printf(function_code, ") ");
 
-    if (global_variable_flag && (d_version > 1)) {
+    if (global_variable_flag) {
       Printf(function_code, "@property ");
     }
 
@@ -3539,7 +3532,7 @@ private:
     // Only emit it if the proxy class has at least one method.
     if (first_class_dmethod < curr_class_dmethod) {
       Printf(proxy_class_body_code, "\n");
-      Printf(proxy_class_body_code, "private bool swigIsMethodOverridden(DelegateType, FunctionType, alias fn)() %s{\n", (d_version > 1) ? "const " : "");
+      Printf(proxy_class_body_code, "private bool swigIsMethodOverridden(DelegateType, FunctionType, alias fn)() const {\n");
       Printf(proxy_class_body_code, "  DelegateType dg = &fn;\n");
       Printf(proxy_class_body_code, "  return dg.funcptr != SwigNonVirtualAddressOf!(FunctionType, fn);\n");
       Printf(proxy_class_body_code, "}\n");
@@ -4355,7 +4348,6 @@ private:
    * wrapped as D »const« or not.
    * --------------------------------------------------------------------------- */
   bool wrapMemberFunctionAsDConst(Node *n) const {
-    if (d_version == 1) return false;
     if (static_flag) return false; // Never emit »const« for static member functions.
     return GetFlag(n, "memberget") || SwigType_isconst(Getattr(n, "decl"));
   }
@@ -4642,7 +4634,7 @@ extern "C" Language *swig_d(void) {
  * ----------------------------------------------------------------------------- */
 const char *D::usage = "\
 D Options (available with -d)\n\
-     -d2                  - Generate code for D2/Phobos (default: D1/Tango)\n\
+     -d2                  - Generate code for D2/Phobos (The default, left for backward compatible)\n\
      -package <pkg>       - Write generated D modules into package <pkg>\n\
      -splitproxy          - Write each D type to a dedicated file instead of\n\
                             generating a single proxy D module.\n\

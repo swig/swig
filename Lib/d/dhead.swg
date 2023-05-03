@@ -71,87 +71,6 @@ SWIGEXPORT void SWIGRegisterExceptionCallbacks_$module(
 }
 %}
 
-#if (SWIG_D_VERSION == 1)
-%pragma(d) imdmoduleimports=%{
-// Exception throwing support currently requires Tango, but there is no reason
-// why it could not support Phobos.
-static import tango.core.Exception;
-static import tango.core.Thread;
-static import tango.stdc.stringz;
-%}
-
-%pragma(d) imdmodulecode=%{
-private class SwigExceptionHelper {
-  static this() {
-    swigRegisterExceptionCallbacks$module(
-      &setException,
-      &setIllegalArgumentException,
-      &setIllegalElementException,
-      &setIOException,
-      &setNoSuchElementException);
-  }
-
-  static void setException(char* message) {
-    auto exception = new object.Exception(tango.stdc.stringz.fromStringz(message).dup);
-    SwigPendingException.set(exception);
-  }
-
-  static void setIllegalArgumentException(char* message) {
-    auto exception = new tango.core.Exception.IllegalArgumentException(tango.stdc.stringz.fromStringz(message).dup);
-    SwigPendingException.set(exception);
-  }
-
-  static void setIllegalElementException(char* message) {
-    auto exception = new tango.core.Exception.IllegalElementException(tango.stdc.stringz.fromStringz(message).dup);
-    SwigPendingException.set(exception);
-  }
-
-  static void setIOException(char* message) {
-    auto exception = new tango.core.Exception.IOException(tango.stdc.stringz.fromStringz(message).dup);
-    SwigPendingException.set(exception);
-  }
-
-  static void setNoSuchElementException(char* message) {
-    auto exception = new tango.core.Exception.NoSuchElementException(tango.stdc.stringz.fromStringz(message).dup);
-    SwigPendingException.set(exception);
-  }
-}
-
-package class SwigPendingException {
-public:
-  static this() {
-    m_sPendingException = new ThreadLocalData(null);
-  }
-
-  static bool isPending() {
-    return m_sPendingException.val !is null;
-  }
-
-  static void set(object.Exception e) {
-    auto pending = m_sPendingException.val;
-    if (pending !is null) {
-      e.next = pending;
-      throw new object.Exception("FATAL: An earlier pending exception from C/C++ " ~
-        "code was missed and thus not thrown (" ~ pending.classinfo.name ~ ": " ~
-        pending.msg ~ ")!", e);
-    }
-    m_sPendingException.val = e;
-  }
-
-  static object.Exception retrieve() {
-    auto e = m_sPendingException.val;
-    m_sPendingException.val = null;
-    return e;
-  }
-
-private:
-  // The reference to the pending exception (if any) is stored thread-local.
-  alias tango.core.Thread.ThreadLocal!(object.Exception) ThreadLocalData;
-  static ThreadLocalData m_sPendingException;
-}
-alias void function(char* message) SwigExceptionCallback;
-%}
-#else
 %pragma(d) imdmoduleimports=%{
 static import std.conv;
 %}
@@ -208,7 +127,6 @@ private:
 }
 alias void function(const char* message) SwigExceptionCallback;
 %}
-#endif
 // Callback registering function in wrapperloader.swg.
 #endif // SWIG_D_NO_EXCEPTION_HELPER
 
@@ -231,23 +149,6 @@ SWIGEXPORT void SWIGRegisterStringCallback_$module(SWIG_DStringHelperCallback ca
 }
 %}
 
-#if (SWIG_D_VERSION == 1)
-%pragma(d) imdmoduleimports = "static import tango.stdc.stringz;";
-
-%pragma(d) imdmodulecode = %{
-private class SwigStringHelper {
-  static this() {
-    swigRegisterStringCallback$module(&createString);
-  }
-
-  static char* createString(char* cString) {
-    // We are effectively dup'ing the string here.
-    return tango.stdc.stringz.toStringz(tango.stdc.stringz.fromStringz(cString));
-  }
-}
-alias char* function(char* cString) SwigStringCallback;
-%}
-#else
 %pragma(d) imdmoduleimports = %{
 static import std.conv;
 static import std.string;
@@ -267,7 +168,6 @@ private class SwigStringHelper {
 }
 alias const(char)* function(const(char*) cString) SwigStringCallback;
 %}
-#endif
 // Callback registering function in wrapperloader.swg.
 #endif // SWIG_D_NO_STRING_HELPER
 
@@ -275,17 +175,6 @@ alias const(char)* function(const(char*) cString) SwigStringCallback;
 /*
  * Function pointer support code.
  */
-#if (SWIG_D_VERSION == 1)
-%pragma(d) imdmodulecode = %{
-template SwigExternC(T) {
-  static if (is(typeof(*(T.init)) R == return)) {
-    static if (is(typeof(*(T.init)) P == function)) {
-      alias extern(C) R function(P) SwigExternC;
-    }
-  }
-}
-%}
-#else
 %pragma(d) imdmodulecode = %{
 template SwigExternC(T) if (is(typeof(*(T.init)) P == function)) {
   static if (is(typeof(*(T.init)) R == return)) {
@@ -295,4 +184,3 @@ template SwigExternC(T) if (is(typeof(*(T.init)) P == function)) {
   }
 }
 %}
-#endif

@@ -280,17 +280,8 @@ csharp_clean:
 
 DLIBPREFIX = @DLIBPREFIX@
 
-ifeq (,$(D_VERSION))
-  D_VERSION = @DDEFAULTVERSION@
-endif
-
-ifeq (2,$(D_VERSION))
-  SWIGD = $(SWIG) -d -d2
-  DCOMPILER = @D2COMPILER@
-else
-  SWIGD = $(SWIG) -d
-  DCOMPILER = @D1COMPILER@
-endif
+SWIGD = $(SWIG) -d -d2
+DCOMPILER = @D2COMPILER@
 
 D_RUNME = ./$(RUNME)
 

@@ -668,41 +668,16 @@ AC_SUBST(CSHARPSO)
 #----------------------------------------------------------------
 
 AC_ARG_WITH(d, AS_HELP_STRING([--without-d], [Disable D]), [with_d="$withval"], [with_d="$alllang_default"])
-AC_ARG_WITH(d1-compiler, [  --with-d1-compiler=path  Set location of D1/Tango compiler (DMD compatible)],[D1COMPILERBIN="$withval"], [D1COMPILERBIN=])
 AC_ARG_WITH(d2-compiler, [  --with-d2-compiler=path  Set location of D2 compiler (DMD compatible)],[D2COMPILERBIN="$withval"], [D2COMPILERBIN=])
 
 
 # First, check for "--without-d" or "--with-d=no".
 if test x"${with_d}" = xno; then
   AC_MSG_NOTICE([Disabling D])
-  D1COMPILER=
   D2COMPILER=
 else
   old_ac_ext=$ac_ext
   ac_ext=d
-
-  if test -z "$D1COMPILERBIN" ; then
-    AC_CHECK_PROGS(D1COMPILER, dmd ldmd gdmd)
-
-    if test -n "$D1COMPILER" ; then
-      AC_MSG_CHECKING(whether the D1/Tango compiler works)
-      cat > conftest.$ac_ext <<_ACEOF
-import tango.io.Stdout;
-void main() {
-}
-_ACEOF
-      rm -f conftest.$ac_objext
-      AS_IF(
-        [$D1COMPILER conftest.$ac_ext 2>&AS_MESSAGE_LOG_FD && test ! -s conftest.err && test -s conftest.$ac_objext],
-        [AC_MSG_RESULT([yes])],
-        [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
-        D1COMPILER=]
-      )
-      rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-    fi
-  else
-    D1COMPILER="$D1COMPILERBIN"
-  fi
 
   if test -z "$D2COMPILERBIN" ; then
     AC_CHECK_PROGS(D2COMPILER, dmd gdmd ldmd2 ldc2)
@@ -730,21 +705,13 @@ _ACEOF
   ac_ext=$old_ac_ext
 fi
 
-if test -n "$D1COMPILER"; then
-  DDEFAULTVERSION=1
-elif test -n "$D2COMPILER"; then
-  DDEFAULTVERSION=2
-fi
-
 # Do not prefix library file names with "lib" on Windows.
 case $host in
 *-*-cygwin* | *-*-mingw*) DLIBPREFIX="";;
 *)DLIBPREFIX="lib";;
 esac
 
-AC_SUBST(D1COMPILER)
 AC_SUBST(D2COMPILER)
-AC_SUBST(DDEFAULTVERSION)
 AC_SUBST(DLIBPREFIX)
 
 #----------------------------------------------------------------
@@ -2632,7 +2599,7 @@ AC_SUBST(SKIP_CSHARP)
 
 
 SKIP_D=
-if test -z "$DDEFAULTVERSION" ; then
+if test -z "$D2COMPILER" ; then
     SKIP_D="1"
 fi
 AC_SUBST(SKIP_D)
