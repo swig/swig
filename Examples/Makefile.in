@@ -280,7 +280,7 @@ csharp_clean:
 
 DLIBPREFIX = @DLIBPREFIX@
 
-SWIGD = $(SWIG) -d -d2
+SWIGD = $(SWIG) -d
 DCOMPILER = @D2COMPILER@
 
 D_RUNME = ./$(RUNME)
@@ -324,7 +324,7 @@ d_run:
 # -----------------------------------------------------------------
 
 d_version:
-	($(DCOMPILER) --version 2> /dev/null || $(DCOMPILER)) | head -n 3
+	$(DCOMPILER) --version 2> /dev/null | head -n 3
 
 # -----------------------------------------------------------------
 # Clean the D examples
