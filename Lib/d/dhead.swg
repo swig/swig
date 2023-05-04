@@ -162,7 +162,7 @@ private class SwigStringHelper {
 
   static const(char)* createString(const(char*) cString) {
     // We are effectively dup'ing the string here.
-    // TODO: Is this also correct for D2/Phobos?
+    // TODO: Is this correct for D2/Phobos?
     return std.string.toStringz(std.conv.to!string(cString));
   }
 }
