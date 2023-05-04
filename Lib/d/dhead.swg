@@ -1,9 +1,6 @@
 /* -----------------------------------------------------------------------------
  * dhead.swg
  *
- * Support code for exceptions if the SWIG_D_NO_EXCEPTION_HELPER is not defined
- * Support code for strings if the SWIG_D_NO_STRING_HELPER is not defined
- *
  * Support code for function pointers. ----------------------------------------------------------------------------- */
 
 %insert(runtime) %{
@@ -20,7 +17,6 @@
  * Exception support code.
  */
 
-#if !defined(SWIG_D_NO_EXCEPTION_HELPER)
 %insert(runtime) %{
 // Support for throwing D exceptions from C/C++.
 typedef enum {
@@ -94,7 +90,7 @@ private class SwigExceptionHelper {
   }
 }
 
-package struct SwigPendingException {
+public class SwigPendingException {
 public:
   static this() {
     m_sPendingException = null;
@@ -128,14 +124,12 @@ private:
 alias void function(const char* message) SwigExceptionCallback;
 %}
 // Callback registering function in wrapperloader.swg.
-#endif // SWIG_D_NO_EXCEPTION_HELPER
 
 
 /*
  * String support code.
  */
 
-#if !defined(SWIG_D_NO_STRING_HELPER)
 %insert(runtime) %{
 // Callback for returning strings to D without leaking memory.
 typedef char * (* SWIG_DStringHelperCallback)(const char *);
@@ -169,7 +163,6 @@ private class SwigStringHelper {
 alias const(char)* function(const(char*) cString) SwigStringCallback;
 %}
 // Callback registering function in wrapperloader.swg.
-#endif // SWIG_D_NO_STRING_HELPER
 
 
 /*

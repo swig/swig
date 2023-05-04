@@ -50,15 +50,14 @@ jobs:
         - SWIGLANG: ""
           compiler: clang
         - SWIGLANG: csharp
-        # D support can't be enabled because dmd 2.066 fails to build anything
-        # under Ubuntu 18.04 due to its standard library (libphobos2.a) not
-        # being compiled with -FPIC, but system gcc using -fpie by default,
-        # resulting in linking errors for any output. And later versions, such
-        # as 2.086.1, are not supported and result in errors in SWIG test suite.
-        #
-        # - SWIGLANG: d
-        #   VER: '2.066.0'
-        #   os: ubuntu-18.04 # This dlang version doesn't work under 20.04.
+        - SWIGLANG: d
+          VER: 'ldc'
+        - SWIGLANG: d
+          VER: 'gdc'
+        - SWIGLANG: d
+          VER: 'gdmd'
+        - SWIGLANG: d
+          VER: '2.103.1'
         - SWIGLANG: go
           VER: '1.6'
           CSTD: gnu11

@@ -11,7 +11,7 @@ public:
     super( name );
   }
 
-  override string getPosition() const {
+  override string getPosition() {
     return "CEO";
   }
 

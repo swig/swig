@@ -32,9 +32,17 @@ void main() {
   if (TRACE)
     writeln("---> NEARLY FINISHED <---");
 
-  // A single remaining instance expected: the global variable (GlobalValue).
-  if (Klass.getTotal_count() != 1)
-    throw new Exception("Klass.total_count=" ~ to!string(Klass.getTotal_count()));
+  static if (is(typeof(GC.inFinalizer))) {
+    while(GC.inFinalizer) {
+      GC.collect();
+      // sleep for 50 milliseconds
+      Thread.sleep( dur!("msecs")( 50 ) );
+    }
+
+    // A single remaining instance expected: the global variable (GlobalValue).
+    if (Klass.getTotal_count() != 1)
+      throw new Exception("Klass.total_count=" ~ to!string(Klass.getTotal_count()));
+  }
 
   // A single remaining instance expected: the global variable (GlobalSmartValue).
   int wrapper_count = shared_ptr_wrapper_count();

@@ -13,7 +13,7 @@ public:
 	Employee(const char* n): name(n) {}
 	virtual std::string getTitle() { return getPosition() + " " + getName(); }
 	virtual std::string getName() { return name; }
-	virtual std::string getPosition() const { return "Employee"; }
+	virtual std::string getPosition() { return "Employee"; }
 	virtual ~Employee() { printf("~Employee() @ %p\n", (void *)this); }
 };
 
@@ -21,7 +21,7 @@ public:
 class Manager: public Employee {
 public:
 	Manager(const char* n): Employee(n) {}
-	virtual std::string getPosition() const { return "Manager"; }
+	virtual std::string getPosition() { return "Manager"; }
 };
 
 
