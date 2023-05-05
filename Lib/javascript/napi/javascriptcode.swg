@@ -777,7 +777,9 @@ void $jsmangledname_inst::GetMembers(
   // jsnapi_member_function_descriptor
   members.insert({"$jsname",
         $jsmangledname_templ::InstanceMethod("$jsname",
-                &$jsmangledname_templ::$jswrapper, napi_default_method)});
+                &$jsmangledname_templ::$jswrapper,
+                static_cast<napi_property_attributes>(napi_writable | napi_configurable))
+        });
 %}
 
 /* -----------------------------------------------------------------------------
@@ -794,7 +796,8 @@ void $jsmangledname_inst::GetMembers(
         $jsmangledname_templ::InstanceAccessor("$jsname",
                 &$jsmangledname_templ::$jsgetter,
                 &$jsmangledname_templ::$jssetter,
-                napi_default_jsproperty)});
+                static_cast<napi_property_attributes>(napi_writable | napi_enumerable | napi_configurable))
+        });
 %}
 
 /* -----------------------------------------------------------------------------
@@ -807,7 +810,10 @@ void $jsmangledname_inst::GetMembers(
 %{
   // jsnapi_register_static_function
   staticMembers.insert({"$jsname",
-        StaticMethod("$jsname", &$jsmangledname_templ::$jswrapper, napi_default_method)});
+        StaticMethod("$jsname",
+                &$jsmangledname_templ::$jswrapper,
+                static_cast<napi_property_attributes>(napi_writable | napi_configurable))
+        });
 %}
 
 /* -----------------------------------------------------------------------------
@@ -824,5 +830,6 @@ void $jsmangledname_inst::GetMembers(
         StaticAccessor("$jsname",
                 &$jsmangledname_templ::$jsgetter,
                 &$jsmangledname_templ::$jssetter,
-                napi_default_jsproperty)});
+                static_cast<napi_property_attributes>(napi_writable | napi_enumerable | napi_configurable))
+        });
 %}
