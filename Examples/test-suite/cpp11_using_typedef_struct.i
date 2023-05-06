@@ -7,10 +7,10 @@ namespace nspace1 {
     int x, y, z;
   } AffineMatrix;
 
-  struct _xCacheView {
+  struct xCacheView {
     int x;
   };
-  typedef struct _xCacheView CacheView;
+  typedef struct xCacheView CacheView;
 }
 
 using nspace1::AffineMatrix;
