@@ -2103,11 +2103,22 @@ public:
 	  // in the typemap itself.
 	  c_param_type = ctypeout;
 	}
+	// ctype default assignment
+	const String *ctypedef = Getattr(p, "tmap:ctype:default");
+	String *ctypeassign;
+	if (ctypedef) {
+	  ctypeassign = Copy(ctypedef);
+	} else if (SwigType_ispointer(pt) || SwigType_isreference(pt)) {
+	  ctypeassign = NewString("= 0");
+	} else {
+	  ctypeassign = NewString("");
+	}
 
 	/* Add to local variables */
 	Printf(c_decl, "%s %s", c_param_type, arg);
 	if (!ignored_method)
-	  Wrapper_add_localv(w, arg, c_decl, (!(SwigType_ispointer(pt) || SwigType_isreference(pt)) ? "" : "= 0"), NIL);
+	  Wrapper_add_localv(w, arg, c_decl, ctypeassign, NIL);
+	Delete(ctypeassign);
 
 	/* Add input marshalling code */
 	if ((tm = Getattr(p, "tmap:directorin"))) {

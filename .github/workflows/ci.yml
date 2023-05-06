@@ -52,12 +52,19 @@ jobs:
         - SWIGLANG: csharp
         - SWIGLANG: d
           VER: 'ldc'
+          CPPSTD: c++11
         - SWIGLANG: d
           VER: 'gdc'
         - SWIGLANG: d
           VER: 'gdmd'
         - SWIGLANG: d
           VER: '2.103.1'
+        - SWIGLANG: d
+          VER: 'ldc'
+          CPPSTD: c++14
+        - SWIGLANG: d
+          VER: 'ldc'
+          CPPSTD: c++17
         - SWIGLANG: go
           VER: '1.6'
           CSTD: gnu11

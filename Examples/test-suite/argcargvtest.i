@@ -1,6 +1,6 @@
 %module argcargvtest
 
-#if !defined(SWIGD) && !defined(SWIGMZSCHEME) && !defined(SWIGOCAML) && !defined(SWIGR)
+#if !defined(SWIGMZSCHEME) && !defined(SWIGOCAML) && !defined(SWIGR)
 #define SWIGCSHARP_ARGCARGV_PARAM_IDX "0"
 %include <argcargv.i>
 
