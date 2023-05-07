@@ -673,7 +673,7 @@ java_clean:
 # create a configuration for a new example.
 
 ROOT_DIR = @ROOT_DIR@
-JSINCLUDES = @JSCOREINC@ @JSV8INC@ @ROOT_DIR@/Examples/test-suite/javascript/node_template/
+JSINCLUDES = @JSCOREINC@ @JSV8INC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
 NODEJS = @NODEJS@
 NODEGYP = @NODEGYP@
@@ -703,9 +703,9 @@ endif
 # For in-source builds, the path is relative to ./build
 # For out-of-source builds, it is relative to the main src
 ifeq (,$(SRCDIR))
-NAPI_DIR = -I../../../test-suite/javascript/node_template
+NAPI_DIR=../../../test-suite/javascript/node_template
 else
-NAPI_DIR = -I../../test-suite/javascript/node_template
+NAPI_DIR=../../test-suite/javascript/node_template
 endif
 
 javascript_wrapper:
