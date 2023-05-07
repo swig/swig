@@ -12,7 +12,7 @@ namespace nspace1 {
   };
   typedef struct xCacheView CacheView;
 
-  struct _xAbstract {};
+  struct _xAbstract;
   typedef struct _xAbstract Abstract;
 }
 
