@@ -18,6 +18,14 @@ case "$SWIGLANG" in
 				export NVM_DIR="$HOME/.nvm"
 				[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
 				nvm use ${VER}
+
+                                # The generated code expects the node-addon-api
+                                # templates to be present in the include path
+                                wget https://github.com/nodejs/node-addon-api/archive/refs/tags/v6.1.0.tar.gz
+                                sudo tar -C /usr/include \
+                                        --strip-components=1 --wildcards \
+                                        -zxvf v6.1.0.tar.gz \
+                                        node-addon-api-6.1.0/napi*.h
 				;;
 			*)      ;;
 		esac
