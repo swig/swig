@@ -157,6 +157,7 @@ Examples/java/doxygen/javadocs
 # Javascript
 Examples/test-suite/javascript/*/
 *.gyp
+!Examples/test-suite/javascript/node_template
 
 # Lua
 Examples/lua/dual/dual
