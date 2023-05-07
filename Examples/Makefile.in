@@ -700,6 +700,14 @@ endif
 # Creating and building Javascript wrappers
 # ----------------------------------------------------------------
 
+# For in-source builds, the path is relative to ./build
+# For out-of-source builds, it is relative to the main src
+ifeq (,$(SRCDIR))
+NAPI_DIR = -I../../../test-suite/javascript/node_template
+else
+NAPI_DIR = -I../../test-suite/javascript/node_template
+endif
+
 javascript_wrapper:
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
@@ -716,7 +724,7 @@ ifeq (node,$(JSENGINE))
 	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else ifeq (napi,$(JSENGINE))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	MAKEFLAGS= CXXFLAGS="-I$(JSINCLUDES)" $(NODEGYP) configure build V=1
+	MAKEFLAGS= CXXFLAGS="-I$(SRCDIR)../../../test-suite/javascript/node_template" $(NODEGYP) configure build V=1
 else
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CCSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
@@ -725,7 +733,7 @@ endif
 javascript_build_cpp: $(SRCDIR_SRCS)
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	MAKEFLAGS= CXXFLAGS="-I$(JSINCLUDES)" $(NODEGYP) configure build V=1
+	MAKEFLAGS= CXXFLAGS="-I$(SRCDIR)../../../test-suite/javascript/node_template" $(NODEGYP) configure build V=1
 else
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
