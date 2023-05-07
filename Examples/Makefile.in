@@ -710,6 +710,10 @@ endif
 javascript_wrapper_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -javascript -c++ $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
 
+ifeq (napi, $(JSENGINE))
+        NAPI_FLAGS = -I../../../test-suite/javascript/node_template
+endif
+
 javascript_build: $(SRCDIR_SRCS)
 ifeq (node,$(JSENGINE))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
@@ -722,7 +726,7 @@ endif
 javascript_build_cpp: $(SRCDIR_SRCS)
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+	MAKEFLAGS= CXXFLAGS=$(NAPI_FLAGS) $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
