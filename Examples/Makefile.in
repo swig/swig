@@ -726,7 +726,7 @@ endif
 javascript_build_cpp: $(SRCDIR_SRCS)
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	MAKEFLAGS= CXXFLAGS=$(NAPI_FLAGS) $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+	MAKEFLAGS= CXXFLAGS=$(NAPI_FLAGS) $(NODEGYP) --loglevel=silent configure build
 else
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
