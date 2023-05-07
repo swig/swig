@@ -2912,7 +2912,7 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
       break;
     case Ctor:
       Printf(arg, "info[%d]", i);
-      i++;
+      i += GetInt(p, "tmap:in:numinputs");
       break;
     default:
       Printf(stderr, "Illegal MarshallingMode.");
