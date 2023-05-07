@@ -18,6 +18,7 @@ namespace nspace1 {
 
 using nspace1::AffineMatrix;
 using nspace1::CacheView;
+using nspace1::Abstract;
 
 int fn1(AffineMatrix a) { return a.x; };
 int fn2(CacheView a) { return a.x; };
