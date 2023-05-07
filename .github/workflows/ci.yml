@@ -100,7 +100,7 @@ jobs:
           CPPSTD: c++14
         - SWIGLANG: javascript
           ENGINE: napi
-          VER: '12'
+          VER: '14'
           CPPSTD: c++11
         - SWIGLANG: javascript
           ENGINE: napi
