@@ -26,6 +26,7 @@ case "$SWIGLANG" in
                                         --strip-components=1 --wildcards \
                                         -zxvf v6.1.0.tar.gz \
                                         node-addon-api-6.1.0/napi*.h
+                                rm v6.1.0.tar.gz
 				;;
 			*)      ;;
 		esac
