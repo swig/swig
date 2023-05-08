@@ -30,6 +30,7 @@
 <li><a href="#Library_stl_cpp_library">STL/C++ library</a>
 <ul>
 <li><a href="#Library_std_string">std::string</a>
+<li><a href="#Library_std_string_view">std::string_view</a>
 <li><a href="#Library_std_vector">std::vector</a>
 <li><a href="#Library_stl_exceptions">STL exceptions</a>
 <li><a href="#Library_std_shared_ptr">shared_ptr smart pointer</a>
@@ -1450,14 +1451,15 @@ The following table shows which C++ classes are supported and the equivalent SWI
 <tr> <td>std::multiset (C++11)</td>           <td>multiset</td>             <td>std_multiset.i</td> </tr>
 <tr> <td>std::pair</td>           <td>utility</td>             <td>std_pair.i</td> </tr>
 <tr> <td>std::set</td>           <td>set</td>             <td>std_set.i</td> </tr>
+<tr> <td>std::shared_ptr (C++11)</td>           <td>shared_ptr</td>             <td>std_shared_ptr.i</td> </tr>
 <tr> <td>std::string</td>           <td>string</td>             <td>std_string.i</td> </tr>
+<tr> <td>std::string_view (C++17)</td>           <td>string_view</td>             <td>std_string_view.i</td> </tr>
 <tr> <td>std::unordered_map (C++11)</td>           <td>unordered_map</td>             <td>std_unordered_map.i</td> </tr>
 <tr> <td>std::unordered_multimap (C++11)</td>           <td>unordered_multimap</td>             <td>std_unordered_multimap.i</td> </tr>
 <tr> <td>std::unordered_multiset (C++11)</td>           <td>unordered_multiset</td>             <td>std_unordered_multiset.i</td> </tr>
 <tr> <td>std::unordered_set (C++11)</td>           <td>unordered_set</td>             <td>std_unordered_set.i</td> </tr>
 <tr> <td>std::vector</td>           <td>vector</td>             <td>std_vector.i</td> </tr>
 <tr> <td>std::wstring</td>           <td>wstring</td>             <td>std_wstring.i</td> </tr>
-<tr> <td>std::shared_ptr (C++11)</td>           <td>shared_ptr</td>             <td>std_shared_ptr.i</td> </tr>
 
 </table>
 
@@ -1551,7 +1553,37 @@ void foo(string s, const String &amp;t);     // std_string typemaps still applie
 </pre>
 </div>
 
-<H3><a name="Library_std_vector">12.4.2 std::vector</a></H3>
+<H3><a name="Library_std_string_view">12.4.2 std::string_view</a></H3>
+
+
+<p>
+The <tt>std_string_view.i</tt> library provides typemaps for converting C++17 <tt>std::string_view</tt>
+objects to and from strings in the target scripting language.  For example:
+</p>
+
+<div class="code">
+<pre>
+%module example
+%include "std_string_view.i"
+
+std::string_view foo();
+void        bar(std::string_view x);
+</pre>
+</div>
+
+<p>
+In the target language:
+</p>
+
+<div class="targetlang">
+<pre>
+x = foo();                # Returns a string object
+bar("Hello World");       # Pass string as std::string_view
+</pre>
+</div>
+
+
+<H3><a name="Library_std_vector">12.4.3 std::vector</a></H3>
 
 
 <p>
@@ -1730,7 +1762,7 @@ if you want to make their head explode.
 details and the public API exposed to the interpreter vary.
 </p>
 
-<H3><a name="Library_stl_exceptions">12.4.3 STL exceptions</a></H3>
+<H3><a name="Library_stl_exceptions">12.4.4 STL exceptions</a></H3>
 
 
 <p>
@@ -1780,10 +1812,10 @@ The <tt>%exception</tt> directive can be used by placing the following code befo
 Any thrown STL exceptions will then be gracefully handled instead of causing a crash.
 </p>
 
-<H3><a name="Library_std_shared_ptr">12.4.4 shared_ptr smart pointer</a></H3>
+<H3><a name="Library_std_shared_ptr">12.4.5 shared_ptr smart pointer</a></H3>
 
 
-<H4><a name="Library_shared_ptr_basics">12.4.4.1 shared_ptr basics</a></H4>
+<H4><a name="Library_shared_ptr_basics">12.4.5.1 shared_ptr basics</a></H4>
 
 
 <p>
@@ -1879,7 +1911,7 @@ System.out.println(val1 + " " + val2);
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_inheritance">12.4.4.2 shared_ptr and inheritance</a></H4>
+<H4><a name="Library_shared_ptr_inheritance">12.4.5.2 shared_ptr and inheritance</a></H4>
 
 
 <p>
@@ -1970,7 +2002,7 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_overloading">12.4.4.3 shared_ptr and method overloading</a></H4>
+<H4><a name="Library_shared_ptr_overloading">12.4.5.3 shared_ptr and method overloading</a></H4>
 
 
 <p>
@@ -1992,7 +2024,7 @@ SWIG will choose to wrap just the first method by default.
 For the interested reader, SWIG detects that they are equivalent types via the <a href=Typemaps.html#Typemaps_typecheck_pointer>typecheck typemaps</a> in the shared_ptr library.
 </p>
 
-<H4><a name="Library_shared_ptr_templates">12.4.4.4 shared_ptr and templates</a></H4>
+<H4><a name="Library_shared_ptr_templates">12.4.5.4 shared_ptr and templates</a></H4>
 
 
 <p>
@@ -2034,14 +2066,14 @@ The SWIG code below shows the required ordering:
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_directors">12.4.4.5 shared_ptr and directors</a></H4>
+<H4><a name="Library_shared_ptr_directors">12.4.5.5 shared_ptr and directors</a></H4>
 
 
 <p>
 The languages that support shared_ptr also have support for using shared_ptr with directors.
 </p>
 
-<H3><a name="Library_std_unique_ptr">12.4.5 unique_ptr smart pointer</a></H3>
+<H3><a name="Library_std_unique_ptr">12.4.6 unique_ptr smart pointer</a></H3>
 
 
 <p>
@@ -2163,7 +2195,7 @@ in a "Cannot release ownership as memory is not owned" exception. For example, i
 <b>Compatibility note:</b> Support for <tt>std::unique_ptr</tt> was added in SWIG-4.1.0.
 </p>
 
-<H3><a name="Library_std_auto_ptr">12.4.6 auto_ptr smart pointer</a></H3>
+<H3><a name="Library_std_auto_ptr">12.4.7 auto_ptr smart pointer</a></H3>
 
 
 <p>

@@ -8,6 +8,10 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-05-08: olly
+	    #1567 Add support for std::string_view (new in C++17) for C#, Java,
+	    Lua and PHP.
+
+2023-05-08: olly
 	    [PHP] #2544 Wrap overloaded method with both static and non-static
 	    forms.  We now wrap this as a non-static method in PHP, which means
 	    the static form only callable via an object.
