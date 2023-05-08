@@ -705,7 +705,7 @@ endif
 ifeq (,$(SRCDIR))
 NAPI_DIR=../../../test-suite/javascript/node_template
 else
-NAPI_DIR=../../test-suite/javascript/node_template
+NAPI_DIR=../$(SRCDIR)../../test-suite/javascript/node_template
 endif
 
 javascript_wrapper:
