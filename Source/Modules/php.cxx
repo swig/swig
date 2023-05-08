@@ -948,7 +948,7 @@ public:
   }
 
   /* Just need to append function names to function table to register with PHP. */
-  void create_command(String *cname, String *fname, Node *n, bool dispatch, String *modes = NULL) {
+  void create_command(String *cname, String *fname, Node *n, bool dispatch, String *modes) {
     // This is for the single main zend_function_entry record
     ParmList *l = Getattr(n, "parms");
     if (cname && !Equal(Getattr(n, "storage"), "friend")) {
