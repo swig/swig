@@ -239,6 +239,15 @@ class PHPTypes {
   // Does the node for this have directorNode set?
   bool has_director_node;
 
+  // Track if all the overloads of a method are static.
+  //
+  // We should only flag a dispatch method as ACC_STATIC if all the dispatched
+  // to methods are static.  If we have both static and non-static methods in
+  // the overloaded set we omit ACC_STATIC, and then all the methods are
+  // callable (though the static ones only via an object).  If we set
+  // ACC_STATIC we get a crash on an attempt to call a non-static method.
+  bool all_overloads_static;
+
   // Used to clamp the required number of parameters in the arginfo to be
   // compatible with any parent class version of the method.
   int num_required;
@@ -332,12 +341,17 @@ public:
     }
     arginfo_id = Copy(Getattr(n, "sym:name"));
     has_director_node = (Getattr(n, "directorNode") != NULL);
+    all_overloads_static = true;
   }
 
   ~PHPTypes() {
     Delete(merged_types);
     Delete(byref);
   }
+
+  void not_all_static() { all_overloads_static = false; }
+
+  bool get_all_static() const { return all_overloads_static; }
 
   void adjust(int num_required_, bool php_constructor) {
     num_required = std::min(num_required, num_required_);
@@ -1021,7 +1035,7 @@ public:
       if (constructorRenameOverload) {
 	Append(modes, " | ZEND_ACC_STATIC");
       }
-    } else if (wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"), "static") == 0) {
+    } else if (phptypes->get_all_static()) {
       modes = NewString("ZEND_ACC_PUBLIC | ZEND_ACC_STATIC");
     } else {
       modes = NewString("ZEND_ACC_PUBLIC");
@@ -1364,6 +1378,9 @@ public:
       } else {
 	phptypes = new PHPTypes(n);
 	SetVoid(all_phptypes, key, phptypes);
+      }
+      if (!(wrapperType == staticmemberfn || Cmp(Getattr(n, "storage"), "static") == 0)) {
+	phptypes->not_all_static();
       }
     }
 

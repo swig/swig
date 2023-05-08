@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-05-08: olly
+	    [PHP] #2544 Wrap overloaded method with both static and non-static
+	    forms.  We now wrap this as a non-static method in PHP, which means
+	    the static form only callable via an object.
+
+	    Previously this case could end up wrapped as static or non-static
+	    in PHP.  If it was wrapped as static, attempting to call non-static
+	    overloaded forms would crash with a segmentation fault.
+
 2023-05-06: mmomtchev, wsfulton
             #2550 Fix typedef/using declarations to a typedef struct/class.
 
