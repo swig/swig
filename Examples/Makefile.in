@@ -727,7 +727,7 @@ else ifeq (napi,$(JSENGINE))
 	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
-	$(LDSHARED) $(CCSHARED) $(CFLAGS) -I$(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+	$(LDSHARED) $(CCSHARED) $(CFLAGS) (LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 endif
 
 javascript_build_cpp: $(SRCDIR_SRCS)
