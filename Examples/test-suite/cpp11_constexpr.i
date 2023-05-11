@@ -13,6 +13,9 @@
 #endif
 %}
 
+%ignore operator==(ConstExpressions,ConstExpressions);
+%ignore operator!=(ConstExpressions,ConstExpressions);
+
 %inline %{
 #ifdef SWIG
 #define SWIGTESTCONST const
