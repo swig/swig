@@ -255,6 +255,8 @@ protected:
 
   virtual String *emitInputTypemap(Node *n, Parm *params, Wrapper *wrapper, String *arg);
 
+  virtual String *emitCheckTypemap(Node *n, Parm *params, Wrapper *wrapper, String *arg);
+
   virtual void marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult = 0, bool emitReturnVariable = true);
 
   virtual void emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params);
@@ -1289,6 +1291,18 @@ String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *
   return tm;
 }
 
+String *JSEmitter::emitCheckTypemap(Node *, Parm *p, Wrapper *wrapper, String *arg) {
+  String *tm = Getattr(p, "tmap:check");
+
+  if (tm != nullptr) {
+    Replaceall(tm, "$input", arg);
+    Setattr(p, "emit:input", arg);
+    Printf(wrapper->code, "%s\n", tm);
+  }
+
+  return tm;
+}
+
 void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult, bool emitReturnVariable) {
   SwigType *type = Getattr(n, "type");
   String *tm;
@@ -1562,6 +1576,15 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
     }
     tm = emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
+    if (tm) {
+      p = Getattr(p, "tmap:in:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
+  for (p = parms; p;) {
+    tm = emitCheckTypemap(n, p, wrapper, Getattr(p, "emit:input"));
     if (tm) {
       p = Getattr(p, "tmap:in:next");
     } else {
@@ -2213,6 +2236,15 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
     tm = emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
 
+    if (tm) {
+      p = Getattr(p, "tmap:in:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
+  for (p = parms; p;) {
+    tm = emitCheckTypemap(n, p, wrapper, Getattr(p, "emit:input"));
     if (tm) {
       p = Getattr(p, "tmap:in:next");
     } else {
