@@ -93,6 +93,13 @@ try {
     check::equal($s->getMessage(), "foo");
 }
 
+check::equal(li_std_string::stdstring_empty(), "", "stdstring_empty test");
+check::equal(li_std_string::c_empty(), "", "c_empty test");
+check::isnull(li_std_string::c_null(), "c_null test");
+check::isnull(li_std_string::get_null(li_std_string::c_null()), "get_null c_null test");
+check::equal(li_std_string::get_null(li_std_string::c_empty()), "non-null", "get_null c_empty test");
+check::equal(li_std_string::get_null(li_std_string::stdstring_empty()), "non-null", "get_null stdstring_empty test");
+
 // This used to give "Undefined variable: r"
 li_std_string::test_const_reference_returning_void("foo");
 

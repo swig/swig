@@ -41,4 +41,13 @@ let _ =
   ignore (_Structure_StaticMemberString2 '(s));
   assert (_Structure_StaticMemberString2 '() = s);
   assert (_Structure_ConstStaticMemberString '() as string = "const static member string")
+
+  assert (_stdstring_empty '() as string = "")
+  assert (_c_empty '() as string = "")
+  (* FIXME: Can't work out what C++ NULL maps to here...
+  assert (_c_null '() = None)
+  assert (_get_null (_c_null '()) = None)
+  *)
+  assert (_get_null (_c_empty '()) as string = "non-null")
+  assert (_get_null (_stdstring_empty '()) as string = "non-null")
 ;;

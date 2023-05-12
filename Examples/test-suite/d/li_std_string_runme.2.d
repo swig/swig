@@ -72,6 +72,13 @@ void main() {
   Structure.StaticMemberString2 = s;
   enforce(Structure.StaticMemberString2 == s, "StaticMemberString2 test 2");
   enforce(Structure.ConstStaticMemberString == "const static member string", "ConstStaticMemberString test");
+
+  enforce(stdstring_empty() == "", "stdstring_empty test");
+  enforce(c_empty() == "", "c_empty test");
+  enforce(c_null() == null, "c_null test");
+  enforce(get_null(c_null()) == null, "get_null c_null test");
+  enforce(get_null(c_empty()) == null, "get_null c_empty test");
+  enforce(get_null(stdstring_empty()) == null, "get_null stdstring_empty test");
 }
 
 private void enforceThrows(void delegate() dg, string errorMessage) {

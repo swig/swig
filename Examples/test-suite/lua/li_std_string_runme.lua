@@ -119,3 +119,11 @@ assert(pcall(function () li_std_string.Structure_ConstStaticMemberString='f' end
 assert(type(li_std_string.Structure_StaticMemberString)=="string")
 assert(type(li_std_string.Structure_StaticMemberString2)=="string")
 assert(type(li_std_string.Structure_ConstStaticMemberString)=="string")
+
+
+assert(stdstring_empty()=="")
+assert(c_empty()=="")
+assert(c_null()==nil)
+assert(get_null(c_null())==nil)
+assert(get_null(c_empty())=="non-null")
+assert(get_null(stdstring_empty())=="non-null")
