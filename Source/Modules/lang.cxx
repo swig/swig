@@ -741,7 +741,7 @@ Doc/Manual/Typemaps.html for complete details.\n");
   }
 
   if (Strcmp(method, "except") == 0) {
-    Swig_warning(WARN_DEPRECATED_EXCEPT_TM, Getfile(n), Getline(n), "%%typemap(except) is deprecated. Use the %%exception directive.\n");
+    Swig_error(Getfile(n), Getline(n), "%%typemap(except) is no longer supported. Use the %%exception directive.\n");
   }
 
   if (Strcmp(method, "in") == 0) {
@@ -768,16 +768,7 @@ Doc/Manual/Typemaps.html for complete details.\n");
   }
 
   if (Strcmp(method, "ignore") == 0) {
-    Swig_warning(WARN_DEPRECATED_IGNORE_TM, Getfile(n), Getline(n), "%%typemap(ignore) has been replaced by %%typemap(in,numinputs=0).\n");
-
-    Clear(method);
-    Append(method, "in");
-    Hash *k = NewHash();
-    Setattr(k, "name", "numinputs");
-    Setattr(k, "value", "0");
-    set_nextSibling(k, kwargs);
-    Setattr(n, "kwargs", k);
-    kwargs = k;
+    Swig_error(Getfile(n), Getline(n), "%%typemap(ignore) is no longer supported. Use %%typemap(in,numinputs=0).\n");
   }
 
   /* Replace $descriptor() macros */
@@ -2691,7 +2682,7 @@ int Language::constructorDeclaration(Node *n) {
       return SWIG_NOWRAP;
   }
 
-  /* Name adjustment for %name */
+  /* Name adjustment for %rename */
   Swig_save("constructorDeclaration", n, "sym:name", NIL);
 
   {

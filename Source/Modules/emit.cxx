@@ -137,14 +137,6 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
     while (p) {
       npin = Getattr(p, "tmap:in:next");
 
-      /*
-         if (Getattr(p,"tmap:ignore")) {
-         npin = Getattr(p,"tmap:ignore:next");
-         } else if (Getattr(p,"tmap:in")) {
-         npin = Getattr(p,"tmap:in:next");
-         }
-       */
-
       if (Getattr(p, "tmap:freearg")) {
 	npfreearg = Getattr(p, "tmap:freearg:next");
 	if (npin != npfreearg) {

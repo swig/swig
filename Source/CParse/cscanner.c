@@ -989,8 +989,6 @@ num_common:
 	return (MODULE);
       if (strcmp(yytext, "%insert") == 0)
 	return (INSERT);
-      if (strcmp(yytext, "%name") == 0)
-	return (NAME);
       if (strcmp(yytext, "%rename") == 0) {
 	rename_active = 1;
 	return (RENAME);
@@ -1005,14 +1003,6 @@ num_common:
 	return (BEGINFILE);
       if (strcmp(yytext, "%endoffile") == 0)
 	return (ENDOFFILE);
-      if (strcmp(yytext, "%val") == 0) {
-	Swig_warning(WARN_DEPRECATED_VAL, cparse_file, cparse_line, "%%val directive deprecated (ignored).\n");
-	return (yylex());
-      }
-      if (strcmp(yytext, "%out") == 0) {
-	Swig_warning(WARN_DEPRECATED_OUT, cparse_file, cparse_line, "%%out directive deprecated (ignored).\n");
-	return (yylex());
-      }
       if (strcmp(yytext, "%constant") == 0)
 	return (CONSTANT);
       if (strcmp(yytext, "%typedef") == 0) {
@@ -1039,8 +1029,6 @@ num_common:
         rename_active = 1;
 	return (FEATURE);
       }
-      if (strcmp(yytext, "%except") == 0)
-	return (EXCEPT);
       if (strcmp(yytext, "%importfile") == 0)
 	return (IMPORT);
       if (strcmp(yytext, "%echo") == 0)

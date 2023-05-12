@@ -29,28 +29,28 @@
 
 /* -- Deprecated features -- */
 
-#define WARN_DEPRECATED_EXTERN        101
-#define WARN_DEPRECATED_VAL           102
-#define WARN_DEPRECATED_OUT           103
-#define WARN_DEPRECATED_DISABLEDOC    104
-#define WARN_DEPRECATED_ENABLEDOC     105
-#define WARN_DEPRECATED_DOCONLY       106
-#define WARN_DEPRECATED_STYLE         107
-#define WARN_DEPRECATED_LOCALSTYLE    108
-#define WARN_DEPRECATED_TITLE         109
-#define WARN_DEPRECATED_SECTION       110
-#define WARN_DEPRECATED_SUBSECTION    111
-#define WARN_DEPRECATED_SUBSUBSECTION 112
-#define WARN_DEPRECATED_ADDMETHODS    113
-#define WARN_DEPRECATED_READONLY      114
-#define WARN_DEPRECATED_READWRITE     115
-#define WARN_DEPRECATED_EXCEPT        116
-#define WARN_DEPRECATED_NEW           117
-#define WARN_DEPRECATED_EXCEPT_TM     118
-#define WARN_DEPRECATED_IGNORE_TM     119
-#define WARN_DEPRECATED_OPTC          120
-#define WARN_DEPRECATED_NAME          121
-#define WARN_DEPRECATED_NOEXTERN      122
+/* Unused since 4.2.0: #define WARN_DEPRECATED_EXTERN        101 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_VAL           102 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_OUT           103 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_DISABLEDOC    104 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_ENABLEDOC     105 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_DOCONLY       106 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_STYLE         107 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_LOCALSTYLE    108 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_TITLE         109 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_SECTION       110 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_SUBSECTION    111 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_SUBSUBSECTION 112 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_ADDMETHODS    113 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_READONLY      114 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_READWRITE     115 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_EXCEPT        116 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NEW           117 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_EXCEPT_TM     118 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_IGNORE_TM     119 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_OPTC          120 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NAME          121 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NOEXTERN      122 */
 #define WARN_DEPRECATED_NODEFAULT     123
 /* Unused since 4.1.0: #define WARN_DEPRECATED_TYPEMAP_LANG  124 */
 #define WARN_DEPRECATED_INPUT_FILE    125

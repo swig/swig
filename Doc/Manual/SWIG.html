@@ -1781,13 +1781,6 @@ const int foo;               /* Read only variable */
 char * const version="1.0";  /* Read only variable */
 </pre></div>
 
-<p>
-<b>Compatibility note:</b> Read-only access used to be controlled by a pair of directives
-<tt>%readonly</tt> and <tt>%readwrite</tt>.   Although these directives still work, they
-generate a warning message.   Simply change the directives to <tt>%immutable;</tt> and
-<tt>%mutable;</tt> to silence the warning.  Don't forget the extra semicolon!
-</p>
-
 <H3><a name="SWIG_rename_ignore">5.4.7 Renaming and ignoring declarations</a></H3>
 
 
@@ -1903,22 +1896,6 @@ Any function, variable etc which matches <tt>%ignore</tt> will not be wrapped an
 A common usage of <tt>%ignore</tt> is to selectively remove certain declarations from a header file without having
 to add conditional compilation to the header.   However, it should be stressed that this only works for simple
 declarations.  If you need to remove a whole section of problematic code, the SWIG preprocessor should be used instead.
-</p>
-
-<p>
-<b>Compatibility note: </b> Older versions of SWIG provided a special <tt>%name</tt> directive for renaming declarations.
-For example:
-</p>
-
-<div class="code">
-<pre>
-%name(output) extern void print(const char *);
-</pre>
-</div>
-
-<p>
-This directive is still supported, but it is deprecated and should probably be avoided.  The <tt>%rename</tt>
-directive is more powerful and better supports wrapping of raw header file information.
 </p>
 
 <H4><a name="SWIG_advanced_renaming">5.4.7.3 Advanced renaming support</a></H4>
@@ -3225,13 +3202,6 @@ Finally, it should be stressed that even though <tt>%extend</tt>
 can be used to add new data members, these new members can not require
 the allocation of additional storage in the object (e.g., their values must
 be entirely synthesized from existing attributes of the structure or obtained elsewhere).
-</p>
-
-<p>
-<b>Compatibility note:</b>  The <tt>%extend</tt> directive is a new
-name for the <tt>%addmethods</tt> directive.  Since <tt>%addmethods</tt> could
-be used to extend a structure with more than just methods, a more suitable
-directive name has been chosen.
 </p>
 
 <H3><a name="SWIG_nested_structs">5.5.7 Nested structures</a></H3>

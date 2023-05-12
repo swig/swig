@@ -2182,14 +2182,6 @@ public:
 	  continue;
 	}
 
-	/* old style?  caused segfaults without the p!=0 check
-	   in the for() condition, and seems dangerous in the
-	   while loop as well.
-	   while (Getattr(p, "tmap:ignore")) {
-	   p = Getattr(p, "tmap:ignore:next");
-	   }
-	 */
-
 	if (Getattr(p, "tmap:directorargout") != 0)
 	  outputs++;
 

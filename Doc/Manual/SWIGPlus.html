@@ -875,10 +875,12 @@ could be wrapped, but they had to be renamed.  For example:
 
 <div class="code">
 <pre>
+%rename(CopyFoo) Foo::Foo(const Foo &amp;);
+
 class Foo {
 public:
   Foo();
-  %name(CopyFoo) Foo(const Foo &amp;);
+  Foo(const Foo &amp;);
   ...
 };
 </pre>
@@ -1086,13 +1088,6 @@ However, any use of <tt>%feature("naturalvar")</tt> will override the global set
 <p>
 <b>Compatibility note:</b> The <tt>%naturalvar</tt> feature was introduced in SWIG-1.3.28, prior to which it was necessary to manually apply the const reference
 typemaps, eg <tt>%apply const std::string &amp; { std::string * }</tt>, but this example would also apply the typemaps to methods taking a <tt>std::string</tt> pointer.
-</p>
-
-<p>
-<b>Compatibility note:</b> Read-only access used to be controlled by a pair of directives
-<tt>%readonly</tt> and <tt>%readwrite</tt>.   Although these directives still work, they
-generate a warning message.   Simply change the directives to <tt>%immutable;</tt> and
-<tt>%mutable;</tt> to silence the warning.  Don't forget the extra semicolon!
 </p>
 
 <p>
@@ -2991,13 +2986,6 @@ The <a href="Customization.html#Customization_exception_special_variables">Speci
 The <tt>%extend</tt> directive follows all of the same conventions
 as its use with C structures. Please refer to the <a href="SWIG.html#SWIG_adding_member_functions">Adding member functions to C structures</a>
 section for further details.
-</p>
-
-<p>
-<b>Compatibility note:</b>  The <tt>%extend</tt> directive is a new
-name for the <tt>%addmethods</tt> directive in SWIG1.1.  Since <tt>%addmethods</tt> could
-be used to extend a structure with more than just methods, a more suitable
-directive name has been chosen.
 </p>
 
 <H3><a name="SWIGPlus_replacing_methods">6.17.1 Replacing class methods</a></H3>
