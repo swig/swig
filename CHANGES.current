@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-05-12: mmomtchev, erezgeva
+	    [Javascript] #2561 Support check typemaps for Javascript.
+
 2023-05-12: olly
 	    [Java] #2556 Suppress Java removal warnings on finalize method.
 	    SWIG will need to stop relying on finalize methods, but we know
