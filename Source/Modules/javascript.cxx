@@ -2098,9 +2098,8 @@ int V8Emitter::exitVariable(Node *n) {
   // (refer to the comment in lang.cxx:Language::staticmembervariableHandler)
   // a static const member variable may get transformed into a constant
   // and be emitted by emitConstant which will result calling exitVariable twice
-  if(GetFlag(n, "symbol_emitted"))
+  if(GetFlag(n, "js_constant"))
     return SWIG_OK;
-  SetFlag(n, "symbol_emitted");
 
   if (GetFlag(n, "ismember")) {
     if (GetFlag(state.variable(), IS_STATIC) || Equal(Getattr(n, "nodeType"), "enumitem")) {
