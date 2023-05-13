@@ -441,7 +441,10 @@ fail:
  *   - $jsargcount:     minimum number of arguments
  *   - $jsargrequired:  minimum number of arguments
  *   - $jslocals:       locals part of wrapper
- *   - $jscode:         code part of wrapper
+ *   - $jsinput:        input part of wrapper
+ *   - $jsaction:       action part of wrapper
+ *   - $joutput:        output part of wrapper
+ *   - $jscleanup:      cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_function", "templates")
 %{
@@ -455,12 +458,62 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
 
-  $jscode
+  $jsinput
+  $jsaction
+  $jsoutput
+  $jscleanup
   return jsresult;
 
   goto fail;
 fail:
   return Napi::Value();
+}
+%}
+
+
+/* -----------------------------------------------------------------------------
+ * js_function_async:  template for async function wrappers
+ *   - $jsmangledname:  mangled class name
+ *   - $jswrapper:      wrapper function name
+ *   - $jstype:         C return type of the underlying function
+ *   - $jslocals:       locals part of wrapper
+ *   - $jsinput:        input part of wrapper
+ *   - $joutput:        output part of wrapper
+ *   - $jscleanup:      cleanup part of wrapper
+ * ----------------------------------------------------------------------------- */
+%fragment("js_function_async", "templates")
+%{
+// js_function_async
+template <typename SWIG_OBJ_WRAP>
+Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+  std::function<$jstype(void)> action;
+  std::function<Napi::Value(const $jstype)> rval;
+  SWIG_NAPI_Worker<$jstype> *worker;
+  $jslocals
+  if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+
+  $jsinput
+  action = [=, &info]() -> $jstype {
+    $jstype result;
+    $jsaction
+    return result;
+  };
+  rval = [=, &info]($jstype result){
+    Napi::Value jsresult;
+    $jsoutput
+    $jscleanup
+    return jsresult;
+  };
+  worker = new SWIG_NAPI_Worker<$jstype>(env, action, rval, {});
+  worker->Queue();
+  return worker->Promise();
+
+  goto fail;
+fail:
+  Napi::Promise::Deferred rejected = Napi::Promise::Deferred::New(env);
+  rejected.Reject(Napi::String::New(env, "Error"));
+  return rejected.Promise();
 }
 %}
 

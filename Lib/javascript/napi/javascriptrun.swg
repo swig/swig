@@ -136,11 +136,19 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
         self(nullptr),
         owned(true),
         size(0),
-        info(nullptr)
+        info(nullptr),
+        _lock()
         {}
     virtual ~SWIG_NAPI_ObjectWrap_templ() {};
 
+    inline void lock() { _lock.lock(); };
+    inline void unlock() { _lock.unlock(); };
+
     Napi::Value ToString(const Napi::CallbackInfo &info);
+
+  private:
+    // Every wrapped object has an associated async lock
+    std::mutex _lock;
 };
 
 template <typename SWIG_OBJ_WRAP>
@@ -430,7 +438,6 @@ int SWIG_NAPI_ConvertPacked(Napi::Value valRef, void *ptr, size_t size, swig_typ
  * ---------------------------------------------------------------------------*/
 
 SWIGRUNTIME
-
 Napi::Value SWIG_NAPI_AppendOutput(Napi::Env env, Napi::Value result, Napi::Value obj) {
   if (result.IsUndefined()) {
     result = Napi::Array::New(env);
@@ -443,4 +450,104 @@ Napi::Value SWIG_NAPI_AppendOutput(Napi::Env env, Napi::Value result, Napi::Valu
   Napi::Array arr = result.As<Napi::Array>();
   arr.Set(arr.Length(), obj);
   return arr;
+}
+
+/* ---------------------------------------------------------------------------
+ * Asynchronous worker
+ * ---------------------------------------------------------------------------*/
+template <typename T>
+class SWIG_NAPI_Worker : public Napi::AsyncWorker {
+public:
+  typedef std::function<T(void)> action_func_type;
+  typedef std::function<Napi::Value(const T)> rval_func_type;
+
+  SWIG_NAPI_Worker(Napi::Env, const action_func_type &, const rval_func_type &, const std::vector<SWIG_NAPI_ObjectWrap_inst *> &);
+  virtual ~SWIG_NAPI_Worker();
+
+  Napi::Promise Promise() const;
+  virtual void OnOK() override;
+  virtual void OnError(const Napi::Error &error) override;
+  virtual void Execute() override;
+private:
+  Napi::Promise::Deferred deferred;
+  T return_value;
+  action_func_type action;
+  rval_func_type rval;
+  std::vector<SWIG_NAPI_ObjectWrap_inst *> objs;
+  std::vector<Napi::ObjectReference *> persistent;
+};
+
+template <typename T>
+SWIG_NAPI_Worker<T>::SWIG_NAPI_Worker(
+        Napi::Env env,
+        const action_func_type &_action,
+        const rval_func_type &_rval,
+        const std::vector<SWIG_NAPI_ObjectWrap_inst *> &_objs) :
+  Napi::AsyncWorker(env, "SWIG_Async_Worker"),
+  deferred(Napi::Promise::Deferred::New(env)),
+  return_value(),
+  action(_action),
+  rval(_rval),
+  objs(_objs.size()),
+  persistent(_objs.size()) {
+  for (SWIG_NAPI_ObjectWrap_inst *o : _objs) {
+    // We hold pointers to all SWIG wrappers where the async locks are located
+    objs.push_back(o);
+
+    // We hold persistent handles to all JS objects until the async operations completes
+    Napi::ObjectReference *ref = new Napi::ObjectReference();
+    *ref = Napi::Persistent(o->Value());
+    persistent.push_back(ref);
+  }
+}
+
+template <typename T>
+SWIG_NAPI_Worker<T>::~SWIG_NAPI_Worker() {
+  // Release the persistent references
+  for (Napi::ObjectReference *ref : persistent) {
+    delete ref;
+  }
+  persistent.clear();
+}
+  
+template <typename T>
+Napi::Promise SWIG_NAPI_Worker<T>::Promise() const {
+  return deferred.Promise();
+}
+
+template <typename T>
+void SWIG_NAPI_Worker<T>::Execute() {
+  // Sorting the pointers prevents deadlocks
+  std::sort(objs.begin(), objs.end());
+  // The objects cannot disappear while waiting on these locks
+  // because we are holding persistent references
+  for (SWIG_NAPI_ObjectWrap_inst *o : objs) {
+    o->lock();
+  }
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
+  try {
+    return_value = action();
+  } catch (std::exception e) {
+    SetError(e.what());
+  }
+#else
+  return_value = action();
+#endif
+  for (SWIG_NAPI_ObjectWrap_inst *o : objs) {
+    o->unlock();
+  }
+}
+
+template <typename T>
+void SWIG_NAPI_Worker<T>::OnOK() {
+  Napi::Env env(Env());
+  Napi::HandleScope scope(env);
+  Napi::Value result = rval(return_value);
+  deferred.Resolve(result);
+}
+
+template <typename T>
+void SWIG_NAPI_Worker<T>::OnError(const Napi::Error &error) {
+  Napi::Env env(Env());
+  deferred.Reject(error.Value());
 }
