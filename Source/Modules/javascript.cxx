@@ -834,6 +834,7 @@ int JSEmitter::enterFunction(Node *n) {
 int JSEmitter::enterVariable(Node *n) {
   // reset the state information for variables.
   state.variable(RESET);
+  UnsetFlag(n, "js_constant");
 
   // Retrieve a pure symbol name. Using 'sym:name' as a basis, as it considers %renamings.
   if (Equal(Getattr(n, "view"), "memberconstantHandler")) {
@@ -1173,6 +1174,7 @@ int JSEmitter::emitConstant(Node *n) {
       .pretty_print(f_wrappers);
 
   exitVariable(n);
+  SetFlag(n, "js_constant");
 
   DelWrapper(wrapper);
 
@@ -1711,9 +1713,8 @@ int JSCEmitter::exitVariable(Node *n) {
   // (refer to the comment in lang.cxx:Language::staticmembervariableHandler)
   // a static const member variable may get transformed into a constant
   // and be emitted by emitConstant which will result calling exitVariable twice
-  if (GetFlag(n, "symbol_emitted"))
+  if (GetFlag(n, "js_constant"))
     return SWIG_OK;
-  SetFlag(n, "symbol_emitted");
 
   Template t_variable(getTemplate("jsc_variable_declaration"));
   t_variable.replace("$jsname", state.variable(NAME))
