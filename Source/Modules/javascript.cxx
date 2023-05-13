@@ -2928,6 +2928,15 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
       p = nextSibling(p);
     }
   }
+
+  for (p = parms; p;) {
+    tm = emitCheckTypemap(n, p, wrapper, Getattr(p, "emit:input"));
+    if (tm) {
+      p = Getattr(p, "tmap:in:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
 }
 
 int NAPIEmitter::emitNamespaces() {
