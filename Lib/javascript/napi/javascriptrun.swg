@@ -456,24 +456,47 @@ Napi::Value SWIG_NAPI_AppendOutput(Napi::Env env, Napi::Value result, Napi::Valu
  * Asynchronous worker
  * ---------------------------------------------------------------------------*/
 template <typename T>
+// Most of the low-level queuing/comm work happens in Napi::AsyncWorker
 class SWIG_NAPI_Worker : public Napi::AsyncWorker {
 public:
   typedef std::function<T(void)> action_func_type;
   typedef std::function<Napi::Value(const T)> rval_func_type;
 
-  SWIG_NAPI_Worker(Napi::Env, const action_func_type &, const rval_func_type &, const std::vector<SWIG_NAPI_ObjectWrap_inst *> &);
+  SWIG_NAPI_Worker(
+    Napi::Env,
+    const action_func_type &,
+    const rval_func_type &,
+    const std::vector<SWIG_NAPI_ObjectWrap_inst *> &);
   virtual ~SWIG_NAPI_Worker();
 
+  // This creates a JS reference to the Promise held
+  // by the async task to be returned to the JS caller
   Napi::Promise Promise() const;
+  // This constructs the return value in the main thread
   virtual void OnOK() override;
+  // This runs the error handler in the main thread
   virtual void OnError(const Napi::Error &error) override;
+  // This runs the action lambda in a worker thread
   virtual void Execute() override;
 private:
+  // This is the Napi::Deferred which is the Promise handle
   Napi::Promise::Deferred deferred;
+  // This the value returned by the underlying function
   T return_value;
+  // This lambda holds the action itself, it will be executed in
+  // a thread from the libuv worker pool
+  // It is not allowed access to JS because V8 is not reentrant
   action_func_type action;
+  // This lambda will be executed back on the main thread after
+  // the first one has finished, it is allowed access to JS
+  // Converting the objects back to JS happens here
   rval_func_type rval;
+  // This vector holds pointers to the NAPI wrappers used
+  // by this operation - it is required for the async locks
   std::vector<SWIG_NAPI_ObjectWrap_inst *> objs;
+  // This vector holds persistent references to all JS objects
+  // involved in the asynchronous operation - it protects them
+  // from being garbage-collected
   std::vector<Napi::ObjectReference *> persistent;
 };
 
