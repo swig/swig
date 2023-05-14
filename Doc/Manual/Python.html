@@ -3425,9 +3425,15 @@ For example:
 
 <div class="code">
 <pre>
+/* Rename the SWIG-generated wrapper. */
+%rename _set_transform set_transform;
+
+...
+
 void set_transform(Image *im, double x[4][4]);
 
 ...
+
 /* Rewrite the high level interface to set_transform */
 %pythoncode %{
 def set_transform(im, x):
@@ -3435,7 +3441,7 @@ def set_transform(im, x):
     for i in range(4):
         for j in range(4):
             mat44_set(a, i, j, x[i][j])
-    _example.set_transform(im, a)
+    _example._set_transform(im, a)
     free_mat44(a)
 %}
 </pre>
