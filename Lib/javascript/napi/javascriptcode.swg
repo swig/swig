@@ -478,6 +478,9 @@ fail:
  *   - $jstype:         C return type of the underlying function
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
+ *   - $jspreaction:    preaction part of wrapper
+ *   - $jsaction:       action part of wrapper
+ *   - $jspostaction:   postaction part of wrapper
  *   - $joutput:        output part of wrapper
  *   - $jscleanup:      cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
@@ -489,14 +492,21 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   Napi::Env env = info.Env();
   std::function<$jstype(void)> action;
   std::function<Napi::Value(const $jstype)> rval;
+  std::vector<SWIG_NAPI_ObjectWrap_inst *> persistent;
   SWIG_NAPI_Worker<$jstype> *worker;
   $jslocals
   if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
   $jsinput
+  // Attention! We capture everything to avoid complex code to enumerate the arguments
+  // info cannot be copied, thus the reference
+  // but this reference will be invalid in the lambda!!
   action = [=, &info]() -> $jstype {
     $jstype result;
+    // WARNING! TODO! Find an elegant way to sort the locking operations
+    $jspreaction
     $jsaction
+    $jspostaction
     return result;
   };
   rval = [=, &info]($jstype result){
@@ -505,7 +515,7 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
     $jscleanup
     return jsresult;
   };
-  worker = new SWIG_NAPI_Worker<$jstype>(env, action, rval, {});
+  worker = new SWIG_NAPI_Worker<$jstype>(env, action, rval, persistent);
   worker->Queue();
   return worker->Promise();
 

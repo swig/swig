@@ -2462,11 +2462,12 @@ public:
   virtual int exitFunction(Node *n);
 
 protected:
-  virtual void marshalInputArgs(Node *, ParmList *, Wrapper *,
-                                MarshallingMode, bool, bool);
+  virtual void marshalInputArgs(Node *, ParmList *, Wrapper *, MarshallingMode,
+                                bool, bool);
   virtual void marshalOutput(Node *n, ParmList *, Wrapper *,
                               String *, const String * = nullptr,
                               bool = true);
+  virtual String *emitAsyncTypemaps(Node *, Parm *, Wrapper *, const char *);
   virtual int emitNamespaces();
   virtual int emitFunction(Node *, bool, bool);
   virtual int emitCtor(Node *);
@@ -2883,6 +2884,32 @@ void NAPIEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper,
   Replaceall(wrapper->code, "$result", "jsresult");
 }
 
+String *NAPIEmitter::emitAsyncTypemaps(Node *, Parm *parms, Wrapper *,
+                                   const char *tmname) {
+  String *result = NewString("");
+  String *tmcode = NewString("");
+  String *tmnext = NewString("");
+  Printf(tmcode, "tmap:%s", tmname);
+  Printf(tmnext, "tmap:%s:next", tmname);
+
+  for (Parm *p = parms; p;) {
+    String *tm = Getattr(p, tmcode);
+
+    if (tm != nullptr) {
+      String *arg = Getattr(p, "emit:input");
+
+      Replaceall(tm, "$input", arg);
+      Append(result, tm);
+      Append(result, "\n");
+      p = Getattr(p, tmnext);
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
+  return result;
+}
+
 int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   Wrapper *wrapper = NewWrapper();
   Template t_function(getTemplate(getFunctionTemplate(n, is_member)));
@@ -2901,12 +2928,30 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
 
   // prepare local variables
   ParmList *params = Getattr(n, "parms");
+  String *pre, *post;
   emit_parameter_variables(params, wrapper);
   emit_attach_parmmaps(params, wrapper);
+  if (GetFlag(n, IS_ASYNC)) {
+    Swig_typemap_attach_parms("async_in", params, wrapper);
+    Swig_typemap_attach_parms("async_pre", params, wrapper);
+    Swig_typemap_attach_parms("async_post", params, wrapper);
+  }
 
-  // Historically, these functions return their output in wrapper->code
+  // Historically, marshalInput/marshalOutput/emitCleanupCode
+  // return their output in wrapper->code
+  // We need each part separately
   marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
   String *input = wrapper->code;
+
+  // This must be done after input (which resolves the parameters)
+  // but before emit_action (which emits the local variables)
+  if (GetFlag(n, IS_ASYNC)) {
+    pre = emitAsyncTypemaps(n, params, wrapper, "async_pre");
+    post = emitAsyncTypemaps(n, params, wrapper, "async_post");
+  } else {
+    pre = NewString("");
+    post = NewString("");
+  }
 
   String *action = emit_action(n);
 
@@ -2931,7 +2976,9 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
       .replace("$jsinput", input)
       .replace("$jstype", Swig_scopename_last(
                               SwigType_str(SwigType_strip_qualifiers(type), 0)))
+      .replace("$jspreaction", pre)
       .replace("$jsaction", action)
+      .replace("$jspostaction", post)
       .replace("$jsoutput", output)
       .replace("$jscleanup", cleanup)
       .replace("$jsargcount", Getattr(n, ARGCOUNT))
@@ -3156,10 +3203,16 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
   for (p = parms; p;) {
     tm = emitCheckTypemap(n, p, wrapper, Getattr(p, "emit:input"));
     if (tm) {
-      p = Getattr(p, "tmap:in:next");
+      p = Getattr(p, "tmap:check:next");
     } else {
       p = nextSibling(p);
     }
+  }
+
+  if (GetFlag(n, IS_ASYNC)) {
+    String *async_in = emitAsyncTypemaps(n, parms, wrapper, "async_in");
+    Append(wrapper->code, async_in);
+    Delete(async_in);
   }
 }
 

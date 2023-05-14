@@ -454,6 +454,7 @@ Napi::Value SWIG_NAPI_AppendOutput(Napi::Env env, Napi::Value result, Napi::Valu
 
 /* ---------------------------------------------------------------------------
  * Asynchronous worker
+ *
  * ---------------------------------------------------------------------------*/
 template <typename T>
 // Most of the low-level queuing/comm work happens in Napi::AsyncWorker
@@ -486,10 +487,13 @@ private:
   // This lambda holds the action itself, it will be executed in
   // a thread from the libuv worker pool
   // It is not allowed access to JS because V8 is not reentrant
+  // Concurrent execution is possible in this function!
   action_func_type action;
   // This lambda will be executed back on the main thread after
   // the first one has finished, it is allowed access to JS
   // Converting the objects back to JS happens here
+  // As it runs on the main thread, it is
+  // implicitly sequential and uninterruptible
   rval_func_type rval;
   // This vector holds pointers to the NAPI wrappers used
   // by this operation - it is required for the async locks
@@ -540,25 +544,15 @@ Napi::Promise SWIG_NAPI_Worker<T>::Promise() const {
 
 template <typename T>
 void SWIG_NAPI_Worker<T>::Execute() {
-  // Sorting the pointers prevents deadlocks
-  std::sort(objs.begin(), objs.end());
-  // The objects cannot disappear while waiting on these locks
-  // because we are holding persistent references
-  for (SWIG_NAPI_ObjectWrap_inst *o : objs) {
-    o->lock();
-  }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
   try {
     return_value = action();
-  } catch (std::exception e) {
+  } catch (const std::exception &e) {
     SetError(e.what());
   }
 #else
   return_value = action();
 #endif
-  for (SWIG_NAPI_ObjectWrap_inst *o : objs) {
-    o->unlock();
-  }
 }
 
 template <typename T>

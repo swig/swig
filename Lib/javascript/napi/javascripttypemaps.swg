@@ -54,3 +54,6 @@
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
+
+/* Include the async typemaps */
+%include <javascriptasync.swg>
