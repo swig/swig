@@ -1296,7 +1296,6 @@ String *JSEmitter::emitCheckTypemap(Node *, Parm *p, Wrapper *wrapper, String *a
 
   if (tm != nullptr) {
     Replaceall(tm, "$input", arg);
-    Setattr(p, "emit:input", arg);
     Printf(wrapper->code, "%s\n", tm);
   }
 
@@ -1586,7 +1585,7 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
   for (p = parms; p;) {
     tm = emitCheckTypemap(n, p, wrapper, Getattr(p, "emit:input"));
     if (tm) {
-      p = Getattr(p, "tmap:in:next");
+      p = Getattr(p, "tmap:check:next");
     } else {
       p = nextSibling(p);
     }
@@ -2246,7 +2245,7 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
   for (p = parms; p;) {
     tm = emitCheckTypemap(n, p, wrapper, Getattr(p, "emit:input"));
     if (tm) {
-      p = Getattr(p, "tmap:in:next");
+      p = Getattr(p, "tmap:check:next");
     } else {
       p = nextSibling(p);
     }
