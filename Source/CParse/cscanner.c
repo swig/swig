@@ -194,7 +194,7 @@ String *get_raw_text_balanced(int startchar, int endchar) {
 }
 
 /* ----------------------------------------------------------------------------
- * void skip_decl(void)
+ * int skip_decl(void)
  *
  * This tries to skip over an entire declaration.   For example
  *
@@ -203,9 +203,10 @@ String *get_raw_text_balanced(int startchar, int endchar) {
  * or
  *  friend ostream& operator<<(ostream&, const char *s) { }
  *
+ * Returns 0 if successfully skipped, -1 if EOF found first.
  * ------------------------------------------------------------------------- */
 
-void skip_decl(void) {
+int skip_decl(void) {
   int tok;
   int done = 0;
   int start_line = Scanner_line(scan);
@@ -216,11 +217,12 @@ void skip_decl(void) {
       if (!Swig_error_count()) {
 	Swig_error(cparse_file, start_line, "Missing semicolon (';'). Reached end of input.\n");
       }
-      return;
+      return -1;
     }
     if (tok == SWIG_TOKEN_LBRACE) {
       if (Scanner_skip_balanced(scan,'{','}') < 0) {
 	Swig_error(cparse_file, start_line, "Missing closing brace ('}'). Reached end of input.\n");
+	return -1;
       }
       break;
     }
@@ -230,6 +232,7 @@ void skip_decl(void) {
   }
   cparse_file = Scanner_file(scan);
   cparse_line = Scanner_line(scan);
+  return 0;
 }
 
 /* ----------------------------------------------------------------------------

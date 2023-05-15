@@ -1,1 +1,2 @@
-cpp_missing_rtemplate.i:4: Error: Syntax error in input(1).
+cpp_missing_rtemplate.i:4: Warning 999: Attempting to skip declaration SWIG can't parse
+cpp_missing_rtemplate.i:5: Error: Missing semicolon (';'). Reached end of input.

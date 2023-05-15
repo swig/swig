@@ -1,1 +1,2 @@
-pp_unknowndirective5.i:20: Error: Syntax error in input(1).
+pp_unknowndirective5.i:20: Warning 999: Attempting to skip declaration SWIG can't parse
+pp_unknowndirective5.i:21: Error: Missing semicolon (';'). Reached end of input.

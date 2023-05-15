@@ -13,7 +13,7 @@
  * directive often enough, so a later syntax error could get incorrectly
  * reported.  Here the syntax error in the declaration of `c` was confusingly
  * reported as `Error: Unknown directive '%a'`.  This was found and fixed prior
- * to 4.1.0.
+ * to 4.1.0.  FIXME: change this testcase to still use a syntax error, but put the `void int c;` testcase somewhere.
  */
 int a;
 int test2(int b = 9%a) { return b; }

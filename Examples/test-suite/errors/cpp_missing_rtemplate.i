@@ -2,10 +2,3 @@
 
 
 int foo(vector<int);
-
-
-
-
-
-
-

@@ -1,2 +1,2 @@
 cpp_invalid_exponents2.i:3: Error: Exponent does not have any digits
-cpp_invalid_exponents2.i:3: Error: Syntax error in input(1).
+cpp_invalid_exponents2.i:3: Warning 999: Attempting to skip declaration SWIG can't parse

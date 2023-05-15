@@ -1,1 +1,2 @@
-c_spaceship.i:3: Error: Syntax error in input(1).
+c_spaceship.i:3: Warning 999: Attempting to skip declaration SWIG can't parse
+c_spaceship.i:4: Error: Missing semicolon (';'). Reached end of input.

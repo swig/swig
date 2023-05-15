@@ -1835,15 +1835,6 @@ declaration    : swig_directive { $$ = $1; }
                | c_declaration { $$ = $1; } 
                | cpp_declaration { $$ = $1; }
                | SEMI { $$ = 0; }
-               | error {
-                  $$ = 0;
-		  if (cparse_unknown_directive) {
-		      Swig_error(cparse_file, cparse_line, "Unknown directive '%s'.\n", cparse_unknown_directive);
-		  } else {
-		      Swig_error(cparse_file, cparse_line, "Syntax error in input(1).\n");
-		  }
-		  Exit(EXIT_FAILURE);
-               }
 /* Out of class constructor/destructor declarations */
                | c_constructor_decl { 
                   if ($$) {
@@ -1865,7 +1856,18 @@ declaration    : swig_directive { $$ = $1; }
                   $$ = 0;
                   skip_decl();
                }
-               ;
+	       | error {
+		  $$ = 0;
+		  if (cparse_unknown_directive) {
+		    Swig_error(cparse_file, cparse_line, "Unknown directive '%s'.\n", cparse_unknown_directive);
+		    Exit(EXIT_FAILURE);
+		  }
+		  if (skip_decl() == 0) {
+		    /* Don't emit warning if skip_decl() hit EOF. */
+		    Swig_warning(999, cparse_file, cparse_line, "Attempting to skip declaration SWIG can't parse\n");
+		  }
+	       }
+	       ;
 
 /* ======================================================================
  *                           SWIG DIRECTIVES 
