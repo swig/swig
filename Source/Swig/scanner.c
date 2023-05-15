@@ -468,12 +468,9 @@ static void get_escape(Scanner *s) {
 	state = 20;
 	Delitem(s->text, DOH_END);
       } else {
-	char tmp[3];
-	tmp[0] = '\\';
-	tmp[1] = (char)c;
-	tmp[2] = 0;
 	Delitem(s->text, DOH_END);
-	Append(s->text, tmp);
+	Putc('\\',s->text);
+	Putc((char)c,s->text);
 	return;
       }
       break;
@@ -716,9 +713,7 @@ static int look(Scanner *s) {
 	state = 20;
       }
       else {
-	char temp[2] = { 0, 0 };
-	temp[0] = c;
-	Append( str_delimiter, temp );
+	Putc( (char)c, str_delimiter );
       }
     
       break;
@@ -742,9 +737,7 @@ static int look(Scanner *s) {
 	  int i=0;
 	  String *end_delimiter = NewStringEmpty();
 	  while ((c = nextchar(s)) != 0 && c!='\"') {
-	    char temp[2] = { 0, 0 };
-	    temp[0] = c;
-	    Append( end_delimiter, temp );
+	    Putc( (char)c, end_delimiter );
 	    i++;
 	  }
 	  
@@ -1566,14 +1559,12 @@ int Scanner_skip_balanced(Scanner *s, int startchar, int endchar) {
   char c;
   int num_levels = 1;
   int state = 0;
-  char temp[2] = { 0, 0 };
   String *locator = 0;
-  temp[0] = (char) startchar;
   Clear(s->text);
   Setfile(s->text, Getfile(s->str));
   Setline(s->text, s->line);
 
-  Append(s->text, temp);
+  Putc((char)startchar, s->text);
   while (num_levels > 0) {
     if ((c = nextchar(s)) == 0) {
       Delete(locator);
@@ -1703,12 +1694,10 @@ String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
 
   int num_levels = 1;
   int state = 0;
-  char temp[2] = { 0, 0 };
-  temp[0] = (char) startchar;
   Clear(s->text);
   Setfile(s->text, Getfile(s->str));
   Setline(s->text, s->line);
-  Append(s->text, temp);
+  Putc((char)startchar, s->text);
   while (num_levels > 0) {
     if ((c = nextchar(s)) == 0) {
       Clear(s->text);
