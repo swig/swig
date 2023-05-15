@@ -327,7 +327,7 @@ protected:
   String *s_namespace;
 
   // State variables that carry information across calls to functionWrapper()
-  // from  member accessors and class declarations.
+  // from member accessors and class declarations.
   String *opaqueClassDeclaration;
   int processing_variable;
   int processing_member_access_function;
@@ -2783,7 +2783,7 @@ Language *swig_r(void) {
  *----------------------------------------------------------------------- */
 String * R::processType(SwigType *t, Node *n, int *nargs) {
   //XXX Need to handle typedefs, e.g.
-  //  a type which is a typedef  to a function pointer.
+  //  a type which is a typedef to a function pointer.
 
   SwigType *tmp = Getattr(n, "tdname");
   if (debugMode)

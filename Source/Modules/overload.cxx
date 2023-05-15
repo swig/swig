@@ -560,7 +560,7 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
 	  }
 	}
 	if (!Getattr(pj, "tmap:in:SWIGTYPE") && Getattr(pj, "tmap:typecheck:SWIGTYPE")) {
-	  /* we emit  a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
+	  /* we emit a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
 	  Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
 		       "Overloaded method %s with no explicit typecheck typemap for arg %d of type '%s'\n",
 		       Swig_name_decl(n), j, SwigType_str(Getattr(pj, "type"), 0));
@@ -737,7 +737,7 @@ static String *overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int
 	  }
 	}
 	if (!Getattr(pj, "tmap:in:SWIGTYPE") && Getattr(pj, "tmap:typecheck:SWIGTYPE")) {
-	  /* we emit  a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
+	  /* we emit a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
 	  Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
 		       "Overloaded method %s with no explicit typecheck typemap for arg %d of type '%s'\n",
 		       Swig_name_decl(n), j, SwigType_str(Getattr(pj, "type"), 0));
@@ -836,7 +836,7 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
 	num_braces++;
       }
       if (!Getattr(pj, "tmap:in:SWIGTYPE") && Getattr(pj, "tmap:typecheck:SWIGTYPE")) {
-	/* we emit  a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
+	/* we emit a warning if the argument defines the 'in' typemap, but not the 'typecheck' one */
 	Swig_warning(WARN_TYPEMAP_TYPECHECK_UNDEF, Getfile(ni), Getline(ni),
 		     "Overloaded method %s with no explicit typecheck typemap for arg %d of type '%s'\n",
 		     Swig_name_decl(n), j, SwigType_str(Getattr(pj, "type"), 0));

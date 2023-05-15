@@ -7,7 +7,7 @@ namespace oss
 %} 
  
 namespace oss { 
-   %extend Foo<One> {           //************ this doesn't  work 
+   %extend Foo<One> {           //************ this doesn't work
      int test1(int x) { return x; } 
    };
 } 
