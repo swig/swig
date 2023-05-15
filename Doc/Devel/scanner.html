@@ -103,7 +103,7 @@ Skips to the end of the current line.   The text skipped can be obtained using <
 </blockquote>
 
 <p>
-<b><tt>void Scanner_skip_balanced(Scanner *s, int startchar, int endchar)</tt></b>
+<b><tt>int Scanner_skip_balanced(Scanner *s, int startchar, int endchar)</tt></b>
 <blockquote>
 Skips to the end of a block of text denoted by starting and ending characters.  For example, <tt>{</tt> and <tt>}</tt>.  The
 function is smart about how it skips text.  String literals and comments are ignored.   The function also is aware of nesting.  The

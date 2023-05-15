@@ -1558,6 +1558,8 @@ void Scanner_skip_line(Scanner *s) {
  *
  * Skips a piece of code enclosed in begin/end symbols such as '{...}' or
  * (...).  Ignores symbols inside comments or strings.
+ *
+ * Returns 0 on success, -1 if no matching endchar could be found.
  * ----------------------------------------------------------------------------- */
 
 int Scanner_skip_balanced(Scanner *s, int startchar, int endchar) {
