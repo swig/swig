@@ -905,7 +905,7 @@ static String *expand_macro(String *name, List *args, String *line_file) {
       arg = Getitem(args, i);	/* Get an argument value */
       reparg = Preprocessor_replace(arg, NULL);
       aname = Getitem(margs, i);	/* Get macro argument name */
-      if (strstr(Char(ns), "\001")) {
+      if (strchr(Char(ns), '\001')) {
 	/* Try to replace a quoted version of the argument */
 	Clear(temp);
 	Clear(tempa);
@@ -913,7 +913,7 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 	Printf(tempa, "\"%s\"", arg);
 	Replace(ns, temp, tempa, DOH_REPLACE_ID_END);
       }
-      if (strstr(Char(ns), "\002")) {
+      if (strchr(Char(ns), '\002')) {
 	/* Look for concatenation tokens */
 	Clear(temp);
 	Clear(tempa);
@@ -937,7 +937,7 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 	Clear(temp);
 	Printf(temp, "`%s`", aname);
 	c = Char(arg);
-	if (*c == '\"') {
+	if (*c == '"') {
 	  rep = arg;
 	} else {
 	  Clear(tempa);
@@ -949,14 +949,14 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 
       /* Non-standard mangle expansions.  
          The #@Name is replaced by mangle_arg(Name). */
-      if (strstr(Char(ns), "\004")) {
+      if (strchr(Char(ns), '\004')) {
 	String *marg = Swig_name_mangle_string(arg);
 	Clear(temp);
 	Printf(temp, "\004%s", aname);
 	Replace(ns, temp, marg, DOH_REPLACE_ID_END);
 	Delete(marg);
       }
-      if (strstr(Char(ns), "\005")) {
+      if (strchr(Char(ns), '\005')) {
 	String *marg = Swig_name_mangle_string(arg);
 	Clear(temp);
 	Clear(tempa);

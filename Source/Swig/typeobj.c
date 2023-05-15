@@ -565,7 +565,7 @@ SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
   const char *cqual = Char(qual);
 
   /* if 't' has no qualifiers and 'qual' is a single qualifier, simply add it */
-  if ((strncmp(c, "q(", 2) != 0) && (strstr(cqual, " ") == 0)) {
+  if ((strncmp(c, "q(", 2) != 0) && (strchr(cqual, ' ') == 0)) {
     String *temp = NewStringf("q(%s).", cqual);
     Insert(t, 0, temp);
     Delete(temp);

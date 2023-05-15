@@ -4552,7 +4552,7 @@ private:
     char *tmp = Char(nspace);
     char *c = tmp;
     char *co = 0;
-    if (!strstr(c, "."))
+    if (!strchr(c, '.'))
       return 0;
 
     co = c + Len(nspace);
@@ -4579,7 +4579,7 @@ private:
     if (!nspace) return NULL;
     char *c = Char(nspace);
     char *cc = c;
-    if (!strstr(c, "."))
+    if (!strchr(c, '.'))
       return NewString(nspace);
 
     while (*c) {
@@ -4602,7 +4602,7 @@ private:
     char *tmp = Char(nspace);
     char *c = tmp;
     char *cc = c;
-    if (!strstr(c, "."))
+    if (!strchr(c, '.'))
       return NULL;
 
     while (*c) {

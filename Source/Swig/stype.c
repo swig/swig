@@ -1262,10 +1262,10 @@ static String *manglestr_default(const SwigType *s) {
 String *SwigType_manglestr(const SwigType *s) {
 #if 0
   /* Debugging checks to ensure a proper SwigType is passed in and not a stringified type */
-  String *angle = Strstr(s, "<");
+  String *angle = Strchr(s, '<');
   if (angle && Strncmp(angle, "<(", 2) != 0)
     Printf(stderr, "SwigType_manglestr error: %s\n", s);
-  else if (Strstr(s, "*") || Strstr(s, "&") || Strstr(s, "["))
+  else if (Strchr(s, '*') || Strchr(s, '&') || Strchr(s, '['))
     Printf(stderr, "SwigType_manglestr error: %s\n", s);
 #endif
   return manglestr_default(s);
