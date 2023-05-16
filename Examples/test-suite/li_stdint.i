@@ -63,5 +63,7 @@
   uint_least32_t uint_least32_td(int_least32_t i) { return i; }
   uint_least64_t uint_least64_td(int_least64_t i) { return i; }
 
+  // Since SWIG 4.2.0 stdint.i also provides the types in the std namespace.
+  std::int8_t std_int8_td (std::int8_t i) { return i; }
 %}
 
