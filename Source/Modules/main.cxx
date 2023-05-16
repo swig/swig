@@ -53,6 +53,12 @@ extern "C" {
  */
 #define EXTRA_WARNINGS "309,403,405,512,321,322"
 
+/* Indirect stringification. Doing two levels allows the argument to be a macro itself.
+ * Example: STRINGIFY(MY_INT_VAL) expands to "10", when we have #define MY_INT_VAL 10
+ */
+#define STRINGIFY_1(x, ...) #x
+#define STRINGIFY(x, ...) STRINGIFY_1(x)
+
 extern "C" {
   extern String *ModuleName;
   extern int ignore_nested_classes;
@@ -498,7 +504,7 @@ static void getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-c++") == 0) {
 	CPlusPlus = 1;
-	Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
+	Preprocessor_define((DOH *) "__cplusplus " STRINGIFY(__cplusplus), 0);
 	Swig_cparse_cplusplus(1);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-c++out") == 0) {
@@ -957,7 +963,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
   // Define the __cplusplus symbol
   if (CPlusPlus)
-    Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
+    Preprocessor_define((DOH *) "__cplusplus " STRINGIFY(__cplusplus), 0);
 
   // Parse language dependent options
   lang->main(argc, argv);
