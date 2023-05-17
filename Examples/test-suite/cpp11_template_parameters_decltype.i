@@ -6,7 +6,7 @@
 
 #pragma SWIG nowarn=SWIGWARN_CPP11_DECLTYPE
 
-// to fix (non-template expression equivalent to template expression further down):
+// Non-template expression equivalent to template expression further down:
 %inline %{
 #include <utility>
 #include <vector>
