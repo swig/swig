@@ -1734,7 +1734,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       access_specifier;
 %type <node>     base_specifier;
 %type <str>      variadic_opt;
-%type <type>     type rawtype type_right anon_bitfield_type decltype ;
+%type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
 %type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem callparms callptail;
@@ -6224,17 +6224,39 @@ type_right     : primitive_type { $$ = $1;
                }
                ;
 
-decltype       : DECLTYPE LPAREN expr RPAREN {
-                 Node *n = Swig_symbol_clookup($3.val, 0);
-                 if (!n) {
-		   Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", $3.val);
+decltype       : DECLTYPE LPAREN {
+		 $<str>$ = get_raw_text_balanced('(', ')');
+	       } decltypeexpr {
+		 if ($4) {
+		   $$ = $4;
+		   Delete($<str>3);
+		 } else {
+		   String *expr = $<str>3;
+		   Delitem(expr,0);
+		   Delitem(expr,DOH_END);
+		   Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", expr);
+		   $$ = expr;
+		 }
+	       }
+	       ;
 
-		   $$ = NewStringf("decltype(%s)", $3.val);
-                 } else {
-                   $$ = Getattr(n, "type");
-                 }
-               }
-               ;
+decltypeexpr   : expr RPAREN {
+		 Node *n = Swig_symbol_clookup($1.val, 0);
+		 if (!n) {
+		   Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", $1.val);
+
+		   $$ = NewStringf("decltype(%s)", $1.val);
+		 } else {
+		   $$ = Getattr(n, "type");
+		 }
+	       }
+	       | error RPAREN {
+		 // Avoid a parse error if we can't parse the expression decltype() is applied to.
+		 $$ = 0;
+		 skip_balanced('(',')');
+		 Clear(scanner_ccode);
+	       }
+	       ;
 
 primitive_type : primitive_type_list {
 		 if (!$1.type) $1.type = NewString("int");

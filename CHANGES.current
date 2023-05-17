@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-05-18: olly
+	    #1589 #2335 Support parsing arbitrary expression in decltype.
+
+	    Use parser error recovery to skip to the closing matching `)` and
+	    issue a warning that we can't deduce the decltype for the
+	    expression (like we already do for any expression which isn't a
+	    simple variable or similar).
+
 2023-05-12: mmomtchev, erezgeva
 	    [Javascript] #2561 Support check typemaps for Javascript.
 

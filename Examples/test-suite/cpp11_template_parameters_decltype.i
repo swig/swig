@@ -6,14 +6,12 @@
 
 #pragma SWIG nowarn=SWIGWARN_CPP11_DECLTYPE
 
-#if 0
-// to fix (non-template expression equivalent to template expression further down):
+// Non-template expression equivalent to template expression further down:
 %inline %{
 #include <utility>
 #include <vector>
   void f(bool c = std::is_constructible<std::string, decltype(std::declval<std::vector<std::pair<int, int>>>().begin()->first)>::value) {}
 %}
-#endif
 
 %inline %{
 // Github issue #1590
@@ -26,14 +24,11 @@ struct Json {
     Json(const T & t) : Json(t.to_json()) {}
 
 // Github issue #1589
-// To fix
-#if !defined(SWIG)
   // Implicit constructor: map-like objects (std::map, std::unordered_map, etc)
   template <class M, typename std::enable_if<
       std::is_constructible<std::string, decltype(std::declval<M>().begin()->first)>::value,
       int>::type = 0>
           Json(const M & m) : Json(object(m.begin(), m.end())) {}
-#endif
 };
 %}
 
