@@ -908,16 +908,6 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   // can process options enough to handle -version, etc.
   lang = tlm ? tlm->fac() : new Language;
 
-  // Set up some default symbols (available in both SWIG interface files
-  // and C files)
-
-  Preprocessor_define((DOH *) "SWIG 1", 0);
-  Preprocessor_define((DOH *) "__STDC__", 0);
-
-  String *vers = Swig_package_version_hex();
-  Preprocessor_define(vers, 0);
-  Delete(vers);
-
   Swig_contract_mode_set(1);
 
   /* Turn off directors mode */
@@ -976,6 +966,17 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
     Printf(stderr, "The -c++out option is for C input but C++ input has been requested via -c++\n");
     Exit(EXIT_FAILURE);
   }
+
+  // Set up some default symbols (available in both SWIG interface files
+  // and C files).  Define all predefined symbols after option parsing so
+  // that attempts to use `-U` to undefine them are consistently handled.
+
+  Preprocessor_define("SWIG 1", 0);
+  Preprocessor_define("__STDC__", 0);
+
+  String *vers = Swig_package_version_hex();
+  Preprocessor_define(vers, 0);
+  Delete(vers);
 
   install_opts(argc, argv);
 
