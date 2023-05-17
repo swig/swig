@@ -483,9 +483,9 @@ static void getoptions(int argc, char *argv[]) {
 	  // Match C preprocessor behaviour whereby -DFOO sets FOO=1.
 	  Append(d, " 1");
 	}
-	Preprocessor_define((DOH *) d, 0);
-	Delete(d);
 	// Create a symbol
+	Preprocessor_define(d, 0);
+	Delete(d);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-E") == 0) {
 	cpp_only = 1;
