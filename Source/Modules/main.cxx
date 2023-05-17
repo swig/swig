@@ -946,10 +946,6 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
   getoptions(argc, argv);
 
-  // Define the __cplusplus symbol
-  if (CPlusPlus)
-    Preprocessor_define("__cplusplus __cplusplus", 0);
-
   // Parse language dependent options
   lang->main(argc, argv);
 
@@ -973,6 +969,11 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
   Preprocessor_define("SWIG 1", 0);
   Preprocessor_define("__STDC__", 0);
+
+  // Define __cplusplus to the C++98 value, but only if it's not already
+  // defined so the user to override with e.g. -D__cplusplus=202002L
+  if (CPlusPlus && !Preprocessor_defined("__cplusplus"))
+    Preprocessor_define("__cplusplus 199711L", 0);
 
   String *vers = Swig_package_version_hex();
   Preprocessor_define(vers, 0);
