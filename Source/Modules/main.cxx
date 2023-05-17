@@ -498,7 +498,6 @@ static void getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-c++") == 0) {
 	CPlusPlus = 1;
-	Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
 	Swig_cparse_cplusplus(1);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-c++out") == 0) {
@@ -957,7 +956,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
   // Define the __cplusplus symbol
   if (CPlusPlus)
-    Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
+    Preprocessor_define("__cplusplus __cplusplus", 0);
 
   // Parse language dependent options
   lang->main(argc, argv);
