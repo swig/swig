@@ -1785,23 +1785,23 @@ program        :  interface {
 		   Setattr($1,"module",module_node);
 	           top = $1;
                }
-               | PARSETYPE parm SEMI {
+               | PARSETYPE parm END {
                  top = Copy(Getattr($2,"type"));
 		 Delete($2);
                }
                | PARSETYPE error {
                  top = 0;
                }
-               | PARSEPARM parm SEMI {
+               | PARSEPARM parm END {
                  top = $2;
                }
                | PARSEPARM error {
                  top = 0;
                }
-               | PARSEPARMS LPAREN parms RPAREN SEMI {
+               | PARSEPARMS LPAREN parms RPAREN END {
                  top = $3;
                }
-               | PARSEPARMS error SEMI {
+               | PARSEPARMS error {
                  top = 0;
                }
                ;
@@ -7451,7 +7451,7 @@ empty          :   ;
 
 SwigType *Swig_cparse_type(String *s) {
    String *ns;
-   ns = NewStringf("%s;",s);
+   ns = NewString(s);
    Seek(ns,0,SEEK_SET);
    scanner_file(ns);
    top = 0;
@@ -7464,7 +7464,7 @@ SwigType *Swig_cparse_type(String *s) {
 
 Parm *Swig_cparse_parm(String *s) {
    String *ns;
-   ns = NewStringf("%s;",s);
+   ns = NewString(s);
    Seek(ns,0,SEEK_SET);
    scanner_file(ns);
    top = 0;
@@ -7480,9 +7480,9 @@ ParmList *Swig_cparse_parms(String *s, Node *file_line_node) {
    String *ns;
    char *cs = Char(s);
    if (cs && cs[0] != '(') {
-     ns = NewStringf("(%s);",s);
+     ns = NewStringf("(%s)",s);
    } else {
-     ns = NewStringf("%s;",s);
+     ns = NewString(s);
    }
    Setfile(ns, Getfile(file_line_node));
    Setline(ns, Getline(file_line_node));
