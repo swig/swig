@@ -146,6 +146,7 @@ static const char *usage4 = (const char *) "\
      -small          - Compile in virtual elimination and compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -templatereduce - Reduce all the typedefs in templates\n\
+     -U<symbol>      - Undefine symbol <symbol>\n\
      -v              - Run in verbose mode\n\
      -version        - Display SWIG version number\n\
      -Wall           - Remove all warning suppression, also implies -Wextra\n\
@@ -486,6 +487,9 @@ static void getoptions(int argc, char *argv[]) {
 	// Create a symbol
 	Preprocessor_define(d, 0);
 	Delete(d);
+	Swig_mark_arg(i);
+      } else if (strncmp(argv[i], "-U", 2) == 0) {
+	Preprocessor_undef(argv[i] + 2);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-E") == 0) {
 	cpp_only = 1;

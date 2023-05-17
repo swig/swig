@@ -8,6 +8,10 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-05-18: olly
+	    #2591 Add new -U command line option to undefine a preprocessor
+	    symbol.
+
+2023-05-18: olly
 	    #1589 #2335 Support parsing arbitrary expression in decltype.
 
 	    Use parser error recovery to skip to the closing matching `)` and
