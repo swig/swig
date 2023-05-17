@@ -954,8 +954,6 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   libfiles = NewList();
   all_output_files = NewList();
 
-  /* Check for SWIG_FEATURES environment variable */
-
   getoptions(argc, argv);
 
   // Define the __cplusplus symbol

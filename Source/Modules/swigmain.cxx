@@ -214,6 +214,8 @@ int main(int margc, char **margv) {
   int argc;
   char **argv;
 
+  /* Check for SWIG_FEATURES environment variable */
+
   SWIG_merge_envopt(getenv("SWIG_FEATURES"), margc, margv, &argc, &argv);
   merge_options_files(&argc, &argv);
 
