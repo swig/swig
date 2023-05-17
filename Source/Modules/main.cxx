@@ -88,7 +88,7 @@ static const char *usage1 = (const char *) "\
      -debug-tmused   - Display typemaps used debugging information\n\
      -directors      - Turn on director mode for all the classes, mainly for testing\n\
      -dirprot        - Turn on wrapping of protected members for director classes (default)\n\
-     -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
+     -D<symbol>[=<value>] - Define symbol <symbol> (for conditional compilation)\n\
 ";
 
 static const char *usage2 = (const char *) "\
