@@ -13,4 +13,4 @@ namespace std
   class string_view;
 }
 
-%typemaps_std_string(std::string_view, char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize, %checkcode(STRINGVIEW));
+%typemaps_std_string_view(std::string_view, char, SWIG_AsCharPtrAndSize, SWIG_FromCharPtrAndSize, %checkcode(STRINGVIEW));
