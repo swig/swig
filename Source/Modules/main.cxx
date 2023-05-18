@@ -968,7 +968,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   // that attempts to use `-U` to undefine them are consistently handled.
 
   Preprocessor_define("SWIG 1", 0);
-  Preprocessor_define("__STDC__", 0);
+  Preprocessor_define("__STDC__ 1", 0);
 
   // Define __cplusplus to the C++98 value, but only if it's not already
   // defined so the user to override with e.g. -D__cplusplus=202002L

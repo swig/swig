@@ -169,6 +169,12 @@ __cplusplus                     Defined when -c++ option used
 </div>
 
 <p>
+Since SWIG 4.2.0, <tt>__STDC__</tt> is defined to <tt>1</tt> to match
+the behaviour of ISO C/C++ compilers.  Before this SWIG defined it to
+have an empty value.
+</p>
+
+<p>
 Since SWIG 4.2.0, <tt>__cplusplus</tt> is defined to <tt>199711L</tt>
 (the value for C++98) but you can override this by defining it
 explicitly on the SWIG command line if you are wrapping headers

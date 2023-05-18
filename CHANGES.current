@@ -8,6 +8,12 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-05-18: olly
+	    SWIG now defines __STDC__ to 1 to match the behaviour of ISO C/C++
+	    compilers, rather than to have an empty value.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2023-05-18: olly
 	    #2591 The value of __cplusplus SWIG defines can now be overridden
 	    on the command line, e.g. using -D__cplusplus=201103L which is
 	    useful if you're wrapping headers which have preprocessor checks
