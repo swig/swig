@@ -15,6 +15,7 @@
 <li><a href="#CPlusPlus14_core_language_changes">Core language changes</a>
 <ul>
 <li><a href="#CPlusPlus14_binary_literals">Binary integer literals</a>
+<li><a href="#CPlusPlus14_return_type_deduction">Return type deduction</a>
 </ul>
 <li><a href="#CPlusPlus14_standard_library_changes">Standard library changes</a>
 </ul>
@@ -52,6 +53,50 @@ Example:
 int b = 0b101011;
 </pre>
 </div>
+
+<H3><a href="CPlusPlus14_return_type_deduction">8.2.2 Return type deduction</a>
+
+<p>
+C++14 added the ability to specify <tt>auto</tt> for the return type of a function
+and have the compiler deduce it from the body of the function (in C++11 you had
+to explicitly specify a trailing return type if you used <tt>auto</tt> for the
+return type.
+</p>
+
+<p>
+SWIG 4.2.0 added support for this with some limitations.  The major one is that
+SWIG can't actually deduce the return type so if you want to wrap such a function
+you need to tell SWIG the return type explicitly.  The other limitation is that
+SWIG can currently only parse such functions when there's either nothing or
+only `const` between the `)` and the end of the parameter list and the `{` at
+the start of the body.  Hopefully this second limitation will be removed in
+the future.
+</p>
+
+<p>
+The trick for specifying the return type is to use <tt>%ignore</tt> to tell
+SWIG to ignore the function with the deduced return type, but first provide
+SWIG with an alternative declaration of the function with an explicit return
+type.  The generated wrapper will wrap this alternative declaration, and the
+call in the wrapper to the function will call the actual declaration.  Here is
+an actual example:
+</p>
+
+<div class="code"><pre>
+std::tuple<int, int> va_static_cast();
+%ignore va_static_cast();
+#pragma SWIG nowarn=SWIGWARN_CPP14_AUTO
+
+%inline %{
+#include <tuple>
+
+auto va_static_cast()
+{
+    return std::make_tuple(0, 0);
+}
+%}
+</pre></div>
+
 
 <H2><a name="CPlusPlus14_standard_library_changes">8.3 Standard library changes</a></H2>
 

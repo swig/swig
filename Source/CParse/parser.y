@@ -3328,7 +3328,11 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      if ($4.qualifier && $1 && Strstr($1, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
            }
-           ;
+	   | storage_class AUTO declarator cpp_const LBRACE {
+	      skip_balanced('{','}');
+	      Swig_warning(WARN_CPP14_AUTO, cparse_file, cparse_line, "Unable to deduce return type for '%s'.\n", $3.id);
+	   }
+	   ;
 
 /* Allow lists of variables and functions to be built up */
 

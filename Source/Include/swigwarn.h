@@ -100,6 +100,7 @@
 #define WARN_CPP11_ALIAS_TEMPLATE     342  /* redundant now */
 #define WARN_CPP11_VARIADIC_TEMPLATE  343  /* redundant now */
 #define WARN_CPP11_DECLTYPE           344
+#define WARN_CPP14_AUTO               345
 
 #define WARN_IGNORE_OPERATOR_NEW        350	/* new */
 #define WARN_IGNORE_OPERATOR_DELETE     351	/* delete */
