@@ -165,7 +165,7 @@ General Options
      -debug-tmused   - Display typemaps used debugging information
      -directors      - Turn on director mode for all the classes, mainly for testing
      -dirprot        - Turn on wrapping of protected members for director classes (default)
-     -D&lt;symbol&gt;      - Define a symbol &lt;symbol&gt; (for conditional compilation)
+     -D&lt;symbol&gt;[=&lt;value&gt;] - Define symbol &lt;symbol&gt; (for conditional compilation)
      -E              - Preprocess only, does not generate wrapper code
      -external-runtime [file] - Export the SWIG runtime stack
      -fakeversion &lt;v&gt;- Make SWIG fake the program version number to &lt;v&gt;
@@ -214,6 +214,7 @@ General Options
      -small          - Compile in virtual elimination and compact mode
      -swiglib        - Report location of SWIG library and exit
      -templatereduce - Reduce all the typedefs in templates
+     -U&lt;symbol&gt;      - Undefine symbol &lt;symbol&gt;
      -v              - Run in verbose mode
      -version        - Display SWIG version number
      -Wall           - Remove all warning suppression, also implies -Wextra

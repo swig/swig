@@ -55,6 +55,21 @@
 #endif
 %}
 
+/* Test that __STDC__ is defined by SWIG with value 1 (in SWIG < 4.2.0
+ * it was defined but with an empty value.
+ */
+#ifndef __STDC__
+# error __STDC__ not defined at SWIG-time
+#endif
+#if __STDC__-0 != 1
+# error __STDC__ value not 1 at SWIG-time
+#endif
+
+/* Test that __cplusplus isn't defined (this testcase is processed as C). */
+#ifdef __cplusplus
+# error __cplusplus defined in C mode
+#endif
+
 /* Test that SWIGxxx is defined at SWIG-time and in the wrapper. */
 %include "preproc_predefined.h"
 %{

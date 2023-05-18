@@ -571,6 +571,18 @@ void Preprocessor_undef(const_String_or_char_ptr str) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Preprocessor_defined()
+ *
+ * Check if a macro is defined.
+ * ----------------------------------------------------------------------------- */
+int Preprocessor_defined(const_String_or_char_ptr str) {
+  Hash *symbols;
+  assert(cpp);
+  symbols = Getattr(cpp, kpp_symbols);
+  return Getattr(symbols, str) != NULL;
+}
+
+/* -----------------------------------------------------------------------------
  * find_args()
  *
  * Isolates macro arguments and returns them in a list.   For each argument,

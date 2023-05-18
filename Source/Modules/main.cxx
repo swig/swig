@@ -88,7 +88,7 @@ static const char *usage1 = (const char *) "\
      -debug-tmused   - Display typemaps used debugging information\n\
      -directors      - Turn on director mode for all the classes, mainly for testing\n\
      -dirprot        - Turn on wrapping of protected members for director classes (default)\n\
-     -D<symbol>      - Define a symbol <symbol> (for conditional compilation)\n\
+     -D<symbol>[=<value>] - Define symbol <symbol> (for conditional compilation)\n\
 ";
 
 static const char *usage2 = (const char *) "\
@@ -146,6 +146,7 @@ static const char *usage4 = (const char *) "\
      -small          - Compile in virtual elimination and compact mode\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -templatereduce - Reduce all the typedefs in templates\n\
+     -U<symbol>      - Undefine symbol <symbol>\n\
      -v              - Run in verbose mode\n\
      -version        - Display SWIG version number\n\
      -Wall           - Remove all warning suppression, also implies -Wextra\n\
@@ -483,9 +484,12 @@ static void getoptions(int argc, char *argv[]) {
 	  // Match C preprocessor behaviour whereby -DFOO sets FOO=1.
 	  Append(d, " 1");
 	}
-	Preprocessor_define((DOH *) d, 0);
-	Delete(d);
 	// Create a symbol
+	Preprocessor_define(d, 0);
+	Delete(d);
+	Swig_mark_arg(i);
+      } else if (strncmp(argv[i], "-U", 2) == 0) {
+	Preprocessor_undef(argv[i] + 2);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-E") == 0) {
 	cpp_only = 1;
@@ -498,7 +502,6 @@ static void getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-c++") == 0) {
 	CPlusPlus = 1;
-	Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
 	Swig_cparse_cplusplus(1);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-c++out") == 0) {
@@ -905,16 +908,6 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   // can process options enough to handle -version, etc.
   lang = tlm ? tlm->fac() : new Language;
 
-  // Set up some default symbols (available in both SWIG interface files
-  // and C files)
-
-  Preprocessor_define((DOH *) "SWIG 1", 0);
-  Preprocessor_define((DOH *) "__STDC__", 0);
-
-  String *vers = Swig_package_version_hex();
-  Preprocessor_define(vers, 0);
-  Delete(vers);
-
   Swig_contract_mode_set(1);
 
   /* Turn off directors mode */
@@ -951,13 +944,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   libfiles = NewList();
   all_output_files = NewList();
 
-  /* Check for SWIG_FEATURES environment variable */
-
   getoptions(argc, argv);
-
-  // Define the __cplusplus symbol
-  if (CPlusPlus)
-    Preprocessor_define((DOH *) "__cplusplus __cplusplus", 0);
 
   // Parse language dependent options
   lang->main(argc, argv);
@@ -975,6 +962,22 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
     Printf(stderr, "The -c++out option is for C input but C++ input has been requested via -c++\n");
     Exit(EXIT_FAILURE);
   }
+
+  // Set up some default symbols (available in both SWIG interface files
+  // and C files).  Define all predefined symbols after option parsing so
+  // that attempts to use `-U` to undefine them are consistently handled.
+
+  Preprocessor_define("SWIG 1", 0);
+  Preprocessor_define("__STDC__ 1", 0);
+
+  // Define __cplusplus to the C++98 value, but only if it's not already
+  // defined so the user to override with e.g. -D__cplusplus=202002L
+  if (CPlusPlus && !Preprocessor_defined("__cplusplus"))
+    Preprocessor_define("__cplusplus 199711L", 0);
+
+  String *vers = Swig_package_version_hex();
+  Preprocessor_define(vers, 0);
+  Delete(vers);
 
   install_opts(argc, argv);
 
