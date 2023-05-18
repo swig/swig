@@ -8,6 +8,17 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-05-18: olly
+	    SWIG no longer defines preprocessor symbols corresponding to
+	    command line options (e.g. `-module blah` was resulting in
+	    `SWIGOPT_MODULE` being set to `blah`).  This feature was added in
+	    2001 so that "[m]odules can look for these symbols to alter their
+	    code generation if needed", but it's never been used for that
+	    purpose in over 20 years, and has never been documented outside of
+	    CHANGES.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2023-05-18: olly
 	    #1589 #2335 Support parsing arbitrary expression in decltype.
 
 	    Use parser error recovery to skip to the closing matching `)` and
