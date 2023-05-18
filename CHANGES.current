@@ -58,7 +58,7 @@ Version 4.2.0 (in progress)
 
 2023-05-08: olly
 	    #1567 Add support for std::string_view (new in C++17) for C#, Java,
-	    Lua, PHP, Ruby and Tcl.
+	    Lua, Perl, PHP, Ruby and Tcl.
 
 2023-05-08: olly
 	    [PHP] #2544 Wrap overloaded method with both static and non-static
