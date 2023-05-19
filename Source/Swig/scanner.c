@@ -1467,9 +1467,6 @@ static int look(Scanner *s) {
       }
       break;
 
-
-      /* An illegal character */
-
       /* Reverse string */
     case 900:
       if ((c = nextchar(s)) == 0) {
@@ -1482,6 +1479,7 @@ static int look(Scanner *s) {
       }
       break;
 
+      /* An illegal character */
     default:
       return SWIG_TOKEN_ILLEGAL;
     }
