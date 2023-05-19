@@ -3328,7 +3328,18 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      if ($4.qualifier && $1 && Strstr($1, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
            }
-           ;
+           /* C++14 allows the trailing return type to be omitted.  It's
+            * probably not feasible for SWIG to deduce it but we should
+            * at least support parsing this so that the rest of an API
+            * can be wrapped.  This also means you can provide declaration
+            * with an explicit return type in the interface file for SWIG
+            * to wrap.
+            */
+	   | storage_class AUTO declarator cpp_const LBRACE {
+	      skip_balanced('{','}');
+	      Swig_warning(WARN_CPP14_AUTO, cparse_file, cparse_line, "Unable to deduce return type for '%s'.\n", $3.id);
+	   }
+	   ;
 
 /* Allow lists of variables and functions to be built up */
 

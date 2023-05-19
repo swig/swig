@@ -646,6 +646,7 @@ CPP11_TEST_BROKEN = \
 
 # C++14 test cases.
 CPP14_TEST_CASES += \
+	cpp14_auto_return_type \
 	cpp14_binary_integer_literals \
 
 # Broken C++14 test cases.
