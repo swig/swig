@@ -3,7 +3,7 @@
 require "tests.php";
 
 check::functions(array('va_static_cast'));
-check::classes(array('cpp14_auto_return_type'));
+check::classes(array('cpp14_auto_return_type', 'X'));
 // No new vars
 check::globals(array());
 

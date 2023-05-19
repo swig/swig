@@ -8,12 +8,8 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-05-19: olly
-	    #2446 Add partial support for auto without trailing return type,
-	    which is a C++14 feature.
-
-	    SWIG can now parse some cases of this.  The limitation is that there
-	    can either be nothing or `const` between the `)` and the end of the
-	    parameter list and the `{` at the start of the body.
+	    #2446 Add support for auto without trailing return type, which is a
+	    C++14 feature.
 
 2023-05-19: olly
 	    SWIG no longer defines preprocessor symbols corresponding to

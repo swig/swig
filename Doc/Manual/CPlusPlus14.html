@@ -64,13 +64,9 @@ return type.
 </p>
 
 <p>
-SWIG 4.2.0 added support for this with some limitations.  The major one is that
-SWIG can't actually deduce the return type so if you want to wrap such a function
-you need to tell SWIG the return type explicitly.  The other limitation is that
-SWIG can currently only parse such functions when there's either nothing or
-only `const` between the `)` and the end of the parameter list and the `{` at
-the start of the body.  Hopefully this second limitation will be removed in
-the future.
+SWIG 4.2.0 added support for this, but with one significant limitation: SWIG
+can't actually deduce the return type!  If you want to wrap such a function
+you will need to tell SWIG the return type explicitly.
 </p>
 
 <p>

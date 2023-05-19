@@ -9,6 +9,12 @@
 namespace teca_variant_array_util {
 int va_static_cast();
 %ignore va_static_cast();
+
+// Not seeing a way to supply a declaration for a class method that makes
+// these work, but they can be ignored at least.
+%ignore X::a();
+%ignore X::b();
+%ignore X::s();
 }
 #pragma SWIG nowarn=SWIGWARN_CPP14_AUTO
 
@@ -18,7 +24,18 @@ namespace teca_variant_array_util
 // Parse error in SWIG < 4.2.0.
 auto va_static_cast()
 {
-    return 42;
+  return 42;
 }
+struct X {
+  auto a() {
+    return "a";
+  }
+  auto e() const {
+    return 2.71828;
+  }
+  static auto s() {
+    return true;
+  }
+};
 }
 %}
