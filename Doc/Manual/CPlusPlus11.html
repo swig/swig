@@ -720,9 +720,9 @@ AltStruct var2{2, 4.3};   // calls the constructor
 <H3><a name="CPlusPlus11_type_inference">7.2.6 Type inference</a></H3>
 
 
-<p>SWIG supports <tt>decltype()</tt> with limitations. Single
-variables are allowed, however, non-trivial expressions are not supported very well. For
-example, the following code will work:</p>
+<p><tt>decltype()</tt> is supported with limitations.  SWIG can parse
+all uses, but can only deduce the type for single variables, <tt>true</tt> and
+<tt>false</tt>. For example, the following code will work:</p>
 <div class="code"><pre>
 int i;
 decltype(i) j;

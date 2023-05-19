@@ -1,11 +1,11 @@
-Below are the changes for the current release.
-See the CHANGES file for changes in older releases.
-See the RELEASENOTES file for a summary of changes in each release.
-Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
 Version 4.2.0 (in progress)
 ===========================
+
+2023-05-20: olly
+	    Support deducing the type for `decltype(false)` and
+	    `decltype(true)`.
 
 2023-05-19: olly
 	    #2446 Add support for auto without trailing return type, which is a

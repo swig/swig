@@ -6253,12 +6253,14 @@ decltype       : DECLTYPE LPAREN {
 
 decltypeexpr   : expr RPAREN {
 		 Node *n = Swig_symbol_clookup($1.val, 0);
-		 if (!n) {
+		 if (n) {
+		   $$ = Getattr(n, "type");
+		 } else if (Equal($1.val, "true") || Equal($1.val, "false")) {
+		   $$ = NewString("bool");
+		 } else {
 		   Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", $1.val);
 
 		   $$ = NewStringf("decltype(%s)", $1.val);
-		 } else {
-		   $$ = Getattr(n, "type");
 		 }
 	       }
 	       | error RPAREN {

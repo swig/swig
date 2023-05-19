@@ -26,11 +26,14 @@
 #pragma SWIG nowarn=SWIGWARN_CPP11_DECLTYPE
 
 %inline %{
+#define DECLARE(VAR, VAL) decltype(VAL) VAR = VAL
   class B {
   public:
     int i;
     decltype(i) j;
     decltype(i+j) k;
+    DECLARE(a, false);
+    DECLARE(b, true);
 
     auto get_number_sum(decltype(i+j) a) -> decltype(i+j) {
       return i+j;
@@ -38,6 +41,10 @@
 
     auto get_number_address(decltype(&i) a) -> decltype(&i) {
       return &i;
+    }
+
+    auto negate(decltype(true) b) -> decltype(b) {
+      return !b;
     }
   };
 %}
