@@ -404,6 +404,7 @@ jobs:
       CPPSTD: ${{ matrix.CPPSTD }}
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
       PY_ABI_VER: ${{ matrix.PY_ABI_VER }}
+      ALWAYS_RUN: ${{ matrix.ALWAYS_RUN }}
 
     steps:
     - name: Machine Info
@@ -423,7 +424,20 @@ jobs:
         show-progress: false
         submodules: recursive
 
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v44
+
+    # Test with ALWAYS_RUN alway run
+    - name: Probe files belong to test
+      id: doTest
+      env:
+        ALL_FILES: ${{ steps.changed-files.outputs.all_changed_and_modified_files }}
+      run: |
+        $GITHUB_WORKSPACE/Tools/CI-selective.sh
+
     - name: Install CCache
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       uses: hendrikmuhs/ccache-action@v1
       with:
         key: ${{ matrix.os || 'ubuntu-22.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}
@@ -433,6 +447,7 @@ jobs:
 #      uses: mxschmitt/action-tmate@v3
 
     - name: Install Dependencies
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       run: |
           set -x
           export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
@@ -483,6 +498,7 @@ jobs:
           $CXX --version
 
     - name: Configure
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       run: |
           source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
           set -x
@@ -505,6 +521,7 @@ jobs:
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 
     - name: Build
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       working-directory: build/build
       run: |
           set -x
@@ -512,6 +529,7 @@ jobs:
           ./swig -version && ./swig -pcreversion
 
     - name: Test
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       working-directory: build/build
       run: |
           source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
@@ -557,12 +575,14 @@ jobs:
           fi
 
     - name: Install
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       working-directory: build/build
       run: |
           set -x
           if test -z "$SWIGLANG"; then sudo make install && swig -version && ccache-swig -V; fi
 
     - name: Clean
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       working-directory: build/build
       run: |
           set -x
