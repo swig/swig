@@ -137,7 +137,6 @@ OBJS      = $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@)
 
 distclean:
 	rm -f Makefile
-	rm -f d/example.mk
 	rm -f xml/Makefile
 
 ##################################################################
