@@ -5,7 +5,7 @@
 /*
  * Follow main(int argc, char *argv[]) function
  * Note: SWIGCSHARP_ARGCARGV_PARAM_IDX set the 'argc' parameter location.
- * The C# Marshaling use the argc parameter to determin the array size.
+ * The C# Marshaling use the argc parameter to determine the array size.
  * See: https://learn.microsoft.com/en-us/dotnet/api/system.runtime.interopservices.marshalasattribute.sizeparamindex
  */
 
