@@ -54,7 +54,7 @@ int b = 0b101011;
 </pre>
 </div>
 
-<H3><a href="CPlusPlus14_return_type_deduction">8.2.2 Return type deduction</a>
+<H3><a href="CPlusPlus14_return_type_deduction">8.2.2 Return type deduction</a></H3>
 
 <p>
 C++14 added the ability to specify <tt>auto</tt> for the return type of a function
@@ -64,7 +64,7 @@ return type.
 </p>
 
 <p>
-SWIG 4.2.0 added support for this, but with one significant limitation: SWIG
+SWIG parses these types of functions, but with one significant limitation: SWIG
 can't actually deduce the return type!  If you want to wrap such a function
 you will need to tell SWIG the return type explicitly.
 </p>
@@ -92,6 +92,10 @@ auto va_static_cast()
 }
 %}
 </pre></div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.2.0 first introduced support for functions declared with an auto return without a trailing return type.
+</p>
 
 
 <H2><a name="CPlusPlus14_standard_library_changes">8.3 Standard library changes</a></H2>
