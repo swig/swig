@@ -34,9 +34,9 @@ directive.   For example :
   %apply Number NONNEGATIVE { double nonneg };
   double sqrt(double nonneg);         // Name of argument must match
   
-  %apply Pointer NONNULL { void *ptr };
-  void *malloc(int POSITIVE);       // May return a NULL pointer
-  void free(void *ptr);             // May not accept a NULL pointer
+  %apply Pointer NONNULL { FILE *stream };
+  FILE *fdopen(int NONNEGATIVE);      // May return a NULL pointer
+  int fclose(void *stream);           // Does not accept a NULL pointer
 
 Any function argument of the type you specify with the %apply directive
 will be checked with the appropriate constraint.   Multiple types may

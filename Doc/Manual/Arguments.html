@@ -440,7 +440,7 @@ double exp(double x);
 double log(double POSITIVE);         // Allow only positive values
 double sqrt(double NONNEGATIVE);     // Non-negative values only
 double inv(double NONZERO);          // Non-zero values
-void   free(void *NONNULL);          // Non-NULL pointers only
+int    fclose(FILE *NONNULL);        // Non-NULL pointers only
 
 </pre></div>
 
