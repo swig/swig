@@ -30,7 +30,5 @@
 }
 
 %typemap(freearg) (int ARGC, char **ARGV) {
-  if ($2 != SWIG_NULLPTR) {
-    free((void *)$2);
-  }
+  free((void *)$2);
 }

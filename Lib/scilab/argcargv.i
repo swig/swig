@@ -97,9 +97,7 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array) {
   if ($2 != SWIG_NULLPTR) {
     $1_ltype i;
     for (i = 0; i < $1; i++) {
-      if ($2[i] != SWIG_NULLPTR) {
-        free((void *)$2[i]);
-      }
+      free((void *)$2[i]);
     }
     free((void *)$2);
   }
