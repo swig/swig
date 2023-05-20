@@ -34,7 +34,5 @@
 }
 
 %typemap(freearg) (int ARGC, char **ARGV) {
-  if ($2 != NULL) {
-    free((void *)$2);
-  }
+  free((void *)$2);
 }

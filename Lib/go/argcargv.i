@@ -55,9 +55,7 @@ _gostring_ cgo_swig_get_string_slice_idx(_goslice_ s, intgo i);
   if ($2 != NULL) {
     $1_ltype i;
     for (i = 0; i < $1; i++) {
-      if ($2[i] != NULL) {
-        Swig_free((void *)$2[i]);
-      }
+      Swig_free((void *)$2[i]);
     }
     Swig_free((void *)$2);
   }
