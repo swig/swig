@@ -678,24 +678,10 @@ if test x"${with_d}" = xno; then
 else
 
   if test -z "$D2COMPILERBIN" ; then
-    AC_CHECK_PROGS(D2COMPILER, dmd ldmd2 ldc2 gdmd gdc)
+    AC_CHECK_PROGS(D2COMPILER, dmd ldmd2 ldc2 gdmd)
     if test -n "$D2COMPILER" ; then
       old_ac_ext=$ac_ext
       ac_ext=d
-      case $D2COMPILER in
-        gdc)
-          d_out=-oconftest.out
-          D2COMPILER_TYPE=GCC
-          ;;
-        ldc2|ldmd2)
-          d_out=-ofconftest.out
-          D2COMPILER_TYPE=LLVM
-          ;;
-        *)
-          d_out=-ofconftest.out
-          D2COMPILER_TYPE=DMD
-          ;;
-      esac
       AC_MSG_CHECKING(whether the D2 compiler works)
       cat > conftest.$ac_ext <<_ACEOF
 import std.algorithm;
@@ -704,7 +690,7 @@ void main() {
 _ACEOF
       rm -f conftest.out
       AS_IF(
-        [$D2COMPILER conftest.$ac_ext $d_out 2>&AS_MESSAGE_LOG_FD && test ! -s conftest.err && test -s conftest.out],
+        [$D2COMPILER conftest.$ac_ext -ofconftest.out 2>&AS_MESSAGE_LOG_FD && test ! -s conftest.err && test -s conftest.out],
         [AC_MSG_RESULT([yes])],
         [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
         D2COMPILER=]
@@ -714,17 +700,6 @@ _ACEOF
     fi
   else
     D2COMPILER="$D2COMPILERBIN"
-    case $D2COMPILER in
-      gdc)
-        D2COMPILER_TYPE=GCC
-        ;;
-      ldc2|ldmd2)
-        D2COMPILER_TYPE=LLVM
-        ;;
-      *)
-        D2COMPILER_TYPE=DMD
-        ;;
-    esac
   fi
 fi
 
@@ -735,7 +710,6 @@ case $host in
 esac
 
 AC_SUBST(D2COMPILER)
-AC_SUBST(D2COMPILER_TYPE)
 AC_SUBST(DLIBPREFIX)
 
 #----------------------------------------------------------------
@@ -2827,7 +2801,6 @@ AC_SUBST(SWIG_LIB_SET)
 AC_CONFIG_FILES([
     Makefile
     Examples/Makefile
-    Examples/d/example.mk
     Examples/xml/Makefile
     Examples/test-suite/errors/Makefile
     Examples/test-suite/csharp/Makefile

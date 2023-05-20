@@ -11,12 +11,6 @@ HAVE_CXX20   = @HAVE_CXX20@
 srcdir       = @srcdir@
 top_srcdir   = ../@top_srcdir@
 top_builddir = ../@top_builddir@
-DCOMP_TYPE  = @D2COMPILER_TYPE@
-ifeq ($(DCOMP_TYPE),GCC)
-DCOMP_OUT   = -o
-else
-DCOMP_OUT   = -of
-endif
 
 CPP_TEST_CASES = \
 	d_nativepointers \
@@ -97,7 +91,7 @@ run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*_runme.2.d ]; then \
 	  cd $*.2 && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
-	  DFLAGS='$(DCOMP_OUT)$*_runme' \
+	  DFLAGS='-of$*_runme' \
 	  DSRCS='../$(SCRIPTDIR)/$(SCRIPTPREFIX)$*_runme.2.d `find $* -name *.d`' d_compile && \
 	  env LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" $(RUNTOOL) ./$*_runme; \
 	else \

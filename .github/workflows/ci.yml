@@ -54,7 +54,7 @@ jobs:
           VER: 'ldc'
           CPPSTD: c++14
         - SWIGLANG: d
-          VER: 'gdc'
+          VER: 'gdmd'
           CPPSTD: c++11
         - SWIGLANG: d
           VER: '2.103.1'

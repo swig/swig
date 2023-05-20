@@ -14,12 +14,7 @@ EXTRA_CXXFLAGS =
 EXTRA_LDFLAGS  =
 TARGET         = example_wrap
 SWIGOPT        = -outcurrentdir
-DCOMP_TYPE    = @D2COMPILER_TYPE@
-ifeq ($(DCOMP_TYPE),GCC)
-DFLAGS         = -orunme
-else
 DFLAGS         = -ofrunme
-endif
 
 ifeq (,$(SRCDIR))
 DSRCS          = *.d
