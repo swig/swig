@@ -9,7 +9,8 @@ published on the SWIG web site at https://swig.org/release.html.
 
 SWIG-4.2.0 summary:
 - PHP7 support removed, PHP8 is now the supported PHP version.
-- D1/Tango support removed.  D2/Phobos is now the supported D version.
+- D1/Tango support removed.  D2/Phobos is now the supported D version
+  and SWIG now generates code which works with recent D2 releases.
 
 SWIG-4.1.1 summary:
 - Couple of stability fixes.
