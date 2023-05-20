@@ -5,11 +5,11 @@ public class argcargvtest_runme {
 
   public static void Main() {
     string[] largs = {"hi", "hola", "hello"};
-    if (argcargvtest.mainc((uint)largs.Length, largs) != 3)
+    if (argcargvtest.mainc(largs) != 3)
         throw new Exception("bad main typemap");
 
     string[] targs = {"hi", "hola"};
-    if (!argcargvtest.mainv((uint)targs.Length, targs, 1).Equals("hola"))
+    if (!argcargvtest.mainv(targs, 1).Equals("hola"))
         throw new Exception("bad main typemap");
 
 // For dynamically typed languages we test this throws an exception or similar
@@ -17,6 +17,6 @@ public class argcargvtest_runme {
 // test for that here).
 //  argcargvtest.mainv("hello", 1);
 
-    argcargvtest.initializeApp((uint)targs.Length, largs);
+    argcargvtest.initializeApp(largs);
   }
 }
