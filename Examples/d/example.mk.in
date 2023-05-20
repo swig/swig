@@ -16,9 +16,9 @@ TARGET         = example_wrap
 SWIGOPT        = -outcurrentdir
 DCOMP_TYPE    = @D2COMPILER_TYPE@
 ifeq ($(DCOMP_TYPE),GCC)
-DFLAGS         = -orunme -fversion=$(DCOMP_TYPE)
+DFLAGS         = -orunme
 else
-DFLAGS         = -ofrunme -version=$(DCOMP_TYPE)
+DFLAGS         = -ofrunme
 endif
 
 ifeq (,$(SRCDIR))

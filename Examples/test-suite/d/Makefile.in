@@ -14,10 +14,8 @@ top_builddir = ../@top_builddir@
 DCOMP_TYPE  = @D2COMPILER_TYPE@
 ifeq ($(DCOMP_TYPE),GCC)
 DCOMP_OUT   = -o
-DFLAGS      = -fversion=$(DCOMP_TYPE)
 else
 DCOMP_OUT   = -of
-DFLAGS      = -version=$(DCOMP_TYPE)
 endif
 
 CPP_TEST_CASES = \
@@ -99,13 +97,13 @@ run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*_runme.2.d ]; then \
 	  cd $*.2 && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
-	  DFLAGS='$(DFLAGS) $(DCOMP_OUT)$*_runme' \
+	  DFLAGS='$(DCOMP_OUT)$*_runme' \
 	  DSRCS='../$(SCRIPTDIR)/$(SCRIPTPREFIX)$*_runme.2.d `find $* -name *.d`' d_compile && \
 	  env LD_LIBRARY_PATH=".:$$LD_LIBRARY_PATH" $(RUNTOOL) ./$*_runme; \
 	else \
 	  cd $*.2 && \
 	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
-	  DFLAGS='$(DFLAGS) -c' \
+	  DFLAGS='-c' \
 	  DSRCS='`find $* -name *.d`' d_compile && cd .. ; \
 	fi
 
