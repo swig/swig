@@ -421,6 +421,9 @@ namespace std {
         }
     };
     %enddef
+    %typemap(throws) std::out_of_range {
+        scheme_signal_error("%s: %s", FUNC_NAME, $1.what());
+    }
 
     specialize_std_vector(bool,SCHEME_BOOLP,SCHEME_TRUEP,\
                           swig_make_boolean);
