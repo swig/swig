@@ -10,8 +10,12 @@
   [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="C_Swig_strings_array_to_c")]
   public static extern global::System.IntPtr Swig_strings_array_to_c(int len, [global::System.Runtime.InteropServices.In,global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPArray, ArraySubType=global::System.Runtime.InteropServices.UnmanagedType.LPStr, SizeParamIndex=0)] string[] array);
 %}
-%insert(wrapper) %{
+%fragment("SWIG_csharp_string_array", "header") %{
+#ifdef __cplusplus
+extern "C" {
+#endif
 typedef struct { int len; char* array[1]; } c_csstrings_array;
+
 static void* C_Swig_strings_array_free(c_csstrings_array *arr) {
   if (arr != SWIG_NULLPTR) {
     int i;
@@ -50,9 +54,13 @@ SWIGEXPORT void* SWIGSTDCALL C_Swig_strings_array_to_c(int len, void *array) {
   }
   return ret;
 }
+
+#ifdef __cplusplus
+}
+#endif
 %}
 
-%typemap(in, canthrow=1) (int ARGC, char **ARGV) {
+%typemap(in, canthrow=1, fragment="SWIG_csharp_string_array") (int ARGC, char **ARGV) {
   c_csstrings_array *arr = (c_csstrings_array*)$input;
   if (arr != SWIG_NULLPTR) {
     $1 = ($1_ltype)arr->len;
@@ -60,4 +68,4 @@ SWIGEXPORT void* SWIGSTDCALL C_Swig_strings_array_to_c(int len, void *array) {
   }
 }
 
-%typemap(freearg) (int ARGC, char **ARGV) "C_Swig_strings_array_free((c_csstrings_array*)$input);"
+%typemap(freearg, fragment="SWIG_csharp_string_array") (int ARGC, char **ARGV) "C_Swig_strings_array_free((c_csstrings_array*)$input);"
