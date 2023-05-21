@@ -32,8 +32,8 @@ SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_string_array_to_c(int len, void *array)
   size_t alen, slen;
   char *p, **ptr;
   SWIG_csharp_string_array *ret;
-  SWIG_contract_assert(SWIG_NULLPTR, len >= 1, "Strings array can not be empty.");
-  alen = sizeof(SWIG_csharp_string_array) + sizeof(char *) * (len - 1);
+  /* Special care is needed here to handle an empty array. */
+  alen = sizeof(SWIG_csharp_string_array) + sizeof(char *) * (len - (len > 0));
   ret = (SWIG_csharp_string_array *)malloc(alen);
   if (ret == SWIG_NULLPTR) {
     SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate array.");
@@ -44,7 +44,6 @@ SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_string_array_to_c(int len, void *array)
   ptr = (char **)array;
   for(i = 0; i < len; i++) {
     slen = strlen(ptr[i]) + 1;
-    SWIG_contract_assert(SWIG_csharp_string_array_free(ret), slen > 1, "String can not be empty");
     p = (char*)malloc(slen);
     if (p == SWIG_NULLPTR) {
       SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to alloc a string.");

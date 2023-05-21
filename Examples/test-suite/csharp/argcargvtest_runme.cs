@@ -20,5 +20,21 @@ public class argcargvtest_runme {
 //  argcargvtest.mainv("hello", 1);
 
     argcargvtest.initializeApp(largs);
+
+    // Check that an empty array works.
+    string[] empty_args = {};
+    if (argcargvtest.mainc(empty_args) != 0)
+      throw new Exception("bad main typemap");
+
+    // Check that empty strings are handled.
+    string[] empty_string = {"hello", "", "world"};
+    if (argcargvtest.mainc(empty_string) != 3)
+      throw new Exception("bad main typemap");
+    if (argcargvtest.mainv(empty_string, 0) != "hello")
+      throw new Exception("bad main typemap");
+    if (argcargvtest.mainv(empty_string, 1) != "")
+      throw new Exception("bad main typemap");
+    if (argcargvtest.mainv(empty_string, 2) != "world")
+      throw new Exception("bad main typemap");
   }
 }
