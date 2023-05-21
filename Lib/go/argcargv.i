@@ -22,8 +22,8 @@ _gostring_ cgo_swig_get_string_slice_idx(_goslice_ s, intgo i);
 %typemap(in) (int ARGC, char **ARGV) {
   $1_ltype len = ($1_ltype)$input.len;
   size_t aralloc = (size_t)((len + 1) * sizeof(char *));
-  if (len <= 0 || $input.array == NULL) {
-    _swig_gopanic("array must contain at least 1 element");
+  if (len < 0) {
+    _swig_gopanic("negative array length");
   }
   $2 = ($2_ltype) Swig_malloc((int)aralloc);
   if ($2 == NULL) {
@@ -36,8 +36,8 @@ _gostring_ cgo_swig_get_string_slice_idx(_goslice_ s, intgo i);
     for (i = 0; i < len; i++) {
       char *p;
       _gostring_ st = cgo_swig_get_string_slice_idx($input, (intgo)i);
-      if (st.n <= 0) {
-        _swig_gopanic("string length must be positive");
+      if (st.n < 0) {
+        _swig_gopanic("string length negative");
       }
       p = (char *) Swig_malloc((int)(st.n + 1));
       if (p == NULL) {

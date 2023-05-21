@@ -22,4 +22,25 @@ func main() {
 //	wrap.Mainv("hello", 1)
 
 	wrap.InitializeApp(largs)
+
+	// Check that an empty array works.
+	empty_args := []string{};
+	if ri := wrap.Mainc(empty_args); ri != 0 {
+		panic(ri)
+	}
+
+	// Check that empty strings are handled.
+	empty_string := []string{"hello", "", "world"};
+	if ri := wrap.Mainc(empty_string); ri != 3 {
+		panic(ri)
+	}
+	if rs := wrap.Mainv(empty_string, 0); rs != "hello" {
+		panic(rs)
+	}
+	if rs := wrap.Mainv(empty_string, 1); rs != "" {
+		panic(rs)
+	}
+	if rs := wrap.Mainv(empty_string, 2); rs != "world" {
+		panic(rs)
+	}
 }
