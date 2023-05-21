@@ -11,7 +11,7 @@
 
 #ifndef SWIGCSHARP_ARGCARGV_PARAM_IDX
 #define SWIGCSHARP_ARGCARGV_PARAM_IDX "0"
-#endif SWIGCSHARP_ARGCARGV_PARAM_IDX
+#endif
 
 %typemap(csin) char **ARGV "$csinput"
 %typemap(cstype) char **ARGV "string[]"
