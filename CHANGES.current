@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-05-22: mmomtchev
+	    [Javascript] #2600 Improve test coverage by adding _runme.js files
+	    for 22 test cases.
+
 2023-05-20: erezgeva
 	    [C#, D, Java, Javascript, Guile, Scilab] #2552 Implement argcargv.i
             library multi-argument typemaps.
