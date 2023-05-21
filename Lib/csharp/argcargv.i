@@ -1,6 +1,6 @@
-/* ------------------------------------------------------------
+/* -------------------------------------------------------------
  * SWIG library containing argc and argv multi-argument typemaps
- * ------------------------------------------------------------ */
+ * ------------------------------------------------------------- */
 
 %typemap(cstype) (int ARGC, char **ARGV) "string[]"
 %typemap(imtype) (int ARGC, char **ARGV) "global::System.IntPtr"
