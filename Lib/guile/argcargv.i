@@ -9,7 +9,6 @@
                        scm_is_array($input),
                        "you must pass array of strings");
   len = scm_c_array_length($input);
-  SWIG_contract_assert(len > 1, "array must contain at least 1 element");
   $1 = len;
   $2 = ($2_ltype) malloc((len+1)*sizeof($*2_ltype));
   if ($2 == NULL) {
@@ -27,18 +26,16 @@
 %typemap(typecheck, precedence=SWIG_TYPECHECK_STRING_ARRAY) (int ARGC, char **ARGV) {
   if ($input != (SCM)0 && !scm_is_null($input) && scm_is_array($input)) {
     size_t len = scm_c_array_length($input);
-    if (len > 0) {
-      size_t i;
-      for(i = 0; i < len; i++) {
-        SCM args = scm_list_1(scm_from_long(i));
-        SCM str = scm_array_ref($input, args);
-        if (!scm_is_string(str)) {
-          break;
-        }
+    size_t i;
+    for(i = 0; i < len; i++) {
+      SCM args = scm_list_1(scm_from_long(i));
+      SCM str = scm_array_ref($input, args);
+      if (!scm_is_string(str)) {
+        break;
       }
-      /* All elements are strings! */
-      $1 = (i == len);
     }
+    /* All elements are strings! */
+    $1 = (i == len);
   }
 }
 
