@@ -31,7 +31,6 @@ SWIGINTERN int SWIG_AsVal_string (SWIGV8_VALUE valRef, SWIGV8_STRING *str)
   }
   array = SWIGV8_VALUE_TO_ARRAY($input);
   len = array->Length();
-  SWIG_contract_assert(len > 0, "array must contain at least 1 element");
   arraysize = (len+1)*sizeof($*2_ltype);
   $1 = len;
   $2 = ($2_ltype) malloc(arraysize);
@@ -49,16 +48,15 @@ SWIGINTERN int SWIG_AsVal_string (SWIGV8_VALUE valRef, SWIGV8_STRING *str)
       SWIG_exception_fail(SWIG_ERROR, "failed to convert to string");
     }
     slen = SWIGV8_UTF8_LENGTH(str);
-    if (slen <= 0) {
-      SWIG_exception_fail(SWIG_ERROR, "empty string");
-    }
     pstr = ($*2_ltype) malloc(slen + 1);
     if (pstr == SWIG_NULLPTR) {
       SWIG_exception_fail(SWIG_ERROR, "memory allocation of a string failed");
     }
-    res = SWIGV8_WRITE_UTF8(str, pstr, slen);
-    if (res != slen) {
-      SWIG_exception_fail(SWIG_ERROR, "wrong string length");
+    if (slen) {
+      res = SWIGV8_WRITE_UTF8(str, pstr, slen);
+      if (res != slen) {
+        SWIG_exception_fail(SWIG_ERROR, "wrong string length");
+      }
     }
     pstr[slen] = 0;
     $2[i] = pstr;

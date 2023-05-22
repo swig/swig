@@ -24,7 +24,6 @@ SWIGINTERN int SWIG_AsVal_string SWIG_JSC_AS_DECL_ARGS(JSValueRef obj, JSStringR
   }
   array = JSValueToObject SWIG_JSC_AS_CALL_ARGS($input, SWIG_NULLPTR);
   len = SWIGJSC_ArrayLength SWIG_JSC_FROM_CALL_ARGS(array);
-  SWIG_contract_assert(len > 0, "array must contain at least 1 element");
   arraysize = (len+1)*sizeof($*2_ltype);
   $1 = len;
   $2 = ($2_ltype) malloc(arraysize);
@@ -42,16 +41,15 @@ SWIGINTERN int SWIG_AsVal_string SWIG_JSC_AS_DECL_ARGS(JSValueRef obj, JSStringR
       SWIG_exception_fail(SWIG_ERROR, "failed to convert to string");
     }
     slen = JSStringGetMaximumUTF8CStringSize(str);
-    if (slen <= 0) {
-      SWIG_exception_fail(SWIG_ERROR, "empty string");
-    }
     pstr = ($*2_ltype) malloc(slen);
     if (pstr == SWIG_NULLPTR) {
       SWIG_exception_fail(SWIG_ERROR, "memory allocation of a string failed");
     }
-    res = JSStringGetUTF8CString(str, pstr, slen);
-    if (res > slen) {
-      SWIG_exception_fail(SWIG_ERROR, "wrong string length");
+    if (slen) {
+      res = JSStringGetUTF8CString(str, pstr, slen);
+      if (res > slen) {
+        SWIG_exception_fail(SWIG_ERROR, "wrong string length");
+      }
     }
     $2[i] = pstr;
   }

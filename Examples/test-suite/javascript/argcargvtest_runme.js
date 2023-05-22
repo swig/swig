@@ -21,3 +21,19 @@ if (!caughtException) {
 }
 
 test.initializeApp(largs);
+
+// Check that an empty array works.
+const empty_args = [];
+if (test.mainc(empty_args) != 0)
+  throw "bad main typemap";
+
+// Check that empty strings are handled.
+const empty_string = ["hello", "", "world"];
+if (test.mainc(empty_string) != 3)
+  throw "bad main typemap";
+if (test.mainv(empty_string, 0) != "hello")
+  throw "bad main typemap";
+if (test.mainv(empty_string, 1) != "")
+  throw "bad main typemap";
+if (test.mainv(empty_string, 2) != "world")
+  throw "bad main typemap";
