@@ -27,4 +27,15 @@ check::equal($error, 0, 'Test main typemap 3');
 
 initializeApp($largs);
 
+# Check that an empty array works.
+$empty_args = [];
+check::equal(mainc($empty_args), 0, "test main typemap 4");
+
+# Check that empty strings are handled.
+$empty_string = ["hello", "", "world"];
+check::equal(mainc($empty_string), 3, "test main typemap 5");
+check::equal(mainv($empty_string, 0), "hello", "test main typemap 6a");
+check::equal(mainv($empty_string, 1), "", "test main typemap 6b");
+check::equal(mainv($empty_string, 2), "world", "test main typemap 6c");
+
 check::done();

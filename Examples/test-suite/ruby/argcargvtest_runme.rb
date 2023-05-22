@@ -33,3 +33,24 @@ if $error == 1 or $ret != 1
 end
 
 initializeApp($largs)
+
+# Check that an empty array works.
+$empty_args = []
+if mainc($empty_args) != 0
+    raise RuntimeError, "bad main typemap"
+end
+
+# Check that empty strings are handled.
+$empty_string = ["hello", "", "world"]
+if mainc($empty_string) != 3
+    raise RuntimeError, "bad main typemap"
+end
+if mainv($empty_string, 0) != "hello"
+    raise RuntimeError, "bad main typemap"
+end
+if mainv($empty_string, 1) != ""
+    raise RuntimeError, "bad main typemap"
+end
+if mainv($empty_string, 2) != "world"
+    raise RuntimeError, "bad main typemap"
+end

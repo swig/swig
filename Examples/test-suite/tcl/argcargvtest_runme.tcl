@@ -34,3 +34,29 @@ if { ! [ catch { mainv("hello", 1) } ] } {
 }
 
 initializeApp $largs
+
+# Check that an empty array works.
+set empty_args {}
+if {[mainc $empty_args] != 0} {
+    puts stderr "bad main typemap"
+    exit 1
+}
+
+# Check that empty strings are handled.
+set empty_string {"hello" "" "world"}
+if {[mainc $empty_string] != 3} {
+    puts stderr "bad main typemap"
+    exit 1
+}
+if {[mainv $empty_string 0] != "hello"} {
+    puts stderr "bad main typemap"
+    exit 1
+}
+if {[mainv $empty_string 1] != ""} {
+    puts stderr "bad main typemap"
+    exit 1
+}
+if {[mainv $empty_string 2] != "world"} {
+    puts stderr "bad main typemap"
+    exit 1
+}

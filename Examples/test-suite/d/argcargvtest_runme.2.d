@@ -17,4 +17,15 @@ void main() {
 // mainv("hello", 1);
 
   initializeApp(largs);
+
+  // An empty array doesn't seem to be valid in D so we can't test that here.
+  // string[] empty_args;
+  // enforce(mainc(empty_args) == 0, "calling mainc failed");
+
+  // Check that empty strings are handled.
+  auto empty_string = ["hello", "", "world"];
+  enforce(mainc(empty_string) == 3, "calling mainc failed");
+  enforce(mainv(empty_string, 0) == "hello", "calling mainv failed");
+  enforce(mainv(empty_string, 1) == "", "calling mainv failed");
+  enforce(mainv(empty_string, 2) == "world", "calling mainv failed");
 }
