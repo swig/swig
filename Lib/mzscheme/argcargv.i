@@ -9,7 +9,6 @@
                        $input != scheme_null &&
                        SCHEME_TYPE($input) == scheme_vector_type, "null array");
   len = SCHEME_VEC_SIZE($input);
-  SWIG_contract_assert(len > 0, "array must contain at least 1 element");
   $1 = len;
   $2 = ($2_ltype) SWIG_MzScheme_Malloc((size_t)(len+1)*sizeof($*2_ltype), FUNC_NAME);
   elems = SCHEME_VEC_ELS($input);
@@ -25,17 +24,15 @@
   if ($input != (Scheme_Object *)NULL && $input != scheme_null &&
       SCHEME_TYPE($input) == scheme_vector_type) {
     size_t len = SCHEME_VEC_SIZE($input);
-    if (len > 0) {
-      size_t i;
-      Scheme_Object **elems = SCHEME_VEC_ELS($input);
-      for (i = 0; i < len; i++) {
-        if (SCHEME_TYPE(elems[i]) != scheme_char_string_type) {
-          break;
-        }
+    size_t i;
+    Scheme_Object **elems = SCHEME_VEC_ELS($input);
+    for (i = 0; i < len; i++) {
+      if (SCHEME_TYPE(elems[i]) != scheme_char_string_type) {
+        break;
       }
-      /* All elements are strings! */
-      $1 = (i == len);
     }
+    /* All elements are strings! */
+    $1 = (i == len);
   }
 }
 
