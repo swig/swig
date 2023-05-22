@@ -17,4 +17,15 @@ end
 
 initializeApp(largs);
 
+// Check that an empty array works.
+empty_args = [];
+checkequal(mainc(empty_args), 0, "calling mainc");
+
+// Check that empty strings are handled.
+empty_string = ["hello", "", "world"];
+checkequal(mainc(empty_string), 3, "calling mainc");
+checkequal(mainv(empty_string, 0), "hello", "calling mainv");
+checkequal(mainv(empty_string, 1), "", "calling mainv");
+checkequal(mainv(empty_string, 2), "world", "calling mainv");
+
 exec("swigtest.quit", -1);
