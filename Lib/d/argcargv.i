@@ -7,26 +7,23 @@
 %typemap(dtype) (int ARGC, char **ARGV) "string[]"
 
 %typemap(in, canthrow=1) (int ARGC, char **ARGV) {
-  $1_ltype i, len;
-  if ($input.array == SWIG_NULLPTR) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "null array");
-    return $null;
+  if ($input.array == SWIG_NULLPTR || $input.len <= 0) {
+    $1 = 0;
+    $2 = ($2_ltype) malloc(sizeof($*2_ltype));
+    $2[0] = SWIG_NULLPTR;
+  } else {
+    $1_ltype i;
+    $1 = $input.len;
+    $2 = ($2_ltype) malloc(($1+1)*sizeof($*2_ltype));
+    if ($2 == SWIG_NULLPTR) {
+      SWIG_DSetPendingException(SWIG_DException, "memory allocation failed");
+      return $null;
+    }
+    for (i = 0; i < $1; i++) {
+      $2[i] = $input.array[i].str;
+    }
+    $2[i] = SWIG_NULLPTR;
   }
-  len = $input.len;
-  if (len <= 0) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "array must contain at least 1 element");
-    return $null;
-  }
-  $2 = ($2_ltype) malloc((len+1)*sizeof($*2_ltype));
-  if ($2 == SWIG_NULLPTR) {
-    SWIG_DSetPendingException(SWIG_DException, "memory allocation failed");
-    return $null;
-  }
-  $1 = len;
-  for (i = 0; i < len; i++) {
-    $2[i] = $input.array[i].str;
-  }
-  $2[i] = SWIG_NULLPTR;
 }
 
 %typemap(freearg) (int ARGC, char **ARGV) {
