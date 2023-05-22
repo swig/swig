@@ -1,6 +1,6 @@
-/* ------------------------------------------------------------
+/* -------------------------------------------------------------
  * SWIG library containing argc and argv multi-argument typemaps
- * ------------------------------------------------------------ */
+ * ------------------------------------------------------------- */
 
 /* Preserve string vector as is */
 %typemap(scoercein) (int ARGC, char **ARGV) ""
@@ -8,7 +8,7 @@
 %typemap(scheck) (int ARGC, char **ARGV) %{
   assert(is.null($input) || (is.vector($input) && is.character($input)))
 %}
-/* check argument is a non empty string vector for dispatcher */
+/* Check argument is null or a string vector for dispatcher */
 %typemap(rtypecheck) (int ARGC, char **ARGV) %{
   is.null($arg) || (is.vector($arg) && is.character($arg))
 %}
