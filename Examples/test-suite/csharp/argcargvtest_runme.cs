@@ -6,13 +6,13 @@ public class argcargvtest_runme {
   public static void Main() {
     string[] largs = {"hi", "hola", "hello"};
     if (argcargvtest.mainc(largs) != 3)
-        throw new Exception("bad main typemap");
+      throw new Exception("bad main typemap");
 
     string[] targs = {"hi", "hola"};
     if (!argcargvtest.mainv(targs, 0).Equals("hi"))
-        throw new Exception("bad main typemap");
+      throw new Exception("bad main typemap");
     if (!argcargvtest.mainv(targs, 1).Equals("hola"))
-        throw new Exception("bad main typemap");
+      throw new Exception("bad main typemap");
     if (!argcargvtest.mainv(targs, 2).Equals("<<NULL>>"))
       throw new Exception("bad main typemap");
 
