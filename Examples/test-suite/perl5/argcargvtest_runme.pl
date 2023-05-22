@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 8;
+use Test::More tests => 9;
 BEGIN { use_ok('argcargvtest') }
 require_ok('argcargvtest');
 
@@ -8,7 +8,8 @@ my $largs = ["hi", "hola", "hello"];
 is(argcargvtest::mainc($largs), 3, "test main typemap 1");
 
 my $targs = ["hi", "hola"];
-is(argcargvtest::mainv($targs, 1), "hola", "test main typemap 2");
+is(argcargvtest::mainv($targs, 0), "hi", "test main typemap 2a");
+is(argcargvtest::mainv($targs, 1), "hola", "test main typemap 2b");
 
 my $errorVal = 0;
 my $ret = eval qq(argcargvtest::mainv("hello", 1); \$errorVal = 1;);

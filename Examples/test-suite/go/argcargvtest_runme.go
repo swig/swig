@@ -9,6 +9,9 @@ func main() {
 	}
 
 	targs := []string{"hi", "hola"}
+	if rs := wrap.Mainv(targs, 0); rs != "hi" {
+		panic(rs)
+	}
 	if rs := wrap.Mainv(targs, 1); rs != "hola" {
 		panic(rs)
 	}

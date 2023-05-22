@@ -19,6 +19,8 @@ public class argcargvtest_runme {
         throw new RuntimeException("bad main typemap");
 
     String[] targs = {"hi", "hola"};
+    if (!test.mainv(targs, 0).equals("hi"))
+        throw new RuntimeException("bad main typemap");
     if (!test.mainv(targs, 1).equals("hola"))
         throw new RuntimeException("bad main typemap");
 

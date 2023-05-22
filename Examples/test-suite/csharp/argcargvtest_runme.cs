@@ -9,6 +9,8 @@ public class argcargvtest_runme {
         throw new Exception("bad main typemap");
 
     string[] targs = {"hi", "hola"};
+    if (!argcargvtest.mainv(targs, 0).Equals("hi"))
+        throw new Exception("bad main typemap");
     if (!argcargvtest.mainv(targs, 1).Equals("hola"))
         throw new Exception("bad main typemap");
 

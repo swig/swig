@@ -11,9 +11,7 @@ largs = {"hi", "hola", "hello"}
 assert(v.mainc(largs) == 3, "bad main typemap")
 
 targs = {"hi", "hola"}
-assert(v.mainv(targs, 1) == "hola", "bad main typemap")
-
-targs = {"hi", "hola"}
+assert(v.mainv(targs, 0) == "hi", "bad main typemap")
 assert(v.mainv(targs, 1) == "hola", "bad main typemap")
 
 errorVal = 0

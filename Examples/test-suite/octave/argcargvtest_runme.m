@@ -11,6 +11,9 @@ if (mainv(targs,1) != 'hola')
 endif
 
 targs={'hi', 'hola'};
+if (mainv(targs,0) != 'hi')
+  error("bad main typemap");
+endif
 if (mainv(targs,1) != 'hola')
   error("bad main typemap");
 endif

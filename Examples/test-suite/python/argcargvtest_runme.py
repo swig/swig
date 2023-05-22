@@ -9,6 +9,8 @@ if mainv(targs, 1) != "hola":
     raise RuntimeError("bad main typemap")
 
 targs = ("hi", "hola")
+if mainv(targs, 0) != "hi":
+    raise RuntimeError("bad main typemap")
 if mainv(targs, 1) != "hola":
     raise RuntimeError("bad main typemap")
 

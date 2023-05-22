@@ -8,6 +8,7 @@ void main() {
   enforce(mainc(largs) == 3, "calling mainc failed");
 
   auto targs = ["hi", "hola"];
+  enforce(mainv(targs, 0) == "hi", "calling mainv failed");
   enforce(mainv(targs, 1) == "hola", "calling mainv failed");
 
 // For dynamically typed languages we test this throws an exception or similar

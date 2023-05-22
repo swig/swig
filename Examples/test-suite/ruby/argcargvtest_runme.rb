@@ -12,6 +12,9 @@ if mainc($largs) != 3
 end
 
 $targs = ["hi", "hola"]
+if mainv($targs, 0) != "hi"
+    raise RuntimeError, "bad main typemap"
+end
 if mainv($targs, 1) != "hola"
     raise RuntimeError, "bad main typemap"
 end

@@ -13,7 +13,8 @@ $largs = array('hi', 'hola', 'hello');
 check::equal(mainc($largs), 3, 'Test main typemap 1');
 
 $targs = array('hi', 'hola');
-check::equal(mainv($targs, 1), 'hola', 'Test main typemap 2');
+check::equal(mainv($targs, 0), 'hi', 'Test main typemap 2a');
+check::equal(mainv($targs, 1), 'hola', 'Test main typemap 2b');
 
 $error = 0;
 try {

@@ -5,6 +5,8 @@ if (test.mainc(largs) != 3)
    throw "calling mainc failed";
 
 const targs = ["hi", "hola"];
+if (test.mainv(targs, 0) != "hi")
+   throw "calling mainv failed";
 if (test.mainv(targs, 1) != "hola")
    throw "calling mainv failed";
 

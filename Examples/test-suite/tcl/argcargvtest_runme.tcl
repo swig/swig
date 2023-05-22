@@ -9,12 +9,20 @@ if {[mainc $largs] != 3} {
 }
 
 set targs {hi hola}
+if {[mainv $targs 0] != "hi"} {
+     puts stderr "bad main typemap"
+     exit 1
+}
 if {[mainv $targs 1] != "hola"} {
      puts stderr "bad main typemap"
      exit 1
 }
 
 set targs " hi hola "
+if {[mainv $targs 0] != "hi"} {
+     puts stderr "bad main typemap"
+     exit 1
+}
 if {[mainv $targs 1] != "hola"} {
      puts stderr "bad main typemap"
      exit 1
