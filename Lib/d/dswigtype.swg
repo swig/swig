@@ -245,8 +245,8 @@
 
 %insert(runtime) %{
 #include <stddef.h>
-typedef struct { size_t len; char *str;} c_dstring;
-typedef struct { size_t len; c_dstring *array; } c_dstring_array;
+typedef struct { size_t len; char *str;} SWIG_c_dstring;
+typedef struct { size_t len; SWIG_c_dstring *array; } SWIG_c_dstring_array;
 %}
 
 /*
@@ -254,7 +254,7 @@ typedef struct { size_t len; c_dstring *array; } c_dstring_array;
  */
 %typemap(imtype)  (const char *STRING, size_t LENGTH) "string"
 %typemap(dtype)   (const char *STRING, size_t LENGTH) "string"
-%typemap(ctype,default="={0,0}") (const char *STRING, size_t LENGTH) "c_dstring"
+%typemap(ctype,default="={0,0}") (const char *STRING, size_t LENGTH) "SWIG_c_dstring"
 %typemap(din, nativepointer="std.conv.to!string($dinput)") (const char *STRING, size_t LENGTH) "$dinput"
 %typemap(freearg) (const char *STRING, size_t LENGTH) ""
 %typemap(in, canthrow=1) (const char *STRING, size_t LENGTH) %{

@@ -2,7 +2,7 @@
  * SWIG library containing argc and argv multi-argument typemaps
  * ------------------------------------------------------------ */
 
-%typemap(ctype) (int ARGC, char **ARGV) "c_dstring_array"
+%typemap(ctype) (int ARGC, char **ARGV) "SWIG_c_dstring_array"
 %typemap(imtype) (int ARGC, char **ARGV) "string[]"
 %typemap(dtype) (int ARGC, char **ARGV) "string[]"
 
