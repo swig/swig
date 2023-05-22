@@ -13,8 +13,8 @@
     return $null;
   }
   len = ($1_ltype)JCALL1(GetArrayLength, jenv, $input);
-  if (len <= 0) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "array must contain at least 1 element");
+  if (len < 0) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "array length negative");
     return $null;
   }
   $2 = ($2_ltype) malloc((len+1)*sizeof($*2_ltype));
