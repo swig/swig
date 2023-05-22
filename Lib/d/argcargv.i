@@ -8,15 +8,7 @@
 
 %typemap(in, canthrow=1) (int ARGC, char **ARGV) {
   $1_ltype i, len;
-  if ($input.array == SWIG_NULLPTR) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "null array");
-    return $null;
-  }
   len = $input.len;
-  if (len <= 0) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "array must contain at least 1 element");
-    return $null;
-  }
   $2 = ($2_ltype) malloc((len+1)*sizeof($*2_ltype));
   if ($2 == SWIG_NULLPTR) {
     SWIG_DSetPendingException(SWIG_DException, "memory allocation failed");
