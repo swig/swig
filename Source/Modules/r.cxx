@@ -1604,7 +1604,13 @@ void R::dispatchFunction(Node *n) {
 	  replaceRClass(tm, Getattr(p, "type"));
 	}
 
-	String *tmcheck = Swig_typemap_lookup("rtypecheck", p, "", 0);
+	/* Check if type have a %typemap(rtypecheck) */
+	String *tmcheck = Getattr(p,"tmap:rtypecheck");
+	if (tmcheck) {
+	  tmcheck = Copy(tmcheck);
+	} else {
+	  tmcheck = Swig_typemap_lookup("rtypecheck", p, "", 0);
+	}
 	if (tmcheck) {
 	  String *tmp_argtype = NewStringf("argtypes[%d]", j+1);
 	  Replaceall(tmcheck, "$argtype", tmp_argtype);
@@ -1620,6 +1626,7 @@ void R::dispatchFunction(Node *n) {
 	    Printf(f->code, "%s(%s)", j == 0 ? "" : " && ", tmcheck);
 	  }
 	  p = Getattr(p, "tmap:in:next");
+	  Delete(tmcheck);
 	  Delete(tmp_arg);
 	  Delete(tmp_argtype);
 	  continue;
@@ -1825,6 +1832,7 @@ int R::functionWrapper(Node *n) {
   Swig_typemap_attach_parms("scoercein", l, f);
   Swig_typemap_attach_parms("scoerceout", l, f);
   Swig_typemap_attach_parms("scheck", l, f);
+  Swig_typemap_attach_parms("rtypecheck", l, f);
 
   emit_parameter_variables(l, f);
   emit_attach_parmmaps(l,f);
