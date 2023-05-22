@@ -18,6 +18,9 @@ end
 if mainv($targs, 1) != "hola"
     raise RuntimeError, "bad main typemap"
 end
+if mainv($targs, 2) != "<<NULL>>"
+    raise RuntimeError, "bad main typemap"
+end
 
 $error = 0
 $ret = 0
@@ -39,6 +42,9 @@ $empty_args = []
 if mainc($empty_args) != 0
     raise RuntimeError, "bad main typemap"
 end
+if mainv($empty_args, 0) != "<<NULL>>"
+    raise RuntimeError, "bad main typemap"
+end
 
 # Check that empty strings are handled.
 $empty_string = ["hello", "", "world"]
@@ -52,5 +58,8 @@ if mainv($empty_string, 1) != ""
     raise RuntimeError, "bad main typemap"
 end
 if mainv($empty_string, 2) != "world"
+    raise RuntimeError, "bad main typemap"
+end
+if mainv($empty_string, 3) != "<<NULL>>"
     raise RuntimeError, "bad main typemap"
 end

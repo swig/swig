@@ -32,8 +32,10 @@ SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_string_array_to_c(int len, void *array)
   size_t alen, slen;
   char *p, **ptr;
   SWIG_csharp_string_array *ret;
-  /* Special care is needed here to handle an empty array. */
-  alen = sizeof(SWIG_csharp_string_array) + sizeof(char *) * (len - (len > 0));
+  /* We don't need to add one to len for the terminating NULL here because
+   * SWIG_csharp_string_array includes one element already.
+   */
+  alen = sizeof(SWIG_csharp_string_array) + sizeof(char *) * len;
   ret = (SWIG_csharp_string_array *)malloc(alen);
   if (ret == SWIG_NULLPTR) {
     SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate array.");
@@ -52,6 +54,7 @@ SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_string_array_to_c(int len, void *array)
     memcpy(p, ptr[i], slen);
     ret->array[i] = p;
   }
+  ret->array[i] = SWIG_NULLPTR;
   return ret;
 }
 

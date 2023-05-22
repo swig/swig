@@ -17,6 +17,10 @@ if {[mainv $targs 1] != "hola"} {
      puts stderr "bad main typemap"
      exit 1
 }
+if {[mainv $targs 2] != "<<NULL>>"} {
+     puts stderr "bad main typemap"
+     exit 1
+}
 
 set targs " hi hola "
 if {[mainv $targs 0] != "hi"} {
@@ -41,6 +45,10 @@ if {[mainc $empty_args] != 0} {
     puts stderr "bad main typemap"
     exit 1
 }
+if {[mainv $empty_args 0] != "<<NULL>>"} {
+     puts stderr "bad main typemap"
+     exit 1
+}
 
 # Check that empty strings are handled.
 set empty_string {"hello" "" "world"}
@@ -57,6 +65,10 @@ if {[mainv $empty_string 1] != ""} {
     exit 1
 }
 if {[mainv $empty_string 2] != "world"} {
+    puts stderr "bad main typemap"
+    exit 1
+}
+if {[mainv $empty_string 3] != "<<NULL>>"} {
     puts stderr "bad main typemap"
     exit 1
 }

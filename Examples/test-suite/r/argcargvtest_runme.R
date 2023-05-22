@@ -10,6 +10,7 @@ unittest(3, mainc(largs))
 targs = c("hi", "hola")
 unittest("hi", mainv(targs, 0))
 unittest("hola", mainv(targs, 1))
+unittest("<<NULL>>", mainv(targs, 2))
 
 # R convert the string to a string vector with a single string.
 # So instead of exception we simply get null
@@ -33,6 +34,7 @@ initializeApp(largs, TRUE)
 # Check that an empty array works.
 empty_args = c()
 unittest(0, mainc(empty_args))
+unittest("<<NULL>>", mainv(empty_args, 0))
 
 # check dispatcher with empty array.
 initializeApp(empty_args)
@@ -44,3 +46,4 @@ unittest(3, mainc(empty_string))
 unittest("hello", mainv(empty_string, 0))
 unittest("", mainv(empty_string, 1))
 unittest("world", mainv(empty_string, 2))
+unittest("<<NULL>>", mainv(empty_string, 3))

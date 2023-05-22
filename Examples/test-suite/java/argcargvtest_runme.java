@@ -23,6 +23,8 @@ public class argcargvtest_runme {
         throw new RuntimeException("bad main typemap");
     if (!test.mainv(targs, 1).equals("hola"))
         throw new RuntimeException("bad main typemap");
+    if (!test.mainv(targs, 2).equals("<<NULL>>"))
+        throw new RuntimeException("bad main typemap");
 
 // For dynamically typed languages we test this throws an exception or similar
 // at runtime, but for Java this doesn't even compile (but we can't easily
@@ -35,6 +37,8 @@ public class argcargvtest_runme {
     String[] empty_args = {};
     if (test.mainc(empty_args) != 0)
       throw new RuntimeException("bad main typemap");
+    if (!test.mainv(empty_args, 0).equals("<<NULL>>"))
+        throw new RuntimeException("bad main typemap");
 
     // Check that empty strings are handled.
     String[] empty_string = {"hello", "", "world"};
@@ -45,6 +49,8 @@ public class argcargvtest_runme {
     if (!test.mainv(empty_string, 1).equals(""))
       throw new RuntimeException("bad main typemap");
     if (!test.mainv(empty_string, 2).equals("world"))
+      throw new RuntimeException("bad main typemap");
+    if (!test.mainv(empty_string, 3).equals("<<NULL>>"))
       throw new RuntimeException("bad main typemap");
   }
 }

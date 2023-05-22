@@ -9,6 +9,8 @@ if (test.mainv(targs, 0) != "hi")
    throw "calling mainv failed";
 if (test.mainv(targs, 1) != "hola")
    throw "calling mainv failed";
+if (test.mainv(targs, 2) != "<<NULL>>")
+   throw "calling mainv failed";
 
 caughtException = false;
 try {
@@ -26,6 +28,8 @@ test.initializeApp(largs);
 const empty_args = [];
 if (test.mainc(empty_args) != 0)
   throw "bad main typemap";
+if (test.mainv(empty_args, 0) != "<<NULL>>")
+   throw "calling mainv failed";
 
 // Check that empty strings are handled.
 const empty_string = ["hello", "", "world"];
@@ -36,4 +40,6 @@ if (test.mainv(empty_string, 0) != "hello")
 if (test.mainv(empty_string, 1) != "")
   throw "bad main typemap";
 if (test.mainv(empty_string, 2) != "world")
+  throw "bad main typemap";
+if (test.mainv(empty_string, 3) != "<<NULL>>")
   throw "bad main typemap";

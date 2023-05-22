@@ -15,6 +15,9 @@ func main() {
 	if rs := wrap.Mainv(targs, 1); rs != "hola" {
 		panic(rs)
 	}
+	if rs := wrap.Mainv(targs, 2); rs != "<<NULL>>" {
+		panic(rs)
+	}
 
 // For dynamically typed languages we test this throws an exception or similar
 // at runtime, but for Go this doesn't even compile (but we can't easily
@@ -27,6 +30,9 @@ func main() {
 	empty_args := []string{};
 	if ri := wrap.Mainc(empty_args); ri != 0 {
 		panic(ri)
+	}
+	if rs := wrap.Mainv(empty_args, 0); rs != "<<NULL>>" {
+		panic(rs)
 	}
 
 	// Check that empty strings are handled.
@@ -41,6 +47,9 @@ func main() {
 		panic(rs)
 	}
 	if rs := wrap.Mainv(empty_string, 2); rs != "world" {
+		panic(rs)
+	}
+	if rs := wrap.Mainv(empty_string, 3); rs != "<<NULL>>" {
 		panic(rs)
 	}
 }

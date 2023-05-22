@@ -17,6 +17,7 @@
     /* Empty array */
     $1 = 0;
     $2 = ($2_ltype) malloc(sizeof($*2_ltype));
+    $2[0] = SWIG_NULLPTR;
   } else if (!Rf_isVectorAtomic($input) || TYPEOF($input) != STRSXP) {
     SWIG_exception_fail(SWIG_RuntimeError, "Wrong array type.");
   } else {
