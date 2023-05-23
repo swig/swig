@@ -1421,10 +1421,24 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 /* String & length */
+%pragma(java) jniclasscode=%{
+  public final static byte[] SWIG_string_to_utf8_bytes(String str) {
+    try {
+      return str.getBytes("UTF-8");
+    } catch(java.lang.Exception e) {}
+    return new byte[0];
+  }
+  public final static String SWIG_utf8_bytes_to_string(byte[] b_utf8) {
+    try {
+      return new String(b_utf8, "UTF-8");
+    } catch(java.lang.Exception e) {}
+    return "";
+  }
+%}
 %typemap(jni)     (const char *STRING, size_t LENGTH) "jbyteArray"
 %typemap(jtype)   (const char *STRING, size_t LENGTH) "byte[]"
-%typemap(jstype)  (const char *STRING, size_t LENGTH) "byte[]"
-%typemap(javain)  (const char *STRING, size_t LENGTH) "$javainput"
+%typemap(jstype)  (const char *STRING, size_t LENGTH) "String"
+%typemap(javain)  (const char *STRING, size_t LENGTH) "$moduleJNI.SWIG_string_to_utf8_bytes($javainput)"
 %typemap(freearg) (const char *STRING, size_t LENGTH) ""
 %typemap(in)      (const char *STRING, size_t LENGTH) {
   if ($input) {
@@ -1438,7 +1452,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %typemap(argout)  (const char *STRING, size_t LENGTH) {
   if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, JNI_ABORT);
 }
-%typemap(directorin, descriptor="[B", noblock=1) (const char *STRING, size_t LENGTH) {
+%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) (const char *STRING, size_t LENGTH) {
   $input = 0;
   if ($1) {
     $input = JCALL1(NewByteArray, jenv, (jsize)$2);
@@ -1447,7 +1461,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
-%typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "$jniinput"
+%typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "SWIG_utf8_bytes_to_string($jniinput)"
 %apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
 /* Enable write-back for non-const version */
 %typemap(argout)  (char *STRING, size_t LENGTH) {

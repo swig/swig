@@ -83,11 +83,21 @@
    $1 = ($1_ltype) Z_STRVAL($input);
 %}
 
-%typemap(in, phptype="string") (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) %{
+%typemap(in, phptype="string", noblock=1) (const char *STRING, size_t LENGTH) %{
    convert_to_string(&$input);
    $1 = ($1_ltype) Z_STRVAL($input);
    $2 = ($2_ltype) Z_STRLEN($input);
 %}
+%typemap(directorin, noblock=1) (const char *STRING, size_t LENGTH) {
+   if (!$1) {
+     ZVAL_EMPTY_STRING($input);
+   } else {
+     ZVAL_STRINGL($input, (const char*)$1, (size_t)$2);
+   }
+}
+%apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
+%apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
+%apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
 /* Object passed by value. Convert to a pointer */
 %typemap(in, phptype="SWIGTYPE") SWIGTYPE ($&1_ltype tmp)

@@ -23,7 +23,7 @@
 <li><a href="#Library_nn8">C string handling</a>
 <ul>
 <li><a href="#Library_nn9">Default string handling</a>
-<li><a href="#Library_nn10">Passing binary data</a>
+<li><a href="#Library_nn10">Passing a string with length</a>
 <li><a href="#Library_nn11">Using %newobject to release memory</a>
 <li><a href="#Library_nn12">cstring.i</a>
 </ul>
@@ -719,11 +719,18 @@ Now, in a script:
 
 
 <p>
-The <tt>cdata.i</tt> module defines functions for converting raw C data to and from strings
-in the target language.  The primary applications of this module would be packing/unpacking of
+The <tt>cdata.i</tt> module defines functions for converting raw C data to and
+from the target language. Static typed target languages (C#, Java, go, D)
+uses array of bytes, while dynamic typed languages uses string.
+The primary applications of this module would be packing/unpacking of
 binary data structures---for instance, if you needed to extract data from a buffer.
-The target language must support strings with embedded binary data
-in order for this to work.
+Target dynamic typed language must support strings with embedded binary data
+in order for benefit from this module, and should support a 'pack' and 'unpack'
+functions to convert string to array of numbers and via versa.
+Most static typed languages uses string with defined encoding,
+ which means the content of the String will be different from the original raw C data.
+Yet most dynamic typed language do not support arrays of bytes and
+ do not have a defined encoding of strings, which make them proper for holding raw data.
 </p>
 
 <p>
@@ -731,7 +738,7 @@ in order for this to work.
 </p>
 
 <div class="indent"><p>
-Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a string.   <tt>ptr</tt> can be any
+Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a string or array bytes when using static typed languages.   <tt>ptr</tt> can be any
 pointer.
 </p></div>
 
@@ -740,7 +747,7 @@ pointer.
 </p>
 
 <div class="indent"><p>
-Copies all of the string data in <tt>s</tt> into the memory pointed to by
+Copies all of the string data or array bytes when using static typed languages in <tt>s</tt> into the memory pointed to by
 <tt>ptr</tt>.  The string may contain embedded NULL bytes.  
 This is actually a wrapper to the standard C library <tt>memmove</tt> function, which is
 declared as 
@@ -878,11 +885,11 @@ interpreter and lead to a crash).  Furthermore, the default behavior does
 not work well with binary data. Instead, strings are assumed to be NULL-terminated.
 </p>
 
-<H3><a name="Library_nn10">12.3.2 Passing binary data</a></H3>
+<H3><a name="Library_nn10">12.3.2 Passing a string with length</a></H3>
 
 
 <p>
-If you have a function that expects binary data,
+If you have a function that expects string with a length,
 </p>
 
 <div class="code">
@@ -905,7 +912,7 @@ size_t parity(char *str, size_t len, size_t initial);
 </div>
 
 <p>
-Now, in the target language, you can use binary string data like this:
+Now, in the target language, you can use the string like this:
 </p>
 
 <div class="targetlang">
