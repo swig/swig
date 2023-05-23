@@ -2116,15 +2116,15 @@ echo_directive : ECHO HBLOCK {
    ------------------------------------------------------------ */
 
 except_directive : EXCEPT LPAREN identifier RPAREN LBRACE {
-                    skip_balanced('{','}');
-		    $$ = 0;
 		    Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
+		    if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
+		    $$ = 0;
 	       }
 
                | EXCEPT LBRACE {
-                    skip_balanced('{','}');
-		    $$ = 0;
 		    Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
+		    if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
+		    $$ = 0;
                }
 
                | EXCEPT LPAREN identifier RPAREN SEMI {
@@ -2175,7 +2175,7 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
                  | FRAGMENT LPAREN fname COMMA kwargs RPAREN LBRACE {
 		   Hash *p = $5;
 		   String *code;
-                   skip_balanced('{','}');
+		   if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		   $$ = new_node("fragment");
 		   Setattr($$,"value",Getattr($3,"value"));
 		   Setattr($$,"type",Getattr($3,"type"));
@@ -2286,10 +2286,11 @@ inline_directive : INLINE HBLOCK {
                | INLINE LBRACE {
                  String *cpps;
 		 int start_line = cparse_line;
-		 skip_balanced('{','}');
 		 if (Namespaceprefix) {
 		   Swig_error(cparse_file, cparse_start_line, "%%inline directive inside a namespace is disallowed.\n");
-		   
+		 }
+		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
+		 if (Namespaceprefix) {
 		   $$ = 0;
 		 } else {
 		   String *code;
@@ -2335,7 +2336,7 @@ insert_directive : HBLOCK {
                }
                | INSERT LPAREN idstring RPAREN LBRACE {
 		 String *code;
-                 skip_balanced('{','}');
+		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		 $$ = new_node("insert");
 		 Setattr($$,"section",$3);
 		 Delitem(scanner_ccode,0);
@@ -3336,8 +3337,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
             * to wrap.
             */
 	   | storage_class AUTO declarator cpp_const LBRACE {
-	      skip_balanced('{','}');
 	      Swig_warning(WARN_CPP14_AUTO, cparse_file, cparse_line, "Unable to deduce return type for '%s'.\n", $3.id);
+	      if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 	   }
 	   ;
 
@@ -3373,7 +3374,7 @@ c_decl_tail    : SEMI {
 		 }
 	       }
                | LBRACE { 
-                   skip_balanced('{','}');
+                   if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
                    $$ = 0;
                }
                | error {
@@ -3436,20 +3437,20 @@ cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer lambda_temp
                 ;
 
 lambda_introducer : LBRACKET {
-		  skip_balanced('[',']');
+		  if (skip_balanced('[',']') < 0) Exit(EXIT_FAILURE);
 		  $$ = 0;
 	        }
 		;
 
 lambda_template : LESSTHAN {
-		  skip_balanced('<','>');
+		  if (skip_balanced('<','>') < 0) Exit(EXIT_FAILURE);
 		  $$ = 0;
 		}
 		| empty { $$ = 0; }
 		;
 
 lambda_body : LBRACE {
-		  skip_balanced('{','}');
+		  if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		  $$ = 0;
 		}
 
@@ -3457,7 +3458,7 @@ lambda_tail :	SEMI {
 		  $$ = 0;
 		}
 		| LPAREN {
-		  skip_balanced('(',')');
+		  if (skip_balanced('(',')') < 0) Exit(EXIT_FAILURE);
 		} SEMI {
 		  $$ = 0;
 		}
@@ -4903,7 +4904,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 /* isolated catch clause. */
 
 cpp_catch_decl : CATCH LPAREN parms RPAREN LBRACE {
-                 skip_balanced('{','}');
+                 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
                  $$ = 0;
                }
                ;
@@ -4911,7 +4912,7 @@ cpp_catch_decl : CATCH LPAREN parms RPAREN LBRACE {
 /* static_assert(bool, const char*); (C++11)
  * static_assert(bool); (C++17) */
 cpp_static_assert : STATIC_ASSERT LPAREN {
-                skip_balanced('(',')');
+                if (skip_balanced('(',')') < 0) Exit(EXIT_FAILURE);
                 $$ = 0;
               }
               ;
@@ -4983,7 +4984,7 @@ cpp_end        : cpp_const SEMI {
 		    $$.final = $1.final;
                }
                | cpp_const LBRACE { 
-		    skip_balanced('{','}'); 
+		    if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		    $$.val = 0;
 		    $$.qualifier = $1.qualifier;
 		    $$.refqualifier = $1.refqualifier;
@@ -5018,7 +5019,7 @@ cpp_vend       : cpp_const SEMI {
                      $$.final = $1.final;
                }
                | cpp_const LBRACE { 
-                     skip_balanced('{','}');
+                     if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
                      $$.val = 0;
                      $$.qualifier = $1.qualifier;
                      $$.refqualifier = $1.refqualifier;
@@ -5313,7 +5314,7 @@ def_args       : EQUAL definetype {
 		  }		  
                }
                | EQUAL LBRACE {
-		 skip_balanced('{','}');
+		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		 $$.val = NewString(scanner_ccode);
 		 $$.rawval = 0;
                  $$.type = T_INT;
@@ -6266,7 +6267,7 @@ decltypeexpr   : expr RPAREN {
 	       | error RPAREN {
 		 // Avoid a parse error if we can't parse the expression decltype() is applied to.
 		 $$ = 0;
-		 skip_balanced('(',')');
+		 if (skip_balanced('(',')') < 0) Exit(EXIT_FAILURE);
 		 Clear(scanner_ccode);
 	       }
 	       ;
@@ -6928,7 +6929,7 @@ exprcompound   : expr PLUS expr {
 	       }
                | type LPAREN {
 		 String *qty;
-                 skip_balanced('(',')');
+		 if (skip_balanced('(',')') < 0) Exit(EXIT_FAILURE);
 		 qty = Swig_symbol_type_qualify($1,0);
 		 if (SwigType_istemplate(qty)) {
 		   String *nstr = SwigType_namestr(qty);
@@ -7192,15 +7193,15 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                       Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
                | cpp_const ctor_initializer LBRACE { 
-                    skip_balanced('{','}'); 
+                    if ($1.qualifier)
+                      Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
+                    if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
                     $$.have_parms = 0; 
                     $$.defarg = 0; 
                     $$.throws = $1.throws;
                     $$.throwf = $1.throwf;
                     $$.nexcept = $1.nexcept;
                     $$.final = $1.final;
-                    if ($1.qualifier)
-                      Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                }
                | LPAREN parms RPAREN SEMI { 
                     Clear(scanner_ccode); 
@@ -7213,7 +7214,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
 		    $$.final = 0;
                }
                | LPAREN parms RPAREN LBRACE {
-                    skip_balanced('{','}'); 
+                    if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
                     $$.parms = $2; 
                     $$.have_parms = 1; 
                     $$.defarg = 0; 
@@ -7253,7 +7254,7 @@ mem_initializer_list : mem_initializer
                ;
 
 mem_initializer : idcolon LPAREN {
-		  skip_balanced('(',')');
+		  if (skip_balanced('(',')') < 0) Exit(EXIT_FAILURE);
 		  Clear(scanner_ccode);
 		}
                 /* Uniform initialization in C++11.
@@ -7265,7 +7266,7 @@ mem_initializer : idcolon LPAREN {
                    };
                 */
                 | idcolon LBRACE {
-		  skip_balanced('{','}');
+		  if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		  Clear(scanner_ccode);
 		}
                 ;
@@ -7416,7 +7417,7 @@ stringbrace    : string {
 		 $$ = $1;
                }
                | LBRACE {
-                  skip_balanced('{','}');
+		  if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		  $$ = NewString(scanner_ccode);
                }
               | HBLOCK {
