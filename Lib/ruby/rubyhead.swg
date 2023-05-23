@@ -12,6 +12,7 @@
 #endif
 
 #include <ruby.h>
+#include <ruby/version.h> /* For RUBY_API_VERSION_CODE */
 
 #if __GNUC__ >= 7
 #pragma GCC diagnostic pop
@@ -117,9 +118,9 @@
 /*
  * The following macros are used for providing the correct type of a
  * function pointer to the Ruby C API.
- * Starting with Ruby 2.7 (corresponding to RB_METHOD_DEFINITION_DECL being
- * defined) these macros act transparently due to Ruby's moving away from
- * ANYARGS and instead employing strict function signatures.
+ *
+ * Starting with Ruby 2.7 these macros act transparently due to Ruby's moving
+ * moving away from ANYARGS and instead employing strict function signatures.
  *
  * Note: In case of C (not C++) the macros are transparent even before
  * Ruby 2.7 due to the fact that the Ruby C API used function declarators
@@ -143,7 +144,7 @@
  * SWIG_RUBY_INT_ANYARGS_FUNC(f) is used for the function pointer
  * argument(s) of Ruby C API functions like st_foreach().
  */
-#if defined(__cplusplus) && !defined(RB_METHOD_DEFINITION_DECL)
+#if defined(__cplusplus) && RUBY_API_VERSION_CODE < 20700
 #  define PROTECTFUNC(f) ((VALUE (*)(VALUE)) f)
 #  define VALUEFUNC(f) ((VALUE (*)(ANYARGS)) f)
 #  define VOIDFUNC(f) ((RUBY_DATA_FUNC) f)

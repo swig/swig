@@ -8,6 +8,14 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-05-23: olly
+	    [Ruby] Fix deprecation warnings about ANYARGS when compiling
+	    C++ code for SWIG-generated Ruby wrappers with Ruby 3.x.
+
+	    This is a recurrence of a problem fixed in 4.0.2.  Our fix was
+	    conditional on RB_METHOD_DEFINITION_DECL being defined, but Ruby
+	    3.0 stopped defining this.
+
+2023-05-23: olly
 	    #2606 Improve error output when SWIG reaches EOF while looking for
 	    a closing delimiter.  This is reported with an error like:
 
