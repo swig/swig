@@ -12,7 +12,7 @@
 %typemap(rtypecheck) (int ARGC, char **ARGV) %{
   is.null($arg) || (is.vector($arg) && is.character($arg))
 %}
-%typemap(in,noblock=1) (int ARGC, char **ARGV) {
+%typemap(in) (int ARGC, char **ARGV) {
   $1_ltype i;
   SEXP *pstr;
   if ($input == R_NilValue) {
