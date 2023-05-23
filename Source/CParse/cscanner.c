@@ -163,15 +163,17 @@ void start_inline(char *text, int line) {
  *
  * Skips a piece of code enclosed in begin/end symbols such as '{...}' or
  * (...).  Ignores symbols inside comments or strings.
+ *
+ * Returns 0 if successfully skipped, -1 if EOF found first.
  * ----------------------------------------------------------------------------- */
 
-void skip_balanced(int startchar, int endchar) {
+int skip_balanced(int startchar, int endchar) {
   int start_line = Scanner_line(scan);
   Clear(scanner_ccode);
 
   if (Scanner_skip_balanced(scan,startchar,endchar) < 0) {
     Swig_error(cparse_file, start_line, "Missing '%c'. Reached end of input.\n", endchar);
-    return;
+    return -1;
   }
 
   cparse_line = Scanner_line(scan);
@@ -180,7 +182,7 @@ void skip_balanced(int startchar, int endchar) {
   Append(scanner_ccode, Scanner_text(scan));
   if (endchar == '}')
     num_brace--;
-  return;
+  return 0;
 }
 
 /* -----------------------------------------------------------------------------

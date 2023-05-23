@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-05-23: olly
+	    #2606 Improve error output when SWIG reaches EOF while looking for
+	    a closing delimiter.  This is reported with an error like:
+
+	    Error: Missing '}'. Reached end of input.
+
+	    We now exit after reporting this and so no longer report a second
+	    more generic error like:
+
+	    Error: Syntax error in input(1).
+
 2023-05-22: mmomtchev
 	    [Javascript] #2600 Improve test coverage by adding _runme.js files
 	    for 22 test cases.
