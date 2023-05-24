@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-05-25: olly
+	    #1125 Support parsing C++11 auto variables.  This uses the
+	    existing type deduction code from decltype so has the same
+	    limitations, and such variables will only actually be wrapped
+	    when SWIG can deduce the type.
+
 2023-05-23: olly
 	    [Ruby] Fix deprecation warnings about ANYARGS when compiling
 	    C++ code for SWIG-generated Ruby wrappers with Ruby 3.x.

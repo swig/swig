@@ -1764,6 +1764,23 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <str>      virt_specifier_seq virt_specifier_seq_opt;
 %type <str>      class_virt_specifier_opt;
 
+%{
+
+/* C++ decltype/auto type deduction. */
+static SwigType *deduce_type(struct Define *dtype) {
+  if (!dtype->val) return NULL;
+  Node *n = Swig_symbol_clookup(dtype->val, 0);
+  if (n) {
+    return Getattr(n, "type");
+  } else if (Equal(dtype->val, "true") || Equal(dtype->val, "false")) {
+    return NewString("bool");
+  } else {
+    return NULL;
+  }
+}
+
+%}
+
 %%
 
 /* ======================================================================
@@ -3339,6 +3356,22 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	   | storage_class AUTO declarator cpp_const LBRACE {
 	      Swig_warning(WARN_CPP14_AUTO, cparse_file, cparse_line, "Unable to deduce return type for '%s'.\n", $3.id);
 	      if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
+	   }
+	   /* C++11 auto variable declaration. */
+	   | storage_class AUTO idcolon EQUAL definetype SEMI {
+	      SwigType *type = deduce_type(&$5);
+	      if (!type) {
+		Swig_warning(WARN_CPP11_AUTO, cparse_file, cparse_line, "Unable to deduce type for variable '%s'.\n", $3);
+		$$ = 0;
+	      } else {
+		$$ = new_node("cdecl");
+		Setattr($$, "type", type);
+		Setattr($$, "storage", $1);
+		Setattr($$, "name", $3);
+		Setattr($$, "decl", NewStringEmpty());
+		Setattr($$, "value", $5.val);
+		Setattr($$, "valuetype", type);
+	      }
 	   }
 	   ;
 
@@ -6239,33 +6272,30 @@ type_right     : primitive_type { $$ = $1;
 decltype       : DECLTYPE LPAREN {
 		 $<str>$ = get_raw_text_balanced('(', ')');
 	       } decltypeexpr {
+		 String *expr = $<str>3;
 		 if ($4) {
 		   $$ = $4;
-		   Delete($<str>3);
 		 } else {
-		   String *expr = $<str>3;
-		   Delitem(expr,0);
-		   Delitem(expr,DOH_END);
+		   $$ = NewStringf("decltype%s", expr);
+		   /* expr includes parentheses but don't include them in the warning message. */
+		   Delitem(expr, 0);
+		   Delitem(expr, DOH_END);
 		   Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", expr);
-		   $$ = expr;
 		 }
+		 Delete(expr);
 	       }
 	       ;
 
 decltypeexpr   : expr RPAREN {
-		 Node *n = Swig_symbol_clookup($1.val, 0);
-		 if (n) {
-		   $$ = Getattr(n, "type");
-		 } else if (Equal($1.val, "true") || Equal($1.val, "false")) {
-		   $$ = NewString("bool");
-		 } else {
-		   Swig_warning(WARN_CPP11_DECLTYPE, cparse_file, cparse_line, "Unable to deduce decltype for '%s'.\n", $1.val);
-
-		   $$ = NewStringf("decltype(%s)", $1.val);
-		 }
+		 $$ = deduce_type(&$1);
 	       }
 	       | error RPAREN {
-		 // Avoid a parse error if we can't parse the expression decltype() is applied to.
+		 /* Avoid a parse error if we can't parse the expression
+		  * decltype() is applied to.
+		  *
+		  * Set $$ to 0 here to trigger the decltype rule above to
+		  * issue a warning.
+		  */
 		 $$ = 0;
 		 if (skip_balanced('(',')') < 0) Exit(EXIT_FAILURE);
 		 Clear(scanner_ccode);
