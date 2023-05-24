@@ -721,8 +721,9 @@ AltStruct var2{2, 4.3};   // calls the constructor
 
 
 <p><tt>decltype()</tt> is supported with limitations.  SWIG can parse
-all uses, but can only deduce the type for single variables, <tt>true</tt> and
-<tt>false</tt>. For example, the following code will work:</p>
+all uses, but can only deduce the type for single variables, and for
+some expressions involving only literal values of built-in C++ types.
+For example, the following code will work:</p>
 <div class="code"><pre>
 int i;
 decltype(i) j;

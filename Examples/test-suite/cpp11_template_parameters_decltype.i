@@ -4,6 +4,15 @@
 %include <std_vector.i>
 %include <std_pair.i>
 
+%inline %{
+// Github issue #1589
+template <decltype(true) X = true>
+void A() { }
+%}
+
+// %template(A) A<>; // not working
+%template(A) A<true>; // workaround
+
 #pragma SWIG nowarn=SWIGWARN_CPP11_DECLTYPE
 
 // Non-template expression equivalent to template expression further down:
@@ -34,13 +43,3 @@ struct Json {
 
 // %template(Json) Json::Json<Converter>; // not working
 %template(Json) Json::Json<Converter, std::string>; // workaround
-
-
-%inline %{
-// Github issue #1589
-template <decltype(true) X = true>
-void A() { }
-%}
-
-// %template(A) A<>; // not working
-%template(A) A<true>; // workaround

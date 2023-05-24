@@ -1121,7 +1121,7 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_FLOAT;
       } else if ((c == 'l') || (c == 'L')) {
 	Delitem(s->text, DOH_END);
-	return SWIG_TOKEN_DOUBLE;
+	return SWIG_TOKEN_LONGDOUBLE;
       } else {
 	retract(s, 1);
 	return (SWIG_TOKEN_DOUBLE);
@@ -1258,7 +1258,7 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_FLOAT;
       } else if ((c == 'l') || (c == 'L')) {
 	Delitem(s->text, DOH_END);
-	return SWIG_TOKEN_DOUBLE;
+	return SWIG_TOKEN_LONGDOUBLE;
       } else {
 	retract(s, 1);
 	return SWIG_TOKEN_DOUBLE;

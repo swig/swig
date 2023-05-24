@@ -8,6 +8,12 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-05-25: olly
+	    C++11 `auto` variables and `decltype()` can now deduce the
+	    type of some expressions which involve literals of built-in types.
+	    Currently int is not supported due to the parser misusing T_INT
+	    for situations where the type isn't actually known.
+
+2023-05-25: olly
 	    #1125 Support parsing C++11 auto variables.  This uses the
 	    existing type deduction code from decltype so has the same
 	    limitations, and such variables will only actually be wrapped

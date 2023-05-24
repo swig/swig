@@ -1652,7 +1652,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <id> STRING WSTRING
 %token <loc> INCLUDE IMPORT INSERT
 %token <str> CHARCONST WCHARCONST
-%token <dtype> NUM_INT NUM_FLOAT NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
+%token <dtype> NUM_INT NUM_DOUBLE NUM_FLOAT NUM_LONGDOUBLE NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
 %token <intvalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_TYPEDEF TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN INIT LBRACE RBRACE PERIOD ELLIPSIS
@@ -1772,8 +1772,13 @@ static SwigType *deduce_type(struct Define *dtype) {
   Node *n = Swig_symbol_clookup(dtype->val, 0);
   if (n) {
     return Getattr(n, "type");
-  } else if (Equal(dtype->val, "true") || Equal(dtype->val, "false")) {
-    return NewString("bool");
+  } else if (dtype->type != T_AUTO && dtype->type != T_INT) {
+    /* Try to deduce the type from the T_* type code.
+     *
+     * Sadly we can't trust T_INT because several places in the parser set
+     * .type = T_INT when it may not be (or even definitely isn't).
+     */
+    return NewSwigType(dtype->type);
   } else {
     return NULL;
   }
@@ -5350,7 +5355,7 @@ def_args       : EQUAL definetype {
 		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		 $$.val = NewString(scanner_ccode);
 		 $$.rawval = 0;
-                 $$.type = T_INT;
+                 $$.type = T_INT; /* This may be a lie. */
 		 $$.bitfield = 0;
 		 $$.throws = 0;
 		 $$.throwf = 0;
@@ -5370,7 +5375,7 @@ def_args       : EQUAL definetype {
                | empty {
                  $$.val = 0;
                  $$.rawval = 0;
-                 $$.type = T_INT;
+                 $$.type = T_INT; /* This is a lie. */
 		 $$.bitfield = 0;
 		 $$.throws = 0;
 		 $$.throwf = 0;
@@ -6628,7 +6633,7 @@ expr           : valexpr { $$ = $1; }
                | type {
 		 Node *n;
 		 $$.val = $1;
-		 $$.type = T_INT;
+		 $$.type = T_INT; /* This may be a lie. */
 		 /* Check if value is in scope */
 		 n = Swig_symbol_clookup($1,0);
 		 if (n) {
@@ -6835,7 +6840,9 @@ valexpr        : exprsimple { $$ = $1; }
 	       ;
 
 exprnum        :  NUM_INT { $$ = $1; }
+               |  NUM_DOUBLE { $$ = $1; }
                |  NUM_FLOAT { $$ = $1; }
+               |  NUM_LONGDOUBLE { $$ = $1; }
                |  NUM_UNSIGNED { $$ = $1; }
                |  NUM_LONG { $$ = $1; }
                |  NUM_ULONG { $$ = $1; }
