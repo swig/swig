@@ -37,8 +37,9 @@
 #define CONST_DOUBLE2   10E1
 #define CONST_DOUBLE3   12.3
 #define CONST_DOUBLE4   12.
-#define CONST_DOUBLE5   12.3f
-#define CONST_DOUBLE6   12.3F
+
+#define CONST_FLOAT1    12.3f
+#define CONST_FLOAT2    12.3F
 
 #define CONST_BOOL1     true
 #define CONST_BOOL2     false

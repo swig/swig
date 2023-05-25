@@ -26,8 +26,8 @@ void main() {
   static assert(is(double == typeof(CONST_DOUBLE2())));
   static assert(is(double == typeof(CONST_DOUBLE3())));
   static assert(is(double == typeof(CONST_DOUBLE4())));
-  static assert(is(double == typeof(CONST_DOUBLE5())));
-  static assert(is(double == typeof(CONST_DOUBLE6())));
+  static assert(is(float == typeof(CONST_FLOAT1())));
+  static assert(is(float == typeof(CONST_FLOAT2())));
   static assert(is(bool == typeof(CONST_BOOL1())));
   static assert(is(bool == typeof(CONST_BOOL2())));
   static assert(is(char == typeof(CONST_CHAR())));

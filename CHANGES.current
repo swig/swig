@@ -8,6 +8,15 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-05-25: olly
+	    SWIG now discriminates between long double, double and float
+	    constants.  For example, this means that for target languages which
+	    support a separate float type (such as C# and D) this will now
+	    create a float constant instead of a double constant in the target
+	    language:
+
+	    #define PI_ISH 3.1414f
+
+2023-05-25: olly
 	    C++11 `auto` variables and `decltype()` can now deduce the
 	    type of some expressions which involve literals of built-in types.
 	    Currently int is not supported due to the parser misusing T_INT

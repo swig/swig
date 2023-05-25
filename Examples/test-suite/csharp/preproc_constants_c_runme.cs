@@ -27,8 +27,8 @@ public class runme {
     assert( typeof(double) == preproc_constants_c.CONST_DOUBLE2.GetType() );
     assert( typeof(double) == preproc_constants_c.CONST_DOUBLE3.GetType() );
     assert( typeof(double) == preproc_constants_c.CONST_DOUBLE4.GetType() );
-    assert( typeof(double) == preproc_constants_c.CONST_DOUBLE5.GetType() );
-    assert( typeof(double) == preproc_constants_c.CONST_DOUBLE6.GetType() );
+    assert( typeof(float) == preproc_constants_c.CONST_FLOAT1.GetType() );
+    assert( typeof(float) == preproc_constants_c.CONST_FLOAT2.GetType() );
     assert( typeof(int) == preproc_constants_c.CONST_BOOL1.GetType() );
     assert( typeof(int) == preproc_constants_c.CONST_BOOL2.GetType() );
     assert( typeof(char) == preproc_constants_c.CONST_CHAR.GetType() );
