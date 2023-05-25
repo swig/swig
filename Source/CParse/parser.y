@@ -4498,6 +4498,16 @@ cpp_using_decl : USING idcolon SEMI {
 		  Delete(name);
 		  add_symbols($$);
              }
+	     | USING TYPENAME idcolon SEMI {
+		  String *uname = Swig_symbol_type_qualify($3,0);
+		  String *name = Swig_scopename_last($3);
+		  $$ = new_node("using");
+		  Setattr($$,"uname",uname);
+		  Setattr($$,"name", name);
+		  Delete(uname);
+		  Delete(name);
+		  add_symbols($$);
+	     }
              | USING NAMESPACE idcolon SEMI {
 	       Node *n = Swig_symbol_clookup($3,0);
 	       if (!n) {

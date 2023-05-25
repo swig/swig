@@ -18,7 +18,10 @@ namespace nspace1 {
 
 using nspace1::AffineMatrix;
 using nspace1::CacheView;
-using nspace1::Abstract;
+// Check that `typename` disambiguator parses.  Regression test for
+// https://github.com/swig/swig/issues/1032 fixed in SWIG 4.2.0.
+// Note: `typename` is not needed here, but should be accepted.
+using typename nspace1::Abstract;
 
 void _internal(const Abstract *) {}
 

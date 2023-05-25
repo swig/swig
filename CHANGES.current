@@ -8,6 +8,11 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-05-25: olly
+	    #1032 Allow typename disambiguator in:
+
+	    using typename NodeT::links_type;
+
+2023-05-25: olly
 	    SWIG now discriminates between long double, double and float
 	    constants.  For example, this means that for target languages which
 	    support a separate float type (such as C# and D) this will now
