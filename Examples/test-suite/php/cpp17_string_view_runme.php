@@ -41,4 +41,11 @@ check::equal(Structure::ConstStaticMemberString(), "const static member string",
 
 cpp17_string_view::test_const_reference_returning_void("foo");
 
+check::equal(cpp17_string_view::stdstringview_empty(), "", "stdstringview_empty test");
+check::equal(cpp17_string_view::c_empty(), "", "c_empty test");
+check::isnull(cpp17_string_view::c_null(), "c_null test");
+check::isnull(cpp17_string_view::get_null(cpp17_string_view::c_null()), "get_null c_null test");
+check::equal(cpp17_string_view::get_null(cpp17_string_view::c_empty()), "non-null", "get_null c_empty test");
+check::equal(cpp17_string_view::get_null(cpp17_string_view::stdstringview_empty()), "non-null", "get_null stdstringview_empty test");
+
 check::done();

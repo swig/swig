@@ -48,3 +48,10 @@ assert(myStructure.ConstMemberString=="const member string")
 assert(Structure.ConstStaticMemberString=="const static member string")
 
 test_const_reference_returning_void("foo")
+
+assert(stdstringview_empty()=="")
+assert(c_empty()=="")
+assert(c_null()==nil)
+assert(get_null(c_null())==nil)
+assert(get_null(c_empty())=="non-null")
+assert(get_null(stdstringview_empty())=="non-null")

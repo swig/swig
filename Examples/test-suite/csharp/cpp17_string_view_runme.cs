@@ -80,5 +80,18 @@ public class runme
 
         if (Structure.ConstStaticMemberString != "const static member string")
           throw new Exception("ConstStaticMemberString test");
+
+        if (cpp17_string_view.stdstringview_empty() != "")
+          throw new Exception("stdstringview_empty test");
+        if (cpp17_string_view.c_empty() != "")
+          throw new Exception("c_empty test");
+        if (cpp17_string_view.c_null() != null)
+          throw new Exception("c_null test");
+        if (cpp17_string_view.get_null(cpp17_string_view.c_null()) != null)
+          throw new Exception("get_null c_null test");
+        if (cpp17_string_view.get_null(cpp17_string_view.c_empty()) != "non-null")
+          throw new Exception("get_null c_empty test");
+        if (cpp17_string_view.get_null(cpp17_string_view.stdstringview_empty()) != "non-null")
+          throw new Exception("get_null stdstringview_empty test");
     }
 }
