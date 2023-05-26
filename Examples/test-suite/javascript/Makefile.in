@@ -19,6 +19,8 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
+	inplaceadd \
+	input \
 	javascript_lib_arrays \
 
 SWIGEXE   = $(top_builddir)/swig

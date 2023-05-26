@@ -3,7 +3,7 @@
 #include <iostream>
 %}
 
-#if defined(SWIG_JAVASCRIPT_V8)
+#if defined(SWIGJAVASCRIPT)
 %rename(addTo) operator +=;
 %rename(subFrom) operator -=;
 %rename(mulTo) operator *=;
