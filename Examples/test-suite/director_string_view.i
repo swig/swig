@@ -1,6 +1,6 @@
 %module(directors="1") director_string_view;
 
-#if defined SWIGCSHARP || defined SWIGJAVA || defined SWIGLUA || defined SWIGPERL || defined SWIGPHP || defined SWIGRUBY
+#if defined SWIGCSHARP || defined SWIGJAVA || defined SWIGLUA || defined SWIGPERL || defined SWIGPHP || defined SWIGPYTHON || defined SWIGRUBY
 
 %include std_string.i
 %include std_string_view.i

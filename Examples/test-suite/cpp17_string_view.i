@@ -1,5 +1,5 @@
 %module cpp17_string_view
-#if defined SWIGCSHARP || defined SWIGJAVA || defined SWIGLUA || defined SWIGPERL || defined SWIGPHP || defined SWIGRUBY || defined SWIGTCL
+#if defined SWIGCSHARP || defined SWIGJAVA || defined SWIGLUA || defined SWIGPERL || defined SWIGPHP || defined SWIGPYTHON || defined SWIGRUBY || defined SWIGTCL
 %include <std_string_view.i>
 
 // throw is invalid in C++17 and later, only SWIG to use it
