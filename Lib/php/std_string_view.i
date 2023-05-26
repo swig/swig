@@ -25,6 +25,12 @@ namespace std {
         $1 = std::string_view(Z_STRVAL($input), Z_STRLEN($input));
     %}
 
+    %typemap(in, phptype="string") const string_view& ($*1_ltype temp) %{
+        convert_to_string(&$input);
+        temp = std::string_view(Z_STRVAL($input), Z_STRLEN($input));
+        $1 = &temp;
+    %}
+
     %typemap(directorout) string_view %{
         convert_to_string($input);
         $result = std::string_view(Z_STRVAL_P($input), Z_STRLEN_P($input));
@@ -58,12 +64,6 @@ namespace std {
             zend_throw_exception_object(&swig_exception);
             goto fail;
         }
-    %}
-
-    %typemap(in, phptype="string") const string_view& ($*1_ltype temp) %{
-        convert_to_string(&$input);
-        temp = std::string_view(Z_STRVAL($input), Z_STRLEN($input));
-        $1 = &temp;
     %}
 
 }
