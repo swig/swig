@@ -1,4 +1,4 @@
-from director_string_view import *
+from cpp17_director_string_view import *
 
 
 class B(A):

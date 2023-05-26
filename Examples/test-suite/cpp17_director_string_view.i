@@ -1,4 +1,4 @@
-%module(directors="1") director_string_view;
+%module(directors="1") cpp17_director_string_view;
 
 #if defined SWIGCSHARP || defined SWIGJAVA || defined SWIGLUA || defined SWIGPERL || defined SWIGPHP || defined SWIGPYTHON || defined SWIGRUBY
 

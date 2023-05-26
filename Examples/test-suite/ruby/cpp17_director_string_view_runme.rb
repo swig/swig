@@ -9,9 +9,9 @@
 
 require 'swig_assert'
 
-require 'director_string_view'
+require 'cpp17_director_string_view'
 
-class B < Director_string_view::A
+class B < Cpp17_director_string_view::A
 
  def initialize(some_string)
   super(some_string)

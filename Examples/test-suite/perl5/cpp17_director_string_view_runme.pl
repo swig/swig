@@ -1,12 +1,12 @@
 use strict;
 use warnings;
 use Test::More tests => 5;
-BEGIN { use_ok 'director_string_view' }
-require_ok 'director_string_view';
+BEGIN { use_ok 'cpp17_director_string_view' }
+require_ok 'cpp17_director_string_view';
 
 {
   package B;
-  use base 'director_string_view::A';
+  use base 'cpp17_director_string_view::A';
   our $in_first = 0;
   sub get_first { my($self) = @_;
     die "SUPER RESOLVE BAD" if $in_first;
