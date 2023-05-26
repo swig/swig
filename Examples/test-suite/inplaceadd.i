@@ -3,6 +3,11 @@
 #include <iostream>
 %}
 
+#if defined(SWIG_JAVASCRIPT_V8)
+%rename(addTo) operator +=;
+%rename(subFrom) operator -=;
+%rename(mulTo) operator *=;
+#endif
 
 %inline %{
   struct A 
