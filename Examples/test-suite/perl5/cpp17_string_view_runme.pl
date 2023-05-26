@@ -5,30 +5,30 @@ BEGIN { use_ok('cpp17_string_view') }
 require_ok('cpp17_string_view');
 
 use Devel::Peek;
-# Checking expected use of %typemap(in) std::string {}
+# Checking expected use of %typemap(in) std::string_view {}
 cpp17_string_view::test_value("Fee");
 
-# Checking expected result of %typemap(out) std::string {}
+# Checking expected result of %typemap(out) std::string_view {}
 is(cpp17_string_view::test_value("Fi"), "Fi", "Test 1");
 
 
-# Verify type-checking for %typemap(in) std::string {}
+# Verify type-checking for %typemap(in) std::string_view {}
 eval { cpp17_string_view::test_value(undef) };
 like($@, qr/\bTypeError\b/, "Test 2");
 
-# Checking expected use of %typemap(in) const std::string & {}
+# Checking expected use of %typemap(in) const std::string_view & {}
 cpp17_string_view::test_const_reference("Fo");
 
-# Checking expected result of %typemap(out) const std::string& {}
+# Checking expected result of %typemap(out) const std::string_view& {}
 is(cpp17_string_view::test_const_reference("Fum"), "Fum", "Test 3");
 
-# Verify type-checking for %typemap(in) const std::string & {}
+# Verify type-checking for %typemap(in) const std::string_view & {}
 eval { cpp17_string_view::test_const_reference(undef) };
 like($@, qr/\bValueError\b/, "Test 4");
 
 #
 # Input and output typemaps for pointers and non-const references to
-# std::string are *not* supported; the following tests confirm
+# std::string_view are *not* supported; the following tests confirm
 # that none of these cases are slipping through.
 #
 
@@ -64,7 +64,7 @@ is($myStructure->{ConstMemberString}, "const member string", "ConstMemberString 
 is($cpp17_string_view::Structure::ConstStaticMemberString, "const static member string", "ConstStaticMemberString test");
 
 
-is(cpp17_string_view::stdstring_empty(), "", "stdstring_empty");
+is(cpp17_string_view::stdstringview_empty(), "", "stdstringview_empty");
 
 is(cpp17_string_view::c_empty(), "", "c_empty");
 
@@ -76,4 +76,4 @@ is(cpp17_string_view::get_null(cpp17_string_view::c_null()), undef, "get_null c_
 
 is(cpp17_string_view::get_null(cpp17_string_view::c_empty()), "non-null", "get_null c_empty");
 
-is(cpp17_string_view::get_null(cpp17_string_view::stdstring_empty()), "non-null", "get_null stdstring_empty");
+is(cpp17_string_view::get_null(cpp17_string_view::stdstringview_empty()), "non-null", "get_null stdstringview_empty");

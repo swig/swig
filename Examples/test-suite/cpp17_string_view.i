@@ -93,7 +93,7 @@ struct Structure {
 
 
 %inline %{
-  std::string_view stdstring_empty() {
+  std::string_view stdstringview_empty() {
     return std::string_view();
   }
 

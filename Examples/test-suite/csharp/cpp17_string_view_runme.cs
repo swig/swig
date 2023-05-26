@@ -5,28 +5,28 @@ public class runme
 {
     static void Main()
     {
-        // Checking expected use of %typemap(in) std::string {}
+        // Checking expected use of %typemap(in) std::string_view {}
         cpp17_string_view.test_value("Fee");
 
-        // Checking expected result of %typemap(out) std::string {}
+        // Checking expected result of %typemap(out) std::string_view {}
         if (cpp17_string_view.test_value("Fi") != "Fi")
             throw new Exception("Test 1 failed");
 
-        // Verify type-checking for %typemap(in) std::string {}
+        // Verify type-checking for %typemap(in) std::string_view {}
         try {
             cpp17_string_view.test_value(null);
             throw new Exception("Test 2 failed");
         } catch (ArgumentNullException) {
         }
 
-        // Checking expected use of %typemap(in) const std::string & {}
+        // Checking expected use of %typemap(in) const std::string_view & {}
         cpp17_string_view.test_const_reference("Fo");
 
-        // Checking expected result of %typemap(out) const std::string& {}
+        // Checking expected result of %typemap(out) const std::string_view& {}
         if (cpp17_string_view.test_const_reference("Fum") != "Fum")
             throw new Exception("Test 3 failed");
 
-        // Verify type-checking for %typemap(in) const std::string & {}
+        // Verify type-checking for %typemap(in) const std::string_view & {}
         try {
             cpp17_string_view.test_const_reference(null);
             throw new Exception("Test 4 failed");
@@ -35,7 +35,7 @@ public class runme
 
         //
         // Input and output typemaps for pointers and non-const references to
-        // std::string are *not* supported; the following tests confirm
+        // std::string_view are *not* supported; the following tests confirm
         // that none of these cases are slipping through.
         //
 
