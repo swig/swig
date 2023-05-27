@@ -38,8 +38,8 @@ KW(end, function)
 KW(nil,local)
 
 /* Javascript keywords */
-KW(instanceof, typeof)
-KW(typeof, instanceof)
+KW(instanceof, finally)
+KW(finally, instanceof)
 %}
 
 
