@@ -41,7 +41,7 @@ template<class T> class vector {
     v[index] = val;
   }
 #ifdef SWIG
-  %addmethods {
+  %extend {
     T getitem(int index) {
       return self-&gt;get(index);
     }
@@ -53,7 +53,7 @@ template<class T> class vector {
 };
 </pre>
 </blockquote>
-The %addmethods is used for a neater interface from Java as the functions <tt>get</tt> and <tt>set</tt> use C++ references to primitive types. These are tricky to use from Java as they end up as a pointer in Java (Java long).
+The %extend is used for a neater interface from Java as the functions <tt>get</tt> and <tt>set</tt> use C++ references to primitive types. These are tricky to use from Java as they end up as a pointer in Java (Java long).
 
 <h2>The SWIG interface</h2>
 

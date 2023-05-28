@@ -32,7 +32,7 @@ public:
   int size();
   
   /* This wrapper provides an alternative to the [] operator */
-  %addmethods {
+  %extend {
     Vector &get(int index) {
       return (*self)[index];
     }

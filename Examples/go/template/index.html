@@ -42,7 +42,7 @@ template<class T> class vector {
     v[index] = val;
   }
 #ifdef SWIG
-  %addmethods {
+  %extend {
     T getitem(int index) {
       return self-&gt;get(index);
     }
@@ -54,7 +54,7 @@ template<class T> class vector {
 };
 </pre>
 </blockquote>
-The %addmethods is used for a neater interface from Go as the
+The %extend is used for a neater interface from Go as the
 functions <tt>get</tt> and <tt>set</tt> use C++ references to
 primitive types. These are tricky to use from Go as they end up as
 pointers, which only work when the C++ and Go types correspond
