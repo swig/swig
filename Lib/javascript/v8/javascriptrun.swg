@@ -380,8 +380,7 @@ public:
   };
 
   ~SwigV8PackedData() {
-    if (this->data)
-      free(this->data);
+    free(this->data);
   };
 
   void *data;
