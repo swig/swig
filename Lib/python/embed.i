@@ -7,26 +7,19 @@
 // This file makes it possible to extend Python and all of its
 // built-in functions without having to hack its setup script.
 //
-
-
-#ifdef AUTODOC
-%subsection "embed.i"
-%text %{
-This module provides support for building a new version of the
-Python executable.  This will be necessary on systems that do
-not support shared libraries and may be necessary with C++
-extensions.  This file contains everything you need to build
-a new version of Python from include files and libraries normally
-installed with the Python language.
-
-This module will automatically grab all of the Python modules
-present in your current Python executable (including any special
-purpose modules you have enabled such as Tkinter).   Thus, you
-may need to provide additional link libraries when compiling.
-
-As far as I know, this module is C++ safe.
-%}
-#endif
+// This module provides support for building a new version of the
+// Python executable.  This will be necessary on systems that do
+// not support shared libraries and may be necessary with C++
+// extensions.  This file contains everything you need to build
+// a new version of Python from include files and libraries normally
+// installed with the Python language.
+//
+// This module will automatically grab all of the Python modules
+// present in your current Python executable (including any special
+// purpose modules you have enabled such as Tkinter).   Thus, you
+// may need to provide additional link libraries when compiling.
+//
+// As far as I know, this module is C++ safe.
 
 %wrapper %{
 #if !defined(PY_SSIZE_T_CLEAN) && !defined(SWIG_NO_PY_SSIZE_T_CLEAN)

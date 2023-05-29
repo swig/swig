@@ -1,5 +1,5 @@
 /* File : example.i */
-%title "Matrix and vector package"
+/* Matrix and vector package */
 
 /* This file has a few "typical" uses of C++ references. */
 
