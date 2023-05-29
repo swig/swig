@@ -438,6 +438,7 @@ int SWIGV8_ConvertPacked(SWIGV8_VALUE valRef, void *ptr, size_t sz, swig_type_in
 
 SWIGRUNTIME void _wrap_SwigV8PackedData_delete(const v8::WeakCallbackInfo<SwigV8PackedData> &data) {
   SwigV8PackedData *cdata = data.GetParameter();
+  cdata->handle.Reset();
   delete cdata;
 }
 
