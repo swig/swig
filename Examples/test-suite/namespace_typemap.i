@@ -120,6 +120,18 @@ namespace test {
 	    delete $1;
 	}
 #endif
+#ifdef SWIGJAVASCRIPT
+  %fragment("SWIG_AsCharPtrAndSize");
+	%typemap(in) string_class * {
+			char *data;
+			SWIG_AsCharPtrAndSize($input, &data, nullptr, nullptr);
+			$1 = new string_class(data);
+			free(data);
+	}
+	%typemap(freearg) string_class * {
+	    delete $1;
+	}
+#endif
 }
 
 %inline %{
