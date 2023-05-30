@@ -13,13 +13,22 @@ namespace std {
 %naturalvar string_view;
 
 %typemap(in,checkfn="lua_isstring") string_view
-%{$1 = std::string_view(lua_tostring(L,$input),lua_rawlen(L,$input));%}
+{
+  size_t len;
+  const char *ptr = lua_tolstring(L, $input, &len);
+  $1 = std::string_view(ptr, len);
+}
 
 %typemap(out) string_view
 %{ lua_pushlstring(L,$1.data(),$1.size()); SWIG_arg++;%}
 
 %typemap(in,checkfn="lua_isstring") const string_view& ($*1_ltype temp)
-%{temp = std::string_view(lua_tostring(L,$input),lua_rawlen(L,$input)); $1=&temp;%}
+{
+  size_t len;
+  const char *ptr = lua_tolstring(L, $input, &len);
+  temp = std::string_view(ptr, len);
+  $1=&temp;
+}
 
 %typemap(out) const string_view&
 %{ lua_pushlstring(L,$1->data(),$1->size()); SWIG_arg++;%}

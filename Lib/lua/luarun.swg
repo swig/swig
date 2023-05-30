@@ -149,6 +149,20 @@ typedef struct swig_elua_entry {
 # define lua_rawlen lua_objlen
 #endif
 
+/* lua_tolstring() was added in Lua 5.1.  It should be a little more
+   efficient than making two separate calls and it avoids problems with order
+   of evaluation so SWIG calls lua_tolstring() when it wants the length and
+   we provide a compatibility implementation for Lua 5.0.  */
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
+static const char *(lua_tolstring)(lua_State *L, int idx, size_t *len) {
+  /* Call lua_tostring() first as it may convert the value from number to
+     string. */
+  const char *result = lua_tostring(L, idx);
+  if (len) *len = lua_strlen(L, idx);
+  return result;
+}
+#endif
+
 
 /* lua_pushglobaltable is the recommended "future-proof" way to get
    the global table for Lua 5.2 and later.  Here we define

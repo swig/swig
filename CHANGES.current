@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-05-30: olly
+	    [Lua] Fix bug when passing a Lua number to a C++ function expected
+	    std::string.  Order of evaluation of C++ function arguments is not
+	    defined, and if lua_rawlen() was called before lua_tostring() then
+	    it would return 0 (because the value was still a number) and an
+	    empty string would be passed.
+
 2023-05-30: mmomtchev
 	    [Javascript] #2618 Fix handling of C++ pointer to member function.
 

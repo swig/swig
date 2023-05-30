@@ -127,3 +127,8 @@ assert(c_null()==nil)
 assert(get_null(c_null())==nil)
 assert(get_null(c_empty())=="non-null")
 assert(get_null(stdstring_empty())=="non-null")
+
+-- Regression test for bug fixed in SWIG 4.2.0: depending on the order of
+-- evaluation of function arguments by the compiler, a numeric value might be
+-- passed as an empty string (seen with GCC 12.2 on x86-64 Linux).
+assert(test_value(1234) == "1234")
