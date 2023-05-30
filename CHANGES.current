@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-05-30: mmomtchev
+	    [Javascript] #2618 Fix handling of C++ pointer to member function.
+
 2023-05-25: olly
 	    #1032 Allow typename disambiguator in:
 
