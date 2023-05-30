@@ -24,7 +24,7 @@ namespace std {
 #ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
         $1 = PyBytes_Check($input);
 #else
-        $1 = PyUnicode_Check($input);
+        $1 = PyUnicode_Check($input) || PyBytes_Check($input);
 #endif
     %}
 
@@ -38,7 +38,11 @@ namespace std {
         /* Note: The UTF-8 data is cached in the PyObject so remains valid for
          * the call to C/C++. */
         const char *p = PyUnicode_AsUTF8AndSize($input, &len);
-        if (!p) SWIG_fail;
+        if (!p) {
+          p = PyBytes_AsString($input);
+          if (!p) SWIG_fail;
+          len = PyBytes_Size($input);
+        }
 %#endif
         $1 = std::string_view(p, len);
     }
@@ -53,7 +57,11 @@ namespace std {
         /* Note: The UTF-8 data is cached in the PyObject so remains valid for
          * the call to C/C++. */
         const char *p = PyUnicode_AsUTF8AndSize($input, &len);
-        if (!p) SWIG_fail;
+        if (!p) {
+          p = PyBytes_AsString($input);
+          if (!p) SWIG_fail;
+          len = PyBytes_Size($input);
+        }
 #endif
         temp = std::string_view(p, len);
         $1 = &temp;
@@ -63,11 +71,15 @@ namespace std {
         Py_ssize_t len;
 %#ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
         const char *p = PyBytes_AsString($input);
-        len = PyBytes_Size($input);
+        if (p) len = PyBytes_Size($input);
 %#else
         /* Note: The UTF-8 data is cached in the PyObject so remains valid for
          * the call to C/C++. */
         const char *p = PyUnicode_AsUTF8AndSize($input, &len);
+        if (!p) {
+          p = PyBytes_AsString($input);
+          if (p) len = PyBytes_Size($input);
+        }
 %#endif
         if (p) $result = std::string_view(p, len);
     }
