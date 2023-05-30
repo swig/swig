@@ -124,7 +124,7 @@ namespace test {
   %fragment("SWIG_AsCharPtrAndSize");
 	%typemap(in) string_class * {
 			char *data;
-			SWIG_AsCharPtrAndSize($input, &data, nullptr, nullptr);
+			SWIG_AsCharPtrAndSize($input, &data, NULL, NULL);
 			$1 = new string_class(data);
 			free(data);
 	}
