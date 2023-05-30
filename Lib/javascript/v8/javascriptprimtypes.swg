@@ -2,6 +2,10 @@
  * Primitive Types
  * ------------------------------------------------------------ */
 
+%fragment("<limits>", "header") {
+  #include <limits>
+}
+
 /* boolean */
 
 %fragment(SWIG_From_frag(bool),"header") {
@@ -37,12 +41,18 @@ SWIGV8_VALUE SWIG_From_dec(int)(int value)
 }
 }
 
-%fragment(SWIG_AsVal_frag(int),"header") {
+%fragment(SWIG_AsVal_frag(int),"header",
+          fragment="SWIG_CanCastAsInteger",
+          fragment="<limits>") {
 SWIGINTERN
 int SWIG_AsVal_dec(int)(SWIGV8_VALUE valRef, int* val)
 {
   if (!valRef->IsNumber()) {
     return SWIG_TypeError;
+  }
+  double n = SWIGV8_NUMBER_VALUE(valRef);
+  if (!SWIG_CanCastAsInteger(&n, std::numeric_limits<int>::min(), std::numeric_limits<int>::max())) {
+    return SWIG_OverflowError;
   }
   if(val) *val = SWIGV8_INTEGER_VALUE(valRef);
 
@@ -61,12 +71,17 @@ SWIGV8_VALUE SWIG_From_dec(long)(long value)
 }
 
 %fragment(SWIG_AsVal_frag(long),"header",
-          fragment="SWIG_CanCastAsInteger") {
+          fragment="SWIG_CanCastAsInteger",
+          fragment="<limits>") {
 SWIGINTERN
 int SWIG_AsVal_dec(long)(SWIGV8_VALUE obj, long* val)
 {
   if (!obj->IsNumber()) {
     return SWIG_TypeError;
+  }
+  double n = SWIGV8_NUMBER_VALUE(obj);
+  if (!SWIG_CanCastAsInteger(&n, std::numeric_limits<long>::min(), std::numeric_limits<long>::max())) {
+    return SWIG_OverflowError;
   }
   if(val) *val = (long) SWIGV8_INTEGER_VALUE(obj);
 
@@ -86,12 +101,17 @@ SWIGV8_VALUE SWIG_From_dec(unsigned long)(unsigned long value)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header",
-          fragment="SWIG_CanCastAsInteger") {
+          fragment="SWIG_CanCastAsInteger",
+          fragment="<limits>") {
 SWIGINTERN
 int SWIG_AsVal_dec(unsigned long)(SWIGV8_VALUE obj, unsigned long *val)
 {
   if(!obj->IsNumber()) {
     return SWIG_TypeError;
+  }
+  double n = SWIGV8_NUMBER_VALUE(obj);
+  if (!SWIG_CanCastAsInteger(&n, std::numeric_limits<unsigned long>::min(), std::numeric_limits<unsigned long>::max())) {
+    return SWIG_OverflowError;
   }
 
   long longVal = (long) SWIGV8_NUMBER_VALUE(obj);
@@ -124,13 +144,18 @@ SWIGV8_VALUE SWIG_From_dec(long long)(long long value)
 %fragment(SWIG_AsVal_frag(long long),"header",
     fragment=SWIG_AsVal_frag(long),
     fragment="SWIG_CanCastAsInteger",
-    fragment="SWIG_LongLongAvailable") {
+    fragment="SWIG_LongLongAvailable",
+    fragment="<limits>") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN
 int SWIG_AsVal_dec(long long)(SWIGV8_VALUE obj, long long* val)
 {
   if (!obj->IsNumber()) {
     return SWIG_TypeError;
+  }
+  double n = SWIGV8_NUMBER_VALUE(obj);
+  if (!SWIG_CanCastAsInteger(&n, std::numeric_limits<long long>::min(), std::numeric_limits<long long>::max())) {
+    return SWIG_OverflowError;
   }
   if(val) *val = (long long) SWIGV8_INTEGER_VALUE(obj);
 
@@ -157,13 +182,18 @@ SWIGV8_VALUE SWIG_From_dec(unsigned long long)(unsigned long long value)
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
     fragment=SWIG_AsVal_frag(unsigned long),
     fragment="SWIG_CanCastAsInteger",
-    fragment="SWIG_LongLongAvailable") {
+    fragment="SWIG_LongLongAvailable",
+    fragment="<limits>") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN
 int SWIG_AsVal_dec(unsigned long long)(SWIGV8_VALUE obj, unsigned long long *val)
 {
   if(!obj->IsNumber()) {
     return SWIG_TypeError;
+  }
+  double n = SWIGV8_NUMBER_VALUE(obj);
+  if (!SWIG_CanCastAsInteger(&n, std::numeric_limits<unsigned long long>::min(), std::numeric_limits<unsigned long long>::max())) {
+    return SWIG_OverflowError;
   }
 
   long long longVal = (long long) SWIGV8_NUMBER_VALUE(obj);
