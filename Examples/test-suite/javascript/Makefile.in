@@ -19,9 +19,13 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
+	iadd \
 	inplaceadd \
 	input \
 	javascript_lib_arrays \
+	li_factory \
+	li_std_containers_int \
+	li_std_map_member
 
 SWIGEXE   = $(top_builddir)/swig
 SWIG_LIB_DIR = $(top_srcdir)/Lib
