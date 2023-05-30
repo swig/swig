@@ -89,7 +89,7 @@ SWIG_AsVal_dec(unsigned long)(JSValueRef obj, unsigned long *val)
     return SWIG_TypeError;
   }
   n = (double) JSValueToNumber(context, obj, NULL);
-  if (!SWIG_CanCastAsInteger(&n, ULONG_MIN, ULONG_MAX)) {
+  if (!SWIG_CanCastAsInteger(&n, 0, ULONG_MAX)) {
     return SWIG_OverflowError;
   }
 
@@ -173,7 +173,7 @@ SWIG_AsVal_dec(unsigned long long)(JSValueRef obj, unsigned long long *val)
     return SWIG_TypeError;
   }
   n = (double) JSValueToNumber(context, obj, NULL);
-  if (!SWIG_CanCastAsInteger(&n, ULLONG_MIN, ULLONG_MAX)) {
+  if (!SWIG_CanCastAsInteger(&n, 0, ULLONG_MAX)) {
     return SWIG_OverflowError;
   }
 
