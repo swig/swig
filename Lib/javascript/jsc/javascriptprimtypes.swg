@@ -51,10 +51,11 @@ SWIG_From_dec(long)(long value)
 SWIGINTERN int
 SWIG_AsVal_dec(long)(JSValueRef obj, long* val)
 {
+  double n;
   if (!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
-  double n = (double) JSValueToNumber(context, obj, NULL);
+  n = (double) JSValueToNumber(context, obj, NULL);
   if (!SWIG_CanCastAsInteger(&n, LONG_MIN, LONG_MAX)) {
     return SWIG_OverflowError;
   }
@@ -83,10 +84,11 @@ SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(JSValueRef obj, unsigned long *val)
 {
   long longVal;
+  double n;
   if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
-  double n = (double) JSValueToNumber(context, obj, NULL);
+  n = (double) JSValueToNumber(context, obj, NULL);
   if (!SWIG_CanCastAsInteger(&n, ULONG_MIN, ULONG_MAX)) {
     return SWIG_OverflowError;
   }
@@ -126,10 +128,11 @@ SWIG_From_dec(long long)(long long value)
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(JSValueRef obj, long long* val)
 {
+  double n;
   if (!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
-  double n = (double) JSValueToNumber(context, obj, NULL);
+  n = (double) JSValueToNumber(context, obj, NULL);
   if (!SWIG_CanCastAsInteger(&n, LLONG_MIN, LLONG_MAX)) {
     return SWIG_OverflowError;
   }
@@ -165,10 +168,11 @@ SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(JSValueRef obj, unsigned long long *val)
 {
   long long longVal;
+  double n;
   if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
-  double n = (double) JSValueToNumber(context, obj, NULL);
+  n = (double) JSValueToNumber(context, obj, NULL);
   if (!SWIG_CanCastAsInteger(&n, ULLONG_MIN, ULLONG_MAX)) {
     return SWIG_OverflowError;
   }
