@@ -35,10 +35,13 @@ namespace std {
         if (!p) SWIG_fail;
         len = PyBytes_Size($input);
 %#else
-        /* Note: The UTF-8 data is cached in the PyObject so remains valid for
-         * the call to C/C++. */
-        const char *p = PyUnicode_AsUTF8AndSize($input, &len);
-        if (!p) {
+        const char *p;
+        if (PyUnicode_Check($input)) {
+          /* Note: The UTF-8 data is cached in the PyObject so remains valid
+           * for the call to C/C++. */
+          p = PyUnicode_AsUTF8AndSize($input, &len);
+          if (!p) SWIG_fail;
+        } else {
           p = PyBytes_AsString($input);
           if (!p) SWIG_fail;
           len = PyBytes_Size($input);
@@ -56,8 +59,13 @@ namespace std {
 #else
         /* Note: The UTF-8 data is cached in the PyObject so remains valid for
          * the call to C/C++. */
-        const char *p = PyUnicode_AsUTF8AndSize($input, &len);
-        if (!p) {
+        const char *p;
+        if (PyUnicode_Check($input)) {
+          p = PyUnicode_AsUTF8AndSize($input, &len);
+          /* Note: The UTF-8 data is cached in the PyObject so remains valid
+           * for the call to C/C++. */
+          if (!p) SWIG_fail;
+        } else {
           p = PyBytes_AsString($input);
           if (!p) SWIG_fail;
           len = PyBytes_Size($input);
@@ -73,10 +81,12 @@ namespace std {
         const char *p = PyBytes_AsString($input);
         if (p) len = PyBytes_Size($input);
 %#else
-        /* Note: The UTF-8 data is cached in the PyObject so remains valid for
-         * the call to C/C++. */
-        const char *p = PyUnicode_AsUTF8AndSize($input, &len);
-        if (!p) {
+        const char *p;
+        if (PyUnicode_Check($input)) {
+          /* Note: The UTF-8 data is cached in the PyObject so remains valid for
+           * the call to C/C++. */
+          p = PyUnicode_AsUTF8AndSize($input, &len);
+        } else {
           p = PyBytes_AsString($input);
           if (p) len = PyBytes_Size($input);
         }
