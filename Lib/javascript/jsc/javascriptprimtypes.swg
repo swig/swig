@@ -46,12 +46,17 @@ SWIG_From_dec(long)(long value)
 }
 
 %fragment(SWIG_AsVal_frag(long),"header",
-          fragment="SWIG_CanCastAsInteger") {
+          fragment="SWIG_CanCastAsInteger",
+          fragment="<limits.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(long)(JSValueRef obj, long* val)
 {
   if (!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
+  }
+  double n = (double) JSValueToNumber(context, obj, NULL);
+  if (!SWIG_CanCastAsInteger(&n, LONG_MIN, LONG_MAX)) {
+    return SWIG_OverflowError;
   }
   if(val) *val = (long) JSValueToNumber(context, obj, NULL);
 
@@ -72,13 +77,18 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header",
-          fragment="SWIG_CanCastAsInteger") {
+          fragment="SWIG_CanCastAsInteger",
+          fragment="<limits.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(JSValueRef obj, unsigned long *val)
 {
   long longVal;
   if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
+  }
+  double n = (double) JSValueToNumber(context, obj, NULL);
+  if (!SWIG_CanCastAsInteger(&n, ULONG_MIN, ULONG_MAX)) {
+    return SWIG_OverflowError;
   }
 
   longVal = (long) JSValueToNumber(context, obj, NULL);
@@ -119,6 +129,10 @@ SWIG_AsVal_dec(long long)(JSValueRef obj, long long* val)
   if (!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
   }
+  double n = (double) JSValueToNumber(context, obj, NULL);
+  if (!SWIG_CanCastAsInteger(&n, LLONG_MIN, LLONG_MAX)) {
+    return SWIG_OverflowError;
+  }
   if(val) *val = (long long) JSValueToNumber(context, obj, NULL);
 
   return SWIG_OK;
@@ -153,6 +167,10 @@ SWIG_AsVal_dec(unsigned long long)(JSValueRef obj, unsigned long long *val)
   long long longVal;
   if(!JSValueIsNumber(context, obj)) {
     return SWIG_TypeError;
+  }
+  double n = (double) JSValueToNumber(context, obj, NULL);
+  if (!SWIG_CanCastAsInteger(&n, ULLONG_MIN, ULLONG_MAX)) {
+    return SWIG_OverflowError;
   }
 
   longVal = (unsigned long long) JSValueToNumber(context, obj, NULL);
