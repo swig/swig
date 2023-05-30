@@ -116,30 +116,4 @@ namespace std {
 #endif
     %}
 
-#if 0
-    %typemap(throws) string_view, const string_view& %{
-        {
-            zval swig_exception;
-            ZVAL_STRINGL(&swig_exception, $1.data(), $1.size());
-            zend_throw_exception_object(&swig_exception);
-            goto fail;
-        }
-    %}
-
-    %typemap(throws) string_view*, const string_view* %{
-        {
-            zval swig_exception;
-            ZVAL_STRINGL(&swig_exception, $1->data(), $1->size());
-            zend_throw_exception_object(&swig_exception);
-            goto fail;
-        }
-    %}
-
-    %typemap(in, phptype="string") const string_view& ($*1_ltype temp) %{
-        convert_to_string(&$input);
-        temp = std::string_view(Z_STRVAL($input), Z_STRLEN($input));
-        $1 = &temp;
-    %}
-#endif
-
 }
