@@ -4,7 +4,7 @@
 
 %typemap(in) (int ARGC, char **ARGV) {
   int i;
-  I32 len;
+  SSize_t len;
   AV *av = (AV *)SvRV($input);
   if (SvTYPE(av) != SVt_PVAV) {
     SWIG_croak("in method '$symname', Expecting reference to argv array");

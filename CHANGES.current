@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-06-01: olly
+	    [Perl] #2470 Fix some integer truncation warnings in generated
+	    wrappers.
+
 2023-05-30: olly
 	    [Lua] Fix bug when passing a Lua number to a C++ function expected
 	    std::string.  Order of evaluation of C++ function arguments is not

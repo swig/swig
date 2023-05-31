@@ -55,7 +55,7 @@ namespace std {
                     SWIG_croak("Type error in argument $argnum of $symname. "
                                "Expected an array of " #T);
                 SV **tv;
-                I32 len = av_len(av) + 1;
+                SSize_t len = av_len(av) + 1;
                 T* obj;
                 for (int i=0; i<len; i++) {
                     tv = av_fetch(av, i, 0);
@@ -86,7 +86,7 @@ namespace std {
                     SWIG_croak("Type error in argument $argnum of $symname. "
                                "Expected an array of " #T);
                 SV **tv;
-                I32 len = av_len(av) + 1;
+                SSize_t len = av_len(av) + 1;
                 T* obj;
                 for (int i=0; i<len; i++) {
                     tv = av_fetch(av, i, 0);
@@ -134,7 +134,7 @@ namespace std {
                     AV *av = (AV *)SvRV($input);
                     if (SvTYPE(av) == SVt_PVAV) {
                         SV **tv;
-                        I32 len = av_len(av) + 1;
+                        SSize_t len = av_len(av) + 1;
                         if (len == 0) {
                             /* an empty sequence can be of any type */
                             $1 = 1;
@@ -167,7 +167,7 @@ namespace std {
                     AV *av = (AV *)SvRV($input);
                     if (SvTYPE(av) == SVt_PVAV) {
                         SV **tv;
-                        I32 len = av_len(av) + 1;
+                        SSize_t len = av_len(av) + 1;
                         if (len == 0) {
                             /* an empty sequence can be of any type */
                             $1 = 1;
@@ -221,7 +221,7 @@ namespace std {
                     SWIG_croak("Type error in argument $argnum of $symname. "
                                "Expected an array of " #T);
                 SV **tv;
-                I32 len = av_len(av) + 1;
+                SSize_t len = av_len(av) + 1;
                 for (int i=0; i<len; i++) {
                     tv = av_fetch(av, i, 0);
                     if (CHECK_T(*tv)) {
@@ -250,7 +250,7 @@ namespace std {
                     SWIG_croak("Type error in argument $argnum of $symname. "
                                "Expected an array of " #T);
                 SV **tv;
-                I32 len = av_len(av) + 1;
+                SSize_t len = av_len(av) + 1;
                 T* obj;
                 for (int i=0; i<len; i++) {
                     tv = av_fetch(av, i, 0);
@@ -295,7 +295,7 @@ namespace std {
                     AV *av = (AV *)SvRV($input);
                     if (SvTYPE(av) == SVt_PVAV) {
                         SV **tv;
-                        I32 len = av_len(av) + 1;
+                        SSize_t len = av_len(av) + 1;
                         if (len == 0) {
                             /* an empty sequence can be of any type */
                             $1 = 1;
@@ -326,7 +326,7 @@ namespace std {
                     AV *av = (AV *)SvRV($input);
                     if (SvTYPE(av) == SVt_PVAV) {
                         SV **tv;
-                        I32 len = av_len(av) + 1;
+                        SSize_t len = av_len(av) + 1;
                         if (len == 0) {
                             /* an empty sequence can be of any type */
                             $1 = 1;
