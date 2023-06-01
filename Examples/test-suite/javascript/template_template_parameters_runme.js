@@ -28,7 +28,7 @@ if (intContainer1.x != 91) {
 if (intTestStruct.x.x != 91) {
   throw new Error("Failed");
 }
-intTestStructReturned = new template_template_parameters.TestStructContainer1Method(intTestStruct);
+intTestStructReturned = template_template_parameters.TestStructContainer1Method(intTestStruct);
 if (intTestStructReturned.x.x != 101) {
   throw new Error("Failed");
 }

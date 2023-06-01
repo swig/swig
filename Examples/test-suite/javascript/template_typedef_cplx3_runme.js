@@ -15,5 +15,5 @@ template_typedef_cplx3.make_Multiplies_double_double_double_double(s, s);
 //
 // Here we fail
 //
-d = new template_typedef_cplx3.make_Identity_double();
+d = template_typedef_cplx3.make_Identity_double();
 template_typedef_cplx3.my_func_r(d);
