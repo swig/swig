@@ -4,6 +4,7 @@
  *   - $jslocals:         locals part of wrapper
  *   - $jscode:           code part of wrapper
  *   - $jsargcount:       number of arguments
+ *   - $jsargrequired:    required number of arguments
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor", "templates")
@@ -11,7 +12,7 @@
 static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
 {
     $jslocals
-    if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+    if (argc < $jsargrequired || argc > $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
     $jscode
     return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
@@ -67,6 +68,7 @@ static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
  *   - $jslocals:         locals part of wrapper
  *   - $jscode:           code part of wrapper
  *   - $jsargcount:       number of arguments
+ *   - $jsargrequired:    required number of arguments
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_ctor", "templates")
@@ -86,13 +88,14 @@ static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size
 /* -----------------------------------------------------------------------------
  * js_ctor_dispatch_case:  template for a dispatch case for calling an overloaded ctor.
  *   - $jsargcount:       number of arguments of called ctor
+ *   - $jsargrequired:    required number of arguments
  *   - $jswrapper:        wrapper of called ctor
  *
  *  Note: a try-catch-like mechanism is used to switch cases
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor_dispatch_case", "templates")
 %{
-  if(argc == $jsargcount) {
+  if(argc >= $jsargrequired && argc <= $jsargcount) {
     thisObject = $jswrapper(context, NULL, argc, argv, exception);
     if(thisObject != NULL) { *exception=0; return thisObject; } /* reset exception and return */
   }
@@ -187,9 +190,11 @@ static bool $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef
 
 /* -----------------------------------------------------------------------------
  * js_function:  template for function wrappers
- *   - $jswrapper:  wrapper function name
- *   - $jslocals:   locals part of wrapper
- *   - $jscode:     code part of wrapper
+ *   - $jswrapper:     wrapper function name
+ *   - $jslocals:      locals part of wrapper
+ *   - $jsargcount:    number of arguments
+ *   - $jsargrequired: required number of arguments
+ *   - $jscode:        code part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_function", "templates")
 %{
@@ -198,7 +203,7 @@ static JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjec
   $jslocals
   JSValueRef jsresult;
 
-  if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  if (argc < $jsargrequired || argc > $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
   $jscode
   return jsresult;
@@ -236,9 +241,11 @@ static JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjec
 
 /* -----------------------------------------------------------------------------
  * js_overloaded_function:  template for a overloaded function
- *   - $jswrapper:  wrapper function name
- *   - $jslocals:   locals part of wrapper
- *   - $jscode:     code part of wrapper
+ *   - $jswrapper:     wrapper function name
+ *   - $jslocals:      locals part of wrapper
+ *   - $jsargcount:    required number of arguments
+ *   - $jsargrequired: required number of arguments
+ *   - $jscode:        code part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_function", "templates")
 %{
@@ -247,7 +254,7 @@ static int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef th
   $jslocals
   JSValueRef jsresult;
 
-  if(argc != $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  if (argc < $jsargrequired || argc > $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
   $jscode
   *p_result = jsresult;
@@ -261,17 +268,25 @@ static int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef th
 
 /* -----------------------------------------------------------------------------
  * js_function_dispatch_case:  template for a case used in the function dispatcher
- *   - $jswrapper:  wrapper function name
- *   - $jsargcount: number of arguments of overloaded function
- *   - $jscode:     code part of wrapper
+ *   - $jswrapper:     wrapper function name
+ *   - $jsargcount:    number of arguments of overloaded function
+ *   - $jsargrequired: required number of arguments
+ *   - $jscode:        code part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_function_dispatch_case", "templates")
 %{
-  if(argc == $jsargcount) {
+  if(argc >= $jsargrequired && argc <= $jsargcount) {
      res = $jswrapper(context, function, thisObject, argc, argv, exception, &jsresult);
      if(res == SWIG_OK) { *exception = 0; return jsresult; }
   }
 %}
+
+/* -----------------------------------------------------------------------------
+ * js_check_arg:  template for checking if an argument exists
+ *   - $jsarg: number of argument
+ * ----------------------------------------------------------------------------- */
+%fragment ("js_check_arg", "templates")
+%{if(argc > $jsarg)%}
 
 /* -----------------------------------------------------------------------------
  * jsc_variable_declaration:  template for a variable table entry

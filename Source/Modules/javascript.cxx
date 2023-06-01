@@ -24,6 +24,7 @@ static bool js_template_enable_debug = false;
 // keywords used for state variables
 #define NAME "name"
 #define NAME_MANGLED "name_mangled"
+#define INDEX "idx"
 #define TYPE "type"
 #define TYPE_MANGLED "type_mangled"
 #define WRAPPER_NAME "wrapper"
@@ -39,6 +40,7 @@ static bool js_template_enable_debug = false;
 #define CTOR_DISPATCHERS "ctor_dispatchers"
 #define DTOR "dtor"
 #define ARGCOUNT "wrap:argc"
+#define ARGREQUIRED "wrap:argmin"
 #define HAS_TEMPLATES "has_templates"
 #define FORCE_CPP "force_cpp"
 #define RESET true
@@ -865,10 +867,6 @@ int JSEmitter::emitCtor(Node *n) {
   ParmList *params = Getattr(n, "parms");
   emit_parameter_variables(params, wrapper);
   emit_attach_parmmaps(params, wrapper);
-  // HACK: in test-case `ignore_parameter` emit_attach_parmmaps generated an extra line of applied typemaps.
-  // Deleting wrapper->code here, to reset, and as it seemed to have no side effect elsewhere
-  Delete(wrapper->code);
-  wrapper->code = NewString("");
 
   Printf(wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"), 0));
 
@@ -883,11 +881,13 @@ int JSEmitter::emitCtor(Node *n) {
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
       .replace("$jsargcount", Getattr(n, ARGCOUNT))
+      .replace("$jsargrequired", Getattr(n, ARGREQUIRED))
       .pretty_print(f_wrappers);
 
   Template t_ctor_case(getTemplate("js_ctor_dispatch_case"));
   t_ctor_case.replace("$jswrapper", wrap_name)
-      .replace("$jsargcount", Getattr(n, ARGCOUNT));
+      .replace("$jsargcount", Getattr(n, ARGCOUNT))
+      .replace("$jsargrequired", Getattr(n, ARGREQUIRED));
   Append(state.clazz(CTOR_DISPATCHERS), t_ctor_case.str());
 
   DelWrapper(wrapper);
@@ -1184,11 +1184,6 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   emit_parameter_variables(params, wrapper);
   emit_attach_parmmaps(params, wrapper);
 
-  // HACK: in test-case `ignore_parameter` emit_attach_parmmaps generates an extra line of applied typemap.
-  // Deleting wrapper->code here fixes the problem, and seems to have no side effect elsewhere
-  Delete(wrapper->code);
-  wrapper->code = NewString("");
-
   marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
   String *action = emit_action(n);
   marshalOutput(n, params, wrapper, action);
@@ -1199,8 +1194,8 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
       .replace("$jsargcount", Getattr(n, ARGCOUNT))
+      .replace("$jsargrequired", Getattr(n, ARGREQUIRED))
       .pretty_print(f_wrappers);
-
 
   DelWrapper(wrapper);
 
@@ -1223,7 +1218,8 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
       // handle function overloading
       Template t_dispatch_case = getTemplate("js_function_dispatch_case");
       t_dispatch_case.replace("$jswrapper", siblname)
-	  .replace("$jsargcount", Getattr(sibl, ARGCOUNT));
+          .replace("$jsargcount", Getattr(sibl, ARGCOUNT))
+          .replace("$jsargrequired", Getattr(sibl, ARGREQUIRED));
 
       Append(wrapper->code, t_dispatch_case.str());
     }
@@ -1269,9 +1265,40 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool /*is_member */ ) {
 }
 
 String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg) {
+  String *code = NewString("");
   // Get input typemap for current param
   String *tm = Getattr(p, "tmap:in");
+  String *tm_def = Getattr(p, "tmap:default");
   SwigType *type = Getattr(p, "type");
+  int argmin = -1;
+  int argidx = -1;
+  bool is_optional = false;
+
+  if (Getattr(n, ARGREQUIRED)) {
+    argmin = GetInt(n, ARGREQUIRED);
+  }
+  if (Getattr(p, INDEX)) {
+    argidx = GetInt(p, INDEX);
+  }
+
+  if (tm_def != NULL) {
+    is_optional = true;
+  }
+  if (argmin >= 0 && argidx >= 0 && argidx >= argmin) {
+    is_optional = true;
+  }
+  if (is_optional && Getattr(p, INDEX) == NULL) {
+    Printf(stderr, "Argument %s in %s cannot be a default argument\n",
+           Getattr(p, NAME), state.function(NAME));
+    return SWIG_ERROR;
+  }
+
+  if (is_optional) {
+    Template t_check_default(getTemplate("js_check_arg"));
+
+    t_check_default.replace("$jsarg", Getattr(p, INDEX)).pretty_print(code);
+    Printf(code, "{\n");
+  }
 
   if (tm != NULL) {
     Replaceall(tm, "$input", arg);
@@ -1283,12 +1310,23 @@ String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *
       Replaceall(tm, "$disown", "0");
     }
     Replaceall(tm, "$symname", Getattr(n, "sym:name"));
-    Printf(wrapper->code, "%s\n", tm);
+    if (!checkAttribute(p, "tmap:in:noblock", "1")) {
+      Printf(code, "{\n");
+    }
+    Printf(code, "%s", tm);
+    if (!checkAttribute(p, "tmap:in:noblock", "1")) {
+      Printf(code, "\n}\n");
+    }
   } else {
     Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(type, 0));
   }
 
-  return tm;
+  if (is_optional) {
+    Printf(code, "}\n");
+  }
+
+  Append(wrapper->code, code);
+  return code;
 }
 
 String *JSEmitter::emitCheckTypemap(Node *, Parm *p, Wrapper *wrapper, String *arg) {
@@ -1521,7 +1559,7 @@ JSCEmitter::~JSCEmitter() {
 
 void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) {
   Parm *p;
-  String *tm;
+  String *tm = NULL;
 
   // determine an offset index, as members have an extra 'this' argument
   // except: static members and ctors.
@@ -1533,7 +1571,9 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
   int num_args = emit_num_arguments(parms) - startIdx;
   String *argcount = NewString("");
   Printf(argcount, "%d", num_args);
-  Setattr(n, ARGCOUNT, argcount);
+  Setattr(n, ARGCOUNT, argcount);  
+  int num_required = emit_num_required(parms) - startIdx;
+  SetInt(n, ARGREQUIRED, num_required);
 
   // process arguments
   int i = 0;
@@ -1552,7 +1592,8 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
 	Printv(arg, "thisObject", 0);
         i++;
       } else {
-	Printf(arg, "argv[%d]", i - startIdx);
+	      Printf(arg, "argv[%d]", i - startIdx);
+        SetInt(p, INDEX, i - startIdx);
         i += GetInt(p, "tmap:in:numinputs");
       }
       break;
@@ -1567,14 +1608,20 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
       break;
     case Ctor:
       Printf(arg, "argv[%d]", i);
+      SetInt(p, INDEX, i);
       i += GetInt(p, "tmap:in:numinputs");
       break;
     default:
       Printf(stderr, "Illegal MarshallingMode.");
       Exit(EXIT_FAILURE);
     }
-    tm = emitInputTypemap(n, p, wrapper, arg);
+
+    // numinputs=0 typemaps are emitted by the legacy code in
+    // emit_attach_parmmaps() in emit.cxx, check the comment there
+    if (!checkAttribute(p, "tmap:in:numinputs", "0"))
+      tm = emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
+
     if (tm) {
       p = Getattr(p, "tmap:in:next");
     } else {
@@ -2174,7 +2221,7 @@ int V8Emitter::exitFunction(Node *n) {
 
 void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) {
   Parm *p;
-  String *tm;
+  String *tm = NULL;
 
   int startIdx = 0;
   if (is_member && !is_static && mode != Ctor) {
@@ -2185,6 +2232,8 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
   String *argcount = NewString("");
   Printf(argcount, "%d", num_args);
   Setattr(n, ARGCOUNT, argcount);
+  int num_required = emit_num_required(parms) - startIdx;
+  SetInt(n, ARGREQUIRED, num_required);
 
   int i = 0;
   for (p = parms; p;) {
@@ -2202,6 +2251,7 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
         i++;
       } else {
         Printf(arg, "args[%d]", i - startIdx);
+        SetInt(p, INDEX, i - startIdx);
         i += GetInt(p, "tmap:in:numinputs");
       }
       break;
@@ -2210,7 +2260,8 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
 	Printv(arg, "args.Holder()", 0);
         i++;
       } else {
-	Printf(arg, "args[%d]", i - startIdx);
+      	Printf(arg, "args[%d]", i - startIdx);
+        SetInt(p, INDEX, i - startIdx);
         i += GetInt(p, "tmap:in:numinputs");
       }
       break;
@@ -2225,6 +2276,7 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
       break;
     case Ctor:
       Printf(arg, "args[%d]", i);
+      SetInt(p, INDEX, i);
       i += GetInt(p, "tmap:in:numinputs");
       break;
     default:
@@ -2232,7 +2284,11 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
       Exit(EXIT_FAILURE);
     }
 
-    tm = emitInputTypemap(n, p, wrapper, arg);
+    // numinputs=0 typemaps are emitted by the legacy code in
+    // emit_attach_parmmaps() in emit.cxx, check the comment there
+    // All language backends work around this
+    if (!checkAttribute(p, "tmap:in:numinputs", "0"))
+      tm = emitInputTypemap(n, p, wrapper, arg);
     Delete(arg);
 
     if (tm) {
