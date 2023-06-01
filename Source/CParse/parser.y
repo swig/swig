@@ -3301,7 +3301,6 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"name",$3.id);
 	      Setattr($$,"decl",$3.type);
 	      Setattr($$,"parms",$3.parms);
-	      Setattr($$,"value",$4.val);
 	      Setattr($$,"throws",$4.throws);
 	      Setattr($$,"throw",$4.throwf);
 	      Setattr($$,"noexcept",$4.nexcept);
@@ -3321,9 +3320,6 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		  n = nextSibling(n);
 		  Delete(type);
 		}
-	      }
-	      if ($4.bitfield) {
-		Setattr($$,"bitfield", $4.bitfield);
 	      }
 
 	      if (Strstr($3.id,"::")) {
