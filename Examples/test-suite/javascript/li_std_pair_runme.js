@@ -8,7 +8,14 @@ function check(flag) {
 
 intPair = li_std_pair.makeIntPair(7, 6);
 check(typeof intPair === 'object');
-check(Object.keys(intPair).length == 2);
+if (Object.keys(intPair).length) {
+    // When using raw V8, intPair will be an object with two properties
+    check(Object.keys(intPair).length == 2);
+} else {
+    // When using NAPI, intPair will be an object of class intPair whose
+    // prototype will have two properties
+    check(Object.keys(Object.getPrototypeOf(intPair)).length == 2);
+}
 check(intPair.first === 7);
 check(intPair.second === 6);
 
