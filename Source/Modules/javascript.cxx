@@ -2444,6 +2444,7 @@ protected:
                                 bool is_static);
   virtual int emitNamespaces();
   virtual int emitCtor(Node *);
+  virtual int emitDtor(Node *);
   virtual int emitClassMethodDeclaration(Node *);
 
   virtual const char *getFunctionTemplate(bool is_member);
@@ -3018,6 +3019,15 @@ int NAPIEmitter::emitCtor(Node *n) {
       .trim()
       .pretty_print(f_class_declarations);
   return SWIG_OK;
+}
+
+int NAPIEmitter::emitDtor(Node *n) {
+  // NAPI destructors must have a class declaration
+  Template t_getter = getTemplate("jsnapi_class_dtor_declaration");
+  t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .trim()
+      .pretty_print(f_class_declarations);
+  return JSEmitter::emitDtor(n);
 }
 
 JSEmitter *swig_javascript_create_V8Emitter() {

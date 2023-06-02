@@ -589,7 +589,16 @@ fail:
     public:
       $jsmangledname_templ(const Napi::CallbackInfo &);
       $jsmangledname_templ(bool, const Napi::CallbackInfo &);
-      virtual ~$jsmangledname_templ();
+%}
+
+
+/* -----------------------------------------------------------------------------
+ * jsnapi_class_dtor_declaration:  template for a class destructor declaration
+ *   - $jsmangledname:  mangled class name
+ * ----------------------------------------------------------------------------- */
+%fragment("jsnapi_class_dtor_declaration", "templates")
+%{
+    virtual ~$jsmangledname_templ();
 %}
 
 
