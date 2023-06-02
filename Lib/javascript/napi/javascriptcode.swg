@@ -59,6 +59,14 @@ template <typename SWIG_OBJ_WRAP>
 $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackInfo &info)
         : $jsparent_templ<SWIG_OBJ_WRAP>(true, info) {
   Napi::Env env = info.Env();
+  if (info.Length() == 1 && info[0].IsExternal()) {
+    // This constructor has been called internally from C++/SWIG
+    // to wrap an already existing C++ object in JS as its
+    // base abstract class
+    this->self = info[0].As<Napi::External<void>>().Data();
+    this->owned = false;
+    return;
+  }
   SWIG_Error(SWIG_ERROR, "Class $jsname can not be instantiated");
   return;
   goto fail;
@@ -808,6 +816,9 @@ void $jsmangledname_inst::GetMembers(
 %fragment("jsnapi_register_member_function", "templates")
 %{
   // jsnapi_member_function_descriptor
+  if (members.count("$jsname")) {
+    members.erase("$jsname");
+  }
   members.insert({"$jsname",
         $jsmangledname_templ::InstanceMethod("$jsname",
                 &$jsmangledname_templ::$jswrapper,
@@ -825,6 +836,9 @@ void $jsmangledname_inst::GetMembers(
 %fragment("jsnapi_register_member_variable", "templates")
 %{
   // jsnapi_register_member_variable
+  if (members.count("$jsname")) {
+    members.erase("$jsname");
+  }
   members.insert({"$jsname",
         $jsmangledname_templ::InstanceAccessor("$jsname",
                 &$jsmangledname_templ::$jsgetter,
@@ -842,6 +856,9 @@ void $jsmangledname_inst::GetMembers(
 %fragment("jsnapi_register_static_function", "templates")
 %{
   // jsnapi_register_static_function
+  if (staticMembers.count("$jsname")) {
+    staticMembers.erase("$jsname");
+  }
   staticMembers.insert({"$jsname",
         StaticMethod("$jsname",
                 &$jsmangledname_templ::$jswrapper,
@@ -859,6 +876,9 @@ void $jsmangledname_inst::GetMembers(
 %fragment("jsnapi_register_static_variable", "templates")
 %{
   // jsnapi_register_static_variable
+  if (staticMembers.count("$jsname")) {
+    staticMembers.erase("$jsname");
+  }
   staticMembers.insert({"$jsname",
         StaticAccessor("$jsname",
                 &$jsmangledname_templ::$jsgetter,
