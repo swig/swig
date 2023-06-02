@@ -73,7 +73,11 @@ TestStruct<int, Container1> TestStructContainer1Method(TestStruct<int, Container
 
 // part 3 - from #624
 
+#ifdef SWIGJAVASCRIPT
+%rename("addTo") operator+=;
+#else
 %rename("") operator+=; // For Ruby and Octave that ignore operator+=
+#endif
 
 %inline %{
 template<typename T, int dim> struct Foot {
