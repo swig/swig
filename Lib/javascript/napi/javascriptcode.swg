@@ -5,6 +5,7 @@
  *   - $jslocals:         locals part of wrapper
  *   - $jscode:           code part of wrapper
  *   - $jsargcount:       number of arguments
+ *   - $jsargrequired:    minimum number of arguments
  *   - $jsmangledname:    mangled name of class
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
@@ -28,7 +29,9 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackIn
   this->owned = true;
 
   $jslocals
-  if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
+    SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  }
   $jscode
   this->self = result;
   return;
@@ -121,6 +124,7 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::Call
  *   - $jslocals:         locals part of wrapper
  *   - $jscode:           code part of wrapper
  *   - $jsargcount:       number of arguments
+ *   - $jsargrequired:    minimum number of arguments
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
 %fragment("js_overloaded_ctor", "templates") %{
@@ -132,7 +136,9 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   $jslocals
   NAPI_CHECK_RESULT(info.This().ToObject(), self);
   this->owned = true;
-  if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
+    SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  }
   $jscode
   this->self = result;
 
@@ -146,6 +152,7 @@ fail:
 /* -----------------------------------------------------------------------------
  * js_ctor_dispatch_case:  template for a dispatch case for calling an overloaded ctor.
  *   - $jsargcount:       number of arguments of called ctor
+ *   - $jsargrequired:    minimum number of arguments
  *   - $jswrapper:        wrapper of called ctor
  *
  *  Note: a try-catch-like mechanism is used to switch cases
@@ -153,7 +160,7 @@ fail:
 %fragment ("js_ctor_dispatch_case", "templates")
 %{
   // js_ctor_dispatch_case
-  if(info.Length() == $jsargcount) {
+  if(static_cast<int>(info.Length()) >= $jsargrequired && static_cast<int>(info.Length()) <= $jsargcount) {
 #ifdef NAPI_CPP_EXCEPTIONS
     bool tryNext = false;
     try {
@@ -188,6 +195,14 @@ fail:
 #endif
   }
 %}
+
+
+/* -----------------------------------------------------------------------------
+ * js_check_arg:  template for checking if an argument exists
+ *   - $jsarg: number of argument
+ * ----------------------------------------------------------------------------- */
+%fragment ("js_check_arg", "templates")
+%{if(info.Length() > $jsarg)%}
 
 
 /* -----------------------------------------------------------------------------
@@ -291,9 +306,11 @@ fail:
 
 /* -----------------------------------------------------------------------------
  * js_global_function:  template for function wrappers
- *   - $jswrapper:  wrapper function name
- *   - $jslocals:   locals part of wrapper
- *   - $jscode:     code part of wrapper
+ *   - $jswrapper:     wrapper function name
+ *   - $jslocals:      locals part of wrapper
+ *   - $jsargcount:    number of arguments
+ *   - $jsargrequired: minimum number of arguments
+ *   - $jscode:        code part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_global_function", "templates")
 %{
@@ -302,7 +319,9 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
-  if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
+    SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  }
 
   $jscode
   return jsresult;
@@ -411,6 +430,8 @@ fail:
  * js_function:  template for function wrappers
  *   - $jsmangledname:  mangled class name
  *   - $jswrapper:      wrapper function name
+ *   - $jsargcount:     minimum number of arguments
+ *   - $jsargrequired:  minimum number of arguments
  *   - $jslocals:       locals part of wrapper
  *   - $jscode:         code part of wrapper
  * ----------------------------------------------------------------------------- */
@@ -422,7 +443,9 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
-  if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
+    SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  }
 
   $jscode
   return jsresult;
@@ -509,14 +532,15 @@ fail:
 
 /* -----------------------------------------------------------------------------
  * js_function_dispatch_case:  template for a case used in the function dispatcher
- *   - $jswrapper:  wrapper function name
- *   - $jsargcount: number of arguments of overloaded function
- *   - $jscode:     code part of wrapper
+ *   - $jswrapper:     wrapper function name
+ *   - $jsargcount:    number of arguments of overloaded function
+ *   - $jsargrequired: minimum number of arguments
+ *   - $jscode:        code part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_function_dispatch_case", "templates")
 %{
   // js_function_dispatch_case
-  if(info.Length() == $jsargcount) {
+  if(static_cast<int>(info.Length()) >= $jsargrequired && static_cast<int>(info.Length()) <= $jsargcount) {
 #ifdef NAPI_CPP_EXCEPTIONS
     bool tryNext = false;
     try {

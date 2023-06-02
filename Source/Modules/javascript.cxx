@@ -2872,6 +2872,8 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
   String *argcount = NewString("");
   Printf(argcount, "%d", num_args);
   Setattr(n, ARGCOUNT, argcount);
+  int num_required = emit_num_required(parms) - startIdx;
+  SetInt(n, ARGREQUIRED, num_required);
 
   int i = 0;
   for (p = parms; p;) {
@@ -2889,6 +2891,7 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
         i++;
       } else {
         Printf(arg, "info[%d]", i - startIdx);
+        SetInt(p, INDEX, i - startIdx);
         i += GetInt(p, "tmap:in:numinputs");
       }
       break;
@@ -2898,6 +2901,7 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
         i++;
       } else {
         Printf(arg, "info[%d]", i - startIdx);
+        SetInt(p, INDEX, i - startIdx);
         i += GetInt(p, "tmap:in:numinputs");
       }
       break;
@@ -2912,6 +2916,7 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
       break;
     case Ctor:
       Printf(arg, "info[%d]", i);
+      SetInt(p, INDEX, i - startIdx);
       i += GetInt(p, "tmap:in:numinputs");
       break;
     default:
