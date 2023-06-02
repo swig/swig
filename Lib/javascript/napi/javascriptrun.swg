@@ -396,7 +396,9 @@ fail:
 
 SWIGRUNTIME
 Napi::Value SWIG_NAPI_NewPackedObj(Napi::Env env, void *data, size_t size, swig_type_info *type) {
-  Napi::Value val = SWIG_NAPI_NewPointerObj(env, data, type, 0);
+  void *data_copy = new uint8_t[size];
+  memcpy(data_copy, data, size);
+  Napi::Value val = SWIG_NAPI_NewPointerObj(env, data_copy, type, SWIG_POINTER_OWN);
   Napi::Object obj;
   if (val.IsEmpty()) goto fail;
 
