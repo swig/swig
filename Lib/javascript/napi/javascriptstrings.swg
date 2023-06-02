@@ -54,27 +54,6 @@ SWIG_From_char(Napi::Env env, char c)
 }
 
 
-%fragment(SWIG_From_frag(unsigned char), "header") {
-SWIGINTERNINLINE Napi::Value
-SWIG_From_unsigned_SS_char(Napi::Env env, unsigned char c)
-{
-  auto u = static_cast<char>(c);
-  Napi::String js_str = Napi::String::New(env, &u, 1);
-  return js_str;
-}
-}
-
-
-%fragment(SWIG_From_frag(signed char), "header") {
-SWIGINTERNINLINE Napi::Value
-SWIG_From_signed_SS_char(Napi::Env env, signed char c)
-{
-  auto u = static_cast<char>(c);
-  Napi::String js_str = Napi::String::New(env, &u, 1);
-  return js_str;
-}
-}
-
 %fragment("SWIG_FromCharPtr", "header", fragment = "SWIG_FromCharPtrAndSize") {
 // Override the default one with an empty one
 }

@@ -32,6 +32,25 @@ fail:
 }
 }
 
+/* char */
+
+%fragment(SWIG_From_frag(unsigned char), "header") {
+SWIGINTERNINLINE Napi::Value
+SWIG_From_unsigned_SS_char(Napi::Env env, unsigned char c)
+{
+  return Napi::Number::New(env, static_cast<double>(c));
+}
+}
+
+
+%fragment(SWIG_From_frag(signed char), "header") {
+SWIGINTERNINLINE Napi::Value
+SWIG_From_signed_SS_char(Napi::Env env, signed char c)
+{
+  return Napi::Number::New(env, static_cast<double>(c));
+}
+}
+
 /* int */
 
 %fragment(SWIG_From_frag(int), "header") {
