@@ -1,1 +1,1 @@
-module.exports = require('./build/Release/$testcase');
+module.exports = require('./build/$build/$testcase');
