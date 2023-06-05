@@ -190,6 +190,7 @@ void SWIG_NAPI_ObjectWrap_inst::GetMembers(
         std::map<std::string, SWIG_NAPI_ObjectWrap_templ::PropertyDescriptor> &members,
         std::map<std::string, SWIG_NAPI_ObjectWrap_templ::PropertyDescriptor> &
 ) {
+  members.erase("toString");
   members.insert({"toString", SWIG_NAPI_ObjectWrap_templ::InstanceMethod("toString", &SWIG_NAPI_ObjectWrap_templ::ToString)});
 }
 
