@@ -83,12 +83,12 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
   director_unwrap_result.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
 	# Run with asan:
-	# ASAN=/usr/lib/x86_64-linux-gnu/libasan.so.6.0.0 ENGINE=napi make <test_name>.cpptest
+	# ASAN=1 ENGINE=napi make <test_name>.cpptest
 	#
 	ifneq (, $(ASAN))
 		GYP_CFLAGS += \"-fsanitize=address\"
 		GYP_OPTS = --debug
-		ASAN_PRELOAD = $(ASAN)
+		ASAN_PRELOAD = $(shell gcc -print-file-name=libasan.so)
 		LSAN_OPTIONS = suppressions=$(srcdir)/node_template/napi-leaks-suppression.txt
 		BUILD = Debug
 	else
