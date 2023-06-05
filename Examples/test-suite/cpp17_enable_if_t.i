@@ -30,11 +30,19 @@ template <typename A, typename B, std::enable_if_t<(std::is_integral_v<A> and st
     return a + b;
   }
 
+// Regression test for parse error for some cases involving && (#2228):
+class Value {
+  template<typename T>
+  Value(typename std::enable_if<std::is_standard_layout<T>::value && true>::type * = nullptr) { }
+};
+
 void tester() {
   enableif5<int, int>(10, 20);
   enableif5(10, 20);
 }
 %}
+
+%ignore Value;
 
 // non-type template parameters working well in SWIG, below is a simple workaround as the 3rd parameter is defaulted for enable_if_t (which is just SFINAE to give a nice C++ compiler error)
 %template(enableif5) enableif5<int, int, true>; // workaround (overriding default)
