@@ -7316,6 +7316,11 @@ mem_initializer : idcolon LPAREN {
                 ;
 
 less_valparms_greater : LESSTHAN {
+		  /* Grab text between balanced < and > which we'll need for
+		   * handling cases involving && which we can't actually parse.
+		   * Don't flag unbalanced < and > errors here since > and <
+		   * may occur as operators in expressions within the valparms.
+		   */
 		  $<str>$ = get_raw_text_balanced('<', '>');
 		} less_valparms_greater_parms {
 		  String *s = NewStringEmpty();
@@ -7328,6 +7333,7 @@ less_valparms_greater : LESSTHAN {
 		     * error recovery instead.
 		     */
 		    String *valparms = $<str>2;
+		    /* Remove the < and > delimiters. */
 		    Delitem(valparms, 0);
 		    Delitem(valparms, DOH_END);
 		    Parm *p = NewParmWithoutFileLineInfo(0, 0);
@@ -7346,7 +7352,10 @@ less_valparms_greater_parms
 		: valparms GREATERTHAN { $$ = $1; }
 		| error GREATERTHAN {
 		  $$ = 0;
-		  Clear(scanner_ccode);
+		}
+		| error END {
+		  Swig_error(cparse_file, cparse_line, "Missing '>'. Reached end of input.\n");
+		  Exit(EXIT_FAILURE);
 		}
 		;
 
