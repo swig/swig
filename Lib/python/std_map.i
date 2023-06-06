@@ -285,7 +285,11 @@
     }
 
     void __setitem__(const key_type& key, const mapped_type& x) throw (std::out_of_range) {
+%#if __cpp_lib_map_try_emplace >= 201411L
+      (*self).insert_or_assign(key, x);
+%#else
       (*self)[key] = x;
+%#endif
     }
 
     PyObject* asdict() {

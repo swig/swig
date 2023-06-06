@@ -242,7 +242,11 @@ namespace std {
                     throw std::out_of_range("key not found");
             }
             void __setitem__(const K& key, const T& x) {
+%#if __cpp_lib_map_try_emplace >= 201411L
+                (*self).insert_or_assign(key, x);
+%#else
                 (*self)[key] = x;
+%#endif
             }
             void __delitem__(const K& key) throw (std::out_of_range) {
                 std::map< K, T, C >::iterator i = self->find(key);
@@ -472,7 +476,11 @@ namespace std {
                     throw std::out_of_range("key not found");
             }
             void __setitem__(K key, const T& x) {
+%#if __cpp_lib_map_try_emplace >= 201411L
+                (*self).insert_or_assign(key, x);
+%#else
                 (*self)[key] = x;
+%#endif
             }
             void __delitem__(K key) throw (std::out_of_range) {
                 std::map< K, T, C >::iterator i = self->find(key);
@@ -694,7 +702,11 @@ namespace std {
                     throw std::out_of_range("key not found");
             }
             void __setitem__(const K& key, T x) {
+%#if __cpp_lib_map_try_emplace >= 201411L
+                (*self).insert_or_assign(key, x);
+%#else
                 (*self)[key] = x;
+%#endif
             }
             void __delitem__(const K& key) throw (std::out_of_range) {
                 std::map< K, T, C >::iterator i = self->find(key);
@@ -916,7 +928,11 @@ namespace std {
                     throw std::out_of_range("key not found");
             }
             void __setitem__(K key, T x) {
+%#if __cpp_lib_map_try_emplace >= 201411L
+                (*self).insert_or_assign(key, x);
+%#else
                 (*self)[key] = x;
+%#endif
             }
             void __delitem__(K key) throw (std::out_of_range) {
                 std::map< K, T, C >::iterator i = self->find(key);
