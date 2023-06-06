@@ -1740,7 +1740,6 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem callparms callptail;
 %type <id>       ename ;
 %type <id>       less_valparms_greater;
-%type <p>        less_valparms_greater_parms;
 %type <str>      type_qualifier;
 %type <str>      ref_qualifier;
 %type <id>       type_qualifier_raw;
@@ -7315,48 +7314,12 @@ mem_initializer : idcolon LPAREN {
 		}
                 ;
 
-less_valparms_greater : LESSTHAN {
-		  /* Grab text between balanced < and > which we'll need for
-		   * handling cases involving && which we can't actually parse.
-		   * Don't flag unbalanced < and > errors here since > and <
-		   * may occur as operators in expressions within the valparms.
-		   */
-		  $<str>$ = get_raw_text_balanced('<', '>');
-		} less_valparms_greater_parms {
-		  String *s = NewStringEmpty();
-		  if ($3) {
-		    SwigType_add_template(s, $3);
-		  } else {
-		    /* We fail to parse some template expressions containing &&
-		     * and it's hard to fix the grammar properly without
-		     * introducing more conflicts, so we handle this case via
-		     * error recovery instead.
-		     */
-		    String *valparms = $<str>2;
-		    /* Remove the < and > delimiters. */
-		    Delitem(valparms, 0);
-		    Delitem(valparms, DOH_END);
-		    Parm *p = NewParmWithoutFileLineInfo(0, 0);
-		    Setfile(p, cparse_file);
-		    Setline(p, cparse_line);
-		    Setattr(p, "value", valparms);
-		    SwigType_add_template(s, p);
-		  }
-		  $$ = Char(s);
-		  scanner_last_id(1);
-		  Delete($<str>2);
-		}
-		;
-
-less_valparms_greater_parms
-		: valparms GREATERTHAN { $$ = $1; }
-		| error GREATERTHAN {
-		  $$ = 0;
-		}
-		| error END {
-		  Swig_error(cparse_file, cparse_line, "Missing '>'. Reached end of input.\n");
-		  Exit(EXIT_FAILURE);
-		}
+less_valparms_greater : LESSTHAN valparms GREATERTHAN {
+                     String *s = NewStringEmpty();
+                     SwigType_add_template(s,$2);
+                     $$ = Char(s);
+		     scanner_last_id(1);
+                }
 		;
 
 /* Identifiers including the C++11 identifiers with special meaning */
