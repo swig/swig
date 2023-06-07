@@ -236,7 +236,7 @@
       }
 
       void setitem(const key_type& key, const mapped_type& x) {
-%#if __cpp_lib_map_try_emplace >= 201411L
+%#ifdef __cpp_lib_map_try_emplace
         (*$self).insert_or_assign(key, x);
 %#else
         (*$self)[key] = x;

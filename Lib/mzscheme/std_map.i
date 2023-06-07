@@ -242,7 +242,7 @@ namespace std {
                     throw std::out_of_range("key not found");
             }
             void __setitem__(const K& key, const T& x) {
-%#if __cpp_lib_map_try_emplace >= 201411L
+%#ifdef __cpp_lib_map_try_emplace
                 (*self).insert_or_assign(key, x);
 %#else
                 (*self)[key] = x;
@@ -476,7 +476,7 @@ namespace std {
                     throw std::out_of_range("key not found");
             }
             void __setitem__(K key, const T& x) {
-%#if __cpp_lib_map_try_emplace >= 201411L
+%#ifdef __cpp_lib_map_try_emplace
                 (*self).insert_or_assign(key, x);
 %#else
                 (*self)[key] = x;
@@ -702,7 +702,7 @@ namespace std {
                     throw std::out_of_range("key not found");
             }
             void __setitem__(const K& key, T x) {
-%#if __cpp_lib_map_try_emplace >= 201411L
+%#ifdef __cpp_lib_map_try_emplace
                 (*self).insert_or_assign(key, x);
 %#else
                 (*self)[key] = x;
@@ -928,7 +928,7 @@ namespace std {
                     throw std::out_of_range("key not found");
             }
             void __setitem__(K key, T x) {
-%#if __cpp_lib_map_try_emplace >= 201411L
+%#ifdef __cpp_lib_map_try_emplace
                 (*self).insert_or_assign(key, x);
 %#else
                 (*self)[key] = x;
