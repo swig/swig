@@ -1514,8 +1514,10 @@ state1:
 	state = 31;
       else if (c == '*')
 	state = 32;
-      else
+      else {
+	state = 1;
 	goto state1; /* Process this character the same as if it wasn't preceded by a `/`. */
+      }
       Putc(c, chunk);
       break;
     case 31:
