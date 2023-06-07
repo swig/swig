@@ -8,6 +8,11 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-06-07: olly
+	    #2630 Fix preprocessor handling of a slash immediately followed by
+	    a single quote, which wasn't getting recognised as starting a
+	    character literal.
+
+2023-06-07: olly
 	    #2630 Fix parsing of <= and >= in templated lambda.
 
 	    Skipping between matching delimiters is now done at the token level

@@ -1483,8 +1483,9 @@ String *Preprocessor_parse(String *s) {
 	Ungetc(c, s);
       }
       break;
-    case 1:			/* Non-preprocessor directive */
+    case 1: {			/* Non-preprocessor directive */
       /* Look for SWIG directives */
+state1:
       if (c == '%') {
 	state = 100;
 	break;
@@ -1505,16 +1506,17 @@ String *Preprocessor_parse(String *s) {
       } else if (c == '/')
 	state = 30;		/* Comment */
       break;
+    }
 
     case 30:			/* Possibly a comment string of some sort */
       start_line = Getline(s);
-      Putc(c, chunk);
       if (c == '/')
 	state = 31;
       else if (c == '*')
 	state = 32;
       else
-	state = 1;
+	goto state1; /* Process this character the same as if it wasn't preceded by a `/`. */
+      Putc(c, chunk);
       break;
     case 31:
       Putc(c, chunk);
