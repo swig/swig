@@ -8,10 +8,12 @@
  *
  * parser.y
  *
- * YACC parser for SWIG.   The grammar is a somewhat broken subset of C/C++.
+ * Bison parser for SWIG.   The grammar is a somewhat broken subset of C/C++.
  * This file is a bit of a mess and probably needs to be rewritten at
  * some point.  Beware.
  * ----------------------------------------------------------------------------- */
+
+%require "3.0"
 
 /* There are a small number of known shift-reduce conflicts in this file, fail
    compilation if any more are introduced.

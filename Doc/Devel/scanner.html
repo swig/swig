@@ -19,7 +19,7 @@ January 11, 2007<br>
 
 This document describes functions that can be used to tokenize C/C++
 input text.  These functions are relatively low-level and are meant to
-be used in the implementation of scanners that can be plugged into yacc or used for
+be used in the implementation of scanners that can be plugged into bison or used for
 other purposes.  For instance, the preprocessor uses these functions to evaluate and test 
 constant expressions.  
 
@@ -278,7 +278,7 @@ add extra checking on the returned text.
 <p>
 <li>The maximum token integer value is found in the constant <tt>SWIG_MAXTOKENS</tt>.   This can be used if you wanted to create 
 an array or table for the purposes of remapping tokens to a different set of codes. For instance, if you are
-using these functions to write a yacc-compatible lexer.
+using these functions to write a bison-compatible lexer.
 </ul>
 
 </body>

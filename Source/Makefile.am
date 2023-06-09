@@ -20,9 +20,10 @@ AM_CXXFLAGS =
 
 AM_YFLAGS = -d
 
-BUILT_SOURCES = CParse/parser.h
+
+BUILT_SOURCES = CParse/parser.c CParse/parser.h
 eswig_SOURCES =	CParse/cscanner.c		\
-		CParse/parser.y			\
+		CParse/parser.c			\
 		CParse/templ.c			\
 		CParse/util.c			\
 		DOH/base.c			\
@@ -98,6 +99,9 @@ bin_PROGRAMS = eswig
 
 # Override the link stage to avoid using Libtool
 CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+
+CParse/parser.c CParse/parser.h: CParse/parser.y
+	$(BISON) $(AM_YFLAGS) $(YFLAGS) --output=CParse/parser.c $(srcdir)/CParse/parser.y
 
 # The executable is copied to the root directory for installation and running the test-suite.
 # This occurs on each invocation of make and is a step towards providing support for multiple

@@ -101,7 +101,7 @@ echo "Checking packages required for SWIG developers."
 echo "Note : None of the following packages are required for users to compile and install SWIG from the distributed tarball"
 echo ""
 
-AC_PROG_YACC
+AC_CHECK_PROGS([BISON], [bison], [$MISSING bison])
 
 echo ""
 echo "Checking for installed target languages and other information in order to compile and run"
