@@ -24,6 +24,12 @@
  */
 %expect 7
 
+/* Make the internal token numbers the same as the external token numbers
+ * which saves Bison generating a lookup table to map between them, giving
+ * a smaller and faster generated parser.
+ */
+%define api.token.raw
+
 %{
 #define yylex yylex
 
