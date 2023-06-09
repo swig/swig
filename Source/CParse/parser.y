@@ -24,6 +24,12 @@
  */
 %expect 7
 
+/* Make the internal token numbers the same as the external token numbers
+ * which saves Bison generating a lookup table to map between them, giving
+ * a smaller and faster generated parser.
+ */
+%define api.token.raw
+
 %{
 /* doh.h uses #pragma GCC poison with GCC to prevent direct calls to certain
  * standard C library functions being introduced, but those cause errors due
