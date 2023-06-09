@@ -13,7 +13,7 @@
  * some point.  Beware.
  * ----------------------------------------------------------------------------- */
 
-%require "3.0"
+%require "3.5"
 
 /* There are a small number of known shift-reduce conflicts in this file, fail
    compilation if any more are introduced.
