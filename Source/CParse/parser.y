@@ -3852,7 +3852,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   Symtab *cscope;
 		   Node *am = 0;
 		   String *scpname = 0;
-		   (void) $<node>6;
+		   (void) $<node>7;
 		   $$ = currentOuterClass;
 		   currentOuterClass = Getattr($$, "nested:outer");
 		   nscope_inner = Getattr($<node>$, "nested:innerscope");
