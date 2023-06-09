@@ -18,7 +18,7 @@ AM_CPPFLAGS =	-I$(BUILD_SOURCE_DIR)/Include	\
 
 AM_CXXFLAGS =
 
-AM_YFLAGS = -d
+AM_YFLAGS = -d -Wall
 
 
 BUILT_SOURCES = CParse/parser.c CParse/parser.h
