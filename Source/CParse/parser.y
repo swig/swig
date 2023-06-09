@@ -3360,7 +3360,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
             * to wrap.
             */
 	   | storage_class AUTO declarator cpp_const LBRACE {
-	      Swig_warning(WARN_CPP14_AUTO, cparse_file, cparse_line, "Unable to deduce return type for '%s'.\n", $3.id);
+	      Swig_warning(WARN_CPP14_AUTO, cparse_file, cparse_line, "Unable to deduce return type for auto in '%s' (ignored).\n", $3.id);
+	      $$ = 0;
 	      if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 	   }
 	   /* C++11 auto variable declaration. */

@@ -7,14 +7,17 @@
 // declaration with an explicit return type in the interface file.
 
 namespace teca_variant_array_util {
+// Workaround to wrap a global function containing an auto return type with no trailing return type
 int va_static_cast();
 %ignore va_static_cast();
 
-// Not seeing a way to supply a declaration for a class method that makes
-// these work, but they can be ignored at least.
+// TODO: %ignore does not work as the declaration is not added to the parse tree
 %ignore X::a();
-%ignore X::b();
 %ignore X::s();
+// Workaround to wrap a class method containing an auto return type with no trailing return type
+%extend X {
+  const char * a() const { return $self->a(); }
+}
 }
 #pragma SWIG nowarn=SWIGWARN_CPP14_AUTO
 
@@ -27,8 +30,8 @@ auto va_static_cast()
   return 42;
 }
 struct X {
-  auto a() {
-    return "a";
+  auto a() const {
+    return "a string";
   }
   auto e() const {
     return 2.71828;

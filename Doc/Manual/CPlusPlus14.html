@@ -54,13 +54,13 @@ int b = 0b101011;
 </pre>
 </div>
 
-<H3><a href="CPlusPlus14_return_type_deduction">8.2.2 Return type deduction</a></H3>
+<H3><a name="CPlusPlus14_return_type_deduction">8.2.2 Return type deduction</a></H3>
 
 <p>
 C++14 added the ability to specify <tt>auto</tt> for the return type of a function
 and have the compiler deduce it from the body of the function (in C++11 you had
 to explicitly specify a trailing return type if you used <tt>auto</tt> for the
-return type.
+return type).
 </p>
 
 <p>
@@ -79,17 +79,33 @@ an actual example:
 </p>
 
 <div class="code"><pre>
-std::tuple<int, int> va_static_cast();
+std::tuple&lt;int, int&gt; va_static_cast();
 %ignore va_static_cast();
 #pragma SWIG nowarn=SWIGWARN_CPP14_AUTO
 
 %inline %{
-#include <tuple>
+#include &lt;tuple&gt;
 
-auto va_static_cast()
-{
+auto va_static_cast() {
     return std::make_tuple(0, 0);
 }
+%}
+</pre></div>
+
+<p>
+For member methods the trick is to use <tt>%extend</tt> to redeclare the method and call it as follows:
+</p>
+
+<div class="code"><pre>
+%extend X {
+  const char * a() const { return $self-&gt;a(); }
+}
+%inline %{
+struct X {
+  auto a() const {
+    return "a string";
+  }
+};
 %}
 </pre></div>
 
