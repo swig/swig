@@ -1685,7 +1685,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <str> DOXYGENSTRING
 %token <str> DOXYGENPOSTSTRING
 
-%left  CAST
+%precedence CAST
 %left  QUESTIONMARK
 %left  LOR
 %left  LAND
@@ -1693,13 +1693,16 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %left  XOR
 %left  AND
 %left  EQUALTO NOTEQUALTO
-%left  GREATERTHAN LESSTHAN GREATERTHANOREQUALTO LESSTHANOREQUALTO
+/* We don't currently allow < and > in any context where the associativity or
+ * precedence matters and Bison warns about that.
+ */
+%left  /* GREATERTHAN LESSTHAN */ GREATERTHANOREQUALTO LESSTHANOREQUALTO
 %left  LESSEQUALGREATER
 %left  LSHIFT RSHIFT
 %left  PLUS MINUS
 %left  STAR SLASH MODULO
-%left  UMINUS NOT LNOT
-%left  DCOLON
+%precedence UMINUS NOT LNOT
+%token DCOLON
 
 %type <node>     program interface declaration swig_directive ;
 
