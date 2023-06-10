@@ -32,7 +32,6 @@ if cvar.var_pchar != "hola":
     raise RuntimeError("bad pointer case {}".format(cvar.var_pchar))
 
 cvar.var_namet = pc
-# if cvar.var_namet != "hola\0":
 if cvar.var_namet != "hola":
     raise RuntimeError("bad pointer case")
 
