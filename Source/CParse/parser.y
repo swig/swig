@@ -1871,9 +1871,9 @@ interface      : interface declaration {
                }
                ;
 
-declaration    : swig_directive { $$ = $1; }
-               | c_declaration { $$ = $1; } 
-               | cpp_declaration { $$ = $1; }
+declaration    : swig_directive
+               | c_declaration
+               | cpp_declaration
                | SEMI { $$ = 0; }
                | error {
                   $$ = 0;
@@ -1911,27 +1911,27 @@ declaration    : swig_directive { $$ = $1; }
  *                           SWIG DIRECTIVES 
  * ====================================================================== */
   
-swig_directive : extend_directive { $$ = $1; }
-               | apply_directive { $$ = $1; }
- 	       | clear_directive { $$ = $1; }
-               | constant_directive { $$ = $1; }
-               | echo_directive { $$ = $1; }
-               | except_directive { $$ = $1; }
-               | fragment_directive { $$ = $1; }
-               | include_directive { $$ = $1; }
-               | inline_directive { $$ = $1; }
-               | insert_directive { $$ = $1; }
-               | module_directive { $$ = $1; }
-               | name_directive { $$ = $1; }
-               | native_directive { $$ = $1; }
-               | pragma_directive { $$ = $1; }
-               | rename_directive { $$ = $1; }
-               | feature_directive { $$ = $1; }
-               | varargs_directive { $$ = $1; }
-               | typemap_directive { $$ = $1; }
-               | types_directive  { $$ = $1; }
-               | template_directive { $$ = $1; }
-               | warn_directive { $$ = $1; }
+swig_directive : extend_directive
+               | apply_directive
+ 	       | clear_directive
+               | constant_directive
+               | echo_directive
+               | except_directive
+               | fragment_directive
+               | include_directive
+               | inline_directive
+               | insert_directive
+               | module_directive
+               | name_directive
+               | native_directive
+               | pragma_directive
+               | rename_directive
+               | feature_directive
+               | varargs_directive
+               | typemap_directive
+               | types_directive
+               | template_directive
+               | warn_directive
                ;
 
 /* ------------------------------------------------------------
@@ -2190,9 +2190,7 @@ fname         : string {
                  $$ = NewHash();
                  Setattr($$,"value",$1);
               }
-              | stringtype {
-                $$ = $1;
-              }
+              | stringtype
               ;
 
 /* ------------------------------------------------------------
@@ -2501,8 +2499,8 @@ pragma_directive : PRAGMA pragma_lang identifier EQUAL pragma_arg {
 	      }
               ;
 
-pragma_arg    : string { $$ = $1; }
-              | HBLOCK { $$ = $1; }
+pragma_arg    : string
+              | HBLOCK
               ;
 
 pragma_lang   : LPAREN identifier RPAREN { $$ = $2; }
@@ -2698,7 +2696,7 @@ feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbr
                   }
                   ;
 
-stringbracesemi : stringbrace { $$ = $1; }
+stringbracesemi : stringbrace
                 | SEMI { $$ = 0; }
                 | PARMS LPAREN parms RPAREN SEMI { $$ = $3; } 
                 ;
@@ -2754,7 +2752,7 @@ varargs_directive : VARARGS LPAREN varargs_parms RPAREN declarator cpp_const SEM
 		 $$ = 0;
               };
 
-varargs_parms   : parms { $$ = $1; }
+varargs_parms   : parms
                 | NUM_INT COMMA parm { 
 		  int i;
 		  int n;
@@ -3155,8 +3153,8 @@ c_declaration   : c_decl {
                       default_arguments($$);
    	            }
                 }
-                | c_enum_decl { $$ = $1; }
-                | c_enum_forward_decl { $$ = $1; }
+                | c_enum_decl
+                | c_enum_forward_decl
 
 /* An extern C type declaration, disable cparse_cplusplus if needed. */
 
@@ -3221,9 +3219,7 @@ c_declaration   : c_decl {
 		  SetFlag($$,"aliastemplate");
 		  add_symbols($$);
 		}
-                | cpp_static_assert {
-                   $$ = $1;
-                }
+                | cpp_static_assert
                 ;
 
 /* ------------------------------------------------------------
@@ -3476,24 +3472,22 @@ c_decl_tail    : SEMI {
                }
               ;
 
-initializer   : def_args {
-                   $$ = $1;
-              }
+initializer   : def_args
               ;
 
-cpp_alternate_rettype : primitive_type { $$ = $1; }
-              | TYPE_BOOL { $$ = $1; }
-              | TYPE_VOID { $$ = $1; }
+cpp_alternate_rettype : primitive_type
+              | TYPE_BOOL
+              | TYPE_VOID
 /*
               | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
 */
-              | TYPE_RAW { $$ = $1; }
+              | TYPE_RAW
               | idcolon { $$ = $1; }
               | idcolon AND {
                 $$ = $1;
                 SwigType_add_reference($$);
               }
-              | decltype { $$ = $1; }
+              | decltype
               ;
 
 /* ------------------------------------------------------------
@@ -3787,11 +3781,11 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
  *                       C++ Support
  * ====================================================================== */
 
-cpp_declaration : cpp_class_decl {  $$ = $1; }
-                | cpp_forward_class_decl { $$ = $1; }
-                | cpp_template_decl { $$ = $1; }
-                | cpp_using_decl { $$ = $1; }
-                | cpp_namespace_decl { $$ = $1; }
+cpp_declaration : cpp_class_decl
+                | cpp_forward_class_decl
+                | cpp_template_decl
+                | cpp_using_decl
+                | cpp_namespace_decl
                 | cpp_catch_decl { $$ = 0; }
                 ;
 
@@ -4457,24 +4451,14 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 		}
 		;
 
-cpp_template_possible:  c_decl {
-		  $$ = $1;
-                }
-                | cpp_class_decl {
-                   $$ = $1;
-                }
-                | cpp_constructor_decl {
-                   $$ = $1;
-                }
+cpp_template_possible:  c_decl
+                | cpp_class_decl
+                | cpp_constructor_decl
                 | cpp_template_decl {
 		  $$ = 0;
                 }
-                | cpp_forward_class_decl {
-                  $$ = $1;
-                }
-                | cpp_conversion_operator {
-                  $$ = $1;
-                }
+                | cpp_forward_class_decl
+                | cpp_conversion_operator
                 ;
 
 template_parms : templateparameter templateparameterstail {
@@ -4713,10 +4697,7 @@ cpp_members  : cpp_member cpp_members {
 		     $$ = $2;
 		   }
 	     }
-	     | cpp_member DOXYGENSTRING {
-	       /* Misplaced doxygen string after a member, quietly ignore, like Doxygen does */
-	       $$ = $1;
-	     }
+	     | cpp_member DOXYGENSTRING /* Misplaced doxygen string after a member, quietly ignore, like Doxygen does */
              | EXTEND LBRACE { 
 	       extendmode = 1;
 	       if (cplus_mode != CPLUS_PUBLIC) {
@@ -4730,7 +4711,7 @@ cpp_members  : cpp_member cpp_members {
 	       appendChild($$,$4);
 	       set_nextSibling($$,$7);
 	     }
-             | include_directive { $$ = $1; }
+             | include_directive
              | %empty { $$ = 0;}
 	     | error {
 	       Swig_error(cparse_file,cparse_line,"Syntax error in input(3).\n");
@@ -4746,7 +4727,7 @@ cpp_members  : cpp_member cpp_members {
 
 /* A class member.  May be data or a function. Static or virtual as well */
 
-cpp_member_no_dox : c_declaration { $$ = $1; }
+cpp_member_no_dox : c_declaration
              | cpp_constructor_decl { 
                  $$ = $1; 
 		 if (extendmode && current_class) {
@@ -4764,26 +4745,24 @@ cpp_member_no_dox : c_declaration { $$ = $1; }
 		 add_symbols($$);
                  default_arguments($$);
              }
-             | cpp_destructor_decl { $$ = $1; }
-             | cpp_protection_decl { $$ = $1; }
-             | cpp_swig_directive { $$ = $1; }
-             | cpp_conversion_operator { $$ = $1; }
-             | cpp_forward_class_decl { $$ = $1; }
-	     | cpp_class_decl { $$ = $1; }
+             | cpp_destructor_decl
+             | cpp_protection_decl
+             | cpp_swig_directive
+             | cpp_conversion_operator
+             | cpp_forward_class_decl
+	     | cpp_class_decl
              | storage_class idcolon SEMI { $$ = 0; Delete($1); }
-             | cpp_using_decl { $$ = $1; }
-             | cpp_template_decl { $$ = $1; }
+             | cpp_using_decl
+             | cpp_template_decl
              | cpp_catch_decl { $$ = 0; }
-             | template_directive { $$ = $1; }
-             | warn_directive { $$ = $1; }
+             | template_directive
+             | warn_directive
              | anonymous_bitfield { $$ = 0; }
-             | fragment_directive {$$ = $1; }
-             | types_directive {$$ = $1; }
+             | fragment_directive
+             | types_directive
              | SEMI { $$ = 0; }
 
-cpp_member   : cpp_member_no_dox {
-		$$ = $1;
-	     }
+cpp_member   : cpp_member_no_dox
              | DOXYGENSTRING cpp_member_no_dox {
 	         $$ = $2;
 		 set_comment($2, $1);
@@ -5039,24 +5018,24 @@ cpp_protection_decl : PUBLIC COLON {
               ;
 /* These directives can be included inside a class definition */
 
-cpp_swig_directive: pragma_directive { $$ = $1; }
+cpp_swig_directive: pragma_directive
 
 /* A constant (includes #defines) inside a class */
-             | constant_directive { $$ = $1; }
+             | constant_directive
 
 /* This is the new style rename */
 
-             | name_directive { $$ = $1; }
+             | name_directive
 
 /* rename directive */
-             | rename_directive { $$ = $1; }
-             | feature_directive { $$ = $1; }
-             | varargs_directive { $$ = $1; }
-             | insert_directive { $$ = $1; }
-             | typemap_directive { $$ = $1; }
-             | apply_directive { $$ = $1; }
-             | clear_directive { $$ = $1; }
-             | echo_directive { $$ = $1; }
+             | rename_directive
+             | feature_directive
+             | varargs_directive
+             | insert_directive
+             | typemap_directive
+             | apply_directive
+             | clear_directive
+             | echo_directive
              ;
 
 cpp_end        : cpp_const SEMI {
@@ -5133,19 +5112,15 @@ cpp_vend       : cpp_const SEMI {
 anonymous_bitfield :  storage_class anon_bitfield_type COLON expr SEMI { Delete($1); };
 
 /* Equals type_right without the ENUM keyword and cpptype (templates etc.): */
-anon_bitfield_type : primitive_type { $$ = $1;
-                  /* Printf(stdout,"primitive = '%s'\n", $$);*/
-                }
-               | TYPE_BOOL { $$ = $1; }
-               | TYPE_VOID { $$ = $1; }
+anon_bitfield_type : primitive_type
+               | TYPE_BOOL
+               | TYPE_VOID
 /*
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
 */
-               | TYPE_RAW { $$ = $1; }
+               | TYPE_RAW
 
-               | idcolon {
-		  $$ = $1;
-               }
+               | idcolon { $$ = $1; }
                ;
 
 /* ====================================================================== 
@@ -5196,7 +5171,7 @@ storage_class  : storage_class_list {
 	       | %empty { $$ = 0; }
 	       ;
 
-storage_class_list: storage_class_raw { $$ = $1; }
+storage_class_list: storage_class_raw
 	       | storage_class_list storage_class_raw {
 		  if ($1 & $2) {
 		    Swig_error(cparse_file, cparse_line, "Repeated storage class or type specifier '%s'\n", storage_class_string($2));
@@ -5241,9 +5216,7 @@ parms          : rawparms {
     	       ;
 
 /* rawparms constructs parameter lists and deal with quirks of doxygen post strings (after the parameter's comma */
-rawparms	: parm {
-		  $$ = $1;
-		}
+rawparms	: parm { $$ = $1; }
 		| parm DOXYGENPOSTSTRING {
 		  set_comment($1, $2);
 		  $$ = $1;
@@ -5295,9 +5268,7 @@ parm_no_dox	: rawtype parameter_declarator {
 		}
 		;
 
-parm		: parm_no_dox {
-		  $$ = $1;
-		}
+parm		: parm_no_dox
 		| DOXYGENSTRING parm_no_dox {
 		  $$ = $2;
 		  set_comment($2, $1);
@@ -6058,9 +6029,7 @@ abstract_declarator : pointer variadic_opt {
 		    }
 		    $$.type = $1;
                   }
-                  | direct_abstract_declarator {
-		    $$ = $1;
-                  }
+                  | direct_abstract_declarator
                   | AND direct_abstract_declarator {
 		    $$ = $2;
 		    $$.type = NewStringEmpty();
@@ -6294,9 +6263,7 @@ rawtype        : type_qualifier type_right {
                    $$ = $2;
 	           SwigType_push($$,$1);
                }
-	       | type_right {
-		  $$ = $1;
-	       }
+	       | type_right
                | type_right type_qualifier {
 		  $$ = $1;
 	          SwigType_push($$,$2);
@@ -6312,16 +6279,14 @@ rawtype        : type_qualifier type_right {
 	       }
                ;
 
-type_right     : primitive_type { $$ = $1;
-                  /* Printf(stdout,"primitive = '%s'\n", $$);*/
-               }
-               | TYPE_BOOL { $$ = $1; }
-               | TYPE_VOID { $$ = $1; }
+type_right     : primitive_type
+               | TYPE_BOOL
+               | TYPE_VOID
 /*
                | TYPE_TYPEDEF template_decl { $$ = NewStringf("%s%s",$1,$2); }
 */
                | c_enum_key idcolon { $$ = NewStringf("enum %s", $2); }
-               | TYPE_RAW { $$ = $1; }
+               | TYPE_RAW
 
                | idcolon {
 		  $$ = $1;
@@ -6329,9 +6294,7 @@ type_right     : primitive_type { $$ = $1;
                | cpptype idcolon { 
 		 $$ = NewStringf("%s %s", $1, $2);
                }
-               | decltype {
-                 $$ = $1;
-               }
+               | decltype
                ;
 
 decltype       : DECLTYPE LPAREN {
@@ -6392,9 +6355,7 @@ primitive_type : primitive_type_list {
                }
                ;
 
-primitive_type_list : type_specifier { 
-                 $$ = $1;
-               }
+primitive_type_list : type_specifier
                | type_specifier primitive_type_list {
                     if ($1.us && $2.us) {
 		      Swig_error(cparse_file, cparse_line, "Extra %s specifier.\n", $2.us);
@@ -6523,17 +6484,11 @@ definetype     : { /* scanner_check_typedef(); */ } expr {
 		   $$.final = 0;
 		   scanner_ignore_typedef();
                 }
-                | default_delete {
-		  $$ = $1;
-		}
+                | default_delete
                 ;
 
-default_delete : deleted_definition {
-		  $$ = $1;
-		}
-                | explicit_default {
-		  $$ = $1;
-		}
+default_delete : deleted_definition
+                | explicit_default
 		;
 
 /* For C++ deleted definition '= delete' */
@@ -6568,7 +6523,7 @@ explicit_default : DEFAULT {
 
 /* Some stuff for handling enums */
 
-ename          :  identifier { $$ = $1; }
+ename          :  identifier
 	       |  %empty { $$ = (char *) 0;}
 	       ;
 
@@ -6645,9 +6600,7 @@ enumlist_item	: optional_ignored_defines edecl_with_dox optional_ignored_defines
 		}
 		;
 
-edecl_with_dox	: edecl {
-		  $$ = $1;
-		}
+edecl_with_dox	: edecl
 		| DOXYGENSTRING edecl {
 		  $$ = $2;
 		  set_comment($2, $1);
@@ -6689,7 +6642,7 @@ etype            : expr {
 
 /* Arithmetic expressions.  Used for constants, C++ templates, and other cool stuff. */
 
-expr           : valexpr { $$ = $1; }
+expr           : valexpr
                | type {
 		 Node *n;
 		 $$.val = $1;
@@ -6745,12 +6698,8 @@ exprmem        : ID ARROW ID {
 	       ;
 
 /* Non-compound expression */
-exprsimple     : exprnum {
-		    $$ = $1;
-               }
-               | exprmem {
-		    $$ = $1;
-               }
+exprsimple     : exprnum
+               | exprmem
                | string {
 		    $$.val = $1;
                     $$.type = T_STRING;
@@ -6820,8 +6769,8 @@ exprsimple     : exprnum {
 
                ;
 
-valexpr        : exprsimple { $$ = $1; }
-	       | exprcompound { $$ = $1; }
+valexpr        : exprsimple
+	       | exprcompound
 
 /* grouping */
                |  LPAREN expr RPAREN %prec CAST {
@@ -6899,16 +6848,16 @@ valexpr        : exprsimple { $$ = $1; }
 	       }
 	       ;
 
-exprnum        :  NUM_INT { $$ = $1; }
-               |  NUM_DOUBLE { $$ = $1; }
-               |  NUM_FLOAT { $$ = $1; }
-               |  NUM_LONGDOUBLE { $$ = $1; }
-               |  NUM_UNSIGNED { $$ = $1; }
-               |  NUM_LONG { $$ = $1; }
-               |  NUM_ULONG { $$ = $1; }
-               |  NUM_LONGLONG { $$ = $1; }
-               |  NUM_ULONGLONG { $$ = $1; }
-               |  NUM_BOOL { $$ = $1; }
+exprnum        :  NUM_INT
+               |  NUM_DOUBLE
+               |  NUM_FLOAT
+               |  NUM_LONGDOUBLE
+               |  NUM_UNSIGNED
+               |  NUM_LONG
+               |  NUM_ULONG
+               |  NUM_LONGLONG
+               |  NUM_ULONGLONG
+               |  NUM_BOOL
                ;
 
 exprcompound   : expr PLUS expr {
@@ -7048,9 +6997,7 @@ variadic_opt  : ELLIPSIS {
 	      }
 	      ;
 
-inherit        : raw_inherit {
-		 $$ = $1;
-               }
+inherit        : raw_inherit
                ;
 
 raw_inherit     : COLON { inherit_list = 1; } base_list { $$ = $3; inherit_list = 0; }
@@ -7138,9 +7085,7 @@ templcpptype   : CLASS variadic_opt {
                }
                ;
 
-cpptype        : templcpptype {
-                 $$ = $1;
-               }
+cpptype        : templcpptype
                | STRUCT {
                    $$ = NewString("struct");
 		   if (!inherit_list) last_cpptype = $$;
@@ -7165,9 +7110,7 @@ classkey       : CLASS {
                }
                ;
 
-classkeyopt    : classkey {
-		   $$ = $1;
-               }
+classkeyopt    : classkey
                | %empty {
 		   $$ = 0;
                }
@@ -7191,9 +7134,7 @@ virt_specifier_seq : OVERRIDE {
 	       }
                ;
 
-virt_specifier_seq_opt : virt_specifier_seq {
-                   $$ = $1;
-               }
+virt_specifier_seq_opt : virt_specifier_seq
                | %empty {
                    $$ = 0;
                }
@@ -7265,9 +7206,7 @@ qualifiers_exception_specification : cv_ref_qualifier {
                }
                ;
 
-cpp_const      : qualifiers_exception_specification {
-                    $$ = $1;
-               }
+cpp_const      : qualifiers_exception_specification
                | %empty {
                     $$.throws = 0;
                     $$.throwf = 0;
@@ -7377,17 +7316,17 @@ less_valparms_greater : LESSTHAN valparms GREATERTHAN {
 		;
 
 /* Identifiers including the C++11 identifiers with special meaning */
-identifier     : ID { $$ = $1; }
+identifier     : ID
 	       | OVERRIDE { $$ = Swig_copy_string("override"); }
 	       | FINAL { $$ = Swig_copy_string("final"); }
 	       ;
 
-idstring       : identifier { $$ = $1; }
+idstring       : identifier
                | default_delete { $$ = Char($1.val); }
                | string { $$ = Char($1); }
                ;
 
-idstringopt    : idstring { $$ = $1; }
+idstringopt    : idstring
                | %empty { $$ = 0; }
                ;
 
@@ -7444,9 +7383,7 @@ idtemplate    : identifier {
 	      }
               ;
 
-idtemplatetemplate : idtemplate {
-		$$ = $1;
-	      }
+idtemplatetemplate : idtemplate
 	      | TEMPLATE identifier less_valparms_greater {
 		$$ = NewStringf("%s%s", $2, $3);
 	      }
@@ -7508,16 +7445,12 @@ wstring         : wstring WSTRING {
                | WSTRING { $$ = NewString($1);}
                ;
 
-stringbrace    : string {
-		 $$ = $1;
-               }
+stringbrace    : string
                | LBRACE {
 		  if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		  $$ = NewString(scanner_ccode);
                }
-              | HBLOCK {
-		 $$ = $1;
-              }
+              | HBLOCK
                ;
 
 options        : LPAREN kwargs RPAREN {
@@ -7568,9 +7501,7 @@ kwargs         : idstring EQUAL stringnum {
                }
                ;
 
-stringnum      : string {
-		 $$ = $1;
-               }
+stringnum      : string
                | exprnum {
                  $$ = Char($1.val);
                }
