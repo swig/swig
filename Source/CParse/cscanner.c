@@ -1063,7 +1063,7 @@ num_common:
 
       /* Note down the apparently unknown directive for error reporting - if
        * we end up reporting a generic syntax error we'll instead report an
-       * error for his as an unknown directive.  Then we treat it as MODULO
+       * error for this as an unknown directive.  Then we treat it as MODULO
        * (`%`) followed by an identifier and if that parses OK then
        * `cparse_unknown_directive` doesn't get used.
        *
