@@ -1731,7 +1731,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     enumlist enumlist_item edecl_with_dox edecl;
 
 /* C++ declarations */
-%type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl cpp_alternate_rettype;
+%type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl;
 %type <node>     cpp_members cpp_member cpp_member_no_dox;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator cpp_static_assert;
 %type <node>     cpp_swig_directive cpp_template_possible cpp_opt_declarators ;
@@ -1752,7 +1752,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       access_specifier;
 %type <node>     base_specifier;
 %type <str>      variadic_opt;
-%type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr;
+%type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
 %type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem callparms callptail;
