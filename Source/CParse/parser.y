@@ -604,7 +604,10 @@ static void add_symbols(Node *n) {
 	 * Use Getattr instead of GetFlag to handle explicit ignore and explicit not ignore */
 	if (!(Getattr(n, "feature:ignore") || Strncmp(symname, "$ignore", 7) == 0)) {
 	  SWIG_WARN_NODE_BEGIN(n);
-	  Swig_warning(WARN_CPP14_AUTO, Getfile(n), Getline(n), "Unable to deduce return type for auto in '%s' (ignored).\n", Swig_name_decl(n));
+	  if (SwigType_isfunction(Getattr(n, "decl")))
+	    Swig_warning(WARN_CPP14_AUTO, Getfile(n), Getline(n), "Unable to deduce auto return type for '%s' (ignored).\n", Swig_name_decl(n));
+	  else
+	    Swig_warning(WARN_CPP11_AUTO, Getfile(n), Getline(n), "Unable to deduce auto type for variable '%s' (ignored).\n", Swig_name_decl(n));
 	  SWIG_WARN_NODE_END(n);
 	  SetFlag(n, "feature:ignore");
 	}
@@ -3375,7 +3378,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
               $$ = new_node("cdecl");
 	      if ($4.qualifier) SwigType_push($3.type, $4.qualifier);
 	      Setattr($$, "refqualifier", $4.refqualifier);
-	      Setattr($$, "type", Swig_copy_string("auto"));
+	      Setattr($$, "type", NewString("auto"));
 	      Setattr($$, "storage", $1);
 	      Setattr($$, "name", $3.id);
 	      Setattr($$, "decl", $3.type);
@@ -3415,18 +3418,15 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	   /* C++11 auto variable declaration. */
 	   | storage_class AUTO idcolon EQUAL definetype SEMI {
 	      SwigType *type = deduce_type(&$5);
-	      if (!type) {
-		Swig_warning(WARN_CPP11_AUTO, cparse_file, cparse_line, "Unable to deduce type for variable '%s'.\n", $3);
-		$$ = 0;
-	      } else {
-		$$ = new_node("cdecl");
-		Setattr($$, "type", type);
-		Setattr($$, "storage", $1);
-		Setattr($$, "name", $3);
-		Setattr($$, "decl", NewStringEmpty());
-		Setattr($$, "value", $5.val);
-		Setattr($$, "valuetype", type);
-	      }
+	      if (!type)
+		type = NewString("auto");
+	      $$ = new_node("cdecl");
+	      Setattr($$, "type", type);
+	      Setattr($$, "storage", $1);
+	      Setattr($$, "name", $3);
+	      Setattr($$, "decl", NewStringEmpty());
+	      Setattr($$, "value", $5.val);
+	      Setattr($$, "valuetype", type);
 	   }
 	   ;
 
