@@ -88,7 +88,7 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	ifneq (, $(ASAN))
 		GYP_CFLAGS += \"-fsanitize=address\"
 		GYP_OPTS = --debug
-		ASAN_PRELOAD = $(shell gcc -print-file-name=libasan.so)
+		ASAN_PRELOAD = $(shell $(CC) -print-file-name=libasan.so)
 		LSAN_OPTIONS = suppressions=$(srcdir)/node_template/napi-leaks-suppression.txt
 		BUILD = Debug
 	else
