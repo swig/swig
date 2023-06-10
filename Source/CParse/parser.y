@@ -599,6 +599,16 @@ static void add_symbols(Node *n) {
 	  SetFlag(n, "feature:ignore");
 	}
       }
+      if (Equal(Getattr(n, "type"), "auto")) {
+	/* Ignore functions with an auto return type and no trailing return type
+	 * Use Getattr instead of GetFlag to handle explicit ignore and explicit not ignore */
+	if (!(Getattr(n, "feature:ignore") || Strncmp(symname, "$ignore", 7) == 0)) {
+	  SWIG_WARN_NODE_BEGIN(n);
+	  Swig_warning(WARN_CPP14_AUTO, Getfile(n), Getline(n), "Unable to deduce return type for auto in '%s' (ignored).\n", Swig_name_decl(n));
+	  SWIG_WARN_NODE_END(n);
+	  SetFlag(n, "feature:ignore");
+	}
+      }
     }
     if (only_csymbol || GetFlag(n, "feature:ignore") || Strncmp(symname, "$ignore", 7) == 0) {
       /* Only add to C symbol table and continue */
@@ -3360,9 +3370,47 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
             * to wrap.
             */
 	   | storage_class AUTO declarator cpp_const LBRACE {
-	      Swig_warning(WARN_CPP14_AUTO, cparse_file, cparse_line, "Unable to deduce return type for auto in '%s' (ignored).\n", $3.id);
-	      $$ = 0;
 	      if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
+
+              $$ = new_node("cdecl");
+	      if ($4.qualifier) SwigType_push($3.type, $4.qualifier);
+	      Setattr($$, "refqualifier", $4.refqualifier);
+	      Setattr($$, "type", Swig_copy_string("auto"));
+	      Setattr($$, "storage", $1);
+	      Setattr($$, "name", $3.id);
+	      Setattr($$, "decl", $3.type);
+	      Setattr($$, "parms", $3.parms);
+	      Setattr($$, "value", $4.val);
+	      Setattr($$, "throws", $4.throws);
+	      Setattr($$, "throw", $4.throwf);
+	      Setattr($$, "noexcept", $4.nexcept);
+	      Setattr($$, "final", $4.final);
+
+	      if ($4.bitfield) {
+		Setattr($$, "bitfield", $4.bitfield);
+	      }
+
+	      if (Strstr($3.id, "::")) {
+                String *p = Swig_scopename_prefix($3.id);
+		if (p) {
+		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
+		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
+		    String *lstr = Swig_scopename_last($3.id);
+		    Setattr($$, "name", lstr);
+		    Delete(lstr);
+		  } else {
+		    Delete($$);
+		    $$ = 0;
+		  }
+		  Delete(p);
+		} else {
+		  Delete($$);
+		  $$ = 0;
+		}
+	      }
+
+	      if ($4.qualifier && $1 && Strstr($1, "static"))
+		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
 	   }
 	   /* C++11 auto variable declaration. */
 	   | storage_class AUTO idcolon EQUAL definetype SEMI {

@@ -11,15 +11,16 @@ namespace teca_variant_array_util {
 int va_static_cast();
 %ignore va_static_cast();
 
-// TODO: %ignore does not work as the declaration is not added to the parse tree
-%ignore X::a();
-%ignore X::s();
 // Workaround to wrap a class method containing an auto return type with no trailing return type
 %extend X {
   const char * a() const { return $self->a(); }
 }
+%ignore X::a() const;
+
+// SWIGWARN_CPP14_AUTO warning can be suppressed using either %ignore or %warnfilter...
+%ignore X::s();
+%warnfilter(SWIGWARN_CPP14_AUTO) X::e() const;
 }
-#pragma SWIG nowarn=SWIGWARN_CPP14_AUTO
 
 %inline %{
 namespace teca_variant_array_util
