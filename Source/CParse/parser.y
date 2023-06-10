@@ -6258,7 +6258,7 @@ type_qualifier_raw :  CONST_QUAL { $$ = "const"; }
 /* Data type must be a built in type or an identifier for user-defined types
    This type can be preceded by a modifier. */
 
-type            : rawtype {
+type            : rawtype %expect 4 {
                    $$ = $1;
                    Replace($$,"typename ","", DOH_REPLACE_ANY);
                 }
@@ -6293,10 +6293,10 @@ type_right     : primitive_type
                | c_enum_key idcolon { $$ = NewStringf("enum %s", $2); }
                | TYPE_RAW
 
-               | idcolon {
+               | idcolon %expect 1 {
 		  $$ = $1;
                }
-               | cpptype idcolon { 
+               | cpptype idcolon %expect 1 {
 		 $$ = NewStringf("%s %s", $1, $2);
                }
                | decltype
@@ -7349,7 +7349,7 @@ idcolon        : idtemplate idcolontail {
                | NONID DCOLON idtemplatetemplate {
 		 $$ = NewStringf("::%s",$3);
                }
-               | OPERATOR {
+               | OPERATOR %expect 1 {
                  $$ = NewStringf("%s", $1);
 	       }
                | OPERATOR less_valparms_greater {
