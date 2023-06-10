@@ -3800,44 +3800,44 @@ cpp_declaration : cpp_class_decl
 /* Note that class_virt_specifier_opt for supporting final classes introduces one shift-reduce conflict
    with C style variable declarations, such as: struct X final; */
 
-cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit LBRACE {
+cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit LBRACE <node>{
                    String *prefix;
                    List *bases = 0;
 		   Node *scope = 0;
 		   int errored_flag = 0;
 		   String *code;
-		   $<node>$ = new_node("class");
-		   Setline($<node>$,cparse_start_line);
-		   Setattr($<node>$,"kind",$2);
+		   $$ = new_node("class");
+		   Setline($$,cparse_start_line);
+		   Setattr($$,"kind",$2);
 		   if ($5) {
-		     Setattr($<node>$,"baselist", Getattr($5,"public"));
-		     Setattr($<node>$,"protectedbaselist", Getattr($5,"protected"));
-		     Setattr($<node>$,"privatebaselist", Getattr($5,"private"));
+		     Setattr($$,"baselist", Getattr($5,"public"));
+		     Setattr($$,"protectedbaselist", Getattr($5,"protected"));
+		     Setattr($$,"privatebaselist", Getattr($5,"private"));
 		   }
-		   Setattr($<node>$,"allows_typedef","1");
+		   Setattr($$,"allows_typedef","1");
 
 		   /* preserve the current scope */
-		   Setattr($<node>$,"prev_symtab",Swig_symbol_current());
+		   Setattr($$,"prev_symtab",Swig_symbol_current());
 		  
 		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
 		   scope = resolve_create_node_scope($3, 1, &errored_flag);
 		   /* save nscope_inner to the class - it may be overwritten in nested classes*/
-		   Setattr($<node>$, "nested:innerscope", nscope_inner);
-		   Setattr($<node>$, "nested:nscope", nscope);
+		   Setattr($$, "nested:innerscope", nscope_inner);
+		   Setattr($$, "nested:nscope", nscope);
 		   Setfile(scope,cparse_file);
 		   Setline(scope,cparse_line);
 		   $3 = scope;
-		   Setattr($<node>$,"name",$3);
+		   Setattr($$,"name",$3);
 
 		   if (currentOuterClass) {
-		     SetFlag($<node>$, "nested");
-		     Setattr($<node>$, "nested:outer", currentOuterClass);
-		     set_access_mode($<node>$);
+		     SetFlag($$, "nested");
+		     Setattr($$, "nested:outer", currentOuterClass);
+		     set_access_mode($$);
 		   }
-		   Swig_features_get(Swig_cparse_features(), Namespaceprefix, Getattr($<node>$, "name"), 0, $<node>$);
+		   Swig_features_get(Swig_cparse_features(), Namespaceprefix, Getattr($$, "name"), 0, $$);
 		   /* save yyrename to the class attribute, to be used later in add_symbols()*/
-		   Setattr($<node>$, "class_rename", make_name($<node>$, $3, 0));
-		   Setattr($<node>$, "Classprefix", $3);
+		   Setattr($$, "class_rename", make_name($$, $3, 0));
+		   Setattr($$, "Classprefix", $3);
 		   Classprefix = NewString($3);
 		   /* Deal with inheritance  */
 		   if ($5)
@@ -3887,11 +3887,11 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   }
 		   Delete(prefix);
 		   inclass = 1;
-		   currentOuterClass = $<node>$;
+		   currentOuterClass = $$;
 		   if (cparse_cplusplusout) {
 		     /* save the structure declaration to declare it in global scope for C++ to see */
 		     code = get_raw_text_balanced('{', '}');
-		     Setattr($<node>$, "code", code);
+		     Setattr($$, "code", code);
 		     Delete(code);
 		   }
                } cpp_members RBRACE cpp_opt_declarators {
@@ -3900,20 +3900,20 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   Symtab *cscope;
 		   Node *am = 0;
 		   String *scpname = 0;
-		   (void) $<node>7;
+		   (void) $7;
 		   $$ = currentOuterClass;
 		   currentOuterClass = Getattr($$, "nested:outer");
-		   nscope_inner = Getattr($<node>$, "nested:innerscope");
-		   nscope = Getattr($<node>$, "nested:nscope");
-		   Delattr($<node>$, "nested:innerscope");
-		   Delattr($<node>$, "nested:nscope");
+		   nscope_inner = Getattr($$, "nested:innerscope");
+		   nscope = Getattr($$, "nested:nscope");
+		   Delattr($$, "nested:innerscope");
+		   Delattr($$, "nested:nscope");
 		   if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0) { /* actual parent class for this class */
-		     Node* forward_declaration = Swig_symbol_clookup_no_inherit(Getattr($<node>$,"name"), Getattr(nscope_inner, "symtab"));
+		     Node* forward_declaration = Swig_symbol_clookup_no_inherit(Getattr($$,"name"), Getattr(nscope_inner, "symtab"));
 		     if (forward_declaration) {
-		       Setattr($<node>$, "access", Getattr(forward_declaration, "access"));
+		       Setattr($$, "access", Getattr(forward_declaration, "access"));
 		     }
-		     Setattr($<node>$, "nested:outer", nscope_inner);
-		     SetFlag($<node>$, "nested");
+		     Setattr($$, "nested:outer", nscope_inner);
+		     SetFlag($$, "nested");
                    }
 		   if (!currentOuterClass)
 		     inclass = 0;
@@ -3982,8 +3982,8 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   if (currentOuterClass)
 		     restore_access_mode($$);
 		   Setattr($$, "symtab", Swig_symbol_popscope());
-		   Classprefix = Getattr($<node>$, "Classprefix");
-		   Delattr($<node>$, "Classprefix");
+		   Classprefix = Getattr($$, "Classprefix");
+		   Delattr($$, "Classprefix");
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		   if (cplus_mode == CPLUS_PRIVATE) {
@@ -3999,7 +3999,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		     Swig_symbol_setscope(Getattr(nscope_inner, "symtab"));
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		     yyrename = Copy(Getattr($<node>$, "class_rename"));
+		     yyrename = Copy(Getattr($$, "class_rename"));
 		     add_symbols($$);
 		     Delattr($$, "class_rename");
 		     /* but the variable definition in the current scope */
@@ -4028,14 +4028,14 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		       set_scope_to_global();
 		       Delete(Namespaceprefix);
 		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		       yyrename = Copy(Getattr($<node>$, "class_rename"));
+		       yyrename = Copy(Getattr($$, "class_rename"));
 		       add_symbols($$);
 		       if (!cparse_cplusplusout)
 			 Delattr($$, "nested:outer");
 		       Delattr($$, "class_rename");
 		       $$ = 0;
 		     } else {
-		       yyrename = Copy(Getattr($<node>$, "class_rename"));
+		       yyrename = Copy(Getattr($$, "class_rename"));
 		       add_symbols($$);
 		       add_symbols($10);
 		       Delattr($$, "class_rename");
@@ -4050,29 +4050,29 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 
 /* An unnamed struct, possibly with a typedef */
 
-             | storage_class cpptype inherit LBRACE {
+             | storage_class cpptype inherit LBRACE <node>{
 	       String *unnamed;
 	       String *code;
 	       unnamed = make_unnamed();
-	       $<node>$ = new_node("class");
-	       Setline($<node>$,cparse_start_line);
-	       Setattr($<node>$,"kind",$2);
+	       $$ = new_node("class");
+	       Setline($$,cparse_start_line);
+	       Setattr($$,"kind",$2);
 	       if ($3) {
-		 Setattr($<node>$,"baselist", Getattr($3,"public"));
-		 Setattr($<node>$,"protectedbaselist", Getattr($3,"protected"));
-		 Setattr($<node>$,"privatebaselist", Getattr($3,"private"));
+		 Setattr($$,"baselist", Getattr($3,"public"));
+		 Setattr($$,"protectedbaselist", Getattr($3,"protected"));
+		 Setattr($$,"privatebaselist", Getattr($3,"private"));
 	       }
-	       Setattr($<node>$,"storage",$1);
-	       Setattr($<node>$,"unnamed",unnamed);
-	       Setattr($<node>$,"allows_typedef","1");
+	       Setattr($$,"storage",$1);
+	       Setattr($$,"unnamed",unnamed);
+	       Setattr($$,"allows_typedef","1");
 	       if (currentOuterClass) {
-		 SetFlag($<node>$, "nested");
-		 Setattr($<node>$, "nested:outer", currentOuterClass);
-		 set_access_mode($<node>$);
+		 SetFlag($$, "nested");
+		 Setattr($$, "nested:outer", currentOuterClass);
+		 set_access_mode($$);
 	       }
-	       Swig_features_get(Swig_cparse_features(), Namespaceprefix, 0, 0, $<node>$);
+	       Swig_features_get(Swig_cparse_features(), Namespaceprefix, 0, 0, $$);
 	       /* save yyrename to the class attribute, to be used later in add_symbols()*/
-	       Setattr($<node>$, "class_rename", make_name($<node>$,0,0));
+	       Setattr($$, "class_rename", make_name($$,0,0));
 	       if (Strcmp($2, "class") == 0) {
 		 cplus_mode = CPLUS_PRIVATE;
 	       } else {
@@ -4080,14 +4080,14 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       }
 	       Swig_symbol_newscope();
 	       cparse_start_line = cparse_line;
-	       currentOuterClass = $<node>$;
+	       currentOuterClass = $$;
 	       inclass = 1;
 	       Classprefix = 0;
 	       Delete(Namespaceprefix);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       /* save the structure declaration to make a typedef for it later*/
 	       code = get_raw_text_balanced('{', '}');
-	       Setattr($<node>$, "code", code);
+	       Setattr($$, "code", code);
 	       Delete(code);
 	     } cpp_members RBRACE cpp_opt_declarators {
 	       String *unnamed;
@@ -4095,7 +4095,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       String *name = 0;
 	       Node *n;
 	       Classprefix = 0;
-	       (void)$<node>5;
+	       (void)$5;
 	       $$ = currentOuterClass;
 	       currentOuterClass = Getattr($$, "nested:outer");
 	       if (!currentOuterClass)
@@ -4176,7 +4176,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		 Setattr($$,"symtab",Swig_symbol_popscope());
 		 if (name) {
 		   Delete(yyrename);
-		   yyrename = Copy(Getattr($<node>$, "class_rename"));
+		   yyrename = Copy(Getattr($$, "class_rename"));
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		   add_symbols($$);
@@ -4578,7 +4578,7 @@ cpp_using_decl : USING idcolon SEMI {
              }
              ;
 
-cpp_namespace_decl : NAMESPACE idcolon LBRACE { 
+cpp_namespace_decl : NAMESPACE idcolon LBRACE <node>{
                 Hash *h;
 		Node *parent_ns = 0;
 		List *scopes = Swig_scopename_tolist($2);
@@ -4588,13 +4588,13 @@ cpp_namespace_decl : NAMESPACE idcolon LBRACE {
 /*
 Printf(stdout, "==== Namespace %s creation...\n", $2);
 */
-		$<node>$ = 0;
+		$$ = 0;
 		for (i = 0; i < ilen; i++) {
 		  Node *ns = new_node("namespace");
 		  Symtab *current_symtab = Swig_symbol_current();
 		  String *scopename = Getitem(scopes, i);
 		  Setattr(ns, "name", scopename);
-		  $<node>$ = ns;
+		  $$ = ns;
 		  if (parent_ns)
 		    appendChild(parent_ns, ns);
 		  parent_ns = ns;
@@ -4622,7 +4622,7 @@ Printf(stdout, "  Scope %s [creating single scope C++17 style]\n", scopename);
 		}
 		Delete(scopes);
              } interface RBRACE {
-		Node *n = $<node>4;
+		Node *n = $4;
 		Node *top_ns = 0;
 		do {
 		  Setattr(n, "symtab", Swig_symbol_popscope());
@@ -4632,7 +4632,7 @@ Printf(stdout, "  Scope %s [creating single scope C++17 style]\n", scopename);
 		  top_ns = n;
 		  n = parentNode(n);
 		} while(n);
-		appendChild($<node>4, firstChild($5));
+		appendChild($4, firstChild($5));
 		Delete($5);
 		$$ = top_ns;
              } 
@@ -6302,10 +6302,10 @@ type_right     : primitive_type
                | decltype
                ;
 
-decltype       : DECLTYPE LPAREN {
-		 $<str>$ = get_raw_text_balanced('(', ')');
+decltype       : DECLTYPE LPAREN <str>{
+		 $$ = get_raw_text_balanced('(', ')');
 	       } decltypeexpr {
-		 String *expr = $<str>3;
+		 String *expr = $3;
 		 if ($4) {
 		   $$ = $4;
 		 } else {
@@ -7035,15 +7035,15 @@ base_list      : base_specifier {
                }
                ;
 
-base_specifier : opt_virtual {
-		 $<intvalue>$ = cparse_line;
+base_specifier : opt_virtual <intvalue>{
+		 $$ = cparse_line;
 	       } idcolon variadic_opt {
 		 $$ = NewHash();
 		 Setfile($$,cparse_file);
-		 Setline($$,$<intvalue>2);
+		 Setline($$,$2);
 		 Setattr($$,"name",$3);
 		 Setfile($3,cparse_file);
-		 Setline($3,$<intvalue>2);
+		 Setline($3,$2);
                  if (last_cpptype && (Strcmp(last_cpptype,"struct") != 0)) {
 		   Setattr($$,"access","private");
 		   Swig_warning(WARN_PARSE_NO_ACCESS, Getfile($$), Getline($$), "No access specifier given for base class '%s' (ignored).\n", SwigType_namestr($3));
@@ -7054,15 +7054,15 @@ base_specifier : opt_virtual {
 		   SwigType_add_variadic(Getattr($$, "name"));
 		 }
                }
-	       | opt_virtual access_specifier {
-		 $<intvalue>$ = cparse_line;
+	       | opt_virtual access_specifier <intvalue>{
+		 $$ = cparse_line;
 	       } opt_virtual idcolon variadic_opt {
 		 $$ = NewHash();
 		 Setfile($$,cparse_file);
-		 Setline($$,$<intvalue>3);
+		 Setline($$,$3);
 		 Setattr($$,"name",$5);
 		 Setfile($5,cparse_file);
-		 Setline($5,$<intvalue>3);
+		 Setline($5,$3);
 		 Setattr($$,"access",$2);
 	         if (Strcmp($2,"public") != 0) {
 		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, Getfile($$), Getline($$), "%s inheritance from base '%s' (ignored).\n", $2, SwigType_namestr($5));
