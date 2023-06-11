@@ -3786,7 +3786,7 @@ cpp_declaration : cpp_class_decl
                 | cpp_template_decl
                 | cpp_using_decl
                 | cpp_namespace_decl
-                | cpp_catch_decl { $$ = 0; }
+                | cpp_catch_decl
                 ;
 
 
@@ -4754,7 +4754,7 @@ cpp_member_no_dox : c_declaration
              | storage_class idcolon SEMI { $$ = 0; Delete($1); }
              | cpp_using_decl
              | cpp_template_decl
-             | cpp_catch_decl { $$ = 0; }
+             | cpp_catch_decl
              | template_directive
              | warn_directive
              | anonymous_bitfield { $$ = 0; }
