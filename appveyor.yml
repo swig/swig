@@ -15,18 +15,18 @@ environment:
   matrix:
   - SWIGLANG: csharp
     VSVER: 12
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
   - SWIGLANG: csharp
     VSVER: 14
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
   - SWIGLANG: python
     VSVER: 14
     VER: 27
     PY2: 2
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
   - BUILDSYSTEM: cmake
     VSVER: 14
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
   - SWIGLANG: python
     VSVER: 15
     VER: 38
