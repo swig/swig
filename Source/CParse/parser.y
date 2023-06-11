@@ -2504,7 +2504,7 @@ pragma_arg    : string
               ;
 
 pragma_lang   : LPAREN identifier RPAREN { $$ = $2; }
-              | %empty { $$ = (char *) "swig"; }
+              | %empty { $$ = "swig"; }
               ;
 
 /* ------------------------------------------------------------
@@ -6524,7 +6524,7 @@ explicit_default : DEFAULT {
 /* Some stuff for handling enums */
 
 ename          :  identifier
-	       |  %empty { $$ = (char *) 0;}
+	       |  %empty { $$ = 0; }
 	       ;
 
 constant_directives : constant_directive
@@ -7068,9 +7068,9 @@ base_specifier : opt_virtual <intvalue>{
                }
                ;
 
-access_specifier :  PUBLIC { $$ = (char*)"public"; }
-               | PRIVATE { $$ = (char*)"private"; }
-               | PROTECTED { $$ = (char*)"protected"; }
+access_specifier :  PUBLIC { $$ = "public"; }
+               | PRIVATE { $$ = "private"; }
+               | PROTECTED { $$ = "protected"; }
                ;
 
 templcpptype   : CLASS variadic_opt {
