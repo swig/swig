@@ -47,10 +47,6 @@
 #include "preprocessor.h"
 #include <ctype.h>
 
-/* We do this for portability */
-#undef alloca
-#define alloca Malloc
-
 #define YYMALLOC Malloc
 #define YYFREE Free
 
