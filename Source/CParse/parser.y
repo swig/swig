@@ -25,8 +25,6 @@
 %expect 7
 
 %{
-#define yylex yylex
-
 /* doh.h uses #pragma GCC poison with GCC to prevent direct calls to certain
  * standard C library functions being introduced, but those cause errors due
  * to checks like `#if defined YYMALLOC || defined malloc` in the bison
