@@ -7392,9 +7392,8 @@ idstringopt    : idstring { $$ = $1; }
                ;
 
 idcolon        : idtemplate idcolontail { 
-                  $$ = 0;
-		  if (!$$) $$ = NewStringf("%s%s", $1,$2);
-      	          Delete($2);
+		 $$ = NewStringf("%s%s", $1, $2);
+		 Delete($2);
                }
                | NONID DCOLON idtemplatetemplate idcolontail {
 		 $$ = NewStringf("::%s%s",$3,$4);
@@ -7455,9 +7454,8 @@ idtemplatetemplate : idtemplate {
 
 /* Identifier, but no templates */
 idcolonnt     : identifier idcolontailnt {
-                  $$ = 0;
-		  if (!$$) $$ = NewStringf("%s%s", $1,$2);
-      	          Delete($2);
+		 $$ = NewStringf("%s%s", $1, $2);
+		 Delete($2);
                }
                | NONID DCOLON identifier idcolontailnt {
 		 $$ = NewStringf("::%s%s",$3,$4);
