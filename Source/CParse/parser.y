@@ -1876,7 +1876,6 @@ declaration    : swig_directive
                | cpp_declaration
                | SEMI { $$ = 0; }
                | error {
-                  $$ = 0;
 		  if (cparse_unknown_directive) {
 		      Swig_error(cparse_file, cparse_line, "Unknown directive '%s'.\n", cparse_unknown_directive);
 		  } else {
