@@ -20,6 +20,20 @@ pchar_setitem($pc, 1, 'o');
 pchar_setitem($pc, 2, 'l');
 pchar_setitem($pc, 3, 'a');
 pchar_setitem($pc, 4, 0);
+
+// FIXME: These don't work as we get the stringified pointer object, e.g.
+// "SWIGPointer(0x55dafc88c0a0,owned=0"
+if (0) {
+    check::equal($t->strlen($pc), 4, "bad multi-arg typemap");
+    check::equal($t->ustrlen($pc), 4, "bad multi-arg typemap");
+
+    var_pchar_set($pc);
+    check::equal(var_pchar_get(), "hola", "bad pointer case");
+
+    var_namet_set($pc);
+    check::equal(var_namet_get(), "hola", "bad pointer case");
+}
+
 delete_pchar($pc);
 
 check::done();
