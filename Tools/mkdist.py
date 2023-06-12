@@ -121,7 +121,6 @@ run_command("make", "libfiles", cwd=dirpath) == 0 or failed()
 run_command("make", "distclean", cwd=dirpath) == 0 or failed()
 
 # Remove autotools files
-run_command("find", dirname, "-name", "autom4te.cache", "-exec", "rm", "-rf", "{}", ";", cwd=rootdir)
 run_command("find", dirname, "-name", ".deps", "-exec", "rmdir", "{}", ";", cwd=rootdir)
 
 # Build documentation
