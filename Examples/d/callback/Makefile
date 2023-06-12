@@ -1,1 +1,1 @@
-include $(SRCDIR)/../example.mk
+include $(SRCDIR)../example.mk
