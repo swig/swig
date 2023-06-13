@@ -2037,11 +2037,12 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
 	Append(tprefix, "<(");
 	expandedparms = Swig_symbol_template_defargs(tparms, tnargs, tscope, tsdecl);
 	p = expandedparms;
+	Symtab *tscope_orig = tscope;
 	tscope = tsdecl;
 	while (p) {
 	  SwigType *ptype = Getattr(p, "type");
 	  SwigType *ttr = ptype ? ptype : Getattr(p, "value");
-	  SwigType *ttf = Swig_symbol_type_qualify(ttr, tscope);
+	  SwigType *ttf = Swig_symbol_type_qualify(ttr, tscope_orig);
 	  SwigType *ttq = Swig_symbol_template_param_eval(ttf, tscope);
 #ifdef SWIG_DEBUG
 	  Printf(stderr, "arg type %s\n", ttq);
