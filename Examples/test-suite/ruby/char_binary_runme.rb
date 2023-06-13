@@ -26,4 +26,10 @@ pchar_setitem(pc, 4, 0)
 swig_assert(t.strlen(pc) == 4, binding, 'bad multi-arg typemap')
 swig_assert(t.ustrlen(pc) == 4, binding, 'bad multi-arg typemap')
 
+Char_binary.var_pchar = pc
+swig_assert(Char_binary.var_pchar == 'hola', binding, 'bad pointer case')
+
+Char_binary.var_namet = pc
+swig_assert(Char_binary.var_namet == 'hola', binding, 'bad pointer case')
+
 delete_pchar(pc)
