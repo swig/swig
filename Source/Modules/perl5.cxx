@@ -1514,67 +1514,67 @@ public:
     if ((blessed) && (!Getattr(n, "sym:nextSibling"))) {
 
       if (Strstr(symname, "__eq__")) {
-	DohSetInt(operators, "__eq__", 1);
+	SetInt(operators, "__eq__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__ne__")) {
-	DohSetInt(operators, "__ne__", 1);
+	SetInt(operators, "__ne__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__assign__")) {
-	DohSetInt(operators, "__assign__", 1);
+	SetInt(operators, "__assign__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__str__")) {
-	DohSetInt(operators, "__str__", 1);
+	SetInt(operators, "__str__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__add__")) {
-	DohSetInt(operators, "__add__", 1);
+	SetInt(operators, "__add__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__sub__")) {
-	DohSetInt(operators, "__sub__", 1);
+	SetInt(operators, "__sub__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__mul__")) {
-	DohSetInt(operators, "__mul__", 1);
+	SetInt(operators, "__mul__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__div__")) {
-	DohSetInt(operators, "__div__", 1);
+	SetInt(operators, "__div__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__mod__")) {
-	DohSetInt(operators, "__mod__", 1);
+	SetInt(operators, "__mod__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__and__")) {
-	DohSetInt(operators, "__and__", 1);
+	SetInt(operators, "__and__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__or__")) {
-	DohSetInt(operators, "__or__", 1);
+	SetInt(operators, "__or__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__not__")) {
-	DohSetInt(operators, "__not__", 1);
+	SetInt(operators, "__not__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__gt__")) {
-	DohSetInt(operators, "__gt__", 1);
+	SetInt(operators, "__gt__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__ge__")) {
-	DohSetInt(operators, "__ge__", 1);
+	SetInt(operators, "__ge__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__lt__")) {
-	DohSetInt(operators, "__lt__", 1);
+	SetInt(operators, "__lt__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__le__")) {
-	DohSetInt(operators, "__le__", 1);
+	SetInt(operators, "__le__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__neg__")) {
-	DohSetInt(operators, "__neg__", 1);
+	SetInt(operators, "__neg__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__plusplus__")) {
-	DohSetInt(operators, "__plusplus__", 1);
+	SetInt(operators, "__plusplus__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__minmin__")) {
-	DohSetInt(operators, "__minmin__", 1);
+	SetInt(operators, "__minmin__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__mineq__")) {
-	DohSetInt(operators, "__mineq__", 1);
+	SetInt(operators, "__mineq__", 1);
 	have_operators = 1;
       } else if (Strstr(symname, "__pluseq__")) {
-	DohSetInt(operators, "__pluseq__", 1);
+	SetInt(operators, "__pluseq__", 1);
 	have_operators = 1;
       }
 

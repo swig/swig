@@ -326,7 +326,7 @@ void Swig_require(const char *ns, Node *n, ...) {
       Exit(EXIT_FAILURE);
     }
     if (!obj)
-      obj = DohNone;
+      obj = None;
     if (newref) {
       /* Save a copy of the attribute */
       Setattr(n, NewStringf("%s:%s", ns, name), obj);
@@ -371,7 +371,7 @@ void Swig_save(const char *ns, Node *n, ...) {
     }
     obj = Getattr(n, name);
     if (!obj)
-      obj = DohNone;
+      obj = None;
 
     /* Save a copy of the attribute */
     if (Setattr(n, NewStringf("%s:%s", ns, name), obj)) {
