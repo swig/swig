@@ -349,13 +349,13 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
    the function call. */
 
 %typemap (freearg) char * "if (must_free$argnum) SWIG_free($1);"
-%typemap (freearg) char **INPUT, char **BOTH "if (must_free$argnum) SWIG_free(*$1);"
+%typemap (freearg) char **INPUT, char **INOUT, char **BOTH "if (must_free$argnum) SWIG_free(*$1);"
 %typemap (freearg) char **OUTPUT "SWIG_free(*$1);"
   
 /* But this shall not apply if we try to pass a single char by
    reference. */
 
-%typemap (freearg) char *OUTPUT, char *BOTH ""
+%typemap (freearg) char *OUTPUT, char *INOUT, char *BOTH ""
 
 /* If we set a string variable, delete the old result first, unless const. */
 

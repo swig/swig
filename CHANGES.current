@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-06-15: olly
+	    [Guile] Fix freearg typemaps to go with char **INOUT and char
+	    *INOUT in typemaps.  Previously the char **INOUT typemap would
+	    leak memory if must_free$argnum was true, and the char *INOUT
+	    typemap would generate code that didn't compile.
+
 2023-06-07: olly
 	    #2630 Fix preprocessor handling of a slash immediately followed by
 	    a single quote, which wasn't getting recognised as starting a
