@@ -8,6 +8,60 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-06-15: olly
+	    [Guile] The -gh and -scm command line options have been removed.
+	    These have done nothing except emit a message since 2013 when
+	    SWIG dropped support for generating bindings which used GH.
+
+2023-06-15: olly
+	    Remove pointer.i from the SWIG library.  It's been a dummy file
+	    which has done nothing except %echo a deprecation message since
+	    2002.  The replacement is cpointer.i.
+
+2023-06-15: olly
+	    SWIG will no longer fall back to using the include path to find the
+	    input file, which has been deprecated and emitted a warning since
+	    SWIG 1.3.37 (2009-01-13).  This makes the behaviour of SWIG the
+	    same as C/C++ compilers and works with ccache.
+
+2023-06-15: olly
+	    Remove features deprecated in SWIG 1.x.  Most of these have
+	    emitted a deprecation warning or error for well over a decade and
+	    have replacements with fewer shortcomings so we expect users will
+	    have migrated away from them long ago, but in case you need
+	    them replacements are noted below:
+
+	    %addmethods		Use %extend instead.
+	    %disabledoc		Use Doxygen support instead.
+	    %doconly		Use Doxygen support instead.
+	    %enabledoc		Use Doxygen support instead.
+	    %except		Use %exception instead.
+	    %extern		Use %import instead.
+	    %localstyle		Use Doxygen support instead.
+	    %name		Use %rename instead.
+	    %new		Use %newobject instead.
+	    %out		%apply OUTPUT typemap rule instead.
+	    %readonly		Use %immutable instead.
+	    %readwrite		Use %mutable instead.
+	    %section		Use Doxygen support instead.
+	    %style		Use Doxygen support instead.
+	    %subsection		Use Doxygen support instead.
+	    %subsubsection	Use Doxygen support instead.
+	    %text		Use Doxygen support instead.
+	    %title		Use Doxygen support instead.
+	    %typemap(except)	Use %exception instead.
+	    %typemap(ignore)	Use %typemap(in,numinputs=0) instead.
+	    %val		Use typemaps instead.
+	    -make_default	On by default since SWIG 1.3.7 (2001-09-03).
+	    -makedefault	On by default since SWIG 1.3.7 (2001-09-03).
+	    -no_default		Use %nodefaultctor/%nodedefaultdtor instead.
+	    -nodefault		Use %nodefaultctor/%nodedefaultdtor instead.
+	    -noextern option	On by default since SWIG 1.3.26 (2005-10-09).
+	    -noruntime		Type sharing happens via target lang global.
+	    -runtime		Type sharing happens via target lang global.
+	    -xml out.xml	Use -xml -o out.xml instead.
+	    BOTH typemap rule	Use INOUT typemap rule instead.
+
+2023-06-15: olly
 	    [Guile] Fix freearg typemaps to go with char **INOUT and char
 	    *INOUT in typemaps.  Previously the char **INOUT typemap would
 	    leak memory if must_free$argnum was true, and the char *INOUT

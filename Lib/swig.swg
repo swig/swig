@@ -9,20 +9,6 @@
  * User Directives 
  * ----------------------------------------------------------------------------- */
 
-/* Deprecated SWIG-1.1 directives */
-
-#define %disabledoc     %warn "104:%disabledoc is deprecated"
-#define %enabledoc      %warn "105:%enabledoc is deprecated"
-#define %doconly        %warn "106:%doconly is deprecated"
-#define %style          %warn "107:%style is deprecated" /##/
-#define %localstyle     %warn "108:%localstyle is deprecated" /##/
-#define %title          %warn "109:%title is deprecated" /##/
-#define %section        %warn "110:%section is deprecated" /##/
-#define %subsection     %warn "111:%subsection is deprecated" /##/
-#define %subsubsection  %warn "112:%subsubsection is deprecated" /##/
-#define %new            %warn "117:%new is deprecated. Use %newobject"
-#define %text           %insert("null")
-
 /* Code insertion directives such as %wrapper %{ ... %} */
 
 #define %begin       %insert("begin")
@@ -31,19 +17,12 @@
 #define %wrapper     %insert("wrapper")
 #define %init        %insert("init")
 
-/* Class extension */
-
-#define %addmethods  %warn "113:%addmethods is now %extend" %extend
-
 /* %ignore directive */
 
 #define %ignore         %rename($ignore)
 #define %ignorewarn(x)  %rename("$ignore:" x)
 
 /* Access control directives */
-
-#define %readonly    %warn "114:%readonly is deprecated. Use %immutable; " %feature("immutable");
-#define %readwrite   %warn "115:%readwrite is deprecated. Use %mutable; " %feature("immutable","");
 
 #define %immutable       %feature("immutable")
 #define %noimmutable     %feature("immutable","0")

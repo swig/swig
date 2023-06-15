@@ -124,6 +124,33 @@ void another_macro_checking(void) {
 # wobble wobble
 #endif
 
+/* Check that #error is ignored inside an inactive conditional. */
+#ifdef THIS_IS_NOT_DEFINED
+# error should not trigger 1
+#endif
+#ifdef AAA
+# define B
+#else
+# error should not trigger 2
+#endif
+#if 0
+# error should not trigger 3
+#endif
+
+/* Check that #warning is ignored inside an inactive conditional. */
+#ifdef THIS_IS_NOT_DEFINED
+# warning should not trigger 1
+#endif
+#ifdef AAA
+# define B
+#else
+# warning should not trigger 2
+#endif
+#if 0
+# warning should not trigger 3
+#endif
+
+
 /* Regression test for https://sourceforge.net/p/swig/bugs/1163/
  * ONE(1)(2) should expand to `2` but SWIG was expanding it to `TWO(2)`
  * which results in the generated C wrapper failing to compile.

@@ -1674,7 +1674,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
 %token BEGINFILE ENDOFFILE
 %token ILLEGAL CONSTANT
-%token NAME RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
+%token RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
 %token ENUM
 %token CLASS TYPENAME PRIVATE PUBLIC PROTECTED COLON STATIC VIRTUAL FRIEND THROW CATCH EXPLICIT
 %token STATIC_ASSERT CONSTEXPR THREAD_LOCAL DECLTYPE AUTO NOEXCEPT /* C++11 keywords */
@@ -1682,7 +1682,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token USING
 %token <node> NAMESPACE
 %token NATIVE INLINE
-%token TYPEMAP EXCEPT ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
+%token TYPEMAP ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
 %token WARN 
 %token LESSTHAN GREATERTHAN DELETE_KW DEFAULT
 %token LESSTHANOREQUALTO GREATERTHANOREQUALTO EQUALTO NOTEQUALTO LESSEQUALGREATER
@@ -1721,8 +1721,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 
 /* SWIG directives */
 %type <node>     extend_directive apply_directive clear_directive constant_directive ;
-%type <node>     echo_directive except_directive fragment_directive include_directive inline_directive ;
-%type <node>     insert_directive module_directive name_directive native_directive ;
+%type <node>     echo_directive fragment_directive include_directive inline_directive ;
+%type <node>     insert_directive module_directive native_directive ;
 %type <node>     pragma_directive rename_directive feature_directive varargs_directive typemap_directive ;
 %type <node>     types_directive template_directive warn_directive ;
 
@@ -1916,13 +1916,11 @@ swig_directive : extend_directive
  	       | clear_directive
                | constant_directive
                | echo_directive
-               | except_directive
                | fragment_directive
                | include_directive
                | inline_directive
                | insert_directive
                | module_directive
-               | name_directive
                | native_directive
                | pragma_directive
                | rename_directive
@@ -2146,36 +2144,6 @@ echo_directive : ECHO HBLOCK {
 		 Delete(s);
                  $$ = 0;
                }
-               ;
-
-/* ------------------------------------------------------------
-   %except(lang) { ... }
-   %except { ... }
-   %except(lang);   
-   %except;
-   ------------------------------------------------------------ */
-
-except_directive : EXCEPT LPAREN identifier RPAREN LBRACE {
-		    Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
-		    if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
-		    $$ = 0;
-	       }
-
-               | EXCEPT LBRACE {
-		    Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
-		    if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
-		    $$ = 0;
-               }
-
-               | EXCEPT LPAREN identifier RPAREN SEMI {
-		 $$ = 0;
-		 Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
-               }
-
-               | EXCEPT SEMI {
-		 $$ = 0;
-		 Swig_warning(WARN_DEPRECATED_EXCEPT,cparse_file, cparse_line, "%%except is deprecated.  Use %%exception instead.\n");
-	       }
                ;
 
 /* fragment keyword arguments */
@@ -2427,25 +2395,6 @@ module_directive: MODULE options idstring {
 		 if (!module_node) module_node = $$;
 	       }
                ;
-
-/* ------------------------------------------------------------
-   %name(newname)    declaration
-   %name("newname")  declaration
-   ------------------------------------------------------------ */
-
-name_directive : NAME LPAREN idstring RPAREN {
-                 Swig_warning(WARN_DEPRECATED_NAME,cparse_file,cparse_line, "%%name is deprecated.  Use %%rename instead.\n");
-		 Delete(yyrename);
-                 yyrename = NewString($3);
-		 $$ = 0;
-               }
-               | NAME LPAREN RPAREN {
-		 Swig_warning(WARN_DEPRECATED_NAME,cparse_file,cparse_line, "%%name is deprecated.  Use %%rename instead.\n");
-		 $$ = 0;
-		 Swig_error(cparse_file,cparse_line,"Missing argument to %%name directive.\n");
-	       }
-               ;
-
 
 /* ------------------------------------------------------------
    %native(scriptname) name;
@@ -5018,11 +4967,6 @@ cpp_swig_directive: pragma_directive
 /* A constant (includes #defines) inside a class */
              | constant_directive
 
-/* This is the new style rename */
-
-             | name_directive
-
-/* rename directive */
              | rename_directive
              | feature_directive
              | varargs_directive

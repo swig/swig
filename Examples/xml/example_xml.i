@@ -14,7 +14,7 @@ void enum_test(color c, Foo::speed s);
 
 
 
-%include pointer.i
+%include cpointer.i
 
 /* Next we'll use some typemaps */
 

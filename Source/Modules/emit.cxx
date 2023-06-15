@@ -64,8 +64,6 @@ void emit_parameter_variables(ParmList *l, Wrapper *f) {
   Swig_cargs(f, l);
 
   /* Attach typemaps to parameters */
-  /*  Swig_typemap_attach_parms("ignore",l,f); */
-
   Swig_typemap_attach_parms("default", l, f);
   Swig_typemap_attach_parms("arginit", l, f);
 
@@ -108,19 +106,14 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
   Swig_typemap_attach_parms("freearg", l, f);
 
   {
-    /* This is compatibility code to deal with the deprecated "ignore" typemap */
+    /* Handle in typemaps with numinputs=0. */
     Parm *p = l;
-    Parm *np;
     while (p) {
       String *tm = Getattr(p, "tmap:in");
-      if (tm && checkAttribute(p, "tmap:in:numinputs", "0")) {
-	Printv(f->code, tm, "\n", NIL);
-	np = Getattr(p, "tmap:in:next");
-	while (p && (p != np)) {
-	  /*	  Setattr(p,"ignore","1");    Deprecate */
-	  p = nextSibling(p);
+      if (tm) {
+	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	  Printv(f->code, tm, "\n", NIL);
 	}
-      } else if (tm) {
 	p = Getattr(p, "tmap:in:next");
       } else {
 	p = nextSibling(p);
@@ -136,14 +129,6 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
     Parm *npin, *npfreearg;
     while (p) {
       npin = Getattr(p, "tmap:in:next");
-
-      /*
-         if (Getattr(p,"tmap:ignore")) {
-         npin = Getattr(p,"tmap:ignore:next");
-         } else if (Getattr(p,"tmap:in")) {
-         npin = Getattr(p,"tmap:in:next");
-         }
-       */
 
       if (Getattr(p, "tmap:freearg")) {
 	npfreearg = Getattr(p, "tmap:freearg:next");

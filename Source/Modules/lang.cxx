@@ -74,7 +74,6 @@ String *input_file = 0;
 int SmartPointer = 0;
 static Hash *classhash;
 
-extern int GenerateDefault;
 extern int ForceExtern;
 extern int AddExtern;
 extern "C" {
@@ -448,12 +447,7 @@ static Node *first_nontemplate(Node *n) {
 
 void swig_pragma(char *lang, char *name, char *value) {
   if (strcmp(lang, "swig") == 0) {
-    if ((strcmp(name, "make_default") == 0) || ((strcmp(name, "makedefault") == 0))) {
-      GenerateDefault = 1;
-    } else if ((strcmp(name, "no_default") == 0) || ((strcmp(name, "nodefault") == 0))) {
-      Swig_warning(WARN_DEPRECATED_NODEFAULT, "SWIG", 1, "dangerous, use %%nodefaultctor, %%nodefaultdtor instead.\n");
-      GenerateDefault = 0;
-    } else if (strcmp(name, "attributefunction") == 0) {
+    if (strcmp(name, "attributefunction") == 0) {
       String *nvalue = NewString(value);
       char *s = strchr(Char(nvalue), ':');
       if (!s) {
@@ -741,7 +735,7 @@ Doc/Manual/Typemaps.html for complete details.\n");
   }
 
   if (Strcmp(method, "except") == 0) {
-    Swig_warning(WARN_DEPRECATED_EXCEPT_TM, Getfile(n), Getline(n), "%%typemap(except) is deprecated. Use the %%exception directive.\n");
+    Swig_error(Getfile(n), Getline(n), "%%typemap(except) is no longer supported. Use the %%exception directive.\n");
   }
 
   if (Strcmp(method, "in") == 0) {
@@ -768,16 +762,7 @@ Doc/Manual/Typemaps.html for complete details.\n");
   }
 
   if (Strcmp(method, "ignore") == 0) {
-    Swig_warning(WARN_DEPRECATED_IGNORE_TM, Getfile(n), Getline(n), "%%typemap(ignore) has been replaced by %%typemap(in,numinputs=0).\n");
-
-    Clear(method);
-    Append(method, "in");
-    Hash *k = NewHash();
-    Setattr(k, "name", "numinputs");
-    Setattr(k, "value", "0");
-    set_nextSibling(k, kwargs);
-    Setattr(n, "kwargs", k);
-    kwargs = k;
+    Swig_error(Getfile(n), Getline(n), "%%typemap(ignore) is no longer supported. Use %%typemap(in,numinputs=0).\n");
   }
 
   /* Replace $descriptor() macros */
@@ -2497,7 +2482,7 @@ int Language::classDeclaration(Node *n) {
       dir = (ndir || nndir) ? (ndir && !nndir) : 0;
     }
     int abstract = !dir && abstractClassTest(n);
-    int odefault = (GenerateDefault && !GetFlag(n, "feature:nodefault"));
+    int odefault = !GetFlag(n, "feature:nodefault");
 
     /* default constructor */
     if (!abstract && !GetFlag(n, "feature:nodefaultctor") && odefault) {
@@ -2691,7 +2676,7 @@ int Language::constructorDeclaration(Node *n) {
       return SWIG_NOWRAP;
   }
 
-  /* Name adjustment for %name */
+  /* Name adjustment for %rename */
   Swig_save("constructorDeclaration", n, "sym:name", NIL);
 
   {

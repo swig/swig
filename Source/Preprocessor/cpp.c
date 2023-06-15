@@ -11,7 +11,7 @@
  * An implementation of a C preprocessor plus some support for additional
  * SWIG directives.
  *
- * - SWIG directives such as %include, %extern, and %import are handled
+ * - SWIG directives such as %include and %import are handled
  * - A new macro %define ... %enddef can be used for multiline macros
  * - No preprocessing is performed in %{ ... %} blocks
  * - Lines beginning with %# are stripped down to #... and passed through.
@@ -157,7 +157,6 @@ static String *kpp_ddefine = 0;
 static String *kpp_dinclude = 0;
 static String *kpp_dimport = 0;
 static String *kpp_dbeginfile = 0;
-static String *kpp_dextern = 0;
 
 static String *kpp_LINE = 0;
 static String *kpp_FILE = 0;
@@ -194,7 +193,6 @@ void Preprocessor_init(void) {
   kpp_dinclude = NewString("%include");
   kpp_dimport = NewString("%import");
   kpp_dbeginfile = NewString("%beginfile");
-  kpp_dextern = NewString("%extern");
   kpp_ddefine = NewString("%define");
   kpp_dline = NewString("%line");
 
@@ -243,7 +241,6 @@ void Preprocessor_delete(void) {
   Delete(kpp_dinclude);
   Delete(kpp_dimport);
   Delete(kpp_dbeginfile);
-  Delete(kpp_dextern);
   Delete(kpp_ddefine);
   Delete(kpp_dline);
 
@@ -1972,7 +1969,7 @@ state1:
       if (!isidchar(c)) {
 	Ungetc(c, s);
 	/* Look for common SWIG directives  */
-	if (Equal(decl, kpp_dinclude) || Equal(decl, kpp_dimport) || Equal(decl, kpp_dextern)) {
+	if (Equal(decl, kpp_dinclude) || Equal(decl, kpp_dimport)) {
 	  /* Got some kind of file inclusion directive, eg: %import(option1="value1") "filename" */
 	  if (allow) {
 	    DOH *s1, *s2, *fn, *opt;
@@ -1980,11 +1977,6 @@ state1:
 	    String *filename_whitespace = NewStringEmpty();
 	    int sysfile = 0;
 
-	    if (Equal(decl, kpp_dextern)) {
-	      Swig_warning(WARN_DEPRECATED_EXTERN, Getfile(s), Getline(s), "%%extern is deprecated. Use %%import instead.\n");
-	      Clear(decl);
-	      Append(decl, "%%import");
-	    }
 	    skip_whitespace(s, options_whitespace);
 	    opt = get_options(s);
 

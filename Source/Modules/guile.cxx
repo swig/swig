@@ -211,12 +211,6 @@ public:
 	} else if ((strcmp(argv[i], "-shadow") == 0) || ((strcmp(argv[i], "-proxy") == 0))) {
 	  goops = true;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-gh") == 0) {
-	  Printf(stderr, "Deprecated command line option: -gh. Wrappers are always generated for the SCM interface. See documentation for more information regarding the deprecated GH interface.\n");
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-scm") == 0) {
-	  Printf(stderr, "Deprecated command line option: -scm. Wrappers are always generated for the SCM interface. See documentation for more information regarding the deprecated GH interface.\n");
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-primsuffix") == 0) {
 	  if (argv[i + 1]) {
 	    primsuffix = NewString(argv[i + 1]);

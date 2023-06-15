@@ -37,7 +37,6 @@
 
        Likewise, but make the pointer object not garbage collectable.
    
-   func(int **BOTH)
    func(int **INOUT)
 
        This annotation combines INPUT and OUTPUT.
@@ -82,8 +81,6 @@
 %typemap(argout, doc="<" #SCM_TYPE ">") PTRTYPE *OUTPUT_NONCOLLECTABLE
      "SWIG_APPEND_VALUE(SWIG_NewPointerObj(*$1, $*descriptor, 0));"; 
 
-%typemap(in) PTRTYPE *BOTH = PTRTYPE *INPUT;
-%typemap(argout) PTRTYPE *BOTH = PTRTYPE *OUTPUT;
 %typemap(in) PTRTYPE *INOUT = PTRTYPE *INPUT;
 %typemap(argout) PTRTYPE *INOUT = PTRTYPE *OUTPUT;
 
