@@ -545,18 +545,8 @@ static int yylook(void) {
   }
 }
 
-static int check_typedef = 0;
-
 void scanner_set_location(String *file, int line) {
   Scanner_set_location(scan,file,line-1);
-}
-
-void scanner_check_typedef(void) {
-  check_typedef = 1;
-}
-
-void scanner_ignore_typedef(void) {
-  check_typedef = 0;
 }
 
 void scanner_last_id(int x) {
@@ -1067,15 +1057,7 @@ num_common:
       Delete(stext);
       return (MODULO);
     }
-    /* Have an unknown identifier, as a last step, we'll do a typedef lookup on it. */
 
-    /* Need to fix this */
-    if (check_typedef) {
-      if (SwigType_istypedef(yytext)) {
-	yylval.type = NewString(yytext);
-	return (TYPE_TYPEDEF);
-      }
-    }
     yylval.id = Swig_copy_string(yytext);
     last_id = 1;
     return (ID);
