@@ -56,7 +56,7 @@ int  yyparse(void);
 
 /* NEW Variables */
 
-static Node    *top = 0;      /* Top of the generated parse tree */
+static void    *top = 0;      /* Top of the generated parse tree */
 static int      unnamed = 0;  /* Unnamed datatype counter */
 static Hash    *classes = 0;        /* Hash table of classes */
 static Hash    *classes_typedefs = 0; /* Hash table of typedef classes: typedef struct X {...} Y; */
@@ -1304,7 +1304,7 @@ Node *Swig_cparse(File *f) {
   scanner_file(f);
   top = 0;
   yyparse();
-  return top;
+  return (Node *)top;
 }
 
 static void single_new_feature(const char *featurename, String *val, Hash *featureattribs, char *declaratorid, SwigType *type, ParmList *declaratorparms, String *qualifier) {
@@ -7447,7 +7447,7 @@ SwigType *Swig_cparse_type(String *s) {
    scanner_next_token(PARSETYPE);
    yyparse();
    /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
-   return top;
+   return (SwigType *)top;
 }
 
 
@@ -7461,7 +7461,7 @@ Parm *Swig_cparse_parm(String *s) {
    yyparse();
    /*   Printf(stdout,"parmparse: '%s' ---> '%s'\n", s, top); */
    Delete(ns);
-   return top;
+   return (Parm *)top;
 }
 
 
@@ -7481,6 +7481,6 @@ ParmList *Swig_cparse_parms(String *s, Node *file_line_node) {
    scanner_next_token(PARSEPARMS);
    yyparse();
    /*   Printf(stdout,"parmsparse: '%s' ---> '%s'\n", s, top); */
-   return top;
+   return (ParmList *)top;
 }
 
