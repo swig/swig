@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-06-16: olly
+	    [Guile] Drop support for -Linkage ltdlmod which was only useful
+	    for Guile <= 1.4 which we no longer support.
+
 2023-06-15: olly
 	    [Guile] The -gh and -scm command line options have been removed.
 	    These have done nothing except emit a message since 2013 when
