@@ -8,6 +8,11 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-06-15: olly
+	    Remove pointer.i from the SWIG library.  It's been a dummy file
+	    which has done nothing except %echo a deprecation message since
+	    2002.  The replacement is cpointer.i.
+
+2023-06-15: olly
 	    SWIG will no longer fall back to using the include path to find the
 	    input file, which has been deprecated and emitted a warning since
 	    SWIG 1.3.37 (2009-01-13).  This makes the behaviour of SWIG the

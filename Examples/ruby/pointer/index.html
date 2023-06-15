@@ -54,15 +54,17 @@ Now, in a script you would do this:
 
 <blockquote>
 <pre>
-a = new_int(37)
-b = new_int(42)
-c = new_int(0)
-add(a,b,c)
-r = get_int(c)
+a = Example::new_intp()
+b = Example::new_intp()
+c = Example::new_intp()
+Example::intp_assign(a,37)
+Example::intp_assign(b,42)
+Example::add(a, b, c)
+r = Example::intp_value(c)
 print "Result = #{r}\n"
-delete_int(a)
-delete_int(b)
-delete_int(c)
+Example::delete_intp(a)
+Example::delete_intp(b)
+Example::delete_intp(c)
 </pre>
 </blockquote>
 
@@ -72,7 +74,7 @@ you would do this:
 
 <blockquote>
 <pre>
-%include "pointer.i"
+%include "cpointer.i"
 </pre>
 </blockquote>
 
@@ -156,14 +158,8 @@ etc...) the complexity of pointer handling can be as complicated as you want to
 make it.
 
 <p>
-<li>More documentation on the typemaps.i and pointer.i library files can be
+<li>More documentation on the typemaps.i and cpointer.i library files can be
 found in the SWIG user manual.  The files also contain documentation.
-
-<p>
-<li>The pointer.i library is designed primarily for convenience.  If you
-are concerned about performance, you probably want to use a different
-approach.
-
 </ul>
 
 <hr>
