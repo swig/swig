@@ -8,6 +8,11 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-06-15: olly
+	    [Guile] The -gh and -scm command line options have been removed.
+	    These have done nothing except emit a message since 2013 when
+	    SWIG dropped support for generating bindings which used GH.
+
+2023-06-15: olly
 	    Remove pointer.i from the SWIG library.  It's been a dummy file
 	    which has done nothing except %echo a deprecation message since
 	    2002.  The replacement is cpointer.i.
