@@ -51,7 +51,7 @@
 /* Unused since 4.2.0: #define WARN_DEPRECATED_OPTC          120 */
 /* Unused since 4.2.0: #define WARN_DEPRECATED_NAME          121 */
 /* Unused since 4.2.0: #define WARN_DEPRECATED_NOEXTERN      122 */
-#define WARN_DEPRECATED_NODEFAULT     123
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NODEFAULT     123 */
 /* Unused since 4.1.0: #define WARN_DEPRECATED_TYPEMAP_LANG  124 */
 #define WARN_DEPRECATED_INPUT_FILE    125
 #define WARN_DEPRECATED_NESTED_WORKAROUND 126

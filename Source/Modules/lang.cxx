@@ -74,7 +74,6 @@ String *input_file = 0;
 int SmartPointer = 0;
 static Hash *classhash;
 
-extern int GenerateDefault;
 extern int ForceExtern;
 extern int AddExtern;
 extern "C" {
@@ -448,12 +447,7 @@ static Node *first_nontemplate(Node *n) {
 
 void swig_pragma(char *lang, char *name, char *value) {
   if (strcmp(lang, "swig") == 0) {
-    if ((strcmp(name, "make_default") == 0) || ((strcmp(name, "makedefault") == 0))) {
-      GenerateDefault = 1;
-    } else if ((strcmp(name, "no_default") == 0) || ((strcmp(name, "nodefault") == 0))) {
-      Swig_warning(WARN_DEPRECATED_NODEFAULT, "SWIG", 1, "dangerous, use %%nodefaultctor, %%nodefaultdtor instead.\n");
-      GenerateDefault = 0;
-    } else if (strcmp(name, "attributefunction") == 0) {
+    if (strcmp(name, "attributefunction") == 0) {
       String *nvalue = NewString(value);
       char *s = strchr(Char(nvalue), ':');
       if (!s) {
@@ -2488,7 +2482,7 @@ int Language::classDeclaration(Node *n) {
       dir = (ndir || nndir) ? (ndir && !nndir) : 0;
     }
     int abstract = !dir && abstractClassTest(n);
-    int odefault = (GenerateDefault && !GetFlag(n, "feature:nodefault"));
+    int odefault = !GetFlag(n, "feature:nodefault");
 
     /* default constructor */
     if (!abstract && !GetFlag(n, "feature:nodefaultctor") && odefault) {

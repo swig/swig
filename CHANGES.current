@@ -35,7 +35,11 @@ Version 4.2.0 (in progress)
 	    %typemap(except)	Use %exception instead.
 	    %typemap(ignore)	Use %typemap(in,numinputs=0) instead.
 	    %val		Use typemaps instead.
-	    -noextern option	On by default since SWIG 1.3.26 (2005-10-09)
+	    -make_default	On by default since SWIG 1.3.7 (2001-09-03).
+	    -makedefault	On by default since SWIG 1.3.7 (2001-09-03).
+	    -no_default		Use %nodefaultctor/%nodedefaultdtor instead.
+	    -nodefault		Use %nodefaultctor/%nodedefaultdtor instead.
+	    -noextern option	On by default since SWIG 1.3.26 (2005-10-09).
 	    -noruntime		Type sharing happens via target lang global.
 	    -runtime		Type sharing happens via target lang global.
 	    -xml out.xml	Use -xml -o out.xml instead.

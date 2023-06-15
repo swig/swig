@@ -32,7 +32,6 @@ static Language *lang = 0;	// Language method
 int CPlusPlus = 0;
 int Extend = 0;			// Extend flag
 int ForceExtern = 0;		// Force extern mode
-int GenerateDefault = 1;	// Generate default constructors
 int Verbose = 0;
 int AddExtern = 0;
 int NoExcept = 0;
@@ -113,7 +112,6 @@ static const char *usage2 = (const char *) "\
 
 static const char *usage3 = (const char *) "\
      -macroerrors    - Report errors inside macros\n\
-     -makedefault    - Create default constructors/destructors (the default)\n\
      -M              - List all dependencies\n\
      -MD             - Is equivalent to `-M -MF <file>', except `-E' is not implied\n\
      -MF <file>      - Generate dependencies into <file> and continue generating wrappers\n\
@@ -124,7 +122,6 @@ static const char *usage3 = (const char *) "\
      -MT <target>    - Set the target of the rule emitted by dependency generation\n\
      -nocontract     - Turn off contract checking\n\
      -nocpperraswarn - Do not treat the preprocessor #error statement as #warning\n\
-     -nodefault      - Do not generate default constructors nor default destructors\n\
      -nodefaultctor  - Do not generate implicit default constructors\n\
      -nodefaultdtor  - Do not generate implicit default destructors\n\
      -nodirprot      - Do not wrap director protected members\n\
@@ -510,13 +507,6 @@ static void getoptions(int argc, char *argv[]) {
 	  Swig_mark_arg(i + 1);
 	  i++;
 	}
-      } else if ((strcmp(argv[i], "-make_default") == 0) || (strcmp(argv[i], "-makedefault") == 0)) {
-	GenerateDefault = 1;
-	Swig_mark_arg(i);
-      } else if ((strcmp(argv[i], "-no_default") == 0) || (strcmp(argv[i], "-nodefault") == 0)) {
-	GenerateDefault = 0;
-	Swig_warning(WARN_DEPRECATED_NODEFAULT, "SWIG", 1, "dangerous, use -nodefaultctor, -nodefaultdtor instead.\n");
-	Swig_mark_arg(i);
       } else if ((strcmp(argv[i], "-nodefaultctor") == 0)) {
 	SWIG_setfeature("feature:nodefaultctor", "1");
 	Swig_mark_arg(i);

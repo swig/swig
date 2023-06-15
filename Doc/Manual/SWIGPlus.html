@@ -692,8 +692,7 @@ class Foo {           // No destructor is generated, unless one is declared
 <b>Compatibility Note:</b> The generation of default
 constructors/implicit destructors was made the default behavior in SWIG
 1.3.7. This may break certain older modules, but the old behavior can
-be easily restored using <tt>%nodefault</tt> or the
-<tt>-nodefault</tt> command line option.  Furthermore, in order for
+be easily restored using <tt>%nodefault</tt>.  Furthermore, in order for
 SWIG to properly generate (or not generate) default constructors, it
 must be able to gather information from both the <tt>private</tt> and
 <tt>protected</tt> sections (specifically, it needs to know if a private or
@@ -707,9 +706,9 @@ those sections in the interface or using <tt>%nodefault</tt> to fix the problem.
 
 <p>
 <b>Note:</b> The <tt>%nodefault</tt>
-directive/<tt>-nodefault</tt> options described above, which disable both the default
+directive described above, which disables both the default
 constructor and the implicit destructors, could lead to memory
-leaks, and so it is strongly recommended to not use them.
+leaks, and so it is strongly recommended to not use it.
 </p>
 
 
