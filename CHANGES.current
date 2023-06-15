@@ -29,7 +29,7 @@ Version 4.2.0 (in progress)
 	    %localstyle		Use Doxygen support instead.
 	    %name		Use %rename instead.
 	    %new		Use %newobject instead.
-	    %out		Use %apply ... OUTPUT instead.
+	    %out		%apply OUTPUT typemap rule instead.
 	    %readonly		Use %immutable instead.
 	    %readwrite		Use %mutable instead.
 	    %section		Use Doxygen support instead.
@@ -49,6 +49,7 @@ Version 4.2.0 (in progress)
 	    -noruntime		Type sharing happens via target lang global.
 	    -runtime		Type sharing happens via target lang global.
 	    -xml out.xml	Use -xml -o out.xml instead.
+	    BOTH typemap rule	Use INOUT typemap rule instead.
 
 2023-06-15: olly
 	    [Guile] Fix freearg typemaps to go with char **INOUT and char
