@@ -46,7 +46,6 @@ String *cparse_unknown_directive = 0;
 /* Private vars */
 static int scan_init = 0;
 static int num_brace = 0;
-static int last_brace = 0;
 static int last_id = 0;
 static int rename_active = 0;
 
@@ -276,7 +275,6 @@ static int yylook(void) {
       }
       break;
     case SWIG_TOKEN_LBRACE:
-      last_brace = num_brace;
       num_brace++;
       return LBRACE;
     case SWIG_TOKEN_EQUAL:
