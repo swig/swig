@@ -60,7 +60,7 @@ extern "C" {
 /* usage string split into multiple parts otherwise string is too big for some compilers */
 /* naming conventions for commandline options - no underscores, no capital letters, join words together
  * except when using a common prefix, then use '-' to separate, eg the debug-xxx options */
-static const char *usage1 = (const char *) "\
+static const char *usage1 = "\
 \nGeneral Options\n\
      -addextern      - Add extra extern declarations\n\
      -c++            - Enable C++ processing\n\
@@ -89,7 +89,7 @@ static const char *usage1 = (const char *) "\
      -D<symbol>[=<value>] - Define symbol <symbol> (for conditional compilation)\n\
 ";
 
-static const char *usage2 = (const char *) "\
+static const char *usage2 = "\
      -E              - Preprocess only, does not generate wrapper code\n\
      -external-runtime [file] - Export the SWIG runtime stack\n\
      -fakeversion <v>- Make SWIG fake the program version number to <v>\n\
@@ -110,7 +110,7 @@ static const char *usage2 = (const char *) "\
      -l<ifile>       - Include SWIG library file <ifile>\n\
 ";
 
-static const char *usage3 = (const char *) "\
+static const char *usage3 = "\
      -macroerrors    - Report errors inside macros\n\
      -M              - List all dependencies\n\
      -MD             - Is equivalent to `-M -MF <file>', except `-E' is not implied\n\
@@ -131,7 +131,7 @@ static const char *usage3 = (const char *) "\
      -notemplatereduce - Disable reduction of the typedefs in templates\n\
 ";
 
-static const char *usage4 = (const char *) "\
+static const char *usage4 = "\
      -O              - Enable the optimization options:\n\
                         -fastdispatch -fvirtual\n\
      -o <outfile>    - Set name of C/C++ output file to <outfile>\n\
