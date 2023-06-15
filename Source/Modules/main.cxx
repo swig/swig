@@ -995,19 +995,14 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
       String *fs = NewString("");
       FILE *df = Swig_open(input_file);
       if (!df) {
-	df = Swig_include_open(input_file);
-	if (!df) {
-	  char *cfile = Char(input_file);
-	  if (cfile && cfile[0] == '-') {
-	    Printf(stderr, "Unable to find option or file '%s', ", input_file);
-	    Printf(stderr, "Use 'swig -help' for more information.\n");
-	  } else {
-	    Printf(stderr, "Unable to find file '%s'.\n", input_file);
-	  }
-	  Exit(EXIT_FAILURE);
+	char *cfile = Char(input_file);
+	if (cfile && cfile[0] == '-') {
+	  Printf(stderr, "Unable to find option or file '%s', ", input_file);
+	  Printf(stderr, "Use 'swig -help' for more information.\n");
 	} else {
-	  Swig_warning(WARN_DEPRECATED_INPUT_FILE, "SWIG", 1, "Use of the include path to find the input file is deprecated and will not work with ccache. Please include the path when specifying the input file.\n"); // so that behaviour is like c/c++ compilers
+	  Printf(stderr, "Unable to find file '%s'.\n", input_file);
 	}
+	Exit(EXIT_FAILURE);
       }
 
       if (!tlm) {
