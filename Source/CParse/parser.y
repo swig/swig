@@ -7459,7 +7459,7 @@ Parm *Swig_cparse_parm(String *s) {
    top = 0;
    scanner_next_token(PARSEPARM);
    yyparse();
-   /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
+   /*   Printf(stdout,"parmparse: '%s' ---> '%s'\n", s, top); */
    Delete(ns);
    return top;
 }
@@ -7480,7 +7480,7 @@ ParmList *Swig_cparse_parms(String *s, Node *file_line_node) {
    top = 0;
    scanner_next_token(PARSEPARMS);
    yyparse();
-   /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
+   /*   Printf(stdout,"parmsparse: '%s' ---> '%s'\n", s, top); */
    return top;
 }
 
