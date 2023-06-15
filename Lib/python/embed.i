@@ -2,7 +2,7 @@
 // embed.i
 // SWIG file embedding the Python interpreter in something else.
 // This file is deprecated and no longer actively maintained, but it still
-// seems to work with Python 2.7.  Status with Python 3 is unknown.
+// seems to work with Python 2.7.  It doesn't work with Python 3.
 //
 // This file makes it possible to extend Python and all of its
 // built-in functions without having to hack its setup script.
