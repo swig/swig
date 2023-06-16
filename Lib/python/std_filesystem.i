@@ -71,7 +71,7 @@
 }
 
 %typemap(out, fragment="common") std::filesystem::path {
-    const std::string& s = $1.string();
+    const std::string s = $1.string();
 
     PyObject * cls = importPathCls();
 
