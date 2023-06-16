@@ -3,7 +3,7 @@ import pathlib
 from cpp17_std_filesystem import *
 
 if not is_cplusplus17():
-    exit(0) # No-op
+    exit(0)  # No-op
 
 
 def check(flag):
@@ -56,3 +56,7 @@ check(pathPtrToStr("foo") == "foo")
 check(pathToStr(pathPtr) == "foo")
 check(pathConstRefToStr(pathPtr) == "foo")
 check(pathPtrToStr(pathPtr) == "foo")
+
+specialPath = pathlib.Path("/家/屋")
+roundTriped = roundTrip(specialPath)
+check(specialPath == roundTriped)

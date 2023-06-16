@@ -1,19 +1,20 @@
 /*
   filesystem::path
 */
-
 %{
+#if __cplusplus >= 201703L
 #include <filesystem>
 #include <Python.h>
+#endif // __cplusplus >= 201703L
 %}
 
 %fragment("common", "header") {
     PyObject * importPathCls() {
         PyObject * module = PyImport_ImportModule("pathlib");
         PyObject * cls = PyObject_GetAttrString(module, "Path");
-        
+
         Py_DECREF(module);
-        
+
         return cls;
     }
 
@@ -77,12 +78,12 @@
 
 %typemap(out, fragment="common") std::filesystem::path {
     const std::string& s = $1.string();
-    
+
     PyObject * cls = importPathCls();
-    
+
     PyObject* args = Py_BuildValue("(s)", s.data());
     $result = PyObject_CallObject(cls, args);
-    
+
     Py_DECREF(cls);
     Py_DECREF(args);
 }

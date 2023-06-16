@@ -10,11 +10,28 @@ bool is_cplusplus17() {
 }
 %}
 
-#if __cplusplus >= 201703L
 %include "std_filesystem.i"
 
-%inline %{
+%{
+#if __cplusplus < 201703L
+// Dummy implementation
+namespace std::filesystem {
+  class path {
+   public:
+    path() = default;
+    path(const std::string& s) {}
+    std::string string() const { return ""; }
+    std::wstring wstring() const { return L""; }
+    std::string generic_string() const { return ""; }
+    std::wstring generic_wstring() const { return L""; }
+  };
+}
+#else
+#include <filesystem>
+#endif
+%}
 
+%inline %{
 /* Test the "out" typemap for std::filesystem::path */
 std::filesystem::path makePath(const std::string& s) {
     return std::filesystem::path(s);
@@ -65,5 +82,7 @@ std::string pathPtrToStr(const std::filesystem::path * p) {
     return p->string();
 }
 
+std::filesystem::path roundTrip(const std::filesystem::path& p) {
+    return p;
+}
 %}
-#endif // __cplusplus >= 201703L
