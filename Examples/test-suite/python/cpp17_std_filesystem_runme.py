@@ -2,6 +2,10 @@ import pathlib
 
 from cpp17_std_filesystem import *
 
+if not is_cplusplus17():
+    exit(0) # No-op
+
+
 def check(flag):
     if not flag:
         raise RuntimeError("Check failed")

@@ -1,5 +1,16 @@
 %module cpp17_std_filesystem
 
+%inline %{
+bool is_cplusplus17() {
+#if __cplusplus >= 201703L
+  return true;
+#else
+  return false;
+#endif
+}
+%}
+
+#if __cplusplus >= 201703L
 %include "std_filesystem.i"
 
 %inline %{
@@ -55,3 +66,4 @@ std::string pathPtrToStr(const std::filesystem::path * p) {
 }
 
 %}
+#endif // __cplusplus >= 201703L
