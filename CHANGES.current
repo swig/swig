@@ -8,6 +8,14 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-06-16: olly
+	    [Java] Remove deprecated command line options which have done
+	    nothing except emit a deprecation message since 2002 or before:
+
+	    -jnic / -jnicpp	JNI calling convention now automatic.
+	    -nofinalize		Use javafinalize typemap instead.
+	    -proxy / -shadow	Now on by default.
+
+2023-06-16: olly
 	    [Guile] Drop support for -Linkage ltdlmod which was only useful
 	    for Guile <= 1.4 which we no longer support.
 
