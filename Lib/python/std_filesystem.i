@@ -12,27 +12,21 @@
     PyObject * importPathCls() {
         PyObject * module = PyImport_ImportModule("pathlib");
         PyObject * cls = PyObject_GetAttrString(module, "Path");
-
         Py_DECREF(module);
-
         return cls;
     }
 
     bool isPathInstance(PyObject * obj) {
         PyObject * cls = importPathCls();
         bool is_instance =  PyObject_IsInstance(obj, cls);
-
         Py_DECREF(cls);
-
         return is_instance;
     }
 
     const char * pathToStr(PyObject * obj) {
-        PyObject * str_obj = PyObject_Str(obj);
-        const char * s = PyUnicode_AsUTF8(str_obj);
-
-        Py_DECREF(str_obj);
-
+        PyObject * str_obj = PyObject_Str(obj);     // New reference
+        const char * s = PyUnicode_AsUTF8(str_obj); // This stores the UTF-8 representation buffer within str_obj
+        // Py_DECREF(str_obj);                      // So we don't decref here
         return s;
     }
 }
