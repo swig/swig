@@ -62,6 +62,6 @@ check(pathPtrToStr(pathPtr), "foo")
 
 specialPath = pathlib.Path("/家/屋")
 roundTriped = roundTrip(specialPath)
-check(specialPath, roundTriped)
+assert specialPath == roundTriped, "'{p}' != '{p2}'".format(p=specialPath, p2=roundTriped)
 roundTripedSquared = roundTrip(roundTriped)
-check(specialPath, roundTripedSquared)
+assert specialPath == roundTripedSquared, "'{p}' != '{p2}'".format(p=specialPath, p2=roundTripedSquared)
