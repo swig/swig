@@ -344,7 +344,7 @@ Version 4.2.0 (in progress)
 2023-04-20: erezgeva
 	    [Go] #2533 Implement argcargv.i library for Go.
 
-2023-04-19: davidcl 
+2023-04-19: davidcl
             [Scilab] Add support for Scilab 2023.x.
 	    Introduce a `-gatewayxml6` options to generate an XML with full
 	    function names.
@@ -376,7 +376,7 @@ Version 4.2.0 (in progress)
             to STL containers. The new implementation uses the Python Iterator Protocol instead and
             thereby can convert from a Python set too.
 
-2023-03-25: alatina 
+2023-03-25: alatina
             [Octave] #2512 Add support for Octave 8.1.
 
 2023-03-22: wsfulton
@@ -588,7 +588,7 @@ Version 4.2.0 (in progress)
             example.i:6: Warning 404: previous instantiation of 'A< int >' with name 'Aint'.
 
             A single empty template instantiation before a named instantiation is the one exception
-            for allowing duplicate template instantiations as the empty template instantation does not
+            for allowing duplicate template instantiations as the empty template instantiation does not
             create a wrapper for the template, it merely adds the instantiation into SWIG's internal
             type system.
             Duplicate empty template instantiations are quietly ignored.
