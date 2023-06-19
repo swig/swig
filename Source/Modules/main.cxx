@@ -810,6 +810,9 @@ static void getoptions(int argc, char *argv[]) {
 static void SWIG_exit_handler(int status);
 
 #if defined(_WIN32)
+#  ifndef SWIG_LIB_RELATIVE_PATH
+#    define SWIG_LIB_RELATIVE_PATH "Lib"
+#  endif
 static String *get_swig_lib_path(void) {
   char buf[MAX_PATH];
   // TODO: if this is actually in install/bin/, need another call to strrchr
