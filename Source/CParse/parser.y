@@ -4657,8 +4657,6 @@ cpp_members  : cpp_member cpp_members {
 	     | error {
 	       Swig_error(cparse_file,cparse_line,"Syntax error in input(3).\n");
 	       Exit(EXIT_FAILURE);
-	       } cpp_members { 
-		 $$ = $3;
 	     }
              ;
 
