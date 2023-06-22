@@ -8,7 +8,7 @@ NODEJS = @NODEJS@
 SCRIPTSUFFIX = _runme.js
 OBJEXT = @OBJEXT@
 SO = @SO@
-GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I../../$(srcdir)/node_template
+GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I$(shell npm config get prefix)/lib/node_modules/node-addon-api
 
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
@@ -99,10 +99,8 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 		test -d $* || mkdir $* && \
 		sed -e 's|$$testcase|$*|g; s|$$cflags|$(GYP_CFLAGS)|g; s|$$cxxflags|"$(GYP_CXXFLAGS)"|g; s|$$srcdir|$(srcdir)|g' \
 			$(srcdir)/node_template/binding.gyp.in > $*/binding.gyp && \
-		sed -e 's|$$testcase|$*|g;' \
-			$(srcdir)/node_template/index.js.in | \
-				sed -e 's|$$build|$(BUILD)|g;' \
-				> $*/index.js
+		sed -e 's|$$testcase|$*|g; s|$$build|$(BUILD)|g;' \
+			$(srcdir)/node_template/index.js.in > $*/index.js
 		
 	# Note: we need to use swig in C parse mode, but make node-gyp believe it is c++ (via file extension)
 	swig_and_compile_c = \

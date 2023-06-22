@@ -56,6 +56,7 @@ case "$SWIGLANG" in
 				else
 					$RETRY npm install -g node-gyp
 				fi
+				$RETRY npm install -g node-addon-api
 				;;
 			"jsc")
 				$RETRY sudo apt-get install -qq libjavascriptcoregtk-${VER}-dev
