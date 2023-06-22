@@ -88,7 +88,6 @@ CPP_TEST_BROKEN += \
 	extend_variable \
 	li_boost_shared_ptr_template \
 	nested_private \
-	smart_pointer_static \
 	template_default_pointer \
 	template_private_assignment \
 	$(CPP11_TEST_BROKEN) \
