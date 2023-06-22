@@ -700,13 +700,7 @@ endif
 # Creating and building Javascript wrappers
 # ----------------------------------------------------------------
 
-# For in-source builds, the path is relative to ./build
-# For out-of-source builds, it is relative to the main src
-ifeq (,$(SRCDIR))
-NAPI_DIR=../../../test-suite/javascript/node_template
-else
-NAPI_DIR=../$(SRCDIR)../../test-suite/javascript/node_template
-endif
+NAPI_DIR=$(shell npm config get prefix)/lib/node_modules/node-addon-api
 
 javascript_wrapper:
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
