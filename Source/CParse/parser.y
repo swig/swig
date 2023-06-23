@@ -6872,12 +6872,16 @@ exprcompound   : expr PLUS expr {
 	       }
 	       | expr LESSEQUALGREATER expr {
 		 $$.val = NewStringf("%s <=> %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
-		 /* Really `<=>` returns one of `std::strong_ordering`,
-		  * `std::partial_ordering` or `std::weak_ordering`, but we
-		  * fake it by treating the return value as `int`.  The main
+		 /* `<=>` returns one of `std::strong_ordering`,
+		  * `std::partial_ordering` or `std::weak_ordering`.  The main
 		  * thing to do with the return value in this context is to
-		  * compare it with 0, for which `int` does the job. */
-		 $$.type = T_INT;
+		  * compare it with another ordering of the same type or
+		  * with a literal 0.  We set .type = T_USER here which does
+		  * what we want for the comparison operators, and also means
+		  * that deduce_type() won't deduce a type for this (which is
+		  * better than it deducing the wrong type).
+		  */
+		 $$.type = T_USER;
 	       }
 	       | expr QUESTIONMARK expr COLON expr %prec QUESTIONMARK {
 		 $$.val = NewStringf("%s?%s:%s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3), COMPOUND_EXPR_VAL($5));
