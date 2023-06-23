@@ -1786,7 +1786,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %{
 
 /* C++ decltype/auto type deduction. */
-static SwigType *deduce_type(struct Define *dtype) {
+static SwigType *deduce_type(const struct Define *dtype) {
   if (!dtype->val) return NULL;
   Node *n = Swig_symbol_clookup(dtype->val, 0);
   if (n) {
@@ -2206,9 +2206,9 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
    %importfile(option1="xyz", ...) "filename" [ declarations ]
    ------------------------------------------------------------ */
 
-include_directive: includetype options string BEGINFILE {
-                     $1.filename = Copy(cparse_file);
-		     $1.line = cparse_line;
+include_directive: includetype options string BEGINFILE <loc>{
+		     $$.filename = Copy(cparse_file);
+		     $$.line = cparse_line;
 		     scanner_set_location($3,1);
                      if ($2) { 
 		       String *maininput = Getattr($2, "maininput");
@@ -2218,7 +2218,7 @@ include_directive: includetype options string BEGINFILE {
                } interface ENDOFFILE {
                      String *mname = 0;
                      $$ = $6;
-		     scanner_set_location($1.filename,$1.line+1);
+		     scanner_set_location($5.filename, $5.line + 1);
 		     if (strcmp($1.type,"include") == 0) set_nodeType($$,"include");
 		     if (strcmp($1.type,"import") == 0) {
 		       mname = $2 ? Getattr($2,"module") : 0;
@@ -2858,13 +2858,14 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 		  Symtab *tscope = 0;
 		  String *symname = $3 ? NewString($3) : 0;
 		  int errored_flag = 0;
+		  String *idcolonnt;
 
 		  $$ = 0;
 
 		  tscope = Swig_symbol_current();          /* Get the current scope */
 
 		  /* If the class name is qualified, we need to create or lookup namespace entries */
-		  $5 = resolve_create_node_scope($5, 0, &errored_flag);
+		  idcolonnt = resolve_create_node_scope($5, 0, &errored_flag);
 
 		  if (!errored_flag) {
 		    if (nscope_inner && Strcmp(nodeType(nscope_inner), "class") == 0)
@@ -2877,7 +2878,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 		      This is closer to the C++ (typedef) behavior.
 		    */
-		    n = Swig_cparse_template_locate($5, $7, symname, tscope);
+		    n = Swig_cparse_template_locate(idcolonnt, $7, symname, tscope);
 		  }
 
 		  /* Patch the argument types to respect namespaces */
@@ -2920,7 +2921,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			  int nnisclass = (Strcmp(Getattr(nn, "templatetype"), "class") == 0); /* if not a class template it is a function template */
 			  Parm *tparms = Getattr(nn, "templateparms");
 			  int specialized = !tparms; /* fully specialized (an explicit specialization) */
-			  String *tname = Copy($5);
+			  String *tname = Copy(idcolonnt);
 			  Node *primary_template = Swig_symbol_clookup(tname, 0);
 
 			  /* Expand the template */
@@ -3762,8 +3763,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   Setattr($$, "nested:nscope", nscope);
 		   Setfile(scope,cparse_file);
 		   Setline(scope,cparse_line);
-		   $3 = scope;
-		   Setattr($$,"name",$3);
+		   Setattr($$, "name", scope);
 
 		   if (currentOuterClass) {
 		     SetFlag($$, "nested");
@@ -3772,20 +3772,20 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   }
 		   Swig_features_get(Swig_cparse_features(), Namespaceprefix, Getattr($$, "name"), 0, $$);
 		   /* save yyrename to the class attribute, to be used later in add_symbols()*/
-		   Setattr($$, "class_rename", make_name($$, $3, 0));
-		   Setattr($$, "Classprefix", $3);
-		   Classprefix = NewString($3);
+		   Setattr($$, "class_rename", make_name($$, scope, 0));
+		   Setattr($$, "Classprefix", scope);
+		   Classprefix = NewString(scope);
 		   /* Deal with inheritance  */
 		   if ($5)
-		     bases = Swig_make_inherit_list($3,Getattr($5,"public"),Namespaceprefix);
-		   prefix = SwigType_istemplate_templateprefix($3);
+		     bases = Swig_make_inherit_list(scope, Getattr($5, "public"), Namespaceprefix);
+		   prefix = SwigType_istemplate_templateprefix(scope);
 		   if (prefix) {
 		     String *fbase, *tbase;
 		     if (Namespaceprefix) {
-		       fbase = NewStringf("%s::%s", Namespaceprefix,$3);
+		       fbase = NewStringf("%s::%s", Namespaceprefix, scope);
 		       tbase = NewStringf("%s::%s", Namespaceprefix, prefix);
 		     } else {
-		       fbase = Copy($3);
+		       fbase = Copy(scope);
 		       tbase = Copy(prefix);
 		     }
 		     Swig_name_inherit(tbase,fbase);
@@ -3801,7 +3801,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		     set_scope_to_global();
 		   }
 		   Swig_symbol_newscope();
-		   Swig_symbol_setscopename($3);
+		   Swig_symbol_setscopename(scope);
 		   Swig_inherit_base_symbols(bases);
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
@@ -3836,7 +3836,6 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   Symtab *cscope;
 		   Node *am = 0;
 		   String *scpname = 0;
-		   (void) $7;
 		   $$ = currentOuterClass;
 		   currentOuterClass = Getattr($$, "nested:outer");
 		   nscope_inner = Getattr($$, "nested:innerscope");
@@ -3889,9 +3888,9 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   if (nscope_inner) {
 		     ty = NewString(scpname); /* if the class is declared out of scope, let the declarator use fully qualified type*/
 		   } else if (cparse_cplusplus && !cparse_externc) {
-		     ty = NewString($3);
+		     ty = NewString(Getattr($7, "name"));
 		   } else {
-		     ty = NewStringf("%s %s", $2, $3);
+		     ty = NewStringf("%s %s", $2, Getattr($7, "name"));
 		   }
 		   while (p) {
 		     Setattr(p, "storage", $1);
@@ -3903,7 +3902,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		     p = nextSibling(p);
 		   }
 		   if ($10 && Cmp($1,"typedef") == 0)
-		     add_typedef_name($$, $10, $3, cscope, scpname);
+		     add_typedef_name($$, $10, Getattr($7, "name"), cscope, scpname);
 		   Delete(scpname);
 
 		   if (cplus_mode != CPLUS_PUBLIC) {
@@ -3925,12 +3924,12 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   if (cplus_mode == CPLUS_PRIVATE) {
 		     $$ = 0; /* skip private nested classes */
 		   } else if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
-		     $$ = nested_forward_declaration($1, $2, $3, Copy($3), $10);
+		     $$ = nested_forward_declaration($1, $2, Getattr($7, "name"), Copy(Getattr($7, "name")), $10);
 		   } else if (nscope_inner) {
 		     /* this is tricky */
 		     /* we add the declaration in the original namespace */
 		     if (Strcmp(nodeType(nscope_inner), "class") == 0 && cparse_cplusplus && ignore_nested_classes && !GetFlag($$, "feature:flatnested"))
-		       $$ = nested_forward_declaration($1, $2, $3, Copy($3), $10);
+		       $$ = nested_forward_declaration($1, $2, Getattr($7, "name"), Copy(Getattr($7, "name")), $10);
 		     appendChild(nscope_inner, $$);
 		     Swig_symbol_setscope(Getattr(nscope_inner, "symtab"));
 		     Delete(Namespaceprefix);
@@ -4189,10 +4188,11 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			  Swig_symbol_setscope(sti);
 			  Delete(Namespaceprefix);
 			  Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-			  $6 = ni;
+			  $$ = ni;
+			} else {
+			  $$ = $6;
 			}
 
-			$$ = $6;
 			if ($$) tname = Getattr($$,"name");
 			
 			/* Check if the class is a template specialization */
@@ -4215,7 +4215,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			  Setattr($$,"templatetype",nodeType($$));
 			  set_nodeType($$,"template");
 			  /* Template partial specialization */
-			  if (tempn && ($3) && ($6)) {
+			  if (tempn && ($3) && ($$)) {
 			    ParmList *primary_templateparms = Getattr(tempn, "templateparms");
 			    String *targs = SwigType_templateargs(tname); /* tname contains name and specialized template parameters, for example: X<(p.T,TT)> */
 			    List *tlist = SwigType_parmlist(targs);
@@ -4329,7 +4329,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			    Delete(fname);
 			  }
 			}  else if ($$) {
-			  Setattr($$,"templatetype",nodeType($6));
+			  Setattr($$, "templatetype", nodeType($$));
 			  set_nodeType($$,"template");
 			  Setattr($$,"templateparms", $3);
 			  if (!Getattr($$,"sym:weak")) {
@@ -4572,9 +4572,9 @@ Printf(stdout, "  Scope %s [creating single scope C++17 style]\n", scopename);
 		Delete($5);
 		$$ = top_ns;
              } 
-             | NAMESPACE LBRACE {
+             | NAMESPACE LBRACE <node>{
 	       Hash *h;
-	       $1 = Swig_symbol_current();
+	       $$ = Swig_symbol_current();
 	       h = Swig_symbol_clookup("    ",0);
 	       if (h && (Strcmp(nodeType(h),"namespace") == 0)) {
 		 Swig_symbol_setscope(Getattr(h,"symtab"));
@@ -4589,7 +4589,7 @@ Printf(stdout, "  Scope %s [creating single scope C++17 style]\n", scopename);
 	       set_nodeType($$,"namespace");
 	       Setattr($$,"unnamed","1");
 	       Setattr($$,"symtab", Swig_symbol_popscope());
-	       Swig_symbol_setscope($1);
+	       Swig_symbol_setscope($3);
 	       Delete(Namespaceprefix);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       add_symbols($$);
@@ -6259,13 +6259,14 @@ decltypeexpr   : expr RPAREN {
 	       ;
 
 primitive_type : primitive_type_list {
-		 if (!$1.type) $1.type = NewString("int");
+		 String *type = $1.type;
+		 if (!type) type = NewString("int");
 		 if ($1.us) {
-		   $$ = NewStringf("%s %s", $1.us, $1.type);
+		   $$ = NewStringf("%s %s", $1.us, type);
 		   Delete($1.us);
-                   Delete($1.type);
+                   Delete(type);
 		 } else {
-                   $$ = $1.type;
+                   $$ = type;
 		 }
 		 if (Cmp($$,"signed int") == 0) {
 		   Delete($$);
