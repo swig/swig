@@ -109,74 +109,53 @@ SwigType *NewSwigType(int t) {
   switch (t) {
   case T_BOOL:
     return NewString("bool");
-    break;
   case T_INT:
     return NewString("int");
-    break;
   case T_UINT:
     return NewString("unsigned int");
-    break;
   case T_SHORT:
     return NewString("short");
-    break;
   case T_USHORT:
     return NewString("unsigned short");
-    break;
   case T_LONG:
     return NewString("long");
-    break;
   case T_ULONG:
     return NewString("unsigned long");
-    break;
   case T_FLOAT:
     return NewString("float");
-    break;
   case T_DOUBLE:
     return NewString("double");
-    break;
   case T_LONGDOUBLE:
     return NewString("long double");
-    break;
   case T_COMPLEX:
     return NewString("_Complex");
-    break;
   case T_CHAR:
     return NewString("char");
-    break;
   case T_SCHAR:
     return NewString("signed char");
-    break;
   case T_UCHAR:
     return NewString("unsigned char");
-    break;
   case T_STRING: {
       SwigType *t = NewString("char");
       SwigType_add_qualifier(t, "const");
       SwigType_add_pointer(t);
       return t;
-      break;
     }
   case T_WCHAR:
     return NewString("wchar_t");
-    break;
   case T_WSTRING: {
     SwigType *t = NewString("wchar_t");
     SwigType_add_pointer(t);
     return t;
-    break;
   }
   case T_LONGLONG:
     return NewString("long long");
-    break;
   case T_ULONGLONG:
     return NewString("unsigned long long");
-    break;
   case T_VOID:
     return NewString("void");
-    break;
   case T_AUTO:
     return NewString("auto");
-    break;
   default:
     break;
   }

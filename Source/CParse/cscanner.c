@@ -434,7 +434,6 @@ static int yylook(void) {
       Scanner_skip_line(scan);
       yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
       return POUND;
-      break;
       
     case SWIG_TOKEN_CODEBLOCK:
       yylval.str = NewString(Scanner_text(scan));

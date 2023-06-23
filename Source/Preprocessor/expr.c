@@ -138,7 +138,6 @@ static int reduce_op(void) {
     default:
       errmsg = "Syntax error: bad binary operator for strings";
       return 0;
-      break;
     }
   } else {
     switch (op_token) {
@@ -243,7 +242,6 @@ static int reduce_op(void) {
     default:
       errmsg = "Syntax error: bad operator";
       return 0;
-      break;
     }
   }
   stack[sp].op = EXPR_VALUE;
