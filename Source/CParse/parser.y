@@ -2043,7 +2043,7 @@ clear_directive : CLEAR tm_list SEMI {
    ------------------------------------------------------------ */
 
 constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
-		   if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
+		   if ($4.type != T_ERROR) {
 		     SwigType *type = NewSwigType($4.type);
 		     $$ = new_node("constant");
 		     Setattr($$,"name",$2);
@@ -2055,15 +2055,13 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		     add_symbols($$);
 		     Delete(type);
 		   } else {
-		     if ($4.type == T_ERROR) {
-		       Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line,"Unsupported constant value (ignored)\n");
-		     }
+		     Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line,"Unsupported constant value (ignored)\n");
 		     $$ = 0;
 		   }
 
 	       }
                | CONSTANT type declarator def_args SEMI {
-		 if (($4.type != T_ERROR) && ($4.type != T_SYMBOL)) {
+		 if ($4.type != T_ERROR) {
 		   SwigType_push($2,$3.type);
 		   /* Sneaky callback function trick */
 		   if (SwigType_isfunction($2)) {
@@ -2078,16 +2076,14 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		   SetFlag($$,"feature:immutable");
 		   add_symbols($$);
 		 } else {
-		   if ($4.type == T_ERROR) {
-		     Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line, "Unsupported constant value\n");
-		   }
+		   Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line, "Unsupported constant value\n");
 		   $$ = 0;
 		 }
                }
 	       /* Member function pointers with qualifiers. eg.
 	         %constant short (Funcs::*pmf)(bool) const = &Funcs::F; */
 	       | CONSTANT type direct_declarator LPAREN parms RPAREN cv_ref_qualifier def_args SEMI {
-		 if (($8.type != T_ERROR) && ($8.type != T_SYMBOL)) {
+		 if ($8.type != T_ERROR) {
 		   SwigType_add_function($2, $5);
 		   SwigType_push($2, $7.qualifier);
 		   SwigType_push($2, $3.type);
@@ -2104,9 +2100,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		   SetFlag($$, "feature:immutable");
 		   add_symbols($$);
 		 } else {
-		   if ($8.type == T_ERROR) {
-		     Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line, "Unsupported constant value\n");
-		   }
+		   Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line, "Unsupported constant value\n");
 		   $$ = 0;
 		 }
 	       }
