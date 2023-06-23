@@ -1420,7 +1420,8 @@ int SwigType_type(const SwigType *t) {
       c++;
     if (*c)
       return SwigType_type(c + 1);
-    return T_ERROR;
+    Printf(stderr, "*** Internal error: Invalid type string '%s'\n", t);
+    Exit(EXIT_FAILURE);
   }
   if (strncmp(c, "f(", 2) == 0)
     return T_FUNCTION;

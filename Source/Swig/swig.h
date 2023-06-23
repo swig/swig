@@ -96,10 +96,6 @@ extern "C" {
 #define   T_RVALUE_REFERENCE  40
 #define   T_WSTRING    41
 
-#define   T_ERROR      99
-
-
-
 /* --- File interface --- */
 
 #include "swigfile.h"

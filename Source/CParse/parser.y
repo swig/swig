@@ -2043,66 +2043,50 @@ clear_directive : CLEAR tm_list SEMI {
    ------------------------------------------------------------ */
 
 constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
-		   if ($4.type != T_ERROR) {
-		     SwigType *type = NewSwigType($4.type);
-		     $$ = new_node("constant");
-		     Setattr($$,"name",$2);
-		     Setattr($$,"type",type);
-		     Setattr($$,"value",$4.val);
-		     if ($4.rawval) Setattr($$,"rawval", $4.rawval);
-		     Setattr($$,"storage","%constant");
-		     SetFlag($$,"feature:immutable");
-		     add_symbols($$);
-		     Delete(type);
-		   } else {
-		     Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line,"Unsupported constant value (ignored)\n");
-		     $$ = 0;
-		   }
-
+		 SwigType *type = NewSwigType($4.type);
+		 $$ = new_node("constant");
+		 Setattr($$,"name",$2);
+		 Setattr($$,"type",type);
+		 Setattr($$,"value",$4.val);
+		 if ($4.rawval) Setattr($$,"rawval", $4.rawval);
+		 Setattr($$,"storage","%constant");
+		 SetFlag($$,"feature:immutable");
+		 add_symbols($$);
+		 Delete(type);
 	       }
                | CONSTANT type declarator def_args SEMI {
-		 if ($4.type != T_ERROR) {
-		   SwigType_push($2,$3.type);
-		   /* Sneaky callback function trick */
-		   if (SwigType_isfunction($2)) {
-		     SwigType_add_pointer($2);
-		   }
-		   $$ = new_node("constant");
-		   Setattr($$,"name",$3.id);
-		   Setattr($$,"type",$2);
-		   Setattr($$,"value",$4.val);
-		   if ($4.rawval) Setattr($$,"rawval", $4.rawval);
-		   Setattr($$,"storage","%constant");
-		   SetFlag($$,"feature:immutable");
-		   add_symbols($$);
-		 } else {
-		   Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line, "Unsupported constant value\n");
-		   $$ = 0;
+		 SwigType_push($2,$3.type);
+		 /* Sneaky callback function trick */
+		 if (SwigType_isfunction($2)) {
+		   SwigType_add_pointer($2);
 		 }
+		 $$ = new_node("constant");
+		 Setattr($$,"name",$3.id);
+		 Setattr($$,"type",$2);
+		 Setattr($$,"value",$4.val);
+		 if ($4.rawval) Setattr($$,"rawval", $4.rawval);
+		 Setattr($$,"storage","%constant");
+		 SetFlag($$,"feature:immutable");
+		 add_symbols($$);
                }
 	       /* Member function pointers with qualifiers. eg.
 	         %constant short (Funcs::*pmf)(bool) const = &Funcs::F; */
 	       | CONSTANT type direct_declarator LPAREN parms RPAREN cv_ref_qualifier def_args SEMI {
-		 if ($8.type != T_ERROR) {
-		   SwigType_add_function($2, $5);
-		   SwigType_push($2, $7.qualifier);
-		   SwigType_push($2, $3.type);
-		   /* Sneaky callback function trick */
-		   if (SwigType_isfunction($2)) {
-		     SwigType_add_pointer($2);
-		   }
-		   $$ = new_node("constant");
-		   Setattr($$, "name", $3.id);
-		   Setattr($$, "type", $2);
-		   Setattr($$, "value", $8.val);
-		   if ($8.rawval) Setattr($$, "rawval", $8.rawval);
-		   Setattr($$, "storage", "%constant");
-		   SetFlag($$, "feature:immutable");
-		   add_symbols($$);
-		 } else {
-		   Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE,cparse_file,cparse_line, "Unsupported constant value\n");
-		   $$ = 0;
+		 SwigType_add_function($2, $5);
+		 SwigType_push($2, $7.qualifier);
+		 SwigType_push($2, $3.type);
+		 /* Sneaky callback function trick */
+		 if (SwigType_isfunction($2)) {
+		   SwigType_add_pointer($2);
 		 }
+		 $$ = new_node("constant");
+		 Setattr($$, "name", $3.id);
+		 Setattr($$, "type", $2);
+		 Setattr($$, "value", $8.val);
+		 if ($8.rawval) Setattr($$, "rawval", $8.rawval);
+		 Setattr($$, "storage", "%constant");
+		 SetFlag($$, "feature:immutable");
+		 add_symbols($$);
 	       }
                | CONSTANT error SEMI {
 		 Swig_warning(WARN_PARSE_BAD_VALUE,cparse_file,cparse_line,"Bad constant value (ignored).\n");
@@ -5279,33 +5263,11 @@ callptail      : COMMA valexpr callptail {
 	       ;
 
 def_args       : EQUAL definetype { 
-                  $$ = $2; 
-		  if ($2.type == T_ERROR) {
-		    Swig_warning(WARN_PARSE_BAD_DEFAULT,cparse_file, cparse_line, "Can't set default argument (ignored)\n");
-		    $$.val = 0;
-		    $$.rawval = 0;
-		    $$.bitfield = 0;
-		    $$.throws = 0;
-		    $$.throwf = 0;
-		    $$.nexcept = 0;
-		    $$.final = 0;
-		  }
+                 $$ = $2;
                }
                | EQUAL definetype LBRACKET expr RBRACKET { 
-		  $$ = $2;
-		  if ($2.type == T_ERROR) {
-		    Swig_warning(WARN_PARSE_BAD_DEFAULT,cparse_file, cparse_line, "Can't set default argument (ignored)\n");
-		    $$ = $2;
-		    $$.val = 0;
-		    $$.rawval = 0;
-		    $$.bitfield = 0;
-		    $$.throws = 0;
-		    $$.throwf = 0;
-		    $$.nexcept = 0;
-		    $$.final = 0;
-		  } else {
-		    $$.val = NewStringf("%s[%s]",$2.val,$4.val); 
-		  }		  
+		 $$ = $2;
+		 $$.val = NewStringf("%s[%s]", $2.val, $4.val);
                }
                | EQUAL LBRACE {
 		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
