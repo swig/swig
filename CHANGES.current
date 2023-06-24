@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-06-24: wsfulton
+            #2616 Fix directors and allprotected mode and using declarations.
+            Previously SWIG either seg faulted or generated code that did not
+            compile.
+
 2023-06-20: olly
 	    #2486 Fix handling of template in array size, which was being
 	    rejected by SWIG because the type string contains '<' not followed

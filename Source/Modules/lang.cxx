@@ -2195,7 +2195,7 @@ int Language::classDirector(Node *n) {
   Node *ni;
   String *using_protected_members_code = NewString("");
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
-    Node *nodeType = Getattr(ni, "nodeType");
+    Node *nodeType = nodeType(ni);
     if (Cmp(nodeType, "destructor") == 0 && GetFlag(ni, "final")) {
       String *classtype = Getattr(n, "classtype");
       SWIG_WARN_NODE_BEGIN(ni);
@@ -2206,13 +2206,18 @@ int Language::classDirector(Node *n) {
       Delete(using_protected_members_code);
       return SWIG_OK;
     }
-    bool cdeclaration = (Cmp(nodeType, "cdecl") == 0);
-    if (cdeclaration && !GetFlag(ni, "feature:ignore")) {
-      if (isNonVirtualProtectedAccess(ni)) {
-        Node *overloaded = Getattr(ni, "sym:overloaded");
+    Node *nn = ni;
+    bool cdeclaration = Equal(nodeType, "cdecl");
+    if (!cdeclaration && Equal(nodeType, "using")) {
+      nn = Getattr(ni, "firstChild");
+      cdeclaration = nn && Equal(nodeType(nn), "cdecl") ? true : false;
+    }
+    if (cdeclaration && !GetFlag(nn, "feature:ignore")) {
+      if (isNonVirtualProtectedAccess(nn)) {
+        Node *overloaded = Getattr(nn, "sym:overloaded");
         // emit the using base::member statement (but only once if the method is overloaded)
-        if (!overloaded || (overloaded && (overloaded == ni)))
-          Printf(using_protected_members_code, "    using %s::%s;\n", SwigType_namestr(ClassName), Getattr(ni, "name"));
+        if (!overloaded || (overloaded && (overloaded == nn)))
+          Printf(using_protected_members_code, "    using %s::%s;\n", SwigType_namestr(ClassName), Getattr(nn, "name"));
       }
     }
   }

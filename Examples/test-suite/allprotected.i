@@ -85,3 +85,34 @@ public:
 };
 %}
 
+%ignore AllProtectedTop;
+%feature("director") AllProtectedBottom;
+
+%inline %{
+  class AllProtectedTop {
+  public:
+    virtual ~AllProtectedTop() {}
+    void doSomething(int row) {}
+    void doSomething() {}
+    void usingOverloaded(int row) {}
+    void usingOverloaded() {}
+    void usingSingle() {}
+    void private1() {}
+    void private2() {}
+    void private2(int) {}
+  };
+
+  class AllProtectedBottom : public AllProtectedTop {
+  public:
+    virtual void apb() {}
+  protected:
+    // allprotected makes the following public in the director class
+    using AllProtectedTop::usingOverloaded;
+    using AllProtectedTop::usingSingle;
+    void doSomething(int row) {}
+    void doSomething() {}
+  private:
+    using AllProtectedTop::private1;
+    using AllProtectedTop::private2;
+  };
+%}

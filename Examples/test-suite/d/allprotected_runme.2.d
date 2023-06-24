@@ -2,12 +2,16 @@ module allprotected_runme;
 
 import allprotected.Klass;
 import allprotected.ProtectedBase;
+import allprotected.AllProtectedBottom;
 import std.conv : text;
 import std.exception : enforce;
 
 void main() {
   auto mpb = new MyProtectedBase("MyProtectedBase");
   mpb.accessProtected();
+
+  MyAllProtectedBottom mapb = new MyAllProtectedBottom();
+  mapb.callProtectedMethods();
 }
 
 class MyProtectedBase : ProtectedBase {
@@ -59,5 +63,17 @@ public:
     anEnum = ProtectedBase.AnEnum.EnumVal1;
     ProtectedBase.AnEnum ae = anEnum;
     enforce(ae == ProtectedBase.AnEnum.EnumVal1);
+  }
+}
+
+class MyAllProtectedBottom : AllProtectedBottom
+{
+public:
+  void callProtectedMethods() {
+    usingOverloaded();
+    usingOverloaded(99);
+    usingSingle();
+    doSomething();
+    doSomething(99);
   }
 }

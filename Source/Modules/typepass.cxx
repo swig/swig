@@ -1081,6 +1081,9 @@ class TypePass:private Dispatcher {
 		      Symtab *st = Getattr(n, "sym:symtab");
 		      assert(st);
 		      Setattr(nn, "sym:symtab", st);
+		      // The real parent is the "using" declaration node, but subsequent code generally handles
+		      // and expects a class member to point to the parent class node
+		      Setattr(nn, "parentNode", parentNode(n));
 
 		      if (!GetFlag(nn, "feature:ignore")) {
 			ParmList *parms = CopyParmList(Getattr(c, "parms"));
