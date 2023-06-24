@@ -39,7 +39,9 @@
 
   These allocation/freeing macros are safe to use in C or C++ and
   dispatch the proper new/delete/delete[] or free/malloc calls as
-  needed.
+  needed.  A failure to allocate memory results in NULL (for C
+  this has always been the case; for C++, SWIG < 4.2.0 would
+  throw std::bad_alloc instead).
 
     %new_instance(Type)             Allocate a new instance of given Type
     %new_copy(value,Type)           Allocate and initialize a new instance with 'value'
@@ -140,10 +142,11 @@ nocppval
  * ----------------------------------------------------------------------------- */
 
 #if defined(__cplusplus)
-# define %new_instance(Type...)             (new Type())
-# define %new_copy(val,Type...)             (new Type(%static_cast(val, const Type&)))
-# define %new_array(size,Type...)           (new Type[size]())
-# define %new_copy_array(ptr,size,Type...)  %reinterpret_cast(memcpy(new Type[size], ptr, sizeof(Type)*(size)), Type*)
+%fragment("<new>");
+# define %new_instance(Type...)             (new(std::nothrow) Type())
+# define %new_copy(val,Type...)             (new(std::nothrow) Type(%static_cast(val, const Type&)))
+# define %new_array(size,Type...)           (new(std::nothrow) Type[size]())
+# define %new_copy_array(ptr,size,Type...)  %reinterpret_cast(memcpy(new(std::nothrow) Type[size], ptr, sizeof(Type)*(size)), Type*)
 # define %delete(cptr)                      delete cptr
 # define %delete_array(cptr)                delete[] cptr
 #else /* C case */
