@@ -3232,6 +3232,10 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      if ($4.qualifier && $1 && Strstr($1, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
            }
+	   | storage_class type declarator cpp_const EQUAL error SEMI {
+	      Swig_warning(999, cparse_file, cparse_line, "Ignoring declaration of '%s' due to parser limitation.\n", $3.id);
+	      $$ = 0;
+	   }
            /* Alternate function syntax introduced in C++11:
               auto funcName(int x, int y) -> int; */
            | storage_class AUTO declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt initializer c_decl_tail {
