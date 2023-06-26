@@ -1186,10 +1186,34 @@ else
   AC_CHECK_PROGS(NODEJS, [node nodejs])
 
   if test -n "$NODEJS"; then
-    # node-gyp is needed to run the test-suite/examples
+    # node-gyp and npm are needed to run the test-suite/examples
     AC_CHECK_PROGS(NODEGYP, node-gyp)
     if test -z "$NODEGYP"; then
       NODEJS=
+    fi
+    AC_CHECK_PROGS(NODENPM, npm)
+    if test -z "$NODENPM"; then
+      NODEJS=
+    fi
+    JSNAPIENABLED=
+    if test -n "$NODEJS"; then
+      AC_LANG_PUSH([C++])
+      NODENAPI_DIR=$(npm config get prefix)/lib/node_modules/node-addon-api
+      CXXFLAGS_SAVED=$CXXFLAGS
+      CXXFLAGS="$CXXFLAGS -I/usr/include/node -I/usr/local/include/node -I$NODENAPI_DIR"
+      AC_CHECK_HEADERS([node_api.h napi.h], [JSNAPIENABLED=1], [])
+      CXXFLAGS=$CXXFLAGS_SAVED
+
+      AC_LANG_POP([C++])
+      AC_SUBST(NODENAPI_DIR)
+    fi
+    AC_SUBST(JSNAPIENABLED)
+  
+    AC_MSG_CHECKING(for Node-API (napi) generator support)
+    if test -n "$JSNAPIENABLED"; then
+      AC_MSG_RESULT(enabled)
+    else
+      AC_MSG_RESULT(disabled)
     fi
   fi
 
@@ -2624,7 +2648,7 @@ AC_SUBST(SKIP_JAVA)
 
 
 SKIP_JAVASCRIPT=
-if test -z "$JAVASCRIPT" || ( test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" ) ; then
+if test -z "$JAVASCRIPT" || ( test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" && test -z "$JSNAPIENABLED" ) ; then
     SKIP_JAVASCRIPT="1"
 fi
 AC_SUBST(SKIP_JAVASCRIPT)

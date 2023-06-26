@@ -700,7 +700,7 @@ endif
 # Creating and building Javascript wrappers
 # ----------------------------------------------------------------
 
-NAPI_DIR=$(shell npm config get prefix)/lib/node_modules/node-addon-api
+NAPI_DIR = @NODENAPI_DIR@
 
 javascript_wrapper:
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
