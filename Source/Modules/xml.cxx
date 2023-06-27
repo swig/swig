@@ -281,7 +281,7 @@ public:
  * up being a post-processing version of the tree.
  * ----------------------------------------------------------------------------- */
 
-void Swig_print_xml(DOH *obj, String *filename) {
+void Swig_print_xml(Node *obj, String *filename) {
   XML xml;
   xmllite = 1;
 
