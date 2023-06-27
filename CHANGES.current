@@ -7,6 +7,24 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-06-27: olly
+	    [Java] Completely remove pragmas which were deprecated in 2002 and
+	    have triggered an error since SWIG 2.0:
+
+	    moduleimport		Use the moduleimports pragma
+	    moduleinterface		Use the moduleinterfaces pragma
+	    modulemethodmodifiers	Use %javamethodmodifiers
+	    allshadowimport		Use %typemap(javaimports)
+	    allshadowcode		Use %typemap(javacode)
+	    allshadowbase		Use %typemap(javabase)
+	    allshadowinterface		Use %typemap(javainterfaces)
+	    allshadowclassmodifiers	Use %typemap(javaclassmodifiers)
+	    shadowcode			Use %typemap(javacode)
+	    shadowimport		Use %typemap(javaimports)
+	    shadowbase			Use %typemap(javabase)
+	    shadowinterface		Use %typemap(javainterfaces)
+	    shadowclassmodifiers	Use %typemap(javaclassmodifiers)
+
 2023-06-24: wsfulton
             #2616 Fix directors and allprotected mode and using declarations.
             Previously SWIG either seg faulted or generated code that did not

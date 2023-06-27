@@ -1748,36 +1748,6 @@ public:
 	} else if (Strcmp(code, "moduleinterfaces") == 0) {
 	  Delete(module_interfaces);
 	  module_interfaces = Copy(strvalue);
-	} else if (Strcmp(code, "moduleimport") == 0) {
-	  Swig_error(input_file, line_number, "Deprecated pragma. Please use the moduleimports pragma.\n");
-	} else if (Strcmp(code, "moduleinterface") == 0) {
-	  Swig_error(input_file, line_number, "Deprecated pragma. Please use the moduleinterfaces pragma.\n");
-	} else if (Strcmp(code, "modulemethodmodifiers") == 0) {
-	  Swig_error(input_file, line_number, "Deprecated pragma. Please use %%javamethodmodifiers.\n");
-	} else if (Strcmp(code, "allshadowimport") == 0) {
-	  Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javaimports).\n");
-	} else if (Strcmp(code, "allshadowcode") == 0) {
-	  Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javacode).\n");
-	} else if (Strcmp(code, "allshadowbase") == 0) {
-	  Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javabase).\n");
-	} else if (Strcmp(code, "allshadowinterface") == 0) {
-	  Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javainterfaces).\n");
-	} else if (Strcmp(code, "allshadowclassmodifiers") == 0) {
-	  Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javaclassmodifiers).\n");
-	} else if (proxy_flag) {
-	  if (Strcmp(code, "shadowcode") == 0) {
-	    Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javacode).\n");
-	  } else if (Strcmp(code, "shadowimport") == 0) {
-	    Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javaimports).\n");
-	  } else if (Strcmp(code, "shadowbase") == 0) {
-	    Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javabase).\n");
-	  } else if (Strcmp(code, "shadowinterface") == 0) {
-	    Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javainterfaces).\n");
-	  } else if (Strcmp(code, "shadowclassmodifiers") == 0) {
-	    Swig_error(input_file, line_number, "Deprecated pragma. Please use %%typemap(javaclassmodifiers).\n");
-	  } else {
-	    Swig_error(input_file, line_number, "Unrecognized pragma.\n");
-	  }
 	} else {
 	  Swig_error(input_file, line_number, "Unrecognized pragma.\n");
 	}
