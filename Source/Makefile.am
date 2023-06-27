@@ -97,9 +97,6 @@ eswig_SOURCES =	CParse/cscanner.c		\
 
 bin_PROGRAMS = eswig
 
-# Override the link stage to avoid using Libtool
-CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-
 CParse/parser.c CParse/parser.h: CParse/parser.y
 	$(BISON) $(AM_YFLAGS) $(YFLAGS) --output=CParse/parser.c $(srcdir)/CParse/parser.y
 
