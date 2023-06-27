@@ -93,6 +93,17 @@ Version 4.2.0 (in progress)
 	    %typemap(except)	Use %exception instead.
 	    %typemap(ignore)	Use %typemap(in,numinputs=0) instead.
 	    %val		Use typemaps instead.
+	    -debug_template	Use -debug-template instead.
+	    -debug_typemap	Use -debug-typemap instead.
+	    -dump_classes	Use -debug-classes instead.
+	    -dump_memory	Use -debug-memory instead.
+	    -dump_module	Use -debug-module 4 instead.
+	    -dump_parse_module	Use -debug-module 1 instead.
+	    -dump_parse_top	Use -debug-top 1 instead.
+	    -dump_tags		Use -debug-tags instead.
+	    -dump_top		Use -debug-top 4 instead.
+	    -dump_tree		Use -debug-top 4 instead.
+	    -dump_typedef	Use -debug-typedef instead.
 	    -make_default	On by default since SWIG 1.3.7 (2001-09-03).
 	    -makedefault	On by default since SWIG 1.3.7 (2001-09-03).
 	    -no_default		Use %nodefaultctor/%nodedefaultdtor instead.
@@ -100,6 +111,8 @@ Version 4.2.0 (in progress)
 	    -noextern option	On by default since SWIG 1.3.26 (2005-10-09).
 	    -noruntime		Type sharing happens via target lang global.
 	    -runtime		Type sharing happens via target lang global.
+	    -show_templates	Use -debug-template instead.
+	    -tm_debug		Use -debug-typemap instead.
 	    -xml out.xml	Use -xml -o out.xml instead.
 	    BOTH typemap rule	Use INOUT typemap rule instead.
 

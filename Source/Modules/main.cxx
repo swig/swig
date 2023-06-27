@@ -522,7 +522,7 @@ static void getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-addextern") == 0) {
 	AddExtern = 1;
 	Swig_mark_arg(i);
-      } else if ((strcmp(argv[i], "-debug-template") == 0) || (strcmp(argv[i], "-debug_template") == 0) || (strcmp(argv[i], "-show_templates") == 0)) {
+      } else if (strcmp(argv[i], "-debug-template") == 0) {
 	Swig_cparse_debug_templates(1);
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-templatereduce") == 0) {
@@ -643,7 +643,7 @@ static void getoptions(int argc, char *argv[]) {
 	} else {
 	  Swig_arg_error();
 	}
-      } else if ((strcmp(argv[i], "-debug-typemap") == 0) || (strcmp(argv[i], "-debug_typemap") == 0) || (strcmp(argv[i], "-tm_debug") == 0)) {
+      } else if (strcmp(argv[i], "-debug-typemap") == 0) {
 	tm_debug = 1;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-debug-tmsearch") == 0) {
@@ -737,7 +737,7 @@ static void getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-debug-lsymbols") == 0) {
 	dump_lang_symbols = 1;
 	Swig_mark_arg(i);
-      } else if ((strcmp(argv[i], "-debug-tags") == 0) || (strcmp(argv[i], "-dump_tags") == 0)) {
+      } else if (strcmp(argv[i], "-debug-tags") == 0) {
 	dump_tags = 1;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-debug-top") == 0) {
@@ -766,18 +766,6 @@ static void getoptions(int argc, char *argv[]) {
 	} else {
 	  Swig_arg_error();
 	}
-      } else if ((strcmp(argv[i], "-dump_tree") == 0) || (strcmp(argv[i], "-dump_top") == 0)) {
-	dump_top |= STAGE4;
-	Swig_mark_arg(i);
-      } else if (strcmp(argv[i], "-dump_module") == 0) {
-	dump_module |= STAGE4;
-	Swig_mark_arg(i);
-      } else if (strcmp(argv[i], "-dump_parse_module") == 0) {
-	dump_module |= STAGE1;
-	Swig_mark_arg(i);
-      } else if (strcmp(argv[i], "-dump_parse_top") == 0) {
-	dump_top |= STAGE1;
-	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-dump_xml") == 0) {
 	dump_xml = 1;
 	Swig_mark_arg(i);
@@ -793,13 +781,13 @@ static void getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-nocontract") == 0) {
 	Swig_mark_arg(i);
 	Swig_contract_mode_set(0);
-      } else if ((strcmp(argv[i], "-debug-typedef") == 0) || (strcmp(argv[i], "-dump_typedef") == 0)) {
+      } else if (strcmp(argv[i], "-debug-typedef") == 0) {
 	dump_typedef = 1;
 	Swig_mark_arg(i);
-      } else if ((strcmp(argv[i], "-debug-classes") == 0) || (strcmp(argv[i], "-dump_classes") == 0)) {
+      } else if (strcmp(argv[i], "-debug-classes") == 0) {
 	dump_classes = 1;
 	Swig_mark_arg(i);
-      } else if ((strcmp(argv[i], "-debug-memory") == 0) || (strcmp(argv[i], "-dump_memory") == 0)) {
+      } else if (strcmp(argv[i], "-debug-memory") == 0) {
 	memory_debug = 1;
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-Fstandard") == 0) {
