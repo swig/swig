@@ -325,7 +325,7 @@ static int yylook(void) {
       return ARROW;
     case SWIG_TOKEN_PERIOD:
       return PERIOD;
-    case SWIG_TOKEN_MODULO:
+    case SWIG_TOKEN_PERCENT:
       return MODULO;
     case SWIG_TOKEN_COLON:
       return COLON;

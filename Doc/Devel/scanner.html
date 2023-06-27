@@ -187,7 +187,6 @@ SWIG_TOKEN_RPAREN            )
 SWIG_TOKEN_SEMI              ; 
 SWIG_TOKEN_COMMA             , 
 SWIG_TOKEN_STAR              * 
-SWIG_TOKEN_TIMES             *
 SWIG_TOKEN_LBRACE            { 
 SWIG_TOKEN_RBRACE            } 
 SWIG_TOKEN_EQUAL             = 
@@ -210,11 +209,9 @@ SWIG_TOKEN_LNOT              !
 SWIG_TOKEN_LBRACKET          [ 
 SWIG_TOKEN_RBRACKET          ] 
 SWIG_TOKEN_SLASH             / 
-SWIG_TOKEN_DIVIDE            /
 SWIG_TOKEN_BACKSLASH         \ 
 SWIG_TOKEN_POUND             # 
 SWIG_TOKEN_PERCENT           % 
-SWIG_TOKEN_MODULO            %
 SWIG_TOKEN_COLON             : 
 SWIG_TOKEN_DCOLON            :: 
 SWIG_TOKEN_DCOLONSTAR        ::*
@@ -267,9 +264,6 @@ SWIG_TOKEN_ILLEGAL           Illegal character
 <b>Notes</b>
 
 <ul>
-<li>When more than one token code exist for the same token text, those codes are identical (e.g., <tt>SWIG_TOKEN_STAR</tt> and <tt>SWIG_TOKEN_TIMES</tt>).
-
-<p>
 <li>
 String literals are returned in their exact representation in which escape codes (if any) have been interpreted.
 
