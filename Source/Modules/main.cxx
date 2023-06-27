@@ -194,7 +194,6 @@ static int dump_lang_symbols = 0;
 static int dump_tags = 0;
 static int dump_module = 0;
 static int dump_top = 0;
-static int dump_xml = 0;
 static int dump_typedef = 0;
 static int dump_classes = 0;
 static int werror = 0;
@@ -766,11 +765,7 @@ static void getoptions(int argc, char *argv[]) {
 	} else {
 	  Swig_arg_error();
 	}
-      } else if (strcmp(argv[i], "-dump_xml") == 0) {
-	dump_xml = 1;
-	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-xmlout") == 0) {
-	dump_xml = 1;
 	Swig_mark_arg(i);
 	if (argv[i + 1]) {
 	  xmlout = NewString(argv[i + 1]);
@@ -1257,7 +1252,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
       Printf(stdout, "debug-module stage 4\n");
       Swig_print_tree(Getattr(top, "module"));
     }
-    if (dump_xml && top) {
+    if (xmlout && top) {
       delete lang;
       lang = 0;
       Swig_print_xml(top, xmlout);

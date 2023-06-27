@@ -285,14 +285,10 @@ void Swig_print_xml(Node *obj, String *filename) {
   XML xml;
   xmllite = 1;
 
-  if (!filename) {
-    out = stdout;
-  } else {
-    out = NewFile(filename, "w", SWIG_output_files());
-    if (!out) {
-      FileErrorDisplay(filename);
-      Exit(EXIT_FAILURE);
-    }
+  out = NewFile(filename, "w", SWIG_output_files());
+  if (!out) {
+    FileErrorDisplay(filename);
+    Exit(EXIT_FAILURE);
   }
 
   Printf(out, "<?xml version=\"1.0\" ?> \n");
