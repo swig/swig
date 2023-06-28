@@ -33,7 +33,7 @@ bool PrintDebug = false;
 
 struct DoubleHolder
 {
-  DoubleHolder(double v = 0.0) : val(v) {}
+  DoubleHolder(double v) : val(v) {}
   double val;
 };
 
