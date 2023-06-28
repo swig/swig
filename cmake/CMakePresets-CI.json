@@ -1,0 +1,364 @@
+{
+  "version": 6,
+  "include": [
+    "CMakePresets-defaults.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "ci-base",
+      "hidden": true,
+      "generator": "Ninja",
+      "inherits": [
+        "default"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": {
+          "type": "STRING",
+          "value": "RelWithDebInfo"
+        }
+      },
+      "errors": {
+        "deprecated": true
+      }
+    },
+    {
+      "name": "ci-coverage",
+      "displayName": "Configure preset for test coverage",
+      "inherits": [
+        "ci-base"
+      ],
+      "binaryDir": "cmake-build-coverage",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": {
+          "type": "FILEPATH",
+          "value": "gcc"
+        },
+        "CMAKE_CXX_COMPILER": {
+          "type": "FILEPATH",
+          "value": "g++"
+        }
+      },
+      "errors": {
+        "deprecated": false
+      }
+    },
+    {
+      "name": "gcc-ci",
+      "displayName": "Configure preset for GCC toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "binaryDir": "cmake-build-ci-gcc",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": {
+          "type": "FILEPATH",
+          "value": "gcc"
+        },
+        "CMAKE_CXX_COMPILER": {
+          "type": "FILEPATH",
+          "value": "g++"
+        }
+      }
+    },
+    {
+      "name": "intel-ci",
+      "displayName": "Configure preset for Intel toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "binaryDir": "cmake-build-ci-intel",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": {
+          "type": "FILEPATH",
+          "value": "icx"
+        },
+        "CMAKE_CXX_COMPILER": {
+          "type": "FILEPATH",
+          "value": "icpx"
+        }
+      }
+    },
+    {
+      "name": "llvm-ci",
+      "displayName": "Configure preset for LLVM (Clang, Flang) toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "binaryDir": "cmake-build-ci-llvm",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": {
+          "type": "FILEPATH",
+          "value": "clang"
+        },
+        "CMAKE_CXX_COMPILER": {
+          "type": "FILEPATH",
+          "value": "clang++"
+        }
+      }
+    },
+    {
+      "name": "windows-ci",
+      "displayName": "Configure preset for Windows native toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "binaryDir": "cmake-build-ci-windows",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": {
+          "type": "FILEPATH",
+          "value": "cl"
+        },
+        "CMAKE_CXX_COMPILER": {
+          "type": "FILEPATH",
+          "value": "cl"
+        }
+      }
+    },
+    {
+      "name": "macos-ci",
+      "displayName": "Configure preset for MacOS native toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "binaryDir": "cmake-build-ci-macos",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": {
+          "type": "FILEPATH",
+          "value": "clang"
+        },
+        "CMAKE_CXX_COMPILER": {
+          "type": "FILEPATH",
+          "value": "clang++"
+        }
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "ci-base",
+      "hidden": true,
+      "inherits": [
+        "default"
+      ],
+      "cleanFirst": true
+    },
+    {
+      "name": "ci-coverage",
+      "displayName": "Build preset for test coverage",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "ci-coverage"
+    },
+    {
+      "name": "gcc-ci",
+      "displayName": "Build preset for GCC toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "gcc-ci"
+    },
+    {
+      "name": "intel-ci",
+      "displayName": "Build preset for Intel toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "intel-ci"
+    },
+    {
+      "name": "llvm-ci",
+      "displayName": "Build preset for LLVM (Clang, Flang) toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "llvm-ci"
+    },
+    {
+      "name": "windows-ci",
+      "displayName": "Build preset for Windows native toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "windows-ci"
+    },
+    {
+      "name": "macos-ci",
+      "displayName": "Build preset for MacOS native toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "macos-ci"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "ci-base",
+      "hidden": true,
+      "inherits": [
+        "default"
+      ],
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "gcc-ci",
+      "displayName": "Test preset for GCC toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "gcc-ci"
+    },
+    {
+      "name": "intel-ci",
+      "displayName": "Test preset for Intel toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "intel-ci"
+    },
+    {
+      "name": "llvm-ci",
+      "displayName": "Test preset for LLVM (Clang, Flang) toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "llvm-ci"
+    },
+    {
+      "name": "windows-ci",
+      "displayName": "Test preset for Windows native toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "windows-ci"
+    },
+    {
+      "name": "macos-ci",
+      "displayName": "Test preset for MacOS native toolchain",
+      "inherits": [
+        "ci-base"
+      ],
+      "configurePreset": "macos-ci"
+    },
+    {
+      "name": "ci-coverage",
+      "displayName": "Test preset for coverage tests",
+      "inherits": [
+        "default"
+      ],
+      "configurePreset": "ci-coverage"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "gcc-ci",
+      "displayName": "CI test for GCC toolchain",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "gcc-ci"
+        },
+        {
+          "type": "build",
+          "name": "gcc-ci"
+        },
+        {
+          "type": "test",
+          "name": "gcc-ci"
+        }
+      ]
+    },
+    {
+      "name": "intel-ci",
+      "displayName": "CI test for Intel toolchain",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "intel-ci"
+        },
+        {
+          "type": "build",
+          "name": "intel-ci"
+        },
+        {
+          "type": "test",
+          "name": "intel-ci"
+        }
+      ]
+    },
+    {
+      "name": "llvm-ci",
+      "displayName": "CI test for LLVM (Clang, Flang) toolchain",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "llvm-ci"
+        },
+        {
+          "type": "build",
+          "name": "llvm-ci"
+        },
+        {
+          "type": "test",
+          "name": "llvm-ci"
+        }
+      ]
+    },
+    {
+      "name": "windows-ci",
+      "displayName": "CI test for Windows native toolchain",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "windows-ci"
+        },
+        {
+          "type": "build",
+          "name": "windows-ci"
+        },
+        {
+          "type": "test",
+          "name": "windows-ci"
+        }
+      ]
+    },
+    {
+      "name": "macos-ci",
+      "displayName": "CI test for MacOS native toolchain",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "macos-ci"
+        },
+        {
+          "type": "build",
+          "name": "macos-ci"
+        },
+        {
+          "type": "test",
+          "name": "macos-ci"
+        }
+      ]
+    },
+    {
+      "name": "ci-coverage",
+      "displayName": "Coverage tests",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "ci-coverage"
+        },
+        {
+          "type": "build",
+          "name": "ci-coverage"
+        },
+        {
+          "type": "test",
+          "name": "ci-coverage"
+        }
+      ]
+    }
+  ]
+}

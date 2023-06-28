@@ -223,3 +223,7 @@ Examples/r/*/.RData
 Examples/test-suite/scilab/*/
 loader.sce
 
+### Project configurations and IDEs
+cmake-build-*/
+.idea/
+CMakeUserPresets.json
