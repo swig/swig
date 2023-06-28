@@ -688,8 +688,10 @@ endif
 # Creating and building Javascript wrappers
 # ----------------------------------------------------------------
 
+NAPI_DIR = @NODENAPI_DIR@
+
 javascript_wrapper:
-ifeq (node,$(JSENGINE))
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
 else
 	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
@@ -702,15 +704,18 @@ javascript_build: $(SRCDIR_SRCS)
 ifeq (node,$(JSENGINE))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
 	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+else ifeq (napi,$(JSENGINE))
+	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
+	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CCSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 endif
 
 javascript_build_cpp: $(SRCDIR_SRCS)
-ifeq (node,$(JSENGINE))
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
@@ -740,7 +745,7 @@ javascript_cpp: $(SRCDIR_SRCS) javascript_custom_interpreter
 javascript_custom_interpreter:
 	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
 
-ifeq (node,$(JSENGINE))
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 javascript_run:
 	env NODE_PATH=$$PWD:$(SRCDIR) $(RUNTOOL) $(NODEJS) $(SRCDIR)$(RUNME).js $(RUNPIPE)
 else
@@ -761,7 +766,7 @@ ifeq (, $(ENGINE))
 	  echo "Version depends on the interpreter"; \
 	fi
 endif
-ifeq (node, $(ENGINE))
+ifeq ($(ENGINE), $(filter $(ENGINE), node napi))
 	echo "Node.js: `($(NODEJS) --version)`"
 	echo "node-gyp: `($(NODEGYP) --version)`"
 endif

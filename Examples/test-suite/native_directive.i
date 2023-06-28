@@ -48,8 +48,35 @@ extern "C" JNIEXPORT jint JNICALL Java_native_1directive_native_1directiveJNI_Co
 
 #ifdef SWIGJAVASCRIPT
 %native(CountAlphaCharacters) void JavaScript_alpha_count();
+#if defined(SWIG_JAVASCRIPT_NAPI)      /* engine = napi */
 %{
-#ifdef SWIG_V8_VERSION /* engine = node || v8 */
+
+static Napi::Value JavaScript_alpha_count(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+  Napi::EscapableHandleScope scope(env);
+
+  Napi::Value jsresult;
+  char *arg1 = (char *)0;
+  int res1;
+  char *buf1 = 0;
+  int alloc1 = 0;
+  int result;
+  if (info.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_alpha_count.");
+  res1 = SWIG_AsCharPtrAndSize(info[0], &buf1, NULL, &alloc1);
+  if (!SWIG_IsOK(res1))
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "alpha_count" "', argument " "1"" of type '" "char const *""'");
+  arg1 = reinterpret_cast< char * >(buf1);
+  result = (int)alpha_count((char const *)arg1);
+  jsresult = SWIG_From_int(env, static_cast< int >(result));
+  if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
+  return scope.Escape(jsresult);
+fail:
+  return Napi::Value();
+}
+
+%}
+#elif defined(SWIG_JAVASCRIPT_V8) /* engine = node || v8 */
+%{
 
 static SwigV8ReturnValue JavaScript_alpha_count(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
@@ -72,7 +99,9 @@ fail:
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
 }
 
-#else /* engine = jsc */
+%}
+#elif defined(SWIG_JAVASCRIPT_JSC) /* engine = jsc */
+%{
 
 static JSValueRef JavaScript_alpha_count(JSContextRef context, JSObjectRef function,
   JSObjectRef thisObject, size_t argc, const JSValueRef argv[], JSValueRef* exception)
@@ -96,7 +125,11 @@ fail:
   return JSValueMakeUndefined(context);
 }
 
-#endif /* engine */
 %}
+#else
+%{
+#error No valid JS engine configured
+%}
+#endif /* engine */
 #endif /* SWIGJAVASCRIPT */
 

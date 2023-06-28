@@ -99,6 +99,14 @@ jobs:
           VER: '18'
           CPPSTD: c++14
         - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '14'
+          CPPSTD: c++11
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '18'
+          CPPSTD: c++14
+        - SWIGLANG: javascript
           ENGINE: jsc
           VER: '4.0'
         - SWIGLANG: lua

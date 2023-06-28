@@ -40,7 +40,7 @@ case "$SWIGLANG" in
 		;;
 	"javascript")
 		case "$ENGINE" in
-			"node")
+			"node"|"napi")
 				$RETRY wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.10/install.sh | bash
 				export NVM_DIR="$HOME/.nvm"
 				[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
@@ -56,6 +56,7 @@ case "$SWIGLANG" in
 				else
 					$RETRY npm install -g node-gyp
 				fi
+				$RETRY npm install -g node-addon-api
 				;;
 			"jsc")
 				$RETRY sudo apt-get install -qq libjavascriptcoregtk-${VER}-dev

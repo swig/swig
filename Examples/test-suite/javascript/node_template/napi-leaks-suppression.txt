@@ -1,0 +1,2 @@
+leak:Init
+leak:napi_module_register
