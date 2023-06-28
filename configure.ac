@@ -1186,35 +1186,30 @@ else
   AC_CHECK_PROGS(NODEJS, [node nodejs])
 
   if test -n "$NODEJS"; then
-    # node-gyp and npm are needed to run the test-suite/examples
+    # node-gyp needed to run the test-suite/examples
     AC_CHECK_PROGS(NODEGYP, node-gyp)
     if test -z "$NODEGYP"; then
       NODEJS=
     fi
     AC_CHECK_PROGS(NODENPM, npm)
-    if test -z "$NODENPM"; then
-      NODEJS=
-    fi
     JSNAPIENABLED=
-    if test -n "$NODEJS"; then
-      AC_LANG_PUSH([C++])
-      NODENAPI_DIR=$(npm config get prefix)/lib/node_modules/node-addon-api
-      CXXFLAGS_SAVED=$CXXFLAGS
-      CXXFLAGS="$CXXFLAGS -I/usr/include/node -I/usr/local/include/node -I$NODENAPI_DIR"
-      AC_CHECK_HEADERS([node_api.h napi.h], [JSNAPIENABLED=1], [])
-      CXXFLAGS=$CXXFLAGS_SAVED
-
-      AC_LANG_POP([C++])
-      AC_SUBST(NODENAPI_DIR)
+    if test -n "$NODENPM"; then
+      AC_MSG_CHECKING([for Node-API (napi) header directory])
+      NODENPM_PREFIX=$($NODENPM config get prefix)
+      if test -n "$NODENPM_PREFIX"; then
+        NODENAPI_DIR=$NODENPM_PREFIX/lib/node_modules/node-addon-api
+        if test -f "$NODENAPI_DIR/napi.h"; then
+          JSNAPIENABLED=1
+          AC_SUBST(NODENAPI_DIR)
+        fi
+      fi
+      if test -n "$JSNAPIENABLED"; then
+        AC_MSG_RESULT([$NODENAPI_DIR])
+      else
+        AC_MSG_RESULT([not found])
+      fi
     fi
     AC_SUBST(JSNAPIENABLED)
-  
-    AC_MSG_CHECKING(for Node-API (napi) generator support)
-    if test -n "$JSNAPIENABLED"; then
-      AC_MSG_RESULT(enabled)
-    else
-      AC_MSG_RESULT(disabled)
-    fi
   fi
 
   #----------------------------------------------------------------
