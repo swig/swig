@@ -548,23 +548,11 @@ guile_augmented: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 guile_static: $(SRCDIR_SRCS)
-	$(SWIG) -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
-	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
-	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
-
-guile_static_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
-	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
-	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
-
-guile_simple: $(SRCDIR_SRCS)
 	$(SWIG) -guile -lguilemain.i -Linkage simple $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
 	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
-guile_simple_cpp: $(SRCDIR_SRCS)
+guile_static_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -c++ -guile -lguilemain.i -Linkage simple $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
 	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile

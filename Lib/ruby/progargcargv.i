@@ -3,7 +3,7 @@ int PROG_ARGC
 char **PROG_ARGV
 
     Some C function receive argc and argv from C main function.
-    This typemap provides ignore typemap which pass Ruby ARGV contents
+    This file provides typemaps which pass Ruby ARGV contents
     as argc and argv to C function.
 */
 

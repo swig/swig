@@ -72,23 +72,25 @@ you would do this:
 
 <blockquote>
 <pre>
-%include "pointer.i"
+%include "cpointer.i"
 </pre>
-</blockquote?
+</blockquote>
 
 and in a script you would do this:
 
 <blockquote>
 <pre>
-$a = ptrcreate("int",37);
-$b = ptrcreate("int",42);
-$c = ptrcreate("int");
-add($a,$b,$c);
-$r = ptrvalue($c);
+$a = example::new_intp();
+$b = example::new_intp();
+$c = example::new_intp();
+example::intp_assign($a,37);
+example::intp_assign($b,42);
+example::add($a,$b,$c);
+$r = example::intp_value($c);
 print "Result = $r\n";
-ptrfree($a);
-ptrfree($b);
-ptrfree($c);
+example::delete_intp($a);
+example::delete_intp($b);
+example::delete_intp($c);
 </pre>
 </blockquote>
 
@@ -156,14 +158,8 @@ etc...) the complexity of pointer handling can be as complicated as you want to
 make it.
 
 <p>
-<li>More documentation on the typemaps.i and pointer.i library files can be
+<li>More documentation on the typemaps.i and cpointer.i library files can be
 found in the SWIG user manual.  The files also contain documentation.
-
-<p>
-<li>The pointer.i library is designed primarily for convenience.  If you
-are concerned about performance, you probably want to use a different
-approach.
-
 </ul>
 
 <hr>

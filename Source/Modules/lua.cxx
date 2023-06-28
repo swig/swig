@@ -2122,7 +2122,7 @@ public:
       closeCArraysHash(key, dataOutput);
       Hash *carrays_hash = rawGetCArraysHash(key);
       String *name = 0;		// name - name of the namespace as it should be visible in Lua
-      if (DohLen(key) == 0)	// This is global module
+      if (Len(key) == 0)	// This is global module
 	name = module;
       else
 	name = Getattr(carrays_hash, "name");

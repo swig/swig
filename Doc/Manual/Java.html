@@ -8928,9 +8928,14 @@ public abstract class UserVisibleFoo extends Foo {
 
 
 <p>
-The SWIG documentation system is currently deprecated. 
-When it is resurrected JavaDoc comments will be fully supported. 
-If you can't wait for the full documentation system a couple of workarounds are available. 
+SWIG can translate <a href="https://doxygen.org/">Doxygen</a> comments in the
+C/C++ headers being wrapped to JavaDoc.  For details of this, see the
+<a href="Doxygen.html#Doxygen_to_javadoc">Doxygen to Javadoc</a> section.
+</p>
+
+<p>
+If you don't have Doxygen comments to translate then it's possible to add
+JavaDoc comments from your interface file.
 The <tt>%javamethodmodifiers</tt> feature can be used for adding proxy class method comments and module class method comments. 
 The "javaimports" typemap can be hijacked for adding in proxy class JavaDoc comments. 
 The <tt>jniclassimports</tt> or <tt>jniclassclassmodifiers</tt> pragmas can also be used for adding intermediary JNI class comments and likewise the <tt>moduleimports</tt> or <tt>moduleclassmodifiers</tt> pragmas for the module class. 

@@ -113,15 +113,15 @@ print("Building system")
 run_command("mkdir", "-p", dirpath)
 run_command("./autogen.sh", cwd=dirpath) == 0 or failed()
 
-cmdpath = os.path.join(dirpath, "Source", "CParse")
-run_command("bison", "-y", "-d", "parser.y", cwd=cmdpath) == 0 or failed()
-run_command("mv", "y.tab.c", "parser.c", cwd=cmdpath) == 0 or failed()
-run_command("mv", "y.tab.h", "parser.h", cwd=cmdpath) == 0 or failed()
+run_command("./configure", cwd=dirpath) == 0 or failed()
+run_command("make", "-CSource", "CParse/parser.c", cwd=dirpath) == 0 or failed()
 
-run_command("make", "-f", "Makefile.in", "libfiles", "srcdir=./", cwd=dirpath) == 0 or failed()
+run_command("make", "libfiles", cwd=dirpath) == 0 or failed()
 
-# Remove autoconf files
-run_command("find", dirname, "-name", "autom4te.cache", "-exec", "rm", "-rf", "{}", ";", cwd=rootdir)
+run_command("make", "distclean", cwd=dirpath) == 0 or failed()
+
+# Remove autotools files
+run_command("find", dirname, "-name", ".deps", "-exec", "rmdir", "{}", ";", cwd=rootdir)
 
 # Build documentation
 print("Building html documentation")

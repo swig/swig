@@ -80,7 +80,6 @@ extern void         Scanner_locator(Scanner *, String *loc);
 
 #define   SWIG_TOKEN_COMMA        101      /* , */
 #define   SWIG_TOKEN_STAR         102      /* * */
-#define   SWIG_TOKEN_TIMES        102      /* * */
 #define   SWIG_TOKEN_EQUAL        103      /* = */
 #define   SWIG_TOKEN_EQUALTO      104      /* == */
 #define   SWIG_TOKEN_NOTEQUAL     105      /* != */
@@ -98,9 +97,7 @@ extern void         Scanner_locator(Scanner *, String *loc);
 #define   SWIG_TOKEN_NOT          117      /* ~ */
 #define   SWIG_TOKEN_LNOT         118      /* ! */
 #define   SWIG_TOKEN_SLASH        119      /* / */
-#define   SWIG_TOKEN_DIVIDE       119      /* / */
 #define   SWIG_TOKEN_PERCENT      120      /* % */
-#define   SWIG_TOKEN_MODULO       120      /* % */
 #define   SWIG_TOKEN_LSHIFT       121      /* << */
 #define   SWIG_TOKEN_RSHIFT       122      /* >> */
 #define   SWIG_TOKEN_PLUSPLUS     123      /* ++ */

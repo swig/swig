@@ -250,26 +250,9 @@ Newer Guile versions have a shorthand procedure for this:
 
 
 <p>Guile used to support an autoloading facility for object-code
-modules. This support has been marked deprecated in version 1.4.1 and
-is going to disappear sooner or later. SWIG still supports building
-auto-loading modules if you pass it the <code>-Linkage ltdlmod</code>
-command-line option.
-
-<p>Auto-loading worked like this: Suppose a module with name <code>(my
-lib foo)</code> is required and not loaded yet.  Guile will then search
-all directories in its search path
-for a Scheme file <code>my/modules/foo.scm</code> or a shared library
-<code><var>my</var>/<var>modules</var>/lib<var>foo</var>.so</code> (or
-<code><var>my</var>/<var>modules</var>/lib<var>foo</var>.la</code>; 
-see the GNU libtool documentation). If a
-shared library is found that contains the symbol
-<code>scm_init_<var>my</var>_<var>modules</var>_<var>foo</var>_module</code>, 
-the library is loaded, and the function at that symbol is called with
-no arguments in order to initialize the module.
-
-<p>When invoked with the <code>-Linkage ltdlmod</code> command-line
-option, SWIG generates an exported module initialization function with
-an appropriate name. 
+modules, but this support was deprecated and removed in Guile version 1.4.1.
+SWIG supported this via option <code>-Linkage ltdlmod</code>, but this
+support is no longer useful and was removed in SWIG 4.2.0.
 
 
 <H3><a name="Guile_nn9">26.4.5 Hobbit4D Linkage</a></H3>

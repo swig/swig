@@ -1321,8 +1321,8 @@ String *Swig_string_regex(String *s) {
     }
   }
 
-  DohDelete(pattern);
-  DohDelete(subst);
+  Delete(pattern);
+  Delete(subst);
   pcre2_code_free(compiled_pat);
   pcre2_match_data_free(match_data);
   return res ? res : NewStringEmpty();

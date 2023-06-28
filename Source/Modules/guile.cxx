@@ -27,9 +27,7 @@ Guile Options (available with -guile)\n\
                                Use `module' for native Guile module linking\n\
                                (requires Guile >= 1.5.0).  Use `passive' for\n\
                                passive linking (no C-level module-handling code),\n\
-                               `ltdlmod' for Guile's old dynamic module\n\
-                               convention (Guile <= 1.4), or `hobbit' for hobbit\n\
-                               modules.\n\
+                               or `hobbit' for hobbit modules.\n\
      -onlysetters            - Don't emit traditional getter and setter\n\
                                procedures for structure slots,\n\
                                only emit procedures-with-setters.\n\
@@ -61,7 +59,6 @@ static enum {
   GUILE_LSTYLE_SIMPLE,		// call `SWIG_init()'
   GUILE_LSTYLE_PASSIVE,		// passive linking (no module code)
   GUILE_LSTYLE_MODULE,		// native guile module linking (Guile >= 1.4.1)
-  GUILE_LSTYLE_LTDLMOD_1_4,	// old (Guile <= 1.4) dynamic module convention
   GUILE_LSTYLE_HOBBIT		// use (hobbit4d link)
 } linkage = GUILE_LSTYLE_SIMPLE;
 
@@ -152,9 +149,7 @@ public:
 	  }
 	} else if (strcmp(argv[i], "-Linkage") == 0 || strcmp(argv[i], "-linkage") == 0) {
 	  if (argv[i + 1]) {
-	    if (0 == strcmp(argv[i + 1], "ltdlmod"))
-	      linkage = GUILE_LSTYLE_LTDLMOD_1_4;
-	    else if (0 == strcmp(argv[i + 1], "hobbit"))
+	    if (0 == strcmp(argv[i + 1], "hobbit"))
 	      linkage = GUILE_LSTYLE_HOBBIT;
 	    else if (0 == strcmp(argv[i + 1], "simple"))
 	      linkage = GUILE_LSTYLE_SIMPLE;
@@ -210,12 +205,6 @@ public:
 	  Swig_mark_arg(i);
 	} else if ((strcmp(argv[i], "-shadow") == 0) || ((strcmp(argv[i], "-proxy") == 0))) {
 	  goops = true;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-gh") == 0) {
-	  Printf(stderr, "Deprecated command line option: -gh. Wrappers are always generated for the SCM interface. See documentation for more information regarding the deprecated GH interface.\n");
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-scm") == 0) {
-	  Printf(stderr, "Deprecated command line option: -scm. Wrappers are always generated for the SCM interface. See documentation for more information regarding the deprecated GH interface.\n");
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-primsuffix") == 0) {
 	  if (argv[i + 1]) {
@@ -418,21 +407,6 @@ public:
       Printf(f_init, "SCM\n%s (void)\n{\n", module_func);
       Printf(f_init, "  SWIG_init();\n");
       Printf(f_init, "  return SCM_UNSPECIFIED;\n");
-      Printf(f_init, "}\n");
-      break;
-    case GUILE_LSTYLE_LTDLMOD_1_4:
-      Printf(f_init, "\n/* Linkage: ltdlmod */\n");
-      Replaceall(module_func, "/", "_");
-      Insert(module_func, 0, "scm_init_");
-      Append(module_func, "_module");
-      Printf(f_init, "SCM\n%s (void)\n{\n", module_func);
-      {
-	String *mod = NewString(module_name);
-	Replaceall(mod, "/", " ");
-	Printf(f_init, "    scm_register_module_xxx (\"%s\", (void *) SWIG_init);\n", mod);
-	Printf(f_init, "    return SCM_UNSPECIFIED;\n");
-	Delete(mod);
-      }
       Printf(f_init, "}\n");
       break;
     case GUILE_LSTYLE_MODULE:

@@ -76,7 +76,6 @@ extern "C" {
 #define   T_LONGDOUBLE 22
 #define   T_FLTCPLX    23
 #define   T_DBLCPLX    24
-#define   T_NUMERIC    25
 #define   T_AUTO       26
 
 #define   T_COMPLEX    T_DBLCPLX
@@ -96,11 +95,6 @@ extern "C" {
 #define   T_VARARGS    39
 #define   T_RVALUE_REFERENCE  40
 #define   T_WSTRING    41
-
-#define   T_SYMBOL     98
-#define   T_ERROR      99
-
-
 
 /* --- File interface --- */
 

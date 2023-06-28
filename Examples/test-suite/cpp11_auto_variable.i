@@ -23,12 +23,19 @@ static constexpr auto Foo2 = Foo;
 %}
 
 // SWIG currently can't deduce the type for examples below:
-#pragma SWIG nowarn=SWIGWARN_CPP11_AUTO
+%ignore Bar3;
+%ignore Foo3;
+%warnfilter(SWIGWARN_CPP11_AUTO) Bar4;
+%warnfilter(SWIGWARN_CPP11_AUTO) Foo4;
 
 %inline %{
 
 static auto Bar3 = f ? Bar : Bar2;
 static constexpr auto Foo3 = f ? Foo : Foo2;
+
+static auto Bar4 = f ? Bar : Bar2;
+static constexpr auto Foo4 = f ? Foo : Foo2;
+
 
 // FIXME: Not currently handled:
 //static auto constexpr greeting = "Hello";

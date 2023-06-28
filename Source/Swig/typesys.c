@@ -1420,7 +1420,8 @@ int SwigType_type(const SwigType *t) {
       c++;
     if (*c)
       return SwigType_type(c + 1);
-    return T_ERROR;
+    Printf(stderr, "*** Internal error: Invalid type string '%s'\n", t);
+    Exit(EXIT_FAILURE);
   }
   if (strncmp(c, "f(", 2) == 0)
     return T_FUNCTION;
@@ -1696,20 +1697,6 @@ void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr cl
 
   /*Printf(stdout,"t = '%s'\n", t);
      Printf(stdout,"fr= '%s'\n\n", fr); */
-
-  if (t) {
-    char *ct = Char(t);
-    const char *lt = strchr(ct, '<');
-    /* Allow for `<<` operator in constant expression for array size. */
-    if (lt && lt[1] != '(' && lt[1] != '<') {
-      /* We special case `<<` above, but most cases aren't handled, for example:
-       *
-       * unsigned char myarray[std::numeric_limits<unsigned char>::max()]; // #2486
-       */
-      Swig_error(Getfile(t), Getline(t), "Array size expressions containing a '<' character not fully supported\n");
-      Exit(EXIT_FAILURE);
-    }
-  }
 
   h = Getattr(r_mangled, mt);
   if (!h) {
