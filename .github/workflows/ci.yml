@@ -2,12 +2,13 @@ name: CI
 
 on:
   push:
+    branches: [ master ]
     paths-ignore:
       - 'CHANGES*'
       - 'Doc/**'
       - 'appveyor.yml'
   pull_request:
-    branches: master
+    branches: [ master ]
     paths-ignore:
       - 'CHANGES*'
       - 'Doc/**'
