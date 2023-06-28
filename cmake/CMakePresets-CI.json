@@ -36,6 +36,10 @@
         "CMAKE_CXX_COMPILER": {
           "type": "FILEPATH",
           "value": "g++"
+        },
+        "SWIG_TEST_COVERAGE": {
+          "type": "BOOL",
+          "value": true
         }
       },
       "errors": {

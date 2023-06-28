@@ -52,7 +52,7 @@
 #define PACKAGE_NAME "swig"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "swig @SWIG_VERSION@"
+#define PACKAGE_STRING "swig @Swig_VERSION@"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "swig"
@@ -61,7 +61,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "@SWIG_VERSION@"
+#define PACKAGE_VERSION "@Swig_VERSION@"
 
 /* The size of `void *', as computed by sizeof. */
 /* #undef SIZEOF_VOID_P */
@@ -85,7 +85,7 @@
 #define SWIG_PLATFORM "@CMAKE_SYSTEM_NAME@"
 
 /* Version number of package */
-#define VERSION "@SWIG_VERSION@"
+#define VERSION "@Swig_VERSION@"
 
 
 /* Deal with attempt by Microsoft to deprecate C standard runtime functions */
