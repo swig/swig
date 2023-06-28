@@ -1493,7 +1493,7 @@ int SwigType_type(const SwigType *t) {
  * Returns the alternative value type needed in C++ for class value
  * types. When swig is not sure about using a plain $ltype value,
  * since the class doesn't have a default constructor, or it can't be
- * assigned, you will get back 'SwigValueWrapper<type >'.
+ * assigned, you will get back 'SwigValueWrapper<(type)>'.
  *
  * This is the default behavior unless:
  *
