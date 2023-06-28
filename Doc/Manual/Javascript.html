@@ -22,6 +22,7 @@
 <ul>
 <li><a href="#Javascript_node_extensions">Creating node.js Extensions</a>
 <ul>
+<li><a href="#Javascript_using_yeoman">Using <code>yeoman</code> to generate a Node-API skeleton</a>
 <li><a href="#Javascript_troubleshooting">Troubleshooting</a>
 </ul>
 <li><a href="#Javascript_embedded_webkit">Embedded Webkit</a>
@@ -43,6 +44,7 @@
 <li><a href="#Javascript_emitter">Emitter</a>
 <li><a href="#Javascript_emitter_states">Emitter states</a>
 <li><a href="#Javascript_jsc_exceptions">Handling Exceptions in JavascriptCore</a>
+<li><a href="#Javascript_napi_exceptions">Handling Exceptions in Node-API</a>
 </ul>
 </ul>
 </div>
@@ -94,7 +96,7 @@ that this is theV8 version, not Node.js. To give some perspective, Node.js v6.0
 uses V8 5.0, v12.0 - 7.4, v14.0 - 8.1...</p>
 <p>The Node-API code that SWIG generates requires Node-API version 6.
 This Node-API is available starting from Node.js v10.20 on the v10.x branch,
-Node.js v12.17 on the v12.x branch and all versions starting from v14.0.</p>
+Node.js v12.17 on the v12.x branch and all versions starting from v14.0.
 </p>
 <p>To generate code for V8, you would run swig like so:</p>
 <div class="shell">
@@ -221,6 +223,8 @@ require("./build/Release/example")</pre>
 <p>A more detailed explanation is given in the <a href="#Javascript_examples">Examples</a> section.</p>
 
 <H4><a name="Javascript_using_yeoman">28.3.1.1 Using <code>yeoman</code> to generate a Node-API skeleton</a></H4>
+
+
 <p>If targeting Node-API, the easiest way to bootstrap a project is by using the <code>yeoman</code> generator: </p>
 <div class="shell">
 <pre>
@@ -1014,6 +1018,8 @@ if(js_exception)
 </div>
 
 <H3><a name="Javascript_napi_exceptions">28.5.6 Handling Exceptions in Node-API</a></H3>
+
+
 <p>Node-API is the only generator that provides fully automatic conversion of C++ exceptions to JavaScript exceptions when building with C++ exceptions enabled in `binding.gyp`:</p>
 <div class="code">
 <pre>

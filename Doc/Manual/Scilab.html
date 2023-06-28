@@ -71,6 +71,7 @@
 <ul>
 <li><a href="#Scilab_generated_scripts_builder_script">Builder script</a>
 <li><a href="#Scilab_generated_scripts_loader_script">Loader script</a>
+<li><a href="#Scilab_generated_scripts_gateway">Gateway XML files</a>
 </ul>
 <li><a href="#Scilab_other_resources">Other resources</a>
 </ul>
@@ -2141,8 +2142,9 @@ clear get_file_path;
 
 <H3><a name="Scilab_generated_scripts_gateway">36.7.3 Gateway XML files</a></H3>
 
-<p>If you need to post-process the entry points, Scilab gateway files are XML files that can be used to retrieve all SWIG-generated entry points. With these XML files you can write your own <tt>builder_swig.sce</tt> file to add custom Scilab for building or linking the generated code. Documentation stubs can also be generated thanks to these function listings.</tt></p>
-<p>As an example, for a SWIG <a href="Modules.html">module</a> named <tt>fmuswig</tt> the Scilab code below can be used to store all SWIG-generated functions in a variable named <tt>funs</tt></tt>.</p>
+
+<p>If you need to post-process the entry points, Scilab gateway files are XML files that can be used to retrieve all SWIG-generated entry points. With these XML files you can write your own <tt>builder_swig.sce</tt> file to add custom Scilab for building or linking the generated code. Documentation stubs can also be generated thanks to these function listings.</p>
+<p>As an example, for a SWIG <a href="Modules.html">module</a> named <tt>fmuswig</tt> the Scilab code below can be used to store all SWIG-generated functions in a variable named <tt>funs</tt>.</p>
 <div class="code"><pre>
   // src_swig_path is a path to the directory containing the fmuswig.i file
 
