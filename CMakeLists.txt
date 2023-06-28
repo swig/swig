@@ -4,7 +4,7 @@ if (NOT DEFINED CMAKE_BUILD_TYPE)
   set (CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
 endif ()
 
-project (swig)
+project (Swig)
 
 if (POLICY CMP0074)
   cmake_policy (SET CMP0074 NEW)
