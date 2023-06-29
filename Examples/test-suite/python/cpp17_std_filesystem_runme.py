@@ -2,16 +2,12 @@ import pathlib
 
 from cpp17_std_filesystem import *
 
-if not is_cplusplus17():
-    exit(0)  # No-op
-
-
 def check_flag(flag):
     if not flag:
         raise RuntimeError("Check failed")
 
 def check(p, p2):
-    assert p == p2, "'{p}' != '{p2}'".format(p=p, p2=p2)
+    assert p == p2, "'{p}' != '{p2}', repr(p)={r}, repr(p2)={r2}".format(p=p, p2=p2, r=repr(p), r2=repr(p2))
 
 # Test the output typemap. The wrapped C++ functions
 # makePath is expected to return a std::filesystem::path object
@@ -61,7 +57,7 @@ check(pathConstRefToStr(pathPtr), "foo")
 check(pathPtrToStr(pathPtr), "foo")
 
 specialPath = pathlib.Path("/家/屋")
-roundTriped = roundTrip(specialPath)
-assert specialPath == roundTriped, "'{p}' != '{p2}'".format(p=specialPath, p2=roundTriped)
-roundTripedSquared = roundTrip(roundTriped)
-assert specialPath == roundTripedSquared, "'{p}' != '{p2}'".format(p=specialPath, p2=roundTripedSquared)
+roundTripped = roundTrip(specialPath)
+roundTrippedSquared = roundTrip(roundTripped)
+check(specialPath, roundTripped)
+check(specialPath, roundTrippedSquared)

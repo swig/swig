@@ -2,43 +2,35 @@
   filesystem::path
 */
 %{
-#if __cplusplus >= 201703L
 #include <filesystem>
-#include <Python.h>
-#endif // __cplusplus >= 201703L
 %}
 
-%fragment("common", "header") {
-    PyObject * importPathCls() {
+%fragment("SWIG_std_filesystem", "header") {
+    SWIGINTERN PyObject * importPathCls() {
         PyObject * module = PyImport_ImportModule("pathlib");
         PyObject * cls = PyObject_GetAttrString(module, "Path");
         Py_DECREF(module);
         return cls;
     }
 
-    bool isPathInstance(PyObject * obj) {
+    SWIGINTERN bool isPathInstance(PyObject * obj) {
         PyObject * cls = importPathCls();
         bool is_instance =  PyObject_IsInstance(obj, cls);
         Py_DECREF(cls);
         return is_instance;
     }
-
-    const char * pathToStr(PyObject * obj) {
-        PyObject * str_obj = PyObject_Str(obj);     // New reference
-        const char * s = PyUnicode_AsUTF8(str_obj); // This stores the UTF-8 representation buffer within str_obj
-        // Py_DECREF(str_obj);                      // So we don't decref here
-        return s;
-    }
 }
 
-%typemap(in, fragment="common") std::filesystem::path {
+%typemap(in, fragment="SWIG_std_filesystem") std::filesystem::path {
     if (PyUnicode_Check($input)) {
         const char* s = PyUnicode_AsUTF8($input);
         $1 = std::filesystem::path(s);
     }
     else if (isPathInstance($input)) {
-        const char * s = pathToStr($input);
+        PyObject * str_obj = PyObject_Str($input);   // New reference
+        const char * s = PyUnicode_AsUTF8(str_obj);  // This stores the UTF-8 representation buffer within str_obj
         $1 = std::filesystem::path(s);
+        Py_DECREF(str_obj);
     }
     else {
         void* argp = 0;
@@ -51,14 +43,16 @@
     }
 }
 
-%typemap(in, fragment="common") std::filesystem::path const *, std::filesystem::path const & {
+%typemap(in, fragment="SWIG_std_filesystem") std::filesystem::path const *, std::filesystem::path const & {
     if (PyUnicode_Check($input)) {
         const char* s = PyUnicode_AsUTF8($input);
         $1 = new std::filesystem::path(s);
     }
     else if (isPathInstance($input)) {
-        const char * s = pathToStr($input);
+        PyObject * str_obj = PyObject_Str($input);
+        const char * s = PyUnicode_AsUTF8(str_obj);
         $1 = new std::filesystem::path(s);
+        Py_DECREF(str_obj);
     }
     else {
         void* argp = 0;
@@ -70,7 +64,7 @@
     }
 }
 
-%typemap(out, fragment="common") std::filesystem::path {
+%typemap(out, fragment="SWIG_std_filesystem") std::filesystem::path {
     const std::string s = $1.string();
 
     PyObject * cls = importPathCls();

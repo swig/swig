@@ -1,34 +1,9 @@
 %module cpp17_std_filesystem
 
-%inline %{
-bool is_cplusplus17() {
-#if __cplusplus >= 201703L
-  return true;
-#else
-  return false;
-#endif
-}
-%}
-
 %include "std_filesystem.i"
 
 %{
-#if __cplusplus < 201703L
-// Dummy implementation
-namespace std::filesystem {
-  class path {
-   public:
-    path() = default;
-    path(const std::string& s) {}
-    std::string string() const { return ""; }
-    std::wstring wstring() const { return L""; }
-    std::string generic_string() const { return ""; }
-    std::wstring generic_wstring() const { return L""; }
-  };
-}
-#else
 #include <filesystem>
-#endif
 %}
 
 %inline %{
