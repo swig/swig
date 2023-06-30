@@ -7,9 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-06-30: wsfulton
+            #2640 Fix syntax error parsing an expression which calls a function
+            with no parameters within additional brackets.
+
 2023-06-27: mmomtchev
-      [Javascript] #2545 New Javascript generator targeting the Node.js
-      binary stable ABI Node-API.
+            [Javascript] #2545 New Javascript generator targeting the Node.js
+            binary stable ABI Node-API.
 
 2023-06-27: olly
 	    [Java] Completely remove pragmas which were deprecated in 2002 and
