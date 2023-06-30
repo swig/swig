@@ -6,15 +6,15 @@
 %}
 
 %fragment("SWIG_std_filesystem", "header") {
-    SWIGINTERN PyObject * importPathCls() {
+    SWIGINTERN PyObject * SWIG_std_filesystem_importPathClass() {
         PyObject * module = PyImport_ImportModule("pathlib");
         PyObject * cls = PyObject_GetAttrString(module, "Path");
         Py_DECREF(module);
         return cls;
     }
 
-    SWIGINTERN bool isPathInstance(PyObject * obj) {
-        PyObject * cls = importPathCls();
+    SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject * obj) {
+        PyObject * cls = SWIG_std_filesystem_importPathClass();
         bool is_instance =  PyObject_IsInstance(obj, cls);
         Py_DECREF(cls);
         return is_instance;
@@ -26,7 +26,7 @@
         const char* s = PyUnicode_AsUTF8($input);
         $1 = std::filesystem::path(s);
     }
-    else if (isPathInstance($input)) {
+    else if (SWIG_std_filesystem_isPathInstance($input)) {
         PyObject * str_obj = PyObject_Str($input);   // New reference
         const char * s = PyUnicode_AsUTF8(str_obj);  // This stores the UTF-8 representation buffer within str_obj
         $1 = std::filesystem::path(s);
@@ -48,7 +48,7 @@
         const char* s = PyUnicode_AsUTF8($input);
         $1 = new std::filesystem::path(s);
     }
-    else if (isPathInstance($input)) {
+    else if (SWIG_std_filesystem_isPathInstance($input)) {
         PyObject * str_obj = PyObject_Str($input);
         const char * s = PyUnicode_AsUTF8(str_obj);
         $1 = new std::filesystem::path(s);
@@ -67,7 +67,7 @@
 %typemap(out, fragment="SWIG_std_filesystem") std::filesystem::path {
     const std::string s = $1.string();
 
-    PyObject * cls = importPathCls();
+    PyObject * cls = SWIG_std_filesystem_importPathClass();
 
     PyObject* args = Py_BuildValue("(s)", s.data());
     $result = PyObject_CallObject(cls, args);
