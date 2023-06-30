@@ -134,7 +134,7 @@ int CFFI::top(Node *n) {
   File *f_lisp = NewFile(lisp_filename, "w", SWIG_output_files());
   if (!f_lisp) {
     FileErrorDisplay(lisp_filename);
-    SWIG_exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
 
   if (CPlusPlus || CWrap) {
@@ -142,7 +142,7 @@ int CFFI::top(Node *n) {
     if (!f_begin) {
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
-      SWIG_exit(EXIT_FAILURE);
+      exit(EXIT_FAILURE);
     }
 
     String *clos_filename = NewString("");
@@ -151,7 +151,7 @@ int CFFI::top(Node *n) {
     if (!f_clos) {
       Delete(f_lisp);
       Printf(stderr, "Unable to open %s for writing\n", cxx_filename);
-      SWIG_exit(EXIT_FAILURE);
+      exit(EXIT_FAILURE);
     }
   } else {
     f_begin = NewString("");
@@ -217,7 +217,7 @@ int CFFI::classHandler(Node *n) {
   } else {
     Printf(stderr, "Don't know how to deal with %s kind of class yet.\n", kind);
     Printf(stderr, " (name: %s)\n", name);
-    SWIG_exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
     return SWIG_OK;
   }
 
@@ -886,7 +886,7 @@ void CFFI::emit_struct_union(Node *n, bool un = false) {
   if (Strcmp(kind, "struct") != 0 && Strcmp(kind, "union") != 0) {
     Printf(stderr, "Don't know how to deal with %s kind of class yet.\n", kind);
     Printf(stderr, " (name: %s)\n", name);
-    SWIG_exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
   String *lisp_name = lispify_name(n, name, "'classname");
 
@@ -1005,7 +1005,7 @@ String *CFFI::strip_parens(String *string) {
   p = (char *) malloc(len - 2 + 1);
   if (!p) {
     Printf(stderr, "Malloc failed\n");
-    SWIG_exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
 
   strncpy(p, s + 1, len - 1);
