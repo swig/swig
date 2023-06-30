@@ -171,7 +171,8 @@ swig -lua -help
 
 <tr>
   <td>-no-old-metatable-bindings</td>
-  <td>Disable backward compatibility: old-style binding names generations and a few other things. Explanations are included in appropriate later sections.</td>
+  <td>Disable backward compatibility: old-style binding names generations and a few other things. Explanations are included in appropriate later sections.
+      This option is considered deprecated and will be removed in the near future.</td>
 </tr>
 <tr>
   <td>-squash-bases</td>
@@ -370,7 +371,6 @@ creates a built-in function <tt>example.fact(n)</tt> that works exactly like you
 To avoid name collisions, SWIG create a Lua table which keeps all the functions, constants, classes and global variables in.
 It is possible to copy the functions, constants and classes (but not variables) out of this and into the global environment with the following code.
 This can easily overwrite existing functions, so this must be used with care.
-This option is considered deprecated and will be removed in the near future.
 </p>
 <div class="targetlang"><pre>
 &gt; for k, v in pairs(example) do _G[k]=v end

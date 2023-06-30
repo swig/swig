@@ -27,7 +27,7 @@
     get(2.0)  ==> get(A(2.0))
     get(B())  ==> get(A(B()))
 
-   and swig will construct an 'A' temporal variable using the
+   and swig will construct an 'A' temporary variable using the
    corresponding implicit constructor.
 
 

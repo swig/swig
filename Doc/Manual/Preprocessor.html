@@ -48,7 +48,7 @@ like this:
 
 <div class="code">
 <pre>
-%include "pointer.i"
+%include "cpointer.i"
 </pre>
 </div>
 
@@ -132,6 +132,7 @@ SWIGJAVA                        Defined when using Java
 SWIGJAVASCRIPT                  Defined when using Javascript
 SWIG_JAVASCRIPT_JSC             Defined when using Javascript with -jsc
 SWIG_JAVASCRIPT_V8              Defined when using Javascript with -v8 or -node
+SWIG_JAVASCRIPT_NAPI            Defined when using Javascript with -napi
 SWIGLUA                         Defined when using Lua
 SWIGMZSCHEME                    Defined when using Mzscheme
 SWIGOCAML                       Defined when using OCaml
@@ -167,6 +168,23 @@ __STDC__                        Defined to indicate ISO C
 __cplusplus                     Defined when -c++ option used
 </pre>
 </div>
+
+<p>
+Since SWIG 4.2.0, <tt>__STDC__</tt> is defined to <tt>1</tt> to match
+the behaviour of ISO C/C++ compilers.  Before this SWIG defined it to
+have an empty value.
+</p>
+
+<p>
+Since SWIG 4.2.0, <tt>__cplusplus</tt> is defined to <tt>199711L</tt>
+(the value for C++98) but you can override this by defining it
+explicitly on the SWIG command line if you are wrapping headers
+which have preprocessor checks based on its value (e.g. use
+<tt>-D__cplusplus=201103L</tt> to set it to the value for C++11).
+Before this SWIG always defined it to have the <b>value</b>
+<tt>__cplusplus</tt> and attempting to use <tt>-D__cplusplus</tt>
+to change this gave an error.
+</p>
 
 <p>
 The following are language specific symbols that might be defined:

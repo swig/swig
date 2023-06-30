@@ -2271,7 +2271,7 @@ private:
     }
 
     String *storage = Getattr(entry, "storage");
-    if (storage && (Strcmp(storage, "typedef") == 0 || Strcmp(storage, "friend") == 0)) {
+    if (storage && (Strcmp(storage, "typedef") == 0 || Strstr(storage, "friend"))) {
       return SWIG_OK;
     }
 
@@ -5620,7 +5620,7 @@ private:
 
   bool isStatic(Node *n) {
     String *storage = Getattr(n, "storage");
-    return (storage && (Swig_storage_isstatic(n) || Strcmp(storage, "friend") == 0) && (!SmartPointer || !Getattr(n, "allocate:smartpointeraccess")));
+    return (storage && (Swig_storage_isstatic(n) || Strstr(storage, "friend")) && (!SmartPointer || !Getattr(n, "allocate:smartpointeraccess")));
   }
 
   /* ----------------------------------------------------------------------
@@ -5631,7 +5631,7 @@ private:
 
   bool isFriend(Node *n) {
     String *storage = Getattr(n, "storage");
-    return storage && Strcmp(storage, "friend") == 0;
+    return storage && Strstr(storage, "friend");
   }
 
   /* ----------------------------------------------------------------------

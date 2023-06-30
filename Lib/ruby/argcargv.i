@@ -1,4 +1,4 @@
-/* ------------------------------------------------------------
+/* -------------------------------------------------------------
  * SWIG library containing argc and argv multi-argument typemaps
 
    Use it as follows:
@@ -16,7 +16,7 @@
      $args = ["asdf", "asdf2"]
      mainApp(args)
 
- * ------------------------------------------------------------ */
+ * ------------------------------------------------------------- */
 
 %typemap(in) (int ARGC, char **ARGV) {
   if (rb_obj_is_kind_of($input,rb_cArray)) {

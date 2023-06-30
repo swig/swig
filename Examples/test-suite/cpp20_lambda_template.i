@@ -9,4 +9,8 @@
 %inline %{
 #include <vector>
 auto templated_lambda = []<typename T>(std::vector<T> t){};
+
+// Regression test for parsing bug fixed in SWIG 4.2.0 (#2630)
+auto y = []<bool X = 1>=2> { return 1; };
+auto z = []<bool X = 1<=2> { return 1; };
 %}

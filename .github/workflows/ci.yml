@@ -50,15 +50,15 @@ jobs:
         - SWIGLANG: ""
           compiler: clang
         - SWIGLANG: csharp
-        # D support can't be enabled because dmd 2.066 fails to build anything
-        # under Ubuntu 18.04 due to its standard library (libphobos2.a) not
-        # being compiled with -FPIC, but system gcc using -fpie by default,
-        # resulting in linking errors for any output. And later versions, such
-        # as 2.086.1, are not supported and result in errors in SWIG test suite.
-        #
-        # - SWIGLANG: d
-        #   VER: '2.066.0'
-        #   os: ubuntu-18.04 # This dlang version doesn't work under 20.04.
+        - SWIGLANG: d
+          VER: 'ldc'
+          CPPSTD: c++14
+        - SWIGLANG: d
+          VER: 'gdmd'
+          CPPSTD: c++11
+        - SWIGLANG: d
+          VER: '2.103.1'
+          CPPSTD: c++17
         - SWIGLANG: fortran
         - SWIGLANG: go
           VER: '1.6'
@@ -76,27 +76,35 @@ jobs:
         - SWIGLANG: guile
           VER: '3.0'
         - SWIGLANG: java
-        - SWIGLANG: javascript
-          ENGINE: node
-          VER: '6'
-          CPPSTD: c++11
-          os: ubuntu-18.04
-        - SWIGLANG: javascript
-          ENGINE: node
-          VER: '8'
-          CPPSTD: c++11
-          os: ubuntu-18.04
-        - SWIGLANG: javascript
-          ENGINE: node
-          VER: '10'
-          CPPSTD: c++11
-          os: ubuntu-18.04
+        #- SWIGLANG: javascript
+        #  ENGINE: node
+        #  VER: '6'
+        #  CPPSTD: c++11
+        #  os: ubuntu-18.04
+        #- SWIGLANG: javascript
+        #  ENGINE: node
+        #  VER: '8'
+        #  CPPSTD: c++11
+        #  os: ubuntu-18.04
+        #- SWIGLANG: javascript
+        #  ENGINE: node
+        #  VER: '10'
+        #  CPPSTD: c++11
+        #  os: ubuntu-18.04
         - SWIGLANG: javascript
           ENGINE: node
           VER: '12'
           CPPSTD: c++11
         - SWIGLANG: javascript
           ENGINE: node
+          VER: '18'
+          CPPSTD: c++14
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '14'
+          CPPSTD: c++11
+        - SWIGLANG: javascript
+          ENGINE: napi
           VER: '18'
           CPPSTD: c++14
         - SWIGLANG: javascript
@@ -109,16 +117,6 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: perl5
         - SWIGLANG: php
-          VER: '7.0'
-        - SWIGLANG: php
-          VER: '7.1'
-        - SWIGLANG: php
-          VER: '7.2'
-        - SWIGLANG: php
-          VER: '7.3'
-        - SWIGLANG: php
-          VER: '7.4'
-        - SWIGLANG: php
           VER: '8.0'
         - SWIGLANG: php
           VER: '8.1'
@@ -126,12 +124,12 @@ jobs:
           VER: '8.2'
         - SWIGLANG: python
           PY2: 2
-        - SWIGLANG: python
-          VER: '3.3'
-          os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
-        - SWIGLANG: python
-          VER: '3.4'
-          os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
+        #- SWIGLANG: python
+        #  VER: '3.3'
+        #  os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
+        #- SWIGLANG: python
+        #  VER: '3.4'
+        #  os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
         - SWIGLANG: python
           VER: '3.5'
         - SWIGLANG: python
@@ -157,21 +155,18 @@ jobs:
         - SWIGLANG: python
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: r
-        - SWIGLANG: ruby
-          VER: '1.9'
-          os: ubuntu-18.04
+        # rvm fails to install Ruby 1.9 on ubuntu-20.04
+        #- SWIGLANG: ruby
+        #  VER: '1.9'
+        #  os: ubuntu-18.04
         - SWIGLANG: ruby
           VER: '2.0'
-          os: ubuntu-18.04
         - SWIGLANG: ruby
           VER: '2.1'
-          os: ubuntu-18.04
         - SWIGLANG: ruby
           VER: '2.2'
-          os: ubuntu-18.04
         - SWIGLANG: ruby
           VER: '2.3'
-          os: ubuntu-18.04
         - SWIGLANG: ruby
           VER: '2.4'
         - SWIGLANG: ruby
@@ -186,11 +181,17 @@ jobs:
         - SWIGLANG: ruby
           VER: '3.1'
           CPPSTD: c++11
+        - SWIGLANG: ruby
+          CPPSTD: c++11
+          VER: '3.2'
         - SWIGLANG: scilab
           VER: '5.5.2'
         - SWIGLANG: scilab
-          os: ubuntu-18.04 # scilab 6.0
+          VER: '6.0.2'
         - SWIGLANG: scilab
+          os: ubuntu-22.04 # scilab 6.1.1
+        - SWIGLANG: scilab
+          VER: '2023.0.0'
         - SWIGLANG: tcl
         # c++11 testing
         - SWIGLANG: csharp
@@ -326,11 +327,11 @@ jobs:
         # Experimental languages (these are allowed to fail)
         - SWIGLANG: mzscheme
           continue-on-error: true
-        - SWIGLANG: ocaml
-          CPPSTD: c++17
-          GCC: 11
-          continue-on-error: true
-          os: ubuntu-18.04 # ocaml-4.08 in ubuntu-20.04 not yet working
+        #- SWIGLANG: ocaml
+        #  CPPSTD: c++17
+        #  GCC: 11
+        #  continue-on-error: true
+        #  os: ubuntu-18.04 # ocaml-4.08 in ubuntu-20.04 not yet working
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -348,7 +349,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         submodules: recursive
 

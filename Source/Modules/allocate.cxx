@@ -396,7 +396,7 @@ class Allocate:public Dispatcher {
 	if (!GetFlag(c, "feature:ignore")) {
 	  String *storage = Getattr(c, "storage");
 	  if (!((Cmp(storage, "typedef") == 0))
-	      && !((Cmp(storage, "friend") == 0))) {
+	      && !Strstr(storage, "friend")) {
 	    String *name = Getattr(c, "name");
 	    String *symname = Getattr(c, "sym:name");
 	    Node *e = Swig_symbol_clookup_local(name, 0);

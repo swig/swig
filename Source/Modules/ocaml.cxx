@@ -1492,11 +1492,6 @@ public:
 
       /* build argument list and type conversion string */
       for (i = 0, idx = 0, p = l; i < num_arguments; i++) {
-
-	while (Getattr(p, "tmap:ignore")) {
-	  p = Getattr(p, "tmap:ignore:next");
-	}
-
 	String *pname = Getattr(p, "name");
 	String *ptype = Getattr(p, "type");
 

@@ -74,7 +74,6 @@ String *input_file = 0;
 int SmartPointer = 0;
 static Hash *classhash;
 
-extern int GenerateDefault;
 extern int ForceExtern;
 extern int AddExtern;
 extern "C" {
@@ -448,12 +447,7 @@ static Node *first_nontemplate(Node *n) {
 
 void swig_pragma(char *lang, char *name, char *value) {
   if (strcmp(lang, "swig") == 0) {
-    if ((strcmp(name, "make_default") == 0) || ((strcmp(name, "makedefault") == 0))) {
-      GenerateDefault = 1;
-    } else if ((strcmp(name, "no_default") == 0) || ((strcmp(name, "nodefault") == 0))) {
-      Swig_warning(WARN_DEPRECATED_NODEFAULT, "SWIG", 1, "dangerous, use %%nodefaultctor, %%nodefaultdtor instead.\n");
-      GenerateDefault = 0;
-    } else if (strcmp(name, "attributefunction") == 0) {
+    if (strcmp(name, "attributefunction") == 0) {
       String *nvalue = NewString(value);
       char *s = strchr(Char(nvalue), ':');
       if (!s) {
@@ -741,7 +735,7 @@ Doc/Manual/Typemaps.html for complete details.\n");
   }
 
   if (Strcmp(method, "except") == 0) {
-    Swig_warning(WARN_DEPRECATED_EXCEPT_TM, Getfile(n), Getline(n), "%%typemap(except) is deprecated. Use the %%exception directive.\n");
+    Swig_error(Getfile(n), Getline(n), "%%typemap(except) is no longer supported. Use the %%exception directive.\n");
   }
 
   if (Strcmp(method, "in") == 0) {
@@ -768,16 +762,7 @@ Doc/Manual/Typemaps.html for complete details.\n");
   }
 
   if (Strcmp(method, "ignore") == 0) {
-    Swig_warning(WARN_DEPRECATED_IGNORE_TM, Getfile(n), Getline(n), "%%typemap(ignore) has been replaced by %%typemap(in,numinputs=0).\n");
-
-    Clear(method);
-    Append(method, "in");
-    Hash *k = NewHash();
-    Setattr(k, "name", "numinputs");
-    Setattr(k, "value", "0");
-    set_nextSibling(k, kwargs);
-    Setattr(n, "kwargs", k);
-    kwargs = k;
+    Swig_error(Getfile(n), Getline(n), "%%typemap(ignore) is no longer supported. Use %%typemap(in,numinputs=0).\n");
   }
 
   /* Replace $descriptor() macros */
@@ -882,7 +867,7 @@ int Language::cDeclaration(Node *n) {
   /* discards nodes following the access control rules */
   if (cplus_mode != PUBLIC || !is_public(n)) {
     /* except for friends, they are not affected by access control */
-    int isfriend = Cmp(storage, "friend") == 0;
+    int isfriend = (Strstr(storage, "friend") != NULL);
     if (!isfriend) {
       /* Check what the director needs. If the method is pure virtual, it is always needed.
        * Also wrap non-virtual protected members if asked for (allprotected mode). */
@@ -1061,7 +1046,7 @@ int Language::cDeclaration(Node *n) {
 
 int Language::functionHandler(Node *n) {
   String *storage = Getattr(n, "storage");
-  int isfriend = CurrentClass && Cmp(storage, "friend") == 0;
+  int isfriend = CurrentClass && Strstr(storage, "friend");
   int isstatic = CurrentClass && Swig_storage_isstatic(n) && !(SmartPointer && Getattr(n, "allocate:smartpointeraccess"));
   Parm *p = Getattr(n, "parms");
   if (GetFlag(n, "feature:del")) {
@@ -2210,7 +2195,7 @@ int Language::classDirector(Node *n) {
   Node *ni;
   String *using_protected_members_code = NewString("");
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
-    Node *nodeType = Getattr(ni, "nodeType");
+    Node *nodeType = nodeType(ni);
     if (Cmp(nodeType, "destructor") == 0 && GetFlag(ni, "final")) {
       String *classtype = Getattr(n, "classtype");
       SWIG_WARN_NODE_BEGIN(ni);
@@ -2221,13 +2206,18 @@ int Language::classDirector(Node *n) {
       Delete(using_protected_members_code);
       return SWIG_OK;
     }
-    bool cdeclaration = (Cmp(nodeType, "cdecl") == 0);
-    if (cdeclaration && !GetFlag(ni, "feature:ignore")) {
-      if (isNonVirtualProtectedAccess(ni)) {
-        Node *overloaded = Getattr(ni, "sym:overloaded");
+    Node *nn = ni;
+    bool cdeclaration = Equal(nodeType, "cdecl");
+    if (!cdeclaration && Equal(nodeType, "using")) {
+      nn = Getattr(ni, "firstChild");
+      cdeclaration = nn && Equal(nodeType(nn), "cdecl") ? true : false;
+    }
+    if (cdeclaration && !GetFlag(nn, "feature:ignore")) {
+      if (isNonVirtualProtectedAccess(nn)) {
+        Node *overloaded = Getattr(nn, "sym:overloaded");
         // emit the using base::member statement (but only once if the method is overloaded)
-        if (!overloaded || (overloaded && (overloaded == ni)))
-          Printf(using_protected_members_code, "    using %s::%s;\n", SwigType_namestr(ClassName), Getattr(ni, "name"));
+        if (!overloaded || (overloaded && (overloaded == nn)))
+          Printf(using_protected_members_code, "    using %s::%s;\n", SwigType_namestr(ClassName), Getattr(nn, "name"));
       }
     }
   }
@@ -2497,7 +2487,7 @@ int Language::classDeclaration(Node *n) {
       dir = (ndir || nndir) ? (ndir && !nndir) : 0;
     }
     int abstract = !dir && abstractClassTest(n);
-    int odefault = (GenerateDefault && !GetFlag(n, "feature:nodefault"));
+    int odefault = !GetFlag(n, "feature:nodefault");
 
     /* default constructor */
     if (!abstract && !GetFlag(n, "feature:nodefaultctor") && odefault) {
@@ -2691,7 +2681,7 @@ int Language::constructorDeclaration(Node *n) {
       return SWIG_NOWRAP;
   }
 
-  /* Name adjustment for %name */
+  /* Name adjustment for %rename */
   Swig_save("constructorDeclaration", n, "sym:name", NIL);
 
   {
@@ -3633,15 +3623,20 @@ String *Language::makeParameterName(Node *n, Parm *p, int arg_num, bool setter) 
 
   // Check if parameter name is a duplicate.
   int count = 0;
+  Parm *first_duplicate_parm = 0;
   ParmList *plist = Getattr(n, "parms");
   while (plist) {
-    if ((Cmp(pn, Getattr(plist, "name")) == 0))
+    if ((Cmp(pn, Getattr(plist, "name")) == 0)) {
+      if (!first_duplicate_parm)
+	first_duplicate_parm = plist;
       count++;
+    }
     plist = nextSibling(plist);
   }
 
   // If the parameter has no name at all or has a non-unique name, replace it with "argN".
-  if (!pn || count > 1) {
+  // On the assumption that p is pointer/element in plist, only replace the 2nd and subsequent duplicates
+  if (!pn || (count > 1 && p != first_duplicate_parm)) {
     arg = NewStringf("arg%d", arg_num);
   } else {
     // Otherwise, try to use the original C name, but modify it if necessary to avoid conflicting with the language keywords.

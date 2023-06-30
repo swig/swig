@@ -4,25 +4,20 @@
  * SWIG File for making wish
  * ----------------------------------------------------------------------------- */
 
-#ifdef AUTODOC
-%subsection "wish.i"
-%text %{
-This module provides the Tk_AppInit() function needed to build a 
-new version of the wish executable.   Like tclsh.i, this file should
-not be used with dynamic loading.  To make an interface file work with
-both static and dynamic loading, put something like this in your
-interface file :
-
-     #ifdef STATIC
-     %include <wish.i>
-     #endif
-
-A startup file may be specified by defining the symbol SWIG_RcFileName
-as follows (this should be included in a code-block) :
-
-     #define SWIG_RcFileName    "~/.mywishrc"
-%}
-#endif
+// This module provides the Tk_AppInit() function needed to build a
+// new version of the wish executable.   Like tclsh.i, this file should
+// not be used with dynamic loading.  To make an interface file work with
+// both static and dynamic loading, put something like this in your
+// interface file :
+//
+//      #ifdef STATIC
+//      %include <wish.i>
+//      #endif
+//
+// A startup file may be specified by defining the symbol SWIG_RcFileName
+// as follows (this should be included in a code-block) :
+//
+//      #define SWIG_RcFileName    "~/.mywishrc"
 
 %{
 

@@ -37,6 +37,9 @@ KW(chan, fallthrough)
 KW(end, function)
 KW(nil,local)
 
+/* Javascript keywords */
+KW(instanceof, finally)
+KW(finally, instanceof)
 %}
 
 

@@ -79,8 +79,8 @@ see bottom for a set of possible tests
 #endif
 
 #ifdef SWIGD
-// Due to the way operator overloading is implemented in D1 and D2, the prefix
-// increment/decrement operators (D1) resp. the postfix ones (D2) are ignored. 
+// Due to the way operator overloading is implemented in D2, the postfix
+// increment/decrement operators are ignored.
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSPLUS, SWIGWARN_IGNORE_OPERATOR_MINUSMINUS);
 #endif
 

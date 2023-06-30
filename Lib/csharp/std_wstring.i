@@ -63,7 +63,7 @@ class wstring;
     return $null;
    }
    $1 = Swig_csharp_UTF16ToWString($input); %}
-%typemap(out) wstring %{ $result = SWIG_csharp_wstring_with_length_callback($1.c_str(), (int)$1.size()); %}
+%typemap(out) wstring %{ $result = SWIG_csharp_wstring_with_length_callback($1.data(), (int)$1.size()); %}
 
 %typemap(directorout, canthrow=1) wstring
 %{ if (!$input) {
@@ -72,7 +72,7 @@ class wstring;
    }
    $result = Swig_csharp_UTF16ToWString($input); %}
 
-%typemap(directorin) wstring %{ $input = SWIG_csharp_wstring_with_length_callback($1.c_str(), (int)$1.size()); %}
+%typemap(directorin) wstring %{ $input = SWIG_csharp_wstring_with_length_callback($1.data(), (int)$1.size()); %}
 
 %typemap(csin) wstring "$csinput"
 %typemap(csout, excode=SWIGEXCODE) wstring {
@@ -83,7 +83,7 @@ class wstring;
 %typemap(typecheck) wstring = wchar_t *;
 
 %typemap(throws, canthrow=1) wstring
-%{ SWIG_csharp_ApplicationException_callback($1.c_str(), (int)$1.size());
+%{ SWIG_csharp_ApplicationException_callback($1.data(), (int)$1.size());
    return $null; %}
 
 // const wstring &
@@ -106,7 +106,7 @@ class wstring;
    }
    std::wstring $1_str(Swig_csharp_UTF16ToWString($input));
    $1 = &$1_str; %}
-%typemap(out) const wstring & %{ $result = SWIG_csharp_wstring_with_length_callback($1->c_str(), (int)$1->size()); %}
+%typemap(out) const wstring & %{ $result = SWIG_csharp_wstring_with_length_callback($1->data(), (int)$1->size()); %}
 
 %typemap(csin) const wstring & "$csinput"
 %typemap(csout, excode=SWIGEXCODE) const wstring & {
@@ -124,7 +124,7 @@ class wstring;
    $1_str = Swig_csharp_UTF16ToWString($input);
    $result = &$1_str; %}
 
-%typemap(directorin) const wstring & %{ $input = SWIG_csharp_wstring_with_length_callback($1.c_str(), (int)$1.size()); %}
+%typemap(directorin) const wstring & %{ $input = SWIG_csharp_wstring_with_length_callback($1.data(), (int)$1.size()); %}
 
 %typemap(csvarin, excode=SWIGEXCODE2) const wstring & %{
     set {
@@ -139,7 +139,7 @@ class wstring;
 %typemap(typecheck) const wstring & = wchar_t *;
 
 %typemap(throws, canthrow=1) const wstring &
-%{ SWIG_csharp_ApplicationException_callback($1.c_str(), (int)$1.size());
+%{ SWIG_csharp_ApplicationException_callback($1.data(), (int)$1.size());
    return $null; %}
 
 }

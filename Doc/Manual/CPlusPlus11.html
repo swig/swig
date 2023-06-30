@@ -720,9 +720,10 @@ AltStruct var2{2, 4.3};   // calls the constructor
 <H3><a name="CPlusPlus11_type_inference">7.2.6 Type inference</a></H3>
 
 
-<p>SWIG supports <tt>decltype()</tt> with limitations. Single
-variables are allowed, however, non-trivial expressions are not supported very well. For
-example, the following code will work:</p>
+<p><tt>decltype()</tt> is supported with limitations.  SWIG can parse
+all uses, but can only deduce the type for single variables, and for
+some expressions involving only literal values of built-in C++ types.
+For example, the following code will work:</p>
 <div class="code"><pre>
 int i;
 decltype(i) j;
@@ -761,8 +762,10 @@ int i; int j;
 decltype(i+j) k;  // Warning 344: Unable to deduce decltype for 'i+j'.
 </pre></div>
 
-<p>SWIG does not support <tt>auto</tt> as a type specifier for variables, only
-for specifying the return type of <a href="#CPlusPlus11_lambda_functions_and_expressions">lambdas</a>
+<p>SWIG supports <tt>auto</tt> as a type specifier for
+<a href="#CPlusPlus11_auto_variables">variables</a> (with the same limitations
+for actually deducing the type as for <tt>decltype()</tt>), and for specifying
+the return type of <a href="#CPlusPlus11_lambda_functions_and_expressions">lambdas</a>
 and <a href="#CPlusPlus11_alternate_function_syntax">functions</a>.</p>
 
 <H3><a name="CPlusPlus11_range_based_for_loop">7.2.7 Range-based for-loop</a></H3>
@@ -1125,36 +1128,69 @@ union P {
 <H3><a name="CPlusPlus11_variadic_templates">7.2.18 Variadic templates</a></H3>
 
 
-<p>SWIG supports the variadic templates syntax (inside the &lt;&gt;
-block, variadic class inheritance and variadic constructor and
-initializers) with some limitations. The following code is correctly parsed:</p>
+<p>SWIG supports the variadic templates including the &lt;&gt;
+variadic class inheritance, variadic methods, variadic constructors and
+initializers. Example:</p>
 
 <div class="code"><pre>
 template &lt;typename... BaseClasses&gt; class ClassName : public BaseClasses... {
 public:
-  ClassName (BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
+  ClassName(BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
+  void InstanceMethod(const BaseClasses&amp;... baseClasses) {}
 };
 </pre></div>
 
 <p>
-For now however, the <tt>%template</tt> directive only accepts one parameter substitution
-for the variable template parameters.
+The <tt>%template</tt> directive works as expected for variable template parameters.
 </p>
 
 <div class="code"><pre>
-%template(MyVariant1) ClassName&lt;&gt;         // zero argument not supported yet
-%template(MyVariant2) ClassName&lt;int&gt;      // ok
-%template(MyVariant3) ClassName&lt;int, int&gt; // too many arguments not supported yet
+struct A {
+  virtual void amethod();
+  virtual ~A();
+};
+struct B {
+  virtual void bmethod();
+  virtual ~B();
+};
+%template(ClassName0) ClassName&lt;&gt;
+%template(ClassName1) ClassName&lt;A&gt;
+%template(ClassName2) ClassName&lt;A, B&gt;
 </pre></div>
 
-<p>Support for the variadic <tt>sizeof()</tt> function is correctly parsed:</p>
+<p>
+Example usage from say Python:
+</p>
+
+<div class="targetlang"><pre>
+cn0 = ClassName0()
+cn0.InstanceMethod()
+
+a = A()
+cn1 = ClassName1(a)
+cn1.amethod()
+cn1.InstanceMethod(a)
+
+b = B()
+cn2 = ClassName2(a, b)
+cn2.InstanceMethod(a, b)
+cn2.amethod()
+cn2.bmethod()
+</pre></div>
+
+<p>Support for the variadic <tt>sizeof()</tt> function also works:</p>
 
 <div class="code"><pre>
-const int SIZE = sizeof...(ClassName&lt;int, int&gt;);
+const int SIZE = sizeof...(ClassName&lt;A, B&gt;);
 </pre></div>
 
 <p>
 In the above example <tt>SIZE</tt> is of course wrapped as a constant.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.2.0 was the first version to fully support variadic templates.
+SWIG-3.0.0 provided initial support and was limited to only one variadic parameter.
 </p>
 
 <H3><a name="CPlusPlus11_new_char_literals">7.2.19 New character literals</a></H3>

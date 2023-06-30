@@ -1,5 +1,7 @@
 %module cpp11_noexcept
 
+%ignore NoExceptAbstract::operator std::string;
+%ignore NoExceptAbstract::operator int;
 %ignore NoExceptClass(NoExceptClass&&);
 %rename(Assignment) NoExceptClass::operator=;
 
@@ -7,6 +9,7 @@
 extern "C" void global_noexcept(int, bool) noexcept {}
 %}
 %inline %{
+#include <string>
 
 extern "C" void global_noexcept(int, bool) noexcept;
 extern "C" void global_noexcept2(int, bool) noexcept {}
@@ -43,6 +46,9 @@ struct NoExceptClass {
 struct NoExceptAbstract {
   virtual void noo4() const noexcept = 0;
   virtual ~NoExceptAbstract() noexcept = 0;
+  // Regression test for https://github.com/swig/swig/issues/2474
+  virtual explicit operator std::string() const noexcept = 0;
+  explicit virtual operator int() const noexcept = 0;
 };
 
 struct NoExceptDefaultDelete {

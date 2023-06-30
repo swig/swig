@@ -225,6 +225,7 @@ CPP_TEST_CASES += \
 	director_wombat \
 	disown \
 	duplicate_class_name_in_ns \
+	duplicate_parm_names \
 	dynamic_cast \
 	empty \
 	enum_ignore \
@@ -411,7 +412,6 @@ CPP_TEST_CASES += \
 	smart_pointer_protected \
 	smart_pointer_rename \
 	smart_pointer_simple \
-	smart_pointer_static \
 	smart_pointer_template_const_overload \
 	smart_pointer_template_defaults_overload \
 	smart_pointer_templatemethods \
@@ -463,6 +463,7 @@ CPP_TEST_CASES += \
 	template_extend2 \
 	template_extend_overload \
 	template_extend_overload_2 \
+	template_function_parm \
 	template_forward \
 	template_inherit \
 	template_inherit_abstract \
@@ -486,6 +487,7 @@ CPP_TEST_CASES += \
 	template_parameters_global_scope \
 	template_partial_arg \
 	template_partial_specialization \
+	template_partial_specialization_more \
 	template_partial_specialization_typedef \
 	template_qualifier \
 	template_ref_type \
@@ -497,6 +499,8 @@ CPP_TEST_CASES += \
 	template_static \
 	template_tbase_template \
 	template_template_parameters \
+	template_template_template_parameters \
+	template_type_collapse \
 	template_typedef \
 	template_typedef_class_template \
 	template_typedef_cplx \
@@ -587,6 +591,8 @@ CPP11_TEST_CASES += \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
 	cpp11_attribute_specifiers \
+	cpp11_auto_variable \
+	cpp11_brackets_expression \
 	cpp11_constexpr \
 	cpp11_decltype \
 	cpp11_default_delete \
@@ -631,14 +637,17 @@ CPP11_TEST_CASES += \
 	cpp11_uniform_initialization \
 	cpp11_unrestricted_unions \
 	cpp11_userdefined_literals \
+	cpp11_using_typedef_struct \
+	cpp11_variadic_function_templates \
+	cpp11_variadic_templates \
 
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \
-#	cpp11_variadic_templates \    # Broken for some languages (such as Java)
 #	cpp11_reference_wrapper \     # No typemaps
 
 # C++14 test cases.
 CPP14_TEST_CASES += \
+	cpp14_auto_return_type \
 	cpp14_binary_integer_literals \
 
 # Broken C++14 test cases.
@@ -646,10 +655,12 @@ CPP14_TEST_BROKEN = \
 
 # C++17 test cases.
 CPP17_TEST_CASES += \
+	cpp17_director_string_view \
 	cpp17_enable_if_t \
 	cpp17_hex_floating_literals \
 	cpp17_nested_namespaces \
 	cpp17_nspace_nested_namespaces \
+	cpp17_string_view \
 	cpp17_u8_char_literals \
 
 # Broken C++17 test cases.
@@ -824,7 +835,7 @@ MULTI_CPP_TEST_CASES += \
 # Custom tests - tests with additional commandline options
 wallkw.cpptest: SWIGOPT += -Wallkw
 preproc_include.ctest: SWIGOPT += -includeall
-command_line_define.ctest: SWIGOPT += -DFOO
+command_line_define.ctest: SWIGOPT += -DFOO -DBAR=123 -DBAZ -UBAZ -UNOTSET
 
 # Allow modules to define temporarily failing tests.
 C_TEST_CASES := $(filter-out $(FAILING_C_TESTS),$(C_TEST_CASES))

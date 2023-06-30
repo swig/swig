@@ -15,6 +15,7 @@
 <li><a href="#CPlusPlus14_core_language_changes">Core language changes</a>
 <ul>
 <li><a href="#CPlusPlus14_binary_literals">Binary integer literals</a>
+<li><a href="#CPlusPlus14_return_type_deduction">Return type deduction</a>
 </ul>
 <li><a href="#CPlusPlus14_standard_library_changes">Standard library changes</a>
 </ul>
@@ -52,6 +53,67 @@ Example:
 int b = 0b101011;
 </pre>
 </div>
+
+<H3><a name="CPlusPlus14_return_type_deduction">8.2.2 Return type deduction</a></H3>
+
+
+<p>
+C++14 added the ability to specify <tt>auto</tt> for the return type of a function
+and have the compiler deduce it from the body of the function (in C++11 you had
+to explicitly specify a trailing return type if you used <tt>auto</tt> for the
+return type).
+</p>
+
+<p>
+SWIG parses these types of functions, but with one significant limitation: SWIG
+can't actually deduce the return type!  If you want to wrap such a function
+you will need to tell SWIG the return type explicitly.
+</p>
+
+<p>
+The trick for specifying the return type is to use <tt>%ignore</tt> to tell
+SWIG to ignore the function with the deduced return type, but first provide
+SWIG with an alternative declaration of the function with an explicit return
+type.  The generated wrapper will wrap this alternative declaration, and the
+call in the wrapper to the function will call the actual declaration.  Here is
+an actual example:
+</p>
+
+<div class="code"><pre>
+std::tuple&lt;int, int&gt; va_static_cast();
+%ignore va_static_cast();
+#pragma SWIG nowarn=SWIGWARN_CPP14_AUTO
+
+%inline %{
+#include &lt;tuple&gt;
+
+auto va_static_cast() {
+    return std::make_tuple(0, 0);
+}
+%}
+</pre></div>
+
+<p>
+For member methods the trick is to use <tt>%extend</tt> to redeclare the method and call it as follows:
+</p>
+
+<div class="code"><pre>
+%extend X {
+  const char * a() const { return $self-&gt;a(); }
+}
+%inline %{
+struct X {
+  auto a() const {
+    return "a string";
+  }
+};
+%}
+</pre></div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.2.0 first introduced support for functions declared with an auto return without a trailing return type.
+</p>
+
 
 <H2><a name="CPlusPlus14_standard_library_changes">8.3 Standard library changes</a></H2>
 

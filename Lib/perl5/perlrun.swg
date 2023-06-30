@@ -452,7 +452,7 @@ SWIGRUNTIME void _swig_create_magic(SV *sv, char *name, int (*set)(struct interp
 #endif
 {
   MAGIC *mg;
-  sv_magic(sv,sv,'U',name,strlen(name));
+  sv_magic(sv,sv,'U',name,(I32)strlen(name));
   mg = mg_find(sv,'U');
   mg->mg_virtual = (MGVTBL *) malloc(sizeof(MGVTBL));
   mg->mg_virtual->svt_get = (SwigMagicFunc) get;

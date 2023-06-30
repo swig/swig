@@ -45,4 +45,20 @@
 (if (not (string=? (Structure-ConstStaticMemberString) "const static member string"))
   (error "Error 10"))
 
+(if (not (string=? (stdstring-empty) ""))
+  (error "stdstring-empty test"))
+(if (not (string=? (c-empty) ""))
+  (error "c-empty test"))
+; C++ NULL is mapped to #f (false) here rather than null.  I don't know guile
+; enough to know if that makes sense or not.
+(if (c-null)
+  (error "c-null test"))
+; FIXME: However, #f doesn't round-trip, so something seems wrong.
+; (if (get-null (c-null))
+;   (error "get-null c-empty test"))
+(if (not (string=? (get-null (c-empty)) "non-null"))
+  (error "get-null c-empty test"))
+(if (not (string=? (get-null (stdstring-empty)) "non-null"))
+  (error "get-null stdstring-empty test"))
+
 (exit 0)

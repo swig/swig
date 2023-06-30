@@ -157,6 +157,11 @@ SWIG_SciDoubleOrInt32_AsIntArrayAndSize(void *pvApiCtx, int iVar, int *iRows, in
       return SWIG_ERROR;
     }
   }
+  else if (iType == sci_implicit_poly) {
+    *iRows = -1;
+    *iCols = 0;
+    *piValue = NULL;
+  }
   else {
     Scierror(SCILAB_API_ARGUMENT_ERROR, _("%s: Wrong type for input argument #%d: A 32-bit signed integer or a double matrix expected.\n"), fname, iVar);
     return SWIG_ERROR;

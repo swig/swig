@@ -57,6 +57,16 @@ void arrayInPtr(std::array<int, 6> * myarray) {
     val *= 10;
   }
 }
+
+std::array<int, 6> overloadFunc(std::array<int, 6> myarray) {
+  std::array<int, 6> newarray(myarray);
+  for (auto& val : newarray) {
+    val *= 100;
+  }
+  return newarray;
+}
+void overloadFunc(int i, int j) {
+}
 %}
 
 #endif

@@ -31,9 +31,7 @@ extern int    gcd(int x, int y);
 }
 
 %typemap(freearg) char *argv[] {
-  if ($1) {
-    free($1);
-  }
+  free($1);
 }
 
 extern int gcdmain(int argc, char *argv[]);

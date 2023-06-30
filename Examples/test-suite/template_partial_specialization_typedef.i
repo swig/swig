@@ -30,10 +30,10 @@ namespace TypeDef {
 }
 namespace One {
   template <typename T> struct OneParm                  { void a() {} };
-  template <typename T> struct OneParm<T *>             { void b() {} };
-  template <typename T> struct OneParm<T &>             { void c() {} };
-  template <typename T> struct OneParm<T const &>       { void d() {} };
-  template <typename T> struct OneParm<T * const &>     { void e() {} };
+  template <typename T> struct OneParm<T *>             { void b() {} void bb(const T &t) {} };
+  template <typename T> struct OneParm<T &>             { void c() {} void cc(const T &t) {} };
+  template <typename T> struct OneParm<T const &>       { void d() {} void dd(const T &t) {} };
+  template <typename T> struct OneParm<T * const &>     { void e() {} void ee(const T &t) {} };
 
   template <>           struct OneParm<int>             { void f() {} };
   template <>           struct OneParm<int * const &>   { void g() {} };
@@ -90,10 +90,10 @@ namespace One {
 struct Concrete {};
 namespace Two {
   template <typename T1, typename T2> struct TwoParm                          { void a() {} };
-  template <typename T1, typename T2> struct TwoParm<T1 *, T2 *>              { void b() {} };
-  template <typename T1, typename T2> struct TwoParm<T1 *, const T2 *>        { void c() {} };
-  template <typename T1, typename T2> struct TwoParm<const T1 *, const T2 *>  { void d() {} };
-  template <typename T1>              struct TwoParm<T1 *, int *>             { void e() {} };
+  template <typename T1, typename T2> struct TwoParm<T1 *, T2 *>              { void b() {} void bbb(const T2 &t) {} };
+  template <typename T1, typename T2> struct TwoParm<T1 *, const T2 *>        { void c() {} void ccc(const T2 &t) {} };
+  template <typename T1, typename T2> struct TwoParm<const T1 *, const T2 *>  { void d() {} void ddd(const T2 &t) {} };
+  template <typename T1>              struct TwoParm<T1 *, int *>             { void e() {} void eee(const T1 &t) {} };
   template <typename T1>              struct TwoParm<T1, int>                 { void f() {} };
   template <>                         struct TwoParm<int *, const int *>      { void g() {} };
 }

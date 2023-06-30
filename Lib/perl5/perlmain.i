@@ -4,25 +4,20 @@
  * Code to statically rebuild perl5.
  * ----------------------------------------------------------------------------- */
 
-#ifdef AUTODOC
-%subsection "perlmain.i"
-%text %{
-This module provides support for building a new version of the
-Perl executable.  This will be necessary on systems that do
-not support shared libraries and may be necessary with C++
-extensions.  
-
-This module may only build a stripped down version of the
-Perl executable.   Thus, it may be necessary (or desirable)
-to hand-edit this file for your particular application.  To
-do this, simply copy this file from swig_lib/perl5/perlmain.i
-to your working directory and make the appropriate modifications.
-
-This library file works with Perl 5.003.  It may work with earlier
-versions, but it hasn't been tested.  As far as I know, this
-library is C++ safe.
-%}
-#endif
+// This module provides support for building a new version of the
+// Perl executable.  This will be necessary on systems that do
+// not support shared libraries and may be necessary with C++
+// extensions.
+//
+// This module may only build a stripped down version of the
+// Perl executable.   Thus, it may be necessary (or desirable)
+// to hand-edit this file for your particular application.  To
+// do this, simply copy this file from swig_lib/perl5/perlmain.i
+// to your working directory and make the appropriate modifications.
+//
+// This library file works with Perl 5.003.  It may work with earlier
+// versions, but it hasn't been tested.  As far as I know, this
+// library is C++ safe.
 
 %{
 

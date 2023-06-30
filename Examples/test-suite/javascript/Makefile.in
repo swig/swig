@@ -8,7 +8,7 @@ NODEJS = @NODEJS@
 SCRIPTSUFFIX = _runme.js
 OBJEXT = @OBJEXT@
 SO = @SO@
-GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@
+GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I$(shell npm config get prefix)/lib/node_modules/node-addon-api
 
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
@@ -19,15 +19,37 @@ top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
+	iadd \
+	inplaceadd \
+	input \
 	javascript_lib_arrays \
+	li_factory \
+	li_std_containers_int \
+	li_std_map_member
+
+CPP_TEST_BROKEN += \
+	smart_pointer_static \
 
 SWIGEXE   = $(top_builddir)/swig
 SWIG_LIB_DIR = $(top_srcdir)/Lib
 
 ifneq (, $(ENGINE))
-	JSENGINE=$(ENGINE)
+    JSENGINE=$(ENGINE)
 else
-	JSENGINE=node
+ifneq (, $(NODEJS))
+    JSENGINE=node
+else
+ifneq (, @JSCENABLED@)
+    JSENGINE=jsc
+else
+ifneq (, @JSV8ENABLED@)
+    JSENGINE=v8
+else
+    # Shouldn't happen, but avoid empty value if it does.
+    JSENGINE=node
+endif
+endif
+endif
 endif
 
 ifneq (, $(V8_VERSION))
@@ -47,10 +69,11 @@ _setup = \
 	  echo "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;     \
 	fi;
 
-ifeq (node,$(JSENGINE))
+SWIGOPT += -$(JSENGINE)
 
-  SWIGOPT += -v8 -DBUILDING_NODE_EXTENSION=1
-
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
+  SWIGOPT += -DBUILDING_NODE_EXTENSION=1
+  
   # shut up some warnings
 
   # dunno... ignoring generously
@@ -62,31 +85,45 @@ ifeq (node,$(JSENGINE))
   member_funcptr_galore.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
   director_unwrap_result.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
 
+	# Run with asan:
+	# ASAN=1 ENGINE=napi make <test_name>.cpptest
+	#
+	ifneq (, $(ASAN))
+		GYP_CFLAGS += \"-fsanitize=address\"
+		GYP_OPTS = --debug
+		ASAN_PRELOAD = $(shell $(CC) -print-file-name=libasan.so)
+		LSAN_OPTIONS = suppressions=$(srcdir)/node_template/napi-leaks-suppression.txt
+		BUILD = Debug
+	else
+		BUILD = Release
+	endif
+
 	setup_node = \
 		test -d $* || mkdir $* && \
 		sed -e 's|$$testcase|$*|g; s|$$cflags|$(GYP_CFLAGS)|g; s|$$cxxflags|"$(GYP_CXXFLAGS)"|g; s|$$srcdir|$(srcdir)|g' \
 			$(srcdir)/node_template/binding.gyp.in > $*/binding.gyp && \
-		sed -e 's|$$testcase|$*|g;' \
+		sed -e 's|$$testcase|$*|g; s|$$build|$(BUILD)|g;' \
 			$(srcdir)/node_template/index.js.in > $*/index.js
-
+		
 	# Note: we need to use swig in C parse mode, but make node-gyp believe it is c++ (via file extension)
 	swig_and_compile_c = \
 		$(setup_node) && \
 		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
 		SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 		SWIGOPT='-javascript $(SWIGOPT) -o $*_wrap.cxx $(srcdir)/../$*.i' swiginvoke && \
-		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
+		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure $(GYP_OPTS) build 1>>/dev/null
 
 	swig_and_compile_cpp = \
 		$(setup_node) && \
 		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
 		SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 		SWIGOPT='-c++ -javascript $(SWIGOPT) $(srcdir)/../$*.i' swiginvoke && \
-		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure build 1>>/dev/null
+		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure $(GYP_OPTS) build 1>>/dev/null
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
-			env NODE_PATH=$$PWD:$(srcdir) $(RUNTOOL) $(NODEJS) $(srcdir)/$*$(SCRIPTSUFFIX); \
+			env NODE_PATH=$$PWD:$(srcdir) LD_PRELOAD=$(ASAN_PRELOAD) LSAN_OPTIONS=$(LSAN_OPTIONS) \
+				$(RUNTOOL) $(NODEJS) $(srcdir)/$*$(SCRIPTSUFFIX); \
 		fi
 
 
@@ -104,8 +141,6 @@ ifeq (node,$(JSENGINE))
 		$(_setup)
 
 else
-
-  SWIGOPT += -$(JSENGINE)
 
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \

@@ -893,7 +893,7 @@ static String *extension_code(Node *n, const String *function_name, ParmList *pa
   String *rt_sig = SwigType_str(return_type, sig);
   String *body = NewStringf("SWIGINTERN %s", rt_sig);
   Printv(body, code, "\n", NIL);
-  if (Strstr(body, "$")) {
+  if (Strchr(body, '$')) {
     Swig_replace_special_variables(n, parentNode(parentNode(n)), body);
     if (self)
       Replaceall(body, "$self", self);

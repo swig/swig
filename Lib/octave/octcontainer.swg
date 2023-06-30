@@ -198,7 +198,7 @@ namespace swig
 	return swig::as<T>(item);
       } catch (const std::exception& e) {
 	char msg[1024];
-	sprintf(msg, "in sequence element %d ", _index);
+	SWIG_snprintf(msg, sizeof(msg), "in sequence element %d ", _index);
 	if (!Octave_Error_Occurred()) {
 	  %type_error(swig::type_name<T>());
 	}

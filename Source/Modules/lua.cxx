@@ -1274,7 +1274,7 @@ public:
     SwigType *t = Copy(Getattr(n, "name"));
     SwigType *fr_t = SwigType_typedef_resolve_all(t);	/* Create fully resolved type */
     SwigType *t_tmp = 0;
-    t_tmp = SwigType_typedef_qualified(fr_t);	// Temporal variable
+    t_tmp = SwigType_typedef_qualified(fr_t);	// Temporary variable
     Delete(fr_t);
     fr_t = SwigType_strip_qualifiers(t_tmp);
     String *mangled_fr_t = 0;
@@ -2122,7 +2122,7 @@ public:
       closeCArraysHash(key, dataOutput);
       Hash *carrays_hash = rawGetCArraysHash(key);
       String *name = 0;		// name - name of the namespace as it should be visible in Lua
-      if (DohLen(key) == 0)	// This is global module
+      if (Len(key) == 0)	// This is global module
 	name = module;
       else
 	name = Getattr(carrays_hash, "name");

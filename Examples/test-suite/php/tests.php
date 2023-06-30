@@ -188,25 +188,22 @@ class check {
     return check::equal($a,NULL,$message);
   }
 
-  private static function fail_($message, $pattern) {
+  private static function fail_($message, $pattern, ...$args) {
     $bt = debug_backtrace(0);
     $bt = $bt[array_key_last($bt)-1];
     print("{$bt['file']}:{$bt['line']}: Failed on: ");
     if ($message !== NULL) print("$message: ");
-    $args=func_get_args();
-    array_shift($args);
-    print(call_user_func_array("sprintf",$args)."\n");
+    print(sprintf($pattern, ...$args) . "\n");
     exit(1);
   }
 
-  static function fail($pattern) {
-    check::fail_(null, $pattern);
+  static function fail(...$args) {
+    check::fail_(null, ...$args);
   }
 
-  static function warn($pattern) {
-    $args=func_get_args();
-    if (self::$_werror) self::fail($pattern);
-    print("Warning on: ".call_user_func_array("sprintf",$args)."\n");
+  static function warn($pattern, ...$args) {
+    if (self::$_werror) self::fail($pattern, ...$args);
+    print("Warning on: " . sprintf($pattern, ...$args) . "\n");
     return FALSE;
   }
 

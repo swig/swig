@@ -45,6 +45,7 @@
  *  'p.'                = Pointer (*)
  *  'r.'                = Reference or ref-qualifier (&)
  *  'z.'                = Rvalue reference or ref-qualifier (&&)
+ *  'v.'                = Variadic (...)
  *  'a(n).'             = Array of size n  [n]
  *  'f(..,..).'         = Function with arguments  (args)
  *  'q(str).'           = Qualifier, such as const or volatile (cv-qualifier)
@@ -79,6 +80,7 @@
  *       SwigType_add_pointer()
  *       SwigType_add_reference()
  *       SwigType_add_rvalue_reference()
+ *       SwigType_add_variadic()
  *       SwigType_add_array()
  *
  * These are used to build new types.  There are also functions to undo these
@@ -87,6 +89,7 @@
  *       SwigType_del_pointer()
  *       SwigType_del_reference()
  *       SwigType_del_rvalue_reference()
+ *       SwigType_del_variadic()
  *       SwigType_del_array()
  *
  * In addition, there are query functions
@@ -94,6 +97,7 @@
  *       SwigType_ispointer()
  *       SwigType_isreference()
  *       SwigType_isrvalue_reference()
+ *       SwigType_isvariadic()
  *       SwigType_isarray()
  *
  * Finally, there are some data extraction functions that can be used to
@@ -283,6 +287,7 @@ String *SwigType_parm(const SwigType *t) {
  * SwigType_split()
  *
  * Splits a type into its component parts and returns a list of string.
+ * The component parts of SwigType are split by '.'.
  * ----------------------------------------------------------------------------- */
 
 List *SwigType_split(const SwigType *t) {
@@ -308,7 +313,7 @@ List *SwigType_split(const SwigType *t) {
 /* -----------------------------------------------------------------------------
  * SwigType_parmlist()
  *
- * Splits a comma separated list of parameters into its component parts
+ * Splits a comma separated list of SwigType * parameters into its component parts
  * The input is expected to contain the parameter list within () brackets
  * Returns 0 if no argument list in the input, ie there are no round brackets ()
  * Returns an empty List if there are no parameters in the () brackets
@@ -316,12 +321,12 @@ List *SwigType_split(const SwigType *t) {
  *
  *     Foo(std::string,p.f().Bar<(int,double)>)
  *
- * returns 2 elements in the list:
+ * returns 2 SwigType * elements in the list:
  *    std::string
  *    p.f().Bar<(int,double)>
  * ----------------------------------------------------------------------------- */
  
-List *SwigType_parmlist(const String *p) {
+List *SwigType_parmlist(const SwigType *p) {
   String *item = 0;
   List *list;
   char *c;
@@ -500,6 +505,43 @@ int SwigType_isrvalue_reference(const SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ *                                 Variadic
+ *
+ * SwigType_add_variadic()
+ * SwigType_del_variadic()
+ * SwigType_isvariadic()
+ *
+ * Add, remove, and test if a type is a variadic.  The deletion and query
+ * functions take into account qualifiers (if any).
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_add_variadic(SwigType *t) {
+  Insert(t, 0, "v.");
+  return t;
+}
+
+SwigType *SwigType_del_variadic(SwigType *t) {
+  char *c = Char(t);
+  if (strncmp(c, "v.", 2)) {
+    printf("Fatal error: SwigType_del_variadic applied to non-variadic.\n");
+    Exit(EXIT_FAILURE);
+  }
+  Delslice(t, 0, 2);
+  return t;
+}
+
+int SwigType_isvariadic(const SwigType *t) {
+  char *c;
+  if (!t)
+    return 0;
+  c = Char(t);
+  if (strncmp(c, "v.", 2) == 0) {
+    return 1;
+  }
+  return 0;
+}
+
+/* -----------------------------------------------------------------------------
  *                                  Qualifiers
  *
  * SwigType_add_qualifier()
@@ -523,7 +565,7 @@ SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
   const char *cqual = Char(qual);
 
   /* if 't' has no qualifiers and 'qual' is a single qualifier, simply add it */
-  if ((strncmp(c, "q(", 2) != 0) && (strstr(cqual, " ") == 0)) {
+  if ((strncmp(c, "q(", 2) != 0) && (strchr(cqual, ' ') == 0)) {
     String *temp = NewStringf("q(%s).", cqual);
     Insert(t, 0, temp);
     Delete(temp);
@@ -823,26 +865,42 @@ SwigType *SwigType_array_type(const SwigType *ty) {
  *                                    Functions
  *
  * SwigType_add_function()
+ * SwigType_function_parms_only()
  * SwigType_isfunction()
  * SwigType_pop_function()
  *
  * Add, remove, and test for function types.
  * ----------------------------------------------------------------------------- */
 
-/* Returns the function type, t, constructed from the parameters, parms */
-SwigType *SwigType_add_function(SwigType *t, ParmList *parms) {
-  String *pstr;
-  Parm *p;
+/* -----------------------------------------------------------------------------
+ * SwigType_function_parms_only()
+ *
+ * Creates a comma separated list of SwigType strings from parms
+ * ----------------------------------------------------------------------------- */
 
-  Insert(t, 0, ").");
-  pstr = NewString("f(");
+SwigType *SwigType_function_parms_only(ParmList *parms) {
+  Parm *p;
+  SwigType *t = NewString("");
   for (p = parms; p; p = nextSibling(p)) {
     if (p != parms)
-      Putc(',', pstr);
-    Append(pstr, Getattr(p, "type"));
+      Putc(',', t);
+    Append(t, Getattr(p, "type"));
   }
-  Insert(t, 0, pstr);
-  Delete(pstr);
+  return t;
+}
+
+/* -----------------------------------------------------------------------------
+ * SwigType_add_function()
+ *
+ * Returns the function type, t, constructed from the parameters, parms
+ * ----------------------------------------------------------------------------- */
+
+SwigType *SwigType_add_function(SwigType *t, ParmList *parms) {
+  SwigType *fparms = SwigType_function_parms_only(parms);
+  Insert(fparms, 0, "f(");
+  Append(fparms, ").");
+  Insert(t, 0, fparms);
+  Delete(fparms);
   return t;
 }
 

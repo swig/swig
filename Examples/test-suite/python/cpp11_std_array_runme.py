@@ -56,6 +56,14 @@ def setslice_exception(swigarray, newval):
 #        print("exception: {}".format(e))
         pass
 
+def overload_type_exception(pythonlist):
+    try:
+        overloadFunc(pythonlist)
+        raise RuntimeError("overloadFunc({}) missed raising TypeError exception".format(pythonlist))
+    except TypeError as e:
+#        print("exception: {}".format(e))
+        pass
+
 
 # Check std::array has similar behaviour to a Python list
 # except it is not resizable
@@ -161,3 +169,21 @@ compare_containers(ai, [90, 80, 70, 60, 50, 40])
 # fill
 ai.fill(111)
 compare_containers(ai, [111, 111, 111, 111, 111, 111])
+
+# Overloading
+newarray = overloadFunc([9, 8, 7, 6, 5, 4])
+compare_containers(newarray, [900, 800, 700, 600, 500, 400])
+
+ai = ArrayInt6([9, 8, 7, 6, 5, 4])
+newarray = overloadFunc([9, 8, 7, 6, 5, 4])
+compare_containers(newarray, [900, 800, 700, 600, 500, 400])
+
+overloadFunc(1, 2)
+overload_type_exception([1, 2, 3, 4, 5, "6"])
+overload_type_exception([1, 2, 3, 4, 5])
+overload_type_exception([1, 2, 3, 4, 5, 6, 7])
+
+# Construct from Python set
+myset = {11, 12, 13, 14, 15, 16}
+ai = ArrayInt6(myset)
+compare_containers(ai, list(myset))

@@ -155,10 +155,8 @@ namespace test
 
 %}
 
-namespace test {
-  
-  %template(BooT_H) ::BooT<Hello>;
-}
+using test::Hello;
+%template(BooT_H) ::BooT<Hello>;
 %template(BooT_i) ::BooT<int>;
 
 

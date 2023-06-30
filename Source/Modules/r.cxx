@@ -327,7 +327,7 @@ protected:
   String *s_namespace;
 
   // State variables that carry information across calls to functionWrapper()
-  // from  member accessors and class declarations.
+  // from member accessors and class declarations.
   String *opaqueClassDeclaration;
   int processing_variable;
   int processing_member_access_function;
@@ -1604,7 +1604,13 @@ void R::dispatchFunction(Node *n) {
 	  replaceRClass(tm, Getattr(p, "type"));
 	}
 
-	String *tmcheck = Swig_typemap_lookup("rtypecheck", p, "", 0);
+	/* Check if type have a %typemap(rtypecheck) */
+	String *tmcheck = Getattr(p,"tmap:rtypecheck");
+	if (tmcheck) {
+	  tmcheck = Copy(tmcheck);
+	} else {
+	  tmcheck = Swig_typemap_lookup("rtypecheck", p, "", 0);
+	}
 	if (tmcheck) {
 	  String *tmp_argtype = NewStringf("argtypes[%d]", j+1);
 	  Replaceall(tmcheck, "$argtype", tmp_argtype);
@@ -1620,6 +1626,7 @@ void R::dispatchFunction(Node *n) {
 	    Printf(f->code, "%s(%s)", j == 0 ? "" : " && ", tmcheck);
 	  }
 	  p = Getattr(p, "tmap:in:next");
+	  Delete(tmcheck);
 	  Delete(tmp_arg);
 	  Delete(tmp_argtype);
 	  continue;
@@ -1825,6 +1832,7 @@ int R::functionWrapper(Node *n) {
   Swig_typemap_attach_parms("scoercein", l, f);
   Swig_typemap_attach_parms("scoerceout", l, f);
   Swig_typemap_attach_parms("scheck", l, f);
+  Swig_typemap_attach_parms("rtypecheck", l, f);
 
   emit_parameter_variables(l, f);
   emit_attach_parmmaps(l,f);
@@ -1854,27 +1862,20 @@ int R::functionWrapper(Node *n) {
     int nargs = -1;
     String *funcptr_name = processType(tt, p, &nargs);
 
-    //      SwigType *tp = Getattr(p, "type");
-    String   *name  = Getattr(p,"name");
-    String   *lname  = Getattr(p,"lname");
+    String *name = makeParameterName(n, p, i+1, false);
+    String *lname = Getattr(p, "lname");
 
-    // R keyword renaming
     if (name) {
-      if (Swig_name_warning(p, 0, name, 0)) {
-	name = 0;
-      } else {
-	/* If we have a :: in the parameter name because we are accessing a static member of a class, say, then
-	   we need to remove that prefix. */
-	while (Strstr(name, "::")) {
-	  //XXX need to free.
-	  name = NewStringf("%s", Strchr(name, ':') + 2);
-	  if (debugMode)
-	    Printf(stdout, "+++  parameter name with :: in it %s\n", name);
-	}
+      /* If we have a :: in the parameter name because we are accessing a static member of a class, say, then
+	 we need to remove that prefix. */
+      while (Strstr(name, "::")) {
+	String *oldname = name;
+	name = NewStringf("%s", Strchr(name, ':') + 2);
+	if (debugMode)
+	  Printf(stdout, "+++  parameter name with :: in it %s\n", name);
+	Delete(oldname);
       }
     }
-    if (!name || Len(name) == 0)
-      name = NewStringf("s_arg%d", i+1);
 
     name = replaceInitialDash(name);
 
@@ -2790,7 +2791,7 @@ Language *swig_r(void) {
  *----------------------------------------------------------------------- */
 String * R::processType(SwigType *t, Node *n, int *nargs) {
   //XXX Need to handle typedefs, e.g.
-  //  a type which is a typedef  to a function pointer.
+  //  a type which is a typedef to a function pointer.
 
   SwigType *tmp = Getattr(n, "tdname");
   if (debugMode)

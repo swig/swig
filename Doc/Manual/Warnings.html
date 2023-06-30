@@ -372,27 +372,6 @@ example.i(4) : Syntax error in input(1).
 
 
 <ul>
-<li>101. Deprecated <tt>%extern</tt> directive.
-<li>102. Deprecated <tt>%val</tt> directive.
-<li>103. Deprecated <tt>%out</tt> directive.
-<li>104. Deprecated <tt>%disabledoc</tt> directive.
-<li>105. Deprecated <tt>%enabledoc</tt> directive.
-<li>106. Deprecated <tt>%doconly</tt> directive.
-<li>107. Deprecated <tt>%style</tt> directive.
-<li>108. Deprecated <tt>%localstyle</tt> directive.
-<li>109. Deprecated <tt>%title</tt> directive.
-<li>110. Deprecated <tt>%section</tt> directive.
-<li>111. Deprecated <tt>%subsection</tt> directive.
-<li>112. Deprecated <tt>%subsubsection</tt> directive.
-<li>113. Deprecated <tt>%addmethods</tt> directive.
-<li>114. Deprecated <tt>%readonly</tt> directive.
-<li>115. Deprecated <tt>%readwrite</tt> directive.
-<li>116. Deprecated <tt>%except</tt> directive.
-<li>117. Deprecated <tt>%new</tt> directive.
-<li>118. Deprecated <tt>%typemap(except)</tt>.
-<li>119. Deprecated <tt>%typemap(ignore)</tt>.
-<li>120. Deprecated command line option (-runtime, -noruntime).
-<li>121. Deprecated <tt>%name</tt> directive.
 <li>126. The 'nestedworkaround' feature is deprecated.
 </ul>
 
@@ -415,10 +394,8 @@ example.i(4) : Syntax error in input(1).
 <li>301. <tt>class</tt> keyword used, but not in C++ mode.
 <li>302. Identifier '<em>name</em>' redefined (ignored).
 <li>303. <tt>%extend</tt> defined for an undeclared class '<em>name</em>'.
-<li>304. Unsupported constant value (ignored).
 <li>305. Bad constant value (ignored).
 <li>306. '<em>identifier</em>' is private in this context.
-<li>307. Can't set default argument value (ignored)
 <li>308. Namespace alias '<em>name</em>' not allowed here. Assuming '<em>name</em>'
 <li>309. [private | protected] inheritance ignored.
 <li>310. Template '<em>name</em>' was already wrapped as '<em>name</em>' (ignored)
@@ -439,8 +416,9 @@ example.i(4) : Syntax error in input(1).
 <li>326. Deprecated %extend name used - the <em>kind</em> name '<em>name</em>' should be used instead of the typedef name '<em>name</em>'.
 <li>327. Extern template ignored.
 <li>340. Lambda expressions and closures are not fully supported yet.
-<li>343. Only the first variadic template argument is currently supported.
 <li>344. Unable to deduce decltype for '<em>expr</em>'.
+<li>345. Unable to deduce auto return type for '<em>name</em>' (ignored).
+<li>346. Unable to deduce auto type for variable '<em>name</em>' (ignored).
 <li>350. operator new ignored.
 <li>351. operator delete ignored.
 <li>352. operator+ ignored.
@@ -513,6 +491,8 @@ example.i(4) : Syntax error in input(1).
 <li>469. No or improper directorin typemap defined for <em>type</em>
 <li>470. Thread/reentrant unsafe wrapping, consider returning by value instead.
 <li>471. Unable to use return type <em>type</em> in director method
+<li>472. Overloaded method <em>method</em> with no explicit typecheck typemap for arg <em>number</em> of type '<em>type</em>'
+<li>473. Returning a pointer or reference in a director method is not recommended.
 <li>474. Method <em>method</em> usage of the optimal attribute ignored in the out typemap as the following cannot be used to generate optimal code: <em>code</em>
 <li>475. Multiple calls to <em>method</em> might be generated due to optimal attribute usage in the out typemap.
 <li>476. Initialization using std::initializer_list.

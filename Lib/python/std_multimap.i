@@ -6,16 +6,6 @@
 %fragment("StdMultimapTraits","header",fragment="StdMapCommonTraits")
 {
   namespace swig {
-    template <class SwigPySeq, class K, class T >
-    inline void 
-    assign(const SwigPySeq& swigpyseq, std::multimap<K,T > *multimap) {
-      typedef typename std::multimap<K,T>::value_type value_type;
-      typename SwigPySeq::const_iterator it = swigpyseq.begin();
-      for (;it != swigpyseq.end(); ++it) {
-	multimap->insert(value_type(it->first, it->second));
-      }
-    }
-
     template <class K, class T>
     struct traits_asptr<std::multimap<K,T> >  {
       typedef std::multimap<K,T> multimap_type;

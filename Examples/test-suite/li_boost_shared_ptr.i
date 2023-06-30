@@ -5,7 +5,7 @@
 // like 'top'. There is a wrapper for shared_ptr in shared_ptr_wrapper.h which enables one to
 // count the instances of shared_ptr. Uncomment the SHARED_PTR_WRAPPER macro to turn this on.
 //
-// Also note the debug_shared flag  which can be set from the target language.
+// Also note the debug_shared flag which can be set from the target language.
 
 %module li_boost_shared_ptr
 

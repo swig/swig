@@ -11,7 +11,12 @@
 // For MMM() and NNN()
 #pragma clang diagnostic ignored "-Wconstexpr-not-const"
 #endif
+
+#include <limits>
 %}
+
+%ignore operator==(ConstExpressions,ConstExpressions);
+%ignore operator!=(ConstExpressions,ConstExpressions);
 
 %inline %{
 #ifdef SWIG
@@ -39,10 +44,11 @@ struct ConstExpressions {
   // Regression tests for https://github.com/swig/swig/issues/284 :
   explicit constexpr ConstExpressions(int) { }
   constexpr explicit ConstExpressions(double) { }
+  // Regression tests for  https://github.com/swig/swig/issues/2079 :
+  constexpr friend bool operator==(ConstExpressions,ConstExpressions) { return true; }
+  friend constexpr bool operator!=(ConstExpressions,ConstExpressions) { return false; }
 };
-%}
 
-%{
 int Array10[AAA];
 int Array20[BBB];
 int Array30[CCC()];
@@ -52,9 +58,16 @@ int Array200[ConstExpressions::KKK];
 int Array300[ConstExpressions::LLL];
 //int Array400[ConstExpressions::MMM()];
 //int Array500[ConstExpressions::NNN()];
-%}
 
-%{
+// Regression test for https://github.com/swig/swig/issues/2486 fixed in 4.2.0
+// (the array size is constexpr in C++11):
+unsigned char myarray[std::numeric_limits<unsigned char>::max()];
+// Also check that `<(` and `)>` in the expression are handled, since these have
+// special meanings for SWIG's type system.  SWIG should rewrite them as `< (`
+// and `) >` here to avoid problems.
+template<int N> constexpr int inc() { return N + 1; };
+unsigned char myarray2[inc<(1)>()];
+
 // Test handling of ID PERIOD ID in constant expressions (supported since 4.1.0).
 struct A {
     int i;

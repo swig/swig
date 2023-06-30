@@ -137,7 +137,6 @@ OBJS      = $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@)
 
 distclean:
 	rm -f Makefile
-	rm -f d/example.mk
 	rm -f xml/Makefile
 
 ##################################################################
@@ -280,17 +279,8 @@ csharp_clean:
 
 DLIBPREFIX = @DLIBPREFIX@
 
-ifeq (,$(D_VERSION))
-  D_VERSION = @DDEFAULTVERSION@
-endif
-
-ifeq (2,$(D_VERSION))
-  SWIGD = $(SWIG) -d -d2
-  DCOMPILER = @D2COMPILER@
-else
-  SWIGD = $(SWIG) -d
-  DCOMPILER = @D1COMPILER@
-endif
+SWIGD = $(SWIG) -d
+DCOMPILER = @D2COMPILER@
 
 D_RUNME = ./$(RUNME)
 
@@ -333,7 +323,7 @@ d_run:
 # -----------------------------------------------------------------
 
 d_version:
-	($(DCOMPILER) --version 2> /dev/null || $(DCOMPILER)) | head -n 3
+	$(DCOMPILER) --version 2> /dev/null | head -n 3
 
 # -----------------------------------------------------------------
 # Clean the D examples
@@ -608,23 +598,11 @@ guile_augmented: $(SRCDIR_SRCS)
 # -----------------------------------------------------------------
 
 guile_static: $(SRCDIR_SRCS)
-	$(SWIG) -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
-	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
-	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
-
-guile_static_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
-	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
-	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
-
-guile_simple: $(SRCDIR_SRCS)
 	$(SWIG) -guile -lguilemain.i -Linkage simple $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
 	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
 
-guile_simple_cpp: $(SRCDIR_SRCS)
+guile_static_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -c++ -guile -lguilemain.i -Linkage simple $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
 	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
@@ -737,29 +715,60 @@ JSINCLUDES = @JSCOREINC@ @JSV8INC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
 NODEJS = @NODEJS@
 NODEGYP = @NODEGYP@
+ifneq (, $(ENGINE))
+    JSENGINE=$(ENGINE)
+else
+ifneq (, $(NODEJS))
+    JSENGINE=node
+else
+ifneq (, @JSCENABLED@)
+    JSENGINE=jsc
+else
+ifneq (, @JSV8ENABLED@)
+    JSENGINE=v8
+else
+    # Shouldn't happen, but avoid empty value if it does.
+    JSENGINE=node
+endif
+endif
+endif
+endif
 
 # ----------------------------------------------------------------
 # Creating and building Javascript wrappers
 # ----------------------------------------------------------------
 
+NAPI_DIR = @NODENAPI_DIR@
+
 javascript_wrapper:
-	$(SWIG) -javascript $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
+	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
+else
+	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
+endif
 
 javascript_wrapper_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -javascript -c++ $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
+	$(SWIG) -javascript -c++ $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
 
 javascript_build: $(SRCDIR_SRCS)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-javascript_build_cpp: $(SRCDIR_SRCS)
 ifeq (node,$(JSENGINE))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
 	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+else ifeq (napi,$(JSENGINE))
+	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
+	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+else
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(LDSHARED) $(CCSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+endif
+
+javascript_build_cpp: $(SRCDIR_SRCS)
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
+	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
+	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
 else
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
 endif
 
 # These targets are used by the test-suite:
@@ -786,7 +795,7 @@ javascript_cpp: $(SRCDIR_SRCS) javascript_custom_interpreter
 javascript_custom_interpreter:
 	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
 
-ifeq (node,$(JSENGINE))
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 javascript_run:
 	env NODE_PATH=$$PWD:$(SRCDIR) $(RUNTOOL) $(NODEJS) $(SRCDIR)$(RUNME).js $(RUNPIPE)
 else
@@ -807,7 +816,7 @@ ifeq (, $(ENGINE))
 	  echo "Version depends on the interpreter"; \
 	fi
 endif
-ifeq (node, $(ENGINE))
+ifeq ($(ENGINE), $(filter $(ENGINE), node napi))
 	echo "Node.js: `($(NODEJS) --version)`"
 	echo "node-gyp: `($(NODEGYP) --version)`"
 endif
@@ -1017,7 +1026,7 @@ ocaml_static_toplevel: $(SRCDIR_SRCS)
 ocaml_static_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -ocaml -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -cc '$(CXX) $(CPPFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+	$(OCC) -cc '$(CXX) $(CPPFLAGS) $(CXXFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
@@ -1026,7 +1035,7 @@ ocaml_static_cpp: $(SRCDIR_SRCS)
 ocaml_static_cpp_toplevel: $(SRCDIR_SRCS)
 	$(SWIG) -ocaml -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -cc '$(CXX) $(CPPFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+	$(OCC) -cc '$(CXX) $(CPPFLAGS) $(CXXFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
 	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
 	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
 	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
@@ -1035,7 +1044,7 @@ ocaml_static_cpp_toplevel: $(SRCDIR_SRCS)
 ocaml_dynamic_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -ocaml -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -cc '$(CXX) $(CPPFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) -ccopt -fPIC
+	$(OCC) -cc '$(CXX) $(CPPFLAGS) $(CXXFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) -ccopt -fPIC
 	$(CXXSHARED) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $(INTERFACE:%.i=%@SO@) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) $(CPP_DLLIBS) $(LIBS)
 	$(OCAMLDLGEN) $(INTERFACE:%.i=%.ml) $(INTERFACE:%.i=%@SO@) > $(INTERFACE:%.i=%_dynamic.ml)
 	mv $(INTERFACE:%.i=%_dynamic.ml) $(INTERFACE:%.i=%.ml)

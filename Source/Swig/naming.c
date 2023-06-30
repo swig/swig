@@ -997,7 +997,7 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
 
     /* friend methods */
 
-    if (!a_inclass || (Cmp(a_storage, "friend") == 0)) {
+    if (!a_inclass || Strstr(a_storage, "friend")) {
       /* check declaration */
 
       String *a_decl = (Getattr(a, "decl"));
@@ -1056,7 +1056,7 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
       return 0;
     }
     if (Equal(ta, "template") && Equal(tb, "template")) {
-      if (Cmp(a_storage, "friend") == 0 || Cmp(b_storage, "friend") == 0)
+      if (Strstr(a_storage, "friend") || Strstr(b_storage, "friend"))
 	return 1;
     }
   }

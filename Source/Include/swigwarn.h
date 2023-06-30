@@ -29,31 +29,31 @@
 
 /* -- Deprecated features -- */
 
-#define WARN_DEPRECATED_EXTERN        101
-#define WARN_DEPRECATED_VAL           102
-#define WARN_DEPRECATED_OUT           103
-#define WARN_DEPRECATED_DISABLEDOC    104
-#define WARN_DEPRECATED_ENABLEDOC     105
-#define WARN_DEPRECATED_DOCONLY       106
-#define WARN_DEPRECATED_STYLE         107
-#define WARN_DEPRECATED_LOCALSTYLE    108
-#define WARN_DEPRECATED_TITLE         109
-#define WARN_DEPRECATED_SECTION       110
-#define WARN_DEPRECATED_SUBSECTION    111
-#define WARN_DEPRECATED_SUBSUBSECTION 112
-#define WARN_DEPRECATED_ADDMETHODS    113
-#define WARN_DEPRECATED_READONLY      114
-#define WARN_DEPRECATED_READWRITE     115
-#define WARN_DEPRECATED_EXCEPT        116
-#define WARN_DEPRECATED_NEW           117
-#define WARN_DEPRECATED_EXCEPT_TM     118
-#define WARN_DEPRECATED_IGNORE_TM     119
-#define WARN_DEPRECATED_OPTC          120
-#define WARN_DEPRECATED_NAME          121
-#define WARN_DEPRECATED_NOEXTERN      122
-#define WARN_DEPRECATED_NODEFAULT     123
+/* Unused since 4.2.0: #define WARN_DEPRECATED_EXTERN        101 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_VAL           102 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_OUT           103 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_DISABLEDOC    104 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_ENABLEDOC     105 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_DOCONLY       106 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_STYLE         107 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_LOCALSTYLE    108 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_TITLE         109 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_SECTION       110 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_SUBSECTION    111 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_SUBSUBSECTION 112 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_ADDMETHODS    113 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_READONLY      114 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_READWRITE     115 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_EXCEPT        116 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NEW           117 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_EXCEPT_TM     118 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_IGNORE_TM     119 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_OPTC          120 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NAME          121 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NOEXTERN      122 */
+/* Unused since 4.2.0: #define WARN_DEPRECATED_NODEFAULT     123 */
 /* Unused since 4.1.0: #define WARN_DEPRECATED_TYPEMAP_LANG  124 */
-#define WARN_DEPRECATED_INPUT_FILE    125
+/* Unused since 4.2.0: #define WARN_DEPRECATED_INPUT_FILE    125 */
 #define WARN_DEPRECATED_NESTED_WORKAROUND 126
 
 /* -- Preprocessor -- */
@@ -70,10 +70,10 @@
 #define WARN_PARSE_CLASS_KEYWORD      301
 #define WARN_PARSE_REDEFINED          302
 #define WARN_PARSE_EXTEND_UNDEF       303
-#define WARN_PARSE_UNSUPPORTED_VALUE  304
+/* Unused since 4.2.0: #define WARN_PARSE_UNSUPPORTED_VALUE  304 */
 #define WARN_PARSE_BAD_VALUE          305
 #define WARN_PARSE_PRIVATE            306
-#define WARN_PARSE_BAD_DEFAULT        307
+/* Unused since 4.2.0: #define WARN_PARSE_BAD_DEFAULT        307 */
 #define WARN_PARSE_NAMESPACE_ALIAS    308
 #define WARN_PARSE_PRIVATE_INHERIT    309
 #define WARN_PARSE_TEMPLATE_REPEAT    310
@@ -94,12 +94,15 @@
 #define WARN_PARSE_NAMED_NESTED_CLASS 325
 #define WARN_PARSE_EXTEND_NAME        326
 #define WARN_PARSE_EXTERN_TEMPLATE    327
+#define WARN_PARSE_ASSIGNED_VALUE     328
 
 #define WARN_CPP11_LAMBDA             340
 #define WARN_CPP11_ALIAS_DECLARATION  341  /* redundant now */
 #define WARN_CPP11_ALIAS_TEMPLATE     342  /* redundant now */
-#define WARN_CPP11_VARIADIC_TEMPLATE  343
+#define WARN_CPP11_VARIADIC_TEMPLATE  343  /* redundant now */
 #define WARN_CPP11_DECLTYPE           344
+#define WARN_CPP14_AUTO               345
+#define WARN_CPP11_AUTO               346
 
 #define WARN_IGNORE_OPERATOR_NEW        350	/* new */
 #define WARN_IGNORE_OPERATOR_DELETE     351	/* delete */

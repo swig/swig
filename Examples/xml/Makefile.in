@@ -30,7 +30,7 @@ check:
 	for f in $(all-dot-i-files) ; do				\
 	  base=`basename $$f .i` ;					\
 	  xml=$$base.xml ;						\
-	  $(SWIGINVOKE) -xml $$xml ${srcdir}/$$f ;	\
+	  $(SWIGINVOKE) -xml -o $$xml ${srcdir}/$$f ;	\
 	  cat $$xml | $(cleanup) | diff -c ${srcdir}/$$base.expected-xml - ;	\
 	done
 
@@ -43,9 +43,9 @@ distclean: clean
 # from here on, non-developers beware!
 
 %.expected-xml : %.i
-	$(SWIGINVOKE) -xml tmp-file $^
-	cat tmp-file | $(cleanup) > $@
-	rm -f tmp-file
+	$(SWIGINVOKE) -xml -o tmp-file.xml $^
+	cat tmp-file.xml | $(cleanup) > $@
+	rm -f tmp-file.xml
 
 all-expected-xml:
 	for f in $(all-dot-i-files) ; do \

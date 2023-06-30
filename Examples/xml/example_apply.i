@@ -6,7 +6,7 @@
 
 /* First we'll use the pointer library */
 extern void add(int *x, int *y, int *result);
-%include pointer.i
+%include cpointer.i
 
 /* Next we'll use some typemaps */
 

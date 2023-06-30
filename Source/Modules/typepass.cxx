@@ -1043,7 +1043,7 @@ class TypePass:private Dispatcher {
 		if (Strcmp(nodeType(c), "cdecl") == 0) {
 		  if (!(Swig_storage_isstatic(c)
 			|| checkAttribute(c, "storage", "typedef")
-			|| checkAttribute(c, "storage", "friend")
+			|| Strstr(Getattr(c, "storage"), "friend")
 			|| (Getattr(c, "feature:extend") && !Getattr(c, "code"))
 			|| GetFlag(c, "feature:ignore"))) {
 
@@ -1081,6 +1081,9 @@ class TypePass:private Dispatcher {
 		      Symtab *st = Getattr(n, "sym:symtab");
 		      assert(st);
 		      Setattr(nn, "sym:symtab", st);
+		      // The real parent is the "using" declaration node, but subsequent code generally handles
+		      // and expects a class member to point to the parent class node
+		      Setattr(nn, "parentNode", parentNode(n));
 
 		      if (!GetFlag(nn, "feature:ignore")) {
 			ParmList *parms = CopyParmList(Getattr(c, "parms"));

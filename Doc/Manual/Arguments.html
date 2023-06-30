@@ -375,11 +375,6 @@ Therefore, the <tt>INOUT</tt> rule returns the modified value as a new object
 rather than directly overwriting the value of the original input object.
 </p>
 
-<p>
-<b>Compatibility note :</b> The <tt>INOUT</tt> rule used to be known as <tt>BOTH</tt> in earlier versions of
-SWIG.  Backwards compatibility is preserved, but deprecated.
-</p>
-
 <H3><a name="Arguments_nn7">13.1.5 Using different names</a></H3>
 
 
@@ -440,7 +435,7 @@ double exp(double x);
 double log(double POSITIVE);         // Allow only positive values
 double sqrt(double NONNEGATIVE);     // Non-negative values only
 double inv(double NONZERO);          // Non-zero values
-void   free(void *NONNULL);          // Non-NULL pointers only
+int    fclose(FILE *NONNULL);        // Non-NULL pointers only
 
 </pre></div>
 

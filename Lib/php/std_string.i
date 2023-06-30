@@ -4,18 +4,20 @@
  * SWIG typemaps for std::string types
  * ----------------------------------------------------------------------------- */
 
-// ------------------------------------------------------------------------
-// std::string is typemapped by value
-// This can prevent exporting methods which return a string
-// in order for the user to modify it.
-// However, I think I'll wait until someone asks for it...
-// ------------------------------------------------------------------------
-
-%include <exception.i>
-
 %{
 #include <string>
 %}
+
+/* std::string and const std::string& are converted to/from PHP string
+ * automatically.
+ *
+ * A C++ std::string& parameter is wrapped as a pass-by-reference PHP
+ * string parameter by default, but the INPUT/INOUT/OUTPUT typemaps
+ * below provide other options (see below).
+ *
+ * std::string* is not wrapped by default, but INPUT/INOUT/OUTPUT typemaps
+ * are provided (see below).
+ */
 
 namespace std {
 
@@ -45,7 +47,7 @@ namespace std {
         ZVAL_STRINGL($input, $1.data(), $1.size());
     %}
 
-    %typemap(out, phptype="string") const string & %{
+    %typemap(out, phptype="string") const string& %{
         ZVAL_STRINGL($result, $1->data(), $1->size());
     %}
 
@@ -54,15 +56,22 @@ namespace std {
         goto fail;
     %}
 
-    %typemap(in, phptype="string") const string & ($*1_ltype temp) %{
+    %typemap(throws) string*, const string* %{
+        zend_throw_exception(NULL, $1->c_str(), 0);
+        goto fail;
+    %}
+
+    %typemap(in, phptype="string") const string& ($*1_ltype temp) %{
         convert_to_string(&$input);
         temp.assign(Z_STRVAL($input), Z_STRLEN($input));
         $1 = &temp;
     %}
 
-    /* These next two handle a function which takes a non-const reference to
-     * a std::string and modifies the string. */
-    %typemap(in,byref=1, phptype="string") string & ($*1_ltype temp) %{
+    /*************************************************************************/
+
+    /* These next four typemaps handle a function which takes a non-const
+     * reference to a std::string and modifies the string. */
+    %typemap(in,byref=1, phptype="string") string& ($*1_ltype temp) %{
         {
           zval * p = Z_ISREF($input) ? Z_REFVAL($input) : &$input;
           convert_to_string(p);
@@ -71,14 +80,14 @@ namespace std {
         }
     %}
 
-    %typemap(directorout) string & ($*1_ltype *temp) %{
+    %typemap(directorout) string& ($*1_ltype *temp) %{
         convert_to_string($input);
         temp = new $*1_ltype(Z_STRVAL_P($input), Z_STRLEN_P($input));
         swig_acquire_ownership(temp);
         $result = temp;
     %}
 
-    %typemap(argout) string & %{
+    %typemap(argout) string& %{
       if (Z_ISREF($input)) {
         ZVAL_STRINGL(Z_REFVAL($input), $1->data(), $1->size());
       }
@@ -86,5 +95,27 @@ namespace std {
 
     /* SWIG will apply the non-const typemap above to const string& without
      * this more specific typemap. */
-    %typemap(argout) const string & ""
+    %typemap(argout) const string& ""
+
+    /*************************************************************************/
+
+    /* Alternative ways to handle string& - you can specify how to wrap based
+     * on the parameter name, e.g. this handles parameters named `str` as
+     * INOUT:
+     *
+     * %apply (std::string& INOUT) (std::string& str);
+     */
+
+    %typemap(in) string& INPUT = const string&;
+    %typemap(in, numinputs=0) string& OUTPUT ($*1_ltype temp)
+    %{ $1 = &temp; %}
+    %typemap(argout,fragment="t_output_helper") string& OUTPUT
+    {
+      zval o;
+      ZVAL_STRINGL(&o, $1->data(), $1->size());
+      t_output_helper($result, &o);
+    }
+    %typemap(in) string& INOUT = const string&;
+    %typemap(argout) string& INOUT = string& OUTPUT;
+
 }

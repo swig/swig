@@ -1473,7 +1473,7 @@ public class CSharpDerived : Base
 {
   public override uint UIntMethod(uint x)
   {
-    Console.WriteLine("CSharpDerived - UIntMethod({0})", x);
+    global::System.Console.WriteLine("CSharpDerived - UIntMethod({0})", x);
     return x;
   }
 }
@@ -1861,7 +1861,7 @@ and the following usage from C# after running the code through SWIG:
 <div class="code">
 <pre>
   Wheel wheel = new Bike(10).getWheel();
-  Console.WriteLine("wheel size: " + wheel.size);
+  global::System.Console.WriteLine("wheel size: " + wheel.size);
   // Simulate a garbage collection
   global::System.GC.Collect();
   global::System.GC.WaitForPendingFinalizers();
@@ -2010,7 +2010,7 @@ In order to understand why, consider a garbage collection occurring...
   Container container = new Container();
   Element element = new Element(20);
   container.setElement(element);
-  Console.WriteLine("element.value: " + container.getElement().value);
+  global::System.Console.WriteLine("element.value: " + container.getElement().value);
   // Simulate a garbage collection
   global::System.GC.Collect();
   global::System.GC.WaitForPendingFinalizers();

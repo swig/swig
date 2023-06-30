@@ -1,6 +1,6 @@
-/* ------------------------------------------------------------
+/* -------------------------------------------------------------
  * SWIG library containing argc and argv multi-argument typemaps
- * ------------------------------------------------------------ */
+ * ------------------------------------------------------------- */
 
 %typemap(in) (int ARGC, char **ARGV) {
   if ($input.is_scalar_type()) {
@@ -16,7 +16,11 @@
       $1 = 0;
       %argument_fail(SWIG_TypeError, "'int ARGC, char **ARGV' use a non-string", $symname, $argnum);
     }
-    $2[i] = (char *)list(i).string_value().c_str();
+    const std::string & s = list(i).string_value();
+    size_t slen = s.size() + 1;
+    char * p = (char*)malloc(slen);
+    $2[i] = p;
+    memcpy(p, s.c_str(), slen);
   }
   $2[i] = NULL;
 }
@@ -39,6 +43,10 @@
 
 %typemap(freearg) (int ARGC, char **ARGV) {
   if ($2 != NULL) {
+    $1_ltype i;
+    for (i = 0; i < $1; i++) {
+      free((void *)$2[i]);
+    }
     free((void *)$2);
   }
 }

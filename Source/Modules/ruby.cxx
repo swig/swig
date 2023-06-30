@@ -1938,7 +1938,7 @@ public:
     }
 
 
-    /* Look for any remaining cleanup.  This processes the %new directive */
+    /* Look for any remaining cleanup.  This processes the %newobject directive */
     if (current != CONSTRUCTOR_ALLOCATE && GetFlag(n, "feature:new")) {
       tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
       if (tm) {
@@ -3159,12 +3159,6 @@ public:
       /* build argument list and type conversion string */
       idx = 0; p = l;
       while ( p ) {
-
-	if (Getattr(p, "tmap:ignore")) {
-	  p = Getattr(p, "tmap:ignore:next");
-	  continue;
-	}
-
 	if (Getattr(p, "tmap:directorargout") != 0)
 	  outputs++;
 

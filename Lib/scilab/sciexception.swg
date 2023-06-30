@@ -17,20 +17,20 @@
                             size_t, size_t&,
                             ptrdiff_t, ptrdiff_t& {
   char obj[20];
-  sprintf(obj, "%d", (int)$1);
+  SWIG_snprintf(obj, sizeof(obj), "%d", (int)$1);
   SWIG_Scilab_Raise_Ex(obj, "$type", $descriptor);
 }
 
 %typemap(throws, noblock=1) enum SWIGTYPE {
   char obj[20];
-  sprintf(obj, "%d", (int)$1);
+  SWIG_snprintf(obj, sizeof(obj), "%d", (int)$1);
   SWIG_Scilab_Raise_Ex(obj, "$type", $descriptor);
 }
 
 %typemap(throws, noblock=1) float, double,
                             float&, double& {
   char obj[20];
-  sprintf(obj, "%5.3f", (double)$1);
+  SWIG_snprintf(obj, sizeof(obj), "%5.3f", (double)$1);
   SWIG_Scilab_Raise_Ex(obj, "$type", $descriptor);
 }
 
@@ -44,7 +44,8 @@
 
 %typemap(throws, noblock=1) char, char& {
   char obj[2];
-  sprintf(obj, "%c", (char)$1);
+  obj[0] = (char)$1;
+  obj[1] = 0;
   SWIG_Scilab_Raise_Ex(obj, "$type", $descriptor);
 }
 

@@ -97,7 +97,6 @@ class build_swig_ext(build_ext):
 
         if self.swig_shadow:
             swig_cmd.append('-shadow')
-## swig1.1            swig_cmd.append('-docstring')
 
         for source in swig_sources:
             target = swig_targets[source]

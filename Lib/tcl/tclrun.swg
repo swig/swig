@@ -707,7 +707,7 @@ SWIG_Tcl_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char
  argerror:
   {
     char temp[32];
-    sprintf(temp,"%d", argno+1);
+    SWIG_snprintf(temp, sizeof(temp), "%d", argno+1);
     c = strchr(fmt,':');
     if (!c) c = strchr(fmt,';');
     if (!c) c = (char *)"";

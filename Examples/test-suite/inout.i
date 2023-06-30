@@ -46,3 +46,13 @@ void AddOne1p(std::pair<double, double>* INOUT);
 void AddOne2p(std::pair<double, double>* INOUT, double* INOUT);
 void AddOne3p(double* INOUT, std::pair<double, double>* INOUT, double* INOUT);
 void AddOne1r(double& INOUT);
+
+%inline %{
+  inline void StringNot(char** INOUT) {
+    if ((*INOUT)[0]) { *INOUT = NULL; } else { *INOUT = (char*)"empty"; }
+  }
+
+  inline void CharNot(char* INOUT) {
+    if (*INOUT) { *INOUT = '\0'; } else { *INOUT = '\xff'; }
+  }
+%}

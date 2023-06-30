@@ -37,14 +37,6 @@ AC_DEFINE_UNQUOTED(SWIG_PLATFORM, ["$host"], [Platform that SWIG is built for])
 # For AC_EGREP_CPP
 AC_PROG_EGREP
 
-dnl Look for popen
-AC_ARG_WITH(popen, AS_HELP_STRING([--without-popen], [Disable popen]), with_popen="$withval")
-if test x"${with_popen}" = xno ; then
-AC_MSG_NOTICE([Disabling popen])
-else
-AC_CHECK_FUNC(popen, AC_DEFINE(HAVE_POPEN, 1, [Define if popen is available]), AC_MSG_NOTICE([Disabling popen]))
-fi
-
 dnl PCRE
 AC_ARG_WITH([pcre],
   [AS_HELP_STRING([--without-pcre],
@@ -109,7 +101,7 @@ echo "Checking packages required for SWIG developers."
 echo "Note : None of the following packages are required for users to compile and install SWIG from the distributed tarball"
 echo ""
 
-AC_PROG_YACC
+AC_CHECK_PROGS([BISON], [bison], [$MISSING bison])
 
 echo ""
 echo "Checking for installed target languages and other information in order to compile and run"
@@ -682,72 +674,39 @@ AC_SUBST(CSHARPSO)
 #----------------------------------------------------------------
 
 AC_ARG_WITH(d, AS_HELP_STRING([--without-d], [Disable D]), [with_d="$withval"], [with_d="$alllang_default"])
-AC_ARG_WITH(d1-compiler, [  --with-d1-compiler=path  Set location of D1/Tango compiler (DMD compatible)],[D1COMPILERBIN="$withval"], [D1COMPILERBIN=])
 AC_ARG_WITH(d2-compiler, [  --with-d2-compiler=path  Set location of D2 compiler (DMD compatible)],[D2COMPILERBIN="$withval"], [D2COMPILERBIN=])
 
 
 # First, check for "--without-d" or "--with-d=no".
 if test x"${with_d}" = xno; then
   AC_MSG_NOTICE([Disabling D])
-  D1COMPILER=
   D2COMPILER=
 else
-  old_ac_ext=$ac_ext
-  ac_ext=d
-
-  if test -z "$D1COMPILERBIN" ; then
-    AC_CHECK_PROGS(D1COMPILER, dmd ldmd gdmd)
-
-    if test -n "$D1COMPILER" ; then
-      AC_MSG_CHECKING(whether the D1/Tango compiler works)
-      cat > conftest.$ac_ext <<_ACEOF
-import tango.io.Stdout;
-void main() {
-}
-_ACEOF
-      rm -f conftest.$ac_objext
-      AS_IF(
-        [$D1COMPILER conftest.$ac_ext 2>&AS_MESSAGE_LOG_FD && test ! -s conftest.err && test -s conftest.$ac_objext],
-        [AC_MSG_RESULT([yes])],
-        [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
-        D1COMPILER=]
-      )
-      rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-    fi
-  else
-    D1COMPILER="$D1COMPILERBIN"
-  fi
 
   if test -z "$D2COMPILERBIN" ; then
-    AC_CHECK_PROGS(D2COMPILER, dmd gdmd ldmd2 ldc2)
-
+    AC_CHECK_PROGS(D2COMPILER, dmd ldmd2 ldc2 gdmd)
     if test -n "$D2COMPILER" ; then
+      old_ac_ext=$ac_ext
+      ac_ext=d
       AC_MSG_CHECKING(whether the D2 compiler works)
       cat > conftest.$ac_ext <<_ACEOF
 import std.algorithm;
 void main() {
 }
 _ACEOF
-      rm -f conftest.$ac_objext
+      rm -f conftest.out
       AS_IF(
-        [$D2COMPILER conftest.$ac_ext 2>&AS_MESSAGE_LOG_FD && test ! -s conftest.err && test -s conftest.$ac_objext],
+        [$D2COMPILER conftest.$ac_ext -ofconftest.out 2>&AS_MESSAGE_LOG_FD && test ! -s conftest.err && test -s conftest.out],
         [AC_MSG_RESULT([yes])],
         [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
         D2COMPILER=]
       )
-      rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+      rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext conftest.out
+      ac_ext=$old_ac_ext
     fi
   else
     D2COMPILER="$D2COMPILERBIN"
   fi
-
-  ac_ext=$old_ac_ext
-fi
-
-if test -n "$D1COMPILER"; then
-  DDEFAULTVERSION=1
-elif test -n "$D2COMPILER"; then
-  DDEFAULTVERSION=2
 fi
 
 # Do not prefix library file names with "lib" on Windows.
@@ -756,9 +715,7 @@ case $host in
 *)DLIBPREFIX="lib";;
 esac
 
-AC_SUBST(D1COMPILER)
 AC_SUBST(D2COMPILER)
-AC_SUBST(DDEFAULTVERSION)
 AC_SUBST(DLIBPREFIX)
 
 #----------------------------------------------------------------
@@ -1235,11 +1192,30 @@ else
   AC_CHECK_PROGS(NODEJS, [node nodejs])
 
   if test -n "$NODEJS"; then
-    # node-gyp is needed to run the test-suite/examples
+    # node-gyp needed to run the test-suite/examples
     AC_CHECK_PROGS(NODEGYP, node-gyp)
     if test -z "$NODEGYP"; then
       NODEJS=
     fi
+    AC_CHECK_PROGS(NODENPM, npm)
+    JSNAPIENABLED=
+    if test -n "$NODENPM"; then
+      AC_MSG_CHECKING([for Node-API (napi) header directory])
+      NODENPM_PREFIX=$($NODENPM config get prefix)
+      if test -n "$NODENPM_PREFIX"; then
+        NODENAPI_DIR=$NODENPM_PREFIX/lib/node_modules/node-addon-api
+        if test -f "$NODENAPI_DIR/napi.h"; then
+          JSNAPIENABLED=1
+          AC_SUBST(NODENAPI_DIR)
+        fi
+      fi
+      if test -n "$JSNAPIENABLED"; then
+        AC_MSG_RESULT([$NODENAPI_DIR])
+      else
+        AC_MSG_RESULT([not found])
+      fi
+    fi
+    AC_SUBST(JSNAPIENABLED)
   fi
 
   #----------------------------------------------------------------
@@ -1865,17 +1841,15 @@ if test x"${PHPBIN}" = xno; then
     PHP=
 else
     if test "x$PHPBIN" = xyes; then
-      AC_CHECK_PROGS(PHP, [php8.1 php8.0 php7.4 php7.3 php7.2 php7.1 php7.0 php])
+      AC_CHECK_PROGS(PHP, [php8.2 php8.1 php8.0 php])
     else
       PHP=$PHPBIN
     fi
 
     if test -n "$PHP"; then
       AC_MSG_CHECKING(for PHP header files)
-      dnl /usr/bin/php7.0 -> /usr/bin/php-config7.0
+      dnl /usr/bin/php8.0 -> /usr/bin/php-config8.0
       case $PHP in
-        *7.*)
-          PHPCONFIG=`echo "$PHP"|sed 's/7\...*$/-config&/'` ;;
         *8.*)
           PHPCONFIG=`echo "$PHP"|sed 's/8\...*$/-config&/'` ;;
         *)
@@ -1883,7 +1857,7 @@ else
       esac
       php_version=`$PHPCONFIG --version 2>/dev/null`
       case $php_version in
-      7.*|8.*)
+      8.*)
         PHPINC=`$PHPCONFIG --includes 2>/dev/null`
         if test -n "$PHPINC"; then
           AC_MSG_RESULT($PHPINC)
@@ -1894,7 +1868,7 @@ else
       "")
         AC_MSG_RESULT([could not find $PHPCONFIG or obtain PHP version from it]) ;;
       *)
-        AC_MSG_RESULT([found PHP $php_version - not PHP 7 or 8]) ;;
+        AC_MSG_RESULT([found PHP $php_version - not PHP 8]) ;;
       esac
     fi
 fi
@@ -2420,13 +2394,13 @@ else
     # Check for Scilab version (needs api_scilab so needs version 5.3.3 or higher)
     SCILAB_VERSION=`$SCILAB -nwni -version | head -1 | sed -e 's|Scilab version \"\(.*\)\"|\1|g'`
 
-    AC_MSG_CHECKING(Scilab version is 5.3.3 or higher)
+    AC_MSG_CHECKING(Scilab version is higher than 5.3.2)
     SCILAB_MAJOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f1`
     SCILAB_MINOR_VERSION=`echo $SCILAB_VERSION | cut -d. -f2`
     SCILAB_MAINTENANCE_VERSION=`echo $SCILAB_VERSION | cut -d. -f3`
-    SCILAB_VERSION_NO_DOTS="$SCILAB_MAJOR_VERSION$SCILAB_MINOR_VERSION$SCILAB_MAINTENANCE_VERSION"
+    SCILAB_VERSION_NO_DOTS=`printf '%04d%02d%02d' "$SCILAB_MAJOR_VERSION" "$SCILAB_MINOR_VERSION" "$SCILAB_MAINTENANCE_VERSION"`
 
-    if test -n "$SCILAB_VERSION_NO_DOTS" && test "$SCILAB_VERSION_NO_DOTS" -ge 533; then
+    if test "$SCILAB_VERSION_NO_DOTS" -ge 00050303; then
       AC_MSG_RESULT(yes - $SCILAB_VERSION)
     else
       AC_MSG_RESULT(no - $SCILAB_VERSION)
@@ -2437,10 +2411,10 @@ else
       # Set Scilab startup options depending on version
       AC_MSG_CHECKING(for Scilab startup options)
       SCILABOPT="-nwni -nb"
-      if test $SCILAB_VERSION_NO_DOTS -ge 540; then
+      if test "$SCILAB_VERSION_NO_DOTS" -ge 00050400; then
         SCILABOPT+=" -noatomsautoload"
       fi
-      if test $SCILAB_VERSION_NO_DOTS -ge 600; then
+      if test "$SCILAB_VERSION_NO_DOTS" -ge 00060000; then
         SCILABOPT+=" -quit"
       fi
       AC_MSG_RESULT($SCILABOPT)
@@ -2704,7 +2678,7 @@ AC_SUBST(SKIP_CSHARP)
 
 
 SKIP_D=
-if test -z "$DDEFAULTVERSION" ; then
+if test -z "$D2COMPILER" ; then
     SKIP_D="1"
 fi
 AC_SUBST(SKIP_D)
@@ -2731,7 +2705,7 @@ AC_SUBST(SKIP_JAVA)
 
 
 SKIP_JAVASCRIPT=
-if test -z "$JAVASCRIPT" || ( test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" ) ; then
+if test -z "$JAVASCRIPT" || ( test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" && test -z "$JSNAPIENABLED" ) ; then
     SKIP_JAVASCRIPT="1"
 fi
 AC_SUBST(SKIP_JAVASCRIPT)
@@ -2914,7 +2888,6 @@ AC_SUBST(SWIG_LIB_SET)
 AC_CONFIG_FILES([
     Makefile
     Examples/Makefile
-    Examples/d/example.mk
     Examples/xml/Makefile
     Examples/test-suite/errors/Makefile
     Examples/test-suite/csharp/Makefile

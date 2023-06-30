@@ -25,9 +25,10 @@ extern "C" {
 #define SWIG_contract_assert(expr,msg) \
   do { \
     if (!(expr)) { \
-      char *m=(char *) scheme_malloc(strlen(msg)+1000); \
-      sprintf(m,"SWIG contract, assertion failed: function=%s, message=%s", \
-              (char *) FUNC_NAME,(char *) msg); \
+      size_t len=strlen(msg)+1000; \
+      char *m=(char *) scheme_malloc(len); \
+      SWIG_snprintf2(m, len, "SWIG contract, assertion failed: function=%s, message=%s", \
+		     (char *) FUNC_NAME,(char *) msg); \
       scheme_signal_error(m); \
     } \
   } while (0)
@@ -217,7 +218,8 @@ SWIG_MzScheme_Malloc(size_t size, const char *func_name) {
   void *p = malloc(size);
   if (p == NULL) {
     scheme_signal_error("swig-memory-error");
-  } else return p;
+  }
+  return p;
 }
 
 static Scheme_Object *
@@ -420,10 +422,10 @@ SWIG_MzScheme_new_scheme_struct (Scheme_Env* env, const char* basename,
 	      int L=strlen(mz_dynload_libpaths[k])+strlen("\\")+strlen(mz_dlopen_libraries[i])+1;
 	      libp=(char *) malloc(L*sizeof(char));
 #ifdef __OS_WIN32
-	      sprintf(libp,"%s\\%s",mz_dynload_libpaths[k],mz_dlopen_libraries[i]);
+	      SWIG_snprintf2(libp,L,"%s\\%s",mz_dynload_libpaths[k],mz_dlopen_libraries[i]);
 	      mz_libraries[i]=(void *) LoadLibrary(libp); 
 #else
-	      sprintf(libp,"%s/%s",mz_dynload_libpaths[k],mz_dlopen_libraries[i]);
+	      SWIG_snprintf2(libp,L,"%s/%s",mz_dynload_libpaths[k],mz_dlopen_libraries[i]);
 	      mz_libraries[i]=(void *) dlopen(libp,RTLD_LAZY); 
 #endif
 	      if (mz_dynload_debug) {

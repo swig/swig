@@ -2814,7 +2814,7 @@ public:
       Printv(f->def, linkage, wrap_return, wname, "(PyObject *self, PyObject *args, PyObject *kwargs) {", NIL);
     }
 
-    if (builtin) {
+    if (!builtin) {
       /* Avoid warning if the self parameter is not used. */
       Append(f->code, "(void)self;\n");
     }
@@ -5440,14 +5440,6 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	p = Getattr(p, "tmap:in:next");
 	continue;
       }
-
-      /* old style?  caused segfaults without the p!=0 check
-         in the for() condition, and seems dangerous in the
-         while loop as well.
-         while (Getattr(p, "tmap:ignore")) {
-         p = Getattr(p, "tmap:ignore:next");
-         }
-       */
 
       if (Getattr(p, "tmap:directorargout") != 0)
 	outputs++;
