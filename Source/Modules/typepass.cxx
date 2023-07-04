@@ -1018,14 +1018,14 @@ class TypePass:private Dispatcher {
 	    String *uname = Getattr(n, "uname");
 	    SwigType_typedef_using(uname);
 	  } else {
-	    /* A normal C declaration. */
+	    /* A normal C declaration or constructor declaration. */
 	    if ((inclass) && (!GetFlag(n, "feature:ignore")) && (Getattr(n, "sym:name"))) {
 	      Node *c = ns;
 	      Node *unodes = 0, *last_unodes = 0;
 	      int ccount = 0;
 	      String *symname = Getattr(n, "sym:name");
 
-	      // The overloaded functions in scope may not yet have had their parameters normalized yet (in cDeclaration).
+	      // The overloaded functions in scope may not yet have had their parameters normalized yet (in cDeclaration/constructorDeclaration).
 	      // Happens if the functions were declared after the using declaration. So use a normalized copy.
 	      List *n_decl_list = NewList();
 	      Node *over = Getattr(n, "sym:overloaded");
@@ -1048,7 +1048,8 @@ class TypePass:private Dispatcher {
 			|| GetFlag(c, "feature:ignore"))) {
 
 		    String *csymname = Getattr(c, "sym:name");
-		    if (!csymname || (Strcmp(csymname, symname) == 0)) {
+		    bool using_inherited_constructor_symname_okay = Equal(nodeType(c), "constructor") && Equal(symname, Getattr(parentNode(n), "name"));
+		    if (!csymname || Equal(csymname, symname) || using_inherited_constructor_symname_okay) {
 		      String *decl = Getattr(c, "decl");
 		      int match = 0;
 
@@ -1085,10 +1086,11 @@ class TypePass:private Dispatcher {
 		      Setattr(nn, "parentNode", parent);
 
 		      if (Equal(ntype, "constructor")) {
-			Setattr(nn, "name", Getattr(parent, "name"));
-			Setattr(nn, "sym:name", Getattr(parent, "sym:name"));
+			Setattr(nn, "name", Getattr(n, "name"));
+			Setattr(nn, "sym:name", Getattr(n, "sym:name"));
 			// Note that the added constructor's access is the same as that of
-			// the base class' constructor not of the using declaration
+			// the base class' constructor not of the using declaration.
+			// It has already been set correctly and should not be changed.
 		      } else {
 			// Access might be different from the method in the base class
 			Delattr(nn, "access");
