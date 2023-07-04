@@ -1012,7 +1012,7 @@ class TypePass:private Dispatcher {
 	/* Only a single symbol is being used.  There are only a few symbols that
 	   we actually care about.  These are typedef, class declarations, and enum */
 	String *ntype = nodeType(ns);
-	if (Strcmp(ntype, "cdecl") == 0) {
+	if (Equal(ntype, "cdecl") || Equal(ntype, "constructor")) {
 	  if (checkAttribute(ns, "storage", "typedef")) {
 	    /* A typedef declaration */
 	    String *uname = Getattr(n, "uname");
@@ -1040,7 +1040,7 @@ class TypePass:private Dispatcher {
 	      }
 
 	      while (c) {
-		if (Strcmp(nodeType(c), "cdecl") == 0) {
+		if (Strcmp(nodeType(c), ntype) == 0) {
 		  if (!(Swig_storage_isstatic(c)
 			|| checkAttribute(c, "storage", "typedef")
 			|| Strstr(Getattr(c, "storage"), "friend")
@@ -1074,8 +1074,6 @@ class TypePass:private Dispatcher {
 		      Node *nn = copyNode(c);
 		      Setfile(nn, Getfile(n));
 		      Setline(nn, Getline(n));
-		      Delattr(nn, "access");	// access might be different from the method in the base class
-		      Setattr(nn, "access", Getattr(n, "access"));
 		      if (!Getattr(nn, "sym:name"))
 			Setattr(nn, "sym:name", symname);
 		      Symtab *st = Getattr(n, "sym:symtab");
@@ -1083,7 +1081,19 @@ class TypePass:private Dispatcher {
 		      Setattr(nn, "sym:symtab", st);
 		      // The real parent is the "using" declaration node, but subsequent code generally handles
 		      // and expects a class member to point to the parent class node
-		      Setattr(nn, "parentNode", parentNode(n));
+		      Node *parent = parentNode(n);
+		      Setattr(nn, "parentNode", parent);
+
+		      if (Equal(ntype, "constructor")) {
+			Setattr(nn, "name", Getattr(parent, "name"));
+			Setattr(nn, "sym:name", Getattr(parent, "sym:name"));
+			// Note that the added constructor's access is the same as that of
+			// the base class' constructor not of the using declaration
+		      } else {
+			// Access might be different from the method in the base class
+			Delattr(nn, "access");
+			Setattr(nn, "access", Getattr(n, "access"));
+		      }
 
 		      if (!GetFlag(nn, "feature:ignore")) {
 			ParmList *parms = CopyParmList(Getattr(c, "parms"));

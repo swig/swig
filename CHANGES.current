@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-07-04: wsfulton
+            #2641 Add support for C++11 using declarations for inheriting
+            constructors.
+
 2023-06-30: wsfulton
             #2640 Fix syntax error parsing an expression which calls a function
             with no parameters within additional brackets.

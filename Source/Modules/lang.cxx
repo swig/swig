@@ -221,93 +221,137 @@ int Dispatcher::emit_children(Node *n) {
 int Dispatcher::defaultHandler(Node *) {
   return SWIG_OK;
 }
+
 int Dispatcher::extendDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::applyDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::clearDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::constantDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::fragmentDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::importDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::includeDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::insertDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::moduleDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::nativeDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::pragmaDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::typemapDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::typemapitemDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::typemapcopyDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::typesDirective(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::cDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::externDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::enumDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::enumvalueDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::enumforwardDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::classDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::templateDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::lambdaDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::classforwardDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::constructorDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::destructorDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::accessDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::usingDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
 int Dispatcher::namespaceDeclaration(Node *n) {
   return defaultHandler(n);
 }
+
+Dispatcher::AccessMode Dispatcher::accessModeFromString(String *access) {
+  Dispatcher::AccessMode mode = PUBLIC;
+  if (Cmp(access, "public") == 0) {
+    mode = PUBLIC;
+  } else if (Cmp(access, "private") == 0) {
+    mode = PRIVATE;
+  } else if (Cmp(access, "protected") == 0) {
+    mode = PROTECTED;
+  } else {
+    assert(0);
+  }
+  return mode;
+}
+
 
 /* Allocators */
 Language::Language():
@@ -2675,7 +2719,7 @@ int Language::constructorDeclaration(Node *n) {
     Setattr(CurrentClass, "sym:cleanconstructor", "1");
   }
 
-  if ((cplus_mode != PUBLIC)) {
+  if (!is_public(n)) {
     /* check only for director classes */
     if (!Swig_directorclass(CurrentClass) || !need_nonpublic_ctor(n))
       return SWIG_NOWRAP;

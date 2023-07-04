@@ -755,11 +755,13 @@ Allocate():
 
     Node *c = 0;
     for (c = firstChild(n); c; c = nextSibling(c)) {
-      if (Strcmp(nodeType(c), "cdecl") == 0) {
+      if (Equal(nodeType(c), "cdecl")) {
 	process_exceptions(c);
 
 	if (inclass)
 	  class_member_is_defined_in_bases(c, inclass);
+      } else if (Equal(nodeType(c), "constructor")) {
+	constructorDeclaration(c);
       }
     }
 
@@ -868,21 +870,22 @@ Allocate():
     if (!inclass)
       return SWIG_OK;
     Parm *parms = Getattr(n, "parms");
+    AccessMode access_mode = accessModeFromString(Getattr(n, "access"));
 
     process_exceptions(n);
     if (!extendmode) {
       if (!ParmList_numrequired(parms)) {
 	/* Class does define a default constructor */
 	/* However, we had better see where it is defined */
-	if (cplus_mode == PUBLIC) {
+	if (access_mode == PUBLIC) {
 	  Setattr(inclass, "allocate:default_constructor", "1");
-	} else if (cplus_mode == PROTECTED) {
+	} else if (access_mode == PROTECTED) {
 	  Setattr(inclass, "allocate:default_base_constructor", "1");
 	}
       }
       /* Class defines some kind of constructor. May or may not be public */
       Setattr(inclass, "allocate:has_constructor", "1");
-      if (cplus_mode == PUBLIC) {
+      if (access_mode == PUBLIC) {
 	Setattr(inclass, "allocate:public_constructor", "1");
       }
     } else {
@@ -931,9 +934,9 @@ Allocate():
       if (copy_constructor) {
 	Setattr(n, "copy_constructor", "1");
 	Setattr(inclass, "allocate:has_copy_constructor", "1");
-	if (cplus_mode == PUBLIC) {
+	if (access_mode == PUBLIC) {
 	  Setattr(inclass, "allocate:copy_constructor", "1");
-	} else if (cplus_mode == PROTECTED) {
+	} else if (access_mode == PROTECTED) {
 	  Setattr(inclass, "allocate:copy_base_constructor", "1");
 	}
       }
