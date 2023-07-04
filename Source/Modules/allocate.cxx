@@ -740,14 +740,7 @@ Allocate():
   }
 
   virtual int accessDeclaration(Node *n) {
-    String *kind = Getattr(n, "kind");
-    if (Cmp(kind, "public") == 0) {
-      cplus_mode = PUBLIC;
-    } else if (Cmp(kind, "private") == 0) {
-      cplus_mode = PRIVATE;
-    } else if (Cmp(kind, "protected") == 0) {
-      cplus_mode = PROTECTED;
-    }
+    cplus_mode = accessModeFromString(Getattr(n, "kind"));
     return SWIG_OK;
   }
 
