@@ -758,12 +758,10 @@ void $jsmangledname_inst::GetMembers(
   // jsnapi_registerclass
   Napi::Function $jsmangledname_ctor = $jsmangledname_inst::GetClass(env);
   $jsparent.Set("$jsname", $jsmangledname_ctor);
-  if (SWIGTYPE_$jsmangledtype->clientdata == nullptr) {
-    SWIGTYPE_$jsmangledtype->clientdata = new size_t($jsclassidx);
-  }
-  Napi::FunctionReference *$jsmangledname_ctor_ref = new Napi::FunctionReference();
-  *$jsmangledname_ctor_ref = Napi::Persistent($jsmangledname_ctor);
-  env.GetInstanceData<EnvInstanceData>()->ctor[$jsclassidx] = $jsmangledname_ctor_ref;
+  // Almost, but not quite, entirely unlike random bias of 42 to disambiguate
+  // uninitialized and initialized values in javascriptrun.swg.
+  SWIGTYPE_$jsmangledtype->clientdata = reinterpret_cast<void*>($jsclassidx+42);
+  instance_data->ctor[$jsclassidx] = Napi::Persistent($jsmangledname_ctor);
 %}
 
 /* -----------------------------------------------------------------------------

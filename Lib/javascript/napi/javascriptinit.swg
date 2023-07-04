@@ -4,24 +4,6 @@
 
 %insert(init) %{
 
-EnvInstanceData::EnvInstanceData(Napi::Env env, swig_module_info *swig_module) :
-env(env), SWIG_NAPI_ObjectWrapCtor(nullptr), ctor(nullptr), swig_module(swig_module) {
-  ctor = new Napi::FunctionReference*[swig_module->size + 1];
-  for (size_t i = 0; i <= swig_module->size; i++) {
-    ctor[i] = nullptr;
-  }
-}
-
-EnvInstanceData::~EnvInstanceData() {
-  for (size_t i = 0; i <= swig_module->size; i++) {
-    if (ctor[i] != nullptr)
-      delete ctor[i];
-    ctor[i] = nullptr;
-  }
-  delete [] ctor;
-  delete SWIG_NAPI_ObjectWrapCtor;
-}
-
 SWIGRUNTIME void
 SWIG_NAPI_SetModule(Napi::Env env, swig_module_info *swig_module) {
   auto data = new EnvInstanceData(env, swig_module);
@@ -52,6 +34,8 @@ SWIG_NAPI_GetModule(Napi::Env env) {
 %insert(init) %{
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
   SWIG_InitializeModule(env);
+
+  auto instance_data = env.GetInstanceData<EnvInstanceData>();
 %}
 
 /* -----------------------------------------------------------------------------
@@ -82,9 +66,7 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 %fragment("js_initializer", "templates")
 %{
   Napi::Function SWIG_NAPI_ObjectWrap_ctor = SWIG_NAPI_ObjectWrap_inst::GetClass(env);
-  Napi::FunctionReference *SWIG_NAPI_ObjectWrap_ctor_ref = new Napi::FunctionReference();
-  *SWIG_NAPI_ObjectWrap_ctor_ref = Napi::Persistent(SWIG_NAPI_ObjectWrap_ctor);
-  env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor = SWIG_NAPI_ObjectWrap_ctor_ref;
+  instance_data->SWIG_NAPI_ObjectWrapCtor = Napi::Persistent(SWIG_NAPI_ObjectWrap_ctor);
 
   /* create objects for namespaces */
   $jsnapinspaces

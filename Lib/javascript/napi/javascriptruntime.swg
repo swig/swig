@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <map>
+#include <vector>
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */

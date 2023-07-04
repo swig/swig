@@ -110,16 +110,13 @@ struct EnvInstanceData {
   Napi::Env env;
   // Base class per-environment constructor, used to check
   // if a JS object is a SWIG wrapper
-  Napi::FunctionReference *SWIG_NAPI_ObjectWrapCtor;
+  Napi::FunctionReference SWIG_NAPI_ObjectWrapCtor;
   // Per-environment wrapper constructors, indexed by the number in
   // swig_type->clientdata
-  Napi::FunctionReference **ctor;
+  std::vector<Napi::FunctionReference> ctor;
   swig_module_info *swig_module;
-  EnvInstanceData(Napi::Env, swig_module_info *);
-  ~EnvInstanceData();
+  EnvInstanceData(Napi::Env e, swig_module_info *m) : env(e), ctor(m->size+1), swig_module(m) {};
 };
-
-typedef size_t SWIG_NAPI_ClientData;
 
 // Base class for all wrapped objects,
 // used mostly when unwrapping unknown objects
@@ -204,7 +201,7 @@ SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
   if(!objRef.IsObject()) return SWIG_ERROR;
 
   // Check if this is a SWIG wrapper
-  Napi::FunctionReference *ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
+  Napi::FunctionReference *ctor = &env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
   bool instanceOf;
   NAPI_CHECK_RESULT(objRef.InstanceOf(ctor->Value()), instanceOf);
   if (!instanceOf) {
@@ -296,14 +293,14 @@ SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_t
   }
   native = Napi::External<void>::New(env, ptr);
 
-  size_t *idx = info != nullptr ?
-        reinterpret_cast<SWIG_NAPI_ClientData *>(info->clientdata) :
-        nullptr;
+  void *idx = info != nullptr ? info->clientdata : nullptr;
   if (idx == nullptr) {
     // This type does not have a dedicated wrapper
-    ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
+    ctor = &env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
   } else {
-    ctor = env.GetInstanceData<EnvInstanceData>()->ctor[*idx];
+    // Almost, but not quite, entirely unlike random bias of 42 to disambiguate
+    // uninitialized (as above) and initialized values.
+    ctor = &env.GetInstanceData<EnvInstanceData>()->ctor[reinterpret_cast<size_t>(idx)-42];
   }
 
   Napi::Value wrapped;
