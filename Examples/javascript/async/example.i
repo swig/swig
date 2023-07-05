@@ -11,8 +11,8 @@
 
 // A full set of async-compatible maps that handle
 // returning a double value in a pointer argument
-%typemap(in, numinputs=0) double *result (double temp) {
-  $1 = &temp;
+%typemap(in, numinputs=0) double *result {
+  $1 = new double;
 }
 %typemap(argout, fragment=SWIG_From_frag(double)) double *result {
   $result = SWIG_AppendOutput($result, SWIG_From(double)(*$1));
