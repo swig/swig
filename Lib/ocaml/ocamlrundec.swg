@@ -14,7 +14,7 @@ SWIGEXT {
 #else
 #define SWIGEXT 
 #endif
-#define value caml_value_t
+#define caml_value_t value
 #define CAML_VALUE caml_value_t
 #define CAML_NAME_SPACE
 #include <caml/alloc.h>
@@ -80,11 +80,15 @@ SWIGEXT {
                                                  /* Also an l-value. */
 #endif
 
+#ifndef CAML_LOCAL_ROOTS
+#define CAML_LOCAL_ROOTS caml_local_roots
+#endif
+
 #ifdef CAMLreturn0
 #undef CAMLreturn0
 #endif
 #define CAMLreturn0 do{ \
-  caml_local_roots = caml__frame; \
+  CAML_LOCAL_ROOTS = caml__frame; \
   return; \
 }while (0)
 
@@ -93,12 +97,12 @@ SWIGEXT {
 #endif
 #define CAMLreturn(result) do{ \
   caml_value_t caml__temp_result = (result); \
-  caml_local_roots = caml__frame; \
+  CAML_LOCAL_ROOTS = caml__frame; \
   return (caml__temp_result); \
 }while(0)
 
 #define CAMLreturn_type(result) do{ \
-  caml_local_roots = caml__frame; \
+  CAML_LOCAL_ROOTS = caml__frame; \
   return result; \
 }while(0)
 
