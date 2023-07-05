@@ -7,3 +7,5 @@ public:
   double approx();
 };
 
+Pi *calcFromPtr(Pi *, double *result);
+//Pi &calcFromRef(Pi &, double &);

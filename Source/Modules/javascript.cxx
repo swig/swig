@@ -2477,6 +2477,8 @@ protected:
   virtual int emitWrapperFunction(Node *);
   virtual int emitNativeFunction(Node *);
 
+  virtual String *expandAsyncCaptureVariables(Node *, ParmList *);
+
   virtual const char *getFunctionTemplate(Node *, bool is_member);
   virtual const char *getFunctionDispatcherTemplate(bool is_member);
   virtual const char *getOverloadedFunctionTemplate(bool is_member);
@@ -2906,8 +2908,24 @@ String *NAPIEmitter::emitAsyncTypemaps(Node *, Parm *parms, Wrapper *,
       p = nextSibling(p);
     }
   }
+  Delete(tmcode);
+  Delete(tmnext);
 
   return result;
+}
+
+String *NAPIEmitter::expandAsyncCaptureVariables(Node *, ParmList *params) {
+  String *cargs = NewString("");
+  int idx = 1;
+  for (Parm *p = params; p; p = nextSibling(p), idx++) {
+    Printf(cargs, "%s, ", Getattr(p, "lname"));
+    Hash *locals = Getattr(p, "tmap:async_in:locals");
+    while (locals) {
+      Printf(cargs, "%s%d, ", Getattr(locals, "name"), idx);
+      locals = Getattr(locals, "nextSibling");
+    }
+  }
+  return cargs;
 }
 
 int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
@@ -2965,11 +2983,6 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
 
   SwigType *type = Getattr(n, "type");
 
-  Replaceall(input, "$symname", iname);
-  Replaceall(action, "$symname", iname);
-  Replaceall(output, "$symname", iname);
-  Replaceall(cleanup, "$symname", iname);
-
   t_function.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jswrapper", wrap_name)
       .replace("$jslocals", wrapper->locals)
@@ -2981,8 +2994,16 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
       .replace("$jspostaction", post)
       .replace("$jsoutput", output)
       .replace("$jscleanup", cleanup)
+      .replace("$symname", iname)
       .replace("$jsargcount", Getattr(n, ARGCOUNT))
-      .pretty_print(f_wrappers);
+      .replace("$jsargrequired", Getattr(n, ARGREQUIRED));
+
+  if (GetFlag(n, IS_ASYNC)) {
+    String *cargs = expandAsyncCaptureVariables(n, params);
+    t_function.replace("$cargs", cargs);
+  }
+
+  t_function.pretty_print(f_wrappers);
 
   DelWrapper(wrapper);
   Delete(input);

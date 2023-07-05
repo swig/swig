@@ -318,7 +318,13 @@ fail:
  *   - $jslocals:      locals part of wrapper
  *   - $jsargcount:    number of arguments
  *   - $jsargrequired: minimum number of arguments
- *   - $jscode:        code part of wrapper
+ *   - $jslocals:       locals part of wrapper
+ *   - $jsinput:        input part of wrapper
+ *   - $jspreaction:    preaction part of wrapper
+ *   - $jsaction:       action part of wrapper
+ *   - $jspostaction:   postaction part of wrapper
+ *   - $joutput:        output part of wrapper
+ *   - $jscleanup:      cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_global_function", "templates")
 %{
@@ -331,12 +337,72 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
 
-  $jscode
+  $jsinput
+  $jsaction
+  $jsoutput
+  $jscleanup
   return jsresult;
 
   goto fail;
 fail:
   return Napi::Value();
+}
+%}
+
+
+/* -----------------------------------------------------------------------------
+ * js_global_function_async:  template for async function wrappers
+ *   - $jswrapper:      wrapper function name
+ *   - $jslocals:       locals part of wrapper
+ *   - $jsargcount:     number of arguments
+ *   - $jsargrequired:  minimum number of arguments
+ *   - $jslocals:       locals part of wrapper
+ *   - $jsinput:        input part of wrapper
+ *   - $jspreaction:    preaction part of wrapper
+ *   - $jsaction:       action part of wrapper
+ *   - $jspostaction:   postaction part of wrapper
+ *   - $joutput:        output part of wrapper
+ *   - $jscleanup:      cleanup part of wrapper
+ *   - $cargs:          list of arguments to be carried in the worker
+ * ----------------------------------------------------------------------------- */
+%fragment("js_global_function_async", "templates")
+%{
+// js_global_function
+Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+  std::function<$jstype(void)> action;
+  std::function<Napi::Value($jstype)> rval;
+  std::vector<SWIG_NAPI_ObjectWrap_inst *> persistent;
+  SWIG_NAPI_Worker<$jstype> *worker;
+  $jslocals
+  if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
+    SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  }
+
+  $jsinput
+  action = [$cargs env]() -> $jstype {
+    $jstype result;
+    // WARNING! TODO! Find an elegant way to sort the locking operations
+    $jspreaction
+    $jsaction
+    $jspostaction
+    return result;
+  };
+  rval = [$cargs env]($jstype result){
+    Napi::Value jsresult;
+    $jsoutput
+    $jscleanup
+    return jsresult;
+  };
+  worker = new SWIG_NAPI_Worker<$jstype>(env, action, rval, persistent);
+  worker->Queue();
+  return worker->Promise();
+
+  goto fail;
+fail:
+  Napi::Promise::Deferred rejected = Napi::Promise::Deferred::New(env);
+  rejected.Reject(Napi::String::New(env, "Error"));
+  return rejected.Promise();
 }
 %}
 
@@ -438,7 +504,7 @@ fail:
  * js_function:  template for function wrappers
  *   - $jsmangledname:  mangled class name
  *   - $jswrapper:      wrapper function name
- *   - $jsargcount:     minimum number of arguments
+ *   - $jsargcount:     maximum number of arguments
  *   - $jsargrequired:  minimum number of arguments
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
@@ -475,6 +541,8 @@ fail:
  * js_function_async:  template for async function wrappers
  *   - $jsmangledname:  mangled class name
  *   - $jswrapper:      wrapper function name
+ *   - $jsargcount:     maximum number of arguments
+ *   - $jsargrequired:  minimum number of arguments
  *   - $jstype:         C return type of the underlying function
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
@@ -483,6 +551,7 @@ fail:
  *   - $jspostaction:   postaction part of wrapper
  *   - $joutput:        output part of wrapper
  *   - $jscleanup:      cleanup part of wrapper
+ *   - $cargs:          list of arguments to be carried in the worker
  * ----------------------------------------------------------------------------- */
 %fragment("js_function_async", "templates")
 %{
@@ -491,17 +560,16 @@ template <typename SWIG_OBJ_WRAP>
 Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   std::function<$jstype(void)> action;
-  std::function<Napi::Value(const $jstype)> rval;
+  std::function<Napi::Value($jstype)> rval;
   std::vector<SWIG_NAPI_ObjectWrap_inst *> persistent;
   SWIG_NAPI_Worker<$jstype> *worker;
   $jslocals
-  if(info.Length() != $jsargcount) SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
-
+  if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
+    SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+  }
+  
   $jsinput
-  // Attention! We capture everything to avoid complex code to enumerate the arguments
-  // info cannot be copied, thus the reference
-  // but this reference will be invalid in the lambda!!
-  action = [=, &info]() -> $jstype {
+  action = [$cargs env]() -> $jstype {
     $jstype result;
     // WARNING! TODO! Find an elegant way to sort the locking operations
     $jspreaction
@@ -509,7 +577,7 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
     $jspostaction
     return result;
   };
-  rval = [=, &info]($jstype result){
+  rval = [$cargs env]($jstype result){
     Napi::Value jsresult;
     $jsoutput
     $jscleanup
