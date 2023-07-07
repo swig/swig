@@ -6,7 +6,7 @@
   static const char* hi = "hello";
   $1 = const_cast<char *>(hi);
   unique++;
-  if (unique != 1) SWIG_Error(SWIG_ERROR, "in typemap applied more than once");
+  if (unique != 1) SWIG_exception_fail(SWIG_ERROR, "in typemap applied more than once");
 }
 %typemap(in,numinputs=0) int bb "$1 = 101; called_argout = 0;"
 %typemap(in,numinputs=0) double ccc "$1 = 8.8;"
