@@ -2303,7 +2303,8 @@ static void addCopyConstructor(Node *n) {
 
   String *cname = Getattr(n, "name");
   SwigType *type = Copy(cname);
-  String *name = Swig_scopename_last(cname);
+  String *lastname = Swig_scopename_last(cname);
+  String *name = SwigType_templateprefix(lastname);
   String *cc = NewStringf("r.q(const).%s", type);
   String *decl = NewStringf("f(%s).", cc);
   String *oldname = Getattr(n, "sym:name");
@@ -2314,15 +2315,15 @@ static void addCopyConstructor(Node *n) {
     // renamed, and use its name as oldname.
     Node *c;
     for (c = firstChild(n); c; c = nextSibling(c)) {
-      const char *tag = Char(nodeType(c));
-      if (strcmp(tag, "constructor") == 0) {
-	String *cname = Getattr(c, "name");
+      if (Equal(nodeType(c), "constructor")) {
 	String *csname = Getattr(c, "sym:name");
-	String *clast = Swig_scopename_last(cname);
+	String *clast = Swig_scopename_last(Getattr(c, "name"));
 	if (Equal(csname, clast)) {
 	  oldname = csname;
+	  Delete(clast);
 	  break;
 	}
+	Delete(clast);
       }
     }
   }
@@ -2335,6 +2336,7 @@ static void addCopyConstructor(Node *n) {
     Setattr(cn, "sym:name", symname);
     SetFlag(cn, "feature:new");
     Setattr(cn, "decl", decl);
+    Setattr(cn, "ismember", "1");
     Setattr(cn, "parentNode", n);
     Setattr(cn, "parms", p);
     Setattr(cn, "copy_constructor", "1");
@@ -2357,6 +2359,7 @@ static void addCopyConstructor(Node *n) {
     }
   }
   Delete(cn);
+  Delete(lastname);
   Delete(name);
   Delete(decl);
   Delete(symname);
@@ -2370,17 +2373,21 @@ static void addDefaultConstructor(Node *n) {
   Setline(cn, Getline(n));
 
   String *cname = Getattr(n, "name");
-  String *name = Swig_scopename_last(cname);
+  String *lastname = Swig_scopename_last(cname);
+  String *name = SwigType_templateprefix(lastname);
   String *decl = NewString("f().");
   String *oldname = Getattr(n, "sym:name");
   String *symname = Swig_name_make(cn, cname, name, decl, oldname);
+
   if (Strcmp(symname, "$ignore") != 0) {
     Setattr(cn, "name", name);
     Setattr(cn, "sym:name", symname);
     SetFlag(cn, "feature:new");
     Setattr(cn, "decl", decl);
+    Setattr(cn, "ismember", "1");
     Setattr(cn, "parentNode", n);
     Setattr(cn, "default_constructor", "1");
+
     Symtab *oldscope = Swig_symbol_setscope(Getattr(n, "symtab"));
     Node *on = Swig_symbol_add(symname, cn);
     Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(0), name, decl, cn);
@@ -2398,6 +2405,7 @@ static void addDefaultConstructor(Node *n) {
     }
   }
   Delete(cn);
+  Delete(lastname);
   Delete(name);
   Delete(decl);
   Delete(symname);
