@@ -82,8 +82,9 @@ template <typename TTTT> struct Lyst<const TTTT&> { void specialized3(TTTT) {} }
 
 void test_list() {
     double mydouble = 0;
+    short myshort = 0;
     Lyst<double>().primary(mydouble, Allocator<double>());
-    Lyst<short, Allocator<short> >().primary(mydouble, Allocator<short>());
+    Lyst<short, Allocator<short> >().primary(myshort, Allocator<short>());
 
     PlainStruct ps;
     int myint = 0;
