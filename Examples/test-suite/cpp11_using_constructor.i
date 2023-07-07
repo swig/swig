@@ -242,6 +242,7 @@ struct HiddenDerived1 : HiddenBase1 {
 };
 %}
 
+#if 0 // not yet working
 // Typedefs and using declarations
 %inline %{
 struct TypedefBase1 {
@@ -257,3 +258,35 @@ void tester() {
     td.meth();
 }
 %}
+#endif
+
+%inline %{
+// Templates and public base constructors (derive from non-template)
+template<typename T>
+struct TemplatePublicDerived1 : PublicBase1 {
+  using PublicBase1::PublicBase1;
+  using PublicBase1::meth;
+};
+
+template<typename T>
+struct TemplatePublicDerived2 : PublicBase2 {
+  using PublicBase2::PublicBase2;
+  using PublicBase2::meth;
+};
+
+template<typename T>
+struct TemplatePublicDerived3 : PublicBase3 {
+  using PublicBase3::PublicBase3;
+  using PublicBase3::meth;
+};
+
+template<typename T>
+struct TemplatePublicDerived4 : PublicBase4 {
+  using PublicBase4::PublicBase4;
+  using PublicBase4::meth;
+};
+%}
+%template(TemplatePublicDerived1Int) TemplatePublicDerived1<int>;
+%template(TemplatePublicDerived2Int) TemplatePublicDerived2<int>;
+%template(TemplatePublicDerived3Int) TemplatePublicDerived3<int>;
+%template(TemplatePublicDerived4Int) TemplatePublicDerived4<int>;

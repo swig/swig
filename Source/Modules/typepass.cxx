@@ -1048,7 +1048,7 @@ class TypePass:private Dispatcher {
 			|| GetFlag(c, "feature:ignore"))) {
 
 		    String *csymname = Getattr(c, "sym:name");
-		    bool using_inherited_constructor_symname_okay = Equal(nodeType(c), "constructor") && Equal(symname, Getattr(parentNode(n), "name"));
+		    bool using_inherited_constructor_symname_okay = Equal(nodeType(c), "constructor") && Equal(symname, Getattr(parentNode(n), "sym:name"));
 		    if (!csymname || Equal(csymname, symname) || using_inherited_constructor_symname_okay) {
 		      String *decl = Getattr(c, "decl");
 		      int match = 0;

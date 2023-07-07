@@ -466,7 +466,7 @@ static void add_symbols(Node *n) {
 	  if (Equal(ntype, "constructor")) {
 	    // The using declaration name for inheriting constructors is the base class constructor name
 	    // not the name provided by the using declaration. Correct it here.
-	    String *nname = Getattr(currentOuterClass, "name");
+	    String *nname = Getattr(stab, "name");
 	    Setattr(n, "name", nname);
 	  }
 	}

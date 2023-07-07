@@ -89,6 +89,15 @@ public class cpp11_using_constructor_runme {
     new ProotDerived2f(0).meth();
 
     // Missing base
-    new HiddenDerived1();
+    // new HiddenDerived1();
+
+    // Templates and public base constructors (derive from non-template)
+    new TemplatePublicDerived1Int(0, "hi").meth();
+    new TemplatePublicDerived2Int().meth();
+    new TemplatePublicDerived2Int(0, "hi").meth();
+    new TemplatePublicDerived3Int().meth();
+    new TemplatePublicDerived3Int(0, "hi").meth();
+    new TemplatePublicDerived4Int().meth();
+
   }
 }

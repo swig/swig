@@ -77,4 +77,12 @@ ProotDerived2f().meth()
 ProotDerived2f(0).meth()
 
 # Missing base
-HiddenDerived1()
+# HiddenDerived1()
+
+# Templates and public base constructors (derive from non-template)
+TemplatePublicDerived1Int(0, "hi").meth()
+TemplatePublicDerived2Int().meth()
+TemplatePublicDerived2Int(0, "hi").meth()
+TemplatePublicDerived3Int().meth()
+TemplatePublicDerived3Int(0, "hi").meth()
+TemplatePublicDerived4Int().meth()

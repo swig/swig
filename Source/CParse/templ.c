@@ -288,10 +288,47 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
       Append(cpatchlist, Getattr(n, "code"));
     }
   } else if (Equal(nodeType, "using")) {
+    String *name = Getattr(n, "name");
     String *uname = Getattr(n, "uname");
     if (uname && strchr(Char(uname), '<')) {
       Append(patchlist, uname);
     }
+    if (!(Getattr(n, "templatetype"))) {
+      // Copied from handling "constructor" .. not sure if all this is needed
+      String *symname;
+      String *stripped_name = SwigType_templateprefix(name);
+      if (Strstr(tname, stripped_name)) {
+	Replaceid(name, stripped_name, tname);
+      }
+      Delete(stripped_name);
+      symname = Getattr(n, "sym:name");
+      if (symname) {
+	stripped_name = SwigType_templateprefix(symname);
+	if (Strstr(tname, stripped_name)) {
+	  Replaceid(symname, stripped_name, tname);
+	}
+	Delete(stripped_name);
+      }
+      if (strchr(Char(name), '<')) {
+	Append(patchlist, Getattr(n, "name"));
+      } else {
+	Append(name, templateargs);
+      }
+      name = Getattr(n, "sym:name");
+      if (name) {
+	if (strchr(Char(name), '<')) {
+	  Clear(name);
+	  Append(name, rname);
+	} else {
+	  String *tmp = Copy(name);
+	  Replace(tmp, tname, rname, DOH_REPLACE_ANY);
+	  Clear(name);
+	  Append(name, tmp);
+	  Delete(tmp);
+	}
+      }
+    }
+
     if (Getattr(n, "namespace")) {
       /* Namespace link.   This is nasty.  Is other namespace defined? */
 
