@@ -99,5 +99,12 @@ public class cpp11_using_constructor_runme {
     new TemplatePublicDerived3Int(0, "hi").meth();
     new TemplatePublicDerived4Int().meth();
 
+    // Templates and public base constructors (derive from template)
+    new TemplPublicDerived1Int(0, "hi").meth();
+    new TemplPublicDerived2Int().meth();
+    new TemplPublicDerived2Int(0, "hi").meth();
+    new TemplPublicDerived3Int().meth();
+    new TemplPublicDerived3Int(0, "hi").meth();
+    new TemplPublicDerived4Int().meth();
   }
 }

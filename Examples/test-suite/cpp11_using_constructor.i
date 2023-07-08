@@ -290,3 +290,65 @@ struct TemplatePublicDerived4 : PublicBase4 {
 %template(TemplatePublicDerived2Int) TemplatePublicDerived2<int>;
 %template(TemplatePublicDerived3Int) TemplatePublicDerived3<int>;
 %template(TemplatePublicDerived4Int) TemplatePublicDerived4<int>;
+
+%inline %{
+// Templates and public base constructors (derive from template)
+template<typename T>
+struct TemplPublicBase1 {
+  TemplPublicBase1(T i, const char* s) {}
+  void meth() {}
+};
+
+template<typename T>
+struct TemplPublicBase2 {
+  TemplPublicBase2(T i, const char* s) {}
+  TemplPublicBase2() {}
+  void meth() {}
+};
+
+template<typename T>
+struct TemplPublicBase3 {
+  TemplPublicBase3(T i, const char* s) {}
+  TemplPublicBase3() = default;
+  void meth() {}
+};
+
+template<typename T>
+struct TemplPublicBase4 {
+  TemplPublicBase4() = default;
+  void meth() {}
+};
+%}
+
+%template(TemplPublicBase1Int) TemplPublicBase1<int>;
+%template(TemplPublicBase2Int) TemplPublicBase2<int>;
+%template(TemplPublicBase3Int) TemplPublicBase3<int>;
+%template(TemplPublicBase4Int) TemplPublicBase4<int>;
+
+%inline %{
+template<typename T>
+struct TemplPublicDerived1 : TemplPublicBase1<T> {
+  using TemplPublicBase1<T>::TemplPublicBase1;
+  using TemplPublicBase1<T>::meth;
+};
+template<typename T>
+struct TemplPublicDerived2 : TemplPublicBase2<T> {
+  using TemplPublicBase2<T>::TemplPublicBase2;
+  using TemplPublicBase2<T>::meth;
+};
+template<typename T>
+struct TemplPublicDerived3 : TemplPublicBase3<T> {
+  using TemplPublicBase3<T>::TemplPublicBase3;
+  using TemplPublicBase3<T>::meth;
+};
+template<typename T>
+struct TemplPublicDerived4 : TemplPublicBase4<T> {
+  using TemplPublicBase4<T>::TemplPublicBase4;
+  using TemplPublicBase4<T>::meth;
+};
+%}
+
+%template(TemplPublicDerived1Int) TemplPublicDerived1<int>;
+%template(TemplPublicDerived2Int) TemplPublicDerived2<int>;
+%template(TemplPublicDerived3Int) TemplPublicDerived3<int>;
+%template(TemplPublicDerived4Int) TemplPublicDerived4<int>;

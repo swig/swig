@@ -455,19 +455,28 @@ static void add_symbols(Node *n) {
 	Node *ns = Swig_symbol_clookup(uname, stab);
 	String *ntype = 0;
 	if (!ns && SwigType_istemplate(uname)) {
-	  String *tmp = Swig_symbol_template_deftype(uname, 0);
-	  if (!Equal(tmp, uname)) {
-	    ns = Swig_symbol_clookup(tmp, stab);
+	  String *tbase = SwigType_templateprefix(uname);
+	  String *uname_template = NewStringf("%s%s", tbase, SwigType_templatesuffix(uname));
+	  ns = Swig_symbol_clookup(uname_template, stab);
+	  if (!ns) {
+	    String *tmp = Swig_symbol_template_deftype(uname, 0);
+	    if (!Equal(tmp, uname)) {
+	      ns = Swig_symbol_clookup(tmp, stab);
+	    }
+	    Delete(tmp);
 	  }
-	  Delete(tmp);
+	  Delete(tbase);
+	  Delete(uname_template);
 	}
 	if (ns) {
 	  ntype = nodeType(ns);
 	  if (Equal(ntype, "constructor")) {
-	    // The using declaration name for inheriting constructors is the base class constructor name
-	    // not the name provided by the using declaration. Correct it here.
-	    String *nname = Getattr(stab, "name");
+	    /* The using declaration name for inheriting constructors is the base class constructor name
+	     * not the name provided by the using declaration. Correct it here. */
+	    String *stabname = Getattr(stab, "name");
+	    String *nname = SwigType_templateprefix(stabname);
 	    Setattr(n, "name", nname);
+	    Delete(nname);
 	  }
 	}
       } else {

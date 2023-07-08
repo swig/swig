@@ -2,7 +2,6 @@
 
 // test access changing from protected to public
 
-#if !defined(SWIGD)
 %inline %{
 
 template<typename T> class Base {
@@ -48,5 +47,3 @@ public:
 %template(BaseInt) Base<int>;
 %template(DerivedInt) Derived<int>;
 %template(BottomInt) Bottom<int>;
-
-#endif
