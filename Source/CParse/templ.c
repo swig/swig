@@ -270,8 +270,6 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
       if (name) {
 	if (strchr(Char(name), '<'))
 	  Append(patchlist, Getattr(n, "name"));
-	else
-	  Append(name, templateargs);
       }
       name = Getattr(n, "sym:name");
       if (name) {

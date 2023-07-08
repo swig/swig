@@ -2419,7 +2419,8 @@ static void addDestructor(Node *n) {
   Setline(cn, Getline(n));
 
   String *cname = Getattr(n, "name");
-  String *name = Swig_scopename_last(cname);
+  String *lastname = Swig_scopename_last(cname);
+  String *name = SwigType_templateprefix(lastname);
   Insert(name, 0, "~");
   String *decl = NewString("f().");
   String *symname = Swig_name_make(cn, cname, name, decl, 0);
@@ -2429,6 +2430,7 @@ static void addDestructor(Node *n) {
     Setattr(cn, "name", name);
     Setattr(cn, "sym:name", symname);
     Setattr(cn, "decl", "f().");
+    Setattr(cn, "ismember", "1");
     Setattr(cn, "parentNode", n);
 
     Symtab *oldscope = Swig_symbol_setscope(Getattr(n, "symtab"));
@@ -2455,6 +2457,7 @@ static void addDestructor(Node *n) {
     Delete(possible_nonstandard_symname);
   }
   Delete(cn);
+  Delete(lastname);
   Delete(name);
   Delete(decl);
   Delete(symname);
@@ -2922,16 +2925,29 @@ int Language::destructorDeclaration(Node *n) {
     Setattr(n, "sym:name", ClassPrefix);
   }
 
-  String *expected_name = ClassName;
-  String *scope = Swig_scopename_check(ClassName) ? Swig_scopename_prefix(ClassName) : 0;
-  String *actual_name = scope ? NewStringf("%s::%s", scope, name) : NewString(name);
-  Delete(scope);
-  Replace(actual_name, "~", "", DOH_REPLACE_FIRST);
+  String *nprefix = 0;
+  String *nlast = 0;
+  String *tprefix;
+  Swig_scopename_split(ClassName, &nprefix, &nlast);
+  tprefix = SwigType_templateprefix(nlast);
+  String *expected_name = NewStringf("~%s", tprefix);
+
+  String *actual_name = Copy(name);
   if (!Equal(actual_name, expected_name) && !(Getattr(n, "template"))) {
     bool illegal_name = true;
     if (Extend) {
       // Check for typedef names used as a destructor name in %extend. This is deprecated except for anonymous
       // typedef structs which have had their symbol names adjusted to the typedef name in the parser.
+      Replace(actual_name, "~", "", DOH_REPLACE_FIRST);
+      Replace(expected_name, "~", "", DOH_REPLACE_FIRST);
+      if (Len(nprefix) > 0) {
+	String *old_actual_name = actual_name;
+	String *old_expected_name = expected_name;
+	actual_name = NewStringf("%s::%s", nprefix, actual_name);
+	expected_name = NewStringf("%s::%s", nprefix, expected_name);
+	Delete(old_expected_name);
+	Delete(old_actual_name);
+      }
       SwigType *name_resolved = SwigType_typedef_resolve_all(actual_name);
       SwigType *expected_name_resolved = SwigType_typedef_resolve_all(expected_name);
 
@@ -2953,6 +2969,11 @@ int Language::destructorDeclaration(Node *n) {
     if (illegal_name) {
       Swig_warning(WARN_LANG_ILLEGAL_DESTRUCTOR, input_file, line_number, "Illegal destructor name %s. Ignored.\n", Swig_name_decl(n));
       Swig_restore(n);
+      Delete(tprefix);
+      Delete(nlast);
+      Delete(nprefix);
+      Delete(expected_name);
+      Delete(actual_name);
       return SWIG_NOWRAP;
     }
   }
@@ -2960,6 +2981,11 @@ int Language::destructorDeclaration(Node *n) {
 
   Setattr(CurrentClass, "has_destructor", "1");
   Swig_restore(n);
+  Delete(tprefix);
+  Delete(nlast);
+  Delete(nprefix);
+  Delete(expected_name);
+  Delete(actual_name);
   return SWIG_OK;
 }
 
