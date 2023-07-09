@@ -496,6 +496,7 @@ CPP_TEST_CASES += \
 	template_specialization \
 	template_specialization_defarg \
 	template_specialization_enum \
+	template_specialization_using_declaration \
 	template_static \
 	template_tbase_template \
 	template_template_parameters \
