@@ -363,46 +363,105 @@ fail:
  *   - $jspostaction:   postaction part of wrapper
  *   - $joutput:        output part of wrapper
  *   - $jscleanup:      cleanup part of wrapper
- *   - $cargs:          list of arguments to be carried in the worker
  * ----------------------------------------------------------------------------- */
 %fragment("js_global_function_async", "templates")
 %{
-// js_global_function
+// js_global_function_async
+// TODO: merge this with js_function_async to avoid the huge code duplication
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
-  std::function<$jstype(void)> action;
-  std::function<Napi::Value($jstype)> rval;
-  std::vector<SWIG_NAPI_ObjectWrap_inst *> persistent;
-  SWIG_NAPI_Worker<$jstype> *worker;
-  $jslocals
+
+  class $jswrapper_Tasklet : public Napi::AsyncWorker {
+    Napi::Env env;
+  public:
+    Napi::Promise::Deferred deferred;
+  private:
+    // This vector holds pointers to the NAPI wrappers used
+    // by this operation - it is required for the async locks
+    std::vector<SWIG_NAPI_ObjectWrap_inst *> objs;
+    // This vector holds persistent references to all JS objects
+    // involved in the asynchronous operation - it protects them
+    // from being garbage-collected
+    std::vector<Napi::ObjectReference *> persistent;
+
+    $jstype result;
+
+    $jslocals
+  public:
+    $jswrapper_Tasklet(Napi::Env _env) :
+      Napi::AsyncWorker(_env, "SWIG_$jswrapper_Async_Worker"),
+      env(_env),
+      deferred(Napi::Promise::Deferred::New(_env)),
+      objs(0),
+      persistent(0) {}
+
+      virtual ~$jswrapper_Tasklet() {
+        // Release the persistent references
+        for (Napi::ObjectReference *ref : persistent) {
+          delete ref;
+        }
+        persistent.clear();
+      }
+
+      virtual void OnOK() override {
+        // Back in the main thread with V8 access
+        Napi::HandleScope scope(env);
+        Napi::Value jsresult;
+        $jsoutput
+        deferred.Resolve(jsresult);
+        Cleanup();
+      };
+
+      virtual void OnError(const Napi::Error &error) override {
+        // Back in the main thread with V8 access
+        Napi::HandleScope scope(env);
+        deferred.Reject(error.Value());
+        Cleanup();
+      }
+
+      virtual $jstype Action() {
+        // WARNING! TODO! Find an elegant way to sort the locking operations
+        $jspreaction
+        $jsaction
+        $jspostaction
+        return result;
+      }
+
+      virtual void Cleanup() {
+        $jscleanup
+      }
+
+      virtual void Execute() override {
+        // This runs the action lambda in a worker thread
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
+        try {
+          result = Action();
+        } catch (const std::exception &e) {
+          SetError(e.what());
+        }
+#else
+        result = Action();
+#endif
+      }
+
+      virtual void Init(const Napi::CallbackInfo &info) {
+        $jsinput
+        goto fail;
+      fail:
+        return;
+      }
+  };
+
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
-
-  $jsinput
-  action = [$cargs env]() -> $jstype {
-    $jstype result;
-    // WARNING! TODO! Find an elegant way to sort the locking operations
-    $jspreaction
-    $jsaction
-    $jspostaction
-    return result;
-  };
-  rval = [$cargs env]($jstype result){
-    Napi::Value jsresult;
-    $jsoutput
-    $jscleanup
-    return jsresult;
-  };
-  worker = new SWIG_NAPI_Worker<$jstype>(env, action, rval, persistent);
-  worker->Queue();
-  return worker->Promise();
-
+  $jswrapper_Tasklet *self = new $jswrapper_Tasklet(env);
+  self->Init(info);
+  self->Queue();
+  return self->deferred.Promise();
   goto fail;
 fail:
-  Napi::Promise::Deferred rejected = Napi::Promise::Deferred::New(env);
-  rejected.Reject(Napi::String::New(env, "Error"));
-  return rejected.Promise();
+  return Napi::Value();
 }
 %}
 
@@ -551,7 +610,6 @@ fail:
  *   - $jspostaction:   postaction part of wrapper
  *   - $joutput:        output part of wrapper
  *   - $jscleanup:      cleanup part of wrapper
- *   - $cargs:          list of arguments to be carried in the worker
  * ----------------------------------------------------------------------------- */
 %fragment("js_function_async", "templates")
 %{
@@ -559,39 +617,106 @@ fail:
 template <typename SWIG_OBJ_WRAP>
 Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
-  std::function<$jstype(void)> action;
-  std::function<Napi::Value($jstype)> rval;
-  std::vector<SWIG_NAPI_ObjectWrap_inst *> persistent;
-  SWIG_NAPI_Worker<$jstype> *worker;
-  $jslocals
+
+  // This class is essentially a functor with multiple entry points
+  // Its main purpose is to keep the context
+  // The wrapper local variables are class members
+  // Init() is called on the main thread with V8 access and deals with in typemaps
+  // Execute() is called on a worker thread without V8 access and does the work
+  // OnOK()/OnError() are called on the main thread with V8 access and deal with
+  //   the out typemaps
+  // The functor deletes itself when the operation is finished (NAPI does this)
+  class $jswrapper_Tasklet : public Napi::AsyncWorker {
+    Napi::Env env;
+  public:
+    Napi::Promise::Deferred deferred;
+  private:
+    // This vector holds pointers to the NAPI wrappers used
+    // by this operation - it is required for the async locks
+    std::vector<SWIG_NAPI_ObjectWrap_inst *> objs;
+    // This vector holds persistent references to all JS objects
+    // involved in the asynchronous operation - it protects them
+    // from being garbage-collected
+    std::vector<Napi::ObjectReference *> persistent;
+
+    $jstype result;
+
+    $jslocals
+  public:
+    $jswrapper_Tasklet(Napi::Env _env) :
+      Napi::AsyncWorker(_env, "SWIG_$jsmangledname_$jswrapper_Async_Worker"),
+      env(_env),
+      deferred(Napi::Promise::Deferred::New(_env)),
+      objs(0),
+      persistent(0) {}
+
+      virtual ~$jswrapper_Tasklet() {
+        // Release the persistent references
+        for (Napi::ObjectReference *ref : persistent) {
+          delete ref;
+        }
+        persistent.clear();
+      }
+
+      virtual void OnOK() override {
+        // Back in the main thread with V8 access
+        Napi::HandleScope scope(env);
+        Napi::Value jsresult;
+        $jsoutput
+        deferred.Resolve(jsresult);
+        Cleanup();
+      };
+
+      virtual void OnError(const Napi::Error &error) override {
+        // Back in the main thread with V8 access
+        Napi::HandleScope scope(env);
+        deferred.Reject(error.Value());
+        Cleanup();
+      }
+
+      virtual $jstype Action() {
+        // WARNING! TODO! Find an elegant way to sort the locking operations
+        $jspreaction
+        $jsaction
+        $jspostaction
+        return result;
+      }
+
+      virtual void Cleanup() {
+        $jscleanup
+      }
+
+      virtual void Execute() override {
+        // This runs the action lambda in a worker thread
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
+        try {
+          result = Action();
+        } catch (const std::exception &e) {
+          SetError(e.what());
+        }
+#else
+        result = Action();
+#endif
+      }
+
+      virtual void Init(const Napi::CallbackInfo &info) {
+        $jsinput
+        goto fail;
+      fail:
+        return;
+      }
+  };
+
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
-  
-  $jsinput
-  action = [$cargs env]() -> $jstype {
-    $jstype result;
-    // WARNING! TODO! Find an elegant way to sort the locking operations
-    $jspreaction
-    $jsaction
-    $jspostaction
-    return result;
-  };
-  rval = [$cargs env]($jstype result){
-    Napi::Value jsresult;
-    $jsoutput
-    $jscleanup
-    return jsresult;
-  };
-  worker = new SWIG_NAPI_Worker<$jstype>(env, action, rval, persistent);
-  worker->Queue();
-  return worker->Promise();
-
+  $jswrapper_Tasklet *self = new $jswrapper_Tasklet(env);
+  self->Init(info);
+  self->Queue();
+  return self->deferred.Promise();
   goto fail;
 fail:
-  Napi::Promise::Deferred rejected = Napi::Promise::Deferred::New(env);
-  rejected.Reject(Napi::String::New(env, "Error"));
-  return rejected.Promise();
+  return Napi::Value();
 }
 %}
 

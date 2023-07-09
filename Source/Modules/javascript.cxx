@@ -2477,8 +2477,6 @@ protected:
   virtual int emitWrapperFunction(Node *);
   virtual int emitNativeFunction(Node *);
 
-  virtual String *expandAsyncCaptureVariables(Node *, ParmList *);
-
   virtual const char *getFunctionTemplate(Node *, bool is_member);
   virtual const char *getFunctionDispatcherTemplate(bool is_member);
   virtual const char *getOverloadedFunctionTemplate(bool is_member);
@@ -2914,20 +2912,6 @@ String *NAPIEmitter::emitAsyncTypemaps(Node *, Parm *parms, Wrapper *,
   return result;
 }
 
-String *NAPIEmitter::expandAsyncCaptureVariables(Node *, ParmList *params) {
-  String *cargs = NewString("");
-  int idx = 1;
-  for (Parm *p = params; p; p = nextSibling(p), idx++) {
-    Printf(cargs, "%s, ", Getattr(p, "lname"));
-    Hash *locals = Getattr(p, "tmap:async_in:locals");
-    while (locals) {
-      Printf(cargs, "%s%d, ", Getattr(locals, "name"), idx);
-      locals = Getattr(locals, "nextSibling");
-    }
-  }
-  return cargs;
-}
-
 int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   Wrapper *wrapper = NewWrapper();
   Template t_function(getTemplate(getFunctionTemplate(n, is_member)));
@@ -2997,11 +2981,6 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
       .replace("$symname", iname)
       .replace("$jsargcount", Getattr(n, ARGCOUNT))
       .replace("$jsargrequired", Getattr(n, ARGREQUIRED));
-
-  if (GetFlag(n, IS_ASYNC)) {
-    String *cargs = expandAsyncCaptureVariables(n, params);
-    t_function.replace("$cargs", cargs);
-  }
 
   t_function.pretty_print(f_wrappers);
 

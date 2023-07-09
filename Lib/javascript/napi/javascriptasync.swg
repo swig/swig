@@ -42,7 +42,11 @@
   Napi::Object obj;
   NAPI_CHECK_RESULT($input.ToObject(), obj);
   ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj);
-  persistent.push_back(ow);
+  objs.push_back(ow);
+
+  Napi::ObjectReference *ref = new Napi::ObjectReference();
+  *ref = Napi::Persistent(ow->Value());
+  persistent.push_back(ref);
 }
 
 %typemap(async_pre) SWIGTYPE *, SWIGTYPE & {
