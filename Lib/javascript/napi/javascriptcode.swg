@@ -384,8 +384,6 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
     // from being garbage-collected
     std::vector<Napi::ObjectReference *> persistent;
 
-    $jstype result;
-
     $jslocals
   public:
     $jswrapper_Tasklet(Napi::Env _env) :
@@ -638,8 +636,6 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
     // involved in the asynchronous operation - it protects them
     // from being garbage-collected
     std::vector<Napi::ObjectReference *> persistent;
-
-    $jstype result;
 
     $jslocals
   public:
