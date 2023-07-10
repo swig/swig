@@ -2,15 +2,10 @@
 
 %module ignore_parameter
 
-%typemap(in,numinputs=0) char* a (int unique = 0) {
-  static const char* hi = "hello";
-  $1 = const_cast<char *>(hi);
-  unique++;
-  if (unique != 1) {
-    fprintf(stderr, "in typemap applied more than once\n");
-    abort();
-  }
-}
+%typemap(in,numinputs=0) char* a %{
+  int if_multiply_defined_then_in_typemap_substituted_more_than_once;
+  $1 = const_cast<char *>("hello");
+%}
 %typemap(in,numinputs=0) int bb "$1 = 101; called_argout = 0;"
 %typemap(in,numinputs=0) double ccc "$1 = 8.8;"
 
