@@ -2915,11 +2915,14 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, M
       Exit(EXIT_FAILURE);
     }
 
+    tm = emitInputTypemap(n, p, wrapper, arg);
+#if 0
     if (GetInt(p, "tmap:in:numinputs") != 0) {
       // in typemaps with numinputs=0 are a special case
       // and are handled in emit.cxx:emit_attach_parmmaps()
       tm = emitInputTypemap(n, p, wrapper, arg);
     }
+#endif
     Delete(arg);
 
     if (tm) {
