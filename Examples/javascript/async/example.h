@@ -8,4 +8,4 @@ public:
 };
 
 Pi *calcFromPtr(Pi *, double *result);
-//Pi &calcFromRef(Pi &, double &);
+void calcFromRef(Pi &, double &result);

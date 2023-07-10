@@ -23,8 +23,6 @@ Pi *calcFromPtr(Pi *engine, double *result) {
 }
 
 // Using references with async
-/*Pi &calcFromRef(Pi &engine, double &result) {
+void calcFromRef(Pi &engine, double &result) {
   result = engine.approx();
-
-  return engine;
-}*/
+}

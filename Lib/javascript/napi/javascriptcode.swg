@@ -417,29 +417,24 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
         Cleanup();
       }
 
-      virtual $jstype Action() {
-        // WARNING! TODO! Find an elegant way to sort the locking operations
-        $jspreaction
-        $jsaction
-        $jspostaction
-        return result;
-      }
-
       virtual void Cleanup() {
         $jscleanup
       }
 
       virtual void Execute() override {
         // This runs the action lambda in a worker thread
+        // WARNING! TODO! Find an elegant way to sort the locking operations
+        $jspreaction
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
         try {
-          result = Action();
+          $jsaction
         } catch (const std::exception &e) {
           SetError(e.what());
         }
 #else
         result = Action();
 #endif
+        $jspostaction
       }
 
       virtual void Init(const Napi::CallbackInfo &info) {
@@ -670,29 +665,24 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
         Cleanup();
       }
 
-      virtual $jstype Action() {
-        // WARNING! TODO! Find an elegant way to sort the locking operations
-        $jspreaction
-        $jsaction
-        $jspostaction
-        return result;
-      }
-
       virtual void Cleanup() {
         $jscleanup
       }
 
       virtual void Execute() override {
         // This runs the action lambda in a worker thread
+        // WARNING! TODO! Find an elegant way to sort the locking operations
+        $jspreaction
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
         try {
-          result = Action();
+          $jsaction
         } catch (const std::exception &e) {
           SetError(e.what());
         }
 #else
         result = Action();
 #endif
+        $jspostaction
       }
 
       virtual void Init(const Napi::CallbackInfo &info) {

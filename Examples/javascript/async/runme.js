@@ -12,3 +12,9 @@ console.log('(us) Pi=', result, '(them) Pi=', Math.PI);
 
 example.calcFromPtrAsync(pi)
   .then((r) => console.log('(us) Pi=', r, '(them) Pi=', Math.PI));
+
+result = example.calcFromRefSync(pi);
+console.log('(us) Pi=', result, '(them) Pi=', Math.PI);
+
+example.calcFromRefAsync(pi)
+  .then((r) => console.log('(us) Pi=', r, '(them) Pi=', Math.PI));
