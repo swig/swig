@@ -3,7 +3,7 @@
 %module ignore_parameter
 
 %typemap(in,numinputs=0) char* a %{
-  int if_multiply_defined_then_in_typemap_substituted_more_than_once;
+  if_multiply_defined_then_in_typemap_substituted_more_than_once:
   $1 = const_cast<char *>("hello");
 %}
 %typemap(in,numinputs=0) int bb "$1 = 101; called_argout = 0;"
