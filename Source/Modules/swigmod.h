@@ -98,6 +98,7 @@ public:
 
 protected:
   AccessMode cplus_mode;
+  AccessMode accessModeFromString(String *access);
 };
 
 /* ----------------------------------------------------------------------------

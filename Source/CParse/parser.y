@@ -449,6 +449,27 @@ static void add_symbols(Node *n) {
 	  Delete(prefix);
 	}
 	Namespaceprefix = 0;
+      } else if (Equal(nodeType(n), "using")) {
+	Symtab *stab = Swig_symbol_current();
+	String *uname = Getattr(n, "uname");
+	Node *ns = Swig_symbol_clookup(uname, stab);
+	String *ntype = 0;
+	if (!ns && SwigType_istemplate(uname)) {
+	  String *tmp = Swig_symbol_template_deftype(uname, 0);
+	  if (!Equal(tmp, uname)) {
+	    ns = Swig_symbol_clookup(tmp, stab);
+	  }
+	  Delete(tmp);
+	}
+	if (ns) {
+	  ntype = nodeType(ns);
+	  if (Equal(ntype, "constructor")) {
+	    // The using declaration name for inheriting constructors is the base class constructor name
+	    // not the name provided by the using declaration. Correct it here.
+	    String *nname = Getattr(currentOuterClass, "name");
+	    Setattr(n, "name", nname);
+	  }
+	}
       } else {
 	/* for member functions, we need to remove the redundant
 	   class scope if provided, as in
@@ -497,9 +518,12 @@ static void add_symbols(Node *n) {
 	  }
 	}
       } else {
-	  Setattr(n,"access", "public");
+	Setattr(n, "access", "public");
       }
+    } else if (extendmode && !inclass) {
+      Setattr(n, "access", "public");
     }
+
     if (Getattr(n,"sym:name")) {
       n = nextSibling(n);
       continue;
