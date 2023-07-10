@@ -16,13 +16,18 @@
 #include <ctype.h>
 
 /* default mode settings */
+static int directors_allowed = 0;
+static int director_language = 0;
 static int director_mode = 0;
 static int director_protected_mode = 1;
 static int all_protected_mode = 0;
 static int naturalvar_mode = 0;
 Language *Language::this_ = 0;
 
-/* Set director_protected_mode */
+int Swig_directors_enabled() {
+  return director_language && CPlusPlus && (directors_allowed || director_mode);
+}
+
 void Wrapper_director_mode_set(int flag) {
   director_mode = flag;
 }
@@ -361,8 +366,7 @@ director_prot_ctor_code(0),
 symtabs(NewHash()),
 overloading(0),
 multiinput(0),
-cplus_runtime(0),
-directors(0) {
+cplus_runtime(0) {
   symbolAddScope(""); // create top level/global symbol table scope
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
@@ -376,7 +380,6 @@ directors(0) {
    */
   director_prot_ctor_code = 0;
   director_multiple_inheritance = 1;
-  director_language = 0;
   assert(!this_);
   this_ = this;
 
@@ -915,7 +918,7 @@ int Language::cDeclaration(Node *n) {
     if (!isfriend) {
       /* Check what the director needs. If the method is pure virtual, it is always needed.
        * Also wrap non-virtual protected members if asked for (allprotected mode). */
-      if (!(directorsEnabled() && ((is_member_director(CurrentClass, n) && need_nonpublic_member(n)) || isNonVirtualProtectedAccess(n)))) {
+      if (!(Swig_directors_enabled() && ((is_member_director(CurrentClass, n) && need_nonpublic_member(n)) || isNonVirtualProtectedAccess(n)))) {
           return SWIG_NOWRAP;
       }
       // Prevent wrapping protected overloaded director methods more than once -
@@ -1116,7 +1119,7 @@ int Language::functionHandler(Node *n) {
       // This is a member function, set a flag so the documentation type is correct
       SetFlag(n, "memberfunction");
       Node *explicit_n = 0;
-      if (directorsEnabled() && is_member_director(CurrentClass, n) && !extraDirectorProtectedCPPMethodsRequired()) {
+      if (Swig_directors_enabled() && is_member_director(CurrentClass, n) && !extraDirectorProtectedCPPMethodsRequired()) {
 	bool virtual_but_not_pure_virtual = (!(Cmp(storage, "virtual")) && (Cmp(Getattr(n, "value"), "0") != 0));
 	if (virtual_but_not_pure_virtual) {
 	  // Add additional wrapper which makes an explicit call to the virtual method (ie not a virtual call)
@@ -1293,7 +1296,7 @@ int Language::memberfunctionHandler(Node *n) {
   }
 
   int DirectorExtraCall = 0;
-  if (directorsEnabled() && is_member_director(CurrentClass, n) && !SmartPointer)
+  if (Swig_directors_enabled() && is_member_director(CurrentClass, n) && !SmartPointer)
     if (extraDirectorProtectedCPPMethodsRequired())
       DirectorExtraCall = CWRAP_DIRECTOR_TWO_CALLS;
 
@@ -2535,7 +2538,7 @@ int Language::classDeclaration(Node *n) {
 
   /* Call classHandler() here */
   if (!ImportMode) {
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       int ndir = GetFlag(n, "feature:director");
       int nndir = GetFlag(n, "feature:nodirector");
       /* 'nodirector' has precedence over 'director' */
@@ -3547,19 +3550,19 @@ int Language::cplus_runtime_mode() {
 }
 
 /* -----------------------------------------------------------------------------
+ * Language::directorLanguage()
+ * ----------------------------------------------------------------------------- */
+
+void Language::directorLanguage(int val) {
+  director_language = val;
+}
+
+/* -----------------------------------------------------------------------------
  * Language::allow_directors()
  * ----------------------------------------------------------------------------- */
 
 void Language::allow_directors(int val) {
-  directors = val;
-}
-
-/* -----------------------------------------------------------------------------
- * Language::directorsEnabled()
- * ----------------------------------------------------------------------------- */
-
-int Language::directorsEnabled() const {
-  return director_language && CPlusPlus && (directors || director_mode);
+  directors_allowed = val;
 }
 
 /* -----------------------------------------------------------------------------
@@ -3583,7 +3586,7 @@ void Language::allow_allprotected(int val) {
  * ----------------------------------------------------------------------------- */
 
 int Language::dirprot_mode() const {
-  return directorsEnabled() ? director_protected_mode : 0;
+  return Swig_directors_enabled() ? director_protected_mode : 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -3619,7 +3622,7 @@ int Language::need_nonpublic_ctor(Node *n) {
      members, and use %ignore for the method you don't want to add in
      the director class.
    */
-  if (directorsEnabled()) {
+  if (Swig_directors_enabled()) {
     if (is_protected(n)) {
       if (dirprot_mode()) {
 	/* when using dirprot mode, the protected constructors are
@@ -3652,7 +3655,7 @@ int Language::need_nonpublic_ctor(Node *n) {
  * Language::need_nonpublic_member()
  * ----------------------------------------------------------------------------- */
 int Language::need_nonpublic_member(Node *n) {
-  if (directorsEnabled() && DirectorClassName) {
+  if (Swig_directors_enabled() && DirectorClassName) {
     if (is_protected(n)) {
       if (dirprot_mode()) {
 	/* when using dirprot mode, the protected members are always needed. */
@@ -3849,7 +3852,7 @@ int Language::abstractClassTest(Node *n) {
 #endif
   if (!labs)
     return 0;			/*strange, but need to be fixed */
-  if (abstracts && !directorsEnabled())
+  if (abstracts && !Swig_directors_enabled())
     return 1;
   if (!GetFlag(n, "feature:director"))
     return 1;

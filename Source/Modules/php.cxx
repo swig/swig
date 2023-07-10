@@ -512,7 +512,7 @@ static PHPTypes *phptypes = NULL;
 class PHP : public Language {
 public:
   PHP() {
-    director_language = 1;
+    directorLanguage();
   }
 
   /* ------------------------------------------------------------
@@ -595,7 +595,7 @@ public:
     f_directors_h = NewStringEmpty();
     f_directors = NewStringEmpty();
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
 	FileErrorDisplay(outfile_h);
@@ -619,7 +619,7 @@ public:
 
     Swig_obligatory_macros(f_runtime, "PHP");
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
     }
 
@@ -656,7 +656,7 @@ public:
     if (!prefix)
       prefix = NewStringEmpty();
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Swig_banner(f_directors_h);
       Printf(f_directors_h, "\n");
       Printf(f_directors_h, "#ifndef SWIG_%s_WRAP_H_\n", cap_module);
@@ -686,7 +686,7 @@ public:
     Printf(s_header, "}\n");
     Printf(s_header, "#endif\n\n");
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       // Insert director runtime
       Swig_insert_file("director_common.swg", s_header);
       Swig_insert_file("director.swg", s_header);
@@ -883,7 +883,7 @@ public:
      * function really needs totally redoing.
      */
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Dump(f_directors_h, f_runtime_h);
       Printf(f_runtime_h, "\n");
       Printf(f_runtime_h, "#endif\n");
@@ -896,7 +896,7 @@ public:
 
     Dump(f_runtime, f_begin);
     Printv(f_begin, s_header, NIL);
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Dump(f_directors, f_begin);
     }
     Printv(f_begin, s_vdecl, s_wrappers, NIL);

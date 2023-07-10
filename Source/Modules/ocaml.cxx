@@ -69,7 +69,7 @@ public:
 	   "if ( $comparison ) { /* subclassed */\n",
 	   "  $director_new \n", "} else {\n", "  caml_failwith(\"accessing abstract class or protected constructor\"); \n", "}\n", NIL);
     director_multiple_inheritance = 1;
-    director_language = 1;
+    directorLanguage();
   }
  
   String *Swig_class_name(Node *n) {
@@ -291,7 +291,7 @@ public:
 
     Printf(f_int_to_enum, "let int_to_enum x y =\n" "    match (x : c_enum_type) with\n" "      `unknown -> C_enum (`Int y)\n");
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
     }
 
@@ -340,7 +340,7 @@ public:
     Printf(f_enumtypes_type, "]\n");
     Printf(f_enumtypes_value, "]\n\n" "type c_obj = c_enum_value c_obj_t\n");
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
       Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);

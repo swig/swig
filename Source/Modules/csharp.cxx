@@ -166,7 +166,7 @@ public:
     /* for now, multiple inheritance in directors is disabled, this
        should be easy to implement though */
     director_multiple_inheritance = 0;
-    director_language = 1;
+    directorLanguage();
   }
 
   /* -----------------------------------------------------------------------------
@@ -325,7 +325,7 @@ public:
       Exit(EXIT_FAILURE);
     }
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       if (!outfile_h) {
         Printf(stderr, "Unable to determine outfile_h\n");
         Exit(EXIT_FAILURE);
@@ -401,7 +401,7 @@ public:
 
     Swig_obligatory_macros(f_runtime, "CSHARP");
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
 
       /* Emit initial director header and director code: */
@@ -444,7 +444,7 @@ public:
     /* Emit code */
     Language::top(n);
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
       Swig_insert_file("director_common.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
@@ -608,7 +608,7 @@ public:
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
 
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       Dump(f_directors, f_begin);
       Dump(f_directors_h, f_runtime_h);
 
