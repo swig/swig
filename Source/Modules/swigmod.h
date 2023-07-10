@@ -99,6 +99,7 @@ public:
 protected:
   AccessMode cplus_mode;
   AccessMode accessModeFromString(String *access);
+  int abstractClassTest(Node *n);	/* Is class really abstract? */
 };
 
 /* ----------------------------------------------------------------------------
@@ -216,7 +217,6 @@ public:
   virtual Hash* symbolScopePseudoSymbolLookup(const_String_or_char_ptr scope);
   static Node *classLookup(const SwigType *s); /* Class lookup      */
   static Node *enumLookup(SwigType *s);	/* Enum lookup       */
-  virtual int abstractClassTest(Node *n);	/* Is class really abstract? */
   virtual int is_assignable(Node *n);	/* Is variable assignable? */
   virtual String *runtimeCode();	/* returns the language specific runtime code */
   virtual String *defaultExternalRuntimeFilename();	/* the default filename for the external runtime */
