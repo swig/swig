@@ -432,7 +432,7 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
           SetError(e.what());
         }
 #else
-        result = Action();
+        $jsaction
 #endif
         $jspostaction
       }
@@ -680,7 +680,7 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
           SetError(e.what());
         }
 #else
-        result = Action();
+        $jsaction
 #endif
         $jspostaction
       }
