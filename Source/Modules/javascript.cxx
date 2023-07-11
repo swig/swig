@@ -19,6 +19,11 @@
  */
 static bool js_template_enable_debug = false;
 
+/**
+ * Create async wrappers by default (NAPI only) 
+ */
+static bool js_napi_default_is_async = false;
+
 #define ERR_MSG_ONLY_ONE_ENGINE_PLEASE "Only one engine can be specified at a time."
 
 // keywords used for state variables
@@ -540,6 +545,8 @@ Javascript Options (available with -javascript)\n\
      -v8                    - creates a v8 extension \n\
      -node                  - creates a node.js extension \n\
      -napi                  - creates a NAPI extension \n\
+     -sync                  - create sync wrappers by default (NAPI only, default) \n\
+     -async                 - create async wrappers by default (NAPI only) \n\
      -debug-codetemplates   - generates information about the origin of code templates\n";
 
 /* ---------------------------------------------------------------------
@@ -587,8 +594,11 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-debug-codetemplates") == 0) {
 	Swig_mark_arg(i);
 	js_template_enable_debug = true;
+      } else if (strcmp(argv[i], "-async") == 0) {
+        Swig_mark_arg(i);
+        js_napi_default_is_async = true;
       } else if (strcmp(argv[i], "-help") == 0) {
-	fputs(usage, stdout);
+        fputs(usage, stdout);
 	return;
       }
     }
@@ -2951,13 +2961,15 @@ int NAPIEmitter::emitWrapperFunction(Node *n) {
   String *name = Getattr(n, "name");
   String *symbol = Getattr(n, "sym:name");
 
-  // By default async is off ("0")
-  if (async && !Equal(async, "0")) {
+  // By default async is off ("0") unless default is async
+  if ((async && !Equal(async, "0")) || js_napi_default_is_async) {
     if (!Equal(async, "1")) {
       String *symAsync = Copy(symbol);
       String *nameAsync = Copy(name);
-      Append(symAsync, async);
-      Append(nameAsync, async);
+      if (async) {
+        Append(symAsync, async);
+        Append(nameAsync, async);
+      }
       Setattr(n, "sym:name", symAsync);
       state.function("name", nameAsync);
     }
@@ -2969,13 +2981,15 @@ int NAPIEmitter::emitWrapperFunction(Node *n) {
     if (rc != SWIG_OK) return rc;
   }
 
-  // By default sync is on w/o suffix ("1")
-  if (!Equal(sync, "0")) {
+  // By default sync is on w/o suffix ("1") unless default is async
+  if ((sync && !Equal(sync, "0")) || !js_napi_default_is_async) {
     if (sync && !Equal(sync, "1")) {
       String *symSync = Copy(symbol);
       String *nameSync = Copy(name);
-      Append(symSync, sync);
-      Append(nameSync, sync);
+      if (sync) {
+        Append(symSync, sync);
+        Append(nameSync, sync);
+      }
       Setattr(n, "sym:name", symSync);
       state.function("name", nameSync);
     }
