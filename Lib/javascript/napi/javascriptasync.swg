@@ -56,3 +56,30 @@
 %typemap(async_post) SWIGTYPE *, SWIGTYPE & {
   ow$argnum->unlock();
 }
+
+/*
+ * Primitives types do not need locking or peristence
+ */
+ %typemap(async_in) bool,
+  char, signed char, unsigned char,
+  short, signed short, unsigned short,
+  int, signed int, unsigned int,
+  long, signed long, unsigned long,
+  long long, signed long long, unsigned long long,
+  float, double ""
+
+ %typemap(async_pre) bool,
+  char, signed char, unsigned char,
+  short, signed short, unsigned short,
+  int, signed int, unsigned int,
+  long, signed long, unsigned long,
+  long long, signed long long, unsigned long long,
+  float, double ""
+
+ %typemap(async_out) bool,
+  char, signed char, unsigned char,
+  short, signed short, unsigned short,
+  int, signed int, unsigned int,
+  long, signed long, unsigned long,
+  long long, signed long long, unsigned long long,
+  float, double ""
