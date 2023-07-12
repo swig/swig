@@ -137,10 +137,12 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 
 	run_testcase_async = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
-                        sed -e \
-                                's|/\* await \*/|await|g; s|var \(.*\) = require("\(.*\)")|import \1 from "./\2/index.js"|g' \
-                                $(srcdir)/$*$(SCRIPTSUFFIX) > $(srcdir)/$*$(SCRIPTASYNCSUFFIX) \
-                        && \
+			sed -e \
+				's@/\* await \*/@await resolve@g; \
+				s@\(var\|let\|const\)[[:space:]]*\(.*\)[[:space:]]*=[[:space:]]*require("\(.*\)")@import \2 from "./\3/index.js"@g; \
+				1s@^@import resolve from "./resolve.mjs";\n@' \
+				$(srcdir)/$*$(SCRIPTSUFFIX) > $(srcdir)/$*$(SCRIPTASYNCSUFFIX) \
+			&& \
 			LD_PRELOAD=$(ASAN_PRELOAD) LSAN_OPTIONS=$(LSAN_OPTIONS) \
 				$(RUNTOOL) $(NODEJS) $(srcdir)/$*$(SCRIPTASYNCSUFFIX); \
 		fi
