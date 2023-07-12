@@ -553,6 +553,12 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
     String *cname = NewString(name);
     String *dname = Swig_symbol_template_deftype(cname, 0);
     if (!Equal(dname, name)) {
+      /* Add another symbol with all template default arguments expanded, eg
+       *
+       * template <typename T1, typename T2 = short> struct X {};
+       * %template(XInt) X<int>;
+       *
+       * then name=X<int>, and dname=X<int,short> so add X<int,short> here too. */
       Swig_symbol_cadd(dname, n);
     }
     Delete(dname);
@@ -1589,6 +1595,10 @@ static int symbol_no_constructor(Node *n) {
   return !Checkattr(n, "nodeType", "constructor");
 }
 
+static int symbol_is_template(Node *n) {
+  return Checkattr(n, "nodeType", "template");
+}
+
 /* -----------------------------------------------------------------------------
  * Swig_symbol_type_qualify()
  *
@@ -1944,6 +1954,7 @@ ParmList *Swig_symbol_template_defargs(Parm *parms, Parm *targs, Symtab *tscope,
  * Swig_symbol_template_deftype()
  *
  * Apply default args to generic template type
+ * Return input type with template args expanded to include default template args
  * ----------------------------------------------------------------------------- */
 
 #define SWIG_TEMPLATE_DEFTYPE_CACHE
@@ -2018,9 +2029,9 @@ SwigType *Swig_symbol_template_deftype(const SwigType *type, Symtab *tscope) {
       String *targs = SwigType_templateargs(base);
       String *tsuffix = SwigType_templatesuffix(base);
       ParmList *tparms = SwigType_function_parms(targs, 0);
-      Node *tempn = Swig_symbol_clookup_local(tprefix, tscope);
+      Node *tempn = Swig_symbol_clookup_local_check(tprefix, tscope, symbol_is_template);
       if (!tempn && tsuffix && Len(tsuffix)) {
-	tempn = Swig_symbol_clookup(tprefix, 0);
+	tempn = Swig_symbol_clookup_check(tprefix, 0, symbol_is_template);
       }
 #ifdef SWIG_DEBUG
       Printf(stderr, "deftype type %s %s %d\n", e, tprefix, (long) tempn);
