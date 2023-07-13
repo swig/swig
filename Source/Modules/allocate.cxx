@@ -783,15 +783,234 @@ Allocate():
 
   virtual int usingDeclaration(Node *n) {
 
-    Node *c = 0;
-    for (c = firstChild(n); c; c = nextSibling(c)) {
-      if (Equal(nodeType(c), "cdecl")) {
-	process_exceptions(c);
+    if (!Getattr(n, "namespace")) {
+      Node *ns;
+      /* using id */
+      Symtab *stab = Getattr(n, "sym:symtab");
+      if (stab) {
+	String *uname = Getattr(n, "uname");
+	ns = Swig_symbol_clookup(uname, stab);
+	if (!ns && SwigType_istemplate(uname)) {
+	  String *tmp = Swig_symbol_template_deftype(uname, 0);
+	  if (!Equal(tmp, uname)) {
+	    ns = Swig_symbol_clookup(tmp, stab);
+	  }
+	  Delete(tmp);
+	}
+      } else {
+	ns = 0;
+      }
+      // Note that TypePass::usingDeclaration has warned when using member is not found (when ns is zero)
+      if (ns) {
+	String *ntype = nodeType(ns);
+	if (Equal(ntype, "cdecl") || Equal(ntype, "constructor")) {
+	  if (!checkAttribute(ns, "storage", "typedef")) {
+	    /* A normal C declaration or constructor declaration
+	     * Now add a new class member top the parse tree (copied from the base class member pointed to by the using declaration) */
+	    if ((inclass) && (!GetFlag(n, "feature:ignore")) && (Getattr(n, "sym:name"))) {
+	      Node *c = ns;
+	      Node *unodes = 0, *last_unodes = 0;
+	      int ccount = 0;
+	      String *symname = Getattr(n, "sym:name");
 
-	if (inclass)
-	  class_member_is_defined_in_bases(c, inclass);
-      } else if (Equal(nodeType(c), "constructor")) {
-	constructorDeclaration(c);
+	      while (c) {
+		if (Strcmp(nodeType(c), ntype) == 0) {
+		  if (!(Swig_storage_isstatic(c)
+			|| checkAttribute(c, "storage", "typedef")
+			|| Strstr(Getattr(c, "storage"), "friend")
+			|| (Getattr(c, "feature:extend") && !Getattr(c, "code"))
+			|| GetFlag(c, "feature:ignore"))) {
+
+		    String *csymname = Getattr(c, "sym:name");
+		    bool using_inherited_constructor_symname_okay = Equal(nodeType(c), "constructor") && Equal(symname, Getattr(parentNode(n), "sym:name"));
+		    if (!csymname || Equal(csymname, symname) || using_inherited_constructor_symname_okay) {
+		      String *decl = Getattr(c, "decl");
+		      int match = 0;
+
+		      Node *over = Getattr(n, "sym:overloaded");
+		      while (over) {
+			String *odecl = Getattr(over, "decl");
+			if (Cmp(decl, odecl) == 0) {
+			  match = 1;
+			  break;
+			}
+			over = Getattr(over, "sym:nextSibling");
+		      }
+
+		      if (match) {
+			/* Don't generate a method if the method is overridden in this class,
+			 * for example don't generate another m(bool) should there be a Base::m(bool) :
+			 * struct Derived : Base {
+			 *   void m(bool);
+			 *   using Base::m;
+			 * };
+			 */
+			c = Getattr(c, "csym:nextSibling");
+			continue;
+		      }
+
+		      Node *nn = copyNode(c);
+		      Setfile(nn, Getfile(n));
+		      Setline(nn, Getline(n));
+		      if (!Getattr(nn, "sym:name"))
+			Setattr(nn, "sym:name", symname);
+		      Symtab *st = Getattr(n, "sym:symtab");
+		      assert(st);
+		      Setattr(nn, "sym:symtab", st);
+		      // The real parent is the "using" declaration node, but subsequent code generally handles
+		      // and expects a class member to point to the parent class node
+		      Node *parent = parentNode(n);
+		      Setattr(nn, "parentNode", parent);
+
+		      if (Equal(ntype, "constructor")) {
+			Setattr(nn, "name", Getattr(n, "name"));
+			Setattr(nn, "sym:name", Getattr(n, "sym:name"));
+			// Note that the added constructor's access is the same as that of
+			// the base class' constructor not of the using declaration.
+			// It has already been set correctly and should not be changed.
+		      } else {
+			// Access might be different from the method in the base class
+			Delattr(nn, "access");
+			Setattr(nn, "access", Getattr(n, "access"));
+		      }
+
+		      if (!GetFlag(nn, "feature:ignore")) {
+			ParmList *parms = CopyParmList(Getattr(c, "parms"));
+			int is_pointer = SwigType_ispointer_return(Getattr(nn, "decl"));
+			int is_void = checkAttribute(nn, "type", "void") && !is_pointer;
+			Setattr(nn, "parms", parms);
+			Delete(parms);
+			if (Getattr(n, "feature:extend")) {
+			  String *ucode = is_void ? NewStringf("{ self->%s(", Getattr(n, "uname")) : NewStringf("{ return self->%s(", Getattr(n, "uname"));
+
+			  for (ParmList *p = parms; p;) {
+			    Append(ucode, Getattr(p, "name"));
+			    p = nextSibling(p);
+			    if (p)
+			      Append(ucode, ",");
+			  }
+			  Append(ucode, "); }");
+			  Setattr(nn, "code", ucode);
+			  Delete(ucode);
+			}
+			ParmList *throw_parm_list = Getattr(c, "throws");
+			if (throw_parm_list)
+			  Setattr(nn, "throws", CopyParmList(throw_parm_list));
+			ccount++;
+			if (!last_unodes) {
+			  last_unodes = nn;
+			  unodes = nn;
+			} else {
+			  Setattr(nn, "previousSibling", last_unodes);
+			  Setattr(last_unodes, "nextSibling", nn);
+			  Setattr(nn, "sym:previousSibling", last_unodes);
+			  Setattr(last_unodes, "sym:nextSibling", nn);
+			  Setattr(nn, "sym:overloaded", unodes);
+			  Setattr(unodes, "sym:overloaded", unodes);
+			  last_unodes = nn;
+			}
+		      } else {
+			Delete(nn);
+		      }
+		    } else {
+		      Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(n), Getline(n), "Using declaration %s, with name '%s', is not actually using\n", SwigType_namestr(Getattr(n, "uname")), symname);
+		      Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(c), Getline(c), "the method from %s, with name '%s', as the names are different.\n", Swig_name_decl(c), csymname);
+		    }
+		  }
+		}
+		c = Getattr(c, "csym:nextSibling");
+	      }
+	      if (unodes) {
+		set_firstChild(n, unodes);
+		if (ccount > 1) {
+		  if (!Getattr(n, "sym:overloaded")) {
+		    Setattr(n, "sym:overloaded", n);
+		    Setattr(n, "sym:overname", "_SWIG_0");
+		  }
+		}
+	      }
+
+	      /* Hack the parse tree symbol table for overloaded methods. Replace the "using" node with the
+	       * list of overloaded methods we have just added in as child nodes to the "using" node.
+	       * The node will still exist, it is just the symbol table linked list of overloaded methods
+	       * which is hacked. */
+	      if (Getattr(n, "sym:overloaded")) {
+		int cnt = 0;
+		Node *ps = Getattr(n, "sym:previousSibling");
+		Node *ns = Getattr(n, "sym:nextSibling");
+		Node *fc = firstChild(n);
+		Node *firstoverloaded = Getattr(n, "sym:overloaded");
+#ifdef DEBUG_OVERLOADED
+		show_overloaded(firstoverloaded);
+#endif
+
+		if (firstoverloaded == n) {
+		  // This 'using' node we are cutting out was the first node in the overloaded list. 
+		  // Change the first node in the list
+		  Delattr(firstoverloaded, "sym:overloaded");
+		  firstoverloaded = fc ? fc : ns;
+
+		  // Correct all the sibling overloaded methods (before adding in new methods)
+		  Node *nnn = ns;
+		  while (nnn) {
+		    Setattr(nnn, "sym:overloaded", firstoverloaded);
+		    nnn = Getattr(nnn, "sym:nextSibling");
+		  }
+		}
+
+		if (!fc) {
+		  // Remove from overloaded list ('using' node does not actually end up adding in any methods)
+		  if (ps) {
+		    Setattr(ps, "sym:nextSibling", ns);
+		  }
+		  if (ns) {
+		    Setattr(ns, "sym:previousSibling", ps);
+		  }
+		} else {
+		  // The 'using' node results in methods being added in - slot in these methods here
+		  Node *pp = fc;
+		  while (pp) {
+		    Node *ppn = Getattr(pp, "sym:nextSibling");
+		    Setattr(pp, "sym:overloaded", firstoverloaded);
+		    Setattr(pp, "sym:overname", NewStringf("%s_%d", Getattr(n, "sym:overname"), cnt++));
+		    if (ppn)
+		      pp = ppn;
+		    else
+		      break;
+		  }
+		  if (ps) {
+		    Setattr(ps, "sym:nextSibling", fc);
+		    Setattr(fc, "sym:previousSibling", ps);
+		  }
+		  if (ns) {
+		    Setattr(ns, "sym:previousSibling", pp);
+		    Setattr(pp, "sym:nextSibling", ns);
+		  }
+		}
+		Delattr(n, "sym:previousSibling");
+		Delattr(n, "sym:nextSibling");
+		Delattr(n, "sym:overloaded");
+		Delattr(n, "sym:overname");
+		clean_overloaded(firstoverloaded);
+#ifdef DEBUG_OVERLOADED
+		show_overloaded(firstoverloaded);
+#endif
+	      }
+	    }
+	  }
+	}
+      }
+
+      Node *c = 0;
+      for (c = firstChild(n); c; c = nextSibling(c)) {
+	if (Equal(nodeType(c), "cdecl")) {
+	  process_exceptions(c);
+
+	  if (inclass)
+	    class_member_is_defined_in_bases(c, inclass);
+	} else if (Equal(nodeType(c), "constructor")) {
+	  constructorDeclaration(c);
+	}
       }
     }
 
