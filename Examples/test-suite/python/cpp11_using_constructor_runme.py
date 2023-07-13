@@ -8,9 +8,11 @@ a = PublicDerived2(0, "hi").meth()
 a = PublicDerived3().meth()
 a = PublicDerived3(0, "hi").meth()
 a = PublicDerived4().meth()
+a = PublicDerived5().meth()
 
 # Protected base constructors
-# Cannot test these as the constructors are protected
+# Cannot test most of these as the constructors are protected
+ProtectedDerived5()
 
 # Mix of public and overloaded constructors
 MixedDerived1a(0, "hi").meth()
@@ -43,6 +45,21 @@ MixedDerived3c(0).meth()
 MixedDerived3d(0, "hi").meth()
 MixedDerived3d().meth()
 MixedDerived3d(0).meth()
+
+MixedDerived4a(0, "hi").meth()
+MixedDerived4a().meth()
+MixedDerived4b(0, "hi").meth()
+MixedDerived4b().meth()
+
+MixedDerived4c().meth()
+MixedDerived4c(0).meth()
+
+MixedDerived4d().meth()
+MixedDerived4d(0).meth()
+
+MixedDerived4e().meth()
+
+MixedDerived4f().meth()
 
 # Mix of protected base constructors and overloading
 ProotDerived1a().meth()
@@ -86,6 +103,7 @@ TemplatePublicDerived2Int(0, "hi").meth()
 TemplatePublicDerived3Int().meth()
 TemplatePublicDerived3Int(0, "hi").meth()
 TemplatePublicDerived4Int().meth()
+TemplatePublicDerived5Int().meth()
 
 # Templates and public base constructors (derive from template)
 TemplPublicDerived1Int(0, "hi").meth()
@@ -94,3 +112,4 @@ TemplPublicDerived2Int(0, "hi").meth()
 TemplPublicDerived3Int().meth()
 TemplPublicDerived3Int(0, "hi").meth()
 TemplPublicDerived4Int().meth()
+TemplPublicDerived5Int().meth()

@@ -40,6 +40,15 @@ struct PublicDerived4 : PublicBase4 {
   using PublicBase4::meth;
 };
 
+struct PublicBase5 {
+  // implicit constructor
+  void meth() {}
+};
+struct PublicDerived5 : PublicBase5 {
+  using PublicBase5::PublicBase5;
+  using PublicBase5::meth;
+};
+
 // Protected base constructors
 struct ProtectedBase1 {
 protected:
@@ -81,6 +90,16 @@ protected:
 struct ProtectedDerived4 : ProtectedBase4 {
   using ProtectedBase4::ProtectedBase4;
   using ProtectedBase4::meth;
+};
+
+struct ProtectedBase5 {
+  // implicit constructor
+protected:
+  void meth() {}
+};
+struct ProtectedDerived5 : ProtectedBase5 {
+  using ProtectedBase5::ProtectedBase5;
+  using ProtectedBase5::meth;
 };
 
 // Mix of public and overloaded constructors
@@ -149,6 +168,40 @@ struct MixedDerived3d : MixedBase3 {
   MixedDerived3d(int ii) : MixedBase3(ii, 0) {}
   using MixedBase3::MixedBase3;
   using MixedBase3::meth;
+};
+
+struct MixedBase4 {
+  void meth() {}
+};
+struct MixedDerived4a : MixedBase4 {
+  MixedDerived4a(int i, const char* s) {}
+  using MixedBase4::MixedBase4;
+  using MixedBase4::meth;
+};
+struct MixedDerived4b : MixedBase4 {
+  using MixedBase4::MixedBase4;
+  MixedDerived4b(int i, const char* s) {}
+  using MixedBase4::meth;
+};
+struct MixedDerived4c : MixedBase4 {
+  using MixedBase4::MixedBase4;
+  MixedDerived4c(int ii) {}
+  using MixedBase4::meth;
+};
+struct MixedDerived4d : MixedBase4 {
+  MixedDerived4d(int ii) {}
+  using MixedBase4::MixedBase4;
+  using MixedBase4::meth;
+};
+struct MixedDerived4e : MixedBase4 {
+  MixedDerived4e() {}
+  using MixedBase4::MixedBase4;
+  using MixedBase4::meth;
+};
+struct MixedDerived4f : MixedBase4 {
+  using MixedBase4::MixedBase4;
+  MixedDerived4f() {}
+  using MixedBase4::meth;
 };
 
 // Mix of protected base constructors and overloading
@@ -285,11 +338,18 @@ struct TemplatePublicDerived4 : PublicBase4 {
   using PublicBase4::PublicBase4;
   using PublicBase4::meth;
 };
+
+template<typename T>
+struct TemplatePublicDerived5 : PublicBase5 {
+  using PublicBase5::PublicBase5;
+  using PublicBase5::meth;
+};
 %}
 %template(TemplatePublicDerived1Int) TemplatePublicDerived1<int>;
 %template(TemplatePublicDerived2Int) TemplatePublicDerived2<int>;
 %template(TemplatePublicDerived3Int) TemplatePublicDerived3<int>;
 %template(TemplatePublicDerived4Int) TemplatePublicDerived4<int>;
+%template(TemplatePublicDerived5Int) TemplatePublicDerived5<int>;
 
 %inline %{
 // Templates and public base constructors (derive from template)
@@ -318,12 +378,19 @@ struct TemplPublicBase4 {
   TemplPublicBase4() = default;
   void meth() {}
 };
+
+template<typename T>
+struct TemplPublicBase5 {
+  // implicit constructor
+  void meth() {}
+};
 %}
 
 %template(TemplPublicBase1Int) TemplPublicBase1<int>;
 %template(TemplPublicBase2Int) TemplPublicBase2<int>;
 %template(TemplPublicBase3Int) TemplPublicBase3<int>;
 %template(TemplPublicBase4Int) TemplPublicBase4<int>;
+%template(TemplPublicBase5Int) TemplPublicBase5<int>;
 
 %inline %{
 template<typename T>
@@ -346,9 +413,15 @@ struct TemplPublicDerived4 : TemplPublicBase4<T> {
   using TemplPublicBase4<T>::TemplPublicBase4;
   using TemplPublicBase4<T>::meth;
 };
+template<typename T>
+struct TemplPublicDerived5 : TemplPublicBase5<T> {
+  using TemplPublicBase5<T>::TemplPublicBase5;
+  using TemplPublicBase5<T>::meth;
+};
 %}
 
 %template(TemplPublicDerived1Int) TemplPublicDerived1<int>;
 %template(TemplPublicDerived2Int) TemplPublicDerived2<int>;
 %template(TemplPublicDerived3Int) TemplPublicDerived3<int>;
 %template(TemplPublicDerived4Int) TemplPublicDerived4<int>;
+%template(TemplPublicDerived5Int) TemplPublicDerived5<int>;

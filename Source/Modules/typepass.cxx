@@ -1004,11 +1004,8 @@ class TypePass:private Dispatcher {
       } else {
 	ns = 0;
       }
-      if (!ns) {
-	if (is_public(n)) {
-	  Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(n), Getline(n), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(n, "uname")));
-	}
-      } else {
+      // Note that TypePass::usingDeclaration will warn when using member is not found (when ns is zero)
+      if (ns) {
 	/* Only a single symbol is being used.  There are only a few symbols that
 	   we actually care about.  These are typedef, class declarations, and enum */
 	String *ntype = nodeType(ns);

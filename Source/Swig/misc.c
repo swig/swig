@@ -1357,10 +1357,31 @@ String *Swig_pcre_version(void) {
  * Check if the function is an automatically generated
  * overload created because a method has default parameters. 
  * ------------------------------------------------------------ */
+
 int Swig_is_generated_overload(Node *n) {
   Node *base_method = Getattr(n, "sym:overloaded");
   Node *default_args = Getattr(n, "defaultargs");
   return ((base_method != NULL) && (default_args != NULL) && (base_method == default_args));
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_item_in_list()
+ *
+ * If the input name is the name of an item in the list, return the item
+ * ----------------------------------------------------------------------------- */
+
+Node *Swig_item_in_list(List *list, const_String_or_char_ptr name) {
+  Node *item = 0;
+  if (list) {
+    Iterator it;
+    for (it = First(list); it.item; it = Next(it)) {
+      if (Strcmp(name, it.item) == 0) {
+	item = it.item;
+	break;
+      }
+    }
+  }
+  return item;
 }
 
 /* -----------------------------------------------------------------------------

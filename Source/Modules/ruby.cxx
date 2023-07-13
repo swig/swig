@@ -2081,9 +2081,9 @@ public:
       sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
 
     // Constructors will be treated specially
-    const bool isCtor = (!Cmp(Getattr(sibl, "nodeType"), "constructor"));
-    const bool isMethod = ( Cmp(Getattr(sibl, "ismember"), "1") == 0 &&
-			    (!isCtor) );
+    String *siblNodeType = Getattr(sibl, "nodeType");
+    const bool isCtor = (Equal(siblNodeType, "constructor"));
+    const bool isMethod = (Equal(siblNodeType, "cdecl") && GetFlag(sibl, "ismember") && !isCtor);
 
     // Construct real method name
     String* methodName = NewString("");
@@ -2103,7 +2103,7 @@ public:
     String *protoTypes = NewString("");
     do {
       Append( protoTypes, "\n\"    ");
-      if (!isCtor) {
+      if (!isCtor && !Equal(siblNodeType, "using")) {
 	SwigType *type = SwigType_str(Getattr(sibl, "type"), NULL);
 	Printv(protoTypes, type, " ", NIL);
 	Delete(type);

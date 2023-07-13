@@ -800,8 +800,11 @@ Allocate():
       } else {
 	ns = 0;
       }
-      // Note that TypePass::usingDeclaration has warned when using member is not found (when ns is zero)
-      if (ns) {
+      if (!ns) {
+	if (is_public(n)) {
+	  Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(n), Getline(n), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(n, "uname")));
+	}
+      } else {
 	String *ntype = nodeType(ns);
 	if (Equal(ntype, "cdecl") || Equal(ntype, "constructor")) {
 	  if (!checkAttribute(ns, "storage", "typedef")) {

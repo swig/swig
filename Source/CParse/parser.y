@@ -450,33 +450,20 @@ static void add_symbols(Node *n) {
 	}
 	Namespaceprefix = 0;
       } else if (Equal(nodeType(n), "using")) {
-	Symtab *stab = Swig_symbol_current();
 	String *uname = Getattr(n, "uname");
-	Node *ns = Swig_symbol_clookup(uname, stab);
-	String *ntype = 0;
-	if (!ns && SwigType_istemplate(uname)) {
-	  String *tbase = SwigType_templateprefix(uname);
-	  String *uname_template = NewStringf("%s%s", tbase, SwigType_templatesuffix(uname));
-	  ns = Swig_symbol_clookup(uname_template, stab);
-	  if (!ns) {
-	    String *tmp = Swig_symbol_template_deftype(uname, 0);
-	    if (!Equal(tmp, uname)) {
-	      ns = Swig_symbol_clookup(tmp, stab);
-	    }
-	    Delete(tmp);
-	  }
-	  Delete(tbase);
-	  Delete(uname_template);
-	}
-	if (ns) {
-	  ntype = nodeType(ns);
-	  if (Equal(ntype, "constructor")) {
-	    /* The using declaration name for inheriting constructors is the base class constructor name
-	     * not the name provided by the using declaration. Correct it here. */
-	    String *stabname = Getattr(stab, "name");
-	    String *nname = SwigType_templateprefix(stabname);
+	Node *cls = current_class ? current_class : currentOuterClass; /* Current class seems to vary depending on whether it is a template class or a plain class */
+	String *nprefix = 0;
+	String *nlast = 0;
+	Swig_scopename_split(uname, &nprefix, &nlast);
+	if (Swig_item_in_list(Getattr(cls, "baselist"), nprefix) || Swig_item_in_list(Getattr(cls, "protectedbaselist"), nprefix) || Swig_item_in_list(Getattr(cls, "privatebaselist"), nprefix)) {
+	  String *plain_name = SwigType_istemplate(nprefix) ? SwigType_templateprefix(nprefix) : nprefix;
+	  if (Equal(nlast, plain_name)) {
+	    /* Using declaration looks like it is using a constructor in an immediate base class - change the constructor name for this class.
+	     * C++11 requires using declarations for inheriting base constructors to be in the immediate base class.
+	     * Note that we don't try and look up the constructor in the base class as the constructor may be an implicit/implied constructor and hence not exist. */
+	    Symtab *stab = Swig_symbol_current();
+	    String *nname = Getattr(stab, "name");
 	    Setattr(n, "name", nname);
-	    Delete(nname);
 	  }
 	}
       } else {
