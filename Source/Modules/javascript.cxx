@@ -293,7 +293,7 @@ protected:
 
   virtual const char *getFunctionDispatcherTemplate(bool);
 
-  virtual const char *getOverloadedFunctionTemplate(bool);
+  virtual const char *getOverloadedFunctionTemplate(Node *, bool);
 
   virtual const char *getSetterTemplate(bool);
 
@@ -902,7 +902,7 @@ const char *JSEmitter::getFunctionDispatcherTemplate(bool) {
   return "js_function_dispatcher";
 }
 
-const char *JSEmitter::getOverloadedFunctionTemplate(bool) {
+const char *JSEmitter::getOverloadedFunctionTemplate(Node *, bool) {
   return "js_overloaded_function";
 }
 
@@ -1270,7 +1270,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   String *iname = Getattr(n, "sym:name");
   String *wrap_name = Swig_name_wrapper(iname);
   if (is_overloaded) {
-    t_function = getTemplate(getOverloadedFunctionTemplate(is_member));
+    t_function = getTemplate(getOverloadedFunctionTemplate(n, is_member));
     Append(wrap_name, Getattr(n, "sym:overname"));
   }
   Setattr(n, "wrap:name", wrap_name);
@@ -2486,7 +2486,7 @@ protected:
 
   virtual const char *getFunctionTemplate(Node *, bool is_member);
   virtual const char *getFunctionDispatcherTemplate(bool is_member);
-  virtual const char *getOverloadedFunctionTemplate(bool is_member);
+  virtual const char *getOverloadedFunctionTemplate(Node *, bool is_member);
   virtual const char *getSetterTemplate(bool is_member);
   virtual const char *getGetterTemplate(bool is_member);
 
@@ -2640,7 +2640,10 @@ const char *NAPIEmitter::getFunctionDispatcherTemplate(bool is_member) {
   return is_member ? "js_function_dispatcher" : "js_global_function_dispatcher";
 }
 
-const char *NAPIEmitter::getOverloadedFunctionTemplate(bool is_member) {
+const char *NAPIEmitter::getOverloadedFunctionTemplate(Node *n, bool is_member) {
+  if (GetFlag(n, IS_ASYNC)) {
+    return is_member ? "js_overloaded_function_async" : "js_global_overloaded_function_async";
+  }
   return is_member ? "js_overloaded_function" : "js_global_overloaded_function";
 }
 
@@ -2849,9 +2852,12 @@ String *NAPIEmitter::emitAsyncTypemaps(Node *, Parm *parms, Wrapper *,
     if (tm != nullptr) {
       String *arg = Getattr(p, "emit:input");
 
-      Replaceall(tm, "$input", arg);
-      Append(result, tm);
-      Append(result, "\n");
+      // Do not emit typemaps for numinput=0 arguments
+      if (arg != nullptr) {
+        Replaceall(tm, "$input", arg);
+        Append(result, tm);
+        Append(result, "\n");
+      }
       p = Getattr(p, tmnext);
     } else {
       p = nextSibling(p);
@@ -2873,7 +2879,7 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   String *iname = Getattr(n, "sym:name");
   String *wrap_name = Swig_name_wrapper(iname);
   if (is_overloaded) {
-    t_function = getTemplate(getOverloadedFunctionTemplate(is_member));
+    t_function = getTemplate(getOverloadedFunctionTemplate(n, is_member));
     Append(wrap_name, Getattr(n, "sym:overname"));
   }
   Setattr(n, "wrap:name", wrap_name);
