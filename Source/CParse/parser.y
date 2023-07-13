@@ -464,6 +464,7 @@ static void add_symbols(Node *n) {
 	    Symtab *stab = Swig_symbol_current();
 	    String *nname = Getattr(stab, "name");
 	    Setattr(n, "name", nname);
+	    SetFlag(n, "usingctor");
 	  }
 	}
       } else {
