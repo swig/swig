@@ -1,22 +1,22 @@
 var input = require("input");
 
-f = new input.Foo();
-if (f.foo(2) != 4) {
+var f = new input.Foo();
+if (/* await */(f.foo(2)) != 4) {
     throw new Error;
 }
 
-if (f.foo(null) != null) {
+if (/* await */(f.foo(null)) != null) {
     throw new Error;
 }
 
-if (f.foo() != null) {
+if (/* await */(f.foo()) != null) {
     throw new Error;
 }
 
-if (input.sfoo("Hello") != "Hello world") {
+if (/* await */(input.sfoo("Hello")) != "Hello world") {
     throw new Error;
 }
 
-if (input.sfoo() != null) {
+if (/* await */(input.sfoo()) != null) {
     throw new Error;
 }

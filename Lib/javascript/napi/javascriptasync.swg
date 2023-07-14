@@ -65,7 +65,7 @@
 /*
  * Primitives types do not need locking or peristence
  */
- %typemap(async_in) bool,
+%typemap(async_in) bool,
   char, signed char, unsigned char,
   short, signed short, unsigned short,
   int, signed int, unsigned int,
@@ -73,7 +73,7 @@
   long long, signed long long, unsigned long long,
   float, double ""
 
- %typemap(async_pre) bool,
+%typemap(async_pre) bool,
   char, signed char, unsigned char,
   short, signed short, unsigned short,
   int, signed int, unsigned int,
@@ -81,10 +81,46 @@
   long long, signed long long, unsigned long long,
   float, double ""
 
- %typemap(async_out) bool,
+%typemap(async_post) bool,
   char, signed char, unsigned char,
   short, signed short, unsigned short,
   int, signed int, unsigned int,
   long, signed long, unsigned long,
   long long, signed long long, unsigned long long,
   float, double ""
+
+%typemap(async_in) bool *INPUT,
+  char *INPUT, signed char *INPUT, unsigned char *INPUT,
+  short *INPUT, signed short *INPUT, unsigned short *INPUT,
+  int *INPUT, signed int *INPUT, unsigned int *INPUT,
+  long *INPUT, signed long *INPUT, unsigned long *INPUT,
+  long long *INPUT, signed long long *INPUT, unsigned long long *INPUT,
+  float *INPUT, double *INPUT ""
+
+%typemap(async_pre) bool *INPUT,
+  char *INPUT, signed char *INPUT, unsigned char *INPUT,
+  short *INPUT, signed short *INPUT, unsigned short *INPUT,
+  int *INPUT, signed int *INPUT, unsigned int *INPUT,
+  long *INPUT, signed long *INPUT, unsigned long *INPUT,
+  long long *INPUT, signed long long *INPUT, unsigned long long *INPUT,
+  float *INPUT, double *INPUT ""
+
+%typemap(async_post) bool *INPUT,
+  char *INPUT, signed char *INPUT, unsigned char *INPUT,
+  short *INPUT, signed short *INPUT, unsigned short *INPUT,
+  int *INPUT, signed int *INPUT, unsigned int *INPUT,
+  long *INPUT, signed long *INPUT, unsigned long *INPUT,
+  long long *INPUT, signed long long *INPUT, unsigned long long *INPUT,
+  float *INPUT, double *INPUT ""
+
+// std::string does not need locking but needs persistence
+%typemap(async_in) std::string, std::string *, std::string & {
+  Napi::Object obj;
+  NAPI_CHECK_RESULT($input.ToObject(), obj);
+  Napi::ObjectReference *ref = new Napi::ObjectReference();
+  *ref = Napi::Persistent(obj);
+  persistent.push_back(ref);
+}
+
+%typemap(async_pre) std::string, std::string *, std::string & ""
+%typemap(async_post) std::string, std::string *, std::string & ""
