@@ -33,6 +33,7 @@
 #include <map>
 #include <functional>
 #include <algorithm>
+#include <set>
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */

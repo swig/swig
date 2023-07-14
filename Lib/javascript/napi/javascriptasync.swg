@@ -42,7 +42,6 @@
   Napi::Object obj;
   NAPI_CHECK_RESULT($input.ToObject(), obj);
   ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj);
-  objs.push_back(ow);
 
   Napi::ObjectReference *ref = new Napi::ObjectReference();
   *ref = Napi::Persistent(ow->Value());
@@ -50,11 +49,17 @@
 }
 
 %typemap(async_pre) SWIGTYPE *, SWIGTYPE & {
-  ow$argnum->lock();
+  if (!objs.count(ow$argnum)) {
+    objs.insert(ow$argnum);
+    ow$argnum->lock();    
+  }
 }
 
 %typemap(async_post) SWIGTYPE *, SWIGTYPE & {
-  ow$argnum->unlock();
+  if (objs.count(ow$argnum)) {
+    objs.erase(ow$argnum);
+    ow$argnum->unlock();    
+  }
 }
 
 /*

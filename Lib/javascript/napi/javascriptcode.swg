@@ -553,11 +553,7 @@ template <typename SWIG_OBJ_WRAP>
 Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
-  $jsinput
-  $jsaction
-  $jsoutput
-  $jscleanup
-
+  $jscode
   SWIG_Error(SWIG_ERROR, "Illegal arguments for function $jsname.");
 
   goto fail;
@@ -604,6 +600,7 @@ fail:
 %fragment("js_overloaded_function_async", "templates")
 %{
 // js_overloaded_function_async
+template <typename SWIG_OBJ_WRAP>
 Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   $jsasyncworker
@@ -705,7 +702,7 @@ fail:
   private:
     // This vector holds pointers to the NAPI wrappers used
     // by this operation - it is required for the async locks
-    std::vector<SWIG_NAPI_ObjectWrap_inst *> objs;
+    std::set<SWIG_NAPI_ObjectWrap_inst *> objs;
     // This vector holds persistent references to all JS objects
     // involved in the asynchronous operation - it protects them
     // from being garbage-collected
@@ -717,8 +714,8 @@ fail:
       Napi::AsyncWorker(_env, "SWIG_$jswrapper_Async_Worker"),
       env(_env),
       deferred(Napi::Promise::Deferred::New(_env)),
-      objs(0),
-      persistent(0) {}
+      objs(),
+      persistent() {}
 
       virtual ~$jswrapper_Tasklet() {
         // Release the persistent references
