@@ -1044,14 +1044,14 @@ void $jsmangledname_inst::GetMembers(
 %}
 
 /* -----------------------------------------------------------------------------
- * jsnapi_member_function_descriptor:  template for a statement that registers a member function.
+ * jsnapi_register_member_function:  template for a statement that registers a member function.
  *   - $jsmangledname:  mangled class name
  *   - $jsname:         name of the function
  *   - $jswrapper:      wrapper of the member function
  * ----------------------------------------------------------------------------- */
 %fragment("jsnapi_register_member_function", "templates")
 %{
-  // jsnapi_member_function_descriptor
+  // jsnapi_register_member_function
   members.erase("$jsname");
   members.insert({"$jsname",
         $jsmangledname_templ::InstanceMethod("$jsname",

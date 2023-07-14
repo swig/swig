@@ -2972,21 +2972,19 @@ int NAPIEmitter::emitWrapperFunction(Node *n) {
   // We reuse the same node twice
   String *async = Getattr(n, "feature:async");
   String *sync = Getattr(n, "feature:sync");
-  String *name = Getattr(n, "name");
+  String *name = state.function(NAME);
   String *symbol = Getattr(n, "sym:name");
 
   // By default async is off ("0") unless default is async
   if ((async && !Equal(async, "0")) || js_napi_default_is_async) {
-    if (!Equal(async, "1")) {
-      String *symAsync = Copy(symbol);
-      String *nameAsync = Copy(name);
-      if (async) {
-        Append(symAsync, async);
-        Append(nameAsync, async);
-      }
-      Setattr(n, "sym:name", symAsync);
-      state.function("name", nameAsync);
+    String *symAsync = Copy(symbol);
+    String *nameAsync = Copy(name);
+    if (async && !Equal(async, "1")) {
+      Append(symAsync, async);
+      Append(nameAsync, async);
     }
+    Setattr(n, "sym:name", symAsync);
+    state.function(NAME, nameAsync);
     Setattr(n, "sym:name:async", Getattr(n, "sym:name"));
     SetFlag(n, IS_ASYNC);
     rc = JSEmitter::emitWrapperFunction(n);
@@ -2997,16 +2995,14 @@ int NAPIEmitter::emitWrapperFunction(Node *n) {
 
   // By default sync is on w/o suffix ("1") unless default is async
   if ((sync && !Equal(sync, "0")) || !js_napi_default_is_async) {
+    String *symSync = Copy(symbol);
+    String *nameSync = Copy(name);
     if (sync && !Equal(sync, "1")) {
-      String *symSync = Copy(symbol);
-      String *nameSync = Copy(name);
-      if (sync) {
-        Append(symSync, sync);
-        Append(nameSync, sync);
-      }
-      Setattr(n, "sym:name", symSync);
-      state.function("name", nameSync);
+      Append(symSync, sync);
+      Append(nameSync, sync);
     }
+    Setattr(n, "sym:name", symSync);
+    state.function(NAME, nameSync);
     Setattr(n, "sym:name:sync", Getattr(n, "sym:name"));
     UnsetFlag(n, IS_ASYNC);
     rc = JSEmitter::emitWrapperFunction(n);
