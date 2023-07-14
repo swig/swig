@@ -354,15 +354,9 @@ fail:
  * js_global_function_async:  template for async function wrappers
  *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
+ *   - $jsasyncworker:  local async worker class
  *   - $jsargcount:     number of arguments
  *   - $jsargrequired:  minimum number of arguments
- *   - $jslocals:       locals part of wrapper
- *   - $jsinput:        input part of wrapper
- *   - $jspreaction:    preaction part of wrapper
- *   - $jsaction:       action part of wrapper
- *   - $jspostaction:   postaction part of wrapper
- *   - $joutput:        output part of wrapper
- *   - $jscleanup:      cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_global_function_async", "templates")
 %{
@@ -370,81 +364,7 @@ fail:
 // TODO: merge this with js_function_async to avoid the huge code duplication
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
-
-  class $jswrapper_Tasklet : public Napi::AsyncWorker {
-    Napi::Env env;
-  public:
-    Napi::Promise::Deferred deferred;
-  private:
-    // This vector holds pointers to the NAPI wrappers used
-    // by this operation - it is required for the async locks
-    std::vector<SWIG_NAPI_ObjectWrap_inst *> objs;
-    // This vector holds persistent references to all JS objects
-    // involved in the asynchronous operation - it protects them
-    // from being garbage-collected
-    std::vector<Napi::ObjectReference *> persistent;
-
-    $jslocals
-  public:
-    $jswrapper_Tasklet(Napi::Env _env) :
-      Napi::AsyncWorker(_env, "SWIG_$jswrapper_Async_Worker"),
-      env(_env),
-      deferred(Napi::Promise::Deferred::New(_env)),
-      objs(0),
-      persistent(0) {}
-
-      virtual ~$jswrapper_Tasklet() {
-        // Release the persistent references
-        for (Napi::ObjectReference *ref : persistent) {
-          delete ref;
-        }
-        persistent.clear();
-      }
-
-      virtual void OnOK() override {
-        // Back in the main thread with V8 access
-        Napi::HandleScope scope(env);
-        Napi::Value jsresult;
-        $jsoutput
-        deferred.Resolve(jsresult);
-        Cleanup();
-      };
-
-      virtual void OnError(const Napi::Error &error) override {
-        // Back in the main thread with V8 access
-        Napi::HandleScope scope(env);
-        deferred.Reject(error.Value());
-        Cleanup();
-      }
-
-      virtual void Cleanup() {
-        $jscleanup
-      }
-
-      virtual void Execute() override {
-        // This runs the action lambda in a worker thread
-        // WARNING! TODO! Find an elegant way to sort the locking operations
-        $jspreaction
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
-        try {
-          $jsaction
-        } catch (const std::exception &e) {
-          SetError(e.what());
-        }
-#else
-        $jsaction
-#endif
-        $jspostaction
-      }
-
-      virtual void Init(const Napi::CallbackInfo &info) {
-        $jsinput
-        goto fail;
-      fail:
-        return;
-      }
-  };
-
+  $jsasyncworker
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
@@ -593,16 +513,9 @@ fail:
  * js_function_async:  template for async function wrappers
  *   - $jsmangledname:  mangled class name
  *   - $jswrapper:      wrapper function name
+ *   - $jsasyncworker:  local async worker class
  *   - $jsargcount:     maximum number of arguments
  *   - $jsargrequired:  minimum number of arguments
- *   - $jstype:         C return type of the underlying function
- *   - $jslocals:       locals part of wrapper
- *   - $jsinput:        input part of wrapper
- *   - $jspreaction:    preaction part of wrapper
- *   - $jsaction:       action part of wrapper
- *   - $jspostaction:   postaction part of wrapper
- *   - $joutput:        output part of wrapper
- *   - $jscleanup:      cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_function_async", "templates")
 %{
@@ -610,89 +523,7 @@ fail:
 template <typename SWIG_OBJ_WRAP>
 Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
-
-  // This class is essentially a functor with multiple entry points
-  // Its main purpose is to keep the context
-  // The wrapper local variables are class members
-  // Init() is called on the main thread with V8 access and deals with in typemaps
-  // Execute() is called on a worker thread without V8 access and does the work
-  // OnOK()/OnError() are called on the main thread with V8 access and deal with
-  //   the out typemaps
-  // The functor deletes itself when the operation is finished (NAPI does this)
-  class $jswrapper_Tasklet : public Napi::AsyncWorker {
-    Napi::Env env;
-  public:
-    Napi::Promise::Deferred deferred;
-  private:
-    // This vector holds pointers to the NAPI wrappers used
-    // by this operation - it is required for the async locks
-    std::vector<SWIG_NAPI_ObjectWrap_inst *> objs;
-    // This vector holds persistent references to all JS objects
-    // involved in the asynchronous operation - it protects them
-    // from being garbage-collected
-    std::vector<Napi::ObjectReference *> persistent;
-
-    $jslocals
-  public:
-    $jswrapper_Tasklet(Napi::Env _env) :
-      Napi::AsyncWorker(_env, "SWIG_$jsmangledname_$jswrapper_Async_Worker"),
-      env(_env),
-      deferred(Napi::Promise::Deferred::New(_env)),
-      objs(0),
-      persistent(0) {}
-
-      virtual ~$jswrapper_Tasklet() {
-        // Release the persistent references
-        for (Napi::ObjectReference *ref : persistent) {
-          delete ref;
-        }
-        persistent.clear();
-      }
-
-      virtual void OnOK() override {
-        // Back in the main thread with V8 access
-        Napi::HandleScope scope(env);
-        Napi::Value jsresult;
-        $jsoutput
-        deferred.Resolve(jsresult);
-        Cleanup();
-      };
-
-      virtual void OnError(const Napi::Error &error) override {
-        // Back in the main thread with V8 access
-        Napi::HandleScope scope(env);
-        deferred.Reject(error.Value());
-        Cleanup();
-      }
-
-      virtual void Cleanup() {
-        $jscleanup
-      }
-
-      virtual void Execute() override {
-        // This runs the action lambda in a worker thread
-        // WARNING! TODO! Find an elegant way to sort the locking operations
-        $jspreaction
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
-        try {
-          $jsaction
-        } catch (const std::exception &e) {
-          SetError(e.what());
-        }
-#else
-        $jsaction
-#endif
-        $jspostaction
-      }
-
-      virtual void Init(const Napi::CallbackInfo &info) {
-        $jsinput
-        goto fail;
-      fail:
-        return;
-      }
-  };
-
+  $jsasyncworker
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
@@ -768,98 +599,14 @@ fail:
  * js_overloaded_function_async:  template for overloaded async function wrappers
  *   - $jsmangledname:  class name
  *   - $jswrapper:      wrapper function name
- *   - $jslocals:       locals part of wrapper
- *   - $jsargcount:     number of arguments
- *   - $jsargrequired:  minimum number of arguments
- *   - $jslocals:       locals part of wrapper
- *   - $jsinput:        input part of wrapper
- *   - $jspreaction:    preaction part of wrapper
- *   - $jsaction:       action part of wrapper
- *   - $jspostaction:   postaction part of wrapper
- *   - $joutput:        output part of wrapper
- *   - $jscleanup:      cleanup part of wrapper
+ *   - $jsasyncworker:  local async worker class
  * ----------------------------------------------------------------------------- */
 %fragment("js_overloaded_function_async", "templates")
 %{
 // js_overloaded_function_async
-// TODO: merge this with js_function_async to avoid the huge code duplication
 Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
-
-  class $jswrapper_Tasklet : public Napi::AsyncWorker {
-    Napi::Env env;
-  public:
-    Napi::Promise::Deferred deferred;
-  private:
-    // This vector holds pointers to the NAPI wrappers used
-    // by this operation - it is required for the async locks
-    std::vector<SWIG_NAPI_ObjectWrap_inst *> objs;
-    // This vector holds persistent references to all JS objects
-    // involved in the asynchronous operation - it protects them
-    // from being garbage-collected
-    std::vector<Napi::ObjectReference *> persistent;
-
-    $jslocals
-  public:
-    $jswrapper_Tasklet(Napi::Env _env) :
-      Napi::AsyncWorker(_env, "SWIG_$jswrapper_Async_Worker"),
-      env(_env),
-      deferred(Napi::Promise::Deferred::New(_env)),
-      objs(0),
-      persistent(0) {}
-
-      virtual ~$jswrapper_Tasklet() {
-        // Release the persistent references
-        for (Napi::ObjectReference *ref : persistent) {
-          delete ref;
-        }
-        persistent.clear();
-      }
-
-      virtual void OnOK() override {
-        // Back in the main thread with V8 access
-        Napi::HandleScope scope(env);
-        Napi::Value jsresult;
-        $jsoutput
-        deferred.Resolve(jsresult);
-        Cleanup();
-      };
-
-      virtual void OnError(const Napi::Error &error) override {
-        // Back in the main thread with V8 access
-        Napi::HandleScope scope(env);
-        deferred.Reject(error.Value());
-        Cleanup();
-      }
-
-      virtual void Cleanup() {
-        $jscleanup
-      }
-
-      virtual void Execute() override {
-        // This runs the action lambda in a worker thread
-        // WARNING! TODO! Find an elegant way to sort the locking operations
-        $jspreaction
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
-        try {
-          $jsaction
-        } catch (const std::exception &e) {
-          SetError(e.what());
-        }
-#else
-        $jsaction
-#endif
-        $jspostaction
-      }
-
-      virtual void Init(const Napi::CallbackInfo &info) {
-        $jsinput
-        goto fail;
-      fail:
-        return;
-      }
-  };
-
+  $jsasyncworker
   $jswrapper_Tasklet *self = new $jswrapper_Tasklet(env);
   self->Init(info);
   self->Queue();
@@ -906,6 +653,28 @@ fail:
 /* -----------------------------------------------------------------------------
  * js_global_overloaded_function_async:  template for global overloaded async function wrappers
  *   - $jswrapper:      wrapper function name
+ *   - $jsasyncworker:  local async worker class
+ * ----------------------------------------------------------------------------- */
+%fragment("js_global_overloaded_function_async", "templates")
+%{
+// js_global_overloaded_function_async
+Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
+  Napi::Env env = info.Env();
+  $jsasyncworker
+  $jswrapper_Tasklet *self = new $jswrapper_Tasklet(env);
+  self->Init(info);
+  self->Queue();
+  return self->deferred.Promise();
+  goto fail;
+fail:
+  return Napi::Value();
+}
+%}
+
+
+/* -----------------------------------------------------------------------------
+ * js_async_worker_local_class:  template for the local async worker class in async wrappers
+ *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
  *   - $jsargcount:     number of arguments
  *   - $jsargrequired:  minimum number of arguments
@@ -917,13 +686,18 @@ fail:
  *   - $joutput:        output part of wrapper
  *   - $jscleanup:      cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
-%fragment("js_global_overloaded_function_async", "templates")
+%fragment("js_async_worker_local_class", "templates")
 %{
-// js_global_overloaded_function_async
-// TODO: merge this with js_function_async to avoid the huge code duplication
-Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
-  Napi::Env env = info.Env();
+// js_async_worker_local_class
 
+  // This class is essentially a functor with multiple entry points
+  // Its main purpose is to keep the context - the wrapper local variables -
+  // as class members between those calls in different threads
+  // Init() is called on the main thread with V8 access and deals with in typemaps
+  // Execute() is called on a worker thread without V8 access and does the work
+  // OnOK()/OnError() are called on the main thread with V8 access and deal with
+  //   the out typemaps
+  // The functor deletes itself when the operation is finished (NAPI does this)
   class $jswrapper_Tasklet : public Napi::AsyncWorker {
     Napi::Env env;
   public:
@@ -997,15 +771,6 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
         return;
       }
   };
-
-  $jswrapper_Tasklet *self = new $jswrapper_Tasklet(env);
-  self->Init(info);
-  self->Queue();
-  return self->deferred.Promise();
-  goto fail;
-fail:
-  return Napi::Value();
-}
 %}
 
 
