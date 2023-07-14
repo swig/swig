@@ -2927,27 +2927,12 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   String *jsasyncworker = NewString("");
   if (GetFlag(n, IS_ASYNC)) {
     Template t_worker(getTemplate("js_async_worker_local_class"));
-    
-    t_worker.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-      .replace("$jswrapper", wrap_name)
-      .replace("$jslocals", wrapper->locals)
-      .replace("$jsinput", input)
-      .replace("$jstype", Swig_scopename_last(
-                              SwigType_str(SwigType_strip_qualifiers(type), 0)))
-      .replace("$jspreaction", pre)
-      .replace("$jsaction", action)
-      .replace("$jspostaction", post)
-      .replace("$jsoutput", output)
-      .replace("$jscleanup", cleanup)
-      .replace("$symname", iname)
-      .replace("$jsargcount", Getattr(n, ARGCOUNT))
-      .replace("$jsargrequired", Getattr(n, ARGREQUIRED))
-      .pretty_print(jsasyncworker);
+    t_worker.print(jsasyncworker);
   }
 
-  t_function.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+  t_function.replace("$jsasyncworker", jsasyncworker)
+      .replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jswrapper", wrap_name)
-      .replace("$jsasyncworker", jsasyncworker)
       .replace("$jslocals", wrapper->locals)
       .replace("$jsinput", input)
       .replace("$jstype", Swig_scopename_last(
