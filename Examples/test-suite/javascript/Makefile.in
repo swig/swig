@@ -139,7 +139,7 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
 			sed -e \
 				's@/\* await \*/@await resolve@g; \
-				s@\(var\|let\|const\)[[:space:]]*\(.*\)[[:space:]]*=[[:space:]]*require("\(.*\)")@import \2 from "./\3/index.js"@g; \
+				s@\(var\|let\|const\)[[:space:]]*\(.*\)[[:space:]]*=[[:space:]]*require(\("\|\x27\)\(.*\)\("\|\x27\))@import \2 from "./\4/index.js"@g; \
 				1s@^@import resolve from "./resolve.mjs";\n@' \
 				$(srcdir)/$*$(SCRIPTSUFFIX) > $(srcdir)/$*$(SCRIPTASYNCSUFFIX) \
 			&& \
