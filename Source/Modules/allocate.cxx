@@ -17,6 +17,9 @@
  * Once the analysis is complete, the non-explicit/implied default constructors
  * and destructors are added to the parse tree. Implied copy constructors are
  * added too if requested via the copyctor feature.
+ *
+ * This module also is responsible for adding in using declarations from base
+ * class members into the parse tree.
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
