@@ -34,6 +34,7 @@
 #include <functional>
 #include <algorithm>
 #include <set>
+#include <stdexcept>
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */

@@ -2,26 +2,26 @@
 // because there is no overloading
 var li_std_containers_int = require("li_std_containers_int");
 
-function set_check(container, idx, value, size) {
-    container.set(idx, value);
-    if (container.get(idx) !== value)
+/* async */ function set_check(container, idx, value, size) {
+    /* await */(container.set(idx, value));
+    if (/* await */(container.get(idx)) !== value)
         throw new Error(
-            `Failed setting value at ${idx} in ${container.toString} to ${value}, got ${container.getitem(idx)}`);
-    if (container.size() != size)
-        throw new Error(`Expected a size of ${size}, got ${container.size()}`);
+            `Failed setting value at ${idx} in ${container.toString()} to ${value}, got ${/* await */(container.getitem(idx))}`);
+    if (/* await */(container.size()) != size)
+        throw new Error(`Expected a size of ${size}, got ${/* await */(container.size())}`);
 }
 
-function err_check(container, idx, value, size) {
+/* async */ function err_check(container, idx, value, size) {
     let fail = true;
     try {
-        container.set(idx, value);
+        /* await */(container.set(idx, value));
     } catch {
         fail = false;
     }
     if (fail) throw new Error(
-        `Expected an exception setting value at ${idx} in ${container.toString} to ${value}, got ${container.get(idx)}`);
-    if (container.size() != size)
-        throw new Error(`Expected a size of ${size}, got ${container.size()}`);
+        `Expected an exception setting value at ${idx} in ${container.toString()} to ${value}, got ${/* await */(container.get(idx))}`);
+    if (/* await */(container.size()) != size)
+        throw new Error(`Expected a size of ${size}, got ${/* await */(container.size())}`);
 }
 
 var vector;

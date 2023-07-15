@@ -31,10 +31,32 @@
 #define NAPI_CHECK_RESULT(maybe, result)        (result = maybe)
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
+  if ((napi_env)env == nullptr) { throw std::runtime_error(msg); }
   throw Napi::Error::New(env, msg);
 }
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
+  if ((napi_env)env == nullptr) {
+    // Async throw from a worker thread without access to V8
+    // Throw a C++ exception, the async worker will handle it
+    switch(type) {
+      default:
+      case SWIG_IOError:
+      case SWIG_MemoryError:
+      case SWIG_SystemError:
+      case SWIG_RuntimeError:
+      case SWIG_DivisionByZero:
+      case SWIG_SyntaxError:
+        throw std::runtime_error(msg);
+      case SWIG_OverflowError:
+      case SWIG_IndexError:
+        throw std::range_error(msg);
+      case SWIG_ValueError:
+      case SWIG_TypeError:
+        throw std::invalid_argument(msg);
+    }
+  }
+
   switch(type) {
     default:
     case SWIG_IOError:
@@ -55,6 +77,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
         const char *msg = nullptr, swig_type_info *info = nullptr) {
+  if ((napi_env)env == nullptr) { abort(); }
   throw Napi::Error(env, obj);
 }
 
