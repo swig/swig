@@ -37,14 +37,17 @@
 <li><a href="#Javascript_simple_example">Simple</a>
 <li><a href="#Javascript_class_example">Class</a>
 </ul>
+<li><a href="#Javascript_exceptions">Exceptions</a>
+<ul>
+<li><a href="#Javascript_jsc_exceptions">Handling Exceptions in JavascriptCore</a>
+<li><a href="#Javascript_napi_exceptions">Handling Exceptions in Node-API</a>
+</ul>
 <li><a href="#Javascript_implementation">Implementation</a>
 <ul>
 <li><a href="#Javascript_source_code">Source Code</a>
 <li><a href="#Javascript_code_templates">Code Templates</a>
 <li><a href="#Javascript_emitter">Emitter</a>
 <li><a href="#Javascript_emitter_states">Emitter states</a>
-<li><a href="#Javascript_jsc_exceptions">Handling Exceptions in JavascriptCore</a>
-<li><a href="#Javascript_napi_exceptions">Handling Exceptions in Node-API</a>
 </ul>
 </ul>
 </div>
@@ -628,12 +631,125 @@ at emitKey (readline.js:1095:12)</pre>
 <b>Note</b>: In ECMAScript 5 there is no concept for classes. Instead each function can be used as a constructor function which is executed by the 'new' operator. Furthermore, during construction the key property <code>prototype</code> of the constructor function is used to attach a prototype instance to the created object. A prototype is essentially an object itself that is the first-class delegate of a class used whenever the access to a property of an object fails. The very same prototype instance is shared among all instances of one type. Prototypal inheritance is explained in more detail on in <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Inheritance_and_the_prototype_chain">Inheritance and the prototype chain</a>, for instance.
 </p>
 
-<H2><a name="Javascript_implementation">28.5 Implementation</a></H2>
+<H2><a name="Javascript_exceptions">28.5 Exceptions</a></H2>
+
+<H3><a name="Javascript_jsc_exceptions">28.5.1 Handling Exceptions in JavascriptCore</a></H3>
+<p>Applications with an embedded JavascriptCore should be able to present detailed exception messages that occur in the Javascript engine. Below is an example derived from code provided by Brian
+        Barnes on how these exception details can be extracted.</p>
+<div class="code">
+        <pre>
+void script_exception_to_string(JSContextRef js_context, JSValueRef exception_value_ref, char* return_error_string, int return_error_string_max_length)
+{
+  JSObjectRef exception_object;
+  JSValueRef value_ref;
+  JSStringRef jsstring_property_name = NULL;
+  JSValueRef temporary_exception = NULL;
+  JSStringRef js_return_string = NULL;
+  size_t bytes_needed;
+  char* c_result_string = NULL;
+  exception_object = JSValueToObject(js_context, exception_value_ref, NULL);
+
+  /* source url */
+  strcpy(return_error_string, &quot;[&quot;);
+  jsstring_property_name = JSStringCreateWithUTF8CString(&quot;sourceURL&quot;);
+  value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
+  JSStringRelease(jsstring_property_name);
+  js_return_string = JSValueToStringCopy(js_context, value_ref, NULL);
+  bytes_needed = JSStringGetMaximumUTF8CStringSize(js_return_string);
+  c_result_string = (char*)calloc(bytes_needed, sizeof(char));
+  JSStringGetUTF8CString(js_return_string, c_result_string, bytes_needed);
+  JSStringRelease(js_return_string);
+  strncat(return_error_string, c_result_string, return_error_string_max_length-1);
+  free(c_result_string);
+
+  strncat(return_error_string, &quot;:&quot;, return_error_string_max_length-1);
+
+  /* line number */
+
+  jsstring_property_name = JSStringCreateWithUTF8CString(&quot;line&quot;);
+  value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
+  JSStringRelease(jsstring_property_name);
+  js_return_string = JSValueToStringCopy(js_context, value_ref, NULL);
+  bytes_needed = JSStringGetMaximumUTF8CStringSize(js_return_string);
+  c_result_string = (char*)calloc(bytes_needed, sizeof(char));
+  JSStringGetUTF8CString(js_return_string, c_result_string, bytes_needed);
+  JSStringRelease(js_return_string);
+  strncat(return_error_string, c_result_string, return_error_string_max_length-1);
+  free(c_result_string);
+
+  strncat(return_error_string, &quot;]&quot;, return_error_string_max_length-1);
+
+  /* error message */
+
+  jsstring_property_name = JSStringCreateWithUTF8CString(&quot;message&quot;);
+  value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
+  JSStringRelease(jsstring_property_name);
+  if(NULL == value_ref)
+  {
+    strncat(return_error_string, &quot;Unknown Error&quot;, return_error_string_max_length-1);
+  }
+  else
+  {
+    js_return_string = JSValueToStringCopy(js_context, value_ref, NULL);
+    bytes_needed = JSStringGetMaximumUTF8CStringSize(js_return_string);
+    c_result_string = (char*)calloc(bytes_needed, sizeof(char));
+    JSStringGetUTF8CString(js_return_string, c_result_string, bytes_needed);
+    JSStringRelease(js_return_string);
+    strncat(return_error_string, c_result_string, return_error_string_max_length-1);
+    free(c_result_string);
+  }
+}</pre>
+</div>
+<p>It would be used in the following way:</p>
+<div class="code">
+        <pre>
+if(js_exception)
+{
+  char return_error_string[256];
+  script_exception_to_string(js_context, js_exception, return_error_string, 256);
+  printf("Compile error is %s", return_error_string);
+}</pre>
+</div>
+<H3><a name="Javascript_napi_exceptions">28.5.2 Handling Exceptions in Node-API</a></H3>
+<p>Node-API is the only generator that provides fully automatic conversion of C++ exceptions to JavaScript exceptions when building with C++ exceptions enabled in `binding.gyp`:</p>
+<div class="code">
+        <pre>
+'conditions': [
+  ['OS=="mac"',
+    {
+      'xcode_settings': {
+        'GCC_ENABLE_CPP_RTTI': 'YES',
+        'GCC_ENABLE_CPP_EXCEPTIONS' : 'YES'
+      }
+    }
+  ],
+  ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"',
+    {
+      # This removes those flags that are present by default
+      'cflags!': [ '-fno-exceptions' ],
+      'cflags_cc!': [ '-fno-exceptions', '-fno-rtti' ]
+    }
+  ],
+  ['OS=="win"',
+    'msvs_settings': {
+      'VCCLCompilerTool': {
+        'ExceptionHandling': 1,
+        'RuntimeTypeInfo': 'true'
+      }
+    }
+  ]
+]
+</pre>
+</div>
+<p>In this case, nothing else is needed for the C++ exceptions to be passed to JavaScript.</p>
+<p>Support for building Node-API modules without enabling C++ exceptions (<code>-fno-exceptions</code> compiler option) is currently incomplete and not unit tested.</p>
+
+<H2><a name="Javascript_implementation">28.6 Implementation</a></H2>
 
 
 <p>The Javascript Module implementation has taken a very different approach compared to other language modules in order to support different Javascript interpreters.</p>
 
-<H3><a name="Javascript_source_code">28.5.1 Source Code</a></H3>
+<H3><a name="Javascript_source_code">28.6.1 Source Code</a></H3>
 
 
 <p>The Javascript module is implemented in <code>Source/Modules/javascript.cxx</code>. It dispatches the code generation to a <code>JSEmitter</code> instance, <code>V8Emitter</code>, <code>JSCEmitter</code> or <code>NAPIEmitter</code>. Additionally there are some helpers: <code>Template</code>, for templated code generation, and <code>JSEmitterState</code>, which is used to manage state information during AST traversal. This rough map shall make it easier to find a way through this huge source file:</p>
@@ -735,7 +851,7 @@ Template::Template(const String *code_) { ... }
 ...</pre>
 </div>
 
-<H3><a name="Javascript_code_templates">28.5.2 Code Templates</a></H3>
+<H3><a name="Javascript_code_templates">28.6.2 Code Templates</a></H3>
 
 
 <p>All generated code is created on the basis of code templates. The templates for <em>JavascriptCore</em> can be found in <code>Lib/javascript/jsc/javascriptcode.swg</code>, for <em>v8</em> in <code>Lib/javascript/v8/javascriptcode.swg</code> and for <em>Node-API</em> in <code>Lib/javascript/napi/javascriptcode.swg</code>.</p>
@@ -774,7 +890,7 @@ t_register.replace("$jsparent", state.clazz(NAME_MANGLED))
 </div>
 <p><code>Template</code> creates a copy of that string and <code>Template::replace</code> uses Swig's <code>Replaceall</code> to replace variables in the template. <code>Template::trim</code> can be used to eliminate leading and trailing whitespaces. <code>Template::print</code> is used to write the final template string to a Swig <code>DOH</code> (based on <code>Printv</code>). All methods allow chaining.</p>
 
-<H3><a name="Javascript_emitter">28.5.3 Emitter</a></H3>
+<H3><a name="Javascript_emitter">28.6.3 Emitter</a></H3>
 
 
 <p>The Javascript module delegates code generation to a <code>JSEmitter</code> instance. The following extract shows the essential interface:</p>
@@ -935,122 +1051,5 @@ state.clazz(RESET);
 state.clazz(NAME, Getattr(n, "sym:name"));</pre>
 </div>
 <p>State information can be retrieved using <code>state.clazz(NAME)</code> or with <code>Getattr</code> on <code>state.clazz()</code> which actually returns a <code>Hash</code> instance.</p>
-
-
-<H3><a name="Javascript_jsc_exceptions">28.5.5 Handling Exceptions in JavascriptCore</a></H3>
-
-
-<p>Applications with an embedded JavascriptCore should be able to present detailed exception messages that occur in the Javascript engine. Below is an example derived from code provided by Brian Barnes on how these exception details can be extracted.</p>
-<div class="code">
-<pre>
-void script_exception_to_string(JSContextRef js_context, JSValueRef exception_value_ref, char* return_error_string, int return_error_string_max_length)
-{
-  JSObjectRef exception_object;
-  JSValueRef value_ref;
-  JSStringRef jsstring_property_name = NULL;
-  JSValueRef temporary_exception = NULL;
-  JSStringRef js_return_string = NULL;
-  size_t bytes_needed;
-  char* c_result_string = NULL;
-  exception_object = JSValueToObject(js_context, exception_value_ref, NULL);
-
-  /* source url */
-  strcpy(return_error_string, &quot;[&quot;);
-  jsstring_property_name = JSStringCreateWithUTF8CString(&quot;sourceURL&quot;);
-  value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
-  JSStringRelease(jsstring_property_name);
-  js_return_string = JSValueToStringCopy(js_context, value_ref, NULL);
-  bytes_needed = JSStringGetMaximumUTF8CStringSize(js_return_string);
-  c_result_string = (char*)calloc(bytes_needed, sizeof(char));
-  JSStringGetUTF8CString(js_return_string, c_result_string, bytes_needed);
-  JSStringRelease(js_return_string);
-  strncat(return_error_string, c_result_string, return_error_string_max_length-1);
-  free(c_result_string);
-
-  strncat(return_error_string, &quot;:&quot;, return_error_string_max_length-1);
-
-  /* line number */
-
-  jsstring_property_name = JSStringCreateWithUTF8CString(&quot;line&quot;);
-  value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
-  JSStringRelease(jsstring_property_name);
-  js_return_string = JSValueToStringCopy(js_context, value_ref, NULL);
-  bytes_needed = JSStringGetMaximumUTF8CStringSize(js_return_string);
-  c_result_string = (char*)calloc(bytes_needed, sizeof(char));
-  JSStringGetUTF8CString(js_return_string, c_result_string, bytes_needed);
-  JSStringRelease(js_return_string);
-  strncat(return_error_string, c_result_string, return_error_string_max_length-1);
-  free(c_result_string);
-
-  strncat(return_error_string, &quot;]&quot;, return_error_string_max_length-1);
-
-  /* error message */
-
-  jsstring_property_name = JSStringCreateWithUTF8CString(&quot;message&quot;);
-  value_ref = JSObjectGetProperty(js_context, exception_object, jsstring_property_name, &amp;temporary_exception);
-  JSStringRelease(jsstring_property_name);
-  if(NULL == value_ref)
-  {
-    strncat(return_error_string, &quot;Unknown Error&quot;, return_error_string_max_length-1);
-  }
-  else
-  {
-    js_return_string = JSValueToStringCopy(js_context, value_ref, NULL);
-    bytes_needed = JSStringGetMaximumUTF8CStringSize(js_return_string);
-    c_result_string = (char*)calloc(bytes_needed, sizeof(char));
-    JSStringGetUTF8CString(js_return_string, c_result_string, bytes_needed);
-    JSStringRelease(js_return_string);
-    strncat(return_error_string, c_result_string, return_error_string_max_length-1);
-    free(c_result_string);
-  }
-}</pre>
-</div>
-
-<p>It would be used in the following way:</p>
-<div class="code">
-<pre>
-if(js_exception)
-{
-  char return_error_string[256];
-  script_exception_to_string(js_context, js_exception, return_error_string, 256);
-  printf("Compile error is %s", return_error_string);
-}</pre>
-</div>
-
-<H3><a name="Javascript_napi_exceptions">28.5.6 Handling Exceptions in Node-API</a></H3>
-
-
-<p>Node-API is the only generator that provides fully automatic conversion of C++ exceptions to JavaScript exceptions when building with C++ exceptions enabled in `binding.gyp`:</p>
-<div class="code">
-<pre>
-'conditions': [
-  ['OS=="mac"',
-    {
-      'xcode_settings': {
-        'GCC_ENABLE_CPP_RTTI': 'YES',
-        'GCC_ENABLE_CPP_EXCEPTIONS' : 'YES'
-      }
-    }
-  ],
-  ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"',
-    {
-      # This removes those flags that are present by default
-      'cflags!': [ '-fno-exceptions' ],
-      'cflags_cc!': [ '-fno-exceptions', '-fno-rtti' ]
-    }
-  ],
-  ['OS=="win"',
-    'msvs_settings': {
-      'VCCLCompilerTool': {
-        'ExceptionHandling': 1,
-        'RuntimeTypeInfo': 'true'
-      }
-    }
-  ]
-]
-</pre>
-</div>
-<p>In this case, nothing else is needed for the C++ exceptions to be passed to JavaScript.</p>
-<p>Support for building Node-API modules without enabling C++ exceptions (<code>-fno-exceptions</code> compiler option) is currently incomplete and not unit tested.</p>
 </body>
 </html>
