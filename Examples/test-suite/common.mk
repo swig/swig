@@ -600,6 +600,7 @@ CPP11_TEST_CASES += \
 	cpp11_default_delete \
 	cpp11_delegating_constructors \
 	cpp11_director_enums \
+	cpp11_director_using_constructor \
 	cpp11_directors \
 	cpp11_explicit_conversion_operators \
 	cpp11_final_class \

@@ -3,8 +3,9 @@
 %inline %{
 // Public base constructors
 struct PublicBase1 {
+  virtual ~PublicBase1() {}
   PublicBase1(int i, const char* s) {}
-  void meth() {}
+  virtual void meth() {}
 };
 struct PublicDerived1 : PublicBase1 {
   using PublicBase1::PublicBase1;
@@ -12,9 +13,10 @@ struct PublicDerived1 : PublicBase1 {
 };
 
 struct PublicBase2 {
+  virtual ~PublicBase2() {}
   PublicBase2(int i, const char* s) {}
   PublicBase2() {}
-  void meth() {}
+  virtual void meth() {}
 };
 struct PublicDerived2 : PublicBase2 {
   using PublicBase2::PublicBase2;
@@ -22,9 +24,10 @@ struct PublicDerived2 : PublicBase2 {
 };
 
 struct PublicBase3 {
+  virtual ~PublicBase3() {}
   PublicBase3(int i, const char* s) {}
   PublicBase3() = default;
-  void meth() {}
+  virtual void meth() {}
 };
 struct PublicDerived3 : PublicBase3 {
   using PublicBase3::PublicBase3;
@@ -32,8 +35,9 @@ struct PublicDerived3 : PublicBase3 {
 };
 
 struct PublicBase4 {
+  virtual ~PublicBase4() {}
   PublicBase4() = default;
-  void meth() {}
+  virtual void meth() {}
 };
 struct PublicDerived4 : PublicBase4 {
   using PublicBase4::PublicBase4;
@@ -41,8 +45,9 @@ struct PublicDerived4 : PublicBase4 {
 };
 
 struct PublicBase5 {
+  virtual ~PublicBase5() {}
   // implicit constructor
-  void meth() {}
+  virtual void meth() {}
 };
 struct PublicDerived5 : PublicBase5 {
   using PublicBase5::PublicBase5;
@@ -51,9 +56,10 @@ struct PublicDerived5 : PublicBase5 {
 
 // Protected base constructors
 struct ProtectedBase1 {
+  virtual ~ProtectedBase1() {}
 protected:
   ProtectedBase1(int i, const char* s) {}
-  void meth() {}
+  virtual void meth() {}
 };
 struct ProtectedDerived1 : ProtectedBase1 {
   using ProtectedBase1::ProtectedBase1;
@@ -61,10 +67,11 @@ struct ProtectedDerived1 : ProtectedBase1 {
 };
 
 struct ProtectedBase2 {
+  virtual ~ProtectedBase2() {}
 protected:
   ProtectedBase2(int i, const char* s) {}
   ProtectedBase2() {}
-  void meth() {}
+  virtual void meth() {}
 };
 struct ProtectedDerived2 : ProtectedBase2 {
   using ProtectedBase2::ProtectedBase2;
@@ -72,10 +79,11 @@ struct ProtectedDerived2 : ProtectedBase2 {
 };
 
 struct ProtectedBase3 {
+  virtual ~ProtectedBase3() {}
 protected:
   ProtectedBase3(int i, const char* s) {}
   ProtectedBase3() = default;
-  void meth() {}
+  virtual void meth() {}
 };
 struct ProtectedDerived3 : ProtectedBase3 {
   using ProtectedBase3::ProtectedBase3;
@@ -83,9 +91,10 @@ struct ProtectedDerived3 : ProtectedBase3 {
 };
 
 struct ProtectedBase4 {
+  virtual ~ProtectedBase4() {}
 protected:
   ProtectedBase4() = default;
-  void meth() {}
+  virtual void meth() {}
 };
 struct ProtectedDerived4 : ProtectedBase4 {
   using ProtectedBase4::ProtectedBase4;
@@ -93,9 +102,10 @@ struct ProtectedDerived4 : ProtectedBase4 {
 };
 
 struct ProtectedBase5 {
+  virtual ~ProtectedBase5() {}
   // implicit constructor
 protected:
-  void meth() {}
+  virtual void meth() {}
 };
 struct ProtectedDerived5 : ProtectedBase5 {
   using ProtectedBase5::ProtectedBase5;
@@ -104,8 +114,9 @@ struct ProtectedDerived5 : ProtectedBase5 {
 
 // Mix of public and overloaded constructors
 struct MixedBase1 {
+  virtual ~MixedBase1() {}
   MixedBase1(int i, const char* s) {}
-  void meth() {}
+  virtual void meth() {}
 };
 struct MixedDerived1a : MixedBase1 {
   MixedDerived1a() : MixedBase1(0, 0) {}
@@ -119,9 +130,10 @@ struct MixedDerived1b : MixedBase1 {
 };
 
 struct MixedBase2 {
+  virtual ~MixedBase2() {}
   MixedBase2(int i, const char* s) {}
   MixedBase2() {}
-  void meth() {}
+  virtual void meth() {}
 };
 struct MixedDerived2a : MixedBase2 {
   MixedDerived2a(int i, const char* s) {}
@@ -145,9 +157,10 @@ struct MixedDerived2d : MixedBase2 {
 };
 
 struct MixedBase3 {
+  virtual ~MixedBase3() {}
   MixedBase3(int i, const char* s) {}
   MixedBase3() = default;
-  void meth() {}
+  virtual void meth() {}
 };
 struct MixedDerived3a : MixedBase3 {
   MixedDerived3a(int i, const char* s) {}
@@ -171,7 +184,8 @@ struct MixedDerived3d : MixedBase3 {
 };
 
 struct MixedBase4 {
-  void meth() {}
+  virtual ~MixedBase4() {}
+  virtual void meth() {}
 };
 struct MixedDerived4a : MixedBase4 {
   MixedDerived4a(int i, const char* s) {}
@@ -206,10 +220,11 @@ struct MixedDerived4f : MixedBase4 {
 
 // Mix of protected base constructors and overloading
 struct ProotBase1 {
+  virtual ~ProotBase1() {}
   ProotBase1() {}
 protected:
   ProotBase1(int i, const char* s) {}
-  void meth() {}
+  virtual void meth() {}
 };
 struct ProotDerived1a : ProotBase1 {
   using ProotBase1::ProotBase1;
@@ -237,10 +252,11 @@ struct ProotDerived1e : ProotBase1 {
 };
 
 struct ProotBase2 {
+  virtual ~ProotBase2() {}
 protected:
   ProotBase2(int i, const char* s) {}
   ProotBase2() {}
-  void meth() {}
+  virtual void meth() {}
 };
 struct ProotDerived2a : ProotBase2 {
   ProotDerived2a(int i, const char* s) {}
@@ -283,9 +299,10 @@ struct ProotDerived2f : ProotBase2 {
 %warnfilter(SWIGWARN_TYPE_UNDEFINED_CLASS, SWIGWARN_PARSE_USING_UNDEF) HiddenDerived1;
 %{
 struct HiddenBase1 {
+  virtual ~HiddenBase1() {}
   HiddenBase1(int i, const char* s) {}
   HiddenBase1() {}
-  void meth() {}
+  virtual void meth() {}
 };
 %}
 %inline %{
@@ -300,7 +317,7 @@ struct HiddenDerived1 : HiddenBase1 {
 %inline %{
 struct TypedefBase1 {
   TypedefBase1(int i, const char* s) {}
-  void meth() {}
+  virtual void meth() {}
 };
 struct TypedefDerived1 : TypedefBase1 {
   typedef TypedefBase1 Superclass;
@@ -355,34 +372,39 @@ struct TemplatePublicDerived5 : PublicBase5 {
 // Templates and public base constructors (derive from template)
 template<typename T>
 struct TemplPublicBase1 {
+  virtual ~TemplPublicBase1() {}
   TemplPublicBase1(T i, const char* s) {}
-  void meth() {}
+  virtual void meth() {}
 };
 
 template<typename T>
 struct TemplPublicBase2 {
+  virtual ~TemplPublicBase2() {}
   TemplPublicBase2(T i, const char* s) {}
   TemplPublicBase2() {}
-  void meth() {}
+  virtual void meth() {}
 };
 
 template<typename T>
 struct TemplPublicBase3 {
+  virtual ~TemplPublicBase3() {}
   TemplPublicBase3(T i, const char* s) {}
   TemplPublicBase3() = default;
-  void meth() {}
+  virtual void meth() {}
 };
 
 template<typename T>
 struct TemplPublicBase4 {
+  virtual ~TemplPublicBase4() {}
   TemplPublicBase4() = default;
-  void meth() {}
+  virtual void meth() {}
 };
 
 template<typename T>
 struct TemplPublicBase5 {
+  virtual ~TemplPublicBase5() {}
   // implicit constructor
-  void meth() {}
+  virtual void meth() {}
 };
 %}
 

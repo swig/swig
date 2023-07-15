@@ -760,13 +760,6 @@ private:
       return SWIG_OK;
     }
 
-    // Don't emit constructors for abstract director classes.  They
-    // will never succeed anyhow.
-    if (Swig_methodclass(n) && Swig_directorclass(n)
-	&& Strcmp(Char(Getattr(n, "wrap:action")), director_prot_ctor_code) == 0) {
-      return SWIG_OK;
-    }
-
     String *name = Getattr(n, "sym:name");
     String *nodetype = Getattr(n, "nodeType");
     bool is_static = is_static_member_function || isStatic(n);
@@ -840,7 +833,9 @@ private:
 	SwigType *type = Copy(getClassType());
 	SwigType_add_pointer(type);
 	String *cres = Swig_cresult(type, Swig_cresult_name(), call);
-	Setattr(n, "wrap:action", cres);
+	if (!Equal(Getattr(n, "wrap:action"), director_prot_ctor_code)) {
+	  Setattr(n, "wrap:action", cres);
+	}
       }
     } else if (Cmp(nodetype, "destructor") == 0) {
       // No need to emit protected destructors.
