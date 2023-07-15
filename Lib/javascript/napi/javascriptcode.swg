@@ -361,7 +361,6 @@ fail:
 %fragment("js_global_function_async", "templates")
 %{
 // js_global_function_async
-// TODO: merge this with js_function_async to avoid the huge code duplication
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   $jsasyncworker

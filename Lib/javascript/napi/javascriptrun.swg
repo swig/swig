@@ -206,16 +206,20 @@ Napi::Function SWIG_NAPI_ObjectWrap_inst::GetClass(Napi::Env env) {
   return Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::DefineClass(env, "SwigObject", {});
 }
 
+bool SWIG_NAPI_IsWrappedObject(Napi::Env env, Napi::Object v) {
+  // Check if this is a SWIG wrapper
+  Napi::FunctionReference *ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
+  bool instanceOf;
+  NAPI_CHECK_RESULT(v.InstanceOf(ctor->Value()), instanceOf);
+  return instanceOf;
+}
+
 SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, swig_type_info *info, int flags) {
   SWIG_NAPI_ObjectWrap_inst *ow;
   Napi::Env env = objRef.Env();
   if(!objRef.IsObject()) return SWIG_ERROR;
 
-  // Check if this is a SWIG wrapper
-  Napi::FunctionReference *ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
-  bool instanceOf;
-  NAPI_CHECK_RESULT(objRef.InstanceOf(ctor->Value()), instanceOf);
-  if (!instanceOf) {
+  if (!SWIG_NAPI_IsWrappedObject(env, objRef)) {
     return SWIG_TypeError;
   }
 
