@@ -44,6 +44,8 @@
 </ul>
 <li><a href="#Javascript_async">Asynchronous Execution</a>
 <ul>
+<li><a href="#Javascript_async_persistence">Persistence</a>
+<li><a href="#Javascript_async_locking">Locking</a>
 </ul>
 <li><a href="#Javascript_implementation">Implementation</a>
 <ul>
@@ -763,6 +765,40 @@ if(js_exception)
 </code>
         
 <p>By default, only synchronous wrappers are generated. Only global functions and class methods can be asynchronous. Constructors, getters and setters are always synchronous.</p>
+
+<p>An asynchronous wrapper is executed in three distinct steps:
+<ul>
+<li>Synchronous parsing of the input arguments on the main thread with V8 access - which includes the <code>in</code> and <code>check</code> typemaps</li>
+<li>Asynchronous execution of the C/C++ function in a worker thread without access to V8 - this means that all underlying C/C++ objects must be unwrapped beforehand</li>
+<li>Synchronous generation of the returned values on the main thread with V8 access - which include the <code>out</code> and <code>argout</code> typemaps</li>
+</ul>
+</p>
+
+<H3><a name="Javascript_async_persistence">28.6.1 Persistence</a></H3>
+
+<p>Asynchronous wrappers must manage persistence of the objects they will access. Consider the following example:</p>
+<code>
+<pre>
+function fn() {
+  let obj = new asyncObj();  // This is a SWIG wrapped object
+  obj.asyncMethod().then((r) => console.log(r));
+}
+</pre>
+</code>
+<p><code>fn()</code> will potentially exit before the asynchronous operation has completed. There is nothing guaranteeing that <code>obj</code> won't be collected by the GC right after the synchronous parsing of the input arguments of <code>asyncMethod()</code> - as this is the last reference to the JS object. Destroying the JS object will also destroy the underlying wrapped C/C++ object. In order to prevent this, an asynchronous wrapper must acquire persistent references to all objects that it will access. A new typemap, specific to Node-API async mode, <code>async_in</code>, can be used to acquire this reference - this typemap is evaluated on the main thread right after <code>check</code> typemaps. A default implementation which should work for all trivial wrapped objects can be found in <code>javascriptasync.swg</code>.
+</p>
+
+<H3><a name="Javascript_async_locking">28.6.2 Locking</a></H3>
+
+<p>
+Asynchornous wrappers allow access to concurrent programming, meaning that multiple instances of the same method on the same object can potentially be running at the same time. Whether this is supported or not will depend on the wrapped C/C++ code. Two new typemaps, specific to Node-API async mode, <code>async_pre</code> and <code>async_post</code>, permit the adding of locking primitives according to the rules of the wrapped underlying C/C++ library. These typemaps are evaluated on the worker threads and are not allowed access to V8. Additionally, all C/C++ objects wrapped by SWIG now contain a mutex that can be used to implement locking. <code>javascriptasync.swg</code> contains an default implementation that automatically locks all wrapped objects. When wrapping objects that support natively being accessed simultaneously from multiple threads - because they are read-only or becase they implement their own synchronisation - these typemaps can be overriden with empty ones.
+</p>
+
+<p>In order to avoid dead-locking, the <code>async_in</code> and <code>async_out</code> typemaps are always executed in the same order for the same objects. This means that both <code>fn(a, b)</code> and <code>fn(b, a)</code> will lock <code>a</code> and <code>b</code> in the same order.</p>
+
+<p>
+The current Node.js asynchronous framework has two major weaknesses, both related to locking, which must be understood in order to achieve maximum performance. When designing wrappers that support mixing both synchronous and asynchronous access to the same objects, particular care must be taken to never synchronously access objects that have been locked by an asynchronous operation. Trying to lock such object will result synchronous blocking of the event loop, effectively freezing the main thread - and the program - until the asynchronous operation completes. This is something that should be made clear to the end user of the wrapper. Also, the limited amount the threads in the thread pool can be a cause for thread starvation. With 4 threads, if an end user program launches 4 operations on the same object - then all 4 threads will pick one of them - and then they will sequentially wait for the object to become available - locking out other operations that could have executed in parallel. Asynchronous operations are not preemptible. Both of these weaknesses are inherent to the Node.js asynchronous framework and do not have an easy workaround. For example, in order to partially alleviate the starvation problem, the internal <code>fs.readFile()</code> method schedules its work in small 64Kb chunks to allow other threads to run. This problem can also be partially alleviated by simply raising the number of threads in the pool.
+</p>
 
 <H2><a name="Javascript_implementation">28.7 Implementation</a></H2>
 
