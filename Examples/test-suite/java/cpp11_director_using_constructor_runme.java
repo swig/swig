@@ -128,4 +128,156 @@ public class cpp11_director_using_constructor_runme {
     new TemplPublicDerived4Int().meth();
     new TemplPublicDerived5Int().meth();
   }
+
+  //
+  // Additional tests compared to cpp11_using_constructor test
+  //
+  // Protected constructors, check both protected and public constructors can be called from a derived class
+  class cpp11_director_using_constructor_MyProtectedBase1 extends ProtectedBase1 {
+    public cpp11_director_using_constructor_MyProtectedBase1(int i, String s) {
+      super(i, s);
+    }
+  }
+  class cpp11_director_using_constructor_MyProtectedDerived1 extends ProtectedDerived1 {
+    public cpp11_director_using_constructor_MyProtectedDerived1(int i, String s) {
+      super(i, s);
+    }
+  }
+  class cpp11_director_using_constructor_MyProtectedBase2 extends ProtectedBase2 {
+    public cpp11_director_using_constructor_MyProtectedBase2(int i, String s) {
+      super(i, s);
+    }
+    public cpp11_director_using_constructor_MyProtectedBase2() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProtectedDerived2 extends ProtectedDerived2 {
+    public cpp11_director_using_constructor_MyProtectedDerived2(int i, String s) {
+      super(i, s);
+    }
+    public cpp11_director_using_constructor_MyProtectedDerived2() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProtectedBase3 extends ProtectedBase3 {
+    public cpp11_director_using_constructor_MyProtectedBase3(int i, String s) {
+      super(i, s);
+    }
+    public cpp11_director_using_constructor_MyProtectedBase3() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProtectedDerived3 extends ProtectedDerived3 {
+    public cpp11_director_using_constructor_MyProtectedDerived3(int i, String s) {
+      super(i, s);
+    }
+    public cpp11_director_using_constructor_MyProtectedDerived3() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProtectedBase4 extends ProtectedBase4 {
+    public cpp11_director_using_constructor_MyProtectedBase4() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProtectedDerived4 extends ProtectedDerived4 {
+    public cpp11_director_using_constructor_MyProtectedDerived4() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProtectedBase5 extends ProtectedBase5 {
+    public cpp11_director_using_constructor_MyProtectedBase5() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProtectedDerived5 extends ProtectedDerived5 {
+    public cpp11_director_using_constructor_MyProtectedDerived5() {
+      super();
+    }
+  }
+
+  // Protected constructors, just check the protected constructors can be called from a derived class
+  class cpp11_director_using_constructor_MyProotBase1 extends ProotBase1 {
+    public cpp11_director_using_constructor_MyProotBase1(int i, String s) {
+      super(i, s);
+    }
+  }
+  class cpp11_director_using_constructor_MyProotDerived1a extends ProotDerived1a {
+    public cpp11_director_using_constructor_MyProotDerived1a(int i, String s) {
+      super(i, s);
+    }
+  }
+  class cpp11_director_using_constructor_MyProotDerived1d extends ProotDerived1d {
+    public cpp11_director_using_constructor_MyProotDerived1d(int i, String s) {
+      super(i, s);
+    }
+  }
+  class cpp11_director_using_constructor_MyProotDerived1e extends ProotDerived1e {
+    public cpp11_director_using_constructor_MyProotDerived1e(int i, String s) {
+      super(i, s);
+    }
+  }
+
+  // Protected constructors, check both protected and public constructors can be called from a derived class
+  class cpp11_director_using_constructor_MyProotBase2 extends ProotBase2 {
+    public cpp11_director_using_constructor_MyProotBase2(int i, String s) {
+      super(i, s);
+    }
+    public cpp11_director_using_constructor_MyProotBase2() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProotDerived2a extends ProotDerived2a {
+    public cpp11_director_using_constructor_MyProotDerived2a(int i, String s) {
+      super(i, s);
+    }
+    public cpp11_director_using_constructor_MyProotDerived2a() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProotDerived2b extends ProotDerived2b {
+    public cpp11_director_using_constructor_MyProotDerived2b(int i, String s) {
+      super(i, s);
+    }
+    public cpp11_director_using_constructor_MyProotDerived2b() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProotDerived2c extends ProotDerived2c {
+    public cpp11_director_using_constructor_MyProotDerived2c(int i, String s) {
+      super(i, s);
+    }
+    public cpp11_director_using_constructor_MyProotDerived2c() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProotDerived2d extends ProotDerived2d {
+    public cpp11_director_using_constructor_MyProotDerived2d(int i, String s) {
+      super(i, s);
+    }
+    public cpp11_director_using_constructor_MyProotDerived2d() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProotDerived2e extends ProotDerived2e {
+    public cpp11_director_using_constructor_MyProotDerived2e(int i, String s) {
+      super(i, s);
+    }
+    public cpp11_director_using_constructor_MyProotDerived2e() {
+      super();
+    }
+  }
+  class cpp11_director_using_constructor_MyProotDerived2f extends ProotDerived2f {
+    public cpp11_director_using_constructor_MyProotDerived2f(int i, String s) {
+      super(i, s);
+    }
+    public cpp11_director_using_constructor_MyProotDerived2f() {
+      super();
+    }
+    public cpp11_director_using_constructor_MyProotDerived2f(int i) {
+      super(i);
+    }
+  }
+
+
 }
