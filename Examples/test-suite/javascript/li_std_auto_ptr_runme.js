@@ -13,8 +13,7 @@ var checkCount = /* async */ function(expected_count) {
   var s = /* await */(li_std_auto_ptr.useKlassRawPtr(kini));
   if (s !== "KlassInheritanceInput")
     throw new Error("Incorrect string: " + s);
-  // delete kini;
-  // Above not deleting the C++ object(node v12) - can't reliably control GC
+
   /* await */(li_std_auto_ptr.takeKlassAutoPtr(kini));
   /* await */(checkCount(0));
 }
@@ -69,8 +68,7 @@ var checkCount = /* async */ function(expected_count) {
   if (!exception_thrown)
     throw new Error("Should have thrown 'Cannot release ownership as memory is not owned' error");
   /* await */(checkCount(1));
-  // delete kin;
-  // Above not deleting the C++ object(node v12) - can't reliably control GC
+
   /* await */(li_std_auto_ptr.takeKlassAutoPtr(kin));
   /* await */(checkCount(0));
 }
@@ -100,7 +98,6 @@ if (/* await */(li_std_auto_ptr.overloadTest(new li_std_auto_ptr.Klass("over")))
   throw new Error("overloadTest failed");
 /* await */(checkCount(0));
 
-
 // auto_ptr as output
 var k1 = /* await */(li_std_auto_ptr.makeKlassAutoPtr("first"));
 if (/* await */(k1.getLabel()) !== "first")
@@ -109,16 +106,13 @@ if (/* await */(k1.getLabel()) !== "first")
 var k2 = /* await */(li_std_auto_ptr.makeKlassAutoPtr("second"));
 /* await */(checkCount(2));
 
-// delete k1;
-// Above not deleting the C++ object(node v12) - can't reliably control GC
+
 /* await */(li_std_auto_ptr.takeKlassAutoPtr(k1));
 /* await */(checkCount(1));
 
 if (/* await */(k2.getLabel()) !== "second")
   throw new Error("wrong object label");
 
-// delete k2;
-// Above not deleting the C++ object(node v12) - can't reliably control GC
 /* await */(li_std_auto_ptr.takeKlassAutoPtr(k2));
 
 if (/* await */(li_std_auto_ptr.makeNullAutoPtr()) != null)
