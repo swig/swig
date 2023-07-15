@@ -2,7 +2,7 @@ var catches_strings = require("catches_strings");
 
 exception_thrown = false;
 try {
-  catches_strings.StringsThrower.charstring();
+  /* await */(catches_strings.StringsThrower.charstring());
 } catch (e) {
   if (!(e.message || e).includes("charstring message"))
     throw new Error("incorrect exception message " + e.message);
@@ -13,7 +13,7 @@ if (!exception_thrown)
 
 exception_thrown = false;
 try {
-  catches_strings.StringsThrower.stdstring();
+  /* await */(catches_strings.StringsThrower.stdstring());
 } catch (e) {
   if (!(e.message || e).includes("stdstring message"))
     throw new Error("incorrect exception message " + e.message);

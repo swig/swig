@@ -13,6 +13,6 @@ arrays_global.BeginString_FIX44d;
 arrays_global.BeginString_FIX44e;
 arrays_global.BeginString_FIX44f;
 
-arrays_global.test_a("hello","hi","chello","chi");
+/* await */(arrays_global.test_a("hello","hi","chello","chi"));
 
-arrays_global.test_b("1234567","hi");
+/* await */(arrays_global.test_b("1234567","hi"));
