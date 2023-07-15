@@ -42,6 +42,9 @@
 <li><a href="#Javascript_jsc_exceptions">Handling Exceptions in JavascriptCore</a>
 <li><a href="#Javascript_napi_exceptions">Handling Exceptions in Node-API</a>
 </ul>
+<li><a href="#Javascript_async">Asynchronous Execution</a>
+<ul>
+</ul>
 <li><a href="#Javascript_implementation">Implementation</a>
 <ul>
 <li><a href="#Javascript_source_code">Source Code</a>
@@ -744,12 +747,29 @@ if(js_exception)
 <p>In this case, nothing else is needed for the C++ exceptions to be passed to JavaScript.</p>
 <p>Support for building Node-API modules without enabling C++ exceptions (<code>-fno-exceptions</code> compiler option) is currently incomplete and not unit tested.</p>
 
-<H2><a name="Javascript_implementation">28.6 Implementation</a></H2>
+<H2><a name="Javascript_async">28.6 Asynchronous Execution</a></H2>
+<p>The Node-API generator supports producing asynchronous wrappers. This feature is tightly linked to Node.js and libuv and mimics the semantics of the built-in class library. An asynchronous version of a function parses its arguments on the main thread and then queues the execution of the underlying C/C++ method in one of the existing worker threads of the libuv pool. It then returns a <code>Promise</code> that resolves or rejects with the return value of the C/C++ function. The JavaScript code can continue its execution while the operation is running. This also allows launching multiple parallel instances of the C/C++ methods when these are reentrant. Otherwise, special locking must be implemented. By default, Node.js launches 4 worker threads which are also used by the internal class library for performing asynchonous file I/O (ie <code>fs.readFile()</code>). This behaviour can be adjusted via the environment variable <code>UV_THREADPOOL_SIZE</code>. For best results, this should be equal to the number of physical CPU cores.</p>
+
+<p>Generation of asynchronous wrappers can be globally enabled from the CLI by passing <code>-async</code> option or by using <code>%feature</code>:</p>
+<code>
+<pre>
+// Generate sync wrappers with the suffix Sync
+%feature("sync", "Sync");
+// Generate async wrappers with the suffix Async
+%feature("async", "Async");
+// or generate async wrappers without suffix (this is the Node.js built-in class library convention)
+%feature("async", 1);
+</pre>
+</code>
+        
+<p>By default, only synchronous wrappers are generated. Only global functions and class methods can be asynchronous. Constructors, getters and setters are always synchronous.</p>
+
+<H2><a name="Javascript_implementation">28.7 Implementation</a></H2>
 
 
 <p>The Javascript Module implementation has taken a very different approach compared to other language modules in order to support different Javascript interpreters.</p>
 
-<H3><a name="Javascript_source_code">28.6.1 Source Code</a></H3>
+<H3><a name="Javascript_source_code">28.7.1 Source Code</a></H3>
 
 
 <p>The Javascript module is implemented in <code>Source/Modules/javascript.cxx</code>. It dispatches the code generation to a <code>JSEmitter</code> instance, <code>V8Emitter</code>, <code>JSCEmitter</code> or <code>NAPIEmitter</code>. Additionally there are some helpers: <code>Template</code>, for templated code generation, and <code>JSEmitterState</code>, which is used to manage state information during AST traversal. This rough map shall make it easier to find a way through this huge source file:</p>
@@ -851,7 +871,7 @@ Template::Template(const String *code_) { ... }
 ...</pre>
 </div>
 
-<H3><a name="Javascript_code_templates">28.6.2 Code Templates</a></H3>
+<H3><a name="Javascript_code_templates">28.7.2 Code Templates</a></H3>
 
 
 <p>All generated code is created on the basis of code templates. The templates for <em>JavascriptCore</em> can be found in <code>Lib/javascript/jsc/javascriptcode.swg</code>, for <em>v8</em> in <code>Lib/javascript/v8/javascriptcode.swg</code> and for <em>Node-API</em> in <code>Lib/javascript/napi/javascriptcode.swg</code>.</p>
@@ -890,7 +910,7 @@ t_register.replace("$jsparent", state.clazz(NAME_MANGLED))
 </div>
 <p><code>Template</code> creates a copy of that string and <code>Template::replace</code> uses Swig's <code>Replaceall</code> to replace variables in the template. <code>Template::trim</code> can be used to eliminate leading and trailing whitespaces. <code>Template::print</code> is used to write the final template string to a Swig <code>DOH</code> (based on <code>Printv</code>). All methods allow chaining.</p>
 
-<H3><a name="Javascript_emitter">28.6.3 Emitter</a></H3>
+<H3><a name="Javascript_emitter">28.7.3 Emitter</a></H3>
 
 
 <p>The Javascript module delegates code generation to a <code>JSEmitter</code> instance. The following extract shows the essential interface:</p>
