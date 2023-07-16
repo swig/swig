@@ -751,7 +751,7 @@ fail:
       }
 
       virtual void Execute() override {
-        // This runs the action lambda in a worker thread and V8 is not accessible
+        // This runs the action code in a worker thread and V8 is not accessible
         Napi::Env env(nullptr);
         // WARNING! TODO! Find an elegant way to sort the locking operations
         $jspreaction
