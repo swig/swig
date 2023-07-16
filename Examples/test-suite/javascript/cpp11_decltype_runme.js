@@ -11,12 +11,12 @@ if (a.j != 10) {
     throw new Error("Assignment to a.j failed.");
 }
 
-b = a.get_number(5);
+b = /* await */(a.get_number(5));
 if (b != 10) {
     throw new Error("get_number(5) should return 10.");
 }
 
-b = a.get_number(6);
+b = /* await */(a.get_number(6));
 if (b != 0) {
     throw new Error("get_number(6) should return 0.");
 }

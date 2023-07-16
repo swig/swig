@@ -1,6 +1,6 @@
 var catches_strings = require("catches_strings");
 
-exception_thrown = false;
+var exception_thrown = false;
 try {
   /* await */(catches_strings.StringsThrower.charstring());
 } catch (e) {
