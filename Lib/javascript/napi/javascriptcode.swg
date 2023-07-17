@@ -698,13 +698,13 @@ fail:
 // The inheritance is through a template in order to not expose any Napi::AsyncWorker
 // class members by default - these might clash with the user variables
 // https://stackoverflow.com/questions/76703197/unshadow-global-identifier-in-a-class
-template <typename T>
-class $jsmangledname_$jswrapper_Tasklet_templ : public T {
+template <typename NAPI_ASYNC_WORKER>
+class $jsmangledname_$jswrapper_Tasklet_templ : public NAPI_ASYNC_WORKER {
   Napi::Env env;
 public:
   Napi::Promise::Deferred deferred;
 private:
-  using T::SetError;
+  using NAPI_ASYNC_WORKER::SetError;
   // This vector holds pointers to the NAPI wrappers used
   // by this operation - it is required for the async locks
   std::set<SWIG_NAPI_ObjectWrap_inst *> objs;
