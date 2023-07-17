@@ -1,19 +1,19 @@
 var inherit_missing = require("inherit_missing");
 
-a = inherit_missing.new_Foo()
-b = new inherit_missing.Bar()
-c = new inherit_missing.Spam()
+a = /* await */(inherit_missing.new_Foo());
+b = new inherit_missing.Bar();
+c = new inherit_missing.Spam();
 
-x = inherit_missing.do_blah(a)
+x = /* await */(inherit_missing.do_blah(a));
 if (x != "Foo::blah")
-    throw new Error("Whoa! Bad return {}".format(x))
+  throw new Error(`Whoa! Bad return ${x}`);
 
-x = inherit_missing.do_blah(b)
+x = /* await */(inherit_missing.do_blah(b))
 if (x != "Bar::blah")
-    throw new Error("Whoa! Bad return {}".format(x))
+  throw new Error(`Whoa! Bad return ${x}`);
 
-x = inherit_missing.do_blah(c)
+x = /* await */(inherit_missing.do_blah(c));
 if (x != "Spam::blah")
-    throw new Error("Whoa! Bad return {}".format(x))
+  throw new Error(`Whoa! Bad return ${x}`);
 
-inherit_missing.delete_Foo(a)
+/* await */(inherit_missing.delete_Foo(a));

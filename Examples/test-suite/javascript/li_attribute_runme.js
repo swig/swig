@@ -7,11 +7,11 @@ if (aa.a != 1) {
 }
 aa.a = 3;
 if (aa.a != 3) {
-    throw new Error("aa.a: {}" + aa.a.toString());
+    throw new Error("aa.a: " + aa.a.toString());
 }
 
 if (aa.b != 2) {
-    throw new Error("aa.b: {}" + aa.b.toString());
+    throw new Error("aa.b: " + aa.b.toString());
 }
 aa.b = 5;
 if (aa.b != 5) {

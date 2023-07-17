@@ -6,7 +6,7 @@ var ret_double = /* await */(em.do_stuff_double(1, 1.1));
 if (ret_double != 1.1) {
     throw new Error("double failed " + ret_double);
 }
-ret_string = /* await */(em.do_stuff_string(1, "hello there"));
+var ret_string = /* await */(em.do_stuff_string(1, "hello there"));
 if (ret_string != "hello there") {
     throw new Error("string failed " + ret_string);
 }
@@ -24,7 +24,7 @@ if (/* await */(extend_template_method.ExtendMe.static_method(123)) != 123) {
     throw new Error("static_method failed");
 }
 
-em2 = new extend_template_method.ExtendMe(123);
+var em2 = new extend_template_method.ExtendMe(123);
 
 em = new extend_template_method.TemplateExtend();
 

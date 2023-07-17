@@ -1,5 +1,5 @@
 var extend_template_ns = require("extend_template_ns");
-f = new extend_template_ns.Foo_One();
+var f = new extend_template_ns.Foo_One();
 if (/* await */(f.test1(37)) != 37) {
     throw new Error;
 }

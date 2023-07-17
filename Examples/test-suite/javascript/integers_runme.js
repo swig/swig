@@ -3,11 +3,11 @@ var integers = require("integers");
 function checkOne(val, signed, typeName) {
   typeName = (signed ? 'signed_' : 'unsigned_') + typeName
 
-  var size = integers[typeName + '_size']()
+  var size = /* await */(integers[typeName + '_size']())
   if ((!signed && val < 0) || (size < 8))
     return // out of range, skip test
 
-  ret = integers[typeName + '_identity'](val)
+  ret = /* await */(integers[typeName + '_identity'](val))
   if (ret !== val)
     throw "Incorrect value: expected " + val + ", got " + ret
 }

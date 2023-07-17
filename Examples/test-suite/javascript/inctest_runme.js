@@ -13,10 +13,10 @@ try {
 }
 
 // Check the var in subdirectory worked = require("in subdirectory worked")
-if (inctest.importtest1(5) != 15) {
+if (/* await */(inctest.importtest1(5)) != 15) {
     throw new Error("var test 1 failed");
 }
 
-if (inctest.importtest2("black") != "white") {
+if (/* await */(inctest.importtest2("black")) != "white") {
     throw new Error("var test 2 failed");
 }

@@ -7,7 +7,7 @@ chell = new li_attribute_template.Cintint(1, 2, 3);
 
 function rassert(what, master) {
     if (what != master) {
-        throw new Error("what: {}".format(what));
+        throw new Error(`what: ${what}`);
     }
 }
 
