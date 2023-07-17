@@ -39,17 +39,18 @@
 %typemap(async_in)
     SWIGTYPE * (SWIG_NAPI_ObjectWrap_inst *ow),
     SWIGTYPE & (SWIG_NAPI_ObjectWrap_inst *ow) {
-  Napi::Object obj;
-  NAPI_CHECK_RESULT($input.ToObject(), obj);
-  if (SWIG_NAPI_IsWrappedObject(env, obj)) {
-    ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj);
-  } else {
-    ow = nullptr;
-  }
+  ow = nullptr;
+  if ($input.IsObject()) {
+    Napi::Object obj;
+    NAPI_CHECK_RESULT($input.ToObject(), obj);
+    if (SWIG_NAPI_IsWrappedObject(env, obj)) {
+      ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj);
+    }
 
-  Napi::ObjectReference *ref = new Napi::ObjectReference();
-  *ref = Napi::Persistent(obj);
-  persistent.push_back(ref);
+    Napi::ObjectReference *ref = new Napi::ObjectReference();
+    *ref = Napi::Persistent(obj);
+    persistent.push_back(ref);
+  }
 }
 
 %typemap(async_pre) SWIGTYPE *, SWIGTYPE & {
