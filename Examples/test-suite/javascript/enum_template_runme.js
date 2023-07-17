@@ -1,8 +1,8 @@
 var enum_template = require("enum_template");
 
-if (enum_template.MakeETest() != 1)
-  throw "RuntimeError";
+if (/* await */(enum_template.MakeETest()) != 1)
+  throw new Error("RuntimeError");
 
-if (enum_template.TakeETest(0) != null)
-  throw "RuntimeError";
+if (/* await */(enum_template.TakeETest(0)) != null)
+  throw new Error("RuntimeError");
 

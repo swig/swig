@@ -3,7 +3,7 @@ var global_vars = require("global_vars");
 // In javascript, assigning to a non-existent variable is
 // not an error
 
-global_vars.init();
+/* await */(global_vars.init());
 b = global_vars.b;
 if (b != "string b") {
     throw new Error("Unexpected string: " + b.toString());

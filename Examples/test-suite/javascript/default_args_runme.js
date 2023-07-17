@@ -117,19 +117,19 @@ if (error) {
 
 var Klass_inc = default_args.Klass.inc;
 
-if (/* await */(Klass_inc(100, new default_args.Klass(22))).val != 122) {
+if ((/* await */(Klass_inc(100, new default_args.Klass(22)))).val != 122) {
     throw new Error("Klass::inc failed");
 }
 
-if (/* await */(Klass_inc(100)).val != 99) {
+if ((/* await */(Klass_inc(100))).val != 99) {
     throw new Error("Klass::inc failed");
 }
 
-if (/* await */(Klass_inc()).val != 0) {
+if ((/* await */(Klass_inc())).val != 0) {
     throw new Error("Klass::inc failed");
 }
 
-tricky = new default_args.TrickyInPython();
+var tricky = new default_args.TrickyInPython();
 if (/* await */(tricky.value_m1(10)) != -1) {
     throw new Error("trickyvalue_m1 failed");
 }
