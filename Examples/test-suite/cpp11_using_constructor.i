@@ -1,5 +1,7 @@
 %module cpp11_using_constructor
 
+// Note: this testcase is also used by cpp11_director_using_constructor.i
+
 %inline %{
 // Public base constructors
 struct PublicBase1 {
@@ -406,6 +408,22 @@ struct TemplPublicBase5 {
   // implicit constructor
   virtual void meth() {}
 };
+
+template<typename T>
+struct TemplPublicBase6 {
+#ifdef SWIG
+  // Destructor and constructor declared with template parameters (not allowed in C++20 and later though)
+  virtual ~TemplPublicBase6<T>() {}
+  TemplPublicBase6<T>(T i, const char* s) {}
+  TemplPublicBase6<T>() = default;
+#else
+  virtual ~TemplPublicBase6() {}
+  TemplPublicBase6(T i, const char* s) {}
+  TemplPublicBase6() = default;
+#endif
+  virtual void meth() {}
+};
+
 %}
 
 %template(TemplPublicBase1Int) TemplPublicBase1<int>;
@@ -413,6 +431,7 @@ struct TemplPublicBase5 {
 %template(TemplPublicBase3Int) TemplPublicBase3<int>;
 %template(TemplPublicBase4Int) TemplPublicBase4<int>;
 %template(TemplPublicBase5Int) TemplPublicBase5<int>;
+%template(TemplPublicBase6Int) TemplPublicBase6<int>;
 
 %inline %{
 template<typename T>
@@ -440,6 +459,11 @@ struct TemplPublicDerived5 : TemplPublicBase5<T> {
   using TemplPublicBase5<T>::TemplPublicBase5;
   using TemplPublicBase5<T>::meth;
 };
+template<typename T>
+struct TemplPublicDerived6 : TemplPublicBase6<T> {
+  using TemplPublicBase6<T>::TemplPublicBase6;
+  using TemplPublicBase6<T>::meth;
+};
 %}
 
 %template(TemplPublicDerived1Int) TemplPublicDerived1<int>;
@@ -447,3 +471,4 @@ struct TemplPublicDerived5 : TemplPublicBase5<T> {
 %template(TemplPublicDerived3Int) TemplPublicDerived3<int>;
 %template(TemplPublicDerived4Int) TemplPublicDerived4<int>;
 %template(TemplPublicDerived5Int) TemplPublicDerived5<int>;
+%template(TemplPublicDerived6Int) TemplPublicDerived6<int>;

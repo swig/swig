@@ -125,5 +125,7 @@ public class cpp11_using_constructor_runme {
     new TemplPublicDerived3Int(0, "hi").meth();
     new TemplPublicDerived4Int().meth();
     new TemplPublicDerived5Int().meth();
+    new TemplPublicDerived6Int(0, "hi").meth();
+    new TemplPublicDerived6Int().meth();
   }
 }

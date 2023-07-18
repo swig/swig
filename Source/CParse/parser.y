@@ -4769,10 +4769,11 @@ cpp_member   : cpp_member_no_dox
   
 cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
               if (inclass || extendmode) {
+	        String *name = SwigType_templateprefix($2); /* A constructor can optionally be declared with template parameters before C++20, strip these off */
 		SwigType *decl = NewStringEmpty();
 		$$ = new_node("constructor");
 		Setattr($$,"storage",$1);
-		Setattr($$,"name",$2);
+		Setattr($$, "name", name);
 		Setattr($$,"parms",$4);
 		SwigType_add_function(decl,$4);
 		Setattr($$,"decl",decl);
@@ -4798,9 +4799,9 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 /* A destructor (hopefully) */
 
 cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
-               String *name = NewStringf("%s",$2);
-	       if (*(Char(name)) != '~') Insert(name,0,"~");
-               $$ = new_node("destructor");
+	       String *name = SwigType_templateprefix($2); /* A destructor can optionally be declared with template parameters before C++20, strip these off */
+	       Insert(name, 0, "~");
+	       $$ = new_node("destructor");
 	       Setattr($$,"name",name);
 	       Delete(name);
 	       if (Len(scanner_ccode)) {
@@ -4828,11 +4829,10 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 /* A virtual destructor */
 
               | VIRTUAL NOT idtemplate LPAREN parms RPAREN cpp_vend {
-		String *name;
+		String *name = SwigType_templateprefix($3); /* A destructor can optionally be declared with template parameters before C++20, strip these off */
+		Insert(name, 0, "~");
 		$$ = new_node("destructor");
 		Setattr($$,"storage","virtual");
-	        name = NewStringf("%s",$3);
-		if (*(Char(name)) != '~') Insert(name,0,"~");
 		Setattr($$,"name",name);
 		Delete(name);
 		Setattr($$,"throws",$7.throws);
