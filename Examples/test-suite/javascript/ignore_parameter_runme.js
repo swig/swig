@@ -10,7 +10,7 @@ check(/* await */(ignore_parameter.tvr("bar", 2)), 8.8);
 check(/* await */(ignore_parameter.ferrari()), 101);
 check(/* await */(ignore_parameter.fiat(17)), 17);
 
-car = new ignore_parameter.SportsCars();
+var car = new ignore_parameter.SportsCars();
 check(/* await */(car.daimler(200, 0)), "hello");
 check(/* await */(car.astonmartin("foo", 1)), 101);
 check(/* await */(car.bugatti("bar", 2)), 8.8);

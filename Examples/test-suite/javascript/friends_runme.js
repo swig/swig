@@ -1,6 +1,6 @@
 var friends = require("friends");
 
-a = new friends.A(2);
+var a = new friends.A(2);
 
 if (/* await */(friends.get_val1(a)) != 2) {
     throw new Error;
@@ -17,15 +17,15 @@ if (/* await */(friends.get_val1(1, 2, 3)) != 1) {
     throw new Error;
 }
 
-b = new friends.B(3);
+var b = new friends.B(3);
 
 // David's case
 if (/* await */(friends.mix(a, b)) != 5) {
     throw new Error;
 }
 
-di = new friends.D_i(2);
-dd = new friends.D_d(3.3);
+var di = new friends.D_i(2);
+var dd = new friends.D_d(3.3);
 
 // incredible template overloading working just fine
 if (/* await */(friends.get_val1(di)) != 2) {
