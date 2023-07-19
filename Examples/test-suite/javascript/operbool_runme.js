@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 var operbool = require("operbool");
 const b = new operbool.Test();
 if (/* await */(b.operator_bool())) {

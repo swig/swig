@@ -4,14 +4,14 @@ var { Op } = operator_overload;
 // first check all the operators are implemented correctly from pure C++ code
 /* await */(Op.sanity_check());
 
-pop = /* await */((new Op(6)).Divide(new Op(3)));
+var pop = /* await */((new Op(6)).Divide(new Op(3)));
 
 // test routine
-a = new Op();
-b = new Op(5);
-c = new Op(b); // copy construct
-d = new Op(2);
-dd = new Op();
+var a = new Op();
+var b = new Op(5);
+var c = new Op(b); // copy construct
+var d = new Op(2);
+var dd = new Op();
 /* await */(dd.Equal(d)); // assignment operator
 
 // test equality
@@ -49,7 +49,7 @@ if (! /* await */(b.GreaterThanEqual(d))) {
 }
 
 // test +=
-e = new Op(3);
+var e = new Op(3);
 /* await */(e.PlusEqual(d));
 if (! /* await */(e.EqualEqual(b))) {
   throw new Error(`e==b (${e.i}==${b.i})`);
@@ -73,29 +73,29 @@ if (! /* await */(e.EqualEqual(d))) {
 }
 
 // test +
-f = new Op(1);
-g = new Op(1);
-if (! /* await */(/* await */(f.Plus(g)).EqualEqual(new Op(2)))) {
+var f = new Op(1);
+var g = new Op(1);
+if (! /* await */((/* await */(f.Plus(g))).EqualEqual(new Op(2)))) {
   throw new Error("f+g==Op(2)");
 }
-if (! /* await */(/* await */(f.Minus(g)).EqualEqual(new Op(0)))) {
+if (! /* await */((/* await */(f.Minus(g))).EqualEqual(new Op(0)))) {
   throw new Error("f-g==Op(0)");
 }
-if (! /* await */(/* await */(f.Multiply(g)).EqualEqual(new Op(1)))) {
+if (! /* await */((/* await */(f.Multiply(g))).EqualEqual(new Op(1)))) {
   throw new Error("f*g==Op(1)");
 }
-if (! /* await */(/* await */(f.Divide(g)).EqualEqual(new Op(1)))) {
+if (! /* await */((/* await */(f.Divide(g))).EqualEqual(new Op(1)))) {
   throw new Error("f/g==Op(1)");
 }
-if (! /* await */(/* await */(f.Percent(g)).EqualEqual(new Op(0)))) {
+if (! /* await */((/* await */(f.Percent(g))).EqualEqual(new Op(0)))) {
   throw new Error("f%g==Op(0)");
 }
 
 // test unary operators
-if (! /* await */(/* await */(a.Minus()).EqualEqual(a))) {
+if (! /* await */((/* await */(a.Minus())).EqualEqual(a))) {
   throw new Error("-a==a");
 }
-if (! /* await */(/* await */(b.Minus()).EqualEqual(new Op(-5)))) {
+if (! /* await */((/* await */(b.Minus())).EqualEqual(new Op(-5)))) {
   throw new Error("-b==Op(-5)");
 }
 
