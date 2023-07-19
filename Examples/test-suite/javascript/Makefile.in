@@ -146,7 +146,7 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 				's@/\* await \*/@await resolve@g; \
 				s@/\* async \*/@async@g; \
 				s@\(var\|let\|const\)[[:space:]]*\(.*\)[[:space:]]*=[[:space:]]*require(\("\|\x27\)\(.*\)\("\|\x27\))@import \2 from "./\4/index.js"@g; \
-				1s@^@import resolve from "./resolve.mjs";\n@' \
+				1s@^@import resolve from "./resolve.mjs"; @' \
 				$(srcdir)/$*$(SCRIPTSUFFIX) > $(srcdir)/$*$(SCRIPTASYNCSUFFIX) \
 			&& \
 			LD_PRELOAD=$(ASAN_PRELOAD) LSAN_OPTIONS=$(LSAN_OPTIONS) \
