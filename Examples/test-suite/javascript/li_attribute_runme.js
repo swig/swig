@@ -54,7 +54,7 @@ if (b.a.c != 3) {
 // class/struct attribute with get/set methods using return/pass by reference
 var myFoo = new li_attribute.MyFoo();
 myFoo.x = 8;
-myClass = new li_attribute.MyClass();
+var myClass = new li_attribute.MyClass();
 myClass.Foo = myFoo;
 if (myClass.Foo.x != 8) {
     throw new Error;

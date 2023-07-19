@@ -738,7 +738,7 @@ public:
     deferred.Resolve(jsresult);
     goto fail;
   fail:
-   Cleanup();
+    Cleanup();
   }
 
   virtual void OnError(const Napi::Error &error) override {

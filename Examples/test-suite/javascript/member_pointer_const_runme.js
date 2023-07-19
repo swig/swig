@@ -10,19 +10,19 @@ function check(what, expected, actual) {
 
 // Get the pointers
 
-area_pt = /* await */(member_pointer_const.areapt());
-perim_pt = /* await */(member_pointer_const.perimeterpt());
+var area_pt = /* await */(member_pointer_const.areapt());
+var perim_pt = /* await */(member_pointer_const.perimeterpt());
 
 // Create some objects
 
-s = new member_pointer_const.Square(10);
+var s = new member_pointer_const.Square(10);
 
 // Do some calculations
 
 check("Square area ", 100.0, /* await */(member_pointer_const.do_op(s, area_pt)));
 check("Square perim", 40.0, /* await */(member_pointer_const.do_op(s, perim_pt)));
 
-memberPtr = member_pointer_const.areavar;
+var memberPtr = member_pointer_const.areavar;
 memberPtr = member_pointer_const.perimetervar;
 
 // Try the variables
@@ -35,7 +35,7 @@ member_pointer_const.areavar = perim_pt;
 check("Square perimeter", 40.0, /* await */(member_pointer_const.do_op(s, member_pointer_const.areavar)));
 
 // Try the constants
-var memberPtr = member_pointer_const.AREAPT;
+memberPtr = member_pointer_const.AREAPT;
 memberPtr = member_pointer_const.PERIMPT;
 memberPtr = member_pointer_const.NULLPT;
 

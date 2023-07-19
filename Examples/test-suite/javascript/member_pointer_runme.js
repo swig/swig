@@ -11,12 +11,12 @@ function check(what, expected, actual) {
 
 // Get the pointers
 
-area_pt = /* await */(member_pointer.areapt());
-perim_pt = /* await */(member_pointer.perimeterpt());
+var area_pt = /* await */(member_pointer.areapt());
+var perim_pt = /* await */(member_pointer.perimeterpt());
 
 // Create some objects
 
-s = new member_pointer.Square(10);
+var s = new member_pointer.Square(10);
 
 // Do some calculations
 

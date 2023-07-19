@@ -3,7 +3,7 @@ var li_carrays_cpp = require("li_carrays_cpp");
 var d = new li_carrays_cpp.doubleArray(10);
 
 /* await */(d.setitem(0, 7));
-/* await */(d.setitem(5, d.getitem(0) + 3));
+/* await */(d.setitem(5, /* await */(d.getitem(0)) + 3));
 
 if (/* await */(d.getitem(5)) + /* await */(d.getitem(0)) != 17) {
     throw new Error;
@@ -16,7 +16,7 @@ if (sum != 0) {
     throw new Error("incorrect zero sum, got: " + sum.toString());
 }
 
-for (i = 0; i < 5; i++)
+for (let i = 0; i < 5; i++)
     /* await */(shorts.setitem(i, i));
 
 sum = /* await */(li_carrays_cpp.sum_array(shorts));

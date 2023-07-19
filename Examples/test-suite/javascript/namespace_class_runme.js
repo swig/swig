@@ -2,7 +2,7 @@ var namespace_class = require("namespace_class");
 
 try {
     var p = /* await */(namespace_class.Private1());
-    error = 1;
+    var error = 1;
 } catch {
     error = 0;
 }
@@ -28,7 +28,7 @@ var b = new namespace_class.BooT_i();
 b = new namespace_class.BooT_H();
 
 
-f = new namespace_class.FooT_i();
+var f = new namespace_class.FooT_i();
 /* await */(f.quack(1));
 
 f = new namespace_class.FooT_d();

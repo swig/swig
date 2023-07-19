@@ -9,14 +9,14 @@ if (/* await */(d.getitem(5)) + /* await */(d.getitem(0)) != 17) {
     throw new Error;
 }
 
-shorts = new li_carrays.shortArray(5);
+var shorts = new li_carrays.shortArray(5);
 
-sum = /* await */(li_carrays.sum_array(shorts));
+var sum = /* await */(li_carrays.sum_array(shorts));
 if (sum != 0) {
     throw new Error("incorrect zero sum, got: " + sum.toString());
 }
 
-for (i = 0; i < 5; i++)
+for (let i = 0; i < 5; i++)
     /* await */(shorts.setitem(i, i));
 
 sum = /* await */(li_carrays.sum_array(shorts));

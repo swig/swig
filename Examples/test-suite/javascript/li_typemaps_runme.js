@@ -44,7 +44,7 @@ check_array(/* await */(li_typemaps.inoutr_bool(false)), [false])
 // the others
 check_array(/* await */(li_typemaps.inoutr_int2(1,2)), [1, 2])
 
-fi = /* await */(li_typemaps.out_foo(10))
+var fi = /* await */(li_typemaps.out_foo(10))
 check(fi[0].a, 10)
 check(fi[1], 20)
 check(fi[2], 30)
