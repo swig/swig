@@ -1,64 +1,64 @@
 var rename = require("rename1");
 
-function part1() {
+/* async */ function part1() {
   var xyz = new rename.XYZInt();
-  notxyz = new rename.NotXYZInt();
-  xyz.opIntPtrA();
-  xyz.opIntPtrB();
-  xyz.opAnother2();
-  xyz.opT2();
-  xyz.tMethod2(0);
-  xyz.tMethodNotXYZ2(notxyz);
-  xyz.opNotXYZ2();
+  var notxyz = new rename.NotXYZInt();
+  /* await */(xyz.opIntPtrA());
+  /* await */(xyz.opIntPtrB());
+  /* await */(xyz.opAnother2());
+  /* await */(xyz.opT2());
+  /* await */(xyz.tMethod2(0));
+  /* await */(xyz.tMethodNotXYZ2(notxyz));
+  /* await */(xyz.opNotXYZ2());
 }
 
-function part2() {
+/* async */ function part2() {
   var xyz = new rename.XYZDouble();
   var notxyz = new rename.NotXYZDouble();
-  xyz.opIntPtrA();
-  xyz.opIntPtrB();
-  xyz.opAnother1();
-  xyz.opT1();
-  xyz.tMethod1(0);
-  xyz.tMethodNotXYZ1(notxyz);
-  xyz.opNotXYZ1();
+  /* await */(xyz.opIntPtrA());
+  /* await */(xyz.opIntPtrB());
+  /* await */(xyz.opAnother1());
+  /* await */(xyz.opT1());
+  /* await */(xyz.tMethod1(0));
+  /* await */(xyz.tMethodNotXYZ1(notxyz));
+  /* await */(xyz.opNotXYZ1());
 }
 
-function part3(){
+/* async */ function part3(){
   var xyz = new rename.XYZKlass();
   var notxyz = new rename.NotXYZKlass();
-  xyz.opIntPtrA();
-  xyz.opIntPtrB();
-  xyz.opAnother3();
-  xyz.opT3();
-  xyz.tMethod3(new rename.Klass());
-  xyz.tMethodNotXYZ3(notxyz);
-  xyz.opNotXYZ3();
+  /* await */(xyz.opIntPtrA());
+  /* await */(xyz.opIntPtrB());
+  /* await */(xyz.opAnother3());
+  /* await */(xyz.opT3());
+  /* await */(xyz.tMethod3(new rename.Klass()));
+  /* await */(xyz.tMethodNotXYZ3(notxyz));
+  /* await */(xyz.opNotXYZ3());
 }
 
-function part4() {
+/* async */ function part4() {
   var xyz = new rename.XYZEnu();
   var notxyz = new rename.NotXYZEnu();
-  xyz.opIntPtrA();
-  xyz.opIntPtrB();
-  xyz.opAnother4();
-  xyz.opT4();
-  xyz.tMethod4(rename.En1);
-  xyz.tMethodNotXYZ4(notxyz);
-  xyz.opNotXYZ4();
+  /* await */(xyz.opIntPtrA());
+  /* await */(xyz.opIntPtrB());
+  /* await */(xyz.opAnother4());
+  /* await */(xyz.opT4());
+  /* await */(xyz.tMethod4(rename.En1));
+  /* await */(xyz.tMethodNotXYZ4(notxyz));
+  /* await */(xyz.opNotXYZ4());
 }
 
-function part5() {
+/* async */ function part5() {
   var abc = new rename.ABC();
-  abc.methodABC(abc);
+  /* await */(abc.methodABC(abc));
   var k = new rename.Klass();
-  abc.methodKlass(k);
-  var a = abc.opABC();
-  k = abc.opKlass();
+  /* await */(abc.methodKlass(k));
+  var a = /* await */(abc.opABC());
+  k = /* await */(abc.opKlass());
 }
 
-part1();
-part2();
-part3();
-part4();
-part5();
+/* await */(part1());
+/* await */(part2());
+/* await */(part3());
+/* await */(part4());
+/* await */(part5());
