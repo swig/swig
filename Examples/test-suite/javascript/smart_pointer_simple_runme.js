@@ -1,15 +1,15 @@
 var smart_pointer_simple = require("smart_pointer_simple");
 
-f = new smart_pointer_simple.Foo();
-b = new smart_pointer_simple.Bar(f);
+var f = new smart_pointer_simple.Foo();
+var b = new smart_pointer_simple.Bar(f);
 
 b.x = 3;
-if (b.getx() != 3) {
+if (/* await */(b.getx()) != 3) {
     throw new Error;
 }
 
-fp = b.__deref__();
+var fp = /* await */(b.__deref__());
 fp.x = 4;
-if (fp.getx() != 4) {
+if (/* await */(fp.getx()) != 4) {
     throw new Error;
 }
