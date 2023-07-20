@@ -50,8 +50,8 @@ extern "C" JNIEXPORT jint JNICALL Java_native_1directive_native_1directiveJNI_Co
 %feature("async", 0) JavaScript_alpha_count;
 %feature("sync", 1) JavaScript_alpha_count;
 %native(CountAlphaCharacters) void JavaScript_alpha_count();
-%native(asyncCountAlphaCharacters) void JavaScript_alpha_count_Async();
 #if defined(SWIG_JAVASCRIPT_NAPI)      /* engine = napi */
+%native(asyncCountAlphaCharacters) void JavaScript_alpha_count_Async();
 %{
 
 // NAPI sync version
