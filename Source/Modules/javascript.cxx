@@ -252,6 +252,10 @@ protected:
   virtual int emitDtor(Node *n);
 
   /**
+   * Identifies if a node represents a function
+   */
+  virtual bool isFunction(Node *);
+  /**
    * Generates code for a function.
    */
   virtual int emitFunction(Node *n, bool is_member, bool is_static);
@@ -759,6 +763,21 @@ Node *JSEmitter::getBaseClass(Node *n) {
   return NULL;
 }
 
+/* -----------------------------------------------------------------------------
+ * JSEmitter::isFunction() :  identify the node as a function.
+ *
+ * This is more complicated than it seems because of typedef function
+ * types
+ * ----------------------------------------------------------------------------- */
+bool JSEmitter::isFunction(Node *n) {
+  String *kind = Getattr(n, "kind");
+  return (Equal(kind, "function")
+      // HACK: sneaky.ctest revealed that typedef'd (global) functions must be
+      // detected via the 'view' attribute.
+      || (Equal(kind, "variable") &&
+          Equal(Getattr(n, "view"), "globalfunctionHandler")));
+  }
+
  /* -----------------------------------------------------------------------------
   * JSEmitter::emitWrapperFunction() :  dispatches emitter functions.
   *
@@ -773,11 +792,7 @@ int JSEmitter::emitWrapperFunction(Node *n) {
 
   if (kind) {
 
-    if (Equal(kind, "function")
-	// HACK: sneaky.ctest revealed that typedef'd (global) functions must be
-	// detected via the 'view' attribute.
-	|| (Equal(kind, "variable") && Equal(Getattr(n, "view"), "globalfunctionHandler"))
-	) {
+    if (isFunction(n)) {
       bool is_member = GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
       bool is_static = GetFlag(state.function(), IS_STATIC) != 0;
       ret = emitFunction(n, is_member, is_static);
@@ -2961,7 +2976,7 @@ int NAPIEmitter::emitWrapperFunction(Node *n) {
   int rc;
 
   // ctors, getters, setters cannot be async
-  if (!Equal(Getattr(n, "kind"), "function")) {
+  if (!isFunction(n)) {
     UnsetFlag(n, IS_ASYNC);
     rc = JSEmitter::emitWrapperFunction(n);
     if (rc != SWIG_OK) return rc;
