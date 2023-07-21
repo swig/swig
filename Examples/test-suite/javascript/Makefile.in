@@ -65,12 +65,14 @@ include $(srcdir)/../common.mk
 SWIGOPT += -DV8_VERSION=$(JSV8_VERSION)
 
 _setup = \
+	echo -n "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;    \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $* (with run test)" ; \
-	else								  \
-	  echo "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;     \
-	fi;
-
+	  echo -n " (with run test)" ;                                    \
+	fi;                                                               \
+	if [ -n "$(ASYNC)" ]; then	                                  \
+	  echo -n " (async mode)" ;                                       \
+	fi;                                                               \
+        echo
 SWIGOPT += -$(JSENGINE)
 
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
@@ -104,6 +106,11 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	else
 		BUILD = Release
 	endif
+        ifneq (, $(ASYNC))
+		SWIGASYNC  = -async
+	else
+		SWIGASYNC =
+	endif
 
 	setup_node = \
 		test -d $* || mkdir $* && \
@@ -124,7 +131,7 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 		$(setup_node) && \
 		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
 		SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
-		SWIGOPT='-c++ -javascript $(SWIGOPT) $(srcdir)/../$*.i' swiginvoke && \
+		SWIGOPT='-c++ -javascript $(SWIGOPT) $(SWIGASYNC) $(srcdir)/../$*.i' swiginvoke && \
 		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure $(GYP_OPTS) build 1>>/dev/null
 
 	run_testcase = \
@@ -132,13 +139,6 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 			env NODE_PATH=$$PWD:$(srcdir) LD_PRELOAD=$(ASAN_PRELOAD) LSAN_OPTIONS=$(LSAN_OPTIONS) \
 				$(RUNTOOL) $(NODEJS) $(srcdir)/$*$(SCRIPTSUFFIX); \
 		fi
-
-	swig_and_compile_cpp_async = \
-		$(setup_node) && \
-		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
-		SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
-		SWIGOPT='-c++ -javascript $(SWIGOPT) -async $(srcdir)/../$*.i' swiginvoke && \
-		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure $(GYP_OPTS) build 1>>/dev/null
 
 	run_testcase_async = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
@@ -161,10 +161,10 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
   %.cpptest:
 		$(_setup)
 		+$(swig_and_compile_cpp)
-		$(run_testcase)
-        	ifeq (napi, $(JSENGINE))
-			+$(swig_and_compile_cpp_async)                        
+        	ifneq (, $(ASYNC))
 			$(run_testcase_async)
+        	else
+			$(run_testcase)
                 endif
 
   %.multicpptest:
