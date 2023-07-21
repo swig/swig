@@ -6,7 +6,7 @@ function check(flag) {
     }
 }
 
-intPair = /* await */(li_std_pair.makeIntPair(7, 6));
+var intPair = /* await */(li_std_pair.makeIntPair(7, 6));
 check(typeof intPair === 'object');
 if (Object.keys(intPair).length) {
     // When using raw V8, intPair will be an object with two properties
@@ -19,7 +19,7 @@ if (Object.keys(intPair).length) {
 check(intPair.first === 7);
 check(intPair.second === 6);
 
-intPairConstRef = /* await */(li_std_pair.makeIntPairConstRef(7, 6));
+var intPairConstRef = /* await */(li_std_pair.makeIntPairConstRef(7, 6));
 check(typeof intPairConstRef === 'object');
 check(intPairConstRef.first === 7);
 check(intPairConstRef.second === 6);
@@ -27,12 +27,12 @@ check(intPairConstRef.second === 6);
 //
 // Each of these should return a reference to a wrapped
 // std:: pair < int, int > object(i.e.an intPair instance).
-intPairPtr = /* await */(li_std_pair.makeIntPairPtr(7, 6));
+var intPairPtr = /* await */(li_std_pair.makeIntPairPtr(7, 6));
 check(typeof intPairPtr === 'object');
 check(intPairPtr.first === 7);
 check(intPairPtr.second === 6);
 
-intPairRef = /* await */(li_std_pair.makeIntPairRef(7, 6));
+var intPairRef = /* await */(li_std_pair.makeIntPairRef(7, 6));
 check(typeof intPairRef === 'object');
 check(intPairRef.first === 7);
 check(intPairRef.second === 6);

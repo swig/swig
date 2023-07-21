@@ -7,7 +7,7 @@ var template_typedef_cplx = require("template_typedef_cplx");
 var d, e;
 
 try {
-    d = template_typedef_cplx.make_Identity_double();
+    d = /* await */(template_typedef_cplx.make_Identity_double());
     // This test is not possible in JSC where all SWIG proxies inherit from Object
     if (typeof print === 'undefined')
         if (!d.constructor.name.includes('ArithUnaryFunction')) throw new Error;
@@ -16,7 +16,7 @@ try {
 }
 
 try {
-    e = template_typedef_cplx.make_Multiplies_double_double_double_double(d, d);
+    e = /* await */(template_typedef_cplx.make_Multiplies_double_double_double_double(d, d));
     if (typeof print === 'undefined')
         if (!e.constructor.name.includes('ArithUnaryFunction')) throw new Error;
 } catch {

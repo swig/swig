@@ -1,7 +1,7 @@
 var cpp11_std_unique_ptr = require("cpp11_std_unique_ptr");
 
 var checkCount = /* async */ function(expected_count) {
-  actual_count = /* await */(cpp11_std_unique_ptr.Klass.getTotal_count());
+  var actual_count = /* await */(cpp11_std_unique_ptr.Klass.getTotal_count());
   if (actual_count != expected_count)
     throw new Error("Counts incorrect, expected:" + expected_count + " actual:" + actual_count);
 }
@@ -88,7 +88,7 @@ var checkCount = /* async */ function(expected_count) {
 }
 
 /* await */(cpp11_std_unique_ptr.takeKlassUniquePtr(null));
-/* await */(cpp11_std_unique_ptr.takeKlassUniquePtr(cpp11_std_unique_ptr.make_null()));
+/* await */(cpp11_std_unique_ptr.takeKlassUniquePtr(/* await */(cpp11_std_unique_ptr.make_null())));
 /* await */(checkCount(0));
 
 // overloaded parameters
@@ -102,11 +102,11 @@ if (/* await */(cpp11_std_unique_ptr.overloadTest(new cpp11_std_unique_ptr.Klass
 
 
 // unique_ptr as output
-k1 = /* await */(cpp11_std_unique_ptr.makeKlassUniquePtr("first"));
+var k1 = /* await */(cpp11_std_unique_ptr.makeKlassUniquePtr("first"));
 if (/* await */(k1.getLabel()) !== "first")
   throw new Error("wrong object label");
 
-k2 = /* await */(cpp11_std_unique_ptr.makeKlassUniquePtr("second"));
+var k2 = /* await */(cpp11_std_unique_ptr.makeKlassUniquePtr("second"));
 /* await */(checkCount(2));
 
 // delete k1;

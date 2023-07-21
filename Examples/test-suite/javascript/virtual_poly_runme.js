@@ -1,31 +1,31 @@
 var virtual_poly = require("virtual_poly");
 
-d = new virtual_poly.NDouble(3.5);
-i = new virtual_poly.NInt(2);
+var d = new virtual_poly.NDouble(3.5);
+var i = new virtual_poly.NInt(2);
 
 //
 // the copy methods return the right polymorphic types
 //
-dc = d.copy();
-ic = i.copy();
+var dc = /* await */(d.copy());
+var ic = /* await */(i.copy());
 
-if (d.get() != dc.get()) {
+if (/* await */(d.get()) != /* await */(dc.get())) {
     throw new Error;
 }
 
-if (i.get() != ic.get()) {
+if (/* await */(i.get()) != /* await */(ic.get())) {
     throw new Error;
 }
 
-virtual_poly.incr(ic);
+/* await */(virtual_poly.incr(ic));
 
-if ((i.get() + 1) != ic.get()) {
+if ((/* await */(i.get()) + 1) != /* await */(ic.get())) {
     throw new Error;
 }
 
 
-dr = d.ref_this();
-if (d.get() != dr.get()) {
+var dr = /* await */(d.ref_this());
+if (/* await */(d.get()) != /* await */(dr.get())) {
     throw new Error;
 }
 
@@ -33,12 +33,12 @@ if (d.get() != dr.get()) {
 //
 // 'narrowing' also works
 //
-ddc = virtual_poly.NDouble.narrow(d.nnumber());
-if (d.get() != ddc.get()) {
+var ddc = /* await */(virtual_poly.NDouble.narrow(/* await */(d.nnumber())));
+if (/* await */(d.get()) != /* await */(ddc.get())) {
     throw new Error;
 }
 
-dic = virtual_poly.NInt.narrow(i.nnumber());
-if (i.get() != dic.get()) {
+var dic = /* await */(virtual_poly.NInt.narrow(/* await */(i.nnumber())));
+if (/* await */(i.get()) != /* await */(dic.get())) {
     throw new Error;
 }

@@ -1,7 +1,7 @@
 // In JavaScript, std::map has very limited capabilities and no iterator at all
 var li_std_map = require("li_std_map");
 
-/* asynnc */ function set_check(container, idx, value, size) {
+/* async */ function set_check(container, idx, value, size) {
     /* await */(container.set(idx, value));
     if (/* await */(container.get(idx)) !== value)
         throw new Error(

@@ -1,6 +1,6 @@
 var cpp11_thread_local = require("cpp11_thread_local");
 
-t = new cpp11_thread_local.ThreadLocals();
+var t = new cpp11_thread_local.ThreadLocals();
 if (t.stval != 11) {
     throw new Error;
 }

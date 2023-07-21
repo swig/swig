@@ -155,11 +155,11 @@ val = enumCheck(cpp11_strongly_typed_enumerations.Class2.Enum14_Val6j, val);
 //val = enumCheck(cpp11_strongly_typed_enumerations.Class2.Struct1_Enum14_Val5m, 4141);
 //val = enumCheck(cpp11_strongly_typed_enumerations.Class2.Struct1_Enum14_Val6m, val);
 
-class1 = new cpp11_strongly_typed_enumerations.Class1();
+var class1 = new cpp11_strongly_typed_enumerations.Class1();
 enumCheck(/* await */(class1.class1Test1(cpp11_strongly_typed_enumerations.Enum1_Val5a)), 13);
 enumCheck(/* await */(class1.class1Test2(cpp11_strongly_typed_enumerations.Class1.Enum12_Val5c)), 1121);
 //enumCheck(class1.class1Test3(cpp11_strongly_typed_enumerations.Class1.Struct1_Enum12_Val5f), 3121);
 
 enumCheck(/* await */(cpp11_strongly_typed_enumerations.globalTest1(cpp11_strongly_typed_enumerations.Enum1_Val5a)), 13);
-enumCheck/* await */((cpp11_strongly_typed_enumerations.globalTest2(cpp11_strongly_typed_enumerations.Class1.Enum12_Val5c)), 1121);
+enumCheck(/* await */(cpp11_strongly_typed_enumerations.globalTest2(cpp11_strongly_typed_enumerations.Class1.Enum12_Val5c)), 1121);
 //enumCheck(globalTest3(cpp11_strongly_typed_enumerations.Class1.Struct1_Enum12_Val5f), 3121);
