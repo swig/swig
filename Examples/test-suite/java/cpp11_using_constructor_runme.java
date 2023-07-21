@@ -127,5 +127,10 @@ public class cpp11_using_constructor_runme {
     new TemplPublicDerived5Int().meth();
     new TemplPublicDerived6Int(0, "hi").meth();
     new TemplPublicDerived6Int().meth();
+
+    // Templated constructors
+    new TemplateConstructor1Base(0, "hi").meth();
+    // TODO: missing constructor...
+    // new TemplateConstructor1Derived(0, "hi").meth();
   }
 }

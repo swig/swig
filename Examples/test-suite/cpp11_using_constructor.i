@@ -423,7 +423,6 @@ struct TemplPublicBase6 {
 #endif
   virtual void meth() {}
 };
-
 %}
 
 %template(TemplPublicBase1Int) TemplPublicBase1<int>;
@@ -472,3 +471,37 @@ struct TemplPublicDerived6 : TemplPublicBase6<T> {
 %template(TemplPublicDerived4Int) TemplPublicDerived4<int>;
 %template(TemplPublicDerived5Int) TemplPublicDerived5<int>;
 %template(TemplPublicDerived6Int) TemplPublicDerived6<int>;
+
+
+// Templated constructors
+%inline %{
+struct TemplateConstructor1Base {
+  virtual ~TemplateConstructor1Base() {}
+  // No implicit constructor
+  template <typename T> TemplateConstructor1Base(const T &t, const char *s) {}
+  virtual void meth() {}
+};
+%}
+
+%template(TemplateConstructor1Base) TemplateConstructor1Base::TemplateConstructor1Base<int>;
+
+%inline %{
+struct TemplateConstructor1Derived : TemplateConstructor1Base {
+  using TemplateConstructor1Base::TemplateConstructor1Base;
+  using TemplateConstructor1Base::meth;
+};
+%}
+
+// TODO: Missing constructors, below probably ought to work using instantiation as follows:
+//%template(TemplateConstructor1Derived) TemplateConstructor1Derived::TemplateConstructor1Derived<int>;
+
+%{
+void tester() {
+  TemplateConstructor1Derived tc = TemplateConstructor1Derived(123, "hi");
+  tc.meth();
+  // Note not valid c++:
+  // TemplateConstructor1Derived tc2 = TemplateConstructor1Derived::TemplateConstructor1Derived<int>(123, "hi");
+}
+%}
+
+// Note that templated methods also not working with using declarations for inheriting from base templated methods

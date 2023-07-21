@@ -5,4 +5,8 @@
 
 %feature("director");
 
+%warnfilter(SWIGWARN_LANG_DIRECTOR_ABSTRACT) TemplateConstructor1Derived;
+%warnfilter(SWIGWARN_LANG_DIRECTOR_ABSTRACT) TemplateConstructor2Base;
+%warnfilter(SWIGWARN_LANG_DIRECTOR_ABSTRACT) TemplateConstructor2Derived;
+
 %include "cpp11_using_constructor.i"
