@@ -16,6 +16,20 @@ public:
   ~TConstructor2() {}
 };
 
+class TConstructor3 {
+public:
+  // No implicit default constructor available
+  template<typename T> TConstructor3(T val) {}
+  ~TConstructor3() {}
+};
+
+class TConstructor4 {
+public:
+  // No constructors available from wrappers when there is no %template to instantiate templated constructor
+  template<typename T> TConstructor4() {}
+  ~TConstructor4() {}
+};
+
 template<typename T> class TClass1 {
 public:
   template<typename Y> TClass1(Y t) {}

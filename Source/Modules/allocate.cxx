@@ -1123,6 +1123,15 @@ Allocate():
     return SWIG_OK;
   }
 
+  virtual int templateDeclaration(Node *n) {
+    String *ttype = Getattr(n, "templatetype");
+    if (Equal(ttype, "constructor")) {
+      // Templated constructors need to be taken account of even if not instantiated with %template
+      constructorDeclaration(n);
+    }
+    return SWIG_OK;
+  }
+
   virtual int constructorDeclaration(Node *n) {
     if (!inclass)
       return SWIG_OK;
