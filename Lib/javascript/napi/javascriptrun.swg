@@ -235,6 +235,9 @@ bool SWIG_NAPI_IsWrappedObject(Napi::Env env, Napi::Object v) {
   bool instanceOf;
   NAPI_CHECK_RESULT(v.InstanceOf(ctor->Value()), instanceOf);
   return instanceOf;
+  goto fail;
+fail:
+  return false;
 }
 
 SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, swig_type_info *info, int flags) {
