@@ -56,14 +56,14 @@
 %typemap(async_pre) SWIGTYPE *, SWIGTYPE & {
   if (ow$argnum != nullptr && !objs.count(ow$argnum)) {
     objs.insert(ow$argnum);
-    ow$argnum->lock();    
+    ow$argnum->lock();
   }
 }
 
 %typemap(async_post) SWIGTYPE *, SWIGTYPE & {
   if (ow$argnum != nullptr && objs.count(ow$argnum)) {
     objs.erase(ow$argnum);
-    ow$argnum->unlock();    
+    ow$argnum->unlock();
   }
 }
 

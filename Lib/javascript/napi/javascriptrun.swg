@@ -159,19 +159,19 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
         self(nullptr),
         owned(true),
         size(0),
-        info(nullptr),
-        _lock()
-        {}
+        info(nullptr) {
+      uv_mutex_init(&_lock);
+    }
     virtual ~SWIG_NAPI_ObjectWrap_templ() {};
 
-    inline void lock() { _lock.lock(); };
-    inline void unlock() { _lock.unlock(); };
+    inline void lock() { uv_mutex_lock(&_lock); };
+    inline void unlock() { uv_mutex_unlock(&_lock); };
 
     Napi::Value ToString(const Napi::CallbackInfo &info);
 
   private:
     // Every wrapped object has an associated async lock
-    std::mutex _lock;
+    uv_mutex_t _lock;
 };
 
 template <typename SWIG_OBJ_WRAP>
