@@ -720,7 +720,7 @@ public:
     env(_env),
     deferred(Napi::Promise::Deferred::New(_env)),
     objs(),
-    persistent() {}
+    persistent($jsargcount) {}
 
   virtual ~$jsmangledname_$jswrapper_Tasklet_templ() {
     // Release the persistent references
