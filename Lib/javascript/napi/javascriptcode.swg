@@ -667,6 +667,30 @@ fail:
 }
 %}
 
+/* -----------------------------------------------------------------------------
+ * js_async_pre:  template for the async pre typemaps
+ *   - $lname:        argument number
+ *   - $jscode:       async_pre code
+ * ----------------------------------------------------------------------------- */
+%fragment("js_async_pre", "templates")
+%{
+  void SWIG_pre_$lname() {
+    $jscode
+  }
+%}
+
+/* -----------------------------------------------------------------------------
+ * js_async_post:  template for the async post typemaps
+ *   - $lname:        argument number
+ *   - $jscode:       async_post code
+ * ----------------------------------------------------------------------------- */
+%fragment("js_async_post", "templates")
+%{
+  void SWIG_post_$lname() {
+    $jscode
+  }
+%}
+
 
 /* -----------------------------------------------------------------------------
  * js_async_worker_local_class:  template for the local async worker class in async wrappers
@@ -705,13 +729,15 @@ public:
   Napi::Promise::Deferred deferred;
 private:
   using NAPI_ASYNC_WORKER::SetError;
-  // This vector holds pointers to the NAPI wrappers used
-  // by this operation - it is required for the async locks
-  std::set<SWIG_NAPI_ObjectWrap_inst *> objs;
+  typedef void ($jsmangledname_$jswrapper_Tasklet_templ::*SWIG_Async_Lock_Func)();
+  typedef std::pair<void *, std::pair<SWIG_Async_Lock_Func, SWIG_Async_Lock_Func>> SWIG_Lock;
+  // This vector holds pointers to the locks and the lockers/unlockers used
+  // by this operation
+  std::vector<SWIG_Lock> SWIG_locks;
   // This vector holds persistent references to all JS objects
   // involved in the asynchronous operation - it protects them
   // from being garbage-collected
-  std::vector<Napi::ObjectReference *> persistent;
+  std::vector<Napi::ObjectReference *> SWIG_persistent;
 
   $jslocals
 public:
@@ -719,15 +745,15 @@ public:
     Napi::AsyncWorker(_env, "SWIG_$jswrapper_Async_Worker"),
     env(_env),
     deferred(Napi::Promise::Deferred::New(_env)),
-    objs(),
-    persistent($jsargcount) {}
+    SWIG_locks(),
+    SWIG_persistent() {}
 
   virtual ~$jsmangledname_$jswrapper_Tasklet_templ() {
     // Release the persistent references
-    for (Napi::ObjectReference *ref : persistent) {
+    for (Napi::ObjectReference *ref : SWIG_persistent) {
       delete ref;
     }
-    persistent.clear();
+    SWIG_persistent.clear();
   }
 
   virtual void OnOK() override {
@@ -755,11 +781,24 @@ public:
     return;
   }
 
+  $jspreaction
+  $jspostaction
+
   virtual void Execute() override {
     // This runs the action code in a worker thread and V8 is not accessible
     Napi::Env env(nullptr);
-    // WARNING! TODO! Find an elegant way to sort the locking operations
-    $jspreaction
+
+    // Deadlock avoidance
+    struct {
+      bool operator()(const SWIG_Lock &a, const SWIG_Lock &b) const { return a.first < b.first; }
+    } lock_order;
+    if (SWIG_locks.size() > 1) {
+      std::sort(SWIG_locks.begin(), SWIG_locks.end(), lock_order);
+    }
+
+    for (SWIG_Lock &locker : SWIG_locks) {
+      ((*this).*(locker.second.first))();
+    }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
     try {
       $jsaction
@@ -769,9 +808,11 @@ public:
 #else
     $jsaction
 #endif
-    $jspostaction
     goto fail;
   fail:
+    for (SWIG_Lock &locker : SWIG_locks) {
+      ((*this).*(locker.second.second))();
+    }
     return;
   }
 

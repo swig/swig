@@ -45,26 +45,23 @@
     NAPI_CHECK_RESULT($input.ToObject(), obj);
     if (SWIG_NAPI_IsWrappedObject(env, obj)) {
       ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj);
+      if (ow != nullptr) {
+        SWIG_locks.push_back({reinterpret_cast<void*>(ow), {&$classname::SWIG_pre_$1, &$classname::SWIG_post_$1}});
+      }
     }
 
     Napi::ObjectReference *ref = new Napi::ObjectReference();
     *ref = Napi::Persistent(obj);
-    persistent.push_back(ref);
+    SWIG_persistent.push_back(ref);
   }
 }
 
 %typemap(async_pre) SWIGTYPE *, SWIGTYPE & {
-  if (ow$argnum != nullptr && !objs.count(ow$argnum)) {
-    objs.insert(ow$argnum);
-    ow$argnum->lock();
-  }
+  ow$argnum->lock();
 }
 
 %typemap(async_post) SWIGTYPE *, SWIGTYPE & {
-  if (ow$argnum != nullptr && objs.count(ow$argnum)) {
-    objs.erase(ow$argnum);
-    ow$argnum->unlock();
-  }
+  ow$argnum->unlock();
 }
 
 /*
@@ -124,7 +121,7 @@
   NAPI_CHECK_RESULT($input.ToObject(), obj);
   Napi::ObjectReference *ref = new Napi::ObjectReference();
   *ref = Napi::Persistent(obj);
-  persistent.push_back(ref);
+  SWIG_persistent.push_back(ref);
 }
 
 %typemap(async_pre) std::string, std::string *, std::string & ""

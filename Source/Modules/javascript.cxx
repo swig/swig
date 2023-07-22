@@ -2489,7 +2489,7 @@ public:
 protected:
   virtual void marshalInputArgs(Node *, ParmList *, Wrapper *, MarshallingMode,
                                 bool, bool);
-  virtual String *emitAsyncTypemaps(Node *, Parm *, Wrapper *, const char *);
+  virtual String *emitAsyncTypemaps(Node *, Parm *, Wrapper *, const char *, const char *);
   virtual int emitNamespaces();
   virtual int emitFunction(Node *, bool, bool);
   virtual int emitCtor(Node *);
@@ -2854,7 +2854,7 @@ int NAPIEmitter::exitVariable(Node *n) {
 }
 
 String *NAPIEmitter::emitAsyncTypemaps(Node *, Parm *parms, Wrapper *,
-                                   const char *tmname) {
+                                   const char *tmname, const char *tmpl) {
   String *result = NewString("");
   String *tmcode = NewString("");
   String *tmnext = NewString("");
@@ -2869,8 +2869,25 @@ String *NAPIEmitter::emitAsyncTypemaps(Node *, Parm *parms, Wrapper *,
 
       // Do not emit typemaps for numinput=0 arguments
       if (arg != nullptr) {
+        // TODO
+        // This is very ugly and stems from the fact the ISO C++
+        // requires that when taking a class method pointer
+        // the method is fully qualified
+        String *klass = NewString("");
         Replaceall(tm, "$input", arg);
-        Append(result, tm);
+        Printf(klass, "%s_%s_Tasklet_templ",
+               state.clazz(NAME_MANGLED), state.function(WRAPPER_NAME));
+        Replaceall(tm, "$classname", klass);
+        if (tmpl == nullptr) {
+          // No template, add typemap code directly
+          Append(result, tm);
+        } else {
+          // With a template
+          Template t_async = getTemplate(tmpl);
+          t_async.replace("$lname", Getattr(p, "lname"))
+            .replace("$jscode", tm)
+            .pretty_print(result);
+        }
         Append(result, "\n");
       }
       p = Getattr(p, tmnext);
@@ -2920,8 +2937,8 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   // This must be done after input (which resolves the parameters)
   // but before emit_action (which emits the local variables)
   if (GetFlag(n, IS_ASYNC)) {
-    pre = emitAsyncTypemaps(n, params, wrapper, "async_pre");
-    post = emitAsyncTypemaps(n, params, wrapper, "async_post");
+    pre = emitAsyncTypemaps(n, params, wrapper, "async_pre", "js_async_pre");
+    post = emitAsyncTypemaps(n, params, wrapper, "async_post", "js_async_post");
   } else {
     pre = NewString("");
     post = NewString("");
@@ -3190,7 +3207,7 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
   }
 
   if (GetFlag(n, IS_ASYNC)) {
-    String *async_in = emitAsyncTypemaps(n, parms, wrapper, "async_in");
+    String *async_in = emitAsyncTypemaps(n, parms, wrapper, "async_in", nullptr);
     Append(wrapper->code, async_in);
     Delete(async_in);
   }
