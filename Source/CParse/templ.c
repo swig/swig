@@ -224,24 +224,15 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
       }
     }
   } else if (Equal(nodeType, "constructor")) {
-    String *name = Getattr(n, "name");
     if (!(Getattr(n, "templatetype"))) {
-      String *symname;
-      String *stripped_name = SwigType_templateprefix(name);
-      if (Strstr(tname, stripped_name)) {
-	Replaceid(name, stripped_name, tname);
-      }
-      Delete(stripped_name);
-      symname = Getattr(n, "sym:name");
+      String *symname = Getattr(n, "sym:name");
+      String *name;
       if (symname) {
-	stripped_name = SwigType_templateprefix(symname);
+	String *stripped_name = SwigType_templateprefix(symname);
 	if (Strstr(tname, stripped_name)) {
 	  Replaceid(symname, stripped_name, tname);
 	}
 	Delete(stripped_name);
-      }
-      if (strchr(Char(name), '<')) {
-	Append(patchlist, Getattr(n, "name"));
       }
       name = Getattr(n, "sym:name");
       if (name) {
@@ -266,21 +257,9 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
      * template node, with the special exception for %extend which adds its methods under an intermediate node. */
     Node* parent = parentNode(n);
     if (parent == templnode || (parentNode(parent) == templnode && Equal(nodeType(parent), "extend"))) {
-      String *name = Getattr(n, "name");
-      if (name) {
-	if (strchr(Char(name), '<'))
-	  Append(patchlist, Getattr(n, "name"));
-      }
-      name = Getattr(n, "sym:name");
-      if (name) {
-	if (strchr(Char(name), '<')) {
-	  String *sn = Copy(tname);
-	  Setattr(n, "sym:name", sn);
-	  Delete(sn);
-	} else {
-	  Replace(name, tname, rname, DOH_REPLACE_ANY);
-	}
-      }
+      String *symname = Getattr(n, "sym:name");
+      if (symname)
+	Replace(symname, tname, rname, DOH_REPLACE_ANY);
       Append(cpatchlist, Getattr(n, "code"));
     }
   } else if (Equal(nodeType, "using")) {
@@ -478,7 +457,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   List *patchlist, *cpatchlist, *typelist;
   String *templateargs;
   String *tname;
-  String *iname;
+  String *name_with_templateargs = 0;
   String *tbase;
   Parm *unexpanded_variadic_parm = 0;
   ParmList *expanded_variadic_parms = 0;
@@ -551,9 +530,12 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   {
     String *name = Getattr(n, "name");
     if (name) {
-      Append(name, templateargs);
+      String *nodeType = nodeType(n);
+      name_with_templateargs = NewStringf("%s%s", name, templateargs);
+      if (!(Equal(nodeType, "constructor") || Equal(nodeType, "destructor"))) {
+	Setattr(n, "name", name_with_templateargs);
+      }
     }
-    iname = name;
   }
 
   /* Patch all of the types */
@@ -609,12 +591,12 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	    Node *tynode = Swig_symbol_clookup(s, 0);
 	    String *tyname  = tynode ? Getattr(tynode, "sym:name") : 0;
 	    /*
-	    Printf(stdout, "  replacing %s with %s to %s or %s to %s\n", s, name, dvalue, tbase, iname);
+	    Printf(stdout, "  replacing %s with %s to %s or %s to %s\n", s, name, dvalue, tbase, name_with_templateargs);
 	    Printf(stdout, "    %d %s to %s\n", tp == unexpanded_variadic_parm, name, ParmList_str_defaultargs(expanded_variadic_parms));
 	    */
 	    if (!tyname || !tsname || !Equal(tyname, tsname) || Getattr(tynode, "templatetype")) {
 	      SwigType_typename_replace(s, name, dvalue);
-	      SwigType_typename_replace(s, tbase, iname);
+	      SwigType_typename_replace(s, tbase, name_with_templateargs);
 	    }
 	  }
 
@@ -645,7 +627,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	String *s = Getitem(typelist, i);
 	assert(!SwigType_isvariadic(s)); /* All parameters should have already been expanded, this is for function that contain variadic parameters only, such as f(v.p.V) */
 	SwigType_variadic_replace(s, unexpanded_variadic_parm, expanded_variadic_parms);
-	SwigType_typename_replace(s, tbase, iname);
+	SwigType_typename_replace(s, tbase, name_with_templateargs);
       }
     }
   }
@@ -664,6 +646,7 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       }
     }
   }
+  Delete(name_with_templateargs);
   Delete(patchlist);
   Delete(cpatchlist);
   Delete(typelist);
@@ -671,7 +654,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
   Delete(tname);
   Delete(templateargs);
 
-  /*  set_nodeType(n,"template"); */
   return 0;
 }
 

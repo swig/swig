@@ -2555,13 +2555,18 @@ int Language::constructorDeclaration(Node *n) {
       return SWIG_NOWRAP;
   }
 
-  /* Name adjustment for %rename */
+  // Name adjustment of constructor when a class has been renamed with %rename
   Swig_save("constructorDeclaration", n, "sym:name", NIL);
 
   {
     String *base = Swig_scopename_last(name);
-    if ((Strcmp(base, symname) == 0) && (Strcmp(symname, ClassPrefix) != 0)) {
-      Setattr(n, "sym:name", ClassPrefix);
+    // Note that it is possible for the constructor to have a different name to the class name in
+    // some target languages, where it is wrapped as a factory type function instead of a constructor.
+    if (Equal(base, symname) && !Equal(symname, ClassPrefix)) {
+      // Adjust name, except when the constructor's name comes from a templated constructor,
+      // where the name passed to %template is used instead.
+      if (!Getattr(n, "template"))
+	Setattr(n, "sym:name", ClassPrefix);
     }
     Delete(base);
   }
