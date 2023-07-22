@@ -32,8 +32,8 @@ var cpp11_rvalue_reference_move = require("cpp11_rvalue_reference_move");
 {
   // Move assignment operator test
   /* await */(cpp11_rvalue_reference_move.Counter.reset_counts());
-  mo111 = new cpp11_rvalue_reference_move.MovableCopyable(111);
-  mo222 = new cpp11_rvalue_reference_move.MovableCopyable(222);
+  var mo111 = new cpp11_rvalue_reference_move.MovableCopyable(111);
+  var mo222 = new cpp11_rvalue_reference_move.MovableCopyable(222);
   /* await */(cpp11_rvalue_reference_move.Counter.check_counts(2, 0, 0, 0, 0, 0));
   /* await */(mo111.MoveAssign(mo222));
   /* await */(cpp11_rvalue_reference_move.Counter.check_counts(2, 0, 0, 0, 1, 1));
