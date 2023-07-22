@@ -774,7 +774,7 @@ if(js_exception)
 <li>Asynchronous execution of the C/C++ function in a worker thread without access to V8 - this means that all underlying C/C++ objects must be unwrapped beforehand</li>
 <li>Synchronous generation of the returned values on the main thread with V8 access - which include the <code>out</code> and <code>argout</code> typemaps</li>
 </ul>
-<code>native_directive.i</code> contains an example of a hand-written async wrapper in <code>JavaScript_alpha_count_Async()</code>.
+<code>Examples/javascript/async/native_async.i</code> contains an example of a hand-written async wrapper included with <code>%native</code>.
 </p>
 
 <H3><a name="Javascript_async_persistence">28.6.1 Persistence</a></H3>

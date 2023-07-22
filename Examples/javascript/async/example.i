@@ -22,5 +22,8 @@
 %typemap(async_pre) double *, double & {}
 %typemap(async_post) double *, double & {}
 
+// An example for a hand-written async wrapper with %native
+%include "native_async.i"
+
 /* Let's just grab the original header file here */
 %include "example.h"

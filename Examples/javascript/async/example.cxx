@@ -16,13 +16,8 @@ double Pi::approx() {
 }
 
 // Using pointers with async
-Pi *calcFromPtr(Pi *engine, double *result) {
+Pi *calc(Pi *engine, double *result) {
     *result = engine->approx();
 
     return engine;
-}
-
-// Using references with async
-void calcFromRef(Pi &engine, double &result) {
-  result = engine.approx();
 }

@@ -1,5 +1,6 @@
 /* File : example.h */
 
+// A class that can be used to compute Pi
 class Pi {
   int iterations;
 public:
@@ -7,5 +8,5 @@ public:
   double approx();
 };
 
-Pi *calcFromPtr(Pi *, double *result);
-void calcFromRef(Pi &, double &result);
+// A global function that returns its value in an argument
+Pi *calc(Pi *, double *result);

@@ -79,7 +79,6 @@ fail:
 }
 
 // NAPI async version
-// This function is referenced in the Javascript.html manual
 static Napi::Value JavaScript_alpha_count_Async(const Napi::CallbackInfo &info) {
   Napi::Env env(info.Env());
 
