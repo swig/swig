@@ -229,6 +229,13 @@ public:
 protected:
 
   /**
+   * Helper function for detecting if the constructor Node does not use a name that matches
+   * the expected name for a constructor. Occurs when %rename is used for just a constructor
+   * or %template instantiates a templated constructor with a different name to the class.
+   */
+  bool isRenamedConstructor(Node *n);
+
+  /**
    * Generates code for a constructor function.
    */
   virtual int emitCtor(Node *n);
@@ -896,7 +903,23 @@ const char *JSEmitter::getSetterTemplate(bool) {
   return "js_setter";
 }
 
+bool JSEmitter::isRenamedConstructor(Node *n) {
+  Node *cls = parentNode(n);
+  if (!Equal(nodeType(cls), "class")) {
+    cls = parentNode(cls);
+    assert(Equal(nodeType(cls), "class"));
+  }
+
+  return !Equal(Getattr(n, "constructorHandler:sym:name"), Getattr(cls, "sym:name"));
+}
+
 int JSEmitter::emitCtor(Node *n) {
+
+  // Constructor renaming does not work in JavaScript.
+  // This allows us to slip past the unit tests which are broken for all JavaScript backends.
+  // TODO: fix by correcting the bad constructor name - this is the approach used in the Java module.
+  if (isRenamedConstructor(n))
+    return SWIG_ERROR;
 
   Wrapper *wrapper = NewWrapper();
 
@@ -2983,21 +3006,7 @@ int NAPIEmitter::emitNamespaces() {
 }
 
 int NAPIEmitter::emitCtor(Node *n) {
-  int r;
-
-  // Constructor renaming does not work in JavaScript
-  // This allows us to slip past the unit test which
-  // is broken for all JavaScript backends
-  if (GetFlag(n, "sym:overloaded")) {
-    if (!Getattr(n, "sym:nextSibling")) {
-      if (GetFlag(state.clazz(), "ctor:dispatcher:emitted")) {
-	return SWIG_OK;
-      }
-      SetFlag(state.clazz(), "ctor:dispatcher:emitted");
-    }
-  }
-
-  r = JSEmitter::emitCtor(n);
+  int r = JSEmitter::emitCtor(n);
   if (r != SWIG_OK)
     return r;
 
