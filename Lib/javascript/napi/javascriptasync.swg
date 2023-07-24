@@ -45,8 +45,8 @@
     NAPI_CHECK_RESULT($input.ToObject(), obj);
     if (SWIG_NAPI_IsWrappedObject(env, obj)) {
       ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj);
-      if (ow != nullptr) {
-        SWIG_locks.push_back({reinterpret_cast<void*>(ow), {&$classname::SWIG_pre_$1, &$classname::SWIG_post_$1}});
+      if (ow != nullptr && SWIG_locks.count(ow) == 0) {
+        SWIG_locks.insert({reinterpret_cast<void*>(ow), {&$classname::SWIG_pre_$1, &$classname::SWIG_post_$1}});
       }
     }
 

@@ -730,10 +730,10 @@ public:
 private:
   using NAPI_ASYNC_WORKER::SetError;
   typedef void ($jsmangledname_$jswrapper_Tasklet_templ::*SWIG_Async_Lock_Func)();
-  typedef std::pair<void *, std::pair<SWIG_Async_Lock_Func, SWIG_Async_Lock_Func>> SWIG_Lock;
+  typedef std::pair<SWIG_Async_Lock_Func, SWIG_Async_Lock_Func> SWIG_Lock;
   // This vector holds pointers to the locks and the lockers/unlockers used
   // by this operation
-  std::vector<SWIG_Lock> SWIG_locks;
+  std::map<void *, SWIG_Lock> SWIG_locks;
   // This vector holds persistent references to all JS objects
   // involved in the asynchronous operation - it protects them
   // from being garbage-collected
@@ -788,16 +788,8 @@ public:
     // This runs the action code in a worker thread and V8 is not accessible
     Napi::Env env(nullptr);
 
-    // Deadlock avoidance
-    struct {
-      bool operator()(const SWIG_Lock &a, const SWIG_Lock &b) const { return a.first < b.first; }
-    } lock_order;
-    if (SWIG_locks.size() > 1) {
-      std::sort(SWIG_locks.begin(), SWIG_locks.end(), lock_order);
-    }
-
-    for (SWIG_Lock &locker : SWIG_locks) {
-      ((*this).*(locker.second.first))();
+    for (typename std::map<void *, SWIG_Lock>::iterator it = SWIG_locks.begin(); it != SWIG_locks.end(); it++) {
+      ((*this).*(it->second.first))();
     }
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
     try {
@@ -810,8 +802,8 @@ public:
 #endif
     goto fail;
   fail:
-    for (SWIG_Lock &locker : SWIG_locks) {
-      ((*this).*(locker.second.second))();
+    for (typename std::map<void *, SWIG_Lock>::iterator it = SWIG_locks.begin(); it != SWIG_locks.end(); it++) {
+      ((*this).*(it->second.second))();
     }
     return;
   }
