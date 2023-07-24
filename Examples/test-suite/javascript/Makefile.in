@@ -60,6 +60,14 @@ else
     JSV8_VERSION=0x031110
 endif
 
+ifeq (napi, $(ENGINE))
+# Node-API specific tests
+ifneq (, $(ASYNC))
+# async-specific tests
+CPP_TEST_CASES += napi_async_locking
+endif
+endif
+
 include $(srcdir)/../common.mk
 
 SWIGOPT += -DV8_VERSION=$(JSV8_VERSION)
