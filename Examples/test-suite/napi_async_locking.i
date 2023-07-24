@@ -3,21 +3,31 @@
 %typemap(async_pre) UnlockedInteger, UnlockedInteger &, UnlockedInteger * "";
 %typemap(async_post) UnlockedInteger, UnlockedInteger &, UnlockedInteger * "";
 
+%{
+void inline compute(int &a, const int b) {
+  char buf[16];
+
+  // The result of this operation should be a
+  for (int i = 0; i < 1000; i++) {
+    a += b;
+    a *= 2;
+    a -= b;
+    // break the static expression optimization
+    sprintf(buf, "%d", a);
+    a -= b;
+    a /= 2;
+  }
+}
+%}
+
 %inline %{
 struct Integer {
   int val;
 
   Integer(int v) : val(v) {}
 
-  void compute(const Integer &b) {
-    // The result of this operation should be val
-    for (int i = 0; i < 1000; i++) {
-      val += b.val;
-      val *= 2;
-      val -= b.val;
-      val -= b.val;
-      val /= 2;
-    }
+  void compute(Integer &b) {
+    ::compute(val, b.val);
   }
 };
 
@@ -26,15 +36,8 @@ struct UnlockedInteger {
 
   UnlockedInteger(int v) : val(v) {}
 
-  void compute(const UnlockedInteger &b) {
-    // The result of this operation should be val
-    for (int i = 0; i < 1000; i++) {
-      val += b.val;
-      val *= 2;
-      val -= b.val;
-      val -= b.val;
-      val /= 2;
-    }
+  void compute(UnlockedInteger &b) {
+    ::compute(val, b.val);
   }
 };
 %}
