@@ -7,6 +7,27 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-07-21: wsfulton
+            Don't generate a default constructor wrapper when a class has a
+            templated constructor, as there isn't actually an implied default
+            constructor. For example:
+
+              struct TConstructor3 {
+                template<typename T> TConstructor3(T val) {}
+              };
+
+            Previously wrappers were generated for a non-existent default
+            constructor which failed to compile.
+
+2023-07-15: wsfulton
+            C++11 using declarations for inheriting constructors has now been
+            extended to support the directors feature.
+
+2023-07-13: wsfulton
+            C++11 using declarations for inheriting constructors support now
+            also includes inheriting implicitly defined default constructors
+            from the base class.
+
 2023-07-04: wsfulton
             #2641 Add support for C++11 using declarations for inheriting
             constructors.

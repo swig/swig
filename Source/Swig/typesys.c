@@ -1497,7 +1497,7 @@ int SwigType_type(const SwigType *t) {
  *
  * This is the default behavior unless:
  *
- *  1.- swig detects a default_constructor and 'setallocate:default_constructor'
+ *  1.- swig detects a default_constructor and 'allocate:default_constructor'
  *      attribute.
  *
  *  2.- swig doesn't mark 'type' as non-assignable.

@@ -20,9 +20,11 @@ public class cpp11_using_constructor_runme {
     new PublicDerived3().meth();
     new PublicDerived3(0, "hi").meth();
     new PublicDerived4().meth();
+    new PublicDerived5().meth();
 
     // Protected base constructors
-    // Cannot test these as the constructors are protected
+    // Cannot test most of these as the constructors are protected
+    new ProtectedDerived5();
 
     // Mix of public and overloaded constructors
     new MixedDerived1a(0, "hi").meth();
@@ -55,6 +57,21 @@ public class cpp11_using_constructor_runme {
     new MixedDerived3d(0, "hi").meth();
     new MixedDerived3d().meth();
     new MixedDerived3d(0).meth();
+
+    new MixedDerived4a(0, "hi").meth();
+    new MixedDerived4a().meth();
+    new MixedDerived4b(0, "hi").meth();
+    new MixedDerived4b().meth();
+
+    new MixedDerived4c().meth();
+    new MixedDerived4c(0).meth();
+
+    new MixedDerived4d().meth();
+    new MixedDerived4d(0).meth();
+
+    new MixedDerived4e().meth();
+
+    new MixedDerived4f().meth();
 
     // Mix of protected base constructors and overloading
     new ProotDerived1a().meth();
@@ -98,6 +115,22 @@ public class cpp11_using_constructor_runme {
     new TemplatePublicDerived3Int().meth();
     new TemplatePublicDerived3Int(0, "hi").meth();
     new TemplatePublicDerived4Int().meth();
+    new TemplatePublicDerived5Int().meth();
 
+    // Templates and public base constructors (derive from template)
+    new TemplPublicDerived1Int(0, "hi").meth();
+    new TemplPublicDerived2Int().meth();
+    new TemplPublicDerived2Int(0, "hi").meth();
+    new TemplPublicDerived3Int().meth();
+    new TemplPublicDerived3Int(0, "hi").meth();
+    new TemplPublicDerived4Int().meth();
+    new TemplPublicDerived5Int().meth();
+    new TemplPublicDerived6Int(0, "hi").meth();
+    new TemplPublicDerived6Int().meth();
+
+    // Templated constructors
+    new TemplateConstructor1Base(0, "hi").meth();
+    // TODO: missing constructor...
+    // new TemplateConstructor1Derived(0, "hi").meth();
   }
 }

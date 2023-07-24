@@ -16,13 +16,18 @@
 #include <ctype.h>
 
 /* default mode settings */
+static int directors_allowed = 0;
+static int director_language = 0;
 static int director_mode = 0;
 static int director_protected_mode = 1;
 static int all_protected_mode = 0;
 static int naturalvar_mode = 0;
 Language *Language::this_ = 0;
 
-/* Set director_protected_mode */
+int Swig_directors_enabled() {
+  return director_language && CPlusPlus && (directors_allowed || director_mode);
+}
+
 void Wrapper_director_mode_set(int flag) {
   director_mode = flag;
 }
@@ -361,8 +366,7 @@ director_prot_ctor_code(0),
 symtabs(NewHash()),
 overloading(0),
 multiinput(0),
-cplus_runtime(0),
-directors(0) {
+cplus_runtime(0) {
   symbolAddScope(""); // create top level/global symbol table scope
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
@@ -376,7 +380,6 @@ directors(0) {
    */
   director_prot_ctor_code = 0;
   director_multiple_inheritance = 1;
-  director_language = 0;
   assert(!this_);
   this_ = this;
 
@@ -915,7 +918,7 @@ int Language::cDeclaration(Node *n) {
     if (!isfriend) {
       /* Check what the director needs. If the method is pure virtual, it is always needed.
        * Also wrap non-virtual protected members if asked for (allprotected mode). */
-      if (!(directorsEnabled() && ((is_member_director(CurrentClass, n) && need_nonpublic_member(n)) || isNonVirtualProtectedAccess(n)))) {
+      if (!(Swig_directors_enabled() && ((is_member_director(CurrentClass, n) && need_nonpublic_member(n)) || isNonVirtualProtectedAccess(n)))) {
           return SWIG_NOWRAP;
       }
       // Prevent wrapping protected overloaded director methods more than once -
@@ -1116,7 +1119,7 @@ int Language::functionHandler(Node *n) {
       // This is a member function, set a flag so the documentation type is correct
       SetFlag(n, "memberfunction");
       Node *explicit_n = 0;
-      if (directorsEnabled() && is_member_director(CurrentClass, n) && !extraDirectorProtectedCPPMethodsRequired()) {
+      if (Swig_directors_enabled() && is_member_director(CurrentClass, n) && !extraDirectorProtectedCPPMethodsRequired()) {
 	bool virtual_but_not_pure_virtual = (!(Cmp(storage, "virtual")) && (Cmp(Getattr(n, "value"), "0") != 0));
 	if (virtual_but_not_pure_virtual) {
 	  // Add additional wrapper which makes an explicit call to the virtual method (ie not a virtual call)
@@ -1293,7 +1296,7 @@ int Language::memberfunctionHandler(Node *n) {
   }
 
   int DirectorExtraCall = 0;
-  if (directorsEnabled() && is_member_director(CurrentClass, n) && !SmartPointer)
+  if (Swig_directors_enabled() && is_member_director(CurrentClass, n) && !SmartPointer)
     if (extraDirectorProtectedCPPMethodsRequired())
       DirectorExtraCall = CWRAP_DIRECTOR_TWO_CALLS;
 
@@ -2075,7 +2078,6 @@ int Language::classDirectorDisown(Node *n) {
  * ---------------------------------------------------------------------- */
 
 int Language::classDirectorConstructors(Node *n) {
-  Node *ni;
   String *nodeType;
   Node *parent = Swig_methodclass(n);
   int default_ctor = Getattr(parent, "allocate:default_constructor") ? 1 : 0;
@@ -2083,31 +2085,42 @@ int Language::classDirectorConstructors(Node *n) {
   int constructor = 0;
 
   /* emit constructors */
-  for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
+  List *constructors = NewList();
+  for (Node *ni = firstChild(n); ni; ni = nextSibling(ni)) {
     nodeType = Getattr(ni, "nodeType");
-    if (Cmp(nodeType, "constructor") == 0) {
-      if (GetFlag(ni, "feature:ignore"))
-        continue;
-
-      Parm *parms = Getattr(ni, "parms");
-      if (is_public(ni)) {
-	/* emit public constructor */
-	classDirectorConstructor(ni);
-	constructor = 1;
-	if (default_ctor)
-	  default_ctor = !ParmList_numrequired(parms);
-      } else {
-	/* emit protected constructor if needed */
-	if (need_nonpublic_ctor(ni)) {
-	  classDirectorConstructor(ni);
-	  constructor = 1;
-	  protected_ctor = 1;
-	  if (default_ctor)
-	    default_ctor = !ParmList_numrequired(parms);
-	}
+    if (Equal(nodeType, "constructor")) {
+      Append(constructors, ni);
+    } else if (Equal(nodeType, "using") && GetFlag(ni, "usingctor")) {
+      for (Node *ui = firstChild(ni); ui; ui = nextSibling(ui)) {
+	Append(constructors, ui);
       }
     }
   }
+  for (Iterator it = First(constructors); it.item; it = Next(it)) {
+    Node *ni = it.item;
+    if (GetFlag(ni, "feature:ignore"))
+      continue;
+
+    Parm *parms = Getattr(ni, "parms");
+    if (is_public(ni)) {
+      /* emit public constructor */
+      classDirectorConstructor(ni);
+      constructor = 1;
+      if (default_ctor)
+	default_ctor = !ParmList_numrequired(parms);
+    } else {
+      /* emit protected constructor if needed */
+      if (need_nonpublic_ctor(ni)) {
+	classDirectorConstructor(ni);
+	constructor = 1;
+	protected_ctor = 1;
+	if (default_ctor)
+	  default_ctor = !ParmList_numrequired(parms);
+      }
+    }
+  }
+  Delete(constructors);
+
   /* emit default constructor if needed */
   if (!constructor) {
     if (!default_ctor) {
@@ -2294,164 +2307,6 @@ int Language::classDirector(Node *n) {
  * Language::classDeclaration()
  * ---------------------------------------------------------------------- */
 
-static void addCopyConstructor(Node *n) {
-  Node *cn = NewHash();
-  set_nodeType(cn, "constructor");
-  Setattr(cn, "access", "public");
-  Setfile(cn, Getfile(n));
-  Setline(cn, Getline(n));
-
-  String *cname = Getattr(n, "name");
-  SwigType *type = Copy(cname);
-  String *name = Swig_scopename_last(cname);
-  String *cc = NewStringf("r.q(const).%s", type);
-  String *decl = NewStringf("f(%s).", cc);
-  String *oldname = Getattr(n, "sym:name");
-
-  if (Getattr(n, "allocate:has_constructor")) {
-    // to work properly with '%rename Class', we must look
-    // for any other constructor in the class, which has not been
-    // renamed, and use its name as oldname.
-    Node *c;
-    for (c = firstChild(n); c; c = nextSibling(c)) {
-      const char *tag = Char(nodeType(c));
-      if (strcmp(tag, "constructor") == 0) {
-	String *cname = Getattr(c, "name");
-	String *csname = Getattr(c, "sym:name");
-	String *clast = Swig_scopename_last(cname);
-	if (Equal(csname, clast)) {
-	  oldname = csname;
-	  break;
-	}
-      }
-    }
-  }
-
-  String *symname = Swig_name_make(cn, cname, name, decl, oldname);
-  if (Strcmp(symname, "$ignore") != 0) {
-    Parm *p = NewParm(cc, "other", n);
-
-    Setattr(cn, "name", name);
-    Setattr(cn, "sym:name", symname);
-    SetFlag(cn, "feature:new");
-    Setattr(cn, "decl", decl);
-    Setattr(cn, "parentNode", n);
-    Setattr(cn, "parms", p);
-    Setattr(cn, "copy_constructor", "1");
-
-    Symtab *oldscope = Swig_symbol_setscope(Getattr(n, "symtab"));
-    Node *on = Swig_symbol_add(symname, cn);
-    Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(0), name, decl, cn);
-    Swig_symbol_setscope(oldscope);
-
-    if (on == cn) {
-      Node *access = NewHash();
-      set_nodeType(access, "access");
-      Setattr(access, "kind", "public");
-      appendChild(n, access);
-      appendChild(n, cn);
-      Setattr(n, "has_copy_constructor", "1");
-      Setattr(n, "copy_constructor_decl", decl);
-      Setattr(n, "allocate:copy_constructor", "1");
-      Delete(access);
-    }
-  }
-  Delete(cn);
-  Delete(name);
-  Delete(decl);
-  Delete(symname);
-}
-
-static void addDefaultConstructor(Node *n) {
-  Node *cn = NewHash();
-  set_nodeType(cn, "constructor");
-  Setattr(cn, "access", "public");
-  Setfile(cn, Getfile(n));
-  Setline(cn, Getline(n));
-
-  String *cname = Getattr(n, "name");
-  String *name = Swig_scopename_last(cname);
-  String *decl = NewString("f().");
-  String *oldname = Getattr(n, "sym:name");
-  String *symname = Swig_name_make(cn, cname, name, decl, oldname);
-  if (Strcmp(symname, "$ignore") != 0) {
-    Setattr(cn, "name", name);
-    Setattr(cn, "sym:name", symname);
-    SetFlag(cn, "feature:new");
-    Setattr(cn, "decl", decl);
-    Setattr(cn, "parentNode", n);
-    Setattr(cn, "default_constructor", "1");
-    Symtab *oldscope = Swig_symbol_setscope(Getattr(n, "symtab"));
-    Node *on = Swig_symbol_add(symname, cn);
-    Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(0), name, decl, cn);
-    Swig_symbol_setscope(oldscope);
-
-    if (on == cn) {
-      Node *access = NewHash();
-      set_nodeType(access, "access");
-      Setattr(access, "kind", "public");
-      appendChild(n, access);
-      appendChild(n, cn);
-      Setattr(n, "has_default_constructor", "1");
-      Setattr(n, "allocate:default_constructor", "1");
-      Delete(access);
-    }
-  }
-  Delete(cn);
-  Delete(name);
-  Delete(decl);
-  Delete(symname);
-}
-
-static void addDestructor(Node *n) {
-  Node *cn = NewHash();
-  set_nodeType(cn, "destructor");
-  Setattr(cn, "access", "public");
-  Setfile(cn, Getfile(n));
-  Setline(cn, Getline(n));
-
-  String *cname = Getattr(n, "name");
-  String *name = Swig_scopename_last(cname);
-  Insert(name, 0, "~");
-  String *decl = NewString("f().");
-  String *symname = Swig_name_make(cn, cname, name, decl, 0);
-  if (Strcmp(symname, "$ignore") != 0) {
-    String *possible_nonstandard_symname = NewStringf("~%s", Getattr(n, "sym:name"));
-
-    Setattr(cn, "name", name);
-    Setattr(cn, "sym:name", symname);
-    Setattr(cn, "decl", "f().");
-    Setattr(cn, "parentNode", n);
-
-    Symtab *oldscope = Swig_symbol_setscope(Getattr(n, "symtab"));
-    Node *nonstandard_destructor = Equal(possible_nonstandard_symname, symname) ? 0 : Swig_symbol_clookup(possible_nonstandard_symname, 0);
-    Node *on = Swig_symbol_add(symname, cn);
-    Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(0), name, decl, cn);
-    Swig_symbol_setscope(oldscope);
-
-    if (on == cn) {
-      // SWIG accepts a non-standard named destructor in %extend that uses a typedef for the destructor name
-      // For example: typedef struct X {} XX; %extend X { ~XX() {...} }
-      // Don't add another destructor if a nonstandard one has been declared
-      if (!nonstandard_destructor) {
-	Node *access = NewHash();
-	set_nodeType(access, "access");
-	Setattr(access, "kind", "public");
-	appendChild(n, access);
-	appendChild(n, cn);
-	Setattr(n, "has_destructor", "1");
-	Setattr(n, "allocate:destructor", "1");
-	Delete(access);
-      }
-    }
-    Delete(possible_nonstandard_symname);
-  }
-  Delete(cn);
-  Delete(name);
-  Delete(decl);
-  Delete(symname);
-}
-
 int Language::classDeclaration(Node *n) {
   String *ochildren = Getattr(n, "feature:onlychildren");
   if (ochildren) {
@@ -2524,44 +2379,19 @@ int Language::classDeclaration(Node *n) {
 
   /* Call classHandler() here */
   if (!ImportMode) {
-    if (directorsEnabled()) {
+    if (Swig_directors_enabled()) {
       int ndir = GetFlag(n, "feature:director");
       int nndir = GetFlag(n, "feature:nodirector");
       /* 'nodirector' has precedence over 'director' */
       dir = (ndir || nndir) ? (ndir && !nndir) : 0;
-    }
-    int abstract = !dir && abstractClassTest(n);
-    int odefault = !GetFlag(n, "feature:nodefault");
-
-    /* default constructor */
-    if (!abstract && !GetFlag(n, "feature:nodefaultctor") && odefault) {
-      if (!Getattr(n, "has_constructor") && !Getattr(n, "allocate:has_constructor") && (Getattr(n, "allocate:default_constructor"))) {
-	addDefaultConstructor(n);
-      }
-    }
-    /* copy constructor */
-    if (CPlusPlus && !abstract && GetFlag(n, "feature:copyctor")) {
-      if (!Getattr(n, "has_copy_constructor") && !Getattr(n, "allocate:has_copy_constructor")
-	  && (Getattr(n, "allocate:copy_constructor"))
-	  && (!GetFlag(n, "feature:ignore"))) {
-	addCopyConstructor(n);
-      }
-    }
-    /* default destructor */
-    if (!GetFlag(n, "feature:nodefaultdtor") && odefault) {
-      if (!Getattr(n, "has_destructor") && (!Getattr(n, "allocate:has_destructor"))
-	  && (Getattr(n, "allocate:default_destructor"))
-	  && (!GetFlag(n, "feature:ignore"))) {
-	addDestructor(n);
-      }
     }
 
     if (dir) {
       DirectorClassName = directorClassName(n);
       classDirector(n);
     }
-    /* check for abstract after resolving directors */
 
+    /* check for abstract after resolving directors */
     Abstract = abstractClassTest(n);
     classHandler(n);
   } else {
@@ -2725,13 +2555,18 @@ int Language::constructorDeclaration(Node *n) {
       return SWIG_NOWRAP;
   }
 
-  /* Name adjustment for %rename */
+  // Name adjustment of constructor when a class has been renamed with %rename
   Swig_save("constructorDeclaration", n, "sym:name", NIL);
 
   {
     String *base = Swig_scopename_last(name);
-    if ((Strcmp(base, symname) == 0) && (Strcmp(symname, ClassPrefix) != 0)) {
-      Setattr(n, "sym:name", ClassPrefix);
+    // Note that it is possible for the constructor to have a different name to the class name in
+    // some target languages, where it is wrapped as a factory type function instead of a constructor.
+    if (Equal(base, symname) && !Equal(symname, ClassPrefix)) {
+      // Adjust name, except when the constructor's name comes from a templated constructor,
+      // where the name passed to %template is used instead.
+      if (!Getattr(n, "template"))
+	Setattr(n, "sym:name", ClassPrefix);
     }
     Delete(base);
   }
@@ -2914,16 +2749,29 @@ int Language::destructorDeclaration(Node *n) {
     Setattr(n, "sym:name", ClassPrefix);
   }
 
-  String *expected_name = ClassName;
-  String *scope = Swig_scopename_check(ClassName) ? Swig_scopename_prefix(ClassName) : 0;
-  String *actual_name = scope ? NewStringf("%s::%s", scope, name) : NewString(name);
-  Delete(scope);
-  Replace(actual_name, "~", "", DOH_REPLACE_FIRST);
+  String *nprefix = 0;
+  String *nlast = 0;
+  String *tprefix;
+  Swig_scopename_split(ClassName, &nprefix, &nlast);
+  tprefix = SwigType_templateprefix(nlast);
+  String *expected_name = NewStringf("~%s", tprefix);
+
+  String *actual_name = Copy(name);
   if (!Equal(actual_name, expected_name) && !(Getattr(n, "template"))) {
     bool illegal_name = true;
     if (Extend) {
       // Check for typedef names used as a destructor name in %extend. This is deprecated except for anonymous
       // typedef structs which have had their symbol names adjusted to the typedef name in the parser.
+      Replace(actual_name, "~", "", DOH_REPLACE_FIRST);
+      Replace(expected_name, "~", "", DOH_REPLACE_FIRST);
+      if (Len(nprefix) > 0) {
+	String *old_actual_name = actual_name;
+	String *old_expected_name = expected_name;
+	actual_name = NewStringf("%s::%s", nprefix, actual_name);
+	expected_name = NewStringf("%s::%s", nprefix, expected_name);
+	Delete(old_expected_name);
+	Delete(old_actual_name);
+      }
       SwigType *name_resolved = SwigType_typedef_resolve_all(actual_name);
       SwigType *expected_name_resolved = SwigType_typedef_resolve_all(expected_name);
 
@@ -2945,6 +2793,11 @@ int Language::destructorDeclaration(Node *n) {
     if (illegal_name) {
       Swig_warning(WARN_LANG_ILLEGAL_DESTRUCTOR, input_file, line_number, "Illegal destructor name %s. Ignored.\n", Swig_name_decl(n));
       Swig_restore(n);
+      Delete(tprefix);
+      Delete(nlast);
+      Delete(nprefix);
+      Delete(expected_name);
+      Delete(actual_name);
       return SWIG_NOWRAP;
     }
   }
@@ -2952,6 +2805,11 @@ int Language::destructorDeclaration(Node *n) {
 
   Setattr(CurrentClass, "has_destructor", "1");
   Swig_restore(n);
+  Delete(tprefix);
+  Delete(nlast);
+  Delete(nprefix);
+  Delete(expected_name);
+  Delete(actual_name);
   return SWIG_OK;
 }
 
@@ -3513,19 +3371,19 @@ int Language::cplus_runtime_mode() {
 }
 
 /* -----------------------------------------------------------------------------
+ * Language::directorLanguage()
+ * ----------------------------------------------------------------------------- */
+
+void Language::directorLanguage(int val) {
+  director_language = val;
+}
+
+/* -----------------------------------------------------------------------------
  * Language::allow_directors()
  * ----------------------------------------------------------------------------- */
 
 void Language::allow_directors(int val) {
-  directors = val;
-}
-
-/* -----------------------------------------------------------------------------
- * Language::directorsEnabled()
- * ----------------------------------------------------------------------------- */
-
-int Language::directorsEnabled() const {
-  return director_language && CPlusPlus && (directors || director_mode);
+  directors_allowed = val;
 }
 
 /* -----------------------------------------------------------------------------
@@ -3549,7 +3407,7 @@ void Language::allow_allprotected(int val) {
  * ----------------------------------------------------------------------------- */
 
 int Language::dirprot_mode() const {
-  return directorsEnabled() ? director_protected_mode : 0;
+  return Swig_directors_enabled() ? director_protected_mode : 0;
 }
 
 /* -----------------------------------------------------------------------------
@@ -3585,7 +3443,7 @@ int Language::need_nonpublic_ctor(Node *n) {
      members, and use %ignore for the method you don't want to add in
      the director class.
    */
-  if (directorsEnabled()) {
+  if (Swig_directors_enabled()) {
     if (is_protected(n)) {
       if (dirprot_mode()) {
 	/* when using dirprot mode, the protected constructors are
@@ -3618,7 +3476,7 @@ int Language::need_nonpublic_ctor(Node *n) {
  * Language::need_nonpublic_member()
  * ----------------------------------------------------------------------------- */
 int Language::need_nonpublic_member(Node *n) {
-  if (directorsEnabled() && DirectorClassName) {
+  if (Swig_directors_enabled() && DirectorClassName) {
     if (is_protected(n)) {
       if (dirprot_mode()) {
 	/* when using dirprot mode, the protected members are always needed. */
@@ -3783,10 +3641,10 @@ String *Language::getClassType() const {
 }
 
 /* -----------------------------------------------------------------------------
- * Language::abstractClassTest()
+ * Dispatcher::abstractClassTest()
  * ----------------------------------------------------------------------------- */
 //#define SWIG_DEBUG
-int Language::abstractClassTest(Node *n) {
+int Dispatcher::abstractClassTest(Node *n) {
   /* check for non public operator new */
   if (GetFlag(n, "feature:notabstract"))
     return 0;
@@ -3815,7 +3673,7 @@ int Language::abstractClassTest(Node *n) {
 #endif
   if (!labs)
     return 0;			/*strange, but need to be fixed */
-  if (abstracts && !directorsEnabled())
+  if (abstracts && !Swig_directors_enabled())
     return 1;
   if (!GetFlag(n, "feature:director"))
     return 1;
