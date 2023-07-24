@@ -1,0 +1,13 @@
+cpp_scope_bad.i:4: Error: Undefined scope 'Space::A< Tnum >'
+cpp_scope_bad.i:4: Warning 317: Specialization of non-template 'Space::A'.
+cpp_scope_bad.i:13: Error: 'N::C' resolves to 'N::C' and was incorrectly instantiated in scope 'unrelated' instead of within scope 'N'.
+cpp_scope_bad.i:14: Warning 320: Explicit template instantiation ignored.
+cpp_scope_bad.i:18: Error: 'N::C' resolves to 'N::C' and was incorrectly instantiated in scope 'Outer::Unrelated< X >' instead of within scope 'N'.
+cpp_scope_bad.i:19: Warning 320: Explicit template instantiation ignored.
+cpp_scope_bad.i:20: Warning 325: Nested struct not currently supported (Unrelated< X > ignored)
+cpp_scope_bad.i:23: Error: Using the unary scope operator :: in class definition '::X::Y< int >' is invalid.
+cpp_scope_bad.i:26: Error: Nothing known about namespace 'Nope< double >'
+cpp_scope_bad.i:34: Error: 'NotANamespace< double >' is not a namespace.
+cpp_scope_bad.i:36: Error: 'NotANamespace< int >' is not a namespace
+cpp_scope_bad.i:37: Error: Unknown namespace 'Nope< double >'
+cpp_scope_bad.i:23: Warning 503: Can't wrap class Y< int > unless renamed to a valid identifier.

@@ -1007,7 +1007,7 @@ static String *resolve_create_node_scope(String *cname_in, int is_class_definiti
 
   if (Strncmp(cname, "::", 2) == 0) {
     if (is_class_definition) {
-      Swig_error(cparse_file, cparse_line, "Using the unary scope operator :: in class definition '%s' is invalid.\n", cname);
+      Swig_error(cparse_file, cparse_line, "Using the unary scope operator :: in class definition '%s' is invalid.\n", SwigType_namestr(cname));
       *errored = 1;
       return last;
     }
@@ -1116,7 +1116,8 @@ Printf(stdout, "comparing current: [%s] found: [%s]\n", current_scopename, found
 
 	if (fail) {
 	  String *cname_resolved = NewStringf("%s::%s", found_scopename, last);
-	  Swig_error(cparse_file, cparse_line, "'%s' resolves to '%s' and was incorrectly instantiated in scope '%s' instead of within scope '%s'.\n", cname_in, cname_resolved, current_scopename, found_scopename);
+	  Swig_error(cparse_file, cparse_line, "'%s' resolves to '%s' and was incorrectly instantiated in scope '%s' instead of within scope '%s'.\n",
+	    SwigType_namestr(cname_in), SwigType_namestr(cname_resolved), SwigType_namestr(current_scopename), SwigType_namestr(found_scopename));
 	  *errored = 1;
 	  Delete(cname_resolved);
 	}
@@ -1127,7 +1128,7 @@ Printf(stdout, "comparing current: [%s] found: [%s]\n", current_scopename, found
     }
   } else if (!is_class_definition) {
     /* A template instantiation requires a template to be found in scope */
-    Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", cname_in);
+    Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", SwigType_namestr(cname_in));
     *errored = 1;
   }
 
@@ -1153,12 +1154,12 @@ Printf(stdout, "comparing current: [%s] found: [%s]\n", current_scopename, found
     /* Try to locate the scope */
     ns = Swig_symbol_clookup(prefix,0);
     if (!ns) {
-      Swig_error(cparse_file,cparse_line,"Undefined scope '%s'\n", prefix);
+      Swig_error(cparse_file, cparse_line, "Undefined scope '%s'\n", SwigType_namestr(prefix));
       *errored = 1;
     } else {
       Symtab *nstab = Getattr(ns,"symtab");
       if (!nstab) {
-	Swig_error(cparse_file,cparse_line, "'%s' is not defined as a valid scope.\n", prefix);
+	Swig_error(cparse_file, cparse_line, "'%s' is not defined as a valid scope.\n", SwigType_namestr(prefix));
 	*errored = 1;
 	ns = 0;
       } else {
@@ -1316,7 +1317,7 @@ static Node *nested_forward_declaration(const String *storage, const String *kin
       Node *n = nn;
       if (!GetFlag(n, "feature:ignore")) {
 	SWIG_WARN_NODE_BEGIN(n);
-	Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, sname ? sname : name);
+	Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (%s ignored)\n", kind, SwigType_namestr(sname ? sname : name));
 	SWIG_WARN_NODE_END(n);
       }
     } else {
@@ -4535,7 +4536,7 @@ cpp_using_decl : USING idcolon SEMI {
              | USING NAMESPACE idcolon SEMI {
 	       Node *n = Swig_symbol_clookup($3,0);
 	       if (!n) {
-		 Swig_error(cparse_file, cparse_line, "Nothing known about namespace '%s'\n", $3);
+		 Swig_error(cparse_file, cparse_line, "Nothing known about namespace '%s'\n", SwigType_namestr($3));
 		 $$ = 0;
 	       } else {
 
@@ -4553,7 +4554,7 @@ cpp_using_decl : USING idcolon SEMI {
 		       Swig_symbol_inherit(symtab);
 		     }
 		   } else {
-		     Swig_error(cparse_file, cparse_line, "'%s' is not a namespace.\n", $3);
+		     Swig_error(cparse_file, cparse_line, "'%s' is not a namespace.\n", SwigType_namestr($3));
 		     $$ = 0;
 		   }
 		 } else {
@@ -4651,11 +4652,11 @@ Printf(stdout, "  Scope %s [creating single scope C++17 style]\n", scopename);
 	       Setattr($$,"alias",$4);
 	       n = Swig_symbol_clookup($4,0);
 	       if (!n) {
-		 Swig_error(cparse_file, cparse_line, "Unknown namespace '%s'\n", $4);
+		 Swig_error(cparse_file, cparse_line, "Unknown namespace '%s'\n", SwigType_namestr($4));
 		 $$ = 0;
 	       } else {
 		 if (Strcmp(nodeType(n),"namespace") != 0) {
-		   Swig_error(cparse_file, cparse_line, "'%s' is not a namespace\n",$4);
+		   Swig_error(cparse_file, cparse_line, "'%s' is not a namespace\n", SwigType_namestr($4));
 		   $$ = 0;
 		 } else {
 		   while (Getattr(n,"alias")) {
