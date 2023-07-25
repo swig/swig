@@ -753,7 +753,7 @@ if(js_exception)
 <p>The Node-API generator supports generating asynchronous wrappers. This feature is tightly linked to Node.js and libuv and mimics the semantics of the built-in class library. An asynchronous version of a function parses its arguments on the main thread and then queues the execution of the underlying C/C++ method in one of the existing background threads of the libuv pool. It then returns a <code>Promise</code> that resolves or rejects with the return value of the C/C++ function. The JavaScript code can continue its execution while the operation is running. This also allows launching multiple parallel instances of the C/C++ methods when these are reentrant. Otherwise, special locking must be implemented. By default, Node.js launches 4 worker threads which are also used by the internal class library for performing asynchonous file I/O (ie <code>fs.readFile()</code>). This behaviour can be adjusted via the environment variable <code>UV_THREADPOOL_SIZE</code>. For best results, this should be equal to the number of physical CPU cores.</p>
 
 <p>Generation of asynchronous wrappers can be globally enabled from the CLI by passing <code>-async</code> option or by using <code>%feature</code>:</p>
-<code>
+<div class="code">
 <pre>
 // Generate sync wrappers with the suffix Sync
 %feature("sync", "Sync");
@@ -764,7 +764,7 @@ if(js_exception)
 // eventually, do not generate an async version for Klass::alwaysSync()
 %feature("async", 0) Klass::alwaysSync
 </pre>
-</code>
+</div>
         
 <p>By default, only synchronous wrappers are generated. Only global functions and class methods can be asynchronous. Constructors, getters and setters are always synchronous.</p>
 
@@ -780,14 +780,14 @@ if(js_exception)
 <H3><a name="Javascript_async_persistence">28.6.1 Persistence</a></H3>
 
 <p>Asynchronous wrappers must manage persistence of the objects they will access. Consider the following example:</p>
-<code>
+<div class="code">
 <pre>
 function fn() {
   let obj = new asyncObj();  // This is a SWIG wrapped object
   obj.asyncMethod().then((r) => console.log(r));
 }
 </pre>
-</code>
+</div>
 <p><code>fn()</code> will potentially exit before the asynchronous operation has completed. There is nothing guaranteeing that <code>obj</code> won't be collected by the GC right after the synchronous parsing of the input arguments of <code>asyncMethod()</code> - as this is the last reference to the JS object. Destroying the JS object will also destroy the underlying wrapped C/C++ object. In order to prevent this, an asynchronous wrapper must acquire persistent references to all objects that it will access. Persistence is fully automatic, SWIG will generate a <code>SWIG_Persist</code> method in all asynchronous tasklets that will acquire persistent references to all objects present in the input arguments of the function for the duration of the asynchronous execution.
 </p>
 
