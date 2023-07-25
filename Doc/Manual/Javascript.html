@@ -788,7 +788,7 @@ function fn() {
 }
 </pre>
 </code>
-<p><code>fn()</code> will potentially exit before the asynchronous operation has completed. There is nothing guaranteeing that <code>obj</code> won't be collected by the GC right after the synchronous parsing of the input arguments of <code>asyncMethod()</code> - as this is the last reference to the JS object. Destroying the JS object will also destroy the underlying wrapped C/C++ object. In order to prevent this, an asynchronous wrapper must acquire persistent references to all objects that it will access. A new typemap, specific to Node-API async mode, <code>async_in</code>, can be used to acquire this reference - this typemap is evaluated on the main thread right after <code>check</code> typemaps. A default implementation which should work for all trivial wrapped objects can be found in <code>javascriptasync.swg</code>.
+<p><code>fn()</code> will potentially exit before the asynchronous operation has completed. There is nothing guaranteeing that <code>obj</code> won't be collected by the GC right after the synchronous parsing of the input arguments of <code>asyncMethod()</code> - as this is the last reference to the JS object. Destroying the JS object will also destroy the underlying wrapped C/C++ object. In order to prevent this, an asynchronous wrapper must acquire persistent references to all objects that it will access. Persistence is fully automatic, SWIG will generate a <code>SWIG_Persist</code> method in all asynchronous tasklets that will acquire persistent references to all objects present in the input arguments of the function for the duration of the asynchronous execution.
 </p>
 
 <H3><a name="Javascript_async_locking">28.6.2 Locking</a></H3>

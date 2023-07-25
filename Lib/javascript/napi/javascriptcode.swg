@@ -370,7 +370,7 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   $jsmangledname_$jswrapper_Tasklet *self = new $jsmangledname_$jswrapper_Tasklet(env);
   self->Init(info);
   self->Queue();
-  return self->deferred.Promise();
+  return self->SWIG_deferred.Promise();
   goto fail;
 fail:
   return Napi::Value();
@@ -529,7 +529,7 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   $jsmangledname_$jswrapper_Tasklet *self = new $jsmangledname_$jswrapper_Tasklet(env);
   self->Init(info);
   self->Queue();
-  return self->deferred.Promise();
+  return self->SWIG_deferred.Promise();
   goto fail;
 fail:
   return Napi::Value();
@@ -606,7 +606,7 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   $jsmangledname_$jswrapper_Tasklet *self = new $jsmangledname_$jswrapper_Tasklet(env);
   self->Init(info);
   self->Queue();
-  return self->deferred.Promise();
+  return self->SWIG_deferred.Promise();
   goto fail;
 fail:
   return Napi::Value();
@@ -660,7 +660,7 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   $jsmangledname_$jswrapper_Tasklet *self = new $jsmangledname_$jswrapper_Tasklet(env);
   self->Init(info);
   self->Queue();
-  return self->deferred.Promise();
+  return self->SWIG_deferred.Promise();
   goto fail;
 fail:
   return Napi::Value();
@@ -726,9 +726,10 @@ template <typename NAPI_ASYNC_WORKER>
 class $jsmangledname_$jswrapper_Tasklet_templ : public NAPI_ASYNC_WORKER {
   Napi::Env env;
 public:
-  Napi::Promise::Deferred deferred;
+  Napi::Promise::Deferred SWIG_deferred;
 private:
   using NAPI_ASYNC_WORKER::SetError;
+  // This is a lock/unlock function
   typedef void ($jsmangledname_$jswrapper_Tasklet_templ::*SWIG_Async_Lock_Func)();
   typedef std::pair<SWIG_Async_Lock_Func, SWIG_Async_Lock_Func> SWIG_Lock;
   // This vector holds pointers to the locks and the lockers/unlockers used
@@ -744,7 +745,7 @@ public:
   $jsmangledname_$jswrapper_Tasklet_templ(Napi::Env _env) :
     Napi::AsyncWorker(_env, "SWIG_$jswrapper_Async_Worker"),
     env(_env),
-    deferred(Napi::Promise::Deferred::New(_env)),
+    SWIG_deferred(Napi::Promise::Deferred::New(_env)),
     SWIG_locks(),
     SWIG_persistent() {}
 
@@ -761,7 +762,7 @@ public:
     Napi::HandleScope scope(env);
     Napi::Value jsresult;
     $jsoutput
-    deferred.Resolve(jsresult);
+    SWIG_deferred.Resolve(jsresult);
     goto fail;
   fail:
     Cleanup();
@@ -770,7 +771,7 @@ public:
   virtual void OnError(const Napi::Error &error) override {
     // Back in the main thread with V8 access
     Napi::HandleScope scope(env);
-    deferred.Reject(error.Value());
+    SWIG_deferred.Reject(error.Value());
     Cleanup();
   }
 
@@ -808,8 +809,20 @@ public:
     return;
   }
 
+  virtual void SWIG_Persist(const Napi::Value &v) {
+    if (v.IsObject()) {
+      Napi::Object obj;
+      NAPI_CHECK_RESULT(v.ToObject(), obj);
+      Napi::ObjectReference *ref = new Napi::ObjectReference();
+      *ref = Napi::Persistent(obj);
+      SWIG_persistent.push_back(ref);
+    }
+  }
+
   virtual void Init(const Napi::CallbackInfo &info) {
     $jsinput
+    SWIG_Persist(info.This());
+    for (size_t i = 0; i < info.Length(); i++) SWIG_Persist(info[i]);
     goto fail;
   fail:
     return;

@@ -49,10 +49,6 @@
         SWIG_locks.insert({reinterpret_cast<void*>(ow), {&$classname::SWIG_pre_$1, &$classname::SWIG_post_$1}});
       }
     }
-
-    Napi::ObjectReference *ref = new Napi::ObjectReference();
-    *ref = Napi::Persistent(obj);
-    SWIG_persistent.push_back(ref);
   }
 }
 
