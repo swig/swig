@@ -761,7 +761,7 @@ if(js_exception)
 %feature("async", "Async");
 // or generate async wrappers without suffix (this is the Node.js built-in class library convention)
 %feature("async", 1);
-// enventually, do not generate an async version for Klass::alwaysSync()
+// eventually, do not generate an async version for Klass::alwaysSync()
 %feature("async", 0) Klass::alwaysSync
 </pre>
 </code>
@@ -797,7 +797,7 @@ function fn() {
 Asynchornous wrappers allow access to concurrent programming, meaning that multiple instances of the same method on the same object can potentially be running at the same time. Whether this is supported or not will depend on the wrapped C/C++ code. Two new typemaps, specific to Node-API async mode, <code>async_pre</code> and <code>async_post</code>, permit the adding of locking primitives according to the rules of the wrapped underlying C/C++ library. These typemaps are evaluated on the worker threads and are not allowed access to V8. Additionally, all C/C++ objects wrapped by SWIG now contain a mutex that can be used to implement locking. <code>javascriptasync.swg</code> contains an default implementation that automatically locks all wrapped objects. When wrapping objects that support natively being accessed simultaneously from multiple threads - because they are read-only or becase they implement their own synchronisation - these typemaps can be overriden with empty ones.
 </p>
 
-<p>In order to avoid dead-locking, the <code>async_in</code> and <code>async_out</code> typemaps are always executed in the same order for the same objects. This means that both <code>fn(a, b)</code> and <code>fn(b, a)</code> will lock <code>a</code> and <code>b</code> in the same order.</p>
+<p>In order to avoid dead-locking, the <code>async_pre</code> and <code>async_post</code> typemaps are always executed in the same order for the same objects. This means that both <code>fn(a, b)</code> and <code>fn(b, a)</code> will lock <code>a</code> and <code>b</code> in the same order.</p>
 
 <p>
 The current Node.js asynchronous framework has two major weaknesses, both related to locking, which must be understood in order to achieve maximum performance. When designing wrappers that support mixing both synchronous and asynchronous access to the same objects, particular care must be taken to never synchronously access objects that have been locked by an asynchronous operation. Trying to lock such object will result synchronous blocking of the event loop, effectively freezing the main thread - and the program - until the asynchronous operation completes. This is something that should be made clear to the end user of the wrapper. Also, the limited amount the threads in the thread pool can be a cause for thread starvation. With 4 threads, if an end user program launches 4 operations on the same object - then all 4 threads will pick one of them - and then they will sequentially wait for the object to become available - locking out other operations that could have executed in parallel. Asynchronous operations are not preemptible. Both of these weaknesses are inherent to the Node.js asynchronous framework and do not have an easy workaround. For example, in order to partially alleviate the starvation problem, the internal <code>fs.readFile()</code> method schedules its work in small 64Kb chunks to allow other threads to run. This problem can also be partially alleviated by simply raising the number of threads in the pool.
