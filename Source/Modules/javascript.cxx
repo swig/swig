@@ -3008,7 +3008,7 @@ int NAPIEmitter::emitWrapperFunction(Node *n) {
   String *symbol = Getattr(n, "sym:name");
 
   // By default async is off ("0") unless default is async
-  if ((async && !Equal(async, "0")) || js_napi_default_is_async) {
+  if (State::IsSet(async) || js_napi_default_is_async) {
     String *symAsync = Copy(symbol);
     String *nameAsync = Copy(name);
     if (async && !Equal(async, "1")) {
@@ -3026,7 +3026,7 @@ int NAPIEmitter::emitWrapperFunction(Node *n) {
   }
 
   // By default sync is on w/o suffix ("1") unless default is async
-  if ((sync && !Equal(sync, "0")) || !js_napi_default_is_async) {
+  if (State::IsSet(sync) || !js_napi_default_is_async) {
     String *symSync = Copy(symbol);
     String *nameSync = Copy(name);
     if (sync && !Equal(sync, "1")) {
