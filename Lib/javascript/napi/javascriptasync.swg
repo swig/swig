@@ -111,6 +111,54 @@
   long long *INPUT, signed long long *INPUT, unsigned long long *INPUT,
   float *INPUT, double *INPUT ""
 
+%typemap(async_in) bool *INOUT,
+  char *INOUT, signed char *INOUT, unsigned char *INOUT,
+  short *INOUT, signed short *INOUT, unsigned short *INOUT,
+  int *INOUT, signed int *INOUT, unsigned int *INOUT,
+  long *INOUT, signed long *INOUT, unsigned long *INOUT,
+  long long *INOUT, signed long long *INOUT, unsigned long long *INOUT,
+  float *INOUT, double *INOUT ""
+
+%typemap(async_pre) bool *INOUT,
+  char *INOUT, signed char *INOUT, unsigned char *INOUT,
+  short *INOUT, signed short *INOUT, unsigned short *INOUT,
+  int *INOUT, signed int *INOUT, unsigned int *INOUT,
+  long *INOUT, signed long *INOUT, unsigned long *INOUT,
+  long long *INOUT, signed long long *INOUT, unsigned long long *INOUT,
+  float *INOUT, double *INOUT ""
+
+%typemap(async_post) bool *INOUT,
+  char *INOUT, signed char *INOUT, unsigned char *INOUT,
+  short *INOUT, signed short *INOUT, unsigned short *INOUT,
+  int *INOUT, signed int *INOUT, unsigned int *INOUT,
+  long *INOUT, signed long *INOUT, unsigned long *INOUT,
+  long long *INOUT, signed long long *INOUT, unsigned long long *INOUT,
+  float *INOUT, double *INOUT ""
+
+%typemap(async_in) bool *OUTPUT,
+  char *OUTPUT, signed char *OUTPUT, unsigned char *OUTPUT,
+  short *OUTPUT, signed short *OUTPUT, unsigned short *OUTPUT,
+  int *OUTPUT, signed int *OUTPUT, unsigned int *OUTPUT,
+  long *OUTPUT, signed long *OUTPUT, unsigned long *OUTPUT,
+  long long *OUTPUT, signed long long *OUTPUT, unsigned long long *OUTPUT,
+  float *OUTPUT, double *OUTPUT ""
+
+%typemap(async_pre) bool *OUTPUT,
+  char *OUTPUT, signed char *OUTPUT, unsigned char *OUTPUT,
+  short *OUTPUT, signed short *OUTPUT, unsigned short *OUTPUT,
+  int *OUTPUT, signed int *OUTPUT, unsigned int *OUTPUT,
+  long *OUTPUT, signed long *OUTPUT, unsigned long *OUTPUT,
+  long long *OUTPUT, signed long long *OUTPUT, unsigned long long *OUTPUT,
+  float *OUTPUT, double *OUTPUT ""
+
+%typemap(async_post) bool *OUTPUT,
+  char *OUTPUT, signed char *OUTPUT, unsigned char *OUTPUT,
+  short *OUTPUT, signed short *OUTPUT, unsigned short *OUTPUT,
+  int *OUTPUT, signed int *OUTPUT, unsigned int *OUTPUT,
+  long *OUTPUT, signed long *OUTPUT, unsigned long *OUTPUT,
+  long long *OUTPUT, signed long long *OUTPUT, unsigned long long *OUTPUT,
+  float *OUTPUT, double *OUTPUT ""
+
 // strings do not need locking - they are immutable and cannot be accessed w/o V8
 %typemap(async_in) std::string, std::string *, std::string & ""
 %typemap(async_pre) std::string, std::string *, std::string & ""
@@ -119,3 +167,9 @@
 %typemap(async_in) std::string INPUT, std::string *INPUT, std::string &INPUT ""
 %typemap(async_pre) std::string INPUT, std::string *INPUT, std::string &INPUT ""
 %typemap(async_post) std::string INPUT, std::string *INPUT, std::string &INPUT ""
+%typemap(async_in) std::string INOUT, std::string *INOUT, std::string &INOUT ""
+%typemap(async_pre) std::string INOUT, std::string *INOUT, std::string &INOUT ""
+%typemap(async_post) std::string INOUT, std::string *INOUT, std::string &INOUT ""
+%typemap(async_in) std::string OUTPUT, std::string *OUTPUT, std::string &OUTPUT ""
+%typemap(async_pre) std::string OUTPUT, std::string *OUTPUT, std::string &OUTPUT ""
+%typemap(async_post) std::string OUTPUT, std::string *OUTPUT, std::string &OUTPUT ""
