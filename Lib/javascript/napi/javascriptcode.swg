@@ -321,6 +321,8 @@ fail:
  *   - $jsargrequired:  minimum number of arguments
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
+ *   - $jsguard:        locking declaration
+ *   - $jslock:         locking
  *   - $jsaction:       action part of wrapper
  *   - $joutput:        output part of wrapper
  *   - $jscleanup:      cleanup part of wrapper
@@ -332,11 +334,13 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
+  $jsguard
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
 
   $jsinput
+  $jslock
   $jsaction
   $jsoutput
   $jscleanup
@@ -479,6 +483,8 @@ fail:
  *   - $jsargrequired:  minimum number of arguments
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
+ *   - $jsguard:        locking declaration
+ *   - $jslock:         locking
  *   - $jsaction:       action part of wrapper
  *   - $joutput:        output part of wrapper
  *   - $jscleanup:      cleanup part of wrapper
@@ -491,11 +497,13 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
+  $jsguard
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
 
   $jsinput
+  $jslock
   $jsaction
   $jsoutput
   $jscleanup
@@ -567,7 +575,9 @@ fail:
  *   - $jsmangledname: class name
  *   - $jswrapper:     wrapper function name
  *   - $jslocals:      locals part of wrapper
- *   - $jscode:        code part of wrapper
+ *   - $jsguard:       locking declaration
+ *   - $jslock:        locking
+ *   - $jsaction:      code part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_function", "templates")
 %{
@@ -577,7 +587,9 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
+  $jsguard
   $jsinput
+  $jslock
   $jsaction
   $jsoutput
   $jscleanup
@@ -619,6 +631,7 @@ fail:
  *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
+ *   - $jsguard:        locking
  *   - $jsaction:       action part of wrapper
  *   - $joutput:        output part of wrapper
  *   - $jscleanup:      cleanup part of wrapper
@@ -630,7 +643,9 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
+  $jsguard
   $jsinput
+  $jslock
   $jsaction
   $jsoutput
   $jscleanup
@@ -681,7 +696,17 @@ fail:
 %fragment("js_guard", "templates")
 %{
   // js_guard
-  SWIG_Guard guard(SWIG_locks);
+  SWIG_Guard SWIG_guard(SWIG_locks);
+%}
+
+
+/* -----------------------------------------------------------------------------
+ * js_lock:  template for locking
+ * ----------------------------------------------------------------------------- */
+%fragment("js_lock", "templates")
+%{
+  // js_lock
+  SWIG_guard.lock();
 %}
 
 
@@ -693,6 +718,7 @@ fail:
  *   - $jsargrequired:  minimum number of arguments
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
+ *   - $jsguard:        locking declaration
  *   - $jslock:         locking
  *   - $jsaction:       action part of wrapper
  *   - $joutput:        output part of wrapper
@@ -772,6 +798,7 @@ public:
     Napi::Env env(nullptr);
 
     $jsguard
+    $jslock
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
     try {
       $jsaction

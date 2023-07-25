@@ -1,6 +1,12 @@
 %module napi_async_locking
 
+// This test is specific to Node-API
+
 %typemap(lock) UnlockedInteger, UnlockedInteger &, UnlockedInteger * "";
+
+%feature("async", "Async");
+%feature("sync", "Sync");
+%feature("async:locking", "1");
 
 %{
 void inline compute(int &a, const int b) {

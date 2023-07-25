@@ -2923,9 +2923,12 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   // This must be done after input (which resolves the parameters)
   // but before emit_action (which emits the local variables)
   String *guard = NewString("");
+  String *lock = NewString("");
   if (locking_enabled) {
     Template t_guard(getTemplate("js_guard"));
     t_guard.print(guard);
+    Template t_lock(getTemplate("js_lock"));
+    t_lock.print(lock);
   } else {
     if (GetFlag(n, IS_ASYNC))
       Swig_warning(WARN_TYPEMAP_THREAD_UNSAFE, input_file, line_number,
@@ -2959,6 +2962,7 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
       .replace("$jstype", Swig_scopename_last(
                               SwigType_str(SwigType_strip_qualifiers(type), 0)))
       .replace("$jsguard", guard)
+      .replace("$jslock", lock)
       .replace("$jsaction", action)
       .replace("$jsoutput", output)
       .replace("$jscleanup", cleanup)

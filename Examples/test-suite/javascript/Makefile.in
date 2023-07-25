@@ -117,7 +117,7 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
         ifneq (, $(ASYNC))
 		SWIGASYNC = -async -async-locking
 	else
-		SWIGASYNC = -async-locking
+		SWIGASYNC =
 	endif
 
 	setup_node = \

@@ -154,16 +154,21 @@ typedef std::map<void *, SWIG_Lock> SWIG_Locks_List;
 class SWIG_Guard {
 private:
   SWIG_Locks_List &list;
+  bool locked;
 public:
-  SWIG_Guard(SWIG_Locks_List &_list) : list(_list) {
+  SWIG_Guard(SWIG_Locks_List &_list) : list(_list), locked(false) {}
+  virtual ~SWIG_Guard() {
+    if (locked) {
+      for (auto const &lock : list) {
+        lock.second.second();
+      }
+    }
+  }
+  void lock() {
     for (auto const &lock : list) {
       lock.second.first();
     }
-  }
-  virtual ~SWIG_Guard() {
-    for (auto const &lock : list) {
-      lock.second.second();
-    }
+    locked = true;
   }
 };
 
