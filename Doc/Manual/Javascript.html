@@ -49,6 +49,7 @@
 <ul>
 <li><a href="#Javascript_async_sync_locking">Creating Wrappers that Support Mixing Synchronous and Asynchronous Execution</a>
 <li><a href="#Javascript_async_locking_starvation">Avoiding Thread Starvation</a>
+<li><a href="#Javascript_async_shared_locking">Custom Locking Example</a>
 </ul>
 </ul>
 <li><a href="#Javascript_implementation">Implementation</a>
@@ -832,6 +833,42 @@ The last operation will have to lock <code>obj</code> - which has already been l
 <p>
 Another potential weakness of the async framework is thread starvation due to the limited number of threads in the thread pool. With 4 threads, if an end user program launches 4 operations on the same object - then all 4 threads will pick one of them - and then they will sequentially wait for the object to become available - locking out other operations that could have executed in parallel. Asynchronous operations are not preemptible. This weakness is inherent to the Node.js asynchronous framework and does not have an easy workaround. For example, in order to partially alleviate the starvation problem, the internal <code>fs.readFile()</code> method schedules its work in small 64Kb chunks to allow other tasks to run. This problem can also be partially alleviated by simply raising the number of threads in the pool.
 </p>
+
+<H3><a name="Javascript_async_shared_locking">28.6.2.3 Custom Locking Example</H3>
+
+<p>Suppose we have a <code>Klass</code> that natively supports being called from multiple threads with complex locking semantics. We have to call <code>Klass::rolock()</code> to obtain a shared lock and <code>Klass::wrlock()</code> to obtain an exclusive lock. Methods that expect a shared lock have their arguments called <code>inp</code> and methods that expect an exclusive lock have their arguments called <code>out</code>. Here are two example typemaps that implement these semantics:</p>
+
+<div class="code">
+<pre>
+%typemap(lock) Klass *inp, Klass &inp {
+  // lock typemaps run after in and check typemaps, so these cannot fail
+  // we already know that $input is an object of the correct type
+  Klass *ptr;
+  SWIG_ConvertPtr($input, (void**) &ptr, $1_descriptor, 0):
+  // check if the object is not present twice in the arguments, ie fn(a, a)
+  if (SWIG_locks.count(ptr) == 0) {
+    // SWIG will use ptr as value for sorting (this is the dead-lock prevention algorithm)
+    SWIG_locks.insert({reinterpret_cast&lt;void*&gt;(ptr), {
+      [ptr](){ptr->rolock();},
+      [ptr](){ptr->rwunlock();}
+    }});
+  }
+}
+
+%typemap(lock) Klass *out, Klass &out {
+  Klass *ptr;
+  SWIG_ConvertPtr($input, (void**) &ptr, $1_descriptor, 0):
+  if (SWIG_locks.count(ptr) == 0) {
+    SWIG_locks.insert({reinterpret_cast&lt;void*&gt;(ptr), {
+      [ptr](){ptr->wrlock();},
+      [ptr](){ptr->wrunlock();}
+    }});
+  }
+}
+</pre>
+</div>
+
+<p><code>SWIG_locks</code> is the list of locks that have to be acquired for the operation. SWIG will take care of acquiring them in the correct order. Each lock consists of a unique identifier of type <code>void *</code> and two lambdas used for locking and unlocking.</p>
 
 <H2><a name="Javascript_implementation">28.7 Implementation</a></H2>
 
