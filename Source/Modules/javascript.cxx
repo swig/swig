@@ -23,6 +23,7 @@ static bool js_template_enable_debug = false;
  * Create async wrappers by default (NAPI only) 
  */
 static bool js_napi_default_is_async = false;
+static bool js_napi_default_is_locked = false;
 
 #define ERR_MSG_ONLY_ONE_ENGINE_PLEASE "Only one engine can be specified at a time."
 
@@ -82,7 +83,7 @@ public:
   DOH *function(const char *key, DOH *initial = 0);
   DOH *variable(bool reset = false);
   DOH *variable(const char *key, DOH *initial = 0);
-  static int IsSet(DOH *val);
+  static int IsSet(DOH *val, int def = 0);
 
 private:
   DOH *getState(const char *key, bool reset = false);
@@ -551,6 +552,7 @@ Javascript Options (available with -javascript)\n\
      -napi                  - creates a NAPI extension \n\
      -sync                  - create sync wrappers by default (NAPI only, default) \n\
      -async                 - create async wrappers by default (NAPI only) \n\
+     -async-locking         - add locking by default (NAPI only) \n\
      -debug-codetemplates   - generates information about the origin of code templates\n";
 
 /* ---------------------------------------------------------------------
@@ -601,6 +603,9 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-async") == 0) {
         Swig_mark_arg(i);
         js_napi_default_is_async = true;
+      } else if (strcmp(argv[i], "-async-locking") == 0) {
+        Swig_mark_arg(i);
+        js_napi_default_is_locked = true;
       } else if (strcmp(argv[i], "-help") == 0) {
         fputs(usage, stdout);
 	return;
@@ -2489,7 +2494,7 @@ public:
 protected:
   virtual void marshalInputArgs(Node *, ParmList *, Wrapper *, MarshallingMode,
                                 bool, bool);
-  virtual String *emitAsyncTypemaps(Node *, Parm *, Wrapper *, const char *, const char *);
+  virtual String *emitAsyncTypemaps(Node *, Parm *, Wrapper *, const char *);
   virtual int emitNamespaces();
   virtual int emitFunction(Node *, bool, bool);
   virtual int emitCtor(Node *);
@@ -2854,7 +2859,7 @@ int NAPIEmitter::exitVariable(Node *n) {
 }
 
 String *NAPIEmitter::emitAsyncTypemaps(Node *, Parm *parms, Wrapper *,
-                                   const char *tmname, const char *tmpl) {
+                                   const char *tmname) {
   String *result = NewString("");
   String *tmcode = NewString("");
   String *tmnext = NewString("");
@@ -2869,25 +2874,8 @@ String *NAPIEmitter::emitAsyncTypemaps(Node *, Parm *parms, Wrapper *,
 
       // Do not emit typemaps for numinput=0 arguments
       if (arg != nullptr) {
-        // TODO
-        // This is very ugly and stems from the fact the ISO C++
-        // requires that when taking a class method pointer
-        // the method is fully qualified
-        String *klass = NewString("");
         Replaceall(tm, "$input", arg);
-        Printf(klass, "%s_%s_Tasklet_templ",
-               state.clazz(NAME_MANGLED), state.function(WRAPPER_NAME));
-        Replaceall(tm, "$classname", klass);
-        if (tmpl == nullptr) {
-          // No template, add typemap code directly
-          Append(result, tm);
-        } else {
-          // With a template
-          Template t_async = getTemplate(tmpl);
-          t_async.replace("$lname", Getattr(p, "lname"))
-            .replace("$jscode", tm)
-            .pretty_print(result);
-        }
+        Append(result, tm);
         Append(result, "\n");
       }
       p = Getattr(p, tmnext);
@@ -2906,6 +2894,7 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   Template t_function(getTemplate(getFunctionTemplate(n, is_member)));
 
   bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
+  bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"), js_napi_default_is_locked);
 
   // prepare the function wrapper name
   String *iname = Getattr(n, "sym:name");
@@ -2919,13 +2908,10 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
 
   // prepare local variables
   ParmList *params = Getattr(n, "parms");
-  String *pre, *post;
   emit_parameter_variables(params, wrapper);
   emit_attach_parmmaps(params, wrapper);
-  if (GetFlag(n, IS_ASYNC)) {
-    Swig_typemap_attach_parms("async_in", params, wrapper);
-    Swig_typemap_attach_parms("async_pre", params, wrapper);
-    Swig_typemap_attach_parms("async_post", params, wrapper);
+  if (locking_enabled) {
+    Swig_typemap_attach_parms("lock", params, wrapper);
   }
 
   // Historically, marshalInput/marshalOutput/emitCleanupCode
@@ -2936,12 +2922,15 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
 
   // This must be done after input (which resolves the parameters)
   // but before emit_action (which emits the local variables)
-  if (GetFlag(n, IS_ASYNC)) {
-    pre = emitAsyncTypemaps(n, params, wrapper, "async_pre", "js_async_pre");
-    post = emitAsyncTypemaps(n, params, wrapper, "async_post", "js_async_post");
+  String *guard = NewString("");
+  if (locking_enabled) {
+    Template t_guard(getTemplate("js_guard"));
+    t_guard.print(guard);
   } else {
-    pre = NewString("");
-    post = NewString("");
+    if (GetFlag(n, IS_ASYNC))
+      Swig_warning(WARN_TYPEMAP_THREAD_UNSAFE, input_file, line_number,
+                   "Generating an asynchronous wrapper %s without locking.\n",
+                   iname);
   }
 
   String *action = emit_action(n);
@@ -2969,9 +2958,8 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
       .replace("$jsinput", input)
       .replace("$jstype", Swig_scopename_last(
                               SwigType_str(SwigType_strip_qualifiers(type), 0)))
-      .replace("$jspreaction", pre)
+      .replace("$jsguard", guard)
       .replace("$jsaction", action)
-      .replace("$jspostaction", post)
       .replace("$jsoutput", output)
       .replace("$jscleanup", cleanup)
       .replace("$symname", iname)
@@ -3008,7 +2996,8 @@ int NAPIEmitter::emitWrapperFunction(Node *n) {
   String *symbol = Getattr(n, "sym:name");
 
   // By default async is off ("0") unless default is async
-  if (State::IsSet(async) || js_napi_default_is_async) {
+  // also ctors, getters, setters cannot be async
+  if (State::IsSet(async, js_napi_default_is_async)) {
     String *symAsync = Copy(symbol);
     String *nameAsync = Copy(name);
     if (async && !Equal(async, "1")) {
@@ -3026,7 +3015,7 @@ int NAPIEmitter::emitWrapperFunction(Node *n) {
   }
 
   // By default sync is on w/o suffix ("1") unless default is async
-  if (State::IsSet(sync) || !js_napi_default_is_async) {
+  if (State::IsSet(sync, !js_napi_default_is_async)) {
     String *symSync = Copy(symbol);
     String *nameSync = Copy(name);
     if (sync && !Equal(sync, "1")) {
@@ -3206,10 +3195,18 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
     }
   }
 
-  if (GetFlag(n, IS_ASYNC)) {
-    String *async_in = emitAsyncTypemaps(n, parms, wrapper, "async_in", nullptr);
-    Append(wrapper->code, async_in);
-    Delete(async_in);
+  if (State::IsSet(Getattr(n, "feature:async:locking"),
+                   js_napi_default_is_locked)) {
+    String *locks_list = NewString("");
+    Template t_locks(getTemplate("js_locks"));
+    t_locks.print(locks_list);
+    Append(wrapper->locals, locks_list);
+
+    String *lock = emitAsyncTypemaps(n, parms, wrapper, "lock");
+    Append(wrapper->code, lock);
+    Delete(lock);
+
+
   }
 }
 
@@ -3364,13 +3361,13 @@ DOH *JSEmitterState::variable(const char *key, DOH *initial) {
 }
 
 /*static*/
-int JSEmitterState::IsSet(DOH *val) {
+int JSEmitterState::IsSet(DOH *val, int def) {
   if (!val) {
-    return 0;
+    return def;
   } else {
     const char *cval = Char(val);
     if (!cval)
-      return 0;
+      return def;
     return (strcmp(cval, "0") != 0) ? 1 : 0;
   }
 }

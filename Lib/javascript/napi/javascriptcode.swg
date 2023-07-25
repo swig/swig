@@ -133,6 +133,7 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(bool, const Napi::Call
  *   - $jscode:           code part of wrapper
  *   - $jsargcount:       number of arguments
  *   - $jsargrequired:    minimum number of arguments
+ *   - $jsmangledname:    mangled class name
  *   - $jsmangledtype:    mangled type of class
  * ----------------------------------------------------------------------------- */
 %fragment("js_overloaded_ctor", "templates") %{
@@ -314,15 +315,13 @@ fail:
 
 /* -----------------------------------------------------------------------------
  * js_global_function:  template for function wrappers
- *   - $jswrapper:     wrapper function name
- *   - $jslocals:      locals part of wrapper
- *   - $jsargcount:    number of arguments
- *   - $jsargrequired: minimum number of arguments
+ *   - $jswrapper:      wrapper function name
+ *   - $jslocals:       locals part of wrapper
+ *   - $jsargcount:     number of arguments
+ *   - $jsargrequired:  minimum number of arguments
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
- *   - $jspreaction:    preaction part of wrapper
  *   - $jsaction:       action part of wrapper
- *   - $jspostaction:   postaction part of wrapper
  *   - $joutput:        output part of wrapper
  *   - $jscleanup:      cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
@@ -353,6 +352,7 @@ fail:
 /* -----------------------------------------------------------------------------
  * js_global_function_async:  template for async function wrappers
  *   - $jswrapper:      wrapper function name
+ *   - $jsmangledname:  mangled class name
  *   - $jslocals:       locals part of wrapper
  *   - $jsasyncworker:  local async worker class
  *   - $jsargcount:     number of arguments
@@ -618,11 +618,8 @@ fail:
  * js_global_overloaded_function:  template for a global overloaded function
  *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
- *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
- *   - $jspreaction:    preaction part of wrapper
  *   - $jsaction:       action part of wrapper
- *   - $jspostaction:   postaction part of wrapper
  *   - $joutput:        output part of wrapper
  *   - $jscleanup:      cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
@@ -667,28 +664,24 @@ fail:
 }
 %}
 
-/* -----------------------------------------------------------------------------
- * js_async_pre:  template for the async pre typemaps
- *   - $lname:        argument number
- *   - $jscode:       async_pre code
- * ----------------------------------------------------------------------------- */
-%fragment("js_async_pre", "templates")
-%{
-  void SWIG_pre_$lname() {
-    $jscode
-  }
-%}
 
 /* -----------------------------------------------------------------------------
- * js_async_post:  template for the async post typemaps
- *   - $lname:        argument number
- *   - $jscode:       async_post code
+ * js_locks:  template for the locks list
  * ----------------------------------------------------------------------------- */
-%fragment("js_async_post", "templates")
+%fragment("js_locks", "templates")
 %{
-  void SWIG_post_$lname() {
-    $jscode
-  }
+  // js_locks
+  SWIG_Locks_List SWIG_locks;
+%}
+
+
+/* -----------------------------------------------------------------------------
+ * js_guard:  template for locking
+ * ----------------------------------------------------------------------------- */
+%fragment("js_guard", "templates")
+%{
+  // js_guard
+  SWIG_Guard guard(SWIG_locks);
 %}
 
 
@@ -700,9 +693,8 @@ fail:
  *   - $jsargrequired:  minimum number of arguments
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
- *   - $jspreaction:    preaction part of wrapper
+ *   - $jslock:         locking
  *   - $jsaction:       action part of wrapper
- *   - $jspostaction:   postaction part of wrapper
  *   - $joutput:        output part of wrapper
  *   - $jscleanup:      cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
@@ -729,12 +721,6 @@ public:
   Napi::Promise::Deferred SWIG_deferred;
 private:
   using NAPI_ASYNC_WORKER::SetError;
-  // This is a lock/unlock function
-  typedef void ($jsmangledname_$jswrapper_Tasklet_templ::*SWIG_Async_Lock_Func)();
-  typedef std::pair<SWIG_Async_Lock_Func, SWIG_Async_Lock_Func> SWIG_Lock;
-  // This vector holds pointers to the locks and the lockers/unlockers used
-  // by this operation
-  std::map<void *, SWIG_Lock> SWIG_locks;
   // This vector holds persistent references to all JS objects
   // involved in the asynchronous operation - it protects them
   // from being garbage-collected
@@ -746,7 +732,6 @@ public:
     Napi::AsyncWorker(_env, "SWIG_$jswrapper_Async_Worker"),
     env(_env),
     SWIG_deferred(Napi::Promise::Deferred::New(_env)),
-    SWIG_locks(),
     SWIG_persistent() {}
 
   virtual ~$jsmangledname_$jswrapper_Tasklet_templ() {
@@ -782,16 +767,11 @@ public:
     return;
   }
 
-  $jspreaction
-  $jspostaction
-
   virtual void Execute() override {
     // This runs the action code in a worker thread and V8 is not accessible
     Napi::Env env(nullptr);
 
-    for (typename std::map<void *, SWIG_Lock>::iterator it = SWIG_locks.begin(); it != SWIG_locks.end(); it++) {
-      ((*this).*(it->second.first))();
-    }
+    $jsguard
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
     try {
       $jsaction
@@ -803,9 +783,6 @@ public:
 #endif
     goto fail;
   fail:
-    for (typename std::map<void *, SWIG_Lock>::iterator it = SWIG_locks.begin(); it != SWIG_locks.end(); it++) {
-      ((*this).*(it->second.second))();
-    }
     return;
   }
 

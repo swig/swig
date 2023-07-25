@@ -6,7 +6,7 @@
  * Async mode wrappers use three additional typemaps that are
  * unique to Javascript async mode:
  *
- * - async_in
+ * - lock
  *   It is applied on the main thread after the check typemap
  *   It is allowed access to V8
  *   Its main use is to create persistent references to prevent GC
@@ -32,32 +32,24 @@
  * SWIG_NAPI_ObjectWrap_inst wrapper
  * By default, all of them are locked during async operations
  * If an object type supports concurrent access - because it
- * is read-only or because it has its own locking - you should
- * replace these typemaps with empty ones
+ * is read-only or because it has its own locking - these
+ * typemaps should be overriden
  */
 
-%typemap(async_in)
-    SWIGTYPE * (SWIG_NAPI_ObjectWrap_inst *ow),
-    SWIGTYPE & (SWIG_NAPI_ObjectWrap_inst *ow) {
-  ow = nullptr;
+%typemap(lock) SWIGTYPE *, SWIGTYPE &  {
+  SWIG_NAPI_ObjectWrap_inst *ow = nullptr;
   if ($input.IsObject()) {
     Napi::Object obj;
     NAPI_CHECK_RESULT($input.ToObject(), obj);
     if (SWIG_NAPI_IsWrappedObject(env, obj)) {
       ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj);
       if (ow != nullptr && SWIG_locks.count(ow) == 0) {
-        SWIG_locks.insert({reinterpret_cast<void*>(ow), {&$classname::SWIG_pre_$1, &$classname::SWIG_post_$1}});
+          SWIG_locks.insert({reinterpret_cast<void*>(ow), {
+            [ow](){ow->lock();}, [ow](){ow->unlock();}
+          }});
       }
     }
   }
-}
-
-%typemap(async_pre) SWIGTYPE *, SWIGTYPE & {
-  ow$argnum->lock();
-}
-
-%typemap(async_post) SWIGTYPE *, SWIGTYPE & {
-  ow$argnum->unlock();
 }
 
 /*
@@ -78,32 +70,18 @@
   std::string ""
 %enddef
 
-EMPTY_ASYNC_TM(async_in, )
-EMPTY_ASYNC_TM(async_pre, )
-EMPTY_ASYNC_TM(async_post, )
+EMPTY_ASYNC_TM(lock, )
 
 // These are needed becase INPUT/INOUT/OUTPUT can be used with %apply
 // in which case they override the empty typemap
-EMPTY_ASYNC_TM(async_in, *INPUT)
-EMPTY_ASYNC_TM(async_pre, *INPUT)
-EMPTY_ASYNC_TM(async_post, *INPUT)
+EMPTY_ASYNC_TM(lock, *INPUT)
 
-EMPTY_ASYNC_TM(async_in, &INPUT)
-EMPTY_ASYNC_TM(async_pre, &INPUT)
-EMPTY_ASYNC_TM(async_post, &INPUT)
+EMPTY_ASYNC_TM(lock, &INPUT)
 
-EMPTY_ASYNC_TM(async_in, *INOUT)
-EMPTY_ASYNC_TM(async_pre, *INOUT)
-EMPTY_ASYNC_TM(async_post, *INOUT)
+EMPTY_ASYNC_TM(lock, *INOUT)
 
-EMPTY_ASYNC_TM(async_in, &INOUT)
-EMPTY_ASYNC_TM(async_pre, &INOUT)
-EMPTY_ASYNC_TM(async_post, &INOUT)
+EMPTY_ASYNC_TM(lock, &INOUT)
 
-EMPTY_ASYNC_TM(async_in, *OUTPUT)
-EMPTY_ASYNC_TM(async_pre, *OUTPUT)
-EMPTY_ASYNC_TM(async_post, *OUTPUT)
+EMPTY_ASYNC_TM(lock, *OUTPUT)
 
-EMPTY_ASYNC_TM(async_in, &OUTPUT)
-EMPTY_ASYNC_TM(async_pre, &OUTPUT)
-EMPTY_ASYNC_TM(async_post, &OUTPUT)
+EMPTY_ASYNC_TM(lock, &OUTPUT)

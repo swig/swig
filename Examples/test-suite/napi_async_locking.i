@@ -1,7 +1,6 @@
 %module napi_async_locking
 
-%typemap(async_pre) UnlockedInteger, UnlockedInteger &, UnlockedInteger * "";
-%typemap(async_post) UnlockedInteger, UnlockedInteger &, UnlockedInteger * "";
+%typemap(lock) UnlockedInteger, UnlockedInteger &, UnlockedInteger * "";
 
 %{
 void inline compute(int &a, const int b) {

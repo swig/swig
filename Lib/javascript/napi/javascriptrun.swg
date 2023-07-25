@@ -144,6 +144,29 @@ struct EnvInstanceData {
 
 typedef size_t SWIG_NAPI_ClientData;
 
+// A lock is a pair of two lambdas for locking and unlocking
+typedef std::function<void()> SWIG_Async_Lock_Func;
+typedef std::pair<SWIG_Async_Lock_Func, SWIG_Async_Lock_Func> SWIG_Lock;
+// An ordered list of locks
+typedef std::map<void *, SWIG_Lock> SWIG_Locks_List;
+
+// RAII guard, uses a reference to an allocated lock list
+class SWIG_Guard {
+private:
+  SWIG_Locks_List &list;
+public:
+  SWIG_Guard(SWIG_Locks_List &_list) : list(_list) {
+    for (auto const &lock : list) {
+      lock.second.first();
+    }
+  }
+  virtual ~SWIG_Guard() {
+    for (auto const &lock : list) {
+      lock.second.second();
+    }
+  }
+};
+
 // Base class for all wrapped objects,
 // used mostly when unwrapping unknown objects
 template <typename SWIG_OBJ_WRAP>
