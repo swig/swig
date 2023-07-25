@@ -61,115 +61,49 @@
 }
 
 /*
- * Primitives types do not need locking or peristence
+ * Primitives types do not need locking
+ * (this is mostly a performance optimization since only
+ * lockable types are locked)
  */
-%typemap(async_in) bool,
-  char, signed char, unsigned char,
-  short, signed short, unsigned short,
-  int, signed int, unsigned int,
-  long, signed long, unsigned long,
-  long long, signed long long, unsigned long long,
-  float, double ""
+%define EMPTY_ASYNC_TM(TM, ARG)
+%typemap(TM)
+  bool ARG,
+  char ARG, signed char ARG, unsigned char ARG,
+  short ARG, signed short ARG, unsigned short ARG,
+  int ARG, signed int ARG, unsigned int ARG,
+  long ARG, signed long ARG, unsigned long ARG,
+  long long ARG, signed long long ARG, unsigned long long ARG,
+  float ARG, double ARG,
+  // strings do not need locking - they are immutable and cannot be accessed w/o V8
+  std::string ""
+%enddef
 
-%typemap(async_pre) bool,
-  char, signed char, unsigned char,
-  short, signed short, unsigned short,
-  int, signed int, unsigned int,
-  long, signed long, unsigned long,
-  long long, signed long long, unsigned long long,
-  float, double ""
+EMPTY_ASYNC_TM(async_in, )
+EMPTY_ASYNC_TM(async_pre, )
+EMPTY_ASYNC_TM(async_post, )
 
-%typemap(async_post) bool,
-  char, signed char, unsigned char,
-  short, signed short, unsigned short,
-  int, signed int, unsigned int,
-  long, signed long, unsigned long,
-  long long, signed long long, unsigned long long,
-  float, double ""
+// These are needed becase INPUT/INOUT/OUTPUT can be used with %apply
+// in which case they override the empty typemap
+EMPTY_ASYNC_TM(async_in, *INPUT)
+EMPTY_ASYNC_TM(async_pre, *INPUT)
+EMPTY_ASYNC_TM(async_post, *INPUT)
 
-%typemap(async_in) bool *INPUT,
-  char *INPUT, signed char *INPUT, unsigned char *INPUT,
-  short *INPUT, signed short *INPUT, unsigned short *INPUT,
-  int *INPUT, signed int *INPUT, unsigned int *INPUT,
-  long *INPUT, signed long *INPUT, unsigned long *INPUT,
-  long long *INPUT, signed long long *INPUT, unsigned long long *INPUT,
-  float *INPUT, double *INPUT ""
+EMPTY_ASYNC_TM(async_in, &INPUT)
+EMPTY_ASYNC_TM(async_pre, &INPUT)
+EMPTY_ASYNC_TM(async_post, &INPUT)
 
-%typemap(async_pre) bool *INPUT,
-  char *INPUT, signed char *INPUT, unsigned char *INPUT,
-  short *INPUT, signed short *INPUT, unsigned short *INPUT,
-  int *INPUT, signed int *INPUT, unsigned int *INPUT,
-  long *INPUT, signed long *INPUT, unsigned long *INPUT,
-  long long *INPUT, signed long long *INPUT, unsigned long long *INPUT,
-  float *INPUT, double *INPUT ""
+EMPTY_ASYNC_TM(async_in, *INOUT)
+EMPTY_ASYNC_TM(async_pre, *INOUT)
+EMPTY_ASYNC_TM(async_post, *INOUT)
 
-%typemap(async_post) bool *INPUT,
-  char *INPUT, signed char *INPUT, unsigned char *INPUT,
-  short *INPUT, signed short *INPUT, unsigned short *INPUT,
-  int *INPUT, signed int *INPUT, unsigned int *INPUT,
-  long *INPUT, signed long *INPUT, unsigned long *INPUT,
-  long long *INPUT, signed long long *INPUT, unsigned long long *INPUT,
-  float *INPUT, double *INPUT ""
+EMPTY_ASYNC_TM(async_in, &INOUT)
+EMPTY_ASYNC_TM(async_pre, &INOUT)
+EMPTY_ASYNC_TM(async_post, &INOUT)
 
-%typemap(async_in) bool *INOUT,
-  char *INOUT, signed char *INOUT, unsigned char *INOUT,
-  short *INOUT, signed short *INOUT, unsigned short *INOUT,
-  int *INOUT, signed int *INOUT, unsigned int *INOUT,
-  long *INOUT, signed long *INOUT, unsigned long *INOUT,
-  long long *INOUT, signed long long *INOUT, unsigned long long *INOUT,
-  float *INOUT, double *INOUT ""
+EMPTY_ASYNC_TM(async_in, *OUTPUT)
+EMPTY_ASYNC_TM(async_pre, *OUTPUT)
+EMPTY_ASYNC_TM(async_post, *OUTPUT)
 
-%typemap(async_pre) bool *INOUT,
-  char *INOUT, signed char *INOUT, unsigned char *INOUT,
-  short *INOUT, signed short *INOUT, unsigned short *INOUT,
-  int *INOUT, signed int *INOUT, unsigned int *INOUT,
-  long *INOUT, signed long *INOUT, unsigned long *INOUT,
-  long long *INOUT, signed long long *INOUT, unsigned long long *INOUT,
-  float *INOUT, double *INOUT ""
-
-%typemap(async_post) bool *INOUT,
-  char *INOUT, signed char *INOUT, unsigned char *INOUT,
-  short *INOUT, signed short *INOUT, unsigned short *INOUT,
-  int *INOUT, signed int *INOUT, unsigned int *INOUT,
-  long *INOUT, signed long *INOUT, unsigned long *INOUT,
-  long long *INOUT, signed long long *INOUT, unsigned long long *INOUT,
-  float *INOUT, double *INOUT ""
-
-%typemap(async_in) bool *OUTPUT,
-  char *OUTPUT, signed char *OUTPUT, unsigned char *OUTPUT,
-  short *OUTPUT, signed short *OUTPUT, unsigned short *OUTPUT,
-  int *OUTPUT, signed int *OUTPUT, unsigned int *OUTPUT,
-  long *OUTPUT, signed long *OUTPUT, unsigned long *OUTPUT,
-  long long *OUTPUT, signed long long *OUTPUT, unsigned long long *OUTPUT,
-  float *OUTPUT, double *OUTPUT ""
-
-%typemap(async_pre) bool *OUTPUT,
-  char *OUTPUT, signed char *OUTPUT, unsigned char *OUTPUT,
-  short *OUTPUT, signed short *OUTPUT, unsigned short *OUTPUT,
-  int *OUTPUT, signed int *OUTPUT, unsigned int *OUTPUT,
-  long *OUTPUT, signed long *OUTPUT, unsigned long *OUTPUT,
-  long long *OUTPUT, signed long long *OUTPUT, unsigned long long *OUTPUT,
-  float *OUTPUT, double *OUTPUT ""
-
-%typemap(async_post) bool *OUTPUT,
-  char *OUTPUT, signed char *OUTPUT, unsigned char *OUTPUT,
-  short *OUTPUT, signed short *OUTPUT, unsigned short *OUTPUT,
-  int *OUTPUT, signed int *OUTPUT, unsigned int *OUTPUT,
-  long *OUTPUT, signed long *OUTPUT, unsigned long *OUTPUT,
-  long long *OUTPUT, signed long long *OUTPUT, unsigned long long *OUTPUT,
-  float *OUTPUT, double *OUTPUT ""
-
-// strings do not need locking - they are immutable and cannot be accessed w/o V8
-%typemap(async_in) std::string, std::string *, std::string & ""
-%typemap(async_pre) std::string, std::string *, std::string & ""
-%typemap(async_post) std::string, std::string *, std::string & ""
-
-%typemap(async_in) std::string INPUT, std::string *INPUT, std::string &INPUT ""
-%typemap(async_pre) std::string INPUT, std::string *INPUT, std::string &INPUT ""
-%typemap(async_post) std::string INPUT, std::string *INPUT, std::string &INPUT ""
-%typemap(async_in) std::string INOUT, std::string *INOUT, std::string &INOUT ""
-%typemap(async_pre) std::string INOUT, std::string *INOUT, std::string &INOUT ""
-%typemap(async_post) std::string INOUT, std::string *INOUT, std::string &INOUT ""
-%typemap(async_in) std::string OUTPUT, std::string *OUTPUT, std::string &OUTPUT ""
-%typemap(async_pre) std::string OUTPUT, std::string *OUTPUT, std::string &OUTPUT ""
-%typemap(async_post) std::string OUTPUT, std::string *OUTPUT, std::string &OUTPUT ""
+EMPTY_ASYNC_TM(async_in, &OUTPUT)
+EMPTY_ASYNC_TM(async_pre, &OUTPUT)
+EMPTY_ASYNC_TM(async_post, &OUTPUT)
