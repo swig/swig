@@ -1266,6 +1266,12 @@ int JSEmitter::emitConstant(Node *n) {
       .replace("$jswrapper", wname)
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
+      .replace("$jsaction", wrapper->code)
+      .replace("$jsguard", "")
+      .replace("$jslock", "")
+      .replace("$jsinput", "")
+      .replace("$jsoutput", "")
+      .replace("$jscleanup", "")
       .pretty_print(f_wrappers);
 
   exitVariable(n);
