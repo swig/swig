@@ -251,6 +251,8 @@ ${classname_mangled}_templ<SWIG_OBJ_WRAP>::~${classname_mangled}_templ() {
  * js_global_getter:  template for global getter function wrappers
  *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
+ *   - $jsguard:        locking declaration
+ *   - $jslock:         locking
  *   - $jscode:         code part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_global_getter", "templates")
@@ -260,7 +262,12 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
-  $jscode
+  $jsguard
+  $jsinput
+  $jslock
+  $jsaction
+  $jsoutput
+  $jscleanup
   return jsresult;
 
   goto fail;
@@ -274,6 +281,8 @@ fail:
  * js_global_setter:  template for global setter function wrappers
  *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
+ *   - $jsguard:        locking declaration
+ *   - $jslock:         locking
  *   - $jscode:         code part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_global_setter", "templates")
@@ -284,7 +293,11 @@ void $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Value value = info.Length() > 0 ? info[0] : Napi::Value();
   Napi::Value jsresult;
   $jslocals
-  $jscode
+  $jsguard
+  $jsinput
+  $jslock
+  $jsaction
+  $jscleanup
   return;
 
   goto fail;
@@ -430,6 +443,8 @@ fail:
  *   - $jsmangledname:  mangled class name
  *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
+ *   - $jsguard:        locking declaration
+ *   - $jslock:         locking
  *   - $jscode:         code part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_getter", "templates")
@@ -440,7 +455,12 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
-  $jscode
+  $jsguard
+  $jsinput
+  $jslock
+  $jsaction
+  $jsoutput
+  $jscleanup
   return jsresult;
 
   goto fail;
@@ -455,6 +475,8 @@ fail:
  *   - $jsmangledname:  mangled class name
  *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
+ *   - $jsguard:        locking declaration
+ *   - $jslock:         locking
  *   - $jscode:         code part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_setter", "templates")
@@ -465,7 +487,11 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &i
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
-  $jscode
+  $jsguard
+  $jsinput
+  $jslock
+  $jsaction
+  $jscleanup
   return;
 
   goto fail;

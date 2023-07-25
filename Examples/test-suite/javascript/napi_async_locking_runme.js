@@ -1,12 +1,12 @@
 // This test works only with NAPI in async mode
-var napi_async_locking = require('napi_async_locking');
+const napi_async_locking = require('napi_async_locking');
 
-async function test(async, sync) {
+async function test(name, fail, async, sync, getter, setter) {
   // This tests locking
-  var a = new napi_async_locking.Integer(42);
-  var b = new napi_async_locking.Integer(9000);
+  const a = new napi_async_locking.Integer(42);
+  const b = new napi_async_locking.Integer(9000);
 
-  var q = [];
+  const q = [];
   for (let i = 0; i < 1e4; i++) {
     // Test the deadlock prevention too
     q.push(async.call(a, b));
@@ -16,38 +16,47 @@ async function test(async, sync) {
     q.push(async.call(a, a));
   }
 
-  // Test mixing sync and async
-  if (sync) {
+  try {
+    // Test mixing sync and async
     for (let i = 0; i < 1e4; i++) {
-      sync.call(a, b);
-      sync.call(b, a);
+      if (sync) sync.call(a, b);
+      if (sync) sync.call(b, a);
     }
+
+    await Promise.all(q);
+
+    if (a.val !== 42) throw new Error(`Failed, a.val = ${a.val}`);
+  } catch (e) {
+    if (fail) return;
+    else throw e;
   }
 
-  await Promise.all(q);
-
-  return a.val;
+  if (fail) throw new Error(`${name} should have failed`);
 }
 
-var result;
 const Klass = napi_async_locking.Integer.prototype;
 
 // Test async locking
-result = await test(Klass.computeAsync);
-if (result !== 42)
-  throw new Error('Locking w/o sync mixing failed, obtained ' + result);
+await test('Locking w/o sync mixing', false, Klass.computeAsync);
 
 // Test locking when mixing sync and async
-result = await test(Klass.computeAsync, Klass.computeSync);
-if (result !== 42)
-  throw new Error('Locking w/ sync mixing failed, obtained ' + result);
+await test('Locking w/ sync mixing', false, Klass.computeAsync, Klass.computeSync);
 
 // Test validity of the first test (ie without locking it fails)
-result = await test(Klass.computeUnlockedAsync);
-if (result === 42)
-  throw new Error('Locking w/o sync mixing should have failed, obtained ' + result);
+await test('Locking w/o sync mixing', true, Klass.computeUnlockedAsync);
 
 // Test validity of the second test (if omitting locking of only the sync access, it still fails)
-result = await test(Klass.computeAsync, Klass.computeUnlockedSync);
-if (result === 42)
-  throw new Error('Locking w/ sync mixing should have failed, obtained ' + result);
+await test('Locking w/ sync mixing', true, Klass.computeAsync, Klass.computeUnlockedSync);
+
+
+
+// Test locking when mixing getter and async
+await test('Locking w/ getter mixing', false, Klass.computeAsync, function (b) {
+  const val = this.val;
+  if (val !== 42 && val !== 9000) throw new Error(`Getter failed, this.val = ${val}`)
+});
+
+// Test locking when mixing setter and async
+await test('Locking w/ setter mixing', false, Klass.computeAsync, function (b) {
+  this.val = 42;
+});

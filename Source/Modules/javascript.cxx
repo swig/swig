@@ -2495,7 +2495,11 @@ protected:
   virtual void marshalInputArgs(Node *, ParmList *, Wrapper *, MarshallingMode,
                                 bool, bool);
   virtual String *emitAsyncTypemaps(Node *, Parm *, Wrapper *, const char *);
+  virtual String *emitLocking(Node *);
+  virtual String *emitGuard(Node *);
   virtual int emitNamespaces();
+  virtual int emitGetter(Node *n, bool is_member, bool is_static);
+  virtual int emitSetter(Node *n, bool is_member, bool is_static);
   virtual int emitFunction(Node *, bool, bool);
   virtual int emitCtor(Node *);
   virtual int emitFunctionDeclaration(Node *);
@@ -2889,12 +2893,121 @@ String *NAPIEmitter::emitAsyncTypemaps(Node *, Parm *parms, Wrapper *,
   return result;
 }
 
+int NAPIEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
+  Wrapper *wrapper = NewWrapper();
+  bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"),
+                                      js_napi_default_is_locked);
+  Template t_getter(getTemplate(getGetterTemplate(is_member)));
+
+  // prepare wrapper name
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  Setattr(n, "wrap:name", wrap_name);
+  state.variable(GETTER, wrap_name);
+
+  // prepare local variables
+  ParmList *params = Getattr(n, "parms");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+  if (locking_enabled) {
+    Swig_typemap_attach_parms("lock", params, wrapper);
+  }
+
+  // prepare code part
+  String *action = emit_action(n);
+  marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
+  String *input = wrapper->code;
+
+  wrapper->code = NewString("");
+  marshalOutput(n, params, wrapper, NewString(""));
+  String *output = wrapper->code;
+
+  wrapper->code = NewString("");
+  emitCleanupCode(n, wrapper, params);
+  String *cleanup = wrapper->code;
+
+  String *guard = emitGuard(n);
+  String *locking = emitLocking(n);
+
+  t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", wrap_name)
+      .replace("$jslocals", wrapper->locals)
+      .replace("$jsguard", guard)
+      .replace("$jsinput", input)      
+      .replace("$jslock", locking)
+      .replace("$jsaction", action)
+      .replace("$jsoutput", output)
+      .replace("$jscleanup", cleanup)
+      .pretty_print(f_wrappers);
+
+  DelWrapper(wrapper);
+  Delete(guard);
+  Delete(locking);
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
+
+  // skip variables that are immutable
+  if (State::IsSet(state.variable(IS_IMMUTABLE))) {
+    return SWIG_OK;
+  }
+
+  Wrapper *wrapper = NewWrapper();
+  bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"),
+                                      js_napi_default_is_locked);
+
+  Template t_setter(getTemplate(getSetterTemplate(is_member)));
+
+  // prepare wrapper name
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  Setattr(n, "wrap:name", wrap_name);
+  state.variable(SETTER, wrap_name);
+
+  // prepare local variables
+  ParmList *params = Getattr(n, "parms");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+  if (locking_enabled) {
+    Swig_typemap_attach_parms("lock", params, wrapper);
+  }
+
+  // prepare code part
+  String *action = emit_action(n);
+  marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
+  String *input = wrapper->code;
+
+  wrapper->code = NewString("");
+  emitCleanupCode(n, wrapper, params);
+  String *cleanup = wrapper->code;
+
+  String *guard = emitGuard(n);
+  String *locking = emitLocking(n);
+
+  t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", wrap_name)
+      .replace("$jslocals", wrapper->locals)
+      .replace("$jsinput", input)
+      .replace("$jsguard", guard)
+      .replace("$jslock", locking)
+      .replace("$jsaction", action)
+      .replace("$jscleanup", cleanup)
+      .pretty_print(f_wrappers);
+
+  DelWrapper(wrapper);
+  Delete(guard);
+  Delete(locking);
+
+  return SWIG_OK;
+}
+
 int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   Wrapper *wrapper = NewWrapper();
   Template t_function(getTemplate(getFunctionTemplate(n, is_member)));
 
   bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
-  bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"), js_napi_default_is_locked);
+  bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"),
+                                      js_napi_default_is_locked);
 
   // prepare the function wrapper name
   String *iname = Getattr(n, "sym:name");
@@ -2922,19 +3035,8 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
 
   // This must be done after input (which resolves the parameters)
   // but before emit_action (which emits the local variables)
-  String *guard = NewString("");
-  String *lock = NewString("");
-  if (locking_enabled) {
-    Template t_guard(getTemplate("js_guard"));
-    t_guard.print(guard);
-    Template t_lock(getTemplate("js_lock"));
-    t_lock.print(lock);
-  } else {
-    if (GetFlag(n, IS_ASYNC))
-      Swig_warning(WARN_TYPEMAP_THREAD_UNSAFE, input_file, line_number,
-                   "Generating an asynchronous wrapper %s without locking.\n",
-                   iname);
-  }
+  String *guard = emitGuard(n);
+  String *locking = emitLocking(n);
 
   String *action = emit_action(n);
 
@@ -2962,7 +3064,7 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
       .replace("$jstype", Swig_scopename_last(
                               SwigType_str(SwigType_strip_qualifiers(type), 0)))
       .replace("$jsguard", guard)
-      .replace("$jslock", lock)
+      .replace("$jslock", locking)
       .replace("$jsaction", action)
       .replace("$jsoutput", output)
       .replace("$jscleanup", cleanup)
@@ -3212,6 +3314,37 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
 
 
   }
+}
+
+String *NAPIEmitter::emitLocking(Node *n) {
+  bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"),
+                                      js_napi_default_is_locked);
+
+  String *lock = NewString("");
+  if (locking_enabled) {
+    Template t_lock(getTemplate("js_lock"));
+    t_lock.print(lock);
+  } else {
+    if (GetFlag(n, IS_ASYNC))
+      Swig_warning(WARN_TYPEMAP_THREAD_UNSAFE, input_file, line_number,
+                   "Generating an asynchronous wrapper %s without locking.\n",
+                   Getattr(n, "sym:name"));
+  }
+
+  return lock;
+}
+
+String *NAPIEmitter::emitGuard(Node *n) {
+  bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"),
+                                      js_napi_default_is_locked);
+
+  String *guard = NewString("");
+  if (locking_enabled) {
+    Template t_guard(getTemplate("js_guard"));
+    t_guard.print(guard);
+  }
+
+  return guard;
 }
 
 int NAPIEmitter::emitNamespaces() {
