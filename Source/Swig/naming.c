@@ -972,8 +972,8 @@ static int nodes_are_equivalent(Node *a, Node *b, int a_inclass) {
     }
   }
 
-  if (Cmp(ta, "cdecl") == 0) {
-    /* both cdecl case */
+  if (Equal(ta, "cdecl") || Equal(ta, "constructor")) {
+    /* both cdecl or constructor case */
     /* typedef */
     String *a_storage = Getattr(a, "storage");
     String *b_storage = Getattr(b, "storage");
