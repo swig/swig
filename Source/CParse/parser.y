@@ -673,44 +673,62 @@ static void add_symbols(Node *n) {
       c = Swig_symbol_add(symname,n);
 
       if (c != n) {
-        /* symbol conflict attempting to add in the new symbol */
-        if (Getattr(n,"sym:weak")) {
-          Setattr(n,"sym:name",symname);
-        } else {
-          String *e = NewStringEmpty();
-          String *en = NewStringEmpty();
-          String *ec = NewStringEmpty();
-          int redefined = Swig_need_redefined_warn(n,c,inclass);
-          if (redefined) {
-            Printf(en,"Identifier '%s' redefined (ignored)",symname);
-            Printf(ec,"previous definition of '%s'",symname);
-          } else {
-            Printf(en,"Redundant redeclaration of '%s'",symname);
-            Printf(ec,"previous declaration of '%s'",symname);
-          }
-          if (Cmp(symname,Getattr(n,"name"))) {
-            Printf(en," (Renamed from '%s')", SwigType_namestr(Getattr(n,"name")));
-          }
-          Printf(en,",");
-          if (Cmp(symname,Getattr(c,"name"))) {
-            Printf(ec," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
-          }
-          Printf(ec,".");
+	/* symbol conflict attempting to add in the new symbol */
+	if (Getattr(n,"sym:weak")) {
+	  Setattr(n,"sym:name",symname);
+	} else {
+	  String *e = NewStringEmpty();
+	  String *en = NewStringEmpty();
+	  String *ec = NewStringEmpty();
+	  String *symname_stripped = SwigType_templateprefix(symname);
+	  String *n_name_stripped = SwigType_templateprefix(Getattr(n, "name"));
+	  String *c_name_stripped = SwigType_templateprefix(Getattr(c, "name"));
+	  int redefined = Swig_need_redefined_warn(n, c, inclass);
+	  String *n_name_decl = 0;
+	  String *c_name_decl = Swig_name_decl(c);
+	  {
+	    /* As symbol add failed, temporarily add in missing symbol table for Swig_name_decl */
+	    Symtab *n_symtab = Getattr(n, "sym:symtab");
+	    if (!n_symtab)
+	      Setattr(n, "sym:symtab", Swig_symbol_current());
+	    n_name_decl = Swig_name_decl(n);
+	    if (!n_symtab)
+	      Delattr(n, "sym:symtab");
+	  }
+	  if (redefined) {
+	    Printf(en, "Redefinition of identifier '%s' (ignored) as %s", symname_stripped, n_name_decl);
+	    Printf(ec, "previous definition of '%s' as %s", symname_stripped, c_name_decl);
+	  } else {
+	    Printf(en, "Redundant redeclaration of identifier '%s' as %s", symname_stripped, n_name_decl);
+	    Printf(ec, "previous declaration of '%s' as %s", symname_stripped, c_name_decl);
+	  }
+	  if (!Equal(symname_stripped, n_name_stripped)) {
+	    Printf(en, " (Renamed from '%s')", SwigType_namestr(n_name_stripped));
+	  }
+	  Printf(en, ",");
+	  if (!Equal(symname_stripped, c_name_stripped)) {
+	    Printf(ec, " (Renamed from '%s')", SwigType_namestr(c_name_stripped));
+	  }
+	  Printf(ec, ".");
 	  SWIG_WARN_NODE_BEGIN(n);
-          if (redefined) {
-            Swig_warning(WARN_PARSE_REDEFINED,Getfile(n),Getline(n),"%s\n",en);
-            Swig_warning(WARN_PARSE_REDEFINED,Getfile(c),Getline(c),"%s\n",ec);
-          } else if (!is_friend(n) && !is_friend(c)) {
-            Swig_warning(WARN_PARSE_REDUNDANT,Getfile(n),Getline(n),"%s\n",en);
-            Swig_warning(WARN_PARSE_REDUNDANT,Getfile(c),Getline(c),"%s\n",ec);
-          }
+	  if (redefined) {
+	    Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
+	    Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
+	  } else if (!is_friend(n) && !is_friend(c)) {
+	    Swig_warning(WARN_PARSE_REDUNDANT, Getfile(n), Getline(n), "%s\n", en);
+	    Swig_warning(WARN_PARSE_REDUNDANT, Getfile(c), Getline(c), "%s\n", ec);
+	  }
 	  SWIG_WARN_NODE_END(n);
-          Printf(e,"%s:%d:%s\n%s:%d:%s\n",Getfile(n),Getline(n),en,
-                 Getfile(c),Getline(c),ec);
-          Setattr(n,"error",e);
+	  Printf(e, "%s:%d:%s\n%s:%d:%s\n", Getfile(n), Getline(n), en, Getfile(c), Getline(c), ec);
+	  Setattr(n, "error", e);
+	  Delete(c_name_decl);
+	  Delete(n_name_decl);
+	  Delete(symname_stripped);
+	  Delete(c_name_stripped);
+	  Delete(n_name_stripped);
 	  Delete(e);
-          Delete(en);
-          Delete(ec);
+	  Delete(en);
+	  Delete(ec);
         }
       }
     }
