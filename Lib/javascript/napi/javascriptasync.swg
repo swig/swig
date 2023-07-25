@@ -111,14 +111,7 @@
   long long *INPUT, signed long long *INPUT, unsigned long long *INPUT,
   float *INPUT, double *INPUT ""
 
-// std::string does not need locking but needs persistence
-%typemap(async_in) std::string, std::string *, std::string & {
-  Napi::Object obj;
-  NAPI_CHECK_RESULT($input.ToObject(), obj);
-  Napi::ObjectReference *ref = new Napi::ObjectReference();
-  *ref = Napi::Persistent(obj);
-  SWIG_persistent.push_back(ref);
-}
-
+// strings do not need locking - they are immutable and cannot be accessed w/o V8
+%typemap(async_in) std::string, std::string *, std::string & ""
 %typemap(async_pre) std::string, std::string *, std::string & ""
 %typemap(async_post) std::string, std::string *, std::string & ""
