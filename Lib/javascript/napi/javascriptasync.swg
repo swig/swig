@@ -115,3 +115,7 @@
 %typemap(async_in) std::string, std::string *, std::string & ""
 %typemap(async_pre) std::string, std::string *, std::string & ""
 %typemap(async_post) std::string, std::string *, std::string & ""
+
+%typemap(async_in) std::string INPUT, std::string *INPUT, std::string &INPUT ""
+%typemap(async_pre) std::string INPUT, std::string *INPUT, std::string &INPUT ""
+%typemap(async_post) std::string INPUT, std::string *INPUT, std::string &INPUT ""
