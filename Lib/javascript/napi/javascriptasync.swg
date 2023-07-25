@@ -3,28 +3,14 @@
  * ------------------------------------------------------------ */
 
 /*
- * Async mode wrappers use three additional typemaps that are
+ * Async mode wrappers use an additional typemap that is
  * unique to Javascript async mode:
  *
  * - lock
  *   It is applied on the main thread after the check typemap
  *   It is allowed access to V8
- *   Its main use is to create persistent references to prevent GC
- *   With multiple arguments, this typemap is applied in the usual order
- *
- * - async_pre
- *   It is applied in the worker thread immediately before the action
- *   It is not allowed to access V8 and must support concurrent execution
- *   Its main use is to lock objects that need to be locked
- *   With mutliple arguments, this typemap is always applied by order of
- *   of the pointer value - to avoid deadlocks
- *
- * - async_post
- *   It is applied in the worker thread immediately after the action
- *   It is not allowed to access V8 and must support concurrent execution
- *   Its main use is to unlock the locked objects
- *   With mutliple arguments, this typemap is always applied by order of
- *   of the pointer value - to avoid deadlocks
+ *   It must register two lambdas that will be executed in the background
+ *     thread without access to V8
  */
 
 /* 
