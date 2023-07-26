@@ -1853,14 +1853,15 @@ String *Swig_name_str(Node *n) {
  * void Swig_name_decl()
  *
  * Return a stringified version of a C/C++ declaration without the return type.
- * The node passed in is expected to be a function, constructor, destructor or
- * variable. Some example return values:
+ * The node passed in is usually a function, constructor, destructor.
+ * Other nodes result in a simple fully qualified string of the symbol.
+ * Some example return values:
  *   "MyNameSpace::MyTemplate<MyNameSpace::ABC >::~MyTemplate()"
  *   "MyNameSpace::ABC::ABC(int,double)"
  *   "MyNameSpace::ABC::constmethod(int) const"
  *   "MyNameSpace::ABC::refqualifiermethod(int) const &"
  *   "MyNameSpace::ABC::variablename"
- * 
+ *   "MyNameSpace::ABC::MyClass"
  * ----------------------------------------------------------------------------- */
 
 String *Swig_name_decl(Node *n) {
@@ -1871,10 +1872,10 @@ String *Swig_name_decl(Node *n) {
   qname = Swig_name_str(n);
   decl = NewStringf("%s", qname);
 
-  if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor") || (Equal(nodetype, "cdecl") && !checkAttribute(n, "kind", "variable")))) {
+  if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor") || Equal(nodetype, "cdecl"))) {
     String *d = Getattr(n, "decl");
-    Printv(decl, "(", ParmList_errorstr(Getattr(n, "parms")), ")", NIL);
     if (SwigType_isfunction(d)) {
+      Printv(decl, "(", ParmList_errorstr(Getattr(n, "parms")), ")", NIL);
       SwigType *decl_temp = Copy(d);
       SwigType *qualifiers = SwigType_pop_function_qualifiers(decl_temp);
       if (qualifiers) {
