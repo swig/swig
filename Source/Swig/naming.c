@@ -1866,11 +1866,12 @@ String *Swig_name_str(Node *n) {
 String *Swig_name_decl(Node *n) {
   String *qname;
   String *decl;
+  String *nodetype = nodeType(n);
 
   qname = Swig_name_str(n);
   decl = NewStringf("%s", qname);
 
-  if (!checkAttribute(n, "kind", "variable")) {
+  if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor") || (Equal(nodetype, "cdecl") && !checkAttribute(n, "kind", "variable")))) {
     String *d = Getattr(n, "decl");
     Printv(decl, "(", ParmList_errorstr(Getattr(n, "parms")), ")", NIL);
     if (SwigType_isfunction(d)) {
