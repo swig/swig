@@ -711,7 +711,7 @@ void Swig_symbol_cadd(const_String_or_char_ptr name, Node *n) {
  * for namespace support, type resolution, and other issues.
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
+static Node *symbol_add(const_String_or_char_ptr symname, Node *n) {
   Hash *c, *cl = 0;
   SwigType *decl, *ndecl;
   String *cstorage, *nstorage;
@@ -750,7 +750,6 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
 
   /* No symbol name defined.  We return. */
   if (!symname) {
-    Setattr(n, "sym:symtab", current_symtab);
     return n;
   }
 
@@ -946,6 +945,14 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
   /* Printf(stdout,"%s %s %s\n", symname, Getattr(n,"decl"), Getattr(n,"sym:overname")); */
   Setattr(current, symname, n);
   return n;
+}
+
+Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
+  Node *nn = symbol_add(symname, n);
+  /* Always set the symtab to have correct scope in case of error reporting */
+  if (!Getattr(n, "sym:symtab"))
+    Setattr(n, "sym:symtab", current_symtab);
+  return nn;
 }
 
 /* -----------------------------------------------------------------------------

@@ -684,17 +684,8 @@ static void add_symbols(Node *n) {
 	  String *n_name_stripped = SwigType_templateprefix(Getattr(n, "name"));
 	  String *c_name_stripped = SwigType_templateprefix(Getattr(c, "name"));
 	  int redefined = Swig_need_redefined_warn(n, c, inclass);
-	  String *n_name_decl = 0;
+	  String *n_name_decl = Swig_name_decl(n);
 	  String *c_name_decl = Swig_name_decl(c);
-	  {
-	    /* As symbol add failed, temporarily add in missing symbol table for Swig_name_decl */
-	    Symtab *n_symtab = Getattr(n, "sym:symtab");
-	    if (!n_symtab)
-	      Setattr(n, "sym:symtab", Swig_symbol_current());
-	    n_name_decl = Swig_name_decl(n);
-	    if (!n_symtab)
-	      Delattr(n, "sym:symtab");
-	  }
 	  if (redefined) {
 	    Printf(en, "Redefinition of identifier '%s' (ignored) as %s", symname_stripped, n_name_decl);
 	    Printf(ec, "previous definition of '%s' as %s", symname_stripped, c_name_decl);
