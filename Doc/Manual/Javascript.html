@@ -849,8 +849,10 @@ Another potential weakness of the async framework is thread starvation due to th
   if (SWIG_locks.count(ptr) == 0) {
     // SWIG will use ptr as value for sorting (this is the dead-lock prevention algorithm)
     SWIG_locks.insert({reinterpret_cast&lt;void*&gt;(ptr), {
+      // These lambdas will potentially run in a different thread
+      // and they are not allowed to access V8 data
       [ptr](){ptr->rolock();},
-      [ptr](){ptr->rwunlock();}
+      [ptr](){ptr->rounlock();}
     }});
   }
 }
