@@ -479,6 +479,7 @@ protected:
   Napi::Env env;
 public:
   SWIG_NAPI_AsyncContext(Napi::Env _env) : env(_env) {}
+  virtual ~SWIG_NAPI_AsyncContext() {}
   // All methods are prefixed to avoid symbol pollution
   virtual void SWIG_NAPI_Init(const Napi::CallbackInfo &) = 0;
   virtual void SWIG_NAPI_Execute() = 0;
@@ -486,6 +487,8 @@ public:
   virtual void SWIG_NAPI_Cleanup() = 0;
 };
 
+// This is the async worker, this class deletes itself
+// as well as its context when the async operation completes
 class SWIG_NAPI_AsyncWorker : public Napi::AsyncWorker {
   SWIG_NAPI_AsyncContext *context;
   Napi::Promise::Deferred deferred;
@@ -513,12 +516,14 @@ public:
     Napi::HandleScope scope(Env());
     deferred.Resolve(context->SWIG_NAPI_OnOK());
     context->SWIG_NAPI_Cleanup();
+    delete context;
   }
 
   virtual void OnError(const Napi::Error &error) override {
     Napi::HandleScope scope(Env());
     deferred.Reject(error.Value());
     context->SWIG_NAPI_Cleanup();
+    delete context;
   }
 
   virtual void Execute() override {
@@ -533,7 +538,7 @@ public:
 #endif
   }
 
-  Napi::Promise Promise() {
+  inline Napi::Promise Promise() {
     // This creates a new Local<> reference in the scope of the caller
     return deferred.Promise();
   }
