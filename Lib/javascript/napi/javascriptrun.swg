@@ -473,7 +473,6 @@ fail:
 // Execute() is called on a worker thread without V8 access and does the work
 // OnOK()/Cleanup() are called on the main thread with V8 access and deal with
 //   the out typemaps
-// The functor deletes itself when the operation is finished (NAPI does this)
 class SWIG_NAPI_AsyncContext {
 protected:
   Napi::Env env;
@@ -487,7 +486,7 @@ public:
   virtual void SWIG_NAPI_Cleanup() = 0;
 };
 
-// This is the async worker, this class deletes itself
+// This is the async worker, this class deletes itself (NAPI does this)
 // as well as its context when the async operation completes
 class SWIG_NAPI_AsyncWorker : public Napi::AsyncWorker {
   SWIG_NAPI_AsyncContext *context;
@@ -551,6 +550,10 @@ public:
       *ref = Napi::Persistent(obj);
       persistent.push_back(ref);
     }
+    return;
+    goto fail;
+  fail:
+    return;
   }
 
   void Init(const Napi::CallbackInfo &info) {
