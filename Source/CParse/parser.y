@@ -687,19 +687,21 @@ static void add_symbols(Node *n) {
 	  String *n_name_decl = Swig_name_decl(n);
 	  String *c_name_decl = Swig_name_decl(c);
 	  if (redefined) {
-	    Printf(en, "Redefinition of identifier '%s' (ignored) as %s", symname_stripped, n_name_decl);
-	    Printf(ec, "previous definition of '%s' as %s", symname_stripped, c_name_decl);
+	    Printf(en, "Redefinition of identifier '%s'", symname_stripped);
+	    Printf(ec, "previous definition of '%s'", symname_stripped);
 	  } else {
-	    Printf(en, "Redundant redeclaration of identifier '%s' as %s", symname_stripped, n_name_decl);
-	    Printf(ec, "previous declaration of '%s' as %s", symname_stripped, c_name_decl);
+	    Printf(en, "Redundant redeclaration of identifier '%s'", symname_stripped);
+	    Printf(ec, "previous declaration of '%s'", symname_stripped);
 	  }
-	  if (!Equal(symname_stripped, n_name_stripped)) {
+	  if (!Equal(symname_stripped, n_name_stripped))
 	    Printf(en, " (Renamed from '%s')", SwigType_namestr(n_name_stripped));
-	  }
-	  Printf(en, ",");
-	  if (!Equal(symname_stripped, c_name_stripped)) {
+	  if (!Equal(symname_stripped, c_name_stripped))
 	    Printf(ec, " (Renamed from '%s')", SwigType_namestr(c_name_stripped));
-	  }
+	  if (!Equal(n_name_stripped, n_name_decl))
+	    Printf(en, " as %s", n_name_decl);
+	  if (!Equal(c_name_stripped, c_name_decl))
+	    Printf(ec, " as %s", c_name_decl);
+	  Printf(en, " ignored,");
 	  Printf(ec, ".");
 	  SWIG_WARN_NODE_BEGIN(n);
 	  if (redefined) {

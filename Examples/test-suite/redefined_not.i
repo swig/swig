@@ -1,6 +1,6 @@
 %module redefined_not
 
-// These should not emit an Identifier redefined warning
+// These should not emit a 'Redefinition of identifier' warning
 %inline %{
 typedef unsigned int my_size_t;
 namespace Std {
