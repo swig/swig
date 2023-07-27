@@ -129,6 +129,10 @@ void JS_veto_set_variable(const Napi::CallbackInfo &info) {
   SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
 }
 
+/* ---------------------------------------------------------------------------
+ * Module data per V8 isolate
+ * ---------------------------------------------------------------------------*/
+
 struct EnvInstanceData {
   Napi::Env env;
   // Base class per-environment constructor, used to check
@@ -172,8 +176,10 @@ public:
   }
 };
 
-// Base class for all wrapped objects,
-// used mostly when unwrapping unknown objects
+/* ---------------------------------------------------------------------------
+ * Base class for all wrapped objects,
+ * used directly when unwrapping unknown objects
+ * ---------------------------------------------------------------------------*/
 template <typename SWIG_OBJ_WRAP>
 class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
   public:
@@ -456,6 +462,97 @@ fail:
   return Napi::Value();
 }
 
+/* ---------------------------------------------------------------------------
+ * Async execution
+ * ---------------------------------------------------------------------------*/
+
+// This class is essentially a functor with multiple entry points
+// Its main purpose is to keep the context - the wrapper local variables -
+// as class members between those calls in different threads
+// Init() is called on the main thread with V8 access and deals with in typemaps
+// Execute() is called on a worker thread without V8 access and does the work
+// OnOK()/Cleanup() are called on the main thread with V8 access and deal with
+//   the out typemaps
+// The functor deletes itself when the operation is finished (NAPI does this)
+class SWIG_NAPI_AsyncContext {
+protected:
+  Napi::Env env;
+public:
+  SWIG_NAPI_AsyncContext(Napi::Env _env) : env(_env) {}
+  // All methods are prefixed to avoid symbol pollution
+  virtual void SWIG_NAPI_Init(const Napi::CallbackInfo &) = 0;
+  virtual void SWIG_NAPI_Execute() = 0;
+  virtual Napi::Value SWIG_NAPI_OnOK() = 0;
+  virtual void SWIG_NAPI_Cleanup() = 0;
+};
+
+class SWIG_NAPI_AsyncWorker : public Napi::AsyncWorker {
+  SWIG_NAPI_AsyncContext *context;
+  Napi::Promise::Deferred deferred;
+  // This vector holds persistent references to all JS objects
+  // involved in the asynchronous operation - it protects them
+  // from being garbage-collected
+  std::vector<Napi::ObjectReference *> persistent;
+
+public:
+  SWIG_NAPI_AsyncWorker(Napi::Env _env, const char *name, SWIG_NAPI_AsyncContext *_context) :
+    Napi::AsyncWorker(_env, name),
+    context(_context),
+    deferred(Napi::Promise::Deferred::New(_env)),
+    persistent() {}
+
+  virtual ~SWIG_NAPI_AsyncWorker() {
+    // Release the persistent references
+    for (Napi::ObjectReference *ref : persistent) {
+      delete ref;
+    }
+    persistent.clear();
+  }
+
+  virtual void OnOK() override {
+    Napi::HandleScope scope(Env());
+    deferred.Resolve(context->SWIG_NAPI_OnOK());
+    context->SWIG_NAPI_Cleanup();
+  }
+
+  virtual void OnError(const Napi::Error &error) override {
+    Napi::HandleScope scope(Env());
+    deferred.Reject(error.Value());
+    context->SWIG_NAPI_Cleanup();
+  }
+
+  virtual void Execute() override {
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
+    try {
+      context->SWIG_NAPI_Execute();
+    } catch (const std::exception &e) {
+      SetError(e.what());
+    }
+#else
+    context->SWIG_NAPI_Execute();
+#endif
+  }
+
+  Napi::Promise Promise() {
+    // This creates a new Local<> reference in the scope of the caller
+    return deferred.Promise();
+  }
+
+  inline void Persist(const Napi::Value &v) {
+    if (v.IsObject()) {
+      Napi::Object obj;
+      NAPI_CHECK_RESULT(v.ToObject(), obj);
+      Napi::ObjectReference *ref = new Napi::ObjectReference();
+      *ref = Napi::Persistent(obj);
+      persistent.push_back(ref);
+    }
+  }
+
+  void Init(const Napi::CallbackInfo &info) {
+    Persist(info.This());
+    for (size_t i = 0; i < info.Length(); i++) Persist(info[i]);
+  }
+};
 
 /* ---------------------------------------------------------------------------
  * PackedData object

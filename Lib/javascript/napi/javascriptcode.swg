@@ -377,17 +377,20 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_global_function_async", "templates")
 %{
-$jsasyncworker
 // js_global_function_async
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
+  $jsasyncworker
   Napi::Env env = info.Env();
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
-  $jsmangledname_$jswrapper_Tasklet *self = new $jsmangledname_$jswrapper_Tasklet(env);
-  self->Init(info);
-  self->Queue();
-  return self->SWIG_deferred.Promise();
+  $jsmangledname_$jswrapper_Tasklet *context = new $jsmangledname_$jswrapper_Tasklet(env);
+  context->SWIG_NAPI_Init(info);
+  SWIG_NAPI_AsyncWorker *worker = new SWIG_NAPI_AsyncWorker(
+    env, "SWIG_$jswrapper_Async_Worker", context);
+  worker->Init(info);
+  worker->Queue();
+  return worker->Promise();
   goto fail;
 fail:
   return Napi::Value();
@@ -552,18 +555,21 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_function_async", "templates")
 %{
-$jsasyncworker
 // js_function_async
 template <typename SWIG_OBJ_WRAP>
 Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
+  $jsasyncworker
   Napi::Env env = info.Env();
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
-  $jsmangledname_$jswrapper_Tasklet *self = new $jsmangledname_$jswrapper_Tasklet(env);
-  self->Init(info);
-  self->Queue();
-  return self->SWIG_deferred.Promise();
+  $jsmangledname_$jswrapper_Tasklet *context = new $jsmangledname_$jswrapper_Tasklet(env);
+  context->SWIG_NAPI_Init(info);
+  SWIG_NAPI_AsyncWorker *worker = new SWIG_NAPI_AsyncWorker(
+    env, "SWIG_$jswrapper_Async_Worker", context);
+  worker->Init(info);
+  worker->Queue();
+  return worker->Promise();
   goto fail;
 fail:
   return Napi::Value();
@@ -636,15 +642,18 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_overloaded_function_async", "templates")
 %{
-$jsasyncworker
 // js_overloaded_function_async
 template <typename SWIG_OBJ_WRAP>
 Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
+  $jsasyncworker
   Napi::Env env = info.Env();
-  $jsmangledname_$jswrapper_Tasklet *self = new $jsmangledname_$jswrapper_Tasklet(env);
-  self->Init(info);
-  self->Queue();
-  return self->SWIG_deferred.Promise();
+  $jsmangledname_$jswrapper_Tasklet *context = new $jsmangledname_$jswrapper_Tasklet(env);
+  context->SWIG_NAPI_Init(info);
+  SWIG_NAPI_AsyncWorker *worker = new SWIG_NAPI_AsyncWorker(
+    env, "SWIG_$jswrapper_Async_Worker", context);
+  worker->Init(info);
+  worker->Queue();
+  return worker->Promise();
   goto fail;
 fail:
   return Napi::Value();
@@ -691,14 +700,17 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_global_overloaded_function_async", "templates")
 %{
-$jsasyncworker
 // js_global_overloaded_function_async
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
+  $jsasyncworker
   Napi::Env env = info.Env();
-  $jsmangledname_$jswrapper_Tasklet *self = new $jsmangledname_$jswrapper_Tasklet(env);
-  self->Init(info);
-  self->Queue();
-  return self->SWIG_deferred.Promise();
+  $jsmangledname_$jswrapper_Tasklet *context = new $jsmangledname_$jswrapper_Tasklet(env);
+  context->SWIG_NAPI_Init(info);
+  SWIG_NAPI_AsyncWorker *worker = new SWIG_NAPI_AsyncWorker(
+    env, "SWIG_$jswrapper_Async_Worker", context);
+  worker->Init(info);
+  worker->Queue();
+  return worker->Promise();
   goto fail;
 fail:
   return Napi::Value();
@@ -752,113 +764,50 @@ fail:
  * ----------------------------------------------------------------------------- */
 %fragment("js_async_worker_local_class", "templates")
 %{
-// js_async_worker_local_class
+  // js_async_worker_local_class
+  class $jsmangledname_$jswrapper_Tasklet : public SWIG_NAPI_AsyncContext {
+    Napi::Env env;
+    $jslocals
+  public:
+    $jsmangledname_$jswrapper_Tasklet(Napi::Env _env) : SWIG_NAPI_AsyncContext(_env), env(_env) {}
 
-// This class is essentially a functor with multiple entry points
-// Its main purpose is to keep the context - the wrapper local variables -
-// as class members between those calls in different threads
-// Init() is called on the main thread with V8 access and deals with in typemaps
-// Execute() is called on a worker thread without V8 access and does the work
-// OnOK()/OnError() are called on the main thread with V8 access and deal with
-//   the out typemaps
-// The functor deletes itself when the operation is finished (NAPI does this)
-//
-// The inheritance is through a template in order to not expose any Napi::AsyncWorker
-// class members by default - these might clash with the user variables
-// https://stackoverflow.com/questions/76703197/unshadow-global-identifier-in-a-class
-template <typename NAPI_ASYNC_WORKER>
-class $jsmangledname_$jswrapper_Tasklet_templ : public NAPI_ASYNC_WORKER {
-  Napi::Env env;
-public:
-  Napi::Promise::Deferred SWIG_deferred;
-private:
-  using NAPI_ASYNC_WORKER::SetError;
-  // This vector holds persistent references to all JS objects
-  // involved in the asynchronous operation - it protects them
-  // from being garbage-collected
-  std::vector<Napi::ObjectReference *> SWIG_persistent;
-
-  $jslocals
-public:
-  $jsmangledname_$jswrapper_Tasklet_templ(Napi::Env _env) :
-    Napi::AsyncWorker(_env, "SWIG_$jswrapper_Async_Worker"),
-    env(_env),
-    SWIG_deferred(Napi::Promise::Deferred::New(_env)),
-    SWIG_persistent() {}
-
-  virtual ~$jsmangledname_$jswrapper_Tasklet_templ() {
-    // Release the persistent references
-    for (Napi::ObjectReference *ref : SWIG_persistent) {
-      delete ref;
+    virtual Napi::Value SWIG_NAPI_OnOK() override {
+      // Back in the main thread with V8 access
+      Napi::Value jsresult;
+      $jsoutput
+      // We can return w/o escaping because we are using a HandleScope
+      // in the caller
+      return jsresult;
+      goto fail;
+    fail:
+      return Napi::Value();
     }
-    SWIG_persistent.clear();
-  }
 
-  virtual void OnOK() override {
-    // Back in the main thread with V8 access
-    Napi::HandleScope scope(env);
-    Napi::Value jsresult;
-    $jsoutput
-    SWIG_deferred.Resolve(jsresult);
-    goto fail;
-  fail:
-    Cleanup();
-  }
-
-  virtual void OnError(const Napi::Error &error) override {
-    // Back in the main thread with V8 access
-    Napi::HandleScope scope(env);
-    SWIG_deferred.Reject(error.Value());
-    Cleanup();
-  }
-
-  virtual void Cleanup() {
-    $jscleanup
-    goto fail;
-  fail:
-    return;
-  }
-
-  virtual void Execute() override {
-    // This runs the action code in a worker thread and V8 is not accessible
-    Napi::Env env(nullptr);
-
-    $jsguard
-    $jslock
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
-    try {
+    virtual void SWIG_NAPI_Execute() override {
+      // This runs the action code in a worker thread and V8 is not accessible
+      Napi::Env env(nullptr);
+      $jsguard
+      $jslock
       $jsaction
-    } catch (const std::exception &e) {
-      SetError(e.what());
+      goto fail;
+    fail:
+      return;
     }
-#else
-    $jsaction
-#endif
-    goto fail;
-  fail:
-    return;
-  }
 
-  virtual void SWIG_Persist(const Napi::Value &v) {
-    if (v.IsObject()) {
-      Napi::Object obj;
-      NAPI_CHECK_RESULT(v.ToObject(), obj);
-      Napi::ObjectReference *ref = new Napi::ObjectReference();
-      *ref = Napi::Persistent(obj);
-      SWIG_persistent.push_back(ref);
+    virtual void SWIG_NAPI_Cleanup() override {
+      $jscleanup
+      goto fail;
+    fail:
+      return;
     }
-  }
 
-  virtual void Init(const Napi::CallbackInfo &info) {
-    $jsinput
-    SWIG_Persist(info.This());
-    for (size_t i = 0; i < info.Length(); i++) SWIG_Persist(info[i]);
-    goto fail;
-  fail:
-    return;
-  }
-};
-using $jsmangledname_$jswrapper_Tasklet = $jsmangledname_$jswrapper_Tasklet_templ<Napi::AsyncWorker>;
+    virtual void SWIG_NAPI_Init(const Napi::CallbackInfo &info) override {
+      $jsinput
+      goto fail;
+    fail:
+      return;
+    }
+  };
 %}
 
 
