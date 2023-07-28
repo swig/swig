@@ -1,4 +1,4 @@
-cpp_extend_destructors.i:8: Warning 302: Identifier '~AStruct' redefined by %extend (ignored),
+cpp_extend_destructors.i:8: Warning 302: Redefinition of identifier '~AStruct' by %extend ignored,
 cpp_extend_destructors.i:5: Warning 302: %extend definition of '~AStruct'.
 cpp_extend_destructors.i:14: Warning 302: Redefinition of identifier '~BStruct' as BStruct::~BStruct() ignored,
 cpp_extend_destructors.i:13: Warning 302: previous definition of '~BStruct' as BStruct::~BStruct().
