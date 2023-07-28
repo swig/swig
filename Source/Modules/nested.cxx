@@ -143,49 +143,8 @@ static void add_symbols_c(Node *n) {
       if (Getattr(n, "sym:weak")) {
 	Setattr(n, "sym:name", symname);
       } else {
-	String *e = NewStringEmpty();
-	String *en = NewStringEmpty();
-	String *ec = NewStringEmpty();
-	String *symname_stripped = SwigType_templateprefix(symname);
-	String *n_name_stripped = SwigType_templateprefix(Getattr(n, "name"));
-	String *c_name_stripped = SwigType_templateprefix(Getattr(c, "name"));
-	int redefined = Swig_need_redefined_warn(n, c, true);
-	String *n_name_decl = Swig_name_decl(n);
-	String *c_name_decl = Swig_name_decl(c);
-	if (redefined) {
-	  Printf(en, "Redefinition of identifier '%s' (ignored) as %s", symname_stripped, n_name_decl);
-	  Printf(ec, "previous definition of '%s' as %s", symname_stripped, c_name_decl);
-	} else {
-	  Printf(en, "Redundant redeclaration of identifier '%s' as %s", symname_stripped, n_name_decl);
-	  Printf(ec, "previous declaration of '%s' as %s", symname_stripped, c_name_decl);
-	}
-	if (!Equal(symname_stripped, n_name_stripped)) {
-	  Printf(en, " (Renamed from '%s')", SwigType_namestr(n_name_stripped));
-	}
-	Printf(en, ",");
-	if (!Equal(symname_stripped, c_name_stripped)) {
-	  Printf(ec, " (Renamed from '%s')", SwigType_namestr(c_name_stripped));
-	}
-	Printf(ec, ".");
-	SWIG_WARN_NODE_BEGIN(n);
-	if (redefined) {
-	  Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
-	  Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
-	} else {
-	  Swig_warning(WARN_PARSE_REDUNDANT, Getfile(n), Getline(n), "%s\n", en);
-	  Swig_warning(WARN_PARSE_REDUNDANT, Getfile(c), Getline(c), "%s\n", ec);
-	}
-	SWIG_WARN_NODE_END(n);
-	Printf(e, "%s:%d:%s\n%s:%d:%s\n", Getfile(n), Getline(n), en, Getfile(c), Getline(c), ec);
-	Setattr(n, "error", e);
-	Delete(c_name_decl);
-	Delete(n_name_decl);
-	Delete(symname_stripped);
-	Delete(c_name_stripped);
-	Delete(n_name_stripped);
-	Delete(e);
-	Delete(en);
-	Delete(ec);
+	int inclass = 1;
+	Swig_symbol_conflict_warn(n, c, symname, inclass);
       }
     }
   }

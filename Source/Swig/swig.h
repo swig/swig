@@ -231,6 +231,7 @@ extern "C" {
   extern Symtab *Swig_symbol_current(void);
   extern Symtab *Swig_symbol_popscope(void);
   extern Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *node);
+  extern void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int inclass);
   extern void Swig_symbol_cadd(const_String_or_char_ptr symname, Node *node);
   extern Node *Swig_symbol_clookup(const_String_or_char_ptr symname, Symtab *tab);
   extern Node *Swig_symbol_clookup_check(const_String_or_char_ptr symname, Symtab *tab, int (*check) (Node *));

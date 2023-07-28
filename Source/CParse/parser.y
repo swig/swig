@@ -395,15 +395,9 @@ static String *make_unnamed(void) {
   return NewStringf("$unnamed%d$",unnamed);
 }
 
-/* Return if the node is a friend declaration */
-static int is_friend(Node *n) {
-  return (Strstr(Getattr(n, "storage"), "friend") != NULL);
-}
-
 static int is_operator(String *name) {
   return Strncmp(name,"operator ", 9) == 0;
 }
-
 
 /* Add declaration list to symbol table */
 static int  add_only_one = 0;
@@ -420,7 +414,7 @@ static void add_symbols(Node *n) {
     /* for friends, we need to pop the scope once */
     String *old_prefix = 0;
     Symtab *old_scope = 0;
-    int isfriend = inclass && is_friend(n);
+    int isfriend = inclass && Checkattr(n, "storage", "friend");
     int iscdecl = Cmp(nodeType(n),"cdecl") == 0;
     int only_csymbol = 0;
     
@@ -677,51 +671,7 @@ static void add_symbols(Node *n) {
 	if (Getattr(n,"sym:weak")) {
 	  Setattr(n,"sym:name",symname);
 	} else {
-	  String *e = NewStringEmpty();
-	  String *en = NewStringEmpty();
-	  String *ec = NewStringEmpty();
-	  String *symname_stripped = SwigType_templateprefix(symname);
-	  String *n_name_stripped = SwigType_templateprefix(Getattr(n, "name"));
-	  String *c_name_stripped = SwigType_templateprefix(Getattr(c, "name"));
-	  int redefined = Swig_need_redefined_warn(n, c, inclass);
-	  String *n_name_decl = Swig_name_decl(n);
-	  String *c_name_decl = Swig_name_decl(c);
-	  if (redefined) {
-	    Printf(en, "Redefinition of identifier '%s'", symname_stripped);
-	    Printf(ec, "previous definition of '%s'", symname_stripped);
-	  } else {
-	    Printf(en, "Redundant redeclaration of identifier '%s'", symname_stripped);
-	    Printf(ec, "previous declaration of '%s'", symname_stripped);
-	  }
-	  if (!Equal(symname_stripped, n_name_stripped))
-	    Printf(en, " (Renamed from '%s')", SwigType_namestr(n_name_stripped));
-	  if (!Equal(symname_stripped, c_name_stripped))
-	    Printf(ec, " (Renamed from '%s')", SwigType_namestr(c_name_stripped));
-	  if (!Equal(n_name_stripped, n_name_decl))
-	    Printf(en, " as %s", n_name_decl);
-	  if (!Equal(c_name_stripped, c_name_decl))
-	    Printf(ec, " as %s", c_name_decl);
-	  Printf(en, " ignored,");
-	  Printf(ec, ".");
-	  SWIG_WARN_NODE_BEGIN(n);
-	  if (redefined) {
-	    Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
-	    Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
-	  } else if (!is_friend(n) && !is_friend(c)) {
-	    Swig_warning(WARN_PARSE_REDUNDANT, Getfile(n), Getline(n), "%s\n", en);
-	    Swig_warning(WARN_PARSE_REDUNDANT, Getfile(c), Getline(c), "%s\n", ec);
-	  }
-	  SWIG_WARN_NODE_END(n);
-	  Printf(e, "%s:%d:%s\n%s:%d:%s\n", Getfile(n), Getline(n), en, Getfile(c), Getline(c), ec);
-	  Setattr(n, "error", e);
-	  Delete(c_name_decl);
-	  Delete(n_name_decl);
-	  Delete(symname_stripped);
-	  Delete(c_name_stripped);
-	  Delete(n_name_stripped);
-	  Delete(e);
-	  Delete(en);
-	  Delete(ec);
+	  Swig_symbol_conflict_warn(n, c, symname, inclass);
         }
       }
     }

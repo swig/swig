@@ -956,6 +956,61 @@ Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_symbol_conflict_warn()
+ *
+ * Issue warnings for node n if it conflicts with node c after calling
+ * Swig_symbol_add().
+ * ----------------------------------------------------------------------------- */
+
+void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int inclass) {
+  String *e = NewStringEmpty();
+  String *en = NewStringEmpty();
+  String *ec = NewStringEmpty();
+  String *symname_stripped = SwigType_templateprefix(symname);
+  String *n_name_stripped = SwigType_templateprefix(Getattr(n, "name"));
+  String *c_name_stripped = SwigType_templateprefix(Getattr(c, "name"));
+  int redefined = Swig_need_redefined_warn(n, c, inclass);
+  String *n_name_decl = Swig_name_decl(n);
+  String *c_name_decl = Swig_name_decl(c);
+  if (redefined) {
+    Printf(en, "Redefinition of identifier '%s'", symname_stripped);
+    Printf(ec, "previous definition of '%s'", symname_stripped);
+  } else {
+    Printf(en, "Redundant redeclaration of identifier '%s'", symname_stripped);
+    Printf(ec, "previous declaration of '%s'", symname_stripped);
+  }
+  if (!Equal(symname_stripped, n_name_stripped))
+    Printf(en, " (Renamed from '%s')", SwigType_namestr(n_name_stripped));
+  if (!Equal(symname_stripped, c_name_stripped))
+    Printf(ec, " (Renamed from '%s')", SwigType_namestr(c_name_stripped));
+  if (!Equal(n_name_stripped, n_name_decl))
+    Printf(en, " as %s", n_name_decl);
+  if (!Equal(c_name_stripped, c_name_decl))
+    Printf(ec, " as %s", c_name_decl);
+  Printf(en, " ignored,");
+  Printf(ec, ".");
+  SWIG_WARN_NODE_BEGIN(n);
+  if (redefined) {
+    Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
+    Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
+  } else if (!Checkattr(n, "storage", "friend") && !Checkattr(c, "storage", "friend")) {
+    Swig_warning(WARN_PARSE_REDUNDANT, Getfile(n), Getline(n), "%s\n", en);
+    Swig_warning(WARN_PARSE_REDUNDANT, Getfile(c), Getline(c), "%s\n", ec);
+  }
+  SWIG_WARN_NODE_END(n);
+  Printf(e, "%s:%d:%s\n%s:%d:%s\n", Getfile(n), Getline(n), en, Getfile(c), Getline(c), ec);
+  Setattr(n, "error", e);
+  Delete(c_name_decl);
+  Delete(n_name_decl);
+  Delete(symname_stripped);
+  Delete(c_name_stripped);
+  Delete(n_name_stripped);
+  Delete(e);
+  Delete(en);
+  Delete(ec);
+}
+
+/* -----------------------------------------------------------------------------
  * symbol_lookup()
  *
  * Internal function to handle fully qualified symbol table lookups.  This
