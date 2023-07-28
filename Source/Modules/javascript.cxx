@@ -2889,6 +2889,7 @@ int NAPIEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
   emitChecks(n, params, wrapper);
+  Append(wrapper->code, emitAsyncTypemaps(n, params, wrapper, "lock"));
   String *input = wrapper->code;
 
   wrapper->code = NewString("");
@@ -2950,6 +2951,7 @@ int NAPIEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
   String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
   emitChecks(n, params, wrapper);
+  Append(wrapper->code, emitAsyncTypemaps(n, params, wrapper, "lock"));
   String *input = wrapper->code;
 
   wrapper->code = NewString("");
@@ -3018,6 +3020,7 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
 
   wrapper->code = NewString("");
   emitChecks(n, params, wrapper);
+  Append(wrapper->code, emitAsyncTypemaps(n, params, wrapper, "lock"));
   String *checks = wrapper->code;
 
   // This must be done after input (which resolves the parameters)
@@ -3359,23 +3362,22 @@ int NAPIEmitter::emitChecks(Node *n, ParmList *parms, Wrapper *wrapper) {
   return SWIG_OK;
 }
 
-String *NAPIEmitter::emitLocking(Node *n, ParmList *parms, Wrapper *wrapper) {
+String *NAPIEmitter::emitLocking(Node *n, ParmList *, Wrapper *wrapper) {
   bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"),
                                       js_napi_default_is_locked);
+  if (!locking_enabled)
+    return 0;
 
-  String *lock = NewString("");
-  if (locking_enabled) {
-    String *locks_list = NewString("");
-    Template t_locks(getTemplate("js_local_locks_list"));
-    t_locks.print(locks_list);
-    Append(wrapper->locals, locks_list);
+  String *locks_list = NewString("");
+  Template t_locks(getTemplate("js_local_locks_list"));
+  t_locks.print(locks_list);
+  Append(wrapper->locals, locks_list);
 
-    String *lock = emitAsyncTypemaps(n, parms, wrapper, "lock");
-    Template t_lock(getTemplate("js_lock"));
-    t_lock.print(lock);
-  }
+  String *locking = NewString("");
+  Template t_lock(getTemplate("js_lock"));
+  t_lock.print(locking);
 
-  return lock;
+  return locking;
 }
 
 String *NAPIEmitter::emitGuard(Node *n) {
