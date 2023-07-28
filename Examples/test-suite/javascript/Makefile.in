@@ -64,7 +64,10 @@ ifeq (napi, $(ENGINE))
 # Node-API specific tests
 ifneq (, $(ASYNC))
 # async-specific tests
-CPP_TEST_CASES += napi_async_locking napi_async_overloading
+CPP_TEST_CASES += \
+	napi_async_locking \
+	napi_async_overloading \
+	napi_async_reject
 endif
 endif
 

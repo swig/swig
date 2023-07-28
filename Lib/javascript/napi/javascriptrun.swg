@@ -21,8 +21,30 @@
  * These must be functions instead of macros to use the C++ overloading to
  * resolve the arguments
  */
-#define SWIG_exception(code, msg)               SWIG_Error(code, msg)
+
+SWIGINTERN Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *msg) {
+  switch(type) {
+    default:
+    case SWIG_IOError:
+    case SWIG_MemoryError:
+    case SWIG_SystemError:
+    case SWIG_RuntimeError:
+    case SWIG_DivisionByZero:
+    case SWIG_SyntaxError:
+      return Napi::Error::New(env, msg);
+    case SWIG_OverflowError:
+    case SWIG_IndexError:
+      return Napi::RangeError::New(env, msg);
+    case SWIG_ValueError:
+    case SWIG_TypeError:
+      return Napi::TypeError::New(env, msg);
+  }
+}
+
+#define SWIG_exception(code, msg)               SWIG_NAPI_Raise(env, code, msg)
 #define SWIG_fail                               goto fail
+#define SWIG_Throw_or_Reject                    SWIG_exception
+#define SWIG_Reject(code, msg)                  do { SWIG_NAPI_deferred.Reject(SWIG_NAPI_NewError(env, code, msg).Value()); goto fail; } while (0)
 
 #ifdef NAPI_CPP_EXCEPTIONS
 
@@ -81,7 +103,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
   throw Napi::Error(env, obj);
 }
 
-#else
+#else // NAPI_CPP_EXCEPTIONS
 
 #define SWIG_Error(code, msg)     do { SWIG_NAPI_Raise(env, code, msg); SWIG_fail; } while (0)
 #define NAPI_CHECK_MAYBE(maybe)   do { if (maybe.IsNothing()) SWIG_fail; } while (0)
@@ -97,25 +119,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
 }
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
-  switch(type) {
-    default:
-    case SWIG_IOError:
-    case SWIG_MemoryError:
-    case SWIG_SystemError:
-    case SWIG_RuntimeError:
-    case SWIG_DivisionByZero:
-    case SWIG_SyntaxError:
-      Napi::Error::New(env, msg).ThrowAsJavaScriptException();
-      return;
-    case SWIG_OverflowError:
-    case SWIG_IndexError:
-      Napi::RangeError::New(env, msg).ThrowAsJavaScriptException();
-      return;
-    case SWIG_ValueError:
-    case SWIG_TypeError:
-      Napi::TypeError::New(env, msg).ThrowAsJavaScriptException();
-      return;
-  }
+  SWIG_NAPI_NewError(env, type, msg).ThrowAsJavaScriptException();
 }
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
@@ -123,7 +127,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
   Napi::Error(env, obj).ThrowAsJavaScriptException();
 }
 
-#endif
+#endif // NAPI_CPP_EXCEPTIONS
 
 void JS_veto_set_variable(const Napi::CallbackInfo &info) {
   SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
@@ -476,31 +480,39 @@ fail:
 class SWIG_NAPI_AsyncContext {
 protected:
   Napi::Env env;
+  Napi::Promise::Deferred SWIG_NAPI_deferred;
 public:
-  SWIG_NAPI_AsyncContext(Napi::Env _env) : env(_env) {}
+  SWIG_NAPI_AsyncContext(
+    Napi::Env _env
+  ) : 
+    env(_env),
+    SWIG_NAPI_deferred(Napi::Promise::Deferred(_env)) {}
   virtual ~SWIG_NAPI_AsyncContext() {}
   // All methods are prefixed to avoid symbol pollution
-  virtual void SWIG_NAPI_Init(const Napi::CallbackInfo &) = 0;
+  virtual bool SWIG_NAPI_Init(const Napi::CallbackInfo &) = 0;
   virtual void SWIG_NAPI_Execute() = 0;
-  virtual Napi::Value SWIG_NAPI_OnOK() = 0;
-  virtual void SWIG_NAPI_Cleanup() = 0;
+  virtual void SWIG_NAPI_Resolve() = 0;
+  virtual void SWIG_NAPI_Fail(const Napi::Error &) = 0;
+  virtual bool SWIG_NAPI_Cleanup() = 0;
+  inline Napi::Promise SWIG_NAPI_Promise() { return SWIG_NAPI_deferred.Promise(); }
 };
 
 // This is the async worker, this class deletes itself (NAPI does this)
 // as well as its context when the async operation completes
 class SWIG_NAPI_AsyncWorker : public Napi::AsyncWorker {
   SWIG_NAPI_AsyncContext *context;
-  Napi::Promise::Deferred deferred;
   // This vector holds persistent references to all JS objects
   // involved in the asynchronous operation - it protects them
   // from being garbage-collected
   std::vector<Napi::ObjectReference *> persistent;
 
 public:
-  SWIG_NAPI_AsyncWorker(Napi::Env _env, const char *name, SWIG_NAPI_AsyncContext *_context) :
+  SWIG_NAPI_AsyncWorker(
+      Napi::Env _env,
+      const char *name,
+      SWIG_NAPI_AsyncContext *_context) :
     Napi::AsyncWorker(_env, name),
     context(_context),
-    deferred(Napi::Promise::Deferred::New(_env)),
     persistent() {}
 
   virtual ~SWIG_NAPI_AsyncWorker() {
@@ -513,15 +525,13 @@ public:
 
   virtual void OnOK() override {
     Napi::HandleScope scope(Env());
-    deferred.Resolve(context->SWIG_NAPI_OnOK());
-    context->SWIG_NAPI_Cleanup();
+    context->SWIG_NAPI_Resolve();
     delete context;
   }
 
   virtual void OnError(const Napi::Error &error) override {
     Napi::HandleScope scope(Env());
-    deferred.Reject(error.Value());
-    context->SWIG_NAPI_Cleanup();
+    context->SWIG_NAPI_Fail(error);
     delete context;
   }
 
@@ -535,11 +545,6 @@ public:
 #else
     context->SWIG_NAPI_Execute();
 #endif
-  }
-
-  inline Napi::Promise Promise() {
-    // This creates a new Local<> reference in the scope of the caller
-    return deferred.Promise();
   }
 
   inline void Persist(const Napi::Value &v) {
