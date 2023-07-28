@@ -160,6 +160,7 @@ CPP_TEST_CASES += \
 	conversion_namespace \
 	conversion_ns_template \
 	conversion_operators \
+	copyctor \
 	cplusplus_throw \
 	cpp_basic \
 	cpp_enum \

@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-07-28: wsfulton
+            [#2541] Fix overloading of templated constructors and %copyctor.
+
 2023-07-21: wsfulton
             Don't generate a default constructor wrapper when a class has a
             templated constructor, as there isn't actually an implied default

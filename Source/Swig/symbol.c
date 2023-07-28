@@ -1475,7 +1475,6 @@ Symtab *Swig_symbol_cscope(const_String_or_char_ptr name, Symtab *symtab) {
 void Swig_symbol_remove(Node *n) {
   Symtab *symtab;
   String *symname;
-  String *overname;
   Node *symprev;
   Node *symnext;
   Node *fixovername = 0;
@@ -1517,11 +1516,22 @@ void Swig_symbol_remove(Node *n) {
   Delattr(n, "sym:overname");
   Delattr(n, "csym:previousSibling");
   Delattr(n, "sym:overloaded");
-  n = 0;
 
-  if (fixovername) {
-    Node *nn = fixovername;
-    Node *head = fixovername;
+  Swig_symbol_fix_overname(fixovername);
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_fix_overname()
+ *
+ * Fix/update the sym:overname attribute for all the overloaded names.
+ * The sym:overname attributes are changed to start from zero, eg __SWIG_0.
+ * Call this when the linked lists for overloaded methods are modified.
+ * ----------------------------------------------------------------------------- */
+
+void Swig_symbol_fix_overname(Node *n) {
+  if (n) {
+    Node *nn = n;
+    Node *head = n;
     int pn = 0;
 
     /* find head of linked list */
@@ -1533,9 +1543,8 @@ void Swig_symbol_remove(Node *n) {
     /* adjust all the sym:overname strings to start from 0 and increment by one */
     nn = head;
     while (nn) {
-      assert(Getattr(nn, "sym:overname"));
+      String *overname = NewStringf("__SWIG_%d", pn);
       Delattr(nn, "sym:overname");
-      overname = NewStringf("__SWIG_%d", pn);
       Setattr(nn, "sym:overname", overname);
       Delete(overname);
       pn++;
