@@ -43,8 +43,7 @@ SWIGINTERN Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *m
 
 #define SWIG_exception(code, msg)               SWIG_NAPI_Raise(env, code, msg)
 #define SWIG_fail                               goto fail
-#define SWIG_Throw_or_Reject                    SWIG_exception
-#define SWIG_Reject(code, msg)                  do { SWIG_NAPI_deferred.Reject(SWIG_NAPI_NewError(env, code, msg).Value()); goto fail; } while (0)
+#define SWIG_NAPI_Reject(env, code, msg)        do { SWIG_NAPI_deferred.Reject(SWIG_NAPI_NewError(env, code, msg).Value()); goto fail; } while (0)
 
 #ifdef NAPI_CPP_EXCEPTIONS
 

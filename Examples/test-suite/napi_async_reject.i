@@ -5,7 +5,7 @@
 %feature("sync", "Sync");
 
 %typemap(check) int positive {
-  if ($1 <= 0) SWIG_Throw_or_Reject(SWIG_ValueError, "must be positive");
+  if ($1 <= 0) SWIG_exception_fail(SWIG_ValueError, "must be positive");
 }
 
 %inline %{

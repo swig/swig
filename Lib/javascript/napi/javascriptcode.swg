@@ -251,6 +251,7 @@ ${classname_mangled}_templ<SWIG_OBJ_WRAP>::~${classname_mangled}_templ() {
  * js_global_getter:  template for global getter function wrappers
  *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
+ *   - $jsinput:        input part of wrapper
  *   - $jsguard:        locking declaration
  *   - $jslock:         locking
  *   - $jscode:         code part of wrapper
@@ -281,6 +282,7 @@ fail:
  * js_global_setter:  template for global setter function wrappers
  *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
+ *   - $jsinput:        input part of wrapper
  *   - $jsguard:        locking declaration
  *   - $jslock:         locking
  *   - $jscode:         code part of wrapper
@@ -334,6 +336,7 @@ fail:
  *   - $jsargrequired:  minimum number of arguments
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
+ *   - $jschecks:       check typemaps
  *   - $jsguard:        locking declaration
  *   - $jslock:         locking
  *   - $jsaction:       action part of wrapper
@@ -353,6 +356,7 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   }
 
   $jsinput
+  $jschecks
   $jslock
   $jsaction
   $jsoutput
@@ -446,6 +450,7 @@ fail:
  *   - $jsmangledname:  mangled class name
  *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
+ *   - $jsinput:        input part of wrapper
  *   - $jsguard:        locking declaration
  *   - $jslock:         locking
  *   - $jscode:         code part of wrapper
@@ -478,6 +483,7 @@ fail:
  *   - $jsmangledname:  mangled class name
  *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
+ *   - $jsinput:        input part of wrapper
  *   - $jsguard:        locking declaration
  *   - $jslock:         locking
  *   - $jscode:         code part of wrapper
@@ -512,6 +518,7 @@ fail:
  *   - $jsargrequired:  minimum number of arguments
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
+ *   - $jschecks:       check typemaps
  *   - $jsguard:        locking declaration
  *   - $jslock:         locking
  *   - $jsaction:       action part of wrapper
@@ -532,6 +539,7 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   }
 
   $jsinput
+  $jschecks
   $jslock
   $jsaction
   $jsoutput
@@ -607,6 +615,8 @@ fail:
  *   - $jsmangledname: class name
  *   - $jswrapper:     wrapper function name
  *   - $jslocals:      locals part of wrapper
+ *   - $jsinput:        input part of wrapper
+ *   - $jschecks:       check typemaps
  *   - $jsguard:       locking declaration
  *   - $jslock:        locking
  *   - $jsaction:      code part of wrapper
@@ -621,6 +631,7 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   $jslocals
   $jsguard
   $jsinput
+  $jschecks
   $jslock
   $jsaction
   $jsoutput
@@ -666,6 +677,7 @@ fail:
  *   - $jswrapper:      wrapper function name
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
+ *   - $jschecks:       check typemaps
  *   - $jsguard:        locking
  *   - $jsaction:       action part of wrapper
  *   - $joutput:        output part of wrapper
@@ -680,6 +692,7 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   $jslocals
   $jsguard
   $jsinput
+  $jschecks
   $jslock
   $jsaction
   $jsoutput
@@ -719,17 +732,17 @@ fail:
 
 
 /* -----------------------------------------------------------------------------
- * js_locks:  template for the locks list
+ * js_local_locks_list:  template for the locks list local variable
  * ----------------------------------------------------------------------------- */
-%fragment("js_locks", "templates")
+%fragment("js_local_locks_list", "templates")
 %{
-  // js_locks
+  // js_locks_list
   SWIG_Locks_List SWIG_locks;
 %}
 
 
 /* -----------------------------------------------------------------------------
- * js_guard:  template for locking
+ * js_guard:  template for creating a guard variable
  * ----------------------------------------------------------------------------- */
 %fragment("js_guard", "templates")
 %{
@@ -739,7 +752,7 @@ fail:
 
 
 /* -----------------------------------------------------------------------------
- * js_lock:  template for locking
+ * js_lock:  template for locking the guard variable
  * ----------------------------------------------------------------------------- */
 %fragment("js_lock", "templates")
 %{
@@ -756,6 +769,7 @@ fail:
  *   - $jsargrequired:  minimum number of arguments
  *   - $jslocals:       locals part of wrapper
  *   - $jsinput:        input part of wrapper
+ *   - $jschecks:       check typemaps
  *   - $jsguard:        locking declaration
  *   - $jslock:         locking
  *   - $jsaction:       action part of wrapper
@@ -783,8 +797,6 @@ fail:
       return;
     }
 
-#undef SWIG_Throw_or_Reject
-#define SWIG_Throw_or_Reject SWIG_Reject
     virtual void SWIG_NAPI_Resolve() override {
       // Back in the main thread with V8 access
       Napi::Value jsresult;
@@ -814,13 +826,14 @@ fail:
 
     virtual bool SWIG_NAPI_Init(const Napi::CallbackInfo &info) override {
       $jsinput
+#define SWIG_NAPI_Raise SWIG_NAPI_Reject
+      $jschecks
+#undef SWIG_NAPI_Raise
       return true;
       goto fail;
     fail:
       return false;
     }
-#undef SWIG_Throw_or_Reject
-#define SWIG_Throw_or_Reject SWIG_exception
   };
 %}
 

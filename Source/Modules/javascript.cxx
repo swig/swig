@@ -2465,8 +2465,9 @@ public:
 protected:
   virtual void marshalInputArgs(Node *, ParmList *, Wrapper *, MarshallingMode,
                                 bool, bool);
+  virtual int emitChecks(Node *, ParmList *, Wrapper *);
   virtual String *emitAsyncTypemaps(Node *, Parm *, Wrapper *, const char *);
-  virtual String *emitLocking(Node *);
+  virtual String *emitLocking(Node *, Parm *, Wrapper *);
   virtual String *emitGuard(Node *);
   virtual int emitNamespaces();
   virtual int emitGetter(Node *n, bool is_member, bool is_static);
@@ -2887,6 +2888,7 @@ int NAPIEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   // prepare code part
   String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
+  emitChecks(n, params, wrapper);
   String *input = wrapper->code;
 
   wrapper->code = NewString("");
@@ -2898,7 +2900,7 @@ int NAPIEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   String *cleanup = wrapper->code;
 
   String *guard = emitGuard(n);
-  String *locking = emitLocking(n);
+  String *locking = emitLocking(n, params, wrapper);
 
   t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jswrapper", wrap_name)
@@ -2947,6 +2949,7 @@ int NAPIEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
   // prepare code part
   String *action = emit_action(n);
   marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
+  emitChecks(n, params, wrapper);
   String *input = wrapper->code;
 
   wrapper->code = NewString("");
@@ -2954,7 +2957,7 @@ int NAPIEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
   String *cleanup = wrapper->code;
 
   String *guard = emitGuard(n);
-  String *locking = emitLocking(n);
+  String *locking = emitLocking(n, params, wrapper);
 
   t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jswrapper", wrap_name)
@@ -3013,10 +3016,14 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
   marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
   String *input = wrapper->code;
 
+  wrapper->code = NewString("");
+  emitChecks(n, params, wrapper);
+  String *checks = wrapper->code;
+
   // This must be done after input (which resolves the parameters)
   // but before emit_action (which emits the local variables)
   String *guard = emitGuard(n);
-  String *locking = emitLocking(n);
+  String *locking = emitLocking(n, params, wrapper);
 
   String *action = emit_action(n);
 
@@ -3041,6 +3048,7 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
       .replace("$jswrapper", wrap_name)
       .replace("$jslocals", wrapper->locals)
       .replace("$jsinput", input)
+      .replace("$jschecks", checks)
       .replace("$jstype", Swig_scopename_last(
                               SwigType_str(SwigType_strip_qualifiers(type), 0)))
       .replace("$jsguard", guard)
@@ -3334,6 +3342,11 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
       p = nextSibling(p);
     }
   }
+}
+
+int NAPIEmitter::emitChecks(Node *n, ParmList *parms, Wrapper *wrapper) {
+  Parm *p;
+  String *tm;
 
   for (p = parms; p;) {
     tm = emitCheckTypemap(n, p, wrapper, Getattr(p, "emit:input"));
@@ -3343,28 +3356,21 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
       p = nextSibling(p);
     }
   }
-
-  if (State::IsSet(Getattr(n, "feature:async:locking"),
-                   js_napi_default_is_locked)) {
-    String *locks_list = NewString("");
-    Template t_locks(getTemplate("js_locks"));
-    t_locks.print(locks_list);
-    Append(wrapper->locals, locks_list);
-
-    String *lock = emitAsyncTypemaps(n, parms, wrapper, "lock");
-    Append(wrapper->code, lock);
-    Delete(lock);
-
-
-  }
+  return SWIG_OK;
 }
 
-String *NAPIEmitter::emitLocking(Node *n) {
+String *NAPIEmitter::emitLocking(Node *n, ParmList *parms, Wrapper *wrapper) {
   bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"),
                                       js_napi_default_is_locked);
 
   String *lock = NewString("");
   if (locking_enabled) {
+    String *locks_list = NewString("");
+    Template t_locks(getTemplate("js_local_locks_list"));
+    t_locks.print(locks_list);
+    Append(wrapper->locals, locks_list);
+
+    String *lock = emitAsyncTypemaps(n, parms, wrapper, "lock");
     Template t_lock(getTemplate("js_lock"));
     t_lock.print(lock);
   }

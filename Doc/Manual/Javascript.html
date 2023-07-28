@@ -877,24 +877,19 @@ Another potential weakness of the async framework is thread starvation due to th
 
 <p>The usual Node.js convention is that functions that return a <code>Promise</code> should never throw synchronously, because this forces the end user to catch eventual errors in two distrinct ways. Throwing a C++ exception in a wrapped function will automatically result in a rejected <code>Promise</code>.</p>
   
-<p>However SWIG-generated wrappers will still throw when a function is called with arguments that do not match its signature. As this should always be a critical error, it is not expected that a program will need to handle it at runtime. As there are cases where an asynchronous wrapper should reject instead of throwing - for example when failing a <code>check</code> typemap. Two new SWIG directives allow this:</p>
+<p>However SWIG-generated wrappers will still throw in <code>in</code> typemaps when a function is called with arguments that do not match its signature. As this should always be a critical error, it is not expected that a program will need to handle it at runtime.</p>
+
+<p>On the other hand, when failing a <code>check</code> typemap, SWIG will automatically reject or throw depending on the type of the wrapper:</p>
 
 <div class="code">
 <pre>
 // Automatically throw or reject depending
 // on the type of the wrapper (sync/async)
 %typemap(check) int positive {
-  if ($1 <= 0) SWIG_Throw_or_Reject(SWIG_ValueError, "must be positive");
-}
-
-// Always reject, works only in async wrappers
-%typemap(check) int async_positive {
-  if ($1 <= 0) SWIG_Reject(SWIG_ValueError, "must be positive");
+  if ($1 <= 0) SWIG_exception_fail(SWIG_ValueError, "must be positive");
 }
 </pre>
 </div>
-
-<p>These can be used in all typemaps but they should not be used to report failed parsing of input arguments in a <code>in</code> typemap, as this would break overloading.</p>
 
 <H2><a name="Javascript_implementation">28.7 Implementation</a></H2>
 
