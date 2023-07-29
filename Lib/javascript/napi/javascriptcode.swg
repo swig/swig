@@ -944,19 +944,7 @@ fail:
 %fragment("jsnapi_class_epilogue_template", "templates")
 %{
   // jsnapi_class_epilogue_template
-  static void JS_veto_set_static_variable(const Napi::CallbackInfo &, const Napi::Value &);
-  void JS_veto_set_variable(const Napi::CallbackInfo &, const Napi::Value &);
 };
-
-template <typename SWIG_OBJ_WRAP>
-void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_static_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
-  SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
-}
-
-template <typename SWIG_OBJ_WRAP>
-void $jsmangledname_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
-  SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
-}
 %}
 
 

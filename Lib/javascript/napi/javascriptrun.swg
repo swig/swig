@@ -201,6 +201,9 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
     }
     virtual ~SWIG_NAPI_ObjectWrap_templ() {};
 
+    static void JS_veto_set_static_variable(const Napi::CallbackInfo &, const Napi::Value &);
+    void JS_veto_set_variable(const Napi::CallbackInfo &, const Napi::Value &);
+
     inline void lock() { uv_mutex_lock(&_lock); };
     inline void unlock() { uv_mutex_unlock(&_lock); };
 
@@ -241,6 +244,16 @@ Napi::Value SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::ToString(const Napi::Call
     this->self,
     this->owned ? "[owned]" : "[copy]");
   return Napi::String::New(env, repr);
+}
+
+template <typename SWIG_OBJ_WRAP>
+void SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::JS_veto_set_static_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
+  SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
+}
+
+template <typename SWIG_OBJ_WRAP>
+void SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
+  SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
 }
 
 class SWIG_NAPI_ObjectWrap_inst : public SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_ObjectWrap_inst> {
