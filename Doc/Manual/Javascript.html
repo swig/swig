@@ -830,7 +830,7 @@ This will enable the inclusion of the async locking typemaps in both synchronous
 <pre>
 %feature("async:locking", "1");
 %feature("async:locking", "0") UnsafeClass;
-%typemap(lock) ReadonlyClass *, ReadonlyClass & ""
+%typemap(lock) ReadonlyClass *, ReadonlyClass & "";
 </pre>
 </div>
 
