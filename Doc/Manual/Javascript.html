@@ -847,6 +847,8 @@ This will enable the inclusion of the async locking typemaps in both synchronous
 <div class="code">
 <pre>
 %feature("async:locking", "1");
+%apply SWIGTYPE *LOCK {SWIGTYPE *};
+%apply SWIGTYPE &LOCK {SWIGTYPE &};
 %feature("async:locking", "0") UnsafeClass;
 %typemap(lock) ReadonlyClass *, ReadonlyClass & "";
 </pre>
