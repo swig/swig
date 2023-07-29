@@ -52,12 +52,12 @@ SWIGINTERN Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *m
 #define NAPI_CHECK_RESULT(maybe, result)        (result = maybe)
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
-  if ((napi_env)env == nullptr) { throw std::runtime_error(msg); }
+  if ((napi_env)env == SWIG_NULLPTR) { throw std::runtime_error(msg); }
   throw Napi::Error::New(env, msg);
 }
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
-  if ((napi_env)env == nullptr) {
+  if ((napi_env)env == SWIG_NULLPTR) {
     // Async throw from a worker thread without access to V8
     // Throw a C++ exception, the async worker will handle it
     switch(type) {
@@ -97,8 +97,8 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
 }
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
-        const char *msg = nullptr, swig_type_info *info = nullptr) {
-  if ((napi_env)env == nullptr) { abort(); }
+        const char *msg = SWIG_NULLPTR, swig_type_info *info = SWIG_NULLPTR) {
+  if ((napi_env)env == SWIG_NULLPTR) { abort(); }
   throw Napi::Error(env, obj);
 }
 
@@ -122,7 +122,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
 }
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
-        const char *msg = nullptr, swig_type_info *info = nullptr) {
+        const char *msg = SWIG_NULLPTR, swig_type_info *info = SWIG_NULLPTR) {
   Napi::Error(env, obj).ThrowAsJavaScriptException();
 }
 
@@ -193,10 +193,10 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
     SWIG_NAPI_ObjectWrap_templ(const Napi::CallbackInfo &info);
     SWIG_NAPI_ObjectWrap_templ(bool, const Napi::CallbackInfo &info) :
         Napi::ObjectWrap<SWIG_OBJ_WRAP>(info),
-        self(nullptr),
+        self(SWIG_NULLPTR),
         owned(true),
         size(0),
-        info(nullptr) {
+        info(SWIG_NULLPTR) {
       uv_mutex_init(&_lock);
     }
     virtual ~SWIG_NAPI_ObjectWrap_templ() {};
@@ -216,7 +216,7 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
 
 template <typename SWIG_OBJ_WRAP>
 SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::SWIG_NAPI_ObjectWrap_templ(const Napi::CallbackInfo &info) :
-        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info), size(0), info(nullptr) { 
+        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info), size(0), info(SWIG_NULLPTR) { 
   uv_mutex_init(&_lock);
   Napi::Env env = info.Env();
   if (info.Length() == 1 && info[0].IsExternal()) {
@@ -303,7 +303,7 @@ SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
   ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(objRef);
 
   // Now check if the SWIG type is compatible unless the types match exactly or the type is unknown
-  if(info && ow->info != info && ow->info != nullptr) {
+  if(info && ow->info != info && ow->info != SWIG_NULLPTR) {
     swig_cast_info *tc = SWIG_TypeCheckStruct(ow->info, info);
     if (!tc && ow->info->name) {
       tc = SWIG_TypeCheck(ow->info->name, info);
@@ -326,7 +326,7 @@ SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
       ow->owned = false;
     }
     if (flags & SWIG_POINTER_CLEAR) {
-      ow->self = nullptr;
+      ow->self = SWIG_NULLPTR;
     }
   }
   return SWIG_OK;
@@ -345,7 +345,7 @@ SWIGRUNTIME int SWIG_NAPI_GetInstancePtr(Napi::Value valRef, void **ptr) {
   NAPI_CHECK_RESULT(valRef.ToObject(), objRef);
   ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(objRef);
 
-  if(ow->self == nullptr) {
+  if(ow->self == SWIG_NULLPTR) {
     return SWIG_ERROR;
   }
 
@@ -380,15 +380,15 @@ SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_t
   Napi::External<void> native;
   Napi::FunctionReference *ctor;
 
-  if (ptr == nullptr) {
+  if (ptr == SWIG_NULLPTR) {
     return env.Null();
   }
   native = Napi::External<void>::New(env, ptr);
 
-  size_t *idx = info != nullptr ?
+  size_t *idx = info != SWIG_NULLPTR ?
         reinterpret_cast<SWIG_NAPI_ClientData *>(info->clientdata) :
-        nullptr;
-  if (idx == nullptr) {
+        SWIG_NULLPTR;
+  if (idx == SWIG_NULLPTR) {
     // This type does not have a dedicated wrapper
     ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
   } else {
@@ -399,7 +399,7 @@ SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_t
   NAPI_CHECK_RESULT(ctor->New({native}), wrapped);
 
   // Preserve the type even if using the generic wrapper
-  if (idx == nullptr && info != nullptr) {
+  if (idx == SWIG_NULLPTR && info != SWIG_NULLPTR) {
     Napi::Object obj;
     NAPI_CHECK_RESULT(wrapped.ToObject(), obj);
     Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj)->info = info;

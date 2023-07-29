@@ -242,7 +242,7 @@ ${classname_mangled}_templ<SWIG_OBJ_WRAP>::~${classname_mangled}_templ() {
   auto arg1 = reinterpret_cast<$jstype>(this->self);
   if (this->owned && arg1) {
     ${destructor_action}
-    this->self = nullptr;
+    this->self = SWIG_NULLPTR;
   }
 }
 %}
@@ -788,7 +788,7 @@ fail:
 
     virtual void SWIG_NAPI_Execute() override {
       // This runs the action code in a worker thread and V8 is not accessible
-      Napi::Env env(nullptr);
+      Napi::Env env(SWIG_NULLPTR);
       $jsguard
       $jslock
       $jsaction
@@ -1046,7 +1046,7 @@ void $jsmangledname_inst::GetMembers(
   // jsnapi_registerclass
   Napi::Function $jsmangledname_ctor = $jsmangledname_inst::GetClass(env);
   $jsparent.Set("$jsname", $jsmangledname_ctor);
-  if (SWIGTYPE_$jsmangledtype->clientdata == nullptr) {
+  if (SWIGTYPE_$jsmangledtype->clientdata == SWIG_NULLPTR) {
     SWIGTYPE_$jsmangledtype->clientdata = new size_t($jsclassidx);
   }
   Napi::FunctionReference *$jsmangledname_ctor_ref = new Napi::FunctionReference();

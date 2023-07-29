@@ -23,13 +23,13 @@
  */
 
 %typemap(lock) SWIGTYPE *, SWIGTYPE &  {
-  SWIG_NAPI_ObjectWrap_inst *ow = nullptr;
+  SWIG_NAPI_ObjectWrap_inst *ow = SWIG_NULLPTR;
   if ($input.IsObject()) {
     Napi::Object obj;
     NAPI_CHECK_RESULT($input.ToObject(), obj);
     if (SWIG_NAPI_IsWrappedObject(env, obj)) {
       ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj);
-      if (ow != nullptr && SWIG_locks.count(ow) == 0) {
+      if (ow != SWIG_NULLPTR && SWIG_locks.count(ow) == 0) {
           SWIG_locks.insert({reinterpret_cast<void*>(ow), {
             [ow](){ow->lock();}, [ow](){ow->unlock();}
           }});
