@@ -856,6 +856,8 @@ This will enable the inclusion of the async locking typemaps in both synchronous
 
 <p>In this example, all methods of <code>UnsafeClass</code> won't apply any locking - for any type of argument. Methods of other classes will still apply locking to objects of <code>UnsafeClass</code>. On the other side, objects of <code>ReadonlyClass</code> will never be locked - when calling its own methods or when using such an object as an argument in another function.</p>
 
+<p>The built-in locking has only one major drawback - it locks the SWIG proxy instead of the underlying object. This means that it is not compatible with typemaps that create multiple proxies for one object - such as the <code>DISOWN</code> typemaps or typemaps that clear <code>SWIG_POINTER_OWN</code></p>.
+
 <H4><a name="Javascript_async_sync_locking">28.6.2.1 Creating Wrappers that Support Mixing Synchronous and Asynchronous Execution</H3>
 
 <p>Special care must be taken when designing a wrapper that supports mixing of synchronous and asynchronous access. In this case one must never synchronously access objects that have been locked by an asynchronous operation. Trying to lock such object will result synchronous blocking of the event loop, effectively freezing the main thread - and the program - until the asynchronous operation completes. This is something that should be made clear to the end user of the wrapper. For example: </p>
