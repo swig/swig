@@ -108,7 +108,7 @@ void clean_overloaded(Node *n) {
       Delattr(n, "sym:overloaded");
   }
 
-//  Swig_symbol_fix_overname(Getattr(n, "sym:overloaded"));
+  Swig_symbol_fix_overname(Getattr(n, "sym:overloaded"));
 }
 
 /* -----------------------------------------------------------------------------
