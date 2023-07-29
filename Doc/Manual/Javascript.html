@@ -766,9 +766,9 @@ if(js_exception)
 // Generate async wrappers with the suffix Async
 %feature("async", "Async");
 // or generate async wrappers without suffix (this is the Node.js built-in class library convention)
-%feature("async", 1);
+%feature("async", "1");
 // eventually, do not generate an async version for Klass::alwaysSync()
-%feature("async", 0) Klass::alwaysSync
+%feature("async", "0") Klass::alwaysSync
 </pre>
 </div>
         
@@ -806,7 +806,7 @@ Asynchornous wrappers allow access to concurrent programming, meaning that multi
 Locking must be enabled with <code>%feature</code>:
 <div class="code">
 <pre>
-%feature("async:locking", 1);
+%feature("async:locking", "1");
 </pre>
 </div>
 <p>
@@ -814,6 +814,27 @@ This will enable the inclusion of the async locking typemaps in both synchronous
 </p>
 
 <p>In order to avoid dead-locking, the lambdas from the <code>lock</code> typemap are always executed in the same order for the same objects. This means that both <code>fn(a, b)</code> and <code>fn(b, a)</code> will lock <code>a</code> and <code>b</code> in the same order.</p>
+
+<p>Locking can also be enabled or disabled on specific classes or specific methods:</p>
+
+<div class="code">
+<pre>
+%feature("async:locking", "1");
+%feature("async:locking", "0") Klass:UnsafeMethod;
+</pre>
+</div>
+
+<p>When locking is disabled for a specific class, this means that all of its methods won't apply the <code>lock</code> typemaps at all. This is different from specifying an empty <code>lock</code> typemap for a specific class, in which case all wrappers won't apply locking only for this class. Here is an example:</p>
+
+<div class="code">
+<pre>
+%feature("async:locking", "1");
+%feature("async:locking", "0") UnsafeClass;
+%typemap(lock) ReadonlyClass *, ReadonlyClass & ""
+</pre>
+</div>
+
+<p>In this example, all methods of <code>UnsafeClass</code> won't apply any locking - for any type of argument. Methods of other classes will still apply locking to objects of <code>UnsafeClass</code>. On the other side, objects of <code>ReadonlyClass</code> will never be locked - when calling its own methods or when using such an object as an argument in another function.</p>
 
 <H4><a name="Javascript_async_sync_locking">28.6.2.1 Creating Wrappers that Support Mixing Synchronous and Asynchronous Execution</H3>
 
