@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-07-29: wsfulton
+            https://sourceforge.net/p/swig/bugs/678/
+            Fix %copyctor used on class hierarchies with non-const copy
+            constructors. Previously SWIG always attempted to call a copy
+            constructor taking a const reference parameter instead of a
+            non-const reference parameter.
+
 2023-07-28: wsfulton
             [#2541] Fix overloading of templated constructors and %copyctor.
 

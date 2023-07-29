@@ -651,11 +651,13 @@ Allocate():
     if (!Getattr(n, "allocate:has_copy_constructor")) {
       if (Getattr(n, "abstracts")) {
 	Delattr(n, "allocate:copy_constructor");
+	Delattr(n, "allocate:copy_constructor_non_const");
       }
       if (!Getattr(n, "allocate:copy_constructor")) {
 	/* Check base classes */
 	List *bases = Getattr(n, "allbases");
 	int allows_copy = 1;
+	int must_be_copy_non_const = 0;
 
 	for (int i = 0; i < Len(bases); i++) {
 	  Node *n = Getitem(bases, i);
@@ -663,9 +665,15 @@ Allocate():
 	  if (!Getattr(n, "allocate:copy_constructor") && (!Getattr(n, "allocate:copy_base_constructor"))) {
 	    allows_copy = 0;
 	  }
+	  if (Getattr(n, "allocate:copy_constructor_non_const") || (Getattr(n, "allocate:copy_base_constructor_non_const"))) {
+	    must_be_copy_non_const = 1;
+	  }
 	}
 	if (allows_copy) {
 	  Setattr(n, "allocate:copy_constructor", "1");
+	}
+	if (must_be_copy_non_const) {
+	  Setattr(n, "allocate:copy_constructor_non_const", "1");
 	}
       }
     }
@@ -1164,6 +1172,7 @@ Allocate():
     if (parms && (ParmList_numrequired(parms) == 1)) {
       /* Look for a few cases. X(const X &), X(X &), X(X *) */
       int copy_constructor = 0;
+      int copy_constructor_non_const = 0;
       SwigType *type = Getattr(inclass, "name");
       String *tn = NewStringf("r.q(const).%s", type);
       String *cc = SwigType_typedef_resolve_all(tn);
@@ -1183,6 +1192,7 @@ Allocate():
 	cc = NewStringf("r.%s", Getattr(inclass, "name"));
 	if (Strcmp(cc, Getattr(parms, "type")) == 0) {
 	  copy_constructor = 1;
+	  copy_constructor_non_const = 1;
 	} else {
 	  Delete(cc);
 	  cc = NewStringf("p.%s", Getattr(inclass, "name"));
@@ -1204,6 +1214,15 @@ Allocate():
 	  Setattr(inclass, "allocate:copy_constructor", "1");
 	} else if (access_mode == PROTECTED) {
 	  Setattr(inclass, "allocate:copy_base_constructor", "1");
+	}
+	if (copy_constructor_non_const) {
+	  Setattr(n, "copy_constructor_non_const", "1");
+	  Setattr(inclass, "allocate:has_copy_constructor_non_const", "1");
+	  if (access_mode == PUBLIC) {
+	    Setattr(inclass, "allocate:copy_constructor_non_const", "1");
+	  } else if (access_mode == PROTECTED) {
+	    Setattr(inclass, "allocate:copy_base_constructor_non_const", "1");
+	  }
 	}
       }
     }
@@ -1237,11 +1256,12 @@ static void addCopyConstructor(Node *n) {
   Setfile(cn, Getfile(n));
   Setline(cn, Getline(n));
 
+  int copy_constructor_non_const = GetFlag(n, "allocate:copy_constructor_non_const");
   String *cname = Getattr(n, "name");
   SwigType *type = Copy(cname);
   String *lastname = Swig_scopename_last(cname);
   String *name = SwigType_templateprefix(lastname);
-  String *cc = NewStringf("r.q(const).%s", type);
+  String *cc = NewStringf(copy_constructor_non_const ? "r.%s" : "r.q(const).%s", type);
   String *decl = NewStringf("f(%s).", cc);
   String *oldname = Getattr(n, "sym:name");
 

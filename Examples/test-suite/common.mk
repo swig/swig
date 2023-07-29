@@ -150,6 +150,7 @@ CPP_TEST_CASES += \
 	constant_pointers \
 	constover \
 	constructor_copy \
+	constructor_copy_non_const \
 	constructor_exception \
 	constructor_explicit \
 	constructor_ignore \
