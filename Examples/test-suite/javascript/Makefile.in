@@ -118,7 +118,7 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 		BUILD = Release
 	endif
         ifneq (, $(ASYNC))
-		SWIGASYNC = -async -async-locking
+		SWIGASYNC = -async
 	else
 		SWIGASYNC =
 	endif

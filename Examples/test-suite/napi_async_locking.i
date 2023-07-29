@@ -6,6 +6,10 @@
 %feature("async:locking", "1");
 %feature("async:locking", "0") Integer::computeUnlocked;
 
+%apply SWIGTYPE LOCK  {Integer};
+%apply SWIGTYPE *LOCK {Integer *};
+%apply SWIGTYPE &LOCK {Integer &};
+
 %{
 void inline compute(int &a, const int b) {
   char buf[16];

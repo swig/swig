@@ -15,14 +15,9 @@
 
 /* 
  * With NAPI, all pointers and references have a
- * SWIG_NAPI_ObjectWrap_inst wrapper
- * By default, all of them are locked during async operations
- * If an object type supports concurrent access - because it
- * is read-only or because it has its own locking - these
- * typemaps should be overriden
+ * SWIG_NAPI_ObjectWrap_inst wrapper that contains a lock
  */
-
-%typemap(lock) SWIGTYPE *, SWIGTYPE &  {
+%typemap(lock) SWIGTYPE LOCK, SWIGTYPE *LOCK, SWIGTYPE &LOCK  {
   SWIG_NAPI_ObjectWrap_inst *ow = SWIG_NULLPTR;
   if ($input.IsObject()) {
     Napi::Object obj;
@@ -37,6 +32,15 @@
     }
   }
 }
+
+/*
+ * Lock everything by default
+ * Used by the test-suite
+ */
+#ifdef SWIG_NAPI_FULL_LOCKING
+%apply SWIGTYPE LOCK  {SWIGTYPE};
+%apply SWIGTYPE *LOCK {SWIGTYPE *};
+%apply SWIGTYPE &LOCK {SWIGTYPE &};
 
 /*
  * Primitives types do not need locking
@@ -71,3 +75,4 @@ EMPTY_ASYNC_TM(lock, &INOUT)
 EMPTY_ASYNC_TM(lock, *OUTPUT)
 
 EMPTY_ASYNC_TM(lock, &OUTPUT)
+#endif

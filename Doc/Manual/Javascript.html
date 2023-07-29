@@ -815,6 +815,24 @@ This will enable the inclusion of the async locking typemaps in both synchronous
 
 <p>In order to avoid dead-locking, the lambdas from the <code>lock</code> typemap are always executed in the same order for the same objects. This means that both <code>fn(a, b)</code> and <code>fn(b, a)</code> will lock <code>a</code> and <code>b</code> in the same order.</p>
 
+<p>Every object type that should be locked has to have a <code>lock</code> typemap. There is a built-in default one that applies to all arguments called <code>LOCK</code>. It uses a mutex included in every SWIG proxy and works for all <code>struct</code>s and <code>class</code>es:</p>
+
+<div class="code">
+<pre>
+%feature("async:locking", "1");
+
+// Apply locking to all objects of type NonReentrantClass
+%apply SWIGTYPE  LOCK {NonReentrantClass};
+%apply SWIGTYPE *LOCK {NonReentrantClass *};
+%apply SWIGTYPE &LOCK {NonReentrantClass &};
+
+// Apply locking to all objects
+%apply SWIGTYPE  LOCK {SWIGTYPE};
+%apply SWIGTYPE *LOCK {SWIGTYPE *};
+%apply SWIGTYPE &LOCK {SWIGTYPE &};
+</pre>
+</div>
+
 <p>Locking can also be enabled or disabled on specific classes or specific methods:</p>
 
 <div class="code">
@@ -847,7 +865,7 @@ const x = obj.x;           // Use a getter to access a member
 </pre>
 </div>
 <p>
-The last operation will have to lock <code>obj</code> - which has already been locked by the background operation. This will effectively block the main thread until the background operation completes. This can cause network buffer overflows in server code and UI freezing in desktop applications.
+If locking for <code>SwigObj</code> is enabled, the last operation will have to lock <code>obj</code> - which has already been locked by the background operation. This will effectively block the main thread until the background operation completes. This can cause network buffer overflows in server code and UI freezing in desktop applications.
 </p>
 
 <H4><a name="Javascript_async_locking_starvation">28.6.2.2 Avoiding Thread Starvation</H3>
