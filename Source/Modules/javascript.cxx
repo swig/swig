@@ -909,6 +909,17 @@ const char *JSEmitter::getGetterTemplate(bool) {
   return "js_getter";
 }
 
+bool JSEmitter::isRenamedConstructor(Node *n) {
+  Node *cls = parentNode(n);
+  if (!Equal(nodeType(cls), "class")) {
+    cls = parentNode(cls);
+    assert(Equal(nodeType(cls), "class"));
+  }
+
+  return !Equal(Getattr(n, "constructorHandler:sym:name"),
+                Getattr(cls, "sym:name"));
+}
+
 int JSEmitter::emitCtor(Node *n) {
 
   // Constructor renaming does not work in JavaScript.
