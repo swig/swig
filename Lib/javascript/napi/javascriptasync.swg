@@ -57,7 +57,7 @@
   long long ARG, signed long long ARG, unsigned long long ARG,
   float ARG, double ARG,
   // strings do not need locking - they are immutable and cannot be accessed w/o V8
-  std::string ""
+  std::string ARG ""
 %enddef
 
 EMPTY_ASYNC_TM(lock, )
