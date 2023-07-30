@@ -2252,7 +2252,7 @@ int Language::classDirector(Node *n) {
   Node *ni;
   String *using_protected_members_code = NewString("");
   for (ni = Getattr(n, "firstChild"); ni; ni = nextSibling(ni)) {
-    Node *nodeType = nodeType(ni);
+    String *nodeType = nodeType(ni);
     if (Cmp(nodeType, "destructor") == 0 && GetFlag(ni, "final")) {
       String *classtype = Getattr(n, "classtype");
       SWIG_WARN_NODE_BEGIN(ni);
