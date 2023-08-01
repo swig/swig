@@ -1004,7 +1004,7 @@ class TypePass:private Dispatcher {
       } else {
 	ns = 0;
       }
-      // Note that TypePass::usingDeclaration will warn when using member is not found (when ns is zero)
+      // Note that Allocate::usingDeclaration will warn when using member is not found (when ns is zero)
       if (ns) {
 	/* Only a single symbol is being used.  There are only a few symbols that
 	   we actually care about.  These are typedef, class declarations, and enum */
