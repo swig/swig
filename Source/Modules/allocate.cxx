@@ -581,8 +581,10 @@ Allocate():
       Setattr(n, "allocate:default_destructor", "1");
     }
 
-    if (Getattr(n, "allocate:visit"))
+    if (Getattr(n, "allocate:visit")) {
+      Swig_symbol_setscope(symtab);
       return SWIG_OK;
+    }
     Setattr(n, "allocate:visit", "1");
 
     /* Always visit base classes first */
