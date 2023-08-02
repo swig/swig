@@ -2,7 +2,15 @@
 
 %module ignore_parameter
 
-%typemap(in,numinputs=0) char* a "static const char* hi = \"hello\"; $1 = const_cast<char *>(hi);"
+%typemap(in,numinputs=0) char* a %{
+  /* Catch if a target language substitutes this typemap more than once in
+   * the same wrapper method - this will lead to an error due to this label
+   * being redefined.
+   */
+  goto redefinition_error_means_in_typemap_substituted_more_than_once;
+  redefinition_error_means_in_typemap_substituted_more_than_once:
+  $1 = const_cast<char *>("hello");
+%}
 %typemap(in,numinputs=0) int bb "$1 = 101; called_argout = 0;"
 %typemap(in,numinputs=0) double ccc "$1 = 8.8;"
 
