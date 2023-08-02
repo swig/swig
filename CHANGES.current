@@ -7,6 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-08-02: wsfulton
+            https://sourceforge.net/p/swig/bugs/932/
+            Fix missing constructor generation due to abstract class test
+            failure when a method is declared in the class along with a
+            using declaration and the using declaration is declared before
+            the method that implemented the pure virtual method, such as:
+
+              struct ConcreteDerived : AbstractBase {
+                ConcreteDerived() {} // was not wrapped
+                using AbstractBase::f;
+                virtual void f(int n) override {}
+              };
+
 2023-08-02: olly
 	    [PHP] Implement overloading between different integer types and
 	    between double and float.

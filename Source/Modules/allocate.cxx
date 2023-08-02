@@ -8,7 +8,12 @@
  *
  * allocate.cxx
  *
- * This module tries to figure out which classes and structures support
+ * This module also has two main purposes modifying the parse tree.
+ *
+ * First, it is responsible for adding in using declarations from base class
+ * members into the parse tree.
+ *
+ * Second, after each class declaration, it analyses if the class/struct supports
  * default constructors and destructors in C++.   There are several rules that
  * define this behavior including pure abstract methods, private sections,
  * and non-default constructors in base classes.  See the ARM or
@@ -17,9 +22,6 @@
  * Once the analysis is complete, the non-explicit/implied default constructors
  * and destructors are added to the parse tree. Implied copy constructors are
  * added too if requested via the copyctor feature.
- *
- * This module also is responsible for adding in using declarations from base
- * class members into the parse tree.
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
@@ -37,7 +39,7 @@ void Wrapper_virtual_elimination_mode_set(int flag) {
 
 extern "C" {
   static String *search_decl = 0;	/* Declarator being searched */
-  static int check_implemented(Node *n) {
+  static Node *check_implemented(Node *n) {
     String *decl;
     if (!n)
        return 0;
@@ -51,7 +53,7 @@ extern "C" {
 	    if (!GetFlag(n, "abstract")) {
 	      Delete(decl1);
 	      Delete(decl2);
-	      return 1;
+	      return n;
 	    }
 	  }
 	  Delete(decl1);

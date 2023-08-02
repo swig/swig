@@ -234,11 +234,11 @@ extern "C" {
   extern void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int inclass);
   extern void Swig_symbol_cadd(const_String_or_char_ptr symname, Node *n);
   extern Node *Swig_symbol_clookup(const_String_or_char_ptr symname, Symtab *tab);
-  extern Node *Swig_symbol_clookup_check(const_String_or_char_ptr symname, Symtab *tab, int (*check) (Node *));
+  extern Node *Swig_symbol_clookup_check(const_String_or_char_ptr symname, Symtab *tab, Node *(*checkfunc) (Node *));
   extern Node *Swig_symbol_clookup_no_inherit(const_String_or_char_ptr name, Symtab *n);
   extern Symtab *Swig_symbol_cscope(const_String_or_char_ptr symname, Symtab *tab);
   extern Node *Swig_symbol_clookup_local(const_String_or_char_ptr symname, Symtab *tab);
-  extern Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr symname, Symtab *tab, int (*check) (Node *));
+  extern Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr symname, Symtab *tab, Node *(*checkfunc) (Node *));
   extern String *Swig_symbol_qualified(Node *n);
   extern Node *Swig_symbol_isoverloaded(Node *n);
   extern void Swig_symbol_remove(Node *n);

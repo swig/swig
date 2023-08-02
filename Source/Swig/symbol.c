@@ -495,7 +495,7 @@ void Swig_symbol_alias(const_String_or_char_ptr aliasname, Symtab *s) {
  *
  * Inherit symbols from another scope. Primarily for C++ inheritance and
  * for using directives, such as 'using namespace X;'
- * but not for using declarations, such as 'using A;'.
+ * but not for using declarations, such as 'using X::A;'.
  * ----------------------------------------------------------------------------- */
 
 void Swig_symbol_inherit(Symtab *s) {
@@ -1019,12 +1019,12 @@ void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int incl
  *
  * This function operates in the C namespace, not the target namespace.
  *
- * The check function is an optional callback that can be used to verify a particular
+ * The checkfunc function is an optional callback that can be used to verify a particular
  * symbol match.   This is only used in some of the more exotic parts of SWIG. For instance,
  * verifying that a class hierarchy implements all pure virtual methods.
  * ----------------------------------------------------------------------------- */
 
-static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (Node *n)) {
+static Node *_symbol_lookup(const String *name, Symtab *symtab, Node *(*checkfunc) (Node *n)) {
   Node *n;
   List *inherit;
   Hash *sym = Getattr(symtab, "csymtab");
@@ -1039,17 +1039,13 @@ static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (No
 #endif
 
   if (n) {
-    /* if a check-function is defined.  Call it to determine a match */
-    if (check) {
-      int c = check(n);
-      if (c == 1) {
+    /* if checkfunc is defined.  Call it to determine a match */
+    if (checkfunc) {
+      Node *cn = checkfunc(n);
+      if (cn) {
 	Setmark(symtab, 0);
-	return n;
-      }
-      if (c < 0) {
-	/* Terminate the search right away */
-	Setmark(symtab, 0);
-	return 0;
+	/* Note that checkfunc can return n != cn, where cn could be a node further down the csym linked list starting at n */
+	return cn;
       }
     } else {
       Setmark(symtab, 0);
@@ -1062,7 +1058,7 @@ static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (No
     Setmark(symtab, 0);
     dname = Swig_symbol_template_deftype(name, symtab);
     if (!Equal(dname, name)) {
-      n = _symbol_lookup(dname, symtab, check);
+      n = _symbol_lookup(dname, symtab, checkfunc);
     }
     Delete(dname);
     if (n)
@@ -1075,7 +1071,7 @@ static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (No
     int i, len;
     len = Len(inherit);
     for (i = 0; i < len; i++) {
-      n = _symbol_lookup(name, Getitem(inherit, i), check);
+      n = _symbol_lookup(name, Getitem(inherit, i), checkfunc);
       if (n) {
 	Setmark(symtab, 0);
 	return n;
@@ -1087,13 +1083,13 @@ static Node *_symbol_lookup(const String *name, Symtab *symtab, int (*check) (No
   return 0;
 }
 
-static Node *symbol_lookup(const_String_or_char_ptr name, Symtab *symtab, int (*check) (Node *n)) {
+static Node *symbol_lookup(const_String_or_char_ptr name, Symtab *symtab, Node *(*checkfunc) (Node *n)) {
   Node *n = 0;
   if (DohCheck(name)) {
-    n = _symbol_lookup(name, symtab, check);
+    n = _symbol_lookup(name, symtab, checkfunc);
   } else {
     String *sname = NewString(name);
-    n = _symbol_lookup(sname, symtab, check);
+    n = _symbol_lookup(sname, symtab, checkfunc);
     Delete(sname);
   }
   return n;
@@ -1105,7 +1101,7 @@ static Node *symbol_lookup(const_String_or_char_ptr name, Symtab *symtab, int (*
  * symbol_lookup_qualified()
  * ----------------------------------------------------------------------------- */
 
-static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symtab, const String *prefix, int local, int (*checkfunc) (Node *n)) {
+static Node *symbol_lookup_qualified(const_String_or_char_ptr name, Symtab *symtab, const String *prefix, int local, Node *(*checkfunc) (Node *n)) {
   /* This is a little funky, we search by fully qualified names */
 
   if (!symtab)
@@ -1269,7 +1265,7 @@ Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
  * inheritance hierarchy. 
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, int (*checkfunc) (Node *n)) {
+Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, Node *(*checkfunc) (Node *n)) {
   Hash *hsym = 0;
   Node *s = 0;
 
@@ -1321,8 +1317,7 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, int (*
   }
   /* Check if s is a 'using' node */
   while (s && Checkattr(s, "nodeType", "using")) {
-    Node *ss;
-    ss = Swig_symbol_clookup(Getattr(s, "uname"), Getattr(s, "sym:symtab"));
+    Node *ss = Swig_symbol_clookup(Getattr(s, "uname"), Getattr(s, "sym:symtab"));
     if (!ss && !checkfunc) {
       SWIG_WARN_NODE_BEGIN(s);
       Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
@@ -1390,7 +1385,7 @@ Node *Swig_symbol_clookup_local(const_String_or_char_ptr name, Symtab *n) {
  * Swig_symbol_clookup_local_check()
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, int (*checkfunc) (Node *)) {
+Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, Node *(*checkfunc) (Node *)) {
   Hash *hsym;
   Node *s = 0;
 
@@ -1439,7 +1434,8 @@ Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr name, Symtab *n, 
 /* -----------------------------------------------------------------------------
  * Swig_symbol_clookup_no_inherit()
  *
- * Symbol lookup like Swig_symbol_clookup but does not follow using declarations.
+ * Symbol lookup like Swig_symbol_clookup but does not follow using directives.
+ * Using declarations are followed.
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_symbol_clookup_no_inherit(const_String_or_char_ptr name, Symtab *n) {
@@ -1662,12 +1658,12 @@ static SwigType *symbol_template_qualify(const SwigType *e, Symtab *st) {
 }
 
 
-static int symbol_no_constructor(Node *n) {
-  return !Checkattr(n, "nodeType", "constructor");
+static Node *symbol_no_constructor(Node *n) {
+  return Checkattr(n, "nodeType", "constructor") ? 0 : n;
 }
 
-static int symbol_is_template(Node *n) {
-  return Checkattr(n, "nodeType", "template");
+static Node *symbol_is_template(Node *n) {
+  return Checkattr(n, "nodeType", "template") ? n : 0;
 }
 
 /* -----------------------------------------------------------------------------
