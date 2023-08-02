@@ -501,6 +501,9 @@ public:
     SWIG_NAPI_deferred(Napi::Promise::Deferred(_env)) {}
   virtual ~SWIG_NAPI_AsyncContext() {}
   // All methods are prefixed to avoid symbol pollution
+  // Alternatively, inheriting through a template
+  // allows to not import any member definitions from the base class
+  // https://stackoverflow.com/questions/76703197/unshadow-global-identifier-in-a-class
   virtual bool SWIG_NAPI_Init(const Napi::CallbackInfo &) = 0;
   virtual void SWIG_NAPI_Execute() = 0;
   virtual void SWIG_NAPI_Resolve() = 0;
