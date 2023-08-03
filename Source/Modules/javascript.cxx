@@ -3063,8 +3063,6 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
       .replace("$jslocals", wrapper->locals)
       .replace("$jsinput", input)
       .replace("$jschecks", checks)
-      .replace("$jstype", Swig_scopename_last(
-                              SwigType_str(SwigType_strip_qualifiers(type), 0)))
       .replace("$jsguard", guard)
       .replace("$jslock", locking)
       .replace("$jsaction", action)
