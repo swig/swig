@@ -3049,8 +3049,6 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
   emitCleanupCode(n, wrapper, params);
   String *cleanup = wrapper->code;
 
-  SwigType *type = Getattr(n, "type");
-
   String *jsasyncworker = NewString("");
   if (is_async) {
     Template t_worker(getTemplate("js_async_worker_local_class"));
@@ -3102,6 +3100,7 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
       Append(symAsync, async);
       Append(nameAsync, async);
     }
+    state.function("name:async", nameAsync);
     state.function(NAME, nameAsync);
     Setattr(n, "sym:name:async", symAsync);
     rc = emitFunctionDefinition(n, is_member, is_static, true);
@@ -3120,6 +3119,7 @@ int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
       Append(symSync, sync);
       Append(nameSync, sync);
     }
+    state.function("name:sync", nameSync);
     state.function(NAME, nameSync);
     Setattr(n, "sym:name:sync", symSync);
     rc = emitFunctionDefinition(n, is_member, is_static, false);
@@ -3166,17 +3166,19 @@ int NAPIEmitter::emitFunctionDeclaration(Node *n, bool is_async) {
     if (GetFlag(state.function(), IS_STATIC)) {
       Template t_register = getTemplate("jsnapi_register_static_function");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-	  .replace("$jsname", state.function(NAME))
-	  .replace("$jswrapper", state.function(WRAPPER_NAME))
-	  .trim()
-	  .pretty_print(f_init_static_wrappers);
+          .replace("$jsname",
+                   state.function(is_async ? "name:async" : "name:sync"))
+          .replace("$jswrapper", state.function(WRAPPER_NAME))
+          .trim()
+          .pretty_print(f_init_static_wrappers);
     } else {
       Template t_register = getTemplate("jsnapi_register_member_function");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-	  .replace("$jsname", state.function(NAME))
-	  .replace("$jswrapper", state.function(WRAPPER_NAME))
-	  .trim()
-	  .pretty_print(f_init_wrappers);
+          .replace("$jsname",
+                   state.function(is_async ? "name:async" : "name:sync"))
+          .replace("$jswrapper", state.function(WRAPPER_NAME))
+          .trim()
+          .pretty_print(f_init_wrappers);
     }
 
     emitClassMethodDeclaration(n);
@@ -3185,10 +3187,11 @@ int NAPIEmitter::emitFunctionDeclaration(Node *n, bool is_async) {
     //       with the parent being a nspace object instead of class object
     Template t_register = getTemplate("jsnapi_register_global_function");
     t_register.replace("$jsparent", Getattr(current_namespace, NAME_MANGLED))
-	.replace("$jsname", state.function(NAME))
-	.replace("$jswrapper", state.function(WRAPPER_NAME))
-	.trim()
-	.pretty_print(f_init_register_namespaces);
+        .replace("$jsname",
+                 state.function(is_async ? "name:async" : "name:sync"))
+        .replace("$jswrapper", state.function(WRAPPER_NAME))
+        .trim()
+        .pretty_print(f_init_register_namespaces);
   }
 
   return SWIG_OK;
