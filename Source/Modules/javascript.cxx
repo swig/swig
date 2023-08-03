@@ -3276,6 +3276,7 @@ int NAPIEmitter::emitNativeFunction(Node *n) {
   String *wrapname = Getattr(n, "wrap:name");
   enterFunction(n);
   state.function(WRAPPER_NAME, wrapname);
+  state.function("name:sync", state.function(NAME));
   emitFunctionDeclaration(n, false);
   exitFunction(n);
   return SWIG_OK;
