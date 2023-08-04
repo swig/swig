@@ -93,6 +93,12 @@ ProotDerived2f(0, "hi").meth()
 ProotDerived2f().meth()
 ProotDerived2f(0).meth()
 
+# Deeper inheritance chain
+db3 = DeepBase3(11)
+db3 = DeepBase3(11, 22)
+db3 = DeepBase3(11, 22, 33)
+dbp3 = DeepProtectedBase3(11, 22, 33)
+
 # Missing base
 # HiddenDerived1()
 

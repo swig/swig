@@ -105,6 +105,12 @@ public class cpp11_using_constructor_runme {
     new ProotDerived2f().meth();
     new ProotDerived2f(0).meth();
 
+    // Deeper inheritance chain
+    DeepBase3 db3 = new DeepBase3(11);
+    db3 = new DeepBase3(11, 22);
+    db3 = new DeepBase3(11, 22, 33);
+    DeepProtectedBase3 dbp3 = new DeepProtectedBase3(11, 22, 33);
+
     // Missing base
     // new HiddenDerived1();
 

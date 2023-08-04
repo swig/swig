@@ -295,6 +295,43 @@ struct ProotDerived2f : ProotBase2 {
   ProotDerived2f(int) {}
   using ProotBase2::meth;
 };
+
+// Deeper inheritance chain
+struct DeepBase1 {
+  virtual ~DeepBase1() {}
+  DeepBase1(int i) {}
+};
+struct DeepBase2 : DeepBase1 {
+  DeepBase2(int i, int j) : DeepBase1(i+j) {}
+  using DeepBase1::DeepBase1;
+};
+struct DeepBase3 : DeepBase2 {
+  DeepBase3(int i, int j, int k) : DeepBase2(i+j+k) {}
+  using DeepBase2::DeepBase2;
+};
+
+struct DeepProtectedBase1 {
+  virtual ~DeepProtectedBase1() {}
+protected:
+  DeepProtectedBase1(int i) {}
+};
+struct DeepProtectedBase2 : DeepProtectedBase1 {
+protected:
+  DeepProtectedBase2(int i, int j) : DeepProtectedBase1(i+j) {}
+  using DeepProtectedBase1::DeepProtectedBase1;
+};
+struct DeepProtectedBase3 : DeepProtectedBase2 {
+  DeepProtectedBase3(int i, int j, int k) : DeepProtectedBase2(i+j+k) {}
+  using DeepProtectedBase2::DeepProtectedBase2;
+};
+
+void cpptester() {
+    DeepBase3 db3 = DeepBase3(11);
+    db3 = DeepBase3(11, 22);
+    db3 = DeepBase3(11, 22, 33);
+    DeepProtectedBase3 dbp3 = DeepProtectedBase3(11, 22, 33);
+}
+
 %}
 
 // Missing base

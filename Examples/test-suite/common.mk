@@ -568,6 +568,7 @@ CPP_TEST_CASES += \
 	using_extend \
 	using_inherit \
 	using_member \
+	using_member_multiple_inherit \
 	using_member_scopes \
 	using_namespace \
 	using_namespace_loop \

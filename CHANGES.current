@@ -7,6 +7,29 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-08-04: wsfulton
+            Fix using declarations for inheritance hierarchies more than
+            two deep and the using declarations are overloaded. Using declarations
+            from a base class' base were not available for use in the target
+            language. For example in the code below, Using1::usingmethod(int i)
+            was not wrapped for use in Using3:
+
+              struct Using1 {
+              protected:
+                void usingmethod(int i) {}
+              };
+              struct Using2 : Using1 {
+              protected:
+                void usingmethod(int i, int j) {}
+                using Using1::usingmethod;
+              };
+              struct Using3 : Using2 {
+                void usingmethod(int i, int j, int k) {}
+                using Using2::usingmethod;
+              };
+
+            Similarly for C++11 using declarations for inheriting constructors.
+
 2023-08-02: wsfulton
             https://sourceforge.net/p/swig/bugs/932/
             Fix missing constructor generation due to abstract class test
