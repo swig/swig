@@ -1,5 +1,6 @@
 
 import cpp11_using_constructor.*;
+import java.lang.reflect.*;
 
 public class cpp11_using_constructor_runme {
 
@@ -112,7 +113,7 @@ public class cpp11_using_constructor_runme {
     DeepProtectedBase3 dbp3 = new DeepProtectedBase3(11, 22, 33);
 
     // Missing base
-    // new HiddenDerived1();
+    new HiddenDerived1();
 
     // Templates and public base constructors (derive from non-template)
     new TemplatePublicDerived1Int(0, "hi").meth();
@@ -134,9 +135,36 @@ public class cpp11_using_constructor_runme {
     new TemplPublicDerived6Int(0, "hi").meth();
     new TemplPublicDerived6Int().meth();
 
-    // Templated constructors
-    new TemplateConstructor1Base(0, "hi").meth();
-    // TODO: missing constructor...
-    // new TemplateConstructor1Derived(0, "hi").meth();
+    // Templated constructors (public)
+    TemplateConstructor1Base tcb = new TemplateConstructor1Base(0, "hi");
+    tcb = new TemplateConstructor1Base("hi", "hi");
+    tcb = new TemplateConstructor1Base(11.1, "hi");
+    tcb.normal_method();
+    tcb.template_method(0, "hi");
+    tcb.template_method("hey", "ho");
+
+    TemplateConstructor1Derived tcd1 = new TemplateConstructor1Derived(0, "hi");
+    tcd1 = new TemplateConstructor1Derived("hi", "hi");
+    tcd1 = new TemplateConstructor1Derived(11.1, "hi");
+    // Not the best test as these are also in the base class, hence use also introspection below
+    tcd1.normal_method();
+    tcd1.template_method(0, "hi");
+    tcd1.template_method("hey", "ho");
+
+    // Templated methods
+    // Introspection to make sure these are actually generated in the derived class
+    try {
+      TemplateConstructor1Derived.class.getDeclaredMethod("normal_method", (java.lang.Class[])null);
+      TemplateConstructor1Derived.class.getDeclaredMethod("template_method", new java.lang.Class[]{String.class, String.class});
+      TemplateConstructor1Derived.class.getDeclaredMethod("template_method", new java.lang.Class[]{int.class, String.class});
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    }
+
+    // Templated constructors (protected)
+    TemplateConstructor2Derived tcd2 = new TemplateConstructor2Derived();
+    tcd2.normal_method();
+    tcd2.template_method(0, "hi");
+    tcd2.template_method("hey", "ho");
   }
 }

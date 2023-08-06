@@ -952,20 +952,42 @@ Allocate():
       } else if (Equal(nodeType(ns), "constructor") && !GetFlag(n, "usingctor")) {
 	Swig_warning(WARN_PARSE_USING_CONSTRUCTOR, Getfile(n), Getline(n), "Using declaration '%s' for inheriting constructors uses base '%s' which is not an immediate base of '%s'.\n", SwigType_namestr(Getattr(n, "uname")), SwigType_namestr(Getattr(ns, "name")), SwigType_namestr(Getattr(parentNode(n), "name")));
       } else {
-	String *ntype = nodeType(ns);
-	if (Equal(ntype, "cdecl") || Equal(ntype, "constructor")) {
+	if (inclass && !GetFlag(n, "feature:ignore") && Getattr(n, "sym:name")) {
 	  {
-	    /* A normal C declaration or constructor declaration
-	     * Now add a new class member top the parse tree (copied from the base class member pointed to by the using declaration) */
-	    if ((inclass) && (!GetFlag(n, "feature:ignore")) && (Getattr(n, "sym:name"))) {
+	    String *ntype = nodeType(ns);
+	    if (Equal(ntype, "cdecl") || Equal(ntype, "constructor") || Equal(ntype, "template")) {
+	      /* Add a new class member to the parse tree (copy it from the base class member pointed to by the using declaration in node n) */
 	      Node *c = ns;
 	      Node *unodes = 0, *last_unodes = 0;
 	      int ccount = 0;
 
 	      while (c) {
-		if (Equal(nodeType(c), ntype)) {
+		String *cnodetype = nodeType(c);
+		if (Equal(cnodetype, "cdecl")) {
 		  add_member_for_using_declaration(c, n, ccount, unodes, last_unodes);
-		} else if (Equal(nodeType(c), "using")) {
+		} else if (Equal(cnodetype, "constructor")) {
+		  add_member_for_using_declaration(c, n, ccount, unodes, last_unodes);
+		} else if (Equal(cnodetype, "template")) {
+		  // A templated member (in a non-template class or in a template class that where the member has a separate template declaration)
+		  // Find the template instantiations in the using declaration (base class)
+		  for (Node *member = ns; member; member = nextSibling(member)) {
+		    /* Constructors have already been handled, only add member functions
+		     * This adds an implicit template instantiation and is a bit unusual as SWIG requires explicit %template for other template instantiations.
+		     * However, of note, is that there is no valid C++ syntax for a template instantiation to introduce a name via a using declaration...
+		     *
+		     *   struct Base { template <typename T> void template_method(T, T) {} };
+		     *   struct Derived : Base { using Base::template_method; };
+		     *   %template()   Base::template_method<int>;              // SWIG template instantiation
+		     *   template void Base::template_method<int>(int, int);    // C++ template instantiation
+		     *   template void Derived::template_method<int>(int, int); // Not valid C++
+		    */
+		    if (Getattr(member, "template") == ns && checkAttribute(ns, "templatetype", "cdecl")) {
+		      if (!GetFlag(member, "feature:ignore") && !Getattr(member, "error")) {
+			add_member_for_using_declaration(member, n, ccount, unodes, last_unodes);
+		      }
+		    }
+		  }
+		} else if (Equal(cnodetype, "using")) {
 		  for (Node *member = firstChild(c); member; member = nextSibling(member)) {
 		    add_member_for_using_declaration(member, n, ccount, unodes, last_unodes);
 		  }

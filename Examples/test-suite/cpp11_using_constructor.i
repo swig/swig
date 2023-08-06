@@ -510,35 +510,56 @@ struct TemplPublicDerived6 : TemplPublicBase6<T> {
 %template(TemplPublicDerived6Int) TemplPublicDerived6<int>;
 
 
-// Templated constructors
+// Templated constructors (public)
 %inline %{
 struct TemplateConstructor1Base {
   virtual ~TemplateConstructor1Base() {}
+public:
   // No implicit constructor
-  template <typename T> TemplateConstructor1Base(const T &t, const char *s) {}
-  virtual void meth() {}
+  template <typename T> TemplateConstructor1Base(T t, const char *s) {}
+  template <typename T> void template_method(T t, const char *s) {}
+  virtual void normal_method() {}
 };
 %}
 
 %template(TemplateConstructor1Base) TemplateConstructor1Base::TemplateConstructor1Base<int>;
+%template(TemplateConstructor1Base) TemplateConstructor1Base::TemplateConstructor1Base<const char *>;
+%template(TemplateConstructor1Base) TemplateConstructor1Base::TemplateConstructor1Base<double>;
+%template(template_method) TemplateConstructor1Base::template_method<int>;
+%template(template_method) TemplateConstructor1Base::template_method<const char *>;
 
 %inline %{
 struct TemplateConstructor1Derived : TemplateConstructor1Base {
+  using TemplateConstructor1Base::normal_method;
+ // Note: The two using declarations below automatically introduce the templated names without an explicit %template(), see allocate.cxx
   using TemplateConstructor1Base::TemplateConstructor1Base;
-  using TemplateConstructor1Base::meth;
+  using TemplateConstructor1Base::template_method;
 };
 %}
 
-// TODO: Missing constructors, below probably ought to work using instantiation as follows:
-//%template(TemplateConstructor1Derived) TemplateConstructor1Derived::TemplateConstructor1Derived<int>;
-
-%{
-void tester() {
-  TemplateConstructor1Derived tc = TemplateConstructor1Derived(123, "hi");
-  tc.meth();
-  // Note not valid c++:
-  // TemplateConstructor1Derived tc2 = TemplateConstructor1Derived::TemplateConstructor1Derived<int>(123, "hi");
-}
+// Templated constructors (protected)
+%inline %{
+struct TemplateConstructor2Base {
+  virtual ~TemplateConstructor2Base() {}
+protected:
+  // No implicit constructor
+  template <typename T> TemplateConstructor2Base(T t, const char *s) {}
+  template <typename T> void template_method(T t, const char *s) {}
+  virtual void normal_method() {}
+};
 %}
 
-// Note that templated methods also not working with using declarations for inheriting from base templated methods
+%template(TemplateConstructor2Base) TemplateConstructor2Base::TemplateConstructor2Base<int>;
+%template(TemplateConstructor2Base) TemplateConstructor2Base::TemplateConstructor2Base<const char *>;
+%template(TemplateConstructor2Base) TemplateConstructor2Base::TemplateConstructor2Base<double>;
+%template(template_method) TemplateConstructor2Base::template_method<int>;
+%template(template_method) TemplateConstructor2Base::template_method<const char *>;
+
+%inline %{
+struct TemplateConstructor2Derived : TemplateConstructor2Base {
+  using TemplateConstructor2Base::normal_method;
+  using TemplateConstructor2Base::TemplateConstructor2Base; // introduces protected constructors
+  using TemplateConstructor2Base::template_method; // introduces public templated methods
+  TemplateConstructor2Derived() : TemplateConstructor2Derived(0, "") {} // provide one public constructor for testing
+};
+%}

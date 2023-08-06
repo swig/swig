@@ -7,6 +7,28 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-08-06: wsfulton
+            Add support for using declarations to introduce templated member
+            methods and for inheriting templated constructors, such as:
+
+              struct Base {
+                // templated constructor
+                template <typename T> Base(const T &t, const char *s) {}
+                // templated member method
+                template <typename T> void template_method(const T &t, const char *s) {}
+              };
+
+              %template(Base) Base::Base<int>;
+              %template(template_method) Base::template_method<double>;
+
+              struct Derived : Base {
+                using Base::Base;
+                using Base::template_method;
+              };
+
+            Previously the templated methods and constructors were ignored and
+            not introduced into the Derived class.
+
 2023-08-04: wsfulton
             Fix using declarations for inheritance hierarchies more than
             two deep and the using declarations are overloaded. Using declarations
