@@ -1,13 +1,13 @@
 var inctest = require("inctest");
 
 try {
-    a = new inctest.A();
+    var a = new inctest.A();
 } catch (e) {
     throw new Error("didn't find A, therefore, I didn't include 'testdir/subdir1/hello.i'");
 }
 
 try {
-    b = new inctest.B();
+    var b = new inctest.B();
 } catch (e) {
     throw new Error("didn't find B, therefore, I didn't include 'testdir/subdir2/hello.i'");
 }

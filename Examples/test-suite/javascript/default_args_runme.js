@@ -24,7 +24,7 @@ if (/* await */(default_args.cfunc3(1)) != 4) {
     throw new Error;
 }
 
-f = new default_args.Foo();
+var f = new default_args.Foo();
 
 /* await */(f.newname());
 /* await */(f.newname(1));

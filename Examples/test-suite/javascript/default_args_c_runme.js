@@ -7,7 +7,7 @@ if (/* await */(default_args_c.foo43()) != 43) {
   throw new Error("failed");
 }
 
-f = new default_args_c.FooStruct();
+var f = new default_args_c.FooStruct();
 /* await */(f.no_arg());
 /* await */(f.one_req(null));
 /* await */(f.one_opt());

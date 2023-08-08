@@ -135,7 +135,7 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 		$(setup_node) && \
 		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
 		SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
-		SWIGOPT='-javascript $(SWIGOPT) -o $*_wrap.cxx $(srcdir)/../$*.i' swiginvoke && \
+		SWIGOPT='-javascript $(SWIGOPT) $(SWIGASYNC) -o $*_wrap.cxx $(srcdir)/../$*.i' swiginvoke && \
 		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure $(GYP_OPTS) build 1>>/dev/null
 
 	swig_and_compile_cpp = \
