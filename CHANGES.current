@@ -135,9 +135,9 @@ Version 4.2.0 (in progress)
 	    shadowclassmodifiers	Use %typemap(javaclassmodifiers)
 
 2023-06-24: wsfulton
-            #2616 Fix directors and allprotected mode and using declarations.
-            Previously SWIG either seg faulted or generated code that did not
-            compile.
+            #2616 https://sourceforge.net/p/swig/bugs/1102/ Fix directors and
+            allprotected mode and using declarations. Previously SWIG either
+            seg faulted or generated code that did not compile.
 
 2023-06-20: olly
 	    #2486 Fix handling of template in array size, which was being
