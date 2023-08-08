@@ -560,6 +560,6 @@ struct TemplateConstructor2Derived : TemplateConstructor2Base {
   using TemplateConstructor2Base::normal_method;
   using TemplateConstructor2Base::TemplateConstructor2Base; // introduces protected constructors
   using TemplateConstructor2Base::template_method; // introduces public templated methods
-  TemplateConstructor2Derived() : TemplateConstructor2Derived(0, "") {} // provide one public constructor for testing
+  TemplateConstructor2Derived() : TemplateConstructor2Base(0, "") {} // provide one public constructor for testing
 };
 %}
