@@ -167,8 +167,11 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
   %.ctest:
 		$(_setup)
 		+$(swig_and_compile_c)
-		$(run_testcase)
-
+        	ifneq (, $(ASYNC))
+			$(run_testcase_async)
+        	else
+			$(run_testcase)
+                endif
   %.cpptest:
 		$(_setup)
 		+$(swig_and_compile_cpp)
