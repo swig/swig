@@ -516,13 +516,6 @@ String *emit_action(Node *n) {
     }
   }
 
-  /* Look for except typemap (Deprecated) */
-  tm = Swig_typemap_lookup("except", n, Swig_cresult_name(), 0);
-  if (tm) {
-    Setattr(n, "feature:except", tm);
-    tm = 0;
-  }
-
   /* emit the except feature code */
   emit_action_code(n, actioncode, eaction);
 
