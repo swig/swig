@@ -6,6 +6,13 @@
 %warnfilter(SWIGWARN_PARSE_KEYWORD) final; // 'final' is a java keyword, renaming to '_final'
 %warnfilter(SWIGWARN_PARSE_KEYWORD) override; // 'override' is a C# keyword, renaming to '_override'
 
+%{
+#if defined(__clang__)
+// Suppress: class with destructor marked 'final' cannot be inherited from [-Wfinal-dtor-non-final-class]
+#pragma clang diagnostic ignored "-Wfinal-dtor-non-final-class"
+#endif
+%}
+
 // throw is invalid in C++17 and later, only SWIG to use it
 #define TESTCASE_THROW1(T1) throw(T1)
 %{

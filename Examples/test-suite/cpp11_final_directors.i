@@ -9,6 +9,13 @@
 %warnfilter(SWIGWARN_LANG_DIRECTOR_FINAL) BaseFinalDestructor::~BaseFinalDestructor;
 %warnfilter(SWIGWARN_LANG_DIRECTOR_FINAL) BaseFinalDestructor2::~BaseFinalDestructor2;
 
+%{
+#if defined(__clang__)
+// Suppress: class with destructor marked 'final' cannot be inherited from [-Wfinal-dtor-non-final-class]
+#pragma clang diagnostic ignored "-Wfinal-dtor-non-final-class"
+#endif
+%}
+
 %inline %{
 struct Base {
   virtual void basemeth() final {}
