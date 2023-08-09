@@ -3,7 +3,7 @@ var li_carrays = require("li_carrays");
 var d = new li_carrays.doubleArray(10);
 
 /* await */(d.setitem(0, 7));
-/* await */(d.setitem(5, d.getitem(0) + 3));
+/* await */(d.setitem(5, /* await */(d.getitem(0)) + 3));
 
 if (/* await */(d.getitem(5)) + /* await */(d.getitem(0)) != 17) {
     throw new Error;
