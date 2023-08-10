@@ -50,7 +50,7 @@ int Klass::total_count = 0;
 
 // Virtual inheritance used as this usually results in different values for Klass* and KlassInheritance*
 // for testing class inheritance and unique_ptr
-struct KlassInheritance : Klass {
+struct KlassInheritance : virtual Klass {
   KlassInheritance(const char* label) : Klass(label) {
     // std::cout << "ptrs.... " << std::hex << (Klass*)this << " " << (KlassInheritance*)this << std::endl;
   }
