@@ -594,6 +594,9 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-async") == 0) {
         Swig_mark_arg(i);
         js_napi_default_is_async = true;
+      } else if (strcmp(argv[i], "-sync") == 0) {
+        Swig_mark_arg(i);
+        js_napi_default_is_async = false;
       } else if (strcmp(argv[i], "-async-locking") == 0) {
         Swig_mark_arg(i);
         js_napi_default_is_locked = true;
@@ -3003,6 +3006,7 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
   else iname = Getattr(n, "sym:name:sync");
   String *wrap_name = Swig_name_wrapper(iname);
   if (is_async && Getattr(n, "catchlist")) {
+    // TODO: %catches is not compatible with async mode (for now)
     Swig_warning(WARN_TYPEMAP_THROW, input_file, line_number,
                  "%%catches is not compatible with async mode, ignoring %s.\n",
                  Getattr(n, "sym:name"));

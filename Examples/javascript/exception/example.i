@@ -1,10 +1,6 @@
 /* File : example.i */
 %module example
 
-// TODO: %catches is not compatible with async mode (for now)
-%feature("async", "0");
-%feature("sync", "1");
-
 %{
 #include "example.h"
 %}
