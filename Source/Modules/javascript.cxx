@@ -3002,6 +3002,12 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
   if (is_async) iname = Getattr(n, "sym:name:async");
   else iname = Getattr(n, "sym:name:sync");
   String *wrap_name = Swig_name_wrapper(iname);
+  if (is_async && Getattr(n, "catchlist")) {
+    Swig_warning(WARN_TYPEMAP_THROW, input_file, line_number,
+                 "%%catches is not compatible with async mode, ignoring %s.\n",
+                 Getattr(n, "sym:name"));
+    return SWIG_ERROR;
+  }
   if (is_overloaded) {
     t_function = getTemplate(getOverloadedFunctionTemplate(is_member, is_async));
     Append(wrap_name, Getattr(n, "sym:overname"));
