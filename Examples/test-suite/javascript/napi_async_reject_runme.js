@@ -4,7 +4,7 @@ const napi_async_reject = require('napi_async_reject');
 const notRej = Symbol();
 
 function isRejected(promise) {
-  if (!promise instanceof Promise) throw new Error('Expected a Promise');
+  if (!(promise instanceof Promise)) throw new Error('Expected a Promise');
   return promise
   .then(() => {
     throw notRej;
