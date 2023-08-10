@@ -386,24 +386,17 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   $jsasyncworker
   Napi::Env env = info.Env();
   $jsmangledname_$jswrapper_Tasklet *context = SWIG_NULLPTR;
+  SWIG_NAPI_AsyncWorker *worker = SWIG_NULLPTR;
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
   context = new $jsmangledname_$jswrapper_Tasklet(env);
-  SWIG_NAPI_AsyncWorker *worker;
-  if (!context->SWIG_NAPI_Init(info)) {
-    delete context;
-    context = SWIG_NULLPTR;
-    goto fail;
-  }
   worker = new SWIG_NAPI_AsyncWorker(
     env, "SWIG_$jswrapper_Async_Worker", context);
-  worker->Init(info);
-  worker->Queue();
+  return worker->Run(info);
   goto fail;
 fail:
-  if (context == SWIG_NULLPTR) return Napi::Value();
-  return context->SWIG_NAPI_Promise();
+  return Napi::Value();
 }
 %}
 
@@ -580,19 +573,12 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
   context = new $jsmangledname_$jswrapper_Tasklet(env);
-  if (!context->SWIG_NAPI_Init(info)) {
-    delete context;
-    context = SWIG_NULLPTR;
-    goto fail;
-  }
   worker = new SWIG_NAPI_AsyncWorker(
-    env, "SWIG_$jswrapper_Async_Worker", context);
-  worker->Init(info);
-  worker->Queue();
+    env, "SWIG_$jsmangledname_$jswrapper_Async_Worker", context);
+  return worker->Run(info);
   goto fail;
 fail:
-  if (context == SWIG_NULLPTR) return Napi::Value();
-  return context->SWIG_NAPI_Promise();
+  return Napi::Value();
 }
 %}
 
@@ -670,22 +656,18 @@ template <typename SWIG_OBJ_WRAP>
 Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   $jsasyncworker
   Napi::Env env = info.Env();
-  $jsmangledname_$jswrapper_Tasklet *context = new $jsmangledname_$jswrapper_Tasklet(env);
+  $jsmangledname_$jswrapper_Tasklet *context = SWIG_NULLPTR;
   SWIG_NAPI_AsyncWorker *worker = SWIG_NULLPTR;
-
-  if (!context->SWIG_NAPI_Init(info)) {
-    delete context;
-    context = SWIG_NULLPTR;
-    goto fail;
+  if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
+    SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
+  context = new $jsmangledname_$jswrapper_Tasklet(env);
   worker = new SWIG_NAPI_AsyncWorker(
-    env, "SWIG_$jswrapper_Async_Worker", context);
-  worker->Init(info);
-  worker->Queue();
+    env, "SWIG_$jsmangledname_$jswrapper_Async_Worker", context);
+  return worker->Run(info);
   goto fail;
 fail:
-  if (context == SWIG_NULLPTR) return Napi::Value();
-  return context->SWIG_NAPI_Promise();
+  return Napi::Value();
 }
 %}
 
@@ -735,22 +717,18 @@ fail:
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   $jsasyncworker
   Napi::Env env = info.Env();
-  $jsmangledname_$jswrapper_Tasklet *context = new $jsmangledname_$jswrapper_Tasklet(env);;
+  $jsmangledname_$jswrapper_Tasklet *context = SWIG_NULLPTR;
   SWIG_NAPI_AsyncWorker *worker = SWIG_NULLPTR;
-
-  if (!context->SWIG_NAPI_Init(info)) {
-    delete context;
-    context = SWIG_NULLPTR;
-    goto fail;
+  if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
+    SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
+  context = new $jsmangledname_$jswrapper_Tasklet(env);
   worker = new SWIG_NAPI_AsyncWorker(
     env, "SWIG_$jswrapper_Async_Worker", context);
-  worker->Init(info);
-  worker->Queue();
+  return worker->Run(info);
   goto fail;
 fail:
-  if (context == SWIG_NULLPTR) return Napi::Value();
-  return context->SWIG_NAPI_Promise();
+  return Napi::Value();
 }
 %}
 
@@ -826,6 +804,7 @@ fail:
       Napi::Value jsresult;
       $jsoutput
       if (!SWIG_NAPI_Cleanup()) goto fail;
+      SWIG_NAPI_deferred_finalized = true;
       SWIG_NAPI_deferred.Resolve(jsresult);
       goto fail;
     fail:
@@ -834,6 +813,7 @@ fail:
 
     virtual void SWIG_NAPI_Fail(const Napi::Error &SWIG_NAPI_error) override {
       if (!SWIG_NAPI_Cleanup()) goto fail;
+      SWIG_NAPI_deferred_finalized = true;
       SWIG_NAPI_deferred.Reject(SWIG_NAPI_error.Value());
       goto fail;
     fail:
@@ -842,21 +822,22 @@ fail:
 
     virtual bool SWIG_NAPI_Cleanup() override {
       $jscleanup
+      SWIG_NAPI_deferred_finalized = true;
       return true;
       goto fail;
     fail:
       return false;
     }
 
-    virtual bool SWIG_NAPI_Init(const Napi::CallbackInfo &info) override {
+    virtual Status SWIG_NAPI_Init(const Napi::CallbackInfo &info) override {
       $jsinput
 #define SWIG_NAPI_Raise SWIG_NAPI_Reject
       $jschecks
 #undef SWIG_NAPI_Raise
-      return true;
+      return Status::OK;
       goto fail;
     fail:
-      return false;
+      return Status::THROW;
     }
   };
 %}

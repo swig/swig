@@ -43,7 +43,7 @@ SWIGINTERN Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *m
 
 #define SWIG_exception(code, msg)               SWIG_NAPI_Raise(env, code, msg)
 #define SWIG_fail                               goto fail
-#define SWIG_NAPI_Reject(env, code, msg)        do { SWIG_NAPI_deferred.Reject(SWIG_NAPI_NewError(env, code, msg).Value()); goto fail; } while (0)
+#define SWIG_NAPI_Reject(env, code, msg)        do { SWIG_NAPI_deferred.Reject(SWIG_NAPI_NewError(env, code, msg).Value()); return Status::REJECT; } while (0)
 
 #ifdef NAPI_CPP_EXCEPTIONS
 
@@ -493,18 +493,30 @@ class SWIG_NAPI_AsyncContext {
 protected:
   Napi::Env env;
   Napi::Promise::Deferred SWIG_NAPI_deferred;
+  bool SWIG_NAPI_deferred_finalized;
 public:
+  enum Status { OK, REJECT, THROW };
   SWIG_NAPI_AsyncContext(
     Napi::Env _env
   ) : 
     env(_env),
-    SWIG_NAPI_deferred(Napi::Promise::Deferred(_env)) {}
-  virtual ~SWIG_NAPI_AsyncContext() {}
+    SWIG_NAPI_deferred(Napi::Promise::Deferred(_env)),
+    SWIG_NAPI_deferred_finalized(false) {}
+  virtual ~SWIG_NAPI_AsyncContext() {
+    if (!SWIG_NAPI_deferred_finalized) {
+      // This fixes a very vicious leak
+      // Once a Deferred has been created, it won't be destroyed
+      // unless it is resolved or rejected - its destructor is a no-op
+      // This code is triggered when synchronously throwing while parsing the args
+      SWIG_NAPI_deferred.Resolve(env.Undefined());
+      SWIG_NAPI_deferred_finalized = true;
+    }
+  }
   // All methods are prefixed to avoid symbol pollution
   // Alternatively, inheriting through a template
   // allows to not import any member definitions from the base class
   // https://stackoverflow.com/questions/76703197/unshadow-global-identifier-in-a-class
-  virtual bool SWIG_NAPI_Init(const Napi::CallbackInfo &) = 0;
+  virtual Status SWIG_NAPI_Init(const Napi::CallbackInfo &) = 0;
   virtual void SWIG_NAPI_Execute() = 0;
   virtual void SWIG_NAPI_Resolve() = 0;
   virtual void SWIG_NAPI_Fail(const Napi::Error &) = 0;
@@ -576,9 +588,36 @@ public:
     return;
   }
 
-  void Init(const Napi::CallbackInfo &info) {
+  Napi::Value Run(const Napi::CallbackInfo &info) {
+    SWIG_NAPI_AsyncContext::Status rc;
+
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
+    try {
+      rc = context->SWIG_NAPI_Init(info);
+    } catch (...) {
+      delete context;
+      delete this;
+      throw;
+    }
+#else
+    rc = context->SWIG_NAPI_Init(info);
+#endif
+    if (rc == SWIG_NAPI_AsyncContext::Status::REJECT) {
+      Napi::EscapableHandleScope scope(info.Env());
+      Napi::Value r = context->SWIG_NAPI_Promise();
+      delete context;
+      delete this;
+      return scope.Escape(r);
+    } else if (rc == SWIG_NAPI_AsyncContext::Status::THROW) {
+      delete context;
+      delete this;
+      return Napi::Value();
+    }
+
     Persist(info.This());
     for (size_t i = 0; i < info.Length(); i++) Persist(info[i]);
+    Queue();
+    return context->SWIG_NAPI_Promise();
   }
 };
 
