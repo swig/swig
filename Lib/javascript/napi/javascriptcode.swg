@@ -385,18 +385,24 @@ fail:
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   $jsasyncworker
   Napi::Env env = info.Env();
+  $jsmangledname_$jswrapper_Tasklet *context = SWIG_NULLPTR;
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
-  $jsmangledname_$jswrapper_Tasklet *context = new $jsmangledname_$jswrapper_Tasklet(env);
+  context = new $jsmangledname_$jswrapper_Tasklet(env);
   SWIG_NAPI_AsyncWorker *worker;
-  if (!context->SWIG_NAPI_Init(info)) goto fail;
+  if (!context->SWIG_NAPI_Init(info)) {
+    delete context;
+    context = SWIG_NULLPTR;
+    goto fail;
+  }
   worker = new SWIG_NAPI_AsyncWorker(
     env, "SWIG_$jswrapper_Async_Worker", context);
   worker->Init(info);
   worker->Queue();
   goto fail;
 fail:
+  if (context == SWIG_NULLPTR) return Napi::Value();
   return context->SWIG_NAPI_Promise();
 }
 %}
@@ -568,18 +574,24 @@ template <typename SWIG_OBJ_WRAP>
 Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   $jsasyncworker
   Napi::Env env = info.Env();
+  $jsmangledname_$jswrapper_Tasklet *context = SWIG_NULLPTR;
+  SWIG_NAPI_AsyncWorker *worker = SWIG_NULLPTR;
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
-  $jsmangledname_$jswrapper_Tasklet *context = new $jsmangledname_$jswrapper_Tasklet(env);
-  SWIG_NAPI_AsyncWorker *worker;
-  if (!context->SWIG_NAPI_Init(info)) goto fail;
+  context = new $jsmangledname_$jswrapper_Tasklet(env);
+  if (!context->SWIG_NAPI_Init(info)) {
+    delete context;
+    context = SWIG_NULLPTR;
+    goto fail;
+  }
   worker = new SWIG_NAPI_AsyncWorker(
     env, "SWIG_$jswrapper_Async_Worker", context);
   worker->Init(info);
   worker->Queue();
   goto fail;
 fail:
+  if (context == SWIG_NULLPTR) return Napi::Value();
   return context->SWIG_NAPI_Promise();
 }
 %}
@@ -659,14 +671,20 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   $jsasyncworker
   Napi::Env env = info.Env();
   $jsmangledname_$jswrapper_Tasklet *context = new $jsmangledname_$jswrapper_Tasklet(env);
-  SWIG_NAPI_AsyncWorker *worker;
-  if (!context->SWIG_NAPI_Init(info)) goto fail;
+  SWIG_NAPI_AsyncWorker *worker = SWIG_NULLPTR;
+
+  if (!context->SWIG_NAPI_Init(info)) {
+    delete context;
+    context = SWIG_NULLPTR;
+    goto fail;
+  }
   worker = new SWIG_NAPI_AsyncWorker(
     env, "SWIG_$jswrapper_Async_Worker", context);
   worker->Init(info);
   worker->Queue();
   goto fail;
 fail:
+  if (context == SWIG_NULLPTR) return Napi::Value();
   return context->SWIG_NAPI_Promise();
 }
 %}
@@ -717,15 +735,21 @@ fail:
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   $jsasyncworker
   Napi::Env env = info.Env();
-  $jsmangledname_$jswrapper_Tasklet *context = new $jsmangledname_$jswrapper_Tasklet(env);
-  SWIG_NAPI_AsyncWorker *worker;
-  if (!context->SWIG_NAPI_Init(info)) goto fail;
+  $jsmangledname_$jswrapper_Tasklet *context = new $jsmangledname_$jswrapper_Tasklet(env);;
+  SWIG_NAPI_AsyncWorker *worker = SWIG_NULLPTR;
+
+  if (!context->SWIG_NAPI_Init(info)) {
+    delete context;
+    context = SWIG_NULLPTR;
+    goto fail;
+  }
   worker = new SWIG_NAPI_AsyncWorker(
     env, "SWIG_$jswrapper_Async_Worker", context);
   worker->Init(info);
   worker->Queue();
   goto fail;
 fail:
+  if (context == SWIG_NULLPTR) return Napi::Value();
   return context->SWIG_NAPI_Promise();
 }
 %}
