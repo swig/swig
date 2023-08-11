@@ -696,7 +696,7 @@ FORTRAN::FORTRAN() :
   d_enum_public(NULL) {
 
   // Mark this language as supporting directors
-  director_language = 1;
+  directorLanguage();
   // Clear base-class member data set by Lang constructor and not used by this language.
   Delete(none_comparison);
   none_comparison = NewString("");
@@ -856,7 +856,7 @@ int FORTRAN::top(Node *n) {
     }
   }
 
-  if (directorsEnabled()) {
+  if (Swig_directors_enabled()) {
     Printf(f_runtime, "#define SWIG_DIRECTORS\n");
 
     Printf(f_directors, "\n\n");
@@ -878,7 +878,7 @@ int FORTRAN::top(Node *n) {
 
   // >>> OUTPUT
 
-  if (directorsEnabled()) {
+  if (Swig_directors_enabled()) {
     // Insert director runtime into the f_runtime file (make it occur before %header section)
     Swig_insert_file("director_common.swg", f_runtime);
     Swig_insert_file("director.swg", f_runtime);
@@ -887,7 +887,7 @@ int FORTRAN::top(Node *n) {
   // Write C++ wrapper file
   write_wrapper(Getattr(n, "outfile"));
 
-  if (directorsEnabled()) {
+  if (Swig_directors_enabled()) {
     String *include_guard = NewStringf("SWIG_%s_WRAP_H_", modname);
     write_header(Getattr(n, "outfile_h"), include_guard);
     Delete(include_guard);
