@@ -150,6 +150,7 @@ CPP_TEST_CASES += \
 	constant_pointers \
 	constover \
 	constructor_copy \
+	constructor_copy_non_const \
 	constructor_exception \
 	constructor_explicit \
 	constructor_ignore \
@@ -160,6 +161,7 @@ CPP_TEST_CASES += \
 	conversion_namespace \
 	conversion_ns_template \
 	conversion_operators \
+	copyctor \
 	cplusplus_throw \
 	cpp_basic \
 	cpp_enum \
@@ -473,6 +475,7 @@ CPP_TEST_CASES += \
 	template_namespace_forward_declaration \
 	template_using_directive_and_declaration_forward \
 	template_using_directive_typedef \
+	template_using_member_default_arg \
 	template_nested \
 	template_nested_flat \
 	template_nested_typemaps \
@@ -496,6 +499,7 @@ CPP_TEST_CASES += \
 	template_specialization \
 	template_specialization_defarg \
 	template_specialization_enum \
+	template_specialization_using_declaration \
 	template_static \
 	template_tbase_template \
 	template_template_parameters \
@@ -564,6 +568,7 @@ CPP_TEST_CASES += \
 	using_extend \
 	using_inherit \
 	using_member \
+	using_member_multiple_inherit \
 	using_member_scopes \
 	using_namespace \
 	using_namespace_loop \
@@ -598,6 +603,7 @@ CPP11_TEST_CASES += \
 	cpp11_default_delete \
 	cpp11_delegating_constructors \
 	cpp11_director_enums \
+	cpp11_director_using_constructor \
 	cpp11_directors \
 	cpp11_explicit_conversion_operators \
 	cpp11_final_class \
@@ -637,6 +643,7 @@ CPP11_TEST_CASES += \
 	cpp11_uniform_initialization \
 	cpp11_unrestricted_unions \
 	cpp11_userdefined_literals \
+	cpp11_using_constructor \
 	cpp11_using_typedef_struct \
 	cpp11_variadic_function_templates \
 	cpp11_variadic_templates \

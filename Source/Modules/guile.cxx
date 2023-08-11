@@ -105,8 +105,8 @@ static int exportprimitive = 0;	// -exportprimitive argument
 static String *memberfunction_name = 0;
 
 extern "C" {
-  static int has_classname(Node *class_node) {
-    return Getattr(class_node, "guile:goopsclassname") ? 1 : 0;
+  static Node *has_classname(Node *class_node) {
+    return Getattr(class_node, "guile:goopsclassname") ? class_node : 0;
   }
 }
 
@@ -732,8 +732,7 @@ public:
 	if (goops) {
 	  if (i < numreq) {
 	    if (strcmp("void", Char(pt)) != 0) {
-	      Node *class_node = Swig_symbol_clookup_check(pb, Getattr(n, "sym:symtab"),
-							   has_classname);
+	      Node *class_node = Swig_symbol_clookup_check(pb, Getattr(n, "sym:symtab"), has_classname);
 	      String *goopsclassname = !class_node ? NULL : Getattr(class_node, "guile:goopsclassname");
 	      /* do input conversion */
 	      if (goopsclassname) {

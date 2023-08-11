@@ -230,17 +230,19 @@ extern "C" {
   extern Symtab *Swig_symbol_global_scope(void);
   extern Symtab *Swig_symbol_current(void);
   extern Symtab *Swig_symbol_popscope(void);
-  extern Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *node);
-  extern void Swig_symbol_cadd(const_String_or_char_ptr symname, Node *node);
+  extern Node *Swig_symbol_add(const_String_or_char_ptr symname, Node *n);
+  extern void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int inclass);
+  extern void Swig_symbol_cadd(const_String_or_char_ptr symname, Node *n);
   extern Node *Swig_symbol_clookup(const_String_or_char_ptr symname, Symtab *tab);
-  extern Node *Swig_symbol_clookup_check(const_String_or_char_ptr symname, Symtab *tab, int (*check) (Node *));
+  extern Node *Swig_symbol_clookup_check(const_String_or_char_ptr symname, Symtab *tab, Node *(*checkfunc) (Node *));
   extern Node *Swig_symbol_clookup_no_inherit(const_String_or_char_ptr name, Symtab *n);
   extern Symtab *Swig_symbol_cscope(const_String_or_char_ptr symname, Symtab *tab);
   extern Node *Swig_symbol_clookup_local(const_String_or_char_ptr symname, Symtab *tab);
-  extern Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr symname, Symtab *tab, int (*check) (Node *));
-  extern String *Swig_symbol_qualified(Node *node);
-  extern Node *Swig_symbol_isoverloaded(Node *node);
-  extern void Swig_symbol_remove(Node *node);
+  extern Node *Swig_symbol_clookup_local_check(const_String_or_char_ptr symname, Symtab *tab, Node *(*checkfunc) (Node *));
+  extern String *Swig_symbol_qualified(Node *n);
+  extern Node *Swig_symbol_isoverloaded(Node *n);
+  extern void Swig_symbol_remove(Node *n);
+  extern void Swig_symbol_fix_overname(Node *n);
   extern void Swig_symbol_alias(const_String_or_char_ptr aliasname, Symtab *tab);
   extern void Swig_symbol_inherit(Symtab *tab);
   extern SwigType *Swig_symbol_type_qualify(const SwigType *ty, Symtab *tab);
@@ -339,6 +341,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern int Swig_value_wrapper_mode(int mode);
   extern int Swig_is_generated_overload(Node *n);
+  extern Node *Swig_item_in_list(List *list, const String *name);
 
   typedef enum { EMF_STANDARD, EMF_MICROSOFT } ErrorMessageFormat;
 

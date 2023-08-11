@@ -1,6 +1,6 @@
-c_redefine.i:4: Warning 302: Identifier 'foo' redefined (ignored),
-c_redefine.i:3: Warning 302: previous definition of 'foo'.
-c_redefine.i:8: Warning 302: Identifier 'bar' redefined (ignored),
-c_redefine.i:6: Warning 302: previous definition of 'bar'.
-c_redefine.i:14: Warning 322: Redundant redeclaration of 'bar' (Renamed from 'spam'),
-c_redefine.i:6: Warning 322: previous declaration of 'bar'.
+c_redefine.i:4: Warning 302: Redefinition of identifier 'foo' ignored,
+c_redefine.i:3: Warning 302: previous definition of 'foo' as foo(int,int).
+c_redefine.i:8: Warning 302: Redefinition of identifier 'bar' ignored,
+c_redefine.i:6: Warning 302: previous definition of 'bar' as bar(int).
+c_redefine.i:14: Warning 322: Redundant redeclaration of identifier 'bar' (Renamed from 'spam') as spam(int) ignored,
+c_redefine.i:6: Warning 322: previous declaration of 'bar' as bar(int).

@@ -13,11 +13,3 @@ struct foo {
 %extend foo {
     int spam();
 };
-
-
-   
-
-
-
-
-

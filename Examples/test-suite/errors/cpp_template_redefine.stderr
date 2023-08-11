@@ -1,0 +1,30 @@
+cpp_template_redefine.i:39: Warning 344: Unable to deduce decltype for '&T::to_json'.
+cpp_template_redefine.i:45: Warning 344: Unable to deduce decltype for 'std::declval<M>().begin()->first'.
+cpp_template_redefine.i:50: Warning 344: Unable to deduce decltype for '*std::declval<V>().begin()'.
+cpp_template_redefine.i:56: Warning 344: Unable to deduce decltype for '&T::to_json'.
+cpp_template_redefine.i:59: Warning 344: Unable to deduce decltype for 'std::declval<M>().begin()->first'.
+cpp_template_redefine.i:63: Warning 344: Unable to deduce decltype for '*std::declval<V>().begin()'.
+cpp_template_redefine.i:101: Warning 322: Redundant redeclaration of identifier 'Json' as Json::Json(Converter const &) ignored,
+cpp_template_redefine.i:101: Warning 322: previous declaration of 'Json' as Json::Json(Converter const &).
+cpp_template_redefine.i:101: Warning 322: Redundant redeclaration of identifier 'Json' as Json::Json(Converter const &) ignored,
+cpp_template_redefine.i:101: Warning 322: previous declaration of 'Json' as Json::Json(Converter const &).
+cpp_template_redefine.i:102: Warning 322: Redundant redeclaration of identifier 'Json' as Json::Json(std::map< std::string,std::string,std::less< std::string >,std::allocator< std::pair< std::string const,std::string > > > const &) ignored,
+cpp_template_redefine.i:102: Warning 322: previous declaration of 'Json' as Json::Json(std::map< std::string,std::string,std::less< std::string >,std::allocator< std::pair< std::string const,std::string > > > const &).
+cpp_template_redefine.i:102: Warning 322: Redundant redeclaration of identifier 'Json' as Json::Json(std::map< std::string,std::string,std::less< std::string >,std::allocator< std::pair< std::string const,std::string > > > const &) ignored,
+cpp_template_redefine.i:102: Warning 322: previous declaration of 'Json' as Json::Json(std::map< std::string,std::string,std::less< std::string >,std::allocator< std::pair< std::string const,std::string > > > const &).
+cpp_template_redefine.i:103: Warning 322: Redundant redeclaration of identifier 'Json' as Json::Json(std::vector< std::string,std::allocator< std::string > > const &) ignored,
+cpp_template_redefine.i:103: Warning 322: previous declaration of 'Json' as Json::Json(std::vector< std::string,std::allocator< std::string > > const &).
+cpp_template_redefine.i:103: Warning 322: Redundant redeclaration of identifier 'Json' as Json::Json(std::vector< std::string,std::allocator< std::string > > const &) ignored,
+cpp_template_redefine.i:103: Warning 322: previous declaration of 'Json' as Json::Json(std::vector< std::string,std::allocator< std::string > > const &).
+cpp_template_redefine.i:105: Warning 322: Redundant redeclaration of identifier 'mmm' as Json::mmm< Converter,std::string >(Converter const &) ignored,
+cpp_template_redefine.i:105: Warning 322: previous declaration of 'mmm' as Json::mmm< Converter,std::string >(Converter const &).
+cpp_template_redefine.i:105: Warning 322: Redundant redeclaration of identifier 'mmm' as Json::mmm< Converter,std::string >(Converter const &) ignored,
+cpp_template_redefine.i:105: Warning 322: previous declaration of 'mmm' as Json::mmm< Converter,std::string >(Converter const &).
+cpp_template_redefine.i:106: Warning 322: Redundant redeclaration of identifier 'mmm' as Json::mmm< std::map< std::string,std::string >,0 >(std::map< std::string,std::string,std::less< std::string >,std::allocator< std::pair< std::string const,std::string > > > const &) ignored,
+cpp_template_redefine.i:106: Warning 322: previous declaration of 'mmm' as Json::mmm< std::map< std::string,std::string >,0 >(std::map< std::string,std::string,std::less< std::string >,std::allocator< std::pair< std::string const,std::string > > > const &).
+cpp_template_redefine.i:106: Warning 322: Redundant redeclaration of identifier 'mmm' as Json::mmm< std::map< std::string,std::string >,0 >(std::map< std::string,std::string,std::less< std::string >,std::allocator< std::pair< std::string const,std::string > > > const &) ignored,
+cpp_template_redefine.i:106: Warning 322: previous declaration of 'mmm' as Json::mmm< std::map< std::string,std::string >,0 >(std::map< std::string,std::string,std::less< std::string >,std::allocator< std::pair< std::string const,std::string > > > const &).
+cpp_template_redefine.i:107: Warning 322: Redundant redeclaration of identifier 'mmm' as Json::mmm< std::vector< std::string >,0 >(std::vector< std::string,std::allocator< std::string > > const &) ignored,
+cpp_template_redefine.i:107: Warning 322: previous declaration of 'mmm' as Json::mmm< std::vector< std::string >,0 >(std::vector< std::string,std::allocator< std::string > > const &).
+cpp_template_redefine.i:107: Warning 322: Redundant redeclaration of identifier 'mmm' as Json::mmm< std::vector< std::string >,0 >(std::vector< std::string,std::allocator< std::string > > const &) ignored,
+cpp_template_redefine.i:107: Warning 322: previous declaration of 'mmm' as Json::mmm< std::vector< std::string >,0 >(std::vector< std::string,std::allocator< std::string > > const &).

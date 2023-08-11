@@ -1172,8 +1172,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
  * ----------------------------------------------------------------------------- */
 
 Node *Swig_methodclass(Node *n) {
-  Node *nodetype = nodeType(n);
-  if (Cmp(nodetype, "class") == 0)
+  if (Equal(nodeType(n), "class"))
     return n;
   return GetFlag(n, "feature:extend") ? parentNode(parentNode(n)) : parentNode(n);
 }

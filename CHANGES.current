@@ -7,6 +7,107 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-08-09: olly
+	    [Ruby] Remove -feature command line option which has been
+	    deprecated since SWIG 1.3.32 in 2007.  Use -init_name instead.
+
+2023-08-06: wsfulton
+            Add support for using declarations to introduce templated member
+            methods and for inheriting templated constructors, such as:
+
+              struct Base {
+                // templated constructor
+                template <typename T> Base(const T &t, const char *s) {}
+                // templated member method
+                template <typename T> void template_method(const T &t, const char *s) {}
+              };
+
+              %template(Base) Base::Base<int>;
+              %template(template_method) Base::template_method<double>;
+
+              struct Derived : Base {
+                using Base::Base;
+                using Base::template_method;
+              };
+
+            Previously the templated methods and constructors were ignored and
+            not introduced into the Derived class.
+
+2023-08-04: wsfulton
+            Fix using declarations for inheritance hierarchies more than
+            two deep and the using declarations are overloaded. Using declarations
+            from a base class' base were not available for use in the target
+            language. For example in the code below, Using1::usingmethod(int i)
+            was not wrapped for use in Using3:
+
+              struct Using1 {
+              protected:
+                void usingmethod(int i) {}
+              };
+              struct Using2 : Using1 {
+              protected:
+                void usingmethod(int i, int j) {}
+                using Using1::usingmethod;
+              };
+              struct Using3 : Using2 {
+                void usingmethod(int i, int j, int k) {}
+                using Using2::usingmethod;
+              };
+
+            Similarly for C++11 using declarations for inheriting constructors.
+
+2023-08-02: wsfulton
+            https://sourceforge.net/p/swig/bugs/932/
+            Fix missing constructor generation due to abstract class test
+            failure when a method is declared in the class along with a
+            using declaration and the using declaration is declared before
+            the method that implemented the pure virtual method, such as:
+
+              struct ConcreteDerived : AbstractBase {
+                ConcreteDerived() {} // was not wrapped
+                using AbstractBase::f;
+                virtual void f(int n) override {}
+              };
+
+2023-08-02: olly
+	    [PHP] Implement overloading between different integer types and
+	    between double and float.
+
+2023-07-29: wsfulton
+            https://sourceforge.net/p/swig/bugs/678/
+            Fix %copyctor used on class hierarchies with non-const copy
+            constructors. Previously SWIG always attempted to call a copy
+            constructor taking a const reference parameter instead of a
+            non-const reference parameter.
+
+2023-07-28: wsfulton
+            #2541 Fix overloading of templated constructors and %copyctor.
+
+2023-07-21: wsfulton
+            Don't generate a default constructor wrapper when a class has a
+            templated constructor, as there isn't actually an implied default
+            constructor. For example:
+
+              struct TConstructor3 {
+                template<typename T> TConstructor3(T val) {}
+              };
+
+            Previously wrappers were generated for a non-existent default
+            constructor which failed to compile.
+
+2023-07-15: wsfulton
+            C++11 using declarations for inheriting constructors has now been
+            extended to support the directors feature.
+
+2023-07-13: wsfulton
+            C++11 using declarations for inheriting constructors support now
+            also includes inheriting implicitly defined default constructors
+            from the base class.
+
+2023-07-04: wsfulton
+            #2641 Add support for C++11 using declarations for inheriting
+            constructors.
+
 2023-06-30: wsfulton
             #2640 Fix syntax error parsing an expression which calls a function
             with no parameters within additional brackets.
@@ -34,9 +135,9 @@ Version 4.2.0 (in progress)
 	    shadowclassmodifiers	Use %typemap(javaclassmodifiers)
 
 2023-06-24: wsfulton
-            #2616 Fix directors and allprotected mode and using declarations.
-            Previously SWIG either seg faulted or generated code that did not
-            compile.
+            #2616 https://sourceforge.net/p/swig/bugs/1102/ Fix directors and
+            allprotected mode and using declarations. Previously SWIG either
+            seg faulted or generated code that did not compile.
 
 2023-06-20: olly
 	    #2486 Fix handling of template in array size, which was being

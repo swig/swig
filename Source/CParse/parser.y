@@ -395,15 +395,9 @@ static String *make_unnamed(void) {
   return NewStringf("$unnamed%d$",unnamed);
 }
 
-/* Return if the node is a friend declaration */
-static int is_friend(Node *n) {
-  return (Strstr(Getattr(n, "storage"), "friend") != NULL);
-}
-
 static int is_operator(String *name) {
   return Strncmp(name,"operator ", 9) == 0;
 }
-
 
 /* Add declaration list to symbol table */
 static int  add_only_one = 0;
@@ -420,7 +414,7 @@ static void add_symbols(Node *n) {
     /* for friends, we need to pop the scope once */
     String *old_prefix = 0;
     Symtab *old_scope = 0;
-    int isfriend = inclass && is_friend(n);
+    int isfriend = inclass && Checkattr(n, "storage", "friend");
     int iscdecl = Cmp(nodeType(n),"cdecl") == 0;
     int only_csymbol = 0;
     
@@ -449,6 +443,24 @@ static void add_symbols(Node *n) {
 	  Delete(prefix);
 	}
 	Namespaceprefix = 0;
+      } else if (Equal(nodeType(n), "using")) {
+	String *uname = Getattr(n, "uname");
+	Node *cls = current_class ? current_class : currentOuterClass; /* Current class seems to vary depending on whether it is a template class or a plain class */
+	String *nprefix = 0;
+	String *nlast = 0;
+	Swig_scopename_split(uname, &nprefix, &nlast);
+	if (Swig_item_in_list(Getattr(cls, "baselist"), nprefix) || Swig_item_in_list(Getattr(cls, "protectedbaselist"), nprefix) || Swig_item_in_list(Getattr(cls, "privatebaselist"), nprefix)) {
+	  String *plain_name = SwigType_istemplate(nprefix) ? SwigType_templateprefix(nprefix) : nprefix;
+	  if (Equal(nlast, plain_name)) {
+	    /* Using declaration looks like it is using a constructor in an immediate base class - change the constructor name for this class.
+	     * C++11 requires using declarations for inheriting base constructors to be in the immediate base class.
+	     * Note that we don't try and look up the constructor in the base class as the constructor may be an implicit/implied constructor and hence not exist. */
+	    Symtab *stab = Swig_symbol_current();
+	    String *nname = Getattr(stab, "name");
+	    Setattr(n, "name", nname);
+	    SetFlag(n, "usingctor");
+	  }
+	}
       } else {
 	/* for member functions, we need to remove the redundant
 	   class scope if provided, as in
@@ -497,9 +509,12 @@ static void add_symbols(Node *n) {
 	  }
 	}
       } else {
-	  Setattr(n,"access", "public");
+	Setattr(n, "access", "public");
       }
+    } else if (extendmode && !inclass) {
+      Setattr(n, "access", "public");
     }
+
     if (Getattr(n,"sym:name")) {
       n = nextSibling(n);
       continue;
@@ -652,44 +667,11 @@ static void add_symbols(Node *n) {
       c = Swig_symbol_add(symname,n);
 
       if (c != n) {
-        /* symbol conflict attempting to add in the new symbol */
-        if (Getattr(n,"sym:weak")) {
-          Setattr(n,"sym:name",symname);
-        } else {
-          String *e = NewStringEmpty();
-          String *en = NewStringEmpty();
-          String *ec = NewStringEmpty();
-          int redefined = Swig_need_redefined_warn(n,c,inclass);
-          if (redefined) {
-            Printf(en,"Identifier '%s' redefined (ignored)",symname);
-            Printf(ec,"previous definition of '%s'",symname);
-          } else {
-            Printf(en,"Redundant redeclaration of '%s'",symname);
-            Printf(ec,"previous declaration of '%s'",symname);
-          }
-          if (Cmp(symname,Getattr(n,"name"))) {
-            Printf(en," (Renamed from '%s')", SwigType_namestr(Getattr(n,"name")));
-          }
-          Printf(en,",");
-          if (Cmp(symname,Getattr(c,"name"))) {
-            Printf(ec," (Renamed from '%s')", SwigType_namestr(Getattr(c,"name")));
-          }
-          Printf(ec,".");
-	  SWIG_WARN_NODE_BEGIN(n);
-          if (redefined) {
-            Swig_warning(WARN_PARSE_REDEFINED,Getfile(n),Getline(n),"%s\n",en);
-            Swig_warning(WARN_PARSE_REDEFINED,Getfile(c),Getline(c),"%s\n",ec);
-          } else if (!is_friend(n) && !is_friend(c)) {
-            Swig_warning(WARN_PARSE_REDUNDANT,Getfile(n),Getline(n),"%s\n",en);
-            Swig_warning(WARN_PARSE_REDUNDANT,Getfile(c),Getline(c),"%s\n",ec);
-          }
-	  SWIG_WARN_NODE_END(n);
-          Printf(e,"%s:%d:%s\n%s:%d:%s\n",Getfile(n),Getline(n),en,
-                 Getfile(c),Getline(c),ec);
-          Setattr(n,"error",e);
-	  Delete(e);
-          Delete(en);
-          Delete(ec);
+	/* symbol conflict attempting to add in the new symbol */
+	if (Getattr(n,"sym:weak")) {
+	  Setattr(n,"sym:name",symname);
+	} else {
+	  Swig_symbol_conflict_warn(n, c, symname, inclass);
         }
       }
     }
@@ -986,7 +968,7 @@ static String *resolve_create_node_scope(String *cname_in, int is_class_definiti
 
   if (Strncmp(cname, "::", 2) == 0) {
     if (is_class_definition) {
-      Swig_error(cparse_file, cparse_line, "Using the unary scope operator :: in class definition '%s' is invalid.\n", cname);
+      Swig_error(cparse_file, cparse_line, "Using the unary scope operator :: in class definition '%s' is invalid.\n", SwigType_namestr(cname));
       *errored = 1;
       return last;
     }
@@ -1095,7 +1077,8 @@ Printf(stdout, "comparing current: [%s] found: [%s]\n", current_scopename, found
 
 	if (fail) {
 	  String *cname_resolved = NewStringf("%s::%s", found_scopename, last);
-	  Swig_error(cparse_file, cparse_line, "'%s' resolves to '%s' and was incorrectly instantiated in scope '%s' instead of within scope '%s'.\n", cname_in, cname_resolved, current_scopename, found_scopename);
+	  Swig_error(cparse_file, cparse_line, "'%s' resolves to '%s' and was incorrectly instantiated in scope '%s' instead of within scope '%s'.\n",
+	    SwigType_namestr(cname_in), SwigType_namestr(cname_resolved), SwigType_namestr(current_scopename), SwigType_namestr(found_scopename));
 	  *errored = 1;
 	  Delete(cname_resolved);
 	}
@@ -1106,7 +1089,7 @@ Printf(stdout, "comparing current: [%s] found: [%s]\n", current_scopename, found
     }
   } else if (!is_class_definition) {
     /* A template instantiation requires a template to be found in scope */
-    Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", cname_in);
+    Swig_error(cparse_file, cparse_line, "Template '%s' undefined.\n", SwigType_namestr(cname_in));
     *errored = 1;
   }
 
@@ -1132,12 +1115,12 @@ Printf(stdout, "comparing current: [%s] found: [%s]\n", current_scopename, found
     /* Try to locate the scope */
     ns = Swig_symbol_clookup(prefix,0);
     if (!ns) {
-      Swig_error(cparse_file,cparse_line,"Undefined scope '%s'\n", prefix);
+      Swig_error(cparse_file, cparse_line, "Undefined scope '%s'\n", SwigType_namestr(prefix));
       *errored = 1;
     } else {
       Symtab *nstab = Getattr(ns,"symtab");
       if (!nstab) {
-	Swig_error(cparse_file,cparse_line, "'%s' is not defined as a valid scope.\n", prefix);
+	Swig_error(cparse_file, cparse_line, "'%s' is not defined as a valid scope.\n", SwigType_namestr(prefix));
 	*errored = 1;
 	ns = 0;
       } else {
@@ -1295,7 +1278,7 @@ static Node *nested_forward_declaration(const String *storage, const String *kin
       Node *n = nn;
       if (!GetFlag(n, "feature:ignore")) {
 	SWIG_WARN_NODE_BEGIN(n);
-	Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line,"Nested %s not currently supported (%s ignored)\n", kind, sname ? sname : name);
+	Swig_warning(WARN_PARSE_NAMED_NESTED_CLASS, cparse_file, cparse_line, "Nested %s not currently supported (%s ignored)\n", kind, SwigType_namestr(sname ? sname : name));
 	SWIG_WARN_NODE_END(n);
       }
     } else {
@@ -4514,7 +4497,7 @@ cpp_using_decl : USING idcolon SEMI {
              | USING NAMESPACE idcolon SEMI {
 	       Node *n = Swig_symbol_clookup($3,0);
 	       if (!n) {
-		 Swig_error(cparse_file, cparse_line, "Nothing known about namespace '%s'\n", $3);
+		 Swig_error(cparse_file, cparse_line, "Nothing known about namespace '%s'\n", SwigType_namestr($3));
 		 $$ = 0;
 	       } else {
 
@@ -4532,7 +4515,7 @@ cpp_using_decl : USING idcolon SEMI {
 		       Swig_symbol_inherit(symtab);
 		     }
 		   } else {
-		     Swig_error(cparse_file, cparse_line, "'%s' is not a namespace.\n", $3);
+		     Swig_error(cparse_file, cparse_line, "'%s' is not a namespace.\n", SwigType_namestr($3));
 		     $$ = 0;
 		   }
 		 } else {
@@ -4630,11 +4613,11 @@ Printf(stdout, "  Scope %s [creating single scope C++17 style]\n", scopename);
 	       Setattr($$,"alias",$4);
 	       n = Swig_symbol_clookup($4,0);
 	       if (!n) {
-		 Swig_error(cparse_file, cparse_line, "Unknown namespace '%s'\n", $4);
+		 Swig_error(cparse_file, cparse_line, "Unknown namespace '%s'\n", SwigType_namestr($4));
 		 $$ = 0;
 	       } else {
 		 if (Strcmp(nodeType(n),"namespace") != 0) {
-		   Swig_error(cparse_file, cparse_line, "'%s' is not a namespace\n",$4);
+		   Swig_error(cparse_file, cparse_line, "'%s' is not a namespace\n", SwigType_namestr($4));
 		   $$ = 0;
 		 } else {
 		   while (Getattr(n,"alias")) {
@@ -4748,10 +4731,11 @@ cpp_member   : cpp_member_no_dox
   
 cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
               if (inclass || extendmode) {
+	        String *name = SwigType_templateprefix($2); /* A constructor can optionally be declared with template parameters before C++20, strip these off */
 		SwigType *decl = NewStringEmpty();
 		$$ = new_node("constructor");
 		Setattr($$,"storage",$1);
-		Setattr($$,"name",$2);
+		Setattr($$, "name", name);
 		Setattr($$,"parms",$4);
 		SwigType_add_function(decl,$4);
 		Setattr($$,"decl",decl);
@@ -4777,9 +4761,9 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 /* A destructor (hopefully) */
 
 cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
-               String *name = NewStringf("%s",$2);
-	       if (*(Char(name)) != '~') Insert(name,0,"~");
-               $$ = new_node("destructor");
+	       String *name = SwigType_templateprefix($2); /* A destructor can optionally be declared with template parameters before C++20, strip these off */
+	       Insert(name, 0, "~");
+	       $$ = new_node("destructor");
 	       Setattr($$,"name",name);
 	       Delete(name);
 	       if (Len(scanner_ccode)) {
@@ -4807,11 +4791,10 @@ cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
 /* A virtual destructor */
 
               | VIRTUAL NOT idtemplate LPAREN parms RPAREN cpp_vend {
-		String *name;
+		String *name = SwigType_templateprefix($3); /* A destructor can optionally be declared with template parameters before C++20, strip these off */
+		Insert(name, 0, "~");
 		$$ = new_node("destructor");
 		Setattr($$,"storage","virtual");
-	        name = NewStringf("%s",$3);
-		if (*(Char(name)) != '~') Insert(name,0,"~");
 		Setattr($$,"name",name);
 		Delete(name);
 		Setattr($$,"throws",$7.throws);

@@ -133,6 +133,7 @@ template<class D, typename _Super=AnyVal> class Expression {
 
 void TestInstantiationsPart4() {
   Expression<AnyVal, AnyVal::Super> express;
+  (void)express;
   DeriveToBase<Expression, AnyVal, AnyVal, AnyVal, AnyVal> derive_to_base = AnyVal();
 }
 %}
