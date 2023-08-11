@@ -718,6 +718,61 @@ esac
 AC_SUBST(D2COMPILER)
 AC_SUBST(DLIBPREFIX)
 
+#---------------------------------------------------------------
+# Look for Fortran
+#---------------------------------------------------------------
+
+AC_ARG_WITH(fortran,
+AS_HELP_STRING([--without-fortran], [Disable Fortran])
+AS_HELP_STRING([--with-fortran=path], [Set location of Fortran compiler]),
+[FORTRAN="$withval"], [FORTRAN="$alllang_default"])
+
+if test x"${FORTRAN}" = xno; then
+  AC_MSG_NOTICE([Disabling Fortran])
+  FC=
+else
+  if test -n "$FCFLAGS" && test "x$GCC" = xyes; then
+    FCFLAGS="-std=f2003 -Wall -Wimplicit-procedure -Wimplicit-interface"
+  fi
+
+  if test "x$FORTRAN" = xyes; then
+    AC_PROG_FC dnl This command also sets FCFLAGS
+  else
+    FC=$FORTRAN
+    FCFLAGS=$FCFLAGS
+  fi
+
+  if test -n "$FC"; then
+    AC_FC_LIBRARY_LDFLAGS dnl Set up Fortran library flags
+  fi
+
+  # FORTRANLDSHARED is the ld *command* used to create shared library
+  # This must make a dynamic library as opposerd to a bundle.
+  case $host in
+    *-*-darwin*)
+        FORTRANLDSHARED='$(CC) -dynamiclib'
+        FORTRANCXXSHARED='$(CXX) -dynamiclib'
+        ;;
+      *)
+        FORTRANLDSHARED='$(LDSHARED) -pthread'
+        FORTRANCXXSHARED='$(CXXSHARED) -pthread'
+        ;;
+  esac
+fi
+
+# Do not prefix library file names with "lib" on Windows.
+case $host in
+*-*-cygwin* | *-*-mingw*) FORTRANLIBPREFIX="";;
+*)FORTRANLIBPREFIX="lib";;
+esac
+
+AC_SUBST(FC)
+AC_SUBST(FCFLAGS)
+AC_SUBST(FCLIBS)
+AC_SUBST(FORTRANLDSHARED)
+AC_SUBST(FORTRANCXXSHARED)
+AC_SUBST(FORTRANLIBPREFIX)
+
 #----------------------------------------------------------------
 # Look for Go compilers
 #----------------------------------------------------------------
@@ -2605,62 +2660,6 @@ AC_SUBST(TCLDYNAMICLINKING)
 AC_SUBST(TCLLDSHARED)
 AC_SUBST(TCLCXXSHARED)
 AC_SUBST(TCLLINK)
-
-#---------------------------------------------------------------
-# Look for Fortran
-#---------------------------------------------------------------
-
-AC_ARG_WITH(fortran,
-AS_HELP_STRING([--without-fortran], [Disable Fortran])
-AS_HELP_STRING([--with-fortran=path], [Set location of Fortran compiler]),
-[FORTRAN="$withval"], [FORTRAN="$alllang_default"])
-
-if test x"${FORTRAN}" = xno; then
-  AC_MSG_NOTICE([Disabling Fortran])
-  FC=
-else
-  if test -n "$FCFLAGS" && test "x$GCC" = xyes; then
-    FCFLAGS="-std=f2003 -Wall -Wimplicit-procedure -Wimplicit-interface"
-  fi
-
-  if test "x$FORTRAN" = xyes; then
-    AC_PROG_FC dnl This command also sets FCFLAGS
-  else
-    FC=$FORTRAN
-    FCFLAGS=$FCFLAGS
-  fi
-
-  if test -n "$FC"; then
-    AC_FC_LIBRARY_LDFLAGS dnl Set up Fortran library flags
-  fi
-
-  # FORTRANLDSHARED is the ld *command* used to create shared library
-  # This must make a dynamic library as opposerd to a bundle.
-  case $host in
-    *-*-darwin*)
-        FORTRANLDSHARED='$(CC) -dynamiclib'
-        FORTRANCXXSHARED='$(CXX) -dynamiclib'
-        ;;
-      *)
-        FORTRANLDSHARED='$(LDSHARED) -pthread'
-        FORTRANCXXSHARED='$(CXXSHARED) -pthread'
-        ;;
-  esac
-fi
-
-# Do not prefix library file names with "lib" on Windows.
-case $host in
-*-*-cygwin* | *-*-mingw*) FORTRANLIBPREFIX="";;
-*)FORTRANLIBPREFIX="lib";;
-esac
-
-AC_SUBST(FC)
-AC_SUBST(FCFLAGS)
-AC_SUBST(FCLIBS)
-AC_SUBST(FORTRANLDSHARED)
-AC_SUBST(FORTRANCXXSHARED)
-AC_SUBST(FORTRANLIBPREFIX)
-
 
 #----------------------------------------------------------------
 # Determine which languages to use for examples/test-suite
