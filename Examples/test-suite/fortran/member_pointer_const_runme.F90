@@ -7,7 +7,7 @@ program member_pointer_const_runme
   use ISO_C_BINDING
   implicit none
 
-  type(SwigOpaqueMemFunPtr) :: area_memptr, perim_memptr
+  type(SWIGTYPE_m_Shape__f_void__double) :: area_memptr, perim_memptr
   type(Square) :: s
   real(C_DOUBLE) :: val
 
@@ -33,7 +33,7 @@ program member_pointer_const_runme
   call check("Square perimimter", 40.0_C_DOUBLE, val)
 
   ! Try the external constants
-  perim_memptr = PERIMPT
+  perim_memptr = get_PERIMPT()
   val = do_op(s, get_areavar())
   call check("Square perimimter", 40.0_C_DOUBLE, val)
 
