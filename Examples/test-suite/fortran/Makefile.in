@@ -39,11 +39,10 @@ C_TEST_CASES = \
 	fortran_global_const \
 	ccomplextest \
 
+# Tests with SWIG errors
 FAILING_CPP_TESTS += \
 	allprotected \
-	apply_signed_char \
 	apply_strings \
-	contract \
 	director_abstract \
 	director_basic \
 	director_binary_string \
@@ -57,24 +56,16 @@ FAILING_CPP_TESTS += \
 	director_exception \
 	director_exception_catches \
 	director_exception_nothrow \
-	director_extend \
 	director_frob \
-	director_ignore \
-	director_keywords \
-	director_multiple_inheritance \
-	director_namespace_clash \
 	director_nested \
 	director_nspace \
 	director_nspace_director_name_collision \
 	director_overload \
-	director_overload2 \
 	director_ownership \
 	director_pass_by_value \
 	director_primitives \
 	director_property \
 	director_protected \
-	director_protected_overloaded \
-	director_redefined \
 	director_ref \
 	director_smartptr \
 	director_string \
@@ -83,47 +74,50 @@ FAILING_CPP_TESTS += \
 	director_unwrap_result \
 	director_using \
 	director_using_member_scopes \
-	director_void \
 	director_wombat \
-	global_scope_types \
-	grouping \
 	li_boost_shared_ptr_director \
 	li_std_auto_ptr \
-	member_funcptr_galore \
-	member_pointer \
-	member_pointer_const \
 	namespace_class \
-	nested_directors \
-	nested_scope_flat \
 	overload_arrays \
-	overload_complicated \
-	overload_return_type \
 	overload_simple \
-	overload_subtype \
+	preproc \
 	smart_pointer_member \
-	smart_pointer_template_defaults_overload \
 	typedef_classforward_same_name \
 	typemap_directorout \
-	using_member_scopes \
+	using_member_scopes
 
+# Tests generate invalid code
 FAILING_CPP_TESTS += \
-	cpp11_default_delete \
+	apply_signed_char \
+	contract \
+	director_extend \
+	director_keywords \
+	director_multiple_inheritance \
+	director_namespace_clash \
+	director_overload2 \
+	director_protected_overloaded \
+	director_redefined \
+	director_void \
+	global_scope_types \
+	nested_directors \
+	nested_scope_flat \
+	overload_subtype \
 	cpp11_director_enums \
 	cpp11_directors \
 	cpp11_function_objects \
-	cpp11_result_of \
-	cpp11_rvalue_reference2 \
-	cpp11_rvalue_reference3 \
+
+# Tests cause SWIG to segfault (!)
+FAILING_CPP_TESTS += \
+	director_ignore \
+	director_nested \
+	director_protected \
 
 FAILING_C_TESTS += \
-	char_constant \
 	preproc \
-	typedef_classforward_same_name \
-		   
+	typedef_classforward_same_name
 
 FAILING_MULTI_CPP_TESTS += \
-	template_typedef_import \
-	import_stl \
+	template_typedef_import
 
 include $(srcdir)/../common.mk
 
