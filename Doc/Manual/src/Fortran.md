@@ -30,7 +30,7 @@ interface that you wish to *adapt* to the Fortran target language. This
 adaptation may include tweaks for ease of use or familiarity for Fortran users,
 but it does not require that your library be developed around a central
 interface language. This is in contrast to other existing cross-language
-interoperability tools such as [Babel](https://computation.llnl.gov/projects/babel-high-performance-language-interoperability/#page=home).
+interoperability tools such as [Babel](https://software.llnl.gov/Babel/#page=home).
 
 # Fundamental concepts
 
@@ -298,7 +298,7 @@ References to these basic types are returned as scalar Fortran pointers.
 
 Note that because the C return value does not contain any information about the
 shape of the data being pointed to, it is not possible to directly construct an
-array from a pointed-to value.  However, [advanced typemaps](#typemaps) can be
+array from a pointed-to value.  However, [advanced typemaps](#fortran-typemap-extensions) can be
 constructed (and indeed [are provided](#provided-typemaps) with the SWIG
 Fortran standard library) that
 *can* return that information or extend the Fortran
@@ -770,7 +770,7 @@ int binary_op(int left, int right);
 }
 ```
 generates the following interface:
-```
+```fortran
 abstract interface
  function binary_op(left, right) bind(C) &
    result(fresult)
@@ -790,7 +790,7 @@ int call_binary(binary_op_cb fptr, int left, int right);
 %}
 ```
 to generate Fortran functions that take a procedure as an argument:
-```
+```fortran
 function call_binary(fptr, left, right) &
   result(swig_result)
  use, intrinsic :: ISO_C_BINDING
@@ -1353,7 +1353,8 @@ Each C++ class (with the exception of those wrapped using [direct C
 binding](#direct-c-binding)) creates a "proxy class", a unique *derived type*
 in the Fortran module. Each proxy class holds a single piece of data, a small
 C-bound struct `SwigClassWrapper`, which contains two simple members: a pointer
-to C-owned memory, and an enumeration that tracks the ownership of that memory.
+`cptr` to C-owned memory, and a bit field `cmemflags` that tracks the ownership
+of that memory.
 The proxy class is responsible for tracking ownership of the C++ class and
 associating that pointer with the corresponding C++ methods.
 
@@ -1442,16 +1443,28 @@ class Foo {
 Function overloading for derived types is implemented using *generic
 interfaces*. Each overloaded function gets a unique internal symname, and they
 are bound together in a generic interface. For example, if a member function
-`doit` of class `Action` is overloaded, a generic binding will be generated
+`func` of class `Base` is overloaded, a generic binding will be generated
 inside the Fortran proxy derived type:
 ```fortran
-  procedure, private :: doit__SWIG_0 => swigf_Action_doit__SWIG_0
-  procedure, private :: doit__SWIG_1 => swigf_Action_doit__SWIG_1
-  generic :: doit => doit__SWIG_0, doit__SWIG_1
+ type, public :: Base
+  type(SwigClassWrapper), public :: swigdata
+ contains
+  procedure, private :: swigf_Base_func__SWIG_0
+  procedure, private :: swigf_Base_func__SWIG_1
+  generic :: func => swigf_Base_func__SWIG_0, swigf_Base_func__SWIG_1
+ end type Base
 ```
+which can be called using the "generic" interface:
+```fortran
+  ASSERT(base%func() == 0)
+  ASSERT(base%func(3) == 3)
+```
+See `fortran_overloads.i` and `fortran/fortran_overloads_runme.F90` in the
+`Examples/test-suite` for details.
 
 As with [free functions](#function-overloading), a member function returning
-`void` cannot be overloaded with a function returning non-void.
+`void` cannot be overloaded with a function returning non-void without the use
+of the special `%fortransubroutine` feature described in that section.
 
 ## Member data
 
@@ -1585,7 +1598,7 @@ macro
 
 ## Opaque class types
 
-SWIG's default Fortran type (the `ftype` typemap) for generic types such as
+SWIG's default Fortran type (the `ftype` typemap, see [the extended Fortran typemap section](#fortran-typemap-extensions)) for generic types such as
 classes (`SWIGTYPE`) is:
 ```swig
 %typemap(ftype) SWIGTYPE "type($fortranclassname)"
@@ -1618,15 +1631,7 @@ special symbol `$action` will be replaced with the usual invocation.
 
 <!-- ###################################################################### -->
 
-# Advanced details and usage
-
-This section describes some of the advanced features that underpin the SWIG
-Fortran wrapping. These features allow extensive customization of the generated
-C/Fortran interface code and behavior.
-
-<!-- ###################################################################### -->
-
-## Typemaps
+# Fortran typemap extensions
 
 SWIG Fortran extends the typemap system of SWIG with additional typemaps,
 modeled after the Java target language's typemaps. They provide for translating
@@ -1634,7 +1639,42 @@ C++ data to and from an ISO-C compatible datatype, and from that
 datatype to native Fortran types. These special typemaps are critical to
 understanding how SWIG passes data between Fortran and C++.
 
-### ISO C Wrapper interface
+## Custom typemap summary
+
+In addition to the standard SWIG typemaps `in` and `out` (which convert
+target-language arguments and return types to the corresponding C++ types),
+the Fortran language module uses several typemaps needed to convert back and
+forth from proxy classes and Fortran native data types.
+
+<table>
+<thead>
+<tr><th>Typemap</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><th colspan=2>Type definitions</th></tr>
+<tr><td><code>ctype       </code></td><td>C-compatible type used to pass data
+as part of the C wrapper interface</td></tr>
+<tr><td><code>imtype      </code></td><td>Fortran spelling of the equivalent
+ISO C type (e.g., <code>integer(C_INT)</code></td></tr>
+<tr><td><code>ftype       </code></td><td>Native Fortran type (possibly a proxy
+class)</td></tr>
+<tr><td><code>bindc       </code></td><td>Direct ISO C binding type when using
+the <code>%fortranbindc</code> feature</td></tr>
+<tr><th colspan=2>Type conversion blocks</th></tr>
+<tr><td><code>fin         </code></td><td>Fortran code to convert an argument into the intermediate type</td></tr>
+<tr><td><code>fout        </code></td><td>Fortran code to convert the return intermediate type</td></tr>
+<tr><td><code>fargout     </code></td><td>Fortran code applied to an
+argument after calling the wrapped C++ function</td></tr>
+<tr><td><code>fdirectorin </code></td><td>Fortran code to convert a C++
+"director" callback argument to a Fortran type</td></tr>
+<tr><td><code>fdirectorout</code></td><td>Fortran code to convert a Fortran
+return value to a C++ "director" return value</td></tr>
+</tbody>
+</table>
+
+The `ftype` typemap supports special variables `$fortranclassname`, `$*fortranclassname`, and `$&fortranclassname` to substitute the `ftype` of the current type, the dereferenced type, or a pointer to the current type, respectively.
+
+## ISO C Wrapper interface
 
 SWIG-generated Fortran code works by translating C++ data types to simple C
 types compatible with ISO C binding, then translating the data types to more
@@ -1663,8 +1703,8 @@ Often the *input* value of a function is a different type (e.g. a pointer
 `int*` instead of a value `int`). The `in` keyword allows this to be
 overridden:
 ```swig
-%typemap(ctype, out="int") int
-  "const int *"
+%typemap(ctype, in="const int *") int
+  "int"
 ```
 The `imtype` is used both as a dummy argument *and* as a temporary variable in
 the Fortran conversion code. Because these also may have different signatures,
@@ -1674,7 +1714,14 @@ an `in` keyword allows the dummy argument to differ from the temporary:
   "integer(C_INT)"
 ```
 
-### Fortran proxy datatype translation
+It is important to note that the Fortran `intent` attribute is *much* stronger
+than C/C++'s `const` qualifier. In C++ it is always possible to ignore a `const`
+qualifier and modify the underlying memory without invoking undefined behavior.
+In contrast, Fortran strictly requires the `intent` to match the usage; the
+compiler can optimize based on the assumption that the value will not be
+modified.
+
+## Fortran proxy datatype translation
 
 The `fin` and `fout` typemaps are Fortran proxy wrapper code analogous to the
 `in` and `out` in the C wrapper code: they are used for translating native
@@ -1695,7 +1742,7 @@ and the output is translated back via the `fout` typemap, which in this case exp
 swig_result%swigdata%cptr = fresult
 ```
 
-### Allocating local Fortran variables in wrapper codes
+## Allocating local Fortran variables in wrapper codes
 
 Advanced SWIG users may know that
 ```swig
@@ -1708,6 +1755,14 @@ declaration.
 The `ffreearg` typemap (analogous to the `freearg` typemap for C `in`
 arguments) can be used to deallocate or clean up any temporary variables as
 needed.
+
+<!-- ###################################################################### -->
+
+# Advanced details and usage
+
+This section describes some of the advanced features that underpin the SWIG
+Fortran wrapping. These features allow extensive customization of the generated
+C/Fortran interface code and behavior.
 
 ## Code insertion blocks
 
@@ -1817,7 +1872,7 @@ To bind *all* functions as native C interfaces, use
 This is often useful when coupled with the `%fortranconst` directive (see
 the [enumerations](#enumerations) section).
 
-### Function pointers and callbacks
+## Function pointers and callbacks
 
 The `%callback` feature is redundant and ignored for `%fortranbindc` types: a
 valid function pointer to the C function can be obtained simply with the
@@ -1825,7 +1880,7 @@ valid function pointer to the C function can be obtained simply with the
 will still generate abstract interfaces, but they will simply supplement the
 direct-bound C code
 
-### Generating C-bound Fortran types from C structs
+## Generating C-bound Fortran types from C structs
 
 In certain circumstances, C++ structs can be wrapped natively as Fortran
 `bind(C)` derived types, so that the underlying data can be shared between C
@@ -1909,7 +1964,7 @@ void not_wrapped(UnknownType*);
 void should_be_wrapped(UnknownType*);
 ```
 
-## Cross-language polymorphism using directors
+# Cross-language polymorphism using directors
 
 The "director" capability in SWIG allows C++ classes to be subclassed by a
 user in the target language to enable inversion of control through overridden
@@ -1989,7 +2044,7 @@ subroutine test_director_int
 end subroutine
 ```
 
-### Limitations
+## Limitations
 
 Currently only fundamental types are supported.
 
@@ -2001,9 +2056,11 @@ currently override all virtual methods.**
 Note that a bug in GCC prevents versions before 8 from using the
 `--std=f2003` flag (see [GNU bug 84924](https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84924)).
 
-## Known Issues
+# Known Issues
 
 A number of known limitations to the SWIG Fortran module are tracked [on
-GitHub](https://github.com/swig-fortran/swig/issues/59).
+the SWIG Fortran fork on Github](https://github.com/swig-fortran/swig/issues)
+and will be moved to the main [SWIG issue page](https://github.com/swig/swig)
+once integrated with the mainline codebase.
 
 <!-- vim: set tw=79: -->

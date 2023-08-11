@@ -73,28 +73,29 @@
 <li><a href="#Fortran_opaque_class_types">Opaque class types</a>
 <li><a href="#Fortran_proxy_class_wrapper_code">Proxy class wrapper code</a>
 </ul>
-<li><a href="#Fortran_advanced_details_and_usage">Advanced details and usage</a>
+<li><a href="#Fortran_fortran_typemap_extensions">Fortran typemap extensions</a>
 <ul>
-<li><a href="#Fortran_typemaps">Typemaps</a>
-<ul>
+<li><a href="#Fortran_custom_typemap_summary">Custom typemap summary</a>
 <li><a href="#Fortran_iso_c_wrapper_interface">ISO C Wrapper interface</a>
 <li><a href="#Fortran_fortran_proxy_datatype_translation">Fortran proxy datatype translation</a>
 <li><a href="#Fortran_allocating_local_fortran_variables_in_wrapper_codes">Allocating local Fortran variables in wrapper codes</a>
 </ul>
+<li><a href="#Fortran_advanced_details_and_usage">Advanced details and usage</a>
+<ul>
 <li><a href="#Fortran_code_insertion_blocks">Code insertion blocks</a>
 <li><a href="#Fortran_direct_c_binding">Direct C binding</a>
 <ul>
 <li><a href="#Fortran_generating_direct_fortran_interfaces_to_c_functions">Generating direct Fortran interfaces to C functions</a>
+</ul>
 <li><a href="#Fortran_function_pointers_and_callbacks">Function pointers and callbacks</a>
 <li><a href="#Fortran_generating_c_bound_fortran_types_from_c_structs">Generating C-bound Fortran types from C structs</a>
-</ul>
 <li><a href="#Fortran_omitting_opaque_classes">Omitting opaque classes</a>
+</ul>
 <li><a href="#Fortran_cross_language_polymorphism_using_directors">Cross-language polymorphism using directors</a>
 <ul>
 <li><a href="#Fortran_limitations">Limitations</a>
 </ul>
 <li><a href="#Fortran_known_issues">Known Issues</a>
-</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -110,7 +111,7 @@ This chapter describes how to create interfaces to C and C++ data and functions 
 
 
 <p>
-SWIG differs from other attempts to couple C/C++ and Fortran in that it is designed to provide <em>C and C++</em> functionality to <em>Fortran</em>, and not to generically make these two languages (or others like Python) interoperable. SWIG only parses C and C++ code; it does not parse Fortran code or generate C/C++ interfaces to Fortran libraries. SWIG assumes that you, the library developer, have an existing, working C/C++ interface that you wish to <em>adapt</em> to the Fortran target language. This adaptation may include tweaks for ease of use or familiarity for Fortran users, but it does not require that your library be developed around a central interface language. This is in contrast to other existing cross-language interoperability tools such as <a href="https://computation.llnl.gov/projects/babel-high-performance-language-interoperability/#page=home">Babel</a>.
+SWIG differs from other attempts to couple C/C++ and Fortran in that it is designed to provide <em>C and C++</em> functionality to <em>Fortran</em>, and not to generically make these two languages (or others like Python) interoperable. SWIG only parses C and C++ code; it does not parse Fortran code or generate C/C++ interfaces to Fortran libraries. SWIG assumes that you, the library developer, have an existing, working C/C++ interface that you wish to <em>adapt</em> to the Fortran target language. This adaptation may include tweaks for ease of use or familiarity for Fortran users, but it does not require that your library be developed around a central interface language. This is in contrast to other existing cross-language interoperability tools such as <a href="https://software.llnl.gov/Babel/#page=home">Babel</a>.
 </p>
 
 <H2><a name="Fortran_fundamental_concepts">25.2 Fundamental concepts</a></H2>
@@ -455,7 +456,7 @@ References to these basic types are returned as scalar Fortran pointers.
 
 
 <p>
-Note that because the C return value does not contain any information about the shape of the data being pointed to, it is not possible to directly construct an array from a pointed-to value. However, <a href="Fortran.html#Fortran_typemaps">advanced typemaps</a> can be constructed (and indeed <a href="Fortran.html#Fortran_provided_typemaps">are provided</a> with the SWIG Fortran standard library) that <em>can</em> return that information or extend the Fortran interface to obtain the additional information needed to return an array pointer.
+Note that because the C return value does not contain any information about the shape of the data being pointed to, it is not possible to directly construct an array from a pointed-to value. However, <a href="Fortran.html#Fortran_fortran_typemap_extensions">advanced typemaps</a> can be constructed (and indeed <a href="Fortran.html#Fortran_provided_typemaps">are provided</a> with the SWIG Fortran standard library) that <em>can</em> return that information or extend the Fortran interface to obtain the additional information needed to return an array pointer.
 </p>
 
 <H4><a name="Fortran_other_integer_types">25.3.1.1 Other integer types</a></H4>
@@ -1044,7 +1045,8 @@ int binary_op(int left, int right);
 generates the following interface:
 </p>
 
-<pre><code>abstract interface
+
+<div class="targetlang"><pre><code>abstract interface
  function binary_op(left, right) bind(C) &amp;
    result(fresult)
   use, intrinsic :: ISO_C_BINDING
@@ -1052,7 +1054,8 @@ generates the following interface:
   integer(C_INT), intent(in), value :: right
   integer(C_INT) :: fresult
  end function
-end interface</code></pre>
+end interface</code></pre></div>
+
 
 <p>
 This allows C++ functions
@@ -1069,7 +1072,8 @@ int call_binary(binary_op_cb fptr, int left, int right);
 to generate Fortran functions that take a procedure as an argument:
 </p>
 
-<pre><code>function call_binary(fptr, left, right) &amp;
+
+<div class="targetlang"><pre><code>function call_binary(fptr, left, right) &amp;
   result(swig_result)
  use, intrinsic :: ISO_C_BINDING
  integer(C_INT) :: swig_result
@@ -1077,7 +1081,8 @@ to generate Fortran functions that take a procedure as an argument:
  integer(C_INT), intent(in) :: left
  integer(C_INT), intent(in) :: right
  ! &lt;snip&gt;
-end function</code></pre>
+end function</code></pre></div>
+
 
 <p>
 Note that Fortran ISO C rules require the given procedure to be defined in Fortran using the <code>bind(C)</code> qualifier, as in this module-level code:
@@ -1663,7 +1668,7 @@ Note of course that if the native integer type is 32-bit and the long type is 64
 
 
 <p>
-Each C++ class (with the exception of those wrapped using <a href="Fortran.html#Fortran_direct_c_binding">direct C binding</a>) creates a &ldquo;proxy class&rdquo;, a unique <em>derived type</em> in the Fortran module. Each proxy class holds a single piece of data, a small C-bound struct <code>SwigClassWrapper</code>, which contains two simple members: a pointer to C-owned memory, and an enumeration that tracks the ownership of that memory. The proxy class is responsible for tracking ownership of the C++ class and associating that pointer with the corresponding C++ methods.
+Each C++ class (with the exception of those wrapped using <a href="Fortran.html#Fortran_direct_c_binding">direct C binding</a>) creates a &ldquo;proxy class&rdquo;, a unique <em>derived type</em> in the Fortran module. Each proxy class holds a single piece of data, a small C-bound struct <code>SwigClassWrapper</code>, which contains two simple members: a pointer <code>cptr</code> to C-owned memory, and a bit field <code>cmemflags</code> that tracks the ownership of that memory. The proxy class is responsible for tracking ownership of the C++ class and associating that pointer with the corresponding C++ methods.
 </p>
 
 
@@ -1762,17 +1767,35 @@ corresponding to
 
 
 <p>
-Function overloading for derived types is implemented using <em>generic interfaces</em>. Each overloaded function gets a unique internal symname, and they are bound together in a generic interface. For example, if a member function <code>doit</code> of class <code>Action</code> is overloaded, a generic binding will be generated inside the Fortran proxy derived type:
+Function overloading for derived types is implemented using <em>generic interfaces</em>. Each overloaded function gets a unique internal symname, and they are bound together in a generic interface. For example, if a member function <code>func</code> of class <code>Base</code> is overloaded, a generic binding will be generated inside the Fortran proxy derived type:
 </p>
 
 
-<div class="targetlang"><pre><code>  procedure, private :: doit__SWIG_0 =&gt; swigf_Action_doit__SWIG_0
-  procedure, private :: doit__SWIG_1 =&gt; swigf_Action_doit__SWIG_1
-  generic :: doit =&gt; doit__SWIG_0, doit__SWIG_1</code></pre></div>
+<div class="targetlang"><pre><code> type, public :: Base
+  type(SwigClassWrapper), public :: swigdata
+ contains
+  procedure, private :: swigf_Base_func__SWIG_0
+  procedure, private :: swigf_Base_func__SWIG_1
+  generic :: func =&gt; swigf_Base_func__SWIG_0, swigf_Base_func__SWIG_1
+ end type Base</code></pre></div>
 
 
 <p>
-As with <a href="Fortran.html#Fortran_function_overloading">free functions</a>, a member function returning <code>void</code> cannot be overloaded with a function returning non-void.
+which can be called using the &ldquo;generic&rdquo; interface:
+</p>
+
+
+<div class="targetlang"><pre><code>  ASSERT(base%func() == 0)
+  ASSERT(base%func(3) == 3)</code></pre></div>
+
+
+<p>
+See <code>fortran_overloads.i</code> and <code>fortran/fortran_overloads_runme.F90</code> in the <code>Examples/test-suite</code> for details.
+</p>
+
+
+<p>
+As with <a href="Fortran.html#Fortran_function_overloading">free functions</a>, a member function returning <code>void</code> cannot be overloaded with a function returning non-void without the use of the special <code>%fortransubroutine</code> feature described in that section.
 </p>
 
 <H3><a name="Fortran_member_data">25.6.4 Member data</a></H3>
@@ -1914,7 +1937,7 @@ The crucial trick is to implement an assignment operator that correctly copies, 
 
 
 <p>
-SWIG&rsquo;s default Fortran type (the <code>ftype</code> typemap) for generic types such as classes (<code>SWIGTYPE</code>) is:
+SWIG&rsquo;s default Fortran type (the <code>ftype</code> typemap, see <a href="Fortran.html#Fortran_fortran_typemap_extensions">the extended Fortran typemap section</a>) for generic types such as classes (<code>SWIGTYPE</code>) is:
 </p>
 
 
@@ -1952,23 +1975,52 @@ For advanced cases, the function or subroutine invocation can be embedded in ano
 
 <!-- ###################################################################### -->
 
-<H2><a name="Fortran_advanced_details_and_usage">25.7 Advanced details and usage</a></H2>
-
-
-<p>
-This section describes some of the advanced features that underpin the SWIG Fortran wrapping. These features allow extensive customization of the generated C/Fortran interface code and behavior.
-</p>
-
-<!-- ###################################################################### -->
-
-<H3><a name="Fortran_typemaps">25.7.1 Typemaps</a></H3>
+<H2><a name="Fortran_fortran_typemap_extensions">25.7 Fortran typemap extensions</a></H2>
 
 
 <p>
 SWIG Fortran extends the typemap system of SWIG with additional typemaps, modeled after the Java target language&rsquo;s typemaps. They provide for translating C++ data to and from an ISO-C compatible datatype, and from that datatype to native Fortran types. These special typemaps are critical to understanding how SWIG passes data between Fortran and C++.
 </p>
 
-<H4><a name="Fortran_iso_c_wrapper_interface">25.7.1.1 ISO C Wrapper interface</a></H4>
+<H3><a name="Fortran_custom_typemap_summary">25.7.1 Custom typemap summary</a></H3>
+
+
+<p>
+In addition to the standard SWIG typemaps <code>in</code> and <code>out</code> (which convert target-language arguments and return types to the corresponding C++ types), the Fortran language module uses several typemaps needed to convert back and forth from proxy classes and Fortran native data types.
+</p>
+
+<table>
+<thead>
+<tr><th>Typemap</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><th colspan=2>Type definitions</th></tr>
+<tr><td><code>ctype       </code></td><td>C-compatible type used to pass data
+as part of the C wrapper interface</td></tr>
+<tr><td><code>imtype      </code></td><td>Fortran spelling of the equivalent
+ISO C type (e.g., <code>integer(C_INT)</code></td></tr>
+<tr><td><code>ftype       </code></td><td>Native Fortran type (possibly a proxy
+class)</td></tr>
+<tr><td><code>bindc       </code></td><td>Direct ISO C binding type when using
+the <code>%fortranbindc</code> feature</td></tr>
+<tr><th colspan=2>Type conversion blocks</th></tr>
+<tr><td><code>fin         </code></td><td>Fortran code to convert an argument into the intermediate type</td></tr>
+<tr><td><code>fout        </code></td><td>Fortran code to convert the return intermediate type</td></tr>
+<tr><td><code>fargout     </code></td><td>Fortran code applied to an
+argument after calling the wrapped C++ function</td></tr>
+<tr><td><code>fdirectorin </code></td><td>Fortran code to convert a C++
+"director" callback argument to a Fortran type</td></tr>
+<tr><td><code>fdirectorout</code></td><td>Fortran code to convert a Fortran
+return value to a C++ "director" return value</td></tr>
+</tbody>
+</table>
+
+
+<p>
+The <code>ftype</code> typemap supports special variables <code>$fortranclassname</code>, <code>$*fortranclassname</code>, and <code>$&amp;fortranclassname</code> to substitute the <code>ftype</code> of the current type, the dereferenced type, or a pointer to the current type, respectively.
+</p>
+
+<H3><a name="Fortran_iso_c_wrapper_interface">25.7.2 ISO C Wrapper interface</a></H3>
 
 
 <p>
@@ -1991,8 +2043,8 @@ The <code>ctype</code> and <code>imtype</code> each have keywords that are usual
 </p>
 
 
-<div class="code"><pre><code>%typemap(ctype, out=&quot;int&quot;) int
-  &quot;const int *&quot;</code></pre></div>
+<div class="code"><pre><code>%typemap(ctype, in=&quot;const int *&quot;) int
+  &quot;int&quot;</code></pre></div>
 
 
 <p>
@@ -2003,7 +2055,12 @@ The <code>imtype</code> is used both as a dummy argument <em>and</em> as a tempo
 <div class="code"><pre><code>%typemap(imtype, in=&quot;integer(C_INT), intent(in)&quot;) int
   &quot;integer(C_INT)&quot;</code></pre></div>
 
-<H4><a name="Fortran_fortran_proxy_datatype_translation">25.7.1.2 Fortran proxy datatype translation</a></H4>
+
+<p>
+It is important to note that the Fortran <code>intent</code> attribute is <em>much</em> stronger than C/C++&rsquo;s <code>const</code> qualifier. In C++ it is always possible to ignore a <code>const</code> qualifier and modify the underlying memory without invoking undefined behavior. In contrast, Fortran strictly requires the <code>intent</code> to match the usage; the compiler can optimize based on the assumption that the value will not be modified.
+</p>
+
+<H3><a name="Fortran_fortran_proxy_datatype_translation">25.7.3 Fortran proxy datatype translation</a></H3>
 
 
 <p>
@@ -2029,7 +2086,7 @@ and the output is translated back via the <code>fout</code> typemap, which in th
 
 <div class="targetlang"><pre><code>swig_result%swigdata%cptr = fresult</code></pre></div>
 
-<H4><a name="Fortran_allocating_local_fortran_variables_in_wrapper_codes">25.7.1.3 Allocating local Fortran variables in wrapper codes</a></H4>
+<H3><a name="Fortran_allocating_local_fortran_variables_in_wrapper_codes">25.7.4 Allocating local Fortran variables in wrapper codes</a></H3>
 
 
 <p>
@@ -2044,7 +2101,16 @@ Advanced SWIG users may know that
 is a way to declare a temporary variable <code>tempval</code> in the C wrapper code. The same feature is emulated in the <code>temp</code> keyword argument of <code>fin</code> and <code>fout</code>. This keyword declares a variable named <code>$1_temp</code> with the specified type declaration. The <code>ffreearg</code> typemap (analogous to the <code>freearg</code> typemap for C <code>in</code> arguments) can be used to deallocate or clean up any temporary variables as needed.
 </p>
 
-<H3><a name="Fortran_code_insertion_blocks">25.7.2 Code insertion blocks</a></H3>
+<!-- ###################################################################### -->
+
+<H2><a name="Fortran_advanced_details_and_usage">25.8 Advanced details and usage</a></H2>
+
+
+<p>
+This section describes some of the advanced features that underpin the SWIG Fortran wrapping. These features allow extensive customization of the generated C/Fortran interface code and behavior.
+</p>
+
+<H3><a name="Fortran_code_insertion_blocks">25.8.1 Code insertion blocks</a></H3>
 
 
 <p>
@@ -2114,14 +2180,14 @@ contains
  {fsubprograms}
 end module</code></pre></div>
 
-<H3><a name="Fortran_direct_c_binding">25.7.3 Direct C binding</a></H3>
+<H3><a name="Fortran_direct_c_binding">25.8.2 Direct C binding</a></H3>
 
 
 <p>
 It is sometimes desirable to simply expose C functions and types to Fortran. This, for example, is one way to wrap C libraries with minimal overhead.
 </p>
 
-<H4><a name="Fortran_generating_direct_fortran_interfaces_to_c_functions">25.7.3.1 Generating direct Fortran interfaces to C functions</a></H4>
+<H4><a name="Fortran_generating_direct_fortran_interfaces_to_c_functions">25.8.2.1 Generating direct Fortran interfaces to C functions</a></H4>
 
 
 <p>
@@ -2166,14 +2232,14 @@ To bind <em>all</em> functions as native C interfaces, use
 This is often useful when coupled with the <code>%fortranconst</code> directive (see the <a href="Fortran.html#Fortran_enumerations">enumerations</a> section).
 </p>
 
-<H4><a name="Fortran_function_pointers_and_callbacks">25.7.3.2 Function pointers and callbacks</a></H4>
+<H3><a name="Fortran_function_pointers_and_callbacks">25.8.3 Function pointers and callbacks</a></H3>
 
 
 <p>
 The <code>%callback</code> feature is redundant and ignored for <code>%fortranbindc</code> types: a valid function pointer to the C function can be obtained simply with the <code>c_funptr</code> intrinsic function. Any <code>%fortrancallback</code> directives in the code will still generate abstract interfaces, but they will simply supplement the direct-bound C code
 </p>
 
-<H4><a name="Fortran_generating_c_bound_fortran_types_from_c_structs">25.7.3.3 Generating C-bound Fortran types from C structs</a></H4>
+<H3><a name="Fortran_generating_c_bound_fortran_types_from_c_structs">25.8.4 Generating C-bound Fortran types from C structs</a></H3>
 
 
 <p>
@@ -2236,7 +2302,7 @@ Every member of the struct must be <code>bind(C)</code> compatible. This is enfo
 The <code>bindc</code> typemap is used when wrapping global constants and enumerations.
 </p>
 
-<H3><a name="Fortran_omitting_opaque_classes">25.7.4 Omitting opaque classes</a></H3>
+<H3><a name="Fortran_omitting_opaque_classes">25.8.5 Omitting opaque classes</a></H3>
 
 
 <p>
@@ -2274,7 +2340,7 @@ Like any other feature, it can be applied globally and disabled on a case-by-cas
 void not_wrapped(UnknownType*);
 void should_be_wrapped(UnknownType*);</code></pre></div>
 
-<H3><a name="Fortran_cross_language_polymorphism_using_directors">25.7.5 Cross-language polymorphism using directors</a></H3>
+<H2><a name="Fortran_cross_language_polymorphism_using_directors">25.9 Cross-language polymorphism using directors</a></H2>
 
 
 <p>
@@ -2359,7 +2425,7 @@ The overridden procedure can be called either from Fortran <em>or</em> through e
   call myclass%release()
 end subroutine</code></pre></div>
 
-<H4><a name="Fortran_limitations">25.7.5.1 Limitations</a></H4>
+<H3><a name="Fortran_limitations">25.9.1 Limitations</a></H3>
 
 
 <p>
@@ -2376,11 +2442,11 @@ Fortran has much less introspection than Java, Python, and other less static lan
 Note that a bug in GCC prevents versions before 8 from using the <code>--std=f2003</code> flag (see <a href="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84924">GNU bug 84924</a>).
 </p>
 
-<H3><a name="Fortran_known_issues">25.7.6 Known Issues</a></H3>
+<H2><a name="Fortran_known_issues">25.10 Known Issues</a></H2>
 
 
 <p>
-A number of known limitations to the SWIG Fortran module are tracked <a href="https://github.com/swig-fortran/swig/issues/59">on GitHub</a>.
+A number of known limitations to the SWIG Fortran module are tracked <a href="https://github.com/swig-fortran/swig/issues">on the SWIG Fortran fork on Github</a> and will be moved to the main <a href="https://github.com/swig/swig">SWIG issue page</a> once integrated with the mainline codebase.
 </p>
 
 <!-- vim: set tw=79: -->
