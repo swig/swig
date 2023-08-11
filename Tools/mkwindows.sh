@@ -87,7 +87,7 @@ tarball=$swigbasename.tar.gz
 pcre_tarball=`ls pcre2-*.tar.*`
 
 if ! test -f "$pcre_tarball"; then
-  echo "Could not find PCRE2 tarball. Please download a PCRE2 source tarball from http://www.pcre.org"
+  echo "Could not find PCRE2 tarball. Please download a PCRE2 source tarball from https://www.pcre.org"
   echo "and place in the same directory as the SWIG tarball."
   exit 1
 fi
