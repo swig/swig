@@ -49,6 +49,13 @@ SWIGINTERN Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *m
       return Status::REJECT;                                                  \
     } while (0)
 
+#define SWIG_NAPI_ASSERT_NOTNULL_ENV                  do {                    \
+  if ((napi_env)env == SWIG_NULLPTR) {                                        \
+    fprintf(stderr, "Asynchronous creation of objects is not suppored.\n");   \
+    abort();                                                                  \
+  }                                                                           \
+} while (0)
+
 #ifdef NAPI_CPP_EXCEPTIONS
 
 #define SWIG_Error(code, msg)                   SWIG_NAPI_Raise(env, code, msg)
@@ -102,7 +109,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
         const char *msg = SWIG_NULLPTR, swig_type_info *info = SWIG_NULLPTR) {
-  if ((napi_env)env == SWIG_NULLPTR) { abort(); }
+  SWIG_NAPI_ASSERT_NOTNULL_ENV;
   throw Napi::Error(env, obj);
 }
 
@@ -285,6 +292,7 @@ Napi::Function SWIG_NAPI_ObjectWrap_inst::GetClass(Napi::Env env) {
 }
 
 bool SWIG_NAPI_IsWrappedObject(Napi::Env env, Napi::Object v) {
+  SWIG_NAPI_ASSERT_NOTNULL_ENV;
   // Check if this is a SWIG wrapper
   Napi::FunctionReference *ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
   bool instanceOf;
@@ -381,6 +389,7 @@ fail:
 }
 
 SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_type_info *info, int flags) {
+  SWIG_NAPI_ASSERT_NOTNULL_ENV;
   Napi::External<void> native;
   Napi::FunctionReference *ctor;
 
