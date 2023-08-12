@@ -528,7 +528,7 @@ public:
   inline Napi::Promise SWIG_NAPI_Promise() { return SWIG_NAPI_deferred.Promise(); }
 };
 
-void SWIG_NAPI_AsyncContext::SWIG_NAPI_Fail(const Napi::Error &SWIG_NAPI_error) override {
+void SWIG_NAPI_AsyncContext::SWIG_NAPI_Fail(const Napi::Error &SWIG_NAPI_error) {
   if (!SWIG_NAPI_Cleanup()) goto fail;
   SWIG_NAPI_deferred_finalized = true;
   SWIG_NAPI_deferred.Reject(SWIG_NAPI_error.Value());
