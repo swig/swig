@@ -523,10 +523,19 @@ public:
   virtual Status SWIG_NAPI_Init(const Napi::CallbackInfo &) = 0;
   virtual void SWIG_NAPI_Execute() = 0;
   virtual void SWIG_NAPI_Resolve() = 0;
-  virtual void SWIG_NAPI_Fail(const Napi::Error &) = 0;
+  virtual void SWIG_NAPI_Fail(const Napi::Error &);
   virtual bool SWIG_NAPI_Cleanup() = 0;
   inline Napi::Promise SWIG_NAPI_Promise() { return SWIG_NAPI_deferred.Promise(); }
 };
+
+void SWIG_NAPI_AsyncContext::SWIG_NAPI_Fail(const Napi::Error &SWIG_NAPI_error) override {
+  if (!SWIG_NAPI_Cleanup()) goto fail;
+  SWIG_NAPI_deferred_finalized = true;
+  SWIG_NAPI_deferred.Reject(SWIG_NAPI_error.Value());
+  goto fail;
+fail:
+  return;
+}
 
 // This is the async worker, this class deletes itself (NAPI does this)
 // as well as its context when the async operation completes

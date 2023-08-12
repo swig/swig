@@ -811,15 +811,6 @@ fail:
       return;
     }
 
-    virtual void SWIG_NAPI_Fail(const Napi::Error &SWIG_NAPI_error) override {
-      if (!SWIG_NAPI_Cleanup()) goto fail;
-      SWIG_NAPI_deferred_finalized = true;
-      SWIG_NAPI_deferred.Reject(SWIG_NAPI_error.Value());
-      goto fail;
-    fail:
-      return;
-    }
-
     virtual bool SWIG_NAPI_Cleanup() override {
       $jscleanup
       SWIG_NAPI_deferred_finalized = true;
