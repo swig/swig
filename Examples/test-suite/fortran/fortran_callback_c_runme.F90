@@ -1,4 +1,4 @@
-! File : fortran_callback_c_c_runme.F90
+! File : fortran_callback_c_runme.F90
 
 #include "fassert.h"
 

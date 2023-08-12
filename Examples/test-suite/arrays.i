@@ -57,7 +57,7 @@ int getintfrompointer(int* intptr) {
 %}
 
 #if defined(SWIGFORTRAN)
-/* Pointer helper functions for Fortan run test */
+/* Pointer helper functions for Fortran run test */
 %include "typemaps.i"
 %apply SWIGTYPE ARRAY[ANY] { int inp[ANY]  };
 %inline %{
