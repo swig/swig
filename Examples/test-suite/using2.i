@@ -4,21 +4,16 @@
 
 using ::baz;
 
-%warnfilter(SWIGWARN_RUBY_WRONG_NAME) X::_FooImpl;	/* Ruby, wrong class name */
-#ifdef SWIGFORTRAN
-%rename(FooImpl) X::_FooImpl;   /* Fortran CANNOT have class names with leading underscores */
-#endif
-
 %inline %{
 
 namespace X {
   typedef int Integer;
 
-  class _FooImpl {
+  class FooImpl_ {
   public:
       typedef Integer value_type;
   };
-  typedef _FooImpl Foo;
+  typedef FooImpl_ Foo;
 }
 
 namespace Y = X;
