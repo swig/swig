@@ -44,6 +44,14 @@
 #define SWIG_SetConstant(name, obj)
 
 /* raise */
+#define %raise(obj, type, desc)           do {                  \
+    if ((napi_env)env == SWIG_NULLPTR) {                        \
+      throw AsynchronousError([=](Napi::Env env){return obj;}); \
+    } else {                                                    \
+      SWIG_Raise(obj, type, desc);                              \
+      SWIG_fail;                                                \
+    }                                                           \
+} while (0)
 #define SWIG_Raise(...)                 SWIG_NAPI_Raise(env, __VA_ARGS__)
 
 %insert("runtime") %{

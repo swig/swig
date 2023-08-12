@@ -49,12 +49,7 @@ SWIGINTERN Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *m
       return Status::REJECT;                                                  \
     } while (0)
 
-#define SWIG_NAPI_ASSERT_NOTNULL_ENV                  do {                    \
-  if ((napi_env)env == SWIG_NULLPTR) {                                        \
-    fprintf(stderr, "Asynchronous creation of objects is not suppored.\n");   \
-    abort();                                                                  \
-  }                                                                           \
-} while (0)
+#define SWIG_NAPI_ASSERT_NOTNULL_ENV            assert((napi_env)env != SWIG_NULLPTR)
 
 #ifdef NAPI_CPP_EXCEPTIONS
 
@@ -188,6 +183,19 @@ public:
     }
     locked = true;
   }
+};
+
+/*
+ * This class carries an asynchronous error from a
+ * background thread
+ * It takes a lambda that can generate the Napi::Value
+ * from the Napi::Env once back to the main thread
+ */
+class AsynchronousError : public std::exception {
+  std::function<Napi::Value(Napi::Env)> object;
+public:
+  AsynchronousError(const std::function<Napi::Value(Napi::Env)> _obj): object(_obj) {}
+  Napi::Value Value(Napi::Env env) { return object(env); }
 };
 
 /* ---------------------------------------------------------------------------
@@ -554,6 +562,7 @@ class SWIG_NAPI_AsyncWorker : public Napi::AsyncWorker {
   // involved in the asynchronous operation - it protects them
   // from being garbage-collected
   std::vector<Napi::ObjectReference *> persistent;
+  AsynchronousError *error_object;
 
 public:
   SWIG_NAPI_AsyncWorker(
@@ -562,7 +571,8 @@ public:
       SWIG_NAPI_AsyncContext *_context) :
     Napi::AsyncWorker(_env, name),
     context(_context),
-    persistent() {}
+    persistent(),
+    error_object(nullptr) {}
 
   virtual ~SWIG_NAPI_AsyncWorker() {
     // Release the persistent references
@@ -579,15 +589,29 @@ public:
   }
 
   virtual void OnError(const Napi::Error &error) override {
-    Napi::HandleScope scope(Env());
-    context->SWIG_NAPI_Fail(error);
+    Napi::Env env(Env());
+    Napi::HandleScope scope(env);
+    if (error_object) {
+      context->SWIG_NAPI_Fail(Napi::Error(env, error_object->Value(env)));
+      delete error_object;
+      error_object = SWIG_NULLPTR;
+    } else {
+      context->SWIG_NAPI_Fail(error);
+    }
     delete context;
+  }
+
+  virtual void SetErrorObj(const AsynchronousError &err) {
+    error_object = new AsynchronousError(err);
+    SetError("SWIG Asynchronous Error");
   }
 
   virtual void Execute() override {
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
     try {
       context->SWIG_NAPI_Execute();
+    } catch (const AsynchronousError &e) {
+      SetErrorObj(e);
     } catch (const std::exception &e) {
       SetError(e.what());
     }
