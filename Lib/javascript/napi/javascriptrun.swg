@@ -58,14 +58,22 @@ SWIGINTERN Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *m
 
 // Used instead of SWIG_NAPI_Raise when rejecting a Promise
 // in the background thread (for handling %catches)
-#define SWIG_NAPI_AsyncThrow(env, obj, ...)     throw SWIG_NAPI_AsyncError([_e](Napi::Env env) {return obj;}, __VA_ARGS__)
+// This implements macro overloading based on the number of provided arguments
+// It is inspired by a famous stackoverflow answer:
+// https://stackoverflow.com/questions/3046889/optional-parameters-with-c-macros
+#define SWIG_NAPI_GET_5TH(arg1, arg2, arg3, arg4, arg5,... ) arg5
+#define SWIG_NAPI_AsyncThrow_1(env, obj)        throw SWIG_NAPI_AsyncError([_e](Napi::Env env) { return obj; })
+#define SWIG_NAPI_AsyncThrow_2(env, type, msg)  throw SWIG_NAPI_AsyncError(type, msg)
+#define SWIG_NAPI_AsyncThrow_3(env, obj, type, desc) throw SWIG_NAPI_AsyncError([_e](Napi::Env env) { return obj; })
+#define SWIG_NAPI_AsyncThrow_SELECT(...)        SWIG_NAPI_GET_5TH(__VA_ARGS__, SWIG_NAPI_AsyncThrow_3, SWIG_NAPI_AsyncThrow_2, SWIG_NAPI_AsyncThrow_1)                 
+#define SWIG_NAPI_AsyncThrow(...)               SWIG_NAPI_AsyncThrow_SELECT(__VA_ARGS__)(__VA_ARGS__)
 
 #define SWIG_Error(code, msg)                   SWIG_NAPI_Raise(env, code, msg)
 #define NAPI_CHECK_MAYBE(maybe)                 (maybe)
 #define NAPI_CHECK_RESULT(maybe, result)        (result = maybe)
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
-  if ((napi_env)env == SWIG_NULLPTR) { throw std::runtime_error(msg); }
+  SWIG_NAPI_ASSERT_NOTNULL_ENV;
   throw Napi::Error::New(env, msg);
 }
 
@@ -203,21 +211,21 @@ public:
 class SWIG_NAPI_AsyncError : public std::exception {
   std::function<Napi::Value(Napi::Env)> object;
 public:
-  // Replaces SWIG_NAPI_Raise called with an object
+  // SWIG_NAPI_Raise(obj)
   // The second and third argument are optional and not used
   SWIG_NAPI_AsyncError(
     const std::function<Napi::Value(Napi::Env)> _obj,
     const char *msg = SWIG_NULLPTR,
     swig_type_info *info = SWIG_NULLPTR): object(_obj) {}
-  // Replaces SWIG_NAPI_Raise called with a string (error message)
+  // SWIG_NAPI_Raise(msg)
   SWIG_NAPI_AsyncError(const std::function<const char *(Napi::Env)> err):
     object([err](Napi::Env env) {
       return SWIG_NAPI_NewError(env, SWIG_RuntimeError, err(env)).Value();
     }) {}
-  // Replaces SWIG_NAPI_Raise called with an error type and an error message
-  SWIG_NAPI_AsyncError(const std::function<int(Napi::Env)> type, const char *msg):
+  // SWIG_NAPI_Raise(type, msg)
+  SWIG_NAPI_AsyncError(const int type, const char *msg):
     object([type, msg](Napi::Env env) {
-      return SWIG_NAPI_NewError(env, type(env), msg).Value();
+      return SWIG_NAPI_NewError(env, type, msg).Value();
     }) {}
   Napi::Value Value(Napi::Env env) { return object(env); }
 };
