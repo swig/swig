@@ -204,9 +204,9 @@ public:
   // Replaces SWIG_NAPI_Raise with an object
   SWIG_NAPI_AsyncError(const std::function<Napi::Value(Napi::Env)> _obj): object(_obj) {}
   // Replaces SWIG_NAPI_Raise witn a string (error message)
-  SWIG_NAPI_AsyncError(const std::function<const char *(Napi::Env)> _err):
-    object([err = _err(nullptr)](Napi::Env env) {
-      return SWIG_NAPI_NewError(env, SWIG_RuntimeError, err).Value();
+  SWIG_NAPI_AsyncError(const std::function<const char *(Napi::Env)> err):
+    object([err](Napi::Env env) {
+      return SWIG_NAPI_NewError(env, SWIG_RuntimeError, err(env)).Value();
     }) {}
   Napi::Value Value(Napi::Env env) { return object(env); }
 };
