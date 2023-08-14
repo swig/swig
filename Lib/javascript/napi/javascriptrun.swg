@@ -41,6 +41,14 @@ SWIGINTERN Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *m
   }
 }
 
+SWIGINTERN inline Napi::Error SWIG_NAPI_NewError(Napi::Env env, const char *msg) {
+  return SWIG_NAPI_NewError(env, SWIG_RuntimeError, msg);
+}
+
+SWIGINTERN inline Napi::Error SWIG_NAPI_NewError(Napi::Env env, Napi::Value obj, const char *msg = SWIG_NULLPTR, swig_type_info *info = SWIG_NULLPTR) {
+  return Napi::Error(env, obj);
+}
+
 #define SWIG_exception(code, msg)               SWIG_NAPI_Raise(env, code, msg)
 #define SWIG_fail                               goto fail
 
@@ -58,15 +66,10 @@ SWIGINTERN Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *m
 
 // Used instead of SWIG_NAPI_Raise when rejecting a Promise
 // in the background thread (for handling %catches)
-// This implements macro overloading based on the number of provided arguments
-// It is inspired by a famous stackoverflow answer:
-// https://stackoverflow.com/questions/3046889/optional-parameters-with-c-macros
-#define SWIG_NAPI_GET_5TH(arg1, arg2, arg3, arg4, arg5,... ) arg5
-#define SWIG_NAPI_AsyncThrow_1(env, obj)        throw SWIG_NAPI_AsyncError([_e](Napi::Env env) { return obj; })
-#define SWIG_NAPI_AsyncThrow_2(env, type, msg)  throw SWIG_NAPI_AsyncError(type, msg)
-#define SWIG_NAPI_AsyncThrow_3(env, obj, type, desc) throw SWIG_NAPI_AsyncError([_e](Napi::Env env) { return obj; })
-#define SWIG_NAPI_AsyncThrow_SELECT(...)        SWIG_NAPI_GET_5TH(__VA_ARGS__, SWIG_NAPI_AsyncThrow_3, SWIG_NAPI_AsyncThrow_2, SWIG_NAPI_AsyncThrow_1)                 
-#define SWIG_NAPI_AsyncThrow(...)               SWIG_NAPI_AsyncThrow_SELECT(__VA_ARGS__)(__VA_ARGS__)
+#define SWIG_NAPI_AsyncThrow(env, ...)          throw SWIG_NAPI_AsyncError(                       \
+                                                  [=](Napi::Env env) -> Napi::Error               \
+                                                  { return SWIG_NAPI_NewError(env, __VA_ARGS__);} \
+                                                )
 
 #define SWIG_Error(code, msg)                   SWIG_NAPI_Raise(env, code, msg)
 #define NAPI_CHECK_MAYBE(maybe)                 (maybe)
@@ -78,27 +81,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
 }
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
-  if ((napi_env)env == SWIG_NULLPTR) {
-    // Async throw from a worker thread without access to V8
-    // Throw a C++ exception, the async worker will handle it
-    switch(type) {
-      default:
-      case SWIG_IOError:
-      case SWIG_MemoryError:
-      case SWIG_SystemError:
-      case SWIG_RuntimeError:
-      case SWIG_DivisionByZero:
-      case SWIG_SyntaxError:
-        throw std::runtime_error(msg);
-      case SWIG_OverflowError:
-      case SWIG_IndexError:
-        throw std::range_error(msg);
-      case SWIG_ValueError:
-      case SWIG_TypeError:
-        throw std::invalid_argument(msg);
-    }
-  }
-
+  SWIG_NAPI_ASSERT_NOTNULL_ENV;
   switch(type) {
     default:
     case SWIG_IOError:
@@ -134,8 +117,8 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
                 result = r.Unwrap();              \
         } while (0)
 
-SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
-  Napi::Error::New(env, msg).ThrowAsJavaScriptException();
+SWIGINTERN inline void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
+  SWIG_NAPI_Raise(env, SWIG_RuntimeError, msg);
 }
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
@@ -144,7 +127,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
         const char *msg = SWIG_NULLPTR, swig_type_info *info = SWIG_NULLPTR) {
-  Napi::Error(env, obj).ThrowAsJavaScriptException();
+  SWIG_NAPI_NewError(env, obj, msg, info).ThrowAsJavaScriptException();
 }
 
 #endif // NAPI_CPP_EXCEPTIONS
@@ -209,25 +192,10 @@ public:
  * Its constructors match the different forms of SWIG_NAPI_Raise
  */
 class SWIG_NAPI_AsyncError : public std::exception {
-  std::function<Napi::Value(Napi::Env)> object;
+  std::function<Napi::Error(Napi::Env)> make_error;
 public:
-  // SWIG_NAPI_Raise(obj)
-  // The second and third argument are optional and not used
-  SWIG_NAPI_AsyncError(
-    const std::function<Napi::Value(Napi::Env)> _obj,
-    const char *msg = SWIG_NULLPTR,
-    swig_type_info *info = SWIG_NULLPTR): object(_obj) {}
-  // SWIG_NAPI_Raise(msg)
-  SWIG_NAPI_AsyncError(const std::function<const char *(Napi::Env)> err):
-    object([err](Napi::Env env) {
-      return SWIG_NAPI_NewError(env, SWIG_RuntimeError, err(env)).Value();
-    }) {}
-  // SWIG_NAPI_Raise(type, msg)
-  SWIG_NAPI_AsyncError(const int type, const char *msg):
-    object([type, msg](Napi::Env env) {
-      return SWIG_NAPI_NewError(env, type, msg).Value();
-    }) {}
-  Napi::Value Value(Napi::Env env) { return object(env); }
+  SWIG_NAPI_AsyncError(const std::function<Napi::Error(Napi::Env)> &err) : make_error(err) {}
+  Napi::Error Error(Napi::Env env) { return make_error(env); }
 };
 
 /* ---------------------------------------------------------------------------
@@ -624,7 +592,7 @@ public:
     Napi::Env env(Env());
     Napi::HandleScope scope(env);
     if (error_object) {
-      context->SWIG_NAPI_Fail(Napi::Error(env, error_object->Value(env)));
+      context->SWIG_NAPI_Fail(error_object->Error(env));
       delete error_object;
       error_object = SWIG_NULLPTR;
     } else {
