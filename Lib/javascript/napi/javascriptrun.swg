@@ -118,11 +118,11 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
         } while (0)
 
 SWIGINTERN inline void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
-  SWIG_NAPI_Raise(env, SWIG_RuntimeError, msg);
+  SWIG_NAPI_NewError(env, SWIG_RuntimeError, msg).ThrowAsJavaScriptException();
 }
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
-  SWIG_NAPI_NewError(env, type, msg).ThrowAsJavaScriptException();
+  SWIG_NAPI_Raise(env, type, msg);
 }
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
