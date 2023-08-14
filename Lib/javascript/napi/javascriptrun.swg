@@ -58,7 +58,7 @@ SWIGINTERN Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *m
 
 // Used instead of SWIG_NAPI_Raise when rejecting a Promise
 // in the background thread (for handling %catches)
-#define SWIG_NAPI_AsyncThrow(env, obj, ...)     throw SWIG_NAPI_AsyncError([_e](Napi::Env env) {return obj;})
+#define SWIG_NAPI_AsyncThrow(env, obj, ...)     throw SWIG_NAPI_AsyncError([_e](Napi::Env env) {return obj;}, __VA_ARGS__)
 
 #define SWIG_Error(code, msg)                   SWIG_NAPI_Raise(env, code, msg)
 #define NAPI_CHECK_MAYBE(maybe)                 (maybe)
@@ -197,16 +197,27 @@ public:
  * background thread
  * It takes a lambda that can generate the Napi::Value
  * from the Napi::Env once back to the main thread
+ *
+ * Its constructors match the different forms of SWIG_NAPI_Raise
  */
 class SWIG_NAPI_AsyncError : public std::exception {
   std::function<Napi::Value(Napi::Env)> object;
 public:
-  // Replaces SWIG_NAPI_Raise with an object
-  SWIG_NAPI_AsyncError(const std::function<Napi::Value(Napi::Env)> _obj): object(_obj) {}
-  // Replaces SWIG_NAPI_Raise witn a string (error message)
+  // Replaces SWIG_NAPI_Raise called with an object
+  // The second and third argument are optional and not used
+  SWIG_NAPI_AsyncError(
+    const std::function<Napi::Value(Napi::Env)> _obj,
+    const char *msg = SWIG_NULLPTR,
+    swig_type_info *info = SWIG_NULLPTR): object(_obj) {}
+  // Replaces SWIG_NAPI_Raise called with a string (error message)
   SWIG_NAPI_AsyncError(const std::function<const char *(Napi::Env)> err):
     object([err](Napi::Env env) {
       return SWIG_NAPI_NewError(env, SWIG_RuntimeError, err(env)).Value();
+    }) {}
+  // Replaces SWIG_NAPI_Raise called with an error type and an error message
+  SWIG_NAPI_AsyncError(const std::function<int(Napi::Env)> type, const char *msg):
+    object([type, msg](Napi::Env env) {
+      return SWIG_NAPI_NewError(env, type(env), msg).Value();
     }) {}
   Napi::Value Value(Napi::Env env) { return object(env); }
 };
