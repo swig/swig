@@ -27,7 +27,8 @@ CPP_TEST_CASES += \
 	li_std_containers_int \
 	li_std_map_member
 
-CPP_TEST_BROKEN += \
+# napi fails
+FAILING_CPP_TESTS += \
 	smart_pointer_static \
 
 SWIGEXE   = $(top_builddir)/swig

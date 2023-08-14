@@ -27,12 +27,6 @@ CPP11_TEST_CASES += \
 	cpp11_shared_ptr_overload \
 	cpp11_shared_ptr_upcast \
 
-CPP_TEST_BROKEN += \
-	implicittest \
-	li_implicit \
-	li_std_set \
-	li_std_stream
-
 include $(srcdir)/../common.mk
 
 # Overridden variables here
