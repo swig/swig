@@ -793,7 +793,9 @@ fail:
       Napi::Env env(SWIG_NULLPTR);
       $jsguard
       $jslock
+#define SWIG_NAPI_Raise SWIG_NAPI_AsyncThrow
       $jsaction
+#undef SWIG_NAPI_Raise
       goto fail;
     fail:
       return;

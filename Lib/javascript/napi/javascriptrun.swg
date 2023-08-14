@@ -43,6 +43,9 @@ SWIGINTERN Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *m
 
 #define SWIG_exception(code, msg)               SWIG_NAPI_Raise(env, code, msg)
 #define SWIG_fail                               goto fail
+
+// Used instead of SWIG_NAPI_Raise when rejecting a Promise
+// in the main thread (during initialization/parsing)
 #define SWIG_NAPI_Reject(env, code, msg)        do {                          \
       SWIG_NAPI_deferred.Reject(SWIG_NAPI_NewError(env, code, msg).Value());  \
       SWIG_NAPI_deferred_finalized = true;                                    \
@@ -52,6 +55,10 @@ SWIGINTERN Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *m
 #define SWIG_NAPI_ASSERT_NOTNULL_ENV            assert((napi_env)env != SWIG_NULLPTR)
 
 #ifdef NAPI_CPP_EXCEPTIONS
+
+// Used instead of SWIG_NAPI_Raise when rejecting a Promise
+// in the background thread (for handling %catches)
+#define SWIG_NAPI_AsyncThrow(env, obj, ...)     throw SWIG_NAPI_AsynchronousError([=](Napi::Env env){return obj;})
 
 #define SWIG_Error(code, msg)                   SWIG_NAPI_Raise(env, code, msg)
 #define NAPI_CHECK_MAYBE(maybe)                 (maybe)
@@ -191,10 +198,10 @@ public:
  * It takes a lambda that can generate the Napi::Value
  * from the Napi::Env once back to the main thread
  */
-class AsynchronousError : public std::exception {
+class SWIG_NAPI_AsynchronousError : public std::exception {
   std::function<Napi::Value(Napi::Env)> object;
 public:
-  AsynchronousError(const std::function<Napi::Value(Napi::Env)> _obj): object(_obj) {}
+  SWIG_NAPI_AsynchronousError(const std::function<Napi::Value(Napi::Env)> _obj): object(_obj) {}
   Napi::Value Value(Napi::Env env) { return object(env); }
 };
 
@@ -562,7 +569,7 @@ class SWIG_NAPI_AsyncWorker : public Napi::AsyncWorker {
   // involved in the asynchronous operation - it protects them
   // from being garbage-collected
   std::vector<Napi::ObjectReference *> persistent;
-  AsynchronousError *error_object;
+  SWIG_NAPI_AsynchronousError *error_object;
 
 public:
   SWIG_NAPI_AsyncWorker(
@@ -601,8 +608,8 @@ public:
     delete context;
   }
 
-  virtual void SetErrorObj(const AsynchronousError &err) {
-    error_object = new AsynchronousError(err);
+  virtual void SetErrorObj(const SWIG_NAPI_AsynchronousError &err) {
+    error_object = new SWIG_NAPI_AsynchronousError(err);
     SetError("SWIG Asynchronous Error");
   }
 
@@ -610,7 +617,7 @@ public:
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
     try {
       context->SWIG_NAPI_Execute();
-    } catch (const AsynchronousError &e) {
+    } catch (const SWIG_NAPI_AsynchronousError &e) {
       SetErrorObj(e);
     } catch (const std::exception &e) {
       SetError(e.what());
