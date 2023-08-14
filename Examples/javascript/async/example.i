@@ -1,6 +1,10 @@
 /* File : example.i */
 %module example
 
+#ifndef SWIG_JAVASCRIPT_NAPI
+#error This example is specific to the Node-API engine
+#endif
+
 %feature("async", "Async");
 %feature("sync", "Sync");
 
