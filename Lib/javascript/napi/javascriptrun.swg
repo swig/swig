@@ -62,14 +62,16 @@ SWIGINTERN inline Napi::Error SWIG_NAPI_NewError(Napi::Env env, Napi::Value obj,
 
 #define SWIG_NAPI_ASSERT_NOTNULL_ENV            assert((napi_env)env != SWIG_NULLPTR)
 
-#ifdef NAPI_CPP_EXCEPTIONS
-
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
 // Used instead of SWIG_NAPI_Raise when rejecting a Promise
 // in the background thread (for handling %catches)
 #define SWIG_NAPI_AsyncThrow(env, ...)          throw SWIG_NAPI_AsyncError(                       \
                                                   [=](Napi::Env env) -> Napi::Error               \
                                                   { return SWIG_NAPI_NewError(env, __VA_ARGS__);} \
                                                 )
+#endif
+
+#ifdef NAPI_CPP_EXCEPTIONS
 
 #define SWIG_Error(code, msg)                   SWIG_NAPI_Raise(env, code, msg)
 #define NAPI_CHECK_MAYBE(maybe)                 (maybe)
