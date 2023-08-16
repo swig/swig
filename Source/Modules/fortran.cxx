@@ -831,6 +831,11 @@ int FORTRAN::top(Node *n) {
 
   // >>> PROCESS
 
+  // Write SWIG auto-generation banner
+  Swig_banner(f_begin);
+
+  Swig_obligatory_macros(f_runtime, "FORTRAN");
+
   // Add standard SWIG classes, fragments
   Node *fragment_hash = NewHash();
   String *clsname = NewString("SwigClassWrapper");
@@ -869,6 +874,8 @@ int FORTRAN::top(Node *n) {
     Printf(f_directors, "#include \"%s\"\n\n", filename);
     Delete(filename);
   }
+
+  Printf(f_runtime, "\n");
 
   // Write module title
   Printv(f_fuse, "module ", modname, "\n use, intrinsic :: ISO_C_BINDING\n", NULL);
@@ -927,16 +934,11 @@ void FORTRAN::write_wrapper(String *filename) {
     Exit(EXIT_FAILURE);
   }
 
-  // Write SWIG auto-generation banner
-  Swig_banner(out);
-
-  Swig_obligatory_macros(f_runtime, "FORTRAN");
-
   // Write different sections
   Dump(f_begin, out);
   Dump(f_runtime, out);
-  Dump(f_policies, out);
   Dump(f_header, out);
+  Dump(f_policies, out);
   Dump(f_directors, out);
 
   // Write wrapper code
