@@ -4203,6 +4203,9 @@ public:
     Printv(f, "#if (PY_VERSION_HEX >= 0x03080000) && (PY_VERSION_HEX < 0x03090000)\n", NIL);
     printSlot(f, getSlot(), "tp_print");
     Printv(f, "#endif\n", NIL);
+    Printv(f, "#if PY_VERSION_HEX >= 0x030C0000\n", NIL);
+    printSlot(f, getSlot(), "tp_watched");
+    Printv(f, "#endif\n", NIL);
 
     Printv(f, "#ifdef COUNT_ALLOCS\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_allocs"), "tp_allocs", "Py_ssize_t");
