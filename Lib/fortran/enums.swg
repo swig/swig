@@ -6,7 +6,7 @@
  * ENUMS
  * ------------------------------------------------------------------------- */
 
-// Most of the opertions are like integers, but replace the fortran wrapper
+// Most of the operations are like integers, but replace the fortran wrapper
 // with the kind of enum. Don't worry about pointer types (leave those as
 // integer pointers)
 %fortran_unsigned(int, enum SWIGTYPE)

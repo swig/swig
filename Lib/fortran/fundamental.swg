@@ -300,7 +300,7 @@ $input = &temp;%}
 %typemap(out) const FORTRAN_INTRINSIC_TYPE& 
   "$result = *$1;"
 
-// Treat rvalue references as const refererences (i.e. copy the result)
+// Treat rvalue references as const references (i.e. copy the result)
 %apply const FORTRAN_INTRINSIC_TYPE& { FORTRAN_INTRINSIC_TYPE&& };
 
 /* -------------------------------------------------------------------------
