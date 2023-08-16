@@ -4,7 +4,6 @@ program main
   use ISO_FORTRAN_ENV
   implicit none
 
-  integer, parameter :: STDOUT = OUTPUT_UNIT
   type(Thing_Int) :: it
   type(Thing_Dbl) :: dt
 
