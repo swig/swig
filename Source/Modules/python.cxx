@@ -4204,7 +4204,7 @@ public:
     printSlot(f, getSlot(), "tp_print");
     Printv(f, "#endif\n", NIL);
     Printv(f, "#if PY_VERSION_HEX >= 0x030c0000\n", NIL);
-    printSlot(f, getSlot(), "tp_watched");
+    printSlot(f, getSlot(n, "feature:python:tp_watched"), "tp_watched", "char");
     Printv(f, "#endif\n", NIL);
 
     Printv(f, "#ifdef COUNT_ALLOCS\n", NIL);
