@@ -145,6 +145,7 @@ jobs:
           VER: '3.11'
         - SWIGLANG: python
           VER: '3.12'
+          CSTD: gnu99
         - SWIGLANG: python
           PY2: 2
           SWIG_FEATURES: -builtin
