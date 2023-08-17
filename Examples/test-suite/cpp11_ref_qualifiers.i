@@ -18,18 +18,18 @@ class Host {
 public:
   string h1() & { return string(); }
   string h2() const & { return string(); }
-  string h3() && { return std::move(string()); }
-  string h4() const && { return std::move(string()); }
+  string h3() && { return string(); }
+  string h4() const && { return string(); }
   string h5() const { return string(); }
   string h6() volatile const & { return string(); }
   string h7() const volatile & { return string(); }
-  string h8() volatile const && { return std::move(string()); }
-  string h9() const volatile && { return std::move(string()); }
+  string h8() volatile const && { return string(); }
+  string h9() const volatile && { return string(); }
 
   string h() & { return string(); }
   string h() const & { return string(); }
-  string h() && { return std::move(string()); }
-  string h() const && { return std::move(string()); }
+  string h() && { return string(); }
+  string h() const && { return string(); }
 };
 %}
 
@@ -89,11 +89,11 @@ struct Renames {
 %inline %{
 struct ConversionOperators {
   virtual operator string() & { return string(); }
-  virtual operator string() && { return std::move(string()); }
+  virtual operator string() && { return string(); }
   virtual ~ConversionOperators() {}
 };
 struct ConversionOperators2 {
-  virtual operator string() && { return std::move(string()); }
+  virtual operator string() && { return string(); }
   virtual ~ConversionOperators2() {}
 };
 %}
