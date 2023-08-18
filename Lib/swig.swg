@@ -544,13 +544,13 @@ namespace std {
 
 /* memberin/globalin typemap for arrays. */
 
-%typemap(memberin,fragment="<string.h>") SWIGTYPE [ANY] {
+%typemap(memberin) SWIGTYPE [ANY] {
   size_t ii;
   $1_basetype *b = ($1_basetype *) $1;
   for (ii = 0; ii < (size_t)$1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
 }
 
-%typemap(globalin,fragment="<string.h>") SWIGTYPE [ANY] {
+%typemap(globalin) SWIGTYPE [ANY] {
   size_t ii;
   $1_basetype *b = ($1_basetype *) $1;
   for (ii = 0; ii < (size_t)$1_size; ii++) b[ii] = *(($1_basetype *) $input + ii);
@@ -558,7 +558,7 @@ namespace std {
 
 /* memberin/globalin typemap for double arrays. */
 
-%typemap(memberin,fragment="<string.h>") SWIGTYPE [ANY][ANY] {
+%typemap(memberin) SWIGTYPE [ANY][ANY] {
   $basetype (*inp)[$1_dim1] = ($basetype (*)[$1_dim1])($input);
   $basetype (*dest)[$1_dim1] = ($basetype (*)[$1_dim1])($1);
   size_t ii = 0;
@@ -570,7 +570,7 @@ namespace std {
   }
 }
 
-%typemap(globalin,fragment="<string.h>") SWIGTYPE [ANY][ANY] {
+%typemap(globalin) SWIGTYPE [ANY][ANY] {
   $basetype (*inp)[$1_dim1] = ($basetype (*)[$1_dim1])($input);
   $basetype (*dest)[$1_dim1] = ($basetype (*)[$1_dim1])($1);
   size_t ii = 0;
