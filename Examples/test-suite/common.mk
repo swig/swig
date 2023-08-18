@@ -106,6 +106,7 @@ CPP_TEST_CASES += \
 	abstract_basecast \
 	abstract_inherit \
 	abstract_inherit_ok \
+	abstract_inherit_using \
 	abstract_signature \
 	abstract_typedef \
 	abstract_typedef2 \
@@ -414,6 +415,7 @@ CPP_TEST_CASES += \
 	smart_pointer_protected \
 	smart_pointer_rename \
 	smart_pointer_simple \
+	smart_pointer_static \
 	smart_pointer_template_const_overload \
 	smart_pointer_template_defaults_overload \
 	smart_pointer_templatemethods \

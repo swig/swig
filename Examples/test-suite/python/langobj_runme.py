@@ -2,7 +2,7 @@ import sys
 from langobj import *
 
 
-x = "hello"
+x = 256*256+1
 rx = sys.getrefcount(x)
 v = identity(x)
 rv = sys.getrefcount(v)

@@ -132,7 +132,7 @@ void getStringVector(char ***resultVector, int *sizeRes)
    	*resultVector = (char**) malloc((*sizeRes) * sizeof(char*));
 	for (i=0; i<*sizeRes; i++)
 	{
-		char* pc = (char*) calloc(3, sizeof(char));
+		char* pc = (char*) calloc(16, sizeof(char));
 		sprintf(pc, "%d", i);
 		(*resultVector)[i] = pc;
 	}

@@ -4203,6 +4203,9 @@ public:
     Printv(f, "#if (PY_VERSION_HEX >= 0x03080000) && (PY_VERSION_HEX < 0x03090000)\n", NIL);
     printSlot(f, getSlot(), "tp_print");
     Printv(f, "#endif\n", NIL);
+    Printv(f, "#if PY_VERSION_HEX >= 0x030c0000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:tp_watched"), "tp_watched", "char");
+    Printv(f, "#endif\n", NIL);
 
     Printv(f, "#ifdef COUNT_ALLOCS\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_allocs"), "tp_allocs", "Py_ssize_t");
@@ -4347,6 +4350,9 @@ public:
     // struct _specialization_cache _spec_cache;
     Printf(f, "  {\n");
     printSlot(f, getSlot(n, "feature:python:getitem"), "getitem", "PyObject *");
+    Printv(f, "#if PY_VERSION_HEX >= 0x030c0000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:getitem_version"), "getitem_version", "uint32_t");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "  }\n");
     Printv(f, "#endif\n", NIL);
     Printf(f, "};\n\n");
