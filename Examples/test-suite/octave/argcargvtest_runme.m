@@ -45,7 +45,6 @@ endif
 
 # Check that empty strings are handled.
 empty_string={"hello", blanks(0), "world"};
-disp(length(empty_string));
 if (mainc(empty_string) != 3)
   error("bad main typemap");
 endif
