@@ -46,10 +46,6 @@
 #define %nofortranbindc    %feature("fortran:bindc", "0")
 #define %clearfortranbindc %feature("fortran:bindc", "")
 
-#define %fortranbindc      %feature("fortran:bindc")
-#define %nofortranbindc    %feature("fortran:bindc", "0")
-#define %clearfortranbindc %feature("fortran:bindc", "")
-
 #define %fortrancallback(X)   %feature("fortran:callback", `X`)
 #define %nofortrancallback    %feature("fortran:callback", "0")
 #define %clearfortrancallback %feature("fortran:callback", "")
