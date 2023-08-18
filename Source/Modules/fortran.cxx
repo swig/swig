@@ -2310,10 +2310,6 @@ int FORTRAN::classDeclaration(Node *n) {
     if (!fsymname)
       return SWIG_NOWRAP;
   }
-  if (GetFlag(n, "feature:fortran:bindc")) {
-    // Prevent default constructors, destructors, etc.
-    SetFlag(n, "feature:nodefault");
-  }
 
   // Build symbol table here, even if class is being imported
   Symtab *fsymtab = NewHash();
@@ -2491,6 +2487,11 @@ int FORTRAN::classHandler(Node *n) {
  * \brief Extra stuff for constructors.
  */
 int FORTRAN::constructorHandler(Node *n) {
+  if (this->is_bindc_struct()) {
+    // Don't generate destructor for %fortranbindc structs
+    return SWIG_NOWRAP;
+  }
+
   // Set fortran symname of this function to the class symname
   Setattr(n, "fortran:name", Getattr(this->getCurrentClass(), "fortran:name"));
 
@@ -2510,6 +2511,11 @@ int FORTRAN::constructorHandler(Node *n) {
  * \brief Handle extra destructor stuff.
  */
 int FORTRAN::destructorHandler(Node *n) {
+  if (this->is_bindc_struct()) {
+    // Don't generate destructor for %fortranbindc structs
+    return SWIG_NOWRAP;
+  }
+  
   // Make the destructor a member function called 'release'
   Setattr(n, "fortran:name", "release");
   SetFlag(n, "fortran:ismember");
