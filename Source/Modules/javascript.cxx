@@ -772,11 +772,6 @@ int JSEmitter::emitWrapperFunction(Node *n) {
       ret = emitFunction(n, is_member, is_static);
     } else if (Cmp(kind, "variable") == 0) {
       bool is_static = GetFlag(state.variable(), IS_STATIC) != 0;
-      // HACK: smartpointeraccessed static variables are not treated as statics
-      if (GetFlag(n, "allocate:smartpointeraccess")) {
-	is_static = false;
-      }
-
       bool is_member = GetFlag(n, "ismember") != 0;
       bool is_setter = GetFlag(n, "memberset") != 0 || GetFlag(n, "varset") != 0;
       bool is_getter = GetFlag(n, "memberget") != 0 || GetFlag(n, "varget") != 0;
@@ -1678,11 +1673,13 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
     switch (mode) {
     case Getter:
     case Function:
-      if (is_member && !is_static && i == 0) {
-	Printv(arg, "thisObject", 0);
-	i++;
+      if (is_member && i == 0) {
+        if (!is_static) {
+          Printv(arg, "thisObject", 0);
+        }
+        i++;
       } else {
-	Printf(arg, "argv[%d]", i - startIdx);
+        Printf(arg, "argv[%d]", i - startIdx);
 	SetInt(p, INDEX, i - startIdx);
 	i += GetInt(p, "tmap:in:numinputs");
       }
@@ -1706,7 +1703,9 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
       Exit(EXIT_FAILURE);
     }
 
-    tm = emitInputTypemap(n, p, wrapper, arg);
+    if (Len(arg) > 0) {
+      tm = emitInputTypemap(n, p, wrapper, arg);
+    }
     Delete(arg);
 
     if (tm) {
@@ -2333,11 +2332,13 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
 
     switch (mode) {
     case Getter:
-      if (is_member && !is_static && i == 0) {
-	Printv(arg, "info.Holder()", 0);
-	i++;
+      if (is_member && i == 0) {
+        if (!is_static) {
+          Printv(arg, "info.Holder()", 0);
+        }
+        i++;
       } else {
-	Printf(arg, "args[%d]", i - startIdx);
+        Printf(arg, "args[%d]", i - startIdx);
 	SetInt(p, INDEX, i - startIdx);
 	i += GetInt(p, "tmap:in:numinputs");
       }
@@ -2371,7 +2372,9 @@ void V8Emitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Mar
       Exit(EXIT_FAILURE);
     }
 
-    tm = emitInputTypemap(n, p, wrapper, arg);
+    if (Len(arg) > 0) {
+      tm = emitInputTypemap(n, p, wrapper, arg);
+    }
     Delete(arg);
 
     if (tm) {
@@ -2899,8 +2902,12 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, M
 
     switch (mode) {
     case Getter:
-      if (is_member && !is_static && i == 0) {
-	Printv(arg, "info.This()", 0);
+      if (is_member && i == 0) {
+        // SWIG generates a this pointer dereference for static getters
+        // It is not needed in JavaScript where this will be the class itself
+        if (!is_static) {
+	  Printv(arg, "info.This()", 0);
+        }
 	i++;
       } else {
 	Printf(arg, "info[%d]", i - startIdx);
@@ -2937,7 +2944,9 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, M
       Exit(EXIT_FAILURE);
     }
 
-    tm = emitInputTypemap(n, p, wrapper, arg);
+    if (Len(arg) > 0) {
+      tm = emitInputTypemap(n, p, wrapper, arg);
+    }
     Delete(arg);
 
     if (tm) {

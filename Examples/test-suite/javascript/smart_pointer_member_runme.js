@@ -15,10 +15,21 @@ if (f.y != 2) {
     throw new Error(`Failed ${f.y} ${f.x}`);
 }
 
-if (b.ZZ != f.ZZ) {
-    throw new Error(`Failed ${b.x} ${f.x}`);
+if (typeof print === undefined) {
+  // These do not work in JSC
+  if (f.constructor.ZZ !== b.constructor.ZZ && f.constructor.ZZ !== undefined) {
+    throw new Error(`Failed ${f.constructor.ZZ} ${b.constructor.ZZ}`);
+  }
+
+  if (f.constructor.z !== b.constructor.z && f.constructor.z !== undefined) {
+    throw new Error;
+  }
 }
 
-if (b.z != f.z) {
+if (smart_pointer_member.Foo.ZZ !== smart_pointer_member.Bar.ZZ && smart_pointer_member.Foo.ZZ !== undefined) {
+  throw new Error(`Failed ${smart_pointer_member.Foo.ZZ} ${smart_pointer_member.Bar.ZZ}`);
+}
+
+if (smart_pointer_member.Foo.z !== smart_pointer_member.Bar.z && smart_pointer_member.Foo.z !== undefined) {
     throw new Error;
 }

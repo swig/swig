@@ -16,6 +16,9 @@ if f.y != 2:
 if b.x != f.x:
     raise RuntimeError
 
+if b.ZZ != f.ZZ:
+    raise RuntimeError
+
 if b.z != f.z:
     raise RuntimeError
 
