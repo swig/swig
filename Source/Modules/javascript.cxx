@@ -1672,7 +1672,6 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
 
     switch (mode) {
     case Getter:
-    case Function:
       if (is_member && i == 0) {
         if (!is_static) {
           Printv(arg, "thisObject", 0);
@@ -1680,8 +1679,18 @@ void JSCEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, Ma
         i++;
       } else {
         Printf(arg, "argv[%d]", i - startIdx);
-	SetInt(p, INDEX, i - startIdx);
-	i += GetInt(p, "tmap:in:numinputs");
+        SetInt(p, INDEX, i - startIdx);
+        i += GetInt(p, "tmap:in:numinputs");
+      }
+      break;
+    case Function:
+      if (is_member && !is_static && i == 0) {
+        Printv(arg, "thisObject", 0);
+        i++;
+      } else {
+        Printf(arg, "argv[%d]", i - startIdx);
+        SetInt(p, INDEX, i - startIdx);
+        i += GetInt(p, "tmap:in:numinputs");
       }
       break;
     case Setter:
