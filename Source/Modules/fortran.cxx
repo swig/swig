@@ -1807,8 +1807,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
 
   if (func_to_subroutine && GetFlag(n, "tmap:ftype:nofortransubroutine")) {
     Swig_warning(WARN_FORTRAN_NO_SUBROUTINE, Getfile(n), Getline(n),
-                 "The given type '%s' cannot be converted from a function result to an optional subroutine argument\n",
-                 return_cpptype);
+	"The given type '%s' cannot be converted from a function result to an optional subroutine argument\n", SwigType_str(return_cpptype, 0));
     func_to_subroutine = false;
     is_fsubroutine = false;
     if (!GetFlag(n, "feature:fortran:subroutine")) {
