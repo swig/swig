@@ -7,8 +7,8 @@ set -e # exit on failure (same as -o errexit)
 
 case "$SWIGLANG" in
 	"fortran")
-		if [ -n "$FCSTD" ]; then
-			CONFIGOPTS+=("FCFLAGS=-std=$FCSTD $FCFLAGS")
+		if [ -n "$VER" ]; then
+			CONFIGOPTS+=("FCFLAGS=-std=$VER $FCFLAGS")
 		fi
 		if test -n "$GCC"; then
 			FC="gfortran-$GCC"

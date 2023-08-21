@@ -270,8 +270,8 @@ jobs:
           CPPSTD: c++17
           GCC: 13
         - SWIGLANG: fortran
+          VER: f2003
           CPPSTD: c++17
-          FCSTD: f2003
           GCC: 13
         - SWIGLANG: go
           VER: '1.17'
@@ -355,7 +355,6 @@ jobs:
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
-      FCSTD: ${{ matrix.FCSTD }}
 
     steps:
     - name: Checkout
@@ -476,7 +475,7 @@ jobs:
             # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
             cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)
             cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)
-            if test -n "$FC"; then fcflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --fcflags --std=$FCSTD --compiler=$FC); fi
+            if test -n "$FC"; then fcflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --fcflags --std=$VER --compiler=$FC); fi
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
             make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" FCFLAGS="$fcflags"
