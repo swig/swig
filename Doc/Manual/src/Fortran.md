@@ -1405,7 +1405,7 @@ Even though the Fortran 2003 standard specifies when local variables become
 for finalization in many compilers still in active use is not entirely
 reliable. Rather
 than relying on the finalization mechanics to clean up and free a C++ object,
-destructors for the C++ wrappers wrapped as a `release` procedure:
+destructors for the C++ wrappers are wrapped as a `release` procedure:
 ```fortran
 call f%release()
 call g%release()

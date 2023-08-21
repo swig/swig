@@ -1723,7 +1723,7 @@ call g%do_something_else()</code></pre></div>
 
 
 <p>
-Even though the Fortran 2003 standard specifies when local variables become <em>undefined</em> (and are <em>finalized</em> if they have a <code>FINAL</code> subroutine), support for finalization in many compilers still in active use is not entirely reliable. Rather than relying on the finalization mechanics to clean up and free a C++ object, destructors for the C++ wrappers wrapped as a <code>release</code> procedure:
+Even though the Fortran 2003 standard specifies when local variables become <em>undefined</em> (and are <em>finalized</em> if they have a <code>FINAL</code> subroutine), support for finalization in many compilers still in active use is not entirely reliable. Rather than relying on the finalization mechanics to clean up and free a C++ object, destructors for the C++ wrappers are wrapped as a <code>release</code> procedure:
 </p>
 
 
