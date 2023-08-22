@@ -1471,7 +1471,7 @@ The default typemaps do not include support for <em>mutable</em> string referenc
 
 
 <div class="code"><pre><code>%include &lt;std_string.i&gt;
-%apply std::string { std::string&amp; }</code></pre></div>
+%apply std::string const&amp; { std::string&amp; }</code></pre></div>
 
 <H3><a name="Fortran_stdvector">25.5.2 std::vector</a></H3>
 

@@ -1160,7 +1160,7 @@ like pass-by-value strings (where changes to the value in one language will
 *not* make changes in the other), use `%apply`:
 ```swig
 %include <std_string.i>
-%apply std::string { std::string& }
+%apply std::string const& { std::string& }
 ```
 
 ## std::vector

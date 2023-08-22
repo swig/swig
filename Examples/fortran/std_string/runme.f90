@@ -2,7 +2,7 @@
 
 program main
   use, intrinsic :: ISO_C_BINDING
-  use example, only : print_str, halved_str, reversed_str
+  use example
   use ISO_FORTRAN_ENV
   implicit none
   integer, parameter :: STDOUT = OUTPUT_UNIT
@@ -39,6 +39,12 @@ program main
   tempstr = reversed_str(tempstr)
 
   write(STDOUT, *) "'"//sampletext//"' -> '"//tempstr//"'"
+
+  write(STDOUT, *) "Reversed mutable"
+  tempstr = reversed_str_mutable(tempstr)
+
+  write(STDOUT, *) "double reversed: -> '"//tempstr//"'"
+
 end program
 
 
