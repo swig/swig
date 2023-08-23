@@ -47,7 +47,7 @@ conversion may be as simple as casting one integer type to another, or as
 complicated as allocating a piece of memory and calling a function to translate
 an object. These
 interface functions, which are namespaced with a `_wrap` prefix,
-translate the C/C++ data (classes, enumerations) into simple ANSI C types
+translate the C/C++ data (classes, enumerations) into simple ISO C types
 (integers, structs).
 
 The C function signature of those interfaces is translated to private
@@ -445,8 +445,8 @@ placing the null terminator earlier in the storage space.
 In contrast, the historical Fortran string is a sequence of characters sized at compile
 time: representing a smaller string at run time is done by filling the
 storage with trailing blanks.
-The Fortran intrinsic `LEN_TRIM` returns the length of a string without
-trailing blanks, and the `TRIM` function is used if necessary to return a
+The Fortran intrinsic function `LEN_TRIM` returns the length of a string without
+trailing blanks, and the `TRIM` intrinsic function is used if necessary to return a
 string with those trailing blanks removed. Of course, this definition of a
 string means `'foo'` and `'foo '` are equivalent.
 
@@ -1037,7 +1037,7 @@ if (ierr /= 0) then
 endif
 ```
 
-Enabling this exception handling requires `%include`ing a special file and
+Enabling this exception handling requires the `std_except.i` file and
 writing a small exception handler.
 ```swig
 %include <std_except.i>
@@ -1138,7 +1138,7 @@ link due to the undefined symbols.
 # Provided typemaps
 
 There are many ways to make C++ data types interact more cleanly with Fortran
-types. For example, it's common for C++ interfaces take a `std::string` when
+types. For example, it's common for C++ interfaces to take a `std::string` when
 they're typically called with string literals: the class can be implicitly
 constructed from a `const char *` but can also accept a `std::string` if needed.
 Since Fortran has no implicit constructors, passing a string argument would
@@ -1264,7 +1264,7 @@ summed = accumulate(int_values)
 
 ## Fixed-size array translation
 
-The `<typemaps.i>` file provides an additional typemaps that allows fixed-size
+The `<typemaps.i>` file provides additional typemaps that allows fixed-size
 Fortran arrays to interact natively with fixed-size C arrays:
 
 ```swig
@@ -1363,7 +1363,7 @@ a simple C++ class
 ```c++
 class Foo {
 public:
-  void bar();
+  void do_something();
 };
 ```
 into a Fortran derived type
@@ -1371,7 +1371,7 @@ into a Fortran derived type
 type :: Foo
   type(SwigClassWrapper), public :: swigdata
 contains
-  procedure :: bar => swigf_Foo_bar
+  procedure :: do_something => swigf_Foo_do_something
 end type
 ```
 
@@ -1387,7 +1387,16 @@ overloaded, the instance can be allocated and initialized by several different
 code paths. In Fortran, initialization can only assign simple scalars and set
 pointers to null.
 
-However, "construction" can be done separately. In SWIG-generated classes, a
+However, "construction" can be done separately. Consider:
+```c++
+class Foo {
+public:
+  Foo();
+  Foo(int);
+  void do_something();
+};
+```
+In SWIG-generated classes, a
 module procedure with the same name as the class initializes it:
 ```fortran
 type(Foo) :: f
@@ -1395,7 +1404,7 @@ type(Foo) :: g
 f = Foo()
 g = Foo(123)
 call f%do_something()
-call g%do_something_else()
+call g%do_something()
 ```
 
 ## Destructors

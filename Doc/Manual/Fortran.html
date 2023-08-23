@@ -123,7 +123,7 @@ The purpose of running SWIG with the <code>-fortran</code> language option is to
 
 
 <p>
-The C/C++ <code>_wrap</code> file contains simple, flat, C-linkage interface functions that provide access to arbitrarily complicated C/C++ data and functions. The conversion may be as simple as casting one integer type to another, or as complicated as allocating a piece of memory and calling a function to translate an object. These interface functions, which are namespaced with a <code>_wrap</code> prefix, translate the C/C++ data (classes, enumerations) into simple ANSI C types (integers, structs).
+The C/C++ <code>_wrap</code> file contains simple, flat, C-linkage interface functions that provide access to arbitrarily complicated C/C++ data and functions. The conversion may be as simple as casting one integer type to another, or as complicated as allocating a piece of memory and calling a function to translate an object. These interface functions, which are namespaced with a <code>_wrap</code> prefix, translate the C/C++ data (classes, enumerations) into simple ISO C types (integers, structs).
 </p>
 
 
@@ -1350,7 +1350,7 @@ endif</code></pre></div>
 
 
 <p>
-Enabling this exception handling requires <code>%include</code>ing a special file and writing a small exception handler.
+Enabling this exception handling requires the <code>std_except.i</code> file and writing a small exception handler.
 </p>
 
 
@@ -1454,7 +1454,7 @@ If you forget to make the above inclusion and an <code>%import</code>ed module l
 
 
 <p>
-There are many ways to make C++ data types interact more cleanly with Fortran types. For example, it&rsquo;s common for C++ interfaces take a <code>std::string</code> when they&rsquo;re typically called with string literals: the class can be implicitly constructed from a <code>const char *</code> but can also accept a <code>std::string</code> if needed. Since Fortran has no implicit constructors, passing a string argument would typically require declaring and instantiating a class for that parameter. Instead, like other SWIG languages, Fortran by default integrates &ldquo;native&rdquo; types such as the built-in string and arrays.
+There are many ways to make C++ data types interact more cleanly with Fortran types. For example, it&rsquo;s common for C++ interfaces to take a <code>std::string</code> when they&rsquo;re typically called with string literals: the class can be implicitly constructed from a <code>const char *</code> but can also accept a <code>std::string</code> if needed. Since Fortran has no implicit constructors, passing a string argument would typically require declaring and instantiating a class for that parameter. Instead, like other SWIG languages, Fortran by default integrates &ldquo;native&rdquo; types such as the built-in string and arrays.
 </p>
 
 <H3><a name="Fortran_the_stdstring_class">25.5.1 The std::string class</a></H3>
@@ -1562,7 +1562,7 @@ summed = accumulate(int_values)</code></pre></div>
 
 
 <p>
-The <code>&lt;typemaps.i&gt;</code> file provides an additional typemaps that allows fixed-size Fortran arrays to interact natively with fixed-size C arrays:
+The <code>&lt;typemaps.i&gt;</code> file provides additional typemaps that allows fixed-size Fortran arrays to interact natively with fixed-size C arrays:
 </p>
 
 
@@ -1679,7 +1679,7 @@ To introduce the class translation mechanism, we observe the transformation of a
 
 <div class="code"><pre><code>class Foo {
 public:
-  void bar();
+  void do_something();
 };</code></pre></div>
 
 
@@ -1691,7 +1691,7 @@ into a Fortran derived type
 <div class="targetlang"><pre><code>type :: Foo
   type(SwigClassWrapper), public :: swigdata
 contains
-  procedure :: bar =&gt; swigf_Foo_bar
+  procedure :: do_something =&gt; swigf_Foo_do_something
 end type</code></pre></div>
 
 
@@ -1708,7 +1708,20 @@ In C++, the allocation and initialization of a class instance is (almost without
 
 
 <p>
-However, &ldquo;construction&rdquo; can be done separately. In SWIG-generated classes, a module procedure with the same name as the class initializes it:
+However, &ldquo;construction&rdquo; can be done separately. Consider:
+</p>
+
+
+<div class="code"><pre><code>class Foo {
+public:
+  Foo();
+  Foo(int);
+  void do_something();
+};</code></pre></div>
+
+
+<p>
+In SWIG-generated classes, a module procedure with the same name as the class initializes it:
 </p>
 
 
@@ -1717,7 +1730,7 @@ type(Foo) :: g
 f = Foo()
 g = Foo(123)
 call f%do_something()
-call g%do_something_else()</code></pre></div>
+call g%do_something()</code></pre></div>
 
 <H3><a name="Fortran_destructors">25.6.2 Destructors</a></H3>
 
