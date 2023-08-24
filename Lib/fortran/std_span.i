@@ -2,24 +2,29 @@
  * std_span.i
  * ------------------------------------------------------------------------- */
 
+%{
+#include <span>
+%}
+
 %include <fortranarray.swg>
 
-/* -------------------------------------------------------------------------
- * Note: even though "span" is currently only a proposed part of C++20, most other C++ scientific codes have similar classes.
- */
 namespace std
 {
 %naturalvar span;
 
-template<class _Tp, int _Ex = -1>
+template<class _Tp, std::size_t _Ex = std::dynamic_extent>
 class span
 {
- public:
-  typedef int index_type;
+public:
+  typedef _Tp element_type;
+  typedef std::size_t size_type;
   typedef _Tp* pointer;
+  typedef const _Tp* const_pointer;
+  typedef _Tp& reference;
+  typedef const _Tp& const_reference;
 
-  pointer data();
-  index_type size();
+  constexpr pointer data() const noexcept;
+  constexpr size_type size() const noexcept;
 
   // Value and const reference
   %fortran_array_pointer(_Tp, std::span<_Tp, _Ex >)
@@ -54,6 +59,4 @@ class span
     $input->size = tmpspan$argnum.size();
   }
 };
-} // end namespace std
-
-
+}

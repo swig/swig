@@ -1,30 +1,4 @@
-/* File: fortran_std_span.i */
-%module fortran_std_span
-
-%{
-// Simplified span class
-namespace std {
-template<class _Tp, int _Ex = -1>
-class span
-{
- public:
-  typedef int index_type;
-  typedef _Tp* pointer;
-
-  span() : ptr_(NULL), size_(0) {}
-  span(pointer d, index_type s) : ptr_(d), size_(s) {}
-  span(pointer first, pointer last) : ptr_(first), size_(last - first) {}
-
-  pointer data() const { return ptr_; }
-  index_type size() const { return size_; }
-
- private:
-  pointer ptr_;
-  index_type size_;
-};
-} // namespace std
-
-%}
+%module cpp20_std_span
 
 %include <std_span.i>
 

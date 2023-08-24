@@ -28,9 +28,11 @@ CPP_TEST_CASES = \
 	fortran_naming \
 	fortran_onlywrapped \
 	fortran_overloads \
-	fortran_std_span \
 	fortran_subroutine \
 	li_std_set \
+
+CPP20_TEST_CASES = \
+	cpp20_std_span \
 
 C_TEST_CASES = \
 	fortran_array_typemap \

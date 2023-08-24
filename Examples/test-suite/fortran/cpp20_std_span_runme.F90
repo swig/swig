@@ -1,15 +1,15 @@
-! File : fortran_std_span_runme.F90
+! File : cpp20_std_span_runme.F90
 
 #include "fassert.h"
 
-program fortran_std_span_runme
+program cpp20_std_span_runme
   implicit none
 
   call test_std_span
 
 contains
 subroutine test_std_span
-  use fortran_std_span
+  use cpp20_std_span
   use ISO_C_BINDING
   implicit none
   integer(C_INT), dimension(:), pointer :: ptr => null()
