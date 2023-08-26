@@ -1935,6 +1935,7 @@ public:
       // Generate director connect method
       // put this in classDirectorEnd ???
       Printf(proxy_class_code, "  private void SwigDirectorConnect() {\n");
+      Printf(proxy_class_code, "    selfInstance = this;\n");
 
       int i;
       for (i = first_class_dmethod; i < curr_class_dmethod; ++i) {
