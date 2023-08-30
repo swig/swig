@@ -131,7 +131,7 @@ bool is_fortran_intexpr(String *s) {
  */
 int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
   String *key = NewStringf("tmap:%s:checkdim", tmap_name);
-  bool is_checkdims = static_cast<bool>(GetFlag(n, key));
+  bool is_checkdims = (GetFlag(n, key));
   Delete(key);
   if (!is_checkdims)
     return SWIG_OK;
@@ -242,7 +242,7 @@ String *make_import_string(String *imtype) {
     ++end;
 
   // Create a substring and convert to lowercase
-  String* result = NewStringWithSize(start, static_cast<int>(end - start));
+  String* result = NewStringWithSize(start, (int)(end - start));
   for (char* c = Char(result); *c != '\0'; ++c)
     *c = tolower(*c);
 
@@ -1075,7 +1075,7 @@ int FORTRAN::moduleDirective(Node *n) {
  *  - static functions
  */
 int FORTRAN::functionWrapper(Node *n) {
-  const bool member = static_cast<bool>(GetFlag(n, "fortran:ismember"));
+  bool member = (GetFlag(n, "fortran:ismember"));
   bool generic = false;
 
   // >>> SET UP WRAPPER NAME
@@ -1295,7 +1295,7 @@ int FORTRAN::functionWrapper(Node *n) {
 
   // >>> GENERATE CODE FOR MODULE INTERFACE
 
-  bool fprivate = static_cast<bool>(GetFlag(n, "fortran:private"));
+  bool fprivate = (GetFlag(n, "fortran:private"));
   if (member) {
     // Wrapping a member function
     ASSERT_OR_PRINT_NODE(!this->is_bindc_struct(), n);
@@ -2394,7 +2394,7 @@ int FORTRAN::classHandler(Node *n) {
     }
   }
 
-  const bool bindc = static_cast<bool>(GetFlag(n, "feature:fortran:bindc"));
+  const bool bindc = (GetFlag(n, "feature:fortran:bindc"));
   if (bindc && base_fsymname) {
     // Disallow inheritance for BIND(C) types
     Swig_error(input_file, line_number,
@@ -3331,7 +3331,7 @@ int FORTRAN::classDirectorDefaultConstructor(Node *n) {
  *  - "directorout" converts "ctype" to actual C++ type
  */
 int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
-  bool ignored = static_cast<bool>(GetFlag(n, "feature:ignore"));
+  bool ignored = (GetFlag(n, "feature:ignore"));
   bool pure_virtual = is_pure_virtual(n);
   if (ignored && !pure_virtual)
     return SWIG_NOWRAP;
