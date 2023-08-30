@@ -1,0 +1,46 @@
+name: Get all language and toolchain variants
+on:
+  workflow_call:
+    outputs:
+      toolchains:
+        description: All configured toolchains
+        value: ${{ jobs.get-variants.outputs.toolchains }}
+      languages:
+        description: All configured Swig languages
+        value: ${{ jobs.get-variants.outputs.languages }}
+
+
+jobs:
+  get-variants:
+    name: Gather CI variants from fmf metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+      - name: Install fmf
+        run: python3 -m pip install fmf
+      - name: Gather variants
+        id: fmf
+        working-directory: Lib
+        run: |
+          fmf ls
+          # Get all toolchains in /toolchain/*
+          toolchains=($(fmf ls --name='^/toolchains/' | sed 's|/toolchains/||'))
+          
+          # Get registered languages from fmf, i.e. only 1st level of directories,
+          # and save it as a bash array
+          languages=($(fmf ls --name='^\/(?!.*\/).+' | sed 's|/||'))
+          
+          # Use the bash array to construct a json array of strings
+          toolchains=$(jq --compact-output --null-input '$ARGS.positional' --args -- "${toolchains[@]}")
+          languages=$(jq --compact-output --null-input '$ARGS.positional' --args -- "${languages[@]}")
+          
+          echo "toolchains=$toolchains"
+          echo "languages=$languages"
+          
+          # Output to github output
+          echo "toolchains=$toolchains" >> $GITHUB_OUTPUT
+          echo "languages=$languages" >> $GITHUB_OUTPUT
+    outputs:
+      toolchains: ${{ steps.fmf.outputs.toolchains }}
+      languages: ${{ steps.fmf.outputs.languages }}

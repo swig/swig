@@ -1,0 +1,60 @@
+name: Detect file changes
+on:
+  workflow_call:
+    outputs:
+      docs_changed:
+        description: Documentation changed
+        value: ${{ jobs.change-detection.outputs.docs_changed }}
+      base_changed:
+        description: Base Swig files changed
+        value: ${{ jobs.change-detection.outputs.base_changed }}
+      langs:
+        description: Swig languages affected
+        value: ${{ jobs.change-detection.outputs.langs }}
+
+
+jobs:
+  change-detection:
+    name: Gather commit changes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+      - name: Install fmf
+        run: python3 -m pip install fmf
+      - name: Check documentation
+        id: docs
+        uses: tj-actions/changed-files@v38
+        with:
+          files: |
+            Doc/**
+      - name: Check Swig base
+        id: base
+        uses: tj-actions/changed-files@v38
+        with:
+          files: |
+            Source/**
+            Lib/std/**
+            Lib/typemaps/**
+            Lib/xml/**
+            Lib/*
+      - name: Check Swig language
+        id: lang
+        uses: tj-actions/changed-files@v38
+        with:
+          path: Lib
+          files: |
+            */**
+          files_ignore: |
+            .fmf/*
+            std/**
+            typemaps/**
+            xml/**
+          # Get only the names of the languages (first directory name after /Lib)
+          json: true
+          dir_names: true
+          dir_names_max_depth: 1
+    outputs:
+      docs_changed: ${{ steps.docs.outputs.any_modified }}
+      base_changed: ${{ steps.base.outputs.any_modified }}
+      langs: ${{ steps.lang.outputs.all_modified_files }}
