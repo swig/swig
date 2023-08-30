@@ -1,6 +1,9 @@
 /gcc:
   github-matrix:
     version: [ "10","11","12","13" ]
+    include:
+      - version: "13"
+        experimental: true
 /llvm:
   github-matrix:
     version: [ "" ]
