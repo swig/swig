@@ -1,28 +1,13 @@
 name: Windows Nuget Build
 
-on:
-  push:
-    branches: [ master ]
-    paths-ignore:
-      - 'CHANGES*'
-      - 'Doc/**'
-      - 'appveyor.yml'
-  pull_request:
-    branches: [ master ]
-    paths-ignore:
-      - 'CHANGES*'
-      - 'Doc/**'
-      - 'appveyor.yml'
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 permissions:
-  contents: read  #  to fetch code (actions/checkout)
+  contents: read
+
+on:
+  workflow_call:
 
 jobs:
-  build:
+  test:
 
     runs-on: windows-2019
 
