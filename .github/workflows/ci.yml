@@ -66,10 +66,12 @@ jobs:
     with:
       lang: ${{ matrix.lang }}
     # Wait for test-toolchains to finish, then run if either base_changed or if get-changed-files has languages
+    # Note: always() makes the job un-cancellable
+    # https://github.com/orgs/community/discussions/26303
     if: |
-      always() &&
-      inputs.run-langs || inputs.run-all-langs || needs.test-toolchains.result == 'success' ||
-      (needs.test-toolchains.result == 'skipped' && needs.get-changed-files.outputs.langs)
+      !cancelled() &&
+      ((inputs.run-langs || inputs.run-all-langs || success()) ||
+      (needs.test-toolchains.result == 'skipped' && needs.get-changed-files.outputs.langs != '[]' && needs.get-changed-files.outputs.langs != ''))
   test-nugget:
     needs: [ get-variants, get-changed-files ]
     uses: ./.github/workflows/step_nuget.yml
