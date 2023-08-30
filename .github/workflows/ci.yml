@@ -15,6 +15,21 @@ on:
   pull_request:
     branches: [ master ]
   workflow_dispatch:
+    inputs:
+      run-base:
+        description: Run toolchain tests
+        type: boolean
+        default: false
+        required: false
+      run-all-langs:
+        description: Run all languages
+        type: boolean
+        default: false
+        required: false
+      run-langs:
+        description: Run specific languages
+        type: string
+        required: false
 
 jobs:
   get-changed-files:
@@ -35,6 +50,7 @@ jobs:
     with:
       toolchain: ${{ matrix.toolchain }}
     if: |
+      inputs.run-base ||
       needs.get-changed-files.outputs.base_changed == 'true'
   test-lang:
     needs: [ get-changed-files, get-variants, test-toolchains ]
@@ -46,14 +62,14 @@ jobs:
       fail-fast: false
       matrix:
         # Use all languages if base_changed, otherwise use only langs from get-changed-files
-        lang: ${{ (needs.get-changed-files.outputs.base_changed == 'true' && fromJSON(needs.get-variants.outputs.languages)) || fromJSON(needs.get-changed-files.outputs.langs) }}
+        lang: ${{ ((inputs.run-all-langs || needs.test-toolchains.result == 'success') && fromJSON(needs.get-variants.outputs.languages)) || (inputs.run-langs && fromJSON(inputs.run-langs)) || fromJSON(needs.get-changed-files.outputs.langs) }}
     with:
       lang: ${{ matrix.lang }}
     # Wait for test-toolchains to finish, then run if either base_changed or if get-changed-files has languages
     if: |
       always() &&
-      (needs.test-toolchains.result == 'success' || needs.test-toolchains.result == 'skipped') &&
-      (needs.get-changed-files.outputs.base_changed == 'true' || needs.get-changed-files.outputs.langs)
+      inputs.run-langs || inputs.run-all-langs || needs.test-toolchains.result == 'success' ||
+      (needs.test-toolchains.result == 'skipped' && needs.get-changed-files.outputs.langs)
   test-nugget:
     needs: [ get-variants, get-changed-files ]
     uses: ./.github/workflows/step_nuget.yml
