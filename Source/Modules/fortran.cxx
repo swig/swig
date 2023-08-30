@@ -291,9 +291,9 @@ String *shorten_identifier(String *inp, int maxlen, int warning) {
   // Replace the last chars with the hash encoded into 0-10 + A-Z
   char *dst = Char(result) + maxlen;
   while (hash > 0) {
-    unsigned long rem = hash % 36;
+    unsigned int rem = hash % 36;
     hash = hash / 36;
-    *dst-- = static_cast<char>(rem < 10 ? '0' + rem : ('A' + rem - 10));
+    *dst-- = rem < 10 ? '0' + rem : 'A' + (rem - 10);
   }
 
   if (warning != WARN_NONE && !Getmeta(inp, "already_warned")) {
