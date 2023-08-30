@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * boost_shared_ptr.i
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 %include <shared_ptr.i>
 
@@ -21,46 +21,45 @@
 %}
 
 %define SWIG_SHARED_PTR_TYPEMAPS(CONST, TYPE...)
-/* -------------------------------------------------------------------------
- *
- */
+
 #define SWIGSP__ SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE >
 #define SWIGSP_PTRS__ SWIGSP__ &, SWIGSP__ *
 #define SWIGSP_CPTRS__ const SWIGSP__ &, const SWIGSP__ *
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Shared pointers *always* return either NULL or a newly allocated shared
  * pointer.
- * -------------------------------------------------------------------------
+ *
  * %naturalvar causes these types to be wrapped as const references rather than
  * pointers when they're member variables.
- */
+ * ----------------------------------------------------------------------------- */
 %naturalvar TYPE;
 %naturalvar SWIGSP__;
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Deferred copy of basic settings from non-SP type (i.e. Fortran will see it the same; we override the in/out/ctype below)
- */
+ * ----------------------------------------------------------------------------- */
 
 %typemap(ftype, in="$typemap(ftype:in, " #TYPE "*)", noblock=1) SWIGSP__, SWIGSP_PTRS__
   {$typemap(ftype, TYPE*)}
 %typemap(ftype, in="$typemap(ftype:in, const " #TYPE "*)", noblock=1) SWIGSP_CPTRS__
   {$typemap(ftype, const TYPE*)}
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * C types: we wrap the *shared pointer* as the value type. The 'in' type is
  * always passed to us as a pointer to a SwigClassWrapper, and the 'out' is
  * returned by value.
- */
+ * ----------------------------------------------------------------------------- */
 
 %typemap(ctype, in="const SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
     SWIGSP__, SWIGSP_PTRS__, SWIGSP_CPTRS__
 "SwigClassWrapper"
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Original class by value: access the 'cptr' member of the input, return a
  * SP-owned copy of the obtained value.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 %typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE ($&1_type argp = 0) {
   SWIG_check_sp_nonnull($input->cptr, "$1_ltype", "$fortranclassname", "$decl", return $null)
   argp = static_cast<SWIGSP__*>($input->cptr)->get();
@@ -71,10 +70,11 @@
  $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Original class by pointer. Note that the deleter is determined by the owner
  * cmemflags, but the result is always a new self-owned shared pointer.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 %typemap(in, noblock=1) CONST TYPE * (SWIGSP__* smartarg) {
   smartarg = (SWIGSP__*)($input->cptr);
   $1 = smartarg ? (TYPE*)(smartarg->get()) : NULL;
@@ -98,9 +98,10 @@
   $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Original class by reference. Add null checks.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 %typemap(in, noblock=1, fragment="SWIG_check_sp_nonnull") CONST TYPE & {
   SWIG_check_sp_nonnull($input->cptr, "$1_ltype", "$fortranclassname", "$decl", return $null)
   $1 = (TYPE*)static_cast<SWIGSP__*>($input->cptr)->get();
@@ -116,9 +117,10 @@
   $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * SP by value
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 %typemap(in, noblock=1) SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE > {
   if ($input->cptr) $1 = *static_cast<SWIG_SHARED_PTR_QNAMESPACE::shared_ptr<CONST TYPE >*>($input->cptr);
 }
@@ -128,9 +130,10 @@
   $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * SP by reference
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 %typemap(in, noblock=1) SWIGSP__& ($*1_ltype tempnull) {
   $1 = $input->cptr ? static_cast<$1_ltype >($input->cptr) : &tempnull;
 }
@@ -140,9 +143,10 @@
   $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * SP by pointer
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 %typemap(in, noblock=1) SWIGSP__ * ($*1_ltype tempnull) {
   $1 = $input->cptr ? static_cast<$1_ltype >($input->cptr) : &tempnull;
 }
@@ -152,12 +156,13 @@
   $result.cmemflags = SWIG_MEM_OWN | SWIG_MEM_RVALUE;
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Miscellaneous
- * -------------------------------------------------------------------------
+ *
  * Various missing typemaps - If ever used (unlikely) ensure compilation error
  * inside the wrapper
- */
+ * ----------------------------------------------------------------------------- */
+
 %typemap(in) CONST TYPE[], CONST TYPE[ANY], CONST TYPE (CLASS::*) %{
 #error "typemaps for $1_type not available"
 %}
@@ -165,19 +170,12 @@
 #error "typemaps for $1_type not available"
 %}
 
-/* -------------------------------------------------------------------------
- * Instantiate shared pointer
- */
+// Instantiate shared pointer
 %template() SWIGSP__;
 
-/* -------------------------------------------------------------------------
- * Clean up macros
- */
+// Clean up macros
 #undef SWIGSP__
 #undef SWIGSP_PTRS__
 #undef SWIGSP_CPTRS__
 
 %enddef
-
-
-

@@ -1,4 +1,4 @@
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * extern_exception.i
  *
  * Only one SWIG+Fortran module in a library (regardless of whether the
@@ -10,7 +10,7 @@
  *
  * This awkwardness is necessary because %imported SWIG files cannot inject
  * wrapper code.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 /* Error if this file is being imported */
 #ifdef SWIGIMPORTED

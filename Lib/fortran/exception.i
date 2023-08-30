@@ -1,10 +1,10 @@
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * exception.i
  *
  * This file is automatically included when the user loads <std_except.i>.
  * Since it's also loaded by constraints.i, it must be compatible with C as
  * well.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 /* Error if this file is being imported without being loaded through
  * extern_exception.i */
@@ -12,11 +12,12 @@
 #error "exception.i cannot be %imported directly: instead, %include <extern_exception.i> just below your %module declaration"
 #endif
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Error code retrieval
  *
  * SWIG apps can override the default SWIG_FORTRAN_ERROR_INT to avoid conflicts.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 #ifndef SWIG_FORTRAN_ERROR_INT
 #define SWIG_FORTRAN_ERROR_INT ierr
 #endif
@@ -33,11 +34,12 @@ int SWIG_FORTRAN_ERROR_INT = 0;
 #endif
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Error string retrieval
  *
  * SWIG apps can override the default SWIG_FORTRAN_ERROR_STR to avoid conflicts.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 #ifndef SWIG_FORTRAN_ERROR_STR
 #define SWIG_FORTRAN_ERROR_STR get_serr
 #endif
@@ -46,12 +48,13 @@ int SWIG_FORTRAN_ERROR_INT = 0;
 %include <fortranstrings.swg>
 const char* SWIG_FORTRAN_ERROR_STR();
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Function declarations
  *
  * These must be injected into downstream SWIG modules (via extern_exception.i)
  * so it must be a reusable %fragment rather than a directly injected %runtime.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 %fragment("SWIG_exception_decl", "runtime") %{
 #ifdef __cplusplus
 extern "C" {
@@ -63,12 +66,13 @@ SWIGEXPORT void SWIG_store_exception(const char* decl, int errcode, const char *
 #endif
 %}
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Runtime code
  *
  * Note that the SWIG_exception_impl macro is also used by
  * SWIG_contract_assert, as well as a few other macros in our library.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 %fragment("SWIG_exception_impl", "runtime",
           fragment="SWIG_exception_decl") %{
 #undef SWIG_exception_impl
@@ -85,9 +89,10 @@ SWIGEXPORT void SWIG_store_exception(const char* decl, int errcode, const char *
 #define SWIG_check_unhandled_exception() \
     SWIG_check_unhandled_exception_impl("$decl");
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Variable definitions: used only if %included, not %imported
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 %insert("header") {
 // Stored exception message
 SWIGINTERN const char* swig_last_exception_cstr = NULL;

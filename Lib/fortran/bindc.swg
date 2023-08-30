@@ -1,6 +1,6 @@
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * bindc.swg
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 // Declare a generic `FORTRAN_STRUCT_TYPE` as a native type.
 // Rather than being an intrinsic type `integer(C_INT)` it's a derived type `type($fortranclassname)`
@@ -20,7 +20,7 @@
  *     to `$typemap(ctype, Foo)*`.
  *  4. `Foo` (value) is %applied from `FORTRAN_STRUCT_TYPE` in the explicit `%apply` below.
  *  5. The `FORTRAN_STRUCT_TYPE` value ctype is copied from the `FORTRAN_INTRINSIC_TYPE` type via `%fortran_intrinsic`.
- * ------------------------------------------------------------------------- */
+ */
 %define %fortran_struct(CLS)
   // Mark the class as being C-bound
   %fortranbindc CLS;

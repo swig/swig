@@ -1,14 +1,16 @@
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * classes.swg
  *
  * This defines generic SWIGTYPE typemaps for classes.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 %include <typemaps/fragments.swg>
 %include <typemaps/swigmacros.swg>
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * MACROS
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 /*!
  * \def %fortran_autofree_rvalue
  *
@@ -47,9 +49,10 @@
 
 %enddef
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Memory state enumeration
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 #ifdef __cplusplus
 %fragment("SwigMemState", "runtime") %{
 enum SwigMemFlags {
@@ -70,9 +73,9 @@ enum {
  integer, parameter :: swig_cmem_own_bit = 0
  integer, parameter :: swig_cmem_rvalue_bit = 1}
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Wrapper struct that holds a C pointer and memory state
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
 %fragment("SwigClassWrapper_decl", "header",
@@ -111,9 +114,9 @@ SWIGINTERN SwigClassWrapper SwigClassWrapper_uninitialized() {
   integer(C_INT), public :: cmemflags = 0
  end type}
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Runtime check for null argument
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 // Runtime check for a class wrapper not being const.
 %fragment("SWIG_check_nonnull", "runtime") %{
@@ -125,9 +128,9 @@ SWIGINTERN SwigClassWrapper SwigClassWrapper_uninitialized() {
   }
 %}
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Assignment: C++ implementation
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 #ifdef __cplusplus
 %fragment("SWIG_assignment_type", "runtime") %{
@@ -259,9 +262,9 @@ SWIGINTERN void SWIG_free_rvalue(SwigClassWrapper other) {
 
 %}
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Assignment: C implementation
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 #else
 
 %fragment("SWIG_assign", "header",
@@ -310,13 +313,14 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 
 #endif
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * CLASS TYPEMAPS
  *
  * Classes accepted by value are passed as const reference.
  * They're copy-assigned when they're passed
  * Returning a class by value is copy-constructed as a new'd pointer
- */
+ * ----------------------------------------------------------------------------- */
+
 %typemap(ctype, in="SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
     SWIGTYPE
   "SwigClassWrapper"
@@ -391,9 +395,9 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 %typemap(bindc, in="type(SwigClassWrapper)", fragment="SwigClassWrapper_f") SwigClassWrapper*
   "type(C_PTR)"
 
-/*---------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Special class typedefs for self, assignment, destruction
- */
+ * ----------------------------------------------------------------------------- */
 
 // Check for non-null class input "self"
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE *self {
@@ -421,9 +425,10 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
 %apply SWIGTYPE *ASSIGNMENT_SELF { SWIGTYPE *DESTRUCTOR_SELF };
 %typemap(in) SWIGTYPE *DESTRUCTOR_SELF = SWIGTYPE *;
 
-/*---------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Special class typedefs for directors
- */
+ * ----------------------------------------------------------------------------- */
+
 %typemap(ftype, in="type($fortranclassname), pointer") SWIGTYPE *swigfhandle
   "type($fortranclassname), pointer"
 %typemap(fin) SWIGTYPE *swigfhandle

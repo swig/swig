@@ -1,17 +1,17 @@
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * typemaps.i
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 %include <fortranarray.swg>
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Enable seamless translation of consecutive pointer/size arguments to Fortran
  * array views.
  *
  * To apply these to a function `void foo(double* x, int x_length);`:
  *
  * %apply (SWIGTYPE *DATA, size_t SIZE) { (double *x, int x_length) };
- */
+ * ----------------------------------------------------------------------------- */
 
 /* Transform the two-argument typemap into an array pointer */
 %fortran_array_pointer($*1_ltype, %arg((SWIGTYPE *DATA, size_t SIZE)))
@@ -30,13 +30,13 @@ $2 = $input->size;
   $typemap(imtype, $*1_ltype), dimension(:), pointer
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Interact natively with Fortran fixed-size arrays.
  *
  * To apply these to a function `void foo(const int x[4]);`:
  *
  * %apply SWIGTYPE ARRAY[ANY] {const int x[4] };
- */
+ * ----------------------------------------------------------------------------- */
 
 %apply FORTRAN_INTRINSIC_TYPE& { SWIGTYPE ARRAY[ANY], SWIGTYPE ARRAY[ANY][ANY], SWIGTYPE ARRAY[ANY][ANY][ANY] }
 
@@ -69,15 +69,14 @@ $result = $1_temp}
  "$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)"
 
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Interact natively with Fortran deferred-size arrays.
  *
  * To apply these to a function `void foo(const int* x);`:
  *
  * %apply SWIGTYPE ARRAY[] {const int* x };
- */
+ * ----------------------------------------------------------------------------- */
 
 %apply SWIGTYPE ARRAY[ANY] { SWIGTYPE ARRAY[] };
 %apply SWIGTYPE ARRAY[ANY][ANY] { SWIGTYPE ARRAY[][ANY] };
 %apply SWIGTYPE ARRAY[ANY][ANY][ANY] { SWIGTYPE ARRAY[][ANY][ANY] };
-

@@ -1,9 +1,9 @@
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * std_multiset.i
  *
  * Note: multiset interface is identical to std::set. It simply allows multiple
  * keys.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 %include "std_set.i"
 
@@ -18,6 +18,4 @@ template<class _Key, class _Compare = std::less<_Key>, class _Alloc = std::alloc
 class multiset {
   %swig_std_multiset( _Key, _Compare, _Alloc)
 };
-} // end namespace std
-
-
+}

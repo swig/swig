@@ -1,14 +1,15 @@
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * fortranstrings.swg
  *
  * C-string typemaps for native fortran conversion.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 %include <fortranarray.swg>
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * FRAGMENTS
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 /* Return fortran allocatable array from assumed-length character string. Put a
  * null character *after* the string for compatibility with char*.
  */
@@ -47,12 +48,12 @@ subroutine %fortrantm(fout, char*)(imout, fout)
 end subroutine
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * C STRING TYPEMAPS
  *
  * By default, "char*" are automatically converted to and
  * from Fortran native strings.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 %fortran_array(char*)
 
@@ -91,13 +92,13 @@ end subroutine
          fortranconst="character(kind=C_CHAR, len=*)") const char *
   "type(C_PTR)";
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * BYTE ARRAY TYPEMAPS
  *
  * Transform (char *STRING, size_t LENGTH) to a byte array.
  *
  * Note that it's necessary to use a macro for %fortran_array to work correctly.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 /* ISO interface type: pointer to templated array wrapper */
 %fortran_array(%arg((char *STRING, size_t LENGTH)))

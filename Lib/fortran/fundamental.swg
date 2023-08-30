@@ -1,4 +1,4 @@
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * fundamental.swg
  *
  * Define fundamental/primitive/built-in types that override the SWIGTYPE
@@ -6,13 +6,14 @@
  * treated identically, we define typemaps for a fake type "FORTRAN_INTRINSIC_TYPE" and
  * %apply them where needed. This also makes debugging typemaps with
  * -debug-tmsearch easier.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 %include <typemaps/swigmacros.swg>
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * FRAGMENTS
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 /* Convert Fortran logical values to and from C-bound integers */
 %fragment("SWIG_fin"{bool}, "fsubprograms", noblock=1) {
 subroutine %fortrantm(fin, bool)(finp, iminp)
@@ -69,9 +70,10 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
  end type}
 
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * MACROS
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 /*!
  * \def %fortran_typemap_finout
  */
@@ -220,10 +222,9 @@ end subroutine}
   %typemap(fargout) DSTTYPE const ARRAY[] = SRCTYPE const ARRAY[];
 %enddef
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * GENERIC FUNDAMENTAL TYPE
- * ------------------------------------------------------------------------- */
-/*
+ *
  * The most important thing for the fundamental types is keeping their 'imtype'
  * and 'ctype' consistent, and ensuring that those types are ISO C
  * interoperable. All primitive types are interoperable, but some (such as
@@ -245,7 +246,7 @@ end subroutine}
  * Note that $1_ltype is the same for FORTRAN_INTRINSIC_TYPE*, FORTRAN_INTRINSIC_TYPE&,
  * FORTRAN_INTRINSIC_TYPE[], and FORTRAN_INTRINSIC_TYPE[ANY], and the const
  * versions of those.
- */
+ * ----------------------------------------------------------------------------- */
 
 // Fundamental types
 %typemap(in) FORTRAN_INTRINSIC_TYPE "$1 = ($1_ltype)(*$input);"
@@ -303,9 +304,9 @@ $input = &temp;%}
 // Treat rvalue references as const references (i.e. copy the result)
 %apply const FORTRAN_INTRINSIC_TYPE& { FORTRAN_INTRINSIC_TYPE&& };
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * ARRAY TYPES
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 // Generic array types with known dimensions for C binding
 %typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY]
@@ -315,18 +316,18 @@ $input = &temp;%}
 %typemap(bindc, in="$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0), target", checkdim=1) FORTRAN_INTRINSIC_TYPE[ANY][ANY][ANY]
  "$typemap(bindc, $1_basetype), dimension($1_dim2,$1_dim1,$1_dim0)"
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * UNSIGNED FUNDAMENTAL TYPE
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 %fortran_apply_typemaps(FORTRAN_INTRINSIC_TYPE, FORTRAN_UNSIGNED_TYPE)
 %typemap(in, noblock=1) const FORTRAN_UNSIGNED_TYPE& {
    $1 = ($1_ltype)($input);
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * VOID TYPES
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 %typemap(ctype, null="") void "void"
 %typemap(out)            void ""
@@ -337,9 +338,9 @@ $input = &temp;%}
 %typemap(directorin)     void ""
 %typemap(bindc)          void ""
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * FUNDAMENTAL TYPES
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 // Fundamental ISO-C binding types
 %fortran_intrinsic(signed char, integer  , C_SIGNED_CHAR)
@@ -362,7 +363,7 @@ $input = &temp;%}
 // Pointer type
 %fortran_intrinsic(void*, type, C_PTR)
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * LOGICAL (BOOLEAN) TYPE
  *
  * Due to differences in how Fortran and C treat logical values, it's not always
@@ -374,7 +375,8 @@ $input = &temp;%}
  * https://software.intel.com/en-us/forums/intel-fortran-compiler-for-linux-and-mac-os-x/topic/594856
  * http://www.fortran90.org/src/gotchas.html
  * 
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
+
 // Treat bools like integers for C/IM types
 %apply int { bool };
 %typemap(in) bool
@@ -405,9 +407,9 @@ $input = &temp;%}
 // Mutable references are treated like opaque pointers
 %apply SWIGTYPE* { bool& };
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * TYPE CHECKING
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 // Type checking isn't used for Fortran but is required for unit tests
 %typemap(typecheck, precedence=0) SWIGTYPE

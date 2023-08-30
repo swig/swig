@@ -1,4 +1,4 @@
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * std_string.i
  *
  * This header file simply applies native Fortran character string wrapping to
@@ -7,16 +7,16 @@
  * and input as
  *   character(kind=C_CHAR, len=*)
  *
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 %include <fortranstrings.swg>
 
 // Include std::string header
 %fragment("<string>");
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Typemaps for native fortran string conversion.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 %naturalvar string;
 
@@ -28,7 +28,7 @@ namespace std {
 class string;
 }
 
-/* ---- VALUE: NATIVE STRING ---- */
+/* VALUE: NATIVE STRING */
 
 %clear std::string;
 
@@ -62,7 +62,7 @@ class string;
   call SWIG_free($1%data)
 }
 
-/* ---- CONST REFERENCE: NATIVE STRING ---- */
+/* CONST REFERENCE: NATIVE STRING */
 
 // Use the same
 %clear const std::string &;

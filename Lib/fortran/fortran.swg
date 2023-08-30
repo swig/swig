@@ -1,8 +1,8 @@
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * fortran.swg
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
-/* -------------------------------------------------------------------------
+/*
    %fortranbegin : Insertion directive to add wrapper code at the very top of
    the Fortran proxy file.
 
@@ -27,7 +27,7 @@
    %fortranbindc : Generate *interfaces only*, no wrapper code, for a function
    %fortransubroutine : Change a function to a subroutine with optional return parameter.
    %fortranonlywrapped : Ignore a function or type if any of its arguments or members have  types.
- */
+*/
 #define %fortranbegin         %insert("fbegin")
 #define %proxycode            %insert("fsubprograms")
 
@@ -61,7 +61,7 @@
 // Note: preprocess concatenation (##) seems to happen before mangled name substitution (#@Type)
 #define %fortrantm(Method, Type...) SWIGTM_ ## Method ## _ ## #@Type
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  *
  * ctype      : type in C wrapper code (input parameter, default return value)
  * ctype:out  : *return* type (overrides ctype)
@@ -80,7 +80,7 @@
  *
  * fargout    : after calling the C++ function, convert the wrapper argument to 
  *              a mutable Fortran argument (e.g. for a handle `int**`)
- */
+ * ----------------------------------------------------------------------------- */
 
 /* FRAGMENT OVERRIDES */
 %include "fortranfragments.swg"
@@ -100,6 +100,4 @@
 #ifdef __cplusplus
 %include "memfunptr.swg"
 #endif
-
-
 

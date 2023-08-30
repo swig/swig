@@ -1,3 +1,7 @@
+/* -----------------------------------------------------------------------------
+ * complex.i
+ * ----------------------------------------------------------------------------- */
+
 %define %fortran_typemap_complex(CPPTYPE, CONSTRUCT_CPPTYPE, CTYPE, FKIND)
 
 %fragment("SWIG_complex_"{CTYPE}, "header", noblock=1) {
@@ -58,4 +62,3 @@ struct SwigComplex_ ## CTYPE;
 %}
 %include <ccomplex.i>
 #endif
-
