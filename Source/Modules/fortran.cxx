@@ -19,11 +19,11 @@ namespace {
  * ------------------------------------------------------------------------- */
 
 const char usage[] = "\
-Fotran Options (available with -fortran)\n\
-     -cppcast    - Enable C++ casting operators (default) \n\
-     -nocppcast  - Disable C++ casting operators\n\
-     -fext       - Change file extension of generated Fortran files to <ext>\n\
-                   (default is f90)\n\
+Fortran Options (available with -fortran)\n\
+     -cppcast        - Enable C++ casting operators (default) \n\
+     -nocppcast      - Disable C++ casting operators\n\
+     -fext           - Change file extension of generated Fortran files to <ext>\n\
+                       (default is f90)\n\
 \n";
 
 //! Maximum line length
