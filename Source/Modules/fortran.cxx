@@ -143,9 +143,9 @@ int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
     for (int i = 0; i < ndim; i++) {
       String *dim = SwigType_array_getdim(t, i);
       if (dim && Len(dim) > 0 && !is_fortran_intexpr(dim)) {
-        Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Array dimension expression '%s' is incompatible with Fortran\n", dim);
-        Delete(dim);
-        return SWIG_ERROR;
+	Swig_warning(WARN_LANG_IDENTIFIER, input_file, line_number, "Array dimension expression '%s' is incompatible with Fortran\n", dim);
+	Delete(dim);
+	return SWIG_ERROR;
       }
       Delete(dim);
     }
@@ -175,12 +175,12 @@ bool is_native_enum_decl(Node *n) {
     // Determine from enum values
     for (Node *c = firstChild(n); c; c = nextSibling(c)) {
       if (Getattr(c, "error") || GetFlag(c, "feature:ignore")) {
-        return false;
+	return false;
       }
 
       String *enum_value = Getattr(c, "enumvalue");
       if (enum_value && !is_fortran_intexpr(enum_value)) {
-        return false;
+	return false;
       }
     }
     // No bad values
@@ -242,13 +242,11 @@ String *make_import_string(String *imtype) {
     ++end;
 
   // Create a substring and convert to lowercase
-  String* result = NewStringWithSize(start, (int)(end - start));
-  for (char* c = Char(result); *c != '\0'; ++c)
+  String *result = NewStringWithSize(start, (int) (end - start));
+  for (char *c = Char(result); *c != '\0'; ++c)
     *c = tolower(*c);
 
-  if (Strcmp(result, "c_ptr") == 0
-      || Strcmp(result, "c_funptr") == 0)
-  {
+  if (Strcmp(result, "c_ptr") == 0 || Strcmp(result, "c_funptr") == 0) {
     // Don't import types pulled in from `use, intrinsic :: ISO_C_BINDING`
     Delete(result);
     result = NULL;
@@ -311,7 +309,7 @@ String *shorten_identifier(String *inp, int maxlen, int warning) {
  *
  * *assumes ownership of input and returns new'd value*
  */
-String *ensure_short(String *str, int maxlen=63, int warning=WARN_NONE) {
+String *ensure_short(String *str, int maxlen = 63, int warning = WARN_NONE) {
   if (Len(str) > maxlen) {
     String *shortened = shorten_identifier(str, maxlen, warning);
     assert(is_valid_identifier(shortened));
@@ -357,7 +355,7 @@ String *proxy_name_construct(String *nspace, const_String_or_char_ptr symname) {
  */
 String *make_fname(String *name, int warning = WARN_LANG_IDENTIFIER) {
   assert(name);
-  String* result = NULL;
+  String *result = NULL;
 
   // Move underscores and leading digits to the end of the string
   const char *start = Char(name);
@@ -379,9 +377,7 @@ String *make_fname(String *name, int warning = WARN_LANG_IDENTIFIER) {
     Delete(tail);
 
     if (warning != WARN_NONE && !Getmeta(name, "already_warned")) {
-      Swig_warning(warning, input_file, line_number,
-                   "Fortran identifiers may not begin with underscores or numerals: renaming '%s' to '%s'\n",
-                   name, result);
+      Swig_warning(warning, input_file, line_number, "Fortran identifiers may not begin with underscores or numerals: renaming '%s' to '%s'\n", name, result);
     }
     Setmeta(name, "already_warned", "1");
   }
@@ -448,9 +444,7 @@ String *get_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ex
     if (!type) {
       type = NewString("UNKNOWN");
     }
-    Swig_warning(warning, Getfile(n), Getline(n),
-                 "No '%s' typemap defined for %s\n",
-                 tmname, SwigType_str(type, NULL));
+    Swig_warning(warning, Getfile(n), Getline(n), "No '%s' typemap defined for %s\n", tmname, SwigType_str(type, NULL));
 
     String *tmap_match_key = NewStringf("tmap:%s:match_type", tmname);
     Setattr(n, tmap_match_key, "SWIGTYPE");
@@ -511,7 +505,6 @@ SwigType *parse_typemap(const_String_or_char_ptr tmname, const_String_or_char_pt
   if (!parsed_type) {
     return NULL;
   }
-
   // Replace the contents of the original typemap string with the parsed
   // result -- this is a sort of hack for avoiding the 'Setattr(tmname,
   // resolved_type)' where we'd have to recalculate the tmname key again
@@ -552,12 +545,12 @@ String *function_exception_qualifiers(Node *n) {
     int gencomma = 0;
     for (p = throw_parm_list; p; p = nextSibling(p)) {
       if (Getattr(p, "tmap:throws")) {
-        if (gencomma++) {
-          Append(result, ", ");
-        }
-        String *str = SwigType_str(Getattr(p, "type"), 0);
-        Append(result, str);
-        Delete(str);
+	if (gencomma++) {
+	  Append(result, ", ");
+	}
+	String *str = SwigType_str(Getattr(p, "type"), 0);
+	Append(result, str);
+	Delete(str);
       }
     }
 
@@ -651,8 +644,9 @@ public:
   virtual int classDirectorDestructor(Node *n);
   virtual int classDirectorEnd(Node *n);
   virtual int classDirectorDisown(Node *n);
-  virtual bool extraDirectorProtectedCPPMethodsRequired() const { return false; }
-
+  virtual bool extraDirectorProtectedCPPMethodsRequired() const {
+    return false;
+  }
   virtual String *makeParameterName(Node *n, Parm *p, int arg_num, bool is_setter = false) const;
   virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm);
 
@@ -685,15 +679,17 @@ private:
   // Add lowercase symbol (fortran) to the module's namespace
   int add_fsymbol(String *s, Node *n);
   // Whether the current class is a BIND(C) struct
-  bool is_bindc_struct() const { assert(this->getCurrentClass()); return d_method_overloads == NULL; }
+  bool is_bindc_struct() const {
+    assert(this->getCurrentClass());
+    return d_method_overloads == NULL;
+  }
 };
 
 /* -------------------------------------------------------------------------
  * \brief Constructor.
  */
 FORTRAN::FORTRAN() :
-  d_emitted_mangled(NULL), d_callbacks(NULL), d_overloads(NULL), d_private_overloads(NULL), f_class(NULL), d_method_overloads(NULL), 
-  d_enum_public(NULL) {
+d_emitted_mangled(NULL), d_callbacks(NULL), d_overloads(NULL), d_private_overloads(NULL), f_class(NULL), d_method_overloads(NULL), d_enum_public(NULL) {
 
   // Mark this language as supporting directors
   directorLanguage();
@@ -727,12 +723,12 @@ void FORTRAN::main(int argc, char *argv[]) {
     } else if (strcmp(argv[i], "-fext") == 0) {
       Swig_mark_arg(i);
       if (argv[i + 1]) {
-        Delete(d_fext);
-        d_fext = NewString(argv[i + 1]);
-        Swig_mark_arg(i + 1);
-        ++i;
+	Delete(d_fext);
+	d_fext = NewString(argv[i + 1]);
+	Swig_mark_arg(i + 1);
+	++i;
       } else {
-        Swig_arg_error();
+	Swig_arg_error();
       }
     } else if ((strcmp(argv[i], "-help") == 0)) {
       Printv(stdout, usage, NULL);
@@ -991,10 +987,7 @@ void FORTRAN::write_module(String *filename) {
   // Write module
   Dump(f_fbegin, out);
   Dump(f_fuse, out);
-  Printv(out,
-         " implicit none\n"
-         " private\n",
-         NULL);
+  Printv(out, " implicit none\n" " private\n", NULL);
 
   // Types and such
   Printv(out, "\n ! DECLARATION CONSTRUCTS\n", f_fdecl, NULL);
@@ -1007,10 +1000,7 @@ void FORTRAN::write_module(String *filename) {
       continue;
     }
 
-    Printv(out,
-           " interface ", kv.key, "\n"
-           "  module procedure ",
-           NULL);
+    Printv(out, " interface ", kv.key, "\n" "  module procedure ", NULL);
 
     // Write overloaded procedure names
     int line_length = 19;
@@ -1022,29 +1012,13 @@ void FORTRAN::write_module(String *filename) {
   }
 
   if (Len(f_fabstract) > 0) {
-    Printv(out,
-           "\n! FUNCTION POINTER DECLARATIONS\n"
-           "abstract interface\n",
-           f_fabstract,
-           "end interface\n"
-           "\n",
-           NULL);
+    Printv(out, "\n! FUNCTION POINTER DECLARATIONS\n" "abstract interface\n", f_fabstract, "end interface\n" "\n", NULL);
   }
   if (Len(f_finterfaces) > 0) {
-    Printv(out,
-           "\n! WRAPPER DECLARATIONS\n"
-           "interface\n",
-           f_finterfaces,
-           "end interface\n"
-           "\n",
-           NULL);
+    Printv(out, "\n! WRAPPER DECLARATIONS\n" "interface\n", f_finterfaces, "end interface\n" "\n", NULL);
   }
   if (Len(f_fsubprograms) > 0) {
-    Printv(out,
-           "\ncontains\n"
-           " ! MODULE SUBPROGRAMS\n",
-           f_fsubprograms,
-           NULL);
+    Printv(out, "\ncontains\n" " ! MODULE SUBPROGRAMS\n", f_fsubprograms, NULL);
   }
   Printv(out, "\nend module", "\n", NULL);
 
@@ -1089,15 +1063,14 @@ int FORTRAN::functionWrapper(Node *n) {
 
   // Generate a unique wrapper name
   wname = Swig_name_wrapper(symname);
-  imname = ensure_short(NewStringf("swigc_%s", symname),
-                        63 - (overload_ext ? Len(overload_ext) : 0));
+  imname = ensure_short(NewStringf("swigc_%s", symname), 63 - (overload_ext ? Len(overload_ext) : 0));
 
   if (String *private_fname = Getattr(n, "fortran:fname")) {
     // Create "private" fortran wrapper function class (swigf_xx) name that will be bound to a class
     fname = Copy(private_fname);
     ASSERT_OR_PRINT_NODE(is_valid_identifier(fname), n);
   } else if (String *varname = Getattr(n, "fortran:variable")) {
-    const char* prefix = (GetFlag(n, "memberset") || GetFlag(n, "varset")) ? "set" : "get";
+    const char *prefix = (GetFlag(n, "memberset") || GetFlag(n, "varset")) ? "set" : "get";
     fname = ensure_short(NewStringf("%s_%s", prefix, varname));
 
     if (member) {
@@ -1120,7 +1093,6 @@ int FORTRAN::functionWrapper(Node *n) {
     assert(!fsymname);
     fsymname = Copy(manual_name);
   }
-
   // Add suffix if the function is overloaded (can't overload C bound functions)
   if (String *overload_ext = (Getattr(n, "sym:overloaded") ? Getattr(n, "sym:overname") : NULL)) {
     Append(wname, overload_ext);
@@ -1134,7 +1106,6 @@ int FORTRAN::functionWrapper(Node *n) {
     Append(fname, overload_ext);
     generic = true;
   }
-
   // Check for conflicts with other member functions in parent classes:
   // - If the lowercase/renamed function name is the same as any other class
   //   function (or base class's function), print a warning and ignore it.
@@ -1150,24 +1121,20 @@ int FORTRAN::functionWrapper(Node *n) {
     // Check against lowercase name conflicts
     for (Symtab *st = fsymtab; st; st = parentNode(st)) {
       if (Node *other = Getattr(st, lower_fsymname)) {
-        String *other_fsymname = Getattr(other, "wrap:fsymname");
-        if (!other_fsymname) {
-          other_fsymname = Getattr(other, "fortran:name");
-        }
-        if (other_fsymname && !Equal(other_fsymname, fsymname)) {
-          // It's actually a different identifier
-          Swig_warning(WARN_FORTRAN_NAME_COLLISION, input_file, line_number,
-                       "Ignoring '%s' due to name conflict with '%s'\n",
-                       fsymname, other_fsymname);
-          Swig_warning(WARN_FORTRAN_NAME_COLLISION, Getfile(other), Getline(other),
-                       "Previous declaration of '%s'\n",
-                       Getattr(other, "sym:name"));
-          SetFlag(n, "fortran:ignore");
-          return SWIG_NOWRAP;
-        } else if (st != fsymtab) {
-          // Same function but in a base class
-          overload_base = other;
-        }
+	String *other_fsymname = Getattr(other, "wrap:fsymname");
+	if (!other_fsymname) {
+	  other_fsymname = Getattr(other, "fortran:name");
+	}
+	if (other_fsymname && !Equal(other_fsymname, fsymname)) {
+	  // It's actually a different identifier
+	  Swig_warning(WARN_FORTRAN_NAME_COLLISION, input_file, line_number, "Ignoring '%s' due to name conflict with '%s'\n", fsymname, other_fsymname);
+	  Swig_warning(WARN_FORTRAN_NAME_COLLISION, Getfile(other), Getline(other), "Previous declaration of '%s'\n", Getattr(other, "sym:name"));
+	  SetFlag(n, "fortran:ignore");
+	  return SWIG_NOWRAP;
+	} else if (st != fsymtab) {
+	  // Same function but in a base class
+	  overload_base = other;
+	}
       }
     }
 
@@ -1175,37 +1142,30 @@ int FORTRAN::functionWrapper(Node *n) {
     // functions to shadow base class functions.
     if (Node *other = Getattr(n, "hides")) {
       if (Getattr(other, "fortran:generic")) {
-        Swig_warning(WARN_LANG_OVERLOAD_SHADOW, input_file, line_number,
-                     "Ignoring '%s' because it shadows a generic base class function '%s'\n",
-                     fsymname, Getattr(other, "fortran:name"));
-        Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(other), Getline(other),
-                     "Previous declaration of '%s'\n",
-                     Getattr(other, "sym:name"));
-        SetFlag(n, "fortran:ignore");
-        return SWIG_NOWRAP;
+	Swig_warning(WARN_LANG_OVERLOAD_SHADOW, input_file, line_number,
+		     "Ignoring '%s' because it shadows a generic base class function '%s'\n", fsymname, Getattr(other, "fortran:name"));
+	Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(other), Getline(other), "Previous declaration of '%s'\n", Getattr(other, "sym:name"));
+	SetFlag(n, "fortran:ignore");
+	return SWIG_NOWRAP;
       }
     }
-
     // Check for different return type
     if (Node *other = Getattr(n, "override")) {
       if (SwigType *covar = Getattr(n, "covariant")) {
-        Swig_warning(WARN_FORTRAN_COVARIANT_RET, input_file, line_number,
-                     "Ignoring '%s' because the base class function '%s' has a different return type '%s'\n",
-                     fsymname, Getattr(other, "fortran:name"),
-                     SwigType_str(covar, NULL));
-        Swig_warning(WARN_FORTRAN_COVARIANT_RET, Getfile(other), Getline(other),
-                     "Previous declaration of '%s'\n",
-                     Getattr(other, "sym:name"));
-        SetFlag(n, "fortran:ignore");
-        return SWIG_NOWRAP;
+	Swig_warning(WARN_FORTRAN_COVARIANT_RET, input_file, line_number,
+		     "Ignoring '%s' because the base class function '%s' has a different return type '%s'\n",
+		     fsymname, Getattr(other, "fortran:name"), SwigType_str(covar, NULL));
+	Swig_warning(WARN_FORTRAN_COVARIANT_RET, Getfile(other), Getline(other), "Previous declaration of '%s'\n", Getattr(other, "sym:name"));
+	SetFlag(n, "fortran:ignore");
+	return SWIG_NOWRAP;
       }
 
       if (Getattr(other, "fortran:generic")) {
-        // The base class's method is wrapped and it's generic. Do *not*
-        // generate a wrapper for this function since it would be ambiguous
-        // with the base class.
-        SetFlag(n, "fortran:ignore");
-        return SWIG_NOWRAP;
+	// The base class's method is wrapped and it's generic. Do *not*
+	// generate a wrapper for this function since it would be ambiguous
+	// with the base class.
+	SetFlag(n, "fortran:ignore");
+	return SWIG_NOWRAP;
       }
     }
 
@@ -1213,17 +1173,14 @@ int FORTRAN::functionWrapper(Node *n) {
       // Same name as a base class function; either implementing it or
       // overloading it.
       if (Getattr(other, "fortran:generic")) {
-        // Parent class's function is generic, so must we be too
-        generic = true;
+	// Parent class's function is generic, so must we be too
+	generic = true;
       } else if (generic) {
-        Swig_warning(WARN_LANG_OVERLOAD_SHADOW, input_file, line_number,
-                     "Ignoring generic '%s': it cannot override a specific binding '%s' with the same name\n",
-                     fsymname, Getattr(other, "fortran:name"));
-        Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(other), Getline(other),
-                     "Previous declaration of '%s'\n",
-                     Getattr(other, "sym:name"));
-        SetFlag(n, "fortran:ignore");
-        return SWIG_NOWRAP;
+	Swig_warning(WARN_LANG_OVERLOAD_SHADOW, input_file, line_number,
+		     "Ignoring generic '%s': it cannot override a specific binding '%s' with the same name\n", fsymname, Getattr(other, "fortran:name"));
+	Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(other), Getline(other), "Previous declaration of '%s'\n", Getattr(other, "sym:name"));
+	SetFlag(n, "fortran:ignore");
+	return SWIG_NOWRAP;
       }
       // Mark the function as overriding in Fortran, even though it may not be
       // overriding in C++
@@ -1322,8 +1279,8 @@ int FORTRAN::functionWrapper(Node *n) {
       // Add name to method overload list
       List *overloads = Getattr(d_method_overloads, fsymname);
       if (!overloads) {
-        overloads = NewList();
-        Setattr(d_method_overloads, fsymname, overloads);
+	overloads = NewList();
+	Setattr(d_method_overloads, fsymname, overloads);
       }
       Append(overloads, fname);
 
@@ -1359,7 +1316,7 @@ int FORTRAN::functionWrapper(Node *n) {
 /* -------------------------------------------------------------------------
  * \brief Generate C/C++ wrapping code
  */
-Wrapper * FORTRAN::cfuncWrapper(Node *n) {
+Wrapper *FORTRAN::cfuncWrapper(Node *n) {
   String *symname = Getattr(n, "sym:name");
 
   Wrapper *cfunc = NewWrapper();
@@ -1371,9 +1328,7 @@ Wrapper * FORTRAN::cfuncWrapper(Node *n) {
   Swig_typemap_lookup("ctype", n, Getattr(n, "name"), NULL);
   SwigType *c_return_type = parse_typemap("ctype", n, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
   if (!c_return_type) {
-    Swig_error(input_file, line_number,
-               "Failed to parse 'ctype' typemap return value of '%s'\n",
-               symname);
+    Swig_error(input_file, line_number, "Failed to parse 'ctype' typemap return value of '%s'\n", symname);
     return NULL;
   }
 
@@ -1433,8 +1388,7 @@ Wrapper * FORTRAN::cfuncWrapper(Node *n) {
     if (checkAttribute(p, "varargs:ignore", "1")) {
       // We don't understand varargs
       Swig_warning(WARN_LANG_NATIVE_UNIMPL, Getfile(p), Getline(p),
-                   "Variable arguments (in function '%s') are not implemented in Fortran.\n",
-                   Getattr(n, "sym:name"));
+		   "Variable arguments (in function '%s') are not implemented in Fortran.\n", Getattr(n, "sym:name"));
       continue;
     }
 
@@ -1448,8 +1402,7 @@ Wrapper * FORTRAN::cfuncWrapper(Node *n) {
     SwigType *ctype = parse_typemap("ctype", "in", p, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
     if (!ctype) {
       Swig_error(input_file, line_number,
-                 "Failed to parse 'ctype' typemap for argument '%s' of '%s'\n",
-                 SwigType_str(Getattr(p, "type"), Getattr(p, "name")), symname);
+		 "Failed to parse 'ctype' typemap for argument '%s' of '%s'\n", SwigType_str(Getattr(p, "type"), Getattr(p, "name")), symname);
       return NULL;
     }
     // Convert the type and argument name to a valid C expression
@@ -1477,8 +1430,8 @@ Wrapper * FORTRAN::cfuncWrapper(Node *n) {
     }
     for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
       if (!this->is_wrapped_class(it.item)) {
-        DelWrapper(cfunc);
-        return NULL;
+	DelWrapper(cfunc);
+	return NULL;
       }
     }
   }
@@ -1536,8 +1489,7 @@ Wrapper * FORTRAN::cfuncWrapper(Node *n) {
   } else {
     // XXX this should probably raise an error
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
-                 "Unable to use return type %s in function %s.\n",
-                 SwigType_str(return_cpptype, NULL), Getattr(n, "name"));
+		 "Unable to use return type %s in function %s.\n", SwigType_str(return_cpptype, NULL), Getattr(n, "name"));
   }
   emit_return_variable(n, return_cpptype, cfunc);
 
@@ -1602,7 +1554,7 @@ Wrapper * FORTRAN::cfuncWrapper(Node *n) {
  * This is the Fortran equivalent of the cfuncWrapper's declaration.
  */
 Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
-  const char * const tmtype = bindc ? "bindc" : "imtype";
+  const char *const tmtype = bindc ? "bindc" : "imtype";
   const int warning_flag = bindc ? WARN_TYPEMAP_UNDEF : WARN_FORTRAN_TYPEMAP_IMTYPE_UNDEF;
 
   Wrapper *imfunc = NewFortranWrapper();
@@ -1777,14 +1729,13 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
     if (overload && overload != n) {
       String *is_sibling_fsubroutine = Getattr(overload, "fortran:subroutine");
       if (!Equal(is_sibling_fsubroutine, subroutine_flag_str(is_fsubroutine))) {
-        // The parent procedure's return value conflicts with this one. (Perhaps the
-        // conversion feature was applied only to the parent class, or a weird
-        // typemap is in play?)
-        conflicting_subroutine = overload;
+	// The parent procedure's return value conflicts with this one. (Perhaps the
+	// conversion feature was applied only to the parent class, or a weird
+	// typemap is in play?)
+	conflicting_subroutine = overload;
       }
     }
   }
-
   // Mark as a subroutine if it's naturally a subroutine or is being converted;
   // but mark it as a function if it's not being wrapped because it looks like
   // a subroutine. This allows later non-void functions to correctly wrapped as
@@ -1797,17 +1748,15 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   if (conflicting_subroutine) {
     // An already-wrapped overloaded function already has been declared as
     // a Fortran function.
-    Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(n), Getline(n),
-                 "Overloaded function cannot return both 'void' and non-'void' in Fortran: ignoring\n");
-    Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(conflicting_subroutine), Getline(conflicting_subroutine),
-                 "Other function declared here\n");
+    Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(n), Getline(n), "Overloaded function cannot return both 'void' and non-'void' in Fortran: ignoring\n");
+    Swig_warning(WARN_LANG_OVERLOAD_IGNORED, Getfile(conflicting_subroutine), Getline(conflicting_subroutine), "Other function declared here\n");
     DelWrapper(ffunc);
     return NULL;
   }
 
   if (func_to_subroutine && GetFlag(n, "tmap:ftype:nofortransubroutine")) {
     Swig_warning(WARN_FORTRAN_NO_SUBROUTINE, Getfile(n), Getline(n),
-	"The given type '%s' cannot be converted from a function result to an optional subroutine argument\n", SwigType_str(return_cpptype, 0));
+		 "The given type '%s' cannot be converted from a function result to an optional subroutine argument\n", SwigType_str(return_cpptype, 0));
     func_to_subroutine = false;
     is_fsubroutine = false;
     if (!GetFlag(n, "feature:fortran:subroutine")) {
@@ -1878,12 +1827,11 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
     if (String *temptype = Getattr(p, "tmap:fin:temp")) {
       Chop(temptype);
       if (Len(temptype) > 0) {
-        String *tempname = NewStringf("%s_temp", imname);
-        this->replace_fclassname(n, Getattr(p, "type"), temptype);
-        Wrapper_add_localv(ffunc, tempname, temptype, "::", tempname, NULL);
+	String *tempname = NewStringf("%s_temp", imname);
+	this->replace_fclassname(n, Getattr(p, "type"), temptype);
+	Wrapper_add_localv(ffunc, tempname, temptype, "::", tempname, NULL);
       }
     }
-
     // Emit local intermediate parameter in the proxy function
     String *imtype = get_typemap("imtype", p, WARN_FORTRAN_TYPEMAP_IMTYPE_UNDEF);
     this->replace_fclassname(n, Getattr(p, "type"), imtype);
@@ -1935,20 +1883,15 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
     String *farg = this->makeParameterName(n, p, i++);
     if (parent_arglist) {
       if (!parent_arg.item) {
-        Swig_error(input_file, line_number,
-                   "Function '%s' has a different number of Fortran arguments from the function it overrides\n",
-                   fsymname);
-        Swig_error(Getfile(overridden), Getline(overridden), "Base class function declared here\n");
-        return NULL;
+	Swig_error(input_file, line_number, "Function '%s' has a different number of Fortran arguments from the function it overrides\n", fsymname);
+	Swig_error(Getfile(overridden), Getline(overridden), "Base class function declared here\n");
+	return NULL;
       }
       if (Strcmp(farg, parent_arg.item) != 0) {
-        Swig_warning(WARN_FORTRAN_ARGUMENT_NAME, Getfile(n), Getline(n),
-                     "Changing argument name '%s' to '%s' to match the overridden function '%s'\n",
-                     farg,
-                     parent_arg.item,
-                     fsymname);
-        Delete(farg);
-        farg = Copy(parent_arg.item);
+	Swig_warning(WARN_FORTRAN_ARGUMENT_NAME, Getfile(n), Getline(n),
+		     "Changing argument name '%s' to '%s' to match the overridden function '%s'\n", farg, parent_arg.item, fsymname);
+	Delete(farg);
+	farg = Copy(parent_arg.item);
       }
       parent_arg = Next(parent_arg);
     }
@@ -2089,8 +2032,8 @@ int FORTRAN::bindcvarWrapper(Node *n) {
   String *bindc_typestr = attach_typemap("bindc", n, WARN_NONE);
   if (!bindc_typestr) {
     Swig_warning(WARN_TYPEMAP_UNDEF, Getfile(n), Getline(n),
-                 "The 'bindc' typemap for '%s' is not defined, so the corresponding variable cannot be generated\n",
-                 SwigType_str(Getattr(n, "type"), Getattr(n, "sym:name")));
+		 "The 'bindc' typemap for '%s' is not defined, so the corresponding variable cannot be generated\n",
+		 SwigType_str(Getattr(n, "type"), Getattr(n, "sym:name")));
     return SWIG_NOWRAP;
   }
 
@@ -2100,10 +2043,9 @@ int FORTRAN::bindcvarWrapper(Node *n) {
 
   if (CPlusPlus && !Swig_storage_isexternc(n)) {
     Swig_error(input_file,
-               line_number,
-               "The C++ global variable '%s' is not defined with external "
-               "C linkage (extern \"C\"), but it is marked with %%fortranbindc.\n",
-               Getattr(n, "sym:name"));
+	       line_number,
+	       "The C++ global variable '%s' is not defined with external "
+	       "C linkage (extern \"C\"), but it is marked with %%fortranbindc.\n", Getattr(n, "sym:name"));
     return SWIG_ERROR;
   }
 
@@ -2111,16 +2053,13 @@ int FORTRAN::bindcvarWrapper(Node *n) {
   ASSERT_OR_PRINT_NODE(name, n);
   ASSERT_OR_PRINT_NODE(Getattr(n, "type"), n);
 
-  const char* protection_str = "";
+  const char *protection_str = "";
   if (strncmp(Char(Getattr(n, "type")), "q(const)", 8) == 0) {
     protection_str = "protected, ";
   }
 
   Printv(f_fdecl, " ", bindc_typestr, ", public, ", protection_str, "&\n",
-         "   bind(C, name=\"", name, "\") :: ",
-         (Len(name) > 60 ? "&\n    " : ""),
-         fsymname, "\n",
-         NULL);
+	 "   bind(C, name=\"", name, "\") :: ", (Len(name) > 60 ? "&\n    " : ""), fsymname, "\n", NULL);
   return SWIG_OK;
 }
 
@@ -2249,26 +2188,24 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
   String *origname = name;
 
   // Symbol tables for module and forward-declared class scopes
-  FORTRAN *mthis = const_cast<FORTRAN *>(this);
+  FORTRAN *mthis = const_cast < FORTRAN * >(this);
   Hash *symtab = mthis->symbolScopeLookup(NULL);
 
   bool valid = false;
-  while (!valid)
-  {
+  while (!valid) {
     valid = true;
     if (ParmList *parmlist = Getattr(n, "parms")) {
       // Check against previously generated names in this parameter list
       for (Parm *other = parmlist; other; other = nextSibling(other)) {
-        if (other == p)
-          break;
-        String *other_name = Getattr(other, "fname");
-        if (other_name && Strcmp(name, other_name) == 0) {
-          valid = false;
-          break;
-        }
+	if (other == p)
+	  break;
+	String *other_name = Getattr(other, "fname");
+	if (other_name && Strcmp(name, other_name) == 0) {
+	  valid = false;
+	  break;
+	}
       }
     }
-
     // If the parameter name is in the fortran scope, or in the
     // forward-declared classes, mangle it
     if (valid && (Getattr(symtab, name))) {
@@ -2277,7 +2214,7 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
 
     if (!valid) {
       if (name != origname)
-        Delete(name);
+	Delete(name);
       // Try another name and loop again
       name = NewStringf("%s%d", origname, arg_num++);
     }
@@ -2338,16 +2275,13 @@ int FORTRAN::classDeclaration(Node *n) {
   if (lower_fsymname) {
     for (Symtab *st = base_fsymtab; st; st = parentNode(st)) {
       if (Node *other = Getattr(st, lower_fsymname)) {
-        Swig_error(input_file, line_number,
-                   "Class '%s' has the same Fortran name as an inherited class function '%s'\n",
-                   fsymname, Getattr(other, "fortran:name"));
-        Swig_error(Getfile(other), Getline(other), "Previous declaration of '%s'\n",
-                   Getattr(other, "sym:name"));
-        return SWIG_NOWRAP;
+	Swig_error(input_file, line_number,
+		   "Class '%s' has the same Fortran name as an inherited class function '%s'\n", fsymname, Getattr(other, "fortran:name"));
+	Swig_error(Getfile(other), Getline(other), "Previous declaration of '%s'\n", Getattr(other, "sym:name"));
+	return SWIG_NOWRAP;
       }
     }
   }
-
   // Define policy
   if (CPlusPlus) {
     if (SwigType *name = Getattr(n, "name")) {
@@ -2358,9 +2292,9 @@ int FORTRAN::classDeclaration(Node *n) {
       // Define policies for the class
       const char *policy = "swig::ASSIGNMENT_DEFAULT";
       if (Getattr(n, "feature:smartptr")) {
-        policy = "swig::ASSIGNMENT_SMARTPTR";
+	policy = "swig::ASSIGNMENT_SMARTPTR";
       } else if (!GetFlag(n, "allocate:default_destructor")) {
-        policy = "swig::ASSIGNMENT_NODESTRUCT";
+	policy = "swig::ASSIGNMENT_NODESTRUCT";
       }
       Printv(f_policies, "#define ", policystr, " ", policy, "\n", NULL);
     }
@@ -2388,18 +2322,14 @@ int FORTRAN::classHandler(Node *n) {
     } else {
       // Another base class exists
       Swig_warning(WARN_FORTRAN_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-                   "Multiple inheritance is not supported in Fortran. Ignoring base class %s for %s\n",
-                   Getattr(b, "sym:name"),
-                   Getattr(n, "sym:name"));
+		   "Multiple inheritance is not supported in Fortran. Ignoring base class %s for %s\n", Getattr(b, "sym:name"), Getattr(n, "sym:name"));
     }
   }
 
   const bool bindc = (GetFlag(n, "feature:fortran:bindc"));
   if (bindc && base_fsymname) {
     // Disallow inheritance for BIND(C) types
-    Swig_error(input_file, line_number,
-               "Struct '%s' uses the '%%fortranbindc' feature, so it cannot use inheritance.\n",
-               fsymname);
+    Swig_error(input_file, line_number, "Struct '%s' uses the '%%fortranbindc' feature, so it cannot use inheritance.\n", fsymname);
     return SWIG_NOWRAP;
   }
 
@@ -2425,11 +2355,8 @@ int FORTRAN::classHandler(Node *n) {
     if (!base_fsymname) {
       // Insert the class data if this doesn't inherit from anything
       emit_fragment("SwigClassWrapper_f");
-      Printv(f_class,
-             "  type(SwigClassWrapper), public :: swigdata\n",
-             NULL);
+      Printv(f_class, "  type(SwigClassWrapper), public :: swigdata\n", NULL);
     }
-
     // Initialize output strings that will be added by 'functionHandler'.
     d_method_overloads = NewHash();
 
@@ -2471,9 +2398,7 @@ int FORTRAN::classHandler(Node *n) {
   // Add fortran handle if a director
   if (Node *handlen = Getattr(n, "fortran:handle")) {
     String *handlefsymname = Getattr(handlen, "fortran:name");
-    Printv(f_class, " type ", handlefsymname, "\n",
-                    "  class(", fsymname, "), pointer :: swigfptr\n",
-                    " end type ", handlefsymname, "\n", NULL);
+    Printv(f_class, " type ", handlefsymname, "\n", "  class(", fsymname, "), pointer :: swigfptr\n", " end type ", handlefsymname, "\n", NULL);
   }
 
   // Write the constructed class out to the declaration part of the module
@@ -2516,7 +2441,6 @@ int FORTRAN::destructorHandler(Node *n) {
     // Don't generate destructor for %fortranbindc structs
     return SWIG_NOWRAP;
   }
-  
   // Make the destructor a member function called 'release'
   Setattr(n, "fortran:name", "release");
   SetFlag(n, "fortran:ismember");
@@ -2539,12 +2463,10 @@ int FORTRAN::destructorHandler(Node *n) {
   if (Swig_directorclass(getCurrentClass())) {
     Printv(destruct_action, " call swig_finalize(self)\n", NULL);
   }
-  Printv(destruct_action,
-         " $action\n"
-         "endif\n"
-         "farg1%cptr = C_NULL_PTR\n"
-         "farg1%cmemflags = 0\n",
-         NULL);
+  Printv(destruct_action, " $action\n"
+      "endif\n"
+      "farg1%cptr = C_NULL_PTR\n"
+      "farg1%cmemflags = 0\n", NULL);
   Setattr(n, "feature:shadow", destruct_action);
 
   return Language::destructorHandler(n);
@@ -2559,9 +2481,7 @@ int FORTRAN::memberfunctionHandler(Node *n) {
   String *class_symname = Getattr(this->getCurrentClass(), "sym:name");
 
   if (this->is_bindc_struct()) {
-    Swig_error(input_file, line_number,
-               "Struct '%s' has the 'fortranbindc' feature set, so it cannot have member functions\n",
-               class_symname);
+    Swig_error(input_file, line_number, "Struct '%s' has the 'fortranbindc' feature set, so it cannot have member functions\n", class_symname);
     return SWIG_NOWRAP;
   }
 
@@ -2598,8 +2518,8 @@ int FORTRAN::membervariableHandler(Node *n) {
       // data, an interface type MUST be specified!
       String *class_symname = Getattr(this->getCurrentClass(), "sym:name");
       Swig_error(input_file, line_number,
-                 "Struct '%s' has the 'fortranbindc' feature set, but member variable '%s' (type '%s') has no 'bindc' typemap defined\n",
-                 class_symname, fsymname, SwigType_namestr(datatype));
+		 "Struct '%s' has the 'fortranbindc' feature set, but member variable '%s' (type '%s') has no 'bindc' typemap defined\n",
+		 class_symname, fsymname, SwigType_namestr(datatype));
       return SWIG_NOWRAP;
     }
     this->replace_fclassname(n, datatype, bindc_typestr);
@@ -2656,10 +2576,7 @@ int FORTRAN::globalfunctionHandler(Node *n) {
 
   if (GetFlag(n, "feature:fortran:bindc")) {
     if (GetFlagAttr(n, "feature:callback")) {
-      Swig_warning(WARN_FORTRAN_IGNORE_CALLBACK, input_file,
-                 line_number,
-                 "Ignoring %%callback for %%fortranbindc function '%s'\n",
-                 Getattr(n, "sym:name"));
+      Swig_warning(WARN_FORTRAN_IGNORE_CALLBACK, input_file, line_number, "Ignoring %%callback for %%fortranbindc function '%s'\n", Getattr(n, "sym:name"));
     }
     // The wrapped function name *is* the C function name
     Setattr(n, "wrap:name", Getattr(n, "name"));
@@ -2721,10 +2638,8 @@ int FORTRAN::bindcfunctionHandler(Node *n) {
 
   if (CPlusPlus && !Swig_storage_isexternc(n)) {
     Swig_error(input_file,
-               line_number,
-               "The C++ function '%s' is not defined with external "
-               "C linkage (extern \"C\"), but it is being directly wrapped.\n",
-               symname);
+	       line_number, "The C++ function '%s' is not defined with external "
+	       "C linkage (extern \"C\"), but it is being directly wrapped.\n", symname);
   }
 
   // Interface function name in Fortran module
@@ -2785,9 +2700,7 @@ int FORTRAN::bindcfunctionHandler(Node *n) {
 int FORTRAN::staticmemberfunctionHandler(Node *n) {
   String *class_symname = Getattr(getCurrentClass(), "sym:name");
   if (this->is_bindc_struct()) {
-    Swig_error(input_file, line_number,
-               "Struct '%s' has the 'fortranbindc' feature set, so it cannot have static member functions\n",
-               class_symname);
+    Swig_error(input_file, line_number, "Struct '%s' has the 'fortranbindc' feature set, so it cannot have static member functions\n", class_symname);
     return SWIG_NOWRAP;
   }
 
@@ -2795,7 +2708,7 @@ int FORTRAN::staticmemberfunctionHandler(Node *n) {
   Setattr(n, "fortran:name", make_fname(Getattr(n, "sym:name")));
 
   // Create a private procedure name that gets bound to the Fortan TYPE
-  String *fwrapname = proxy_name_construct(this->getNSpace(), class_symname,Getattr(n, "sym:name"));
+  String *fwrapname = proxy_name_construct(this->getNSpace(), class_symname, Getattr(n, "sym:name"));
 
   Setattr(n, "fortran:fname", fwrapname);
 
@@ -2927,16 +2840,13 @@ int FORTRAN::enumDeclaration(Node *n) {
     for (Symtab *st = fsymtab; st; st = parentNode(st)) {
       Node *other = Getattr(st, lower_fsymname);
       if (other) {
-        Swig_warning(WARN_FORTRAN_NAME_COLLISION, Getfile(c), Getline(c),
-                     "Ignoring '%s' due to name conflict with '%s' in '%s'\n",
-                     child_fsymname, Getattr(other, "fortran:name"), Getattr(st, "fortran:name"));
-        Swig_warning(WARN_FORTRAN_NAME_COLLISION, Getfile(other), Getline(other),
-                     "Previous declaration of '%s'\n",
-                     Getattr(other, "sym:name"));
+	Swig_warning(WARN_FORTRAN_NAME_COLLISION, Getfile(c), Getline(c),
+		     "Ignoring '%s' due to name conflict with '%s' in '%s'\n", child_fsymname, Getattr(other, "fortran:name"), Getattr(st, "fortran:name"));
+	Swig_warning(WARN_FORTRAN_NAME_COLLISION, Getfile(other), Getline(other), "Previous declaration of '%s'\n", Getattr(other, "sym:name"));
 
-        ignore_child = true;
-        is_native = false;
-        break;
+	ignore_child = true;
+	is_native = false;
+	break;
       }
     }
     if (ignore_child) {
@@ -2974,8 +2884,7 @@ int FORTRAN::enumDeclaration(Node *n) {
     if (fsymname) {
       ASSERT_OR_PRINT_NODE(Len(fsymname) > 0, n);
       // Create "kind=" value for the enumeration type
-      Printv(f_fdecl, " integer, parameter, public :: ",  fsymname,
-             " = kind(", First(d_enum_public).item, ")\n", NULL);
+      Printv(f_fdecl, " integer, parameter, public :: ", fsymname, " = kind(", First(d_enum_public).item, ")\n", NULL);
     }
 
     // Make the enum values public
@@ -2988,8 +2897,7 @@ int FORTRAN::enumDeclaration(Node *n) {
     d_enum_public = NULL;
   } else if (fsymname) {
     // Create "kind=" value for the enumeration type
-    Printv(f_fdecl, " integer, parameter, public :: ",  fsymname,
-           " = C_INT\n", NULL);
+    Printv(f_fdecl, " integer, parameter, public :: ", fsymname, " = C_INT\n", NULL);
 
     // Mark that the enum is available for use as a type
     SetFlag(n, "fortran:declared");
@@ -3073,17 +2981,12 @@ int FORTRAN::constantWrapper(Node *n) {
     Printv(f_fdecl, "\n", NULL);
     return SWIG_OK;
   }
-
   // Attach bindc typemaps
   String *bindc_typestr = attach_typemap("bindc", n, WARN_NONE);
   if (!bindc_typestr) {
-    Swig_error(input_file,
-               line_number,
-               "The constant '%s' has no 'bindc' typemap.\n",
-               Getattr(n, "sym:name"));
+    Swig_error(input_file, line_number, "The constant '%s' has no 'bindc' typemap.\n", Getattr(n, "sym:name"));
     return SWIG_ERROR;
   }
-
   // Get value of the constant
   String *value = (constant_type == NATIVE_CONSTANT ? Getattr(n, "feature:fortran:constvalue") : NULL);
   if (!value) {
@@ -3094,10 +2997,7 @@ int FORTRAN::constantWrapper(Node *n) {
     value = Getattr(n, "value");
   }
   if (!value) {
-    Swig_error(input_file,
-               line_number,
-               "The constant '%s' has no value.\n",
-               Getattr(n, "sym:name"));
+    Swig_error(input_file, line_number, "The constant '%s' has no value.\n", Getattr(n, "sym:name"));
     return SWIG_ERROR;
   }
 
@@ -3134,10 +3034,7 @@ int FORTRAN::constantWrapper(Node *n) {
 
   // Add bound variable to interfaces
   Printv(f_fdecl, " ", bindc_typestr, ", protected, public, &\n",
-         "   bind(C, name=\"", wname, "\") :: ",
-         (Len(wname) > 60 ? "&\n    " : ""),
-         fsymname, "\n",
-         NULL);
+	 "   bind(C, name=\"", wname, "\") :: ", (Len(wname) > 60 ? "&\n    " : ""), fsymname, "\n", NULL);
   Delete(wname);
 
   return SWIG_OK;
@@ -3176,8 +3073,7 @@ int FORTRAN::classDirectorInit(Node *n) {
   // Define the director class as a subclass of the C++ class
   String *dirclassname = Getattr(n, "director:classname");
   String *basename = Getattr(n, "classtype");
-  Printv(f_directors_h,
-         "class ", dirclassname, " : public ", basename, " {\npublic:\n", NULL);
+  Printv(f_directors_h, "class ", dirclassname, " : public ", basename, " {\npublic:\n", NULL);
 
   // Create a fake %extend directive to hold 'swigfhandle'
   Node *extendn = NewHash();
@@ -3206,15 +3102,15 @@ int FORTRAN::classDirectorInit(Node *n) {
     return SWIG_NOWRAP;
 
   Printv(f_fsubprograms,
-         "function ", dyncast_fname, "(swigfbase) &\n"
-         "  result(fresult)\n"
-         " type(", basename, "), intent(in) :: swigfbase\n"
-         " class(", basename, "), pointer :: fresult\n"
-         " type(", handlename, "), pointer :: swigfhandle\n"
-         " swigfhandle => swigfbase%get_swigfhandle()\n"
-         " fresult => swigfhandle%swigfptr\n"
-         "end function\n\n",
-         NULL);
+	 "function ", dyncast_fname, "(swigfbase) &\n"
+	 "  result(fresult)\n"
+	 " type(", basename, "), intent(in) :: swigfbase\n"
+	 " class(", basename, "), pointer :: fresult\n"
+	 " type(", handlename, "), pointer :: swigfhandle\n"
+	 " swigfhandle => swigfbase%get_swigfhandle()\n"
+	 " fresult => swigfhandle%swigfptr\n"
+	 "end function\n\n",
+	 NULL);
 
   // Add proxy code for initialization
   String *init_fname = ensure_short(NewStringf("swigd_init_%s", basename));
@@ -3224,19 +3120,19 @@ int FORTRAN::classDirectorInit(Node *n) {
     return SWIG_NOWRAP;
 
   Printv(f_fsubprograms,
-         "subroutine ", init_fname, "(self, source)\n"
-         " class(", basename, "), target :: self\n"
-         " type(", basename, "), intent(in), optional :: source\n"
-         " type(", handlename, "), pointer :: swigfhandle\n"
-         " if (present(source)) then\n"
-         "   self%swigdata = source%swigdata\n"
-         " end if\n"
-         " self%swigdata%cmemflags = ibclr(self%swigdata%cmemflags, swig_cmem_rvalue_bit)\n"
-         " allocate(swigfhandle)\n"
-         " swigfhandle%swigfptr => self\n"
-         " call self%set_swigfhandle(swigfhandle)\n"
-         "end subroutine\n\n",
-         NULL);
+	 "subroutine ", init_fname, "(self, source)\n"
+	 " class(", basename, "), target :: self\n"
+	 " type(", basename, "), intent(in), optional :: source\n"
+	 " type(", handlename, "), pointer :: swigfhandle\n"
+	 " if (present(source)) then\n"
+	 "   self%swigdata = source%swigdata\n"
+	 " end if\n"
+	 " self%swigdata%cmemflags = ibclr(self%swigdata%cmemflags, swig_cmem_rvalue_bit)\n"
+	 " allocate(swigfhandle)\n"
+	 " swigfhandle%swigfptr => self\n"
+	 " call self%set_swigfhandle(swigfhandle)\n"
+	 "end subroutine\n\n",
+	 NULL);
 
   // Add proxy code for uninitialization
   String *uninit_fname = ensure_short(NewStringf("swigd_finalize_%s", basename));
@@ -3246,13 +3142,13 @@ int FORTRAN::classDirectorInit(Node *n) {
     return SWIG_NOWRAP;
 
   Printv(f_fsubprograms,
-         "subroutine ", uninit_fname, "(self)\n"
-         " class(", basename, "), intent(inout) :: self\n"
-         " type(", handlename, "), pointer :: swigfhandle\n"
-         " swigfhandle => self%get_swigfhandle()\n"
-         " if (associated(swigfhandle)) deallocate(swigfhandle)\n"
-         "end subroutine\n\n",
-         NULL);
+	 "subroutine ", uninit_fname, "(self)\n"
+	 " class(", basename, "), intent(inout) :: self\n"
+	 " type(", handlename, "), pointer :: swigfhandle\n"
+	 " swigfhandle => self%get_swigfhandle()\n"
+	 " if (associated(swigfhandle)) deallocate(swigfhandle)\n"
+	 "end subroutine\n\n",
+	 NULL);
 
   return Language::classDirectorInit(n);
 }
@@ -3338,9 +3234,7 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
 
   if (Getattr(n, "defaultargs")) {
     // Default arguments in virtual functions -> headaches
-    Swig_warning(WARN_LANG_NATIVE_UNIMPL, Getfile(n), Getline(n),
-                 "Ignoring virtual function %s with default arguments\n",
-                 Getattr(n, "name"));
+    Swig_warning(WARN_LANG_NATIVE_UNIMPL, Getfile(n), Getline(n), "Ignoring virtual function %s with default arguments\n", Getattr(n, "name"));
     return SWIG_NOWRAP;
   }
 
@@ -3408,9 +3302,7 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
   /*** RETURN TYPE ***/
 
   if (GetFlag(n, "feature:fortran:subroutine")) {
-    Swig_error(input_file, line_number,
-               "Can't apply the %%fortransubroutine feature to a director class method (%s)\n",
-               symname);
+    Swig_error(input_file, line_number, "Can't apply the %%fortransubroutine feature to a director class method (%s)\n", symname);
   }
 
   // Typemaps for C++ -> C -> IM -> F
@@ -3470,9 +3362,7 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
     // Native fortran return type
     String *return_ftype = attach_typemap("ftype", n, WARN_TYPEMAP_UNDEF);
     if (!return_ftype) {
-      Swig_error(input_file, line_number,
-                 "No 'ftype' for '%s' in '%s'\n",
-                 SwigType_str(Getattr(n, "type"), Getattr(n, "name")), symname);
+      Swig_error(input_file, line_number, "No 'ftype' for '%s' in '%s'\n", SwigType_str(Getattr(n, "type"), Getattr(n, "name")), symname);
       return SWIG_ERROR;
     }
     Wrapper_add_localv(imfunc, "fresult", return_ftype, ":: fresult", NULL);
@@ -3488,22 +3378,12 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
   if (!pure_virtual) {
     // Allow calling an uninitialized 
     String *super_call = Swig_method_call(super, Getattr(n, "parms"));
-    Printv(cppfunc->code,
-           "if (!this->swigfhandle) {\n"
-           "  return ", super_call, ";\n"
-           "}\n", NULL);
+    Printv(cppfunc->code, "if (!this->swigfhandle) {\n" "  return ", super_call, ";\n" "}\n", NULL);
     Delete(super_call);
   } else {
-    Printv(cppfunc->code,
-           "  if (!this->swigfhandle)\n"
-           "SWIG_exception_impl(\"",
-           symname,
-           "\", SWIG_NullReferenceError, \"Derived type for '",
-           Getattr(classn, "name"),
-           "' was not initialized\", return NULL);\n",
-           NULL);
+    Printv(cppfunc->code, "  if (!this->swigfhandle)\n" "SWIG_exception_impl(\"", symname, "\", SWIG_NullReferenceError, \"Derived type for '", Getattr(classn, "name"), "' was not initialized\", return NULL);\n", NULL);
   }
-  
+
   /*** PARAMETERS ***/
 
   // Get the linked list of function arguments, create a "self"/this parameter with the *parent* class to do type matching
@@ -3546,9 +3426,7 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
   // Create
   List *imfunc_arglist = NewList();
   List *fcall_arglist = NewList();
-  Printv(cppfunc->code,
-         "// Convert arguments to ctype via directorin\n",
-         NULL);
+  Printv(cppfunc->code, "// Convert arguments to ctype via directorin\n", NULL);
 
   // Loop using the 'tmap:directorin:next' property rather than 'nextSibling' to account for multi-argument typemaps
   const char *prepend_comma = "";
@@ -3564,8 +3442,7 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
     SwigType *ctype = parse_typemap("ctype", "in", p, WARN_FORTRAN_TYPEMAP_CTYPE_UNDEF);
     if (!ctype) {
       Swig_error(input_file, line_number,
-                 "Failed to parse 'ctype' typemap for argument '%s' of '%s'\n",
-                 SwigType_str(Getattr(p, "type"), Getattr(p, "name")), symname);
+		 "Failed to parse 'ctype' typemap for argument '%s' of '%s'\n", SwigType_str(Getattr(p, "type"), Getattr(p, "name")), symname);
       return SWIG_ERROR;
     }
 
@@ -3580,10 +3457,8 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
     {
       String *tm = Getattr(p, "tmap:directorin");
       if (!tm) {
-        Swig_error(input_file, line_number,
-                   "No 'directorin' for argument '%s' of '%s'\n",
-                   SwigType_str(Getattr(p, "type"), Getattr(p, "name")), symname);
-        return SWIG_ERROR;
+	Swig_error(input_file, line_number, "No 'directorin' for argument '%s' of '%s'\n", SwigType_str(Getattr(p, "type"), Getattr(p, "name")), symname);
+	return SWIG_ERROR;
       }
       Replaceall(tm, "$input", imarg);
       Setattr(p, "emit:directorinput", tm);
@@ -3606,23 +3481,21 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
 
       // Add any needed temporary variables to convert to typemap
       if (String *temptype = Getattr(p, "tmap:fdirectorin:temp")) {
-        Chop(temptype);
-        if (Len(temptype) > 0) {
-          this->replace_fclassname(n, Getattr(p, "type"), temptype);
-          String *tempname = NewStringf("%s_temp", farg);
-          Wrapper_add_localv(imfunc, tempname, temptype, "::", tempname, NULL);
-        }
+	Chop(temptype);
+	if (Len(temptype) > 0) {
+	  this->replace_fclassname(n, Getattr(p, "type"), temptype);
+	  String *tempname = NewStringf("%s_temp", farg);
+	  Wrapper_add_localv(imfunc, tempname, temptype, "::", tempname, NULL);
+	}
       }
-    }      
+    }
 
     // Add C -> F conversion typemaps for input args
     {
       String *tm = Getattr(p, "tmap:fdirectorin");
       if (!tm) {
-        Swig_error(input_file, line_number,
-                   "No 'fdirectorin' for argument '%s' of '%s'\n",
-                   SwigType_str(Getattr(p, "type"), Getattr(p, "name")), symname);
-        return SWIG_ERROR;
+	Swig_error(input_file, line_number, "No 'fdirectorin' for argument '%s' of '%s'\n", SwigType_str(Getattr(p, "type"), Getattr(p, "name")), symname);
+	return SWIG_ERROR;
       }
       Replaceall(tm, "$input", imarg);
       Setattr(p, "emit:fdirectorin", tm);
@@ -3651,9 +3524,7 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
 
   // End Fortran dummy argument list
   print_wrapped_list(imfunc->def, First(imfunc_arglist), Len(imfunc->def));
-  Printv(imfunc->def, ") &\n",
-         "bind(C, name=\"", wname, "\")",
-         NULL);
+  Printv(imfunc->def, ") &\n", "bind(C, name=\"", wname, "\")", NULL);
   if (!is_subroutine) {
     Printv(imfunc->def, " &\n     result(imresult)", NULL);
   }
@@ -3673,10 +3544,8 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
     {
       String *tm = attach_typemap("directorout", outparm, WARN_TYPEMAP_UNDEF);
       if (!tm) {
-        Swig_error(input_file, line_number,
-                   "No 'directorout' typemap for '%s' in '%s'\n",
-                   return_cpptype, symname);
-        return SWIG_ERROR;
+	Swig_error(input_file, line_number, "No 'directorout' typemap for '%s' in '%s'\n", return_cpptype, symname);
+	return SWIG_ERROR;
       }
       Replaceall(tm, "$result", "cppresult");
       Setattr(n, "emit:directorout", tm);
@@ -3687,24 +3556,22 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
     {
       // Add any needed temporary variables to convert to typemap
       if (String *temptype = Getattr(n, "tmap:fdirectorout:temp")) {
-        Chop(temptype);
-        if (Len(temptype) > 0) {
-          this->replace_fclassname(n, return_cpptype, temptype);
-          const char *tempname = "fresult_temp";
-          Wrapper_add_localv(imfunc, tempname, temptype, "::", tempname, NULL);
-        }
+	Chop(temptype);
+	if (Len(temptype) > 0) {
+	  this->replace_fclassname(n, return_cpptype, temptype);
+	  const char *tempname = "fresult_temp";
+	  Wrapper_add_localv(imfunc, tempname, temptype, "::", tempname, NULL);
+	}
       }
-    }      
+    }
 
     // Add C -> F conversion typemaps for input args
     {
       Setattr(outparm, "lname", "fresult");
       String *tm = attach_typemap("fdirectorout", outparm, WARN_TYPEMAP_UNDEF);
       if (!tm) {
-        Swig_error(input_file, line_number,
-                   "No 'fdirectorout' typemap for '%s' in '%s'\n",
-                   return_cpptype, symname);
-        return SWIG_ERROR;
+	Swig_error(input_file, line_number, "No 'fdirectorout' typemap for '%s' in '%s'\n", return_cpptype, symname);
+	return SWIG_ERROR;
       }
       Replaceall(tm, "$result", "imresult");
       Printv(imfunc->code, tm, "\n", NULL);
@@ -3715,7 +3582,7 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
     Delete(qualified_return);
     Delete(outparm);
   }
-  
+
   /*** END ***/
 
   Printf(cppfunc->code, "}\n");
@@ -3750,7 +3617,6 @@ int FORTRAN::classDirectorDestructor(Node *n) {
   } else if (Getattr(n, "throw")) {
     qualifier = " throw()";
   }
-
   // Declare destructor
   Printf(f_directors_h, "  virtual ~%s()%s;\n", dirclassname, qualifier);
 
@@ -3768,10 +3634,7 @@ int FORTRAN::classDirectorEnd(Node *n) {
   Node *handlen = Getattr(n, "fortran:handle");
   String *handlename = Getattr(handlen, "name");
   // End class declaration
-  Printv(f_directors_h,
-         "  ", handlename, " *swigfhandle;\n"
-         "};\n",
-         NULL);
+  Printv(f_directors_h, "  ", handlename, " *swigfhandle;\n" "};\n", NULL);
 
   // Provide wrapper definitions for the get/set functions we created
   String *basename = Getattr(n, "classtype");
@@ -3780,17 +3643,19 @@ int FORTRAN::classDirectorEnd(Node *n) {
   String *mrename_get = Swig_name_get(NULL, mname);
   String *mrename_set = Swig_name_set(NULL, mname);
   Printv(f_directors,
-         "SWIGINTERNINLINE ", handlename, " *", mrename_get, "(", basename, " *self) {\n",
-         "  ", dirclassname, " *derived = dynamic_cast<", dirclassname, "*>(self);\n",
-         "  if (!derived) SWIG_exception_impl(\"", mrename_get, "\", SWIG_NullReferenceError, \"Class instance was not created in Fortran code\", return NULL);\n"
-         "  return derived->swigfhandle;\n"
-         "}\n"
-         "SWIGINTERNINLINE void ", mrename_set, "(", basename, " *self, ", handlename, " *swigfhandle) {\n"
-         "  ", dirclassname, " *derived = dynamic_cast<", dirclassname, "*>(self);\n",
-         "  if (!derived) SWIG_exception_impl(\"", mrename_set, "\", SWIG_NullReferenceError, \"Class instance was not created in Fortran code\", return);\n"
-         "  derived->swigfhandle = swigfhandle;\n"
-         "}\n\n",
-         NULL);
+	 "SWIGINTERNINLINE ", handlename, " *", mrename_get, "(", basename, " *self) {\n",
+	 "  ", dirclassname, " *derived = dynamic_cast<", dirclassname, "*>(self);\n",
+	 "  if (!derived) SWIG_exception_impl(\"", mrename_get,
+	 "\", SWIG_NullReferenceError, \"Class instance was not created in Fortran code\", return NULL);\n"
+	 "  return derived->swigfhandle;\n"
+	 "}\n"
+	 "SWIGINTERNINLINE void ", mrename_set, "(", basename, " *self, ", handlename, " *swigfhandle) {\n"
+	 "  ", dirclassname, " *derived = dynamic_cast<",
+	 dirclassname, "*>(self);\n", "  if (!derived) SWIG_exception_impl(\"", mrename_set,
+	 "\", SWIG_NullReferenceError, \"Class instance was not created in Fortran code\", return);\n"
+	 "  derived->swigfhandle = swigfhandle;\n"
+	 "}\n\n",
+	 NULL);
 
   return Language::classDirectorEnd(n);
 }
@@ -3824,7 +3689,7 @@ void FORTRAN::replace_fclassname(Node *n, SwigType *intype, String *tm) {
     Delete(SwigType_pop(repltype));
     if (Len(repltype) > 0) {
       if (String *repl = this->get_proxyname(n, repltype)) {
-        Replaceall(tm, "$*fortranclassname", repl);
+	Replaceall(tm, "$*fortranclassname", repl);
       }
     }
     Delete(repltype);
@@ -3940,11 +3805,10 @@ String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
     if (!is_funptr) {
       // Function interfaces add the symbol themselves inside bindcfunctionHandler; enums and classes are added here.
       if (this->add_fsymbol(replacementname, n) == SWIG_NOWRAP) {
-        ASSERT_OR_PRINT_NODE(false, n);
-        return NULL;
+	ASSERT_OR_PRINT_NODE(false, n);
+	return NULL;
       }
     }
-
     // Emit the wrapper code
     if (is_enum) {
       // Generate automatic enum declaration
@@ -3954,27 +3818,29 @@ String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
       // Generate automatic abstract function declaration
       int result = this->bindcfunctionHandler(n);
       if (!result) {
-        // Failed to generate automatic type
-        Printv(f_fabstract,
-               " subroutine ", replacementname, "() bind(C)\n",
-               " end subroutine\n",
-               NULL);
+	// Failed to generate automatic type
+	Printv(f_fabstract,
+	    " subroutine ", replacementname, "() bind(C)\n",
+	    " end subroutine\n",
+	    NULL);
 
         Swig_warning(WARN_LANG_NATIVE_UNIMPL, input_file, line_number,
                      "Procedure pointer '%s' is incompatible with Fortran\n",
                      replacementname);
 
-        emit_fragment("SwigClassWrapper_f");
+	Swig_warning(WARN_LANG_NATIVE_UNIMPL, input_file, line_number, "Procedure pointer '%s' is incompatible with Fortran\n", replacementname);
+
+	emit_fragment("SwigClassWrapper_f");
       }
       // Add callback node to the list of successfully generated types
       Setattr(d_callbacks, basetype, n);
     } else {
       emit_fragment("SwigClassWrapper_f");
       Printv(f_fdecl,
-             " type, public :: ", replacementname, "\n",
-             "  type(SwigClassWrapper), public :: swigdata\n",
-             " end type\n",
-             NULL);
+	  " type, public :: ", replacementname, "\n",
+	  "  type(SwigClassWrapper), public :: swigdata\n",
+	  " end type\n",
+	  NULL);
     }
   }
   Setattr(d_emitted_mangled, replacementname, n);
@@ -4076,9 +3942,7 @@ int FORTRAN::add_fsymbol(String *s, Node *n) {
   }
 
   if (!is_valid_identifier(s)) {
-    Swig_error(input_file, line_number,
-               "The name '%s' is not a valid Fortran identifier. You must %%rename this %s.\n",
-               s, nodeType(n));
+    Swig_error(input_file, line_number, "The name '%s' is not a valid Fortran identifier. You must %%rename this %s.\n", s, nodeType(n));
     return SWIG_NOWRAP;
   }
   String *lower = Swig_string_lower(s);
@@ -4099,4 +3963,3 @@ int FORTRAN::add_fsymbol(String *s, Node *n) {
 extern "C" Language *swig_fortran(void) {
   return new FORTRAN();
 }
-
