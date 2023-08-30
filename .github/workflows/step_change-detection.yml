@@ -19,9 +19,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-      - name: Install fmf
-        run: python3 -m pip install fmf
       - name: Check documentation
         id: docs
         uses: tj-actions/changed-files@v38
@@ -54,6 +51,15 @@ jobs:
           json: true
           dir_names: true
           dir_names_max_depth: 1
+          escape_json: false
+      - name: Print changes
+        run: |
+          echo "docs_changed = ${{ steps.docs.outputs.any_modified }}"
+          echo "docs_files = ${{ steps.docs.outputs.all_modified_files }}"
+          echo "base_changed = ${{ steps.base.outputs.any_modified }}"
+          echo "base_files = ${{ steps.base.outputs.all_modified_files }}"
+          echo "langs_changed = ${{ steps.lang.outputs.any_modified }}"
+          echo "langs_files = ${{ steps.lang.outputs.all_modified_files }}"
     outputs:
       docs_changed: ${{ steps.docs.outputs.any_modified }}
       base_changed: ${{ steps.base.outputs.any_modified }}
