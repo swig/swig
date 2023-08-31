@@ -75,3 +75,5 @@ endfunction()
 
 # Empty extra args
 set(test_extra_args)
+
+add_subdirectory(errors)
