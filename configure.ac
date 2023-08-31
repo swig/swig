@@ -747,7 +747,7 @@ else
   fi
 
   # FORTRANLDSHARED is the ld *command* used to create shared library
-  # This must make a dynamic library as opposerd to a bundle.
+  # This must make a dynamic library as opposed to a bundle.
   case $host in
     *-*-darwin*)
         FORTRANLDSHARED='$(CC) -dynamiclib'
