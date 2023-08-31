@@ -17,4 +17,5 @@ add_test(NAME cmd_external_runtime COMMAND $<TARGET_FILE:Swig_swig> -external-ru
 set_tests_properties(cmd_external_runtime PROPERTIES
 		ENVIRONMENT "SWIG_LIB=${PROJECT_BINARY_DIR}/Lib")
 
-# TODO: Add examples as tests
+# TODO: Move test-suite to top-level
+add_subdirectory(test-suite)
