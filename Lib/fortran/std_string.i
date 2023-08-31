@@ -56,8 +56,7 @@ class string;
 %typemap(fin) std::string = char*;
 
 // Fortran proxy translation code: convert from char array to Fortran string
-%typemap(fout, noblock=1,
-         fragment="SWIG_free_f", fragment="SWIG_fout"{char*}) std::string {
+%typemap(fout, noblock=1, fragment="SWIG_free_f", fragment="SWIG_fout"{char*}) std::string {
   call %fortrantm(fout, char*)($1, $result)
   call SWIG_free($1%data)
 }

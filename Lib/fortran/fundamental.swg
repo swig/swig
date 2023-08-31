@@ -139,8 +139,7 @@ SWIGINTERN SwigArrayWrapper SwigArrayWrapper_uninitialized() {
    %{FTYPE(FKIND)%}
   %typemap(ftype, in=#FTYPE "(" #FKIND "), intent(in)") CTYPE
    %{FTYPE(FKIND)%}
-  %typemap(bindc, in=#FTYPE "(" #FKIND "), intent(in), value", kind=#FKIND,
-           fortranconst=#FTYPE "(" #FKIND ")") CTYPE
+  %typemap(bindc, in=#FTYPE "(" #FKIND "), intent(in), value", kind=#FKIND, fortranconst=#FTYPE "(" #FKIND ")") CTYPE
    %{FTYPE(FKIND)%}
   %typemap(in) CTYPE = FORTRAN_INTRINSIC_TYPE;
   %typemap(out) CTYPE = FORTRAN_INTRINSIC_TYPE;
@@ -394,7 +393,8 @@ $input = &temp;%}
 %typemap(directorin, noblock=1) bool (int temp)
 %{temp = $1 ? 1 : 0;
 $input = &temp;%}
-%typemap(directorout) bool "$result = (bool)$1;"
+%typemap(directorout) bool
+  "$result = (bool)$1;"
 
 // Treat const references like values
 %apply bool { const bool& };

@@ -73,9 +73,7 @@ end subroutine
 %typemap(ftype, in="character(len=*), target") char *
   "character(len=:), allocatable"
 
-%typemap(fin, fragment="SWIG_fin"{char*}, noblock=1,
-         temp="character(kind=C_CHAR), dimension(:), allocatable, target"
-         ) char * {
+%typemap(fin, fragment="SWIG_fin"{char*}, noblock=1, temp="character(kind=C_CHAR), dimension(:), allocatable, target") char * {
   call %fortrantm(fin, char*)($input, $1, $1_temp)
 }
 
@@ -88,8 +86,7 @@ end subroutine
 %typemap(bindc, in="character(kind=C_CHAR, len=*)") char *
   "type(C_PTR)";
 
-%typemap(bindc, in="character(kind=C_CHAR), dimension(*), intent(in)",
-         fortranconst="character(kind=C_CHAR, len=*)") const char *
+%typemap(bindc, in="character(kind=C_CHAR), dimension(*), intent(in)", fortranconst="character(kind=C_CHAR, len=*)") const char *
   "type(C_PTR)";
 
 /* -----------------------------------------------------------------------------
@@ -111,15 +108,12 @@ end subroutine
 %typemap(ftype, in="character(len=*), target") (char *STRING, size_t LENGTH)
   "character(len=:), allocatable"
 
-%typemap(fin, fragment="SWIG_fin"{char*}, noblock=1,
-         temp="character(kind=C_CHAR), dimension(:), allocatable, target")
-(char *STRING, size_t LENGTH) {
+%typemap(fin, fragment="SWIG_fin"{char*}, noblock=1, temp="character(kind=C_CHAR), dimension(:), allocatable, target") (char *STRING, size_t LENGTH) {
   call %fortrantm(fin, char*)($input, $1, $1_temp)
 }
 
 // Fortran proxy translation code: convert from char array to Fortran string
-%typemap(fout,
-         fragment="SWIG_fout"{char*}, fragment="SWIG_free_f", noblock=1) (char *STRING, size_t LENGTH) {
+%typemap(fout, fragment="SWIG_fout"{char*}, fragment="SWIG_free_f", noblock=1) (char *STRING, size_t LENGTH) {
   call %fortrantm(fout, char*)($1, $result)
   if ($owner) call SWIG_free($1%data)
 }

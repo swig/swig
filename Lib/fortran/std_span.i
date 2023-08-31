@@ -38,8 +38,7 @@ public:
 
   // Const-reference should act like value; but it requires a temporary
   %apply std::span<_Tp, _Ex > { const std::span<_Tp, _Ex >& };
-  %typemap(in, noblock=1) const std::span<_Tp, _Ex >&
-  ($1_basetype tmpspan) {
+  %typemap(in, noblock=1) const std::span<_Tp, _Ex >& ($1_basetype tmpspan) {
     tmpspan = $1_basetype(static_cast<$1_basetype::pointer>($input->data), $input->size);
     $1 = &tmpspan;
   }

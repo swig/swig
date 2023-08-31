@@ -32,9 +32,7 @@ end subroutine
  */
 %define %fortran_array(CPPTYPE...)
   // C wrapper type: pointer to templated array wrapper
-  %typemap(ctype, in="SwigArrayWrapper*",
-         null="SwigArrayWrapper_uninitialized()",
-         fragment="SwigArrayWrapper_uninitialized", noblock=1) CPPTYPE
+  %typemap(ctype, in="SwigArrayWrapper*", null="SwigArrayWrapper_uninitialized()", fragment="SwigArrayWrapper_uninitialized", noblock=1) CPPTYPE
     "SwigArrayWrapper"
   
   // Interface type: fortran equivalent of "ctype"

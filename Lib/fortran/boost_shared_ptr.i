@@ -51,8 +51,7 @@
  * returned by value.
  * ----------------------------------------------------------------------------- */
 
-%typemap(ctype, in="const SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
-    SWIGSP__, SWIGSP_PTRS__, SWIGSP_CPTRS__
+%typemap(ctype, in="const SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper") SWIGSP__, SWIGSP_PTRS__, SWIGSP_CPTRS__
 "SwigClassWrapper"
 
 /* -----------------------------------------------------------------------------

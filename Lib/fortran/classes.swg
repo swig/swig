@@ -321,11 +321,9 @@ SWIGINTERN void SWIG_assign(SwigClassWrapper* self, SwigClassWrapper other) {
  * Returning a class by value is copy-constructed as a new'd pointer
  * ----------------------------------------------------------------------------- */
 
-%typemap(ctype, in="SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper")
-    SWIGTYPE
+%typemap(ctype, in="SwigClassWrapper *", null="SwigClassWrapper_uninitialized()", noblock=1, fragment="SwigClassWrapper") SWIGTYPE
   "SwigClassWrapper"
-%typemap(imtype, in="type(SwigClassWrapper), intent(in)", fragment="SwigClassWrapper_f")
-    SWIGTYPE
+%typemap(imtype, in="type(SwigClassWrapper), intent(in)", fragment="SwigClassWrapper_f") SWIGTYPE
   "type(SwigClassWrapper)"
 %typemap(ftype, in="type($&fortranclassname), intent(in)", nofortransubroutine=1) SWIGTYPE
   "type($&fortranclassname)"
@@ -458,6 +456,7 @@ $input = &temp;%}
 // Convert from im code to ftype
 %typemap(ftype) SWIGTYPE *DIRECTOR_SELF
   "class($fortranclassname), pointer"
-%typemap(fdirectorin, temp="type($fortranclassname)", noblock=1) SWIGTYPE *DIRECTOR_SELF {$1_temp%swigdata = $input
+%typemap(fdirectorin, temp="type($fortranclassname)", noblock=1) SWIGTYPE *DIRECTOR_SELF
+{$1_temp%swigdata = $input
   $1 => swig_dyncast($1_temp)}
 
