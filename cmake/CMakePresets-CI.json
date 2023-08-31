@@ -204,6 +204,11 @@
       ],
       "output": {
         "outputOnFailure": true
+      },
+      "filter": {
+        "include": {
+          "label": "no_lang"
+        }
       }
     },
     {
