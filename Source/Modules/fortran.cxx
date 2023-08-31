@@ -1094,7 +1094,7 @@ int FORTRAN::functionWrapper(Node *n) {
     fsymname = Copy(manual_name);
   }
   // Add suffix if the function is overloaded (can't overload C bound functions)
-  if (String *overload_ext = (Getattr(n, "sym:overloaded") ? Getattr(n, "sym:overname") : NULL)) {
+  if (overload_ext) {
     Append(wname, overload_ext);
     Append(imname, overload_ext);
     if (!fsymname) {
