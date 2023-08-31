@@ -366,7 +366,7 @@ static int yylook(void) {
       break;
 
     case SWIG_TOKEN_RRBRACKET:
-      /* Turn an unmatched ]] back into two ] - e.g. `a[a[0]]` */
+      /* Turn an unmatched ]] back into two ] - e.g. "a[a[0]]" */
       scanner_next_token(RBRACKET);
       return RBRACKET;
 
@@ -1039,10 +1039,10 @@ num_common:
       /* Note down the apparently unknown directive for error reporting - if
        * we end up reporting a generic syntax error we'll instead report an
        * error for this as an unknown directive.  Then we treat it as MODULO
-       * (`%`) followed by an identifier and if that parses OK then
-       * `cparse_unknown_directive` doesn't get used.
+       * ('%') followed by an identifier and if that parses OK then
+       * "cparse_unknown_directive" doesn't get used.
        *
-       * This allows `a%b` to be handled in expressions without a space after
+       * This allows "a%b" to be handled in expressions without a space after
        * the operator.
        */
       cparse_unknown_directive = NewString(yytext);

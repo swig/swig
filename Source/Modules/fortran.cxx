@@ -96,7 +96,7 @@ Wrapper *NewFortranWrapper() {
  * \brief Whether an expression is a standard base-10 integer compatible with
  * fortran
  *
- * Note that if it has a suffix e.g. `l` or `u`, or a prefix `0` (octal), it's
+ * Note that if it has a suffix e.g. 'l' or 'u', or a prefix '0' (octal), it's
  * not compatible.
  */
 bool is_fortran_intexpr(String *s) {
@@ -154,7 +154,7 @@ int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
     Replaceall(typemap, "dimension()", "dimension(*)");
     Replaceall(typemap, ",)", ",*)");
   } else if (SwigType_ispointer(t)) {
-    // Note that we use `imname` instead of `lname` since it was temporarily changed for typemap matching for ftype. Pointers should only have a single
+    // Note that we use "imname" instead of "lname" since it was temporarily changed for typemap matching for ftype. Pointers should only have a single
     // dimension, so we replace with deferred size.
     String *dimname = NewStringf("%s_dim0", Getattr(n, "imname"));
     Replaceall(typemap, dimname, "*");
@@ -228,8 +228,8 @@ bool return_type_needs_typedef(String *s) {
 /* -------------------------------------------------------------------------
  * \brief Construct any necessary 'import' identifier.
  *
- * When the `imtype` is an actual `type(Foo)`, it's necessary to import the identifier Foo from the module definition scope. This function examines the
- * evaluated `imtype` (could be `imtype:in`, probably has $fortranclassname replaced)
+ * When the "imtype" is an actual "type(Foo)", it's necessary to import the identifier Foo from the module definition scope. This function examines the
+ * evaluated "imtype" (could be "imtype:in", probably has $fortranclassname replaced)
  */
 String *make_import_string(String *imtype) {
   char *start = Strstr(imtype, "type(");
@@ -247,7 +247,7 @@ String *make_import_string(String *imtype) {
     *c = tolower(*c);
 
   if (Strcmp(result, "c_ptr") == 0 || Strcmp(result, "c_funptr") == 0) {
-    // Don't import types pulled in from `use, intrinsic :: ISO_C_BINDING`
+    // Don't import types pulled in from "use, intrinsic :: ISO_C_BINDING"
     Delete(result);
     result = NULL;
   }
@@ -788,7 +788,7 @@ int FORTRAN::top(Node *n) {
 
   // >>> FORTRAN WRAPPER CODE
 
-  // Code before the `module` statement
+  // Code before the "module" statement
   f_fbegin = NewStringEmpty();
   Swig_register_filebyname("fbegin", f_fbegin);
 
@@ -1300,7 +1300,7 @@ int FORTRAN::functionWrapper(Node *n) {
   if (Getattr(n, "fortran:variable") && !Getattr(n, "feature:immutable")) {
     // This variable has both a getter and setter, so the node will be reused
     // (generating two different functions). Avoid name conflicts by deleting
-    // `fortran:name`.
+    // "fortran:name".
     Delattr(n, "fortran:name");
     Delattr(n, "wrap:fsymname");
     Delattr(n, "fortran:subroutine");
@@ -1572,7 +1572,7 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
 
   const bool is_imsubroutine = (Len(return_imtype) == 0);
 
-  // Determine based on return typemap whether it's a function or subroutine (we could equivalently check that return_cpptype is `void`)
+  // Determine based on return typemap whether it's a function or subroutine (we could equivalently check that return_cpptype is "void")
   const char *im_func_type = (is_imsubroutine ? "subroutine" : "function");
   Printv(imfunc->def, im_func_type, " ", Getattr(n, "wrap:imname"), "(", NULL);
 
@@ -1769,7 +1769,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
 
   String *swig_result_name = NULL;
   if (!is_fsubroutine || func_to_subroutine) {
-    // Return dummy argument name for function, or `intent(out), optional` name
+    // Return dummy argument name for function, or "intent(out), optional" name
     // for the function-to-subroutine case
     if (overridden) {
       swig_result_name = Getattr(overridden, "wrap:fresult");
@@ -1868,7 +1868,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
     Parm *p = it.item;
 
     // Get Fortran type *before* generating parameter name
-    // to avoid generating `class(A) :: a` when faced with
+    // to avoid generating "class(A) :: a" when faced with
     //   struct A;
     //   void blah(A* a);
     //   struct A{};
@@ -2311,7 +2311,7 @@ int FORTRAN::classHandler(Node *n) {
   String *base_fsymname = NULL;
 
   // Iterate through the base classes. If no bases are set (null pointer sent
-  // to `First`), the loop will be skipped and baseclass be NULL.
+  // to "First"), the loop will be skipped and baseclass be NULL.
   for (Iterator base = First(Getattr(n, "bases")); base.item; base = Next(base)) {
     Node *b = base.item;
     if (GetFlag(b, "feature:ignore"))
@@ -2363,7 +2363,7 @@ int FORTRAN::classHandler(Node *n) {
     // Add an assignment function to the class node
     this->add_assignment_operator(n);
 
-    // Add overload entry for constructors (must do this outside of `add_overload` since the class name already exists as a symbol)
+    // Add overload entry for constructors (must do this outside of "add_overload" since the class name already exists as a symbol)
     ASSERT_OR_PRINT_NODE(!Getattr(d_overloads, fsymname), n);
     Setattr(d_overloads, fsymname, NewList());
     // The derived type is already marked as public, so don't add the additional "public" declaration
@@ -2445,7 +2445,7 @@ int FORTRAN::destructorHandler(Node *n) {
   Setattr(n, "fortran:name", "release");
   SetFlag(n, "fortran:ismember");
 
-  // Throwing in a destructor calls `std::terminate`, so don't bother adding wrapper code
+  // Throwing in a destructor calls "std::terminate", so don't bother adding wrapper code
   if (!GetFlag(n, "feature:allowexcept")) {
     UnsetFlag(n, "feature:except");
   }
@@ -2627,7 +2627,7 @@ int FORTRAN::fortrancallbackHandler(Node *n) {
 }
 
 /* -------------------------------------------------------------------------
- * \brief Generate an interface-only `bind(C)` function wrapper.
+ * \brief Generate an interface-only "bind(C)" function wrapper.
  *
  * This uses the *original* C function name to generate the interface to, and
  * create an acceptable Fortran identifier based on whatever renames have been
@@ -2939,9 +2939,9 @@ int FORTRAN::callbackfunctionHandler(Node *n) {
  *
  * - Native enum values will become enumerators
  * - Non-native enum values become C-bound external constants
- * - Constants marked with `%fortranconst` will be rendered as *named constants*
- * - Constants marked with `%fortranbindc` also become C-bound external constants
- * - All other types will generate `getter` functions that return native fortran types.
+ * - Constants marked with "%fortranconst" will be rendered as *named constants*
+ * - Constants marked with "%fortranbindc" also become C-bound external constants
+ * - All other types will generate "getter" functions that return native fortran types.
  */
 int FORTRAN::constantWrapper(Node *n) {
   enum {
@@ -3020,7 +3020,7 @@ int FORTRAN::constantWrapper(Node *n) {
   Setattr(n, "wrap:name", wname);
 
   if (constant_type == EXTERN_ENUM) {
-    // Generate an int enum (whether a C++ enum class value, an enum that looks like `value = 'a'`, etc.)
+    // Generate an int enum (whether a C++ enum class value, an enum that looks like "value = 'a'", etc.)
     Printv(f_wrapper, "SWIGEXPORT SWIGEXTERN const int ", wname, " = (int)(", value, ");\n\n", NULL);
   } else {
     // Write SWIG code
@@ -3269,9 +3269,9 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
   String *decl = Getattr(n, "decl");
   ParmList *parms = Getattr(n, "parms");
   {
-    // 'conversion operator' is e.g. `operator bool();`, and `classDirectorMethods:type` is the original return
-    // type from the node (e.g. `int` for `int blah();`), since `type` has temporarily
-    // been replaced by the `returntype` attribute
+    // 'conversion operator' is e.g. "operator bool();", and "classDirectorMethods:type" is the original return
+    // type from the node (e.g. "int" for "int blah();"), since "type" has temporarily
+    // been replaced by the "returntype" attribute
     SwigType *rtype = Getattr(n, "conversion_operator") ? NULL : Getattr(n, "classDirectorMethods:type");
 
     // Construct C++ definition name and parameters
@@ -3336,7 +3336,7 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
   bool is_subroutine = (Len(return_imtype) == 0);
 
   // Determine based on return typemap whether it's a function or subroutine
-  // (we could equivalently check that return_cpptype is `void`)
+  // (we could equivalently check that return_cpptype is "void")
   const char *im_func_type = (is_subroutine ? "subroutine" : "function");
   Printv(imfunc->def, im_func_type, " ", imname, "(", NULL);
 
@@ -3606,7 +3606,7 @@ int FORTRAN::classDirectorMethod(Node *n, Node *classn, String *super) {
 /* -------------------------------------------------------------------------
  * \brief Emit virtual destructor for the director class.
  *
- * This is identical to csharp and basically the same as in the base class, but with the addition of the C++11 `noexcept`.
+ * This is identical to csharp and basically the same as in the base class, but with the addition of the C++11 "noexcept`.
  */
 int FORTRAN::classDirectorDestructor(Node *n) {
   String *dirclassname = Getattr(getCurrentClass(), "director:classname");

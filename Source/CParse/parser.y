@@ -33,7 +33,7 @@
 %{
 /* doh.h uses #pragma GCC poison with GCC to prevent direct calls to certain
  * standard C library functions being introduced, but those cause errors due
- * to checks like `#if defined YYMALLOC || defined malloc` in the bison
+ * to checks like "#if defined YYMALLOC || defined malloc" in the bison
  * template code.  We can't easily arrange to include headers after that
  * template code, so instead we disable the problematic poisoning for this
  * file.
@@ -2028,8 +2028,8 @@ clear_directive : CLEAR tm_list SEMI {
    %constant name = value;
    %constant type name = value;
 
-   Note: Source/Preprocessor/cpp.c injects `%constant X = Y;` for
-   each `#define X Y` so that's handled here too.
+   Note: Source/Preprocessor/cpp.c injects "%constant X = Y;" for
+   each "#define X Y" so that's handled here too.
    ------------------------------------------------------------ */
 
 constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
@@ -6642,8 +6642,8 @@ exprsimple     : exprnum
 		  $$.val = NewStringf("sizeof(%s)", $3.val);
 		 $$.type = T_ULONG;
 	       }
-	       /* `sizeof expr` without parentheses is valid for an expression,
-		* but not for a type.  This doesn't support `sizeof x` in
+	       /* "sizeof expr" without parentheses is valid for an expression,
+		* but not for a type.  This doesn't support "sizeof x" in
 		* addition to the case not supported above.
 		*/
 	       | SIZEOF exprsimple {
@@ -6833,7 +6833,7 @@ exprcompound   : expr PLUS expr {
 		 $$.val = NewStringf("%s!=%s",COMPOUND_EXPR_VAL($1),COMPOUND_EXPR_VAL($3));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-	       /* Trying to parse `>` in the general case results in conflicts
+	       /* Trying to parse '>' in the general case results in conflicts
 		* in the parser, but all user-reported cases are actually inside
 		* parentheses and we can handle that case.
 		*/
@@ -6842,7 +6842,7 @@ exprcompound   : expr PLUS expr {
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 
-	       /* Similarly for `<` except trying to handle exprcompound on the
+	       /* Similarly for '<' except trying to handle exprcompound on the
 		* left side gives a shift/reduce conflict, so also restrict
 		* handling to non-compound subexpressions there.  Again this
 		* covers all user-reported cases.
@@ -6861,8 +6861,8 @@ exprcompound   : expr PLUS expr {
 	       }
 	       | expr LESSEQUALGREATER expr {
 		 $$.val = NewStringf("%s <=> %s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3));
-		 /* `<=>` returns one of `std::strong_ordering`,
-		  * `std::partial_ordering` or `std::weak_ordering`.  The main
+		 /* "<=>" returns one of "std::strong_ordering",
+		  * "std::partial_ordering" or "std::weak_ordering".  The main
 		  * thing to do with the return value in this context is to
 		  * compare it with another ordering of the same type or
 		  * with a literal 0.  We set .type = T_USER here which does
