@@ -601,6 +601,7 @@ CPP11_TEST_CASES += \
 	cpp11_auto_variable \
 	cpp11_brackets_expression \
 	cpp11_constexpr \
+	cpp11_copyctor_delete \
 	cpp11_decltype \
 	cpp11_default_delete \
 	cpp11_delegating_constructors \

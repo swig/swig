@@ -8,6 +8,10 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-09-02: wsfulton
+            Fix %copyctor feature when used on classes with deleted copy constructors.
+            A default constructor wrapper was sometimes incorrectly generated.
+
+2023-09-02: wsfulton
             #1644 Fix wrapping types passed by value where the type has a deleted
             default constructor.
 

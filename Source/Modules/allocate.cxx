@@ -765,20 +765,23 @@ Allocate():
       if (Getattr(n, "abstracts")) {
 	Delattr(n, "allocate:default_constructor");
       }
-      if (!Getattr(n, "allocate:default_constructor") && !GetFlag(n, "allocate:deleted_default_constructor")) {
-	/* Check base classes */
-	List *bases = Getattr(n, "allbases");
-	int allows_default = 1;
+      if (!Getattr(n, "allocate:default_constructor")) {
+	// No default constructor if either the default constructor or copy constructor is declared as deleted
+	if (!GetFlag(n, "allocate:deleted_default_constructor") && !GetFlag(n, "allocate:deleted_copy_constructor")) {
+	  /* Check base classes */
+	  List *bases = Getattr(n, "allbases");
+	  int allows_default = 1;
 
-	for (int i = 0; i < Len(bases); i++) {
-	  Node *n = Getitem(bases, i);
-	  /* If base class does not allow default constructor, we don't allow it either */
-	  if (!Getattr(n, "allocate:default_constructor") && (!Getattr(n, "allocate:default_base_constructor"))) {
-	    allows_default = 0;
+	  for (int i = 0; i < Len(bases); i++) {
+	    Node *n = Getitem(bases, i);
+	    /* If base class does not allow default constructor, we don't allow it either */
+	    if (!Getattr(n, "allocate:default_constructor") && (!Getattr(n, "allocate:default_base_constructor"))) {
+	      allows_default = 0;
+	    }
 	  }
-	}
-	if (allows_default) {
-	  Setattr(n, "allocate:default_constructor", "1");
+	  if (allows_default) {
+	    Setattr(n, "allocate:default_constructor", "1");
+	  }
 	}
       }
     }
@@ -788,26 +791,29 @@ Allocate():
 	Delattr(n, "allocate:copy_constructor_non_const");
       }
       if (!Getattr(n, "allocate:copy_constructor")) {
-	/* Check base classes */
-	List *bases = Getattr(n, "allbases");
-	int allows_copy = 1;
-	int must_be_copy_non_const = 0;
+	// No copy constructor if the copy constructor is declared as deleted
+	if (!GetFlag(n, "allocate:deleted_copy_constructor")) {
+	  /* Check base classes */
+	  List *bases = Getattr(n, "allbases");
+	  int allows_copy = 1;
+	  int must_be_copy_non_const = 0;
 
-	for (int i = 0; i < Len(bases); i++) {
-	  Node *n = Getitem(bases, i);
-	  /* If base class does not allow copy constructor, we don't allow it either */
-	  if (!Getattr(n, "allocate:copy_constructor") && (!Getattr(n, "allocate:copy_base_constructor"))) {
-	    allows_copy = 0;
+	  for (int i = 0; i < Len(bases); i++) {
+	    Node *n = Getitem(bases, i);
+	    /* If base class does not allow copy constructor, we don't allow it either */
+	    if (!Getattr(n, "allocate:copy_constructor") && (!Getattr(n, "allocate:copy_base_constructor"))) {
+	      allows_copy = 0;
+	    }
+	    if (Getattr(n, "allocate:copy_constructor_non_const") || (Getattr(n, "allocate:copy_base_constructor_non_const"))) {
+	      must_be_copy_non_const = 1;
+	    }
 	  }
-	  if (Getattr(n, "allocate:copy_constructor_non_const") || (Getattr(n, "allocate:copy_base_constructor_non_const"))) {
-	    must_be_copy_non_const = 1;
+	  if (allows_copy) {
+	    Setattr(n, "allocate:copy_constructor", "1");
 	  }
-	}
-	if (allows_copy) {
-	  Setattr(n, "allocate:copy_constructor", "1");
-	}
-	if (must_be_copy_non_const) {
-	  Setattr(n, "allocate:copy_constructor_non_const", "1");
+	  if (must_be_copy_non_const) {
+	    Setattr(n, "allocate:copy_constructor_non_const", "1");
+	  }
 	}
       }
     }
@@ -1273,21 +1279,26 @@ Allocate():
       Delete(tn);
 
       if (copy_constructor) {
-	Setattr(n, "copy_constructor", "1");
-	Setattr(inclass, "allocate:has_copy_constructor", "1");
-	if (access_mode == PUBLIC) {
-	  Setattr(inclass, "allocate:copy_constructor", "1");
-	} else if (access_mode == PROTECTED) {
-	  Setattr(inclass, "allocate:copy_base_constructor", "1");
-	}
-	if (copy_constructor_non_const) {
-	  Setattr(n, "copy_constructor_non_const", "1");
-	  Setattr(inclass, "allocate:has_copy_constructor_non_const", "1");
+	if (!deleted_constructor) {
+	  Setattr(n, "copy_constructor", "1");
+	  Setattr(inclass, "allocate:has_copy_constructor", "1");
 	  if (access_mode == PUBLIC) {
-	    Setattr(inclass, "allocate:copy_constructor_non_const", "1");
+	    Setattr(inclass, "allocate:copy_constructor", "1");
 	  } else if (access_mode == PROTECTED) {
-	    Setattr(inclass, "allocate:copy_base_constructor_non_const", "1");
+	    Setattr(inclass, "allocate:copy_base_constructor", "1");
 	  }
+	  if (copy_constructor_non_const) {
+	    Setattr(n, "copy_constructor_non_const", "1");
+	    Setattr(inclass, "allocate:has_copy_constructor_non_const", "1");
+	    if (access_mode == PUBLIC) {
+	      Setattr(inclass, "allocate:copy_constructor_non_const", "1");
+	    } else if (access_mode == PROTECTED) {
+	      Setattr(inclass, "allocate:copy_base_constructor_non_const", "1");
+	    }
+	  }
+	} else {
+	  if (!extendmode)
+	    SetFlag(inclass, "allocate:deleted_copy_constructor");
 	}
       }
     }
