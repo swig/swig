@@ -918,7 +918,7 @@ Allocate():
       }
       /* default destructor */
       if (!GetFlag(n, "feature:nodefaultdtor") && odefault) {
-	if (!Getattr(n, "has_destructor") && (!Getattr(n, "allocate:has_destructor")) && Getattr(n, "allocate:default_destructor")) {
+	if (!Getattr(n, "allocate:has_destructor") && Getattr(n, "allocate:default_destructor")) {
 	  addDestructor(n);
 	}
       }
@@ -1482,7 +1482,7 @@ static void addDestructor(Node *n) {
 	appendChild(n, access);
 	appendChild(n, cn);
 	Setattr(n, "has_destructor", "1");
-	Setattr(n, "allocate:destructor", "1");
+	Setattr(n, "allocate:has_destructor", "1");
 	Delete(access);
       }
     }
