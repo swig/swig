@@ -912,7 +912,7 @@ Allocate():
       }
       /* copy constructor */
       if (CPlusPlus && !abstract && GetFlag(n, "feature:copyctor")) {
-	if (!Getattr(n, "has_copy_constructor") && !Getattr(n, "allocate:has_copy_constructor") && Getattr(n, "allocate:copy_constructor")) {
+	if (!Getattr(n, "allocate:has_copy_constructor") && Getattr(n, "allocate:copy_constructor")) {
 	  addCopyConstructor(n);
 	}
       }
