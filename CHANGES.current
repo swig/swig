@@ -8,6 +8,19 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-09-02: wsfulton
+            Fix problems wrapping deleted destructors. Derived classes are not
+            constructible, so don't attempt to generate default constructor or
+            copy constructor wrappers.
+
+              struct StackOnly1 {
+                // Only constructible on the stack
+                ~StackOnly1() = delete;
+              };
+              struct StackOnlyDerived1 : StackOnly1 {
+                // this class is not constructible due to deleted base destructor
+              };
+
+2023-09-02: wsfulton
             Fix %copyctor feature when used on classes with deleted copy constructors.
             A default constructor wrapper was sometimes incorrectly generated.
 

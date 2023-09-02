@@ -67,6 +67,17 @@ private:
   DeletedPrivate5() = default;
   DeletedPrivate5(const DeletedPrivate5&) = delete;
 };
+
+struct StackOnly1 {
+  // Only constructible on the stack
+  ~StackOnly1() = delete;
+};
+struct StackOnlyDerived1 : StackOnly1 {
+  // this class is not constructible due to deleted base destructor
+};
+struct StackOnlyDerivedMore1 : StackOnlyDerived1 {
+  // this class is not constructible due to deleted base destructor
+};
 %}
 
 // copyctor feature turned on
@@ -142,5 +153,16 @@ struct CopyCtorDeletedPrivate5 {
 private:
   CopyCtorDeletedPrivate5() = default;
   CopyCtorDeletedPrivate5(const CopyCtorDeletedPrivate5&) = delete;
+};
+
+struct CopyCtorStackOnly1 {
+  // Only constructible on the stack
+  ~CopyCtorStackOnly1() = delete;
+};
+struct CopyCtorStackOnlyDerived1 : CopyCtorStackOnly1 {
+  // this class is not constructible due to deleted base destructor
+};
+struct CopyCtorStackOnlyDerivedMore1 : CopyCtorStackOnlyDerived1 {
+  // this class is not constructible due to deleted base destructor
 };
 %}

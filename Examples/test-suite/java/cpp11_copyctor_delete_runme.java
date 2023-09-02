@@ -22,5 +22,8 @@ public class cpp11_copyctor_delete_runme {
     new DeletedPublic5();
     new CopyCtorDeletedPublic4();
     new CopyCtorDeletedPublic5();
+
+    new StackOnly1();
+    new CopyCtorStackOnly1(new CopyCtorStackOnly1());
   }
 }

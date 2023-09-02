@@ -778,6 +778,10 @@ Allocate():
 	    if (!Getattr(n, "allocate:default_constructor") && (!Getattr(n, "allocate:default_base_constructor"))) {
 	      allows_default = 0;
 	    }
+	    /* not constructible if base destructor is deleted */
+	    if (Getattr(n, "allocate:deleted_default_destructor")) {
+	      allows_default = 0;
+	    }
 	  }
 	  if (allows_default) {
 	    Setattr(n, "allocate:default_constructor", "1");
@@ -804,6 +808,10 @@ Allocate():
 	    if (!Getattr(n, "allocate:copy_constructor") && (!Getattr(n, "allocate:copy_base_constructor"))) {
 	      allows_copy = 0;
 	    }
+	    /* not constructible if base destructor is deleted */
+	    if (Getattr(n, "allocate:deleted_default_destructor")) {
+	      allows_copy = 0;
+	    }
 	    if (Getattr(n, "allocate:copy_constructor_non_const") || (Getattr(n, "allocate:copy_base_constructor_non_const"))) {
 	      must_be_copy_non_const = 1;
 	    }
@@ -820,18 +828,22 @@ Allocate():
 
     if (!Getattr(n, "allocate:has_destructor")) {
       /* No destructor was defined */
-      List *bases = Getattr(n, "allbases");
-      int allows_destruct = 1;
+      /* No destructor if the destructor is declared as deleted */
+      if (!GetFlag(n, "allocate:deleted_default_destructor")) {
+	/* Check base classes */
+	List *bases = Getattr(n, "allbases");
+	int allows_destruct = 1;
 
-      for (int i = 0; i < Len(bases); i++) {
-	Node *n = Getitem(bases, i);
-	/* If base class does not allow default destructor, we don't allow it either */
-	if (!Getattr(n, "allocate:default_destructor") && (!Getattr(n, "allocate:default_base_destructor"))) {
-	  allows_destruct = 0;
+	for (int i = 0; i < Len(bases); i++) {
+	  Node *n = Getitem(bases, i);
+	  /* If base class does not allow default destructor, we don't allow it either */
+	  if (!Getattr(n, "allocate:default_destructor") && (!Getattr(n, "allocate:default_base_destructor"))) {
+	    allows_destruct = 0;
+	  }
 	}
-      }
-      if (allows_destruct) {
-	Setattr(n, "allocate:default_destructor", "1");
+	if (allows_destruct) {
+	  Setattr(n, "allocate:default_destructor", "1");
+	}
       }
     }
 
@@ -1309,19 +1321,26 @@ Allocate():
     (void) n;
     if (!inclass)
       return SWIG_OK;
-    if (!extendmode) {
-      Setattr(inclass, "allocate:has_destructor", "1");
-      if (cplus_mode == PUBLIC) {
+
+    if (!GetFlag(n, "deleted")) {
+      if (!extendmode) {
+	Setattr(inclass, "allocate:has_destructor", "1");
+	if (cplus_mode == PUBLIC) {
+	  Setattr(inclass, "allocate:default_destructor", "1");
+	} else if (cplus_mode == PROTECTED) {
+	  Setattr(inclass, "allocate:default_base_destructor", "1");
+	} else if (cplus_mode == PRIVATE) {
+	  Setattr(inclass, "allocate:private_destructor", "1");
+	}
+      } else {
+	Setattr(inclass, "allocate:has_destructor", "1");
 	Setattr(inclass, "allocate:default_destructor", "1");
-      } else if (cplus_mode == PROTECTED) {
-	Setattr(inclass, "allocate:default_base_destructor", "1");
-      } else if (cplus_mode == PRIVATE) {
-	Setattr(inclass, "allocate:private_destructor", "1");
       }
     } else {
-      Setattr(inclass, "allocate:has_destructor", "1");
-      Setattr(inclass, "allocate:default_destructor", "1");
+      if (!extendmode)
+	SetFlag(inclass, "allocate:deleted_default_destructor");
     }
+
     return SWIG_OK;
   }
 
