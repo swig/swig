@@ -765,7 +765,7 @@ Allocate():
       if (Getattr(n, "abstracts")) {
 	Delattr(n, "allocate:default_constructor");
       }
-      if (!Getattr(n, "allocate:default_constructor")) {
+      if (!Getattr(n, "allocate:default_constructor") && !GetFlag(n, "allocate:deleted_default_constructor")) {
 	/* Check base classes */
 	List *bases = Getattr(n, "allbases");
 	int allows_default = 1;
@@ -1201,33 +1201,37 @@ Allocate():
   virtual int constructorDeclaration(Node *n) {
     if (!inclass)
       return SWIG_OK;
-    if (GetFlag(n, "deleted"))
-      return SWIG_OK;
 
     Parm *parms = Getattr(n, "parms");
+    bool deleted_constructor = (GetFlag(n, "deleted"));
+    bool default_constructor = !ParmList_numrequired(parms);
     AccessMode access_mode = accessModeFromString(Getattr(n, "access"));
-
     process_exceptions(n);
-    if (!extendmode) {
-      if (!ParmList_numrequired(parms)) {
-	/* Class does define a default constructor */
-	/* However, we had better see where it is defined */
-	if (access_mode == PUBLIC) {
-	  Setattr(inclass, "allocate:default_constructor", "1");
-	} else if (access_mode == PROTECTED) {
-	  Setattr(inclass, "allocate:default_base_constructor", "1");
+
+    if (!deleted_constructor) {
+      if (!extendmode) {
+	if (default_constructor) {
+	  /* Class does define a default constructor */
+	  /* However, we had better see where it is defined */
+	  if (access_mode == PUBLIC) {
+	    Setattr(inclass, "allocate:default_constructor", "1");
+	  } else if (access_mode == PROTECTED) {
+	    Setattr(inclass, "allocate:default_base_constructor", "1");
+	  }
 	}
-      }
-      /* Class defines some kind of constructor. May or may not be public */
-      Setattr(inclass, "allocate:has_constructor", "1");
-      if (access_mode == PUBLIC) {
+	/* Class defines some kind of constructor. May or may not be public */
+	Setattr(inclass, "allocate:has_constructor", "1");
+	if (access_mode == PUBLIC) {
+	  Setattr(inclass, "allocate:public_constructor", "1");
+	}
+      } else {
+	Setattr(inclass, "allocate:has_constructor", "1");
 	Setattr(inclass, "allocate:public_constructor", "1");
       }
     } else {
-      Setattr(inclass, "allocate:has_constructor", "1");
-      Setattr(inclass, "allocate:public_constructor", "1");
+      if (default_constructor && !extendmode)
+	SetFlag(inclass, "allocate:deleted_default_constructor");
     }
-
 
     /* See if this is a copy constructor */
     if (parms && (ParmList_numrequired(parms) == 1)) {

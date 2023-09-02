@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-09-02: wsfulton
+            #1644 Fix wrapping types passed by value where the type has a deleted
+            default constructor.
+
 2023-08-16: shadchin
             [Python] #2665 Fix missing-field-initializers warning to provide support
             for python-3.12.

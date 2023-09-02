@@ -69,6 +69,16 @@ struct sometype2 {
   static void take(sometype2 s) {}
 };
 
+struct sometype3 {
+  int num;
+  sometype3() = delete;
+  static sometype3 make(int n) {
+    // Note: Can only be constructed via copy constructor, so use C++11 uniform initialization to create
+    return sometype3 {n};
+  }
+  static void take(sometype3 s) {}
+};
+
 /* Not working with prerelease of gcc-4.8
 struct nonew {
   void *operator new(std::size_t) = delete;
