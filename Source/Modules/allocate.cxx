@@ -906,7 +906,7 @@ Allocate():
 
       /* default constructor */
       if (!abstract && !GetFlag(n, "feature:nodefaultctor") && odefault) {
-	if (!Getattr(n, "has_constructor") && !Getattr(n, "allocate:has_constructor") && Getattr(n, "allocate:default_constructor")) {
+	if (!Getattr(n, "allocate:has_constructor") && Getattr(n, "allocate:default_constructor")) {
 	  addDefaultConstructor(n);
 	}
       }

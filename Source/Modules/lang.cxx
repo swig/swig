@@ -2632,7 +2632,6 @@ int Language::constructorDeclaration(Node *n) {
       constructorHandler(n);
     }
   }
-  Setattr(CurrentClass, "has_constructor", "1");
 
   Swig_restore(n);
   return SWIG_OK;
