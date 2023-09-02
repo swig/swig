@@ -57,8 +57,17 @@ struct sometype {
   sometype() = delete;
   sometype(int) = delete;
   sometype(double);
+  static sometype make(double d) { return sometype(d); }
+  static void take(sometype s) {}
 };
 sometype::sometype(double) {}
+
+struct sometype2 {
+  sometype2() = delete;
+  sometype2(double) {}
+  static sometype2 make(double d) { return sometype2(d); }
+  static void take(sometype2 s) {}
+};
 
 /* Not working with prerelease of gcc-4.8
 struct nonew {

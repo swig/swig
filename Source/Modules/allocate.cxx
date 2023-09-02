@@ -1201,6 +1201,9 @@ Allocate():
   virtual int constructorDeclaration(Node *n) {
     if (!inclass)
       return SWIG_OK;
+    if (GetFlag(n, "deleted"))
+      return SWIG_OK;
+
     Parm *parms = Getattr(n, "parms");
     AccessMode access_mode = accessModeFromString(Getattr(n, "access"));
 
