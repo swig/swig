@@ -969,7 +969,8 @@ public:
 
     /* Create a Perl function for setting the variable value */
 
-    if (!GetFlag(n, "feature:immutable")) {
+    int assignable = is_assignable(n);
+    if (assignable) {
       Setattr(n, "wrap:name", set_name);
       Printf(setf->def, "SWIGCLASS_STATIC int %s(pTHX_ SV* sv, MAGIC * SWIGUNUSEDPARM(mg)) {\n", set_name);
       Printv(setf->code, tab4, "MAGIC_PPERL\n", NIL);
@@ -1031,7 +1032,7 @@ public:
       tt = NewString("0");
     }
     /* Now add symbol to the PERL interpreter */
-    if (GetFlag(n, "feature:immutable")) {
+    if (!assignable) {
       Printv(variable_tab, tab4, "{ \"", cmodule, "::", iname, "\", MAGIC_CLASS swig_magic_readonly, MAGIC_CLASS ", get_name, ",", tt, " },\n", NIL);
 
     } else {

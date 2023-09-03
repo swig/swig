@@ -829,7 +829,8 @@ public:
     Wrapper_add_local(f, "swig_result", "SWIG_CAMLlocal1(swig_result)");
     Printf(f->code, "swig_result = Val_unit;\n");
 
-    if (!GetFlag(n, "feature:immutable")) {
+    int assignable = is_assignable(n);
+    if (assignable) {
       /* Check for a setting of the variable value */
       Printf(f->code, "if (args != Val_int(0)) {\n");
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
@@ -863,7 +864,7 @@ public:
 
     // Now add symbol to the Ocaml interpreter
 
-    if (GetFlag(n, "feature:immutable")) {
+    if (!assignable) {
       Printf(f_mlbody, "external _%s : c_obj -> Swig.c_obj = \"%s\" \n", mname, var_name);
       Printf(f_mlibody, "val _%s : c_obj -> Swig.c_obj\n", iname);
       if (const_enum) {

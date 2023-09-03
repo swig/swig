@@ -54,20 +54,12 @@
   class A : protected TROOT
   {
   };
-  
 %}
 
-#ifdef SWIGPYTHON
-
-// This case only works in python
 %inline %{
    struct FooBar : Foo 
    {
    };
    
    FooBar bar;
-   
 %}
-
-
-#endif

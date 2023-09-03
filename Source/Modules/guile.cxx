@@ -1085,6 +1085,8 @@ public:
     Replaceall(proc_name, "_", "-");
     Setattr(n, "wrap:name", proc_name);
 
+    int assignable = is_assignable(n);
+
     if (1 || (SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
 
       Printf(f->def, "static SCM\n%s(SCM s_0)\n{\n", var_name);
@@ -1095,7 +1097,7 @@ public:
 
       Wrapper_add_local(f, "gswig_result", "SCM gswig_result");
 
-      if (!GetFlag(n, "feature:immutable")) {
+      if (assignable) {
 	/* Check for a setting of the variable value */
 	Printf(f->code, "if (s_0 != SCM_UNDEFINED) {\n");
 	if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
@@ -1125,7 +1127,7 @@ public:
 
       // Now add symbol to the Guile interpreter
 
-      if (!emit_setters || GetFlag(n, "feature:immutable")) {
+      if (!emit_setters || !assignable) {
 	/* Read-only variables become a simple procedure returning the
 	   value; read-write variables become a simple procedure with
 	   an optional argument. */
@@ -1134,7 +1136,7 @@ public:
 	  /* need to export this function as a variable instead of a procedure */
 	  if (scmstub) {
 	    /* export the function in the wrapper, and (set!) it in scmstub */
-	    Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n", proc_name, !GetFlag(n, "feature:immutable"), var_name);
+	    Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n", proc_name, assignable, var_name);
 	    Printf(scmtext, "(set! %s (%s))\n", proc_name, proc_name);
 	  } else {
 	    /* export the variable directly */
@@ -1143,7 +1145,7 @@ public:
 
 	} else {
 	  /* Export the function as normal */
-	  Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n", proc_name, !GetFlag(n, "feature:immutable"), var_name);
+	  Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n", proc_name, assignable, var_name);
 	}
 
       } else {
@@ -1163,7 +1165,7 @@ public:
 	  Printv(primitive_name, "primitive:", NIL);
 	Printv(primitive_name, proc_name, NIL);
 	/* Simply re-export the procedure */
-	if ((!emit_setters || GetFlag(n, "feature:immutable"))
+	if ((!emit_setters || !assignable)
 	    && GetFlag(n, "feature:constasvar")) {
 	  Printv(goopscode, "(define ", goops_name, " (", primitive_name, "))\n", NIL);
 	} else {
@@ -1181,7 +1183,7 @@ public:
 	String *signature2 = NULL;
 	String *doc = NewString("");
 
-	if (GetFlag(n, "feature:immutable")) {
+	if (!assignable) {
 	  Printv(signature, proc_name, NIL);
 	  if (GetFlag(n, "feature:constasvar")) {
 	    Printv(doc, "Is constant ", NIL);

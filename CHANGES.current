@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-09-03: wsfulton
+            [Guile, Ocaml, Perl] Don't attempt to generate a setter when wrapping
+            variables which have a private assignment operator as assignment is not
+            possible. This now matches the behaviour of all the other target languages.
+
 2023-09-02: wsfulton
             Fix problems wrapping deleted destructors. Derived classes are not
             constructible, so don't attempt to generate default constructor or
