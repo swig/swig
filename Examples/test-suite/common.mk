@@ -89,7 +89,6 @@ CPP_TEST_BROKEN += \
 	li_boost_shared_ptr_template \
 	nested_private \
 	template_default_pointer \
-	template_private_assignment \
 	$(CPP11_TEST_BROKEN) \
 	$(CPP14_TEST_BROKEN) \
 	$(CPP17_TEST_BROKEN) \
@@ -475,6 +474,7 @@ CPP_TEST_CASES += \
 	template_keyword_in_type \
 	template_methods \
 	template_namespace_forward_declaration \
+	template_private_assignment \
 	template_using_directive_and_declaration_forward \
 	template_using_directive_typedef \
 	template_using_member_default_arg \
