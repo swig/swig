@@ -1,2 +1,5 @@
 github-matrix+:
   version: ["","2.2","3.0"]
+extra-paths:
+  # TODO: Move these to sensible locations
+  - Examples/test-suite/schemerunme/*

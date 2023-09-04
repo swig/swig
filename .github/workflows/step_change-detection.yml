@@ -1,6 +1,11 @@
 name: Detect file changes
 on:
   workflow_call:
+    inputs:
+      languages:
+        description: Swig languages
+        required: true
+        type: string
     outputs:
       docs_changed:
         description: Documentation changed
@@ -19,48 +24,77 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Check documentation
-        id: docs
-        uses: tj-actions/changed-files@v38
-        with:
-          files: |
-            Doc/**
-      - name: Check Swig base
-        id: base
-        uses: tj-actions/changed-files@v38
-        with:
-          files: |
-            Source/**
-            Lib/std/**
-            Lib/typemaps/**
-            Lib/xml/**
-            Lib/*
-      - name: Check Swig language
-        id: lang
-        uses: tj-actions/changed-files@v38
-        with:
-          path: Lib
-          files: |
-            */**
-          files_ignore: |
-            .fmf/*
-            std/**
-            typemaps/**
-            xml/**
-          # Get only the names of the languages (first directory name after /Lib)
-          json: true
-          dir_names: true
-          dir_names_max_depth: 1
-          escape_json: false
-      - name: Print changes
+      - uses: actions/setup-python@v4
+      - name: Install fmf
+        run: python3 -m pip install fmf
+      - name: Gather variants
         run: |
-          echo "docs_changed = ${{ steps.docs.outputs.any_modified }}"
-          echo "docs_files = ${{ steps.docs.outputs.all_modified_files }}"
-          echo "base_changed = ${{ steps.base.outputs.any_modified }}"
-          echo "base_files = ${{ steps.base.outputs.all_modified_files }}"
-          echo "langs_changed = ${{ steps.lang.outputs.any_modified }}"
-          echo "langs_files = ${{ steps.lang.outputs.all_modified_files }}"
+          # Create the base yaml file for tj-actions/changed-files
+          cat <<EOF > changed-files.yaml
+          docs:
+            - Doc/**
+          base:
+            - Source/**
+            - Lib/std/**
+            - Lib/typemaps/**
+            - Lib/xml/**
+            - Lib/*
+            - Examples/Makefile.in
+            - Examples/test-suite/*
+            - Examples/test-suite/errors/*
+          EOF
+          
+          # Append each language data
+          for lang in $(echo '${{ inputs.languages }}' | jq -r .[]); do
+            # Note: this one does not work with indentation :(
+            cat <<EOF >> changed-files.yaml
+          $lang:
+            - Lib/$lang/**
+            - Examples/$lang/**
+            - Examples/test-suite/$lang/**
+          EOF
+            # Check if there are extra paths to run
+            if [ ! -z "$(fmf show --path ./Lib --name=^/${lang}\$ --key=extra-paths)" ]; then
+              extra_paths=$(fmf show --path ./Lib --name=^/${lang}\$ --key=extra-paths --format='{0}' --value='data["extra-paths"]')
+              extra_paths=$(python3 -c "import json; print(json.dumps($extra_paths))")
+              yq -i ".${lang} |= . + ${extra_paths}" ./changed-files.yaml
+            fi
+          done
+          
+          echo "::group::Final changed-files.yaml:"
+          cat changed-files.yaml
+          echo "::endgroup::"
+      - name: Check changed files
+        uses: tj-actions/changed-files@v39
+        id: changed-files
+        with:
+          files_yaml_from_source_file: changed-files.yaml
+          json: true
+          write_output_files: true
+      - name: Gather outputs
+        id: changed-output
+        run: |
+          echo "::group::tj-actions/changed-files"
+          grep -R '' .github/outputs/*.json
+          echo "::endgroup::"
+          # Set the basic docs/base flags
+          echo "base=${{ steps.changed-files.outputs.base_any_modified }}" >> $GITHUB_OUTPUT
+          echo "docs=${{ steps.changed-files.outputs.docs_any_modified }}" >> $GITHUB_OUTPUT
+          
+          # Gather all languages that have changed
+          langs="[]"
+          for lang in $(echo '${{ inputs.languages }}' | jq -r .[]); do
+            if [[ "$(cat .github/outputs/${lang}_any_modified.json | jq .)" == "true" ]]; then
+              langs="$(echo $langs | jq -c ". += [\"$lang\"]")"
+            fi
+          done
+          echo "langs=$langs" >> $GITHUB_OUTPUT
+          
+          # Print debug
+          echo "::group::Outputs"
+          cat $GITHUB_OUTPUT
+          echo "::endgroup::"
     outputs:
-      docs_changed: ${{ steps.docs.outputs.any_modified }}
-      base_changed: ${{ steps.base.outputs.any_modified }}
-      langs: ${{ steps.lang.outputs.all_modified_files }}
+      base_changed: ${{ steps.changed-output.outputs.base }}
+      docs_changed: ${{ steps.changed-output.outputs.docs }}
+      langs: ${{ steps.changed-output.outputs.langs }}

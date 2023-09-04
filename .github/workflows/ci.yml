@@ -32,11 +32,14 @@ on:
         required: false
 
 jobs:
-  get-changed-files:
-    uses: ./.github/workflows/step_change-detection.yml
   get-variants:
     # Parse the `fmf ls` in /Lib to construct toolchain and language variants
     uses: ./.github/workflows/step_get-variants.yml
+  get-changed-files:
+    needs: [ get-variants ]
+    uses: ./.github/workflows/step_change-detection.yml
+    with:
+      languages: ${{ needs.get-variants.outputs.languages }}
   test-toolchains:
     needs: [ get-variants, get-changed-files ]
     name: "Run base Swig tests: ${{ matrix.toolchain }}"
