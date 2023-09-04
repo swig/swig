@@ -855,8 +855,8 @@ Allocate():
       for (int i = 0; i < Len(bases); i++) {
 	Node *n = Getitem(bases, i);
 	/* If base class does not allow assignment, we don't allow it either */
-	if (Getattr(n, "allocate:has_assign")) {
-	  allows_assign = !Getattr(n, "allocate:noassign");
+	if (Getattr(n, "allocate:noassign")) {
+	  allows_assign = 0;
 	}
       }
       if (!allows_assign) {

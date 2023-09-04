@@ -8,6 +8,13 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-09-03: wsfulton
+            https://sourceforge.net/p/swig/bugs/1006/
+            Fix incorrect variable setters being generated when the type of the
+            variable is not assignable, due to variable type inheriting a private
+            assignment operator further up the inheritance chain (further up than
+            the immediate base).
+
+2023-09-03: wsfulton
             [Guile, Ocaml, Perl] Don't attempt to generate a setter when wrapping
             variables which have a private assignment operator as assignment is not
             possible. This now matches the behaviour of all the other target languages.
