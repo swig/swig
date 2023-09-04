@@ -597,6 +597,7 @@ CPP11_TEST_CASES += \
 	cpp11_alias_nested_template_scoping \
 	cpp11_alignment \
 	cpp11_alternate_function_syntax \
+	cpp11_assign_delete \
 	cpp11_attribute_specifiers \
 	cpp11_auto_variable \
 	cpp11_brackets_expression \
