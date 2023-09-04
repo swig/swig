@@ -15,7 +15,7 @@ jobs:
     name: Gather CI variants from fmf metadata
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
       - name: Install fmf
         run: python3 -m pip install fmf
