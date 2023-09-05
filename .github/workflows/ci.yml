@@ -79,3 +79,13 @@ jobs:
     needs: [ get-variants, get-changed-files ]
     uses: ./.github/workflows/step_nuget.yml
     if: false
+  pass:
+    needs: [get-changed-files, get-variants, test-toolchains, test-lang]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check all CI action
+        uses: re-actors/alls-green@release/v1
+        with:
+          allowed-skips: test-toolchains, test-lang
+          jobs: ${{ toJSON(needs) }}
+    if: always()

@@ -186,3 +186,12 @@ jobs:
         run: |
           set -x
           make check-maintainer-clean && ../../configure
+  pass:
+    needs: [get-metadata, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check toolchain jobs
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
+    if: always()
