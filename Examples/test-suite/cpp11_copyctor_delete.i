@@ -86,7 +86,7 @@ struct StackOnlyDerivedMore1 : StackOnlyDerived1 {
 struct CopyCtorDeletedPublic1 {
 #if __cplusplus >= 202002L
   // Uniform/aggregate initialization was removed in C++20 if there is a user declared constructor, so the initialization in make() below does not work
-  // This example can only be tested for C++11 to C++17, in C++20 we the constructor declaration is removed by making it an aggregate for C++20
+  // This example can only be tested for C++11 to C++17, in C++20 the constructor declaration is removed by making it an aggregate
   // SWIG still sees the deleted constructor below
 #else
   CopyCtorDeletedPublic1() = delete;
@@ -113,7 +113,7 @@ struct CopyCtorDeletedProtected1 {
 protected:
 #if __cplusplus >= 202002L
   // Uniform/aggregate initialization was removed in C++20 if there is a user declared constructor, so the initialization in make() below does not work
-  // This example can only be tested for C++11 to C++17, in C++20 we the constructor declaration is removed by making it an aggregate for C++20
+  // This example can only be tested for C++11 to C++17, in C++20 the constructor declaration is removed by making it an aggregate
   // SWIG still sees the deleted constructor below
 #else
   CopyCtorDeletedProtected1() = delete;
@@ -145,7 +145,7 @@ struct CopyCtorDeletedPrivate1 {
 private:
 #if __cplusplus >= 202002L
   // Uniform/aggregate initialization was removed in C++20 if there is a user declared constructor, so the initialization in make() below does not work
-  // This example can only be tested for C++11 to C++17, in C++20 we the constructor declaration is removed by making it an aggregate for C++20
+  // This example can only be tested for C++11 to C++17, in C++20 the constructor declaration is removed by making it an aggregate
   // SWIG still sees the deleted constructor below
 #else
   CopyCtorDeletedPrivate1() = delete;
