@@ -28,6 +28,14 @@ public class cpp11_assign_delete_runme {
     AssignProtectedDerived a5 = imv.getMemberProtectedDerived();
     AssignPrivateDerived a6 = imv.getMemberPrivateDerived();
 
+    AssignPublicDerived sa4 = InheritedMemberVars.getStaticMemberPublicDerived();
+    AssignProtectedDerived sa5 = InheritedMemberVars.getStaticMemberProtectedDerived();
+    AssignPrivateDerived sa6 = InheritedMemberVars.getStaticMemberPrivateDerived();
+
+    AssignPublicDerived ga4 = cpp11_assign_delete.getGlobalPublicDerived();
+    AssignProtectedDerived ga5 = cpp11_assign_delete.getGlobalProtectedDerived();
+    AssignPrivateDerived ga6 = cpp11_assign_delete.getGlobalPrivateDerived();
+
     // These will have getters and setters
     AssignPublicDerivedSettable a7 = imv.getMemberPublicDerivedSettable();
     imv.setMemberPublicDerivedSettable(a7);
@@ -36,6 +44,19 @@ public class cpp11_assign_delete_runme {
     AssignPrivateDerivedSettable a9 = imv.getMemberPrivateDerivedSettable();
     imv.setMemberPrivateDerivedSettable(a9);
 
+    AssignPublicDerivedSettable sa7 = InheritedMemberVars.getStaticMemberPublicDerivedSettable();
+    InheritedMemberVars.setStaticMemberPublicDerivedSettable(sa7);
+    AssignProtectedDerivedSettable sa8 = InheritedMemberVars.getStaticMemberProtectedDerivedSettable();
+    InheritedMemberVars.setStaticMemberProtectedDerivedSettable(sa8);
+    AssignPrivateDerivedSettable sa9 = InheritedMemberVars.getStaticMemberPrivateDerivedSettable();
+    InheritedMemberVars.setStaticMemberPrivateDerivedSettable(sa9);
+
+    AssignPublicDerivedSettable ga7 = cpp11_assign_delete.getGlobalPublicDerivedSettable();
+    cpp11_assign_delete.setGlobalPublicDerivedSettable(ga7);
+    AssignProtectedDerivedSettable ga8 = cpp11_assign_delete.getGlobalProtectedDerivedSettable();
+    cpp11_assign_delete.setGlobalProtectedDerivedSettable(ga8);
+    AssignPrivateDerivedSettable ga9 = cpp11_assign_delete.getGlobalPrivateDerivedSettable();
+    cpp11_assign_delete.setGlobalPrivateDerivedSettable(ga9);
 
     // (3) Test indirectly non-assignable member variables via classes that themselves have non-assignable member variables
     MembersMemberVars m = new MembersMemberVars();
@@ -44,5 +65,13 @@ public class cpp11_assign_delete_runme {
     MemberPublicVar mpv1 = m.getMemberPublic();
     MemberProtectedVar mpv2 = m.getMemberProtected();
     MemberPrivateVar mpv3 = m.getMemberPrivate();
+
+    MemberPublicVar smpv1 = StaticMembersMemberVars.getStaticMemberPublic();
+    MemberProtectedVar smpv2 = StaticMembersMemberVars.getStaticMemberProtected();
+    MemberPrivateVar smpv3 = StaticMembersMemberVars.getStaticMemberPrivate();
+
+    MemberPublicVar gmpv1 = cpp11_assign_delete.getGlobalMemberPublic();
+    MemberProtectedVar gmpv2 = cpp11_assign_delete.getGlobalMemberProtected();
+    MemberPrivateVar gmpv3 = cpp11_assign_delete.getGlobalMemberPrivate();
   }
 }

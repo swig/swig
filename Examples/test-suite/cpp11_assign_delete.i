@@ -45,11 +45,37 @@ struct InheritedMemberVars {
   AssignProtectedDerived MemberProtectedDerived;
   AssignPrivateDerived MemberPrivateDerived;
 
+  static AssignPublicDerived StaticMemberPublicDerived;
+  static AssignProtectedDerived StaticMemberProtectedDerived;
+  static AssignPrivateDerived StaticMemberPrivateDerived;
+
   // These will have getters and setters
   AssignPublicDerivedSettable MemberPublicDerivedSettable;
   AssignProtectedDerivedSettable MemberProtectedDerivedSettable;
   AssignPrivateDerivedSettable MemberPrivateDerivedSettable;
+
+  static AssignPublicDerivedSettable StaticMemberPublicDerivedSettable;
+  static AssignProtectedDerivedSettable StaticMemberProtectedDerivedSettable;
+  static AssignPrivateDerivedSettable StaticMemberPrivateDerivedSettable;
 };
+
+AssignPublicDerived InheritedMemberVars::StaticMemberPublicDerived;
+AssignProtectedDerived InheritedMemberVars::StaticMemberProtectedDerived;
+AssignPrivateDerived InheritedMemberVars::StaticMemberPrivateDerived;
+
+AssignPublicDerivedSettable InheritedMemberVars::StaticMemberPublicDerivedSettable;
+AssignProtectedDerivedSettable InheritedMemberVars::StaticMemberProtectedDerivedSettable;
+AssignPrivateDerivedSettable InheritedMemberVars::StaticMemberPrivateDerivedSettable;
+
+// These will only have getters
+AssignPublicDerived GlobalPublicDerived;
+AssignProtectedDerived GlobalProtectedDerived;
+AssignPrivateDerived GlobalPrivateDerived;
+
+// These will have getters and setters
+AssignPublicDerivedSettable GlobalPublicDerivedSettable;
+AssignProtectedDerivedSettable GlobalProtectedDerivedSettable;
+AssignPrivateDerivedSettable GlobalPrivateDerivedSettable;
 %}
 
 // (3) Test indirectly non-assignable member variables via classes that themselves have non-assignable member variables
@@ -74,4 +100,17 @@ struct MembersMemberVars {
   MemberProtectedVar MemberProtected;
   MemberPrivateVar MemberPrivate;
 };
+
+struct StaticMembersMemberVars {
+  static MemberPublicVar StaticMemberPublic;
+  static MemberProtectedVar StaticMemberProtected;
+  static MemberPrivateVar StaticMemberPrivate;
+};
+MemberPublicVar StaticMembersMemberVars::StaticMemberPublic;
+MemberProtectedVar StaticMembersMemberVars::StaticMemberProtected;
+MemberPrivateVar StaticMembersMemberVars::StaticMemberPrivate;
+
+MemberPublicVar GlobalMemberPublic;
+MemberProtectedVar GlobalMemberProtected;
+MemberPrivateVar GlobalMemberPrivate;
 %}

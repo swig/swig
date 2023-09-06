@@ -8,6 +8,10 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-09-06: wsfulton
+            Assignment operator detection fixes when wrapping static member
+            variables.
+
+2023-09-06: wsfulton
             #1416 Implicit assignment operator detection fixes.
 
             A class that does not have an explicit assignment operator does not

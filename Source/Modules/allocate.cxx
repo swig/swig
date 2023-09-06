@@ -1150,7 +1150,9 @@ Allocate():
 
       if (Swig_storage_isstatic(n)) {
 	Setattr(n, "cplus:staticbase", inclass);
-      } else if (Cmp(Getattr(n, "kind"), "variable") == 0) {
+      }
+
+      if (Cmp(Getattr(n, "kind"), "variable") == 0) {
         /* Check member variable to determine whether assignment is valid */
 	if (!is_assignable(n)) {
 	  SetFlag(n, "feature:immutable");
