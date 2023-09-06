@@ -13,12 +13,15 @@ template<typename T, typename U> struct DeletedBits {
 private:
   DeletedBits& operator=(const DeletedBits&);
 };
-
-DeletedBits<int, double> deleted_bits;
 %}
 
 // Solution 1: This is a case where an instantiation is required for this to work properly.
+// Instantiation must be before the template instance is used.
 %template() DeletedBits<int, double>;
+
+%inline %{
+DeletedBits<int, double> deleted_bits;
+%}
 
 // Solution 2: Alternatively use %immutable
 %immutable deleted_bits2;
