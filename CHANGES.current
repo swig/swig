@@ -8,6 +8,16 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-09-06: wsfulton
+            Non-assignable detection fixes when wrapping reference variables.
+            Reference variables such as the following are non-assignable by
+            by default:
+
+              int &v;
+
+            Variable setters are not generated when wrapping these non-assignable
+            variables and classes containing such non-assignable variables.
+
+2023-09-06: wsfulton
             Assignment operator detection fixes when wrapping static member
             variables.
 

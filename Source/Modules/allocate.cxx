@@ -667,14 +667,14 @@ class Allocate:public Dispatcher {
     }
   }
 
-  bool is_assignable(Node *n) {
+  bool is_assignable(Node *n, bool& is_reference) {
     bool assignable = true;
-    SwigType *type = Getattr(n, "type");
-    Node *cn = 0;
-    SwigType *ftd = SwigType_typedef_resolve_all(type);
+    SwigType *ty = Copy(Getattr(n, "type"));
+    SwigType_push(ty, Getattr(n, "decl"));
+    SwigType *ftd = SwigType_typedef_resolve_all(ty);
     SwigType *td = SwigType_strip_qualifiers(ftd);
     if (SwigType_type(td) == T_USER) {
-      cn = Swig_symbol_clookup(td, 0);
+      Node *cn = Swig_symbol_clookup(td, 0);
       if (cn) {
 	if ((Strcmp(nodeType(cn), "class") == 0)) {
 	  if (Getattr(cn, "allocate:noassign")) {
@@ -683,6 +683,8 @@ class Allocate:public Dispatcher {
 	}
       }
     }
+    is_reference = (SwigType_isreference(td));
+    Delete(ty);
     Delete(ftd);
     Delete(td);
     return assignable;
@@ -1154,14 +1156,13 @@ Allocate():
 
       if (Cmp(Getattr(n, "kind"), "variable") == 0) {
         /* Check member variable to determine whether assignment is valid */
-	if (!is_assignable(n)) {
+	bool is_reference;
+	bool assignable = is_assignable(n, is_reference);
+	if (!assignable) {
 	  SetFlag(n, "feature:immutable");
-	  SetFlag(inclass, "allocate:has_nonassignable");
 	}
-        if (SwigType_isreference(Getattr(n, "type"))) {
-          /* Can't assign a class with reference member data */
-	  Setattr(inclass, "allocate:noassign", "1");
-        }
+	if (!assignable || is_reference)
+	  SetFlag(inclass, "allocate:has_nonassignable"); // The class has a variable that cannot be assigned to
       }
 
       String *name = Getattr(n, "name");
@@ -1239,8 +1240,11 @@ Allocate():
       }
     } else {
       if (Cmp(Getattr(n, "kind"), "variable") == 0) {
-	if (!is_assignable(n))
+	bool is_reference;
+	bool assignable = is_assignable(n, is_reference);
+	if (!assignable) {
 	  SetFlag(n, "feature:immutable");
+	}
       }
     }
     return SWIG_OK;

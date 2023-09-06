@@ -128,6 +128,7 @@ CPP_TEST_CASES += \
 	arrays_global \
 	arrays_global_twodim \
 	arrays_scope \
+	assign_reference \
 	autodoc \
 	bloody_hell \
 	bools \
