@@ -21,7 +21,9 @@
  *
  * Once the analysis is complete, the non-explicit/implied default constructors
  * and destructors are added to the parse tree. Implied copy constructors are
- * added too if requested via the copyctor feature.
+ * added too if requested via the copyctor feature. Detection of implied
+ * assignment operators is also handled as assigment is required in the generated
+ * code for variable setters.
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
@@ -665,6 +667,27 @@ class Allocate:public Dispatcher {
     }
   }
 
+  bool is_assignable(Node *n) {
+    bool assignable = true;
+    SwigType *type = Getattr(n, "type");
+    Node *cn = 0;
+    SwigType *ftd = SwigType_typedef_resolve_all(type);
+    SwigType *td = SwigType_strip_qualifiers(ftd);
+    if (SwigType_type(td) == T_USER) {
+      cn = Swig_symbol_clookup(td, 0);
+      if (cn) {
+	if ((Strcmp(nodeType(cn), "class") == 0)) {
+	  if (Getattr(cn, "allocate:noassign")) {
+	    assignable = false;
+	  }
+	}
+      }
+    }
+    Delete(ftd);
+    Delete(td);
+    return assignable;
+  }
+
 public:
 Allocate():
   inclass(NULL), extendmode(0) {
@@ -789,6 +812,7 @@ Allocate():
 	}
       }
     }
+
     if (!Getattr(n, "allocate:has_copy_constructor")) {
       if (Getattr(n, "abstracts")) {
 	Delattr(n, "allocate:copy_constructor");
@@ -858,6 +882,10 @@ Allocate():
 	if (Getattr(n, "allocate:noassign")) {
 	  allows_assign = 0;
 	}
+      }
+      /* If any member variables are non assignable, this class is also non assignable by default */
+      if (GetFlag(n, "allocate:has_nonassignable")) {
+	allows_assign = 0;
       }
       if (!allows_assign) {
 	Setattr(n, "allocate:noassign", "1");
@@ -1124,6 +1152,10 @@ Allocate():
 	Setattr(n, "cplus:staticbase", inclass);
       } else if (Cmp(Getattr(n, "kind"), "variable") == 0) {
         /* Check member variable to determine whether assignment is valid */
+	if (!is_assignable(n)) {
+	  SetFlag(n, "feature:immutable");
+	  SetFlag(inclass, "allocate:has_nonassignable");
+	}
         if (SwigType_isreference(Getattr(n, "type"))) {
           /* Can't assign a class with reference member data */
 	  Setattr(inclass, "allocate:noassign", "1");
@@ -1202,6 +1234,11 @@ Allocate():
 	    }
 	  }
 	}
+      }
+    } else {
+      if (Cmp(Getattr(n, "kind"), "variable") == 0) {
+	if (!is_assignable(n))
+	  SetFlag(n, "feature:immutable");
       }
     }
     return SWIG_OK;

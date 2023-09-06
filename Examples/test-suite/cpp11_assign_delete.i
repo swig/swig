@@ -1,6 +1,8 @@
 %module cpp11_assign_delete
 
 %rename(Assign) *::operator=;
+
+// (1) Test directly non-assignable member variables
 %inline %{
 struct AssignPublic {
   AssignPublic& operator=(const AssignPublic &) = delete;
@@ -16,6 +18,14 @@ private:
   AssignPrivate& operator=(const AssignPrivate &) = delete;
 };
 
+struct MemberVars {
+  // These will only have getters
+  AssignPublic MemberPublic;
+  AssignProtected MemberProtected;
+  AssignPrivate MemberPrivate;
+};
+
+// (2) Test indirectly non-assignable member variables via inheritance
 struct AssignPublicDerived : AssignPublic {};
 struct AssignProtectedDerived : AssignProtected {};
 struct AssignPrivateDerived : AssignPrivate {};
@@ -29,11 +39,8 @@ struct AssignPrivateDerivedSettable : AssignPrivate {
   AssignPrivateDerivedSettable& operator=(const AssignPrivateDerivedSettable &) { return *this; }
 };
 
-struct MemberVars {
+struct InheritedMemberVars {
   // These will only have getters
-  AssignPublic MemberPublic;
-  AssignProtected MemberProtected;
-  AssignPrivate MemberPrivate;
   AssignPublicDerived MemberPublicDerived;
   AssignProtectedDerived MemberProtectedDerived;
   AssignPrivateDerived MemberPrivateDerived;
@@ -42,5 +49,29 @@ struct MemberVars {
   AssignPublicDerivedSettable MemberPublicDerivedSettable;
   AssignProtectedDerivedSettable MemberProtectedDerivedSettable;
   AssignPrivateDerivedSettable MemberPrivateDerivedSettable;
+};
+%}
+
+// (3) Test indirectly non-assignable member variables via classes that themselves have non-assignable member variables
+%inline %{
+struct MemberPublicVar {
+  AssignPublic MemberPublic;
+};
+
+struct MemberProtectedVar {
+protected:
+  AssignProtected MemberProtected;
+};
+
+struct MemberPrivateVar {
+private:
+  AssignPrivate MemberPrivate;
+};
+
+struct MembersMemberVars {
+  // These will only have getters
+  MemberPublicVar MemberPublic;
+  MemberProtectedVar MemberProtected;
+  MemberPrivateVar MemberPrivate;
 };
 %}

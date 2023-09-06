@@ -34,3 +34,30 @@ private:
 
 DeletedBits2<int, double> deleted_bits2;
 %}
+
+
+// https://github.com/swig/swig/issues/1416
+%inline %{
+template<class T> class AssignTestTemplate {
+public:
+  AssignTestTemplate() {}
+  T assigntesttemplate;
+};
+
+class AssignTestType {
+private:
+  AssignTestType( const AssignTestType& );
+  AssignTestType& operator=( const AssignTestType& );
+public:
+  AssignTestType() {}
+};
+%}
+
+%template(AssignTestTmpl) AssignTestTemplate<AssignTestType>;
+
+%inline %{
+class AssignTestContainer {
+public:
+  AssignTestTemplate<AssignTestType> assigntestcontainer;
+};
+%}

@@ -3736,27 +3736,7 @@ void Language::setOverloadResolutionTemplates(String *argc, String *argv) {
 }
 
 int Language::is_assignable(Node *n) {
-  if (GetFlag(n, "feature:immutable"))
-    return 0;
-  int assignable = 1;
-  SwigType *type = Getattr(n, "type");
-  Node *cn = 0;
-  SwigType *ftd = SwigType_typedef_resolve_all(type);
-  SwigType *td = SwigType_strip_qualifiers(ftd);
-  if (SwigType_type(td) == T_USER) {
-    cn = Swig_symbol_clookup(td, 0);
-    if (cn) {
-      if ((Strcmp(nodeType(cn), "class") == 0)) {
-	if (Getattr(cn, "allocate:noassign")) {
-	  SetFlag(n, "feature:immutable");
-	  assignable = 0;
-	}
-      }
-    }
-  }
-  Delete(ftd);
-  Delete(td);
-  return assignable;
+  return !GetFlag(n, "feature:immutable");
 }
 
 String *Language::runtimeCode() {

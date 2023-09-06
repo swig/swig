@@ -7,6 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-09-06: wsfulton
+            #1416 Implicit assignment operator detection fixes.
+
+            A class that does not have an explicit assignment operator does not
+            have an implicit assignment operator if a member variable is not
+            assignable. Similarly should one of the base classes also not be
+            assignable. Detection of these scenarios has been fixed so that when
+            wrapping a variable that is not assignable, a variable setter is not
+            generated in order to avoid a compiler error.
+
+            Template instantiation via %template is required in order for this to
+            work for templates that are not assignable.
+
 2023-09-03: wsfulton
             https://sourceforge.net/p/swig/bugs/1006/
             Fix incorrect variable setters being generated when the type of the
