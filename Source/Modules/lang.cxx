@@ -1470,7 +1470,7 @@ int Language::membervariableHandler(Node *n) {
 
     /* Create a function to set the value of the variable */
 
-    int assignable = is_assignable(n);
+    int assignable = !is_immutable(n);
 
     if (SmartPointer) {
       if (!Getattr(CurrentClass, "allocate:smartpointermutable")) { 
@@ -2923,7 +2923,7 @@ int Language::variableWrapper(Node *n) {
   }
 
   /* If no way to set variables.  We simply create functions */
-  int assignable = is_assignable(n);
+  int assignable = !is_immutable(n);
   int flags = use_naturalvar_mode(n);
   if (!GetFlag(n, "wrappedasconstant"))
     flags = flags | Extend;
@@ -3735,8 +3735,8 @@ void Language::setOverloadResolutionTemplates(String *argc, String *argv) {
   argv_template_string = Copy(argv);
 }
 
-int Language::is_assignable(Node *n) {
-  return !GetFlag(n, "feature:immutable");
+int Language::is_immutable(Node *n) {
+  return GetFlag(n, "feature:immutable");
 }
 
 String *Language::runtimeCode() {

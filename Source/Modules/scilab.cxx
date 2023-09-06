@@ -643,7 +643,7 @@ public:
     addFunctionToScilab(scilabGetFunctionName, scilabGetSmallFunctionName, getFunctionName);
 
     /* Manage SET function */
-    if (is_assignable(node)) {
+    if (!is_immutable(node)) {
       Wrapper *setFunctionWrapper = NewWrapper();
       String *setFunctionName = Swig_name_set(NSPACE_TODO, variableName);
       String *scilabSetFunctionName = Swig_name_set(NSPACE_TODO, variableName);

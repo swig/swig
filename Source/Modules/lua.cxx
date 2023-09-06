@@ -914,7 +914,7 @@ public:
    * ------------------------------------------------------------ */
 
   void registerVariable(Node *n, bool overwrite = false, String *overwriteLuaScope = 0) {
-    int assignable = is_assignable(n);
+    int assignable = !is_immutable(n);
     String *symname = Getattr(n, "sym:name");
     assert(symname);
 

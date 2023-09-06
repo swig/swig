@@ -2443,7 +2443,7 @@ private:
 
     String *mname = Swig_name_member(getNSpace(), Getattr(var_class, "sym:name"), var_name);
 
-    if (is_assignable(var)) {
+    if (!is_immutable(var)) {
       for (Iterator ki = First(var); ki.key; ki = Next(ki)) {
 	if (Strncmp(ki.key, "tmap:", 5) == 0) {
 	  Delattr(var, ki.key);

@@ -836,7 +836,7 @@ public:
 
     Octave_begin_function(n, setf->def, setname, setwname, true);
     Printf(setf->code, "if (!SWIG_check_num_args(\"%s_set\",args.length(),1,1,0)) return octave_value_list();\n", iname);
-    if (is_assignable(n)) {
+    if (!is_immutable(n)) {
       Setattr(n, "wrap:name", setname);
       if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
         Replaceall(tm, "$input", "args(0)");

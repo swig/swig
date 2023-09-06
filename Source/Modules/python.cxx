@@ -3460,7 +3460,7 @@ public:
 	Printf(f_shadow_stubs, "%s = %s.%s\n", global_name, module, global_name);
       }
     }
-    int assignable = is_assignable(n);
+    int assignable = !is_immutable(n);
 
     if (!builtin && shadow && !assignable && !in_class)
       Printf(f_shadow_stubs, "%s = %s.%s\n", iname, global_name, iname);
@@ -5058,7 +5058,7 @@ public:
       String *mname = Swig_name_member(NSPACE_TODO, class_name, symname);
       String *setname = Swig_name_set(NSPACE_TODO, mname);
       String *getname = Swig_name_get(NSPACE_TODO, mname);
-      int assignable = is_assignable(n);
+      int assignable = !is_immutable(n);
       String *variable_annotation = variableAnnotation(n);
       Printv(f_shadow, tab4, symname, variable_annotation, " = property(", module, ".", getname, NIL);
       if (assignable)
@@ -5113,7 +5113,7 @@ public:
 	add_method(getname, wrapgetname, 0);
 	Wrapper_print(f, f_wrappers);
 	DelWrapper(f);
-	int assignable = is_assignable(n);
+	int assignable = !is_immutable(n);
 	if (assignable) {
 	  int funpack = fastunpack;
 	  Wrapper *f = NewWrapper();

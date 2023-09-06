@@ -872,7 +872,7 @@ int JSEmitter::enterVariable(Node *n) {
     SetFlag(state.variable(), IS_STATIC);
   }
 
-  if (!Language::instance()->is_assignable(n)) {
+  if (Language::instance()->is_immutable(n)) {
     SetFlag(state.variable(), IS_IMMUTABLE);
   }
   // FIXME: test "arrays_global" does not compile with that as it is not allowed to assign to char[]

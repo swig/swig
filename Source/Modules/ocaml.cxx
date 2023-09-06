@@ -829,7 +829,7 @@ public:
     Wrapper_add_local(f, "swig_result", "SWIG_CAMLlocal1(swig_result)");
     Printf(f->code, "swig_result = Val_unit;\n");
 
-    int assignable = is_assignable(n);
+    int assignable = !is_immutable(n);
     if (assignable) {
       /* Check for a setting of the variable value */
       Printf(f->code, "if (args != Val_int(0)) {\n");

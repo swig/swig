@@ -1085,7 +1085,7 @@ public:
     Replaceall(proc_name, "_", "-");
     Setattr(n, "wrap:name", proc_name);
 
-    int assignable = is_assignable(n);
+    int assignable = !is_immutable(n);
 
     if (1 || (SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
 

@@ -969,7 +969,7 @@ public:
 
     /* Create a Perl function for setting the variable value */
 
-    int assignable = is_assignable(n);
+    int assignable = !is_immutable(n);
     if (assignable) {
       Setattr(n, "wrap:name", set_name);
       Printf(setf->def, "SWIGCLASS_STATIC int %s(pTHX_ SV* sv, MAGIC * SWIGUNUSEDPARM(mg)) {\n", set_name);

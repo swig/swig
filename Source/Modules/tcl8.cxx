@@ -590,7 +590,7 @@ public:
     DelWrapper(getf);
 
     /* Try to create a function setting a variable */
-    if (is_assignable(n)) {
+    if (!is_immutable(n)) {
       setf = NewWrapper();
       setname = Swig_name_set(NSPACE_TODO, iname);
       setfname = Swig_name_wrapper(setname);

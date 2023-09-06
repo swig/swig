@@ -2143,7 +2143,7 @@ public:
     String *tm;
     String *getfname, *setfname;
     Wrapper *getf, *setf;
-    const int assignable = is_assignable(n);
+    int assignable = !is_immutable(n);
 
     // Determine whether virtual global variables shall be used
     // which have different getter and setter signatures,
@@ -2757,7 +2757,7 @@ public:
     Printf(f_wrappers, "%s", docs);
     Delete(docs);
 
-    if (is_assignable(n)) {
+    if (!is_immutable(n)) {
       String* docs = docstring(n, AUTODOC_SETTER);
       Printf(f_wrappers, "%s", docs);
       Delete(docs);
@@ -2812,7 +2812,7 @@ public:
     Printf(f_wrappers, "%s", docs);
     Delete(docs);
 
-    if (is_assignable(n)) {
+    if (!is_immutable(n)) {
       String* docs = docstring(n, AUTODOC_SETTER);
       Printf(f_wrappers, "%s", docs);
       Delete(docs);
