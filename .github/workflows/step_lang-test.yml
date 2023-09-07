@@ -12,9 +12,6 @@ on:
         type: string
     # All other inputs are derived from the fmf metadata
 
-env:
-  SWIGLANG: ${{ inputs.lang }}
-
 jobs:
   get-metadata:
     name: Get ${{ inputs.lang }} language metadata
@@ -38,9 +35,21 @@ jobs:
           github_matrix=$(fmf show --name=^/${{ inputs.lang }}\$ --format='{0}' --value='data["github-matrix"]')
           # Convert from python output to JSON
           github_matrix=$(python3 -c "import json; print(json.dumps($github_matrix))")
+          
+          # Check if there are extra env variables to add
+          if [ ! -z "$(fmf show --name=^/${{ inputs.lang }}\$ --key=env)" ]; then
+            env=$(fmf show --name=^/${{ inputs.lang }}\$ --format='{0}' --value='data["env"]')
+            env=$(python3 -c "import json; print(json.dumps($env))")
+            echo "env=$env" >> $GITHUB_OUTPUT
+          fi
+          
           echo "matrix=$github_matrix" >> $GITHUB_OUTPUT
+          # Normalize the swiglang (take only the first part of the Lib path)
+          echo "swig-lang=$(echo '${{ inputs.lang }}' | sed 's|/.*||')" >> $GITHUB_OUTPUT
     outputs:
+      swig-lang: ${{ steps.metadata.outputs.swig-lang }}
       matrix: ${{ steps.metadata.outputs.matrix }}
+      env: ${{ steps.metadata.outputs.env }}
   test:
     needs: [ get-metadata ]
     name: "Run tests: ${{ inputs.lang }} ${{ matrix.version }} ${{ matrix.experimental && '(experimental)' }}"
@@ -52,11 +61,18 @@ jobs:
       matrix: ${{ fromJSON(needs.get-metadata.outputs.matrix) }}
 
     env:
+      SWIGLANG: ${{ needs.get-metadata.outputs.swig-lang }}
       VER: ${{ matrix.version }}
       CPPSTD: ${{ matrix.cpp-std }}
 
     steps:
       - uses: actions/checkout@v4
+      - name: Add additional env metadata
+        run: |
+          for key_val in $(echo '${{ needs.get-metadata.outputs.env }}' | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]'); do
+            echo "${key_val}" >> $GITHUB_ENV
+          done
+        if: ${{ needs.get-metadata.outputs.env }}
       - name: Install CCache
         uses: hendrikmuhs/ccache-action@v1
         with:

@@ -46,18 +46,20 @@ jobs:
           
           # Append each language data
           for lang in $(echo '${{ inputs.languages }}' | jq -r .[]); do
+            # normalize the language for tj-actions/changed-files to avoid `/`
+            normal_lang=$(echo $lang | sed 's|/|_|')
             # Note: this one does not work with indentation :(
             cat <<EOF >> changed-files.yaml
-          $lang:
+          $normal_lang:
             - Lib/$lang/**
             - Examples/$lang/**
             - Examples/test-suite/$lang/**
           EOF
             # Check if there are extra paths to run
             if [ ! -z "$(fmf show --path ./Lib --name=^/${lang}\$ --key=extra-paths)" ]; then
-              extra_paths=$(fmf show --path ./Lib --name=^/${lang}\$ --key=extra-paths --format='{0}' --value='data["extra-paths"]')
+              extra_paths=$(fmf show --path ./Lib --name=^/${lang}\$ --format='{0}' --value='data["extra-paths"]')
               extra_paths=$(python3 -c "import json; print(json.dumps($extra_paths))")
-              yq -i ".${lang} |= . + ${extra_paths}" ./changed-files.yaml
+              yq -i ".${normal_lang} |= . + ${extra_paths}" ./changed-files.yaml
             fi
           done
           
@@ -84,7 +86,9 @@ jobs:
           # Gather all languages that have changed
           langs="[]"
           for lang in $(echo '${{ inputs.languages }}' | jq -r .[]); do
-            if [[ "$(cat .github/outputs/${lang}_any_modified.json | jq .)" == "true" ]]; then
+            # normalize the language for tj-actions/changed-files to avoid `/`
+            normal_lang=$(echo $lang | sed 's|/|_|')
+            if [[ "$(cat .github/outputs/${normal_lang}_any_modified.json | jq .)" == "true" ]]; then
               langs="$(echo $langs | jq -c ". += [\"$lang\"]")"
             fi
           done

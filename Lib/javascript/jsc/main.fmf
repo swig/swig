@@ -1,3 +1,4 @@
 github-matrix+:
-  engine: jsc
   version: [ "4.0" ]
+env:
+  ENGINE: jsc

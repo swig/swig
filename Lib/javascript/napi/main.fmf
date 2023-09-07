@@ -1,3 +1,4 @@
 github-matrix+:
-  engine: napi
-  version: [ "18" ]
+  version: [ "18", "20" ]
+env:
+  ENGINE: napi

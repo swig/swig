@@ -29,7 +29,7 @@ jobs:
           
           # Get registered languages from fmf, i.e. only 1st level of directories,
           # and save it as a bash array
-          languages=($(fmf ls --name='^\/(?!.*\/).+' | sed 's|/||'))
+          languages=($(fmf ls --name='^\/(?!toolchains).+' | sed 's|^/||'))
           
           # Use the bash array to construct a json array of strings
           toolchains=$(jq --compact-output --null-input '$ARGS.positional' --args -- "${toolchains[@]}")
