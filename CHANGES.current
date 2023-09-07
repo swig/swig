@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-09-07: wsfulton
+            Non-assignable detection fixes when wrapping rvalue reference variables.
+            Rvalue reference variables such as the following are non-assignable by
+            by default:
+
+              X &&v;
+
+            Variable setters are not generated when wrapping these non-assignable
+            variables and classes containing such non-assignable variables.
+
 2023-09-06: wsfulton
             Non-assignable detection fixes when wrapping reference variables.
             Reference variables such as the following are non-assignable by

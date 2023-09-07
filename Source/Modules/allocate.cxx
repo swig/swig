@@ -683,7 +683,7 @@ class Allocate:public Dispatcher {
 	}
       }
     }
-    is_reference = (SwigType_isreference(td));
+    is_reference = SwigType_isreference(td) || SwigType_isrvalue_reference(td);
     Delete(ty);
     Delete(ftd);
     Delete(td);
