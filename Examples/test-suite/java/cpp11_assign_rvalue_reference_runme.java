@@ -77,5 +77,13 @@ public class cpp11_assign_rvalue_reference_runme {
     MemberPublicVar gmpv1 = cpp11_assign_rvalue_reference.getGlobalMemberPublic();
     MemberProtectedVar gmpv2 = cpp11_assign_rvalue_reference.getGlobalMemberProtected();
     MemberPrivateVar gmpv3 = cpp11_assign_rvalue_reference.getGlobalMemberPrivate();
+
+    // Setters and getters available
+    StaticMembersMemberVarsHolder smmvh = new StaticMembersMemberVarsHolder();
+    StaticMembersMemberVars member = smmvh.getMember();
+    smmvh.setMember(member);
+
+    StaticMembersMemberVars smmv = cpp11_assign_rvalue_reference.getGlobalStaticMembersMemberVars();
+    cpp11_assign_rvalue_reference.setGlobalStaticMembersMemberVars(smmv);
   }
 }

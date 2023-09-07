@@ -73,5 +73,13 @@ public class cpp11_assign_delete_runme {
     MemberPublicVar gmpv1 = cpp11_assign_delete.getGlobalMemberPublic();
     MemberProtectedVar gmpv2 = cpp11_assign_delete.getGlobalMemberProtected();
     MemberPrivateVar gmpv3 = cpp11_assign_delete.getGlobalMemberPrivate();
+
+    // Setters and getters available
+    StaticMembersMemberVarsHolder smmvh = new StaticMembersMemberVarsHolder();
+    StaticMembersMemberVars member = smmvh.getMember();
+    smmvh.setMember(member);
+
+    StaticMembersMemberVars smmv = cpp11_assign_delete.getGlobalStaticMembersMemberVars();
+    cpp11_assign_delete.setGlobalStaticMembersMemberVars(smmv);
   }
 }

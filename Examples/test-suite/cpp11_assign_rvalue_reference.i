@@ -121,4 +121,10 @@ MemberPrivateVar StaticMembersMemberVars::StaticMemberPrivate;
 MemberPublicVar GlobalMemberPublic;
 MemberProtectedVar GlobalMemberProtected;
 MemberPrivateVar GlobalMemberPrivate;
+
+// Setters and getters available
+struct StaticMembersMemberVarsHolder {
+    StaticMembersMemberVars Member;
+};
+StaticMembersMemberVars GlobalStaticMembersMemberVars;
 %}

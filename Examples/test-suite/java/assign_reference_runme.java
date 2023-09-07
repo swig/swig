@@ -77,5 +77,13 @@ public class assign_reference_runme {
     MemberPublicVar gmpv1 = assign_reference.getGlobalMemberPublic();
     MemberProtectedVar gmpv2 = assign_reference.getGlobalMemberProtected();
     MemberPrivateVar gmpv3 = assign_reference.getGlobalMemberPrivate();
+
+    // Setters and getters available
+    StaticMembersMemberVarsHolder smmvh = new StaticMembersMemberVarsHolder();
+    StaticMembersMemberVars member = smmvh.getMember();
+    smmvh.setMember(member);
+
+    StaticMembersMemberVars smmv = assign_reference.getGlobalStaticMembersMemberVars();
+    assign_reference.setGlobalStaticMembersMemberVars(smmv);
   }
 }

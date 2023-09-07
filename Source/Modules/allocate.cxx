@@ -667,7 +667,7 @@ class Allocate:public Dispatcher {
     }
   }
 
-  bool is_assignable(Node *n, bool& is_reference) {
+  bool is_assignable(Node *n, bool &is_reference) {
     bool assignable = true;
     SwigType *ty = Copy(Getattr(n, "type"));
     SwigType_push(ty, Getattr(n, "decl"));
@@ -1150,7 +1150,8 @@ Allocate():
       /* Check to see if this is a static member or not.  If so, we add an attribute
          cplus:staticbase that saves the current class */
 
-      if (Swig_storage_isstatic(n)) {
+      int is_static = Swig_storage_isstatic(n);
+      if (is_static) {
 	Setattr(n, "cplus:staticbase", inclass);
       }
 
@@ -1161,8 +1162,10 @@ Allocate():
 	if (!assignable) {
 	  SetFlag(n, "feature:immutable");
 	}
-	if (!assignable || is_reference)
-	  SetFlag(inclass, "allocate:has_nonassignable"); // The class has a variable that cannot be assigned to
+	if (!is_static) {
+	  if (!assignable || is_reference)
+	    SetFlag(inclass, "allocate:has_nonassignable"); // The class has a variable that cannot be assigned to
+	}
       }
 
       String *name = Getattr(n, "name");
