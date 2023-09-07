@@ -64,6 +64,7 @@ jobs:
       SWIGLANG: ${{ needs.get-metadata.outputs.swig-lang }}
       VER: ${{ matrix.version }}
       CPPSTD: ${{ matrix.cpp-std }}
+      SWIG_FEATURES: ${{ matrix.swig-features }}
 
     steps:
       - uses: actions/checkout@v4
