@@ -2901,7 +2901,7 @@ int NAPIEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
 
   // prepare code part
   String *action = emit_action(n);
-  marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
+  marshalInputArgs(n, params, wrapper, Getter, is_member, is_static);
   emitChecks(n, params, wrapper);
   Append(wrapper->code, emitAsyncTypemaps(n, params, wrapper, "lock"));
   String *input = wrapper->code;
