@@ -543,11 +543,10 @@ static void add_symbols(Node *n) {
 	    } else {
 	      ty = type;
 	    }
-	    if (!SwigType_ismutable(ty) || (storage && Strstr(storage, "constexpr"))) {
-	      SetFlag(n,"hasconsttype");
-	      SetFlag(n,"feature:immutable");
+	    if (storage && (Strstr(storage, "constexpr") || (Strstr(storage, "static") && !SwigType_ismutable(ty)))) {
+	      SetFlag(n, "hasconsttype");
 	    }
-	    if (tmp) Delete(tmp);
+	    Delete(tmp);
 	  }
 	  if (!type) {
 	    Printf(stderr,"notype name %s\n", name);
@@ -3908,7 +3907,6 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		     Setattr(p, "type" ,ty);
 		     if (!cparse_cplusplus && currentOuterClass && (!Getattr(currentOuterClass, "name"))) {
 		       SetFlag(p, "hasconsttype");
-		       SetFlag(p, "feature:immutable");
 		     }
 		     p = nextSibling(p);
 		   }
@@ -4085,7 +4083,6 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		     Setattr(n, "type", ty);
 		     if (!cparse_cplusplus && currentOuterClass && (!Getattr(currentOuterClass, "name"))) {
 		       SetFlag(n,"hasconsttype");
-		       SetFlag(n,"feature:immutable");
 		     }
 		     n = nextSibling(n);
 		   }

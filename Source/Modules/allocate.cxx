@@ -667,7 +667,7 @@ class Allocate:public Dispatcher {
     }
   }
 
-  bool is_assignable(Node *n, bool &is_reference) {
+  bool is_assignable(Node *n, bool &is_reference, bool &is_const) {
     bool assignable = true;
     SwigType *ty = Copy(Getattr(n, "type"));
     SwigType_push(ty, Getattr(n, "decl"));
@@ -684,6 +684,9 @@ class Allocate:public Dispatcher {
       }
     }
     is_reference = SwigType_isreference(td) || SwigType_isrvalue_reference(td);
+    is_const = !SwigType_ismutable(ftd);
+    if (GetFlag(n, "hasconsttype"))
+      is_const = true;
     Delete(ty);
     Delete(ftd);
     Delete(td);
@@ -1158,12 +1161,13 @@ Allocate():
       if (Cmp(Getattr(n, "kind"), "variable") == 0) {
         /* Check member variable to determine whether assignment is valid */
 	bool is_reference;
-	bool assignable = is_assignable(n, is_reference);
-	if (!assignable) {
+	bool is_const;
+	bool assignable = is_assignable(n, is_reference, is_const);
+	if (!assignable || is_const) {
 	  SetFlag(n, "feature:immutable");
 	}
 	if (!is_static) {
-	  if (!assignable || is_reference)
+	  if (!assignable || is_reference || is_const)
 	    SetFlag(inclass, "allocate:has_nonassignable"); // The class has a variable that cannot be assigned to
 	}
       }
@@ -1244,8 +1248,9 @@ Allocate():
     } else {
       if (Cmp(Getattr(n, "kind"), "variable") == 0) {
 	bool is_reference;
-	bool assignable = is_assignable(n, is_reference);
-	if (!assignable) {
+	bool is_const;
+	bool assignable = is_assignable(n, is_reference, is_const);
+	if (!assignable || is_const) {
 	  SetFlag(n, "feature:immutable");
 	}
       }
