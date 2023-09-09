@@ -673,6 +673,7 @@ class Allocate:public Dispatcher {
     SwigType_push(ty, Getattr(n, "decl"));
     SwigType *ftd = SwigType_typedef_resolve_all(ty);
     SwigType *td = SwigType_strip_qualifiers(ftd);
+
     if (SwigType_type(td) == T_USER) {
       Node *cn = Swig_symbol_clookup(td, 0);
       if (cn) {
@@ -687,6 +688,7 @@ class Allocate:public Dispatcher {
     is_const = !SwigType_ismutable(ftd);
     if (GetFlag(n, "hasconsttype"))
       is_const = true;
+
     Delete(ty);
     Delete(ftd);
     Delete(td);

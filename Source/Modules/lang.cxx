@@ -1064,14 +1064,6 @@ int Language::cDeclaration(Node *n) {
 	}
       }
     }
-    /* If an array and elements are const, then read-only */
-    if (SwigType_isarray(ty)) {
-      SwigType *tya = SwigType_array_type(ty);
-      if (SwigType_isconst(tya)) {
-	SetFlag(n, "feature:immutable");
-      }
-      Delete(tya);
-    }
     DohIncref(type);
     Setattr(n, "type", ty);
     variableHandler(n);

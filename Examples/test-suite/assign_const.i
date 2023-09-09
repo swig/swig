@@ -21,17 +21,24 @@ struct AssignPtr {
   int *const PtrMember;
 };
 
+struct AssignMatrix {
+  AssignMatrix() : MatrixMember() {}
+  const int MatrixMember[2][2];
+};
+
 struct MemberVars {
   // These will only have getters
   AssignValue MemberValue;
   AssignArray MemberArray;
   AssignPtr MemberPtr;
+  AssignMatrix MemberMatrix;
 };
 
 // (2) Test indirectly non-assignable member variables via inheritance
 struct AssignValueDerived : AssignValue {};
 struct AssignArrayDerived : AssignArray {};
 struct AssignPtrDerived : AssignPtr {};
+struct AssignMatrixDerived : AssignMatrix {};
 struct AssignValueDerivedSettable : AssignValue {
   AssignValueDerivedSettable& operator=(const AssignValueDerivedSettable &) { return *this; }
 };
@@ -41,44 +48,55 @@ struct AssignArrayDerivedSettable : AssignArray {
 struct AssignPtrDerivedSettable : AssignPtr {
   AssignPtrDerivedSettable& operator=(const AssignPtrDerivedSettable &) { return *this; }
 };
+struct AssignMatrixDerivedSettable : AssignMatrix {
+  AssignMatrixDerivedSettable& operator=(const AssignMatrixDerivedSettable &) { return *this; }
+};
 
 struct InheritedMemberVars {
   // These will only have getters
   AssignValueDerived MemberValueDerived;
   AssignArrayDerived MemberArrayDerived;
   AssignPtrDerived MemberPtrDerived;
+  AssignMatrixDerived MemberMatrixDerived;
 
   static AssignValueDerived StaticMemberValueDerived;
   static AssignArrayDerived StaticMemberArrayDerived;
   static AssignPtrDerived StaticMemberPtrDerived;
+  static AssignMatrixDerived StaticMemberMatrixDerived;
 
   // These will have getters and setters
   AssignValueDerivedSettable MemberValueDerivedSettable;
   AssignArrayDerivedSettable MemberArrayDerivedSettable;
   AssignPtrDerivedSettable MemberPtrDerivedSettable;
+  AssignMatrixDerivedSettable MemberMatrixDerivedSettable;
 
   static AssignValueDerivedSettable StaticMemberValueDerivedSettable;
   static AssignArrayDerivedSettable StaticMemberArrayDerivedSettable;
   static AssignPtrDerivedSettable StaticMemberPtrDerivedSettable;
+  static AssignMatrixDerivedSettable StaticMemberMatrixDerivedSettable;
 };
 
 AssignValueDerived InheritedMemberVars::StaticMemberValueDerived;
 AssignArrayDerived InheritedMemberVars::StaticMemberArrayDerived;
 AssignPtrDerived InheritedMemberVars::StaticMemberPtrDerived;
+AssignMatrixDerived InheritedMemberVars::StaticMemberMatrixDerived;
 
 AssignValueDerivedSettable InheritedMemberVars::StaticMemberValueDerivedSettable;
 AssignArrayDerivedSettable InheritedMemberVars::StaticMemberArrayDerivedSettable;
 AssignPtrDerivedSettable InheritedMemberVars::StaticMemberPtrDerivedSettable;
+AssignMatrixDerivedSettable InheritedMemberVars::StaticMemberMatrixDerivedSettable;
 
 // These will only have getters
 AssignValueDerived GlobalValueDerived;
 AssignArrayDerived GlobalArrayDerived;
 AssignPtrDerived GlobalPtrDerived;
+AssignMatrixDerived GlobalMatrixDerived;
 
 // These will have getters and setters
 AssignValueDerivedSettable GlobalValueDerivedSettable;
 AssignArrayDerivedSettable GlobalArrayDerivedSettable;
 AssignPtrDerivedSettable GlobalPtrDerivedSettable;
+AssignMatrixDerivedSettable GlobalMatrixDerivedSettable;
 %}
 
 // (3) Test indirectly non-assignable member variables via classes that themselves have non-assignable member variables
@@ -95,25 +113,33 @@ struct MemberPtrVar {
   AssignPtr MemberPtr;
 };
 
+struct MemberMatrixVar {
+  AssignMatrix MemberMatrix;
+};
+
 struct MembersMemberVars {
   // These will only have getters
   MemberValueVar MemberValue;
   MemberArrayVar MemberArray;
   MemberPtrVar MemberPtr;
+  MemberMatrixVar MemberMatrix;
 };
 
 struct StaticMembersMemberVars {
   static MemberValueVar StaticMemberValue;
   static MemberArrayVar StaticMemberArray;
   static MemberPtrVar StaticMemberPtr;
+  static MemberMatrixVar StaticMemberMatrix;
 };
 MemberValueVar StaticMembersMemberVars::StaticMemberValue;
 MemberArrayVar StaticMembersMemberVars::StaticMemberArray;
 MemberPtrVar StaticMembersMemberVars::StaticMemberPtr;
+MemberMatrixVar StaticMembersMemberVars::StaticMemberMatrix;
 
 MemberValueVar GlobalMemberValue;
 MemberArrayVar GlobalMemberArray;
 MemberPtrVar GlobalMemberPtr;
+MemberMatrixVar GlobalMemberMatrix;
 
 // Setters and getters available
 struct StaticMembersMemberVarsHolder {

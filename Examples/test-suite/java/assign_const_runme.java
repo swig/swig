@@ -20,21 +20,25 @@ public class assign_const_runme {
     AssignValue a1 = mv.getMemberValue();
     AssignArray a2 = mv.getMemberArray();
     AssignPtr a3 = mv.getMemberPtr();
+    AssignMatrix a4 = mv.getMemberMatrix();
 
     // (2) Test indirectly non-assignable member variables via inheritance
     InheritedMemberVars imv = new InheritedMemberVars();
     // These will only have getters
-    AssignValueDerived a4 = imv.getMemberValueDerived();
-    AssignArrayDerived a5 = imv.getMemberArrayDerived();
-    AssignPtrDerived a6 = imv.getMemberPtrDerived();
+    AssignValueDerived aa4 = imv.getMemberValueDerived();
+    AssignArrayDerived aa5 = imv.getMemberArrayDerived();
+    AssignPtrDerived aa6 = imv.getMemberPtrDerived();
+    AssignMatrixDerived aa7 = imv.getMemberMatrixDerived();
 
     AssignValueDerived sa4 = InheritedMemberVars.getStaticMemberValueDerived();
     AssignArrayDerived sa5 = InheritedMemberVars.getStaticMemberArrayDerived();
     AssignPtrDerived sa6 = InheritedMemberVars.getStaticMemberPtrDerived();
+    AssignMatrixDerived sa7 = InheritedMemberVars.getStaticMemberMatrixDerived();
 
     AssignValueDerived ga4 = assign_const.getGlobalValueDerived();
     AssignArrayDerived ga5 = assign_const.getGlobalArrayDerived();
     AssignPtrDerived ga6 = assign_const.getGlobalPtrDerived();
+    AssignMatrixDerived ga7 = assign_const.getGlobalMatrixDerived();
 
     // These will have getters and setters
     AssignValueDerivedSettable a7 = imv.getMemberValueDerivedSettable();
@@ -43,20 +47,26 @@ public class assign_const_runme {
     imv.setMemberArrayDerivedSettable(a8);
     AssignPtrDerivedSettable a9 = imv.getMemberPtrDerivedSettable();
     imv.setMemberPtrDerivedSettable(a9);
+    AssignMatrixDerivedSettable a10 = imv.getMemberMatrixDerivedSettable();
+    imv.setMemberMatrixDerivedSettable(a10);
 
-    AssignValueDerivedSettable sa7 = InheritedMemberVars.getStaticMemberValueDerivedSettable();
-    InheritedMemberVars.setStaticMemberValueDerivedSettable(sa7);
-    AssignArrayDerivedSettable sa8 = InheritedMemberVars.getStaticMemberArrayDerivedSettable();
-    InheritedMemberVars.setStaticMemberArrayDerivedSettable(sa8);
-    AssignPtrDerivedSettable sa9 = InheritedMemberVars.getStaticMemberPtrDerivedSettable();
-    InheritedMemberVars.setStaticMemberPtrDerivedSettable(sa9);
+    AssignValueDerivedSettable saa7 = InheritedMemberVars.getStaticMemberValueDerivedSettable();
+    InheritedMemberVars.setStaticMemberValueDerivedSettable(saa7);
+    AssignArrayDerivedSettable saa8 = InheritedMemberVars.getStaticMemberArrayDerivedSettable();
+    InheritedMemberVars.setStaticMemberArrayDerivedSettable(saa8);
+    AssignPtrDerivedSettable saa9 = InheritedMemberVars.getStaticMemberPtrDerivedSettable();
+    InheritedMemberVars.setStaticMemberPtrDerivedSettable(saa9);
+    AssignMatrixDerivedSettable saa10 = InheritedMemberVars.getStaticMemberMatrixDerivedSettable();
+    InheritedMemberVars.setStaticMemberMatrixDerivedSettable(saa10);
 
-    AssignValueDerivedSettable ga7 = assign_const.getGlobalValueDerivedSettable();
-    assign_const.setGlobalValueDerivedSettable(ga7);
-    AssignArrayDerivedSettable ga8 = assign_const.getGlobalArrayDerivedSettable();
-    assign_const.setGlobalArrayDerivedSettable(ga8);
-    AssignPtrDerivedSettable ga9 = assign_const.getGlobalPtrDerivedSettable();
-    assign_const.setGlobalPtrDerivedSettable(ga9);
+    AssignValueDerivedSettable gaa7 = assign_const.getGlobalValueDerivedSettable();
+    assign_const.setGlobalValueDerivedSettable(gaa7);
+    AssignArrayDerivedSettable gaa8 = assign_const.getGlobalArrayDerivedSettable();
+    assign_const.setGlobalArrayDerivedSettable(gaa8);
+    AssignPtrDerivedSettable gaa9 = assign_const.getGlobalPtrDerivedSettable();
+    assign_const.setGlobalPtrDerivedSettable(gaa9);
+    AssignMatrixDerivedSettable gaa10 = assign_const.getGlobalMatrixDerivedSettable();
+    assign_const.setGlobalMatrixDerivedSettable(gaa10);
 
     // (3) Test indirectly non-assignable member variables via classes that themselves have non-assignable member variables
     MembersMemberVars m = new MembersMemberVars();
@@ -65,14 +75,17 @@ public class assign_const_runme {
     MemberValueVar mpv1 = m.getMemberValue();
     MemberArrayVar mpv2 = m.getMemberArray();
     MemberPtrVar mpv3 = m.getMemberPtr();
+    MemberMatrixVar mpv4 = m.getMemberMatrix();
 
     MemberValueVar smpv1 = StaticMembersMemberVars.getStaticMemberValue();
     MemberArrayVar smpv2 = StaticMembersMemberVars.getStaticMemberArray();
     MemberPtrVar smpv3 = StaticMembersMemberVars.getStaticMemberPtr();
+    MemberMatrixVar smpv4 = StaticMembersMemberVars.getStaticMemberMatrix();
 
     MemberValueVar gmpv1 = assign_const.getGlobalMemberValue();
     MemberArrayVar gmpv2 = assign_const.getGlobalMemberArray();
     MemberPtrVar gmpv3 = assign_const.getGlobalMemberPtr();
+    MemberMatrixVar gmpv4 = assign_const.getGlobalMemberMatrix();
 
     // Setters and getters available
     StaticMembersMemberVarsHolder smmvh = new StaticMembersMemberVarsHolder();
