@@ -25,6 +25,13 @@ struct MemberVars {
   AssignPrivate MemberPrivate;
 };
 
+struct MemberArrayVars {
+  // These will only have getters
+  AssignPublic ArrayMemberPublic[1];
+  AssignProtected ArrayMemberProtected[1];
+  AssignPrivate ArrayMemberPrivate[1];
+};
+
 // (2) Test indirectly non-assignable member variables via inheritance
 struct AssignPublicDerived : AssignPublic {};
 struct AssignProtectedDerived : AssignProtected {};
@@ -119,4 +126,47 @@ struct StaticMembersMemberVarsHolder {
     StaticMembersMemberVars Member;
 };
 StaticMembersMemberVars GlobalStaticMembersMemberVars;
+%}
+
+// (4) Test indirectly non-assignable member variables via classes that themselves have non-assignable array member variables
+%inline %{
+struct MemberPublicArrayVar {
+  AssignPublic MemberPublic[1];
+};
+
+struct MemberProtectedArrayVar {
+protected:
+  AssignProtected MemberProtected[1];
+};
+
+struct MemberPrivateArrayVar {
+private:
+  AssignPrivate MemberPrivate[1];
+};
+
+struct MembersMemberArrayVars {
+  // These will only have getters
+  MemberPublicArrayVar MemberPublic;
+  MemberProtectedArrayVar MemberProtected;
+  MemberPrivateArrayVar MemberPrivate;
+};
+
+struct StaticMembersMemberArrayVars {
+  static MemberPublicArrayVar StaticMemberPublic;
+  static MemberProtectedArrayVar StaticMemberProtected;
+  static MemberPrivateArrayVar StaticMemberPrivate;
+};
+MemberPublicArrayVar StaticMembersMemberArrayVars::StaticMemberPublic;
+MemberProtectedArrayVar StaticMembersMemberArrayVars::StaticMemberProtected;
+MemberPrivateArrayVar StaticMembersMemberArrayVars::StaticMemberPrivate;
+
+MemberPublicArrayVar GlobalArrayMemberPublic;
+MemberProtectedArrayVar GlobalArrayMemberProtected;
+MemberPrivateArrayVar GlobalArrayMemberPrivate;
+
+// Setters and getters available
+struct StaticMembersMemberArrayVarsHolder {
+    StaticMembersMemberArrayVars Member;
+};
+StaticMembersMemberArrayVars GlobalStaticMembersMemberArrayVars;
 %}

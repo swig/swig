@@ -8,6 +8,13 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-09-09: wsfulton
+            https://sourceforge.net/p/swig/bugs/919/
+
+            Fix incorrect variable setters being generated when wrapping arrays.
+            A setter is no longer generated if the type of the array members
+            are non-assignable.
+
+2023-09-09: wsfulton
             Non-assignable detection fixes when wrapping const member variables.
             Const member variables such as the following are non-assignable by
             by default:

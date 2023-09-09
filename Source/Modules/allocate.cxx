@@ -667,15 +667,10 @@ class Allocate:public Dispatcher {
     }
   }
 
-  bool is_assignable(Node *n, bool &is_reference, bool &is_const) {
+  bool is_assignable_type(const SwigType *type) {
     bool assignable = true;
-    SwigType *ty = Copy(Getattr(n, "type"));
-    SwigType_push(ty, Getattr(n, "decl"));
-    SwigType *ftd = SwigType_typedef_resolve_all(ty);
-    SwigType *td = SwigType_strip_qualifiers(ftd);
-
-    if (SwigType_type(td) == T_USER) {
-      Node *cn = Swig_symbol_clookup(td, 0);
+    if (SwigType_type(type) == T_USER) {
+      Node *cn = Swig_symbol_clookup(type, 0);
       if (cn) {
 	if ((Strcmp(nodeType(cn), "class") == 0)) {
 	  if (Getattr(cn, "allocate:noassign")) {
@@ -683,7 +678,20 @@ class Allocate:public Dispatcher {
 	  }
 	}
       }
+    } else if (SwigType_isarray(type)) {
+      SwigType *array_type = SwigType_array_type(type);
+      assignable = is_assignable_type(array_type);
     }
+    return assignable;
+  }
+
+  bool is_assignable(Node *n, bool &is_reference, bool &is_const) {
+    SwigType *ty = Copy(Getattr(n, "type"));
+    SwigType_push(ty, Getattr(n, "decl"));
+    SwigType *ftd = SwigType_typedef_resolve_all(ty);
+    SwigType *td = SwigType_strip_qualifiers(ftd);
+
+    bool assignable = is_assignable_type(td);
     is_reference = SwigType_isreference(td) || SwigType_isrvalue_reference(td);
     is_const = !SwigType_ismutable(ftd);
     if (GetFlag(n, "hasconsttype"))

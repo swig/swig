@@ -14,12 +14,17 @@ public class cpp11_assign_delete_runme {
 
   public static void main(String argv[]) {
     MemberVars mv = new MemberVars();
+    MemberArrayVars mav = new MemberArrayVars();
 
     // (1) Test directly non-assignable member variables
     // These will only have getters
     AssignPublic a1 = mv.getMemberPublic();
     AssignProtected a2 = mv.getMemberProtected();
     AssignPrivate a3 = mv.getMemberPrivate();
+
+    AssignPublic ma1 = mav.getArrayMemberPublic();
+    AssignProtected ma2 = mav.getArrayMemberProtected();
+    AssignPrivate ma3 = mav.getArrayMemberPrivate();
 
     // (2) Test indirectly non-assignable member variables via inheritance
     InheritedMemberVars imv = new InheritedMemberVars();
@@ -59,6 +64,7 @@ public class cpp11_assign_delete_runme {
     cpp11_assign_delete.setGlobalPrivateDerivedSettable(ga9);
 
     // (3) Test indirectly non-assignable member variables via classes that themselves have non-assignable member variables
+    {
     MembersMemberVars m = new MembersMemberVars();
 
     // These will only have getters
@@ -81,5 +87,32 @@ public class cpp11_assign_delete_runme {
 
     StaticMembersMemberVars smmv = cpp11_assign_delete.getGlobalStaticMembersMemberVars();
     cpp11_assign_delete.setGlobalStaticMembersMemberVars(smmv);
+    }
+
+    // (4) Test indirectly non-assignable member variables via classes that themselves have non-assignable array member variables
+    {
+    MembersMemberArrayVars m = new MembersMemberArrayVars();
+
+    // These will only have getters
+    MemberPublicArrayVar mpv1 = m.getMemberPublic();
+    MemberProtectedArrayVar mpv2 = m.getMemberProtected();
+    MemberPrivateArrayVar mpv3 = m.getMemberPrivate();
+
+    MemberPublicArrayVar smpv1 = StaticMembersMemberArrayVars.getStaticMemberPublic();
+    MemberProtectedArrayVar smpv2 = StaticMembersMemberArrayVars.getStaticMemberProtected();
+    MemberPrivateArrayVar smpv3 = StaticMembersMemberArrayVars.getStaticMemberPrivate();
+
+    MemberPublicArrayVar gmpv1 = cpp11_assign_delete.getGlobalArrayMemberPublic();
+    MemberProtectedArrayVar gmpv2 = cpp11_assign_delete.getGlobalArrayMemberProtected();
+    MemberPrivateArrayVar gmpv3 = cpp11_assign_delete.getGlobalArrayMemberPrivate();
+
+    // Setters and getters available
+    StaticMembersMemberArrayVarsHolder smmvh = new StaticMembersMemberArrayVarsHolder();
+    StaticMembersMemberArrayVars member = smmvh.getMember();
+    smmvh.setMember(member);
+
+    StaticMembersMemberArrayVars smmv = cpp11_assign_delete.getGlobalStaticMembersMemberArrayVars();
+    cpp11_assign_delete.setGlobalStaticMembersMemberArrayVars(smmv);
+    }
   }
 }
