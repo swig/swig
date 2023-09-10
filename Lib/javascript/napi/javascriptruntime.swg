@@ -8,11 +8,19 @@
 
 %insert(runtime) %{
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
+
+#ifndef NAPI_CPP_EXCEPTIONS
 #define NAPI_CPP_EXCEPTIONS
-#else
+#endif
+
+#else // defined(_CPPUNWIND) || defined(__EXCEPTIONS)
+
+#ifndef NAPI_DISABLE_CPP_EXCEPTIONS
 #define NAPI_DISABLE_CPP_EXCEPTIONS
 #define NODE_ADDON_API_ENABLE_MAYBE
 #endif
+
+#endif // defined(_CPPUNWIND) || defined(__EXCEPTIONS)
 
 // This gives us
 // Branch Node.js v10.x - from v10.20.0
