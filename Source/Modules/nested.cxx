@@ -58,22 +58,6 @@ static void add_symbols_c(Node *n) {
 	if (value && Len(value)) {
 	  Setattr(n, "hasvalue", "1");
 	}
-	if (type) {
-	  SwigType *ty;
-	  SwigType *tmp = 0;
-	  if (decl) {
-	    ty = tmp = Copy(type);
-	    SwigType_push(ty, decl);
-	  } else {
-	    ty = type;
-	  }
-	  if (!SwigType_ismutable(ty)) {
-	    SetFlag(n, "hasconsttype");
-	    SetFlag(n, "feature:immutable");
-	  }
-	  if (tmp)
-	    Delete(tmp);
-	}
 	if (!type) {
 	  Printf(stderr, "notype name %s\n", name);
 	}
