@@ -6,8 +6,6 @@
 #include <span>
 %}
 
-%include <fortranarray.swg>
-
 namespace std
 {
 %naturalvar span;

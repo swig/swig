@@ -90,10 +90,12 @@
 %include "fortrankw.swg"
 
 /* TYPEMAPS */
+%include "typemaps/fragments.swg"
 %include "classes.swg"
 %include "fundamental.swg"
 %include "enums.swg"
 %include "funptrs.swg"
+%include "fortranarray.swg"
 %include "fortranstrings.swg"
 %include "bindc.swg"
 
