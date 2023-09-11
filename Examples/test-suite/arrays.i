@@ -56,9 +56,9 @@ int getintfrompointer(int* intptr) {
 
 %}
 
-#if defined(SWIGFORTRAN)
+#ifdef SWIGFORTRAN
 /* Pointer helper functions for Fortran run test */
-%include "typemaps.i"
+%include <carrays.i>
 %apply SWIGTYPE ARRAY[ANY] { int inp[ANY]  };
 %inline %{
 int *array_to_ptr(int inp[ARRAY_LEN]) { return inp; }
@@ -77,7 +77,7 @@ void array_pointer_func(int (*x)[10]) {}
 %inline %{
 typedef float FLOAT;
 
-typedef FLOAT cartPosition_t[3]; 
+typedef FLOAT cartPosition_t[3];
 
 typedef struct {
 cartPosition_t p;

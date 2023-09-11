@@ -2,7 +2,7 @@
 
 #ifdef SWIGFORTRAN
 /* Make unit testing easier for Fortran */
-%include <typemaps.i>
+%include <carrays.i>
 %apply SWIGTYPE ARRAY[ANY] {const float [ANY] };
 #endif
 
