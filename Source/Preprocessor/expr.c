@@ -320,8 +320,8 @@ int Preprocessor_expr(DOH *s, int *error) {
       }
       if (token == SWIG_TOKEN_BOOL) {
 	/* A boolean value.  Reduce EXPR_TOP to an EXPR_VALUE */
-	char *c = Char(Scanner_text(scan));
-	if (strcmp(c, "true") == 0) {
+	String *cc = Scanner_text(scan);
+	if (Strcmp(cc, "true") == 0) {
 	  stack[sp].value = (long) 1;
 	} else {
 	  stack[sp].value = (long) 0;

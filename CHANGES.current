@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-09-11: emmenlau
+            #2394 Add support to preprocessor for true and false. Note that this
+            is for C++ not C.
+
 2023-09-11: wsfulton
             [R] #2605 Complete transition to rtypecheck typemaps from hard coded
             logic. Also see entry dated 2022-10-28 for swig-4.1.1. The rtypecheck

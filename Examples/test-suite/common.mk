@@ -373,6 +373,7 @@ CPP_TEST_CASES += \
 	overload_template_fast \
 	pointer_reference \
 	preproc_constants \
+	preproc_cpp \
 	primitive_ref \
 	private_assign \
 	proxycode \
