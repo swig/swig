@@ -8,7 +8,7 @@
 // Move assignment modifies the proxy classes
 %typemap(imtype, in="type(SwigClassWrapper), intent(inout)", fragment="SwigClassWrapper_f") SWIGTYPE MOVE
   "type(SwigClassWrapper)"
-%typemap(ftype, in="class($fortranclassname), intent(inout)", nofortransubroutine=1) SWIGTYPE MOVE
+%typemap(ftype, in="class($&fortranclassname), intent(inout)", nofortransubroutine=1) SWIGTYPE MOVE
   "type($fortranclassname)"
 
 %typemap(in, noblock=1, fragment="SWIG_check_nonnull") SWIGTYPE MOVE ($&1_type argp) {
