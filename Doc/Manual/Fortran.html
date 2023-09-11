@@ -55,10 +55,10 @@
 <li><a href="#Fortran_the_stdstring_class">The std::string class</a>
 <li><a href="#Fortran_stdvector">std::vector</a>
 <li><a href="#Fortran_other_c_standard_library_containers">Other C++ standard library containers</a>
-<li><a href="#Fortran_shared_pointers">Shared pointers</a>
+<li><a href="#Fortran_smart_pointers">Smart pointers</a>
 <li><a href="#Fortran_dynamic_size_array_translation">Dynamic-size array translation</a>
 <li><a href="#Fortran_fixed_size_array_translation">Fixed-size array translation</a>
-<li><a href="#Fortran_smart_pointers">Smart pointers</a>
+<li><a href="#Fortran_smart_pointers_1">Smart pointers</a>
 <li><a href="#Fortran_array_pointers">Array pointers</a>
 <li><a href="#Fortran_integer_types">Integer types</a>
 </ul>
@@ -90,10 +90,6 @@
 <li><a href="#Fortran_function_pointers_and_callbacks">Function pointers and callbacks</a>
 <li><a href="#Fortran_generating_c_bound_fortran_types_from_c_structs">Generating C-bound Fortran types from C structs</a>
 <li><a href="#Fortran_omitting_opaque_classes">Omitting opaque classes</a>
-</ul>
-<li><a href="#Fortran_cross_language_polymorphism_using_directors">Cross-language polymorphism using directors</a>
-<ul>
-<li><a href="#Fortran_limitations">Limitations</a>
 </ul>
 <li><a href="#Fortran_known_issues">Known Issues</a>
 </ul>
@@ -1516,7 +1512,7 @@ If changing the indexing offset is abhorrent to you, or you expect your Fortran 
 Other useful types such as <code>std::map</code>, <code>std::set</code>, have no or minimal implementation. Contributions to these classes (by changes to <code>swig/Library/fortran/std_{cls}.i</code>) will be warmly welcomed.
 </p>
 
-<H3><a name="Fortran_shared_pointers">25.5.4 Shared pointers</a></H3>
+<H3><a name="Fortran_smart_pointers">25.5.4 Smart pointers</a></H3>
 
 
 <p>
@@ -1532,6 +1528,20 @@ When a shared pointer is copied, the pointed-to object is &ldquo;shared&rdquo; b
 <p>
 Wrapping shared pointers with SWIG is as simple as adding the line <code>%shared_ptr(Foo)</code> to the source file before the definition of class <code>Foo</code> or the wrapping of any function that uses an instance of <code>Foo</code>. That macro defines all the necessary typemaps to convert a shared pointer to and from a value, raw pointer, or reference. SWIG does <em>not</em> require that all uses of <code>Foo</code> be as <code>shared_ptr&lt;Foo&gt;</code>: for example, it will correctly dereference the shared pointer when passing it into a function that takes a const reference. Additionally, because shared pointer class supports &ldquo;null deleters&rdquo; (i.e. when the reference count reaches zero, the pointed-to data will <em>not</em> be deleted), the code can embed a non-owning reference to the data in a shared pointer. In other words, it is OK to return <code>const Foo&amp;</code> even when <code>Foo</code> is wrapped as a shared pointer.
 </p>
+
+
+<p>
+SWIG also supports <code>std::unique_ptr</code> with effectively the same semantics as <code>shared_ptr</code>.
+</p>
+
+
+<p>
+With any smart pointer, just as with regular pointers, it will be equivalent to <code>nullptr</code> if and only if the instance&rsquo;s <code>swigdata%cptr</code> member is set. This can be tested using the <code>c_associated</code> intrinsic:
+</p>
+
+
+<div class="targetlang"><pre><code>myptr = get_a_smart_pointer()
+if (c_associated(myptr%swigdata%cptr))</code></pre></div>
 
 <H3><a name="Fortran_dynamic_size_array_translation">25.5.5 Dynamic-size array translation</a></H3>
 
@@ -1610,7 +1620,7 @@ Note that Fortran dimensioning is column-major and C/C++ dimensions are row-majo
 With the <code>&lt;carrays.i&gt;</code> file, you can also use the standard <code>%array_functions</code> and <code>%array_class</code> to interact with C arrays by generating wrapper functions for their accessors or by wrapping them as classes.
 </p>
 
-<H3><a name="Fortran_smart_pointers">25.5.7 Smart pointers</a></H3>
+<H3><a name="Fortran_smart_pointers_1">25.5.7 Smart pointers</a></H3>
 
 
 <p>
@@ -2366,109 +2376,7 @@ Like any other feature, it can be applied globally and disabled on a case-by-cas
 void not_wrapped(UnknownType*);
 void should_be_wrapped(UnknownType*);</code></pre></div>
 
-<H2><a name="Fortran_cross_language_polymorphism_using_directors">25.9 Cross-language polymorphism using directors</a></H2>
-
-
-<p>
-The &ldquo;director&rdquo; capability in SWIG allows C++ classes to be subclassed by a user in the target language to enable inversion of control through overridden C++ virtual functions. For Fortran, this means that a SWIG-wrapped derived type can be <em>extended</em> by an application code so that C++ code can send data to a native Fortran type-bound procedure and receive data back.
-</p>
-
-
-<p>
-Enabling this advanced and still highly experimental feature requires extra SWIG directives, including a special setup argument in the <code>%module</code> declaration.
-</p>
-
-
-<div class="code"><pre><code>%module(directors=&quot;1&quot;) example
-
-%feature(&quot;director&quot;) Base;
-
-%inline %{
-class Base {
- public:
-  virtual ~Base() {}
-  virtual int apply(int x) const = 0;
-};
-
-int apply(const Base&amp; b, int x) {
-  return b.apply(x);
-}
-%}</code></pre></div>
-
-
-<p>
-This allows a user application to declare an extended type such as:
-</p>
-
-
-<div class="targetlang"><pre><code>module mymod
-  use, intrinsic :: ISO_C_BINDING
-  use ISO_FORTRAN_ENV
-  use example, only : Base
-  implicit none
-
-  type, extends(Base), public :: MyDerived
-    integer(C_INT) :: multiply_by = 1
-    integer(C_INT) :: add_to = 0
-  contains
-    procedure :: apply =&gt; MyDerived_apply
-  end type MyDerived
-contains
-
-function MyDerived_apply(self, x) &amp;
-  result(myresult)
-  use, intrinsic :: ISO_C_BINDING
-  class(MyDerived), intent(in) :: self
-  integer(C_INT), intent(in) :: x
-  integer(C_INT) :: myresult
-
-  myresult = x * self%multiply_by + self%add_to
-end function
-end module</code></pre></div>
-
-
-<p>
-The overridden procedure can be called either from Fortran <em>or</em> through existing C++ library code.
-</p>
-
-
-<div class="targetlang"><pre><code>subroutine test_director_int
-  use director_simple
-  use director_simple_mod
-  use, intrinsic :: ISO_C_BINDING
-  type(MyDerived), target :: myclass
-
-  ! Allocate and set up callbacks for Base class
-  call swig_initialize(myclass, source=Base())
-  myclass%multiply_by = 2
-  myclass%add_to = 1
-
-  ! Direct Fortran call
-  ASSERT(myclass%apply(10_c_int) == 21_c_int)
-  ! Call through C director
-  ASSERT(apply(myclass, 10_c_int) == 21_c_int)
-
-  call myclass%release()
-end subroutine</code></pre></div>
-
-<H3><a name="Fortran_limitations">25.9.1 Limitations</a></H3>
-
-
-<p>
-Currently only fundamental types are supported.
-</p>
-
-
-<p>
-Fortran has much less introspection than Java, Python, and other less static languages. Therefore director methods can&rsquo;t automatically detect whether the target language (Fortran) overrides a particular method. <strong>Therefore you must currently override all virtual methods.</strong>
-</p>
-
-
-<p>
-Note that a bug in GCC prevents versions before 8 from using the <code>--std=f2003</code> flag (see <a href="https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84924">GNU bug 84924</a>).
-</p>
-
-<H2><a name="Fortran_known_issues">25.10 Known Issues</a></H2>
+<H2><a name="Fortran_known_issues">25.9 Known Issues</a></H2>
 
 
 <p>
