@@ -514,10 +514,17 @@ Finally, note that [a warning on `char *`](#SWIG_nn14) still applies to
 Fortran: if a function taking a `char *` modifies the contents of that string,
 the resulting modification will not have any effect on the Fortran string.
 
-## Arrays
+## Pointers and arrays
 
-Array types such as `int a[10]` and `Object b[][2]` are, like other SWIG
-languages, treated as [opaque types](#opaque-class-types). Use the [fixed-size
+In SWIG, pointers and arrays are treated as [opaque types](#opaque-class-types)
+by default, because their semantic meaning is ambiguous. Regardless of the type
+being opaque, you can determine whether a Fortran wrapper object refers to a
+null pointer using the Fortran `c_associated` intrinsic:
+```fortran
+if (c_associated(myobject%swigdata%cptr))
+```
+
+Array types such as `int a[10]` and `Object b[][2]` are, . Use the [fixed-size
 array translation](#fixed-size-array-translation) capability to interact with
 fundamental-arrays as built-in native Fortran arrays.
 
