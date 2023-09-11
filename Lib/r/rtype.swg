@@ -60,8 +60,6 @@
 %typemap("rtypecheck") enum SWIGTYPE *
   %{ is.character($arg) %}
 
-#if 0
-// Replacement rtypecheck typemaps (for swig-4.2, see r.cxx)
 %typemap("rtypecheck") SWIGTYPE *
   %{ extends($argtype, '$R_class') || is.null($arg) %}
 
@@ -73,7 +71,6 @@
 
 %typemap("rtypecheck") SWIGTYPE
   %{ extends($argtype, '$&R_class') && length($arg) == 1 %}
-#endif
 
 /*
   Set up type checks to insure overloading precedence.

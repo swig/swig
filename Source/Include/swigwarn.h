@@ -264,7 +264,8 @@
 
 /* please leave 740-749 free for Python */
 
-#define WARN_R_MISSING_RTYPECHECK_TYPEMAP     750
+/* Unused since 4.2.0: #define WARN_R_MISSING_RTYPECHECK_TYPEMAP     750 */
+#define WARN_R_TYPEMAP_RTYPECHECK_UNDEF       751
 
 /* please leave 750-759 free for R */
 

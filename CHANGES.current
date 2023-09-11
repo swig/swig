@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-09-11: wsfulton
+            [R] #2605 Complete transition to rtypecheck typemaps from hard coded
+            logic. Also see entry dated 2022-10-28 for swig-4.1.1. The rtypecheck
+            typemaps implement typechecking in R for each function parameter using
+            functions such as is.numeric, is.character, is.logical, is.null etc.
+
 2023-09-09: wsfulton
             https://sourceforge.net/p/swig/bugs/919/
 

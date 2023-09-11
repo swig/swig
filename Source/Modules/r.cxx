@@ -1596,27 +1596,24 @@ void R::dispatchFunction(Node *n) {
       }
       Printv(f->code, "if (", NIL);
       for (p = pi, j = 0 ; j < num_arguments ; j++) {
+	SwigType *pt = Getattr(p, "type");
 	if (debugMode) {
 	  Swig_print_node(p);
 	}
 	String *tm = Swig_typemap_lookup("rtype", p, "", 0);
 	if (tm) {
-	  replaceRClass(tm, Getattr(p, "type"));
+	  replaceRClass(tm, pt);
 	}
 
 	/* Check if type have a %typemap(rtypecheck) */
 	String *tmcheck = Getattr(p,"tmap:rtypecheck");
 	if (tmcheck) {
 	  tmcheck = Copy(tmcheck);
-	} else {
-	  tmcheck = Swig_typemap_lookup("rtypecheck", p, "", 0);
-	}
-	if (tmcheck) {
 	  String *tmp_argtype = NewStringf("argtypes[%d]", j+1);
 	  Replaceall(tmcheck, "$argtype", tmp_argtype);
 	  String *tmp_arg = NewStringf("argv[[%d]]", j+1);
 	  Replaceall(tmcheck, "$arg", tmp_arg);
-	  replaceRClass(tmcheck, Getattr(p, "type"));
+	  replaceRClass(tmcheck, pt);
 	  if (debugMode) {
 	    Printf(stdout, "<rtypecheck>%s\n", tmcheck);
 	  }
@@ -1625,49 +1622,11 @@ void R::dispatchFunction(Node *n) {
 	  } else {
 	    Printf(f->code, "%s(%s)", j == 0 ? "" : " && ", tmcheck);
 	  }
-	  p = Getattr(p, "tmap:in:next");
 	  Delete(tmcheck);
 	  Delete(tmp_arg);
 	  Delete(tmp_argtype);
-	  continue;
-	}
-	// Below should be migrated into rtypecheck typemaps
-	// Preparation for this has started by warning in swig-4.1.1 for "numeric", "integer", "character" typemaps
-	// For swig-4.2: remove the code block below and uncomment typemaps marked 'Replacement rtypecheck typemaps' in rtype.swg.
-	// There is a slight difference in output as the typemap approach fixes some bugs due to a missing type resolution below
-	if (tm) {
-	  String *tmcode = NULL;
-	  Printf(f->code, "%s", j == 0 ? "" : " && ");
-	  if (num_arguments != 1)
-	    Printf(f->code, "(");
-	  Printf(f->code, " ");
-	  if (Strcmp(tm, "numeric") == 0) {
-	    tmcode = NewString("is.numeric($arg)");
-	  } else if (Strcmp(tm, "integer") == 0) {
-	    tmcode = NewString("(is.integer($arg) || is.numeric($arg))");
-	  } else if (Strcmp(tm, "character") == 0) {
-	    tmcode = NewString("is.character($arg)");
-	  } else {
-	    if (SwigType_ispointer(Getattr(p, "type")))
-	      Printf(f->code, "extends(argtypes[%d], '%s') || is.null(argv[[%d]])", j+1, tm, j+1);
-	    else
-	      Printf(f->code, "extends(argtypes[%d], '%s') && length(argv[[%d]]) == 1", j+1, tm, j+1);
-	  }
-	  if (tmcode) {
-	    if (!SwigType_ispointer(Getattr(p, "type")))
-	      Printf(tmcode, " && length($arg) == 1");
-	    Swig_warning(WARN_R_MISSING_RTYPECHECK_TYPEMAP, input_file, line_number,
-			 "Optional rtypecheck code is deprecated. Add the following typemap to fix as the next version of SWIG will not work without it: %%typemap(\"rtypecheck\") %s %%{ %s %%}\n",
-			 SwigType_str(Getattr(p, "type"), 0), tmcode);
-	    String *tmp_arg = NewStringf("argv[[%d]]", j+1);
-	    Replaceall(tmcode, "$arg", tmp_arg);
-	    Printv(f->code, tmcode, NIL);
-	    Delete(tmp_arg);
-	  }
-	  Printf(f->code, " ");
-	  if (num_arguments != 1)
-	    Printf(f->code, ")");
-	  Delete(tmcode);
+	} else {
+	  Swig_warning(WARN_R_TYPEMAP_RTYPECHECK_UNDEF, input_file, line_number, "No rtypecheck typemap defined for %s\n", SwigType_str(pt, 0));
 	}
 	p = Getattr(p, "tmap:in:next");
       }
