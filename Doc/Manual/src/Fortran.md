@@ -1208,7 +1208,7 @@ Other useful types such as `std::map`, `std::set`, have no or minimal
 implementation. Contributions to these classes (by changes to
 `swig/Library/fortran/std_{cls}.i`) will be warmly welcomed.
 
-## Shared pointers
+## Smart pointers
 
 Like other target languages, SWIG can generate Fortran wrappers to *smart
 pointers* to C++ objects by modifying the typemaps to that object.
@@ -1239,6 +1239,17 @@ the reference count reaches zero, the pointed-to data will *not* be deleted),
 the code can embed a non-owning reference to the data in a shared pointer. In
 other words, it is OK to return `const Foo&` even when `Foo` is wrapped as a
 shared pointer.
+
+SWIG also supports `std::unique_ptr` with effectively the same semantics as
+`shared_ptr`.
+
+With any smart pointer, just as with regular pointers, it will be equivalent to
+`nullptr` if and only if the instance's `swigdata%cptr` member is set. This can
+be tested using the `c_associated` intrinsic:
+```fortran
+myptr = get_a_smart_pointer()
+if (c_associated(myptr%swigdata%cptr))
+```
 
 ## Dynamic-size array translation
 

@@ -15,13 +15,26 @@ subroutine test_raw
   type(Klass) :: k
   type(KlassInheritance) :: kini
   character(kind=C_CHAR, len=:), allocatable :: s
+
+  ASSERT(k%getTotal_count() == 0)
+  ASSERT(is_nullptr(kini))
   kini = KlassInheritance("KlassInheritanceInput")
   ASSERT(k%getTotal_count() == 1)
   ! FIXME: virtual inheritance doesn't work in fortran wrappers
   ! ASSERT(kini%getLabel() == "KlassInheritanceInput")
   ! s = useKlassRawPtr(kini)
   ! ASSERT(s == "KlassInheritanceInput")
-  call kini%release()
+  ! call kini%release()
+  ASSERT(c_associated(kini%swigdata%cptr))
+  ASSERT(.not. is_nullptr(kini))
+  kini = makeNullUniquePtr()
+  ASSERT(k%getTotal_count() == 0)
+  ASSERT(.not. c_associated(kini%swigdata%cptr))
+  ASSERT(is_nullptr(kini))
+
+  kini = make_null()
+  ASSERT(.not. c_associated(kini%swigdata%cptr))
+
 end subroutine
 end program
 
