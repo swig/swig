@@ -1242,7 +1242,7 @@ shared pointer.
 
 ## Dynamic-size array translation
 
-The `<typemaps.i>` library file provides a simple means of passing Fortran
+The `<carrays.i>` library file provides a simple means of passing Fortran
 arrays by reference. It defines a two-argument typemap `(SWIGTYPE *DATA, size_t
 SIZE)` that is wrapped as a single Fortran argument, an array of `SWIGTYPE`
 values. For functions that accept but do not modify an array of values, the
@@ -1252,7 +1252,7 @@ declares the array as `intent(in)`.
 The following example shows how to apply the typemap to two different
 functions:
 ```swig
-%include <typemaps.i>
+%include <carrays.i>
 %apply (SWIGTYPE *DATA, size_t SIZE) { (double *x, int x_length) };
 %apply (const SWIGTYPE *DATA, size_t SIZE) { (const int *arr, size_t len) };
 
@@ -1271,11 +1271,11 @@ summed = accumulate(int_values)
 
 ## Fixed-size array translation
 
-The `<typemaps.i>` file provides additional typemaps that allows fixed-size
+The `<carrays.i>` file provides additional typemaps that allows fixed-size
 Fortran arrays to interact natively with fixed-size C arrays:
 
 ```swig
-%include <typemaps.i>
+%include <carrays.i>
 %apply SWIGTYPE ARRAY[ANY] { int global[4] };
 %apply SWIGTYPE ARRAY[ANY][ANY] { double[ANY][ANY] };
 
@@ -1300,6 +1300,10 @@ write(*,*) cpp_sum(dbl_values)
 
 Note that Fortran dimensioning is column-major and C/C++ dimensions are
 row-major, so the dimensionality of the arrays must be reversed.
+
+With the `<carrays.i>` file, you can also use the standard `%array_functions`
+and `%array_class` to interact with C arrays by generating wrapper
+functions for their accessors or by wrapping them as classes.
 
 ## Smart pointers
 

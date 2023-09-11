@@ -1,7 +1,7 @@
 /* File: fortran_array_typemap.i */
 %module fortran_array_typemap
 
-%include <typemaps.i>
+%include <carrays.i>
 
 /* Test combination pointer/size arguments */
 
