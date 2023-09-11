@@ -20,8 +20,6 @@ namespace {
 
 const char usage[] = "\
 Fortran Options (available with -fortran)\n\
-     -cppcast        - Enable C++ casting operators (default) \n\
-     -nocppcast      - Disable C++ casting operators\n\
      -fext           - Change file extension of generated Fortran files to <ext>\n\
                        (default is f90)\n\
 \n";
@@ -636,8 +634,6 @@ d_emitted_mangled(NULL), d_callbacks(NULL), d_overloads(NULL), d_private_overloa
  * \brief Main function for code generation.
  */
 void FORTRAN::main(int argc, char *argv[]) {
-  int cppcast = 1;
-
   /* Set language-specific subdirectory in SWIG library */
   SWIG_library_directory("fortran");
 
@@ -646,13 +642,7 @@ void FORTRAN::main(int argc, char *argv[]) {
 
   // Set command-line options
   for (int i = 1; i < argc; ++i) {
-    if (strcmp(argv[i], "-cppcast") == 0) {
-      cppcast = 1;
-      Swig_mark_arg(i);
-    } else if (strcmp(argv[i], "-nocppcast") == 0) {
-      cppcast = 0;
-      Swig_mark_arg(i);
-    } else if (strcmp(argv[i], "-fext") == 0) {
+    if (strcmp(argv[i], "-fext") == 0) {
       Swig_mark_arg(i);
       if (argv[i + 1]) {
 	Delete(d_fext);
@@ -665,11 +655,6 @@ void FORTRAN::main(int argc, char *argv[]) {
     } else if ((strcmp(argv[i], "-help") == 0)) {
       Printv(stdout, usage, NULL);
     }
-  }
-
-  /* Enable C++ casting */
-  if (cppcast) {
-    Preprocessor_define("SWIG_CPLUSPLUS_CAST", 0);
   }
 
   /* Set language-specific preprocessing symbol */
