@@ -30,7 +30,7 @@
 <li><a href="#Fortran_references">References</a>
 </ul>
 <li><a href="#Fortran_strings">Strings</a>
-<li><a href="#Fortran_arrays">Arrays</a>
+<li><a href="#Fortran_pointers_and_arrays">Pointers and arrays</a>
 <li><a href="#Fortran_byte_strings">Byte strings</a>
 <li><a href="#Fortran_classes_and_structs">Classes and structs</a>
 <li><a href="#Fortran_enumerations">Enumerations</a>
@@ -634,7 +634,7 @@ First the pointer is assigned, then the pointed-to data is assigned.
 
 
 <p>
-A long-standing difficulty with Fortran/C interaction has been the two languages&rsquo; representation of character strings. The size of a C string is determined by counting the number of characters until a null terminator <code>\0</code> is encountered. Shortening a string requires simply placing the null terminator earlier in the storage space. In contrast, the historical Fortran string is a sequence of characters sized at compile time: representing a smaller string at run time is done by filling the storage with trailing blanks. The Fortran intrinsic <code>LEN_TRIM</code> returns the length of a string without trailing blanks, and the <code>TRIM</code> function is used if necessary to return a string with those trailing blanks removed. Of course, this definition of a string means <code>'foo'</code> and <code>'foo '</code> are equivalent.
+A long-standing difficulty with Fortran/C interaction has been the two languages&rsquo; representation of character strings. The size of a C string is determined by counting the number of characters until a null terminator <code>\0</code> is encountered. Shortening a string requires simply placing the null terminator earlier in the storage space. In contrast, the historical Fortran string is a sequence of characters sized at compile time: representing a smaller string at run time is done by filling the storage with trailing blanks. The Fortran intrinsic function <code>LEN_TRIM</code> returns the length of a string without trailing blanks, and the <code>TRIM</code> intrinsic function is used if necessary to return a string with those trailing blanks removed. Of course, this definition of a string means <code>'foo'</code> and <code>'foo '</code> are equivalent.
 </p>
 
 
@@ -703,11 +703,19 @@ The intermediate step of allocating and copying an array is one way of circumven
 Finally, note that <a href="Fortran.html#Fortran_SWIG_nn14">a warning on <code>char *</code></a> still applies to Fortran: if a function taking a <code>char *</code> modifies the contents of that string, the resulting modification will not have any effect on the Fortran string.
 </p>
 
-<H3><a name="Fortran_arrays">25.3.3 Arrays</a></H3>
+<H3><a name="Fortran_pointers_and_arrays">25.3.3 Pointers and arrays</a></H3>
 
 
 <p>
-Array types such as <code>int a[10]</code> and <code>Object b[][2]</code> are, like other SWIG languages, treated as <a href="Fortran.html#Fortran_opaque_class_types">opaque types</a>. Use the <a href="Fortran.html#Fortran_fixed_size_array_translation">fixed-size array translation</a> capability to interact with fundamental-arrays as built-in native Fortran arrays.
+In SWIG, pointers and arrays are treated as <a href="Fortran.html#Fortran_opaque_class_types">opaque types</a> by default, because their semantic meaning is ambiguous. Regardless of the type being opaque, you can determine whether a Fortran wrapper object refers to a null pointer using the Fortran <code>c_associated</code> intrinsic:
+</p>
+
+
+<div class="targetlang"><pre><code>if (c_associated(myobject%swigdata%cptr))</code></pre></div>
+
+
+<p>
+Array types such as <code>int a[10]</code> and <code>Object b[][2]</code> are, . Use the <a href="Fortran.html#Fortran_fixed_size_array_translation">fixed-size array translation</a> capability to interact with fundamental-arrays as built-in native Fortran arrays.
 </p>
 
 <H3><a name="Fortran_byte_strings">25.3.4 Byte strings</a></H3>
@@ -1529,7 +1537,7 @@ Wrapping shared pointers with SWIG is as simple as adding the line <code>%shared
 
 
 <p>
-The <code>&lt;typemaps.i&gt;</code> library file provides a simple means of passing Fortran arrays by reference. It defines a two-argument typemap <code>(SWIGTYPE *DATA, size_t SIZE)</code> that is wrapped as a single Fortran argument, an array of <code>SWIGTYPE</code> values. For functions that accept but do not modify an array of values, the <code>const</code> version of the signature, <code>(const SWIGTYPE *DATA, size_t SIZE)</code>, declares the array as <code>intent(in)</code>.
+The <code>&lt;carrays.i&gt;</code> library file provides a simple means of passing Fortran arrays by reference. It defines a two-argument typemap <code>(SWIGTYPE *DATA, size_t SIZE)</code> that is wrapped as a single Fortran argument, an array of <code>SWIGTYPE</code> values. For functions that accept but do not modify an array of values, the <code>const</code> version of the signature, <code>(const SWIGTYPE *DATA, size_t SIZE)</code>, declares the array as <code>intent(in)</code>.
 </p>
 
 
@@ -1538,7 +1546,7 @@ The following example shows how to apply the typemap to two different functions:
 </p>
 
 
-<div class="code"><pre><code>%include &lt;typemaps.i&gt;
+<div class="code"><pre><code>%include &lt;carrays.i&gt;
 %apply (SWIGTYPE *DATA, size_t SIZE) { (double *x, int x_length) };
 %apply (const SWIGTYPE *DATA, size_t SIZE) { (const int *arr, size_t len) };
 
@@ -1562,11 +1570,11 @@ summed = accumulate(int_values)</code></pre></div>
 
 
 <p>
-The <code>&lt;typemaps.i&gt;</code> file provides additional typemaps that allows fixed-size Fortran arrays to interact natively with fixed-size C arrays:
+The <code>&lt;carrays.i&gt;</code> file provides additional typemaps that allows fixed-size Fortran arrays to interact natively with fixed-size C arrays:
 </p>
 
 
-<div class="code"><pre><code>%include &lt;typemaps.i&gt;
+<div class="code"><pre><code>%include &lt;carrays.i&gt;
 %apply SWIGTYPE ARRAY[ANY] { int global[4] };
 %apply SWIGTYPE ARRAY[ANY][ANY] { double[ANY][ANY] };
 
@@ -1595,6 +1603,11 @@ write(*,*) cpp_sum(dbl_values)</code></pre></div>
 
 <p>
 Note that Fortran dimensioning is column-major and C/C++ dimensions are row-major, so the dimensionality of the arrays must be reversed.
+</p>
+
+
+<p>
+With the <code>&lt;carrays.i&gt;</code> file, you can also use the standard <code>%array_functions</code> and <code>%array_class</code> to interact with C arrays by generating wrapper functions for their accessors or by wrapping them as classes.
 </p>
 
 <H3><a name="Fortran_smart_pointers">25.5.7 Smart pointers</a></H3>
