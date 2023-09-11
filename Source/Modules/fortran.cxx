@@ -56,15 +56,6 @@ bool has_constexpr_storage(Node *n) {
 }
 
 /* -----------------------------------------------------------------------------
- * is_pure_virtual()
- *
- * Whether a class method is pure virtual
- */
-bool is_pure_virtual(Node *n) {
-  return (Cmp(Getattr(n, "storage"), "virtual") == 0) && (Cmp(Getattr(n, "value"), "0") == 0);
-}
-
-/* -----------------------------------------------------------------------------
  * print_wrapped_list()
  *
  * Print a comma-joined line of items to the given output.
@@ -551,7 +542,6 @@ SwigType *parse_typemap(const_String_or_char_ptr tmname, Node *n, int warning) {
   return parse_typemap(tmname, NULL, n, warning);
 }
 
-//-------------------------------------------------------------------------------//
 // Swig_fragment_emit can't be called with a const char* argument.
 void emit_fragment(const char *name) {
   String *temp = NewString(name);
