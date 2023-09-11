@@ -45,39 +45,6 @@ C_TEST_CASES = \
 FAILING_CPP_TESTS += \
 	allprotected \
 	apply_strings \
-	director_abstract \
-	director_basic \
-	director_binary_string \
-	director_classes \
-	director_classic \
-	director_comparison_operators \
-	director_conversion_operators \
-	director_default \
-	director_detect \
-	director_enum \
-	director_exception \
-	director_exception_catches \
-	director_exception_nothrow \
-	director_frob \
-	director_nested \
-	director_nspace \
-	director_nspace_director_name_collision \
-	director_overload \
-	director_ownership \
-	director_pass_by_value \
-	director_primitives \
-	director_property \
-	director_protected \
-	director_ref \
-	director_smartptr \
-	director_string \
-	director_template \
-	director_unroll \
-	director_unwrap_result \
-	director_using \
-	director_using_member_scopes \
-	director_wombat \
-	li_boost_shared_ptr_director \
 	li_std_auto_ptr \
 	namespace_class \
 	overload_arrays \
@@ -85,36 +52,19 @@ FAILING_CPP_TESTS += \
 	preproc \
 	smart_pointer_member \
 	typedef_classforward_same_name \
-	typemap_directorout \
 	using_member_scopes
 
 # Tests generate invalid code
 FAILING_CPP_TESTS += \
 	apply_signed_char \
 	contract \
-	director_extend \
-	director_keywords \
-	director_multiple_inheritance \
-	director_namespace_clash \
-	director_overload2 \
-	director_protected_overloaded \
-	director_redefined \
-	director_void \
+	director_using_member_scopes \
 	global_scope_types \
-	nested_directors \
 	nested_scope_flat \
 	overload_subtype \
-	cpp11_director_enums \
-	cpp11_director_using_constructor \
-	cpp11_directors \
 	cpp11_function_objects \
 
 # Tests cause SWIG to segfault (!)
-FAILING_CPP_TESTS += \
-	director_ignore \
-	director_nested \
-	director_protected \
-
 FAILING_C_TESTS += \
 	preproc \
 	typedef_classforward_same_name
