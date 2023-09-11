@@ -14,57 +14,60 @@
   } while (0)
 
 namespace {
-/* -------------------------------------------------------------------------
- * GLOBAL DATA
- * ------------------------------------------------------------------------- */
-
+// Usage string for "-help" option
 const char usage[] = "\
 Fortran Options (available with -fortran)\n\
      -fext           - Change file extension of generated Fortran files to <ext>\n\
                        (default is f90)\n\
 \n";
 
-//! Maximum line length
+// Maximum line length
 const int g_max_line_length = 128;
-
+// Replacement for semicolon
 const char g_fortran_end_statement[] = "\n";
 
-/* -------------------------------------------------------------------------
- * UTILITY FUNCTIONS
- * ------------------------------------------------------------------------- */
-
-/*!
- * \brief Whether a class method is a constructor.
- */
+/* -----------------------------------------------------------------------------
+ * is_node_constructor()
+ *
+ * Whether a class method is a constructor.
+ * ----------------------------------------------------------------------------- */
 bool is_node_constructor(Node *n) {
   return (Cmp(Getattr(n, "nodeType"), "constructor") == 0) || Getattr(n, "handled_as_constructor");
 }
 
-/*!
- * \brief Whether a node is a compile-time constant that isn't acutally defined in client code.
+/* -----------------------------------------------------------------------------
+ * has_constant_storage()
+ *
+ * Whether a node is a compile-time constant that isn't acutally defined in client code.
  */
 bool has_constant_storage(Node *n) {
   String *s = Getattr(n, "storage");
   return s && (Cmp(s, "%constant") == 0);
 }
 
-/*!
- * \brief Whether a node is a compile-time constant as defined by C++.
+/* -----------------------------------------------------------------------------
+ * has_constexpr_storage()
+ *
+ * Whether a node is a compile-time constant as defined by C++.
  */
 bool has_constexpr_storage(Node *n) {
   String *s = Getattr(n, "storage");
   return s && (Cmp(s, "constexpr") == 0);
 }
 
-/*!
- * \brief Whether a class method is pure virtual
+/* -----------------------------------------------------------------------------
+ * is_pure_virtual()
+ *
+ * Whether a class method is pure virtual
  */
 bool is_pure_virtual(Node *n) {
   return (Cmp(Getattr(n, "storage"), "virtual") == 0) && (Cmp(Getattr(n, "value"), "0") == 0);
 }
 
-/* -------------------------------------------------------------------------
- * \brief Print a comma-joined line of items to the given output.
+/* -----------------------------------------------------------------------------
+ * print_wrapped_list()
+ *
+ * Print a comma-joined line of items to the given output.
  */
 int print_wrapped_list(String *out, Iterator it, int line_length) {
   const char *prefix = "";
@@ -81,8 +84,10 @@ int print_wrapped_list(String *out, Iterator it, int line_length) {
   return line_length;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Return a function wrapper for Fortran code.
+/* -----------------------------------------------------------------------------
+ * NewFortranWrapper()
+ *
+ * Return a function wrapper for Fortran code.
  */
 Wrapper *NewFortranWrapper() {
   Wrapper *w = NewWrapper();
@@ -90,8 +95,10 @@ Wrapper *NewFortranWrapper() {
   return w;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Whether an expression is a standard base-10 integer compatible with
+/* -----------------------------------------------------------------------------
+ * is_fortran_intexpr()
+ *
+ * Whether an expression is a standard base-10 integer compatible with
  * fortran
  *
  * Note that if it has a suffix e.g. 'l' or 'u', or a prefix '0' (octal), it's
@@ -124,8 +131,10 @@ bool is_fortran_intexpr(String *s) {
   return true;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Check a parameter for invalid dimension names.
+/* -----------------------------------------------------------------------------
+ * fix_fortran_dims()
+ *
+ * Check a parameter for invalid dimension names.
  */
 int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
   String *key = NewStringf("tmap:%s:checkdim", tmap_name);
@@ -164,8 +173,10 @@ int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Determine whether to wrap an enum as a fortran parameter.
+/* -----------------------------------------------------------------------------
+ * is_native_enum_decl()
+ *
+ * Determine whether to wrap an enum as a fortran parameter.
  */
 bool is_native_enum_decl(Node *n) {
   String *enum_feature = Getattr(n, "feature:fortran:const");
@@ -192,15 +203,19 @@ bool is_native_enum_decl(Node *n) {
   }
 }
 
-/* -------------------------------------------------------------------------
- * \brief Determine whether an enum is being wrapped
+/* -----------------------------------------------------------------------------
+ * is_wrapped_enum()
+ *
+ * Determine whether an enum is being wrapped
  */
 bool is_wrapped_enum(Node *n) {
   return !GetFlag(n, "enumMissing") && GetFlag(n, "fortran:declared");
 }
 
-/* -------------------------------------------------------------------------
- * \brief Get the special string value corresponding to whether a function is
+/* -----------------------------------------------------------------------------
+ * subroutine_flag_str()
+ *
+ * Get the special string value corresponding to whether a function is
  * a void return type (subroutine)
  */
 String *subroutine_flag_str(bool is_subroutine) {
@@ -209,8 +224,10 @@ String *subroutine_flag_str(bool is_subroutine) {
   return is_subroutine ? is_subroutine_flag : not_subroutine_flag;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Whether an SWIG type can be rendered as TYPE VAR.
+/* -----------------------------------------------------------------------------
+ * return_type_needs_typedef()
+ *
+ * Whether an SWIG type can be rendered as TYPE VAR.
  *
  * Some declarations (arrays, function pointers, member function pointers)
  * require the variable to be embedded in the middle of the array and thus
@@ -223,8 +240,10 @@ bool return_type_needs_typedef(String *s) {
   return result;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Construct any necessary 'import' identifier.
+/* -----------------------------------------------------------------------------
+ * make_import_string()
+ *
+ * Construct any necessary 'import' identifier.
  *
  * When the "imtype" is an actual "type(Foo)", it's necessary to import the identifier Foo from the module definition scope. This function examines the
  * evaluated "imtype" (could be "imtype:in", probably has $fortranclassname replaced)
@@ -253,8 +272,10 @@ String *make_import_string(String *imtype) {
   return result;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Whether a name is a valid fortran identifier
+/* -----------------------------------------------------------------------------
+ * is_valid_identifier()
+ *
+ * Whether a name is a valid fortran identifier
  */
 bool is_valid_identifier(const_String_or_char_ptr name) {
   const char *c = Char(name);
@@ -269,8 +290,10 @@ bool is_valid_identifier(const_String_or_char_ptr name) {
   return true;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Make a string shorter by hashing its end.
+/* -----------------------------------------------------------------------------
+ * shorten_identifier()
+ *
+ * Make a string shorter by hashing its end.
  *
  * Requires input to be longer than 63 chars.
  * Returns new'd string.
@@ -299,8 +322,10 @@ String *shorten_identifier(String *inp, int maxlen, int warning) {
   return result;
 }
 
-/* -------------------------------------------------------------------------
- * \brief If a string is too long, shorten it. Otherwise leave it.
+/* -----------------------------------------------------------------------------
+ * ensure_short()
+ *
+ * If a string is too long, shorten it. Otherwise leave it.
  *
  * This should only be used for strings whose beginnings are valid fortran
  * identifiers -- e.g. strings that we construct.
@@ -317,8 +342,10 @@ String *ensure_short(String *str, int maxlen = 63, int warning = WARN_NONE) {
   return str;
 }
 
-/* -------------------------------------------------------------------------
- * \brief If a string is too long, shorten it. Otherwise leave it.
+/* -----------------------------------------------------------------------------
+ * proxy_name_construct()
+ *
+ * If a string is too long, shorten it. Otherwise leave it.
  *
  * This should only be used for strings whose beginnings are valid fortran
  * identifiers -- e.g. strings that we construct.
@@ -341,8 +368,10 @@ String *proxy_name_construct(String *nspace, const_String_or_char_ptr symname) {
   return proxy_name_construct(nspace, NULL, symname);
 }
 
-/* -------------------------------------------------------------------------
- * \brief Change a symname to a valid Fortran identifier, warn if changing
+/* -----------------------------------------------------------------------------
+ * make_fname()
+ *
+ * Change a symname to a valid Fortran identifier, warn if changing
  *
  * The maximum length of a Fortran identifier is 63 characters, according
  * to the Fortran standard.
@@ -387,8 +416,10 @@ String *make_fname(String *name, int warning = WARN_LANG_IDENTIFIER) {
   return result;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Create a mangled SWIGTYPEMyClassName for Fortran proxy code.
+/* -----------------------------------------------------------------------------
+ * create_mangled_fname()
+ *
+ * Create a mangled SWIGTYPEMyClassName for Fortran proxy code.
  */
 String *create_mangled_fname(SwigType *classnametype) {
   // Memoize mangled names
@@ -404,8 +435,10 @@ String *create_mangled_fname(SwigType *classnametype) {
   return result;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Get/attach and return a typemap to the given node.
+/* -----------------------------------------------------------------------------
+ * get_typemap()
+ *
+ * Get/attach and return a typemap to the given node.
  *
  * If 'ext' is non-null, then after binding/searchinbg, a search will be made
  * for the typemap with the given extension. If that's present, it's used
@@ -467,24 +500,26 @@ String *get_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ex
   return result;
 }
 
-/* ------------------------------------------------------------------------- */
-//! Attach and return a typemap to the given node.
+/* ----------------------------------------------------------------------------- */
+// Attach and return a typemap to the given node.
 String *attach_typemap(const_String_or_char_ptr tmname, Node *n, int warning) {
   return get_typemap(tmname, NULL, n, warning, true);
 }
 
-//! Get and return a typemap to the given node.
+// Get and return a typemap to the given node.
 String *get_typemap(const_String_or_char_ptr tmname, Node *n, int warning) {
   return get_typemap(tmname, NULL, n, warning, false);
 }
 
-//! Get and return a typemap (with extension) to the given node.
+// Get and return a typemap (with extension) to the given node.
 String *get_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ext, Node *n, int warning) {
   return get_typemap(tmname, ext, n, warning, false);
 }
 
-/* -------------------------------------------------------------------------
- * \brief Get a plain-text type like "int *", convert it to "p.int"
+/* -----------------------------------------------------------------------------
+ * parse_typemap()
+ *
+ * Get a plain-text type like "int *", convert it to "p.int"
  *
  * This also sets the attribute in the node.
  *
@@ -516,7 +551,7 @@ SwigType *parse_typemap(const_String_or_char_ptr tmname, Node *n, int warning) {
   return parse_typemap(tmname, NULL, n, warning);
 }
 
-//---------------------------------------------------------------------------//
+//-------------------------------------------------------------------------------//
 // Swig_fragment_emit can't be called with a const char* argument.
 void emit_fragment(const char *name) {
   String *temp = NewString(name);
@@ -524,7 +559,7 @@ void emit_fragment(const char *name) {
   Delete(temp);
 }
 
-/* ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------- */
 } // end anonymous namespace
 
 class FORTRAN : public Language {
@@ -623,15 +658,15 @@ private:
   }
 };
 
-/* -------------------------------------------------------------------------
- * \brief Constructor.
- */
+// Constructor
 FORTRAN::FORTRAN() :
 d_emitted_mangled(NULL), d_callbacks(NULL), d_overloads(NULL), d_private_overloads(NULL), f_class(NULL), d_method_overloads(NULL), d_enum_public(NULL) {
 }
 
-/* -------------------------------------------------------------------------
- * \brief Main function for code generation.
+/* -----------------------------------------------------------------------------
+ * main()
+ *
+ * Main function for code generation.
  */
 void FORTRAN::main(int argc, char *argv[]) {
   /* Set language-specific subdirectory in SWIG library */
@@ -670,8 +705,10 @@ void FORTRAN::main(int argc, char *argv[]) {
   Swig_interface_feature_enable();
 }
 
-/* -------------------------------------------------------------------------
- * \brief Top-level code generation function.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::top()
+ *
+ * Top-level code generation function.
  */
 int FORTRAN::top(Node *n) {
   // Configure output filename using the name of the SWIG input file
@@ -799,8 +836,10 @@ int FORTRAN::top(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Write C++ wrapper code
+/* -----------------------------------------------------------------------------
+ * FORTRAN::write_wrapper()
+ *
+ * Write C++ wrapper code
  */
 void FORTRAN::write_wrapper(String *filename) {
   // Open file
@@ -830,8 +869,10 @@ void FORTRAN::write_wrapper(String *filename) {
   Delete(out);
 }
 
-/* -------------------------------------------------------------------------
- * \brief Write Fortran implementation module
+/* -----------------------------------------------------------------------------
+ * FORTRAN::write_module()
+ *
+ * Write Fortran implementation module
  */
 void FORTRAN::write_module(String *filename) {
   // Open file
@@ -886,8 +927,10 @@ void FORTRAN::write_module(String *filename) {
   Delete(out);
 }
 
-/* -------------------------------------------------------------------------
- * \brief Process a %module
+/* -----------------------------------------------------------------------------
+ * FORTRAN::moduleDirective()
+ *
+ * Process a %module
  */
 int FORTRAN::moduleDirective(Node *n) {
   if (ImportMode) {
@@ -899,8 +942,10 @@ int FORTRAN::moduleDirective(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Wrap basic functions.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::functionWrapper()
+ *
+ * Wrap basic functions.
  *
  * This is called from many different handlers, including:
  *  - member functions
@@ -1173,8 +1218,10 @@ int FORTRAN::functionWrapper(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Generate C/C++ wrapping code
+/* -----------------------------------------------------------------------------
+ * FORTRAN::cfuncWrapper()
+ *
+ * Generate C/C++ wrapping code
  */
 Wrapper *FORTRAN::cfuncWrapper(Node *n) {
   String *symname = Getattr(n, "sym:name");
@@ -1408,8 +1455,10 @@ Wrapper *FORTRAN::cfuncWrapper(Node *n) {
   return cfunc;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Generate Fortran interface code
+/* -----------------------------------------------------------------------------
+ * FORTRAN::imfuncWrapper()
+ *
+ * Generate Fortran interface code
  *
  * This is the Fortran equivalent of the cfuncWrapper's declaration.
  */
@@ -1518,8 +1567,10 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
   return imfunc;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Generate Fortran proxy code
+/* -----------------------------------------------------------------------------
+ * FORTRAN::proxyfuncWrapper()
+ *
+ * Generate Fortran proxy code
  *
  * This is for the native Fortran interaction.
  */
@@ -1880,7 +1931,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   return ffunc;
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Generate wrappers for a %fortranbindc global variable.
  */
 int FORTRAN::bindcvarWrapper(Node *n) {
@@ -1923,7 +1974,7 @@ int FORTRAN::bindcvarWrapper(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
  * Add an assignment operator.
  *
  * The LHS must be intent(inout), and the RHS must be intent(in).
@@ -2002,8 +2053,10 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   Delete(argtype);
 }
 
-/* -------------------------------------------------------------------------
- * \brief Write documentation for the given node to the passed string.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::write_docstring()
+ *
+ * Write documentation for the given node to the passed string.
  */
 void FORTRAN::write_docstring(Node *n, String *dest) {
   String *docs = Getattr(n, "feature:docstring");
@@ -2027,8 +2080,10 @@ void FORTRAN::write_docstring(Node *n, String *dest) {
   Delete(lines);
 }
 
-/* -------------------------------------------------------------------------
- * \brief Create a friendly parameter name
+/* -----------------------------------------------------------------------------
+ * FORTRAN::makeParameterName()
+ *
+ * Create a friendly parameter name
  */
 String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
   String *name = Getattr(p, "fname");
@@ -2085,7 +2140,7 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
   return name;
 }
 
-/* ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------- */
 
 void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
   (void)method;
@@ -2093,8 +2148,10 @@ void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
   this->replace_fclassname(NULL, type, tm);
 }
 
-/* -------------------------------------------------------------------------
- * \brief Process a class declaration.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::classDeclaration()
+ *
+ * Process a class declaration.
  *
  * The superclass calls classHandler.
  */
@@ -2163,8 +2220,10 @@ int FORTRAN::classDeclaration(Node *n) {
   return Language::classDeclaration(n);
 }
 
-/* -------------------------------------------------------------------------
- * \brief Generate wrappers for a class.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::classHandler()
+ *
+ * Generate wrappers for a class.
  */
 int FORTRAN::classHandler(Node *n) {
   String *fsymname = Getattr(n, "fortran:name");
@@ -2263,8 +2322,10 @@ int FORTRAN::classHandler(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Extra stuff for constructors.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::constructorHandler()
+ *
+ * Extra stuff for constructors.
  */
 int FORTRAN::constructorHandler(Node *n) {
   if (this->is_bindc_struct()) {
@@ -2287,8 +2348,10 @@ int FORTRAN::constructorHandler(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Handle extra destructor stuff.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::destructorHandler()
+ *
+ * Handle extra destructor stuff.
  */
 int FORTRAN::destructorHandler(Node *n) {
   if (this->is_bindc_struct()) {
@@ -2323,8 +2386,10 @@ int FORTRAN::destructorHandler(Node *n) {
   return Language::destructorHandler(n);
 }
 
-/* -------------------------------------------------------------------------
- * \brief Process member functions.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::memberfunctionHandler()
+ *
+ * Process member functions.
  *
  * This is *NOT* called when generating get/set wrappers for membervariableHandler.
  */
@@ -2354,8 +2419,10 @@ int FORTRAN::memberfunctionHandler(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Process member variables.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::membervariableHandler()
+ *
+ * Process member variables.
  */
 int FORTRAN::membervariableHandler(Node *n) {
   String *fsymname = make_fname(Getattr(n, "sym:name"));
@@ -2388,8 +2455,10 @@ int FORTRAN::membervariableHandler(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Process global variables.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::globalvariableHandler()
+ *
+ * Process global variables.
  */
 int FORTRAN::globalvariableHandler(Node *n) {
   if (GetFlag(n, "feature:fortran:bindc")) {
@@ -2408,8 +2477,10 @@ int FORTRAN::globalvariableHandler(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Process global-scope functions.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::globalfunctionHandler()
+ *
+ * Process global-scope functions.
  */
 int FORTRAN::globalfunctionHandler(Node *n) {
   if (GetFlagAttr(n, "feature:fortran:callback")) {
@@ -2440,8 +2511,10 @@ int FORTRAN::globalfunctionHandler(Node *n) {
   }
 }
 
-/* -------------------------------------------------------------------------
- * \brief Create an "abstract inferface" (Fortran callback definition) from a
+/* -----------------------------------------------------------------------------
+ * FORTRAN::fortrancallbackHandler()
+ *
+ * Create an "abstract inferface" (Fortran callback definition) from a
  * function node.
  *
  * We do *not* check d_callbacks for existing matching signatures. The user
@@ -2477,8 +2550,10 @@ int FORTRAN::fortrancallbackHandler(Node *n) {
   return result;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Generate an interface-only "bind(C)" function wrapper.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::bindcfunctionHandler()
+ *
+ * Generate an interface-only "bind(C)" function wrapper.
  *
  * This uses the *original* C function name to generate the interface to, and
  * create an acceptable Fortran identifier based on whatever renames have been
@@ -2545,8 +2620,10 @@ int FORTRAN::bindcfunctionHandler(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Process static member functions.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::staticmemberfunctionHandler()
+ *
+ * Process static member functions.
  */
 int FORTRAN::staticmemberfunctionHandler(Node *n) {
   String *class_symname = Getattr(getCurrentClass(), "sym:name");
@@ -2573,8 +2650,10 @@ int FORTRAN::staticmemberfunctionHandler(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Process static member variables.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::staticmembervariableHandler()
+ *
+ * Process static member variables.
  */
 int FORTRAN::staticmembervariableHandler(Node *n) {
   // Preserve variable name
@@ -2588,8 +2667,10 @@ int FORTRAN::staticmembervariableHandler(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Wrap an enum declaration
+/* -----------------------------------------------------------------------------
+ * FORTRAN::enumDeclaration()
+ *
+ * Wrap an enum declaration
  */
 int FORTRAN::enumDeclaration(Node *n) {
   String *access = Getattr(n, "access");
@@ -2762,8 +2843,10 @@ int FORTRAN::enumDeclaration(Node *n) {
 }
 
 
-/* -------------------------------------------------------------------------
- * \brief Process callbacks, which generate 'getter' wrapper functions
+/* -----------------------------------------------------------------------------
+ * FORTRAN::callbackfunctionHandler()
+ *
+ * Process callbacks, which generate 'getter' wrapper functions
  *
  * To avoid breaking the later 'functionWrapper', we create a copy of the node.
  */
@@ -2776,8 +2859,10 @@ int FORTRAN::callbackfunctionHandler(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Process *compile-time* constants
+/* -----------------------------------------------------------------------------
+ * FORTRAN::constantWrapper()
+ *
+ * Process *compile-time* constants
  *
  * These include:
  * \code
@@ -2891,11 +2976,10 @@ int FORTRAN::constantWrapper(Node *n) {
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * HELPER FUNCTIONS
- * ------------------------------------------------------------------------- */
-/* -------------------------------------------------------------------------
- * \brief Substitute special '\$[*&]?fortranclassname' in typemaps.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::replace_fclassname()
+ *
+ * Substitute special '\$[*&]?fortranclassname' in typemaps.
  */
 void FORTRAN::replace_fclassname(Node *n, SwigType *intype, String *tm) {
   assert(intype);
@@ -2930,8 +3014,10 @@ void FORTRAN::replace_fclassname(Node *n, SwigType *intype, String *tm) {
   Delete(strippedtype);
 }
 
-/* -------------------------------------------------------------------------
- * \brief Get (creating if necessary) the 'fortran:name' of a class or enum.
+/* -----------------------------------------------------------------------------
+ * FORTRAN::get_fsymname()
+ *
+ * Get (creating if necessary) the 'fortran:name' of a class or enum.
  *
  * This is the symbolic name of the *proxy* class or enum *in Fortran*. It's
  * guaranteed to be a proper Fortran identifier.
@@ -2959,7 +3045,7 @@ String *FORTRAN::get_fsymname(Node *n, String *symname) {
   return fsymname;
 }
 
-/* ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------- */
 
 String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
   Node *n = NULL;
@@ -3070,7 +3156,7 @@ String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
   return replacementname;
 }
 
-/* ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------- */
 
 bool FORTRAN::is_wrapped_type(SwigType *basetype) {
   if (SwigType_isenum(basetype)) {
@@ -3081,7 +3167,7 @@ bool FORTRAN::is_wrapped_type(SwigType *basetype) {
   }
 }
 
-/* ------------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------------- */
 
 bool FORTRAN::is_wrapped_class(Node *n) {
   static Hash *cached_classes = NewHash();
@@ -3127,8 +3213,10 @@ bool FORTRAN::is_wrapped_class(Node *n) {
   return result;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Add an overload for the generic method "fsymname" and the specific
+/* -----------------------------------------------------------------------------
+ * FORTRAN::add_overload()
+ *
+ * Add an overload for the generic method "fsymname" and the specific
  * procedure name "fname".
  *
  * Return SWIG_NOWRAP if the name conflicts.
@@ -3152,8 +3240,10 @@ int FORTRAN::add_overload(String *fsymname, Node *n, String *fname, bool is_priv
   return SWIG_OK;
 }
 
-/* -------------------------------------------------------------------------
- * \brief Add lowercase symbol since fortran is case insensitive
+/* -----------------------------------------------------------------------------
+ * FORTRAN::add_fsymbol()
+ *
+ * Add lowercase symbol since fortran is case insensitive
  *
  * Return SWIG_NOWRAP if the name conflicts.
  */
@@ -3179,9 +3269,11 @@ int FORTRAN::add_fsymbol(String *s, Node *n) {
   return result;
 }
 
-/* -------------------------------------------------------------------------
+/* -----------------------------------------------------------------------------
+ * swig_fortran()
+ *
  * Expose the code to the SWIG main function.
- * ------------------------------------------------------------------------- */
+ * ----------------------------------------------------------------------------- */
 
 extern "C" Language *swig_fortran(void) {
   return new FORTRAN();
