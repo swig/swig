@@ -50,7 +50,6 @@ SWIGINTERN inline Napi::Error SWIG_NAPI_NewError(Napi::Env env, Napi::Value obj,
 }
 
 #define SWIG_exception(code, msg)               SWIG_NAPI_Raise(env, code, msg)
-#define SWIG_fail                               goto fail
 
 // Used instead of SWIG_NAPI_Raise when rejecting a Promise
 // in the main thread (during initialization/parsing)
@@ -76,6 +75,7 @@ SWIGINTERN inline Napi::Error SWIG_NAPI_NewError(Napi::Env env, Napi::Value obj,
 #define SWIG_Error(code, msg)                   SWIG_NAPI_Raise(env, code, msg)
 #define NAPI_CHECK_MAYBE(maybe)                 (maybe)
 #define NAPI_CHECK_RESULT(maybe, result)        (result = maybe)
+#define SWIG_fail
 
 SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, const char *msg) {
   SWIG_NAPI_ASSERT_NOTNULL_ENV;
@@ -118,6 +118,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
                 if (r.IsNothing()) SWIG_fail;     \
                 result = r.Unwrap();              \
         } while (0)
+#define SWIG_fail                 goto fail
 
 SWIGINTERN inline void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
   SWIG_NAPI_NewError(env, type, msg).ThrowAsJavaScriptException();
@@ -249,9 +250,11 @@ SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::SWIG_NAPI_ObjectWrap_templ(const Napi
     SWIG_Error(SWIG_ERROR, "This constructor is not accessible from JS");
   }
   return;
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
   return;
+#endif
 }
 
 template <typename SWIG_OBJ_WRAP>
@@ -308,9 +311,11 @@ bool SWIG_NAPI_IsWrappedObject(Napi::Env env, Napi::Object v) {
   bool instanceOf;
   NAPI_CHECK_RESULT(v.InstanceOf(ctor->Value()), instanceOf);
   return instanceOf;
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
   return false;
+#endif
 }
 
 SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, swig_type_info *info, int flags) {
@@ -352,9 +357,11 @@ SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
     }
   }
   return SWIG_OK;
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
   return SWIG_ERROR;
+#endif
 }
 
 
@@ -373,9 +380,11 @@ SWIGRUNTIME int SWIG_NAPI_GetInstancePtr(Napi::Value valRef, void **ptr) {
 
   *ptr = ow->self;
   return SWIG_OK;
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
   return SWIG_ERROR;
+#endif
 }
 
 
@@ -393,9 +402,11 @@ SWIGRUNTIME int SWIG_NAPI_ConvertPtr(Napi::Value valRef, void **ptr, swig_type_i
   Napi::Object objRef;
   NAPI_CHECK_RESULT(valRef.ToObject(), objRef);
   return SWIG_NAPI_ConvertInstancePtr(objRef, ptr, info, flags);
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
   return SWIG_ERROR;
+#endif
 }
 
 SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_type_info *info, int flags) {
@@ -435,9 +446,11 @@ SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_t
   }
 
   return wrapped;
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
   return Napi::Value();
+#endif
 }
 
 #define SWIG_ConvertPtr(obj, ptr, info, flags)          SWIG_NAPI_ConvertPtr(obj, ptr, info, flags)
@@ -475,9 +488,11 @@ SWIGRUNTIME Napi::Value _SWIG_NAPI_wrap_equals(const Napi::CallbackInfo &info) {
   jsresult = Napi::Boolean::New(env, result);
 
   return jsresult;
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
   return Napi::Value();
+#endif
 }
 
 SWIGRUNTIME Napi::Value _wrap_getCPtr(const Napi::CallbackInfo &info) {
@@ -496,9 +511,11 @@ SWIGRUNTIME Napi::Value _wrap_getCPtr(const Napi::CallbackInfo &info) {
   jsresult = Napi::Number::New(env, result);
 
   return jsresult;
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
   return Napi::Value();
+#endif
 }
 
 /* ---------------------------------------------------------------------------
@@ -631,9 +648,11 @@ public:
       persistent.push_back(ref);
     }
     return;
+#ifndef NAPI_CPP_EXCEPTIONS
     goto fail;
   fail:
     return;
+#endif
   }
 
   Napi::Value Run(const Napi::CallbackInfo &info) {

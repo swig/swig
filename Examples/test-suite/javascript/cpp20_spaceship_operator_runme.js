@@ -11,8 +11,8 @@ check_equal(cpp20_spaceship_operator.SPACE, 1);
 check_equal(cpp20_spaceship_operator.COMET, 1);
 check_equal(cpp20_spaceship_operator.v, 42);
 
-x = new cpp20_spaceship_operator.A(1);
-y = new cpp20_spaceship_operator.A(2);
+var x = new cpp20_spaceship_operator.A(1);
+var y = new cpp20_spaceship_operator.A(2);
 
 check_equal(/* await */(cpp20_spaceship_operator.spaceship(x, y)) < 0, true);
 check_equal(/* await */(cpp20_spaceship_operator.spaceship(x, x)), 0);

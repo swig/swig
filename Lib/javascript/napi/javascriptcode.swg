@@ -113,9 +113,11 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::$jsmangledname_templ(const Napi::CallbackIn
   // default:
   SWIG_Error(SWIG_ERROR, "Illegal arguments for construction of $jsmangledname");
 
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
   return;
+#endif
 }
 
 // This is the extendable constructor to be used from child classes
@@ -151,8 +153,10 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   $jscode
   this->self = result;
 
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
+#endif
   return Napi::Value();
 }
 %}
@@ -263,6 +267,9 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
+#ifdef NAPI_CPP_EXCEPTIONS
+  try {
+#endif
   $jsguard
   $jsinput
   $jslock
@@ -270,11 +277,17 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   $jsoutput
   $jscleanup
   return jsresult;
-
+#ifdef NAPI_CPP_EXCEPTIONS
+  } catch (...) {
+    $jscleanup
+    std::rethrow_exception(std::current_exception());
+  }
+#else
   goto fail;
 fail:
   $jscleanup
   return Napi::Value();
+#endif
 }
 %}
 
@@ -296,16 +309,25 @@ void $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Value value = info.Length() > 0 ? info[0] : Napi::Value();
   Napi::Value jsresult;
   $jslocals
+#ifdef NAPI_CPP_EXCEPTIONS
+  try {
+#endif
   $jsguard
   $jsinput
   $jslock
   $jsaction
   $jscleanup
   return;
-
+#ifdef NAPI_CPP_EXCEPTIONS
+  } catch (...) {
+    $jscleanup
+    std::rethrow_exception(std::current_exception());
+  }
+#else
   goto fail;
 fail:
   $jscleanup
+#endif
   return;
 }
 %}
@@ -352,6 +374,10 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
+
+#ifdef NAPI_CPP_EXCEPTIONS
+  try {
+#endif
   $jsguard
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
@@ -364,10 +390,16 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   $jsoutput
   $jscleanup
   return jsresult;
-
+#ifdef NAPI_CPP_EXCEPTIONS
+  } catch (...) {
+    $jscleanup
+    std::rethrow_exception(std::current_exception());
+  }
+#else
   goto fail;
 fail:
   $jscleanup
+#endif
   return Napi::Value();
 }
 %}
@@ -397,8 +429,10 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   worker = new SWIG_NAPI_AsyncWorker(
     env, "SWIG_$jswrapper_Async_Worker", context);
   return worker->Run(info);
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
+#endif
   return Napi::Value();
 }
 %}
@@ -422,8 +456,10 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
 
   SWIG_Error(SWIG_ERROR, "Illegal arguments for function $jsname.");
 
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
+#endif
   return Napi::Value();
 }
 %}
@@ -465,6 +501,9 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
+#ifdef NAPI_CPP_EXCEPTIONS
+  try {
+#endif
   $jsguard
   $jsinput
   $jslock
@@ -472,10 +511,16 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   $jsoutput
   $jscleanup
   return jsresult;
-
+#ifdef NAPI_CPP_EXCEPTIONS
+  } catch (...) {
+    $jscleanup
+    std::rethrow_exception(std::current_exception());
+  }
+#else
   goto fail;
 fail:
   $jscleanup
+#endif
   return Napi::Value();
 }
 %}
@@ -499,17 +544,26 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &i
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
+#ifdef NAPI_CPP_EXCEPTIONS
+  try {
+#endif
   $jsguard
   $jsinput
   $jslock
   $jsaction
   $jscleanup
   return;
-
+#ifdef NAPI_CPP_EXCEPTIONS
+  } catch (...) {
+    $jscleanup
+    std::rethrow_exception(std::current_exception());
+  }
+#else
   goto fail;
 fail:
   $jscleanup
   return;
+#endif
 }
 %}
 
@@ -537,6 +591,10 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
+
+#ifdef NAPI_CPP_EXCEPTIONS
+  try {
+#endif
   $jsguard
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
@@ -549,10 +607,16 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   $jsoutput
   $jscleanup
   return jsresult;
-
+#ifdef NAPI_CPP_EXCEPTIONS
+  } catch (...) {
+    $jscleanup
+    std::rethrow_exception(std::current_exception());
+  }
+#else
   goto fail;
 fail:
   $jscleanup
+#endif
   return Napi::Value();
 }
 %}
@@ -582,8 +646,10 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   worker = new SWIG_NAPI_AsyncWorker(
     env, "SWIG_$jsmangledname_$jswrapper_Async_Worker", context);
   return worker->Run(info);
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
+#endif
   return Napi::Value();
 }
 %}
@@ -606,9 +672,10 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   Napi::Value jsresult;
   $jscode
   SWIG_Error(SWIG_ERROR, "Illegal arguments for function $jsname.");
-
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
+#endif
   return Napi::Value();
 }
 %}
@@ -633,6 +700,9 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
+#ifdef NAPI_CPP_EXCEPTIONS
+  try {
+#endif
   $jsguard
   $jsinput
   $jschecks
@@ -641,10 +711,16 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   $jsoutput
   $jscleanup
   return jsresult;
-
+#ifdef NAPI_CPP_EXCEPTIONS
+  } catch (...) {
+    $jscleanup
+    std::rethrow_exception(std::current_exception());
+  }
+#else
   goto fail;
 fail:
   $jscleanup
+#endif
   return Napi::Value();
 }
 %}
@@ -672,8 +748,10 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   worker = new SWIG_NAPI_AsyncWorker(
     env, "SWIG_$jsmangledname_$jswrapper_Async_Worker", context);
   return worker->Run(info);
+#ifndef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
+#endif
   return Napi::Value();
 }
 %}
@@ -697,6 +775,9 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   $jslocals
+#ifdef NAPI_CPP_EXCEPTIONS
+  try {
+#endif
   $jsguard
   $jsinput
   $jschecks
@@ -705,10 +786,16 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   $jsoutput
   $jscleanup
   return jsresult;
-
+#ifdef NAPI_CPP_EXCEPTIONS
+  } catch (...) {
+    $jscleanup
+    std::rethrow_exception(std::current_exception());
+  }
+#else
   goto fail;
 fail:
   $jscleanup
+#endif
   return Napi::Value();
 }
 %}
@@ -734,8 +821,10 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   worker = new SWIG_NAPI_AsyncWorker(
     env, "SWIG_$jswrapper_Async_Worker", context);
   return worker->Run(info);
+#ifdef NAPI_CPP_EXCEPTIONS
   goto fail;
 fail:
+#endif
   return Napi::Value();
 }
 %}

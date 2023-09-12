@@ -74,8 +74,10 @@ static Napi::Value JavaScript_alpha_count(const Napi::CallbackInfo &info) {
   jsresult = SWIG_From_int(env, static_cast< int >(result));
   if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
   return scope.Escape(jsresult);
+#ifndef NAPI_CPP_EXCEPTIONS
 fail:
   return Napi::Value();
+#endif
 }
 
 // NAPI async version
@@ -105,9 +107,11 @@ static Napi::Value JavaScript_alpha_count_Async(const Napi::CallbackInfo &info) 
       jsresult = SWIG_From_int(env, static_cast< int >(result));
       if (alloc1 == SWIG_NEWOBJ) delete[] buf1;
       deferred.Resolve(jsresult);
+#ifndef NAPI_CPP_EXCEPTIONS
       goto fail;
     fail:
       return;
+#endif
     }
 
     virtual void OnError(const Napi::Error &error) override {
@@ -117,7 +121,7 @@ static Napi::Value JavaScript_alpha_count_Async(const Napi::CallbackInfo &info) 
 
     virtual void Execute() override {
       Napi::Env env(nullptr);
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
+#ifdef NAPI_CPP_EXCEPTIONS
       try {
         result = (int)alpha_count((char const *)arg1);
       } catch (const std::exception &e) {
@@ -125,10 +129,10 @@ static Napi::Value JavaScript_alpha_count_Async(const Napi::CallbackInfo &info) 
       }
 #else
       result = (int)alpha_count((char const *)arg1);
-#endif
       goto fail;
     fail:
       return;
+#endif
     }
 
     virtual void Init(const Napi::CallbackInfo &info) {
@@ -147,8 +151,10 @@ static Napi::Value JavaScript_alpha_count_Async(const Napi::CallbackInfo &info) 
   self->Init(info);
   self->Queue();
   return self->deferred.Promise();
+#ifndef NAPI_CPP_EXCEPTIONS
 fail:
   return Napi::Value();
+#endif
 }
 
 %}
