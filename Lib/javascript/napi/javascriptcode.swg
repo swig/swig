@@ -273,6 +273,7 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
 
   goto fail;
 fail:
+  $jscleanup
   return Napi::Value();
 }
 %}
@@ -304,6 +305,7 @@ void $jswrapper(const Napi::CallbackInfo &info) {
 
   goto fail;
 fail:
+  $jscleanup
   return;
 }
 %}
@@ -365,6 +367,7 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
 
   goto fail;
 fail:
+  $jscleanup
   return Napi::Value();
 }
 %}
@@ -472,6 +475,7 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
 
   goto fail;
 fail:
+  $jscleanup
   return Napi::Value();
 }
 %}
@@ -504,6 +508,7 @@ void $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &i
 
   goto fail;
 fail:
+  $jscleanup
   return;
 }
 %}
@@ -547,6 +552,7 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
 
   goto fail;
 fail:
+  $jscleanup
   return Napi::Value();
 }
 %}
@@ -638,6 +644,7 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
 
   goto fail;
 fail:
+  $jscleanup
   return Napi::Value();
 }
 %}
@@ -701,6 +708,7 @@ Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
 
   goto fail;
 fail:
+  $jscleanup
   return Napi::Value();
 }
 %}
@@ -815,7 +823,6 @@ fail:
 
     virtual bool SWIG_NAPI_Cleanup() override {
       $jscleanup
-      SWIG_NAPI_deferred_finalized = true;
       return true;
       goto fail;
     fail:
