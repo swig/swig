@@ -29,9 +29,9 @@
 
 %define JAVASCRIPT_ARRAYS_IN_DECL(NAME, CTYPE, ANY, ANYLENGTH)
 
-%typemap(in, fragment=NAME, fragment="SWIG_NAPI_destroy_array_" # CTYPE)
+%typemap(in, fragment=NAME)
     CTYPE[ANY]
-    (std::unique_ptr<$*1_ltype, SWIG_NAPI_destroy_array_##CTYPE> array_manager = nullptr) {
+    (std::unique_ptr<$*1_ltype[]> array_manager) {
   if ($input.IsArray()) {
     Napi::Env env = $input.Env();
     // Convert into Array
@@ -39,7 +39,7 @@
 
     int length = ANYLENGTH;
 
-    $1 = ($*1_ltype *)malloc(sizeof($*1_ltype) * length);
+    $1 = new $*1_ltype[length];
     // Transfer ownership to a smart pointer
     array_manager.reset($1);
 
@@ -59,14 +59,6 @@
     Napi::Env env = $input.Env();
     SWIG_Error(SWIG_ERROR, "$input is not an array");
   }
-}
-
-%fragment("SWIG_NAPI_destroy_array_"#CTYPE, "header") {
-struct SWIG_NAPI_destroy_array_##CTYPE {
-  void operator()(CTYPE *array) {
-    free(array);
-  }
-};
 }
 
 %enddef
