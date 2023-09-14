@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-09-14: mmomtchev
+            #2675 #2676 Temporary variable zero initialisation in the wrappers for
+            consistency with handling pointers.
+
 2023-09-11: emmenlau
             #2394 Add support to preprocessor for true and false. Note that this
             is for C++ not C.
