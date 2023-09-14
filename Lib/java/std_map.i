@@ -199,7 +199,11 @@ template<class K, class T, class C = std::less< K> > class map {
       }
 
       void putUnchecked(const K& key, const T& value) {
+%#ifdef __cpp_lib_map_try_emplace
+        (*self).insert_or_assign(key, value);
+%#else
         (*self)[key] = value;
+%#endif
       }
 
       void removeUnchecked(const std::map< K, T, C >::iterator itr) {

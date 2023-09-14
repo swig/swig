@@ -64,7 +64,11 @@ namespace std {
                         val = SCM_CAR(val);
                         x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum, 0);
                     }
+%#ifdef __cpp_lib_map_try_emplace
+                    (($1_type &)$1).insert_or_assign(*k, *x);
+%#else
                     (($1_type &)$1)[*k] = *x;
+%#endif
                     alist = SCM_CDR(alist);
                 }
             } else {
@@ -98,7 +102,11 @@ namespace std {
                         val = SCM_CAR(val);
                         x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum, 0);
                     }
+%#ifdef __cpp_lib_map_try_emplace
+                    temp.insert_or_assign(*k, *x);
+%#else
                     temp[*k] = *x;
+%#endif
                     alist = SCM_CDR(alist);
                 }
             } else {
@@ -298,7 +306,11 @@ namespace std {
                         val = SCM_CAR(val);
                         x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum, 0);
                     }
+%#ifdef __cpp_lib_map_try_emplace
+                    (($1_type &)$1).insert_or_assign(CONVERT_FROM(key), *x);
+%#else
                     (($1_type &)$1)[CONVERT_FROM(key)] = *x;
+%#endif
                     alist = SCM_CDR(alist);
                 }
             } else {
@@ -333,7 +345,11 @@ namespace std {
                         val = SCM_CAR(val);
                         x = (T*) SWIG_MustGetPtr(val,$descriptor(T *),$argnum, 0);
                     }
+%#ifdef __cpp_lib_map_try_emplace
+                    temp.insert_or_assign(CONVERT_FROM(key), *x);
+%#else
                     temp[CONVERT_FROM(key)] = *x;
+%#endif
                     alist = SCM_CDR(alist);
                 }
             } else {
@@ -523,7 +539,11 @@ namespace std {
                             SWIG_exception(SWIG_TypeError,
                                            "map<" #K "," #T "," #C "> expected");
                     }
+%#ifdef __cpp_lib_map_try_emplace
+                    (($1_type &)$1).insert_or_assign(*k, CONVERT_FROM(val));
+%#else
                     (($1_type &)$1)[*k] = CONVERT_FROM(val);
+%#endif
                     alist = SCM_CDR(alist);
                 }
             } else {
@@ -557,7 +577,11 @@ namespace std {
                             SWIG_exception(SWIG_TypeError,
                                            "map<" #K "," #T "," #C "> expected");
                     }
+%#ifdef __cpp_lib_map_try_emplace
+                    temp.insert_or_assign(*k, CONVERT_FROM(val));
+%#else
                     temp[*k] = CONVERT_FROM(val);
+%#endif
                     alist = SCM_CDR(alist);
                 }
             } else {
@@ -746,8 +770,11 @@ namespace std {
                             SWIG_exception(SWIG_TypeError,
                                            "map<" #K "," #T "," #C "> expected");
                     }
-                    (($1_type &)$1)[CONVERT_K_FROM(key)] = 
-                                               CONVERT_T_FROM(val);
+%#ifdef __cpp_lib_map_try_emplace
+                    (($1_type &)$1).insert_or_assign(CONVERT_K_FROM(key), CONVERT_T_FROM(val));
+%#else
+                    (($1_type &)$1)[CONVERT_K_FROM(key)] = CONVERT_T_FROM(val);
+%#endif
                     alist = SCM_CDR(alist);
                 }
             } else {
@@ -782,7 +809,11 @@ namespace std {
                             SWIG_exception(SWIG_TypeError,
                                            "map<" #K "," #T "," #C "> expected");
                     }
+%#ifdef __cpp_lib_map_try_emplace
+                    temp.insert_or_assign(CONVERT_K_FROM(key), CONVERT_T_FROM(val));
+%#else
                     temp[CONVERT_K_FROM(key)] = CONVERT_T_FROM(val);
+%#endif
                     alist = SCM_CDR(alist);
                 }
             } else {
