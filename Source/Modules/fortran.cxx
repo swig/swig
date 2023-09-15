@@ -1259,9 +1259,8 @@ Wrapper *FORTRAN::cfuncWrapper(Node *n) {
   String *c_return_str = NULL;
   if (return_type_needs_typedef(c_return_type)) {
     // For these types (where the name is the middle of the expression rather than at the right side,
-    // i.e. void (*func)() instead of int func, we either have to add a new typedef OR wrap the
-    // entire function in parens. The former is easier.
-    c_return_str = NewStringf("%s_swigrtype", symname);
+    // i.e. void (*func)() instead of int func, it is easier to return a typedef than to reformat the function expression.
+    c_return_str = NewStringf("Swig_returntype_%s", symname);
 
     String *typedef_str = SwigType_str(c_return_type, c_return_str);
     Printv(cfunc->def, "typedef ", typedef_str, ";\n", NULL);
