@@ -3,7 +3,7 @@
  *
  * Macros and typemaps for converting C arrays to and from Fortran arrays.
  * ----------------------------------------------------------------------------- */
-%include "../carrays.i"
+%include <../carrays.i>
 
 /* -----------------------------------------------------------------------------
  * Enable seamless translation of consecutive pointer/size arguments to Fortran
