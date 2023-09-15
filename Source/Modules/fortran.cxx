@@ -662,7 +662,7 @@ private:
   int add_fsymbol(String *s, Node *n);
   // Whether the current class is a BIND(C) struct
   bool is_bindc_struct() const {
-    assert(this->getCurrentClass());
+    assert(getCurrentClass());
     return d_method_overloads == NULL;
   }
 };
@@ -791,7 +791,7 @@ int FORTRAN::top(Node *n) {
   // Add standard SWIG classes, fragments
   Node *fragment_hash = NewHash();
   String *clsname = NewString("SwigClassWrapper");
-  this->add_fsymbol(clsname, fragment_hash);
+  add_fsymbol(clsname, fragment_hash);
   Delete(fragment_hash);
   Delete(clsname);
 
@@ -806,7 +806,7 @@ int FORTRAN::top(Node *n) {
   if (Node *options = Getattr(module, "options")) {
     if (String *docstring = Getattr(options, "docstring")) {
       Setattr(module, "feature:docstring", docstring);
-      this->write_docstring(module, f_fuse);
+      write_docstring(module, f_fuse);
     }
   }
 
@@ -995,7 +995,7 @@ int FORTRAN::functionWrapper(Node *n) {
     if (member) {
       // We're wrapping a static/member variable. The getter/setter name is an alias to the class-namespaced proxy function.
       fsymname = fname;
-      fname = proxy_name_construct(this->getNSpace(), Getattr(n, "sym:name"));
+      fname = proxy_name_construct(getNSpace(), Getattr(n, "sym:name"));
     }
   } else {
     // Default: use symbolic function name
@@ -1019,7 +1019,7 @@ int FORTRAN::functionWrapper(Node *n) {
     if (!fsymname) {
       // Overloaded functions become fsymname
       fsymname = fname;
-      fname = proxy_name_construct(this->getNSpace(), symname);
+      fname = proxy_name_construct(getNSpace(), symname);
     }
     fname = ensure_short(fname, 63 - Len(overload_ext));
     Append(fname, overload_ext);
@@ -1034,7 +1034,7 @@ int FORTRAN::functionWrapper(Node *n) {
   if (member) {
     assert(fsymname);
     String *lower_fsymname = Swig_string_lower(fsymname);
-    Symtab *fsymtab = Getattr(this->getCurrentClass(), "fortran:symtab");
+    Symtab *fsymtab = Getattr(getCurrentClass(), "fortran:symtab");
     Node *overload_base = NULL;
 
     // Check against lowercase name conflicts
@@ -1139,7 +1139,7 @@ int FORTRAN::functionWrapper(Node *n) {
       // But pre-calculate the original name so that user-facing argument names match
       Parm *first_parm = Getattr(n, "parms");
       ASSERT_OR_PRINT_NODE(first_parm, n);
-      this->makeParameterName(n, first_parm, 0);
+      makeParameterName(n, first_parm, 0);
       Setattr(first_parm, "name", selfname);
     }
   }
@@ -1147,9 +1147,9 @@ int FORTRAN::functionWrapper(Node *n) {
   // >>> GENERATE WRAPPER CODE
 
   int result = SWIG_NOWRAP;
-  Wrapper *cfunc = this->cfuncWrapper(n);
-  Wrapper *imfunc = cfunc ? this->imfuncWrapper(n, false) : NULL;
-  Wrapper *ffunc = imfunc ? this->proxyfuncWrapper(n) : NULL;
+  Wrapper *cfunc = cfuncWrapper(n);
+  Wrapper *imfunc = cfunc ? imfuncWrapper(n, false) : NULL;
+  Wrapper *ffunc = imfunc ? proxyfuncWrapper(n) : NULL;
   if (ffunc) {
     Wrapper_print(cfunc, f_wrapper);
     Wrapper_print(imfunc, f_finterfaces);
@@ -1174,7 +1174,7 @@ int FORTRAN::functionWrapper(Node *n) {
   bool fprivate = (GetFlag(n, "fortran:private"));
   if (member) {
     // Wrapping a member function
-    ASSERT_OR_PRINT_NODE(!this->is_bindc_struct(), n);
+    ASSERT_OR_PRINT_NODE(!is_bindc_struct(), n);
     ASSERT_OR_PRINT_NODE(f_class, n);
     ASSERT_OR_PRINT_NODE(fname, n);
     ASSERT_OR_PRINT_NODE(fsymname, n);
@@ -1207,7 +1207,7 @@ int FORTRAN::functionWrapper(Node *n) {
       Printv(f_class, fname, "\n", NULL);
     }
   } else if (fsymname) {
-    int result = this->add_overload(fsymname, n, fname, fprivate);
+    int result = add_overload(fsymname, n, fname, fprivate);
     if (result == SWIG_NOWRAP)
       return SWIG_NOWRAP;
   } else if (!fprivate) {
@@ -1346,12 +1346,12 @@ Wrapper *FORTRAN::cfuncWrapper(Node *n) {
 
   if (GetFlag(n, "feature:fortran:onlywrapped")) {
     // Check return type
-    if (!this->is_wrapped_class(n)) {
+    if (!is_wrapped_class(n)) {
       DelWrapper(cfunc);
       return NULL;
     }
     for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
-      if (!this->is_wrapped_class(it.item)) {
+      if (!is_wrapped_class(it.item)) {
 	DelWrapper(cfunc);
 	return NULL;
       }
@@ -1367,7 +1367,7 @@ Wrapper *FORTRAN::cfuncWrapper(Node *n) {
   for (Iterator it = First(cparmlist); it.item; it = Next(it)) {
     Parm *p = it.item;
     if (String *tm = Getattr(p, "tmap:in")) {
-      this->replace_fclassname(n, Getattr(p, "type"), tm);
+      replace_fclassname(n, Getattr(p, "type"), tm);
       String *imname = Getattr(p, "imname");
       Replaceall(tm, "$input", imname);
       Setattr(p, "emit:input", imname);
@@ -1493,7 +1493,7 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
   if (bindc && !return_imtype) {
     return NULL;
   }
-  this->replace_fclassname(n, return_cpptype, return_imtype);
+  replace_fclassname(n, return_cpptype, return_imtype);
 
   const bool is_imsubroutine = (Len(return_imtype) == 0);
 
@@ -1543,7 +1543,7 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
       DelWrapper(imfunc);
       return NULL;
     }
-    this->replace_fclassname(n, Getattr(p, "type"), imtype);
+    replace_fclassname(n, Getattr(p, "type"), imtype);
     Printv(imlocals, "\n   ", imtype, " :: ", imname, NULL);
 
     // Include import statements if present; needed for actual structs
@@ -1595,7 +1595,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   Wrapper *ffunc = NewFortranWrapper();
 
   // Write documentation
-  this->write_docstring(n, ffunc->def);
+  write_docstring(n, ffunc->def);
 
   // >>> FUNCTION RETURN VALUES
 
@@ -1614,8 +1614,8 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
 
   // Replace any instance of $fortranclassname in return type
   SwigType *return_cpptype = Getattr(n, "type");
-  this->replace_fclassname(n, return_cpptype, return_ftype);
-  this->replace_fclassname(n, return_cpptype, return_imtype);
+  replace_fclassname(n, return_cpptype, return_ftype);
+  replace_fclassname(n, return_cpptype, return_imtype);
 
   // String for calling the im wrapper on the fortran side (the "action")
   String *fcall = NewStringEmpty();
@@ -1756,13 +1756,13 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
       Chop(temptype);
       if (Len(temptype) > 0) {
 	String *tempname = NewStringf("%s_temp", imname);
-	this->replace_fclassname(n, Getattr(p, "type"), temptype);
+	replace_fclassname(n, Getattr(p, "type"), temptype);
 	Wrapper_add_localv(ffunc, tempname, temptype, "::", tempname, NULL);
       }
     }
     // Emit local intermediate parameter in the proxy function
     String *imtype = get_typemap("imtype", p, WARN_FORTRAN_TYPEMAP_IMTYPE_UNDEF);
-    this->replace_fclassname(n, Getattr(p, "type"), imtype);
+    replace_fclassname(n, Getattr(p, "type"), imtype);
     Wrapper_add_localv(ffunc, imname, imtype, "::", imname, NULL);
 
     // Restore local variable name
@@ -1805,10 +1805,10 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
       DelWrapper(ffunc);
       return NULL;
     }
-    this->replace_fclassname(n, Getattr(p, "type"), ftype);
+    replace_fclassname(n, Getattr(p, "type"), ftype);
 
     // Add parameter name to declaration list
-    String *farg = this->makeParameterName(n, p, i++);
+    String *farg = makeParameterName(n, p, i++);
     if (parent_arglist) {
       if (!parent_arg.item) {
 	Swig_error(input_file, line_number, "Function '%s' has a different number of Fortran arguments from the function it overrides\n", fsymname);
@@ -1911,7 +1911,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
     }
     Replaceall(fbody, "$result", swig_result_name);
     Replaceall(fbody, "$owner", (GetFlag(n, "feature:new") ? ".true." : ".false."));
-    this->replace_fclassname(n, return_cpptype, fbody);
+    replace_fclassname(n, return_cpptype, fbody);
     if (func_to_subroutine) {
       Printv(fbody, "\nendif\n", NULL);
     }
@@ -1953,7 +1953,7 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 int FORTRAN::bindcvarWrapper(Node *n) {
-  String *fsymname = this->get_fsymname(n);
+  String *fsymname = get_fsymname(n);
   if (!fsymname) {
     return SWIG_NOWRAP;
   }
@@ -1999,7 +1999,7 @@ int FORTRAN::bindcvarWrapper(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 void FORTRAN::add_assignment_operator(Node *classn) {
-  ASSERT_OR_PRINT_NODE(Strcmp(nodeType(classn), "class") == 0 && !this->is_bindc_struct(), classn);
+  ASSERT_OR_PRINT_NODE(Strcmp(nodeType(classn), "class") == 0 && !is_bindc_struct(), classn);
 
   // Create new node representing self-assignment function
   Node *n = NewHash();
@@ -2034,7 +2034,7 @@ void FORTRAN::add_assignment_operator(Node *classn) {
   // Notably, 'other' should be treated as a *MUTABLE* reference for type matching.
   String *argtype = NewStringf("r.%s", classtype);
   Parm *other_parm = NewParm(argtype, "other", classn);
-  this->makeParameterName(n, other_parm, 0);
+  makeParameterName(n, other_parm, 0);
   Setattr(other_parm, "name", "ASSIGNMENT_OTHER");
   Setattr(n, "parms", other_parm);
   Setattr(n, "fortran:rename_self", "ASSIGNMENT_SELF"); // Use INOUT for class handle
@@ -2124,8 +2124,7 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
   String *origname = name;
 
   // Symbol tables for module and forward-declared class scopes
-  FORTRAN *mthis = const_cast < FORTRAN * >(this);
-  Hash *symtab = mthis->symbolScopeLookup(NULL);
+  Hash *symtab = const_cast<FORTRAN *>(this)->symbolScopeLookup(NULL);
 
   bool valid = false;
   while (!valid) {
@@ -2164,7 +2163,7 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
 void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
   (void)method;
   SwigType *type = Getattr(parm, "type");
-  this->replace_fclassname(NULL, type, tm);
+  replace_fclassname(NULL, type, tm);
 }
 
 /* -----------------------------------------------------------------------------
@@ -2180,7 +2179,7 @@ int FORTRAN::classDeclaration(Node *n) {
 
   if (!GetFlag(n, "feature:onlychildren")) {
     // Set up Fortran proxy name, adding to symbol table (even if the class is being imported)
-    fsymname = this->get_fsymname(n);
+    fsymname = get_fsymname(n);
     // Return if it's a duplicate
     if (!fsymname)
       return SWIG_NOWRAP;
@@ -2280,7 +2279,7 @@ int FORTRAN::classHandler(Node *n) {
   f_class = NewStringf(" ! %s %s\n", Getattr(n, "kind"), Getattr(n, "classtype"));
 
   // Write documentation
-  this->write_docstring(n, f_class);
+  write_docstring(n, f_class);
 
   // Declare class
   Printv(f_class, " type", NULL);
@@ -2301,7 +2300,7 @@ int FORTRAN::classHandler(Node *n) {
     d_method_overloads = NewHash();
 
     // Add an assignment function to the class node
-    this->add_assignment_operator(n);
+    add_assignment_operator(n);
 
     // Add overload entry for constructors (must do this outside of "add_overload" since the class name already exists as a symbol)
     ASSERT_OR_PRINT_NODE(!Getattr(d_overloads, fsymname), n);
@@ -2350,16 +2349,16 @@ int FORTRAN::classHandler(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 int FORTRAN::constructorHandler(Node *n) {
-  if (this->is_bindc_struct()) {
+  if (is_bindc_struct()) {
     // Don't generate destructor for %fortranbindc structs
     return SWIG_NOWRAP;
   }
 
   // Set fortran symname of this function to the class symname
-  Setattr(n, "fortran:name", Getattr(this->getCurrentClass(), "fortran:name"));
+  Setattr(n, "fortran:name", Getattr(getCurrentClass(), "fortran:name"));
 
   // Make constructor method name conform to other interface wrapper names
-  String *fname = proxy_name_construct(this->getNSpace(), "new", Getattr(n, "sym:name"));
+  String *fname = proxy_name_construct(getNSpace(), "new", Getattr(n, "sym:name"));
   Setattr(n, "fortran:fname", fname);
   Delete(fname);
 
@@ -2377,7 +2376,7 @@ int FORTRAN::constructorHandler(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 int FORTRAN::destructorHandler(Node *n) {
-  if (this->is_bindc_struct()) {
+  if (is_bindc_struct()) {
     // Don't generate destructor for %fortranbindc structs
     return SWIG_NOWRAP;
   }
@@ -2391,7 +2390,7 @@ int FORTRAN::destructorHandler(Node *n) {
   }
 
   // Make destructor method name conform to other interface wrapper names
-  String *fname = proxy_name_construct(this->getNSpace(), Getattr(n, "sym:name"), "release");
+  String *fname = proxy_name_construct(getNSpace(), Getattr(n, "sym:name"), "release");
   Setattr(n, "fortran:fname", fname);
   Delete(fname);
 
@@ -2418,15 +2417,15 @@ int FORTRAN::destructorHandler(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 int FORTRAN::memberfunctionHandler(Node *n) {
-  String *class_symname = Getattr(this->getCurrentClass(), "sym:name");
+  String *class_symname = Getattr(getCurrentClass(), "sym:name");
 
-  if (this->is_bindc_struct()) {
+  if (is_bindc_struct()) {
     Swig_error(input_file, line_number, "Struct '%s' has the 'fortranbindc' feature set, so it cannot have member functions\n", class_symname);
     return SWIG_NOWRAP;
   }
 
   // Create a private procedure name that gets bound to the Fortan TYPE
-  String *fwrapname = proxy_name_construct(this->getNSpace(), class_symname, Getattr(n, "sym:name"));
+  String *fwrapname = proxy_name_construct(getNSpace(), class_symname, Getattr(n, "sym:name"));
   Setattr(n, "fortran:fname", fwrapname);
   Delete(fwrapname);
 
@@ -2451,7 +2450,7 @@ int FORTRAN::memberfunctionHandler(Node *n) {
 
 int FORTRAN::membervariableHandler(Node *n) {
   String *fsymname = make_fname(Getattr(n, "sym:name"));
-  if (this->is_bindc_struct()) {
+  if (is_bindc_struct()) {
     // Write the type for the class member
     String *bindc_typestr = attach_typemap("bindc", n, WARN_TYPEMAP_UNDEF);
     SwigType *datatype = Getattr(n, "type");
@@ -2459,13 +2458,13 @@ int FORTRAN::membervariableHandler(Node *n) {
     if (!bindc_typestr) {
       // In order for the struct's data to correspond to the C-aligned
       // data, an interface type MUST be specified!
-      String *class_symname = Getattr(this->getCurrentClass(), "sym:name");
+      String *class_symname = Getattr(getCurrentClass(), "sym:name");
       Swig_error(input_file, line_number,
 		 "Struct '%s' has the 'fortranbindc' feature set, but member variable '%s' (type '%s') has no 'bindc' typemap defined\n",
 		 class_symname, fsymname, SwigType_namestr(datatype));
       return SWIG_NOWRAP;
     }
-    this->replace_fclassname(n, datatype, bindc_typestr);
+    replace_fclassname(n, datatype, bindc_typestr);
 
     ASSERT_OR_PRINT_NODE(Len(fsymname) > 0, n);
     Printv(f_class, "  ", bindc_typestr, ", public :: ", fsymname, "\n", NULL);
@@ -2488,10 +2487,10 @@ int FORTRAN::membervariableHandler(Node *n) {
 
 int FORTRAN::globalvariableHandler(Node *n) {
   if (GetFlag(n, "feature:fortran:bindc")) {
-    return this->bindcvarWrapper(n);
+    return bindcvarWrapper(n);
   } else if (GetFlagAttr(n, "feature:fortran:const") && has_constexpr_storage(n)) {
     // constexpr global variable
-    return this->constantWrapper(n);
+    return constantWrapper(n);
   }
 
   // No special cases: treat like a global variable
@@ -2514,7 +2513,7 @@ int FORTRAN::globalfunctionHandler(Node *n) {
     // Flag is set to a non-"0" value
     Node *cbnode = Getattr(n, "fortran:callback");
     if (!cbnode) {
-      this->fortrancallbackHandler(n);
+      fortrancallbackHandler(n);
       cbnode = Getattr(n, "fortran:callback");
     }
     if (cbnode && Cmp(Getattr(cbnode, "sym:name"), Getattr(n, "sym:name")) == 0) {
@@ -2531,7 +2530,7 @@ int FORTRAN::globalfunctionHandler(Node *n) {
     Setattr(n, "wrap:name", Getattr(n, "name"));
 
     // Just generate the function interface
-    return this->bindcfunctionHandler(n);
+    return bindcfunctionHandler(n);
   } else {
     // Generate wrapper functions
     return Language::globalfunctionHandler(n);
@@ -2561,7 +2560,7 @@ int FORTRAN::fortrancallbackHandler(Node *n) {
   Setattr(cbnode, "sym:name", cbname);
 
   // Wrap the callback
-  int result = this->bindcfunctionHandler(cbnode);
+  int result = bindcfunctionHandler(cbnode);
 
   if (result == SWIG_OK) {
     // Save to parent node
@@ -2621,7 +2620,7 @@ int FORTRAN::bindcfunctionHandler(Node *n) {
       continue;
     }
     // Use C argument names
-    String *imname = this->makeParameterName(n, p, i);
+    String *imname = makeParameterName(n, p, i);
     Setattr(p, "imname", imname);
     Append(cparmlist, p);
   }
@@ -2630,7 +2629,7 @@ int FORTRAN::bindcfunctionHandler(Node *n) {
   Setattr(n, "wrap:cparms", cparmlist);
 
   // Generate the wrapper
-  if (Wrapper *imfunc = this->imfuncWrapper(n, true)) {
+  if (Wrapper *imfunc = imfuncWrapper(n, true)) {
     // Write to 'abstract' interfaces if it's not associated with an actual C
     // function
     Wrapper_print(imfunc, Getattr(n, "wrap:name") == NULL ? f_fabstract : f_finterfaces);
@@ -2657,7 +2656,7 @@ int FORTRAN::bindcfunctionHandler(Node *n) {
 
 int FORTRAN::staticmemberfunctionHandler(Node *n) {
   String *class_symname = Getattr(getCurrentClass(), "sym:name");
-  if (this->is_bindc_struct()) {
+  if (is_bindc_struct()) {
     Swig_error(input_file, line_number, "Struct '%s' has the 'fortranbindc' feature set, so it cannot have static member functions\n", class_symname);
     return SWIG_NOWRAP;
   }
@@ -2666,7 +2665,7 @@ int FORTRAN::staticmemberfunctionHandler(Node *n) {
   Setattr(n, "fortran:name", make_fname(Getattr(n, "sym:name")));
 
   // Create a private procedure name that gets bound to the Fortan TYPE
-  String *fwrapname = proxy_name_construct(this->getNSpace(), class_symname, Getattr(n, "sym:name"));
+  String *fwrapname = proxy_name_construct(getNSpace(), class_symname, Getattr(n, "sym:name"));
 
   Setattr(n, "fortran:fname", fwrapname);
 
@@ -2718,7 +2717,7 @@ int FORTRAN::enumDeclaration(Node *n) {
 
   String *class_symname = NULL;
   Symtab *fsymtab = NULL;
-  if (Node *classnode = this->getCurrentClass()) {
+  if (Node *classnode = getCurrentClass()) {
     // Scope the enum since it's in a class
     class_symname = Getattr(classnode, "sym:name");
     fsymtab = Getattr(classnode, "fortran:symtab");
@@ -2737,7 +2736,7 @@ int FORTRAN::enumDeclaration(Node *n) {
     // Get symname for this enum, prepending with embedded class name if needed
     String *scoped_symname = class_symname ? NewStringf("%s_%s", class_symname, symname) : Copy(symname);
 
-    fsymname = this->get_fsymname(n, scoped_symname);
+    fsymname = get_fsymname(n, scoped_symname);
     Delete(scoped_symname);
     if (!fsymname)
       return SWIG_NOWRAP;
@@ -2755,7 +2754,7 @@ int FORTRAN::enumDeclaration(Node *n) {
 
   if (!fsymtab) {
     // Use module scope
-    fsymtab = this->symbolScopeLookup(NULL);
+    fsymtab = symbolScopeLookup(NULL);
   }
   if (fsymname) {
     String *lower_fsymname = Swig_string_lower(fsymname);
@@ -2930,11 +2929,11 @@ int FORTRAN::constantWrapper(Node *n) {
   } else {
     // Not a natively representable value: wrap as immutable global variable
     SetFlag(n, "feature:immutable");
-    return this->globalvariableHandler(n);
+    return globalvariableHandler(n);
   }
 
   // Get symbolic name
-  String *fsymname = this->get_fsymname(n);
+  String *fsymname = get_fsymname(n);
   if (!fsymname) {
     return SWIG_ERROR;
   }
@@ -3020,7 +3019,7 @@ void FORTRAN::replace_fclassname(Node *n, SwigType *intype, String *tm) {
   SwigType *strippedtype = SwigType_strip_qualifiers(resolvedtype);
 
   if (Strstr(tm, "$fortranclassname")) {
-    if (String *repl = this->get_proxyname(n, strippedtype)) {
+    if (String *repl = get_proxyname(n, strippedtype)) {
       Replaceall(tm, "$fortranclassname", repl);
     }
   }
@@ -3028,7 +3027,7 @@ void FORTRAN::replace_fclassname(Node *n, SwigType *intype, String *tm) {
     String *repltype = Copy(strippedtype);
     Delete(SwigType_pop(repltype));
     if (Len(repltype) > 0) {
-      if (String *repl = this->get_proxyname(n, repltype)) {
+      if (String *repl = get_proxyname(n, repltype)) {
 	Replaceall(tm, "$*fortranclassname", repl);
       }
     }
@@ -3037,7 +3036,7 @@ void FORTRAN::replace_fclassname(Node *n, SwigType *intype, String *tm) {
   if (Strstr(tm, "$&fortranclassname")) {
     String *repltype = Copy(strippedtype);
     SwigType_add_pointer(repltype);
-    if (String *repl = this->get_proxyname(n, repltype)) {
+    if (String *repl = get_proxyname(n, repltype)) {
       Replaceall(tm, "$&fortranclassname", repl);
     }
     Delete(repltype);
@@ -3071,7 +3070,7 @@ String *FORTRAN::get_fsymname(Node *n, String *symname) {
   ASSERT_OR_PRINT_NODE(symname, n);
   fsymname = make_fname(symname);
 
-  if (this->add_fsymbol(fsymname, n) == SWIG_ERROR) {
+  if (add_fsymbol(fsymname, n) == SWIG_ERROR) {
     fsymname = NULL;
   } else {
     Setattr(n, "fortran:name", fsymname);
@@ -3085,16 +3084,16 @@ String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
   bool is_enum = SwigType_isenum(basetype);
   bool is_funptr = !is_enum && SwigType_isfunction(basetype);
   if (is_enum) {
-    n = this->enumLookup(basetype);
+    n = enumLookup(basetype);
   } else if (is_funptr) {
     n = Getattr(d_callbacks, basetype);
   } else {
-    n = this->classLookup(basetype);
+    n = classLookup(basetype);
   }
 
   if (n && (!is_enum || is_wrapped_enum(n))) {
     // Class node or enum with already-generated wrapper
-    return this->get_fsymname(n);
+    return get_fsymname(n);
   }
 
   String *replacementname = create_mangled_fname(basetype);
@@ -3145,7 +3144,7 @@ String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
   if (!ImportMode) {
     if (!is_funptr) {
       // Function interfaces add the symbol themselves inside bindcfunctionHandler; enums and classes are added here.
-      if (this->add_fsymbol(replacementname, n) == SWIG_NOWRAP) {
+      if (add_fsymbol(replacementname, n) == SWIG_NOWRAP) {
 	ASSERT_OR_PRINT_NODE(false, n);
 	return NULL;
       }
@@ -3157,7 +3156,7 @@ String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
       Printv(f_fdecl, "integer, parameter, public :: ", replacementname, " = C_INT\n", NULL);
     } else if (is_funptr) {
       // Generate automatic abstract function declaration
-      int result = this->bindcfunctionHandler(n);
+      int result = bindcfunctionHandler(n);
       if (!result) {
 	// Failed to generate automatic type
 	Printv(f_fabstract,
@@ -3190,10 +3189,10 @@ String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
 
 bool FORTRAN::is_wrapped_type(SwigType *basetype) {
   if (SwigType_isenum(basetype)) {
-    Node *n = this->enumLookup(basetype);
+    Node *n = enumLookup(basetype);
     return n && is_wrapped_enum(n);
   } else {
-    return this->classLookup(basetype) != NULL;
+    return classLookup(basetype) != NULL;
   }
 }
 
@@ -3222,13 +3221,13 @@ bool FORTRAN::is_wrapped_class(Node *n) {
     // Somehow there's no ftype; allow it to be wrapped so the error is handled later
     result = true;
   } else if (Strstr(tm, "$fortranclassname")) {
-    result = this->is_wrapped_type(strippedtype);
+    result = is_wrapped_type(strippedtype);
   } else if (Strstr(tm, "$*fortranclassname")) {
     SwigType_pop(strippedtype);
-    result = this->is_wrapped_type(strippedtype);
+    result = is_wrapped_type(strippedtype);
   } else if (Strstr(tm, "$&fortranclassname")) {
     SwigType_add_pointer(strippedtype);
-    result = this->is_wrapped_type(strippedtype);
+    result = is_wrapped_type(strippedtype);
   } else {
     // Type doesn't resolve to something that expects a class name
     result = true;
@@ -3289,7 +3288,7 @@ int FORTRAN::add_fsymbol(String *s, Node *n) {
     return SWIG_NOWRAP;
   }
   String *lower = Swig_string_lower(s);
-  int result = this->addSymbol(lower, n, NULL);
+  int result = addSymbol(lower, n, NULL);
   if (result == SWIG_ERROR) {
     // Don't warn about the symbol if we encounter it again
     SetFlag(n, "fortran:error_symbol");
