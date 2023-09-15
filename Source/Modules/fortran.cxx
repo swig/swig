@@ -247,7 +247,8 @@ bool return_type_needs_typedef(String *s) {
  *
  * Construct any necessary 'import' identifier.
  *
- * When the "imtype" is an actual "type(Foo)", it's necessary to import the identifier Foo from the module definition scope. This function examines the
+ * When the "imtype" is an actual "type(Foo)", it's necessary to import the identifier
+ * Foo from the module definition scope. This function examines the
  * evaluated "imtype" (could be "imtype:in", probably has $fortranclassname replaced)
  * ----------------------------------------------------------------------------- */
 
@@ -575,20 +576,20 @@ private:
   // >>> OUTPUT FILES
 
   // Injected into .cxx file
-  String *f_begin;   //!< Very beginning of output file
-  String *f_runtime; //!< SWIG runtime code
-  String *f_policies;//!< AssignmentType flags for each class
-  String *f_header;  //!< Declarations and inclusions from .i
-  String *f_wrapper; //!< C++ Wrapper code
-  String *f_init;    //!< C++ initalization functions
+  String *f_begin;   // Very beginning of output file
+  String *f_runtime; // SWIG runtime code
+  String *f_policies;// AssignmentType flags for each class
+  String *f_header;  // Declarations and inclusions from .i
+  String *f_wrapper; // C++ Wrapper code
+  String *f_init;    // C++ initalization functions
 
   // Injected into module file
-  String *f_fbegin;      //!< Very beginning of output file
-  String *f_fuse;        //!< Fortran "use" directives
-  String *f_fdecl;       //!< Module declaration constructs
-  String *f_fabstract;   //!< Fortran "abstract interface" declarations
-  String *f_finterfaces; //!< Fortran interface declarations to SWIG functions
-  String *f_fsubprograms;//!< Fortran subroutine wrapper functions
+  String *f_fbegin;      // Very beginning of output file
+  String *f_fuse;        // Fortran "use" directives
+  String *f_fdecl;       // Module declaration constructs
+  String *f_fabstract;   // Fortran "abstract interface" declarations
+  String *f_finterfaces; // Fortran interface declarations to SWIG functions
+  String *f_fsubprograms;// Fortran subroutine wrapper functions
 
   // Keep track of anonymous classes and enums
   Hash *d_emitted_mangled;
@@ -596,19 +597,19 @@ private:
   Hash *d_callbacks;
 
   // Module-wide procedure interfaces
-  Hash *d_overloads; //!< Overloaded subroutine -> overload names
-  Hash *d_private_overloads; //!< Overloaded subroutine flagged for 'private' use
+  Hash *d_overloads; // Overloaded subroutine -> overload names
+  Hash *d_private_overloads; // Overloaded subroutine flagged for 'private' use
 
   // Current class parameters
-  String *f_class;          //!< Proxy code in currently generated class
-  Hash *d_method_overloads; //!< Overloaded subroutine -> overload names
+  String *f_class;          // Proxy code in currently generated class
+  Hash *d_method_overloads; // Overloaded subroutine -> overload names
 
   // Inside of the 'enum' definitions
-  List *d_enum_public; //!< List of enumerator values
+  List *d_enum_public; // List of enumerator values
 
   // >>> CONFIGURE OPTIONS
 
-  String *d_fext; //!< Fortran file extension
+  String *d_fext; // Fortran file extension
 
 public:
   virtual void main(int argc, char *argv[]);
@@ -2897,12 +2898,10 @@ int FORTRAN::callbackfunctionHandler(Node *n) {
  * Process *compile-time* constants
  *
  * These include:
- * \code
-    %callback("%s_cb") add;
-    %constant int wrapped_const = (1 << 3) | 1;
-    #define MY_INT 0x123
-    constexpr int myint = 4;
- * \endcode
+ *   %callback("%s_cb") add;
+ *   %constant int wrapped_const = (1 << 3) | 1;
+ *   #define MY_INT 0x123
+ *   constexpr int myint = 4;
  * and enum values.
  *
  * - Native enum values will become enumerators
