@@ -28,7 +28,6 @@ cpp11_director_enums \
 cpp11_ref_qualifiers \
 cpp11_rvalue_reference2 \
 cpp11_strongly_typed_enumerations \
-cpp17_map_no_default_ctor \
 cpp_basic \
 cpp_enum \
 curiously_recurring_template_pattern \
