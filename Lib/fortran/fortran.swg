@@ -88,6 +88,7 @@
 /* RUNTIME AND KEYWORDS */
 %include "fortranruntime.swg"
 %include "fortrankw.swg"
+%include "fortranoperators.swg"
 
 /* TYPEMAPS */
 %include "typemaps/fragments.swg"
