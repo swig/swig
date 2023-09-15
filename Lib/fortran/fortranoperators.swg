@@ -27,14 +27,4 @@
 %fortran_operator(op_ptr__,    "operator(.ptr.)",    *::operator->)
 %fortran_operator(op_deref__,  "operator(.deref.)",  *::operator*())
 
-// Do *not* rename assignment by default
-// %fortran_operator(op_assign__, "assignment(=)",      *::operator=)
-
-/* Always treat return values from assignment as optional, since it's usually
- * idiomatic to `return *this;` as a reference that is often ignored by the
- * calling code. Making the function a subroutine means being able to use "call" 
- * instead of having to capture the result into a dummy variable.
- */
-%fortransubroutine *::operator=;
-
 #endif
