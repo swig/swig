@@ -31,6 +31,7 @@ const char g_fortran_end_statement[] = "\n";
  *
  * Whether a class method is a constructor.
  * ----------------------------------------------------------------------------- */
+
 bool is_node_constructor(Node *n) {
   return (Cmp(Getattr(n, "nodeType"), "constructor") == 0) || Getattr(n, "handled_as_constructor");
 }
@@ -39,7 +40,8 @@ bool is_node_constructor(Node *n) {
  * has_constant_storage()
  *
  * Whether a node is a compile-time constant that isn't acutally defined in client code.
- */
+ * ----------------------------------------------------------------------------- */
+
 bool has_constant_storage(Node *n) {
   String *s = Getattr(n, "storage");
   return s && (Cmp(s, "%constant") == 0);
@@ -49,7 +51,8 @@ bool has_constant_storage(Node *n) {
  * has_constexpr_storage()
  *
  * Whether a node is a compile-time constant as defined by C++.
- */
+ * ----------------------------------------------------------------------------- */
+
 bool has_constexpr_storage(Node *n) {
   String *s = Getattr(n, "storage");
   return s && (Cmp(s, "constexpr") == 0);
@@ -59,7 +62,8 @@ bool has_constexpr_storage(Node *n) {
  * print_wrapped_list()
  *
  * Print a comma-joined line of items to the given output.
- */
+ * ----------------------------------------------------------------------------- */
+
 int print_wrapped_list(String *out, Iterator it, int line_length) {
   const char *prefix = "";
   for (; it.item; it = Next(it)) {
@@ -79,7 +83,8 @@ int print_wrapped_list(String *out, Iterator it, int line_length) {
  * NewFortranWrapper()
  *
  * Return a function wrapper for Fortran code.
- */
+ * ----------------------------------------------------------------------------- */
+
 Wrapper *NewFortranWrapper() {
   Wrapper *w = NewWrapper();
   w->end_statement = g_fortran_end_statement;
@@ -94,7 +99,8 @@ Wrapper *NewFortranWrapper() {
  *
  * Note that if it has a suffix e.g. 'l' or 'u', or a prefix '0' (octal), it's
  * not compatible.
- */
+ * ----------------------------------------------------------------------------- */
+
 bool is_fortran_intexpr(String *s) {
   const char *p = Char(s); // 'peek': next character
   char c = *p++; // character being processed
@@ -126,7 +132,8 @@ bool is_fortran_intexpr(String *s) {
  * fix_fortran_dims()
  *
  * Check a parameter for invalid dimension names.
- */
+ * ----------------------------------------------------------------------------- */
+
 int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
   String *key = NewStringf("tmap:%s:checkdim", tmap_name);
   bool is_checkdims = (GetFlag(n, key));
@@ -168,7 +175,8 @@ int fix_fortran_dims(Node *n, const char *tmap_name, String *typemap) {
  * is_native_enum_decl()
  *
  * Determine whether to wrap an enum as a fortran parameter.
- */
+ * ----------------------------------------------------------------------------- */
+
 bool is_native_enum_decl(Node *n) {
   String *enum_feature = Getattr(n, "feature:fortran:const");
   if (!enum_feature) {
@@ -198,7 +206,8 @@ bool is_native_enum_decl(Node *n) {
  * is_wrapped_enum()
  *
  * Determine whether an enum is being wrapped
- */
+ * ----------------------------------------------------------------------------- */
+
 bool is_wrapped_enum(Node *n) {
   return !GetFlag(n, "enumMissing") && GetFlag(n, "fortran:declared");
 }
@@ -208,7 +217,8 @@ bool is_wrapped_enum(Node *n) {
  *
  * Get the special string value corresponding to whether a function is
  * a void return type (subroutine)
- */
+ * ----------------------------------------------------------------------------- */
+
 String *subroutine_flag_str(bool is_subroutine) {
   static String *is_subroutine_flag = NewString("is subroutine");
   static String *not_subroutine_flag = NewString("is function");
@@ -223,7 +233,8 @@ String *subroutine_flag_str(bool is_subroutine) {
  * Some declarations (arrays, function pointers, member function pointers)
  * require the variable to be embedded in the middle of the array and thus
  * require special treatment.
- */
+ * ----------------------------------------------------------------------------- */
+
 bool return_type_needs_typedef(String *s) {
   String *strprefix = SwigType_prefix(s);
   bool result = (Strstr(strprefix, "p.a(") || Strstr(strprefix, "p.f(") || Strstr(strprefix, "p.m("));
@@ -238,7 +249,8 @@ bool return_type_needs_typedef(String *s) {
  *
  * When the "imtype" is an actual "type(Foo)", it's necessary to import the identifier Foo from the module definition scope. This function examines the
  * evaluated "imtype" (could be "imtype:in", probably has $fortranclassname replaced)
- */
+ * ----------------------------------------------------------------------------- */
+
 String *make_import_string(String *imtype) {
   char *start = Strstr(imtype, "type(");
   if (start == NULL)
@@ -267,7 +279,8 @@ String *make_import_string(String *imtype) {
  * is_valid_identifier()
  *
  * Whether a name is a valid fortran identifier
- */
+ * ----------------------------------------------------------------------------- */
+
 bool is_valid_identifier(const_String_or_char_ptr name) {
   const char *c = Char(name);
   if (*c == '\0')
@@ -288,7 +301,8 @@ bool is_valid_identifier(const_String_or_char_ptr name) {
  *
  * Requires input to be longer than 63 chars.
  * Returns new'd string.
- */
+ * ----------------------------------------------------------------------------- */
+
 String *shorten_identifier(String *inp, int maxlen, int warning) {
   assert(Len(inp) > maxlen);
   String *result = NewStringWithSize(inp, maxlen);
@@ -322,7 +336,8 @@ String *shorten_identifier(String *inp, int maxlen, int warning) {
  * identifiers -- e.g. strings that we construct.
  *
  * *assumes ownership of input and returns new'd value*
- */
+ * ----------------------------------------------------------------------------- */
+
 String *ensure_short(String *str, int maxlen = 63, int warning = WARN_NONE) {
   if (Len(str) > maxlen) {
     String *shortened = shorten_identifier(str, maxlen, warning);
@@ -342,7 +357,8 @@ String *ensure_short(String *str, int maxlen = 63, int warning = WARN_NONE) {
  * identifiers -- e.g. strings that we construct.
  *
  * *assumes ownership of input and returns new'd value*
- */
+ * ----------------------------------------------------------------------------- */
+
 String *proxy_name_construct(String *nspace, const_String_or_char_ptr classname, const_String_or_char_ptr symname) {
   String *result;
   if (nspace && classname) {
@@ -370,7 +386,8 @@ String *proxy_name_construct(String *nspace, const_String_or_char_ptr symname) {
  * This name is *not* guaranteed to be unique!
  *
  * \return new'd valid identifier name
- */
+ * ----------------------------------------------------------------------------- */
+
 String *make_fname(String *name, int warning = WARN_LANG_IDENTIFIER) {
   assert(name);
   String *result = NULL;
@@ -411,7 +428,8 @@ String *make_fname(String *name, int warning = WARN_LANG_IDENTIFIER) {
  * create_mangled_fname()
  *
  * Create a mangled SWIGTYPEMyClassName for Fortran proxy code.
- */
+ * ----------------------------------------------------------------------------- */
+
 String *create_mangled_fname(SwigType *classnametype) {
   // Memoize mangled names
   static Hash *mangled_type_cache = NewHash();
@@ -439,7 +457,8 @@ String *create_mangled_fname(SwigType *classnametype) {
  * If 'warning' is WARN_NONE, then if the typemap is not found, the return
  * value will be NULL. Otherwise a mangled typename will be created and saved
  * to attributes (or if attributes is null, then the given node).
- */
+ * ----------------------------------------------------------------------------- */
+
 String *get_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ext, Node *n, int warning, bool attach) {
   assert(tmname);
   String *result = NULL;
@@ -491,7 +510,6 @@ String *get_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ex
   return result;
 }
 
-/* ----------------------------------------------------------------------------- */
 // Attach and return a typemap to the given node.
 String *attach_typemap(const_String_or_char_ptr tmname, Node *n, int warning) {
   return get_typemap(tmname, NULL, n, warning, true);
@@ -520,7 +538,8 @@ String *get_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ex
  *
  * Caller is responsible for calling Delete on the return value. Will return
  * NULL if the typemap isn't defined.
- */
+ * ----------------------------------------------------------------------------- */
+
 SwigType *parse_typemap(const_String_or_char_ptr tmname, const_String_or_char_ptr ext, Node *n, int warning) {
   // Get the typemap, which has the *unparsed and unsimplified* type
   String *raw_tm = get_typemap(tmname, ext, n, warning);
@@ -549,7 +568,6 @@ void emit_fragment(const char *name) {
   Delete(temp);
 }
 
-/* ----------------------------------------------------------------------------- */
 } // end anonymous namespace
 
 class FORTRAN : public Language {
@@ -648,7 +666,6 @@ private:
   }
 };
 
-// Constructor
 FORTRAN::FORTRAN() :
 d_emitted_mangled(NULL), d_callbacks(NULL), d_overloads(NULL), d_private_overloads(NULL), f_class(NULL), d_method_overloads(NULL), d_enum_public(NULL) {
 }
@@ -657,7 +674,8 @@ d_emitted_mangled(NULL), d_callbacks(NULL), d_overloads(NULL), d_private_overloa
  * main()
  *
  * Main function for code generation.
- */
+ * ----------------------------------------------------------------------------- */
+
 void FORTRAN::main(int argc, char *argv[]) {
   /* Set language-specific subdirectory in SWIG library */
   SWIG_library_directory("fortran");
@@ -699,7 +717,8 @@ void FORTRAN::main(int argc, char *argv[]) {
  * FORTRAN::top()
  *
  * Top-level code generation function.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::top(Node *n) {
   // Configure output filename using the name of the SWIG input file
   String *foutfilename = NewStringf("%s%s.%s", SWIG_output_directory(), Getattr(n, "name"), d_fext);
@@ -830,7 +849,8 @@ int FORTRAN::top(Node *n) {
  * FORTRAN::write_wrapper()
  *
  * Write C++ wrapper code
- */
+ * ----------------------------------------------------------------------------- */
+
 void FORTRAN::write_wrapper(String *filename) {
   // Open file
   File *out = NewFile(filename, "w", SWIG_output_files());
@@ -863,7 +883,8 @@ void FORTRAN::write_wrapper(String *filename) {
  * FORTRAN::write_module()
  *
  * Write Fortran implementation module
- */
+ * ----------------------------------------------------------------------------- */
+
 void FORTRAN::write_module(String *filename) {
   // Open file
   File *out = NewFile(filename, "w", SWIG_output_files());
@@ -921,7 +942,8 @@ void FORTRAN::write_module(String *filename) {
  * FORTRAN::moduleDirective()
  *
  * Process a %module
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::moduleDirective(Node *n) {
   if (ImportMode) {
     // This %module directive is inside another module being %imported
@@ -942,7 +964,8 @@ int FORTRAN::moduleDirective(Node *n) {
  *  - member variables (once each for get&set)
  *  - global variables (once each for get&set)
  *  - static functions
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::functionWrapper(Node *n) {
   bool member = (GetFlag(n, "fortran:ismember"));
   bool generic = false;
@@ -1212,7 +1235,8 @@ int FORTRAN::functionWrapper(Node *n) {
  * FORTRAN::cfuncWrapper()
  *
  * Generate C/C++ wrapping code
- */
+ * ----------------------------------------------------------------------------- */
+
 Wrapper *FORTRAN::cfuncWrapper(Node *n) {
   String *symname = Getattr(n, "sym:name");
 
@@ -1451,7 +1475,8 @@ Wrapper *FORTRAN::cfuncWrapper(Node *n) {
  * Generate Fortran interface code
  *
  * This is the Fortran equivalent of the cfuncWrapper's declaration.
- */
+ * ----------------------------------------------------------------------------- */
+
 Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
   const char *const tmtype = bindc ? "bindc" : "imtype";
   const int warning_flag = bindc ? WARN_TYPEMAP_UNDEF : WARN_FORTRAN_TYPEMAP_IMTYPE_UNDEF;
@@ -1563,7 +1588,8 @@ Wrapper *FORTRAN::imfuncWrapper(Node *n, bool bindc) {
  * Generate Fortran proxy code
  *
  * This is for the native Fortran interaction.
- */
+ * ----------------------------------------------------------------------------- */
+
 Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
   Wrapper *ffunc = NewFortranWrapper();
 
@@ -1923,7 +1949,8 @@ Wrapper *FORTRAN::proxyfuncWrapper(Node *n) {
 
 /* -----------------------------------------------------------------------------
  * Generate wrappers for a %fortranbindc global variable.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::bindcvarWrapper(Node *n) {
   String *fsymname = this->get_fsymname(n);
   if (!fsymname) {
@@ -1968,7 +1995,8 @@ int FORTRAN::bindcvarWrapper(Node *n) {
  * Add an assignment operator.
  *
  * The LHS must be intent(inout), and the RHS must be intent(in).
- */
+ * ----------------------------------------------------------------------------- */
+
 void FORTRAN::add_assignment_operator(Node *classn) {
   ASSERT_OR_PRINT_NODE(Strcmp(nodeType(classn), "class") == 0 && !this->is_bindc_struct(), classn);
 
@@ -2047,7 +2075,8 @@ void FORTRAN::add_assignment_operator(Node *classn) {
  * FORTRAN::write_docstring()
  *
  * Write documentation for the given node to the passed string.
- */
+ * ----------------------------------------------------------------------------- */
+
 void FORTRAN::write_docstring(Node *n, String *dest) {
   String *docs = Getattr(n, "feature:docstring");
 
@@ -2074,7 +2103,8 @@ void FORTRAN::write_docstring(Node *n, String *dest) {
  * FORTRAN::makeParameterName()
  *
  * Create a friendly parameter name
- */
+ * ----------------------------------------------------------------------------- */
+
 String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
   String *name = Getattr(p, "fname");
   if (name) {
@@ -2130,8 +2160,6 @@ String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
   return name;
 }
 
-/* ----------------------------------------------------------------------------- */
-
 void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
   (void)method;
   SwigType *type = Getattr(parm, "type");
@@ -2144,7 +2172,8 @@ void FORTRAN::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
  * Process a class declaration.
  *
  * The superclass calls classHandler.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::classDeclaration(Node *n) {
   String *fsymname = NULL;
 
@@ -2214,7 +2243,8 @@ int FORTRAN::classDeclaration(Node *n) {
  * FORTRAN::classHandler()
  *
  * Generate wrappers for a class.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::classHandler(Node *n) {
   String *fsymname = Getattr(n, "fortran:name");
   String *base_fsymname = NULL;
@@ -2316,7 +2346,8 @@ int FORTRAN::classHandler(Node *n) {
  * FORTRAN::constructorHandler()
  *
  * Extra stuff for constructors.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::constructorHandler(Node *n) {
   if (this->is_bindc_struct()) {
     // Don't generate destructor for %fortranbindc structs
@@ -2342,7 +2373,8 @@ int FORTRAN::constructorHandler(Node *n) {
  * FORTRAN::destructorHandler()
  *
  * Handle extra destructor stuff.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::destructorHandler(Node *n) {
   if (this->is_bindc_struct()) {
     // Don't generate destructor for %fortranbindc structs
@@ -2382,7 +2414,8 @@ int FORTRAN::destructorHandler(Node *n) {
  * Process member functions.
  *
  * This is *NOT* called when generating get/set wrappers for membervariableHandler.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::memberfunctionHandler(Node *n) {
   String *class_symname = Getattr(this->getCurrentClass(), "sym:name");
 
@@ -2413,7 +2446,8 @@ int FORTRAN::memberfunctionHandler(Node *n) {
  * FORTRAN::membervariableHandler()
  *
  * Process member variables.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::membervariableHandler(Node *n) {
   String *fsymname = make_fname(Getattr(n, "sym:name"));
   if (this->is_bindc_struct()) {
@@ -2449,7 +2483,8 @@ int FORTRAN::membervariableHandler(Node *n) {
  * FORTRAN::globalvariableHandler()
  *
  * Process global variables.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::globalvariableHandler(Node *n) {
   if (GetFlag(n, "feature:fortran:bindc")) {
     return this->bindcvarWrapper(n);
@@ -2471,7 +2506,8 @@ int FORTRAN::globalvariableHandler(Node *n) {
  * FORTRAN::globalfunctionHandler()
  *
  * Process global-scope functions.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::globalfunctionHandler(Node *n) {
   if (GetFlagAttr(n, "feature:fortran:callback")) {
     // Flag is set to a non-"0" value
@@ -2510,7 +2546,8 @@ int FORTRAN::globalfunctionHandler(Node *n) {
  * We do *not* check d_callbacks for existing matching signatures. The user
  * might want to have two separate meaningful callback names and we don't want
  * to mysteriously prevent one from being wrapped.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::fortrancallbackHandler(Node *n) {
   // Create a shallow copy of the node with params
   Node *cbnode = copyNode(n);
@@ -2548,7 +2585,8 @@ int FORTRAN::fortrancallbackHandler(Node *n) {
  * This uses the *original* C function name to generate the interface to, and
  * create an acceptable Fortran identifier based on whatever renames have been
  * requested.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::bindcfunctionHandler(Node *n) {
   String *symname = Getattr(n, "sym:name");
 
@@ -2614,7 +2652,8 @@ int FORTRAN::bindcfunctionHandler(Node *n) {
  * FORTRAN::staticmemberfunctionHandler()
  *
  * Process static member functions.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::staticmemberfunctionHandler(Node *n) {
   String *class_symname = Getattr(getCurrentClass(), "sym:name");
   if (this->is_bindc_struct()) {
@@ -2644,7 +2683,8 @@ int FORTRAN::staticmemberfunctionHandler(Node *n) {
  * FORTRAN::staticmembervariableHandler()
  *
  * Process static member variables.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::staticmembervariableHandler(Node *n) {
   // Preserve variable name
   Setattr(n, "fortran:variable", Getattr(n, "sym:name"));
@@ -2661,7 +2701,8 @@ int FORTRAN::staticmembervariableHandler(Node *n) {
  * FORTRAN::enumDeclaration()
  *
  * Wrap an enum declaration
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::enumDeclaration(Node *n) {
   String *access = Getattr(n, "access");
   if (access && Strcmp(access, "public") != 0) {
@@ -2839,7 +2880,8 @@ int FORTRAN::enumDeclaration(Node *n) {
  * Process callbacks, which generate 'getter' wrapper functions
  *
  * To avoid breaking the later 'functionWrapper', we create a copy of the node.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::callbackfunctionHandler(Node *n) {
   // Create a shallow copy of the node with params
   Node *cbnode = copyNode(n);
@@ -2868,7 +2910,8 @@ int FORTRAN::callbackfunctionHandler(Node *n) {
  * - Constants marked with "%fortranconst" will be rendered as *named constants*
  * - Constants marked with "%fortranbindc" also become C-bound external constants
  * - All other types will generate "getter" functions that return native fortran types.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::constantWrapper(Node *n) {
   enum {
     NATIVE_ENUM,
@@ -2970,7 +3013,8 @@ int FORTRAN::constantWrapper(Node *n) {
  * FORTRAN::replace_fclassname()
  *
  * Substitute special '\$[*&]?fortranclassname' in typemaps.
- */
+ * ----------------------------------------------------------------------------- */
+
 void FORTRAN::replace_fclassname(Node *n, SwigType *intype, String *tm) {
   assert(intype);
   SwigType *resolvedtype = SwigType_typedef_resolve_all(intype);
@@ -3013,7 +3057,8 @@ void FORTRAN::replace_fclassname(Node *n, SwigType *intype, String *tm) {
  * guaranteed to be a proper Fortran identifier.
  *
  * If the resulting symbol already exists (SWIG error), we return NULL.
- */
+ * ----------------------------------------------------------------------------- */
+
 String *FORTRAN::get_fsymname(Node *n, String *symname) {
   String *fsymname = Getattr(n, "fortran:name");
   if (fsymname) {
@@ -3034,8 +3079,6 @@ String *FORTRAN::get_fsymname(Node *n, String *symname) {
   }
   return fsymname;
 }
-
-/* ----------------------------------------------------------------------------- */
 
 String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
   Node *n = NULL;
@@ -3146,8 +3189,6 @@ String *FORTRAN::get_proxyname(Node *parent, SwigType *basetype) {
   return replacementname;
 }
 
-/* ----------------------------------------------------------------------------- */
-
 bool FORTRAN::is_wrapped_type(SwigType *basetype) {
   if (SwigType_isenum(basetype)) {
     Node *n = this->enumLookup(basetype);
@@ -3156,8 +3197,6 @@ bool FORTRAN::is_wrapped_type(SwigType *basetype) {
     return this->classLookup(basetype) != NULL;
   }
 }
-
-/* ----------------------------------------------------------------------------- */
 
 bool FORTRAN::is_wrapped_class(Node *n) {
   static Hash *cached_classes = NewHash();
@@ -3210,7 +3249,8 @@ bool FORTRAN::is_wrapped_class(Node *n) {
  * procedure name "fname".
  *
  * Return SWIG_NOWRAP if the name conflicts.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::add_overload(String *fsymname, Node *n, String *fname, bool is_private) {
   // The module function name is aliased, and perhaps overloaded.
   // Append this function name to the list of overloaded names
@@ -3236,7 +3276,8 @@ int FORTRAN::add_overload(String *fsymname, Node *n, String *fname, bool is_priv
  * Add lowercase symbol since fortran is case insensitive
  *
  * Return SWIG_NOWRAP if the name conflicts.
- */
+ * ----------------------------------------------------------------------------- */
+
 int FORTRAN::add_fsymbol(String *s, Node *n) {
   ASSERT_OR_PRINT_NODE(s, n);
   if (GetFlag(n, "fortran:error_symbol")) {
