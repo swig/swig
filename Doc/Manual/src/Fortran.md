@@ -523,10 +523,12 @@ null pointer using the Fortran `c_associated` intrinsic:
 ```fortran
 if (c_associated(myobject%swigdata%cptr))
 ```
+Similarly, you can pass a null pointer by declaring a type variable and
+passing it to a function before it's allocated or after it's deleted.
 
-Array types such as `int a[10]` and `Object b[][2]` are, . Use the [fixed-size
-array translation](#fixed-size-array-translation) capability to interact with
-fundamental-arrays as built-in native Fortran arrays.
+Use the [fixed-size array translation](#fixed-size-array-translation)
+capability to interact with fundamental-arrays as built-in native Fortran
+arrays or to define wrapper classes that act upon the underlying C data.
 
 ## Byte strings
 
