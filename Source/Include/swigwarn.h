@@ -279,6 +279,7 @@
 #define WARN_FORTRAN_NO_SUBROUTINE          768
 #define WARN_FORTRAN_ARGUMENT_NAME          769
 #define WARN_FORTRAN_IGNORE_CALLBACK        770
+#define WARN_FORTRAN_OVERLOAD_SHADOW        771
 
 /* please leave 760-779 free for Fortran */
 

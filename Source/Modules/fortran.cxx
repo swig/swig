@@ -1073,9 +1073,9 @@ int FORTRAN::functionWrapper(Node *n) {
     // functions to shadow base class functions.
     if (Node *other = Getattr(n, "hides")) {
       if (Getattr(other, "fortran:generic")) {
-	Swig_warning(WARN_LANG_OVERLOAD_SHADOW, input_file, line_number,
+	Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, input_file, line_number,
 		     "Ignoring '%s' because it shadows a generic base class function '%s'\n", fsymname, Getattr(other, "fortran:name"));
-	Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(other), Getline(other), "Previous declaration of '%s'\n", Getattr(other, "sym:name"));
+	Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other), "Previous declaration of '%s'\n", Getattr(other, "sym:name"));
 	SetFlag(n, "fortran:ignore");
 	return SWIG_NOWRAP;
       }
@@ -1107,9 +1107,9 @@ int FORTRAN::functionWrapper(Node *n) {
 	// Parent class's function is generic, so must we be too
 	generic = true;
       } else if (generic) {
-	Swig_warning(WARN_LANG_OVERLOAD_SHADOW, input_file, line_number,
+	Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, input_file, line_number,
 		     "Ignoring generic '%s': it cannot override a specific binding '%s' with the same name\n", fsymname, Getattr(other, "fortran:name"));
-	Swig_warning(WARN_LANG_OVERLOAD_SHADOW, Getfile(other), Getline(other), "Previous declaration of '%s'\n", Getattr(other, "sym:name"));
+	Swig_warning(WARN_FORTRAN_OVERLOAD_SHADOW, Getfile(other), Getline(other), "Previous declaration of '%s'\n", Getattr(other, "sym:name"));
 	SetFlag(n, "fortran:ignore");
 	return SWIG_NOWRAP;
       }

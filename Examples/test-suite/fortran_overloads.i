@@ -1,7 +1,7 @@
 %module fortran_overloads
 
-%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED, SWIGWARN_LANG_OVERLOAD_SHADOW) Base::func;
-%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) Base::sub;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED, SWIGWARN_FORTRAN_OVERLOAD_SHADOW) Base::func;
+%warnfilter(SWIGWARN_FORTRAN_OVERLOAD_SHADOW) Base::sub;
 
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) overloaded;
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED) overloaded2;
