@@ -54,7 +54,7 @@ static Napi::Value piAsync(const Napi::CallbackInfo &info) {
     virtual void Execute() override {
       Napi::Env env(nullptr);
       if (ow) ow->lock();
-#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
+#ifdef NAPI_CPP_EXCEPTIONS
       try {
         result = arg1->approx();
       } catch (const std::exception &e) {
@@ -64,9 +64,11 @@ static Napi::Value piAsync(const Napi::CallbackInfo &info) {
       result = (int)arg1->approx();
 #endif
       if (ow) ow->unlock();
+#ifndef NAPI_CPP_EXCEPTIONS
       goto fail;
     fail:
-      return;
+      returrn;
+#endif
     }
 
     virtual void Init(const Napi::CallbackInfo &info) {
@@ -97,7 +99,9 @@ static Napi::Value piAsync(const Napi::CallbackInfo &info) {
   self->Init(info);
   self->Queue();
   return self->deferred.Promise();
+#ifndef NAPI_CPP_EXCEPTIONS
 fail:
   return Napi::Value();
+#endif
 }
 %}
