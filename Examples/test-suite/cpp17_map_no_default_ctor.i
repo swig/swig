@@ -3,13 +3,16 @@
 
 %include <std_map.i>
 
+%ignore NoDefaultConstructorStruct::operator<;
 %inline %{
 struct NoDefaultConstructorStruct final
 {
 	int value{0};
 	NoDefaultConstructorStruct(int v) : value(v) {}
+        bool operator<(const NoDefaultConstructorStruct& other) const { return value < other.value; }
 };
 using NoDefaultConstructorStructMap = std::map<int, NoDefaultConstructorStruct>;
 %}
 
+//%template(PairIntNoDefaultConstructorStruct) std::pair<const int, NoDefaultConstructorStruct>;
 %template(NoDefaultConstructorStructMap) std::map<int, NoDefaultConstructorStruct>;
