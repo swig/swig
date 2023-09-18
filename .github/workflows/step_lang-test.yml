@@ -124,10 +124,13 @@ jobs:
             esac
             echo CSTD="$CSTD" >> $GITHUB_ENV
           fi
-          if test -z "$CPPSTD"; then CONFIGOPTS+=("--disable-cpp11-testing"); fi
+          # Add any CONFIGOPTS from github matrix
+          for opt in ${{ matrix.config-opts }}; do
+            CONFIGOPTS+=("$opt")
+          done
           if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
           if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
-          if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
+          CONFIGOPTS+=(--without-alllang --with-$WITHLANG)
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 
