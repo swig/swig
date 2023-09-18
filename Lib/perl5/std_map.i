@@ -48,7 +48,11 @@ namespace std {
                     throw std::out_of_range("key not found");
             }
             void set(const K& key, const T& x) {
+%#ifdef __cpp_lib_map_try_emplace
+                (*self).insert_or_assign(key, x);
+%#else
                 (*self)[key] = x;
+%#endif
             }
             void del(const K& key) throw (std::out_of_range) {
                 std::map< K, T, C >::iterator i = self->find(key);

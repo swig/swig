@@ -14,6 +14,9 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
+FAILING_CPP_TESTS = \
+	cpp17_map_no_default_ctor \
+
 CPP_TEST_CASES = \
 	li_cstring \
 	li_factory \

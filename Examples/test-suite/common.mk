@@ -673,6 +673,7 @@ CPP17_TEST_CASES += \
 	cpp17_director_string_view \
 	cpp17_enable_if_t \
 	cpp17_hex_floating_literals \
+	cpp17_map_no_default_ctor \
 	cpp17_nested_namespaces \
 	cpp17_nspace_nested_namespaces \
 	cpp17_string_view \

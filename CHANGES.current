@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-09-18: christophe-calmejane
+            #2631 C++17 std::map fix for values that are not default constructible.
+            Enhancements for all target languages except Python and Ruby.
+
 2023-09-14: mmomtchev
             #2675 #2676 Temporary variable zero initialisation in the wrappers for
             consistency with handling pointers.
