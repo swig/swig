@@ -1,4 +1,9 @@
 github-matrix+:
   version: [ "4.0" ]
+  include+:
+    # cpp17 tests are misconfigured
+    - version: "4.0"
+      cpp-std: c++17
+      experimental: true
 env+:
   ENGINE: jsc

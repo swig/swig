@@ -64,6 +64,7 @@ jobs:
       SWIGLANG: ${{ needs.get-metadata.outputs.swig-lang }}
       VER: ${{ matrix.version }}
       CPPSTD: ${{ matrix.cpp-std }}
+      CSTD: ${{ matrix.c-std }}
       SWIG_FEATURES: ${{ matrix.swig-features }}
 
     steps:
@@ -128,6 +129,7 @@ jobs:
           for opt in ${{ matrix.config-opts }}; do
             CONFIGOPTS+=("$opt")
           done
+          if test -z "$CPPSTD"; then CONFIGOPTS+=("--disable-cpp11-testing"); fi
           if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
           if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
           CONFIGOPTS+=(--without-alllang --with-$WITHLANG)

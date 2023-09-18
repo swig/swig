@@ -1,5 +1,35 @@
 github-matrix+:
   version: [ "2.0","2.1","2.2","2.3","2.4","2.5","2.6","2.7","3.0", "3.1","3.2" ]
-  include:
+  include+:
+    # C++ tests for ruby 2.3-2.7 are fairly broken and not covered
     - version: "2.3"
-      config-opts: --disable-cpp11-testing
+      experimental: true
+    - version: "2.4"
+      experimental: true
+    - version: "2.5"
+      experimental: true
+    - version: "2.6"
+      experimental: true
+    - version: "2.7"
+      experimental: true
+    # Previous CI worked with non-std
+    - version: "2.3"
+      cpp-std: ""
+      c-std: ""
+      experimental: false
+    - version: "2.4"
+      cpp-std: ""
+      c-std: ""
+      experimental: false
+    - version: "2.5"
+      cpp-std: ""
+      c-std: ""
+      experimental: false
+    - version: "2.6"
+      cpp-std: ""
+      c-std: ""
+      experimental: false
+    - version: "2.7"
+      cpp-std: ""
+      c-std: ""
+      experimental: false

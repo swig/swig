@@ -1,2 +1,11 @@
+github-matrix+:
+  # No tests are properly configured yet
+  include+:
+    - cpp-std: c++11
+      experimental: true
+    - cpp-std: c++14
+      experimental: true
+    - cpp-std: c++17
+      experimental: true
 env+:
   ENGINE: v8

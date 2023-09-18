@@ -1,2 +1,17 @@
 github-matrix+:
   version: ["1.6","1.8","1.12", "1.17"]
+  include+:
+    - version: "1.12"
+      config-opts: --disable-cpp11-testing
+      experimental: true
+    - version: "1.17"
+      config-opts: --disable-cpp11-testing
+      experimental: true
+    - version: "1.12"
+      cpp-std: ""
+      c-std: gnu11
+      experimental: false
+    - version: "1.17"
+      cpp-std: ""
+      c-std: gnu11
+      experimental: false

@@ -1,9 +1,8 @@
 github-matrix:
   version: [ "" ]
   cpp-std: [ "c++11","c++14","c++17","c++20" ]
+  # Note: This is replaced in the CI
+  c-std: [ "c11" ]
   include:
     - cpp-std: c++20
       experimental: true
-env:
-  # Note: This is replaced in the CI
-  CSTD: c11
