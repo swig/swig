@@ -1,2 +1,2 @@
 github-matrix+:
-  version: ["ldc", "gdmd", "2.103.1"]
+  version: ["ldc-latest", "dmd-latest"]

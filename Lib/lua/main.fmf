@@ -1,2 +1,2 @@
 github-matrix+:
-  version: [ "","5.3" ]
+  version: [ "5.2","5.3","5.4" ]

@@ -52,7 +52,7 @@ jobs:
       env: ${{ steps.metadata.outputs.env }}
   test:
     needs: [ get-metadata ]
-    name: "Run tests: ${{ inputs.lang }} ${{ matrix.version }} ${{ matrix.experimental && '(experimental)' }}"
+    name: "Run tests: ${{ inputs.lang }} ${{ matrix.version }} ${{ matrix.cpp-std }} ${{ matrix.experimental && '(experimental)' }}"
     continue-on-error: ${{ matrix.experimental || false }}
     runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
     container: ${{ matrix.container || '' }}
@@ -84,32 +84,11 @@ jobs:
       #- name: Setup tmate session
       #  uses: mxschmitt/action-tmate@v3
 
-      - name: Install Dependencies
-        run: |
-          set -x
-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
-          echo PATH="$PATH" >> $GITHUB_ENV
-
-          source $GITHUB_WORKSPACE/Tools/GHA-linux-install.sh
-          echo WITHLANG="$WITHLANG" >> $GITHUB_ENV
-
-          case $(uname) in
-              Linux)
-                  cpu_count=$(nproc)
-                  ;;
-
-              Darwin)
-                  cpu_count=$(sysctl -n hw.ncpu)
-                  ;;
-
-              *)
-                  cpu_count=1
-                  ;;
-          esac
-
-          if [[ $cpu_count != 1 ]]; then
-            echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
-          fi
+      - name: Setup Swig lang
+        uses: ./.github/actions/setup-lang
+        with:
+          lang: ${{ needs.get-metadata.outputs.swig-lang }}
+          version: ${{ matrix.version }}
 
       - name: Configure
         run: |
@@ -169,8 +148,6 @@ jobs:
             # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
             cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)
             cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)
-            make check-$SWIGLANG-version
-            make check-$SWIGLANG-enabled
             make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
             make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"
           fi

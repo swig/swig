@@ -1,6 +1,6 @@
 github-matrix+:
   version: [ "12", "14", "16", "18", "20" ]
-  include:
+  include+:
     # Various node tests are failing for C++11
     - version: "16"
       cpp-std: c++11
