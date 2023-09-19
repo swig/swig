@@ -49,6 +49,7 @@ jobs:
       matrix: ${{ fromJSON(needs.get-metadata.outputs.matrix) }}
     env:
       VER: ${{ matrix.version }}
+      GCC: ${{ inputs.toolchain == 'gcc' && matrix.version || '' }}
     steps:
       - uses: actions/checkout@v4
       - name: Install CCache
