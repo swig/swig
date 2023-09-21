@@ -111,6 +111,11 @@ swig -csharp -help
 </tr>
 
 <tr>
+<td>-enablenullable</td>
+<td>Enable <a href="https://docs.microsoft.com/en-us/dotnet/csharp/nullable-references">nullable reference types</a> in the C# code. This inserts the <tt>#nullable enable</tt> directive into all C# files, because otherwise <a href="https://github.com/dotnet/roslyn/blob/70e158ba6c2c99bd3c3fc0754af0dbf82a6d353d/docs/features/nullable-reference-types.md#generated-code"> nullable is disabled for all generated files.</a></td>
+</tr>
+
+<tr>
 <td>-namespace &lt;nm&gt;</td>
 <td>Generate wrappers into C# namespace &lt;nm&gt;</td>
 </tr>
