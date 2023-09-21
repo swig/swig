@@ -92,3 +92,7 @@
 %fragment("<memory>", "header") %{
 #include <memory>
 %}
+
+%fragment("<new>", "header") %{
+#include <new>
+%}
