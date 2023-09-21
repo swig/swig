@@ -1,3 +1,5 @@
+# TODO: Remove when pcre cmake files are properly packaged
+
 # - Find PCRE2
 # Perl Compatible Regular Expressions
 # https://www.pcre.org/

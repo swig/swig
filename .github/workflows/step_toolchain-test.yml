@@ -1,0 +1,58 @@
+name: Test Swig on various compilers
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      toolchain:
+        description: C/C++ Compiler toolchain
+        required: true
+        type: string
+    # All other inputs are derived from the fmf metadata
+
+jobs:
+  get-metadata:
+    name: Get ${{ inputs.toolchain }} toolchain metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+      - name: Install fmf
+        run: python3 -m pip install fmf
+      - name: Get metadata
+        working-directory: Lib
+        id: metadata
+        run: |
+          fmf show --name=^/toolchains/${{ inputs.toolchain }}
+          if [ -z "$(fmf show --name=^/toolchains/${{ inputs.toolchain }})" ]; then
+            echo "${{ inputs.toolchain }} toolchain is not configured"
+            exit 1
+          fi
+          
+          # Fetch only github-matrix object
+          github_matrix=$(fmf show --name=^/toolchains/${{ inputs.toolchain }} --format='{0}' --value='data["github-matrix"]')
+          # Convert from python output to JSON
+          github_matrix=$(python3 -c "import json; print(json.dumps($github_matrix))")
+          echo "matrix=$github_matrix" >> $GITHUB_OUTPUT
+    outputs:
+      matrix: ${{ steps.metadata.outputs.matrix }}
+  test:
+    needs: [ get-metadata ]
+    name: Test toolchain ${{ inputs.toolchain }} ${{ matrix.version }} ${{ matrix.experimental && '(experimental)' }}
+    continue-on-error: ${{ matrix.experimental || false }}
+    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
+    container: ${{ matrix.container || '' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.get-metadata.outputs.matrix) }}
+    env:
+      VER: ${{ matrix.version }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: lukka/get-cmake@latest
+      - name: Run CMake configuration for ${{ inputs.toolchain }} ${{ matrix.version }} toolchain
+        uses: lukka/run-cmake@v10.3
+        with:
+          workflowPreset: "${{ inputs.toolchain }}-ci"
