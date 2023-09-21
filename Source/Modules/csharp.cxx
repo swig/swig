@@ -3898,7 +3898,9 @@ public:
 
 	vt = cplus_value_type(returntype);
 	if (!vt) {
-	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), NIL);
+	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+	  Delete(construct_result);
 	} else {
 	  Wrapper_add_localv(w, "c_result", SwigType_lstr(vt, "c_result"), NIL);
 	  Delete(vt);
