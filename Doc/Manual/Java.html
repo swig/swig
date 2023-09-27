@@ -5780,6 +5780,31 @@ The following table lists the default type mapping from Java to C/C++.</p>
 </table>
 
 <p>
+If <tt>SWIGWORDSIZE64</tt> is defined the long type is instead:
+</p>
+
+<table BORDER summary="SWIGWORDSIZE64 primitive type mappings">
+<tr>
+<td><b>C/C++ type</b></td>
+<td><b>Java type</b></td>
+<td><b>JNI type</b></td>
+</tr>
+
+<tr>
+<td>long<br> const long &amp;</td>
+<td>long</td>
+<td>jlong</td>
+</tr>
+
+<tr>
+<td>unsigned long<br>const unsigned long &amp;</td>
+<td>java.math.BigInteger</td>
+<td>jobject</td>
+</tr>
+
+</table>
+
+<p>
 Note that SWIG wraps the C <tt>char</tt> type as a character. Pointers and arrays of this type are wrapped as strings. 
 The <tt>signed char</tt> type can be used if you want to treat <tt>char</tt> as a signed number rather than a character.
 Also note that all const references to primitive types are treated as if they are passed by value.

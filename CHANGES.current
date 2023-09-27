@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-09-27: wsfulton
+            [Java] #646 #649 Defining SWIGWORDSIZE64 now applies the (unsigned)
+            long long typemaps to (unsigned) long for a better match on systems
+            where long is 64-bits.
+
 2023-09-18: christophe-calmejane
             #2631 C++17 std::map fix for values that are not default constructible.
             Enhancements for all target languages except Python and Ruby.

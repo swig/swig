@@ -605,7 +605,7 @@ public class li_boost_shared_ptr_runme {
       throw new RuntimeException("verify value failed. Expected: " + expected + " Got: " + got);
   }
   private void verifyCount(int expected, Klass k) {
-    int got = li_boost_shared_ptr.use_count(k); 
+    int got = (int)li_boost_shared_ptr.use_count(k); 
     if (expected != got)
       throw new RuntimeException("verify use_count failed. Expected: " + expected + " Got: " + got);
   }
