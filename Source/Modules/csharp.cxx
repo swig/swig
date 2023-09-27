@@ -1983,7 +1983,7 @@ public:
 	Printf(proxy_class_code, "        return true;\n");
 	Printf(proxy_class_code, "      }\n");
 	Printf(proxy_class_code, "    }\n\n");
-  Printf(proxy_class_code, "    return false;\n");
+	Printf(proxy_class_code, "    return false;\n");
 
 	/* Could add this code to cover corner case where the GetMethod() returns a method which allows type
 	 * promotion, eg it will return foo(double), if looking for foo(int).
