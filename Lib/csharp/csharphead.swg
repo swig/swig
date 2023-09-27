@@ -316,6 +316,7 @@ static SWIG_CSharpStringHelperCallback SWIG_csharp_string_callback = NULL;
     [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterStringCallback_$module")]
     public static extern void SWIGRegisterStringCallback_$module(SWIGStringDelegate stringDelegate);
 
+    [AOT.MonoPInvokeCallback(typeof(SWIGStringDelegate))]
     static string CreateString(string cString) {
       return cString;
     }
