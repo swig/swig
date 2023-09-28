@@ -46,6 +46,7 @@ class CSHARP:public Language {
   bool global_variable_flag;	// Flag for when wrapping a global variable
   bool old_variable_names;	// Flag for old style variable names in the intermediary class
   bool generate_property_declaration_flag;	// Flag for generating properties
+  bool enable_nullable_flag;
 
   String *imclass_name;		// intermediary class name
   String *module_class_name;	// module class name
@@ -122,6 +123,7 @@ public:
       global_variable_flag(false),
       old_variable_names(false),
       generate_property_declaration_flag(false),
+      enable_nullable_flag(false),
       imclass_name(NULL),
       module_class_name(NULL),
       imclass_class_code(NULL),
@@ -254,6 +256,9 @@ public:
 	} else if (strcmp(argv[i], "-oldvarnames") == 0) {
 	  Swig_mark_arg(i);
 	  old_variable_names = true;
+	} else if (strcmp(argv[i], "-enablenullable") == 0) {
+	  Swig_mark_arg(i);
+	  enable_nullable_flag = true;
 	} else if (strcmp(argv[i], "-outfile") == 0) {
 	  if (argv[i + 1]) {
 	    output_file = NewString("");
@@ -649,6 +654,9 @@ public:
     Printf(f, "//\n");
     Swig_banner_target_lang(f, "//");
     Printf(f, "//------------------------------------------------------------------------------\n\n");
+    if (enable_nullable_flag) {
+      Printf(f, "#nullable enable\n\n");
+    }
   }
 
   /* -----------------------------------------------------------------------------
@@ -4610,6 +4618,7 @@ extern "C" Language *swig_csharp(void) {
 const char *CSHARP::usage = "\
 C# Options (available with -csharp)\n\
      -dllimport <dl> - Override DllImport attribute name to <dl>\n\
+     -enablenullable - Enable nullable in all C# generated files\n\
      -namespace <nm> - Generate wrappers into C# namespace <nm>\n\
      -noproxy        - Generate the low-level functional interface instead\n\
                        of proxy classes\n\
