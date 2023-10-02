@@ -40,7 +40,7 @@ jobs:
       matrix: ${{ steps.metadata.outputs.matrix }}
   test:
     needs: [ get-metadata ]
-    name: Test toolchain ${{ inputs.toolchain }} ${{ matrix.version }} ${{ matrix.experimental && '(experimental)' }}
+    name: Toolchain ${{ inputs.toolchain }} ${{ matrix.version }} ${{ matrix.experimental && '(experimental)' }}
     continue-on-error: ${{ matrix.experimental || false }}
     runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
     container: ${{ matrix.container || '' }}

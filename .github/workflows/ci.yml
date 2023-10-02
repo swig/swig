@@ -42,7 +42,7 @@ jobs:
       languages: ${{ needs.get-variants.outputs.languages }}
   test-toolchains:
     needs: [ get-variants, get-changed-files ]
-    name: "Run base Swig tests: ${{ matrix.toolchain }}"
+    name: "toolchain: ${{ matrix.toolchain }}"
     uses: ./.github/workflows/step_toolchain-test.yml
     # Each toolchain is the endpoint /toolchain/* from `fmf ls`
     # Internal toolchain matrix is defined in the /Lib/toolchains.fmf
@@ -57,7 +57,7 @@ jobs:
       needs.get-changed-files.outputs.base_changed == 'true'
   test-lang:
     needs: [ get-changed-files, get-variants, test-toolchains ]
-    name: "Run language tests: ${{ matrix.lang }}"
+    name: "lang: ${{ matrix.lang }}"
     uses: ./.github/workflows/step_lang-test.yml
     # Each language is the endpoint /* from `fmf ls`
     # Internal language matrix is defined in the corresponding /Lib/${lang}/main.fmf

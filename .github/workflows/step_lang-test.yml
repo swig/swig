@@ -52,7 +52,7 @@ jobs:
       env: ${{ steps.metadata.outputs.env }}
   test:
     needs: [ get-metadata ]
-    name: "Run tests: ${{ inputs.lang }} ${{ matrix.version }} ${{ matrix.cpp-std }} ${{ matrix.experimental && '(experimental)' }}"
+    name: "${{ matrix.version }} ${{ matrix.cpp-std }} ${{ matrix.experimental && '(experimental)' }}"
     continue-on-error: ${{ matrix.experimental || false }}
     runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
     container: ${{ matrix.container || '' }}
