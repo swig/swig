@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-10-05: wsfulton
+            [C#] #2379 Defining SWIGWORDSIZE64 now applies the (unsigned)
+            long long typemaps to (unsigned) long for a better match on systems
+            where long is 64-bits. A new "Type mapping" section has been added into
+            the CSharp.html documentation covering this and marshalling of primitive
+            types. C (unsigned) long handling remains as is by default, that is,
+            marshall as 32-bit.
+
+            The INPUT[], OUTPUT[], INOUT[], FIXED[] typemaps for long and unsigned long
+            in arrays_csharp.i can now be used and compiled on 64-bit platforms where
+            sizeof(long) != sizeof(int). Requires SWIGWORDSIZE64 to be defined.
+
 2023-09-27: wsfulton
             [Java] #646 #649 Defining SWIGWORDSIZE64 now applies the (unsigned)
             long long typemaps to (unsigned) long for a better match on systems

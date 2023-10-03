@@ -591,7 +591,7 @@ public class runme
       throw new Exception("verify value failed. Expected: " + expected + " Got: " + got);
   }
   private void verifyCount(int expected, Klass k) {
-    int got = li_boost_shared_ptr.use_count(k); 
+    int got = (int)li_boost_shared_ptr.use_count(k); 
     if (expected != got)
       throw new Exception("verify use_count failed. Expected: " + expected + " Got: " + got);
   }

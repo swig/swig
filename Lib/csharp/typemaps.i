@@ -74,14 +74,10 @@ INPUT_TYPEMAP(short,              short,                short)
 INPUT_TYPEMAP(unsigned short,     unsigned short,       ushort)
 INPUT_TYPEMAP(int,                int,                  int)
 INPUT_TYPEMAP(unsigned int,       unsigned int,         uint)
-INPUT_TYPEMAP(long,               long,                 int)
-INPUT_TYPEMAP(unsigned long,      unsigned long,        uint)
 INPUT_TYPEMAP(long long,          long long,            long)
 INPUT_TYPEMAP(unsigned long long, unsigned long long,   ulong)
 INPUT_TYPEMAP(float,              float,                float)
 INPUT_TYPEMAP(double,             double,               double)
-
-#undef INPUT_TYPEMAP
 
 /*
 OUTPUT typemaps
@@ -153,14 +149,10 @@ OUTPUT_TYPEMAP(short,              short,                short,    INT16_PTR)
 OUTPUT_TYPEMAP(unsigned short,     unsigned short,       ushort,   UINT16_PTR)
 OUTPUT_TYPEMAP(int,                int,                  int,      INT32_PTR)
 OUTPUT_TYPEMAP(unsigned int,       unsigned int,         uint,     UINT32_PTR)
-OUTPUT_TYPEMAP(long,               long,                 int,      INT32_PTR)
-OUTPUT_TYPEMAP(unsigned long,      unsigned long,        uint,     UINT32_PTR)
 OUTPUT_TYPEMAP(long long,          long long,            long,     INT64_PTR)
 OUTPUT_TYPEMAP(unsigned long long, unsigned long long,   ulong,    UINT64_PTR)
 OUTPUT_TYPEMAP(float,              float,                float,    FLOAT_PTR)
 OUTPUT_TYPEMAP(double,             double,               double,   DOUBLE_PTR)
-
-#undef OUTPUT_TYPEMAP
 
 %typemap(in) bool *OUTPUT, bool &OUTPUT
 %{ *$input = 0; 
@@ -242,12 +234,47 @@ INOUT_TYPEMAP(short,              short,                short,    INT16_PTR)
 INOUT_TYPEMAP(unsigned short,     unsigned short,       ushort,   UINT16_PTR)
 INOUT_TYPEMAP(int,                int,                  int,      INT32_PTR)
 INOUT_TYPEMAP(unsigned int,       unsigned int,         uint,     UINT32_PTR)
-INOUT_TYPEMAP(long,               long,                 int,      INT32_PTR)
-INOUT_TYPEMAP(unsigned long,      unsigned long,        uint,     UINT32_PTR)
 INOUT_TYPEMAP(long long,          long long,            long,     INT64_PTR)
 INOUT_TYPEMAP(unsigned long long, unsigned long long,   ulong,    UINT64_PTR)
 INOUT_TYPEMAP(float,              float,                float,    FLOAT_PTR)
 INOUT_TYPEMAP(double,             double,               double,   DOUBLE_PTR)
 
-#undef INOUT_TYPEMAP
 
+// 32-bit/64-bit architecture specific typemaps - marshal as 32-bit by default
+#if !defined(SWIGWORDSIZE64)
+INPUT_TYPEMAP(long,               int,                 int)
+INPUT_TYPEMAP(unsigned long,      unsigned int,        uint)
+
+OUTPUT_TYPEMAP(long,              int,                 int,       INT32_PTR)
+OUTPUT_TYPEMAP(unsigned long,     unsigned int,        uint,      UINT32_PTR)
+
+INOUT_TYPEMAP(long,               int,                 int,       INT32_PTR)
+INOUT_TYPEMAP(unsigned long,      unsigned int,        uint,      UINT32_PTR)
+#else
+INPUT_TYPEMAP(long,               long long,           int)
+INPUT_TYPEMAP(unsigned long,      unsigned long long,  uint)
+
+OUTPUT_TYPEMAP(long,              long long,           int,       INT64_PTR)
+OUTPUT_TYPEMAP(unsigned long,     unsigned long long,  uint,      UINT64_PTR)
+
+INOUT_TYPEMAP(long,               long long,           int,       INT64_PTR)
+INOUT_TYPEMAP(unsigned long,      unsigned long long,  uint,      UINT64_PTR)
+#endif
+%typemap(in) long INPUT[] ($*1_ltype tempinput), unsigned long INPUT[] ($*1_ltype tempinput)
+%{tempinput = ($*1_ltype)*$input;
+  $1 = &tempinput;%}
+
+%typemap(in) long OUTPUT[] ($*1_ltype tempoutput), unsigned long OUTPUT[] ($*1_ltype tempoutput)
+%{$1 = &tempoutput;%}
+
+%typemap(in) long INOUT[] ($*1_ltype tempinout), unsigned long INOUT[] ($*1_ltype tempinout)
+%{tempinout = ($*1_ltype)*$input;
+  $1 = &tempinout;%}
+
+%typemap(argout) long OUTPUT[], unsigned long OUTPUT[] "*$input = *$1;"
+%typemap(argout) long INOUT[], unsigned long INOUT[] "*$input = *$1;"
+
+
+#undef INPUT_TYPEMAP
+#undef OUTPUT_TYPEMAP
+#undef INOUT_TYPEMAP

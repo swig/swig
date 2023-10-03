@@ -16,7 +16,12 @@
 <li><a href="#CSharp_commandline">Additional command line options</a>
 </ul>
 <li><a href="#CSharp_differences_java">Differences to the Java module</a>
+<li><a href="#CSharp_type_mapping">Type mapping</a>
+<ul>
+<li><a href="#CSharp_primitive_types">Primitive types</a>
+<li><a href="#CSharp_other_type_mappings">Other types</a>
 <li><a href="#CSharp_void_pointers">Void pointers</a>
+</ul>
 <li><a href="#CSharp_arrays">C# Arrays</a>
 <ul>
 <li><a href="#CSharp_arrays_swig_library">The SWIG C arrays library</a>
@@ -569,14 +574,313 @@ Windows users can also get the examples working using a
 <a href="http://www.cygwin.com">Cygwin</a> or <a href="https://osdn.net/projects/mingw/">MinGW</a> environment for automatic configuration of the example makefiles.
 Any one of the C# compilers (Mono or Microsoft) can be detected from within a Cygwin or Mingw environment if installed in your path. 
 
-<H2><a name="CSharp_void_pointers">23.3 Void pointers</a></H2>
+<H2><a name="CSharp_type_mapping">23.3 Type mapping</a></H2>
 
 
 <p>
-By default SWIG treats <tt>void *</tt> as any other pointer and hence marshalls it as a type wrapper class called <tt>SWIGTYPE_p_void</tt>.
+The marshalling of the types and typemaps used for marshalling across the managed/unmanaged layers are discussed in this section.
+The interested reader will find the implementation in the csharp.swg file.
+</p>
+
+<H3><a name="CSharp_primitive_types">23.3.1 Primitive types</a></H3>
+
+
+<p>
+Primitive types are marshalled between the unmanaged and managed layers as blittable types.
+</p>
+
+<ul>
+<li> The first column in the table below shows various C/C++ types that might be parsed by SWIG.
+<li> The second column contains the default type provided by the 'ctype' typemap, that is, the type used for marshalling on the C side.
+<li> The third column shows the default type provided by both the 'imtype' and the 'cstype' typemaps, that is, the equivalent type on the C# side.
+<li> The fourth column shows the size or number of bytes of the 'imtype'/'cstype', which may or may not match the size of the C/C++ type and is discussed next.
+</ul>
+
+<table BORDER summary="Default primitive type mappings">
+<tr>
+<td><b>C/C++ type</b></td>
+<td><b>ctype</b></td>
+<td><b>imtype/cstype</b></td>
+<td><b>Size</b></td>
+</tr>
+
+<tr>
+<td>bool<br> const bool &amp; </td>
+<td>unsigned int</td>
+<td>bool</td>
+<td>1</td>
+</tr>
+
+<tr>
+<td>char<br>const char &amp;</td>
+<td>char</td>
+<td>char</td>
+<td>1</td>
+</tr>
+
+<tr>
+<td>signed char<br>const signed char &amp;</td>
+<td>signed char</td>
+<td>sbyte</td>
+<td>1</td>
+</tr>
+
+<tr>
+<td>unsigned char<br>const unsigned char &amp;</td>
+<td>unsigned char</td>
+<td>byte</td>
+<td>1</td>
+</tr>
+
+<tr>
+<td>short<br>const short &amp;</td>
+<td>short</td>
+<td>short</td>
+<td>2</td>
+</tr>
+
+<tr>
+<td>unsigned short<br> const unsigned short &amp;</td>
+<td>unsigned short</td>
+<td>ushort</td>
+<td>2</td>
+</tr>
+
+<tr>
+<td>int<br> const int &amp;</td>
+<td>int</td>
+<td>int</td>
+<td>4</td>
+</tr>
+
+<tr>
+<td>unsigned int<br> const unsigned int &amp;</td>
+<td>unsigned int</td>
+<td>uint</td>
+<td>4</td>
+</tr>
+
+<tr>
+<td>long<br>const long &amp;</td>
+<td>int</td>
+<td>int</td>
+<td>4</td>
+</tr>
+
+<tr>
+<td>unsigned long<br>const unsigned long &amp;</td>
+<td>unsigned int</td>
+<td>uint</td>
+<td>4</td>
+</tr>
+
+<tr>
+<td>long long<br> const long long &amp;</td>
+<td>long long</td>
+<td>long</td>
+<td>8</td>
+</tr>
+
+<tr>
+<td>unsigned long long<br>const unsigned long long &amp;</td>
+<td>unsigned long long</td>
+<td>ulong</td>
+<td>8</td>
+</tr>
+
+<tr>
+<td>float<br>const float &amp;</td>
+<td>float</td>
+<td>float</td>
+<td>4</td>
+</tr>
+
+<tr>
+<td>double<br> const double &amp;</td>
+<td>double</td>
+<td>double</td>
+<td>8</td>
+</tr>
+
+<tr>
+<td>size_t<br> const size_t &amp;</td>
+<td>unsigned int</td>
+<td>uint</td>
+<td>4</td>
+</tr>
+
+
+</table>
+
+<p>
+The size in bytes of the C type, 'ctype', should match the C# type, 'imtype' for blitting across the managed/unmanaged layers.
+They do match across the common 32-bit and 64-bit operating systems, Unix, Windows and MacOS, except for the C long/unsigned long and size_t types.
+From the table above the default is to handle C long and size_t as a 32-bit (4 byte) type, so large numbers could be truncated on some 64-bit operating systems.
+If <tt>SWIGWORDSIZE64</tt> is defined the C long type is instead handled as a 64-bit (8 byte) type, as per the table below.
+</p>
+
+<table BORDER summary="SWIGWORDSIZE64 primitive type mappings">
+
+<tr>
+<td><b>C/C++ type</b></td>
+<td><b>ctype</b></td>
+<td><b>imtype/cstype</b></td>
+<td><b>Size</b></td>
+</tr>
+
+<tr>
+<td>long<br>const long &amp;</td>
+<td>long long</td>
+<td>long</td>
+<td>8</td>
+</tr>
+
+<tr>
+<td>unsigned long<br>const unsigned long &amp;</td>
+<td>unsigned long long</td>
+<td>ulong</td>
+<td>8</td>
+</tr>
+
+</table>
+
+<p>
+However, truncation may then occur when the C long type is actually 32-bits (4 bytes).
+It's best to avoid using C long for portability across different operating systems!
+</p>
+
+<p>
+If you need to support long on a range of systems where the size of long varies, then steps must be taken before invoking SWIG to determine whether or not to define <tt>SWIGWORDSIZE64</tt> when invoking SWIG.
+</p>
+
+<p>
+In order to treat the C size_t type as a 64-bit (8 byte) type, apply the 64-bit typemaps as follows:
+</p>
+
+<div class="code">
+<pre>
+%apply unsigned long long { size_t };
+%apply const unsigned long long &amp; { const size_t &amp; };
+</pre>
+</div>
+
+<p>
+The net effect then changes from the default shown earlier to:
+</p>
+
+<table BORDER summary="size_t long long mappings">
+
+<tr>
+<td><b>C/C++ type</b></td>
+<td><b>ctype</b></td>
+<td><b>imtype/cstype</b></td>
+<td><b>Size</b></td>
+</tr>
+
+<tr>
+<td>size_t<br>const size_t &amp;</td>
+<td>unsigned long long</td>
+<td>ulong</td>
+<td>8</td>
+</tr>
+
+</table>
+
+<p>
+If you need to support size_t on a range of systems where the size of size_t varies, then steps must be taken before invoking SWIG to determine whether or not to apply the typemaps.
+Conditionally applying the typemaps using a macro is easily done. For example define <tt>MY_SIZET_WORDSIZE64</tt> to generate 64-bit (8 byte) handling using the following:
+</p>
+
+<div class="code">
+<pre>
+#if defined(MY_SIZET_WORDSIZE64)
+%apply unsigned long long { size_t };
+%apply const unsigned long long &amp; { const size_t &amp; };
+#endif
+</pre>
+</div>
+
+<p>
+</p>
+
+<H3><a name="CSharp_other_type_mappings">23.3.2 Other types</a></H3>
+
+
+<p>
+The table below shows the equivalent mappings for pointers and strings.
+Classes and structs are marshalled using a pointer to the instance of the object.
+Note the types in the 'imtype' and 'cstype' typemaps can be different.
+</p>
+
+<ul>
+<li> The 'imtype' type is used for marshalling across the managed and unmanaged boundary.
+<li> The 'cstype' is the final C# proxy or intermediary class type.
+<li> In the table below, the 'imtype' type is used for marshalling from the managed to the unmanaged layer.
+<li> The 'imtype out' type is used for marshalling from the unmanaged to the managed layer.
+</ul>
+
+<table BORDER summary="Other type mappings">
+
+<tr>
+<td><b>C/C++ type</b></td>
+<td><b>ctype</b></td>
+<td><b>imtype</b></td>
+<td><b>imtype out</b></td>
+<td><b>cstype</b></td>
+</tr>
+
+<tr>
+<td>char *<br>char []</td>
+<td>char *</td>
+<td>string</td>
+<td>string</td>
+<td>string</td>
+</tr>
+
+<tr>
+<td>void *</td>
+<td>void *</td>
+<td>System.Runtime.InteropServices.HandleRef</td>
+<td>System.IntPtr</td>
+<td>SWIGTYPE_p_void</td>
+</tr>
+
+</table>
+
+
+<H3><a name="CSharp_void_pointers">23.3.3 Void pointers</a></H3>
+
+
+<p>
+By default SWIG treats <tt>void *</tt> as any other pointer and hence marshalls it as a type wrapper class called <tt>SWIGTYPE_p_void</tt>,
+as shown in the table in the previous section.
 If you want to marshall with the .NET <tt>System.IntPtr</tt> type instead, there is a simple set of named typemaps called
 <tt>void *VOID_INT_PTR</tt> that can be used.
-They can be applied like any other named typemaps:
+They net effect is then:
+</p>
+
+<table BORDER summary="VOID_INT_PTR type mappings">
+
+<tr>
+<td><b>C/C++ type</b></td>
+<td><b>ctype</b></td>
+<td><b>imtype</b></td>
+<td><b>imtype out</b></td>
+<td><b>cstype</b></td>
+</tr>
+
+<tr>
+<td>void *VOID_INT_PTR</td>
+<td>void *</td>
+<td>System.IntPtr</td>
+<td>System.IntPtr</td>
+<td>System.IntPtr</td>
+</tr>
+
+</table>
+
+<p>
+This is achieved by applying them like any other named typemaps:
 </p>
 
 

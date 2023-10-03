@@ -120,3 +120,9 @@ enum MyEnum {
   kValue = BIT(2)
 };
 
+// For detecting when test-suite is run with SWIGWORDSIZE64 defined
+#ifdef SWIGWORDSIZE64
+#define SWIGWORDSIZE64_enabled 1
+#else
+#define SWIGWORDSIZE64_enabled 0
+#endif
