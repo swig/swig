@@ -168,7 +168,7 @@ namespace std {
 	  return **$self;
 	}
 
-	iterator advance_unchecked(size_type index) const {
+	iterator advance_unchecked(int index) const {
 	  std::list<T>::iterator ret = *$self;
 	  std::advance(ret, index);
 	  return ret;

@@ -5772,6 +5772,12 @@ The following table lists the default type mapping from Java to C/C++.</p>
 </tr>
 
 <tr>
+<td>size_t<br> const size_t &amp;</td>
+<td>long</td>
+<td>jlong</td>
+</tr>
+
+<tr>
 <td>char *<br>char []</td>
 <td>String</td>
 <td>jstring</td>
@@ -5780,7 +5786,9 @@ The following table lists the default type mapping from Java to C/C++.</p>
 </table>
 
 <p>
-If <tt>SWIGWORDSIZE64</tt> is defined the long type is instead:
+Note that default mappings for the C long type is more suitable for 32-bit systems.
+If long is 64-bit, the full range can be obtained by defining <tt>SWIGWORDSIZE64</tt> when invoking SWIG.
+The long type will instead be mapped as follows:
 </p>
 
 <table BORDER summary="SWIGWORDSIZE64 primitive type mappings">
@@ -5798,6 +5806,35 @@ If <tt>SWIGWORDSIZE64</tt> is defined the long type is instead:
 
 <tr>
 <td>unsigned long<br>const unsigned long &amp;</td>
+<td>java.math.BigInteger</td>
+<td>jobject</td>
+</tr>
+
+</table>
+
+<p>
+Note that when size_t is 64-bit in C, the full unsigned range is not available.
+This can be fixed by applying the 64-bit unsigned long long typemaps as follows:
+</p>
+
+<div class="code"> <pre>
+%apply unsigned long long { size_t };
+%apply const unsigned long long &amp; { const size_t &amp; };
+</pre> </div>
+
+<p>
+The net effect then changes from the default shown earlier to:
+</p>
+
+<table BORDER summary="64-bit size_t primitive type mappings">
+<tr>
+<td><b>C/C++ type</b></td>
+<td><b>Java type</b></td>
+<td><b>JNI type</b></td>
+</tr>
+
+<tr>
+<td>size_t<br> const size_t &amp;</td>
 <td>java.math.BigInteger</td>
 <td>jobject</td>
 </tr>

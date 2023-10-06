@@ -7,6 +7,39 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-10-06: wsfulton
+            #2307 std::vector::capacity and std::vector::reserve signature changes.
+
+            Java api changes from:
+              public long capacity() { ... }
+              public void reserve(long n) { ... }
+            to:
+              public int capacity() { ... }
+              public void reserve(int n) { ... }
+            to fit in with the usual Java convention of using int for container
+            indexing and sizing.
+
+            The original api for std::vector::reserve can be also be made available via
+            %extend to add in an overloaded method as follows:
+
+              %include <std_vector.i>
+              %extend std::vector {
+                void reserve(jlong n) throw (std::length_error, std::out_of_range) {
+                  if (n < 0)
+                    throw std::out_of_range("vector reserve size must be positive");
+                  self->reserve(n);
+                }
+              }
+
+            This change is partially driven by the need to seamlessly support the full
+            64-bit range for size_t generically, apart from the customisations for the
+            STL containers, by using:
+
+              %apply unsigned long long { size_t };
+              %apply const unsigned long long & { const size_t & };
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2023-10-05: wsfulton
             [C#] #2379 Defining SWIGWORDSIZE64 now applies the (unsigned)
             long long typemaps to (unsigned) long for a better match on systems
