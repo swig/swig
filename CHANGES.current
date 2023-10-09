@@ -7,6 +7,21 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-10-11: wsfulton
+            [C#, D, Go, Guile, Java, Javascript, Lua, Ocaml, R, Racket] #1680
+            carrays.i library modified to use size_t instead of int for the functions
+            provided by %array_functions and %array_class.
+
+            If the old types are required for backwards compatibility, use %apply to
+            restore the old types as follows:
+
+              %include "carrays.i"
+              %apply int { size_t nelements, size_t index }
+              ... %array_functions and %array_class ...
+              %clear size_t nelements, size_t index; # To be safe in case used elsewhere
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2023-10-11: olly
 	    [PHP] #2685 Fix testcase director_finalizer to work with PHP 8.3.
 

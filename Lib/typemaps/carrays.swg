@@ -11,10 +11,10 @@
  * Generates functions for creating and accessing elements of a C array
  * (as pointers).  Creates the following functions:
  *
- *        TYPE *new_NAME(int nelements)
+ *        TYPE *new_NAME(size_t nelements)
  *        void delete_NAME(TYPE *);
- *        TYPE NAME_getitem(TYPE *, int index);
- *        void NAME_setitem(TYPE *, int index, TYPE value);
+ *        TYPE NAME_getitem(TYPE *, size_t index);
+ *        void NAME_setitem(TYPE *, size_t index, TYPE value);
  * 
  * ----------------------------------------------------------------------------- */
 
@@ -51,10 +51,10 @@ void NAME##_setitem(TYPE *ary, size_t index, TYPE value);
  * interface:
  *
  *          struct NAME {
- *              NAME(int nelements);
+ *              NAME(size_t nelements);
  *             ~NAME();
- *              TYPE getitem(int index);
- *              void setitem(int index, TYPE value);
+ *              TYPE getitem(size_t index);
+ *              void setitem(size_t index, TYPE value);
  *              TYPE * cast();
  *              static NAME *frompointer(TYPE *t);
  *         }

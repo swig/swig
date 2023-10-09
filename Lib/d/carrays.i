@@ -10,16 +10,16 @@
  * Generates functions for creating and accessing elements of a C array
  * (as pointers).  Creates the following functions:
  *
- *        TYPE *new_NAME(int nelements)
+ *        TYPE *new_NAME(size_t nelements)
  *        void delete_NAME(TYPE *);
- *        TYPE NAME_getitem(TYPE *, int index);
- *        void NAME_setitem(TYPE *, int index, TYPE value);
+ *        TYPE NAME_getitem(TYPE *, size_t index);
+ *        void NAME_setitem(TYPE *, size_t index, TYPE value);
  *
  * ----------------------------------------------------------------------------- */
 
 %define %array_functions(TYPE,NAME)
 %{
-static TYPE *new_##NAME(int nelements) { %}
+static TYPE *new_##NAME(size_t nelements) { %}
 #ifdef __cplusplus
 %{  return new TYPE[nelements](); %}
 #else
@@ -35,18 +35,18 @@ static void delete_##NAME(TYPE *ary) { %}
 #endif
 %{}
 
-static TYPE NAME##_getitem(TYPE *ary, int index) {
+static TYPE NAME##_getitem(TYPE *ary, size_t index) {
     return ary[index];
 }
-static void NAME##_setitem(TYPE *ary, int index, TYPE value) {
+static void NAME##_setitem(TYPE *ary, size_t index, TYPE value) {
     ary[index] = value;
 }
 %}
 
-TYPE *new_##NAME(int nelements);
+TYPE *new_##NAME(size_t nelements);
 void delete_##NAME(TYPE *ary);
-TYPE NAME##_getitem(TYPE *ary, int index);
-void NAME##_setitem(TYPE *ary, int index, TYPE value);
+TYPE NAME##_getitem(TYPE *ary, size_t index);
+void NAME##_setitem(TYPE *ary, size_t index, TYPE value);
 
 %enddef
 
@@ -58,13 +58,13 @@ void NAME##_setitem(TYPE *ary, int index, TYPE value);
  * interface:
  *
  *          struct NAME {
- *              NAME(int nelements);
+ *              NAME(size_t nelements);
  *             ~NAME();
- *              TYPE getitem(int index);
- *              void setitem(int index, TYPE value);
+ *              TYPE getitem(size_t index);
+ *              void setitem(size_t index, TYPE value);
  *              TYPE * ptr();
  *              static NAME *frompointer(TYPE *t);
-  *         }
+ *          }
  *
  * ----------------------------------------------------------------------------- */
 
@@ -76,34 +76,36 @@ typedef TYPE NAME;
 typedef struct {} NAME;
 
 %extend NAME {
+
 #ifdef __cplusplus
-  NAME(int nelements) {
-    return new TYPE[nelements]();
-  }
-  ~NAME() {
-    delete [] self;
-  }
+NAME(size_t nelements) {
+  return new TYPE[nelements]();
+}
+~NAME() {
+  delete [] self;
+}
 #else
-  NAME(int nelements) {
-    return (TYPE *) calloc(nelements,sizeof(TYPE));
-  }
-  ~NAME() {
-    free(self);
-  }
+NAME(size_t nelements) {
+  return (TYPE *) calloc(nelements,sizeof(TYPE));
+}
+~NAME() {
+  free(self);
+}
 #endif
 
-  TYPE getitem(int index) {
-    return self[index];
-  }
-  void setitem(int index, TYPE value) {
-    self[index] = value;
-  }
-  TYPE * ptr() {
-    return self;
-  }
-  static NAME *frompointer(TYPE *t) {
-    return (NAME *) t;
-  }
+TYPE getitem(size_t index) {
+  return self[index];
+}
+void setitem(size_t index, TYPE value) {
+  self[index] = value;
+}
+TYPE * ptr() {
+  return self;
+}
+static NAME *frompointer(TYPE *t) {
+  return (NAME *) t;
+}
+
 };
 
 %types(NAME = TYPE);

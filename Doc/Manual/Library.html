@@ -393,7 +393,7 @@ raw C array data.
 <p>Creates four functions.</p>
 
 <p>
-<tt>type *new_name(int nelements)</tt>
+<tt>type *new_name(size_t nelements)</tt>
 </p>
 
 <div class="indent"><p>
@@ -410,7 +410,7 @@ Deletes an array. In C, <tt>free()</tt> is used.  In C++, <tt>delete []</tt> is 
 </p></div>
 
 <p>
-<tt>type name_getitem(type *ary, int index)</tt>
+<tt>type name_getitem(type *ary, size_t index)</tt>
 </p>
 
 <div class="indent"><p>
@@ -418,7 +418,7 @@ Returns the value <tt>ary[index]</tt>.
 </p></div>
 
 <p>
-<tt>void name_setitem(type *ary, int index, type value)</tt>
+<tt>void name_setitem(type *ary, size_t index, type value)</tt>
 </p>
 
 <div class="indent"><p>
@@ -491,10 +491,10 @@ interface is as follows:
 <div class="code">
 <pre>
 struct name {
-  name(int nelements);                  // Create an array
+  name(size_t nelements);               // Create an array
   ~name();                              // Delete array
-  type getitem(int index);              // Return item
-  void setitem(int index, type value);  // Set item
+  type getitem(size_t index);           // Return item
+  void setitem(size_t index, type value);  // Set item
   type *cast();                         // Cast to original type
   static name *frompointer(type *);     // Create class wrapper from
                                         // existing pointer

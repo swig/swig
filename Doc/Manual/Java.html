@@ -5427,10 +5427,10 @@ destroy arrays and operate on elements.  In this case, the functions are as foll
 
 <div class="code">
 <pre>
-int *new_intArray(int nelements);
+int *new_intArray(size_t nelements);
 void delete_intArray(int *x);
-int intArray_getitem(int *x, int index);
-void intArray_setitem(int *x, int index, int value);
+int intArray_getitem(int *x, size_t index);
+void intArray_setitem(int *x, size_t index, int value);
 </pre>
 </div>
 
