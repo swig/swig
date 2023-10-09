@@ -143,6 +143,12 @@ SWIG_D_PRIMITIVE(double, double)
     const unsigned long &
     ""
 
+// Default assumes size_t is 32-bit for overloading
+%typecheck(SWIG_TYPECHECK_UINT32)
+    size_t,
+    const size_t &
+    ""
+
 %typecheck(SWIG_TYPECHECK_INT64)
     long long,
     const long long &
