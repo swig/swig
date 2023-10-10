@@ -79,7 +79,7 @@ template<class K, class T, class C = std::less< K> > class map {
   }
 
   public $typemap(jboxtype, T) put($typemap(jboxtype, K) key, $typemap(jboxtype, T) value) {
-    Iterator itr = find(($typemap(jboxtype, K)) key);
+    Iterator itr = find(key);
     if (itr.isNot(end())) {
       $typemap(jboxtype, T) oldValue = itr.getValue();
       itr.setValue(value);
