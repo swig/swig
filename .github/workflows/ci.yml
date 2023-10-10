@@ -117,6 +117,8 @@ jobs:
           VER: '8.1'
         - SWIGLANG: php
           VER: '8.2'
+        - SWIGLANG: php
+          VER: '8.3'
         - SWIGLANG: python
           PY2: 2
         #- SWIGLANG: python
