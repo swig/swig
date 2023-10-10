@@ -1835,7 +1835,7 @@ if test x"${PHPBIN}" = xno; then
     PHP=
 else
     if test "x$PHPBIN" = xyes; then
-      AC_CHECK_PROGS(PHP, [php8.2 php8.1 php8.0 php])
+      AC_CHECK_PROGS(PHP, [php8.3 php8.2 php8.1 php8.0 php])
     else
       PHP=$PHPBIN
     fi

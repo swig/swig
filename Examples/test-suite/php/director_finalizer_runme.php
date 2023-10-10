@@ -17,7 +17,7 @@ class MyFoo extends Foo {
     if ($this->thisown) {
       $this->orStatus(2);
     }
-    if (method_exists(get_parent_class(), "__destruct")) {
+    if (method_exists(parent::class, "__destruct")) {
       parent::__destruct();
     }
   }

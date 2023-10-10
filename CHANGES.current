@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-10-11: olly
+	    [PHP] #2685 Fix testcase director_finalizer to work with PHP 8.3.
+
 2023-10-06: wsfulton
             #2307 std::vector::capacity and std::vector::reserve signature changes.
 
