@@ -1317,7 +1317,7 @@ Node *Swig_symbol_clookup_check(const_String_or_char_ptr name, Symtab *n, Node *
   }
   /* Check if s is a 'using' node */
   while (s && Checkattr(s, "nodeType", "using")) {
-    Node *ss = Swig_symbol_clookup(Getattr(s, "uname"), Getattr(s, "sym:symtab"));
+    Node *ss = Swig_symbol_clookup_check(Getattr(s, "uname"), Getattr(s, "sym:symtab"), checkfunc);
     if (!ss && !checkfunc) {
       SWIG_WARN_NODE_BEGIN(s);
       Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(s, "uname")));
