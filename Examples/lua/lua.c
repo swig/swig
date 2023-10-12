@@ -291,7 +291,7 @@ static void manual_input (void) {
     }
   }
   lua_settop(L, 0);  /* clear stack */
-  fputs("\n", stdout);
+  fputc('\n', stdout);
   progname = oldprogname;
 }
 

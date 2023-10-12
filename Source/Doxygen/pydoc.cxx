@@ -942,7 +942,7 @@ String *PyDocConverter::makeDocumentation(Node *n) {
       for (size_t realOverloadCount = 0; realOverloadCount < allDocumentation.size(); realOverloadCount++) {
         if (realOverloadCount != 0) {
           // separate it from the preceding one.
-          concatDocString << "\n" << indentStr << "|\n\n";
+          concatDocString << '\n' << indentStr << "|\n\n";
         }
 
         oneDoc = allDocumentation[realOverloadCount];

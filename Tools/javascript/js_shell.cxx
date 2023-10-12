@@ -63,7 +63,7 @@ std::string JSShell::LoadModule(const std::string& name, HANDLE* library) {
   }
 
   if(handle == 0) {
-    std::cerr << "Could not find module " << lib_path << ":"
+    std::cerr << "Could not find module " << lib_path << ':'
               << std::endl << LIBRARY_ERROR() << std::endl;
     return 0;
   }
@@ -120,7 +120,7 @@ std::string JSShell::ReadFile(const std::string& fileName)
     }
     file.close();
   } else {
-    std::cout << "Unable to open file " << fileName << "." << std::endl;
+    std::cout << "Unable to open file " << fileName << '.' << std::endl;
   }
 
   return script;
