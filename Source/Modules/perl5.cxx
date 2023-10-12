@@ -118,7 +118,7 @@ static int have_operators = 0;
 class PERL5:public Language {
 public:
 
-  PERL5():Language () {
+  PERL5() {
     Clear(argc_template_string);
     Printv(argc_template_string, "items", NIL);
     Clear(argv_template_string);
