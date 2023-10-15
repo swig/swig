@@ -155,10 +155,6 @@ jobs:
         - SWIGLANG: python
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: r
-        # rvm fails to install Ruby 1.9 on ubuntu-20.04
-        #- SWIGLANG: ruby
-        #  VER: '1.9'
-        #  os: ubuntu-18.04
         - SWIGLANG: ruby
           VER: '2.0'
         - SWIGLANG: ruby
