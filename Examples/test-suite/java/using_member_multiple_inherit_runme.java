@@ -12,11 +12,24 @@ public class using_member_multiple_inherit_runme {
 
   public static void main(String argv[])
   {
+    // Single inheritance three deep, only using declarations
+    Susing3 s3 = new Susing3();
+    s3.usingmethod(11);
+
     // Single inheritance three deep, overload using and methods
     Using3 u3 = new Using3();
     u3.usingmethod(11);
     u3.usingmethod(11, 22);
     u3.usingmethod(11, 22, 33);
+
+    Musing3 m3 = new Musing3();
+    m3.usingmethod(11);
+    m3.usingmethod(11, 22);
+    m3.usingmethod(11, 22, 33);
+
+    Dusing3 d3 = new Dusing3();
+    d3.usingmethod(11);
+    d3.usingmethod(11, 22);
 
     // Multiple inheritance, multiple using declarations
     MultMiddleA ma = new MultMiddleA();

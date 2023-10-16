@@ -11,6 +11,19 @@
 
 
 %inline %{
+// Single inheritance three deep, only using declarations
+struct Susing1 {
+protected:
+  void usingmethod(int i) {}
+};
+struct Susing2 : Susing1 {
+protected:
+  using Susing1::usingmethod;
+};
+struct Susing3 : Susing2 {
+  using Susing2::usingmethod;
+};
+
 // Single inheritance three deep, overload using and methods
 struct Using1 {
 protected:
@@ -18,12 +31,35 @@ protected:
 };
 struct Using2 : Using1 {
 protected:
+  // method declaration before using declaration
   void usingmethod(int i, int j) {}
   using Using1::usingmethod;
 };
 struct Using3 : Using2 {
   void usingmethod(int i, int j, int k) {}
   using Using2::usingmethod;
+};
+
+struct Musing2 : Using1 {
+protected:
+  // using declaration before method declaration
+  using Using1::usingmethod;
+  void usingmethod(int i, int j) {}
+};
+struct Musing3 : Musing2 {
+  using Musing2::usingmethod;
+  void usingmethod(int i, int j, int k) {}
+};
+
+struct Dusing2 : Using1 {
+protected:
+  using Using1::usingmethod;
+  void usingmethod(int i, int j) {}
+};
+struct Dusing3 : Dusing2 {
+  // redundant using declarations
+  using Using1::usingmethod;
+  using Dusing2::usingmethod;
 };
 
 // Multiple inheritance, multiple using declarations

@@ -1016,7 +1016,7 @@ Allocate():
 	if (inclass && !GetFlag(n, "feature:ignore") && Getattr(n, "sym:name")) {
 	  {
 	    String *ntype = nodeType(ns);
-	    if (Equal(ntype, "cdecl") || Equal(ntype, "constructor") || Equal(ntype, "template")) {
+	    if (Equal(ntype, "cdecl") || Equal(ntype, "constructor") || Equal(ntype, "template") || Equal(ntype, "using")) {
 	      /* Add a new class member to the parse tree (copy it from the base class member pointed to by the using declaration in node n) */
 	      Node *c = ns;
 	      Node *unodes = 0, *last_unodes = 0;

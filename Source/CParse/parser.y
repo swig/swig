@@ -4473,6 +4473,7 @@ templateparameterstail : COMMA templateparameter templateparameterstail {
 
 cpp_using_decl : USING idcolon SEMI {
                   String *uname = Swig_symbol_type_qualify($2,0);
+                  /* Possible TODO: In testcase using_member_multiple_inherit class Susing3, uname is "Susing1::usingmethod" instead of "Susing2::usingmethod" */
 		  String *name = Swig_scopename_last($2);
                   $$ = new_node("using");
 		  Setattr($$,"uname",uname);

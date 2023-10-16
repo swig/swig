@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-10-16: wsfulton
+            #2687 Another using declarations fix for inheritance hierarchies more than
+            two deep and the using declarations are overloaded. Using declarations
+            from a base class' base were not available for use in the target
+            language when the using declaration was before a method declaration.
+
 2023-10-11: wsfulton
             [C#, D, Go, Guile, Java, Javascript, Lua, Ocaml, R, Racket] #1680
             carrays.i library modified to use size_t instead of int for the functions
