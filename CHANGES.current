@@ -8,7 +8,7 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-10-18: wsfulton
-            [C#, D] #1182 #1371 Use the C++11 enum base, that is, the underlying enum
+            [C#, D] #902 Use the C++11 enum base, that is, the underlying enum
             type.
 
             For C#, it is used as the underlying type in the generated C# enum.
