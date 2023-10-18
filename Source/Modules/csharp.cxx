@@ -1198,9 +1198,29 @@ public:
 	if (!addSymbol(symname, n, scope))
 	  return SWIG_ERROR;
 
-	// Pure C# baseclass and interfaces
-	const String *pure_baseclass = typemapLookup(n, "csbase", typemap_lookup_type, WARN_NONE);
-	const String *pure_interfaces = typemapLookup(n, "csinterfaces", typemap_lookup_type, WARN_NONE);
+	// Enum base (underlying enum type)
+	Node *attributes = NewHash();
+	const String *pure_baseclass = typemapLookup(n, "csbase", typemap_lookup_type, WARN_NONE, attributes);
+	bool purebase_replace = GetFlag(attributes, "tmap:csbase:replace") ? true : false;
+	Delete(attributes);
+
+	const String *baseclass = NULL;
+	if (!purebase_replace) {
+	  String *underlying_enum_type = Getattr(n, "enumbase");
+	  if (underlying_enum_type) {
+	    baseclass = typemapLookup(n, "cstype", underlying_enum_type, WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF);
+	  }
+	}
+
+	const String *wanted_base = baseclass ? baseclass : pure_baseclass;
+
+	if (purebase_replace) {
+	  wanted_base = pure_baseclass;
+	} else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
+	  Swig_warning(WARN_CSHARP_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+		       "Warning for %s, enum base %s ignored. Multiple enum bases is not supported in C# enums. "
+		       "Perhaps you need the 'replace' attribute in the csbase typemap?\n", typemap_lookup_type, pure_baseclass);
+	}
 
 	// Class attributes
 	const String *csattributes = typemapLookup(n, "csattributes", typemap_lookup_type, WARN_NONE);
@@ -1209,8 +1229,7 @@ public:
 
 	// Emit the enum
 	Printv(enum_code, typemapLookup(n, "csclassmodifiers", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CLASSMOD_UNDEF),	// Class modifiers (enum modifiers really)
-	       " ", symname, (*Char(pure_baseclass) || *Char(pure_interfaces)) ? " : " : "", pure_baseclass, ((*Char(pure_baseclass)) && *Char(pure_interfaces)) ?	// Interfaces
-	       ", " : "", pure_interfaces, " {\n", NIL);
+	       " ", symname, *Char(wanted_base) ? " : " : "", wanted_base, " {\n", NIL);
 	Delete(scope);
       } else {
 	// Wrap C++ enum with integers - just indicate start of enum with a comment, no comment for anonymous enums of any sort

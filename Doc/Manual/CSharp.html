@@ -3066,7 +3066,8 @@ public class ExtendMe : global::System.IDisposable {
 
 
 <P>
-C# enums use int as the underlying type for each enum item.
+C# enums use int as the underlying type for each enum item, unless there is a C++11 enum base specifiying the underlying C++ enum type.
+If there is a C++ base enum then this is automatically converted to the equivalent C# integral type.
 If you wish to change the underlying type to something else, then use the <tt>csbase</tt> typemap.
 For example when your C++ code uses a value larger than int, this is necessary as the C# compiler will not compile values which are too large to fit into an int.
 Here is an example:
@@ -3085,7 +3086,7 @@ Here is an example:
 The generated enum will then use the given underlying type and compile correctly:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public enum BigNumbers : uint {
   big = 0x80000000,
@@ -3093,6 +3094,58 @@ public enum BigNumbers : uint {
 }
 </pre>
 </div>
+
+<p>
+If a C++11 enum base is specified, such as <tt>unsigned short</tt> in the following:
+</p>
+
+<div class="code">
+<pre>
+%inline %{
+  enum SmallNumbers : unsigned short { tiny, small=1  };
+%}
+</pre>
+</div>
+
+<p>
+The underlying type is automatically converted to the C# equivalent, <tt>ushort</tt>:
+</p>
+
+<div class="targetlang">
+<pre>
+public enum SmallNumbers : ushort {
+  tiny,
+  small = 1
+}
+</pre>
+</div>
+
+<p>
+The underlying C# type can stil be changed to something else using the csbase typemap but the <tt>replace</tt> attribute must be set to avoid an ignored warnings as there are effectively two specified bases, which of course is not possible. For example:
+</p>
+
+<div class="code">
+<pre>
+%typemap(csbase, replace="1") SmallNumbers "byte"
+%inline %{
+  enum SmallNumbers : unsigned short { tiny, small=1  };
+%}
+</pre>
+</div>
+
+<p>
+which generates the desired underlying enum type:
+</p>
+
+<div class="targetlang">
+<pre>
+public enum SmallNumbers : byte {
+  tiny,
+  small = 1
+}
+</pre>
+</div>
+
 
 </body>
 </html>

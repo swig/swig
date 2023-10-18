@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-10-18: wsfulton
+            [C#] #1182 #1371 Use the C++11 enum base, that is, the underlying enum
+            type, for the underlying type used in the C# enum.
+
 2023-10-16: wsfulton
             #2687 Another using declarations fix for inheritance hierarchies more than
             two deep and the using declarations are overloaded. Using declarations

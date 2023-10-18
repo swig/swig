@@ -996,6 +996,22 @@ The equivalent in Java is:
 System.out.println(Color.RainbowColors.Red.swigValue() + " " + Color.WarmColors.Red.swigValue() + " " + Color.PrimeColors.Red.swigValue());
 </pre></div>
 
+<p>
+The C++11 enum base type, such as <tt>unsigned int</tt>, in the example above, is used by some language modules and is missing support in others. For example, in C#, the enum base type in the example above is used and converted into a C# <tt>uint</tt> to specify the underlying C# enumeration type as follows:
+</p>
+
+<div class="targetlang"><pre>
+  public enum RainbowColors : uint {
+    Red,
+    Orange,
+    Yellow,
+    Green,
+    Blue,
+    Indigo,
+    Violet
+  }
+</pre></div>
+
 <H3><a name="CPlusPlus11_double_angle_brackets">7.2.14 Double angle brackets</a></H3>
 
 

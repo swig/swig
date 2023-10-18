@@ -3538,7 +3538,7 @@ c_enum_forward_decl : storage_class c_enum_key ename c_enum_inherit SEMI {
 		   if (scopedenum)
 		     SetFlag($$, "scopedenum");
 		   Setattr($$,"name",$3);
-		   Setattr($$,"inherit",$4);
+		   Setattr($$, "enumbase", $4);
 		   Setattr($$,"type",ty);
 		   Setattr($$,"sym:weak", "1");
 		   add_symbols($$);
@@ -3560,7 +3560,7 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 		  if (scopedenum)
 		    SetFlag($$, "scopedenum");
 		  Setattr($$,"name",$3);
-		  Setattr($$,"inherit",$4);
+		  Setattr($$, "enumbase", $4);
 		  Setattr($$,"type",ty);
 		  appendChild($$,$6);
 		  add_symbols($$);      /* Add to tag space */
@@ -3591,7 +3591,7 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 		 Setattr($$,"enumkey",$2);
 		 if (scopedenum)
 		   SetFlag($$, "scopedenum");
-		 Setattr($$,"inherit",$4);
+		 Setattr($$, "enumbase", $4);
 		 if ($3) {
 		   Setattr($$,"name",$3);
 		   ty = NewStringf("enum %s", $3);
