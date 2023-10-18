@@ -800,8 +800,33 @@ public:
 
     // Emit the enum declaration.
     if (typemap_lookup_type) {
+
+      // Enum base (underlying enum type)
+      Node *attributes = NewHash();
+      const String *pure_baseclass = lookupCodeTypemap(n, "dbase", typemap_lookup_type, WARN_NONE, attributes);
+      bool purebase_replace = GetFlag(attributes, "tmap:dbase:replace") ? true : false;
+      Delete(attributes);
+
+      const String *baseclass = NULL;
+      if (!purebase_replace) {
+	String *underlying_enum_type = Getattr(n, "enumbase");
+	if (underlying_enum_type) {
+	  baseclass = lookupCodeTypemap(n, "dtype", underlying_enum_type, WARN_D_TYPEMAP_DTYPE_UNDEF);
+	}
+      }
+
+      const String *wanted_base = baseclass ? baseclass : pure_baseclass;
+
+      if (purebase_replace) {
+	wanted_base = pure_baseclass;
+      } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
+	Swig_warning(WARN_D_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+		     "Warning for %s, enum base %s ignored. Multiple enum bases is not supported in D enums. "
+		     "Perhaps you need the 'replace' attribute in the dbase typemap?\n", typemap_lookup_type, pure_baseclass);
+      }
+
       const String *enummodifiers = lookupCodeTypemap(n, "dclassmodifiers", typemap_lookup_type, WARN_D_TYPEMAP_CLASSMOD_UNDEF);
-      Printv(proxy_enum_code, "\n", enummodifiers, " ", symname, " {\n", NIL);
+      Printv(proxy_enum_code, "\n", enummodifiers, " ", symname, *Char(wanted_base) ? " : " : "", wanted_base, " {\n", NIL);
     } else {
       // Handle anonymous enums.
       Printv(proxy_enum_code, "\nenum {\n", NIL);

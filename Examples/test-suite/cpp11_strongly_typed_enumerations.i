@@ -240,6 +240,11 @@ private:
 %typemap(csbase) Enum16 "short"
 %warnfilter(SWIGWARN_CSHARP_MULTIPLE_INHERITANCE) Enum16;
 %typemap(csbase) Enum17 "ulong"
+#elif defined(SWIGD)
+%typemap(dbase, replace="1") Enum15 "short"
+%typemap(dbase) Enum16 "short"
+%warnfilter(SWIGWARN_D_MULTIPLE_INHERITANCE) Enum16;
+%typemap(dbase) Enum17 "uint"
 #endif
 %inline %{
   enum class Enum15 : long long

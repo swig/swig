@@ -8,8 +8,11 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-10-18: wsfulton
-            [C#] #1182 #1371 Use the C++11 enum base, that is, the underlying enum
-            type, for the underlying type used in the C# enum.
+            [C#, D] #1182 #1371 Use the C++11 enum base, that is, the underlying enum
+            type.
+
+            For C#, it is used as the underlying type in the generated C# enum.
+            For D, it is used as the enum base type in the generated D enum.
 
 2023-10-16: wsfulton
             #2687 Another using declarations fix for inheritance hierarchies more than
