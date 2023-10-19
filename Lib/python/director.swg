@@ -173,7 +173,7 @@ namespace Swig {
         swig_msg += msg;
       }
       if (!PyErr_Occurred()) {
-        PyErr_SetString(error, what());
+        PyErr_SetString(error, swig_msg.c_str());
       }
       SWIG_PYTHON_THREAD_END_BLOCK;
     }
