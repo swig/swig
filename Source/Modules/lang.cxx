@@ -364,11 +364,11 @@ none_comparison(NewString("$arg != 0")),
 director_ctor_code(NewString("")),
 director_prot_ctor_code(0),
 director_multiple_inheritance(1),
+doxygenTranslator(NULL),
 symtabs(NewHash()),
 overloading(0),
 multiinput(0),
-cplus_runtime(0),
-doxygenTranslator(NULL) {
+cplus_runtime(0) {
   symbolAddScope(""); // create top level/global symbol table scope
   argc_template_string = NewString("argc");
   argv_template_string = NewString("argv[%d]");
