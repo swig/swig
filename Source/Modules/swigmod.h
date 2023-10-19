@@ -333,7 +333,8 @@ protected:
   /* Director constructor "template" code */
   String *director_ctor_code;
 
-  /* Director 'protected' constructor "template" code */
+  /* Director 'protected' constructor "template" code, disabled by
+     default. Each language that needs it, has to define it. */
   String *director_prot_ctor_code;
 
   /* Director allows multiple inheritance */

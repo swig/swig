@@ -363,6 +363,8 @@ Language::Language():
 none_comparison(NewString("$arg != 0")),
 director_ctor_code(NewString("")),
 director_prot_ctor_code(0),
+director_multiple_inheritance(1),
+doxygenTranslator(NULL),
 symtabs(NewHash()),
 overloading(0),
 multiinput(0),
@@ -374,16 +376,8 @@ cplus_runtime(0) {
   /* Default director constructor code, passed to Swig_ConstructorToFunction */
   Printv(director_ctor_code, "if ( $comparison ) { /* subclassed */\n", "  $director_new \n", "} else {\n", "  $nondirector_new \n", "}\n", NIL);
 
-  /*
-     Default director 'protected' constructor code, disabled by
-     default. Each language that needs it, has to define it.
-   */
-  director_prot_ctor_code = 0;
-  director_multiple_inheritance = 1;
   assert(!this_);
   this_ = this;
-
-  doxygenTranslator = NULL;
 }
 
 Language::~Language() {
