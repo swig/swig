@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-10-21: wsfulton
+            [Python] #1783 Don't swallow all exceptions into a NotImplemented return
+            when wrapping operators which are marked with %pythonmaybecall. Corrects the
+            implementation of PEP 207.
+
 2023-10-18: wsfulton
             [C#, D] #902 Use the C++11 enum base, that is, the underlying enum
             type.

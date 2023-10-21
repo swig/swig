@@ -1983,8 +1983,8 @@ overloaded assignment operators don't map to Python semantics and will be ignore
 <p>
 Operator overloading is implemented in the <tt>pyopers.swg</tt> library file.
 In particular overloaded operators are marked with the <tt>python:maybecall</tt> feature, also known as <tt>%pythonmaybecall</tt>.
-This feature forces SWIG to generate code that return an instance of Python's <tt>NotImplemented</tt>
-instead of raising an exception when the comparison fails, that is, on any kind of error.
+This feature forces SWIG to generate code that returns an instance of Python's <tt>NotImplemented</tt>
+instead of raising the usual <tt>TypeError</tt> exception when an incorrect type is passed to a SWIG wrapped method.
 This follows the guidelines in <a href="https://www.python.org/dev/peps/pep-0207/">PEP 207 - Rich Comparisons</a> and <a href="https://docs.python.org/3/library/constants.html#NotImplemented">NotImplemented Python constant</a>.
 </p>
 

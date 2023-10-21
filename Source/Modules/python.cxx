@@ -3222,6 +3222,9 @@ public:
       Printv(f->code, "  return -1;\n", NIL);
     } else {
       if (GetFlag(n, "feature:python:maybecall")) {
+	Append(f->code, "  if (PyErr_Occurred() && !PyErr_ExceptionMatches(PyExc_TypeError)) {\n");
+	Append(f->code, "    return NULL;\n");
+	Append(f->code, "  }\n");
 	Append(f->code, "  PyErr_Clear();\n");
 	Append(f->code, "  Py_INCREF(Py_NotImplemented);\n");
 	Append(f->code, "  return Py_NotImplemented;\n");
@@ -4068,7 +4071,7 @@ public:
       Printf(f, "  }\n");
     }
     Delete(richcompare_list);
-    Printv(f, "  if (!result) {\n", NIL);
+    Printv(f, "  if (!result && !PyErr_Occurred()) {\n", NIL);
     Printv(f, "    if (SwigPyObject_Check(self) && SwigPyObject_Check(other)) {\n", NIL);
     Printv(f, "      result = SwigPyObject_richcompare((SwigPyObject *)self, (SwigPyObject *)other, op);\n", NIL);
     Printv(f, "    } else {\n", NIL);

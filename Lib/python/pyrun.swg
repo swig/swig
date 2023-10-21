@@ -683,12 +683,14 @@ SwigPyObject_compare(SwigPyObject *v, SwigPyObject *w)
 SWIGRUNTIME PyObject*
 SwigPyObject_richcompare(SwigPyObject *v, SwigPyObject *w, int op)
 {
-  PyObject* res;
-  if( op != Py_EQ && op != Py_NE ) {
-    Py_INCREF(Py_NotImplemented);
-    return Py_NotImplemented;
+  PyObject* res = NULL;
+  if (!PyErr_Occurred()) {
+    if (op != Py_EQ && op != Py_NE) {
+      Py_INCREF(Py_NotImplemented);
+      return Py_NotImplemented;
+    }
+    res = PyBool_FromLong( (SwigPyObject_compare(v, w)==0) == (op == Py_EQ) ? 1 : 0);
   }
-  res = PyBool_FromLong( (SwigPyObject_compare(v, w)==0) == (op == Py_EQ) ? 1 : 0);
   return res;  
 }
 
