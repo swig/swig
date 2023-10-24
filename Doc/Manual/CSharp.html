@@ -885,7 +885,7 @@ By default SWIG treats <tt>void *</tt> as any other pointer and hence marshalls 
 as shown in the table in the previous section.
 If you want to marshall with the .NET <tt>System.IntPtr</tt> type instead, there is a simple set of named typemaps called
 <tt>void *VOID_INT_PTR</tt> that can be used.
-They net effect is then:
+The net effect is then:
 </p>
 
 <table BORDER summary="VOID_INT_PTR type mappings">
@@ -3150,7 +3150,7 @@ public enum SmallNumbers : ushort {
 </div>
 
 <p>
-The underlying C# type can stil be changed to something else using the csbase typemap but the <tt>replace</tt> attribute must be set to avoid an ignored warnings as there are effectively two specified bases, which of course is not possible. For example:
+The underlying C# type can still be changed to something else using the csbase typemap but the <tt>replace</tt> attribute must be set to avoid an ignored warnings as there are effectively two specified bases, which of course is not possible. For example:
 </p>
 
 <div class="code">

@@ -2237,7 +2237,7 @@ Version 4.0.0 (27 Apr 2019)
               -fastunpack   Faster unpacking of function arguments in C/C++ wrappers.
               -modern       Use Python 2.3 features such as object and property.
               -modernargs   Use Python 2.3 C APIs for unpacking arguments in tuples.
-              -noproxydel   Stop generating a proxy __del__ method for backwards compatiblity.
+              -noproxydel   Stop generating a proxy __del__ method for backwards compatibility.
               -safecstrings No discernable difference
 
             The following options have been removed altogether:
@@ -16738,7 +16738,7 @@ Version 1.3.20 (December 17, 2003)
                   virtual f2();
                 };
 
-	    This can be dissabled by using the '-nodirprot' option.
+	    This can be disabled by using the '-nodirprot' option.
 
 	    - The feature 'nodirector' is working now at the top level,
 	    so, it must work for all the languages:
