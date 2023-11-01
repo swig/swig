@@ -11,4 +11,6 @@ let _ =
   assert (_testJim '(name) as string = "multiname num");
   let arg = new_PairIntBool '(10, false) in
   assert (_testJohn '(arg) as int = 123);
+  assert (_makeStringInt '("stringint", 999) as string = "stringint");
+  assert (_provideStringInt '(999) as string = "1000");
 ;;

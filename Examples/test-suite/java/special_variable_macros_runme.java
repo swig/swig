@@ -30,5 +30,9 @@ public class special_variable_macros_runme {
       throw new RuntimeException("test failed");
     NewName newName = NewName.factory("factoryname");
     name = newName.getStoredName();
+    if (!special_variable_macros.makeStringInt("stringint", 999).equals("stringint"))
+      throw new RuntimeException("test failed");
+    if (!special_variable_macros.provideStringInt(999).equals("1000"))
+      throw new RuntimeException("test failed");
   }
 }
