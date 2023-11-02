@@ -6,12 +6,6 @@
 set -e # exit on failure (same as -o errexit)
 
 case "$SWIGLANG" in
-	"go")
-		if [[ "$VER" ]]; then
-		  eval "$($HOME/bin/gimme ${VER}.x)"
-		  $HOME/bin/gimme --list
-		fi
-		;;
 	"javascript")
 		case "$ENGINE" in
 			"node"|"napi")
@@ -21,17 +15,6 @@ case "$SWIGLANG" in
 				;;
 			*)      ;;
 		esac
-		;;
-	"ruby")
-		if ! command -v rvm; then
-			set +x
-			if [ -f /etc/profile.d/rvm.sh ] ; then
-				source /etc/profile.d/rvm.sh
-			elif [ -f $HOME/.rvm/scripts/rvm ] ; then
-				source $HOME/.rvm/scripts/rvm
-			fi
-			set -x
-		fi
 		;;
 	*)	;;
 esac

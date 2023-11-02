@@ -1,0 +1,4 @@
+extra-paths:
+  # Javascript use common test-suite paths, not engine specific
+  - Examples/javascript/*
+  - Examples/test-suite/javascript/*

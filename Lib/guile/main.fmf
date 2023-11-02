@@ -1,0 +1,26 @@
+github-matrix+:
+  version: [ "","2.2","3.0" ]
+  include+:
+    # Guile tests fail for modern std. Enable old std
+    - cpp-std: ""
+      c-std: ""
+      experimental: false
+      os: ubuntu-20.04
+      version: ""
+    - cpp-std: ""
+      c-std: ""
+      experimental: false
+      version: "2.2"
+    - cpp-std: ""
+      c-std: ""
+      experimental: false
+      version: "3.0"
+    - cpp-std: c++11
+      experimental: true
+    - cpp-std: c++14
+      experimental: true
+    - cpp-std: c++17
+      experimental: true
+extra-paths:
+  # TODO: Move these to sensible locations
+  - Examples/test-suite/schemerunme/*

@@ -1,31 +1,19 @@
 name: Windows Nuget Build
 
-on:
-  push:
-    paths-ignore:
-      - 'CHANGES*'
-      - 'Doc/**'
-      - 'appveyor.yml'
-  pull_request:
-    branches: master
-    paths-ignore:
-      - 'CHANGES*'
-      - 'Doc/**'
-      - 'appveyor.yml'
-
 permissions:
-  contents: read  #  to fetch code (actions/checkout)
+  contents: read
+
+on:
+  workflow_call:
 
 jobs:
-  build:
+  test:
 
     runs-on: windows-2019
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
-      with:
-        submodules: recursive
+      uses: actions/checkout@v4
 
     - name: Install Dependencies
       shell: powershell

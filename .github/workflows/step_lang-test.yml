@@ -1,0 +1,174 @@
+name: Test Swig Language
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      lang:
+        description: Swig language
+        required: true
+        type: string
+    # All other inputs are derived from the fmf metadata
+
+jobs:
+  get-metadata:
+    name: Get ${{ inputs.lang }} language metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+      - name: Install fmf
+        run: python3 -m pip install fmf
+      - name: Get metadata
+        working-directory: Lib
+        id: metadata
+        run: |
+          fmf show --name=^/${{ inputs.lang }}\$
+          if [ -z "$(fmf show --name=^/${{ inputs.lang }}\$)" ]; then
+            echo "${{ inputs.lang }} language is not configured"
+            exit 1
+          fi
+          
+          # Fetch only github-matrix object
+          github_matrix=$(fmf show --name=^/${{ inputs.lang }}\$ --format='{0}' --value='data["github-matrix"]')
+          # Convert from python output to JSON
+          github_matrix=$(python3 -c "import json; print(json.dumps($github_matrix))")
+          
+          # Check if there are extra env variables to add
+          if [ ! -z "$(fmf show --name=^/${{ inputs.lang }}\$ --key=env)" ]; then
+            env=$(fmf show --name=^/${{ inputs.lang }}\$ --format='{0}' --value='data["env"]')
+            env=$(python3 -c "import json; print(json.dumps($env))")
+            echo "env=$env" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "matrix=$github_matrix" >> $GITHUB_OUTPUT
+          # Normalize the swiglang (take only the first part of the Lib path)
+          echo "swig-lang=$(echo '${{ inputs.lang }}' | sed 's|/.*||')" >> $GITHUB_OUTPUT
+    outputs:
+      swig-lang: ${{ steps.metadata.outputs.swig-lang }}
+      matrix: ${{ steps.metadata.outputs.matrix }}
+      env: ${{ steps.metadata.outputs.env }}
+  test:
+    needs: [ get-metadata ]
+    name: "${{ matrix.version }} ${{ matrix.cpp-std }} ${{ matrix.experimental && '(experimental)' }}"
+    continue-on-error: ${{ matrix.experimental || false }}
+    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
+    container: ${{ matrix.container || '' }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.get-metadata.outputs.matrix) }}
+
+    env:
+      SWIGLANG: ${{ needs.get-metadata.outputs.swig-lang }}
+      VER: ${{ matrix.version }}
+      CPPSTD: ${{ matrix.cpp-std }}
+      CSTD: ${{ matrix.c-std }}
+      SWIG_FEATURES: ${{ matrix.swig-features }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add additional env metadata
+        run: |
+          for key_val in $(echo '${{ needs.get-metadata.outputs.env }}' | jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]'); do
+            echo "${key_val}" >> $GITHUB_ENV
+          done
+        if: ${{ needs.get-metadata.outputs.env }}
+      - name: Install CCache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ runner.os }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}
+
+      ## Uncomment to debug via ssh, see https://github.com/mxschmitt/action-tmate
+      #- name: Setup tmate session
+      #  uses: mxschmitt/action-tmate@v3
+
+      - name: Setup Swig lang
+        uses: ./.github/actions/setup-lang
+        with:
+          lang: ${{ needs.get-metadata.outputs.swig-lang }}
+          version: ${{ matrix.version }}
+
+      - name: Configure
+        run: |
+          source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
+          set -x
+
+          if [[ -z "$CSTD" ]]; then
+            case "$CPPSTD" in
+              c++11) export CSTD=c11 ;;
+              c++14) export CSTD=c11 ;;
+              c++17) export CSTD=c17 ;;
+              c++20) export CSTD=c17 ;;
+            esac
+            echo CSTD="$CSTD" >> $GITHUB_ENV
+          fi
+          # Add any CONFIGOPTS from github matrix
+          for opt in ${{ matrix.config-opts }}; do
+            CONFIGOPTS+=("$opt")
+          done
+          if test -z "$CPPSTD"; then CONFIGOPTS+=("--disable-cpp11-testing"); fi
+          if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
+          if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
+          CONFIGOPTS+=(--without-alllang --with-$WITHLANG)
+          echo "${CONFIGOPTS[@]}"
+          ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
+
+      - name: Build
+        working-directory: build/build
+        run: |
+          set -x
+          make -s $SWIGJOBS
+          ./swig -version && ./swig -pcreversion
+
+      - name: Test
+        working-directory: build/build
+        run: |
+          source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
+          set -x
+
+          if test -z "$SWIGLANG"; then
+            make $SWIGJOBS check-ccache
+            make $SWIGJOBS check-errors-test-suite
+          else
+            case "$SWIGLANG" in
+              javascript)
+                case "$ENGINE" in
+                  v8 | jsc)
+                    # Running tests using v8 or jsc involves creating a custom
+                    # interpreter in Tools/javascript, which is currently broken
+                    # for parallel builds (we attempt to update this interpreter
+                    # while running, resulting in "Text file busy" error).
+                    unset SWIGJOBS
+                esac
+                ;;
+            esac
+
+            # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
+            cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)
+            cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)
+            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+          fi
+
+      - name: Install
+        working-directory: build/build
+        run: |
+          set -x
+          if test -z "$SWIGLANG"; then sudo make install && swig -version && ccache-swig -V; fi
+
+      - name: Clean
+        working-directory: build/build
+        run: |
+          set -x
+          make check-maintainer-clean && ../../configure
+  pass:
+    needs: [get-metadata, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check ${{ inputs.lang }} jobs
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}
+    if: always()

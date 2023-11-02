@@ -1,0 +1,98 @@
+name: setup-lang
+description: Setup Swig language
+inputs:
+  lang:
+    required: true
+    description: Swig language
+  version:
+    required: true
+    description: Version of Swig language
+runs:
+  using: composite
+  steps:
+    # Setup Swiglang from upstream GitHub actions
+    - name: Setup C# ${{ inputs.version }}
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ inputs.version }}
+      if: inputs.lang == 'csharp'
+    - name: Setup D ${{ inputs.version }}
+      uses: dlang-community/setup-dlang@v1
+      with:
+        compiler: ${{ inputs.version }}
+      if: inputs.lang == 'd'
+    - name: Setup Go ${{ inputs.version }}
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ inputs.version }}
+      if: inputs.lang == 'go'
+    # TODO: Setup javascript properly
+#      - name: Setup Javascript ${{ inputs.version }}
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: ${{ inputs.version }}
+#          cache: 'npm'
+#        if: inputs.lang == 'javascript'
+    - name: Setup Lua ${{ inputs.version }}
+      uses: leafo/gh-actions-lua@v10
+      with:
+        luaVersion: ${{ inputs.version }}
+      if: inputs.lang == 'lua'
+    - name: Setup OCaml ${{ inputs.version }}
+      uses: ocaml/setup-ocaml@v2
+      with:
+        ocaml-compiler: ${{ inputs.version }}
+      if: inputs.lang == 'ocaml'
+    - name: Setup PHP ${{ inputs.version }}
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ inputs.version }}
+      if: inputs.lang == 'php'
+    - name: Setup Python ${{ inputs.version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.version }}
+        # Only allow prerelease python with experimental flag on
+        allow-prereleases: ${{ matrix.experimental || 'true' }}
+      # Note: -builtin does not have version, do not setup python in that case.
+      if: inputs.lang == 'python' && inputs.version
+    - name: Setup R ${{ inputs.version }}
+      uses: r-lib/actions/setup-r@v2
+      with:
+        r-version: ${{ inputs.version }}
+      if: inputs.lang == 'r'
+    - name: Setup Ruby ${{ inputs.version }}
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ inputs.version }}
+        bundler: none
+      if: inputs.lang == 'ruby'
+
+    # Setup other Swiglang manually
+    - name: Install Other swiglang Dependencies
+      shell: bash
+      run: |
+        set -x
+        export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+        echo PATH="$PATH" >> $GITHUB_ENV
+        
+        source $GITHUB_WORKSPACE/Tools/GHA-linux-install.sh
+        echo WITHLANG="$WITHLANG" >> $GITHUB_ENV
+        
+        case $(uname) in
+            Linux)
+                cpu_count=$(nproc)
+                ;;
+        
+            Darwin)
+                cpu_count=$(sysctl -n hw.ncpu)
+                ;;
+        
+            *)
+                cpu_count=1
+                ;;
+        esac
+        
+        if [[ $cpu_count != 1 ]]; then
+          echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
+        fi
