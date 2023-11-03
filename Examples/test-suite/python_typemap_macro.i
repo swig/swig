@@ -108,17 +108,17 @@ namespace std {
 #endif
 
 %template(PairStringInt) std::pair<std::string, int>;
-%template(PairCharPairStringInt) std::pair<char, std::pair<std::string, int>>;
+%template(PairCharPairStringInt) std::pair<char, std::pair<std::string, int> >;
 
 %inline %{
 std::pair<std::string, int> PairInputOutput(std::pair<std::string, int> ppp) {
   return ppp;
 }
-std::pair<char, std::pair<std::string, int>> PairInputOutput2(std::pair<char, std::pair<std::string, int>> p) {
+std::pair<char, std::pair<std::string, int> > PairInputOutput2(std::pair<char, std::pair<std::string, int> > p) {
   return p;
 }
-std::pair<char, std::pair<std::string, int>> MakePair() {
-  return std::pair<char, std::pair<std::string, int>>('x', std::pair<std::string, int>("outstring", 111));
+std::pair<char, std::pair<std::string, int> > MakePair() {
+  return std::pair<char, std::pair<std::string, int> >('x', std::pair<std::string, int>("outstring", 111));
 }
 /*
 */
