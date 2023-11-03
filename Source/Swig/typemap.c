@@ -1970,7 +1970,7 @@ static List *split_embedded_typemap(String *s) {
       level--;
     if (*c == '<')
       angle_level++;
-    if (*c == '>')
+    if (*c == '>' && *(c - 1) != '-')
       angle_level--;
     if (isspace((int) *c) && leading)
       start++;
