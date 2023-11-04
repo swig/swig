@@ -32,6 +32,12 @@
 %typemap(javadirectorout) MyType &Class1::foo2, MyType &foo1 %{ /* special start */ $typemap(javadirectorout, MyType &USEME) /* special end */ %}
 #endif
 
+#ifdef SWIGFORTRAN
+// Since SWIGTYPE& and int& are not compatible in Fortran, we have to replace
+// the typemap
+%typemap(out) MyType &USEME = int &;
+#endif
+
 %inline %{
 typedef int MyType;
 class Class1

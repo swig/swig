@@ -1,0 +1,15 @@
+# List of examples that have makefiles; including them here will cause them to
+# be run when you execute `make check-fortran-examples` from the root SWIG
+# build directory.
+bare
+bindc
+class
+except
+funcptr
+inheritance
+simple
+spdemo
+static_members
+std_string
+templated
+thinvec

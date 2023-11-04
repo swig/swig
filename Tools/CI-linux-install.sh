@@ -29,6 +29,13 @@ case "$SWIGLANG" in
 			$RETRY sudo apt-get -qq install "$VER"
 		fi
 		;;
+  "fortran")
+    if [[ -n "$GCC" ]]; then
+      $RETRY sudo apt-get install -qq gfortran-$GCC
+    else
+      $RETRY sudo apt-get install -qq gfortran
+    fi
+    ;;
 	"go")
 		if [[ "$VER" ]]; then
 		  mkdir -p $HOME/bin

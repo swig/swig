@@ -18,6 +18,7 @@
 
 static int Compact_mode = 0;	/* set to 0 on default */
 static int Max_line_size = 128;
+const char C_end_statement[] = ";\n";
 
 /* -----------------------------------------------------------------------------
  * NewWrapper()
@@ -32,6 +33,7 @@ Wrapper *NewWrapper(void) {
   w->locals = NewStringEmpty();
   w->code = NewStringEmpty();
   w->def = NewStringEmpty();
+  w->end_statement = C_end_statement;
   return w;
 }
 
@@ -391,6 +393,7 @@ void Wrapper_print(Wrapper *w, File *f) {
 
   str = NewStringEmpty();
   Printf(str, "%s\n", w->def);
+  if (Len(w->locals) > 0)
   Printf(str, "%s\n", w->locals);
   Printf(str, "%s\n", w->code);
   if (Compact_mode == 1)
@@ -414,7 +417,7 @@ int Wrapper_add_local(Wrapper *w, const_String_or_char_ptr name, const_String_or
     return -1;
   }
   Setattr(w->localh, name, decl);
-  Printf(w->locals, "%s;\n", decl);
+  Printf(w->locals, "%s%s", decl, w->end_statement);
   return 0;
 }
 
@@ -482,7 +485,7 @@ char *Wrapper_new_local(Wrapper *w, const_String_or_char_ptr name, const_String_
   }
   Replace(ndecl, name, nname, DOH_REPLACE_ID);
   Setattr(w->localh, nname, ndecl);
-  Printf(w->locals, "%s;\n", ndecl);
+  Printf(w->locals, "%s%s", ndecl, w->end_statement);
   ret = Char(nname);
   Delete(nname);
   Delete(ndecl);

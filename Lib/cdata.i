@@ -58,6 +58,17 @@ static jbyteArray SWIG_JavaArrayOutCDATA(JNIEnv *jenv, char *result, jsize sz) {
     return $jnicall;
   }
 
+#elif SWIGFORTRAN
+
+/* Transform the two-argument typemap into an array pointer of 'char' */
+%fortran_array_pointer(char, %arg((const void *indata, int inlen)) )
+
+%typemap(in, noblock=1) (const void *indata, int inlen) {
+$1 = %static_cast($input->data, char*);
+$2 = $input->size;
+}
+
+
 #endif
 
 

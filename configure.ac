@@ -456,6 +456,12 @@ case $host in
    *) LUA_SO=$SO;;
 esac
 
+AC_SUBST(FORTRAN_SO)
+case $host in
+   *-*-darwin*) FORTRAN_SO=.dylib;;
+   *) FORTRAN_SO=$SO;;
+esac
+
 # Check for specific libraries.   Used for SWIG examples
 AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
 AC_CHECK_LIB(dld, shl_load)	# Dynamic linking for HP-UX
@@ -711,6 +717,61 @@ esac
 
 AC_SUBST(D2COMPILER)
 AC_SUBST(DLIBPREFIX)
+
+#---------------------------------------------------------------
+# Look for Fortran
+#---------------------------------------------------------------
+
+AC_ARG_WITH(fortran,
+AS_HELP_STRING([--without-fortran], [Disable Fortran])
+AS_HELP_STRING([--with-fortran=path], [Set location of Fortran compiler]),
+[FORTRAN="$withval"], [FORTRAN="$alllang_default"])
+
+if test x"${FORTRAN}" = xno; then
+  AC_MSG_NOTICE([Disabling Fortran])
+  FC=
+else
+  if test -n "$FCFLAGS" && test "x$GCC" = xyes; then
+    FCFLAGS="-std=f2003 -Wall -Wimplicit-procedure -Wimplicit-interface"
+  fi
+
+  if test "x$FORTRAN" = xyes; then
+    AC_PROG_FC dnl This command also sets FCFLAGS
+  else
+    FC=$FORTRAN
+    FCFLAGS=$FCFLAGS
+  fi
+
+  if test -n "$FC"; then
+    AC_FC_LIBRARY_LDFLAGS dnl Set up Fortran library flags
+  fi
+
+  # FORTRANLDSHARED is the ld *command* used to create shared library
+  # This must make a dynamic library as opposerd to a bundle.
+  case $host in
+    *-*-darwin*)
+        FORTRANLDSHARED='$(CC) -dynamiclib'
+        FORTRANCXXSHARED='$(CXX) -dynamiclib'
+        ;;
+      *)
+        FORTRANLDSHARED='$(LDSHARED) -pthread'
+        FORTRANCXXSHARED='$(CXXSHARED) -pthread'
+        ;;
+  esac
+fi
+
+# Do not prefix library file names with "lib" on Windows.
+case $host in
+*-*-cygwin* | *-*-mingw*) FORTRANLIBPREFIX="";;
+*)FORTRANLIBPREFIX="lib";;
+esac
+
+AC_SUBST(FC)
+AC_SUBST(FCFLAGS)
+AC_SUBST(FCLIBS)
+AC_SUBST(FORTRANLDSHARED)
+AC_SUBST(FORTRANCXXSHARED)
+AC_SUBST(FORTRANLIBPREFIX)
 
 #----------------------------------------------------------------
 # Look for Go compilers
@@ -2735,6 +2796,12 @@ fi
 AC_SUBST(SKIP_TCL)
 
 
+SKIP_FORTRAN=
+if test -z "$FC" ; then
+    SKIP_FORTRAN="1"
+fi
+AC_SUBST(SKIP_FORTRAN)
+
 #----------------------------------------------------------------
 # Additional language dependencies
 #----------------------------------------------------------------
@@ -2824,6 +2891,7 @@ AC_CONFIG_FILES([
     Examples/test-suite/errors/Makefile
     Examples/test-suite/csharp/Makefile
     Examples/test-suite/d/Makefile
+    Examples/test-suite/fortran/Makefile
     Examples/test-suite/go/Makefile
     Examples/test-suite/guile/Makefile
     Examples/test-suite/java/Makefile
@@ -2886,6 +2954,7 @@ AC_OUTPUT
 langs=""
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
+test -n "$SKIP_FORTRAN"		|| langs="${langs}fortran "
 test -n "$SKIP_GO"		|| langs="${langs}go "
 test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "

@@ -1,5 +1,11 @@
 %module template_array_numeric
 
+#ifdef SWIGFORTRAN
+/* Make unit testing easier for Fortran */
+%include <typemaps.i>
+%apply SWIGTYPE ARRAY[ANY] {const float [ANY] };
+#endif
+
 %inline %{
 
 template <int Len>

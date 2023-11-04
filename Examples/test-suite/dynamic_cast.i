@@ -1,8 +1,17 @@
 /* File : example.i */
 %module dynamic_cast
 
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD)
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD) && !defined(SWIGFORTRAN)
 %apply SWIGTYPE *DYNAMIC { Foo * };
+#endif
+
+#if defined(SWIGFORTRAN)
+%typemap(out) Foo *blah (Bar *downcast) {
+    downcast = dynamic_cast<Bar *>($1);
+    $result.cptr = downcast;
+    $result.cmemflags = SWIG_MEM_RVALUE | ($owner ? SWIG_MEM_OWN : 0);
+}
+%typemap(ftype) Foo *blah "$typemap(ftype, Foo*)"
 #endif
 
 %inline %{
@@ -69,7 +78,7 @@ char *do_test(Bar *b) {
 }
 %}
 
-#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD)
+#if !defined(SWIGJAVA) && !defined(SWIGCSHARP) && !defined(SWIGGO) && !defined(SWIGD) && !defined(SWIGFORTRAN)
 // A general purpose function for dynamic casting of a Foo *
 %{
 static swig_type_info *

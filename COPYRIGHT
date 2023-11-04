@@ -9,6 +9,7 @@ Copyright (c) 1995-1998 The University of Utah and the Regents of the University
 Portions also copyrighted by:
  Network Applied Communication Laboratory, Inc
  Information-technology Promotion Agency, Japan
+ UT-Battelle, LLC
 
 Active SWIG Developers:
  William Fulton (wsf@fultondesigns.co.uk)                 (SWIG core, Java, C#, Windows, Cygwin)
@@ -17,6 +18,7 @@ Active SWIG Developers:
  Momtchil Momtchev (momtchil@momtchev.com)                (Javascript Node-API)
  Simon Marchetto (simon.marchetto@scilab-enterprises.com) (Scilab)
  Zackery Spytz (zspytz@gmail.com)                         (OCaml, SWIG core)
+ Seth Johnson (johnsonsr@ornl.gov)                        (Fortran)
 
 Past SWIG developers and major contributors include:
  Dave Beazley (dave-swig@dabeaz.com)                      (SWIG core, Python, Tcl, Perl)

@@ -28,6 +28,7 @@
 extern "C" {
   Language *swig_csharp(void);
   Language *swig_d(void);
+  Language *swig_fortran(void);
   Language *swig_go(void);
   Language *swig_guile(void);
   Language *swig_java(void);
@@ -57,6 +58,7 @@ static TargetLanguageModule modules[] = {
   {"-cffi", NULL, "CFFI", Disabled},
   {"-csharp", swig_csharp, "C#", Supported},
   {"-d", swig_d, "D", Supported},
+  {"-fortran", swig_fortran, "Fortran", Supported},
   {"-go", swig_go, "Go", Supported},
   {"-guile", swig_guile, "Guile", Supported},
   {"-java", swig_java, "Java", Supported},
