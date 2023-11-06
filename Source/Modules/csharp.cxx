@@ -59,6 +59,7 @@ class CSHARP:public Language {
   String *variable_name;	//Name of a variable being wrapped
   String *proxy_class_constants_code;
   String *module_class_constants_code;
+  String *common_begin_code;
   String *enum_code;
   String *dllimport;		// DllImport attribute name
   String *namespce;		// Optional namespace name
@@ -134,6 +135,7 @@ public:
       variable_name(NULL),
       proxy_class_constants_code(NULL),
       module_class_constants_code(NULL),
+      common_begin_code(NULL),
       enum_code(NULL),
       dllimport(NULL),
       namespce(NULL),
@@ -308,6 +310,9 @@ public:
 	allow_dirprot();
       }
       allow_allprotected(GetFlag(optionsnode, "allprotected"));
+      common_begin_code = Getattr(optionsnode, "csbegin");
+      if (common_begin_code)
+	Printf(common_begin_code, "\n");
     }
 
     /* Initialize all of the output files */
@@ -649,6 +654,7 @@ public:
     Printf(f, "//\n");
     Swig_banner_target_lang(f, "//");
     Printf(f, "//------------------------------------------------------------------------------\n\n");
+    Printv(f, common_begin_code, NIL);
   }
 
   /* -----------------------------------------------------------------------------

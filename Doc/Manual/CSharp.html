@@ -525,7 +525,7 @@ The module directive attribute <tt>imclassname</tt> is used to achieve this:
 
 <div class="code">
 <pre>
-%module (imclassname="name") modulename
+%module(imclassname="name") modulename
 </pre>
 </div>
 
@@ -534,6 +534,38 @@ If <tt>name</tt> is the same as <tt>modulename</tt> then the module class name g
 from <tt>modulename</tt> to <tt>modulenameModule</tt>.
 </p>
 </li>
+
+<li>
+<a name="CSharp_begin"></a>
+<p>
+The <tt>%module</tt> directive supports the <tt>csbegin</tt> option for adding code to the start of every generated C# file.
+This is useful for adding common comments, using statements and/or preprocessor statements into all generated .cs files. For example,
+C# 8 nullable reference types can be enabled via a C# preprocessor directive by adding <tt>#nullable enable</tt> into C# files as follows:
+</p>
+
+<div class="code">
+<pre>
+%module(csbegin="#nullable enable\n") mymodule
+</pre>
+</div>
+
+<p>
+It might be easier to use a macro for multiple lines of code, for example:
+</p>
+
+<div class="code">
+<pre>
+%define CSBEGIN_CODE
+"
+/* Copyright statement */
+using System.Text;
+#nullable enable
+"
+%enddef
+
+%module(csbegin=CSBEGIN_CODE) mymodule
+</pre>
+</div>
 
 <li>
 There is no additional 'premature garbage collection prevention parameter' as the marshalling of the <tt>HandleRef</tt> object
@@ -799,9 +831,6 @@ Conditionally applying the typemaps using a macro is easily done. For example de
 #endif
 </pre>
 </div>
-
-<p>
-</p>
 
 <H3><a name="CSharp_other_type_mappings">23.3.2 Other types</a></H3>
 

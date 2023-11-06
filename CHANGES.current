@@ -7,6 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-11-06: wsfulton
+            [D, Java] Add the dbegin option to the %module directive for generating code at
+            the beginning of every D file. Similarly javabegin for Java. This enables one
+            to add a common comment at the start of each D/Java file.
+
+2023-11-06: wsfulton
+            [C#] #2681 Support nullable reference types. A generic C# option to the
+            %module directive allows one to add in any code at the beginning of every
+            C# file. This can add the #nullable enable preprocessor directive at the beginning
+            of every C# file in order to enable nullable reference types as follows:
+
+              %module(csbegin="#nullable enable\n") mymodule
+
 2023-10-21: wsfulton
             [Python] #1783 Don't swallow all exceptions into a NotImplemented return
             when wrapping operators which are marked with %pythonmaybecall. Corrects the

@@ -175,6 +175,9 @@ class D : public Language {
   // The full code for the current proxy class, including the epilogue.
   String* proxy_class_code;
 
+  // Code generated at the begin of every D file
+  String *common_begin_code;
+
   // Contains a D call to the function wrapping C++ the destructor of the
   // current class (if there is a public C++ destructor).
   String *destructor_call;
@@ -261,6 +264,7 @@ public:
       proxy_class_body_code(NULL),
       proxy_class_epilogue_code(NULL),
       proxy_class_code(NULL),
+      common_begin_code(NULL),
       destructor_call(NULL),
       director_dcallbacks_code(NULL),
       wrapper_loader_code(NULL),
@@ -366,6 +370,10 @@ public:
       }
 
       allow_allprotected(GetFlag(optionsnode, "allprotected"));
+
+      common_begin_code = Getattr(optionsnode, "dbegin");
+      if (common_begin_code)
+	Printf(common_begin_code, "\n");
     }
 
     /* Initialize all of the output files */
@@ -4696,6 +4704,7 @@ private:
     Printf(f, "/* ----------------------------------------------------------------------------\n");
     Swig_banner_target_lang(f, " *");
     Printf(f, " * ----------------------------------------------------------------------------- */\n\n");
+    Printv(f, common_begin_code, NIL);
   }
 
   /* ---------------------------------------------------------------------------

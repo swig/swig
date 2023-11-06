@@ -22,7 +22,11 @@
 <li><a href="#D_code_injection_typemaps">Code injection typemaps</a>
 <li><a href="#D_special_variables">Special variable macros</a>
 </ul>
+<li><a href="#D_other_code_control">Other D code control features</a>
+<ul>
+<li><a href="#D_module">D begin</a>
 <li><a href="#D_features">D and %feature</a>
+</ul>
 <li><a href="#D_pragmas">Pragmas</a>
 <li><a href="#D_exceptions">D Exceptions</a>
 <li><a href="#D_directors">D Directors</a>
@@ -305,7 +309,29 @@ $importtype(AnotherInterface)
 </dl>
 
 
-<H2><a name="D_features">24.4 D and %feature</a></H2>
+<H2><a name="D_other_code_control">24.4 Other D code control features</a></H2>
+
+
+<H3><a name="D_module">24.4.1 D begin</a></H3>
+
+
+<p>
+It is possible to add a common comment at the start of every generated D file.
+The <tt>%module</tt> directive supports the <tt>dbegin</tt> option for this.
+The provided text is generated at the very beginning of each generated D file.
+As it is generated before the D module statement, is only really useful for adding in
+a common comment into all generated D files. For example, copyright text for each file:
+</p>
+
+
+<div class="code">
+<pre>
+%module(dbegin="/* Common comment. Copyright (C) 2000 Mr Nobody. */\n") nobodymodule
+</pre>
+</div>
+
+
+<H3><a name="D_features">24.4.2 D and %feature</a></H3>
 
 
 <p>The D module defines a number of directives which modify the <a href="Customization.html#Customization_features">SWIG features</a> set globally or for a specific declaration:</p>
