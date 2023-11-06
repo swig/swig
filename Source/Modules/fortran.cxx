@@ -2113,7 +2113,13 @@ void FORTRAN::write_docstring(Node *n, String *dest) {
 /* -----------------------------------------------------------------------------
  * FORTRAN::makeParameterName()
  *
- * Create a friendly parameter name
+ * Create a Fortran-compatible parameter name that doesn't shadow other Fortran symbol names in the current module. The regular makeParameterName
+ * function cannot be used because:
+ * 1. it might result in duplicate parameter names due to mixed case,
+ * 2. valid C/C++ parameter names might be invalid (e.g. those starting with _) for Fortran
+ * 3. parameter names may shadow types, functions, etc. in the current module, and Fortran doesn't provide a way to disambiguate those
+ *
+ * The mangled Fortran name gets cached in the "fname" attribute.
  * ----------------------------------------------------------------------------- */
 
 String *FORTRAN::makeParameterName(Node *n, Parm *p, int arg_num, bool) const {
