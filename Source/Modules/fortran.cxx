@@ -723,7 +723,6 @@ void FORTRAN::main(int argc, char *argv[]) {
   SWIG_config_file("fortran.swg");
 
   allow_overloading();
-  Swig_interface_feature_enable();
 }
 
 /* -----------------------------------------------------------------------------
