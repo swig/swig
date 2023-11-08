@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-11-08: emmenlau
+            #2480 [C#] Add std_unordered_map.i for wrapping std::std_unordered_map, implementing
+            C# System.Collections.Generic.IDictionary<>.
+
 2023-01-03: wsfulton
             #983 Fix seg fault when instantiating templates with parameters that are function
             parameters containing templates, such as:
