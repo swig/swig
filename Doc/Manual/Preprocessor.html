@@ -164,8 +164,9 @@ In addition, SWIG defines the following set of standard C/C++ macros:
 <pre>
 __LINE__                        Current line number
 __FILE__                        Current file name
-__STDC__                        Defined to indicate ISO C
-__cplusplus                     Defined when -c++ option used
+__STDC__                        Defined to indicate ISO C/C++
+__cplusplus                     Defined when -c++ option used, value controlled by <tt>-std=c++NN</tt>
+__STDC_VERSION__                May be defined when -c++ option is not used, value controlled by <tt>-std=cNN</tt>
 </pre>
 </div>
 
@@ -177,13 +178,16 @@ have an empty value.
 
 <p>
 Since SWIG 4.2.0, <tt>__cplusplus</tt> is defined to <tt>199711L</tt>
-(the value for C++98) but you can override this by defining it
-explicitly on the SWIG command line if you are wrapping headers
-which have preprocessor checks based on its value (e.g. use
-<tt>-D__cplusplus=201103L</tt> to set it to the value for C++11).
-Before this SWIG always defined it to have the <b>value</b>
-<tt>__cplusplus</tt> and attempting to use <tt>-D__cplusplus</tt>
-to change this gave an error.
+(the value for C++98) by default. Before this SWIG always defined it to have
+the <b>value</b> <tt>__cplusplus</tt>.
+</p>
+
+<p>
+Since SWIG 4.2.0, SWIG supports command line options <tt>-std=cXX</tt> and
+<tt>-std=c++XX</tt> to specify the C/C++ standards version.  The only effect of
+these options is to set appropriate values for <tt>__STDC_VERSION__</tt> and
+<tt>__cplusplus</tt> respectively, which is useful if you're wrapping
+headers which have preprocessor checks based on their values.
 </p>
 
 <p>

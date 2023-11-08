@@ -7,6 +7,26 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-11-09: olly
+	    #2591 SWIG now supports command line options -std=cXX and
+	    -std=c++XX to specify the C/C++ standards version.  The only effect
+	    of these options is to set appropriate values for __STDC_VERSION__
+	    and __cplusplus respectively, which is useful if you're wrapping
+	    headers which have preprocessor checks based on their values.
+
+2023-11-09: olly
+	    SWIG now defines __STDC__ to 1 to match the behaviour of ISO C/C++
+	    compilers - previously it had an empty value.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2023-11-09: olly
+	    When -c++ is used, SWIG now defines __cplusplus to be 199711L (the
+	    value for C++98) by default - previously its value was set to
+	    __cplusplus.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2023-11-08: emmenlau
             #2480 [C#] Add std_unordered_map.i for wrapping std::std_unordered_map, implementing
             C# System.Collections.Generic.IDictionary<>.
@@ -554,22 +574,6 @@ Version 4.2.0 (in progress)
 	    code generation if needed", but it's never been used for that
 	    purpose in over 20 years, and has never been documented outside of
 	    CHANGES.
-
-2023-05-18: olly
-	    SWIG now defines __STDC__ to 1 to match the behaviour of ISO C/C++
-	    compilers, rather than to have an empty value.
-
-	    *** POTENTIAL INCOMPATIBILITY ***
-
-2023-05-18: olly
-	    #2591 The value of __cplusplus SWIG defines can now be overridden
-	    on the command line, e.g. using -D__cplusplus=201103L which is
-	    useful if you're wrapping headers which have preprocessor checks
-	    based on its value.  By default SWIG now defines __cplusplus to
-	    199711L (the value for C++98) rather than setting its value to
-	    be __cplusplus.
-
-	    *** POTENTIAL INCOMPATIBILITY ***
 
 2023-05-18: olly
 	    #2591 Add new -U command line option to undefine a preprocessor

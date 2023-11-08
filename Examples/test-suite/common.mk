@@ -375,6 +375,7 @@ CPP_TEST_CASES += \
 	pointer_reference \
 	preproc_constants \
 	preproc_cpp \
+	preproc_predefined_stdcpp \
 	primitive_ref \
 	private_assign \
 	proxycode \
@@ -824,6 +825,7 @@ C_TEST_CASES += \
 	preproc_include \
 	preproc_line_file \
 	preproc_predefined \
+	preproc_predefined_stdc \
 	register_par \
 	ret_by_value \
 	simple_array \
@@ -853,6 +855,8 @@ MULTI_CPP_TEST_CASES += \
 wallkw.cpptest: SWIGOPT += -Wallkw
 preproc_include.ctest: SWIGOPT += -includeall
 command_line_define.ctest: SWIGOPT += -DFOO -DBAR=123 -DBAZ -UBAZ -UNOTSET
+preproc_predefined_stdc.ctest: SWIGOPT += -std=c23
+preproc_predefined_stdcpp.cpptest: SWIGOPT += -std=c++23
 
 # Allow modules to define temporarily failing tests.
 C_TEST_CASES := $(filter-out $(FAILING_C_TESTS),$(C_TEST_CASES))

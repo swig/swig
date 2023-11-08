@@ -210,6 +210,8 @@ static String *external_runtime_name = 0;
 enum { STAGE1=1, STAGE2=2, STAGE3=4, STAGE4=8, STAGEOVERFLOW=16 };
 static List *libfiles = 0;
 static List *all_output_files = 0;
+static const char *stdcpp_define = NULL;
+static const char *stdc_define = NULL;
 
 /* -----------------------------------------------------------------------------
  * check_extension()
@@ -462,6 +464,46 @@ static void getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-c++out") == 0) {
 	// Undocumented
 	Swig_cparse_cplusplusout(1);
+	Swig_mark_arg(i);
+      } else if (strncmp(argv[i], "-std=c", 6) == 0) {
+	const char *std = argv[i] + 6;
+	if (strncmp(std, "++", 2) == 0) {
+	  std += 2;
+	  if (strcmp(std, "98") == 0 || strcmp(std, "03") == 0) {
+	    stdcpp_define = "__cplusplus 199711L";
+	  } else if (strcmp(std, "11") == 0) {
+	    stdcpp_define = "__cplusplus 201103L";
+	  } else if (strcmp(std, "14") == 0) {
+	    stdcpp_define = "__cplusplus 201402L";
+	  } else if (strcmp(std, "17") == 0) {
+	    stdcpp_define = "__cplusplus 201703L";
+	  } else if (strcmp(std, "20") == 0) {
+	    stdcpp_define = "__cplusplus 202002L";
+	  } else if (strcmp(std, "23") == 0) {
+	    stdcpp_define = "__cplusplus 202302L";
+	  } else {
+	    Printf(stderr, "Unrecognised C++ standard version in option '%s'\n", argv[i]);
+	    Exit(EXIT_FAILURE);
+	  }
+	} else {
+	  if (strcmp(std, "89") == 0 || strcmp(std, "90") == 0) {
+	    stdc_define = NULL;
+	  } else if (strcmp(std, "95") == 0) {
+	    stdc_define = "__STDC_VERSION__ 199409L";
+	  } else if (strcmp(std, "99") == 0) {
+	    stdc_define = "__STDC_VERSION__ 199901L";
+	  } else if (strcmp(std, "11") == 0) {
+	    stdc_define = "__STDC_VERSION__ 201112L";
+	  } else if (strcmp(std, "17") == 0 || strcmp(std, "18") == 0) {
+	    // Both GCC and clang accept -std=c18 as well as -std=c17.
+	    stdc_define = "__STDC_VERSION__ 201710L";
+	  } else if (strcmp(std, "23") == 0) {
+	    stdc_define = "__STDC_VERSION__ 202311L";
+	  } else {
+	    Printf(stderr, "Unrecognised C standard version in option '%s'\n", argv[i]);
+	    Exit(EXIT_FAILURE);
+	  }
+	}
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-fcompact") == 0) {
 	Wrapper_compact_print_mode_set(1);
@@ -890,10 +932,28 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   Preprocessor_define("SWIG 1", 0);
   Preprocessor_define("__STDC__ 1", 0);
 
-  // Define __cplusplus to the C++98 value, but only if it's not already
-  // defined so the user to override with e.g. -D__cplusplus=202002L
-  if (CPlusPlus && !Preprocessor_defined("__cplusplus"))
-    Preprocessor_define("__cplusplus 199711L", 0);
+  if (CPlusPlus) {
+    // Default to C++98.
+    if (!stdcpp_define) stdcpp_define = "__cplusplus 199711L";
+    Preprocessor_define(stdcpp_define, 0);
+  } else {
+    if (stdcpp_define) {
+      Printf(stderr, "Option -std=c++XX was used without -c++\n");
+      Exit(EXIT_FAILURE);
+    }
+  }
+
+  if (!CPlusPlus) {
+    // Default to C90 which didn't define __STDC_VERSION__.
+    if (stdc_define) {
+      Preprocessor_define(stdc_define, 0);
+    }
+  } else {
+    if (stdc_define) {
+      Printf(stderr, "Option -std=cXX was used with -c++\n");
+      Exit(EXIT_FAILURE);
+    }
+  }
 
   String *vers = Swig_package_version_hex();
   Preprocessor_define(vers, 0);
