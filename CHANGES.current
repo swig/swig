@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-11-08: wsfulton
+            [C#] Add std_unordered_set.i for wrapping std::std_unordered_set, implementing
+            C# System.Collections.Generic.ISet<>.
+
 2023-11-09: olly
 	    #2591 SWIG now supports command line options -std=cXX and
 	    -std=c++XX to specify the C/C++ standards version.  The only effect
