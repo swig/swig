@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-11-08: emmenlau
+            #2480 [C#] Add std_unordered_map.i for wrapping std::std_unordered_map, implementing
+            C# System.Collections.Generic.IDictionary<>.
+
 2023-11-06: wsfulton
             [D, Java] Add the dbegin option to the %module directive for generating code at
             the beginning of every D file. Similarly javabegin for Java. This enables one
