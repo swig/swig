@@ -16,6 +16,7 @@
 #include <stdexcept>
 %}
 
+%csmethodmodifiers std::set::empty "private"
 %csmethodmodifiers std::set::size "private"
 %csmethodmodifiers std::set::getitem "private"
 %csmethodmodifiers std::set::create_iterator_begin "private"
@@ -41,6 +42,12 @@ class set {
     } catch {
       actualValue = default($typemap(cstype, T));
       return false;
+    }
+  }
+
+  public bool IsEmpty {
+    get {
+      return empty();
     }
   }
 

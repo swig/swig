@@ -48,6 +48,12 @@
     return false;
   }
 
+  public bool IsEmpty {
+    get {
+      return empty();
+    }
+  }
+
   public int Count {
     get {
       return (int)size();
@@ -288,6 +294,7 @@
 
 %enddef
 
+%csmethodmodifiers std::map::empty "private"
 %csmethodmodifiers std::map::size "private"
 %csmethodmodifiers std::map::getitem "private"
 %csmethodmodifiers std::map::setitem "private"

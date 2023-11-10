@@ -8,6 +8,27 @@ Version 4.2.0 (in progress)
 ===========================
 
 2023-11-08: wsfulton
+            [C#] Replace empty() method with IsEmpty property for std::vector, std::list, std::map
+            containers for consistency across all containers.
+
+            The empty() method is actually still wrapped, but as a private proxy method. For backwards
+            compatibility, the method can be made public again using %csmethodmodifiers for all
+            vectors as follows:
+
+              %extend std::vector {
+                %csmethodmodifiers empty() const "public"
+              }
+              %include "std_vector.i"
+
+            or alternatively for each individual %template instantiation as follows:
+
+              %csmethodmodifiers std::vector<double>::empty() const "public"
+              %template(VectorDouble) std::vector<double>;
+
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2023-11-08: wsfulton
             [C#] Add std_unordered_set.i for wrapping std::std_unordered_set, implementing
             C# System.Collections.Generic.ISet<>.
 

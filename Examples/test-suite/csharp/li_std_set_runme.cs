@@ -17,6 +17,7 @@ public class runme
         // Check the interface methods first.
         ISet<string> s = ss;
 
+        checkThat(((StringSet)s).IsEmpty, "is empty");
         checkThat(s.Count == 0, "is initially empty");
         checkThat(!s.Contains("key"), "doesn't contain inexistent element");
         checkThat(!s.Remove("key"), "returns false when removing inexistent element");

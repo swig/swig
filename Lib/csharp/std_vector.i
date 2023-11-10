@@ -380,6 +380,7 @@ SWIG_STD_VECTOR_ENHANCED(CTYPE)
 #include <stdexcept>
 %}
 
+%csmethodmodifiers std::vector::empty "private"
 %csmethodmodifiers std::vector::getitemcopy "private"
 %csmethodmodifiers std::vector::getitem "private"
 %csmethodmodifiers std::vector::setitem "private"

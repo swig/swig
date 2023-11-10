@@ -158,6 +158,8 @@ public class li_std_map_runme {
         simap.Clear();
         if (simap.Count != 0)
             throw new Exception("Clear test failed");
+        if (!simap.IsEmpty)
+            throw new Exception("Empty test failed");
 
         // Test wrapped methods
         for (int i = 1; i <= 5; i++)

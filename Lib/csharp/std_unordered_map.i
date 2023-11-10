@@ -48,6 +48,12 @@
     return false;
   }
 
+  public bool IsEmpty {
+    get {
+      return empty();
+    }
+  }
+
   public int Count {
     get {
       return (int)size();
@@ -284,6 +290,7 @@
 
 %enddef
 
+%csmethodmodifiers std::unordered_map::empty "private"
 %csmethodmodifiers std::unordered_map::size "private"
 %csmethodmodifiers std::unordered_map::getitem "private"
 %csmethodmodifiers std::unordered_map::setitem "private"

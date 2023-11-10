@@ -17,8 +17,8 @@ public class runme
     global::System.Collections.Generic.IDictionary<string, int> sim = new UnorderedMapStringInt();
     global::System.Collections.Generic.IDictionary<int, int> iim = new UnorderedMapIntInt();
 
-    checkThat(((UnorderedMapStringInt)sim).empty());
-    checkThat(((UnorderedMapIntInt)iim).empty());
+    checkThat(((UnorderedMapStringInt)sim).IsEmpty);
+    checkThat(((UnorderedMapIntInt)iim).IsEmpty);
 
     checkThat(sim.Count == 0);
     checkThat(iim.Count == 0);

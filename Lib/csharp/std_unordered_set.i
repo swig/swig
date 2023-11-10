@@ -16,6 +16,7 @@
 #include <stdexcept>
 %}
 
+%csmethodmodifiers std::unordered_set::empty "private"
 %csmethodmodifiers std::unordered_set::size "private"
 %csmethodmodifiers std::unordered_set::getitem "private"
 %csmethodmodifiers std::unordered_set::create_iterator_begin "private"
@@ -41,6 +42,12 @@ class unordered_set {
     } catch {
       actualValue = default($typemap(cstype, T));
       return false;
+    }
+  }
+
+  public bool IsEmpty {
+    get {
+      return empty();
     }
   }
 
