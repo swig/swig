@@ -95,5 +95,109 @@ public class runme
         checkThat(intSet.Count == 1, "not empty any more");
         checkThat(intSet.Add(289), "289 added successfully");
         checkThat(intSet.Count == 2, "even less empty now");
+
+        // Test IsProperSubsetOf
+        UnorderedSetInt intSet2 = new UnorderedSetInt();
+        checkThat(intSet2.IsProperSubsetOf(intSet), "empty set is proper subset of non-empty set");
+        checkThat(!intSet.IsProperSubsetOf(intSet2), "non-empty set is not proper subset of empty set");
+        intSet2.Add(17);
+        checkThat(intSet2.IsProperSubsetOf(intSet), "subset is proper subset of superset");
+        checkThat(!intSet.IsProperSubsetOf(intSet2), "superset is not proper subset of subset");
+        intSet2.Add(289);
+        checkThat(!intSet2.IsProperSubsetOf(intSet), "superset is not proper subset of itself");
+        checkThat(!intSet.IsProperSubsetOf(intSet2), "subset is not proper subset of itself");
+
+        // Test IsProperSupersetOf
+        intSet2 = new UnorderedSetInt();
+        checkThat(intSet.IsProperSupersetOf(intSet2), "superset is proper superset of subset");
+        checkThat(!intSet2.IsProperSupersetOf(intSet), "subset is not proper superset of superset");
+        checkThat(!intSet.IsProperSupersetOf(intSet), "set is not proper superset of itself");
+        checkThat(!intSet2.IsProperSupersetOf(intSet2), "subset is not proper superset of itself");
+        intSet2.Add(17);
+        checkThat(intSet.IsProperSupersetOf(intSet2), "superset is not proper superset of subset");
+        intSet2.Add(289);
+        checkThat(!intSet.IsProperSupersetOf(intSet2), "superset is not proper superset of itself");
+        checkThat(!intSet2.IsProperSupersetOf(intSet), "subset is not proper superset of itself");
+
+        // Test IsSubsetOf
+        intSet2 = new UnorderedSetInt();
+        checkThat(intSet2.IsSubsetOf(intSet), "empty set is subset of non-empty set");
+        checkThat(!intSet.IsSubsetOf(intSet2), "non-empty set is not subset of empty set");
+        intSet2.Add(17);
+        checkThat(intSet2.IsSubsetOf(intSet), "subset is subset of superset");
+        checkThat(!intSet.IsSubsetOf(intSet2), "superset is not subset of subset");
+        intSet2.Add(289);
+        checkThat(intSet2.IsSubsetOf(intSet), "superset is subset of itself");
+        checkThat(intSet.IsSubsetOf(intSet2), "subset is subset of itself");
+
+        // Test IsSupersetOf
+        intSet2 = new UnorderedSetInt();
+        checkThat(intSet.IsSupersetOf(intSet2), "superset is superset of subset");
+        checkThat(!intSet2.IsSupersetOf(intSet), "subset is not superset of superset");
+        checkThat(intSet.IsSupersetOf(intSet), "set is superset of itself");
+        checkThat(intSet2.IsSupersetOf(intSet2), "subset is superset of itself");
+        intSet2.Add(17);
+        checkThat(intSet.IsSupersetOf(intSet2), "superset is not superset of subset");
+        intSet2.Add(289);
+        checkThat(intSet.IsSupersetOf(intSet2), "superset is superset of itself");
+        checkThat(intSet2.IsSupersetOf(intSet), "subset is superset of itself");
+
+        // Test Overlaps
+        intSet2 = new UnorderedSetInt();
+        checkThat(!intSet2.Overlaps(intSet), "empty set does not overlap non-empty set");
+        checkThat(!intSet.Overlaps(intSet2), "non-empty set does not overlap empty set");
+        intSet2.Add(17);
+        checkThat(intSet2.Overlaps(intSet), "subset overlaps superset");
+        checkThat(intSet.Overlaps(intSet2), "superset overlaps subset");
+        intSet2.Add(289);
+        checkThat(intSet2.Overlaps(intSet), "superset overlaps itself");
+        checkThat(intSet.Overlaps(intSet2), "subset overlaps itself");
+
+        // Test SymmetricExceptWith
+        intSet2 = new UnorderedSetInt();
+        intSet2.SymmetricExceptWith(intSet);
+        checkThat(intSet2.SetEquals(intSet), "SymmetricExceptWith empty set works");
+        intSet2.SymmetricExceptWith(intSet);
+        checkThat(intSet2.Count == 0, "SymmetricExceptWith empty set twice works");
+        intSet2.Add(17);
+        intSet2.SymmetricExceptWith(intSet);
+        checkThat(intSet2.SetEquals(new[] {289}), "SymmetricExceptWith non-empty set works");
+        intSet2.SymmetricExceptWith(intSet);
+
+        // Test UnionWith
+        intSet2 = new UnorderedSetInt();
+        intSet2.UnionWith(intSet); // empty set union non-empty set
+        checkThat(intSet2.SetEquals(intSet), "UnionWith empty set works");
+        intSet2.UnionWith(intSet); // empty set union non-empty set
+        checkThat(intSet2.SetEquals(intSet), "UnionWith empty set twice works");
+        intSet2.Add(17);
+        intSet2.UnionWith(intSet);
+        checkThat(intSet2.SetEquals(intSet), "UnionWith non-empty set works");
+        intSet2.UnionWith(intSet);
+        checkThat(intSet2.SetEquals(intSet), "UnionWith non-empty set twice works");
+
+        // Test IntersectWith
+        intSet2 = new UnorderedSetInt();
+        intSet2.IntersectWith(intSet); // empty set intersect non-empty set
+        checkThat(intSet2.Count == 0, "IntersectWith empty set works");
+        intSet2.IntersectWith(intSet); // empty set intersect non-empty set
+        checkThat(intSet2.Count == 0, "IntersectWith empty set twice works");
+        intSet2.Add(17);
+        intSet2.IntersectWith(intSet);
+        checkThat(intSet2.SetEquals(new[] {17}), "IntersectWith non-empty set works");
+        intSet2.IntersectWith(intSet);
+        checkThat(intSet2.SetEquals(new[] {17}), "IntersectWith non-empty set twice works");
+
+        // Test ExceptWith
+        intSet2 = new UnorderedSetInt();
+        intSet2.ExceptWith(intSet); // empty set except non-empty set
+        checkThat(intSet2.Count == 0, "ExceptWith empty set works");
+        intSet2.ExceptWith(intSet); // empty set except non-empty set
+        checkThat(intSet2.Count == 0, "ExceptWith empty set twice works");
+        intSet2.Add(17);
+        intSet2.ExceptWith(intSet);
+        checkThat(intSet2.Count == 0, "ExceptWith non-empty set works");
+        intSet2.ExceptWith(intSet);
+        checkThat(intSet2.Count == 0, "ExceptWith non-empty set twice works");
     }
 }
