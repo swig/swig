@@ -302,7 +302,7 @@ public:
     }
     Setattr(n, "wrap:name", wname);
 
-    Printv(f->def, "SWIGINTERN int\n ", wname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {", NIL);
+    Printv(f->def, "SWIGINTERN int\n ", wname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {", NIL);
 
     // Emit all of the local variables for holding arguments.
     emit_parameter_variables(parms, f);
@@ -504,8 +504,8 @@ public:
 	Wrapper *df = NewWrapper();
 	String *dname = Swig_name_wrapper(iname);
 
-	Printv(df->def, "SWIGINTERN int\n", dname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {", NIL);
-	Printf(df->code, "Tcl_Obj *CONST *argv = objv+1;\n");
+	Printv(df->def, "SWIGINTERN int\n", dname, "(ClientData clientData SWIGUNUSED, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {", NIL);
+	Printf(df->code, "Tcl_Obj *const *argv = objv+1;\n");
 	Printf(df->code, "int argc = objc-1;\n");
 	Printv(df->code, dispatch, "\n", NIL);
 	Node *sibl = n;

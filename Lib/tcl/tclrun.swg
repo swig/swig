@@ -326,7 +326,7 @@ SWIG_Tcl_ObjectDelete(ClientData clientData) {
 
 /* Function to invoke object methods given an instance */
 SWIGRUNTIME int
-SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST _objv[]) {
+SWIG_Tcl_MethodCommand(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const _objv[]) {
   char *method,   *attrname;
   swig_instance   *inst = (swig_instance *) clientData;
   swig_method     *meth;
@@ -541,7 +541,7 @@ SWIG_Tcl_NewInstanceObj(Tcl_Interp *interp, void *thisvalue, swig_type_info *typ
 
 /* Function to create objects */
 SWIGRUNTIME int
-SWIG_Tcl_ObjectConstructor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[]) {
+SWIG_Tcl_ObjectConstructor(ClientData clientData, Tcl_Interp *interp, int objc, Tcl_Obj *const objv[]) {
   Tcl_Obj          *newObj = 0;
   void             *thisvalue = 0;
   swig_instance   *newinst = 0;
@@ -621,7 +621,7 @@ SWIG_Tcl_ObjectConstructor(ClientData clientData, Tcl_Interp *interp, int objc, 
  *   Get arguments 
  * -----------------------------------------------------------------------------*/
 SWIGRUNTIME int
-SWIG_Tcl_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *CONST objv[], const char *fmt, ...) {
+SWIG_Tcl_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], const char *fmt, ...) {
   int        argno = 0, opt = 0;
   long       tempi;
   double     tempd;
