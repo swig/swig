@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-11-17: chrstphrchvz
+	    [Tcl] #2711 Fix -Wmissing-braces warning in generated code.
+
+2023-11-17: chrstphrchvz
+	    [Tcl] #2710 Stop using Tcl's CONST macro.  It's no longer needed
+	    and is to be deprecated in Tcl 8.7, and removed in Tcl 9.0.
+
 2023-11-08: wsfulton
             [C#] Replace empty() method with IsEmpty property for std::vector, std::list, std::map
             containers for consistency across all containers.
