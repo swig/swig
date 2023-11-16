@@ -220,7 +220,7 @@ public class CommentParser implements Doclet {
 
         Iterator< Entry<String, String> > it = m_parsedComments.entrySet().iterator();
         
-        while (it.hasNext())  {
+        while (it.hasNext()) {
             
             Entry<String, String> e = (Entry<String, String>) it.next();
             String commentText = e.getValue();

@@ -1091,7 +1091,7 @@ static void process_args(int argc, char **argv)
 				}
 				*p = 0;
 			}
-			else  {
+			else {
 				int len = p - default_depfile_name;
 				
 				p = x_malloc(len + 3);

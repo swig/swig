@@ -4336,7 +4336,7 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 			    Delete(ty);
 			    Delete(fname);
 			  }
-			}  else if ($$) {
+			} else if ($$) {
 			  Setattr($$, "templatetype", nodeType($$));
 			  set_nodeType($$,"template");
 			  Setattr($$,"templateparms", $3);

@@ -11,12 +11,12 @@
 
 // First way of operating.
 template< bool B > struct algorithm {
-  template< class T1, class T2 > static int do_it(T1 &, T2 &)  { /*...*/ return 1; }
+  template< class T1, class T2 > static int do_it(T1 &, T2 &) { /*...*/ return 1; }
 };
 
 // Second way of operating.
 template<> struct algorithm<true> {
-  template< class T1, class T2 > static int do_it(T1, T2)  { /*...*/ return 2; }
+  template< class T1, class T2 > static int do_it(T1, T2) { /*...*/ return 2; }
 };
 
 // Instantiating 'elaborate' will automatically instantiate the correct way to operate, depending on the types used.

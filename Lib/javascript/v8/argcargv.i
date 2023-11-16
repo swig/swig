@@ -15,7 +15,7 @@ SWIGINTERN int SWIG_AsVal_string (SWIGV8_VALUE valRef, SWIGV8_STRING *str)
   if (!valRef->IsString()) {
     return SWIG_TypeError;
   }
-  if(str != SWIG_NULLPTR)  {
+  if(str != SWIG_NULLPTR) {
       *str = SWIGV8_TO_STRING(valRef);
   }
   return SWIG_OK;

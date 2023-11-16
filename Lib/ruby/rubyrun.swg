@@ -131,7 +131,7 @@ SWIG_Ruby_ExceptionType(swig_type_info *desc, VALUE obj) {
   VALUE exceptionClass = getExceptionClass();
   if (rb_obj_is_kind_of(obj, exceptionClass)) {
     return obj;
-  }  else {
+  } else {
     return rb_exc_new3(rb_eRuntimeError, rb_obj_as_string(obj));
   }
 }

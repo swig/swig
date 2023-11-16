@@ -8,7 +8,7 @@ SWIGINTERN int SWIG_AsVal_string (Napi::Value valRef, Napi::String *str)
   if (!valRef.IsString()) {
     return SWIG_TypeError;
   }
-  if(str != SWIG_NULLPTR)  {
+  if(str != SWIG_NULLPTR) {
       *str = valRef.ToString();
   }
   return SWIG_OK;

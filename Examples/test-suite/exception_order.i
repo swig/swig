@@ -128,7 +128,7 @@
 	throw ep;
       } else if (i == 3) {
 	throw ET<int>();
-      } else  {
+      } else {
 	throw ET<double>();
       }
       return 0;

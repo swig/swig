@@ -280,7 +280,7 @@ SWIG_AsVal_dec(unsigned long long)(SV *obj, unsigned long long *val)
      * (UVSIZE <= sizeof(*val) || v <= ULLONG_MAX) */
     if (val) *val = SvUV(obj);
     return SWIG_OK;
-  } else  if (SvIOK(obj)) {
+  } else if (SvIOK(obj)) {
     IV v = SvIV(obj);
     if (v >= 0 && (IVSIZE <= sizeof(*val) || v <= ULLONG_MAX)) {
       if (val) *val = v;
