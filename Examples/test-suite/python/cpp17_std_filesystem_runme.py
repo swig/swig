@@ -24,6 +24,10 @@ path = makePath("foo")
 check_flag(isinstance(path, pathlib.Path))
 check(str(path), "foo")
 
+pathConstRef = makePathConstRef("foo")
+check_flag(isinstance(pathConstRef, pathlib.Path))
+check(str(pathConstRef), "foo")
+
 # Each of these should return a reference to a wrapped
 # std::filesystem::path object.
 pathPtr = makePathPtr("foo")
@@ -31,9 +35,6 @@ check_flag(not isinstance(pathPtr, pathlib.Path))
 
 pathRef = makePathRef("foo")
 check_flag(not isinstance(pathRef, pathlib.Path))
-
-pathConstRef = makePathConstRef("foo")
-check_flag(not isinstance(pathConstRef, pathlib.Path))
 
 # Now test various input typemaps. Each of the wrapped C++ functions
 # (pathToStr, pathConstRefToStr) is expecting an argument of a

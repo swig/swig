@@ -86,10 +86,25 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
 %typemap(out, fragment="SWIG_std_filesystem") std::filesystem::path {
   PyObject *args;
   if constexpr (std::is_same_v<typename std::filesystem::path::value_type, wchar_t>) {
-    const std::wstring s = $1.generic_wstring();
+    std::wstring s = $1.generic_wstring();
     args = Py_BuildValue("(u)", s.data());
   } else {
-    const std::string s = $1.generic_string();
+    std::string s = $1.generic_string();
+    args = Py_BuildValue("(s)", s.data());
+  }
+  PyObject *cls = SWIG_std_filesystem_importPathClass();
+  $result = PyObject_CallObject(cls, args);
+  Py_DECREF(cls);
+  Py_DECREF(args);
+}
+
+%typemap(out, fragment="SWIG_std_filesystem") const std::filesystem::path & {
+  PyObject *args;
+  if constexpr (std::is_same_v<typename std::filesystem::path::value_type, wchar_t>) {
+    std::wstring s = $1->generic_wstring();
+    args = Py_BuildValue("(u)", s.data());
+  } else {
+    std::string s = $1->generic_string();
     args = Py_BuildValue("(s)", s.data());
   }
   PyObject *cls = SWIG_std_filesystem_importPathClass();
