@@ -1,6 +1,7 @@
 %module cpp17_std_filesystem
 
-%include "std_filesystem.i"
+%include <std_string.i>
+%include <std_filesystem.i>
 
 %{
 #include <filesystem>

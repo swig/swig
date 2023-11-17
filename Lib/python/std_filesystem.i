@@ -1,6 +1,9 @@
-/*
-  filesystem::path
-*/
+/* -----------------------------------------------------------------------------
+ * std_filesystem.i
+ *
+ * SWIG typemaps for filesystem::path
+ * ----------------------------------------------------------------------------- */
+
 %{
 #include <filesystem>
 #include <type_traits>
@@ -30,11 +33,12 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
     PyObject *str_obj = PyObject_Str($input);
     if constexpr (std::is_same_v<typename std::filesystem::path::value_type, wchar_t>) {
       Py_ssize_t size = 0;
-      wchar_t *s = PyUnicode_AsWideCharString(str_obj, &size);
-      $1 = std::filesystem::path(std::wstring{s, static_cast<size_t>(size)});
-      PyMem_Free(s);
+      wchar_t *ws = PyUnicode_AsWideCharString(str_obj, &size);
+      if (!ws) SWIG_fail;
+      $1 = std::filesystem::path(std::wstring(ws, static_cast<size_t>(size)));
+      PyMem_Free(ws);
     } else {
-      const char *s = PyUnicode_AsUTF8(str_obj);  // This stores the UTF-8 representation buffer within str_obj
+      const char *s = PyUnicode_AsUTF8(str_obj);
       $1 = std::filesystem::path(s);
     }
     Py_DECREF(str_obj);
@@ -44,7 +48,7 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
     if (!SWIG_IsOK(res)) {
       %argument_fail(res, "$type", $symname, $argnum);
     }
-    std::filesystem::path *temp = %reinterpret_cast(argp, $ltype*);
+    std::filesystem::path *temp = %reinterpret_cast(argp, $1_ltype*);
     $1 = *temp;
   }
 }
@@ -57,9 +61,10 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
     PyObject *str_obj = PyObject_Str($input);
     if constexpr (std::is_same_v<typename std::filesystem::path::value_type, wchar_t>) {
       Py_ssize_t size = 0;
-      wchar_t *s = PyUnicode_AsWideCharString(str_obj, &size);
-      $1 = new std::filesystem::path(std::wstring{s, static_cast<size_t>(size)});
-      PyMem_Free(s);
+      wchar_t *ws = PyUnicode_AsWideCharString(str_obj, &size);
+      if (!ws) SWIG_fail;
+      $1 = new std::filesystem::path(std::wstring(ws, static_cast<size_t>(size)));
+      PyMem_Free(ws);
     } else {
       const char *s = PyUnicode_AsUTF8(str_obj);
       $1 = new std::filesystem::path(s);
@@ -71,7 +76,7 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
     if (!SWIG_IsOK(res)) {
       %argument_fail(res, "$type", $symname, $argnum);
     }
-    $1 = %reinterpret_cast(argp, $ltype);
+    $1 = %reinterpret_cast(argp, $1_ltype);
   }
 }
 
@@ -89,5 +94,3 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
   Py_DECREF(cls);
   Py_DECREF(args);
 }
-
-%include <std_string.i>
