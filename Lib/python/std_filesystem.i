@@ -53,7 +53,7 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
   }
 }
 
-%typemap(in, fragment="SWIG_std_filesystem") std::filesystem::path const *, std::filesystem::path const & {
+%typemap(in, fragment="SWIG_std_filesystem") const std::filesystem::path & {
   if (PyUnicode_Check($input)) {
     const char *s = PyUnicode_AsUTF8($input);
     $1 = new std::filesystem::path(s);

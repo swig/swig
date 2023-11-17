@@ -36,22 +36,19 @@ pathConstRef = makePathConstRef("foo")
 check_flag(not isinstance(pathConstRef, pathlib.Path))
 
 # Now test various input typemaps. Each of the wrapped C++ functions
-# (pathToStr, pathConstRefToStr, pathPtrToStr) is expecting an argument of a
+# (pathToStr, pathConstRefToStr) is expecting an argument of a
 # different type (see li_std_filesystem.i). Typemaps should be in place to
 # convert this pathlib.Path into the expected argument type.
 check(pathToStr(path), "foo")
 check(pathConstRefToStr(path), "foo")
-check(pathPtrToStr(path), "foo")
 
 # Similarly, each of the input typemaps should know what to do with a string.
 check(pathToStr("foo"), "foo")
 check(pathConstRefToStr("foo"), "foo")
-check(pathPtrToStr("foo"), "foo")
 
 # Similarly, each of the input typemaps should know what to do with a std::filesystem::path instance.
 check(pathToStr(pathPtr), "foo")
 check(pathConstRefToStr(pathPtr), "foo")
-check(pathPtrToStr(pathPtr), "foo")
 
 specialPath = pathlib.Path("/家/屋")
 roundTripped = roundTrip(specialPath)
