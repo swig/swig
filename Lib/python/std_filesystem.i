@@ -53,21 +53,24 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
   }
 }
 
-%typemap(in, fragment="SWIG_std_filesystem") const std::filesystem::path & {
+%typemap(in, fragment="SWIG_std_filesystem") const std::filesystem::path &(std::filesystem::path temp_path) {
   if (PyUnicode_Check($input)) {
     const char *s = PyUnicode_AsUTF8($input);
-    $1 = new std::filesystem::path(s);
+    temp_path = std::filesystem::path(s);
+    $1 = &temp_path;
   } else if (SWIG_std_filesystem_isPathInstance($input)) {
     PyObject *str_obj = PyObject_Str($input);
     if constexpr (std::is_same_v<typename std::filesystem::path::value_type, wchar_t>) {
       Py_ssize_t size = 0;
       wchar_t *ws = PyUnicode_AsWideCharString(str_obj, &size);
       if (!ws) SWIG_fail;
-      $1 = new std::filesystem::path(std::wstring(ws, static_cast<size_t>(size)));
+      temp_path = std::filesystem::path(std::wstring(ws, static_cast<size_t>(size)));
+      $1 = &temp_path;
       PyMem_Free(ws);
     } else {
       const char *s = PyUnicode_AsUTF8(str_obj);
-      $1 = new std::filesystem::path(s);
+      temp_path = std::filesystem::path(s);
+      $1 = &temp_path;
     }
     Py_DECREF(str_obj);
   } else {
