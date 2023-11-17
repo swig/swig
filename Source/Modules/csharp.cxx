@@ -2647,6 +2647,8 @@ public:
 	const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
 	if (!methodmods)
 	  methodmods = (is_public(n) ? public_string : protected_string);
+
+	// Start property declaration
 	Printf(proxy_class_code, "  %s %s%s %s {", methodmods, static_flag ? "static " : "", variable_type, variable_name);
       }
       generate_property_declaration_flag = false;
@@ -2949,6 +2951,7 @@ public:
     variable_wrapper_flag = false;
     generate_property_declaration_flag = false;
 
+    // End property declaration
     Printf(proxy_class_code, "\n  }\n\n");
 
     return SWIG_OK;
@@ -2960,8 +2963,6 @@ public:
 
   virtual int staticmembervariableHandler(Node *n) {
 
-    bool static_const_member_flag = (Getattr(n, "value") == 0);
-
     generate_property_declaration_flag = true;
     variable_name = Getattr(n, "sym:name");
     wrapping_member_flag = true;
@@ -2971,8 +2972,10 @@ public:
     static_flag = false;
     generate_property_declaration_flag = false;
 
-    if (static_const_member_flag)
+    if (!GetFlag(n, "wrappedasconstant")) {
+      // End property declaration
       Printf(proxy_class_code, "\n  }\n\n");
+    }
 
     return SWIG_OK;
   }
