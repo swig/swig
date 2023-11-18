@@ -1,12 +1,11 @@
 /* -----------------------------------------------------------------------------
  * std_filesystem.i
  *
- * SWIG typemaps for filesystem::path
+ * SWIG typemaps for std::filesystem::path
  * ----------------------------------------------------------------------------- */
 
 %{
 #include <filesystem>
-#include <type_traits>
 %}
 
 %fragment("SWIG_std_filesystem", "header") {
@@ -25,7 +24,7 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
 }
 }
 
-%typemap(in, fragment="SWIG_std_filesystem") std::filesystem::path {
+%typemap(in, fragment="SWIG_std_filesystem", fragment="<type_traits>") std::filesystem::path {
   if (PyUnicode_Check($input)) {
     const char *s = PyUnicode_AsUTF8($input);
     $1 = std::filesystem::path(s);
@@ -53,7 +52,7 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
   }
 }
 
-%typemap(in, fragment="SWIG_std_filesystem") const std::filesystem::path &(std::filesystem::path temp_path) {
+%typemap(in, fragment="SWIG_std_filesystem", fragment="<type_traits>") const std::filesystem::path &(std::filesystem::path temp_path) {
   if (PyUnicode_Check($input)) {
     const char *s = PyUnicode_AsUTF8($input);
     temp_path = std::filesystem::path(s);
@@ -83,7 +82,7 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
   }
 }
 
-%typemap(out, fragment="SWIG_std_filesystem") std::filesystem::path {
+%typemap(out, fragment="SWIG_std_filesystem", fragment="<type_traits>") std::filesystem::path {
   PyObject *args;
   if constexpr (std::is_same_v<typename std::filesystem::path::value_type, wchar_t>) {
     std::wstring s = $1.generic_wstring();
@@ -98,7 +97,7 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
   Py_DECREF(args);
 }
 
-%typemap(out, fragment="SWIG_std_filesystem") const std::filesystem::path & {
+%typemap(out, fragment="SWIG_std_filesystem", fragment="<type_traits>") const std::filesystem::path & {
   PyObject *args;
   if constexpr (std::is_same_v<typename std::filesystem::path::value_type, wchar_t>) {
     std::wstring s = $1->generic_wstring();
