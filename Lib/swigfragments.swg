@@ -77,6 +77,10 @@
 #include <algorithm>
 %}
 
+%fragment("<memory>", "header") %{
+#include <memory>
+%}
+
 %fragment("<stdexcept>", "header") %{
 #include <stdexcept>
 %}
@@ -89,8 +93,8 @@
 #include <string_view>
 %}
 
-%fragment("<memory>", "header") %{
-#include <memory>
+%fragment("<type_traits>", "header") %{
+#include <type_traits>
 %}
 
 %fragment("<iostream>", "header") %{
