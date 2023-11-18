@@ -31,3 +31,7 @@ check::equal($b->b, true);
 check::equal($b->negate(true), false);
 
 check::equal($b->negate(false), true);
+
+check::equal(gettype($b->should_be_int), "integer");
+check::equal(gettype($b->should_be_int2), "integer");
+check::equal(gettype($b->should_be_bool), "boolean");

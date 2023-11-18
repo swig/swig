@@ -5,6 +5,9 @@
 static auto t = true;
 static constexpr auto f = false;
 
+static auto zero = 0;
+static constexpr auto one = 1;
+
 static auto la = 1.0L;
 static auto da = 1.0;
 static auto fa = 1.0f;

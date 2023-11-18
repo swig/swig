@@ -35,6 +35,15 @@
     DECLARE(a, false);
     DECLARE(b, true);
 
+    // SWIG < 4.2.0 failed to perform type promotion for the result of unary
+    // plus and unary minus, so these would end up wrapped as bool and char.
+    decltype(+true) should_be_int;
+    decltype(-'x') should_be_int2;
+
+    // SWIG < 4.2.0 incorrectly used int for the result of logical not in C++
+    // so this would end up wrapped as int.
+    decltype(!0) should_be_bool;
+
     auto get_number_sum(decltype(i+j) a) -> decltype(i+j) {
       return i+j;
     }

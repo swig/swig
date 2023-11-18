@@ -1780,12 +1780,8 @@ static SwigType *deduce_type(const struct Define *dtype) {
   Node *n = Swig_symbol_clookup(dtype->val, 0);
   if (n) {
     return Getattr(n, "type");
-  } else if (dtype->type != T_AUTO && dtype->type != T_INT) {
-    /* Try to deduce the type from the T_* type code.
-     *
-     * Sadly we can't trust T_INT because several places in the parser set
-     * .type = T_INT when it may not be (or even definitely isn't).
-     */
+  } else if (dtype->type != T_AUTO && dtype->type != T_UNKNOWN) {
+    /* Try to deduce the type from the T_* type code. */
     return NewSwigType(dtype->type);
   } else {
     return NULL;
@@ -5304,7 +5300,7 @@ def_args       : EQUAL definetype {
 		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		 $$.val = NewString(scanner_ccode);
 		 $$.rawval = 0;
-                 $$.type = T_INT; /* This may be a lie. */
+                 $$.type = T_UNKNOWN;
 		 $$.bitfield = 0;
 		 $$.throws = 0;
 		 $$.throwf = 0;
@@ -5324,7 +5320,7 @@ def_args       : EQUAL definetype {
                | %empty {
                  $$.val = 0;
                  $$.rawval = 0;
-                 $$.type = T_INT; /* This is a lie. */
+                 $$.type = T_UNKNOWN;
 		 $$.bitfield = 0;
 		 $$.throws = 0;
 		 $$.throwf = 0;
@@ -6549,7 +6545,8 @@ etype            : expr {
 		       ($$.type != T_LONGLONG) && ($$.type != T_ULONGLONG) &&
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR) &&
-		       ($$.type != T_CHAR) && ($$.type != T_BOOL)) {
+		       ($$.type != T_CHAR) && ($$.type != T_BOOL) &&
+		       ($$.type != T_UNKNOWN)) {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an integral type\n");
 		   }
                 }
@@ -6561,7 +6558,7 @@ expr           : valexpr
                | type {
 		 Node *n;
 		 $$.val = $1;
-		 $$.type = T_INT; /* This may be a lie. */
+		 $$.type = T_UNKNOWN;
 		 /* Check if value is in scope */
 		 n = Swig_symbol_clookup($1,0);
 		 if (n) {
@@ -6878,11 +6875,11 @@ exprcompound   : expr PLUS expr {
 	       }
                | MINUS expr %prec UMINUS {
 		 $$.val = NewStringf("-%s",$2.val);
-		 $$.type = $2.type;
+		 $$.type = promote_type($2.type);
 	       }
                | PLUS expr %prec UMINUS {
                  $$.val = NewStringf("+%s",$2.val);
-		 $$.type = $2.type;
+		 $$.type = promote_type($2.type);
 	       }
                | NOT expr {
 		 $$.val = NewStringf("~%s",$2.val);
@@ -6890,7 +6887,7 @@ exprcompound   : expr PLUS expr {
 	       }
                | LNOT expr {
                  $$.val = NewStringf("!%s",COMPOUND_EXPR_VAL($2));
-		 $$.type = T_INT;
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | type LPAREN {
 		 String *qty;
@@ -6903,7 +6900,7 @@ exprcompound   : expr PLUS expr {
 		 }
 		 $$.val = NewStringf("%s%s",qty,scanner_ccode);
 		 Clear(scanner_ccode);
-		 $$.type = T_INT;
+		 $$.type = T_UNKNOWN;
 		 Delete(qty);
                }
                ;

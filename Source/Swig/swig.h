@@ -95,6 +95,7 @@ extern "C" {
 #define   T_VARARGS    39
 #define   T_RVALUE_REFERENCE  40
 #define   T_WSTRING    41
+#define   T_UNKNOWN    42
 
 /* --- File interface --- */
 

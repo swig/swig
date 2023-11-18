@@ -109,6 +109,10 @@ SwigType *NewSwigType(int t) {
   switch (t) {
   case T_BOOL:
     return NewString("bool");
+  case T_UNKNOWN:
+    /* Handle like T_INT since we used to just use T_INT where we now use
+     * T_UNKNOWN.
+     */
   case T_INT:
     return NewString("int");
   case T_UINT:
