@@ -6883,7 +6883,7 @@ exprcompound   : expr PLUS expr {
 	       }
                | NOT expr {
 		 $$.val = NewStringf("~%s",$2.val);
-		 $$.type = $2.type;
+		 $$.type = promote_type($2.type);
 	       }
                | LNOT expr {
                  $$.val = NewStringf("!%s",COMPOUND_EXPR_VAL($2));
