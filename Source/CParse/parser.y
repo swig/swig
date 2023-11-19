@@ -6900,7 +6900,7 @@ exprcompound   : expr PLUS expr {
 		 }
 		 $$.val = NewStringf("%s%s",qty,scanner_ccode);
 		 Clear(scanner_ccode);
-		 $$.type = T_UNKNOWN;
+		 $$.type = SwigType_type(qty);
 		 Delete(qty);
                }
                ;
