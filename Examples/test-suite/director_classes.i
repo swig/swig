@@ -56,10 +56,10 @@ public:
   virtual std::string SemiOverloaded(int x) { if (PrintDebug) std::cout << "Base - SemiOverloaded(int " << x << ")" << std::endl; return "Base::SemiOverloaded(int)"; }
   virtual std::string SemiOverloaded(bool x) { if (PrintDebug) std::cout << "Base - SemiOverloaded(bool " << x << ")" << std::endl; return "Base::SemiOverloaded(bool)"; }
 
-  virtual std::string DefaultParms(int x, double y = 1.1) {
+  virtual std::string DefaultParms(int x, double y = 1.125) {
     if (PrintDebug) std::cout << "Base - DefaultParms(" << x << ", " << y << ")" << std::endl;
     std::string ret("Base::DefaultParms(int");
-    if (y!=1.1)
+    if (y!=1.125)
       ret = ret + std::string(", double");
     ret = ret + std::string(")");
     return ret;
@@ -82,10 +82,10 @@ public:
   virtual std::string SemiOverloaded(int x) { if (PrintDebug) std::cout << "Derived - SemiOverloaded(int " << x << ")" << std::endl; return "Derived::SemiOverloaded(int)"; }
   // No SemiOverloaded(bool x)
 
-  virtual std::string DefaultParms(int x, double y = 1.1) { 
+  virtual std::string DefaultParms(int x, double y = 1.125) {
     if (PrintDebug) std::cout << "Derived - DefaultParms(" << x << ", " << y << ")" << std::endl;
     std::string ret("Derived::DefaultParms(int");
-    if (y!=1.1)
+    if (y!=1.125)
       ret = ret + std::string(", double");
     ret = ret + std::string(")");
     return ret;
