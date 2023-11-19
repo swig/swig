@@ -37,8 +37,8 @@ double d_array[12 % 9];
  */
 #define XX (2<(2<2))
 #define YY (2>(2>2))
-bool xx() { return XX; }
-bool yy() { return YY; }
+int xx() { return XX; }
+int yy() { return YY; }
 
 /* sizeof didn't work on an expression before SWIG 4.1.0 except for cases where
  * the expression was in parentheses and looked syntactically like a type (so
