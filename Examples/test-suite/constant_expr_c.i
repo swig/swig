@@ -2,8 +2,10 @@
 /* Tests of constant expressions (C version). */
 
 %inline %{
+#if defined __GNUC__ && __GNUC__ >= 5
 // Suppress warnings about constant comparisons.
-#pragma GCC diagnostic ignored "-Wbool-compare"
+# pragma GCC diagnostic ignored "-Wbool-compare"
+#endif
 
 /* % didn't work in SWIG 1.3.40 and earlier. */
 const int X = 123%7;
