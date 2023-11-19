@@ -2,6 +2,8 @@
 /* Tests of constant expressions (C version). */
 
 %inline %{
+// Suppress warnings about constant comparisons.
+#pragma GCC diagnostic ignored "-Wbool-compare"
 
 /* % didn't work in SWIG 1.3.40 and earlier. */
 const int X = 123%7;
