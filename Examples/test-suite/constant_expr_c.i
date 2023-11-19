@@ -32,6 +32,14 @@ double d_array[12 % 9];
 #define TEST_I 0
 #endif
 
+/* Regression test for bug with losing parentheses around < and > operators,
+ * fixed in 4.2.0.
+ */
+#define XX (2<(2<2))
+#define YY (2>(2>2))
+bool xx() { return XX; }
+bool yy() { return YY; }
+
 /* sizeof didn't work on an expression before SWIG 4.1.0 except for cases where
  * the expression was in parentheses and looked syntactically like a type (so
  * sizeof(X) worked because X could be a type syntactically).

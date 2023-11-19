@@ -6833,7 +6833,7 @@ exprcompound   : expr PLUS expr {
 		* parentheses and we can handle that case.
 		*/
 	       | LPAREN expr GREATERTHAN expr RPAREN {
-		 $$.val = NewStringf("%s > %s", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
+		 $$.val = NewStringf("(%s > %s)", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 
@@ -6843,7 +6843,7 @@ exprcompound   : expr PLUS expr {
 		* covers all user-reported cases.
 		*/
                | LPAREN exprsimple LESSTHAN expr RPAREN {
-		 $$.val = NewStringf("%s < %s", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
+		 $$.val = NewStringf("(%s < %s)", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr GREATERTHANOREQUALTO expr {
