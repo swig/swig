@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-11-24: wsfulton
+            Add support for parsing C++20 constexpr destructors.
+
 2023-11-19: olly
 	    Fix handling of constant expressions containing < and > to not
 	    drop parentheses around the subexpression as doing so can change

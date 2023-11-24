@@ -686,6 +686,7 @@ CPP17_TEST_BROKEN = \
 
 # C++20 test cases.
 CPP20_TEST_CASES += \
+	cpp20_constexpr_destructor \
 	cpp20_lambda_template \
 	cpp20_spaceship_operator \
 
