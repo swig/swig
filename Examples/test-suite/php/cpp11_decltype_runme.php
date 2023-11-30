@@ -36,4 +36,7 @@ check::equal(gettype($b->should_be_int), "integer");
 check::equal(gettype($b->should_be_int2), "integer");
 check::equal(gettype($b->should_be_int3), "integer");
 check::equal(gettype($b->should_be_int4), "integer");
+
 check::equal(gettype($b->should_be_bool), "boolean");
+
+check::equal(gettype($b->should_be_enum), "integer");

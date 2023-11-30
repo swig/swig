@@ -47,6 +47,9 @@
     // so this would end up wrapped as int.
     decltype(!0) should_be_bool;
 
+    enum e { E1 };
+    decltype(E1) should_be_enum;
+
     auto get_number_sum(decltype(i+j) a) -> decltype(i+j) {
       return i+j;
     }

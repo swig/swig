@@ -1779,6 +1779,13 @@ static SwigType *deduce_type(const struct Define *dtype) {
   if (!dtype->val) return NULL;
   Node *n = Swig_symbol_clookup(dtype->val, 0);
   if (n) {
+    if (Strcmp(nodeType(n),"enumitem") == 0) {
+      /* For an enumitem, the "type" attribute gives us the underlying integer
+       * type - we want the "type" attribute from the enum itself, which is
+       * "parentNode".
+       */
+      n = Getattr(n, "parentNode");
+    }
     return Getattr(n, "type");
   } else if (dtype->type != T_AUTO && dtype->type != T_UNKNOWN) {
     /* Try to deduce the type from the T_* type code. */
