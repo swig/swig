@@ -84,12 +84,12 @@ namespace std {
     }
 
     %typemap(throws) string {
-      scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
+      scm_throw(scm_from_locale_symbol("swig-exception"),
                 scm_list_n(SWIG_str02scm($1.c_str()), SCM_UNDEFINED));
     }
 
     %typemap(throws) const string & {
-      scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
+      scm_throw(scm_from_locale_symbol("swig-exception"),
                 scm_list_n(SWIG_str02scm($1.c_str()), SCM_UNDEFINED));
     }
 }
