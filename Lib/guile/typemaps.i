@@ -106,8 +106,8 @@
 }
 
 %typemap(throws) SWIGTYPE && {
-  scm_throw(gh_symbol2scm((char *) "swig-exception"),
-	    gh_list(SWIG_NewPointerObj(&$1, $descriptor, 1),
+  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
+	    scm_list_n(SWIG_NewPointerObj(&$1, $descriptor, 1),
 		    SCM_UNDEFINED));
 }
 
