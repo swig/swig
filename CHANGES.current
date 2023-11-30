@@ -468,6 +468,8 @@ Version 4.2.0 (in progress)
 	    them replacements are noted below:
 
 	    %addmethods		Use %extend instead.
+	    %attribute_ref      Use %attributeref instead (NB: If called with
+				4 parameters, the 3rd and 4th need switching).
 	    %disabledoc		Use Doxygen support instead.
 	    %doconly		Use Doxygen support instead.
 	    %enabledoc		Use Doxygen support instead.
