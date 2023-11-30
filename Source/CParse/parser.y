@@ -1782,10 +1782,11 @@ static SwigType *deduce_type(const struct Define *dtype) {
     return Getattr(n, "type");
   } else if (dtype->type != T_AUTO && dtype->type != T_UNKNOWN) {
     /* Try to deduce the type from the T_* type code. */
-    return NewSwigType(dtype->type);
-  } else {
-    return NULL;
+    String *deduced_type = NewSwigType(dtype->type);
+    if (Len(deduced_type) > 0) return deduced_type;
+    Delete(deduced_type);
   }
+  return NULL;
 }
 
 %}
@@ -6844,9 +6845,6 @@ exprcompound   : expr PLUS expr {
 		 $$.val = NewStringf("%s%s",qty,scanner_ccode);
 		 Clear(scanner_ccode);
 		 $$.type = SwigType_type(qty);
-		 if ($$.type == T_USER) {
-		   $$.type = T_UNKNOWN;
-		 }
 		 Delete(qty);
                }
                ;
