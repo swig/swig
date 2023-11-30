@@ -64,7 +64,6 @@ extern "C" {
 #define   T_UCHAR      3
 #define   T_SHORT      4
 #define   T_USHORT     5
-#define   T_ENUM       6
 #define   T_INT        7
 #define   T_UINT       8
 #define   T_LONG       9
