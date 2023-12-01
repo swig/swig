@@ -6,11 +6,31 @@
 %feature("cs:defaultargs", z=4) Foo::bar;
 %feature("cs:defaultargs", x="\"fives\"") Foo::zoo;
 %feature("cs:defaultargs", value="System.Math.PI") Foo::pi;
+%feature("cs:defaultargs", s=R"--("fives")--") Foo::lengthOfString;
+%feature("cs:defaultargs", z=4) ::gbar;
+%feature("cs:defaultargs", z=4) Foo::sbar;
+%feature("cs:defaultargs", z=4) AnInterface::foo;
 
 //intentionally don't touch bat, leave it to normal handling
 
 %inline %{
 #include <string>
+
+enum class EnumerationType {
+    one=1,
+    two,
+    three
+};
+
+int gbar(int x, int y=2, int z=3)
+{
+    return x+y+z;
+}
+int gbat(int x=1, int y=2, int z=3)
+{
+    return x+y+z;
+}
+
 class Foo {
 public:
     virtual ~Foo() {}
@@ -33,7 +53,29 @@ public:
     {
         return value;
     }
+    int lengthOfString(const std::string& s="four")
+    {
+        return (int)s.size();
+    }
+    int valueofenum(EnumerationType t=EnumerationType::two)
+    {
+        return (int)t;
+    }
+    int valueofchar(char c='c')
+    {
+        return (int)c;
+    }
+
+    static int sbar(int x, int y=2, int z=3)
+    {
+        return x+y+z;
+    }
+    static int sbat(int x=1, int y=2, int z=3)
+    {
+        return x+y+z;
+    }
 };
+
 %}
 
 

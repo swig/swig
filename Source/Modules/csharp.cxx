@@ -15,8 +15,6 @@
 #include "cparse.h"
 #include <limits.h>		// for INT_MAX
 #include <ctype.h>
-#include <string>
-#include <map>
 
 
 
@@ -2302,31 +2300,27 @@ public:
     return SWIG_OK;
   }
 
-  void printArgumentDeclaration(Node *n,
-                                Parm *p, String *param_type, String *arg, String *code)
+  void printArgumentDeclaration(Node *n, Parm *p, String *param_type, String *arg, String *code)
   {
-      String *specifiedoverridekey = NewString("feature:cs:defaultargs:");
-      Append(specifiedoverridekey, arg);
-      String *specifiedoverridevalue = Getattr(n, specifiedoverridekey);
-      if(specifiedoverridevalue)
-      {
-          Printf(code, "%s %s=%s", param_type, arg, specifiedoverridevalue);
-      }
+    String *specifiedoverridekey = NewString("feature:cs:defaultargs:");
+    Append(specifiedoverridekey, arg);
+    String *specifiedoverridevalue = Getattr(n, specifiedoverridekey);
+    if (specifiedoverridevalue) {
+      Printf(code, "%s %s=%s", param_type, arg, specifiedoverridevalue);
+    } else {
+      String *cppvalue = NULL;
+      //if they've not specified defaultargs, then fall back to
+      //the normal default handling of specifying one overload per possible
+      //set of arguments.  If they have, then use the default argument from
+      //c++ as a literal csharp expression.
+      if (Getattr(n, "feature:cs:defaultargs"))
+        cppvalue = Getattr(p, "value");
+      if (cppvalue)
+        Printf(code, "%s %s=%s", param_type, arg, cppvalue);
       else
-      {
-          String *cppvalue = NULL;
-          //if they've not specified defaultargs, then fall back to
-          //the normal default handling of specifying one overload per possible
-          //set of arguments.  If they have, then use the default argument from
-          //c++ as a literal csharp expression.
-          if(Getattr(n, "feature:cs:defaultargs"))
-              cppvalue = Getattr(p, "value");
-          if(cppvalue)
-              Printf(code, "%s %s=%s", param_type, arg, cppvalue);
-          else
-              Printf(code, "%s %s", param_type, arg);
-      }
-      Delete(specifiedoverridekey);
+        Printf(code, "%s %s", param_type, arg);
+    }
+    Delete(specifiedoverridekey);
   }
 
 
@@ -2409,9 +2403,8 @@ public:
     if (Getattr(n, "overload:ignore"))
       return;
 
-    String *csargdef = Getattr(n, "feature:cs:defaultargs");
-    if(csargdef && Getattr(n, "defaultargs"))
-        return;
+    if (Getattr(n, "feature:cs:defaultargs") && Getattr(n, "defaultargs"))
+      return;
 
     // Don't generate proxy method for additional explicitcall method used in directors
     if (GetFlag(n, "explicitcall"))
@@ -2759,9 +2752,8 @@ public:
     if (Getattr(n, "overload:ignore"))
       return SWIG_OK;
 
-    String *csargdef = Getattr(n, "feature:cs:defaultargs");
-    if(csargdef && Getattr(n, "defaultargs"))
-        return SWIG_OK;
+    if (Getattr(n, "feature:cs:defaultargs") && Getattr(n, "defaultargs"))
+      return SWIG_OK;
 
     if (proxy_flag) {
       String *overloaded_name = getOverloadedName(n);
@@ -3072,6 +3064,9 @@ public:
     String *post_code = NewString("");
     String *terminator_code = NewString("");
 
+    if (Getattr(n, "feature:cs:defaultargs") && Getattr(n, "defaultargs"))
+      return;
+
     if (l) {
       if (SwigType_type(Getattr(l, "type")) == T_VOID) {
 	l = nextSibling(l);
@@ -3191,7 +3186,7 @@ public:
       if (gencomma >= 2)
 	Printf(function_code, ", ");
       gencomma = 2;
-      Printf(function_code, "%s %s", param_type, arg);
+      printArgumentDeclaration(n, p, param_type, arg, function_code);
 
       p = Getattr(p, "tmap:in:next");
       Delete(arg);
