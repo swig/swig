@@ -67,6 +67,7 @@ static int in_class = 0;
 static int no_header_file = 0;
 static int max_bases = 0;
 static int builtin_bases_needed = 0;
+static int py3_stable_abi = 0;
 
 /* C++ Support + Shadow Classes */
 
@@ -128,6 +129,7 @@ static const char *usage3 = "\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions when using -fastproxy\n\
+     -py3-stable-abi - Generate code compatible with Python 3 stable ABI (PEP 384)\n\
      -relativeimport - Use relative Python imports\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options:\n\
@@ -392,6 +394,10 @@ public:
 	  fputs(usage1, stdout);
 	  fputs(usage2, stdout);
 	  fputs(usage3, stdout);
+	} else if (strcmp(argv[i], "-py3-stable-abi") == 0) {
+	  py3_stable_abi = 1;
+	  Preprocessor_define("SWIGPYTHON_PY3", 0);
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-builtin") == 0) {
 	  builtin = 1;
 	  Preprocessor_define("SWIGPYTHON_BUILTIN", 0);
@@ -457,6 +463,16 @@ public:
 
     if (doxygen)
       doxygenTranslator = new PyDocConverter(doxygen_translator_flags);
+
+    if (py3_stable_abi && builtin) {
+      Printf(stderr, "-py3-stable-abi and -builtin options are not compatible.\n");
+      SWIG_exit(EXIT_FAILURE);
+    }
+
+    if (py3_stable_abi && fastproxy) {
+      Printf(stderr, "-py3-stable-abi and -fastproxy options are not compatible.  Disabling -fastproxy.\n");
+      fastproxy = 0;
+    }
 
     if (!global_name)
       global_name = NewString("cvar");
@@ -624,6 +640,10 @@ public:
 
     if (fastproxy) {
       Printf(f_runtime, "#define SWIGPYTHON_FASTPROXY\n");
+    }
+
+    if (py3_stable_abi) {
+      Printf(f_runtime, "#define Py_LIMITED_API 0x03040000\n");
     }
 
     Printf(f_runtime, "\n");
