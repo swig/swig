@@ -461,7 +461,7 @@ Version 4.2.0 (in progress)
 	    same as C/C++ compilers and works with ccache.
 
 2023-06-15: olly
-	    Remove features deprecated in SWIG 1.x.  Most of these have
+	    Remove features deprecated in SWIG 1.x and 2.x.  Most of these have
 	    emitted a deprecation warning or error for well over a decade and
 	    have replacements with fewer shortcomings so we expect users will
 	    have migrated away from them long ago, but in case you need
@@ -513,12 +513,26 @@ Version 4.2.0 (in progress)
 	    -tm_debug		Use -debug-typemap instead.
 	    -xml out.xml	Use -xml -o out.xml instead.
 	    BOTH typemap rule	Use INOUT typemap rule instead.
+	    SWIG_INTRUSIVE_PTR(PROXYCLASS, TYPE)
+				Use %intrusive_ptr(TYPE) instead.
+	    SWIG_INTRUSIVE_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE)
+				Use %intrusive_ptr(TYPE) instead.
+	    SWIG_INTRUSIVE_PTR_NO_WRAP(PROXYCLASS, TYPE)
+				Use %intrusive_ptr_no_wrap(TYPE) instead.
+	    SWIG_INTRUSIVE_PTR_DERIVED_NO_WRAP(PROXYCLASS, BASECLASSTYPE, TYPE)
+				Use %intrusive_ptr_no_wrap(TYPE) instead.
+	    SWIG_SHARED_PTR(PROXYCLASS, TYPE)
+				Use %shared_ptr(TYPE) instead.
+	    SWIG_SHARED_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE...)
+				Use %shared_ptr(TYPE) instead.
 	    SWIG_STD_VECTOR_SPECIALIZE(CSTYPE, CTYPE)
 				Use SWIG_STD_VECTOR_ENHANCED(CTYPE) instead.
 	    SWIG_STD_VECTOR_SPECIALIZE_MINIMUM(CSTYPE, CTYPE) macro
 				No longer required - remove uses.
 	    specialize_std_map_on_both
+				No longer required - remove uses.
 	    specialize_std_map_on_key
+				No longer required - remove uses.
 	    specialize_std_map_on_value
 				No longer required - remove uses.
 
