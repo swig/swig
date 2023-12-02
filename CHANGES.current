@@ -513,6 +513,16 @@ Version 4.2.0 (in progress)
 	    -tm_debug		Use -debug-typemap instead.
 	    -xml out.xml	Use -xml -o out.xml instead.
 	    BOTH typemap rule	Use INOUT typemap rule instead.
+	    SWIG_STD_VECTOR_SPECIALIZE(CSTYPE, CTYPE)
+				Use SWIG_STD_VECTOR_ENHANCED(CTYPE) instead.
+	    SWIG_STD_VECTOR_SPECIALIZE_MINIMUM(CSTYPE, CTYPE) macro
+				No longer required - remove uses.
+	    specialize_std_map_on_both
+	    specialize_std_map_on_key
+	    specialize_std_map_on_value
+				No longer required for most target languages
+				(exceptions are guile and mzscheme) - remove
+				uses.
 
 2023-06-15: olly
 	    [Guile] Fix freearg typemaps to go with char **INOUT and char
