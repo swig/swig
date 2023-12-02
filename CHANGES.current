@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-12-03: olly
+	    [Ocaml] Remove -suffix command line option which has emitted a
+	    deprecation warning since SWIG 3.0.4 - if you want to specify
+	    a different filename extension for generated C++ files use -cppext
+	    instead, which works for all SWIG target language backends.
+
 2023-12-01: saiarcot895
             [Python] #2413 Prevent potential multi-threading crash; gracefully exit running
             daemon threads on main thread exit.
