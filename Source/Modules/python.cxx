@@ -457,22 +457,22 @@ public:
       Exit(EXIT_FAILURE);
     }
 
+    if (py3_stable_abi && builtin) {
+      Printf(stderr, "Incompatible options -py3-stable-abi and -builtin specified.\n");
+      Exit(EXIT_FAILURE);
+    }
+
+    if (py3_stable_abi && fastproxy) {
+      Printf(stderr, "Incompatible options -py3-stable-abi and -fastproxy specified.  Disabling -fastproxy.\n");
+      fastproxy = 0;
+    }
+
     if (fastproxy) {
       Preprocessor_define("SWIGPYTHON_FASTPROXY", 0);
     }
 
     if (doxygen)
       doxygenTranslator = new PyDocConverter(doxygen_translator_flags);
-
-    if (py3_stable_abi && builtin) {
-      Printf(stderr, "-py3-stable-abi and -builtin options are not compatible.\n");
-      SWIG_exit(EXIT_FAILURE);
-    }
-
-    if (py3_stable_abi && fastproxy) {
-      Printf(stderr, "-py3-stable-abi and -fastproxy options are not compatible.  Disabling -fastproxy.\n");
-      fastproxy = 0;
-    }
 
     if (!global_name)
       global_name = NewString("cvar");
