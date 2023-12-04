@@ -1008,13 +1008,12 @@ Version 4.2.0 (in progress)
 2022-11-26: wsfulton
             #1589 #1590 Slightly better decltype() support for expressions, such as:
 
-              int i,j;
-              ...  decltype(i+j) ...
+              int i;
               ...  decltype(&i) ...
 
             These result in a warning for non-trivial expressions which SWIG cannot evaluate:
 
-              Warning 344: Unable to deduce decltype for 'i+j'.
+              Warning 344: Unable to deduce decltype for '&i'.
 
             See 'Type Inference' in CPlusPlus.html for workarounds.
 

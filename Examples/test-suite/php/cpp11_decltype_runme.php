@@ -28,6 +28,14 @@ check::equal($b->a, false);
 
 check::equal($b->b, true);
 
+$b->ij = 42;
+check::equal($b->ij, 42, 'Assignment to $b->ij failed.');
+
+$b->i = 7;
+$b->j = 17;
+$n = $b->get_number_sum(0);
+check::equal($n, 24, '$b->get_number_sum(0) should return 24.');
+
 check::equal($b->negate(true), false);
 
 check::equal($b->negate(false), true);
@@ -41,5 +49,8 @@ check::equal(gettype($b->should_be_bool), "boolean");
 
 check::equal(gettype($b::should_be_char), "string");
 check::equal($b::should_be_char, "\0");
+
+check::equal(gettype($b::should_be_string), "string");
+check::equal($b::should_be_string, "xyzzy");
 
 check::equal(gettype($b->should_be_enum), "integer");

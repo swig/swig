@@ -19,19 +19,22 @@
 %}
 
 
-// These are ignored as unable to deduce decltype for (i+j)
+// These are ignored as unable to deduce decltype for (&i)
 %ignore B::k;
-%ignore B::get_number_sum;
 %ignore B::get_number_address;
 #pragma SWIG nowarn=SWIGWARN_CPP11_DECLTYPE
 
+%ignore hidden_global_char;
+
 %inline %{
 #define DECLARE(VAR, VAL) decltype(VAL) VAR = VAL
+  static const char hidden_global_char = '\0';
   class B {
   public:
     int i;
     decltype(i) j;
-    decltype(i+j) k;
+    decltype(i+j) ij;
+    decltype(&i) k;
     DECLARE(a, false);
     DECLARE(b, true);
 
@@ -44,6 +47,8 @@
     decltype(int(0)) should_be_int4;
 
     static constexpr decltype(*"abc") should_be_char = 0;
+
+    static constexpr decltype(&hidden_global_char) should_be_string = "xyzzy";
 
     // SWIG < 4.2.0 incorrectly used int for the result of logical not in C++
     // so this would end up wrapped as int.

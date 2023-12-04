@@ -6520,7 +6520,12 @@ expr           : valexpr
                        $$.val = NewStringf("%s::%s", q, Getattr(n,"name"));
                        Delete(q);
                      }
-                   }
+		   } else {
+		     SwigType *type = Getattr(n, "type");
+		     if (type) {
+		       $$.type = SwigType_type(type);
+		     }
+		   }
 		 }
                }
 	       ;
@@ -6703,7 +6708,18 @@ valexpr        : exprsimple
  	       }
                | AND expr {
 		 $$ = $2;
-                 $$.val = NewStringf("&%s",$2.val);
+		 $$.val = NewStringf("&%s", $2.val);
+		 $$.rawval = 0;
+		 switch ($$.type) {
+		   case T_CHAR:
+		     $$.type = T_STRING;
+		     break;
+		   case T_WCHAR:
+		     $$.type = T_WSTRING;
+		     break;
+		   default:
+		     $$.type = T_POINTER;
+		 }
 	       }
                | STAR expr {
 		 $$ = $2;
