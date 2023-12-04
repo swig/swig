@@ -1524,7 +1524,7 @@ SWIG_Python_ConvertFunctionPtr(PyObject *obj, void **ptr, swig_type_info *ty) {
     if (desc)
       desc = ty ? SWIG_UnpackVoidPtr(desc + 10, &vptr, ty->name) : 0;
 #ifdef Py_LIMITED_API
-    SWIG_Python_str_DelForPy3(doc);
+    Py_XDECREF(pystr_doc);
 #endif
     if (!desc)
       return SWIG_ERROR;
