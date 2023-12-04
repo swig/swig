@@ -3,6 +3,12 @@
 */
 %module cpp11_decltype
 
+#ifdef SWIGGO
+// FIXME: SWIG/Go tries to wrap this by generating code which tries to
+// assign a const char* value to a char* variable.
+%ignore should_be_string;
+#endif
+
 %inline %{
   class A {
   public:
