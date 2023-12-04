@@ -43,6 +43,8 @@
 
     decltype(int(0)) should_be_int4;
 
+    static constexpr decltype(*"abc") should_be_char = 0;
+
     // SWIG < 4.2.0 incorrectly used int for the result of logical not in C++
     // so this would end up wrapped as int.
     decltype(!0) should_be_bool;

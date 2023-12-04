@@ -6707,7 +6707,18 @@ valexpr        : exprsimple
 	       }
                | STAR expr {
 		 $$ = $2;
-                 $$.val = NewStringf("*%s",$2.val);
+		 $$.val = NewStringf("*%s", $2.val);
+		 $$.rawval = 0;
+		 switch ($$.type) {
+		   case T_STRING:
+		     $$.type = T_CHAR;
+		     break;
+		   case T_WSTRING:
+		     $$.type = T_WCHAR;
+		     break;
+		   default:
+		     $$.type = T_UNKNOWN;
+		 }
 	       }
 	       ;
 

@@ -39,4 +39,7 @@ check::equal(gettype($b->should_be_int4), "integer");
 
 check::equal(gettype($b->should_be_bool), "boolean");
 
+check::equal(gettype($b::should_be_char), "string");
+check::equal($b::should_be_char, "\0");
+
 check::equal(gettype($b->should_be_enum), "integer");
