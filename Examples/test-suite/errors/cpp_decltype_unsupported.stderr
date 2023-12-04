@@ -1,0 +1,7 @@
+cpp_decltype_unsupported.i:14: Warning 344: Unable to deduce decltype for 'func_returning_int()'.
+cpp_decltype_unsupported.i:15: Warning 344: Unable to deduce decltype for 'func_returning_int(0)'.
+cpp_decltype_unsupported.i:18: Warning 344: Unable to deduce decltype for '&global_int'.
+cpp_decltype_unsupported.i:25: Warning 344: Unable to deduce decltype for '*pointer_to_int'.
+cpp_decltype_unsupported.i:31: Warning 344: Unable to deduce decltype for 'undeclared_variable'.
+cpp_decltype_unsupported.i:35: Warning 344: Unable to deduce decltype for 'A()'.
+cpp_decltype_unsupported.i:39: Warning 344: Unable to deduce decltype for '1 <=> 2'.
