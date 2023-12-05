@@ -51,15 +51,15 @@ SWIG_Tcl_SetErrorObj(Tcl_Interp *interp, const char *ctype, Tcl_Obj *obj)
 {
   Tcl_ResetResult(interp);
   Tcl_SetObjResult(interp, obj);
-  Tcl_SetErrorCode(interp, "SWIG", ctype, NULL);
+  Tcl_SetErrorCode(interp, "SWIG", ctype, (char *)NULL);
 }
 
 SWIGINTERN void
 SWIG_Tcl_SetErrorMsg(Tcl_Interp *interp, const char *ctype, const char *mesg)
 {
   Tcl_ResetResult(interp);
-  Tcl_SetErrorCode(interp, "SWIG", ctype, NULL);
-  Tcl_AppendResult(interp, ctype, " ", mesg, NULL);
+  Tcl_SetErrorCode(interp, "SWIG", ctype, (char *)NULL);
+  Tcl_AppendResult(interp, ctype, " ", mesg, (char *)NULL);
   /*
   Tcl_AddErrorInfo(interp, ctype);
   Tcl_AddErrorInfo(interp, " ");
