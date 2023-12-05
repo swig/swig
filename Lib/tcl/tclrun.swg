@@ -711,7 +711,7 @@ SWIG_Tcl_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], const char
     c = strchr(fmt,':');
     if (!c) c = strchr(fmt,';');
     if (!c) c = (char *)"";
-    Tcl_AppendResult(interp,c," argument ", temp, NULL);
+    Tcl_AppendResult(interp,c," argument ", temp, (char *)NULL);
     va_end(ap);
     return TCL_ERROR;
   }
