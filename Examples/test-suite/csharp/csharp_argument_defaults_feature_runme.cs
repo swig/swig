@@ -55,5 +55,11 @@ public class runme {
             throw new ApplicationException("gbat() != 6");
         if(csharp_argument_defaults_feature.gbat(3,3) != 9)
             throw new ApplicationException("gbat(3,3) != 9");
+
+        var iface = new AnImplementation();
+        if(iface.foo() != 6)
+            throw new ApplicationException("AnImplementation::foo() != 6");
+        if(iface.foo(z:5) != 7)
+            throw new ApplicationException("AnImplementation::foo(z:4) != 7");
     }
 }

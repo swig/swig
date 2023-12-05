@@ -1,6 +1,6 @@
 %module csharp_argument_defaults_feature
 %include "std_string.i"
-
+%include <swiginterface.i>
 
 %feature("cs:defaultargs") Foo::Foo;
 %feature("cs:defaultargs", z=4) Foo::bar;
@@ -10,6 +10,7 @@
 %feature("cs:defaultargs", z=4) ::gbar;
 %feature("cs:defaultargs", z=4) Foo::sbar;
 %feature("cs:defaultargs", z=4) AnInterface::foo;
+%interface(AnInterface)
 
 //intentionally don't touch bat, leave it to normal handling
 
@@ -76,6 +77,22 @@ public:
     }
 };
 
+class AnInterface
+{
+public:
+    AnInterface()=default;
+    virtual int foo(int x=1, int y=2, int z=3) = 0;
+    virtual ~AnInterface() {}
+};
+
+class AnImplementation: public AnInterface
+{
+public:
+    int foo(int x=1, int y=2, int z=3) override
+    {
+        return x*y+z;
+    }
+};
 %}
 
 
