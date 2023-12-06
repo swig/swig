@@ -145,8 +145,6 @@ jobs:
           VER: '3.12'
           CSTD: gnu99
         - SWIGLANG: python
-          SWIG_FEATURES: -py3-stable-abi
-        - SWIGLANG: python
           PY2: 2
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
@@ -156,6 +154,11 @@ jobs:
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
           SWIG_FEATURES: -builtin -O
+        - SWIGLANG: python
+          SWIG_FEATURES: -stable-abi
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-22.04
         - SWIGLANG: r
         - SWIGLANG: ruby
           VER: '2.0'

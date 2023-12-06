@@ -67,7 +67,7 @@ static int in_class = 0;
 static int no_header_file = 0;
 static int max_bases = 0;
 static int builtin_bases_needed = 0;
-static int py3_stable_abi = 0;
+static int stable_abi = 0;
 
 /* C++ Support + Shadow Classes */
 
@@ -129,7 +129,7 @@ static const char *usage3 = "\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions when using -fastproxy\n\
-     -py3-stable-abi - Generate code compatible with Python 3 stable ABI (PEP 384)\n\
+     -stable-abi     - Generate code compatible with the Python stable ABI\n\
      -relativeimport - Use relative Python imports\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options:\n\
@@ -394,9 +394,8 @@ public:
 	  fputs(usage1, stdout);
 	  fputs(usage2, stdout);
 	  fputs(usage3, stdout);
-	} else if (strcmp(argv[i], "-py3-stable-abi") == 0) {
-	  py3_stable_abi = 1;
-	  Preprocessor_define("SWIGPYTHON_PY3", 0);
+	} else if (strcmp(argv[i], "-stable-abi") == 0) {
+	  stable_abi = 1;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-builtin") == 0) {
 	  builtin = 1;
@@ -457,13 +456,13 @@ public:
       Exit(EXIT_FAILURE);
     }
 
-    if (py3_stable_abi && builtin) {
-      Printf(stderr, "Incompatible options -py3-stable-abi and -builtin specified.\n");
+    if (stable_abi && builtin) {
+      Printf(stderr, "Incompatible options -stable-abi and -builtin specified.\n");
       Exit(EXIT_FAILURE);
     }
 
-    if (py3_stable_abi && fastproxy) {
-      Printf(stderr, "Incompatible options -py3-stable-abi and -fastproxy specified.  Disabling -fastproxy.\n");
+    if (stable_abi && fastproxy) {
+      Printf(stderr, "Incompatible options -stable-abi and -fastproxy specified.  Disabling -fastproxy.\n");
       fastproxy = 0;
     }
 
@@ -642,7 +641,7 @@ public:
       Printf(f_runtime, "#define SWIGPYTHON_FASTPROXY\n");
     }
 
-    if (py3_stable_abi) {
+    if (stable_abi) {
       Printf(f_runtime, "#define Py_LIMITED_API 0x03040000\n");
     }
 
