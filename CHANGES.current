@@ -533,7 +533,7 @@ Version 4.2.0 (in progress)
 				Use %shared_ptr(TYPE) instead.
 	    SWIG_STD_VECTOR_SPECIALIZE(CSTYPE, CTYPE)
 				Use SWIG_STD_VECTOR_ENHANCED(CTYPE) instead.
-	    SWIG_STD_VECTOR_SPECIALIZE_MINIMUM(CSTYPE, CTYPE) macro
+	    SWIG_STD_VECTOR_SPECIALIZE_MINIMUM(CSTYPE, CTYPE)
 				No longer required - remove uses.
 	    specialize_std_map_on_both
 				No longer required - remove uses.
