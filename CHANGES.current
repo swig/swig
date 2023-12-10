@@ -435,7 +435,7 @@ Version 4.2.0 (in progress)
 	    #2486 Fix handling of template in array size, which was being
 	    rejected by SWIG because the type string contains '<' not followed
 	    by '('.  Drop this check as it should be unnecessary now since the
-	    fixes for #1036 ensure that template parameters are enclosed within
+	    fixes that ensure that template parameters are enclosed within
 	    '<(' and ')>'.
 
 2023-06-16: olly
