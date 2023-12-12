@@ -38,7 +38,7 @@ SWIGINTERN Tcl_Obj* SwigString_FromString(const std::string &s) {
     return Tcl_NewStringObj(s.data(), (int)s.length());
 }
 
-SWIGINTERN int Tcl_GetBoolFromObj(Tcl_Interp *interp, Tcl_Obj *o, bool *val) {
+SWIGINTERN int SwigGetBoolFromObj(Tcl_Interp *interp, Tcl_Obj *o, bool *val) {
   int v;
   int res = Tcl_GetBooleanFromObj(interp, o, &v);
   if (res == TCL_OK) {
@@ -413,7 +413,7 @@ namespace std {
     };
     %enddef
 
-    specialize_std_vector(bool, Tcl_GetBoolFromObj, Tcl_NewBooleanObj);
+    specialize_std_vector(bool, SwigGetBoolFromObj, Tcl_NewBooleanObj);
     specialize_std_vector(char, SwigInt_As<char>,Tcl_NewIntObj);
     specialize_std_vector(int, Tcl_GetIntFromObj,Tcl_NewIntObj);
     specialize_std_vector(short, SwigInt_As<short>, Tcl_NewIntObj);
