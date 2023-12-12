@@ -12,7 +12,7 @@
   $1 = ($1_ltype) nitems;
   $2 = (char **) malloc((nitems+1)*sizeof(char *));
   for (i = 0; i < nitems; i++) {
-    $2[i] = Tcl_GetStringFromObj(listobjv[i], NULL);
+    $2[i] = Tcl_GetString(listobjv[i]);
   }
   $2[i] = NULL;
 }
