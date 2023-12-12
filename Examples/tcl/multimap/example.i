@@ -25,7 +25,7 @@ extern int    gcd(int x, int y);
   }
   $2 = (char **) malloc(($1+1)*sizeof(char *));
   for (i = 0; i < $1; i++) {
-    $2[i] = Tcl_GetStringFromObj(listobjv[i],0);
+    $2[i] = Tcl_GetString(listobjv[i]);
   }
   $2[i] = 0;
 }
