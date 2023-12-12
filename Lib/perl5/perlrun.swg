@@ -198,7 +198,7 @@ SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
 /* Acquire a pointer value */
 
 SWIGRUNTIME int
-SWIG_Perl_AcquirePtr(SWIG_MAYBE_PERL_OBJECT SV *sv, int own) {
+SWIG_Perl_AcquirePtr(SWIG_MAYBE_PERL_OBJECT SV *SWIGUNUSEDPARM(sv), int SWIGUNUSEDPARM(own)) {
   /* TODO */
   return 0;
 }
