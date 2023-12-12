@@ -62,7 +62,7 @@ case "$SWIGLANG" in
 				$RETRY sudo apt-get install -qq libjavascriptcoregtk-${VER}-dev
 				;;
 			"v8")
-				$RETRY sudo apt-get install -qq libv8-dev
+				$RETRY sudo apt-get install -qq libnode-dev
 				;;
 		esac
 		;;
