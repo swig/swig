@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-12-14: PaulObermeier
+	    [Tcl] #2730 Rename SWIG’s Tcl_GetBoolFromObj() since Tcl 8.7 (TIP 618)
+	    introduces a function with the same name.
+
 2023-12-13: chrstphrchvz
 	    [Tcl] #2729 Use Tcl_GetString() instead of Tcl_GetStringFromObj(…, NULL)
 	    for compatibility with Tcl 9.
