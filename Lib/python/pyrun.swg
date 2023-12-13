@@ -1518,12 +1518,14 @@ SWIG_Python_ConvertFunctionPtr(PyObject *obj, void **ptr, swig_type_info *ty) {
     const char *doc = (((PyCFunctionObject *)obj) -> m_ml -> ml_doc);
 #else
     PyObject* pystr_doc = PyObject_GetAttrString(obj, "__doc__");
-    const char *doc = pystr_doc ? SWIG_Python_str_AsChar(pystr_doc) : 0;
+    PyObject *bytes = NULL;
+    const char *doc = pystr_doc ? SWIG_PyUnicode_AsUTF8AndSize(pystr_doc, NULL, &bytes) : 0;
 #endif
     const char *desc = doc ? strstr(doc, "swig_ptr: ") : 0;
     if (desc)
       desc = ty ? SWIG_UnpackVoidPtr(desc + 10, &vptr, ty->name) : 0;
 #ifdef Py_LIMITED_API
+    Py_XDECREF(bytes);
     Py_XDECREF(pystr_doc);
 #endif
     if (!desc)
@@ -1866,7 +1868,8 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
     PyErr_Fetch(&type, &value, &traceback);
     if (value) {
       PyObject *old_str = PyObject_Str(value);
-      const char *tmp = SWIG_Python_str_AsChar(old_str);
+      PyObject *bytes = NULL;
+      const char *tmp = SWIG_PyUnicode_AsUTF8AndSize(old_str, NULL, &bytes);
       const char *errmesg = tmp ? tmp : "Invalid error message";
       Py_XINCREF(type);
       PyErr_Clear();
@@ -1875,6 +1878,7 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
       } else {
 	PyErr_Format(type, "%s %s", errmesg, mesg);
       }
+      Py_XDECREF(bytes);
       Py_DECREF(old_str);
     }
     return 1;
@@ -1923,7 +1927,8 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
       const char *otype = (obj ? obj->ob_type->tp_name : 0); 
       if (otype) {
 	PyObject *str = PyObject_Str(obj);
-	const char *cstr = str ? SWIG_Python_str_AsChar(str) : 0;
+	PyObject *bytes = NULL;
+	const char *cstr = str ? SWIG_PyUnicode_AsUTF8AndSize(str, NULL, &bytes) : 0;
 	if (cstr) {
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s(%s)' is received",
 		       type, otype, cstr);
@@ -1931,6 +1936,7 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
 		       type, otype);
 	}
+	Py_XDECREF(bytes);
 	Py_XDECREF(str);
 	return;
       }

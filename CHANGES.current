@@ -7,6 +7,21 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-12-13: wsfulton
+            #2190 Replace SWIG_Python_str_AsChar with SWIG_PyUnicode_AsUTF8AndSize.
+
+            SWIG_Python_str_AsChar has undefined behaviour when Py_LIMITED_API is defined
+            as it returns a pointer to a string in a PyBytes object that no longer exists.
+
+            SWIG_PyUnicode_AsUTF8AndSize is an efficient replacement, but requires a
+            different API and the caller to decrement the refcount on the intermediate
+            PyObject in the Py_LIMITED_API < 0x030A0000 implementation. The alternative
+            would have required copying the returned char * string as was done in a
+            previous implementation requiring a call to the defunct SWIG_Python_str_DelForPy3
+            function.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2023-12-01: saiarcot895
             [Python] #2413 Prevent potential multi-threading crash; gracefully exit running
             daemon threads on main thread exit.

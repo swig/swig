@@ -30,27 +30,27 @@
 #endif
 
 
-SWIGINTERN char*
-SWIG_Python_str_AsChar(PyObject *str)
+/* Wrapper around PyUnicode_AsUTF8AndSize - call Py_XDECREF on the returned pbytes when finished with the returned string */
+SWIGINTERN const char *
+SWIG_PyUnicode_AsUTF8AndSize(PyObject *str, Py_ssize_t *psize, PyObject **pbytes)
 {
+  *pbytes = NULL;
 #if PY_VERSION_HEX >= 0x03030000
 # if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030A0000
-  return (char*)PyUnicode_AsUTF8AndSize(str, NULL);
+  return PyUnicode_AsUTF8AndSize(str, psize);
 # else
-  PyObject* bytes = PyUnicode_AsUTF8String(str);
-  char* chars = PyBytes_AsString(bytes);
-  Py_DECREF(bytes);
+   *pbytes = PyUnicode_AsUTF8String(str);
+   const char *chars = PyBytes_AsString(*pbytes);
+   if (chars && psize)
+     *psize = PyBytes_Size(*pbytes);
   return chars;
 # endif
 #else
-  return PyString_AsString(str);
+  char *chars = NULL;
+  PyString_AsStringAndSize(str, &chars, psize);
+  return chars;
 #endif
 }
-
-/* Was useful for Python 3.0.x-3.2.x - now provided only for compatibility
- * with any uses in user interface files. */
-#define SWIG_Python_str_DelForPy3(x)
-
 
 SWIGINTERN PyObject*
 SWIG_Python_str_FromChar(const char *c)
