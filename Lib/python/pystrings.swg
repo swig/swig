@@ -55,7 +55,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char** cptr, size_t* psize, int *alloc)
 	assert(0); /* Should never reach here with Unicode strings in Python 3 */
 %#endif
 %#else
-	*cptr = SWIG_Python_str_AsChar(obj);
+	*cptr = PyString_AsString(obj);
         if (!*cptr)
           ret = SWIG_TypeError;
 %#endif
