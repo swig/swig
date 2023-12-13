@@ -34,9 +34,9 @@
 SWIGINTERN const char *
 SWIG_PyUnicode_AsUTF8AndSize(PyObject *str, Py_ssize_t *psize, PyObject **pbytes)
 {
-  *pbytes = NULL;
 #if PY_VERSION_HEX >= 0x03030000
 # if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030A0000
+  *pbytes = NULL;
   return PyUnicode_AsUTF8AndSize(str, psize);
 # else
    *pbytes = PyUnicode_AsUTF8String(str);
@@ -47,6 +47,7 @@ SWIG_PyUnicode_AsUTF8AndSize(PyObject *str, Py_ssize_t *psize, PyObject **pbytes
 # endif
 #else
   char *chars = NULL;
+  *pbytes = NULL;
   PyString_AsStringAndSize(str, &chars, psize);
   return chars;
 #endif
