@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-12-13: chrstphrchvz
+	    [Tcl] #2729 Use Tcl_GetString() instead of Tcl_GetStringFromObj(…, NULL)
+	    for compatibility with Tcl 9.
+
 2023-12-03: olly
 	    [Ocaml] Remove -suffix command line option which has emitted a
 	    deprecation warning since SWIG 3.0.4 - if you want to specify
