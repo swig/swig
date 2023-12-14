@@ -1,6 +1,6 @@
 var ret_by_value = require("ret_by_value");
 
-a = ret_by_value.get_test();
+var a = /* await */(ret_by_value.get_test());
 if (a.myInt != 100)
     throw "RuntimeError";
 

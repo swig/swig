@@ -44,7 +44,7 @@
 #define SWIG_SetConstant(name, obj)
 
 /* raise */
-#define SWIG_Raise(...)                 SWIG_NAPI_Raise(env, __VA_ARGS__)
+#define SWIG_Raise(...)                 do { SWIG_NAPI_Raise(env, __VA_ARGS__); SWIG_fail; } while (0)
 
 %insert("runtime") %{
 #define SWIG_NAPI_FROM_DECL_ARGS(arg1)              (Napi::Env env, arg1)
@@ -54,3 +54,6 @@
 
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
+
+/* Include the async typemaps */
+%include <javascriptasync.swg>

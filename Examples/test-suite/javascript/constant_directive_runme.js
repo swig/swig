@@ -5,7 +5,7 @@ if (!constant_directive.TYPE1_CONSTANT1 instanceof constant_directive.Type1) {
         typeof constant_directive.TYPE1_CONSTANT1);
 
 }
-if (!constant_directive.getType1Instance() instanceof constant_directive.Type1) {
+if (!/* await */(constant_directive.getType1Instance()) instanceof constant_directive.Type1) {
     throw new Error("Failure: getType1Instance() type: " +
         typeof constant_directive.getType1Instance());
 }

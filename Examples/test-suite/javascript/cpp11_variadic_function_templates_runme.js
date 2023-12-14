@@ -2,22 +2,22 @@ var cpp11_variadic_function_templates = require("cpp11_variadic_function_templat
 
 const {A, B, C, D, variadicmix1} = cpp11_variadic_function_templates;
 
-ec = new cpp11_variadic_function_templates.EmplaceContainer();
-ec.emplace(new A());
-ec.emplace(new A(), new B());
-ec.emplace(new A(), new B(), new C());
-ec.emplace(new A(), new B(), new C(), new D());
+var ec = new cpp11_variadic_function_templates.EmplaceContainer();
+/* await */(ec.emplace(new A()));
+/* await */(ec.emplace(new A(), new B()));
+/* await */(ec.emplace(new A(), new B(), new C()));
+/* await */(ec.emplace(new A(), new B(), new C(), new D()));
 
 function check(expected, got) {
     if (expected != got) {
         throw new Error("failed: {} != {}".format(expected, got));
     }
 }
-a = new A();
-b = new B();
-c = new C();
-check(variadicmix1(), 20);
-check(variadicmix1(a), 20);
-check(variadicmix1(a, b), 10);
-check(variadicmix1(a, b, c), 20);
-check(variadicmix1(11, 22), 10);
+var a = new A();
+var b = new B();
+var c = new C();
+check(/* await */(variadicmix1()), 20);
+check(/* await */(variadicmix1(a)), 20);
+check(/* await */(variadicmix1(a, b)), 10);
+check(/* await */(variadicmix1(a, b, c)), 20);
+check(/* await */(variadicmix1(11, 22)), 10);

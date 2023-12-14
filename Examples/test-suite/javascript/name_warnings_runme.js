@@ -6,5 +6,5 @@ function check(flag) {
     }
 }
 
-four = name_warnings.double_an_int(2);
+var four = /* await */(name_warnings.double_an_int(2));
 check(four == 4);

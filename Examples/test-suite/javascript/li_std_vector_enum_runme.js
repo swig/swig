@@ -7,15 +7,15 @@ function check(a, b) {
     }
 }
 
-ev = new li_std_vector_enum.EnumVector();
+var ev = new li_std_vector_enum.EnumVector();
 
-check(ev.nums.get(0), 10);
-check(ev.nums.get(1), 20);
-check(ev.nums.get(2), 30);
+check(/* await */(ev.nums.get(0)), 10);
+check(/* await */(ev.nums.get(1)), 20);
+check(/* await */(ev.nums.get(2)), 30);
 
-expected = 10;
-for (let i = 0; i < ev.nums.size(); i++) {
-    let val = ev.nums.get(i);
+var expected = 10;
+for (let i = 0; i < /* await */(ev.nums.size()); i++) {
+    let val = /* await */(ev.nums.get(i));
     check(val, expected);
     expected += 10;
 }

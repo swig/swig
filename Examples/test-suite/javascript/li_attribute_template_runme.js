@@ -2,12 +2,12 @@
 
 var li_attribute_template = require("li_attribute_template");
 
-chell = new li_attribute_template.Cintint(1, 2, 3);
+var chell = new li_attribute_template.Cintint(1, 2, 3);
 
 
 function rassert(what, master) {
     if (what != master) {
-        throw new Error("what: {}".format(what));
+        throw new Error(`what: ${what}`);
     }
 }
 
@@ -49,7 +49,7 @@ rassert(chell.e.value, 4);
 rassert(chell.f.first, 1);
 rassert(chell.f.second, 2);
 
-pair = new li_attribute_template.pair_intint(3, 4);
+var pair = new li_attribute_template.pair_intint(3, 4);
 chell.f = pair;
 rassert(chell.f.first, 3);
 rassert(chell.f.second, 4);

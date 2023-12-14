@@ -1,5 +1,6 @@
 var director_alternating = require("director_alternating");
 
-id = director_alternating.getBar().id();
-if (id != director_alternating.idFromGetBar())
-  throw ("Error, Got wrong id: " + str(id));
+var bar = /* await */(director_alternating.getBar());
+var id = /* await */(bar.id());
+if (id != /* await */(director_alternating.idFromGetBar()))
+  throw ("Error, Got wrong id: " + id.toString());

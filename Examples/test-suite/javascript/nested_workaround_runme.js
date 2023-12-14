@@ -1,15 +1,15 @@
 var nested_workaround = require("nested_workaround");
 
-inner = new nested_workaround.Inner(5);
-outer = new nested_workaround.Outer();
-newInner = outer.doubleInnerValue(inner);
-if (newInner.getValue() != 10) {
+var inner = new nested_workaround.Inner(5);
+var outer = new nested_workaround.Outer();
+var newInner = /* await */(outer.doubleInnerValue(inner));
+if (/* await */(newInner.getValue()) != 10) {
     throw new Error;
 }
 
 outer = new nested_workaround.Outer();
-inner = outer.createInner(3);
-newInner = outer.doubleInnerValue(inner);
-if (outer.getInnerValue(newInner) != 6) {
+inner = /* await */(outer.createInner(3));
+newInner = /* await */(outer.doubleInnerValue(inner));
+if (/* await */(outer.getInnerValue(newInner)) != 6) {
     throw new Error;
 }

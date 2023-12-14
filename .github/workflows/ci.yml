@@ -27,7 +27,7 @@ jobs:
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }}${{ matrix.ASYNC && ' async' }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
       matrix:
@@ -105,6 +105,17 @@ jobs:
           ENGINE: node
           VER: '12'
           CPPSTD: c++11
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '18'
+          CPPSTD: c++14
+          ASYNC: 1
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '18'
+          CPPSTD: c++14
+          ASYNC: 1
+          SWIG_FEATURES: -async-locking -DSWIG_NAPI_FULL_LOCKING=1
         - SWIGLANG: lua
         - SWIGLANG: lua
           VER: '5.3'
@@ -350,6 +361,7 @@ jobs:
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
+      ASYNC: ${{ matrix.ASYNC }}
 
     steps:
     - name: Checkout

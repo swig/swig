@@ -411,13 +411,63 @@ int emit_action_code(Node *n, String *wrappercode, String *eaction) {
 }
 
 /* -----------------------------------------------------------------------------
- * int emit_action()
+ * String *emit_action()
  *
  * Emits the call to the wrapped function. 
  * Adds in exception specification exception handling and %exception code.
  * ----------------------------------------------------------------------------- */
-String *emit_action(Node *n) {
-  String *actioncode = NewStringEmpty();
+String* emit_action(Node *n) {
+  String *code = NewStringEmpty();
+
+  Hash *action = emit_action_hash(n);
+
+  String *preaction = Getattr(action, "preaction");
+  if (preaction) {
+    Append(code, preaction);
+  }
+
+  String *try_stmt = Getattr(action, "try");
+  if (try_stmt) {
+    Append(code, try_stmt);
+  }
+
+  Append(code, Getattr(action, "action"));
+
+  String *catch_stmt = Getattr(action, "catch");
+  if (catch_stmt) {
+    Append(code, catch_stmt);
+  }
+
+  String *postaction = Getattr(action, "postaction");
+  if (postaction) {
+    Append(code, postaction);
+  }
+
+  String *result = NewStringEmpty();
+  emit_action_code(n, result, code);
+  Delete(action);
+  Delete(code);
+  return result;
+}
+
+/* -----------------------------------------------------------------------------
+ * Hash *emit_action_hash()
+ *
+ * Emits the call to the wrapped function as separate statements.
+ * Adds in exception specification exception handling and %exception code.
+ * Result is:
+ * {
+ *   "preaction"  : everything up to the try statement
+ *   "try"        : try
+ *   "action"     : the action code itself
+ *   "catch"      : catch statement with exception handling
+ *   "postaction" : everything after the catch statement
+ * }
+ * -----------------------------------------------------------------------------
+ */
+Hash *emit_action_hash(Node *n) {
+  Hash *output = NewHash();
+  String *pre_try = NewStringEmpty();
   String *tm;
   String *action;
   String *wrap;
@@ -463,72 +513,75 @@ String *emit_action(Node *n) {
     /* Preassertion */
     tm = Getattr(n, "contract:preassert");
     if (Len(tm)) {
-      Printv(actioncode, tm, "\n", NIL);
+      Printv(pre_try, tm, "\n", NIL);
     }
   }
+
+  Setattr(output, "preaction", pre_try);
   /* Exception handling code */
 
-  /* saves action -> eaction for postcatching exception */
-  String *eaction = NewString("");
+  /* full_action = wrap:preaction + action + wrap:postaction */
+  String *full_action = NewString("");
 
   /* If we are in C++ mode and there is an exception specification. We're going to
      enclose the block in a try block */
   if (catchlist) {
-    Printf(eaction, "try {\n");
+    Setattr(output, "try", "try {\n");
   }
 
-  String *preaction = Getattr(n, "wrap:preaction");
-  if (preaction)
-    Printv(eaction, preaction, NIL);
+  String *wrap_preaction = Getattr(n, "wrap:preaction");
+  if (wrap_preaction)
+    Printv(full_action, wrap_preaction, NIL);
 
-  Printv(eaction, action, NIL);
+  Printv(full_action, action, NIL);
 
-  String *postaction = Getattr(n, "wrap:postaction");
-  if (postaction)
-    Printv(eaction, postaction, NIL);
+  String *wrap_postaction = Getattr(n, "wrap:postaction");
+  if (wrap_postaction)
+    Printv(full_action, wrap_postaction, NIL);
 
+  Setattr(output, "action", full_action);
+
+  String *catch_stmt = NewStringEmpty();
   if (catchlist) {
     int unknown_catch = 0;
     int has_varargs = 0;
-    Printf(eaction, "}");
+    Printf(catch_stmt, "}");
     for (Parm *ep = catchlist; ep; ep = nextSibling(ep)) {
       String *em = Swig_typemap_lookup("throws", ep, "_e", 0);
       if (em) {
         SwigType *et = Getattr(ep, "type");
         SwigType *etr = SwigType_typedef_resolve_all(et);
         if (SwigType_isreference(etr) || SwigType_ispointer(etr) || SwigType_isarray(etr)) {
-          Printf(eaction, " catch(%s) {", SwigType_str(et, "_e"));
+          Printf(catch_stmt, " catch(%s) {", SwigType_str(et, "_e"));
         } else if (SwigType_isvarargs(etr)) {
-          Printf(eaction, " catch(...) {");
+          Printf(catch_stmt, " catch(...) {");
           has_varargs = 1;
         } else {
-          Printf(eaction, " catch(%s) {", SwigType_str(et, "&_e"));
+          Printf(catch_stmt, " catch(%s) {", SwigType_str(et, "&_e"));
         }
-        Printv(eaction, em, "\n", NIL);
-        Printf(eaction, "}");
+        Printv(catch_stmt, em, "\n", NIL);
+        Printf(catch_stmt, "}");
       } else {
 	Swig_warning(WARN_TYPEMAP_THROW, Getfile(n), Getline(n), "No 'throws' typemap defined for exception type '%s'\n", SwigType_str(Getattr(ep, "type"), 0));
         unknown_catch = 1;
       }
     }
     if (unknown_catch && !has_varargs) {
-      Printf(eaction, " catch(...) {\nthrow;\n}");
+      Printf(catch_stmt, " catch(...) {\nthrow;\n}");
     }
   }
+  Setattr(output, "catch", catch_stmt);
 
-  /* emit the except feature code */
-  emit_action_code(n, actioncode, eaction);
-
-  Delete(eaction);
-
+  String *post_catch = NewStringEmpty();
   /* Emit contract code (if any) */
   if (Swig_contract_mode_get()) {
     /* Postassertion */
     tm = Getattr(n, "contract:postassert");
     if (Len(tm)) {
-      Printv(actioncode, tm, "\n", NIL);
+      Printv(post_catch, tm, "\n", NIL);
     }
   }
+  Setattr(output, "postaction", post_catch);
 
-  return actioncode;
+  return output;
 }

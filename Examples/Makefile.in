@@ -746,8 +746,14 @@ javascript_custom_interpreter:
 	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
 
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
+ifneq (,$(findstring async,$(SWIG_FEATURES)))
+# Ignore execution errors in async mode (the examples are missing *await*s)
+javascript_run:
+	-env NODE_PATH=$$PWD:$(SRCDIR) $(RUNTOOL) $(NODEJS) $(SRCDIR)$(RUNME).js $(RUNPIPE)
+else
 javascript_run:
 	env NODE_PATH=$$PWD:$(SRCDIR) $(RUNTOOL) $(NODEJS) $(SRCDIR)$(RUNME).js $(RUNPIPE)
+endif
 else
 javascript_run: javascript_custom_interpreter
 	$(RUNTOOL) $(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) -L $(TARGET) $(SRCDIR)$(RUNME).js $(RUNPIPE)

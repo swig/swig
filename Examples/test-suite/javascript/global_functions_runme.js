@@ -6,13 +6,13 @@ function check(a, b) {
         throw new Error("Failed: " + str(a) + " != " + str(b));
     }
 }
-global_functions.global_void();
-check(global_functions.global_one(1), 1);
-check(global_functions.global_two(2, 2), 4);
+/* await */(global_functions.global_void());
+check(/* await */(global_functions.global_one(1)), 1);
+check(/* await */(global_functions.global_two(2, 2)), 4);
 
-fail = true;
+var fail = true;
 try {
-    global_functions.global_void(1);
+    /* await */(global_functions.global_void(1));
 } catch (e) {
     if (e instanceof TypeError) fail = false;
 }
@@ -23,7 +23,7 @@ if (fail) {
 
 fail = true;
 try {
-    global_functions.global_one();
+    /* await */(global_functions.global_one());
 } catch (e) {
     if (e instanceof TypeError) fail = false;
 }
@@ -34,19 +34,7 @@ if (fail) {
 
 fail = true;
 try {
-    global_functions.global_one(2, 2);
-} catch (e) {
-    if (e instanceof TypeError) fail = false;
-}
-fail = false;
-
-if (fail) {
-    throw new Error("argument count check failed");
-}
-
-fail = true;
-try {
-    global_functions.global_two(1);
+    /* await */(global_functions.global_one(2, 2));
 } catch (e) {
     if (e instanceof TypeError) fail = false;
 }
@@ -58,7 +46,19 @@ if (fail) {
 
 fail = true;
 try {
-    global_functions.global_two(3, 3, 3);
+    /* await */(global_functions.global_two(1));
+} catch (e) {
+    if (e instanceof TypeError) fail = false;
+}
+fail = false;
+
+if (fail) {
+    throw new Error("argument count check failed");
+}
+
+fail = true;
+try {
+    /* await */(global_functions.global_two(3, 3, 3));
 } catch (e) {
     if (e instanceof TypeError) fail = false;
 }

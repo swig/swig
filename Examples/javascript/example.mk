@@ -19,6 +19,12 @@ ifneq (jsc, $(ENGINE))
 SWIGOPT += -DV8_VERSION=$(JSV8_VERSION)
 endif
 
+# Examples are always in sync by default mode
+ifneq (,$(findstring async,$(SWIG_FEATURES)))
+$(info Ignoring -async in SWIG_FEATURES, examples are always sync by default)
+SWIGOPT += -sync
+endif
+
 check: build
 	$(MAKE) -f $(EXAMPLES_TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' javascript_run
 

@@ -6,7 +6,7 @@ function check(flag) {
     }
 }
 
-extern_c.RealFunction(2);
+/* await */(extern_c.RealFunction(2));
 check(extern_c.int2 == 123);
 check(extern_c.int3 == 456);
 check(extern_c.int4 == 789);

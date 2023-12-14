@@ -1,12 +1,12 @@
 var grouping = require("grouping");
 
-var x = grouping.test1(42);
+var x = /* await */(grouping.test1(42));
 if (x != 42)
     throw new Error;
 
-grouping.test2(42);
+/* await */(grouping.test2(42));
 
-var x = grouping.do_unary(37, grouping.NEGATE);
+var x = /* await */(grouping.do_unary(37, grouping.NEGATE));
 if (x != -37)
     throw new Error;
 

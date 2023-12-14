@@ -1,9 +1,9 @@
 
 var enums = require("enums");
 
-enums.bar2(1);
-enums.bar3(1);
-enums.bar1(1);
+/* await */(enums.bar2(1));
+/* await */(enums.bar3(1));
+/* await */(enums.bar1(1));
 
 if (enums.enumInstance != 2) {
     throw new Error;
