@@ -88,7 +88,7 @@ namespace std {
         if (PyUnicode_Check($input)) {
           /* Note: The UTF-8 data is cached in the PyObject so remains valid for
            * the call to C/C++. */
-          p = PyUnicode_AsUTF8AndSize($input, &len, &bytes);
+          p = PyUnicode_AsUTF8AndSize($input, &len);
         } else {
           p = PyBytes_AsString($input);
           if (p) len = PyBytes_Size($input);
