@@ -2,7 +2,7 @@ import cpp17_string_view
 
 import sys
 if sys.version_info[0:1] < (3, 0):
-    # string_view.i only supported for Python2
+    # string_view.i only supported for Python3
     sys.exit(0)
 
 # Checking expected use of %typemap(in) std::string_view {}
