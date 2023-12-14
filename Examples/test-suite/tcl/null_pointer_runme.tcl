@@ -1,4 +1,4 @@
-if [ catch { load ./null_pointer[info sharedlibextension] null_pointer} err_msg ] {
+if [ catch { load ./null_pointer[info sharedlibextension] Null_pointer} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

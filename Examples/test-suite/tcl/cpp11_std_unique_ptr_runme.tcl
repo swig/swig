@@ -1,5 +1,5 @@
 
-if [ catch { load ./cpp11_std_unique_ptr[info sharedlibextension] cpp11_std_unique_ptr} err_msg ] {
+if [ catch { load ./cpp11_std_unique_ptr[info sharedlibextension] Cpp11_std_unique_ptr} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

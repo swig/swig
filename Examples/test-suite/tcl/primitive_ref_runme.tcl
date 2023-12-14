@@ -1,7 +1,7 @@
 # Primitive ref testcase.  Tests to make sure references to 
 # primitive types are passed by value
 
-if [ catch { load ./primitive_ref[info sharedlibextension] primitive_ref} err_msg ] {
+if [ catch { load ./primitive_ref[info sharedlibextension] Primitive_ref} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

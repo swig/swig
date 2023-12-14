@@ -1,5 +1,5 @@
 
-if [ catch { load ./li_std_vector[info sharedlibextension] li_std_vector} err_msg ] {
+if [ catch { load ./li_std_vector[info sharedlibextension] Li_std_vector} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

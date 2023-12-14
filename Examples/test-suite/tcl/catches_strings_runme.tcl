@@ -1,5 +1,5 @@
 
-if [ catch { load ./catches_strings[info sharedlibextension] catches_strings} err_msg ] {
+if [ catch { load ./catches_strings[info sharedlibextension] Catches_strings} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

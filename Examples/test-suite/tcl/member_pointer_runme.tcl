@@ -1,6 +1,6 @@
 # Example using pointers to member functions
 
-if [ catch { load ./member_pointer[info sharedlibextension] member_pointer} err_msg ] {
+if [ catch { load ./member_pointer[info sharedlibextension] Member_pointer} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

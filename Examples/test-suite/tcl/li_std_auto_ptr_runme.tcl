@@ -1,5 +1,5 @@
 
-if [ catch { load ./li_std_auto_ptr[info sharedlibextension] li_std_auto_ptr} err_msg ] {
+if [ catch { load ./li_std_auto_ptr[info sharedlibextension] Li_std_auto_ptr} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 
