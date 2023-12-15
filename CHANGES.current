@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-12-15: wsfulton
+            [Python] More efficient input string marshalling for Python 3.
+
+            Previously a copy of strings was made while converting from a Python 3
+            string to a char * or std::string. This copy is no longer needed making
+            string marshalling more efficient. Does not apply to the stable abi
+            targetting Python < 3.10 where a copy is still required where the stable
+            abi does not provide PyUnicode_AsUTF8AndSize.
+
 2023-12-13: wsfulton
             #2190 Replace SWIG_Python_str_AsChar with SWIG_PyUnicode_AsUTF8AndSize.
 
