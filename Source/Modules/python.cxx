@@ -67,7 +67,6 @@ static int in_class = 0;
 static int no_header_file = 0;
 static int max_bases = 0;
 static int builtin_bases_needed = 0;
-static int stable_abi = 0;
 
 /* C++ Support + Shadow Classes */
 
@@ -394,9 +393,6 @@ public:
 	  fputs(usage1, stdout);
 	  fputs(usage2, stdout);
 	  fputs(usage3, stdout);
-	} else if (strcmp(argv[i], "-stable-abi") == 0) {
-	  stable_abi = 1;
-	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-builtin") == 0) {
 	  builtin = 1;
 	  Preprocessor_define("SWIGPYTHON_BUILTIN", 0);
@@ -454,16 +450,6 @@ public:
     if (builtin && !shadow) {
       Printf(stderr, "Incompatible options -builtin and -noproxy specified.\n");
       Exit(EXIT_FAILURE);
-    }
-
-    if (stable_abi && builtin) {
-      Printf(stderr, "Incompatible options -stable-abi and -builtin specified.\n");
-      Exit(EXIT_FAILURE);
-    }
-
-    if (stable_abi && fastproxy) {
-      Printf(stderr, "Incompatible options -stable-abi and -fastproxy specified.  Disabling -fastproxy.\n");
-      fastproxy = 0;
     }
 
     if (fastproxy) {
@@ -639,10 +625,6 @@ public:
 
     if (fastproxy) {
       Printf(f_runtime, "#define SWIGPYTHON_FASTPROXY\n");
-    }
-
-    if (stable_abi) {
-      Printf(f_runtime, "#define Py_LIMITED_API 0x03040000\n");
     }
 
     Printf(f_runtime, "\n");

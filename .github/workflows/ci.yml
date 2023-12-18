@@ -155,7 +155,7 @@ jobs:
         - SWIGLANG: python
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
-          SWIG_FEATURES: -stable-abi
+          EXTRA_CXXFLAGS: -DPy_LIMITED_API=0x03040000
           CPPSTD: c++20
           GCC: 13
           os: ubuntu-22.04
@@ -473,8 +473,8 @@ jobs:
             esac
 
             # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
-            cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)
-            cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)
+            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) $EXTRA_CFLAGS"
+            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC) $EXTRA_CXXFLAGS"
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
             make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
