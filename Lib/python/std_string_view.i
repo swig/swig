@@ -77,7 +77,7 @@ namespace std {
         Py_XDECREF(bytes$argnum);
     %}
 
-    %typemap(directorout) string_view {
+    %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) string_view {
         Py_ssize_t len;
 %#ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
         const char *p = PyBytes_AsString($input);
@@ -86,9 +86,8 @@ namespace std {
         const char *p;
         PyObject *bytes = NULL;
         if (PyUnicode_Check($input)) {
-          /* Note: The UTF-8 data is cached in the PyObject so remains valid for
-           * the call to C/C++. */
-          p = PyUnicode_AsUTF8AndSize($input, &len);
+          p = SWIG_PyUnicode_AsUTF8AndSize($input, &len, &bytes);
+          // Py_XDECREF(bytes); // Avoid undefined behaviour ($input will be pointing to a temporary if bytes is not NULL), for now we just leak by not calling Py_XDECREF
         } else {
           p = PyBytes_AsString($input);
           if (p) len = PyBytes_Size($input);
