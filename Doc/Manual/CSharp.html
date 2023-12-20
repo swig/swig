@@ -42,7 +42,7 @@
 <li><a href="#CSharp_director_caveats">Director caveats</a>
 </ul>
 <li><a href="#CSharp_multiple_modules">Multiple modules</a>
-<li><a href="#CSharp_argdef">C# Named arguments</a>
+<li><a href="#CSharp_named_arguments">C# Named arguments</a>
 <li><a href="#CSharp_typemap_examples">C# Typemap examples</a>
 <ul>
 <li><a href="#CSharp_memory_management_member_variables">Memory management when returning references to member variables</a>
@@ -2152,25 +2152,38 @@ if you don't want users to easily stumble upon these so called 'internal working
 </p>
 
 
-<H2><a name="CSharp_argdef">23.8 C# Named arguments</a></H2>
+<H2><a name="CSharp_named_arguments">23.8 C# named and optional arguments</a></H2>
 
 
 <p>
-  In C++ you can specify default arguments for functions, methods, and constructors.  C# offers named arguments.  This feature, specific to csharp, lets you bind default argument functions with default arguments in C#.  You can also add default arguments to functions which don't have default arguments.
+  In C++ you can specify default arguments for functions, methods, and constructors.  C# offers named arguments.  This feature, specific to C#, lets you bind default argument functions with default arguments in C#.  SWIG also allows you to add default arguments to C# functions which don't have default arguments in C++.
 </p>
 
-<p>Please note, using this on a function will turn off the default handling of default arguments, which would create an override for each defaulted argument, so that they could be called the same way they could in C++.  So you'll want to specify defaults for every argument when you use this.</p>
+<p>
+The <tt>cs:defaultargs</tt> feature enables C# named arguments with C# default values.
+Using this feature will turn off SWIG's default handling for default arguments, which would create an override for each defaulted argument.</p>
+</p>
+
+<p>For this feature, you first specify the function/method/constructor you want it to impact.  Inside the feature
+  call you specify each argument you want to override.  If you specify none, it will take the literal text from c++
+  for each argument and apply that in C#.  That often works fine, but when it doesn't you can supply a string literal
+  with a C# expression to be used as an override.  Or you can supply an int literal, or a float literal.  If you want to give a literal
+  string you need to include an escaped quote at the start and end of the literal such as  <tt>"\"a string\""</tt>.
+</p>
+
+<p>
+Let's consider an example:
+</p>
 
 <div class="code">
   <pre>
     %feature("cs:defaultargs") Foo::Foo;
-    %feature("cs:defaultargs", z=4) Foo::bar;
+    %feature("cs:defaultargs", x=0, z=4) Foo::bar;
     %feature("cs:defaultargs", x="\"five\"") Foo::zoo;
 
     %inline %{
     class Foo {
     public:
-        virtual ~Foo() {}
         Foo(int a, int b=1, int c=2)
         {
         }
@@ -2191,11 +2204,41 @@ if you don't want users to easily stumble upon these so called 'internal working
   </pre>
 </div>
 
-<p>For this feature, you first specify the function/constructor you want it to impact.  Inside the feature
-  call you specify each argument you want to override.  If you specify none, it will take the literal text from c++
-  for each argument and apply that in csharp.  That often works fine, but when it doesn't you can supply a string literal
-  with a csharp expression to be used.  Or you can supply an int literal, or a float literal.  If you want to give a literal
-string you need to include an escaped quote at the start and end of the literal:  "\"a string\"".</p>
+<p>
+The generated C# proxy class contains:
+</p>
+
+<div class="code">
+<pre>
+public class Foo : global::System.IDisposable {
+  ...
+  public Foo(int a, int b=1, int c=2) ...
+
+  public int bar(int x=0, int y=2, int z=4) ...
+
+  public int bat(int x, int y, int z) ...
+  public int bat(int x, int y) ...
+  public int bat(int x) ...
+  public int bat() ...
+
+  public int zoo(string x="five") ...
+}
+</pre>
+</div>
+
+<p>
+Note that:
+<ol>
+<li> The constructor uses the default arguments exactly as taken from C++.  </li>
+<li> The <tt>bar</tt> method uses the default arguments exactly as taken from C++ apart from <tt>z</tt> whose default value is changed to 4, and <tt>x</tt> did not have a default value in C++, but does in the generated C#.</li>
+<li> The <tt>bat</tt> method does not use the <tt>cs:defaultargs</tt> feature and so the default handling of one overloaded C# method per defaulted C++ argument is generated.</li>
+<li> The <tt>zoo</tt> method's string value is overridden by the new string value from the feature. </li>
+</ol>
+</p>
+
+<p>
+<b>Compatibility Note:</b> SWIG-4.2.0 added support for the <tt>cs:defaultargs</tt> feature.</b>
+</p>
 
 <H2><a name="CSharp_typemap_examples">23.9 C# Typemap examples</a></H2>
 
