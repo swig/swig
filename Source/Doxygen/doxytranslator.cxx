@@ -67,3 +67,9 @@ void DoxygenTranslator::printTree(const DoxygenEntityList &entityList) {
     p->printEntity(0);
   }
 }
+
+String* DoxygenTranslator::makeDocumentation(Node* node) {
+  if (String* documentation = getDoxygenComment(node))
+    return NewString(documentation);
+  return NewStringEmpty();
+}

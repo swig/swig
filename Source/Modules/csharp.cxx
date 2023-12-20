@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -15,6 +15,7 @@
 #include "cparse.h"
 #include <limits.h>		// for INT_MAX
 #include <ctype.h>
+#include "../Doxygen/csharpdoc.h"
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
@@ -46,6 +47,8 @@ class CSHARP:public Language {
   bool global_variable_flag;	// Flag for when wrapping a global variable
   bool old_variable_names;	// Flag for old style variable names in the intermediary class
   bool generate_property_declaration_flag;	// Flag for generating properties
+  bool doxygen;			// Flag enabling doxygen comment processing
+  bool comment_creation_chatter; // Flag for getting information about where comments were created
 
   String *imclass_name;		// intermediary class name
   String *module_class_name;	// module class name
@@ -82,6 +85,7 @@ class CSHARP:public Language {
   String *director_connect_parms;	// Director delegates parameter list for director connect call
   String *destructor_call;	//C++ destructor call if any
   String *output_file;		// File name for single file mode. If set all generated code will be written to this file
+  String* structuralComments;
 
   // Director method stuff:
   List *dmethods_seq;
@@ -123,6 +127,8 @@ public:
       global_variable_flag(false),
       old_variable_names(false),
       generate_property_declaration_flag(false),
+      doxygen(false),
+      comment_creation_chatter(false),
       imclass_name(NULL),
       module_class_name(NULL),
       imclass_class_code(NULL),
@@ -158,6 +164,7 @@ public:
       director_connect_parms(NULL),
       destructor_call(NULL),
       output_file(NULL),
+      structuralComments(NULL),
       dmethods_seq(NULL),
       dmethods_table(NULL),
       n_dmethods(0),
@@ -171,6 +178,10 @@ public:
     directorLanguage();
   }
 
+   ~CSHARP() {
+     delete doxygenTranslator;
+   }
+
   /* -----------------------------------------------------------------------------
    * getProxyName()
    *
@@ -178,7 +189,7 @@ public:
    * Return NULL if not otherwise the proxy class name, fully qualified with
    * a namespace if the nspace feature is used.
    * ----------------------------------------------------------------------------- */
-  
+
    String *getProxyName(SwigType *t) {
      String *proxyname = NULL;
      if (proxy_flag) {
@@ -223,6 +234,8 @@ public:
 
     SWIG_library_directory("csharp");
 
+    int doxygen_translator_flags = 0;
+
     // Look for certain command line options
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -250,7 +263,17 @@ public:
 	  } else {
 	    Swig_arg_error();
 	  }
-	} else if ((strcmp(argv[i], "-noproxy") == 0)) {
+    } else if ((strcmp(argv[i], "-doxygen") == 0)) {
+      Swig_mark_arg(i);
+      doxygen = true;
+      scan_doxygen_comments = true;
+    } else if ((strcmp(argv[i], "-debug-doxygen-translator") == 0)) {
+      Swig_mark_arg(i);
+      doxygen_translator_flags |= DoxygenTranslator::debug_translator;
+    } else if ((strcmp(argv[i], "-debug-doxygen-parser") == 0)) {
+      Swig_mark_arg(i);
+      doxygen_translator_flags |= DoxygenTranslator::debug_parser;
+    } else if ((strcmp(argv[i], "-noproxy") == 0)) {
 	  Swig_mark_arg(i);
 	  proxy_flag = false;
 	} else if (strcmp(argv[i], "-oldvarnames") == 0) {
@@ -271,6 +294,9 @@ public:
 	}
       }
     }
+
+    if (doxygen)
+      doxygenTranslator = new CSharpDocConverter(doxygen_translator_flags);
 
     // Add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGCSHARP 1", 0);
@@ -295,12 +321,12 @@ public:
     if (optionsnode) {
       if (Getattr(optionsnode, "imclassname"))
 	imclass_name = Copy(Getattr(optionsnode, "imclassname"));
-      /* check if directors are enabled for this module.  note: this 
+      /* check if directors are enabled for this module.  note: this
        * is a "master" switch, without which no director code will be
        * emitted.  %feature("director") statements are also required
        * to enable directors for individual classes or methods.
        *
-       * use %module(directors="1") modulename at the start of the 
+       * use %module(directors="1") modulename at the start of the
        * interface file to enable director generation.
        */
       if (Getattr(optionsnode, "directors")) {
@@ -458,10 +484,22 @@ public:
     {
       File *f_im = getOutputFile(SWIG_output_directory(), imclass_name);
 
+      //Add any structural comments to the top
+      if (doxygen && structuralComments)
+        Printf(f_im, "%s", structuralComments);
+
       addOpenNamespace(0, f_im);
 
       if (imclass_imports)
 	Printf(f_im, "%s\n", imclass_imports);
+
+      if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+        String* doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+        if (comment_creation_chatter)
+          Printf(f_im, "/* This was generated from top() */");
+        Printv(f_im, Char(doxygen_comments), NIL);
+        Delete(doxygen_comments);
+      }
 
       if (Len(imclass_class_modifiers) > 0)
 	Printf(f_im, "%s ", imclass_class_modifiers);
@@ -597,6 +635,8 @@ public:
     module_class_modifiers = NULL;
     Delete(imclass_imports);
     imclass_imports = NULL;
+    Delete(structuralComments);
+    structuralComments = NULL;
     Delete(imclass_cppcasts_code);
     imclass_cppcasts_code = NULL;
     Delete(upcasts_code);
@@ -792,7 +832,7 @@ public:
 
     /*
        The rest of this function deals with generating the intermediary class wrapper function (that wraps
-       a c/c++ function) and generating the PInvoke c code. Each C# wrapper function has a 
+       a c/c++ function) and generating the PInvoke c code. Each C# wrapper function has a
        matching PInvoke c function call.
      */
 
@@ -1074,7 +1114,7 @@ public:
       moduleClassFunctionHandler(n);
     }
 
-    /* 
+    /*
      * Generate the proxy class properties for public member variables.
      * Not for enums and constants.
      */
@@ -1135,7 +1175,7 @@ public:
 
     return ret;
   }
-  
+
   String *getCurrentScopeName(String *nspace) {
     String *scope = 0;
     if (nspace || getCurrentClass()) {
@@ -1197,6 +1237,15 @@ public:
       EnumFeature enum_feature = decodeEnumFeature(n);
       String *typemap_lookup_type = Getattr(n, "name");
 
+      if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+        String* doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+        if (comment_creation_chatter) {
+          Printf(enum_code, "/* This was generated from enumDeclaration() */");
+        }
+        Printv(enum_code, Char(doxygen_comments), NIL);
+        Delete(doxygen_comments);
+      }
+
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper C# enum
 
@@ -1241,6 +1290,16 @@ public:
 	// Wrap C++ enum with integers - just indicate start of enum with a comment, no comment for anonymous enums of any sort
 	if (symname && !Getattr(n, "unnamedinstance"))
 	  Printf(constants_code, "  // %s \n", symname);
+
+  // Translate and write comment for the enum itself
+  if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+    String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+    if (comment_creation_chatter)
+      Printf(constants_code, "/* This was generated from enumDeclaration() */\n");
+    Printf(constants_code, Char(doxygen_comments));
+    Printf(constants_code, "\n");
+    Delete(doxygen_comments);
+  }
       }
 
       // Emit each enum item
@@ -1382,6 +1441,14 @@ public:
 	if (!GetFlag(n, "firstenumitem"))
 	  Printf(enum_code, ",\n");
 
+	if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+	  String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+	  if (comment_creation_chatter)
+	    Printf(enum_code, "/* This was generated from enumvalueDeclaration() */");
+	  Printv(enum_code, Char(doxygen_comments), NIL);
+	  Delete(doxygen_comments);
+	}
+
 	if (csattributes)
 	  Printf(enum_code, "  %s\n", csattributes);
 
@@ -1396,7 +1463,15 @@ public:
 	  Printf(enum_code, " = %s", value);
 	}
       } else {
-	// Wrap C/C++ enums with constant integers or use the typesafe enum pattern
+        if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+          String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+          if (comment_creation_chatter)
+            Printf(enum_code, "/* This was generated from enumvalueDeclaration() */");
+          Printv(enum_code, Char(doxygen_comments), NIL);
+          Delete(doxygen_comments);
+        }
+
+        // Wrap C/C++ enums with constant integers or use the typesafe enum pattern
 	SwigType *typemap_lookup_type = parent_name ? parent_name : NewString("enum ");
 	Setattr(n, "type", typemap_lookup_type);
 	const String *tm = typemapLookup(n, "cstype", typemap_lookup_type, WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF);
@@ -1450,6 +1525,22 @@ public:
   }
 
   /* -----------------------------------------------------------------------
+ * doxygenComment()
+ * Simply translates the doxygen comment and places it into the appropriate
+ * file
+ * ------------------------------------------------------------------------ */
+  virtual int doxygenComment(Node* n) {
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String* doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+      if (comment_creation_chatter)
+        Printf(structuralComments, "/* This was generated from doxygenComment() */");
+      Printv(structuralComments, Char(doxygen_comments), NIL);
+      Delete(doxygen_comments);
+    }
+    return SWIG_OK;
+  }
+
+  /* -----------------------------------------------------------------------
    * constantWrapper()
    * Used for wrapping constants - #define or %constant.
    * Also for inline initialised const static primitive type member variables (short, int, double, enums etc).
@@ -1470,6 +1561,14 @@ public:
     String *constants_code = NewString("");
     Swig_save("constantWrapper", n, "value", NIL);
     Swig_save("constantWrapper", n, "tmap:ctype:out", "tmap:imtype:out", "tmap:cstype:out", "tmap:out:null", "tmap:imtype:outattributes", "tmap:cstype:outattributes", NIL);
+
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+      if (comment_creation_chatter)
+        Printf(constants_code, "/* This was generated from constantWrapper() */");
+      Printv(constants_code, Char(doxygen_comments), NIL);
+      Delete(doxygen_comments);
+    }
 
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
 
@@ -1875,6 +1974,14 @@ public:
     if (!has_outerclass)
       Printv(proxy_class_def, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE),	// Import statements
 	   "\n", NIL);
+
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String* doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+      if (comment_creation_chatter)
+        Printf(proxy_class_def, "/* This was generated from emitProxyClassDefAndCPPCasts() */");
+      Printv(proxy_class_def, Char(doxygen_comments), NIL);
+      Delete(doxygen_comments);
+    }
 
     // Class attributes
     const String *csattributes = typemapLookup(n, "csattributes", typemap_lookup_type, WARN_NONE);
@@ -2342,11 +2449,11 @@ public:
   /* -----------------------------------------------------------------------------
    * proxyClassFunctionHandler()
    *
-   * Function called for creating a C# wrapper function around a c++ function in the 
+   * Function called for creating a C# wrapper function around a c++ function in the
    * proxy class. Used for both static and non-static C++ class functions.
    * C++ class static functions map to C# static functions.
-   * Two extra attributes in the Node must be available. These are "proxyfuncname" - 
-   * the name of the C# class proxy function, which in turn will call "imfuncname" - 
+   * Two extra attributes in the Node must be available. These are "proxyfuncname" -
+   * the name of the C# class proxy function, which in turn will call "imfuncname" -
    * the intermediary (PInvoke) function name in the intermediary class.
    * ----------------------------------------------------------------------------- */
 
@@ -2407,6 +2514,14 @@ public:
       Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+      if (comment_creation_chatter)
+	Printf(function_code, "/* This was generated from proxyclassfunctionhandler() */");
+      Printv(function_code, Char(doxygen_comments), NIL);
+      Delete(doxygen_comments);
+    }
+
     if (wrapping_member_flag && !enum_constant_flag) {
       // Properties
       setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), Swig_name_member(0, getClassPrefix(), variable_name))) == 0);
@@ -2453,7 +2568,7 @@ public:
     Printf(function_code, "%s %s(", return_type, proxy_function_name);
     if (is_interface)
       Printf(interface_class_code, "  %s %s(", return_type, proxy_function_name);
-    
+
 
     Printv(imcall, full_imclass_name, ".$imfuncname(", NIL);
     if (!static_flag)
@@ -2584,7 +2699,7 @@ public:
 	Replaceall(tm, "$owner", "false");
       substituteClassname(t, tm);
 
-      // For director methods: generate code to selectively make a normal polymorphic call or 
+      // For director methods: generate code to selectively make a normal polymorphic call or
       // an explicit method call - needed to prevent infinite recursion calls in director methods.
       Node *explicit_n = Getattr(n, "explicitcallnode");
       if (explicit_n) {
@@ -2641,7 +2756,16 @@ public:
 	    Swig_warning(WARN_CSHARP_TYPEMAP_CSOUT_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(cvariable_type, 0));
 	  }
 	}
-	const String *csattributes = Getattr(n, "feature:cs:attributes");
+
+        if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+	  String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+	  if (comment_creation_chatter)
+	    Printf(proxy_class_code, "/* This was generated from proxyclassfunctionhandler() */");
+	  Printv(proxy_class_code, Char(doxygen_comments), NIL);
+	  Delete(doxygen_comments);
+	}
+
+        const String* csattributes = Getattr(n, "feature:cs:attributes");
 	if (csattributes)
 	  Printf(proxy_class_code, "  %s\n", csattributes);
 	const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
@@ -2727,6 +2851,14 @@ public:
       String *overloaded_name = getOverloadedName(n);
       String *mangled_overname = Swig_name_construct(getNSpace(), overloaded_name);
       String *imcall = NewString("");
+
+      if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+        String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+        if (comment_creation_chatter)
+          Printf(function_code, "/* This was generated from constructionhandler() */");
+        Printv(function_code, Char(doxygen_comments), NIL);
+        Delete(doxygen_comments);
+      }
 
       const String *csattributes = Getattr(n, "feature:cs:attributes");
       if (csattributes) {
@@ -3031,6 +3163,14 @@ public:
     String *pre_code = NewString("");
     String *post_code = NewString("");
     String *terminator_code = NewString("");
+
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String* doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+      if (comment_creation_chatter)
+        Printf(function_code, "/* This was generated from moduleClassFunctionHandler() */");
+      Printv(function_code, " /** ", doxygen_comments, " */\n", NIL);
+      Delete(doxygen_comments);
+    }
 
     if (l) {
       if (SwigType_type(Getattr(l, "type")) == T_VOID) {
@@ -3395,7 +3535,7 @@ public:
   /* -----------------------------------------------------------------------------
    * substituteClassname()
    *
-   * Substitute the special variable $csclassname with the proxy class name for classes/structs/unions 
+   * Substitute the special variable $csclassname with the proxy class name for classes/structs/unions
    * that SWIG knows about. Also substitutes enums with enum name.
    * Otherwise use the $descriptor name for the C# class name. Note that the $&csclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
@@ -3596,7 +3736,7 @@ public:
    * tmap_method - typemap method name
    * type - typemap type to lookup
    * warning - warning number to issue if no typemaps found
-   * typemap_attributes - the typemap attributes are attached to this node and will 
+   * typemap_attributes - the typemap attributes are attached to this node and will
    *   also be used for temporary storage if non null
    * return is never NULL, unlike Swig_typemap_lookup()
    * ----------------------------------------------------------------------------- */
@@ -3834,7 +3974,7 @@ public:
   /* ---------------------------------------------------------------
    * classDirectorMethod()
    *
-   * Emit a virtual director method to pass a method call on to the 
+   * Emit a virtual director method to pass a method call on to the
    * underlying C# object.
    *
    * --------------------------------------------------------------- */
@@ -3965,7 +4105,7 @@ public:
 	Delete(jretval_decl);
       }
     } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s for use in %s::%s (skipping director method)\n", 
+      Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s for use in %s::%s (skipping director method)\n",
 	  SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
       output_director = false;
     }
@@ -4123,12 +4263,12 @@ public:
 		Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(pt, 0));
 	      }
 	    } else {
-	      Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number, "No csdirectorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
+	      Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number, "No csdirectorin typemap defined for %s for use in %s::%s (skipping director method)\n",
 		  SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	      output_director = false;
 	    }
 	  } else {
-	    Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s for use in %s::%s (skipping director method)\n", 
+	    Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s for use in %s::%s (skipping director method)\n",
 		SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	    output_director = false;
 	  }
@@ -4137,13 +4277,13 @@ public:
 
 	} else {
 	  Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number,
-		       "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n", 
+		       "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n",
 		       SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	  p = nextSibling(p);
 	  output_director = false;
 	}
       } else {
-	Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s for use in %s::%s (skipping director method)\n", 
+	Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s for use in %s::%s (skipping director method)\n",
 	    SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	output_director = false;
 	p = nextSibling(p);
@@ -4249,7 +4389,7 @@ public:
 	  Printf(w->code, "%s\n", tm);
 	} else {
 	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-		       "Unable to use return type %s used in %s::%s (skipping director method)\n", 
+		       "Unable to use return type %s used in %s::%s (skipping director method)\n",
 		       SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
 	  output_director = false;
 	}
@@ -4593,7 +4733,7 @@ public:
    * Generate the director class's declaration
    * e.g. "class SwigDirector_myclass : public myclass, public Swig::Director {"
    *--------------------------------------------------------------------*/
- 
+
   void directorDeclaration(Node *n) {
 
     String *base = Getattr(n, "classtype");
@@ -4637,6 +4777,9 @@ extern "C" Language *swig_csharp(void) {
 
 const char *CSHARP::usage = "\
 C# Options (available with -csharp)\n\
+     -doxygen        - Convert C++ doxygen comments to JavaDoc comments in proxy classes\n\
+     -debug-doxygen-parser     - Display doxygen parser module debugging information\n\
+     -debug-doxygen-translator - Display doxygen translator module debugging information\n\
      -dllimport <dl> - Override DllImport attribute name to <dl>\n\
      -namespace <nm> - Generate wrappers into C# namespace <nm>\n\
      -noproxy        - Generate the low-level functional interface instead\n\
