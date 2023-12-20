@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 7;
 BEGIN { use_ok 'director_string' }
 require_ok 'director_string';
 
@@ -25,9 +25,10 @@ require_ok 'director_string';
 my $b = B->new("hello");
 isa_ok $b, 'B';
 
-$b->get(0);
+is $b->get(0), "hello";
 
-is $b->get_first(),  "hello world!";
+is $b->get_first(), "hello world!";
+is $b->call_get_first(), "hello world!";
 
 $b->call_process_func();
 
