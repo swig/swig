@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-12-20: treitmayr
+            [Ruby] #2033 Fix missing checks for negative numbers when passing numbers
+            to unsigned long/unsigned long long C types.
+
 2023-12-20: crhilton
             [C#] #2722 Add support the "cs:defaultargs" feature.
 
