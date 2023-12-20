@@ -65,6 +65,7 @@
 <li><a href="#Python_nn37">Overhead and code bloat</a>
 <li><a href="#Python_nn38">Typemaps</a>
 <li><a href="#Python_nn39">Miscellaneous</a>
+<li><a href="#Python_stable_abi">Stable ABI</a>
 </ul>
 <li><a href="#Python_nn40">Common customization features</a>
 <ul>
@@ -3318,6 +3319,34 @@ director feature for reentrant, recursive or threaded member
 methods that return const references.
 </p>
 
+<H3><a name="Python_stable_abi">33.5.8 Stable ABI</a></H3>
+
+
+<p>
+By default, the version of Python used to compile the wrappers needs to be the same as that used during runtime.
+Alternatvely, the <a href="https://docs.python.org/3/c-api/stable.html">Python Stable ABI</a> enables a single compiled binary to be used by different versions of Python.
+This is enabled by defining <tt>Py_LIMITED_API</tt> during the compilation of the C/C++ wrapper code and setting this macro to a particular minimum version of Python that one wants to support.
+</p>
+
+<p>
+SWIG supports the stable ABI, but only version 3.4 of Python and later is supported.
+There are two recommended approaches for using SWIG and the stable ABI and both require setting the <tt>Py_LIMITED_API</tt> macro to be set to <tt>0x03040000</tt> as a minimum value (Python 3.4).
+Either set this using <tt>%begin</tt> by adding the following into your interface file so that this macro appears at the beginning of the generated C/C++ code:
+</p>
+
+<div class="code"><pre>
+%begin %{
+#define Py_LIMITED_API 0x03040000
+%}
+</pre></div>
+
+<p>
+or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line option, for example, <tt>-DPy_LIMITED_API=0x0304000</tt>.
+</p>
+
+<p>
+<b>Compatibility Note:</b> Support for the stable ABI was added in SWIG-4.2.0.
+</p>
 
 <H2><a name="Python_nn40">33.6 Common customization features</a></H2>
 

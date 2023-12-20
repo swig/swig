@@ -14,6 +14,24 @@
 #include <vector>
 #include <map>
 
+#if defined(SWIG_PYTHON_THREADS)
+/*  __THREAD__ is the old macro to activate some thread support */
+# if !defined(__THREAD__)
+#   define __THREAD__ 1
+# endif
+#endif
+
+#ifdef __THREAD__
+#ifndef Py_LIMITED_API
+# include "pythread.h"
+#else
+# if defined(_WIN32)
+#   include <windows.h>
+# else
+#   include <pthread.h>
+# endif
+#endif
+#endif
 
 /*
   Use -DSWIG_PYTHON_DIRECTOR_NO_VTABLE if you don't want to generate a 'virtual
@@ -244,25 +262,89 @@ namespace Swig {
   };
 
 
-#if defined(SWIG_PYTHON_THREADS)
-/*  __THREAD__ is the old macro to activate some thread support */
-# if !defined(__THREAD__)
-#   define __THREAD__ 1
-# endif
-#endif
-
 #ifdef __THREAD__
-# include "pythread.h"
+#ifndef Py_LIMITED_API
+   class Mutex
+   {
+   public:
+       Mutex() {
+           mutex_ = PyThread_allocate_lock();
+       }
+
+       ~Mutex() {
+           PyThread_release_lock(mutex_);
+       }
+
+   private:
+       void Lock() {
+           PyThread_acquire_lock(mutex_, WAIT_LOCK);
+       }
+
+       void Unlock() {
+           PyThread_free_lock(mutex_);
+       }
+
+       PyThread_type_lock mutex_;
+
+       friend class Guard;
+   };
+#elif defined(_WIN32)
+    class Mutex : private CRITICAL_SECTION {
+    public:
+        Mutex() {
+            InitializeCriticalSection(this);
+        }
+
+        ~Mutex() {
+            DeleteCriticalSection(this);
+        }
+
+    private:
+        void Lock() {
+            EnterCriticalSection(this);
+        }
+
+        void Unlock() {
+            LeaveCriticalSection(this);
+        }
+
+        friend class Guard;
+    };
+#else
+    class Mutex {
+    public:
+        Mutex() {
+            pthread_mutex_init(&mutex_, NULL);
+        }
+
+        ~Mutex() {
+            pthread_mutex_destroy(&mutex_);
+        }
+
+    private:
+        void Lock() {
+            pthread_mutex_lock(&mutex_);
+        }
+
+        void Unlock() {
+            pthread_mutex_unlock(&mutex_);
+        }
+
+        friend class Guard;
+
+        pthread_mutex_t mutex_;
+    };
+#endif
   class Guard {
-    PyThread_type_lock &mutex_;
+    Mutex &mutex_;
 
   public:
-    Guard(PyThread_type_lock & mutex) : mutex_(mutex) {
-      PyThread_acquire_lock(mutex_, WAIT_LOCK);
+    Guard(Mutex & mutex) : mutex_(mutex) {
+      mutex_.Lock();
     }
 
     ~Guard() {
-      PyThread_release_lock(mutex_);
+      mutex_.Unlock();
     }
   };
 # define SWIG_GUARD(mutex) Guard _guard(mutex)
@@ -330,7 +412,7 @@ namespace Swig {
     typedef std::map<void *, GCItem_var> swig_ownership_map;
     mutable swig_ownership_map swig_owner;
 #ifdef __THREAD__
-    static PyThread_type_lock swig_mutex_own;
+    static Mutex swig_mutex_own;
 #endif
 
   public:
@@ -382,7 +464,7 @@ namespace Swig {
   };
 
 #ifdef __THREAD__
-  PyThread_type_lock Director::swig_mutex_own = PyThread_allocate_lock();
+  Mutex Director::swig_mutex_own;
 #endif
 }
 

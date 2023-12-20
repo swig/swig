@@ -7,6 +7,30 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-12-20: wsfulton
+            [Python] More efficient input string marshalling for Python 3.
+
+            Previously a copy of strings was made while converting from a Python 3
+            string to a char * or std::string. This copy is no longer needed making
+            string marshalling more efficient. Does not apply to the stable abi
+            targetting Python < 3.10 where a copy is still required where the stable
+            abi does not provide PyUnicode_AsUTF8AndSize.
+
+2023-12-20: wsfulton
+            #2190 Replace SWIG_Python_str_AsChar with SWIG_PyUnicode_AsUTF8AndSize.
+
+            SWIG_Python_str_AsChar has undefined behaviour when Py_LIMITED_API is defined
+            as it returns a pointer to a string in a PyBytes object that no longer exists.
+
+            SWIG_PyUnicode_AsUTF8AndSize is an efficient replacement, but requires a
+            different API and the caller to decrement the refcount on the intermediate
+            PyObject in the Py_LIMITED_API < 0x030A0000 implementation. The alternative
+            would have required copying the returned char * string as was done in a
+            previous implementation requiring a call to the defunct SWIG_Python_str_DelForPy3
+            function.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2023-12-14: PaulObermeier
 	    [Tcl] #2730 Rename SWIG’s Tcl_GetBoolFromObj() since Tcl 8.7 (TIP 618)
 	    introduces a function with the same name.

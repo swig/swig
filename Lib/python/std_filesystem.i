@@ -26,8 +26,10 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
 
 %typemap(in, fragment="SWIG_std_filesystem", fragment="<type_traits>") std::filesystem::path {
   if (PyUnicode_Check($input)) {
-    const char *s = PyUnicode_AsUTF8($input);
+    PyObject *bytes = NULL;
+    const char *s = SWIG_PyUnicode_AsUTF8AndSize($input, NULL, &bytes);
     $1 = std::filesystem::path(s);
+    Py_XDECREF(bytes);
   } else if (SWIG_std_filesystem_isPathInstance($input)) {
     PyObject *str_obj = PyObject_Str($input);
     if constexpr (std::is_same_v<typename std::filesystem::path::value_type, wchar_t>) {
@@ -37,8 +39,10 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
       $1 = std::filesystem::path(std::wstring(ws, static_cast<size_t>(size)));
       PyMem_Free(ws);
     } else {
-      const char *s = PyUnicode_AsUTF8(str_obj);
+      PyObject *bytes = NULL;
+      const char *s = SWIG_PyUnicode_AsUTF8AndSize(str_obj, NULL, &bytes);
       $1 = std::filesystem::path(s);
+      Py_XDECREF(bytes);
     }
     Py_DECREF(str_obj);
   } else {
@@ -54,9 +58,11 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
 
 %typemap(in, fragment="SWIG_std_filesystem", fragment="<type_traits>") const std::filesystem::path &(std::filesystem::path temp_path) {
   if (PyUnicode_Check($input)) {
-    const char *s = PyUnicode_AsUTF8($input);
+    PyObject *bytes = NULL;
+    const char *s = SWIG_PyUnicode_AsUTF8AndSize($input, NULL, &bytes);
     temp_path = std::filesystem::path(s);
     $1 = &temp_path;
+    Py_XDECREF(bytes);
   } else if (SWIG_std_filesystem_isPathInstance($input)) {
     PyObject *str_obj = PyObject_Str($input);
     if constexpr (std::is_same_v<typename std::filesystem::path::value_type, wchar_t>) {
@@ -67,9 +73,11 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
       $1 = &temp_path;
       PyMem_Free(ws);
     } else {
-      const char *s = PyUnicode_AsUTF8(str_obj);
+      PyObject *bytes = NULL;
+      const char *s = SWIG_PyUnicode_AsUTF8AndSize(str_obj, NULL, &bytes);
       temp_path = std::filesystem::path(s);
       $1 = &temp_path;
+      Py_XDECREF(bytes);
     }
     Py_DECREF(str_obj);
   } else {

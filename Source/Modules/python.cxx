@@ -128,6 +128,7 @@ static const char *usage3 = "\
      -nortti         - Disable the use of the native C++ RTTI with directors\n\
      -nothreads      - Disable thread support for the entire interface\n\
      -olddefs        - Keep the old method definitions when using -fastproxy\n\
+     -stable-abi     - Generate code compatible with the Python stable ABI\n\
      -relativeimport - Use relative Python imports\n\
      -threads        - Add thread support for all the interface\n\
      -O              - Enable the following optimization options:\n\

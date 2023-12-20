@@ -940,6 +940,7 @@ swig_and_compile_cpp_helper = \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT=$(2) NOLINK=true \
 	TARGET="$(TARGETPREFIX)$(1)$(TARGETSUFFIX)" INTERFACEDIR='$(INTERFACEDIR)' INTERFACE="$(1).i" \
+	EXTRA_CXXFLAGS="$(3)" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_cpp =  \
