@@ -3341,7 +3341,13 @@ Either set this using <tt>%begin</tt> by adding the following into your interfac
 </pre></div>
 
 <p>
-or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line option, for example, <tt>-DPy_LIMITED_API=0x0304000</tt>.
+or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line option, for example, <tt>-DPy_LIMITED_API=0x03040000</tt>.
+</p>
+
+<p>
+The default SWIG command line options generate code that enable the limited API/stable ABI.
+Some options, such as <tt>-builtin</tt>, <tt>-fast</tt> (used by <tt>-O</tt>) do not use the limited API and hence when <tt>Py_LIMITED_API</tt> is defined there will be missing symbols during compilation.
+Compatibility of user's custom typemaps is of course dependent on the Python APIs used in the typemaps.
 </p>
 
 <p>
