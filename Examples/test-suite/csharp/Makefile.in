@@ -18,6 +18,7 @@ top_builddir = ../@top_builddir@
 
 CPP_TEST_CASES = \
 	complextest \
+	csharp_argument_defaults_feature \
 	csharp_attributes \
 	csharp_swig2_compatibility \
 	csharp_director_typemaps \
@@ -36,6 +37,7 @@ CPP_TEST_CASES = \
 	nested_scope \
 	li_boost_intrusive_ptr \
 	li_std_list \
+
 
 CPP11_TEST_CASES = \
 	cpp11_shared_ptr_const \

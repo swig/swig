@@ -1804,6 +1804,11 @@ use the <tt>compactdefaultargs</tt> feature flag as mentioned below.
 </p>
 
 <p>
+For C# please see the <a href="CSharp.html#CSharp_named_arguments">C# named and optional arguments</a> section for information on special
+handling of default arguments available specifically for C#.
+</p>
+
+<p>
 <b>Compatibility note:</b> Versions of SWIG prior to SWIG-1.3.23 wrapped default arguments slightly differently.
 Instead a single wrapper method was generated and the default values were copied into the C++ wrappers
 so that the method being wrapped was then called with all the arguments specified.
@@ -1829,6 +1834,7 @@ such as C# and Java,
 which don't have optional arguments in the language, 
 Another restriction of this feature is that it cannot handle default arguments that are not public.
 The following example illustrates this:
+
 </p>
 
 <div class="code">
