@@ -7,8 +7,8 @@ class B(A):
         A.__init__(self, string)
 
     def get_first(self):
-        # Given std::string_view is just a pointer into a string, the string
-        # cannot be a temporary in order to avoid undefined behaviour
+        # Since std::string_view contains a pointer into a string, the string
+        # cannot be a temporary in order to avoid undefined behaviour.
         self.cached_string = A.get_first(self) + " world!"
         return self.cached_string
 
@@ -19,7 +19,9 @@ class B(A):
 
 b = B("hello")
 
-b.get(0)
+if b.get(0) != "hello":
+    raise RuntimeError("b.get(0): {}".format(b.get(0)))
+
 if b.get_first() != "hello world!":
     raise RuntimeError("b.get_first(): {}".format(b.get_first()))
 
