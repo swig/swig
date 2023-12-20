@@ -17,7 +17,7 @@
 %inline %{
 #include <string>
 
-enum class EnumerationType {
+enum EnumerationType {
     one=1,
     two,
     three
@@ -58,7 +58,7 @@ public:
     {
         return (int)s.size();
     }
-    int valueofenum(EnumerationType t=EnumerationType::two)
+    int valueofenum(EnumerationType t=two)
     {
         return (int)t;
     }
@@ -80,7 +80,7 @@ public:
 class AnInterface
 {
 public:
-    AnInterface()=default;
+    AnInterface() {}
     virtual int foo(int x=1, int y=2, int z=3) = 0;
     virtual ~AnInterface() {}
 };
@@ -88,7 +88,7 @@ public:
 class AnImplementation: public AnInterface
 {
 public:
-    int foo(int x=1, int y=2, int z=3) override
+    int foo(int x=1, int y=2, int z=3)
     {
         return x*y+z;
     }
