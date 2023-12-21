@@ -87,7 +87,10 @@ namespace std {
         PyObject *bytes = NULL;
         if (PyUnicode_Check($input)) {
           p = SWIG_PyUnicode_AsUTF8AndSize($input, &len, &bytes);
-          // Py_XDECREF(bytes); // Avoid undefined behaviour ($input will be pointing to a temporary if bytes is not NULL), for now we just leak by not calling Py_XDECREF
+          // Avoid undefined behaviour (p will be pointing to a temporary
+          // if bytes is not NULL which happens when Py_LIMITED_API is defined
+          // and < 0x030A0000) and just leak by not calling Py_XDECREF.
+          // Py_XDECREF(bytes);
         } else {
           p = PyBytes_AsString($input);
           if (p) len = PyBytes_Size($input);
