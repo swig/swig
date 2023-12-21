@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.0 (in progress)
 ===========================
 
+2023-12-21: olly
+	    [PHP] `%feature("php:allowdynamicproperties", 0) Foo;` is now handled as
+	    the feature being off to match other boolean features.  Previously
+	    any value set was treated as on.
+
 2023-12-20: treitmayr
             [Ruby] #2033 Fix missing checks for negative numbers when passing numbers
             to unsigned long/unsigned long long C types.

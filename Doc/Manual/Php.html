@@ -835,6 +835,13 @@ Note that unknown features are ignored, so you can add use these
 unconditionally in your interface file and it'll work with older SWIG too.
 </p>
 
+<p>
+There was a bug in SWIG 4.1.0 where setting this feature to any value enabled
+it - SWIG 4.2.0 fixed this and you can now set it to 0 to turn it off (for
+example, you might want to enabled it for everything and then selectively turn
+it off for specific classes).
+</p>
+
 
 <H3><a name="Php_nn2_7">32.2.7 PHP Pragmas, Startup and Shutdown code</a></H3>
 
