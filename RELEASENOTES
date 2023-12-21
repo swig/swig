@@ -24,6 +24,7 @@ SWIG-4.2.0 summary:
 - Various Doxygen improvements.
 - D1/Tango support removed.  D2/Phobos is now the supported D version
   and SWIG now generates code which works with recent D2 releases.
+- New Javascript generator targeting Node.js binary stable ABI Node-API.
 - Octave 8.1 support added.
 - PHP7 support removed, PHP8 is now the supported PHP version.
 - Python STL container wrappers now use the Python Iterator Protocol.
