@@ -98,6 +98,6 @@ SWIG_AsVal_dec(String)(SWIG_Object obj, String *val)
 %std_string_asval(String)
 %std_string_view_from(String, FromMethod, #FromMethod)
 
-%typemaps_asptrfromn(%arg(CheckCode), String);
+%typemaps_asptrfromn_directorout_warning(%arg(CheckCode), warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG, String);
 
 %enddef
