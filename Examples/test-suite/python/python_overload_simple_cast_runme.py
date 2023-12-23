@@ -165,8 +165,8 @@ if s.type != "void *":
 
 
 # unsigned long long
-ullmax = 9223372036854775807  # 0xffffffffffffffff
-ullmaxd = 9007199254740992.0
+ullmax = 0xffffffffffffffff
+ullmaxd = float(2**53 - 1)  # 2**53 does not differ from 2**53+1
 ullmin = 0
 ullmind = 0.0
 if ull(ullmin) != ullmin:
@@ -177,13 +177,34 @@ if ull(ullmind) != ullmind:
     raise RuntimeError("ull(ullmind)")
 if ull(ullmaxd) != ullmaxd:
     raise RuntimeError("ull(ullmaxd)")
+try:
+    ull(ullmin - 1)
+    raise RuntimeError("ull(ullmin - 1)")
+except TypeError: # ull is overloaded, so TypeError instead of OverflowError
+    pass
+try:
+    ull(ullmax + 1)
+    raise RuntimeError("ull(ullmax + 1)")
+except TypeError:
+    pass
+try:
+    ull(ullmind - 1.0)
+    raise RuntimeError("ull(ullmind - 1.0)")
+except TypeError:
+    pass
+try:
+    ull(ullmaxd + 1.0)
+    raise RuntimeError("ull(ullmaxd + 1.0)")
+except TypeError:
+    pass
+
 
 # long long
-llmax = 9223372036854775807  # 0x7fffffffffffffff
-llmin = -9223372036854775808
+llmax = 0x7fffffffffffffff
+llmin = -0x8000000000000000
 # these are near the largest  floats we can still convert into long long
-llmaxd = 9007199254740992.0
-llmind = -9007199254740992.0
+llmaxd = float(2**53 - 1)
+llmind = -llmaxd
 if ll(llmin) != llmin:
     raise RuntimeError("ll(llmin)")
 if ll(llmax) != llmax:
@@ -192,6 +213,26 @@ if ll(llmind) != llmind:
     raise RuntimeError("ll(llmind)")
 if ll(llmaxd) != llmaxd:
     raise RuntimeError("ll(llmaxd)")
+try:
+    ll(llmin - 1)
+    raise RuntimeError("ll(llmin - 1)")
+except TypeError:
+    pass
+try:
+    ll(llmax + 1)
+    raise RuntimeError("ll(llmax + 1)")
+except TypeError:
+    pass
+try:
+    ll(llmind - 1.0)
+    raise RuntimeError("ll(llmind - 1.0)")
+except TypeError:
+    pass
+try:
+    ll(llmaxd + 1.0)
+    raise RuntimeError("ll(llmaxd + 1.0)")
+except TypeError:
+    pass
 
 
 free_void(v)

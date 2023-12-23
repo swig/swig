@@ -192,14 +192,18 @@ SWIG_From_dec(long long)(long long value)
 }
 
 %fragment(SWIG_AsVal_frag(long long),"header",
-	  fragment=SWIG_AsVal_frag(long),
 	  fragment="SWIG_CanCastAsInteger",
 	  fragment="SWIG_LongLongAvailable") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN int
 SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
 {
-  int res = SWIG_TypeError;
+%#if PY_VERSION_HEX < 0x03000000
+  if (PyInt_Check(obj)) {
+    if (val) *val = PyInt_AsLong(obj);
+    return SWIG_OK;
+  } else
+%#endif
   if (PyLong_Check(obj)) {
     long long v = PyLong_AsLongLong(obj);
     if (!PyErr_Occurred()) {
@@ -207,32 +211,26 @@ SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
       return SWIG_OK;
     } else {
       PyErr_Clear();
-      res = SWIG_OverflowError;
-    }
-  } else {
-    long v;
-    res = SWIG_AsVal(long)(obj,&v);
-    if (SWIG_IsOK(res)) {
-      if (val) *val = v;
-      return res;
+      return SWIG_OverflowError;
     }
   }
 %#ifdef SWIG_PYTHON_CAST_MODE
   {
-    const double mant_max = 1LL << DBL_MANT_DIG;
+    const double mant_max = (1LL << DBL_MANT_DIG) - 1;
     const double mant_min = -mant_max;
     double d;
-    res = SWIG_AsVal(double)(obj,&d);
-    if (SWIG_IsOK(res) && !SWIG_CanCastAsInteger(&d, mant_min, mant_max))
-      return SWIG_OverflowError;
-    if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, mant_min, mant_max)) {
-      if (val) *val = (long long)(d);
-      return SWIG_AddCast(res);
+    int res = SWIG_AsVal(double)(obj,&d);
+    if (SWIG_IsOK(res)) {
+      if (SWIG_CanCastAsInteger(&d, mant_min, mant_max)) {
+        if (val) *val = (long long)(d);
+        return SWIG_AddCast(res);
+      } else {
+        return SWIG_OverflowError;
+      }
     }
-    res = SWIG_TypeError;
   }
 %#endif
-  return res;
+  return SWIG_TypeError;
 }
 %#endif
 }
@@ -252,14 +250,23 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
-	  fragment=SWIG_AsVal_frag(unsigned long),
 	  fragment="SWIG_CanCastAsInteger",
 	  fragment="SWIG_LongLongAvailable") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
 {
-  int res = SWIG_TypeError;
+%#if PY_VERSION_HEX < 0x03000000
+  if (PyInt_Check(obj)) {
+    long v = PyInt_AsLong(obj);
+    if (v >= 0) {
+      if (val) *val = v;
+      return SWIG_OK;
+    } else {
+      return SWIG_OverflowError;
+    }
+  } else
+%#endif
   if (PyLong_Check(obj)) {
     unsigned long long v = PyLong_AsUnsignedLongLong(obj);
     if (!PyErr_Occurred()) {
@@ -267,31 +274,25 @@ SWIG_AsVal_dec(unsigned long long)(PyObject *obj, unsigned long long *val)
       return SWIG_OK;
     } else {
       PyErr_Clear();
-      res = SWIG_OverflowError;
-    }
-  } else {
-    unsigned long v;
-    res = SWIG_AsVal(unsigned long)(obj,&v);
-    if (SWIG_IsOK(res)) {
-      if (val) *val = v;
-      return res;
+      return SWIG_OverflowError;
     }
   }
 %#ifdef SWIG_PYTHON_CAST_MODE
   {
-    const double mant_max = 1LL << DBL_MANT_DIG;
+    const double mant_max = (1LL << DBL_MANT_DIG) - 1;
     double d;
-    res = SWIG_AsVal(double)(obj,&d);
-    if (SWIG_IsOK(res) && !SWIG_CanCastAsInteger(&d, 0, mant_max))
-      return SWIG_OverflowError;
-    if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, mant_max)) {
-      if (val) *val = (unsigned long long)(d);
-      return SWIG_AddCast(res);
+    int res = SWIG_AsVal(double)(obj,&d);
+    if (SWIG_IsOK(res)) {
+      if (SWIG_CanCastAsInteger(&d, 0, mant_max)) {
+        if (val) *val = (unsigned long long)(d);
+        return SWIG_AddCast(res);
+      } else {
+        return SWIG_OverflowError;
+      }
     }
-    res = SWIG_TypeError;
   }
 %#endif
-  return res;
+  return SWIG_TypeError;
 }
 %#endif
 }
