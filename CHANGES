@@ -11541,7 +11541,7 @@ Version 1.3.28 (February 12, 2006)
 	      foo(1)   // Ok
 	      foo(1.0) // Ok
 	      foo(1.3) // Error
-	      a = Ai(4)
+	      ai = Ai(4)
               foo(ai)  // Ok
 
             The castmode, which can be enabled either with the
