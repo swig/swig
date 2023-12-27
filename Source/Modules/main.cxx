@@ -140,6 +140,7 @@ static const char *usage4 = "\
      -outdir <dir>   - Set language specific files output directory to <dir>\n\
      -pcreversion    - Display PCRE2 version information\n\
      -small          - Compile in virtual elimination and compact mode\n\
+     -std=<standard> - Set the C or C++ language <standard> for inputs\n\
      -swiglib        - Report location of SWIG library and exit\n\
      -templatereduce - Reduce all the typedefs in templates\n\
      -U<symbol>      - Undefine symbol <symbol>\n\

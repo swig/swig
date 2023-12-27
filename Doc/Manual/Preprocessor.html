@@ -183,12 +183,24 @@ the <b>value</b> <tt>__cplusplus</tt>.
 </p>
 
 <p>
-Since SWIG 4.2.0, SWIG supports command line options <tt>-std=cXX</tt> and
-<tt>-std=c++XX</tt> to specify the C/C++ standards version.  The only effect of
+Since SWIG 4.2.0, SWIG supports command line options <tt>-std=cNN</tt> and
+<tt>-std=c++NN</tt> to specify the C/C++ standards version.  The only effect of
 these options is to set appropriate values for <tt>__STDC_VERSION__</tt> and
 <tt>__cplusplus</tt> respectively, which is useful if you're wrapping
 headers which have preprocessor checks based on their values.
 </p>
+
+<p>
+If your code requires these macros to be set to a version of the standard
+that is not a final official version, or one that SWIG is not yet aware of,
+you can simply redefine the appropriate macro to an alternative value at the
+top of your interface file, for example:
+</p>
+
+<div class="code"><pre>
+#undef __cplusplus
+#define __cplusplus 202211L
+</pre></div>
 
 <p>
 The following are language specific symbols that might be defined:
