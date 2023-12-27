@@ -1,6 +1,6 @@
 # file: runme.tcl
 
-catch { load ./example[info sharedlibextension] example}
+catch { load ./example[info sharedlibextension] Example}
 
 # First create some objects using the pointer library.
 puts "Testing the pointer library"

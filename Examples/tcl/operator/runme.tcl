@@ -1,6 +1,6 @@
 # Operator overloading example
 
-catch { load ./example[info sharedlibextension] example}
+catch { load ./example[info sharedlibextension] Example}
 
 set a [Complex -args 2 3]
 set b [Complex -args -5 10]

@@ -1,5 +1,5 @@
 
-if [ catch { load ./bools[info sharedlibextension] bools} err_msg ] {
+if [ catch { load ./bools[info sharedlibextension] Bools} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

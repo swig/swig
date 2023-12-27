@@ -1,4 +1,4 @@
-if [ catch { load ./integers[info sharedlibextension] integers} err_msg ] {
+if [ catch { load ./integers[info sharedlibextension] Integers} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 
