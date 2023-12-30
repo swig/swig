@@ -7,6 +7,10 @@
 # pragma GCC diagnostic ignored "-Wbool-compare"
 #endif
 
+#if defined(_MSC_VER)
+  #pragma warning(disable : 4804) // warning C4804: '<': unsafe use of type 'bool' in operation
+#endif
+
 /* % didn't work in SWIG 1.3.40 and earlier. */
 const int X = 123%7;
 #define FOO 12 % 9
