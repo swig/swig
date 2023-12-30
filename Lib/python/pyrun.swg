@@ -406,22 +406,25 @@ swig_varlink_type(void) {
       return NULL;
   }
   return &varlink_type;
-#else // Py_LIMITED_API
+#else
   PyType_Slot slots[] = {
-    { Py_tp_dealloc, (void*)swig_varlink_dealloc },
-    { Py_tp_repr, (void*)swig_varlink_repr },
-    { Py_tp_getattr, (void*)swig_varlink_getattr },
-    { Py_tp_setattr, (void*)swig_varlink_setattr },
-    { Py_tp_str, (void*)swig_varlink_str },
-    { Py_tp_doc, (void*)varlink__doc__ },
+    { Py_tp_dealloc, (void *)swig_varlink_dealloc },
+    { Py_tp_repr, (void *)swig_varlink_repr },
+    { Py_tp_getattr, (void *)swig_varlink_getattr },
+    { Py_tp_setattr, (void *)swig_varlink_setattr },
+    { Py_tp_str, (void *)swig_varlink_str },
+    { Py_tp_doc, (void *)varlink__doc__ },
     { 0, NULL }
   };
-  PyType_Spec spec = {};
-  spec.name = "swigvarlink";
-  spec.basicsize = sizeof(swig_varlinkobject);
-  spec.slots = slots;
-  return (PyTypeObject*)PyType_FromSpec(&spec);
-#endif // Py_LIMITED_API
+  PyType_Spec spec = {
+    "swigvarlink",
+    sizeof(swig_varlinkobject),
+    0,
+    Py_TPFLAGS_DEFAULT,
+    slots
+  };
+  return (PyTypeObject *)PyType_FromSpec(&spec);
+#endif
 }
 
 /* Create a variable linking object for use later */
@@ -1033,24 +1036,26 @@ SwigPyObject_TypeOnce(void) {
       return NULL;
   }
   return &swigpyobject_type;
-#else // Py_LIMITED_API
+#else
   PyType_Slot slots[] = {
-    { Py_tp_dealloc, (void*)SwigPyObject_dealloc },
-    { Py_tp_repr, (void*)SwigPyObject_repr },
-    { Py_tp_getattro, (void*)PyObject_GenericGetAttr },
-    { Py_tp_doc, (void*)swigobject_doc },
-    { Py_tp_richcompare, (void*)SwigPyObject_richcompare },
-    { Py_tp_methods, (void*)swigobject_methods },
-    { Py_nb_int, (void*)SwigPyObject_long },
+    { Py_tp_dealloc, (void *)SwigPyObject_dealloc },
+    { Py_tp_repr, (void *)SwigPyObject_repr },
+    { Py_tp_getattro, (void *)PyObject_GenericGetAttr },
+    { Py_tp_doc, (void *)swigobject_doc },
+    { Py_tp_richcompare, (void *)SwigPyObject_richcompare },
+    { Py_tp_methods, (void *)swigobject_methods },
+    { Py_nb_int, (void *)SwigPyObject_long },
     { 0, NULL }
   };
-  PyType_Spec spec = {};
-  spec.name = "SwigPyObject";
-  spec.basicsize = sizeof(SwigPyObject);
-  spec.flags = Py_TPFLAGS_DEFAULT;
-  spec.slots = slots;
-  return (PyTypeObject*)PyType_FromSpec(&spec);
-#endif // Py_LIMITED_API
+  PyType_Spec spec = {
+    "SwigPyObject",
+    sizeof(SwigPyObject),
+    0,
+    Py_TPFLAGS_DEFAULT,
+    slots
+  };
+  return (PyTypeObject *)PyType_FromSpec(&spec);
+#endif
 }
 
 SWIGRUNTIME PyObject *
@@ -1249,19 +1254,21 @@ SwigPyPacked_TypeOnce(void) {
   return &swigpypacked_type;
 #else
   PyType_Slot slots[] = {
-    { Py_tp_dealloc, (void*)SwigPyPacked_dealloc },
-    { Py_tp_repr, (void*)SwigPyPacked_repr },
-    { Py_tp_str, (void*)SwigPyPacked_str },
-    { Py_tp_getattro, (void*)PyObject_GenericGetAttr },
-    { Py_tp_doc, swigpacked_doc },
+    { Py_tp_dealloc, (void *)SwigPyPacked_dealloc },
+    { Py_tp_repr, (void *)SwigPyPacked_repr },
+    { Py_tp_str, (void *)SwigPyPacked_str },
+    { Py_tp_getattro, (void *)PyObject_GenericGetAttr },
+    { Py_tp_doc, (void *)swigpacked_doc },
     { 0, NULL }
   };
-  PyType_Spec spec = {};
-  spec.name = "SwigPyPacked";
-  spec.basicsize = sizeof(SwigPyPacked);
-  spec.flags = Py_TPFLAGS_DEFAULT;
-  spec.slots = slots;
-  return (PyTypeObject*)PyType_FromSpec(&spec);
+  PyType_Spec spec = {
+    "SwigPyPacked",
+    sizeof(SwigPyPacked),
+    0,
+    Py_TPFLAGS_DEFAULT,
+    slots
+  };
+  return (PyTypeObject *)PyType_FromSpec(&spec);
 #endif
 }
 
@@ -1784,7 +1791,7 @@ SWIG_Python_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
 }
 
 
-static int interpreter_counter = 0; // how many (sub-)interpreters are using swig_module's types
+static int interpreter_counter = 0; /* how many (sub-)interpreters are using swig_module's types */
 
 SWIGRUNTIME void
 SWIG_Python_DestroyModule(PyObject *obj)
@@ -1792,7 +1799,7 @@ SWIG_Python_DestroyModule(PyObject *obj)
   swig_module_info *swig_module = (swig_module_info *) PyCapsule_GetPointer(obj, SWIGPY_CAPSULE_NAME);
   swig_type_info **types = swig_module->types;
   size_t i;
-  if (--interpreter_counter != 0) // another sub-interpreter may still be using the swig_module's types
+  if (--interpreter_counter != 0) /* another sub-interpreter may still be using the swig_module's types */
     return;
   for (i =0; i < swig_module->size; ++i) {
     swig_type_info *ty = types[i];
@@ -1929,7 +1936,8 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
     } else 
 #endif      
     {
-#ifndef Py_LIMITED_API // tp_name is not accessible
+#ifndef Py_LIMITED_API
+      /* tp_name is not accessible */
       const char *otype = (obj ? obj->ob_type->tp_name : 0); 
       if (otype) {
 	PyObject *str = PyObject_Str(obj);
