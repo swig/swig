@@ -3,6 +3,13 @@
 */
 %module cpp11_decltype
 
+%{
+#if defined(_MSC_VER)
+  #pragma warning(disable : 4804) // warning C4804: '-': unsafe use of type 'bool' in operation
+  // For: decltype(-false) should_be_int2;
+#endif
+%}
+
 #ifdef SWIGGO
 // FIXME: SWIG/Go tries to wrap this by generating code which tries to
 // assign a const char* value to a char* variable.

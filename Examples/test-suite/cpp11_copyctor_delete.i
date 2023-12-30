@@ -1,5 +1,11 @@
 %module cpp11_copyctor_delete
 
+%{
+#if defined(_MSC_VER)
+  #pragma warning(disable : 4624) // warning C4624: 'StackOnlyDerived1': destructor was implicitly defined as deleted
+#endif
+%}
+
 %inline %{
 struct DeletedPublic1 {
   DeletedPublic1() = delete;

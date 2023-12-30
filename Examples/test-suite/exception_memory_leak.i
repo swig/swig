@@ -3,6 +3,12 @@
 %include <std_string.i>
 %include <exception.i>
 
+#ifdef SWIGCSHARP
+#define TYPEMAP_OUT_INIT $result = 0;
+#else
+#define TYPEMAP_OUT_INIT
+#endif
+
 %typemap(in) Foo* foo
 {
   $1 = new Foo;
@@ -14,6 +20,7 @@
 }
 %typemap(out) Foo* trigger_internal_swig_exception
 {
+  TYPEMAP_OUT_INIT
   if ($1 == NULL) {
     SWIG_exception(SWIG_RuntimeError, "Let's see how the bindings manage this exception!");
 #ifdef SWIG_fail
@@ -24,6 +31,7 @@
 }
 %typemap(out) Foo trigger_internal_swig_exception
 {
+  TYPEMAP_OUT_INIT
   SWIG_exception(SWIG_RuntimeError, "Let's see how the bindings manage this exception!");
 #ifdef SWIG_fail
   SWIG_fail;

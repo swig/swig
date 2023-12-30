@@ -4455,12 +4455,12 @@ templateparameter : templcpptype def_args {
 			/* A 'class T' parameter */
 			const char *t = Strchr(type, ' ');
 			Setattr(p, "name", t + 1);
-			Setattr(p, "type", NewStringWithSize(type, t - Char(type)));
+			Setattr(p, "type", NewStringWithSize(type, (int)(t - Char(type))));
 		      } else if ((Strncmp(type, "v.class ", 8) == 0) || (Strncmp(type, "v.typename ", 11) == 0)) {
 			/* Variadic template args */
 			const char *t = Strchr(type, ' ');
 			Setattr(p, "name", t + 1);
-			Setattr(p, "type", NewStringWithSize(type, t - Char(type)));
+			Setattr(p, "type", NewStringWithSize(type, (int)(t - Char(type))));
 		      }
 		    }
                   }

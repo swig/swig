@@ -429,7 +429,7 @@ static Parm *partial_arg(const SwigType *type, const SwigType *partialtype) {
 
   if (c) {
     int suffix_length;
-    int prefix_length = c - cp;
+    int prefix_length = (int)(c - cp);
     int type_length = Len(type);
     const char *suffix = c;
     String *prefix = NewStringWithSize(cp, prefix_length);
@@ -437,8 +437,8 @@ static Parm *partial_arg(const SwigType *type, const SwigType *partialtype) {
       if (!isdigit((int)*suffix))
 	break;
     }
-    parmname = NewStringWithSize(c, suffix - c); /* $1, $2 etc */
-    suffix_length = strlen(suffix);
+    parmname = NewStringWithSize(c, (int)(suffix - c)); /* $1, $2 etc */
+    suffix_length = (int)strlen(suffix);
     assert(Strstr(type, prefix) == Char(type)); /* check that the start of both types match */
     assert(strcmp(Char(type) + type_length - suffix_length, suffix) == 0); /* check that the end of both types match */
     parmtype = NewStringWithSize(Char(type) + prefix_length, type_length - suffix_length - prefix_length);

@@ -1,5 +1,11 @@
 %module assign_const
 
+%{
+#if defined(_MSC_VER)
+  #pragma warning(disable : 4351) // warning C4351: new behavior: elements of array 'AssignArray::ArrayMember' will be default initialized
+#endif
+%}
+
 // Similar to assign_reference.i testcase but reference member variables replaced by const members
 
 %rename(Assign) *::operator=;
