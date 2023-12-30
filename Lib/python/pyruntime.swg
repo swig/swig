@@ -30,6 +30,7 @@
 #else
 # include <Python.h>
 #endif
+#include <structmember.h>
 
 #if __GNUC__ >= 7
 #pragma GCC diagnostic pop
