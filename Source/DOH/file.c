@@ -286,20 +286,35 @@ DOH *DohNewFile(DOHString *filename, const char *mode, DOHList *newfiles) {
   char *filen;
 
   filen = Char(filename);
+
   file = fopen(filen, mode);
-  if (!file)
-    return 0;
+  if (!file) {
+    return NULL;
+  }
 
   f = (DohFile *) DohMalloc(sizeof(DohFile));
+  if (!f) {
+    fclose(file);
+    return NULL;
+  }
+
   if (newfiles)
     Append(newfiles, filename);
+
   f->filep = file;
   f->fd = 0;
   f->closeondel = 1;
   obj = DohObjMalloc(&DohFileType, f);
+  if (!obj) {
+    DohFree(f);
+    fclose(file);
+    return NULL;
+  }
+
   open_files_list_add(f);
   return obj;
 }
+
 
 /* -----------------------------------------------------------------------------
  * NewFileFromFile()
