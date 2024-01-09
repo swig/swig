@@ -3,6 +3,12 @@
 #include <stdlib.h>
 #include <ctype.h>
 
+#include <tcl.h>
+
+#ifndef TCL_SIZE_MAX
+typedef int Tcl_Size;
+#endif
+
 /* Compute the greatest common divisor of positive integers */
 int gcd(int x, int y) {
   int g;
@@ -15,7 +21,7 @@ int gcd(int x, int y) {
   return g;
 }
 
-int gcdmain(int argc, char *argv[]) {
+int gcdmain(Tcl_Size argc, char *argv[]) {
   int x,y;
   if (argc != 3) {
     printf("usage: gcd x y\n");
@@ -27,7 +33,7 @@ int gcdmain(int argc, char *argv[]) {
   return 0;
 }
 
-int count(char *bytes, int len, char c) {
+int count(char *bytes, Tcl_Size len, char c) {
   int i;
   int count = 0;
   for (i = 0; i < len; i++) {
@@ -36,7 +42,7 @@ int count(char *bytes, int len, char c) {
   return count;
 }
 
-void capitalize(char *str, int len) {
+void capitalize(char *str, Tcl_Size len) {
   int i;
   for (i = 0; i < len; i++) {
     str[i] = (char)toupper(str[i]);

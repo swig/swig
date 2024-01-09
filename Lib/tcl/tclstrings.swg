@@ -6,7 +6,7 @@
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(Tcl_Obj *obj, char** cptr, size_t* psize, int *alloc)
 { 
-  int len = 0;
+  Tcl_Size len = 0;
   char *cstr = Tcl_GetStringFromObj(obj, &len);
   if (cstr) {
     if (cptr)  *cptr = cstr;
@@ -24,7 +24,7 @@ SWIG_AsCharPtrAndSize(Tcl_Obj *obj, char** cptr, size_t* psize, int *alloc)
 SWIGINTERNINLINE Tcl_Obj *
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
-  return (size < INT_MAX) ? Tcl_NewStringObj(carray, %numeric_cast(size,int)) : NULL;
+  return (size < TCL_SIZE_MAX) ? Tcl_NewStringObj(carray, %numeric_cast(size,Tcl_Size)) : NULL;
 }
 }
 
