@@ -18,8 +18,8 @@ if (r.MV_member_variable != 1234) {
 if (rename_predicates.RenamePredicates.MV_static_member_variable != 456) {
     throw new Error("variable wrong");
 }
-rename_predicates.RenamePredicates_MV_static_member_variable = 4567;
-if (rename_predicates.RenamePredicates_MV_static_member_variable != 4567) {
+rename_predicates.RenamePredicates.MV_static_member_variable = 4567;
+if (rename_predicates.RenamePredicates.MV_static_member_variable != 4567) {
     throw new Error("variable wrong");
 }
 

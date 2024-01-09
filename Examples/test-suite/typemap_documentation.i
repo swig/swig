@@ -41,6 +41,10 @@ int GrabVal(Foo *f) {
     $1 = (Foo *)temp;
   }
 }
+
+#if defined(SWIGTYPESCRIPT)
+%typemap(ts) Foo * "Foo | Bar";
+#endif
 #endif
 
 %inline %{

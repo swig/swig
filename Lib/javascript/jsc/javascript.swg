@@ -12,8 +12,12 @@
 
 %include <javascripthelpers.swg>
 
-%include <javascriptkw.swg>
+%include <javascript/javascriptkw.swg>
 
 %include <javascriptcode.swg>
 
 %include <javascriptinit.swg>
+
+%include <javascript/typescripttypemaps.swg>
+
+%include <javascript/typescriptcode.swg>

@@ -347,7 +347,7 @@ fail:
   // jsnapi_register_global_variable
   do {
     Napi::PropertyDescriptor pd = Napi::PropertyDescriptor::Accessor<$jsgetter, $jssetter>("$jsname");
-    NAPI_CHECK_MAYBE($jsparent.DefineProperties({pd}));
+    NAPI_CHECK_MAYBE($jsparent.DefineProperty(pd));
   } while (0);
 %}
 
@@ -486,7 +486,7 @@ fail:
   // jsnapi_register_global_function
   do {
     Napi::PropertyDescriptor pd = Napi::PropertyDescriptor::Function("$jsname", $jswrapper);
-    NAPI_CHECK_MAYBE($jsparent.DefineProperties({pd}));
+    NAPI_CHECK_MAYBE($jsparent.DefineProperty(pd));
   } while (0);
 %}
 

@@ -1,6 +1,7 @@
 var namespace_class = require("namespace_class");
 
 try {
+  /* @ts-ignore */
     var p = /* await */(namespace_class.Private1());
     var error = 1;
 } catch {
@@ -12,6 +13,7 @@ if ((error)) {
 }
 
 try {
+  /* @ts-ignore */
     p = /* await */(namespace_class.Private2());
     error = 1;
 } catch {
@@ -31,15 +33,15 @@ b = new namespace_class.BooT_H();
 var f = new namespace_class.FooT_i();
 /* await */(f.quack(1));
 
-f = new namespace_class.FooT_d();
-/* await */(f.moo(1));
+var f2 = new namespace_class.FooT_d();
+/* await */(f2.moo(1));
 
-f = new namespace_class.FooT_H();
-/* await */(f.foo(namespace_class.Hi));
+var f3 = new namespace_class.FooT_H();
+/* await */(f3.foo(namespace_class.Hi));
 
 // This test works only in Node.js
-if (typeof process !== 'undefined') {
-    if (!f.constructor.name.includes("FooT_H") || !(f instanceof namespace_class.FooT_H)) {
-        throw new Error("Incorrect type: " + f.toString());
+if (typeof globalThis.process !== 'undefined') {
+    if (!f3.constructor.name.includes("FooT_H") || !(f3 instanceof namespace_class.FooT_H)) {
+        throw new Error("Incorrect type: " + f2.toString());
     }
 }

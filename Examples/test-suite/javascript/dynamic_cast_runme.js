@@ -6,7 +6,8 @@ var b = new dynamic_cast.Bar();
 var x = /* await */(f.blah());
 var y = /* await */(b.blah());
 
+/* @ts-ignore */
 var a = /* await */(dynamic_cast.do_test(y));
-if (a != "Bar::test") {
+if (a !== "Bar::test") {
   throw new Error("Failed.");
 }

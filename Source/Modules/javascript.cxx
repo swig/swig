@@ -76,6 +76,8 @@ public:
   ~JSEmitterState();
   DOH *globals();
   DOH *globals(const char *key, DOH *initial = 0);
+  DOH *types();
+  DOH *types(DOH *key, DOH *initial = 0);
   DOH *clazz(bool reset = false);
   DOH *clazz(const char *key, DOH *initial = 0);
   DOH *function(bool reset = false);
@@ -87,6 +89,7 @@ public:
 private:
   DOH *getState(const char *key, bool reset = false);
   Hash *globalHash;
+  Hash *typesHash;
 };
 
 /**
@@ -117,6 +120,7 @@ private:
  * for different javascript engines.
  **/
 class JSEmitter {
+  friend class TYPESCRIPT;
 
 protected:
 
@@ -289,11 +293,22 @@ protected:
 
   virtual int createNamespace(String *scope);
 
-  virtual Hash *createNamespaceEntry(const char *name, const char *parent, const char *parent_mangled);
+  virtual Hash *createNamespaceEntry(Hash *, const char *name, const char *parent, const char *parent_mangled);
 
   virtual int emitNamespaces() = 0;
 
+  /**
+   * Return the full JS prefix of the current namespace
+   * ie "Outer.Inner." or "" if it is the global one
+   */
+  virtual String* currentNamespacePrefix();
+
   virtual const char *getGetterTemplate(bool);
+
+  /**
+   * Identify if an argument is optional or not
+   */
+  bool isArgOptional(Node *, Parm *);
 
 protected:
 
@@ -317,19 +332,383 @@ JSEmitter *swig_javascript_create_V8Emitter();
 JSEmitter *swig_javascript_create_NodeJSEmitter();
 JSEmitter *swig_javascript_create_NAPIEmitter();
 
+/*
+ * TYPESCRIPT handler : it is a semi-independent handler
+ * used as an option by the JAVASCRIPT language
+ * It does not inherit from Language, as there can be only one LANGUAGE
+ * but uses the same interface
+ */
+class TYPESCRIPT {
+
+public:
+  TYPESCRIPT(JSEmitter *_parent);
+  virtual ~TYPESCRIPT() {}
+
+  virtual int functionHandler(Node *);
+  virtual int variableHandler(Node *);
+  virtual int constructorHandler(Node *);
+  virtual int enumDeclaration(Node *);
+  virtual int enterClass(Node *);
+  virtual int exitClass(Node *);
+  virtual int switchNamespace(Node *);
+  virtual int top(Node *);
+  virtual void main(int, char *[]);
+
+protected:
+  virtual String *emitArguments(Node *);
+  virtual String *promisify(String *);
+  virtual String *expandTSvars(String *, DOH *);
+  virtual String *enumName(Node *);
+
+private:
+  String *f_declarations, *f_current_class;
+  JSEmitter *parent;
+  size_t enum_id;
+};
+
+TYPESCRIPT::TYPESCRIPT(JSEmitter *_parent) :
+  f_declarations(NULL), f_current_class(NULL), parent(_parent), enum_id(1) {
+}
+
+void TYPESCRIPT::main(int, char *[]) {
+  // Add a symbol to the parser for conditional compilation
+  Preprocessor_define("SWIGTYPESCRIPT 1", 0);
+}
+
+/**
+ * Expand the TS-specific typemap special variables
+ * $jstype - the wrapped symbol name
+ */
+String *TYPESCRIPT::expandTSvars(String *tm, DOH *target) {
+  if (!tm)
+    return nullptr;
+
+  SwigType *ctype = SwigType_typedef_resolve_all(
+    SwigType_base(Getattr(target, "type")));
+  String *jstype = parent->state.types(ctype);
+  String *r = Copy(tm);
+  Replace(r, "$jstype", jstype ? jstype : "any", 0);
+  return r;
+}
+
+/**
+ * Return a new type that is a Promise of the given type
+ */
+String *TYPESCRIPT::promisify(String *type) {
+  String *promise = NewString("");
+  Printf(promise, "Promise<%s>", type);
+  return promise;
+}
+
+/* ---------------------------------------------------------------------
+ * top()
+ *
+ * Function handler for processing top node of the parse tree
+ * Wrapper code generation essentially starts from here
+ * --------------------------------------------------------------------- */
+int TYPESCRIPT::top(Node *n) {
+  String *infile = Getattr(n, "infile");
+  String *infile_filename = Swig_file_filename(infile);
+  String *basename = Swig_file_basename(infile_filename);
+  String *typescript_filename = NewString("");
+  if (Len(SWIG_output_directory()) > 0) {
+    Printf(typescript_filename, "%s/", SWIG_output_directory());
+  }
+  Printf(typescript_filename, "%s.d.ts", basename);
+
+  File *f_typescript = NewFile(typescript_filename, "w", SWIG_output_files());
+  if (!f_typescript) {
+    FileErrorDisplay(f_typescript);
+    Exit(EXIT_FAILURE);
+  }
+  Swig_register_filebyname("typescript", f_typescript);
+  Swig_banner(f_typescript);
+  bool empty = true;
+
+  String *module = Getattr(n, NAME);
+  Template t_header(parent->getTemplate("ts_header"));
+  t_header.replace("$jsmodule", module).print(f_typescript);
+
+  Iterator it;
+  // Emit all namespaces
+  for (it = First(parent->namespaces); it.item; it = Next(it)) {
+    Hash *nspace = it.item;
+
+    // Emit successive begin namespace statements for
+    // each level, going up the chain and concatenating backwards
+    String *namespace_stmts = NewString("");
+    while (nspace && !Equal(Getattr(nspace, NAME), "exports")) {
+      Template t_nspace(parent->getTemplate("ts_nspace_header"));
+      String *stmt = NewString("");
+      t_nspace.replace("$jsname", Getattr(nspace, NAME)).print(stmt);
+      Insert(namespace_stmts, 0, stmt);
+      nspace = Getattr(nspace, "parent:nspace");
+    }
+    Printf(f_typescript, "%s", namespace_stmts);
+
+    // Emit the namespace declarations
+    nspace = it.item;
+    String *f_namespace = Getattr(nspace, "typescript");
+    if (Len(f_namespace) > 0) {
+      Printv(f_typescript, f_namespace, "\n", 0);
+      empty = false;
+    }
+
+    // Emit successive end namespace statements for
+    // each level
+    namespace_stmts = NewString("");
+    while (nspace && !Equal(Getattr(nspace, NAME), "exports")) {
+      Template t_nspace(parent->getTemplate("ts_nspace_footer"));
+      String *stmt = NewString("");
+      t_nspace.replace("$jsname", Getattr(nspace, NAME)).print(f_typescript);
+      Insert(namespace_stmts, 0, stmt);
+      nspace = Getattr(nspace, "parent:nspace");
+    }
+    Printf(f_typescript, "%s", namespace_stmts);
+  }
+  if (empty) {
+    // They do this in the TypeScript project as well
+    // https://github.com/microsoft/TypeScript/pull/20626
+    Printf(f_typescript, "export {}\n");
+  }
+
+  Template t_footer(parent->getTemplate("ts_footer"));
+  t_footer.replace("$jsmodule", module).print(f_typescript);
+
+  return SWIG_OK;
+}
+
+/* ---------------------------------------------------------------------
+ * switchNamespace()
+ *
+ * Every namespace has its own f_declarations that is
+ * stored in the namespaces hash
+ * this->f_declarations is always the current namespace
+ * --------------------------------------------------------------------- */
+int TYPESCRIPT::switchNamespace(Node *) {
+  Hash *nspace = parent->current_namespace;
+  if (!nspace)
+    nspace = Getattr(parent->namespaces, "::");
+  if (!Getattr(nspace, "typescript")) {
+    Setattr(nspace, "typescript", NewString(""));
+  }
+  f_declarations = Getattr(nspace, "typescript");
+  return SWIG_OK;
+}
+
+/* ---------------------------------------------------------------------
+ * functionHandler()
+ *
+ * Function handler for generating wrappers for functions
+ * --------------------------------------------------------------------- */
+int TYPESCRIPT::functionHandler(Node *n) {
+  bool is_member = GetFlag(n, "ismember");
+
+  String *args = emitArguments(n);
+  
+  String *ret_tm = Swig_typemap_lookup("ts", n, Getattr(n, NAME), NULL);
+  Delete(ret_tm);
+  String *ret_type = nullptr;
+  if (GetFlag(n, "ts:varargs")) {
+    ret_type = NewString("any");
+  } else if (GetFlag(n, "ts:out")) {
+    ret_type = expandTSvars(Getattr(n, "ts:out"), n);
+  } else {
+    ret_type = expandTSvars(ret_tm, n);
+  }
+
+  const char *qualifier =
+      Equal(Getattr(n, "storage"), "static") ? "static" : "";
+
+  String *sync_name = parent->state.function("name:sync");
+  String *async_name = parent->state.function("name:async");
+  if (!sync_name && !async_name)
+    sync_name = parent->state.function("name");
+
+  switchNamespace(n);
+  if (sync_name) {
+    Template t_function(
+        parent->getTemplate(is_member ? "ts_function" : "ts_global_function"));
+    t_function.replace("$jsname", sync_name)
+        .replace("$tsargs", args)
+        .replace("$tsret", ret_type)
+        .replace("$tsqualifier", qualifier)
+        .print(is_member ? f_current_class : f_declarations);
+  }
+  if (async_name) {
+    Template t_function(
+        parent->getTemplate(is_member ? "ts_function" : "ts_global_function"));
+    t_function.replace("$jsname", async_name)
+        .replace("$tsargs", args)
+        .replace("$tsret", promisify(ret_type))
+        .replace("$tsqualifier", qualifier)
+        .print(is_member ? f_current_class : f_declarations);
+  }
+
+  Delete(args);
+  Delete(ret_type);
+  return SWIG_OK;
+}
+
+String *TYPESCRIPT::enumName(Node *n) {
+  bool is_member = GetFlag(n, "ismember");
+  String *name = Getattr(n, "sym:name");
+
+  if (name == nullptr) {
+    name = Getattr(n, "unnamed");
+    if (name == nullptr) {
+      name = NewString("");
+      Printf(name, "enum%u", enum_id++);
+      Setattr(n, "sym:name", name);
+    }
+  }
+
+  if (is_member) {
+    // There are no class-local types in TypeScript
+    // If we encounter a class-local enum, we must hoist it to the global scope
+    // In this it will prefixed by the class name to avoid collisions
+    String *qualified_name = NewString("");
+    Node *parent = Getattr(n, "parentNode");
+    Printf(qualified_name, "%s_%s", Getattr(parent, "sym:name"), name);
+    name = qualified_name;
+  }
+
+  return name;
+}
+
+/* ---------------------------------------------------------------------
+ * variableHandler()
+ *
+ * Function handler for generating wrappers for functions
+ * --------------------------------------------------------------------- */
+int TYPESCRIPT::variableHandler(Node *n) {
+  const char *templ = nullptr;
+  String *target = nullptr;
+  String *type = nullptr;
+
+  bool is_member = GetFlag(n, "ismember");
+  bool is_enumitem = Equal(Getattr(n, "nodeType"), "enumitem");
+  bool is_static = GetFlag(parent->state.variable(), IS_STATIC);
+  bool is_constant = GetFlag(n, "constant");
+
+  switchNamespace(n);
+  if (is_member) {
+    templ = is_constant ? "ts_constant" : "ts_variable";
+    target = f_current_class;
+  } else {
+    templ = is_constant ? "ts_global_constant" : "ts_global_variable";
+    target = f_declarations;
+  }
+  Template t_variable(parent->getTemplate(templ));
+
+  const char *qualifier = (is_static || is_enumitem) ? "static" : "";
+
+  if (is_enumitem) {
+    Node *enum_node = Getattr(n, "parentNode");
+    type = enumName(enum_node);
+  } else {
+    String *tm = Swig_typemap_lookup("ts", n, Getattr(n, NAME), NULL);
+    type = expandTSvars(tm, n);
+    Delete(tm);
+  }
+
+  t_variable.replace("$jsname", parent->state.variable(NAME))
+      .replace("$tstype", type)
+      .replace("$tsqualifier", qualifier)
+      .print(target);
+
+  return SWIG_OK;
+}
+
+/* ---------------------------------------------------------------------
+ * enumDeclaration()
+ *
+ * Handler for emitting an enum declaration
+ * --------------------------------------------------------------------- */
+int TYPESCRIPT::enumDeclaration(Node *n) {
+  String *name = enumName(n);
+  String *nspace = parent->currentNamespacePrefix();
+
+  String *js_name = NewString("");
+  Printf(js_name, "%s%s", nspace, name);
+
+  String *enum_name = NewString("");
+  Printf(enum_name, "%s %s", Getattr(n, "enumkey"), Getattr(n, "enumtype"));
+  parent->state.types(enum_name, js_name);
+
+  Template t_enum(parent->getTemplate("ts_enum_declaration"));
+
+  switchNamespace(n);
+  t_enum.replace("$jsname", name).print(f_declarations);
+  return SWIG_OK;
+}
+
+/* ---------------------------------------------------------------------
+ * enterClass()
+ * exitClass()
+ *
+ * Handlers for generating wrappers for classes
+ * --------------------------------------------------------------------- */
+int TYPESCRIPT::enterClass(Node *n) {
+  f_current_class = NewString("");
+  Template t_class(parent->getTemplate("ts_class_header"));
+
+  String *jsparent = NewString("");
+  Node *jsbase = parent->getBaseClass(n);
+  if (jsbase && Getattr(jsbase, "module")) {
+    String *base_name = Getattr(jsbase, "classtype");
+    Printf(jsparent, " extends %s", parent->state.types(base_name));
+  }
+  const char *qualifier = Getattr(n, "abstracts") ? "abstract" : "";
+
+  switchNamespace(n);
+  t_class.replace("$jsname", Getattr(parent->state.clazz(), NAME))
+      .replace("$jsparent", jsparent)
+      .replace("$tsqualifier", qualifier)
+      .print(f_current_class);
+
+  return SWIG_OK;
+}
+int TYPESCRIPT::exitClass(Node *n) {
+  Template t_class(parent->getTemplate("ts_class_footer"));
+
+  t_class.replace("$jsname", Getattr(n, NAME)).trim().pretty_print(f_current_class);
+  Append(f_declarations, f_current_class);
+  f_current_class = NULL;
+
+  return SWIG_OK;
+}
+
+/* ---------------------------------------------------------------------
+ * constructorHandler()
+ *
+ * Function handler for generating wrappers for variables
+ * --------------------------------------------------------------------- */
+
+int TYPESCRIPT::constructorHandler(Node *n) {
+  Template t_function(parent->getTemplate("ts_ctor"));
+  String *args = emitArguments(n);
+
+  t_function.replace("$jsname", parent->state.clazz(NAME))
+      .replace("$tsargs", args)
+      .print(f_current_class);
+
+  Delete(args);
+  return SWIG_OK;
+}
+
 /**********************************************************************
  * JAVASCRIPT: SWIG module implementation
  **********************************************************************/
 
 class JAVASCRIPT:public Language {
 
-public:
-
-  JAVASCRIPT():emitter(NULL) {
-  }
-  ~JAVASCRIPT() {
-    delete emitter;
-  }
+  public:
+    JAVASCRIPT() : emitter(NULL), ts_emitter(NULL) {}
+    ~JAVASCRIPT() {
+      delete emitter;
+      delete ts_emitter;
+    }
 
   virtual int functionHandler(Node *n);
   virtual int globalfunctionHandler(Node *n);
@@ -337,9 +716,11 @@ public:
   virtual int globalvariableHandler(Node *n);
   virtual int staticmemberfunctionHandler(Node *n);
   virtual int classHandler(Node *n);
+  virtual int enumDeclaration(Node *n);
   virtual int functionWrapper(Node *n);
   virtual int constantWrapper(Node *n);
   virtual int nativeWrapper(Node *n);
+  virtual int constructorHandler(Node *);
   virtual void main(int argc, char *argv[]);
   virtual int top(Node *n);
 
@@ -351,11 +732,86 @@ public:
 public:
 
   virtual String *getNSpace() const;
+  virtual String *makeParameterName(Node *n, Parm *p, int arg_num,
+                                    bool setter) const;
 
 private:
 
   JSEmitter *emitter;
+  TYPESCRIPT *ts_emitter;
 };
+
+/**
+ * Transform the ParmList arguments to a string
+ * of TypeScript typed arguments using the "ts" typemaps
+ */
+String *TYPESCRIPT::emitArguments(Node *n) {
+  Parm *p;
+  String *args = NewString("");
+  ParmList *params = Getattr(n, "parms");
+  int idx;
+
+  if (GetFlag(n, "ts:varargs")) {
+    return NewString("...args: any[]");
+  }
+
+  Swig_typemap_attach_parms("in", params, NULL);
+  Swig_typemap_attach_parms("ts", params, NULL);
+  Swig_typemap_attach_parms("tsout", params, NULL);
+  Swig_typemap_attach_parms("default", params, NULL);
+
+  for (idx = 0, p = params; p; idx++) {
+    String *tm = Getattr(p, "tmap:ts");
+    String *tm_out = Getattr(p, "tmap:tsout");
+    if (tm_out) {
+      Setattr(n, "ts:out", tm_out);
+    }
+    if (tm != nullptr && Getattr(p, "tmap:in") &&
+        !checkAttribute(p, "tmap:in:numinputs", "0")) {
+      String *type = expandTSvars(tm, p);
+
+      JAVASCRIPT *lang = static_cast<JAVASCRIPT *>(Language::instance());
+      String *arg_name = lang->makeParameterName(n, p, idx, false);
+      if (!arg_name) {
+        arg_name = NewString("");
+        Printf(arg_name, "arg%d", idx);
+      }
+
+      if (Len(args) > 0) {
+        Append(args, ", ");
+      }
+      Append(args, arg_name);
+      if (!Getattr(p, INDEX)) {
+        SetInt(p, INDEX, idx);
+      }
+      if (parent->isArgOptional(n, p)) {
+        Append(args, "?");
+      }
+      Append(args, ": ");
+      Append(args, type);
+
+      String *ctype = SwigType_base(Getattr(p, "type"));
+      List *equiv_types = SwigType_get_equiv_types(ctype);
+      if (equiv_types) {
+        for (int i = 0; i < Len(equiv_types); i++) {
+          SwigType *ctype = SwigType_base(Getitem(equiv_types, i));
+          String *jstype = parent->state.types(ctype);
+          if (jstype) {
+            Printf(args, " | %s", jstype);
+          }
+        }
+        Delete(equiv_types);
+      }
+    }
+    if (tm != nullptr) {
+      p = Getattr(p, "tmap:ts:next");
+    } else {
+      p = nextSibling(p);
+    }
+  }
+
+  return args;
+}
 
 /* ---------------------------------------------------------------------
  * functionWrapper()
@@ -383,10 +839,20 @@ int JAVASCRIPT::functionHandler(Node *n) {
     SetFlag(n, "ismember");
   }
 
+  if (GetFlag(n, "feature:del")) {
+    Swig_warning(WARN_IGNORE_OPERATOR_DELETE, input_file, line_number,
+                 "JavaScript does not have destructors, ignoring %s\n",
+                 Getattr(n, "sym:name"));
+    return SWIG_ERROR;
+  }
+
   emitter->enterFunction(n);
   Language::functionHandler(n);
   emitter->exitFunction(n);
 
+  if (ts_emitter) {
+    ts_emitter->functionHandler(n);
+  }
   return SWIG_OK;
 }
 
@@ -420,6 +886,22 @@ int JAVASCRIPT::staticmemberfunctionHandler(Node *n) {
 }
 
 /* ---------------------------------------------------------------------
+ * constructorHandler()
+ *
+ * Function handler for generating wrappers for variables
+ * --------------------------------------------------------------------- */
+
+int JAVASCRIPT::constructorHandler(Node *n) {
+  int rc = Language::constructorHandler(n);
+  if (rc != SWIG_OK) return rc;
+  if (ts_emitter) {
+    rc = ts_emitter->constructorHandler(n);
+    if (rc != SWIG_OK) return rc;
+  }
+  return SWIG_OK;
+}
+
+/* ---------------------------------------------------------------------
  * variableHandler()
  *
  * Function handler for generating wrappers for variables
@@ -431,6 +913,10 @@ int JAVASCRIPT::variableHandler(Node *n) {
   Language::variableHandler(n);
   emitter->exitVariable(n);
 
+  // the static const exception - it is a constant not a variable
+  if (ts_emitter && !GetFlag(n, "constant")) {
+    ts_emitter->variableHandler(n);
+  }
   return SWIG_OK;
 }
 
@@ -445,6 +931,22 @@ int JAVASCRIPT::globalvariableHandler(Node *n) {
   Language::globalvariableHandler(n);
 
   return SWIG_OK;
+}
+
+/* ---------------------------------------------------------------------
+ * enumDeclaration()
+ *
+ * Function handler for declaring new enum types
+ * (used only in TypeScript mode)
+ * --------------------------------------------------------------------- */
+int JAVASCRIPT::enumDeclaration(Node *n) {
+  int rc = Language::enumDeclaration(n);
+  if (rc != SWIG_OK) return rc;
+
+  if (ts_emitter) {
+    rc = ts_emitter->enumDeclaration(n);
+  }
+  return rc;
 }
 
 /* ---------------------------------------------------------------------
@@ -467,6 +969,9 @@ int JAVASCRIPT::constantWrapper(Node *n) {
   // which could be fixed with a cleaner approach
   emitter->emitConstant(n);
 
+  if (ts_emitter) {
+    ts_emitter->variableHandler(n);
+  }
   return SWIG_OK;
 }
 
@@ -478,7 +983,10 @@ int JAVASCRIPT::constantWrapper(Node *n) {
 
 int JAVASCRIPT::nativeWrapper(Node *n) {
   emitter->emitNativeFunction(n);
-
+  if (ts_emitter) {
+    SetFlag(n, "ts:varargs");
+    ts_emitter->functionHandler(n);
+  }
   return SWIG_OK;
 }
 
@@ -492,9 +1000,16 @@ int JAVASCRIPT::classHandler(Node *n) {
   emitter->switchNamespace(n);
 
   emitter->enterClass(n);
+  if (ts_emitter) {
+    ts_emitter->enterClass(n);
+  }
+
   Language::classHandler(n);
   emitter->exitClass(n);
 
+  if (ts_emitter) {
+    ts_emitter->exitClass(n);
+  }
   return SWIG_OK;
 }
 
@@ -517,6 +1032,11 @@ String *JAVASCRIPT::getNSpace() const {
   return Language::getNSpace();
 }
 
+String *JAVASCRIPT::makeParameterName(Node *n, Parm *p, int arg_num,
+                                      bool setter) const {
+  return Language::makeParameterName(n, p, arg_num, setter);
+}
+
 /* ---------------------------------------------------------------------
  * top()
  *
@@ -529,6 +1049,9 @@ int JAVASCRIPT::top(Node *n) {
 
   Language::top(n);
 
+  if (ts_emitter) {
+    ts_emitter->top(n);
+  }
   emitter->dump(n);
   emitter->close();
 
@@ -544,6 +1067,7 @@ Javascript Options (available with -javascript)\n\
      -sync                  - create sync wrappers by default (NAPI only, default) \n\
      -async                 - create async wrappers by default (NAPI only) \n\
      -async-locking         - add locking by default (NAPI only) \n\
+     -typescript            - generates a TypeScript ambient module (d.ts file)\n\
      -debug-codetemplates   - generates information about the origin of code templates\n";
 
 /* ---------------------------------------------------------------------
@@ -553,6 +1077,8 @@ Javascript Options (available with -javascript)\n\
  * --------------------------------------------------------------------- */
 
 void JAVASCRIPT::main(int argc, char *argv[]) {
+  bool ts_enabled = false;
+
   // Set javascript subdirectory in SWIG library
   SWIG_library_directory("javascript");
 
@@ -600,6 +1126,9 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-async-locking") == 0) {
         Swig_mark_arg(i);
         js_napi_default_is_locked = true;
+      } else if (strcmp(argv[i], "-typescript") == 0) {
+        Swig_mark_arg(i);
+        ts_enabled = true;
       } else if (strcmp(argv[i], "-help") == 0) {
         fputs(usage, stdout);
 	return;
@@ -659,6 +1188,11 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
   SWIG_config_file("javascript.swg");
 
   allow_overloading();
+
+  if (ts_enabled) {
+    ts_emitter = new TYPESCRIPT(emitter);
+    ts_emitter->main(argc, argv);
+  }
 }
 
 /* -----------------------------------------------------------------------------
@@ -732,7 +1266,7 @@ int JSEmitter::initialize(Node * /*n */ ) {
     Delete(namespaces);
   }
   namespaces = NewHash();
-  Hash *global_namespace = createNamespaceEntry("exports", 0, 0);
+  Hash *global_namespace = createNamespaceEntry(NULL, "exports", 0, 0);
 
   Setattr(namespaces, "::", global_namespace);
   current_namespace = global_namespace;
@@ -839,6 +1373,18 @@ int JSEmitter::emitNativeFunction(Node *n) {
   return SWIG_OK;
 }
 
+String *JSEmitter::currentNamespacePrefix() {
+  String *name = NewString("");
+  Hash *nspace = current_namespace;
+  while (nspace && !Equal(Getattr(nspace, NAME), "exports")) {
+    String *prefix = NewString("");
+    Printf(prefix, "%s.", Getattr(nspace, NAME));
+    Insert(name, 0, prefix);
+    nspace = Getattr(nspace, "parent:nspace");
+  }
+  return name;
+}
+
 int JSEmitter::enterClass(Node *n) {
   state.clazz(RESET);
   state.clazz(NAME, Getattr(n, "sym:name"));
@@ -867,6 +1413,12 @@ int JSEmitter::enterClass(Node *n) {
   // HACK: assume that a class is abstract
   // this is resolved by emitCtor (which is only called for non abstract classes)
   SetFlag(state.clazz(), IS_ABSTRACT);
+
+  /* Remember the mapping for the TypeScript definitions */
+  String *jsname = NewString("");
+  String *nspace = currentNamespacePrefix();
+  Printf(jsname, "%s%s", nspace, state.clazz(NAME));
+  state.types(Copy(state.clazz(TYPE)), jsname);
 
   return SWIG_OK;
 }
@@ -1368,15 +1920,10 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool) {
   return SWIG_OK;
 }
 
-String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg) {
-  String *code = NewString("");
-  // Get input typemap for current param
-  String *tm = Getattr(p, "tmap:in");
+bool JSEmitter::isArgOptional(Node *n, Parm *p) {
   String *tm_def = Getattr(p, "tmap:default");
-  SwigType *type = Getattr(p, "type");
   int argmin = -1;
   int argidx = -1;
-  bool is_optional = false;
 
   if (Getattr(n, ARGREQUIRED)) {
     argmin = GetInt(n, ARGREQUIRED);
@@ -1386,11 +1933,22 @@ String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *
   }
 
   if (tm_def != NULL) {
-    is_optional = true;
+    return true;
   }
   if (argmin >= 0 && argidx >= 0 && argidx >= argmin) {
-    is_optional = true;
+    return true;
   }
+
+  return false;
+}
+
+String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *arg) {
+  String *code = NewString("");
+  // Get input typemap for current param
+  String *tm = Getattr(p, "tmap:in");
+  SwigType *type = Getattr(p, "type");
+  bool is_optional = isArgOptional(n, p);
+
   if (is_optional && Getattr(p, INDEX) == NULL) {
     Printf(stderr, "Argument %s in %s cannot be a default argument\n", Getattr(p, NAME), state.function(NAME));
     return SWIG_ERROR;
@@ -1593,19 +2151,21 @@ int JSEmitter::createNamespace(String *scope) {
   }
   assert(parent_namespace != 0);
 
-  Hash *new_namespace = createNamespaceEntry(Char(scope), Char(Getattr(parent_namespace, "name")), Char(Getattr(parent_namespace, "name_mangled")));
+  Hash *new_namespace = createNamespaceEntry(parent_namespace, Char(scope),
+    Char(Getattr(parent_namespace, "name")), Char(Getattr(parent_namespace, "name_mangled")));
   Setattr(namespaces, scope, new_namespace);
 
   Delete(parent_scope);
   return SWIG_OK;
 }
 
-Hash *JSEmitter::createNamespaceEntry(const char *_name, const char *parent, const char *parent_mangled) {
+Hash *JSEmitter::createNamespaceEntry(Hash *parent, const char *_name, const char *parent_name, const char *parent_mangled) {
   Hash *entry = NewHash();
   String *name = NewString(_name);
+  Setattr(entry, "parent:nspace", parent);
   Setattr(entry, NAME, Swig_scopename_last(name));
   Setattr(entry, NAME_MANGLED, Swig_name_mangle_string(name));
-  Setattr(entry, PARENT, NewString(parent));
+  Setattr(entry, PARENT, NewString(parent_name));
   Setattr(entry, PARENT_MANGLED, NewString(parent_mangled));
 
   Delete(name);
@@ -1633,7 +2193,7 @@ protected:
   virtual int enterClass(Node *n);
   virtual int exitClass(Node *n);
   virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static);
-  virtual Hash *createNamespaceEntry(const char *name, const char *parent, const char *parent_mangled);
+  virtual Hash *createNamespaceEntry(Hash *, const char *name, const char *parent, const char *parent_mangled);
   virtual int emitNamespaces();
 
 private:
@@ -1962,8 +2522,8 @@ int JSCEmitter::exitClass(Node *n) {
   return SWIG_OK;
 }
 
-Hash *JSCEmitter::createNamespaceEntry(const char *name, const char *parent, const char *parent_mangled) {
-  Hash *entry = JSEmitter::createNamespaceEntry(name, parent, parent_mangled);
+Hash *JSCEmitter::createNamespaceEntry(Hash *parent_hash, const char *name, const char *parent, const char *parent_mangled) {
+  Hash *entry = JSEmitter::createNamespaceEntry(parent_hash, name, parent, parent_mangled);
   Setattr(entry, "functions", NewString(""));
   Setattr(entry, "values", NewString(""));
   return entry;
@@ -3513,7 +4073,7 @@ JSEmitter *swig_javascript_create_NAPIEmitter() {
  **********************************************************************/
 
 JSEmitterState::JSEmitterState()
-:  globalHash(NewHash()) {
+:  globalHash(NewHash()), typesHash(NewHash()) {
   // initialize sub-hashes
   Setattr(globalHash, "class", NewHash());
   Setattr(globalHash, "function", NewHash());
@@ -3541,6 +4101,15 @@ DOH *JSEmitterState::globals(const char *key, DOH *initial) {
     Setattr(globalHash, key, initial);
   }
   return Getattr(globalHash, key);
+}
+
+DOH *JSEmitterState::types() { return typesHash; }
+
+DOH *JSEmitterState::types(DOH *key, DOH *initial) {
+  if (initial != 0) {
+    Setattr(typesHash, key, initial);
+  }
+  return Getattr(typesHash, key);
 }
 
 DOH *JSEmitterState::clazz(bool new_key) {

@@ -12,12 +12,12 @@ struct OverloadBase {
 };
 struct OverloadDerived1 : OverloadBase {
   virtual void nnn(int vvv) {}
-#if defined(__SUNPRO_CC)
+#if defined(__SUNPRO_CC) || defined(SWIGTYPESCRIPT)
   virtual void nnn() {}
 #endif
 };
 struct OverloadDerived2 : OverloadBase {
-#if defined(__SUNPRO_CC)
+#if defined(__SUNPRO_CC) || defined(SWIGTYPESCRIPT)
   virtual void nnn(int vvv) {}
 #endif
   virtual void nnn() {}

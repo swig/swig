@@ -12,6 +12,7 @@ var rectangle = new template_classes.RectangleInt();
 
 var fail = true;
 try {
+    /* @ts-ignore */
     /* await */(rectangle.setPoint());
 } catch {
     fail = false;
@@ -23,6 +24,7 @@ if (fail) {
 
 fail = true;
 try {
+    /* @ts-ignore */
     /* await */(rectangle.getPoint(0));
 } catch {
     fail = false;
@@ -33,6 +35,7 @@ if (fail) {
 
 fail = true;
 try {
+    /* @ts-ignore */
     /* await */(RectangleInt.static_noargs(0));
 } catch {
     fail = false;
@@ -43,6 +46,7 @@ if (fail) {
 
 fail = true;
 try {
+    /* @ts-ignore */
     /* await */(RectangleInt.static_onearg());
 } catch {
     fail = false;

@@ -3,11 +3,12 @@ var class_scope_weird = require("class_scope_weird");
 var f = new class_scope_weird.Foo();
 var g = new class_scope_weird.Foo(3);
 if (/* await */(f.bar(3)) != 3)
-    throw RuntimeError;
+    throw new Error;
 
 // Test missing new keyword during constructor call
 var caughtException = false;
 try {
+  /* @ts-ignore */
   g = /* await */(class_scope_weird.Foo(4));
 } catch (err) {
   caughtException = true;

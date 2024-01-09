@@ -10,7 +10,7 @@ var ec = new cpp11_variadic_function_templates.EmplaceContainer();
 
 function check(expected, got) {
     if (expected != got) {
-        throw new Error("failed: {} != {}".format(expected, got));
+        throw new Error(`failed: ${expected} != ${got}`);
     }
 }
 var a = new A();

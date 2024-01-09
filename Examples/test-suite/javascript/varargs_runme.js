@@ -35,6 +35,7 @@ if (/* await */(varargs.test_plenty("Hello", 1, 2)) != "Hello") {
 
 var thrown = false;
 try {
+  /* @ts-ignore */
   /* await */(varargs.test_plenty("Hello", 1, 2, 3));
 } catch (err) {
   thrown = true;

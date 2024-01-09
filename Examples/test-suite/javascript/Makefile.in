@@ -5,11 +5,12 @@
 LANGUAGE     = javascript
 NODEGYP = @NODEGYP@
 NODEJS = @NODEJS@
+TSC = @TSC@
 SCRIPTSUFFIX = _runme.js
 SCRIPTASYNCSUFFIX = _async_runme.mjs
 OBJEXT = @OBJEXT@
 SO = @SO@
-GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I$(shell npm config get prefix)/lib/node_modules/node-addon-api
+GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I@NODENAPI_DIR@
 
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
@@ -62,6 +63,9 @@ endif
 
 ifeq (napi, $(ENGINE))
 # Node-API specific tests
+CPP_TEST_CASES += \
+	napi_buffer
+
 ifneq (, $(ASYNC))
 # async-specific tests
 CPP_TEST_CASES += \
@@ -83,8 +87,13 @@ _setup = \
 	if [ -n "$(ASYNC)" ]; then	                                  \
 	  echo -n " (async mode)" ;                                       \
 	fi;                                                               \
+	if [ -n "$(TYPESCRIPT)" ]; then	                                  \
+	  echo -n " (TypeScript mode)" ;                                  \
+	fi;                                                               \
         echo
 SWIGOPT += -$(JSENGINE)
+
+TSCOPT = --typeRoots @NODETYPES_DIR@ --target es2017 --module esnext --moduleResolution node --allowSyntheticDefaultImports
 
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
   SWIGOPT += -DBUILDING_NODE_EXTENSION=1
@@ -117,11 +126,23 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	else
 		BUILD = Release
 	endif
+
+        # async/TS mode can be enabled by ASYNC/TYPESCRIPT _or_ SWIG_FEATURES
         ifneq (, $(ASYNC))
-		SWIGASYNC = -async
-	else
-		SWIGASYNC =
+		SWIGOPT += -async
 	endif
+        ifneq (,$(findstring async,$(SWIG_FEATURES)))
+                ASYNC = 1
+        endif
+        ifneq (, $(TYPESCRIPT))
+                ifeq (, $(TSC))
+                        $(error No TypeScript compiler found)
+                endif
+		SWIGOPT += -typescript
+	endif
+        ifneq (,$(findstring typescript,$(SWIG_FEATURES)))
+                TYPESCRIPT = 1
+        endif
 
 	setup_node = \
 		test -d $* || mkdir $* && \
@@ -146,22 +167,34 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure $(GYP_OPTS) build 1>>/dev/null
 
 	run_testcase = \
-		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
+		RUNME="$(srcdir)/$*$(SCRIPTSUFFIX)" && \
+		if [ -f "$${RUNME}" ]; then \
+			if [ -n "$(ASYNC)" ]; then \
+				sed -e \
+					's@/\* await \*/@await resolve@g; \
+					s@/\* async \*/@async@g; \
+					s@\(var\|let\|const\)[[:space:]]*\(.*\)[[:space:]]*=[[:space:]]*require(\("\|\x27\)\(.*\)\("\|\x27\))@import \2 from "'"$(PWD)"'/\4/index.js"@g; \
+					1s@^@import resolve from "./'$(srcdir)'/resolve.mjs"; @' \
+					$${RUNME} > $*$(SCRIPTASYNCSUFFIX) \
+				&& \
+				RUNME=$*$(SCRIPTASYNCSUFFIX); \
+			fi && \
+			if [ -n "$(TYPESCRIPT)" ]; then \
+				sed -e \
+					's@\(var\|let\|const\)[[:space:]]*\(.*\)[[:space:]]*=[[:space:]]*require(\("\|\x27\)\(.*\)\("\|\x27\))@import \2 from "'"$(PWD)"'/\4/index.js"@g; \
+					s|.*//[[:space:]]*@ts-replace\(.*\)|\1|g; ' \
+					$${RUNME} > $*_ts_runme.ts && \
+					cp $*.d.ts $*/index.d.ts && \
+					$(TSC) $(TSCOPT) $*_ts_runme.ts && \
+					mv $*_ts_runme.js $*_ts_runme.mjs && \
+					RUNME=$*_ts_runme.mjs; \
+			fi && \
 			env NODE_PATH=$$PWD:$(srcdir) LD_PRELOAD=$(ASAN_PRELOAD) LSAN_OPTIONS=$(LSAN_OPTIONS) \
-				$(RUNTOOL) $(NODEJS) $(srcdir)/$*$(SCRIPTSUFFIX); \
-		fi
-
-	run_testcase_async = \
-		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
-			sed -e \
-				's@/\* await \*/@await resolve@g; \
-				s@/\* async \*/@async@g; \
-				s@\(var\|let\|const\)[[:space:]]*\(.*\)[[:space:]]*=[[:space:]]*require(\("\|\x27\)\(.*\)\("\|\x27\))@import \2 from "'"$(PWD)"'/\4/index.js"@g; \
-				1s@^@import resolve from "./resolve.mjs"; @' \
-				$(srcdir)/$*$(SCRIPTSUFFIX) > $(srcdir)/$*$(SCRIPTASYNCSUFFIX) \
-			&& \
-			env LD_PRELOAD=$(ASAN_PRELOAD) LSAN_OPTIONS=$(LSAN_OPTIONS) \
-				$(RUNTOOL) $(NODEJS) $(srcdir)/$*$(SCRIPTASYNCSUFFIX); \
+				$(RUNTOOL) ${NODEJS} $${RUNME}; \
+		else \
+			if [ -n "$(TYPESCRIPT)" ]; then \
+				$(TSC) --noEmit $(TSCOPT) $*.d.ts ; \
+			fi \
 		fi
 
   %.ctest:
@@ -212,6 +245,8 @@ endif
 %.clean:
 	@rm -rf $*
 	@rm -f $*_wrap.* $*$(SO) $*.$(OBJEXT)
+	@rm -f $*$(SCRIPTASYNCSUFFIX)
+	@rm -f $*.d.ts $*_ts_runme.mjs $*_ts_runme.js $*_ts_runme.ts
 
 clean:
 	for ext in _wrap.cxx _wrap.$(OBJEXT) $(SO); do \

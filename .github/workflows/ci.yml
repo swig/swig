@@ -27,7 +27,7 @@ jobs:
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }}${{ matrix.ASYNC && ' async' }} ${{ matrix.EXTRA_CXXFLAGS }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.EXTRA_CXXFLAGS }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
       matrix:
@@ -109,13 +109,26 @@ jobs:
           ENGINE: napi
           VER: '18'
           CPPSTD: c++14
-          ASYNC: 1
+          SWIG_FEATURES: -async
+          desc: Async
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '18'
           CPPSTD: c++14
-          ASYNC: 1
-          SWIG_FEATURES: -async-locking -DSWIG_NAPI_FULL_LOCKING=1
+          SWIG_FEATURES: -async -async-locking -DSWIG_NAPI_FULL_LOCKING=1
+          desc: Async w/ locking
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '18'
+          CPPSTD: c++14
+          SWIG_FEATURES: -typescript
+          desc: TypeScript
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '18'
+          CPPSTD: c++14
+          SWIG_FEATURES: -typescript -async
+          desc: TypeScript w/ async
         - SWIGLANG: lua
         - SWIGLANG: lua
           VER: '5.3'
@@ -365,7 +378,6 @@ jobs:
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
-      ASYNC: ${{ matrix.ASYNC }}
       EXTRA_CXXFLAGS: ${{ matrix.EXTRA_CXXFLAGS }}
 
     steps:

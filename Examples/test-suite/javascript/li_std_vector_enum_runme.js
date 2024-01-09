@@ -3,7 +3,7 @@ var li_std_vector_enum = require("li_std_vector_enum");
 
 function check(a, b) {
     if ((a != b)) {
-        throw new Error("Not equal: ", a, b);
+        throw new Error(`Not equal: ${a}, ${b}`);
     }
 }
 

@@ -93,11 +93,11 @@ var checkCount = /* async */ function(expected_count) {
 
 // overloaded parameters
 if (/* await */(cpp11_std_unique_ptr.overloadTest()) != 0)
-  throw new RuntimeException("overloadTest failed");
+  throw new Error("overloadTest failed");
 if (/* await */(cpp11_std_unique_ptr.overloadTest(null)) != 1)
-  throw new RuntimeException("overloadTest failed");
+  throw new Error("overloadTest failed");
 if (/* await */(cpp11_std_unique_ptr.overloadTest(new cpp11_std_unique_ptr.Klass("over"))) != 1)
-  throw new RuntimeException("overloadTest failed");
+  throw new Error("overloadTest failed");
 /* await */(checkCount(0));
 
 

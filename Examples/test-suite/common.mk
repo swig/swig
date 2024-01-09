@@ -234,6 +234,7 @@ CPP_TEST_CASES += \
 	dynamic_cast \
 	empty \
 	enum_ignore \
+	enum_nspace \
 	enum_plus \
 	enum_rename \
 	enum_scope_template \
@@ -566,6 +567,7 @@ CPP_TEST_CASES += \
 	typemap_various \
 	typename \
 	types_directive \
+	types_directive_nspace \
 	unicode_strings \
 	union_scope \
 	using1 \

@@ -1,0 +1,2 @@
+// JSC specific TypeScript typemaps
+

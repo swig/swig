@@ -79,7 +79,10 @@ public:
   virtual std::string FullyOverloaded(int x) { if (PrintDebug) std::cout << "Derived - FullyOverloaded(int " << x << ")" << std::endl; return "Derived::FullyOverloaded(int)"; }
   virtual std::string FullyOverloaded(bool x) { if (PrintDebug) std::cout << "Derived - FullyOverloaded(bool " << x << ")" << std::endl; return "Derived::FullyOverloaded(bool)"; }
 
+#ifndef SWIGTYPESCRIPT
+// JavaScript does not support this construct at the moment and the static checking of TypeScript makes it really obvious
   virtual std::string SemiOverloaded(int x) { if (PrintDebug) std::cout << "Derived - SemiOverloaded(int " << x << ")" << std::endl; return "Derived::SemiOverloaded(int)"; }
+#endif
   // No SemiOverloaded(bool x)
 
   virtual std::string DefaultParms(int x, double y = 1.125) {

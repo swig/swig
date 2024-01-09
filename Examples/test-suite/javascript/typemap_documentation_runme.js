@@ -10,6 +10,7 @@ if (55 != /* await */(typemap_documentation.GrabVal(f))) {
 }
 
 try {
+    /* @ts-ignore */
     /* await */(typemap_documentation.GrabVal(b));
 } catch (e) {
     // This is working only in NAPI, other backends throw generic errors

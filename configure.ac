@@ -1194,8 +1194,9 @@ else
     AC_CHECK_PROGS(NODENPM, npm)
     JSNAPIENABLED=
     if test -n "$NODENPM"; then
-      AC_MSG_CHECKING([for Node-API (napi) header directory])
       NODENPM_PREFIX=$($NODENPM config get prefix)
+
+      AC_MSG_CHECKING([for Node-API (napi) header directory])
       if test -n "$NODENPM_PREFIX"; then
         NODENAPI_DIR=$NODENPM_PREFIX/lib/node_modules/node-addon-api
         if test -f "$NODENAPI_DIR/napi.h"; then
@@ -1205,6 +1206,20 @@ else
       fi
       if test -n "$JSNAPIENABLED"; then
         AC_MSG_RESULT([$NODENAPI_DIR])
+      else
+        AC_MSG_RESULT([not found])
+      fi
+
+      AC_MSG_CHECKING([for TypeScript @types/node])
+      if test -n "$NODENPM_PREFIX"; then
+        NODETYPES_DIR=$NODENPM_PREFIX/lib/node_modules/@types
+        if test -f "$NODETYPES_DIR/node/index.d.ts"; then
+          true
+          AC_SUBST(NODETYPES_DIR)
+        fi
+      fi
+      if test -n "$JSNAPIENABLED"; then
+        AC_MSG_RESULT([$NODETYPES_DIR])
       else
         AC_MSG_RESULT([not found])
       fi
@@ -1357,6 +1372,12 @@ AC_SUBST(JSV8ENABLED)
 
 AC_SUBST(NODEJS)
 AC_SUBST(NODEGYP)
+
+#----------------------------------------------------------------
+# Look for TypeScript
+#----------------------------------------------------------------
+AC_CHECK_PROGS(TSC, [tsc])
+AC_SUBST(TSC)
 
 #----------------------------------------------------------------
 # Look for Lua

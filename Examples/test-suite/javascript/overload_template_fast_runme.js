@@ -132,5 +132,5 @@ if (/* await */(overload_template_fast.nsoverload()) != 1050) {
 }
 
 /* await */(overload_template_fast.A.foo(1));
-var b = new overload_template_fast.B();
-/* await */(b.foo(1));
+var b2 = new overload_template_fast.B();
+/* await */(b2.foo(1));

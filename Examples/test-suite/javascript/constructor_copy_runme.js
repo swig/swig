@@ -11,7 +11,8 @@ var good = 0;
 
 var f8 = new constructor_copy.Foo8()
 try {
-  f81 = new constructor_copy.Foo8(f8);
+  /* @ts-ignore */
+  var f81 = new constructor_copy.Foo8(f8);
   good = 0;
 } catch (err) {
   good = 1;
@@ -31,7 +32,8 @@ if (bi.x != bc.x) {
 
 var bd = new constructor_copy.Bard(5);
 try {
-  bc = new constructor_copy.Bard(bd);
+  /* @ts-ignore */
+  var bc = new constructor_copy.Bard(bd);
   good = 0;
 } catch (err) {
   good = 1;

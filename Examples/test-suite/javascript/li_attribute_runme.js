@@ -76,6 +76,7 @@ myClassVal.ReadWriteFoo = myFoo;
 if (myClassVal.ReadWriteFoo.x != 8) {
     throw new Error;
 }
+/* @ts-ignore */
 if (myClassVal.ReadOnlyFoo.x != 8) {
     throw new Error;
 }
@@ -92,16 +93,20 @@ myStringyClass.ReadWriteString = "changed string";
 if (myStringyClass.ReadWriteString != "changed string") {
     throw new Error;
 }
+/* @ts-ignore */
 if (myStringyClass.ReadOnlyString != "changed string") {
     throw new Error;
 }
 
 // In JS, accessing a non-existing attribute does not throw, it returns undefined
+/* @ts-ignore */
 if (myFoo.does_not_exist !== undefined) {
     throw new Error;
 }
 // Additionally, creating attributes is always possible unless the object is frozen
+/* @ts-ignore */
 myFoo.does_not_exist = 'value';
+/* @ts-ignore */
 if (myFoo.does_not_exist !== 'value') {
     throw new Error;
 }

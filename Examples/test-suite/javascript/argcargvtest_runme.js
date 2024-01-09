@@ -14,6 +14,7 @@ if (/* await */(test.mainv(targs, 2)) != "<<NULL>>")
 
 var caughtException = false;
 try {
+  /* @ts-ignore */
    /* await */(test.mainv("hello", 1));
 } catch (err) {
    caughtException = true;

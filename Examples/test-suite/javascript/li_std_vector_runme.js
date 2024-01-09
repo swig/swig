@@ -6,7 +6,7 @@ if (/* await */(li_std_vector.typedef_test(101)) != 101) {
 
 let fail = false;
 try {
-  sv = new li_std_vector.StructVector();
+  var sv = new li_std_vector.StructVector();
   /* await */(sv.add(null));
   fail = true;
 } catch { }

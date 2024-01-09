@@ -16,4 +16,6 @@ x = /* await */(inherit_missing.do_blah(c));
 if (x != "Spam::blah")
   throw new Error(`Whoa! Bad return ${x}`);
 
-/* await */(inherit_missing.delete_Foo(a));
+/* @ts-ignore */
+if (typeof inherit_missing.delete_Foo !== 'undefined')
+  throw new Error('destructor not ignored');

@@ -10,21 +10,28 @@ var g = new smart_pointer_not.Grok(f);
 
 // Accessing an inexistent property in JS
 // does not throw - it returns undefined
+// (but calling it as a function throws)
 var fail = false;
 try {
-    var x = /* await */(b.getx());
-    fail = new Error("Error! b.x");
+  /* @ts-ignore */
+  var x = /* await */(b.getx());
+  /* @ts-ignore */
+  fail = new Error("Error! b.x");
 } catch { }
 if (fail) throw fail;
 
 try {
-    x = s.getx();
-    fail = new Error("Error! b.x");
+  /* @ts-ignore */
+  x = s.getx();
+  /* @ts-ignore */
+  fail = new Error("Error! b.x");
 } catch { }
 if (fail) throw fail;
 
 try {
-    x = g.getx();
-    fail = new Error("Error! b.x");
+  /* @ts-ignore */
+  x = g.getx();
+  /* @ts-ignore */
+  fail = new Error("Error! b.x");
 } catch { }
 if (fail) throw fail;

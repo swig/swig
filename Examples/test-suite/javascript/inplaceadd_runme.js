@@ -7,6 +7,7 @@ if (a.val != 12) {
 }
 
 /* await */(a.subFrom(5));
+/* @ts-ignore : Mutating arguments is accepted in C++ but it is considered an anti-pattern in JS/TS */
 if (a.val != 7) {
     throw new Error(`a.val: ${a.val}`);
 }

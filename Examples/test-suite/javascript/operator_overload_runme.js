@@ -100,12 +100,12 @@ if (! /* await */((/* await */(b.Minus())).EqualEqual(new Op(-5)))) {
 }
 
 // test functors
-if (! /* await */(b.Functor()) == 5) {
+if (/* await */(b.Functor()) !== 5) {
   throw new Error("functor");
 }
-if (! /* await */(b.Functor(1)) == 6) {
+if (/* await */(b.Functor(1)) !== 6) {
   throw new Error("functor");
 }
-if (! /* await */(b.Functor(1, 2)) == 8) {
+if (/* await */(b.Functor(1, 2)) !== 8) {
   throw new Error("functor");
 }

@@ -1,13 +1,13 @@
 var integers = require("integers");
 
 /* async */ function checkOne(val, signed, typeName) {
-  var typeName = (signed ? 'signed_' : 'unsigned_') + typeName;
+  var fullTypeName = (signed ? 'signed_' : 'unsigned_') + typeName;
 
-  var size = /* await */(integers[typeName + '_size']());
+  var size = /* await */(integers[fullTypeName + '_size']());
   if ((!signed && val < 0) || (size < 8))
     return; // out of range, skip test
 
-  var ret = /* await */(integers[typeName + '_identity'](val));
+  var ret = /* await */(integers[fullTypeName + '_identity'](val));
   if (ret !== val)
     throw "Incorrect value: expected " + val + ", got " + ret;
 }

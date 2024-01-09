@@ -4,7 +4,7 @@ var member_pointer_const = require("member_pointer_const");
 function check(what, expected, actual) {
     if (expected != actual) {
         throw new Error(
-            "Failed: ", what, " Expected: ", expected, " Actual: ", actual);
+          `Failed: ${what}, Expected: ${expected}, Actual: ${actual}`);
     }
 }
 

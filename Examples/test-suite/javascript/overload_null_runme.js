@@ -4,7 +4,7 @@ var overload_null = require("overload_null");
 
 var check = function(expected, actual) {
   if (expected !== actual) {
-    throw new Error(a + " does not equal " + b);
+    throw new Error(`${actual} does not equal ${expected}`);
   }
 };
 

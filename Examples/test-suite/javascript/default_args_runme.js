@@ -56,6 +56,7 @@ if (/* await */(f.double_if_dbl_ptr_is_null(7)) != 14) {
 }
 
 try {
+    /* @ts-ignore */
     var f = /* await */(default_args.Foo(1));
     var error = 1;
 } catch {
@@ -66,6 +67,7 @@ if (error) {
 }
 
 try {
+    /* @ts-ignore */
     f = /* await */(default_args.Foo(1, 2));
     error = 1;
 } catch {
@@ -76,6 +78,7 @@ if (error) {
 }
 
 try {
+    /* @ts-ignore */
     f = /* await */(default_args.Foo(1, 2, 3));
     error = 1;
 } catch {
@@ -86,6 +89,7 @@ if (error) {
 }
 
 try {
+    /* @ts-ignore */
     var m = /* await */(f.meth(1));
     error = 1;
 } catch {
@@ -96,6 +100,7 @@ if (error) {
 }
 
 try {
+    /* @ts-ignore */
     m = /* await */(f.meth(1, 2));
     error = 1;
 } catch {
@@ -106,6 +111,7 @@ if (error) {
 }
 
 try {
+    /* @ts-ignore */
     m = /* await */(f.meth(1, 2, 3));
     error = 1;
 } catch {

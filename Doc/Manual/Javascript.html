@@ -53,6 +53,7 @@
 </ul>
 <li><a href="#Javascript_async_reject">Rejecting a Promise from a Typemap</a>
 </ul>
+<li><a href="#Typescript">Typescript</a>
 <li><a href="#Javascript_implementation">Implementation</a>
 <ul>
 <li><a href="#Javascript_source_code">Source Code</a>
@@ -916,12 +917,46 @@ Another potential weakness of the async framework is thread starvation due to th
 </pre>
 </div>
 
-<H2><a name="Javascript_implementation">28.7 Implementation</a></H2>
+<H2><a name="Typescript">28.7 Typescript</a></H2>
+
+<p>SWIG can automatically generate TypeScript declarations - <code>.d.ts</code> files - so that the generated wrappers can be used from TypeScript with full type information. TypeScript support is enabled with the <code>-typescript</code> command line option. This will have the effect of producing an additional file with the module name and a <code>.d.ts</code> extension in the output directory. TypeScript can be used with all JavaScript engines. </p>
+
+<p>When TypeScript is enabled, SWIG defines an additional macro, <code>SWIGTYPESCRIPT</code>, that can be used for conditional compilation.</p>
+
+<p>Enabling TypeScript adds two additional typemaps that work in reverse compared to most other typemaps in SWIG - as they identify the TypeScript type from the C/C++ type.</p>
+
+<ul>
+<li>
+<p>The <code>ts</code> typemap is used to specify the TypeScript type that will be used for an argument or for the return value of a function with the given C/C++ type. For example the buil-in TypeScript typemaps contain:</p>
+<div class="code">
+<pre>
+%typemap(ts) char*, std::string, std::string *, std::string &   "string";
+%typemap(ts) bool                                               "boolean";
+%typemap(ts) float, double                                      "number";
+</pre>
+</div>
+<p>
+All valid TypeScript type manipulations can be used in the typemap - including generics, unions, intersection or even <code>infer</code>.</p>
+</li>
+<li>
+<p>The <code>tsout</code> typemap modifies the return type of a function that has an argument of the specified type. Its main use is as a counterpart to an <code>argout</code> typemap that has transformed an argument into a return value. For example, this built-in Node-API TypeScript typemaps contain:</p>
+
+<div class="code">
+<pre>
+%typemap(argout) (void **buffer_data, size_t *buffer_len) {
+  // code to transform buffer_data / buffer_len arguments into a returned value
+}
+%typemap(tsout)  (void **buffer_data, size_t *buffer_len) "Buffer";
+</pre>
+</li>
+</ul>
+
+<H2><a name="Javascript_implementation">28.8 Implementation</a></H2>
 
 
 <p>The Javascript Module implementation has taken a very different approach compared to other language modules in order to support different Javascript interpreters.</p>
 
-<H3><a name="Javascript_source_code">28.7.1 Source Code</a></H3>
+<H3><a name="Javascript_source_code">28.8.1 Source Code</a></H3>
 
 
 <p>The Javascript module is implemented in <code>Source/Modules/javascript.cxx</code>. It dispatches the code generation to a <code>JSEmitter</code> instance, <code>V8Emitter</code>, <code>JSCEmitter</code> or <code>NAPIEmitter</code>. Additionally there are some helpers: <code>Template</code>, for templated code generation, and <code>JSEmitterState</code>, which is used to manage state information during AST traversal. This rough map shall make it easier to find a way through this huge source file:</p>
@@ -1023,7 +1058,7 @@ Template::Template(const String *code_) { ... }
 ...</pre>
 </div>
 
-<H3><a name="Javascript_code_templates">28.7.2 Code Templates</a></H3>
+<H3><a name="Javascript_code_templates">28.8.2 Code Templates</a></H3>
 
 
 <p>All generated code is created on the basis of code templates. The templates for <em>JavascriptCore</em> can be found in <code>Lib/javascript/jsc/javascriptcode.swg</code>, for <em>v8</em> in <code>Lib/javascript/v8/javascriptcode.swg</code> and for <em>Node-API</em> in <code>Lib/javascript/napi/javascriptcode.swg</code>.</p>
@@ -1062,7 +1097,7 @@ t_register.replace("$jsparent", state.clazz(NAME_MANGLED))
 </div>
 <p><code>Template</code> creates a copy of that string and <code>Template::replace</code> uses Swig's <code>Replaceall</code> to replace variables in the template. <code>Template::trim</code> can be used to eliminate leading and trailing whitespaces. <code>Template::print</code> is used to write the final template string to a Swig <code>DOH</code> (based on <code>Printv</code>). All methods allow chaining.</p>
 
-<H3><a name="Javascript_emitter">28.7.3 Emitter</a></H3>
+<H3><a name="Javascript_emitter">28.8.3 Emitter</a></H3>
 
 
 <p>The Javascript module delegates code generation to a <code>JSEmitter</code> instance. The following extract shows the essential interface:</p>

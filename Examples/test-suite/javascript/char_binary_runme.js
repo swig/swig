@@ -2,11 +2,11 @@ var char_binary = require("char_binary");
 
 var t = new char_binary.Test();
 if (/* await */(t.strlen('hile')) != 4) {
-  print(/* await */(t.strlen('hile')));
+  console.error(/* await */(t.strlen('hile')));
   throw("bad multi-arg typemap 1");
 }
 if (/* await */(t.ustrlen('hile')) != 4) {
-  print(/* await */(t.ustrlen('hile')));
+  console.error(/* await */(t.ustrlen('hile')));
   throw("bad multi-arg typemap 1");
 }
 
@@ -37,7 +37,7 @@ if (/* await */(t.ustrlen(pc)) != 4) {
 
 char_binary.var_pchar = pc;
 if (char_binary.var_pchar != "hola") {
-  print(char_binary.var_pchar);
+  console.error(char_binary.var_pchar);
   throw("bad pointer case (1)");
 }
 

@@ -2294,3 +2294,30 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
   Delete(cast_init);
   Delete(imported_types);
 }
+
+/* -----------------------------------------------------------------------------
+ * SwigType_get_equiv_types()
+ *
+ * Returns the list of the types that can be automatically cast to the given type
+ * -----------------------------------------------------------------------------
+ */
+
+List *SwigType_get_equiv_types(SwigType *ty) {
+  List *castables = NULL;
+
+  if (conversions) {
+    if (Getattr(conversions, ty)) {
+      castables = Keys(Getattr(conversions, ty));
+    }
+  }
+  if (subclass) {
+    if (Getattr(subclass, ty)) {
+      if (castables) {
+        Append(castables, Keys(Getattr(subclass, ty)));
+      } else {
+        castables = Keys(Getattr(subclass, ty));
+      }
+    }
+  }
+  return castables;
+}

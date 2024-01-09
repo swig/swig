@@ -2,7 +2,7 @@ var template_default_arg_overloaded = require("template_default_arg_overloaded")
 
 function check(expected, got) {
   if (expected != got) {
-    throw new Error("Expected: " + str(expected) + " got: " + str(got));
+    throw new Error("Expected: " + expected.toString() + " got: " + got.toString());
   }
 }
 
@@ -18,15 +18,15 @@ check(3, /* await */(pl.setInt("int", 10, "int")));
 check(3, /* await */(pl.setInt("int", 10, "int", false)));
 
 
-pl = new template_default_arg_overloaded.PropertyListGlobal();
-check(1, /* await */(pl.setIntGlobal("int", 10)));
-check(1, /* await */(pl.setIntGlobal("int", 10, false)));
+var plg = new template_default_arg_overloaded.PropertyListGlobal();
+check(1, /* await */(plg.setIntGlobal("int", 10)));
+check(1, /* await */(plg.setIntGlobal("int", 10, false)));
 
-check(2, /* await */(pl.set("int", pl)));
-check(2, /* await */(pl.set("int", pl, false)));
+check(2, /* await */(plg.set("int", plg)));
+check(2, /* await */(plg.set("int", plg, false)));
 
-check(3, /* await */(pl.setIntGlobal("int", 10, "int")));
-check(3, /* await */(pl.setIntGlobal("int", 10, "int", false)));
+check(3, /* await */(plg.setIntGlobal("int", 10, "int")));
+check(3, /* await */(plg.setIntGlobal("int", 10, "int", false)));
 
 
 check(1, /* await */(template_default_arg_overloaded.GoopIntGlobal(10)));

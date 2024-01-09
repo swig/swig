@@ -66,12 +66,12 @@ SWIG_Env_FromCharPtrAndSize(Napi::Env env, const char* carray, size_t size)
     Napi::String js_str = Napi::String::New(env, carray, size);
     return js_str;
   } else {
-    return env.Undefined();
+    return env.Null();
   }
 }
 }
 
 %insert(runtime) %{
 #define SWIG_FromCharPtrAndSize(cptr, size) SWIG_Env_FromCharPtrAndSize(env, cptr, size)
-#define SWIG_FromCharPtr(cptr)              SWIG_Env_FromCharPtrAndSize(env, cptr, strlen(cptr))
+#define SWIG_FromCharPtr(cptr)              SWIG_Env_FromCharPtrAndSize(env, cptr, cptr ? strlen(cptr) : 0)
 %}

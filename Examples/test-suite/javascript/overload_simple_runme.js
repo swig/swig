@@ -102,4 +102,4 @@ if (s.type != "void *") {
 /* await */(overload_simple.free_void(v));
 
 var a = new overload_simple.ClassA();
-var b = /* await */(a.method1(1));
+var c = /* await */(a.method1(1));
