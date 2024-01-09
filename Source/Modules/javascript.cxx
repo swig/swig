@@ -1136,6 +1136,7 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
     }
   }
 
+  Preprocessor_define("SWIG_JAVASCRIPT_EVOLUTION 1", 0);
   switch (engine) {
   case JSEmitter::NodeJS:
   case JSEmitter::V8:
