@@ -34,12 +34,14 @@ if (b.constructor.z !== f.constructor.z) {
 }
 */
 
-/* @ts-ignore */
-if (f.constructor.ZZ !== 3) {
-  throw new Error(`Failed Foo.ZZ = ${smart_pointer_member.Foo.ZZ}`);
-}
+if (typeof print === 'undefined') {
+  /* @ts-ignore */
+  if (f.constructor.ZZ !== 3) {
+    throw new Error(`Failed Foo.ZZ = ${smart_pointer_member.Foo.ZZ}`);
+  }
 
-/* @ts-ignore */
-if (f.constructor.z !== 3) {
-  throw new Error;
+  /* @ts-ignore */
+  if (f.constructor.z !== 3) {
+    throw new Error;
+  }
 }

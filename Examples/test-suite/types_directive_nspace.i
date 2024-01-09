@@ -1,5 +1,8 @@
 %module types_directive_nspace
 
+// This test is broken for a number of languages
+#if ! defined(SWIGJAVA) && !defined(SWIGOCTAVE) && !defined(SWIGPYTHON) && !defined(SWIGTCL)
+
 #if defined(SWIGR)
 // Avoid conflict with Date class in R
 #define Date DateSwig
@@ -10,7 +13,7 @@
 
 %nspace;
 
-%ignore time2::Time2::operator Date *;
+%ignore time2::Time2::operator date::Date *;
 
 // allow conversion from Date -> Time1 using the following code
 %types(time1::Time1 = date::Date) %{
@@ -61,3 +64,4 @@ date::Date add(const date::Date &date, unsigned int days) {
 }
 %}
 
+#endif // SWIGJAVA

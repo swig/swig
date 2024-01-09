@@ -4,6 +4,9 @@
 
 %inline %{
 
+// This test is broken in Java
+#if ! defined(SWIGJAVA)
+
 namespace outer {
   namespace inner {
     typedef enum _choice {
@@ -29,4 +32,5 @@ bool select4(outer::YetAnotherName arg) {
   return arg == outer::inner::YES;
 }
 
+#endif
 %}

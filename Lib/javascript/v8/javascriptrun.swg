@@ -250,7 +250,7 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_i
 
   cdata->handle.Reset(v8::Isolate::GetCurrent(), obj);
 
-  if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata) {
+  if(cdata->swigCMemOwn && (SWIGV8_ClientData*)info->clientdata && ((SWIGV8_ClientData*)info->clientdata)->dtor) {
     cdata->handle.SetWeak(cdata, ((SWIGV8_ClientData*)info->clientdata)->dtor, v8::WeakCallbackType::kParameter);
   } else {
     cdata->handle.SetWeak(cdata, SWIGV8_Proxy_DefaultDtor, v8::WeakCallbackType::kParameter);

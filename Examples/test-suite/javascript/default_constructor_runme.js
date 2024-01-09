@@ -63,7 +63,8 @@ try {
   if (e instanceof SyntaxError) throw e;
 }
 
-
+// TODO: custom destructors are currently broken for all JavaScript engines
+// (ie these objects are never destroyed)
 var f = new dc.F();
 dc.bar(f);
 
