@@ -1,6 +1,6 @@
 var varargs = require("varargs");
 
-if (varargs.test("Hello") != "Hello") {
+if (/* await */(varargs.test("Hello")) != "Hello") {
   throw new Error("Failed");
 }
 
@@ -9,33 +9,33 @@ if (f.str != "Greetings") {
   throw new Error("Failed");
 }
 
-if (f.test("Hello") != "Hello") {
+if (/* await */(f.test("Hello")) != "Hello") {
   throw new Error("Failed");
 }
 
-if (varargs.test_def("Hello",1) != "Hello") {
+if (/* await */(varargs.test_def("Hello",1)) != "Hello") {
   throw new Error("Failed");
 }
 
-if (varargs.test_def("Hello") != "Hello") {
+if (/* await */(varargs.test_def("Hello")) != "Hello") {
   throw new Error("Failed");
 }
 
-if (varargs.test_plenty("Hello") != "Hello") {
+if (/* await */(varargs.test_plenty("Hello")) != "Hello") {
   throw new Error("Failed");
 }
 
-if (varargs.test_plenty("Hello", 1) != "Hello") {
+if (/* await */(varargs.test_plenty("Hello", 1)) != "Hello") {
   throw new Error("Failed");
 }
 
-if (varargs.test_plenty("Hello", 1, 2) != "Hello") {
+if (/* await */(varargs.test_plenty("Hello", 1, 2)) != "Hello") {
   throw new Error("Failed");
 }
 
 var thrown = false;
 try {
-  varargs.test_plenty("Hello", 1, 2, 3);
+  /* await */(varargs.test_plenty("Hello", 1, 2, 3));
 } catch (err) {
   thrown = true;
 }

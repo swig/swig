@@ -16,7 +16,7 @@ if (a.thisown != tmp) {
 }
 
 var b = new disown.B();
-b.acquire(a);
+/* await */(b.acquire(a));
 if (a.thisown) {
   throw new Error("Failed.");
 }

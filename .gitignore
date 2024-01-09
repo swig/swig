@@ -156,6 +156,7 @@ Examples/java/doxygen/javadocs
 
 # Javascript
 Examples/test-suite/javascript/*/
+Examples/test-suite/javascript/*_async_runme.mjs
 *.gyp
 
 # Lua

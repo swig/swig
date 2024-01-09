@@ -16,12 +16,12 @@ function check(s1, s2) {
 // The C++ string contains an invalid UTF-8 character
 // V8 transforms it to \ufffd
 // JSC silently refuses it
-test_string = "h\ufffdllo w\u00f6rld";
+var test_string = "h\ufffdllo w\u00f6rld";
 
 if (typeof print === 'undefined') {
-    check(unicode_strings.non_utf8_c_str(), test_string);
-    check(unicode_strings.non_utf8_std_string(), test_string);
+    check(/* await */(unicode_strings.non_utf8_c_str()), test_string);
+    check(/* await */(unicode_strings.non_utf8_std_string()), test_string);
 } else {
-    check(unicode_strings.non_utf8_c_str(), '');
-    check(unicode_strings.non_utf8_std_string(), '');
+    check(/* await */(unicode_strings.non_utf8_c_str()), '');
+    check(/* await */(unicode_strings.non_utf8_std_string()), '');
 }

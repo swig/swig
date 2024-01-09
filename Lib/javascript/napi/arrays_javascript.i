@@ -29,7 +29,9 @@
 
 %define JAVASCRIPT_ARRAYS_IN_DECL(NAME, CTYPE, ANY, ANYLENGTH)
 
-%typemap(in, fragment=NAME) CTYPE[ANY] {
+%typemap(in, fragment=NAME)
+    CTYPE[ANY]
+    (std::unique_ptr<$*1_ltype[]> array_manager) {
   if ($input.IsArray()) {
     Napi::Env env = $input.Env();
     // Convert into Array
@@ -37,7 +39,9 @@
 
     int length = ANYLENGTH;
 
-    $1 = ($*1_ltype *)malloc(sizeof($*1_ltype) * length);
+    $1 = new $*1_ltype[length];
+    // Transfer ownership to a smart pointer
+    array_manager.reset($1);
 
     // Get each element from array
     for (int i = 0; i < length; i++) {
@@ -55,10 +59,6 @@
     Napi::Env env = $input.Env();
     SWIG_Error(SWIG_ERROR, "$input is not an array");
   }
-}
-
-%typemap(freearg) CTYPE[ANY] {
-  free($1);
 }
 
 %enddef

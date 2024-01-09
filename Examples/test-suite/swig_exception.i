@@ -8,7 +8,7 @@
 %exception {
     try {
         $action
-    } catch (std::exception& e) {
+    } catch (const std::exception& e) {
       SWIG_exception(SWIG_SystemError, e.what());
     }
 }

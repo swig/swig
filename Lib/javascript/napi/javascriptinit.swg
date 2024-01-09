@@ -5,18 +5,18 @@
 %insert(init) %{
 
 EnvInstanceData::EnvInstanceData(Napi::Env env, swig_module_info *swig_module) :
-env(env), SWIG_NAPI_ObjectWrapCtor(nullptr), ctor(nullptr), swig_module(swig_module) {
+env(env), SWIG_NAPI_ObjectWrapCtor(SWIG_NULLPTR), ctor(SWIG_NULLPTR), swig_module(swig_module) {
   ctor = new Napi::FunctionReference*[swig_module->size + 1];
   for (size_t i = 0; i <= swig_module->size; i++) {
-    ctor[i] = nullptr;
+    ctor[i] = SWIG_NULLPTR;
   }
 }
 
 EnvInstanceData::~EnvInstanceData() {
   for (size_t i = 0; i <= swig_module->size; i++) {
-    if (ctor[i] != nullptr)
+    if (ctor[i] != SWIG_NULLPTR)
       delete ctor[i];
-    ctor[i] = nullptr;
+    ctor[i] = SWIG_NULLPTR;
   }
   delete [] ctor;
   delete SWIG_NAPI_ObjectWrapCtor;
@@ -31,7 +31,7 @@ SWIG_NAPI_SetModule(Napi::Env env, swig_module_info *swig_module) {
 SWIGRUNTIME swig_module_info *
 SWIG_NAPI_GetModule(Napi::Env env) {
   auto data = env.GetInstanceData<EnvInstanceData>();
-  if (data == nullptr) return nullptr;
+  if (data == SWIG_NULLPTR) return SWIG_NULLPTR;
   return data->swig_module;
 }
 

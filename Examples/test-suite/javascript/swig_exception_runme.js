@@ -9,7 +9,7 @@ if (swig_exception.Shape.nshapes != 2) {
 
 // ----- Throw exception -----
 try {
-    c.throwException();
+    /* await */(c.throwException());
     throw "Exception wasn't thrown";
 } catch (e) {
     if (e.message != "OK") {
@@ -21,7 +21,6 @@ try {
 
 c = null;
 s = null;
-e = null;
 
 /* FIXME: Garbage collection needs to happen before this check will work.
 if (swig_exception.Shape.nshapes != 0) {

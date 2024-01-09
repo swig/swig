@@ -1,67 +1,67 @@
 var template_inherit = require("template_inherit");
-a = new template_inherit.FooInt();
-b = new template_inherit.FooDouble();
-c = new template_inherit.BarInt();
-d = new template_inherit.BarDouble();
-e = new template_inherit.FooUInt();
-f = new template_inherit.BarUInt();
+var a = new template_inherit.FooInt();
+var b = new template_inherit.FooDouble();
+var c = new template_inherit.BarInt();
+var d = new template_inherit.BarDouble();
+var e = new template_inherit.FooUInt();
+var f = new template_inherit.BarUInt();
 
-if (a.blah() != "Foo") {
+if (/* await */(a.blah()) != "Foo") {
     throw new Error;
 }
 
-if (b.blah() != "Foo") {
+if (/* await */(b.blah()) != "Foo") {
     throw new Error;
 }
 
-if (e.blah() != "Foo") {
+if (/* await */(e.blah()) != "Foo") {
     throw new Error;
 }
 
-if (c.blah() != "Bar") {
+if (/* await */(c.blah()) != "Bar") {
     throw new Error;
 }
 
-if (d.blah() != "Bar") {
+if (/* await */(d.blah()) != "Bar") {
     throw new Error;
 }
 
-if (f.blah() != "Bar") {
+if (/* await */(f.blah()) != "Bar") {
     throw new Error;
 }
 
-if (c.foomethod() != "foomethod") {
+if (/* await */(c.foomethod()) != "foomethod") {
     throw new Error;
 }
 
-if (d.foomethod() != "foomethod") {
+if (/* await */(d.foomethod()) != "foomethod") {
     throw new Error;
 }
 
-if (f.foomethod() != "foomethod") {
+if (/* await */(f.foomethod()) != "foomethod") {
     throw new Error;
 }
 
-if (template_inherit.invoke_blah_int(a) != "Foo") {
+if (/* await */(template_inherit.invoke_blah_int(a)) != "Foo") {
     throw new Error;
 }
 
-if (template_inherit.invoke_blah_int(c) != "Bar") {
+if (/* await */(template_inherit.invoke_blah_int(c)) != "Bar") {
     throw new Error;
 }
 
-if (template_inherit.invoke_blah_double(b) != "Foo") {
+if (/* await */(template_inherit.invoke_blah_double(b)) != "Foo") {
     throw new Error;
 }
 
-if (template_inherit.invoke_blah_double(d) != "Bar") {
+if (/* await */(template_inherit.invoke_blah_double(d)) != "Bar") {
     throw new Error;
 }
 
-if (template_inherit.invoke_blah_uint(e) != "Foo") {
+if (/* await */(template_inherit.invoke_blah_uint(e)) != "Foo") {
     throw new Error;
 }
 
-if (template_inherit.invoke_blah_uint(f) != "Bar") {
+if (/* await */(template_inherit.invoke_blah_uint(f)) != "Bar") {
     throw new Error;
 }

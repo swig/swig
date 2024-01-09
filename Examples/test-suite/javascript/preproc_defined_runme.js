@@ -1,15 +1,15 @@
 var preproc_defined = require("preproc_defined");
 
-if (preproc_defined.call_checking() != 1) {
+if (/* await */(preproc_defined.call_checking()) != 1) {
     throw new Error;
 }
 
-d = new preproc_defined.Defined();
+var d = new preproc_defined.Defined();
 d.defined = 10;
 
-preproc_defined.thing(10);
-preproc_defined.stuff(10);
-preproc_defined.bumpf(10);
+/* await */(preproc_defined.thing(10));
+/* await */(preproc_defined.stuff(10));
+/* await */(preproc_defined.bumpf(10));
 
 if (preproc_defined.a != 2) {
     throw new Error;

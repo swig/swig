@@ -9,12 +9,12 @@ if (s.NewInstanceVariable !== 111) {
 }
 
 // renamed instance method
-if (s.NewInstanceMethod() !== 222) {
+if (/* await */(s.NewInstanceMethod()) !== 222) {
   throw new Error("NewInstanceMethod(): Expected 222, was " + s.NewInstanceMethod());
 }
 
 // renamed static method
-if (NewStruct.NewStaticMethod() !== 333) {
+if (/* await */(NewStruct.NewStaticMethod()) !== 333) {
   throw new Error("NewInstanceMethod(): Expected 333, was " + NewStruct.NewStaticMethod());
 }
 
@@ -24,7 +24,7 @@ if (NewStruct.NewStaticVariable !== 444) {
 }
 
 // renamed global function
-if (rename_simple.NewFunction() !== 555) {
+if (/* await */(rename_simple.NewFunction()) !== 555) {
   throw new Error("rename_simple.NewFunction(): Expected 555, was " + rename_simple.NewFunction());
 }
 

@@ -26,6 +26,14 @@
 
 %}
 
+#ifdef SWIG_JAVASCRIPT_NAPI
+// Force sync mode
+//
+// C/C++ functions that directly manipulate V8 data cannot
+// be made async as only a single thread can enter V8
+%feature("async", 0) identity;
+%feature("sync", 1) identity;
+#endif
 
 %inline {
 

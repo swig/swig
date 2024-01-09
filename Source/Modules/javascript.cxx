@@ -19,6 +19,12 @@
  */
 static bool js_template_enable_debug = false;
 
+/**
+ * Create async wrappers by default (NAPI only) 
+ */
+static bool js_napi_default_is_async = false;
+static bool js_napi_default_is_locked = false;
+
 #define ERR_MSG_ONLY_ONE_ENGINE_PLEASE "Only one engine can be specified at a time."
 
 // keywords used for state variables
@@ -76,7 +82,7 @@ public:
   DOH *function(const char *key, DOH *initial = 0);
   DOH *variable(bool reset = false);
   DOH *variable(const char *key, DOH *initial = 0);
-  static int IsSet(DOH *val);
+  static int IsSet(DOH *val, int def = 0);
 
 private:
   DOH *getState(const char *key, bool reset = false);
@@ -246,6 +252,10 @@ protected:
   virtual int emitDtor(Node *n);
 
   /**
+   * Identifies if a node represents a function
+   */
+  virtual bool isFunction(Node *);
+  /**
    * Generates code for a function.
    */
   virtual int emitFunction(Node *n, bool is_member, bool is_static);
@@ -282,14 +292,6 @@ protected:
   virtual Hash *createNamespaceEntry(const char *name, const char *parent, const char *parent_mangled);
 
   virtual int emitNamespaces() = 0;
-
-  virtual const char *getFunctionTemplate(bool);
-
-  virtual const char *getFunctionDispatcherTemplate(bool);
-
-  virtual const char *getOverloadedFunctionTemplate(bool);
-
-  virtual const char *getSetterTemplate(bool);
 
   virtual const char *getGetterTemplate(bool);
 
@@ -539,6 +541,9 @@ Javascript Options (available with -javascript)\n\
      -v8                    - creates a v8 extension \n\
      -node                  - creates a node.js extension \n\
      -napi                  - creates a NAPI extension \n\
+     -sync                  - create sync wrappers by default (NAPI only, default) \n\
+     -async                 - create async wrappers by default (NAPI only) \n\
+     -async-locking         - add locking by default (NAPI only) \n\
      -debug-codetemplates   - generates information about the origin of code templates\n";
 
 /* ---------------------------------------------------------------------
@@ -586,8 +591,17 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-debug-codetemplates") == 0) {
 	Swig_mark_arg(i);
 	js_template_enable_debug = true;
+      } else if (strcmp(argv[i], "-async") == 0) {
+        Swig_mark_arg(i);
+        js_napi_default_is_async = true;
+      } else if (strcmp(argv[i], "-sync") == 0) {
+        Swig_mark_arg(i);
+        js_napi_default_is_async = false;
+      } else if (strcmp(argv[i], "-async-locking") == 0) {
+        Swig_mark_arg(i);
+        js_napi_default_is_locked = true;
       } else if (strcmp(argv[i], "-help") == 0) {
-	fputs(usage, stdout);
+        fputs(usage, stdout);
 	return;
       }
     }
@@ -748,6 +762,21 @@ Node *JSEmitter::getBaseClass(Node *n) {
   return NULL;
 }
 
+/* -----------------------------------------------------------------------------
+ * JSEmitter::isFunction() :  identify the node as a function.
+ *
+ * This is more complicated than it seems because of typedef function
+ * types
+ * ----------------------------------------------------------------------------- */
+bool JSEmitter::isFunction(Node *n) {
+  String *kind = Getattr(n, "kind");
+  return (Equal(kind, "function")
+      // HACK: sneaky.ctest revealed that typedef'd (global) functions must be
+      // detected via the 'view' attribute.
+      || (Equal(kind, "variable") &&
+          Equal(Getattr(n, "view"), "globalfunctionHandler")));
+  }
+
  /* -----------------------------------------------------------------------------
   * JSEmitter::emitWrapperFunction() :  dispatches emitter functions.
   *
@@ -762,11 +791,7 @@ int JSEmitter::emitWrapperFunction(Node *n) {
 
   if (kind) {
 
-    if (Equal(kind, "function")
-	// HACK: sneaky.ctest revealed that typedef'd (global) functions must be
-	// detected via the 'view' attribute.
-	|| (Equal(kind, "variable") && Equal(Getattr(n, "view"), "globalfunctionHandler"))
-	) {
+    if (isFunction(n)) {
       bool is_member = GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
       bool is_static = GetFlag(state.function(), IS_STATIC) != 0;
       ret = emitFunction(n, is_member, is_static);
@@ -883,24 +908,8 @@ int JSEmitter::enterVariable(Node *n) {
   return SWIG_OK;
 }
 
-const char *JSEmitter::getFunctionTemplate(bool) {
-  return "js_function";
-}
-
-const char *JSEmitter::getFunctionDispatcherTemplate(bool) {
-  return "js_function_dispatcher";
-}
-
-const char *JSEmitter::getOverloadedFunctionTemplate(bool) {
-  return "js_overloaded_function";
-}
-
 const char *JSEmitter::getGetterTemplate(bool) {
   return "js_getter";
-}
-
-const char *JSEmitter::getSetterTemplate(bool) {
-  return "js_setter";
 }
 
 bool JSEmitter::isRenamedConstructor(Node *n) {
@@ -910,7 +919,8 @@ bool JSEmitter::isRenamedConstructor(Node *n) {
     assert(Equal(nodeType(cls), "class"));
   }
 
-  return !Equal(Getattr(n, "constructorHandler:sym:name"), Getattr(cls, "sym:name"));
+  return !Equal(Getattr(n, "constructorHandler:sym:name"),
+                Getattr(cls, "sym:name"));
 }
 
 int JSEmitter::emitCtor(Node *n) {
@@ -1113,7 +1123,7 @@ int JSEmitter::emitDtor(Node *n) {
 
 int JSEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   Wrapper *wrapper = NewWrapper();
-  Template t_getter(getTemplate(getGetterTemplate(is_member)));
+  Template t_getter(getTemplate("js_getter"));
 
   // prepare wrapper name
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
@@ -1152,7 +1162,7 @@ int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
 
   Wrapper *wrapper = NewWrapper();
 
-  Template t_setter(getTemplate(getSetterTemplate(is_member)));
+  Template t_setter(getTemplate("js_setter"));
 
   // prepare wrapper name
   String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
@@ -1235,6 +1245,12 @@ int JSEmitter::emitConstant(Node *n) {
       .replace("$jswrapper", wname)
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
+      .replace("$jsaction", wrapper->code)
+      .replace("$jsguard", "")
+      .replace("$jslock", "")
+      .replace("$jsinput", "")
+      .replace("$jsoutput", "")
+      .replace("$jscleanup", "")
       .pretty_print(f_wrappers);
 
   exitVariable(n);
@@ -1251,7 +1267,7 @@ int JSEmitter::emitConstant(Node *n) {
 
 int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   Wrapper *wrapper = NewWrapper();
-  Template t_function(getTemplate(getFunctionTemplate(is_member)));
+  Template t_function(getTemplate("js_function"));
 
   bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
 
@@ -1259,7 +1275,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   String *iname = Getattr(n, "sym:name");
   String *wrap_name = Swig_name_wrapper(iname);
   if (is_overloaded) {
-    t_function = getTemplate(getOverloadedFunctionTemplate(is_member));
+    t_function = getTemplate("js_overloaded_function");
     Append(wrap_name, Getattr(n, "sym:overname"));
   }
   Setattr(n, "wrap:name", wrap_name);
@@ -1289,7 +1305,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   return SWIG_OK;
 }
 
-int JSEmitter::emitFunctionDispatcher(Node *n, bool is_member) {
+int JSEmitter::emitFunctionDispatcher(Node *n, bool) {
   Wrapper *wrapper = NewWrapper();
 
   // Generate call list, go to first node
@@ -1313,7 +1329,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool is_member) {
 
   } while ((sibl = Getattr(sibl, "sym:nextSibling")));
 
-  Template t_function(getTemplate(getFunctionDispatcherTemplate(is_member)));
+  Template t_function(getTemplate("js_function_dispatcher"));
 
   // Note: this dispatcher function gets called after the last overloaded function has been created.
   // At this time, n.wrap:name contains the name of the last wrapper function.
@@ -1488,7 +1504,9 @@ void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
     if ((tm = Getattr(p, "tmap:freearg"))) {
       //addThrows(n, "tmap:freearg", p);
       Replaceall(tm, "$input", Getattr(p, "emit:input"));
-      Printv(wrapper->code, tm, "\n", NIL);
+      if (Len(tm) > 0) {
+        Printv(wrapper->code, tm, "\n", NIL);
+      }
       p = Getattr(p, "tmap:freearg:next");
     } else {
       p = nextSibling(p);
@@ -1497,7 +1515,7 @@ void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
 
   if (GetFlag(n, "feature:new")) {
     tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
-    if (tm != NIL) {
+    if (Len(tm) > 0) {
       //addThrows(throws_hash, "newfree", n);
       Printv(wrapper->code, tm, "\n", NIL);
     }
@@ -1505,7 +1523,9 @@ void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
 
   /* See if there is any return cleanup code */
   if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
-    Printf(wrapper->code, "%s\n", tm);
+    if (Len(tm) > 0) {
+      Printf(wrapper->code, "%s\n", tm);
+    }
     Delete(tm);
   }
 }
@@ -2457,15 +2477,27 @@ public:
   virtual int exitFunction(Node *n);
 
 protected:
-  virtual void marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static);
+  virtual void marshalInputArgs(Node *, ParmList *, Wrapper *, MarshallingMode,
+                                bool, bool);
+  virtual int emitChecks(Node *, ParmList *, Wrapper *);
+  virtual String *emitAsyncTypemaps(Node *, Parm *, Wrapper *, const char *);
+  virtual String *emitLocking(Node *, Parm *, Wrapper *);
+  virtual String *emitGuard(Node *);
   virtual int emitNamespaces();
+  virtual int emitGetter(Node *n, bool is_member, bool is_static);
+  virtual int emitSetter(Node *n, bool is_member, bool is_static);
   virtual int emitCtor(Node *);
+  virtual int emitFunction(Node *, bool, bool);
+  virtual int emitFunctionDeclaration(Node *, bool);
+  virtual int emitFunctionDefinition(Node *, bool, bool, bool);
+  virtual int emitFunctionDispatcher(Node *, bool, bool);
   virtual int emitDtor(Node *);
   virtual int emitClassMethodDeclaration(Node *);
+  virtual int emitNativeFunction(Node *);
 
-  virtual const char *getFunctionTemplate(bool is_member);
+  virtual const char *getFunctionTemplate(bool is_member, bool is_async);
   virtual const char *getFunctionDispatcherTemplate(bool is_member);
-  virtual const char *getOverloadedFunctionTemplate(bool is_member);
+  virtual const char *getOverloadedFunctionTemplate(bool is_member, bool is_async);
   virtual const char *getSetterTemplate(bool is_member);
   virtual const char *getGetterTemplate(bool is_member);
 
@@ -2608,7 +2640,10 @@ int NAPIEmitter::close() {
   return SWIG_OK;
 }
 
-const char *NAPIEmitter::getFunctionTemplate(bool is_member) {
+const char *NAPIEmitter::getFunctionTemplate(bool is_member, bool is_async) {
+  if (is_async) {
+    return is_member ? "js_function_async" : "js_global_function_async";
+  }
   return is_member ? "js_function" : "js_global_function";
 }
 
@@ -2616,7 +2651,10 @@ const char *NAPIEmitter::getFunctionDispatcherTemplate(bool is_member) {
   return is_member ? "js_function_dispatcher" : "js_global_function_dispatcher";
 }
 
-const char *NAPIEmitter::getOverloadedFunctionTemplate(bool is_member) {
+const char *NAPIEmitter::getOverloadedFunctionTemplate(bool is_member, bool is_async) {
+  if (is_async) {
+    return is_member ? "js_overloaded_function_async" : "js_global_overloaded_function_async";
+  }
   return is_member ? "js_overloaded_function" : "js_global_overloaded_function";
 }
 
@@ -2811,6 +2849,312 @@ int NAPIEmitter::exitVariable(Node *n) {
   return SWIG_OK;
 }
 
+String *NAPIEmitter::emitAsyncTypemaps(Node *, Parm *parms, Wrapper *,
+                                   const char *tmname) {
+  String *result = NewString("");
+  String *tmcode = NewString("");
+  String *tmnext = NewString("");
+  Printf(tmcode, "tmap:%s", tmname);
+  Printf(tmnext, "tmap:%s:next", tmname);
+
+  for (Parm *p = parms; p;) {
+    String *tm = Getattr(p, tmcode);
+
+    if (tm != nullptr) {
+      String *arg = Getattr(p, "emit:input");
+
+      // Do not emit typemaps for numinput=0 arguments
+      if (arg != nullptr) {
+        Replaceall(tm, "$input", arg);
+        Append(result, tm);
+        Append(result, "\n");
+      }
+      p = Getattr(p, tmnext);
+    } else {
+      p = nextSibling(p);
+    }
+  }
+  Delete(tmcode);
+  Delete(tmnext);
+
+  return result;
+}
+
+int NAPIEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
+  Wrapper *wrapper = NewWrapper();
+  bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"),
+                                      js_napi_default_is_locked);
+  Template t_getter(getTemplate(getGetterTemplate(is_member)));
+
+  // prepare wrapper name
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  Setattr(n, "wrap:name", wrap_name);
+  state.variable(GETTER, wrap_name);
+
+  // prepare local variables
+  ParmList *params = Getattr(n, "parms");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+  if (locking_enabled) {
+    Swig_typemap_attach_parms("lock", params, wrapper);
+  }
+
+  // prepare code part
+  String *action = emit_action(n);
+  marshalInputArgs(n, params, wrapper, Getter, is_member, is_static);
+  emitChecks(n, params, wrapper);
+  Append(wrapper->code, emitAsyncTypemaps(n, params, wrapper, "lock"));
+  String *input = wrapper->code;
+
+  wrapper->code = NewString("");
+  marshalOutput(n, params, wrapper, NewString(""));
+  String *output = wrapper->code;
+
+  wrapper->code = NewString("");
+  emitCleanupCode(n, wrapper, params);
+  String *cleanup = wrapper->code;
+
+  String *guard = emitGuard(n);
+  String *locking = emitLocking(n, params, wrapper);
+
+  t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", wrap_name)
+      .replace("$jslocals", wrapper->locals)
+      .replace("$jsguard", guard)
+      .replace("$jsinput", input)      
+      .replace("$jslock", locking)
+      .replace("$jsaction", action)
+      .replace("$jsoutput", output)
+      .replace("$jscleanup", cleanup)
+      .pretty_print(f_wrappers);
+
+  DelWrapper(wrapper);
+  Delete(guard);
+  Delete(locking);
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
+
+  // skip variables that are immutable
+  if (State::IsSet(state.variable(IS_IMMUTABLE))) {
+    return SWIG_OK;
+  }
+
+  Wrapper *wrapper = NewWrapper();
+  bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"),
+                                      js_napi_default_is_locked);
+
+  Template t_setter(getTemplate(getSetterTemplate(is_member)));
+
+  // prepare wrapper name
+  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  Setattr(n, "wrap:name", wrap_name);
+  state.variable(SETTER, wrap_name);
+
+  // prepare local variables
+  ParmList *params = Getattr(n, "parms");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+  if (locking_enabled) {
+    Swig_typemap_attach_parms("lock", params, wrapper);
+  }
+
+  // prepare code part
+  String *action = emit_action(n);
+  marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
+  emitChecks(n, params, wrapper);
+  Append(wrapper->code, emitAsyncTypemaps(n, params, wrapper, "lock"));
+  String *input = wrapper->code;
+
+  wrapper->code = NewString("");
+  emitCleanupCode(n, wrapper, params);
+  String *cleanup = wrapper->code;
+
+  String *guard = emitGuard(n);
+  String *locking = emitLocking(n, params, wrapper);
+
+  t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", wrap_name)
+      .replace("$jslocals", wrapper->locals)
+      .replace("$jsinput", input)
+      .replace("$jsguard", guard)
+      .replace("$jslock", locking)
+      .replace("$jsaction", action)
+      .replace("$jscleanup", cleanup)
+      .pretty_print(f_wrappers);
+
+  DelWrapper(wrapper);
+  Delete(guard);
+  Delete(locking);
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static, bool is_async) {
+  Wrapper *wrapper = NewWrapper();
+  Template t_function(getTemplate(getFunctionTemplate(is_member, is_async)));
+
+  bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
+  bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"),
+                                      js_napi_default_is_locked);
+
+  // prepare the function wrapper name
+  String *iname;
+  if (is_async) iname = Getattr(n, "sym:name:async");
+  else iname = Getattr(n, "sym:name:sync");
+  String *wrap_name = Swig_name_wrapper(iname);
+  if (is_overloaded) {
+    t_function = getTemplate(getOverloadedFunctionTemplate(is_member, is_async));
+    Append(wrap_name, Getattr(n, "sym:overname"));
+  }
+  if (is_async) Setattr(n, "wrap:name:async", wrap_name);
+  else Setattr(n, "wrap:name:sync", wrap_name);
+  Setattr(n, "wrap:name", wrap_name);
+  state.function(WRAPPER_NAME, wrap_name);
+
+  // prepare local variables
+  ParmList *params = Getattr(n, "parms");
+  emit_parameter_variables(params, wrapper);
+  emit_attach_parmmaps(params, wrapper);
+  if (locking_enabled) {
+    Swig_typemap_attach_parms("lock", params, wrapper);
+  } else if (is_async) {
+    Swig_warning(WARN_TYPEMAP_THREAD_UNSAFE, input_file, line_number,
+                 "Generating an asynchronous wrapper %s without locking.\n",
+                 Getattr(n, "sym:name"));
+  }
+
+  // Historically, marshalInput/marshalOutput/emitCleanupCode
+  // return their output in wrapper->code
+  // We need each part separately
+  marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
+  String *input = wrapper->code;
+
+  wrapper->code = NewString("");
+  emitChecks(n, params, wrapper);
+  Append(wrapper->code, emitAsyncTypemaps(n, params, wrapper, "lock"));
+  String *checks = wrapper->code;
+
+  // This must be done after input (which resolves the parameters)
+  // but before emit_action (which emits the local variables)
+  String *guard = emitGuard(n);
+  String *locking = emitLocking(n, params, wrapper);
+
+  Hash *action = emit_action_hash(n);
+
+  String *rethrow = NewStringEmpty();
+  if (is_async) {
+    // In async mode %exception wraps around the rethrow statement
+    String *rethrow_templ = NewStringEmpty();
+    Template(getTemplate("js_rethrow_exception")).print(rethrow_templ);
+    emit_action_code(n, rethrow, rethrow_templ);
+  } else {
+    // In sync mode %exception wraps around the action itself and becomes the action
+    emit_action_code(n, rethrow, Getattr(action, "action"));
+    Delete(Getattr(action, "action"));
+    Setattr(action, "action", rethrow);
+    rethrow = nullptr;
+  }
+
+  wrapper->code = NewString("");
+  marshalOutput(n, params, wrapper, NewString(""));
+  String *output = wrapper->code;
+  
+  wrapper->code = NewString("");
+  emitCleanupCode(n, wrapper, params);
+  String *cleanup = wrapper->code;
+
+  String *jsasyncworker = NewString("");
+  if (is_async) {
+    Template t_worker(getTemplate("js_async_worker_local_class"));
+    t_worker.print(jsasyncworker);
+  }
+
+  t_function.replace("$jsasyncworker", jsasyncworker)
+      .replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jswrapper", wrap_name)
+      .replace("$jslocals", wrapper->locals)
+      .replace("$jsinput", input)
+      .replace("$jschecks", checks)
+      .replace("$jsguard", guard)
+      .replace("$jslock", locking)
+      .replace("$jspreaction", Getattr(action, "preaction"))
+      .replace("$jstry", Getattr(action, "try"))
+      .replace("$jsaction", Getattr(action, "action"))
+      .replace("$jsrethrow", rethrow)
+      .replace("$jscatch", Getattr(action, "catch"))
+      .replace("$jspostaction", Getattr(action, "postaction"))
+      .replace("$jsoutput", output)
+      .replace("$jscleanup", cleanup)
+      .replace("$symname", iname)
+      .replace("$jsargcount", Getattr(n, ARGCOUNT))
+      .replace("$jsargrequired", Getattr(n, ARGREQUIRED));
+
+  t_function.pretty_print(f_wrappers);
+
+  DelWrapper(wrapper);
+  Delete(input);
+  Delete(action);
+  Delete(output);
+  Delete(jsasyncworker);
+  Delete(rethrow);
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
+  int rc;
+
+  // sync/async method handling
+  // We reuse the same node twice
+  String *async = Getattr(n, "feature:async");
+  String *sync = Getattr(n, "feature:sync");
+  String *name = state.function(NAME);
+  String *symbol = Getattr(n, "sym:name");
+
+  // By default async is off ("0") unless default is async
+  // also ctors, getters, setters cannot be async
+  if (State::IsSet(async, js_napi_default_is_async)) {
+    String *symAsync = Copy(symbol);
+    String *nameAsync = Copy(name);
+    if (async && !Equal(async, "1")) {
+      Append(symAsync, async);
+      Append(nameAsync, async);
+    }
+    state.function("name:async", nameAsync);
+    state.function(NAME, nameAsync);
+    Setattr(n, "sym:name:async", symAsync);
+    rc = emitFunctionDefinition(n, is_member, is_static, true);
+    if (rc != SWIG_OK)
+      return rc;
+    rc = emitFunctionDeclaration(n, true);
+    if (rc != SWIG_OK)
+      return rc;
+  }
+
+  // By default sync is on w/o suffix ("1") unless default is async
+  if (State::IsSet(sync, !js_napi_default_is_async)) {
+    String *symSync = Copy(symbol);
+    String *nameSync = Copy(name);
+    if (sync && !Equal(sync, "1")) {
+      Append(symSync, sync);
+      Append(nameSync, sync);
+    }
+    state.function("name:sync", nameSync);
+    state.function(NAME, nameSync);
+    Setattr(n, "sym:name:sync", symSync);
+    rc = emitFunctionDefinition(n, is_member, is_static, false);
+    if (rc != SWIG_OK)
+      return rc;
+    rc = emitFunctionDeclaration(n, false);
+    if (rc != SWIG_OK)
+      return rc;
+  }
+  return SWIG_OK;
+}
+
 int NAPIEmitter::emitClassMethodDeclaration(Node *) {
   // emit declaration of a class member function
   Template t_def_class = getTemplate("jsnapi_class_method_declaration");
@@ -2826,15 +3170,16 @@ int NAPIEmitter::emitClassMethodDeclaration(Node *) {
   return SWIG_OK;
 }
 
-int NAPIEmitter::exitFunction(Node *n) {
-  bool is_member = GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
+int NAPIEmitter::emitFunctionDeclaration(Node *n, bool is_async) {
+  bool is_member =
+      GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
 
   // create a dispatcher for overloaded functions
   bool is_overloaded = GetFlag(n, "sym:overloaded") != 0;
   if (is_overloaded) {
     emitClassMethodDeclaration(n);
     if (!Getattr(n, "sym:nextSibling")) {
-      emitFunctionDispatcher(n, is_member);
+      emitFunctionDispatcher(n, is_member, is_async);
     } else {
       return SWIG_OK;
     }
@@ -2844,17 +3189,19 @@ int NAPIEmitter::exitFunction(Node *n) {
     if (GetFlag(state.function(), IS_STATIC)) {
       Template t_register = getTemplate("jsnapi_register_static_function");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-	  .replace("$jsname", state.function(NAME))
-	  .replace("$jswrapper", state.function(WRAPPER_NAME))
-	  .trim()
-	  .pretty_print(f_init_static_wrappers);
+          .replace("$jsname",
+                   state.function(is_async ? "name:async" : "name:sync"))
+          .replace("$jswrapper", state.function(WRAPPER_NAME))
+          .trim()
+          .pretty_print(f_init_static_wrappers);
     } else {
       Template t_register = getTemplate("jsnapi_register_member_function");
       t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-	  .replace("$jsname", state.function(NAME))
-	  .replace("$jswrapper", state.function(WRAPPER_NAME))
-	  .trim()
-	  .pretty_print(f_init_wrappers);
+          .replace("$jsname",
+                   state.function(is_async ? "name:async" : "name:sync"))
+          .replace("$jswrapper", state.function(WRAPPER_NAME))
+          .trim()
+          .pretty_print(f_init_wrappers);
     }
 
     emitClassMethodDeclaration(n);
@@ -2863,16 +3210,104 @@ int NAPIEmitter::exitFunction(Node *n) {
     //       with the parent being a nspace object instead of class object
     Template t_register = getTemplate("jsnapi_register_global_function");
     t_register.replace("$jsparent", Getattr(current_namespace, NAME_MANGLED))
-	.replace("$jsname", state.function(NAME))
-	.replace("$jswrapper", state.function(WRAPPER_NAME))
-	.trim()
-	.pretty_print(f_init_register_namespaces);
+        .replace("$jsname",
+                 state.function(is_async ? "name:async" : "name:sync"))
+        .replace("$jswrapper", state.function(WRAPPER_NAME))
+        .trim()
+        .pretty_print(f_init_register_namespaces);
   }
 
   return SWIG_OK;
 }
 
-void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, MarshallingMode mode, bool is_member, bool is_static) {
+int NAPIEmitter::exitFunction(Node *) {
+  return SWIG_OK;
+}
+
+int NAPIEmitter::emitFunctionDispatcher(Node *n, bool is_member, bool is_async) {
+  Wrapper *wrapper = NewWrapper();
+
+  // Generate call list, go to first node
+  Node *sibl = n;
+
+  while (Getattr(sibl, "sym:previousSibling"))
+    sibl = Getattr(sibl, "sym:previousSibling"); // go all the way up
+
+  do {
+    String *siblname = Getattr(sibl, is_async ? "wrap:name:async": "wrap:name:sync");
+    if (!siblname) siblname = Getattr(sibl, "wrap:name");
+
+    if (siblname) {
+      // handle function overloading
+      Template t_dispatch_case = getTemplate("js_function_dispatch_case");
+      t_dispatch_case.replace("$jswrapper", siblname)
+          .replace("$jsargcount", Getattr(sibl, ARGCOUNT))
+          .replace("$jsargrequired", Getattr(sibl, ARGREQUIRED));
+
+      Append(wrapper->code, t_dispatch_case.str());
+    }
+
+  } while ((sibl = Getattr(sibl, "sym:nextSibling")));
+
+  Template t_function(getTemplate(getFunctionDispatcherTemplate(is_member)));
+
+  // Note: this dispatcher function gets called after the last overloaded
+  // function has been created. At this time, n.wrap:name contains the name of
+  // the last wrapper function. To get a valid function name for the dispatcher
+  // function we take the last wrapper name and subtract the extension
+  // "sym:overname",
+  String *wrap_name;
+  if (is_async) {
+    wrap_name = NewString(Getattr(n, "wrap:name:async"));
+  } else {
+    wrap_name = NewString(Getattr(n, "wrap:name:sync"));
+    if (!wrap_name) {
+      wrap_name = NewString(Getattr(n, "wrap:name"));
+    }
+  }
+  String *overname = Getattr(n, "sym:overname");
+
+  Node *methodclass = Swig_methodclass(n);
+  String *class_name = Getattr(methodclass, "sym:name");
+
+  int l1 = Len(wrap_name);
+  int l2 = Len(overname);
+  Delslice(wrap_name, l1 - l2, l1);
+
+  String *new_string = NewStringf("%s_%s", class_name, wrap_name);
+  String *final_wrap_name = Swig_name_wrapper(new_string);
+
+  Setattr(n, "wrap:name", final_wrap_name);
+  state.function(WRAPPER_NAME, final_wrap_name);
+
+  t_function.replace("$jslocals", wrapper->locals)
+      .replace("$jscode", wrapper->code);
+
+  // call this here, to replace all variables
+  t_function.replace("$jswrapper", final_wrap_name)
+      .replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsname", state.function(NAME))
+      .pretty_print(f_wrappers);
+
+  // Delete the state variable
+  DelWrapper(wrapper);
+
+  return SWIG_OK;
+}
+
+int NAPIEmitter::emitNativeFunction(Node *n) {
+  String *wrapname = Getattr(n, "wrap:name");
+  enterFunction(n);
+  state.function(WRAPPER_NAME, wrapname);
+  state.function("name:sync", state.function(NAME));
+  emitFunctionDeclaration(n, false);
+  exitFunction(n);
+  return SWIG_OK;
+}
+
+void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
+                                 MarshallingMode mode, bool is_member,
+                                 bool is_static) {
   Parm *p;
   String *tm;
 
@@ -2946,15 +3381,52 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper, M
       p = nextSibling(p);
     }
   }
+}
+
+int NAPIEmitter::emitChecks(Node *n, ParmList *parms, Wrapper *wrapper) {
+  Parm *p;
+  String *tm;
 
   for (p = parms; p;) {
     tm = emitCheckTypemap(n, p, wrapper, Getattr(p, "emit:input"));
     if (tm) {
-      p = Getattr(p, "tmap:in:next");
+      p = Getattr(p, "tmap:check:next");
     } else {
       p = nextSibling(p);
     }
   }
+  return SWIG_OK;
+}
+
+String *NAPIEmitter::emitLocking(Node *n, ParmList *, Wrapper *wrapper) {
+  bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"),
+                                      js_napi_default_is_locked);
+  if (!locking_enabled)
+    return 0;
+
+  String *locks_list = NewString("");
+  Template t_locks(getTemplate("js_local_locks_list"));
+  t_locks.print(locks_list);
+  Append(wrapper->locals, locks_list);
+
+  String *locking = NewString("");
+  Template t_lock(getTemplate("js_lock"));
+  t_lock.print(locking);
+
+  return locking;
+}
+
+String *NAPIEmitter::emitGuard(Node *n) {
+  bool locking_enabled = State::IsSet(Getattr(n, "feature:async:locking"),
+                                      js_napi_default_is_locked);
+
+  String *guard = NewString("");
+  if (locking_enabled) {
+    Template t_guard(getTemplate("js_guard"));
+    t_guard.print(guard);
+  }
+
+  return guard;
 }
 
 int NAPIEmitter::emitNamespaces() {
@@ -3108,13 +3580,13 @@ DOH *JSEmitterState::variable(const char *key, DOH *initial) {
 }
 
 /*static*/
-int JSEmitterState::IsSet(DOH *val) {
+int JSEmitterState::IsSet(DOH *val, int def) {
   if (!val) {
-    return 0;
+    return def;
   } else {
     const char *cval = Char(val);
     if (!cval)
-      return 0;
+      return def;
     return (strcmp(cval, "0") != 0) ? 1 : 0;
   }
 }

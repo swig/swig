@@ -8,11 +8,19 @@
 
 %insert(runtime) %{
 #if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
+
+#ifndef NAPI_CPP_EXCEPTIONS
 #define NAPI_CPP_EXCEPTIONS
-#else
+#endif
+
+#else // defined(_CPPUNWIND) || defined(__EXCEPTIONS)
+
+#ifndef NAPI_DISABLE_CPP_EXCEPTIONS
 #define NAPI_DISABLE_CPP_EXCEPTIONS
 #define NODE_ADDON_API_ENABLE_MAYBE
 #endif
+
+#endif // defined(_CPPUNWIND) || defined(__EXCEPTIONS)
 
 // This gives us
 // Branch Node.js v10.x - from v10.20.0
@@ -25,16 +33,21 @@
 #error NAPI_VERSION 6 is the minimum supported target (Node.js >=14, >=12.17, >=10.20)
 #endif
 #include <napi.h>
+#include <uv.h>
 
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <map>
+#include <functional>
+#include <algorithm>
+#include <set>
+#include <stdexcept>
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */
 %insert(runtime) "swigerrors.swg";      /* SWIG errors */
 
-%insert(runtime) "javascriptrun.swg"
+%insert(runtime) "javascriptrun.swg";
 
