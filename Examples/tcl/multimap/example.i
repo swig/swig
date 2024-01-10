@@ -1,13 +1,11 @@
 /* File : example.i */
 %module example
 
-#include <tcl.h>
-
 %{
 extern int gcd(int x, int y);
-extern int gcdmain(Tcl_Size argc, char *argv[]);
-extern int count(char *bytes, Tcl_Size len, char c);
-extern void capitalize (char *str, Tcl_Size len);
+extern int gcdmain(int argc, char *argv[]);
+extern int count(char *bytes, int len, char c);
+extern void capitalize (char *str, int len);
 extern void circle (double cx, double cy);
 extern int squareCubed (int n, int *OUTPUT);
 %}
@@ -16,15 +14,17 @@ extern int squareCubed (int n, int *OUTPUT);
 
 extern int    gcd(int x, int y);
 
-%typemap(arginit) (Tcl_Size argc, char *argv[]) "$2 = 0;"
+%typemap(arginit) (int argc, char *argv[]) "$2 = 0;"
 
-%typemap(in) (Tcl_Size argc, char *argv[]) {
+%typemap(in) (int argc, char *argv[]) {
   Tcl_Obj **listobjv = 0;
-  Tcl_Size i;
-  if (Tcl_ListObjGetElements(interp,$input, &$1, &listobjv) == TCL_ERROR) {
+  int i;
+  Tcl_Size tmpSize;
+  if (Tcl_ListObjGetElements(interp,$input, &tmpSize, &listobjv) == TCL_ERROR) {
     SWIG_exception(SWIG_ValueError,"Expected a list");
     return TCL_ERROR;
   }
+  $1 = (int)tmpSize;
   $2 = (char **) malloc(($1+1)*sizeof(char *));
   for (i = 0; i < $1; i++) {
     $2[i] = Tcl_GetString(listobjv[i]);
@@ -36,34 +36,38 @@ extern int    gcd(int x, int y);
   free($1);
 }
 
-extern int gcdmain(Tcl_Size argc, char *argv[]);
+extern int gcdmain(int argc, char *argv[]);
 
-%typemap(in) (char *bytes, Tcl_Size len) {
-  $1 = Tcl_GetStringFromObj($input,&$2);
+%typemap(in) (char *bytes, int len) {
+  Tcl_Size tmpSize;
+  $1 = Tcl_GetStringFromObj($input,&tmpSize);
+  $2 = (int)tmpSize;
 }
 
-extern int count(char *bytes, Tcl_Size len, char c);
+extern int count(char *bytes, int len, char c);
 
 
 /* This example shows how to wrap a function that mutates a string */
 
-%typemap(in) (char *str, Tcl_Size len) {
+%typemap(in) (char *str, int len) {
   char *temp;
-  temp = Tcl_GetStringFromObj($input,&$2);
+  Tcl_Size tmpSize;
+  temp = Tcl_GetStringFromObj($input,&tmpSize);
+  $2 = (int)tmpSize;
   $1 = (char *) malloc($2+1);
   memmove($1,temp,$2);
 }
 
 /* Return the mutated string as a new object.   */
 
-%typemap(argout) (char *str, Tcl_Size len) {
+%typemap(argout) (char *str, int len) {
  Tcl_Obj *o;
  o = Tcl_NewStringObj($1,$2);
  Tcl_ListObjAppendElement(interp,$result,o);
  free($1);
 }   
 
-extern void capitalize(char *str, Tcl_Size len);
+extern void capitalize(char *str, int len);
 
 
 /* A multi-valued constraint.  Force two arguments to lie
