@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-01-12: olly
+	    Improve preprocessor warning for use of an undefined function-like
+	    macro. SWIG now warns:
+
+	    Warning 202: Could not evaluate expression 'MY_VERSION_AT_LEAST(1,2,3)'
+	    Warning 202: Use of undefined function-like macro
+
+	    instead of:
+
+	    Warning 202: Could not evaluate expression 'MY_VERSION_AT_LEAST(1,2,3)'
+	    Warning 202: Syntax error: expected operator
+
 2024-01-06: wsfulton
             [Python] #2744 Regression fix - add in missing SwigPyIterator_T fragment for
             SwigPyIteratorClosed_T when using %import on an instantiated std::map.

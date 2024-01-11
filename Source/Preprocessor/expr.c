@@ -357,6 +357,17 @@ int Preprocessor_expr(DOH *s, int *error) {
 	stack[sp].svalue = NewString(Scanner_text(scan));
 	stack[sp].op = EXPR_VALUE;
       } else if (token == SWIG_TOKEN_ID) {
+	int next_token = expr_token(scan);
+	if (next_token == SWIG_TOKEN_LPAREN) {
+	  /* This is a use of an unknown function-like macro so we emit a
+	   * warning.
+	   */
+	  errmsg = "Use of undefined function-like macro";
+	  *error = 1;
+	  return 0;
+	}
+	Scanner_pushtoken(scan, next_token, Scanner_text(scan));
+
 	/* Defined macros have been expanded already so this is an unknown
 	 * macro, which gets treated as zero.
 	 */
