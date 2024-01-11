@@ -674,7 +674,7 @@ SWIG_Tcl_GetArgs(Tcl_Interp *interp, int objc, Tcl_Obj *const objv[], const char
         break;
       case 's': case 'S':
         if (*(c+1) == '#') {
-          int *vlptr = (int *) va_arg(ap, void *);
+          Tcl_Size *vlptr = (Tcl_Size *) va_arg(ap, void *);
           *((char **) vptr) = Tcl_GetStringFromObj(obj, vlptr);
           c++;
         } else {

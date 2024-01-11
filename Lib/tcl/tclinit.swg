@@ -24,7 +24,7 @@ SWIGEXPORT int SWIG_init(Tcl_Interp *);
 
 /* Compatibility version for TCL stubs */
 #ifndef SWIG_TCL_STUBS_VERSION
-#define SWIG_TCL_STUBS_VERSION "8.4"
+#define SWIG_TCL_STUBS_VERSION "8.4-"
 #endif
 
 %}

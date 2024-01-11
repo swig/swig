@@ -82,7 +82,7 @@ SWIG_AsVal_dec(unsigned long)(Tcl_Obj *obj, unsigned long *val) {
        get it as a string so we can distinguish these cases. */
   }
   {
-    int len = 0;
+    Tcl_Size len = 0;
     const char *nptr = Tcl_GetStringFromObj(obj, &len);
     if (nptr && len > 0) {
       char *endptr;
@@ -183,7 +183,7 @@ SWIG_AsVal_dec(unsigned long long)(Tcl_Obj *obj, unsigned long long *val)
     if (val) *val = (unsigned long) v;
     return SWIG_OK;
   } else {
-    int len = 0;
+    Tcl_Size len = 0;
     const char *nptr = Tcl_GetStringFromObj(obj, &len);
     if (nptr && len > 0) {
       char *endptr;
