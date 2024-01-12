@@ -3,7 +3,7 @@
 require "tests.php";
 
 check::functions(array('globalscope','mix','get_val2','get_val3','bas','baz','bar','get_val1','set'));
-check::classes(array('friends','Foo','A','B','D_i','D_d'));
+check::classes(array('friends','Foo','A','B','D_i','D_d','CModelParameterCompartment','CModelParameterSpecies'));
 // No new vars
 check::globals(array());
 

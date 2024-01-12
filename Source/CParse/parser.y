@@ -4732,7 +4732,10 @@ cpp_member   : cpp_member_no_dox
 */
   
 cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
-              if (inclass || extendmode) {
+	      /* Cannot be a constructor declaration/definition if parsed as a friend destructor/constructor
+	         or a badly declared friend function without return type */
+	      int isfriend = Strstr($1, "friend") != NULL;
+	      if (!isfriend && (inclass || extendmode)) {
 	        String *name = SwigType_templateprefix($2); /* A constructor can optionally be declared with template parameters before C++20, strip these off */
 		SwigType *decl = NewStringEmpty();
 		$$ = new_node("constructor");

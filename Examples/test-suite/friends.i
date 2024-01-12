@@ -148,6 +148,40 @@
   }
 }
 
+%inline %{
+  class CModelParameterSpecies;
+  class CModelParameterCompartment {
+    CModelParameterSpecies *species;
+  public:
+    int getSpeciesVal();
+    CModelParameterCompartment();
+    ~CModelParameterCompartment();
+  };
+  class CModelParameterSpecies
+  {
+    int private_val;
+  public:
+    // Friend function-declarations are silently ignored (including constructor and destructor declarations)
+    friend CModelParameterCompartment::~CModelParameterCompartment();
+    friend CModelParameterCompartment::CModelParameterCompartment();
+    friend int CModelParameterCompartment::getSpeciesVal();
+  };
+%}
+
+%{
+CModelParameterCompartment::~CModelParameterCompartment() {
+  species = new CModelParameterSpecies();
+  species->private_val = 1;
+}
+CModelParameterCompartment::CModelParameterCompartment() {
+  species->private_val = 0;
+  delete species;
+}
+int CModelParameterCompartment::getSpeciesVal() {
+  return species->private_val;
+}
+%}
+
 // Use this version with extra qualifiers to test SWIG as some compilers accept this
   namespace ns1 {
     namespace ns2 {

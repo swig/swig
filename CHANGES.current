@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-01-12: wsfulton
+            #2749 Fix seg fault handling friend constructor/destructor declarations.
+
 2024-01-12: olly
 	    [Ruby,Tcl] #2751 Fix -external-runtime output to define
 	    SWIG_snprintf (bug introduced in 4.2.0).
