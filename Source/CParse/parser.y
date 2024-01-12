@@ -3193,27 +3193,26 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      }
 
 	      if ($3.id) {
-		/* Look for "::" declarations (ignored) */
-		if (Strstr($3.id, "::")) {
+		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
+		String *p = Swig_scopename_prefix($3.id);
+		if (p) {
 		  /* This is a special case. If the scope name of the declaration exactly
 		     matches that of the declaration, then we will allow it. Otherwise, delete. */
-		  String *p = Swig_scopename_prefix($3.id);
-		  if (p) {
-		    if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
-			(Classprefix && Strcmp(p, Classprefix) == 0)) {
-		      String *lstr = Swig_scopename_last($3.id);
-		      Setattr($$, "name", lstr);
-		      Delete(lstr);
-		      set_nextSibling($$, $6);
-		    } else {
-		      Delete($$);
-		      $$ = $6;
-		    }
-		    Delete(p);
+		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
+		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
+		    String *lstr = Swig_scopename_last($3.id);
+		    Setattr($$, "name", lstr);
+		    Delete(lstr);
+		    set_nextSibling($$, $6);
 		  } else {
 		    Delete($$);
 		    $$ = $6;
 		  }
+		  Delete(p);
+		} else if (Strncmp($3.id, "::", 2) == 0) {
+		  /* global scope declaration/definition ignored */
+		  Delete($$);
+		  $$ = $6;
 		} else {
 		  set_nextSibling($$, $6);
 		}
@@ -3246,7 +3245,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "noexcept", $4.nexcept);
 	      Setattr($$, "final", $4.final);
 
-	      if (Strstr($3.id, "::")) {
+	      if ($3.id) {
+		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
 		String *p = Swig_scopename_prefix($3.id);
 		if (p) {
 		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
@@ -3259,7 +3259,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		    $$ = 0;
 		  }
 		  Delete(p);
-		} else {
+		} else if (Strncmp($3.id, "::", 2) == 0) {
+		  /* global scope declaration/definition ignored */
 		  Delete($$);
 		  $$ = 0;
 		}
@@ -3300,8 +3301,9 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		}
 	      }
 
-	      if (Strstr($3.id,"::")) {
-                String *p = Swig_scopename_prefix($3.id);
+	      if ($3.id) {
+		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
+		String *p = Swig_scopename_prefix($3.id);
 		if (p) {
 		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
 		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
@@ -3314,7 +3316,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		    $$ = $9;
 		  }
 		  Delete(p);
-		} else {
+		} else if (Strncmp($3.id, "::", 2) == 0) {
+		  /* global scope declaration/definition ignored */
 		  Delete($$);
 		  $$ = $9;
 		}
@@ -3348,8 +3351,9 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "noexcept", $4.nexcept);
 	      Setattr($$, "final", $4.final);
 
-	      if (Strstr($3.id, "::")) {
-                String *p = Swig_scopename_prefix($3.id);
+	      if ($3.id) {
+		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
+		String *p = Swig_scopename_prefix($3.id);
 		if (p) {
 		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
 		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
@@ -3361,7 +3365,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		    $$ = 0;
 		  }
 		  Delete(p);
-		} else {
+		} else if (Strncmp($3.id, "::", 2) == 0) {
+		  /* global scope declaration/definition ignored */
 		  Delete($$);
 		  $$ = 0;
 		}
