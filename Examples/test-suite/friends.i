@@ -3,7 +3,9 @@
 #include <iostream>
 %}
 
-%warnfilter(SWIGWARN_LANG_IDENTIFIER);
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) operator<<;
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) operator>>;
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) ns1::ns2::bar; // This warning suppression is hiding a bug when using namespaces and friends, warning should not be issued
 
 #if defined(SWIGOCTAVE)
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_LSHIFT_MSG) operator<<;
@@ -161,7 +163,7 @@
     }
   }
 
-// Remove extra qualifiers for the compiler as some compilers won't compile the extra qaulification (eg gcc-4.1 onwards) 
+// Remove extra qualifiers for the compiler as some compilers won't compile the extra qualification (eg gcc-4.1 onwards)
 %{
   namespace ns1 {
     namespace ns2 {
