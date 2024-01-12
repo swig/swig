@@ -710,3 +710,5 @@ template <typename T> T SwigValueInit() {
 #endif
 %}
 #endif
+
+%insert("runtime") "swigcompat.swg"
