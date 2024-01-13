@@ -2,7 +2,8 @@ SWIG (Simplified Wrapper and Interface Generator)
 
 Tagline: SWIG is a compiler that integrates C and C++ with languages
          including Perl, Python, Tcl, Ruby, PHP, Java, C#, D, Go, Lua,
-         Octave, R, Scheme (Guile, MzScheme/Racket), Scilab, Ocaml.
+         Octave, R, Scheme (Guile, MzScheme/Racket), Scilab,
+         Ocaml, Common Lisp (CFFI).
          SWIG can also export its parse tree into XML.
 
 SWIG reads annotated C/C++ header files and creates wrapper code (glue
