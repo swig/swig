@@ -38,6 +38,11 @@ public class friends_runme {
       throw new Exception("failed");
     if (friends.get_val1(dd) != 1.3)
       throw new Exception("failed");
+
+    if (friends.chum_blah() != 1234)
+      throw new Exception("failed");
+    if (friends.mate_blah() != 4321)
+      throw new Exception("failed");
   }
 }
 

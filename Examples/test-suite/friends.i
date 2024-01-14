@@ -182,6 +182,32 @@ int CModelParameterCompartment::getSpeciesVal() {
 }
 %}
 
+
+// Unqualified friend function definition and declaration example from SWIG docs
+%inline %{
+class Chum {
+  int val;
+  friend int chum_blah() { Chum c; c.private_function(); return c.val; }
+  void private_function();
+};
+
+class Mate {
+  int val;
+  friend int mate_blah(); // Unqualified friend function declaration
+  void private_function();
+};
+%}
+
+%{
+// Only seen by the compiler, not seen by SWIG
+int chum_blah();
+int mate_blah() { Mate m; m.private_function(); return m.val; }
+
+void Chum::private_function() { this->val = 1234; }
+void Mate::private_function() { this->val = 4321; }
+%}
+
+
 // Use this version with extra qualifiers to test SWIG as some compilers accept this
   namespace ns1 {
     namespace ns2 {

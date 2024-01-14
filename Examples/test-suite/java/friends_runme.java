@@ -48,6 +48,11 @@ public class friends_runme {
       throw new RuntimeException("failed");
     if (friends.get_val1(dd) != 1.3)
       throw new RuntimeException("failed");
+
+    if (friends.chum_blah() != 1234)
+      throw new RuntimeException("failed");
+    if (friends.mate_blah() != 4321)
+      throw new RuntimeException("failed");
   }
 }
 

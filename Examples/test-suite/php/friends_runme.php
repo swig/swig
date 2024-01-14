@@ -2,8 +2,8 @@
 
 require "tests.php";
 
-check::functions(array('globalscope','mix','get_val2','get_val3','bas','baz','bar','get_val1','set'));
-check::classes(array('friends','Foo','A','B','D_i','D_d','CModelParameterCompartment','CModelParameterSpecies'));
+check::functions(array('globalscope','mix','get_val2','get_val3','bas','baz','bar','get_val1','set','chum_blah','mate_blah'));
+check::classes(array('friends','Foo','A','B','D_i','D_d','CModelParameterCompartment','CModelParameterSpecies','Chum','Mate'));
 // No new vars
 check::globals(array());
 
@@ -33,5 +33,8 @@ set($dd, 1.3);
 
 check::equal(get_val1($di), 4);
 check::equal(get_val1($dd), 1.3);
+
+check::equal(chum_blah(), 1234);
+check::equal(mate_blah(), 4321);
 
 check::done();

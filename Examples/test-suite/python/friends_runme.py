@@ -35,3 +35,8 @@ if friends.get_val1(di) != 4:
     raise RuntimeError
 if friends.get_val1(dd) != 1.3:
     raise RuntimeError
+
+if friends.chum_blah() != 1234:
+  raise RuntimeError("failed")
+if friends.mate_blah() != 4321:
+  raise RuntimeError("failed")
