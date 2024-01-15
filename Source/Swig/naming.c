@@ -1875,9 +1875,9 @@ String *Swig_name_decl(Node *n) {
   if (nodetype && (Equal(nodetype, "constructor") || Equal(nodetype, "destructor") || Equal(nodetype, "cdecl"))) {
     String *d = Getattr(n, "decl");
     if (SwigType_isfunction(d)) {
-      Printv(decl, "(", ParmList_errorstr(Getattr(n, "parms")), ")", NIL);
       SwigType *decl_temp = Copy(d);
       SwigType *qualifiers = SwigType_pop_function_qualifiers(decl_temp);
+      Printv(decl, "(", ParmList_errorstr(Getattr(n, "parms")), ")", NIL);
       if (qualifiers) {
 	String *qualifiers_string = SwigType_str(qualifiers, 0);
 	Printv(decl, " ", qualifiers_string, NIL);

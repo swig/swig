@@ -1771,8 +1771,9 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 
 /* C++ decltype/auto type deduction. */
 static SwigType *deduce_type(const struct Define *dtype) {
+  Node *n;
   if (!dtype->val) return NULL;
-  Node *n = Swig_symbol_clookup(dtype->val, 0);
+  n = Swig_symbol_clookup(dtype->val, 0);
   if (n) {
     if (Strcmp(nodeType(n),"enumitem") == 0) {
       /* For an enumitem, the "type" attribute gives us the underlying integer
@@ -4445,10 +4446,10 @@ templateparameter : templcpptype def_args {
 		  }
 		  | parm {
 		    Parm *p = $1;
+		    String *name = Getattr(p, "name");
 		    $$ = $1;
 
 		    /* Correct the 'type name' parameter string, split into the appropriate "name" and "type" attributes */
-		    String *name = Getattr(p, "name");
 		    if (!name) {
 		      String *type = Getattr(p, "type");
 		      if ((Strncmp(type, "class ", 6) == 0) || (Strncmp(type, "typename ", 9) == 0)) {
