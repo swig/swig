@@ -426,13 +426,18 @@ static void add_symbols(Node *n) {
 	old_scope = Swig_symbol_popscope();
 	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	if (!prefix) {
+	  /* To check - this should probably apply to operators too */
 	  if (name && !is_operator(name) && Namespaceprefix) {
 	    String *friendusing = NewStringf("using namespace %s;", Namespaceprefix);
 	    Setattr(n, "friendusing", friendusing);
 	    Delete(friendusing);
 	  }
+	} else {
+	  /* Qualified friend declarations should not be possible as they are ignored in the parse tree */
+	  /* TODO: uncomment out for swig-4.3.0
+	  assert(0);
+	  */
 	}
-	Namespaceprefix = 0;
       } else if (Equal(nodeType(n), "using")) {
 	String *uname = Getattr(n, "uname");
 	Node *cls = current_class ? current_class : currentOuterClass; /* Current class seems to vary depending on whether it is a template class or a plain class */

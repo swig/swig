@@ -8,6 +8,11 @@ Version 4.2.1 (in progress)
 ===========================
 
 2024-01-15: wsfulton
+            https://sourceforge.net/p/swig/bugs/960/
+            Fix so that friend operators within a namespace can be correctly ignored
+            or renamed.
+
+2024-01-15: wsfulton
             https://sourceforge.net/p/swig/bugs/807/
             Wrap friend functions that are defined or declared within a namespace.
             Previously unqualified friend definitions/declarations in a namespace were
