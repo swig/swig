@@ -1425,7 +1425,7 @@ String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *
 String *JSEmitter::emitCheckTypemap(Node *, Parm *p, Wrapper *wrapper, String *arg) {
   String *tm = Getattr(p, "tmap:check");
 
-  if (tm != nullptr) {
+  if (tm != NULL) {
     Replaceall(tm, "$input", arg);
     Printf(wrapper->code, "%s\n", tm);
   }
