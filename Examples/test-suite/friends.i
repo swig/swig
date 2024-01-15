@@ -5,7 +5,6 @@
 
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) operator<<;
 %warnfilter(SWIGWARN_LANG_IDENTIFIER) operator>>;
-%warnfilter(SWIGWARN_LANG_IDENTIFIER) ns1::ns2::bar; // This warning suppression is hiding a bug when using namespaces and friends, warning should not be issued
 
 #if defined(SWIGOCTAVE)
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_LSHIFT_MSG) operator<<;
@@ -141,9 +140,7 @@
     };
 
   namespace ns1 {
-
     void bas() {}
-
     void baz() {}
   }
 }
@@ -208,16 +205,45 @@ void Mate::private_function() { this->val = 4321; }
 %}
 
 
+// Foe class tests friend definitions/declarations in a namespace
 %inline %{
   namespace ns1 {
     namespace ns2 {
-      class Foo {
+      class Foe {
+        int val;
       public:
-	Foo() {}
-	friend void bar();
-	friend void ns1::baz();	
+	Foe() : val() {}
+	Foe(int val) : val(val) {}
+        // Unqualified friends visible to SWIG in outer scope
+	friend int friend_definition() { return Foe(10).val; }
+	friend int friend_declaration();
+	friend int friend_args_definition(Foe &foe) { return foe.val; }
+	friend int friend_args_declaration(Foe &foe);
+
+        // Unqualified friends only visible to C++ compiler in outer scope
+	friend int friend_definition_compiler() { return Foe(20).val; }
+	friend int friend_declaration_compiler();
+	friend int friend_args_definition_compiler(Foe &foe) { return foe.val; }
+	friend int friend_args_declaration_compiler(Foe &foe);
+
+        // Qualified friend (silently ignored)
+	friend void ns1::baz();
       };
-      void bar() {}    
+      int friend_definition();
+      int friend_declaration() { return Foe(11).val; }
+      int friend_args_definition(Foe &foe);
+      int friend_args_declaration(Foe &foe) { return foe.val; }
+    }
+  }
+%}
+
+%{
+  namespace ns1 {
+    namespace ns2 {
+      int friend_definition_compiler();
+      int friend_declaration_compiler() { return Foe(21).val; }
+   // int friend_args_definition_compiler(Foe &foe); // ADL is used to find this, so no declaration is needed
+      int friend_args_declaration_compiler(Foe &foe) { return foe.val; }
     }
   }
 %}

@@ -411,7 +411,6 @@ static void add_symbols(Node *n) {
   }
   while (n) {
     String *symname = 0;
-    /* for friends, we need to pop the scope once */
     String *old_prefix = 0;
     Symtab *old_scope = 0;
     int isfriend = inclass && Checkattr(n, "storage", "friend");
@@ -421,26 +420,17 @@ static void add_symbols(Node *n) {
     if (inclass) {
       String *name = Getattr(n, "name");
       if (isfriend) {
-	/* for friends, we need to add the scopename if needed */
+	/* For friends, set the scope to the same as the class that the friend is defined/declared in, that is, pop scope once */
 	String *prefix = name ? Swig_scopename_prefix(name) : 0;
 	old_prefix = Namespaceprefix;
 	old_scope = Swig_symbol_popscope();
 	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	if (!prefix) {
 	  if (name && !is_operator(name) && Namespaceprefix) {
-	    String *nname = NewStringf("%s::%s", Namespaceprefix, name);
-	    Setattr(n,"name",nname);
-	    Delete(nname);
+	    String *friendusing = NewStringf("using namespace %s;", Namespaceprefix);
+	    Setattr(n, "friendusing", friendusing);
+	    Delete(friendusing);
 	  }
-	} else {
-	  Symtab *st = Swig_symbol_getscope(prefix);
-	  String *ns = st ? Getattr(st,"name") : prefix;
-	  String *base  = Swig_scopename_last(name);
-	  String *nname = NewStringf("%s::%s", ns, base);
-	  Setattr(n,"name",nname);
-	  Delete(nname);
-	  Delete(base);
-	  Delete(prefix);
 	}
 	Namespaceprefix = 0;
       } else if (Equal(nodeType(n), "using")) {

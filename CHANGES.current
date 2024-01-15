@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-01-15: wsfulton
+            https://sourceforge.net/p/swig/bugs/807/
+            Wrap friend functions that are defined or declared within a namespace.
+            Previously unqualified friend definitions/declarations in a namespace were
+            ignored.
+
+            The visibility of unqualified friend functions in C++ is somewhat quirky
+            and the documentation has been enhanced to aid wrapping of friends.
+
 2024-01-12: wsfulton
             #2749 Fix seg fault handling friend constructor/destructor declarations.
 

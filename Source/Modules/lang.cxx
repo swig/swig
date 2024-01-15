@@ -1166,7 +1166,20 @@ int Language::globalfunctionHandler(Node *n) {
   String *extendname = Getattr(n, "extendname");
   String *call = Swig_cfunction_call(extendname ? extendname : name, parms);
   String *cres = Swig_cresult(type, Swig_cresult_name(), call);
-  Setattr(n, "wrap:action", cres);
+  String *friendusing = Getattr(n, "friendusing");
+  if (friendusing) {
+    // Add a using directive to avoid having to possibly fully qualify the call to the friend function.
+    // Unconventional for SWIG generation, but the alternative is to implement Argument Dependent Lookup
+    // as friend functions are quirky and not visible, except for ADL. An ADL implementation would be needed
+    // in order to work out when the friend function is visible or not, in order to determine whether to
+    // rely on ADL (with no qualification) or to fully qualify the call to the friend function made
+    // visible via a matching declaration at namespace scope.
+    String *action = NewStringf("%s\n%s", friendusing, cres);
+    Setattr(n, "wrap:action", action);
+    Delete(action);
+  } else {
+    Setattr(n, "wrap:action", cres);
+  }
   Delete(cres);
   Delete(call);
   functionWrapper(n);
