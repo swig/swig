@@ -208,38 +208,20 @@ void Mate::private_function() { this->val = 4321; }
 %}
 
 
-// Use this version with extra qualifiers to test SWIG as some compilers accept this
+%inline %{
   namespace ns1 {
     namespace ns2 {
       class Foo {
       public:
-	Foo::Foo() {};
+	Foo() {}
 	friend void bar();
 	friend void ns1::baz();	
-	void Foo::member() { }
-	
-      };
-      void bar() {}    
-    }
-  }
-
-// Remove extra qualifiers for the compiler as some compilers won't compile the extra qualification (eg gcc-4.1 onwards)
-%{
-  namespace ns1 {
-    namespace ns2 {
-      class Foo {
-      public:
-	Foo() {};
-	friend void bar();
-	friend void ns1::baz();	
-	void member() { }
-	
       };
       void bar() {}    
     }
   }
 %}
-    
+
 
 %template(D_i) D<int>;
 %template(D_d) D<double>;
