@@ -166,11 +166,11 @@
 %}
 
 %{
-CModelParameterCompartment::~CModelParameterCompartment() {
+CModelParameterCompartment::CModelParameterCompartment() {
   species = new CModelParameterSpecies();
   species->private_val = 1;
 }
-CModelParameterCompartment::CModelParameterCompartment() {
+CModelParameterCompartment::~CModelParameterCompartment() {
   species->private_val = 0;
   delete species;
 }
