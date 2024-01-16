@@ -71,7 +71,8 @@ ifneq (, $(ASYNC))
 CPP_TEST_CASES += \
 	napi_async_locking \
 	napi_async_overloading \
-	napi_async_reject
+	napi_async_reject \
+	napi_async_feature
 endif
 endif
 
@@ -89,6 +90,9 @@ _setup = \
 	fi;                                                               \
 	if [ -n "$(TYPESCRIPT)" ]; then	                                  \
 	  echo -n " (TypeScript mode)" ;                                  \
+	fi;                                                               \
+	if [ -n "$(SPLIT)" ]; then	                                  \
+	  echo -n " (split mode)" ;                                       \
 	fi;                                                               \
         echo
 SWIGOPT += -$(JSENGINE)
@@ -143,10 +147,19 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
         ifneq (,$(findstring typescript,$(SWIG_FEATURES)))
                 TYPESCRIPT = 1
         endif
+        SOURCES = "../$*_wrap.cxx"
+        ifneq (,$(findstring split,$(SWIG_FEATURES)))
+                SPLIT = 1		
+                SOURCES = "<@(source_glob)"
+        endif
 
 	setup_node = \
 		test -d $* || mkdir $* && \
-		sed -e 's|$$testcase|$*|g; s|$$cflags|$(GYP_CFLAGS)|g; s|$$cxxflags|"$(GYP_CXXFLAGS)"|g; s|$$srcdir|$(srcdir)|g' \
+		sed -e 's|$$testcase|$*|g; \
+			s|$$cflags|$(GYP_CFLAGS)|g; \
+			s|$$cxxflags|"$(GYP_CXXFLAGS)"|g; \
+			s|$$srcdir|$(srcdir)|g; \
+			s|$$sources|$(SOURCES)|g;' \
 			$(srcdir)/node_template/binding.gyp.in > $*/binding.gyp && \
 		sed -e 's|$$testcase|$*|g; s|$$build|$(BUILD)|g;' \
 			$(srcdir)/node_template/index.js.in > $*/index.js
@@ -164,7 +177,7 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
 		SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 		SWIGOPT='-c++ -javascript $(SWIGOPT) $(SWIGASYNC) $(srcdir)/../$*.i' swiginvoke && \
-		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure $(GYP_OPTS) build 1>>/dev/null
+		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure $(GYP_OPTS) build -j 1>>/dev/null
 
 	run_testcase = \
 		RUNME="$(srcdir)/$*$(SCRIPTSUFFIX)" && \
@@ -200,19 +213,11 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
   %.ctest:
 		$(_setup)
 		+$(swig_and_compile_c)
-        	ifneq (, $(ASYNC))
-			$(run_testcase_async)
-        	else
-			$(run_testcase)
-                endif
+		$(run_testcase)
   %.cpptest:
 		$(_setup)
 		+$(swig_and_compile_cpp)
-        	ifneq (, $(ASYNC))
-			$(run_testcase_async)
-        	else
-			$(run_testcase)
-                endif
+		$(run_testcase)
 
   %.multicpptest:
 		$(_setup)
@@ -244,7 +249,7 @@ endif
 
 %.clean:
 	@rm -rf $*
-	@rm -f $*_wrap.* $*$(SO) $*.$(OBJEXT)
+	@rm -f $*_wrap.* $*_wrap_*.cxx  $*$(SO) $*.$(OBJEXT)
 	@rm -f $*$(SCRIPTASYNCSUFFIX)
 	@rm -f $*.d.ts $*_ts_runme.mjs $*_ts_runme.js $*_ts_runme.ts
 

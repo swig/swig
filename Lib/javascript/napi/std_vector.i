@@ -4,7 +4,7 @@
 
 %include <std_common.i>
 
-%{
+%insert(header) %{
 #include <vector>
 #include <stdexcept>
 %}

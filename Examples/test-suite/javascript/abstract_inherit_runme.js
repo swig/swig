@@ -15,7 +15,7 @@ try {
   caughtException = true;
 }
 if (!caughtException) {
-  throw new Error("Foo should be instantiated as it is abstract");
+  throw new Error("Foo shouldn't be instantiated as it is abstract");
 }
 
 caughtException = false;
@@ -27,7 +27,7 @@ try {
 }
 
 if (!caughtException) {
-  throw new Error("Bar should be instantiated as it is abstract");
+  throw new Error("Bar shouldn't be instantiated as it is abstract");
 }
 
 caughtException = false;
@@ -39,5 +39,5 @@ try {
 }
 
 if (!caughtException) {
-  throw new Error("Spam should be instantiated as it is abstract");
+  throw new Error("Spam shouldn't be instantiated as it is abstract");
 }

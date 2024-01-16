@@ -55,7 +55,7 @@ extern "C" JNIEXPORT jint JNICALL Java_native_1directive_native_1directiveJNI_Co
 %{
 
 // NAPI sync version
-static Napi::Value JavaScript_alpha_count(const Napi::CallbackInfo &info) {
+Napi::Value JavaScript_alpha_count(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::EscapableHandleScope scope(env);
 
@@ -81,7 +81,7 @@ fail:
 }
 
 // NAPI async version
-static Napi::Value JavaScript_alpha_count_Async(const Napi::CallbackInfo &info) {
+Napi::Value JavaScript_alpha_count_Async(const Napi::CallbackInfo &info) {
   Napi::Env env(info.Env());
 
   class Tasklet : public Napi::AsyncWorker {

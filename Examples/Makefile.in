@@ -48,7 +48,6 @@ CXX        = @CXX@
 CPPFLAGS   = $(SRCDIR_INCLUDE)
 CFLAGS     = @PLATCFLAGS@ $(EXTRA_CFLAGS)
 CXXFLAGS   = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ $(EXTRA_CXXFLAGS)
-LDFLAGS    =
 prefix     = @prefix@
 exec_prefix= @exec_prefix@
 SRCS       =
@@ -514,7 +513,8 @@ go_clean:
 GUILE         = @GUILE@
 GUILE_CFLAGS  = @GUILE_CFLAGS@
 GUILE_SO      = @GUILE_SO@
-GUILE_LIBS    = @GUILE_LIBS@
+# TODO: Fix the consequences of the code splitting
+GUILE_LIBS    = @GUILE_LIBS@ -Wl,--allow-multiple-definition
 GUILE_LIBOPTS = @LIBS@ $(SYSLIBS)
 GUILE_LIBPREFIX = lib
 GUILE_SCRIPT  = $(SRCDIR)$(RUNME).scm
@@ -806,7 +806,8 @@ javascript_clean:
 
 # lua flags
 LUA_INCLUDE= @LUAFLAGS@
-LUA_LIB    = @LUALINK@
+# TODO: Fix the consequences of the code splitting
+LUA_LIB    = @LUALINK@ -Wl,--allow-multiple-definition
 
 # Extra specific dynamic linking options
 LUA_DLNK   = @LUADYNAMICLINKING@

@@ -54,17 +54,6 @@
 # endif
 #endif
 
-/* internal SWIG method */
-#ifndef SWIGINTERN
-# define SWIGINTERN static SWIGUNUSED
-#endif
-
-/* internal inline SWIG method */
-#ifndef SWIGINTERNINLINE
-# define SWIGINTERNINLINE SWIGINTERN SWIGINLINE
-#endif
-
-/* exporting methods */
 #if defined(__GNUC__)
 #  if (__GNUC__ >= 4) || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)
 #    ifndef GCC_HASCLASSVISIBILITY
@@ -73,6 +62,39 @@
 #  endif
 #endif
 
+/* internal SWIG method */
+#ifndef SWIGINTERN
+# if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
+#   define SWIGINTERN
+# else
+#   if defined(__GNUC__) && defined(GCC_HASCLASSVISIBILITY)
+#     define SWIGINTERN __attribute__ ((visibility("hidden")))
+#   else
+#     define SWIGINTERN
+#   endif
+# endif
+#endif
+
+/* internal inline SWIG method */
+#ifndef SWIGINTERNINLINE
+# define SWIGINTERNINLINE static inline
+#endif
+
+/* force C linkage */
+#ifdef __cplusplus
+#define SWIGCLINKAGE extern "C"
+#else
+#define SWIGCLINKAGE
+#endif
+
+/* force C++ linkage */
+#ifdef __cplusplus
+#define SWIGCPPLINKAGE extern "C++"
+#else
+#define SWIGCPPLINKAGE
+#endif
+
+/* exporting methods */
 #ifndef SWIGEXPORT
 # if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
 #   if defined(STATIC_LINKED)

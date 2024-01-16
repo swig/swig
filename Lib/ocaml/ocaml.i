@@ -6,6 +6,7 @@
 
 /* Insert common stuff */
 %insert(runtime) "swigrun.swg"
+%insert(runtime) "swigrun_body.swg"
 
 /* Include headers */
 %insert(runtime) "ocamlrundec.swg"

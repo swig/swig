@@ -12,7 +12,7 @@ int placeholder() { return 0; }
 %{
 #if defined(SWIG_V8_VERSION) /* Engine: Node || V8 */
     
-    static SwigV8ReturnValue JavaScript_do_work(const SwigV8Arguments &args) {
+    SwigV8ReturnValue JavaScript_do_work(const SwigV8Arguments &args) {
         SWIGV8_HANDLESCOPE();
         const int MY_MAGIC_NUMBER = 5;
         SWIGV8_VALUE jsresult =
@@ -26,7 +26,7 @@ int placeholder() { return 0; }
 
 #elif defined(NAPI_VERSION) /* Engine: NAPI */
 
-    static Napi::Value JavaScript_do_work(const Napi::CallbackInfo &args) {
+    Napi::Value JavaScript_do_work(const Napi::CallbackInfo &args) {
         Napi::Env env = args.Env();
         Napi::EscapableHandleScope scope(env);
         const int MY_MAGIC_NUMBER = 5;
@@ -41,7 +41,7 @@ int placeholder() { return 0; }
 
 #else /* Engine: JavaScriptCore */
 
-    static JSValueRef JavaScript_do_work(JSContextRef context,
+    JSValueRef JavaScript_do_work(JSContextRef context,
         JSObjectRef function, JSObjectRef thisObject, size_t argc,
         const JSValueRef argv[], JSValueRef* exception) {
         const int MY_MAGIC_NUMBER = 5;

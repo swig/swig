@@ -623,7 +623,7 @@ static void getoptions(int argc, char *argv[]) {
 	  Swig_arg_error();
 	}
       } else if (strcmp(argv[i], "-version") == 0) {
-	fprintf(stdout, "\nSWIG Version %s\n", Swig_package_version());
+	fprintf(stdout, "\nSWIG JSE Version %s\n", Swig_package_version());
 	fprintf(stdout, "\nCompiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
 	fprintf(stdout, "\nConfigured options: %cpcre\n",
 #ifdef HAVE_PCRE
@@ -635,7 +635,7 @@ static void getoptions(int argc, char *argv[]) {
 	fprintf(stdout, "\nPlease see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
 	Exit(EXIT_SUCCESS);
       } else if (strcmp(argv[i], "-copyright") == 0) {
-	fprintf(stdout, "\nSWIG Version %s\n", Swig_package_version());
+	fprintf(stdout, "\nSWIG JSE Version %s\n", Swig_package_version());
 	fprintf(stdout, "Copyright (c) 1995-1998\n");
 	fprintf(stdout, "University of Utah and the Regents of the University of California\n");
 	fprintf(stdout, "Copyright (c) 1998-2005\n");

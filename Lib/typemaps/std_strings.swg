@@ -2,8 +2,13 @@
 /* defining the String asptr/from methods */
 
 %define %std_string_asptr(String, Char, SWIG_AsCharPtrAndSize, Frag)
-%fragment(SWIG_AsPtr_frag(String),"header",fragment=Frag) {
-SWIGINTERN int
+%fragment(SWIG_AsPtr_frag(String),"header",
+          fragment="run_" SWIG_AsPtr_frag(String)) {
+SWIGCLINKAGE int
+SWIG_AsPtr_dec(String)(SWIG_Object obj, String **val);
+}
+%fragment("run_" SWIG_AsPtr_frag(String),"wrapper",fragment=Frag) {
+SWIGCLINKAGE int
 SWIG_AsPtr_dec(String)(SWIG_Object obj, String **val) 
 {
   Char* buf = 0 ; size_t size = 0; int alloc = SWIG_OLDOBJ;
@@ -56,8 +61,13 @@ SWIG_From_dec(String)(const String& s)
 %enddef
 
 %define %std_string_asval(String)
-%fragment(SWIG_AsVal_frag(String),"header", fragment=SWIG_AsPtr_frag(String)) {
-SWIGINTERN int
+%fragment(SWIG_AsVal_frag(String),"header",
+          fragment="run_" SWIG_AsVal_frag(String)) {
+SWIGCLINKAGE int
+SWIG_AsVal_dec(String)(SWIG_Object obj, String *val);
+}
+%fragment("run_" SWIG_AsVal_frag(String),"wrapper", fragment=SWIG_AsPtr_frag(String)) {
+SWIGCLINKAGE int
 SWIG_AsVal_dec(String)(SWIG_Object obj, String *val)
 {
   String* v = (String *) 0;

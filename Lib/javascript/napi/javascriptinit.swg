@@ -2,6 +2,18 @@
 #include <assert.h>
 %}
 
+%insert(header) %{
+#define SWIG_GetModule(clientdata)                SWIG_NAPI_GetModule(clientdata)
+#define SWIG_SetModule(clientdata, pointer)       SWIG_NAPI_SetModule(clientdata, pointer)
+#define SWIG_INIT_CLIENT_DATA_TYPE                Napi::Env
+
+SWIGRUNTIME void
+SWIG_NAPI_SetModule(Napi::Env env, swig_module_info *swig_module);
+SWIGRUNTIME swig_module_info *
+SWIG_NAPI_GetModule(Napi::Env env);
+
+%}
+
 %insert(init) %{
 
 EnvInstanceData::EnvInstanceData(Napi::Env env, swig_module_info *swig_module) :
@@ -34,11 +46,6 @@ SWIG_NAPI_GetModule(Napi::Env env) {
   if (data == SWIG_NULLPTR) return SWIG_NULLPTR;
   return data->swig_module;
 }
-
-#define SWIG_GetModule(clientdata)                SWIG_NAPI_GetModule(clientdata)
-#define SWIG_SetModule(clientdata, pointer)       SWIG_NAPI_SetModule(clientdata, pointer)
-#define SWIG_INIT_CLIENT_DATA_TYPE                Napi::Env
-
 %}
 
 %insert(init) "swiginit.swg"
@@ -47,6 +54,10 @@ SWIG_NAPI_GetModule(Napi::Env env) {
 
 %fragment ("js_initializer_define", "templates") %{
 #define SWIG_NAPI_INIT $jsname_initialize
+%}
+
+%insert(header) %{
+Napi::Object Init(Napi::Env env, Napi::Object exports);
 %}
 
 %insert(init) %{

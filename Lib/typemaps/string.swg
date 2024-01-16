@@ -4,7 +4,7 @@
 %types(char *);
 
 %fragment("SWIG_pchar_descriptor","header") {
-SWIGINTERN swig_type_info*
+SWIGINTERNINLINE swig_type_info*
 SWIG_pchar_descriptor(void)
 {
   static int init = 0;
@@ -18,7 +18,7 @@ SWIG_pchar_descriptor(void)
 }
 
 %fragment("SWIG_strnlen","header",fragment="SWIG_FromCharPtrAndSize") {
-SWIGINTERN size_t
+SWIGINTERNINLINE size_t
 SWIG_strnlen(const char* s, size_t maxlen)
 {
   const char *p;

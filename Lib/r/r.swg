@@ -5,6 +5,7 @@
 
 %insert("init") "swiginit.swg"
 %insert("runtime") "swigrun.swg"
+%insert("runtime") "swigrun_body.swg"
 %insert("runtime") "swigerrors.swg"
 %insert("runtime") "rrun.swg"
 

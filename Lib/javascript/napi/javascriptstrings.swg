@@ -2,7 +2,11 @@
 /* ------------------------------------------------------------
  *  utility methods for char strings 
  * ------------------------------------------------------------ */
-%fragment("SWIG_AsCharPtrAndSize", "header", fragment="SWIG_pchar_descriptor") {
+%fragment("SWIG_AsCharPtrAndSize", "header", fragment="run_SWIG_AsCharPtrAndSize") {
+SWIGINTERN int
+SWIG_AsCharPtrAndSize(Napi::Value valRef, char** cptr, size_t* psize, int *alloc);
+}
+%fragment("run_SWIG_AsCharPtrAndSize", "wrapper", fragment="SWIG_pchar_descriptor") {
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(Napi::Value valRef, char** cptr, size_t* psize, int *alloc)
 {
@@ -71,7 +75,7 @@ SWIG_Env_FromCharPtrAndSize(Napi::Env env, const char* carray, size_t size)
 }
 }
 
-%insert(runtime) %{
+%insert(header) %{
 #define SWIG_FromCharPtrAndSize(cptr, size) SWIG_Env_FromCharPtrAndSize(env, cptr, size)
 #define SWIG_FromCharPtr(cptr)              SWIG_Env_FromCharPtrAndSize(env, cptr, cptr ? strlen(cptr) : 0)
 %}

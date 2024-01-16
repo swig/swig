@@ -784,9 +784,6 @@ public:
     Printf(f_header, "#endif\n");
     Printf(f_header, "#define SWIG_name    \"%s\"\n", module);
 
-    Printf(f_wrappers, "#ifdef __cplusplus\n");
-    Printf(f_wrappers, "extern \"C\" {\n");
-    Printf(f_wrappers, "#endif\n");
     Append(const_code, "static swig_const_info swig_const_table[] = {\n");
     Append(methods, "static PyMethodDef SwigMethods[] = {\n");
     Append(methods_proxydocs, "static PyMethodDef SwigMethods_proxydocs[] = {\n");
@@ -805,6 +802,9 @@ public:
     /* emit code */
     Language::top(n);
 
+    Printf(f_wrappers, "#ifdef __cplusplus\n");
+    Printf(f_wrappers, "extern \"C\" {\n");
+    Printf(f_wrappers, "#endif\n");
     if (Swig_directors_enabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
       Swig_insert_file("director_common.swg", f_runtime);
@@ -824,11 +824,12 @@ public:
       Dump(f_builtins, f_wrappers);
     }
 
-    SwigType_emit_type_table(f_runtime, f_wrappers);
-
     Append(const_code, "{0, 0, 0, 0.0, 0, 0}};\n");
     Printf(f_wrappers, "%s\n", const_code);
-
+    Printf(f_wrappers, "#ifdef __cplusplus\n");
+    Printf(f_wrappers, "}\n");
+    Printf(f_wrappers, "#endif\n");
+  
     if (have_fast_proxy_static_member_method_callback)
       Printf(f_init, "  SWIG_Python_FixMethods(SwigMethods_proxydocs, swig_const_table, swig_types, swig_type_initial);\n\n");
 
@@ -841,9 +842,7 @@ public:
     Printf(f_init, "#endif\n");
     Printf(f_init, "}\n");
 
-    Printf(f_wrappers, "#ifdef __cplusplus\n");
-    Printf(f_wrappers, "}\n");
-    Printf(f_wrappers, "#endif\n");
+    SwigType_emit_type_table(f_runtime, f_wrappers);
 
     if (shadow) {
       Swig_banner_target_lang(f_shadow_py, "#");
