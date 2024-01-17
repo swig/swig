@@ -4,7 +4,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 4.2.1 (in progress)
+Version 5.0.0 (in progress)
+===========================
+
+2025-01-17: mmomtchev
+            [JavaScript] Fix #5, do not export symbols in namespaces when
+            using `-exports`
+
+Version 5.0.0-rc.1 (17 Jan 2024)
 ===========================
 
 2024-01-17: mmomtchev

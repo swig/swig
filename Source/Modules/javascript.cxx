@@ -3530,7 +3530,8 @@ int NAPIEmitter::exitVariable(Node *n) {
                                    : "jsnapi_register_global_constant";
 
     Template t_register = getTemplate(templ);
-    t_register.replace("$jsparent", Getattr(current_namespace, NAME_MANGLED))
+    String *nspace = Getattr(current_namespace, NAME_MANGLED);
+    t_register.replace("$jsparent", nspace)
         .replace("$jsname", state.variable(NAME))
         .replace("$jsgetter", state.variable(GETTER));
 
@@ -3538,7 +3539,9 @@ int NAPIEmitter::exitVariable(Node *n) {
       t_register.replace("$jssetter", state.variable(SETTER));
 
     t_register.trim().pretty_print(f_init_register_namespaces);
-    SetFlag(f_global_symbols, state.variable(NAME));
+    if (Equal(nspace, "exports")) {
+      SetFlag(f_global_symbols, state.variable(NAME));
+    }
   }
 
   return SWIG_OK;
@@ -3960,14 +3963,18 @@ int NAPIEmitter::emitFunctionDeclaration(Node *n, bool is_async) {
     // Note: a global function is treated like a static function
     //       with the parent being a nspace object instead of class object
     Template t_register = getTemplate("jsnapi_register_global_function");
-    t_register.replace("$jsparent", Getattr(current_namespace, NAME_MANGLED))
+    String *nspace = Getattr(current_namespace, NAME_MANGLED);
+    t_register.replace("$jsparent", nspace)
         .replace("$jsname",
                  state.function(is_async ? "name:async" : "name:sync"))
         .replace("$jswrapper", state.function(WRAPPER_NAME))
         .trim()
         .pretty_print(f_init_register_namespaces);
-    SetFlag(f_global_symbols,
-            state.function(is_async ? "name:async" : "name:sync"));
+
+    if (Equal(nspace, "exports")) {
+      SetFlag(f_global_symbols,
+              state.function(is_async ? "name:async" : "name:sync"));
+    }
 
     Template t_declaration = getTemplate("js_global_declaration");
     t_declaration
