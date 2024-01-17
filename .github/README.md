@@ -25,9 +25,11 @@ As it name suggests, tt adds a number of features exclusive to JavaScript. It ke
   *(This part of SWIG JSE is currently being considered for merging in the mainline SWIG 4.2.0)*
 
 * TypeScript Support
+
   Since its inception, TypeScript has surfed the JavaScript wave and after several iterations, it is becoming the language of choice for JavaScript development in the enterprise world - because of the additional coding discipline that it imposes. Modules produced by SWIG JSE support both JavaScript and TypeScript - and are fully typed when used from TypeScript - imposing the additional checks that are expected of TypeScript developers.
 
-* WASM Support (still being merged to JSE, not available on `main` at the moment)
+* WASM Support
+
   The true reason for the mass adoption of JavaScript is the fact that to this date, it remains the single language supported natively by web browsers. As more and more software moves to the web, there is a huge demand for porting legacy C/C++ software to this new *platform*. WASM is the answer to this demand, but porting C/C++ software to JavaScript also requires writing a huge amount of glue code - which is also the main object of SWIG. Thus, naturally, SWIG also evolves towards this new *platform*.
 
   **Just like JavaScript offers the unique possibility of directly sharing code between the front-end (the browser) and the back-end (usually Node.js, but now there are alternatives), so SWIG JSE offers the unique possibility of writing an universal JavaScript wrapper, which can be compiled to a native Node-API addon for Node.js and to a WASM binary for the browser - with the two having identical APIs and sharing every single bit of code.**
@@ -52,13 +54,26 @@ If you want to see a real-world complex project that uses `conan` to manage a la
 # Building from source
 
 ```shell
+# from git
 git clone https://github.com/mmomtchev/swig.git
+
+# from a release
+tar -zxvf v5.0.0.tar.gz
+
 cd swig
-# add a suffix if you want to be able to use the main trunk SWIG on the same host
+
+# add a suffix if you want to be able to use the main trunk SWIG
+# on the same host
 ./configure --program-suffix=-jse
-# this will install everything in /usr/local/share/swig-jse w/o affecting your existing SWIG
+
+# this will install everything in /usr/local/share/swig-jse
+# w/o affecting your existing SWIG
 make -j 4 && sudo make install
 ```
 
 For WASM, you will also need to install `emsdk` and setup its environment variables as described at
-https://github.com/emscripten-core/emsdk
+https://github.com/emscripten-core/emsdk.
+
+# JavaScript manual
+
+The only changes in the manual relative to the mainline SWIG are in the [JavaScript](https://htmlpreview.github.io/?https://github.com/mmomtchev/swig/blob/main/Doc/Manual/Javascript.html) section.
