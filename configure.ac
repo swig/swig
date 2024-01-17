@@ -2847,7 +2847,7 @@ AC_SUBST(ac_aux_dir)
 # Configure SWIG_LIB path
 
 AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent libraries into DIR.],
-  [swig_lib="$withval"], [swig_lib="${datadir}/swig/${PACKAGE_VERSION}"])
+  [swig_lib="$withval"], [swig_lib="${datadir}/swig-jse/${PACKAGE_VERSION}"])
 SWIG_LIB_INSTALL=${swig_lib}
 AC_SUBST(SWIG_LIB_INSTALL)
 AC_DEFINE_DIR(SWIG_LIB, swig_lib, [Directory for SWIG system-independent libraries])
