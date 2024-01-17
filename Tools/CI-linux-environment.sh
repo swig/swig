@@ -21,6 +21,9 @@ case "$SWIGLANG" in
 				;;
 			*)      ;;
 		esac
+                if [ -n "$EMSDK" ]; then
+                  source $EMSDK/emsdk_env.sh
+                fi
 		;;
 	"ruby")
 		if ! command -v rvm; then

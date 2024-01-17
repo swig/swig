@@ -142,6 +142,19 @@ jobs:
           CPPSTD: c++14
           SWIG_FEATURES: -split -async -async-locking -DSWIG_NAPI_FULL_LOCKING=1
           desc: Async w/ splitting & locking
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '18'
+          CPPSTD: c++14
+          COMPILER: emscripten
+          desc: WASM
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '18'
+          CPPSTD: c++14
+          COMPILER: emscripten
+          SWIG_FEATURES: -async -async-locking -DSWIG_NAPI_FULL_LOCKING=1
+          desc: WASM w/ async & locking
         - SWIGLANG: lua
         - SWIGLANG: lua
           VER: '5.3'
@@ -392,6 +405,7 @@ jobs:
       CPPSTD: ${{ matrix.CPPSTD }}
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
       EXTRA_CXXFLAGS: ${{ matrix.EXTRA_CXXFLAGS }}
+      COMPILER: ${{ matrix.compiler || 'gcc' }}
 
     steps:
     - name: Checkout
@@ -441,6 +455,23 @@ jobs:
 
             CFLAGS="$CFLAGS -fPIE"
             CXXFLAGS="$CXXFLAGS -fPIE"
+          elif test '${{ matrix.compiler }}' = 'emscripten'; then
+            git clone https://github.com/emscripten-core/emsdk.git
+            (
+              cd emsdk
+              git pull
+              sh ./emsdk install latest
+              sh ./emsdk activate latest
+            )
+            source $GITHUB_WORKSPACE/emsdk/emsdk_env.sh
+            echo EMSDK=$EMSDK >> $GITHUB_ENV
+            echo EMCC_LOGGING=0 >> $GITHUB_ENV
+
+            TARGET_CC="emcc"
+            TARGET_CXX="em++"
+            CC="cc"
+            CXX="c++"
+
           elif test -n "$GCC"; then
             CC="gcc-$GCC"
             CXX="g++-$GCC"
@@ -449,14 +480,21 @@ jobs:
             CXX="g++"
           fi
 
-          export CC CXX
+          [ -z "$TARGET_CC" ] && TARGET_CC="$CC"
+          [ -z "$TARGET_CXX" ] && TARGET_CXX="$CXX"
+
+          export CC CXX TARGET_CC TARGET_CXX
 
           echo CC="$CC" >> $GITHUB_ENV
           echo CXX="$CXX" >> $GITHUB_ENV
+          echo TARGET_CC="$TARGET_CC" >> $GITHUB_ENV
+          echo TARGET_CXX="$TARGET_CXX" >> $GITHUB_ENV
 
-          ls -la $(which $CC) $(which $CXX)
+          ls -la $(which $CC) $(which $CXX) $(which $TARGET_CC) $(which $TARGET_CXX)
           $CC --version
           $CXX --version
+          $TARGET_CC --version
+          $TARGET_CXX --version
 
     - name: Configure
       run: |
@@ -515,7 +553,7 @@ jobs:
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
             make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
-            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CC="$TARGET_CC" CXX="$TARGET_CXX" CFLAGS="$cflags" CXXFLAGS="$cxxflags"
           fi
 
     - name: Install

@@ -1,0 +1,70 @@
+{
+  'variables': {
+    'source_glob': [ '<!@(node -p "fs.readdirSync(\'..\').filter(f => f.match(/^$testcase_wrap.*\.cxx/)).map(f => path.join(\'..\', f)).join(\' \')")' ]
+  },
+  'target_defaults': {
+    'cflags': [
+      '-fexceptions',
+      '-sUSE_BOOST_HEADERS=1'
+    ],
+    'ldflags': [
+      '--js-library=<!(node -p "require(\'$emnapidir\').js_library")',
+      '-sALLOW_MEMORY_GROWTH=1',
+      '-sEXPORTED_FUNCTIONS=["_napi_register_wasm_v1","_malloc","_free"]',
+      '-sNO_DISABLE_EXCEPTION_CATCHING',
+      '-sMODULARIZE=1',
+      '-sEXPORT_NAME=$testcase',
+      '--bind'
+      '-sUSE_BOOST_HEADERS=1',
+      # These are the debug (extra-checks) options
+      '-sSAFE_HEAP=1',
+      '-sASSERTIONS=2',
+      '-sSTACK_OVERFLOW_CHECK=2'
+    ],
+    'defines': [
+      '__STDC_FORMAT_MACROS',
+    ],
+    'include_dirs': [
+      '<!(node -p "require(\'$emnapidir\').include")',
+    ],
+    'libraries': [
+      '$emnapilib', '-L$emnapidir/lib/wasm32-emscripten'
+    ],
+  },
+  'targets': [
+    {
+      'type': 'executable',
+      'target_name': '$testcase',
+      'sources': [ $sources ], 
+      'include_dirs': ['../$srcdir/..'],
+      'defines': [
+        'BUILDING_NODE_EXTENSION=1',
+      ],
+      'cflags': [
+        '-Wno-unused-variable',
+        '-Wno-unused-but-set-variable',
+        '-Wno-unused-but-set-parameter',
+        '-Wno-uninitialized',
+        '-Wno-unused-function',
+        '-Wno-unused-private-field',
+        '-Wno-pthreads-mem-growth',
+        $cflags
+      ],
+      'cflags_cc': [
+        '-Wno-unused-variable',
+        '-Wno-unused-but-set-variable',
+        '-Wno-unused-but-set-parameter',
+        '-Wno-uninitialized',
+        '-Wno-unused-function',
+        '-Wno-unused-private-field',
+        '-Wno-pthreads-mem-growth',
+        $cxxflags,
+        $cflags
+      ],
+      'ldflags': [ '-Wno-pthreads-mem-growth', $ldflags ],
+      'cflags!': [ '-fno-exceptions', '-m64' ],
+      'cflags_cc!': [ '-fno-exceptions', '-fno-rtti', '-m64' ],
+      'ldflags!': [ '-m64' ]
+    }
+  ],
+}

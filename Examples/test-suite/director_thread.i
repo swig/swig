@@ -106,7 +106,8 @@ extern "C" {
     }
 
     void setThreadName() {
-%#ifdef _WIN32
+%#if defined(_WIN32) || defined(__EMSCRIPTEN__)
+    // https://github.com/emscripten-core/emscripten/pull/18751
 %#else
 
 %#ifdef __APPLE__
@@ -124,7 +125,7 @@ extern "C" {
     }
 
     static bool namedThread() {
-%#ifdef _WIN32
+%#if defined(_WIN32) || defined(__EMSCRIPTEN__)
       return false;
 %#else
       return true;

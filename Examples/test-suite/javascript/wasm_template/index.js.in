@@ -1,0 +1,2 @@
+const emnapi = require('$npmprefix/lib/node_modules/@emnapi/runtime');
+module.exports = require('./build/$build/$testcase')().then((m) => m.emnapiInit({context: emnapi.getDefaultContext()}));

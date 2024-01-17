@@ -162,6 +162,7 @@ Examples/test-suite/javascript/*/
 !Examples/test-suite/javascript/wasm_template/
 Examples/test-suite/javascript/*_async_runme.mjs
 Examples/test-suite/javascript/*_ts_runme.*
+Examples/test-suite/javascript/*_wasm_runme.*
 Examples/test-suite/javascript/resolve.js
 *.gyp
 *.d.ts

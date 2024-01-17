@@ -8,9 +8,10 @@ NODEJS = @NODEJS@
 TSC = @TSC@
 SCRIPTSUFFIX = _runme.js
 SCRIPTASYNCSUFFIX = _async_runme.mjs
+SCRIPTWASMSUFFIX = _wasm_runme.mjs
 OBJEXT = @OBJEXT@
 SO = @SO@
-GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I@NODENAPI_DIR@
+NPM_PREFIX = @NODENPM_PREFIX@
 
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
@@ -78,6 +79,28 @@ endif
 
 include $(srcdir)/../common.mk
 
+# emscripten is cross-compilation, skip the platform flags
+ifeq (emcc, $(CC))
+      	EMNAPI_DIR = @EMNAPI_DIR@
+        ifeq (, $(EMNAPI_DIR))
+                $(error emnapi not found)
+        endif
+  	GYP_CXXFLAGS = -I@NODENAPI_DIR@
+  	GYP_TEMPLATE = wasm_template
+  	SWIGOPT += -D__EMSCRIPTEN__
+  	EMNAPI_LIB = -lemnapi
+# Some emscripten-specific warnings on certain tests
+cpp11_lambda_functions.cpptest: GYP_CFLAGS = \"-Wno-unused-lambda-capture\",
+li_typemaps_apply.cpptest: GYP_CFLAGS = \"-Wno-self-assign\",
+li_typemaps.cpptest: GYP_CFLAGS = \"-Wno-self-assign\",
+long_long_apply.cpptest: GYP_CFLAGS = \"-Wno-self-assign\",
+overload_template.cpptest: GYP_LDFLAGS = \"-sASSERTIONS=1\",
+overload_template_fast.cpptest: GYP_LDFLAGS = \"-sASSERTIONS=1\",
+else
+  	GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I@NODENAPI_DIR@
+  	GYP_TEMPLATE = node_template
+endif
+
 SWIGOPT += -DV8_VERSION=$(JSV8_VERSION)
 
 _setup = \
@@ -94,7 +117,10 @@ _setup = \
 	if [ -n "$(SPLIT)" ]; then	                                  \
 	  echo -n " (split mode)" ;                                       \
 	fi;                                                               \
-        echo
+	if [ "emcc" = "$(CC)" ]; then	                                  \
+	  echo -n " (emscripten WASM build)" ;                            \
+	fi;                                                               \
+          echo
 SWIGOPT += -$(JSENGINE)
 
 TSCOPT = --typeRoots @NODETYPES_DIR@ --target es2017 --module esnext --moduleResolution node --allowSyntheticDefaultImports
@@ -105,13 +131,13 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
   # shut up some warnings
 
   # dunno... ignoring generously
-  apply_signed_char.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
-  constant_pointers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
-  cpp11_ref_qualifiers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
-  director_basic.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
-  enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
-  member_funcptr_galore.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
-  director_unwrap_result.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\"
+  apply_signed_char.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
+  constant_pointers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
+  cpp11_ref_qualifiers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
+  director_basic.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
+  enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
+  member_funcptr_galore.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
+  director_unwrap_result.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
 
         # Produce a debug build (NAPI / V8):
 	# DEBUG=1 make <test_name>.cpptest
@@ -119,7 +145,7 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	# ASAN=1 ENGINE=napi make <test_name>.cpptest
 	#
 	ifneq (, $(ASAN))
-		GYP_CFLAGS += \"-fsanitize=address\"
+		GYP_CFLAGS += \"-fsanitize=address\",
 		DEBUG = 1
 		ASAN_PRELOAD = $(shell $(CC) -print-file-name=libasan.so)
 		LSAN_OPTIONS = suppressions=$(srcdir)/node_template/napi-leaks-suppression.txt
@@ -127,6 +153,10 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
         ifneq (, $(DEBUG))
 		GYP_OPTS = --debug
 		BUILD = Debug
+		ifeq (emcc, $(CC))
+			GYP_CFLAGS += \"-gsource-map\",
+			GYP_LDFLAGS += \"-gsource-map\",
+		endif
 	else
 		BUILD = Release
 	endif
@@ -137,6 +167,11 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 	endif
         ifneq (,$(findstring async,$(SWIG_FEATURES)))
                 ASYNC = 1
+		ifeq (emcc, $(CC))
+			GYP_CFLAGS += \"-pthread\", \"-DEMNAPI_WORKER_POOL_SIZE=4\",
+			GYP_LDFLAGS += \"-pthread\", \"-DEMNAPI_WORKER_POOL_SIZE=4\", \"-sPTHREAD_POOL_SIZE=4\",
+			EMNAPI_LIB = -lemnapi-mt
+		endif
         endif
         ifneq (, $(TYPESCRIPT))
                 ifeq (, $(TSC))
@@ -158,30 +193,41 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 		sed -e 's|$$testcase|$*|g; \
 			s|$$cflags|$(GYP_CFLAGS)|g; \
 			s|$$cxxflags|"$(GYP_CXXFLAGS)"|g; \
+			s|$$ldflags|$(GYP_LDFLAGS)|g; \
 			s|$$srcdir|$(srcdir)|g; \
+			s|$$emnapidir|$(EMNAPI_DIR)|g; \
+			s|$$emnapilib|$(EMNAPI_LIB)|g; \
 			s|$$sources|$(SOURCES)|g;' \
-			$(srcdir)/node_template/binding.gyp.in > $*/binding.gyp && \
-		sed -e 's|$$testcase|$*|g; s|$$build|$(BUILD)|g;' \
-			$(srcdir)/node_template/index.js.in > $*/index.js
+			$(srcdir)/$(GYP_TEMPLATE)/binding.gyp.in > $*/binding.gyp && \
+		sed -e 's|$$testcase|$*|g; s|$$build|$(BUILD)|g; \
+			s|$$npmprefix|$(NPM_PREFIX)|g;' \
+			$(srcdir)/$(GYP_TEMPLATE)/index.js.in > $*/index.js
 		
 	# Note: we need to use swig in C parse mode, but make node-gyp believe it is c++ (via file extension)
 	swig_and_compile_c = \
 		$(setup_node) && \
 		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
 		SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
-		SWIGOPT='-javascript $(SWIGOPT) $(SWIGASYNC) -o $*_wrap.cxx $(srcdir)/../$*.i' swiginvoke && \
+		SWIGOPT='-javascript $(SWIGOPT) -o $*_wrap.cxx $(srcdir)/../$*.i' swiginvoke && \
 		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure $(GYP_OPTS) build 1>>/dev/null
 
 	swig_and_compile_cpp = \
 		$(setup_node) && \
 		$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' \
 		SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
-		SWIGOPT='-c++ -javascript $(SWIGOPT) $(SWIGASYNC) $(srcdir)/../$*.i' swiginvoke && \
+		SWIGOPT='-c++ -javascript $(SWIGOPT) $(srcdir)/../$*.i' swiginvoke && \
 		MAKEFLAGS= $(COMPILETOOL) $(NODEGYP) --loglevel=silent --directory $* configure $(GYP_OPTS) build -j 1>>/dev/null
 
 	run_testcase = \
 		RUNME="$(srcdir)/$*$(SCRIPTSUFFIX)" && \
 		if [ -f "$${RUNME}" ]; then \
+			if [ "$(CC)" = "emcc" ]; then \
+				sed -e \
+					's@\(var\|let\|const\)[[:space:]]*\(.*\)[[:space:]]*=[[:space:]]*require(\("\|\x27\)\(.*\)\("\|\x27\))@import wasm_module from "'"$(PWD)"'/\4/index.js"; const \2 = await wasm_module;@g;' \
+					$${RUNME} > $*$(SCRIPTWASMSUFFIX) \
+				&& \
+				RUNME=$*$(SCRIPTWASMSUFFIX); \
+			fi && \
 			if [ -n "$(ASYNC)" ]; then \
 				sed -e \
 					's@/\* await \*/@await resolve@g; \
@@ -250,7 +296,7 @@ endif
 %.clean:
 	@rm -rf $*
 	@rm -f $*_wrap.* $*_wrap_*.cxx  $*$(SO) $*.$(OBJEXT)
-	@rm -f $*$(SCRIPTASYNCSUFFIX)
+	@rm -f $*$(SCRIPTASYNCSUFFIX) $*$(SCRIPTWASMSUFFIX)
 	@rm -f $*.d.ts $*_ts_runme.mjs $*_ts_runme.js $*_ts_runme.ts
 
 clean:

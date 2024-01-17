@@ -4018,7 +4018,7 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
                                  MarshallingMode mode, bool is_member,
                                  bool is_static) {
   Parm *p;
-  String *tm;
+  String *tm = nullptr;
 
   int startIdx = 0;
   if (is_member && !is_static && mode != Ctor) {

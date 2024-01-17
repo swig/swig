@@ -25,5 +25,14 @@ const napi_buffer = require('napi_buffer');
   const ab = new ArrayBuffer(4);
   const ab32 = new Uint32Array(ab);
   ab32[0] = 42;
-/* await */(napi_buffer.consume_arraybuffer(ab));
+  /* await */(napi_buffer.consume_arraybuffer(ab));
+}
+
+// Test filling an existing ArrayBuffer
+// This triggers the memory sync problem in WASM
+{
+  const ab = new ArrayBuffer(32);
+  const view8 = new Uint8Array(ab);
+  /* await */(napi_buffer.fill_arraybuffer(ab));
+  if (view8[14] !== 0x17) throw new Error(`Expected 0x17, got ${view8[14]}`);
 }

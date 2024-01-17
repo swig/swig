@@ -54,6 +54,12 @@
 <li><a href="#Javascript_async_reject">Rejecting a Promise from a Typemap</a>
 </ul>
 <li><a href="#Typescript">Typescript</a>
+<ul>
+<li><a href="#Javascript_WASM">WASM Basics</a>
+<li><a href="#Javascript_WASM_building">Building SWIG Node-API generated wrappers to WASM</a>
+<li><a href="#Javascript_WASM_importing">Importing SWIG Node-API generated wrappers built to WASM</a>
+<li><a href="#Javascript_WASM_differences">Incompatibilities between <code>node-addon-api</code> and <code>emnapi</code></a>
+</ul>
 <li><a href="#Javascript_code_splitting">Code Splitting</a>
 <li><a href="#Javascript_implementation">Implementation</a>
 <ul>
@@ -949,10 +955,168 @@ All valid TypeScript type manipulations can be used in the typemap - including g
 }
 %typemap(tsout)  (void **buffer_data, size_t *buffer_len) "Buffer";
 </pre>
+</div>
 </li>
 </ul>
 
-<H2><a name="Javascript_code_splitting">28.8 Code Spltting</a></H2>
+<H2><a name="Javascript_WASM">28.8 Compiling to WASM</a></H2>
+
+<H3><a name="Javascript_WASM_intro">28.8.1 WASM Basics</a></H3>
+
+<p>WASM is a standard for a virtual machine that runs a low-level bytecode and it is well-supported by most modern browsers and Node.js. It allows to run existing C/C++ code for POSIX - generally the work to port an existing POSIX-compatible project to WASM should be expected to be similar to the work for porting a Linux project to macOS. WASM inherits from a project called <code>asm.js</code> which allowed to interpret x86 assembler. JavaScript engines with WASM support implement this virtual machine directly in the engine itself for an increased performance.</p>
+<p>The various data, text, heap and stack memory mappings of a WASM subroutines are stored in JavaScript <code>ArrayBuffer</code>s. WASM code remains subject to all the security restrictions of the underlying JavaScript engine. In particular, using multi-threading in browsers requires enabling <a href="https://web.dev/articles/coop-coep">COOP/COEP</a> as it relies on creating memory mappings in <code>SharedArrayBuffer</code>s.</p>
+
+<p>Although the WASM virtual machines itself is well-specified, its environment ABI is not part of the standard. Currently, there are two competing ABIs for interacting with WASM code - the older de facto standard imposed by the <code>emscripten</code> compiler in which a WASM binary consists of a WASM blob and a generated JavaScript wrapper, and the newer official industry standard called WASI which specifies a common ABI interface. WASI is supported by recent versions of the <code>clang</code> compiler.</p>
+
+<H3><a name="Javascript_WASM_building">28.8.2 Building SWIG Node-API generated wrappers to WASM</a></H3>
+
+<p>Code produced by the Node-API generator, including the asynchronous wrappers, is unit-tested to be fully compatible with the <code><a href="https://emnapi-docs.vercel.app/">emnapi</a></code> project. This means that wrappers produced by SWIG can be built to WASM by modifying only the build process.</p>
+
+<p>At the moment only <code>emscripten</code> is supported. Support for <code>WASI</code>-compliant platforms is also planned. It should be noted that currently <code>WASI</code> is far less complete and mature than <code>emscripten</code> with the most notable missing feature being support for C++ exceptions.</p>
+
+<p>When using <code>emscripten</code>, code produced by the Node-API generator should be built with the following options.</p>
+
+<ul>
+
+<li><p>Compiler settings</p>
+<div class="code">
+<pre>
+<em># required by SWIG Node-API (although supported in theory,
+# building w/o exceptions is still not unit tested at the moment)</em>
+-fexceptions
+
+<em># the emnapi glue code that allows C++ to parse JavaScript values
+# after installing emnapi (npm install emnapi)</em>
+-I <em>[the output of `node -p "require('emnapi').include"`]</em>
+</pre>
+</div>
+
+<li><p>Library / Additional sources</p>
+<ul>
+<li><p>Option 1: include the additional source files listed by the output of <code>node -p "require('emnapi').sources"</code></p></li>
+<div class="code">
+<pre>
+emnapi/packages/emnapi/src/js_native_api.c
+emnapi/packages/emnapi/src/node_api.c
+emnapi/packages/emnapi/src/async_cleanup_hook.c
+emnapi/packages/emnapi/src/async_context.c
+emnapi/packages/emnapi/src/async_work.c
+emnapi/packages/emnapi/src/threadsafe_function.c
+emnapi/packages/emnapi/src/uv/uv-common.c
+emnapi/packages/emnapi/src/uv/threadpool.c
+emnapi/packages/emnapi/src/uv/unix/loop.c
+emnapi/packages/emnapi/src/uv/unix/thread.c
+emnapi/packages/emnapi/src/uv/unix/async.c
+emnapi/packages/emnapi/src/uv/unix/core.c
+</pre>
+</div>
+<li><p>Option 2: link with the precompiled static library <code>emnapi.a</code> (no async) or <code>emnapi-mt.a</code> (w/ async)</p></li>
+<div class="code">
+<pre>
+-lemnapi -L./node_modules/emnapi/lib/wasm32-emscripten
+</pre>
+</div>
+</ul>
+
+<li><p>Linker settings</p>
+<div class="code">
+<pre>
+<em># the emnapi glue code that allows C++ to parse JavaScript values
+# after installing emnapi (npm install emnapi)</em>
+--js-library= <em>[the output of `node -p "require('emnapi').js_library"`</em>
+
+<em># highly recommended, otherwise the allocated memory will be fixed in the beginning</em>
+-sALLOW_MEMORY_GROWTH=1
+
+<em># required by emnapi</em>
+-sEXPORTED_FUNCTIONS=["_napi_register_wasm_v1","_malloc","_free"]
+
+<em># see above</em>
+-sNO_DISABLE_EXCEPTION_CATCHING
+
+<em># recommended, produces an ES6-compatible module for the emscripten JavaScript wrapper</em>
+-sMODULARIZE=1
+
+<em># required when producing ES6-compatible module</em>
+-sEXPORT_NAME=<em>[module-name]</em>
+
+<em># required by emnapi</em>
+--bind
+</pre>
+</div>
+</li>
+
+<li><p>Additional compiler settings for multi-threading - allows the use of async wrappers but imposes COOP/COEP for browser use</p>
+<div class="code">
+<pre>
+<em># By default, set the worker pool size to the same value
+# as the default one in Node.js/libuv:</em>
+-pthread -DEMNAPI_WORKER_POOL_SIZE=4
+</pre>
+</div>
+</li>
+
+<li><p>Additional linker settings for multi-threading</p>
+<div class="code">
+<pre>
+<em># By default, set the worker pool size to the same value
+# as the default one in Node.js/libuv:</em>
+-pthread -DEMNAPI_WORKER_POOL_SIZE=4 -sPTHREAD_POOL_SIZE=4
+</pre>
+</div>
+</li>
+
+<li><p>Additional compiler settings for a debug build - these add extra checks and will enrich WASM stack-traces with function names</p>
+<div class="code">
+<pre>
+-gsource-map
+</pre>
+</div>
+</li>
+
+<li><p>Additional linker settings for a debug build</p>
+<div class="code">
+<pre>
+<em># Reduce ASSERTIONS to 1 if you have exceptions about missing integer truncation</em>
+-gsource-map -sSAFE_HEAP=1 -sASSERTIONS=2 -sSTACK_OVERFLOW_CHECK=2
+</pre>
+</div>
+</li>
+
+
+</ul>
+
+<H3><a name="Javascript_WASM_importing">28.8.3 Importing SWIG Node-API generated wrappers built to WASM</a></H3>
+
+<p>The WASM specification imposes an asynchronous interface for Javascript code loading a WASM blob. As browsers are highly asynchronous, this is usually not a problem, but when importing a WASM module in Node.js, it must be <code>await</code>ed before it can be used. This means that WASM cannot be used in a fully synchronous Node.js program and it is best used in ECMAScript mode.</p>
+
+<p>In order to import compiled module in Node.js, the following code snippet can be used:</p>
+
+<div class="code">
+<pre>
+const emnapi = require('@emnapi/runtime');
+module.exports = require('./build/Release/<em>[module-name]</em>')()
+  .then((m) => m.emnapiInit({context: emnapi.getDefaultContext()}));
+</pre>
+</div>
+
+<p>If using TypeScript with WASM, the generated typings will be compatible but it will be necessary to take into account that the whole API is now hidden behind a <code>Promise</code> - example for an <code>index.d.ts</code>:</p>
+
+<div class="code">
+<pre>
+// Import the original SWIG-generated typings and re-export everything in a Promise
+declare const <em>module_name</em>: Promise&lt;typeof import(&#39;<em>module_name</em>&#39;)&gt;;
+export default <em>module_name</em>;
+</pre>
+</div>
+
+<H3><a name="Javascript_WASM_differences">28.8.4 Incompatibilities between <code>node-addon-api</code> and <code>emnapi</code></a></H3>
+
+<p>There are some minor incompatibilities between the two platforms, mostly pertaining to the fact that WASM uses a separate heap from JavaScript which places additional restrictions on using <code>ArrayBuffer</code> objects. These cannot always be transparently shared between JavaScript and C++ and must be copied. This is not a problem for functions that expect an <code>ArrayBuffer</code> as argument or that return a new <code>ArrayBuffer</code> as a result - in these cases <code>emnapi</code> will automatically handle the copying. However functions that expect an <code>ArrayBuffer</code> argument and modify it, will need an additional step for these modifications to be copied back to the JavaScript copy.</p>
+
+<p>The built-in typemaps for handling a writable <code>ArrayBuffer</code> in <code>arraybuffer.i</code> takes this into account and can be used as an example for implementing similar typemaps.</p>
+
+<H2><a name="Javascript_code_splitting">28.9 Code Spltting</a></H2>
 
 <p>The JavaScript generator includes support for splitting the generated wrapper code into multiple compilation unit. This allows to greatly reduce the memory requirements, especially when using templated C++ code. At the moment only the Node-API generator supports it. Code splitting is enabled with the <code>-split</code> command-line option. In this mode, SWIG will produce a single header file and a number of C++ source files that include it. Each class will be placed a in a separate file and there will be one file with all the global functions.</p>
 
@@ -988,12 +1152,12 @@ int add(int a, int b) { return a + b; }
 </div>
 
 
-<H2><a name="Javascript_implementation">28.9 Implementation</a></H2>
+<H2><a name="Javascript_implementation">28.10 Implementation</a></H2>
 
 
-<p>The Javascript Module implementation has taken a very different approach compared to other language modules in order to support different Javascript interpreters.</p>
+<p>The Javascript Module implementation has taken a very different approach compared to other language modules in order to support different Javacript interpreters.</p>
 
-<H3><a name="Javascript_source_code">28.9.1 Source Code</a></H3>
+<H3><a name="Javascript_source_code">28.10.1 Source Code</a></H3>
 
 
 <p>The Javascript module is implemented in <code>Source/Modules/javascript.cxx</code>. It dispatches the code generation to a <code>JSEmitter</code> instance, <code>V8Emitter</code>, <code>JSCEmitter</code> or <code>NAPIEmitter</code>. Additionally there are some helpers: <code>Template</code>, for templated code generation, and <code>JSEmitterState</code>, which is used to manage state information during AST traversal. This rough map shall make it easier to find a way through this huge source file:</p>
@@ -1095,7 +1259,7 @@ Template::Template(const String *code_) { ... }
 ...</pre>
 </div>
 
-<H3><a name="Javascript_code_templates">28.9.2 Code Templates</a></H3>
+<H3><a name="Javascript_code_templates">28.10.2 Code Templates</a></H3>
 
 
 <p>All generated code is created on the basis of code templates. The templates for <em>JavascriptCore</em> can be found in <code>Lib/javascript/jsc/javascriptcode.swg</code>, for <em>v8</em> in <code>Lib/javascript/v8/javascriptcode.swg</code> and for <em>Node-API</em> in <code>Lib/javascript/napi/javascriptcode.swg</code>.</p>
@@ -1134,7 +1298,7 @@ t_register.replace("$jsparent", state.clazz(NAME_MANGLED))
 </div>
 <p><code>Template</code> creates a copy of that string and <code>Template::replace</code> uses Swig's <code>Replaceall</code> to replace variables in the template. <code>Template::trim</code> can be used to eliminate leading and trailing whitespaces. <code>Template::print</code> is used to write the final template string to a Swig <code>DOH</code> (based on <code>Printv</code>). All methods allow chaining.</p>
 
-<H3><a name="Javascript_emitter">28.9.3 Emitter</a></H3>
+<H3><a name="Javascript_emitter">28.10.3 Emitter</a></H3>
 
 
 <p>The Javascript module delegates code generation to a <code>JSEmitter</code> instance. The following extract shows the essential interface:</p>
@@ -1253,7 +1417,7 @@ int JAVASCRIPT::classHandler(Node *n) {
 </div>
 <p>In <code>enterClass</code> the emitter stores state information that is necessary when processing class members. In <code>exitClass</code> the wrapper code for the whole class is generated.</p>
 
-<H3><a name="Javascript_emitter_states">28.5.4 Emitter states</a></H3>
+<H3><a name="Javascript_emitter_states">28.10.4 Emitter states</a></H3>
 
 
 <p>For storing information during the AST traversal the emitter provides a <code>JSEmitterState</code> with different slots to store data representing the scopes global, class, function, and variable.</p>

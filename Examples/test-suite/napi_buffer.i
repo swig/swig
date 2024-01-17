@@ -42,4 +42,9 @@ void consume_arraybuffer(const void *arraybuffer_data, const size_t arraybuffer_
   }
 }
 
+// This triggers the memory sync problem in WASM
+void fill_arraybuffer(void *arraybuffer_data, size_t arraybuffer_len) {
+  memset(arraybuffer_data, 0x17, arraybuffer_len);
+}
+
 %}
