@@ -54,8 +54,9 @@
 <li><a href="#Javascript_async_reject">Rejecting a Promise from a Typemap</a>
 </ul>
 <li><a href="#Typescript">Typescript</a>
+<li><a href="#Javascript_WASM">WASM</a>
 <ul>
-<li><a href="#Javascript_WASM">WASM Basics</a>
+<li><a href="#Javascript_WASM_intro">Introduction</a>
 <li><a href="#Javascript_WASM_building">Building SWIG Node-API generated wrappers to WASM</a>
 <li><a href="#Javascript_WASM_importing">Importing SWIG Node-API generated wrappers built to WASM</a>
 <li><a href="#Javascript_WASM_differences">Incompatibilities between <code>node-addon-api</code> and <code>emnapi</code></a>
@@ -961,7 +962,7 @@ All valid TypeScript type manipulations can be used in the typemap - including g
 
 <H2><a name="Javascript_WASM">28.8 Compiling to WASM</a></H2>
 
-<H3><a name="Javascript_WASM_intro">28.8.1 WASM Basics</a></H3>
+<H3><a name="Javascript_WASM_intro">28.8.1 Introduction</a></H3>
 
 <p>WASM is a standard for a virtual machine that runs a low-level bytecode and it is well-supported by most modern browsers and Node.js. It allows to run existing C/C++ code for POSIX - generally the work to port an existing POSIX-compatible project to WASM should be expected to be similar to the work for porting a Linux project to macOS. WASM inherits from a project called <code>asm.js</code> which allowed to interpret x86 assembler. JavaScript engines with WASM support implement this virtual machine directly in the engine itself for an increased performance.</p>
 <p>The various data, text, heap and stack memory mappings of a WASM subroutines are stored in JavaScript <code>ArrayBuffer</code>s. WASM code remains subject to all the security restrictions of the underlying JavaScript engine. In particular, using multi-threading in browsers requires enabling <a href="https://web.dev/articles/coop-coep">COOP/COEP</a> as it relies on creating memory mappings in <code>SharedArrayBuffer</code>s.</p>
