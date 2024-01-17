@@ -67,6 +67,14 @@ ifeq (napi, $(ENGINE))
 CPP_TEST_CASES += \
 	napi_buffer
 
+# napi_exports_file is a test that uses Node.js ES6 and has no meaning in WASM
+ifneq (emcc, $(CC))
+CPP_TEST_CASES += \
+	napi_exports_file
+napi_exports_file.cpptest: SCRIPTSUFFIX = _runme.mjs
+napi_exports_file.cpptest: SWIGOPT += -exports $(srcdir)/napi_exports_file_dll.cjs
+endif
+
 ifneq (, $(ASYNC))
 # async-specific tests
 CPP_TEST_CASES += \
@@ -238,6 +246,10 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 				&& \
 				RUNME=$*$(SCRIPTASYNCSUFFIX); \
 			fi && \
+			if grep -q '%target' $${RUNME}; then \
+				sed -e "s@%target@$${PWD}@g;" $${RUNME} > $*_mjs_runme.mjs && \
+				RUNME=$*_mjs_runme.mjs; \
+			fi && \
 			if [ -n "$(TYPESCRIPT)" ]; then \
 				sed -e \
 					's@\(var\|let\|const\)[[:space:]]*\(.*\)[[:space:]]*=[[:space:]]*require(\("\|\x27\)\(.*\)\("\|\x27\))@import \2 from "'"$(PWD)"'/\4/index.js"@g; \
@@ -297,7 +309,7 @@ endif
 	@rm -rf $*
 	@rm -f $*_wrap.* $*_wrap_*.cxx  $*$(SO) $*.$(OBJEXT)
 	@rm -f $*$(SCRIPTASYNCSUFFIX) $*$(SCRIPTWASMSUFFIX)
-	@rm -f $*.d.ts $*_ts_runme.mjs $*_ts_runme.js $*_ts_runme.ts
+	@rm -f $*.d.ts $*_ts_runme.mjs $*_ts_runme.js $*_ts_runme.ts $*_wrap.cjs $*_mjs_runme.mjs
 
 clean:
 	for ext in _wrap.cxx _wrap.$(OBJEXT) $(SO); do \

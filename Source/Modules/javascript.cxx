@@ -30,6 +30,11 @@ static bool js_napi_default_is_locked = false;
  */
 static bool code_splitting = false;
 
+/**
+ * Generate an exports file (NAPI only)
+ */
+static String *js_napi_generate_exports = nullptr;
+
 #define ERR_MSG_ONLY_ONE_ENGINE_PLEASE "Only one engine can be specified at a time."
 
 // keywords used for state variables
@@ -1076,6 +1081,8 @@ Javascript Options (available with -javascript)\n\
      -async                 - create async wrappers by default (NAPI only) \n\
      -async-locking         - add locking by default (NAPI only) \n\
      -typescript            - generates a TypeScript ambient module (d.ts file)\n\
+     -exports <file>        - generate a .cjs exports file that can be used with both require and import,\n\
+                                 <file> is the name of shared library binary (NAPI only)\n\
      -split                 - use code splitting, produce multiple compilation units (NAPI only)\n\
      -debug-codetemplates   - generates information about the origin of code templates\n";
 
@@ -1141,6 +1148,15 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-split") == 0) {
         Swig_mark_arg(i);
         code_splitting = true;
+      } else if (strcmp(argv[i], "-exports") == 0) {
+        if (argv[i + 1]) {
+          js_napi_generate_exports = NewString(argv[i + 1]);
+          Swig_mark_arg(i);
+          Swig_mark_arg(i + 1);
+          i++;
+        } else {
+          Swig_arg_error();
+        }
       } else if (strcmp(argv[i], "-help") == 0) {
         fputs(usage, stdout);
         return;
@@ -3111,6 +3127,9 @@ protected:
   String *NULL_STR;
   String *moduleName;
 
+  /* the global (top-level) symbols, used to generate the exports file */
+  Hash *f_global_symbols;
+
   // The wrappers code, each class has its separate file and there is a global one
   Hash *f_split_wrappers;
 
@@ -3119,8 +3138,8 @@ protected:
 };
 
 NAPIEmitter::NAPIEmitter()
-:  JSEmitter(JSEmitter::NAPI), NULL_STR(NewString("0")), f_split_wrappers(NewHash()), class_idx(0) {
-}
+    : JSEmitter(JSEmitter::NAPI), NULL_STR(NewString("0")),
+      f_global_symbols(NewHash()), f_split_wrappers(NewHash()), class_idx(0) {}
 
 NAPIEmitter::~NAPIEmitter() {
   Delete(NULL_STR);
@@ -3249,6 +3268,32 @@ int NAPIEmitter::dump(Node *n) {
   Printv(f_main_file, f_init, 0);
   Printv(f_main_file, f_post_init, 0);
 
+  if (js_napi_generate_exports) {
+    String *exports_file = NewString("");
+    Printf(exports_file, "%s.cjs", output_root);
+    File *f_exports = NewFile(exports_file, "w", SWIG_output_files());
+    if (!f_exports) {
+      FileErrorDisplay(exports_file);
+      Exit(EXIT_FAILURE);
+    }
+
+    Swig_banner(f_exports);
+
+    Template t_exports(getTemplate("jsnapi_exports"));
+    String *exports = NewString("");
+    List *global_symbols = Keys(f_global_symbols);
+    for (Iterator it = First(global_symbols); it.item; it = Next(it)) {
+      Printf(exports, "  %s,\n", it.item);
+    }
+    t_exports.replace("$jsexportlist", exports)
+        .replace("$file", js_napi_generate_exports)
+        .print(f_exports);
+
+    Delete(global_symbols);
+    Delete(exports);
+    Delete(exports_file);
+  }
+
   Delete(file_parts);
   Delete(inheritance);
   return SWIG_OK;
@@ -3303,14 +3348,18 @@ int NAPIEmitter::enterClass(Node *n) {
   String *idx = NewString("");
   Printf(idx, "%d", class_idx++);
   Template t_register = getTemplate("jsnapi_registerclass");
+  String *nspace = Getattr(state.clazz("nspace"), NAME_MANGLED);
   t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsname", state.clazz(NAME))
-      .replace("$jsparent", Getattr(state.clazz("nspace"), NAME_MANGLED))
+      .replace("$jsparent", nspace)
       .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
       .replace("$jsclassidx", idx)
       .trim()
       .pretty_print(f_init_register_classes);
   Delete(idx);
+  if (Equal(nspace, "exports")) {
+    SetFlag(f_global_symbols, state.clazz(NAME));
+  }
 
   // emit inheritance
   String *baseMangled;
@@ -3489,6 +3538,7 @@ int NAPIEmitter::exitVariable(Node *n) {
       t_register.replace("$jssetter", state.variable(SETTER));
 
     t_register.trim().pretty_print(f_init_register_namespaces);
+    SetFlag(f_global_symbols, state.variable(NAME));
   }
 
   return SWIG_OK;
@@ -3916,6 +3966,8 @@ int NAPIEmitter::emitFunctionDeclaration(Node *n, bool is_async) {
         .replace("$jswrapper", state.function(WRAPPER_NAME))
         .trim()
         .pretty_print(f_init_register_namespaces);
+    SetFlag(f_global_symbols,
+            state.function(is_async ? "name:async" : "name:sync"));
 
     Template t_declaration = getTemplate("js_global_declaration");
     t_declaration
@@ -4184,6 +4236,7 @@ int NAPIEmitter::emitNamespaces() {
       String *tmp_register_stmt = NewString("");
       t_register_ns.pretty_print(tmp_register_stmt);
       Insert(f_init_register_namespaces, 0, tmp_register_stmt);
+      SetFlag(f_global_symbols, name);
       Delete(tmp_register_stmt);
     }
   }

@@ -1401,3 +1401,26 @@ fail:
                 static_cast<napi_property_attributes>(napi_writable | napi_enumerable | napi_configurable))
         });
 %}
+
+
+/* -----------------------------------------------------------------------------
+ * jsnapi_exports:  template for an exports file.
+ *   - $jsexports:      list of exports
+ *   - $module          the module name
+ * ----------------------------------------------------------------------------- */
+%fragment("jsnapi_exports", "templates")
+%{
+/* ---------------------------------------------------------------------------
+ * SWIG Node-API runtime : module exports
+ *
+ * This file provdes named exports for both CommonJS and ECMAScript 6
+ *
+ * ---------------------------------------------------------------------------*/
+
+var dll = require('$file');
+var {
+$jsexportlist} = dll;
+
+module.exports = {
+$jsexportlist};
+%}

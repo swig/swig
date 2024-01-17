@@ -265,7 +265,21 @@ $ node-gyp build
 <p>There is also the <a href="https://github.com/mmomtchev/node-magickwand"><code>node-magickwand</code></a> project that can be used as a tutorial for building and publishing a complex C++ library to
   npm as a ready-to-use real-world binary module.</p>
 
-<H4><a name="Javascript_troubleshooting">28.3.1.2 Troubleshooting</a></H4>
+<H4><a name="Javascript_exports_file">28.3.1.2 Generating an exports file</a></H4>
+
+<p>The Node-API generator can also automatically generate an exports file with named exports that will be compatible with both CommonJS and ECMAScript 6. This file follows the syntax guidelines set by <a href="https://github.com/nodejs/cjs-module-lexer/">cjs-module-lexer</a>. In order to generate the file, add the <code>-exports</code> CLI option, followed by the path to the compiled shared library - usually <code>../build/Release/<em>module_name</em>.node</code> when using <code>node-gyp</code>. In order to generate this name dynamically, a small JS wrapper may be used. For example when using <code>node-pre-gyp</code>, the following wrapper will load the shared library:</p>
+
+<div class="shell">
+<pre>
+const binary = require('@mapbox/node-pre-gyp');
+const dll = require(binding_path);
+module.exports = require(binding_path);
+</pre>
+</div>
+
+<p>In this case, it will the filename of this wrapper that will have to be specified to <code>-exports</code>.</p>
+
+<H4><a name="Javascript_troubleshooting">28.3.1.3 Troubleshooting</a></H4>
 
 
 <ul>
