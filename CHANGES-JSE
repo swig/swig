@@ -8,7 +8,7 @@ Version 5.0.0-rc.2 (18 Jan 2024)
 ===========================
 
 2025-01-18: mmomtchev
-            [mmomtchev/swig#8](https://github.com/mmomtchev/swig/issues/8),
+            [JavaScript] Fix [mmomtchev/swig#8](https://github.com/mmomtchev/swig/issues/8),
             switch the `%feature("async", "Async") Klass::%any` invalid syntax
             to `%feature("async", "Async") Klass::$any`
 2025-01-17: mmomtchev
