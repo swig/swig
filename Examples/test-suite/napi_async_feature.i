@@ -3,8 +3,8 @@
 // This test is specific to Node-API
 %feature("async", "Async");
 %feature("sync", "Sync");
-%feature("sync", "0") Klass::%any;
-%feature("async", "1") Klass::%any;
+%feature("sync", "0") Klass::$any;
+%feature("async", "1") Klass::$any;
 
 %inline %{
 

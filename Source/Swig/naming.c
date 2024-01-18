@@ -770,7 +770,7 @@ void Swig_features_get(Hash *features, String *prefix, String *name, SwigType *d
     if (prefix) {
       /* A class-generic feature */
       if (Len(prefix)) {
-	Printf(tname, "%s::%%any", prefix);
+	Printf(tname, "%s::$any", prefix);
 	features_get(features, tname, decl, ncdecl, node);
       }
       /* A wildcard-based class lookup */

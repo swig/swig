@@ -17,5 +17,7 @@ obj.Method(2).then((r) => {
     throw new Error;
 });
 
+// (obviously TS detects that we are referencing undefined methods)
+// @ts-expect-error
 if (obj.MethodSync !== undefined || obj.MethodAsync !== undefined)
   throw new Error;
