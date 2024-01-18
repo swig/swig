@@ -1,4 +1,12 @@
-/*
+/**
+ * Node.js Buffer maps
+ *
+ * Avoid using these if you plan to use WASM
+ */
+
+/**
+ * Read-only Buffer in arguments.
+ *
  * To include generic versions of the in typemaps, add:
  *
  * %typemap(in)        (void *, size_t) = (const void* buffer_data, const size_t buffer_len);
@@ -24,7 +32,9 @@
 }
 
 
-/*
+/**
+ * New Buffer returned in arguments from the C++ side -> Buffer as return value from the JS side.
+ *
  * In order to use the argout typemap, the function must have the following signature:
  *
  * void buffer(void **buffer_data, size_t *buffer_len)

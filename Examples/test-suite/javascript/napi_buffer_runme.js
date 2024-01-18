@@ -20,6 +20,9 @@ const napi_buffer = require('napi_buffer');
 // Test consuming a Buffer
 /* await */(napi_buffer.consume_buffer(Buffer.from(new Uint32Array([42]).buffer)));
 
+// Test consuming a Buffer slice
+/* await */(napi_buffer.consume_buffer(Buffer.from(new Uint32Array([893, 42]).buffer).subarray(4, 8)));
+
 // Test consuming an ArrayBuffer
 {
   const ab = new ArrayBuffer(4);

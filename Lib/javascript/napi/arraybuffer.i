@@ -1,4 +1,19 @@
-/*
+/**
+ * JavaScript ArrayBuffer maps
+ */
+
+// Read-only ArrayBuffer in arguments
+#define READONLY_BUFFER_SIGNATURE (const void *arraybuffer_data, const size_t arraybuffer_len)
+
+// Writable ArrayBuffer in arguments
+#define WRITABLE_BUFFER_SIGNATURE (void *arraybuffer_data, size_t arraybuffer_len)
+
+// New ArrayBuffer returned in arguments from the C++ side -> ArrayBuffer as return value from the JS side
+#define RETURN_NEW_BUFFER_SIGNATURE (void **arraybuffer_data, size_t *arraybuffer_len)
+
+/**
+ * Read-only ArrayBuffer in argument.
+ *
  * To include generic versions of the in typemaps, add:
  *
  * %typemap(in)        (void *, size_t) = (const void* arraybuffer_data, const size_t arraybuffer_len);
@@ -9,7 +24,7 @@
  * %typemap(typecheck) (void *data, size_t length) = (const void* arraybuffer_data, const size_t arraybuffer_len);
  */
 
-%typemap(in) (const void *arraybuffer_data, const size_t arraybuffer_len) {
+%typemap(in) READONLY_BUFFER_SIGNATURE {
   if ($input.IsArrayBuffer()) {
     Napi::ArrayBuffer buf = $input.As<Napi::ArrayBuffer>();
     $1 = static_cast<$1_ltype>(buf.Data());
@@ -24,15 +39,17 @@
 }
 
 
-/*
+/**
+ * New ArrayBuffer returned in arguments from the C++ side -> ArrayBuffer as return value from the JS side.
+ *
  * In order to use the argout typemap, the function must have the following signature:
  *
  * void buffer(void **arraybuffer_data, size_t *arraybuffer_len)
  *
  * In this case, this function will be wrapped by a JS function that takes
- * no arguments (because of numinputs=0) and returns a Buffer
+ * no arguments (because of numinputs=0) and returns an ArrayBuffer
  */
-%typemap(in, numinputs=0) (void **arraybuffer_data, size_t *arraybuffer_len) ($*1_ltype temp_data, size_t temp_len) {
+%typemap(in, numinputs=0) RETURN_NEW_BUFFER_SIGNATURE ($*1_ltype temp_data, size_t temp_len) {
   $1 = &temp_data;
   $2 = &temp_len;
 }
@@ -45,8 +62,10 @@
   }
 }
 
-/*
- * This typemap allows to pass a writable Buffer:
+/**
+ * Writable ArrayBuffer in arguments.
+ *
+ * This typemap allows to pass a writable ArrayBuffer:
  *
  * void buffer(void *arraybuffer_data, size_t arraybuffer_len)
  *
@@ -58,11 +77,10 @@
  * It is one of the few examples of a difference between the Node.js and the WASM
  * environment mentioned in the manual
  */
-#define WRITABLE_BUFFER_SIGNATURE (void *arraybuffer_data, size_t arraybuffer_len)
-#ifdef SWIG_NOWASM
+#ifdef SWIG_NO_WASM
 
 // Node.js-only version
-%typemap(in) WRITABLE_BUFFER_SIGNATURE  {
+%typemap(in) WRITABLE_BUFFER_SIGNATURE {
   if ($input.IsArrayBuffer()) {
     Napi::ArrayBuffer buf = $input.As<Napi::ArrayBuffer>();
     $1 = static_cast<$1_ltype>(buf.Data());
