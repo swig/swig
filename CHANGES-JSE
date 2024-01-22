@@ -12,6 +12,10 @@ Version 5.0.0-rc.3 (22 Jan 2024)
             [JavaScript] Implement and document new `INPUT`, `OUTPUT` and
             `RETURN` typemaps that automatically convert `std::vector` and
             `std::map` STL containers
+2024-01-22: mmomtchev
+            [JavaScript] Document `Buffer` and `ArrayBuffer` and add some
+            missing TypeScript typemaps in order to always correctly identify
+            `ArrayBuffer` instead of simply returning `any`
 
 Version 5.0.0-rc.2 (18 Jan 2024)
 ===========================
