@@ -4020,18 +4020,33 @@ int NAPIEmitter::emitFunctionDispatcher(Node *n, bool is_member, bool is_async) 
   while (Getattr(sibl, "sym:previousSibling"))
     sibl = Getattr(sibl, "sym:previousSibling"); // go all the way up
 
+  bool is_static_dispatcher = GetFlag(state.function(), IS_STATIC);
+
   do {
-    String *siblname = Getattr(sibl, is_async ? "wrap:name:async": "wrap:name:sync");
-    if (!siblname) siblname = Getattr(sibl, "wrap:name");
+    String *siblname =
+        Getattr(sibl, is_async ? "wrap:name:async" : "wrap:name:sync");
+    if (!siblname)
+      siblname = Getattr(sibl, "wrap:name");
 
     if (siblname) {
-      // handle function overloading
-      Template t_dispatch_case = getTemplate("js_function_dispatch_case");
-      t_dispatch_case.replace("$jswrapper", siblname)
-          .replace("$jsargcount", Getattr(sibl, ARGCOUNT))
-          .replace("$jsargrequired", Getattr(sibl, ARGREQUIRED));
+      bool is_static_case = Equal(Getattr(sibl, "storage"), "static") ||
+        // The IS_STATIC flag is present only in the temporary state
+        // of the dispatched case - however its handler sets this field
+        Getattr(sibl, "staticmemberfunctionHandler:name");
+      if (is_static_case == is_static_dispatcher || !is_member) {
+        // handle function overloading
+        Template t_dispatch_case = getTemplate("js_function_dispatch_case");
+        t_dispatch_case.replace("$jswrapper", siblname)
+            .replace("$jsargcount", Getattr(sibl, ARGCOUNT))
+            .replace("$jsargrequired", Getattr(sibl, ARGREQUIRED));
 
-      Append(wrapper->code, t_dispatch_case.str());
+        Append(wrapper->code, t_dispatch_case.str());
+      } else {
+        Swig_warning(WARN_LANG_OVERLOAD_IGNORED, input_file, line_number,
+                     "JavaScript does not support overloading between"
+                     " a static and a non-static member in %s for %s.\n",
+                     state.clazz(NAME), Getattr(n, NAME));
+      }
     }
 
   } while ((sibl = Getattr(sibl, "sym:nextSibling")));

@@ -9,6 +9,10 @@ Version 5.0.0-rc.3 (22 Jan 2024)
 ===========================
 
 2024-01-22: mmomtchev
+            [JavaScript] Emit a new warning when encountering an overload
+            between a static and non-static member function which is
+            currently not supported in JavaScript
+2024-01-22: mmomtchev
             [JavaScript] Implement and document new `INPUT`, `OUTPUT` and
             `RETURN` typemaps that automatically convert `std::vector` and
             `std::map` STL containers
