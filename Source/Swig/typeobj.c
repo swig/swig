@@ -1203,6 +1203,40 @@ String *SwigType_templateargs(const SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
+ * SwigType_templateargslist()
+ *
+ * Returns the template arguments
+ * For example:
+ *
+ *     Foo<(p.int,p.int)>::bar
+ *
+ * returns a list ["p.int", "p.int"]
+ * ----------------------------------------------------------------------------- */
+
+List *SwigType_templateargslist(const SwigType *t) {
+  const char *c, *end, *next;
+  String *args;
+  List *l;
+  String *one_arg;
+
+  args = SwigType_templateargs(t);
+  if (!args)
+    return NULL;
+  l = NewList();
+  c = Char(args) + 2;
+  end = c + strlen(c) - 2;
+  while (c < end) {
+    next = c;
+    while (*next != ',' && next < end)
+      next++;
+    one_arg = NewStringWithSize(c, (int)(next - c));
+    Append(l, one_arg);
+    c = next + 1;
+  }
+  return l;
+}
+
+/* -----------------------------------------------------------------------------
  * SwigType_istemplate()
  *
  * Tests a type to see if it includes template parameters

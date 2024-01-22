@@ -97,3 +97,127 @@ namespace std {
 #warning "specialize_std_vector - specialization for type T no longer needed"
 %enddef
 
+/* -------------------------*/
+/* const std::vector &INPUT */
+/* -------------------------*/
+
+// reference to const vector, C++ receives:
+//  * for values -> copies (objects must be copyable)
+//  * for references -> references to the JS objects
+//  * for pointers -> pointers to the JS objects
+// (all input arguments are protected from the GC for the duration of the operation
+// and this includes the JS array that contains the references)
+// Don't try this at home, it uses an undocumented feature of $typemap
+%typemap(in)        std::vector const &INPUT {
+  if ($input.IsArray()) {
+    $1 = new $*ltype;
+    Napi::Array array = $input.As<Napi::Array>();
+    for (size_t i = 0; i < array.Length(); i++) {
+      $T0type c_val;
+      Napi::Value js_val = array.Get(i);
+      $typemap(in, $T0type, input=js_val, 1=c_val, argnum=array value);
+      $1->emplace_back(c_val);
+    }
+  } else {
+    %argument_fail(SWIG_TypeError, "Array", $symname, $argnum);
+  }
+}
+%typemap(freearg)   std::vector const &INPUT {
+  delete $1;
+}
+%typemap(ts)        std::vector const &INPUT "$typemap(ts, $T0type)[]";
+
+
+/* -------------------------*/
+/* const std::vector *INPUT */
+/* -------------------------*/
+%apply(std::vector const &INPUT)    { std::vector const *INPUT };
+
+
+/* ------------------*/
+/* std::vector INPUT */
+/* ------------------*/
+
+// vector, copy by value, C++ receives:
+//  * for values -> copies (objects must be copyable)
+//  * for references -> references to the JS objects
+//  * for pointers -> pointers to the JS objects
+// (all input arguments are protected from the GC for the duration of the operation
+// and this includes the JS array that contains the references)
+// Don't try this at home, it uses an undocumented feature of $typemap
+%typemap(in)        std::vector INPUT {
+  if ($input.IsArray()) {
+    Napi::Array array = $input.As<Napi::Array>();
+    for (size_t i = 0; i < array.Length(); i++) {
+      $T0type c_val;
+      Napi::Value js_val = array.Get(i);
+      $typemap(in, $T0type, input=js_val, 1=c_val, argnum=array value);
+      $1.emplace_back(c_val);
+    }
+  } else {
+    %argument_fail(SWIG_TypeError, "Array", $symname, $argnum);
+  }
+}
+%typemap(ts)        std::vector INPUT "$typemap(ts, $T0type)[]";
+
+
+/* -------------------*/
+/* std::vector RETURN */
+/* -------------------*/
+%typemap(out)       std::vector RETURN {
+  Napi::Array array = Napi::Array::New(env, $1.size());
+  for (size_t i = 0; i < $1.size(); i++) {
+    $T0type c_val = $1.at(i);
+    Napi::Value js_val;
+    $typemap(out, $T0type, 1=c_val, result=js_val, argnum=array value);
+    array.Set(i, js_val);
+  }
+  $result = array;
+}
+%typemap(ts)        std::vector RETURN "$typemap(ts, $T0type)[]";
+
+/* --------------------*/
+/* std::vector &RETURN */
+/* --------------------*/
+%typemap(out)       std::vector &RETURN {
+  Napi::Array array = Napi::Array::New(env, $1->size());
+  for (size_t i = 0; i < $1->size(); i++) {
+    $T0type c_val = $1->at(i);
+    Napi::Value js_val;
+    $typemap(out, $T0type, 1=c_val, result=js_val, argnum=array value);
+    array.Set(i, js_val);
+  }
+  $result = array;
+}
+%typemap(ts)        std::vector &RETURN "$typemap(ts, $T0type)[]";
+
+/* --------------------*/
+/* std::vector *RETURN */
+/* --------------------*/
+%apply(std::vector &RETURN)    { std::vector *RETURN };
+
+
+/* --------------------*/
+/* std::vector &OUTPUT */
+/* --------------------*/
+
+// Return a vector in a reference argument
+%typemap(in, numinputs=0)  std::vector &OUTPUT ($*ltype _global_temp_vector) {
+  $1 = &_global_temp_vector;
+}
+%typemap(argout)  std::vector &OUTPUT {
+  Napi::Array array = Napi::Array::New(env, _global_temp_vector.size());
+  for (size_t i = 0; i < _global_temp_vector.size(); i++) {
+    $T0type c_val = _global_temp_vector.at(i);
+    Napi::Value js_val;
+    $typemap(out, $T0type, 1=c_val, result=js_val, argnum=array value);
+    array.Set(i, js_val);
+  }
+  $result = array;
+}
+%typemap(tsout)      std::vector &OUTPUT "$typemap(ts, $T0type)[]";
+
+/* --------------------*/
+/* std::vector *OUTPUT */
+/* --------------------*/
+%apply(std::vector &OUTPUT)    { std::vector *OUTPUT };

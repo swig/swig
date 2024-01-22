@@ -366,11 +366,11 @@ public:
   virtual int switchNamespace(Node *);
   virtual int top(Node *);
   virtual void main(int, char *[]);
+  virtual String *expandTSvars(String *, DOH *);
 
 protected:
   virtual String *emitArguments(Node *);
   virtual String *promisify(String *);
-  virtual String *expandTSvars(String *, DOH *);
   virtual String *enumName(Node *);
 
 private:
@@ -520,7 +520,6 @@ int TYPESCRIPT::functionHandler(Node *n) {
   String *args = emitArguments(n);
   
   String *ret_tm = Swig_typemap_lookup("ts", n, Getattr(n, NAME), NULL);
-  Delete(ret_tm);
   String *ret_type = nullptr;
   if (GetFlag(n, "ts:varargs")) {
     ret_type = NewString("any");
@@ -529,6 +528,7 @@ int TYPESCRIPT::functionHandler(Node *n) {
   } else {
     ret_type = expandTSvars(ret_tm, n);
   }
+  Delete(ret_tm);
 
   const char *qualifier =
       Equal(Getattr(n, "storage"), "static") ? "static" : "";
@@ -736,6 +736,7 @@ class JAVASCRIPT:public Language {
   virtual int constructorHandler(Node *);
   virtual void main(int argc, char *argv[]);
   virtual int top(Node *n);
+  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm) override;
 
   /**
    *  Registers all %fragments assigned to section "templates".
@@ -824,6 +825,26 @@ String *TYPESCRIPT::emitArguments(Node *n) {
   }
 
   return args;
+}
+
+/* ---------------------------------------------------------------------
+ * replaceSpecialVariables()
+ *
+ * Implement the JavaScript-specific special variables
+ * (at the moment only when TypeScript is enabled)
+ * This method is called only for explicit typemap expansion via $typemap
+ * --------------------------------------------------------------------- */
+void JAVASCRIPT::replaceSpecialVariables(String *method, String *tm, Parm *parm) {
+  if (ts_emitter) {
+    if (Equal(method, "ts") || Equal(method, "tsout")) {
+      String *r = ts_emitter->expandTSvars(tm, parm);
+      if (r) {
+        Clear(tm);
+        Append(tm, r);
+        Delete(r);
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------

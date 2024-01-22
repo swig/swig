@@ -36,6 +36,7 @@
 <ul>
 <li><a href="#Javascript_simple_example">Simple</a>
 <li><a href="#Javascript_class_example">Class</a>
+<li><a href="#Javascript_STL_example">STL Containers</a>
 </ul>
 <li><a href="#Javascript_exceptions">Exceptions</a>
 <ul>
@@ -664,6 +665,92 @@ at emitKey (readline.js:1095:12)</pre>
 <p>
 <b>Note</b>: In ECMAScript 5 there is no concept for classes. Instead each function can be used as a constructor function which is executed by the 'new' operator. Furthermore, during construction the key property <code>prototype</code> of the constructor function is used to attach a prototype instance to the created object. A prototype is essentially an object itself that is the first-class delegate of a class used whenever the access to a property of an object fails. The very same prototype instance is shared among all instances of one type. Prototypal inheritance is explained in more detail on in <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Inheritance_and_the_prototype_chain">Inheritance and the prototype chain</a>, for instance.
 </p>
+
+<H3><a name="Javascript_STL_example">28.4.3 STL Containers</a></H3>
+<p>There are two strategies when dealing with STL containers:</p>
+<ul>
+  <li>
+    <p>Wrap the C++ container to JavaScript - it is a C++ class that can be wrapped as any other class.
+    <ul>
+      <li><strong>+</strong> Avoids copying</li>
+      <li><strong>-</strong> The interface won't have a native feel - the user will have to use <code>array.get(0)</code> instead of <code>array[0]</code> and native <code>Array</code> methods such as
+        <code>map</code> won't be supported.</li>
+    </ul>
+    </p>
+    <p>This works best when the container is large and it is expected to be reused across multiple calls.</p>
+  </li>
+  <li>
+    <p>Use a typemap that converts the arguments at every call.
+    <ul>
+      <li><strong>+</strong> Native feel, methods can be called with a JavaScript array <code>method([1, 2, 3])</code></li>
+      <li><strong>-</strong> The C++ container will have to be recreated at each call - values will be copied, pointers and references will remain pointing to the original object.</li>
+      <li><strong>-</strong> The STL must contain default-constructible and copy-assignable objects.</li>
+    </ul>
+    </p>
+    <p>This works best when the array is small and it is constructed ad-hoc from an anonymous JS array at each call - in this case there is no performance overhead at all.</p>
+  </li>
+</ul>
+
+<p>The first method is available with every JavaScript generator, while the second is supported natively only by Node-API - but still can be manually implemented in a typemap for the others. Both methods work for both scalar types and class objects.</p>
+
+<ul>
+<li>
+<p>Expose the C++ containers:</p>
+<p>SWIG</p>
+<div class="code">
+<pre>
+%include "std_vector.i"
+// Refer to the section on C++ templates for this statement
+%template (IntVector) std::vector&lt;int&gt;;
+void consume(std::vector&lt;int&gt; const &amp;vec);
+std::vector&lt;int&gt; produce();
+</pre>
+</div>
+<p>JavaScript</p>
+<div class="code">
+<pre>
+let vec = new IntVector;
+vec.set(0, 10);
+vec.set(1, 20);
+consume(vec);
+vec = produce();
+let last = vec.get(vec.size() - 1);
+</pre>
+</div>
+</li>
+
+<li>
+<p>Convert the C++ containers:</p>
+<p>SWIG</p>
+<div class="code">
+<pre>
+%include "std_vector.i"
+// When using the  Node-API generator, std::vector and std::map
+// will have INPUT, OUTPUT and RETURN typemaps
+
+%apply(std::vector const &INPUT) { std::vector const &vec };
+void consume(std::vector&lt;int&gt; const &amp;vec);
+
+%apply(std::vector &OUTPUT) { std::vector &vec };
+void produce1(std::vector&lt;int&gt;);
+
+%apply(std::vector RETURN & ) { std::vector produce2 };
+std::vector&lt;int&gt; &amp;produce2();
+</pre>
+</div>
+<p>JavaScript</p>
+<div class="code">
+<pre>
+consume([10, 20]);
+let vec1 = produce1();
+let vec2 = produce2();
+let last1 = vec1[vec1.length - 1];
+let last2 = vec2[vec2.length - 1];
+</pre>
+</div>
+</li>
+</ul>
+
 
 <H2><a name="Javascript_exceptions">28.5 Exceptions</a></H2>
 

@@ -63,9 +63,6 @@ else
 endif
 
 # async/TS mode can be enabled by ASYNC/TYPESCRIPT _or_ SWIG_FEATURES
-ifneq (, $(ASYNC))
-	SWIGOPT += -async
-endif
 ifneq (,$(findstring async,$(SWIG_FEATURES)))
 	ASYNC = 1
 endif
@@ -73,7 +70,9 @@ endif
 ifeq (napi, $(ENGINE))
 # Node-API specific tests
 CPP_TEST_CASES += \
-	napi_buffer
+	napi_buffer \
+	napi_li_std_map \
+	napi_li_std_vector
 
 # napi_exports_file is a test that uses Node.js ES6 and has no meaning in WASM
 ifneq (emcc, $(CC))
@@ -94,6 +93,14 @@ endif
 endif
 
 include $(srcdir)/../common.mk
+
+ifneq (, $(ASYNC))
+	SWIGOPT += -async
+endif
+ifneq (, $(ASYNC_LOCKING))
+	ASYNC = 1
+	SWIGOPT += -async -async-locking -DSWIG_NAPI_FULL_LOCKING=1
+endif
 
 # emscripten is cross-compilation, skip the platform flags
 ifeq (emcc, $(CC))

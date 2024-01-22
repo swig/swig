@@ -4,6 +4,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
+
+Version 5.0.0-rc.3 (22 Jan 2024)
+===========================
+
+2024-01-22: mmomtchev
+            [JavaScript] Implement and document new `INPUT`, `OUTPUT` and
+            `RETURN` typemaps that automatically convert `std::vector` and
+            `std::map` STL containers
+
 Version 5.0.0-rc.2 (18 Jan 2024)
 ===========================
 

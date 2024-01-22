@@ -978,6 +978,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     String *mangle, *star_mangle, *amp_mangle, *base_mangle, *base_name, *base_type_str;
     String *descriptor, *star_descriptor, *amp_descriptor;
     String *ts;
+    List *templ_args;
     char *sc;
 
     sc = Char(s);
@@ -1033,12 +1034,28 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
       Delete(mangle);
     }
 
+    /*
+     * Template argument variables: $T0type, $T1type...
+     */
+    if (SwigType_istemplate(ftype)) {
+      templ_args = SwigType_templateargslist(ftype);
+      if (templ_args) {
+        for (int i = 0; i < Len(templ_args); i++) {
+          String *varname = NewStringf("$T%dtype", i);
+          String *templ_arg = SwigType_str(Getitem(templ_args, i), 0);
+          Replace(s, varname, templ_arg, DOH_REPLACE_ANY);
+          Delete(templ_arg);
+          Delete(varname);
+        }
+        Delete(templ_args);
+      }
+    }
+
     /* One pointer level removed */
     /* This creates variables of the form
        $*n_type
        $*n_ltype
      */
-
     if (SwigType_ispointer(ftype) || (SwigType_isarray(ftype)) || (SwigType_isreference(ftype)) || (SwigType_isrvalue_reference(ftype))) {
       if (!(SwigType_isarray(type) || SwigType_ispointer(type) || SwigType_isreference(type) || SwigType_isrvalue_reference(type))) {
 	star_type = Copy(ftype);
@@ -1888,8 +1905,10 @@ static void typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList 
     typemap_attach_kwargs(tm, tmap_method, firstp, nmatch);
 
     /* Replace the argument number */
-    sprintf(temp, "%d", argnum);
-    Replace(s, "$argnum", temp, DOH_REPLACE_ANY);
+    if (!override_vars || !Getattr(override_vars, "$argnum")) {
+      sprintf(temp, "%d", argnum);
+      Replace(s, "$argnum", temp, DOH_REPLACE_ANY);
+    }
 
     /* Print warnings, if any */
     warning = typemap_warn(tmap_method, firstp);
