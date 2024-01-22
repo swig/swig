@@ -5,3 +5,5 @@
 
 %typemap(ts)    (const void *arraybuffer_data, const size_t arraybuffer_len)  "ArrayBuffer";
 %typemap(tsout) (void **arraybuffer_data, size_t *arraybuffer_len)            "ArrayBuffer";
+
+%typemap(ts)    (void *arraybuffer_data, size_t arraybuffer_len)              "ArrayBuffer";

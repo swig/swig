@@ -751,6 +751,56 @@ let last2 = vec2[vec2.length - 1];
 </li>
 </ul>
 
+<H3><a name="Javascript_Buffer_example">28.4.3 <code>Buffer</code> and <code>ArrayBuffer</code></a></H3>
+<p>SWIG Node-API includes built-in typemaps for working with <code>Buffer</code> and <code>ArrayBuffer</code>. Note that the <code>Buffer</code> type is specific to Node.js and should be avoided when
+  targeting browsers and WASM. In recent versions of Node.js <code>Buffer</code> is simply a wrapper around an <code>ArrayBuffer</code> and can be converted without copying the underlying data. The built-in typemaps reference special argument names - <code>buffer</code> and <code>arraybuffer</code> that can be applied to any other argument names - or simply to the raw types.</p>
+<p>When dealing with raw buffers, three distinctive scenarios should be considered:</p>
+<ul>
+  <li>
+    <p>The C/C++ function returns data by allocating a new buffer in pointers (or references) in its arguments. Such functions typically have arguments of this type:
+      <code>(uint8_t **data, size_t *len)</code>.</p>
+    <div class="code">
+      <pre>
+%include &lt;arraybuffer.i&gt;
+%apply(void **arraybuffer_data, size_t *arraybuffer_len) { (uint8_t **data, size_t *len) };
+</pre>
+  </div>
+  <p></p>
+  <div class="code">
+    <pre>
+%include &lt;nodejs_buffer.i&gt;
+%apply(void **buffer_data, size_t *buffer_len) { (uint8_t **data, size_t *len) };</pre>
+  </div>
+  <p>The wrapped function won't take any arguments and it will instead return the <code>Buffer</code>. In this case the newly created JavaScript <code>ArrayBuffer</code> or <code>Buffer</code> will assume ownership of the buffer and it will free its data upon being garbage-collected.</p>
+  </li>
+  <li>
+    <p>The C/C++ function returns data by filling an existing buffer in its arguments. Such functions typically have arguments of this type:
+      <code>(uint8_t *data, size_t len)</code>.</p>
+  <div class="code">
+      <pre>
+%include &lt;arraybuffer.i&gt;
+%apply(void *arraybuffer_data, size_t arraybuffer_len) { (uint8_t *data, size_t len) };</pre>
+  </div>
+  <p>In this case the two arguments will be replaced by a single <code>Buffer</code> argument and the C/C++ function will receive a pointer to its underlying data. The JavaScript object will be automatically protected from the GC for as long as the C/C++ functions runs. After its return, the data is no longer guaranteed to remain valid. This condition is also true for when the C/C++ functions is executed asynchronously from the main JavaScript code.</p>
+  </li>
+  <li>
+    <p>The C++ function expect to receive a read-only buffer. Such functions typically have arguments of this type: <code>(const uint8_t *data, const size_t len)</code>.</p>
+  <div class="code">
+      <pre>
+%include &lt;arraybuffer.i&gt;
+%apply(const void *arraybuffer_data, const size_t arraybuffer_len) { (const uint8_t *data, const size_t len) };</pre>
+  </div>
+  <p></p>
+  <div class="code">
+    <pre>
+%include &lt;nodejs_buffer.i&gt;
+%apply(const void *buffer_data, const size_t buffer_len) { (const uint8_t *data, const size_t len) };</pre>
+  </div>
+  <p>In this case the two arguments will be replaced by a single <code>Buffer</code> argument and the C/C++ function will receive a pointer to its underlying data. The JavaScript object will be
+    automatically protected from the GC for as long as the C/C++ functions runs. After its return, the data is no longer guaranteed to remain valid. This condition is also true for when the C/C++
+    functions is executed asynchronously from the main JavaScript code.</p>
+  </li>
+</ul>
 
 <H2><a name="Javascript_exceptions">28.5 Exceptions</a></H2>
 
