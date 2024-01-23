@@ -656,8 +656,10 @@ SwigPyBuiltin_ssizeobjargproc_closure(SwigPyWrapperFunction wrapper, PyObject *a
   tuple = PyTuple_New(2);
   assert(tuple);
   PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));
-  Py_INCREF(c);
-  PyTuple_SET_ITEM(tuple, 1, c);
+  if (c) {
+    Py_INCREF(c);
+    PyTuple_SET_ITEM(tuple, 1, c);
+  }
   resultobj = wrapper(a, tuple);
   result = resultobj ? 0 : -1;
   Py_XDECREF(resultobj);
