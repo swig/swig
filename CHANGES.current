@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-01-23: wsfulton
+            Add missing use of move constructor instead of copy constructor when
+            passing movable types. This was previously implemented only for parameters
+            passed to a global function or static member function and is now extended
+            to member methods.
+
 2024-03-01: olly
 	    [Java] #2819 Suppress Java removal warnings for uses of
 	    System.runFinalization().  SWIG will need to stop relying on

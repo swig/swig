@@ -1518,13 +1518,13 @@ Vector *wrap_cross_product(Vector *a, Vector *b) {
 </div>
 
 <p>
-In order for the wrapper code to compile, <tt>Vector</tt> must define a default constructor, copy assignment operator (and/or a move assignment operator for C++11 and later).
+In order for the wrapper code to compile, <tt>Vector</tt> must define a default constructor and a copy assignment operator (and/or a move assignment operator for C++11 and later).
 The <a href="CPlusPlus11.html#CPlusPlus11_move_only">Movable and move-only types</a> section should be read regarding C++11 move semantics and return by value.
 </p>
 
 <p>
 If <tt>Vector</tt> is defined as a class in the interface, but it does not
-support a default constructor, SWIG changes the wrapper code by encapsulating
+support a default constructor and an assignment operator, SWIG changes the wrapper code by encapsulating
 the arguments inside a special C++ template wrapper class, through a process
 called the "Fulton Transform".  This produces a wrapper that looks like this:
 </p>
@@ -1545,7 +1545,7 @@ Vector cross_product(Vector *a, Vector *b) {
 
 <p>
 This transformation is a little sneaky, but it provides support for
-pass-by-value even when a class does not provide a default constructor
+pass-by-value even when a class is not default constructible nor assignable
 and it makes it possible to properly support a number of SWIG's
 customization options.  The definition of <tt>SwigValueWrapper</tt>
 can be found by reading the SWIG wrapper code. This class is really nothing more than a thin
