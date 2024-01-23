@@ -70,5 +70,16 @@ public class cpp11_move_only_runme {
       mc.delete();
       Counter.check_counts(2, 0, 1, 1, 0, 3);
     }
+
+    // Input constructor
+    {
+      Counter.reset_counts();
+      MovableCopyable mc = new MovableCopyable(555);
+      Counter.check_counts(1, 0, 0, 0, 0, 0);
+      ConstructorTester ct = new ConstructorTester(mc);
+      Counter.check_counts(2, 0, 1, 1, 0, 2);
+      mc.delete();
+      Counter.check_counts(2, 0, 1, 1, 0, 3);
+    }
   }
 }

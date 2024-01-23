@@ -49,5 +49,16 @@ public class cpp11_move_only_runme {
       }
       Counter.check_counts(2, 0, 1, 1, 0, 3);
     }
+
+    // Input constructor
+    Counter.reset_counts();
+    using (MovableCopyable mc = new MovableCopyable(555)) {
+      Counter.check_counts(1, 0, 0, 0, 0, 0);
+      using (ConstructorTester ct = new ConstructorTester(mc)) {
+        Counter.check_counts(2, 0, 1, 1, 0, 2);
+      }
+      Counter.check_counts(2, 0, 1, 1, 0, 2);
+    }
+    Counter.check_counts(2, 0, 1, 1, 0, 3);
   }
 }

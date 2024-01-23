@@ -44,3 +44,12 @@ imt.instance_take_movable_copyable(mc)
 Counter.check_counts(2, 0, 1, 1, 0, 2)
 del mc
 Counter.check_counts(2, 0, 1, 1, 0, 3)
+
+# Input constructor
+Counter.reset_counts()
+mc = MovableCopyable(555)
+Counter.check_counts(1, 0, 0, 0, 0, 0)
+ct = ConstructorTester(mc)
+Counter.check_counts(2, 0, 1, 1, 0, 2)
+del mc
+Counter.check_counts(2, 0, 1, 1, 0, 3)

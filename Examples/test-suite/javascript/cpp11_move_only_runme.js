@@ -35,3 +35,10 @@ var mc = new cpp11_move_only.MovableCopyable(444);
 cpp11_move_only.Counter.check_counts(1, 0, 0, 0, 0, 0);
 imt.instance_take_movable_copyable(mc);
 cpp11_move_only.Counter.check_counts(2, 0, 1, 1, 0, 2);
+
+// Input constructor
+cpp11_move_only.Counter.reset_counts();
+var mc = new cpp11_move_only.MovableCopyable(555);
+cpp11_move_only.Counter.check_counts(1, 0, 0, 0, 0, 0);
+var ct = new cpp11_move_only.ConstructorTester(mc);
+cpp11_move_only.Counter.check_counts(2, 0, 1, 1, 0, 2);
