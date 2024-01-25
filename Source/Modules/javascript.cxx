@@ -297,7 +297,7 @@ protected:
 
   virtual void marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, String *actioncode, const String *cresult = 0, bool emitReturnVariable = true);
 
-  virtual void emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params);
+  virtual String *emitCleanupCode(Node *n, ParmList *params);
 
   /**
    * Helper function to retrieve the first parent class node.
@@ -1554,7 +1554,7 @@ int JSEmitter::emitCtor(Node *n) {
   String *action = emit_action(n);
   Printv(wrapper->code, action, "\n", 0);
 
-  emitCleanupCode(n, wrapper, params);
+  String *cleanup = emitCleanupCode(n, params);
 
   t_ctor.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jswrapper", wrap_name)
@@ -1564,6 +1564,7 @@ int JSEmitter::emitCtor(Node *n) {
       .replace("$jsargcount", Getattr(n, ARGCOUNT))
       .replace("$jsparent", state.clazz(PARENT_MANGLED))
       .replace("$jsargrequired", Getattr(n, ARGREQUIRED))
+      .replace("$jscleanup", cleanup)
       .pretty_print(f_wrappers);
 
   Template t_ctor_case(getTemplate("js_ctor_dispatch_case"));
@@ -1572,6 +1573,7 @@ int JSEmitter::emitCtor(Node *n) {
       .replace("$jsargrequired", Getattr(n, ARGREQUIRED));
   Append(state.clazz(CTOR_DISPATCHERS), t_ctor_case.str());
 
+  Delete(cleanup);
   DelWrapper(wrapper);
 
   // create a dispatching ctor
@@ -1737,15 +1739,17 @@ int JSEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   marshalInputArgs(n, params, wrapper, Getter, is_member, is_static);
   marshalOutput(n, params, wrapper, action);
 
-  emitCleanupCode(n, wrapper, params);
+  String *cleanup = emitCleanupCode(n, params);
 
   t_getter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jswrapper", wrap_name)
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
+      .replace("$jscleanup", cleanup)
       .pretty_print(f_wrappers);
 
   DelWrapper(wrapper);
+  Delete(cleanup);
 
   return SWIG_OK;
 }
@@ -1776,15 +1780,17 @@ int JSEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
   marshalInputArgs(n, params, wrapper, Setter, is_member, is_static);
   Append(wrapper->code, action);
 
-  emitCleanupCode(n, wrapper, params);
+  String *cleanup = emitCleanupCode(n, params);
 
   t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jswrapper", wrap_name)
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
+      .replace("$jscleanup", cleanup)
       .pretty_print(f_wrappers);
 
   DelWrapper(wrapper);
+  Delete(cleanup);
 
   return SWIG_OK;
 }
@@ -1886,17 +1892,19 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
   String *action = emit_action(n);
   marshalOutput(n, params, wrapper, action);
-  emitCleanupCode(n, wrapper, params);
-  Replaceall(wrapper->code, "$symname", iname);
+  String *cleanup = emitCleanupCode(n, params);
 
   t_function.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jswrapper", wrap_name)
       .replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code)
+      .replace("$symname", iname)
       .replace("$jsargcount", Getattr(n, ARGCOUNT))
       .replace("$jsargrequired", Getattr(n, ARGREQUIRED))
+      .replace("$jscleanup", cleanup)
       .pretty_print(f_wrappers);
 
+  Delete(cleanup);
   DelWrapper(wrapper);
 
   return SWIG_OK;
@@ -2099,16 +2107,17 @@ void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, Strin
   Replaceall(wrapper->code, "$result", "jsresult");
 }
 
-void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
+String *JSEmitter::emitCleanupCode(Node *n, ParmList *params) {
   Parm *p;
   String *tm;
+  String *code = NewString("");
 
   for (p = params; p;) {
     if ((tm = Getattr(p, "tmap:freearg"))) {
       //addThrows(n, "tmap:freearg", p);
       Replaceall(tm, "$input", Getattr(p, "emit:input"));
       if (Len(tm) > 0) {
-        Printv(wrapper->code, tm, "\n", NIL);
+        Printv(code, tm, "\n", NIL);
       }
       p = Getattr(p, "tmap:freearg:next");
     } else {
@@ -2120,17 +2129,19 @@ void JSEmitter::emitCleanupCode(Node *n, Wrapper *wrapper, ParmList *params) {
     tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
     if (Len(tm) > 0) {
       //addThrows(throws_hash, "newfree", n);
-      Printv(wrapper->code, tm, "\n", NIL);
+      Printv(code, tm, "\n", NIL);
     }
   }
 
   /* See if there is any return cleanup code */
   if ((tm = Swig_typemap_lookup("ret", n, Swig_cresult_name(), 0))) {
     if (Len(tm) > 0) {
-      Printf(wrapper->code, "%s\n", tm);
+      Printf(code, "%s\n", tm);
     }
     Delete(tm);
   }
+
+  return code;
 }
 
 int JSEmitter::switchNamespace(Node *n) {
@@ -3656,8 +3667,7 @@ int NAPIEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   String *output = wrapper->code;
 
   wrapper->code = NewString("");
-  emitCleanupCode(n, wrapper, params);
-  String *cleanup = wrapper->code;
+  String *cleanup = emitCleanupCode(n, params);
 
   String *guard = emitGuard(n);
   String *locking = emitLocking(n, params, wrapper);
@@ -3685,6 +3695,7 @@ int NAPIEmitter::emitGetter(Node *n, bool is_member, bool is_static) {
   DelWrapper(wrapper);
   Delete(guard);
   Delete(locking);
+  Delete(cleanup);
 
   return SWIG_OK;
 }
@@ -3722,9 +3733,7 @@ int NAPIEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
   Append(wrapper->code, emitAsyncTypemaps(n, params, wrapper, "lock"));
   String *input = wrapper->code;
 
-  wrapper->code = NewString("");
-  emitCleanupCode(n, wrapper, params);
-  String *cleanup = wrapper->code;
+  String *cleanup = emitCleanupCode(n, params);
 
   String *guard = emitGuard(n);
   String *locking = emitLocking(n, params, wrapper);
@@ -3751,6 +3760,7 @@ int NAPIEmitter::emitSetter(Node *n, bool is_member, bool is_static) {
   DelWrapper(wrapper);
   Delete(guard);
   Delete(locking);
+  Delete(cleanup);
 
   return SWIG_OK;
 }
@@ -3798,7 +3808,7 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
                  Getattr(n, "sym:name"));
   }
 
-  // Historically, marshalInput/marshalOutput/emitCleanupCode
+  // Historically, marshalInput/marshalOutput
   // return their output in wrapper->code
   // We need each part separately
   marshalInputArgs(n, params, wrapper, Function, is_member, is_static);
@@ -3835,9 +3845,7 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
   marshalOutput(n, params, wrapper, NewString(""));
   String *output = wrapper->code;
 
-  wrapper->code = NewString("");
-  emitCleanupCode(n, wrapper, params);
-  String *cleanup = wrapper->code;
+  String *cleanup = emitCleanupCode(n, params);
 
   String *jsasyncworker = NewString("");
   if (is_async) {
@@ -3872,9 +3880,9 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
   DelWrapper(wrapper);
   Delete(input);
   Delete(action);
-  Delete(output);
   Delete(jsasyncworker);
   Delete(rethrow);
+  Delete(cleanup);
 
   return SWIG_OK;
 }

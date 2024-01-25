@@ -138,7 +138,13 @@ void SWIG_NAPI_AsyncWorker::OnOK() {
     return;
   }
 #endif
-  context->SWIG_NAPI_Resolve();
+  try {
+    context->SWIG_NAPI_Resolve();
+  } catch (Napi::Error &error) {
+    context->SWIG_NAPI_Fail(error);
+    delete context;
+    return;
+  } 
   delete context;
 }
 

@@ -6,6 +6,7 @@
  *   - $jsargcount:       number of arguments
  *   - $jsargrequired:    required number of arguments
  *   - $jsmangledtype:    mangled type of class
+ *   - $jscleanup:        cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor", "templates")
 %{
@@ -15,9 +16,11 @@ static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size
     if (argc < $jsargrequired || argc > $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
     $jscode
+    $jscleanup
     return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
     goto fail;
     fail:
+    $jscleanup
     return NULL;
 }
 %}
@@ -70,6 +73,7 @@ static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef ctorObject,
  *   - $jsargcount:       number of arguments
  *   - $jsargrequired:    required number of arguments
  *   - $jsmangledtype:    mangled type of class
+ *   - $jscleanup:        cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_ctor", "templates")
 %{
@@ -77,10 +81,12 @@ static JSObjectRef $jswrapper(JSContextRef context, JSObjectRef thisObject, size
 {
     $jslocals
     $jscode
+    $jscleanup
     return SWIG_JSC_NewPointerObj(context, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
 
     goto fail;
     fail:
+    $jscleanup
     return NULL;
 }
 %}
@@ -150,6 +156,7 @@ static void $jswrapper(JSObjectRef thisObject)
  *   - $jswrapper:  wrapper function name
  *   - $jslocals:   locals part of wrapper
  *   - $jscode:     code part of wrapper
+ *   - $jscleanup:        cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_getter", "templates")
 %{
@@ -159,10 +166,12 @@ static JSValueRef $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStr
     JSValueRef jsresult;
 
     $jscode
+    $jscleanup
     return jsresult;
 
     goto fail;
     fail:
+    $jscleanup
     return JSValueMakeUndefined(context);
 }
 %}
@@ -172,6 +181,7 @@ static JSValueRef $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStr
  *   - $jswrapper:  wrapper function name
  *   - $jslocals:   locals part of wrapper
  *   - $jscode:     code part of wrapper
+ *   - $jscleanup:        cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_setter", "templates")
 %{
@@ -179,11 +189,13 @@ static bool $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef
 {
     $jslocals
     $jscode
+    $jscleanup
 
     return true;
 
     goto fail;
     fail:
+    $jscleanup
     return false;
 }
 %}
@@ -195,6 +207,7 @@ static bool $jswrapper(JSContextRef context, JSObjectRef thisObject, JSStringRef
  *   - $jsargcount:    number of arguments
  *   - $jsargrequired: required number of arguments
  *   - $jscode:        code part of wrapper
+ *   - $jscleanup:        cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_function", "templates")
 %{
@@ -206,10 +219,12 @@ static JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjec
   if (argc < $jsargrequired || argc > $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
   $jscode
+  $jscleanup
   return jsresult;
 
   goto fail;
   fail:
+  $jscleanup
   return JSValueMakeUndefined(context);
 }
 %}
@@ -246,6 +261,7 @@ static JSValueRef $jswrapper(JSContextRef context, JSObjectRef function, JSObjec
  *   - $jsargcount:    required number of arguments
  *   - $jsargrequired: required number of arguments
  *   - $jscode:        code part of wrapper
+ *   - $jscleanup:        cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_function", "templates")
 %{
@@ -258,10 +274,12 @@ static int $jswrapper(JSContextRef context, JSObjectRef function, JSObjectRef th
 
   $jscode
   *p_result = jsresult;
+  $jscleanup
   return SWIG_OK;
 
   goto fail;
   fail:
+  $jscleanup
   return SWIG_TypeError;
 }
 %}

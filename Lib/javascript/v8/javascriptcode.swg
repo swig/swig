@@ -6,6 +6,7 @@
  *   - $jsargcount:       number of arguments
  *   - $jsargrequired:    required number of arguments
  *   - $jsmangledtype:    mangled type of class
+ *   - $jscleanup:        cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 
 %fragment("js_ctor", "templates") %{
@@ -19,10 +20,12 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args) {
   $jscode
 
   SWIGV8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
+  $jscleanup
   SWIGV8_RETURN(self);
 
   goto fail;
 fail:
+  $jscleanup
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
 }
 %}
@@ -76,6 +79,7 @@ fail:
  *   - $jsargcount:       number of arguments
  *   - $jsargrequired:    required number of arguments
  *   - $jsmangledtype:    mangled type of class
+ *   - $jscleanup:        cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_overloaded_ctor", "templates") %{
 static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
@@ -88,10 +92,12 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args, V8ErrorHandler 
   $jscode
 
   SWIGV8_SetPrivateData(self, result, SWIGTYPE_$jsmangledtype, SWIG_POINTER_OWN);
+  $jscleanup
   SWIGV8_RETURN(self);
 
   goto fail;
 fail:
+  $jscleanup
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
 }
 %}
@@ -160,6 +166,7 @@ static void $jswrapper(const v8::WeakCallbackInfo<SWIGV8_Proxy> &data) {
  *   - $jswrapper:  wrapper function name
  *   - $jslocals:   locals part of wrapper
  *   - $jscode:     code part of wrapper
+ *   - $jscleanup:        cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_getter", "templates")
 %{
@@ -169,10 +176,12 @@ static SwigV8ReturnValue $jswrapper(v8::Local<v8::Name> property, const SwigV8Pr
   SWIGV8_VALUE jsresult;
   $jslocals
   $jscode
+  $jscleanup
   SWIGV8_RETURN_INFO(jsresult, info);
 
   goto fail;
 fail:
+  $jscleanup
   SWIGV8_RETURN_INFO(SWIGV8_UNDEFINED(), info);
 }
 %}
@@ -182,6 +191,7 @@ fail:
  *   - $jswrapper:  wrapper function name
  *   - $jslocals:   locals part of wrapper
  *   - $jscode:     code part of wrapper
+ *   - $jscleanup:        cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_setter", "templates")
 %{
@@ -192,6 +202,7 @@ static void $jswrapper(v8::Local<v8::Name> property, v8::Local<v8::Value> value,
   $jscode
   goto fail;
 fail:
+  $jscleanup
   return;
 }
 %}
@@ -203,6 +214,7 @@ fail:
  *   - $jscode:           code part of wrapper
  *   - $jsargcount:       number of arguments
  *   - $jsargrequired:    required number of arguments
+ *   - $jscleanup:        cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment("js_function", "templates")
 %{
@@ -214,10 +226,12 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args) {
   if (args.Length() < $jsargrequired || args.Length() > $jsargcount) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
 
   $jscode
+  $jscleanup
   SWIGV8_RETURN(jsresult);
 
   goto fail;
 fail:
+  $jscleanup
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
 }
 %}
@@ -251,6 +265,7 @@ fail:
  *   - $jswrapper:  wrapper function name
  *   - $jslocals:   locals part of wrapper
  *   - $jscode:     code part of wrapper
+ *   - $jscleanup:        cleanup part of wrapper
  * ----------------------------------------------------------------------------- */
 %fragment ("js_overloaded_function", "templates")
 %{
@@ -261,10 +276,12 @@ static SwigV8ReturnValue $jswrapper(const SwigV8Arguments &args, V8ErrorHandler 
   SWIGV8_VALUE jsresult;
   $jslocals
   $jscode
+  $jscleanup
   SWIGV8_RETURN(jsresult);
 
   goto fail;
 fail:
+  $jscleanup
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
 }
 %}

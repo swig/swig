@@ -4,6 +4,22 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
+Version 5.0.
+===========================
+
+2024-01-25: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#16](https://github.com/mmomtchev/swig/issues/16),
+            do not leak memory when using string arguments in a
+            throwing constructor
+2024-01-25: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#17](https://github.com/mmomtchev/swig/issues/17),
+            allow catching of exceptions raised in `out` typemaps in
+            async mode
+2024-01-25: mmomtchev
+            [JavaScript] Fix [swig/swig#2563](https://github.com/swig/swig/issues/2563),
+            include `freearg` typemaps on the exception path for all
+            JavaScript engines
+            **POTENTIALLY BREAKING FOR EXISTING JAVASCRIPT PROJECTS**
 
 Version 5.0.0-rc.3 (22 Jan 2024)
 ===========================
