@@ -60,6 +60,7 @@
 // Throwing constructor
 %catches(int) ThrowingCtorChar;
 %catches(int) ThrowingCtorString;
+%catches(int) ThrowingCtorOverloaded;
 
 %inline %{
   #include <string>
@@ -108,5 +109,9 @@
   };
   struct ThrowingCtorChar {
     ThrowingCtorChar(const char *) { throw (int)2; };
+  };
+  struct ThrowingCtorOverloaded {
+    ThrowingCtorOverloaded(const std::string &) { throw (int)3; };
+    ThrowingCtorOverloaded(int) { throw (int)4; };
   };
 %}

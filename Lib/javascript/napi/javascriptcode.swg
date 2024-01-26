@@ -157,15 +157,23 @@ Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::Callback
   Napi::Env env = info.Env();
   Napi::Object self;
   $jslocals
-  NAPI_CHECK_RESULT(info.This().ToObject(), self);
-  this->owned = true;
-  if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
-    SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
-  }
-  $jscode
-  this->self = result;
+#ifdef NAPI_CPP_EXCEPTIONS
+  try {
+#endif
+    NAPI_CHECK_RESULT(info.This().ToObject(), self);
+    this->owned = true;
+    if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
+      SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
+    }
+    $jscode
+    this->self = result;
 
-#ifndef NAPI_CPP_EXCEPTIONS
+#ifdef NAPI_CPP_EXCEPTIONS
+  } catch (...) {
+    $jscleanup
+    std::rethrow_exception(std::current_exception());
+  }
+#else
   goto fail;
 fail:
 #endif
