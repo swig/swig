@@ -177,22 +177,22 @@ inline bool operator>=(const Op& a,const Op& b){return a.i>=b.i;}
 
 // in order to wrap this correctly we need to extend the class
 // to make the friends & non members part of the class
-%extend Op{
-        Op operator &&(const Op& b){return Op($self->i&&b.i);}
-        Op operator or(const Op& b){return Op($self->i||b.i);}
+%extend Op {
+        Op operator &&(const Op& b){return *$self && b;}
+        Op operator or(const Op& b){return  *self || b;}
 
-	Op operator+(const Op& b){return Op($self->i+b.i);}
-	Op operator-(const Op& b){return Op($self->i-b.i);}
-	Op operator*(const Op& b){return Op($self->i*b.i);}
-	Op operator/(const Op& b){return Op($self->i/b.i);}
-	Op operator%(const Op& b){return Op($self->i%b.i);}
+	Op operator+(const Op& b){return *$self + b;}
+	Op operator-(const Op& b){return *$self - b;}
+	Op operator*(const Op& b){return *$self * b;}
+	Op operator/(const Op& b){return *$self / b;}
+	Op operator%(const Op& b){return *$self % b;}
 
-	bool operator==(const Op& b){return $self->i==b.i;}
-	bool operator!=(const Op& b){return $self->i!=b.i;}
-	bool operator< (const Op& b){return $self->i<b.i;}
-	bool operator<=(const Op& b){return $self->i<=b.i;}
-	bool operator> (const Op& b){return $self->i>b.i;}
-	bool operator>=(const Op& b){return $self->i>=b.i;}
+	bool operator==(const Op& b){return *$self == b;}
+	bool operator!=(const Op& b){return *$self != b;}
+	bool operator< (const Op& b){return *$self <  b;}
+	bool operator<=(const Op& b){return *$self <= b;}
+	bool operator> (const Op& b){return *$self >  b;}
+	bool operator>=(const Op& b){return *$self >= b;}
 
 	// subtraction with reversed arguments
 	Op __rsub__(const int b){return Op(b - $self->i);}
