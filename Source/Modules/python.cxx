@@ -2718,6 +2718,7 @@ public:
     int constructor = (!Cmp(nodeType, "constructor"));
     int destructor = (!Cmp(nodeType, "destructor"));
     String *storage = Getattr(n, "storage");
+    int isfriend = Strstr(storage, "friend") != NULL;
     /* Only the first constructor is handled as init method. Others
        constructor can be emitted via %rename */
     int handled_as_init = 0;
@@ -3374,7 +3375,7 @@ public:
     if (in_class && builtin) {
       /* Handle operator overloads for builtin types */
       String *slot = Getattr(n, "feature:python:slot");
-      if (slot) {
+      if (slot && !isfriend) {
 	String *func_type = Getattr(n, "feature:python:slot:functype");
 	String *closure_decl = getClosure(func_type, wrapper_name, overname ? 0 : funpack);
 	String *feature_name = NewStringf("feature:python:%s", slot);

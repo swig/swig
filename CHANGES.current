@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-01-27: wsfulton
+            [Python] Fix compilation error when wrapping two or more classes that
+            have the same friend operator overload when the classes are in a namespace.
+
 2024-01-15: wsfulton
             https://sourceforge.net/p/swig/bugs/960/
             https://sourceforge.net/p/swig/bugs/807/
