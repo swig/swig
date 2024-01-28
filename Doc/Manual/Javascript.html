@@ -61,6 +61,7 @@
 <li><a href="#Javascript_WASM_intro">Introduction</a>
 <li><a href="#Javascript_WASM_building">Building SWIG Node-API generated wrappers to WASM</a>
 <li><a href="#Javascript_WASM_importing">Importing SWIG Node-API generated wrappers built to WASM</a>
+<li><a href="#Javascript_WASM_async">Using asynchronous wrappers with WASM</a>
 <li><a href="#Javascript_WASM_differences">Incompatibilities between <code>node-addon-api</code> and <code>emnapi</code></a>
 </ul>
 <li><a href="#Javascript_code_splitting">Code Splitting</a>
@@ -1263,7 +1264,21 @@ export default <em>module_name</em>;
 </pre>
 </div>
 
-<H3><a name="Javascript_WASM_differences">28.8.4 Incompatibilities between <code>node-addon-api</code> and <code>emnapi</code></a></H3>
+<H3><a name="Javascript_WASM_async">28.8.4 Using asynchronous wrappers with WASM</code></a></H3>
+
+<p>The WASM builds support using the same asynchonous wrappers as the native Node.js builds. This feature is provided by <code>emnapi</code> which re-implements the <code>libuv</code> API. Upon loading the WASM bundle, the <code>emnapi</code> runtime will spawn 4 threads (<em>this is the meaning of the compilation option</em>) that will use <code>SharedArrayBuffer</code>s to communicate with the WASM code in the main thread. When calling an asynchronous method, a WASM stub in the main thread will queue its arguments to be executed by a worker from the pool. All C++/WASM objects live in a <code>SharedArrayBuffer</code> accessible to all threads. This mimics the Node.js asynchronous model. The use of <code>SharedArrayBuffer</code> imposes the requirement that the web server hosting the web page supports <a href="https://web.dev/articles/coop-coep">COOP/COEP</a>. Trying to load a WASM bundle compiled for COOP/COEP from a web server that does not enable it, will fail. Currently there is no built-in mechanism to enable automatic fallback to a non-COOP/COEP build as this build won't have the same API.</p>
+
+<p>If COOP/COEP is not an option, currently there are only two options:</p>
+<ul>
+  <li><p>Accept that C++/WASM methods will cause main thread latency and call everything synchronously - which will work well only if all C++ methods execute very fast</p></li>
+  <li><p>Use <a href="https://github.com/GoogleChromeLabs/comlink">GoogleChromeLabs/comlink</a> to run the synchronous code in a worker - which will work well only if all C++ methods have long execution times since it will add significant overhead. Dpending on the API, this may require some form of custom serialization or proxying of the C++ objects</p></li>
+</ul>
+
+<p>If mixing both methods, it won't be possible to share C++/WASM objects between the main thread and the <code>comlink</code> worker as these will be stored in two separate <code>ArrayBuffer</code>s. in two separate isolates.</p>
+
+<p>In the future, there might be a third option for I/O heavy code that will run the WASM code in the main thread, but it will behave as JavaScript asynchronous code for I/O - using <code>Asyncify</code>.</p>
+
+<H3><a name="Javascript_WASM_differences">28.8.5 Incompatibilities between <code>node-addon-api</code> and <code>emnapi</code></a></H3>
 
 <p>There are some minor incompatibilities between the two platforms, mostly pertaining to the fact that WASM uses a separate heap from JavaScript which places additional restrictions on using <code>ArrayBuffer</code> objects. These cannot always be transparently shared between JavaScript and C++ and must be copied. This is not a problem for functions that expect an <code>ArrayBuffer</code> as argument or that return a new <code>ArrayBuffer</code> as a result - in these cases <code>emnapi</code> will automatically handle the copying. However functions that expect an <code>ArrayBuffer</code> argument and modify it, will need an additional step for these modifications to be copied back to the JavaScript copy.</p>
 
