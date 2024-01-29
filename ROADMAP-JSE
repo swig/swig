@@ -1,0 +1,8 @@
+Planned features (in current priority order):
+  * Full browser testing for the whole JavaScript test-suite with Chrome and Firefox
+  * Support C++ implicit casting
+  * Fully debug and include building w/o C++ exceptions to the unit-tested configurations
+  * WASI/WASM/clang support
+  * Fully transparent for the user WASM async support without COOP/COEP (will be limited to 1 async operation at a time)
+  * Modern testing harness for the JavaScript test-suite (chai?)
+  * Transforming Javadoc/Oxygen to JSDoc support
