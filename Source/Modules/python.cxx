@@ -4365,12 +4365,14 @@ public:
     Printf(clientdata, "&%s_clientdata", templ);
     SwigType_remember_mangleddata(pmname, clientdata);
 
-    SwigType *smart = Swig_cparse_smartptr(n);
+    SwigType *smart = Getattr(n, "smart");
     if (smart) {
-      SwigType_add_pointer(smart);
-      String *smart_pmname = SwigType_manglestr(smart);
+      SwigType *psmart = Copy(smart);
+      SwigType_add_pointer(psmart);
+      String *smart_pmname = SwigType_manglestr(psmart);
       SwigType_remember_mangleddata(smart_pmname, clientdata);
       Delete(smart_pmname);
+      Delete(psmart);
     }
 
     String *clientdata_klass = NewString("0");
@@ -4395,7 +4397,6 @@ public:
     Printv(f_init, "    d = md;\n", NIL);
 
     Delete(clientdata);
-    Delete(smart);
     Delete(sname);
     Delete(rname);
     Delete(mname);
@@ -4573,7 +4574,7 @@ public:
     if (shadow) {
       /* Generate a class registration function */
       // Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
-      SwigType *smart = Swig_cparse_smartptr(n);
+      SwigType *smart = Getattr(n, "smart");
       SwigType *ct = Copy(smart ? smart : real_classname);
       SwigType_add_pointer(ct);
       SwigType *realct = Copy(real_classname);
@@ -4595,7 +4596,6 @@ public:
 	add_method(cname, cname, 0, 0, 1, 1, 1);
 	Delete(cname);
       }
-      Delete(smart);
       Delete(ct);
       Delete(realct);
       if (!have_constructor) {

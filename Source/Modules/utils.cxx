@@ -122,67 +122,6 @@ void Swig_set_max_hash_expand(int count) {
   SetMaxHashExpand(count);
 }
 
-/* -----------------------------------------------------------------------------
- * misc_identifier_fix()
- *
- * If a template, return template with all template parameters fully resolved.
- *
- * This is a copy and modification of feature_identifier_fix and typemap_identifier_fix.
- * ----------------------------------------------------------------------------- */
-
-static SwigType *misc_identifier_fix(const SwigType *s) {
-  String *tp = SwigType_istemplate_templateprefix(s);
-  if (tp) {
-    String *ts, *ta, *tq, *tr;
-    ts = SwigType_templatesuffix(s);
-    ta = SwigType_templateargs(s);
-    tq = Swig_symbol_type_qualify(ta, 0);
-    tr = SwigType_typedef_resolve_all(ta);
-    Append(tp, tr);
-    Append(tp, ts);
-    Delete(ts);
-    Delete(ta);
-    Delete(tq);
-    Delete(tr);
-  }
-  return tp;
-}
-
-/* -----------------------------------------------------------------------------
- * Swig_smartptr_upcast()
- *
- * Replace classname with baseclassname in smart (smart pointer) to morph smart into a
- * smart pointer containing the base class instead of the given classname.
- * All parameters should be fully qualified types.
- * ----------------------------------------------------------------------------- */
-
-SwigType *Swig_smartptr_upcast(SwigType *smart, SwigType *classname, SwigType *baseclassname) {
-  SwigType *bsmart = Copy(smart);
-
-  SwigType *rclassname = SwigType_typedef_resolve_all(classname);
-  SwigType *rbaseclassname = SwigType_typedef_resolve_all(baseclassname);
-
-  int replace_count = Replaceall(bsmart, rclassname, rbaseclassname);
-  if (replace_count == 0) {
-    // If no replacement made, it will be because rclassname is fully resolved, but the
-    // type in the smartptr feature used a typedef or is not a fully resolved name.
-    replace_count = Replaceall(bsmart, classname, rbaseclassname);
-    if (replace_count == 0) {
-      // Next try with all the template parameters in the smartptr resolved
-      Delete(bsmart);
-      SwigType *bsmart = misc_identifier_fix(smart);
-      if (bsmart) {
-	replace_count = Replaceall(bsmart, rclassname, rbaseclassname);
-      }
-      assert(replace_count); // failed to substitute
-    }
-  }
-
-  Delete(rbaseclassname);
-  Delete(rclassname);
-  return bsmart;
-}
-
 
 extern "C" {
 

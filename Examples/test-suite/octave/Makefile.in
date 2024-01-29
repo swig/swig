@@ -26,6 +26,7 @@ CPP_TEST_CASES += \
 
 CPP11_TEST_CASES += \
 	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_crtp_upcast \
 	cpp11_shared_ptr_nullptr_in_containers \
 	cpp11_shared_ptr_overload \
 	cpp11_shared_ptr_upcast \

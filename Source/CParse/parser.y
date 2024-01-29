@@ -321,7 +321,14 @@ Hash *Swig_cparse_features(void) {
   return features_hash;
 }
 
-/* Fully qualify any template parameters */
+/* -----------------------------------------------------------------------------
+ * feature_identifier_fix()
+ *
+ * If a template, return template with all template parameters fully resolved.
+ *
+ * This is a copy and modification of typemap_identifier_fix.
+ * ----------------------------------------------------------------------------- */
+
 static String *feature_identifier_fix(String *s) {
   String *tp = SwigType_istemplate_templateprefix(s);
   if (tp) {
