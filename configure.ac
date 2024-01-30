@@ -1405,17 +1405,19 @@ fi
 AC_SUBST(EMSDK)
 
 #----------------------------------------------------------------
-# Look for emnapi (EMNAPIDIR)
+# Look for emnapi (EMNAPI_DIR)
 #----------------------------------------------------------------
 
 AC_MSG_CHECKING(for emnapi)
-if test -r "${NODENPM_PREFIX}/lib/node_modules/emnapi/include/emnapi.h" ; then
-  EMNAPI_DIR="${NODENPM_PREFIX}/lib/node_modules/emnapi"
-  AC_MSG_RESULT(found in $EMNAPI_DIR)
+EMNAPI_DIR="${NODENPM_PREFIX}/lib/node_modules/emnapi"
+EMNAPI_INC_DIR=$(EMNAPI_DIR=${EMNAPI_DIR} ${NODEJS} -e 'try { console.log(require(process.env.EMNAPI_DIR).include); } catch {}')
+if test -r "${EMNAPI_INC_DIR}/emnapi.h" ; then
+  AC_MSG_RESULT([found in ${EMNAPI_DIR}, emnapi.h found in ${EMNAPI_INC_DIR}])
 else
   AC_MSG_RESULT(not found)
 fi
 AC_SUBST(EMNAPI_DIR)
+AC_SUBST(EMNAPI_INC_DIR)
 
 #----------------------------------------------------------------
 # Look for Lua

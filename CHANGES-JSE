@@ -4,6 +4,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
+Version 5.0.1
+===========================
+
+2024-01-30: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#20](https://github.com/mmomtchev/swig/issues/20),
+            Fix the `emnapi` breaking changes related to my affair
+
+
 Version 5.0.0 (29 Jan 2024)
 ===========================
 
