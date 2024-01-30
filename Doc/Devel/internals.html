@@ -555,7 +555,7 @@ manipulate datatypes.
 <li><tt>SwigType_str(SwigType *t, char *name)</tt>.<br>
  This function produces the exact string 
 representation of the datatype <tt>t</tt>.  <tt>name</tt> is an optional parameter that 
-specifies a declaration name.   This is used when dealing with more complicated datatypes
+specifies a declaration name and can be <tt>NULL</tt>.  This is used when dealing with more complicated datatypes
 such as arrays and pointers to functions where the output might look something like
 "<tt>int (*name)(int, double)</tt>".
 
