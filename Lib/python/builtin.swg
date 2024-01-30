@@ -540,8 +540,10 @@ SwigPyBuiltin_ternaryfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, Py
   assert(tuple);
   Py_INCREF(b);
   PyTuple_SET_ITEM(tuple, 0, b);
-  Py_INCREF(c);
-  PyTuple_SET_ITEM(tuple, 1, c);
+  if (c) {
+    Py_INCREF(c);
+    PyTuple_SET_ITEM(tuple, 1, c);
+  }
   result = wrapper(a, tuple);
   Py_DECREF(tuple);
   return result;
