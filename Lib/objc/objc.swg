@@ -13,6 +13,67 @@
  * IMTYPE TYPEMAPS: Represents the ObjectiveC++ type corresponding to each C++ type. 
  */
  
+%typemap(objctype)  int[ANY]        "NSArray<NSNumber *> *"
+%typemap(objcin)    int[ANY]        "$objcinput"
+%typemap(objcout)   int[ANY]        %{ return $imcall; %}
+%typemap(imtype)    int[ANY]        "NSArray<NSNumber *> *"
+%typemap(out)       int[ANY]        (NSMutableArray<NSNumber *> *temp) %{
+    $result = nil;
+    if ($1) {
+        const unsigned int sz = $1_dim0;
+        temp = [NSMutableArray<NSNumber *> arrayWithCapacity:sz];
+        for (int i = 0; i < sz; i ++) {
+            [temp addObject:@($1[i])];
+        }
+        $result = temp;
+    }
+%}
+%typemap(arginit)   int[ANY]                                %{
+    $1 = NULL;
+%}
+%apply int[ANY] { const int[ANY],
+    unsigned int[ANY], const unsigned int[ANY],
+    short[ANY], const short[ANY],
+    unsigned short[ANY], const unsigned short[ANY],
+    long[ANY], const long[ANY],
+    unsigned long[ANY], const unsigned long[ANY],
+    long long[ANY], const long long[ANY],
+    unsigned long long[ANY], const unsigned long long[ANY],
+    float[ANY], const float[ANY],
+    double[ANY], const double[ANY]
+};
+%typemap(in)        int[ANY], const int[ANY],
+                    short[ANY], const short[ANY],
+                    long[ANY], const long[ANY],
+                    float[ANY], const float[ANY],
+                    double[ANY], const double[ANY]      %{
+    const NSUInteger sz = $1_dim0;
+    if (sz != $input.count) {
+        ;// throw exception
+    }
+    $*1_ltype cArray[sz] = {0};
+    if (sz != 0) {
+        for (NSUInteger i = 0; i < sz; i ++) {
+            cArray[i] = [$input[i] $*1_ltypeValue];
+        }
+        $1 = cArray;
+    }
+%}
+%typemap(in)        long long[ANY], const long long[ANY]        %{
+    const NSUInteger sz = $1_dim0;
+    if (sz != $input.count) {
+        ;// throw exception
+    }
+    $*1_ltype cArray[sz] = {0};
+    if (sz != 0) {
+        for (NSUInteger i = 0; i < sz; i ++) {
+            cArray[i] = [$input[i] longLongValue];
+        }
+        $1 = cArray;
+    }
+%}
+
+ 
 // Primary types: ObjectiveC++ understands C primary types.
 %typemap(imtype) char               "char"
 %typemap(imtype) signed char        "signed char"

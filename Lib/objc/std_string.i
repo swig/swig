@@ -81,3 +81,47 @@ class string;
     return $imcall;
   }
 }
+
+
+//C strings: replace swig default conversion from `NSString *' to C string
+%typemap(in) char *, char[ANY], char[]  {
+    $1 = 0;
+    if ($input) {
+        $1 = ($1_ltype)[$input UTF8String];
+    }
+}
+
+// wchar_t
+%wrapper %{
+    
+static inline NSString *getNSString(const wchar_t *wstr) {
+    if (wstr) {
+        return [[[NSString alloc] initWithBytes:wstr length:wcslen(wstr)*sizeof(wchar_t) encoding:WCHAR_ENCODING] autorelease];
+    } else {
+        return nil;
+    }
+}
+
+static inline NSString *getNSString(const char *str) {
+    return str ? [NSString stringWithUTF8String:str] : nil;
+}
+
+    
+%}
+
+%typemap(objctype)  wchar_t                 "wchar_t"
+%typemap(imtype)    wchar_t                 "wchar_t"
+%typemap(objcin)    wchar_t                 "$objcinput"
+%typemap(out)       wchar_t                 %{ $result = $1; %}
+%typemap(objcout)   wchar_t                 %{ return $imcall; %}
+
+%typemap(objctype)  const wchar_t *         "NSString *"
+%typemap(imtype)    const wchar_t *         "NSString *"
+%typemap(objcin)    const wchar_t *         "$objcinput"
+%typemap(arginit)   const wchar_t *         %{ $1 = NULL; %}
+%typemap(in)        const wchar_t *         (WString wstr) %{
+    wstr = NSSrting2WChar($input);
+    $1 = ($1_ltype)(wchar_t const*)wstr;
+%}
+%typemap(out)       const wchar_t *         %{ $result = getNSString($1); %}
+%typemap(objcout)   const wchar_t *         %{ return $imcall; %}
