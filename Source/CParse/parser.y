@@ -3169,10 +3169,13 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      if ($5.val && $5.type) {
 		/* store initializer type as it might be different to the declared type */
 		SwigType *valuetype = NewSwigType($5.type);
-		if (Len(valuetype) > 0)
-		  Setattr($$,"valuetype",valuetype);
-		else
+		if (Len(valuetype) > 0) {
+		  Setattr($$, "valuetype", valuetype);
+		} else {
+		  /* If we can't determine the initializer type use the declared type. */
+		  Setattr($$, "valuetype", $2);
 		  Delete(valuetype);
+		}
 	      }
 	      if (!$6) {
 		if (Len(scanner_ccode)) {
