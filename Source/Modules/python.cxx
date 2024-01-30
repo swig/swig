@@ -2834,9 +2834,9 @@ public:
     int noargs = funpack && (tuple_required == 0 && tuple_arguments == 0);
     int onearg = funpack && (tuple_required == 1 && tuple_arguments == 1);
 
-    if (builtin && funpack && !overname && !builtin_ctor) {
+    if (builtin && funpack && (tuple_required == tuple_arguments) && !overname && !builtin_ctor) {
       int compactdefargs = ParmList_is_compactdefargs(l);
-      if (!(compactdefargs && (tuple_arguments > tuple_required || varargs))) {
+      if (!compactdefargs) {
 	String *argattr = NewStringf("%d", tuple_arguments);
 	Setattr(n, "python:argcount", argattr);
 	Delete(argattr);
