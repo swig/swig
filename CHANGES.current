@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-01-31: jim-easterbrook
+            #2771 [Python] builtin fixes to handle NULL values passed to slots using
+            functype: ssizeobjargproc and ternaryfunc.
+
 2024-01-31: olly
 	    [java] #2766 Fix segfault trying to wrap a constant whose type is unknown
 	    to SWIG with "%javaconst(1);" enabled.
