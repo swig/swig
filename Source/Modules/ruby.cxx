@@ -1891,7 +1891,7 @@ public:
       SwigType *psmart = smart ? Copy(smart) : 0;
       if (psmart)
 	SwigType_add_pointer(psmart);
-      String *classtype = psmart ? psmart : t;
+      SwigType *classtype = psmart ? psmart : t;
       need_result = 1;
       Printf(f->code, "VALUE vresult = SWIG_NewClassInstance(self, SWIGTYPE%s);\n", Char(SwigType_manglestr(classtype)));
       Printf(f->code, "#ifndef HAVE_RB_DEFINE_ALLOC_FUNC\n");
@@ -2400,7 +2400,7 @@ public:
 	  SwigType_add_pointer(btype);
 	  SwigType_remember(btype);
 	  SwigType *smart = Getattr(base.item, "smart");
-	  SwigType *psmart = smart ? Copy(psmart) : 0;
+	  SwigType *psmart = smart ? Copy(smart) : 0;
 	  if (psmart) {
 	    SwigType_add_pointer(psmart);
 	    SwigType_remember(psmart);
@@ -2517,7 +2517,8 @@ public:
     SwigType *tt = NewString(name);
     SwigType_add_pointer(tt);
     SwigType_remember(tt);
-    SwigType *psmart = Getattr(n, "smart");
+    SwigType *smart = Getattr(n, "smart");
+    SwigType *psmart = smart ? Copy(smart) : 0;
     if (psmart) {
       SwigType_add_pointer(psmart);
       SwigType_remember(psmart);
