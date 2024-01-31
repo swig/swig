@@ -3174,8 +3174,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		} else {
 		  /* If we can't determine the initializer type use the declared type. */
 		  Setattr($$, "valuetype", $2);
-		  Delete(valuetype);
 		}
+		Delete(valuetype);
 	      }
 	      if (!$6) {
 		if (Len(scanner_ccode)) {
