@@ -26,6 +26,11 @@
 #endif
 %}
 
+%inline %{
+static float _Complex CPLX_CONSTANT_ = 0;
+%}
+%constant CPLX_CONSTANT = CPLX_CONSTANT_;
+
 %inline
 {
   int has_c99_complex(void) {
