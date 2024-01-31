@@ -360,7 +360,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        progress: false
+        show-progress: false
         submodules: recursive
 
     - name: Install CCache
