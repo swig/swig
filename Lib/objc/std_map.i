@@ -55,6 +55,13 @@ namespace std {
                 std::map<K,T >::iterator i = self->find(key);
                 return i != self->end();
             }
+            const K& get_key(unsigned int idx) throw (std::out_of_range) {
+                for (std::map<K,T >::const_iterator i = self->begin(); i != self->end(); i++) {
+                    if (idx-- == 0)
+                        return i->first;
+                }
+                throw std::out_of_range("key index out of range");
+            }
         }
     };
 

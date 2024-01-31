@@ -53,6 +53,10 @@ static void SWIGUNUSED SWIG_ObjcThrowException(SWIG_ObjcExceptionCodes code, con
   const SWIG_ObjcExceptions_t *except_ptr = Objc_exceptions;
   while (except_ptr->code != code && except_ptr->code)
    except_ptr++;
+  
+  NSString* except_name = [NSString stringWithUTF8String:except_ptr->Objc_exception];
+  NSString* except_reason = [NSString stringWithUTF8String:msg];
+  [[[NSException alloc] initWithName:except_name reason:except_reason userInfo:nil] raise];
 }
 }
 

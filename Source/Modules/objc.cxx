@@ -19,7 +19,7 @@ private:
     File *f_directors_h;
 
     /* Strings temporarily holding the generated C++ code. */
-    //String *wrap_h_code;		// Code to be written in wrap_h.
+    String *wrap_h_code;		// Code to be written in wrap_h.
     String *wrap_mm_code;		// Code to be written in wrap_mm.
     String *proxy_h_code;		// Code to be written in proxy_h.
     String *proxy_mm_code;	// Code to be written in proxy_mm.
@@ -93,7 +93,7 @@ public:
     f_header(NULL),
     f_wrappers(NULL),
     f_init(NULL),
-    //wrap_h_code(NULL),
+    wrap_h_code(NULL),
     f_directors(NULL),
     f_directors_h(NULL),
     wrap_mm_code(NULL),
@@ -402,11 +402,11 @@ int OBJECTIVEC::top(Node *n) {
         
         Swig_banner(f_proxy_mm);
         Printf(f_proxy_mm, "#include \"%s_proxy.h\"\n", module);
-        Printf(f_proxy_mm, "#include \"%s_wrap.mm\"\n\n", module);
+        Printf(f_proxy_mm, "#include \"%s_wrap.h\"\n\n", module);
     }
     // Create strings for holding the generated code. These will be dumped
     // to the generated files at the end of the top function.
-    //wrap_h_code = NewString("");
+    wrap_h_code = NewString("");
     wrap_mm_code = NewString("");
     if (proxy_flag) {
         proxy_h_code = NewString("");
@@ -438,6 +438,7 @@ int OBJECTIVEC::top(Node *n) {
         Printf(f_directors, " * --------------------------------------------------- */\n\n");
         Printf(f_directors, "#include <objc/runtime.h>\n");
         Printf(f_directors, "#include \"%s_wrap.h\"\n\n", module);
+        Printf(f_directors, "#include \"%s_proxy.h\"\n\n", module);
     }
 
     
@@ -455,14 +456,16 @@ int OBJECTIVEC::top(Node *n) {
 
     // Copy director code
     if (Swig_directors_enabled()) {
+        Dump(f_directors_h, f_wrap_mm);
         Dump(f_directors, f_wrap_mm);
-        Dump(f_directors_h, f_wrap_h);
-
+        
         Delete(f_directors);
         f_directors = NULL;
         Delete(f_directors_h);
         f_directors_h = NULL;
     }
+    
+    Dump(wrap_h_code, f_wrap_h);
 
     Printf(f_wrap_mm, "\n#ifdef __cplusplus\n");
     Printf(f_wrap_mm, "extern \"C\" {\n");
@@ -586,6 +589,9 @@ int OBJECTIVEC::globalfunctionHandler(Node *n) {
 
 int OBJECTIVEC::memberfunctionHandler(Node *n) {
     String *symname = Getattr(n, "sym:name");
+    if (Swig_directorclass(n) && GetFlag(n, "explicitcall")) {
+        return SWIG_OK;
+    }
     proxyfuncname = symname;
     member_func_flag = true;
     Language::memberfunctionHandler(n);
@@ -707,6 +713,9 @@ int OBJECTIVEC::memberconstantHandler(Node *n) {
  * --------------------------------------------------------------------- */
 
 int OBJECTIVEC::constructorHandler(Node *n) {
+    if (Swig_directorclass(n)) {
+        return SWIG_OK;
+    }
     Language::constructorHandler(n);
     return SWIG_OK;
 }
@@ -729,6 +738,9 @@ int OBJECTIVEC::copyconstructorHandler(Node *n) {
  * --------------------------------------------------------------------- */
 
 int OBJECTIVEC::destructorHandler(Node *n) {
+    if (Swig_directorclass(n)) {
+        return SWIG_OK;
+    }
     Language::destructorHandler(n);
     String *symname = Getattr(n, "sym:name");
     Printv(destrcutor_call, Swig_name_wrapper(Swig_name_destroy(getNSpace(), symname)), "((void*)swigCPtr)", NIL);
@@ -781,7 +793,7 @@ int OBJECTIVEC::classHandler(Node *n) {
         proxy_class_name = NULL;
     }
 
-    emitDirectorExtraMethods(n);
+//    emitDirectorExtraMethods(n);
     
     return SWIG_OK;
 }
@@ -1001,7 +1013,7 @@ int OBJECTIVEC::constantWrapper(Node *n) {
         Printv(proxy_h_code, constants_h_code, NIL);
         Printv(proxy_mm_code, constants_mm_code, NIL);
     } else {			// write to the wrap files
-        //Printv(wrap_h_code, constants_h_code, NIL);
+        Printv(wrap_h_code, constants_h_code, NIL);
         Printv(wrap_mm_code, constants_mm_code, NIL);
     }
     
@@ -1076,7 +1088,7 @@ int OBJECTIVEC::functionWrapper(Node *n) {
     Printv(wrapper->def, ")", NIL);
     
     // Write the function declaration to the wrap_h
-    //Printv(wrap_h_code, wrapper->def, ";\n", NIL);
+    Printv(wrap_h_code, wrapper->def, ";\n", NIL);
     
     // Now write the function definition to the wrap_cpp
     Printv(wrapper->def, "\n{", NIL);
@@ -1410,6 +1422,7 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
     Swig_typemap_attach_parms("in", parmlist, NULL);
     Swig_typemap_attach_parms("objctype", parmlist, NULL);
     Swig_typemap_attach_parms("objcin", parmlist, NULL);
+    Swig_typemap_attach_parms("objccbin", parmlist, NULL);
     
     Parm *p;
     int i = 0;
@@ -1418,12 +1431,29 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
     for (p = parmlist; p; p = nextSibling(p), i++) {
         p = skipIgnoredArgs(p);
         SwigType *pt = Getattr(p, "type");
+        
         String *objcparmtype = NewString("");
+        
+        String *class_name = SwigType_base(pt);
+        Symtab *tab = Swig_symbol_getscope(class_name);
+        
+        bool feature_director = false;
+        if (tab) {
+            Node *n = Swig_symbol_clookup_local(class_name, tab);
+            feature_director = Swig_directorclass(n);
+        }
         
         // Get the ObjectiveC parameter type for this parameter
         if ((tm = Getattr(p, "tmap:objctype"))) {
             substituteClassname(tm, pt);
-            Printf(objcparmtype, "%s", tm);
+            
+            if (feature_director){
+                String *f_tm = NewString("$objcclassname");
+                substituteClassname(f_tm, pt);
+                Printf(objcparmtype, "id<%s>", f_tm);
+            }else{
+                Printf(objcparmtype, "%s", tm);
+            }
         } else {
             Swig_warning(WARN_OBJC_TYPEMAP_OBJCTYPE_UNDEF, input_file, line_number, "No objctype typemap defined for %s\n", SwigType_str(pt, 0));
         }
@@ -1433,12 +1463,19 @@ void OBJECTIVEC::emitProxyClassFunction(Node *n) {
         
         String *arg = makeParameterName(n, p, i, setter_flag);
         
-        // Use typemaps to transform type used in Objective-C proxy function to the one used in intermediate code.
-        if ((tm = Getattr(p, "tmap:objcin"))) {
+        String *objc_map = NewString("tmap:objcin");
+        if (feature_director) {
+            objc_map = NewString("tmap:objccbin");
+        }
+        if ((tm = Getattr(p, objc_map))){
             substituteClassname(tm, pt);
             Replaceall(tm, "$objcinput", arg);
-            Printv(imcall, tm, NIL);
-        } else {
+            if (feature_director) {
+                Printf(imcall, "(__bridge void *)%s", tm);
+            }else{
+                Printv(imcall, tm, NIL);
+            }
+        }else {
             Swig_warning(WARN_OBJC_TYPEMAP_OBJCIN_UNDEF, input_file, line_number, "No objcin typemap defined for %s\n", SwigType_str(pt, 0));
         }
         
@@ -1601,37 +1638,36 @@ void OBJECTIVEC::emitProxyClassConstructor(Node *n) {
 
     // Director connection
     Printv(directorconnect, "", NIL);
-    if (feature_director) {
-        Printf(directorconnect, "if (self) %s((void *)swigCPtr, self); ", Swig_name_wrapper("swigDirectorConnect"));
+    
+    if (!feature_director) {
+        // Insert the objcconstructor typemap
+        Hash *attributes = NewHash();
+        String *constructor_code = NewString("");
+        const String *construct_tm = typemapLookup(n, "objcconstructor", name, WARN_NONE, attributes);
+        if (construct_tm) {
+            Printv(constructor_code, construct_tm, NIL);
+            Replaceall(constructor_code, "$imcall", imcall);
+            Replaceall(constructor_code, "$directorconnect", directorconnect);
+        }
+        Printf(constructor_defn, " %s\n}\n", constructor_code);
+        
+        Delete(attributes);
+        Delete(constructor_code);
+        
+        // Write documentation
+        if (doxygen && doxygenTranslator->hasDocumentation(n)){
+            String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
+            if(comment_creation_chatter)
+                Printf(proxy_class_function_decls, "/* This was generated from emitProxyClassConstructor() */");
+            Printv(proxy_class_function_decls, Char(doxygen_comments), NIL);
+            Delete(doxygen_comments);
+        }
+        
+        /* Write the function declaration to the proxy_class_function_decls
+         and function definition to the proxy_class_function_defns */
+        Printv(proxy_class_function_decls, constructor_decl, "\n", NIL);
+        Printv(proxy_class_function_defns, constructor_defn, "\n", NIL);
     }
-    
-    // Insert the objcconstructor typemap
-    Hash *attributes = NewHash();
-    String *constructor_code = NewString("");
-    const String *construct_tm = typemapLookup(n, "objcconstructor", name, WARN_NONE, attributes);
-    if (construct_tm) {
-        Printv(constructor_code, construct_tm, NIL);
-        Replaceall(constructor_code, "$imcall", imcall);
-        Replaceall(constructor_code, "$directorconnect", directorconnect);
-    }
-    Printf(constructor_defn, " %s\n}\n", constructor_code);
-    
-    Delete(attributes);
-    Delete(constructor_code);
-    
-    // Write documentation
-    if (doxygen && doxygenTranslator->hasDocumentation(n)){
-        String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
-        if(comment_creation_chatter)
-            Printf(proxy_class_function_decls, "/* This was generated from emitProxyClassConstructor() */");
-        Printv(proxy_class_function_decls, Char(doxygen_comments), NIL);
-        Delete(doxygen_comments);
-    }
-    
-    /* Write the function declaration to the proxy_class_function_decls
-     and function definition to the proxy_class_function_defns */
-    Printv(proxy_class_function_decls, constructor_decl, "\n", NIL);
-    Printv(proxy_class_function_defns, constructor_defn, "\n", NIL);
     
     //Delete(paramstring);
     Delete(proxyfunctionname);
@@ -1740,11 +1776,6 @@ void OBJECTIVEC::emitProxyClass(Node *n) {
 
     // Director disconnection
     Printv(directordisconnect, "", NIL);
-    if (feature_director) {
-        Printf(directordisconnect, "%s((void *)swigCPtr);", Swig_name_wrapper("swigDirectorDisconnect"));
-    }
-
-
     
     if (tm && *Char(tm)) {
         if (!destructor_methodname) {
@@ -1782,6 +1813,7 @@ void OBJECTIVEC::emitProxyClass(Node *n) {
     /* Write the proxy class declaration */
     // Class modifiers.
     const String *objcinterfacemodifier = typemapLookup(n, "objcinterfacemodifier", typemap_lookup_type, WARN_OBJC_INTERFACE_MOD);
+    const String *objcprotocolsinterfacemodifier = typemapLookup(n, "objcprotocolsinterfacemodifier", typemap_lookup_type, WARN_OBJC_INTERFACE_MOD);
     
     // User-defined protocols.
     const String *protocols = typemapLookup(n, derived ? "objcprotocols_derived" : "objcprotocols", typemap_lookup_type, WARN_NONE);
@@ -1804,32 +1836,44 @@ void OBJECTIVEC::emitProxyClass(Node *n) {
         Delete(doxygen_comments);
     }
     
-    // the class interface
-    String *visibility = NewString("__attribute__ ((visibility(\"default\"))) ");
-    Printv(proxy_class_decl_code, proxy_class_decl_imports, proxy_class_enums_code, documentation, visibility,
-           objcinterfacemodifier, " $objcclassname",
-           (*Char(wanted_base) || *Char(protocols)) ? " : " : "", wanted_base,
-           (*Char(wanted_base) && *Char(protocols)) ? ", " : "", protocols,
-           objcinterfacecode, proxy_class_function_decls, destructor_decl, "\n", typemapLookup(n, "objcclassclose", typemap_lookup_type, WARN_NONE), "\n\n", NIL);
-    Delete(visibility);
+    // the interface
+    if (feature_director) {
+        // protocol
+        String *protocol = NewString("");
+        Printf(protocol, " <%s> ", wanted_base);
+        Printv(proxy_class_decl_code, proxy_class_decl_imports, proxy_class_enums_code, documentation,
+               objcprotocolsinterfacemodifier, " $objcclassname",protocol, "\n", proxy_class_function_decls, "\n", typemapLookup(n, "objcclassclose", typemap_lookup_type, WARN_NONE), "\n\n", NIL);
+    }else{
+        // class
+        String *visibility = NewString("__attribute__ ((visibility(\"default\"))) ");
+        Printv(proxy_class_decl_code, proxy_class_decl_imports, proxy_class_enums_code, documentation, visibility,
+               objcinterfacemodifier, " $objcclassname",
+               (*Char(wanted_base) || *Char(protocols)) ? " : " : "", wanted_base,
+               (*Char(wanted_base) && *Char(protocols)) ? ", " : "", protocols,
+               objcinterfacecode, proxy_class_function_decls, destructor_decl, "\n", typemapLookup(n, "objcclassclose", typemap_lookup_type, WARN_NONE), "\n\n", NIL);
+        Delete(visibility);
+    }
+    
     Delete(documentation);
     
     /* Write the proxy class definition */
     // Class modifiers.
-    const String *objccimplementationmodifier = typemapLookup(n, "objcimplementationmodifier", typemap_lookup_type, WARN_OBJC_IMPLEMENTATION_MOD);
-    
-    // Default implementationcode code
-    const String *objcimplementationcode;
-    if (derived) {
-        objcimplementationcode = typemapLookup(n, "objcimplementationcode_derived", typemap_lookup_type, WARN_NONE);
-    } else {
-        objcimplementationcode = typemapLookup(n, "objcimplementationcode", typemap_lookup_type, WARN_NONE);
+    if (!feature_director) {
+        const String *objccimplementationmodifier = typemapLookup(n, "objcimplementationmodifier", typemap_lookup_type, WARN_OBJC_IMPLEMENTATION_MOD);
+        
+        // Default implementationcode code
+        const String *objcimplementationcode;
+        if (derived) {
+            objcimplementationcode = typemapLookup(n, "objcimplementationcode_derived", typemap_lookup_type, WARN_NONE);
+        } else {
+            objcimplementationcode = typemapLookup(n, "objcimplementationcode", typemap_lookup_type, WARN_NONE);
+        }
+        
+        // the class implementation
+        Printv(proxy_class_defn_code, "\n", proxy_class_defn_imports, objccimplementationmodifier, " $objcclassname", objcimplementationcode, "\n",
+               proxy_class_function_defns, destructor_defn, "\n", typemapLookup(n, "objcclassclose", typemap_lookup_type, WARN_NONE), "\n\n", NIL);
     }
-    
-    // the class implementation
-    Printv(proxy_class_defn_code, "\n", proxy_class_defn_imports, objccimplementationmodifier, " $objcclassname", objcimplementationcode, "\n",
-           proxy_class_function_defns, destructor_defn, "\n", typemapLookup(n, "objcclassclose", typemap_lookup_type, WARN_NONE), "\n\n", NIL);
-    
+
     Replaceall(proxy_class_decl_code, "$objcbaseclass", proxy_class_name);
     Replaceall(proxy_class_defn_code, "$objcbaseclass", proxy_class_name);
     
@@ -2393,43 +2437,17 @@ int OBJECTIVEC::classDirectorMethod(Node *n, Node *parent, String *super) {
         }
 
         /* Preamble code */
-        Printf(w->code, "::id swigjobj = swig_get_self();\n");
-        Printf(w->code, "BOOL swigmethodoverridden = NO;\n");
+        Printf(w->code, "id<%s> swigjobj = swig_get_self();\n", classname);
+        Printf(w->code, "BOOL respondsTo = NO;\n");
         Printf(w->code, "if (swigjobj) {\n");
-        Printf(w->code, "  swigmethodoverridden = [swigjobj methodForSelector:@selector(%s)] != [%s instanceMethodForSelector:@selector(%s)];\n", method_signature, classname, method_signature);
+        Printf(w->code, "  respondsTo = [swigjobj respondsToSelector:@selector(%s)];\n", method_signature);
         Printf(w->code, "}\n");
-        Printf(w->code, "if (!swigmethodoverridden) {\n");
 
         Delete(method_signature);
     }
 
-    if (!pure_virtual) {
-        String *super_call = Swig_method_call(super, l);
-        if (is_void) {
-            Printf(w->code, "%s;\n", super_call);
-            if (!ignored_method)
-                Printf(w->code, "return;\n");
-        }
-        else {
-            Printf(w->code, "return %s;\n", super_call);
-        }
-        Delete(super_call);
-    }
-    else {
-        Printf(w->code, "SWIG_ObjcThrowException(SWIG_ObjcDirectorPureVirtual, ");
-        Printf(w->code, "\"Attempted to invoke pure virtual method %s::%s.\");\n", SwigType_namestr(c_classname), SwigType_namestr(name));
-
-        /* Make sure that we return something in the case of a pure
-        * virtual method call for syntactical reasons. */
-        if (!is_void)
-            Printf(w->code, "return %s;", qualified_return);
-        else if (!ignored_method)
-            Printf(w->code, "return;\n");
-    }
-
     if (!ignored_method) {
-        Printf(w->code, "}\n");
-        Printf(w->code, "if (swigjobj) {\n");
+        Printf(w->code, "if (respondsTo) {\n");
     }
 
     /* Go through argument list, convert from native to Objc */
@@ -2714,9 +2732,10 @@ void OBJECTIVEC::emitDirectorExtraMethods(Node *n) {
 
     // Output the director connect method:
     String *norm_name = SwigType_namestr(Getattr(n, "name"));
-    String *swig_director_connect = Swig_name_wrapper("swigDirectorConnect");
-    String *swig_director_disconnect = Swig_name_wrapper("swigDirectorDisconnect");
     String *sym_name = Getattr(n, "sym:name");
+    String *swig_director_connect = Swig_name_wrapper(NewStringf("%s_swigDirectorConnect", sym_name));
+    String *swig_director_disconnect = Swig_name_wrapper(NewStringf("%s_wigDirectorDisconnect", sym_name));
+    
     String *dirClassName = directorClassName(n);
     String *smartptr = Getattr(n, "feature:smartptr");
 

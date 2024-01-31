@@ -9,6 +9,11 @@ void Shape::move(double dx, double dy) {
   y += dy;
 }
 
+void Shape::move(int dx, int dy) {
+  x += dx;
+  y += dy;
+}
+
 int Shape::nshapes = 0;
 
 double Circle::area(void) {

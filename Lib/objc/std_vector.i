@@ -17,7 +17,7 @@ namespace std {
         typedef T value_type;
         typedef const value_type& const_reference;
         vector();
-        vector(size_type n);
+        //vector(size_type n);
         size_type size() const;
         size_type capacity() const;
         void reserve(size_type n);

@@ -17,14 +17,33 @@
 %{ temp = ($*1_ltype)$input; 
    $1 = &temp; %}
    
+%typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const enum SWIGTYPE &
+%{ static $*1_ltype temp = ($*1_ltype)$input; 
+   $result = &temp; %}
+
 %typemap(in) enum SWIGTYPE
 %{ $1 = ($1_ltype)$input; %}
+
+%typemap(directorout) enum SWIGTYPE
+%{ $result = ($1_ltype)$input; %}
+
+%typemap(objcdirectorout) enum SWIGTYPE "(int)($objccall)"
 
 %typemap(out)   const enum SWIGTYPE &  
 %{ $result = (int)*$1; %}
 
+%typemap(directorin) const enum SWIGTYPE &
+  "$input = (int)$1;"
+
+%typemap(objcdirectorin) const enum SWIGTYPE & "($objctype)($iminput)"
+
 %typemap(out)   enum SWIGTYPE  
 %{ $result = (int)$1; %}
+
+%typemap(directorin) enum SWIGTYPE
+  "$input = (int)$1;"
+
+%typemap(objcdirectorin) enum SWIGTYPE "($objctype)($iminput)"
 
 /* OBJCIN and OBJCOUT Typemaps */
 %typemap(objcin) const enum SWIGTYPE &              "(int)$objcinput"
