@@ -222,6 +222,9 @@ jobs:
           CPPSTD: c++11
           CSTD: gnu11
         - SWIGLANG: python
+          CPPSTD: c++98
+          CSTD: gnu99
+        - SWIGLANG: python
           CPPSTD: c++11
         - SWIGLANG: r
           CPPSTD: c++11
