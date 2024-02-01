@@ -1,6 +1,6 @@
 
 #import "example_proxy.h"
-@interface ObjCCallback: Callback
+@interface ObjCCallback: NSObjcet <OCCallback>
 - (id)init;
 - (void)run;
 @end
