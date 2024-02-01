@@ -131,6 +131,8 @@ SwigType *NewSwigType(int t) {
     return NewString("double");
   case T_LONGDOUBLE:
     return NewString("long double");
+  case T_FLTCPLX:
+    return NewString("float _Complex");
   case T_COMPLEX:
     return NewString("_Complex");
   case T_CHAR:

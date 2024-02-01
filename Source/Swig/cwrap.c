@@ -875,7 +875,7 @@ void Swig_replace_special_variables(Node *n, Node *parentnode, String *code) {
     String *parentclassname = 0;
     if (parentclass)
       parentclassname = Getattr(parentclass, "name");
-    Replaceall(code, "$parentclassname", parentclassname ? SwigType_str(parentclassname, "") : "");
+    Replaceall(code, "$parentclassname", parentclassname ? SwigType_str(parentclassname, NULL) : "");
   }
 }
 

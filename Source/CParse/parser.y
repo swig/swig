@@ -321,7 +321,14 @@ Hash *Swig_cparse_features(void) {
   return features_hash;
 }
 
-/* Fully qualify any template parameters */
+/* -----------------------------------------------------------------------------
+ * feature_identifier_fix()
+ *
+ * If a template, return template with all template parameters fully resolved.
+ *
+ * This is a copy and modification of typemap_identifier_fix.
+ * ----------------------------------------------------------------------------- */
+
 static String *feature_identifier_fix(String *s) {
   String *tp = SwigType_istemplate_templateprefix(s);
   if (tp) {
@@ -3162,10 +3169,13 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      if ($5.val && $5.type) {
 		/* store initializer type as it might be different to the declared type */
 		SwigType *valuetype = NewSwigType($5.type);
-		if (Len(valuetype) > 0)
-		  Setattr($$,"valuetype",valuetype);
-		else
-		  Delete(valuetype);
+		if (Len(valuetype) > 0) {
+		  Setattr($$, "valuetype", valuetype);
+		} else {
+		  /* If we can't determine the initializer type use the declared type. */
+		  Setattr($$, "valuetype", $2);
+		}
+		Delete(valuetype);
 	      }
 	      if (!$6) {
 		if (Len(scanner_ccode)) {
@@ -6882,7 +6892,15 @@ exprcompound   : expr PLUS expr {
 		 }
 		 $$.val = NewStringf("%s%s",qty,scanner_ccode);
 		 Clear(scanner_ccode);
+		 // Try to deduce the type - this could be a C++ "constructor
+		 // cast" such as `double(4)` or a function call such as
+		 // `some_func()`.  In the latter case we get T_USER, but that
+		 // is wrong so we map it to T_UNKNOWN until we can actually
+		 // deduce the return type of a function call (which is
+		 // complicated because the return type can vary between
+		 // overloaded forms).
 		 $$.type = SwigType_type(qty);
+		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
 		 Delete(qty);
                }
                ;

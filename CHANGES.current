@@ -7,6 +7,26 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-01-31: olly
+	    Fix assertion failure and segfault trying to use %constant to
+	    deduce the type of a "float _Complex" constant.
+
+2024-01-31: jim-easterbrook
+            #2771 [Python] builtin fixes to handle NULL values passed to slots using
+            functype: ssizeobjargproc and ternaryfunc.
+
+2024-01-31: olly
+	    [java] #2766 Fix segfault trying to wrap a constant whose type is unknown
+	    to SWIG with "%javaconst(1);" enabled.
+
+2024-01-31: wsfulton
+            #2768 Fix seg fault handling upcasting when using %shared_ptr on some
+            templates.
+
+2024-01-31: olly
+	    #2783 Fix incorrectly deduced type for function call.  Regression
+	    introduced in 4.2.0.
+
 2024-01-27: wsfulton
             [Python] Fix compilation error when wrapping two or more classes that
             have the same friend operator overload when the classes are in a namespace.
