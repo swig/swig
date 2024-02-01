@@ -19,8 +19,8 @@ int main(int argc, char* argv[]) {
 	NSLog(@"Adding and calling a normal C++ callback\n");
         NSLog(@"----------------------------------------\n");
 
-        Caller *caller=[[Caller alloc]init];
-	Callback *callback=[[Callback alloc]init];
+        OCCaller *caller=[[OCCaller alloc]init];
+    ObjCCallback *callback=[[ObjCCallback alloc]init];
 	[caller setCallback:callback];
 	[caller call];
 	[caller delCallback];
@@ -29,11 +29,6 @@ int main(int argc, char* argv[]) {
         NSLog(@"Adding and calling an ObjectiveC callback\n");
         NSLog(@"----------------------------------------\n");
     
-	Callback *objcallback=[[ObjCCallback alloc] init];
-	[caller setCallback:objcallback];
-	[caller call];
-	[caller delCallback];
-	
 	[caller release];
 	[pool drain];
 
