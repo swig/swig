@@ -114,9 +114,14 @@ check::equal(slightly_off_square(10), 102, "slightly_off_square(10)");
 
 check::equal(slightly_off_square(), 291, "slightly_off_square()");
 
-check::equal(Q::slightly_off_square(10), 102, "Q::slightly_off_square(10)");
+check::equal(Q::slightly_off_square_static(10), 102, "Q::slightly_off_square_static(10)");
 
-check::equal(Q::slightly_off_square(), 291, "Q::slightly_off_square()");
+check::equal(Q::slightly_off_square_static(), 291, "Q::slightly_off_square_static()");
+
+$q = new Q();
+check::equal($q->slightly_off_square(10), 102, "Q::slightly_off_square(10)");
+
+check::equal($q->slightly_off_square(), 291, "Q::slightly_off_square()");
 
 check::equal(chartest1(), "x", "chartest1()");
 

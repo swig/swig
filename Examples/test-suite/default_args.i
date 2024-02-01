@@ -324,7 +324,8 @@ struct ConstMethods {
 %inline %{
   inline int slightly_off_square(int square_error, int def17) { return def17*def17 + square_error; }
   struct Q {
-    static int slightly_off_square(int def17) { return def17*def17 + 2; }
+    static int slightly_off_square_static(int def17) { return def17*def17 + 2; }
+    int slightly_off_square(int def17) { return def17*def17 + 2; }
   };
 %}
 

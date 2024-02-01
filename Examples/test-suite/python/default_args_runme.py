@@ -148,11 +148,19 @@ def run(module_name):
     if default_args.slightly_off_square() != 291:
         raise RuntimeError
 
-    if default_args.Q.slightly_off_square(10) != 102:
+    if default_args.Q.slightly_off_square_static(10) != 102:
         raise RuntimeError
 
     # Regression test for https://github.com/swig/swig/issues/2786
-    if default_args.Q.slightly_off_square() != 291:
+    if default_args.Q.slightly_off_square_static() != 291:
+        raise RuntimeError
+
+    q = default_args.Q()
+    if q.slightly_off_square(10) != 102:
+        raise RuntimeError
+
+    # Regression test for https://github.com/swig/swig/issues/2786
+    if q.slightly_off_square() != 291:
         raise RuntimeError
 
     # It is difficult to test the python:cdefaultargs feature properly as -builtin
