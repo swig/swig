@@ -1,6 +1,7 @@
 /* File : example.i */
+
 %module(directors="1") example
-%rename("FS%s", %$isclass) "";
+%rename("OC%s", %$isclass) "";
 %{
 #include "example.h"
 %}
@@ -9,7 +10,11 @@
 
 /* turn on director wrapping Callback */
 %feature("director") Callback;
-%feature("director") CCallback;
+
+%typemap(in) Callback * ($1_type argp)
+%{ argp = new SwigDirector_OC$*1_type();
+   ((SwigDirector_OC$*1_type *)argp)->swig_connect_director((__bridge id)$input);
+   $1 = argp; %}
 
 %include "example.h"
 

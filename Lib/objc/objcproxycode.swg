@@ -28,24 +28,27 @@
  * ultimately responsible for deallocating the underlying object's memory.
  *
  */
-%typemap(objcconstructor) SWIGTYPE 
-%{	self = [self initWithCptr:$imcall swigOwnCObject:YES]; 
-	$directorconnect;
-	return self;
+%typemap(objcconstructor) SWIGTYPE %{
+    if((self = [super init])) {
+        BOOL overrided = [[self class].class instanceMethodForSelector:_cmd] != [$objcclassname instanceMethodForSelector:_cmd];
+        if ([NSStringFromClass([self class]) isEqualToString:@"$objcclassname"] || !overrided) {
+            void* cptr = $imcall;
+            swigCPtr = cptr;
+            swigCMemOwn = YES;
+        }
+    }
+    return self;
 %}
 
-%typemap(objcdestructor, methodname="dealloc", methodmodifiers="public") SWIGTYPE
-%{      if (swigCPtr != NULL) 
-	{
-		$directordisconnect;
-
-		if (swigCMemOwn) 
-		{
-			$imcall;
-			swigCMemOwn = NO;
-		}
-		swigCPtr = NULL;
-	} %}
+%typemap(objcdestructor, methodname="dealloc", methodmodifiers="public") SWIGTYPE %{
+  if (swigCPtr != NULL) {
+    if (swigCMemOwn) {
+        $imcall;
+        swigCMemOwn = NO;
+    }
+    swigCPtr = NULL;
+  }
+%}
 
 // Proxy interface and implementation (for C++ class with no base class)
 %typemap(objcinterfacecode) SWIGTYPE %{
@@ -70,6 +73,16 @@
 	self = [super init];
 	return self;
 }
+
+- (BOOL)isEqual:(id)object {
+    @try {
+        if ([NSStringFromClass([object class]) isEqualToString:@"$objcclassname"]) {
+            return [self getCptr] == [object getCptr];
+        }
+    } @catch (NSException *exception) {
+    }
+    return [super isEqual:object];
+}
 %}
 
 // Proxy interface and implementation (for C++ class with a base class)
@@ -89,6 +102,16 @@
 {
 	self = [super initWithCptr:cptr swigOwnCObject:ownCObject];
 	return self;
+}
+
+- (BOOL)isEqual:(id)object {
+    @try {
+        if ([NSStringFromClass([object class]) isEqualToString:@"$objcclassname"]) {
+            return [self getCptr] == [object getCptr];
+        }
+    } @catch (NSException *exception) {
+    }
+    return [super isEqual:object];
 }
 %}
 
@@ -125,5 +148,15 @@
 		swigCPtr = cptr;
 	}
 	return self;
+}
+
+- (BOOL)isEqual:(id)object {
+    @try {
+        if ([NSStringFromClass([object class]) isEqualToString:@"$objcclassname"]) {
+            return [self getCptr] == [object getCptr];
+        }
+    } @catch (NSException *exception) {
+    }
+    return [super isEqual:object];
 }
 %}
