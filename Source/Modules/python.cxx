@@ -4698,6 +4698,35 @@ public:
 	String *wname = Swig_name_wrapper(fullname);
 	Setattr(class_members, symname, n);
 	int argcount = Getattr(n, "python:argcount") ? atoi(Char(Getattr(n, "python:argcount"))) : 2;
+	if (argcount == 1) {
+	  // Check if the parameter has a default typemap applied.
+	  ParmList *plist = CopyParmList(Getattr(n, "parms"));
+	  Swig_typemap_attach_parms("default", plist, NULL);
+
+	  Parm *p;
+	  Parm *pnext;
+
+	  for (p = plist; p; p = pnext) {
+	    pnext = nextSibling(p);
+	    String *tm = Getattr(p, "tmap:in");
+	    if (tm) {
+	      Parm *in_next = Getattr(p, "tmap:in:next");
+	      if (in_next)
+		pnext = in_next;
+	      if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+		continue;
+	      }
+	    }
+
+	    if (Getattr(p, "tmap:default")) {
+	      // Set argcount to 2 to trigger use of METH_VARARGS below.
+	      argcount = 2;
+	    }
+	    break;
+	  }
+	  Delete(plist);
+	}
+
 	String *ds = have_docstring(n) ? cdocstring(n, AUTODOC_METHOD) : NewString("");
 	if (check_kwargs(n)) {
 	  // Cast via void(*)(void) to suppress GCC -Wcast-function-type

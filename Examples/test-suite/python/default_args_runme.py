@@ -148,6 +148,13 @@ def run(module_name):
     if default_args.slightly_off_square() != 291:
         raise RuntimeError
 
+    if default_args.Q.slightly_off_square(10) != 102:
+        raise RuntimeError
+
+    # Regression test for https://github.com/swig/swig/issues/2786
+    if default_args.Q.slightly_off_square() != 291:
+        raise RuntimeError
+
     # It is difficult to test the python:cdefaultargs feature properly as -builtin
     # and -fastproxy do not use the Python layer for default args
     if default_args.CDA().cdefaultargs_test1() != 1:
