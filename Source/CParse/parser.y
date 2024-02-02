@@ -3769,7 +3769,6 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   int errored_flag = 0;
 		   String *code;
 		   $$ = new_node("class");
-		   Setline($$,cparse_start_line);
 		   Setattr($$,"kind",$2);
 		   if ($5) {
 		     Setattr($$,"baselist", Getattr($5,"public"));
@@ -4014,7 +4013,6 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       String *code;
 	       unnamed = make_unnamed();
 	       $$ = new_node("class");
-	       Setline($$,cparse_start_line);
 	       Setattr($$,"kind",$2);
 	       if ($3) {
 		 Setattr($$,"baselist", Getattr($3,"public"));
