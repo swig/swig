@@ -256,7 +256,9 @@ static void DohString_append(DOH *so, const DOHString_or_char *str) {
 
 
 /* -----------------------------------------------------------------------------
- * String_clear() - Clear a string
+ * String_clear() - Clear string contents
+ *
+ * File and line numbering info left unmodified.
  * ----------------------------------------------------------------------------- */
 
 static void String_clear(DOH *so) {
@@ -265,7 +267,6 @@ static void String_clear(DOH *so) {
   s->len = 0;
   *(s->str) = 0;
   s->sp = 0;
-  s->line = 1;
 }
 
 /* -----------------------------------------------------------------------------
