@@ -1829,6 +1829,8 @@ int Language::typedefHandler(Node *n) {
    */
   SwigType *name = Getattr(n, "name");
   SwigType *decl = Getattr(n, "decl");
+  Setfile(name, Getfile(n));
+  Setline(name, Getline(n));
   if (!SwigType_ispointer(decl) && !SwigType_isreference(decl)) {
     SwigType *pname = Copy(name);
     SwigType_add_pointer(pname);
