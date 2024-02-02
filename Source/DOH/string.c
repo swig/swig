@@ -1163,7 +1163,7 @@ DOHString *DohNewString(const DOHString_or_char *so) {
   str = (String *) DohMalloc(sizeof(String));
   str->hashkey = hashkey;
   str->sp = 0;
-  str->line = 1;
+  str->line = 0;
   str->file = 0;
   max = INIT_MAXSIZE;
   if (s) {
@@ -1193,7 +1193,7 @@ DOHString *DohNewStringEmpty(void) {
   String *str = (String *) DohMalloc(sizeof(String));
   str->hashkey = 0;
   str->sp = 0;
-  str->line = 1;
+  str->line = 0;
   str->file = 0;
   str->str = (char *) DohMalloc(max);
   str->maxsize = max;
@@ -1219,7 +1219,7 @@ DOHString *DohNewStringWithSize(const DOHString_or_char *so, int len) {
   str = (String *) DohMalloc(sizeof(String));
   str->hashkey = -1;
   str->sp = 0;
-  str->line = 1;
+  str->line = 0;
   str->file = 0;
   max = INIT_MAXSIZE;
   if (s) {
