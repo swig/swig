@@ -212,7 +212,7 @@ public:
   virtual int addInterfaceSymbol(const String *interface_name, Node *n, const_String_or_char_ptr scope = "");
   virtual void dumpSymbols();
   virtual Node *symbolLookup(const String *s, const_String_or_char_ptr scope = ""); /* Symbol lookup */
-  virtual Hash* symbolAddScope(const_String_or_char_ptr scope);
+  virtual Hash* symbolAddScope(const_String_or_char_ptr scope/*, Node *n = 0*/);
   virtual Hash* symbolScopeLookup(const_String_or_char_ptr scope);
   virtual Hash* symbolScopePseudoSymbolLookup(const_String_or_char_ptr scope);
   static Node *classLookup(const SwigType *s); /* Class lookup      */
