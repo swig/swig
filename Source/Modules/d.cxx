@@ -347,7 +347,8 @@ public:
    * --------------------------------------------------------------------------- */
   virtual int top(Node *n) {
     // Get any options set in the module directive
-    Node *optionsnode = Getattr(Getattr(n, "module"), "options");
+    Node *module = Getattr(n, "module");
+    Node *optionsnode = Getattr(module, "options");
 
     if (optionsnode) {
       if (Getattr(optionsnode, "imdmodulename")) {
