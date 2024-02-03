@@ -1176,21 +1176,6 @@ public:
 	return SWIG_NOWRAP;
 
       String *nspace = Getattr(n, "sym:nspace"); // NSpace/getNSpace() only works during Language::enumDeclaration call
-      if (proxy_flag && !is_wrapping_class()) {
-	// Global enums / enums in a namespace
-	assert(!full_imclass_name);
-
-	if (!nspace) {
-	  full_imclass_name = NewStringf("%s", imclass_name);
-	} else {
-	  if (namespce) {
-	    full_imclass_name = NewStringf("%s.%s", namespce, imclass_name);
-	  } else {
-	    full_imclass_name = NewStringf("%s", imclass_name);
-	  }
-	}
-      }
-
       enum_code = NewString("");
       String *symname = Getattr(n, "sym:name");
       String *constants_code = (proxy_flag && is_wrapping_class())? proxy_class_constants_code : module_class_constants_code;
@@ -1243,8 +1228,28 @@ public:
 	  Printf(constants_code, "  // %s \n", symname);
       }
 
+      if (proxy_flag && !is_wrapping_class()) {
+	// Global enums / enums in a namespace
+	assert(!full_imclass_name);
+
+	if (!nspace) {
+	  full_imclass_name = NewStringf("%s", imclass_name);
+	} else {
+	  if (namespce) {
+	    full_imclass_name = NewStringf("%s.%s", namespce, imclass_name);
+	  } else {
+	    full_imclass_name = NewStringf("%s", imclass_name);
+	  }
+	}
+      }
+
       // Emit each enum item
       Language::enumDeclaration(n);
+
+      if (proxy_flag && !is_wrapping_class()) {
+	Delete(full_imclass_name);
+	full_imclass_name = 0;
+      }
 
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper C# enum
@@ -1297,11 +1302,6 @@ public:
 
       Delete(enum_code);
       enum_code = NULL;
-
-      if (proxy_flag && !is_wrapping_class()) {
-	Delete(full_imclass_name);
-	full_imclass_name = 0;
-      }
     }
     return SWIG_OK;
   }

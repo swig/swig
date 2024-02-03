@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-02-03: wsfulton
+            #1897 [C#, Java] Fix crash handling enums with same name in different
+            namespaces.
+
 2024-02-01: wsfulton
             #2781 Correctly report line number warnings/errors for base classes that
             are templates.
@@ -20,7 +24,7 @@ Version 4.2.1 (in progress)
             functype: ssizeobjargproc and ternaryfunc.
 
 2024-01-31: olly
-	    [java] #2766 Fix segfault trying to wrap a constant whose type is unknown
+	    [Java] #2766 Fix segfault trying to wrap a constant whose type is unknown
 	    to SWIG with "%javaconst(1);" enabled.
 
 2024-01-31: wsfulton
@@ -53,7 +57,7 @@ Version 4.2.1 (in progress)
             #2749 Fix seg fault handling friend constructor/destructor declarations.
 
 2024-01-12: olly
-	    [Ruby,Tcl] #2751 Fix -external-runtime output to define
+	    [Ruby, Tcl] #2751 Fix -external-runtime output to define
 	    SWIG_snprintf (bug introduced in 4.2.0).
 
 2024-01-12: olly
