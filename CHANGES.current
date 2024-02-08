@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-02-08: wsfulton
+            #2761 [Tcl] Fix assert in SWIG_Tcl_ConvertPtrFromString().
+
 2024-02-03: wsfulton
             #1897 [C#, Java] Fix crash handling enums with same name in different
             namespaces.
