@@ -451,6 +451,7 @@ CPP_TEST_CASES += \
 	template_const_ref \
 	template_construct \
 	template_templated_constructors \
+	template_templated_methods \
 	template_default \
 	template_default2 \
 	template_default_arg \
