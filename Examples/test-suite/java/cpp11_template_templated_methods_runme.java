@@ -1,11 +1,11 @@
 
-import template_templated_methods.*;
+import cpp11_template_templated_methods.*;
 
-public class template_templated_methods_runme {
+public class cpp11_template_templated_methods_runme {
 
   static {
     try {
-	System.loadLibrary("template_templated_methods");
+	System.loadLibrary("cpp11_template_templated_methods");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);
@@ -46,6 +46,30 @@ public class template_templated_methods_runme {
       oo = collection.get(1);
       if (oo.getNum() != 333)
         throw new RuntimeException("wrong finalval");
+    }
+    // emplace_back test
+    {
+      OctetVector ov = new OctetVector();
+      octet o = new octet(222);
+      ov.add(o);
+      SimpleContainer sc = new SimpleContainer(ov);
+      OctetResourceLimitedVector orlv = new OctetResourceLimitedVector();
+      octet final_octet = new octet(444);
+      orlv.emplace_back(final_octet);
+      orlv.emplace_back();
+      orlv.emplace_back(555);
+      OctetVector collection = orlv.getCollection();
+      if (collection.size() != 3)
+        throw new RuntimeException("wrong size");
+      octet oo = collection.get(0);
+      if (oo.getNum() != 444)
+        throw new RuntimeException("wrong value 0");
+      oo = collection.get(1);
+      if (oo.getNum() != 0)
+        throw new RuntimeException("wrong value 1");
+      oo = collection.get(2);
+      if (oo.getNum() != 555)
+        throw new RuntimeException("wrong value 2");
     }
   }
 }

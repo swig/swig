@@ -582,7 +582,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	    Node *tynode;
 	    String *tyname;
 
-	    assert(!SwigType_isvariadic(s)); /* All parameters should have already been expanded, this is for function that contain variadic parameters only, such as f(v.p.V) */
 	    SwigType_variadic_replace(s, unexpanded_variadic_parm, expanded_variadic_parms);
 
 	    /*
@@ -628,7 +627,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       sz = Len(typelist);
       for (i = 0; i < sz; i++) {
 	String *s = Getitem(typelist, i);
-	assert(!SwigType_isvariadic(s)); /* All parameters should have already been expanded, this is for function that contain variadic parameters only, such as f(v.p.V) */
 	SwigType_variadic_replace(s, unexpanded_variadic_parm, expanded_variadic_parms);
 	SwigType_typename_replace(s, tbase, name_with_templateargs);
       }

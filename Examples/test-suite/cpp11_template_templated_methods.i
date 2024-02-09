@@ -1,4 +1,12 @@
-%module template_templated_methods
+%module cpp11_template_templated_methods
+
+// Testing templated methods in a template
+// Including variadic templated method reported in https://github.com/swig/swig/issues/2794
+
+#if defined(SWIGLUA) || defined(SWIGOCAML)
+%rename(end_renamed) end;
+%rename(begin_renamed) begin;
+#endif
 
 %include <std_vector.i>
 
@@ -44,6 +52,13 @@ public:
         collection_.push_back(val);
     }
 
+    // Variadic templated method in template 
+    template<typename ... Args>
+    void emplace_back( Args&& ... args )
+    {
+        collection_.emplace_back(args ...);
+    }
+
     collection_type& getCollection() { return collection_; }
 
 private:
@@ -56,21 +71,20 @@ namespace rtps {
     octet(int i=0) : num(i) {}
   };
 }
-
 }
 }
 %}
 
-#include <iterator>
-
 class SimpleIterator {};
 
 %{
+#include <iterator>
+
 class SimpleIterator : public std::iterator<std::input_iterator_tag, eprosima::fastrtps::rtps::octet>
 {
   std::vector<eprosima::fastrtps::rtps::octet>::iterator it;
 public:
-  SimpleIterator() :it() {}
+  SimpleIterator() : it() {}
   SimpleIterator(std::vector<eprosima::fastrtps::rtps::octet>::iterator it) :it(it) {}
   SimpleIterator(const SimpleIterator& mit) : it(mit.it) {}
   SimpleIterator& operator++() {++it;return *this;}
@@ -90,9 +104,15 @@ struct SimpleContainer {
 };
 %}
 
+%apply const int & {int &&}; // for emplace_back
+
 %template(OctetVector) std::vector<eprosima::fastrtps::rtps::octet>;
 %template(OctetResourceLimitedVector) eprosima::fastrtps::ResourceLimitedVector<eprosima::fastrtps::rtps::octet>;
 %extend eprosima::fastrtps::ResourceLimitedVector<eprosima::fastrtps::rtps::octet> {
   %template(assign) assign<SimpleIterator>;
   %template(assign_and_append) assign_and_append<SimpleIterator>;
+  // emplace_back template parameters need to match those in the octet constructor
+  %template(emplace_back) emplace_back<>;
+  %template(emplace_back) emplace_back<int>;
+  %template(emplace_back) emplace_back<eprosima::fastrtps::rtps::octet>;
 }
