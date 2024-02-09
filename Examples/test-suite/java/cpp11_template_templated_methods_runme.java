@@ -71,5 +71,11 @@ public class cpp11_template_templated_methods_runme {
       if (oo.getNum() != 555)
         throw new RuntimeException("wrong value 2");
     }
+    // Variadic templated constructor in template
+    {
+      OctetResourceLimitedVector orlv = new OctetResourceLimitedVector(999);
+      octet o = new octet(888);
+      OctetResourceLimitedVector orlv2 = new OctetResourceLimitedVector(o);
+    }
   }
 }

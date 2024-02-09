@@ -52,11 +52,22 @@ public:
         collection_.push_back(val);
     }
 
-    // Variadic templated method in template 
+    // Variadic templated method in template
     template<typename ... Args>
     void emplace_back( Args&& ... args )
     {
         collection_.emplace_back(args ...);
+    }
+
+    // Variadic templated constructor in template
+    template<typename ... Args>
+    ResourceLimitedVector( Args&& ... args )
+    {
+        collection_.emplace_back(args ...);
+    }
+
+    ResourceLimitedVector()
+    {
     }
 
     collection_type& getCollection() { return collection_; }
@@ -115,4 +126,7 @@ struct SimpleContainer {
   %template(emplace_back) emplace_back<>;
   %template(emplace_back) emplace_back<int>;
   %template(emplace_back) emplace_back<eprosima::fastrtps::rtps::octet>;
+  // Variadic templated constructor in template
+  %template(ResourceLimitedVector) ResourceLimitedVector<int>;
+  %template(ResourceLimitedVector) ResourceLimitedVector<eprosima::fastrtps::rtps::octet>;
 }
