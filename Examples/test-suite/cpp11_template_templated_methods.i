@@ -91,13 +91,17 @@ class SimpleIterator {};
 %{
 #include <iterator>
 
-class SimpleIterator : public std::iterator<std::input_iterator_tag, eprosima::fastrtps::rtps::octet>
+class SimpleIterator
 {
   std::vector<eprosima::fastrtps::rtps::octet>::iterator it;
 public:
+  using iterator_category = std::forward_iterator_tag;
+  using value_type = eprosima::fastrtps::rtps::octet;
+  using difference_type = std::ptrdiff_t;
+  using pointer = eprosima::fastrtps::rtps::octet *;
+  using reference = eprosima::fastrtps::rtps::octet &;
   SimpleIterator() : it() {}
   SimpleIterator(std::vector<eprosima::fastrtps::rtps::octet>::iterator it) :it(it) {}
-  SimpleIterator(const SimpleIterator& mit) : it(mit.it) {}
   SimpleIterator& operator++() {++it;return *this;}
   SimpleIterator operator++(int) {SimpleIterator tmp(*this); operator++(); return tmp;}
   bool operator==(const SimpleIterator& rhs) const {return it==rhs.it;}
