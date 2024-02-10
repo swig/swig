@@ -106,7 +106,7 @@ public:
   SimpleIterator operator++(int) {SimpleIterator tmp(*this); operator++(); return tmp;}
   bool operator==(const SimpleIterator& rhs) const {return it==rhs.it;}
   bool operator!=(const SimpleIterator& rhs) const {return it!=rhs.it;}
-  eprosima::fastrtps::rtps::octet& operator*() {return *it;}
+  eprosima::fastrtps::rtps::octet& operator*() const {return *it;}
 };
 %}
 
