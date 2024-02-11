@@ -72,17 +72,17 @@
 #define WARN_PARSE_EXTEND_UNDEF       303
 /* Unused since 4.2.0: #define WARN_PARSE_UNSUPPORTED_VALUE  304 */
 #define WARN_PARSE_BAD_VALUE          305
-#define WARN_PARSE_PRIVATE            306
+/* Unused since 1.3.32: #define WARN_PARSE_PRIVATE            306 */
 /* Unused since 4.2.0: #define WARN_PARSE_BAD_DEFAULT        307 */
 #define WARN_PARSE_NAMESPACE_ALIAS    308
 #define WARN_PARSE_PRIVATE_INHERIT    309
-#define WARN_PARSE_TEMPLATE_REPEAT    310
-#define WARN_PARSE_TEMPLATE_PARTIAL   311
+/* Unused since 1.3.18: #define WARN_PARSE_TEMPLATE_REPEAT    310 */
+/* Unused since 1.3.18: #define WARN_PARSE_TEMPLATE_PARTIAL   311 */
 #define WARN_PARSE_UNNAMED_NESTED_CLASS 312
 #define WARN_PARSE_UNDEFINED_EXTERN   313
 #define WARN_PARSE_KEYWORD            314
 #define WARN_PARSE_USING_UNDEF        315
-#define WARN_PARSE_MODULE_REPEAT      316
+/* Unused since 1.3.18: #define WARN_PARSE_MODULE_REPEAT      316 */
 #define WARN_PARSE_TEMPLATE_SP_UNDEF  317
 #define WARN_PARSE_TEMPLATE_AMBIG     318
 #define WARN_PARSE_NO_ACCESS          319
@@ -98,9 +98,9 @@
 #define WARN_PARSE_USING_CONSTRUCTOR  329
 
 #define WARN_CPP11_LAMBDA             340
-#define WARN_CPP11_ALIAS_DECLARATION  341  /* redundant now */
-#define WARN_CPP11_ALIAS_TEMPLATE     342  /* redundant now */
-#define WARN_CPP11_VARIADIC_TEMPLATE  343  /* redundant now */
+/* Unused since 3.0.11: #define WARN_CPP11_ALIAS_DECLARATION  341 */
+/* Unused since 3.0.11: #define WARN_CPP11_ALIAS_TEMPLATE     342 */
+/* Unused since 4.2.0: #define WARN_CPP11_VARIADIC_TEMPLATE  343 */
 #define WARN_CPP11_DECLTYPE           344
 #define WARN_CPP14_AUTO               345
 #define WARN_CPP11_AUTO               346
@@ -164,9 +164,9 @@
 #define WARN_TYPE_REDEFINED           404
 #define WARN_TYPE_RVALUE_REF_QUALIFIER_IGNORED 405
 
-#define WARN_TYPEMAP_SOURCETARGET     450 /* No longer issued */
+/* Unused since 4.1.0: #define WARN_TYPEMAP_SOURCETARGET     450 */
 #define WARN_TYPEMAP_CHARLEAK         451
-#define WARN_TYPEMAP_SWIGTYPE         452 /* No longer issued */
+/* Unused since 1.3.32: #define WARN_TYPEMAP_SWIGTYPE         452 */
 #define WARN_TYPEMAP_APPLY_UNDEF      453
 #define WARN_TYPEMAP_SWIGTYPELEAK     454
 #define WARN_TYPEMAP_WCHARLEAK        455
