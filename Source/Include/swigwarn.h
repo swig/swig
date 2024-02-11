@@ -320,7 +320,7 @@
 
 #define WARN_PHP_MULTIPLE_INHERITANCE         870
 #define WARN_PHP_UNKNOWN_PRAGMA               871
-#define WARN_PHP_PUBLIC_BASE                  872
+/* Unused since 4.1.0: define WARN_PHP_PUBLIC_BASE                  872 */
 
 /* please leave 870-889 free for PHP */
 
