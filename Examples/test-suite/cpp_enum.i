@@ -60,7 +60,7 @@ typedef enum { PLAY = true, STOP = false } play_state;
 
 // Regression test for https://github.com/swig/swig/issues/2796
 // Skip for C# as this enum can't be wrapper as a C# proper enum.
-#if defined SWIGCSHARP
+#if defined SWIGCSHARP || defined SWIGD
 %ignore Enum2796;
 #endif
 %inline %{
