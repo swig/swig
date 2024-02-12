@@ -1123,8 +1123,13 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       :ptr(_ptr)
       {
         // Ensure type_id() is set correctly
+#if SWIG_OCTAVE_PREREQ(9,0,0)
+        if (s_t_id == -1) {
+          s_t_id = octave_swig_ref::static_type_id();
+#else
         if (t_id == -1) {
           t_id = octave_swig_ref::static_type_id();
+#endif
         }
       }
 
@@ -1254,8 +1259,12 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 #endif
       { return ptr->print(os, pr_as_read_syntax); }
 
-#if SWIG_OCTAVE_PREREQ(4,4,0)
+#if SWIG_OCTAVE_PREREQ(9,0,0)
+      static void set_type_id(int type_id) { s_t_id=type_id; }
+#else
+# if SWIG_OCTAVE_PREREQ(4,4,0)
       static void set_type_id(int type_id) { t_id=type_id; }
+# endif
 #endif
 
     virtual type_conv_info numeric_conversion_function(void) const {
@@ -1288,8 +1297,13 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       :	type(_type), buf((const char*)_buf, (const char*)_buf + _buf_len)
       {
         // Ensure type_id() is set correctly
+#if SWIG_OCTAVE_PREREQ(9,0,0)
+        if (s_t_id == -1) {
+          s_t_id = octave_swig_packed::static_type_id();
+#else
         if (t_id == -1) {
           t_id = octave_swig_packed::static_type_id();
+#endif
         }
       }
 
@@ -1369,8 +1383,12 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 # endif
 #endif
 
-#if SWIG_OCTAVE_PREREQ(4,4,0)
+#if SWIG_OCTAVE_PREREQ(9,0,0)
+    static void set_type_id(int type_id) { s_t_id=type_id; }
+#else
+# if SWIG_OCTAVE_PREREQ(4,4,0)
     static void set_type_id(int type_id) { t_id=type_id; }
+# endif
 #endif
 
   private:
