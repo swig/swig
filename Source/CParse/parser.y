@@ -6503,13 +6503,15 @@ edecl          :  identifier {
 
 etype            : expr {
                    $$ = $1;
+		   /* We get T_USER here for a typedef - unfortunately we can't
+		    * currently resolve typedefs at this stage of parsing. */
 		   if (($$.type != T_INT) && ($$.type != T_UINT) &&
 		       ($$.type != T_LONG) && ($$.type != T_ULONG) &&
 		       ($$.type != T_LONGLONG) && ($$.type != T_ULONGLONG) &&
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR) &&
 		       ($$.type != T_CHAR) && ($$.type != T_BOOL) &&
-		       ($$.type != T_UNKNOWN)) {
+		       ($$.type != T_UNKNOWN) && ($$.type != T_USER)) {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an integral type\n");
 		   }
                 }

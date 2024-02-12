@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-02-13: olly
+	    #2796 Fix handling of enum initialised by expression including a
+	    cast to a typedef-ed type.  Regression introduced in 4.2.0.
+
 2024-02-09: wsfulton
             #2794 Fix SwigType_isvariadic assertion to add support for variadic
             templated functions in a template.
