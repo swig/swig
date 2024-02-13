@@ -58,6 +58,11 @@
     decltype(~'x') should_be_int3;
 
     decltype(int(0)) should_be_int4;
+    decltype((int)0.0) should_be_int5;
+    decltype((6)-7) should_be_int6;
+    decltype((6)+7) should_be_int7;
+    decltype((6)*7) should_be_int8;
+    decltype((6)&7) should_be_int9;
 
     static constexpr decltype(*"abc") should_be_char = 0;
 

@@ -8,6 +8,11 @@ Version 4.2.1 (in progress)
 ===========================
 
 2024-02-13: olly
+	    Fix type deduction for certain cases involving C-style casts, or
+	    which are syntactically like a C-style cast applied to an unary
+	    operator, such as: (7)*6
+
+2024-02-13: olly
 	    #2796 Fix handling of enum initialised by expression including a
 	    cast to a typedef-ed type.  Regression introduced in 4.2.0.
 

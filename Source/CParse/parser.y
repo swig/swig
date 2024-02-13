@@ -1608,6 +1608,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String *val;
     String *rawval;
     int     type;
+    /* The type code for the argument when the top level operator is unary.
+     * This is useful because our grammar parses cases such as (7)*6 as a
+     * cast applied to an unary operator.
+     */
+    int	    unary_arg_type;
     String *qualifier;
     String *refqualifier;
     String *bitfield;
@@ -5263,7 +5268,8 @@ def_args       : EQUAL definetype {
 		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		 $$.val = NewString(scanner_ccode);
 		 $$.rawval = 0;
-                 $$.type = T_UNKNOWN;
+		 $$.type = T_UNKNOWN;
+		 $$.unary_arg_type = 0;
 		 $$.bitfield = 0;
 		 $$.throws = 0;
 		 $$.throwf = 0;
@@ -5284,6 +5290,7 @@ def_args       : EQUAL definetype {
                  $$.val = 0;
                  $$.rawval = 0;
                  $$.type = T_UNKNOWN;
+		 $$.unary_arg_type = 0;
 		 $$.bitfield = 0;
 		 $$.throws = 0;
 		 $$.throwf = 0;
@@ -6370,6 +6377,7 @@ deleted_definition : DELETE_KW {
 		  $$.val = NewString("delete");
 		  $$.rawval = 0;
 		  $$.type = T_STRING;
+		  $$.unary_arg_type = 0;
 		  $$.qualifier = 0;
 		  $$.refqualifier = 0;
 		  $$.bitfield = 0;
@@ -6385,6 +6393,7 @@ explicit_default : DEFAULT {
 		  $$.val = NewString("default");
 		  $$.rawval = 0;
 		  $$.type = T_STRING;
+		  $$.unary_arg_type = 0;
 		  $$.qualifier = 0;
 		  $$.refqualifier = 0;
 		  $$.bitfield = 0;
@@ -6524,6 +6533,7 @@ expr           : valexpr
 		 Node *n;
 		 $$.val = $1;
 		 $$.type = T_UNKNOWN;
+		 $$.unary_arg_type = 0;
 		 /* Check if value is in scope */
 		 n = Swig_symbol_clookup($1,0);
 		 if (n) {
@@ -6585,16 +6595,19 @@ exprsimple     : exprnum
                | string {
 		    $$.val = $1;
                     $$.type = T_STRING;
+		    $$.unary_arg_type = 0;
                }
                | SIZEOF LPAREN type parameter_declarator RPAREN {
 		  SwigType_push($3,$4.type);
 		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
 		  $$.type = T_ULONG;
+		  $$.unary_arg_type = 0;
                }
                | SIZEOF ELLIPSIS LPAREN type parameter_declarator RPAREN {
 		  SwigType_push($4,$5.type);
 		  $$.val = NewStringf("sizeof...(%s)",SwigType_str($4,0));
 		  $$.type = T_ULONG;
+		  $$.unary_arg_type = 0;
                }
 	       /* We don't support all valid expressions here currently - e.g.
 		* sizeof(<unaryop> x) doesn't work - but those are unlikely to
@@ -6605,7 +6618,8 @@ exprsimple     : exprnum
 		*/
 	       | SIZEOF LPAREN exprsimple RPAREN {
 		  $$.val = NewStringf("sizeof(%s)", $3.val);
-		 $$.type = T_ULONG;
+		  $$.type = T_ULONG;
+		  $$.unary_arg_type = 0;
 	       }
 	       /* `sizeof expr` without parentheses is valid for an expression,
 		* but not for a type.  This doesn't support `sizeof x` in
@@ -6614,11 +6628,13 @@ exprsimple     : exprnum
 	       | SIZEOF exprsimple {
 		  $$.val = NewStringf("sizeof(%s)", $2.val);
 		  $$.type = T_ULONG;
+		  $$.unary_arg_type = 0;
 	       }
 	       | wstring {
 		    $$.val = $1;
 		    $$.rawval = NewStringf("L\"%s\"", $$.val);
                     $$.type = T_WSTRING;
+		    $$.unary_arg_type = 0;
 	       }
                | CHARCONST {
 		  $$.val = NewString($1);
@@ -6628,6 +6644,7 @@ exprsimple     : exprnum
 		    $$.rawval = NewString("'\\0'");
 		  }
 		  $$.type = T_CHAR;
+		  $$.unary_arg_type = 0;
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
@@ -6642,6 +6659,7 @@ exprsimple     : exprnum
 		    $$.rawval = NewString("L'\\0'");
 		  }
 		  $$.type = T_WCHAR;
+		  $$.unary_arg_type = 0;
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
@@ -6666,7 +6684,9 @@ valexpr        : exprsimple
 /* A few common casting operations */
 
                | LPAREN expr RPAREN expr %prec CAST {
-                 $$ = $4;
+		 int cast_type_code = SwigType_type($2.val);
+		 $$ = $4;
+		 $$.unary_arg_type = 0;
 		 if ($4.type != T_STRING) {
 		   switch ($2.type) {
 		     case T_FLOAT:
@@ -6681,10 +6701,28 @@ valexpr        : exprsimple
 		       break;
 		   }
 		 }
-		 $$.type = promote($2.type, $4.type);
+		 /* As well as C-style casts, this grammar rule currently also
+		  * matches a binary operator with a LHS in parentheses for
+		  * binary operators which also have an unary form, e.g.:
+		  *
+		  * (6)*7
+		  * (6)&7
+		  * (6)+7
+		  * (6)-7
+		  */
+		 if (cast_type_code != T_USER && cast_type_code != T_UNKNOWN) {
+		   /* $2 is definitely a type so we know this is a cast. */
+		   $$.type = cast_type_code;
+		 } else if ($4.type == 0 || $4.unary_arg_type == 0) {
+		   /* Not one of the cases above, so we know this is a cast. */
+		   $$.type = cast_type_code;
+		 } else {
+		   $$.type = promote($2.type, $4.unary_arg_type);
+		 }
  	       }
                | LPAREN expr pointer RPAREN expr %prec CAST {
                  $$ = $5;
+		 $$.unary_arg_type = 0;
 		 if ($5.type != T_STRING) {
 		   SwigType_push($2.val,$3);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
@@ -6692,6 +6730,7 @@ valexpr        : exprsimple
  	       }
                | LPAREN expr AND RPAREN expr %prec CAST {
                  $$ = $5;
+		 $$.unary_arg_type = 0;
 		 if ($5.type != T_STRING) {
 		   SwigType_add_reference($2.val);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
@@ -6699,6 +6738,7 @@ valexpr        : exprsimple
  	       }
                | LPAREN expr LAND RPAREN expr %prec CAST {
                  $$ = $5;
+		 $$.unary_arg_type = 0;
 		 if ($5.type != T_STRING) {
 		   SwigType_add_rvalue_reference($2.val);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
@@ -6706,6 +6746,7 @@ valexpr        : exprsimple
  	       }
                | LPAREN expr pointer AND RPAREN expr %prec CAST {
                  $$ = $6;
+		 $$.unary_arg_type = 0;
 		 if ($6.type != T_STRING) {
 		   SwigType_push($2.val,$3);
 		   SwigType_add_reference($2.val);
@@ -6714,6 +6755,7 @@ valexpr        : exprsimple
  	       }
                | LPAREN expr pointer LAND RPAREN expr %prec CAST {
                  $$ = $6;
+		 $$.unary_arg_type = 0;
 		 if ($6.type != T_STRING) {
 		   SwigType_push($2.val,$3);
 		   SwigType_add_rvalue_reference($2.val);
@@ -6724,6 +6766,11 @@ valexpr        : exprsimple
 		 $$ = $2;
 		 $$.val = NewStringf("&%s", $2.val);
 		 $$.rawval = 0;
+		 /* Record the type code for expr so we can properly handle
+		  * cases such as (6)&7 which get parsed using this rule then
+		  * the rule for a C-style cast.
+		  */
+		 $$.unary_arg_type = $2.type;
 		 switch ($$.type) {
 		   case T_CHAR:
 		     $$.type = T_STRING;
@@ -6739,6 +6786,11 @@ valexpr        : exprsimple
 		 $$ = $2;
 		 $$.val = NewStringf("*%s", $2.val);
 		 $$.rawval = 0;
+		 /* Record the type code for expr so we can properly handle
+		  * cases such as (6)*7 which get parsed using this rule then
+		  * the rule for a C-style cast.
+		  */
+		 $$.unary_arg_type = $2.type;
 		 switch ($$.type) {
 		   case T_STRING:
 		     $$.type = T_CHAR;
@@ -6858,6 +6910,7 @@ exprcompound   : expr PLUS expr {
 		  * better than it deducing the wrong type).
 		  */
 		 $$.type = T_USER;
+		 $$.unary_arg_type = 0;
 	       }
 	       | expr QUESTIONMARK expr COLON expr %prec QUESTIONMARK {
 		 $$.val = NewStringf("%s?%s:%s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3), COMPOUND_EXPR_VAL($5));
@@ -6868,10 +6921,20 @@ exprcompound   : expr PLUS expr {
                | MINUS expr %prec UMINUS {
 		 $$.val = NewStringf("-%s",$2.val);
 		 $$.type = promote_type($2.type);
+		 /* Record the type code for expr so we can properly handle
+		  * cases such as (6)-7 which get parsed using this rule then
+		  * the rule for a C-style cast.
+		  */
+		 $$.unary_arg_type = $2.type;
 	       }
                | PLUS expr %prec UMINUS {
                  $$.val = NewStringf("+%s",$2.val);
 		 $$.type = promote_type($2.type);
+		 /* Record the type code for expr so we can properly handle
+		  * cases such as (6)+7 which get parsed using this rule then
+		  * the rule for a C-style cast.
+		  */
+		 $$.unary_arg_type = $2.type;
 	       }
                | NOT expr {
 		 $$.val = NewStringf("~%s",$2.val);
@@ -6901,6 +6964,7 @@ exprcompound   : expr PLUS expr {
 		 // overloaded forms).
 		 $$.type = SwigType_type(qty);
 		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
+		 $$.unary_arg_type = 0;
 		 Delete(qty);
                }
                ;

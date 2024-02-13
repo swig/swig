@@ -85,5 +85,9 @@ enum Enum2796
    CASE3A = (unknown_to_swig_type)10,
    CASE3B = unknown_to_swig_type(10),
    CASE3C = static_cast<unknown_to_swig_type>(10),
+   CASE4A = (5)*2,
+   CASE4B = (14)&11,
+   CASE4C = (3)+7,
+   CASE4D = (42)-32,
 };
 %}

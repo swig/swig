@@ -35,5 +35,9 @@ check::equal(CASE2C, 10);
 check::equal(CASE3A, 10);
 check::equal(CASE3B, 10);
 check::equal(CASE3C, 10);
+check::equal(CASE4A, 10);
+check::equal(CASE4B, 10);
+check::equal(CASE4C, 10);
+check::equal(CASE4D, 10);
 
 check::done();
