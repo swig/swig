@@ -110,6 +110,9 @@ jobs:
           VER: '5.3'
         - SWIGLANG: octave
           CPPSTD: c++11
+        - SWIGLANG: octave
+          os: ubuntu-22.04 # Octave 6.4.0
+          CPPSTD: c++11
         - SWIGLANG: perl5
         - SWIGLANG: php
           VER: '8.0'
