@@ -2045,15 +2045,20 @@ clear_directive : CLEAR tm_list SEMI {
 
 constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		 SwigType *type = NewSwigType($4.type);
-		 $$ = new_node("constant");
-		 Setattr($$, "name", $2);
-		 Setattr($$, "type", type);
-		 Setattr($$, "value", $4.val);
-		 if ($4.rawval) Setattr($$, "rawval", $4.rawval);
-		 Setattr($$, "storage", "%constant");
-		 SetFlag($$, "feature:immutable");
-		 add_symbols($$);
-		 Delete(type);
+		 if (Len(type) > 0) {
+		   $$ = new_node("constant");
+		   Setattr($$, "name", $2);
+		   Setattr($$, "type", type);
+		   Setattr($$, "value", $4.val);
+		   if ($4.rawval) Setattr($$, "rawval", $4.rawval);
+		   Setattr($$, "storage", "%constant");
+		   SetFlag($$, "feature:immutable");
+		   add_symbols($$);
+		   Delete(type);
+		 } else {
+		   Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE, cparse_file, cparse_line, "Unsupported constant value (ignored)\n");
+		   $$ = 0;
+		 }
 	       }
                | CONSTANT type declarator def_args SEMI {
 		 SwigType_push($2, $3.type);

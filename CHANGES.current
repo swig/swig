@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-02-14: olly
+	    SWIG now warns and ignores if %constant is used with an implicit
+	    type which SWIG can't deduce.
+
 2024-02-13: olly
 	    Fix type deduction for certain cases involving C-style casts, or
 	    which are syntactically like a C-style cast applied to an unary

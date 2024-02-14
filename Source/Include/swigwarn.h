@@ -70,7 +70,7 @@
 #define WARN_PARSE_CLASS_KEYWORD      301
 #define WARN_PARSE_REDEFINED          302
 #define WARN_PARSE_EXTEND_UNDEF       303
-/* Unused since 4.2.0: #define WARN_PARSE_UNSUPPORTED_VALUE  304 */
+#define WARN_PARSE_UNSUPPORTED_VALUE  304
 #define WARN_PARSE_BAD_VALUE          305
 /* Unused since 1.3.32: #define WARN_PARSE_PRIVATE            306 */
 /* Unused since 4.2.0: #define WARN_PARSE_BAD_DEFAULT        307 */

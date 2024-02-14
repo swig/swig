@@ -22,7 +22,7 @@
  * The warning filter is a string of numbers prefaced by (-) or (+) to
  * indicate whether or not a warning message is displayed.  For example:
  *
- *      "-301-201-140+210+201"
+ *      "-304-201-140+210+201"
  *
  * The filter string is scanned left to right and the first occurrence
  * of a warning number is used to determine printing behavior.
