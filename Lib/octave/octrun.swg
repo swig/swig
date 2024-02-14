@@ -402,7 +402,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
     static octave_value make_value_hack(const octave_base_value &x) {
+#if SWIG_OCTAVE_PREREQ(9,0,0)
+      ((octave_swig_type &) x).m_count++;
+#else
       ((octave_swig_type &) x).count++;
+#endif
       return octave_value((octave_base_value *) &x);
     }
 
@@ -427,7 +431,11 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
 
     ~octave_swig_type() {
       if (thisown) {
+#if SWIG_OCTAVE_PREREQ(9,0,0)
+	++m_count;
+#else
 	++count;
+#endif
 	for (unsigned int j = 0; j < types.size(); ++j) {
 	  if (!types[j].first || !types[j].first->clientdata)
 	    continue;
@@ -515,16 +523,28 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     }
 
     octave_value as_value() {
+#if SWIG_OCTAVE_PREREQ(9,0,0)
+      ++m_count;
+#else
       ++count;
+#endif
       return Swig::swig_value_ref(this);
     }
 
     void incref() {
+#if SWIG_OCTAVE_PREREQ(9,0,0)
+      ++m_count;
+#else
       ++count;
+#endif
     }
 
     void decref() {
+#if SWIG_OCTAVE_PREREQ(9,0,0)
+      if (!--m_count)
+#else
       if (!--count)
+#endif
 	delete this;
     }
 
