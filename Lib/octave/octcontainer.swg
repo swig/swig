@@ -66,7 +66,11 @@ namespace std {
     bool
     operator()(const octave_value& v, const octave_value& w) const
     { 
+%#if SWIG_OCTAVE_PREREQ(7,0,0)
+      octave_value res = octave::binary_op(octave_value::op_le,v,w);
+%#else
       octave_value res = do_binary_op(octave_value::op_le,v,w);
+%#endif
       return res.is_true();
     }
   };

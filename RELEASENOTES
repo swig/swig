@@ -9,6 +9,7 @@ published on the SWIG web site at https://swig.org/release.html.
 
 SWIG-4.2.1 summary:
 - Tcl 9.0 support.
+- Octave 9.0 support.
 
 SWIG-4.2.0 summary:
 - Various template wrapping improvements: template template parameters,
