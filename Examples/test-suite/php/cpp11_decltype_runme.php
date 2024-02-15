@@ -49,6 +49,7 @@ check::equal(gettype($b->should_be_int6), "integer");
 check::equal(gettype($b->should_be_int7), "integer");
 check::equal(gettype($b->should_be_int8), "integer");
 check::equal(gettype($b->should_be_int9), "integer");
+check::equal(gettype($b->should_be_int10), "integer");
 
 check::equal(gettype($b->should_be_bool), "boolean");
 

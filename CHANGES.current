@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-02-15: olly
+	    Improve type deduction for enum values in expressions.
+
 2024-02-15: rlaboiss
 	    #2799 [Octave] Add support for Octave 9.0; fix warnings about use
 	    of deprecated Octave APIs with Octave 7 and later.

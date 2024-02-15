@@ -6547,6 +6547,7 @@ expr           : valexpr
                      String *q = Swig_symbol_qualified(n);
                      if (q) {
                        $$.val = NewStringf("%s::%s", q, Getattr(n,"name"));
+		       $$.type = SwigType_type(Getattr(n, "type"));
                        Delete(q);
                      }
 		   } else {
