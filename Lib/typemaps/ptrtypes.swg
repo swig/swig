@@ -190,7 +190,6 @@
 %define %typemaps_asptrfrom(CheckCode, AsPtrMeth, FromMeth, AsPtrFrag, FromFrag, Type...)
   %typemaps_asptr(%arg(CheckCode), %arg(AsPtrMeth), %arg(AsPtrFrag), Type)
   %typemaps_from(%arg(FromMeth), %arg(FromFrag), Type);
-  %value_output_typemap(%arg(FromMeth), %arg(FromFrag), Type);
   %ptr_inout_typemap(Type);
 %enddef
 
