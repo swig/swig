@@ -7,6 +7,26 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-02-18: wsfulton
+            #2745 Fix for wrapping STL containers that are static member variables
+            or global variables (most scripting languages). Previously a copy of the
+            STL container was made into a target language container when reading the
+            variable. Changes, such as adjusting an element or adding/erasing
+            elements, were made to the copy of the container rather the actual
+            underlying C++ container. Also applies to const reference STL static
+            members.
+
+            If you really need the old behaviour, add in the typemap that provided
+            used to provide it. For example, for std::list< int > and
+            const std::list< int >&, use:
+
+              %typemap(varout,noblock=1,fragment="SWIG_" "Traits" "_" {std::list< int >})
+                  std::list< int >, const std::list< int >&  {
+                $result = swig::from(static_cast< std::list< int > >($1));
+              }
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2024-02-15: olly
 	    Improve type deduction for enum values in expressions.
 
