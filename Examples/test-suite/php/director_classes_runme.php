@@ -28,7 +28,7 @@ class PHPDerived extends Base {
     $rv = preg_replace('/Base/', 'PHPDerived', $rv);
     return $rv;
   }
-  function DefaultParms(int $x, float $y = 1.1) {
+  function DefaultParms(int $x, float $y = 1.125) {
     $rv = parent::DefaultParms($x, $y);
     $rv = preg_replace('/Base/', 'PHPDerived', $rv);
     return $rv;

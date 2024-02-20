@@ -20,7 +20,7 @@ namespace std {
 
     class string_view;
 
-    %typemap(typecheck,precedence=SWIG_TYPECHECK_STRINGVIEW) string_view, const string_view& %{
+    %typemap(typecheck,precedence=SWIG_TYPECHECK_STRINGVIEW) string_view, const string_view & %{
 #ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
         $1 = PyBytes_Check($input);
 #else
@@ -28,42 +28,40 @@ namespace std {
 #endif
     %}
 
-    %typemap(in) string_view {
-        Py_ssize_t len;
-%#ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
-        const char *p = PyBytes_AsString($input);
-        if (!p) SWIG_fail;
-        len = PyBytes_Size($input);
-%#else
-        const char *p;
-        if (PyUnicode_Check($input)) {
-          /* Note: The UTF-8 data is cached in the PyObject so remains valid
-           * for the call to C/C++. */
-          p = PyUnicode_AsUTF8AndSize($input, &len);
-          if (!p) SWIG_fail;
-        } else {
-          p = PyBytes_AsString($input);
-          if (!p) SWIG_fail;
-          len = PyBytes_Size($input);
-        }
-%#endif
-        $1 = std::string_view(p, len);
-    }
-
-    %typemap(in) const string_view& ($*1_ltype temp) {
+    %typemap(in) string_view (PyObject *bytes = NULL) %{
         Py_ssize_t len;
 #ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
         const char *p = PyBytes_AsString($input);
         if (!p) SWIG_fail;
         len = PyBytes_Size($input);
 #else
-        /* Note: The UTF-8 data is cached in the PyObject so remains valid for
-         * the call to C/C++. */
         const char *p;
         if (PyUnicode_Check($input)) {
-          p = PyUnicode_AsUTF8AndSize($input, &len);
-          /* Note: The UTF-8 data is cached in the PyObject so remains valid
-           * for the call to C/C++. */
+          p = SWIG_PyUnicode_AsUTF8AndSize($input, &len, &bytes);
+          if (!p) SWIG_fail;
+        } else {
+          p = PyBytes_AsString($input);
+          if (!p) SWIG_fail;
+          len = PyBytes_Size($input);
+        }
+#endif
+        $1 = std::string_view(p, len);
+    %}
+
+    %typemap(freearg) string_view %{
+        Py_XDECREF(bytes$argnum);
+    %}
+
+    %typemap(in) const string_view & ($*1_ltype temp, PyObject *bytes = NULL) %{
+        Py_ssize_t len;
+#ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
+        const char *p = PyBytes_AsString($input);
+        if (!p) SWIG_fail;
+        len = PyBytes_Size($input);
+#else
+        const char *p;
+        if (PyUnicode_Check($input)) {
+          p = SWIG_PyUnicode_AsUTF8AndSize($input, &len, &bytes);
           if (!p) SWIG_fail;
         } else {
           p = PyBytes_AsString($input);
@@ -73,19 +71,26 @@ namespace std {
 #endif
         temp = std::string_view(p, len);
         $1 = &temp;
-    }
+    %}
 
-    %typemap(directorout) string_view {
+    %typemap(freearg) const string_view & %{
+        Py_XDECREF(bytes$argnum);
+    %}
+
+    %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) string_view {
         Py_ssize_t len;
 %#ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
         const char *p = PyBytes_AsString($input);
         if (p) len = PyBytes_Size($input);
 %#else
         const char *p;
+        PyObject *bytes = NULL;
         if (PyUnicode_Check($input)) {
-          /* Note: The UTF-8 data is cached in the PyObject so remains valid for
-           * the call to C/C++. */
-          p = PyUnicode_AsUTF8AndSize($input, &len);
+          p = SWIG_PyUnicode_AsUTF8AndSize($input, &len, &bytes);
+          // Avoid undefined behaviour (p will be pointing to a temporary
+          // if bytes is not NULL which happens when Py_LIMITED_API is defined
+          // and < 0x030A0000) and just leak by not calling Py_XDECREF.
+          // Py_XDECREF(bytes);
         } else {
           p = PyBytes_AsString($input);
           if (p) len = PyBytes_Size($input);
@@ -93,6 +98,7 @@ namespace std {
 %#endif
         if (p) $result = std::string_view(p, len);
     }
+
 
     %typemap(out) string_view %{
 #ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
@@ -110,7 +116,7 @@ namespace std {
 #endif
     %}
 
-    %typemap(directorin) string_view, const string_view& %{
+    %typemap(directorin) string_view, const string_view & %{
 #ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
         $input = PyBytes_FromStringAndSize($1.data(), $1.size());
 #else
@@ -118,7 +124,7 @@ namespace std {
 #endif
     %}
 
-    %typemap(out) const string_view& %{
+    %typemap(out) const string_view & %{
 #ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
         $result = PyBytes_FromStringAndSize($1->data(), $1->size());
 #else

@@ -23,8 +23,8 @@
  * Base - FullyOverloaded(bool 1)
  * Base - SemiOverloaded(int -678)
  * Base - SemiOverloaded(bool 1)
- * Base - DefaultParms(10, 2.2)
- * Base - DefaultParms(10, 1.1)
+ * Base - DefaultParms(10, 2.25)
+ * Base - DefaultParms(10, 1.125)
  * --------------------------------
  * Derived - Val(444.555)
  * Derived - Ref(444.555)
@@ -34,8 +34,8 @@
  * Derived - FullyOverloaded(bool 1)
  * Derived - SemiOverloaded(int -678)
  * Base - SemiOverloaded(bool 1)
- * Derived - DefaultParms(10, 2.2)
- * Derived - DefaultParms(10, 1.1)
+ * Derived - DefaultParms(10, 2.25)
+ * Derived - DefaultParms(10, 1.125)
  * --------------------------------
  * DDerived - Val(444.555)
  * DDerived - Ref(444.555)
@@ -45,8 +45,8 @@
  * DDerived - FullyOverloaded(bool true)
  * DDerived - SemiOverloaded(-678)
  * Base - SemiOverloaded(bool 1)
- * DDerived - DefaultParms(10, 2.2)
- * DDerived - DefaultParms(10, 1.1)
+ * DDerived - DefaultParms(10, 2.25)
+ * DDerived - DefaultParms(10, 1.125)
  * ------------ Finish ------------
  */
 module director_classes_runme;
@@ -111,7 +111,7 @@ void makeCalls(Caller myCaller, Base myBase) {
   enforce(myCaller.SemiOverloadedCall(true) == "Base" ~ "::SemiOverloaded(bool)", "[7] failed");
 
   // Default parameters methods test
-  enforce(myCaller.DefaultParmsCall(10, 2.2) == myBaseType ~ "::DefaultParms(int, double)", "[8] failed");
+  enforce(myCaller.DefaultParmsCall(10, 2.25) == myBaseType ~ "::DefaultParms(int, double)", "[8] failed");
   if (myBase.classinfo == DDerived.classinfo) { // special handling for D derived classes, there is no other way to do this
     enforce(myCaller.DefaultParmsCall(10) == myBaseType ~ "::DefaultParms(int, double)", "[9] failed");
   } else {
@@ -173,6 +173,6 @@ public class DDerived : Base {
   // only here to ensure consistent behavior for calls from C++ and D code.
   public override string DefaultParms(int x) {
     if (PrintDebug) writefln("DDerived - DefaultParms(%s)", x);
-    return DefaultParms(x, 1.1/*use C++ default here*/);
+    return DefaultParms(x, 1.125/*use C++ default here*/);
   }
 }

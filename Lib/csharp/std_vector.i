@@ -364,16 +364,6 @@ namespace std {
 }
 %enddef
 
-// Legacy macros
-%define SWIG_STD_VECTOR_SPECIALIZE(CSTYPE, CTYPE...)
-#warning SWIG_STD_VECTOR_SPECIALIZE macro deprecated, please see csharp/std_vector.i and switch to SWIG_STD_VECTOR_ENHANCED
-SWIG_STD_VECTOR_ENHANCED(CTYPE)
-%enddef
-
-%define SWIG_STD_VECTOR_SPECIALIZE_MINIMUM(CSTYPE, CTYPE...)
-#warning SWIG_STD_VECTOR_SPECIALIZE_MINIMUM macro deprecated, it is no longer required
-%enddef
-
 %{
 #include <vector>
 #include <algorithm>

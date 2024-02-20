@@ -572,7 +572,7 @@ public:
       /* Printf(getf->code, "%s\n",tm); */
       addfail = emit_action_code(n, getf->code, tm);
       Printf(getf->code, "if (value) {\n");
-      Printf(getf->code, "Tcl_SetVar2(interp,name1,name2,Tcl_GetStringFromObj(value,NULL), flags);\n");
+      Printf(getf->code, "Tcl_SetVar2(interp,name1,name2,Tcl_GetString(value), flags);\n");
       Printf(getf->code, "Tcl_DecrRefCount(value);\n");
       Printf(getf->code, "}\n");
       Printf(getf->code, "return NULL;\n");

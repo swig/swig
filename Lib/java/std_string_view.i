@@ -113,7 +113,7 @@ class string_view;
    $1_str = $1_pstr;
    static $*1_ltype $1_strview;
    $1_strview = $1_str;
-   $result = &$1_str;
+   $result = &$1_strview;
    jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
 %typemap(directorin,descriptor="Ljava/lang/String;") const string_view &

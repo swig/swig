@@ -1140,7 +1140,7 @@ public:
     }
     if (swig_base) {
       Printf(f->code, "} else {\nPHP_MN(%s%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n", prefix, swig_base);
-    } else if (Getattr(class_node, "feature:php:allowdynamicproperties")) {
+    } else if (GetFlag(class_node, "feature:php:allowdynamicproperties")) {
       Printf(f->code, "} else {\nadd_property_zval_ex(ZEND_THIS, ZSTR_VAL(arg2), ZSTR_LEN(arg2), &args[1]);\n");
     }
     Printf(f->code, "}\n");
@@ -1865,7 +1865,7 @@ public:
     if (Getattr(n, "abstracts") && !GetFlag(n, "feature:notabstract")) {
       Printf(s_oinit, "  SWIG_Php_ce_%s->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;\n", class_name);
     }
-    if (Getattr(n, "feature:php:allowdynamicproperties")) {
+    if (GetFlag(n, "feature:php:allowdynamicproperties")) {
       Append(s_oinit, "#ifdef ZEND_ACC_ALLOW_DYNAMIC_PROPERTIES\n");
       Printf(s_oinit, "  SWIG_Php_ce_%s->ce_flags |= ZEND_ACC_ALLOW_DYNAMIC_PROPERTIES;\n", class_name);
       Append(s_oinit, "#endif\n");

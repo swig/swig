@@ -41,11 +41,11 @@ struct A
   { return (int)s.size(); }
 
 
-  virtual void process_text(const char *text)
+  virtual void process_text(const char *text) const
   {
   }
 
-  void call_process_func() { process_text("hello"); }
+  void call_process_func() const { process_text("hello"); }
 
 private:
   std::vector<std::string> m_strings;

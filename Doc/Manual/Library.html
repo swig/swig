@@ -1582,6 +1582,20 @@ bar("Hello World");       # Pass string as std::string_view
 </pre>
 </div>
 
+<p>
+For target languages for which SWIG supports directors, <tt>directorout</tt>
+typemaps are provided for <tt>std::string_view</tt>, but these require extra
+care to use safely.  The issue is that returning <tt>std::string_view</tt>
+effectively returns a pointer to string data but doesn't own the pointed to
+data.  For target languages where there isn't a native narrow string
+representation (e.g. C#, Java) a <tt>static std::string</tt> is used to cache
+the data, which works but isn't thread/reentrant safe.  For target languages
+where there is a native narrow string representation SWIG will return a
+<tt>std::string_view</tt> pointing to that data, so you need to store the
+string to return somewhere which will persist for the lifetime the caller
+needs (e.g. put it in a member variable) - you can't return a temporary target
+language string.  In both cases SWIG will issue a warning by default.
+</p>
 
 <H3><a name="Library_std_vector">12.4.3 std::vector</a></H3>
 

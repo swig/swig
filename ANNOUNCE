@@ -1,8 +1,8 @@
-*** ANNOUNCE: SWIG 4.2.0 (in progress) ***
+*** ANNOUNCE: SWIG 4.2.1 (in progress) ***
 
 https://www.swig.org
 
-We're pleased to announce SWIG-4.2.0, the latest SWIG release.
+We're pleased to announce SWIG-4.2.1, the latest SWIG release.
 
 What is SWIG?
 =============
@@ -25,11 +25,11 @@ Availability
 ============
 The release is available for download on Sourceforge at
 
-     https://prdownloads.sourceforge.net/swig/swig-4.2.0.tar.gz
+     https://prdownloads.sourceforge.net/swig/swig-4.2.1.tar.gz
 
 A Windows version is also available at
 
-     https://prdownloads.sourceforge.net/swig/swigwin-4.2.0.zip
+     https://prdownloads.sourceforge.net/swig/swigwin-4.2.1.zip
 
 Please report problems with this release to the swig-devel mailing list,
 details at https://www.swig.org/mail.html.

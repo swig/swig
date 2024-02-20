@@ -16,6 +16,7 @@
 <ul>
 <li><a href="#CPlusPlus20_spaceship_operator">Spaceship operator</a>
 <li><a href="#CPlusPlus20_lambda_templates">Lambda templates</a>
+<li><a href="#CPlusPlus20_constexpr_destructors">Constexpr destructors</a>
 </ul>
 <li><a href="#CPlusPlus20_standard_library_changes">Standard library changes</a>
 </ul>
@@ -64,6 +65,24 @@ SWIG should parse lambda templates, but like
 <a href="CPlusPlus11.html#CPlusPlus11_lambda_functions_and_expressions">
 non-templated lambdas</a> they aren't currently wrapped.
 </p>
+
+
+<H3><a name="CPlusPlus20_constexpr_destructors">10.2.3 Constexpr destructors</a></H3>
+
+
+<p>
+Destructors that are declared <tt>constexpr</tt> are parsed and handled like any other constructor.
+For example:
+</p>
+
+<div class="code">
+<pre>
+class DtorA {
+public:
+  constexpr ~DtorA() {}
+};
+</pre>
+</div>
 
 <H2><a name="CPlusPlus20_standard_library_changes">10.3 Standard library changes</a></H2>
 

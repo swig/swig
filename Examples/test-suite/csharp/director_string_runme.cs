@@ -3,7 +3,7 @@ using director_stringNamespace;
 
 public class runme
 {
-  static void Main() 
+  static void Main()
   {
     runme r = new runme();
     r.run();
@@ -22,6 +22,9 @@ public class runme
 
     director_string_B b = new director_string_B("hello");
 
+    s = b.get_first();
+    if (s != "director_string_B.get_first") throw new Exception("get_first() failed");
+
     s = b.call_get_first();
     if (s != "director_string_B.get_first") throw new Exception("call_get_first() failed");
 
@@ -36,7 +39,7 @@ class director_string_B : A {
     public override String get_first() {
       return "director_string_B.get_first";
     }
-  
+
     public override String get(int n) {
       return "director_string_B.get: " + base.get(n);
     }
@@ -50,4 +53,3 @@ class director_string_A : A {
       return nn.ToString();
     }
 }
-

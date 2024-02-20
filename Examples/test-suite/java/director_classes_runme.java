@@ -21,8 +21,8 @@ Base - FullyOverloaded(int 10)
 Base - FullyOverloaded(bool 1)
 Base - SemiOverloaded(int -678)
 Base - SemiOverloaded(bool 1)
-Base - DefaultParms(10, 2.2)
-Base - DefaultParms(10, 1.1)
+Base - DefaultParms(10, 2.25)
+Base - DefaultParms(10, 1.125)
 --------------------------------
 Derived - Val(444.555)
 Derived - Ref(444.555)
@@ -32,8 +32,8 @@ Derived - FullyOverloaded(int 10)
 Derived - FullyOverloaded(bool 1)
 Derived - SemiOverloaded(int -678)
 Base - SemiOverloaded(bool 1)
-Derived - DefaultParms(10, 2.2)
-Derived - DefaultParms(10, 1.1)
+Derived - DefaultParms(10, 2.25)
+Derived - DefaultParms(10, 1.125)
 --------------------------------
 JavaDerived - Val(444.555)
 JavaDerived - Ref(444.555)
@@ -43,8 +43,8 @@ JavaDerived - FullyOverloaded(int 10)
 JavaDerived - FullyOverloaded(bool True)
 JavaDerived - SemiOverloaded(-678)
 Base - SemiOverloaded(bool 1)
-JavaDerived - DefaultParms(10, 2.2)
-JavaDerived - DefaultParms(10, 1.1)
+JavaDerived - DefaultParms(10, 2.25)
+JavaDerived - DefaultParms(10, 1.125)
 ------------ Finish ------------
 */
 
@@ -128,7 +128,7 @@ public class director_classes_runme {
     if (!myCaller.SemiOverloadedCall(true).equals("Base" + "::SemiOverloaded(bool)")) throw new RuntimeException("failed");
 
     // Default parameters methods test
-    if (!(myCaller.DefaultParmsCall(10, 2.2)).equals(baseSimpleName + "::DefaultParms(int, double)")) throw new RuntimeException("failed");
+    if (!(myCaller.DefaultParmsCall(10, 2.25)).equals(baseSimpleName + "::DefaultParms(int, double)")) throw new RuntimeException("failed");
     if (myBase instanceof JavaDerived) { // special handling for Java derived classes, there is no way to do this any other way
       if (!myCaller.DefaultParmsCall(10).equals(baseSimpleName + "::DefaultParms(int, double)")) throw new RuntimeException("failed");
     } else {
@@ -210,7 +210,7 @@ class JavaDerived extends Base
   public String DefaultParms(int x)
   {
     if (director_classes.getPrintDebug()) System.out.println("JavaDerived - DefaultParms(" + x + ")");
-    return DefaultParms(x, 1.1/*use C++ default here*/);
+    return DefaultParms(x, 1.125/*use C++ default here*/);
   }
 }
 

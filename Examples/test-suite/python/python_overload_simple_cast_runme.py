@@ -1,5 +1,6 @@
 from python_overload_simple_cast import *
 
+import sys
 
 class Ai:
 
@@ -164,34 +165,132 @@ if s.type != "void *":
     raise RuntimeError("Spam(void *)")
 
 
+# nextafter: ++ and -- operators for float, off by one LSB
+# nextafter was released in Python 3.9
+if sys.version_info[0:2] >= (3, 9):
+    from math import inf, nextafter
+else:
+    # workaround: try to load nextafter from numpy if available
+    try:
+        # Skip numpy workaround for consistency in testing
+        if True:
+            raise RuntimeError("skip test")
+        from numpy import nextafter
+    except:
+        # else just disable this tests
+        def nextafter(x, y):
+            return None
+
+    # math.inf was added in Python 3.5
+    inf = float('inf')
+
+def exceptMatch(fun, arg, res, msg):
+    if arg is None or res is None:
+        # nextafter is missing, so skipping this test
+        return
+    if fun(arg) != res:
+        raise RuntimeError(msg)
+
+def exceptTypeError(fun, arg, msg):
+    if arg is None:
+        # nextafter is missing, so skipping this test
+        return
+    try:
+        fun(arg)
+        raise RuntimeError(msg)
+    except TypeError:
+        pass
+
+# x86_64: long is 32bit on MSVC but 64bit on *nix
+if not(sizeof_long() in [4, 8]):
+    raise RuntimeError("Unexpected size for long")
+
+# unsigned long
+ulmax = 2**32 - 1
+ulmin = 0
+ulmaxd = float(2**32 - 1)
+ulmind = 0.0
+if sizeof_long() == 8:
+    ulmax = 2**64 - 1
+    ulmaxd = nextafter(float(2**64), 0.0)
+
+exceptMatch(as_ul, ulmin, ulmin, "as_ul(ulmin)")
+exceptMatch(as_ul, ulmax, ulmax, "as_ul(ulmax)")
+exceptMatch(as_ul, ulmind, ulmind, "as_ul(ulmind)")
+exceptMatch(as_ul, ulmaxd, ulmaxd, "as_ul(ulmaxd)")
+
+exceptTypeError(as_ul, ulmin - 1, "as_ul(ulmin - 1)")
+exceptTypeError(as_ul, ulmax + 1, "as_ul(ulmax + 1)")
+exceptTypeError(as_ul, nextafter(ulmind, -inf), "as_ul(ulmind - LSB)")
+exceptTypeError(as_ul, nextafter(ulmaxd, inf), "as_ul(ulmaxd + LSB)")
+
+# long
+lmax = 2**31 - 1
+lmin = -2**31
+lmaxd = float(2**31 - 1)
+lmind = float(-2**31)
+lmaxd_v = lmaxd # expected value after the cast
+lmind_v = lmind
+if sys.version_info[0:2] < (3, 10):
+    # PyLong_AsLong(float) truncated the input before 3.10
+    lmaxd = nextafter(float(2**31), 0.0)
+    lmind = nextafter(float(-2**31 - 1), 0.0)
+    lmaxd_v = float(2**31 - 1)
+    lmind_v = float(-2**31)
+if sizeof_long() == 8:
+    lmax = 2**63 - 1
+    lmin = -2**63
+    lmaxd = nextafter(float(2**63), 0.0)
+    lmind = float(-2**63)
+    lmaxd_v = lmaxd
+    lmind_v = lmind
+
+exceptMatch(as_l, lmin, lmin, "as_l(lmin)")
+exceptMatch(as_l, lmax, lmax, "as_l(lmax)")
+exceptMatch(as_l, lmind, lmind_v, "as_l(lmind)")
+exceptMatch(as_l, lmaxd, lmaxd_v, "as_l(lmaxd)")
+
+exceptTypeError(as_l, lmin - 1, "as_l(lmin - 1)")
+exceptTypeError(as_l, lmax + 1, "as_l(lmax + 1)")
+exceptTypeError(as_l, nextafter(lmind, -inf), "as_l(lmind - LSB)")
+exceptTypeError(as_l, nextafter(lmaxd, inf), "as_l(lmaxd + LSB)")
+
 # unsigned long long
-ullmax = 9223372036854775807  # 0xffffffffffffffff
-ullmaxd = 9007199254740992.0
+ullmax = 2**64 - 1
 ullmin = 0
+ullmaxd = float(2**53) # 64 bit double significand
 ullmind = 0.0
-if ull(ullmin) != ullmin:
-    raise RuntimeError("ull(ullmin)")
-if ull(ullmax) != ullmax:
-    raise RuntimeError("ull(ullmax)")
-if ull(ullmind) != ullmind:
-    raise RuntimeError("ull(ullmind)")
-if ull(ullmaxd) != ullmaxd:
-    raise RuntimeError("ull(ullmaxd)")
+if sizeof_long() == 8:
+    ullmaxd = nextafter(float(2**64), 0.0)
+
+exceptMatch(as_ull, ullmin, ullmin, "as_ull(ullmin)")
+exceptMatch(as_ull, ullmax, ullmax, "as_ull(ullmax)")
+exceptMatch(as_ull, ullmind, ullmind, "as_ull(ullmind)")
+exceptMatch(as_ull, ullmaxd, ullmaxd, "as_ull(ullmaxd)")
+
+exceptTypeError(as_ull, ullmin - 1, "as_ull(ullmin - 1)")
+exceptTypeError(as_ull, ullmax + 1, "as_ull(ullmax + 1)")
+exceptTypeError(as_ull, nextafter(ullmind, -inf), "as_ull(ullmind - LSB)")
+exceptTypeError(as_ull, nextafter(ullmaxd, inf), "as_ull(ullmaxd + LSB)")
 
 # long long
-llmax = 9223372036854775807  # 0x7fffffffffffffff
-llmin = -9223372036854775808
-# these are near the largest  floats we can still convert into long long
-llmaxd = 9007199254740992.0
-llmind = -9007199254740992.0
-if ll(llmin) != llmin:
-    raise RuntimeError("ll(llmin)")
-if ll(llmax) != llmax:
-    raise RuntimeError("ll(llmax)")
-if ll(llmind) != llmind:
-    raise RuntimeError("ll(llmind)")
-if ll(llmaxd) != llmaxd:
-    raise RuntimeError("ll(llmaxd)")
+llmax = 2**63 - 1
+llmin = -2**63
+llmaxd = float(2**53) # 64 bit double significand
+llmind = float(-2**53)
+if sizeof_long() == 8:
+    llmaxd = nextafter(float(2**63), 0.0)
+    llmind = float(-2**63)
+
+exceptMatch(as_ll, llmin, llmin, "as_ll(llmin)")
+exceptMatch(as_ll, llmax, llmax, "as_ll(llmax)")
+exceptMatch(as_ll, llmind, llmind, "as_ll(llmind)")
+exceptMatch(as_ll, llmaxd, llmaxd, "as_ll(llmaxd)")
+
+exceptTypeError(as_ll, llmin - 1, "as_ll(llmin - 1)")
+exceptTypeError(as_ll, llmax + 1, "as_ll(llmax + 1)")
+exceptTypeError(as_ll, nextafter(llmind, -inf), "as_ll(llmind - LSB)")
+exceptTypeError(as_ll, nextafter(llmaxd, inf), "as_ll(llmaxd + LSB)")
 
 
 free_void(v)

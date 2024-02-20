@@ -1,0 +1,3 @@
+cpp_destructor_storage.i:4: Error: Destructor ~BadDestructor1() has an invalid pure specifier, only = 0 is allowed.
+cpp_destructor_storage.i:8: Error: Destructor ~BadDestructor2() uses a pure specifier but is not virtual.
+cpp_destructor_storage.i:12: Error: Destructor ~BadDestructor3() const cannot have a qualifier.

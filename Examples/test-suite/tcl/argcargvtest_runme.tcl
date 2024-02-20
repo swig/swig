@@ -1,4 +1,4 @@
-if [ catch { load ./argcargvtest[info sharedlibextension] argcargvtest} err_msg ] {
+if [ catch { load ./argcargvtest[info sharedlibextension] Argcargvtest} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

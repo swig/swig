@@ -115,21 +115,6 @@
  * reliable manner.
  * ----------------------------------------------------------------------------- */
 
-
-/* -----------------------------------------------------------------------------
- * NewSwigType()
- *
- * Constructs a new type object.   Eventually, it would be nice for this function
- * to accept an initial value in the form a C/C++ abstract type (currently unimplemented).
- * ----------------------------------------------------------------------------- */
-
-#ifdef NEW
-SwigType *NewSwigType(const_String_or_char_ptr initial) {
-  return NewString(initial);
-}
-
-#endif
-
 /* The next few functions are utility functions used in the construction and 
    management of types */
 

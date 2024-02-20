@@ -22,6 +22,9 @@ public class runme
 
     cpp17_director_string_view_B b = new cpp17_director_string_view_B("hello");
 
+    s = b.get_first();
+    if (s != "cpp17_director_string_view_B.get_first") throw new Exception("get_first() failed");
+
     s = b.call_get_first();
     if (s != "cpp17_director_string_view_B.get_first") throw new Exception("call_get_first() failed");
 

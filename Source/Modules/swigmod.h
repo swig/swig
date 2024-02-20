@@ -212,7 +212,7 @@ public:
   virtual int addInterfaceSymbol(const String *interface_name, Node *n, const_String_or_char_ptr scope = "");
   virtual void dumpSymbols();
   virtual Node *symbolLookup(const String *s, const_String_or_char_ptr scope = ""); /* Symbol lookup */
-  virtual Hash* symbolAddScope(const_String_or_char_ptr scope);
+  virtual Hash* symbolAddScope(const_String_or_char_ptr scope/*, Node *n = 0*/);
   virtual Hash* symbolScopeLookup(const_String_or_char_ptr scope);
   virtual Hash* symbolScopePseudoSymbolLookup(const_String_or_char_ptr scope);
   static Node *classLookup(const SwigType *s); /* Class lookup      */
@@ -421,7 +421,6 @@ void Wrapper_cast_dispatch_mode_set(int);
 void Wrapper_naturalvar_mode_set(int);
 
 void clean_overloaded(Node *n);
-SwigType *Swig_smartptr_upcast(SwigType *smart, SwigType *c_classname, SwigType *c_baseclassname);
 
 extern "C" {
   const char *Swig_to_string(DOH *object, int count = -1);

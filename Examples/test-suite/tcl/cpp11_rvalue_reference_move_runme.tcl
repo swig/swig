@@ -1,5 +1,5 @@
 
-if [ catch { load ./cpp11_rvalue_reference_move[info sharedlibextension] cpp11_rvalue_reference_move} err_msg ] {
+if [ catch { load ./cpp11_rvalue_reference_move[info sharedlibextension] Cpp11_rvalue_reference_move} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

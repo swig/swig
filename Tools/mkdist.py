@@ -129,8 +129,7 @@ docpath = os.path.join(dirpath, "Doc", "Manual")
 run_command("make", "all", "clean-baks", cwd=docpath) == 0 or failed()
 
 # Build the tar-ball
-run_command("tar", "-cf", dirname + ".tar", dirname, stdout=open(dirname + ".tar", "w")) == 0 or failed()
-run_command("gzip", dirname + ".tar", stdout=open(dirname + ".tar.gz", "w")) == 0 or failed()
+run_command("tar", "-czf", dirname + ".tar.gz", dirname) == 0 or failed()
 
 print("Finished building " + dirname + ".tar.gz")
 

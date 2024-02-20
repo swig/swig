@@ -11,6 +11,11 @@ public class friends_runme {
     }
   }
 
+  private static void check_equal(int a, int b) {
+    if (a != b)
+      throw new RuntimeException("Not equal " + a + " != " + b);
+  }
+
   public static void main(String argv[]) throws Throwable
   {
     A a = new A(2);
@@ -48,6 +53,22 @@ public class friends_runme {
       throw new RuntimeException("failed");
     if (friends.get_val1(dd) != 1.3)
       throw new RuntimeException("failed");
+
+    if (friends.chum_blah() != 1234)
+      throw new RuntimeException("failed");
+    if (friends.mate_blah() != 4321)
+      throw new RuntimeException("failed");
+
+    Foe foe = new Foe(111);
+    check_equal(friends.friend_definition(), 10);
+    check_equal(friends.friend_declaration(), 11);
+    check_equal(friends.friend_args_definition(foe), 111);
+    check_equal(friends.friend_args_declaration(foe), 111);
+
+    check_equal(friends.friend_definition_compiler(), 20);
+    check_equal(friends.friend_declaration_compiler(), 21);
+    check_equal(friends.friend_args_definition_compiler(foe), 111);
+    check_equal(friends.friend_args_declaration_compiler(foe), 111);
   }
 }
 

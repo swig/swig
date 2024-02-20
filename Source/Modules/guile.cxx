@@ -886,8 +886,12 @@ public:
 
     if (!Getattr(n, "sym:overloaded")) {
       if (numargs > 10) {
+	/* "The total number of these arguments should match the actual number
+	 * of arguments to fcn, but may not exceed 10" says:
+	 * https://www.gnu.org/software/guile/manual/html_node/Primitive-Procedures.html
+	 * We handle this case by passing all the arguments as "rest".
+	 */
 	int i;
-	/* gh_new_procedure would complain: too many args */
 	/* Build a wrapper wrapper */
 	Printv(f_wrappers, "static SCM\n", wname, "_rest (SCM rest)\n", NIL);
 	Printv(f_wrappers, "{\n", NIL);

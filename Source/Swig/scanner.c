@@ -1557,7 +1557,8 @@ int Scanner_skip_balanced(Scanner *s, int startchar, int endchar) {
   long position = Tell(s->str);
 
   int num_levels = 1;
-  int starttok, endtok;
+  int starttok = 0;
+  int endtok = 0;
   switch (endchar) {
     case '}':
       starttok = SWIG_TOKEN_LBRACE;
@@ -1618,7 +1619,8 @@ String *Scanner_get_raw_text_balanced(Scanner *s, int startchar, int endchar) {
   long position = Tell(s->str);
 
   int num_levels = 1;
-  int starttok, endtok;
+  int starttok = 0;
+  int endtok = 0;
   switch (endchar) {
     case '}':
       starttok = SWIG_TOKEN_LBRACE;

@@ -1,5 +1,5 @@
 
-if [ catch { load ./enum_thorough[info sharedlibextension] enum_thorough} err_msg ] {
+if [ catch { load ./enum_thorough[info sharedlibextension] Enum_thorough} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

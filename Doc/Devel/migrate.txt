@@ -101,10 +101,10 @@ parameter values is as follows:
   ParmList *l;
   Parm *p;
 
-  for (p = l; p; p = Getnext(p)) {
-      SwigType *pt = Gettype(p);        /* Get parameter type */
-      String   *pn = Getname(p);        /* Get parameter name */
-      String   *value = Getvalue(p);    /* Get parameter value */
+  for (p = l; p; p = nextSibling(p)) {
+      SwigType *pt = Getattr(p, "type");      /* Get parameter type */
+      String   *pn = Getattr(p, "name");      /* Get parameter name */
+      String   *value = Getattr(p, "value");  /* Get parameter value */
       ...
       do whatever
       ...
@@ -119,7 +119,7 @@ Typemaps more or less work.  However, the interface has changed slightly.  Inste
 
 the function is
 
-     Swig_typemap_lookup("in",type,pname,"$source","$target",wrapper);
+     Swig_typemap_lookup("in", node, pname, wrapper);
 
 There are a variety of other changes to typemaps (see CHANGES).
 

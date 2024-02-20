@@ -39,7 +39,7 @@
       }
 
       static bool check(PyObject *obj) {
-        int ret = false;
+        bool ret = false;
         SwigVar_PyObject iter = PyObject_GetIter(obj);
         if (iter) {
           SwigVar_PyObject item = PyIter_Next(iter);

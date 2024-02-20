@@ -1,4 +1,4 @@
-if [ catch { load ./reference_global_vars[info sharedlibextension] reference_global_vars} err_msg ] {
+if [ catch { load ./reference_global_vars[info sharedlibextension] Reference_global_vars} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

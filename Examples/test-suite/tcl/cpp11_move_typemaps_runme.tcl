@@ -1,5 +1,5 @@
 
-if [ catch { load ./cpp11_move_typemaps[info sharedlibextension] cpp11_move_typemaps} err_msg ] {
+if [ catch { load ./cpp11_move_typemaps[info sharedlibextension] Cpp11_move_typemaps} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

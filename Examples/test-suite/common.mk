@@ -263,6 +263,7 @@ CPP_TEST_CASES += \
 	features \
 	fragments \
 	friends \
+	friends_operator_overloading \
 	friends_template \
 	funcptr_cpp \
 	functors \
@@ -352,6 +353,7 @@ CPP_TEST_CASES += \
 	newobject1 \
 	newobject3 \
 	null_pointer \
+	numeric_bounds_checking \
 	operator_overload \
 	operator_overload_break \
 	operator_pointer_ref \
@@ -647,6 +649,7 @@ CPP11_TEST_CASES += \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
 	cpp11_template_parameters_decltype \
+	cpp11_template_templated_methods \
 	cpp11_template_typedefs \
 	cpp11_type_traits \
 	cpp11_type_aliasing \
@@ -686,6 +689,7 @@ CPP17_TEST_BROKEN = \
 
 # C++20 test cases.
 CPP20_TEST_CASES += \
+	cpp20_constexpr_destructor \
 	cpp20_lambda_template \
 	cpp20_spaceship_operator \
 
@@ -939,6 +943,7 @@ swig_and_compile_cpp_helper = \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT=$(2) NOLINK=true \
 	TARGET="$(TARGETPREFIX)$(1)$(TARGETSUFFIX)" INTERFACEDIR='$(INTERFACEDIR)' INTERFACE="$(1).i" \
+	EXTRA_CXXFLAGS="$(3)" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_cpp =  \

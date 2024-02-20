@@ -21,8 +21,8 @@ Base - FullyOverloaded(int 10)
 Base - FullyOverloaded(bool 1)
 Base - SemiOverloaded(int -678)
 Base - SemiOverloaded(bool 1)
-Base - DefaultParms(10, 2.2)
-Base - DefaultParms(10, 1.1)
+Base - DefaultParms(10, 2.25)
+Base - DefaultParms(10, 1.125)
 --------------------------------
 Derived - Val(444.555)
 Derived - Ref(444.555)
@@ -32,8 +32,8 @@ Derived - FullyOverloaded(int 10)
 Derived - FullyOverloaded(bool 1)
 Derived - SemiOverloaded(int -678)
 Base - SemiOverloaded(bool 1)
-Derived - DefaultParms(10, 2.2)
-Derived - DefaultParms(10, 1.1)
+Derived - DefaultParms(10, 2.25)
+Derived - DefaultParms(10, 1.125)
 --------------------------------
 CSharpDerived - Val(444.555)
 CSharpDerived - Ref(444.555)
@@ -43,8 +43,8 @@ CSharpDerived - FullyOverloaded(int 10)
 CSharpDerived - FullyOverloaded(bool True)
 CSharpDerived - SemiOverloaded(-678)
 Base - SemiOverloaded(bool 1)
-CSharpDerived - DefaultParms(10, 2.2)
-CSharpDerived - DefaultParms(10, 1.1)
+CSharpDerived - DefaultParms(10, 2.25)
+CSharpDerived - DefaultParms(10, 1.125)
 ------------ Finish ------------
 */
 
@@ -113,7 +113,7 @@ public class runme
     if (myCaller.SemiOverloadedCall(true) != "Base" + "::SemiOverloaded(bool)") throw new Exception("failed");
 
     // Default parameters methods test
-    if (NAMESPACE + myCaller.DefaultParmsCall(10, 2.2) != myBase.GetType() + "::DefaultParms(int, double)") throw new Exception("failed");
+    if (NAMESPACE + myCaller.DefaultParmsCall(10, 2.25) != myBase.GetType() + "::DefaultParms(int, double)") throw new Exception("failed");
     if (myBase.GetType() == typeof(CSharpDerived)) { // special handling for C# derived classes, there is no way to do this any other way
       if (NAMESPACE + myCaller.DefaultParmsCall(10) != myBase.GetType() + "::DefaultParms(int, double)") throw new Exception("failed");
     } else {
@@ -182,7 +182,7 @@ public class CSharpDerived : Base
   public override String DefaultParms(int x)
   {
     if (director_classes.PrintDebug) Console.WriteLine("CSharpDerived - DefaultParms({0})", x);
-    return DefaultParms(x, 1.1/*use C++ default here*/);
+    return DefaultParms(x, 1.125/*use C++ default here*/);
   }
 }
 

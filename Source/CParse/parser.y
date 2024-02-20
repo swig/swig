@@ -321,7 +321,14 @@ Hash *Swig_cparse_features(void) {
   return features_hash;
 }
 
-/* Fully qualify any template parameters */
+/* -----------------------------------------------------------------------------
+ * feature_identifier_fix()
+ *
+ * If a template, return template with all template parameters fully resolved.
+ *
+ * This is a copy and modification of typemap_identifier_fix.
+ * ----------------------------------------------------------------------------- */
+
 static String *feature_identifier_fix(String *s) {
   String *tp = SwigType_istemplate_templateprefix(s);
   if (tp) {
@@ -411,7 +418,6 @@ static void add_symbols(Node *n) {
   }
   while (n) {
     String *symname = 0;
-    /* for friends, we need to pop the scope once */
     String *old_prefix = 0;
     Symtab *old_scope = 0;
     int isfriend = inclass && Checkattr(n, "storage", "friend");
@@ -421,28 +427,24 @@ static void add_symbols(Node *n) {
     if (inclass) {
       String *name = Getattr(n, "name");
       if (isfriend) {
-	/* for friends, we need to add the scopename if needed */
+	/* For friends, set the scope to the same as the class that the friend is defined/declared in, that is, pop scope once */
 	String *prefix = name ? Swig_scopename_prefix(name) : 0;
 	old_prefix = Namespaceprefix;
 	old_scope = Swig_symbol_popscope();
 	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	if (!prefix) {
+	  /* To check - this should probably apply to operators too */
 	  if (name && !is_operator(name) && Namespaceprefix) {
-	    String *nname = NewStringf("%s::%s", Namespaceprefix, name);
-	    Setattr(n,"name",nname);
-	    Delete(nname);
+	    String *friendusing = NewStringf("using namespace %s;", Namespaceprefix);
+	    Setattr(n, "friendusing", friendusing);
+	    Delete(friendusing);
 	  }
 	} else {
-	  Symtab *st = Swig_symbol_getscope(prefix);
-	  String *ns = st ? Getattr(st,"name") : prefix;
-	  String *base  = Swig_scopename_last(name);
-	  String *nname = NewStringf("%s::%s", ns, base);
-	  Setattr(n,"name",nname);
-	  Delete(nname);
-	  Delete(base);
-	  Delete(prefix);
+	  /* Qualified friend declarations should not be possible as they are ignored in the parse tree */
+	  /* TODO: uncomment out for swig-4.3.0
+	  assert(0);
+	  */
 	}
-	Namespaceprefix = 0;
       } else if (Equal(nodeType(n), "using")) {
 	String *uname = Getattr(n, "uname");
 	Node *cls = current_class ? current_class : currentOuterClass; /* Current class seems to vary depending on whether it is a template class or a plain class */
@@ -1606,6 +1608,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String *val;
     String *rawval;
     int     type;
+    /* The type code for the argument when the top level operator is unary.
+     * This is useful because our grammar parses cases such as (7)*6 as a
+     * cast applied to an unary operator.
+     */
+    int	    unary_arg_type;
     String *qualifier;
     String *refqualifier;
     String *bitfield;
@@ -1762,7 +1769,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
 %type <str>      string stringnum wstring;
 %type <tparms>   template_parms;
-%type <dtype>    cpp_end cpp_vend;
+%type <dtype>    cpp_vend;
 %type <intvalue> rename_namewarn;
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
@@ -1776,20 +1783,25 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 
 /* C++ decltype/auto type deduction. */
 static SwigType *deduce_type(const struct Define *dtype) {
+  Node *n;
   if (!dtype->val) return NULL;
-  Node *n = Swig_symbol_clookup(dtype->val, 0);
+  n = Swig_symbol_clookup(dtype->val, 0);
   if (n) {
+    if (Strcmp(nodeType(n),"enumitem") == 0) {
+      /* For an enumitem, the "type" attribute gives us the underlying integer
+       * type - we want the "type" attribute from the enum itself, which is
+       * "parentNode".
+       */
+      n = Getattr(n, "parentNode");
+    }
     return Getattr(n, "type");
-  } else if (dtype->type != T_AUTO && dtype->type != T_INT) {
-    /* Try to deduce the type from the T_* type code.
-     *
-     * Sadly we can't trust T_INT because several places in the parser set
-     * .type = T_INT when it may not be (or even definitely isn't).
-     */
-    return NewSwigType(dtype->type);
-  } else {
-    return NULL;
+  } else if (dtype->type != T_AUTO && dtype->type != T_UNKNOWN) {
+    /* Try to deduce the type from the T_* type code. */
+    String *deduced_type = NewSwigType(dtype->type);
+    if (Len(deduced_type) > 0) return deduced_type;
+    Delete(deduced_type);
   }
+  return NULL;
 }
 
 %}
@@ -2033,15 +2045,20 @@ clear_directive : CLEAR tm_list SEMI {
 
 constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		 SwigType *type = NewSwigType($4.type);
-		 $$ = new_node("constant");
-		 Setattr($$, "name", $2);
-		 Setattr($$, "type", type);
-		 Setattr($$, "value", $4.val);
-		 if ($4.rawval) Setattr($$, "rawval", $4.rawval);
-		 Setattr($$, "storage", "%constant");
-		 SetFlag($$, "feature:immutable");
-		 add_symbols($$);
-		 Delete(type);
+		 if (Len(type) > 0) {
+		   $$ = new_node("constant");
+		   Setattr($$, "name", $2);
+		   Setattr($$, "type", type);
+		   Setattr($$, "value", $4.val);
+		   if ($4.rawval) Setattr($$, "rawval", $4.rawval);
+		   Setattr($$, "storage", "%constant");
+		   SetFlag($$, "feature:immutable");
+		   add_symbols($$);
+		   Delete(type);
+		 } else {
+		   Swig_warning(WARN_PARSE_UNSUPPORTED_VALUE, cparse_file, cparse_line, "Unsupported constant value (ignored)\n");
+		   $$ = 0;
+		 }
 	       }
                | CONSTANT type declarator def_args SEMI {
 		 SwigType_push($2, $3.type);
@@ -3162,10 +3179,13 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      if ($5.val && $5.type) {
 		/* store initializer type as it might be different to the declared type */
 		SwigType *valuetype = NewSwigType($5.type);
-		if (Len(valuetype) > 0)
-		  Setattr($$,"valuetype",valuetype);
-		else
-		  Delete(valuetype);
+		if (Len(valuetype) > 0) {
+		  Setattr($$, "valuetype", valuetype);
+		} else {
+		  /* If we can't determine the initializer type use the declared type. */
+		  Setattr($$, "valuetype", $2);
+		}
+		Delete(valuetype);
 	      }
 	      if (!$6) {
 		if (Len(scanner_ccode)) {
@@ -3189,27 +3209,26 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      }
 
 	      if ($3.id) {
-		/* Look for "::" declarations (ignored) */
-		if (Strstr($3.id, "::")) {
+		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
+		String *p = Swig_scopename_prefix($3.id);
+		if (p) {
 		  /* This is a special case. If the scope name of the declaration exactly
 		     matches that of the declaration, then we will allow it. Otherwise, delete. */
-		  String *p = Swig_scopename_prefix($3.id);
-		  if (p) {
-		    if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
-			(Classprefix && Strcmp(p, Classprefix) == 0)) {
-		      String *lstr = Swig_scopename_last($3.id);
-		      Setattr($$, "name", lstr);
-		      Delete(lstr);
-		      set_nextSibling($$, $6);
-		    } else {
-		      Delete($$);
-		      $$ = $6;
-		    }
-		    Delete(p);
+		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
+		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
+		    String *lstr = Swig_scopename_last($3.id);
+		    Setattr($$, "name", lstr);
+		    Delete(lstr);
+		    set_nextSibling($$, $6);
 		  } else {
 		    Delete($$);
 		    $$ = $6;
 		  }
+		  Delete(p);
+		} else if (Strncmp($3.id, "::", 2) == 0) {
+		  /* global scope declaration/definition ignored */
+		  Delete($$);
+		  $$ = $6;
 		} else {
 		  set_nextSibling($$, $6);
 		}
@@ -3242,7 +3261,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "noexcept", $4.nexcept);
 	      Setattr($$, "final", $4.final);
 
-	      if (Strstr($3.id, "::")) {
+	      if ($3.id) {
+		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
 		String *p = Swig_scopename_prefix($3.id);
 		if (p) {
 		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
@@ -3255,7 +3275,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		    $$ = 0;
 		  }
 		  Delete(p);
-		} else {
+		} else if (Strncmp($3.id, "::", 2) == 0) {
+		  /* global scope declaration/definition ignored */
 		  Delete($$);
 		  $$ = 0;
 		}
@@ -3296,8 +3317,9 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		}
 	      }
 
-	      if (Strstr($3.id,"::")) {
-                String *p = Swig_scopename_prefix($3.id);
+	      if ($3.id) {
+		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
+		String *p = Swig_scopename_prefix($3.id);
 		if (p) {
 		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
 		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
@@ -3310,7 +3332,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		    $$ = $9;
 		  }
 		  Delete(p);
-		} else {
+		} else if (Strncmp($3.id, "::", 2) == 0) {
+		  /* global scope declaration/definition ignored */
 		  Delete($$);
 		  $$ = $9;
 		}
@@ -3344,8 +3367,9 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "noexcept", $4.nexcept);
 	      Setattr($$, "final", $4.final);
 
-	      if (Strstr($3.id, "::")) {
-                String *p = Swig_scopename_prefix($3.id);
+	      if ($3.id) {
+		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
+		String *p = Swig_scopename_prefix($3.id);
 		if (p) {
 		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
 		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
@@ -3357,7 +3381,8 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		    $$ = 0;
 		  }
 		  Delete(p);
-		} else {
+		} else if (Strncmp($3.id, "::", 2) == 0) {
+		  /* global scope declaration/definition ignored */
 		  Delete($$);
 		  $$ = 0;
 		}
@@ -3754,7 +3779,6 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   int errored_flag = 0;
 		   String *code;
 		   $$ = new_node("class");
-		   Setline($$,cparse_start_line);
 		   Setattr($$,"kind",$2);
 		   if ($5) {
 		     Setattr($$,"baselist", Getattr($5,"public"));
@@ -3999,7 +4023,6 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       String *code;
 	       unnamed = make_unnamed();
 	       $$ = new_node("class");
-	       Setline($$,cparse_start_line);
 	       Setattr($$,"kind",$2);
 	       if ($3) {
 		 Setattr($$,"baselist", Getattr($3,"public"));
@@ -4441,22 +4464,22 @@ templateparameter : templcpptype def_args {
 		  }
 		  | parm {
 		    Parm *p = $1;
+		    String *name = Getattr(p, "name");
 		    $$ = $1;
 
 		    /* Correct the 'type name' parameter string, split into the appropriate "name" and "type" attributes */
-		    String *name = Getattr(p, "name");
 		    if (!name) {
 		      String *type = Getattr(p, "type");
 		      if ((Strncmp(type, "class ", 6) == 0) || (Strncmp(type, "typename ", 9) == 0)) {
 			/* A 'class T' parameter */
 			const char *t = Strchr(type, ' ');
 			Setattr(p, "name", t + 1);
-			Setattr(p, "type", NewStringWithSize(type, t - Char(type)));
+			Setattr(p, "type", NewStringWithSize(type, (int)(t - Char(type))));
 		      } else if ((Strncmp(type, "v.class ", 8) == 0) || (Strncmp(type, "v.typename ", 11) == 0)) {
 			/* Variadic template args */
 			const char *t = Strchr(type, ' ');
 			Setattr(p, "name", t + 1);
-			Setattr(p, "type", NewStringWithSize(type, t - Char(type)));
+			Setattr(p, "type", NewStringWithSize(type, (int)(t - Char(type))));
 		      }
 		    }
                   }
@@ -4728,7 +4751,10 @@ cpp_member   : cpp_member_no_dox
 */
   
 cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
-              if (inclass || extendmode) {
+	      /* Cannot be a constructor declaration/definition if parsed as a friend destructor/constructor
+	         or a badly declared friend function without return type */
+	      int isfriend = Strstr($1, "friend") != NULL;
+	      if (!isfriend && (inclass || extendmode)) {
 	        String *name = SwigType_templateprefix($2); /* A constructor can optionally be declared with template parameters before C++20, strip these off */
 		SwigType *decl = NewStringEmpty();
 		$$ = new_node("constructor");
@@ -4756,65 +4782,43 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
               }
               ;
 
-/* A destructor (hopefully) */
+/* A destructor */
 
-cpp_destructor_decl : NOT idtemplate LPAREN parms RPAREN cpp_end {
-	       String *name = SwigType_templateprefix($2); /* A destructor can optionally be declared with template parameters before C++20, strip these off */
+cpp_destructor_decl : storage_class NOT idtemplate LPAREN parms RPAREN cpp_vend {
+	       String *name = SwigType_templateprefix($3); /* A destructor can optionally be declared with template parameters before C++20, strip these off */
 	       Insert(name, 0, "~");
 	       $$ = new_node("destructor");
-	       Setattr($$,"name",name);
+	       Setattr($$, "storage", $1);
+	       Setattr($$, "name", name);
 	       Delete(name);
 	       if (Len(scanner_ccode)) {
 		 String *code = Copy(scanner_ccode);
-		 Setattr($$,"code",code);
+		 Setattr($$, "code", code);
 		 Delete(code);
 	       }
 	       {
 		 String *decl = NewStringEmpty();
-		 SwigType_add_function(decl,$4);
-		 Setattr($$,"decl",decl);
+		 SwigType_add_function(decl, $5);
+		 Setattr($$, "decl", decl);
 		 Delete(decl);
 	       }
-	       Setattr($$,"throws",$6.throws);
-	       Setattr($$,"throw",$6.throwf);
-	       Setattr($$,"noexcept",$6.nexcept);
-	       Setattr($$,"final",$6.final);
-	       if ($6.val)
-	         Setattr($$,"value",$6.val);
-	       if ($6.qualifier)
-		 Swig_error(cparse_file, cparse_line, "Destructor %s %s cannot have a qualifier.\n", Swig_name_decl($$), SwigType_str($6.qualifier, 0));
+	       Setattr($$, "throws", $7.throws);
+	       Setattr($$, "throw", $7.throwf);
+	       Setattr($$, "noexcept", $7.nexcept);
+	       Setattr($$, "final", $7.final);
+	       if ($7.val) {
+		 if (Equal($7.val, "0")) {
+		   if (!Strstr($1, "virtual"))
+		     Swig_error(cparse_file, cparse_line, "Destructor %s uses a pure specifier but is not virtual.\n", Swig_name_decl($$));
+		 } else if (!(Equal($7.val, "delete") || Equal($7.val, "default"))) {
+		   Swig_error(cparse_file, cparse_line, "Destructor %s has an invalid pure specifier, only = 0 is allowed.\n", Swig_name_decl($$));
+		 }
+		 Setattr($$, "value", $7.val);
+	       }
+	       /* TODO: check all storage decl-specifiers are valid */
+	       if ($7.qualifier)
+		 Swig_error(cparse_file, cparse_line, "Destructor %s %s cannot have a qualifier.\n", Swig_name_decl($$), SwigType_str($7.qualifier, 0));
 	       add_symbols($$);
-	      }
-
-/* A virtual destructor */
-
-              | VIRTUAL NOT idtemplate LPAREN parms RPAREN cpp_vend {
-		String *name = SwigType_templateprefix($3); /* A destructor can optionally be declared with template parameters before C++20, strip these off */
-		Insert(name, 0, "~");
-		$$ = new_node("destructor");
-		Setattr($$,"storage","virtual");
-		Setattr($$,"name",name);
-		Delete(name);
-		Setattr($$,"throws",$7.throws);
-		Setattr($$,"throw",$7.throwf);
-		Setattr($$,"noexcept",$7.nexcept);
-		Setattr($$,"final",$7.final);
-		if ($7.val)
-		  Setattr($$,"value",$7.val);
-		if (Len(scanner_ccode)) {
-		  String *code = Copy(scanner_ccode);
-		  Setattr($$,"code",code);
-		  Delete(code);
-		}
-		{
-		  String *decl = NewStringEmpty();
-		  SwigType_add_function(decl,$5);
-		  Setattr($$,"decl",decl);
-		  Delete(decl);
-		}
-		if ($7.qualifier)
-		  Swig_error(cparse_file, cparse_line, "Destructor %s %s cannot have a qualifier.\n", Swig_name_decl($$), SwigType_str($7.qualifier, 0));
-		add_symbols($$);
 	      }
               ;
 
@@ -4980,41 +4984,6 @@ cpp_swig_directive: pragma_directive
              | clear_directive
              | echo_directive
              ;
-
-cpp_end        : cpp_const SEMI {
-	            Clear(scanner_ccode);
-		    $$.val = 0;
-		    $$.qualifier = $1.qualifier;
-		    $$.refqualifier = $1.refqualifier;
-		    $$.bitfield = 0;
-		    $$.throws = $1.throws;
-		    $$.throwf = $1.throwf;
-		    $$.nexcept = $1.nexcept;
-		    $$.final = $1.final;
-               }
-               | cpp_const EQUAL default_delete SEMI {
-	            Clear(scanner_ccode);
-		    $$.val = $3.val;
-		    $$.qualifier = $1.qualifier;
-		    $$.refqualifier = $1.refqualifier;
-		    $$.bitfield = 0;
-		    $$.throws = $1.throws;
-		    $$.throwf = $1.throwf;
-		    $$.nexcept = $1.nexcept;
-		    $$.final = $1.final;
-               }
-               | cpp_const LBRACE { 
-		    if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
-		    $$.val = 0;
-		    $$.qualifier = $1.qualifier;
-		    $$.refqualifier = $1.refqualifier;
-		    $$.bitfield = 0;
-		    $$.throws = $1.throws;
-		    $$.throwf = $1.throwf;
-		    $$.nexcept = $1.nexcept;
-		    $$.final = $1.final;
-	       }
-               ;
 
 cpp_vend       : cpp_const SEMI { 
                      Clear(scanner_ccode);
@@ -5304,7 +5273,8 @@ def_args       : EQUAL definetype {
 		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		 $$.val = NewString(scanner_ccode);
 		 $$.rawval = 0;
-                 $$.type = T_INT; /* This may be a lie. */
+		 $$.type = T_UNKNOWN;
+		 $$.unary_arg_type = 0;
 		 $$.bitfield = 0;
 		 $$.throws = 0;
 		 $$.throwf = 0;
@@ -5324,7 +5294,8 @@ def_args       : EQUAL definetype {
                | %empty {
                  $$.val = 0;
                  $$.rawval = 0;
-                 $$.type = T_INT; /* This is a lie. */
+                 $$.type = T_UNKNOWN;
+		 $$.unary_arg_type = 0;
 		 $$.bitfield = 0;
 		 $$.throws = 0;
 		 $$.throwf = 0;
@@ -6411,6 +6382,7 @@ deleted_definition : DELETE_KW {
 		  $$.val = NewString("delete");
 		  $$.rawval = 0;
 		  $$.type = T_STRING;
+		  $$.unary_arg_type = 0;
 		  $$.qualifier = 0;
 		  $$.refqualifier = 0;
 		  $$.bitfield = 0;
@@ -6426,6 +6398,7 @@ explicit_default : DEFAULT {
 		  $$.val = NewString("default");
 		  $$.rawval = 0;
 		  $$.type = T_STRING;
+		  $$.unary_arg_type = 0;
 		  $$.qualifier = 0;
 		  $$.refqualifier = 0;
 		  $$.bitfield = 0;
@@ -6544,12 +6517,15 @@ edecl          :  identifier {
 
 etype            : expr {
                    $$ = $1;
+		   /* We get T_USER here for a typedef - unfortunately we can't
+		    * currently resolve typedefs at this stage of parsing. */
 		   if (($$.type != T_INT) && ($$.type != T_UINT) &&
 		       ($$.type != T_LONG) && ($$.type != T_ULONG) &&
 		       ($$.type != T_LONGLONG) && ($$.type != T_ULONGLONG) &&
 		       ($$.type != T_SHORT) && ($$.type != T_USHORT) &&
 		       ($$.type != T_SCHAR) && ($$.type != T_UCHAR) &&
-		       ($$.type != T_CHAR) && ($$.type != T_BOOL)) {
+		       ($$.type != T_CHAR) && ($$.type != T_BOOL) &&
+		       ($$.type != T_UNKNOWN) && ($$.type != T_USER)) {
 		     Swig_error(cparse_file,cparse_line,"Type error. Expecting an integral type\n");
 		   }
                 }
@@ -6561,7 +6537,8 @@ expr           : valexpr
                | type {
 		 Node *n;
 		 $$.val = $1;
-		 $$.type = T_INT; /* This may be a lie. */
+		 $$.type = T_UNKNOWN;
+		 $$.unary_arg_type = 0;
 		 /* Check if value is in scope */
 		 n = Swig_symbol_clookup($1,0);
 		 if (n) {
@@ -6570,9 +6547,15 @@ expr           : valexpr
                      String *q = Swig_symbol_qualified(n);
                      if (q) {
                        $$.val = NewStringf("%s::%s", q, Getattr(n,"name"));
+		       $$.type = SwigType_type(Getattr(n, "type"));
                        Delete(q);
                      }
-                   }
+		   } else {
+		     SwigType *type = Getattr(n, "type");
+		     if (type) {
+		       $$.type = SwigType_type(type);
+		     }
+		   }
 		 }
                }
 	       ;
@@ -6618,16 +6601,19 @@ exprsimple     : exprnum
                | string {
 		    $$.val = $1;
                     $$.type = T_STRING;
+		    $$.unary_arg_type = 0;
                }
                | SIZEOF LPAREN type parameter_declarator RPAREN {
 		  SwigType_push($3,$4.type);
 		  $$.val = NewStringf("sizeof(%s)",SwigType_str($3,0));
 		  $$.type = T_ULONG;
+		  $$.unary_arg_type = 0;
                }
                | SIZEOF ELLIPSIS LPAREN type parameter_declarator RPAREN {
 		  SwigType_push($4,$5.type);
 		  $$.val = NewStringf("sizeof...(%s)",SwigType_str($4,0));
 		  $$.type = T_ULONG;
+		  $$.unary_arg_type = 0;
                }
 	       /* We don't support all valid expressions here currently - e.g.
 		* sizeof(<unaryop> x) doesn't work - but those are unlikely to
@@ -6638,7 +6624,8 @@ exprsimple     : exprnum
 		*/
 	       | SIZEOF LPAREN exprsimple RPAREN {
 		  $$.val = NewStringf("sizeof(%s)", $3.val);
-		 $$.type = T_ULONG;
+		  $$.type = T_ULONG;
+		  $$.unary_arg_type = 0;
 	       }
 	       /* `sizeof expr` without parentheses is valid for an expression,
 		* but not for a type.  This doesn't support `sizeof x` in
@@ -6647,11 +6634,13 @@ exprsimple     : exprnum
 	       | SIZEOF exprsimple {
 		  $$.val = NewStringf("sizeof(%s)", $2.val);
 		  $$.type = T_ULONG;
+		  $$.unary_arg_type = 0;
 	       }
 	       | wstring {
 		    $$.val = $1;
 		    $$.rawval = NewStringf("L\"%s\"", $$.val);
                     $$.type = T_WSTRING;
+		    $$.unary_arg_type = 0;
 	       }
                | CHARCONST {
 		  $$.val = NewString($1);
@@ -6661,6 +6650,7 @@ exprsimple     : exprnum
 		    $$.rawval = NewString("'\\0'");
 		  }
 		  $$.type = T_CHAR;
+		  $$.unary_arg_type = 0;
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
@@ -6675,6 +6665,7 @@ exprsimple     : exprnum
 		    $$.rawval = NewString("L'\\0'");
 		  }
 		  $$.type = T_WCHAR;
+		  $$.unary_arg_type = 0;
 		  $$.bitfield = 0;
 		  $$.throws = 0;
 		  $$.throwf = 0;
@@ -6699,7 +6690,9 @@ valexpr        : exprsimple
 /* A few common casting operations */
 
                | LPAREN expr RPAREN expr %prec CAST {
-                 $$ = $4;
+		 int cast_type_code = SwigType_type($2.val);
+		 $$ = $4;
+		 $$.unary_arg_type = 0;
 		 if ($4.type != T_STRING) {
 		   switch ($2.type) {
 		     case T_FLOAT:
@@ -6714,10 +6707,28 @@ valexpr        : exprsimple
 		       break;
 		   }
 		 }
-		 $$.type = promote($2.type, $4.type);
+		 /* As well as C-style casts, this grammar rule currently also
+		  * matches a binary operator with a LHS in parentheses for
+		  * binary operators which also have an unary form, e.g.:
+		  *
+		  * (6)*7
+		  * (6)&7
+		  * (6)+7
+		  * (6)-7
+		  */
+		 if (cast_type_code != T_USER && cast_type_code != T_UNKNOWN) {
+		   /* $2 is definitely a type so we know this is a cast. */
+		   $$.type = cast_type_code;
+		 } else if ($4.type == 0 || $4.unary_arg_type == 0) {
+		   /* Not one of the cases above, so we know this is a cast. */
+		   $$.type = cast_type_code;
+		 } else {
+		   $$.type = promote($2.type, $4.unary_arg_type);
+		 }
  	       }
                | LPAREN expr pointer RPAREN expr %prec CAST {
                  $$ = $5;
+		 $$.unary_arg_type = 0;
 		 if ($5.type != T_STRING) {
 		   SwigType_push($2.val,$3);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
@@ -6725,6 +6736,7 @@ valexpr        : exprsimple
  	       }
                | LPAREN expr AND RPAREN expr %prec CAST {
                  $$ = $5;
+		 $$.unary_arg_type = 0;
 		 if ($5.type != T_STRING) {
 		   SwigType_add_reference($2.val);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
@@ -6732,6 +6744,7 @@ valexpr        : exprsimple
  	       }
                | LPAREN expr LAND RPAREN expr %prec CAST {
                  $$ = $5;
+		 $$.unary_arg_type = 0;
 		 if ($5.type != T_STRING) {
 		   SwigType_add_rvalue_reference($2.val);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($2.val,0), $5.val);
@@ -6739,6 +6752,7 @@ valexpr        : exprsimple
  	       }
                | LPAREN expr pointer AND RPAREN expr %prec CAST {
                  $$ = $6;
+		 $$.unary_arg_type = 0;
 		 if ($6.type != T_STRING) {
 		   SwigType_push($2.val,$3);
 		   SwigType_add_reference($2.val);
@@ -6747,6 +6761,7 @@ valexpr        : exprsimple
  	       }
                | LPAREN expr pointer LAND RPAREN expr %prec CAST {
                  $$ = $6;
+		 $$.unary_arg_type = 0;
 		 if ($6.type != T_STRING) {
 		   SwigType_push($2.val,$3);
 		   SwigType_add_rvalue_reference($2.val);
@@ -6755,11 +6770,43 @@ valexpr        : exprsimple
  	       }
                | AND expr {
 		 $$ = $2;
-                 $$.val = NewStringf("&%s",$2.val);
+		 $$.val = NewStringf("&%s", $2.val);
+		 $$.rawval = 0;
+		 /* Record the type code for expr so we can properly handle
+		  * cases such as (6)&7 which get parsed using this rule then
+		  * the rule for a C-style cast.
+		  */
+		 $$.unary_arg_type = $2.type;
+		 switch ($$.type) {
+		   case T_CHAR:
+		     $$.type = T_STRING;
+		     break;
+		   case T_WCHAR:
+		     $$.type = T_WSTRING;
+		     break;
+		   default:
+		     $$.type = T_POINTER;
+		 }
 	       }
                | STAR expr {
 		 $$ = $2;
-                 $$.val = NewStringf("*%s",$2.val);
+		 $$.val = NewStringf("*%s", $2.val);
+		 $$.rawval = 0;
+		 /* Record the type code for expr so we can properly handle
+		  * cases such as (6)*7 which get parsed using this rule then
+		  * the rule for a C-style cast.
+		  */
+		 $$.unary_arg_type = $2.type;
+		 switch ($$.type) {
+		   case T_STRING:
+		     $$.type = T_CHAR;
+		     break;
+		   case T_WSTRING:
+		     $$.type = T_WCHAR;
+		     break;
+		   default:
+		     $$.type = T_UNKNOWN;
+		 }
 	       }
 	       ;
 
@@ -6836,7 +6883,7 @@ exprcompound   : expr PLUS expr {
 		* parentheses and we can handle that case.
 		*/
 	       | LPAREN expr GREATERTHAN expr RPAREN {
-		 $$.val = NewStringf("%s > %s", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
+		 $$.val = NewStringf("(%s > %s)", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 
@@ -6846,7 +6893,7 @@ exprcompound   : expr PLUS expr {
 		* covers all user-reported cases.
 		*/
                | LPAREN exprsimple LESSTHAN expr RPAREN {
-		 $$.val = NewStringf("%s < %s", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
+		 $$.val = NewStringf("(%s < %s)", COMPOUND_EXPR_VAL($2), COMPOUND_EXPR_VAL($4));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr GREATERTHANOREQUALTO expr {
@@ -6869,6 +6916,7 @@ exprcompound   : expr PLUS expr {
 		  * better than it deducing the wrong type).
 		  */
 		 $$.type = T_USER;
+		 $$.unary_arg_type = 0;
 	       }
 	       | expr QUESTIONMARK expr COLON expr %prec QUESTIONMARK {
 		 $$.val = NewStringf("%s?%s:%s", COMPOUND_EXPR_VAL($1), COMPOUND_EXPR_VAL($3), COMPOUND_EXPR_VAL($5));
@@ -6878,19 +6926,29 @@ exprcompound   : expr PLUS expr {
 	       }
                | MINUS expr %prec UMINUS {
 		 $$.val = NewStringf("-%s",$2.val);
-		 $$.type = $2.type;
+		 $$.type = promote_type($2.type);
+		 /* Record the type code for expr so we can properly handle
+		  * cases such as (6)-7 which get parsed using this rule then
+		  * the rule for a C-style cast.
+		  */
+		 $$.unary_arg_type = $2.type;
 	       }
                | PLUS expr %prec UMINUS {
                  $$.val = NewStringf("+%s",$2.val);
-		 $$.type = $2.type;
+		 $$.type = promote_type($2.type);
+		 /* Record the type code for expr so we can properly handle
+		  * cases such as (6)+7 which get parsed using this rule then
+		  * the rule for a C-style cast.
+		  */
+		 $$.unary_arg_type = $2.type;
 	       }
                | NOT expr {
 		 $$.val = NewStringf("~%s",$2.val);
-		 $$.type = $2.type;
+		 $$.type = promote_type($2.type);
 	       }
                | LNOT expr {
                  $$.val = NewStringf("!%s",COMPOUND_EXPR_VAL($2));
-		 $$.type = T_INT;
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | type LPAREN {
 		 String *qty;
@@ -6903,7 +6961,16 @@ exprcompound   : expr PLUS expr {
 		 }
 		 $$.val = NewStringf("%s%s",qty,scanner_ccode);
 		 Clear(scanner_ccode);
-		 $$.type = T_INT;
+		 // Try to deduce the type - this could be a C++ "constructor
+		 // cast" such as `double(4)` or a function call such as
+		 // `some_func()`.  In the latter case we get T_USER, but that
+		 // is wrong so we map it to T_UNKNOWN until we can actually
+		 // deduce the return type of a function call (which is
+		 // complicated because the return type can vary between
+		 // overloaded forms).
+		 $$.type = SwigType_type(qty);
+		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
+		 $$.unary_arg_type = 0;
 		 Delete(qty);
                }
                ;

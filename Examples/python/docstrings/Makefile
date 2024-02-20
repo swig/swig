@@ -5,7 +5,6 @@ CXXSRCS    = example.cxx
 TARGET     = example
 INTERFACE  = example.i
 LIBS       = -lm
-SWIGOPT    = -O
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' python_run

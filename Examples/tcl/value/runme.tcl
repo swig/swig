@@ -1,7 +1,7 @@
 # file: runme.tcl
 # Try to load as a dynamic module.
 
-catch { load ./example[info sharedlibextension] example}
+catch { load ./example[info sharedlibextension] Example}
 
 # Create a couple of a vectors
 

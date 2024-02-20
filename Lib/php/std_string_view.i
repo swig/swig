@@ -31,7 +31,7 @@ namespace std {
         $1 = &temp;
     %}
 
-    %typemap(directorout) string_view %{
+    %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) string_view %{
         convert_to_string($input);
         $result = std::string_view(Z_STRVAL_P($input), Z_STRLEN_P($input));
     %}

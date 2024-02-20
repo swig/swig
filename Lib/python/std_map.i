@@ -2,7 +2,7 @@
   Maps
 */
 
-%fragment("StdMapCommonTraits","header",fragment="StdSequenceTraits")
+%fragment("StdMapCommonTraits","header",fragment="StdSequenceTraits",fragment="SwigPyIterator_T")
 {
   namespace swig {
     template <class ValueType>

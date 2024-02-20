@@ -1,5 +1,5 @@
 
-if [ catch { load ./overload_null[info sharedlibextension] overload_null} err_msg ] {
+if [ catch { load ./overload_null[info sharedlibextension] Overload_null} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

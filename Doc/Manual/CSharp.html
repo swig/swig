@@ -42,6 +42,7 @@
 <li><a href="#CSharp_director_caveats">Director caveats</a>
 </ul>
 <li><a href="#CSharp_multiple_modules">Multiple modules</a>
+<li><a href="#CSharp_named_arguments">C# named and optional arguments</a>
 <li><a href="#CSharp_typemap_examples">C# Typemap examples</a>
 <ul>
 <li><a href="#CSharp_memory_management_member_variables">Memory management when returning references to member variables</a>
@@ -885,7 +886,7 @@ By default SWIG treats <tt>void *</tt> as any other pointer and hence marshalls 
 as shown in the table in the previous section.
 If you want to marshall with the .NET <tt>System.IntPtr</tt> type instead, there is a simple set of named typemaps called
 <tt>void *VOID_INT_PTR</tt> that can be used.
-They net effect is then:
+The net effect is then:
 </p>
 
 <table BORDER summary="VOID_INT_PTR type mappings">
@@ -2150,7 +2151,96 @@ the <tt>[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrows
 if you don't want users to easily stumble upon these so called 'internal workings' of the wrappers.
 </p>
 
-<H2><a name="CSharp_typemap_examples">23.8 C# Typemap examples</a></H2>
+
+<H2><a name="CSharp_named_arguments">23.8 C# named and optional arguments</a></H2>
+
+
+<p>
+  In C++ you can specify default arguments for functions, methods, and constructors.  C# offers named arguments.  This feature, specific to C#, lets you bind default argument functions with default arguments in C#.  SWIG also allows you to add default arguments to C# functions which don't have default arguments in C++.
+</p>
+
+<p>
+The <tt>cs:defaultargs</tt> feature enables C# named arguments with C# default values.
+Using this feature will turn off SWIG's default handling for default arguments, which would create an override for each defaulted argument.
+</p>
+
+<p>For this feature, you first specify the function/method/constructor you want it to impact.  Inside the feature
+  call you specify each argument you want to override.  If you specify none, it will take the literal text from c++
+  for each argument and apply that in C#.  That often works fine, but when it doesn't you can supply a string literal
+  with a C# expression to be used as an override.  Or you can supply an int literal, or a float literal.  If you want to give a literal
+  string you need to include an escaped quote at the start and end of the literal such as  <tt>"\"a string\""</tt>.
+</p>
+
+<p>
+Let's consider an example:
+</p>
+
+<div class="code">
+  <pre>
+    %feature("cs:defaultargs") Foo::Foo;
+    %feature("cs:defaultargs", x=0, z=4) Foo::bar;
+    %feature("cs:defaultargs", x="\"five\"") Foo::zoo;
+
+    %inline %{
+    class Foo {
+    public:
+        Foo(int a, int b=1, int c=2)
+        {
+        }
+        int bar(int x, int y=2, int z=3)
+        {
+            return x+y+z;
+        }
+        int bat(int x=1, int y=2, int z=3)
+        {
+            return x+y+z;
+        }
+        int zoo(std::string x="four")
+        {
+            return (int)x.size();
+        }
+    };
+    %}
+  </pre>
+</div>
+
+<p>
+The generated C# proxy class contains:
+</p>
+
+<div class="code">
+<pre>
+public class Foo : global::System.IDisposable {
+  ...
+  public Foo(int a, int b=1, int c=2) ...
+
+  public int bar(int x=0, int y=2, int z=4) ...
+
+  public int bat(int x, int y, int z) ...
+  public int bat(int x, int y) ...
+  public int bat(int x) ...
+  public int bat() ...
+
+  public int zoo(string x="five") ...
+}
+</pre>
+</div>
+
+<p>
+Note that:
+</p>
+<ol>
+<li> The constructor uses the default arguments exactly as taken from C++.  </li>
+<li> The <tt>bar</tt> method uses the default arguments exactly as taken from C++ apart from <tt>z</tt> whose default value is changed to 4, and <tt>x</tt> did not have a default value in C++, but does in the generated C#.</li>
+<li> The <tt>bat</tt> method does not use the <tt>cs:defaultargs</tt> feature and so the default handling of one overloaded C# method per defaulted C++ argument is generated.</li>
+<li> The <tt>zoo</tt> method's string value is overridden by the new string value from the feature. </li>
+</ol>
+
+<p>
+<b>Compatibility Note:</b> SWIG-4.2.0 added support for the <tt>cs:defaultargs</tt> feature.
+</p>
+
+<H2><a name="CSharp_typemap_examples">23.9 C# Typemap examples</a></H2>
 
 
 This section includes a few examples of typemaps.  For more examples, you
@@ -2158,7 +2248,7 @@ might look at the files "<tt>csharp.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
 
-<H3><a name="CSharp_memory_management_member_variables">23.8.1 Memory management when returning references to member variables</a></H3>
+<H3><a name="CSharp_memory_management_member_variables">23.9.1 Memory management when returning references to member variables</a></H3>
 
 
 <p>
@@ -2282,7 +2372,7 @@ public class Bike : global::System.IDisposable {
 Note the <tt>addReference</tt> call.
 </p>
 
-<H3><a name="CSharp_memory_management_objects">23.8.2 Memory management for objects passed to the C++ layer</a></H3>
+<H3><a name="CSharp_memory_management_objects">23.9.2 Memory management for objects passed to the C++ layer</a></H3>
 
 
 <p>
@@ -2414,7 +2504,7 @@ as mentioned earlier, <tt>setElement</tt> is actually:
 </div>
 
 
-<H3><a name="CSharp_date_marshalling">23.8.3 Date marshalling using the csin typemap and associated attributes</a></H3>
+<H3><a name="CSharp_date_marshalling">23.9.3 Date marshalling using the csin typemap and associated attributes</a></H3>
 
 
 <p>
@@ -2700,7 +2790,7 @@ public class example {
 </pre>
 </div>
 
-<H3><a name="CSharp_date_properties">23.8.4 A date example demonstrating marshalling of C# properties</a></H3>
+<H3><a name="CSharp_date_properties">23.9.4 A date example demonstrating marshalling of C# properties</a></H3>
 
 
 <p>
@@ -2800,7 +2890,7 @@ Some points to note:
   <li>The 'csin' typemap has 'pre', 'post' and 'cshin' attributes, and these are all ignored in the property set. The code in these attributes must instead be replicated within the 'csvarin' typemap. The line creating the <tt>temp$csinput</tt> variable is such an example; it is identical to what is in the 'pre' attribute.
 </ul>
 
-<H3><a name="CSharp_date_pre_post_directors">23.8.5 Date example demonstrating the 'pre' and 'post' typemap attributes for directors</a></H3>
+<H3><a name="CSharp_date_pre_post_directors">23.9.5 Date example demonstrating the 'pre' and 'post' typemap attributes for directors</a></H3>
 
 
 <p>
@@ -2862,7 +2952,7 @@ Pay special attention to the memory management issues, using these attributes.
 </p>
 
 
-<H3><a name="CSharp_partial_classes">23.8.6 Turning proxy classes into partial classes</a></H3>
+<H3><a name="CSharp_partial_classes">23.9.6 Turning proxy classes into partial classes</a></H3>
 
 
 <p>
@@ -2962,7 +3052,7 @@ demonstrating that the class contains methods calling both unmanaged code - <tt>
 The following example is an alternative approach to adding managed code to the generated proxy class.
 </p>
 
-<H3><a name="CSharp_sealed_proxy_class">23.8.7 Turning proxy classes into sealed classes</a></H3>
+<H3><a name="CSharp_sealed_proxy_class">23.9.7 Turning proxy classes into sealed classes</a></H3>
 
 
 <p>
@@ -3052,7 +3142,7 @@ Either suppress the warning or modify the generated code by copying and tweaking
 'csbody' typemap code in csharp.swg by modifying swigCMemOwn to not be protected.
 </p>
 
-<H3><a name="CSharp_extending_proxy_class">23.8.8 Extending proxy classes with additional C# code</a></H3>
+<H3><a name="CSharp_extending_proxy_class">23.9.8 Extending proxy classes with additional C# code</a></H3>
 
 
 <p>
@@ -3091,11 +3181,11 @@ public class ExtendMe : global::System.IDisposable {
 </pre>
 </div>
 
-<H3><a name="CSharp_enum_underlying_type">23.8.9 Underlying type for enums</a></H3>
+<H3><a name="CSharp_enum_underlying_type">23.9.9 Underlying type for enums</a></H3>
 
 
 <P>
-C# enums use int as the underlying type for each enum item, unless there is a C++11 enum base specifiying the underlying C++ enum type.
+C# enums use int as the underlying type for each enum item, unless there is a C++11 enum base specifying the underlying C++ enum type.
 If there is a C++ base enum then this is automatically converted to the equivalent C# integral type.
 If you wish to change the underlying type to something else, then use the <tt>csbase</tt> typemap.
 For example when your C++ code uses a value larger than int, this is necessary as the C# compiler will not compile values which are too large to fit into an int.
@@ -3150,7 +3240,7 @@ public enum SmallNumbers : ushort {
 </div>
 
 <p>
-The underlying C# type can stil be changed to something else using the csbase typemap but the <tt>replace</tt> attribute must be set to avoid an ignored warnings as there are effectively two specified bases, which of course is not possible. For example:
+The underlying C# type can still be changed to something else using the csbase typemap but the <tt>replace</tt> attribute must be set to avoid an ignored warnings as there are effectively two specified bases, which of course is not possible. For example:
 </p>
 
 <div class="code">

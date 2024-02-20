@@ -102,16 +102,6 @@
   #endif
 %enddef
 
-// deprecated (same as %attributeref, but there is an argument order inconsistency)
-%define %attribute_ref(Class, AttributeType, AccessorMethod, AttributeName...)
-  #if #AttributeName != ""
-    %attribute_custom(%arg(Class), %arg(AttributeType), AttributeName, AccessorMethod, AccessorMethod, self_->AccessorMethod(), self_->AccessorMethod() = val_)
-  #else
-    %attribute_custom(%arg(Class), %arg(AttributeType), AccessorMethod, AccessorMethod, AccessorMethod, self_->AccessorMethod(), self_->AccessorMethod() = val_)
-  #endif
-%enddef
-
-
 %define %attributeval(Class, AttributeType, AttributeName, GetMethod, SetMethod...)
   %{
     #define %mangle(Class) ##_## AttributeName ## _get(self_) new AttributeType(self_->GetMethod())

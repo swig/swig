@@ -332,7 +332,8 @@ public:
   virtual int top(Node *n) {
 
     // Get any options set in the module directive
-    Node *optionsnode = Getattr(Getattr(n, "module"), "options");
+    Node *module = Getattr(n, "module");
+    Node *optionsnode = Getattr(module, "options");
 
     if (optionsnode) {
       if (Getattr(optionsnode, "jniclassname"))
@@ -417,9 +418,9 @@ public:
     constants_interface_name = NewStringf("%sConstants", module_class_name);
 
     // module class and intermediary classes are always created
-    if (!addSymbol(imclass_name, n))
+    if (!addSymbol(imclass_name, module))
       return SWIG_ERROR;
-    if (!addSymbol(module_class_name, n))
+    if (!addSymbol(module_class_name, module))
       return SWIG_ERROR;
 
     imclass_class_code = NewString("");
@@ -1245,11 +1246,6 @@ public:
 	return SWIG_NOWRAP;
 
       String *nspace = Getattr(n, "sym:nspace"); // NSpace/getNSpace() only works during Language::enumDeclaration call
-      if (proxy_flag && !is_wrapping_class()) {
-	// Global enums / enums in a namespace
-	assert(!full_imclass_name);
-	constructIntermediateClassName(n);
-      }
 
       enum_code = NewString("");
       String *symname = Getattr(n, "sym:name");
@@ -1300,8 +1296,19 @@ public:
 	}
       }
 
+      if (proxy_flag && !is_wrapping_class()) {
+	// Global enums / enums in a namespace
+	assert(!full_imclass_name);
+	constructIntermediateClassName(n);
+      }
+
       // Emit each enum item
       Language::enumDeclaration(n);
+
+      if (proxy_flag && !is_wrapping_class()) {
+	Delete(full_imclass_name);
+	full_imclass_name = 0;
+      }
 
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Java enum
@@ -1369,11 +1376,6 @@ public:
 
       Delete(enum_code);
       enum_code = NULL;
-
-      if (proxy_flag && !is_wrapping_class()) {
-	Delete(full_imclass_name);
-	full_imclass_name = 0;
-      }
     }
     return SWIG_OK;
   }
@@ -1808,6 +1810,7 @@ public:
       Node *base = it.item;
       SwigType *c_baseclassname = Getattr(base, "name");
       String *interface_name = Getattr(base, "interface:name");
+      SwigType *bsmart = Getattr(base, "smart");
       if (Len(interface_list))
 	Append(interface_list, ", ");
       Append(interface_list, interface_name);
@@ -1826,7 +1829,7 @@ public:
       Replaceall(cptr_method_name, "$interfacename", interface_name);
 
       String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), cptr_method_name);
-      upcastsCode(smart, upcast_method_name, c_classname, c_baseclassname);
+      upcastsCode(smart, bsmart, upcast_method_name, c_classname, c_baseclassname);
 
       Delete(upcast_method_name);
       Delete(cptr_method_name);
@@ -1840,31 +1843,31 @@ public:
    * Add code for C++ casting to base class
    * ----------------------------------------------------------------------------- */
 
-  void upcastsCode(SwigType *smart, String *upcast_method_name, SwigType *c_classname, SwigType *c_baseclassname) {
+  void upcastsCode(SwigType *smart, SwigType *bsmart, String *upcast_method_name, SwigType *c_classname, SwigType *c_baseclassname) {
     String *jniname = makeValidJniName(upcast_method_name);
     String *wname = Swig_name_wrapper(jniname);
 
     Printf(imclass_cppcasts_code, "  public final static native long %s(long jarg1);\n", upcast_method_name);
 
     if (smart) {
-      SwigType *bsmart = Swig_smartptr_upcast(smart, c_classname, c_baseclassname);
-      String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(bsmart);
+      if (bsmart) {
+	String *smartnamestr = SwigType_namestr(smart);
+	String *bsmartnamestr = SwigType_namestr(bsmart);
 
-      Printv(upcasts_code,
-	  "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
-	  "    jlong baseptr = 0;\n"
-	  "    ", smartnamestr, " *argp1;\n"
-	  "    (void)jenv;\n"
-	  "    (void)jcls;\n"
-	  "    argp1 = *(", smartnamestr, " **)&jarg1;\n"
-	  "    *(", bsmartnamestr, " **)&baseptr = argp1 ? new ", bsmartnamestr, "(*argp1) : 0;\n"
-	  "    return baseptr;\n"
-	  "}\n", "\n", NIL);
+	Printv(upcasts_code,
+	    "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
+	    "    jlong baseptr = 0;\n"
+	    "    ", smartnamestr, " *argp1;\n"
+	    "    (void)jenv;\n"
+	    "    (void)jcls;\n"
+	    "    argp1 = *(", smartnamestr, " **)&jarg1;\n"
+	    "    *(", bsmartnamestr, " **)&baseptr = argp1 ? new ", bsmartnamestr, "(*argp1) : 0;\n"
+	    "    return baseptr;\n"
+	    "}\n", "\n", NIL);
 
-      Delete(bsmartnamestr);
-      Delete(smartnamestr);
-      Delete(bsmart);
+	Delete(bsmartnamestr);
+	Delete(smartnamestr);
+      }
     } else {
       String *classname = SwigType_namestr(c_classname);
       String *baseclassname = SwigType_namestr(c_baseclassname);
@@ -1899,7 +1902,8 @@ public:
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
     bool has_outerclass = Getattr(n, "nested:outer") != 0 && !GetFlag(n, "feature:flatnested");
-    SwigType *smart = Swig_cparse_smartptr(n);
+    SwigType *smart = Getattr(n, "smart");
+    SwigType *bsmart = 0;
 
     // Inheritance from pure Java classes
     Node *attributes = NewHash();
@@ -1921,6 +1925,7 @@ public:
 	      if (name) {
 		c_baseclassname = baseclassname;
 		baseclass = name;
+		bsmart = Getattr(base.item, "smart");
 	      }
 	    } else {
 	      /* Warn about multiple inheritance for additional base class(es) */
@@ -2068,11 +2073,9 @@ public:
 
     if (derived) {
       String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), smart != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
-      upcastsCode(smart, upcast_method_name, c_classname, c_baseclassname);
+      upcastsCode(smart, bsmart, upcast_method_name, c_classname, c_baseclassname);
       Delete(upcast_method_name);
     }
-
-    Delete(smart);
   }
 
   /* ----------------------------------------------------------------------
@@ -3790,7 +3793,8 @@ public:
     String *norm_name = SwigType_namestr(Getattr(n, "name"));
     String *swig_director_connect = Swig_name_member(getNSpace(), getClassPrefix(), "director_connect");
     String *swig_director_connect_jni = makeValidJniName(swig_director_connect);
-    String *smartptr = Getattr(n, "feature:smartptr");
+    SwigType *smart = Getattr(n, "smart");
+    String *smartptr = smart ? SwigType_namestr(smart) : 0;
     String *dirClassName = directorClassName(n);
     Wrapper *code_wrap;
 
@@ -3836,7 +3840,7 @@ public:
 	   "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jtake_or_release) {\n",
 	   jnipackage, jni_imclass_name, changeown_jnimethod_name);
 
-    if (Len(smartptr)) {
+    if (smartptr) {
         Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
         Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
         Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");

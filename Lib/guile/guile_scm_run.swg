@@ -74,8 +74,7 @@ typedef struct swig_guile_clientdata {
   do { \
     if (!(expr))							\
       scm_error(scm_from_locale_symbol("swig-contract-assertion-failed"),	\
-                (char *) FUNC_NAME, (char *) msg,			\
-                SCM_EOL, SCM_BOOL_F); \
+                FUNC_NAME, msg, SCM_EOL, SCM_BOOL_F); \
   } while (0)
 
 /* for C++ member pointers, ie, member methods */
@@ -246,7 +245,7 @@ SWIG_Guile_MustGetPtr (SCM s, swig_type_info *type,
   int res = SWIG_Guile_ConvertPtr(s, &result, type, flags);
   if (!SWIG_IsOK(res)) {
     /* type mismatch */
-    scm_wrong_type_arg((char *) func_name, argnum, s);
+    scm_wrong_type_arg(func_name, argnum, s);
   }
   return result;
 }
@@ -340,13 +339,13 @@ print_swig_aux (SCM swig_smob, SCM port, scm_print_state *pstate,
   
   type = (swig_type_info *) SCM_CELL_WORD_2(swig_smob);
   if (type) {
-    scm_puts((char *) "#<", port);
-    scm_puts((char *) attribute, port);
-    scm_puts((char *) "swig-pointer ", port);
-    scm_puts((char *) SWIG_TypePrettyName(type), port);
-    scm_puts((char *) " ", port);
+    scm_puts("#<", port);
+    scm_puts(attribute, port);
+    scm_puts("swig-pointer ", port);
+    scm_puts(SWIG_TypePrettyName(type), port);
+    scm_puts(" ", port);
     scm_intprint((long) SCM_CELL_WORD_1(swig_smob), 16, port);
-    scm_puts((char *) ">", port);
+    scm_puts(">", port);
     /* non-zero means success */
     return 1;
   } else {
@@ -379,10 +378,10 @@ print_member_function_swig (SCM swig_smob, SCM port, scm_print_state *pstate)
   swig_type_info *type;
   type = (swig_type_info *) SCM_CELL_WORD_2(swig_smob);
   if (type) {
-    scm_puts((char *) "#<", port);
-    scm_puts((char *) "swig-member-function-pointer ", port);
-    scm_puts((char *) SWIG_TypePrettyName(type), port);
-    scm_puts((char *) " >", port);
+    scm_puts("#<", port);
+    scm_puts("swig-member-function-pointer ", port);
+    scm_puts(SWIG_TypePrettyName(type), port);
+    scm_puts(" >", port);
     /* non-zero means success */
     return 1;
   } else {
@@ -426,7 +425,7 @@ ensure_smob_tag(SCM swig_module,
   SCM variable = scm_module_variable(swig_module,
                              scm_from_locale_symbol(scheme_variable_name));
   if (scm_is_false(variable)) {
-    *tag_variable = scm_make_smob_type((char*)scheme_variable_name, 0);
+    *tag_variable = scm_make_smob_type(scheme_variable_name, 0);
     scm_c_module_define(swig_module, scheme_variable_name, 
                         scm_from_ulong(*tag_variable));
     return 1;
@@ -471,7 +470,7 @@ SWIG_Guile_Init ()
   }
   swig_make_func = scm_permanent_object(
   scm_variable_ref(scm_c_module_lookup(scm_c_resolve_module("oop goops"), "make")));
-  swig_keyword = scm_permanent_object(scm_from_locale_keyword((char*) "init-smob"));
+  swig_keyword = scm_permanent_object(scm_from_locale_keyword("init-smob"));
   swig_symbol = scm_permanent_object(scm_from_locale_symbol("swig-smob"));
 #ifdef SWIG_INIT_RUNTIME_MODULE
   SWIG_INIT_RUNTIME_MODULE
@@ -510,7 +509,7 @@ SWIG_Guile_GetArgs (SCM *dest, SCM rest,
   int num_args_passed = 0;
   for (i = 0; i<reqargs; i++) {
     if (!scm_is_pair(rest))
-      scm_wrong_num_args(scm_from_utf8_string(procname ? (char *) procname : "unknown procedure"));
+      scm_wrong_num_args(scm_from_utf8_string(procname ? procname : "unknown procedure"));
     *dest++ = SCM_CAR(rest);
     rest = SCM_CDR(rest);
     num_args_passed++;
@@ -523,7 +522,7 @@ SWIG_Guile_GetArgs (SCM *dest, SCM rest,
   for (; i<optargs; i++)
     *dest++ = SCM_UNDEFINED;
   if (!scm_is_null(rest))
-      scm_wrong_num_args(scm_from_utf8_string(procname ? (char *) procname : "unknown procedure"));
+      scm_wrong_num_args(scm_from_utf8_string(procname ? procname : "unknown procedure"));
   return num_args_passed;
 }
 

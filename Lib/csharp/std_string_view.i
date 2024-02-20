@@ -36,12 +36,15 @@ class string_view;
    $1 = std::string_view($input); %}
 %typemap(out) string_view %{ $result = SWIG_csharp_string_callback(std::string($1).c_str()); %}
 
-%typemap(directorout, canthrow=1) string_view
+%typemap(directorout, canthrow=1, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) string_view
 %{ if (!$input) {
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
     return $null;
    }
-   $result = std::string_view($input); %}
+   /* possible thread/reentrant code problem */
+   static std::string $1_str;
+   $1_str = $input;
+   $result = std::string_view($1_str); %}
 
 %typemap(directorin) string_view %{ $input = std::string($1).c_str(); %}
 

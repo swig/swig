@@ -29,9 +29,8 @@
   SWIGINTERN void SWIG_exception_ (int code, const char *msg,
                                const char *subr) {
 #define ERROR(scmerr)					\
-	scm_error(scm_from_locale_string((char *) (scmerr)),	\
-		  (char *) subr, (char *) msg,		\
-		  SCM_EOL, SCM_BOOL_F)
+	scm_error(scm_from_locale_string(scmerr),	\
+		  subr, msg, SCM_EOL, SCM_BOOL_F)
 #define MAP(swigerr, scmerr)			\
 	case swigerr:				\
 	  ERROR(scmerr);			\

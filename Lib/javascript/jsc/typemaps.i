@@ -18,7 +18,7 @@ you would use a real value instead.
          int            *INPUT
          short          *INPUT
          long           *INPUT
-   long long      *INPUT
+         long long      *INPUT
          unsigned int   *INPUT
          unsigned short *INPUT
          unsigned long  *INPUT

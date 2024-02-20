@@ -62,7 +62,7 @@ case "$SWIGLANG" in
 				$RETRY sudo apt-get install -qq libjavascriptcoregtk-${VER}-dev
 				;;
 			"v8")
-				$RETRY sudo apt-get install -qq libv8-dev
+				$RETRY sudo apt-get install -qq libnode-dev
 				;;
 		esac
 		;;
@@ -124,7 +124,7 @@ case "$SWIGLANG" in
 	"ruby")
 		if [[ "$VER" ]]; then
 			case "$VER" in
-				3.1 | 3.2 | 3.3 )
+				3.1 | 3.2 | 3.2.2 | 3.3 )
 					# Ruby 3.1+ support is currently only rvm master (2023-04-19)
 					# YOLO
 					curl -sSL https://rvm.io/mpapis.asc | gpg --import -

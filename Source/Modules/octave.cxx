@@ -964,13 +964,14 @@ public:
     SwigType_add_pointer(t);
 
     // Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
-    SwigType *smart = Swig_cparse_smartptr(n);
+    SwigType *smart = Getattr(n, "smart");
     String *wrap_class = NewStringf("&_wrap_class_%s", class_name);
     if (smart) {
-      SwigType_add_pointer(smart);
-      SwigType_remember_clientdata(smart, wrap_class);
+      SwigType *psmart = Copy(smart);
+      SwigType_add_pointer(psmart);
+      SwigType_remember_clientdata(psmart, wrap_class);
+      Delete(psmart);
     }
-    //String *wrap_class = NewStringf("&_wrap_class_%s", class_name);
     SwigType_remember_clientdata(t, wrap_class);
 
     int use_director = Swig_directorclass(n);
@@ -1047,7 +1048,6 @@ public:
 
     Delete(base_class);
     Delete(base_class_names);
-    Delete(smart);
     Delete(t);
     Delete(s_members_tab);
     s_members_tab = 0;

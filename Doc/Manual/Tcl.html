@@ -81,7 +81,7 @@
 <p>
 This chapter discusses SWIG's support of Tcl. Since SWIG 4.1.0, Tcl 8.4 or a
 later release is required.  Prior to that earlier Tcl 8.x releases were also
-supported.
+supported.  Tcl 9.0 is supported since SWIG 4.2.1.
 </p>
 
 <H2><a name="Tcl_nn2">37.1 Preliminaries</a></H2>
@@ -2780,7 +2780,7 @@ used as a <tt>char **</tt> object.
   }
   $1 = (char **) malloc((nitems+1)*sizeof(char *));
   for (i = 0; i &lt; nitems; i++) {
-    $1[i] = Tcl_GetStringFromObj(listobjv[i], 0);
+    $1[i] = Tcl_GetString(listobjv[i]);
   }
   $1[i] = 0;
 }

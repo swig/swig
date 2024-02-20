@@ -719,29 +719,31 @@ AltStruct var2{2, 4.3};   // calls the constructor
 <H3><a name="CPlusPlus11_type_inference">7.2.6 Type inference</a></H3>
 
 
-<p><tt>decltype()</tt> is supported with limitations.  SWIG can parse
-all uses, but can only deduce the type for single variables, and for
-some expressions involving only literal values of built-in C++ types.
-For example, the following code will work:</p>
+<p><tt>decltype()</tt> is supported with a few limitations.  SWIG can parse
+all uses, but can't deduce the type in every situation where a C++ compiler
+can.  The cases SWIG can deduce have expanded with time and hopefully will
+continue to.  For example, for the code</p>
 <div class="code"><pre>
 int i;
 decltype(i) j;
+decltype(i+j) k;
 </pre></div>
 
-<p>SWIG is able to deduce that the variable, <tt>i</tt>, is type <tt>int</tt>.
+<p>SWIG is able to deduce that the variable <tt>i</tt> and the expression
+<tt>i+j</tt> both have type <tt>int</tt>.
 </p>
 
 <p>
-Using a non-trivial expression for the decltype results in a warning:</p>
+Using an expression for the decltype which SWIG can't handle results in a warning:</p>
 <div class="code"><pre>
-int i; int j;
-decltype(i+j) k;  // Warning 344: Unable to deduce decltype for 'i+j'.
+int foo(int);
+decltype(foo(0)) k;  // Warning 344: Unable to deduce decltype for 'foo(0)'.
 </pre></div>
 
 <p>
-This warning should be viewed as  a prompt to add in a manual ignore of the variable/function as
+This warning should be viewed as a prompt to add in a manual ignore of the variable/function as
 in most cases the generated code will not compile.
-For the example above, ignore the symbol that uses decltype and perhaps additionally
+For the example above, ignore the symbol that is declared using <tt>decltype</tt> and perhaps additionally
 suppress the warning as follows:
 </p>
 
@@ -757,12 +759,13 @@ If an ignore is not acceptable, a workaround is to redefine the symbol with the 
 <div class="code"><pre>
 int k; // define k with the actual type
 %ignore k; // ignore the real definition of k
-int i; int j;
-decltype(i+j) k;  // Warning 344: Unable to deduce decltype for 'i+j'.
 </pre></div>
 
-<p>SWIG supports <tt>auto</tt> as a type specifier for
-<a href="#CPlusPlus11_auto_variables">variables</a> (with the same limitations
+<p>You would typically put one of these workarounds in your interface file before
+using <tt>%include</tt> to get SWIG to parse the header which defines <tt>k</tt>.
+</p>
+
+<p>SWIG supports <tt>auto</tt> as a type specifier for variables (with the same limitations
 for actually deducing the type as for <tt>decltype()</tt>), and for specifying
 the return type of <a href="#CPlusPlus11_lambda_functions_and_expressions">lambdas</a>
 and <a href="#CPlusPlus11_alternate_function_syntax">functions</a>.</p>
@@ -1633,7 +1636,7 @@ There is no special smart pointer handling available for <tt>std::weak_ptr</tt>.
 <H3><a name="CPlusPlus11_extensible_random_number_facility">7.3.6 Extensible random number facility</a></H3>
 
 
-<p>This feature extends and standardizes the standard library only and does not effect the C++ language nor SWIG.</p>
+<p>This feature extends and standardizes the standard library only and does not affect the C++ language nor SWIG.</p>
 
 <H3><a name="CPlusPlus11_wrapper_reference">7.3.7 Wrapper reference</a></H3>
 

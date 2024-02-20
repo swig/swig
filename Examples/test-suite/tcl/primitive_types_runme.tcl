@@ -1,5 +1,5 @@
 
-if [ catch { load ./primitive_types[info sharedlibextension] primitive_types} err_msg ] {
+if [ catch { load ./primitive_types[info sharedlibextension] Primitive_types} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

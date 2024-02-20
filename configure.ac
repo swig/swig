@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[4.2.0],[https://www.swig.org])
+AC_INIT([swig],[4.2.1],[https://www.swig.org])
 AC_PREREQ([2.60])
 
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
@@ -1684,7 +1684,11 @@ if test -n "$OCTAVE"; then
      OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "-L`${mkoctfile} -p ${var}`
    done
    for var in RDYNAMIC_FLAG RLD_FLAG OCTAVE_LIBS LIBS; do
-     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`${mkoctfile} -p ${var}`
+     # RLD_FLAG gives "mkoctfile: unknown variable 'RLD_FLAG'" on stderr
+     # with Octave 7.3 so just discard stderr here.  Apparently RLD_FLAG has
+     # reported an empty value since somewhere between 3.4.3 and 3.6.1 so
+     # can be removed below once we require Octave 4.
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`${mkoctfile} -p ${var} 2>/dev/null`
    done
    AC_MSG_RESULT([$OCTAVE_LDFLAGS])
 

@@ -113,6 +113,8 @@ SWIG_AsVal_dec(unsigned long)(VALUE obj, unsigned long *val)
     a[0] = obj;
     a[1] = (VALUE)(&v);
     if (rb_rescue(VALUEFUNC(SWIG_AUX_NUM2ULONG), (VALUE)a, VALUEFUNC(SWIG_ruby_failed), 0) != Qnil) {
+      if (rb_funcall(obj, swig_lowerthan_id, 1, INT2FIX(0)) != Qfalse)
+        return SWIG_OverflowError;
       if (val) *val = v;
       return SWIG_OK;
     }
@@ -189,6 +191,8 @@ SWIG_AsVal_dec(unsigned long long)(VALUE obj, unsigned long long *val)
     a[0] = obj;
     a[1] = (VALUE)(&v);
     if (rb_rescue(VALUEFUNC(SWIG_AUX_NUM2ULL), (VALUE)a, VALUEFUNC(SWIG_ruby_failed), 0) != Qnil) {
+      if (rb_funcall(obj, swig_lowerthan_id, 1, INT2FIX(0)) != Qfalse)
+        return SWIG_OverflowError;
       if (val) *val = v;
       return SWIG_OK;
     }

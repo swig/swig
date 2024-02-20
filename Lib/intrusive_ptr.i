@@ -56,25 +56,3 @@ SWIG_INTRUSIVE_PTR_TYPEMAPS(const, TYPE)
 SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(, TYPE)
 SWIG_INTRUSIVE_PTR_TYPEMAPS_NO_WRAP(const, TYPE)
 %enddef
-
-// Legacy macros
-%define SWIG_INTRUSIVE_PTR(PROXYCLASS, TYPE...)
-#warning "SWIG_INTRUSIVE_PTR(PROXYCLASS, TYPE) is deprecated. Please use %intrusive_ptr(TYPE) instead."
-%intrusive_ptr(TYPE)
-%enddef
-
-%define SWIG_INTRUSIVE_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE...)
-#warning "SWIG_INTRUSIVE_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE) is deprecated. Please use %intrusive_ptr(TYPE) instead."
-%intrusive_ptr(TYPE)
-%enddef
-
-%define SWIG_INTRUSIVE_PTR_NO_WRAP(PROXYCLASS, TYPE...)
-#warning "SWIG_INTRUSIVE_PTR_NO_WRAP(PROXYCLASS, TYPE) is deprecated. Please use %intrusive_ptr_no_wrap(TYPE) instead."
-%intrusive_ptr_no_wrap(TYPE)
-%enddef
-
-%define SWIG_INTRUSIVE_PTR_DERIVED_NO_WRAP(PROXYCLASS, BASECLASSTYPE, TYPE...)
-#warning "SWIG_INTRUSIVE_PTR_DERIVED_NO_WRAP(PROXYCLASS, BASECLASSTYPE, TYPE) is deprecated. Please use %intrusive_ptr_no_wrap(TYPE) instead."
-%intrusive_ptr_no_wrap(TYPE)
-%enddef
-

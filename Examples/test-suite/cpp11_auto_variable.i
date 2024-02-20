@@ -5,6 +5,9 @@
 static auto t = true;
 static constexpr auto f = false;
 
+static auto zero = 0;
+static constexpr auto one = 1;
+
 static auto la = 1.0L;
 static auto da = 1.0;
 static auto fa = 1.0f;
@@ -20,24 +23,30 @@ static constexpr auto Foo = "bar";
 static constexpr auto Bar2 = Bar;
 static constexpr auto Foo2 = Foo;
 
+static auto Bar3 = f ? zero : t;
+static constexpr auto Foo3 = f ? f : one;
+
 %}
 
-// SWIG currently can't deduce the type for examples below:
-%ignore Bar3;
-%ignore Foo3;
-%warnfilter(SWIGWARN_CPP11_AUTO) Bar4;
-%warnfilter(SWIGWARN_CPP11_AUTO) Foo4;
+// SWIG currently can't deduce the type for examples below.
+// Test two approaches to suppressing the warning.
+%ignore Bad1;
+%ignore Bad2;
+%warnfilter(SWIGWARN_CPP11_AUTO) Bad3;
+%warnfilter(SWIGWARN_CPP11_AUTO) Bad4;
 
 %inline %{
 
-static auto Bar3 = f ? Bar : Bar2;
-static constexpr auto Foo3 = f ? Foo : Foo2;
+static auto Bad1 = &t;
+static constexpr auto Bad2 = &f;
+static auto Bad3 = &zero;
+static constexpr auto Bad4 = &one;
 
-static auto Bar4 = f ? Bar : Bar2;
-static constexpr auto Foo4 = f ? Foo : Foo2;
+%}
 
+%inline %{
 
-// FIXME: Not currently handled:
+// FIXME: Not currently handled by SWIG's parser:
 //static auto constexpr greeting = "Hello";
 
 %}

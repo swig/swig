@@ -1,6 +1,6 @@
 # file: runme.tcl
 
-catch { load ./example[info sharedlibextension] example}
+catch { load ./example[info sharedlibextension] Example}
 
 # Try to set the values of some global variables
 

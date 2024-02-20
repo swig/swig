@@ -1,5 +1,5 @@
 
-if [ catch { load ./cpp17_string_view[info sharedlibextension] cpp17_string_view} err_msg ] {
+if [ catch { load ./cpp17_string_view[info sharedlibextension] Cpp17_string_view} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

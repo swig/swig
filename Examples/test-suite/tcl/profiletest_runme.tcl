@@ -1,4 +1,4 @@
-catch { load ./profiletest[info sharedlibextension] profiletest}
+catch { load ./profiletest[info sharedlibextension] Profiletest}
 
 set  a [new_A]
 set  b [new_B]

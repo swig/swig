@@ -2,7 +2,7 @@
 # This is the union runtime testcase. It ensures that values within a 
 # union embedded within a struct can be set and read correctly.
 
-if [ catch { load ./unions[info sharedlibextension] unions} err_msg ] {
+if [ catch { load ./unions[info sharedlibextension] Unions} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

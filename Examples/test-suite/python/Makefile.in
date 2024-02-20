@@ -90,6 +90,7 @@ CPP_TEST_CASES += \
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
 	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_crtp_upcast \
 	cpp11_shared_ptr_nullptr_in_containers \
 	cpp11_shared_ptr_overload \
 	cpp11_shared_ptr_template_upcast \
@@ -98,6 +99,9 @@ CPP11_TEST_CASES = \
 	cpp11_std_unordered_multimap \
 	cpp11_std_unordered_multiset \
 	cpp11_std_unordered_set \
+
+CPP17_TEST_CASES = \
+	cpp17_std_filesystem
 
 C_TEST_CASES += \
 	ccomplextest \
