@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (in progress)
 ===========================
 
+2024-02-21: olly
+	    #2808 [PHP] Fix memory leak when getting or setting a PHP
+	    attribute which wraps a C++ member variable.  Bug introduced in
+	    SWIG 4.1.0.
+
 2024-02-18: wsfulton
             #2745 Fix for wrapping STL containers that are static member variables
             or global variables (most scripting languages). Previously a copy of the

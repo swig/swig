@@ -2058,11 +2058,13 @@ public:
 
     Printf(magic_set, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
     Printf(magic_set, "ZVAL_STRING(&tempZval, \"%s_set\");\n", v_name);
-    Printf(magic_set, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,1,&args[1]);\n}\n");
+    Printf(magic_set, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,1,&args[1]);\n");
+    Printf(magic_set, "zval_ptr_dtor(&tempZval);\n}\n");
 
     Printf(magic_get, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
     Printf(magic_get, "ZVAL_STRING(&tempZval, \"%s_get\");\n", v_name);
-    Printf(magic_get, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,0,NULL);\n}\n");
+    Printf(magic_get, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,0,NULL);\n");
+    Printf(magic_get, "zval_ptr_dtor(&tempZval);\n}\n");
 
     Printf(magic_isset, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
     Printf(magic_isset, "RETVAL_TRUE;\n}\n");
