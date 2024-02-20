@@ -170,7 +170,7 @@
   $1 = !caml_ptr_val_internal($input, &ptr, 0);
 }
 
-%typecheck(SWIG_TYPECHECK_SWIGOBJECT) CAML_VALUE "$1 = 1;"
+%typecheck(SWIG_TYPECHECK_SWIGOBJECT) value "$1 = 1;"
 
 /* ------------------------------------------------------------
  * Exception handling
