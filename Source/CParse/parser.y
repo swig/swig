@@ -1654,7 +1654,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
   Node         *node;
 };
 
-// Define special token END for end of input.
+/* Define special token END for end of input. */
 %token END 0
 
 %token <id> ID
@@ -6961,13 +6961,14 @@ exprcompound   : expr PLUS expr {
 		 }
 		 $$.val = NewStringf("%s%s",qty,scanner_ccode);
 		 Clear(scanner_ccode);
-		 // Try to deduce the type - this could be a C++ "constructor
-		 // cast" such as `double(4)` or a function call such as
-		 // `some_func()`.  In the latter case we get T_USER, but that
-		 // is wrong so we map it to T_UNKNOWN until we can actually
-		 // deduce the return type of a function call (which is
-		 // complicated because the return type can vary between
-		 // overloaded forms).
+		 /* Try to deduce the type - this could be a C++ "constructor
+		  * cast" such as `double(4)` or a function call such as
+		  * `some_func()`.  In the latter case we get T_USER, but that
+		  * is wrong so we map it to T_UNKNOWN until we can actually
+		  * deduce the return type of a function call (which is
+		  * complicated because the return type can vary between
+		  * overloaded forms).
+		  */
 		 $$.type = SwigType_type(qty);
 		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
 		 $$.unary_arg_type = 0;
