@@ -170,6 +170,12 @@ jobs:
                     unset SWIGJOBS
                 esac
                 ;;
+              ocaml)
+                # `make check-ocaml-test-suite` fails with parallel make with:
+                # File "swig.ml", line 1:
+                # Error: Could not find the .cmi file for interface swig.mli.
+                unset SWIGJOBS
+                ;;
             esac
 
             # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
