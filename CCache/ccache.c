@@ -23,6 +23,15 @@
 
 #include "ccache.h"
 
+#ifndef HAVE_UNISTD_H
+char *optarg;
+__inline static unsigned getpid(){ return 0; }
+__inline static int getopt(int argc, char *const argv[],const char *optstring)
+{
+	return -1; /* TODO */
+}
+#endif
+
 /* verbose mode */
 int ccache_verbose = 0;
 
@@ -201,7 +210,7 @@ static const char *tmp_string(void)
 }
 
 /* update cached file sizes and count helper function for to_cache() */
-static void to_cache_stats_helper(struct stat *pstat, char *cached_filename, char *tmp_outfiles, int *files_size, int *cached_files_count)
+static void to_cache_stats_helper(struct stat *pstat, char *cached_filename, char *tmp_outfiles, size_t *files_size, int *cached_files_count)
 {
 #if ENABLE_ZLIB
 	/* do an extra stat on the cache file for the size statistics */
@@ -229,7 +238,7 @@ static void to_cache(ARGS *args)
 	struct stat st1;
 	int status;
 	int cached_files_count = 0;
-	int files_size = 0;
+	size_t files_size = 0;
 
 	x_asprintf(&tmp_stdout, "%s/tmp.stdout.%s", temp_dir, tmp_string());
 	x_asprintf(&tmp_stderr, "%s/tmp.stderr.%s", temp_dir, tmp_string());
@@ -496,8 +505,8 @@ static void find_hash(ARGS *args)
 		free(path);
 	}
 
-	hash_int(st.st_size);
-	hash_int(st.st_mtime);
+	hash_int((int)st.st_size);
+	hash_int((int)st.st_mtime);
 
 	/* possibly hash the current working directory */
 	if (getenv("CCACHE_HASHDIR")) {
@@ -1092,7 +1101,7 @@ static void process_args(int argc, char **argv)
 				*p = 0;
 			}
 			else {
-				int len = p - default_depfile_name;
+				int len = (int)(p - default_depfile_name);
 				
 				p = x_malloc(len + 3);
 				strncpy(default_depfile_name, p, len - 1);
@@ -1269,7 +1278,7 @@ static int ccache_main(int argc, char *argv[])
 		case 'F':
 			check_cache_dir();
 			v = atoi(optarg);
-			if (stats_set_limits(v, -1) == 0) {
+			if (stats_set_limits((long)v, -1) == 0) {
 				printf("Set cache file limit to %u\n", (unsigned)v);
 			} else {
 				printf("Could not set cache file limit.\n");
@@ -1280,7 +1289,7 @@ static int ccache_main(int argc, char *argv[])
 		case 'M':
 			check_cache_dir();
 			v = value_units(optarg);
-			if (stats_set_limits(-1, v) == 0) {
+			if (stats_set_limits(-1, (long)v) == 0) {
 				printf("Set cache size limit to %uk\n", (unsigned)v);
 			} else {
 				printf("Could not set cache size limit.\n");

@@ -6,8 +6,7 @@ top_builddir	= @top_builddir@
 
 SWIGEXE         = $(top_builddir)/swig
 SWIG_LIB_DIR    = $(top_srcdir)/Lib
-SWIG_LIB_SET    = @SWIG_LIB_SET@
-SWIGINVOKE      = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
+SWIGINVOKE      = env SWIG_LIB=$(SWIG_LIB_DIR) $(SWIGTOOL) $(SWIGEXE)
 
 cleanup		= tail +2 \
 		  | sed -e 's/ident="ID[0-9A-F]*"//g' \

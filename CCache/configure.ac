@@ -7,12 +7,10 @@ AC_CONFIG_SRCDIR([ccache.h])
 AC_MSG_NOTICE([Configuring ccache])
 
 AC_CONFIG_HEADERS([config.h])
-AC_CONFIG_FILES([config_win32.h])
 
 dnl Checks for programs.
 AC_PROG_CC
 AC_PROG_CPP
-AC_PROG_INSTALL
 AC_ARG_PROGRAM # for program_transform_name
 
 AC_SUBST(PROGRAM_NAME)
@@ -36,8 +34,6 @@ AC_DEFINE([_GNU_SOURCE], 1,
 if test "x$GCC" = "xyes"
 then
 	CFLAGS="$CFLAGS -Wall -W"
-else
-	CFLAGS="$CFLAGS -O"
 fi
 
 AC_HEADER_DIRENT
@@ -96,6 +92,10 @@ if test x"$enable_zlib" = x"yes"; then
     AC_CHECK_HEADER(zlib.h, AC_CHECK_LIB(z, gzdopen, [LIBS="-lz $LIBS"
 						      AC_DEFINE([ENABLE_ZLIB], 1, [Define to 1 if you would like to have zlib compression for ccache.]) ] ))
 fi
+
+# More flags for CCache compilation
+AC_SUBST(CFLAGS_CCACHE)
+AC_SUBST(LIBS_CCACHE)
 
 AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
