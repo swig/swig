@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (24 Feb 2024)
 ===========================
 
+2024-02-22: simark
+	    Fix -Wundef warning about testing the value of __cplusplus when
+	    compiling SWIG-generated C code.  Warning introduced by a change in
+	    SWIG 4.2.0.
+
 2024-02-21: olly
 	    #2808 [PHP] Fix memory leak when getting or setting a PHP
 	    attribute which wraps a C++ member variable.  Bug introduced in
