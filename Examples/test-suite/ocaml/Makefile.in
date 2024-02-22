@@ -21,6 +21,7 @@ FAILING_CPP_TESTS = \
 allprotected \
 apply_signed_char \
 apply_strings \
+cpp11_decltype \
 cpp11_director_enums \
 cpp11_strongly_typed_enumerations \
 cpp_enum \
@@ -41,7 +42,6 @@ smart_pointer_inherit \
 
 FAILING_C_TESTS = \
 enums \
-preproc_constants_c \
 
 CPP_TEST_CASES += \
 	inout \
