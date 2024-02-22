@@ -20,6 +20,7 @@ FAILING_CPP_TESTS = \
 CPP_TEST_CASES = \
 	li_cstring \
 	li_factory \
+	li_std_containers_int \
 	li_std_functors \
 	li_std_list \
 	li_std_multimap \

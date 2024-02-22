@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (24 Feb 2024)
 ===========================
 
+2024-02-22: erezgeva
+            [Ruby, Octave, R] #2284 Fix segfault shrinking STL containers.
+
 2024-02-22: simark
 	    Fix -Wundef warning about testing the value of __cplusplus when
 	    compiling SWIG-generated C code.  Warning introduced by a change in
@@ -26,8 +29,8 @@ Version 4.2.1 (24 Feb 2024)
             underlying C++ container. Also applies to const reference STL static
             members.
 
-            If you really need the old behaviour, add in the typemap that provided
-            used to provide it. For example, for std::list< int > and
+            If you really need the old behaviour, add in the typemap that used
+            to provide it. For example, for std::list< int > and
             const std::list< int >&, use:
 
               %typemap(varout,noblock=1,fragment="SWIG_" "Traits" "_" {std::list< int >})

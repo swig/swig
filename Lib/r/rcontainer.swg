@@ -82,17 +82,21 @@ namespace swig {
     if (jj < ii) jj = ii;
     size_t ssize = jj - ii;
     if (ssize <= v.size()) {
+      // expanding/staying the same size
       typename Sequence::iterator sb = self->begin();
       typename InputSeq::const_iterator vmid = v.begin();
       std::advance(sb,ii);
       std::advance(vmid, jj - ii);
       self->insert(std::copy(v.begin(), vmid, sb), vmid, v.end());
     } else {
+      // shrinking
       typename Sequence::iterator sb = self->begin();
       typename Sequence::iterator se = self->begin();
       std::advance(sb,ii);
       std::advance(se,jj);
       self->erase(sb,se);
+      sb = self->begin();
+      std::advance(sb,ii);
       self->insert(sb, v.begin(), v.end());
     }
   }
