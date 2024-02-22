@@ -523,7 +523,7 @@ public:
 
     // adds local variables
     Wrapper_add_local(f, "args", "CAMLparam1(args)");
-    Wrapper_add_local(f, "ret", "SWIG_CAMLlocal2(swig_result,rv)");
+    Wrapper_add_local(f, "ret", "CAMLlocal2(swig_result,rv)");
     d = SwigType_typedef_qualified(d);
     emit_parameter_variables(l, f);
 
@@ -816,7 +816,7 @@ public:
     // Printv(f->def, "#define FUNC_NAME \"", proc_name, "\"", NIL);
 
     Wrapper_add_local(f, "args", "CAMLparam1(args)");
-    Wrapper_add_local(f, "swig_result", "SWIG_CAMLlocal1(swig_result)");
+    Wrapper_add_local(f, "swig_result", "CAMLlocal1(swig_result)");
     Printf(f->code, "swig_result = Val_unit;\n");
 
     int assignable = !is_immutable(n);
@@ -1459,14 +1459,14 @@ public:
 	if (is_void)
 	  Printf(w->code, "%s;\n", super_call);
 	else
-	  Printf(w->code, "CAMLreturn_type(%s);\n", super_call);
+	  Printf(w->code, "CAMLreturnT(%s, %s);\n", SwigType_str(returntype, 0), super_call);
 	Delete(super_call);
       } else {
 	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
 	       SwigType_namestr(name));
       }
     } else {
-      Wrapper_add_local(w, "swig_result", "SWIG_CAMLlocal2(swig_result, args)");
+      Wrapper_add_local(w, "swig_result", "CAMLlocal2(swig_result, args)");
       /* attach typemaps to arguments (C/C++ -> Ocaml) */
       String *arglist = NewString("");
 
@@ -1573,7 +1573,7 @@ public:
 
       /* pass the method call on to the OCaml object */
       Printv(w->code,
-	     "swig_result = caml_swig_alloc(1,C_list);\n" "SWIG_Store_field(swig_result,0,args);\n" "args = swig_result;\n" "swig_result = Val_unit;\n", 0);
+	     "swig_result = caml_swig_alloc(1,C_list);\n" "Store_field(swig_result,0,args);\n" "args = swig_result;\n" "swig_result = Val_unit;\n", 0);
       Printf(w->code, "static const value *swig_ocaml_func_val = NULL;\n" "if (!swig_ocaml_func_val) {\n");
       Printf(w->code, "  swig_ocaml_func_val = caml_named_value(\"swig_runmethod\");\n  }\n");
       Printf(w->code, "swig_result = caml_callback3(*swig_ocaml_func_val,swig_get_self(),caml_copy_string(\"%s\"),args);\n", Getattr(n, "name"));
@@ -1638,9 +1638,9 @@ public:
       if (!(ignored_method && !pure_virtual)) {
 	String *rettype = SwigType_str(returntype, 0);
 	if (!SwigType_isreference(returntype)) {
-	  Printf(w->code, "CAMLreturn_type((%s)c_result);\n", rettype);
+	  Printf(w->code, "CAMLreturnT(%s, (%s)c_result);\n", rettype, rettype);
 	} else {
-	  Printf(w->code, "CAMLreturn_type((%s)*c_result);\n", rettype);
+	  Printf(w->code, "CAMLreturnT(%s, (%s)*c_result);\n", rettype, rettype);
 	}
 	Delete(rettype);
       }

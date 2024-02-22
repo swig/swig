@@ -32,99 +32,6 @@ SWIGEXT {
 
 #define caml_array_set swig_caml_array_set
 
-/* Adapted from memory.h and mlvalues.h */
-
-#define SWIG_CAMLlocal1(x) \
-  value x = 0; \
-  CAMLxparam1 (x)
-
-#define SWIG_CAMLlocal2(x, y) \
-  value x = 0, y = 0; \
-  CAMLxparam2 (x, y)
-
-#define SWIG_CAMLlocal3(x, y, z) \
-  value x = 0, y = 0, z = 0; \
-  CAMLxparam3 (x, y, z)
-
-#define SWIG_CAMLlocal4(x, y, z, t) \
-  value x = 0, y = 0, z = 0, t = 0; \
-  CAMLxparam4 (x, y, z, t)
-
-#define SWIG_CAMLlocal5(x, y, z, t, u) \
-  value x = 0, y = 0, z = 0, t = 0, u = 0; \
-  CAMLxparam5 (x, y, z, t, u)
-
-#define SWIG_CAMLlocalN(x, size) \
-  value x [(size)] = { 0, /* 0, 0, ... */ }; \
-  CAMLxparamN (x, (size))
-
-#define SWIG_Field(x, i) (((value *)(x)) [i])           /* Also an l-value. */
-#define SWIG_Store_field(block, offset, val) do{ \
-  mlsize_t caml__temp_offset = (offset); \
-  value caml__temp_val = (val); \
-  caml_modify (&SWIG_Field ((block), caml__temp_offset), caml__temp_val); \
-}while(0)
-
-#define SWIG_Data_custom_val(v) ((void *) &SWIG_Field((v), 1))
-#ifdef ARCH_BIG_ENDIAN
-#define SWIG_Tag_val(val) (((unsigned char *) (val)) [-1])
-                                                 /* Also an l-value. */
-#define SWIG_Tag_hp(hp) (((unsigned char *) (hp)) [sizeof(value)-1])
-                                                 /* Also an l-value. */
-#else
-#define SWIG_Tag_val(val) (((unsigned char *) (val)) [-sizeof(value)])
-                                                 /* Also an l-value. */
-#define SWIG_Tag_hp(hp) (((unsigned char *) (hp)) [0])
-                                                 /* Also an l-value. */
-#endif
-
-#ifndef CAML_LOCAL_ROOTS
-#define CAML_LOCAL_ROOTS caml_local_roots
-#endif
-
-#ifdef CAMLreturn0
-#undef CAMLreturn0
-#endif
-#define CAMLreturn0 do{ \
-  CAML_LOCAL_ROOTS = caml__frame; \
-  return; \
-}while (0)
-
-#ifdef CAMLreturn
-#undef CAMLreturn
-#endif
-#define CAMLreturn(result) do{ \
-  value caml__temp_result = (result); \
-  CAML_LOCAL_ROOTS = caml__frame; \
-  return (caml__temp_result); \
-}while(0)
-
-#define CAMLreturn_type(result) do{ \
-  CAML_LOCAL_ROOTS = caml__frame; \
-  return result; \
-}while(0)
-
-#ifdef CAMLnoreturn
-#undef CAMLnoreturn
-#endif
-#define CAMLnoreturn ((void) caml__frame)
-
-
-#ifndef ARCH_ALIGN_INT64
-#if OCAML_VERSION >= 40300
-#define SWIG_Int64_val(v) (*((int64_t *) SWIG_Data_custom_val(v)))
-#else
-#define SWIG_Int64_val(v) (*((int64 *) SWIG_Data_custom_val(v)))
-#endif
-#else
-#if OCAML_VERSION >= 40300
-CAMLextern int64_t Int64_val(value v);
-#else
-CAMLextern int64 Int64_val(value v);
-#endif
-#define SWIG_Int64_val(v) Int64_val(v)
-#endif
-
 #define SWIG_NewPointerObj(p,type,flags) caml_val_ptr(p,type)
 #define SWIG_GetModule(clientdata) SWIG_Ocaml_GetModule(clientdata)
 #define SWIG_SetModule(clientdata, pointer) SWIG_Ocaml_SetModule(pointer)
@@ -143,7 +50,7 @@ typedef enum {
 
 SWIGINTERN void SWIG_OCamlThrowException(SWIG_OCamlExceptionCodes code, const char *msg) {
   CAMLparam0();
-  SWIG_CAMLlocal1(str);
+  CAMLlocal1(str);
 
   switch (code) {
   case SWIG_OCamlIllegalArgumentException:
