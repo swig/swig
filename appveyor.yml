@@ -132,12 +132,14 @@ install:
     } elseif ($env:OSVARIANT -eq "cygwin") {
       $env:PATH="$env:CYGWINBIN;$env:PATH"
       $env:CYGWIN="nodosfilewarning"
+      $env:LIBS_CCACHE="-luserenv"
       $env:CC="gcc"
       $env:CXX="g++"
     } elseif ($env:OSVARIANT -eq "mingw") {
       # Note mingw setup tests the native Windows Python distribution (not MinGW Python) with gcc
       $env:PATH="$env:MINGWBIN;$env:MSYSBIN;$env:PATH"
       $env:MSYSTEM="MINGW$env:MBITS" # This is important for msys2
+      $env:LIBS_CCACHE="-luserenv"
       $env:CC="gcc"
       $env:CXX="g++"
     }
@@ -167,6 +169,7 @@ install:
 - pwd
 - echo MAKEJOBS=%MAKEJOBS%
 - uname -a
+- systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
 
 build_script:
 - set PATH=C:\Tools\bison\Bison.3.7.4\bin;%PATH%

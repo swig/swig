@@ -63,9 +63,8 @@ PCHSUPPORT = @PCHSUPPORT@
 # SWIG_LIB_DIR and SWIGEXE must be explicitly set by Makefiles using this Makefile
 SWIG_LIB_DIR = ./Lib
 SWIGEXE    = swig
-SWIG_LIB_SET = @SWIG_LIB_SET@
 SWIGTOOL   =
-SWIG       = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
+SWIG       = env SWIG_LIB=$(SWIG_LIB_DIR) $(SWIGTOOL) $(SWIGEXE)
 
 LIBM       = @LIBM@
 LIBC       = @LIBC@
@@ -1252,12 +1251,15 @@ PYTHON_FLAGS =
 # Make sure these locate your Python installation
 ifneq (,$(PY2))
   PYTHON_INCLUDE= $(DEFS) @PYINCLUDE@
-  PYTHON_LIB    = @PYLIB@
+  PY_LIB        = @PYLIB@
   PYTHON        = @PYTHON@ $(PYTHON_FLAGS)
 else
   PYTHON_INCLUDE= $(DEFS) @PY3INCLUDE@
-  PYTHON_LIB    = @PY3LIB@
+  PY_LIB        = @PY3LIB@
   PYTHON        = @PYTHON3@ $(PYTHON_FLAGS)
+endif
+ifneq (,$(PY_LIB))
+  PYTHON_LIB    = -L$(PY_LIB)
 endif
 
 # Extra Python specific linking options
@@ -1289,7 +1291,7 @@ PYABI3AUDIT	  = @PYABI3AUDIT@
 python: $(SRCDIR_SRCS)
 	$(SWIG) -python $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(PYTHON_LIB) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 ifneq (,$(PY_ABI_VER))
 ifneq (,$(PYABI3AUDIT))
 	$(COMPILETOOL) $(PYABI3AUDIT) --assume-minimum-abi3 $(PY_ABI_VER) --report -o $(TARGET)_abi3_report.json $(LIBPREFIX)_$(TARGET)$(PYTHON_SO) || (cat $(TARGET)_abi3_report.json && false)
@@ -1303,7 +1305,7 @@ endif
 python_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -python -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(PYTHON_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 ifneq (,$(PY_ABI_VER))
 ifneq (,$(PYABI3AUDIT))
 	$(COMPILETOOL) $(PYABI3AUDIT) --assume-minimum-abi3 $(PY_ABI_VER) --report -o $(TARGET)_abi3_report.json $(LIBPREFIX)_$(TARGET)$(PYTHON_SO) || (cat $(TARGET)_abi3_report.json && false)
@@ -1324,12 +1326,12 @@ PYTHON_LIBOPTS = $(PYTHON_LINK) @LIBS@ $(TKINTER) $(SYSLIBS)
 python_static: $(SRCDIR_SRCS)
 	$(SWIG) -python -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
-	$(PYTHON_INCLUDE) $(LIBS) -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
+	$(PYTHON_INCLUDE) $(LIBS) $(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
 
 python_static_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -python -c++ -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
-	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
+	$(PYTHON_INCLUDE) $(LIBS) $(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
 
 # -----------------------------------------------------------------
 # Running a Python example
