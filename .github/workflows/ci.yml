@@ -360,6 +360,17 @@ jobs:
       EXTRA_CXXFLAGS: ${{ matrix.EXTRA_CXXFLAGS }}
 
     steps:
+    - name: Machine Info
+      run: |
+          echo "nproc..."
+          nproc --all
+          echo "uname..."
+          uname --all
+          echo "meminfo..."
+          cat /proc/meminfo
+          echo "lsb-release..."
+          cat /etc/lsb-release
+
     - name: Checkout
       uses: actions/checkout@v4
       with:
