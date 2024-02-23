@@ -15,7 +15,7 @@ functor
 import
 import_packages
 import_template
-#libffi
+libffi
 multimap
 operator
 pointer
