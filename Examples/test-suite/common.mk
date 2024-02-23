@@ -463,6 +463,7 @@ CPP_TEST_CASES += \
 	template_default_inherit \
 	template_default_qualify \
 	template_default_vw \
+	template_duplicate \
 	template_empty_inherit \
 	template_enum \
 	template_enum_ns_inherit \

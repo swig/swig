@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.2.1 (24 Feb 2024)
 ===========================
 
+2024-02-23: wsfulton
+            #2814 Correctly ignore duplicate template instantiation (when the
+            duplicate contains typedef'd template parameters).
+
 2024-02-22: erezgeva
             [Ruby, Octave, R] #2284 Fix segfault shrinking STL containers.
 
