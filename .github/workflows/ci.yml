@@ -36,6 +36,10 @@ jobs:
           CPPFLAGS: "-DDOH_POISON"
         - SWIGLANG: ""
           GCC: 7
+          CPPSTD: c++98
+          CSTD: c90
+        - SWIGLANG: ""
+          GCC: 7
         - SWIGLANG: ""
           GCC: 8
         - SWIGLANG: ""
