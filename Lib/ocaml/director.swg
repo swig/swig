@@ -67,13 +67,13 @@ namespace Swig {
   class Director {
     private:
       /* pointer to the wrapped ocaml object */
-      CAML_VALUE swig_self;
+      value swig_self;
       /* flag indicating whether the object is owned by ocaml or c++ */
       mutable bool swig_disown_flag;
 
     public:
       /* wrap a ocaml object. */
-      Director(CAML_VALUE self) : swig_self(self), swig_disown_flag(false) {
+      Director(value self) : swig_self(self), swig_disown_flag(false) {
         caml_register_global_root(&swig_self);
       }
 
@@ -85,7 +85,7 @@ namespace Swig {
       }
 
       /* return a pointer to the wrapped ocaml object */
-      CAML_VALUE swig_get_self() const {
+      value swig_get_self() const {
 	  return swig_self;
       }
 
