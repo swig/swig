@@ -40,7 +40,9 @@
  * void buffer(void **buffer_data, size_t *buffer_len)
  *
  * In this case, this function will be wrapped by a JS function that takes
- * no arguments (because of numinputs=0) and returns a Buffer
+ * no arguments (because of numinputs=0) and returns a Buffer.
+ *
+ * This typemap copies the data and does not free the original buffer.
  */
 
 %typemap(in, numinputs=0) (void **buffer_data, size_t *buffer_len) ($*1_ltype temp_data, size_t temp_len) {

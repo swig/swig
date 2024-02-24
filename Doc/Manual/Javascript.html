@@ -773,7 +773,12 @@ let last2 = vec2[vec2.length - 1];
 %include &lt;nodejs_buffer.i&gt;
 %apply(void **buffer_data, size_t *buffer_len) { (uint8_t **data, size_t *len) };</pre>
   </div>
-  <p>The wrapped function won't take any arguments and it will instead return the <code>Buffer</code>. In this case the newly created JavaScript <code>ArrayBuffer</code> or <code>Buffer</code> will assume ownership of the buffer and it will free its data upon being garbage-collected.</p>
+  <p>The wrapped function won't take any arguments and it will instead return the <code>Buffer</code>. The newly created <code>ArrayBuffer</code> or <code>Buffer</code> will contain a copy of the buffer. If the original buffer has to be freed, this is best accomplished in a <code>freearg</code> typemap using whatever method was used to allocate the buffer (<code>malloc</code>, <code>new</code> or <code>new[]</code>):</p>
+  <div class="code">
+    <pre>
+  %typemap(freearg, noblock=1) (void **buffer_data, size_t *buffer_len) "free(*$1);";
+  %typemap(freearg, noblock=1) (void **arraybuffer_data, size_t *arraybuffer_len) "free(*$1);";</pre>
+</div>
   </li>
   <li>
     <p>The C/C++ function returns data by filling an existing buffer in its arguments. Such functions typically have arguments of this type:
@@ -804,6 +809,46 @@ let last2 = vec2[vec2.length - 1];
   </li>
 </ul>
 
+<H4><a name="Javascript_Buffer_example">28.4.4.1 Zero-copy <code>ArrayBuffer</code></a></H4>
+
+<p>For applications requiring high efficiency or access to shared memory, a zero-copy <code>ArrayBuffer</code> can be used. This should be avoided when possible because it is error-prone and it is not compatible with WASM or some alternative Node-API implementations which define <a href="https://github.com/nodejs/node-addon-api/blob/main/doc/external_buffer.md"><code>NODE_API_NO_EXTERNAL_BUFFERS_ALLOWED</code></a> such as Electron.</p>
+
+<p>A typemap that constructs a JS <code>ArrayBuffer</code> object around an existing memory buffer can be written as follows:</p>
+
+  <div class="code">
+    <pre>
+%typemap(in, numinputs=0) (void **static_data, size_t *static_len) ($*1_ltype temp_data, size_t temp_len) {
+  $1 = &temp_data;
+  $2 = &temp_len;
+}
+%typemap(argout) (void **static_data, size_t *static_len) {
+  if (*$1 != SWIG_NULLPTR) {
+    Napi::ArrayBuffer buf = Napi::ArrayBuffer::New(env, *$1, *$2);
+    NAPI_CHECK_RESULT(buf.As<Napi::Value>(), $result);
+  } else {
+    $result = env.Null();
+  }
+}</pre>
+</div>
+
+<p>It is also possible to add a callback to be called when the object is garbage-collected, allowing to free the buffer:</p>
+  <div class="code">
+    <pre>
+  %typemap(in, numinputs=0) (void **arraybuffer_data, size_t *arraybuffer_len) ($*1_ltype temp_data, size_t temp_len) {
+    $1 = &temp_data;
+    $2 = &temp_len;
+  }
+  %typemap(argout) (void **arraybuffer_data, size_t *arraybuffer_len) {
+    if (*$1 != SWIG_NULLPTR) {
+      Napi::ArrayBuffer buf = Napi::ArrayBuffer::New(env, *$1, *$2, [](Napi::Env env, void *data) {
+        free(data);
+      });
+      NAPI_CHECK_RESULT(buf.As<Napi::Value>(), $result);
+    } else {
+      $result = env.Null();
+    }
+  }</pre>
+  </div>
 <H2><a name="Javascript_exceptions">28.5 Exceptions</a></H2>
 
 <H3><a name="Javascript_jsc_exceptions">28.5.1 Handling Exceptions in JavascriptCore</a></H3>

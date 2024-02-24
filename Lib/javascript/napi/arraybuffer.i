@@ -47,15 +47,22 @@
  * void buffer(void **arraybuffer_data, size_t *arraybuffer_len)
  *
  * In this case, this function will be wrapped by a JS function that takes
- * no arguments (because of numinputs=0) and returns an ArrayBuffer
+ * no arguments (because of numinputs=0) and returns an ArrayBuffer.
+ *
+ * This typemap copies the data and does not free the original buffer.
  */
 %typemap(in, numinputs=0) RETURN_NEW_BUFFER_SIGNATURE ($*1_ltype temp_data, size_t temp_len) {
   $1 = &temp_data;
   $2 = &temp_len;
 }
-%typemap(argout) (void **arraybuffer_data, size_t *arraybuffer_len) {
+%typemap(argout) RETURN_NEW_BUFFER_SIGNATURE {
   if (*$1 != SWIG_NULLPTR) {
-    Napi::ArrayBuffer buf = Napi::ArrayBuffer::New(env, *$1, *$2);
+    Napi::ArrayBuffer buf = Napi::ArrayBuffer::New(env, *$2);
+    memcpy(buf.Data(), *$1, *$2);
+#ifdef __EMSCRIPTEN__
+    napi_value ab_value = (napi_value)buf;
+    emnapi_sync_memory(env, false, &ab_value, 0, NAPI_AUTO_LENGTH);
+#endif
     NAPI_CHECK_RESULT(buf.As<Napi::Value>(), $result);
   } else {
     $result = env.Null();
@@ -70,12 +77,12 @@
  * void buffer(void *arraybuffer_data, size_t arraybuffer_len)
  *
  * In this case, this function will be wrapped by a JS function that takes
- * a Buffer argument in which the C++ code is expected to write
+ * a Buffer argument in which the C++ code is expected to write.
  *
- * This typemap includes a provision for the memory sync problem in WASM
+ * This typemap includes a provision for the memory sync problem in WASM.
  *
  * It is one of the few examples of a difference between the Node.js and the WASM
- * environment mentioned in the manual
+ * environment mentioned in the manual.
  */
 #ifdef SWIG_NO_WASM
 

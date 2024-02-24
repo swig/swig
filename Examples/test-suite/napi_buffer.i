@@ -4,6 +4,9 @@
 %include <nodejs_buffer.i>
 %include <arraybuffer.i>
 
+%typemap(freearg, noblock=1) (void **buffer_data, size_t *buffer_len) "free(*$1);";
+%typemap(freearg, noblock=1) (void **arraybuffer_data, size_t *arraybuffer_len) "free(*$1);";
+
 %inline %{
 // This triggers a Node-API argout typemap
 void return_buffer(void **buffer_data, size_t *buffer_len) {

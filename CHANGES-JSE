@@ -4,6 +4,15 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
+Version 5.0.2
+===========================
+
+2024-02-24: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#23](https://github.com/mmomtchev/swig/issues/23),
+            Fix and clarify the situation with the buffer ownership of the
+            typemaps that create new `Buffer` or `ArrayBuffer`
+
+
 Version 5.0.1
 ===========================
 
