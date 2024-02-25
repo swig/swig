@@ -15,6 +15,12 @@
 
 %require "3.5"
 
+// Tell bison to generate a GLR parser which resolves conflicts by parsing the
+// alternatives in parallel until only one remains, which allows us to more
+// easily handle parts of the C++ grammar which are difficult to handle with a
+// deterministic LR parser.
+%glr-parser
+
 /* There are a small number of known shift-reduce conflicts in this file, fail
    compilation if any more are introduced.
 
