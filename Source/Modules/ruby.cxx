@@ -1809,7 +1809,7 @@ public:
 	  Wrapper_add_local(f, "classname", classname);
 	}
 	if (action) {
-          SwigType *smart = Swig_cparse_smartptr(pn);
+	  SwigType *smart = Getattr(pn, "smart");
 	  String *result_name = NewStringf("%s%s", smart ? "smart" : "", Swig_cresult_name());
 	  if (smart) {
 	    String *result_var = NewStringf("%s *%s = 0", SwigType_namestr(smart), result_name);
@@ -1821,7 +1821,6 @@ public:
 	    Printf(action, "\nSWIG_RubyAddTracking(%s, self);", result_name);
 	  }
 	  Delete(result_name);
-	  Delete(smart);
 	}
       }
 
@@ -1888,16 +1887,17 @@ public:
     /* Extra code needed for new and initialize methods */
     if (current == CONSTRUCTOR_ALLOCATE) {
       Node *pn = Swig_methodclass(n);
-      SwigType *smart = Swig_cparse_smartptr(pn);
-      if (smart)
-	SwigType_add_pointer(smart);
-      String *classtype = smart ? smart : t;
+      SwigType *smart = Getattr(pn, "smart");
+      SwigType *psmart = smart ? Copy(smart) : 0;
+      if (psmart)
+	SwigType_add_pointer(psmart);
+      SwigType *classtype = psmart ? psmart : t;
       need_result = 1;
       Printf(f->code, "VALUE vresult = SWIG_NewClassInstance(self, SWIGTYPE%s);\n", Char(SwigType_manglestr(classtype)));
       Printf(f->code, "#ifndef HAVE_RB_DEFINE_ALLOC_FUNC\n");
       Printf(f->code, "rb_obj_call_init(vresult, argc, argv);\n");
       Printf(f->code, "#endif\n");
-      Delete(smart);
+      Delete(psmart);
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       need_result = 1;
     }
@@ -2399,12 +2399,13 @@ public:
 	  SwigType *btype = NewString(basename);
 	  SwigType_add_pointer(btype);
 	  SwigType_remember(btype);
-	  SwigType *smart = Swig_cparse_smartptr(base.item);
-	  if (smart) {
-	    SwigType_add_pointer(smart);
-	    SwigType_remember(smart);
+	  SwigType *smart = Getattr(base.item, "smart");
+	  SwigType *psmart = smart ? Copy(smart) : 0;
+	  if (psmart) {
+	    SwigType_add_pointer(psmart);
+	    SwigType_remember(psmart);
 	  }
-	  String *bmangle = SwigType_manglestr(smart ? smart : btype);
+	  String *bmangle = SwigType_manglestr(psmart ? psmart : btype);
 	  if (multipleInheritance) {
 	    Insert(bmangle, 0, "((swig_class *) SWIGTYPE");
 	    Append(bmangle, "->clientdata)->mImpl");
@@ -2415,7 +2416,7 @@ public:
 	    Replaceall(klass->init, "$super", bmangle);
 	  }
 	  Delete(bmangle);
-	  Delete(smart);
+	  Delete(psmart);
 	  Delete(btype);
 	}
 	base = Next(base);
@@ -2516,15 +2517,16 @@ public:
     SwigType *tt = NewString(name);
     SwigType_add_pointer(tt);
     SwigType_remember(tt);
-    SwigType *smart = Swig_cparse_smartptr(n);
-    if (smart) {
-      SwigType_add_pointer(smart);
-      SwigType_remember(smart);
+    SwigType *smart = Getattr(n, "smart");
+    SwigType *psmart = smart ? Copy(smart) : 0;
+    if (psmart) {
+      SwigType_add_pointer(psmart);
+      SwigType_remember(psmart);
     }
-    String *tm = SwigType_manglestr(smart ? smart : tt);
+    String *tm = SwigType_manglestr(psmart ? psmart : tt);
     Printf(klass->init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) &SwigClass%s);\n", tm, valid_name);
     Delete(tm);
-    Delete(smart);
+    Delete(psmart);
     Delete(tt);
     Delete(valid_name);
 

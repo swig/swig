@@ -37,6 +37,10 @@ jobs:
           CPPFLAGS: "-DDOH_POISON"
         - SWIGLANG: ""
           GCC: 7
+          CPPSTD: c++98
+          CSTD: c90
+        - SWIGLANG: ""
+          GCC: 7
         - SWIGLANG: ""
           GCC: 8
         - SWIGLANG: ""
@@ -160,6 +164,9 @@ jobs:
           VER: '5.3'
         - SWIGLANG: octave
           CPPSTD: c++11
+        - SWIGLANG: octave
+          os: ubuntu-22.04 # Octave 6.4.0
+          CPPSTD: c++11
         - SWIGLANG: perl5
         - SWIGLANG: php
           VER: '8.0'
@@ -234,7 +241,7 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
-          VER: '3.2'
+          VER: '3.2.2' # import_fragments testcase started to fail on upgrade to 3.2.3, see https://github.com/swig/swig/issues/2800
         - SWIGLANG: scilab
           VER: '5.5.2'
         - SWIGLANG: scilab
@@ -386,11 +393,11 @@ jobs:
         # Experimental languages (these are allowed to fail)
         - SWIGLANG: mzscheme
           continue-on-error: true
-        #- SWIGLANG: ocaml
-        #  CPPSTD: c++17
-        #  GCC: 13
-        #  continue-on-error: true
-        #  os: ubuntu-18.04 # ocaml-4.08 in ubuntu-20.04 not yet working
+        - SWIGLANG: ocaml
+          CPPSTD: c++17
+          GCC: 13
+          os: ubuntu-22.04 # ocaml-4.08 in ubuntu-20.04 doesn't work
+          continue-on-error: true
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -408,9 +415,21 @@ jobs:
       COMPILER: ${{ matrix.compiler || 'gcc' }}
 
     steps:
+    - name: Machine Info
+      run: |
+          echo "nproc..."
+          nproc --all
+          echo "uname..."
+          uname --all
+          echo "meminfo..."
+          cat /proc/meminfo
+          echo "lsb-release..."
+          cat /etc/lsb-release
+
     - name: Checkout
       uses: actions/checkout@v4
       with:
+        show-progress: false
         submodules: recursive
 
     - name: Install CCache
@@ -544,6 +563,16 @@ jobs:
                     # while running, resulting in "Text file busy" error).
                     unset SWIGJOBS
                 esac
+                ;;
+              ocaml)
+                # `make check-ocaml-test-suite` fails with parallel make with:
+                #
+                # File "swig.ml", line 1:
+                # Error: Could not find the .cmi file for interface swig.mli.
+                #
+                # Apparently we ought to be using `ocamldep` to generate make
+                # dependencies.
+                unset SWIGJOBS
                 ;;
             esac
 

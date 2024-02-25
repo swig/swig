@@ -400,7 +400,7 @@ static std::string getPyDocType(Node *n, const_String_or_char_ptr lname = "") {
   String *s = Swig_typemap_lookup("doctype", n, lname, 0);
   if (!s) {
     if (String *t = Getattr(n, "type"))
-      s = SwigType_str(t, "");
+      s = SwigType_str(t, NULL);
   }
 
   if (!s)

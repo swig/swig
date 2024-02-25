@@ -112,7 +112,7 @@ skipped text can be obtained using <tt>Scanner_text()</tt> afterwards. Returns 0
 
 
 <p>
-<b><tt>void Scanner_set_location(Scanner *s, int startchar, int endchar)</tt></b>
+<b><tt>void Scanner_set_location(Scanner *s, String *file, int line)</tt></b>
 <blockquote>
 Changes the current filename and line number of the scanner.
 </blockquote>
@@ -136,7 +136,7 @@ Gets the starting line number of the last token returned by the scanner.
 </blockquote>
 
 <p>
-<b><tt>void Scanner_idstart(Scanner *s, char *idchar)</tt></b>
+<b><tt>void Scanner_idstart(Scanner *s, const char *idchar)</tt></b>
 <blockquote>
 Sets additional characters (other than the C default) that may be used to start C identifiers.  <tt>idchar</tt> is a string
 containing the characters (e.g., "%@").  The purpose of this function is to up special keywords such as "%module" or "@directive" as

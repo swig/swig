@@ -253,20 +253,18 @@ class TypePass:private Dispatcher {
     int len = Len(ilist);
     int i;
     for (i = 0; i < len; i++) {
-      Node *n = Getitem(ilist, i);
-      SwigType *bname = Getattr(n, "name");
-      Node *bclass = n;		/* Getattr(n,"class"); */
+      Node *bclass = Getitem(ilist, i);
+      SwigType *bname = Getattr(bclass, "name");
       Hash *scopes = Getattr(bclass, "typescope");
       SwigType_inherit(clsname, bname, cast, 0);
       if (ispublic && !GetFlag(bclass, "feature:ignore")) {
-	String *smartptr = Getattr(first, "feature:smartptr");
-	if (smartptr) {
-	  SwigType *smart = Swig_cparse_smartptr(first);
-	  if (smart) {
-	    /* Record a (fake) inheritance relationship between smart pointer
-	       and smart pointer to base class, so that smart pointer upcasts
-	       are automatically generated. */
-	    SwigType *bsmart = Swig_smartptr_upcast(smart, clsname, bname);
+	String *smart = Getattr(first, "smart");
+	if (smart) {
+	  /* Record a (fake) inheritance relationship between smart pointer
+	     and smart pointer to base class, so that smart pointer upcasts
+	     are automatically generated. */
+	  SwigType *bsmart = Getattr(bclass, "smart");
+	  if (bsmart) {
 	    String *smartnamestr = SwigType_namestr(smart);
 	    String *bsmartnamestr = SwigType_namestr(bsmart);
 
@@ -275,17 +273,15 @@ class TypePass:private Dispatcher {
 
 	    /* setup inheritance relationship between smart pointer templates */
 	    SwigType_inherit(smart, bsmart, 0, convcode);
-	    if (!GetFlag(bclass, "feature:smartptr"))
-	      Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(bclass, "name")), SwigType_namestr(Getattr(first, "name")));
 
 	    Delete(bsmartnamestr);
 	    Delete(smartnamestr);
 	    Delete(convcode);
-	    Delete(bsmart);
+	  } else {
+	    Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Base class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(bclass, "name")), SwigType_namestr(Getattr(first, "name")));
 	  }
-	  Delete(smart);
 	} else {
-	  if (GetFlag(bclass, "feature:smartptr"))
+	  if (GetFlag(bclass, "smart"))
 	    Swig_warning(WARN_LANG_SMARTPTR_MISSING, Getfile(first), Getline(first), "Derived class '%s' of '%s' is not similarly marked as a smart pointer.\n", SwigType_namestr(Getattr(first, "name")), SwigType_namestr(Getattr(bclass, "name")));
 	}
       }
@@ -446,9 +442,10 @@ class TypePass:private Dispatcher {
 	    SwigType_typedef_class(fname);
 	    scopename = Copy(fname);
 	  } else {
-	    // Does this code ever get executed ??
-	    Swig_warning(WARN_TYPE_REDEFINED, Getfile(n), Getline(n), "Template '%s' was already wrapped,\n", SwigType_namestr(name));
-	    Swig_warning(WARN_TYPE_REDEFINED, Getfile(cn), Getline(cn), "previous wrap of '%s'.\n", SwigType_namestr(Getattr(cn, "name")));
+	    // Arguably the parser should instead ignore these duplicate template instantiations, in particular for ensuring the first parsed instantiation is used
+	    SetFlag(n, "feature:ignore");
+	    Swig_warning(WARN_TYPE_REDEFINED, Getfile(n), Getline(n), "Duplicate template instantiation of '%s' with name '%s' ignored,\n", SwigType_namestr(name), Getattr(n, "sym:name"));
+	    Swig_warning(WARN_TYPE_REDEFINED, Getfile(cn), Getline(cn), "previous instantiation of '%s' with name '%s'.\n", SwigType_namestr(Getattr(cn, "name")), Getattr(cn, "sym:name"));
 	    scopename = 0;
 	  }
 	} else {
@@ -502,6 +499,16 @@ class TypePass:private Dispatcher {
     }
     SwigType_new_scope(scopename);
     SwigType_attach_symtab(Getattr(n, "symtab"));
+
+    if (!GetFlag(n, "feature:ignore")) {
+      SwigType *smart = Swig_cparse_smartptr(n);
+      if (smart) {
+	// Resolve the type in 'feature:smartptr' in the scope of the class it is attached to
+	normalize_type(smart);
+	Setattr(n, "smart", smart);
+	Delete(smart);
+      }
+    }
 
     /* Inherit type definitions into the class */
     if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") && 

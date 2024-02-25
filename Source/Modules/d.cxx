@@ -347,7 +347,8 @@ public:
    * --------------------------------------------------------------------------- */
   virtual int top(Node *n) {
     // Get any options set in the module directive
-    Node *optionsnode = Getattr(Getattr(n, "module"), "options");
+    Node *module = Getattr(n, "module");
+    Node *optionsnode = Getattr(module, "options");
 
     if (optionsnode) {
       if (Getattr(optionsnode, "imdmodulename")) {
@@ -3183,6 +3184,7 @@ private:
     String *c_baseclassname = NULL;
     Node *basenode = NULL;
     String *baseclass = NULL;
+    SwigType *bsmart = 0;
 
     // Inheritance from pure D classes.
     Node *attributes = NewHash();
@@ -3206,6 +3208,7 @@ private:
 	      if (name) {
 		c_baseclassname = baseclassname;
 		baseclass = name;
+		bsmart = Getattr(base.item, "smart");
 	      }
 	    } else {
 	      /* Warn about multiple inheritance for additional base class(es) */
@@ -3244,7 +3247,7 @@ private:
 
     // Add code to do C++ casting to base class (only for classes in an inheritance hierarchy)
     if (derived) {
-      writeClassUpcast(n, proxy_class_name, c_classname, c_baseclassname);
+      writeClassUpcast(n, bsmart, proxy_class_name, c_classname, c_baseclassname);
     }
 
     /*
@@ -3405,9 +3408,9 @@ private:
   /* ---------------------------------------------------------------------------
    * D::writeClassUpcast()
    * --------------------------------------------------------------------------- */
-  void writeClassUpcast(Node *n, const String* d_class_name, SwigType* c_classname, SwigType* c_baseclassname) {
+  void writeClassUpcast(Node *n, SwigType *bsmart, const String *d_class_name, SwigType *c_classname, SwigType *c_baseclassname) {
 
-    SwigType *smart = Swig_cparse_smartptr(n);
+    SwigType *smart = Getattr(n, "smart");
     String *upcast_name = Swig_name_member(getNSpace(), d_class_name, (smart != 0 ? "SmartPtrUpcast" : "Upcast"));
     String *upcast_wrapper_name = Swig_name_wrapper(upcast_name);
 
@@ -3417,20 +3420,20 @@ private:
     String *baseclassname = SwigType_namestr(c_baseclassname);
 
     if (smart) {
-      SwigType *bsmart = Swig_smartptr_upcast(smart, c_classname, c_baseclassname);
-      String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(bsmart);
+      if (bsmart) {
+	String *smartnamestr = SwigType_namestr(smart);
+	String *bsmartnamestr = SwigType_namestr(bsmart);
 
-      Printv(upcasts_code,
-	"SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
-	  "(", smartnamestr, " *objectRef) {\n",
-	"    return objectRef ? new ", bsmartnamestr, "(*objectRef) : 0;\n"
-	"}\n",
-	"\n", NIL);
+	Printv(upcasts_code,
+	  "SWIGEXPORT ", bsmartnamestr, " * ", upcast_wrapper_name,
+	    "(", smartnamestr, " *objectRef) {\n",
+	  "    return objectRef ? new ", bsmartnamestr, "(*objectRef) : 0;\n"
+	  "}\n",
+	  "\n", NIL);
 
-      Delete(bsmartnamestr);
-      Delete(smartnamestr);
-      Delete(bsmart);
+	Delete(bsmartnamestr);
+	Delete(smartnamestr);
+      }
     } else {
       Printv(upcasts_code,
 	"SWIGEXPORT ", baseclassname, " * ", upcast_wrapper_name,
@@ -3447,7 +3450,6 @@ private:
     Delete(classname);
     Delete(upcast_wrapper_name);
     Delete(upcast_name);
-    Delete(smart);
   }
 
   /* ---------------------------------------------------------------------------

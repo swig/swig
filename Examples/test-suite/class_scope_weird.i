@@ -3,22 +3,24 @@
 // Use this version with extra qualifiers to test SWIG as some compilers accept this
 class Foo {
 public:
-  Foo::Foo(void) {}
+  Foo::Foo() {}
   Foo::Foo(int) {}
   int Foo::bar(int x) {
     return x;
   }
+  void Foo::member() { }
 };
 
 // Remove extra qualifiers for the compiler as some compilers won't compile the extra qaulification (eg gcc-4.1 onwards) 
 %{
 class Foo {
 public:
-  Foo(void) {}
+  Foo() {}
   Foo(int) {}
   int bar(int x) {
     return x;
   }
+  void member() { }
 };
 %}
 
@@ -37,7 +39,7 @@ public:
   Quat::Quat(const matrix4& m){}
 };
 
-// Remove extra qualifiers for the compiler as some compilers won't compile the extra qaulification (eg gcc-4.1 onwards) 
+// Remove extra qualifiers for the compiler as some compilers won't compile the extra qualification (eg gcc-4.1 onwards)
 %{
 class Quat {
 public:

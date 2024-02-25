@@ -3,7 +3,7 @@
  * ------------------------------------------------------------- */
 
 %typemap(in) (int ARGC, char **ARGV) {
-  int i, nitems;
+  Tcl_Size i, nitems;
   Tcl_Obj **listobjv;
   if (Tcl_ListObjGetElements(interp, $input, &nitems, &listobjv) == TCL_ERROR) {
      SWIG_exception_fail(SWIG_ValueError, "in method '$symname', Expecting list of argv");
@@ -18,7 +18,7 @@
 }
 
 %typemap(typecheck, precedence=SWIG_TYPECHECK_STRING_ARRAY) (int ARGC, char **ARGV) {
-  int len;
+  Tcl_Size len;
   $1 = Tcl_ListObjLength(interp, $input, &len) == TCL_OK;
 }
 

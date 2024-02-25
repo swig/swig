@@ -25,3 +25,6 @@ d1 = f.D_i(7)
 assert(f.get_val1(d1) == 7)
 f.set(d1,9)
 assert(f.get_val1(d1) == 9)
+
+assert(friends.chum_blah() == 1234)
+assert(friends.mate_blah() == 4321)

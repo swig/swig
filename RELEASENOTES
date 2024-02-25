@@ -7,6 +7,14 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at https://swig.org/release.html.
 
+SWIG-4.2.1 summary:
+- Tcl 9.0 support.
+- Octave 9.0 support.
+- Improvements wrapping friend functions.
+- Variadic templated functions within a template support.
+- Type deduction enhancements.
+- Stability and regression fixes.
+
 SWIG-4.2.0 summary:
 - Various template wrapping improvements: template template parameters,
   variadic templates, partially specialized templates, const template

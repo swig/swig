@@ -49,3 +49,10 @@ endif
 if (friends.get_val1(dd) != 1.3)
   error("failed");
 endif
+
+if (friends.chum_blah() != 1234)
+  error("failed");
+endif
+if (friends.mate_blah() != 4321)
+  error("failed");
+endif

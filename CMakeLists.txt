@@ -88,7 +88,7 @@ endif()
 configure_file (${SWIG_ROOT}/Tools/cmake/swigconfig.h.in
                 ${CMAKE_CURRENT_BINARY_DIR}/Source/Include/swigconfig.h)
 
-find_package (BISON REQUIRED)
+find_package (BISON 3.5 REQUIRED)
 
 
 # Compiler flags

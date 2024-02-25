@@ -290,7 +290,8 @@ public:
   virtual int top(Node *n) {
 
     // Get any options set in the module directive
-    Node *optionsnode = Getattr(Getattr(n, "module"), "options");
+    Node *module = Getattr(n, "module");
+    Node *optionsnode = Getattr(module, "options");
 
     if (optionsnode) {
       if (Getattr(optionsnode, "imclassname"))
@@ -374,9 +375,9 @@ public:
     }
 
     // module class and intermediary classes are always created
-    if (!addSymbol(imclass_name, n))
+    if (!addSymbol(imclass_name, module))
       return SWIG_ERROR;
-    if (!addSymbol(module_class_name, n))
+    if (!addSymbol(module_class_name, module))
       return SWIG_ERROR;
 
     imclass_class_code = NewString("");
@@ -1176,21 +1177,6 @@ public:
 	return SWIG_NOWRAP;
 
       String *nspace = Getattr(n, "sym:nspace"); // NSpace/getNSpace() only works during Language::enumDeclaration call
-      if (proxy_flag && !is_wrapping_class()) {
-	// Global enums / enums in a namespace
-	assert(!full_imclass_name);
-
-	if (!nspace) {
-	  full_imclass_name = NewStringf("%s", imclass_name);
-	} else {
-	  if (namespce) {
-	    full_imclass_name = NewStringf("%s.%s", namespce, imclass_name);
-	  } else {
-	    full_imclass_name = NewStringf("%s", imclass_name);
-	  }
-	}
-      }
-
       enum_code = NewString("");
       String *symname = Getattr(n, "sym:name");
       String *constants_code = (proxy_flag && is_wrapping_class())? proxy_class_constants_code : module_class_constants_code;
@@ -1243,8 +1229,28 @@ public:
 	  Printf(constants_code, "  // %s \n", symname);
       }
 
+      if (proxy_flag && !is_wrapping_class()) {
+	// Global enums / enums in a namespace
+	assert(!full_imclass_name);
+
+	if (!nspace) {
+	  full_imclass_name = NewStringf("%s", imclass_name);
+	} else {
+	  if (namespce) {
+	    full_imclass_name = NewStringf("%s.%s", namespce, imclass_name);
+	  } else {
+	    full_imclass_name = NewStringf("%s", imclass_name);
+	  }
+	}
+      }
+
       // Emit each enum item
       Language::enumDeclaration(n);
+
+      if (proxy_flag && !is_wrapping_class()) {
+	Delete(full_imclass_name);
+	full_imclass_name = 0;
+      }
 
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper C# enum
@@ -1297,11 +1303,6 @@ public:
 
       Delete(enum_code);
       enum_code = NULL;
-
-      if (proxy_flag && !is_wrapping_class()) {
-	Delete(full_imclass_name);
-	full_imclass_name = 0;
-      }
     }
     return SWIG_OK;
   }
@@ -1729,6 +1730,7 @@ public:
       Node *base = it.item;
       SwigType *c_baseclassname = Getattr(base, "name");
       String *interface_name = Getattr(base, "interface:name");
+      SwigType *bsmart = Getattr(base, "smart");
       if (Len(interface_list))
 	Append(interface_list, ", ");
       Append(interface_list, interface_name);
@@ -1747,7 +1749,7 @@ public:
       Replaceall(cptr_method_name, "$interfacename", interface_name);
 
       String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), cptr_method_name);
-      upcastsCode(smart, upcast_method_name, c_classname, c_baseclassname);
+      upcastsCode(smart, bsmart, upcast_method_name, c_classname, c_baseclassname);
 
       Delete(upcast_method_name);
       Delete(cptr_method_name);
@@ -1761,7 +1763,7 @@ public:
    * Add code for C++ casting to base class
    * ----------------------------------------------------------------------------- */
 
-  void upcastsCode(SwigType *smart, String *upcast_method_name, SwigType *c_classname, SwigType *c_baseclassname) {
+  void upcastsCode(SwigType *smart, SwigType *bsmart, String *upcast_method_name, SwigType *c_classname, SwigType *c_baseclassname) {
     String *wname = Swig_name_wrapper(upcast_method_name);
 
     Printv(imclass_cppcasts_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
@@ -1770,18 +1772,18 @@ public:
     Replaceall(imclass_cppcasts_code, "$csclassname", proxy_class_name);
 
     if (smart) {
-      SwigType *bsmart = Swig_smartptr_upcast(smart, c_classname, c_baseclassname);
-      String *smartnamestr = SwigType_namestr(smart);
-      String *bsmartnamestr = SwigType_namestr(bsmart);
+      if (bsmart) {
+	String *smartnamestr = SwigType_namestr(smart);
+	String *bsmartnamestr = SwigType_namestr(bsmart);
 
-      Printv(upcasts_code,
-	  "SWIGEXPORT ", bsmartnamestr, " * SWIGSTDCALL ", wname, "(", smartnamestr, " *jarg1) {\n",
-	  "    return jarg1 ? new ", bsmartnamestr, "(*jarg1) : 0;\n"
-	  "}\n", "\n", NIL);
+	Printv(upcasts_code,
+	    "SWIGEXPORT ", bsmartnamestr, " * SWIGSTDCALL ", wname, "(", smartnamestr, " *jarg1) {\n",
+	    "    return jarg1 ? new ", bsmartnamestr, "(*jarg1) : 0;\n"
+	    "}\n", "\n", NIL);
 
-      Delete(bsmartnamestr);
-      Delete(smartnamestr);
-      Delete(bsmart);
+	Delete(bsmartnamestr);
+	Delete(smartnamestr);
+      }
     } else {
       String *classname = SwigType_namestr(c_classname);
       String *baseclassname = SwigType_namestr(c_baseclassname);
@@ -1811,7 +1813,8 @@ public:
     SwigType *typemap_lookup_type = Getattr(n, "classtypeobj");
     bool feature_director = Swig_directorclass(n) ? true : false;
     bool has_outerclass = Getattr(n, "nested:outer") != 0 && !GetFlag(n, "feature:flatnested");
-    SwigType *smart = Swig_cparse_smartptr(n);
+    SwigType *smart = Getattr(n, "smart");
+    SwigType *bsmart = 0;
 
     // Inheritance from pure C# classes
     Node *attributes = NewHash();
@@ -1833,6 +1836,7 @@ public:
 	      if (name) {
 		c_baseclassname = baseclassname;
 		baseclass = name;
+		bsmart = Getattr(base.item, "smart");
 	      }
 	    } else {
 	      /* Warn about multiple inheritance for additional base class(es) */
@@ -2070,11 +2074,9 @@ public:
 
     if (derived) {
       String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), smart != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
-      upcastsCode(smart, upcast_method_name, c_classname, c_baseclassname);
+      upcastsCode(smart, bsmart, upcast_method_name, c_classname, c_baseclassname);
       Delete(upcast_method_name);
     }
-
-    Delete(smart);
   }
 
   /* ----------------------------------------------------------------------
@@ -3809,7 +3811,8 @@ public:
     String *qualified_classname = Copy(sym_name);
     String *nspace = getNSpace();
     String *dirClassName = directorClassName(n);
-    String *smartptr = Getattr(n, "feature:smartptr");
+    SwigType *smart = Getattr(n, "smart");
+    String *smartptr = smart ? SwigType_namestr(smart) : 0;
     if (!GetFlag(n, "feature:flatnested")) {
       for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
 

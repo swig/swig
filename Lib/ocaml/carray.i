@@ -77,7 +77,7 @@ type _value = c_obj
 
 %typemap(out) SWIGTYPE [] {
     int i;
-    const CAML_VALUE *fromval = caml_named_value("create_$ntype_from_ptr");
+    const value *fromval = caml_named_value("create_$ntype_from_ptr");
     $result = caml_array_new($1_dim0);
 
     for( i = 0; i < $1_dim0; i++ ) {

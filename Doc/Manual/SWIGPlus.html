@@ -34,6 +34,12 @@
 <li><a href="#SWIGPlus_nn15">Protection</a>
 <li><a href="#SWIGPlus_nn16">Enums and constants</a>
 <li><a href="#SWIGPlus_nn17">Friends</a>
+<ul>
+<li><a href="#SWIGPlus_friend_classes">Friend classes</a>
+<li><a href="#SWIGPlus_friend_function_definitions">Friend function definitions</a>
+<li><a href="#SWIGPlus_friend_function_declarations">Friend function declarations</a>
+<li><a href="#SWIGPlus_friends_unqualified">Unqualified friend functions</a>
+</ul>
 <li><a href="#SWIGPlus_nn18">References and pointers</a>
 <li><a href="#SWIGPlus_nn19">Pass and return by value</a>
 <li><a href="#SWIGPlus_nn20">Inheritance</a>
@@ -93,8 +99,8 @@ This chapter describes SWIG's support for wrapping C++.
 It is mostly concerned about C++ as defined by the C++ 98 and 03 standards.
 For additions to the original C++ standard, please read the
 <a href="CPlusPlus11.html#CPlusPlus11">SWIG and C++11</a>,
-<a href="CPlusPlus14.html#CPlusPlus14">SWIG and C++14</a> and
-<a href="CPlusPlus17.html#CPlusPlus17">SWIG and C++17</a> chapters.
+<a href="CPlusPlus14.html#CPlusPlus14">SWIG and C++14</a>,
+<a href="CPlusPlus17.html#CPlusPlus17">SWIG and C++17</a> and
 <a href="CPlusPlus20.html#CPlusPlus20">SWIG and C++20</a> chapters.
 As a prerequisite,
 you should first read the chapter <a href="SWIG.html#SWIG">SWIG Basics</a> to see
@@ -1167,54 +1173,87 @@ Members declared as <tt>const</tt> are wrapped as read-only members and do not c
 <H2><a name="SWIGPlus_nn17">6.9 Friends</a></H2>
 
 
+<H3><a name="SWIGPlus_friend_classes">6.9.1 Friend classes</a></H3>
+
+
 <p>
-Friend declarations are recognised by SWIG. For example, if
-you have this code:
+Friend classes are a C++ feature that do not affect SWIG wrappers.
+SWIG simply parses the friend class declarations, but they are effectively ignored
+as they have no meaningful effect for wrappers.
+An example of friend classes:
 </p>
 
 <div class="code">
 <pre>
-class Foo {
-public:
+class X;
+class Y;
+class C {
+  // Friend classes have no effect on generated wrappers
+  friend class X;
+  friend Y;
   ...
-  friend void blah(Foo *f);
+};
+</pre>
+</div>
+
+<H3><a name="SWIGPlus_friend_function_definitions">6.9.2 Friend function definitions</a></H3>
+
+
+<p>
+A friend function definition in a C++ class defines a non-member function of the class
+and simultaneously makes it a friend of the class.
+For example, if you have this code:
+</p>
+
+<div class="code">
+<pre>
+class Buddy {
+  int val;
+  friend int blah(Buddy *b) { return b-&gt;val; }
+public:
   ...
 };
 </pre>
 </div>
 
 <p>
-then the <tt>friend</tt> declaration does result in a wrapper code
-equivalent to one generated for the following declaration
+then the <tt>friend</tt> function definition results in wrapper code
+equivalent to one generated for the following:
 </p>
 
 <div class="code">
 <pre>
-class Foo {
+class Buddy {
+  int val;
+  friend int blah(Buddy *b);
 public:
   ...
 };
 
-void blah(Foo *f);    
+int blah(Buddy *b) { return b-&gt;val; }
 </pre>
 </div>
 
 <p>
-A friend declaration, as in C++, is understood to be in the same scope
-where the class is declared, hence, you can have
+Access from target languages is thus as if <tt>blah</tt> was wrapped as a non-member function.
+The function is available and wrapped even if the friend is defined with private or protected access.
+</p>
+
+<p>
+A friend definition, as in C++, is understood to be in the same scope
+that the class is defined in, hence the scoping required for SWIG directives, such as <tt>%ignore</tt>, is as follows:
 </p>
 
 <div class="code">
 <pre>
-
-%ignore bar::blah(Foo *f);
+%ignore bar::blah(Buddy *b);
+// Not: %ignore bar::Buddy::blah(Buddy *b);
 
 namespace bar {
-
-  class Foo {
+  class Buddy {
+    int val;
+    friend int blah(Buddy *b) { return b-&gt;val; }
   public:
-    ...
-    friend void blah(Foo *f);
     ...
   };
 }
@@ -1222,8 +1261,129 @@ namespace bar {
 </div>
 
 <p>
-and a wrapper for the method 'blah' will not be generated.
+and a wrapper for <tt>blah</tt> will not be generated.
 </p>
+
+<H3><a name="SWIGPlus_friend_function_declarations">6.9.3 Friend function declarations</a></H3>
+
+
+<p>
+A C++ class can specify friends via friend function declarations.
+These functions are allowed access to the private and protected members of a class.
+This is pure C++ functionality and these friend function declarations are hence quietly ignored by SWIG and do not result in any wrappers.
+Well, not always! The C++ rules for friends that SWIG needs to follow are not that simple.
+Technically, only qualified function declarations are silently ignored by SWIG.
+Below are some examples of qualified friend declarations in <tt>A</tt> that are quietly ignored:
+</p>
+
+<div class="code">
+<pre>
+struct B {
+  int f();
+  B();
+  ~B();
+  ...
+};
+
+int g();
+
+class A {
+public:
+  // The following friend function-declarations are silently ignored (including constructor and destructor friends)
+  friend B::B();
+  friend B::~B();
+  friend int B::f();
+  friend int ::g();
+  ...
+};
+</pre>
+</div>
+
+<p>
+In the example above, if SWIG parses the struct <tt>B</tt> and global function <tt>g()</tt>,
+then they are of course wrapped as normal.
+</p>
+
+
+<H3><a name="SWIGPlus_friends_unqualified">6.9.4 Unqualified friend functions</a></H3>
+
+
+<p>
+Further clarification is required regarding both friend function definitions and declarations.
+In C++, friend function definitions can only be unqualified, whereas, friend function declarations can be either unqualified or qualified. Qualified friend function declarations are silently ignored by SWIG as covered in the previous section. SWIG does generate wrappers for any unqualified friend functions that it parses. This section goes through some of the complexities of wrapping unqualified friend functions.
+</p>
+
+<p>
+Consider an unqualified friend function definition:
+</p>
+
+<div class="code">
+<pre>
+class Chum {
+  int val;
+  friend int blah() { Chum c; c.private_function(); return c.val; }
+  void private_function();
+public:
+  ...
+};
+</pre>
+</div>
+
+<p>
+The <tt>Chum::blah()</tt> friend is very similar to the <tt>Buddy::blah(Buddy *)</tt> friend presented earlier.
+However, the generated code to call <tt>blah()</tt> may not compile unlike the code to call <tt>blah(Buddy *)</tt>.
+The compiler error will be something like:
+
+<div class="shell">
+<pre>
+error: 'blah' was not declared in this scope
+</pre>
+</div>
+
+<p>
+The reason one works and the other doesn't is due to the rules around unqualified friend definitions/declarations. Broadly, friends are not visible for lookup except via argument dependent lookup that considers the class that the friend is defined/declared in, unless there is a <i>matching declaration</i> at namespace scope.
+This will probably only make sense if you are conversant with this C++ concept, which is covered quite well at <a href="https://en.cppreference.com/w/cpp/language/adl">Argument-dependent lookup</a>.
+In our examples, <tt>blah(Buddy *)</tt> is visible via argument dependent lookup, but <tt>blah()</tt> is not. The solution is thus to provide a <i>matching declaration</i> in order to make the function visible to the compiler. Simply add:
+</p>
+
+<div class="code">
+<pre>
+int blah();
+</pre>
+</div>
+
+<p>
+SWIG does <b>not</b> have to parse it. In all likelihood, your code already has the <i>matching declaration</i> as it is required in order for the friend function definition to be usable from pure C++ code.
+</p>
+
+<p>
+The same potential problem applies to unqualified friend function declarations, such as:
+</p>
+
+<div class="code">
+<pre>
+class Mate {
+  int val;
+  friend int blah(); // Unqualified friend function declaration
+  void private_function();
+public:
+  ...
+};
+</pre>
+</div>
+
+<p>
+Again, the actual function declaration needs to be visible to the compiler.
+Or just the actual function definition as shown below.
+This must be defined in the same scope as <tt>Mate</tt>.
+Of course the function definition is necessary in order to avoid linking issues too.
+</p>
+
+<div class="code">
+<pre>
+int blah() { Mate m; m.private_function(); return m.val; }
+</pre>
+</div>
 
 <H2><a name="SWIGPlus_nn18">6.10 References and pointers</a></H2>
 
@@ -4343,8 +4503,8 @@ When this conflict occurs, you will get an error message that resembles this:
 
 <div class="shell">
 <pre>
-example.i:26. Error. 'foo' is multiply defined in the generated target language module.
-example.i:23. Previous declaration of 'foo'
+example.i:26: Error: 'foo' is multiply defined in the generated target language module.
+example.i:23: Error: Previous declaration of 'foo'
 </pre>
 </div>
 

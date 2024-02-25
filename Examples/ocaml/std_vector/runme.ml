@@ -23,13 +23,13 @@ let v = new_DoubleVector '()
 let rec fill_dv v x =
   if x < 0.0001 then v else 
     begin
-      v -> push_back ((x to float)) ;
+      ignore(v -> push_back ((x to float))) ;
       fill_dv v (x *. x)
     end
 let _ = fill_dv v 0.999
 let _ = print_DoubleVector v
 let u = new_IntVector '()
 let _ = for i = 1 to 4 do
-  u -> push_back ((i to int))
+  ignore(u -> push_back ((i to int)))
 done
 let _ = (print_float ((_average u) as float) ; print_newline ())

@@ -394,16 +394,14 @@ example.i(4) : Syntax error in input(1).
 <li>301. <tt>class</tt> keyword used, but not in C++ mode.
 <li>302. Redefinition of identifier '<em>name</em>' as <em>decl</em> ignored.
 <li>303. <tt>%extend</tt> defined for an undeclared class '<em>name</em>'.
+<li>304. Unsupported constant value (ignored).
 <li>305. Bad constant value (ignored).
-<li>306. '<em>identifier</em>' is private in this context.
 <li>308. Namespace alias '<em>name</em>' not allowed here. Assuming '<em>name</em>'
 <li>309. [private | protected] inheritance ignored.
-<li>310. Template '<em>name</em>' was already wrapped as '<em>name</em>' (ignored)
 <li>312. Unnamed nested class not currently supported (ignored).
 <li>313. Unrecognized extern type "<em>name</em>" (ignored).
 <li>314. '<em>identifier</em>' is a <em>lang</em> keyword.
 <li>315. Nothing known about '<em>identifier</em>'.
-<li>316. Repeated %module directive.
 <li>317. Specialization of non-template '<em>name</em>'.
 <li>318. Instantiation of template '<em>name</em>' is ambiguous, instantiation <em>templ</em> used, instantiation <em>templ</em> ignored.
 <li>319. No access specifier given for base class <em>name</em> (ignored).
@@ -415,6 +413,8 @@ example.i(4) : Syntax error in input(1).
 <li>325. Nested <em>kind</em> not currently supported (<em>name</em> ignored).
 <li>326. Deprecated %extend name used - the <em>kind</em> name '<em>name</em>' should be used instead of the typedef name '<em>name</em>'.
 <li>327. Extern template ignored.
+<li>328. Value assigned to <em>name</em> not used due to limited parsing implementation.
+<li>329. Using declaration '<em>name</em>' for inheriting constructors uses base '<em>name</em>' which is not an immediate base of '<em>name</em>'.
 <li>340. Lambda expressions and closures are not fully supported yet.
 <li>344. Unable to deduce decltype for '<em>expr</em>'.
 <li>345. Unable to deduce auto return type for '<em>name</em>' (ignored).
@@ -465,6 +465,8 @@ example.i(4) : Syntax error in input(1).
 <li>393. operator&amp; ignored (unary).
 <li>394. operator new[] ignored.
 <li>395. operator delete[] ignored.
+<li>396. operator*() ignored.
+<li>397. operator&lt;=&gt; delete[] ignored.
 </ul>
 
 <H3><a name="Warnings_nn13">19.9.4 Types and typemaps (400-499) </a></H3>
@@ -475,10 +477,13 @@ example.i(4) : Syntax error in input(1).
 <li>402. Base class 'name' is incomplete.
 <li>403. Class 'name' might be abstract.
 <li>404. Duplicate template instantiation of '<em>type</em>' with name '<em>name</em>' ignored, previous instantiation of '<em>type</em>' with name '<em>name</em>'.
+<li>405. Method with rvalue ref-qualifier <em>name</em> ignored.
 <li>450. Reserved
 <li>451. Setting const char * variable may leak memory.
 <li>452. Reserved
 <li>453. Can't apply (pattern). No typemaps are defined.
+<li>454. Setting a pointer/reference variable may leak memory
+<li>455. Setting a const wchar_t * variable may leak memory.
 <li>460. Unable to use type <em>type</em> as a function argument.
 <li>461. Unable to use return type <em>type</em> in function <em>name</em>.
 <li>462. Unable to set variable of type <em>type</em>.
@@ -497,6 +502,7 @@ example.i(4) : Syntax error in input(1).
 <li>475. Multiple calls to <em>method</em> might be generated due to optimal attribute usage in the out typemap.
 <li>476. Initialization using std::initializer_list.
 <li>477. No directorthrows typemap defined for <em>type</em>
+<li>490. Fragment '<em>name</em>' not found.
 </ul>
 
 

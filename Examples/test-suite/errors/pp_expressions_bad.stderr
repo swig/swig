@@ -33,3 +33,5 @@ pp_expressions_bad.i:67: Warning 202: Could not evaluate expression '"1" == +"1"
 pp_expressions_bad.i:67: Warning 202: Syntax error: attempt to apply unary operator to string
 pp_expressions_bad.i:73: Warning 202: Could not evaluate expression '(4 <=> 2) < 0'
 pp_expressions_bad.i:73: Warning 202: Syntax error
+pp_expressions_bad.i:77: Warning 202: Could not evaluate expression 'MY_VERSION_AT_LEAST(1,2,3)'
+pp_expressions_bad.i:77: Warning 202: Use of undefined function-like macro

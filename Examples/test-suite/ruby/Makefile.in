@@ -20,6 +20,7 @@ FAILING_CPP_TESTS = \
 CPP_TEST_CASES = \
 	li_cstring \
 	li_factory \
+	li_std_containers_int \
 	li_std_functors \
 	li_std_list \
 	li_std_multimap \
@@ -44,6 +45,7 @@ CPP_TEST_CASES = \
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
 	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_crtp_upcast \
 	cpp11_shared_ptr_nullptr_in_containers \
 	cpp11_shared_ptr_overload \
 	cpp11_shared_ptr_upcast \
