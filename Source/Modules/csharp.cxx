@@ -3824,7 +3824,7 @@ public:
       Insert(qualified_classname, 0, NewStringf("%s.", nspace));
 
     Printv(imclass_class_code, "\n  [global::System.Runtime.InteropServices.DllImport(\"", dllimport, "\", EntryPoint=\"", wname, "\")]\n", NIL);
-    Printf(imclass_class_code, "  public static extern void %s(global::System.Runtime.InteropServices.HandleRef jarg1", swig_director_connect);
+    Printf(imclass_class_code, "  internal static extern void %s(global::System.Runtime.InteropServices.HandleRef jarg1", swig_director_connect);
 
     Wrapper *code_wrap = NewWrapper();
     Printf(code_wrap->def, "SWIGEXPORT void SWIGSTDCALL %s(void *objarg", wname);
@@ -3986,7 +3986,7 @@ public:
 
 	Printf(callback_def, "  private %s SwigDirectorMethod%s(", tm, overloaded_name);
 	const String *csdirectordelegatemodifiers = Getattr(n, "feature:csdirectordelegatemodifiers");
-	String *modifiers = (csdirectordelegatemodifiers ? NewStringf("%s%s", csdirectordelegatemodifiers, Len(csdirectordelegatemodifiers) > 0 ? " " : "") : NewStringf("public "));
+	String *modifiers = (csdirectordelegatemodifiers ? NewStringf("%s%s", csdirectordelegatemodifiers, Len(csdirectordelegatemodifiers) > 0 ? " " : "") : NewStringf("internal "));
 	Printf(director_delegate_definitions, "  %sdelegate %s", modifiers, tm);
 	Delete(modifiers);
       } else {
