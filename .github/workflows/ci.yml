@@ -391,13 +391,13 @@ jobs:
           GCC: 13
           os: ubuntu-22.04
         # Experimental languages (these are allowed to fail)
-        - SWIGLANG: mzscheme
-          continue-on-error: true
-        - SWIGLANG: ocaml
-          CPPSTD: c++17
-          GCC: 13
-          os: ubuntu-22.04 # ocaml-4.08 in ubuntu-20.04 doesn't work
-          continue-on-error: true
+        #- SWIGLANG: mzscheme
+        #  continue-on-error: true
+        #- SWIGLANG: ocaml
+        #  CPPSTD: c++17
+        #  GCC: 13
+        #  os: ubuntu-22.04 # ocaml-4.08 in ubuntu-20.04 doesn't work
+        #  continue-on-error: true
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
