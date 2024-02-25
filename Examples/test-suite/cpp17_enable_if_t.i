@@ -34,6 +34,10 @@ void tester() {
   enableif5<int, int>(10, 20);
   enableif5(10, 20);
 }
+
+// Regression test for https://github.com/swig/swig/issues/2228
+template<typename T>
+  void enableif6(typename std::enable_if<std::is_standard_layout<T>::value && true>::type * = nullptr) { }
 %}
 
 // non-type template parameters working well in SWIG, below is a simple workaround as the 3rd parameter is defaulted for enable_if_t (which is just SFINAE to give a nice C++ compiler error)
