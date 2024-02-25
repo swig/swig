@@ -643,6 +643,7 @@ int yylex(void) {
   case NUM_BOOL:
     yylval.dtype.type = T_BOOL;
 num_common:
+    yylval.dtype.unary_arg_type = 0;
     yylval.dtype.val = NewString(Scanner_text(scan));
     yylval.dtype.bitfield = 0;
     yylval.dtype.throws = 0;

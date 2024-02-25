@@ -1033,7 +1033,7 @@ int Swig_scopename_check(const String *s) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_command(String *s) {
-  Swig_error("SWIG", Getline(s), "Command encoder no longer supported - use regex encoder instead.\n");
+  Swig_error("SWIG", Getline(s), "Command encoder no longer supported - use regex encoder instead, command:%s\n", s);
   Exit(EXIT_FAILURE);
   return 0;
 }

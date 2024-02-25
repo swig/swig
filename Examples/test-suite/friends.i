@@ -3,7 +3,8 @@
 #include <iostream>
 %}
 
-%warnfilter(SWIGWARN_LANG_IDENTIFIER);
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) operator<<;
+%warnfilter(SWIGWARN_LANG_IDENTIFIER) operator>>;
 
 #if defined(SWIGOCTAVE)
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_LSHIFT_MSG) operator<<;
@@ -139,45 +140,114 @@
     };
 
   namespace ns1 {
-
     void bas() {}
-
     void baz() {}
   }
 }
 
-// Use this version with extra qualifiers to test SWIG as some compilers accept this
-  namespace ns1 {
-    namespace ns2 {
-      class Foo {
-      public:
-	Foo::Foo() {};
-	friend void bar();
-	friend void ns1::baz();	
-	void Foo::member() { }
-	
-      };
-      void bar() {}    
-    }
-  }
+%inline %{
+  class CModelParameterSpecies;
+  class CModelParameterCompartment {
+    CModelParameterSpecies *species;
+  public:
+    int getSpeciesVal();
+    CModelParameterCompartment();
+    ~CModelParameterCompartment();
+  };
+  class CModelParameterSpecies
+  {
+    int private_val;
+  public:
+    // Friend function-declarations are silently ignored (including constructor and destructor declarations)
+    friend CModelParameterCompartment::~CModelParameterCompartment();
+    friend CModelParameterCompartment::CModelParameterCompartment();
+    friend int CModelParameterCompartment::getSpeciesVal();
+  };
+%}
 
-// Remove extra qualifiers for the compiler as some compilers won't compile the extra qaulification (eg gcc-4.1 onwards) 
 %{
+CModelParameterCompartment::CModelParameterCompartment() {
+  species = new CModelParameterSpecies();
+  species->private_val = 1;
+}
+CModelParameterCompartment::~CModelParameterCompartment() {
+  species->private_val = 0;
+  delete species;
+}
+int CModelParameterCompartment::getSpeciesVal() {
+  return species->private_val;
+}
+%}
+
+
+// Unqualified friend function definition and declaration example from SWIG docs
+%inline %{
+class Chum {
+  int val;
+  friend int chum_blah() { Chum c; c.private_function(); return c.val; }
+  void private_function();
+};
+
+class Mate {
+  int val;
+  friend int mate_blah(); // Unqualified friend function declaration
+  void private_function();
+};
+%}
+
+%{
+// Only seen by the compiler, not seen by SWIG
+int chum_blah();
+int mate_blah() { Mate m; m.private_function(); return m.val; }
+
+void Chum::private_function() { this->val = 1234; }
+void Mate::private_function() { this->val = 4321; }
+%}
+
+
+// Foe class tests friend definitions/declarations in a namespace
+%inline %{
   namespace ns1 {
     namespace ns2 {
-      class Foo {
+      class Foe {
+        int val;
       public:
-	Foo() {};
-	friend void bar();
-	friend void ns1::baz();	
-	void member() { }
-	
+	Foe() : val() {}
+	Foe(int val) : val(val) {}
+        // Unqualified friends visible to SWIG in outer scope
+	friend int friend_definition() { return Foe(10).val; }
+	friend int friend_declaration();
+	friend int friend_args_definition(Foe &foe) { return foe.val; }
+	friend int friend_args_declaration(Foe &foe);
+
+        // Unqualified friends only visible to C++ compiler in outer scope
+	friend int friend_definition_compiler() { return Foe(20).val; }
+	friend int friend_declaration_compiler();
+	friend int friend_args_definition_compiler(Foe &foe) { return foe.val; }
+	friend int friend_args_declaration_compiler(Foe &foe);
+
+        // Qualified friend (silently ignored)
+	friend void ns1::baz();
       };
-      void bar() {}    
+      int friend_definition();
+      int friend_declaration() { return Foe(11).val; }
+      int friend_args_definition(Foe &foe);
+      int friend_args_declaration(Foe &foe) { return foe.val; }
     }
   }
 %}
-    
+
+%{
+  namespace ns1 {
+    namespace ns2 {
+      int friend_definition_compiler();
+      int friend_declaration_compiler() { return Foe(21).val; }
+   // int friend_args_definition_compiler(Foe &foe); // ADL is used to find this, so no declaration is needed
+      int friend_args_declaration_compiler(Foe &foe) { return foe.val; }
+    }
+  }
+%}
+
 
 %template(D_i) D<int>;
 %template(D_d) D<double>;

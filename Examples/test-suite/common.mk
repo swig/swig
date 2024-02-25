@@ -264,6 +264,7 @@ CPP_TEST_CASES += \
 	features \
 	fragments \
 	friends \
+	friends_operator_overloading \
 	friends_template \
 	funcptr_cpp \
 	functors \
@@ -463,6 +464,7 @@ CPP_TEST_CASES += \
 	template_default_inherit \
 	template_default_qualify \
 	template_default_vw \
+	template_duplicate \
 	template_empty_inherit \
 	template_enum \
 	template_enum_ns_inherit \
@@ -650,6 +652,7 @@ CPP11_TEST_CASES += \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
 	cpp11_template_parameters_decltype \
+	cpp11_template_templated_methods \
 	cpp11_template_typedefs \
 	cpp11_type_traits \
 	cpp11_type_aliasing \

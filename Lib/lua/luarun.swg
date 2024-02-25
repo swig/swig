@@ -833,6 +833,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get_item(lua_State *L, swig_type_info *type, i
   int bases_search_result;
   int substack_start = lua_gettop(L)-2;
   assert(first_arg == substack_start+1);
+  (void)first_arg;
   lua_checkstack(L,5);
   assert(lua_isuserdata(L,-2));  /* just in case */
   lua_getmetatable(L,-2);    /* get the meta table */
@@ -871,6 +872,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int SW
   int bases_search_result;
   int substack_start = lua_gettop(L)-2;
   assert(first_arg == substack_start+1);
+  (void)first_arg;
   lua_checkstack(L,5);
   assert(lua_isuserdata(L,-2));  /* just in case */
   lua_getmetatable(L,-2);    /* get the meta table */

@@ -48,9 +48,16 @@ namespace oss
   } 
 } 
 
-%rename("equals") operator==;
+// Note not: Utilities::Bucket::operator==
+%rename("equals") Utilities::operator==;
+
+%ignore Utilities::operator<<;
+namespace Utilities {
+  %ignore operator>>;
+}
 
 %inline %{
+#include <iostream>
 
   namespace Utilities {
     class Bucket
@@ -60,6 +67,8 @@ namespace oss
       friend bool operator==(const Bucket& lhs, const Bucket& rhs){
 	return ( rhs.m_left == lhs.m_left );
       }
+      friend std::ostream& operator<<(std::ostream&, const Bucket &);
+      friend std::ostream& operator>>(std::ostream&, const Bucket &);
     private:
       int m_left;
     };

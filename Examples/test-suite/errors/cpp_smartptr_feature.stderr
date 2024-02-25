@@ -1,0 +1,5 @@
+cpp_smartptr_feature.i:8: Warning 520: Derived class 'BB' of 'AA' is not similarly marked as a smart pointer.
+cpp_smartptr_feature.i:9: Warning 520: Derived class 'CC' of 'AA' is not similarly marked as a smart pointer.
+cpp_smartptr_feature.i:10: Error: Invalid type (std::shared_ptr<) in 'smartptr' feature for class DD.
+cpp_smartptr_feature.i:10: Warning 520: Derived class 'DD' of 'AA' is not similarly marked as a smart pointer.
+cpp_smartptr_feature.i:14: Warning 520: Base class 'XX' of 'YY' is not similarly marked as a smart pointer.

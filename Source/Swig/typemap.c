@@ -69,8 +69,6 @@ static Hash *typemaps;
  * resolving the template parameters.
  *
  * This is a copy and modification of feature_identifier_fix in parser.y.
- * Also, Swig_smartptr_upcast() could be removed if SwigType_typedef_resolve_all
- * is fixed to resolve all template parameters like below.
  * ----------------------------------------------------------------------------- */
 
 static SwigType *typemap_identifier_fix(const SwigType *s) {
@@ -980,6 +978,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     String *ts;
     List *templ_args;
     char *sc;
+    int i;
 
     sc = Char(s);
 
@@ -1040,7 +1039,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
     if (SwigType_istemplate(ftype)) {
       templ_args = SwigType_templateargslist(ftype);
       if (templ_args) {
-        for (int i = 0; i < Len(templ_args); i++) {
+        for (i = 0; i < Len(templ_args); i++) {
           String *varname = NewStringf("$T%dtype", i);
           String *templ_arg = SwigType_str(Getitem(templ_args, i), 0);
           Replace(s, varname, templ_arg, DOH_REPLACE_ANY);

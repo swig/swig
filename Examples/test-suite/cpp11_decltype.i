@@ -58,6 +58,13 @@
     decltype(~'x') should_be_int3;
 
     decltype(int(0)) should_be_int4;
+    decltype((int)0.0) should_be_int5;
+    decltype((6)-7) should_be_int6;
+    decltype((6)+7) should_be_int7;
+    decltype((6)*7) should_be_int8;
+    decltype((6)&7) should_be_int9;
+    enum e { E1 };
+    decltype(+E1) should_be_int10;
 
     static constexpr decltype(*"abc") should_be_char = 0;
 
@@ -67,7 +74,6 @@
     // so this would end up wrapped as int.
     decltype(!0) should_be_bool;
 
-    enum e { E1 };
     decltype(E1) should_be_enum;
 
     auto get_number_sum(decltype(i+j) a) -> decltype(i+j) {

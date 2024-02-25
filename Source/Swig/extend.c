@@ -60,9 +60,10 @@ void Swig_extend_merge(Node *cls, Node *am) {
     symname = Getattr(n,"sym:name");
     DohIncref(symname);
     if ((symname) && (!Getattr(n,"error"))) {
+      Node *c;
       /* Remove node from its symbol table */
       Swig_symbol_remove(n);
-      Node *c = Swig_symbol_add(symname,n);
+      c = Swig_symbol_add(symname,n);
       if (c != n) {
 	/* Conflict with previous definition.  Nuke previous definition */
 	String *e = NewStringEmpty();

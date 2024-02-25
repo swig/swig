@@ -131,6 +131,8 @@ SwigType *NewSwigType(int t) {
     return NewString("double");
   case T_LONGDOUBLE:
     return NewString("long double");
+  case T_FLTCPLX:
+    return NewString("float _Complex");
   case T_COMPLEX:
     return NewString("_Complex");
   case T_CHAR:
@@ -1414,6 +1416,7 @@ void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, Parm
     String *unexpanded_name = Getattr(unexpanded_variadic_parm, "name");
     ParmList *expanded = CopyParmList(expanded_variadic_parms);
     Parm *ep = expanded;
+    SwigType *fparms;
     while (ep) {
       SwigType *newtype = Copy(t);
       SwigType_del_variadic(newtype);
@@ -1422,7 +1425,7 @@ void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, Parm
       ep = nextSibling(ep);
     }
     Clear(t);
-    SwigType *fparms = SwigType_function_parms_only(expanded);
+    fparms = SwigType_function_parms_only(expanded);
     Append(t, fparms);
     Delete(expanded);
 

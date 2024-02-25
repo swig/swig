@@ -44,3 +44,10 @@ if (/* await */(friends.get_val1(di)) != 4) {
 if (/* await */(friends.get_val1(dd)) != 1.3) {
     throw new Error;
 }
+
+if (/* await */(friends.chum_blah()) != 1234) {
+  throw new Error("failed");
+}
+if (/* await */(friends.mate_blah()) != 4321) {
+  throw new Error("failed");
+}

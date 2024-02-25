@@ -875,7 +875,7 @@ void Swig_replace_special_variables(Node *n, Node *parentnode, String *code) {
     String *parentclassname = 0;
     if (parentclass)
       parentclassname = Getattr(parentclass, "name");
-    Replaceall(code, "$parentclassname", parentclassname ? SwigType_str(parentclassname, "") : "");
+    Replaceall(code, "$parentclassname", parentclassname ? SwigType_str(parentclassname, NULL) : "");
   }
 }
 
@@ -891,10 +891,11 @@ static String *extension_code(Node *n, const String *function_name, ParmList *pa
   String *parms_str = cplusplus ? ParmList_str_defaultargs(parms) : ParmList_str(parms);
   String *sig = NewStringf("%s(%s)", function_name, (cplusplus || Len(parms_str)) ? parms_str : "void");
   String *rt_sig = SwigType_str(return_type, sig);
-  // TODO !IMPORTANT!!!!!!!!!!!!
-  // Restore %extend function to non-inline
-  // (required for code-splitting)
-  // TODO !IMPORTANT!!!!!!!!!!!!
+  /* TODO !IMPORTANT!!!!!!!!!!!!
+     Restore %extend function to non-inline
+     (required for code-splitting)
+     TODO !IMPORTANT!!!!!!!!!!!!
+  */
   String *body = NewStringf("SWIGINTERNINLINE %s", rt_sig);
   Printv(body, code, "\n", NIL);
   if (Strchr(body, '$')) {

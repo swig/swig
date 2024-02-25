@@ -33,7 +33,7 @@ static bool code_splitting = false;
 /**
  * Generate an exports file (NAPI only)
  */
-static String *js_napi_generate_exports = nullptr;
+static String *js_napi_generate_exports = NULL;
 
 #define ERR_MSG_ONLY_ONE_ENGINE_PLEASE "Only one engine can be specified at a time."
 
@@ -394,7 +394,7 @@ void TYPESCRIPT::main(int, char *[]) {
  */
 String *TYPESCRIPT::expandTSvars(String *tm, DOH *target) {
   if (!tm)
-    return nullptr;
+    return NULL;
 
   SwigType *ctype = SwigType_typedef_resolve_all(
     SwigType_base(Getattr(target, "type")));
@@ -520,7 +520,7 @@ int TYPESCRIPT::functionHandler(Node *n) {
   String *args = emitArguments(n);
   
   String *ret_tm = Swig_typemap_lookup("ts", n, Getattr(n, NAME), NULL);
-  String *ret_type = nullptr;
+  String *ret_type = NULL;
   if (GetFlag(n, "ts:varargs")) {
     ret_type = NewString("any");
   } else if (GetFlag(n, "ts:out")) {
@@ -567,9 +567,9 @@ String *TYPESCRIPT::enumName(Node *n) {
   bool is_member = GetFlag(n, "ismember");
   String *name = Getattr(n, "sym:name");
 
-  if (name == nullptr) {
+  if (name == NULL) {
     name = Getattr(n, "unnamed");
-    if (name == nullptr) {
+    if (name == NULL) {
       name = NewString("");
       Printf(name, "enum%u", enum_id++);
       Setattr(n, "sym:name", name);
@@ -595,9 +595,9 @@ String *TYPESCRIPT::enumName(Node *n) {
  * Function handler for generating wrappers for functions
  * --------------------------------------------------------------------- */
 int TYPESCRIPT::variableHandler(Node *n) {
-  const char *templ = nullptr;
-  String *target = nullptr;
-  String *type = nullptr;
+  const char *templ = NULL;
+  String *target = NULL;
+  String *type = NULL;
 
   bool is_member = GetFlag(n, "ismember");
   bool is_enumitem = Equal(Getattr(n, "nodeType"), "enumitem");
@@ -736,7 +736,7 @@ class JAVASCRIPT:public Language {
   virtual int constructorHandler(Node *);
   virtual void main(int argc, char *argv[]);
   virtual int top(Node *n);
-  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm) override;
+  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm);
 
   /**
    *  Registers all %fragments assigned to section "templates".
@@ -780,7 +780,7 @@ String *TYPESCRIPT::emitArguments(Node *n) {
     if (tm_out) {
       Setattr(n, "ts:out", tm_out);
     }
-    if (tm != nullptr && Getattr(p, "tmap:in") &&
+    if (tm != NULL && Getattr(p, "tmap:in") &&
         !checkAttribute(p, "tmap:in:numinputs", "0")) {
       String *type = expandTSvars(tm, p);
 
@@ -817,7 +817,7 @@ String *TYPESCRIPT::emitArguments(Node *n) {
         Delete(equiv_types);
       }
     }
-    if (tm != nullptr) {
+    if (tm != NULL) {
       p = Getattr(p, "tmap:ts:next");
     } else {
       p = nextSibling(p);
@@ -2052,7 +2052,7 @@ String *JSEmitter::emitInputTypemap(Node *n, Parm *p, Wrapper *wrapper, String *
 String *JSEmitter::emitCheckTypemap(Node *, Parm *p, Wrapper *wrapper, String *arg) {
   String *tm = Getattr(p, "tmap:check");
 
-  if (tm != nullptr) {
+  if (tm != NULL) {
     Replaceall(tm, "$input", arg);
     Printf(wrapper->code, "%s\n", tm);
   }
@@ -3490,14 +3490,14 @@ int NAPIEmitter::enterVariable(Node *n) {
 
   JSEmitter::enterVariable(n);
 
-  state.variable(GETTER, nullptr);
-  state.variable(SETTER, nullptr);
+  state.variable(GETTER, NULL);
+  state.variable(SETTER, NULL);
 
   return SWIG_OK;
 }
 
 int NAPIEmitter::exitVariable(Node *n) {
-  const char *templ = nullptr;
+  const char *templ = NULL;
 
   // Due to special handling of C++ "static const" member variables
   // (refer to the comment in lang.cxx:Language::staticmembervariableHandler)
@@ -3513,7 +3513,7 @@ int NAPIEmitter::exitVariable(Node *n) {
 
   if (GetFlag(n, "ismember")) {
     String *modifier = NewStringEmpty();
-    String *target = nullptr;
+    String *target = NULL;
 
     if (GetFlag(state.variable(), IS_STATIC) ||
         Equal(Getattr(n, "nodeType"), "enumitem")) {
@@ -3530,7 +3530,7 @@ int NAPIEmitter::exitVariable(Node *n) {
     t_register.replace("$jsmangledname", state.clazz(NAME_MANGLED))
         .replace("$jsname", state.variable(NAME))
         .replace("$jsgetter", state.variable(GETTER));
-    if (state.variable(SETTER) != nullptr)
+    if (state.variable(SETTER) != NULL)
       t_register.replace("$jssetter", state.variable(SETTER));
     t_register.trim().pretty_print(target);
 
@@ -3545,7 +3545,7 @@ int NAPIEmitter::exitVariable(Node *n) {
         .trim()
         .pretty_print(f_class_declarations);
 
-    if (state.variable(SETTER) != nullptr) {
+    if (state.variable(SETTER) != NULL) {
       Template t_setter = getTemplate("jsnapi_class_setter_declaration");
       t_setter.replace("$jsmangledname", state.clazz(NAME_MANGLED))
           .replace("$jsname", state.clazz(NAME))
@@ -3567,7 +3567,7 @@ int NAPIEmitter::exitVariable(Node *n) {
         .replace("$jsname", state.variable(NAME))
         .replace("$jsgetter", state.variable(GETTER));
 
-    if (state.variable(SETTER) != nullptr)
+    if (state.variable(SETTER) != NULL)
       t_register.replace("$jssetter", state.variable(SETTER));
 
     t_register.trim().pretty_print(f_init_register_namespaces);
@@ -3616,11 +3616,11 @@ String *NAPIEmitter::emitAsyncTypemaps(Node *, Parm *parms, Wrapper *,
   for (Parm *p = parms; p;) {
     String *tm = Getattr(p, tmcode);
 
-    if (tm != nullptr) {
+    if (tm != NULL) {
       String *arg = Getattr(p, "emit:input");
 
       // Do not emit typemaps for numinput=0 arguments
-      if (arg != nullptr) {
+      if (arg != NULL) {
         Replaceall(tm, "$input", arg);
         Append(result, tm);
         Append(result, "\n");
@@ -3838,7 +3838,7 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
     emit_action_code(n, rethrow, Getattr(action, "action"));
     Delete(Getattr(action, "action"));
     Setattr(action, "action", rethrow);
-    rethrow = nullptr;
+    rethrow = NULL;
   }
 
   wrapper->code = NewString("");
@@ -4121,7 +4121,7 @@ void NAPIEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper,
                                  MarshallingMode mode, bool is_member,
                                  bool is_static) {
   Parm *p;
-  String *tm = nullptr;
+  String *tm = NULL;
 
   int startIdx = 0;
   if (is_member && !is_static && mode != Ctor) {

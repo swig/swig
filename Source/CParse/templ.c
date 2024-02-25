@@ -269,7 +269,7 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
       Append(patchlist, uname);
     }
     if (!(Getattr(n, "templatetype"))) {
-      // Copied from handling "constructor" .. not sure if all this is needed
+      /* Copied from handling "constructor" .. not sure if all this is needed */
       String *symname;
       String *stripped_name = SwigType_templateprefix(name);
       if (Strstr(tname, stripped_name)) {
@@ -494,8 +494,9 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	/*      Printf(stdout,"partial '%s' '%s'  ---> '%s'\n", tptype, ptype, partial_type); */
 	if (partial_name && strchr(Char(partial_name), '$') == Char(partial_name)) {
 	  int index = atoi(Char(partial_name) + 1) - 1;
+	  Parm *parm;
 	  assert(index >= 0);
-	  Parm *parm = ParmList_nth_parm(templateparms, index);
+	  parm = ParmList_nth_parm(templateparms, index);
 	  assert(parm);
 	  if (parm) {
 	    Setattr(parm, "type", partial_type);
@@ -578,8 +579,9 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	  sz = Len(typelist);
 	  for (i = 0; i < sz; i++) {
 	    SwigType *s = Getitem(typelist, i);
+	    Node *tynode;
+	    String *tyname;
 
-	    assert(!SwigType_isvariadic(s)); /* All parameters should have already been expanded, this is for function that contain variadic parameters only, such as f(v.p.V) */
 	    SwigType_variadic_replace(s, unexpanded_variadic_parm, expanded_variadic_parms);
 
 	    /*
@@ -588,8 +590,8 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	      We will not replace template args if a type/class exists with the same
 	      name which is not a template.
 	    */
-	    Node *tynode = Swig_symbol_clookup(s, 0);
-	    String *tyname  = tynode ? Getattr(tynode, "sym:name") : 0;
+	    tynode = Swig_symbol_clookup(s, 0);
+	    tyname  = tynode ? Getattr(tynode, "sym:name") : 0;
 	    /*
 	    Printf(stdout, "  replacing %s with %s to %s or %s to %s\n", s, name, dvalue, tbase, name_with_templateargs);
 	    Printf(stdout, "    %d %s to %s\n", tp == unexpanded_variadic_parm, name, ParmList_str_defaultargs(expanded_variadic_parms));
@@ -625,7 +627,6 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
       sz = Len(typelist);
       for (i = 0; i < sz; i++) {
 	String *s = Getitem(typelist, i);
-	assert(!SwigType_isvariadic(s)); /* All parameters should have already been expanded, this is for function that contain variadic parameters only, such as f(v.p.V) */
 	SwigType_variadic_replace(s, unexpanded_variadic_parm, expanded_variadic_parms);
 	SwigType_typename_replace(s, tbase, name_with_templateargs);
       }

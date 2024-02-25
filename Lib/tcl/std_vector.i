@@ -35,7 +35,7 @@
 #include <vector>
 
 SWIGINTERN Tcl_Obj* SwigString_FromString(const std::string &s) {
-    return Tcl_NewStringObj(s.data(), (int)s.length());
+    return Tcl_NewStringObj(s.data(), (Tcl_Size)s.length());
 }
 
 SWIGINTERN int SWIG_Tcl_GetBoolFromObj(Tcl_Interp *interp, Tcl_Obj *o, bool *val) {
@@ -48,7 +48,7 @@ SWIGINTERN int SWIG_Tcl_GetBoolFromObj(Tcl_Interp *interp, Tcl_Obj *o, bool *val
 }
  
 SWIGINTERN int SwigString_AsString(Tcl_Interp *interp, Tcl_Obj *o, std::string *val) {
-    int len;
+    Tcl_Size len;
     const char* temp = Tcl_GetStringFromObj(o, &len);
     (void)interp;
     if (temp == NULL)
@@ -85,8 +85,8 @@ namespace std {
     template<class T> class vector {
         %typemap(in) vector< T > (std::vector< T > *v) {
             Tcl_Obj **listobjv;
-            int       nitems;
-            int       i;
+            Tcl_Size  nitems;
+            Tcl_Size  i;
             T*        temp;
 
             if (SWIG_ConvertPtr($input, (void **) &v,
@@ -114,8 +114,8 @@ namespace std {
         %typemap(in) const vector< T >* (std::vector< T > *v, std::vector< T > w),
                      const vector< T >& (std::vector< T > *v, std::vector< T > w) {
             Tcl_Obj **listobjv;
-            int       nitems;
-            int       i;
+            Tcl_Size  nitems;
+            Tcl_Size  i;
             T*        temp;
 
             if(SWIG_ConvertPtr($input, (void **) &v,
@@ -153,7 +153,7 @@ namespace std {
 
         %typecheck(SWIG_TYPECHECK_VECTOR) vector< T > {
             Tcl_Obj **listobjv;
-            int       nitems;
+            Tcl_Size  nitems;
             T*        temp;
             std::vector< T > *v;
             
@@ -182,7 +182,7 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_VECTOR) const vector< T >&,
                                           const vector< T >* {
             Tcl_Obj **listobjv;
-            int       nitems;
+            Tcl_Size   nitems;
             T*         temp;
             std::vector< T > *v;
 
@@ -261,8 +261,8 @@ namespace std {
 
         %typemap(in) vector< T > (std::vector< T > *v){
             Tcl_Obj **listobjv;
-            int       nitems;
-            int       i;
+            Tcl_Size  nitems;
+            Tcl_Size  i;
             T         temp;
 
             if(SWIG_ConvertPtr($input, (void **) &v,
@@ -285,8 +285,8 @@ namespace std {
         %typemap(in) const vector< T >& (std::vector< T > *v,std::vector< T > w),
                      const vector< T >* (std::vector< T > *v,std::vector< T > w) {
             Tcl_Obj **listobjv;
-            int       nitems;
-            int       i;
+            Tcl_Size  nitems;
+            Tcl_Size  i;
             T         temp;
 
             if(SWIG_ConvertPtr($input, (void **) &v,
@@ -316,7 +316,7 @@ namespace std {
        
         %typecheck(SWIG_TYPECHECK_VECTOR) vector< T > {
             Tcl_Obj **listobjv;
-            int       nitems;
+            Tcl_Size  nitems;
             T         temp;
             std::vector< T > *v;
 
@@ -343,7 +343,7 @@ namespace std {
         %typecheck(SWIG_TYPECHECK_VECTOR) const vector< T >&,
 	                                      const vector< T >*{
             Tcl_Obj **listobjv;
-            int       nitems;
+            Tcl_Size  nitems;
             T         temp;
             std::vector< T > *v;
 

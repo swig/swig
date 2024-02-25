@@ -17,3 +17,6 @@ a = Friends::A.new(2)
 raise RuntimeError if Friends::get_val1(a) != 2
 raise RuntimeError if Friends::get_val2(a) != 4
 raise RuntimeError if Friends::get_val3(a) != 6
+
+raise RuntimeError if Friends.chum_blah() != 1234
+raise RuntimeError if Friends.mate_blah() != 4321

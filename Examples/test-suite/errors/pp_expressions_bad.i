@@ -72,3 +72,8 @@
  */
 #if (4 <=> 2) < 0
 #endif
+
+/* Check handling of use of an undefined function-like macro. */
+#if MY_VERSION_AT_LEAST(1,2,3)
+#warning This should not warn
+#endif
