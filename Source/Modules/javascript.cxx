@@ -736,7 +736,7 @@ class JAVASCRIPT:public Language {
   virtual int constructorHandler(Node *);
   virtual void main(int argc, char *argv[]);
   virtual int top(Node *n);
-  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm) override;
+  virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm);
 
   /**
    *  Registers all %fragments assigned to section "templates".
