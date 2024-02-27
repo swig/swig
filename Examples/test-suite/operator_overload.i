@@ -70,8 +70,12 @@ see bottom for a set of possible tests
   // Start of operator== handling
   // See https://sourceforge.net/p/swig/bugs/884/
   // Implementation guided by https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/statements-expressions-operators/how-to-define-value-equality-for-a-type
-  public override bool Equals(object obj) => this.Equals(obj as Op);
-  public override int GetHashCode() => i.GetHashCode();
+  public override bool Equals(object obj) {
+     return this.Equals((Op)obj);
+  }
+  public override int GetHashCode() {
+     return i.GetHashCode();
+  }
   public bool Equals(Op obj) {
     if ((object)obj == null) {
       return false;
@@ -96,7 +100,9 @@ see bottom for a set of possible tests
     }
     return lhs.Equals(rhs);
   }
-  public static bool operator!=(Op lhs, Op rhs) => !(lhs == rhs);
+  public static bool operator!=(Op lhs, Op rhs) {
+    return !(lhs == rhs);
+  }
   // End of operator== handling
 %}
 #endif
