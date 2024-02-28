@@ -52,6 +52,18 @@ public:
         collection_.push_back(val);
     }
 
+    // Static templated method in template
+    template <class InputIterator>
+    static collection_type container_from_iterators( InputIterator first, InputIterator last)
+    {
+        size_type n = static_cast<size_type>(std::distance(first, last));
+        InputIterator value = first;
+        std::advance(value, n);
+        collection_type c;
+        c.assign(first, value);
+        return c;
+    }
+
     // Variadic templated method in template
     template<typename ... Args>
     void emplace_back( Args&& ... args )
@@ -66,9 +78,16 @@ public:
         collection_.emplace_back(args ...);
     }
 
-    ResourceLimitedVector()
+    // Variadic static templated method in template
+    template<typename ... Args>
+    static collection_type make_collection( Args&& ... args )
     {
+        ResourceLimitedVector rlv(std::forward<Args>(args)...);
+        collection_type ct = rlv.collection_;
+        return ct;
     }
+
+    ResourceLimitedVector() = default;
 
     collection_type& getCollection() { return collection_; }
 
@@ -126,6 +145,7 @@ struct SimpleContainer {
 %extend eprosima::fastrtps::ResourceLimitedVector<eprosima::fastrtps::rtps::octet> {
   %template(assign) assign<SimpleIterator>;
   %template(assign_and_append) assign_and_append<SimpleIterator>;
+  %template(container_from_iterators) container_from_iterators<SimpleIterator>;
   // emplace_back template parameters need to match those in the octet constructor
   %template(emplace_back) emplace_back<>;
   %template(emplace_back) emplace_back<int>;
@@ -133,4 +153,8 @@ struct SimpleContainer {
   // Variadic templated constructor in template
   %template(ResourceLimitedVector) ResourceLimitedVector<int>;
   %template(ResourceLimitedVector) ResourceLimitedVector<eprosima::fastrtps::rtps::octet>;
+  // Variadic static templated method in template
+  %template(make_collection) make_collection<>;
+  %template(make_collection) make_collection<int>;
+  %template(make_collection) make_collection<eprosima::fastrtps::rtps::octet>;
 }

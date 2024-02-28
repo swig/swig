@@ -7,3 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-02-28: wsfulton
+            Fix compilation errors in generated code when instantiating a templated
+            static method within a template (non-static methods and constructors were
+            always okay). For example:
+
+              template <typename T> class X {
+                template <class InputIterator>
+                  static void fn(InputIterator first, InputIterator last) { ... }
+              };
+              class SimpleIterator { ... };
+
+              %extend X<int> {
+                %template(fn) fn<SimpleIterator>;
+              }

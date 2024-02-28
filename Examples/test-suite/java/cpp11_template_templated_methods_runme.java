@@ -47,6 +47,19 @@ public class cpp11_template_templated_methods_runme {
       if (oo.getNum() != 333)
         throw new RuntimeException("wrong finalval");
     }
+    // container_from_iterators test
+    {
+      OctetVector ov = new OctetVector();
+      octet o = new octet(987);
+      ov.add(o);
+      SimpleContainer sc = new SimpleContainer(ov);
+      OctetVector collection = OctetResourceLimitedVector.container_from_iterators(sc.begin(), sc.end());
+      if (collection.size() != 1)
+        throw new RuntimeException("wrong collection size");
+      octet oo = collection.get(0);
+      if (oo.getNum() != 987)
+        throw new RuntimeException("wrong collection val");
+    }
     // emplace_back test
     {
       OctetVector ov = new OctetVector();
@@ -76,6 +89,23 @@ public class cpp11_template_templated_methods_runme {
       OctetResourceLimitedVector orlv = new OctetResourceLimitedVector(999);
       octet o = new octet(888);
       OctetResourceLimitedVector orlv2 = new OctetResourceLimitedVector(o);
+    }
+    // Variadic static templated method in template
+    {
+      OctetVector collection = OctetResourceLimitedVector.make_collection();
+      if (collection.size() != 0)
+        throw new RuntimeException("wrong make value 1111");
+
+      collection = OctetResourceLimitedVector.make_collection(1111);
+      octet oo = collection.get(0);
+      if (oo.getNum() != 1111)
+        throw new RuntimeException("wrong make value 1111");
+
+      octet o = new octet(2222);
+      collection = OctetResourceLimitedVector.make_collection(o);
+      oo = collection.get(0);
+      if (oo.getNum() != 2222)
+        throw new RuntimeException("wrong make value 2222");
     }
   }
 }
