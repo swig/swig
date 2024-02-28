@@ -28,7 +28,7 @@ jobs:
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.EXTRA_CXXFLAGS }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }}${{matrix.ASAN && ' ASAN'}} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.EXTRA_CXXFLAGS }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
       matrix:
@@ -91,6 +91,11 @@ jobs:
           ENGINE: napi
           VER: '18'
           CPPSTD: c++11
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '18'
+          CPPSTD: c++11
+          ASAN: 1
         #- SWIGLANG: javascript
         #  ENGINE: node
         #  VER: '6'
@@ -116,6 +121,13 @@ jobs:
           CPPSTD: c++14
           SWIG_FEATURES: -async
           desc: Async
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '18'
+          CPPSTD: c++14
+          SWIG_FEATURES: -async -async-locking -DSWIG_NAPI_FULL_LOCKING=1
+          ASAN: 1
+          desc: Async+ASAN
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '18'
@@ -413,6 +425,7 @@ jobs:
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
       EXTRA_CXXFLAGS: ${{ matrix.EXTRA_CXXFLAGS }}
       COMPILER: ${{ matrix.compiler || 'gcc' }}
+      ASAN: ${{ matrix.ASAN }}
 
     steps:
     - name: Machine Info

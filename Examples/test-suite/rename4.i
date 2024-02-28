@@ -82,6 +82,8 @@ namespace Space {
 #endif
 %}
 
+%newobject Space::ABC::operator ABC*() const;
+
 namespace Space {
 // non-templated class using itself in method and operator
 class ABC {

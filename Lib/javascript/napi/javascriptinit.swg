@@ -17,7 +17,8 @@ SWIG_NAPI_GetModule(Napi::Env env);
 %insert(init) %{
 
 EnvInstanceData::EnvInstanceData(Napi::Env env, swig_module_info *swig_module) :
-env(env), SWIG_NAPI_ObjectWrapCtor(SWIG_NULLPTR), ctor(SWIG_NULLPTR), swig_module(swig_module) {
+  env(env), SWIG_NAPI_ObjectWrapCtor(SWIG_NULLPTR), SWIG_NAPI_PackedObjectWrapCtor(SWIG_NULLPTR),
+  ctor(SWIG_NULLPTR), swig_module(swig_module) {
   ctor = new Napi::FunctionReference*[swig_module->size + 1];
   for (size_t i = 0; i <= swig_module->size; i++) {
     ctor[i] = SWIG_NULLPTR;
@@ -32,6 +33,7 @@ EnvInstanceData::~EnvInstanceData() {
   }
   delete [] ctor;
   delete SWIG_NAPI_ObjectWrapCtor;
+  delete SWIG_NAPI_PackedObjectWrapCtor;
 }
 
 SWIGRUNTIME void
@@ -66,23 +68,8 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
 %}
 
 /* -----------------------------------------------------------------------------
- * js_init_inheritance:  template for enabling the inheritance
- * ----------------------------------------------------------------------------- */
-%fragment("js_init_inheritance", "templates")
-%{
-  Napi::Value jsObjectValue, jsSetProtoValue;
-  Napi::Object jsObject;
-  Napi::Function setProto;
-  NAPI_CHECK_RESULT(env.Global().Get("Object"), jsObjectValue);
-  NAPI_CHECK_RESULT(jsObjectValue.ToObject(), jsObject);
-  NAPI_CHECK_RESULT(jsObject.Get("setPrototypeOf"), jsSetProtoValue);
-  setProto = jsSetProtoValue.As<Napi::Function>();
-%}
-
-/* -----------------------------------------------------------------------------
  * js_initializer:  template for the module initializer function
  *   - $jsname:                     module name
- *   - $jsnapipreinheritance:       the previous template
  *   - $jsnapinspaces:              part with code creating namespace objects
  *   - $jsnapiwrappers:             part with code that registers wrapper functions
  *   - $jsnapiinitinheritance:      part with inherit statements
@@ -92,10 +79,17 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
  * ----------------------------------------------------------------------------- */
 %fragment("js_initializer", "templates")
 %{
+  /* initialize the base SWIG object class */
   Napi::Function SWIG_NAPI_ObjectWrap_ctor = SWIG_NAPI_ObjectWrap_inst::GetClass(env);
   Napi::FunctionReference *SWIG_NAPI_ObjectWrap_ctor_ref = new Napi::FunctionReference();
   *SWIG_NAPI_ObjectWrap_ctor_ref = Napi::Persistent(SWIG_NAPI_ObjectWrap_ctor);
   env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor = SWIG_NAPI_ObjectWrap_ctor_ref;
+
+  /* initialize the SWIG packed object class */
+  Napi::Function SWIG_NAPI_PackedObjectWrap_ctor = SWIG_NAPI_PackedObjectWrap_inst::GetClass(env);
+  Napi::FunctionReference *SWIG_NAPI_PackedObjectWrap_ctor_ref = new Napi::FunctionReference();
+  *SWIG_NAPI_PackedObjectWrap_ctor_ref = Napi::Persistent(SWIG_NAPI_PackedObjectWrap_ctor);
+  env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_PackedObjectWrapCtor = SWIG_NAPI_PackedObjectWrap_ctor_ref;
 
   /* create objects for namespaces */
   $jsnapinspaces
@@ -103,8 +97,23 @@ Napi::Object Init(Napi::Env env, Napi::Object exports) {
   /* register classes */
   $jsnapiregisterclasses
 
-  /* enable inheritance */
-  $jsnapipreinheritance
+  /* initialize the inheritance helpers */
+  Napi::Value jsObjectValue, jsSetProtoValue;
+  Napi::Object jsObject;
+  Napi::Function setProto;
+  NAPI_CHECK_RESULT(env.Global().Get("Object"), jsObjectValue);
+  NAPI_CHECK_RESULT(jsObjectValue.ToObject(), jsObject);
+  NAPI_CHECK_RESULT(jsObject.Get("setPrototypeOf"), jsSetProtoValue);
+  setProto = jsSetProtoValue.As<Napi::Function>();
+
+  /* setup inheritance between these two */
+  do {
+    Napi::Value protoBase, protoSub;
+    NAPI_CHECK_RESULT(SWIG_NAPI_PackedObjectWrap_ctor.Get("prototype"), protoSub);
+    NAPI_CHECK_RESULT(SWIG_NAPI_ObjectWrap_ctor.Get("prototype"), protoBase);
+    NAPI_CHECK_MAYBE(setProto.Call({SWIG_NAPI_PackedObjectWrap_ctor, SWIG_NAPI_ObjectWrap_ctor}));
+    NAPI_CHECK_MAYBE(setProto.Call({protoSub, protoBase}));
+  } while (0);
 
   /* setup inheritances */
   $jsnapiinitinheritance

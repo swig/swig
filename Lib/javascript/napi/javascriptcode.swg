@@ -1038,15 +1038,25 @@ fail:
       return false;
     }
 
-    virtual Status SWIG_NAPI_Init(const Napi::CallbackInfo &info) override {
-      $jsinput
+    virtual SWIG_NAPI_Status SWIG_NAPI_Init(const Napi::CallbackInfo &info) override {
+#ifdef NAPI_CPP_EXCEPTIONS
+      try {
+#endif
+        $jsinput
 #define SWIG_NAPI_Raise SWIG_NAPI_Reject
-      $jschecks
+        $jschecks
 #undef SWIG_NAPI_Raise
-      return Status::OK;
+        return SWIG_NAPI_Status::OK;
+#ifdef NAPI_CPP_EXCEPTIONS
+      } catch (...) {
+        SWIG_NAPI_Cleanup();
+        std::rethrow_exception(std::current_exception());
+      }
+#endif
       goto fail;
     fail:
-      return Status::THROW;
+      SWIG_NAPI_Cleanup();
+      return SWIG_NAPI_Status::THROW;
     }
   };
 %}

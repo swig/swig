@@ -8,6 +8,9 @@
 SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
 #endif
 
+%newobject Outer::Inner1::Color::create();
+%newobject Outer::Inner2::Color::create();
+
 %nspace;
 %nonspace Outer::Inner2::NoNSpacePlease;
 %nonspace Outer::Inner2::NoNSpacePlease::ReallyNoNSpaceEnum;

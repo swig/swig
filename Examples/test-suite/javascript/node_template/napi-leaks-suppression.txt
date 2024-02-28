@@ -1,1 +1,21 @@
+# The SWIG Node-API initialiaztion leaks (because of a deprecated form the PropertyDescriptor API)
 leak:napi_module_register
+
+# these use the (still) unsupported in JS %delobject directive
+leak:default_constructor_wrap.cxx
+leak:import_nomodule_wrap.cxx
+leak:inherit_missing_wrap.cxx
+
+# these tests are leaking by design
+leak:li_cdata_wrap.cxx
+leak:li_cdata_cpp_wrap.cxx
+leak:li_typemaps_wrap.cxx
+leak:reference_global_vars_wrap.cxx
+leak:template_typemaps_typedef_wrap.cxx
+leak:template_typemaps_typedef2_wrap.cxx
+leak:typedef_struct_wrap.cxx
+leak:typemap_arrays_wrap.cxx
+
+# SWIG design limits
+# https://www.swig.org/Doc4.2/SWIGDocumentation.html#Python_nn30
+leak:cpp11_null_pointer_constant_wrap.cxx

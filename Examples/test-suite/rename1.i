@@ -35,7 +35,7 @@
 %rename(opNotXYZ3) Space::XYZ<Space::Klass>::operator NotXYZ<Space::Klass>() const;
 %rename(opNotXYZ4) Space::XYZ<Space::Enu>::operator NotXYZ<Space::Enu>() const;
 
-
+%newobject Space::ABC::operator ABC*() const;
 %rename(methodABC) Space::ABC::method(ABC a) const;
 %rename(opABC) Space::ABC::operator ABC*() const;
 %rename(methodKlass) Space::ABC::method(Klass k) const;

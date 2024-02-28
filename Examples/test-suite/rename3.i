@@ -1,6 +1,8 @@
 // Test %rename directive within %extend
 %module rename3
 
+%newobject Space::ABC::operator ABC*() const;
+
 namespace Space {
   // Note no namespace nor class qualification
   %extend XYZ {

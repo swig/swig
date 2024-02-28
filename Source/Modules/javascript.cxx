@@ -3280,18 +3280,11 @@ int NAPIEmitter::dump(Node *n) {
 
   emitNamespaces();
 
-  String *inheritance = NewStringEmpty();
-  if (Len(f_init_inheritance) > 0) {
-    Template t_inheritance(getTemplate("js_init_inheritance"));
-    t_inheritance.pretty_print(inheritance);
-  }
-
   // compose the initializer function using a template
   // filled with sub-parts
   Template initializer(getTemplate("js_initializer"));
   initializer.replace("$jsname", moduleName)
       .replace("$jsnapinspaces", f_init_namespaces)
-      .replace("$jsnapipreinheritance", inheritance)
       .replace("$jsnapiinitinheritance", f_init_inheritance)
       .replace("$jsnapiregisterclasses", f_init_register_classes)
       .replace("$jsnapiregisternspaces", f_init_register_namespaces);
@@ -3327,7 +3320,6 @@ int NAPIEmitter::dump(Node *n) {
   }
 
   Delete(file_parts);
-  Delete(inheritance);
   return SWIG_OK;
 }
 

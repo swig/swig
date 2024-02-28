@@ -41,7 +41,7 @@ namespace Space {
 %rename(opXYZ3) XYZ<Space::Klass>::operator XYZ<Space::Klass>() const;
 %rename(opXYZ4) XYZ<Space::Enu>::operator XYZ<Space::Enu>() const;
 
-
+%newobject ABC::operator ABC*() const;
 %rename(methodABC) ABC::method(ABC a) const;
 %rename(opABC) ABC::operator ABC*() const;
 %rename(methodKlass) ABC::method(Klass k) const;

@@ -9,6 +9,9 @@ SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
 #endif
 %nspace;
 
+%newobject Outer::Inner1::Color::create();
+%newobject Outer::Inner2::Color::create();
+
 %extend Outer::Inner1::Color {
       Color() { return new Outer::Inner1::Color(); }
       virtual ~Color() { delete $self; }

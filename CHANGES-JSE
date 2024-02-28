@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 5.0.2
 ===========================
 
+2024-02-28: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#28](https://github.com/mmomtchev/swig/issues/28),
+            execute the `freearg` tmap when throwing synchronously while
+            processing the arguments from an async handler
+
+2024-02-28: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#26](https://github.com/mmomtchev/swig/issues/26),
+            free the memory used by member pointer objects
+
 2024-02-24: mmomtchev
             [JavaScript] Fix [mmomtchev/swig#23](https://github.com/mmomtchev/swig/issues/23),
             Fix and clarify the situation with the buffer ownership of the

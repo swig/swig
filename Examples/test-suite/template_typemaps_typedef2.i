@@ -17,6 +17,7 @@ namespace Standard {
 }
 %}
 
+%newobject *::make_dummy_pair;
 %{
 namespace Standard {
 template<class Key, class T, class J = int> class Multimap {

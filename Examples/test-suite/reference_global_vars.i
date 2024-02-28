@@ -29,6 +29,7 @@ TestClass getconstTC() {
 %{
 static type initial_value_##name;
 %}
+%newobject createref_##name(type x);
 %inline %{
 static type &var_##name = initial_value_##name;
 type setref_##name(type &x) {

@@ -2,6 +2,8 @@
  * SWIG Node-API runtime : code
  * ---------------------------------------------------------------------------*/
 
+#define SWIG_NAPI_PACKEDOBJECT 0x8000
+
 SWIGRUNTIME Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *msg) {
   switch(type) {
     default:
@@ -104,6 +106,31 @@ void SWIG_NAPI_ObjectWrap_inst::GetMembers(
 
 Napi::Function SWIG_NAPI_ObjectWrap_inst::GetClass(Napi::Env env) {
   return Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::DefineClass(env, "SwigObject", {});
+}
+
+SWIG_NAPI_ObjectWrap_inst::~SWIG_NAPI_ObjectWrap_inst() {
+  if (this->owned) {
+    if (this->info) {
+      fprintf(stderr, "Warning, SWIG cannot delete an object of type %s, "
+                      "it does not have a destructor. This is a memory leak.\n",
+                      this->info->name);
+    } else {
+      fprintf(stderr, "Warning, SWIG must delete an object and does not know "
+                      "its type. This is a memory leak\n");
+    }
+  }
+}
+
+Napi::Function SWIG_NAPI_PackedObjectWrap_inst::GetClass(Napi::Env env) {
+  return Napi::ObjectWrap<SWIG_NAPI_PackedObjectWrap_inst>::DefineClass(env, "SwigPackedObject", {});
+}
+
+SWIG_NAPI_PackedObjectWrap_inst::~SWIG_NAPI_PackedObjectWrap_inst() {
+  if (this->owned) {
+    delete[] static_cast<uint8_t *>(this->self);
+    this->self = SWIG_NULLPTR;
+    this->owned = false;
+  }
 }
 
 SWIGRUNTIME bool SWIG_NAPI_IsWrappedObject(Napi::Env env, Napi::Object v) {
@@ -224,7 +251,9 @@ SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_t
   size_t *idx = info != SWIG_NULLPTR ?
         reinterpret_cast<SWIG_NAPI_ClientData *>(info->clientdata) :
         SWIG_NULLPTR;
-  if (idx == SWIG_NULLPTR) {
+  if ((flags & SWIG_NAPI_PACKEDOBJECT) == SWIG_NAPI_PACKEDOBJECT) {
+    ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_PackedObjectWrapCtor;
+  } else if (idx == SWIG_NULLPTR) {
     // This type does not have a dedicated wrapper
     ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
   } else {
@@ -318,7 +347,7 @@ SWIGRUNTIME
 Napi::Value SWIG_NAPI_NewPackedObj(Napi::Env env, void *data, size_t size, swig_type_info *type) {
   void *data_copy = new uint8_t[size];
   memcpy(data_copy, data, size);
-  Napi::Value val = SWIG_NAPI_NewPointerObj(env, data_copy, type, SWIG_POINTER_OWN);
+  Napi::Value val = SWIG_NAPI_NewPointerObj(env, data_copy, type, SWIG_POINTER_OWN | SWIG_NAPI_PACKEDOBJECT);
   Napi::Object obj;
   if (val.IsEmpty()) goto fail;
 

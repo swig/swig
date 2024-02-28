@@ -48,8 +48,9 @@ void JS_veto_set_variable(const Napi::CallbackInfo &info);
 // in the main thread (during initialization/parsing)
 #define SWIG_NAPI_Reject(env, code, msg)        do {                          \
       SWIG_NAPI_deferred.Reject(SWIG_NAPI_NewError(env, code, msg).Value());  \
+      SWIG_NAPI_Cleanup();                                                    \
       SWIG_NAPI_deferred_finalized = true;                                    \
-      return Status::REJECT;                                                  \
+      return SWIG_NAPI_Status::REJECT;                                        \
     } while (0)
 
 #define SWIG_NAPI_ASSERT_NOTNULL_ENV            assert((napi_env)env != SWIG_NULLPTR)
@@ -108,6 +109,7 @@ struct EnvInstanceData {
   // Base class per-environment constructor, used to check
   // if a JS object is a SWIG wrapper
   Napi::FunctionReference *SWIG_NAPI_ObjectWrapCtor;
+  Napi::FunctionReference *SWIG_NAPI_PackedObjectWrapCtor;
   // Per-environment wrapper constructors, indexed by the number in
   // swig_type->clientdata
   Napi::FunctionReference **ctor;
@@ -218,10 +220,24 @@ void SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi:
   SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
 }
 
-// Instantiaed version of the above CRTP class
+// Instantiated version of the above CRTP class
 class SWIG_NAPI_ObjectWrap_inst : public SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_ObjectWrap_inst> {
 public:
   using SWIG_NAPI_ObjectWrap_templ::SWIG_NAPI_ObjectWrap_templ;
+  ~SWIG_NAPI_ObjectWrap_inst();
+  static Napi::Function GetClass(Napi::Env);
+  static void GetMembers(
+    Napi::Env,
+    std::map<std::string, SWIG_NAPI_ObjectWrap_templ::PropertyDescriptor> &,
+    std::map<std::string, SWIG_NAPI_ObjectWrap_templ::PropertyDescriptor> &
+  );
+};
+
+// Special class used for packed (opaque) objects, has a special destructor
+class SWIG_NAPI_PackedObjectWrap_inst : public SWIG_NAPI_ObjectWrap_templ<SWIG_NAPI_PackedObjectWrap_inst> {
+public:
+  using SWIG_NAPI_ObjectWrap_templ::SWIG_NAPI_ObjectWrap_templ;
+  ~SWIG_NAPI_PackedObjectWrap_inst();
   static Napi::Function GetClass(Napi::Env);
   static void GetMembers(
     Napi::Env,

@@ -128,7 +128,7 @@ namespace test {
 			char *data;
 			SWIG_AsCharPtrAndSize($input, &data, NULL, NULL);
 			$1 = new string_class(data);
-			free(data);
+			delete[] data;
 	}
 	%typemap(freearg) string_class * {
 	    delete $1;

@@ -20,14 +20,14 @@ protected:
   Napi::Promise::Deferred SWIG_NAPI_deferred;
   bool SWIG_NAPI_deferred_finalized;
 public:
-  enum Status { OK, REJECT, THROW };
+  enum SWIG_NAPI_Status { OK, REJECT, THROW };
   SWIG_NAPI_AsyncContext(Napi::Env);
   virtual ~SWIG_NAPI_AsyncContext();
   // All methods are prefixed to avoid symbol pollution
   // Alternatively, inheriting through a template
   // allows to not import any member definitions from the base class
   // https://stackoverflow.com/questions/76703197/unshadow-global-identifier-in-a-class
-  virtual Status SWIG_NAPI_Init(const Napi::CallbackInfo &) = 0;
+  virtual SWIG_NAPI_Status SWIG_NAPI_Init(const Napi::CallbackInfo &) = 0;
   virtual void SWIG_NAPI_Execute() = 0;
   virtual void SWIG_NAPI_Resolve() = 0;
   virtual bool SWIG_NAPI_Cleanup() = 0;
@@ -166,7 +166,7 @@ void SWIG_NAPI_AsyncWorker::Execute() {
 }
 
 Napi::Value SWIG_NAPI_AsyncWorker::Run(const Napi::CallbackInfo &info) {
-  SWIG_NAPI_AsyncContext::Status rc;
+  SWIG_NAPI_AsyncContext::SWIG_NAPI_Status rc;
 
 #ifdef NAPI_CPP_EXCEPTIONS
   try {
@@ -179,13 +179,13 @@ Napi::Value SWIG_NAPI_AsyncWorker::Run(const Napi::CallbackInfo &info) {
 #else
   rc = context->SWIG_NAPI_Init(info);
 #endif
-  if (rc == SWIG_NAPI_AsyncContext::Status::REJECT) {
+  if (rc == SWIG_NAPI_AsyncContext::SWIG_NAPI_Status::REJECT) {
     Napi::Value r = context->SWIG_NAPI_Promise();
     context->SWIG_NAPI_Cleanup();
     delete context;
     delete this;
     return r;
-  } else if (rc == SWIG_NAPI_AsyncContext::Status::THROW) {
+  } else if (rc == SWIG_NAPI_AsyncContext::SWIG_NAPI_Status::THROW) {
     context->SWIG_NAPI_Cleanup();
     delete context;
     delete this;
