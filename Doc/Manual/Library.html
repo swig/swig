@@ -728,7 +728,7 @@ Target dynamic typed language must support strings with embedded binary data
 in order for benefit from this module, and should support a 'pack' and 'unpack'
 functions to convert string to array of numbers and via versa.
 Most static typed languages uses string with defined encoding,
- which means the content of the String will be different from the original raw C data.
+ which does not make them suitable for holding raw data.
 Yet most dynamic typed language do not support arrays of bytes and
  do not have a defined encoding of strings, which make them proper for holding raw data.
 </p>

@@ -16,5 +16,17 @@
   $2 = ($2_ltype)$input.len;
 %}
 %apply (const void *BYTES, size_t LENGTH) { (void *BYTES, size_t LENGTH) }
+%include <typemaps/cdata_apply.swg>
+
+%include <typemaps/cdata_struct.swg>
+
+%typemap(dtype) SWIGCDATA "ubyte[]"
+%typemap(imtype) SWIGCDATA "ubyte[]"
+%typemap(ctype) SWIGCDATA "SWIG_c_array"
+%typemap(out) SWIGCDATA %{
+  $result.array = $1.data;
+  $result.len = $1.len;
+%}
+%typemap(dout) SWIGCDATA { return $imcall; }
 
 %include <typemaps/cdata.swg>

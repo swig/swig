@@ -79,6 +79,58 @@ SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_bytes_to_c(int len, void *ptr) {
 %}
 
 %apply (const void *BYTES, size_t LENGTH) { (void *BYTES, size_t LENGTH) }
+%include <typemaps/cdata_apply.swg>
+
+%include <typemaps/cdata_struct.swg>
+
+%pragma(csharp) imclasscode=%{
+  [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_data")]
+  public static extern int SWIG_csharp_data(global::System.IntPtr data, ref global::System.IntPtr m);
+%}
+
+%fragment("SWIG_csharp_data", "header") %{
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+SWIGEXPORT int SWIGSTDCALL SWIG_csharp_data(SWIGCDATA *d, void **ptr) {
+    int ret;
+    ret = 0;
+    if (d != SWIG_NULLPTR) {
+        if (d->len > 0 && d->data != SWIG_NULLPTR) {
+            *ptr = (void *)d->data;
+            ret = (int)d->len;
+        }
+        free(d); /* allocated in 'out' typemap */
+    }
+    return ret;
+}
+
+#ifdef __cplusplus
+}
+#endif
+%}
+
+%typemap(ctype)  SWIGCDATA "SWIGCDATA *"
+%typemap(imtype) SWIGCDATA "global::System.IntPtr"
+%typemap(cstype) SWIGCDATA "byte[]"
+%typemap(out)    SWIGCDATA %{
+    $result = (SWIGCDATA*)malloc(sizeof($1));
+    if($result != SWIG_NULLPTR) {
+        memcpy($result, &$1, sizeof($1));
+    }
+%}
+%typemap(csout, fragment="SWIG_csharp_data") SWIGCDATA {
+    global::System.IntPtr mm;
+    byte[] ret;
+    int size;
+    mm = global::System.IntPtr.Zero;
+    size = $modulePINVOKE.SWIG_csharp_data($imcall, ref mm);
+    ret = new byte[size];
+    if (size > 0) {
+        System.Runtime.InteropServices.Marshal.Copy(mm, ret, 0, size);
+    }
+    return ret;
+}
 
 %include <typemaps/cdata.swg>
-

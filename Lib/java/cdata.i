@@ -43,5 +43,37 @@
 }
 %typemap(directorargout, noblock=1) (void *BYTES, size_t LENGTH)
 { if ($input && $1) JCALL4(GetByteArrayRegion, jenv, $input, 0, (jsize)$2, (jbyte *)$1); }
+%include <typemaps/cdata_apply.swg>
+
+%include <typemaps/cdata_struct.swg>
+
+%typemap(jni) SWIGCDATA "jbyteArray"
+%typemap(jtype) SWIGCDATA "byte[]"
+%typemap(jstype) SWIGCDATA "byte[]"
+%fragment("SWIG_JavaArrayOutCDATA", "header") {
+static jbyteArray SWIG_JavaArrayOutCDATA(JNIEnv *jenv, char *result, jsize sz) {
+  jbyteArray jresult;
+  jbyte *arr;
+  int i;
+  jresult = JCALL1(NewByteArray, jenv, sz);
+  if (!jresult) {
+    return SWIG_NULLPTR;
+  }
+  arr = JCALL2(GetByteArrayElements, jenv, jresult, 0);
+  if (!arr) {
+    return SWIG_NULLPTR;
+  }
+  for (i=0; i<sz; i++) {
+    arr[i] = (jbyte)result[i];
+  }
+  JCALL3(ReleaseByteArrayElements, jenv, jresult, arr, 0);
+  return jresult;
+}
+}
+%typemap(out, fragment="SWIG_JavaArrayOutCDATA") SWIGCDATA
+%{$result = SWIG_JavaArrayOutCDATA(jenv, (char *)$1.data, $1.len); %}
+%typemap(javaout) SWIGCDATA {
+    return $jnicall;
+  }
 
 %include <typemaps/cdata.swg>

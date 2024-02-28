@@ -4,7 +4,6 @@
  * SWIG library file containing macros for manipulating raw C data.
  * ----------------------------------------------------------------------------- */
 
-
 /* ------------------------------------------------------------
  * Typemap for passing bytes with length
  * ------------------------------------------------------------ */
@@ -16,6 +15,10 @@
   $2 = ($2_ltype)len;
 }
 %apply (const void *BYTES, size_t LENGTH) { (void *BYTES, size_t LENGTH) }
+%include <typemaps/cdata_apply.swg>
+
+%include <typemaps/cdata_struct.swg>
+
+%typemap(out) SWIGCDATA %{lua_pushlstring(L, $1.data,$1.len); SWIG_arg++;%}
 
 %include <typemaps/cdata.swg>
-
