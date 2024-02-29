@@ -10,6 +10,8 @@ public class cpp11_std_unique_ptr_runme {
     }
   }
 
+  // Suppress warning about System.runFinalization() call.
+  @SuppressWarnings({"deprecation", "removal"})
   private static void WaitForGC()
   {
     System.gc();
