@@ -106,7 +106,7 @@ ifeq (emcc, $(CC))
         endif
   	GYP_CXXFLAGS = -I@NODENAPI_DIR@
   	GYP_TEMPLATE = wasm_template
-  	SWIGOPT += -D__EMSCRIPTEN__
+  	SWIGOPT += -DSWIG_EMSCRIPTEN
   	EMNAPI_LIB = -lemnapi
 # Some emscripten-specific warnings on certain tests
 cpp11_lambda_functions.cpptest: GYP_CFLAGS = \"-Wno-unused-lambda-capture\",

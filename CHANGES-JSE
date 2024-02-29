@@ -4,6 +4,14 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
+Version 5.0.3
+===========================
+
+2024-02-29: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#31](https://github.com/mmomtchev/swig/issues/31),
+            the `ArrayBuffer` tmap is missing the `emnapi` synchronization
+            unless `-D__EMSCRIPTEN__` is passed when running SWIG
+
 Version 5.0.2
 ===========================
 

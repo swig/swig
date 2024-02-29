@@ -125,7 +125,7 @@ extern "C" {
     }
 
     static bool namedThread() {
-%#if defined(_WIN32) || defined(__EMSCRIPTEN__)
+%#if defined(_WIN32) || defined(SWIG_EMSCRIPTEN)
       return false;
 %#else
       return true;
