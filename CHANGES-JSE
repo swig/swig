@@ -4,15 +4,20 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 5.0.3
+Version 5.0.3 (29 Feb 2024)
 ===========================
+
+2024-02-29: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#33](https://github.com/mmomtchev/swig/issues/33),
+            the `ArrayBuffer` tmap does not properly handle zero-length
+            `ArrayBuffer` when compiling with emscripten
 
 2024-02-29: mmomtchev
             [JavaScript] Fix [mmomtchev/swig#31](https://github.com/mmomtchev/swig/issues/31),
             the `ArrayBuffer` tmap is missing the `emnapi` synchronization
             unless `-D__EMSCRIPTEN__` is passed when running SWIG
 
-Version 5.0.2
+Version 5.0.2 (28 Feb 2024)
 ===========================
 
 2024-02-28: mmomtchev
@@ -30,7 +35,7 @@ Version 5.0.2
             typemaps that create new `Buffer` or `ArrayBuffer`
 
 
-Version 5.0.1
+Version 5.0.1 (30 Jan 2024)
 ===========================
 
 2024-01-30: mmomtchev

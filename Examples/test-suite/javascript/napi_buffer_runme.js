@@ -9,12 +9,40 @@ const napi_buffer = require('napi_buffer');
   if (uint32[0] !== 17) throw new Error(`Expected 17, got ${uint32[0]}`);
 }
 
+// Test producing a zero-length Buffer
+{
+  const ab = /* await */(napi_buffer.return_zerolen_buffer());
+  if (!(ab instanceof Buffer)) throw new Error(`Expected an Buffer, got ${ab}`);
+  const uint32 = new Uint32Array(ab);
+  if (uint32.length) throw new Error(`Expected length 0, got ${uint32.length} 0`);
+}
+
+// Test producing a null Buffer
+{
+  const ab = /* await */(napi_buffer.return_null_buffer());
+  if (ab !== null) throw new Error(`Expected null, got ${ab}`);
+}
+
 // Test producing an ArrayBuffer
 {
   const ab = /* await */(napi_buffer.return_arraybuffer());
   if (!(ab instanceof ArrayBuffer)) throw new Error(`Expected an ArrayBuffer, got ${ab}`);
   const uint32 = new Uint32Array(ab);
   if (uint32[0] !== 17) throw new Error(`Expected 17, got ${uint32[0]}`);
+}
+
+// Test producing a zero-length ArrayBuffer
+{
+  const ab = /* await */(napi_buffer.return_zerolen_arraybuffer());
+  if (!(ab instanceof ArrayBuffer)) throw new Error(`Expected an ArrayBuffer, got ${ab}`);
+  const uint32 = new Uint32Array(ab);
+  if (uint32.length) throw new Error(`Expected length 0, got ${uint32.length} 0`);
+}
+
+// Test producing a null ArrayBuffer
+{
+  const ab = /* await */(napi_buffer.return_null_arraybuffer());
+  if (ab !== null) throw new Error(`Expected null, got ${ab}`);
 }
 
 // Test consuming a Buffer
