@@ -23,5 +23,31 @@ void main() {
    pchar_setitem(pc, 2, 'l');
    pchar_setitem(pc, 3, 'a');
    pchar_setitem(pc, 4, 0);
+
+   /* FIXME: pc is not string
+   if (t.strlen(pc) != 4) {
+       throw new Exception("bad multi-arg typemap");
+   }
+   if (t.ustrlen(pc) != 4) {
+       throw new Exception("bad multi-arg typemap");
+   }
+   */
+
+   /* FIXME: pc is not string
+   var_pchar = pc;
+   */
+   var_pchar = "hola";
+   if (var_pchar != "hola") {
+       throw new Exception("bad pointer case");
+   }
+
+   /* FIXME: pc is not string
+   var_namet = pc;
+   */
+   var_namet = "hola";
+   if (var_namet != "hola") {
+       throw new Exception("bad pointer case");
+   }
+
    delete_pchar(pc);
 }

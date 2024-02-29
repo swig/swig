@@ -1083,6 +1083,125 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 %apply SWIGTYPE (CLASS::*) { SWIGTYPE (CLASS::*const) }
 %apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
+/* String & length */
+%pragma(csharp) imclasscode=%{
+  [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_to_c")]
+  public static extern global::System.IntPtr SWIG_csharp_string_to_c0(int size, int len, [global::System.Runtime.InteropServices.In,global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPUTF8Str, SizeParamIndex=0)] string str);
+  public static global::System.IntPtr SWIG_csharp_string_to_c(string str) {
+    if (str == null)
+        return global::System.IntPtr.Zero;
+    global::System.Text.Encoding utf8 = global::System.Text.Encoding.UTF8;
+    return SWIG_csharp_string_to_c0(utf8.GetByteCount(str), str.Length, str);
+  }
+  [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_size")]
+  public static extern int SWIG_csharp_string_size(global::System.IntPtr str);
+  [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_str")]
+  public static extern global::System.IntPtr SWIG_csharp_string_str(global::System.IntPtr str);
+  public static string SWIG_c_to_csharp_string(global::System.IntPtr _str) {
+    int size = SWIG_csharp_string_size(_str);
+    if (size > 0) {
+        global::System.IntPtr s = SWIG_csharp_string_str(_str);
+        byte[] b = new byte[size];
+        global::System.Runtime.InteropServices.Marshal.Copy(s, b, 0, size);
+        global::System.Text.Encoding utf8 = global::System.Text.Encoding.UTF8;
+        return utf8.GetString(b);
+    }
+    return null;
+  }
+%}
+
+%fragment("SWIG_csharp_string", "header") %{
+#ifdef __cplusplus
+extern "C" {
+#endif
+typedef struct { int len; int size; char* str; } SWIG_csharp_string;
+
+SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_string_to_c(int size, int len, char *str) {
+  SWIG_csharp_string *ret;
+  ret = (SWIG_csharp_string*)malloc(sizeof(SWIG_csharp_string));
+  if (ret == SWIG_NULLPTR) {
+    SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate string container.");
+    return SWIG_NULLPTR;
+  }
+  if(size > 0) {
+    /* The string is in UTF8 encoding */
+    ret->str = (char*)malloc(size + 1);
+    if (ret->str == SWIG_NULLPTR) {
+      SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate string.");
+      free(ret);
+      return SWIG_NULLPTR;
+    }
+    memcpy(ret->str, str, size + 1);
+    ret->size = size; /* number of bytes in the UTF8 encoding */
+    ret->len = len;   /* number of characters in string */
+  } else {
+    ret->str = SWIG_NULLPTR;
+    ret->size = 0;
+    ret->len = 0;
+  }
+  return ret;
+}
+SWIGEXPORT int SWIGSTDCALL SWIG_csharp_string_size(SWIG_csharp_string *p) {
+    if(p) {
+        return p->size;
+    }
+    return 0;
+}
+SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
+    if(p) {
+        char *ret = p->str;
+        free(p);
+        return ret;
+    }
+    return NULL;
+}
+
+#ifdef __cplusplus
+}
+#endif
+%}
+
+%typemap(cstype) (const char *STRING, size_t LENGTH) "string"
+%typemap(ctype)  (const char *STRING, size_t LENGTH) "void *"
+%typemap(imtype) (const char *STRING, size_t LENGTH) "global::System.IntPtr"
+%typemap(csin)   (const char *STRING, size_t LENGTH) "$modulePINVOKE.SWIG_csharp_string_to_c($csinput)"
+%typemap(in, canthrow=1, fragment="SWIG_csharp_string") (const char *STRING, size_t LENGTH) {
+  SWIG_csharp_string *p;
+  p = (SWIG_csharp_string *)$input;
+  if(p != SWIG_NULLPTR) {
+    $1 = ($1_ltype)p->str;
+    $2 = ($2_ltype)p->size; /* We use number of bytes */
+  } else {
+    $1 = 0;
+    $2 = 0;
+  }
+}
+%typemap(freearg, fragment="SWIG_csharp_string") (const char *STRING, size_t LENGTH) %{
+  {
+     SWIG_csharp_string *p;
+     p = (SWIG_csharp_string *)$input;
+     if(p != SWIG_NULLPTR) {
+        free(p->str);
+        free(p);
+     }
+  }
+%}
+%typemap(directorin) (const char *STRING, size_t LENGTH) %{
+  if ($1 && $2 > 0) {
+    $input = malloc(sizeof(SWIG_csharp_string));
+    if ($input) {
+      SWIG_csharp_string *p = (SWIG_csharp_string *)$input;
+      p->str = (char *)$1;
+      p->size = (int)$2;
+    }
+  }
+%}
+%typemap(csdirectorin) (const char *STRING, size_t LENGTH) "$modulePINVOKE.SWIG_c_to_csharp_string($iminput)"
+
+%apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
+%apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
+%apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
+
 /* csharp keywords */
 %include <csharpkw.swg>
 

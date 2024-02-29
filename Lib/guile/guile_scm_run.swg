@@ -91,15 +91,9 @@ static swig_module_info *SWIG_Guile_GetModule(void *SWIGUNUSEDPARM(clientdata));
 SWIGINTERN char *
 SWIG_Guile_scm2newstr(SCM str, size_t *len) {
 #define FUNC_NAME "SWIG_Guile_scm2newstr"
-  char *ret;
-
   SCM_ASSERT (scm_is_string(str), str, 1, FUNC_NAME);
 
-  ret = scm_to_utf8_string(str);
-  if (!ret) return NULL;
-
-  if (len) *len = strlen(ret) - 1;
-  return ret;
+  return scm_to_utf8_stringn(str, len);
 #undef FUNC_NAME
 }
 

@@ -52,6 +52,15 @@
 %typemap(consttab) SWIGTYPE (CLASS::*)
        { SWIG_LUA_CONSTTAB_BINARY("$symname", sizeof($type),&$value, $1_descriptor) }
 
+%typemap(in,checkfn="lua_isstring") (const char *STRING, size_t LENGTH) {
+  size_t len;
+  $1 = ($1_ltype)lua_tolstring(L, $input, &len);
+  SWIG_contract_assert($1, "non null string");
+  $2 = ($2_ltype)len;
+}
+%apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
+%apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
+%apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
 /* -----------------------------------------------------------------------------
  *                          Overloaded operator support

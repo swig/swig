@@ -247,6 +247,7 @@
 #include <stddef.h>
 typedef struct { size_t len; char *str;} SWIG_c_dstring;
 typedef struct { size_t len; SWIG_c_dstring *array; } SWIG_c_dstring_array;
+typedef struct { size_t len; void *array; } SWIG_c_array;
 %}
 
 /*

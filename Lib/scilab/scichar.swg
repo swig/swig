@@ -148,7 +148,8 @@ SWIG_SciString_AsCharPtrAndSize(void *pvApiCtx, int iVar, char **pcValue, size_t
   }
 
   if (piLength != NULL) {
-    *piLength = strlen(pstString);
+    /* Add the null termination */
+    *piLength = iLen + 1;
   }
 
   return SWIG_OK;

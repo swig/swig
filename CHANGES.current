@@ -7,6 +7,22 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-02-29: erezgeva
+            #2609 Fix Java typemap (char *STRING, size_t LENGTH) to use string type.
+            Add STRING-LENGTH typemap to most languages.
+            All languages uses string type for STRING-LENGTH typemap.
+            Add char_binary test to most languages and
+             director_binary test to languages supporting director class.
+            Add new typemap BYTES-LENGTH to use with cdata.
+            Add BYTES-LENGTH typemap to most languages.
+            Rebase cdata typemap to improve coherent among different languages.
+            Add li_cdata test to most languages.
+            Languages with static type use byte array for cdata.
+            While dynamic type languages retain string.
+            incompatibilities:
+            * STRING-LENGTH: Java uses String
+            * cdata: Go uses byte array and int64 for size
+
 2024-02-28: wsfulton
             Fix compilation errors in generated code when instantiating a templated
             static method within a template (non-static methods and constructors were
