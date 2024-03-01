@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-03-01: olly
+	    [Java] #2819 Suppress Java removal warnings for uses of
+	    System.runFinalization().  SWIG will need to stop relying on
+	    finalize methods, but we know that and meanwhile these warnings
+	    make the testsuite output noisy.  Fix use of deprecated form
+	    of Runtime.exec() in the doxygen example.
+
 2024-02-28: wsfulton
             #1754 Fix compilation errors in generated code when instantiating a templated
             static method within a template (non-static methods and constructors were
