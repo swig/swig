@@ -27,6 +27,8 @@ public class cpp11_std_unique_ptr_runme {
         }
         checkCount(0);
 
+
+        ///// INPUT BY VALUE /////
         // unique_ptr as input
         using (Klass kin = new Klass("KlassInput")) {
           checkCount(1);
@@ -98,6 +100,81 @@ public class cpp11_std_unique_ptr_runme {
           throw new ApplicationException("overloadTest failed");
         if (cpp11_std_unique_ptr.overloadTest(new Klass("over")) != 1)
           throw new ApplicationException("overloadTest failed");
+        checkCount(0);
+
+
+        ///// INPUT BY RVALUE REF /////
+        // unique_ptr as input
+        using (Klass kin = new Klass("KlassInput")) {
+          checkCount(1);
+          string s = cpp11_std_unique_ptr.moveKlassUniquePtr(kin);
+          checkCount(0);
+          if (s != "KlassInput")
+            throw new ApplicationException("Incorrect string: " + s);
+          if (!cpp11_std_unique_ptr.is_nullptr(kin))
+            throw new ApplicationException("is_nullptr failed");
+        } // Dispose should not fail, even though already deleted
+        checkCount(0);
+
+        using (Klass kin = new Klass("KlassInput")) {
+          checkCount(1);
+          string s = cpp11_std_unique_ptr.moveKlassUniquePtr(kin);
+          checkCount(0);
+          if (s != "KlassInput")
+            throw new ApplicationException("Incorrect string: " + s);
+          if (!cpp11_std_unique_ptr.is_nullptr(kin))
+            throw new ApplicationException("is_nullptr failed");
+          bool exception_thrown = false;
+          try {
+            cpp11_std_unique_ptr.moveKlassUniquePtr(kin);
+          } catch (ApplicationException e) {
+            if (!e.Message.Contains("Cannot release ownership as memory is not owned"))
+              throw new ApplicationException("incorrect exception message");
+            exception_thrown = true;
+          }
+          if (!exception_thrown)
+              throw new ApplicationException("double usage of moveKlassUniquePtr should have been an error");
+        } // Dispose should not fail, even though already deleted
+        checkCount(0);
+
+        using (Klass kin = new Klass("KlassInput")) {
+            bool exception_thrown = false;
+            Klass notowned = cpp11_std_unique_ptr.get_not_owned_ptr(kin);
+            try {
+              cpp11_std_unique_ptr.moveKlassUniquePtr(notowned);
+            } catch (ApplicationException e) {
+              if (!e.Message.Contains("Cannot release ownership as memory is not owned"))
+                throw new ApplicationException("incorrect exception message");
+              exception_thrown = true;
+            }
+            if (!exception_thrown)
+                throw new ApplicationException("Should have thrown 'Cannot release ownership as memory is not owned' error");
+            checkCount(1);
+        }
+        checkCount(0);
+
+        using (KlassInheritance kini = new KlassInheritance("KlassInheritanceInput")) {
+          checkCount(1);
+          string s = cpp11_std_unique_ptr.moveKlassUniquePtr(kini);
+          checkCount(0);
+          if (s != "KlassInheritanceInput")
+            throw new ApplicationException("Incorrect string: " + s);
+          if (!cpp11_std_unique_ptr.is_nullptr(kini))
+            throw new ApplicationException("is_nullptr failed");
+        } // Dispose should not fail, even though already deleted
+        checkCount(0);
+
+        cpp11_std_unique_ptr.moveKlassUniquePtr(null);
+        cpp11_std_unique_ptr.moveKlassUniquePtr(cpp11_std_unique_ptr.make_null());
+        checkCount(0);
+
+        // overloaded parameters
+        if (cpp11_std_unique_ptr.moveOverloadTest() != 0)
+          throw new ApplicationException("moveOverloadTest failed");
+        if (cpp11_std_unique_ptr.moveOverloadTest(null) != 1)
+          throw new ApplicationException("moveOverloadTest failed");
+        if (cpp11_std_unique_ptr.moveOverloadTest(new Klass("over")) != 1)
+          throw new ApplicationException("moveOverloadTest failed");
         checkCount(0);
 
 

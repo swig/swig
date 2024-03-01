@@ -3,6 +3,7 @@
 #if !(defined(SWIGGO) || defined(SWIGOCAML) || defined(SWIGR) || defined(SWIGSCILAB))
 
 %warnfilter(509, 516) overloadTest(Klass);
+%warnfilter(509, 516) moveOverloadTest(Klass);
 
 %include "std_string.i"
 %include "std_unique_ptr.i"
@@ -70,6 +71,13 @@ std::string takeKlassUniquePtr(std::unique_ptr<Klass> k) {
   return s;
 }
 
+std::string moveKlassUniquePtr(std::unique_ptr<Klass>&& k) {
+//  std::cout << "moveKlassUniquePtr " << std::hex << (Klass*)k.get() << std::endl;
+  std::string s(k ? k->getLabel() : "null smart pointer");
+//  std::cout << "moveKlassUniquePtr string: " << s << std::endl;
+  return s;
+}
+
 Klass *make_null() {
   return nullptr;
 }
@@ -99,6 +107,18 @@ int overloadTest(std::unique_ptr<Klass> kover) {
 }
 
 int overloadTest(Klass k) {
+  return 2;
+}
+
+int moveOverloadTest() {
+  return 0;
+}
+
+int moveOverloadTest(std::unique_ptr<Klass>&& kover) {
+  return 1;
+}
+
+int moveOverloadTest(Klass k) {
   return 2;
 }
 
