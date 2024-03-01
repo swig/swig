@@ -8,7 +8,7 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-02-28: wsfulton
-            Fix compilation errors in generated code when instantiating a templated
+            #1754 Fix compilation errors in generated code when instantiating a templated
             static method within a template (non-static methods and constructors were
             always okay). For example:
 
