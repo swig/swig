@@ -192,3 +192,10 @@ if k1.getLabel() != "first":
     raise "wrong object label"
 if (makeRVRKlassUniquePtr(None) != None):
   raise RuntimeError("null failure")
+
+# unique_ptr as output (lvalue ref)
+k1 = makeRefKlassUniquePtr("lvalueref")
+if k1.getLabel() != "lvalueref":
+    raise "wrong object label"
+if (makeRVRKlassUniquePtr(None) != None):
+  raise RuntimeError("null failure")

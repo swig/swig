@@ -41,7 +41,7 @@
 %typemap (out) std::unique_ptr< TYPE > %{
   SWIG_SetPointerZval($result, (void *)$1.release(), $descriptor(TYPE *), SWIG_POINTER_OWN);
 %}
-%typemap (out) std::unique_ptr< TYPE > && %{
+%typemap (out) std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > && %{
   SWIG_SetPointerZval($result, (void *)$1->get(), $descriptor(TYPE *), $owner);
 %}
 

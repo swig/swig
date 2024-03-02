@@ -2222,13 +2222,14 @@ void grab(std::unique_ptr&lt;Klass&gt; &amp;&amp;);
 </div>
 
 <p>
-Move semantics are not provided when wrapping a C++ function that returns a <tt>std::unique_ptr</tt> by rvalue reference.
+Move semantics are not provided when wrapping a C++ function that returns a <tt>std::unique_ptr</tt> by reference.
 The target language proxy class wrapper that is returned does not own the underlying C++ object.
-Example:
+This applies to all reference types, such as:
 </p>
 
 <div class="code">
 <pre>
+std::unique_ptr<Klass> &amp; LvalueRefReturn();
 std::unique_ptr<Klass> &amp;&amp; RvalueRefReturn();
 </pre>
 </div>

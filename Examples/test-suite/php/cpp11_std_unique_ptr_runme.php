@@ -184,7 +184,11 @@ check::equal(makeNullUniquePtr(), NULL);
 # unique_ptr as output (rvalue ref)
 $k1 = makeRVRKlassUniquePtr("first");
 check::equal($k1->getLabel(), "first", "proper label");
-$k1 = makeRVRKlassUniquePtr(NULL);
 check::equal(makeRVRKlassUniquePtr(NULL), NULL);
+
+# unique_ptr as output (lvalue ref)
+$k1 = makeRefKlassUniquePtr("lvalueref");
+check::equal($k1->getLabel(), "lvalueref", "proper label");
+check::equal(makeRefKlassUniquePtr(NULL), NULL);
 
 check::done();

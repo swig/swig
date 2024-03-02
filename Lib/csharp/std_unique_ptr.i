@@ -9,9 +9,9 @@
  * ----------------------------------------------------------------------------- */
 
 %define %unique_ptr(TYPE)
-%typemap (ctype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > && "void *"
-%typemap (imtype, out="System.IntPtr") std::unique_ptr< TYPE >, std::unique_ptr< TYPE > && "global::System.Runtime.InteropServices.HandleRef"
-%typemap (cstype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > && "$typemap(cstype, TYPE)"
+%typemap (ctype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > && "void *"
+%typemap (imtype, out="System.IntPtr") std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > && "global::System.Runtime.InteropServices.HandleRef"
+%typemap (cstype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > && "$typemap(cstype, TYPE)"
 
 %typemap(in) std::unique_ptr< TYPE >
 %{ $1.reset((TYPE *)$input); %}
@@ -24,7 +24,7 @@
 %typemap (out) std::unique_ptr< TYPE > %{
   $result = (void *)$1.release();
 %}
-%typemap (out) std::unique_ptr< TYPE > && %{
+%typemap (out) std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > && %{
   $result = (void *)$1->get();
 %}
 
@@ -34,7 +34,7 @@
     $typemap(cstype, TYPE) ret = (cPtr == System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
-%typemap(csout, excode=SWIGEXCODE) std::unique_ptr< TYPE > && {
+%typemap(csout, excode=SWIGEXCODE) std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > && {
     System.IntPtr cPtr = $imcall;
     $typemap(cstype, TYPE) ret = (cPtr == System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, false);$excode
     return ret;

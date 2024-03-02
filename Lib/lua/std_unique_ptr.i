@@ -37,7 +37,7 @@
 %typemap (out) std::unique_ptr< TYPE > %{
   SWIG_NewPointerObj(L, $1.release(), $descriptor(TYPE *), SWIG_POINTER_OWN); SWIG_arg++;
 %}
-%typemap (out) std::unique_ptr< TYPE > && %{
+%typemap (out) std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > && %{
   SWIG_NewPointerObj(L, $1->get(), $descriptor(TYPE *), $owner); SWIG_arg++;
 %}
 

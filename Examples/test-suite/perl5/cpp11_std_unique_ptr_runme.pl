@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 60;
+use Test::More tests => 62;
 BEGIN { use_ok('cpp11_std_unique_ptr') }
 require_ok('cpp11_std_unique_ptr');
 
@@ -166,3 +166,8 @@ is(cpp11_std_unique_ptr::makeNullUniquePtr(), undef);
 my $k1 = cpp11_std_unique_ptr::makeRVRKlassUniquePtr("first");
 is($k1->getLabel, "first", "proper label");
 is(cpp11_std_unique_ptr::makeRVRKlassUniquePtr(undef), undef);
+
+# unique_ptr as output (lvalue ref)
+my $k1 = cpp11_std_unique_ptr::makeRefKlassUniquePtr("lvalueref");
+is($k1->getLabel, "lvalueref", "proper label");
+is(cpp11_std_unique_ptr::makeRefKlassUniquePtr(undef), undef);

@@ -263,3 +263,12 @@ if {[$k1 getLabel] != "first"} {
 if {[makeRVRKlassUniquePtr "NULL"] != "NULL"} {
   error "null failure"
 }
+
+# unique_ptr as output (lvalue ref)
+set k1 [makeRefKlassUniquePtr "lvalueref"]
+if {[$k1 getLabel] != "lvalueref"} {
+  error "wrong object label"
+}
+if {[makeRefKlassUniquePtr "NULL"] != "NULL"} {
+  error "null failure"
+}

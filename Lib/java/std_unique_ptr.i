@@ -10,9 +10,9 @@
 
 %define %unique_ptr(TYPE)
 
-%typemap (jni) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &&  "jlong"
-%typemap (jtype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &&  "long"
-%typemap (jstype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &&  "$typemap(jstype, TYPE)"
+%typemap (jni) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > &&  "jlong"
+%typemap (jtype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > &&  "long"
+%typemap (jstype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > &&  "$typemap(jstype, TYPE)"
 
 %typemap(in) std::unique_ptr< TYPE > (TYPE *unique_temp)
 %{ unique_temp = *(TYPE **)&$input;
@@ -28,7 +28,7 @@
   *(TYPE **) &lpp = $1.release();
   $result = lpp;
 %}
-%typemap (out) std::unique_ptr< TYPE > && %{
+%typemap (out) std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > && %{
   jlong lpp = 0;
   *(TYPE **) &lpp = $1->get();
   $result = lpp;
@@ -39,7 +39,7 @@
     long cPtr = $jnicall;
     return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
-%typemap(javaout) std::unique_ptr< TYPE > && {
+%typemap(javaout) std::unique_ptr< TYPE > &, std::unique_ptr< TYPE > && {
     long cPtr = $jnicall;
     return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, false);
   }

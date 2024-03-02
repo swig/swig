@@ -208,4 +208,12 @@ void main() {
   k1 = makeRVRKlassUniquePtr(null);
   if (k1 !is null)
     throw new Exception("not null");
+
+  // unique_ptr as output (lvalue ref)
+  k1 = makeRefKlassUniquePtr("lvalueref");
+  if (k1.getLabel() != "lvalueref")
+    throw new Exception("wrong object label");
+  k1 = makeRefKlassUniquePtr(null);
+  if (k1 !is null)
+    throw new Exception("not null");
 }

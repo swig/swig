@@ -236,3 +236,11 @@ if (!strcmp(k1.getLabel(), "first"))
 endif
 k1 = makeRVRKlassUniquePtr([]);
 assert(isequal([], k1))
+
+# unique_ptr as output (lvalue ref)
+k1 = makeRefKlassUniquePtr("lvalueref");
+if (!strcmp(k1.getLabel(), "lvalueref"))
+  error("wrong object label");
+endif
+k1 = makeRefKlassUniquePtr([]);
+assert(isequal([], k1))

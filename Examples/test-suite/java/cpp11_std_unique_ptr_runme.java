@@ -236,5 +236,13 @@ public class cpp11_std_unique_ptr_runme {
     k1 = cpp11_std_unique_ptr.makeRVRKlassUniquePtr(null);
     if (k1 != null)
       throw new RuntimeException("not null");
+
+    // unique_ptr as output (lvalue ref)
+    k1 = cpp11_std_unique_ptr.makeRefKlassUniquePtr("lvalueref");
+    if (!k1.getLabel().equals("lvalueref"))
+      throw new RuntimeException("wrong object label");
+    k1 = cpp11_std_unique_ptr.makeRefKlassUniquePtr(null);
+    if (k1 != null)
+      throw new RuntimeException("not null");
   }
 }

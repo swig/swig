@@ -259,3 +259,8 @@ swig_assert_equal_simple(Cpp11_std_unique_ptr::makeNullUniquePtr(), nil)
 k1 = Cpp11_std_unique_ptr::makeRVRKlassUniquePtr("first")
 swig_assert_equal_simple(k1.getLabel(), "first")
 swig_assert_equal_simple(Cpp11_std_unique_ptr::makeRVRKlassUniquePtr(nil), nil)
+
+# unique_ptr as output (lvalue ref)
+k1 = Cpp11_std_unique_ptr::makeRefKlassUniquePtr("lvalueref")
+swig_assert_equal_simple(k1.getLabel(), "lvalueref")
+swig_assert_equal_simple(Cpp11_std_unique_ptr::makeRefKlassUniquePtr(nil), nil)

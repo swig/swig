@@ -187,3 +187,10 @@ if not (k1:getLabel() == "first") then
   error("wrong object label")
 end
 assert(cpp11_std_unique_ptr.makeRVRKlassUniquePtr(nil) == nil)
+
+-- unique_ptr as output (lvalue ref)
+k1 = cpp11_std_unique_ptr.makeRefKlassUniquePtr("lvalueref")
+if not (k1:getLabel() == "lvalueref") then
+  error("wrong object label")
+end
+assert(cpp11_std_unique_ptr.makeRefKlassUniquePtr(nil) == nil)
