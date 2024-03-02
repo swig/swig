@@ -26,6 +26,10 @@
 %typemap (out) std::unique_ptr< TYPE > %{
   $result = (void *)$1.release();
 %}
+%typemap (out) std::unique_ptr< TYPE > && %{
+  $result = (void *)$1->get();
+%}
+
 
 %typemap(dout, excode=SWIGEXCODE,
   nativepointer="{\n  auto ret = cast($dtype)$imcall;$excode\n  return ret;\n}"
@@ -34,6 +38,14 @@
   $typemap(dtype, TYPE) ret = (cPtr is null) ? null : new $typemap(dtype, TYPE)(cPtr, true);$excode
   return ret;
 }
+%typemap(dout, excode=SWIGEXCODE,
+  nativepointer="{\n  auto ret = cast($dtype)$imcall;$excode\n  return ret;\n}"
+) std::unique_ptr< TYPE > && {
+  void* cPtr = $imcall;
+  $typemap(dtype, TYPE) ret = (cPtr is null) ? null : new $typemap(dtype, TYPE)(cPtr, false);$excode
+  return ret;
+}
+
 
 %typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *") std::unique_ptr< TYPE >, std::unique_ptr< TYPE > && ""
 

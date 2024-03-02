@@ -24,12 +24,22 @@
 %typemap (out) std::unique_ptr< TYPE > %{
   $result = (void *)$1.release();
 %}
+%typemap (out) std::unique_ptr< TYPE > && %{
+  $result = (void *)$1->get();
+%}
+
 
 %typemap(csout, excode=SWIGEXCODE) std::unique_ptr< TYPE > {
     System.IntPtr cPtr = $imcall;
     $typemap(cstype, TYPE) ret = (cPtr == System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, true);$excode
     return ret;
   }
+%typemap(csout, excode=SWIGEXCODE) std::unique_ptr< TYPE > && {
+    System.IntPtr cPtr = $imcall;
+    $typemap(cstype, TYPE) ret = (cPtr == System.IntPtr.Zero) ? null : new $typemap(cstype, TYPE)(cPtr, false);$excode
+    return ret;
+  }
+
 
 %typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *") std::unique_ptr< TYPE >, std::unique_ptr< TYPE > && ""
 

@@ -228,3 +228,11 @@ null_smart_prt = makeNullUniquePtr();
 assert(ismatrix(null_smart_prt))
 assert(size(null_smart_prt) == size([]))
 assert(isequal([], null_smart_prt))
+
+# unique_ptr as output (rvalue ref)
+k1 = makeRVRKlassUniquePtr("first");
+if (!strcmp(k1.getLabel(), "first"))
+  error("wrong object label");
+endif
+k1 = makeRVRKlassUniquePtr([]);
+assert(isequal([], k1))

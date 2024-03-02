@@ -228,5 +228,13 @@ public class cpp11_std_unique_ptr_runme {
 
     if (cpp11_std_unique_ptr.makeNullUniquePtr() != null)
       throw new RuntimeException("null failure");
+
+    // unique_ptr as output (rvalue ref)
+    k1 = cpp11_std_unique_ptr.makeRVRKlassUniquePtr("first");
+    if (!k1.getLabel().equals("first"))
+      throw new RuntimeException("wrong object label");
+    k1 = cpp11_std_unique_ptr.makeRVRKlassUniquePtr(null);
+    if (k1 != null)
+      throw new RuntimeException("not null");
   }
 }

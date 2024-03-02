@@ -200,4 +200,12 @@ void main() {
 
   if (makeNullUniquePtr() !is null)
     throw new Exception("null failure");
+
+  // unique_ptr as output (rvalue ref)
+  k1 = makeRVRKlassUniquePtr("first");
+  if (k1.getLabel() != "first")
+    throw new Exception("wrong object label");
+  k1 = makeRVRKlassUniquePtr(null);
+  if (k1 !is null)
+    throw new Exception("not null");
 }

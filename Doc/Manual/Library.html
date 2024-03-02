@@ -2222,6 +2222,19 @@ void grab(std::unique_ptr&lt;Klass&gt; &amp;&amp;);
 </div>
 
 <p>
+Move semantics are not provided when wrapping a C++ function that returns a <tt>std::unique_ptr</tt> by rvalue reference.
+The target language proxy class wrapper that is returned does not own the underlying C++ object.
+Example:
+</p>
+
+<div class="code">
+<pre>
+std::unique_ptr<Klass> &amp;&amp; RvalueRefReturn();
+</pre>
+</div>
+
+
+<p>
 <b>Compatibility note:</b> Support for <tt>std::unique_ptr</tt> was first added in SWIG-4.1.0.
 This initial support contained the move semantics when passing a <tt>std::unique_ptr</tt> around by value. Support for passing a <tt>std::unique_ptr</tt> around by rvalue reference was added in SWIG-4.3.0.
 </p>

@@ -34,8 +34,24 @@
   $1 = &uptr;
 }
 
+%typemap(in, noblock=1) std::unique_ptr< TYPE > && (void *argp = 0, int res = 0, std::unique_ptr< TYPE > uptr) {
+  res = SWIG_ConvertPtr($input, &argp, $descriptor(TYPE *), SWIG_POINTER_RELEASE | %convertptr_flags);
+  if (!SWIG_IsOK(res)) {
+    if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {
+      %releasenotowned_fail(res, "TYPE *", $symname, $argnum);
+    } else {
+      %argument_fail(res, "TYPE *", $symname, $argnum);
+    }
+  }
+  uptr.reset((TYPE *)argp);
+  $1 = &uptr;
+}
+
 %typemap (out) std::unique_ptr< TYPE > %{
   %set_output(SWIG_NewPointerObj($1.release(), $descriptor(TYPE *), SWIG_POINTER_OWN | %newpointer_flags));
+%}
+%typemap (out) std::unique_ptr< TYPE > && %{
+  %set_output(SWIG_NewPointerObj($1->get(), $descriptor(TYPE *), $owner | %newpointer_flags));
 %}
 
 %typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *", noblock=1) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > && {

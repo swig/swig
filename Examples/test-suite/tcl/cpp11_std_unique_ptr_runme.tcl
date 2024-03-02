@@ -254,3 +254,12 @@ checkCount 0
 if {[makeNullUniquePtr] != "NULL"} {
   error "null failure"
 }
+
+# unique_ptr as output (rvalue ref)
+set k1 [makeRVRKlassUniquePtr "first"]
+if {[$k1 getLabel] != "first"} {
+  error "wrong object label"
+}
+if {[makeRVRKlassUniquePtr "NULL"] != "NULL"} {
+  error "null failure"
+}

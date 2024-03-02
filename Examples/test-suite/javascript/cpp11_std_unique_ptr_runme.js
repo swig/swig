@@ -213,3 +213,9 @@ checkCount(0);
 
 if (cpp11_std_unique_ptr.makeNullUniquePtr() != null)
   throw new Error("null failure");
+
+// unique_ptr as output (rvalue ref)
+k1 = cpp11_std_unique_ptr.makeRVRKlassUniquePtr("first");
+if (k1.getLabel() !== "first")
+  throw new Error("wrong object label");
+k1 = cpp11_std_unique_ptr.makeRVRKlassUniquePtr(null);

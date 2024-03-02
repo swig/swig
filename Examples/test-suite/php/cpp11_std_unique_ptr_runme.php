@@ -181,4 +181,10 @@ checkCount(0);
 
 check::equal(makeNullUniquePtr(), NULL);
 
+# unique_ptr as output (rvalue ref)
+$k1 = makeRVRKlassUniquePtr("first");
+check::equal($k1->getLabel(), "first", "proper label");
+$k1 = makeRVRKlassUniquePtr(NULL);
+check::equal(makeRVRKlassUniquePtr(NULL), NULL);
+
 check::done();

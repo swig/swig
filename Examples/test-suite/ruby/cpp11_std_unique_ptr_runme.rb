@@ -254,3 +254,8 @@ k2 = nil
 gc_check(0)
 
 swig_assert_equal_simple(Cpp11_std_unique_ptr::makeNullUniquePtr(), nil)
+
+# unique_ptr as output (rvalue ref)
+k1 = Cpp11_std_unique_ptr::makeRVRKlassUniquePtr("first")
+swig_assert_equal_simple(k1.getLabel(), "first")
+swig_assert_equal_simple(Cpp11_std_unique_ptr::makeRVRKlassUniquePtr(nil), nil)

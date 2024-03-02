@@ -28,10 +28,20 @@
   *(TYPE **) &lpp = $1.release();
   $result = lpp;
 %}
+%typemap (out) std::unique_ptr< TYPE > && %{
+  jlong lpp = 0;
+  *(TYPE **) &lpp = $1->get();
+  $result = lpp;
+%}
+
 
 %typemap(javaout) std::unique_ptr< TYPE > {
     long cPtr = $jnicall;
     return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
+  }
+%typemap(javaout) std::unique_ptr< TYPE > && {
+    long cPtr = $jnicall;
+    return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, false);
   }
 
 %typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *") std::unique_ptr< TYPE >, std::unique_ptr< TYPE > && ""

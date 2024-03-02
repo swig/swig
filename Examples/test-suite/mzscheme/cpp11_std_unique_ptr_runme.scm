@@ -176,4 +176,11 @@
 (unless (null? (makeNullUniquePtr))
   (error "null failure"))
 
+; unique_ptr as output (rvalue ref)
+(define k1 (makeRVRKlassUniquePtr "first"))
+(unless (string=? (Klass-getLabel k1) "first")
+  (error "wrong object label" ))
+(unless (null? (makeRVRKlassUniquePtr '()))
+  (error "null failure"))
+
 (exit 0)

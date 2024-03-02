@@ -12,7 +12,8 @@ Version 4.3.0 (in progress)
 
 2024-02-02: wsfulton
             #2650 Add support for movable std::unique_ptr by adding in std::unique_ptr &&
-            typemaps.
+            input typemaps. The std::unique && output typemaps do not support move
+            semantics by default and behave like lvalue references.
 
 2024-01-23: wsfulton
             Add missing use of move constructor instead of copy constructor when

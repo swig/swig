@@ -180,3 +180,10 @@ k2 = nil
 checkCount(0)
 
 assert(cpp11_std_unique_ptr.makeNullUniquePtr() == nil)
+
+-- unique_ptr as output (rvalue ref)
+k1 = cpp11_std_unique_ptr.makeRVRKlassUniquePtr("first")
+if not (k1:getLabel() == "first") then
+  error("wrong object label")
+end
+assert(cpp11_std_unique_ptr.makeRVRKlassUniquePtr(nil) == nil)

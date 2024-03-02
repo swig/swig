@@ -185,3 +185,10 @@ checkCount(0)
 
 if (makeNullUniquePtr() != None):
   raise RuntimeError("null failure")
+
+# unique_ptr as output (rvalue ref)
+k1 = makeRVRKlassUniquePtr("first")
+if k1.getLabel() != "first":
+    raise "wrong object label"
+if (makeRVRKlassUniquePtr(None) != None):
+  raise RuntimeError("null failure")

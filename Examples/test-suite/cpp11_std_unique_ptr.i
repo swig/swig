@@ -98,6 +98,26 @@ std::unique_ptr<Klass> makeNullUniquePtr() {
   return std::unique_ptr<Klass>();
 }
 
+#include <iostream>
+std::unique_ptr<Klass>&& makeRVRKlassUniquePtr(const char* label) {
+  static std::unique_ptr<Klass> up;
+#if !defined(SWIGTCL)
+  up.reset(label ? new Klass(label) : nullptr);
+#else // No way to pass a null pointer for a string as "NULL" is only way for Tcl to specify a null pointer
+  up.reset(strcmp(label, "NULL") != 0 ? new Klass(label) : nullptr);
+#endif
+  return std::move(up);
+}
+
+/*
+std::unique_ptr<Klass>& makeRefKlassUniquePtr(const char* label) {
+  static std::unique_ptr<Klass> up;
+  up.reset(new Klass(label));
+  return up;
+}
+*/
+
+
 int overloadTest() {
   return 0;
 }
