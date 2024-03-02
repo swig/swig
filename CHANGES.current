@@ -8,6 +8,9 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-02-02: wsfulton
+            [Javascript, MzScheme, Octave] Support NULL being passed into char* typemaps.
+
+2024-02-02: wsfulton
             #2650 Add support for movable std::unique_ptr by adding in std::unique_ptr &&
             typemaps.
 
