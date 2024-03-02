@@ -23,6 +23,7 @@ clear kini;
 checkCount(0);
 
 
+# #### INPUT BY VALUE ####
 # unique_ptr as input
 kin = Klass("KlassInput");
 checkCount(1);
@@ -109,6 +110,97 @@ if (overloadTest(null) != 1)
 endif
 if (overloadTest(Klass("over")) != 1)
   error("overloadTest failed");
+endif
+checkCount(0);
+
+
+# #### INPUT BY RVALUE REF ####
+# unique_ptr as input
+kin = Klass("KlassInput");
+checkCount(1);
+s = moveKlassUniquePtr(kin);
+checkCount(0);
+if (!strcmp(s, "KlassInput"))
+  error("Incorrect string: %s", s);
+endif
+if (!is_nullptr(kin))
+  error("is_nullptr failed");
+endif
+clear kin; # Should not fail, even though already deleted
+checkCount(0);
+
+kin = Klass("KlassInput");
+checkCount(1);
+s = moveKlassUniquePtr(kin);
+checkCount(0);
+if (!strcmp(s, "KlassInput"))
+  error("Incorrect string: %s", s);
+endif
+if (!is_nullptr(kin))
+  error("is_nullptr failed");
+endif
+exception_thrown = false;
+try
+  moveKlassUniquePtr(kin);
+catch e
+  if (isempty(strfind(e.message, "cannot release ownership as memory is not owned")))
+    error("incorrect exception message %s", e.message);
+  endif
+  exception_thrown = true;
+end_try_catch
+if (!exception_thrown)
+    error("double usage of moveKlassUniquePtr should have been an error");
+endif
+clear kin; # Should not fail, even though already deleted
+checkCount(0);
+
+kin = Klass("KlassInput");
+exception_thrown = false;
+notowned = get_not_owned_ptr(kin);
+try
+  moveKlassUniquePtr(notowned);
+catch e
+  if (isempty(strfind(e.message, "cannot release ownership as memory is not owned")))
+    error("incorrect exception message %s", e.message);
+  endif
+  exception_thrown = true;
+end_try_catch
+if (!exception_thrown)
+  error("Should have thrown 'Cannot release ownership as memory is not owned' error");
+endif
+checkCount(1);
+clear kin;
+checkCount(0);
+
+kini = KlassInheritance("KlassInheritanceInput");
+checkCount(1);
+s = moveKlassUniquePtr(kini);
+checkCount(0);
+if (!strcmp(s, "KlassInheritanceInput"))
+  error("Incorrect string: %s", s);
+endif
+if (!is_nullptr(kini))
+  error("is_nullptr failed");
+endif
+clear kini; # Should not fail, even though already deleted
+checkCount(0);
+
+null = []; # NULL pointer
+null_ptr = make_null();
+moveKlassUniquePtr([]);
+moveKlassUniquePtr(null);
+moveKlassUniquePtr(null_ptr);
+checkCount(0);
+
+# overloaded parameters
+if (moveOverloadTest() != 0)
+  error("moveOverloadTest failed");
+endif
+if (moveOverloadTest(null) != 1)
+  error("moveOverloadTest failed");
+endif
+if (moveOverloadTest(Klass("over")) != 1)
+  error("moveOverloadTest failed");
 endif
 checkCount(0);
 

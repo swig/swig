@@ -52,6 +52,7 @@ kini -delete
 checkCount 0
 
 
+# #### INPUT BY VALUE ####
 # unique_ptr as input
 Klass kin "KlassInput"
 checkCount 1
@@ -139,6 +140,98 @@ if {[overloadTest "NULL"] != 1} {
 }
 if {[overloadTest [Klass k "over"]] != 1} {
   error "overloadTest failed"
+}
+checkCount 0
+
+
+# #### INPUT BY RVALUE REF ####
+# unique_ptr as input
+Klass kin "KlassInput"
+checkCount 1
+set s [moveKlassUniquePtr kin]
+checkCount 0
+if {[kin cget -thisown]} {
+  error "thisown should be false"
+}
+if {$s != "KlassInput"} {
+  error "Incorrect string: $s"
+}
+if {![is_nullptr kin]} {
+  error "is_nullptr failed"
+}
+kin -delete # Should not fail, even though already deleted
+checkCount 0
+
+Klass kin "KlassInput"
+checkCount 1
+set s [moveKlassUniquePtr kin]
+checkCount 0
+if {[kin cget -thisown]} {
+  error "thisown should be false"
+}
+if {$s != "KlassInput"} {
+  error "Incorrect string: $s"
+}
+if {![is_nullptr kin]} {
+  error "is_nullptr failed"
+}
+set exception_thrown 0
+if [ catch { set s [moveKlassUniquePtr kin] } e ] {
+  if {[string first "cannot release ownership as memory is not owned" $e] == -1} {
+    error "incorrect exception message: $e"
+  }
+  set exception_thrown 1
+}
+if {!$exception_thrown} {
+  error "double usage of moveKlassUniquePtr should have been an error"
+}
+kin -delete # Should not fail, even though already deleted
+checkCount 0
+
+Klass kin "KlassInput"
+set exception_thrown 0
+set notowned [get_not_owned_ptr kin]
+if [ catch {
+  moveKlassUniquePtr notowned
+} ] {
+  set exception_thrown 1
+}
+if {!$exception_thrown} {
+  error "Should have thrown 'Cannot release ownership as memory is not owned' error"
+}
+checkCount 1
+kin -delete
+checkCount 0
+
+KlassInheritance kini "KlassInheritanceInput"
+checkCount 1
+set s [moveKlassUniquePtr kini]
+checkCount 0
+if {[kini cget -thisown]} {
+  error "thisown should be false"
+}
+if {$s != "KlassInheritanceInput"} {
+  error "Incorrect string: $s"
+}
+if {![is_nullptr kini]} {
+  error "is_nullptr failed"
+}
+kini -delete # Should not fail, even though already deleted
+checkCount 0
+
+moveKlassUniquePtr "NULL"
+moveKlassUniquePtr [make_null]
+checkCount 0
+
+# overloaded parameters
+if {[moveOverloadTest] != 0} {
+  error "moveOverloadTest failed"
+}
+if {[moveOverloadTest "NULL"] != 1} {
+  error "moveOverloadTest failed"
+}
+if {[moveOverloadTest [Klass k "over"]] != 1} {
+  error "moveOverloadTest failed"
 }
 checkCount 0
 

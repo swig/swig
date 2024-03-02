@@ -16,6 +16,7 @@ $kini = NULL;
 checkCount(0);
 
 
+# #### INPUT BY VALUE ####
 # unique_ptr as input
 $kin = new Klass("KlassInput");
 checkCount(1);
@@ -87,6 +88,81 @@ checkCount(0);
 check::equal(overloadTest(), 0, "overloadTest failed");
 check::equal(overloadTest(NULL), 1, "overloadTest failed");
 check::equal(overloadTest(new Klass("over")), 1, "overloadTest failed");
+checkCount(0);
+
+
+# #### INPUT BY RVALUE REF ####
+# unique_ptr as input
+$kin = new Klass("KlassInput");
+checkCount(1);
+$s = moveKlassUniquePtr($kin);
+checkCount(0);
+check::equal($s, "KlassInput", "Incorrect string: $s");
+try {
+    is_nullptr($kin);
+    check::fail("is_nullptr check");
+} catch (TypeError $e) {
+}
+$kin = NULL; # Should not fail, even though already deleted
+checkCount(0);
+
+$kin = new Klass("KlassInput");
+checkCount(1);
+$s = moveKlassUniquePtr($kin);
+checkCount(0);
+check::equal($s, "KlassInput", "Incorrect string: $s");
+try {
+    is_nullptr($kin);
+    check::fail("is_nullptr check");
+} catch (TypeError $e) {
+}
+$exception_thrown = false;
+try {
+  moveKlassUniquePtr($kin);
+} catch (TypeError $e) {
+  check::equal($e->getMessage(), "Cannot release ownership as memory is not owned for argument 1 of SWIGTYPE_p_Klass of moveKlassUniquePtr", "Unexpected exception: {$e->getMessage()}");
+  $exception_thrown = true;
+}
+check::equal($exception_thrown, true, "double usage of moveKlassUniquePtr should have been an error");
+$kin = NULL; # Should not fail, even though already deleted
+checkCount(0);
+
+$kin = new Klass("KlassInput");
+$exception_thrown = false;
+$notowned = get_not_owned_ptr($kin);
+try {
+  moveKlassUniquePtr($notowned);
+} catch (TypeError $e) {
+  check::equal($e->getMessage(), "Cannot release ownership as memory is not owned for argument 1 of SWIGTYPE_p_Klass of moveKlassUniquePtr", "Unexpected exception: {$e->getMessage()}");
+  $exception_thrown = true;
+}
+check::equal($exception_thrown, true, "double usage of moveKlassUniquePtr should have been an error");
+checkCount(1);
+$kin = NULL;
+checkCount(0);
+
+$kini = new KlassInheritance("KlassInheritanceInput");
+checkCount(1);
+$s = moveKlassUniquePtr($kini);
+checkCount(0);
+check::equal($s, "KlassInheritanceInput", "Incorrect string: $s");
+try {
+    is_nullptr($kini);
+    check::fail("is_nullptr check");
+} catch (TypeError $e) {
+}
+
+$kini = NULL; # Should not fail, even though already deleted
+checkCount(0);
+
+moveKlassUniquePtr(NULL);
+moveKlassUniquePtr(make_null());
+checkCount(0);
+
+# overloaded parameters
+check::equal(moveOverloadTest(), 0, "moveOverloadTest failed");
+check::equal(moveOverloadTest(NULL), 1, "moveOverloadTest failed");
+check::equal(moveOverloadTest(new Klass("over")), 1, "moveOverloadTest failed");
 checkCount(0);
 
 

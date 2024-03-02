@@ -23,6 +23,7 @@ void main() {
   }
   checkCount(0);
 
+  ///// INPUT BY VALUE /////
   // unique_ptr as input
   {
     scope Klass kin = new Klass("KlassInput");
@@ -98,6 +99,85 @@ void main() {
     throw new Exception("overloadTest failed");
   if (overloadTest(new Klass("over")) != 1)
     throw new Exception("overloadTest failed");
+  checkCount(0);
+
+
+  ///// INPUT BY RVALUE REF /////
+  // unique_ptr as input
+  {
+    scope Klass kin = new Klass("KlassInput");
+    checkCount(1);
+    string s = moveKlassUniquePtr(kin);
+    checkCount(0);
+    if (s != "KlassInput")
+      throw new Exception("Incorrect string: " ~ s);
+    if (!is_nullptr(kin))
+      throw new Exception("is_nullptr failed");
+  } // dispose should not fail, even though already deleted
+  checkCount(0);
+
+  {
+    scope Klass kin = new Klass("KlassInput");
+    checkCount(1);
+    string s = moveKlassUniquePtr(kin);
+    checkCount(0);
+    if (s != "KlassInput")
+      throw new Exception("Incorrect string: " ~ s);
+    if (!is_nullptr(kin))
+      throw new Exception("is_nullptr failed");
+    bool exception_thrown = false;
+    try {
+      moveKlassUniquePtr(kin);
+    } catch (Exception e) {
+      if (!canFind(e.msg, "Cannot release ownership as memory is not owned"))
+        throw new Exception("incorrect exception message: " ~ e.msg);
+      exception_thrown = true;
+    }
+    if (!exception_thrown)
+      throw new Exception("double usage of moveKlassUniquePtr should have been an error");
+  } // dispose should not fail, even though already deleted
+  checkCount(0);
+
+  {
+    scope Klass kin = new Klass("KlassInput");
+    bool exception_thrown = false;
+    Klass notowned = get_not_owned_ptr(kin);
+    try {
+      moveKlassUniquePtr(notowned);
+    } catch (Exception e) {
+      if (!canFind(e.msg, "Cannot release ownership as memory is not owned"))
+        throw new Exception("incorrect exception message: " ~ e.msg);
+      exception_thrown = true;
+    }
+    if (!exception_thrown)
+      throw new Exception("Should have thrown 'Cannot release ownership as memory is not owned' error");
+    checkCount(1);
+  }
+  checkCount(0);
+
+  {
+    scope KlassInheritance kini = new KlassInheritance("KlassInheritanceInput");
+    checkCount(1);
+    string s = moveKlassUniquePtr(kini);
+    checkCount(0);
+    if (s != "KlassInheritanceInput")
+      throw new Exception("Incorrect string: " ~ s);
+    if (!is_nullptr(kini))
+      throw new Exception("is_nullptr failed");
+  } // dispose should not fail, even though already deleted
+  checkCount(0);
+
+  moveKlassUniquePtr(null);
+  moveKlassUniquePtr(make_null());
+  checkCount(0);
+
+  // overloaded parameters
+  if (moveOverloadTest() != 0)
+    throw new Exception("moveOverloadTest failed");
+  if (moveOverloadTest(null) != 1)
+    throw new Exception("moveOverloadTest failed");
+  if (moveOverloadTest(new Klass("over")) != 1)
+    throw new Exception("moveOverloadTest failed");
   checkCount(0);
 
 

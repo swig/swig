@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-02-02: wsfulton
+            #2650 Add support for movable std::unique_ptr by adding in std::unique_ptr &&
+            typemaps.
+
 2024-01-23: wsfulton
             Add missing use of move constructor instead of copy constructor when
             passing movable types by value. This was previously implemented only for

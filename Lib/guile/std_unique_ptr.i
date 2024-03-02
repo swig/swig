@@ -20,12 +20,25 @@
   }
   $1.reset((TYPE *)argp);
 }
+%typemap(in, noblock=1) std::unique_ptr< TYPE > && (void *argp = 0, int res = 0, std::unique_ptr< TYPE > uptr) {
+  res = SWIG_ConvertPtr($input, &argp, $descriptor(TYPE *), SWIG_POINTER_RELEASE);
+  if (!SWIG_IsOK(res)) {
+    if (res == SWIG_ERROR_RELEASE_NOT_OWNED) {
+      scm_misc_error(FUNC_NAME, "Cannot release ownership as memory is not owned for argument $argnum of type 'TYPE *'", SCM_EOL);
+    } else {
+      %argument_fail(res, "TYPE *", $symname, $argnum);
+    }
+  }
+  uptr.reset((TYPE *)argp);
+  $1 = &uptr;
+}
+
 
 %typemap (out) std::unique_ptr< TYPE > %{
   %set_output(SWIG_NewPointerObj($1.release(), $descriptor(TYPE *), SWIG_POINTER_OWN));
 %}
 
-%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *", noblock=1) std::unique_ptr< TYPE > {
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *", noblock=1) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > && {
   void *vptr = 0;
   int res = SWIG_ConvertPtr($input, &vptr, $descriptor(TYPE *), 0);
   $1 = SWIG_CheckState(res);

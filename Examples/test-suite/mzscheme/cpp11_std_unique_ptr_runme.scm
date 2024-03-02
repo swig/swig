@@ -21,6 +21,7 @@
 (set! kini '()) (gc)
 (checkCount 0)
 
+; ;;;; INPUT BY VALUE ;;;;
 ; unique_ptr as input
 (define kin (new-Klass "KlassInput"))
 (checkCount 1)
@@ -86,6 +87,75 @@
   (error "overloadTest failed"))
 (unless (= (overloadTest (new-Klass "over")) 1)
   (error "overloadTest failed"))
+(checkCount 0)
+
+
+; ;;;; INPUT BY RVALUE REF ;;;;
+; unique_ptr as input
+(define kin (new-Klass "KlassInput"))
+(checkCount 1)
+(define s (moveKlassUniquePtr kin))
+(checkCount 0)
+(unless (string=? s "KlassInput")
+  (error "Incorrect string: " s))
+(unless (is-nullptr kin)
+  (error "is_nullptr failed"))
+(set! kini '()) (gc) ; Should not fail, even though already deleted
+(checkCount 0)
+
+(define kin (new-Klass "KlassInput"))
+(checkCount 1)
+(define s (moveKlassUniquePtr kin))
+(checkCount 0)
+(unless (string=? s "KlassInput")
+  (error "Incorrect string: " s))
+(unless (is-nullptr kin)
+  (error "is_nullptr failed"))
+
+(define exception_thrown "no exception thrown for kin")
+(with-handlers ([exn:fail? (lambda (exn)
+                             (set! exception_thrown (exn-message exn)))])
+  (moveKlassUniquePtr kin))
+(unless (string=? exception_thrown "moveKlassUniquePtr: cannot release ownership as memory is not owned for argument 1 of type 'Klass *'")
+  (error "Wrong or no exception thrown: " exception_thrown))
+(set! kin '()) (gc) ; Should not fail, even though already deleted
+(checkCount 0)
+
+(define kin (new-Klass "KlassInput"))
+(define notowned (get-not-owned-ptr kin))
+(set! exception_thrown "no exception thrown for notowned")
+(with-handlers ([exn:fail? (lambda (exn)
+                             (set! exception_thrown (exn-message exn)))])
+  (moveKlassUniquePtr notowned))
+(unless (string=? exception_thrown "moveKlassUniquePtr: cannot release ownership as memory is not owned for argument 1 of type 'Klass *'")
+  (error "Wrong or no exception thrown: " exception_thrown))
+(checkCount 1)
+(set! kin '()) (gc)
+(checkCount 0)
+
+(define kini (new-KlassInheritance "KlassInheritanceInput"))
+(checkCount 1)
+(define s (moveKlassUniquePtr kini))
+(checkCount 0)
+(unless (string=? s "KlassInheritanceInput")
+  (error "Incorrect string: " s))
+(unless (is-nullptr kini)
+  (error "is_nullptr failed"))
+(set! kini '()) (gc) ; Should not fail, even though already deleted
+(checkCount 0)
+
+(define null '())
+(moveKlassUniquePtr null)
+(moveKlassUniquePtr (make-null))
+(checkCount 0)
+
+; overloaded parameters
+(unless (= (moveOverloadTest) 0)
+  (error "moveOverloadTest failed"))
+(unless (= (moveOverloadTest null) 1)
+  (error "moveOverloadTest failed"))
+(unless (= (moveOverloadTest (new-Klass "over")) 1)
+  (error "moveOverloadTest failed"))
 (checkCount 0)
 
 

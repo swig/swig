@@ -10,15 +10,18 @@
 
 %define %unique_ptr(TYPE)
 
-%typemap (jni) std::unique_ptr< TYPE > "jlong"
-%typemap (jtype) std::unique_ptr< TYPE > "long"
-%typemap (jstype) std::unique_ptr< TYPE > "$typemap(jstype, TYPE)"
+%typemap (jni) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &&  "jlong"
+%typemap (jtype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &&  "long"
+%typemap (jstype) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &&  "$typemap(jstype, TYPE)"
 
 %typemap(in) std::unique_ptr< TYPE > (TYPE *unique_temp)
 %{ unique_temp = *(TYPE **)&$input;
   $1.reset(unique_temp); %}
+%typemap(in) std::unique_ptr< TYPE > &&
+%{ $*1_ltype $1_uptr((TYPE *)$input);
+  $1 = &$1_uptr; %}
 
-%typemap(javain) std::unique_ptr< TYPE > "$typemap(jstype, TYPE).swigRelease($javainput)"
+%typemap(javain) std::unique_ptr< TYPE >, std::unique_ptr< TYPE > &&  "$typemap(jstype, TYPE).swigRelease($javainput)"
 
 %typemap (out) std::unique_ptr< TYPE > %{
   jlong lpp = 0;
@@ -31,7 +34,7 @@
     return (cPtr == 0) ? null : new $typemap(jstype, TYPE)(cPtr, true);
   }
 
-%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *") std::unique_ptr< TYPE > ""
+%typemap(typecheck, precedence=SWIG_TYPECHECK_POINTER, equivalent="TYPE *") std::unique_ptr< TYPE >, std::unique_ptr< TYPE > && ""
 
 %template() std::unique_ptr< TYPE >;
 %enddef

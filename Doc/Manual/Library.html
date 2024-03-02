@@ -2092,7 +2092,12 @@ The languages that support shared_ptr also have support for using shared_ptr wit
 
 <p>
 The <tt>std_unique_ptr.i</tt> library file provides SWIG's unique_ptr support.
-It defines typemaps and a macro, <tt>%unique_ptr(T)</tt>, to use for handling
+It provides move semantics for the smart pointer's underlying object,
+both from C++ to the target language and vice versa.
+</p>
+
+<p>
+The library defines typemaps and a macro, <tt>%unique_ptr(T)</tt>, to use for handling
 <tt>std::unique_ptr&lt;T&gt;</tt> for a type <tt>T</tt>.
 The type <tt>T</tt> must be non-primitive.
 This macro should be used before any code declaring or using type <tt>T</tt>.
@@ -2206,7 +2211,19 @@ in a "Cannot release ownership as memory is not owned" exception. For example, i
 </p>
 
 <p>
-<b>Compatibility note:</b> Support for <tt>std::unique_ptr</tt> was added in SWIG-4.1.0.
+The effect of passing a <tt>std::unique_ptr</tt> by rvalue refence is identical to passing it by value.
+The ownership of the memory of the object being pointed to by the underyling pointer is transferred from the proxy class to the C++ function being called. Example:
+</p>
+
+<div class="code">
+<pre>
+void grab(std::unique_ptr&lt;Klass&gt; &amp;&amp;);
+</pre>
+</div>
+
+<p>
+<b>Compatibility note:</b> Support for <tt>std::unique_ptr</tt> was first added in SWIG-4.1.0.
+This initial support contained the move semantics when passing a <tt>std::unique_ptr</tt> around by value. Support for passing a <tt>std::unique_ptr</tt> around by rvalue reference was added in SWIG-4.3.0.
 </p>
 
 <H3><a name="Library_std_auto_ptr">12.4.7 auto_ptr smart pointer</a></H3>
