@@ -181,6 +181,85 @@ void main() {
   checkCount(0);
 
 
+  ///// INPUT BY NON-CONST LVALUE REF /////
+  // unique_ptr as input
+  {
+    scope Klass kin = new Klass("KlassInput");
+    checkCount(1);
+    string s = moveRefKlassUniquePtr(kin);
+    checkCount(0);
+    if (s != "KlassInput")
+      throw new Exception("Incorrect string: " ~ s);
+    if (!is_nullptr(kin))
+      throw new Exception("is_nullptr failed");
+  } // dispose should not fail, even though already deleted
+  checkCount(0);
+
+  {
+    scope Klass kin = new Klass("KlassInput");
+    checkCount(1);
+    string s = moveRefKlassUniquePtr(kin);
+    checkCount(0);
+    if (s != "KlassInput")
+      throw new Exception("Incorrect string: " ~ s);
+    if (!is_nullptr(kin))
+      throw new Exception("is_nullptr failed");
+    bool exception_thrown = false;
+    try {
+      moveRefKlassUniquePtr(kin);
+    } catch (Exception e) {
+      if (!canFind(e.msg, "Cannot release ownership as memory is not owned"))
+        throw new Exception("incorrect exception message: " ~ e.msg);
+      exception_thrown = true;
+    }
+    if (!exception_thrown)
+      throw new Exception("double usage of moveRefKlassUniquePtr should have been an error");
+  } // dispose should not fail, even though already deleted
+  checkCount(0);
+
+  {
+    scope Klass kin = new Klass("KlassInput");
+    bool exception_thrown = false;
+    Klass notowned = get_not_owned_ptr(kin);
+    try {
+      moveRefKlassUniquePtr(notowned);
+    } catch (Exception e) {
+      if (!canFind(e.msg, "Cannot release ownership as memory is not owned"))
+        throw new Exception("incorrect exception message: " ~ e.msg);
+      exception_thrown = true;
+    }
+    if (!exception_thrown)
+      throw new Exception("Should have thrown 'Cannot release ownership as memory is not owned' error");
+    checkCount(1);
+  }
+  checkCount(0);
+
+  {
+    scope KlassInheritance kini = new KlassInheritance("KlassInheritanceInput");
+    checkCount(1);
+    string s = moveRefKlassUniquePtr(kini);
+    checkCount(0);
+    if (s != "KlassInheritanceInput")
+      throw new Exception("Incorrect string: " ~ s);
+    if (!is_nullptr(kini))
+      throw new Exception("is_nullptr failed");
+  } // dispose should not fail, even though already deleted
+  checkCount(0);
+
+  moveRefKlassUniquePtr(null);
+  moveRefKlassUniquePtr(make_null());
+  checkCount(0);
+
+  // overloaded parameters
+  if (moveRefOverloadTest() != 0)
+    throw new Exception("moveRefOverloadTest failed");
+  if (moveRefOverloadTest(null) != 1)
+    throw new Exception("moveRefOverloadTest failed");
+  if (moveRefOverloadTest(new Klass("over")) != 1)
+    throw new Exception("moveRefOverloadTest failed");
+  checkCount(0);
+
+
   // unique_ptr as output
   Klass k1 = makeKlassUniquePtr("first");
   if (k1.getLabel() != "first")

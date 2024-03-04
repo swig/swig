@@ -164,6 +164,75 @@ end
 checkCount(0)
 
 
+--- ---- INPUT BY NON-CONST LVALUE REF ---
+-- unique_ptr as input
+kin = cpp11_std_unique_ptr.Klass("KlassInput")
+checkCount(1)
+s = cpp11_std_unique_ptr.moveRefKlassUniquePtr(kin)
+checkCount(0)
+if not (s == "KlassInput") then
+  error("Incorrect string: "..s)
+end
+if not (cpp11_std_unique_ptr.is_nullptr(kin)) then
+  error("is_nullptr failed")
+end
+kin = nil -- Should not fail, even though already deleted
+checkCount(0)
+
+kin = cpp11_std_unique_ptr.Klass("KlassInput")
+checkCount(1)
+s = cpp11_std_unique_ptr.moveRefKlassUniquePtr(kin)
+checkCount(0)
+if not (s == "KlassInput") then
+  error("Incorrect string: "..s)
+end
+if not (cpp11_std_unique_ptr.is_nullptr(kin)) then
+  error("is_nullptr failed")
+end
+s, msg = pcall(function() cpp11_std_unique_ptr.moveRefKlassUniquePtr(kin) end)
+assert(s == false and msg == "Cannot release ownership as memory is not owned for argument 1 of type 'Klass *' in moveRefKlassUniquePtr")
+
+kin = nil -- Should not fail, even though already deleted
+checkCount(0)
+
+kin = cpp11_std_unique_ptr.Klass("KlassInput")
+notowned = cpp11_std_unique_ptr.get_not_owned_ptr(kin)
+s, msg = pcall(function() cpp11_std_unique_ptr.moveRefKlassUniquePtr(notowned) end)
+assert(s == false and msg == "Cannot release ownership as memory is not owned for argument 1 of type 'Klass *' in moveRefKlassUniquePtr")
+checkCount(1)
+kin = nil
+checkCount(0)
+
+kini = cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput")
+checkCount(1)
+s = cpp11_std_unique_ptr.moveRefKlassUniquePtr(kini)
+checkCount(0)
+if not (s == "KlassInheritanceInput") then
+  error("Incorrect string: "..s)
+end
+if not (cpp11_std_unique_ptr.is_nullptr(kini)) then
+  error("is_nullptr failed")
+end
+kini = nil -- Should not fail, even though already deleted
+checkCount(0)
+
+cpp11_std_unique_ptr.moveRefKlassUniquePtr(nil);
+cpp11_std_unique_ptr.moveRefKlassUniquePtr(cpp11_std_unique_ptr.make_null());
+checkCount(0);
+
+-- overloaded parameters
+if not (cpp11_std_unique_ptr.moveRefOverloadTest() == 0) then
+  error("moveRefOverloadTest failed")
+end
+if not (cpp11_std_unique_ptr.moveRefOverloadTest(nil) == 1) then
+  error("moveRefOverloadTest failed")
+end
+if not (cpp11_std_unique_ptr.moveRefOverloadTest(cpp11_std_unique_ptr.Klass("over")) == 1) then
+  error("moveRefOverloadTest failed")
+end
+checkCount(0)
+
+
 -- unique_ptr as output
 k1 = cpp11_std_unique_ptr.makeKlassUniquePtr("first")
 k2 = cpp11_std_unique_ptr.makeKlassUniquePtr("second")

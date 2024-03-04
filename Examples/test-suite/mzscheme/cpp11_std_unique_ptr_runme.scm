@@ -159,6 +159,75 @@
 (checkCount 0)
 
 
+; ;;;; INPUT BY NON-CONST LVALUE REF ;;;;
+; unique_ptr as input
+(define kin (new-Klass "KlassInput"))
+(checkCount 1)
+(define s (moveRefKlassUniquePtr kin))
+(checkCount 0)
+(unless (string=? s "KlassInput")
+  (error "Incorrect string: " s))
+(unless (is-nullptr kin)
+  (error "is_nullptr failed"))
+(set! kini '()) (gc) ; Should not fail, even though already deleted
+(checkCount 0)
+
+(define kin (new-Klass "KlassInput"))
+(checkCount 1)
+(define s (moveRefKlassUniquePtr kin))
+(checkCount 0)
+(unless (string=? s "KlassInput")
+  (error "Incorrect string: " s))
+(unless (is-nullptr kin)
+  (error "is_nullptr failed"))
+
+(define exception_thrown "no exception thrown for kin")
+(with-handlers ([exn:fail? (lambda (exn)
+                             (set! exception_thrown (exn-message exn)))])
+  (moveRefKlassUniquePtr kin))
+(unless (string=? exception_thrown "moveRefKlassUniquePtr: cannot release ownership as memory is not owned for argument 1 of type 'Klass *'")
+  (error "Wrong or no exception thrown: " exception_thrown))
+(set! kin '()) (gc) ; Should not fail, even though already deleted
+(checkCount 0)
+
+(define kin (new-Klass "KlassInput"))
+(define notowned (get-not-owned-ptr kin))
+(set! exception_thrown "no exception thrown for notowned")
+(with-handlers ([exn:fail? (lambda (exn)
+                             (set! exception_thrown (exn-message exn)))])
+  (moveRefKlassUniquePtr notowned))
+(unless (string=? exception_thrown "moveRefKlassUniquePtr: cannot release ownership as memory is not owned for argument 1 of type 'Klass *'")
+  (error "Wrong or no exception thrown: " exception_thrown))
+(checkCount 1)
+(set! kin '()) (gc)
+(checkCount 0)
+
+(define kini (new-KlassInheritance "KlassInheritanceInput"))
+(checkCount 1)
+(define s (moveRefKlassUniquePtr kini))
+(checkCount 0)
+(unless (string=? s "KlassInheritanceInput")
+  (error "Incorrect string: " s))
+(unless (is-nullptr kini)
+  (error "is_nullptr failed"))
+(set! kini '()) (gc) ; Should not fail, even though already deleted
+(checkCount 0)
+
+(define null '())
+(moveRefKlassUniquePtr null)
+(moveRefKlassUniquePtr (make-null))
+(checkCount 0)
+
+; overloaded parameters
+(unless (= (moveRefOverloadTest) 0)
+  (error "moveRefOverloadTest failed"))
+(unless (= (moveRefOverloadTest null) 1)
+  (error "moveRefOverloadTest failed"))
+(unless (= (moveRefOverloadTest (new-Klass "over")) 1)
+  (error "moveRefOverloadTest failed"))
+(checkCount 0)
+
+
 ; unique_ptr as output
 (define k1 (makeKlassUniquePtr "first"))
 (define k2 (makeKlassUniquePtr "second"))

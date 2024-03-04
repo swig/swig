@@ -205,6 +205,97 @@ endif
 checkCount(0);
 
 
+# #### INPUT BY NON-CONST LVALUE REF ####
+# unique_ptr as input
+kin = Klass("KlassInput");
+checkCount(1);
+s = moveRefKlassUniquePtr(kin);
+checkCount(0);
+if (!strcmp(s, "KlassInput"))
+  error("Incorrect string: %s", s);
+endif
+if (!is_nullptr(kin))
+  error("is_nullptr failed");
+endif
+clear kin; # Should not fail, even though already deleted
+checkCount(0);
+
+kin = Klass("KlassInput");
+checkCount(1);
+s = moveRefKlassUniquePtr(kin);
+checkCount(0);
+if (!strcmp(s, "KlassInput"))
+  error("Incorrect string: %s", s);
+endif
+if (!is_nullptr(kin))
+  error("is_nullptr failed");
+endif
+exception_thrown = false;
+try
+  moveRefKlassUniquePtr(kin);
+catch e
+  if (isempty(strfind(e.message, "cannot release ownership as memory is not owned")))
+    error("incorrect exception message %s", e.message);
+  endif
+  exception_thrown = true;
+end_try_catch
+if (!exception_thrown)
+    error("double usage of moveRefKlassUniquePtr should have been an error");
+endif
+clear kin; # Should not fail, even though already deleted
+checkCount(0);
+
+kin = Klass("KlassInput");
+exception_thrown = false;
+notowned = get_not_owned_ptr(kin);
+try
+  moveRefKlassUniquePtr(notowned);
+catch e
+  if (isempty(strfind(e.message, "cannot release ownership as memory is not owned")))
+    error("incorrect exception message %s", e.message);
+  endif
+  exception_thrown = true;
+end_try_catch
+if (!exception_thrown)
+  error("Should have thrown 'Cannot release ownership as memory is not owned' error");
+endif
+checkCount(1);
+clear kin;
+checkCount(0);
+
+kini = KlassInheritance("KlassInheritanceInput");
+checkCount(1);
+s = moveRefKlassUniquePtr(kini);
+checkCount(0);
+if (!strcmp(s, "KlassInheritanceInput"))
+  error("Incorrect string: %s", s);
+endif
+if (!is_nullptr(kini))
+  error("is_nullptr failed");
+endif
+clear kini; # Should not fail, even though already deleted
+checkCount(0);
+
+null = []; # NULL pointer
+null_ptr = make_null();
+moveRefKlassUniquePtr([]);
+moveRefKlassUniquePtr(null);
+moveRefKlassUniquePtr(null_ptr);
+checkCount(0);
+
+# overloaded parameters
+if (moveRefOverloadTest() != 0)
+  error("moveRefOverloadTest failed");
+endif
+if (moveRefOverloadTest(null) != 1)
+  error("moveRefOverloadTest failed");
+endif
+if (moveRefOverloadTest(Klass("over")) != 1)
+  error("moveRefOverloadTest failed");
+endif
+checkCount(0);
+
+
 # unique_ptr as output
 k1 = makeKlassUniquePtr("first");
 if (!strcmp(k1.getLabel(), "first"))

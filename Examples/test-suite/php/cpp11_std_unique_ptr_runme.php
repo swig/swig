@@ -166,6 +166,81 @@ check::equal(moveOverloadTest(new Klass("over")), 1, "moveOverloadTest failed");
 checkCount(0);
 
 
+# #### INPUT BY NON-CONST LVALUE REF ####
+# unique_ptr as input
+$kin = new Klass("KlassInput");
+checkCount(1);
+$s = moveRefKlassUniquePtr($kin);
+checkCount(0);
+check::equal($s, "KlassInput", "Incorrect string: $s");
+try {
+    is_nullptr($kin);
+    check::fail("is_nullptr check");
+} catch (TypeError $e) {
+}
+$kin = NULL; # Should not fail, even though already deleted
+checkCount(0);
+
+$kin = new Klass("KlassInput");
+checkCount(1);
+$s = moveRefKlassUniquePtr($kin);
+checkCount(0);
+check::equal($s, "KlassInput", "Incorrect string: $s");
+try {
+    is_nullptr($kin);
+    check::fail("is_nullptr check");
+} catch (TypeError $e) {
+}
+$exception_thrown = false;
+try {
+  moveRefKlassUniquePtr($kin);
+} catch (TypeError $e) {
+  check::equal($e->getMessage(), "Cannot release ownership as memory is not owned for argument 1 of SWIGTYPE_p_Klass of moveRefKlassUniquePtr", "Unexpected exception: {$e->getMessage()}");
+  $exception_thrown = true;
+}
+check::equal($exception_thrown, true, "double usage of moveRefKlassUniquePtr should have been an error");
+$kin = NULL; # Should not fail, even though already deleted
+checkCount(0);
+
+$kin = new Klass("KlassInput");
+$exception_thrown = false;
+$notowned = get_not_owned_ptr($kin);
+try {
+  moveRefKlassUniquePtr($notowned);
+} catch (TypeError $e) {
+  check::equal($e->getMessage(), "Cannot release ownership as memory is not owned for argument 1 of SWIGTYPE_p_Klass of moveRefKlassUniquePtr", "Unexpected exception: {$e->getMessage()}");
+  $exception_thrown = true;
+}
+check::equal($exception_thrown, true, "double usage of moveRefKlassUniquePtr should have been an error");
+checkCount(1);
+$kin = NULL;
+checkCount(0);
+
+$kini = new KlassInheritance("KlassInheritanceInput");
+checkCount(1);
+$s = moveRefKlassUniquePtr($kini);
+checkCount(0);
+check::equal($s, "KlassInheritanceInput", "Incorrect string: $s");
+try {
+    is_nullptr($kini);
+    check::fail("is_nullptr check");
+} catch (TypeError $e) {
+}
+
+$kini = NULL; # Should not fail, even though already deleted
+checkCount(0);
+
+moveRefKlassUniquePtr(NULL);
+moveRefKlassUniquePtr(make_null());
+checkCount(0);
+
+# overloaded parameters
+check::equal(moveRefOverloadTest(), 0, "moveRefOverloadTest failed");
+check::equal(moveRefOverloadTest(NULL), 1, "moveRefOverloadTest failed");
+check::equal(moveRefOverloadTest(new Klass("over")), 1, "moveRefOverloadTest failed");
+checkCount(0);
+
+
 # unique_ptr as output
 $k1 = makeKlassUniquePtr("first");
 $k2 = makeKlassUniquePtr("second");

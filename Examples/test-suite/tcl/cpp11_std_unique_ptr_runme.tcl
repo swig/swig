@@ -236,6 +236,98 @@ if {[moveOverloadTest [Klass k "over"]] != 1} {
 checkCount 0
 
 
+# #### INPUT BY NON-CONST LVALUE REF ####
+# unique_ptr as input
+Klass kin "KlassInput"
+checkCount 1
+set s [moveRefKlassUniquePtr kin]
+checkCount 0
+if {[kin cget -thisown]} {
+  error "thisown should be false"
+}
+if {$s != "KlassInput"} {
+  error "Incorrect string: $s"
+}
+if {![is_nullptr kin]} {
+  error "is_nullptr failed"
+}
+kin -delete # Should not fail, even though already deleted
+checkCount 0
+
+Klass kin "KlassInput"
+checkCount 1
+set s [moveRefKlassUniquePtr kin]
+checkCount 0
+if {[kin cget -thisown]} {
+  error "thisown should be false"
+}
+if {$s != "KlassInput"} {
+  error "Incorrect string: $s"
+}
+if {![is_nullptr kin]} {
+  error "is_nullptr failed"
+}
+set exception_thrown 0
+if [ catch { set s [moveRefKlassUniquePtr kin] } e ] {
+  if {[string first "cannot release ownership as memory is not owned" $e] == -1} {
+    error "incorrect exception message: $e"
+  }
+  set exception_thrown 1
+}
+if {!$exception_thrown} {
+  error "double usage of moveRefKlassUniquePtr should have been an error"
+}
+kin -delete # Should not fail, even though already deleted
+checkCount 0
+
+Klass kin "KlassInput"
+set exception_thrown 0
+set notowned [get_not_owned_ptr kin]
+if [ catch {
+  moveRefKlassUniquePtr notowned
+} ] {
+  set exception_thrown 1
+}
+if {!$exception_thrown} {
+  error "Should have thrown 'Cannot release ownership as memory is not owned' error"
+}
+checkCount 1
+kin -delete
+checkCount 0
+
+KlassInheritance kini "KlassInheritanceInput"
+checkCount 1
+set s [moveRefKlassUniquePtr kini]
+checkCount 0
+if {[kini cget -thisown]} {
+  error "thisown should be false"
+}
+if {$s != "KlassInheritanceInput"} {
+  error "Incorrect string: $s"
+}
+if {![is_nullptr kini]} {
+  error "is_nullptr failed"
+}
+kini -delete # Should not fail, even though already deleted
+checkCount 0
+
+moveRefKlassUniquePtr "NULL"
+moveRefKlassUniquePtr [make_null]
+checkCount 0
+
+# overloaded parameters
+if {[moveRefOverloadTest] != 0} {
+  error "moveRefOverloadTest failed"
+}
+if {[moveRefOverloadTest "NULL"] != 1} {
+  error "moveRefOverloadTest failed"
+}
+if {[moveRefOverloadTest [Klass k "over"]] != 1} {
+  error "moveRefOverloadTest failed"
+}
+checkCount 0
+
+
 # unique_ptr as output
 set k1 [makeKlassUniquePtr "first"]
 set k2 [makeKlassUniquePtr "second"]
