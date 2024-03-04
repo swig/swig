@@ -1,0 +1,56 @@
+name: TST
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: 'windows-2022'
+
+#   defaults:
+#     run:
+#       shell: C:\msys64\usr\bin\bash.exe --noprofile --norc -eo pipefail {0}
+
+    env:
+      SWIGJOBS: -j2
+
+    steps:
+    - name: before MSVC
+      shell: cmd
+      run: |
+          echo "PATH=%PATH%"
+
+    - name: Setup MSVC
+      uses: TheMrMilchmann/setup-msvc-dev@v3
+      with:
+        arch: x64
+
+    - name: after MSVC
+      shell: bash
+      run: |
+          echo "PATH=$PATH"
+          echo 'Prepends MSYS2'
+          a="/c/msys64/usr/bin"
+          echo "$(cygpath -w "$a")" >> $GITHUB_PATH
+
+    - name: check with cmd
+      shell: cmd
+      run: |
+          echo "PATH=%PATH%"
+          uname -a
+          which cl.exe
+          which csc.exe
+          cl.exe /?
+
+    - name: check with bash
+      shell: bash
+      run: |
+          echo "PATH=$PATH"
+          uname -a
+          mount
+          df -h
+          which cl.exe
+          which csc.exe
+          csc.exe /?
