@@ -679,11 +679,14 @@ else
 
   if test -z "$D2COMPILERBIN" ; then
     AC_CHECK_PROGS(D2COMPILER, dmd ldmd2 ldc2 gdmd)
-    if test -n "$D2COMPILER" ; then
-      old_ac_ext=$ac_ext
-      ac_ext=d
-      AC_MSG_CHECKING(whether the D2 compiler works)
-      cat > conftest.$ac_ext <<_ACEOF
+  else
+    D2COMPILER="$D2COMPILERBIN"
+  fi
+  if test -n "$D2COMPILER" ; then
+    old_ac_ext=$ac_ext
+    ac_ext=d
+    AC_MSG_CHECKING(whether the D2 compiler works)
+    cat > conftest.$ac_ext <<_ACEOF
 import std.algorithm;
 void main() {
 }
@@ -695,11 +698,8 @@ _ACEOF
         [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
         D2COMPILER=]
       )
-      rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext conftest.out
-      ac_ext=$old_ac_ext
-    fi
-  else
-    D2COMPILER="$D2COMPILERBIN"
+    rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext conftest.out
+    ac_ext=$old_ac_ext
   fi
 fi
 
