@@ -3,8 +3,18 @@
  *
  * SWIG library file containing macros for manipulating raw C data.
  *
- * TODO:
- *  Use generic cdata by deleting this file and implementing
- *   SWIG_AsCharPtrAndSize() and SWIG_FromCharPtrAndSize()
- *  Or implement (void *BYTES, size_t LENGTH) and SWIGCDATA typemaps
+ * TODO: Need to test with li_cdata_cpp and li_cdata
  * ----------------------------------------------------------------------------- */
+
+%typemap(in) (const void *BYTES, size_t LENGTH) {
+  $1 = ($1_ltype) caml_string_val($input);
+  $2 = ($2_ltype) caml_string_len($input);
+}
+%apply (const void *BYTES, size_t LENGTH) { (void *BYTES, size_t LENGTH) }
+%include <typemaps/cdata_apply.swg>
+
+%include <typemaps/cdata_struct.swg>
+
+%typemap(out) SWIGCDATA %{ caml_val_string_len($1.data,$1.len); %}
+
+%include <typemaps/cdata.swg>
