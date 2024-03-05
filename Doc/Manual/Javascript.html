@@ -931,12 +931,12 @@ if(js_exception)
 <H3><a name="Javascript_napi_exceptions">28.5.2 Handling Exceptions in Node-API</a></H3>
 <p>Node-API is the only generator that provides fully automatic conversion of C++ exceptions to JavaScript exceptions when building with C++ exceptions enabled in <code>binding.gyp</code>.</p>
 <p>By default <code>node-gyp</code> builds with exceptions disabled and does so by tweaking a number of compiler options. The <code>node-addon-api</code> npm package includes a file that contains all the options needed to enable exceptions across the three officially supported compilers - g++, clang and MSVC.
-<p><strong>It is highly recommended to enable exceptions using this file especially when using MSVC which, unless the right options and macros are used, will happily produce a mostly working binary with some very subtle memory allocation/alignement errors.</strong></p>
+<p><strong>It is highly recommended to enable exceptions using this file, especially when using MSVC which, unless the right options and macros are used, will happily produce a mostly working binary with some very subtle memory allocation/alignement errors.</strong></p>
 <div class="code">
         <pre>
   'target_defaults': {
-    'includes': [
-      'node_modules/node-addon-api/except.gypi'
+    'dependencies': [
+      '&lt;!@(node -p "require(\'node-addon-api\').targets"):node_addon_api_except'
     ]
   }
 </pre>
