@@ -196,7 +196,7 @@ jobs:
           which ccache-swig.exe
           # TODO: msvc build, but not functional
           if [[ "$COMPILER" = "gcc" ]]; then
-          ccache-swig.exe | head -n1
+          ccache-swig.exe -V
           fi
 
     - name: Clean
