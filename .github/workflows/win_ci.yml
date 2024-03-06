@@ -167,7 +167,7 @@ jobs:
       run: >
           ./configure --disable-dependency-tracking
           --with-boost="$BOOST_PATH"
-          --with-csharp-compiler=csc.exe"
+          --with-csharp-compiler="csc.exe"
 
     - name: Build
       shell: bash
