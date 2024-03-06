@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 86;
+use Test::More tests => 100;
 BEGIN { use_ok('cpp11_std_unique_ptr') }
 require_ok('cpp11_std_unique_ptr');
 
@@ -206,6 +206,42 @@ checkCount(0);
 is(cpp11_std_unique_ptr::moveRefOverloadTest(), 0, "moveRefOverloadTest failed");
 is(cpp11_std_unique_ptr::moveRefOverloadTest(undef), 1, "moveRefOverloadTest failed");
 is(cpp11_std_unique_ptr::moveRefOverloadTest(new cpp11_std_unique_ptr::Klass("over")), 1, "moveRefOverloadTest failed");
+checkCount(0);
+
+
+# #### INPUT BY CONST LVALUE REF ####
+# unique_ptr as input
+{
+  my $kin = new cpp11_std_unique_ptr::Klass("KlassInput");
+  checkCount(1);
+  my $s = cpp11_std_unique_ptr::useRefKlassUniquePtr($kin);
+  checkCount(1);
+  is($s, "KlassInput", "Incorrect string: $s");
+  undef $kin;
+  checkCount(0);
+}
+
+{
+  my $kini = new cpp11_std_unique_ptr::KlassInheritance("KlassInheritanceInput");
+  checkCount(1);
+  my $s = cpp11_std_unique_ptr::useRefKlassUniquePtr($kini);
+  checkCount(1);
+  is($s, "KlassInheritanceInput", "Incorrect string: $s");
+  undef $kini;
+  checkCount(0);
+}
+
+cpp11_std_unique_ptr::useRefKlassUniquePtr(undef);
+cpp11_std_unique_ptr::useRefKlassUniquePtr(cpp11_std_unique_ptr::make_null());
+checkCount(0);
+
+# overloaded parameters
+is(cpp11_std_unique_ptr::useRefOverloadTest(), 0, "useRefOverloadTest failed");
+is(cpp11_std_unique_ptr::useRefOverloadTest(undef), 1, "useRefOverloadTest failed");
+my $kin = new cpp11_std_unique_ptr::Klass("over");
+is(cpp11_std_unique_ptr::useRefOverloadTest($kin), 1, "useRefOverloadTest failed");
+checkCount(1);
+undef $kin;
 checkCount(0);
 
 

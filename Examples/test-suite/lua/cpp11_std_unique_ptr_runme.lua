@@ -233,6 +233,48 @@ end
 checkCount(0)
 
 
+--- ---- INPUT BY CONST LVALUE REF ---
+-- unique_ptr as input
+kin = cpp11_std_unique_ptr.Klass("KlassInput")
+checkCount(1)
+s = cpp11_std_unique_ptr.useRefKlassUniquePtr(kin)
+checkCount(1)
+if not (s == "KlassInput") then
+  error("Incorrect string: "..s)
+end
+kin = nil
+checkCount(0)
+
+kini = cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput")
+checkCount(1)
+s = cpp11_std_unique_ptr.useRefKlassUniquePtr(kini)
+checkCount(1)
+if not (s == "KlassInheritanceInput") then
+  error("Incorrect string: "..s)
+end
+kini = nil
+checkCount(0)
+
+cpp11_std_unique_ptr.useRefKlassUniquePtr(nil);
+cpp11_std_unique_ptr.useRefKlassUniquePtr(cpp11_std_unique_ptr.make_null());
+checkCount(0);
+
+-- overloaded parameters
+if not (cpp11_std_unique_ptr.useRefOverloadTest() == 0) then
+  error("useRefOverloadTest failed")
+end
+if not (cpp11_std_unique_ptr.useRefOverloadTest(nil) == 1) then
+  error("useRefOverloadTest failed")
+end
+kin = cpp11_std_unique_ptr.Klass("over")
+if not (cpp11_std_unique_ptr.useRefOverloadTest(kin) == 1) then
+  error("useRefOverloadTest failed")
+end
+checkCount(1)
+kin = nil
+checkCount(0)
+
+
 -- unique_ptr as output
 k1 = cpp11_std_unique_ptr.makeKlassUniquePtr("first")
 k2 = cpp11_std_unique_ptr.makeKlassUniquePtr("second")

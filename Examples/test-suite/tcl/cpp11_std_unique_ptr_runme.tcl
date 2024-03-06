@@ -328,6 +328,48 @@ if {[moveRefOverloadTest [Klass k "over"]] != 1} {
 checkCount 0
 
 
+# #### INPUT BY CONST LVALUE REF ####
+# unique_ptr as input
+Klass kin "KlassInput"
+checkCount 1
+set s [useRefKlassUniquePtr kin]
+checkCount 1
+if {$s != "KlassInput"} {
+  error "Incorrect string: $s"
+}
+kin -delete
+checkCount 0
+
+KlassInheritance kini "KlassInheritanceInput"
+checkCount 1
+set s [useRefKlassUniquePtr kini]
+checkCount 1
+if {$s != "KlassInheritanceInput"} {
+  error "Incorrect string: $s"
+}
+kini -delete
+checkCount 0
+
+useRefKlassUniquePtr "NULL"
+useRefKlassUniquePtr [make_null]
+checkCount 0
+
+# overloaded parameters
+if {[useRefOverloadTest] != 0} {
+  error "useRefOverloadTest failed"
+}
+if {[useRefOverloadTest "NULL"] != 1} {
+  error "useRefOverloadTest failed"
+}
+Klass kin "over"
+if {[useRefOverloadTest kin] != 1} {
+  error "useRefOverloadTest failed"
+}
+checkCount 1
+kin -delete
+checkCount 0
+
+
 # unique_ptr as output
 set k1 [makeKlassUniquePtr "first"]
 set k2 [makeKlassUniquePtr "second"]

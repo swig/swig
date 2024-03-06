@@ -2103,6 +2103,8 @@ The type <tt>T</tt> must be non-primitive.
 This macro should be used before any code declaring or using type <tt>T</tt>.
 Ordering requirements for using this smart pointer macro are the same as the
 equivalent <tt>%shared_ptr(T)</tt> macro covered in the previous section.
+The ownership and move semantics described here can of course be modified if not suitable
+by copying and customising the typemaps in the appropriate <tt>std_unique_ptr.i</tt> library file.
 </p>
 
 <H4><a name="Library_std_unique_ptr_by_value">12.4.6 unique_ptr passed by value</a></H4>
@@ -2244,6 +2246,19 @@ void process(std::unique_ptr&lt;Klass&gt; &amp;);
 </div>
 
 <p>
+Passing const lvalue references into a function works much like passing any wrapped class.
+The proxy class owning the underling C++ object continues to own the underying C++ object
+after calling the function, the function cannot modify the <tt>std::unique_ptr</tt> or take ownership.
+Example:
+</p>
+
+<div class="code">
+<pre>
+void use(const std::unique_ptr&lt;Klass&gt; &amp;);
+</pre>
+</div>
+
+<p>
 Move semantics are not provided when wrapping a C++ function that returns a <tt>std::unique_ptr</tt> by reference.
 The target language proxy class wrapper that is returned does not own the underlying C++ object.
 This applies to all reference types, such as:
@@ -2251,8 +2266,8 @@ This applies to all reference types, such as:
 
 <div class="code">
 <pre>
-std::unique_ptr<Klass> &amp; LvalueRefReturn();
-std::unique_ptr<Klass> &amp;&amp; RvalueRefReturn();
+std::unique_ptr&lt;Klass&gt; &amp; LvalueRefReturn();
+std::unique_ptr&lt;Klass&gt; &amp;&amp; RvalueRefReturn();
 </pre>
 </div>
 

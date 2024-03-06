@@ -228,6 +228,44 @@
 (checkCount 0)
 
 
+; ;;;; INPUT BY CONST LVALUE REF ;;;;
+; unique_ptr as input
+(define kin (new-Klass "KlassInput"))
+(checkCount 1)
+(define s (useRefKlassUniquePtr kin))
+(checkCount 1)
+(unless (string=? s "KlassInput")
+  (error "Incorrect string: " s))
+(set! kin '()) (gc)
+(checkCount 0)
+
+(define kini (new-KlassInheritance "KlassInheritanceInput"))
+(checkCount 1)
+(define s (useRefKlassUniquePtr kini))
+(checkCount 1)
+(unless (string=? s "KlassInheritanceInput")
+  (error "Incorrect string: " s))
+(set! kini '()) (gc)
+(checkCount 0)
+
+(define null '())
+(useRefKlassUniquePtr null)
+(useRefKlassUniquePtr (make-null))
+(checkCount 0)
+
+; overloaded parameters
+(unless (= (useRefOverloadTest) 0)
+  (error "useRefOverloadTest failed"))
+(unless (= (useRefOverloadTest null) 1)
+  (error "useRefOverloadTest failed"))
+(define kin (new-Klass "over"))
+(unless (= (useRefOverloadTest kin) 1)
+  (error "useRefOverloadTest failed"))
+(checkCount 1)
+(set! kin '()) (gc)
+(checkCount 0)
+
+
 ; unique_ptr as output
 (define k1 (makeKlassUniquePtr "first"))
 (define k2 (makeKlassUniquePtr "second"))

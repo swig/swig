@@ -260,6 +260,46 @@ void main() {
   checkCount(0);
 
 
+  ///// INPUT BY CONST LVALUE REF /////
+  // unique_ptr as input
+  {
+    scope Klass kin = new Klass("KlassInput");
+    checkCount(1);
+    string s = useRefKlassUniquePtr(kin);
+    checkCount(1);
+    if (s != "KlassInput")
+      throw new Exception("Incorrect string: " ~ s);
+  }
+  checkCount(0);
+
+  {
+    scope KlassInheritance kini = new KlassInheritance("KlassInheritanceInput");
+    checkCount(1);
+    string s = useRefKlassUniquePtr(kini);
+    checkCount(1);
+    if (s != "KlassInheritanceInput")
+      throw new Exception("Incorrect string: " ~ s);
+  }
+  checkCount(0);
+
+  useRefKlassUniquePtr(null);
+  useRefKlassUniquePtr(make_null());
+  checkCount(0);
+
+  // overloaded parameters
+  if (useRefOverloadTest() != 0)
+    throw new Exception("useRefOverloadTest failed");
+  if (useRefOverloadTest(null) != 1)
+    throw new Exception("useRefOverloadTest failed");
+  {
+    scope Klass kin = new Klass("over");
+    if (useRefOverloadTest(kin) != 1)
+      throw new Exception("useRefOverloadTest failed");
+    checkCount(1);
+  }
+  checkCount(0);
+
+
   // unique_ptr as output
   Klass k1 = makeKlassUniquePtr("first");
   if (k1.getLabel() != "first")

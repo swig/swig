@@ -275,6 +275,53 @@ if (cpp11_std_unique_ptr.moveRefOverloadTest(new cpp11_std_unique_ptr.Klass("ove
 checkCount(0);
 
 
+///// INPUT BY CONST LVALUE REF /////
+// unique_ptr as input
+{
+  kin = new cpp11_std_unique_ptr.Klass("KlassInput");
+  checkCount(1);
+  s = cpp11_std_unique_ptr.useRefKlassUniquePtr(kin);
+  checkCount(1);
+  if (s !== "KlassInput")
+    throw new Error("Incorrect string: " + s);
+  // delete kin;
+  // Above not deleting the C++ object(node v12) - can't reliably control GC
+  cpp11_std_unique_ptr.takeKlassUniquePtr(kin);
+  checkCount(0);
+}
+
+{
+  kini = new cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput");
+  checkCount(1);
+  s = cpp11_std_unique_ptr.useRefKlassUniquePtr(kini);
+  checkCount(1);
+  if (s !== "KlassInheritanceInput")
+    throw new Error("Incorrect string: " + s);
+  // delete kini;
+  // Above not deleting the C++ object - can't reliably control GC
+  cpp11_std_unique_ptr.takeKlassUniquePtr(kini);
+  checkCount(0);
+}
+
+cpp11_std_unique_ptr.useRefKlassUniquePtr(null);
+cpp11_std_unique_ptr.useRefKlassUniquePtr(cpp11_std_unique_ptr.make_null());
+checkCount(0);
+
+// overloaded parameters
+if (cpp11_std_unique_ptr.useRefOverloadTest() != 0)
+  throw new RuntimeException("useRefOverloadTest failed");
+if (cpp11_std_unique_ptr.useRefOverloadTest(null) != 1)
+  throw new RuntimeException("useRefOverloadTest failed");
+kin = new cpp11_std_unique_ptr.Klass("over")
+if (cpp11_std_unique_ptr.useRefOverloadTest(kin) != 1)
+  throw new RuntimeException("useRefOverloadTest failed");
+checkCount(1);
+// delete kin;
+// Above not deleting the C++ object - can't reliably control GC
+cpp11_std_unique_ptr.takeKlassUniquePtr(kin);
+checkCount(0);
+
+
 // unique_ptr as output
 k1 = cpp11_std_unique_ptr.makeKlassUniquePtr("first");
 if (k1.getLabel() !== "first")

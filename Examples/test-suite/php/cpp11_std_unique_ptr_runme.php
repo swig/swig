@@ -241,6 +241,38 @@ check::equal(moveRefOverloadTest(new Klass("over")), 1, "moveRefOverloadTest fai
 checkCount(0);
 
 
+# #### INPUT BY CONST LVALUE REF ####
+# unique_ptr as input
+$kin = new Klass("KlassInput");
+checkCount(1);
+$s = useRefKlassUniquePtr($kin);
+checkCount(1);
+check::equal($s, "KlassInput", "Incorrect string: $s");
+$kin = NULL;
+checkCount(0);
+
+$kini = new KlassInheritance("KlassInheritanceInput");
+checkCount(1);
+$s = useRefKlassUniquePtr($kini);
+checkCount(1);
+check::equal($s, "KlassInheritanceInput", "Incorrect string: $s");
+$kini = NULL;
+checkCount(0);
+
+useRefKlassUniquePtr(NULL);
+useRefKlassUniquePtr(make_null());
+checkCount(0);
+
+# overloaded parameters
+check::equal(useRefOverloadTest(), 0, "useRefOverloadTest failed");
+check::equal(useRefOverloadTest(NULL), 1, "useRefOverloadTest failed");
+$kin = new Klass("over");
+check::equal(useRefOverloadTest($kin), 1, "useRefOverloadTest failed");
+checkCount(1);
+$kin = NULL;
+checkCount(0);
+
+
 # unique_ptr as output
 $k1 = makeKlassUniquePtr("first");
 $k2 = makeKlassUniquePtr("second");

@@ -296,6 +296,51 @@ endif
 checkCount(0);
 
 
+# #### INPUT BY CONST LVALUE REF ####
+# unique_ptr as input
+kin = Klass("KlassInput");
+checkCount(1);
+s = useRefKlassUniquePtr(kin);
+checkCount(1);
+if (!strcmp(s, "KlassInput"))
+  error("Incorrect string: %s", s);
+endif
+clear kin;
+checkCount(0);
+
+kini = KlassInheritance("KlassInheritanceInput");
+checkCount(1);
+s = useRefKlassUniquePtr(kini);
+checkCount(1);
+if (!strcmp(s, "KlassInheritanceInput"))
+  error("Incorrect string: %s", s);
+endif
+clear kini;
+checkCount(0);
+
+null = []; # NULL pointer
+null_ptr = make_null();
+useRefKlassUniquePtr([]);
+useRefKlassUniquePtr(null);
+useRefKlassUniquePtr(null_ptr);
+checkCount(0);
+
+# overloaded parameters
+if (useRefOverloadTest() != 0)
+  error("useRefOverloadTest failed");
+endif
+if (useRefOverloadTest(null) != 1)
+  error("useRefOverloadTest failed");
+endif
+kin = Klass("over");
+if (useRefOverloadTest(kin) != 1)
+  error("useRefOverloadTest failed");
+endif
+checkCount(1);
+clear kin
+checkCount(0);
+
+
 # unique_ptr as output
 k1 = makeKlassUniquePtr("first");
 if (!strcmp(k1.getLabel(), "first"))

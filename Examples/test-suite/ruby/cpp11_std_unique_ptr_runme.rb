@@ -14,7 +14,7 @@ end
 def checkCount(expected_count)
     actual_count = Cpp11_std_unique_ptr::Klass.getTotal_count()
     if (actual_count != expected_count)
-        raise RuntimeError, "Counts incorrect, expected:" + expected_count + " actual:" + actual_count
+        raise RuntimeError, "Counts incorrect, expected:#{expected_count} actual:#{actual_count}"
     end
 end
 
@@ -131,7 +131,7 @@ end
 if (Cpp11_std_unique_ptr::overloadTest(Cpp11_std_unique_ptr::Klass.new("over")) != 1)
   raise RuntimeError, "overloadTest failed"
 end
-checkCount(0);
+checkCount(0)
 
 
 # #### INPUT BY RVALUE REF ####
@@ -235,7 +235,7 @@ end
 if (Cpp11_std_unique_ptr::moveOverloadTest(Cpp11_std_unique_ptr::Klass.new("over")) != 1)
   raise RuntimeError, "moveOverloadTest failed"
 end
-checkCount(0);
+checkCount(0)
 
 
 # #### INPUT BY NON-CONST LVALUE REF ####
@@ -339,7 +339,52 @@ end
 if (Cpp11_std_unique_ptr::moveRefOverloadTest(Cpp11_std_unique_ptr::Klass.new("over")) != 1)
   raise RuntimeError, "moveRefOverloadTest failed"
 end
-checkCount(0);
+checkCount(0)
+
+
+# #### INPUT BY CONST LVALUE REF ####
+# unique_ptr as input
+kin = Cpp11_std_unique_ptr::Klass.new("KlassInput")
+checkCount(1)
+s = Cpp11_std_unique_ptr.useRefKlassUniquePtr(kin)
+checkCount(1)
+if (s != "KlassInput")
+    raise RuntimeError, "Incorrect string: " + s
+end
+# kin = nil
+Cpp11_std_unique_ptr.takeKlassUniquePtr(kin) # Ensure object is deleted (can't rely on GC)
+checkCount(0)
+
+kini = Cpp11_std_unique_ptr::KlassInheritance.new("KlassInheritanceInput")
+checkCount(1)
+s = Cpp11_std_unique_ptr.useRefKlassUniquePtr(kini)
+checkCount(1)
+if (s != "KlassInheritanceInput")
+    raise RuntimeError, "Incorrect string: " + s
+end
+# kini = nil
+Cpp11_std_unique_ptr.takeKlassUniquePtr(kini) # Ensure object is deleted (can't rely on GC)
+checkCount(0)
+
+Cpp11_std_unique_ptr::useRefKlassUniquePtr(nil)
+Cpp11_std_unique_ptr::useRefKlassUniquePtr(Cpp11_std_unique_ptr::make_null())
+checkCount(0)
+
+# overloaded parameters
+if (Cpp11_std_unique_ptr::useRefOverloadTest() != 0)
+  raise RuntimeError, "useRefOverloadTest failed"
+end
+if (Cpp11_std_unique_ptr::useRefOverloadTest(nil) != 1)
+  raise RuntimeError, "useRefOverloadTest failed"
+end
+kin = Cpp11_std_unique_ptr::Klass.new("over")
+if (Cpp11_std_unique_ptr::useRefOverloadTest(kin) != 1)
+  raise RuntimeError, "useRefOverloadTest failed"
+end
+checkCount(1)
+# kin = nil
+Cpp11_std_unique_ptr.takeKlassUniquePtr(kin) # Ensure object is deleted (can't rely on GC)
+checkCount(0)
 
 
 # unique_ptr as output

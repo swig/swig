@@ -253,6 +253,43 @@ public class cpp11_std_unique_ptr_runme {
         checkCount(0);
 
 
+        ///// INPUT BY CONST LVALUE REF /////
+        // unique_ptr as input
+        using (Klass kin = new Klass("KlassInput")) {
+          checkCount(1);
+          string s = cpp11_std_unique_ptr.useRefKlassUniquePtr(kin);
+          checkCount(1);
+          if (s != "KlassInput")
+            throw new ApplicationException("Incorrect string: " + s);
+        }
+        checkCount(0);
+
+        using (KlassInheritance kini = new KlassInheritance("KlassInheritanceInput")) {
+          checkCount(1);
+          string s = cpp11_std_unique_ptr.useRefKlassUniquePtr(kini);
+          checkCount(1);
+          if (s != "KlassInheritanceInput")
+            throw new ApplicationException("Incorrect string: " + s);
+        }
+        checkCount(0);
+
+        cpp11_std_unique_ptr.useRefKlassUniquePtr(null);
+        cpp11_std_unique_ptr.useRefKlassUniquePtr(cpp11_std_unique_ptr.make_null());
+        checkCount(0);
+
+        // overloaded parameters
+        if (cpp11_std_unique_ptr.useRefOverloadTest() != 0)
+          throw new ApplicationException("useRefOverloadTest failed");
+        if (cpp11_std_unique_ptr.useRefOverloadTest(null) != 1)
+          throw new ApplicationException("useRefOverloadTest failed");
+        using (Klass kin = new KlassInheritance("OverloadInput")) {
+          if (cpp11_std_unique_ptr.useRefOverloadTest(kin) != 1)
+            throw new ApplicationException("useRefOverloadTest failed");
+          checkCount(1);
+        }
+        checkCount(0);
+
+
         // unique_ptr as output
         Klass k1 = cpp11_std_unique_ptr.makeKlassUniquePtr("first");
         if (k1.getLabel() != "first")

@@ -5,6 +5,7 @@
 %warnfilter(509, 516) overloadTest(Klass);
 %warnfilter(509, 516) moveOverloadTest(Klass);
 %warnfilter(509, 516) moveRefOverloadTest(Klass);
+%warnfilter(509, 516) useRefOverloadTest(Klass);
 
 %include "std_string.i"
 %include "std_unique_ptr.i"
@@ -86,6 +87,13 @@ std::string moveRefKlassUniquePtr(std::unique_ptr<Klass>& k) {
   return s;
 }
 
+std::string useRefKlassUniquePtr(const std::unique_ptr<Klass>& k) {
+//  std::cout << "useRefKlassUniquePtr " << std::hex << (Klass*)k.get() << std::endl;
+  std::string s(k ? k->getLabel() : "null smart pointer");
+//  std::cout << "useRefKlassUniquePtr string: " << s << std::endl;
+  return s;
+}
+
 Klass *make_null() {
   return nullptr;
 }
@@ -161,6 +169,18 @@ int moveRefOverloadTest(std::unique_ptr<Klass>& kover) {
 }
 
 int moveRefOverloadTest(Klass k) {
+  return 2;
+}
+
+int useRefOverloadTest() {
+  return 0;
+}
+
+int useRefOverloadTest(const std::unique_ptr<Klass>& kover) {
+  return 1;
+}
+
+int useRefOverloadTest(Klass k) {
   return 2;
 }
 
