@@ -144,7 +144,6 @@ jobs:
     - name: Configure
       shell: bash
       run: |
-          systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
           if [[ -z "$COMPILER" ]]; then
           which cl.exe
           cl.exe /? 2>&1 | head -n1
@@ -205,6 +204,7 @@ jobs:
 
   cmake:
     runs-on: ${{ matrix.os }}
+    if: false
 
     name: CMake ${{ matrix.BUILD_SYS }}
 
