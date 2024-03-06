@@ -211,7 +211,6 @@ jobs:
 
   cmake:
     runs-on: ${{ matrix.os }}
-    if: false
 
     name: CMake ${{ matrix.BUILD_SYS }}
 
@@ -259,8 +258,8 @@ jobs:
           cmake --version
           cmake -G "$env:BUILD_SYS" -A x64 `
           -DCMAKE_INSTALL_PREFIX="C:\Tools\swig" `
-          -DCMAKE_C_FLAGS="/W3 /DPCRE2_STATIC" `
-          -DCMAKE_CXX_FLAGS="/W3 /DPCRE2_STATIC" `
+          -DCMAKE_C_FLAGS="/W3 /EHsc /DPCRE2_STATIC" `
+          -DCMAKE_CXX_FLAGS="/W3 /EHsc /DPCRE2_STATIC" `
           -DPCRE2_INCLUDE_DIR="$env:PCRE2_PATH\include" `
           -DPCRE2_LIBRARY="$env:PCRE2_PATH\lib\pcre2-8-static.lib" `
           -DLINK_FLAGS="/NODEFAULTLIB:MSVCRT"
