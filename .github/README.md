@@ -45,7 +45,7 @@ As it name suggests, tt adds a number of features exclusive to JavaScript. It ke
 
 # Usage
 
-SWIG JavaScript Evolution is currently pending a first official release which should come very soon.
+SWIG JavaScript Evolution is currently available only as a build from source from this repository and as a [Github Action](https://github.com/marketplace/actions/setup-swig).
 
 You can find an example skeleton for a new project that uses a dual-build Node.js/native and browser/WASM system at [`swig-napi-example-project`](https://github.com/mmomtchev/swig-napi-example-project).
 
@@ -77,3 +77,29 @@ https://github.com/emscripten-core/emsdk.
 # JavaScript manual
 
 The only changes in the manual relative to the mainline SWIG are in the [JavaScript](https://htmlpreview.github.io/?https://github.com/mmomtchev/swig/blob/main/Doc/Manual/Javascript.html) section.
+
+# Maturity
+
+Late technology preview. The first open-source package - [`magickwand.js`](https://github.com/mmomtchev/magickwand.js) - is published on `npm` and it is used in production on some low-traffic websites. It uses all major new SWIG JSE features - async, WASM, locking and TypeScript.
+
+# Planned major features
+
+## New modern build system for C++ projects supporting both Node.js and WASM with `conan` integration
+
+`gyp` is a notoriously opinionated build system that is very difficult to integrate. You should check [`magickwand.js`](https://github.com/mmomtchev/magickwand.js) for an example that includes integration with `conan` for the dependencies, Autotools for ImageMagick on Linux/macOS and a custom full self-contained build on Windows. All of these use expansion of dummy `gyp` variables to launch external commands.
+
+Alas, at the moment, there are no other mature options for building Node.js addons. `node-gyp` includes logic that downloads the original compilation settings for the Node.js executable on the target platform in `gyp` format and uses these to build a compatible ABI.
+
+I am currently planning an alternative build system that will cover only Node-API-based Node.js addons, will be based on [`xpack`](https://github.com/xpack) and [`meson`](https://github.com/mesonbuild/meson/) and will feature [`conan`](https://conan.io) and WASM support. It will produce fully self-contained builds on all OS, using only freely distributable open-source software. It will allow rebuilding from source on a minimally installed end user host without a working C++ environment. The only build requirements will be `node` and `npm` - and eventually Python if `conan` is used. It will use `clang` on Windows.
+
+## WASM without COOP/COEP
+
+Currently, WASM projects using asynchronous wrappers require that [`COOP`/`COEP`](https://web.dev/articles/coop-coep) is enabled. In this example, it is enabled by the `webpack` built-in server and by the `karma` test runner. Users of your module will have to host it on web servers that support and send these headers - **this is a requirement on the web server end - ie a configuration option that must be enabled in Apache or nginx**. For example, currently Github Pages and many low-end hosting providers do not support it.
+
+Alternatively, this example can be built without asynchronous wrappers in order to produce a WASM binary that does not require `COOP`/`COEP`. The only real difference is the `emscripten` build configuration which can be found in `emscripten.gypi`.
+
+In this case, there are two possible strategies:
+ * Accept that calling C++ functions will produce main thread latency - which works well if all your C++ methods run very fast
+ * Use [`GoogleCromeLabs/comlink`](https://github.com/GoogleChromeLabs/comlink) to call them in a worker thread - which works well if all your C++ methods have very long execution times because it adds significant overhead when calling them (*this will require a custom serializer for C++ object - I plan to make an example*)
+
+Mixing the two is possible, but C++ functions running in the main thread and C++ functions running the in `comlink` worker won't be able to share objects as they will be running in separate memory spaces.
