@@ -1,0 +1,275 @@
+name: WIN-CI
+
+on:
+  push:
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+  pull_request:
+    branches: master
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+
+permissions:
+  contents: read
+
+jobs:
+  win_ci:
+    # When continue-on-error is true for an individual build, that build can fail (it'll show red),
+    # but it won't fail the overall tests
+    continue-on-error: ${{ matrix.continue-on-error || false }}
+
+    # https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md
+    runs-on: ${{ matrix.os || 'windows-2022' }}
+
+    # The name of the test follow the tested language
+    name: >
+      ${{ matrix.SWIGLANG }} ${{ matrix.VER }}
+      ${{ matrix.COMPILER || 'msvc' }} ${{ matrix.os }}
+      ${{ matrix.continue-on-error && '(can fail)' }}
+
+    strategy:
+      matrix:
+        include:
+        - SWIGLANG: csharp
+          os: 'windows-2019'
+          INSTALL: 'true'
+        - SWIGLANG: python
+          VER: '3.8'
+        - SWIGLANG: python
+          INSTALL: 'true'
+          COMPILER: gcc
+      # Run all of them, as opposed to aborting when one fails
+      fail-fast: false
+
+    env:
+      SWIGJOBS: -j2
+      CFLAGS: '-O2'
+      CXXFLAGS: '-O2'
+      CCCL_OPTIONS: '--cccl-muffle /W3 /EHsc'
+      PCRE2_CCCL_LD: '-lpcre2-8-static --cccl-link /NODEFAULTLIB:MSVCRT'
+      CHECK_OPTIONS: 'CSHARPOPTIONS=-platform:x64'
+      SWIGLANG: ${{ matrix.SWIGLANG }}
+      COMPILER: ${{ matrix.COMPILER }}
+      INSTALL: ${{ matrix.INSTALL }}
+      VER: ${{ matrix.VER }}
+      OS: ${{ matrix.os }}
+
+# cl.exe:
+#  https://learn.microsoft.com//cpp/build/reference/compiler-options
+#  /EHc	 extern "C" defaults to nothrow.
+#  /EHs	 Enable C++ exception handling (no SEH exceptions).
+#  /W3   Warning level.
+#  /WX   Treat warnings as errors.
+#  https://learn.microsoft.com//cpp/build/reference/linker-options
+#  cl.exe pass linker:
+#  /VERBOSE:LIB        Outputs progress messages during the link process.
+#  /NODEFAULTLIB:lib   Ignore library 'lib'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        show-progress: true
+
+    - name: Install CCache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ matrix.os || 'windows-2022' }}-${{ matrix.COMPILER || 'msvc' }}
+
+    - name: Install NuGet Packages
+      if: ${{ env.COMPILER == '' }}
+      shell: cmd
+      run: |
+          rem 'nuget build for .NET: https://www.nuget.org/packages'
+          nuget install PCRE2 -OutputDirectory C:\Tools
+          nuget install boost -OutputDirectory C:\Tools
+
+    - name: Setup MSVC
+      if: ${{ env.COMPILER == '' || env.SWIGLANG == 'csharp' }}
+      uses: TheMrMilchmann/setup-msvc-dev@v3
+      with:
+        arch: x64
+
+    - name: Prepare Environment
+      shell: bash
+      run: |
+          uname --all
+          if [[ "$COMPILER" = "gcc" ]]; then
+          PCRE2_PATH=/c/msys64/usr
+          PCRE2_LD=-lpcre2-8
+          if [[ "$SWIGLANG" = "python" ]]; then
+          MORE_MSYS_PKGS=python
+          fi
+          cat << EOF >> $GITHUB_ENV
+          MORE_MSYS_PKGS=gcc pcre2-devel mingw-w64-x86_64-boost $MORE_MSYS_PKGS
+          LIBS_CCACHE=-luserenv
+          BOOST_PATH=/c/msys64/mingw64
+          EOF
+          else # COMPILER cccl wrapping msvc
+          curl --retry 15 -s -L https://github.com/swig/cccl/raw/master/cccl > /usr/bin/cccl
+          chmod +x /usr/bin/cccl
+          cp -p /usr/bin/cccl /c/msys64/usr/bin/cccl
+          PCRE2_PATH=$(ls -d /c/tools/PCRE2*)
+          PCRE2_LD=$PCRE2_CCCL_LD
+          cat << EOF >> $GITHUB_ENV
+          CXX=/usr/bin/cccl
+          CC=/usr/bin/cccl
+          BOOST_PATH=$(ls -d /c/tools/boost*)/lib/native
+          EOF
+          if [[ "$SWIGLANG" = "python" ]] && [[ -n "$VER" ]]; then
+          PY3VER=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64)
+          echo "$PY3VER\Script" >> $GITHUB_PATH
+          echo "$PY3VER" >> $GITHUB_PATH
+          fi # SWIGLANG = python && VER
+          fi # COMPILER
+          cat << EOF >> $GITHUB_ENV
+          PCRE2_CFLAGS=-I$PCRE2_PATH/include -DPCRE2_STATIC
+          PCRE2_LIBS=-L$PCRE2_PATH/lib $PCRE2_LD
+          EOF
+          if [[ "$SWIGLANG" = "java" ]]; then
+          declare -n java_path="JAVA_HOME_${VER}_X64"
+          echo "JAVA_HOME=$java_path" >> $GITHUB_ENV
+          fi # SWIGLANG == java
+          echo 'C:\msys64\usr\bin' >> $GITHUB_PATH
+
+    - name: Install MSYS2 Packages
+      shell: cmd
+      run: |
+          rem 'MSYS2 uses MINGW https://packages.msys2.org/'
+          pacman -Syu --noconfirm --needed
+          pacman -Syu --noconfirm --needed autoconf automake bison %MORE_MSYS_PKGS%
+
+    - name: Configure
+      shell: bash
+      run: |
+          systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
+          if [[ -z "$COMPILER" ]]; then
+          which cl.exe
+          cl.exe /? 2>&1 | head -n1
+          else
+          gcc --version | head -n1
+          fi # COMPILER
+          if [[ "$SWIGLANG" = "csharp" ]]; then
+          which csc.exe
+          csc.exe /? | head -n1
+          elif [[ "$SWIGLANG" = "python" ]]; then
+          which python.exe
+          python -V
+          fi # SWIGLANG
+          make --version | head -n2
+          ./autogen.sh'
+          ./configure --disable-dependency-tracking \
+          --with-boost='%BOOST_PATH%' \
+          --with-csharp-compiler=csc.exe"
+
+    - name: Build
+      shell: bash
+      run: |
+          make -s $SWIGJOBS
+
+    # Mingw-W64 GCC uses different default calling conventions,
+    # from C# and Java which uses windows calling conventions.
+    # As the tests rely on them, just skip them.
+    # See: Doc/Manual/Windows.html#Windows_interface_file
+    # As for python: Mingw-W64 python need a library in the link.
+    - name: Test
+      if: ${{ env.COMPILER == '' }}
+      shell: bash
+      run: |
+          ./swig.exe -version
+          make check-$SWIGLANG-version
+          make check-$SWIGLANG-enabled
+          make -k check-$SWIGLANG-examples $SWIGJOBS $CHECK_OPTIONS
+          make -k check-$SWIGLANG-test-suite $SWIGJOBS $CHECK_OPTIONS
+
+    - name: Install
+      if: ${{ env.INSTALL == 'true' }}
+      shell: bash
+      run: |
+          make -s install > /dev/null
+          which swig.exe
+          ./swig.exe -version
+          which ccache-swig.exe
+          # TODO: msvc build, but not functional
+          if [[ "$COMPILER" = "gcc" ]]; then
+          ./ccache-swig.exe -V | head -n1
+          fi
+
+    - name: Clean
+      if: ${{ env.INSTALL == 'true' }}
+      shell: bash
+      run: |
+          make check-maintainer-clean
+
+  cmake:
+    runs-on: ${{ matrix.os }}
+
+    name: CMake ${{ matrix.BUILD_SYS }}
+
+    strategy:
+      matrix:
+        include:
+        - BUILD_SYS: 'Visual Studio 17 2022'
+          os: 'windows-2022'
+        - BUILD_SYS: 'Visual Studio 16 2019'
+          os: 'windows-2019'
+
+    env:
+      BUILD_SYS: ${{ matrix.BUILD_SYS }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        show-progress: true
+
+    - name: Install CCache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ matrix.os }}
+
+    - name: Install NuGet Packages
+      shell: cmd
+      run: |
+          nuget install PCRE2 -OutputDirectory C:\Tools
+          nuget install Bison -OutputDirectory C:\Tools
+
+    # https://cygwin.com/cygwin-ug-net/cygpath.html
+    - name: Prepare Environment
+      shell: bash
+      run: |
+          cat << EOF >> $GITHUB_ENV
+          PCRE2_PATH=$(cygpath -w "$(ls -d /C/Tools/PCRE2*)")
+          EOF
+          BISON_PATH=$(cygpath -w "$(ls -d /C/Tools/Bison*)/bin")
+          echo "$BISON_PATH" >> $GITHUB_PATH
+
+    - name: Configure
+      shell: powershell
+      run: |
+          cmake --version
+          cmake -G "$env:BUILD_SYS" -A x64 `
+          -DCMAKE_INSTALL_PREFIX="C:\Tools\swig" `
+          -DCMAKE_C_FLAGS="/W3 /DPCRE2_STATIC" `
+          -DCMAKE_CXX_FLAGS="/W3 /DPCRE2_STATIC" `
+          -DPCRE2_INCLUDE_DIR="$env:PCRE2_PATH\include" `
+          -DPCRE2_LIBRARY="$env:PCRE2_PATH\lib\pcre2-8-static.lib" `
+          -DLINK_FLAGS="/NODEFAULTLIB:MSVCRT"
+
+    - name: Build
+      shell: cmd
+      run: |
+          cmake --build . --config Release
+
+    - name: Test
+      shell: cmd
+      run: |
+          ctest --output-on-failure -V -C Release
+
+    - name: Install
+      shell: cmd
+      run: |
+          cmake --install .
+          C:\tools\swig\bin\swig.exe -version
