@@ -18,7 +18,8 @@ permissions:
 
 jobs:
   win_ci:
-    # When continue-on-error is true for an individual build, that build can fail (it'll show red),
+    # When continue-on-error is true for an individual build,
+    # that build can fail (it'll show red),
     # but it won't fail the overall tests
     continue-on-error: ${{ matrix.continue-on-error || false }}
 
@@ -34,8 +35,6 @@ jobs:
     strategy:
       matrix:
         include:
-        - SWIGLANG: csharp
-          INSTALL: 'true'
         - SWIGLANG: python
           INSTALL: 'true'
           COMPILER: gcc
@@ -166,16 +165,9 @@ jobs:
           --with-boost="$BOOST_PATH"
           --with-csharp-compiler="csc.exe"
 
-    - name: Report
-      shell: bash
-      run: |
-          grep HAVE_UNISTD_H CCache/config.h*
-          cat CCache/config.log
-
     - name: Build
       shell: bash
       run: |
-          make $SWIGJOBS ccache
           make -s $SWIGJOBS
 
     # Mingw-W64 GCC uses different default calling conventions,

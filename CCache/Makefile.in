@@ -6,7 +6,10 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 bindir=@bindir@
 mandir=@mandir@
-INSTALLCMD=@INSTALL@
+INSTALL=@abs_srcdir@/../Tools/config/install-sh
+INSTALL_DATA    = ${INSTALL} -c -m 644
+INSTALL_PROGRAM = ${INSTALL} -c -m 755
+MKINSTDIRS      = ${INSTALL} -m 0755 -d
 PACKAGE_NAME=@PACKAGE_NAME@
 PROGRAM_NAME=@PROGRAM_NAME@
 # Soft link test can be skipped on systems that don't support soft linking
@@ -48,14 +51,13 @@ $(srcdir)/web/$(PACKAGE_NAME)-man.html: $(srcdir)/ccache.yo
 install: $(PACKAGE_NAME)$(EXEEXT)
 	@echo "Installing $(PACKAGE_NAME)"
 	@echo "Installing $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)"
-	${INSTALLCMD} -d $(DESTDIR)${bindir}
-	echo "${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)"
-	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)
+	$(MKINSTDIRS) $(DESTDIR)${bindir}
+	$(INSTALL_PROGRAM) $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)
 
 install-docs: $(srcdir)/$(PACKAGE_NAME).1
 	@echo "Installing $(DESTDIR)${mandir}/man1/$(PROGRAM_NAME).1"
-	${INSTALLCMD} -d $(DESTDIR)${mandir}/man1
-	${INSTALLCMD} -m 644 $(srcdir)/$(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/$(PROGRAM_NAME).1
+	$(MKINSTDIRS) $(DESTDIR)${mandir}/man1
+	$(INSTALL_DATA) $(srcdir)/$(PACKAGE_NAME).1 $(DESTDIR)${mandir}/man1/$(PROGRAM_NAME).1
 
 uninstall: $(PACKAGE_NAME)$(EXEEXT)
 	rm -f $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)
