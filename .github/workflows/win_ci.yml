@@ -35,10 +35,7 @@ jobs:
       matrix:
         include:
         - SWIGLANG: csharp
-          os: 'windows-2019'
           INSTALL: 'true'
-        - SWIGLANG: python
-          VER: '3.8'
         - SWIGLANG: python
           INSTALL: 'true'
           COMPILER: gcc
@@ -169,6 +166,12 @@ jobs:
           --with-boost="$BOOST_PATH"
           --with-csharp-compiler="csc.exe"
 
+    - name: Report
+      shell: bash
+      run: |
+          grep HAVE_UNISTD_H CCache/config.h*
+          cat CCache/config.log
+
     - name: Build
       shell: bash
       run: |
@@ -194,7 +197,8 @@ jobs:
       if: ${{ env.INSTALL == 'true' }}
       shell: bash
       run: |
-          make -s install > /dev/null
+          make install
+          # make -s install > /dev/null
           which swig.exe
           swig.exe -version
           which ccache-swig.exe
@@ -212,18 +216,18 @@ jobs:
   cmake:
     runs-on: ${{ matrix.os }}
 
-    name: CMake ${{ matrix.BUILD_SYS }}
+    name: CMake VS ${{ matrix.VER }}
 
     strategy:
       matrix:
         include:
-        - BUILD_SYS: 'Visual Studio 17 2022'
+        - VER: '17 2022'
           os: 'windows-2022'
-        - BUILD_SYS: 'Visual Studio 16 2019'
+        - VER: '16 2019'
           os: 'windows-2019'
 
     env:
-      BUILD_SYS: ${{ matrix.BUILD_SYS }}
+      BUILD_SYS: Visual Studio ${{ matrix.VER }}
 
     steps:
     - name: Checkout
