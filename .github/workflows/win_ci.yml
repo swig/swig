@@ -143,7 +143,7 @@ jobs:
           pacman -Syu --noconfirm --needed
           pacman -Syu --noconfirm --needed autoconf automake bison %MORE_MSYS_PKGS%
 
-    - name: Configure
+    - name: Autoconf
       shell: bash
       run: |
           if [[ -z "$COMPILER" ]]; then
@@ -161,8 +161,12 @@ jobs:
           fi # SWIGLANG
           make --version | head -n2
           ./autogen.sh
-          ./configure --disable-dependency-tracking \
-          --with-boost="$BOOST_PATH" \
+
+    - name: Configure
+      shell: bash
+      run: >
+          ./configure --disable-dependency-tracking
+          --with-boost="$BOOST_PATH"
           --with-csharp-compiler=csc.exe"
 
     - name: Build
