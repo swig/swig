@@ -200,10 +200,11 @@ jobs:
           make install
           # make -s install > /dev/null
           which swig.exe
-          /usr/bin/swig.exe -version
+          swig.exe -version
+          which ccache-swig.exe
           # TODO: msvc build, but not functional
           if [[ "$COMPILER" = "gcc" ]]; then
-          /bin/ccache-swig.exe | head -n1
+          ccache-swig.exe | head -n1
           fi
 
     - name: Clean

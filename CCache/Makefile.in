@@ -49,6 +49,7 @@ install: $(PACKAGE_NAME)$(EXEEXT)
 	@echo "Installing $(PACKAGE_NAME)"
 	@echo "Installing $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)"
 	${INSTALLCMD} -d $(DESTDIR)${bindir}
+	echo "${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)"
 	${INSTALLCMD} -m 755 $(PACKAGE_NAME)$(EXEEXT) $(DESTDIR)${bindir}/$(PROGRAM_NAME)$(EXEEXT)
 
 install-docs: $(srcdir)/$(PACKAGE_NAME).1
