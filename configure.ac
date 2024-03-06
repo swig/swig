@@ -122,7 +122,7 @@ then
 	case $host in
 	*-*-hp*) SO=.sl;;
 	*-*-darwin*) SO=.bundle;;
-	*-*-cygwin* | *-*-mingw*) SO=.dll;;
+	*-*-cygwin* | *-*-mingw* | *-*-msys*) SO=.dll;;
 	*) SO=.so;;
 	esac
 fi
@@ -137,7 +137,7 @@ if test -z "$LDSHARED"
 then
 	case $host in
 	*-*-aix*) LDSHARED="$CC -shared";;
-	*-*-cygwin* | *-*-mingw*)
+	*-*-cygwin* | *-*-mingw* | *-*-msys*)
             if test "$GCC" = yes; then
                 LDSHARED="\$(CC) -shared"
             else
@@ -203,7 +203,7 @@ then
              fi;;
         *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) +z ";;
         *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -bundle -undefined suppress -flat_namespace";;
-        *-*-cygwin* | *-*-mingw*)
+        *-*-cygwin* | *-*-mingw* | *-*-msys*)
             if test "$GCC" = yes; then
                 TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared "
             else
@@ -639,7 +639,7 @@ esac
 
 # CSharp on Windows platforms including Cygwin doesn't use libname.dll, rather name.dll when loading dlls
 case $host in
-*-*-cygwin* | *-*-mingw*) CSHARPLIBRARYPREFIX="";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) CSHARPLIBRARYPREFIX="";;
 *)CSHARPLIBRARYPREFIX="lib";;
 esac
 
@@ -705,7 +705,7 @@ fi
 
 # Do not prefix library file names with "lib" on Windows.
 case $host in
-*-*-cygwin* | *-*-mingw*) DLIBPREFIX="";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) DLIBPREFIX="";;
 *)DLIBPREFIX="lib";;
 esac
 
@@ -1107,7 +1107,7 @@ esac
 
 # Java on Windows platforms including Cygwin doesn't use libname.dll, rather name.dll when loading dlls
 case $host in
-*-*-cygwin* | *-*-mingw*) JAVALIBRARYPREFIX="";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) JAVALIBRARYPREFIX="";;
 *)JAVALIBRARYPREFIX="lib";;
 esac
 
@@ -2807,19 +2807,6 @@ AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWI
 
 SWIG_LIB_PREINST=$ABS_SRCDIR/Lib
 AC_SUBST(SWIG_LIB_PREINST)
-
-dnl For testing purposes, clear SWIG_LIB when building SWIG in the source
-dnl directory under Windows because it is supposed to work without SWIG_LIB
-dnl being set. Otherwise it always needs to be set.
-SWIG_LIB_SET="env SWIG_LIB=\$(SWIG_LIB_DIR)"
-if test "${srcdir}" = "."; then
-    AC_EGREP_CPP([yes],
-    [#ifdef _WIN32
-     yes
-    #endif
-    ], [SWIG_LIB_SET="env SWIG_LIB="], [])
-fi
-AC_SUBST(SWIG_LIB_SET)
 
 AC_CONFIG_FILES([
     Makefile

@@ -13,15 +13,17 @@ PROGRAM_NAME=@PROGRAM_NAME@
 NOSOFTLINKSTEST=
 
 CC=@CC@
-CFLAGS=@CFLAGS@ -I.
+CFLAGS_CCACHE=@CFLAGS_CCACHE@
+CFLAGS=@CFLAGS@ -I. $(CFLAGS_CCACHE)
+OBJEXT=@OBJEXT@
 SWIG=swig
 SWIG_LIB=../$(srcdir)/../Lib
 EXEEXT=@EXEEXT@
 
-LIBS= @LIBS@
-OBJS= ccache.o mdfour.o hash.o execute.o util.o args.o stats.o \
-	cleanup.o snprintf.o unify.o
-HEADERS = ccache.h mdfour.h config.h config_win32.h
+LIBS_CCACHE=@LIBS_CCACHE@
+LIBS=@LIBS@ $(LIBS_CCACHE)
+OBJS = $(foreach n,args ccache cleanup execute hash mdfour snprintf stats unify util,$n.$(OBJEXT))
+HEADERS = ccache.h mdfour.h config.h ccache_swig_config.h
 
 all: $(PACKAGE_NAME)$(EXEEXT)
 
@@ -32,7 +34,9 @@ Makefile: $(srcdir)/Makefile.in ./config.status
 # Note that HTML documentation is actually generated and used from the main SWIG documentation Makefile
 docs: $(srcdir)/$(PACKAGE_NAME).1 $(srcdir)/web/$(PACKAGE_NAME)-man.html
 
-$(PACKAGE_NAME)$(EXEEXT): $(OBJS) $(HEADERS)
+$(OBJS): %.$(OBJEXT): %.c $(HEADERS)
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(PACKAGE_NAME)$(EXEEXT): $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
 
 $(srcdir)/$(PACKAGE_NAME).1: $(srcdir)/ccache.yo
@@ -70,7 +74,7 @@ test: test.sh
 check: test
 
 distclean: clean
-	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status ccache_swig_config.h config_win32.h
+	/bin/rm -f Makefile config.h config.sub config.log build-stamp config.status ccache_swig_config.h
 	/bin/rm -rf autom4te.cache
 
 maintainer-clean: distclean

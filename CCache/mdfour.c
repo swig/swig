@@ -109,13 +109,13 @@ void mdfour_begin(struct mdfour *md)
 }
 
 
-static void mdfour_tail(struct mdfour *md, const unsigned char *in, int n)
+static void mdfour_tail(struct mdfour *md, const unsigned char *in, size_t n)
 {
 	unsigned char buf[128];
 	uint32 M[16];
 	uint32 b;
 
-	md->totalN += n;
+	md->totalN += (uint32)n;
 
 	b = md->totalN * 8;
 
@@ -136,7 +136,7 @@ static void mdfour_tail(struct mdfour *md, const unsigned char *in, int n)
 	}
 }
 
-void mdfour_update(struct mdfour *md, const unsigned char *in, int n)
+void mdfour_update(struct mdfour *md, const unsigned char *in, size_t n)
 {
 	uint32 M[16];
 
@@ -146,7 +146,7 @@ void mdfour_update(struct mdfour *md, const unsigned char *in, int n)
 	}
 
 	if (md->tail_len) {
-		int len = 64 - md->tail_len;
+		size_t len = 64 - md->tail_len;
 		if (len > n) len = n;
 		memcpy(md->tail+md->tail_len, in, len);
 		md->tail_len += len;
@@ -184,7 +184,7 @@ void mdfour_result(struct mdfour *md, unsigned char *out)
 }
 
 
-void mdfour(unsigned char *out, const unsigned char *in, int n)
+void mdfour(unsigned char *out, const unsigned char *in, size_t n)
 {
 	struct mdfour md;
 	mdfour_begin(&md);
@@ -212,7 +212,7 @@ static void file_checksum1(char *fname)
 	mdfour_begin(&md);
 
 	while (1) {
-		int n = read(fd, buf, chunk);
+		size_t n = read(fd, buf, chunk);
 		if (n >= 0) {
 			mdfour_update(&md, buf, n);
 		}

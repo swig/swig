@@ -23,13 +23,13 @@ struct mdfour {
 	uint32 A, B, C, D;
 	uint32 totalN;
 	unsigned char tail[64];
-	unsigned tail_len;	
+	size_t tail_len;
 };
 
 void mdfour_begin(struct mdfour *md);
-void mdfour_update(struct mdfour *md, const unsigned char *in, int n);
+void mdfour_update(struct mdfour *md, const unsigned char *in, size_t n);
 void mdfour_result(struct mdfour *md, unsigned char *out);
-void mdfour(unsigned char *out, const unsigned char *in, int n);
+void mdfour(unsigned char *out, const unsigned char *in, size_t n);
 
 
 

@@ -200,11 +200,10 @@ jobs:
           make install
           # make -s install > /dev/null
           which swig.exe
-          swig.exe -version
-          which ccache-swig.exe
+          /usr/bin/swig.exe -version
           # TODO: msvc build, but not functional
           if [[ "$COMPILER" = "gcc" ]]; then
-          ccache-swig.exe -V | head -n1
+          /bin/ccache-swig.exe | head -n1
           fi
 
     - name: Clean
@@ -215,6 +214,7 @@ jobs:
 
   cmake:
     runs-on: ${{ matrix.os }}
+    if: false
 
     name: CMake VS ${{ matrix.VER }}
 

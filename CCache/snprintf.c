@@ -55,32 +55,9 @@
  *
  **************************************************************/
 
-#ifndef NO_CONFIG_H /* for some tests */
-#include "config.h"
-#endif
+#include "ccache.h"
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif
-
-#ifdef HAVE_STRINGS_H
-#include <strings.h>
-#endif
-#ifdef HAVE_CTYPE_H
-#include <ctype.h>
-#endif
-#include <sys/types.h>
-#include <stdarg.h>
-#ifdef HAVE_STDLIB_H
-#include <stdlib.h>
-#endif
-
-#if defined(HAVE_SNPRINTF) && defined(HAVE_VSNPRINTF) && defined(HAVE_C99_VSNPRINTF)
-/* only include stdio.h if we are not re-defining snprintf or vsnprintf */
-#include <stdio.h>
- /* make the compiler happy with an empty file */
- void dummy_snprintf(void) {} 
-#else
+#if !defined(HAVE_VSNPRINTF) || !defined(HAVE_C99_VSNPRINTF)
 
 #ifdef HAVE_LONG_DOUBLE
 #define LDOUBLE long double
@@ -94,8 +71,6 @@
 #define LLONG long
 #endif
 
-static size_t dopr(char *buffer, size_t maxlen, const char *format, 
-		   va_list args);
 static void fmtstr(char *buffer, size_t *currlen, size_t maxlen,
 		    char *value, int flags, int min, int max);
 static void fmtint(char *buffer, size_t *currlen, size_t maxlen,
@@ -338,7 +313,7 @@ static size_t dopr(char *buffer, size_t maxlen, const char *format, va_list args
 				strvalue = va_arg (args, char *);
 				if (!strvalue) strvalue = "(NULL)";
 				if (max == -1) {
-					max = strlen(strvalue);
+					max = (int)strlen(strvalue);
 				}
 				if (min > 0 && max >= 0 && min > max) max = min;
 				fmtstr (buffer, &currlen, maxlen, strvalue, flags, min, max);
@@ -349,13 +324,13 @@ static size_t dopr(char *buffer, size_t maxlen, const char *format, va_list args
 				break;
 			case 'n':
 				if (cflags == DP_C_SHORT) {
-					short int *num;
+					short *num;
 					num = va_arg (args, short int *);
-					*num = currlen;
+					*num = (short)currlen;
 				} else if (cflags == DP_C_LONG) {
-					long int *num;
+					long *num;
 					num = va_arg (args, long int *);
-					*num = (long int)currlen;
+					*num = (long)currlen;
 				} else if (cflags == DP_C_LLONG) {
 					LLONG *num;
 					num = va_arg (args, LLONG *);
@@ -363,7 +338,7 @@ static size_t dopr(char *buffer, size_t maxlen, const char *format, va_list args
 				} else {
 					int *num;
 					num = va_arg (args, int *);
-					*num = currlen;
+					*num = (int)currlen;
 				}
 				break;
 			case '%':
@@ -752,36 +727,14 @@ static void dopr_outch(char *buffer, size_t *currlen, size_t maxlen, char c)
 	(*currlen)++;
 }
 
-/* yes this really must be a ||. Don't muck with this (tridge) */
-#if !defined(HAVE_VSNPRINTF) || !defined(HAVE_C99_VSNPRINTF)
+#if !defined(HAVE_VSNPRINTF) && !defined(HAVE_C99_VSNPRINTF)
  int vsnprintf (char *str, size_t count, const char *fmt, va_list args)
 {
-	return dopr(str, count, fmt, args);
+	return (int)dopr(str, count, fmt, args);
 }
 #endif
 
-/* yes this really must be a ||. Don't muck wiith this (tridge)
- *
- * The logic for these two is that we need our own definition if the
- * OS *either* has no definition of *sprintf, or if it does have one
- * that doesn't work properly according to the autoconf test.  Perhaps
- * these should really be smb_snprintf to avoid conflicts with buggy
- * linkers? -- mbp
- */
-#if !defined(HAVE_SNPRINTF) || !defined(HAVE_C99_SNPRINTF)
- int snprintf(char *str,size_t count,const char *fmt,...)
-{
-	size_t ret;
-	va_list ap;
-    
-	va_start(ap, fmt);
-	ret = vsnprintf(str, count, fmt, ap);
-	va_end(ap);
-	return ret;
-}
-#endif
-
-#endif 
+#endif /* !HAVE_VSNPRINTF || !HAVE_C99_VSNPRINTF */
 
 #ifndef HAVE_VASPRINTF
  int vasprintf(char **ptr, const char *format, va_list ap)
