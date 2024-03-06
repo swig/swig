@@ -162,7 +162,7 @@ jobs:
           make --version | head -n2
           ./autogen.sh
           ./configure --disable-dependency-tracking \
-          --with-boost='%BOOST_PATH%' \
+          --with-boost="$BOOST_PATH" \
           --with-csharp-compiler=csc.exe"
 
     - name: Build
