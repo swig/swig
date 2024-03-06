@@ -5,11 +5,13 @@ on:
     paths-ignore:
       - 'CHANGES*'
       - 'Doc/**'
+      - 'appveyor.yml'
   pull_request:
     branches: master
     paths-ignore:
       - 'CHANGES*'
       - 'Doc/**'
+      - 'appveyor.yml'
 
 permissions:
   contents: read
@@ -158,7 +160,7 @@ jobs:
           python -V
           fi # SWIGLANG
           make --version | head -n2
-          ./autogen.sh'
+          ./autogen.sh
           ./configure --disable-dependency-tracking \
           --with-boost='%BOOST_PATH%' \
           --with-csharp-compiler=csc.exe"
