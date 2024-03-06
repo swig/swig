@@ -7,20 +7,20 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
-2024-02-06: wsfulton
+2024-03-06: wsfulton
             Add support for std::unique_ptr & typemaps. Non-const inputs implement
             move semantics from proxy class to C++ layer, otherwise const inputs
             and all reference returns behave like any other lvalue reference to a class.
 
-2024-02-02: wsfulton
+2024-03-06: wsfulton
             [Javascript, MzScheme, Octave] Support NULL being passed into char* typemaps.
 
-2024-02-02: wsfulton
+2024-03-06: christophe-calmejane,wsfulton
             #2650 Add support for movable std::unique_ptr by adding in std::unique_ptr &&
             input typemaps. The std::unique && output typemaps do not support move
             semantics by default and behave like lvalue references.
 
-2024-01-23: wsfulton
+2024-03-06: wsfulton
             Add missing use of move constructor instead of copy constructor when
             passing movable types by value. This was previously implemented only for
             parameters passed to a global function or static member function and is
