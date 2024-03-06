@@ -28,3 +28,5 @@ try {
 }
 if (!exception_thrown)
   throw new Error("double usage of take should have been an error");
+
+// no-worker-threads

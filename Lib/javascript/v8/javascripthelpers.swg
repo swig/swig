@@ -8,20 +8,17 @@ typedef v8::PropertyCallbackInfo<void>  SwigV8PropertyCallbackInfoVoid;
 /**
  * Creates a class template for a class with specified initialization function.
  */
-SWIGRUNTIME SWIGV8_FUNCTION_TEMPLATE SWIGV8_CreateClassTemplate(const char* symbol) {
+SWIGRUNTIME SWIGV8_FUNCTION_TEMPLATE SWIGV8_CreateClassTemplate(const char* symbol,
+  v8::Isolate* isolate, v8::Local<v8::Value> data) {
     SWIGV8_HANDLESCOPE_ESC();
     
     v8::Local<v8::FunctionTemplate> class_templ = SWIGV8_FUNCTEMPLATE_NEW_VOID();
     class_templ->SetClassName(SWIGV8_SYMBOL_NEW(symbol));
-
-    SWIGV8_OBJECT_TEMPLATE inst_templ = class_templ->InstanceTemplate();
-    inst_templ->SetInternalFieldCount(1);
-
-    SWIGV8_OBJECT_TEMPLATE equals_templ = class_templ->PrototypeTemplate();
-    equals_templ->Set(SWIGV8_SYMBOL_NEW("equals"), SWIGV8_FUNCTEMPLATE_NEW(_SWIGV8_wrap_equals));
-
-    SWIGV8_OBJECT_TEMPLATE cptr_templ = class_templ->PrototypeTemplate();
-    cptr_templ->Set(SWIGV8_SYMBOL_NEW("getCPtr"), SWIGV8_FUNCTEMPLATE_NEW(_wrap_getCPtr));
+    class_templ->InstanceTemplate()->SetInternalFieldCount(1);
+    class_templ->PrototypeTemplate()->Set(SWIGV8_SYMBOL_NEW("equals"),
+                                          SWIGV8_FUNCTEMPLATE_NEW(_SWIGV8_wrap_equals, data));
+    class_templ->PrototypeTemplate()->Set(SWIGV8_SYMBOL_NEW("getCPtr"),
+                                          SWIGV8_FUNCTEMPLATE_NEW(_wrap_getCPtr, data));
 
     SWIGV8_ESCAPE(class_templ);
 }
@@ -29,27 +26,33 @@ SWIGRUNTIME SWIGV8_FUNCTION_TEMPLATE SWIGV8_CreateClassTemplate(const char* symb
 /**
  * Registers a class method with given name for a given class template.
  */
-SWIGRUNTIME void SWIGV8_AddMemberFunction(SWIGV8_FUNCTION_TEMPLATE class_templ, const char* symbol,
-  SwigV8FunctionCallback _func) {
-    SWIGV8_OBJECT_TEMPLATE proto_templ = class_templ->PrototypeTemplate();
-    proto_templ->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func));
+SWIGRUNTIME void SWIGV8_AddMemberFunction(SWIGV8_FUNCTION_TEMPLATE class_templ,
+  const char* symbol, SwigV8FunctionCallback _func,
+  v8::Isolate* isolate, v8::Local<v8::Value> data) {
+
+    class_templ->PrototypeTemplate()->Set(SWIGV8_SYMBOL_NEW(symbol),
+                                          SWIGV8_FUNCTEMPLATE_NEW(_func, data));
 }
 
 /**
  * Registers a class property with given name for a given class template.
  */
 SWIGRUNTIME void SWIGV8_AddMemberVariable(SWIGV8_FUNCTION_TEMPLATE class_templ, const char* symbol,
-  SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter) {
-  SWIGV8_OBJECT_TEMPLATE proto_templ = class_templ->InstanceTemplate();
-  proto_templ->SetAccessor(SWIGV8_SYMBOL_NEW(symbol), getter, setter);
+  SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter,
+  v8::Isolate* isolate, v8::Local<v8::Value> data) {
+    class_templ->InstanceTemplate()->SetAccessor(SWIGV8_SYMBOL_NEW(symbol),
+                                                 getter, setter, data);
 }
 
 /**
  * Registers a class method with given name for a given object.
  */
 SWIGRUNTIME void SWIGV8_AddStaticFunction(SWIGV8_OBJECT obj, const char* symbol,
-  const SwigV8FunctionCallback& _func, v8::Local<v8::Context> context) {
-  SWIGV8_MAYBE_CHECK(obj->Set(context, SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction(context).ToLocalChecked()));
+  const SwigV8FunctionCallback& _func, v8::Local<v8::Context> context,
+  v8::Local<v8::Value> data) {
+    v8::Isolate* isolate = SWIGV8_GETISOLATE(context);
+
+    SWIGV8_MAYBE_CHECK(obj->Set(context, SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func, data)->GetFunction(context).ToLocalChecked()));
 }
 
 /**
@@ -57,8 +60,9 @@ SWIGRUNTIME void SWIGV8_AddStaticFunction(SWIGV8_OBJECT obj, const char* symbol,
  */
 SWIGRUNTIME void SWIGV8_AddStaticVariable(SWIGV8_OBJECT obj, const char* symbol,
   SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter,
-  v8::Local<v8::Context> context) {
-  SWIGV8_MAYBE_CHECK(obj->SetAccessor(context, SWIGV8_SYMBOL_NEW(symbol), getter, setter));
+  v8::Local<v8::Context> context, v8::Local<v8::Value> data) {
+  v8::Isolate* isolate = SWIGV8_GETISOLATE(context);
+  SWIGV8_MAYBE_CHECK(obj->SetAccessor(context, SWIGV8_SYMBOL_NEW(symbol), getter, setter, data));
 }
 
 SWIGRUNTIME void JS_veto_set_variable(v8::Local<v8::Name> property, v8::Local<v8::Value> value, const SwigV8PropertyCallbackInfoVoid& info)

@@ -190,6 +190,9 @@ extern "C" {
 
 typedef void *(*swig_converter_func)(void *, int *);
 typedef struct swig_type_info *(*swig_dycast_func)(void **);
+#ifndef SWIG_CLIENT_DATA_TYPE
+#define SWIG_CLIENT_DATA_TYPE void
+#endif
 
 /* Structure to store information on one type */
 typedef struct swig_type_info {
@@ -197,7 +200,7 @@ typedef struct swig_type_info {
   const char             *str;			/* human readable name of this type */
   swig_dycast_func        dcast;		/* dynamic cast function down a hierarchy */
   struct swig_cast_info  *cast;			/* linked list of types that can cast into this type */
-  void                   *clientdata;		/* language specific type data */
+  SWIG_CLIENT_DATA_TYPE  *clientdata;		/* language specific type data */
   int                    owndata;		/* flag if the structure owns the clientdata */
 } swig_type_info;
 
@@ -377,7 +380,7 @@ SWIG_TypePrettyName(const swig_type_info *type) {
    Set the clientdata field for a type
 */
 SWIGRUNTIME void
-SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
+SWIG_TypeClientData(swig_type_info *ti, SWIG_CLIENT_DATA_TYPE *clientdata) {
   swig_cast_info *cast = ti->cast;
   /* if (ti->clientdata == clientdata) return; */
   ti->clientdata = clientdata;
@@ -393,7 +396,7 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
   }
 }
 SWIGRUNTIME void
-SWIG_TypeNewClientData(swig_type_info *ti, void *clientdata) {
+SWIG_TypeNewClientData(swig_type_info *ti, SWIG_CLIENT_DATA_TYPE *clientdata) {
   SWIG_TypeClientData(ti, clientdata);
   ti->owndata = 1;
 }

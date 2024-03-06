@@ -127,3 +127,5 @@ checkCount(0);
 
 if (cpp11_std_unique_ptr.makeNullUniquePtr() != null)
   throw new Error("null failure");
+
+// no-worker-threads
