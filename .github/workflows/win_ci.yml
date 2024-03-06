@@ -172,6 +172,7 @@ jobs:
     - name: Build
       shell: bash
       run: |
+          make $SWIGJOBS ccache
           make -s $SWIGJOBS
 
     # Mingw-W64 GCC uses different default calling conventions,
@@ -195,11 +196,11 @@ jobs:
       run: |
           make -s install > /dev/null
           which swig.exe
-          ./swig.exe -version
+          swig.exe -version
           which ccache-swig.exe
           # TODO: msvc build, but not functional
           if [[ "$COMPILER" = "gcc" ]]; then
-          ./ccache-swig.exe -V | head -n1
+          ccache-swig.exe -V | head -n1
           fi
 
     - name: Clean
