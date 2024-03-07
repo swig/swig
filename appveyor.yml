@@ -52,9 +52,9 @@ environment:
 #   VER: 310
 #   Platform: x86
 #   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: python
-    OSVARIANT: cygwin
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+# - SWIGLANG: python
+#   OSVARIANT: cygwin
+#   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 # - SWIGLANG: java
 #   OSVARIANT: mingw
 #   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
