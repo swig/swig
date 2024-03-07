@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-03-07: wsfulton
+            Add SWIGTYPE MOVE 'typecheck' typemaps to remove warning 472 
+            (SWIGWARN_TYPEMAP_TYPECHECK_UNDEF).
+
 2024-03-06: wsfulton
             Add support for std::unique_ptr & typemaps. Non-const inputs implement
             move semantics from proxy class to C++ layer, otherwise const inputs

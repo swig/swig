@@ -17,3 +17,5 @@
   if (argp == NULL) scheme_signal_error(FUNC_NAME ": swig-type-error (null reference)");
   SwigValueWrapper< $1_ltype >::reset($1, ($&1_type)argp);
 }
+
+%typemap(typecheck) SWIGTYPE MOVE = SWIGTYPE;
