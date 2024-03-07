@@ -8,6 +8,9 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-03-07: wsfulton
+            [Ocaml] Fix SWIGTYPE MOVE 'in' typemap to fix compilation error.
+
+2024-03-07: wsfulton
             Add SWIGTYPE MOVE 'typecheck' typemaps to remove warning 472 
             (SWIGWARN_TYPEMAP_TYPECHECK_UNDEF).
 
