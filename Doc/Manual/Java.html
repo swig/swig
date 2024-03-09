@@ -114,6 +114,7 @@
 <li><a href="#Java_simple_pointers">Simple pointers</a>
 <li><a href="#Java_c_arrays">Wrapping C arrays with Java arrays</a>
 <li><a href="#Java_unbounded_c_arrays">Unbounded C Arrays</a>
+<li><a href="#Java_string_length">Passing a string with length</a>
 <li><a href="#Java_heap_allocations">Overriding new and delete to allocate from Java heap</a>
 </ul>
 <li><a href="#Java_typemaps">Java typemaps</a>
@@ -128,6 +129,7 @@
 <li><a href="#Java_typemaps_for_c_and_cpp">Typemaps for both C and C++ compilation</a>
 <li><a href="#Java_code_typemaps">Java code typemaps</a>
 <li><a href="#Java_directors_typemaps">Director specific typemaps</a>
+<li><a href="#Java_cdata_i">cdata.i</a>
 </ul>
 <li><a href="#Java_typemap_examples">Typemap Examples</a>
 <ul>
@@ -5511,7 +5513,60 @@ well suited for applications in which you need to create buffers,
 package binary data, etc.
 </p>
 
-<H3><a name="Java_heap_allocations">27.8.5 Overriding new and delete to allocate from Java heap</a></H3>
+<H3><a name="Java_string_length">27.8.5 Passing a string with length</a></H3>
+
+
+<p>
+SWIG provides multi-argument typemap available as mentioned in <a href="Library.html#Library_nn10">Passing a string with length</a>.
+The following simple example demonstrates passing a string to the wrapped function.
+</p>
+
+
+<div class="code">
+<pre>
+%apply (char *STRING, size_t LENGTH) { (const char data[], size_t len) }
+%inline %{
+void binaryChar1(const char data[], size_t len) {
+  printf("len: %d data: ", len);
+  for (size_t i=0; i&lt;len; ++i)
+    printf("%x ", data[i]);
+  printf("\n");
+}
+%}
+</pre>
+</div>
+
+<p>
+Calling from Java requires a string to be passed in as the multi-argument typemap being applied reduces the number of arguments in the target language to one, from the original two:
+</p>
+
+<div class="code">
+<pre>
+String str = "hi\0jk";
+example.binaryChar1(str);     
+</pre>
+</div>
+
+<p>
+resulting in the output
+</p>
+
+<div class="code"><pre>
+$ java runme
+len: 5 data: 68 69 0 6a 6b
+</pre></div>
+
+<p>
+The typemap use Java <tt>String::getBytes()</tt> to convert the string to defualt system encoding. If you wish to use a other encoding, you can modify the typemap. For example to convert the string to UTF-8 use:
+</p>
+
+<div class="code"><pre>
+%typemap(javain, throws="java.io.IllegalCharsetNameException")<br>
+  (const char *STRING, size_t LENGTH) %{($javainput == null) ? null : $javainput.getBytes("UTF-8")%}
+</pre></div>
+
+
+<H3><a name="Java_heap_allocations">27.8.6 Overriding new and delete to allocate from Java heap</a></H3>
 
 
 <p>
@@ -7148,6 +7203,64 @@ The basic strategy here is to provide a default package typemap for the majority
 </p>
 
 </div>
+
+<H3><a name="Java_cdata_i">27.9.11 cdata.i</a></H3>
+
+
+<p>
+The <tt>cdata.i</tt> module defines functions for converting raw C data to and from Java byte array.
+The primary applications of this module would be passing binary data.
+</p>
+
+<p>
+<b><tt>byte[] cdata(void *ptr, size_t nbytes)</tt></b>
+</p>
+
+<div class="indent"><p>
+Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a Java byte array, <tt>ptr</tt> can point to any data.
+</p></div>
+
+<p>
+<b><tt>void memmove(void *ptr, const byte b[])</tt></b>
+</p>
+
+<div class="indent"><p>
+Copies the byte array in <tt>b</tt> into the memory pointed to by
+<tt>ptr</tt>.
+This is actually a wrapper to the standard C library <tt>memmove</tt> function, which is
+declared as <b><tt>void memmove(void *ptr, const void *src, size_t n)</tt></b>.
+The <tt>src</tt> and length <tt>n</tt> parameters are
+Jave byte array <tt>b</tt> length and content in the underlying wrapper code.
+</p></div>
+
+
+<p>
+The default <tt>cdata</tt> is defined for C <tt>void *</tt>, yet user may define
+other types with:
+</p>
+
+<p>
+<b><tt>%cdata(type [, name=type])</tt></b>
+</p>
+
+<div class="indent">
+
+<p>
+And generates the following function for extracting C data of the given type.
+</p>
+
+<div class="code">
+<pre>
+byte[] cdata_<em>name</em>(type* ptr, int nitems)
+</pre>
+</div>
+
+<p>
+<tt>nitems</tt> is the number of items of the given type to extract.
+</p>
+
+</div>
+
 
 <H2><a name="Java_typemap_examples">27.10 Typemap Examples</a></H2>
 

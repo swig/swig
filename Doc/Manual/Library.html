@@ -719,18 +719,11 @@ Now, in a script:
 
 
 <p>
-The <tt>cdata.i</tt> module defines functions for converting raw C data to and
-from the target language. Static typed target languages (C#, Java, go, D)
-uses array of bytes, while dynamic typed languages uses string.
-The primary applications of this module would be packing/unpacking of
+The <tt>cdata.i</tt> module defines functions for converting raw C data to and from strings
+in the target language.  The primary applications of this module would be packing/unpacking of
 binary data structures---for instance, if you needed to extract data from a buffer.
-Target dynamic typed language must support strings with embedded binary data
-in order for benefit from this module, and should support a 'pack' and 'unpack'
-functions to convert string to array of numbers and via versa.
-Most static typed languages uses string with defined encoding,
- which does not make them suitable for holding raw data.
-Yet most dynamic typed language do not support arrays of bytes and
- do not have a defined encoding of strings, which make them proper for holding raw data.
+The target language must support strings with embedded binary data
+in order for this to work.
 </p>
 
 <p>
@@ -738,7 +731,7 @@ Yet most dynamic typed language do not support arrays of bytes and
 </p>
 
 <div class="indent"><p>
-Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a string or array bytes when using static typed languages.   <tt>ptr</tt> can be any
+Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a string.   <tt>ptr</tt> can be any
 pointer.
 </p></div>
 
@@ -747,7 +740,7 @@ pointer.
 </p>
 
 <div class="indent"><p>
-Copies all of the string data or array bytes when using static typed languages in <tt>s</tt> into the memory pointed to by
+Copies all of the string data in <tt>s</tt> into the memory pointed to by
 <tt>ptr</tt>.  The string may contain embedded NULL bytes.  
 This is actually a wrapper to the standard C library <tt>memmove</tt> function, which is
 declared as 
@@ -820,8 +813,10 @@ char *cdata_<em>name</em>(type* ptr, int nitems)
 </div>
 
 <p>
-<b>Note:</b> These functions provide direct access to memory and can be used to overwrite data.
-Clearly they are unsafe.
+<b>Note:</b> Static typed target languages uses array of bytes instead of strings.<br>
+<div class="indent">
+See: <a href="Java.html#Java_cdata_i">Java</a>, <a href="CSharp.html#CSharp_cdata_i">C#</a>, <a href="Go.html#Go_cdata_i">Go</a> and <a href="D.html#D_cdata_i">D</a>.
+</div>
 </p>
 
 <H2><a name="Library_nn8">12.3 C string handling</a></H2>

@@ -46,6 +46,9 @@
 <li><a href="#Go_output_arguments">Output arguments</a>
 <li><a href="#Go_adding_additional_code">Adding additional go code</a>
 <li><a href="#Go_typemaps">Go typemaps</a>
+<ul>
+<li><a href="#Go_cdata_i">cdata.i</a>
+</ul>
 </ul>
 </ul>
 </div>
@@ -1527,6 +1530,63 @@ be cast to the desired type.
 </tr>
 
 </table>
+
+<H4><a name="Go_cdata_i">25.4.13.1 cdata.i</a></H4>
+
+<p>
+The <tt>cdata.i</tt> module defines functions for converting raw C data to and from Go byte array.
+The primary applications of this module would be passing binary data.
+</p>
+
+<p>
+<b><tt>[]byte cdata(void *ptr, size_t nbytes)</tt></b>
+</p>
+
+<div class="indent"><p>
+Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a go byte array, <tt>ptr</tt> can point to any data.
+</p></div>
+
+<p>
+<b><tt>void memmove(void *ptr, const []byte b)</tt></b>
+</p>
+
+<div class="indent"><p>
+Copies the byte array in <tt>b</tt> into the memory pointed to by
+<tt>ptr</tt>.
+This is actually a wrapper to the standard C library <tt>memmove</tt> function, which is
+declared as <b><tt>void memmove(void *ptr, const void *src, size_t n)</tt></b>.
+The <tt>src</tt> and length <tt>n</tt> parameters are
+Jave byte array <tt>b</tt> length and content in the underlying wrapper code.
+</p></div>
+
+
+<p>
+The default <tt>cdata</tt> is defined for C <tt>void *</tt>, yet user may define
+other types with:
+</p>
+
+<p>
+<b><tt>%cdata(type [, name=type])</tt></b>
+</p>
+
+<div class="indent">
+
+<p>
+And generates the following function for extracting C data of the given type.
+</p>
+
+<div class="code">
+<pre>
+[]byte cdata_<em>name</em>(type* ptr, int nitems)
+</pre>
+</div>
+
+<p>
+<tt>nitems</tt> is the number of items of the given type to extract.
+</p>
+
+</div>
+
 
 </body>
 </html>
