@@ -395,7 +395,7 @@ namespace Swig {
     /* increase the reference count of the wrapped python object */
     void swig_incref() const {
       if (swig_disown_flag) {
-        Py_INCREF(swig_self);
+        SWIG_Py_INCREF(swig_self);
       }
     }
 

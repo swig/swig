@@ -49,12 +49,12 @@ namespace swig {
   /* For output */
   %typemap(out,noblock=1)  SwigPtr_PyObject {
     $result = (PyObject *)$1;
-    Py_INCREF($result);
+    SWIG_Py_INCREF($result);
   }
   
   %typemap(out,noblock=1)  SwigPtr_PyObject const & {
     $result = (PyObject *)*$1;
-    Py_INCREF($result);
+    SWIG_Py_INCREF($result);
   }
   
 }

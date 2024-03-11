@@ -492,7 +492,7 @@ SWIGRUNTIMEINLINE PyObject *
 SWIG_Py_Void(void)
 {
   PyObject *none = Py_None;
-  Py_INCREF(none);
+  SWIG_Py_INCREF(none);
   return none;
 }
 
@@ -535,18 +535,18 @@ SwigPyClientData_New(PyObject* obj)
     SwigPyClientData *data = (SwigPyClientData *)malloc(sizeof(SwigPyClientData));
     /* the klass element */
     data->klass = obj;
-    Py_INCREF(data->klass);
+    SWIG_Py_INCREF(data->klass);
     /* the newraw method and newargs arguments used to create a new raw instance */
     if (PyClass_Check(obj)) {
       data->newraw = 0;
-      Py_INCREF(obj);
+      SWIG_Py_INCREF(obj);
       data->newargs = obj;
     } else {
       data->newraw = PyObject_GetAttrString(data->klass, "__new__");
       if (data->newraw) {
         data->newargs = PyTuple_New(1);
         if (data->newargs) {
-          Py_INCREF(obj);
+          SWIG_Py_INCREF(obj);
           PyTuple_SET_ITEM(data->newargs, 0, obj);
         } else {
           Py_DECREF(data->newraw);
@@ -555,7 +555,7 @@ SwigPyClientData_New(PyObject* obj)
           return 0;
         }
       } else {
-        Py_INCREF(obj);
+        SWIG_Py_INCREF(obj);
         data->newargs = obj;
       }
     }
@@ -706,7 +706,7 @@ SwigPyObject_richcompare(SwigPyObject *v, SwigPyObject *w, int op)
   PyObject* res = NULL;
   if (!PyErr_Occurred()) {
     if (op != Py_EQ && op != Py_NE) {
-      Py_INCREF(Py_NotImplemented);
+      SWIG_Py_INCREF(Py_NotImplemented);
       return Py_NotImplemented;
     }
     res = PyBool_FromLong( (SwigPyObject_compare(v, w)==0) == (op == Py_EQ) ? 1 : 0);
@@ -835,7 +835,7 @@ SwigPyObject_append(PyObject* v, PyObject* next)
   }
   ((SwigPyObject *)next)->next = sobj->next;
   sobj->next = next;
-  Py_INCREF(next);
+  SWIG_Py_INCREF(next);
   return SWIG_Py_Void();
 }
 
@@ -844,7 +844,7 @@ SwigPyObject_next(PyObject* v, PyObject *SWIGUNUSEDPARM(args))
 {
   SwigPyObject *sobj = (SwigPyObject *) v;
   if (sobj->next) {    
-    Py_INCREF(sobj->next);
+    SWIG_Py_INCREF(sobj->next);
     return sobj->next;
   } else {
     return SWIG_Py_Void();
@@ -1995,7 +1995,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
     PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%.200s'", name->ob_type->tp_name);
     return -1;
   } else {
-    Py_INCREF(name);
+    SWIG_Py_INCREF(name);
   }
 
   if (!tp->tp_dict) {
@@ -2010,7 +2010,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   if (!f) {
     if (PyString_Check(name)) {
       encoded_name = name;
-      Py_INCREF(name);
+      SWIG_Py_INCREF(name);
     } else {
       encoded_name = PyUnicode_AsUTF8String(name);
       if (!encoded_name)

@@ -2615,7 +2615,7 @@ public:
 
     if (GetFlag(n, "feature:python:maybecall")) {
       Append(f->code, "fail:\n");
-      Append(f->code, "  Py_INCREF(Py_NotImplemented);\n");
+      Append(f->code, "  SWIG_Py_INCREF(Py_NotImplemented);\n");
       Append(f->code, "  return Py_NotImplemented;\n");
     } else {
       Node *sibl = n;
@@ -3162,7 +3162,7 @@ public:
 	Printf(f->code, "director = SWIG_DIRECTOR_CAST(%s);\n", Swig_cresult_name());
 	Append(f->code, "if (director) {\n");
 	Append(f->code, "  resultobj = director->swig_get_self();\n");
-	Append(f->code, "  Py_INCREF(resultobj);\n");
+	Append(f->code, "  SWIG_Py_INCREF(resultobj);\n");
 	Append(f->code, "} else {\n");
 	Printf(f->code, "%s\n", tm);
 	Append(f->code, "}\n");
@@ -3227,7 +3227,7 @@ public:
 	Append(f->code, "    return NULL;\n");
 	Append(f->code, "  }\n");
 	Append(f->code, "  PyErr_Clear();\n");
-	Append(f->code, "  Py_INCREF(Py_NotImplemented);\n");
+	Append(f->code, "  SWIG_Py_INCREF(Py_NotImplemented);\n");
 	Append(f->code, "  return Py_NotImplemented;\n");
       } else {
         Printv(f->code, "  return NULL;\n", NIL);
@@ -4077,7 +4077,7 @@ public:
     Printv(f, "      result = SwigPyObject_richcompare((SwigPyObject *)self, (SwigPyObject *)other, op);\n", NIL);
     Printv(f, "    } else {\n", NIL);
     Printv(f, "      result = Py_NotImplemented;\n", NIL);
-    Printv(f, "      Py_INCREF(result);\n", NIL);
+    Printv(f, "      SWIG_Py_INCREF(result);\n", NIL);
     Printv(f, "    }\n", NIL);
     Printv(f, "  }\n", NIL);
     if (!funpack)
@@ -4391,7 +4391,7 @@ public:
     Printv(f_init, "      return;\n", NIL);
     Printv(f_init, "#endif\n", NIL);
     Printv(f_init, "    }\n", NIL);
-    Printv(f_init, "    Py_INCREF(builtin_pytype);\n", NIL);
+    Printv(f_init, "    SWIG_Py_INCREF(builtin_pytype);\n", NIL);
     Printf(f_init, "    PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype);\n", symname);
     Printf(f_init, "    SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", symname);
     Printv(f_init, "    d = md;\n", NIL);
@@ -5531,7 +5531,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	    Printf(wrap_args, "%s = SWIG_InternalNewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
 	    Append(wrap_args, "} else {\n");
 	    Printf(wrap_args, "%s = %s->swig_get_self();\n", source, director);
-	    Printf(wrap_args, "Py_INCREF((PyObject *)%s);\n", source);
+	    Printf(wrap_args, "SWIG_Py_INCREF((PyObject *)%s);\n", source);
 	    Append(wrap_args, "}\n");
 	    Delete(director);
 	    Printv(arglist, source, NIL);
