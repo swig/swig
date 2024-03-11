@@ -60,7 +60,7 @@ SWIG_Python_AddErrorMsg(const char* mesg)
     PyObject *bytes = NULL;
     const char *tmp = SWIG_PyUnicode_AsUTF8AndSize(old_str, NULL, &bytes);
     PyErr_Clear();
-    Py_XINCREF(type);
+    SWIG_Py_XINCREF(type);
     if (tmp)
       PyErr_Format(type, "%s %s", tmp, mesg);
     else

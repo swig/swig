@@ -610,7 +610,7 @@ SwigPyObject_get___dict__(PyObject *v, PyObject *SWIGUNUSEDPARM(args))
   if (!sobj->dict)
     sobj->dict = PyDict_New();
 
-  Py_XINCREF(sobj->dict);
+  SWIG_Py_XINCREF(sobj->dict);
   return sobj->dict;
 }
 
@@ -1074,7 +1074,7 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
       /* Obtain a reference to the Python capsule wrapping the module information, so that the
        * module information is correctly destroyed after all SWIG python objects have been freed
        * by the GC (and corresponding destructors invoked) */
-      Py_XINCREF(Swig_Capsule_global);
+      SWIG_Py_XINCREF(Swig_Capsule_global);
     }
   }
   return (PyObject *)sobj;
@@ -1884,7 +1884,7 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
       PyObject *bytes = NULL;
       const char *tmp = SWIG_PyUnicode_AsUTF8AndSize(old_str, NULL, &bytes);
       const char *errmesg = tmp ? tmp : "Invalid error message";
-      Py_XINCREF(type);
+      SWIG_Py_XINCREF(type);
       PyErr_Clear();
       if (infront) {
 	PyErr_Format(type, "%s %s", mesg, errmesg);

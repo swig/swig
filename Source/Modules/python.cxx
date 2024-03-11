@@ -3272,12 +3272,12 @@ public:
 	Printf(f->code, "newargs = PyTuple_New(%d);\n", num_fixed_arguments);
 	Printf(f->code, "for (i = 0; i < %d; ++i) {\n", num_fixed_arguments);
 	Printf(f->code, "  PyTuple_SET_ITEM(newargs, i, swig_obj[i]);\n");
-	Printf(f->code, "  Py_XINCREF(swig_obj[i]);\n");
+	Printf(f->code, "  SWIG_Py_XINCREF(swig_obj[i]);\n");
 	Printf(f->code, "}\n");
 	Printf(f->code, "varargs = PyTuple_New(nobjs > %d ? nobjs - %d : 0);\n", num_fixed_arguments, num_fixed_arguments);
 	Printf(f->code, "for (i = 0; i < nobjs - %d; ++i) {\n", num_fixed_arguments);
 	Printf(f->code, "  PyTuple_SET_ITEM(newargs, i, swig_obj[i + %d]);\n", num_fixed_arguments);
-	Printf(f->code, "  Py_XINCREF(swig_obj[i + %d]);\n", num_fixed_arguments);
+	Printf(f->code, "  SWIG_Py_XINCREF(swig_obj[i + %d]);\n", num_fixed_arguments);
 	Printf(f->code, "}\n");
       } else {
 	Printf(f->code, "newargs = PyTuple_GetSlice(args, 0, %d);\n", num_fixed_arguments);
@@ -4060,7 +4060,7 @@ public:
       Printf(f, "  PyObject *tuple = PyTuple_New(1);\n");
       Printf(f, "  assert(tuple);\n");
       Printf(f, "  PyTuple_SET_ITEM(tuple, 0, other);\n");
-      Printf(f, "  Py_XINCREF(other);\n");
+      Printf(f, "  SWIG_Py_XINCREF(other);\n");
     }
     List *richcompare_list = SortedKeys(richcompare, 0);
     Iterator rich_iter = First(richcompare_list);
