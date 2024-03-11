@@ -132,7 +132,7 @@ class OverloadErrorHandler: public V8ErrorHandler {
 public:
   virtual void error(int code, const char *msg) {
     err = v8::Exception::Error(SWIGV8_STRING_NEW(msg));
-    if(code != SWIG_TypeError) {
+    if(code != SWIG_TypeError && code != SWIG_OverflowError) {
         SWIGV8_THROW_EXCEPTION(err);
     }
   }
