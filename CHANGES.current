@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-03-11: wsfulton
+            [C#] Improve handling and documentation of missing enum base type information.
+
 2024-03-07: wsfulton
             [Ocaml] Fix SWIGTYPE MOVE 'in' typemap to fix compilation error.
 

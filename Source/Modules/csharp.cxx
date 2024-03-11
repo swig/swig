@@ -1196,11 +1196,13 @@ public:
 	bool purebase_replace = GetFlag(attributes, "tmap:csbase:replace") ? true : false;
 	Delete(attributes);
 
-	const String *baseclass = NULL;
+	String *baseclass = NULL;
 	if (!purebase_replace) {
 	  String *underlying_enum_type = Getattr(n, "enumbase");
 	  if (underlying_enum_type) {
-	    baseclass = typemapLookup(n, "cstype", underlying_enum_type, WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF);
+	    const String *typemap_baseclass = typemapLookup(n, "cstype", underlying_enum_type, WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF);
+	    baseclass = Copy(typemap_baseclass);
+	    substituteClassname(underlying_enum_type, baseclass);
 	  }
 	}
 
