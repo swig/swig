@@ -49,7 +49,7 @@ namespace std {
     %}
 
     %typemap(freearg) string_view %{
-        Py_XDECREF(bytes$argnum);
+        SWIG_Py_XDECREF(bytes$argnum);
     %}
 
     %typemap(in) const string_view & ($*1_ltype temp, PyObject *bytes = NULL) %{
@@ -74,7 +74,7 @@ namespace std {
     %}
 
     %typemap(freearg) const string_view & %{
-        Py_XDECREF(bytes$argnum);
+        SWIG_Py_XDECREF(bytes$argnum);
     %}
 
     %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) string_view {

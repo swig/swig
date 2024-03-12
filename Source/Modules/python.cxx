@@ -3284,8 +3284,8 @@ public:
 	Printf(f->code, "varargs = PyTuple_GetSlice(args, %d, PyTuple_Size(args));\n", num_fixed_arguments);
       }
       Printf(f->code, "resultobj = %s__varargs__(%s, newargs, varargs%s);\n", wname, builtin ? "self" : "NULL", strlen(builtin_kwargs) == 0 ? "" : ", kwargs");
-      Append(f->code, "Py_XDECREF(newargs);\n");
-      Append(f->code, "Py_XDECREF(varargs);\n");
+      Append(f->code, "SWIG_Py_XDECREF(newargs);\n");
+      Append(f->code, "SWIG_Py_XDECREF(varargs);\n");
       Append(f->code, "return resultobj;\n");
       Append(f->code, "}\n");
       Wrapper_print(f, f_wrappers);

@@ -579,10 +579,10 @@ SwigPyClientData_New(PyObject* obj)
 SWIGRUNTIME void 
 SwigPyClientData_Del(SwigPyClientData *data)
 {
-  Py_XDECREF(data->klass);
-  Py_XDECREF(data->newraw);
-  Py_XDECREF(data->newargs);
-  Py_XDECREF(data->destroy);
+  SWIG_Py_XDECREF(data->klass);
+  SWIG_Py_XDECREF(data->newraw);
+  SWIG_Py_XDECREF(data->newargs);
+  SWIG_Py_XDECREF(data->destroy);
   free(data);
 }
 
@@ -797,7 +797,7 @@ SwigPyObject_dealloc(PyObject *v)
         } else {
           res = 0;
         }
-        Py_XDECREF(tmp);
+        SWIG_Py_XDECREF(tmp);
       } else {
         PyCFunction meth = PyCFunction_GET_FUNCTION(destroy);
         PyObject *mself = PyCFunction_GET_SELF(destroy);
@@ -808,7 +808,7 @@ SwigPyObject_dealloc(PyObject *v)
 
       PyErr_Restore(type, value, traceback);
 
-      Py_XDECREF(res);
+      SWIG_Py_XDECREF(res);
     } 
 #if !defined(SWIG_PYTHON_SILENT_MEMLEAK)
     else {
@@ -816,11 +816,11 @@ SwigPyObject_dealloc(PyObject *v)
       printf("swig/python detected a memory leak of type '%s', no destructor found.\n", (name ? name : "unknown"));
     }
 #endif
-    Py_XDECREF(Swig_Capsule_global);
+    SWIG_Py_XDECREF(Swig_Capsule_global);
   }
-  Py_XDECREF(next);
+  SWIG_Py_XDECREF(next);
 #ifdef SWIGPYTHON_BUILTIN
-  Py_XDECREF(sobj->dict);
+  SWIG_Py_XDECREF(sobj->dict);
 #endif
   PyObject_DEL(v);
 }
@@ -1538,8 +1538,8 @@ SWIG_Python_ConvertFunctionPtr(PyObject *obj, void **ptr, swig_type_info *ty) {
     if (desc)
       desc = ty ? SWIG_UnpackVoidPtr(desc + 10, &vptr, ty->name) : 0;
 #ifdef Py_LIMITED_API
-    Py_XDECREF(bytes);
-    Py_XDECREF(pystr_doc);
+    SWIG_Py_XDECREF(bytes);
+    SWIG_Py_XDECREF(pystr_doc);
 #endif
     if (!desc)
       return SWIG_ERROR;
@@ -1836,7 +1836,7 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
       SWIG_Py_DECREF(pointer);
     }
   } else {
-    Py_XDECREF(pointer);
+    SWIG_Py_XDECREF(pointer);
   }
 }
 
@@ -1891,7 +1891,7 @@ SWIG_Python_AddErrMesg(const char* mesg, int infront)
       } else {
 	PyErr_Format(type, "%s %s", errmesg, mesg);
       }
-      Py_XDECREF(bytes);
+      SWIG_Py_XDECREF(bytes);
       SWIG_Py_DECREF(old_str);
     }
     return 1;
@@ -1950,8 +1950,8 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
 	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
 		       type, otype);
 	}
-	Py_XDECREF(bytes);
-	Py_XDECREF(str);
+	SWIG_Py_XDECREF(bytes);
+	SWIG_Py_XDECREF(str);
 	return;
       }
 #endif

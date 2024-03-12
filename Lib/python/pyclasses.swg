@@ -90,7 +90,7 @@ namespace swig {
     {
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       SWIG_Py_XINCREF(item._obj);
-      Py_XDECREF(_obj);
+      SWIG_Py_XDECREF(_obj);
       _obj = item._obj;
       SWIG_PYTHON_THREAD_END_BLOCK;
       return *this;      
@@ -99,7 +99,7 @@ namespace swig {
     ~SwigPtr_PyObject() 
     {
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
-      Py_XDECREF(_obj);
+      SWIG_Py_XDECREF(_obj);
       SWIG_PYTHON_THREAD_END_BLOCK;
     }
     
@@ -145,7 +145,7 @@ namespace swig {
     
     SwigVar_PyObject & operator = (PyObject* obj)
     {
-      Py_XDECREF(_obj);
+      SWIG_Py_XDECREF(_obj);
       _obj = obj;
       return *this;      
     }
