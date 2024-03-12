@@ -387,7 +387,7 @@ SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
   PyGetSetDescrObject *descr;
   descr = (PyGetSetDescrObject *)PyType_GenericAlloc(SwigPyStaticVar_Type(), 0);
   assert(descr);
-  SWIG_Py_XINCREF(type);
+  SWIG_Py_XINCREF((PyObject *)type);
   PyDescr_TYPE(descr) = type;
   PyDescr_NAME(descr) = PyString_InternFromString(getset->name);
   descr->d_getset = getset;
@@ -399,7 +399,7 @@ SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
 }
 
 SWIGINTERN void
-SwigPyBuiltin_InitBases (PyTypeObject *type, PyTypeObject **bases) {
+SwigPyBuiltin_InitBases(PyTypeObject *type, PyTypeObject **bases) {
   Py_ssize_t base_count = 0;
   PyTypeObject **b;
   PyObject *tuple;

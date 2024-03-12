@@ -4391,7 +4391,7 @@ public:
     Printv(f_init, "      return;\n", NIL);
     Printv(f_init, "#endif\n", NIL);
     Printv(f_init, "    }\n", NIL);
-    Printv(f_init, "    SWIG_Py_INCREF(builtin_pytype);\n", NIL);
+    Printv(f_init, "    SWIG_Py_INCREF((PyObject *)builtin_pytype);\n", NIL);
     Printf(f_init, "    PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype);\n", symname);
     Printf(f_init, "    SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", symname);
     Printv(f_init, "    d = md;\n", NIL);
