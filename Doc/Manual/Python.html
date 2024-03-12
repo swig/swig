@@ -5149,8 +5149,8 @@ A typemap can be used to handle this case as follows :
     PyTuple_SetItem(o3, 0, o);
     o2 = $result;
     $result = PySequence_Concat(o2, o3);
-    Py_DECREF(o2);
-    Py_DECREF(o3);
+    Py_DecRef(o2);
+    Py_DecRef(o3);
   }
 }
 
@@ -5265,12 +5265,12 @@ arrays of different sizes.  To do this, you might write a typemap as follows:
   for (i =0; i &lt; $1_dim0; i++) {
     PyObject *o = PySequence_GetItem($input, i);
     if (!PyFloat_Check(o)) {
-      Py_XDECREF(o);
+      Py_DecRef(o);
       PyErr_SetString(PyExc_ValueError, "Expecting a sequence of floats");
       SWIG_fail;
     }
     temp[i] = PyFloat_AsDouble(o);
-    Py_DECREF(o);
+    Py_DecRef(o);
   }
   $1 = &amp;temp[0];
 }
@@ -5311,12 +5311,12 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
   for (i =0; i &lt; size; i++) {
     PyObject *o = PySequence_GetItem(input, i);
     if (!PyFloat_Check(o)) {
-      Py_XDECREF(o);
+      Py_DecRef(o);
       PyErr_SetString(PyExc_ValueError, "Expecting a sequence of floats");
       return 0;
     }
     ptr[i] = PyFloat_AsDouble(o);
-    Py_DECREF(o);
+    Py_DecRef(o);
   }
   return 1;
 }

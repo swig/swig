@@ -31,7 +31,7 @@
     str = (char *)malloc(strlen(strtmp) + 1);
     if (str)
       strcpy(str, strtmp);
-    Py_DECREF(pystr);
+    Py_DecRef(pystr);
 %#else  
     if (!PyString_Check(pyobj)) {
       PyErr_SetString(PyExc_ValueError, "Expected a string");
