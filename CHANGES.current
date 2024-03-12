@@ -8,7 +8,8 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-03-11: wsfulton
-            [C#] Improve handling and documentation of missing enum base type information.
+            [C#] #2829 Improve handling and documentation of missing enum base type
+            information.
 
 2024-03-07: wsfulton
             [Ocaml] Fix SWIGTYPE MOVE 'in' typemap to fix compilation error.
