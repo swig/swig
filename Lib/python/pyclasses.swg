@@ -20,7 +20,7 @@
 
      SwigPtr_PyObject func(SwigPtr_PyObject obj) {     
        SwigPtr_PyObject out = PyString_FromFormat("hello %s", PyObject_AsString(obj));
-       Py_DECREF(out);
+       SWIG_Py_DECREF(out);
        return out;
      }
 

@@ -61,7 +61,7 @@ SwigPyBuiltin_GetterClosure (PyObject *obj, void *closure) {
   tuple = PyTuple_New(0);
   assert(tuple);
   result = (*getset->get)(obj, tuple);
-  Py_DECREF(tuple);
+  SWIG_Py_DECREF(tuple);
   return result;
 }
 
@@ -96,7 +96,7 @@ SwigPyBuiltin_SetterClosure (PyObject *obj, PyObject *val, void *closure) {
   SWIG_Py_INCREF(val);
   PyTuple_SET_ITEM(tuple, 0, val);
   result = (*getset->set)(obj, tuple);
-  Py_DECREF(tuple);
+  SWIG_Py_DECREF(tuple);
   Py_XDECREF(result);
   return result ? 0 : -1;
 }
@@ -392,7 +392,7 @@ SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
   PyDescr_NAME(descr) = PyString_InternFromString(getset->name);
   descr->d_getset = getset;
   if (PyDescr_NAME(descr) == NULL) {
-    Py_DECREF(descr);
+    SWIG_Py_DECREF(descr);
     descr = NULL;
   }
   return descr;
@@ -472,7 +472,7 @@ SwigPyBuiltin_destructor_closure(SwigPyWrapperFunction wrapper, const char *wrap
     if (!o) {
       PyObject *deallocname = PyString_FromString(wrappername);
       PyErr_WriteUnraisable(deallocname);
-      Py_DECREF(deallocname);
+      SWIG_Py_DECREF(deallocname);
     }
     PyErr_Restore(type, value, traceback);
     Py_XDECREF(o);
@@ -522,7 +522,7 @@ SwigPyBuiltin_binaryfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyO
   SWIG_Py_INCREF(b);
   PyTuple_SET_ITEM(tuple, 0, b);
   result = wrapper(a, tuple);
-  Py_DECREF(tuple);
+  SWIG_Py_DECREF(tuple);
   return result;
 }
 
@@ -545,7 +545,7 @@ SwigPyBuiltin_ternaryfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, Py
     PyTuple_SET_ITEM(tuple, 1, c);
   }
   result = wrapper(a, tuple);
-  Py_DECREF(tuple);
+  SWIG_Py_DECREF(tuple);
   return result;
 }
 
@@ -571,7 +571,7 @@ SwigPyBuiltin_lenfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a) {
   Py_ssize_t result;
   resultobj = wrapper(a, NULL);
   result = PyNumber_AsSsize_t(resultobj, NULL);
-  Py_DECREF(resultobj);
+  SWIG_Py_DECREF(resultobj);
   return result;
 }
 
@@ -588,7 +588,7 @@ SwigPyBuiltin_ssizessizeargfunc_closure(SwigPyWrapperFunction wrapper, PyObject 
   PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));
   PyTuple_SET_ITEM(tuple, 1, _PyLong_FromSsize_t(c));
   result = wrapper(a, tuple);
-  Py_DECREF(tuple);
+  SWIG_Py_DECREF(tuple);
   return result;
 }
 
@@ -611,7 +611,7 @@ SwigPyBuiltin_ssizessizeobjargproc_closure(SwigPyWrapperFunction wrapper, PyObje
   }
   resultobj = wrapper(a, tuple);
   result = resultobj ? 0 : -1;
-  Py_DECREF(tuple);
+  SWIG_Py_DECREF(tuple);
   Py_XDECREF(resultobj);
   return result;
 }
@@ -628,7 +628,7 @@ SwigPyBuiltin_funpack_ssizeargfunc_closure(SwigPyWrapperFunction wrapper, PyObje
   assert(tuple);
   PyTuple_SET_ITEM(tuple, 0, _PyLong_FromSsize_t(b));
   result = wrapper(a, tuple);
-  Py_DECREF(tuple);
+  SWIG_Py_DECREF(tuple);
   return result;
 }
 
@@ -642,7 +642,7 @@ SwigPyBuiltin_ssizeargfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a, P
   PyObject *arg, *result;
   arg = _PyLong_FromSsize_t(b);
   result = wrapper(a, arg);
-  Py_DECREF(arg);
+  SWIG_Py_DECREF(arg);
   return result;
 }
 
@@ -665,7 +665,7 @@ SwigPyBuiltin_ssizeobjargproc_closure(SwigPyWrapperFunction wrapper, PyObject *a
   resultobj = wrapper(a, tuple);
   result = resultobj ? 0 : -1;
   Py_XDECREF(resultobj);
-  Py_DECREF(tuple);
+  SWIG_Py_DECREF(tuple);
   return result;
 }
 
@@ -686,7 +686,7 @@ SwigPyBuiltin_objobjproc_closure(SwigPyWrapperFunction wrapper, PyObject *a, PyO
   pyresult = wrapper(a, tuple);
   result = pyresult ? (PyObject_IsTrue(pyresult) ? 1 : 0) : -1;
   Py_XDECREF(pyresult);
-  Py_DECREF(tuple);
+  SWIG_Py_DECREF(tuple);
   return result;
 }
 
@@ -725,7 +725,7 @@ SwigPyBuiltin_objobjargproc_closure(SwigPyWrapperFunction wrapper, PyObject *a, 
   resultobj = wrapper(a, tuple);
   result = resultobj ? 0 : -1;
   Py_XDECREF(resultobj);
-  Py_DECREF(tuple);
+  SWIG_Py_DECREF(tuple);
   return result;
 }
 
@@ -752,7 +752,7 @@ SwigPyBuiltin_hashfunc_closure(SwigPyWrapperFunction wrapper, PyObject *a) {
   if (!pyresult)
     return -1;
   result = SWIG_PyNumber_AsPyHash(pyresult);
-  Py_DECREF(pyresult);
+  SWIG_Py_DECREF(pyresult);
   return result;
 }
 
