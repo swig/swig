@@ -27,7 +27,7 @@ jobs:
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.EXTRA_CPPFLAGS }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.PY_ABI_VER }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
       matrix:
@@ -162,10 +162,8 @@ jobs:
         - SWIGLANG: python
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
-          EXTRA_CPPFLAGS: -DPy_LIMITED_API=0x03040000
-          CPPSTD: c++20
-          GCC: 13
-          os: ubuntu-22.04
+          VER: '3.8'
+          PY_ABI_VER: '3.4'
         - SWIGLANG: r
         - SWIGLANG: ruby
           VER: '2.0'
@@ -361,7 +359,7 @@ jobs:
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
-      EXTRA_CPPFLAGS: ${{ matrix.EXTRA_CPPFLAGS }}
+      PY_ABI_VER: ${{ matrix.PY_ABI_VER }}
 
     steps:
     - name: Machine Info
@@ -506,8 +504,8 @@ jobs:
             cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)"
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
-            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" EXTRA_CPPFLAGS="$EXTRA_CPPFLAGS"
-            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags" EXTRA_CPPFLAGS="$EXTRA_CPPFLAGS"
+            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" PY_ABI_VER="$PY_ABI_VER"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags" PY_ABI_VER="$PY_ABI_VER"
           fi
 
     - name: Install

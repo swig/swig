@@ -1268,10 +1268,19 @@ else
   PYTHON_DLNK   = @PYTHON3DYNAMICLINKING@
   PYTHON_LINK   = @PY3LINK@
 endif
-PYTHON_SO     = @PYTHON_SO@
+
+# Set PY_ABI_VER to the target ABI version, such as 3.4, if wanting a stable ABI build
+PY_ABI_VER =
+ifneq (,$(PY_ABI_VER))
+  PYTHON_SO      = .abi3@PYTHON_SO@
+  EXTRA_CPPFLAGS := -DPy_LIMITED_API=$(shell printf "0x%02X%02X0000" $(subst ., ,$(PY_ABI_VER)))
+else
+  PYTHON_SO     = @PYTHON_SO@
+endif
 
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,W291,W391
+PYABI3AUDIT	  = @PYABI3AUDIT@
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
@@ -1281,6 +1290,9 @@ python: $(SRCDIR_SRCS)
 	$(SWIG) -python $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
+ifneq (,$(PY_ABI_VER))
+	$(COMPILETOOL) $(PYABI3AUDIT) --assume-minimum-abi3 $(PY_ABI_VER) --report -o $(TARGET)_abi3_report.json $(LIBPREFIX)_$(TARGET)$(PYTHON_SO) || (cat $(TARGET)_abi3_report.json && false)
+endif
 
 # -----------------------------------------------------------------
 # Build a C++ dynamically loadable module
@@ -1290,6 +1302,9 @@ python_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -python -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
+ifneq (,$(PY_ABI_VER))
+	$(COMPILETOOL) $(PYABI3AUDIT) --assume-minimum-abi3 $(PY_ABI_VER) --report -o $(TARGET)_abi3_report.json $(LIBPREFIX)_$(TARGET)$(PYTHON_SO) || (cat $(TARGET)_abi3_report.json && false)
+endif
 
 # -----------------------------------------------------------------
 # Build statically linked Python interpreter
@@ -1346,6 +1361,7 @@ python_clean:
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@ *$(PYTHON_SO)
 	rm -f $(TARGET).py
+	rm -f *_abi3_report.json
 	case "x$(SRCDIR)" in x|x./);; *) rm -f $(RUNME).py;; esac
 
 ##################################################################
