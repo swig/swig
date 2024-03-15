@@ -15,6 +15,7 @@
 #include "cparse.h"
 #include <limits.h>		// for INT_MAX
 #include <ctype.h>
+#include <csharpdoc.h>
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
@@ -46,6 +47,7 @@ class CSHARP:public Language {
   bool global_variable_flag;	// Flag for when wrapping a global variable
   bool old_variable_names;	// Flag for old style variable names in the intermediary class
   bool generate_property_declaration_flag;	// Flag for generating properties
+  bool doxygen; // Flag for Doxygen generation
 
   String *imclass_name;		// intermediary class name
   String *module_class_name;	// module class name
@@ -123,6 +125,7 @@ public:
       global_variable_flag(false),
       old_variable_names(false),
       generate_property_declaration_flag(false),
+      doxygen(false),
       imclass_name(NULL),
       module_class_name(NULL),
       imclass_class_code(NULL),
@@ -170,6 +173,14 @@ public:
     director_multiple_inheritance = 0;
     directorLanguage();
   }
+
+   /* -----------------------------------------------------------------------------
+    * ~CSHARP()
+    * ----------------------------------------------------------------------------- */
+    ~CSHARP()
+    {
+      delete doxygenTranslator;
+    }
 
   /* -----------------------------------------------------------------------------
    * getProxyName()
@@ -223,6 +234,8 @@ public:
 
     SWIG_library_directory("csharp");
 
+    int doxygen_translator_flags = 0;
+
     // Look for certain command line options
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
@@ -265,13 +278,28 @@ public:
 	    i++;
 	  } else {
 	    Swig_arg_error();
-	  }
-	} else if (strcmp(argv[i], "-help") == 0) {
-	  Printf(stdout, "%s\n", usage);
-	}
+	    }
+	  }  else if (strcmp(argv[i], "-doxygen") == 0)
+       {
+         doxygen = true;
+         scan_doxygen_comments = 1;
+         Swig_mark_arg(i);
+       } else if (strcmp(argv[i], "-debug-doxygen-translator") == 0) {
+         doxygen_translator_flags |= DoxygenTranslator::debug_translator;
+         Swig_mark_arg(i);    
+       } else if (strcmp(argv[i], "-debug-doxygen-parser") == 0) {
+         doxygen_translator_flags |= DoxygenTranslator::debug_parser;
+         Swig_mark_arg(i);   
+       } else if (strcmp(argv[i], "-help") == 0) {
+	       Printf(stdout, "%s\n", usage);
+	     }
       }
     }
 
+    if (doxygen)
+      doxygenTranslator = new CSharpDocConverter(doxygen_translator_flags);
+
+    
     // Add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGCSHARP 1", 0);
 
@@ -439,7 +467,7 @@ public:
     }
 
     if (old_variable_names) {
-      Swig_name_register("set", "set_%n%v");
+      Swig_name_register("/*3/ set", "set_%n%v");
       Swig_name_register("get", "get_%n%v");
     }
 
@@ -1077,6 +1105,7 @@ public:
     if (!(proxy_flag && is_wrapping_class()) && !enum_constant_flag) {
       moduleClassFunctionHandler(n);
     }
+    
 
     /* 
      * Generate the proxy class properties for public member variables.
@@ -1087,8 +1116,10 @@ public:
       bool getter_flag = Cmp(symname, Swig_name_set(getNSpace(), Swig_name_member(0, getClassPrefix(), variable_name))) != 0;
 
       String *getter_setter_name = NewString("");
+
+
       if (!getter_flag)
-	Printf(getter_setter_name, "set");
+	Printf(getter_setter_name, "/*1/set");
       else
 	Printf(getter_setter_name, "get");
       Putc(toupper((int) *Char(variable_name)), getter_setter_name);
@@ -1186,6 +1217,11 @@ public:
       EnumFeature enum_feature = decodeEnumFeature(n);
       String *typemap_lookup_type = Getattr(n, "name");
 
+      // Translate and write comment if flagged
+      if (have_docstring(n)) {
+        Printv(enum_code, docstring(n, tab4, true), NIL, NIL);
+      }
+
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper C# enum
 
@@ -1256,6 +1292,7 @@ public:
 	Delete(full_imclass_name);
 	full_imclass_name = 0;
       }
+     
 
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper C# enum
@@ -1391,6 +1428,10 @@ public:
 	if (csattributes)
 	  Printf(enum_code, "  %s\n", csattributes);
 
+  // Translate and write comment if flagged
+  if (have_docstring(n)) {
+    Printv(enum_code, docstring(n, tab4, true), NIL, NIL);    
+  }
 	Printf(enum_code, "  %s", symname);
 
 	// Check for the %csconstvalue feature
@@ -1419,10 +1460,10 @@ public:
 	  // Wrap (non-anonymous) enum using the typesafe enum pattern
 	  if (Getattr(n, "enumvalue")) {
 	    String *value = enumValue(n);
-	    Printf(enum_code, "  %s static readonly %s %s = new %s(\"%s\", %s);\n", methodmods, return_type, symname, return_type, symname, value);
+	    Printf(enum_code, "  %s /*1*/static readonly %s %s = new %s(\"%s\", %s);\n", methodmods, return_type, symname, return_type, symname, value);
 	    Delete(value);
-	  } else {
-	    Printf(enum_code, "  %s static readonly %s %s = new %s(\"%s\");\n", methodmods, return_type, symname, return_type, symname);
+	  } else {              
+	    Printf(enum_code, "  %s /*2*/static readonly %s %s = new %s(\"%s\");\n", methodmods, return_type, symname, return_type, symname);
 	  }
 	} else {
 	  // Simple integer constants
@@ -1431,8 +1472,7 @@ public:
 
 	  // The %csconst feature determines how the constant value is obtained
 	  int const_feature_flag = GetFlag(n, "feature:cs:const");
-
-	  const char *const_readonly = const_feature_flag ? "const" : "static readonly";
+   	  const char *const_readonly = const_feature_flag ? "const" : "static readonly";
 	  String *value = enumValue(n);
 	  Printf(enum_code, "  %s %s %s %s = %s;\n", methodmods, const_readonly, return_type, symname, value);
 	  Delete(value);
@@ -1540,6 +1580,11 @@ public:
 
     const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+
+      // Translate and write comment if flagged
+    if (have_docstring(n)) {
+      Printv(constants_code, docstring(n, tab4, true), NIL, NIL);
+    }
 
     Printf(constants_code, "  %s %s %s %s = ", methodmods, (const_feature_flag ? "const" : "static readonly"), return_type, itemname);
 
@@ -2214,6 +2259,11 @@ public:
 
     Language::classHandler(n);
 
+    // Translate and write comment if flagged
+    if (have_docstring(n)) {
+      Printv(proxy_class_def, docstring(n, tab4, true), NIL);
+    }
+
     if (proxy_flag) {
 
       emitProxyClassDefAndCPPCasts(n);
@@ -2367,6 +2417,11 @@ public:
     }
     static_flag = false;
 
+    // NO EFFECT
+    if (have_docstring(n)) {
+	    Printv(module_class_code, docstring(n, tab4, true), NIL);
+    }
+
     return SWIG_OK;
   }
 
@@ -2391,6 +2446,7 @@ public:
     Parm *p;
     Parm *last_parm = 0;
     int i;
+    String* comment_code = NewString("");
     String *imcall = NewString("");
     String *return_type = NewString("");
     String *function_code = NewString("");
@@ -2449,6 +2505,8 @@ public:
         Swig_typemap_attach_parms("csvarin", l, NULL);
     }
 
+  
+
     /* Start generating the proxy function */
     const String *outattributes = Getattr(n, "tmap:cstype:outattributes");
     if (outattributes)
@@ -2488,7 +2546,6 @@ public:
     Printf(function_code, "%s %s(", return_type, proxy_function_name);
     if (is_interface)
       Printf(interface_class_code, "  %s %s(", return_type, proxy_function_name);
-    
 
     Printv(imcall, full_imclass_name, ".$imfuncname(", NIL);
     if (!static_flag)
@@ -2588,6 +2645,12 @@ public:
     if (is_interface)
       Printf(interface_class_code, ");\n");
 
+    // Translate and write comment if flagged
+    if (have_docstring(n))
+    {
+       Printv(comment_code, docstring(n, tab4, true), NIL);
+    }
+
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup("csout", n, "", 0))) {
       excodeSubstitute(n, tm, "csout", n);
@@ -2682,8 +2745,14 @@ public:
 	if (!methodmods)
 	  methodmods = (is_public(n) ? public_string : protected_string);
 
+    // Translate and write comment if flagged
+    if (have_docstring(n))
+    {
+       Printv(proxy_class_code, docstring(n, tab4, true), NIL);
+    }
+
 	// Start property declaration
-	Printf(proxy_class_code, "  %s %s%s %s {", methodmods, static_flag ? "static " : "", variable_type, variable_name);
+	Printf(proxy_class_code, "%s %s%s %s {", methodmods, static_flag ? "static " : "", variable_type, variable_name);
       }
       generate_property_declaration_flag = false;
 
@@ -2721,6 +2790,7 @@ public:
     } else {
       // Normal function call
       Printf(function_code, " %s\n\n", tm ? (const String *) tm : empty_string);
+      Printv(proxy_class_code, comment_code, NIL);
       Printv(proxy_class_code, function_code, NIL);
     }
 
@@ -2743,6 +2813,7 @@ public:
     Parm *p;
     int i;
     String *function_code = NewString("");
+    String* comment_code = NewString("");
     String *helper_code = NewString(""); // Holds code for the constructor helper method generated only when the csin typemap has code in the pre or post attributes
     String *helper_args = NewString("");
     String *pre_code = NewString("");
@@ -2938,7 +3009,14 @@ public:
       } else {
         Replaceall(function_code, "$imcall", imcall);
       }
-
+      
+      // Translate and write comment if flagged
+      if (have_docstring(n))
+      {
+        Printv(comment_code, docstring(n, tab4, true), NIL);
+      }
+      
+      Printv(proxy_class_code, comment_code, NIL);
       Printv(proxy_class_code, function_code, "\n", NIL);
 
       Delete(helper_args);
@@ -3024,8 +3102,10 @@ public:
   virtual int memberconstantHandler(Node *n) {
     variable_name = Getattr(n, "sym:name");
     wrapping_member_flag = true;
+
     Language::memberconstantHandler(n);
     wrapping_member_flag = false;
+
     return SWIG_OK;
   }
 
@@ -3057,6 +3137,7 @@ public:
     String *tm;
     Parm *p;
     Parm *last_parm = 0;
+    String* comment_code = NewString("");
     int i;
     String *imcall = NewString("");
     String *return_type = NewString("");
@@ -3095,11 +3176,14 @@ public:
 
     /* Change function name for global variables */
     if (proxy_flag && global_variable_flag) {
+
+
       // Capitalize the first letter in the variable to create the getter/setter function name
       func_name = NewString("");
+
       setter_flag = (Cmp(Getattr(n, "sym:name"), Swig_name_set(getNSpace(), variable_name)) == 0);
       if (setter_flag)
-	Printf(func_name, "set");
+	Printf(func_name, "/*2*/set");
       else
 	Printf(func_name, "get");
       Putc(toupper((int) *Char(variable_name)), func_name);
@@ -3119,6 +3203,12 @@ public:
       Printf(function_code, "  %s\n", csattributes);
     const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
+
+    // Translate and write comment if flagged
+    if (have_docstring(n))
+        Printv(function_code, docstring(n, tab4, true), NIL, NIL);
+    
+
     Printf(function_code, "  %s static %s %s(", methodmods, return_type, func_name);
     Printv(imcall, imclass_name, ".", overloaded_name, "(", NIL);
 
@@ -4650,6 +4740,155 @@ public:
     Setattr(n, "director:ctor", class_ctor);
 
     Delete(dirclassname);
+  }
+
+  /* ------------------------------------------------------------
+* have_docstring()
+*
+* Check if there is a docstring directive and it has text,
+* or there is an autodoc flag set
+* ------------------------------------------------------------ */
+  bool have_docstring(Node* n) {
+    String* str = Getattr(n, "feature:docstring");
+
+    return ((str && Len(str) > 0)
+      || (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"))
+      || (doxygen && doxygenTranslator->hasDocumentation(n))
+      );
+  }
+
+
+
+  /* ------------------------------------------------------------
+ * docstring()
+ *
+ * Get the docstring text, stripping off {} if necessary,
+ * and enclose in triple double quotes.  If autodoc is also
+ * set then it will build a combined docstring.
+ * ------------------------------------------------------------ */
+  String* docstring(Node* n, const String* indent, bool low_level = false) {
+    String* docstr = build_combined_docstring(n, indent, low_level);
+    const int len = Len(docstr);
+    if (!len)
+      return docstr;
+
+    return docstr;
+  }
+
+  /* ------------------------------------------------------------
+* build_combined_docstring()
+*
+* Build the full docstring which may be a combination of the
+* explicit docstring and autodoc string or, if none of them
+* is specified, obtained by translating Doxygen comment to
+* Python.
+*
+* Return new string to be deleted by caller (never NIL but
+* may be empty if there is no docstring).
+* ------------------------------------------------------------ */
+
+  String* build_combined_docstring(Node* n, const String* indent = "", bool low_level = false) {
+    String* docstr = NULL;
+
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      docstr = doxygenTranslator->getDocumentation(n, 0);
+    }
+
+    if (!docstr)
+      docstr = NewString("");
+
+    // If there is more than one line then make docstrings like this:
+    //
+    //      This is line1
+    //      And here is line2 followed by the rest of them
+    //
+    // otherwise, put it all on a single line
+    if (Strchr(docstr, '\n')) {
+      String* tmp = NewString("");
+      Append(tmp, indent_docstring(docstr, indent));
+      Append(tmp, indent);
+      Delete(docstr);
+      docstr = tmp;
+    }
+    else
+    {      
+      String* tmp = NewString("");
+      Append(tmp, "/// ");
+      Append(tmp, docstr);
+      Append(tmp, "\n");
+      Delete(docstr);
+      docstr = tmp;
+    }
+
+    return docstr;
+  }
+
+  /* ------------------------------------------------------------
+* indent_docstring()
+*
+* Format (indent) a CSharp docstring.
+* Remove leading whitespace from 'code' and re-indent using
+* the indentation string in 'indent'.
+* ------------------------------------------------------------ */
+
+  String* indent_docstring(const String* code, const_String_or_char_ptr indent) {
+    String* out = NewString("");
+    String* temp;
+    char* t;
+    if (!indent)
+      indent = "";
+
+    temp = NewString(code);
+
+    t = Char(temp);
+    if (*t == '{') {
+      Delitem(temp, 0);
+      Delitem(temp, DOH_END);
+    }
+
+    /* Split the input text into lines */
+    List* clist = SplitLines(temp);
+    Delete(temp);
+
+    Iterator si;
+
+    int truncate_characters_count = INT_MAX;
+    for (si = First(clist); si.item; si = Next(si)) {
+      const char* c = Char(si.item);
+      int i;
+      for (i = 0; isspace((unsigned char)c[i]); i++) {
+        // Scan forward until we find a non-space (which may be a null byte).
+      }
+      char ch = c[i];
+      if (ch) {
+        // Found a line which isn't just whitespace
+        if (i < truncate_characters_count)
+          truncate_characters_count = i;
+      }
+    }
+
+    if (truncate_characters_count == INT_MAX)
+      truncate_characters_count = 0;
+
+    for (si = First(clist); si.item; si = Next(si)) {
+      const char* c = Char(si.item);
+
+      int i;
+      for (i = 0; isspace((unsigned char)c[i]); i++) {
+        // Scan forward until we find a non-space (which may be a null byte).
+      }
+      char ch = c[i];
+      if (!ch) {
+        // Line is just whitespace - emit an empty line.
+        Printv(out, indent, "///", NIL, NIL);  
+        Putc('\n', out);
+        continue;
+      }
+
+      Printv(out, indent, "/// ", c + truncate_characters_count, "\n", NIL);
+    }
+    Delete(clist);
+    return out;
   }
 
   /*----------------------------------------------------------------------
