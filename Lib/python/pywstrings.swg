@@ -30,7 +30,11 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
 %#endif
   if (isunicode) {
 %#if PY_VERSION_HEX >= 0x03030000
+%# if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x03070000
     Py_ssize_t len = PyUnicode_GetLength(obj);
+%# else
+    Py_ssize_t len = PyUnicode_AsWideChar(SWIGPY_UNICODE_ARG(obj), NULL, 0) - 1;
+%# endif
 %#else
     Py_ssize_t len = PyUnicode_GetSize(obj);
 %#endif
