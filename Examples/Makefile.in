@@ -1291,7 +1291,9 @@ python: $(SRCDIR_SRCS)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 ifneq (,$(PY_ABI_VER))
+ifneq (,$(PYABI3AUDIT))
 	$(COMPILETOOL) $(PYABI3AUDIT) --assume-minimum-abi3 $(PY_ABI_VER) --report -o $(TARGET)_abi3_report.json $(LIBPREFIX)_$(TARGET)$(PYTHON_SO) || (cat $(TARGET)_abi3_report.json && false)
+endif
 endif
 
 # -----------------------------------------------------------------
@@ -1303,7 +1305,9 @@ python_cpp: $(SRCDIR_SRCS)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 ifneq (,$(PY_ABI_VER))
+ifneq (,$(PYABI3AUDIT))
 	$(COMPILETOOL) $(PYABI3AUDIT) --assume-minimum-abi3 $(PY_ABI_VER) --report -o $(TARGET)_abi3_report.json $(LIBPREFIX)_$(TARGET)$(PYTHON_SO) || (cat $(TARGET)_abi3_report.json && false)
+endif
 endif
 
 # -----------------------------------------------------------------
