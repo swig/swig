@@ -1924,6 +1924,7 @@ SwigPyObject_GetDesc(PyObject *self)
 SWIGRUNTIME void
 SWIG_Python_TypeError(const char *type, PyObject *obj)
 {
+  (void) obj;
   if (type) {
 #if defined(SWIG_COBJECT_TYPES)
     if (obj && SwigPyObject_Check(obj)) {
