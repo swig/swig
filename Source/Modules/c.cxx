@@ -1840,6 +1840,8 @@ public:
 
     Swig_banner(f_wrappers_cxx);
 
+    Swig_obligatory_macros(f_wrappers_cxx, "C");
+
     // Open the file where all wrapper declarations will be written to in the end.
     outfile_h = Getattr(n, "outfile_h");
     const scoped_dohptr f_wrappers_h(NewFile(outfile_h, "w", SWIG_output_files()));
