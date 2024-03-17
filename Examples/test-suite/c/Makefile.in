@@ -98,7 +98,7 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 
 # Suppress warnings about experimental status and unsupported features -- there are just too many of those for now for these warnings to be useful.
-SWIGOPT += -w524 -w779
+SWIGOPT += -w524 -w761
 
 %.ctest: SWIGOPT += -nocxx
 
