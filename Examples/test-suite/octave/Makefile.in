@@ -15,6 +15,9 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
+FAILING_CPP_TESTS = \
+	cpp17_map_no_default_ctor \
+
 CPP_TEST_CASES += \
 	li_std_pair_extra \
 	li_std_string_extra \
@@ -23,15 +26,10 @@ CPP_TEST_CASES += \
 
 CPP11_TEST_CASES += \
 	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_crtp_upcast \
 	cpp11_shared_ptr_nullptr_in_containers \
 	cpp11_shared_ptr_overload \
 	cpp11_shared_ptr_upcast \
-
-CPP_TEST_BROKEN += \
-	implicittest \
-	li_implicit \
-	li_std_set \
-	li_std_stream
 
 include $(srcdir)/../common.mk
 

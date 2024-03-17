@@ -207,8 +207,6 @@
     s = C_TO_MZ(*$1);
     SWIG_APPEND_VALUE(s);
 }
-%typemap(in) C_NAME *BOTH = C_NAME *INPUT;
-%typemap(argout) C_NAME *BOTH = C_NAME *OUTPUT;
 %typemap(in) C_NAME *INOUT = C_NAME *INPUT;
 %typemap(argout) C_NAME *INOUT = C_NAME *OUTPUT;
 %enddef
@@ -239,19 +237,6 @@ SIMPLE_MAP(float, SCHEME_REALP, scheme_real_to_double,
 	   scheme_make_double, real);
 SIMPLE_MAP(double, SCHEME_REALP, scheme_real_to_double,
 	   scheme_make_double, real);
-
-SIMPLE_MAP(char *, SCHEME_STRINGP, SCHEME_STR_VAL, 
-	   SCHEME_MAKE_STRING, string);
-SIMPLE_MAP(const char *, SCHEME_STRINGP, SCHEME_STR_VAL, 
-	   SCHEME_MAKE_STRING, string);
-
-/* For MzScheme 30x:  Use these typemaps if you are not going to use
-   UTF8 encodings in your C code. 
- SIMPLE_MAP(char *,SCHEME_BYTE_STRINGP, SCHEME_BYTE_STR_VAL,
- 	   scheme_make_byte_string_without_copying,bytestring);
- SIMPLE_MAP(const char *,SCHEME_BYTE_STRINGP, SCHEME_BYTE_STR_VAL,
- 	   scheme_make_byte_string_without_copying,bytestring);
-*/
 
 /* Const primitive references.  Passed by value */
 
@@ -289,6 +274,39 @@ REF_MAP(float, SCHEME_REALP, scheme_real_to_double,
 	   scheme_make_double, real);
 REF_MAP(double, SCHEME_REALP, scheme_real_to_double,
 	   scheme_make_double, real);
+
+
+%typemap(in) char * {
+  if (SCHEME_STRINGP($input)) {
+    $1 = SCHEME_STR_VAL($input);
+  } else if (SCHEME_NULLP($input)) {
+    $1 = NULL;
+  } else {
+    scheme_wrong_type(FUNC_NAME, "string", $argnum - 1, argc, argv);
+  }
+}
+
+%typemap(varin) char * {
+  if (SCHEME_STRINGP($input)) {
+    $1 = SCHEME_STR_VAL($input);
+  } else if (SCHEME_NULLP($input)) {
+    $1 = NULL;
+  } else {
+    scheme_wrong_type(FUNC_NAME, "string", 0, argc, argv);
+  }
+}
+
+%typemap(out) char * {
+    $result = SCHEME_MAKE_STRING($1);
+}
+
+%typemap(varout) char * {
+    $result = SCHEME_MAKE_STRING($1);
+}
+
+%typemap(throws) char * {
+  scheme_signal_error("%s: %s", FUNC_NAME, $1);
+}
 
 /* Void */
 

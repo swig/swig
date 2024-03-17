@@ -5,7 +5,7 @@
 // like 'top'. There is a wrapper for shared_ptr in shared_ptr_wrapper.h which enables one to
 // count the instances of shared_ptr. Uncomment the SHARED_PTR_WRAPPER macro to turn this on.
 //
-// Also note the debug_shared flag  which can be set from the target language.
+// Also note the debug_shared flag which can be set from the target language.
 
 %module li_boost_shared_ptr
 
@@ -44,7 +44,7 @@
 # define SWIG_SHARED_PTR_NAMESPACE SwigBoost
 #endif
 
-#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY)
+#if defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGPYTHON) || defined(SWIGD) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGR)
 #define SHARED_PTR_WRAPPERS_IMPLEMENTED
 #endif
 
@@ -268,6 +268,7 @@ long use_count(const SwigBoost::shared_ptr<KlassDerived>& sptr) {
 long use_count(const SwigBoost::shared_ptr<Klass>& sptr) {
   return sptr.use_count();
 }
+
 const SwigBoost::shared_ptr<Klass>& ref_1() {
   static SwigBoost::shared_ptr<Klass> sptr;
   return sptr;

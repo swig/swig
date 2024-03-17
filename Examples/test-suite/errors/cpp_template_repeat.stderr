@@ -1,0 +1,6 @@
+cpp_template_repeat.i:6: Warning 404: Duplicate template instantiation of 'blah< int >' with name 'iiblah' ignored,
+cpp_template_repeat.i:5: Warning 404: previous instantiation of 'blah< int >' with name 'iblah'.
+cpp_template_repeat.i:14: Warning 404: Duplicate template instantiation of 'blah< short >' with name 'sblah' ignored,
+cpp_template_repeat.i:13: Warning 404: previous instantiation of 'blah< short >' with name 'sblah'.
+cpp_template_repeat.i:9: Warning 519: %template() contains no name. Template method ignored: blah< double >(double)
+cpp_template_repeat.i:16: Warning 519: %template() contains no name. Template method ignored: blah< char const * >(char const *)

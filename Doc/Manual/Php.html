@@ -30,6 +30,7 @@
 <li><a href="#Php_nn2_6_3">Static Member Variables</a>
 <li><a href="#Php_nn2_6_4">Static Member Functions</a>
 <li><a href="#Php_nn2_6_5">Specifying Implemented Interfaces</a>
+<li><a href="#Php_nn2_6_6">Dynamic Properties</a>
 </ul>
 <li><a href="#Php_nn2_7">PHP Pragmas, Startup and Shutdown code</a>
 </ul>
@@ -50,12 +51,13 @@
 
 
 <p>
-In this chapter, we discuss SWIG's support of PHP.  Currently any PHP7 or PHP8
+In this chapter, we discuss SWIG's support of PHP.  Currently any PHP8
 release should work.
 </p>
 
 <p>
-Support for PHP7 was added in SWIG 3.0.11 and for PHP8 in 4.1.0.
+Support for PHP8 was added in SWIG 4.1.0.
+Support for PHP7 was added in SWIG 3.0.11 and removed in 4.2.0.
 Support for PHP5 was removed in SWIG 4.0.0 and support for PHP4 was removed in
 SWIG 1.3.37.  There never was a PHP6 release.
 </p>
@@ -75,13 +77,14 @@ available.
 
 
 <p>
-To build a PHP extension, run swig using the <tt>-php7</tt> option as follows
-(<tt>-php</tt> is also supported and currently is an alias for <tt>-php7</tt>
-but prior to SWIG 4.0.0 it was an alias for <tt>-php5</tt>):
+To build a PHP extension, run swig using the <tt>-php</tt> option
+(you can also use <tt>-php7</tt> - PHP7 and PHP8 have a largely compatible C
+extension API, hence the same option name has been used for both).  For
+example:
 </p>
 
 <div class="code"><pre>
-swig -php7 example.i
+swig -php example.i
 </pre></div>
 
 <p>
@@ -145,9 +148,9 @@ least work for Linux though):
 
 <p>
 To test the extension from a PHP script, you first need to tell PHP to
-load it.  Assuming you're using PHP 7.2 or higher, the recommended (and
-simplest!) way to do this is to copy it to PHP's default extension directory
-and add a line like this to the <tt>[PHP]</tt> section of <tt>php.ini</tt>:
+load it.  The recommended (and simplest!) way to do this is to copy it to
+PHP's default extension directory and add a line like this to the
+<tt>[PHP]</tt> section of <tt>php.ini</tt>:
 </p>
 
 <div class="code"><pre>
@@ -155,14 +158,21 @@ and add a line like this to the <tt>[PHP]</tt> section of <tt>php.ini</tt>:
 </pre></div>
 
 <p>
-PHP &lt; 7.2 doesn't support loading by just the module name, so you need
-to specify the filename of the module to be specified, which varies
-between platforms.  And for any PHP version, if the module is not in PHP's
-default extension directory, you also need to specify the path, for example:
+If the module is not in PHP's default extension directory, you also need to
+specify the path, in which case you'll also need to deal with platform-specific
+naming - for example, on Linux:
 </p>
 
 <div class="code"><pre>
         extension=/path/to/modulename.so
+</pre></div>
+
+<p>
+but on Microsoft Windows you'd need to use:
+</p>
+
+<div class="code"><pre>
+        extension=/path/to/php_modulename.dll
 </pre></div>
 
 <p>
@@ -173,15 +183,17 @@ PHP script which uses your extension:
 </p>
 
 <div class="code"><pre>
-        dl("/path/to/modulename.so"); // Load the module
+        dl("modulename"); // Load the module
 </pre></div>
 
 <p>
-But to do this portably you need to take into account that pathnames and the
-filename extension vary by platform, and for security reasons PHP no longer
-supports <tt>dl()</tt> when running PHP through a webserver.  Overall it's
-better to instead use <tt>extension</tt> in <tt>php.ini</tt> as described
-above.
+Again, if the module isn't in PHP's default extension directory you'll also
+need to specify the path and deal with that varying by platform.
+</p>
+
+<p>
+For security reasons PHP no longer supports <tt>dl()</tt> when running PHP
+through a webserver, so this isn't an option there.
 </p>
 
 <H2><a name="Php_nn2">32.2 Basic PHP interface</a></H2>
@@ -226,47 +238,6 @@ echo "E = " . E . "\n";
 </pre>
 </div>
 
-<p>
-There's one peculiarity of how constants work in PHP prior to PHP 8
-which it is useful to note (this is not specific to SWIG though) - if you try
-to use an undeclared constant, PHP will emit a warning (or a notice in PHP 7.1
-and earlier) and then expand the constant to a string version of the constant's
-name.  Unfortunately it is easy to miss the warning message if you're using PHP
-in a webserver as it will probably end up in error.log or similar.  PHP 8.0
-made this an error.
-</p>
-
-<p>
-For example,
-</p>
-
-<div class="code"><pre>
-%module example
-
-#define EASY_TO_MISPELL 0
-</pre>
-</div>
-
-<p>
-accessed incorrectly in PHP,
-</p>
-
-<div class="code">
-<pre>
-if(EASY_TO_MISPEL) {
-  ...
-} else {
-  ...
-}
-
-</pre>
-</div>
-
-<p>
-The mis-spelled constant will become the string 'EASY_TO_MISPEL', which
-is treated as true by the if test, when the value of the intended constant
-would be treated as false!
-</p>
 
 <H3><a name="Php_nn2_2">32.2.2 Global Variables</a></H3>
 
@@ -345,9 +316,7 @@ $c = bar(3.5);  # Use default argument for 2nd parameter
 
 <p>
 SWIG generates PHP type declarations for function parameters and return
-types for PHP 8 and later (we don't try to support PHP 7's more limited type
-declarations and the generated wrappers compiled for PHP 7 will not have any
-type declarations).
+types for PHP 8 and later.
 </p>
 
 <p>
@@ -634,16 +603,10 @@ variable, or assigning <tt>NULL</tt> to a variable.
 
 
 <p>
-SWIG defaults to wrapping C++ structs and classes with PHP classes.
+SWIG wraps C++ structs and classes with PHP classes.
 Since SWIG 4.1.0, this is done entirely via PHP's C API - earlier SWIG
 versions generated a PHP wrapper script which defined proxy classes
 which called a set of flat functions which actually wrapped the C++ class.
-</p>
-
-<p>
-If you don't want the class wrappers, you can pass the command-line option
-"-noproxy" in which case you'll get C++ classes wrapped as flat functions
-as described below.
 </p>
 
 <p>
@@ -698,33 +661,16 @@ Member variables and methods are accessed using the <tt>-&gt;</tt> operator.
 
 
 <p>
-The <tt>-noproxy</tt> option flattens the object structure and
-generates collections of named functions.  The above example results
-in the following PHP functions:
+SWIG/PHP used to support a <tt>-noproxy</tt> option to flatten the class
+structure and generate collections of named flat functions.  This is no
+longer supported as of SWIG 4.1.0.
 </p>
-
-<div class="code"><pre>
-new_Vector();
-Vector_x_set($obj, $d);
-Vector_x_get($obj);
-Vector_y_set($obj, $d);
-Vector_y_get($obj);
-Vector_z_set($obj, $d);
-Vector_z_get($obj);
-Vector_magnitude($obj);
-new_Complex();
-Complex_re_set($obj, $d);
-Complex_re_get($obj);
-Complex_im_set($obj, $d);
-Complex_im_get($obj);
-</pre></div>
 
 <H4><a name="Php_nn2_6_2">32.2.6.2 Constructors and Destructors</a></H4>
 
 
 <p>
-The constructor is called when <tt>new Object()</tt> (or
-<tt>new_Object()</tt> if using <tt>-noproxy</tt>) is used to create an
+The constructor is called when <tt>new Object()</tt> is used to create an
 instance of the object. If multiple constructors are defined for an
 object, function overloading will be used to determine which
 constructor to execute.
@@ -842,6 +788,60 @@ so:
 <p>
 If there are multiple interfaces, just list them separated by commas.
 </p>
+
+
+<H4><a name="Php_nn2_6_6">32.2.6.6 Dynamic Properties</a></H4>
+
+
+<p>
+Historically PHP has supported dynamic class properties and SWIG
+has implemented them too (because we implement the magic <tt>__get()</tt>,
+<tt>__set()</tt> and <tt>__isset()</tt> methods we need to include explicit
+handling).
+</p>
+
+<p>
+PHP 8.2 <a
+href="https://wiki.php.net/rfc/deprecate_dynamic_properties">deprecates
+dynamic class properties</a> - initially they'll warn, and apparently they'll
+not work by default in PHP 9.0.
+</p>
+
+<p>
+In PHP code dynamic properties can be enabled for a class by
+marking that class with the attribute <tt>#[AllowDynamicProperties]</tt>.
+</p>
+
+<p>
+To follow this PHP change, as of SWIG 4.1.0 you now need enable dynamic
+properties for any classes you want to support them.  To enable for class
+<tt>Foo</tt>:
+</p>
+
+<div class="code"><pre>
+%feature("php:allowdynamicproperties", 1) Foo;
+</pre></div>
+
+<p>
+or to enable them for all wrapped classes:
+</p>
+
+<div class="code"><pre>
+%feature("php:allowdynamicproperties", 1);
+</pre></div>
+
+<p>
+Note that unknown features are ignored, so you can add use these
+unconditionally in your interface file and it'll work with older SWIG too.
+</p>
+
+<p>
+There was a bug in SWIG 4.1.0 where setting this feature to any value enabled
+it - SWIG 4.2.0 fixed this and you can now set it to 0 to turn it off (for
+example, you might want to enabled it for everything and then selectively turn
+it off for specific classes).
+</p>
+
 
 <H3><a name="Php_nn2_7">32.2.7 PHP Pragmas, Startup and Shutdown code</a></H3>
 

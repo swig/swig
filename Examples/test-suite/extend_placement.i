@@ -83,6 +83,8 @@ public:
 
 // After the class
 
+%warnfilter(SWIGWARN_PARSE_REDEFINED) BarT<int>::spam();
+
 %inline %{
 template<class T>
 class BarT {

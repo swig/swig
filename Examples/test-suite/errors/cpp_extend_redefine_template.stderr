@@ -1,0 +1,4 @@
+cpp_extend_redefine_template.i:24: Warning 302: Redefinition of identifier 'spam' by %extend ignored,
+cpp_extend_redefine_template.i:6: Warning 302: %extend definition of 'spam'.
+cpp_extend_redefine_template.i:39: Warning 302: Redefinition of identifier 'spam' by %extend ignored,
+cpp_extend_redefine_template.i:47: Warning 302: %extend definition of 'spam'.

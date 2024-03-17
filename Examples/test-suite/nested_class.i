@@ -55,6 +55,11 @@
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 
+#if defined(__clang__)
+// Suppress: anonymous non-C-compatible type given name for linkage purposes by typedef declaration; add a tag name here [-Wnon-c-typedef-for-linkage]
+#pragma clang diagnostic ignored "-Wnon-c-typedef-for-linkage"
+#endif
+
 namespace bar {
     int foo() { return 0; }
 }

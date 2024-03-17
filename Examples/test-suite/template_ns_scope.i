@@ -10,7 +10,7 @@
     {
     public:
       A() {}    // *** Here, the const. breaks swig ***
-                // *** swig  works without it     ***
+                // *** swig works without it     ***
     };
  
     namespace hello

@@ -34,6 +34,12 @@
 <li><a href="#SWIGPlus_nn15">Protection</a>
 <li><a href="#SWIGPlus_nn16">Enums and constants</a>
 <li><a href="#SWIGPlus_nn17">Friends</a>
+<ul>
+<li><a href="#SWIGPlus_friend_classes">Friend classes</a>
+<li><a href="#SWIGPlus_friend_function_definitions">Friend function definitions</a>
+<li><a href="#SWIGPlus_friend_function_declarations">Friend function declarations</a>
+<li><a href="#SWIGPlus_friends_unqualified">Unqualified friend functions</a>
+</ul>
 <li><a href="#SWIGPlus_nn18">References and pointers</a>
 <li><a href="#SWIGPlus_nn19">Pass and return by value</a>
 <li><a href="#SWIGPlus_nn20">Inheritance</a>
@@ -57,6 +63,7 @@
 <li><a href="#SWIGPlus_template_functions">Function templates</a>
 <li><a href="#SWIGPlus_template_classes">Default template arguments</a>
 <li><a href="#SWIGPlus_template_class_inheritance">Template base classes</a>
+<li><a href="#SWIGPlus_template_empty">Empty template instantiation</a>
 <li><a href="#SWIGPlus_template_specialization">Template specialization</a>
 <li><a href="#SWIGPlus_template_member">Member templates</a>
 <li><a href="#SWIGPlus_template_scoping">Scoping and templates</a>
@@ -92,8 +99,8 @@ This chapter describes SWIG's support for wrapping C++.
 It is mostly concerned about C++ as defined by the C++ 98 and 03 standards.
 For additions to the original C++ standard, please read the
 <a href="CPlusPlus11.html#CPlusPlus11">SWIG and C++11</a>,
-<a href="CPlusPlus14.html#CPlusPlus14">SWIG and C++14</a> and
-<a href="CPlusPlus17.html#CPlusPlus17">SWIG and C++17</a> chapters.
+<a href="CPlusPlus14.html#CPlusPlus14">SWIG and C++14</a>,
+<a href="CPlusPlus17.html#CPlusPlus17">SWIG and C++17</a> and
 <a href="CPlusPlus20.html#CPlusPlus20">SWIG and C++20</a> chapters.
 As a prerequisite,
 you should first read the chapter <a href="SWIG.html#SWIG">SWIG Basics</a> to see
@@ -254,7 +261,7 @@ details.  The SWIG Wiki also has further details.
 </p>
 
 <b>Compatibility Note:</b> Early versions of SWIG generated just a flattened low-level C style API to C++ classes by default.
-The <tt>-noproxy</tt> commandline option is recognised by many target languages and will generate just this
+The <tt>-noproxy</tt> commandline option is recognised by some target languages and will generate just this
 interface as in earlier versions.
 
 <H2><a name="SWIGPlus_nn38">6.5 Proxy classes</a></H2>
@@ -691,8 +698,7 @@ class Foo {           // No destructor is generated, unless one is declared
 <b>Compatibility Note:</b> The generation of default
 constructors/implicit destructors was made the default behavior in SWIG
 1.3.7. This may break certain older modules, but the old behavior can
-be easily restored using <tt>%nodefault</tt> or the
-<tt>-nodefault</tt> command line option.  Furthermore, in order for
+be easily restored using <tt>%nodefault</tt>.  Furthermore, in order for
 SWIG to properly generate (or not generate) default constructors, it
 must be able to gather information from both the <tt>private</tt> and
 <tt>protected</tt> sections (specifically, it needs to know if a private or
@@ -706,9 +712,9 @@ those sections in the interface or using <tt>%nodefault</tt> to fix the problem.
 
 <p>
 <b>Note:</b> The <tt>%nodefault</tt>
-directive/<tt>-nodefault</tt> options described above, which disable both the default
+directive described above, which disables both the default
 constructor and the implicit destructors, could lead to memory
-leaks, and so it is strongly recommended to not use them.
+leaks, and so it is strongly recommended to not use it.
 </p>
 
 
@@ -874,10 +880,12 @@ could be wrapped, but they had to be renamed.  For example:
 
 <div class="code">
 <pre>
+%rename(CopyFoo) Foo::Foo(const Foo &amp;);
+
 class Foo {
 public:
   Foo();
-  %name(CopyFoo) Foo(const Foo &amp;);
+  Foo(const Foo &amp;);
   ...
 };
 </pre>
@@ -1088,13 +1096,6 @@ typemaps, eg <tt>%apply const std::string &amp; { std::string * }</tt>, but this
 </p>
 
 <p>
-<b>Compatibility note:</b> Read-only access used to be controlled by a pair of directives
-<tt>%readonly</tt> and <tt>%readwrite</tt>.   Although these directives still work, they
-generate a warning message.   Simply change the directives to <tt>%immutable;</tt> and
-<tt>%mutable;</tt> to silence the warning.  Don't forget the extra semicolon!
-</p>
-
-<p>
 <b>Compatibility note:</b> Prior to SWIG-1.3.12, all members of unknown type were
 wrapped into accessor functions using pointers.  For example, if you had a structure
 like this
@@ -1172,54 +1173,87 @@ Members declared as <tt>const</tt> are wrapped as read-only members and do not c
 <H2><a name="SWIGPlus_nn17">6.9 Friends</a></H2>
 
 
+<H3><a name="SWIGPlus_friend_classes">6.9.1 Friend classes</a></H3>
+
+
 <p>
-Friend declarations are recognised by SWIG. For example, if
-you have this code:
+Friend classes are a C++ feature that do not affect SWIG wrappers.
+SWIG simply parses the friend class declarations, but they are effectively ignored
+as they have no meaningful effect for wrappers.
+An example of friend classes:
 </p>
 
 <div class="code">
 <pre>
-class Foo {
-public:
+class X;
+class Y;
+class C {
+  // Friend classes have no effect on generated wrappers
+  friend class X;
+  friend Y;
   ...
-  friend void blah(Foo *f);
+};
+</pre>
+</div>
+
+<H3><a name="SWIGPlus_friend_function_definitions">6.9.2 Friend function definitions</a></H3>
+
+
+<p>
+A friend function definition in a C++ class defines a non-member function of the class
+and simultaneously makes it a friend of the class.
+For example, if you have this code:
+</p>
+
+<div class="code">
+<pre>
+class Buddy {
+  int val;
+  friend int blah(Buddy *b) { return b-&gt;val; }
+public:
   ...
 };
 </pre>
 </div>
 
 <p>
-then the <tt>friend</tt> declaration does result in a wrapper code
-equivalent to one generated for the following declaration
+then the <tt>friend</tt> function definition results in wrapper code
+equivalent to one generated for the following:
 </p>
 
 <div class="code">
 <pre>
-class Foo {
+class Buddy {
+  int val;
+  friend int blah(Buddy *b);
 public:
   ...
 };
 
-void blah(Foo *f);    
+int blah(Buddy *b) { return b-&gt;val; }
 </pre>
 </div>
 
 <p>
-A friend declaration, as in C++, is understood to be in the same scope
-where the class is declared, hence, you can have
+Access from target languages is thus as if <tt>blah</tt> was wrapped as a non-member function.
+The function is available and wrapped even if the friend is defined with private or protected access.
+</p>
+
+<p>
+A friend definition, as in C++, is understood to be in the same scope
+that the class is defined in, hence the scoping required for SWIG directives, such as <tt>%ignore</tt>, is as follows:
 </p>
 
 <div class="code">
 <pre>
-
-%ignore bar::blah(Foo *f);
+%ignore bar::blah(Buddy *b);
+// Not: %ignore bar::Buddy::blah(Buddy *b);
 
 namespace bar {
-
-  class Foo {
+  class Buddy {
+    int val;
+    friend int blah(Buddy *b) { return b-&gt;val; }
   public:
-    ...
-    friend void blah(Foo *f);
     ...
   };
 }
@@ -1227,8 +1261,129 @@ namespace bar {
 </div>
 
 <p>
-and a wrapper for the method 'blah' will not be generated.
+and a wrapper for <tt>blah</tt> will not be generated.
 </p>
+
+<H3><a name="SWIGPlus_friend_function_declarations">6.9.3 Friend function declarations</a></H3>
+
+
+<p>
+A C++ class can specify friends via friend function declarations.
+These functions are allowed access to the private and protected members of a class.
+This is pure C++ functionality and these friend function declarations are hence quietly ignored by SWIG and do not result in any wrappers.
+Well, not always! The C++ rules for friends that SWIG needs to follow are not that simple.
+Technically, only qualified function declarations are silently ignored by SWIG.
+Below are some examples of qualified friend declarations in <tt>A</tt> that are quietly ignored:
+</p>
+
+<div class="code">
+<pre>
+struct B {
+  int f();
+  B();
+  ~B();
+  ...
+};
+
+int g();
+
+class A {
+public:
+  // The following friend function-declarations are silently ignored (including constructor and destructor friends)
+  friend B::B();
+  friend B::~B();
+  friend int B::f();
+  friend int ::g();
+  ...
+};
+</pre>
+</div>
+
+<p>
+In the example above, if SWIG parses the struct <tt>B</tt> and global function <tt>g()</tt>,
+then they are of course wrapped as normal.
+</p>
+
+
+<H3><a name="SWIGPlus_friends_unqualified">6.9.4 Unqualified friend functions</a></H3>
+
+
+<p>
+Further clarification is required regarding both friend function definitions and declarations.
+In C++, friend function definitions can only be unqualified, whereas, friend function declarations can be either unqualified or qualified. Qualified friend function declarations are silently ignored by SWIG as covered in the previous section. SWIG does generate wrappers for any unqualified friend functions that it parses. This section goes through some of the complexities of wrapping unqualified friend functions.
+</p>
+
+<p>
+Consider an unqualified friend function definition:
+</p>
+
+<div class="code">
+<pre>
+class Chum {
+  int val;
+  friend int blah() { Chum c; c.private_function(); return c.val; }
+  void private_function();
+public:
+  ...
+};
+</pre>
+</div>
+
+<p>
+The <tt>Chum::blah()</tt> friend is very similar to the <tt>Buddy::blah(Buddy *)</tt> friend presented earlier.
+However, the generated code to call <tt>blah()</tt> may not compile unlike the code to call <tt>blah(Buddy *)</tt>.
+The compiler error will be something like:
+
+<div class="shell">
+<pre>
+error: 'blah' was not declared in this scope
+</pre>
+</div>
+
+<p>
+The reason one works and the other doesn't is due to the rules around unqualified friend definitions/declarations. Broadly, friends are not visible for lookup except via argument dependent lookup that considers the class that the friend is defined/declared in, unless there is a <i>matching declaration</i> at namespace scope.
+This will probably only make sense if you are conversant with this C++ concept, which is covered quite well at <a href="https://en.cppreference.com/w/cpp/language/adl">Argument-dependent lookup</a>.
+In our examples, <tt>blah(Buddy *)</tt> is visible via argument dependent lookup, but <tt>blah()</tt> is not. The solution is thus to provide a <i>matching declaration</i> in order to make the function visible to the compiler. Simply add:
+</p>
+
+<div class="code">
+<pre>
+int blah();
+</pre>
+</div>
+
+<p>
+SWIG does <b>not</b> have to parse it. In all likelihood, your code already has the <i>matching declaration</i> as it is required in order for the friend function definition to be usable from pure C++ code.
+</p>
+
+<p>
+The same potential problem applies to unqualified friend function declarations, such as:
+</p>
+
+<div class="code">
+<pre>
+class Mate {
+  int val;
+  friend int blah(); // Unqualified friend function declaration
+  void private_function();
+public:
+  ...
+};
+</pre>
+</div>
+
+<p>
+Again, the actual function declaration needs to be visible to the compiler.
+Or just the actual function definition as shown below.
+This must be defined in the same scope as <tt>Mate</tt>.
+Of course the function definition is necessary in order to avoid linking issues too.
+</p>
+
+<div class="code">
+<pre>
+int blah() { Mate m; m.private_function(); return m.val; }
+</pre>
+</div>
 
 <H2><a name="SWIGPlus_nn18">6.10 References and pointers</a></H2>
 
@@ -1363,13 +1518,13 @@ Vector *wrap_cross_product(Vector *a, Vector *b) {
 </div>
 
 <p>
-In order for the wrapper code to compile, <tt>Vector</tt> must define a default constructor, copy assignment operator (and/or a move assignment operator for C++11 and later).
+In order for the wrapper code to compile, <tt>Vector</tt> must define a default constructor and a copy assignment operator (and/or a move assignment operator for C++11 and later).
 The <a href="CPlusPlus11.html#CPlusPlus11_move_only">Movable and move-only types</a> section should be read regarding C++11 move semantics and return by value.
 </p>
 
 <p>
 If <tt>Vector</tt> is defined as a class in the interface, but it does not
-support a default constructor, SWIG changes the wrapper code by encapsulating
+support a default constructor and an assignment operator, SWIG changes the wrapper code by encapsulating
 the arguments inside a special C++ template wrapper class, through a process
 called the "Fulton Transform".  This produces a wrapper that looks like this:
 </p>
@@ -1390,7 +1545,7 @@ Vector cross_product(Vector *a, Vector *b) {
 
 <p>
 This transformation is a little sneaky, but it provides support for
-pass-by-value even when a class does not provide a default constructor
+pass-by-value even when a class is not default constructible nor assignable
 and it makes it possible to properly support a number of SWIG's
 customization options.  The definition of <tt>SwigValueWrapper</tt>
 can be found by reading the SWIG wrapper code. This class is really nothing more than a thin
@@ -1809,6 +1964,11 @@ use the <tt>compactdefaultargs</tt> feature flag as mentioned below.
 </p>
 
 <p>
+For C# please see the <a href="CSharp.html#CSharp_named_arguments">C# named and optional arguments</a> section for information on special
+handling of default arguments available specifically for C#.
+</p>
+
+<p>
 <b>Compatibility note:</b> Versions of SWIG prior to SWIG-1.3.23 wrapped default arguments slightly differently.
 Instead a single wrapper method was generated and the default values were copied into the C++ wrappers
 so that the method being wrapped was then called with all the arguments specified.
@@ -1834,6 +1994,7 @@ such as C# and Java,
 which don't have optional arguments in the language, 
 Another restriction of this feature is that it cannot handle default arguments that are not public.
 The following example illustrates this:
+
 </p>
 
 <div class="code">
@@ -2147,7 +2308,7 @@ This error means that the target language module supports overloading,
 but for some reason there is no type-checking rule that can be used to
 generate a working dispatch function.  The resulting behavior is then
 undefined.  You should report this as a bug to the
-<a href="http://www.swig.org/bugs.html">SWIG bug tracking database</a>
+<a href="https://www.swig.org/bugs.html">SWIG bug tracking database</a>
 if this is due to one of the typemaps supplied with SWIG.
 </p>
 
@@ -2324,7 +2485,7 @@ members (of all classes):
 Note: the <tt>*::</tt> syntax is non-standard C++, but the '*' is meant to be a
 wildcard that matches any class name (we couldn't think of a better
 alternative so if you have a better idea, send email to
-the <a href="http://www.swig.org/mail.html">swig-devel mailing list</a>.
+the <a href="https://www.swig.org/mail.html">swig-devel mailing list</a>.
 </p>
 
 <p>
@@ -2992,13 +3153,6 @@ as its use with C structures. Please refer to the <a href="SWIG.html#SWIG_adding
 section for further details.
 </p>
 
-<p>
-<b>Compatibility note:</b>  The <tt>%extend</tt> directive is a new
-name for the <tt>%addmethods</tt> directive in SWIG1.1.  Since <tt>%addmethods</tt> could
-be used to extend a structure with more than just methods, a more suitable
-directive name has been chosen.
-</p>
-
 <H3><a name="SWIGPlus_replacing_methods">6.17.1 Replacing class methods</a></H3>
 
 
@@ -3261,9 +3415,27 @@ void foo(List&lt;Integer&gt; *x);
 In this case, <tt>List&lt;Integer&gt;</tt> is exactly the same type as
 <tt>List&lt;int&gt;</tt>.  Any use of <tt>List&lt;Integer&gt;</tt> is mapped back to the 
 instantiation of <tt>List&lt;int&gt;</tt> created earlier.  Therefore, it is
-not necessary to instantiate a new class for the type <tt>Integer</tt> (doing so is
-redundant and will simply result in code bloat).
+not correct to instantiate a new class for the type <tt>Integer</tt>.
+An attempt to do so such as:
 </p>
+
+<div class="code">
+<pre>
+%template(intList) List&lt;int&gt;;
+%template(IntegerList) List&lt;Integer&gt;;   // Ignored
+</pre>
+</div>
+
+<p>
+will result in the duplicate instantiation being ignored with a warning:
+</p>
+
+<div class="shell">
+<pre>
+example.i:48: Warning 404: Duplicate template instantiation of 'List&lt; Integer &gt;' with name 'IntegerList' ignored,
+example.i:47: Warning 404: previous instantiation of 'List&lt; int &gt;' with name 'intList'.
+</pre>
+</div>
 
 <p>
 The template provided to <tt>%template</tt> for instantiation must be the actual template and not a typedef to a template.
@@ -3333,36 +3505,49 @@ original template definition.  Template default arguments are supported.  For ex
 
 <div class="code">
 <pre>
-template vector&lt;typename T, int max=100&gt; class vector {
+template &lt;typename T, int max=100&gt; class vector {
 ...
 };
 
-%template(intvec) vector&lt;int&gt;;           // OK
+%template(intvec) vector&lt;int&gt;;            // OK
 %template(vec1000) vector&lt;int, 1000&gt;;     // OK
 </pre>
 </div>
 
 <p>
 The <tt>%template</tt> directive should not be used to wrap the same
-template instantiation more than once in the same scope.  This will
-generate an error.  For example:
+template instantiation more than once. This also applies to default parameters
+where a template parameter specified in the instantiation is the same as the default parameter.
+For example:
 </p>
 
 <div class="code">
 <pre>
-%template(intList) List&lt;int&gt;;
-%template(Listint) List&lt;int&gt;;    // Error.   Template already wrapped.
+%template(vec) vector&lt;double&gt;;            // OK
+%template(vec100) vector&lt;double, 100&gt;;    // Ignored
 </pre>
 </div>
 
 <p>
-This error is caused because the template expansion results in two
-identical classes with the same name.  This generates a symbol table
-conflict.  Besides, it probably more efficient to only wrap a specific
-instantiation only once in order to reduce the potential for code
-bloat.
+will warn:
 </p>
 
+<div class="shell">
+<pre>
+example.i:59: Warning 404: Duplicate template instantiation of 'vector&lt; double,100 &gt;' with name 'vec100' ignored,
+example.i:58: Warning 404: previous instantiation of 'vector&lt; double &gt;' with name 'vec'.
+</pre>
+</div>
+
+<p>
+If this was not ignored, the template expansion would result in two identical classes.
+An identical instantiation is only wrapped once in order to reduce code bloat.
+</p>
+
+<p>
+<b>Compatibility Note</b>:  Versions prior to SWIG-4.2.0 would sometimes not detect and prevent duplicate
+instantiations, such as when the wrapped name was different.
+</p>
 <H3><a name="SWIGPlus_template_class_inheritance">6.18.4 Template base classes</a></H3>
 
 
@@ -3430,20 +3615,6 @@ Don't worry--if you get the order wrong, SWIG should generate a warning message.
 </p>
 
 <p>
-Occasionally, you may need to tell SWIG about base classes that are defined by templates,
-but which aren't supposed to be wrapped.  Since SWIG is not able to automatically
-instantiate templates for this purpose, you must do it manually.  To do this, simply
-use the empty template instantiation, that is, <tt>%template</tt> with no name.  For example:
-</p>
-
-<div class="code">
-<pre>
-// Instantiate traits&lt;double, double&gt;, but don't wrap it.
-%template() traits&lt;double, double&gt;;
-</pre>
-</div>
-
-<p>
 If you have to instantiate a lot of different classes for many different types,
 you might consider writing a SWIG macro.  For example:
 </p>
@@ -3468,7 +3639,66 @@ TEMPLATE_WRAP(PairStringInt, std::pair&lt;string, int&gt;)
 Note the use of a vararg macro for the type T. If this wasn't used, the comma in the templated type in the last example would not be possible.
 </p>
 
-<H3><a name="SWIGPlus_template_specialization">6.18.5 Template specialization</a></H3>
+<H3><a name="SWIGPlus_template_empty">6.18.5 Empty template instantiation</a></H3>
+
+
+<p>
+Occasionally, you may need to tell SWIG about classes that are defined by templates,
+but which aren't supposed to be wrapped.  Since SWIG is not able to automatically
+instantiate templates for this purpose, you must do it manually.  To do this, simply
+use <tt>%template()</tt>, that is the empty template instantiation that omits providing a name.  For example:
+</p>
+
+<div class="code">
+<pre>
+template&lt;typename T&gt; struct Traits {
+  typedef T type;
+};
+%}
+
+%template() Traits&lt;int&gt;; // instantiate Traits&lt;int&gt;, but don't wrap it
+
+void traitor(Traits&lt;int&gt;::type val);
+</pre>
+</div>
+
+<p>
+Without a template instantiation, SWIG does not know that the first parameter to the <tt>traitor</tt>
+function is type int and passing an integer to this function from any target language won't work.
+The empty template instantiation adds the appropriate type information into SWIG's type system, without
+forcing one to wrap the <tt>Traits</tt> class.
+</p>
+
+<p>
+Duplicate template instantiation are not allowed, as described in the
+<a href="#SWIGPlus_template_classes">Default template arguments</a> section above.
+There is one exception where a named template instantiation can be followed by an empty template instantiation.
+Duplicate empty template instantiations are silently ignored, unlike duplicate named template instantiations.
+</p>
+
+<p>
+Unlike template class instantiations, template function instantiations must have a name.
+Consider the following:
+</p>
+
+<div class="code">
+<pre>
+template&lt;class T&gt; T tfunc(T x) { };
+%template() tfunc&lt;double&gt;;
+</pre>
+</div>
+
+<p>
+The empty template instantiation will be ignored with:
+</p>
+
+<div class="shell">
+<pre>
+example.i:9: Warning 519: %template() contains no name. Template method ignored: tfunc&lt; double &gt;(double)
+</pre>
+</div>
+
+<H3><a name="SWIGPlus_template_specialization">6.18.6 Template specialization</a></H3>
 
 
 <p>
@@ -3558,7 +3788,7 @@ SWIG implements template argument deduction so that the following partial specia
 </pre>
 </div>
 
-<H3><a name="SWIGPlus_template_member">6.18.6 Member templates</a></H3>
+<H3><a name="SWIGPlus_template_member">6.18.7 Member templates</a></H3>
 
 
 <p>
@@ -3770,7 +4000,7 @@ constructor, that will dispatch the proper call depending on the argument
 type.
 </p>
 
-<H3><a name="SWIGPlus_template_scoping">6.18.7 Scoping and templates</a></H3>
+<H3><a name="SWIGPlus_template_scoping">6.18.8 Scoping and templates</a></H3>
 
 
 <p>
@@ -3871,7 +4101,7 @@ template class C&lt;int&gt;;
 </p>
 
  
-<H3><a name="SWIGPlus_template_more">6.18.8 More on templates</a></H3>
+<H3><a name="SWIGPlus_template_more">6.18.9 More on templates</a></H3>
 
 
 <p>
@@ -4273,8 +4503,8 @@ When this conflict occurs, you will get an error message that resembles this:
 
 <div class="shell">
 <pre>
-example.i:26. Error. 'foo' is multiply defined in the generated target language module.
-example.i:23. Previous declaration of 'foo'
+example.i:26: Error: 'foo' is multiply defined in the generated target language module.
+example.i:23: Error: Previous declaration of 'foo'
 </pre>
 </div>
 
@@ -5282,6 +5512,11 @@ you wrap this code in Python, the module works just like you would expect:
 &gt;&gt;&gt; f.blah("hello")
 </pre>
 </div>
+
+<p>
+The C++11 standard supports using declarations for inheriting constructors and this is covered in
+<a href="CPlusPlus11_object_construction_improvement">Object construction improvement</a>.
+</p>
 
 <p>
 C++ <tt>using</tt> declarations can also be used to change access when applicable.

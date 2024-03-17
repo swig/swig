@@ -82,8 +82,8 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(ctype) unsigned short,     const unsigned short &     "unsigned short"
 %typemap(ctype) int,                const int &                "int"
 %typemap(ctype) unsigned int,       const unsigned int &       "unsigned int"
-%typemap(ctype) long,               const long &               "long"
-%typemap(ctype) unsigned long,      const unsigned long &      "unsigned long"
+%typemap(ctype) long,               const long &               "int"
+%typemap(ctype) unsigned long,      const unsigned long &      "unsigned int"
 %typemap(ctype) long long,          const long long &          "long long"
 %typemap(ctype) unsigned long long, const unsigned long long & "unsigned long long"
 %typemap(ctype) float,              const float &              "float"
@@ -201,9 +201,9 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(directorin) short              "$input = $1;"
 %typemap(directorin) unsigned short     "$input = $1;"
 %typemap(directorin) int                "$input = $1;"
-%typemap(directorin) unsigned int       "$input = $1;"
+%typemap(directorin) unsigned int       "$input = (unsigned int)$1;"
 %typemap(directorin) long               "$input = $1;"
-%typemap(directorin) unsigned long      "$input = (unsigned long)$1;"
+%typemap(directorin) unsigned long      "$input = $1;"
 %typemap(directorin) long long          "$input = $1;"
 %typemap(directorin) unsigned long long "$input = $1;"
 %typemap(directorin) float              "$input = $1;"
@@ -246,9 +246,9 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(out) short              %{ $result = $1; %}
 %typemap(out) unsigned short     %{ $result = $1; %}
 %typemap(out) int                %{ $result = $1; %}
-%typemap(out) unsigned int       %{ $result = $1; %}
+%typemap(out) unsigned int       %{ $result = (unsigned int)$1; %}
 %typemap(out) long               %{ $result = $1; %}
-%typemap(out) unsigned long      %{ $result = (unsigned long)$1; %}
+%typemap(out) unsigned long      %{ $result = $1; %}
 %typemap(out) long long          %{ $result = $1; %}
 %typemap(out) unsigned long long %{ $result = $1; %}
 %typemap(out) float              %{ $result = $1; %}
@@ -327,7 +327,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(directorin) const short &          "$input = $1;"
 %typemap(directorin) const unsigned short & "$input = $1;"
 %typemap(directorin) const int &            "$input = $1;"
-%typemap(directorin) const unsigned int &   "$input = $1;"
+%typemap(directorin) const unsigned int &   "$input = (unsigned int)$1;"
 %typemap(directorin) const long &           "$input = $1;"
 %typemap(directorin) const unsigned long &  "$input = $1;"
 %typemap(directorin) const long long &      "$input = $1;"
@@ -373,9 +373,9 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
 %typemap(out) const short &              %{ $result = *$1; %}
 %typemap(out) const unsigned short &     %{ $result = *$1; %}
 %typemap(out) const int &                %{ $result = *$1; %}
-%typemap(out) const unsigned int &       %{ $result = *$1; %}
+%typemap(out) const unsigned int &       %{ $result = (unsigned int)*$1; %}
 %typemap(out) const long &               %{ $result = *$1; %}
-%typemap(out) const unsigned long &      %{ $result = (unsigned long)*$1; %}
+%typemap(out) const unsigned long &      %{ $result = *$1; %}
 %typemap(out) const long long &          %{ $result = *$1; %}
 %typemap(out) const unsigned long long & %{ $result = *$1; %}
 %typemap(out) const float &              %{ $result = *$1; %}
@@ -579,7 +579,7 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
                  unsigned long, 
                  unsigned short
 %{ char error_msg[256];
-   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
+   SWIG_snprintf(error_msg, sizeof(error_msg), "C++ $1_type exception thrown, value: %d", $1);
    SWIG_CSharpSetPendingException(SWIG_CSharpApplicationException, error_msg);
    return $null; %}
 
@@ -1062,10 +1062,17 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 %pragma(csharp) imclassclassmodifiers="class"
 %pragma(csharp) moduleclassmodifiers="public class"
 
-/* Some ANSI C typemaps */
+/* 64-bit architecture specific typemaps */
+#if defined(SWIGWORDSIZE64)
+%apply long long { long };
+%apply unsigned long long { unsigned long };
+%apply const long long & { const long & };
+%apply const unsigned long long & { const unsigned long & };
+#endif
 
-%apply unsigned long { size_t };
-%apply const unsigned long & { const size_t & };
+/* size_t maps to C# 32-bit uint type */
+%apply unsigned int { size_t };
+%apply const unsigned int & { const size_t & };
 
 /* Array reference typemaps */
 %apply SWIGTYPE & { SWIGTYPE ((&)[ANY]) }

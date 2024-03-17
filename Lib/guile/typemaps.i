@@ -7,7 +7,7 @@
 /* These are defined with a view to eventually merging with those defined for other target languages in swigtypemaps.swg and exception.swg */
 #define %set_output(obj)                  $result = obj
 #define %set_varoutput(obj)               $result = obj
-#define %argument_fail(_code, _type, _name, _argn)	scm_wrong_type_arg((char *) FUNC_NAME, _argn, $input)
+#define %argument_fail(_code, _type, _name, _argn)	scm_wrong_type_arg(FUNC_NAME, _argn, $input)
 #define %as_voidptr(ptr)		(void*)(ptr)
 #define %argument_nullref(_type, _name, _argn) scm_misc_error(FUNC_NAME, "invalid null reference for argument " #_argn " of type '" _type "'", SCM_EOL)
 #define %releasenotowned_fail(_code, _type, _name, _argn) scm_misc_error(FUNC_NAME, "cannot release ownership as memory is not owned for argument " #_argn " of type '" _type "'", SCM_EOL)
@@ -55,7 +55,7 @@
 }
 
 %typemap(varin) SWIGTYPE [] {
-  scm_wrong_type_arg((char *) FUNC_NAME, 1, $input);
+  scm_wrong_type_arg(FUNC_NAME, 1, $input);
 }
 
 %typemap(varin) SWIGTYPE [ANY] {
@@ -94,31 +94,31 @@
 
 %typemap(throws) SWIGTYPE {
   $&ltype temp = new $ltype($1);
-  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
+  scm_throw(scm_from_locale_symbol("swig-exception"),
 	    scm_list_n(SWIG_NewPointerObj(temp, $&descriptor, 1),
 		    SCM_UNDEFINED));
 }
 
 %typemap(throws) SWIGTYPE & {
-  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
+  scm_throw(scm_from_locale_symbol("swig-exception"),
 	    scm_list_n(SWIG_NewPointerObj(&$1, $descriptor, 1),
 		    SCM_UNDEFINED));
 }
 
 %typemap(throws) SWIGTYPE && {
-  scm_throw(gh_symbol2scm((char *) "swig-exception"),
-	    gh_list(SWIG_NewPointerObj(&$1, $descriptor, 1),
+  scm_throw(scm_from_locale_symbol("swig-exception"),
+	    scm_list_n(SWIG_NewPointerObj(&$1, $descriptor, 1),
 		    SCM_UNDEFINED));
 }
 
 %typemap(throws) SWIGTYPE * {
-  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
+  scm_throw(scm_from_locale_symbol("swig-exception"),
 	    scm_list_n(SWIG_NewPointerObj($1, $descriptor, 1),
 		    SCM_UNDEFINED));
 }
 
 %typemap(throws) SWIGTYPE [] {
-  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
+  scm_throw(scm_from_locale_symbol("swig-exception"),
 	    scm_list_n(SWIG_NewPointerObj($1, $descriptor, 1),
 		    SCM_UNDEFINED));
 }
@@ -192,8 +192,8 @@
 %typemap(varin)  enum SWIGTYPE  {
   if (sizeof(int) != sizeof($1)) {
     scm_error(scm_from_locale_symbol("swig-error"),
-	      (char *) FUNC_NAME,
-	      (char *) "enum variable '$name' cannot be set",
+	      FUNC_NAME,
+	      "enum variable '$name' cannot be set",
 	      SCM_EOL, SCM_BOOL_F); 
   }
   * (int *) &($1) = scm_to_int($input);
@@ -201,7 +201,7 @@
 %typemap(out)    enum SWIGTYPE  { $result = scm_from_long((int)$1); }
 %typemap(varout) enum SWIGTYPE  { $result = scm_from_long((int)$1); }
 %typemap(throws) enum SWIGTYPE {
-  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
+  scm_throw(scm_from_locale_symbol("swig-exception"),
      scm_list_n(scm_from_long((int)$1), SCM_UNDEFINED));
 }
 
@@ -235,8 +235,6 @@
  %typemap (argout,doc="$name (of type <" #SCM_NAME ">)") C_NAME *OUTPUT
      { C_NAME swig_c_value = *$1;
        SWIG_APPEND_VALUE(C_TO_SCM_EXPR); }
- %typemap (in)          C_NAME *BOTH = C_NAME *INPUT;
- %typemap (argout)      C_NAME *BOTH = C_NAME *OUTPUT;
  %typemap (in)          C_NAME *INOUT = C_NAME *INPUT;
  %typemap (argout)      C_NAME *INOUT = C_NAME *OUTPUT;
  /* Const primitive references.  Passed by value */
@@ -250,7 +248,7 @@
  /* Throw typemap */
  %typemap(throws) C_NAME {
    C_NAME swig_c_value = $1;
-   scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
+   scm_throw(scm_from_locale_symbol("swig-exception"),
 	     scm_list_n(C_TO_SCM_EXPR, SCM_UNDEFINED));
  }
 %enddef
@@ -278,8 +276,6 @@
    {$1 = &temp;}
  %typemap (argout,doc="$name (of type <" #SCM_NAME ">)") C_NAME *OUTPUT, C_NAME &OUTPUT
    {SWIG_APPEND_VALUE(C_TO_SCM(*$1));}
- %typemap (in)          C_NAME *BOTH = C_NAME *INPUT;
- %typemap (argout)      C_NAME *BOTH = C_NAME *OUTPUT;
  %typemap (in)          C_NAME *INOUT = C_NAME *INPUT;
  %typemap (argout)      C_NAME *INOUT = C_NAME *OUTPUT;
  %typemap (in)          C_NAME &INOUT = C_NAME &INPUT;
@@ -294,7 +290,7 @@
  }
  /* Throw typemap */
  %typemap(throws) C_NAME {
-   scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
+   scm_throw(scm_from_locale_symbol("swig-exception"),
 	     scm_list_n(C_TO_SCM($1), SCM_UNDEFINED));
  }
 %enddef
@@ -340,8 +336,6 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
    {$1 = &temp;}
  %typemap (argout,doc="$NAME (a string)") char **OUTPUT
    {SWIG_APPEND_VALUE(SWIG_str02scm(*$1));}
- %typemap (in)          char **BOTH = char **INPUT;
- %typemap (argout)      char **BOTH = char **OUTPUT;
  %typemap (in)          char **INOUT = char **INPUT;
  %typemap (argout)      char **INOUT = char **OUTPUT;
 
@@ -349,13 +343,13 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
    the function call. */
 
 %typemap (freearg) char * "if (must_free$argnum) SWIG_free($1);"
-%typemap (freearg) char **INPUT, char **BOTH "if (must_free$argnum) SWIG_free(*$1);"
+%typemap (freearg) char **INPUT, char **INOUT "if (must_free$argnum) SWIG_free(*$1);"
 %typemap (freearg) char **OUTPUT "SWIG_free(*$1);"
   
 /* But this shall not apply if we try to pass a single char by
    reference. */
 
-%typemap (freearg) char *OUTPUT, char *BOTH ""
+%typemap (freearg) char *OUTPUT, char *INOUT ""
 
 /* If we set a string variable, delete the old result first, unless const. */
 
@@ -369,7 +363,7 @@ SIMPLE_MAP(unsigned long long, scm_to_ulong_long, scm_from_ulong_long, integer);
 }
 
 %typemap(throws) char * {
-  scm_throw(scm_from_locale_symbol((char *) "swig-exception"),
+  scm_throw(scm_from_locale_symbol("swig-exception"),
 	    scm_list_n(SWIG_str02scm($1), SCM_UNDEFINED));
 }
 
@@ -413,7 +407,7 @@ typedef unsigned long SCM;
 %typemap(varin) SWIGTYPE (CLASS::*) {
   int res = SWIG_ConvertMember($input,%as_voidptr(&$1), sizeof($1), $descriptor);
   if (!SWIG_IsOK(res)) {
-    scm_wrong_type_arg((char *) FUNC_NAME, 1, $input);
+    scm_wrong_type_arg(FUNC_NAME, 1, $input);
   }
 }
 

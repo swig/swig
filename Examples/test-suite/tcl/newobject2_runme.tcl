@@ -1,4 +1,4 @@
-if [ catch { load ./newobject2[info sharedlibextension] newobject2} err_msg ] {
+if [ catch { load ./newobject2[info sharedlibextension] Newobject2} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

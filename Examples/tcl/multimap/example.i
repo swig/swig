@@ -19,27 +19,29 @@ extern int    gcd(int x, int y);
 %typemap(in) (int argc, char *argv[]) {
   Tcl_Obj **listobjv = 0;
   int i;
-  if (Tcl_ListObjGetElements(interp,$input, &$1, &listobjv) == TCL_ERROR) {
+  Tcl_Size tmpSize;
+  if (Tcl_ListObjGetElements(interp,$input, &tmpSize, &listobjv) == TCL_ERROR) {
     SWIG_exception(SWIG_ValueError,"Expected a list");
     return TCL_ERROR;
   }
+  $1 = (int)tmpSize;
   $2 = (char **) malloc(($1+1)*sizeof(char *));
   for (i = 0; i < $1; i++) {
-    $2[i] = Tcl_GetStringFromObj(listobjv[i],0);
+    $2[i] = Tcl_GetString(listobjv[i]);
   }
   $2[i] = 0;
 }
 
 %typemap(freearg) char *argv[] {
-  if ($1) {
-    free($1);
-  }
+  free($1);
 }
 
 extern int gcdmain(int argc, char *argv[]);
 
 %typemap(in) (char *bytes, int len) {
-  $1 = Tcl_GetStringFromObj($input,&$2);
+  Tcl_Size tmpSize;
+  $1 = Tcl_GetStringFromObj($input,&tmpSize);
+  $2 = (int)tmpSize;
 }
 
 extern int count(char *bytes, int len, char c);
@@ -49,7 +51,9 @@ extern int count(char *bytes, int len, char c);
 
 %typemap(in) (char *str, int len) {
   char *temp;
-  temp = Tcl_GetStringFromObj($input,&$2);
+  Tcl_Size tmpSize;
+  temp = Tcl_GetStringFromObj($input,&tmpSize);
+  $2 = (int)tmpSize;
   $1 = (char *) malloc($2+1);
   memmove($1,temp,$2);
 }

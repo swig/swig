@@ -81,7 +81,7 @@
 <p>
 This chapter discusses SWIG's support of Tcl. Since SWIG 4.1.0, Tcl 8.4 or a
 later release is required.  Prior to that earlier Tcl 8.x releases were also
-supported.
+supported.  Tcl 9.0 is supported since SWIG 4.2.1.
 </p>
 
 <H2><a name="Tcl_nn2">37.1 Preliminaries</a></H2>
@@ -826,7 +826,7 @@ are not wrapped as constants.   For further discussion about this, see the <a hr
 
 <p>
 Constants are not guaranteed to remain constant in Tcl---the value
-of the constant could be accidentally reassigned.You will just have to be careful.
+of the constant could be accidentally reassigned. You will just have to be careful.
 </p>
 
 <p>
@@ -842,38 +842,6 @@ proc blah {} {
 }
 </pre>
 </div>
-
-<p>
-If a program relies on a lot of constants, this can be extremely annoying.  To fix the problem, consider using the
-following typemap rule:
-</p>
-
-<div class="code">
-<pre>
-%apply int CONSTANT { int x };
-#define FOO 42
-...
-void bar(int x);
-</pre>
-</div>
-
-<p>
-When applied to an input argument, the <tt>CONSTANT</tt> rule allows a constant to be passed to a function using
-its actual value or a symbolic identifier name.  For example:
-</p>
-
-<div class="code">
-<pre>
-proc blah {} {
-  bar FOO
-}
-</pre>
-</div>
-
-<p>
-When an identifier name is given, it is used to perform an implicit hash-table lookup of the value during argument 
-conversion.  This allows the <tt>global</tt> statement to be omitted.
-</p>
 
 <H3><a name="Tcl_nn19">37.3.5 Pointers</a></H3>
 
@@ -2812,7 +2780,7 @@ used as a <tt>char **</tt> object.
   }
   $1 = (char **) malloc((nitems+1)*sizeof(char *));
   for (i = 0; i &lt; nitems; i++) {
-    $1[i] = Tcl_GetStringFromObj(listobjv[i], 0);
+    $1[i] = Tcl_GetString(listobjv[i]);
   }
   $1[i] = 0;
 }

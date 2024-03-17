@@ -3,4 +3,3 @@
 %enddef
 
 %include <typemaps/carrays.swg>
-

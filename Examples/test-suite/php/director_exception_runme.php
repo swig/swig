@@ -10,6 +10,8 @@ check::classes(array('director_exception','Foo','Exception1','Exception2','Base'
 check::globals(array());
 
 class MyException extends Exception {
+  public $msg;
+
   function __construct($a, $b) {
     $this->msg = $a . $b;
   }

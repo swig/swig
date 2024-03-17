@@ -1,0 +1,4 @@
+pp_error_directive.i:3: Warning 204: CPP #warning, "Print this warning".
+pp_error_directive.i:5: Error: CPP #error "This is an error". Use the -cpperraswarn option to continue swig processing.
+pp_error_directive.i:7: Error: CPP #error "Another error". Use the -cpperraswarn option to continue swig processing.
+pp_error_directive.i:9: Warning 204: CPP #warning, "Another warning".

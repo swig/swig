@@ -2,10 +2,10 @@
 # Test various properties of classes defined in separate modules
 
 puts "Testing the %import directive"
-catch { load ./base[info sharedlibextension] base}
-catch { load ./foo[info sharedlibextension] foo}
-catch { load ./bar[info sharedlibextension] bar}
-catch { load ./spam[info sharedlibextension] spam}
+catch { load ./base[info sharedlibextension] Base}
+catch { load ./foo[info sharedlibextension] Foo}
+catch { load ./bar[info sharedlibextension] Bar}
+catch { load ./spam[info sharedlibextension] Spam}
 
 # Create some objects
 

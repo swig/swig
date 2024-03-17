@@ -92,3 +92,13 @@ for i in s:
 
 if (len(sum) != 3 or (not 1 in sum) or (not "hello" in sum) or (not (1, 2) in sum)):
     raise RuntimeError
+
+# Create from Python set
+s = set_string({"x", "y", "z"})
+sum = ""
+for i in s:
+    sum = sum + i
+
+if sum != "xyz":
+    raise RuntimeError
+

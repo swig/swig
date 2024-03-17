@@ -57,6 +57,7 @@ see bottom for a set of possible tests
 %csmethodmodifiers operator++(int) "private";
 %csmethodmodifiers operator--() "private";
 %csmethodmodifiers operator--(int) "protected";
+%typemap(csinterfaces) Op "global::System.IEquatable<Op>"
 %typemap(cscode) Op %{
   public static Op operator++(Op op) {
     // Unlike C++, operator++ must not modify the parameter and both prefix and postfix operations call this method
@@ -70,6 +71,44 @@ see bottom for a set of possible tests
     newOp.MinusMinusPrefix();
     return newOp;
   }
+
+  // Start of operator== handling
+  // See https://sourceforge.net/p/swig/bugs/884/
+  // Implementation guided by https://learn.microsoft.com/en-us/dotnet/csharp/programming-guide/statements-expressions-operators/how-to-define-value-equality-for-a-type
+  public override bool Equals(object obj) {
+     return this.Equals((Op)obj);
+  }
+  public override int GetHashCode() {
+     return i.GetHashCode();
+  }
+  public bool Equals(Op obj) {
+    if ((object)obj == null) {
+      return false;
+    }
+    // Optimization for a common success case.
+    if (global::System.Object.ReferenceEquals(this, obj)) {
+      return true;
+    }
+    // If run-time types are not exactly the same, return false.
+    if (this.GetType() != obj.GetType()) {
+      return false;
+    }
+    return this.EqualEqual(obj);
+  }
+  public static bool operator==(Op lhs, Op rhs) {
+    // Casting to object required to avoid infinite loop and stack overflow
+    if ((object)lhs == null) {
+      if ((object)rhs == null) {
+        return true;
+      }
+      return false;
+    }
+    return lhs.Equals(rhs);
+  }
+  public static bool operator!=(Op lhs, Op rhs) {
+    return !(lhs == rhs);
+  }
+  // End of operator== handling
 %}
 #endif
 
@@ -84,8 +123,8 @@ see bottom for a set of possible tests
 #endif
 
 #ifdef SWIGD
-// Due to the way operator overloading is implemented in D1 and D2, the prefix
-// increment/decrement operators (D1) resp. the postfix ones (D2) are ignored. 
+// Due to the way operator overloading is implemented in D2, the postfix
+// increment/decrement operators are ignored.
 %warnfilter(SWIGWARN_IGNORE_OPERATOR_PLUSPLUS, SWIGWARN_IGNORE_OPERATOR_MINUSMINUS);
 #endif
 
@@ -182,22 +221,22 @@ inline bool operator>=(const Op& a,const Op& b){return a.i>=b.i;}
 
 // in order to wrap this correctly we need to extend the class
 // to make the friends & non members part of the class
-%extend Op{
-        Op operator &&(const Op& b){return Op($self->i&&b.i);}
-        Op operator or(const Op& b){return Op($self->i||b.i);}
+%extend Op {
+        Op operator &&(const Op& b){return *$self && b;}
+        Op operator or(const Op& b){return  *self || b;}
 
-	Op operator+(const Op& b){return Op($self->i+b.i);}
-	Op operator-(const Op& b){return Op($self->i-b.i);}
-	Op operator*(const Op& b){return Op($self->i*b.i);}
-	Op operator/(const Op& b){return Op($self->i/b.i);}
-	Op operator%(const Op& b){return Op($self->i%b.i);}
+	Op operator+(const Op& b){return *$self + b;}
+	Op operator-(const Op& b){return *$self - b;}
+	Op operator*(const Op& b){return *$self * b;}
+	Op operator/(const Op& b){return *$self / b;}
+	Op operator%(const Op& b){return *$self % b;}
 
-	bool operator==(const Op& b){return $self->i==b.i;}
-	bool operator!=(const Op& b){return $self->i!=b.i;}
-	bool operator< (const Op& b){return $self->i<b.i;}
-	bool operator<=(const Op& b){return $self->i<=b.i;}
-	bool operator> (const Op& b){return $self->i>b.i;}
-	bool operator>=(const Op& b){return $self->i>=b.i;}
+	bool operator==(const Op& b){return *$self == b;}
+	bool operator!=(const Op& b){return *$self != b;}
+	bool operator< (const Op& b){return *$self <  b;}
+	bool operator<=(const Op& b){return *$self <= b;}
+	bool operator> (const Op& b){return *$self >  b;}
+	bool operator>=(const Op& b){return *$self >= b;}
 
 	// subtraction with reversed arguments
 	Op __rsub__(const int b){return Op(b - $self->i);}

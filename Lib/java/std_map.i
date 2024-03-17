@@ -79,7 +79,7 @@ template<class K, class T, class C = std::less< K> > class map {
   }
 
   public $typemap(jboxtype, T) put($typemap(jboxtype, K) key, $typemap(jboxtype, T) value) {
-    Iterator itr = find(($typemap(jboxtype, K)) key);
+    Iterator itr = find(key);
     if (itr.isNot(end())) {
       $typemap(jboxtype, T) oldValue = itr.getValue();
       itr.setValue(value);
@@ -199,7 +199,11 @@ template<class K, class T, class C = std::less< K> > class map {
       }
 
       void putUnchecked(const K& key, const T& value) {
+%#ifdef __cpp_lib_map_try_emplace
+        (*self).insert_or_assign(key, value);
+%#else
         (*self)[key] = value;
+%#endif
       }
 
       void removeUnchecked(const std::map< K, T, C >::iterator itr) {
@@ -207,18 +211,5 @@ template<class K, class T, class C = std::less< K> > class map {
       }
     }
 };
-
-// Legacy macros (deprecated)
-%define specialize_std_map_on_key(K,CHECK,CONVERT_FROM,CONVERT_TO)
-#warning "specialize_std_map_on_key ignored - macro is deprecated and no longer necessary"
-%enddef
-
-%define specialize_std_map_on_value(T,CHECK,CONVERT_FROM,CONVERT_TO)
-#warning "specialize_std_map_on_value ignored - macro is deprecated and no longer necessary"
-%enddef
-
-%define specialize_std_map_on_both(K,CHECK_K,CONVERT_K_FROM,CONVERT_K_TO, T,CHECK_T,CONVERT_T_FROM,CONVERT_T_TO)
-#warning "specialize_std_map_on_both ignored - macro is deprecated and no longer necessary"
-%enddef
 
 }

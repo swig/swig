@@ -96,11 +96,11 @@ checkCount(0);
 
 // overloaded parameters
 if (li_std_auto_ptr.overloadTest() != 0)
-  throw new RuntimeException("overloadTest failed");
+  throw new Error("overloadTest failed");
 if (li_std_auto_ptr.overloadTest(null) != 1)
-  throw new RuntimeException("overloadTest failed");
+  throw new Error("overloadTest failed");
 if (li_std_auto_ptr.overloadTest(new li_std_auto_ptr.Klass("over")) != 1)
-  throw new RuntimeException("overloadTest failed");
+  throw new Error("overloadTest failed");
 checkCount(0);
 
 

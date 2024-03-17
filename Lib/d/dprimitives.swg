@@ -5,17 +5,10 @@
  * ----------------------------------------------------------------------------- */
 
 // C long/ulong width depends on the target arch, use stdlib aliases for them.
-#if (SWIG_D_VERSION == 1)
-%pragma(d) imdmoduleimports = "static import tango.stdc.config;"
-%pragma(d) globalproxyimports = "static import tango.stdc.config;"
-#define SWIG_LONG_DTYPE tango.stdc.config.c_long
-#define SWIG_ULONG_DTYPE tango.stdc.config.c_ulong
-#else
 %pragma(d) imdmoduleimports = "static import core.stdc.config;"
 %pragma(d) globalproxyimports = "static import core.stdc.config;"
 #define SWIG_LONG_DTYPE core.stdc.config.c_long
 #define SWIG_ULONG_DTYPE core.stdc.config.c_ulong
-#endif
 
 /*
  * The SWIG_D_PRIMITIVE macro is used to define the typemaps for the primitive
@@ -148,6 +141,12 @@ SWIG_D_PRIMITIVE(double, double)
     unsigned long,
     const unsigned int &,
     const unsigned long &
+    ""
+
+// Default assumes size_t is 32-bit for overloading
+%typecheck(SWIG_TYPECHECK_UINT32)
+    size_t,
+    const size_t &
     ""
 
 %typecheck(SWIG_TYPECHECK_INT64)

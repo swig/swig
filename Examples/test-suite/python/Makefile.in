@@ -22,6 +22,17 @@ srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
 
+FAILING_CPP_TESTS = \
+	cpp17_map_no_default_ctor \
+
+ifneq (,$(PY2))
+# std_string_view.i is not implemented for Python2 so don't try to run tests needing it.
+FAILING_CPP_TESTS += \
+	cpp17_director_string_view \
+	cpp17_string_view \
+
+endif
+
 CPP_TEST_CASES += \
 	callback \
 	complextest \
@@ -68,17 +79,18 @@ CPP_TEST_CASES += \
 	python_richcompare \
 	python_strict_unicode \
 	python_threads \
+	python_typemap_macro \
 	simutry \
 	std_containers \
 	swigobject \
 	template_matrix \
 
-#	li_std_carray
 #	director_profile
 
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
 	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_crtp_upcast \
 	cpp11_shared_ptr_nullptr_in_containers \
 	cpp11_shared_ptr_overload \
 	cpp11_shared_ptr_template_upcast \
@@ -87,6 +99,9 @@ CPP11_TEST_CASES = \
 	cpp11_std_unordered_multimap \
 	cpp11_std_unordered_multiset \
 	cpp11_std_unordered_set \
+
+CPP17_TEST_CASES = \
+	cpp17_std_filesystem
 
 C_TEST_CASES += \
 	ccomplextest \

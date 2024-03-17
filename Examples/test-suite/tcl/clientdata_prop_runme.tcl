@@ -1,9 +1,9 @@
 
-if [ catch { load ./clientdata_prop_b[info sharedlibextension] clientdata_prop_b} err_msg ] {
+if [ catch { load ./clientdata_prop_b[info sharedlibextension] Clientdata_prop_b} err_msg ] {
   puts stderr "Could not load shared object:\n$err_msg"
   exit 1
 }
-if [ catch { load ./clientdata_prop_a[info sharedlibextension] clientdata_prop_a} err_msg ] {
+if [ catch { load ./clientdata_prop_a[info sharedlibextension] Clientdata_prop_a} err_msg ] {
   puts stderr "Could not load shared object:\n$err_msg"
   exit 1
 }

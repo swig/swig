@@ -7,6 +7,7 @@ extern "C" {
 
 #if __GNUC__ >= 10
 #if defined(__cplusplus)
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wvolatile"
 #endif
 #endif
@@ -16,7 +17,9 @@ extern "C" {
 #include "XSUB.h"
 
 #if __GNUC__ >= 10
+#if defined(__cplusplus)
 #pragma GCC diagnostic pop
+#endif
 #endif
 
 /* PERL_REVISION was added in Perl 5.6. */

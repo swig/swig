@@ -85,7 +85,9 @@ namespace test {
     class string_class;
 #ifdef SWIGPYTHON
 	%typemap(in) string_class * {
-	    $1 = new string_class(SWIG_Python_str_AsChar($input));
+	    PyObject *bytes = NULL;
+	    $1 = new string_class(SWIG_PyUnicode_AsUTF8AndSize($input, NULL, &bytes));
+	    Py_XDECREF(bytes);
 	}
 	%typemap(freearg) string_class * {
 	    delete $1;
@@ -115,6 +117,18 @@ namespace test {
 	    buf[$input.n] = '\0';
 	    $1 = new string_class(buf);
 	    delete[] buf;
+	}
+	%typemap(freearg) string_class * {
+	    delete $1;
+	}
+#endif
+#ifdef SWIGJAVASCRIPT
+  %fragment("SWIG_AsCharPtrAndSize");
+	%typemap(in) string_class * {
+			char *data;
+			SWIG_AsCharPtrAndSize($input, &data, NULL, NULL);
+			$1 = new string_class(data);
+			free(data);
 	}
 	%typemap(freearg) string_class * {
 	    delete $1;

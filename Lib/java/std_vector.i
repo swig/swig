@@ -75,6 +75,14 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
   public int size() {
     return doSize();
   }
+
+  public int capacity() {
+    return doCapacity();
+  }
+
+  public void reserve(int n) {
+    doReserve(n);
+  }
 %}
 
   public:
@@ -89,8 +97,6 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
     vector();
     vector(const vector &other);
 
-    size_type capacity() const;
-    void reserve(size_type n) throw (std::length_error);
     %rename(isEmpty) empty;
     bool empty() const;
     void clear();
@@ -101,6 +107,16 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
         if (count < 0)
           throw std::out_of_range("vector count must be positive");
         return new std::vector< CTYPE >(static_cast<std::vector< CTYPE >::size_type>(count), value);
+      }
+
+      jint doCapacity() throw (std::out_of_range) {
+        return SWIG_VectorSize(self->capacity());
+      }
+
+      void doReserve(jint n) throw (std::length_error, std::out_of_range) {
+        if (n < 0)
+          throw std::out_of_range("vector reserve size must be positive");
+        self->reserve(n);
       }
 
       jint doSize() const throw (std::out_of_range) {
@@ -161,6 +177,8 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
     }
 %enddef
 
+%javamethodmodifiers std::vector::doCapacity    "private";
+%javamethodmodifiers std::vector::doReserve     "private";
 %javamethodmodifiers std::vector::doSize        "private";
 %javamethodmodifiers std::vector::doAdd         "private";
 %javamethodmodifiers std::vector::doGet         "private";

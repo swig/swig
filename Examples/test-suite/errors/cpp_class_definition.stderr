@@ -1,1 +1,5 @@
+cpp_class_definition.i:11: Warning 302: Redefinition of identifier 'L' as Space11::SubSpace11::L ignored,
+cpp_class_definition.i:10: Warning 302: previous definition of 'L' as Space11::SubSpace11::L.
 cpp_class_definition.i:22: Error: 'Space1::A' resolves to 'Space1::A' and was incorrectly instantiated in scope 'Space2' instead of within scope 'Space1'.
+cpp_class_definition.i:31: Error: Using the unary scope operator :: in class definition '::Space2::B' is invalid.
+cpp_class_definition.i:38: Error: Using the unary scope operator :: in class definition '::XX' is invalid.

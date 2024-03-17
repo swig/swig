@@ -97,6 +97,7 @@ namespace Space {
 
 
 %warnfilter(SWIGWARN_PARSE_REDEFINED) Space::Duplicate2;
+%warnfilter(SWIGWARN_TYPE_REDEFINED) Space::Duplicate2;
 %inline %{
 namespace Space {
   template <int I> struct Duplicate2 { void n(){}; };
@@ -107,6 +108,7 @@ namespace Space {
 
 
 %warnfilter(SWIGWARN_PARSE_REDEFINED) Space::Duplicate3;
+%warnfilter(SWIGWARN_TYPE_REDEFINED) Space::Duplicate3;
 %inline %{
 namespace Space {
   template <int I> struct Duplicate3 { void n(){}; };
@@ -123,6 +125,7 @@ namespace Space {
 %}
 
 %warnfilter(SWIGWARN_PARSE_REDEFINED) Space::Duplicate4;
+%warnfilter(SWIGWARN_TYPE_REDEFINED) Space::Duplicate4<0>;
 namespace Space {
   template <bool B> struct Duplicate4 { void ff(){}; };
   template <bool B> struct Duplicate4 { void ff(){}; };

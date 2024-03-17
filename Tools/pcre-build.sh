@@ -11,7 +11,7 @@ usage() {
   echo "         unless you are an expert at configure)"
   echo "  --help - Display this help information."
   echo "Instructions:"
-  echo "  - Download the latest PCRE2 source tarball from http://www.pcre.org and place in the"
+  echo "  - Download the latest PCRE2 source tarball from https://www.pcre.org and place in the"
   echo "    directory that you will configure and build SWIG."
   echo "  - Run this script in the same directory that you intend to configure and build SWIG in."
   echo "    This will configure and build PCRE2 as a static library."

@@ -15,7 +15,7 @@
                  unsigned long,
                  unsigned short
 %{ char error_msg[256];
-   sprintf(error_msg, "C++ $1_type exception thrown, value: %d", $1);
+   SWIG_snprintf(error_msg, sizeof(error_msg), "C++ $1_type exception thrown, value: %d", $1);
    SWIG_DSetPendingException(SWIG_DException, error_msg);
    return $null; %}
 

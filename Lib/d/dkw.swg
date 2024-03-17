@@ -120,7 +120,7 @@ DKEYWORD(with);
 DKEYWORD(wstring);
 
 // Not really a keyword, but dispose() methods are generated in proxy classes
-// and it's a special method name for D1/Tango.
+// and it was a special method name for D1/Tango.
 DKEYWORD(dispose);
 
 #undef DKEYWORD

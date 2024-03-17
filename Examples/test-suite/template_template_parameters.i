@@ -1,9 +1,8 @@
 %module template_template_parameters
 
-
 %inline %{
 
-/* part 1 */
+// part 1
 
   namespace pfc {
     template<typename t_item, template <typename> class t_alloc> class array_t {};
@@ -33,7 +32,7 @@ void TestInstantiations() {
   (void) myListImplInt;
 }
 
-/* part 2 */
+// part 2
 
 template<class T>
 struct Container1 { 
@@ -52,10 +51,10 @@ TestStruct<int, Container1> TestStructContainer1Method(TestStruct<int, Container
   ts1.x.x += 10;
   return ts1;
 }
-
 %}
 
-/* part 1 */
+
+// part 1
 %template(ListImplFastBool) list_impl_t<bool, pfc::array_t<bool, pfc::alloc_fast> >;
 %template(ListFastBool) list_tt<bool, pfc::alloc_fast>;
 
@@ -65,9 +64,35 @@ TestStruct<int, Container1> TestStructContainer1Method(TestStruct<int, Container
 %template(BoolAllocFast) pfc::alloc_fast<bool>;
 %template(DoubleAllocFast) pfc::alloc_fast<double>;
 
-/* part 2 */
+// part 2
 %template(IntContainer1) Container1<int>;
 %template(FloatContainer2) Container2<float>;
 %template(IntTestStruct) TestStruct<int, Container1>;
 %template(FloatTestStruct) TestStruct<float, Container2>;
 
+
+// part 3 - from #624
+
+#ifdef SWIGJAVASCRIPT
+%rename("addTo") operator+=;
+#else
+%rename("") operator+=; // For Ruby and Octave that ignore operator+=
+#endif
+
+%inline %{
+template<typename T, int dim> struct Foot {
+  template <template <typename, int> class X, typename U>
+    void operator+=(X<U, dim> & ref) {}
+};
+
+void TestInstantiationsPart3() {
+  Foot<int, 99> MyFootInt99;
+  MyFootInt99.operator+=<Foot, int>(MyFootInt99);
+  MyFootInt99 += MyFootInt99;
+}
+%}
+
+%template(MyFootInt99) Foot<int, 99>;
+%extend Foot<int, 99> {
+  %template(OperatorPlusEquals) operator+=<Foot, int>;
+}

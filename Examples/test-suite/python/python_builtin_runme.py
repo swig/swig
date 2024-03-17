@@ -111,3 +111,26 @@ z = ANumber(9)
 z = pow(x, y, z)
 if z.Value() != 7:
   raise RuntimeError("pow(x, y, z) wrong")
+
+# Test 8 https://github.com/swig/swig/pull/2771 __setitem__ for deleting item, uses C NULL
+def check_gsi(gsi, idx, value, args_count, kw_count):
+  if gsi.idx != idx:
+    raise RuntimeError("idx wrong {}".format(idx))
+  if gsi.value != value:
+    raise RuntimeError("value wrong {}".format(value))
+  if gsi.args_count != args_count:
+    raise RuntimeError("args_count wrong {}".format(args_count))
+  if gsi.kw_count != kw_count:
+    raise RuntimeError("kw_count wrong {}".format(kw_count))
+  gsi.reset()
+
+if is_python_builtin():
+  gsi = GetSetItem()
+  gsi[0] = 111
+  check_gsi(gsi, 0, 111, -100, -100)
+  del gsi[0]
+  check_gsi(gsi, 0, -11, -100, -100)
+  gsi(222, fred = 333, jack = 444)
+  check_gsi(gsi, -100, -100, 1, 2)
+  gsi(333)
+  check_gsi(gsi, -100, -100, 1, -11)

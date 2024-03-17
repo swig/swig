@@ -137,7 +137,6 @@ OBJS      = $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@)
 
 distclean:
 	rm -f Makefile
-	rm -f d/example.mk
 	rm -f xml/Makefile
 
 ##################################################################
@@ -146,617 +145,6 @@ distclean:
 
 swiginvoke:
 	$(SWIG) $(SWIGOPT)
-
-##################################################################
-#####                       Tcl/Tk                          ######
-##################################################################
-
-# Set these to your local copy of Tcl/Tk.
-
-TCLSH       = tclsh
-TCL_INCLUDE = @TCLINCLUDE@
-TCL_LIB     = @TCLLIB@
-TCL_OPTS    = @LIBS@
-TK_OPTS     = -ltk -ltcl @LIBS@
-
-# Extra Tcl specific dynamic linking options
-TCL_DLNK   = @TCLDYNAMICLINKING@
-TCL_SO     = @TCL_SO@
-TCLLDSHARED = @TCLLDSHARED@
-TCLCXXSHARED = @TCLCXXSHARED@
-TCL_SCRIPT = $(SRCDIR)$(RUNME).tcl
-TCL_LINK   = @TCLLINK@
-
-# -----------------------------------------------------------
-# Build a new version of the tclsh shell
-# -----------------------------------------------------------
-
-tclsh: $(SRCDIR_SRCS)
-	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE) \
-	$(TCL_LIB)  $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
-
-tclsh_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE) \
-	$(TCL_LIB) $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
-
-# -----------------------------------------------------------
-# Build a Tcl dynamic loadable module (you might need to tweak this)
-# -----------------------------------------------------------
-
-tcl:  $(SRCDIR_SRCS)
-	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE)
-	$(TCLLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO) $(TCL_LINK)
-
-# -----------------------------------------------------------
-# Build a Tcl dynamic loadable module for C++
-# -----------------------------------------------------------
-
-tcl_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE)
-	$(TCLCXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO) $(TCL_LINK)
-
-# -----------------------------------------------------------------
-# Run Tcl example
-# -----------------------------------------------------------------
-
-tcl_run:
-	$(RUNTOOL) $(TCLSH) $(TCL_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-tcl_version:
-	echo 'puts $$tcl_version;exit 0' | $(TCLSH)
-
-# -----------------------------------------------------------------
-# Cleaning the Tcl examples
-# -----------------------------------------------------------------
-
-tcl_clean:
-	rm -f *_wrap* *~ .~* mytclsh@EXEEXT@
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *$(TCL_SO)
-
-##################################################################
-#####                       PERL 5                          ######
-##################################################################
-
-# You need to set this variable to the Perl5 directory containing the
-# files "perl.h", "EXTERN.h" and "XSUB.h".   With Perl5.003, it's
-# usually something like /usr/local/lib/perl5/arch-osname/5.003/CORE.
-
-PERL5_INCLUDE= @PERL5EXT@
-
-# Extra Perl specific dynamic linking options
-PERL5_DLNK   = @PERL5DYNAMICLINKING@
-PERL5_CCFLAGS = @PERL5CCFLAGS@
-PERL5_CCDLFLAGS = @PERL5CCDLFLAGS@
-PERL5_CCCDLFLAGS = @PERL5CCCDLFLAGS@
-PERL5_LDFLAGS = @PERL5LDFLAGS@
-PERL = @PERL@
-PERL5_LIB = -L$(PERL5_INCLUDE) -l@PERL5LIB@ @LIBS@ $(SYSLIBS)
-PERL5_SCRIPT = $(SRCDIR)$(RUNME).pl
-
-# ----------------------------------------------------------------
-# Build a Perl5 dynamically loadable module (C)
-# ----------------------------------------------------------------
-
-perl5: $(SRCDIR_SRCS)
-	$(SWIG) -perl5 $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -c -Dbool=char $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(PERL5_CCFLAGS) $(PERL5_CCCDLFLAGS) -I$(PERL5_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(PERL5_CCDLFLAGS) $(OBJS) $(IOBJS) $(PERL5_LDFLAGS) $(PERL5_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-# ----------------------------------------------------------------
-# Build a Perl5 dynamically loadable module (C++)
-# ----------------------------------------------------------------
-
-perl5_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -perl5 -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PERL5_CCFLAGS) $(PERL5_CCCDLFLAGS) -I$(PERL5_INCLUDE)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(PERL5_CCDLFLAGS) $(OBJS) $(IOBJS) $(PERL5_LDFLAGS) $(PERL5_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-# ----------------------------------------------------------------
-# Build a module from existing XS C source code.   (ie. from xsubpp).
-# ----------------------------------------------------------------
-perl5_xs: $(SRCDIR_SRCS)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(INCLUDES) -I$(PERL5_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(LIBS) -o $(TARGET)$(SO)
-
-# ----------------------------------------------------------------
-# Build a statically linked Perl5 executable
-# ----------------------------------------------------------------
-
-perl5_static: $(SRCDIR_SRCS)
-	$(SWIG) -perl5 -static -lperlmain.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -Dbool=char $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
-
-perl5_static_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -perl5 -c++ -static -lperlmain.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
-
-# -----------------------------------------------------------------
-# Running a Perl5 example
-# -----------------------------------------------------------------
-
-perl5_run:
-	$(RUNTOOL) $(PERL) -I. $(PERL5_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-perl5_version:
-	$(PERL) -v | grep "This is"
-
-# -----------------------------------------------------------------
-# Cleaning the Perl5 examples
-# -----------------------------------------------------------------
-
-perl5_clean:
-	rm -f *_wrap* *~ .~* myperl@EXEEXT@ *.pm
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
-
-##################################################################
-#####                       PYTHON                          ######
-##################################################################
-
-PYTHON_FLAGS =
-
-# Make sure these locate your Python installation
-ifneq (,$(PY2))
-  PYTHON_INCLUDE= $(DEFS) @PYINCLUDE@
-  PYTHON_LIB    = @PYLIB@
-  PYTHON        = @PYTHON@ $(PYTHON_FLAGS)
-else
-  PYTHON_INCLUDE= $(DEFS) @PY3INCLUDE@
-  PYTHON_LIB    = @PY3LIB@
-  PYTHON        = @PYTHON3@ $(PYTHON_FLAGS)
-endif
-
-# Extra Python specific linking options
-ifneq (,$(PY2))
-  PYTHON_DLNK   = @PYTHONDYNAMICLINKING@
-  PYTHON_LINK   = @PYLINK@
-else
-  PYTHON_DLNK   = @PYTHON3DYNAMICLINKING@
-  PYTHON_LINK   = @PY3LINK@
-endif
-PYTHON_SO     = @PYTHON_SO@
-
-PYCODESTYLE       = @PYCODESTYLE@
-PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,W291,W391
-
-# ----------------------------------------------------------------
-# Build a C dynamically loadable module
-# ----------------------------------------------------------------
-
-python: $(SRCDIR_SRCS)
-	$(SWIG) -python $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
-
-# -----------------------------------------------------------------
-# Build a C++ dynamically loadable module
-# -----------------------------------------------------------------
-
-python_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -python -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
-
-# -----------------------------------------------------------------
-# Build statically linked Python interpreter
-#
-# These should only be used in conjunction with the %include embed.i
-# library file
-# -----------------------------------------------------------------
-
-#TKINTER = -L/usr/X11R6.3/lib -L/usr/local/compat/lib -ltk4.0 -ltcl7.4 -lX11
-TKINTER =
-PYTHON_LIBOPTS = $(PYTHON_LINK) @LIBS@ $(TKINTER) $(SYSLIBS)
-
-python_static: $(SRCDIR_SRCS)
-	$(SWIG) -python -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
-	$(PYTHON_INCLUDE) $(LIBS) -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
-
-python_static_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -python -c++ -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
-	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
-
-# -----------------------------------------------------------------
-# Running a Python example
-# -----------------------------------------------------------------
-
-PYSCRIPT = $(RUNME).py
-
-python_run: $(PYSCRIPT)
-ifneq (,$(PYCODESTYLE))
-	$(COMPILETOOL) $(PYCODESTYLE) $(PYCODESTYLE_FLAGS) $(PYSCRIPT)
-endif
-	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
-
-ifneq (,$(SRCDIR))
-$(RUNME).py: $(SRCDIR)$(RUNME).py
-	cp $< $@
-endif
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-python_version:
-	$(PYTHON) -V
-
-# -----------------------------------------------------------------
-# Cleaning the python examples
-# -----------------------------------------------------------------
-
-python_clean:
-	rm -rf __pycache__
-	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@ *$(PYTHON_SO)
-	rm -f $(TARGET).py
-	case "x$(SRCDIR)" in x|x./);; *) rm -f $(RUNME).py;; esac
-
-
-##################################################################
-#####                       OCTAVE                          ######
-##################################################################
-
-# Make sure these locate your Octave installation
-OCTAVE        = @OCTAVE@
-OCTAVE_CXX    = $(DEFS) @OCTAVE_CPPFLAGS@ @OCTAVE_CXXFLAGS@
-
-# Extra Octave specific dynamic linking options
-OCTAVE_DLNK   = @OCTAVE_LDFLAGS@
-OCTAVE_SO     = @OCTAVE_SO@
-
-OCTAVE_SCRIPT = $(SRCDIR)$(RUNME).m
-
-# ----------------------------------------------------------------
-# Pre-compile Octave headers, if supported
-# ----------------------------------------------------------------
-
-ifeq (yes,$(PCHSUPPORT))
-
-octave_precompile_headers:
-	echo "precompiling $(OCTHEADERS)"
-	cp -f $(OCTHEADERSSRC) $(OCTHEADERS)
-	if $(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $(OCTAVE_CXX) $(OCTHEADERS); then \
-		: ; \
-	else \
-		rm -f $(OCTHEADERSGCH); \
-		exit 1; \
-	fi
-
-else
-
-octave_precompile_headers:
-	echo "precompiling Octave headers not supported"; exit 1
-
-endif
-
-# ----------------------------------------------------------------
-# Build a C dynamically loadable module
-# Note: Octave requires C++ compiler when compiling C wrappers
-# ----------------------------------------------------------------
-
-octave: $(SRCDIR_SRCS)
-	$(SWIG) -octave $(SWIGOCTHDROPT) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -g -c $(IOCTHEADERS) $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
-	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS) $(INCLUDES)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
-
-# -----------------------------------------------------------------
-# Build a C++ dynamically loadable module
-# -----------------------------------------------------------------
-
-octave_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -octave $(SWIGOCTHDROPT) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -g -c $(IOCTHEADERS) $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
-	$(CXXSHARED) -g $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
-
-# -----------------------------------------------------------------
-# Running an Octave example
-# -----------------------------------------------------------------
-
-octave_run:
-	env OCTAVE_PATH= OCTAVE_HISTFILE=/dev/null $(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-octave_version:
-	$(OCTAVE) --version | head -n 1
-
-# -----------------------------------------------------------------
-# Cleaning the Octave examples
-# -----------------------------------------------------------------
-
-octave_clean:
-	rm -rf __pycache__
-	rm -f *_wrap* *~ .~* myoctave@EXEEXT@ *.pyc
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@ *$(OCTAVE_SO)
-	rm -f $(OCTHEADERS) $(OCTHEADERSGCH)
-
-##################################################################
-#####                       GUILE                           ######
-##################################################################
-
-# Make sure these locate your Guile installation
-GUILE         = @GUILE@
-GUILE_CFLAGS  = @GUILE_CFLAGS@
-GUILE_SO      = @GUILE_SO@
-GUILE_LIBS    = @GUILE_LIBS@
-GUILE_LIBOPTS = @LIBS@ $(SYSLIBS)
-GUILE_LIBPREFIX = lib
-GUILE_SCRIPT  = $(SRCDIR)$(RUNME).scm
-
-#------------------------------------------------------------------
-# Build a dynamically loaded module with passive linkage
-#------------------------------------------------------------------
-guile: $(SRCDIR_SRCS)
-	$(SWIG) -guile -Linkage passive $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ISRCS) $(SRCDIR_SRCS)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(GUILE_LIBS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
-
-guile_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -guile -Linkage passive $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(GUILE_LIBS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
-
-guile_externalhdr:
-	$(SWIG) -guile -external-runtime $(TARGET)
-
-# -----------------------------------------------------------------
-# Build Guile interpreter augmented with extra functions
-# -----------------------------------------------------------------
-
-guile_augmented: $(SRCDIR_SRCS)
-	$(SWIG) -guile $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) -o $(TARGET)
-
-# -----------------------------------------------------------------
-# Build statically linked Guile interpreter
-# -----------------------------------------------------------------
-
-guile_static: $(SRCDIR_SRCS)
-	$(SWIG) -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
-	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
-	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
-
-guile_static_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -guile -lguilemain.i -Linkage ltdlmod $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
-	  -DSWIGINIT="SCM scm_init_$(TARGET)_module(void); scm_init_$(TARGET)_module();" \
-	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
-
-guile_simple: $(SRCDIR_SRCS)
-	$(SWIG) -guile -lguilemain.i -Linkage simple $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
-	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
-
-guile_simple_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -guile -lguilemain.i -Linkage simple $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
-	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
-
-# -----------------------------------------------------------------
-# Running a Guile example
-# -----------------------------------------------------------------
-
-guile_run:
-	env GUILE_AUTO_COMPILE=0 $(RUNTOOL) $(GUILE) -l $(GUILE_SCRIPT) $(RUNPIPE)
-
-guile_augmented_run:
-	env GUILE_AUTO_COMPILE=0 $(RUNTOOL) ./$(TARGET) $(GUILE_RUNOPTIONS) -s $(GUILE_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-guile_version:
-	$(GUILE) --version | head -n 1
-
-# -----------------------------------------------------------------
-# Cleaning the Guile examples
-# -----------------------------------------------------------------
-
-guile_clean:
-	rm -f *_wrap* *~ .~* my-guile@EXEEXT@ $(TARGET)@EXEEXT@
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *$(GUILE_SO)
-
-##################################################################
-#####                       JAVA                            ######
-##################################################################
-
-# You need to set this variable to the java directories containing the
-# files "jni.h" and "md.h"
-# usually something like /usr/java/include and /usr/java/include/<arch-osname>.
-JAVA_INCLUDE= @JAVAINC@
-
-# Extra Java specific dynamic linking options
-JAVA_DLNK  = @JAVADYNAMICLINKING@
-JAVA_LIBPREFIX = @JAVALIBRARYPREFIX@
-JAVASO =@JAVASO@
-JAVALDSHARED = @JAVALDSHARED@
-JAVACXXSHARED = @JAVACXXSHARED@
-JAVACFLAGS = @JAVACFLAGS@
-JAVAFLAGS = @JAVAFLAGS@
-JAVA = @JAVA@
-JAVAC = @JAVAC@ -d .
-
-# ----------------------------------------------------------------
-# Build a java dynamically loadable module (C)
-# ----------------------------------------------------------------
-
-java: $(SRCDIR_SRCS)
-	$(SWIG) -java $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(JAVACFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(JAVA_INCLUDE)
-	$(JAVALDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
-
-# ----------------------------------------------------------------
-# Build a java dynamically loadable module (C++)
-# ----------------------------------------------------------------
-
-java_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -java -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(JAVACFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JAVA_INCLUDE)
-	$(JAVACXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
-
-# ----------------------------------------------------------------
-# Compile java files
-# ----------------------------------------------------------------
-
-java_compile: $(SRCDIR_SRCS)
-	$(COMPILETOOL) $(JAVAC) $(addprefix $(SRCDIR),$(JAVASRCS))
-
-# -----------------------------------------------------------------
-# Run java example
-# -----------------------------------------------------------------
-
-java_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(JAVA) $(JAVAFLAGS) $(RUNME) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-java_version:
-	$(JAVA) -version
-	$(JAVAC) -version || echo "Unknown javac version"
-
-# -----------------------------------------------------------------
-# Cleaning the java examples
-# -----------------------------------------------------------------
-
-java_clean:
-	rm -f *_wrap* *~ .~* *.class `find . -name \*.java | grep -v $(RUNME).java`
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@JAVASO@
-
-##################################################################
-#####                       JAVASCRIPT                      ######
-##################################################################
-
-# Note: These targets are also from within Makefiles in the Example directories.
-# There is a common makefile, 'Examples/javascript/js_example.mk' to simplify
-# create a configuration for a new example.
-
-ROOT_DIR = @ROOT_DIR@
-JSINCLUDES = @JSCOREINC@ @JSV8INC@
-JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
-NODEJS = @NODEJS@
-NODEGYP = @NODEGYP@
-
-# ----------------------------------------------------------------
-# Creating and building Javascript wrappers
-# ----------------------------------------------------------------
-
-javascript_wrapper:
-	$(SWIG) -javascript $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
-
-javascript_wrapper_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -javascript -c++ $(SWIGOPT) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
-
-javascript_build: $(SRCDIR_SRCS)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-javascript_build_cpp: $(SRCDIR_SRCS)
-ifeq (node,$(JSENGINE))
-	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
-	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
-else
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-endif
-
-# These targets are used by the test-suite:
-
-javascript: $(SRCDIR_SRCS) javascript_custom_interpreter
-	$(SWIG) -javascript $(SWIGOPT) $(INTERFACEPATH)
-ifeq (jsc, $(ENGINE))
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-else # (v8 | node) # v8 and node must be compiled as c++
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-endif
-
-javascript_cpp: $(SRCDIR_SRCS) javascript_custom_interpreter
-	$(SWIG) -javascript -c++ $(SWIGOPT) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-# -----------------------------------------------------------------
-# Running a Javascript example
-# -----------------------------------------------------------------
-
-javascript_custom_interpreter:
-	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
-
-ifeq (node,$(JSENGINE))
-javascript_run:
-	env NODE_PATH=$$PWD:$(SRCDIR) $(RUNTOOL) $(NODEJS) $(SRCDIR)$(RUNME).js $(RUNPIPE)
-else
-javascript_run: javascript_custom_interpreter
-	$(RUNTOOL) $(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) -L $(TARGET) $(SRCDIR)$(RUNME).js $(RUNPIPE)
-endif
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-javascript_version:
-ifeq (, $(ENGINE))
-	@if [ "$(NODEJS)" != "" ]; then \
-	  echo "Node.js: `($(NODEJS) --version)`"; \
-	  echo "node-gyp: `($(NODEGYP) --version)`"; \
-	else \
-	  echo "Version depends on the interpreter"; \
-	fi
-endif
-ifeq (node, $(ENGINE))
-	echo "Node.js: `($(NODEJS) --version)`"
-	echo "node-gyp: `($(NODEGYP) --version)`"
-endif
-ifeq (jsc, $(ENGINE))
-	@if [ "@JSCOREVERSION@" != "" ]; then \
-	  echo "JavaScriptCore: @JSCOREVERSION@"; \
-	else \
-	  echo "Unknown JavaScriptCore version."; \
-	fi
-endif
-ifeq (v8, $(ENGINE))
-	echo "Unknown v8 version."
-endif
-
-# -----------------------------------------------------------------
-# Cleaning the Javascript examples
-# -----------------------------------------------------------------
-
-javascript_clean:
-	rm -rf build
-	rm -f *_wrap* $(RUNME)
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
-	rm -f binding.gyp example-gypcopy.cxx
-	cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean
 
 ##################################################################
 #####                       ANDROID                         ######
@@ -814,283 +202,73 @@ android_clean:
 	rm -rf obj
 
 ##################################################################
-#####                       MZSCHEME                        ######
+#####                           C                           ######
 ##################################################################
-
-MZSCHEME = mzscheme
-MZC = @MZC@
-MZDYNOBJ = @MZDYNOBJ@
-MZSCHEME_SO = @MZSCHEME_SO@
-MZSCHEME_SCRIPT = $(SRCDIR)$(RUNME).scm
-
-# ----------------------------------------------------------------
-# Build a C/C++ dynamically loadable module
-# ----------------------------------------------------------------
-
-mzscheme: $(SRCDIR_SRCS)
-	$(SWIG) -mzscheme $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(COMPILETOOL) $(MZC) `echo " $(CPPFLAGS) $(INCLUDES) $(CFLAGS)" | sed 's/ -/ ++ccf -/g'` --cc $(ISRCS) $(SRCDIR_SRCS)
-	$(COMPILETOOL) $(MZC) --ld $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS)
-
-mzscheme_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -mzscheme -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	env CFLAGS= $(COMPILETOOL) $(MZC) `echo " $(CPPFLAGS) $(INCLUDES) $(CXXFLAGS)" | sed 's/ -/ ++ccf -/g'` --cc $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
-	$(CXXSHARED) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $(LIBPREFIX)$(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS)
-
-# -----------------------------------------------------------------
-# Run mzscheme example
-# -----------------------------------------------------------------
-
-mzscheme_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(MZSCHEME) -r $(MZSCHEME_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-mzscheme_version:
-	$(MZSCHEME) -v
-	$(MZC) -v
-
-# -----------------------------------------------------------------
-# Cleaning the mzscheme examples
-# -----------------------------------------------------------------
-
-mzscheme_clean:
-	rm -f *_wrap* *~ .~*
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *$(MZSCHEME_SO)
-
-##################################################################
-#####                          Ocaml                         #####
-##################################################################
-
-OCC=$(COMPILETOOL) @OCAMLC@
-OCC_WITH_PP=env TMPDIR=./localtmp $(OCC)
-# TMPDIR above is a workaround for some ocamlc versions, such as 4.05.0, which always create a temp file of the same name breaking parallel make (seemingly only when -pp is used)
-OCAMLDLGEN=$(COMPILETOOL) @OCAMLDLGEN@
-OCAMLFIND=$(COMPILETOOL) @OCAMLFIND@
-OCAMLMKTOP=$(COMPILETOOL) @OCAMLMKTOP@
-NOLINK ?= false
-OCAMLPP= -pp "camlp4o ./swigp4.cmo"
-OCAMLP4WHERE=`$(COMPILETOOL) @CAMLP4@ -where`
-
-ocaml_core:
-	mkdir -p ./localtmp
-	$(SWIG) -ocaml -co swig.mli 2>/dev/null
-	$(SWIG) -ocaml -co swig.ml 2>/dev/null
-	$(SWIG) -ocaml -co swigp4.ml 2>/dev/null
-	$(OCC) -c swig.mli
-	$(OCC) -c swig.ml
-	$(OCC_WITH_PP) -I $(OCAMLP4WHERE) -pp "camlp4o pa_extend.cmo q_MLast.cmo" -c swigp4.ml
-
-ocaml_static: $(SRCDIR_SRCS)
-	$(SWIG) -ocaml $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCDIR_SRCS)
-	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
-	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
-	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
-	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(RUNME) swig.cmo $(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)"
-
-ocaml_dynamic: $(SRCDIR_SRCS)
-	$(SWIG) -ocaml $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCDIR_SRCS)
-	$(CXXSHARED) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(CCSHARED) -o $(INTERFACE:%.i=%@SO@) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) $(LIBS)
-	$(OCAMLDLGEN) $(INTERFACE:%.i=%.ml) $(INTERFACE:%.i=%@SO@) > $(INTERFACE:%.i=%_dynamic.ml)
-	mv $(INTERFACE:%.i=%_dynamic.ml) $(INTERFACE:%.i=%.ml)
-	rm $(INTERFACE:%.i=%.mli)
-	$(OCAMLFIND) $(OCC) -g -c -package dl $(INTERFACE:%.i=%.ml)
-	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
-	$(NOLINK) || $(OCAMLFIND) $(OCC) -g -ccopt -g -cclib -g -custom -o $(RUNME) swig.cmo -package dl -linkpkg $(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo)
-
-ocaml_static_toplevel: $(SRCDIR_SRCS)
-	$(SWIG) -ocaml $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCDIR_SRCS)
-	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
-	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
-	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
-	$(NOLINK) || $(OCAMLMKTOP) swig.cmo -I $(OCAMLP4WHERE) dynlink.cma camlp4o.cma swigp4.cmo -cclib "$(LIBS)" -g -ccopt -g -cclib -g -custom -o $(RUNME)_top $(INTERFACE:%.i=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS)
-
-ocaml_static_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -ocaml -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -cc '$(CXX) $(CPPFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
-	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
-	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
-	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
-	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(RUNME) swig.cmo $(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)" -cc '$(CXX)'
-
-ocaml_static_cpp_toplevel: $(SRCDIR_SRCS)
-	$(SWIG) -ocaml -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -cc '$(CXX) $(CPPFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
-	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
-	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
-	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
-	$(NOLINK) || $(OCAMLMKTOP) -cc '$(CXX) $(CPPFLAGS)' swig.cmo -I $(OCAMLP4WHERE) dynlink.cma camlp4o.cma swigp4.cmo -cclib "$(LIBS)" -g -ccopt -g -cclib -g -custom -o $(RUNME)_top $(INTERFACE:%.i=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS)
-
-ocaml_dynamic_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -ocaml -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
-	$(OCC) -cc '$(CXX) $(CPPFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) -ccopt -fPIC
-	$(CXXSHARED) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $(INTERFACE:%.i=%@SO@) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) $(CPP_DLLIBS) $(LIBS)
-	$(OCAMLDLGEN) $(INTERFACE:%.i=%.ml) $(INTERFACE:%.i=%@SO@) > $(INTERFACE:%.i=%_dynamic.ml)
-	mv $(INTERFACE:%.i=%_dynamic.ml) $(INTERFACE:%.i=%.ml)
-	rm $(INTERFACE:%.i=%.mli)
-	$(OCAMLFIND) $(OCC) -g -c -package dl $(INTERFACE:%.i=%.ml)
-	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
-	$(NOLINK) || $(OCAMLFIND) swig.cmo $(OCC) -cclib -export-dynamic -g -ccopt -g -cclib -g -custom -o $(RUNME) -package dl -linkpkg $(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) -cc '$(CXX)'
-
-# -----------------------------------------------------------------
-# Run ocaml example
-# -----------------------------------------------------------------
-
-ocaml_run:
-	$(RUNTOOL) ./$(RUNME) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-ocaml_version:
-	$(OCC) -version
-
-# -----------------------------------------------------------------
-# Cleaning the Ocaml examples
-# -----------------------------------------------------------------
-
-ocaml_clean:
-	rm -f *_wrap* *~ .~* *.cmo *.cmi *.mli $(TARGET).ml $(RUNME) $(RUNME)_top swig.ml swigp4.ml
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
-	rm -rf ./localtmp
-
-##################################################################
-#####                       RUBY                            ######
-##################################################################
-
-# Make sure these locate your Ruby installation
-RUBY_CFLAGS= @RUBYCCDLFLAGS@ $(DEFS)
-RUBY_INCLUDE= @RUBYINCLUDE@
-RUBY_LIB     = @RUBYLIB@
-RUBY_DLNK = @RUBYDYNAMICLINKING@
-RUBY_LIBOPTS = @RUBYLINK@ @LIBS@ $(SYSLIBS)
-RUBY_SO = @RUBYSO@
-RUBY = @RUBY@
-RUBY_SCRIPT = $(SRCDIR)$(RUNME).rb
-
 
 # ----------------------------------------------------------------
 # Build a C dynamically loadable module
 # ----------------------------------------------------------------
 
-ruby: $(SRCDIR_SRCS)
-	$(SWIG) -ruby $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(RUBY_CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(RUBY_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(RUBY_SO)
+CLIBPREFIX = lib
+C_LDSHARED = @C_LDSHARED@
+CXX_LDSHARED = @CXX_LDSHARED@
+C_SO = @C_SO@
+
+c: $(SRCDIR_SRCS)
+	$(SWIG) -c $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) -I$(SRCDIR) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES)
+	$(COMPILETOOL) $(C_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
+
+c_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -c++ -c $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) -I$(SRCDIR) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
+	$(COMPILETOOL) $(CXX_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
+
+c_compile_c: $(SRCDIR)$(RUNME).c
+	$(COMPILETOOL) $(CC) $(CFLAGS) -o $(RUNME)_$(RUNME_EXT) -I. -I.. $< -L. -l$(TARGET)
+
+c_compile_cxx: $(SRCDIR)$(RUNME).cxx
+	$(COMPILETOOL) $(CXX) $(CXXFLAGS) -o $(RUNME)_$(RUNME_EXT) -I. -I.. $< -L. -l$(TARGET)
+
+$(eval c_compile: c_compile_$(RUNME_EXT))
+
+# This target is used for the unit tests: if we don't have any test code to
+# run, we at least can check that the generated header can be included without
+# giving any syntax errors, both when compiling it as C and C++ code.
+c_syntax_check: c_syntax_check_c c_syntax_check_cxx
+
+c_syntax_check_c:
+	$(CC) -fsyntax-only -x c -I$(SRCDIR)$(INTERFACEDIR) $(C_HEADER)
+
+c_syntax_check_cxx:
+	$(CXX) -fsyntax-only -x c++ -I$(SRCDIR)$(INTERFACEDIR) $(C_HEADER)
 
 # -----------------------------------------------------------------
-# Build a C++ dynamically loadable module
+# Run C example
 # -----------------------------------------------------------------
 
-ruby_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -ruby $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(RUBY_INCLUDE)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(RUBY_SO)
-
-# -----------------------------------------------------------------
-# Build statically linked Ruby interpreter
-#
-# These should only be used in conjunction with the %include embed.i
-# library file
-# -----------------------------------------------------------------
-
-ruby_static: $(SRCDIR_SRCS)
-	$(SWIG) -ruby -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(RUBY_CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
-	$(RUBY_INCLUDE) $(LIBS) -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
-
-ruby_cpp_static: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -ruby -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
-	$(RUBY_INCLUDE) $(LIBS)  -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
-
-# -----------------------------------------------------------------
-# Run Ruby example
-# -----------------------------------------------------------------
-
-ruby_run:
-	$(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I. $(RUBY_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-ruby_version:
-	$(RUBY) -v
-
-# -----------------------------------------------------------------
-# Cleaning the Ruby examples
-# -----------------------------------------------------------------
-
-ruby_clean:
-	rm -f *_wrap* *~ .~* myruby@EXEEXT@
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *$(RUBY_SO)
-
-##################################################################
-#####                       PHP                             ######
-##################################################################
-
-PHP         = @PHP@
-PHP_INCLUDE = @PHPINC@
-PHP_SO      = @PHP_SO@
-PHP_SCRIPT  = $(SRCDIR)$(RUNME).php
-PHP_EXTENSION = example$(PHP_SO)
-
-# -------------------------------------------------------------------
-# Build a PHP dynamically loadable module (C)
-# -------------------------------------------------------------------
-
-php: $(SRCDIR_SRCS)
-	$(SWIG) -php $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(PHP_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
-
-# --------------------------------------------------------------------
-# Build a PHP dynamically loadable module (C++)
-# --------------------------------------------------------------------
-
-php_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -php -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP_INCLUDE)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
-
-# -----------------------------------------------------------------
-# Running a PHP example
-# -----------------------------------------------------------------
-
-php_run:
-	$(RUNTOOL) $(PHP) -n -d extension_dir=. -d extension=$(PHP_EXTENSION) -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});if(strlen($$argv[1]))include($$argv[1]);' '$(PHP_SCRIPT)' $(RUNPIPE)
+c_run: c_compile
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) ./$(RUNME)_$(RUNME_EXT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
-php_version:
-	$(PHP) -v | head -n 1
+c_version:
+	$(CC) --version | head -n 1
 
 # -----------------------------------------------------------------
-# Cleaning the PHP examples
+# Cleaning the C examples
 # -----------------------------------------------------------------
 
-php_clean:
-	rm -f *_wrap* *~ .~* example.php php_example.h
+c_clean:
+	rm -f *_wrap.[ch] *_wrap.cxx
 	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *$(PHP_SO)
+	rm -f *.@OBJEXT@ *@SO@
+	rm -f $(RUNME)_c $(RUNME)_cxx
 
 ##################################################################
-#####                      CSHARP                           ######
+#####                       CSHARP                          ######
 ##################################################################
 
 # Extra CSharp specific dynamic linking options
@@ -1162,307 +340,68 @@ csharp_clean:
 	rm -f *.@OBJEXT@ *@CSHARPSO@
 
 ##################################################################
-#####                      LUA                              ######
+#####                       D                               ######
 ##################################################################
 
-# lua flags
-LUA_INCLUDE= @LUAFLAGS@
-LUA_LIB    = @LUALINK@
+DLIBPREFIX = @DLIBPREFIX@
 
-# Extra specific dynamic linking options
-LUA_DLNK   = @LUADYNAMICLINKING@
-LUA_SO     = @LUA_SO@
+SWIGD = $(SWIG) -d
+DCOMPILER = @D2COMPILER@
 
-LUA        = @LUABIN@
-LUA_SCRIPT = $(SRCDIR)$(RUNME).lua
-
-# Extra code for lua static link
-LUA_INTERP = ../lua.c
+D_RUNME = ./$(RUNME)
 
 # ----------------------------------------------------------------
-# Build a C dynamically loadable module
+# Build a dynamically loadable D wrapper for a C module
 # ----------------------------------------------------------------
 
-lua: $(SRCDIR_SRCS)
-	$(SWIG) -lua $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(LUA_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
+d: $(SRCDIR_SRCS)
+	$(SWIGD) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(DCFLAGS) $(EXTRA_CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(DCFLAGS) $(EXTRA_LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(DLIBPREFIX)$(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a dynamically loadable D wrapper for a C++ module
+# ----------------------------------------------------------------
+
+d_cpp: $(SRCDIR_SRCS)
+	$(SWIGD) -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(DCFLAGS) $(EXTRA_CFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(DCFLAGS) $(EXTRA_LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(DLIBPREFIX)$(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Compile D files
+# ----------------------------------------------------------------
+
+# Clear the DFLAGS environment variable for the compiler call itself
+# to work around a discrepancy in argument handling between DMD and LDC.
+d_compile: $(SRCDIR_SRCS)
+	DFLAGS="" $(COMPILETOOL) $(DCOMPILER) $(DFLAGS) $(DSRCS)
 
 # -----------------------------------------------------------------
-# Build a C++ dynamically loadable module
+# Run D example
 # -----------------------------------------------------------------
 
-lua_cpp: $(SRCDIR_SRCS) $(GENCXXSRCS)
-	$(SWIG) -c++ -lua $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(GENCXXSRCS) $(INCLUDES) $(LUA_INCLUDE)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
-
-lua_externalhdr:
-	$(SWIG) -lua -external-runtime $(TARGET)
-
-lua_swig_cpp:
-	$(SWIG) -c++ -lua $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-
-# -----------------------------------------------------------------
-# Build statically linked Lua interpreter
-# -----------------------------------------------------------------
-
-lua_static: $(SRCDIR_SRCS)
-	$(SWIG) -lua -module example $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS)  $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR)$(LUA_INTERP) $(INCLUDES) \
-	$(LUA_INCLUDE) $(LIBS) $(LUA_LIB) -o $(TARGET)
-
-lua_static_cpp: $(SRCDIR_SRCS) $(GENCXXSRCS)
-	$(SWIG) -c++ -lua -module example $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(GENCXXSRCS) $(SRCDIR)$(LUA_INTERP) $(INCLUDES) \
-	$(LUA_INCLUDE) $(LIBS)  $(LUA_LIB) -o $(TARGET)
-
-# -----------------------------------------------------------------
-# Run Lua example
-# -----------------------------------------------------------------
-
-lua_run:
-	$(RUNTOOL) $(LUA) $(LUA_SCRIPT) $(RUNPIPE)
-
-lua_embed_run:
-	$(RUNTOOL) ./$(TARGET) $(LUA_SCRIPT) $(RUNPIPE)
+d_run:
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(D_RUNME) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
-lua_version:
-	$(LUA) -v | head -n 1
+d_version:
+	$(DCOMPILER) --version 2> /dev/null | head -n 3
 
 # -----------------------------------------------------------------
-# Cleaning the lua examples
+# Clean the D examples
 # -----------------------------------------------------------------
 
-lua_clean:
-	rm -f *_wrap* *~ .~* mylua@EXEEXT@
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *$(LUA_SO)
-
-##################################################################
-#####                      CFFI                             ######
-##################################################################
-
-CFFI = @CFFIBIN@
-CFFI_SCRIPT=$(RUNME).lisp
-
-cffi: $(SRCDIR_SRCS)
-	$(SWIG) -cffi $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-#	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(INCLUDES) $(SRCDIR_SRCS)
-#	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-cffi_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -cffi $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-
-# -----------------------------------------------------------------
-# Run CFFI example
-# -----------------------------------------------------------------
-
-cffi_run:
-	$(RUNTOOL) $(CFFI) -batch -s $(CFFI_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-cffi_version:
-	$(CFFI) --version
-
-# -----------------------------------------------------------------
-# Cleaning the CFFI examples
-# -----------------------------------------------------------------
-
-cffi_clean:
-	rm -f *_wrap* *~ .~*
+d_clean:
+	rm -f *_wrap* *~ .~* $(RUNME) $(RUNME).exe `find . -name \*.d | grep -v $(RUNME).d`
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
 
 ##################################################################
-#####                      R                                ######
-##################################################################
-
-R = R
-RCXXSRCS = $(INTERFACE:.i=_wrap.cpp) #Need to use _wrap.cpp for R build system as it does not understand _wrap.cxx
-RRSRC = $(INTERFACE:.i=.R)
-R_CFLAGS=-fPIC
-R_OPT = --slave --quiet --no-save --no-restore
-R_SCRIPT=$(SRCDIR)$(RUNME).R
-
-# need to compile .cxx files outside of R build system to make sure that
-# we get -fPIC
-# CMD SHLIB stdout is piped to /dev/null to prevent echo of compiler command
-
-# ----------------------------------------------------------------
-# Build a R dynamically loadable module (C)
-# ----------------------------------------------------------------
-
-r: $(SRCDIR_SRCS)
-	$(SWIG) -r $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-ifneq ($(SRCDIR_SRCS),)
-	$(CC) -g -c $(CPPFLAGS) $(CFLAGS) $(R_CFLAGS) $(SRCDIR_SRCS) $(INCLUDES)
-endif
-	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CFLAGS="$(CFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
-
-# ----------------------------------------------------------------
-# Build a R dynamically loadable module (C++)
-# ----------------------------------------------------------------
-r_cpp: $(SRCDIR_CXXSRCS)
-	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
-ifneq ($(SRCDIR_CXXSRCS),)
-	$(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(R_CFLAGS) $(SRCDIR_CXXSRCS) $(INCLUDES)
-endif
-	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CXXFLAGS="$(CXXFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
-
-# -----------------------------------------------------------------
-# Run R example
-# -----------------------------------------------------------------
-
-r_run:
-	$(RUNTOOL) $(R) $(R_OPT) -f $(R_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-r_version:
-	$(R) --version | head -n 1
-
-# -----------------------------------------------------------------
-# Cleaning the R examples
-# -----------------------------------------------------------------
-
-r_clean:
-	rm -f *_wrap* *~ .~*
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@ NAMESPACE
-	rm -f $(RRSRC) $(RUNME).Rout .RData
-
-##################################################################
-#####                           C                           ######
-##################################################################
-
-# ----------------------------------------------------------------
-# Build a C dynamically loadable module
-# ----------------------------------------------------------------
-
-CLIBPREFIX = lib
-C_LDSHARED = @C_LDSHARED@
-CXX_LDSHARED = @CXX_LDSHARED@
-C_SO = @C_SO@
-
-c: $(SRCDIR_SRCS)
-	$(SWIG) -c $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) -I$(SRCDIR) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES)
-	$(COMPILETOOL) $(C_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
-
-c_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -c++ -c $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) -I$(SRCDIR) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
-	$(COMPILETOOL) $(CXX_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
-
-c_compile_c: $(SRCDIR)$(RUNME).c
-	$(COMPILETOOL) $(CC) $(CFLAGS) -o $(RUNME)_$(RUNME_EXT) -I. -I.. $< -L. -l$(TARGET)
-
-c_compile_cxx: $(SRCDIR)$(RUNME).cxx
-	$(COMPILETOOL) $(CXX) $(CXXFLAGS) -o $(RUNME)_$(RUNME_EXT) -I. -I.. $< -L. -l$(TARGET)
-
-$(eval c_compile: c_compile_$(RUNME_EXT))
-
-# This target is used for the unit tests: if we don't have any test code to
-# run, we at least can check that the generated header can be included without
-# giving any syntax errors, both when compiling it as C and C++ code.
-c_syntax_check: c_syntax_check_c c_syntax_check_cxx
-
-c_syntax_check_c:
-	$(CC) -fsyntax-only -x c -I$(SRCDIR)$(INTERFACEDIR) $(C_HEADER)
-
-c_syntax_check_cxx:
-	$(CXX) -fsyntax-only -x c++ -I$(SRCDIR)$(INTERFACEDIR) $(C_HEADER)
-
-# -----------------------------------------------------------------
-# Run C example
-# -----------------------------------------------------------------
-
-c_run: c_compile
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) ./$(RUNME)_$(RUNME_EXT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-c_version:
-	$(CC) --version | head -n 1
-
-# -----------------------------------------------------------------
-# Cleaning the C examples
-# -----------------------------------------------------------------
-
-c_clean:
-	rm -f *_wrap.[ch] *_wrap.cxx
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
-	rm -f $(RUNME)_c $(RUNME)_cxx
-
-##################################################################
-#####                 SCILAB                                ######
-##################################################################
-
-SCILAB = @SCILAB@
-SCILAB_INC= @SCILABINCLUDE@
-SCILAB_OPT = @SCILABOPT@
-SCILAB_VERSION = @SCILAB_VERSION@
-SCILAB_LIBPREFIX = lib
-
-# ----------------------------------------------------------------
-# Build a C dynamically loadable module
-# ----------------------------------------------------------------
-
-scilab:
-	$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SCILAB_INC) $(INCLUDES) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(IOBJS) $(OBJS) $(LIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
-
-# ----------------------------------------------------------------
-# Build a C++ dynamically loadable module
-# ----------------------------------------------------------------
-
-scilab_cpp:
-	$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SCILAB_INC) $(INCLUDES) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(IOBJS) $(OBJS) $(LIBS) $(CPP_DLLIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
-
-# -----------------------------------------------------------------
-# Running a Scilab example
-# -----------------------------------------------------------------
-
-scilab_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(SRCDIR)$(RUNME).sci $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Scilab version
-# -----------------------------------------------------------------
-
-scilab_version:
-	echo `$(SCILAB) -nwni -version | head -1`
-
-# -----------------------------------------------------------------
-# Cleaning the scilab examples
-# -----------------------------------------------------------------
-
-scilab_clean:
-	rm -f *_wrap* *~ .~*
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *@SO@
-	rm -f *.sce
-
-##################################################################
-#####                        Go                             ######
+#####                       Go                              ######
 ##################################################################
 
 # TODO: The Go make targets need simplifying to use configure time
@@ -1634,71 +573,1103 @@ go_clean:
 	rm -f *.@OBJEXT@ *.[568] *.a *@SO@
 
 ##################################################################
-#####                         D                             ######
+#####                       GUILE                           ######
 ##################################################################
 
-DLIBPREFIX = @DLIBPREFIX@
+# Make sure these locate your Guile installation
+GUILE         = @GUILE@
+GUILE_CFLAGS  = @GUILE_CFLAGS@
+GUILE_SO      = @GUILE_SO@
+GUILE_LIBS    = @GUILE_LIBS@
+GUILE_LIBOPTS = @LIBS@ $(SYSLIBS)
+GUILE_LIBPREFIX = lib
+GUILE_SCRIPT  = $(SRCDIR)$(RUNME).scm
 
-ifeq (,$(D_VERSION))
-  D_VERSION = @DDEFAULTVERSION@
-endif
+#------------------------------------------------------------------
+# Build a dynamically loaded module with passive linkage
+#------------------------------------------------------------------
+guile: $(SRCDIR_SRCS)
+	$(SWIG) -guile -Linkage passive $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ISRCS) $(SRCDIR_SRCS)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(GUILE_LIBS) $(LIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
-ifeq (2,$(D_VERSION))
-  SWIGD = $(SWIG) -d -d2
-  DCOMPILER = @D2COMPILER@
-else
-  SWIGD = $(SWIG) -d
-  DCOMPILER = @D1COMPILER@
-endif
+guile_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -c++ -guile -Linkage passive $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $(GUILE_CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(GUILE_LIBS) $(LIBS) $(CPP_DLLIBS) -o $(GUILE_LIBPREFIX)$(TARGET)$(GUILE_SO)
 
-D_RUNME = ./$(RUNME)
-
-# ----------------------------------------------------------------
-# Build a dynamically loadable D wrapper for a C module
-# ----------------------------------------------------------------
-
-d: $(SRCDIR_SRCS)
-	$(SWIGD) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(DCFLAGS) $(EXTRA_CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(DCFLAGS) $(EXTRA_LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(DLIBPREFIX)$(TARGET)$(SO)
-
-# ----------------------------------------------------------------
-# Build a dynamically loadable D wrapper for a C++ module
-# ----------------------------------------------------------------
-
-d_cpp: $(SRCDIR_SRCS)
-	$(SWIGD) -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(DCFLAGS) $(EXTRA_CFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(DCFLAGS) $(EXTRA_LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(DLIBPREFIX)$(TARGET)$(SO)
-
-# ----------------------------------------------------------------
-# Compile D files
-# ----------------------------------------------------------------
-
-# Clear the DFLAGS environment variable for the compiler call itself
-# to work around a discrepancy in argument handling between DMD and LDC.
-d_compile: $(SRCDIR_SRCS)
-	DFLAGS="" $(COMPILETOOL) $(DCOMPILER) $(DFLAGS) $(DSRCS)
+guile_externalhdr:
+	$(SWIG) -guile -external-runtime $(TARGET)
 
 # -----------------------------------------------------------------
-# Run D example
+# Build Guile interpreter augmented with extra functions
 # -----------------------------------------------------------------
 
-d_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(D_RUNME) $(RUNPIPE)
+guile_augmented: $(SRCDIR_SRCS)
+	$(SWIG) -guile $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Build statically linked Guile interpreter
+# -----------------------------------------------------------------
+
+guile_static: $(SRCDIR_SRCS)
+	$(SWIG) -guile -lguilemain.i -Linkage simple $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
+	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
+
+guile_static_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -c++ -guile -lguilemain.i -Linkage simple $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
+	  $(GUILE_CFLAGS) $(GUILE_LIBS) $(LIBS) $(GUILE_LIBOPTS) -o $(TARGET)-guile
+
+# -----------------------------------------------------------------
+# Running a Guile example
+# -----------------------------------------------------------------
+
+guile_run:
+	env GUILE_AUTO_COMPILE=0 $(RUNTOOL) $(GUILE) -l $(GUILE_SCRIPT) $(RUNPIPE)
+
+guile_augmented_run:
+	env GUILE_AUTO_COMPILE=0 $(RUNTOOL) ./$(TARGET) $(GUILE_RUNOPTIONS) -s $(GUILE_SCRIPT) $(RUNPIPE)
 
 # -----------------------------------------------------------------
 # Version display
 # -----------------------------------------------------------------
 
-d_version:
-	($(DCOMPILER) --version 2> /dev/null || $(DCOMPILER)) | head -n 3
+guile_version:
+	$(GUILE) --version | head -n 1
 
 # -----------------------------------------------------------------
-# Clean the D examples
+# Cleaning the Guile examples
 # -----------------------------------------------------------------
 
-d_clean:
-	rm -f *_wrap* *~ .~* $(RUNME) $(RUNME).exe `find . -name \*.d | grep -v $(RUNME).d`
+guile_clean:
+	rm -f *_wrap* *~ .~* my-guile@EXEEXT@ $(TARGET)@EXEEXT@
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *$(GUILE_SO)
+
+##################################################################
+#####                       JAVA                            ######
+##################################################################
+
+# You need to set this variable to the java directories containing the
+# files "jni.h" and "md.h"
+# usually something like /usr/java/include and /usr/java/include/<arch-osname>.
+JAVA_INCLUDE= @JAVAINC@
+
+# Extra Java specific dynamic linking options
+JAVA_DLNK  = @JAVADYNAMICLINKING@
+JAVA_LIBPREFIX = @JAVALIBRARYPREFIX@
+JAVASO =@JAVASO@
+JAVALDSHARED = @JAVALDSHARED@
+JAVACXXSHARED = @JAVACXXSHARED@
+JAVACFLAGS = @JAVACFLAGS@
+JAVAFLAGS = @JAVAFLAGS@
+JAVA = @JAVA@
+JAVAC = @JAVAC@ -d .
+
+# ----------------------------------------------------------------
+# Build a java dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+java: $(SRCDIR_SRCS)
+	$(SWIG) -java $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(JAVACFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(JAVA_INCLUDE)
+	$(JAVALDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
+
+# ----------------------------------------------------------------
+# Build a java dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
+java_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -java -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(JAVACFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(JAVA_INCLUDE)
+	$(JAVACXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JAVA_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(JAVA_LIBPREFIX)$(TARGET)$(JAVASO)
+
+# ----------------------------------------------------------------
+# Compile java files
+# ----------------------------------------------------------------
+
+java_compile: $(SRCDIR_SRCS)
+	$(COMPILETOOL) $(JAVAC) $(addprefix $(SRCDIR),$(JAVASRCS))
+
+# -----------------------------------------------------------------
+# Run java example
+# -----------------------------------------------------------------
+
+java_run:
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(JAVA) $(JAVAFLAGS) $(RUNME) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+java_version:
+	$(JAVA) -version
+	$(JAVAC) -version || echo "Unknown javac version"
+
+# -----------------------------------------------------------------
+# Cleaning the java examples
+# -----------------------------------------------------------------
+
+java_clean:
+	rm -f *_wrap* *~ .~* *.class `find . -name \*.java | grep -v $(RUNME).java`
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@JAVASO@
+
+##################################################################
+#####                       JAVASCRIPT                      ######
+##################################################################
+
+# Note: These targets are also from within Makefiles in the Example directories.
+# There is a common makefile, 'Examples/javascript/js_example.mk' to simplify
+# create a configuration for a new example.
+
+ROOT_DIR = @ROOT_DIR@
+JSINCLUDES = @JSCOREINC@ @JSV8INC@
+JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
+NODEJS = @NODEJS@
+NODEGYP = @NODEGYP@
+ifneq (, $(ENGINE))
+    JSENGINE=$(ENGINE)
+else
+ifneq (, $(NODEJS))
+    JSENGINE=node
+else
+ifneq (, @JSCENABLED@)
+    JSENGINE=jsc
+else
+ifneq (, @JSV8ENABLED@)
+    JSENGINE=v8
+else
+    # Shouldn't happen, but avoid empty value if it does.
+    JSENGINE=node
+endif
+endif
+endif
+endif
+
+# ----------------------------------------------------------------
+# Creating and building Javascript wrappers
+# ----------------------------------------------------------------
+
+NAPI_DIR = @NODENAPI_DIR@
+
+javascript_wrapper:
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
+	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
+else
+	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
+endif
+
+javascript_wrapper_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -javascript -c++ $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
+
+javascript_build: $(SRCDIR_SRCS)
+ifeq (node,$(JSENGINE))
+	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
+	MAKEFLAGS= $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+else ifeq (napi,$(JSENGINE))
+	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
+	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+else
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(LDSHARED) $(CCSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+endif
+
+javascript_build_cpp: $(SRCDIR_SRCS)
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
+	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
+	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+else
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+endif
+
+# These targets are used by the test-suite:
+
+javascript: $(SRCDIR_SRCS) javascript_custom_interpreter
+	$(SWIG) -javascript $(SWIGOPT) $(INTERFACEPATH)
+ifeq (jsc, $(ENGINE))
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+else # (v8 | node) # v8 and node must be compiled as c++
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+endif
+
+javascript_cpp: $(SRCDIR_SRCS) javascript_custom_interpreter
+	$(SWIG) -javascript -c++ $(SWIGOPT) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Running a Javascript example
+# -----------------------------------------------------------------
+
+javascript_custom_interpreter:
+	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
+
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
+javascript_run:
+	env NODE_PATH=$$PWD:$(SRCDIR) $(RUNTOOL) $(NODEJS) $(SRCDIR)$(RUNME).js $(RUNPIPE)
+else
+javascript_run: javascript_custom_interpreter
+	$(RUNTOOL) $(ROOT_DIR)/Tools/javascript/javascript -$(JSENGINE) -L $(TARGET) $(SRCDIR)$(RUNME).js $(RUNPIPE)
+endif
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+javascript_version:
+ifeq (, $(ENGINE))
+	@if [ "$(NODEJS)" != "" ]; then \
+	  echo "Node.js: `($(NODEJS) --version)`"; \
+	  echo "node-gyp: `($(NODEGYP) --version)`"; \
+	else \
+	  echo "Version depends on the interpreter"; \
+	fi
+endif
+ifeq ($(ENGINE), $(filter $(ENGINE), node napi))
+	echo "Node.js: `($(NODEJS) --version)`"
+	echo "node-gyp: `($(NODEGYP) --version)`"
+endif
+ifeq (jsc, $(ENGINE))
+	@if [ "@JSCOREVERSION@" != "" ]; then \
+	  echo "JavaScriptCore: @JSCOREVERSION@"; \
+	else \
+	  echo "Unknown JavaScriptCore version."; \
+	fi
+endif
+ifeq (v8, $(ENGINE))
+	echo "Unknown v8 version."
+endif
+
+# -----------------------------------------------------------------
+# Cleaning the Javascript examples
+# -----------------------------------------------------------------
+
+javascript_clean:
+	rm -rf build
+	rm -f *_wrap* $(RUNME)
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
+	rm -f binding.gyp example-gypcopy.cxx
+	cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean
+
+##################################################################
+#####                       LUA                             ######
+##################################################################
+
+# lua flags
+LUA_INCLUDE= @LUAFLAGS@
+LUA_LIB    = @LUALINK@
+
+# Extra specific dynamic linking options
+LUA_DLNK   = @LUADYNAMICLINKING@
+LUA_SO     = @LUA_SO@
+
+LUA        = @LUABIN@
+LUA_SCRIPT = $(SRCDIR)$(RUNME).lua
+
+# Extra code for lua static link
+LUA_INTERP = ../lua.c
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+lua: $(SRCDIR_SRCS)
+	$(SWIG) -lua $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(LUA_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+lua_cpp: $(SRCDIR_SRCS) $(GENCXXSRCS)
+	$(SWIG) -c++ -lua $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(GENCXXSRCS) $(INCLUDES) $(LUA_INCLUDE)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(LUA_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(LUA_SO)
+
+lua_externalhdr:
+	$(SWIG) -lua -external-runtime $(TARGET)
+
+lua_swig_cpp:
+	$(SWIG) -c++ -lua $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+
+# -----------------------------------------------------------------
+# Build statically linked Lua interpreter
+# -----------------------------------------------------------------
+
+lua_static: $(SRCDIR_SRCS)
+	$(SWIG) -lua -module example $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS)  $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR)$(LUA_INTERP) $(INCLUDES) \
+	$(LUA_INCLUDE) $(LIBS) $(LUA_LIB) -o $(TARGET)
+
+lua_static_cpp: $(SRCDIR_SRCS) $(GENCXXSRCS)
+	$(SWIG) -c++ -lua -module example $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(GENCXXSRCS) $(SRCDIR)$(LUA_INTERP) $(INCLUDES) \
+	$(LUA_INCLUDE) $(LIBS)  $(LUA_LIB) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Run Lua example
+# -----------------------------------------------------------------
+
+lua_run:
+	$(RUNTOOL) $(LUA) $(LUA_SCRIPT) $(RUNPIPE)
+
+lua_embed_run:
+	$(RUNTOOL) ./$(TARGET) $(LUA_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+lua_version:
+	$(LUA) -v | head -n 1
+
+# -----------------------------------------------------------------
+# Cleaning the lua examples
+# -----------------------------------------------------------------
+
+lua_clean:
+	rm -f *_wrap* *~ .~* mylua@EXEEXT@
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *$(LUA_SO)
+
+##################################################################
+#####                       MZSCHEME                        ######
+##################################################################
+
+MZSCHEME = mzscheme
+MZC = @MZC@
+MZDYNOBJ = @MZDYNOBJ@
+MZSCHEME_SO = @MZSCHEME_SO@
+MZSCHEME_SCRIPT = $(SRCDIR)$(RUNME).scm
+
+# ----------------------------------------------------------------
+# Build a C/C++ dynamically loadable module
+# ----------------------------------------------------------------
+
+mzscheme: $(SRCDIR_SRCS)
+	$(SWIG) -mzscheme $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(COMPILETOOL) $(MZC) `echo " $(CPPFLAGS) $(INCLUDES) $(CFLAGS)" | sed 's/ -/ ++ccf -/g'` --cc $(ISRCS) $(SRCDIR_SRCS)
+	$(COMPILETOOL) $(MZC) --ld $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS)
+
+mzscheme_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -mzscheme -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	env CFLAGS= $(COMPILETOOL) $(MZC) `echo " $(CPPFLAGS) $(INCLUDES) $(CXXFLAGS)" | sed 's/ -/ ++ccf -/g'` --cc $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+	$(CXXSHARED) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $(LIBPREFIX)$(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS)
+
+# -----------------------------------------------------------------
+# Run mzscheme example
+# -----------------------------------------------------------------
+
+mzscheme_run:
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(MZSCHEME) -r $(MZSCHEME_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+mzscheme_version:
+	$(MZSCHEME) -v
+	$(MZC) -v
+
+# -----------------------------------------------------------------
+# Cleaning the mzscheme examples
+# -----------------------------------------------------------------
+
+mzscheme_clean:
+	rm -f *_wrap* *~ .~*
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *$(MZSCHEME_SO)
+
+##################################################################
+#####                       OCAML                           ######
+##################################################################
+
+OCC=$(COMPILETOOL) @OCAMLC@
+OCC_WITH_PP=env TMPDIR=./localtmp $(OCC)
+# TMPDIR above is a workaround for some ocamlc versions, such as 4.05.0, which always create a temp file of the same name breaking parallel make (seemingly only when -pp is used)
+OCAMLDLGEN=$(COMPILETOOL) @OCAMLDLGEN@
+OCAMLFIND=$(COMPILETOOL) @OCAMLFIND@
+OCAMLMKTOP=$(COMPILETOOL) @OCAMLMKTOP@
+NOLINK ?= false
+OCAMLPP= -pp "camlp4o ./swigp4.cmo"
+OCAMLP4WHERE=`$(COMPILETOOL) @CAMLP4@ -where`
+
+ocaml_core:
+	mkdir -p ./localtmp
+	$(SWIG) -ocaml -co swig.mli 2>/dev/null
+	$(SWIG) -ocaml -co swig.ml 2>/dev/null
+	$(SWIG) -ocaml -co swigp4.ml 2>/dev/null
+	$(OCC) -c swig.mli
+	$(OCC) -c swig.ml
+	$(OCC_WITH_PP) -I $(OCAMLP4WHERE) -pp "camlp4o pa_extend.cmo q_MLast.cmo" -c swigp4.ml
+
+ocaml_static: $(SRCDIR_SRCS)
+	$(SWIG) -ocaml $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCDIR_SRCS)
+	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
+	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
+	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
+	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(RUNME) swig.cmo $(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)"
+
+ocaml_dynamic: $(SRCDIR_SRCS)
+	$(SWIG) -ocaml $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCDIR_SRCS)
+	$(CXXSHARED) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(CCSHARED) -o $(INTERFACE:%.i=%@SO@) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) $(LIBS)
+	$(OCAMLDLGEN) $(INTERFACE:%.i=%.ml) $(INTERFACE:%.i=%@SO@) > $(INTERFACE:%.i=%_dynamic.ml)
+	mv $(INTERFACE:%.i=%_dynamic.ml) $(INTERFACE:%.i=%.ml)
+	rm $(INTERFACE:%.i=%.mli)
+	$(OCAMLFIND) $(OCC) -g -c -package dl $(INTERFACE:%.i=%.ml)
+	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
+	$(NOLINK) || $(OCAMLFIND) $(OCC) -g -ccopt -g -cclib -g -custom -o $(RUNME) swig.cmo -package dl -linkpkg $(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo)
+
+ocaml_static_toplevel: $(SRCDIR_SRCS)
+	$(SWIG) -ocaml $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(OCC) -g -c -ccopt -g -ccopt "$(INCLUDES)" $(ISRCS) $(SRCDIR_SRCS)
+	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
+	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
+	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
+	$(NOLINK) || $(OCAMLMKTOP) swig.cmo -I $(OCAMLP4WHERE) dynlink.cma camlp4o.cma swigp4.cmo -cclib "$(LIBS)" -g -ccopt -g -cclib -g -custom -o $(RUNME)_top $(INTERFACE:%.i=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS)
+
+ocaml_static_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -ocaml -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
+	$(OCC) -cc '$(CXX) $(CPPFLAGS) $(CXXFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
+	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
+	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
+	$(NOLINK) || $(OCC) -g -ccopt -g -cclib -g -custom -o $(RUNME) swig.cmo $(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) -cclib "$(LIBS)" -cc '$(CXX)'
+
+ocaml_static_cpp_toplevel: $(SRCDIR_SRCS)
+	$(SWIG) -ocaml -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
+	$(OCC) -cc '$(CXX) $(CPPFLAGS) $(CXXFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+	$(OCC) -g -c $(INTERFACE:%.i=%.mli)
+	$(OCC) -w -U -g -c $(INTERFACE:%.i=%.ml)
+	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
+	$(NOLINK) || $(OCAMLMKTOP) -cc '$(CXX) $(CPPFLAGS)' swig.cmo -I $(OCAMLP4WHERE) dynlink.cma camlp4o.cma swigp4.cmo -cclib "$(LIBS)" -g -ccopt -g -cclib -g -custom -o $(RUNME)_top $(INTERFACE:%.i=%.cmo) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS)
+
+ocaml_dynamic_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -ocaml -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	cp $(ICXXSRCS) $(ICXXSRCS:%.cxx=%.c)
+	$(OCC) -cc '$(CXX) $(CPPFLAGS) $(CXXFLAGS)' -g -c -ccopt -g -ccopt "-xc++ $(INCLUDES)" $(ICXXSRCS:%.cxx=%.c) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) -ccopt -fPIC
+	$(CXXSHARED) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $(INTERFACE:%.i=%@SO@) $(INTERFACE:%.i=%_wrap.@OBJEXT@) $(OBJS) $(CPP_DLLIBS) $(LIBS)
+	$(OCAMLDLGEN) $(INTERFACE:%.i=%.ml) $(INTERFACE:%.i=%@SO@) > $(INTERFACE:%.i=%_dynamic.ml)
+	mv $(INTERFACE:%.i=%_dynamic.ml) $(INTERFACE:%.i=%.ml)
+	rm $(INTERFACE:%.i=%.mli)
+	$(OCAMLFIND) $(OCC) -g -c -package dl $(INTERFACE:%.i=%.ml)
+	test -z "$(PROGFILE)" || $(OCC_WITH_PP) -o $(PROGFILE:%.ml=%) $(OCAMLPP) -c $(SRCDIR)$(PROGFILE)
+	$(NOLINK) || $(OCAMLFIND) swig.cmo $(OCC) -cclib -export-dynamic -g -ccopt -g -cclib -g -custom -o $(RUNME) -package dl -linkpkg $(INTERFACE:%.i=%.cmo) $(PROGFILE:%.ml=%.cmo) -cc '$(CXX)'
+
+# -----------------------------------------------------------------
+# Run ocaml example
+# -----------------------------------------------------------------
+
+ocaml_run:
+	$(RUNTOOL) ./$(RUNME) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+ocaml_version:
+	$(OCC) -version
+
+# -----------------------------------------------------------------
+# Cleaning the Ocaml examples
+# -----------------------------------------------------------------
+
+ocaml_clean:
+	rm -f *_wrap* *~ .~* *.cmo *.cmi *.mli $(TARGET).ml $(RUNME) $(RUNME)_top swig.ml swigp4.ml
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
+	rm -rf ./localtmp
+
+##################################################################
+#####                       OCTAVE                          ######
+##################################################################
+
+# Make sure these locate your Octave installation
+OCTAVE        = @OCTAVE@
+OCTAVE_CXX    = $(DEFS) @OCTAVE_CPPFLAGS@ @OCTAVE_CXXFLAGS@
+
+# Extra Octave specific dynamic linking options
+OCTAVE_DLNK   = @OCTAVE_LDFLAGS@
+OCTAVE_SO     = @OCTAVE_SO@
+
+OCTAVE_SCRIPT = $(SRCDIR)$(RUNME).m
+
+# ----------------------------------------------------------------
+# Pre-compile Octave headers, if supported
+# ----------------------------------------------------------------
+
+ifeq (yes,$(PCHSUPPORT))
+
+octave_precompile_headers:
+	echo "precompiling $(OCTHEADERS)"
+	cp -f $(OCTHEADERSSRC) $(OCTHEADERS)
+	if $(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(INCLUDES) $(OCTAVE_CXX) $(OCTHEADERS); then \
+		: ; \
+	else \
+		rm -f $(OCTHEADERSGCH); \
+		exit 1; \
+	fi
+
+else
+
+octave_precompile_headers:
+	echo "precompiling Octave headers not supported"; exit 1
+
+endif
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# Note: Octave requires C++ compiler when compiling C wrappers
+# ----------------------------------------------------------------
+
+octave: $(SRCDIR_SRCS)
+	$(SWIG) -octave $(SWIGOCTHDROPT) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -g -c $(IOCTHEADERS) $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
+	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS) $(INCLUDES)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+octave_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -c++ -octave $(SWIGOCTHDROPT) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -g -c $(IOCTHEADERS) $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(OCTAVE_CXX)
+	$(CXXSHARED) -g $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(OCTAVE_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(OCTAVE_SO)
+
+# -----------------------------------------------------------------
+# Running an Octave example
+# -----------------------------------------------------------------
+
+octave_run:
+	env OCTAVE_PATH= OCTAVE_HISTFILE=/dev/null $(RUNTOOL) $(OCTAVE) $(OCTAVE_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+octave_version:
+	$(OCTAVE) --version | head -n 1
+
+# -----------------------------------------------------------------
+# Cleaning the Octave examples
+# -----------------------------------------------------------------
+
+octave_clean:
+	rm -rf __pycache__
+	rm -f *_wrap* *~ .~* myoctave@EXEEXT@ *.pyc
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@ *$(OCTAVE_SO)
+	rm -f $(OCTHEADERS) $(OCTHEADERSGCH)
+
+##################################################################
+#####                       PERL 5                          ######
+##################################################################
+
+# You need to set this variable to the Perl5 directory containing the
+# files "perl.h", "EXTERN.h" and "XSUB.h".   With Perl5.003, it's
+# usually something like /usr/local/lib/perl5/arch-osname/5.003/CORE.
+
+PERL5_INCLUDE= @PERL5EXT@
+
+# Extra Perl specific dynamic linking options
+PERL5_DLNK   = @PERL5DYNAMICLINKING@
+PERL5_CCFLAGS = @PERL5CCFLAGS@
+PERL5_CCDLFLAGS = @PERL5CCDLFLAGS@
+PERL5_CCCDLFLAGS = @PERL5CCCDLFLAGS@
+PERL5_LDFLAGS = @PERL5LDFLAGS@
+PERL = @PERL@
+PERL5_LIB = -L$(PERL5_INCLUDE) -l@PERL5LIB@ @LIBS@ $(SYSLIBS)
+PERL5_SCRIPT = $(SRCDIR)$(RUNME).pl
+
+# ----------------------------------------------------------------
+# Build a Perl5 dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+perl5: $(SRCDIR_SRCS)
+	$(SWIG) -perl5 $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c -Dbool=char $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(PERL5_CCFLAGS) $(PERL5_CCCDLFLAGS) -I$(PERL5_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(PERL5_CCDLFLAGS) $(OBJS) $(IOBJS) $(PERL5_LDFLAGS) $(PERL5_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a Perl5 dynamically loadable module (C++)
+# ----------------------------------------------------------------
+
+perl5_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -perl5 -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PERL5_CCFLAGS) $(PERL5_CCCDLFLAGS) -I$(PERL5_INCLUDE)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(PERL5_CCDLFLAGS) $(OBJS) $(IOBJS) $(PERL5_LDFLAGS) $(PERL5_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a module from existing XS C source code.   (ie. from xsubpp).
+# ----------------------------------------------------------------
+perl5_xs: $(SRCDIR_SRCS)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(INCLUDES) -I$(PERL5_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(LIBS) -o $(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a statically linked Perl5 executable
+# ----------------------------------------------------------------
+
+perl5_static: $(SRCDIR_SRCS)
+	$(SWIG) -perl5 -static -lperlmain.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) -Dbool=char $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
+
+perl5_static_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -perl5 -c++ -static -lperlmain.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) -I$(PERL5_INCLUDE) $(PERL5_LIB) $(LIBS) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Running a Perl5 example
+# -----------------------------------------------------------------
+
+perl5_run:
+	$(RUNTOOL) $(PERL) -I. $(PERL5_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+perl5_version:
+	$(PERL) -v | grep "This is"
+
+# -----------------------------------------------------------------
+# Cleaning the Perl5 examples
+# -----------------------------------------------------------------
+
+perl5_clean:
+	rm -f *_wrap* *~ .~* myperl@EXEEXT@ *.pm
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
+
+##################################################################
+#####                       PHP                             ######
+##################################################################
+
+PHP         = @PHP@
+PHP_INCLUDE = @PHPINC@
+PHP_SO      = @PHP_SO@
+PHP_SCRIPT  = $(SRCDIR)$(RUNME).php
+PHP_EXTENSION = example$(PHP_SO)
+
+# -------------------------------------------------------------------
+# Build a PHP dynamically loadable module (C)
+# -------------------------------------------------------------------
+
+php: $(SRCDIR_SRCS)
+	$(SWIG) -php $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(PHP_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
+
+# --------------------------------------------------------------------
+# Build a PHP dynamically loadable module (C++)
+# --------------------------------------------------------------------
+
+php_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -php -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(PHP_INCLUDE)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(PHP_SO)
+
+# -----------------------------------------------------------------
+# Running a PHP example
+# -----------------------------------------------------------------
+
+php_run:
+	$(RUNTOOL) $(PHP) -n -d extension_dir=. -d extension=$(PHP_EXTENSION) -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});if(strlen($$argv[1]))include($$argv[1]);' '$(PHP_SCRIPT)' $(RUNPIPE)
+
+php_run_multi:
+	$(RUNTOOL) $(PHP) -n -d extension_dir=. `while read e ; do echo ' -d extension=$(TARGETPREFIX)'"$$e"'@PHP_SO@' ; done < $(PHP_EXTENSION_LIST)` -d display_errors=stderr -r 'set_error_handler(function($$n,$$s,$$f,$$l){if($$f!==Null){print$$f;if($$l!==Null)print":$$l";print": ";}print"$$s\n";exit(1);});if(strlen($$argv[1]))include($$argv[1]);' '$(PHP_SCRIPT)' $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+php_version:
+	$(PHP) -v | head -n 1
+
+# -----------------------------------------------------------------
+# Cleaning the PHP examples
+# -----------------------------------------------------------------
+
+php_clean:
+	rm -f *_wrap* *~ .~* example.php php_example.h
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *$(PHP_SO)
+
+##################################################################
+#####                       PYTHON                          ######
+##################################################################
+
+PYTHON_FLAGS =
+
+# Make sure these locate your Python installation
+ifneq (,$(PY2))
+  PYTHON_INCLUDE= $(DEFS) @PYINCLUDE@
+  PYTHON_LIB    = @PYLIB@
+  PYTHON        = @PYTHON@ $(PYTHON_FLAGS)
+else
+  PYTHON_INCLUDE= $(DEFS) @PY3INCLUDE@
+  PYTHON_LIB    = @PY3LIB@
+  PYTHON        = @PYTHON3@ $(PYTHON_FLAGS)
+endif
+
+# Extra Python specific linking options
+ifneq (,$(PY2))
+  PYTHON_DLNK   = @PYTHONDYNAMICLINKING@
+  PYTHON_LINK   = @PYLINK@
+else
+  PYTHON_DLNK   = @PYTHON3DYNAMICLINKING@
+  PYTHON_LINK   = @PY3LINK@
+endif
+PYTHON_SO     = @PYTHON_SO@
+
+PYCODESTYLE       = @PYCODESTYLE@
+PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,W291,W391
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+python: $(SRCDIR_SRCS)
+	$(SWIG) -python $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+python_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -python -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
+
+# -----------------------------------------------------------------
+# Build statically linked Python interpreter
+#
+# These should only be used in conjunction with the %include embed.i
+# library file
+# -----------------------------------------------------------------
+
+#TKINTER = -L/usr/X11R6.3/lib -L/usr/local/compat/lib -ltk4.0 -ltcl7.4 -lX11
+TKINTER =
+PYTHON_LIBOPTS = $(PYTHON_LINK) @LIBS@ $(TKINTER) $(SYSLIBS)
+
+python_static: $(SRCDIR_SRCS)
+	$(SWIG) -python -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
+	$(PYTHON_INCLUDE) $(LIBS) -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
+
+python_static_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -python -c++ -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
+	$(PYTHON_INCLUDE) $(LIBS)  -L$(PYTHON_LIB) $(PYTHON_LIBOPTS) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Running a Python example
+# -----------------------------------------------------------------
+
+PYSCRIPT = $(RUNME).py
+
+python_run: $(PYSCRIPT)
+ifneq (,$(PYCODESTYLE))
+	$(COMPILETOOL) $(PYCODESTYLE) $(PYCODESTYLE_FLAGS) $(PYSCRIPT)
+endif
+	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
+
+ifneq (,$(SRCDIR))
+$(RUNME).py: $(SRCDIR)$(RUNME).py
+	cp $< $@
+endif
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+python_version:
+	$(PYTHON) -V
+
+# -----------------------------------------------------------------
+# Cleaning the python examples
+# -----------------------------------------------------------------
+
+python_clean:
+	rm -rf __pycache__
+	rm -f *_wrap* *~ .~* mypython@EXEEXT@ *.pyc
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@ *$(PYTHON_SO)
+	rm -f $(TARGET).py
+	case "x$(SRCDIR)" in x|x./);; *) rm -f $(RUNME).py;; esac
+
+##################################################################
+#####                       R                               ######
+##################################################################
+
+R = R
+RCXXSRCS = $(INTERFACE:.i=_wrap.cpp) #Need to use _wrap.cpp for R build system as it does not understand _wrap.cxx
+RRSRC = $(INTERFACE:.i=.R)
+R_CFLAGS=-fPIC
+R_OPT = --slave --quiet --no-save --no-restore
+R_SCRIPT=$(SRCDIR)$(RUNME).R
+
+# need to compile .cxx files outside of R build system to make sure that
+# we get -fPIC
+# CMD SHLIB stdout is piped to /dev/null to prevent echo of compiler command
+
+# ----------------------------------------------------------------
+# Build a R dynamically loadable module (C)
+# ----------------------------------------------------------------
+
+r: $(SRCDIR_SRCS)
+	$(SWIG) -r $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+ifneq ($(SRCDIR_SRCS),)
+	$(CC) -g -c $(CPPFLAGS) $(CFLAGS) $(R_CFLAGS) $(SRCDIR_SRCS) $(INCLUDES)
+endif
+	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CFLAGS="$(CFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(ISRCS) $(OBJS) > /dev/null )
+
+# ----------------------------------------------------------------
+# Build a R dynamically loadable module (C++)
+# ----------------------------------------------------------------
+r_cpp: $(SRCDIR_CXXSRCS)
+	$(SWIG) -c++ -r $(SWIGOPT) -o $(RCXXSRCS) $(INTERFACEPATH)
+ifneq ($(SRCDIR_CXXSRCS),)
+	$(CXX) -g -c $(CPPFLAGS) $(CXXFLAGS) $(R_CFLAGS) $(SRCDIR_CXXSRCS) $(INCLUDES)
+endif
+	+( PKG_CPPFLAGS="$(CPPFLAGS) $(INCLUDES)" PKG_CXXFLAGS="$(CXXFLAGS)" $(COMPILETOOL) $(R) CMD SHLIB -o $(LIBPREFIX)$(TARGET)$(SO) $(RCXXSRCS) $(OBJS) > /dev/null )
+
+# -----------------------------------------------------------------
+# Run R example
+# -----------------------------------------------------------------
+
+r_run:
+	$(RUNTOOL) $(R) $(R_OPT) -f $(R_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+r_version:
+	$(R) --version | head -n 1
+
+# -----------------------------------------------------------------
+# Cleaning the R examples
+# -----------------------------------------------------------------
+
+r_clean:
+	rm -f *_wrap* *~ .~*
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@ NAMESPACE
+	rm -f $(RRSRC) $(RUNME).Rout .RData
+
+##################################################################
+#####                       RUBY                            ######
+##################################################################
+
+# Make sure these locate your Ruby installation
+RUBY_CFLAGS= @RUBYCCDLFLAGS@ $(DEFS)
+RUBY_INCLUDE= @RUBYINCLUDE@
+RUBY_LIB     = @RUBYLIB@
+RUBY_DLNK = @RUBYDYNAMICLINKING@
+RUBY_LIBOPTS = @RUBYLINK@ @LIBS@ $(SYSLIBS)
+RUBY_SO = @RUBYSO@
+RUBY = @RUBY@
+RUBY_SCRIPT = $(SRCDIR)$(RUNME).rb
+
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+ruby: $(SRCDIR_SRCS)
+	$(SWIG) -ruby $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(RUBY_CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(RUBY_INCLUDE)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(RUBY_SO)
+
+# -----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# -----------------------------------------------------------------
+
+ruby_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -c++ -ruby $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(RUBY_INCLUDE)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(RUBY_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(RUBY_SO)
+
+# -----------------------------------------------------------------
+# Build statically linked Ruby interpreter
+#
+# These should only be used in conjunction with the %include embed.i
+# library file
+# -----------------------------------------------------------------
+
+ruby_static: $(SRCDIR_SRCS)
+	$(SWIG) -ruby -lembed.i $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(RUBY_CFLAGS) @LINKFORSHARED@ $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) \
+	$(RUBY_INCLUDE) $(LIBS) -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
+
+ruby_cpp_static: $(SRCDIR_SRCS)
+	$(SWIG) -c++ -ruby -lembed.i $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(RUBY_CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) \
+	$(RUBY_INCLUDE) $(LIBS)  -L$(RUBY_LIB) $(RUBY_LIBOPTS) -o $(TARGET)
+
+# -----------------------------------------------------------------
+# Run Ruby example
+# -----------------------------------------------------------------
+
+ruby_run:
+	$(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I. $(RUBY_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+ruby_version:
+	$(RUBY) -v
+
+# -----------------------------------------------------------------
+# Cleaning the Ruby examples
+# -----------------------------------------------------------------
+
+ruby_clean:
+	rm -f *_wrap* *~ .~* myruby@EXEEXT@
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *$(RUBY_SO)
+
+##################################################################
+#####                       SCILAB                          ######
+##################################################################
+
+SCILAB = @SCILAB@
+SCILAB_INC= @SCILABINCLUDE@
+SCILAB_OPT = @SCILABOPT@
+SCILAB_VERSION = @SCILAB_VERSION@
+SCILAB_LIBPREFIX = lib
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+scilab:
+	$(SWIG) -scilab $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -g -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SCILAB_INC) $(INCLUDES) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CSRCS)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(IOBJS) $(OBJS) $(LIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
+
+# ----------------------------------------------------------------
+# Build a C++ dynamically loadable module
+# ----------------------------------------------------------------
+
+scilab_cpp:
+	$(SWIG) -c++ -scilab $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -g -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SCILAB_INC) $(INCLUDES) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(IOBJS) $(OBJS) $(LIBS) $(CPP_DLLIBS) -o $(SCILAB_LIBPREFIX)$(TARGET)$(SO)
+
+# -----------------------------------------------------------------
+# Running a Scilab example
+# -----------------------------------------------------------------
+
+scilab_run:
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(SCILAB) $(SCILAB_OPT) -f $(SRCDIR)$(RUNME).sci $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Scilab version
+# -----------------------------------------------------------------
+
+scilab_version:
+	echo `$(SCILAB) -nwni -version | head -1`
+
+# -----------------------------------------------------------------
+# Cleaning the scilab examples
+# -----------------------------------------------------------------
+
+scilab_clean:
+	rm -f *_wrap* *~ .~*
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
+	rm -f *.sce
+
+##################################################################
+#####                       TCL                             ######
+##################################################################
+
+# Set these to your local copy of Tcl
+
+TCLSH       = tclsh
+TCL_INCLUDE = @TCLINCLUDE@
+TCL_LIB     = @TCLLIB@
+TCL_OPTS    = @LIBS@
+TK_OPTS     = -ltk -ltcl @LIBS@
+
+# Extra Tcl specific dynamic linking options
+TCL_DLNK   = @TCLDYNAMICLINKING@
+TCL_SO     = @TCL_SO@
+TCLLDSHARED = @TCLLDSHARED@
+TCLCXXSHARED = @TCLCXXSHARED@
+TCL_SCRIPT = $(SRCDIR)$(RUNME).tcl
+TCL_LINK   = @TCLLINK@
+
+# -----------------------------------------------------------
+# Build a new version of the tclsh shell
+# -----------------------------------------------------------
+
+tclsh: $(SRCDIR_SRCS)
+	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE) \
+	$(TCL_LIB)  $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
+
+tclsh_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -ltclsh.i -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE) \
+	$(TCL_LIB) $(TCL_OPTS) $(LIBS) $(SYSLIBS) -o $(TARGET)
+
+# -----------------------------------------------------------
+# Build a Tcl dynamic loadable module (you might need to tweak this)
+# -----------------------------------------------------------
+
+tcl:  $(SRCDIR_SRCS)
+	$(SWIG) -tcl8 $(SWIGOPT) $(TCL_SWIGOPTS) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(SRCDIR_SRCS) $(ISRCS) $(INCLUDES) $(TCL_INCLUDE)
+	$(TCLLDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO) $(TCL_LINK)
+
+# -----------------------------------------------------------
+# Build a Tcl dynamic loadable module for C++
+# -----------------------------------------------------------
+
+tcl_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -tcl8 -c++ $(SWIGOPT) $(TCL_SWIGOPTS) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(ICXXSRCS) $(INCLUDES) $(TCL_INCLUDE)
+	$(TCLCXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(TCL_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(TCL_SO) $(TCL_LINK)
+
+# -----------------------------------------------------------------
+# Run Tcl example
+# -----------------------------------------------------------------
+
+tcl_run:
+	$(RUNTOOL) $(TCLSH) $(TCL_SCRIPT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+tcl_version:
+	echo 'puts $$tcl_version;exit 0' | $(TCLSH)
+
+# -----------------------------------------------------------------
+# Cleaning the Tcl examples
+# -----------------------------------------------------------------
+
+tcl_clean:
+	rm -f *_wrap* *~ .~* mytclsh@EXEEXT@
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *$(TCL_SO)

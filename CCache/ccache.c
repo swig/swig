@@ -735,13 +735,15 @@ static void from_cache(int first)
 	}
 
 	/* send the cpp stderr, if applicable */
-	fd_cpp_stderr = open(cpp_stderr, O_RDONLY | O_BINARY);
-	if (fd_cpp_stderr != -1) {
-		copy_fd(fd_cpp_stderr, 2);
-		close(fd_cpp_stderr);
-		unlink(cpp_stderr);
-		free(cpp_stderr);
-		cpp_stderr = NULL;
+	if (cpp_stderr) {
+		fd_cpp_stderr = open(cpp_stderr, O_RDONLY | O_BINARY);
+		if (fd_cpp_stderr != -1) {
+			copy_fd(fd_cpp_stderr, 2);
+			close(fd_cpp_stderr);
+			unlink(cpp_stderr);
+			free(cpp_stderr);
+			cpp_stderr = NULL;
+		}
 	}
 
 	/* send the stderr */
@@ -1089,7 +1091,7 @@ static void process_args(int argc, char **argv)
 				}
 				*p = 0;
 			}
-			else  {
+			else {
 				int len = p - default_depfile_name;
 				
 				p = x_malloc(len + 3);

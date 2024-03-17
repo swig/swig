@@ -56,5 +56,67 @@ public:
     bool operator== (const SubClassA& x) const
     { return false; }
 };
+}
 
+// Test custom exceptions can still be thrown in operators which use %pythonmaybecall
+%{
+struct ZeroValueProblem {
+    ZeroValueProblem() {}
+};
+%}
+
+%exception ExceptionThrower::operator< {
+    try
+    {
+        $action
+    }
+    catch(const ZeroValueProblem&)
+    {
+        PyErr_SetString(PyExc_ValueError, "Zero not liked in operator<");
+        SWIG_fail;
+    }
+}
+
+%inline {
+class ExceptionThrower {
+    int i;
+public:
+    ExceptionThrower (int i_) : i(i_) {}
+    bool operator< (const ExceptionThrower& rhs) const {
+        if (rhs.i == 0 || i == 0)
+            throw ZeroValueProblem();
+        return this->i < rhs.i;
+    }
+};
+}
+
+%exception SubClassCThrower::operator== {
+    try
+    {
+        $action
+    }
+    catch(const ZeroValueProblem&)
+    {
+        PyErr_SetString(PyExc_ValueError, "Zero not liked in operator==");
+        SWIG_fail;
+    }
+}
+
+// Overloaded operators and custom exceptions
+%inline {
+class SubClassCThrower : public BaseClass {
+public:
+    SubClassCThrower (int i_) : BaseClass(i_) {}
+    ~SubClassCThrower () {}
+
+    bool operator== (const SubClassCThrower& rhs) const
+    {
+        if (rhs.i == 0 || i == 0)
+            throw ZeroValueProblem();
+        return rhs.i == i;
+    }
+
+    bool operator== (const SubClassA& rhs) const
+    { return rhs.i == i; }
+};
 }

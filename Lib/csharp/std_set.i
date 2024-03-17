@@ -16,6 +16,7 @@
 #include <stdexcept>
 %}
 
+%csmethodmodifiers std::set::empty "private"
 %csmethodmodifiers std::set::size "private"
 %csmethodmodifiers std::set::getitem "private"
 %csmethodmodifiers std::set::create_iterator_begin "private"
@@ -41,6 +42,12 @@ class set {
     } catch {
       actualValue = default($typemap(cstype, T));
       return false;
+    }
+  }
+
+  public bool IsEmpty {
+    get {
+      return empty();
     }
   }
 
@@ -297,12 +304,14 @@ class set {
       }
 
       const key_type& get_next(std::set<T>::iterator *swigiterator) {
+        (void)$self;
         std::set<T>::iterator iter = *swigiterator;
         (*swigiterator)++;
         return *iter;
       }
 
       void destroy_iterator(std::set<T>::iterator *swigiterator) {
+        (void)$self;
         delete swigiterator;
       }
     }

@@ -241,17 +241,17 @@ This function is called by the <tt>-debug-tags</tt> option to SWIG.
 
 <pre>
 % swig -debug-tags -python example.i
- . top (:1)
- . top . include (/Users/beazley/Projects/share/swig/1.3.31/swig.swg:0)
- . top . include . include (/Users/beazley/Projects/share/swig/1.3.31/swigwarnings.swg:0)
- . top . include . include . include (/Users/beazley/Projects/share/swig/1.3.31/swigwarn.swg:0)
+:1:  . top
+:1:  . top . include
+/usr/share/swig/swig.swg:320:  . top . include . include
+/usr/share/swig/swigwarnings.swg:39:  . top . include . include . include
 ...
 ...
- . top . include (example.i:0)
- . top . include . module (example.i:2)
- . top . include . insert (example.i:7)
- . top . include . cdecl (example.i:5)
- . top . include . cdecl (example.i:6)
+:4:  . top . include
+example.i:2:  . top . include . module
+example.i:7:  . top . include . insert
+example.i:5:  . top . include . cdecl
+example.i:6:  . top . include . cdecl
 </pre>
 
 Since many language modules include hundreds of typemaps and other information, the output of this can be significantly more complicated than you might expect.

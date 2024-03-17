@@ -47,5 +47,3 @@ public:
 %template(BaseInt) Base<int>;
 %template(DerivedInt) Derived<int>;
 %template(BottomInt) Bottom<int>;
-
-

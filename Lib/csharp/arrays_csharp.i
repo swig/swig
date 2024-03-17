@@ -49,7 +49,16 @@
  *   %csmethodmodifiers myArrayCopy "public unsafe";
  *   void myArrayCopy( int *sourceArray, int* targetArray, int nitems );
  *
+ * long type
+ * ---------
+ * Unlike other primitive types, the sizeof(long) varies considerably from one
+ * platform to another. The sizeof(long) in the unmanaged layer must match the
+ * number of bytes used in the managed layer. A check is implemented via the
+ * "long_check_wordsize" fragment which results in a compile time error upon an
+ * inconsistent match. Use the SWIGWORDSIZE64 macro to target 64-bit long.
+ * For easiest portability, avoid using long!
  * ----------------------------------------------------------------------------- */
+
 
 %define CSHARP_ARRAYS( CTYPE, CSTYPE )
 
@@ -94,15 +103,22 @@ CSHARP_ARRAYS(short, short)
 CSHARP_ARRAYS(unsigned short, ushort)
 CSHARP_ARRAYS(int, int)
 CSHARP_ARRAYS(unsigned int, uint)
-// FIXME - on Unix 64 bit, long is 8 bytes but is 4 bytes on Windows 64 bit.
-//         How can this be handled sensibly?
-//         See e.g. http://www.xml.com/ldd/chapter/book/ch10.html
-CSHARP_ARRAYS(long, int)
-CSHARP_ARRAYS(unsigned long, uint)
 CSHARP_ARRAYS(long long, long)
 CSHARP_ARRAYS(unsigned long long, ulong)
 CSHARP_ARRAYS(float, float)
 CSHARP_ARRAYS(double, double)
+
+// 32-bit/64-bit architecture specific typemaps - special handling to ensure sizeof(long) on C side matches size used on C# side
+#if !defined(SWIGWORDSIZE64)
+CSHARP_ARRAYS(long, int)
+CSHARP_ARRAYS(unsigned long, uint)
+#else
+CSHARP_ARRAYS(long, long)
+CSHARP_ARRAYS(unsigned long, ulong)
+#endif
+%typemap(in, fragment="long_check_wordsize") long INPUT[], unsigned long INPUT[] "$1 = $input;"
+%typemap(in, fragment="long_check_wordsize") long OUTPUT[], unsigned long OUTPUT[] "$1 = $input;"
+%typemap(in, fragment="long_check_wordsize") long INOUT[], unsigned long INOUT[] "$1 = $input;"
 
 // By default C# will marshal bools as 4 bytes
 // UnmanagedType.I1 will change this to 1 byte
@@ -169,11 +185,18 @@ CSHARP_ARRAYS_FIXED(short, short)
 CSHARP_ARRAYS_FIXED(unsigned short, ushort)
 CSHARP_ARRAYS_FIXED(int, int)
 CSHARP_ARRAYS_FIXED(unsigned int, uint)
-CSHARP_ARRAYS_FIXED(long, int)
-CSHARP_ARRAYS_FIXED(unsigned long, uint)
 CSHARP_ARRAYS_FIXED(long long, long)
 CSHARP_ARRAYS_FIXED(unsigned long long, ulong)
 CSHARP_ARRAYS_FIXED(float, float)
 CSHARP_ARRAYS_FIXED(double, double)
 CSHARP_ARRAYS_FIXED(bool, bool)
 
+// 32-bit/64-bit architecture specific typemaps - special handling to ensure sizeof(long) on C side matches size used on C# side
+#ifdef !SWIGWORDSIZE64
+CSHARP_ARRAYS_FIXED(long, int)
+CSHARP_ARRAYS_FIXED(unsigned long, uint)
+#else
+CSHARP_ARRAYS_FIXED(long, long)
+CSHARP_ARRAYS_FIXED(unsigned long, ulong)
+#endif
+%typemap(in, fragment="long_check_wordsize") long FIXED[], unsigned long FIXED[] "$1 = $input;"

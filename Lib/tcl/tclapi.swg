@@ -23,8 +23,8 @@ typedef struct swig_const_info {
     swig_type_info **ptype;
 } swig_const_info;
 
-typedef int   (*swig_wrapper)(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST []);
-typedef int   (*swig_wrapper_func)(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST []);
+typedef int   (*swig_wrapper)(ClientData, Tcl_Interp *, int, Tcl_Obj *const []);
+typedef int   (*swig_wrapper_func)(ClientData, Tcl_Interp *, int, Tcl_Obj *const []);
 typedef char *(*swig_variable_func)(ClientData, Tcl_Interp *, char *, char *, int);
 typedef void  (*swig_delete_func)(ClientData);
 
@@ -63,7 +63,7 @@ typedef struct swig_instance {
 /* Structure for command table */
 typedef struct {
   const char *name;
-  int       (*wrapper)(ClientData, Tcl_Interp *, int, Tcl_Obj *CONST []);
+  int       (*wrapper)(ClientData, Tcl_Interp *, int, Tcl_Obj *const []);
   ClientData  clientdata;
 } swig_command_info;
 

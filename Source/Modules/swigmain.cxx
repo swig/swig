@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * swigmain.cxx
  *
@@ -56,7 +56,6 @@ static TargetLanguageModule modules[] = {
   {"-c", swig_c, "C", Experimental},
   {"-chicken", NULL, "CHICKEN", Disabled},
   {"-clisp", NULL, "CLISP", Disabled},
-  {"-cffi", NULL, "CFFI", Disabled},
   {"-csharp", swig_csharp, "C#", Supported},
   {"-d", swig_d, "D", Supported},
   {"-go", swig_go, "Go", Supported},
@@ -72,7 +71,7 @@ static TargetLanguageModule modules[] = {
   {"-perl5", swig_perl5, "Perl 5", Supported},
   {"-php", swig_php, NULL, Supported},
   {"-php5", NULL, "PHP 5", Disabled},
-  {"-php7", swig_php, "PHP 7", Supported},
+  {"-php7", swig_php, "PHP 8 or later", Supported},
   {"-pike", NULL, "Pike", Disabled},
   {"-python", swig_python, "Python", Supported},
   {"-r", swig_r, "R (aka GNU S)", Supported},
@@ -82,7 +81,7 @@ static TargetLanguageModule modules[] = {
   {"-tcl", swig_tcl, NULL, Supported},
   {"-tcl8", swig_tcl, "Tcl 8", Supported},
   {"-uffi", NULL, "Common Lisp / UFFI", Disabled},
-  {"-xml", swig_xml, "XML", Experimental},
+  {"-xml", swig_xml, "XML", Supported},
   {NULL, NULL, NULL, Disabled}
 };
 
@@ -215,6 +214,8 @@ int main(int margc, char **margv) {
 
   int argc;
   char **argv;
+
+  /* Check for SWIG_FEATURES environment variable */
 
   SWIG_merge_envopt(getenv("SWIG_FEATURES"), margc, margv, &argc, &argv);
   merge_options_files(&argc, &argv);

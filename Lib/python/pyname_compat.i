@@ -25,7 +25,6 @@
 */
 
 %fragment("PySequence_Base", "header", fragment="SwigPySequence_Base") {}
-%fragment("PySequence_Cont", "header", fragment="SwigPySequence_Cont") {}
 %fragment("PySwigIterator_T", "header", fragment="SwigPyIterator_T") {}
 %fragment("PyPairBoolOutputIterator", "header", fragment="SwigPyPairBoolOutputIterator") {}
 %fragment("PySwigIterator", "header", fragment="SwigPyIterator") {}
@@ -38,11 +37,6 @@
 #define PyObject_ptr SwigPtr_PyObject
 #define PyObject_var SwigVar_PyObject
 #define PyOper SwigPyOper
-#define PySeq SwigPySeq
-#define PySequence_ArrowProxy SwigPySequence_ArrowProxy
-#define PySequence_Cont SwigPySequence_Cont
-#define PySequence_InputIterator SwigPySequence_InputIterator
-#define PySequence_Ref SwigPySequence_Ref
 #define PySwigClientData SwigPyClientData
 #define PySwigClientData_Del SwigPyClientData_Del
 #define PySwigClientData_New SwigPyClientData_New
@@ -79,7 +73,6 @@
 #define PySwigPacked_repr SwigPyPacked_repr
 #define PySwigPacked_str SwigPyPacked_str
 #define PySwigPacked_type SwigPyPacked_type
-#define pyseq swigpyseq
 #define pyswigobject_type swigpyobject_type
 #define pyswigpacked_type swigpypacked_type
 %}

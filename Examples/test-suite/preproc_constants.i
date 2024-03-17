@@ -37,8 +37,9 @@
 #define CONST_DOUBLE2   10E1
 #define CONST_DOUBLE3   12.3
 #define CONST_DOUBLE4   12.
-#define CONST_DOUBLE5   12.3f
-#define CONST_DOUBLE6   12.3F
+
+#define CONST_FLOAT1    12.3f
+#define CONST_FLOAT2    12.3F
 
 #define CONST_BOOL1     true
 #define CONST_BOOL2     false
@@ -119,3 +120,9 @@ enum MyEnum {
   kValue = BIT(2)
 };
 
+// For detecting when test-suite is run with SWIGWORDSIZE64 defined
+#ifdef SWIGWORDSIZE64
+#define SWIGWORDSIZE64_enabled 1
+#else
+#define SWIGWORDSIZE64_enabled 0
+#endif

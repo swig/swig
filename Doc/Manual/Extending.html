@@ -1244,6 +1244,14 @@ if an object was removed, 0 otherwise.
 Returns the list of hash table keys.
 </div>
 
+<p>
+<b><tt>List *SortedKeys(Hash *h, int (*cmp) (const DOH *, const DOH *))</tt></b>
+</p>
+
+<div class="indent">
+Returns the list of sorted hash table keys.
+</div>
+
 
 <H3><a name="Extending_nn17">40.5.3 Lists</a></H3>
 
@@ -3141,7 +3149,7 @@ As you can see, most usages are direct.
 <dd> This file is processed by
 
 <p>
-<A HREF="http://www.gnu.org/software/autoconf/">autoconf</A>
+<A HREF="https://www.gnu.org/software/autoconf/">autoconf</A>
 to generate the <TT>configure</TT> script.  This is where you
 need to add shell script fragments and autoconf macros to detect the
 presence of whatever development support your language module requires,
@@ -3489,7 +3497,7 @@ Advanced usage of the test-suite facilitates running tools on some of the five s
 The make variables <tt>SWIGTOOL</tt> and <tt>RUNTOOL</tt> are used to specify a tool to respectively, invoke SWIG 
 and the execution of the runtime test.
 You are advised to view the <tt>Examples/test-suite/common.mk</tt> file for details but for a short summary,
-the classic usage is to use <a href="http://valgrind.org/">Valgrind</a> for memory checking.
+the classic usage is to use <a href="https://valgrind.org/">Valgrind</a> for memory checking.
 For example, checking for memory leaks when running the runtime test in the target language interpreter:
 </p>
 
@@ -3641,7 +3649,7 @@ A target language is given the 'Supported' status when
   A major or minor version is the first or second digit in the three digit version.
 </li>
 <li>
-  Fixing unintended regressions in the Supported languages will be given higher priority over experimental languages by the core SWIG developers.
+  Fixing unintended regressions in the Supported languages will be given higher priority over the Experimental languages by the core SWIG developers.
 </li>
 <li>
   Examples must be available and run successfully.

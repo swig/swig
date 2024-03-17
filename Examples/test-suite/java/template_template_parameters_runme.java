@@ -14,7 +14,7 @@ public class template_template_parameters_runme {
   }
 
   public static void main(String argv[]) {
-    // Test first part
+    // Test part 1
     ListFastBool listBool = new ListFastBool();
     listBool.setItem(true);
     boolean x_boolean = listBool.getAllotype();
@@ -27,7 +27,7 @@ public class template_template_parameters_runme {
     if (listDouble.getItem() != 10.2)
       throw new RuntimeException("Failed");
 
-    // Test second part
+    // Test part 2
     FloatTestStruct floatTestStruct = new FloatTestStruct();
     FloatContainer2 floatContainer2 = floatTestStruct.getX();
     floatContainer2.setX(8.1f);
@@ -41,6 +41,10 @@ public class template_template_parameters_runme {
     IntTestStruct intTestStructReturned = template_template_parameters.TestStructContainer1Method(intTestStruct);
     if (intTestStructReturned.getX().getX() != 101)
       throw new RuntimeException("Failed");
+
+    // Test part 3
+    MyFootInt99 mfi99 = new MyFootInt99();
+    mfi99.OperatorPlusEquals(mfi99);
   }
 }
 

@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * tree.c
  *
@@ -99,7 +99,7 @@ void Swig_print_node(Node *obj) {
 	Equal(k, "previousSibling") || Equal(k, "symtab") || Equal(k, "csymtab") || Equal(k, "sym:symtab") || Equal(k, "sym:nextSibling") ||
 	Equal(k, "sym:previousSibling") || Equal(k, "csym:nextSibling") || Equal(k, "csym:previousSibling"))) {
       /* Do nothing */
-    } else if (Equal(k, "kwargs") || Equal(k, "parms") || Equal(k, "wrap:parms") || Equal(k, "pattern") || Equal(k, "templateparms") || Equal(k, "throws")) {
+    } else if (Equal(k, "kwargs") || Equal(k, "parms") || Equal(k, "wrap:parms") || Equal(k, "pattern") || Equal(k, "templateparms") || Equal(k, "templateparmsraw") || Equal(k, "template_parameters") || Equal(k, "throws")) {
       print_indent(2);
       /* Differentiate parameter lists by displaying within single quotes */
       Printf(stdout, "%-12s - \'%s\'\n", k, ParmList_str_defaultargs(value));
@@ -114,6 +114,10 @@ void Swig_print_node(Node *obj) {
 	}
 	Printf(stdout, "%-12s - \"%(escape)-0.80s%s\"\n", k, o, trunc);
 	Delete(o);
+/*
+      } else if (DohIsSequence(value)) {
+	Printf(stdout, "%-12s - %s\n", k, value);
+*/
       } else {
 	Printf(stdout, "%-12s - %p\n", k, value);
       }
@@ -322,7 +326,7 @@ void Swig_require(const char *ns, Node *n, ...) {
       Exit(EXIT_FAILURE);
     }
     if (!obj)
-      obj = DohNone;
+      obj = None;
     if (newref) {
       /* Save a copy of the attribute */
       Setattr(n, NewStringf("%s:%s", ns, name), obj);
@@ -367,7 +371,7 @@ void Swig_save(const char *ns, Node *n, ...) {
     }
     obj = Getattr(n, name);
     if (!obj)
-      obj = DohNone;
+      obj = None;
 
     /* Save a copy of the attribute */
     if (Setattr(n, NewStringf("%s:%s", ns, name), obj)) {

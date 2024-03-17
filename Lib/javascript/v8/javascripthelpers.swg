@@ -70,7 +70,7 @@ SWIGRUNTIME void JS_veto_set_variable(v8::Local<v8::Name> property, v8::Local<v8
     v8::Local<v8::String> sproperty;
     if (property->ToString(SWIGV8_CURRENT_CONTEXT()).ToLocal(&sproperty)) {
       SWIGV8_WRITE_UTF8(sproperty, buffer, 256);
-      res = sprintf(msg, "Tried to write read-only variable: %s.", buffer);
+      res = SWIG_snprintf(msg, sizeof(msg), "Tried to write read-only variable: %s.", buffer);
     }
     else {
       res = -1;

@@ -29,17 +29,41 @@ void squareDoubleMatrix(double *inputMatrix, int nbRow, int nbCol, double** resu
  	}
 }
 
-void getDoubleMatrix(double **resultMatrix, int *nbRowRes, int *nbColRes)
+void getDoubleMatrix(int nbRow, int nbCol, double **resultMatrix, int *nbRowRes, int *nbColRes)
 {
 	int i;
 	int size;
-	*nbRowRes = 5;
-	*nbColRes = 3;
+	*nbRowRes = nbRow;
+	*nbColRes = nbCol;
 	size = (*nbRowRes) * (*nbColRes);
    	*resultMatrix = (double*) malloc(size * sizeof(double));
 	for (i=0; i<size; i++)
 	{
 		(*resultMatrix)[i] = i*2;
+	}
+}
+
+void extractDoubleMatrix(double *inputMatrix, int nbRow, int nbCol, int* indexes, int nbIndexes, double **resultMatrix, int *nbRowRes, int *nbColRes)
+{
+	if (nbIndexes < 0)
+	{
+		int sz = nbRow * nbCol;
+		*nbRowRes = sz;
+		*nbColRes = 1;
+
+		*resultMatrix = malloc(sz * sizeof(double));
+		memcpy(*resultMatrix, inputMatrix, sz * sizeof(double));
+	} else {
+		int i;
+
+		*nbRowRes = nbIndexes;
+		*nbColRes = 1;
+
+		*resultMatrix = malloc(nbIndexes * sizeof(double));
+		for (i = 0; i < nbIndexes; i++)
+		{
+			(*resultMatrix)[i] = inputMatrix[indexes[i]];
+		}
 	}
 }
 
@@ -108,7 +132,7 @@ void getStringVector(char ***resultVector, int *sizeRes)
    	*resultVector = (char**) malloc((*sizeRes) * sizeof(char*));
 	for (i=0; i<*sizeRes; i++)
 	{
-		char* pc = (char*) calloc(3, sizeof(char));
+		char* pc = (char*) calloc(16, sizeof(char));
 		sprintf(pc, "%d", i);
 		(*resultVector)[i] = pc;
 	}

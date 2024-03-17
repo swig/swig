@@ -5,11 +5,12 @@
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Class1::Struct1;
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Class2::Struct1;
 
-/* Forward declarations (illegally accepted by SWIG - oh well!) */
-enum Enum1 : short;
+// Some illegal forward declarations (incorrectly accepted by SWIG - oh well!)
 enum Enum3;
 enum ;
 enum : unsigned short;
+
+enum Enum1 : short; // should error as mismatches Enum1 class below
 
 %inline %{
 enum class Enum1 {
@@ -65,7 +66,17 @@ template <typename T> struct TType {
   typedef T type_name;
 };
 
-enum class Enum10 : TType<int>::type_name {
+using EnumBase9 = unsigned short;
+enum class Enum9: EnumBase9 {
+  Val1 = 0,
+  Val2 = 0x2,
+};
+%}
+
+%template() TType<unsigned char>; // Instantiate template for underlying type used in Enum10
+
+%inline %{
+enum class Enum10 : TType<unsigned char>::type_name {
   Val1, Val2, Val3 = 103, Val4
 };
 
@@ -223,3 +234,32 @@ private:
 };
 %}
 
+// Target language underlying enum type manipulation
+#if defined(SWIGCSHARP)
+%typemap(csbase, replace="1") Enum15 "short"
+%typemap(csbase) Enum16 "short"
+%warnfilter(SWIGWARN_CSHARP_MULTIPLE_INHERITANCE) Enum16;
+%typemap(csbase) Enum17 "ulong"
+#elif defined(SWIGD)
+%typemap(dbase, replace="1") Enum15 "short"
+%typemap(dbase) Enum16 "short"
+%warnfilter(SWIGWARN_D_MULTIPLE_INHERITANCE) Enum16;
+%typemap(dbase) Enum17 "uint"
+#endif
+%inline %{
+  enum class Enum15 : long long
+  {
+    Val1 = 1151,
+    Val2 = 1152,
+  };
+  enum class Enum16 : long long
+  {
+    Val1 = 1161,
+    Val2 = 1162,
+  };
+  enum class Enum17
+  {
+    Val1 = 1171,
+    Val2 = 1172,
+  };
+%}

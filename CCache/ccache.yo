@@ -409,7 +409,7 @@ ccache was adapted to create ccache-swig for use with SWIG by William Fulton.
 
 If you wish to report a problem or make a suggestion then please email
 the SWIG developers on the swig-devel mailing list, see
-url(http://www.swig.org/mail.html)(http://www.swig.org/mail.html)
+url(https://www.swig.org/mail.html)(https://www.swig.org/mail.html)
 
 ccache is released under the GNU General Public License version 2 or
 later. Please see the file COPYING for license details.

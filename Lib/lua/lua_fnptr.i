@@ -119,6 +119,6 @@ void swiglua_ref_get(SWIGLUA_REF* pref){
 %{  swiglua_ref_set(&$1,L,$input); %}
 
 %typemap(out) SWIGLUA_REF
-%{  if ($1.L!=0)  {swiglua_ref_get(&$1);} else {lua_pushnil(L);}
+%{  if ($1.L!=0) {swiglua_ref_get(&$1);} else {lua_pushnil(L);}
   SWIG_arg++; %}
 

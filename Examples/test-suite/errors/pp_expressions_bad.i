@@ -1,5 +1,5 @@
 %module xxx
-/* Note: needs -Wextra to see these warnings */
+
 
 /* Divide by zero */
 #define ZERO 0
@@ -71,4 +71,9 @@
  * and isn't valid in C at all.
  */
 #if (4 <=> 2) < 0
+#endif
+
+/* Check handling of use of an undefined function-like macro. */
+#if MY_VERSION_AT_LEAST(1,2,3)
+#warning This should not warn
 #endif

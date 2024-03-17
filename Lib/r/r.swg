@@ -26,9 +26,13 @@ SWIGEXPORT void SWIG_init(void) {
    assign(name, _obj);
 %end_block %enddef
 
-%define %raise(obj,type,desc) 
-return R_NilValue;
-%enddef
+%runtime %{
+SWIGINTERN void SWIG_R_Raise(SEXP obj, const char *msg) {
+  Rf_error(Rf_isString(obj) ? CHAR(Rf_asChar(obj)) : msg);
+}
+%}
+
+#define %raise(OBJ, TYPE, DESC) SWIG_R_Raise(OBJ, "C/C++ exception of type " TYPE); return R_NilValue
 
 %insert("sinit") "srun.swg"
 

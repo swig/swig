@@ -75,25 +75,29 @@ namespace swig {
 
   template <class Sequence, class Difference, class InputSeq>
   inline void
-  setslice(Sequence* self, Difference i, Difference j, const InputSeq& v) {
+  setslice(Sequence* self, Difference i, Difference j, const InputSeq& is) {
     typename Sequence::size_type size = self->size();
     typename Sequence::size_type ii = swig::check_index(i, size, true);
     typename Sequence::size_type jj = swig::slice_index(j, size);
     if (jj < ii) jj = ii;
     size_t ssize = jj - ii;
-    if (ssize <= v.size()) {
+    if (ssize <= is.size()) {
+      // expanding/staying the same size
       typename Sequence::iterator sb = self->begin();
-      typename InputSeq::const_iterator vmid = v.begin();
+      typename InputSeq::const_iterator vmid = is.begin();
       std::advance(sb,ii);
       std::advance(vmid, jj - ii);
-      self->insert(std::copy(v.begin(), vmid, sb), vmid, v.end());
+      self->insert(std::copy(is.begin(), vmid, sb), vmid, is.end());
     } else {
+      // shrinking
       typename Sequence::iterator sb = self->begin();
       typename Sequence::iterator se = self->begin();
       std::advance(sb,ii);
       std::advance(se,jj);
       self->erase(sb,se);
-      self->insert(sb, v.begin(), v.end());
+      sb = self->begin();
+      std::advance(sb,ii);
+      self->insert(sb, is.begin(), is.end());
     }
   }
 
@@ -148,9 +152,9 @@ namespace swig {
       return swig::getslice(self, i, j);
     }
 
-    void __setslice__(difference_type i, difference_type j, const Sequence& v) 
+    void __setslice__(difference_type i, difference_type j, const Sequence& is)
       throw (std::out_of_range, std::invalid_argument) {
-      swig::setslice(self, i, j, v);
+      swig::setslice(self, i, j, is);
     }
 
     void __delslice__(difference_type i, difference_type j) throw (std::out_of_range) {

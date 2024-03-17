@@ -73,7 +73,7 @@ extern "C" {
     Foo() : val(0) {
     }
     
-    virtual ~Foo()  {
+    virtual ~Foo() {
     }
 
     void stop() {

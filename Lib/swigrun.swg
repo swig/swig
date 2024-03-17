@@ -145,7 +145,7 @@
 #define SWIG_CASTRANKLIMIT         (1 << 8)
 /* The NewMask denotes the object was created (using new/malloc) */
 #define SWIG_NEWOBJMASK            (SWIG_CASTRANKLIMIT  << 1)
-/* The TmpMask is for in/out typemaps that use temporal objects */
+/* The TmpMask is for in/out typemaps that use temporary objects */
 #define SWIG_TMPOBJMASK            (SWIG_NEWOBJMASK << 1)
 /* Simple returning values */
 #define SWIG_BADOBJ                (SWIG_ERROR)
@@ -358,9 +358,9 @@ SWIG_TypeName(const swig_type_info *ty) {
 SWIGRUNTIME const char *
 SWIG_TypePrettyName(const swig_type_info *type) {
   /* The "str" field contains the equivalent pretty names of the
-     type, separated by vertical-bar characters.  We choose
-     to print the last name, as it is often (?) the most
-     specific. */
+     type, separated by vertical-bar characters.  Choose the last
+     name. It should be the most specific; a fully resolved name
+     but not necessarily with default template parameters expanded. */
   if (!type) return NULL;
   if (type->str != NULL) {
     const char *last_name = type->str;

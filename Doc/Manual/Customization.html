@@ -95,12 +95,6 @@ or <tt>%noexception</tt> with no code. For example:
 %exception;   // Deletes any previously defined handler
 </pre></div>
 
-<p>
-<b>Compatibility note:</b>  Previous versions of SWIG used a special directive <tt>%except</tt>
-for exception handling.   That directive is deprecated--<tt>%exception</tt>
-provides the same functionality, but is substantially more flexible.
-</p>
-
 <H3><a name="Customization_nn3">15.1.1 Handling exceptions in C code</a></H3>
 
 
@@ -432,16 +426,6 @@ to attach exceptions to specific parts of a header file. For example:
 </pre>
 </div>
 
-<p>
-<b>Compatibility note:</b> The <tt>%exception</tt> directive replaces
-the functionality provided by the deprecated "except" typemap.
-The typemap would allow exceptions to be thrown in the target 
-language based on the return type of a function and 
-was intended to be a mechanism for pinpointing specific
-declarations.  However, it never really worked that well and the new
-%exception directive is much better.
-</p>
-
 <H3><a name="Customization_exception_special_variables">15.1.6 Special variables for %exception</a></H3>
 
 
@@ -725,36 +709,6 @@ properly.
 <p>
 The use of <tt>%newobject</tt> is also integrated with reference counting and is covered in the
 <a href="SWIGPlus.html#SWIGPlus_ref_unref">C++ reference counted objects</a> section.
-</p>
-
-<p>
-<b>Compatibility note:</b>  Previous versions of SWIG had a special <tt>%new</tt> directive.  However, unlike <tt>%newobject</tt>,
-it only applied to the next declaration.  For example:
-</p>
-
-<div class="code">
-<pre>
-%new char *strdup(const char *s);
-</pre>
-</div>
-
-<p>
-For now this is still supported but is deprecated.  
-</p>
-
-<p>
-<b>How to shoot yourself in the foot:</b>  The <tt>%newobject</tt> directive is not a declaration modifier like the old
-<tt>%new</tt> directive.   Don't write code like this:
-</p>
-
-<div class="code">
-<pre>
-%newobject
-char *strdup(const char *s);
-</pre>
-</div>
-<p>
-The results might not be what you expect.
 </p>
 
 <H2><a name="Customization_features">15.3 Features and the %feature directive</a></H2>

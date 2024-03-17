@@ -133,6 +133,16 @@ struct SomeAnotherStruct
 	}
 };
 
+struct Foo1636
+{
+  ///@{
+  /// groupmember1 description
+  int groupmember1;
+  /// groupmember2 description
+  int groupmember2;
+  ///@}
+};
+
 struct Foo1750
 {
   /// @name Group name

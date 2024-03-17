@@ -239,3 +239,46 @@
   nativepointer="cast(void*)$dcall"
 ) SWIGTYPE *const& "$*dclassname.swigGetCPtr($dcall)"
 
+/*
+ * D String & D array represent in C
+ */
+
+%insert(runtime) %{
+#include <stddef.h>
+typedef struct { size_t len; char *str;} SWIG_c_dstring;
+typedef struct { size_t len; SWIG_c_dstring *array; } SWIG_c_dstring_array;
+%}
+
+/*
+ * String & length
+ */
+%typemap(imtype)  (const char *STRING, size_t LENGTH) "string"
+%typemap(dtype)   (const char *STRING, size_t LENGTH) "string"
+%typemap(ctype,default="={0,0}") (const char *STRING, size_t LENGTH) "SWIG_c_dstring"
+%typemap(din, nativepointer="std.conv.to!string($dinput)") (const char *STRING, size_t LENGTH) "$dinput"
+%typemap(freearg) (const char *STRING, size_t LENGTH) ""
+%typemap(in, canthrow=1) (const char *STRING, size_t LENGTH) %{
+  $1 = ($1_ltype)$input.str;
+  $2 = ($2_ltype)$input.len;
+%}
+%typemap(argout)  (const char *STRING, size_t LENGTH) {
+  $input.str = (char *)$1;
+  $input.len = (size_t)$2;
+}
+%typemap(directorin) (const char *STRING, size_t LENGTH) {
+  $input.str = (char *)$1;
+  $input.len = (size_t)$2;
+}
+%typemap(ddirectorin) (const char *STRING, size_t LENGTH) "std.conv.to!string($winput)"
+%apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
+/* Enable write-back for non-const version */
+%typemap(argout)  (char *STRING, size_t LENGTH) {
+  $input.str = (char *)$1;
+  $input.len = (size_t)$2;
+}
+%typemap(directorargout) (char *STRING, size_t LENGTH)
+{
+  $1 = ($1_ltype)$input.str;
+  $2 = ($2_ltype)$input.len;
+}
+%apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }

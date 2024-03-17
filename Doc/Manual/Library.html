@@ -30,6 +30,7 @@
 <li><a href="#Library_stl_cpp_library">STL/C++ library</a>
 <ul>
 <li><a href="#Library_std_string">std::string</a>
+<li><a href="#Library_std_string_view">std::string_view</a>
 <li><a href="#Library_std_vector">std::vector</a>
 <li><a href="#Library_stl_exceptions">STL exceptions</a>
 <li><a href="#Library_std_shared_ptr">shared_ptr smart pointer</a>
@@ -392,7 +393,7 @@ raw C array data.
 <p>Creates four functions.</p>
 
 <p>
-<tt>type *new_name(int nelements)</tt>
+<tt>type *new_name(size_t nelements)</tt>
 </p>
 
 <div class="indent"><p>
@@ -409,7 +410,7 @@ Deletes an array. In C, <tt>free()</tt> is used.  In C++, <tt>delete []</tt> is 
 </p></div>
 
 <p>
-<tt>type name_getitem(type *ary, int index)</tt>
+<tt>type name_getitem(type *ary, size_t index)</tt>
 </p>
 
 <div class="indent"><p>
@@ -417,7 +418,7 @@ Returns the value <tt>ary[index]</tt>.
 </p></div>
 
 <p>
-<tt>void name_setitem(type *ary, int index, type value)</tt>
+<tt>void name_setitem(type *ary, size_t index, type value)</tt>
 </p>
 
 <div class="indent"><p>
@@ -490,10 +491,10 @@ interface is as follows:
 <div class="code">
 <pre>
 struct name {
-  name(int nelements);                  // Create an array
+  name(size_t nelements);               // Create an array
   ~name();                              // Delete array
-  type getitem(int index);              // Return item
-  void setitem(int index, type value);  // Set item
+  type getitem(size_t index);           // Return item
+  void setitem(size_t index, type value);  // Set item
   type *cast();                         // Cast to original type
   static name *frompointer(type *);     // Create class wrapper from
                                         // existing pointer
@@ -1450,14 +1451,15 @@ The following table shows which C++ classes are supported and the equivalent SWI
 <tr> <td>std::multiset (C++11)</td>           <td>multiset</td>             <td>std_multiset.i</td> </tr>
 <tr> <td>std::pair</td>           <td>utility</td>             <td>std_pair.i</td> </tr>
 <tr> <td>std::set</td>           <td>set</td>             <td>std_set.i</td> </tr>
+<tr> <td>std::shared_ptr (C++11)</td>           <td>shared_ptr</td>             <td>std_shared_ptr.i</td> </tr>
 <tr> <td>std::string</td>           <td>string</td>             <td>std_string.i</td> </tr>
+<tr> <td>std::string_view (C++17)</td>           <td>string_view</td>             <td>std_string_view.i</td> </tr>
 <tr> <td>std::unordered_map (C++11)</td>           <td>unordered_map</td>             <td>std_unordered_map.i</td> </tr>
 <tr> <td>std::unordered_multimap (C++11)</td>           <td>unordered_multimap</td>             <td>std_unordered_multimap.i</td> </tr>
 <tr> <td>std::unordered_multiset (C++11)</td>           <td>unordered_multiset</td>             <td>std_unordered_multiset.i</td> </tr>
 <tr> <td>std::unordered_set (C++11)</td>           <td>unordered_set</td>             <td>std_unordered_set.i</td> </tr>
 <tr> <td>std::vector</td>           <td>vector</td>             <td>std_vector.i</td> </tr>
 <tr> <td>std::wstring</td>           <td>wstring</td>             <td>std_wstring.i</td> </tr>
-<tr> <td>std::shared_ptr (C++11)</td>           <td>shared_ptr</td>             <td>std_shared_ptr.i</td> </tr>
 
 </table>
 
@@ -1551,7 +1553,51 @@ void foo(string s, const String &amp;t);     // std_string typemaps still applie
 </pre>
 </div>
 
-<H3><a name="Library_std_vector">12.4.2 std::vector</a></H3>
+<H3><a name="Library_std_string_view">12.4.2 std::string_view</a></H3>
+
+
+<p>
+The <tt>std_string_view.i</tt> library provides typemaps for converting C++17 <tt>std::string_view</tt>
+objects to and from strings in the target scripting language.  For example:
+</p>
+
+<div class="code">
+<pre>
+%module example
+%include "std_string_view.i"
+
+std::string_view foo();
+void        bar(std::string_view x);
+</pre>
+</div>
+
+<p>
+In the target language:
+</p>
+
+<div class="targetlang">
+<pre>
+x = foo();                # Returns a string object
+bar("Hello World");       # Pass string as std::string_view
+</pre>
+</div>
+
+<p>
+For target languages for which SWIG supports directors, <tt>directorout</tt>
+typemaps are provided for <tt>std::string_view</tt>, but these require extra
+care to use safely.  The issue is that returning <tt>std::string_view</tt>
+effectively returns a pointer to string data but doesn't own the pointed to
+data.  For target languages where there isn't a native narrow string
+representation (e.g. C#, Java) a <tt>static std::string</tt> is used to cache
+the data, which works but isn't thread/reentrant safe.  For target languages
+where there is a native narrow string representation SWIG will return a
+<tt>std::string_view</tt> pointing to that data, so you need to store the
+string to return somewhere which will persist for the lifetime the caller
+needs (e.g. put it in a member variable) - you can't return a temporary target
+language string.  In both cases SWIG will issue a warning by default.
+</p>
+
+<H3><a name="Library_std_vector">12.4.3 std::vector</a></H3>
 
 
 <p>
@@ -1730,7 +1776,7 @@ if you want to make their head explode.
 details and the public API exposed to the interpreter vary.
 </p>
 
-<H3><a name="Library_stl_exceptions">12.4.3 STL exceptions</a></H3>
+<H3><a name="Library_stl_exceptions">12.4.4 STL exceptions</a></H3>
 
 
 <p>
@@ -1780,10 +1826,10 @@ The <tt>%exception</tt> directive can be used by placing the following code befo
 Any thrown STL exceptions will then be gracefully handled instead of causing a crash.
 </p>
 
-<H3><a name="Library_std_shared_ptr">12.4.4 shared_ptr smart pointer</a></H3>
+<H3><a name="Library_std_shared_ptr">12.4.5 shared_ptr smart pointer</a></H3>
 
 
-<H4><a name="Library_shared_ptr_basics">12.4.4.1 shared_ptr basics</a></H4>
+<H4><a name="Library_shared_ptr_basics">12.4.5.1 shared_ptr basics</a></H4>
 
 
 <p>
@@ -1826,7 +1872,7 @@ In order to use <tt>boost::shared_ptr</tt>, the <tt>boost_shared_ptr.i</tt> libr
 
 <p>
 You can only use one of these variants of shared_ptr in your interface file at a time.
-and all three variants must be used in conjunction with the <tt>%shared_ptr(T)</tt> macro,
+All three variants must be used in conjunction with the <tt>%shared_ptr(T)</tt> macro,
 where <tt>T</tt> is the underlying pointer type equating to usage <tt>shared_ptr&lt;T&gt;</tt>.
 The type <tt>T</tt> must be non-primitive.
 A simple example demonstrates usage:
@@ -1879,7 +1925,7 @@ System.out.println(val1 + " " + val2);
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_inheritance">12.4.4.2 shared_ptr and inheritance</a></H4>
+<H4><a name="Library_shared_ptr_inheritance">12.4.5.2 shared_ptr and inheritance</a></H4>
 
 
 <p>
@@ -1970,7 +2016,7 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_overloading">12.4.4.3 shared_ptr and method overloading</a></H4>
+<H4><a name="Library_shared_ptr_overloading">12.4.5.3 shared_ptr and method overloading</a></H4>
 
 
 <p>
@@ -1992,7 +2038,7 @@ SWIG will choose to wrap just the first method by default.
 For the interested reader, SWIG detects that they are equivalent types via the <a href=Typemaps.html#Typemaps_typecheck_pointer>typecheck typemaps</a> in the shared_ptr library.
 </p>
 
-<H4><a name="Library_shared_ptr_templates">12.4.4.4 shared_ptr and templates</a></H4>
+<H4><a name="Library_shared_ptr_templates">12.4.5.4 shared_ptr and templates</a></H4>
 
 
 <p>
@@ -2034,28 +2080,37 @@ The SWIG code below shows the required ordering:
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_directors">12.4.4.5 shared_ptr and directors</a></H4>
+<H4><a name="Library_shared_ptr_directors">12.4.5.5 shared_ptr and directors</a></H4>
 
 
 <p>
 The languages that support shared_ptr also have support for using shared_ptr with directors.
 </p>
 
-<H3><a name="Library_std_unique_ptr">12.4.5 unique_ptr smart pointer</a></H3>
+<H3><a name="Library_std_unique_ptr">12.4.6 unique_ptr smart pointer</a></H3>
 
 
 <p>
 The <tt>std_unique_ptr.i</tt> library file provides SWIG's unique_ptr support.
-It defines typemaps and a macro, <tt>%unique_ptr(T)</tt>, to use for handling
+It provides move semantics for the smart pointer's underlying object,
+both from C++ to the target language and vice versa.
+</p>
+
+<p>
+The library defines typemaps and a macro, <tt>%unique_ptr(T)</tt>, to use for handling
 <tt>std::unique_ptr&lt;T&gt;</tt> for a type <tt>T</tt>.
 The type <tt>T</tt> must be non-primitive.
 This macro should be used before any code declaring or using type <tt>T</tt>.
 Ordering requirements for using this smart pointer macro are the same as the
 equivalent <tt>%shared_ptr(T)</tt> macro covered in the previous section.
+The ownership and move semantics described here can of course be modified if not suitable
+by copying and customising the typemaps in the appropriate <tt>std_unique_ptr.i</tt> library file.
 </p>
 
+<H4><a name="Library_std_unique_ptr_by_value">12.4.6 unique_ptr passed by value</a></H4>
+
 <p>
-Example usage of a <tt>std::unique_ptr</tt> being returned from a function is shown below.
+Example usage of a <tt>std::unique_ptr</tt> being returned from a function by value is shown below.
 </p>
 
 <div class="code">
@@ -2159,11 +2214,70 @@ Attempts to pass ownership from a proxy class to a <tt>std::unique</tt> paramete
 in a "Cannot release ownership as memory is not owned" exception. For example, if <tt>example.take(k)</tt> in the example above is called twice.
 </p>
 
+<H4><a name="Library_std_unique_ptr_by_ref">12.4.6 unique_ptr passed by reference</a></H4>
+
 <p>
-<b>Compatibility note:</b> Support for <tt>std::unique_ptr</tt> was added in SWIG-4.1.0.
+The effect of passing a <tt>std::unique_ptr</tt> by rvalue reference into a function is identical to passing it by value.
+The ownership of the memory of the object being pointed to by the underyling pointer is transferred from the proxy class to the C++ function being called. Example:
 </p>
 
-<H3><a name="Library_std_auto_ptr">12.4.6 auto_ptr smart pointer</a></H3>
+<div class="code">
+<pre>
+void grab(std::unique_ptr&lt;Klass&gt; &amp;&amp;);
+</pre>
+</div>
+
+<p>
+Passing non-const lvalue references into a function is a bit quirky and not perfect due to ambiguities as
+to what the function may do.
+The approach taken is the ownership is transferred out of the target language from the proxy class
+into C++ space and the proxy class can then no longer be used after the wrapped function returns.
+In summary it works much like passing a <tt>std::unique_ptr</tt> by value into a function.
+The assumption is the function will not modify the <tt>std::unique_ptr</tt>.
+If this is not true and the underlying pointer is changed, such as calling the member functions, <tt>swap</tt>, <tt>reset</tt> or <tt>release</tt>, then the modified <tt>std::unique_ptr</tt> will effectively be ignored.
+It is destroyed when the function exits C++ space on return to the target language.
+Example:
+</p>
+
+<div class="code">
+<pre>
+void process(std::unique_ptr&lt;Klass&gt; &amp;);
+</pre>
+</div>
+
+<p>
+Passing const lvalue references into a function works much like passing any wrapped class.
+The proxy class owning the underling C++ object continues to own the underying C++ object
+after calling the function, the function cannot modify the <tt>std::unique_ptr</tt> or take ownership.
+Example:
+</p>
+
+<div class="code">
+<pre>
+void use(const std::unique_ptr&lt;Klass&gt; &amp;);
+</pre>
+</div>
+
+<p>
+Move semantics are not provided when wrapping a C++ function that returns a <tt>std::unique_ptr</tt> by reference.
+The target language proxy class wrapper that is returned does not own the underlying C++ object.
+This applies to all reference types, such as:
+</p>
+
+<div class="code">
+<pre>
+std::unique_ptr&lt;Klass&gt; &amp; LvalueRefReturn();
+std::unique_ptr&lt;Klass&gt; &amp;&amp; RvalueRefReturn();
+</pre>
+</div>
+
+
+<p>
+<b>Compatibility note:</b> Support for <tt>std::unique_ptr</tt> was first added in SWIG-4.1.0.
+This initial support contained the move semantics when passing a <tt>std::unique_ptr</tt> around by value. Support for passing a <tt>std::unique_ptr</tt> around by reference was added in SWIG-4.3.0.
+</p>
+
+<H3><a name="Library_std_auto_ptr">12.4.7 auto_ptr smart pointer</a></H3>
 
 
 <p>

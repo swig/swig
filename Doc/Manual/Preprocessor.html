@@ -48,7 +48,7 @@ like this:
 
 <div class="code">
 <pre>
-%include "pointer.i"
+%include "cpointer.i"
 </pre>
 </div>
 
@@ -132,6 +132,7 @@ SWIGJAVA                        Defined when using Java
 SWIGJAVASCRIPT                  Defined when using Javascript
 SWIG_JAVASCRIPT_JSC             Defined when using Javascript with -jsc
 SWIG_JAVASCRIPT_V8              Defined when using Javascript with -v8 or -node
+SWIG_JAVASCRIPT_NAPI            Defined when using Javascript with -napi
 SWIGLUA                         Defined when using Lua
 SWIGMZSCHEME                    Defined when using Mzscheme
 SWIGOCAML                       Defined when using OCaml
@@ -148,6 +149,14 @@ SWIGXML                         Defined when using XML
 </pre></div>
 
 <p>
+SWIG also defines <tt>SWIG_VERSION</tt> and a target language macro in
+the generated wrapper file (since SWIG 4.1.0 - in older versions these
+were defined for some target languages but this wasn't consistent).  Best
+practice is to use SWIG-time conditional checks because that results in smaller
+generated wrapper sources.
+</p>
+
+<p>
 In addition, SWIG defines the following set of standard C/C++ macros:
 </p>
 
@@ -155,10 +164,43 @@ In addition, SWIG defines the following set of standard C/C++ macros:
 <pre>
 __LINE__                        Current line number
 __FILE__                        Current file name
-__STDC__                        Defined to indicate ISO C
-__cplusplus                     Defined when -c++ option used
+__STDC__                        Defined to indicate ISO C/C++
+__cplusplus                     Defined when -c++ option used, value controlled by <tt>-std=c++NN</tt>
+__STDC_VERSION__                May be defined when -c++ option is not used, value controlled by <tt>-std=cNN</tt>
 </pre>
 </div>
+
+<p>
+Since SWIG 4.2.0, <tt>__STDC__</tt> is defined to <tt>1</tt> to match
+the behaviour of ISO C/C++ compilers.  Before this SWIG defined it to
+have an empty value.
+</p>
+
+<p>
+Since SWIG 4.2.0, <tt>__cplusplus</tt> is defined to <tt>199711L</tt>
+(the value for C++98) by default. Before this SWIG always defined it to have
+the <b>value</b> <tt>__cplusplus</tt>.
+</p>
+
+<p>
+Since SWIG 4.2.0, SWIG supports command line options <tt>-std=cNN</tt> and
+<tt>-std=c++NN</tt> to specify the C/C++ standards version.  The only effect of
+these options is to set appropriate values for <tt>__STDC_VERSION__</tt> and
+<tt>__cplusplus</tt> respectively, which is useful if you're wrapping
+headers which have preprocessor checks based on their values.
+</p>
+
+<p>
+If your code requires these macros to be set to a version of the standard
+that is not a final official version, or one that SWIG is not yet aware of,
+you can simply redefine the appropriate macro to an alternative value at the
+top of your interface file, for example:
+</p>
+
+<div class="code"><pre>
+#undef __cplusplus
+#define __cplusplus 202211L
+</pre></div>
 
 <p>
 The following are language specific symbols that might be defined:

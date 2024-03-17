@@ -55,15 +55,3 @@ struct SWIG_null_deleter {
 SWIG_SHARED_PTR_TYPEMAPS(, TYPE)
 SWIG_SHARED_PTR_TYPEMAPS(const, TYPE)
 %enddef
-
-// Legacy macros
-%define SWIG_SHARED_PTR(PROXYCLASS, TYPE...)
-#warning "SWIG_SHARED_PTR(PROXYCLASS, TYPE) is deprecated. Please use %shared_ptr(TYPE) instead."
-%shared_ptr(TYPE)
-%enddef
-
-%define SWIG_SHARED_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE...)
-#warning "SWIG_SHARED_PTR_DERIVED(PROXYCLASS, BASECLASSTYPE, TYPE) is deprecated. Please use %shared_ptr(TYPE) instead."
-%shared_ptr(TYPE)
-%enddef
-

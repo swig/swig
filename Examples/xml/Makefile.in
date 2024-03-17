@@ -5,11 +5,9 @@ top_srcdir	= @top_srcdir@
 top_builddir	= @top_builddir@
 
 SWIGEXE         = $(top_builddir)/swig
-# Suppress "experimental target language" warning
-SWIGOPT         = -w524
 SWIG_LIB_DIR    = $(top_srcdir)/Lib
 SWIG_LIB_SET    = @SWIG_LIB_SET@
-SWIGINVOKE      = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE) $(SWIGOPT)
+SWIGINVOKE      = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
 
 cleanup		= tail +2 \
 		  | sed -e 's/ident="ID[0-9A-F]*"//g' \
@@ -32,7 +30,7 @@ check:
 	for f in $(all-dot-i-files) ; do				\
 	  base=`basename $$f .i` ;					\
 	  xml=$$base.xml ;						\
-	  $(SWIGINVOKE) -xml $$xml ${srcdir}/$$f ;	\
+	  $(SWIGINVOKE) -xml -o $$xml ${srcdir}/$$f ;	\
 	  cat $$xml | $(cleanup) | diff -c ${srcdir}/$$base.expected-xml - ;	\
 	done
 
@@ -45,9 +43,9 @@ distclean: clean
 # from here on, non-developers beware!
 
 %.expected-xml : %.i
-	$(SWIGINVOKE) -xml tmp-file $^
-	cat tmp-file | $(cleanup) > $@
-	rm -f tmp-file
+	$(SWIGINVOKE) -xml -o tmp-file.xml $^
+	cat tmp-file.xml | $(cleanup) > $@
+	rm -f tmp-file.xml
 
 all-expected-xml:
 	for f in $(all-dot-i-files) ; do \

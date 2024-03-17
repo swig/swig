@@ -128,17 +128,17 @@ Supported Target Language Options
      -lua            - Generate Lua wrappers
      -octave         - Generate Octave wrappers
      -perl5          - Generate Perl 5 wrappers
-     -php7           - Generate PHP 7 or later wrappers
+     -php7           - Generate PHP 8 or later wrappers
      -python         - Generate Python wrappers
      -r              - Generate R (aka GNU S) wrappers
      -ruby           - Generate Ruby wrappers
      -scilab         - Generate Scilab wrappers
      -tcl8           - Generate Tcl 8 wrappers
+     -xml            - Generate XML wrappers
 
 Experimental Target Language Options
      -mzscheme       - Generate MzScheme/Racket wrappers
      -ocaml          - Generate OCaml wrappers
-     -xml            - Generate XML wrappers
 
 General Options
      -addextern      - Add extra extern declarations
@@ -165,7 +165,7 @@ General Options
      -debug-tmused   - Display typemaps used debugging information
      -directors      - Turn on director mode for all the classes, mainly for testing
      -dirprot        - Turn on wrapping of protected members for director classes (default)
-     -D&lt;symbol&gt;      - Define a symbol &lt;symbol&gt; (for conditional compilation)
+     -D&lt;symbol&gt;[=&lt;value&gt;] - Define symbol &lt;symbol&gt; (for conditional compilation)
      -E              - Preprocess only, does not generate wrapper code
      -external-runtime [file] - Export the SWIG runtime stack
      -fakeversion &lt;v&gt;- Make SWIG fake the program version number to &lt;v&gt;
@@ -185,7 +185,6 @@ General Options
      -includeall     - Follow all #include statements
      -l&lt;ifile&gt;       - Include SWIG library file &lt;ifile&gt;
      -macroerrors    - Report errors inside macros
-     -makedefault    - Create default constructors/destructors (the default)
      -M              - List all dependencies
      -MD             - Is equivalent to `-M -MF &lt;file&gt;', except `-E' is not implied
      -MF &lt;file&gt;      - Generate dependencies into &lt;file&gt; and continue generating wrappers
@@ -196,7 +195,6 @@ General Options
      -MT &lt;target&gt;    - Set the target of the rule emitted by dependency generation
      -nocontract     - Turn off contract checking
      -nocpperraswarn - Do not treat the preprocessor #error statement as #warning
-     -nodefault      - Do not generate default constructors nor default destructors
      -nodefaultctor  - Do not generate implicit default constructors
      -nodefaultdtor  - Do not generate implicit default destructors
      -nodirprot      - Do not wrap director protected members
@@ -212,14 +210,16 @@ General Options
      -outdir &lt;dir&gt;   - Set language specific files output directory to &lt;dir&gt;
      -pcreversion    - Display PCRE2 version information
      -small          - Compile in virtual elimination and compact mode
+     -std=&lt;standard&gt; - Set the C or C++ language &lt;standard&gt; for inputs
      -swiglib        - Report location of SWIG library and exit
      -templatereduce - Reduce all the typedefs in templates
+     -U&lt;symbol&gt;      - Undefine symbol &lt;symbol&gt;
      -v              - Run in verbose mode
      -version        - Display SWIG version number
      -Wall           - Remove all warning suppression, also implies -Wextra
      -Wallkw         - Enable keyword warnings for all the supported languages
      -Werror         - Treat warnings as errors
-     -Wextra         - Adds the following additional warnings: 202,309,403,405,512,321,322
+     -Wextra         - Adds the following additional warnings: 309,403,405,512,321,322
      -w&lt;list&gt;        - Suppress/add warning messages, eg -w401,+321 - see Warnings.html
      -xmlout &lt;file&gt;  - Write XML version of the parse tree to &lt;file&gt; after normal processing
 </pre></div>
@@ -1780,13 +1780,6 @@ const int foo;               /* Read only variable */
 char * const version="1.0";  /* Read only variable */
 </pre></div>
 
-<p>
-<b>Compatibility note:</b> Read-only access used to be controlled by a pair of directives
-<tt>%readonly</tt> and <tt>%readwrite</tt>.   Although these directives still work, they
-generate a warning message.   Simply change the directives to <tt>%immutable;</tt> and
-<tt>%mutable;</tt> to silence the warning.  Don't forget the extra semicolon!
-</p>
-
 <H3><a name="SWIG_rename_ignore">5.4.7 Renaming and ignoring declarations</a></H3>
 
 
@@ -1902,22 +1895,6 @@ Any function, variable etc which matches <tt>%ignore</tt> will not be wrapped an
 A common usage of <tt>%ignore</tt> is to selectively remove certain declarations from a header file without having
 to add conditional compilation to the header.   However, it should be stressed that this only works for simple
 declarations.  If you need to remove a whole section of problematic code, the SWIG preprocessor should be used instead.
-</p>
-
-<p>
-<b>Compatibility note: </b> Older versions of SWIG provided a special <tt>%name</tt> directive for renaming declarations.
-For example:
-</p>
-
-<div class="code">
-<pre>
-%name(output) extern void print(const char *);
-</pre>
-</div>
-
-<p>
-This directive is still supported, but it is deprecated and should probably be avoided.  The <tt>%rename</tt>
-directive is more powerful and better supports wrapping of raw header file information.
 </p>
 
 <H4><a name="SWIG_advanced_renaming">5.4.7.3 Advanced renaming support</a></H4>
@@ -2046,7 +2023,7 @@ and a more descriptive one, but the two functions are otherwise equivalent:
     <td>String after (Perl-like) regex substitution operation. This function
     allows applying arbitrary regular expressions to the identifier names. The
     <i>pattern</i> part is a regular expression in Perl syntax (as supported
-    by the <a href="http://www.pcre.org/">Perl Compatible Regular Expressions</a>)
+    by the <a href="https://www.pcre.org/">Perl Compatible Regular Expressions</a>)
     (PCRE2 library) and the <i>subst</i> string
     can contain back-references of the form <tt>\N</tt> where <tt>N</tt> is a digit
     from 0 to 9, or one of the following escape sequences: <tt>\l</tt>, <tt>\L</tt>,
@@ -2551,8 +2528,9 @@ for the above example you'll get:
 </p>
 
 <div class="code"><pre>
-foo.i:5: Warning 302: Identifier 'Foo' redefined (ignored),
+foo.i:5: Warning 302: Redefinition of identifier 'Foo' as Foo(void) ignored,
 foo.i:1: Warning 302: previous definition of 'Foo'.
+
 </pre></div>
 
 <p>
@@ -2942,14 +2920,14 @@ struct Bar {              // Default destructor generated.
 
 <p>
 <b>Compatibility note:</b> Prior to SWIG-1.3.7, SWIG did not generate default constructors
-or destructors unless you explicitly turned them on using <tt>-make_default</tt>. 
+or destructors unless you explicitly turned them on.
 However, it appears that most users want to have constructor and destructor functions so it
 has now been enabled as the default behavior.
 </p>
 
 <p>
-<b>Note:</b> There are also the <tt>-nodefault</tt> option and
-<tt>%nodefault</tt> directive, which disable both the default or
+<b>Note:</b> There is also the
+<tt>%nodefault</tt> directive, which disables both the default or
 implicit destructor generation. This could lead to memory leaks across 
 the target languages, and it is highly recommended you don't use them.
 </p>
@@ -3226,13 +3204,6 @@ the allocation of additional storage in the object (e.g., their values must
 be entirely synthesized from existing attributes of the structure or obtained elsewhere).
 </p>
 
-<p>
-<b>Compatibility note:</b>  The <tt>%extend</tt> directive is a new
-name for the <tt>%addmethods</tt> directive.  Since <tt>%addmethods</tt> could
-be used to extend a structure with more than just methods, a more suitable
-directive name has been chosen.
-</p>
-
 <H3><a name="SWIG_nested_structs">5.5.7 Nested structures</a></H3>
 
 
@@ -3353,7 +3324,7 @@ the following function is generated instead:
 <pre>
 static int
 _wrap_Vector_x_get(ClientData clientData, Tcl_Interp *interp, 
-                   int objc, Tcl_Obj *CONST objv[]) {
+                   int objc, Tcl_Obj *const objv[]) {
   struct Vector *arg1 ;
   double result ;
 
@@ -3664,8 +3635,8 @@ In the process of building an interface, SWIG may encounter syntax errors or
 other problems.  The best way to deal with this is to simply copy the offending
 code into a separate interface file and edit it.   However, the SWIG developers
 have worked very hard to improve the SWIG parser--you should report parsing errors
-to the <a href="http://www.swig.org/mail.html">swig-devel mailing list</a> or to the 
-<a href="http://www.swig.org/bugs.html">SWIG bug tracker</a>.
+to the <a href="https://www.swig.org/mail.html">swig-devel mailing list</a> or to the
+<a href="https://www.swig.org/bugs.html">SWIG bug tracker</a>.
 </p>
 
 <H3><a name="SWIG_nn47">5.7.2 The SWIG interface file</a></H3>

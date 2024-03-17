@@ -19,7 +19,7 @@ January 11, 2007<br>
 
 This document describes functions that can be used to tokenize C/C++
 input text.  These functions are relatively low-level and are meant to
-be used in the implementation of scanners that can be plugged into yacc or used for
+be used in the implementation of scanners that can be plugged into bison or used for
 other purposes.  For instance, the preprocessor uses these functions to evaluate and test 
 constant expressions.  
 
@@ -103,7 +103,7 @@ Skips to the end of the current line.   The text skipped can be obtained using <
 </blockquote>
 
 <p>
-<b><tt>void Scanner_skip_balanced(Scanner *s, int startchar, int endchar)</tt></b>
+<b><tt>int Scanner_skip_balanced(Scanner *s, int startchar, int endchar)</tt></b>
 <blockquote>
 Skips to the end of a block of text denoted by starting and ending characters.  For example, <tt>{</tt> and <tt>}</tt>.  The
 function is smart about how it skips text.  String literals and comments are ignored.   The function also is aware of nesting.  The
@@ -112,7 +112,7 @@ skipped text can be obtained using <tt>Scanner_text()</tt> afterwards. Returns 0
 
 
 <p>
-<b><tt>void Scanner_set_location(Scanner *s, int startchar, int endchar)</tt></b>
+<b><tt>void Scanner_set_location(Scanner *s, String *file, int line)</tt></b>
 <blockquote>
 Changes the current filename and line number of the scanner.
 </blockquote>
@@ -136,7 +136,7 @@ Gets the starting line number of the last token returned by the scanner.
 </blockquote>
 
 <p>
-<b><tt>void Scanner_idstart(Scanner *s, char *idchar)</tt></b>
+<b><tt>void Scanner_idstart(Scanner *s, const char *idchar)</tt></b>
 <blockquote>
 Sets additional characters (other than the C default) that may be used to start C identifiers.  <tt>idchar</tt> is a string
 containing the characters (e.g., "%@").  The purpose of this function is to up special keywords such as "%module" or "@directive" as
@@ -187,7 +187,6 @@ SWIG_TOKEN_RPAREN            )
 SWIG_TOKEN_SEMI              ; 
 SWIG_TOKEN_COMMA             , 
 SWIG_TOKEN_STAR              * 
-SWIG_TOKEN_TIMES             *
 SWIG_TOKEN_LBRACE            { 
 SWIG_TOKEN_RBRACE            } 
 SWIG_TOKEN_EQUAL             = 
@@ -210,11 +209,9 @@ SWIG_TOKEN_LNOT              !
 SWIG_TOKEN_LBRACKET          [ 
 SWIG_TOKEN_RBRACKET          ] 
 SWIG_TOKEN_SLASH             / 
-SWIG_TOKEN_DIVIDE            /
 SWIG_TOKEN_BACKSLASH         \ 
 SWIG_TOKEN_POUND             # 
 SWIG_TOKEN_PERCENT           % 
-SWIG_TOKEN_MODULO            %
 SWIG_TOKEN_COLON             : 
 SWIG_TOKEN_DCOLON            :: 
 SWIG_TOKEN_DCOLONSTAR        ::*
@@ -238,21 +235,28 @@ SWIG_TOKEN_ARROWSTAR         -&gt;*
 SWIG_TOKEN_PERIOD            . 
 SWIG_TOKEN_AT                @ 
 SWIG_TOKEN_DOLLAR            $ 
+SWIG_TOKEN_ELLIPSIS          ...
+SWIG_TOKEN_LLBRACKET         [[
+SWIG_TOKEN_RRBRACKET         ]]
 SWIG_TOKEN_ENDLINE           Literal newline
 SWIG_TOKEN_ID                identifier 
 SWIG_TOKEN_FLOAT             Floating point with F suffix (e.g., 3.1415F)
 SWIG_TOKEN_DOUBLE            Floating point (e.g., 3.1415 )
+SWIG_TOKEN_LONGDOUBLE        Floating point with L suffix (e.g., 3.1415L)
 SWIG_TOKEN_INT               Integer (e.g., 314)
 SWIG_TOKEN_UINT              Unsigned integer (e.g., 314U)
 SWIG_TOKEN_LONG              Long integer (e.g., 314L) 
 SWIG_TOKEN_ULONG             Unsigned long integer (e.g., 314UL)
 SWIG_TOKEN_LONGLONG          Long long integer (e.g., 314LL )
 SWIG_TOKEN_ULONGLONG         Unsigned long long integer (e.g., 314ULL) 
+SWIG_TOKEN_BOOL              Boolean literal (true or false)
 SWIG_TOKEN_CHAR              Character literal in single quotes ('c')
+SWIG_TOKEN_WCHAR             Wide character literal (L'c')
 SWIG_TOKEN_STRING            String literal in double quotes ("str")
 SWIG_TOKEN_RSTRING           Reverse quote string (`str`)
 SWIG_TOKEN_CODEBLOCK         SWIG code literal block %{ ... %}
 SWIG_TOKEN_COMMENT           C or C++ comment  (// or /* ... */)
+SWIG_TOKEN_WSTRING           Wide string literal (L"str")
 SWIG_TOKEN_ILLEGAL           Illegal character
 </pre>
 </blockquote>
@@ -260,9 +264,6 @@ SWIG_TOKEN_ILLEGAL           Illegal character
 <b>Notes</b>
 
 <ul>
-<li>When more than one token code exist for the same token text, those codes are identical (e.g., <tt>SWIG_TOKEN_STAR</tt> and <tt>SWIG_TOKEN_TIMES</tt>).
-
-<p>
 <li>
 String literals are returned in their exact representation in which escape codes (if any) have been interpreted.
 
@@ -277,7 +278,7 @@ add extra checking on the returned text.
 <p>
 <li>The maximum token integer value is found in the constant <tt>SWIG_MAXTOKENS</tt>.   This can be used if you wanted to create 
 an array or table for the purposes of remapping tokens to a different set of codes. For instance, if you are
-using these functions to write a yacc-compatible lexer.
+using these functions to write a bison-compatible lexer.
 </ul>
 
 </body>

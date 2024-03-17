@@ -24,7 +24,7 @@ class ex1 : public myException
 class ex2 : public myException
 {
    public:
-      virtual const char *name()  { return "ex2"; }
+      virtual const char *name() { return "ex2"; }
 };
 %}
 

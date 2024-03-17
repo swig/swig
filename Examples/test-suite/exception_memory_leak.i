@@ -1,6 +1,13 @@
 %module exception_memory_leak
 
 %include <std_string.i>
+%include <exception.i>
+
+#ifdef SWIGCSHARP
+#define TYPEMAP_OUT_INIT $result = 0;
+#else
+#define TYPEMAP_OUT_INIT
+#endif
 
 %typemap(in) Foo* foo
 {
@@ -11,11 +18,24 @@
   Foo::inc_freearg_count();
   delete $1;
 }
-%typemap(out) Foo* verify_no_memory_leak
+%typemap(out) Foo* trigger_internal_swig_exception
 {
-  if ($1 == NULL)
-    SWIG_exception_fail(SWIG_RuntimeError, "Let's see how the bindings manage this exception!");
+  TYPEMAP_OUT_INIT
+  if ($1 == NULL) {
+    SWIG_exception(SWIG_RuntimeError, "Let's see how the bindings manage this exception!");
+#ifdef SWIG_fail
+    SWIG_fail;
+#endif
+  }
   $1 = NULL;
+}
+%typemap(out) Foo trigger_internal_swig_exception
+{
+  TYPEMAP_OUT_INIT
+  SWIG_exception(SWIG_RuntimeError, "Let's see how the bindings manage this exception!");
+#ifdef SWIG_fail
+  SWIG_fail;
+#endif
 }
 
 %inline %{
@@ -40,6 +60,11 @@
   static Foo* trigger_internal_swig_exception(const std::string& message, Foo* foo)
   {
     return (message == "null") ? NULL : foo;
+  }
+
+  static Foo trigger_internal_swig_exception(const std::string& message)
+  {
+    return Foo();
   }
 
 %}

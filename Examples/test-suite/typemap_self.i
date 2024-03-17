@@ -4,7 +4,7 @@
 %typemap(in) A* (A* ptr) {
   if (SWIG_ConvertPtr($input, (void**) &ptr, $1_descriptor, 0) != -1) {
     $1 = ptr;
-  } else  {
+  } else {
     $1 = new A();
   }
  }

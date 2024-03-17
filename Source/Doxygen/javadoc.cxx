@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * javadoc.cxx
  * ----------------------------------------------------------------------------- */
@@ -254,7 +254,7 @@ std::string JavaDocConverter::formatCommand(std::string unformattedLine, int ind
       i += APPROX_LINE_LENGTH - indent * TAB_SIZE;
     }
 
-    i = unformattedLine.find(" ", i);
+    i = unformattedLine.find(' ', i);
 
     if (i > 0 && i + 1 < unformattedLine.length()) {
       if (!isFirstLine)
@@ -463,7 +463,11 @@ void JavaDocConverter::handleTagImage(DoxygenEntity &tag, std::string &translate
   if (it != tag.entityList.end())
     title = it->data;
 
-  translatedComment += "<img src=" + file;
+  translatedComment += "<img src=";
+  if (file.size() >= 2 && file[0] == '"' && file[file.size() - 1] == '"')
+    translatedComment += file;
+  else
+    translatedComment += "\"" + file + "\"";
   if (title.size())
     translatedComment += " alt=" + title;
 

@@ -1,5 +1,8 @@
 %module csharp_lib_arrays
 
+// TODO: also test long type for INPUT[], OUTPUT[], INOUT[], FIXED[].
+// Will require something clever like detecting sizeof(long) at configure time.
+
 %include "arrays_csharp.i"
 
 %apply int INPUT[]  { int* sourceArray }
@@ -57,5 +60,3 @@ void myArraySwapUsingFixedArrays( int* array1, int* array2, int nitems ) {
   myArraySwap(array1, array2, nitems);
 }
 %}
-
-  

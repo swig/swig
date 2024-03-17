@@ -39,7 +39,7 @@ class C {
 public:
   C(std::initializer_list<const char *> init) {
     for (auto& val : init)
-      joined += val;
+      joined = joined + val;
   }
   C() {}
   const char * get_joined_string() {

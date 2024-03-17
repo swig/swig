@@ -1,5 +1,5 @@
 
-if [ catch { load ./cpp11_move_typemaps[info sharedlibextension] cpp11_move_typemaps} err_msg ] {
+if [ catch { load ./cpp11_move_typemaps[info sharedlibextension] Cpp11_move_typemaps} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 
@@ -33,3 +33,25 @@ if [ catch {
 if {!$exception_thrown} {
   error "Should have thrown 'Cannot release ownership as memory is not owned' error"
 }
+
+Counter_reset_counts
+Counter_check_counts 0 0 0 0 0 0
+InstanceMethodsTester imt
+Counter_check_counts 0 0 0 0 0 0
+
+MoveOnly mo333 333
+Counter_check_counts 1 0 0 0 0 0
+imt instance_take_move_only mo333
+Counter_check_counts 1 0 0 1 0 2
+mo333 -delete
+
+Counter_check_counts 1 0 0 1 0 2
+Counter_reset_counts
+
+MovableCopyable mc 444
+Counter_check_counts 1 0 0 0 0 0
+imt instance_take_movable_copyable mc
+Counter_check_counts 1 0 0 1 0 2
+mc -delete
+
+Counter_check_counts 1 0 0 1 0 2

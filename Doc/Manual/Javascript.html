@@ -22,6 +22,7 @@
 <ul>
 <li><a href="#Javascript_node_extensions">Creating node.js Extensions</a>
 <ul>
+<li><a href="#Javascript_using_yeoman">Using <code>yeoman</code> to generate a Node-API skeleton</a>
 <li><a href="#Javascript_troubleshooting">Troubleshooting</a>
 </ul>
 <li><a href="#Javascript_embedded_webkit">Embedded Webkit</a>
@@ -43,6 +44,7 @@
 <li><a href="#Javascript_emitter">Emitter</a>
 <li><a href="#Javascript_emitter_states">Emitter states</a>
 <li><a href="#Javascript_jsc_exceptions">Handling Exceptions in JavascriptCore</a>
+<li><a href="#Javascript_napi_exceptions">Handling Exceptions in Node-API</a>
 </ul>
 </ul>
 </div>
@@ -79,7 +81,7 @@ With <a href="https://github.com/rogerwang/node-webkit">node-webkit</a> there is
 int gcd(int x, int y);
 extern double Foo;</pre>
 </div>
-<p>To build a Javascript module, run SWIG using the <code>-javascript</code> option and a desired target engine <code>-jsc</code>, <code>-v8</code>, or <code>-node</code>. The generator for <code>node</code> is essentially delegating to the <code>v8</code> generator and adds some necessary preprocessor definitions.</p>
+<p>To build a Javascript module, run SWIG using the <code>-javascript</code> option and a desired target engine <code>-jsc</code>, <code>-v8</code>, <code>-node</code> or <code>-napi</code>. <code>-v8</code> allows for interfacing with a raw embedded version of V8. In this case, it is up to the user to implement a binary module loading protocol. There are two generators supporting Node.js. The older generator for <code>node</code> is essentially delegating to the <code>v8</code> generator and adds some necessary preprocessor definitions. The more recent <code>-napi</code> generator produces <code>node-addon-api</code> that interfaces to Node.js through Node-API. The V8 generator is more mature, while the Node-API generator offers a number of advantages such as binary stable ABI allowing for publishing of universal binary modules on npm, Electron support and automatic multi-threading.</p>
 <div class="shell">
 <pre>
 $ swig -javascript -jsc example.i</pre>
@@ -90,8 +92,12 @@ $ swig -javascript -jsc example.i</pre>
 $ swig -c++ -javascript -jsc example.i</pre>
 </div>
 <p>The V8 code that SWIG generates requires at least V8 5.0. Keep in mind
-that this is theV8 version, not Node.js. To give some perspective, Node.js v6.0
+that this is the V8 version, not Node.js. To give some perspective, Node.js v6.0
 uses V8 5.0, v12.0 - 7.4, v14.0 - 8.1...</p>
+<p>The Node-API code that SWIG generates requires Node-API version 6.
+This Node-API is available starting from Node.js v10.20 on the v10.x branch,
+Node.js v12.17 on the v12.x branch and all versions starting from v14.0.
+</p>
 <p>To generate code for V8, you would run swig like so:</p>
 <div class="shell">
 <pre>
@@ -125,14 +131,19 @@ $ sudo apt-get install libjavascriptcoregtk-1.0-dev</pre>
 <p>Running with <code>V8</code> requires <code>libv8</code>:</p>
 <div class="shell">
 <pre>
-$ sudo apt-get install libv8-dev</pre>
+$ sudo apt-get install libnode-dev</pre>
+</div>
+<p>Running with Node-API requires <code>node-addon-api</code>:</p>
+<div class="shell">
+  <pre>
+$ sudo npm install -g node-addon-api</pre>
 </div>
 <p>Examples can be run using</p>
 <div class="shell">
 <pre>
 $ make check-javascript-examples ENGINE=jsc</pre>
 </div>
-<p><code>ENGINE</code> can be <code>node</code>, <code>jsc</code>, or <code>v8</code>.</p>
+<p><code>ENGINE</code> can be <code>node</code>, <code>jsc</code>, <code>v8</code>, or <code>napi</code>.</p>
 <p>The test-suite can be run using</p>
 <div class="shell">
 <pre>
@@ -150,15 +161,15 @@ $ make check-javascript-examples V8_VERSION=0x032530 ENGINE=v8</pre>
 <p>At the moment, the Javascript generators pass all tests syntactically, i.e., the generated source code compiles. However, there are still remaining runtime issues.</p>
 
 <ul>
-    <li><p>Default optional arguments do not work for all targeted interpreters</p></li>
+    <li><p>Default optional arguments do not work for all targeted interpreters except Node-API</p></li>
     <li><p>Multiple output arguments do not work for JSC</p></li>
     <li><p>C89 incompatibility: the JSC generator might still generate C89 violating code</p></li>
-    <li><p><code>long long</code> is not supported</p></li>
+    <li><p><code>long long</code> is not supported except with Node-API</p></li>
     <li><p>Javascript callbacks are not supported</p></li>
     <li><p><code>instanceOf</code> does not work under JSC</p></li>
 </ul>
 
-<p>The primary development environment has been Linux (Ubuntu 12.04). Windows and Mac OS X have been tested sporadically. Therefore, the generators might have more issues on those platforms. Please report back any problem you observe to help us improving this module quickly.</p>
+<p>The primary development environment has been Linux (Ubuntu 22.04). Windows and Mac OS X have been tested sporadically. Therefore, the generators might have more issues on those platforms. Please report back any problem you observe to help us improving this module quickly.</p>
 
 <H2><a name="Javascript_integration">28.3 Integration</a></H2>
 
@@ -211,7 +222,27 @@ require("./build/Release/example")</pre>
 </div>
 <p>A more detailed explanation is given in the <a href="#Javascript_examples">Examples</a> section.</p>
 
-<H4><a name="Javascript_troubleshooting">28.3.1.1 Troubleshooting</a></H4>
+<H4><a name="Javascript_using_yeoman">28.3.1.1 Using <code>yeoman</code> to generate a Node-API skeleton</a></H4>
+
+
+<p>If targeting Node-API, the easiest way to bootstrap a project is by using the <code>yeoman</code> generator: </p>
+<div class="shell">
+<pre>
+$ sudo npm install -g yo
+$ sudo npm install -g generator-napi-module
+$ mkdir example
+$ cd example
+$ yo napi-module                     # the choice of template is irrelevant, SWIG will replace the C++ code
+$ npm install node-addon-api@latest  # the yeoman version is outdated
+$ swig -javascript -napi -c++ -o src/example.cc example.i
+$ node-gyp configure
+$ node-gyp build
+</pre>
+</div>
+<p>There is also the <a href="https://github.com/mmomtchev/node-magickwand"><code>node-magickwand</code></a> project that can be used as a tutorial for building and publishing a complex C++ library to
+  npm as a ready-to-use real-world binary module.</p>
+
+<H4><a name="Javascript_troubleshooting">28.3.1.2 Troubleshooting</a></H4>
 
 
 <ul>
@@ -279,7 +310,7 @@ extern bool example_initialize(JSGlobalContextRef context, JSObjectRef* exports)
 <H4><a name="Javascript_gtk">28.3.2.2 GTK</a></H4>
 
 
-<p>There is general information about programming GTK at <a href="https://developer.gnome.org/gtk2/">GTK documentation</a> and in the <a href="https://developer.gnome.org/gtk-tutorial/">GTK tutorial</a>, and for Webkit there is a <a href="http://webkitgtk.org/reference/webkitgtk/stable/index.html">Webkit GTK+ API Reference</a>.</p>
+<p>There is general information about programming GTK at <a href="https://developer.gnome.org/gtk2/">GTK documentation</a> and in the <a href="https://developer.gnome.org/gtk-tutorial/">GTK tutorial</a>, and for Webkit there is a <a href="https://webkitgtk.org/reference/webkitgtk/stable/index.html">Webkit GTK+ API Reference</a>.</p>
 <p>An integration of a native extension 'example' would look like this:</p>
 <div class="code">
 <pre>
@@ -310,7 +341,7 @@ int main(int argc, char* argv[])
   ...
 
   // Load a web page into the browser instance
-  webkit_web_view_load_uri(webView, "http://www.webkitgtk.org/");
+  webkit_web_view_load_uri(webView, "https://www.webkitgtk.org/");
 
   ...
 
@@ -465,7 +496,7 @@ example.Foo = 3.1415926;</pre>
 </div>
 <p>First the module <code>example</code> is loaded from the previously built extension. Global methods and variables are available in the scope of the module.</p>
 
-<p><b>Note</b>: ECMAScript 5, the currently implemented Javascript standard, does not have modules. <code>node.js</code> and other implementations provide this mechanism defined by the <a href="http://wiki.commonjs.org/wiki/CommonJS">CommonJS</a> group. For browsers this is provided by <a href="http://browserify.org">Browserify</a>, for instance.</p>
+<p><b>Note</b>: ECMAScript 5, the currently implemented Javascript standard, does not have modules. <code>node.js</code> and other implementations provide this mechanism defined by the <a href="https://wiki.commonjs.org/wiki/CommonJS">CommonJS</a> group. For browsers this is provided by <a href="https://browserify.org">Browserify</a>, for instance.</p>
 
 <H3><a name="Javascript_class_example">28.4.2 Class</a></H3>
 
@@ -605,7 +636,7 @@ at emitKey (readline.js:1095:12)</pre>
 <H3><a name="Javascript_source_code">28.5.1 Source Code</a></H3>
 
 
-<p>The Javascript module is implemented in <code>Source/Modules/javascript.cxx</code>. It dispatches the code generation to a <code>JSEmitter</code> instance, <code>V8Emitter</code> or <code>JSCEmitter</code>. Additionally there are some helpers: <code>Template</code>, for templated code generation, and <code>JSEmitterState</code>, which is used to manage state information during AST traversal. This rough map shall make it easier to find a way through this huge source file:</p>
+<p>The Javascript module is implemented in <code>Source/Modules/javascript.cxx</code>. It dispatches the code generation to a <code>JSEmitter</code> instance, <code>V8Emitter</code>, <code>JSCEmitter</code> or <code>NAPIEmitter</code>. Additionally there are some helpers: <code>Template</code>, for templated code generation, and <code>JSEmitterState</code>, which is used to manage state information during AST traversal. This rough map shall make it easier to find a way through this huge source file:</p>
 <div class="code">
 <pre>
 // module wide defines
@@ -629,6 +660,7 @@ class JSEmitter { ... };
 
 JSEmitter *swig_javascript_create_JSCEmitter();
 JSEmitter *swig_javascript_create_V8Emitter();
+JSEmitter *swig_javascript_create_NAPIEmitter();
 
 // ###############################
 // # Javascript module
@@ -706,7 +738,7 @@ Template::Template(const String *code_) { ... }
 <H3><a name="Javascript_code_templates">28.5.2 Code Templates</a></H3>
 
 
-<p>All generated code is created on the basis of code templates. The templates for <em>JavascriptCore</em> can be found in <code>Lib/javascript/jsc/javascriptcode.swg</code>, for <em>v8</em> in <code>Lib/javascript/v8/javascriptcode.swg</code>.</p>
+<p>All generated code is created on the basis of code templates. The templates for <em>JavascriptCore</em> can be found in <code>Lib/javascript/jsc/javascriptcode.swg</code>, for <em>v8</em> in <code>Lib/javascript/v8/javascriptcode.swg</code> and for <em>Node-API</em> in <code>Lib/javascript/napi/javascriptcode.swg</code>.</p>
 <p>To track the originating code template for generated code you can run</p>
 <div class="shell">
 <pre>
@@ -985,5 +1017,30 @@ if(js_exception)
 }</pre>
 </div>
 
+<H3><a name="Javascript_napi_exceptions">28.5.6 Handling Exceptions in Node-API</a></H3>
+
+
+<p>Node-API is the only generator that provides fully automatic conversion of C++ exceptions to JavaScript exceptions when building with C++ exceptions enabled in `binding.gyp`:</p>
+<div class="code">
+<pre>
+'conditions': [
+  ['OS=="mac"',
+    {
+      'xcode_settings': {
+        'GCC_ENABLE_CPP_RTTI': 'YES',
+        'GCC_ENABLE_CPP_EXCEPTIONS' : 'YES'
+      }
+    }
+  ],
+  ['OS=="linux" or OS=="freebsd" or OS=="openbsd" or OS=="solaris"',
+    {
+      'cflags!': [ '-fno-exceptions' ],
+      'cflags_cc!': [ '-fno-exceptions', '-fno-rtti' ]
+    }
+  ]
+]
+</pre>
+</div>
+<p>In this case, nothing else is needed for the C++ exceptions to be passed to JavaScript.</p>
 </body>
 </html>

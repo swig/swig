@@ -11,7 +11,7 @@
 
 typedef int (*V8ExtensionInitializer) (v8::Handle<v8::Object> module);
 
-// Note: these typedefs and defines are used to deal with  v8 API changes since version 3.19.00
+// Note: these typedefs and defines are used to deal with v8 API changes since version 3.19.00
 
 typedef void SwigV8ReturnValue;
 typedef v8::FunctionCallbackInfo<v8::Value> SwigV8Arguments;

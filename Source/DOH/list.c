@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * list.c
  *
@@ -73,6 +73,7 @@ static void DelList(DOH *lo) {
  * List_clear()
  *
  * Remove all of the list entries, but keep the list object intact.
+ * File and line numbering info left unmodified.
  * ----------------------------------------------------------------------------- */
 
 static void List_clear(DOH *lo) {

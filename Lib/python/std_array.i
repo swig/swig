@@ -19,15 +19,43 @@
       }
     };
 
-    template <class SwigPySeq, class T, size_t N>
-    inline void
-    assign(const SwigPySeq& swigpyseq, std::array<T, N>* seq) {
-      if (swigpyseq.size() < seq->size())
-        throw std::invalid_argument("std::array cannot be expanded in size");
-      else if (swigpyseq.size() > seq->size())
-        throw std::invalid_argument("std::array cannot be reduced in size");
-      std::copy(swigpyseq.begin(), swigpyseq.end(), seq->begin());
-    }
+    template <class T, size_t N>
+    struct IteratorProtocol<std::array<T, N>, T> {
+
+      static void assign(PyObject *obj, std::array<T, N> *seq) {
+        SwigVar_PyObject iter = PyObject_GetIter(obj);
+        if (iter) {
+          SwigVar_PyObject item = PyIter_Next(iter);
+          size_t count = 0;
+          typename std::array<T, N>::iterator array_iter = seq->begin();
+          while (item && (count < N)) {
+            ++count;
+            *array_iter++ = swig::as<T>(item);
+            item = PyIter_Next(iter);
+          }
+          if (count != N || item)
+            throw std::invalid_argument("std::array size does not match source container size");
+        }
+      }
+
+      static bool check(PyObject *obj) {
+        bool ret = false;
+        SwigVar_PyObject iter = PyObject_GetIter(obj);
+        if (iter) {
+          SwigVar_PyObject item = PyIter_Next(iter);
+          size_t count = 0;
+          ret = true;
+          while (item && (count < N)) {
+            ++count;
+            ret = swig::check<T>(item);
+            item = ret ? PyIter_Next(iter) : 0;
+          }
+          if (count != N || item)
+            ret = false;
+        }
+        return ret;
+      }
+    };
 
     template <class T, size_t N>
     inline void

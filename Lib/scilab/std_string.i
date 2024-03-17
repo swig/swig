@@ -37,3 +37,11 @@ SWIG_From_dec(std::string)(std::string pstValue) {
 }
 
 %include <typemaps/std_string.swg>
+
+%typemap(throws, noblock=1) std::string {
+  SWIG_Scilab_Raise_Ex($1.c_str(), "$type", $&descriptor);
+}
+
+%typemap(throws, noblock=1) const std::string & {
+  SWIG_Scilab_Raise_Ex($1.c_str(), "$type", $descriptor);
+}

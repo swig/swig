@@ -1,0 +1,4 @@
+c_redefine_typedef.i:10: Warning 302: Redefinition of identifier 'MyStruct' ignored,
+c_redefine_typedef.i:7: Warning 302: previous definition of 'MyStruct'.
+c_redefine_typedef.i:15: Warning 322: Redundant redeclaration of identifier 'Int' ignored,
+c_redefine_typedef.i:14: Warning 322: previous declaration of 'Int'.

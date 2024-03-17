@@ -1,14 +1,14 @@
-cpp_template_duplicate_names.i:14: Warning 302: Identifier 'Duplicate1' redefined (ignored),
-cpp_template_duplicate_names.i:13: Warning 302: previous definition of 'Duplicate1'.
-cpp_template_duplicate_names.i:14: Warning 302: Identifier 'Duplicate1' redefined (ignored),
-cpp_template_duplicate_names.i:13: Warning 302: previous definition of 'Duplicate1'.
-cpp_template_duplicate_names.i:25: Warning 302: Identifier 'Duplicate2_0' redefined (ignored) (Renamed from 'Duplicate2< 0 >'),
-cpp_template_duplicate_names.i:24: Warning 302: previous definition of 'Duplicate2_0' (Renamed from 'Duplicate2< 0 >').
-cpp_template_duplicate_names.i:35: Warning 302: Identifier 'Duplicate3' redefined (ignored) (Renamed from 'Duplicate3< 0 >'),
-cpp_template_duplicate_names.i:31: Warning 302: previous definition of 'Duplicate3'.
-cpp_template_duplicate_names.i:47: Warning 302: Identifier 'Duplicate4' redefined (ignored),
-cpp_template_duplicate_names.i:46: Warning 302: previous definition of 'Duplicate4'.
-cpp_template_duplicate_names.i:47: Warning 302: Identifier 'Duplicate4' redefined (ignored),
-cpp_template_duplicate_names.i:46: Warning 302: previous definition of 'Duplicate4'.
-cpp_template_duplicate_names.i:50: Warning 302: Identifier 'Duplicate4' redefined (ignored) (Renamed from 'Duplicate4< 0 >'),
-cpp_template_duplicate_names.i:46: Warning 302: previous definition of 'Duplicate4'.
+cpp_template_duplicate_names.i:14: Warning 302: Redefinition of identifier 'Duplicate1' as Space::Duplicate1 ignored,
+cpp_template_duplicate_names.i:13: Warning 302: previous definition of 'Duplicate1' as Space::Duplicate1.
+cpp_template_duplicate_names.i:14: Warning 302: Redefinition of identifier 'Duplicate1' as Space::Duplicate1 ignored,
+cpp_template_duplicate_names.i:13: Warning 302: previous definition of 'Duplicate1' as Space::Duplicate1.
+cpp_template_duplicate_names.i:25: Warning 404: Duplicate template instantiation of 'Duplicate2< 0 >' with name 'Duplicate2_0' ignored,
+cpp_template_duplicate_names.i:24: Warning 404: previous instantiation of 'Duplicate2< 0 >' with name 'Duplicate2_0'.
+cpp_template_duplicate_names.i:35: Warning 404: Duplicate template instantiation of 'Duplicate3< 0 >' with name 'Duplicate3' ignored,
+cpp_template_duplicate_names.i:34: Warning 404: previous instantiation of 'Duplicate3< 0 >' with name 'Duplicate3'.
+cpp_template_duplicate_names.i:47: Warning 302: Redefinition of identifier 'Duplicate4' as Space::Duplicate4 ignored,
+cpp_template_duplicate_names.i:46: Warning 302: previous definition of 'Duplicate4' as Space::Duplicate4.
+cpp_template_duplicate_names.i:47: Warning 302: Redefinition of identifier 'Duplicate4' as Space::Duplicate4 ignored,
+cpp_template_duplicate_names.i:46: Warning 302: previous definition of 'Duplicate4' as Space::Duplicate4.
+cpp_template_duplicate_names.i:50: Warning 404: Duplicate template instantiation of 'Duplicate4< 0 >' with name 'Duplicate4' ignored,
+cpp_template_duplicate_names.i:49: Warning 404: previous instantiation of 'Duplicate4< 0 >' with name 'Duplicate4'.

@@ -149,6 +149,20 @@ typedef struct swig_elua_entry {
 # define lua_rawlen lua_objlen
 #endif
 
+/* lua_tolstring() was added in Lua 5.1.  It should be a little more
+   efficient than making two separate calls and it avoids problems with order
+   of evaluation so SWIG calls lua_tolstring() when it wants the length and
+   we provide a compatibility implementation for Lua 5.0.  */
+#if !defined(LUA_VERSION_NUM) || LUA_VERSION_NUM < 501
+static const char *(lua_tolstring)(lua_State *L, int idx, size_t *len) {
+  /* Call lua_tostring() first as it may convert the value from number to
+     string. */
+  const char *result = lua_tostring(L, idx);
+  if (len) *len = lua_strlen(L, idx);
+  return result;
+}
+#endif
+
 
 /* lua_pushglobaltable is the recommended "future-proof" way to get
    the global table for Lua 5.2 and later.  Here we define
@@ -819,6 +833,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get_item(lua_State *L, swig_type_info *type, i
   int bases_search_result;
   int substack_start = lua_gettop(L)-2;
   assert(first_arg == substack_start+1);
+  (void)first_arg;
   lua_checkstack(L,5);
   assert(lua_isuserdata(L,-2));  /* just in case */
   lua_getmetatable(L,-2);    /* get the meta table */
@@ -857,6 +872,7 @@ SWIGINTERN int  SWIG_Lua_class_do_get(lua_State *L, swig_type_info *type, int SW
   int bases_search_result;
   int substack_start = lua_gettop(L)-2;
   assert(first_arg == substack_start+1);
+  (void)first_arg;
   lua_checkstack(L,5);
   assert(lua_isuserdata(L,-2));  /* just in case */
   lua_getmetatable(L,-2);    /* get the meta table */
@@ -1789,7 +1805,7 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type
     }
     else
     {
-      cast=SWIG_TypeCheckStruct(usr->type,type); /* performs normal type checking */
+      cast=SWIG_TypeCheck(usr->type->name,type); /* performs normal type checking */
       if (cast)
       {
         int newmemory = 0;

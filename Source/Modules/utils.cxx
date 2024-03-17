@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * utils.cxx
  *
@@ -66,7 +66,11 @@ int is_non_virtual_protected_access(Node *n) {
   return result;
 }
 
-/* Clean overloaded list.  Removes templates, ignored, and errors */
+/* -----------------------------------------------------------------------------
+ * clean_overloaded()
+ *
+ * Clean overloaded list.  Removes templates, ignored, and errors.
+ * ----------------------------------------------------------------------------- */
 
 void clean_overloaded(Node *n) {
   Node *nn = Getattr(n, "sym:overloaded");
@@ -89,6 +93,7 @@ void clean_overloaded(Node *n) {
       Delattr(nn, "sym:previousSibling");
       Delattr(nn, "sym:nextSibling");
       Delattr(nn, "sym:overloaded");
+      Delattr(nn, "sym:overname");
       nn = ns;
       continue;
     } else {
@@ -102,6 +107,8 @@ void clean_overloaded(Node *n) {
     if (Getattr(n, "sym:overloaded"))
       Delattr(n, "sym:overloaded");
   }
+
+  Swig_symbol_fix_overname(Getattr(n, "sym:overloaded"));
 }
 
 /* -----------------------------------------------------------------------------
@@ -114,6 +121,7 @@ void clean_overloaded(Node *n) {
 void Swig_set_max_hash_expand(int count) {
   SetMaxHashExpand(count);
 }
+
 
 extern "C" {
 

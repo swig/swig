@@ -1,23 +1,18 @@
 /* This interface files tests whether SWIG handles overloaded
-   renamed functions. 
+   renamed functions and inheriting from a renamed class.
 */
 
 %module name_cxx
 
-#pragma SWIG nowarn=SWIGWARN_DEPRECATED_NAME // %name is deprecated. Use %rename instead.
+%rename bar(int) "bar_int";
+%rename bar(double) "bar_double";
+%rename A "AA";
 
-%name("bar_int")
 %inline %{
 void bar(int i) {}
-%}
-
-%name("bar_double")
-%inline %{
 void bar(double i) {}
-%}
 
-// %name inheritance test
-%{
+// %rename inheritance test
 class A {
 };
 
@@ -25,7 +20,3 @@ class B : public A {
 };
 
 %}
-
-%name(AA) class A { };
-class B : public A { };
-

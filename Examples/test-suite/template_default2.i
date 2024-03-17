@@ -17,6 +17,16 @@
       static const Polarization pmode = UnaryPolarization;
     };
  
+    struct traits2
+    {
+      static const Polarization pmode = UnaryPolarization;
+    };
+ 
+    struct traits3
+    {
+      static const Polarization pmode = UnaryPolarization;
+    };
+ 
     template <class C,
           Polarization P = C::pmode,
           class Base = Interface_tpl<P> >   // **** problem here *****
@@ -37,8 +47,8 @@ namespace oss
                    Interface_tpl<UnaryPolarization> >;
  
    // These don't
-  %template(Module_UP2) Module<traits, UnaryPolarization>;
-  %template(Module_UP3) Module<traits>;
+  %template(Module_UP2) Module<traits2, UnaryPolarization>;
+  %template(Module_UP3) Module<traits3>;
 }
  
                                                        

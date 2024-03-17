@@ -14,14 +14,9 @@
 
 #ifdef SWIGPHP
 %{
-#if PHP_MAJOR_VERSION >= 8
-# define SWIG_HANDLE_VALUE_ERROR_FOR_PHP8(code) code == SWIG_ValueError ? zend_ce_value_error :
-#else
-# define SWIG_HANDLE_VALUE_ERROR_FOR_PHP8(code)
-#endif
 #define SWIG_exception(code, msg) do { zend_throw_exception( \
     code == SWIG_TypeError ? zend_ce_type_error : \
-    SWIG_HANDLE_VALUE_ERROR_FOR_PHP8(code) \
+    code == SWIG_ValueError ? zend_ce_value_error : \
     code == SWIG_DivisionByZero ? zend_ce_division_by_zero_error : \
     code == SWIG_SyntaxError ? zend_ce_parse_error : \
     code == SWIG_OverflowError ? zend_ce_arithmetic_error : \
@@ -34,9 +29,8 @@
   SWIGINTERN void SWIG_exception_ (int code, const char *msg,
                                const char *subr) {
 #define ERROR(scmerr)					\
-	scm_error(scm_from_locale_string((char *) (scmerr)),	\
-		  (char *) subr, (char *) msg,		\
-		  SCM_EOL, SCM_BOOL_F)
+	scm_error(scm_from_locale_string(scmerr),	\
+		  subr, msg, SCM_EOL, SCM_BOOL_F)
 #define MAP(swigerr, scmerr)			\
 	case swigerr:				\
 	  ERROR(scmerr);			\

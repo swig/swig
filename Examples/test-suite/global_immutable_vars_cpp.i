@@ -1,7 +1,7 @@
 %module global_immutable_vars_cpp
 
 // Test immutable and mutable global variables,
-// see http://www.swig.org/Doc4.0/SWIGDocumentation.html#SWIG_readonly_variables
+// see https://www.swig.org/Doc4.0/SWIGDocumentation.html#SWIG_readonly_variables
 
 %inline %{
   int default_mutable_var = 40;

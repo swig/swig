@@ -1,0 +1,8 @@
+cpp_redefine_class.i:10: Warning 302: Redefinition of identifier 'MyStruct' as Space::MyStruct ignored,
+cpp_redefine_class.i:4: Warning 302: previous definition of 'MyStruct' as Space::MyStruct.
+cpp_redefine_class.i:22: Warning 302: Redefinition of identifier 'MyClass' as Space::MyClass ignored,
+cpp_redefine_class.i:16: Warning 302: previous definition of 'MyClass' as Space::MyClass.
+cpp_redefine_class.i:34: Warning 302: Redefinition of identifier 'MyTemplateClass' as Space::MyTemplateClass ignored,
+cpp_redefine_class.i:29: Warning 302: previous definition of 'MyTemplateClass' as Space::MyTemplateClass.
+cpp_redefine_class.i:34: Warning 302: Redefinition of identifier 'MyTemplateClass' as Space::MyTemplateClass ignored,
+cpp_redefine_class.i:29: Warning 302: previous definition of 'MyTemplateClass' as Space::MyTemplateClass.

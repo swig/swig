@@ -112,3 +112,40 @@ using callback_t = int(*)(int);
 callback_t get_callback() { return mult2; }
 int call(callback_t funk, int param) { return funk(param); }
 %}
+
+
+// Template template parameters - from #1021
+%inline %{
+#include <type_traits>
+
+class Node {};
+struct AnyVal { typedef AnyVal Super; };
+
+template<template<typename D, typename O> class C, typename T, typename Super, typename Root, typename O>
+  using DeriveToBase = typename std::conditional<std::is_same<T, AnyVal>::value, Root, C<Super, O> >::type;
+
+template<class T, class Root, class RParent>
+  using ImmediateBase = typename std::conditional<std::is_same<T, AnyVal>::value, Root, RParent >::type;
+
+template<class D, typename _Super=AnyVal> class Expression {
+  typedef _Super Super;
+};
+
+void TestInstantiationsPart4() {
+  Expression<AnyVal, AnyVal::Super> express;
+  (void)express;
+  DeriveToBase<Expression, AnyVal, AnyVal, AnyVal, AnyVal> derive_to_base = AnyVal();
+}
+%}
+
+#if 0
+// TODO define and instantiate std::conditional and std::is_same
+%template(ExpressionInstantiation) Expression<AnyVal, AnyVal::Super>;
+%template(AnyTypeInstantiation) DeriveToBase<Expression, AnyVal, AnyVal, AnyVal, AnyVal>;
+
+%inline %{
+AnyVal takeAnyVal(DeriveToBase<Expression, AnyVal, AnyVal, AnyVal, AnyVal> av) {
+  return av;
+}
+%}
+#endif

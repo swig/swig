@@ -164,14 +164,14 @@ or you can use the %apply directive :
 %typemap(in) long long *INPUT($*1_ltype temp), 
              long long &INPUT($*1_ltype temp)
 {
-  temp = ($*1_ltype) strtoll(Tcl_GetStringFromObj($input,NULL),0,0);
+  temp = ($*1_ltype) strtoll(Tcl_GetString($input),0,0);
   $1 = &temp;
 }
 
 %typemap(in) unsigned long long *INPUT($*1_ltype temp), 
              unsigned long long &INPUT($*1_ltype temp)
 {
-  temp = ($*1_ltype) strtoull(Tcl_GetStringFromObj($input,NULL),0,0);
+  temp = ($*1_ltype) strtoull(Tcl_GetString($input),0,0);
   $1 = &temp;
 }
   
@@ -275,7 +275,7 @@ output values.
 {
   char temp[256];
   Tcl_Obj *o;
-  sprintf(temp,"%lld",(long long)*($1));
+  SWIG_snprintf(temp,sizeof(temp),"%lld",(long long)*($1));
   o = Tcl_NewStringObj(temp,-1);
   Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp),o);
 }
@@ -284,7 +284,7 @@ output values.
 {
   char temp[256];
   Tcl_Obj *o;
-  sprintf(temp,"%llu",(unsigned long long)*($1));
+  SWIG_snprintf(temp,sizeof(temp),"%llu",(unsigned long long)*($1));
   o = Tcl_NewStringObj(temp,-1);
   Tcl_ListObjAppendElement(interp,Tcl_GetObjResult(interp),o);
 }

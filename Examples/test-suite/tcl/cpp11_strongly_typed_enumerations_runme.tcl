@@ -1,5 +1,5 @@
 
-if [ catch { load ./cpp11_strongly_typed_enumerations[info sharedlibextension] cpp11_strongly_typed_enumerations} err_msg ] {
+if [ catch { load ./cpp11_strongly_typed_enumerations[info sharedlibextension] Cpp11_strongly_typed_enumerations} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

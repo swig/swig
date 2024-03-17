@@ -122,23 +122,34 @@ s = test_reference_inout("hello")
 if (s != "hellohello")
   raise RuntimeError
 end
+if (test_reference_output() != "output")
+  raise RuntimeError
+end
 
 
 if (stdstring_empty() != "")
   raise RuntimeError
 end
 
-if (c_empty() != "") 
+if (c_empty() != "")
   raise RuntimeError
 end
 
 
-if (c_null() != nil) 
+if (c_null() != nil)
   raise RuntimeError
 end
 
 
-if (get_null(c_null()) != nil) 
+if (get_null(c_null()) != nil)
   raise RuntimeError
 end
 
+
+if (get_null(c_empty()) != "non-null")
+  raise RuntimeError
+end
+
+if (get_null(stdstring_empty()) != "non-null")
+  raise RuntimeError
+end

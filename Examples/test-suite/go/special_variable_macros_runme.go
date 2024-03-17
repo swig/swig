@@ -25,4 +25,10 @@ func main() {
 	if special_variable_macros.TestJohn(special_variable_macros.NewPairIntBool(10, false)) != 123 {
 		panic("test failed")
 	}
+	if special_variable_macros.MakeStringInt("stringint", 999) != "stringint" {
+		panic("test failed")
+	}
+	if special_variable_macros.ProvideStringInt(999) != "1000" {
+		panic("test failed")
+	}
 }

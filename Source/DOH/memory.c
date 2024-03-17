@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * memory.c
  *
@@ -258,13 +258,13 @@ static void allocation_failed(size_t n, size_t size) {
   /* Report and exit as directly as possible to try to avoid further issues due
    * to lack of memory. */
   if (n == 1) {
-#if defined __STDC_VERSION__ && __STDC_VERSION__-0 >= 19901L
+#if defined __STDC_VERSION__ && __STDC_VERSION__-0 >= 199901L
     fprintf(stderr, "Failed to allocate %zu bytes\n", size);
 #else
     fprintf(stderr, "Failed to allocate %lu bytes\n", (unsigned long)size);
 #endif
   } else {
-#if defined __STDC_VERSION__ && __STDC_VERSION__-0 >= 19901L
+#if defined __STDC_VERSION__ && __STDC_VERSION__-0 >= 199901L
     fprintf(stderr, "Failed to allocate %zu*%zu bytes\n", n, size);
 #else
     fprintf(stderr, "Failed to allocate %lu*%lu bytes\n", (unsigned long)n, (unsigned long)size);

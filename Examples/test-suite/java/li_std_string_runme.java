@@ -104,5 +104,18 @@ public class li_std_string_runme {
         throw new Exception("StaticMemberString2 test 2");
       if (!Structure.getConstStaticMemberString().equals("const static member string"))
         throw new Exception("ConstStaticMemberString test");
+
+      if (!li_std_string.stdstring_empty().equals(""))
+        throw new Exception("stdstring_empty test");
+      if (!li_std_string.c_empty().equals(""))
+        throw new Exception("c_empty test");
+      if (li_std_string.c_null() != null)
+        throw new Exception("c_null test");
+      if (li_std_string.get_null(li_std_string.c_null()) != null)
+        throw new Exception("get_null c_null test");
+      if (!li_std_string.get_null(li_std_string.c_empty()).equals("non-null"))
+        throw new Exception("get_null c_empty test");
+      if (!li_std_string.get_null(li_std_string.stdstring_empty()).equals("non-null"))
+        throw new Exception("get_null stdstring_empty test");
   }
 }

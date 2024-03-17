@@ -4,7 +4,7 @@
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
  * included with the SWIG source code as distributed by the SWIG developers
- * and at http://www.swig.org/legal.html.
+ * and at https://www.swig.org/legal.html.
  *
  * doxyentity.cxx
  *
@@ -42,7 +42,7 @@ void DoxygenEntity::printEntity(int level) const {
 
   if (isLeaf) {
     for (int i = 0; i < thisLevel; i++) {
-      cout << "\t";
+      cout << '\t';
     }
 
     cout << "Node Leaf Command: '" << typeOfEntity << "',  ";
@@ -55,7 +55,7 @@ void DoxygenEntity::printEntity(int level) const {
   } else {
 
     for (int i = 0; i < thisLevel; i++) {
-      cout << "\t";
+      cout << '\t';
     }
 
     cout << "Node Command: '" << typeOfEntity << "'" << std::endl;

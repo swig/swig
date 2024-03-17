@@ -2,34 +2,27 @@
 // embed.i
 // SWIG file embedding the Python interpreter in something else.
 // This file is deprecated and no longer actively maintained, but it still
-// seems to work with Python 2.7.  Status with Python 3 is unknown.
+// seems to work with Python 2.7.  It doesn't work with Python 3.
 //
 // This file makes it possible to extend Python and all of its
 // built-in functions without having to hack its setup script.
 //
-
-
-#ifdef AUTODOC
-%subsection "embed.i"
-%text %{
-This module provides support for building a new version of the
-Python executable.  This will be necessary on systems that do
-not support shared libraries and may be necessary with C++
-extensions.  This file contains everything you need to build
-a new version of Python from include files and libraries normally
-installed with the Python language.
-
-This module will automatically grab all of the Python modules
-present in your current Python executable (including any special
-purpose modules you have enabled such as Tkinter).   Thus, you
-may need to provide additional link libraries when compiling.
-
-As far as I know, this module is C++ safe.
-%}
-#endif
+// This module provides support for building a new version of the
+// Python executable.  This will be necessary on systems that do
+// not support shared libraries and may be necessary with C++
+// extensions.  This file contains everything you need to build
+// a new version of Python from include files and libraries normally
+// installed with the Python language.
+//
+// This module will automatically grab all of the Python modules
+// present in your current Python executable (including any special
+// purpose modules you have enabled such as Tkinter).   Thus, you
+// may need to provide additional link libraries when compiling.
+//
+// As far as I know, this module is C++ safe.
 
 %wrapper %{
-#ifndef SWIG_NO_PY_SSIZE_T_CLEAN
+#if !defined(PY_SSIZE_T_CLEAN) && !defined(SWIG_NO_PY_SSIZE_T_CLEAN)
 #define PY_SSIZE_T_CLEAN
 #endif
 

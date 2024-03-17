@@ -47,4 +47,11 @@ func main() {
 	if friends.Get_val1(dd).(float64) != 1.3 {
 		panic(0)
 	}
+
+        if friends.Chum_blah() != 1234 {
+		panic(0)
+        }
+        if friends.Mate_blah() != 4321 {
+		panic(0)
+        }
 }

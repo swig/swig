@@ -604,7 +604,7 @@ source has a list of macros that are known to conflict with either standard head
 other headers.  But if you get macro type conflicts from other macros not included
 in Lib/perl5/noembed.h while compiling the wrapper, you will
 have to find the macro that conflicts and add an #undef into the .i file.  Please report
-any conflicting macros you find to <a href="http://www.swig.org/mail.html">swig-user mailing list</a>.
+any conflicting macros you find to <a href="https://www.swig.org/mail.html">swig-user mailing list</a>.
 </p>
 
 <H3><a name="Perl5_nn10">31.2.7 Compiling for 64-bit platforms</a></H3>
@@ -1729,28 +1729,6 @@ Since SWIG's exception handling is user-definable, you are not limited to C++ ex
 See the chapter on "<a href="Customization.html#Customization">Customization features</a>" for more examples.
 </p>
 
-<p>
-<b>Compatibility note:</b> In SWIG1.1, exceptions were defined using the older <tt>%except</tt> directive:
-</p>
-
-<div class="code">
-<pre>
-%except(perl5) {
-  try {
-    $function
-  }
-  catch (RangeError) {
-    croak("Array index out-of-bounds");
-  }
-}
-</pre>
-</div>
-
-<p>
-This is still supported, but it is deprecated.  The newer <tt>%exception</tt> directive provides the same
-functionality, but it has additional capabilities that make it more powerful.
-</p>
-
 <H2><a name="Perl5_nn27">31.7 Remapping datatypes with typemaps</a></H2>
 
 
@@ -1959,14 +1937,6 @@ Clean up return value from a function.
 
 <div class="indent">
 Setting of C++ member data (all languages).
-</div>
-
-<p>
-<tt>%typemap(memberout)</tt>
-</p>
-
-<div class="indent">
-Return of C++ member data (all languages).
 </div>
 
 <p>

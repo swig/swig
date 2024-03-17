@@ -152,7 +152,7 @@
 <H2><a name="Ruby_nn2">35.1 Preliminaries</a></H2>
 
 
-<p> SWIG 4.0 is known to work with Ruby versions 1.9 and later.
+<p> SWIG 4.2 is known to work with Ruby versions 2.0 and later.
 Given the choice, you should use the latest stable version of Ruby. You
 should also determine if your system supports shared libraries and
 dynamic loading. SWIG will work with or without dynamic loading, but
@@ -3411,7 +3411,7 @@ versions do not, but return a status value to indicate success (<tt>SWIG_OK</tt>
     </tr>
     <tr>
       <td>char * StringValuePtr(String)</td>
-      <td>SWIG_AsCharPtrAndSize(VALUE, char*, size_t, int* alloc)</td>
+      <td>SWIG_AsCharPtrAndSize(VALUE, char**, size_t*, int* alloc)</td>
     </tr>
     <tr>
       <td>char * rb_str2cstr(String, int*length)</td>

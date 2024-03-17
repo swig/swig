@@ -4,7 +4,7 @@
 # include <math.h>
 #endif
 
-#ifndef SWIG_NO_PY_SSIZE_T_CLEAN
+#if !defined(PY_SSIZE_T_CLEAN) && !defined(SWIG_NO_PY_SSIZE_T_CLEAN)
 #define PY_SSIZE_T_CLEAN
 #endif
 
@@ -34,6 +34,8 @@
 #if __GNUC__ >= 7
 #pragma GCC diagnostic pop
 #endif
+
+#include <stdio.h>
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */

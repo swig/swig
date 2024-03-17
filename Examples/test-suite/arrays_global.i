@@ -57,15 +57,15 @@ char* test_a(char hello[8],
   return hi;
 }
 
-char* test_b(name a, const namea b)  {
+char* test_b(name a, const namea b) {
   return a;
 }
 
-int test_a(int a)  {
+int test_a(int a) {
   return a;
 }
 
-int test_b(int a)  {
+int test_b(int a) {
   return a;
 }
  

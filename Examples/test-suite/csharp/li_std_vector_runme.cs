@@ -520,6 +520,8 @@ public class li_std_vector_runme {
     vect.Clear();
     if (vect.Count != 0)
       throw new Exception("Clear failed");
+    if (!vect.IsEmpty)
+      throw new Exception("Empty failed");
 
     // Finally test the methods being wrapped
     {

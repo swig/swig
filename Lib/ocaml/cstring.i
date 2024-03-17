@@ -25,13 +25,13 @@
  *
  *     %cstring_bounded_output(char *outx, 512);
  *     void foo(char *outx) {
- *         sprintf(outx,"blah blah\n");
+ *         strcpy(outx,"blah blah\n");
  *     }
  *
  */
 
 %define %cstring_bounded_output(TYPEMAP,MAX)
-%typemap(ignore) TYPEMAP(char temp[MAX+1]) {
+%typemap(in,numinputs=0) TYPEMAP(char temp[MAX+1]) {
     $1 = ($1_ltype) temp;
 }
 %typemap(argout) TYPEMAP {
@@ -54,7 +54,7 @@
  */
 
 %define %cstring_chunk_output(TYPEMAP,SIZE)
-%typemap(ignore) TYPEMAP(char temp[SIZE]) {
+%typemap(in,numinputs=0) TYPEMAP(char temp[SIZE]) {
     $1 = ($1_ltype) temp;
 }
 %typemap(argout) TYPEMAP {
@@ -144,7 +144,7 @@
  *
  *     %cstring_output_maxsize(char *outx, int max) {
  *     void foo(char *outx, int max) {
- *         sprintf(outx,"blah blah\n");
+ *         strcpy(outx,"blah blah\n");
  *     }
  */
 
@@ -175,7 +175,7 @@
  *
  *     %cstring_output_maxsize(char *outx, int *max) {
  *     void foo(char *outx, int *max) {
- *         sprintf(outx,"blah blah\n");
+ *         strcpy(outx,"blah blah\n");
  *         *max = strlen(outx);  
  *     }
  */
@@ -213,12 +213,12 @@
  *     %cstring_output_allocated(char **outx, free($1));
  *     void foo(char **outx) {
  *         *outx = (char *) malloc(512);
- *         sprintf(outx,"blah blah\n");
+ *         strcpy(outx,"blah blah\n");
  *     }
  */
 
 %define %cstring_output_allocate(TYPEMAP, RELEASE)
-%typemap(ignore) TYPEMAP($*1_ltype temp = 0) {
+%typemap(in,numinputs=0) TYPEMAP($*1_ltype temp = 0) {
    $1 = &temp;
 }
 
@@ -241,13 +241,13 @@
  *     %cstring_output_allocated(char **outx, int *sz, free($1));
  *     void foo(char **outx, int *sz) {
  *         *outx = (char *) malloc(512);
- *         sprintf(outx,"blah blah\n");
+ *         strcpy(outx,"blah blah\n");
  *         *sz = strlen(outx);
  *     }
  */
 
 %define %cstring_output_allocate_size(TYPEMAP, SIZE, RELEASE)
-%typemap(ignore) (TYPEMAP, SIZE) ($*1_ltype temp = 0, $*2_ltype tempn) {
+%typemap(in,numinputs=0) (TYPEMAP, SIZE) ($*1_ltype temp = 0, $*2_ltype tempn) {
    $1 = &temp;
    $2 = &tempn;
 }

@@ -1,6 +1,6 @@
 # file: runme.tcl
 
-catch { load ./example[info sharedlibextension] example}
+catch { load ./example[info sharedlibextension] Example}
 
 puts "ICONST  = $ICONST (should be 42)"
 puts "FCONST  = $FCONST (should be 2.1828)"

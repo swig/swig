@@ -86,7 +86,7 @@ struct Defined {
 void defined_not(TYPE);
 #endif
 
-#if !( defined(AAA) \
+#if !( defined(AAA) &&\
  defined(BBB) \\
 && defined(CCC) )
 void bumpf_not(TYPE);
@@ -123,3 +123,93 @@ void another_macro_checking(void) {
 #if 0
 # wobble wobble
 #endif
+
+/* Check that #error is ignored inside an inactive conditional. */
+#ifdef THIS_IS_NOT_DEFINED
+# error should not trigger 1
+#endif
+#ifdef AAA
+# define B
+#else
+# error should not trigger 2
+#endif
+#if 0
+# error should not trigger 3
+#endif
+
+/* Check that #warning is ignored inside an inactive conditional. */
+#ifdef THIS_IS_NOT_DEFINED
+# warning should not trigger 1
+#endif
+#ifdef AAA
+# define B
+#else
+# warning should not trigger 2
+#endif
+#if 0
+# warning should not trigger 3
+#endif
+
+
+/* Regression test for https://sourceforge.net/p/swig/bugs/1163/
+ * ONE(1)(2) should expand to `2` but SWIG was expanding it to `TWO(2)`
+ * which results in the generated C wrapper failing to compile.
+ */
+#define ONE(X) TWO
+#define TWO(X) X
+%constant int a = ONE(1)(2);
+#define XXX TWO
+%constant int b = XXX(42);
+#undef ONE
+#undef TWO
+
+/*
+ * The behaviour of Self-Referential Macros is defined
+ * https://gcc.gnu.org/onlinedocs/gcc-4.8.5/cpp/Self-Referential-Macros.html
+ */
+%inline %{
+const int y = 0;
+%}
+
+#define x (4 + y)
+#define y (2 * x)
+
+%constant int z = y;
+
+#undef y
+#undef x
+
+/* Regression test for #ifdef and #ifndef not working inside a %define.
+ * https://github.com/swig/swig/issues/2183
+ */
+#undef THISMACROISNOTDEFINED /* Make sure! */
+#define THISMACROISDEFINED
+
+%define %test()
+
+#ifdef THISMACROISNOTDEFINED
+# error #ifdef inside percent-define failed
+#endif
+#ifndef THISMACROISDEFINED
+# error #ifndef inside percent-define failed
+#endif
+/* Check pre-defined macro too. */
+#ifndef SWIG
+# error #ifndef inside percent-define failed
+#endif
+
+/* These cases already worked, but should still have test coverage. */
+#if defined THISMACROISNOTDEFINED
+# error #if defined inside percent-define failed
+#endif
+#if !defined THISMACROISDEFINED
+# error #if !defined inside percent-define failed
+#endif
+/* Check pre-defined macro too. */
+#if !defined SWIG
+# error #if !defined inside percent-define failed
+#endif
+
+%enddef
+
+%test()

@@ -106,6 +106,7 @@
 <li><a href="#Java_proxycode">Class extension with %proxycode</a>
 <li><a href="#Java_exception_handling">Exception handling with %exception and %javaexception</a>
 <li><a href="#Java_method_access">Method access with %javamethodmodifiers</a>
+<li><a href="#Java_begin">Java begin</a>
 </ul>
 <li><a href="#Java_tips_techniques">Tips and techniques</a>
 <ul>
@@ -2226,7 +2227,7 @@ The module directive attribute <tt>jniclassname</tt> is used to achieve this:
 
 <div class="code">
 <pre>
-%module (jniclassname="name") modulename
+%module(jniclassname="name") modulename
 </pre>
 </div>
 
@@ -5030,6 +5031,25 @@ protected static void protect_me() {
 </pre>
 </div>
 
+<H3><a name="Java_begin">27.7.6 Java begin</a></H3>
+
+
+<p>
+It is possible to add a common comment at the start of every generated Java file.
+The <tt>%module</tt> directive supports the <tt>javabegin</tt> option for this.
+The provided text is generated at the very beginning of each generated .java file.
+As it is generated before the package statement, is only really useful for adding in
+a common comment into all generated .java files. For example, copyright text for each file:
+</p>
+
+
+<div class="code">
+<pre>
+%module(javabegin="/* Common comment. Copyright (C) 2000 Mr Nobody. */\n") nobodymodule
+</pre>
+</div>
+
+
 <H2><a name="Java_tips_techniques">27.8 Tips and techniques</a></H2>
 
 
@@ -5427,10 +5447,10 @@ destroy arrays and operate on elements.  In this case, the functions are as foll
 
 <div class="code">
 <pre>
-int *new_intArray(int nelements);
+int *new_intArray(size_t nelements);
 void delete_intArray(int *x);
-int intArray_getitem(int *x, int index);
-void intArray_setitem(int *x, int index, int value);
+int intArray_getitem(int *x, size_t index);
+void intArray_setitem(int *x, size_t index, int value);
 </pre>
 </div>
 
@@ -5772,9 +5792,71 @@ The following table lists the default type mapping from Java to C/C++.</p>
 </tr>
 
 <tr>
+<td>size_t<br> const size_t &amp;</td>
+<td>long</td>
+<td>jlong</td>
+</tr>
+
+<tr>
 <td>char *<br>char []</td>
 <td>String</td>
 <td>jstring</td>
+</tr>
+
+</table>
+
+<p>
+Note that default mappings for the C long type is more suitable for 32-bit systems.
+If long is 64-bit, the full range can be obtained by defining <tt>SWIGWORDSIZE64</tt> when invoking SWIG.
+The long type will instead be mapped as follows:
+</p>
+
+<table BORDER summary="SWIGWORDSIZE64 primitive type mappings">
+<tr>
+<td><b>C/C++ type</b></td>
+<td><b>Java type</b></td>
+<td><b>JNI type</b></td>
+</tr>
+
+<tr>
+<td>long<br> const long &amp;</td>
+<td>long</td>
+<td>jlong</td>
+</tr>
+
+<tr>
+<td>unsigned long<br>const unsigned long &amp;</td>
+<td>java.math.BigInteger</td>
+<td>jobject</td>
+</tr>
+
+</table>
+
+<p>
+Note that when size_t is 64-bit in C, the full unsigned range is not available.
+This can be fixed by applying the 64-bit unsigned long long typemaps as follows:
+</p>
+
+<div class="code"> <pre>
+%apply unsigned long long { size_t };
+%apply const unsigned long long &amp; { const size_t &amp; };
+</pre> </div>
+
+<p>
+The net effect then changes from the default shown earlier to:
+</p>
+
+<table BORDER summary="64-bit size_t primitive type mappings">
+<tr>
+<td><b>C/C++ type</b></td>
+<td><b>Java type</b></td>
+<td><b>JNI type</b></td>
+</tr>
+
+<tr>
+<td>size_t<br> const size_t &amp;</td>
+<td>java.math.BigInteger</td>
+<td>jobject</td>
 </tr>
 
 </table>
@@ -8928,9 +9010,14 @@ public abstract class UserVisibleFoo extends Foo {
 
 
 <p>
-The SWIG documentation system is currently deprecated. 
-When it is resurrected JavaDoc comments will be fully supported. 
-If you can't wait for the full documentation system a couple of workarounds are available. 
+SWIG can translate <a href="https://doxygen.org/">Doxygen</a> comments in the
+C/C++ headers being wrapped to JavaDoc.  For details of this, see the
+<a href="Doxygen.html#Doxygen_to_javadoc">Doxygen to Javadoc</a> section.
+</p>
+
+<p>
+If you don't have Doxygen comments to translate then it's possible to add
+JavaDoc comments from your interface file.
 The <tt>%javamethodmodifiers</tt> feature can be used for adding proxy class method comments and module class method comments. 
 The "javaimports" typemap can be hijacked for adding in proxy class JavaDoc comments. 
 The <tt>jniclassimports</tt> or <tt>jniclassclassmodifiers</tt> pragmas can also be used for adding intermediary JNI class comments and likewise the <tt>moduleimports</tt> or <tt>moduleclassmodifiers</tt> pragmas for the module class. 

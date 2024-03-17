@@ -73,8 +73,7 @@
 
 
 <p>This chapter gives you a brief overview about the SWIG
-implementation of the C++11 standard. This part of SWIG is still a work in
-progress. 
+implementation of the C++11 standard.
 </p>
 <p>SWIG supports the new C++ syntax changes with some minor limitations
 in some areas such as decltype expressions and variadic templates. Wrappers for the
@@ -306,7 +305,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_MoveOnly_create() {
 </pre></div>
 
 <p>
-<tt>SwigValueWrapper</tt> is covered in <a href="SWIGPlus.html#SWIGPlus_nn19">Pass and return by value</a>.
+<tt>SwigValueWrapper</tt> is covered in <a href="SWIGPlus.html#SWIGPlus_nn19">Pass and return by value</a> and is automatically generated in this case as <tt>MoveOnly</tt> is not assignable.
 Note that the generated code could be optimised further using the <a href="Typemaps.html#Typemaps_optimal">"optimal" attribute</a>
 in the "out" typemap, so if the above typemap is customised as follows (note that this is C# specific):
 </p>
@@ -720,22 +719,55 @@ AltStruct var2{2, 4.3};   // calls the constructor
 <H3><a name="CPlusPlus11_type_inference">7.2.6 Type inference</a></H3>
 
 
-<p>SWIG supports <tt>decltype()</tt> with some limitations. Single
-variables are allowed, however, expressions are not supported yet. For
-example, the following code will work:</p>
+<p><tt>decltype()</tt> is supported with a few limitations.  SWIG can parse
+all uses, but can't deduce the type in every situation where a C++ compiler
+can.  The cases SWIG can deduce have expanded with time and hopefully will
+continue to.  For example, for the code</p>
 <div class="code"><pre>
 int i;
 decltype(i) j;
+decltype(i+j) k;
 </pre></div>
 
-<p>However, using an expression inside the decltype results in syntax error:</p>
+<p>SWIG is able to deduce that the variable <tt>i</tt> and the expression
+<tt>i+j</tt> both have type <tt>int</tt>.
+</p>
+
+<p>
+Using an expression for the decltype which SWIG can't handle results in a warning:</p>
 <div class="code"><pre>
-int i; int j;
-decltype(i+j) k;  // syntax error
+int foo(int);
+decltype(foo(0)) k;  // Warning 344: Unable to deduce decltype for 'foo(0)'.
 </pre></div>
 
-<p>SWIG does not support <tt>auto</tt> as a type specifier for variables, only
-for specifying the return type of <a href="#CPlusPlus11_lambda_functions_and_expressions">lambdas</a>
+<p>
+This warning should be viewed as a prompt to add in a manual ignore of the variable/function as
+in most cases the generated code will not compile.
+For the example above, ignore the symbol that is declared using <tt>decltype</tt> and perhaps additionally
+suppress the warning as follows:
+</p>
+
+<div class="code"><pre>
+#pragma SWIG nowarn=SWIGWARN_CPP11_DECLTYPE
+%ignore k;
+</pre></div>
+
+<p>
+If an ignore is not acceptable, a workaround is to redefine the symbol with the actual type, for example:
+</p>
+
+<div class="code"><pre>
+int k; // define k with the actual type
+%ignore k; // ignore the real definition of k
+</pre></div>
+
+<p>You would typically put one of these workarounds in your interface file before
+using <tt>%include</tt> to get SWIG to parse the header which defines <tt>k</tt>.
+</p>
+
+<p>SWIG supports <tt>auto</tt> as a type specifier for variables (with the same limitations
+for actually deducing the type as for <tt>decltype()</tt>), and for specifying
+the return type of <a href="#CPlusPlus11_lambda_functions_and_expressions">lambdas</a>
 and <a href="#CPlusPlus11_alternate_function_syntax">functions</a>.</p>
 
 <H3><a name="CPlusPlus11_range_based_for_loop">7.2.7 Range-based for-loop</a></H3>
@@ -833,12 +865,9 @@ where peer constructors can be called. SWIG handles this without any issue.
 
 <p>
 The second improvement is constructor inheritance via a <tt>using</tt> declaration.
-This is parsed correctly, but the additional constructors are not currently added to the derived proxy class in the target language.
-An example is shown below:
-<!--
-The extra constructors provided by the <tt>using</tt> syntax will add the appropriate constructors into the target language proxy derived classes.
-In the example below a wrapper for the <tt>DerivedClass(int)</tt> is added to <tt>DerivedClass</tt>:
--->
+The extra constructors provided by the <tt>using</tt> declaration will add the appropriate constructors into the target language proxy derived classes.
+In the example below a wrapper for the <tt>DerivedClass(int)</tt> constructor is added to <tt>DerivedClass</tt>:
+
 </p>
 
 <div class="code"><pre>
@@ -852,6 +881,10 @@ class DerivedClass: public BaseClass {
   using BaseClass::BaseClass; // Adds DerivedClass(int) constructor
 };
 </pre></div>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.2.0 was the first version to generate wrappers for constructors inherited via <tt>using</tt> declarations.
+</p>
 
 <p>
 The final part is member initialization at the site of the declaration.
@@ -891,6 +924,19 @@ struct DerivedStruct : BaseStruct {
 };
 </pre></div>
 
+<p>
+Classes can also be marked as final, such as
+</p>
+
+<div class="code"><pre>
+struct FinalDerivedStruct final : BaseStruct {
+  virtual void ab() const override;
+};
+</pre></div>
+
+<p>
+<b>Compatibility note:</b> Final methods were supported much earlier than final classes. SWIG-4.1.0 was the first version to support classes marked as final.
+</p>
 
 <H3><a name="CPlusPlus11_null_pointer_constant">7.2.12 Null pointer constant</a></H3>
 
@@ -951,6 +997,22 @@ The equivalent in Java is:
 
 <div class="targetlang"><pre>
 System.out.println(Color.RainbowColors.Red.swigValue() + " " + Color.WarmColors.Red.swigValue() + " " + Color.PrimeColors.Red.swigValue());
+</pre></div>
+
+<p>
+The C++11 enum base type, such as <tt>unsigned int</tt>, in the example above, is used by some language modules and is missing support in others. For example, in C#, the enum base type in the example above is used and converted into a C# <tt>uint</tt> to specify the underlying C# enumeration type as follows:
+</p>
+
+<div class="targetlang"><pre>
+  public enum RainbowColors : uint {
+    Red,
+    Orange,
+    Yellow,
+    Green,
+    Blue,
+    Indigo,
+    Violet
+  }
 </pre></div>
 
 <H3><a name="CPlusPlus11_double_angle_brackets">7.2.14 Double angle brackets</a></H3>
@@ -1085,36 +1147,69 @@ union P {
 <H3><a name="CPlusPlus11_variadic_templates">7.2.18 Variadic templates</a></H3>
 
 
-<p>SWIG supports the variadic templates syntax (inside the &lt;&gt;
-block, variadic class inheritance and variadic constructor and
-initializers) with some limitations. The following code is correctly parsed:</p>
+<p>SWIG supports the variadic templates including the &lt;&gt;
+variadic class inheritance, variadic methods, variadic constructors and
+initializers. Example:</p>
 
 <div class="code"><pre>
 template &lt;typename... BaseClasses&gt; class ClassName : public BaseClasses... {
 public:
-  ClassName (BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
-}
+  ClassName(BaseClasses &amp;&amp;... baseClasses) : BaseClasses(baseClasses)... {}
+  void InstanceMethod(const BaseClasses&amp;... baseClasses) {}
+};
 </pre></div>
 
 <p>
-For now however, the <tt>%template</tt> directive only accepts one parameter substitution
-for the variable template parameters.
+The <tt>%template</tt> directive works as expected for variable template parameters.
 </p>
 
 <div class="code"><pre>
-%template(MyVariant1) ClassName&lt;&gt;         // zero argument not supported yet
-%template(MyVariant2) ClassName&lt;int&gt;      // ok
-%template(MyVariant3) ClassName&lt;int, int&gt; // too many arguments not supported yet
+struct A {
+  virtual void amethod();
+  virtual ~A();
+};
+struct B {
+  virtual void bmethod();
+  virtual ~B();
+};
+%template(ClassName0) ClassName&lt;&gt;
+%template(ClassName1) ClassName&lt;A&gt;
+%template(ClassName2) ClassName&lt;A, B&gt;
 </pre></div>
 
-<p>Support for the variadic <tt>sizeof()</tt> function is correctly parsed:</p>
+<p>
+Example usage from say Python:
+</p>
+
+<div class="targetlang"><pre>
+cn0 = ClassName0()
+cn0.InstanceMethod()
+
+a = A()
+cn1 = ClassName1(a)
+cn1.amethod()
+cn1.InstanceMethod(a)
+
+b = B()
+cn2 = ClassName2(a, b)
+cn2.InstanceMethod(a, b)
+cn2.amethod()
+cn2.bmethod()
+</pre></div>
+
+<p>Support for the variadic <tt>sizeof()</tt> function also works:</p>
 
 <div class="code"><pre>
-const int SIZE = sizeof...(ClassName&lt;int, int&gt;);
+const int SIZE = sizeof...(ClassName&lt;A, B&gt;);
 </pre></div>
 
 <p>
 In the above example <tt>SIZE</tt> is of course wrapped as a constant.
+</p>
+
+<p>
+<b>Compatibility note:</b> SWIG-4.2.0 was the first version to fully support variadic templates.
+SWIG-3.0.0 provided initial support and was limited to only one variadic parameter.
 </p>
 
 <H3><a name="CPlusPlus11_new_char_literals">7.2.19 New character literals</a></H3>
@@ -1541,7 +1636,7 @@ There is no special smart pointer handling available for <tt>std::weak_ptr</tt>.
 <H3><a name="CPlusPlus11_extensible_random_number_facility">7.3.6 Extensible random number facility</a></H3>
 
 
-<p>This feature extends and standardizes the standard library only and does not effect the C++ language nor SWIG.</p>
+<p>This feature extends and standardizes the standard library only and does not affect the C++ language nor SWIG.</p>
 
 <H3><a name="CPlusPlus11_wrapper_reference">7.3.7 Wrapper reference</a></H3>
 

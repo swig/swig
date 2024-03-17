@@ -11,7 +11,7 @@
 
 %inline %{
 #if defined(_MSC_VER)
-  #pragma warning( disable : 4250) // warning C4250: 'D' : inherits 'B::B::foo' via dominance
+  #pragma warning(disable : 4250) // warning C4250: 'D' : inherits 'B::B::foo' via dominance
 #endif
   struct A 
   {

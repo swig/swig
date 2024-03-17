@@ -66,7 +66,11 @@ namespace std {
     bool
     operator()(const octave_value& v, const octave_value& w) const
     { 
+%#if SWIG_OCTAVE_PREREQ(7,0,0)
+      octave_value res = octave::binary_op(octave_value::op_le,v,w);
+%#else
       octave_value res = do_binary_op(octave_value::op_le,v,w);
+%#endif
       return res.is_true();
     }
   };
@@ -102,7 +106,7 @@ namespace swig {
 
   template <class Sequence, class Difference>
   inline typename Sequence::iterator
-  getpos(Sequence* self, Difference i)  {
+  getpos(Sequence* self, Difference i) {
     typename Sequence::iterator pos = self->begin();
     std::advance(pos, check_index(i,self->size()));
     return pos;
@@ -110,7 +114,7 @@ namespace swig {
 
   template <class Sequence, class Difference>
   inline typename Sequence::const_iterator
-  cgetpos(const Sequence* self, Difference i)  {
+  cgetpos(const Sequence* self, Difference i) {
     typename Sequence::const_iterator pos = self->begin();
     std::advance(pos, check_index(i,self->size()));
     return pos;
@@ -136,25 +140,29 @@ namespace swig {
 
   template <class Sequence, class Difference, class InputSeq>
   inline void
-  setslice(Sequence* self, Difference i, Difference j, const InputSeq& v) {
+  setslice(Sequence* self, Difference i, Difference j, const InputSeq& is) {
     typename Sequence::size_type size = self->size();
     typename Sequence::size_type ii = swig::check_index(i, size, true);
     typename Sequence::size_type jj = swig::slice_index(j, size);
     if (jj < ii) jj = ii;
     size_t ssize = jj - ii;
-    if (ssize <= v.size()) {
+    if (ssize <= is.size()) {
+      // expanding/staying the same size
       typename Sequence::iterator sb = self->begin();
-      typename InputSeq::const_iterator vmid = v.begin();
+      typename InputSeq::const_iterator vmid = is.begin();
       std::advance(sb,ii);
       std::advance(vmid, jj - ii);
-      self->insert(std::copy(v.begin(), vmid, sb), vmid, v.end());
+      self->insert(std::copy(is.begin(), vmid, sb), vmid, is.end());
     } else {
+      // shrinking
       typename Sequence::iterator sb = self->begin();
       typename Sequence::iterator se = self->begin();
       std::advance(sb,ii);
       std::advance(se,jj);
       self->erase(sb,se);
-      self->insert(sb, v.begin(), v.end());
+      sb = self->begin();
+      std::advance(sb,ii);
+      self->insert(sb, is.begin(), is.end());
     }
   }
 
@@ -198,7 +206,7 @@ namespace swig
 	return swig::as<T>(item);
       } catch (const std::exception& e) {
 	char msg[1024];
-	sprintf(msg, "in sequence element %d ", _index);
+	SWIG_snprintf(msg, sizeof(msg), "in sequence element %d ", _index);
 	if (!Octave_Error_Occurred()) {
 	  %type_error(swig::type_name<T>());
 	}

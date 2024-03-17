@@ -5,7 +5,7 @@
 %{
 #include <complex.h>
 
-#if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199001L
+#if defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L && !defined __STDC_NO_COMPLEX__
 #define HAS_C99_COMPLEX_FOR_TESTING 1
 #else
 /* c99 complex not supported - super hack tests to just test plain floating point numbers */
@@ -25,6 +25,11 @@
 #define HAS_C99_COMPLEX_FOR_TESTING 0
 #endif
 %}
+
+%inline %{
+static float _Complex CPLX_CONSTANT_ = 0;
+%}
+%constant CPLX_CONSTANT = CPLX_CONSTANT_;
 
 %inline
 {

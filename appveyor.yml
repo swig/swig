@@ -114,18 +114,20 @@ install:
       $env:CXX="cccl"
       if ($env:VSVER -ge 17) {
         $env:VCVARSBAT="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars$env:MBITS.bat"
-        $env:BOOSTROOT="C:/Libraries/boost_1_77_0"
+        $env:BOOSTROOT="C:/Libraries/boost_1_83_0"
       } elseif ($env:VSVER -eq 16) {
         $env:VCVARSBAT="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars$env:MBITS.bat"
-        $env:BOOSTROOT="C:/Libraries/boost_1_73_0"
+        $env:BOOSTROOT="C:/Libraries/boost_1_83_0"
       } elseif ($env:VSVER -eq 15) {
         $env:VCVARSBAT="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars$env:MBITS.bat"
         $env:BOOSTROOT="C:/Libraries/boost_1_69_0"
+        nuget install Bison -Version 3.7.4 -OutputDirectory C:\Tools\bison
       } else {
         $env:VSCOMNTOOLS=(Get-Content ("env:VS" + "$env:VSVER" + "0COMNTOOLS"))
         $env:VCVARSBAT="$env:VSCOMNTOOLS..\..\VC\vcvarsall.bat"
         $env:VCVARSARG="$env:VCVARS_PLATFORM"
         $env:BOOSTROOT="C:/Libraries/boost_1_69_0"
+        nuget install Bison -Version 3.7.4 -OutputDirectory C:\Tools\bison
       }
     } elseif ($env:OSVARIANT -eq "cygwin") {
       $env:PATH="$env:CYGWINBIN;$env:PATH"
@@ -167,10 +169,11 @@ install:
 - uname -a
 
 build_script:
+- set PATH=C:\Tools\bison\Bison.3.7.4\bin;%PATH%
 - set CCCL_OPTIONS=--cccl-muffle /W3 /EHsc
 - set CHECK_OPTIONS=CSHARPOPTIONS=-platform:%Platform%
 - if "%BUILDSYSTEM%"=="cmake" cd pcre2-pcre2-10.39 && cmake -G "Visual Studio 14 2015%VSARCH%" -DCMAKE_INSTALL_PREFIX="%PCRE_ROOT:\=/%" . && cmake --build . --config Release --target install && cd ..
-- if "%BUILDSYSTEM%"=="cmake" cmake --version && cmake -G "Visual Studio 14 2015%VSARCH%" -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/WX /DPCRE2_STATIC" -DCMAKE_CXX_FLAGS="/WX /DPCRE2_STATIC" -DPCRE2_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE2_LIBRARY=%PCRE_ROOT%/lib/pcre2-8-static.lib -DBISON_EXECUTABLE=C:/cygwin/bin/bison.exe . && cmake --build . --config Release --target install && ctest --output-on-failure -V -C Release && appveyor exit
+- if "%BUILDSYSTEM%"=="cmake" cmake --version && cmake -G "Visual Studio 14 2015%VSARCH%" -DCMAKE_INSTALL_PREFIX="%CD:\=/%/install2" -DCMAKE_C_FLAGS="/WX /DPCRE2_STATIC" -DCMAKE_CXX_FLAGS="/WX /DPCRE2_STATIC" -DPCRE2_INCLUDE_DIR=%PCRE_ROOT%/include -DPCRE2_LIBRARY=%PCRE_ROOT%/lib/pcre2-8-static.lib -DBISON_EXECUTABLE=C:/Tools/bison/Bison.3.7.4/bin/bison.exe . && cmake --build . --config Release --target install && ctest --output-on-failure -V -C Release && appveyor exit
 - if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && cd pcre2-pcre2-10.39 && ./autogen.sh && ./configure CC=$CC CXX=$CXX CFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' --prefix=%PCRE_ROOT% --disable-shared && time make -s -j%MAKEJOBS% LN_S=cp && make install && cd .. && cp -v %PCRE_ROOT%/lib/libpcre2-8.lib %PCRE_ROOT%/lib/pcre2-8.lib"
   # Open dummy file descriptor to fix error on cygwin: ./configure: line 560: 0: Bad file descriptor
 - if "%OSVARIANT%"=="" bash -c "exec 0</dev/null && ./autogen.sh && time ./configure --disable-dependency-tracking --disable-ccache CC=$CC CXX=$CXX CFLAGS='-O2' CXXFLAGS='-O2' LDFLAGS='--cccl-link /LTCG' PCRE2_CFLAGS='-I%PCRE_ROOT%/include -DPCRE2_STATIC' PCRE2_LIBS='-L%PCRE_ROOT%/lib/ -lpcre2-8' --without-perl5 --without-go --with-boost=%BOOSTROOT% || cat config.log"

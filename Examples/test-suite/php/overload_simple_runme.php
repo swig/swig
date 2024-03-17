@@ -1,7 +1,7 @@
 <?php
 require "tests.php";
 
-check::functions(array('foo','blah','fbool','fint','fdouble','num','fid','ull','ll','malloc_void','free_void','int_object'));
+check::functions(array('foo','blah','fbool','fint','fdouble','num','fid','as_l','as_ll','as_ul','as_ull','malloc_void','free_void','int_object','sizeof_long'));
 check::classes(array('Foo','Bar','overload_simple','Spam','ClassA'));
 // No new vars
 check::globals(array());

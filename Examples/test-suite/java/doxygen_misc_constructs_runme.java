@@ -97,7 +97,7 @@ public class doxygen_misc_constructs_runme {
     		"\n");
 
     wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENested",
-    		" Enum description.\n" +
+    		" ENested description.\n" +
     		"\n");
 
     wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENested.ONE",
@@ -108,6 +108,81 @@ public class doxygen_misc_constructs_runme {
 
     wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENested.THREE",
     		" desc of three\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOdd",
+    		" ENestedOdd description.\n" +
+    		"\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOdd.ODD_ONE",
+    		" desc of odd_one\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOdd.ODD_TWO",
+    		" desc of odd_two\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOdd.ODD_THREE",
+    		" desc of odd_three\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial1",
+    		" ENestedOddPartial1 description.\n" +
+    		"\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial1.ODD_PARTIAL1_THREE",
+    		" desc of odd_partial1_three\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial1.ODD_PARTIAL1_TWO",
+    		" desc of odd_partial1_two\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial3",
+    		" ENestedOddPartial3 description.\n" +
+    		"\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial3.ODD_PARTIAL3_ONE",
+    		" desc of odd_partial3_one\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.ENestedOddPartial3.ODD_PARTIAL3_TWO",
+    		" desc of odd_partial3_two\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.TESTENUM",
+    		" Description for TESTENUM.\n" +
+    		"\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.TESTENUM.TEST_NONE",
+    		" something for none\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.TESTENUM.TEST_ONE",
+    		" something for one\n");
+
+    wantedComments.put("doxygen_misc_constructs.ClassWithNestedEnum.TESTENUM.TEST_TWO",
+    		" something for two  something more for two\n");
+
+    wantedComments.put("doxygen_misc_constructs.SIOBeam",
+    		" SIOBeam struct description\n" +
+    		"\n");
+
+    wantedComments.put("doxygen_misc_constructs.SIOBeam.testfunction(int, double, boolean)",
+                "  testfunction - testing extra trailing doc comment <br>\n" +
+                " @param testf_aaa testfunction aaa parm <br>\n" +
+                " @param testf_bbb testfunction bbb parm <br>\n" +
+                " @param testf_ccc testfunction ccc parm  testfunction more for two parm\n" +
+    		"\n");
+
+    wantedComments.put("doxygen_misc_constructs.SIOBeam(java.lang.String, int, int)",
+                "  Constructor for input from an existing SIO file<br>\n" +
+                " @param filename Name of input SIO file.<br>\n" +
+                " @param elevationOrder Interpolation order (0-3) in elevation<br>\n" +
+                " @param bearingOrder Interpolation order (0-3) in bearing\n" +
+    		"\n");
+
+    wantedComments.put("doxygen_misc_constructs.SIOBeam(java.lang.String, int)",
+                "  Constructor for input from an existing SIO file<br>\n" +
+                " @param filename Name of input SIO file.<br>\n" +
+                " @param elevationOrder Interpolation order (0-3) in elevation<br>\n" +
+    		"\n");
+
+    wantedComments.put("doxygen_misc_constructs.SIOBeam(java.lang.String)",
+                "  Constructor for input from an existing SIO file<br>\n" +
+                " @param filename Name of input SIO file.<br>\n" +
+    		"\n");
 
     wantedComments.put("doxygen_misc_constructs.StructWithReturnComment",
     		" @return This is a bad place for this tag, but it should be ignored.");
@@ -124,6 +199,16 @@ public class doxygen_misc_constructs_runme {
 " <br>\n" +
 "        And this is not a list item any more.\n" +
     		"");
+
+    wantedComments.put("doxygen_misc_constructs.IncorrectlyDocumentedMembers",
+    		" Incorrectly documented members, these should be post document comments, Github issue #1636");
+
+    wantedComments.put("doxygen_misc_constructs.IncorrectlyDocumentedMembers.setBbbb(int)",
+    		" really for bbbb value");
+
+    wantedComments.put("doxygen_misc_constructs.IncorrectlyDocumentedMembers.getBbbb()",
+    		" really for bbbb value");
+
     wantedComments.put("doxygen_misc_constructs.doxygen_misc_constructs.isNoSpaceValidA()",
     		" This comment without space after '*' is valid in Doxygen.\n" +
     		"\n" +

@@ -1,0 +1,10 @@
+cpp_decltype_unsupported.i:14: Warning 344: Unable to deduce decltype for 'func_returning_int()'.
+cpp_decltype_unsupported.i:15: Warning 344: Unable to deduce decltype for 'func_returning_int(0)'.
+cpp_decltype_unsupported.i:18: Warning 344: Unable to deduce decltype for '&global_int'.
+cpp_decltype_unsupported.i:25: Warning 344: Unable to deduce decltype for '*pointer_to_int'.
+cpp_decltype_unsupported.i:31: Warning 344: Unable to deduce decltype for 'undeclared_variable'.
+cpp_decltype_unsupported.i:35: Warning 344: Unable to deduce decltype for 'A()'.
+cpp_decltype_unsupported.i:39: Warning 344: Unable to deduce decltype for '1 <=> 2'.
+cpp_decltype_unsupported.i:42: Warning 344: Unable to deduce decltype for '("abc"[1])'.
+cpp_decltype_unsupported.i:43: Warning 346: Unable to deduce auto type for variable 'array_deref2' (ignored).
+cpp_decltype_unsupported.i:58: Warning 344: Unable to deduce decltype for '(a = true) + 1'.

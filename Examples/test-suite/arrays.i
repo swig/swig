@@ -73,4 +73,8 @@ typedef struct {
 cartPosition_t p;
 } CartPoseData_t;
 
+/* Test left shift in array size doesn't trigger "Bad template type" error.
+ * Regression test for https://sourceforge.net/p/swig/bugs/983/ */
+char array_shifted_size[(1<<2)];
+
 %}
