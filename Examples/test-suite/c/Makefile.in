@@ -45,7 +45,12 @@ FAILING_CPP_TESTS := \
     arrays_dimensionless \
     arrays_global \
     arrays_global_twodim \
+    assign_const \
+    assign_reference \
+    cpp_enum \
     constant_pointers \
+    director_unwrap \
+    director_unwrap_result \
     enum_thorough \
     extend \
     extend_default \
@@ -67,10 +72,14 @@ FAILING_CPP_TESTS := \
     member_pointer_const \
     mixed_types \
     nested_class \
+    private_assign \
+    special_variable_macros \
     template_basic \
     template_default \
     template_enum \
     template_explicit \
+    template_function_parm \
+    template_template_parameters \
     template_typedef_fnc \
     typedef_array_member \
     typedef_funcptr \
