@@ -17,10 +17,6 @@
 
 #endif
 
-#ifndef Py_TYPE
-#  define Py_TYPE(op) ((op)->ob_type)
-#endif
-
 /* SWIG APIs for compatibility of both Python 2 & 3 */
 
 #if PY_VERSION_HEX >= 0x03000000
