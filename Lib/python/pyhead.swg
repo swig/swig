@@ -63,10 +63,6 @@ SWIG_Python_str_FromChar(const char *c)
 #endif
 }
 
-#ifndef PyObject_DEL
-# define PyObject_DEL PyObject_Del
-#endif
-
 /* SWIGPY_USE_CAPSULE is no longer used within SWIG itself, but some user interface files check for it. */
 # define SWIGPY_USE_CAPSULE
 #ifdef SWIGPYTHON_BUILTIN

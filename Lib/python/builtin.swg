@@ -480,7 +480,7 @@ SwigPyBuiltin_destructor_closure(SwigPyWrapperFunction wrapper, const char *wrap
   if (PyType_IS_GC(a->ob_type)) {
     PyObject_GC_Del(a);
   } else {
-    PyObject_Del(a);
+    PyObject_Free(a);
   }
 }
 

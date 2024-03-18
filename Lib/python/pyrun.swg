@@ -822,7 +822,7 @@ SwigPyObject_dealloc(PyObject *v)
 #ifdef SWIGPYTHON_BUILTIN
   SWIG_Py_XDECREF(sobj->dict);
 #endif
-  PyObject_DEL(v);
+  PyObject_Free(v);
 }
 
 SWIGRUNTIME PyObject* 
@@ -1155,7 +1155,7 @@ SwigPyPacked_dealloc(PyObject *v)
     SwigPyPacked *sobj = (SwigPyPacked *) v;
     free(sobj->pack);
   }
-  PyObject_DEL(v);
+  PyObject_Free(v);
 }
 
 SWIGRUNTIME PyTypeObject*
@@ -1284,7 +1284,7 @@ SwigPyPacked_New(void *ptr, size_t size, swig_type_info *ty)
       sobj->ty   = ty;
       sobj->size = size;
     } else {
-      PyObject_DEL((PyObject *) sobj);
+      PyObject_Free((PyObject *)sobj);
       sobj = 0;
     }
   }
