@@ -42,6 +42,10 @@
 <li><a href="#Library_shared_ptr_directors">shared_ptr and directors</a>
 </ul>
 <li><a href="#Library_std_unique_ptr">unique_ptr smart pointer</a>
+<ul>
+<li><a href="#Library_std_unique_ptr_by_value">unique_ptr passed by value</a>
+<li><a href="#Library_std_unique_ptr_by_ref">unique_ptr passed by reference</a>
+</ul>
 <li><a href="#Library_std_auto_ptr">auto_ptr smart pointer</a>
 </ul>
 <li><a href="#Library_nn16">Utility Libraries</a>
@@ -2107,7 +2111,8 @@ The ownership and move semantics described here can of course be modified if not
 by copying and customising the typemaps in the appropriate <tt>std_unique_ptr.i</tt> library file.
 </p>
 
-<H4><a name="Library_std_unique_ptr_by_value">12.4.6 unique_ptr passed by value</a></H4>
+<H4><a name="Library_std_unique_ptr_by_value">12.4.6.1 unique_ptr passed by value</a></H4>
+
 
 <p>
 Example usage of a <tt>std::unique_ptr</tt> being returned from a function by value is shown below.
@@ -2214,7 +2219,8 @@ Attempts to pass ownership from a proxy class to a <tt>std::unique</tt> paramete
 in a "Cannot release ownership as memory is not owned" exception. For example, if <tt>example.take(k)</tt> in the example above is called twice.
 </p>
 
-<H4><a name="Library_std_unique_ptr_by_ref">12.4.6 unique_ptr passed by reference</a></H4>
+<H4><a name="Library_std_unique_ptr_by_ref">12.4.6.2 unique_ptr passed by reference</a></H4>
+
 
 <p>
 The effect of passing a <tt>std::unique_ptr</tt> by rvalue reference into a function is identical to passing it by value.
