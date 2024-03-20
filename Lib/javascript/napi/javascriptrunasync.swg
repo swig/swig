@@ -3,8 +3,6 @@
  *
  * Pulled in when the code contains asynchronous methods
  *
- * Not compatible with WASM target
- *
  * ---------------------------------------------------------------------------*/
 %fragment("AsyncWorker", "header", fragment="run_AsyncWorker") %{
 // This class is essentially a functor with multiple entry points
