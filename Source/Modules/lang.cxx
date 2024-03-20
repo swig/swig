@@ -1328,9 +1328,10 @@ int Language::staticmemberfunctionHandler(Node *n) {
   SwigType *type = Getattr(n, "type");
   ParmList *parms = Getattr(n, "parms");
   String *cb = GetFlagAttr(n, "feature:callback");
-  String *cname, *mrename;
+  String *cname;
+  String *mrename = Swig_name_member(NSpace, ClassPrefix, symname);
 
-  if (!Extend) {
+  if (!(Extend && GetFlag(n, "isextendmember"))) {
     Node *sb = Getattr(n, "cplus:staticbase");
     String *sname = Getattr(sb, "name");
     if (isNonVirtualProtectedAccess(n))
@@ -1343,10 +1344,7 @@ int Language::staticmemberfunctionHandler(Node *n) {
     cname = Swig_name_member(NSpace, mname, name);
     Delete(mname);
     Delete(classname_str);
-  }
-  mrename = Swig_name_member(NSpace, ClassPrefix, symname);
 
-  if (Extend) {
     String *code = Getattr(n, "code");
     String *defaultargs = Getattr(n, "defaultargs");
     String *mangled = Swig_name_mangle_string(mrename);

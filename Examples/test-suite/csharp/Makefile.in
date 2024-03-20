@@ -20,7 +20,6 @@ CPP_TEST_CASES = \
 	complextest \
 	csharp_argument_defaults_feature \
 	csharp_attributes \
-	csharp_swig2_compatibility \
 	csharp_director_typemaps \
 	csharp_exceptions \
 	csharp_features \
@@ -28,6 +27,7 @@ CPP_TEST_CASES = \
 	csharp_lib_arrays_bool \
 	csharp_namespace_system_collision \
 	csharp_prepost \
+	csharp_swig2_compatibility \
 	csharp_typemaps \
 	director_wstring \
 	enum_thorough_simple \

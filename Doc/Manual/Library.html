@@ -2092,16 +2092,25 @@ The languages that support shared_ptr also have support for using shared_ptr wit
 
 <p>
 The <tt>std_unique_ptr.i</tt> library file provides SWIG's unique_ptr support.
-It defines typemaps and a macro, <tt>%unique_ptr(T)</tt>, to use for handling
+It provides move semantics for the smart pointer's underlying object,
+both from C++ to the target language and vice versa.
+</p>
+
+<p>
+The library defines typemaps and a macro, <tt>%unique_ptr(T)</tt>, to use for handling
 <tt>std::unique_ptr&lt;T&gt;</tt> for a type <tt>T</tt>.
 The type <tt>T</tt> must be non-primitive.
 This macro should be used before any code declaring or using type <tt>T</tt>.
 Ordering requirements for using this smart pointer macro are the same as the
 equivalent <tt>%shared_ptr(T)</tt> macro covered in the previous section.
+The ownership and move semantics described here can of course be modified if not suitable
+by copying and customising the typemaps in the appropriate <tt>std_unique_ptr.i</tt> library file.
 </p>
 
+<H4><a name="Library_std_unique_ptr_by_value">12.4.6 unique_ptr passed by value</a></H4>
+
 <p>
-Example usage of a <tt>std::unique_ptr</tt> being returned from a function is shown below.
+Example usage of a <tt>std::unique_ptr</tt> being returned from a function by value is shown below.
 </p>
 
 <div class="code">
@@ -2205,8 +2214,67 @@ Attempts to pass ownership from a proxy class to a <tt>std::unique</tt> paramete
 in a "Cannot release ownership as memory is not owned" exception. For example, if <tt>example.take(k)</tt> in the example above is called twice.
 </p>
 
+<H4><a name="Library_std_unique_ptr_by_ref">12.4.6 unique_ptr passed by reference</a></H4>
+
 <p>
-<b>Compatibility note:</b> Support for <tt>std::unique_ptr</tt> was added in SWIG-4.1.0.
+The effect of passing a <tt>std::unique_ptr</tt> by rvalue reference into a function is identical to passing it by value.
+The ownership of the memory of the object being pointed to by the underyling pointer is transferred from the proxy class to the C++ function being called. Example:
+</p>
+
+<div class="code">
+<pre>
+void grab(std::unique_ptr&lt;Klass&gt; &amp;&amp;);
+</pre>
+</div>
+
+<p>
+Passing non-const lvalue references into a function is a bit quirky and not perfect due to ambiguities as
+to what the function may do.
+The approach taken is the ownership is transferred out of the target language from the proxy class
+into C++ space and the proxy class can then no longer be used after the wrapped function returns.
+In summary it works much like passing a <tt>std::unique_ptr</tt> by value into a function.
+The assumption is the function will not modify the <tt>std::unique_ptr</tt>.
+If this is not true and the underlying pointer is changed, such as calling the member functions, <tt>swap</tt>, <tt>reset</tt> or <tt>release</tt>, then the modified <tt>std::unique_ptr</tt> will effectively be ignored.
+It is destroyed when the function exits C++ space on return to the target language.
+Example:
+</p>
+
+<div class="code">
+<pre>
+void process(std::unique_ptr&lt;Klass&gt; &amp;);
+</pre>
+</div>
+
+<p>
+Passing const lvalue references into a function works much like passing any wrapped class.
+The proxy class owning the underling C++ object continues to own the underying C++ object
+after calling the function, the function cannot modify the <tt>std::unique_ptr</tt> or take ownership.
+Example:
+</p>
+
+<div class="code">
+<pre>
+void use(const std::unique_ptr&lt;Klass&gt; &amp;);
+</pre>
+</div>
+
+<p>
+Move semantics are not provided when wrapping a C++ function that returns a <tt>std::unique_ptr</tt> by reference.
+The target language proxy class wrapper that is returned does not own the underlying C++ object.
+This applies to all reference types, such as:
+</p>
+
+<div class="code">
+<pre>
+std::unique_ptr&lt;Klass&gt; &amp; LvalueRefReturn();
+std::unique_ptr&lt;Klass&gt; &amp;&amp; RvalueRefReturn();
+</pre>
+</div>
+
+
+<p>
+<b>Compatibility note:</b> Support for <tt>std::unique_ptr</tt> was first added in SWIG-4.1.0.
+This initial support contained the move semantics when passing a <tt>std::unique_ptr</tt> around by value. Support for passing a <tt>std::unique_ptr</tt> around by reference was added in SWIG-4.3.0.
 </p>
 
 <H3><a name="Library_std_auto_ptr">12.4.7 auto_ptr smart pointer</a></H3>

@@ -38,7 +38,7 @@ jobs:
         - SWIGLANG: ""
           GCC: 7
           CPPSTD: c++98
-          CSTD: c90
+          CSTD: c99
         - SWIGLANG: ""
           GCC: 7
         - SWIGLANG: ""

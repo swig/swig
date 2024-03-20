@@ -24,6 +24,9 @@ SWIG_AsCharPtrAndSize(Napi::Value valRef, char** cptr, size_t* psize, int *alloc
     if(cptr) *cptr = cstr;
     
     return SWIG_OK;
+  } else if (valRef.IsNull()) {
+    if (cptr) *cptr = 0;
+    return SWIG_OK;
   } else {
     if(valRef.IsObject()) {
       swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();

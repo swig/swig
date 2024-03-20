@@ -32,3 +32,25 @@ cpp11_move_typemaps::Counter::check_counts(1, 0, 0, 1, 0, 2);
   };
   like($@, qr/\bcannot release ownership as memory is not owned\b/, "double usage of takeKlassUniquePtr should be an error");
 }
+
+{
+  cpp11_move_typemaps::Counter::reset_counts();
+  my $imt = new cpp11_move_typemaps::InstanceMethodsTester();
+  {
+    my $mo = new cpp11_move_typemaps::MoveOnly(333);
+    cpp11_move_typemaps::Counter::check_counts(1, 0, 0, 0, 0, 0);
+    $imt->instance_take_move_only($mo);
+    cpp11_move_typemaps::Counter::check_counts(1, 0, 0, 1, 0, 2);
+    undef $mo;
+  }
+  cpp11_move_typemaps::Counter::check_counts(1, 0, 0, 1, 0, 2);
+  cpp11_move_typemaps::Counter::reset_counts();
+  {
+    my $mc = new cpp11_move_typemaps::MovableCopyable(444);
+    cpp11_move_typemaps::Counter::check_counts(1, 0, 0, 0, 0, 0);
+    $imt->instance_take_movable_copyable($mc);
+    cpp11_move_typemaps::Counter::check_counts(1, 0, 0, 1, 0, 2);
+    undef $mc;
+  }
+  cpp11_move_typemaps::Counter::check_counts(1, 0, 0, 1, 0, 2);
+}

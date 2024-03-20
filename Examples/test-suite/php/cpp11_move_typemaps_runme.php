@@ -29,4 +29,24 @@ try {
 }
 check::equal($exception_thrown, true, "double usage of takeKlassUniquePtr should have been an error");
 
+Counter::reset_counts();
+$imt = new InstanceMethodsTester();
+
+$mo = new MoveOnly(333);
+Counter::check_counts(1, 0, 0, 0, 0, 0);
+$imt->instance_take_move_only($mo);
+Counter::check_counts(1, 0, 0, 1, 0, 2);
+$mo = NULL;
+
+Counter::check_counts(1, 0, 0, 1, 0, 2);
+Counter::reset_counts();
+
+$mc = new MovableCopyable(444);
+Counter::check_counts(1, 0, 0, 0, 0, 0);
+$imt->instance_take_movable_copyable($mc);
+Counter::check_counts(1, 0, 0, 1, 0, 2);
+$mc = NULL;
+
+Counter::check_counts(1, 0, 0, 1, 0, 2);
+
 check::done();

@@ -3,7 +3,7 @@ from li_std_auto_ptr import *
 def checkCount(expected_count):
     actual_count = Klass.getTotal_count()
     if (actual_count != expected_count):
-        raise RuntimeError("Counts incorrect, expected:" + expected_count + " actual:" + actual_count)
+        raise RuntimeError("Counts incorrect, expected: {} actual:{}".format(expected_count, actual_count))
 
 # Test raw pointer handling involving virtual inheritance
 kini = KlassInheritance("KlassInheritanceInput")
