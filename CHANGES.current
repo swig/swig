@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-03-25: wsfulton
+            [Python] #2826 Stricter stable ABI conformance.
+            1. Use Py_DecRef and Py_IncRef when Py_LIMITED_API is defined instead of
+               macro equivalents, such as Py_INCREF.
+            2. Don't use PyUnicode_GetLength from python-3.7 and later.
+            3. Use PyObject_Free instead of deprecated equivalents.
+
 2024-03-11: wsfulton
             [C#] #2829 Improve handling and documentation of missing enum base type
             information.
