@@ -745,11 +745,14 @@ SwigPyObject_Check(PyObject *op) {
     return 1;
   return (strcmp(op_type->tp_name, "SwigPyObject") == 0);
 #else
+# ifdef Py_LIMITED_API
+  int cmp;
+  PyObject *tp_name;
+#endif
   if (op_type == target_tp)
     return 1;
 # ifdef Py_LIMITED_API
-  int cmp;
-  PyObject *tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
+  tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
   if (!tp_name)
     return 0;
   cmp = PyUnicode_CompareWithASCIIString(tp_name, "SwigPyObject");
@@ -1132,12 +1135,15 @@ SwigPyPacked_type(void) {
 
 SWIGRUNTIMEINLINE int
 SwigPyPacked_Check(PyObject *op) {
+#ifdef Py_LIMITED_API
+  int cmp;
+  PyObject *tp_name;
+#endif
   PyTypeObject* op_type = Py_TYPE(op);
   if (op_type == SwigPyPacked_TypeOnce())
     return 1;
 #ifdef Py_LIMITED_API
-  int cmp;
-  PyObject *tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
+  tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
   if (!tp_name)
     return 0;
   cmp = PyUnicode_CompareWithASCIIString(tp_name, "SwigPyPacked");

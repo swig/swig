@@ -35,10 +35,11 @@ SWIG_PyUnicode_AsUTF8AndSize(PyObject *str, Py_ssize_t *psize, PyObject **pbytes
   *pbytes = NULL;
   return PyUnicode_AsUTF8AndSize(str, psize);
 # else
-   *pbytes = PyUnicode_AsUTF8String(str);
-   const char *chars = *pbytes ? PyBytes_AsString(*pbytes) : NULL;
-   if (chars && psize)
-     *psize = PyBytes_Size(*pbytes);
+  const char *chars;
+  *pbytes = PyUnicode_AsUTF8String(str);
+  chars = *pbytes ? PyBytes_AsString(*pbytes) : NULL;
+  if (chars && psize)
+    *psize = PyBytes_Size(*pbytes);
   return chars;
 # endif
 #else
