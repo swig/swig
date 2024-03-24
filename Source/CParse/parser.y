@@ -1475,6 +1475,8 @@ static void default_arguments(Node *n) {
         Setattr(new_function,"value", cvalue);
         Setattr(new_function,"type", ctype);
         Setattr(new_function,"throw", cthrow);
+        if (GetFlag(function, "feature:ignore"))
+          SetFlag(new_function, "feature:ignore");
 
 	Delete(ccode);
 	Delete(cstorage);
@@ -1667,7 +1669,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <intvalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN LBRACE RBRACE PERIOD ELLIPSIS
-%token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
+%token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET LLBRACKET RRBRACKET
 %token BEGINFILE ENDOFFILE
 %token ILLEGAL CONSTANT
 %token RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
@@ -1767,6 +1769,9 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
 %type <tmap>     typemap_type;
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
+%type <node>     attribute attribute_list attribute_notopt attribute_item;
+%type <ptype>    attribute_element;
+%type <str>      attribute_nspace;
 %type <str>      string stringnum wstring;
 %type <tparms>   template_parms;
 %type <dtype>    cpp_vend;
@@ -3092,16 +3097,16 @@ c_declaration   : c_decl {
 
 /* An extern C type declaration, disable cparse_cplusplus if needed. */
 
-                | EXTERN string LBRACE {
-		  if (Strcmp($2,"C") == 0) {
+                | attribute EXTERN string LBRACE {
+		  if (Strcmp($3,"C") == 0) {
 		    cparse_externc = 1;
 		  }
 		} interface RBRACE {
 		  cparse_externc = 0;
-		  if (Strcmp($2,"C") == 0) {
-		    Node *n = firstChild($5);
+		  if (Strcmp($3,"C") == 0) {
+		    Node *n = firstChild($6);
 		    $$ = new_node("extern");
-		    Setattr($$,"name",$2);
+		    Setattr($$,"name",$3);
 		    appendChild($$,n);
 		    while (n) {
 		      String *s = Getattr(n, "storage");
@@ -3117,12 +3122,12 @@ c_declaration   : c_decl {
 		      n = nextSibling(n);
 		    }
 		  } else {
-		    if (!Equal($2,"C++")) {
-		      Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $2);
+		    if (!Equal($3,"C++")) {
+		      Swig_warning(WARN_PARSE_UNDEFINED_EXTERN,cparse_file, cparse_line,"Unrecognized extern type \"%s\".\n", $3);
 		    }
 		    $$ = new_node("extern");
-		    Setattr($$,"name",$2);
-		    appendChild($$,firstChild($5));
+		    Setattr($$,"name",$3);
+		    appendChild($$,firstChild($6));
 		  }
                 }
                 | cpp_lambda_decl {
@@ -3160,114 +3165,127 @@ c_declaration   : c_decl {
    A C global declaration of some kind (may be variable, function, typedef, etc.)
    ------------------------------------------------------------ */
 
-c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
-	      String *decl = $3.type;
+c_decl  : attribute[decl_attr] storage_class type declarator cpp_const attribute[type_attr] initializer c_decl_tail {
+	      String *decl = $declarator.type;
               $$ = new_node("cdecl");
-	      if ($4.qualifier)
-	        decl = add_qualifier_to_declarator($3.type, $4.qualifier);
-	      Setattr($$,"refqualifier",$4.refqualifier);
-	      Setattr($$,"type",$2);
-	      Setattr($$,"storage",$1);
-	      Setattr($$,"name",$3.id);
+	      if ($cpp_const.qualifier)
+	        decl = add_qualifier_to_declarator($declarator.type, $cpp_const.qualifier);
+	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
+	      Setattr($$,"type",$type);
+	      Setattr($$,"storage",$storage_class);
+	      Setattr($$,"name",$declarator.id);
 	      Setattr($$,"decl",decl);
-	      Setattr($$,"parms",$3.parms);
-	      Setattr($$,"value",$5.val);
-	      Setattr($$,"throws",$4.throws);
-	      Setattr($$,"throw",$4.throwf);
-	      Setattr($$,"noexcept",$4.nexcept);
-	      Setattr($$,"final",$4.final);
-	      if ($5.val && $5.type) {
+	      Setattr($$,"parms",$declarator.parms);
+	      Setattr($$,"value",$initializer.val);
+	      Setattr($$,"throws",$cpp_const.throws);
+	      Setattr($$,"throw",$cpp_const.throwf);
+	      Setattr($$,"noexcept",$cpp_const.nexcept);
+	      Setattr($$,"final",$cpp_const.final);
+              if ($decl_attr) {
+                Setattr($$, "attribute", $decl_attr);
+              }
+              if ($type_attr) {
+                Setattr($type, "attribute", $type_attr);
+              }
+	      if ($initializer.val && $initializer.type) {
 		/* store initializer type as it might be different to the declared type */
-		SwigType *valuetype = NewSwigType($5.type);
+		SwigType *valuetype = NewSwigType($initializer.type);
 		if (Len(valuetype) > 0) {
 		  Setattr($$, "valuetype", valuetype);
 		} else {
 		  /* If we can't determine the initializer type use the declared type. */
-		  Setattr($$, "valuetype", $2);
+		  Setattr($$, "valuetype", $type);
 		}
 		Delete(valuetype);
 	      }
-	      if (!$6) {
+	      if (!$c_decl_tail) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
 		  Delete(code);
 		}
 	      } else {
-		Node *n = $6;
+		Node *n = $c_decl_tail;
 		/* Inherit attributes */
 		while (n) {
-		  String *type = Copy($2);
+		  String *type = Copy($type);
 		  Setattr(n,"type",type);
-		  Setattr(n,"storage",$1);
+		  Setattr(n,"storage",$storage_class);
 		  n = nextSibling(n);
 		  Delete(type);
 		}
 	      }
-	      if ($5.bitfield) {
-		Setattr($$,"bitfield", $5.bitfield);
+	      if ($initializer.bitfield) {
+		Setattr($$,"bitfield", $cpp_const.bitfield);
 	      }
 
-	      if ($3.id) {
+	      if ($declarator.id) {
 		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
-		String *p = Swig_scopename_prefix($3.id);
+		String *p = Swig_scopename_prefix($declarator.id);
 		if (p) {
 		  /* This is a special case. If the scope name of the declaration exactly
 		     matches that of the declaration, then we will allow it. Otherwise, delete. */
 		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
 		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
-		    String *lstr = Swig_scopename_last($3.id);
+		    String *lstr = Swig_scopename_last($declarator.id);
 		    Setattr($$, "name", lstr);
 		    Delete(lstr);
-		    set_nextSibling($$, $6);
+		    set_nextSibling($$, $c_decl_tail);
 		  } else {
 		    Delete($$);
-		    $$ = $6;
+		    $$ = $c_decl_tail;
 		  }
 		  Delete(p);
-		} else if (Strncmp($3.id, "::", 2) == 0) {
+		} else if (Strncmp($declarator.id, "::", 2) == 0) {
 		  /* global scope declaration/definition ignored */
 		  Delete($$);
-		  $$ = $6;
+		  $$ = $c_decl_tail;
 		} else {
-		  set_nextSibling($$, $6);
+		  set_nextSibling($$, $c_decl_tail);
 		}
 	      } else {
 		Swig_error(cparse_file, cparse_line, "Missing symbol name for global declaration\n");
 		$$ = 0;
 	      }
 
-	      if ($4.qualifier && $1 && Strstr($1, "static"))
+	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
            }
-	   | storage_class type declarator cpp_const EQUAL error SEMI {
-	      String *decl = $3.type;
+	   | attribute[decl_attr] storage_class type declarator cpp_const attribute[type_attr] EQUAL error SEMI {
+	      String *decl = $declarator.type;
 	      $$ = new_node("cdecl");
-	      if ($4.qualifier)
-	        decl = add_qualifier_to_declarator($3.type, $4.qualifier);
-	      Setattr($$, "refqualifier", $4.refqualifier);
-	      Setattr($$, "type", $2);
-	      Setattr($$, "storage", $1);
-	      Setattr($$, "name", $3.id);
+	      if ($cpp_const.qualifier)
+	        decl = add_qualifier_to_declarator($declarator.type, $cpp_const.qualifier);
+	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
+	      Setattr($$, "type", $type);
+	      Setattr($$, "storage", $storage_class);
+	      Setattr($$, "name", $declarator.id);
 	      Setattr($$, "decl", decl);
-	      Setattr($$, "parms", $3.parms);
+	      Setattr($$, "parms", $declarator.parms);
 
 	      /* Set dummy value to avoid adding in code for handling missing value in later stages */
 	      Setattr($$, "value", "*parse error*");
 	      SetFlag($$, "valueignored");
 
-	      Setattr($$, "throws", $4.throws);
-	      Setattr($$, "throw", $4.throwf);
-	      Setattr($$, "noexcept", $4.nexcept);
-	      Setattr($$, "final", $4.final);
+	      Setattr($$, "throws", $cpp_const.throws);
+	      Setattr($$, "throw", $cpp_const.throwf);
+	      Setattr($$, "noexcept", $cpp_const.nexcept);
+	      Setattr($$, "final", $cpp_const.final);
 
-	      if ($3.id) {
+              if ($decl_attr) {
+                Setattr($$, "attribute", $decl_attr);
+              }
+              if ($type_attr) {
+                Setattr($type, "attribute", $type_attr);
+              }
+
+	      if ($declarator.id) {
 		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
-		String *p = Swig_scopename_prefix($3.id);
+		String *p = Swig_scopename_prefix($declarator.id);
 		if (p) {
 		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
 		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
-		    String *lstr = Swig_scopename_last($3.id);
+		    String *lstr = Swig_scopename_last($declarator.id);
 		    Setattr($$, "name", lstr);
 		    Delete(lstr);
 		  } else {
@@ -3275,73 +3293,77 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		    $$ = 0;
 		  }
 		  Delete(p);
-		} else if (Strncmp($3.id, "::", 2) == 0) {
+		} else if (Strncmp($declarator.id, "::", 2) == 0) {
 		  /* global scope declaration/definition ignored */
 		  Delete($$);
 		  $$ = 0;
 		}
 	      }
 
-	      if ($4.qualifier && $1 && Strstr($1, "static"))
+	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
 	   }
            /* Alternate function syntax introduced in C++11:
               auto funcName(int x, int y) -> int; */
-           | storage_class AUTO declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt initializer c_decl_tail {
+           | attribute storage_class AUTO declarator cpp_const ARROW cpp_alternate_rettype virt_specifier_seq_opt initializer c_decl_tail {
               $$ = new_node("cdecl");
-	      if ($4.qualifier) SwigType_push($3.type, $4.qualifier);
-	      Setattr($$,"refqualifier",$4.refqualifier);
-	      Setattr($$,"type",$6);
-	      Setattr($$,"storage",$1);
-	      Setattr($$,"name",$3.id);
-	      Setattr($$,"decl",$3.type);
-	      Setattr($$,"parms",$3.parms);
-	      Setattr($$,"throws",$4.throws);
-	      Setattr($$,"throw",$4.throwf);
-	      Setattr($$,"noexcept",$4.nexcept);
-	      Setattr($$,"final",$4.final);
-	      if (!$9) {
+	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
+	      Setattr($$,"refqualifier",$cpp_const.refqualifier);
+	      Setattr($$,"type",$cpp_alternate_rettype);
+	      Setattr($$,"storage",$storage_class);
+	      Setattr($$,"name",$declarator.id);
+	      Setattr($$,"decl",$declarator.type);
+	      Setattr($$,"parms",$declarator.parms);
+	      Setattr($$,"throws",$cpp_const.throws);
+	      Setattr($$,"throw",$cpp_const.throwf);
+	      Setattr($$,"noexcept",$cpp_const.nexcept);
+	      Setattr($$,"final",$cpp_const.final);
+	      if (!$c_decl_tail) {
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
 		  Delete(code);
 		}
 	      } else {
-		Node *n = $9;
+		Node *n = $c_decl_tail;
 		while (n) {
-		  String *type = Copy($6);
+		  String *type = Copy($cpp_alternate_rettype);
 		  Setattr(n,"type",type);
-		  Setattr(n,"storage",$1);
+		  Setattr(n,"storage",$storage_class);
 		  n = nextSibling(n);
 		  Delete(type);
 		}
 	      }
 
-	      if ($3.id) {
+	      if ($declarator.id) {
 		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
-		String *p = Swig_scopename_prefix($3.id);
+		String *p = Swig_scopename_prefix($declarator.id);
 		if (p) {
 		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
 		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
-		    String *lstr = Swig_scopename_last($3.id);
+		    String *lstr = Swig_scopename_last($declarator.id);
 		    Setattr($$,"name",lstr);
 		    Delete(lstr);
-		    set_nextSibling($$, $9);
+		    set_nextSibling($$, $c_decl_tail);
 		  } else {
 		    Delete($$);
-		    $$ = $9;
+		    $$ = $c_decl_tail;
 		  }
 		  Delete(p);
-		} else if (Strncmp($3.id, "::", 2) == 0) {
+		} else if (Strncmp($declarator.id, "::", 2) == 0) {
 		  /* global scope declaration/definition ignored */
 		  Delete($$);
-		  $$ = $9;
+		  $$ = $c_decl_tail;
 		}
 	      } else {
-		set_nextSibling($$, $9);
+		set_nextSibling($$, $c_decl_tail);
 	      }
 
-	      if ($4.qualifier && $1 && Strstr($1, "static"))
+              if ($attribute) {
+                Setattr($$, "attribute", $attribute);
+              }
+
+	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
            }
            /* C++14 allows the trailing return type to be omitted.  It's
@@ -3351,29 +3373,33 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
             * with an explicit return type in the interface file for SWIG
             * to wrap.
             */
-	   | storage_class AUTO declarator cpp_const LBRACE {
+	   | attribute storage_class AUTO declarator cpp_const LBRACE {
 	      if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 
               $$ = new_node("cdecl");
-	      if ($4.qualifier) SwigType_push($3.type, $4.qualifier);
-	      Setattr($$, "refqualifier", $4.refqualifier);
+	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
+	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
 	      Setattr($$, "type", NewString("auto"));
-	      Setattr($$, "storage", $1);
-	      Setattr($$, "name", $3.id);
-	      Setattr($$, "decl", $3.type);
-	      Setattr($$, "parms", $3.parms);
-	      Setattr($$, "throws", $4.throws);
-	      Setattr($$, "throw", $4.throwf);
-	      Setattr($$, "noexcept", $4.nexcept);
-	      Setattr($$, "final", $4.final);
+	      Setattr($$, "storage", $storage_class);
+	      Setattr($$, "name", $declarator.id);
+	      Setattr($$, "decl", $declarator.type);
+	      Setattr($$, "parms", $declarator.parms);
+	      Setattr($$, "throws", $cpp_const.throws);
+	      Setattr($$, "throw", $cpp_const.throwf);
+	      Setattr($$, "noexcept", $cpp_const.nexcept);
+	      Setattr($$, "final", $cpp_const.final);
 
-	      if ($3.id) {
+              if ($attribute) {
+                Setattr($$, "attribute", $attribute);
+              }
+
+	      if ($declarator.id) {
 		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
-		String *p = Swig_scopename_prefix($3.id);
+		String *p = Swig_scopename_prefix($declarator.id);
 		if (p) {
 		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
 		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
-		    String *lstr = Swig_scopename_last($3.id);
+		    String *lstr = Swig_scopename_last($declarator.id);
 		    Setattr($$, "name", lstr);
 		    Delete(lstr);
 		  } else {
@@ -3381,28 +3407,31 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		    $$ = 0;
 		  }
 		  Delete(p);
-		} else if (Strncmp($3.id, "::", 2) == 0) {
+		} else if (Strncmp($declarator.id, "::", 2) == 0) {
 		  /* global scope declaration/definition ignored */
 		  Delete($$);
 		  $$ = 0;
 		}
 	      }
 
-	      if ($4.qualifier && $1 && Strstr($1, "static"))
+	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
 	   }
 	   /* C++11 auto variable declaration. */
-	   | storage_class AUTO idcolon EQUAL definetype SEMI {
-	      SwigType *type = deduce_type(&$5);
+	   | attribute storage_class AUTO idcolon EQUAL definetype SEMI {
+	      SwigType *type = deduce_type(&$definetype);
 	      if (!type)
 		type = NewString("auto");
 	      $$ = new_node("cdecl");
 	      Setattr($$, "type", type);
-	      Setattr($$, "storage", $1);
-	      Setattr($$, "name", $3);
+	      Setattr($$, "storage", $storage_class);
+	      Setattr($$, "name", $idcolon);
 	      Setattr($$, "decl", NewStringEmpty());
-	      Setattr($$, "value", $5.val);
+	      Setattr($$, "value", $definetype.val);
 	      Setattr($$, "valuetype", type);
+              if ($attribute) {
+                Setattr($$, "attribute", $attribute);
+              }
 	   }
 	   ;
 
@@ -3475,23 +3504,32 @@ cpp_alternate_rettype : primitive_type
    auto myFunc = [](int x, int y) throw() -> int { return x+y; };
    auto six = [](int x, int y) { return x+y; }(4, 2);
    ------------------------------------------------------------ */
-cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
+cpp_lambda_decl : attribute storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
 		  $$ = new_node("lambda");
-		  Setattr($$,"name",$3);
-		  Delete($1);
+		  Setattr($$,"name",$idcolon);
+		  Delete($storage_class);
 		  add_symbols($$);
+                  if ($attribute) {
+                    Setattr($$, "attribute", $attribute);
+                  }
 	        }
-                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const ARROW type lambda_body lambda_tail {
+                | attribute storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const ARROW type lambda_body lambda_tail {
 		  $$ = new_node("lambda");
-		  Setattr($$,"name",$3);
-		  Delete($1);
+		  Setattr($$,"name",$idcolon);
+		  Delete($storage_class);
 		  add_symbols($$);
+                  if ($attribute) {
+                    Setattr($$, "attribute", $attribute);
+                  }
 		}
-                | storage_class AUTO idcolon EQUAL lambda_introducer lambda_template lambda_body lambda_tail {
+                | attribute storage_class AUTO idcolon EQUAL lambda_introducer lambda_template lambda_body lambda_tail {
 		  $$ = new_node("lambda");
-		  Setattr($$,"name",$3);
-		  Delete($1);
+		  Setattr($$,"name",$idcolon);
+		  Delete($storage_class);
 		  add_symbols($$);
+                  if ($attribute) {
+                    Setattr($$, "attribute", $attribute);
+                  }
 		}
                 ;
 
@@ -3554,19 +3592,22 @@ c_enum_inherit : COLON type_right {
    enum [class] Name [: base_type];
    ------------------------------------------------------------ */
 
-c_enum_forward_decl : storage_class c_enum_key ename c_enum_inherit SEMI {
+c_enum_forward_decl : attribute storage_class c_enum_key ename c_enum_inherit SEMI {
 		   SwigType *ty = 0;
-		   int scopedenum = $3 && !Equal($2, "enum");
+		   int scopedenum = $ename && !Equal($c_enum_key, "enum");
 		   $$ = new_node("enumforward");
-		   ty = NewStringf("enum %s", $3);
-		   Setattr($$,"enumkey",$2);
+		   ty = NewStringf("enum %s", $ename);
+		   Setattr($$,"enumkey",$c_enum_key);
 		   if (scopedenum)
 		     SetFlag($$, "scopedenum");
-		   Setattr($$,"name",$3);
-		   Setattr($$, "enumbase", $4);
+		   Setattr($$,"name",$ename);
+		   Setattr($$, "enumbase", $c_enum_inherit);
 		   Setattr($$,"type",ty);
 		   Setattr($$,"sym:weak", "1");
 		   add_symbols($$);
+                   if ($attribute) {
+                     Setattr($$, "attribute", $attribute);
+                  }
 	      }
               ;
 
@@ -3576,73 +3617,77 @@ c_enum_forward_decl : storage_class c_enum_key ename c_enum_inherit SEMI {
    enum [class] Name [: base_type] { ... } MyEnum [= ...];
  * ------------------------------------------------------------ */
 
-c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBRACE SEMI {
+c_enum_decl :  attribute storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBRACE SEMI {
 		  SwigType *ty = 0;
-		  int scopedenum = $3 && !Equal($2, "enum");
+		  int scopedenum = $ename && !Equal($c_enum_key, "enum");
                   $$ = new_node("enum");
-		  ty = NewStringf("enum %s", $3);
-		  Setattr($$,"enumkey",$2);
+		  ty = NewStringf("enum %s", $ename);
+		  Setattr($$,"enumkey",$c_enum_key);
 		  if (scopedenum)
 		    SetFlag($$, "scopedenum");
-		  Setattr($$,"name",$3);
-		  Setattr($$, "enumbase", $4);
+		  Setattr($$,"name",$ename);
+		  Setattr($$, "enumbase", $c_enum_inherit);
 		  Setattr($$,"type",ty);
-		  appendChild($$,$6);
+		  appendChild($$,$enumlist);
 		  add_symbols($$);      /* Add to tag space */
 
 		  if (scopedenum) {
 		    Swig_symbol_newscope();
-		    Swig_symbol_setscopename($3);
+		    Swig_symbol_setscopename($ename);
 		    Delete(Namespaceprefix);
 		    Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		  }
 
-		  add_symbols($6);      /* Add enum values to appropriate enum or enum class scope */
+		  add_symbols($enumlist);      /* Add enum values to appropriate enum or enum class scope */
 
 		  if (scopedenum) {
 		    Setattr($$,"symtab", Swig_symbol_popscope());
 		    Delete(Namespaceprefix);
 		    Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		  }
+
+                  if ($attribute) {
+                    Setattr($$, "attribute", $attribute);
+                  }
                }
-	       | storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBRACE declarator cpp_const initializer c_decl_tail {
+	       | attribute storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBRACE declarator cpp_const initializer c_decl_tail {
 		 Node *n;
 		 SwigType *ty = 0;
 		 String   *unnamed = 0;
 		 int       unnamedinstance = 0;
-		 int scopedenum = $3 && !Equal($2, "enum");
+		 int scopedenum = $ename && !Equal($c_enum_key, "enum");
 
 		 $$ = new_node("enum");
-		 Setattr($$,"enumkey",$2);
+		 Setattr($$,"enumkey",$c_enum_key);
 		 if (scopedenum)
 		   SetFlag($$, "scopedenum");
-		 Setattr($$, "enumbase", $4);
-		 if ($3) {
-		   Setattr($$,"name",$3);
-		   ty = NewStringf("enum %s", $3);
-		 } else if ($8.id) {
+		 Setattr($$, "enumbase", $c_enum_inherit);
+		 if ($ename) {
+		   Setattr($$,"name",$ename);
+		   ty = NewStringf("enum %s", $ename);
+		 } else if ($declarator.id) {
 		   unnamed = make_unnamed();
 		   ty = NewStringf("enum %s", unnamed);
 		   Setattr($$,"unnamed",unnamed);
                    /* name is not set for unnamed enum instances, e.g. enum { foo } Instance; */
-		   if ($1 && Cmp($1,"typedef") == 0) {
-		     Setattr($$,"name",$8.id);
+		   if ($storage_class && Cmp($storage_class, "typedef") == 0) {
+		     Setattr($$,"name",$declarator.id);
                    } else {
                      unnamedinstance = 1;
                    }
-		   Setattr($$,"storage",$1);
+		   Setattr($$,"storage",$storage_class);
 		 }
-		 if ($8.id && Cmp($1,"typedef") == 0) {
-		   Setattr($$,"tdname",$8.id);
+		 if ($declarator.id && Cmp($storage_class,"typedef") == 0) {
+		   Setattr($$,"tdname",$declarator.id);
                    Setattr($$,"allows_typedef","1");
                  }
-		 appendChild($$,$6);
+		 appendChild($$,$enumlist);
 		 n = new_node("cdecl");
 		 Setattr(n,"type",ty);
-		 Setattr(n,"name",$8.id);
-		 Setattr(n,"storage",$1);
-		 Setattr(n,"decl",$8.type);
-		 Setattr(n,"parms",$8.parms);
+		 Setattr(n,"name",$declarator.id);
+		 Setattr(n,"storage",$storage_class);
+		 Setattr(n,"decl",$declarator.type);
+		 Setattr(n,"parms",$declarator.parms);
 		 Setattr(n,"unnamed",unnamed);
 
                  if (unnamedinstance) {
@@ -3652,14 +3697,14 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 		   SetFlag(n,"unnamedinstance");
 		   Delete(cty);
                  }
-		 if ($11) {
-		   Node *p = $11;
+		 if ($c_decl_tail) {
+		   Node *p = $c_decl_tail;
 		   set_nextSibling(n,p);
 		   while (p) {
 		     SwigType *cty = Copy(ty);
 		     Setattr(p,"type",cty);
 		     Setattr(p,"unnamed",unnamed);
-		     Setattr(p,"storage",$1);
+		     Setattr(p,"storage",$storage_class);
 		     Delete(cty);
 		     p = nextSibling(p);
 		   }
@@ -3673,8 +3718,8 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 
                  /* Ensure that typedef enum ABC {foo} XYZ; uses XYZ for sym:name, like structs.
                   * Note that class_rename/yyrename are bit of a mess so used this simple approach to change the name. */
-                 if ($8.id && $3 && Cmp($1,"typedef") == 0) {
-		   String *name = NewString($8.id);
+                 if ($declarator.id && $ename && Cmp($storage_class,"typedef") == 0) {
+		   String *name = NewString($declarator.id);
                    Setattr($$, "parser:makename", name);
 		   Delete(name);
                  }
@@ -3685,12 +3730,12 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 
 		 if (scopedenum) {
 		   Swig_symbol_newscope();
-		   Swig_symbol_setscopename($3);
+		   Swig_symbol_setscopename($ename);
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		 }
 
-		 add_symbols($6);      /* Add enum values to appropriate enum or enum class scope */
+		 add_symbols($enumlist);      /* Add enum values to appropriate enum or enum class scope */
 
 		 if (scopedenum) {
 		   Setattr($$,"symtab", Swig_symbol_popscope());
@@ -3700,10 +3745,13 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 
 	         add_symbols(n);
 		 Delete(unnamed);
+                 if ($attribute) {
+                   Setattr($$, "attribute", $attribute);
+                 }
 	       }
                ;
 
-c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
+c_constructor_decl : attribute storage_class type LPAREN parms RPAREN ctor_end {
                    /* This is a sick hack.  If the ctor_end has parameters,
                       and the parms parameter only has 1 parameter, this
                       could be a declaration of the form:
@@ -3714,43 +3762,46 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
                     int err = 0;
                     $$ = 0;
 
-		    if ((ParmList_len($4) == 1) && (!Swig_scopename_check($2))) {
-		      SwigType *ty = Getattr($4,"type");
-		      String *name = Getattr($4,"name");
+		    if ((ParmList_len($parms) == 1) && (!Swig_scopename_check($type))) {
+		      SwigType *ty = Getattr($parms,"type");
+		      String *name = Getattr($parms,"name");
 		      err = 1;
 		      if (!name) {
 			$$ = new_node("cdecl");
-			Setattr($$,"type",$2);
-			Setattr($$,"storage",$1);
+			Setattr($$,"type",$type);
+			Setattr($$,"storage",$storage_class);
 			Setattr($$,"name",ty);
 
-			if ($6.have_parms) {
+			if ($ctor_end.have_parms) {
 			  SwigType *decl = NewStringEmpty();
-			  SwigType_add_function(decl,$6.parms);
+			  SwigType_add_function(decl,$ctor_end.parms);
 			  Setattr($$,"decl",decl);
-			  Setattr($$,"parms",$6.parms);
+			  Setattr($$,"parms",$ctor_end.parms);
 			  if (Len(scanner_ccode)) {
 			    String *code = Copy(scanner_ccode);
 			    Setattr($$,"code",code);
 			    Delete(code);
 			  }
 			}
-			if ($6.defarg) {
-			  Setattr($$,"value",$6.defarg);
+			if ($ctor_end.defarg) {
+			  Setattr($$,"value",$ctor_end.defarg);
 			}
-			Setattr($$,"throws",$6.throws);
-			Setattr($$,"throw",$6.throwf);
-			Setattr($$,"noexcept",$6.nexcept);
-			Setattr($$,"final",$6.final);
+			Setattr($$,"throws",$ctor_end.throws);
+			Setattr($$,"throw",$ctor_end.throwf);
+			Setattr($$,"noexcept",$ctor_end.nexcept);
+			Setattr($$,"final",$ctor_end.final);
 			err = 0;
 		      }
 		    } else {
-		      Delete($1);
+		      Delete($storage_class);
 		    }
 		    if (err) {
 		      Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
 		      Exit(EXIT_FAILURE);
 		    }
+                    if ($attribute) {
+                      Setattr($$, "attribute", $attribute);
+                    }
                 }
                 ;
 
@@ -3772,18 +3823,18 @@ cpp_declaration : cpp_class_decl
 /* Note that class_virt_specifier_opt for supporting final classes introduces one shift-reduce conflict
    with C style variable declarations, such as: struct X final; */
 
-cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit LBRACE <node>{
+cpp_class_decl: attribute storage_class cpptype idcolon class_virt_specifier_opt inherit LBRACE <node>{
                    String *prefix;
                    List *bases = 0;
 		   Node *scope = 0;
 		   int errored_flag = 0;
 		   String *code;
 		   $$ = new_node("class");
-		   Setattr($$,"kind",$2);
-		   if ($5) {
-		     Setattr($$,"baselist", Getattr($5,"public"));
-		     Setattr($$,"protectedbaselist", Getattr($5,"protected"));
-		     Setattr($$,"privatebaselist", Getattr($5,"private"));
+		   Setattr($$,"kind",$cpptype);
+		   if ($inherit) {
+		     Setattr($$,"baselist", Getattr($inherit,"public"));
+		     Setattr($$,"protectedbaselist", Getattr($inherit,"protected"));
+		     Setattr($$,"privatebaselist", Getattr($inherit,"private"));
 		   }
 		   Setattr($$,"allows_typedef","1");
 
@@ -3791,7 +3842,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   Setattr($$,"prev_symtab",Swig_symbol_current());
 		  
 		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
-		   scope = resolve_create_node_scope($3, 1, &errored_flag);
+		   scope = resolve_create_node_scope($idcolon, 1, &errored_flag);
 		   /* save nscope_inner to the class - it may be overwritten in nested classes*/
 		   Setattr($$, "nested:innerscope", nscope_inner);
 		   Setattr($$, "nested:nscope", nscope);
@@ -3810,8 +3861,8 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   Setattr($$, "Classprefix", scope);
 		   Classprefix = NewString(scope);
 		   /* Deal with inheritance  */
-		   if ($5)
-		     bases = Swig_make_inherit_list(scope, Getattr($5, "public"), Namespaceprefix);
+		   if ($inherit)
+		     bases = Swig_make_inherit_list(scope, Getattr($inherit, "public"), Namespaceprefix);
 		   prefix = SwigType_istemplate_templateprefix(scope);
 		   if (prefix) {
 		     String *fbase, *tbase;
@@ -3826,7 +3877,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		     Delete(fbase);
 		     Delete(tbase);
 		   }
-                   if (Strcmp($2, "class") == 0) {
+                   if (Strcmp($cpptype, "class") == 0) {
 		     cplus_mode = CPLUS_PRIVATE;
 		   } else {
 		     cplus_mode = CPLUS_PUBLIC;
@@ -3864,6 +3915,9 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		     Setattr($$, "code", code);
 		     Delete(code);
 		   }
+                   if ($attribute) {
+                     Setattr($$, "attribute", $attribute);
+                   }
                } cpp_members RBRACE cpp_opt_declarators {
 		   Node *p;
 		   SwigType *ty;
@@ -3890,7 +3944,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   Delattr($$, "prev_symtab");
 		   
 		   /* Check for pure-abstract class */
-		   Setattr($$,"abstracts", pure_abstracts($8));
+		   Setattr($$,"abstracts", pure_abstracts($9));
 		   
 		   /* This bit of code merges in a previously defined %extend directive (if any) */
 		   {
@@ -3906,12 +3960,12 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   scpname = Swig_symbol_qualifiedscopename(0);
 		   Setattr(classes, scpname, $$);
 
-		   appendChild($$, $8);
+		   appendChild($$, $9);
 		   
 		   if (am) 
 		     Swig_extend_append_previous($$, am);
 
-		   p = $10;
+		   p = $11;
 		   if (p && !nscope_inner) {
 		     if (!cparse_cplusplus && currentOuterClass)
 		       appendChild(currentOuterClass, p);
@@ -3922,20 +3976,20 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   if (nscope_inner) {
 		     ty = NewString(scpname); /* if the class is declared out of scope, let the declarator use fully qualified type*/
 		   } else if (cparse_cplusplus && !cparse_externc) {
-		     ty = NewString(Getattr($7, "name"));
+		     ty = NewString(Getattr($8, "name"));
 		   } else {
-		     ty = NewStringf("%s %s", $2, Getattr($7, "name"));
+		     ty = NewStringf("%s %s", $3, Getattr($8, "name"));
 		   }
 		   while (p) {
-		     Setattr(p, "storage", $1);
+		     Setattr(p, "storage", $2);
 		     Setattr(p, "type" ,ty);
 		     if (!cparse_cplusplus && currentOuterClass && (!Getattr(currentOuterClass, "name"))) {
 		       SetFlag(p, "hasconsttype");
 		     }
 		     p = nextSibling(p);
 		   }
-		   if ($10 && Cmp($1,"typedef") == 0)
-		     add_typedef_name($$, $10, Getattr($7, "name"), cscope, scpname);
+		   if ($11 && Cmp($2,"typedef") == 0)
+		     add_typedef_name($$, $11, Getattr($8, "name"), cscope, scpname);
 		   Delete(scpname);
 
 		   if (cplus_mode != CPLUS_PUBLIC) {
@@ -3957,12 +4011,12 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   if (cplus_mode == CPLUS_PRIVATE) {
 		     $$ = 0; /* skip private nested classes */
 		   } else if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
-		     $$ = nested_forward_declaration($1, $2, Getattr($7, "name"), Copy(Getattr($7, "name")), $10);
+		     $$ = nested_forward_declaration($2, $3, Getattr($8, "name"), Copy(Getattr($8, "name")), $11);
 		   } else if (nscope_inner) {
 		     /* this is tricky */
 		     /* we add the declaration in the original namespace */
 		     if (Strcmp(nodeType(nscope_inner), "class") == 0 && cparse_cplusplus && ignore_nested_classes && !GetFlag($$, "feature:flatnested"))
-		       $$ = nested_forward_declaration($1, $2, Getattr($7, "name"), Copy(Getattr($7, "name")), $10);
+		       $$ = nested_forward_declaration($2, $3, Getattr($8, "name"), Copy(Getattr($8, "name")), $11);
 		     appendChild(nscope_inner, $$);
 		     Swig_symbol_setscope(Getattr(nscope_inner, "symtab"));
 		     Delete(Namespaceprefix);
@@ -3974,14 +4028,14 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		     Swig_symbol_setscope(cscope);
 		     Delete(Namespaceprefix);
 		     Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		     add_symbols($10);
+		     add_symbols($11);
 		     if (nscope) {
 		       $$ = nscope; /* here we return recreated namespace tower instead of the class itself */
-		       if ($10) {
-			 appendSibling($$, $10);
+		       if ($11) {
+			 appendSibling($$, $11);
 		       }
 		     } else if (!SwigType_istemplate(ty) && template_parameters == 0) { /* for template we need the class itself */
-		       $$ = $10;
+		       $$ = $11;
 		     }
 		   } else {
 		     Delete(yyrename);
@@ -3992,7 +4046,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 			 outer = Getattr(outer, "nested:outer");
 		       appendSibling(outer, $$);
 		       Swig_symbol_setscope(cscope); /* declaration goes in the parent scope */
-		       add_symbols($10);
+		       add_symbols($11);
 		       set_scope_to_global();
 		       Delete(Namespaceprefix);
 		       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
@@ -4005,7 +4059,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		     } else {
 		       yyrename = Copy(Getattr($$, "class_rename"));
 		       add_symbols($$);
-		       add_symbols($10);
+		       add_symbols($11);
 		       Delattr($$, "class_rename");
 		     }
 		   }
@@ -4018,18 +4072,18 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 
 /* An unnamed struct, possibly with a typedef */
 
-             | storage_class cpptype inherit LBRACE <node>{
+             | attribute storage_class cpptype inherit LBRACE <node>{
 	       String *unnamed;
 	       String *code;
 	       unnamed = make_unnamed();
 	       $$ = new_node("class");
-	       Setattr($$,"kind",$2);
-	       if ($3) {
-		 Setattr($$,"baselist", Getattr($3,"public"));
-		 Setattr($$,"protectedbaselist", Getattr($3,"protected"));
-		 Setattr($$,"privatebaselist", Getattr($3,"private"));
+	       Setattr($$,"kind",$cpptype);
+	       if ($inherit) {
+		 Setattr($$,"baselist", Getattr($inherit,"public"));
+		 Setattr($$,"protectedbaselist", Getattr($inherit,"protected"));
+		 Setattr($$,"privatebaselist", Getattr($inherit,"private"));
 	       }
-	       Setattr($$,"storage",$1);
+	       Setattr($$,"storage",$storage_class);
 	       Setattr($$,"unnamed",unnamed);
 	       Setattr($$,"allows_typedef","1");
 	       if (currentOuterClass) {
@@ -4040,7 +4094,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       Swig_features_get(Swig_cparse_features(), Namespaceprefix, 0, 0, $$);
 	       /* save yyrename to the class attribute, to be used later in add_symbols()*/
 	       Setattr($$, "class_rename", make_name($$,0,0));
-	       if (Strcmp($2, "class") == 0) {
+	       if (Strcmp($cpptype, "class") == 0) {
 		 cplus_mode = CPLUS_PRIVATE;
 	       } else {
 		 cplus_mode = CPLUS_PUBLIC;
@@ -4056,13 +4110,16 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       code = get_raw_text_balanced('{', '}');
 	       Setattr($$, "code", code);
 	       Delete(code);
+               if ($attribute) {
+                 Setattr($$, "attribute", $attribute);
+               }
 	     } cpp_members RBRACE cpp_opt_declarators {
 	       String *unnamed;
                List *bases = 0;
 	       String *name = 0;
 	       Node *n;
 	       Classprefix = 0;
-	       (void)$5;
+	       (void)$6;
 	       $$ = currentOuterClass;
 	       currentOuterClass = Getattr($$, "nested:outer");
 	       if (!currentOuterClass)
@@ -4071,26 +4128,26 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		 restore_access_mode($$);
 	       unnamed = Getattr($$,"unnamed");
                /* Check for pure-abstract class */
-	       Setattr($$,"abstracts", pure_abstracts($6));
-	       n = $8;
+	       Setattr($$,"abstracts", pure_abstracts($7));
+	       n = $9;
 	       if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
 		 String *name = n ? Copy(Getattr(n, "name")) : 0;
-		 $$ = nested_forward_declaration($1, $2, 0, name, n);
+		 $$ = nested_forward_declaration($2, $3, 0, name, n);
 		 Swig_symbol_popscope();
 	         Delete(Namespaceprefix);
 		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       } else if (n) {
 	         appendSibling($$,n);
 		 /* If a proper typedef name was given, we'll use it to set the scope name */
-		 name = try_to_find_a_name_for_unnamed_structure($1, n);
+		 name = try_to_find_a_name_for_unnamed_structure($2, n);
 		 if (name) {
 		   String *scpname = 0;
 		   SwigType *ty;
 		   Setattr($$,"tdname",name);
 		   Setattr($$,"name",name);
 		   Swig_symbol_setscopename(name);
-		   if ($3)
-		     bases = Swig_make_inherit_list(name,Getattr($3,"public"),Namespaceprefix);
+		   if ($4)
+		     bases = Swig_make_inherit_list(name,Getattr($4,"public"),Namespaceprefix);
 		   Swig_inherit_base_symbols(bases);
 
 		     /* If a proper name was given, we use that as the typedef, not unnamed */
@@ -4099,17 +4156,17 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   if (cparse_cplusplus && !cparse_externc) {
 		     ty = NewString(name);
 		   } else {
-		     ty = NewStringf("%s %s", $2,name);
+		     ty = NewStringf("%s %s", $3,name);
 		   }
 		   while (n) {
-		     Setattr(n,"storage",$1);
+		     Setattr(n,"storage",$2);
 		     Setattr(n, "type", ty);
 		     if (!cparse_cplusplus && currentOuterClass && (!Getattr(currentOuterClass, "name"))) {
 		       SetFlag(n,"hasconsttype");
 		     }
 		     n = nextSibling(n);
 		   }
-		   n = $8;
+		   n = $9;
 
 		   /* Check for previous extensions */
 		   {
@@ -4131,13 +4188,13 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   Setattr($$, "nested:unnamed", Getattr(n, "name")); /* save the name of the first declarator for later use in name generation*/
 		   while (n) { /* attach unnamed struct to the declarators, so that they would receive proper type later*/
 		     Setattr(n, "nested:unnamedtype", $$);
-		     Setattr(n, "storage", $1);
+		     Setattr(n, "storage", $2);
 		     n = nextSibling(n);
 		   }
-		   n = $8;
+		   n = $9;
 		   Swig_symbol_setscopename("<unnamed>");
 		 }
-		 appendChild($$,$6);
+		 appendChild($$,$7);
 		 /* Pop the scope */
 		 Setattr($$,"symtab",Swig_symbol_popscope());
 		 if (name) {
@@ -4155,9 +4212,9 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		 Swig_symbol_popscope();
 	         Delete(Namespaceprefix);
 		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-		 add_symbols($6);
+		 add_symbols($7);
 		 Delete($$);
-		 $$ = $6; /* pass member list to outer class/namespace (instead of self)*/
+		 $$ = $7; /* pass member list to outer class/namespace (instead of self)*/
 	       }
 	       Classprefix = currentOuterClass ? Getattr(currentOuterClass, "Classprefix") : 0;
               }
@@ -4166,28 +4223,31 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 cpp_opt_declarators :  SEMI { $$ = 0; }
                     |  declarator cpp_const initializer c_decl_tail {
                         $$ = new_node("cdecl");
-                        Setattr($$,"name",$1.id);
-                        Setattr($$,"decl",$1.type);
-                        Setattr($$,"parms",$1.parms);
-			set_nextSibling($$, $4);
+                        Setattr($$,"name",$declarator.id);
+                        Setattr($$,"decl",$declarator.type);
+                        Setattr($$,"parms",$declarator.parms);
+			set_nextSibling($$, $c_decl_tail);
                     }
                     ;
 /* ------------------------------------------------------------
    class Name;
    ------------------------------------------------------------ */
 
-cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
-	      if ($1 && Strstr($1, "friend")) {
+cpp_forward_class_decl : attribute storage_class cpptype idcolon SEMI {
+	      if ($storage_class && Strstr($storage_class, "friend")) {
 		/* Ignore */
                 $$ = 0; 
 	      } else {
 		$$ = new_node("classforward");
-		Setattr($$,"kind",$2);
-		Setattr($$,"name",$3);
+		Setattr($$,"kind",$cpptype);
+		Setattr($$,"name",$idcolon);
 		Setattr($$,"sym:weak", "1");
 		add_symbols($$);
 	      }
-	      Delete($1);
+	      Delete($storage_class);
+              if ($attribute) {
+                Setattr($$, "attribute", $attribute);
+              }
              }
              ;
 
@@ -4198,7 +4258,7 @@ cpp_forward_class_decl : storage_class cpptype idcolon SEMI {
 cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN { 
 		    if (currentOuterClass)
 		      Setattr(currentOuterClass, "template_parameters", template_parameters);
-		    template_parameters = $3; 
+		    template_parameters = $template_parms; 
 		    parsing_template_declaration = 1;
 		  } cpp_template_possible {
 			String *tname = 0;
@@ -4411,13 +4471,13 @@ cpp_template_decl : TEMPLATE LESSTHAN template_parms GREATERTHAN {
 		}
 
 		/* Class template explicit instantiation declaration (extern template) */
-		| EXTERN TEMPLATE cpptype idcolon {
+		| attribute EXTERN TEMPLATE cpptype idcolon {
 		  Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
                   $$ = 0; 
                 }
 
 		/* Function template explicit instantiation declaration (extern template) */
-		| EXTERN TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
+		| attribute EXTERN TEMPLATE cpp_alternate_rettype idcolon LPAREN parms RPAREN {
 			Swig_warning(WARN_PARSE_EXTERN_TEMPLATE, cparse_file, cparse_line, "Extern template ignored.\n");
                   $$ = 0; 
 		}
@@ -4722,7 +4782,12 @@ cpp_member_no_dox : c_declaration
              | cpp_conversion_operator
              | cpp_forward_class_decl
 	     | cpp_class_decl
-             | storage_class idcolon SEMI { $$ = 0; Delete($1); }
+             | attribute storage_class idcolon SEMI {
+                $$ = 0; Delete($2);
+                if ($attribute) {
+                  Setattr($$, "attribute", $attribute);
+                }
+             }
              | cpp_using_decl
              | cpp_template_decl
              | cpp_catch_decl
@@ -4750,45 +4815,48 @@ cpp_member   : cpp_member_no_dox
             typedef Foo (*ptr)();
 */
   
-cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
+cpp_constructor_decl : attribute storage_class type LPAREN parms RPAREN ctor_end {
 	      /* Cannot be a constructor declaration/definition if parsed as a friend destructor/constructor
 	         or a badly declared friend function without return type */
-	      int isfriend = Strstr($1, "friend") != NULL;
+	      int isfriend = Strstr($storage_class, "friend") != NULL;
 	      if (!isfriend && (inclass || extendmode)) {
-	        String *name = SwigType_templateprefix($2); /* A constructor can optionally be declared with template parameters before C++20, strip these off */
+	        String *name = SwigType_templateprefix($type); /* A constructor can optionally be declared with template parameters before C++20, strip these off */
 		SwigType *decl = NewStringEmpty();
 		$$ = new_node("constructor");
-		Setattr($$,"storage",$1);
+		Setattr($$,"storage",$storage_class);
 		Setattr($$, "name", name);
-		Setattr($$,"parms",$4);
-		SwigType_add_function(decl,$4);
+		Setattr($$,"parms",$parms);
+		SwigType_add_function(decl,$parms);
 		Setattr($$,"decl",decl);
-		Setattr($$,"throws",$6.throws);
-		Setattr($$,"throw",$6.throwf);
-		Setattr($$,"noexcept",$6.nexcept);
-		Setattr($$,"final",$6.final);
+		Setattr($$,"throws",$ctor_end.throws);
+		Setattr($$,"throw",$ctor_end.throwf);
+		Setattr($$,"noexcept",$ctor_end.nexcept);
+		Setattr($$,"final",$ctor_end.final);
 		if (Len(scanner_ccode)) {
 		  String *code = Copy(scanner_ccode);
 		  Setattr($$,"code",code);
 		  Delete(code);
 		}
 		SetFlag($$,"feature:new");
-		if ($6.defarg)
-		  Setattr($$,"value",$6.defarg);
+		if ($ctor_end.defarg)
+		  Setattr($$,"value",$ctor_end.defarg);
 	      } else {
 		$$ = 0;
-		Delete($1);
+		Delete($storage_class);
+              }
+              if ($attribute) {
+                Setattr($$, "attribute", $attribute);
               }
               }
               ;
 
 /* A destructor */
 
-cpp_destructor_decl : storage_class NOT idtemplate LPAREN parms RPAREN cpp_vend {
-	       String *name = SwigType_templateprefix($3); /* A destructor can optionally be declared with template parameters before C++20, strip these off */
+cpp_destructor_decl : attribute storage_class NOT idtemplate LPAREN parms RPAREN cpp_vend {
+	       String *name = SwigType_templateprefix($idtemplate); /* A destructor can optionally be declared with template parameters before C++20, strip these off */
 	       Insert(name, 0, "~");
 	       $$ = new_node("destructor");
-	       Setattr($$, "storage", $1);
+	       Setattr($$, "storage", $storage_class);
 	       Setattr($$, "name", name);
 	       Delete(name);
 	       if (Len(scanner_ccode)) {
@@ -4798,135 +4866,153 @@ cpp_destructor_decl : storage_class NOT idtemplate LPAREN parms RPAREN cpp_vend 
 	       }
 	       {
 		 String *decl = NewStringEmpty();
-		 SwigType_add_function(decl, $5);
+		 SwigType_add_function(decl, $parms);
 		 Setattr($$, "decl", decl);
 		 Delete(decl);
 	       }
-	       Setattr($$, "throws", $7.throws);
-	       Setattr($$, "throw", $7.throwf);
-	       Setattr($$, "noexcept", $7.nexcept);
-	       Setattr($$, "final", $7.final);
-	       if ($7.val) {
-		 if (Equal($7.val, "0")) {
-		   if (!Strstr($1, "virtual"))
+	       Setattr($$, "throws", $cpp_vend.throws);
+	       Setattr($$, "throw", $cpp_vend.throwf);
+	       Setattr($$, "noexcept", $cpp_vend.nexcept);
+	       Setattr($$, "final", $cpp_vend.final);
+	       if ($cpp_vend.val) {
+		 if (Equal($cpp_vend.val, "0")) {
+		   if (!Strstr($storage_class, "virtual"))
 		     Swig_error(cparse_file, cparse_line, "Destructor %s uses a pure specifier but is not virtual.\n", Swig_name_decl($$));
-		 } else if (!(Equal($7.val, "delete") || Equal($7.val, "default"))) {
+		 } else if (!(Equal($cpp_vend.val, "delete") || Equal($cpp_vend.val, "default"))) {
 		   Swig_error(cparse_file, cparse_line, "Destructor %s has an invalid pure specifier, only = 0 is allowed.\n", Swig_name_decl($$));
 		 }
-		 Setattr($$, "value", $7.val);
+		 Setattr($$, "value", $cpp_vend.val);
 	       }
 	       /* TODO: check all storage decl-specifiers are valid */
-	       if ($7.qualifier)
-		 Swig_error(cparse_file, cparse_line, "Destructor %s %s cannot have a qualifier.\n", Swig_name_decl($$), SwigType_str($7.qualifier, 0));
+	       if ($cpp_vend.qualifier)
+		 Swig_error(cparse_file, cparse_line, "Destructor %s %s cannot have a qualifier.\n", Swig_name_decl($$), SwigType_str($cpp_vend.qualifier, 0));
 	       add_symbols($$);
+               if ($attribute) {
+                 Setattr($$, "attribute", $attribute);
+               }
 	      }
               ;
 
 
 /* C++ type conversion operator */
-cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN parms RPAREN cpp_vend {
+cpp_conversion_operator : attribute storage_class CONVERSIONOPERATOR type pointer LPAREN parms RPAREN cpp_vend {
                  $$ = new_node("cdecl");
-                 Setattr($$,"type",$3);
-		 Setattr($$,"name",$2);
-		 Setattr($$,"storage",$1);
+                 Setattr($$,"type",$type);
+		 Setattr($$,"name",$CONVERSIONOPERATOR);
+		 Setattr($$,"storage",$storage_class);
 
-		 SwigType_add_function($4,$6);
-		 if ($8.qualifier) {
-		   SwigType_push($4,$8.qualifier);
+		 SwigType_add_function($pointer,$parms);
+		 if ($cpp_vend.qualifier) {
+		   SwigType_push($pointer,$cpp_vend.qualifier);
 		 }
-		 if ($8.val) {
-		   Setattr($$,"value",$8.val);
+		 if ($cpp_vend.val) {
+		   Setattr($$,"value",$cpp_vend.val);
 		 }
-		 Setattr($$,"refqualifier",$8.refqualifier);
-		 Setattr($$,"decl",$4);
-		 Setattr($$,"parms",$6);
+		 Setattr($$,"refqualifier",$cpp_vend.refqualifier);
+		 Setattr($$,"decl",$pointer);
+		 Setattr($$,"parms",$parms);
 		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
+                 if ($attribute) {
+                   Setattr($$, "attribute", $attribute);
+                 }
               }
-               | storage_class CONVERSIONOPERATOR type AND LPAREN parms RPAREN cpp_vend {
+               | attribute storage_class CONVERSIONOPERATOR type AND LPAREN parms RPAREN cpp_vend {
 		 SwigType *decl;
                  $$ = new_node("cdecl");
-                 Setattr($$,"type",$3);
-		 Setattr($$,"name",$2);
-		 Setattr($$,"storage",$1);
+                 Setattr($$,"type",$type);
+		 Setattr($$,"name",$CONVERSIONOPERATOR);
+		 Setattr($$,"storage",$storage_class);
 		 decl = NewStringEmpty();
 		 SwigType_add_reference(decl);
-		 SwigType_add_function(decl,$6);
-		 if ($8.qualifier) {
-		   SwigType_push(decl,$8.qualifier);
+		 SwigType_add_function(decl,$parms);
+		 if ($cpp_vend.qualifier) {
+		   SwigType_push(decl,$cpp_vend.qualifier);
 		 }
-		 if ($8.val) {
-		   Setattr($$,"value",$8.val);
+		 if ($cpp_vend.val) {
+		   Setattr($$,"value",$cpp_vend.val);
 		 }
-		 Setattr($$,"refqualifier",$8.refqualifier);
+		 Setattr($$,"refqualifier",$cpp_vend.refqualifier);
 		 Setattr($$,"decl",decl);
-		 Setattr($$,"parms",$6);
+		 Setattr($$,"parms",$parms);
 		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
+                 if ($attribute) {
+                   Setattr($$, "attribute", $attribute);
+                 }
 	       }
-               | storage_class CONVERSIONOPERATOR type LAND LPAREN parms RPAREN cpp_vend {
+               | attribute storage_class CONVERSIONOPERATOR type LAND LPAREN parms RPAREN cpp_vend {
 		 SwigType *decl;
                  $$ = new_node("cdecl");
-                 Setattr($$,"type",$3);
-		 Setattr($$,"name",$2);
-		 Setattr($$,"storage",$1);
+                 Setattr($$,"type",$type);
+		 Setattr($$,"name",$CONVERSIONOPERATOR);
+		 Setattr($$,"storage",$storage_class);
 		 decl = NewStringEmpty();
 		 SwigType_add_rvalue_reference(decl);
-		 SwigType_add_function(decl,$6);
-		 if ($8.qualifier) {
-		   SwigType_push(decl,$8.qualifier);
+		 SwigType_add_function(decl,$parms);
+		 if ($cpp_vend.qualifier) {
+		   SwigType_push(decl,$cpp_vend.qualifier);
 		 }
-		 if ($8.val) {
-		   Setattr($$,"value",$8.val);
+		 if ($cpp_vend.val) {
+		   Setattr($$,"value",$cpp_vend.val);
 		 }
-		 Setattr($$,"refqualifier",$8.refqualifier);
+		 Setattr($$,"refqualifier",$cpp_vend.refqualifier);
 		 Setattr($$,"decl",decl);
-		 Setattr($$,"parms",$6);
+		 Setattr($$,"parms",$parms);
 		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
+                 if ($attribute) {
+                   Setattr($$, "attribute", $attribute);
+                 }
 	       }
 
-               | storage_class CONVERSIONOPERATOR type pointer AND LPAREN parms RPAREN cpp_vend {
+               | attribute storage_class CONVERSIONOPERATOR type pointer AND LPAREN parms RPAREN cpp_vend {
 		 SwigType *decl;
                  $$ = new_node("cdecl");
-                 Setattr($$,"type",$3);
-		 Setattr($$,"name",$2);
-		 Setattr($$,"storage",$1);
+                 Setattr($$,"type",$type);
+		 Setattr($$,"name",$CONVERSIONOPERATOR);
+		 Setattr($$,"storage",$storage_class);
 		 decl = NewStringEmpty();
 		 SwigType_add_pointer(decl);
 		 SwigType_add_reference(decl);
-		 SwigType_add_function(decl,$7);
-		 if ($9.qualifier) {
-		   SwigType_push(decl,$9.qualifier);
+		 SwigType_add_function(decl,$parms);
+		 if ($cpp_vend.qualifier) {
+		   SwigType_push(decl,$cpp_vend.qualifier);
 		 }
-		 if ($9.val) {
-		   Setattr($$,"value",$9.val);
+		 if ($cpp_vend.val) {
+		   Setattr($$,"value",$cpp_vend.val);
 		 }
-		 Setattr($$,"refqualifier",$9.refqualifier);
+		 Setattr($$,"refqualifier",$cpp_vend.refqualifier);
 		 Setattr($$,"decl",decl);
-		 Setattr($$,"parms",$7);
+		 Setattr($$,"parms",$parms);
 		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
+                 if ($attribute) {
+                   Setattr($$, "attribute", $attribute);
+                 }
 	       }
 
-              | storage_class CONVERSIONOPERATOR type LPAREN parms RPAREN cpp_vend {
+              | attribute storage_class CONVERSIONOPERATOR type LPAREN parms RPAREN cpp_vend {
 		String *t = NewStringEmpty();
 		$$ = new_node("cdecl");
-		Setattr($$,"type",$3);
-		Setattr($$,"name",$2);
-		 Setattr($$,"storage",$1);
-		SwigType_add_function(t,$5);
-		if ($7.qualifier) {
-		  SwigType_push(t,$7.qualifier);
+		Setattr($$,"type",$type);
+		Setattr($$,"name",$CONVERSIONOPERATOR);
+		 Setattr($$,"storage",$storage_class);
+		SwigType_add_function(t,$parms);
+		if ($cpp_vend.qualifier) {
+		  SwigType_push(t,$cpp_vend.qualifier);
 		}
-		if ($7.val) {
-		  Setattr($$,"value",$7.val);
+		if ($cpp_vend.val) {
+		  Setattr($$,"value",$cpp_vend.val);
 		}
-		Setattr($$,"refqualifier",$7.refqualifier);
+		Setattr($$,"refqualifier",$cpp_vend.refqualifier);
 		Setattr($$,"decl",t);
-		Setattr($$,"parms",$5);
+		Setattr($$,"parms",$parms);
 		Setattr($$,"conversion_operator","1");
 		add_symbols($$);
+                if ($attribute) {
+                  Setattr($$, "attribute", $attribute);
+                }
               }
               ;
 
@@ -5021,7 +5107,7 @@ cpp_vend       : cpp_const SEMI {
                ;
 
 
-anonymous_bitfield :  storage_class anon_bitfield_type COLON expr SEMI { Delete($1); };
+anonymous_bitfield :  attribute storage_class anon_bitfield_type COLON expr SEMI { Delete($2); };
 
 /* Equals type_right without the ENUM keyword and cpptype (templates etc.): */
 anon_bitfield_type : primitive_type
@@ -5178,6 +5264,7 @@ parm_no_dox	: rawtype parameter_declarator {
 		;
 
 parm		: parm_no_dox
+                | attribute_notopt parm_no_dox { $$ = $2; }
 		| DOXYGENSTRING parm_no_dox {
 		  $$ = $2;
 		  set_comment($2, $1);
@@ -6488,10 +6575,18 @@ enumlist_item	: optional_ignored_defines edecl_with_dox optional_ignored_defines
 		}
 		;
 
-edecl_with_dox	: edecl
-		| DOXYGENSTRING edecl {
+edecl_with_dox	: edecl attribute {
+                  $$ = $edecl;
+                  if ($attribute) {
+                    Setattr($$, "attribute", $attribute);
+                  }
+                }
+		| DOXYGENSTRING edecl attribute {
 		  $$ = $2;
 		  set_comment($2, $1);
+                  if ($attribute) {
+                    Setattr($$, "attribute", $attribute);
+                  }
 		}
 		;
 
@@ -7073,13 +7168,19 @@ templcpptype   : CLASS variadic_opt {
                ;
 
 cpptype        : templcpptype
-               | STRUCT {
+               | STRUCT attribute {
                    $$ = NewString("struct");
 		   if (!inherit_list) last_cpptype = $$;
+                   if ($attribute) {
+                     Setattr($$, "attribute", $attribute);
+                   }
                }
-               | UNION {
+               | UNION attribute {
                    $$ = NewString("union");
 		   if (!inherit_list) last_cpptype = $$;
+                   if ($attribute) {
+                     Setattr($$, "attribute", $attribute);
+                   }
                }
                ;
 
@@ -7413,6 +7514,68 @@ idcolontailnt   : DCOLON identifier idcolontailnt {
 		 $$ = NewStringf("::~%s",$2);
                }
                ;
+
+/* C++11/C23 attributes of the form [[gnu::visibility("hidden"), noreturn]] [[nodiscard]] */
+attribute : attribute_notopt
+	        | %empty { $$ = 0; }
+                ;
+
+/* Non-empty variant of the previous item */
+attribute_notopt : attribute_item
+                | attribute_item attribute_notopt {
+                  $$ = $2;
+                  Iterator i;
+                  Append($$, $1);
+                  for (i = First($1); i.key; i = Next(i)) {
+                    Setattr($$, i.key, i.item);
+                  }
+                  Delete($1);
+                }
+                ;
+
+/* Single item: [[gnu::visibility("hidden"), noreturn]] */
+attribute_item : LLBRACKET attribute_nspace attribute_list RRBRACKET {
+                  $$ = $3;
+                  if ($2) {
+                    /* Transform [[using gnu: visibility("hidden"), always_inline]] into
+                     * [[gnu::("hidden"), gnu::always_inline]]
+                     */
+                    $$ = NewHash();
+                    Setattr($$, $2, $3);
+                  }
+                }
+                ;
+
+/* C++17 form: "using gnu:" */
+attribute_nspace : USING identifier COLON { $$ = NewString($2); }
+                | %empty { $$ = 0; }
+
+/* An attribute list of the form "gnu::visibility("hidden"), noreturn" */
+attribute_list : attribute_element {
+                  $$ = NewHash();
+                  Setattr($$, $1.type, $1.us);
+                }
+                | attribute_element COMMA attribute_list {
+                  $$ = $3;
+                  Setattr($$, $1.type, $1.us);
+                }
+                ;
+
+/* Single element of the form "gnu::visibility("hidden")" or "noreturn" */
+attribute_element : idstring {
+                  $$.type = NewString($1);
+                  $$.us = NewString("1");
+                }
+                | idstring LPAREN callparms RPAREN {
+                  $$.type = NewString($1);
+                  $$.us = $3.val;
+                }
+                | idstring DCOLON attribute_element {
+                  $$.type = NewString($1);
+                  $$.us = NewHash();
+                  Setattr($$.us, $3.type, $3.us);
+                }
+                ;
 
 /* Concatenated strings */
 string         : string STRING { 

@@ -663,6 +663,7 @@ CPP11_TEST_CASES += \
 	cpp11_using_typedef_struct \
 	cpp11_variadic_function_templates \
 	cpp11_variadic_templates \
+	cpp11_ignore_attributes
 
 # Broken C++11 test cases.
 CPP11_TEST_BROKEN = \
@@ -686,6 +687,7 @@ CPP17_TEST_CASES += \
 	cpp17_nspace_nested_namespaces \
 	cpp17_string_view \
 	cpp17_u8_char_literals \
+	cpp17_attribute_specifiers
 
 # Broken C++17 test cases.
 CPP17_TEST_BROKEN = \
@@ -864,6 +866,7 @@ preproc_include.ctest: SWIGOPT += -includeall
 command_line_define.ctest: SWIGOPT += -DFOO -DBAR=123 -DBAZ -UBAZ -UNOTSET
 preproc_predefined_stdc.ctest: SWIGOPT += -std=c23
 preproc_predefined_stdcpp.cpptest: SWIGOPT += -std=c++23
+cpp11_ignore_attributes.cpptest: SWIGOPT += -ignoreattrs
 
 # Allow modules to define temporarily failing tests.
 C_TEST_CASES := $(filter-out $(FAILING_C_TESTS),$(C_TEST_CASES))
