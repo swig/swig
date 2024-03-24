@@ -122,8 +122,8 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
 SWIGINTERN void
 SwigPyStaticVar_dealloc(PyDescrObject *descr) {
   PyObject_GC_UnTrack(descr);
-  SWIG_Py_XDECREF(PyDescr_TYPE(descr));
-  SWIG_Py_XDECREF(PyDescr_NAME(descr));
+  SWIG_Py_XDECREF((PyObject *)PyDescr_TYPE(descr));
+  SWIG_Py_XDECREF((PyObject *)PyDescr_NAME(descr));
   PyObject_GC_Del(descr);
 }
 
@@ -392,7 +392,7 @@ SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
   PyDescr_NAME(descr) = PyString_InternFromString(getset->name);
   descr->d_getset = getset;
   if (PyDescr_NAME(descr) == NULL) {
-    SWIG_Py_DECREF(descr);
+    SWIG_Py_DECREF((PyObject *)descr);
     descr = NULL;
   }
   return descr;

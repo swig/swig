@@ -4039,8 +4039,8 @@ public:
       if (GetFlag(mgetset, "static")) {
 	Printf(f, "static PyGetSetDef %s_def = %s;\n", gspair, entry);
 	Printf(f_init, "static_getset = SwigPyStaticVar_new_getset(metatype, &%s_def);\n", gspair);
-	Printf(f_init, "PyDict_SetItemString(d, static_getset->d_getset->name, (PyObject *) static_getset);\n");
-	Printf(f_init, "SWIG_Py_DECREF(static_getset);\n");
+	Printf(f_init, "PyDict_SetItemString(d, static_getset->d_getset->name, (PyObject *)static_getset);\n");
+	Printf(f_init, "SWIG_Py_DECREF((PyObject *)static_getset);\n");
       } else {
 	Printf(getset_def, "    %s,\n", entry);
       }
