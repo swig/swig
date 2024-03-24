@@ -95,3 +95,16 @@ SWIG_Python_str_FromChar(const char *c)
 # define PyList_SET_ITEM PyList_SetItem
 # define PySliceObject PyObject
 #endif
+
+/* Increment and Decrement wrappers - for portability when using the stable abi and for performance otherwise */
+#ifdef Py_LIMITED_API
+# define SWIG_Py_INCREF Py_IncRef
+# define SWIG_Py_XINCREF Py_IncRef
+# define SWIG_Py_DECREF Py_DecRef
+# define SWIG_Py_XDECREF Py_DecRef
+#else
+# define SWIG_Py_INCREF Py_INCREF
+# define SWIG_Py_XINCREF Py_XINCREF
+# define SWIG_Py_DECREF Py_DECREF
+# define SWIG_Py_XDECREF Py_XDECREF
+#endif
