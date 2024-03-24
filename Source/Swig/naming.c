@@ -1337,8 +1337,13 @@ static int name_match_nameobj(Hash *rn, Node *n) {
       match = 0;
       if (nval) {
 	String *kwval = Getattr(mi, "value");
-	match = regexmatch ? name_regexmatch_value(n, kwval, nval)
-	    : name_match_value(kwval, nval);
+        if (Len(kwval) == 0) {
+          // Special case of empty string matches everything that is not null
+          match = 1;
+        } else {
+	  match = regexmatch ? name_regexmatch_value(n, kwval, nval)
+	      : name_match_value(kwval, nval);
+        }
 #ifdef SWIG_DEBUG
 	Printf(stdout, "val %s %s %d %d \n", nval, kwval, match, ilen);
 #endif
