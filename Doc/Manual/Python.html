@@ -157,7 +157,8 @@
 
 <p>
 This chapter describes SWIG's support of Python.  SWIG is compatible
-with all recent Python versions (Python 2.7 and Python &gt;= 3.3).  SWIG 4.0.x
+with all recent Python versions (Python 2.7 and Python &gt;= 3.3), though
+the oldest Python 3 version we regularly test with is Python 3.5.  SWIG 4.0.x
 supported Python 3.2.  SWIG 3.0.x supported older Python 2.x and 3.x.
 </p>
 
@@ -888,7 +889,7 @@ and use the <tt>import</tt> command as normal. For example :
 <div class="targetlang"><pre>
 $ python
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; print example.fact(4)
+&gt;&gt;&gt; print(example.fact(4))
 24
 &gt;&gt;&gt;
 </pre></div>
@@ -1015,7 +1016,7 @@ like you think it does:
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; print example.fact(4)
+&gt;&gt;&gt; print(example.fact(4))
 24
 &gt;&gt;&gt;
 </pre></div>
@@ -1075,7 +1076,7 @@ Now look at the Python interface:
 <div class="targetlang"><pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; # Print out value of a C global variable
-&gt;&gt;&gt; print example.cvar.My_variable
+&gt;&gt;&gt; print(example.cvar.My_variable)
 4
 &gt;&gt;&gt; # Set the value of a C global variable
 &gt;&gt;&gt; example.cvar.density = 0.8442
@@ -1237,7 +1238,7 @@ simply represented as opaque values using an especial Python container object:
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; print f
+&gt;&gt;&gt; print(f)
 &lt;Swig Object of type 'FILE *' at 0xb7d6f470&gt;
 </pre></div>
 
@@ -1255,7 +1256,7 @@ always retrieve it by casting the pointer object to a string:
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; print str(f)
+&gt;&gt;&gt; print(str(f))
 _c0671108_p_FILE
 </pre></div>
 
@@ -1266,7 +1267,7 @@ integer:
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; print int(f)
+&gt;&gt;&gt; print(int(f))
 135833352
 </pre></div>
 
@@ -1362,7 +1363,7 @@ is used as follows:
 &gt;&gt;&gt; v = example.Vector()
 &gt;&gt;&gt; v.x = 3.5
 &gt;&gt;&gt; v.y = 7.2
-&gt;&gt;&gt; print v.x, v.y, v.z
+&gt;&gt;&gt; print(v.x, v.y, v.z)
 3.5 7.2 0.0
 &gt;&gt;&gt;
 </pre></div>
@@ -1378,7 +1379,7 @@ something like this:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; print v
+&gt;&gt;&gt; print(v)
 &lt;C Vector instance at _18e31408_p_Vector&gt;
 </pre>
 </div>
@@ -1392,7 +1393,7 @@ attribute.  For example:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; print v.this
+&gt;&gt;&gt; print(v.this)
 _18e31408_p_Vector
 &gt;&gt;&gt;
 </pre>
@@ -1448,7 +1449,7 @@ If accessed in Python, you will see behavior like this:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; b = example.Bar()
-&gt;&gt;&gt; print b.x
+&gt;&gt;&gt; print(b.x)
 _801861a4_p_int
 &gt;&gt;&gt;
 </pre>
@@ -1580,7 +1581,7 @@ you can use it in Python like this:
 &gt;&gt;&gt; l.insert("Lager")
 &gt;&gt;&gt; l.get(1)
 'Stout'
-&gt;&gt;&gt; print l.length
+&gt;&gt;&gt; print(l.length)
 3
 &gt;&gt;&gt;
 </pre></div>
@@ -2022,7 +2023,7 @@ it works in Python as follows:
 6
 &gt;&gt;&gt; v = example.Vector()
 &gt;&gt;&gt; v.x = 3.4
-&gt;&gt;&gt; print v.y
+&gt;&gt;&gt; print(v.y)
 0.0
 &gt;&gt;&gt;
 </pre>
@@ -2766,7 +2767,7 @@ public:
 <pre>
 &gt;&gt;&gt; f = Foo()
 &gt;&gt;&gt; s = f.spam()
-&gt;&gt;&gt; print s.thisown
+&gt;&gt;&gt; print(s.thisown)
 0
 &gt;&gt;&gt;
 </pre>
@@ -3016,7 +3017,7 @@ class MyFoo(mymodule.Foo):
 #       super().__init__(foo) # Alternative construction for Python3
 
     def one(self):
-        print "one from Python"
+        print("one from Python")
 </pre>
 </div>
 
@@ -3755,7 +3756,7 @@ Now, in Python
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; v = example.Vector(2, 3, 4)
-&gt;&gt;&gt; print v
+&gt;&gt;&gt; print(v)
 Vector(2, 3, 4)
 &gt;&gt;&gt;
 </pre>
@@ -3789,7 +3790,7 @@ Use it like this:
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; v = example.Vector(2, 3, 4)
 &gt;&gt;&gt; w = example.Vector(10, 11, 12)
-&gt;&gt;&gt; print v+w
+&gt;&gt;&gt; print(v+w)
 Vector(12, 14, 16)
 &gt;&gt;&gt;
 </pre>
@@ -4129,10 +4130,10 @@ In Python, this allows you to pass simple values.  For example:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = add(3, 4)
-&gt;&gt;&gt; print a
+&gt;&gt;&gt; print(a)
 7
 &gt;&gt;&gt; b = sub(7, 4)
-&gt;&gt;&gt; print b
+&gt;&gt;&gt; print(b)
 3
 &gt;&gt;&gt;
 </pre>
@@ -4192,7 +4193,7 @@ In Python, a mutated parameter shows up as a return value.  For example:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = negate(3)
-&gt;&gt;&gt; print a
+&gt;&gt;&gt; print(a)
 -3
 &gt;&gt;&gt;
 </pre>
@@ -4238,9 +4239,9 @@ When used in Python, the function will return multiple values.
 <pre>
 bytes, success = send_message("Hello World")
 if not success:
-    print "Whoa!"
+    print("Whoa!")
 else:
-    print "Sent", bytes
+    print("Sent", bytes)
 </pre>
 </div>
 
@@ -4336,10 +4337,10 @@ In Python, you would use the functions like this:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; result = new_intp()
-&gt;&gt;&gt; print result
+&gt;&gt;&gt; print(result)
 _108fea8_p_int
 &gt;&gt;&gt; add(3, 4, result)
-&gt;&gt;&gt; print intp_value(result)
+&gt;&gt;&gt; print(intp_value(result))
 7
 &gt;&gt;&gt;
 </pre>
@@ -4353,7 +4354,7 @@ If you replace <tt>%pointer_functions()</tt> by <tt>%pointer_class(type, name)</
 <pre>
 &gt;&gt;&gt; result = intp()
 &gt;&gt;&gt; add(3, 4, result)
-&gt;&gt;&gt; print result.value()
+&gt;&gt;&gt; print(result.value())
 7
 </pre>
 </div>
@@ -5187,7 +5188,7 @@ function can now be used as follows:
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; a = spam(4, 5)
-&gt;&gt;&gt; print a
+&gt;&gt;&gt; print(a)
 (0, 2.45, 5.0)
 &gt;&gt;&gt; x, y, z = spam(4, 5)
 &gt;&gt;&gt;
@@ -6602,9 +6603,9 @@ example:
 <pre>
 %define MODULEIMPORT
 "
-print 'Loading low-level module $module'
+print('Loading low-level module $module')
 import $module
-print 'Module has loaded'
+print('Module has loaded')
 "
 %enddef
 
@@ -6618,9 +6619,9 @@ This will of course generate the following into the pure Python module:
 
 <div class="targetlang">
 <pre>
-print 'Loading low-level module $module'
+print('Loading low-level module $module')
 import _foo
-print 'Module has loaded'
+print('Module has loaded')
 </pre>
 </div>
 
