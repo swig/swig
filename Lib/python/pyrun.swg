@@ -259,21 +259,21 @@ swig_varlink_str(PyObject *o) {
   for (var = v->vars; var; var=var->next) {
     tail = PyUnicode_FromString(var->name);
     joined = PyUnicode_Concat(str, tail);
-    Py_DecRef(str);
-    Py_DecRef(tail);
+    SWIG_Py_DECREF(str);
+    SWIG_Py_DECREF(tail);
     str = joined;
     if (var->next) {
         tail = PyUnicode_InternFromString(", ");
         joined = PyUnicode_Concat(str, tail);
-        Py_DecRef(str);
-        Py_DecRef(tail);
+        SWIG_Py_DECREF(str);
+        SWIG_Py_DECREF(tail);
         str = joined;
     }
   }
   tail = PyUnicode_InternFromString(")");
   joined = PyUnicode_Concat(str, tail);
-  Py_DecRef(str);
-  Py_DecRef(tail);
+  SWIG_Py_DECREF(str);
+  SWIG_Py_DECREF(tail);
   str = joined;
 #else
   PyObject *str = PyString_FromString("(");
@@ -669,14 +669,14 @@ SwigPyObject_repr(SwigPyObject *v)
     if (nrep) {
 # if PY_VERSION_HEX >= 0x03000000
       PyObject *joined = PyUnicode_Concat(repr, nrep);
-      Py_DecRef(repr);
-      Py_DecRef(nrep);
+      SWIG_Py_DECREF(repr);
+      SWIG_Py_DECREF(nrep);
       repr = joined;
 # else
       PyString_ConcatAndDel(&repr,nrep);
 # endif
     } else {
-      Py_DecRef(repr);
+      SWIG_Py_DECREF(repr);
       repr = NULL;
     }
   }
