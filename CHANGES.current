@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-03-25: olly
+	    #2848 Fix elision of comma before ##__VARARGS__ which we document
+	    as supported but seems to have not worked since before 2009.
+
 2024-03-11: wsfulton
             [C#] Improve handling and documentation of missing enum base type information.
 

@@ -450,3 +450,19 @@ BAR2() {
     return 0;
 }
 %}
+
+/* Regression test for handling elision of comma before ##__VARARGS__
+ * https://github.com/swig/swig/issues/2848
+ */
+#define DECLARE_GLOBAL_VAR(...) int global_var, ##__VA_ARGS__;
+#define DECLARE_GLOBAL_VAR2(NAMED...) int global_var, ##NAMED;
+DECLARE_GLOBAL_VAR()
+DECLARE_GLOBAL_VAR2()
+
+/* Show the C compiler simple definitions as ##__VARARGS__ is a GCC extension
+ * so we can't rely on the compiler supporting it.
+ */
+%{
+int global_var = 42;
+int global_var2 = 345;
+%}

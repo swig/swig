@@ -929,6 +929,26 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 	Printf(temp, "\002%s", aname);
 	Append(tempa, "\002\003");
 	Replace(ns, temp, tempa, DOH_REPLACE_ID_END);
+	if (isvarargs && i == l - 1 && Len(arg) == 0) {
+	  // ## followed by a zero length varargs macro argument - if preceded
+	  // by a comma (possibly with whitespace in between) we nuke the
+	  // comma.
+	  char *s = Char(ns);
+	  char *a = s + 1;
+	  while ((a = strstr(a, "\002\003")) != NULL) {
+	    char *t = a;
+	    while (--t >= s) {
+	      if (!isspace((unsigned char)*t)) {
+		if (*t == ',') *t = ' ';
+		break;
+	      }
+	    }
+	    // Advance 3 since we're only interested in \002\003 when it could
+	    // be preceded by a comma.
+	    a += 3;
+	  }
+	}
+
 	Clear(temp);
 	Clear(tempa);
 	Printf(temp, "%s\002", aname);
@@ -975,36 +995,6 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 	Delete(marg);
       }
 
-      if (isvarargs && i == l - 1 && Len(arg) == 0) {
-	/* Zero length varargs macro argument.   We search for commas that might appear before and nuke them */
-	char *a, *s, *t, *name;
-	int namelen;
-	s = Char(ns);
-	name = Char(aname);
-	namelen = Len(aname);
-	a = strstr(s, name);
-	while (a) {
-	  char ca = a[namelen];
-	  if (!isidchar((int) ca)) {
-	    /* Matched the entire vararg name, not just a prefix */
-	    if (a > s) {
-	      t = a - 1;
-	      if (*t == '\002') {
-		t--;
-		while (t >= s) {
-		  if (isspace((int) *t))
-		    t--;
-		  else if (*t == ',') {
-		    *t = ' ';
-		  } else
-		    break;
-		}
-	      }
-	    }
-	  }
-	  a = strstr(a + namelen, name);
-	}
-      }
       /*      Replace(ns, aname, arg, DOH_REPLACE_ID); */
       Replace(ns, aname, reparg, DOH_REPLACE_ID);	/* Replace expanded args */
       Replace(ns, "\003", arg, DOH_REPLACE_ANY);	/* Replace unexpanded arg */
