@@ -289,30 +289,24 @@ void Preprocessor_error_as_warning(int a) {
 
 
 String *Macro_vararg_name(const_String_or_char_ptr str, const_String_or_char_ptr line) {
-  String *argname;
   String *varargname;
   char *s, *dots;
 
-  argname = Copy(str);
-  s = Char(argname);
+  s = Char(str);
   dots = strchr(s, '.');
   if (!dots) {
-    Delete(argname);
     return NULL;
   }
 
   if (strcmp(dots, "...") != 0) {
     Swig_error(Getfile(line), Getline(line), "Illegal macro argument name '%s'\n", str);
-    Delete(argname);
     return NULL;
   }
   if (dots == s) {
     varargname = NewString("__VA_ARGS__");
   } else {
-    *dots = '\0';
-    varargname = NewString(s);
+    varargname = NewStringWithSize(s, (int)(dots - s));
   }
-  Delete(argname);
   return varargname;
 }
 
