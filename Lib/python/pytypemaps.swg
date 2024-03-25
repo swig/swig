@@ -98,7 +98,7 @@
     if (robj && !PyErr_Occurred()) {
       SwigPyObject_append((PyObject *) SWIG_Python_GetSwigThis($result), 
 			  (PyObject *) SWIG_Python_GetSwigThis(robj));
-      Py_DECREF(robj);
+      SWIG_Py_DECREF(robj);
     }
   }
 }

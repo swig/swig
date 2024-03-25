@@ -132,7 +132,7 @@ namespace swig {
 %#if defined(SWIGPYTHON_BUILTIN)
   inline PyObject* make_output_iterator_builtin (PyObject *pyself)
   {
-    Py_INCREF(pyself);
+    SWIG_Py_INCREF(pyself);
     return pyself;
   }
 %#endif

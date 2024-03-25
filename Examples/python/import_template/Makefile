@@ -23,5 +23,7 @@ build:
 
 
 clean:
-	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='$(TARGET)' python_clean
-	rm -f foo.py bar.py spam.py base.py
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='base' python_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='foo' python_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='bar' python_clean
+	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='spam' python_clean
