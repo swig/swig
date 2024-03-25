@@ -4110,6 +4110,12 @@ If <tt>Py_LIMITED_API</tt> is not set, the check fails, but this should be expec
 </pre>
 </div>
 
+<p>
+Note that ABI conformance as measured by <tt>abi3audit</tt> is far from simple and can depend on function inlining.
+There are functions in Python.h, which if inlined, become ABI compliant.
+Your chances of your C or C++ compiler inlining functions is greater with higher compiler optimisation levels.
+So merely by changing your compiler optimisation level may switch your Python extension from being identified as ABI compliant or not.
+</p>
 
 <p>
 <b>Compatibility Note:</b> Support for the stable ABI was added in SWIG-4.2.0.
