@@ -34,8 +34,9 @@
 // booleans end
 
 
-// Comma in macro - https://github.com/swig/swig/issues/974 (for /* */)
-// and https://github.com/swig/swig/pull/1166 (for //)
+// Regression tests for bugs handling a comma in a comment in a macro:
+// - https://github.com/swig/swig/issues/974 (for /* */)
+// - https://github.com/swig/swig/pull/1166 (for //)
 // Also see preproc.i
 %inline %{
 #define swig__attribute__(x)
