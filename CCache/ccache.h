@@ -2,40 +2,50 @@
 
 #define CCACHE_VERSION SWIG_VERSION
 
-#ifndef _WIN32
 #include "config.h"
-#else
-#include <sys/locking.h>
-#include "config_win32.h"
-#endif
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-
-#ifndef _WIN32
- #include <sys/wait.h>
- #include <sys/mman.h>
-#else
-#ifndef _WIN32_WINNT
- #define _WIN32_WINNT 0x0500
-#endif
+#ifdef _WIN32
+ #ifndef _WIN32_WINNT
+ /* minimum Windows OS SDK */
+ #define _WIN32_WINNT _WIN32_WINNT_WIN2K /* 0x0500 Windows 2000 */
+ #endif
  #include <windows.h>
  #include <shlobj.h>
-#endif
+ #include <io.h>
+ #include <direct.h>
+ #include <sys/locking.h>
+ #include <sys/utime.h>
+ #define MYNAME PROGRAM_NAME ".exe"
+#else /* _WIN32 */
+ #include <sys/wait.h>
+ #include <sys/mman.h>
+ #define MYNAME PROGRAM_NAME
+#endif /* _WIN32 */
 
-#include <sys/file.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <time.h>
 #include <string.h>
-#include <ctype.h>
-#include <utime.h>
 #include <stdarg.h>
-#include <dirent.h>
 #include <limits.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+#ifdef HAVE_SYS_STAT_H
+#include <sys/stat.h>
+#endif
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_CTYPE_H
+#include <ctype.h>
+#endif
+#ifdef HAVE_DIRENT_H
+#include <dirent.h>
+#endif
 #ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
@@ -51,9 +61,7 @@
 #define STATUS_FATAL 4
 #define STATUS_NOCACHE 5
 
-#define MYNAME PROGRAM_NAME
-
-#define LIMIT_MULTIPLE 0.8
+#define LIMIT_MULTIPLE(n) ((n) * 4 / 5) // 0.8
 
 /* default maximum cache size */
 #ifndef DEFAULT_MAXSIZE
@@ -104,7 +112,7 @@ void hash_string(const char *s);
 void hash_int(int x);
 void hash_file(const char *fname);
 char *hash_result(void);
-void hash_buffer(const char *s, int len);
+void hash_buffer(const char *s, size_t len);
 
 void cc_log(const char *format, ...);
 void fatal(const char *msg);
@@ -195,15 +203,24 @@ extern int ccache_verbose;
 typedef int (*COMPAR_FN_T)(const void *, const void *);
 #endif
 
-/* work with silly DOS binary open */
+#ifdef _WIN32
+#ifdef _MSC_VER
+/* https://learn.microsoft.com/en-us/cpp/c-runtime-library/security-features-in-the-crt
+ * Supress Security Features in the CRT warnings */
+#define _CRT_SECURE_NO_WARNINGS
+/* Suppress deprecated POSIX names */
+#pragma warning( disable : 4996 )
+typedef int mode_t;
+#endif /* _MSC_VER */
+#ifndef S_ISREG
+#define S_ISREG(mode) (((mode) & S_IFREG) == S_IFREG)
+#endif
+#ifndef S_ISDIR
+#define S_ISDIR(mode) (((mode) & S_IFDIR) == S_IFDIR)
+#endif
+#else /* _WIN32 */
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
+#endif /* _WIN32 */
 
-/* mkstemp() on some versions of cygwin don't handle binary files, so
-   override */
-/* Seems okay in Cygwin 1.7.0
-#ifdef __CYGWIN__
-#undef HAVE_MKSTEMP
-#endif
-*/

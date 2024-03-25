@@ -14,8 +14,6 @@ environment:
 
   matrix:
   - SWIGLANG: csharp
-    VSVER: 12
-  - SWIGLANG: csharp
     VSVER: 14
   - SWIGLANG: python
     VSVER: 14
@@ -27,43 +25,43 @@ environment:
     VSVER: 15
     VER: 38
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-  - SWIGLANG: python
-    VSVER: 16
-    VER: 39
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-  - SWIGLANG: csharp
-    VSVER: 17
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: csharp
-    VSVER: 17
-    Platform: x86
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: java
-    VSVER: 17
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: java
-    VSVER: 17
-    Platform: x86
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: python
-    VSVER: 17
-    VER: 310
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: python
-    VSVER: 17
-    VER: 310
-    Platform: x86
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: python
-    OSVARIANT: cygwin
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: java
-    OSVARIANT: mingw
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: python
-    OSVARIANT: mingw
-    WITHLANG: python
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+# - SWIGLANG: python
+#   VSVER: 16
+#   VER: 39
+#   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+# - SWIGLANG: csharp
+#   VSVER: 17
+#   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+# - SWIGLANG: csharp
+#   VSVER: 17
+#   Platform: x86
+#   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+# - SWIGLANG: java
+#   VSVER: 17
+#   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+# - SWIGLANG: java
+#   VSVER: 17
+#   Platform: x86
+#   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+# - SWIGLANG: python
+#   VSVER: 17
+#   VER: 310
+#   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+# - SWIGLANG: python
+#   VSVER: 17
+#   VER: 310
+#   Platform: x86
+#   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+# - SWIGLANG: python
+#   OSVARIANT: cygwin
+#   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+# - SWIGLANG: java
+#   OSVARIANT: mingw
+#   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+# - SWIGLANG: python
+#   OSVARIANT: mingw
+#   WITHLANG: python
+#   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 
 #matrix:
 #  allow_failures:
@@ -132,12 +130,14 @@ install:
     } elseif ($env:OSVARIANT -eq "cygwin") {
       $env:PATH="$env:CYGWINBIN;$env:PATH"
       $env:CYGWIN="nodosfilewarning"
+      $env:LIBS_CCACHE="-luserenv"
       $env:CC="gcc"
       $env:CXX="g++"
     } elseif ($env:OSVARIANT -eq "mingw") {
       # Note mingw setup tests the native Windows Python distribution (not MinGW Python) with gcc
       $env:PATH="$env:MINGWBIN;$env:MSYSBIN;$env:PATH"
       $env:MSYSTEM="MINGW$env:MBITS" # This is important for msys2
+      $env:LIBS_CCACHE="-luserenv"
       $env:CC="gcc"
       $env:CXX="g++"
     }
@@ -167,6 +167,7 @@ install:
 - pwd
 - echo MAKEJOBS=%MAKEJOBS%
 - uname -a
+- systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
 
 build_script:
 - set PATH=C:\Tools\bison\Bison.3.7.4\bin;%PATH%

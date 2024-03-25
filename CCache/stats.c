@@ -151,8 +151,8 @@ static void stats_update_size(enum stats stat, size_t size, size_t numfiles)
 
 	/* on a cache miss we up the file count and size */
 	if (stat == STATS_TOCACHE) {
-		counters[STATS_NUMFILES] += numfiles;
-		counters[STATS_TOTALSIZE] += size;
+		counters[STATS_NUMFILES] += (unsigned)numfiles;
+		counters[STATS_TOTALSIZE] += (unsigned)size;
 	}
 
 	/* and write them out */
@@ -355,8 +355,8 @@ void stats_set_sizes(const char *dir, size_t num_files, size_t total_size)
 	if (fd != -1) {
 		lock_fd(fd);
 		stats_read_fd(fd, counters);
-		counters[STATS_NUMFILES] = num_files;
-		counters[STATS_TOTALSIZE] = total_size;
+		counters[STATS_NUMFILES] = (unsigned)num_files;
+		counters[STATS_TOTALSIZE] = (unsigned)total_size;
 		write_stats(fd, counters);
 		close(fd);
 	}

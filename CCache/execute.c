@@ -21,7 +21,7 @@
 #ifdef _WIN32
 char *argvtos(char **argv)
 {
-	int i, len;
+	size_t i, len;
 	char *ptr, *str;
 
 	for (i = 0, len = 0; argv[i]; i++) {

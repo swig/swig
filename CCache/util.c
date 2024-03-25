@@ -18,6 +18,90 @@
 
 #include "ccache.h"
 
+#ifdef _WIN32
+#include <userenv.h> /* For GetUserProfileDirectoryA() */
+__inline static int link(const char *oldpath, const char *newpath)
+{
+	if(CreateHardLinkA(newpath, oldpath, NULL)) {
+		return 0;
+	}
+	if(GetLastError() == ERROR_ALREADY_EXISTS) {
+		errno = EEXIST;
+	}
+	return -1;
+}
+#ifndef HAVE_DIRENT_H
+struct dirent {
+	const char *d_name;
+};
+struct DIR_t {
+	struct _finddata_t data;
+	intptr_t handle;
+	const char *name;
+	struct dirent dnt;
+};
+typedef struct DIR_t DIR;
+DIR *opendir(const char *name)
+{
+	DIR *d = malloc(sizeof(struct DIR_t));
+	if(d == NULL) {
+		return NULL;
+	}
+	d->name = name;
+	d->handle = 0;
+	return NULL;
+}
+struct dirent *readdir(DIR *d) {
+	if (d == NULL)
+		return NULL;
+	if (d->handle == 0) {
+		intptr_t handle = _findfirst(d->name, &d->data);
+		if (handle == -1) {
+			return NULL;
+
+		}
+		d->handle = handle;
+	} else {
+		int r = _findnext(d->handle, &d->data);
+		if(r) {
+			return NULL;
+		}
+	}
+	d->dnt.d_name = d->data.name;
+	return &(d->dnt);
+}
+int closedir(DIR *d) {
+	if (d != NULL) {
+		if (d->handle) {
+			_findclose(d->handle);
+		}
+		free(d);
+	}
+	return 0;
+}
+#endif /* !HAVE_DIRENT_H */
+#ifdef _MSC_VER
+#pragma comment(lib, "userenv.lib") /* provide GetUserProfileDirectoryA() */
+#pragma comment(lib, "advapi32.lib") /* Provide OpenProcessToken() */
+__inline static int mkstemp(char *tmpl)
+{
+	/* cheap and nasty replacement */
+	return _open(tmpnam(tmpl), _O_RDWR | _O_CREAT | _O_EXCL | _O_BINARY);
+}
+#endif /* _MSC_VER */
+#endif /* _WIN32 */
+/* get perms right on the tmp file */
+__inline static void l_fchmod(int fd)
+{
+#ifndef _WIN32
+	mode_t mask = umask(0);
+	fchmod(fd, 0666 & ~mask);
+	umask(mask);
+#else
+	(void)fd;
+#endif
+}
+
 static FILE *logfile;
 
 /* log a message to the CCACHE_LOGFILE location */
@@ -50,13 +134,8 @@ int safe_rename(const char* oldpath, const char* newpath)
 
 	   Works like rename(), but it never overwrites an existing
 	   cache entry. This avoids corruption on NFS. */
-#ifndef _WIN32
 	int status = link(oldpath, newpath);
 	if( status == 0 || errno == EEXIST )
-#else
-	int status = CreateHardLinkA(newpath, oldpath, NULL) ? 0 : -1;
-	if( status == 0 || GetLastError() == ERROR_ALREADY_EXISTS )
-#endif
 	{
 		return unlink( oldpath );
 	}
@@ -80,15 +159,6 @@ void copy_fd(int fd_in, int fd_out)
 	}
 }
 
-#ifndef HAVE_MKSTEMP
-/* cheap and nasty mkstemp replacement */
-int mkstemp(char *template)
-{
-	mktemp(template);
-	return open(template, O_RDWR | O_CREAT | O_EXCL | O_BINARY, 0600);
-}
-#endif
-
 /* move a file using rename */
 int move_file(const char *src, const char *dest) {
 	return safe_rename(src, dest);
@@ -103,7 +173,6 @@ static int copy_file(const char *src, const char *dest)
 	char buf[10240];
 	int n;
 	char *tmp_name;
-	mode_t mask;
 
 	x_asprintf(&tmp_name, "%s.XXXXXX", dest);
 
@@ -133,13 +202,7 @@ static int copy_file(const char *src, const char *dest)
 	close(fd1);
 
 	/* get perms right on the tmp file */
-#ifndef _WIN32
-	mask = umask(0);
-	fchmod(fd2, 0666 & ~mask);
-	umask(mask);
-#else
-	(void)mask;
-#endif
+	l_fchmod(fd2);
 
 	/* the close can fail on NFS if out of space */
 	if (close(fd2) == -1) {
@@ -202,7 +265,6 @@ static int _copy_file(const char *src, const char *dest, int mode) {
 	char buf[10240];
 	int n, ret;
 	char *tmp_name;
-	mode_t mask;
 	struct stat st;
 
 	x_asprintf(&tmp_name, "%s.XXXXXX", dest);
@@ -285,9 +347,7 @@ static int _copy_file(const char *src, const char *dest, int mode) {
 	}
 
 	/* get perms right on the tmp file */
-	mask = umask(0);
-	fchmod(fd_out, 0666 & ~mask);
-	umask(mask);
+	l_fchmod(fd_out);
 
 	/* the close can fail on NFS if out of space */
 	if (close(fd_out) == -1) {
@@ -357,11 +417,7 @@ int commit_to_cache(const char *src, const char *dest, int hardlink)
 	if (stat(src, &st) == 0) {
 		unlink(dest);
 		if (hardlink) {
-#ifdef _WIN32
-			ret = CreateHardLinkA(dest, src, NULL) ? 0 : -1;
-#else
 			ret = link(src, dest);
-#endif
 		}
 		if (ret == -1) {
 			ret = copy_file_to_cache(src, dest);
@@ -390,11 +446,7 @@ int retrieve_from_cache(const char *src, const char *dest, int hardlink)
 		unlink(dest);
 		/* only make a hardlink if the cache file is uncompressed */
 		if (hardlink && test_if_compressed(src) == 0) {
-#ifdef _WIN32
-			ret = CreateHardLinkA(dest, src, NULL) ? 0 : -1;
-#else
 			ret = link(src, dest);
-#endif
 		} else {
 			ret = copy_file_from_cache(src, dest);
 		}
@@ -636,6 +688,9 @@ char *dirname(char *s)
 int lock_fd(int fd)
 {
 #ifdef _WIN32
+	/* TODO
+	   Windows files are locked by default
+	   as long as the file descriptor is open */
 #  if 1
 	return _locking(fd, _LK_NBLCK, 1);
 #  else
@@ -825,22 +880,36 @@ const char *get_home_directory(void)
 {
 #ifdef _WIN32
 	static char home_path[MAX_PATH] = {0};
-	HRESULT ret;
+	// HRESULT ret;
+	HANDLE token;
 
 	/* we already have the path */
 	if (home_path[0] != 0) {
 		return home_path;
 	}
 
+    /* As we already use minimum Windows 2000 SDK,
+     * we can use GetUserProfileDirectoryA() */
+	if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token)) {
+		DWORD len = MAX_PATH - 1;
+		if(GetUserProfileDirectoryA(token, (LPSTR)&home_path, &len)) {
+			home_path[MAX_PATH - 1] = 0;
+			CloseHandle(token);
+				return home_path;
+		}
+		CloseHandle(token);
+	}
+#if 0
+	// SHGetFolderPathA is deprecated
 	/* get the path to "Application Data" folder */
 	ret = SHGetFolderPathA(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE, NULL, 0, home_path);
 	if (SUCCEEDED(ret)) {
 		return home_path;
 	}
 
+#endif
 	fprintf(stderr, "ccache: Unable to determine home directory\n");
-	return NULL;
-#else
+#else /* _WIN32 */
 	const char *p = getenv("HOME");
 	if (p) {
 		return p;
@@ -854,8 +923,8 @@ const char *get_home_directory(void)
 	}
 #endif
 	fatal("Unable to determine home directory");
+#endif /* _WIN32 */
 	return NULL;
-#endif
 }
 
 int x_utimes(const char *filename)

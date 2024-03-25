@@ -97,7 +97,7 @@ static void build_table(void)
 static void pushchar(unsigned char c)
 {
 	static unsigned char buf[64];
-	static int len;
+	static size_t len = 0;
 
 	if (c == 0) {
 		if (len > 0) {
@@ -209,7 +209,7 @@ static void unify(unsigned char *p, size_t size)
 			q = p[ofs];
 			for (i=0;i<tokens[q].num_toks;i++) {
 				unsigned char *s = (unsigned char *)tokens[q].toks[i];
-				int len = strlen((char *)s);
+				size_t len = strlen((char *)s);
 				if (size >= ofs+len && memcmp(&p[ofs], s, len) == 0) {
 					int j;
 					for (j=0;s[j];j++) {
