@@ -307,7 +307,7 @@ List *SWIG_output_files() {
   return all_output_files;
 }
 
-void SWIG_setfeature(const char *cfeature, const char *cvalue) {
+static void SWIG_setfeature(const char *cfeature, const char *cvalue) {
   Hash *features_hash = Swig_cparse_features();
   String *name = NewString("");
   String *fname = NewString(cfeature);
@@ -319,7 +319,7 @@ void SWIG_setfeature(const char *cfeature, const char *cvalue) {
 }
 
 
-void SWIG_setfeatures(const char *c) {
+static void SWIG_setfeatures(const char *c) {
   char feature[64];
   char *fb = feature;
   char *fe = fb + 63;

@@ -288,7 +288,7 @@ void Preprocessor_error_as_warning(int a) {
  * ----------------------------------------------------------------------------- */
 
 
-String *Macro_vararg_name(const_String_or_char_ptr str, const_String_or_char_ptr line) {
+static String *Macro_vararg_name(const_String_or_char_ptr str, const_String_or_char_ptr line) {
   String *varargname;
   char *s, *dots;
 

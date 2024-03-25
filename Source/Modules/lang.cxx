@@ -486,7 +486,7 @@ static Node *first_nontemplate(Node *n) {
  * Handle swig pragma directives.  
  * -------------------------------------------------------------------------- */
 
-void swig_pragma(char *lang, char *name, char *value) {
+static void swig_pragma(char *lang, char *name, char *value) {
   if (strcmp(lang, "swig") == 0) {
     if (strcmp(name, "attributefunction") == 0) {
       String *nvalue = NewString(value);
