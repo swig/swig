@@ -269,6 +269,11 @@
 
 /* please leave 750-759 free for R */
 
+#define WARN_C_TYPEMAP_CTYPE_UNDEF            760
+#define WARN_C_UNSUPPORTTED                   761
+
+/* please leave 760-779 free for C */
+
 #define WARN_RUBY_WRONG_NAME                  801
 #define WARN_RUBY_MULTIPLE_INHERITANCE        802
 

@@ -128,6 +128,8 @@ struct ExtendingOptArgs1 {};
 struct ExtendingOptArgs2 {};
 %}
 
+#ifndef SWIGC
+
 // For strlen/strcpy
 %{
 #include <string.h>
@@ -150,3 +152,5 @@ struct VarargConstructor {
   }
 };
 %}
+
+#endif // !SWIGC

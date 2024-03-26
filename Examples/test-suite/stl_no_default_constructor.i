@@ -9,7 +9,7 @@ struct NoDefaultCtor {
 };
 %}
 
-#if defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGD)
+#if defined(SWIGC) || defined(SWIGCSHARP) || defined(SWIGJAVA) || defined(SWIGD)
 %template(VectorNoDefaultCtor) std::vector<NoDefaultCtor>;
 #endif
 
