@@ -58,7 +58,7 @@ case "$SWIGLANG" in
 				fi
 				$RETRY npm install -g node-addon-api
                                 if [ "$COMPILER" == "emscripten" ]; then
-      				        $RETRY npm install -g emnapi @emnapi/runtime
+      				        $RETRY npm install --ignore-scripts -g emnapi @emnapi/runtime
                                 fi
 				[[ ${SWIG_FEATURES} =~ typescript ]] && $RETRY npm install -g typescript @types/node
 				;;
