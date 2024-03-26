@@ -16,3 +16,13 @@ var napi_li_std_map = require('napi_li_std_map');
   const r = /* await */(napi_li_std_map.populate());
   if (r.a !== 1 || r.zzz !== 3) throw new Error('populate failed');
 }
+
+{
+  const r = /* await */(napi_li_std_map.return_map());
+  if (r.a !== true || r.b !== false) throw new Error('return_map failed');
+}
+
+{
+  const r = /* await */(napi_li_std_map.return_map_map());
+  if (r.map.a !== true || r.map.b !== false) throw new Error('return_map_map failed');
+}

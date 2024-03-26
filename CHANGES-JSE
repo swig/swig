@@ -11,6 +11,15 @@ Version 5.0.4
             Implement [swig/swig#2837](https://github.com/swig/swig/issues/2837),
             support `%rename` matching on C++11/C23 attributes
 
+2024-03-26: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#43](https://github.com/mmomtchev/swig/issues/43),
+            `$Tntype` expansion does not support templated classes with
+            multiple arguments
+
+2024-03-26: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#44](https://github.com/mmomtchev/swig/issues/44),
+            `std::map RETURN` typemap does not compile
+
 Version 5.0.3 (29 Feb 2024)
 ===========================
 

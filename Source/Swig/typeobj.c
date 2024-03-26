@@ -1212,8 +1212,24 @@ List *SwigType_templateargslist(const SwigType *t) {
   end = c + strlen(c) - 2;
   while (c < end) {
     next = c;
-    while (*next != ',' && next < end)
+    while (*next != ',' && next < end) {
+      if (*next == '(') {
+        next++;
+        int parens = 1;
+        while (parens > 0 && next < end) {
+          while (*next != ')' && *next != '(' && next < end)
+            next++;
+          if (next >= end)
+            break;
+          if (*next == ')')
+            parens--;
+          if (*next == '(')
+            parens++;
+          next++;
+        }
+      }
       next++;
+    }
     one_arg = NewStringWithSize(c, (int)(next - c));
     Append(l, one_arg);
     c = next + 1;

@@ -142,9 +142,6 @@ namespace std {
 //  * for values -> copies (objects must be copyable)
 //  * for references -> references to the JS objects
 //  * for pointers -> pointers to the JS objects
-// (all input arguments are protected from the GC for the duration of the operation
-// and this includes the JS array that contains the references)
-// Don't try this at home, it uses an undocumented feature of $typemap
 %typemap(in)        std::vector INPUT {
   if ($input.IsArray()) {
     Napi::Array array = $input.As<Napi::Array>();

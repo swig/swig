@@ -83,9 +83,6 @@ static_assert(std::is_same<std::string, std::remove_cv<std::remove_reference<$T0
 //  * for values -> copies (objects must be copyable)
 //  * for references -> references to the JS objects
 //  * for pointers -> pointers to the JS objects
-// (all input arguments are protected from the GC for the duration of the operation
-// and this includes the JS array that contains the references)
-// Don't try this at home, it uses an undocumented feature of $typemap
 %typemap(in)        std::map const &INPUT {
   ASSERT_STRING_MAP;
   if ($input.IsObject()) {
@@ -155,11 +152,10 @@ static_assert(std::is_same<std::string, std::remove_cv<std::remove_reference<$T0
 %typemap(out)       std::map RETURN {
   ASSERT_STRING_MAP;
   Napi::Object obj = Napi::Object::New(env);
-  for (auto const &el : $1) {
+  for (auto const &el : *&$1) {
     $T1type c_val = el.second;
     Napi::Value js_val;
-      $typemap(in, std::string, input=js_key, 1=c_key, argnum=object key);
-      $typemap(in, $T1type, input=js_val, 1=c_val, argnum=object value);
+    $typemap(out, $T1type, 1=c_val, result=js_val, argnum=object value);
     obj.Set(el.first, js_val);
   }
   $result = obj;
@@ -180,7 +176,7 @@ static_assert(std::is_same<std::string, std::remove_cv<std::remove_reference<$T0
   }
   $result = obj;
 }
-%typemap(ts)        std::map INPUT "Record<string, $typemap(ts, $T1type)>";
+%typemap(ts)        std::map RETURN "Record<string, $typemap(ts, $T1type)>";
 
 /* --------------------*/
 /* std::map *RETURN */
