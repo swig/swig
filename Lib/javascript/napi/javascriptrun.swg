@@ -23,7 +23,8 @@
 
 SWIGRUNTIME Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *msg);
 SWIGRUNTIME inline Napi::Error SWIG_NAPI_NewError(Napi::Env env, const char *msg);
-SWIGRUNTIME inline Napi::Error SWIG_NAPI_NewError(Napi::Env env, Napi::Value obj, const char *msg = SWIG_NULLPTR, swig_type_info *info = SWIG_NULLPTR);
+SWIGRUNTIME inline Napi::Error SWIG_NAPI_NewError(Napi::Env env, Napi::Value obj,
+        const char *msg = SWIG_NULLPTR, swig_type_info *info = SWIG_NULLPTR);
 SWIGRUNTIME void SWIG_NAPI_Raise(Napi::Env env, const char *msg);
 SWIGRUNTIME void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg);
 SWIGRUNTIME void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
@@ -39,6 +40,8 @@ SWIGRUNTIME
 int SWIG_NAPI_ConvertPacked(Napi::Value valRef, void *ptr, size_t size, swig_type_info *type);
 SWIGRUNTIME
 Napi::Value SWIG_NAPI_AppendOutput(Napi::Env env, Napi::Value result, Napi::Value obj);
+using SWIG_NAPI_Finalizer = std::function<void()>;
+SWIGRUNTIME int SWIG_NAPI_SetFinalizer(Napi::Env env, Napi::Value val, SWIG_NAPI_Finalizer *finalizer);
 
 void JS_veto_set_variable(const Napi::CallbackInfo &info);
 
@@ -153,6 +156,7 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
     bool owned;
     size_t size;
     swig_type_info *info;
+    std::function<void()> *finalizer; 
     SWIG_NAPI_ObjectWrap_templ(const Napi::CallbackInfo &info);
     SWIG_NAPI_ObjectWrap_templ(bool, const Napi::CallbackInfo &info) :
         Napi::ObjectWrap<SWIG_OBJ_WRAP>(info),
@@ -160,8 +164,8 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
         owned(true),
         size(0),
         info(SWIG_NULLPTR),
-        _lock() {
-    }
+        finalizer(nullptr),
+        _lock() {}
     virtual ~SWIG_NAPI_ObjectWrap_templ() = default;
 
     static void JS_veto_set_static_variable(const Napi::CallbackInfo &, const Napi::Value &);
@@ -172,6 +176,9 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
 
     Napi::Value ToString(const Napi::CallbackInfo &info);
 
+  protected:
+    void SWIG_Finalize();
+
   private:
     // Every wrapped object has an associated async lock
     std::mutex _lock;
@@ -179,7 +186,7 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
 
 template <typename SWIG_OBJ_WRAP>
 SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::SWIG_NAPI_ObjectWrap_templ(const Napi::CallbackInfo &info) :
-        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info), size(0), info(SWIG_NULLPTR), _lock() { 
+        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info), size(0), info(SWIG_NULLPTR), finalizer(SWIG_NULLPTR), _lock() { 
   Napi::Env env = info.Env();
   if (info.Length() == 1 && info[0].IsExternal()) {
     // This constructor has been called internally from C++/SWIG
@@ -218,6 +225,17 @@ void SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::JS_veto_set_static_variable(cons
 template <typename SWIG_OBJ_WRAP>
 void SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::JS_veto_set_variable(const Napi::CallbackInfo &info, const Napi::Value &value) {
   SWIG_NAPI_Raise(info.Env(), "Tried to write read-only variable.");
+}
+
+template <typename SWIG_OBJ_WRAP>
+void SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::SWIG_Finalize() {
+  if (this->finalizer) {
+    (*this->finalizer)();
+    delete this->finalizer;
+    this->finalizer = SWIG_NULLPTR;
+    this->owned = false;
+    this->self = SWIG_NULLPTR;
+  }
 }
 
 // Instantiated version of the above CRTP class

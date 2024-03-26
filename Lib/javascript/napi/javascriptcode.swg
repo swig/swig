@@ -249,6 +249,7 @@ fail:
 // js_dtor
 template <typename SWIG_OBJ_WRAP>
 $jsmangledname_templ<SWIG_OBJ_WRAP>::~$jsmangledname_templ() {
+  this->SWIG_Finalize();
 }
 %}
 
@@ -264,6 +265,7 @@ $jsmangledname_templ<SWIG_OBJ_WRAP>::~$jsmangledname_templ() {
 // js_dtoroverride
 template <typename SWIG_OBJ_WRAP>
 ${classname_mangled}_templ<SWIG_OBJ_WRAP>::~${classname_mangled}_templ() {
+  this->SWIG_Finalize();
   auto arg1 = reinterpret_cast<$jstype>(this->self);
   if (this->owned && arg1) {
     ${destructor_action}

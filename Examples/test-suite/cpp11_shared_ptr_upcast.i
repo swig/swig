@@ -13,6 +13,28 @@
 %include <std_map.i>
 %include <std_shared_ptr.i>
 
+// For JavaScript, only Node-API supports shared pointers and
+// it requires this for transparent conversion of std::vector and std::map
+// Additionally, std::map can be automatically converted only if all the
+// keys are strings
+#if defined(SWIGJAVASCRIPT) && defined(SWIG_JAVASCRIPT_NAPI)
+%include <std_string.i>
+%apply(std::vector  INPUT)    { std::vector };
+%apply(std::map     INPUT)    { std::map };
+#define map_key_t std::string
+%inline %{
+  #include <string>
+  #define map_key_t std::string
+  #define FIRST "0"
+%}
+#else
+#define map_key_t int
+%inline %{
+  #define map_key_t int
+  #define FIRST 0
+%}
+#endif
+
 %{
 
 class Base {
@@ -43,8 +65,8 @@ int derived_num2(std::vector<DerivedPtr> v) {
  return v[0] == nullptr ? 999 : (*v[0]).get_n();
 }
 
-int derived_num3(std::map<int, DerivedPtr> v) {
- return v[0] == nullptr ? 999 : (*v[0]).get_n();
+int derived_num3(std::map<map_key_t, DerivedPtr> v) {
+ return v[FIRST] == nullptr ? 999 : (*v[FIRST]).get_n();
 }
 
 int base_num1(BasePtr v) {
@@ -55,8 +77,8 @@ int base_num2(std::vector<BasePtr > v) {
  return v[0] == nullptr ? 999 : (*v[0]).get_m();
 }
 
-int base_num3(std::map<int, BasePtr > v) {
- return v[0] == nullptr ? 999 : (*v[0]).get_m();
+int base_num3(std::map<map_key_t, BasePtr > v) {
+ return v[FIRST] == nullptr ? 999 : (*v[FIRST]).get_m();
 }
 
 // overloaded
@@ -68,7 +90,7 @@ int derived_num(std::vector<DerivedPtr> v) {
  return derived_num2(v);
 }
 
-int derived_num(std::map<int, DerivedPtr> v) {
+int derived_num(std::map<map_key_t, DerivedPtr> v) {
  return derived_num3(v);
 }
 
@@ -80,7 +102,7 @@ int base_num(std::vector<BasePtr > v) {
  return base_num2(v);
 }
 
-int base_num(std::map<int, BasePtr > v) {
+int base_num(std::map<map_key_t, BasePtr > v) {
  return base_num3(v);
 }
 %}
@@ -92,8 +114,8 @@ int base_num(std::map<int, BasePtr > v) {
 %template(BaseList) std::vector<std::shared_ptr<Base> >;
 %template(DerivedList) std::vector<std::shared_ptr<Derived> >;
 
-%template(BaseMap) std::map<int, std::shared_ptr<Base> >;
-%template(DerivedMap) std::map<int, std::shared_ptr<Derived> >;
+%template(BaseMap) std::map<map_key_t, std::shared_ptr<Base> >;
+%template(DerivedMap) std::map<map_key_t, std::shared_ptr<Derived> >;
 
 class Base {
   int m;
@@ -116,18 +138,18 @@ typedef std::shared_ptr<Derived> DerivedPtr;
 // non-overloaded
 int derived_num1(DerivedPtr);
 int derived_num2(std::vector<std::shared_ptr<Derived> > v);
-int derived_num3(std::map<int, DerivedPtr> v);
+int derived_num3(std::map<map_key_t, DerivedPtr> v);
 int base_num1(BasePtr);
 int base_num2(std::vector<std::shared_ptr<Base> > v);
-int base_num3(std::map<int, BasePtr > v);
+int base_num3(std::map<map_key_t, BasePtr > v);
 
 // overloaded
 int derived_num(DerivedPtr);
 int derived_num(std::vector<std::shared_ptr<Derived> > v);
-int derived_num(std::map<int, DerivedPtr> v);
+int derived_num(std::map<map_key_t, DerivedPtr> v);
 int base_num(BasePtr);
 int base_num(std::vector<std::shared_ptr<Base> > v);
-int base_num(std::map<int, BasePtr > v);
+int base_num(std::map<map_key_t, BasePtr > v);
 
 // ptr to shared_ptr
 %shared_ptr(Base2);
@@ -153,10 +175,10 @@ public:
 %}
 
 %template(Base2List) std::vector<std::shared_ptr<Base2> * >;
-%template(Base2Map) std::map<int, std::shared_ptr<Base2> * >;
+%template(Base2Map) std::map<map_key_t, std::shared_ptr<Base2> * >;
 
 %template(Derived2List) std::vector<std::shared_ptr<Derived2> * >;
-%template(Derived2Map) std::map<int, std::shared_ptr<Derived2> * >;
+%template(Derived2Map) std::map<map_key_t, std::shared_ptr<Derived2> * >;
 
 %inline %{
 typedef std::shared_ptr<Derived2> * Derived2Ptr;
@@ -170,8 +192,8 @@ int base2_num2(std::vector<Base2Ptr> v) {
   return v[0] == nullptr ? 999 : *v[0] == nullptr ? 888 : (*v[0])->get_m();
 }
 
-int base2_num3(std::map<int, Base2Ptr> v) {
-  return v[0] == nullptr ? 999 : *v[0] == nullptr ? 888 : (*v[0])->get_m();
+int base2_num3(std::map<map_key_t, Base2Ptr> v) {
+  return v[FIRST] == nullptr ? 999 : *v[FIRST] == nullptr ? 888 : (*v[FIRST])->get_m();
 }
 
 int derived2_num1(Derived2Ptr v) {
@@ -182,7 +204,7 @@ int derived2_num2(std::vector<Derived2Ptr> v) {
   return v[0] == nullptr ? 999 : *v[0] == nullptr ? 888 : (*v[0])->get_n_2();
 }
 
-int derived2_num3(std::map<int, Derived2Ptr> v) {
-  return v[0] == nullptr ? 999 : *v[0] == nullptr ? 888 : (*v[0])->get_n_2();
+int derived2_num3(std::map<map_key_t, Derived2Ptr> v) {
+  return v[FIRST] == nullptr ? 999 : *v[FIRST] == nullptr ? 888 : (*v[FIRST])->get_n_2();
 }
 %}

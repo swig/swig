@@ -126,6 +126,7 @@ Napi::Function SWIG_NAPI_PackedObjectWrap_inst::GetClass(Napi::Env env) {
 }
 
 SWIG_NAPI_PackedObjectWrap_inst::~SWIG_NAPI_PackedObjectWrap_inst() {
+  this->SWIG_Finalize();
   if (this->owned) {
     delete[] static_cast<uint8_t *>(this->self);
     this->self = SWIG_NULLPTR;
@@ -175,7 +176,7 @@ SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
     *ptr = ow->self;
   }
 
-  if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !ow->owned) {
+  if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && (!ow->owned || ow->finalizer)) {
     return SWIG_ERROR_RELEASE_NOT_OWNED;
   } else {
     if (flags & SWIG_POINTER_DISOWN) {
@@ -220,8 +221,11 @@ fail:
 SWIGRUNTIME int SWIG_NAPI_ConvertPtr(Napi::Value valRef, void **ptr, swig_type_info *info, int flags) {
   // special case: JavaScript null => C NULL pointer
   if (valRef.IsNull()) {
+    if ((flags & SWIG_POINTER_NO_NULL) == SWIG_POINTER_NO_NULL) {
+      return SWIG_NullReferenceError;
+    }
     *ptr=0;
-    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
+    return SWIG_OK;
   }
 
   if (!valRef.IsObject()) {
@@ -281,6 +285,23 @@ SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_t
   goto fail;
 fail:
   return Napi::Value();
+#endif
+}
+
+SWIGRUNTIME int SWIG_NAPI_SetFinalizer(Napi::Env env, Napi::Value val, SWIG_NAPI_Finalizer *finalizer) {
+  Napi::Object obj;
+  SWIG_NAPI_ObjectWrap_inst *unwrapped;
+  NAPI_CHECK_RESULT(val.ToObject(), obj);
+  if (!SWIG_NAPI_IsWrappedObject(env, obj)) {
+    return SWIG_TypeError;
+  }
+  unwrapped = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj);
+  unwrapped->finalizer = finalizer;
+  return SWIG_OK;
+#ifndef NAPI_CPP_EXCEPTIONS
+  goto fail;
+fail:
+  return SWIG_ERROR;
 #endif
 }
 

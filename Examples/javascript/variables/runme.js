@@ -47,6 +47,8 @@ console.log("\nNow I'm going to try and modify some read only variables");
 console.log("Trying to set 'path'");
 try{
     example.path = "Whoa!";
+    // In SWIG Node-API this does not throw as this is the way
+    // JavaScript objects usually work
     console.log("Hey, what's going on?!?! This shouldn't work");
 }
 catch(e){
@@ -56,6 +58,8 @@ catch(e){
 console.log("Trying to set 'status'");
 try{
     example.status = 0;
+  // In SWIG Node-API this does not throw as this is the way
+  // JavaScript objects usually work
     console.log("Hey, what's going on?!?! This shouldn't work");
 } catch(e){
     console.log("Good.");

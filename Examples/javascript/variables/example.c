@@ -73,7 +73,7 @@ int *new_int(int value) {
 }
 
 /* A function to create a point */
-
+/* (as there is no destructor, this will be generate a warning in SWIG Node-API) */
 Point *new_Point(int x, int y) {
   Point *p = (Point *) malloc(sizeof(Point));
   p->x = x;

@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 5.0.4
 ===========================
 
+2024-03-22: mmomtchev
+            [JavaScript] Basic `std::shared_ptr` support for Node-API (Node.js and WASM)
+
 2024-03-20: mmomtchev
             Implement [swig/swig#2837](https://github.com/swig/swig/issues/2837),
             support `%rename` matching on C++11/C23 attributes

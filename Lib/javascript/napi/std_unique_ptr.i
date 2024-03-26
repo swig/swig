@@ -66,4 +66,9 @@
 }
 
 %template() std::unique_ptr< TYPE >;
+
+#ifdef SWIGTYPESCRIPT
+%typemap(ts) std::unique_ptr<TYPE>, std::unique_ptr<TYPE> *, std::unique_ptr<TYPE> &, std::unique_ptr<TYPE> &&
+    "$typemap(ts, TYPE)"
+#endif
 %enddef

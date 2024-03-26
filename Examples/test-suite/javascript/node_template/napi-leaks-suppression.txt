@@ -15,6 +15,7 @@ leak:template_typemaps_typedef_wrap.cxx
 leak:template_typemaps_typedef2_wrap.cxx
 leak:typedef_struct_wrap.cxx
 leak:typemap_arrays_wrap.cxx
+leak:cpp11_shared_ptr_upcast_wrap.cxx
 
 # SWIG design limits
 # https://www.swig.org/Doc4.2/SWIGDocumentation.html#Python_nn30
