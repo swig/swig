@@ -503,6 +503,10 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
   Replace(macrovalue, "\001@", "\004", DOH_REPLACE_ANY);
   /* Replace '##@' with a special token */
   Replace(macrovalue, "\002@", "\005", DOH_REPLACE_ANY);
+  if (varargs) {
+    /* Replace '__VA_OPT__' with a special token */
+    Replace(macrovalue, "__VA_OPT__", "\006", DOH_REPLACE_ID|DOH_REPLACE_ANY);
+  }
 
   /* Go create the macro */
   macro = NewHash();
@@ -918,6 +922,38 @@ static String *expand_macro(String *name, List *args, String *line_file) {
 	Printf(tempa, "\"%s\"", arg);
 	Replace(ns, temp, tempa, DOH_REPLACE_ID_END);
       }
+      if (isvarargs && i == l - 1) {
+	char *s = Char(ns);
+	char *a = s;
+	while ((a = strchr(a, '\006')) != NULL) {
+	  *a = ' ';
+	  while (isspace((unsigned char)*++a)) { }
+	  if (*a == '(') {
+	    char *e = a;
+	    int depth = 1;
+	    while (*++e) {
+	      if (*e == ')') {
+		if (--depth == 0) break;
+	      } else if (*e == '(') {
+		++depth;
+	      }
+	    }
+	    if (*e) {
+	      if (Len(arg) == 0) {
+		// Empty varargs so replace ( and ) and everything between with
+		// spaces.
+		memset(a, ' ', e - a + 1);
+	      } else {
+		// Non-empty varargs so replace ( and ) with spaces.
+		*a = ' ';
+		*e = ' ';
+	      }
+	    }
+	    a = e + 1;
+	  }
+	}
+      }
+
       if (strchr(Char(ns), '\002')) {
 	/* Look for concatenation tokens */
 	Clear(temp);

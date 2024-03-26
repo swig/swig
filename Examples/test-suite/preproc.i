@@ -472,3 +472,41 @@ DECLARE_GLOBAL_VAR2()
 int global_var = 42;
 int global_var2 = 345;
 %}
+
+/* Feature test for __VA_OPT__ support.  This was standardised in C++20 but
+ * we're only testing SWIG's support for it here so this doesn't require a
+ * C++20 compiler.
+ */
+#define DECLARE_GLOBAL_VA(N,...) int global_var##N __VA_OPT__(=)__VA_ARGS__;
+/* Named varargs is a GCC extension.  Both GCC and clang support __VA_OPT__
+ * with named varargs (albeit with a warning) and SWIG supports it too for
+ * compatibility.
+ */
+#define DECLARE_GLOBAL_NAMED(N,NAMED...) int global_var##N __VA_OPT__(=)NAMED;
+DECLARE_GLOBAL_VA(3)
+DECLARE_GLOBAL_VA(4,)
+DECLARE_GLOBAL_VA(5, )
+DECLARE_GLOBAL_VA(6, /**Hello,World)**/ )
+
+DECLARE_GLOBAL_NAMED(7)
+DECLARE_GLOBAL_NAMED(8,)
+DECLARE_GLOBAL_NAMED(9, )
+DECLARE_GLOBAL_NAMED(10, /**Hello,World)**/ )
+
+DECLARE_GLOBAL_VA(11,111)
+
+DECLARE_GLOBAL_NAMED(12,121)
+
+// Show the compiler simple definitions so we don't need __VA_OPT__ support.
+%{
+int global_var3 = 3;
+int global_var4 = 4;
+int global_var5 = 5;
+int global_var6 = 6;
+int global_var7 = 7;
+int global_var8 = 8;
+int global_var9 = 9;
+int global_var10 = 10;
+int global_var11 = 111;
+int global_var12 = 121;
+%}
