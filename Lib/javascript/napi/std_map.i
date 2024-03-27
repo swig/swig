@@ -124,7 +124,6 @@ static_assert(std::is_same<std::string, std::remove_cv<std::remove_reference<$T0
 //  * for pointers -> pointers to the JS objects
 // (all input arguments are protected from the GC for the duration of the operation
 // and this includes the JS array that contains the references)
-// Don't try this at home, it uses an undocumented feature of $typemap
 %typemap(in)        std::map INPUT {
   ASSERT_STRING_MAP;
   if ($input.IsObject()) {
@@ -143,7 +142,7 @@ static_assert(std::is_same<std::string, std::remove_cv<std::remove_reference<$T0
     %argument_fail(SWIG_TypeError, "object", $symname, $argnum);
   }
 }
-%typemap(ts)        std::map INPUT "Record<string, $typemap(ts, $T1type)>";
+%typemap(ts)        std::map INPUT = std::map const &INPUT;
 
 
 /* ----------------*/
@@ -160,7 +159,7 @@ static_assert(std::is_same<std::string, std::remove_cv<std::remove_reference<$T0
   }
   $result = obj;
 }
-%typemap(ts)        std::map RETURN "Record<string, $typemap(ts, $T1type)>";
+%typemap(ts)        std::map RETURN = std::map const &INPUT;
 
 /* -----------------*/
 /* std::map &RETURN */
@@ -176,7 +175,7 @@ static_assert(std::is_same<std::string, std::remove_cv<std::remove_reference<$T0
   }
   $result = obj;
 }
-%typemap(ts)        std::map RETURN "Record<string, $typemap(ts, $T1type)>";
+%typemap(ts)        std::map RETURN = std::map const &INPUT;
 
 /* --------------------*/
 /* std::map *RETURN */

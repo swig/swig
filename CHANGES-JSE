@@ -8,7 +8,12 @@ Version 5.0.4
 ===========================
 
 2024-03-22: mmomtchev
-            [JavaScript] Basic `std::shared_ptr` support for Node-API (Node.js and WASM)
+            [JavaScript] `std::pair` with copy conversion for Node-API
+            (Node.js and WASM)
+
+2024-03-22: mmomtchev
+            [JavaScript] Basic `std::shared_ptr` support for Node-API
+            (Node.js and WASM)
 
 2024-03-20: mmomtchev
             Implement [swig/swig#2837](https://github.com/swig/swig/issues/2837),
