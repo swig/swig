@@ -8,6 +8,9 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-03-27: wsfulton
+            [Python] #2844 Fix for using more than one std::string_view type in a method.
+
+2024-03-27: wsfulton
             [R] #2847 Add missing std::vector<long> and std::vector<long long> typemaps
             which were missing depending on whether or not SWIGWORDSIZE64 was defined.
 
