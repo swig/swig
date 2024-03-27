@@ -122,8 +122,7 @@
       }
     };
 
-   // vectors of 64 bit unsigned int
-#if defined(SWIGWORDSIZE64)
+   // vectors of unsigned long (32 or 64 bit int, depending on architecture)
     template <>
       struct traits_from_ptr<std::vector<unsigned long int> > {
       static SEXP from (std::vector<unsigned long int> *val, int owner = 0) {
@@ -137,7 +136,7 @@
         return(result);
       }
     };
-     // vectors of 64 bit int
+   // vectors of int (32 or 64 bit int, depending on architecture)
     template <>
       struct traits_from_ptr<std::vector<long int> > {
       static SEXP from (std::vector<long int> *val, int owner = 0) {
@@ -151,7 +150,8 @@
         return(result);
       }
     };
-#else
+
+   // vectors of 64 bit unsigned long long
     template <>
       struct traits_from_ptr<std::vector<unsigned long long int> > {
       static SEXP from (std::vector<unsigned long long int> *val, int owner = 0) {
@@ -179,7 +179,7 @@
         return(result);
       }
     };
-#endif
+
     // vectors of bool
     template <>
       struct traits_from_ptr<std::vector<bool> > {
@@ -194,7 +194,7 @@
         return(result);
       }
     };
-    
+
     // vectors of strings
     template <>
       struct traits_from_ptr<std::vector<std::basic_string<char> > > {
@@ -395,8 +395,7 @@
     }
   };
 
-#if defined(SWIGWORDSIZE64)
-    // 64 bit integer types
+    // long (32 bit or 64 bit depending on architecture)
     template <>
   struct traits_asptr < std::vector<unsigned long int> > {
     static int asptr(SEXP obj, std::vector<unsigned long int> **val) {
@@ -442,7 +441,6 @@
     }
   };
 
-#else
     // 64 bit integer types
     template <>
   struct traits_asptr < std::vector<unsigned long long int> > {
@@ -488,8 +486,6 @@
       return res;
     }
   };
-
-#endif
 
     template <>
   struct traits_asptr < std::vector<bool> > {
@@ -916,13 +912,11 @@ std::vector< std::basic_string<char> > *,
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<signed short>);
 %traits_type_name(std::vector<signed short>);
 
-#if defined(SWIGWORDSIZE64)
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<long int>);
 %traits_type_name(std::vector<long int>);
-#else
+
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<long long int>);
 %traits_type_name(std::vector<long long int>);
-#endif
 
 // unsigned
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<unsigned char>);
@@ -934,13 +928,11 @@ std::vector< std::basic_string<char> > *,
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<unsigned int>);
 %traits_type_name(std::vector<unsigned int>);
 
-#if defined(SWIGWORDSIZE64)
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<unsigned long int>);
 %traits_type_name(std::vector<unsigned long int>);
-#else
+
 %typemap_traits_ptr(SWIG_TYPECHECK_VECTOR, std::vector<unsigned long long int>);
 %traits_type_name(std::vector<unsigned long long int>);
-#endif
 
 // These R side typemaps are common for integer types
 // but we can't use %apply as it will copy the C side ones too
@@ -951,13 +943,11 @@ std::vector< std::basic_string<char> > *,
 %typemap("rtype") std::vector<unsigned char>, std::vector<unsigned char> *, std::vector<unsigned char> & = std::vector<int>;
 %typemap("rtype") std::vector<unsigned int>, std::vector<unsigned int> *, std::vector<unsigned int> & = std::vector<int>;
 
-#if defined(SWIGWORDSIZE64)
 %typemap("rtype") std::vector<long int>, std::vector<long int> *, std::vector<long int> & = std::vector<int>;
 %typemap("rtype") std::vector<unsigned long int>, std::vector<unsigned long int> *, std::vector<unsigned long int> & = std::vector<int>;
-#else
+
 %typemap("rtype") std::vector<long long int>, std::vector<long long int> *, std::vector<long long int> & = std::vector<int>;
 %typemap("rtype") std::vector<unsigned long long int>, std::vector<unsigned long long int> *, std::vector<unsigned long long int> & = std::vector<int>;
-#endif
 
 
 %typemap("scoercein") std::vector<signed char>, std::vector<signed char> *, std::vector<signed char> & = std::vector<int>;
@@ -965,26 +955,22 @@ std::vector< std::basic_string<char> > *,
 %typemap("scoercein") std::vector<unsigned char>, std::vector<unsigned char> *, std::vector<unsigned char> & = std::vector<int>;
 %typemap("scoercein") std::vector<unsigned int>, std::vector<unsigned int> *, std::vector<unsigned int> & = std::vector<int>;
 
-#if defined(SWIGWORDSIZE64)
 %typemap("scoercein") std::vector<long int>, std::vector<long int> *, std::vector<long int> & = std::vector<int>;
 %typemap("scoercein") std::vector<unsigned long int>, std::vector<unsigned long int> *, std::vector<unsigned long int> & = std::vector<int>;
-#else
+
 %typemap("scoercein") std::vector<long long int>, std::vector<long long int> *, std::vector<long long int> & = std::vector<int>;
 %typemap("scoercein") std::vector<unsigned long long int>, std::vector<unsigned long long int> *, std::vector<unsigned long long int> & = std::vector<int>;
-#endif
 
 %typemap("rtypecheck") std::vector<signed char>, std::vector<signed char> *, std::vector<signed char> & = std::vector<int>;
 %typemap("rtypecheck") std::vector<signed short>, std::vector<signed short> *, std::vector<signed short> & = std::vector<int>;
 %typemap("rtypecheck") std::vector<unsigned char>, std::vector<unsigned char> *, std::vector<unsigned char> & = std::vector<int>;
 %typemap("rtypecheck") std::vector<unsigned int>, std::vector<unsigned int> *, std::vector<unsigned int> & = std::vector<int>;
 
-#if defined(SWIGWORDSIZE64)
 %typemap("rtypecheck") std::vector<long int>, std::vector<long int> *, std::vector<long int> &  = std::vector<int>;
 %typemap("rtypecheck") std::vector<unsigned long int>, std::vector<unsigned long int> *, std::vector<unsigned long int> & = std::vector<int>;
-#else
+
 %typemap("rtypecheck") std::vector<long long int>, std::vector<long long int> *, std::vector<long long int> & = std::vector<int>;
 %typemap("rtypecheck") std::vector<unsigned long long int>, std::vector<unsigned long long int> *, std::vector<unsigned long long int> & = std::vector<int>;
-#endif
 
 ///////////////////////////////////////////////////////////////
 
@@ -1081,7 +1067,6 @@ std::vector< std::basic_string<char> > *,
    std::vector< std::vector<std::basic_string<char> > >&
  %{    %}
 
-#if defined(SWIGWORDSIZE64)
 %typemap(scoerceout) std::vector<long int>,
    std::vector<long int>*,
    std::vector<long int>&,
@@ -1089,7 +1074,6 @@ std::vector< std::basic_string<char> > *,
    std::vector<unsigned long int>*,
    std::vector<unsigned long int>&
  %{    %}
-#else
 
 %typemap(scoerceout) std::vector<long long int>,
    std::vector<long long int>*,
@@ -1098,8 +1082,6 @@ std::vector< std::basic_string<char> > *,
    std::vector<unsigned long long int>*,
    std::vector<unsigned long long int>&
  %{    %}
-
-#endif
 
 %apply std::vector< std::basic_string<char> > { std::vector<std::string> };
 %apply std::vector< std::vector< std::basic_string<char> > > { std::vector< std::vector<std::string> > };
