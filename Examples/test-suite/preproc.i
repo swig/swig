@@ -451,6 +451,12 @@ BAR2() {
 }
 %}
 
+/* Regression test for bug fixed in SWIG 4.3.0 with handling a comment with
+ * double * before the /
+ */
+#define STARSTARSLASH(X,...)
+STARSTARSLASH(A,/** Test **/,B) /**/
+
 /* Regression test for handling elision of comma before ##__VARARGS__
  * https://github.com/swig/swig/issues/2848
  */

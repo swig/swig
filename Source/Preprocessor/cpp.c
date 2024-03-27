@@ -630,9 +630,11 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
         if (c == '*') {
           while ((c = Getc(s)) != EOF) {
             if (c == '*') {
+another_star:
               c = Getc(s);
               if (c == '/' || c == EOF)
                 break;
+	      if (c == '*') goto another_star;
             }
           }
           c = Getc(s);
