@@ -455,7 +455,7 @@ BAR2() {
  * https://github.com/swig/swig/issues/2848
  */
 #define DECLARE_GLOBAL_VAR(...) int global_var, ##__VA_ARGS__;
-#define DECLARE_GLOBAL_VAR2(NAMED...) int global_var, ##NAMED;
+#define DECLARE_GLOBAL_VAR2(NAMED...) int global_var2, ##NAMED;
 DECLARE_GLOBAL_VAR()
 DECLARE_GLOBAL_VAR2()
 
