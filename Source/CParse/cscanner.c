@@ -40,6 +40,9 @@ int cparse_cplusplus = 0;
 /* Generate C++ compatible code when wrapping C code */
 int cparse_cplusplusout = 0;
 
+/* Ignore C++11/C23 [[attributes]] */
+int cparse_ignore_attrs = 0;
+
 /* To allow better error reporting */
 String *cparse_unknown_directive = 0;
 
@@ -115,6 +118,13 @@ void Swig_cparse_cplusplus(int v) {
 void Swig_cparse_cplusplusout(int v) {
   cparse_cplusplusout = v;
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_cparse_ignore_attrs()
+ * -----------------------------------------------------------------------------
+ */
+
+void Swig_cparse_ignore_attrs(int v) { cparse_ignore_attrs = v; }
 
 /* ----------------------------------------------------------------------------
  * scanner_init()
@@ -357,18 +367,26 @@ static int yylook(void) {
       return ELLIPSIS;
 
     case SWIG_TOKEN_LLBRACKET:
-      do {
-        tok = Scanner_token(scan);
-      } while ((tok != SWIG_TOKEN_RRBRACKET) && (tok > 0));
-      if (tok <= 0) {
-        Swig_error(cparse_file, cparse_line, "Unbalanced double brackets, missing closing (']]'). Reached end of input.\n");
+      if (cparse_ignore_attrs) {
+        do {
+          tok = Scanner_token(scan);
+        } while ((tok != SWIG_TOKEN_RRBRACKET) && (tok > 0));
+        if (tok <= 0) {
+          Swig_error(cparse_file, cparse_line,
+                     "Unbalanced double brackets, missing closing (']]'). "
+                     "Reached end of input.\n");
+        }
+        break;
       }
-      break;
+      return LLBRACKET;
 
     case SWIG_TOKEN_RRBRACKET:
-      /* Turn an unmatched ]] back into two ] - e.g. `a[a[0]]` */
-      scanner_next_token(RBRACKET);
-      return RBRACKET;
+      if (cparse_ignore_attrs) {
+        /* Turn an unmatched ]] back into two ] - e.g. `a[a[0]]` */
+        scanner_next_token(RBRACKET);
+        return RBRACKET;
+      }
+      return RRBRACKET;
 
       /* Look for multi-character sequences */
       

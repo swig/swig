@@ -29,9 +29,11 @@ extern "C" {
   extern int cparse_start_line;
   extern String *cparse_unknown_directive;
   extern int scan_doxygen_comments;
+  extern int cparse_ignore_attrs;
 
   extern void Swig_cparse_cplusplus(int);
   extern void Swig_cparse_cplusplusout(int);
+  extern void Swig_cparse_ignore_attrs(int);
   extern void scanner_file(File *);
   extern void scanner_next_token(int);
   extern int skip_balanced(int startchar, int endchar);
