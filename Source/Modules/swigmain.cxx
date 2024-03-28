@@ -27,6 +27,7 @@
 
 extern "C" {
   Language *swig_csharp(void);
+  Language* swig_csharp_il2cpp(void);
   Language *swig_d(void);
   Language *swig_go(void);
   Language *swig_guile(void);
@@ -56,6 +57,7 @@ static TargetLanguageModule modules[] = {
   {"-chicken", NULL, "CHICKEN", Disabled},
   {"-clisp", NULL, "CLISP", Disabled},
   {"-csharp", swig_csharp, "C#", Supported},
+  {"-cs_il2cpp", swig_csharp_il2cpp, "C# il2cpp", Supported},
   {"-d", swig_d, "D", Supported},
   {"-go", swig_go, "Go", Supported},
   {"-guile", swig_guile, "Guile", Supported},
