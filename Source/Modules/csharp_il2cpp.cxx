@@ -6,7 +6,7 @@
  * included with the SWIG source code as distributed by the SWIG developers
  * and at https://www.swig.org/legal.html.
  *
- * csharp.cxx
+ * csharp_il2cpp.cxx
  *
  * C# language module for SWIG.
  * ----------------------------------------------------------------------------- */
