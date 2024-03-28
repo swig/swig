@@ -728,7 +728,7 @@ let last = vec.get(vec.size() - 1);
 <div class="code">
 <pre>
 %include "std_vector.i"
-// When using the  Node-API generator, std::vector and std::map
+// When using the  Node-API generator, std::vector, std::map and std::pair
 // will have INPUT, OUTPUT and RETURN typemaps
 
 %apply(std::vector const &INPUT) { std::vector const &vec };
@@ -751,6 +751,7 @@ let last1 = vec1[vec1.length - 1];
 let last2 = vec2[vec2.length - 1];
 </pre>
 </div>
+<p>Converting the containers is supported only with Node-API and it is currently implemented only for <code>std::vector</code>, <code>std::map indexed</code> by <code>std::string</code> and <code>std::pair</code>. The current implementation requires that the container elements are default-constructible. There is limited support for non-copyable elements that is unit-tested with <code>std::unique_ptr</code> but it does not cover certain cases such as returning <code>const</code> references to static containers of static non-copyable elements. Refer to <code>Examples/test-suite/napi_li_std_vector.i</code> for an example for handling this case.</p>
 </li>
 </ul>
 

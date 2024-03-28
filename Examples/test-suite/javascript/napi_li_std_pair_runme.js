@@ -1,9 +1,9 @@
 var napi_li_std_pair = require('napi_li_std_pair');
 
 function check(flag) {
-    if (!flag) {
-        throw new Error('Check failed');
-    }
+  if (!flag) {
+    throw new Error('Check failed');
+  }
 }
 
 var intPair = /* await */(napi_li_std_pair.makeIntPair(7, 6));
@@ -44,9 +44,9 @@ check(/* await */(napi_li_std_pair.product2(intPairPtr)) === 42);
 check(/* await */(napi_li_std_pair.product3(intPairPtr)) === 42);
 
 /* Node-API specific tests */
-check(/* await */(napi_li_std_pair.product1([ 5, 401 ])) === 2005);
-check(/* await */(napi_li_std_pair.product2([ 5, 401 ])) === 2005);
-check(/* await */(napi_li_std_pair.product3([ 401, 5 ])) === 2005);
+check(/* await */(napi_li_std_pair.product1([5, 401])) === 2005);
+check(/* await */(napi_li_std_pair.product2([5, 401])) === 2005);
+check(/* await */(napi_li_std_pair.product3([401, 5])) === 2005);
 
 var p1 = /* await */(napi_li_std_pair.return_pair_in_arg_ref());
 check(p1[0] === 2005);
@@ -55,3 +55,14 @@ check(p1[1] === true);
 var p2 = /* await */(napi_li_std_pair.return_pair_in_arg_ptr());
 check(p2[0] === 2005);
 check(p2[1] === false);
+
+var { Integer } = napi_li_std_pair;
+{
+  const r = /* await */(napi_li_std_pair.return_pair_unique_ptr());
+  if (r[0] !== 'answer' || !(r[1] instanceof Integer) || r[1].value !== 42) throw new Error('return_pair_unique_ptr failed');
+}
+
+{
+  const r = /* await */(napi_li_std_pair.receive_pair_unique_ptr(['answer', new Integer(42)]));
+  if (r !== 42) throw new Error('receive_pair_unique_ptr failed');
+}

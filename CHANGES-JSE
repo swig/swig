@@ -7,7 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 5.0.4
 ===========================
 
-2024-03-22: mmomtchev
+2024-03-27: mmomtchev
+            [JavaScript] Support using `std` containers with non-copyable
+            objects
+
+2024-03-27: mmomtchev
             [JavaScript] `std::pair` with copy conversion for Node-API
             (Node.js and WASM)
 

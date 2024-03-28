@@ -26,3 +26,14 @@ var napi_li_std_map = require('napi_li_std_map');
   const r = /* await */(napi_li_std_map.return_map_map());
   if (r.map.a !== true || r.map.b !== false) throw new Error('return_map_map failed');
 }
+
+var { Integer } = napi_li_std_map;
+{
+  const r = /* await */(napi_li_std_map.return_map_unique_ptr());
+  if (!(r.answer instanceof Integer) || r.answer.value !== 42) throw new Error('return_map_unique_ptr failed');
+}
+
+{
+  const r = /* await */(napi_li_std_map.receive_map_unique_ptr({ answer: new Integer(42) }));
+  if (r !== 42) throw new Error('receive_map_unique_ptr failed');
+}

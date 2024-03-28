@@ -75,3 +75,22 @@ var napi_li_std_vector = require('napi_li_std_vector');
   const r = /* await */(napi_li_std_vector.return_vector_in_arg_ptr());
   if (r.length !== 3 || r[2] !== 8) throw new Error('return_vector_in_arg_ptr failed');
 }
+
+var { Integer } = napi_li_std_vector;
+{
+  const r = /* await */(napi_li_std_vector.return_vector_unique_ptr());
+  if (r.length !== 3 || !(r[2] instanceof Integer) || r[2].value !== 8)
+    throw new Error('return_vector_unique_ptr failed');
+}
+
+{
+  const r = /* await */(napi_li_std_vector.receive_vector_unique_ptr([new Integer(3), new Integer(5), new Integer(8)]));
+  if (r !== 8) throw new Error('receive_vector_unique_ptr failed');
+}
+
+{
+  /* await */(napi_li_std_vector.return_const_vector_unique());
+  const r = /* await */(napi_li_std_vector.return_const_vector_unique());
+  if (r.length !== 3 || !(r[2] instanceof Integer) || r[2].value !== 8)
+    throw new Error('return_const_vector_unique failed');
+}
