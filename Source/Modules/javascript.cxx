@@ -2096,7 +2096,12 @@ void JSEmitter::marshalOutput(Node *n, ParmList *params, Wrapper *wrapper, Strin
     for (p = params; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
 	Replaceall(tm, "$input", Getattr(p, "emit:input"));
-	Printv(wrapper->code, tm, "\n", NIL);
+        if (should_own) {
+          Replaceall(tm, "$owner", "SWIG_POINTER_OWN");
+        } else {
+          Replaceall(tm, "$owner", "0");
+        }
+        Printv(wrapper->code, tm, "\n", NIL);
 	p = Getattr(p, "tmap:argout:next");
       } else {
 	p = nextSibling(p);

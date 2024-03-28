@@ -48,6 +48,13 @@ void return_vector_unique_ptr(std::vector<std::unique_ptr<Integer>> &output) {
 int receive_vector_unique_ptr(const std::vector<std::unique_ptr<Integer>> &input) {
   return input[2]->value;
 }
+// https://github.com/mmomtchev/swig/issues/47
+void return_vector_ptr(std::vector<Integer *> &output) {
+  static Integer all_mine(1337);
+  output.push_back(&all_mine);
+  output.push_back(&all_mine);
+  output.push_back(&all_mine);
+}
 %}
 
 // A very special case that requires special handling

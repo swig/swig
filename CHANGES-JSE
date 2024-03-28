@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 5.0.4
 ===========================
 
+2024-03-28: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#47](https://github.com/mmomtchev/swig/issues/47),
+            expand `$owner` in `argout` typemaps
+
 2024-03-27: mmomtchev
             [JavaScript] Support using `std` containers with non-copyable
             objects
