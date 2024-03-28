@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-03-28: olly
+	    Fix preprocessor to handle C-style comment ending **/ in macro argument.
+
+2024-03-27: wsfulton
+            [Python] #2844 Fix for using more than one std::string_view type in a method.
+
+2024-03-27: wsfulton
+            [R] #2847 Add missing std::vector<long> and std::vector<long long> typemaps
+            which were missing depending on whether or not SWIGWORDSIZE64 was defined.
+
 2024-03-25: wsfulton
             [Python] #2826 Stricter stable ABI conformance.
             1. Use Py_DecRef and Py_IncRef when Py_LIMITED_API is defined instead of

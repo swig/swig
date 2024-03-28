@@ -28,13 +28,13 @@ namespace std {
 #endif
     %}
 
-    %typemap(in) string_view (PyObject *bytes = NULL) %{
+    %typemap(in) string_view (PyObject *bytes = NULL) {
         Py_ssize_t len;
-#ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
+%#ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
         const char *p = PyBytes_AsString($input);
         if (!p) SWIG_fail;
         len = PyBytes_Size($input);
-#else
+%#else
         const char *p;
         if (PyUnicode_Check($input)) {
           p = SWIG_PyUnicode_AsUTF8AndSize($input, &len, &bytes);
@@ -44,21 +44,21 @@ namespace std {
           if (!p) SWIG_fail;
           len = PyBytes_Size($input);
         }
-#endif
+%#endif
         $1 = std::string_view(p, len);
-    %}
+    }
 
     %typemap(freearg) string_view %{
         SWIG_Py_XDECREF(bytes$argnum);
     %}
 
-    %typemap(in) const string_view & ($*1_ltype temp, PyObject *bytes = NULL) %{
+    %typemap(in) const string_view & ($*1_ltype temp, PyObject *bytes = NULL) {
         Py_ssize_t len;
-#ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
+%#ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
         const char *p = PyBytes_AsString($input);
         if (!p) SWIG_fail;
         len = PyBytes_Size($input);
-#else
+%#else
         const char *p;
         if (PyUnicode_Check($input)) {
           p = SWIG_PyUnicode_AsUTF8AndSize($input, &len, &bytes);
@@ -68,10 +68,10 @@ namespace std {
           if (!p) SWIG_fail;
           len = PyBytes_Size($input);
         }
-#endif
+%#endif
         temp = std::string_view(p, len);
         $1 = &temp;
-    %}
+    }
 
     %typemap(freearg) const string_view & %{
         SWIG_Py_XDECREF(bytes$argnum);

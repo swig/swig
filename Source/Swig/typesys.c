@@ -264,7 +264,7 @@ int SwigType_typedef_class(const_String_or_char_ptr name) {
  * Returns the qualified scope name of a type table
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_scope_name(Typetab *ttab) {
+static String *SwigType_scope_name(Typetab *ttab) {
   String *qname = NewString(Getattr(ttab, "name"));
   ttab = Getattr(ttab, "parent");
   while (ttab) {
@@ -1765,7 +1765,7 @@ void (*SwigType_remember_trace(void (*tf) (const SwigType *, String *, String *)
  * r_resolved hash and combine them together in a list (removing duplicate entries).
  * ----------------------------------------------------------------------------- */
 
-List *SwigType_equivalent_mangle(String *ms, Hash *checked, Hash *found) {
+static List *SwigType_equivalent_mangle(String *ms, Hash *checked, Hash *found) {
   List *l;
   Hash *h;
   Hash *ch;
@@ -1957,7 +1957,7 @@ int SwigType_issubtype(const SwigType *t1, const SwigType *t2) {
  * Modify the type table to handle C++ inheritance
  * ----------------------------------------------------------------------------- */
 
-void SwigType_inherit_equiv(File *out) {
+static void SwigType_inherit_equiv(File *out) {
   String *ckey;
   String *prefix, *base;
   String *mprefix, *mkey;
