@@ -305,6 +305,13 @@ fail:
 #endif
 }
 
+SWIGRUNTIME void SWIG_NAPI_SetInstanceData(Napi::Env env, void *module_instance_data) {
+  env.GetInstanceData<EnvInstanceData>()->module_instance_data = module_instance_data;
+}
+SWIGRUNTIME void *SWIG_NAPI_GetInstanceData(Napi::Env env) {
+  return env.GetInstanceData<EnvInstanceData>()->module_instance_data;
+}
+
 SWIGRUNTIME Napi::Value _SWIG_NAPI_wrap_equals(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;

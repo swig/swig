@@ -18,7 +18,7 @@ SWIG_NAPI_GetModule(Napi::Env env);
 
 EnvInstanceData::EnvInstanceData(Napi::Env env, swig_module_info *swig_module) :
   env(env), SWIG_NAPI_ObjectWrapCtor(SWIG_NULLPTR), SWIG_NAPI_PackedObjectWrapCtor(SWIG_NULLPTR),
-  ctor(SWIG_NULLPTR), swig_module(swig_module) {
+  ctor(SWIG_NULLPTR), swig_module(swig_module), module_instance_data(SWIG_NULLPTR) {
   ctor = new Napi::FunctionReference*[swig_module->size + 1];
   for (size_t i = 0; i <= swig_module->size; i++) {
     ctor[i] = SWIG_NULLPTR;

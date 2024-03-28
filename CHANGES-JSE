@@ -8,6 +8,11 @@ Version 5.0.4
 ===========================
 
 2024-03-28: mmomtchev
+            [JavaScript] Add `SWIG_NAPI_SetInstanceData` and
+            `SWIG_NAPI_GetInstanceData` allowing modules to store per-isolate
+            context data
+            
+2024-03-28: mmomtchev
             [JavaScript] Fix [mmomtchev/swig#47](https://github.com/mmomtchev/swig/issues/47),
             expand `$owner` in `argout` typemaps
 

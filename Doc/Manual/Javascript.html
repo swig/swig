@@ -65,6 +65,7 @@
 <li><a href="#Javascript_WASM_differences">Incompatibilities between <code>node-addon-api</code> and <code>emnapi</code></a>
 </ul>
 <li><a href="#Javascript_code_splitting">Code Splitting</a>
+<li><a href="#Javascript_context">Storing and Using a Context per JavaScript Isolate</a>
 <li><a href="#Javascript_implementation">Implementation</a>
 <ul>
 <li><a href="#Javascript_source_code">Source Code</a>
@@ -1366,13 +1367,50 @@ int add(int a, int b) { return a + b; }
 </pre>
 </div>
 
+<H2><a name="Javascript_context">28.10 Storing and Using a Context per JavaScript Isolate</a></H2>
 
-<H2><a name="Javascript_implementation">28.10 Implementation</a></H2>
+<p>SWIG Node-API allows modules to store and access a user data structure for each JavaScript worker thread (often called an isolate in the JavaScript world - <code>WebWorker</code> in the browser or <code>worker_thread</code> in Node.js). As code in <code>%init</code> sections will be run for each worker thread, it is the ideal place to initialize this structure:</p>
+
+<div class="code">
+  <pre>
+// Per-isolate initialization
+
+%header {
+struct my_instance_data {
+  bool ready;
+};
+}
+
+%init {
+  auto *instance_data = new my_instance_data;
+  instance_data->ready = true;
+  if (!instance_data->ready) {
+    SWIG_Raise("Failed to start");
+  }
+  SWIG_NAPI_SetInstanceData(env, instance_data);
+  env.AddCleanupHook([instance_data]() {
+    delete instance_data;
+  });
+}
+</pre>
+</div>
+
+<p>Once this structure is created, you will be able to use it in every typemap:</p>
+
+<div class="code">
+  <pre>
+auto instance_data = static_cast<my_instance_data *>(SWIG_NAPI_GetInstanceData(env))->context;
+</pre>
+</div>
+
+<p>Never use the Node-API built-in <code>Env::SetInstanceData</code> as this pointer is used internally by SWIG. The <code>env</code> variable is automatically available in every context.</p>
+
+<H2><a name="Javascript_implementation">28.11 Implementation</a></H2>
 
 
 <p>The Javascript Module implementation has taken a very different approach compared to other language modules in order to support different Javacript interpreters.</p>
 
-<H3><a name="Javascript_source_code">28.10.1 Source Code</a></H3>
+<H3><a name="Javascript_source_code">28.11.1 Source Code</a></H3>
 
 
 <p>The Javascript module is implemented in <code>Source/Modules/javascript.cxx</code>. It dispatches the code generation to a <code>JSEmitter</code> instance, <code>V8Emitter</code>, <code>JSCEmitter</code> or <code>NAPIEmitter</code>. Additionally there are some helpers: <code>Template</code>, for templated code generation, and <code>JSEmitterState</code>, which is used to manage state information during AST traversal. This rough map shall make it easier to find a way through this huge source file:</p>
@@ -1474,7 +1512,7 @@ Template::Template(const String *code_) { ... }
 ...</pre>
 </div>
 
-<H3><a name="Javascript_code_templates">28.10.2 Code Templates</a></H3>
+<H3><a name="Javascript_code_templates">28.11.2 Code Templates</a></H3>
 
 
 <p>All generated code is created on the basis of code templates. The templates for <em>JavascriptCore</em> can be found in <code>Lib/javascript/jsc/javascriptcode.swg</code>, for <em>v8</em> in <code>Lib/javascript/v8/javascriptcode.swg</code> and for <em>Node-API</em> in <code>Lib/javascript/napi/javascriptcode.swg</code>.</p>
@@ -1513,7 +1551,7 @@ t_register.replace("$jsparent", state.clazz(NAME_MANGLED))
 </div>
 <p><code>Template</code> creates a copy of that string and <code>Template::replace</code> uses Swig's <code>Replaceall</code> to replace variables in the template. <code>Template::trim</code> can be used to eliminate leading and trailing whitespaces. <code>Template::print</code> is used to write the final template string to a Swig <code>DOH</code> (based on <code>Printv</code>). All methods allow chaining.</p>
 
-<H3><a name="Javascript_emitter">28.10.3 Emitter</a></H3>
+<H3><a name="Javascript_emitter">28.11.3 Emitter</a></H3>
 
 
 <p>The Javascript module delegates code generation to a <code>JSEmitter</code> instance. The following extract shows the essential interface:</p>
@@ -1632,7 +1670,7 @@ int JAVASCRIPT::classHandler(Node *n) {
 </div>
 <p>In <code>enterClass</code> the emitter stores state information that is necessary when processing class members. In <code>exitClass</code> the wrapper code for the whole class is generated.</p>
 
-<H3><a name="Javascript_emitter_states">28.10.4 Emitter states</a></H3>
+<H3><a name="Javascript_emitter_states">28.11.4 Emitter states</a></H3>
 
 
 <p>For storing information during the AST traversal the emitter provides a <code>JSEmitterState</code> with different slots to store data representing the scopes global, class, function, and variable.</p>

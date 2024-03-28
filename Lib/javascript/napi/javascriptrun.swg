@@ -40,8 +40,12 @@ SWIGRUNTIME
 int SWIG_NAPI_ConvertPacked(Napi::Value valRef, void *ptr, size_t size, swig_type_info *type);
 SWIGRUNTIME
 Napi::Value SWIG_NAPI_AppendOutput(Napi::Env env, Napi::Value result, Napi::Value obj);
+
+// Node-API specific features
 using SWIG_NAPI_Finalizer = std::function<void()>;
 SWIGRUNTIME int SWIG_NAPI_SetFinalizer(Napi::Env env, Napi::Value val, SWIG_NAPI_Finalizer *finalizer);
+SWIGRUNTIME void SWIG_NAPI_SetInstanceData(Napi::Env env, void *module_instance_data);
+SWIGRUNTIME void *SWIG_NAPI_GetInstanceData(Napi::Env env);
 
 void JS_veto_set_variable(const Napi::CallbackInfo &info);
 
@@ -117,6 +121,7 @@ struct EnvInstanceData {
   // swig_type->clientdata
   Napi::FunctionReference **ctor;
   swig_module_info *swig_module;
+  void *module_instance_data;
   EnvInstanceData(Napi::Env, swig_module_info *);
   ~EnvInstanceData();
 };
