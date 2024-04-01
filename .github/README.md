@@ -51,7 +51,11 @@ You can find an example skeleton for a new project that uses a dual-build Node.j
 
 If you want to see a real-world complex project that uses `conan` to manage a large pool of dependencies - including WASM builds -  you should take a look at [`magickwand.js`](https://github.com/mmomtchev/magickwand.js) - the ImageMagick-7 bindings for JavaScript.
 
-# Building from source
+I am currently working on a second generation C++/JavaScript project with a new build system which will be based on the `meson`/`conan`/`xpm` trio instead of `node-gyp` - it will feature clean integration of 3rd party C++ libraries on all platforms (`conan`), use of the native build system (`meson`) and fully self-contained builds that do not need a working C++ environment on the final user host (`xpm`). This new project is the [`PROJ`](https://github.com/mmomtchev/proj.js) bindings for JavaScript. The project is partially functional and still not published.
+
+# Install
+
+## Building from source
 
 ```shell
 # from git
@@ -73,6 +77,25 @@ make -j 4 && sudo make install
 
 For WASM, you will also need to install `emsdk` and setup its environment variables as described at
 https://github.com/emscripten-core/emsdk.
+
+## Conan recipes
+
+SWIG JSE is now available on [`conan`](https://conan.io/). You can simply add it to your `conanfile.txt`:
+
+```ini
+[tool_requires]
+swig-jse/[>=5.0.3]
+# optionally, get also emscripten
+emsdk/[>=3.1.50]
+```
+
+It is available on my custom [`conan` repository](https://swig.momtchev.com/artifactory/api/conan/swig-jse):
+
+```
+conan remote add swig-jse https://swig.momtchev.com/artifactory/api/conan/swig-jse
+```
+
+You can either use the prebuilt packages - which should now work on all three major OS - or - should you be unsettled by the recent events around `xz-utils` - you can also build it yourself.
 
 # JavaScript manual
 
