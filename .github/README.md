@@ -97,6 +97,8 @@ conan remote add swig-jse https://swig.momtchev.com/artifactory/api/conan/swig-j
 
 You can either use the prebuilt packages - which should now work on all three major OS - or - should you be unsettled by the recent events around `xz-utils` - you can also build it yourself.
 
+The conan recipes are available at https://github.com/mmomtchev/swig-conan.
+
 # JavaScript manual
 
 The only changes in the manual relative to the mainline SWIG are in the [JavaScript](https://htmlpreview.github.io/?https://github.com/mmomtchev/swig/blob/main/Doc/Manual/Javascript.html) section.
