@@ -970,7 +970,6 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   }
 
   if (!cparse_ignore_attrs) {
-    Preprocessor_define("__has_cpp_attribut 201803L", 0);
     Preprocessor_define("__cpp_attributes 200809L", 0);
   }
 
