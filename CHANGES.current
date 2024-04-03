@@ -8,27 +8,23 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-02-29: erezgeva
-            #2609 Fix Java typemap '(const char *STRING, size_t LENGTH)'
-             to use string type.
-            Add (const char *STRING, size_t LENGTH) typemap to most languages.
-            All languages uses string type with the
-             '(const char *STRING, size_t LENGTH)' typemap.
-            Add char_binary test to most languages and
-             director_binary test to languages supporting director class.
-            Add new typemap '(const void *BYTES, size_t LENGTH)' to
-             use with C raw  data (cdata).
-            Add '(const void *BYTES, size_t LENGTH)' typemap to most languages.
-            Rebase 'cdata.i' files to improve coherent among different languages.
-            Add li_cdata test to most languages.
-            Languages with static type use byte array for
-             '(const void *BYTES, size_t LENGTH)'.
-            While dynamic type languages retain string.
-            incompatibilities:
-            * '(const char *STRING, size_t LENGTH)': Java uses String
-              Users replace it with '(const void *BYTES, size_t LENGTH)' to use
-              bytes array.
+            #2609 Fix Java typemap (const char *STRING, size_t LENGTH) to
+            marshall as Java String instead of Java byte[]. If the old behaviour
+            is required, replace with typemap (const void *BYTES, size_t LENGTH).
+            Add multi-argument typemaps to most languages:
+              (const char *STRING, size_t LENGTH)
+            All languages now use a target language string type for this typemap.
+
+            New multi-argument typemaps have been added to most target languages
+            for use with C raw data (cdata):
+              (const void *BYTES, size_t LENGTH) to
+            Statically typed languages use a byte array for this typemap, while
+            scripting languages remain using a string.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
             * Raw C data: Go uses byte array and int64 for size.
-              Users can use '(const char *STRING, size_t LENGTH)' to use strings.
+              Users can use the (const char *STRING, size_t LENGTH) typemaps for strings.
 
 2024-02-28: wsfulton
             Fix compilation errors in generated code when instantiating a templated

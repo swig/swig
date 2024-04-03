@@ -719,11 +719,22 @@ Now, in a script:
 
 
 <p>
-The <tt>cdata.i</tt> module defines functions for converting raw C data to and from strings
-in the target language.  The primary applications of this module would be packing/unpacking of
+The <tt>cdata.i</tt> module defines functions for converting raw C data to and from a target language type.
+The target language type is either:
+</p>
+
+<ul>
+  <li> A string for the scripting languages. The scripting language must support strings with embedded binary data in order for this to work.</li>
+  <li> A byte array for the statically typed languages; namely, <tt>byte[]</tt> for C# and Java, <tt>ubyte[]</tt> for D, <tt>[]byte</tt> for Go.</li>
+</ul>
+
+<p>
+The primary applications of this module would be packing/unpacking of
 binary data structures---for instance, if you needed to extract data from a buffer.
-The target language must support strings with embedded binary data
-in order for this to work.
+</p>
+
+<p>
+The available APIs are:
 </p>
 
 <p>
@@ -731,7 +742,7 @@ in order for this to work.
 </p>
 
 <div class="indent"><p>
-Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into a string.   <tt>ptr</tt> can be any
+Converts <tt>nbytes</tt> of data at <tt>ptr</tt> into the target language type.   <tt>ptr</tt> can be any
 pointer.
 </p></div>
 
@@ -740,13 +751,13 @@ pointer.
 </p>
 
 <div class="indent"><p>
-Copies all of the string data in <tt>s</tt> into the memory pointed to by
-<tt>ptr</tt>.  The string may contain embedded NULL bytes.  
-This is actually a wrapper to the standard C library <tt>memmove</tt> function, which is
-declared as 
-<b><tt>void memmove(void *ptr, const void *src, size_t n)</tt></b>.
-The <tt>src</tt> and length <tt>n</tt> parameters are
-extracted from the language specific string <tt>s</tt> in the underlying wrapper code.
+This is actually a wrapper of the standard C library <tt>memmove</tt> function,
+<b><tt>void *memmove(void *ptr, const void *src, size_t n)</tt></b>,
+which copies <tt>n</tt> bytes of data from <tt>src</tt> into the destination pointed to by <tt>ptr</tt>.
+Multi-argument typemaps are used so that the last two parameters, <tt>src</tt> and <tt>n</tt> are replaced by
+<tt>s</tt>, a string or byte array target language type, mentioned earlier.
+The string/byte array may contain embedded NULL bytes.
+Unlike the C library function nothing is returned by the wrapper function.
 </p></div>
 
 <p>
@@ -813,10 +824,8 @@ char *cdata_<em>name</em>(type* ptr, int nitems)
 </div>
 
 <p>
-<b>Note:</b> Static typed target languages uses array of bytes instead of strings.<br>
-<div class="indent">
-See: <a href="Java.html#Java_cdata_i">Java</a>, <a href="CSharp.html#CSharp_cdata_i">C#</a>, <a href="Go.html#Go_cdata_i">Go</a> and <a href="D.html#D_cdata_i">D</a>.
-</div>
+<b>Note:</b> These functions provide direct access to memory and can be used to overwrite data.
+Clearly they are unsafe.
 </p>
 
 <H2><a name="Library_nn8">12.3 C string handling</a></H2>
