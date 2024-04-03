@@ -36,6 +36,7 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 %}
 
 %insert(runtime) "swigrun.swg";         /* SWIG API */
