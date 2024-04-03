@@ -1086,7 +1086,8 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 /* String & length */
 %pragma(csharp) imclasscode=%{
   [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_to_c")]
-  public static extern global::System.IntPtr SWIG_csharp_string_to_c0(int size, int len, [global::System.Runtime.InteropServices.In,global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPUTF8Str, SizeParamIndex=0)] string str);
+  /* We can replace 'LPStr' to 'LPUTF8Str' in the future */
+  public static extern global::System.IntPtr SWIG_csharp_string_to_c0(int size, int len, [global::System.Runtime.InteropServices.In,global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPStr, SizeParamIndex=0)] string str);
   public static global::System.IntPtr SWIG_csharp_string_to_c(string str) {
     if (str == null)
         return global::System.IntPtr.Zero;
