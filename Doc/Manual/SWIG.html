@@ -1392,10 +1392,10 @@ Vector *wrap_cross_product(Vector *v1, Vector *v2) {
 or if SWIG was run with the <tt>-c++</tt> option:</p>
 
 <div class="code"><pre>
-Vector *wrap_cross(Vector *v1, Vector *v2) {
+Vector *wrap_cross_product(Vector *v1, Vector *v2) {
   Vector x = *v1;
   Vector y = *v2;
-  Vector *result = new Vector(cross(x, y)); // Uses default copy constructor
+  Vector *result = new Vector(cross_product(x, y)); // Uses default copy constructor
   return result;
 }
 </pre></div>
