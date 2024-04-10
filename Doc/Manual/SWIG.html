@@ -1383,7 +1383,7 @@ Vector *wrap_cross_product(Vector *v1, Vector *v2) {
   Vector y = *v2;
   Vector *result;
   result = (Vector *) malloc(sizeof(Vector));
-  *(result) = cross(x, y);
+  *(result) = cross_product(x, y);
   return result;
 }
 </pre></div>
