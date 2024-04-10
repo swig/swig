@@ -448,9 +448,44 @@
 %typemap(freearg) (const Char *STRING, int LENGTH) = (Char *STRING, size_t LENGTH);
 %typemap(directorin) (const Char *STRING, int LENGTH) = (Char *STRING, size_t LENGTH);
 
+/* reverse order typemap */
+
+%typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize)
+  (size_t LENGTH, Char *STRING) (int res, Char *buf = 0, size_t size = 0, int alloc = 0)
+{
+  res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
+  if (!SWIG_IsOK(res)) {
+    %argument_fail(res,"$type",$symname, $argnum);
+  }
+  $2 = %reinterpret_cast(buf, $2_ltype);
+  $1 = %numeric_cast(size - 1, $1_ltype);
+}
+%typemap(freearg,noblock=1,match="in") (size_t LENGTH, Char *STRING) {
+  if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);
+}
+%typemap(directorin,noblock=1,fragment=#SWIG_FromCharPtrAndSize)
+    (size_t LENGTH, Char *STRING)
+{
+  if ($2 && $1 > 0) {
+    $input = SWIG_FromCharPtrAndSize((const char*)$2, (size_t)$1);
+  } else {
+    $input = SWIG_FromCharPtrAndSize("", 0);
+  }
+}
+
+%typemap(in) (size_t LENGTH, const Char *STRING) = (Char *STRING, size_t LENGTH);
+%typemap(freearg) (size_t LENGTH, const Char *STRING) = (Char *STRING, size_t LENGTH);
+%typemap(directorin) (size_t LENGTH, const Char *STRING) = (Char *STRING, size_t LENGTH);
+
+/* old 'int' form */
+%typemap(in) (int LENGTH, Char *STRING) = (size_t LENGTH, Char *STRING);
+%typemap(freearg) (int LENGTH, Char *STRING) = (size_t LENGTH, Char *STRING);
+%typemap(directorin) (int LENGTH, Char *STRING) = (size_t LENGTH, Char *STRING);
+%typemap(in) (int LENGTH, const Char *STRING) = (size_t LENGTH, Char *STRING);
+%typemap(freearg) (int LENGTH, const Char *STRING) = (size_t LENGTH, Char *STRING);
+%typemap(directorin) (int LENGTH, const Char *STRING) = (size_t LENGTH, Char *STRING);
 
 %enddef
-
 
 /* ------------------------------------------------------------
  * --- String fragment methods ---

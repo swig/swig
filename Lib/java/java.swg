@@ -1457,6 +1457,44 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 { if ($input && $1) JCALL4(GetByteArrayRegion, jenv, $input, 0, (jsize)$2, (jbyte *)$1); }
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
+/* Length & string reverse order typemap */
+
+%typemap(jni)     (size_t LENGTH, const char *STRING) "jbyteArray"
+%typemap(jtype)   (size_t LENGTH, const char *STRING) "byte[]"
+%typemap(jstype)  (size_t LENGTH, const char *STRING) "String"
+%typemap(javain)  (size_t LENGTH, const char *STRING) %{($javainput == null) ? null : $javainput.getBytes()%}
+%typemap(freearg) (size_t LENGTH, const char *STRING) ""
+%typemap(in)      (size_t LENGTH, const char *STRING) {
+  if ($input) {
+    $2 = ($2_ltype) JCALL2(GetByteArrayElements, jenv, $input, 0);
+    $1 = ($1_type) JCALL1(GetArrayLength, jenv, $input);
+  } else {
+    $1 = 0;
+    $2 = 0;
+  }
+}
+%typemap(argout)  (size_t LENGTH, const char *STRING) {
+  if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$2, JNI_ABORT);
+}
+%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) (size_t LENGTH, const char *STRING) {
+  $input = 0;
+  if ($2) {
+    $input = JCALL1(NewByteArray, jenv, (jsize)$1);
+    if (!$input) return $null;
+    JCALL4(SetByteArrayRegion, jenv, $input, 0, (jsize)$1, (jbyte *)$2);
+  }
+  Swig::LocalRefGuard $2_refguard(jenv, $input);
+}
+%typemap(javadirectorin, descriptor="[B") (size_t LENGTH, const char *STRING) "($jniinput == null) ? null : new String($jniinput)"
+%apply (size_t LENGTH, const char *STRING) { (size_t LENGTH, char *STRING) }
+/* Enable write-back for non-const version */
+%typemap(argout)  (size_t LENGTH, char *STRING) {
+  if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$2, 0);
+}
+%typemap(directorargout, noblock=1) (size_t LENGTH, char *STRING)
+{ if ($input && $2) JCALL4(GetByteArrayRegion, jenv, $input, 0, (jsize)$1, (jbyte *)$2); }
+%apply (size_t LENGTH, char *STRING) { (int LENGTH, char *STRING) }
+
 /* java keywords */
 %include <javakw.swg>
 
