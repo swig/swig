@@ -1162,6 +1162,8 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
 #endif
 %}
 
+/* string & length typemap */
+
 %typemap(cstype) (const char *STRING, size_t LENGTH) "string"
 %typemap(ctype)  (const char *STRING, size_t LENGTH) "void *"
 %typemap(imtype) (const char *STRING, size_t LENGTH) "global::System.IntPtr"
