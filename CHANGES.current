@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-04-12: pfusik
+            [Javascript] #2869 Fix JavaScript _wrap_getCPtr on 64-bit Windows
+
 2024-04-12: wsfulton
             [Javascript, MzScheme, Python, Ruby] #202 Remove the vast majority of the
             /*@SWIG:...*/ locator strings in the generated wrappers for these 4 languages
