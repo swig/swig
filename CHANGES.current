@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-04-12: wsfulton
+            [Javascript, MzScheme, Python, Ruby] #202 Remove the vast majority of the
+            /*@SWIG:...*/ locator strings in the generated wrappers for these 4 languages
+            to help with reproducible builds.
+
 2024-04-08: thewtex
             [Python] #2856 Include stdlib.h for more recent Python Stable ABI
 
