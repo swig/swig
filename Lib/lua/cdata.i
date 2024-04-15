@@ -15,10 +15,9 @@
   $2 = ($2_ltype)len;
 }
 %apply (const void *BYTES, size_t LENGTH) { (void *BYTES, size_t LENGTH) }
-%include <typemaps/cdata_apply.swg>
 
-%include <typemaps/cdata_struct.swg>
+%include <typemaps/cdata_begin.swg>
 
 %typemap(out) SWIGCDATA %{lua_pushlstring(L, $1.data,$1.len); SWIG_arg++;%}
 
-%include <typemaps/cdata.swg>
+%include <typemaps/cdata_end.swg>

@@ -11,10 +11,9 @@
 
 %typemap(in) (const void *BYTES, size_t LENGTH) {}
 %apply (const void *BYTES, size_t LENGTH) { (void *BYTES, size_t LENGTH) }
-%include <typemaps/cdata_apply.swg>
 
-%include <typemaps/cdata_struct.swg>
+%include <typemaps/cdata_begin.swg>
 
 %typemap(out) SWIGCDATA %{ %}
 
-%include <typemaps/cdata.swg>
+%include <typemaps/cdata_end.swg>

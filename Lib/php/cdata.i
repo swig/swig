@@ -14,12 +14,11 @@
    $2 = ($2_ltype) Z_STRLEN($input);
 %}
 %apply (const void *BYTES, size_t LENGTH) { (void *BYTES, size_t LENGTH) }
-%include <typemaps/cdata_apply.swg>
 
-%include <typemaps/cdata_struct.swg>
+%include <typemaps/cdata_begin.swg>
 
 %typemap(out) SWIGCDATA {
   ZVAL_STRINGL($result, $1.data, $1.len);
 }
 
-%include <typemaps/cdata.swg>
+%include <typemaps/cdata_end.swg>
