@@ -1085,29 +1085,31 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 
 /* String & length */
 %pragma(csharp) imclasscode=%{
-  [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_to_c")]
-  /* We can replace 'LPStr' to 'LPUTF8Str' in the future */
-  public static extern global::System.IntPtr SWIG_csharp_string_to_c0(int size, int len, [global::System.Runtime.InteropServices.In,global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPStr, SizeParamIndex=0)] string str);
-  public static global::System.IntPtr SWIG_csharp_string_to_c(string str) {
-    if (str == null)
+  public class SWIGStringWithLengthHelper {
+    [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_to_c")]
+    /* We can replace 'LPStr' to 'LPUTF8Str' in the future */
+    private static extern global::System.IntPtr SWIG_csharp_string_to_c0(int size, int len, [global::System.Runtime.InteropServices.In,global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPStr, SizeParamIndex=0)] string str);
+    public static global::System.IntPtr SWIG_csharp_string_to_c(string str) {
+      if (str == null)
         return global::System.IntPtr.Zero;
-    global::System.Text.Encoding utf8 = global::System.Text.Encoding.UTF8;
-    return SWIG_csharp_string_to_c0(utf8.GetByteCount(str), str.Length, str);
-  }
-  [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_size")]
-  public static extern int SWIG_csharp_string_size(global::System.IntPtr str);
-  [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_str")]
-  public static extern global::System.IntPtr SWIG_csharp_string_str(global::System.IntPtr str);
-  public static string SWIG_c_to_csharp_string(global::System.IntPtr _str) {
-    int size = SWIG_csharp_string_size(_str);
-    if (size > 0) {
+      global::System.Text.Encoding utf8 = global::System.Text.Encoding.UTF8;
+      return SWIG_csharp_string_to_c0(utf8.GetByteCount(str), str.Length, str);
+    }
+    [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_size")]
+    private static extern int SWIG_csharp_string_size(global::System.IntPtr str);
+    [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_str")]
+    private static extern global::System.IntPtr SWIG_csharp_string_str(global::System.IntPtr str);
+    public static string SWIG_c_to_csharp_string(global::System.IntPtr _str) {
+      int size = SWIG_csharp_string_size(_str);
+      if (size > 0) {
         global::System.IntPtr s = SWIG_csharp_string_str(_str);
         byte[] b = new byte[size];
         global::System.Runtime.InteropServices.Marshal.Copy(s, b, 0, size);
         global::System.Text.Encoding utf8 = global::System.Text.Encoding.UTF8;
         return utf8.GetString(b);
+      }
+      return null;
     }
-    return null;
   }
 %}
 
@@ -1167,7 +1169,7 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
 %typemap(cstype) (const char *STRING, size_t LENGTH) "string"
 %typemap(ctype)  (const char *STRING, size_t LENGTH) "void *"
 %typemap(imtype) (const char *STRING, size_t LENGTH) "global::System.IntPtr"
-%typemap(csin)   (const char *STRING, size_t LENGTH) "$modulePINVOKE.SWIG_csharp_string_to_c($csinput)"
+%typemap(csin)   (const char *STRING, size_t LENGTH) "$modulePINVOKE.SWIGStringWithLengthHelper.SWIG_csharp_string_to_c($csinput)"
 %typemap(in, canthrow=1, fragment="SWIG_csharp_string") (const char *STRING, size_t LENGTH) {
   SWIG_csharp_string *p;
   p = (SWIG_csharp_string *)$input;
@@ -1199,7 +1201,7 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
     }
   }
 %}
-%typemap(csdirectorin) (const char *STRING, size_t LENGTH) "$modulePINVOKE.SWIG_c_to_csharp_string($iminput)"
+%typemap(csdirectorin) (const char *STRING, size_t LENGTH) "$modulePINVOKE.SWIGStringWithLengthHelper.SWIG_c_to_csharp_string($iminput)"
 
 %apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
 %apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
