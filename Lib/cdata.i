@@ -45,11 +45,12 @@
 %typemap(in) (const void *indata, size_t inlen) = (const void *BYTES, size_t LENGTH);
 %typemap(freearg) (const void *indata, size_t inlen) = (const void *BYTES, size_t LENGTH);
 %typemap(directorin) (const void *indata, size_t inlen) = (const void *BYTES, size_t LENGTH);
+#define SWIG_CDATA_APPLIED
 
-%include <typemaps/cdata_struct.swg>
+%include <typemaps/cdata_begin.swg>
 
 %typemap(out,noblock=1,fragment="SWIG_FromCharPtrAndSize") SWIGCDATA {
   %set_output(SWIG_FromCharPtrAndSize($1.data,$1.len));
 }
 
-%include <typemaps/cdata.swg>
+%include <typemaps/cdata_end.swg>

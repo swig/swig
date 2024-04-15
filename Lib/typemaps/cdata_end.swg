@@ -1,8 +1,20 @@
 /* -----------------------------------------------------------------------------
- * cdata.swg
+ * cdata_end.swg
  *
  * This library file contains macros for manipulating raw C data.
  * ----------------------------------------------------------------------------- */
+
+/* ------------------------------------------------------------
+ * Typemap for passing bytes with length
+ * ------------------------------------------------------------ */
+#ifndef SWIG_CDATA_APPLIED
+
+%apply (const void *BYTES, size_t LENGTH) { (const void *BYTES, int LENGTH) }
+%apply (void *BYTES, size_t LENGTH) { (void *BYTES, int LENGTH) }
+/* type map for memmove() function */
+%apply (const void *BYTES, size_t LENGTH) { (const void *indata, size_t inlen) }
+
+#endif
 
 /* -----------------------------------------------------------------------------
  * Typemaps for returning binary data

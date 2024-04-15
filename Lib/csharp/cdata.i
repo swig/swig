@@ -79,9 +79,8 @@ SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_bytes_to_c(int len, void *ptr) {
 %}
 
 %apply (const void *BYTES, size_t LENGTH) { (void *BYTES, size_t LENGTH) }
-%include <typemaps/cdata_apply.swg>
 
-%include <typemaps/cdata_struct.swg>
+%include <typemaps/cdata_begin.swg>
 
 %pragma(csharp) imclasscode=%{
   [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_data")]
@@ -133,4 +132,4 @@ SWIGEXPORT int SWIGSTDCALL SWIG_csharp_data(SWIGCDATA *d, void **ptr) {
     return ret;
 }
 
-%include <typemaps/cdata.swg>
+%include <typemaps/cdata_end.swg>

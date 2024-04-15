@@ -43,9 +43,8 @@
 }
 %typemap(directorargout, noblock=1) (void *BYTES, size_t LENGTH)
 { if ($input && $1) JCALL4(GetByteArrayRegion, jenv, $input, 0, (jsize)$2, (jbyte *)$1); }
-%include <typemaps/cdata_apply.swg>
 
-%include <typemaps/cdata_struct.swg>
+%include <typemaps/cdata_begin.swg>
 
 %typemap(jni) SWIGCDATA "jbyteArray"
 %typemap(jtype) SWIGCDATA "byte[]"
@@ -76,4 +75,4 @@ static jbyteArray SWIG_JavaArrayOutCDATA(JNIEnv *jenv, char *result, jsize sz) {
     return $jnicall;
   }
 
-%include <typemaps/cdata.swg>
+%include <typemaps/cdata_end.swg>
