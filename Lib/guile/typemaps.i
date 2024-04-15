@@ -391,17 +391,6 @@ typedef unsigned long SCM;
 %apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
-/* Length & string reverse order typemap */
-
-%typemap(in) (int LENGTH, char *STRING), (size_t LENGTH, char *STRING) {
-    size_t temp;
-    $2 = ($2_ltype) SWIG_Guile_scm2newstr($input, &temp);
-    $1 = ($1_ltype) temp;
-}
-%apply (size_t LENGTH, const char *STRING) { (int LENGTH, const char *STRING) }
-%apply (size_t LENGTH, const char *STRING) { (size_t LENGTH, char *STRING) }
-%apply (size_t LENGTH, char *STRING) { (int LENGTH, char *STRING) }
-
 /* ------------------------------------------------------------
  * CLASS::* (member function pointer) typemaps
  * taken from typemaps/swigtype.swg

@@ -305,19 +305,6 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     $1 = ($1_ltype) caml_string_val($input);
     $2 = ($2_ltype) caml_string_len($input);
 }
-%apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
-%apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
-%apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
-
-/* Length & string reverse order typemap */
-
-%typemap(in) (int LENGTH, char *STRING), (size_t LENGTH, char *STRING) {
-    $2 = ($2_ltype) caml_string_val($input);
-    $1 = ($1_ltype) caml_string_len($input);
-}
-%apply (size_t LENGTH, const char *STRING) { (int LENGTH, const char *STRING) }
-%apply (size_t LENGTH, const char *STRING) { (size_t LENGTH, char *STRING) }
-%apply (size_t LENGTH, char *STRING) { (int LENGTH, char *STRING) }
 
 %typemap(out) SWIGTYPE *DYNAMIC, SWIGTYPE &DYNAMIC {
     swig_type_info *ty = SWIG_TypeDynamicCast($1_descriptor, (void **)&$1);

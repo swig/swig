@@ -283,36 +283,3 @@ typedef struct { size_t len; void *array; } SWIG_c_array;
   $2 = ($2_ltype)$input.len;
 }
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
-
-/* Length & string reverse order typemap */
-
-%typemap(imtype)  (size_t LENGTH, const char *STRING) "string"
-%typemap(dtype)   (size_t LENGTH, const char *STRING) "string"
-%typemap(ctype,default="={0,0}") (size_t LENGTH, const char *STRING) "SWIG_c_dstring"
-%typemap(din, nativepointer="std.conv.to!string($dinput)") (size_t LENGTH, const char *STRING) "$dinput"
-%typemap(freearg) (size_t LENGTH, const char *STRING) ""
-%typemap(in, canthrow=1) (size_t LENGTH, const char *STRING) %{
-  $2 = ($2_ltype)$input.str;
-  $1 = ($1_ltype)$input.len;
-%}
-%typemap(argout)  (size_t LENGTH, const char *STRING) {
-  $input.str = (char *)$2;
-  $input.len = (size_t)$1;
-}
-%typemap(directorin) (size_t LENGTH, const char *STRING) {
-  $input.str = (char *)$2;
-  $input.len = (size_t)$1;
-}
-%typemap(ddirectorin) (size_t LENGTH, const char *STRING) "std.conv.to!string($winput)"
-%apply (size_t LENGTH, const char *STRING) { (size_t LENGTH, char *STRING) }
-/* Enable write-back for non-const version */
-%typemap(argout)  (size_t LENGTH, char *STRING) {
-  $input.str = (char *)$2;
-  $input.len = (size_t)$1;
-}
-%typemap(directorargout) (size_t LENGTH, char *STRING)
-{
-  $2 = ($2_ltype)$input.str;
-  $1 = ($1_ltype)$input.len;
-}
-%apply (size_t LENGTH, char *STRING) { (int LENGTH, char *STRING) }
