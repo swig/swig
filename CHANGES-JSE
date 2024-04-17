@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 5.0.4
 ===========================
 
+2024-04-17: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#52](https://github.com/mmomtchev/swig/issues/52),
+            double free with certain arguments when a `check` typemap
+            explicitly rejects in async mode
+
 2024-03-28: mmomtchev
             [JavaScript] Add `SWIG_NAPI_SetInstanceData` and
             `SWIG_NAPI_GetInstanceData` allowing modules to store per-isolate

@@ -55,7 +55,6 @@ void JS_veto_set_variable(const Napi::CallbackInfo &info);
 // in the main thread (during initialization/parsing)
 #define SWIG_NAPI_Reject(env, code, msg)        do {                          \
       SWIG_NAPI_deferred.Reject(SWIG_NAPI_NewError(env, code, msg).Value());  \
-      SWIG_NAPI_Cleanup();                                                    \
       SWIG_NAPI_deferred_finalized = true;                                    \
       return SWIG_NAPI_Status::REJECT;                                        \
     } while (0)

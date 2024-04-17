@@ -15,23 +15,38 @@ function isRejected(promise) {
     });
 }
 
-if (/* await */(napi_async_reject.fnAsync(1)) !== 2)
+const counter = new napi_async_reject.FreeCounter;
+
+counter.reset();
+if (/* await */(napi_async_reject.fnAsync(1, counter)) !== 2)
   throw new Error;
-if (napi_async_reject.fnSync(1) !== 2)
+if (counter.freearg_calls !== 1)
+  throw new Error(`freeargs_calls = ${counter.freearg_calls}`);
+
+counter.reset();
+if (napi_async_reject.fnSync(1, counter) !== 2)
   throw new Error;
+if (counter.freearg_calls !== 1)
+  throw new Error(`freeargs_calls = ${counter.freearg_calls}`);
 
 let fail = false;
+counter.reset();
 try {
-  napi_async_reject.fnSync(-1);
+  napi_async_reject.fnSync(-1, counter);
   fail = true;
 } catch (e) {
   if (!e.message.match('must be positive')) throw e;
 }
 if (fail) throw new Error('Did not throw');
+if (counter.freearg_calls !== 1)
+  throw new Error(`freeargs_calls = ${counter.freearg_calls}`);
 
+counter.reset();
 // Async functions must return a rejected Promise instead of a synchronous throw
-const rej = /* await */(isRejected(napi_async_reject.fnAsync(-1)));
+const rej = /* await */(isRejected(napi_async_reject.fnAsync(-1, counter)));
 if (!rej.message.match('must be positive')) throw new Error(rej);
+if (counter.freearg_calls !== 1)
+  throw new Error(`freeargs_calls = ${counter.freearg_calls}`);
 
 
 // Synchronous throwing of random objects
