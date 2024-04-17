@@ -55,7 +55,7 @@ static int rename_active = 0;
 /* Doxygen comments scanning */
 int scan_doxygen_comments = 0;
 
-int isStructuralDoxygen(String *s) {
+static int isStructuralDoxygen(String *s) {
   static const char* const structuralTags[] = {
     "addtogroup",
     "callgraph",
@@ -132,7 +132,7 @@ void Swig_cparse_ignore_attrs(int v) { cparse_ignore_attrs = v; }
  * Initialize buffers
  * ------------------------------------------------------------------------- */
 
-void scanner_init(void) {
+static void scanner_init(void) {
   scan = NewScanner();
   Scanner_idstart(scan,"%");
   scan_init = 1;

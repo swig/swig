@@ -124,10 +124,11 @@ VALGRIND_OPT += --suppressions=pythonswig.supp
 python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 
 # Make sure just python_runtime_data_builtin.i uses the -builtin option. Note: does not use python_runtime_data.list for all steps.
+# PY_ABI_VER is unset for python_runtime_data_builtin because stable ABI is not supported by builtin
 python_runtime_data.multicpptest: override SWIG_FEATURES := $(filter-out -builtin,$(SWIG_FEATURES))
 python_runtime_data.multicpptest: override SWIGOPT := $(filter-out -builtin,$(SWIGOPT))
 python_runtime_data.multicpptest: swig_and_compile_multi_cpp = \
-	$(call swig_and_compile_cpp_helper,python_runtime_data_builtin,'$(SWIGOPT) -builtin') && \
+	$(call swig_and_compile_cpp_helper,python_runtime_data_builtin,'$(SWIGOPT) -builtin' PY_ABI_VER=) && \
 	$(call swig_and_compile_cpp_helper,python_runtime_data_nobuiltin,'$(SWIGOPT)')
 
 # Rules for the different types of tests

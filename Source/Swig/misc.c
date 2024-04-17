@@ -394,7 +394,7 @@ String *Swig_string_escape(String *s) {
  * Hex escaping is used.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_hexescape(String *s) {
+static String *Swig_string_hexescape(String *s) {
   String *ns;
   int c;
   ns = NewStringEmpty();
@@ -493,7 +493,7 @@ String *Swig_string_title(String *s) {
  *      camelCase  -> CamelCase
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_ccase(String *s) {
+static String *Swig_string_ccase(String *s) {
   String *ns;
   int first = 1;
   int c;
@@ -522,7 +522,7 @@ String *Swig_string_ccase(String *s) {
  *      CamelCase  -> camelCase
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_lccase(String *s) {
+static String *Swig_string_lccase(String *s) {
   String *ns;
   int first = 1;
   int after_underscore = 0;
@@ -556,7 +556,7 @@ String *Swig_string_lccase(String *s) {
  *      asFloat2  -> as_float2
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_ucase(String *s) {
+static String *Swig_string_ucase(String *s) {
   String *ns;
   int c;
   int lastC = 0;
@@ -605,7 +605,7 @@ String *Swig_string_ucase(String *s) {
  *      firstUpper -> FirstUpper 
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_first_upper(String *s) {
+static String *Swig_string_first_upper(String *s) {
   String *ns = NewStringEmpty();
   char *cs = Char(s);
   if (cs && cs[0] != 0) {
@@ -626,7 +626,7 @@ String *Swig_string_first_upper(String *s) {
  *      firstLower -> FirstLower 
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_first_lower(String *s) {
+static String *Swig_string_first_lower(String *s) {
   String *ns = NewStringEmpty();
   char *cs = Char(s);
   if (cs && cs[0] != 0) {
@@ -644,7 +644,7 @@ String *Swig_string_first_lower(String *s) {
  *      under_scores -> under-scores
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_schemify(String *s) {
+static String *Swig_string_schemify(String *s) {
   String *ns = NewString(s);
   Replaceall(ns, "_", "-");
   return ns;
@@ -657,7 +657,7 @@ String *Swig_string_schemify(String *s) {
  * real C datatypes.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_typecode(String *s) {
+static String *Swig_string_typecode(String *s) {
   String *ns;
   int c;
   String *tc;
@@ -1032,7 +1032,7 @@ int Swig_scopename_check(const String *s) {
  * Feature removed in SWIG 4.1.0.
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_command(String *s) {
+static String *Swig_string_command(String *s) {
   Swig_error("SWIG", Getline(s), "Command encoder no longer supported - use regex encoder instead, command:%s\n", s);
   Exit(EXIT_FAILURE);
   return 0;
@@ -1046,7 +1046,7 @@ String *Swig_string_command(String *s) {
  *  Printf(stderr,"%(strip:[wx])s","wxHello") -> Hello
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_strip(String *s) {
+static String *Swig_string_strip(String *s) {
   String *ns;
   if (!Len(s)) {
     ns = NewString(s);
@@ -1076,7 +1076,7 @@ String *Swig_string_strip(String *s) {
  *  Printf(stderr,"%(rstrip:[Cls])s","HelloCls") -> Hello
  * ----------------------------------------------------------------------------- */
 
-String *Swig_string_rstrip(String *s) {
+static String *Swig_string_rstrip(String *s) {
   String *ns;
   int len = Len(s);
   if (!len) {
@@ -1216,7 +1216,7 @@ static void copy_with_maybe_case_conversion(String *dst, const char *src, int le
   }
 }
 
-String *replace_captures(int num_captures, const char *input, String *subst, size_t captures[], String *pattern, String *s)
+static String *replace_captures(int num_captures, const char *input, String *subst, size_t captures[], String *pattern, String *s)
 {
   int convertCase = 0, convertNextOnly = 0;
   String *result = NewStringEmpty();
@@ -1286,7 +1286,7 @@ String *replace_captures(int num_captures, const char *input, String *subst, siz
  *
  *   Printf(stderr,"gsl%(regex:/GSL_(.*)_/\\1/)s", "GSL_Hello_") -> gslHello
  * ----------------------------------------------------------------------------- */
-String *Swig_string_regex(String *s) {
+static String *Swig_string_regex(String *s) {
   const int pcre_options = 0;
 
   String *res = 0;

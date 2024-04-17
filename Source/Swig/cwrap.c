@@ -160,7 +160,7 @@ String *Swig_wrapped_var_type(SwigType *t, int varcref) {
   return ty;
 }
 
-String *Swig_wrapped_member_var_type(SwigType *t, int varcref) {
+static String *Swig_wrapped_member_var_type(SwigType *t, int varcref) {
   SwigType *ty;
 
   if (!Strstr(t, "enum $unnamed")) {
@@ -575,7 +575,7 @@ String *Swig_cconstructor_call(const_String_or_char_ptr name) {
  *
  * ----------------------------------------------------------------------------- */
 
-String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, ParmList *parms, int skip_self) {
+static String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, ParmList *parms, int skip_self) {
   String *func;
   String *nname;
   int i = 0;
@@ -627,11 +627,11 @@ String *Swig_cppconstructor_call(const_String_or_char_ptr name, ParmList *parms)
   return Swig_cppconstructor_base_call(name, parms, 0);
 }
 
-String *Swig_cppconstructor_nodirector_call(const_String_or_char_ptr name, ParmList *parms) {
+static String *Swig_cppconstructor_nodirector_call(const_String_or_char_ptr name, ParmList *parms) {
   return Swig_cppconstructor_base_call(name, parms, 1);
 }
 
-String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmList *parms) {
+static String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmList *parms) {
   return Swig_cppconstructor_base_call(name, parms, 0);
 }
 

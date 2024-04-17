@@ -39,7 +39,7 @@
 
   SWIG_Object identity(SWIG_Object x) {
 #ifdef SWIGPYTHON
-    Py_XINCREF(x);
+    Py_IncRef(x);
 #endif
     return x;    
   }

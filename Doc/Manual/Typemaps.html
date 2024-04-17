@@ -3719,7 +3719,7 @@ might write typemaps like this:
 
 // Return the buffer.  Discarding any previous return result
 %typemap(argout) (void *rbuffer, size_t len) {
-  Py_XDECREF($result);   /* Blow away any previous result */
+  Py_DecRef($result);   /* Blow away any previous result */
   if (result &lt; 0) {      /* Check for I/O error */
     free($1);
     PyErr_SetFromErrno(PyExc_IOError);

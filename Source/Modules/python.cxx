@@ -2614,7 +2614,7 @@ public:
 
     if (GetFlag(n, "feature:python:maybecall")) {
       Append(f->code, "fail:\n");
-      Append(f->code, "  Py_INCREF(Py_NotImplemented);\n");
+      Append(f->code, "  SWIG_Py_INCREF(Py_NotImplemented);\n");
       Append(f->code, "  return Py_NotImplemented;\n");
     } else {
       Node *sibl = n;
@@ -3161,7 +3161,7 @@ public:
 	Printf(f->code, "director = SWIG_DIRECTOR_CAST(%s);\n", Swig_cresult_name());
 	Append(f->code, "if (director) {\n");
 	Append(f->code, "  resultobj = director->swig_get_self();\n");
-	Append(f->code, "  Py_INCREF(resultobj);\n");
+	Append(f->code, "  SWIG_Py_INCREF(resultobj);\n");
 	Append(f->code, "} else {\n");
 	Printf(f->code, "%s\n", tm);
 	Append(f->code, "}\n");
@@ -3226,7 +3226,7 @@ public:
 	Append(f->code, "    return NULL;\n");
 	Append(f->code, "  }\n");
 	Append(f->code, "  PyErr_Clear();\n");
-	Append(f->code, "  Py_INCREF(Py_NotImplemented);\n");
+	Append(f->code, "  SWIG_Py_INCREF(Py_NotImplemented);\n");
 	Append(f->code, "  return Py_NotImplemented;\n");
       } else {
         Printv(f->code, "  return NULL;\n", NIL);
@@ -3271,20 +3271,20 @@ public:
 	Printf(f->code, "newargs = PyTuple_New(%d);\n", num_fixed_arguments);
 	Printf(f->code, "for (i = 0; i < %d; ++i) {\n", num_fixed_arguments);
 	Printf(f->code, "  PyTuple_SET_ITEM(newargs, i, swig_obj[i]);\n");
-	Printf(f->code, "  Py_XINCREF(swig_obj[i]);\n");
+	Printf(f->code, "  SWIG_Py_XINCREF(swig_obj[i]);\n");
 	Printf(f->code, "}\n");
 	Printf(f->code, "varargs = PyTuple_New(nobjs > %d ? nobjs - %d : 0);\n", num_fixed_arguments, num_fixed_arguments);
 	Printf(f->code, "for (i = 0; i < nobjs - %d; ++i) {\n", num_fixed_arguments);
 	Printf(f->code, "  PyTuple_SET_ITEM(newargs, i, swig_obj[i + %d]);\n", num_fixed_arguments);
-	Printf(f->code, "  Py_XINCREF(swig_obj[i + %d]);\n", num_fixed_arguments);
+	Printf(f->code, "  SWIG_Py_XINCREF(swig_obj[i + %d]);\n", num_fixed_arguments);
 	Printf(f->code, "}\n");
       } else {
 	Printf(f->code, "newargs = PyTuple_GetSlice(args, 0, %d);\n", num_fixed_arguments);
 	Printf(f->code, "varargs = PyTuple_GetSlice(args, %d, PyTuple_Size(args));\n", num_fixed_arguments);
       }
       Printf(f->code, "resultobj = %s__varargs__(%s, newargs, varargs%s);\n", wname, builtin ? "self" : "NULL", strlen(builtin_kwargs) == 0 ? "" : ", kwargs");
-      Append(f->code, "Py_XDECREF(newargs);\n");
-      Append(f->code, "Py_XDECREF(varargs);\n");
+      Append(f->code, "SWIG_Py_XDECREF(newargs);\n");
+      Append(f->code, "SWIG_Py_XDECREF(varargs);\n");
       Append(f->code, "return resultobj;\n");
       Append(f->code, "}\n");
       Wrapper_print(f, f_wrappers);
@@ -4038,8 +4038,8 @@ public:
       if (GetFlag(mgetset, "static")) {
 	Printf(f, "static PyGetSetDef %s_def = %s;\n", gspair, entry);
 	Printf(f_init, "static_getset = SwigPyStaticVar_new_getset(metatype, &%s_def);\n", gspair);
-	Printf(f_init, "PyDict_SetItemString(d, static_getset->d_getset->name, (PyObject *) static_getset);\n");
-	Printf(f_init, "Py_DECREF(static_getset);\n");
+	Printf(f_init, "PyDict_SetItemString(d, static_getset->d_getset->name, (PyObject *)static_getset);\n");
+	Printf(f_init, "SWIG_Py_DECREF((PyObject *)static_getset);\n");
       } else {
 	Printf(getset_def, "    %s,\n", entry);
       }
@@ -4059,7 +4059,7 @@ public:
       Printf(f, "  PyObject *tuple = PyTuple_New(1);\n");
       Printf(f, "  assert(tuple);\n");
       Printf(f, "  PyTuple_SET_ITEM(tuple, 0, other);\n");
-      Printf(f, "  Py_XINCREF(other);\n");
+      Printf(f, "  SWIG_Py_XINCREF(other);\n");
     }
     List *richcompare_list = SortedKeys(richcompare, 0);
     Iterator rich_iter = First(richcompare_list);
@@ -4076,11 +4076,11 @@ public:
     Printv(f, "      result = SwigPyObject_richcompare((SwigPyObject *)self, (SwigPyObject *)other, op);\n", NIL);
     Printv(f, "    } else {\n", NIL);
     Printv(f, "      result = Py_NotImplemented;\n", NIL);
-    Printv(f, "      Py_INCREF(result);\n", NIL);
+    Printv(f, "      SWIG_Py_INCREF(result);\n", NIL);
     Printv(f, "    }\n", NIL);
     Printv(f, "  }\n", NIL);
     if (!funpack)
-      Printf(f, "  Py_DECREF(tuple);\n");
+      Printf(f, "  SWIG_Py_DECREF(tuple);\n");
     Printf(f, "  return result;\n");
     Printf(f, "}\n\n");
 
@@ -4390,7 +4390,7 @@ public:
     Printv(f_init, "      return;\n", NIL);
     Printv(f_init, "#endif\n", NIL);
     Printv(f_init, "    }\n", NIL);
-    Printv(f_init, "    Py_INCREF(builtin_pytype);\n", NIL);
+    Printv(f_init, "    SWIG_Py_INCREF((PyObject *)builtin_pytype);\n", NIL);
     Printf(f_init, "    PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype);\n", symname);
     Printf(f_init, "    SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", symname);
     Printv(f_init, "    d = md;\n", NIL);
@@ -5530,7 +5530,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 	    Printf(wrap_args, "%s = SWIG_InternalNewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
 	    Append(wrap_args, "} else {\n");
 	    Printf(wrap_args, "%s = %s->swig_get_self();\n", source, director);
-	    Printf(wrap_args, "Py_INCREF((PyObject *)%s);\n", source);
+	    Printf(wrap_args, "SWIG_Py_INCREF((PyObject *)%s);\n", source);
 	    Append(wrap_args, "}\n");
 	    Delete(director);
 	    Printv(arglist, source, NIL);

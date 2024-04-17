@@ -207,6 +207,7 @@ Examples/php/pragmas/example.php
 # Python
 #   Based on https://github.com/github/gitignore/blob/master/Python.gitignore
 *.py[cod]
+*_abi3_report.json
 */__pycache__/
 /__pycache__/
 Examples/test-suite/python/*.py
