@@ -105,6 +105,7 @@ static const char *usage2 = "\
      -I-             - Don't search the current directory\n\
      -I<dir>         - Look for SWIG files in directory <dir>\n\
      -ignoremissing  - Ignore missing include files\n\
+     -ignoreattrs    - Ignore C++11/C23 [[attributes]]\n\
      -importall      - Follow all #include statements as imports\n\
      -includeall     - Follow all #include statements\n\
      -l<ifile>       - Include SWIG library file <ifile>\n\
@@ -679,6 +680,9 @@ static void getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-ignoremissing") == 0) {
 	Preprocessor_ignore_missing(1);
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-ignoreattrs") == 0) {
+	Swig_cparse_ignore_attrs(1);
+	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-cpperraswarn") == 0) {
 	Preprocessor_error_as_warning(1);
 	Swig_mark_arg(i);
@@ -963,6 +967,10 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
       Printf(stderr, "Option -std=cXX was used with -c++\n");
       Exit(EXIT_FAILURE);
     }
+  }
+
+  if (!cparse_ignore_attrs) {
+    Preprocessor_define("__cpp_attributes 200809L", 0);
   }
 
   String *vers = Swig_package_version_hex();
