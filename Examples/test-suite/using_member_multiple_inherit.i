@@ -107,6 +107,23 @@ void cplusplus_testB() {
   m.multmethod(123, 345, 567);
 }
 
+// Multiple inheritance, with no override on parent class. 
+// This checks a corner case with fvirtual and using
+// See #2872
+class Vusing {
+public:
+  virtual void usingmethod(int i) {}
+};
+class Vusing1 : public Vusing {
+public:
+  virtual void usingmethod(int i) {}
+};
+class Vusing2 : public Vusing1 {
+public:
+  using Vusing1::usingmethod;
+  virtual void usingmethod(const char* c) {};
+};
+
 /* TODO: fix when using declaration is declared before method, for example change MultMiddleA to:
 struct MultMiddleB : Mult1, Mult2 {
 protected: // Note!
