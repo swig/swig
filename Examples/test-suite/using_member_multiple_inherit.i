@@ -113,13 +113,16 @@ void cplusplus_testB() {
 class Vusing {
 public:
   virtual void usingmethod(int i) {}
+  virtual ~Vusing() {};
 };
 class Vusing1 : public Vusing {
 public:
   virtual void usingmethod(int i) {}
+  virtual ~Vusing1() {};
 };
 class Vusing2 : public Vusing1 {
 public:
+  virtual ~Vusing2() {};
   using Vusing1::usingmethod;
   virtual void usingmethod(const char* c) {};
 };
