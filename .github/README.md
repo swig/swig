@@ -1,8 +1,6 @@
 # SWIG JavaScript Evolution
 
-This is SWIG JavaScript Evolution, an up-to-date fork of the SWIG project.
-
-As it name suggests, tt adds a number of features exclusive to JavaScript. It keeps the support for all languages - which are still unit-tested - but its only objective is to bring the JavaScript support up to date as JavaScript is a language that has seen tremendous growth and development over the last decade.
+This is SWIG JavaScript Evolution, an up-to-date fork of the SWIG project with a focus on JavaScript - native/Node.js, WASM/Node.js and WASM/browser.
 
 # Major New Features
 
@@ -128,3 +126,26 @@ In this case, there are two possible strategies:
  * Use [`GoogleCromeLabs/comlink`](https://github.com/GoogleChromeLabs/comlink) to call them in a worker thread - which works well if all your C++ methods have very long execution times because it adds significant overhead when calling them (*this will require a custom serializer for C++ object - I plan to make an example*)
 
 Mixing the two is possible, but C++ functions running in the main thread and C++ functions running the in `comlink` worker won't be able to share objects as they will be running in separate memory spaces.
+
+# Build systems
+
+SWIG-generated projects for JavaScript can currently choose between two build systems:
+
+| Description | `node-gyp` | `meson` + `conan` + `xpm` |
+| --- | --- | --- |
+| Overview  | The official Node.js and Node.js native addon build system from the Node.js core team  | A new, still under development, experimental build system from SWIG JSE |
+| Status | Very mature | Under development |
+| Platforms with native builds | All platforms supported by Node.js  | Linux, Windows and macOS |
+| WASM builds | Hackish, see `swig-napi-example-project` and `magickwand.js` for solutions | Out-of-the-box |
+| Node.js APIs | All APIs, including the now obsolete raw V8 and NAN and the current Node-API | Only Node-API |
+| Integration with other builds systems for external dependencies | Very hackish, see `swig-napi-example-project` and `magickwand.js` for solutions, the only good solution is to recreate the build system of all dependencies around `node-gyp` | Out-of-the-box support for `meson`, `CMake` and `autotools` |
+| `conan` integration | Very hackish, see `magickwand.js` | Out-of-the-box |
+| Build configurations through `npm install` CLI options | Yes | Yes |
+| Distributing prebuilt binaries | Yes, multiple options, including `@mapbox/node-pre-gyp` and `prebuildify` | `prebuildify` |
+| Requirements for the target host when installing from source | Node.js, Python and a working C++17 build environment | Only Node.js and Python when using `xpm`, a working C++17 build environment otherwise |
+| Makefile language | Obscure and obsolete (`gyp`) | Modern and supported (`meson`)
+
+When choosing a build system, if your project:
+ * targets only Node.js/native and has no dependencies, stay on `node-gyp`
+ * meant to be distributed only as binaries, stay on `node-gyp`
+ * has lots of dependencies, targets both environments and needs to support source distribution with rebuilding on the target host, `meson`+`conan`+`xpm` is the safer choice
