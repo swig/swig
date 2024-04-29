@@ -185,7 +185,7 @@ jobs:
           VER: '3.0'
           CPPSTD: c++11
         - SWIGLANG: ruby
-          VER: '3.1'
+          VER: '3.1.4' # import_fragments testcase started to fail on upgrade to 3.1.5, see https://github.com/swig/swig/issues/2800
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
