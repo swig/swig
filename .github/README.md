@@ -149,3 +149,5 @@ When choosing a build system, if your project:
  * targets only Node.js/native and has no dependencies, stay on `node-gyp`
  * meant to be distributed only as binaries, stay on `node-gyp`
  * has lots of dependencies, targets both environments and needs to support source distribution with rebuilding on the target host, `meson`+`conan`+`xpm` is the safer choice
+
+Currently `meson` is a fork from the official project and some of the `conan` recipes are available only from my own Artifactory, because working with those projects has been very difficult since both of them tried to play the schizophrenia game with the PRs in order to try to convince me that I had a mental health problem to help to cover up the extortion with the French police.
