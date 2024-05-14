@@ -1294,7 +1294,10 @@ static Node *nested_forward_declaration(const String *storage, const String *kin
 Node *Swig_cparse(File *f) {
   scanner_file(f);
   top = 0;
-  yyparse();
+  if (yyparse() == 2) {
+    Swig_error(cparse_file, cparse_line, "Parser exceeded stack depth or ran out of memory\n");
+    Exit(EXIT_FAILURE);
+  }
   return (Node *)top;
 }
 
@@ -7503,7 +7506,10 @@ SwigType *Swig_cparse_type(String *s) {
    scanner_file(ns);
    top = 0;
    scanner_next_token(PARSETYPE);
-   yyparse();
+   if (yyparse() == 2) {
+      Swig_error(cparse_file, cparse_line, "Parser exceeded stack depth or ran out of memory\n");
+      Exit(EXIT_FAILURE);
+   }
    /*   Printf(stdout,"typeparse: '%s' ---> '%s'\n", s, top); */
    return (SwigType *)top;
 }
@@ -7516,7 +7522,10 @@ Parm *Swig_cparse_parm(String *s) {
    scanner_file(ns);
    top = 0;
    scanner_next_token(PARSEPARM);
-   yyparse();
+   if (yyparse() == 2) {
+      Swig_error(cparse_file, cparse_line, "Parser exceeded stack depth or ran out of memory\n");
+      Exit(EXIT_FAILURE);
+   }
    /*   Printf(stdout,"parmparse: '%s' ---> '%s'\n", s, top); */
    Delete(ns);
    return (Parm *)top;
@@ -7537,7 +7546,10 @@ ParmList *Swig_cparse_parms(String *s, Node *file_line_node) {
    scanner_file(ns);
    top = 0;
    scanner_next_token(PARSEPARMS);
-   yyparse();
+   if (yyparse() == 2) {
+      Swig_error(cparse_file, cparse_line, "Parser exceeded stack depth or ran out of memory\n");
+      Exit(EXIT_FAILURE);
+   }
    /*   Printf(stdout,"parmsparse: '%s' ---> '%s'\n", s, top); */
    return (ParmList *)top;
 }
