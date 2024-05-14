@@ -55,4 +55,9 @@ void AddOne1r(double& INOUT);
   inline void CharNot(char* INOUT) {
     if (*INOUT) { *INOUT = '\0'; } else { *INOUT = '\xff'; }
   }
+
+  inline void* NonVoidOut(int* INOUT) {
+    *INOUT += 42;
+    return NULL;
+  }
 %}
