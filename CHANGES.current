@@ -8,6 +8,9 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-05-15: olly
+	    #2868 Support C++17 fold expressions.
+
+2024-05-15: olly
 	    #2876 Report error if parser stack depth exceeded.  Previously SWIG
 	    would quietly exit with status 0 in this situation.
 

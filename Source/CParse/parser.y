@@ -6907,6 +6907,100 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		 $$.val = NewStringf("%s <= %s", COMPOUND_EXPR_VAL($lhs), COMPOUND_EXPR_VAL($rhs));
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
+
+	       // C++17 fold expressions.
+	       //
+	       // We don't handle unary left fold currently, since the obvious
+	       // approach introduces shift/reduce conflicts.  (Binary folds
+	       // should be handled by composition of expressions.)
+	       //
+	       // Fold expressions using the following operators are not
+	       // currently handled (because we don't actually seem to handle
+	       // these operators in expressions at all!):
+	       //
+	       // = += -= *= /= %= ^= &= |= <<= >>= , .* ->*.
+	       | expr[lhs] PLUS ELLIPSIS {
+		 $$.val = NewStringf("%s+...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = promote_type($lhs.type);
+	       }
+	       | expr[lhs] MINUS ELLIPSIS {
+		 $$.val = NewStringf("%s-...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = promote_type($lhs.type);
+	       }
+	       | expr[lhs] STAR ELLIPSIS {
+		 $$.val = NewStringf("%s*...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = promote_type($lhs.type);
+	       }
+	       | expr[lhs] SLASH ELLIPSIS {
+		 $$.val = NewStringf("%s/...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = promote_type($lhs.type);
+	       }
+	       | expr[lhs] MODULO ELLIPSIS {
+		 $$.val = NewStringf("%s%%...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = promote_type($lhs.type);
+	       }
+	       | expr[lhs] AND ELLIPSIS {
+		 $$.val = NewStringf("%s&...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = promote_type($lhs.type);
+	       }
+	       | expr[lhs] OR ELLIPSIS {
+		 $$.val = NewStringf("%s|...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = promote_type($lhs.type);
+	       }
+	       | expr[lhs] XOR ELLIPSIS {
+		 $$.val = NewStringf("%s^...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = promote_type($lhs.type);
+	       }
+	       | expr[lhs] LSHIFT ELLIPSIS {
+		 $$.val = NewStringf("%s << ...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = promote_type($lhs.type);
+	       }
+	       | expr[lhs] RSHIFT ELLIPSIS {
+		 $$.val = NewStringf("%s >> ...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = promote_type($lhs.type);
+	       }
+	       | expr[lhs] LAND ELLIPSIS {
+		 $$.val = NewStringf("%s&&...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
+	       }
+	       | expr[lhs] LOR ELLIPSIS {
+		 $$.val = NewStringf("%s||...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
+	       }
+	       | expr[lhs] EQUALTO ELLIPSIS {
+		 $$.val = NewStringf("%s==...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
+	       }
+	       | expr[lhs] NOTEQUALTO ELLIPSIS {
+		 $$.val = NewStringf("%s!=...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
+	       }
+	       /* Trying to parse `>` in the general case results in conflicts
+		* in the parser, but all user-reported cases are actually inside
+		* parentheses and we can handle that case.
+		*/
+	       | LPAREN expr[lhs] GREATERTHAN ELLIPSIS RPAREN {
+		 $$.val = NewStringf("(%s > ...)", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
+	       }
+	       /* Similarly for `<` except trying to handle exprcompound on the
+		* left side gives a shift/reduce conflict, so also restrict
+		* handling to non-compound subexpressions there.  Again this
+		* covers all user-reported cases.
+		*/
+	       | LPAREN exprsimple[lhs] LESSTHAN ELLIPSIS RPAREN {
+		 $$.val = NewStringf("(%s < %s)", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
+	       }
+	       | expr[lhs] GREATERTHANOREQUALTO ELLIPSIS {
+		 $$.val = NewStringf("%s >= ...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
+	       }
+	       | expr[lhs] LESSTHANOREQUALTO ELLIPSIS {
+		 $$.val = NewStringf("%s <= ...", COMPOUND_EXPR_VAL($lhs));
+		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
+	       }
+
 	       | expr[lhs] LESSEQUALGREATER expr[rhs] {
 		 $$.val = NewStringf("%s <=> %s", COMPOUND_EXPR_VAL($lhs), COMPOUND_EXPR_VAL($rhs));
 		 /* `<=>` returns one of `std::strong_ordering`,
