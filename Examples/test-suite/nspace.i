@@ -52,8 +52,8 @@ namespace Outer {
       Color() : instanceMemberVariable(0) {}
       static Color* create() { return new Color(); }
 
-      enum Channel { Diffuse, Specular = 0x40, Transmission };
-      enum { ColorEnumVal1, ColorEnumVal2 = 0x33, ColorEnumVal3 };
+      enum Channel { Diffuse, Specular = 0x40, Transmission, Channel4 };
+      enum { ColorEnumVal1, ColorEnumVal2 = 0x33, ColorEnumVal3, ColorEnumVal4 };
 
       int instanceMemberVariable;
       static int staticMemberVariable;

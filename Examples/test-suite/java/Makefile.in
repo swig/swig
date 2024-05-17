@@ -86,6 +86,7 @@ java_director_exception_feature_nspace.%: JAVA_PACKAGE = $*Package
 java_nspacewithoutpackage.%: JAVA_PACKAGEOPT =
 multiple_inheritance_nspace.%: JAVA_PACKAGE = $*Package
 nspace.%: JAVA_PACKAGE = $*Package
+nspacemove.%: JAVA_PACKAGE = $*Package
 nspace_extend.%: JAVA_PACKAGE = $*Package
 
 # Rules for the different types of tests

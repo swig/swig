@@ -337,6 +337,7 @@ CPP_TEST_CASES += \
 	namespace_virtual_method \
 	nspace \
 	nspace_extend \
+	nspacemove \
 	native_directive \
 	naturalvar \
 	naturalvar_more \
