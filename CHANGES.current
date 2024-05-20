@@ -43,7 +43,7 @@ Version 4.3.0 (in progress)
             3. Use PyObject_Free instead of deprecated equivalents.
 
 2024-03-25: olly
-	    #2848 Fix elision of comma before ##__VARARGS__ which we document
+	    #2848 Fix elision of comma before ##__VA_ARGS__ which we document
 	    as supported but seems to have not worked since before 2009.
 
 2024-03-11: wsfulton
