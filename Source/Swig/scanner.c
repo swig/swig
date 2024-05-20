@@ -1687,7 +1687,7 @@ int Scanner_isoperator(int tokval) {
 }
 
 /* ----------------------------------------------------------------------
- * locator()
+ * Scanner_locator()
  *
  * Support for locator strings. These are strings of the form
  * @SWIG:filename,line,id@ emitted by the SWIG preprocessor.  They
