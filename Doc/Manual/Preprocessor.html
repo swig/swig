@@ -559,8 +559,10 @@ This might be useful as an aid to debugging and viewing the results of macro exp
 
 
 <p>
-SWIG supports the commonly used <tt>#warning</tt> and <tt>#error</tt> preprocessor directives.
+SWIG supports the standard <tt>#warning</tt> and <tt>#error</tt> preprocessor directives.
 The <tt>#warning</tt> directive will cause SWIG to issue a warning then continue processing.
+It was standardised in C++23 and C23, and has been widely supported as an extension by
+most C and C++ compilers for a long time.
 The <tt>#error</tt> directive will cause SWIG to exit with a fatal error.
 Example usage:
 </p>
