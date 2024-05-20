@@ -491,12 +491,8 @@ Hash *Preprocessor_define(const_String_or_char_ptr _str, int swigmacro) {
 
   /* Get rid of whitespace surrounding # */
   /*  Replace(macrovalue,"#","\001",DOH_REPLACE_NOQUOTE); */
-  while (strstr(Char(macrovalue), "\001 ")) {
-    Replace(macrovalue, "\001 ", "\001", DOH_REPLACE_ANY);
-  }
-  while (strstr(Char(macrovalue), " \001")) {
-    Replace(macrovalue, " \001", "\001", DOH_REPLACE_ANY);
-  }
+  while (Replace(macrovalue, "\001 ", "\001", DOH_REPLACE_ANY) > 0) { }
+  while (Replace(macrovalue, " \001", "\001", DOH_REPLACE_ANY) > 0) { }
   /* Replace '##' with a special token */
   Replace(macrovalue, "\001\001", "\002", DOH_REPLACE_ANY);
   /* Replace '#@' with a special token */
