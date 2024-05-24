@@ -4,13 +4,15 @@ import std.exception;
 import nspacemove.nspacemove;
 static import nspacemove.NoNSpacePlease;
 static import nspacemove.Outer.namespce;
-static import nspacemove.Outer.Inner1.Channel;
-static import oi1c = nspacemove.Outer.Inner1.Color;
-static import nspacemove.Outer.Inner2.Channel;
-static import nspacemove.Outer.Inner2.Color;
+static import nspacemove.Euter.Extra.Inner1.Channel;
+static import oi1c = nspacemove.Ooter.Extra.Inner1.Color;
+static import nspacemove.Outer.Enner2.Channel;
+static import nspacemove.Outer.Snner2.Color;
 static import nspacemove.Outer.Inner3.Blue;
 static import nspacemove.Outer.Inner4.Blue;
 static import nspacemove.Outer.SomeClass;
+static import nspacemove.Additional.GlobalClass;
+static import nspacemove.More.GlobalEnum;
 
 void main() {
   // constructors and destructors
@@ -54,16 +56,22 @@ void main() {
 
   // Same class different namespaces
   auto col1 = new oi1c.Color();
-  auto col2 = nspacemove.Outer.Inner2.Color.Color.create();
+  auto col2 = nspacemove.Outer.Snner2.Color.Color.create();
   col2.colors(col1, col1, col2, col2, col2);
 
   // global enums
   auto outerChannel1 = someClass.GetInner1Channel();
-  enforce(outerChannel1 == nspacemove.Outer.Inner1.Channel.Channel.Transmission1,
+  enforce(outerChannel1 == nspacemove.Euter.Extra.Inner1.Channel.Channel.Transmission1,
       "Transmission1 wrong");
   auto outerChannel2 = someClass.GetInner2Channel();
-  enforce(outerChannel2 == nspacemove.Outer.Inner2.Channel.Channel.Transmission2,
+  enforce(outerChannel2 == nspacemove.Outer.Enner2.Channel.Channel.Transmission2,
       "Transmission2 wrong");
+
+  takeGlobalEnum(nspacemove.More.GlobalEnum.GlobalEnum.bbb);
+
+  // global class
+  auto gc = new nspacemove.Additional.GlobalClass.GlobalClass();
+  gc.gmethod();
 
   // turn feature off / ignoring
   auto ns = new nspacemove.Outer.namespce.namespce();

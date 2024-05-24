@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-05-26: wsfulton
+            [C#, D, Java, Javascript, Lua] #2782 Enhance the nspace feature with
+            %nspacemove for moving a class or enum into a differently named target
+            language equivalent of a namespace.
+
 2024-04-12: pfusik
             [Javascript] #2869 Fix JavaScript _wrap_getCPtr on 64-bit Windows
 

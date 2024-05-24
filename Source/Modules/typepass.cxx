@@ -493,10 +493,21 @@ class TypePass:private Dispatcher {
 	Setattr(n, "tdname", tdname);
       }
     }
-    if (nssymname) {
-      if (GetFlag(n, "feature:nspace"))
-	Setattr(n, "sym:nspace", nssymname);
+
+    String *oldnssymname = nssymname;
+    String *nspace_feature = GetFlagAttr(n, "feature:nspace");
+    String *nspace = Copy(nspace_feature);
+    Replaceall(nspace, "::", ".");
+    if (nspace) {
+      if (Equal(nspace, "1")) {
+	if (nssymname)
+	  Setattr(n, "sym:nspace", nssymname);
+      } else {
+	Setattr(n, "sym:nspace", nspace);
+	nssymname = nspace;
+      }
     }
+
     SwigType_new_scope(scopename);
     SwigType_attach_symtab(Getattr(n, "symtab"));
 
@@ -532,6 +543,8 @@ class TypePass:private Dispatcher {
       Swig_symbol_alias(template_default_expanded, Getattr(n, "symtab"));
       SwigType_scope_alias(template_default_expanded, Getattr(n, "typescope"));
     }
+
+    nssymname = oldnssymname;
 
     /* Normalize deferred types */
     {
@@ -831,9 +844,18 @@ class TypePass:private Dispatcher {
     }
     Setattr(n, "enumtype", enumtype);
 
-    if (nssymname) {
-      if (GetFlag(n, "feature:nspace"))
-	Setattr(n, "sym:nspace", nssymname);
+    String *oldnssymname = nssymname;
+    String *nspace_feature = GetFlagAttr(n, "feature:nspace");
+    String *nspace = Copy(nspace_feature);
+    Replaceall(nspace, "::", ".");
+    if (nspace) {
+      if (Equal(nspace, "1")) {
+	if (nssymname)
+	  Setattr(n, "sym:nspace", nssymname);
+      } else {
+	Setattr(n, "sym:nspace", nspace);
+	nssymname = nspace;
+      }
     }
 
     // This block of code is for dealing with %ignore on an enum item where the target language
@@ -880,6 +902,8 @@ class TypePass:private Dispatcher {
     }
 
     emit_children(n);
+
+    nssymname = oldnssymname;
     return SWIG_OK;
   }
 

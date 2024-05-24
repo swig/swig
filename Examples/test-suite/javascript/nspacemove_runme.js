@@ -1,24 +1,24 @@
 var nspacemove = require("nspacemove");
 
-var color1 = new nspacemove.Outer.Inner1.Color();
-var color = new nspacemove.Outer.Inner1.Color(color1);
+var color1 = new nspacemove.Ooter.Extra.Inner1.Color();
+var color = new nspacemove.Ooter.Extra.Inner1.Color(color1);
 delete color1;
 
 // class methods
 color.colorInstanceMethod(20.0);
-nspacemove.Outer.Inner1.Color.colorStaticMethod(20.0);
-var created = nspacemove.Outer.Inner1.Color.create();
+nspacemove.Ooter.Extra.Inner1.Color.colorStaticMethod(20.0);
+var created = nspacemove.Ooter.Extra.Inner1.Color.create();
 
 // class enums
 var someClass = new nspacemove.Outer.SomeClass();
 var channel = someClass.GetInner1ColorChannel();
-if (channel != nspacemove.Outer.Inner1.Color.Transmission) {
+if (channel != nspacemove.Ooter.Extra.Inner1.Color.Transmission) {
   throw new Error("Failed.");
 }
 
 // class anonymous enums
-var val1 = nspacemove.Outer.Inner1.Color.ColorEnumVal1;
-var val2 = nspacemove.Outer.Inner1.Color.ColorEnumVal2;
+var val1 = nspacemove.Ooter.Extra.Inner1.Color.ColorEnumVal1;
+var val2 = nspacemove.Ooter.Extra.Inner1.Color.ColorEnumVal2;
 if (val1 !== 0 || val2 !== 0x22) {
   throw new Error("Failed.");
 }
@@ -30,22 +30,22 @@ if (color.instanceMemberVariable !== 123) {
 }
 
 // static member variables
-nspacemove.Outer.Inner1.Color.staticMemberVariable = 789;
-if (nspacemove.Outer.Inner1.Color.staticMemberVariable !== 789) {
+nspacemove.Ooter.Extra.Inner1.Color.staticMemberVariable = 789;
+if (nspacemove.Ooter.Extra.Inner1.Color.staticMemberVariable !== 789) {
   throw new Error("Failed.");
 }
 
-if (nspacemove.Outer.Inner1.Color.staticConstMemberVariable !== 222) {
+if (nspacemove.Ooter.Extra.Inner1.Color.staticConstMemberVariable !== 222) {
   throw new Error("Failed.");
 }
 
-if (nspacemove.Outer.Inner1.Color.staticConstEnumMemberVariable !== nspacemove.Outer.Inner1.Color.Transmission) {
+if (nspacemove.Ooter.Extra.Inner1.Color.staticConstEnumMemberVariable !== nspacemove.Ooter.Extra.Inner1.Color.Transmission) {
   throw new Error("Failed.");
 }
 
 // Same class different namespaces
-var col1 = new nspacemove.Outer.Inner1.Color();
-var col2 = nspacemove.Outer.Inner2.Color.create();
+var col1 = new nspacemove.Ooter.Extra.Inner1.Color();
+var col2 = nspacemove.Outer.Snner2.Color.create();
 col2.colors(col1, col1, col2, col2, col2);
 
 nspacemove.Outer.Inner1.namespaceFunction(color);
@@ -56,14 +56,23 @@ if (nspacemove.Outer.Inner1.namespaceVar !== 111) {
 
 // global enums
 var outerChannel1 = someClass.GetInner1Channel();
+// TODO, broken:
 if (outerChannel1 != nspacemove.Outer.Inner1.Transmission1) {
   throw new Error("Failed.");
 }
 
 var outerChannel2 = someClass.GetInner2Channel();
+// TODO, broken:
 if (outerChannel2 !== nspacemove.Outer.Inner2.Transmission2) {
   throw new Error("Failed.");
 }
+
+// TODO, broken
+nspacemove.takeGlobalEnum(nspacemove.bbb);
+
+// global class
+var gc = new nspacemove.Additional.GlobalClass();
+gc.gmethod();
 
 // turn feature off / ignoring
 var ns = new nspacemove.Outer.namespce();

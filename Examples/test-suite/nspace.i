@@ -106,6 +106,9 @@ struct GlobalClass {
   void gmethod() {}
 };
 
+enum GlobalEnum { aaa, bbb, ccc };
+void takeGlobalEnum(GlobalEnum) {}
+
 void test_classes(Outer::SomeClass c, Outer::Inner2::Color cc) {}
 %}
 
