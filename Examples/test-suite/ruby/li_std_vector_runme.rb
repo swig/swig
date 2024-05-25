@@ -261,6 +261,8 @@ begin
 rescue
 end
 
+swig_assert_equal("IntVector.new([1,2,3,4,5,6,7,8]).select {|x| x%2 == 1 }.to_s", "\"1357\"", binding)
+
 # Variables
 vh = VariableHolder.new
 vector_append(vh.instance_variable, 10)

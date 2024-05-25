@@ -44,6 +44,11 @@ m.each_key { |k| swig_assert_equal("pm[#{k.inspect}]", "m[#{k.inspect}]", bindin
 EOF
 
 
+lmap = Li_std_map::LanguageMap.new
+lmap[1] = 3
+lmap[8] = 9
+swig_assert("lmap.select {|k, v| k == 8}.to_s == \"[8, 9]\"", binding)
+
 Li_std_map::populate(Li_std_map.MyMap)
 Li_std_map.MyMap["eeeeee"] = 6
 swig_assert( "Li_std_map.MyMap['a'] == 1", binding )
