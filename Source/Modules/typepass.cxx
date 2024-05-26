@@ -352,40 +352,46 @@ class TypePass:private Dispatcher {
   String *nspace_setting(Node *n, Node *outer) {
     String *nssymname_new = nssymname;
     String *feature_nspace = GetFlagAttr(n, "feature:nspace");
+    int valid = feature_nspace ? Equal(feature_nspace, "1") || Swig_scopename_isvalid(feature_nspace) : 1;
     String *nspace = Copy(feature_nspace);
     Replaceall(nspace, "::", ".");
-    if (outer) {
-      // Nested class or enum in a class
-      String *outer_nspace = Getattr(outer, "sym:nspace");
-      //Printf(stdout, "nspace value %s on %s\n", outer_nspace, Getattr(n, "name"));
-      String *nspace_attribute = Getattr(n, "feature:nspace");;
-      bool warn = false;
-      if (outer_nspace) {
-	if (Equal(nspace_attribute, "0")) {
-	  warn = true;
-	} else if (nspace && !(Equal(nspace, "1") || Equal(nspace, outer_nspace))) {
+    if (valid) {
+      if (outer) {
+	// Nested class or enum in a class
+	String *outer_nspace = Getattr(outer, "sym:nspace");
+	String *nspace_attribute = Getattr(n, "feature:nspace");
+	bool warn = false;
+	if (outer_nspace) {
+	  if (Equal(nspace_attribute, "0")) {
+	    warn = true;
+	  } else if (nspace && !(Equal(nspace, "1") || Equal(nspace, outer_nspace))) {
+	    warn = true;
+	  }
+	} else if (nspace) {
 	  warn = true;
 	}
-      } else if (nspace) {
-	warn = true;
+	if (warn) {
+	  String *outer_nspace_feature = Copy(outer_nspace);
+	  Replaceall(outer_nspace_feature, ".", "::");
+	  Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(n), Getline(n), "Ignoring nspace setting (%s) for '%s',\n", nspace_attribute, Swig_name_decl(n));
+	  Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(outer), Getline(outer), "as it conflicts with the nspace setting (%s) for outer class '%s'.\n", outer_nspace, Swig_name_decl(outer));
+	}
+	Setattr(n, "sym:nspace", outer_nspace);
+      } else {
+	if (nspace) {
+	  if (Equal(nspace, "1")) {
+	    if (nssymname)
+	      Setattr(n, "sym:nspace", nssymname);
+	  } else {
+	    Setattr(n, "sym:nspace", nspace);
+	    nssymname_new = nspace;
+	  }
+	}
       }
-      if (warn) {
-	Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(n), Getline(n), "Ignoring nspace setting (%s) for '%s',\n", nspace_attribute, Swig_name_decl(n));
-	Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(outer), Getline(outer), "as it conflicts with the nspace setting (%s) for outer class '%s'.\n", outer_nspace, Swig_name_decl(outer));
-      }
-      Setattr(n, "sym:nspace", outer_nspace);
-      //Printf(stdout, "setting nspace %s on %s to %s\n", outer_nspace, Getattr(n, "name"), outer_nspace);
     } else {
-      if (nspace) {
-	if (Equal(nspace, "1")) {
-	  if (nssymname)
-	    Setattr(n, "sym:nspace", nssymname);
-	} else {
-	  Setattr(n, "sym:nspace", nspace);
-	  nssymname_new = nspace;
-	}
-      }
+      Swig_error(Getfile(n), Getline(n), "'%s' is not a valid identifier for nspace.\n", feature_nspace);
     }
+    Delete(nspace);
     return nssymname_new;
   }
 
