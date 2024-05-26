@@ -335,9 +335,6 @@ CPP_TEST_CASES += \
 	namespace_typemap \
 	namespace_union \
 	namespace_virtual_method \
-	nspace \
-	nspace_extend \
-	nspacemove \
 	native_directive \
 	naturalvar \
 	naturalvar_more \
@@ -353,6 +350,10 @@ CPP_TEST_CASES += \
 	nested_workaround \
 	newobject1 \
 	newobject3 \
+	nspace \
+	nspace_extend \
+	nspacemove \
+	nspacemove_nested \
 	null_pointer \
 	numeric_bounds_checking \
 	operator_overload \

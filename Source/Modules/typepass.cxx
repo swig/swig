@@ -342,6 +342,54 @@ class TypePass:private Dispatcher {
   }
 
   /* ------------------------------------------------------------
+   * nspace_setting()
+   *
+   * Configures "sym:nspace" on the node and returns an overridden
+   * nspace value when %nspacemove is used.
+   * outer should point to parent class.
+   * ------------------------------------------------------------ */
+
+  String *nspace_setting(Node *n, Node *outer) {
+    String *nssymname_new = nssymname;
+    String *feature_nspace = GetFlagAttr(n, "feature:nspace");
+    String *nspace = Copy(feature_nspace);
+    Replaceall(nspace, "::", ".");
+    if (outer) {
+      // Nested class or enum in a class
+      String *outer_nspace = Getattr(outer, "sym:nspace");
+      //Printf(stdout, "nspace value %s on %s\n", outer_nspace, Getattr(n, "name"));
+      String *nspace_attribute = Getattr(n, "feature:nspace");;
+      bool warn = false;
+      if (outer_nspace) {
+	if (Equal(nspace_attribute, "0")) {
+	  warn = true;
+	} else if (nspace && !(Equal(nspace, "1") || Equal(nspace, outer_nspace))) {
+	  warn = true;
+	}
+      } else if (nspace) {
+	warn = true;
+      }
+      if (warn) {
+	Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(n), Getline(n), "Ignoring nspace setting (%s) for '%s',\n", nspace_attribute, Swig_name_decl(n));
+	Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(outer), Getline(outer), "as it conflicts with the nspace setting (%s) for outer class '%s'.\n", outer_nspace, Swig_name_decl(outer));
+      }
+      Setattr(n, "sym:nspace", outer_nspace);
+      //Printf(stdout, "setting nspace %s on %s to %s\n", outer_nspace, Getattr(n, "name"), outer_nspace);
+    } else {
+      if (nspace) {
+	if (Equal(nspace, "1")) {
+	  if (nssymname)
+	    Setattr(n, "sym:nspace", nssymname);
+	} else {
+	  Setattr(n, "sym:nspace", nspace);
+	  nssymname_new = nspace;
+	}
+      }
+    }
+    return nssymname_new;
+  }
+
+  /* ------------------------------------------------------------
    * top()
    * ------------------------------------------------------------ */
 
@@ -495,18 +543,7 @@ class TypePass:private Dispatcher {
     }
 
     String *oldnssymname = nssymname;
-    String *nspace_feature = GetFlagAttr(n, "feature:nspace");
-    String *nspace = Copy(nspace_feature);
-    Replaceall(nspace, "::", ".");
-    if (nspace) {
-      if (Equal(nspace, "1")) {
-	if (nssymname)
-	  Setattr(n, "sym:nspace", nssymname);
-      } else {
-	Setattr(n, "sym:nspace", nspace);
-	nssymname = nspace;
-      }
-    }
+    nssymname = nspace_setting(n, Getattr(n, "nested:outer"));
 
     SwigType_new_scope(scopename);
     SwigType_attach_symtab(Getattr(n, "symtab"));
@@ -845,18 +882,8 @@ class TypePass:private Dispatcher {
     Setattr(n, "enumtype", enumtype);
 
     String *oldnssymname = nssymname;
-    String *nspace_feature = GetFlagAttr(n, "feature:nspace");
-    String *nspace = Copy(nspace_feature);
-    Replaceall(nspace, "::", ".");
-    if (nspace) {
-      if (Equal(nspace, "1")) {
-	if (nssymname)
-	  Setattr(n, "sym:nspace", nssymname);
-      } else {
-	Setattr(n, "sym:nspace", nspace);
-	nssymname = nspace;
-      }
-    }
+    Node *parent = parentNode(n);
+    nssymname = nspace_setting(n, parent && Equal(nodeType(parent), "class") ? parent : NULL);
 
     // This block of code is for dealing with %ignore on an enum item where the target language
     // attempts to use the C enum value in the target language itself and expects the previous enum value

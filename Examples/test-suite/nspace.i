@@ -11,6 +11,7 @@ SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
 %nspace;
 %nonspace Outer::Inner2::NoNSpacePlease;
 %nonspace Outer::Inner2::NoNSpacePlease::ReallyNoNSpaceEnum;
+%warnfilter(SWIGWARN_TYPE_NSPACE_SETTING) Outer::Inner2::NoNSpacePlease;
 
 %copyctor;
 %ignore Outer::Inner2::Color::Color();
