@@ -354,6 +354,7 @@ CPP_TEST_CASES += \
 	nspace_extend \
 	nspacemove \
 	nspacemove_nested \
+	nspacemove_stl \
 	null_pointer \
 	numeric_bounds_checking \
 	operator_overload \
