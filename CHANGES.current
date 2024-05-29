@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-05-30: olly
+	    #2914 Handle alternative operator names in C++ preprocessor
+	    expressions.  Handle full set of alternative operator names in
+	    C++ expressions (previously only "and", "or" and "not" were
+	    understood).
+
 2024-05-15: olly
 	    #2868 Support C++17 fold expressions.
 

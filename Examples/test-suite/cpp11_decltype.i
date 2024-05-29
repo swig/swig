@@ -74,6 +74,9 @@
     // so this would end up wrapped as int.
     decltype(!0) should_be_bool;
 
+    // Test alternative operator names work in this context.
+    decltype(((compl 42) and (not 1)) or (2 xor 4)) should_be_bool2;
+
     decltype(E1) should_be_enum;
 
     auto get_number_sum(decltype(i+j) a) -> decltype(i+j) {

@@ -1025,12 +1025,35 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 76:			/* Identifier or true/false */
+    case 76:			/* Identifier, true/false or alternative token */
       if (cparse_cplusplus) {
 	if (Strcmp(s->text, "true") == 0)
 	  return SWIG_TOKEN_BOOL;
-	else if (Strcmp(s->text, "false") == 0)
+	if (Strcmp(s->text, "false") == 0)
 	  return SWIG_TOKEN_BOOL;
+
+	if (Strcmp(s->text, "and") == 0)
+	  return SWIG_TOKEN_LAND;
+	if (Strcmp(s->text, "and_eq") == 0)
+	  return SWIG_TOKEN_ANDEQUAL;
+	if (Strcmp(s->text, "bitand") == 0)
+	  return SWIG_TOKEN_AND;
+	if (Strcmp(s->text, "bitor") == 0)
+	  return SWIG_TOKEN_OR;
+	if (Strcmp(s->text, "compl") == 0)
+	  return SWIG_TOKEN_NOT;
+	if (Strcmp(s->text, "not") == 0)
+	  return SWIG_TOKEN_LNOT;
+	if (Strcmp(s->text, "not_eq") == 0)
+	  return SWIG_TOKEN_NOTEQUAL;
+	if (Strcmp(s->text, "or") == 0)
+	  return SWIG_TOKEN_LOR;
+	if (Strcmp(s->text, "or_eq") == 0)
+	  return SWIG_TOKEN_OREQUAL;
+	if (Strcmp(s->text, "xor") == 0)
+	  return SWIG_TOKEN_XOR;
+	if (Strcmp(s->text, "xor_eq") == 0)
+	  return SWIG_TOKEN_XOREQUAL;
       }
       return SWIG_TOKEN_ID;
 
