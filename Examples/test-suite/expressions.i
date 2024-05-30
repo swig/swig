@@ -1,6 +1,10 @@
 %module expressions
 
 %inline %{
+#if defined(_MSC_VER)
+  #include <iso646.h> // for alternative operator names, e.g. 'compl'
+#endif
+
 struct A
 {
     A() : k( 20/(5-1) ) {}

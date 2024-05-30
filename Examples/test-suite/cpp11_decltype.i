@@ -5,6 +5,8 @@
 
 %{
 #if defined(_MSC_VER)
+  #include <iso646.h> // for alternative operator names, e.g. 'compl'
+
   #pragma warning(disable : 4804) // warning C4804: '-': unsafe use of type 'bool' in operation
   // For: decltype(-false) should_be_int2;
 #endif
