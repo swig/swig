@@ -1929,7 +1929,7 @@ Each SWIG module can be placed into a separate package.
 <p>
 The default behaviour described above can be improved via the <a href="SWIGPlus.html#SWIGPlus_nspace">nspace feature</a>.
 Note that it only works for classes, structs, unions and enums declared within a named C++ namespace.
-When the nspace feature is used, the C++ namespaces are converted into Java packages of the same name.
+When the nspace feature is used (either the <tt>nspace</tt> feature flag or <tt>%nspacemove</tt>), the C++ namespaces are converted into Java packages of the same name.
 Proxy classes are thus declared within a package and this proxy makes numerous calls to the JNI intermediary class which is declared in the unnamed package by default.
 As Java does not support types declared in a named package accessing types declared in an unnamed package, the <tt>-package</tt> commandline option described earlier generally should be used to provide a parent package.
 So if SWIG is run using the <tt>-package com.myco</tt> option, a wrapped class, <tt>MyWorld::Material::Color</tt>, can then be accessed as <tt>com.myco.MyWorld.Material.Color</tt>.

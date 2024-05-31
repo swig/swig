@@ -144,7 +144,7 @@
 #define %nspace      %feature("nspace")
 #define %nonspace    %feature("nspace","0")
 #define %clearnspace %feature("nspace","")
-#define %nspacemove(NAME) %feature("nspace", #NAME)
+#define %nspacemove(NAMESPACE) %feature("nspace", #NAMESPACE)
 
 /* valuewrapper directives */
 #define %valuewrapper        %feature("valuewrapper")
