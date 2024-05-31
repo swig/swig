@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-05-31: binaire10
+	    [Ruby] #2906 Fix SWIG wrappers for std::map and std::vector to
+	    work with Ruby's "select".
+
 2024-05-30: olly
 	    #2914 Handle alternative operator names in C++ preprocessor
 	    expressions.  Handle full set of alternative operator names in
