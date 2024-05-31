@@ -5,18 +5,18 @@
 %feature("flatnested"); // must have in order to see nspace warnings when using Python as nested classes are otherwise simply ignored in Python
 
 %nspace Space::OuterClass1;
-%nspacemove(BadSpace1) Space::OuterClass1::InnerClass1;
-%nspacemove(BadSpace1) Space::OuterClass1::InnerEnum1;
+%nspacemove(Bad::Space1) Space::OuterClass1::InnerClass1;
+%nspacemove(Bad::Space1) Space::OuterClass1::InnerEnum1;
 
 %nspace Space::OuterClass2;
 %nonspace Space::OuterClass2::InnerClass2;
 %nonspace Space::OuterClass2::InnerEnum2;
 
 %nspacemove(NewSpace3) Space::OuterClass3;
-%nspacemove(BadSpace3) Space::OuterClass3::InnerClass3;
-%nspacemove(BadSpace3) Space::OuterClass3::InnerEnum3;
+%nspacemove(Bad::Space3) Space::OuterClass3::InnerClass3;
+%nspacemove(Bad::Space3) Space::OuterClass3::InnerEnum3;
 
-%nspacemove(NewSpace4) Space::OuterClass4;
+%nspacemove(NewSpace4::NewSubSpace4) Space::OuterClass4;
 %nonspace Space::OuterClass4::InnerClass4;
 %nonspace Space::OuterClass4::InnerEnum4;
 

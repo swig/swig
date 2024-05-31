@@ -8,8 +8,8 @@
 %nspacemove(Additional) ::GlobalClass;
 
 // move enum
-%nspacemove(Euter::Extra::Inner1) Outer::Inner1::Channel;
-%nspacemove(Outer::Enner2) Outer::Inner2::Channel;
+%nspacemove(Euter :: Extra :: Inner1) Outer::Inner1::Channel;
+%nspacemove(Outer::	Enner2) Outer::Inner2::Channel;
 %nspacemove(More) ::GlobalEnum;
 
 %include "nspace.i"

@@ -352,8 +352,23 @@ class TypePass:private Dispatcher {
   String *nspace_setting(Node *n, Node *outer) {
     String *nssymname_new = nssymname;
     String *feature_nspace = GetFlagAttr(n, "feature:nspace");
-    int valid = feature_nspace ? Equal(feature_nspace, "1") || Swig_scopename_isvalid(feature_nspace) : 1;
     String *nspace = Copy(feature_nspace);
+
+    // Check validity - single colons not allowed
+    const char *c = Char(feature_nspace);
+    int valid = 1;
+    while(c && *c) {
+      if (*(c++) == ':' && *(c++) != ':') {
+	valid = 0;
+	break;
+      }
+    }
+
+    // Remove whitespace
+    Replaceall(nspace, " ", "");
+    Replaceall(nspace, "\t", "");
+
+    valid = valid && (feature_nspace ? Equal(feature_nspace, "1") || Swig_scopename_isvalid(nspace) : 1);
     Replaceall(nspace, "::", ".");
     if (valid) {
       if (outer) {
@@ -374,7 +389,7 @@ class TypePass:private Dispatcher {
 	  String *outer_nspace_feature = Copy(outer_nspace);
 	  Replaceall(outer_nspace_feature, ".", "::");
 	  Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(n), Getline(n), "Ignoring nspace setting (%s) for '%s',\n", nspace_attribute, Swig_name_decl(n));
-	  Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(outer), Getline(outer), "as it conflicts with the nspace setting (%s) for outer class '%s'.\n", outer_nspace, Swig_name_decl(outer));
+	  Swig_warning(WARN_TYPE_NSPACE_SETTING, Getfile(outer), Getline(outer), "as it conflicts with the nspace setting (%s) for outer class '%s'.\n", outer_nspace_feature, Swig_name_decl(outer));
 	}
 	Setattr(n, "sym:nspace", outer_nspace);
       } else {

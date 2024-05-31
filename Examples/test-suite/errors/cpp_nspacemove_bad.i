@@ -27,3 +27,31 @@ namespace AA {
     struct Good3 {};
   }
 }
+
+// Good names (containing whitespace) for %nspacemove
+%nspacemove( Good :: Spaces ) AA::BB::Good4;
+%nspacemove(	  Good	::	  Spaces	) AA::BB::Good5;
+
+// Bad names (single colons) for %nspacemove
+%nspacemove(:) AA::BB::Bad7;
+%nspacemove(X: :Y) AA::BB::Bad8;
+%nspacemove(X:Y) AA::BB::Bad9;
+
+// Bad names (bad double colons) for %nspacemove
+%nspacemove(X::Y::) AA::BB::Bad10;
+%nspacemove(X:::Y) AA::BB::Bad11;
+%nspacemove(X::::Y) AA::BB::Bad12;
+
+namespace AA {
+  namespace BB {
+    struct Good4 {};
+    struct Good5 {};
+
+    struct Bad7 {};
+    struct Bad8 {};
+    struct Bad9 {};
+    struct Bad10 {};
+    struct Bad11 {};
+    struct Bad12 {};
+  }
+}
