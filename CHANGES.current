@@ -7,6 +7,43 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-05-31: wsfulton
+            [C#, D, Java, Javascript, Lua] Fix %nspace and %nspacemove for nested
+            classes and enums in a class. For example:
+
+              %nspace Space::OuterClass80;
+              namespace Space {
+                struct OuterClass80 {
+                  struct InnerClass80 {
+                    struct BottomClass80 {};
+                  };
+                  enum InnerEnum80 { ie80a, ie80b };
+                };
+              }
+
+            Previously the following were additionally required for some languages:
+
+              %nspace Space::OuterClass80::InnerClass80;
+              %nspace Space::OuterClass80::InnerClass80::Bottom80;
+
+            Now the appropriate nspace setting is taken from the outer class.
+
+            A new warning has also been introduced to check and correct conflicting
+            nspace usage, for example if the following is additionally added:
+
+              %nspacemove(AnotherSpace) Space::OuterClass80::InnerClass80;
+
+            The following warning appears as an inner class can't be moved outside
+            of the outer class:
+
+              Warning 406: Ignoring nspace setting (AnotherSpace) for 'Space::OuterClass80::InnerClass80',
+              Warning 406: as it conflicts with the nspace setting (Space) for outer class 'Space::OuterClass80'.
+
+2024-05-31: wsfulton
+            [C#, D, Java, Javascript, Lua] #2782 Enhance the nspace feature with
+            %nspacemove for moving a class or enum into a differently named target
+            language equivalent of a namespace.
+
 2024-05-31: binaire10
 	    [Ruby] #2906 Fix SWIG wrappers for std::map and std::vector to
 	    work with Ruby's "select".
@@ -23,6 +60,7 @@ Version 4.3.0 (in progress)
 2024-05-15: olly
 	    #2876 Report error if parser stack depth exceeded.  Previously SWIG
 	    would quietly exit with status 0 in this situation.
+
 
 2024-04-12: pfusik
             [Javascript] #2869 Fix JavaScript _wrap_getCPtr on 64-bit Windows
