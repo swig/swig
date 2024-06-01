@@ -1,5 +1,7 @@
 %module nspacemove_stl
 
+#if defined(SWIGJAVA) || defined(SWIGCSHARP) || defined(SWIGD) || defined(SWIGLUA) || defined(SWIGJAVASCRIPT)
+
 #if defined(SWIGJAVA)
 SWIG_JAVABODY_PROXY(public, public, SWIGTYPE)
 #endif
@@ -25,3 +27,5 @@ void test_vector_string(std::vector<std::string> a) {}
 void test_map_int(std::map<int, int> a) {}
 void test_map_string(std::map<int, std::string> a) {}
 %}
+
+#endif
