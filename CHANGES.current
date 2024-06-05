@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-06-06: olly
+	    #2919 Support parsing `sizeof(X)` for any expression or type X by
+	    skipping balanced parentheses.  We don't need to actually parse X
+	    since the type of sizeof is always size_t.
+
 2024-06-05: leakec
             #2873 Fix -fvirtual and using declarations for inheriting base class methods
             corner case.

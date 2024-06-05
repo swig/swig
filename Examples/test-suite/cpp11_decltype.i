@@ -68,6 +68,9 @@
     enum e { E1 };
     decltype(+E1) should_be_int10;
 
+    decltype(sizeof(i+j)) should_be_ulong;
+    decltype(sizeof(-i)) should_be_ulong2;
+
     static constexpr decltype(*"abc") should_be_char = 0;
 
     static constexpr decltype(&hidden_global_char) should_be_string = "xyzzy";

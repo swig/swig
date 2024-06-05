@@ -6606,9 +6606,15 @@ exprsimple     : exprnum
                     $$.type = T_STRING;
 		    $$.unary_arg_type = 0;
                }
-               | SIZEOF LPAREN type parameter_declarator RPAREN {
-		  SwigType_push($type,$parameter_declarator.type);
-		  $$.val = NewStringf("sizeof(%s)",SwigType_str($type,0));
+	       /* In sizeof(X) X can be a type or expression.  We don't actually
+		* need to parse X as the type of sizeof is always size_t (which
+		* SWIG handles as T_ULONG), so we just skip to the closing ')' and
+		* grab the skipped text to use in the value of the expression.
+		*/
+	       | SIZEOF LPAREN {
+		  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+		  $$.val = NewStringf("sizeof%s", scanner_ccode);
+		  Clear(scanner_ccode);
 		  $$.type = T_ULONG;
 		  $$.unary_arg_type = 0;
                }
@@ -6618,21 +6624,10 @@ exprsimple     : exprnum
 		  $$.type = T_ULONG;
 		  $$.unary_arg_type = 0;
                }
-	       /* We don't support all valid expressions here currently - e.g.
-		* sizeof(<unaryop> x) doesn't work - but those are unlikely to
-		* be seen in real code.
-		*
-		* Note: sizeof(x) is not handled here, but instead by the rule
-		* for sizeof(<type>) because it matches that syntactically.
-		*/
-	       | SIZEOF LPAREN exprsimple[in] RPAREN {
-		  $$.val = NewStringf("sizeof(%s)", $in.val);
-		  $$.type = T_ULONG;
-		  $$.unary_arg_type = 0;
-	       }
 	       /* `sizeof expr` without parentheses is valid for an expression,
-		* but not for a type.  This doesn't support `sizeof x` in
-		* addition to the case not supported above.
+		* but not for a type.  This doesn't support `sizeof x` (or
+		* `sizeof <unaryop> x` but that's unlikely to be seen in real
+		* code).
 		*/
 	       | SIZEOF exprsimple[in] {
 		  $$.val = NewStringf("sizeof(%s)", $in.val);
