@@ -6618,9 +6618,8 @@ exprsimple     : exprnum
 		  $$.type = T_ULONG;
 		  $$.unary_arg_type = 0;
                }
-               | SIZEOF ELLIPSIS LPAREN type parameter_declarator RPAREN {
-		  SwigType_push($type,$parameter_declarator.type);
-		  $$.val = NewStringf("sizeof...(%s)",SwigType_str($type,0));
+	       | SIZEOF ELLIPSIS LPAREN identifier RPAREN {
+		  $$.val = NewStringf("sizeof...(%s)", $identifier);
 		  $$.type = T_ULONG;
 		  $$.unary_arg_type = 0;
                }
