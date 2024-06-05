@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-06-05: leakec
+            #2873 Fix -fvirtual and using declarations for inheriting base class methods
+            corner case.
+
 2024-05-31: wsfulton
             [C#, D, Java, Javascript, Lua] Fix %nspace and %nspacemove for nested
             classes and enums in a class. For example:
@@ -60,7 +64,6 @@ Version 4.3.0 (in progress)
 2024-05-15: olly
 	    #2876 Report error if parser stack depth exceeded.  Previously SWIG
 	    would quietly exit with status 0 in this situation.
-
 
 2024-04-12: pfusik
             [Javascript] #2869 Fix JavaScript _wrap_getCPtr on 64-bit Windows

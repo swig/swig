@@ -234,6 +234,7 @@ class Allocate:public Dispatcher {
 			// Don't eliminate if an overloaded method as this hides the method
 			// in the scripting languages: the dispatch function will hide the base method if ignored.
 			SetFlag(n, "feature:ignore");
+			SetFlag(n, "fvirtual:ignore");
 		      }
 	      } else {
 		// Some languages need to know about covariant return types
@@ -633,6 +634,13 @@ class Allocate:public Dispatcher {
  * ----------------------------------------------------------------------------- */
 
   void add_member_for_using_declaration(Node *c, Node *n, int &ccount, Node *&unodes, Node *&last_unodes) {
+    if (GetFlag(c, "fvirtual:ignore")) {
+      // This node was ignored by fvirtual. Thus, it has feature:ignore set. 
+      // However, we may have new sibling overrides that will make us want to keep it.
+      // Hence, temporarily unset the feature:ignore flag.
+      UnsetFlag(c, "feature:ignore");
+    }
+
     if (!(Swig_storage_isstatic(c)
 	  || checkAttribute(c, "storage", "typedef")
 	  || Strstr(Getattr(c, "storage"), "friend")
@@ -664,6 +672,9 @@ class Allocate:public Dispatcher {
 	Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(n), Getline(n), "Using declaration %s, with name '%s', is not actually using\n", SwigType_namestr(Getattr(n, "uname")), symname);
 	Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(c), Getline(c), "the method from %s, with name '%s', as the names are different.\n", Swig_name_decl(c), csymname);
       }
+    }
+    if (GetFlag(c, "fvirtual:ignore")) {
+      SetFlag(c, "feature:ignore");
     }
   }
 
