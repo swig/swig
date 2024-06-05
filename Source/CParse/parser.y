@@ -6190,8 +6190,8 @@ decltype       : DECLTYPE LPAREN <str>{
 		 $$ = get_raw_text_balanced('(', ')');
 	       }[expr] decltypeexpr {
 		 String *expr = $expr;
-		 if ($4) {
-		   $$ = $4;
+		 if ($decltypeexpr) {
+		   $$ = $decltypeexpr;
 		 } else {
 		   $$ = NewStringf("decltype%s", expr);
 		   /* expr includes parentheses but don't include them in the warning message. */
@@ -7032,7 +7032,7 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		  * cases such as (6)+7 which get parsed using this rule then
 		  * the rule for a C-style cast.
 		  */
-		 $$.unary_arg_type = $2.type;
+		 $$.unary_arg_type = $in.type;
 	       }
                | NOT expr[in] {
 		 $$.val = NewStringf("~%s",$in.val);
@@ -7079,7 +7079,7 @@ variadic_opt  : ELLIPSIS {
 inherit        : raw_inherit
                ;
 
-raw_inherit     : COLON { inherit_list = 1; } base_list { $$ = $3; inherit_list = 0; }
+raw_inherit     : COLON { inherit_list = 1; } base_list { $$ = $base_list; inherit_list = 0; }
                 | %empty { $$ = 0; }
                 ;
 
@@ -7111,37 +7111,37 @@ base_list      : base_specifier {
 
 base_specifier : opt_virtual <intvalue>{
 		 $$ = cparse_line;
-	       } idcolon variadic_opt {
+	       }[line] idcolon variadic_opt {
 		 $$ = NewHash();
-		 Setfile($$,cparse_file);
-		 Setline($$,$2);
-		 Setattr($$,"name",$3);
-		 Setfile($3,cparse_file);
-		 Setline($3,$2);
+		 Setfile($$, cparse_file);
+		 Setline($$, $line);
+		 Setattr($$, "name", $idcolon);
+		 Setfile($idcolon, cparse_file);
+		 Setline($idcolon, $line);
                  if (last_cpptype && (Strcmp(last_cpptype,"struct") != 0)) {
 		   Setattr($$,"access","private");
-		   Swig_warning(WARN_PARSE_NO_ACCESS, Getfile($$), Getline($$), "No access specifier given for base class '%s' (ignored).\n", SwigType_namestr($3));
+		   Swig_warning(WARN_PARSE_NO_ACCESS, Getfile($$), Getline($$), "No access specifier given for base class '%s' (ignored).\n", SwigType_namestr($idcolon));
                  } else {
 		   Setattr($$,"access","public");
 		 }
-		 if ($4) {
+		 if ($variadic_opt) {
 		   SwigType_add_variadic(Getattr($$, "name"));
 		 }
                }
 	       | opt_virtual access_specifier <intvalue>{
 		 $$ = cparse_line;
-	       } opt_virtual idcolon variadic_opt {
+	       }[line] opt_virtual idcolon variadic_opt {
 		 $$ = NewHash();
-		 Setfile($$,cparse_file);
-		 Setline($$,$3);
-		 Setattr($$,"name",$5);
-		 Setfile($5,cparse_file);
-		 Setline($5,$3);
-		 Setattr($$,"access",$2);
-	         if (Strcmp($2,"public") != 0) {
-		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, Getfile($$), Getline($$), "%s inheritance from base '%s' (ignored).\n", $2, SwigType_namestr($5));
+		 Setfile($$, cparse_file);
+		 Setline($$, $line);
+		 Setattr($$, "name", $idcolon);
+		 Setfile($idcolon, cparse_file);
+		 Setline($idcolon, $line);
+		 Setattr($$, "access", $access_specifier);
+		 if (Strcmp($access_specifier, "public") != 0) {
+		   Swig_warning(WARN_PARSE_PRIVATE_INHERIT, Getfile($$), Getline($$), "%s inheritance from base '%s' (ignored).\n", $access_specifier, SwigType_namestr($idcolon));
 		 }
-		 if ($6) {
+		 if ($variadic_opt) {
 		   SwigType_add_variadic(Getattr($$, "name"));
 		 }
                }
@@ -7464,7 +7464,7 @@ idtemplate    : identifier {
 
 idtemplatetemplate : idtemplate
 	      | TEMPLATE identifier less_valparms_greater {
-		$$ = NewStringf("%s%s", $2, $3);
+		$$ = NewStringf("%s%s", $identifier, $less_valparms_greater);
 	      }
               ;
 
