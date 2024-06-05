@@ -52,6 +52,7 @@ check::equal(gettype($b->should_be_int9), "integer");
 check::equal(gettype($b->should_be_int10), "integer");
 
 check::equal(gettype($b->should_be_bool), "boolean");
+check::equal(gettype($b->should_be_bool2), "boolean");
 
 check::equal(gettype($b::should_be_char), "string");
 check::equal($b::should_be_char, "\0");

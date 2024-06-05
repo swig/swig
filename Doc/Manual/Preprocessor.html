@@ -16,7 +16,7 @@
 <li><a href="#Preprocessor_condition_compilation">Conditional Compilation</a>
 <li><a href="#Preprocessor_nn5">Macro Expansion</a>
 <li><a href="#Preprocessor_nn6">SWIG Macros</a>
-<li><a href="#Preprocessor_nn7">C99 and GNU Extensions</a>
+<li><a href="#Preprocessor_nn7">Variadic Macros</a>
 <li><a href="#Preprocessor_delimiters">Preprocessing and delimiters</a>
 <ul>
 <li><a href="#Preprocessor_nn8">Preprocessing and %{ ... %} &amp; " ... " delimiters</a>
@@ -25,6 +25,8 @@
 <li><a href="#Preprocessor_typemap_delimiters">Preprocessor and Typemaps</a>
 <li><a href="#Preprocessor_nn10">Viewing preprocessor output</a>
 <li><a href="#Preprocessor_warning_error">The #error and #warning directives</a>
+<li><a href="#Preprocessor_trigraphs">Trigraphs</a>
+<li><a href="#Preprocessor_digraphs">Digraphs</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -322,11 +324,12 @@ many of SWIG's advanced features and libraries are built using this mechanism (s
 support).
 </p>
 
-<H2><a name="Preprocessor_nn7">11.6 C99 and GNU Extensions</a></H2>
+<H2><a name="Preprocessor_nn7">11.6 Variadic Macros</a></H2>
 
 
 <p>
-SWIG-1.3.12 and newer releases support variadic preprocessor macros.  For example:
+SWIG-1.3.12 and newer releases support variadic preprocessor macros which were
+standardised by C99 and C++11.  For example:
 </p>
 
 <div class="code">
@@ -342,8 +345,9 @@ macros defined using <tt>%define</tt>.
 </p>
 
 <p>
-SWIG allows a variable number of arguments to be empty.  However, this often results
-in an extra comma (, ) and syntax error in the resulting expansion. For example:
+The variable arguments can be empty.  However, this often results
+in an extra comma (<tt>,</tt>) and syntax error in the resulting expansion. For
+example:
 </p>
 
 <div class="code">
@@ -353,7 +357,25 @@ DEBUGF("hello");   --&gt; fprintf(stderr, "hello", );
 </div>
 
 <p>
-To get rid of the extra comma, use <tt>##</tt> like this:
+C++20 and C23 added <tt>__VA_OPT__()</tt> as a solution to this, which SWIG
+4.3.0 added support for.  <tt>__VA_OPT__()</tt> expands to its argument if the
+variable arguments contain any tokens, and to nothing otherwise.  It can be
+used to solve the problem above like so:
+</p>
+
+<div class="code">
+<pre>
+#define DEBUGF(fmt, ...)   fprintf(stderr, fmt __VA_OPT__(,) __VA_ARGS__)
+</pre>
+</div>
+
+<p>
+An early non-standardised solution to this problem which gave a special
+meaning to the token sequence <tt>, ## __VA_ARGS__</tt> is supported by
+several C and C++ compilers, and also by SWIG 4.3.0 and later (it was
+documented as supported by earlier SWIG versions, but didn't actually work in
+at least SWIG 2.x and 3.x).  Using this feature you can get rid of the extra
+comma like this:
 </p>
 
 <div class="code">
@@ -363,7 +385,8 @@ To get rid of the extra comma, use <tt>##</tt> like this:
 </div>
 
 <p>
-SWIG also supports GNU-style variadic macros.    For example:
+SWIG also supports GNU-style variadic macros, which specify a name for the
+variable arguments instead of using <tt>__VA_ARGS__</tt>.  For example:
 </p>
 
 <div class="code">
@@ -373,10 +396,11 @@ SWIG also supports GNU-style variadic macros.    For example:
 </div>
 
 <p>
-<b>Comment:</b> It's not entirely clear how variadic macros might be useful to
-interface building.   However, they are used internally to implement a number of
-SWIG directives and are provided to make SWIG more compatible with C99 code.
+SWIG supports <tt>__VA_OPT__()</tt> in combination with GNU-style variadic
+macros (following the lead of GCC and clang which also support this, albeit
+with a warning by default).
 </p>
+
 
 <H2><a name="Preprocessor_delimiters">11.7 Preprocessing and delimiters</a></H2>
 
@@ -537,8 +561,10 @@ This might be useful as an aid to debugging and viewing the results of macro exp
 
 
 <p>
-SWIG supports the commonly used <tt>#warning</tt> and <tt>#error</tt> preprocessor directives.
+SWIG supports the standard <tt>#warning</tt> and <tt>#error</tt> preprocessor directives.
 The <tt>#warning</tt> directive will cause SWIG to issue a warning then continue processing.
+It was standardised in C++23 and C23, and has been widely supported as an extension by
+most C and C++ compilers for a long time.
 The <tt>#error</tt> directive will cause SWIG to exit with a fatal error.
 Example usage:
 </p>
@@ -563,6 +589,30 @@ commandline option is used. Alternatively, the <tt>#pragma</tt> directive can be
   #pragma SWIG cpperraswarn=0
 </pre>
 </div>
+
+<H2><a name="Preprocessor_trigraphs">11.11 Trigraphs</a></H2>
+
+
+<p>
+SWIG's preprocessor does not implement trigraphs (such as <tt>??!</tt> being
+mapped to <tt>|</tt>).  They are very rarely used deliberately but these
+character sequences sometimes occur in code where they aren't intended as
+trigraphs.  Compilers typically don't enable trigraph support by default, and
+they've been removed in C++17 and C23.
+</p>
+
+
+<H2><a name="Preprocessor_digraphs">11.12 Digraphs</a></H2>
+
+
+<p>
+SWIG's preprocessor does not currently implement digraphs (such as
+<tt>&lt;%</tt> being an alternative way to write the token <tt>{</tt>).
+These are standard in C++ and C95, but they're intended to support working with
+code on systems with very restricted character sets which are really rare
+these days so digraphs just don't seem to be used in practice.
+</p>
+
 
 </body>
 </html>

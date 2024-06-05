@@ -65,7 +65,6 @@
 <li><a href="#Python_nn37">Overhead and code bloat</a>
 <li><a href="#Python_nn38">Typemaps</a>
 <li><a href="#Python_nn39">Miscellaneous</a>
-<li><a href="#Python_stable_abi">Stable ABI</a>
 </ul>
 <li><a href="#Python_nn40">Common customization features</a>
 <ul>
@@ -77,6 +76,7 @@
 <ul>
 <li><a href="#Python_fastproxy">-fastproxy</a>
 </ul>
+<li><a href="#Python_stable_abi">Stable ABI</a>
 </ul>
 <li><a href="#Python_nn45">Tips and techniques</a>
 <ul>
@@ -157,7 +157,8 @@
 
 <p>
 This chapter describes SWIG's support of Python.  SWIG is compatible
-with all recent Python versions (Python 2.7 and Python &gt;= 3.3).  SWIG 4.0.x
+with all recent Python versions (Python 2.7 and Python &gt;= 3.3), though
+the oldest Python 3 version we regularly test with is Python 3.5.  SWIG 4.0.x
 supported Python 3.2.  SWIG 3.0.x supported older Python 2.x and 3.x.
 </p>
 
@@ -888,7 +889,7 @@ and use the <tt>import</tt> command as normal. For example :
 <div class="targetlang"><pre>
 $ python
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; print example.fact(4)
+&gt;&gt;&gt; print(example.fact(4))
 24
 &gt;&gt;&gt;
 </pre></div>
@@ -1015,7 +1016,7 @@ like you think it does:
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; print example.fact(4)
+&gt;&gt;&gt; print(example.fact(4))
 24
 &gt;&gt;&gt;
 </pre></div>
@@ -1075,7 +1076,7 @@ Now look at the Python interface:
 <div class="targetlang"><pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; # Print out value of a C global variable
-&gt;&gt;&gt; print example.cvar.My_variable
+&gt;&gt;&gt; print(example.cvar.My_variable)
 4
 &gt;&gt;&gt; # Set the value of a C global variable
 &gt;&gt;&gt; example.cvar.density = 0.8442
@@ -1237,7 +1238,7 @@ simply represented as opaque values using an especial Python container object:
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; print f
+&gt;&gt;&gt; print(f)
 &lt;Swig Object of type 'FILE *' at 0xb7d6f470&gt;
 </pre></div>
 
@@ -1255,7 +1256,7 @@ always retrieve it by casting the pointer object to a string:
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; print str(f)
+&gt;&gt;&gt; print(str(f))
 _c0671108_p_FILE
 </pre></div>
 
@@ -1266,7 +1267,7 @@ integer:
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; print int(f)
+&gt;&gt;&gt; print(int(f))
 135833352
 </pre></div>
 
@@ -1362,7 +1363,7 @@ is used as follows:
 &gt;&gt;&gt; v = example.Vector()
 &gt;&gt;&gt; v.x = 3.5
 &gt;&gt;&gt; v.y = 7.2
-&gt;&gt;&gt; print v.x, v.y, v.z
+&gt;&gt;&gt; print(v.x, v.y, v.z)
 3.5 7.2 0.0
 &gt;&gt;&gt;
 </pre></div>
@@ -1378,7 +1379,7 @@ something like this:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; print v
+&gt;&gt;&gt; print(v)
 &lt;C Vector instance at _18e31408_p_Vector&gt;
 </pre>
 </div>
@@ -1392,7 +1393,7 @@ attribute.  For example:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; print v.this
+&gt;&gt;&gt; print(v.this)
 _18e31408_p_Vector
 &gt;&gt;&gt;
 </pre>
@@ -1448,7 +1449,7 @@ If accessed in Python, you will see behavior like this:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; b = example.Bar()
-&gt;&gt;&gt; print b.x
+&gt;&gt;&gt; print(b.x)
 _801861a4_p_int
 &gt;&gt;&gt;
 </pre>
@@ -1580,7 +1581,7 @@ you can use it in Python like this:
 &gt;&gt;&gt; l.insert("Lager")
 &gt;&gt;&gt; l.get(1)
 'Stout'
-&gt;&gt;&gt; print l.length
+&gt;&gt;&gt; print(l.length)
 3
 &gt;&gt;&gt;
 </pre></div>
@@ -2022,7 +2023,7 @@ it works in Python as follows:
 6
 &gt;&gt;&gt; v = example.Vector()
 &gt;&gt;&gt; v.x = 3.4
-&gt;&gt;&gt; print v.y
+&gt;&gt;&gt; print(v.y)
 0.0
 &gt;&gt;&gt;
 </pre>
@@ -2766,7 +2767,7 @@ public:
 <pre>
 &gt;&gt;&gt; f = Foo()
 &gt;&gt;&gt; s = f.spam()
-&gt;&gt;&gt; print s.thisown
+&gt;&gt;&gt; print(s.thisown)
 0
 &gt;&gt;&gt;
 </pre>
@@ -3016,7 +3017,7 @@ class MyFoo(mymodule.Foo):
 #       super().__init__(foo) # Alternative construction for Python3
 
     def one(self):
-        print "one from Python"
+        print("one from Python")
 </pre>
 </div>
 
@@ -3317,41 +3318,6 @@ class Foo {
 If that is not possible, the user should avoid enabling the
 director feature for reentrant, recursive or threaded member
 methods that return const references.
-</p>
-
-<H3><a name="Python_stable_abi">33.5.8 Stable ABI</a></H3>
-
-
-<p>
-By default, the version of Python used to compile the wrappers needs to be the same as that used during runtime.
-Alternatvely, the <a href="https://docs.python.org/3/c-api/stable.html">Python Stable ABI</a> enables a single compiled binary to be used by different versions of Python.
-This is enabled by defining <tt>Py_LIMITED_API</tt> during the compilation of the C/C++ wrapper code and setting this macro to a particular minimum version of Python that one wants to support.
-</p>
-
-<p>
-SWIG supports the stable ABI, but only version 3.4 of Python and later is supported.
-There are two recommended approaches for using SWIG and the stable ABI and both require setting the <tt>Py_LIMITED_API</tt> macro to be set to <tt>0x03040000</tt> as a minimum value (Python 3.4).
-Either set this using <tt>%begin</tt> by adding the following into your interface file so that this macro appears at the beginning of the generated C/C++ code:
-</p>
-
-<div class="code"><pre>
-%begin %{
-#define Py_LIMITED_API 0x03040000
-%}
-</pre></div>
-
-<p>
-or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line option, for example, <tt>-DPy_LIMITED_API=0x03040000</tt>.
-</p>
-
-<p>
-The default SWIG command line options generate code that enable the limited API/stable ABI.
-Some options, such as <tt>-builtin</tt>, <tt>-fast</tt> (used by <tt>-O</tt>) do not use the limited API and hence when <tt>Py_LIMITED_API</tt> is defined there will be missing symbols during compilation.
-Compatibility of user's custom typemaps is of course dependent on the Python APIs used in the typemaps.
-</p>
-
-<p>
-<b>Compatibility Note:</b> Support for the stable ABI was added in SWIG-4.2.0.
 </p>
 
 <H2><a name="Python_nn40">33.6 Common customization features</a></H2>
@@ -3755,7 +3721,7 @@ Now, in Python
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; v = example.Vector(2, 3, 4)
-&gt;&gt;&gt; print v
+&gt;&gt;&gt; print(v)
 Vector(2, 3, 4)
 &gt;&gt;&gt;
 </pre>
@@ -3789,7 +3755,7 @@ Use it like this:
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; v = example.Vector(2, 3, 4)
 &gt;&gt;&gt; w = example.Vector(10, 11, 12)
-&gt;&gt;&gt; print v+w
+&gt;&gt;&gt; print(v+w)
 Vector(12, 14, 16)
 &gt;&gt;&gt;
 </pre>
@@ -4070,6 +4036,93 @@ While this possibly provides the best of both worlds, the time to import the mod
 The command line options mentioned above also apply to wrapped C/C++ global functions, not just class methods.
 </p>
 
+<H3><a name="Python_stable_abi">33.6.6 Stable ABI</a></H3>
+
+
+<p>
+By default, the version of Python used to compile the wrappers needs to be the same as that used during runtime.
+Alternatvely, the <a href="https://docs.python.org/3/c-api/stable.html">Python Stable ABI</a> enables a single compiled binary to be used by different versions of Python.
+This is enabled by defining <tt>Py_LIMITED_API</tt> during the compilation of the C/C++ wrapper code and setting this macro to a particular minimum version of Python that one wants to support.
+</p>
+
+<p>
+SWIG supports the stable ABI, but only version 3.4 of Python and later is supported.
+There are two recommended approaches for using SWIG and the stable ABI and both require setting the <tt>Py_LIMITED_API</tt> macro to be set to <tt>0x03040000</tt> as a minimum value (Python 3.4).
+Either set this using <tt>%begin</tt> by adding the following into your interface file so that this macro appears at the beginning of the generated C/C++ code:
+</p>
+
+<div class="code"><pre>
+%begin %{
+#define Py_LIMITED_API 0x03040000
+%}
+</pre></div>
+
+<p>
+or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line option, for example, <tt>-DPy_LIMITED_API=0x03040000</tt>.
+</p>
+
+<p>
+The default SWIG command line options generate code that enable the limited API/stable ABI.
+Some options, such as <tt>-builtin</tt>, <tt>-fast</tt> (used by <tt>-O</tt>) do not use the limited API and hence when <tt>Py_LIMITED_API</tt> is defined there will be missing symbols during compilation.
+Compatibility of user's custom typemaps is of course dependent on the Python APIs used in the typemaps.
+</p>
+
+<p>
+As discussed in the official <a href="https://docs.python.org/3/c-api/stable.html">Python Stable ABI</a> documentation, there is no guarantee that code conforms to the Limited API or Stable ABI when defining <tt>Py_LIMITED_API</tt>.
+There are a number of recommendations and caveats detailed there which are worth studying.
+The Stable ABI is also evolving and being modified with each Python release.
+In fact there is a Python C API working group, <a href="https://github.com/capi-workgroup/">capi-workgroup</a>, which was setup in the first half of 2023.
+The <a href="https://github.com/capi-workgroup/problems/issues">capi-workgroup/problems issues</a> is very enlightening reading for anyone using the Stable ABI.
+<a href="https://peps.python.org/pep-0733/">PEP 733</a> came out of the working group and is an evaluation of Python's C API.
+</p>
+
+<p>
+There is a lot of information to digest in this space, but a simple approach would be to follow the offical recommendation of testing an extension with all minor Python versions you want to support,
+and to build with the lowest supported version.
+SWIG supports at least Python 3.4 for the Stable ABI so this would be a good version to compile a SWIG extension against.
+There is also a useful tool <a href="https://github.com/trailofbits/abi3audit/">abi3audit</a> which can be used to check the compiled extension for Stable ABI conformance.
+It can be easily installed with pip and then used to check a SWIG generated shared object or wheel even.
+Note that if you are using it to check a shared object, the shared object must be renamed to have abi3 in the name.
+For example, below is the output on Linux for the class example shipped with SWIG, if <tt>Py_LIMITED_API</tt> is set as described earlier:
+</p>
+
+<div class="shell">
+<pre>
+~/swig/Examples/python/class $ mv _example.so _example.abi3.so
+~/swig/Examples/python/class $ abi3audit --assume-minimum-abi3 3.4 _example.abi3.so
+[22:12:18] WARNING  no wheel to infer abi3 version from; assuming (3.4)
+[22:12:18] _example.abi3.so: 1 extensions scanned; 0 ABI version mismatches and 0 ABI violations found
+</pre>
+</div>
+
+<p>
+If <tt>Py_LIMITED_API</tt> is not set, the check fails, but this should be expected:
+</p>
+
+<div class="shell">
+<pre>
+~/swig/Examples/python/class $ mv _example.so _example.abi3.so
+~/swig/Examples/python/class $ abi3audit --report --assume-minimum-abi3 3.4 _example.abi3.so
+[22:22:27] WARNING  no wheel to infer abi3 version from; assuming (3.4)
+[22:22:27] _example.abi3.so: 1 extensions scanned; 1 ABI version mismatches and 0 ABI violations found
+{"specs": {"_example.abi3.so": {"kind": "object", "object": {"name": "_example.abi3.so",
+"result": {"is_abi3": true, "is_abi3_baseline_compatible": false, "baseline": "3.4", "computed": "3.10",
+"non_abi3_symbols": [], "future_abi3_objects": {"PyUnicode_AsUTF8AndSize": "3.10"}}}}}}
+</pre>
+</div>
+
+<p>
+Note that ABI conformance as measured by <tt>abi3audit</tt> is far from simple and can depend on function inlining.
+There are functions in Python.h, which if inlined, become ABI compliant.
+Your chances of your C or C++ compiler inlining functions is greater with higher compiler optimisation levels.
+So merely by changing your compiler optimisation level may switch your Python extension from being identified as ABI compliant or not.
+</p>
+
+<p>
+<b>Compatibility Note:</b> Support for the stable ABI was added in SWIG-4.2.0.
+</p>
+
+
 <H2><a name="Python_nn45">33.7 Tips and techniques</a></H2>
 
 
@@ -4129,10 +4182,10 @@ In Python, this allows you to pass simple values.  For example:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = add(3, 4)
-&gt;&gt;&gt; print a
+&gt;&gt;&gt; print(a)
 7
 &gt;&gt;&gt; b = sub(7, 4)
-&gt;&gt;&gt; print b
+&gt;&gt;&gt; print(b)
 3
 &gt;&gt;&gt;
 </pre>
@@ -4192,7 +4245,7 @@ In Python, a mutated parameter shows up as a return value.  For example:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = negate(3)
-&gt;&gt;&gt; print a
+&gt;&gt;&gt; print(a)
 -3
 &gt;&gt;&gt;
 </pre>
@@ -4238,9 +4291,9 @@ When used in Python, the function will return multiple values.
 <pre>
 bytes, success = send_message("Hello World")
 if not success:
-    print "Whoa!"
+    print("Whoa!")
 else:
-    print "Sent", bytes
+    print("Sent", bytes)
 </pre>
 </div>
 
@@ -4336,10 +4389,10 @@ In Python, you would use the functions like this:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; result = new_intp()
-&gt;&gt;&gt; print result
+&gt;&gt;&gt; print(result)
 _108fea8_p_int
 &gt;&gt;&gt; add(3, 4, result)
-&gt;&gt;&gt; print intp_value(result)
+&gt;&gt;&gt; print(intp_value(result))
 7
 &gt;&gt;&gt;
 </pre>
@@ -4353,7 +4406,7 @@ If you replace <tt>%pointer_functions()</tt> by <tt>%pointer_class(type, name)</
 <pre>
 &gt;&gt;&gt; result = intp()
 &gt;&gt;&gt; add(3, 4, result)
-&gt;&gt;&gt; print result.value()
+&gt;&gt;&gt; print(result.value())
 7
 </pre>
 </div>
@@ -5149,8 +5202,8 @@ A typemap can be used to handle this case as follows :
     PyTuple_SetItem(o3, 0, o);
     o2 = $result;
     $result = PySequence_Concat(o2, o3);
-    Py_DECREF(o2);
-    Py_DECREF(o3);
+    Py_DecRef(o2);
+    Py_DecRef(o3);
   }
 }
 
@@ -5187,7 +5240,7 @@ function can now be used as follows:
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; a = spam(4, 5)
-&gt;&gt;&gt; print a
+&gt;&gt;&gt; print(a)
 (0, 2.45, 5.0)
 &gt;&gt;&gt; x, y, z = spam(4, 5)
 &gt;&gt;&gt;
@@ -5265,12 +5318,12 @@ arrays of different sizes.  To do this, you might write a typemap as follows:
   for (i =0; i &lt; $1_dim0; i++) {
     PyObject *o = PySequence_GetItem($input, i);
     if (!PyFloat_Check(o)) {
-      Py_XDECREF(o);
+      Py_DecRef(o);
       PyErr_SetString(PyExc_ValueError, "Expecting a sequence of floats");
       SWIG_fail;
     }
     temp[i] = PyFloat_AsDouble(o);
-    Py_DECREF(o);
+    Py_DecRef(o);
   }
   $1 = &amp;temp[0];
 }
@@ -5311,12 +5364,12 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
   for (i =0; i &lt; size; i++) {
     PyObject *o = PySequence_GetItem(input, i);
     if (!PyFloat_Check(o)) {
-      Py_XDECREF(o);
+      Py_DecRef(o);
       PyErr_SetString(PyExc_ValueError, "Expecting a sequence of floats");
       return 0;
     }
     ptr[i] = PyFloat_AsDouble(o);
-    Py_DECREF(o);
+    Py_DecRef(o);
   }
   return 1;
 }
@@ -6602,9 +6655,9 @@ example:
 <pre>
 %define MODULEIMPORT
 "
-print 'Loading low-level module $module'
+print('Loading low-level module $module')
 import $module
-print 'Module has loaded'
+print('Module has loaded')
 "
 %enddef
 
@@ -6618,9 +6671,9 @@ This will of course generate the following into the pure Python module:
 
 <div class="targetlang">
 <pre>
-print 'Loading low-level module $module'
+print('Loading low-level module $module')
 import _foo
-print 'Module has loaded'
+print('Module has loaded')
 </pre>
 </div>
 

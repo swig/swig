@@ -32,4 +32,24 @@
 (unless (string-contains? exception_thrown "cannot release ownership as memory is not owned")
   (error "Wrong or no exception thrown: " exception_thrown))
 
+(Counter-reset-counts)
+(define imt (new-InstanceMethodsTester))
+
+(define mo (new-MoveOnly 333))
+(Counter-check-counts 1 0 0 0 0 0)
+(InstanceMethodsTester-instance-take-move-only imt mo)
+(Counter-check-counts 1 0 0 1 0 2)
+(delete-MoveOnly mo)
+
+(Counter-check-counts 1 0 0 1 0 2)
+(Counter-reset-counts)
+
+(define mc (new-MovableCopyable 444))
+(Counter-check-counts 1 0 0 0 0 0)
+(InstanceMethodsTester-instance-take-movable-copyable imt mc)
+(Counter-check-counts 1 0 0 1 0 2)
+(delete-MovableCopyable mc)
+
+(Counter-check-counts 1 0 0 1 0 2)
+
 (exit 0)

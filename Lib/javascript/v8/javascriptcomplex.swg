@@ -13,7 +13,11 @@
           fragment=SWIG_From_frag(double))
 {
 SWIGINTERNINLINE SWIGV8_VALUE
-SWIG_From_dec(Type)(%ifcplusplus(const Type&, Type) c)
+#if defined(__cplusplus)
+SWIG_From_dec(Type)(const Type& c)
+#else
+SWIG_From_dec(Type)(Type c)
+#endif
 {
   SWIGV8_HANDLESCOPE_ESC();
 

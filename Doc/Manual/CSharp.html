@@ -3324,6 +3324,14 @@ public enum SmallNumbers : byte {
 </pre>
 </div>
 
+<p>
+If SWIG cannot find appropriate type information for the C++ enum base, then a type wrapper class (something like
+SWIGTYPE_p_xxxx) is generated for the C# enum base.
+This will not compile in C#, as a C# integral base is required.
+To fix this, make sure the C++ enum base type information is parsed by SWIG; this is usually a typedef to an integral type.
+Note that SWIG uses the cstype typemap to lookup the C# type for any given C++ type.
+Using the csbase typemap, as described above, overrides the default cstype for looking up the C# integral base type.
+</p>
 
 </body>
 </html>

@@ -5,6 +5,8 @@
 
 %{
 #if defined(_MSC_VER)
+  #include <iso646.h> // for alternative operator names, e.g. 'compl'
+
   #pragma warning(disable : 4804) // warning C4804: '-': unsafe use of type 'bool' in operation
   // For: decltype(-false) should_be_int2;
 #endif
@@ -73,6 +75,9 @@
     // SWIG < 4.2.0 incorrectly used int for the result of logical not in C++
     // so this would end up wrapped as int.
     decltype(!0) should_be_bool;
+
+    // Test alternative operator names work in this context.
+    decltype(((compl 42) and (not 1)) or (2 xor 4)) should_be_bool2;
 
     decltype(E1) should_be_enum;
 

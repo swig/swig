@@ -1,7 +1,7 @@
 %module preproc_cpp
 
 
-// booleans start
+// Test boolean literals (https://github.com/swig/swig/pull/2394):
 #if false
 # error "boolean preproc check fail false"
 #else
@@ -31,11 +31,48 @@
 #else
 # error "boolean preproc check fail (0 || true)"
 #endif
-// booleans end
 
 
-// Comma in macro - https://github.com/swig/swig/issues/974 (for /* */)
-// and https://github.com/swig/swig/pull/1166 (for //)
+// Test alternative operator names (https://github.com/swig/swig/issues/2914):
+#if true or 0
+#else
+# error "boolean preproc check fail true or 0"
+#endif
+
+#if true and 1
+#else
+# error "boolean preproc check fail true and 1"
+#endif
+
+#if true xor false
+#else
+# error "boolean preproc check fail true xor false"
+#endif
+
+#if 1 bitor 2
+#else
+# error "boolean preproc check fail 1 bitor 2"
+#endif
+
+#if not(1 bitand 2)
+#else
+# error "boolean preproc check fail not(1 bitand 2)"
+#endif
+
+#if compl 0
+#else
+# error "boolean preproc check fail compl 0"
+#endif
+
+#if (1 bitor 2) not_eq 1
+#else
+# error "boolean preproc check fail (1 bitor 2) not_eq 1"
+#endif
+
+
+// Regression tests for bugs handling a comma in a comment in a macro:
+// - https://github.com/swig/swig/issues/974 (for /* */)
+// - https://github.com/swig/swig/pull/1166 (for //)
 // Also see preproc.i
 %inline %{
 #define swig__attribute__(x)

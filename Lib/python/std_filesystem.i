@@ -12,14 +12,14 @@
 SWIGINTERN PyObject *SWIG_std_filesystem_importPathClass() {
   PyObject *module = PyImport_ImportModule("pathlib");
   PyObject *cls = PyObject_GetAttrString(module, "Path");
-  Py_DECREF(module);
+  SWIG_Py_DECREF(module);
   return cls;
 }
 
 SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
   PyObject *cls = SWIG_std_filesystem_importPathClass();
   bool is_instance = PyObject_IsInstance(obj, cls);
-  Py_DECREF(cls);
+  SWIG_Py_DECREF(cls);
   return is_instance;
 }
 }
@@ -29,7 +29,7 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
     PyObject *bytes = NULL;
     const char *s = SWIG_PyUnicode_AsUTF8AndSize($input, NULL, &bytes);
     $1 = std::filesystem::path(s);
-    Py_XDECREF(bytes);
+    SWIG_Py_XDECREF(bytes);
   } else if (SWIG_std_filesystem_isPathInstance($input)) {
     PyObject *str_obj = PyObject_Str($input);
     if constexpr (std::is_same_v<typename std::filesystem::path::value_type, wchar_t>) {
@@ -42,9 +42,9 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
       PyObject *bytes = NULL;
       const char *s = SWIG_PyUnicode_AsUTF8AndSize(str_obj, NULL, &bytes);
       $1 = std::filesystem::path(s);
-      Py_XDECREF(bytes);
+      SWIG_Py_XDECREF(bytes);
     }
-    Py_DECREF(str_obj);
+    SWIG_Py_DECREF(str_obj);
   } else {
     void *argp = 0;
     int res = SWIG_ConvertPtr($input, &argp, $descriptor(std::filesystem::path *), $disown | 0);
@@ -62,7 +62,7 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
     const char *s = SWIG_PyUnicode_AsUTF8AndSize($input, NULL, &bytes);
     temp_path = std::filesystem::path(s);
     $1 = &temp_path;
-    Py_XDECREF(bytes);
+    SWIG_Py_XDECREF(bytes);
   } else if (SWIG_std_filesystem_isPathInstance($input)) {
     PyObject *str_obj = PyObject_Str($input);
     if constexpr (std::is_same_v<typename std::filesystem::path::value_type, wchar_t>) {
@@ -77,9 +77,9 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
       const char *s = SWIG_PyUnicode_AsUTF8AndSize(str_obj, NULL, &bytes);
       temp_path = std::filesystem::path(s);
       $1 = &temp_path;
-      Py_XDECREF(bytes);
+      SWIG_Py_XDECREF(bytes);
     }
-    Py_DECREF(str_obj);
+    SWIG_Py_DECREF(str_obj);
   } else {
     void *argp = 0;
     int res = SWIG_ConvertPtr($input, &argp, $descriptor, $disown | 0);
@@ -101,8 +101,8 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
   }
   PyObject *cls = SWIG_std_filesystem_importPathClass();
   $result = PyObject_CallObject(cls, args);
-  Py_DECREF(cls);
-  Py_DECREF(args);
+  SWIG_Py_DECREF(cls);
+  SWIG_Py_DECREF(args);
 }
 
 %typemap(out, fragment="SWIG_std_filesystem", fragment="<type_traits>") const std::filesystem::path & {
@@ -116,6 +116,6 @@ SWIGINTERN bool SWIG_std_filesystem_isPathInstance(PyObject *obj) {
   }
   PyObject *cls = SWIG_std_filesystem_importPathClass();
   $result = PyObject_CallObject(cls, args);
-  Py_DECREF(cls);
-  Py_DECREF(args);
+  SWIG_Py_DECREF(cls);
+  SWIG_Py_DECREF(args);
 }

@@ -30,8 +30,135 @@ Version 4.3.0 (in progress)
             * Raw C data: Go uses byte array and int64 for size.
               Users can use '(const char *STRING, size_t LENGTH)' to use strings.
 
+2024-06-05: leakec
+            #2873 Fix -fvirtual and using declarations for inheriting base class methods
+            corner case.
+
+2024-05-31: wsfulton
+            [C#, D, Java, Javascript, Lua] Fix %nspace and %nspacemove for nested
+            classes and enums in a class. For example:
+
+              %nspace Space::OuterClass80;
+              namespace Space {
+                struct OuterClass80 {
+                  struct InnerClass80 {
+                    struct BottomClass80 {};
+                  };
+                  enum InnerEnum80 { ie80a, ie80b };
+                };
+              }
+
+            Previously the following were additionally required for some languages:
+
+              %nspace Space::OuterClass80::InnerClass80;
+              %nspace Space::OuterClass80::InnerClass80::Bottom80;
+
+            Now the appropriate nspace setting is taken from the outer class.
+
+            A new warning has also been introduced to check and correct conflicting
+            nspace usage, for example if the following is additionally added:
+
+              %nspacemove(AnotherSpace) Space::OuterClass80::InnerClass80;
+
+            The following warning appears as an inner class can't be moved outside
+            of the outer class:
+
+              Warning 406: Ignoring nspace setting (AnotherSpace) for 'Space::OuterClass80::InnerClass80',
+              Warning 406: as it conflicts with the nspace setting (Space) for outer class 'Space::OuterClass80'.
+
+2024-05-31: wsfulton
+            [C#, D, Java, Javascript, Lua] #2782 Enhance the nspace feature with
+            %nspacemove for moving a class or enum into a differently named target
+            language equivalent of a namespace.
+
+2024-05-31: binaire10
+	    [Ruby] #2906 Fix SWIG wrappers for std::map and std::vector to
+	    work with Ruby's "select".
+
+2024-05-30: olly
+	    #2914 Handle alternative operator names in C++ preprocessor
+	    expressions.  Handle full set of alternative operator names in
+	    C++ expressions (previously only "and", "or" and "not" were
+	    understood).
+
+2024-05-15: olly
+	    #2868 Support C++17 fold expressions.
+
+2024-05-15: olly
+	    #2876 Report error if parser stack depth exceeded.  Previously SWIG
+	    would quietly exit with status 0 in this situation.
+
+2024-04-12: pfusik
+            [Javascript] #2869 Fix JavaScript _wrap_getCPtr on 64-bit Windows
+
+2024-04-12: wsfulton
+            [Javascript, MzScheme, Python, Ruby] #202 Remove the vast majority of the
+            /*@SWIG:...*/ locator strings in the generated wrappers for these 4 languages
+            to help with reproducible builds.
+
+2024-04-08: thewtex
+            [Python] #2856 Include stdlib.h for more recent Python Stable ABI
+
+2024-03-28: olly
+	    Fix preprocessor to handle C-style comment ending **/ in macro argument.
+
+2024-03-27: wsfulton
+            [Python] #2844 Fix for using more than one std::string_view type in a method.
+
+2024-03-27: wsfulton
+            [R] #2847 Add missing std::vector<long> and std::vector<long long> typemaps
+            which were missing depending on whether or not SWIGWORDSIZE64 was defined.
+
+2024-03-25: wsfulton
+            [Python] #2826 Stricter stable ABI conformance.
+            1. Use Py_DecRef and Py_IncRef when Py_LIMITED_API is defined instead of
+               macro equivalents, such as Py_INCREF.
+            2. Don't use PyUnicode_GetLength from python-3.7 and later.
+            3. Use PyObject_Free instead of deprecated equivalents.
+
+2024-03-25: olly
+	    #2848 Fix elision of comma before ##__VA_ARGS__ which we document
+	    as supported but seems to have not worked since before 2009.
+
+2024-03-11: wsfulton
+            [C#] #2829 Improve handling and documentation of missing enum base type
+            information.
+
+2024-03-07: wsfulton
+            [Ocaml] Fix SWIGTYPE MOVE 'in' typemap to fix compilation error.
+
+2024-03-07: wsfulton
+            Add SWIGTYPE MOVE 'typecheck' typemaps to remove warning 472 
+            (SWIGWARN_TYPEMAP_TYPECHECK_UNDEF).
+
+2024-03-06: wsfulton
+            Add support for std::unique_ptr & typemaps. Non-const inputs implement
+            move semantics from proxy class to C++ layer, otherwise const inputs
+            and all reference returns behave like any other lvalue reference to a class.
+
+2024-03-06: wsfulton
+            [Javascript, MzScheme, Octave] Support NULL being passed into char* typemaps.
+
+2024-03-06: christophe-calmejane,wsfulton
+            #2650 Add support for movable std::unique_ptr by adding in std::unique_ptr &&
+            input typemaps. The std::unique && output typemaps do not support move
+            semantics by default and behave like lvalue references.
+
+2024-03-06: wsfulton
+            Add missing use of move constructor instead of copy constructor when
+            passing movable types by value. This was previously implemented only for
+            parameters passed to a global function or static member function and is
+            now extended to parameters passed to member methods as well as constructors.
+
+2024-03-01: olly
+	    [Java] #2819 Suppress Java removal warnings for uses of
+	    System.runFinalization().  SWIG will need to stop relying on
+	    finalize methods, but we know that and meanwhile these warnings
+	    make the testsuite output noisy.  Fix use of deprecated form
+	    of Runtime.exec() in the doxygen example.
+
 2024-02-28: wsfulton
-            Fix compilation errors in generated code when instantiating a templated
+            #1754 Fix compilation errors in generated code when instantiating a templated
             static method within a template (non-static methods and constructors were
             always okay). For example:
 

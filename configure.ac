@@ -679,11 +679,14 @@ else
 
   if test -z "$D2COMPILERBIN" ; then
     AC_CHECK_PROGS(D2COMPILER, dmd ldmd2 ldc2 gdmd)
-    if test -n "$D2COMPILER" ; then
-      old_ac_ext=$ac_ext
-      ac_ext=d
-      AC_MSG_CHECKING(whether the D2 compiler works)
-      cat > conftest.$ac_ext <<_ACEOF
+  else
+    D2COMPILER="$D2COMPILERBIN"
+  fi
+  if test -n "$D2COMPILER" ; then
+    old_ac_ext=$ac_ext
+    ac_ext=d
+    AC_MSG_CHECKING(whether the D2 compiler works)
+    cat > conftest.$ac_ext <<_ACEOF
 import std.algorithm;
 void main() {
 }
@@ -695,11 +698,8 @@ _ACEOF
         [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
         D2COMPILER=]
       )
-      rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext conftest.out
-      ac_ext=$old_ac_ext
-    fi
-  else
-    D2COMPILER="$D2COMPILERBIN"
+    rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext conftest.out
+    ac_ext=$old_ac_ext
   fi
 fi
 
@@ -2044,7 +2044,7 @@ else
     if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
       PYTHON3="$PYTHON"
     else
-      for py_ver in 3 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
+      for py_ver in 3 3.15 3.14 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 ""; do
         AC_CHECK_PROGS(PYTHON3, [python$py_ver])
         if test -n "$PYTHON3"; then
           AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
@@ -2204,6 +2204,9 @@ if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
     AC_MSG_CHECKING(pycodestyle version)
     pycodestyle_version=`$PYCODESTYLE --version 2>/dev/null`
     AC_MSG_RESULT($pycodestyle_version)
+  fi
+  if test -n "$PY3INCLUDE" ; then
+    AC_CHECK_PROGS(PYABI3AUDIT, [abi3audit])
   fi
 fi
 

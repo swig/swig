@@ -305,7 +305,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_MoveOnly_create() {
 </pre></div>
 
 <p>
-<tt>SwigValueWrapper</tt> is covered in <a href="SWIGPlus.html#SWIGPlus_nn19">Pass and return by value</a>.
+<tt>SwigValueWrapper</tt> is covered in <a href="SWIGPlus.html#SWIGPlus_nn19">Pass and return by value</a> and is automatically generated in this case as <tt>MoveOnly</tt> is not assignable.
 Note that the generated code could be optimised further using the <a href="Typemaps.html#Typemaps_optimal">"optimal" attribute</a>
 in the "out" typemap, so if the above typemap is customised as follows (note that this is C# specific):
 </p>
@@ -979,7 +979,7 @@ but do not use any additional mangling for normal enumerations. For example, in 
 </p>
 
 <div class="targetlang"><pre>
-print Color.RainbowColors_Red, Color.WarmColors_Red, Color.Red
+print(Color.RainbowColors_Red, Color.WarmColors_Red, Color.Red)
 </pre></div>
 
 <p>

@@ -18,6 +18,9 @@ SWIG_AsCharPtrAndSize(SWIGV8_VALUE valRef, char** cptr, size_t* psize, int *allo
     if(cptr) *cptr = cstr;
     
     return SWIG_OK;
+  } else if (valRef->IsNull()) {
+    if (cptr) *cptr = 0;
+    return SWIG_OK;
   } else {
     if(valRef->IsObject()) {
       SWIGV8_OBJECT obj = SWIGV8_OBJECT::Cast(valRef);

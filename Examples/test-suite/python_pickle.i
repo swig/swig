@@ -26,7 +26,7 @@ def __reduce__(self):
 #else
     PyObject *callable = data->klass;
 #endif
-    Py_INCREF(callable);
+    Py_IncRef(callable);
 
     PyObject *ret = PyTuple_New(2);
     PyTuple_SetItem(ret, 0, callable);

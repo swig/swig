@@ -102,6 +102,9 @@ case "$SWIGLANG" in
 		;;
 	"python")
 		pip install --user pycodestyle
+		if [[ "$PY_ABI_VER" ]]; then
+			pip install --user abi3audit
+		fi
 		if [[ "$PY2" ]]; then
 			WITHLANG=$SWIGLANG
 		else

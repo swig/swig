@@ -2223,3 +2223,21 @@ SwigType *Swig_symbol_template_param_eval(const SwigType *p, Symtab *symtab) {
   }
   return value;
 }
+
+/* -----------------------------------------------------------------------------
+ * Swig_symbol_isvalid()
+ *
+ * Checks that s is a valid C symbol
+ * ----------------------------------------------------------------------------- */
+
+int Swig_symbol_isvalid(const String *s) {
+  int valid = 0;
+  const char *c = Char(s);
+  if (c) {
+    valid = isalpha((int)*c) || (*c == '_');
+    while (valid && *++c) {
+      valid = isalnum((int)*c) || (*c == '_');
+    }
+  }
+  return valid;
+}

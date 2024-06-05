@@ -52,6 +52,9 @@ std::string_view test_reference_input(std::string_view &input) {
   return input;
 }
 
+void test_multiple(std::string_view aa, std::string_view bb, const std::string_view &cc, const std::string_view &dd) {
+}
+
 void test_throw() TESTCASE_THROW1(std::string_view){
   static std::string_view x = "test_throw message";
   throw x;

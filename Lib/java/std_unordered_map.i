@@ -156,7 +156,7 @@ template<class K, class T> class unordered_map {
     unordered_map(const unordered_map& other);
 
     struct iterator {
-      %typemap(javaclassmodifiers) iterator "protected class"
+      %typemap(javaclassmodifiers) iterator "public class"
       %extend {
         std::unordered_map< K, T >::iterator getNextUnchecked() {
           std::unordered_map< K, T >::iterator copy = (*$self);

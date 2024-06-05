@@ -34,3 +34,23 @@ end
 if (!exception_thrown)
   raise RuntimeError, "Should have thrown 'Cannot release ownership as memory is not owned' error"
 end
+
+Cpp11_move_typemaps::Counter.reset_counts()
+imt = Cpp11_move_typemaps::InstanceMethodsTester.new()
+
+mo = Cpp11_move_typemaps::MoveOnly.new(333)
+Cpp11_move_typemaps::Counter.check_counts(1, 0, 0, 0, 0, 0)
+imt.instance_take_move_only(mo)
+Cpp11_move_typemaps::Counter.check_counts(1, 0, 0, 1, 0, 2)
+mo = nil
+
+Cpp11_move_typemaps::Counter.check_counts(1, 0, 0, 1, 0, 2)
+Cpp11_move_typemaps::Counter.reset_counts()
+
+mc = Cpp11_move_typemaps::MovableCopyable.new(444)
+Cpp11_move_typemaps::Counter.check_counts(1, 0, 0, 0, 0, 0)
+imt.instance_take_movable_copyable(mc)
+Cpp11_move_typemaps::Counter.check_counts(1, 0, 0, 1, 0, 2)
+mc = nil
+
+Cpp11_move_typemaps::Counter.check_counts(1, 0, 0, 1, 0, 2)

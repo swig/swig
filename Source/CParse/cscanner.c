@@ -52,7 +52,7 @@ static int rename_active = 0;
 /* Doxygen comments scanning */
 int scan_doxygen_comments = 0;
 
-int isStructuralDoxygen(String *s) {
+static int isStructuralDoxygen(String *s) {
   static const char* const structuralTags[] = {
     "addtogroup",
     "callgraph",
@@ -122,7 +122,7 @@ void Swig_cparse_cplusplusout(int v) {
  * Initialize buffers
  * ------------------------------------------------------------------------- */
 
-void scanner_init(void) {
+static void scanner_init(void) {
   scan = NewScanner();
   Scanner_idstart(scan,"%");
   scan_init = 1;
@@ -719,12 +719,6 @@ num_common:
 
       /* C++ keywords */
       if (cparse_cplusplus) {
-	if (strcmp(yytext, "and") == 0)
-	  return (LAND);
-	if (strcmp(yytext, "or") == 0)
-	  return (LOR);
-	if (strcmp(yytext, "not") == 0)
-	  return (LNOT);
 	if (strcmp(yytext, "class") == 0)
 	  return (CLASS);
 	if (strcmp(yytext, "private") == 0)
@@ -802,9 +796,12 @@ num_common:
 	    yylval.str = s;
 	    return OPERATOR;
 	  } else if (nexttok == SWIG_TOKEN_ID) {
-	    /* We have an identifier.  This could be any number of things. It could be a named version of
-               an operator (e.g., 'and_eq') or it could be a conversion operator.   To deal with this, we're
-               going to read tokens until we encounter a ( or ;.  Some care is needed for formatting. */
+	    /* We have an identifier.  It could be "new" or "delete",
+	     * potentially followed by "[]", or it could be a conversion
+	     * operator (it can't be "and_eq" or similar as those are returned
+	     * as SWIG_TOKEN_ANDEQUAL, etc by Scanner_token()).  To deal with
+	     * this we read tokens until we encounter a suitable terminating
+	     * token.  Some care is needed for formatting. */
 	    int needspace = 1;
 	    int termtoken = 0;
 	    const char *termvalue = 0;
@@ -856,17 +853,6 @@ num_common:
 		    || (strcmp(t, "delete") == 0)
 		    || (strcmp(t, "new[]") == 0)
 		    || (strcmp(t, "delete[]") == 0)
-		    || (strcmp(t, "and") == 0)
-		    || (strcmp(t, "and_eq") == 0)
-		    || (strcmp(t, "bitand") == 0)
-		    || (strcmp(t, "bitor") == 0)
-		    || (strcmp(t, "compl") == 0)
-		    || (strcmp(t, "not") == 0)
-		    || (strcmp(t, "not_eq") == 0)
-		    || (strcmp(t, "or") == 0)
-		    || (strcmp(t, "or_eq") == 0)
-		    || (strcmp(t, "xor") == 0)
-		    || (strcmp(t, "xor_eq") == 0)
 		    )) {
 		/*              retract(strlen(t)); */
 

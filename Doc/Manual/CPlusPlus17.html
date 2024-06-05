@@ -17,6 +17,7 @@
 <li><a href="#CPlusPlus17_nested_namespaces">Nested namespace definitions</a>
 <li><a href="#CPlusPlus17_u8_char_literals">UTF-8 character literals</a>
 <li><a href="#CPlusPlus17_hexadecimal_floating_literals">Hexadecimal floating literals</a>
+<li><a href="#CPlusPlus17_fold_expressions">Fold expressions</a>
 </ul>
 <li><a href="#CPlusPlus17_standard_library_changes">Standard library changes</a>
 </ul>
@@ -101,6 +102,16 @@ For example:
 double f = 0xF.68p2;
 </pre>
 </div>
+
+<H3><a name="CPlusPlus17_fold_expressions">9.2.4 Fold expressions</a></H3>
+
+
+<p>
+C++17 added template fold expressions.  SWIG 4.3.0 and later support
+parsing these with a few restrictions.  Unary left fold expressions are
+not supported currently.  Also the same restrictions that apply to other
+expressions apply here too.
+</p>
 
 <H2><a name="CPlusPlus17_standard_library_changes">9.3 Standard library changes</a></H2>
 

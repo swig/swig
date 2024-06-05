@@ -10,9 +10,7 @@
 %runtime "swigerrors.swg"  // SWIG errors
 %runtime "mzrun.swg"
 
-%define SWIG_APPEND_VALUE(value)
-   values[lenv++] = value
-%enddef
+#define SWIG_APPEND_VALUE(value) values[lenv++] = value
 
 /* Definitions */
 #define SWIG_malloc(size) swig_malloc(size, FUNC_NAME)
