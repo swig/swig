@@ -8,6 +8,10 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-06-06: olly
+	    Support alignof(T) for arbitrary type T, and deduce the type of
+	    alignof(T) as size_t.
+
+2024-06-06: olly
 	    #2919 Support parsing `sizeof(X)` for any expression or type X by
 	    skipping balanced parentheses.  We don't need to actually parse X
 	    since the type of sizeof is always size_t.

@@ -56,4 +56,11 @@ public:
                       sizeof(char) ||
                   std::is_trivially_destructible<T>::value>
         is_destructor_skippable;
+
+    // This is nonsensical, but provides a regression test for this not working with alignof() either.
+    typedef std::integral_constant<
+        bool, alignof(DestructorSkippable<T>(static_cast<const T*>(0))) ==
+                      alignof(char) ||
+                  std::is_trivially_destructible<T>::value>
+        test_alignof_too;
 };

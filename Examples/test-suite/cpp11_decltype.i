@@ -70,6 +70,7 @@
 
     decltype(sizeof(i+j)) should_be_ulong;
     decltype(sizeof(-i)) should_be_ulong2;
+    decltype(alignof(int)) should_be_ulong3;
 
     static constexpr decltype(*"abc") should_be_char = 0;
 

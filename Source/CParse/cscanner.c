@@ -905,6 +905,8 @@ num_common:
 	  return (USING);
 	if (strcmp(yytext, "namespace") == 0)
 	  return (NAMESPACE);
+	if (strcmp(yytext, "alignof") == 0)
+	  return (ALIGNOF);
 	if (strcmp(yytext, "override") == 0) {
 	  last_id = 1;
 	  return (OVERRIDE);

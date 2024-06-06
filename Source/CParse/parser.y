@@ -1670,7 +1670,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <intvalue> TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN LBRACE RBRACE PERIOD ELLIPSIS
-%token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF MODULE LBRACKET RBRACKET
+%token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF ALIGNOF MODULE LBRACKET RBRACKET
 %token BEGINFILE ENDOFFILE
 %token ILLEGAL CONSTANT
 %token RENAME NAMEWARN EXTEND PRAGMA FEATURE VARARGS
@@ -6618,6 +6618,14 @@ exprsimple     : exprnum
 		  $$.type = T_ULONG;
 		  $$.unary_arg_type = 0;
                }
+	       /* alignof(T) always has type size_t. */
+	       | ALIGNOF LPAREN {
+		  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+		  $$.val = NewStringf("alignof%s", scanner_ccode);
+		  Clear(scanner_ccode);
+		  $$.type = T_ULONG;
+		  $$.unary_arg_type = 0;
+	       }
 	       | SIZEOF ELLIPSIS LPAREN identifier RPAREN {
 		  $$.val = NewStringf("sizeof...(%s)", $identifier);
 		  $$.type = T_ULONG;
