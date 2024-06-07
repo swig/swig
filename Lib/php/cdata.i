@@ -9,9 +9,9 @@
  * ------------------------------------------------------------ */
 
 %typemap(in, phptype="string") (const void *BYTES, size_t LENGTH) %{
-   convert_to_string(&$input);
-   $1 = ($1_ltype) Z_STRVAL($input);
-   $2 = ($2_ltype) Z_STRLEN($input);
+  convert_to_string(&$input);
+  $1 = ($1_ltype) Z_STRVAL($input);
+  $2 = ($2_ltype) Z_STRLEN($input);
 %}
 %apply (const void *BYTES, size_t LENGTH) { (void *BYTES, size_t LENGTH) }
 

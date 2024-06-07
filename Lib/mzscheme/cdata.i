@@ -14,6 +14,6 @@
 
 %include <typemaps/cdata_begin.swg>
 
-%typemap(out) SWIGCDATA %{ %}
+%typemap(out) SWIGCDATA ""
 
 %include <typemaps/cdata_end.swg>

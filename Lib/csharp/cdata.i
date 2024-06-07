@@ -20,16 +20,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-typedef struct { int len; void* ptr; } SWIG_csharp_bytes;
+typedef struct { int len; void *ptr; } SWIG_csharp_bytes;
 
-SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_bytes_to_c(int len, void *ptr) {
-  SWIG_csharp_bytes *ret;
-  ret = (SWIG_csharp_bytes*)malloc(sizeof(SWIG_csharp_bytes));
+SWIGEXPORT void *SWIGSTDCALL SWIG_csharp_bytes_to_c(int len, void *ptr) {
+  SWIG_csharp_bytes *ret = (SWIG_csharp_bytes *)malloc(sizeof(SWIG_csharp_bytes));
   if (ret == SWIG_NULLPTR) {
     SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate bytes container.");
     return SWIG_NULLPTR;
   }
-  if(len > 0) {
+  if (len > 0) {
     ret->ptr = malloc(len);
     if (ret->ptr == SWIG_NULLPTR) {
       SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate bytes.");
@@ -54,29 +53,23 @@ SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_bytes_to_c(int len, void *ptr) {
 %typemap(ctype)  (const void *BYTES, size_t LENGTH) "void *"
 %typemap(imtype) (const void *BYTES, size_t LENGTH) "global::System.IntPtr"
 %typemap(csin)   (const void *BYTES, size_t LENGTH) "$modulePINVOKE.SWIG_csharp_bytes_to_c($csinput)"
-%typemap(in, canthrow=1, fragment="SWIG_csharp_bytes") (const void *BYTES, size_t LENGTH) %{
-  {
-    SWIG_csharp_bytes *p;
-    p = (SWIG_csharp_bytes *)$input;
-    if(p != SWIG_NULLPTR) {
-      $1 = ($1_ltype)p->ptr;
-      $2 = ($2_ltype)p->len;
-    } else {
-      $1 = 0;
-      $2 = 0;
-    }
+%typemap(in, canthrow=1, fragment="SWIG_csharp_bytes") (const void *BYTES, size_t LENGTH) {
+  SWIG_csharp_bytes *p = (SWIG_csharp_bytes *)$input;
+  if (p != SWIG_NULLPTR) {
+    $1 = ($1_ltype)p->ptr;
+    $2 = ($2_ltype)p->len;
+  } else {
+    $1 = 0;
+    $2 = 0;
   }
-%}
-%typemap(freearg, fragment="SWIG_csharp_bytes") (const void *BYTES, size_t LENGTH) %{
-  {
-     SWIG_csharp_bytes *p;
-     p = (SWIG_csharp_bytes *)$input;
-     if(p != SWIG_NULLPTR) {
-        free(p->ptr);
-        free(p);
-     }
+}
+%typemap(freearg, fragment="SWIG_csharp_bytes") (const void *BYTES, size_t LENGTH) {
+  SWIG_csharp_bytes *p = (SWIG_csharp_bytes *)$input;
+  if (p != SWIG_NULLPTR) {
+    free(p->ptr);
+    free(p);
   }
-%}
+}
 
 %apply (const void *BYTES, size_t LENGTH) { (void *BYTES, size_t LENGTH) }
 
@@ -93,16 +86,15 @@ extern "C" {
 #endif
 
 SWIGEXPORT int SWIGSTDCALL SWIG_csharp_data(SWIGCDATA *d, void **ptr) {
-    int ret;
-    ret = 0;
-    if (d != SWIG_NULLPTR) {
-        if (d->len > 0 && d->data != SWIG_NULLPTR) {
-            *ptr = (void *)d->data;
-            ret = (int)d->len;
-        }
-        free(d); /* allocated in 'out' typemap */
+  int ret = 0;
+  if (d != SWIG_NULLPTR) {
+    if (d->len > 0 && d->data != SWIG_NULLPTR) {
+      *ptr = (void *)d->data;
+      ret = (int)d->len;
     }
-    return ret;
+    free(d); /* allocated in 'out' typemap */
+  }
+  return ret;
 }
 
 #ifdef __cplusplus
@@ -110,26 +102,23 @@ SWIGEXPORT int SWIGSTDCALL SWIG_csharp_data(SWIGCDATA *d, void **ptr) {
 #endif
 %}
 
-%typemap(ctype)  SWIGCDATA "SWIGCDATA *"
+%typemap(ctype) SWIGCDATA "SWIGCDATA *"
 %typemap(imtype) SWIGCDATA "global::System.IntPtr"
 %typemap(cstype) SWIGCDATA "byte[]"
-%typemap(out)    SWIGCDATA %{
-    $result = (SWIGCDATA*)malloc(sizeof($1));
-    if($result != SWIG_NULLPTR) {
-        memcpy($result, &$1, sizeof($1));
-    }
+%typemap(out) SWIGCDATA %{
+  $result = (SWIGCDATA*)malloc(sizeof($1));
+  if ($result != SWIG_NULLPTR) {
+    memcpy($result, &$1, sizeof($1));
+  }
 %}
 %typemap(csout, fragment="SWIG_csharp_data") SWIGCDATA {
-    global::System.IntPtr mm;
-    byte[] ret;
-    int size;
-    mm = global::System.IntPtr.Zero;
-    size = $modulePINVOKE.SWIG_csharp_data($imcall, ref mm);
-    ret = new byte[size];
-    if (size > 0) {
-        System.Runtime.InteropServices.Marshal.Copy(mm, ret, 0, size);
-    }
-    return ret;
+  global::System.IntPtr mm = global::System.IntPtr.Zero;
+  int size = $modulePINVOKE.SWIG_csharp_data($imcall, ref mm);
+  byte[] ret = new byte[size];
+  if (size > 0) {
+    System.Runtime.InteropServices.Marshal.Copy(mm, ret, 0, size);
+  }
+  return ret;
 }
 
 %include <typemaps/cdata_end.swg>

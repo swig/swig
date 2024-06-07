@@ -9,8 +9,7 @@
  * ------------------------------------------------------------ */
 
 %typemap(gotype) (const void *BYTES, size_t LENGTH) "[]byte"
-%typemap(in) (const void *BYTES, size_t LENGTH)
-%{
+%typemap(in) (const void *BYTES, size_t LENGTH) %{
   $1 = ($1_ltype)$input.array;
   $2 = ($2_ltype)$input.len;
 %}
@@ -40,21 +39,19 @@ struct swigcdata {
   $result = *(long long *)(void **)&swig_out;
 %}
 
-%typemap(goout) SWIGCDATA %{
-  {
-    type swigcdata struct { size int; data uintptr }
-    p := (*swigcdata)(unsafe.Pointer(uintptr($1)))
-    if p == nil || p.data == 0 {
-      $result = nil
-    } else {
-      b := make([]byte, p.size)
-      a := (*[0x7fffffff]byte)(unsafe.Pointer(p.data))[:p.size]
-      copy(b, a)
-      Swig_free(p.data)
-      Swig_free(uintptr(unsafe.Pointer(p)))
-      $result = b
-    }
+%typemap(goout) SWIGCDATA {
+  type swigcdata struct { size int; data uintptr }
+  p := (*swigcdata)(unsafe.Pointer(uintptr($1)))
+  if p == nil || p.data == 0 {
+    $result = nil
+  } else {
+    b := make([]byte, p.size)
+    a := (*[0x7fffffff]byte)(unsafe.Pointer(p.data))[:p.size]
+    copy(b, a)
+    Swig_free(p.data)
+    Swig_free(uintptr(unsafe.Pointer(p)))
+    $result = b
   }
-%}
+}
 
 %include <typemaps/cdata_end.swg>

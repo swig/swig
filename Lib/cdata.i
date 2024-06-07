@@ -4,9 +4,7 @@
  * SWIG library file containing macros for manipulating raw C data.
  * ----------------------------------------------------------------------------- */
 
-%typemap(in,noblock=0,fragment="SWIG_AsCharPtrAndSize")
-  (const void *BYTES, size_t LENGTH) (int res, void *buf = 0, size_t len = 0, int alloc = 0)
-{
+%typemap(in,noblock=0,fragment="SWIG_AsCharPtrAndSize") (const void *BYTES, size_t LENGTH) (int res, void *buf = 0, size_t len = 0, int alloc = 0) {
   res = SWIG_AsCharPtrAndSize($input, (char **)&buf, &len, &alloc);
   if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum);
@@ -15,17 +13,13 @@
   $2 = %numeric_cast(len, $2_ltype);
 }
 
-%typemap(freearg,noblock=1,match="in")
-  (const void *BYTES, size_t LENGTH)
-{
+%typemap(freearg,noblock=1,match="in") (const void *BYTES, size_t LENGTH) {
   if (alloc$argnum == SWIG_NEWOBJ) {
     %delete_array((char*)(buf$argnum));
   }
 }
 
-%typemap(directorin,noblock=1,fragment="SWIG_FromCharPtrAndSize")
-  (const void *BYTES, size_t LENGTH)
-{
+%typemap(directorin,noblock=1,fragment="SWIG_FromCharPtrAndSize") (const void *BYTES, size_t LENGTH) {
   if ($1 && $2 > 0) {
     $input = SWIG_FromCharPtrAndSize((const char*)$1, (size_t)$2);
   } else {

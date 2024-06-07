@@ -6,7 +6,7 @@
 
 %{
 typedef struct SWIGCDATA {
-    char *data;
-    size_t len;
+  char *data;
+  size_t len;
 } SWIGCDATA;
 %}

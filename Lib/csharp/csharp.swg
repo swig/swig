@@ -1086,23 +1086,27 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 /* String & length */
 %pragma(csharp) imclasscode=%{
   public class SWIGStringWithLengthHelper {
+
     [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_to_c")]
-    /* We can replace 'LPStr' to 'LPUTF8Str' in the future */
     private static extern global::System.IntPtr SWIG_csharp_string_to_c0(int size, int len, [global::System.Runtime.InteropServices.In,global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPStr, SizeParamIndex=0)] string str);
+
+    [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_size")]
+    private static extern int SWIG_csharp_string_size(global::System.IntPtr str);
+
+    [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_str")]
+    private static extern global::System.IntPtr SWIG_csharp_string_str(global::System.IntPtr str);
+
     public static global::System.IntPtr SWIG_csharp_string_to_c(string str) {
       if (str == null)
         return global::System.IntPtr.Zero;
       global::System.Text.Encoding utf8 = global::System.Text.Encoding.UTF8;
       return SWIG_csharp_string_to_c0(utf8.GetByteCount(str), str.Length, str);
     }
-    [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_size")]
-    private static extern int SWIG_csharp_string_size(global::System.IntPtr str);
-    [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_str")]
-    private static extern global::System.IntPtr SWIG_csharp_string_str(global::System.IntPtr str);
-    public static string SWIG_c_to_csharp_string(global::System.IntPtr _str) {
-      int size = SWIG_csharp_string_size(_str);
+
+    public static string SWIG_c_to_csharp_string(global::System.IntPtr str) {
+      int size = SWIG_csharp_string_size(str);
       if (size > 0) {
-        global::System.IntPtr s = SWIG_csharp_string_str(_str);
+        global::System.IntPtr s = SWIG_csharp_string_str(str);
         byte[] b = new byte[size];
         global::System.Runtime.InteropServices.Marshal.Copy(s, b, 0, size);
         global::System.Text.Encoding utf8 = global::System.Text.Encoding.UTF8;
@@ -1112,7 +1116,6 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
     }
   }
 %}
-
 %fragment("SWIG_csharp_string", "header") %{
 #ifdef __cplusplus
 extern "C" {
@@ -1121,14 +1124,14 @@ typedef struct { int len; int size; char* str; } SWIG_csharp_string;
 
 SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_string_to_c(int size, int len, char *str) {
   SWIG_csharp_string *ret;
-  ret = (SWIG_csharp_string*)malloc(sizeof(SWIG_csharp_string));
+  ret = (SWIG_csharp_string *)malloc(sizeof(SWIG_csharp_string));
   if (ret == SWIG_NULLPTR) {
     SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate string container.");
     return SWIG_NULLPTR;
   }
-  if(size > 0) {
+  if (size > 0) {
     /* The string is in UTF8 encoding */
-    ret->str = (char*)malloc(size + 1);
+    ret->str = (char *)malloc(size + 1);
     if (ret->str == SWIG_NULLPTR) {
       SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate string.");
       free(ret);
@@ -1145,18 +1148,18 @@ SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_string_to_c(int size, int len, char *st
   return ret;
 }
 SWIGEXPORT int SWIGSTDCALL SWIG_csharp_string_size(SWIG_csharp_string *p) {
-    if(p) {
-        return p->size;
-    }
-    return 0;
+  if (p) {
+    return p->size;
+  }
+  return 0;
 }
 SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
-    if(p) {
-        char *ret = p->str;
-        free(p);
-        return ret;
-    }
-    return NULL;
+  if (p) {
+    char *ret = p->str;
+    free(p);
+    return ret;
+  }
+  return NULL;
 }
 
 #ifdef __cplusplus
@@ -1173,7 +1176,7 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
 %typemap(in, canthrow=1, fragment="SWIG_csharp_string") (const char *STRING, size_t LENGTH) {
   SWIG_csharp_string *p;
   p = (SWIG_csharp_string *)$input;
-  if(p != SWIG_NULLPTR) {
+  if (p != SWIG_NULLPTR) {
     $1 = ($1_ltype)p->str;
     $2 = ($2_ltype)p->size; /* We use number of bytes */
   } else {
@@ -1181,16 +1184,15 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
     $2 = 0;
   }
 }
-%typemap(freearg, fragment="SWIG_csharp_string") (const char *STRING, size_t LENGTH) %{
-  {
-     SWIG_csharp_string *p;
-     p = (SWIG_csharp_string *)$input;
-     if(p != SWIG_NULLPTR) {
-        free(p->str);
-        free(p);
-     }
+%typemap(freearg, fragment="SWIG_csharp_string") (const char *STRING, size_t LENGTH) {
+  SWIG_csharp_string *p;
+  p = (SWIG_csharp_string *)$input;
+  if (p != SWIG_NULLPTR) {
+    free(p->str);
+    free(p);
   }
-%}
+}
+
 %typemap(directorin) (const char *STRING, size_t LENGTH) %{
   if ($1 && $2 > 0) {
     $input = malloc(sizeof(SWIG_csharp_string));
