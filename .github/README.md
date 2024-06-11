@@ -130,20 +130,18 @@ SWIG-generated projects for JavaScript can currently choose between two build sy
 | Platforms with native builds | All platforms supported by Node.js  | Linux, Windows and macOS |
 | WASM builds | Hackish, see `swig-napi-example-project` and `magickwand.js@1.1` for solutions | Out-of-the-box |
 | Node.js APIs | All APIs, including the now obsolete raw V8 and NAN and the current Node-API | Only Node-API |
-| Integration with other builds systems for external dependencies | Very hackish, see `swig-napi-example-project` and `magickwand.js@1.0` for solutions, the only good solution is to recreate the build sys
-tem of all dependencies around `node-gyp` | Out-of-the-box support for `meson`, `CMake` and `autotools` |
+| Integration with other builds systems for external dependencies | Very hackish, see `magickwand.js@1.1` for solutions, the only good solution is to recreate the build system of all dependencies around `node-gyp` | Out-of-the-box support for `meson`, `CMake` and `autotools` |
 | `conan` integration | Very hackish, see `magickwand.js@1.0` | Out-of-the-box |
 | Build configurations through `npm install` CLI options | Yes | Yes |
 | Distributing prebuilt binaries | Yes, multiple options, including `@mapbox/node-pre-gyp`, `prebuild-install` and `prebuildify` | `prebuild-install` |
-| Requirements for the target host when installing from source | Node.js, Python and a working C++17 build environment | Only Node.js  when using `xpack-dev-tools`, a working C++17 build environment other
-wise |
+| Requirements for the target host when installing from source | Node.js, Python and a working C++17 build environment | Only Node.js  when using `xpack-dev-tools`, a working C++17 build environment otherwise |
 | Makefile language | Obscure and obsolete (`gyp`) | Modern and supported (`meson`)
 
 When choosing a build system, if your project:
  * targets only Node.js/native and has no dependencies
  
     → stay on `node-gyp`
-    
+
  * meant to be distributed only as binaries compiled in a controlled environment
     
     → stay on `node-gyp`
@@ -151,6 +149,7 @@ When choosing a build system, if your project:
  * has a dual-environment native/WASM setup
  
     → `node-gyp` will work for you, but `hadron` has some advantages
+
  * has dependencies with different build systems (`meson`, `CMake`, `autotools`)
  
     → `hadron` is the much better choice
