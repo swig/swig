@@ -103,17 +103,9 @@ The only changes in the manual relative to the mainline SWIG are in the [JavaScr
 
 # Maturity
 
-Late technology preview. The first open-source package - [`magickwand.js`](https://github.com/mmomtchev/magickwand.js) - is published on `npm` and it is used in production on some low-traffic websites. It uses all major new SWIG JSE features - async, WASM, locking and TypeScript.
+Late technology preview / Early public release. The first open-source package - [`magickwand.js`](https://github.com/mmomtchev/magickwand.js) - is published on `npm` and it is used in production on some low-traffic websites. It uses all major new SWIG JSE features - async, WASM, locking and TypeScript. A second one, [`proj.js`](https://github.com/mmomtchev/proj.js) is currently in the works.
 
 # Planned major features
-
-## New modern build system for C++ projects supporting both Node.js and WASM with `conan` integration
-
-`gyp` is a notoriously opinionated build system that is very difficult to integrate. You should check [`magickwand.js`](https://github.com/mmomtchev/magickwand.js) for an example that includes integration with `conan` for the dependencies, Autotools for ImageMagick on Linux/macOS and a custom full self-contained build on Windows. All of these use expansion of dummy `gyp` variables to launch external commands.
-
-Alas, at the moment, there are no other mature options for building Node.js addons. `node-gyp` includes logic that downloads the original compilation settings for the Node.js executable on the target platform in `gyp` format and uses these to build a compatible ABI.
-
-I am currently planning an alternative build system that will cover only Node-API-based Node.js addons, will be based on [`xpack`](https://github.com/xpack) and [`meson`](https://github.com/mesonbuild/meson/) and will feature [`conan`](https://conan.io) and WASM support. It will produce fully self-contained builds on all OS, using only freely distributable open-source software. It will allow rebuilding from source on a minimally installed end user host without a working C++ environment. The only build requirements will be `node` and `npm` - and eventually Python if `conan` is used. It will use `clang` on Windows.
 
 ## WASM without COOP/COEP
 
@@ -134,20 +126,43 @@ SWIG-generated projects for JavaScript can currently choose between two build sy
 | Description | `node-gyp` | `meson` + `conan` + `xpm` |
 | --- | --- | --- |
 | Overview  | The official Node.js and Node.js native addon build system from the Node.js core team  | A new, still under development, experimental build system from SWIG JSE |
-| Status | Very mature | Under development |
+| Status | Very mature | Still not completely finished |
 | Platforms with native builds | All platforms supported by Node.js  | Linux, Windows and macOS |
-| WASM builds | Hackish, see `swig-napi-example-project` and `magickwand.js` for solutions | Out-of-the-box |
+| WASM builds | Hackish, see `swig-napi-example-project` and `magickwand.js@1.1` for solutions | Out-of-the-box |
 | Node.js APIs | All APIs, including the now obsolete raw V8 and NAN and the current Node-API | Only Node-API |
-| Integration with other builds systems for external dependencies | Very hackish, see `swig-napi-example-project` and `magickwand.js` for solutions, the only good solution is to recreate the build system of all dependencies around `node-gyp` | Out-of-the-box support for `meson`, `CMake` and `autotools` |
-| `conan` integration | Very hackish, see `magickwand.js` | Out-of-the-box |
+| Integration with other builds systems for external dependencies | Very hackish, see `swig-napi-example-project` and `magickwand.js@1.0` for solutions, the only good solution is to recreate the build sys
+tem of all dependencies around `node-gyp` | Out-of-the-box support for `meson`, `CMake` and `autotools` |
+| `conan` integration | Very hackish, see `magickwand.js@1.0` | Out-of-the-box |
 | Build configurations through `npm install` CLI options | Yes | Yes |
-| Distributing prebuilt binaries | Yes, multiple options, including `@mapbox/node-pre-gyp` and `prebuildify` | `prebuildify` |
-| Requirements for the target host when installing from source | Node.js, Python and a working C++17 build environment | Only Node.js and Python when using `xpm`, a working C++17 build environment otherwise |
+| Distributing prebuilt binaries | Yes, multiple options, including `@mapbox/node-pre-gyp`, `prebuild-install` and `prebuildify` | `prebuild-install` |
+| Requirements for the target host when installing from source | Node.js, Python and a working C++17 build environment | Only Node.js  when using `xpack-dev-tools`, a working C++17 build environment other
+wise |
 | Makefile language | Obscure and obsolete (`gyp`) | Modern and supported (`meson`)
 
 When choosing a build system, if your project:
- * targets only Node.js/native and has no dependencies, stay on `node-gyp`
- * meant to be distributed only as binaries, stay on `node-gyp`
- * has lots of dependencies, targets both environments and needs to support source distribution with rebuilding on the target host, `meson`+`conan`+`xpm` is the safer choice
+ * targets only Node.js/native and has no dependencies
+ 
+    → stay on `node-gyp`
+    
+ * meant to be distributed only as binaries compiled in a controlled environment
+    
+    → stay on `node-gyp`
 
-Currently `meson` is a fork from the official project and some of the `conan` recipes are available only from my own Artifactory, because working with those projects has been very difficult since both of them tried to play the schizophrenia game with the PRs in order to try to convince me that I had a mental health problem to help to cover up the extortion with the French police.
+ * has a dual-environment native/WASM setup
+ 
+    → `node-gyp` will work for you, but `hadron` has some advantages
+ * has dependencies with different build systems (`meson`, `CMake`, `autotools`)
+ 
+    → `hadron` is the much better choice
+
+ * uses `conan`
+ 
+    → `hadron` is the much better choice
+
+ * everything at once
+ 
+    → `hadron` is the only choice
+
+# `conan` / `meson`
+
+Alas, the current state of my affair has made working with `conan` and `meson` extremely difficult, since they decided to back it in a way that manages to combine the criminal with the ridiculous in an absolutely extraordinary way. At the moment, both software packages need to be installed from my own repositories.
