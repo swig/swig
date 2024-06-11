@@ -162,6 +162,12 @@ When choosing a build system, if your project:
  
     → `hadron` is the only choice
 
+# Project templates
+
+You can find the classical [SWIG Node-API project skeleton using `node-gyp`](https://github.com/mmomtchev/swig-napi-example-project.git) here. It has a dual-environment setup with Node.js/native and Browser/WASM builds.
+
+You can find the new [SWIG Node-API project skeleton using `hadron`](https://github.com/mmomtchev/hadron-swig-napi-example-project.git) here. It has a dual-environment setup with Node.js/native and Browser/WASM builds and external dependencies using `conan`.
+
 # `conan` / `meson`
 
 Alas, the current state of my affair has made working with `conan` and `meson` extremely difficult, since they decided to back it in a way that manages to combine the criminal with the ridiculous in an absolutely extraordinary way. At the moment, both software packages need to be installed from my own repositories.
