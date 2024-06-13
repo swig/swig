@@ -1,5 +1,6 @@
 from python_docstring import *
 import inspect
+import sys
 
 def check(got, expected):
     expected_list = expected.split("\n")
@@ -87,9 +88,10 @@ check(inspect.getdoc(DocStrings.docstringC),
     )
 
 # One line doc special case, use __doc__
-check(DocStrings.docstringX.__doc__,
-    "  one line docs"
-    )
+if sys.version_info[0:2] < (3, 13):
+    check(DocStrings.docstringX.__doc__, "  one line docs")
+else:
+    check(DocStrings.docstringX.__doc__, "one line docs")
 
 check(inspect.getdoc(DocStrings.docstringX),
     "one line docs"
