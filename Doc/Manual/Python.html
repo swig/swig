@@ -4524,9 +4524,9 @@ just such a typemap is already defined. Just do this:
 
 <div class="code">
 <pre>
-%apply (char *STRING, int LENGTH) { (char *data, int size) };
+%apply (char *STRING, size_t LENGTH) { (char *data, size_t size) };
 ...
-int parity(char *data, int size, int initial);
+int parity(char *data, size_t size, int initial);
 </pre>
 </div>
 

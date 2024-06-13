@@ -7,6 +7,25 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-06-13: erezgeva
+            #2609 Fix Java typemap (const char *STRING, size_t LENGTH) to
+            marshall as Java String instead of Java byte[]. If the old behaviour
+            is required, replace with typemap (const void *BYTES, size_t LENGTH).
+            Add multi-argument typemaps to most languages:
+              (const char *STRING, size_t LENGTH)
+            All languages now use a target language string type for this typemap.
+
+            New multi-argument typemaps have been added to most target languages
+            for use with C raw data (cdata):
+              (const void *BYTES, size_t LENGTH) to
+            Statically typed languages use a byte array for this typemap, while
+            scripting languages remain using a string.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+            * Raw C data: Go uses byte array and int64 for size.
+              Users can use the (const char *STRING, size_t LENGTH) typemaps for strings.
+
 2024-06-06: olly
 	    Support alignof(T) for arbitrary type T, and deduce the type of
 	    alignof(T) as size_t.
