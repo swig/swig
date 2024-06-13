@@ -3179,6 +3179,9 @@ public:
     /* Output argument output code */
     Printv(f->code, outarg, NIL);
 
+    bool isvoid = d && (SwigType_type(d) == T_VOID);
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
+
     /* Output cleanup code */
     int need_cleanup = Len(cleanup) != 0;
     if (need_cleanup) {

@@ -25,7 +25,7 @@
 
 /* Backward compatibility output helper */
 %fragment("t_output_helper","header") %{
-#define t_output_helper(r, o) SWIG_Python_AppendOutput(r, o, swig_is_void)
+#define t_output_helper(r, o) SWIG_Python_AppendOutput(r, o, 0)
 %}
 
 
@@ -50,7 +50,7 @@
 /* Overload of the output/constant/exception/dirout handling */
 
 /* append output */
-#define SWIG_AppendOutput(result, obj)  SWIG_Python_AppendOutput(result, obj, swig_is_void)
+#define SWIG_AppendOutput(result, obj)  SWIG_Python_AppendOutput(result, obj, $isvoid)
 
 /* set constant */
 #if defined(SWIGPYTHON_BUILTIN)
@@ -76,12 +76,6 @@
   $1 = &$self;
 }
 
-/* Hack to prevent SWIG_Python_AppendOutput() from dropping Py_None from the
-   output if it corresponds to a null pointer being returned to Python rather
-   than the return value of a void function. By intentionally shadowing the
-   global swig_is_void which is always 0 by this local variable set to 1 here,
-   we can tell it to do this only for void functions. */
-%typemap(out,noblock=1) void (int swig_is_void = 1) {$result = VOID_Object;}
 
 /* Consttab, needed for callbacks, it should be removed later */
 

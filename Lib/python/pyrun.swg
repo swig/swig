@@ -114,9 +114,6 @@ SWIG_Python_SetConstant(PyObject *d, const char *name, PyObject *obj) {
 
 #endif
 
-/* See "out" typemap for void in pytypemaps.swg */
-SWIGINTERN int swig_is_void = 0;
-
 /* Append a value to the result obj */
 
 SWIGINTERN PyObject*
