@@ -1343,7 +1343,12 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
   (void)obj;
 # ifdef PyWeakref_CheckProxy
   if (PyWeakref_CheckProxy(pyobj)) {
+#if PY_VERSION_HEX >= 0x030D0000
+    PyWeakref_GetRef(pyobj, &pyobj);
+    Py_DECREF(pyobj);
+#else
     pyobj = PyWeakref_GET_OBJECT(pyobj);
+#endif
     if (pyobj && SwigPyObject_Check(pyobj))
       return (SwigPyObject*) pyobj;
   }
