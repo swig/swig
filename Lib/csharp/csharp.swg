@@ -1084,38 +1084,6 @@ SWIG_CSBODY_TYPEWRAPPER(internal, protected, internal, SWIGTYPE)
 %apply SWIGTYPE & { SWIGTYPE (CLASS::*const&) }
 
 /* String & length */
-%pragma(csharp) imclasscode=%{
-  public class SWIGStringWithLengthHelper {
-
-    [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_to_c")]
-    private static extern global::System.IntPtr SWIG_csharp_string_to_c0(int size, int len, [global::System.Runtime.InteropServices.In,global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPStr, SizeParamIndex=0)] string str);
-
-    [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_size")]
-    private static extern int SWIG_csharp_string_size(global::System.IntPtr str);
-
-    [global::System.Runtime.InteropServices.DllImport("$module", EntryPoint="SWIG_csharp_string_str")]
-    private static extern global::System.IntPtr SWIG_csharp_string_str(global::System.IntPtr str);
-
-    public static global::System.IntPtr SWIG_csharp_string_to_c(string str) {
-      if (str == null)
-        return global::System.IntPtr.Zero;
-      global::System.Text.Encoding utf8 = global::System.Text.Encoding.UTF8;
-      return SWIG_csharp_string_to_c0(utf8.GetByteCount(str), str.Length, str);
-    }
-
-    public static string SWIG_c_to_csharp_string(global::System.IntPtr str) {
-      int size = SWIG_csharp_string_size(str);
-      if (size > 0) {
-        global::System.IntPtr s = SWIG_csharp_string_str(str);
-        byte[] b = new byte[size];
-        global::System.Runtime.InteropServices.Marshal.Copy(s, b, 0, size);
-        global::System.Text.Encoding utf8 = global::System.Text.Encoding.UTF8;
-        return utf8.GetString(b);
-      }
-      return null;
-    }
-  }
-%}
 %fragment("SWIG_csharp_string", "header") %{
 #ifdef __cplusplus
 extern "C" {
