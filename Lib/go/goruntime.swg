@@ -105,10 +105,14 @@ extern void _cgo_panic(const char *);
 #endif
 
 #define _swig_goallocate _cgo_allocate
-#define _swig_gopanic _cgo_panic
+#define _swig_gopanic_impl _cgo_panic
 %}
 
 #endif
+
+%{
+#define _swig_gopanic(M) do { _swig_gopanic_message = (M); goto fail; } while (0)
+%}
 
 #ifndef SWIGGO_GCCGO
 

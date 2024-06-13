@@ -658,7 +658,7 @@ private:
       Printv(f_c_begin, "  \"C\"\n", NULL);
       Printv(f_c_begin, "#endif\n", NULL);
       Printv(f_c_begin, "  void cgo_panic_", unique_id, "(const char*);\n", NULL);
-      Printv(f_c_begin, "static void _swig_gopanic(const char *p) {\n", NULL);
+      Printv(f_c_begin, "static void _swig_gopanic_impl(const char *p) {\n", NULL);
       Printv(f_c_begin, "  cgo_panic_", unique_id, "(p);\n", NULL);
       Printv(f_c_begin, "}\n\n", NULL);
     }
@@ -1478,17 +1478,30 @@ private:
       String *ct = gcCTypeForGoValue(info->n, info->result, fnname);
       Printv(f->def, ct, NULL);
       Delete(ct);
-
-      String *ln = NewString("_swig_go_result");
-      ct = gcCTypeForGoValue(info->n, info->result, ln);
-      Wrapper_add_local(f, "_swig_go_result", ct);
-      Delete(ct);
-      Delete(ln);
     }
 
     Delete(fnname);
 
     Printv(f->def, " {\n", NULL);
+    // SWIG_fail in Go leads to a call to _swig_gopanic() which calls _cgopanic
+    // which calls longjmp() which means the destructors of any live
+    // function-local C++ objects won't get run.  To avoid this happening, we
+    // wrap almost everything in the function in a block, and end that right
+    // before _swig_gopanic() at which point those destructors will get called.
+    //
+    // We need to add the code for these variables directly rather than using
+    // Wrapper_add_local() so that they exist outside the extra block we add
+    // under CPlusPlus to ensure local objects get destroyed if we exit via a
+    // panic.
+    Append(f->def, "const char * SWIGUNUSED _swig_gopanic_message = NULL;\n");
+    if (SwigType_type(info->result) != T_VOID) {
+      String *ln = NewString("_swig_go_result");
+      String *ct = gcCTypeForGoValue(info->n, info->result, ln);
+      Printv(f->def, ct, ";\n", NIL);
+      Delete(ct);
+      Delete(ln);
+    }
+    if (CPlusPlus) Append(f->def, "\n{");
 
     // Apply the in typemaps.
 
@@ -1525,13 +1538,25 @@ private:
 
     argout(parms, f);
 
-    cleanupFunction(info->n, f, parms);
+    String *cleanup = cleanupFunction(info->n, f, parms);
 
     if (SwigType_type(info->result) != T_VOID) {
-      Printv(f->code, "\treturn _swig_go_result;\n", NULL);
+      Printv(f->code, "\treturn _swig_go_result;\n", NIL);
+    } else {
+      Printv(f->code, "\treturn;\n", NIL);
     }
 
-    Printv(f->code, "}\n", NULL);
+    // add the failure cleanup code:
+    Printv(f->code, "\nfail: SWIGUNUSED;\n", cleanup, NIL);
+    Delete(cleanup);
+    if (CPlusPlus) Append(f->code, "}\n");
+    Printv(f->code, "_swig_gopanic_impl(_swig_gopanic_message);\n", NIL);
+    // _swig_gopanic() calls longjmp() but we need a dummy return to avoid
+    // compiler warnings.
+    if (SwigType_type(info->result) != T_VOID) {
+      Printv(f->code, "\treturn _swig_go_result;\n", NIL);
+    }
+    Printv(f->code, "}\n", NIL);
 
     Wrapper_print(f, f_c_wrappers);
 
@@ -1752,7 +1777,7 @@ private:
    * Final function cleanup code.
    * ----------------------------------------------------------------------- */
 
-  void cleanupFunction(Node *n, Wrapper *f, ParmList *parms) {
+  String *cleanupFunction(Node *n, Wrapper *f, ParmList *parms) {
     String *cleanup = freearg(parms);
     Printv(f->code, cleanup, NULL);
 
@@ -1765,7 +1790,6 @@ private:
     }
 
     Replaceall(f->code, "$cleanup", cleanup);
-    Delete(cleanup);
 
     /* See if there is any return cleanup code */
     String *tm;
@@ -1775,6 +1799,8 @@ private:
     }
 
     Replaceall(f->code, "$symname", Getattr(n, "sym:name"));
+
+    return cleanup;
   }
 
   /* -----------------------------------------------------------------------
