@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-06-14: jschueller
+	    #2863 Support Python 3.13 (currently in prerealase).
+
 2024-06-13: erezgeva
             #2609 Fix Java typemap (const char *STRING, size_t LENGTH) to
             marshall as Java String instead of Java byte[]. If the old behaviour
