@@ -23,11 +23,6 @@
 /* Python fragments for char* strings */
 %include <pystrings.swg>
 
-/* Backward compatibility output helper */
-%fragment("t_output_helper","header") %{
-#define t_output_helper(r, o) SWIG_Python_AppendOutput(r, o, 0)
-%}
-
 
 /* ------------------------------------------------------------
  *  Unified typemap section
