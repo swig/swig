@@ -11,6 +11,19 @@ Version 4.3.0 (in progress)
             [Python] Removed deprecated pytuplehlp.swg file and t_output_helper.
             Use SWIG_Python_AppendOutput instead of t_output_helper.
 
+2024-06-15: vadz
+            [Python] #2907 Fix returning null from functions with output parameters.
+            Ensures OUTPUT typemaps are handled consistently.
+
+            New declaration of SWIG_Python_AppendOutput is now:
+
+              SWIG_Python_AppendOutput(PyObject* result, PyObject* obj, int is_void);
+
+            The 3rd parameter is new and the new $isvoid special variable should be
+            passed to it, indicating whether or not the wrapped function returns void.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2024-06-15: wsfulton
             #2907 Add $isvoid special variable which expands to 1 if the
             wrapped function has a void return, otherwise expands to 0.
