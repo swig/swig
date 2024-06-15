@@ -1644,7 +1644,7 @@ public:
     bool destructor;
 
     String *symname = Copy(Getattr(n, "sym:name"));
-    SwigType *t = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     int director_method = 0;
     String *tm;
@@ -1842,7 +1842,7 @@ public:
       }
 
       /* Return value if necessary */
-      if (SwigType_type(t) != T_VOID && current != CONSTRUCTOR_INITIALIZE) {
+      if (SwigType_type(returntype) != T_VOID && current != CONSTRUCTOR_INITIALIZE) {
         need_result = 1;
         if (GetFlag(n, "feature:predicate")) {
           Printv(actioncode, tab4, "vresult = (", Swig_cresult_name(), " ? Qtrue : Qfalse);\n", NIL);
@@ -1873,7 +1873,7 @@ public:
 
             Delete(tm);
           } else {
-            Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s.\n", SwigType_str(t, 0));
+            Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s.\n", SwigType_str(returntype, 0));
           }
         }
       }
@@ -1881,7 +1881,7 @@ public:
         Append(f->code, actioncode);
         Delete(actioncode);
       }
-      emit_return_variable(n, t, f);
+      emit_return_variable(n, returntype, f);
     }
 
     /* Extra code needed for new and initialize methods */
@@ -1891,7 +1891,7 @@ public:
       SwigType *psmart = smart ? Copy(smart) : 0;
       if (psmart)
 	SwigType_add_pointer(psmart);
-      SwigType *classtype = psmart ? psmart : t;
+      SwigType *classtype = psmart ? psmart : returntype;
       need_result = 1;
       Printf(f->code, "VALUE vresult = SWIG_NewClassInstance(self, SWIGTYPE%s);\n", Char(SwigType_manglestr(classtype)));
       Printf(f->code, "#ifndef HAVE_RB_DEFINE_ALLOC_FUNC\n");
@@ -1904,7 +1904,7 @@ public:
     else
       {
 	if ( need_result > 1 ) {
-	  if ( SwigType_type(t) == T_VOID )
+	  if ( SwigType_type(returntype) == T_VOID )
 	    Printf(f->code, "vresult = rb_ary_new();\n");
 	  else
 	    {
@@ -1983,6 +1983,9 @@ public:
 
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", symname);
@@ -3020,7 +3023,7 @@ public:
     Wrapper *w = NewWrapper();
     String *tm;
     String *wrap_args = NewString("");
-    String *returntype = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     Parm *p;
     String *value = Getattr(n, "value");
     String *storage = Getattr(n, "storage");

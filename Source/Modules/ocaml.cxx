@@ -446,8 +446,8 @@ public:
 
   virtual int functionWrapper(Node *n) {
     char *iname = GetChar(n, "sym:name");
-    SwigType *d = Getattr(n, "type");
-    String *return_type_normalized = normalizeTemplatedClassName(d);
+    SwigType *returntype = Getattr(n, "type");
+    String *return_type_normalized = normalizeTemplatedClassName(returntype);
     ParmList *l = Getattr(n, "parms");
     int director_method = 0;
     Parm *p;
@@ -524,7 +524,7 @@ public:
     // adds local variables
     Wrapper_add_local(f, "args", "CAMLparam1(args)");
     Wrapper_add_local(f, "ret", "CAMLlocal2(swig_result,rv)");
-    d = SwigType_typedef_qualified(d);
+    returntype = SwigType_typedef_qualified(returntype);
     emit_parameter_variables(l, f);
 
     /* Attach the standard typemaps */
@@ -660,9 +660,9 @@ public:
       Replaceall(tm, "$ntype", return_type_normalized);
       Printv(f->code, tm, "\n", NIL);
     } else {
-      throw_unhandled_ocaml_type_error(d, "out");
+      throw_unhandled_ocaml_type_error(returntype, "out");
     }
-    emit_return_variable(n, d, f);
+    emit_return_variable(n, returntype, f);
 
     // Dump the argument output code
     Printv(f->code, Char(outarg), NIL);
@@ -694,6 +694,9 @@ public:
     Printv(f->code, tab4, "swig_result = caml_list_append(swig_result,rv);\n", NIL);
     Printv(f->code, tab4, "CAMLreturn(swig_result);\n", NIL);
     Printv(f->code, "}\n", NIL);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", iname);
@@ -1361,7 +1364,7 @@ public:
     String *storage = Getattr(n, "storage");
     String *value = Getattr(n, "value");
     String *decl = Getattr(n, "decl");
-    String *returntype = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     String *name = Getattr(n, "name");
     String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");

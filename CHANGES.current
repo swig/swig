@@ -7,8 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-06-15: wsfulton
+            #2907 Add $isvoid special variable which expands to 1 if the
+            wrapped function has a void return, otherwise expands to 0.
+
 2024-06-14: jschueller
-	    #2863 Support Python 3.13 (currently in prerealase).
+	    #2863 Support Python 3.13 (currently in prerelease).
 
 2024-06-13: erezgeva
             #2609 Fix Java typemap (const char *STRING, size_t LENGTH) to

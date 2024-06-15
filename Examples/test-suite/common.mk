@@ -557,6 +557,7 @@ CPP_TEST_CASES += \
 	typemap_directorout \
 	typemap_documentation \
 	typemap_global_scope \
+	typemap_isvoid \
 	typemap_manyargs \
 	typemap_namespace \
 	typemap_ns_using \

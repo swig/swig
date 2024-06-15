@@ -1544,7 +1544,7 @@ public:
    * --------------------------------------------------------------------------- */
   virtual int functionWrapper(Node *n) {
     String *symname = Getattr(n, "sym:name");
-    SwigType *t = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *tm;
     Parm *p;
@@ -1583,7 +1583,7 @@ public:
       Printf(c_return_type, "%s", tm);
     } else {
       Swig_warning(WARN_D_TYPEMAP_CTYPE_UNDEF, input_file, line_number,
-	"No ctype typemap defined for %s\n", SwigType_str(t, 0));
+	"No ctype typemap defined for %s\n", SwigType_str(returntype, 0));
     }
 
     if ((tm = lookupDTypemap(n, "imtype"))) {
@@ -1595,7 +1595,7 @@ public:
       }
       Printf(im_return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_D_TYPEMAP_IMTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(t, 0));
+      Swig_warning(WARN_D_TYPEMAP_IMTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s\n", SwigType_str(returntype, 0));
     }
 
     is_void_return = (Cmp(c_return_type, "void") == 0);
@@ -1758,9 +1758,9 @@ public:
 	if (Len(tm))
 	  Printf(f->code, "\n");
       } else {
-	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(t, 0), Getattr(n, "name"));
+	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), Getattr(n, "name"));
       }
-      emit_return_variable(n, t, f);
+      emit_return_variable(n, returntype, f);
     }
 
     /* Output argument output code */
@@ -1800,6 +1800,9 @@ public:
 
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", symname);

@@ -516,7 +516,7 @@ public:
     String *iname = Getattr(n, "sym:name");
     String *lua_name = Getattr(n, "lua:name");
     assert(lua_name);
-    SwigType *d = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     Parm *p;
     String *tm;
@@ -746,9 +746,9 @@ public:
       Printf(f->code, "%s\n", tm);
       //      returnval++;
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), name);
     }
-    emit_return_variable(n, d, f);
+    emit_return_variable(n, returntype, f);
 
     /* Output argument output code */
     Printv(f->code, outarg, NIL);
@@ -782,6 +782,9 @@ public:
 
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", iname);
