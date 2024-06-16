@@ -420,7 +420,7 @@ static void add_symbols(Node *n) {
     String *symname = 0;
     String *old_prefix = 0;
     Symtab *old_scope = 0;
-    int isfriend = inclass && Checkattr(n, "storage", "friend");
+    int isfriend = inclass && Strstr(Getattr(n, "storage"), "friend") != NULL;
     int iscdecl = Cmp(nodeType(n),"cdecl") == 0;
     int only_csymbol = 0;
     
