@@ -2533,8 +2533,10 @@ public:
 
        if (is_void_return) {
 	 Replaceall(wrapper->code, "$null", "");
+	 Replaceall(wrapper->code, "$isvoid", "1");
        } else {
 	 Replaceall(wrapper->code, "$null", "0");
+	 Replaceall(wrapper->code, "$isvoid", "0");
 
          Append(wrapper->code, "return result;\n");
        }
