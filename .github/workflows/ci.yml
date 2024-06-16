@@ -27,7 +27,7 @@ jobs:
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.EXTRA_CXXFLAGS }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.PY_ABI_VER && format('abi={0}', matrix.PY_ABI_VER) }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
       matrix:
@@ -164,10 +164,8 @@ jobs:
         - SWIGLANG: python
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
-          EXTRA_CXXFLAGS: -DPy_LIMITED_API=0x03040000
-          CPPSTD: c++20
-          GCC: 13
-          os: ubuntu-22.04
+          VER: '3.8'
+          PY_ABI_VER: '3.4'
         - SWIGLANG: r
         - SWIGLANG: ruby
           VER: '2.0'
@@ -189,7 +187,7 @@ jobs:
           VER: '3.0'
           CPPSTD: c++11
         - SWIGLANG: ruby
-          VER: '3.1'
+          VER: '3.1.4' # import_fragments testcase started to fail on upgrade to 3.1.5, see https://github.com/swig/swig/issues/2800
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
@@ -363,7 +361,7 @@ jobs:
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
-      EXTRA_CXXFLAGS: ${{ matrix.EXTRA_CXXFLAGS }}
+      PY_ABI_VER: ${{ matrix.PY_ABI_VER }}
 
     steps:
     - name: Machine Info
@@ -504,12 +502,12 @@ jobs:
             esac
 
             # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
-            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) $EXTRA_CFLAGS"
-            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC) $EXTRA_CXXFLAGS"
+            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)"
+            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)"
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
-            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
-            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" PY_ABI_VER="$PY_ABI_VER"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags" PY_ABI_VER="$PY_ABI_VER"
           fi
 
     - name: Install

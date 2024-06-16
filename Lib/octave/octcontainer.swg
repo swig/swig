@@ -353,7 +353,7 @@ namespace swig
 	throw std::invalid_argument("a sequence is expected");
       }
       _seq = seq;
-      Py_INCREF(_seq);
+      SWIG_Py_INCREF(_seq);
       */
     }
 

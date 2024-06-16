@@ -11,7 +11,7 @@ SWIG_AsPtr_dec(std::string)(int iVar, std::string **pstValue) {
   if (SWIG_IsOK((SWIG_SciString_AsCharPtrAndSize(pvApiCtx, iVar, &buf, &size, &alloc, SWIG_Scilab_GetFuncName())))) {
     if (buf) {
       if (pstValue) {
-        *pstValue = new std::string(buf, size);
+        *pstValue = new std::string(buf, size - 1);
       }
       if (alloc == SWIG_NEWOBJ) {
         delete[] buf;

@@ -72,6 +72,11 @@
 <li><a href="#SWIGPlus_namespaces">Namespaces</a>
 <ul>
 <li><a href="#SWIGPlus_nspace">The nspace feature for namespaces</a>
+<ul>
+<li><a href="#SWIGPlus_nspace_feature_flag">%nspace for mirroring namespace hierarchies</a>
+<li><a href="#SWIGPlus_nspacemove">%nspacemove for modifying namespace hierarchies</a>
+<li><a href="#SWIGPlus_nspace_more">More about the nspace feature</a>
+</ul>
 </ul>
 <li><a href="#SWIGPlus_renaming_templated_types_namespaces">Renaming templated types in namespaces</a>
 <li><a href="#SWIGPlus_exception_specifications">Exception specifications</a>
@@ -1660,14 +1665,14 @@ $ python
 &gt;&gt;&gt; import shapes
 &gt;&gt;&gt; circle = shapes.new_Circle(7)
 &gt;&gt;&gt; square = shapes.new_Square(10)
-&gt;&gt;&gt; print shapes.Circle_area(circle)
+&gt;&gt;&gt; print(shapes.Circle_area(circle))
 153.93804004599999757
-&gt;&gt;&gt; print shapes.Shape_area(circle)
+&gt;&gt;&gt; print(shapes.Shape_area(circle))
 153.93804004599999757
-&gt;&gt;&gt; print shapes.Shape_area(square)
+&gt;&gt;&gt; print(shapes.Shape_area(square))
 100.00000000000000000
 &gt;&gt;&gt; shapes.Shape_set_location(square, 2, -3)
-&gt;&gt;&gt; print shapes.Shape_perimeter(square)
+&gt;&gt;&gt; print(shapes.Shape_perimeter(square))
 40.00000000000000000
 &gt;&gt;&gt;
 </pre></div>
@@ -4763,15 +4768,31 @@ More advanced handling of namespaces is discussed next.
 
 
 <p>
-Some target languages provide support for the <tt>nspace</tt> <a href="Customization.html#Customization_features">feature</a>.
-The feature can be applied to any class, struct, union or enum declared within a named namespace.
-The feature wraps the type within the target language specific concept of a namespace,
-for example, a Java package or C# namespace.
-Please see the language specific sections to see if the target language you are interested in supports the nspace feature.
+The <tt>nspace</tt> feature operates in two modes.
+Firstly, in a simple enable/disable mode to mirror the C++ namespaces into the target language specific concept of a C++ namespace.
+Secondly, a complex mode for modifying, renaming or moving the hierarchies of the language specific concept of a C++ namespace.
 </p>
 
 <p>
-The feature is demonstrated below for C# using the following example:
+The types of symbols that the feature can be applied to are any class, struct, union or enum declared within a named namespace.
+This also includes templates of the aforementioned types.
+The feature wraps the type within the target language specific concept of a namespace,
+such as a Java package or C# namespace.
+Only some target languages provide support for the <tt>nspace</tt> feature.
+Please see the target language specific sections to see if the language you are interested in supports the nspace feature.
+</p>
+
+<H4><a name="SWIGPlus_nspace_feature_flag">6.19.1.1 %nspace for mirroring namespace hierarchies</a></H4>
+
+
+<p>
+In this simple mode the <tt>nspace</tt> feature works as a <a href="Customization.html#Customization_feature_flags">feature flag</a> to enable or disable the feature for a given C++ symbol.
+As described earlier, all namespace are flattened by default, hence the <tt>nspace</tt> feature is disabled by default.
+When the feature is enabled, the C++ namespace hierarchies are mirrored into the target language concept of a namespace.
+</p>
+
+<p>
+The feature flag is demonstrated below using the following example:
 </p>
 
 <div class="code">
@@ -4795,7 +4816,7 @@ namespace MyWorld {
 </div>
 
 <p>
-Without the <tt>nspace</tt> feature directives above or <tt>%rename</tt>, you would get the following warning resulting in just one of the <tt>Color</tt> classes being available for use from the target language:
+By default, without the above <tt>nspace</tt> feature flags (or an appropriate <tt>%rename</tt>), SWIG outputs the following warning resulting in just one of the <tt>Color</tt> classes being available for use from the target language:
 </p>
 
 <div class="shell">
@@ -4806,14 +4827,24 @@ example.i:5: Error: Previous declaration of 'Color'
 </div>
 
 <p>
-With the <tt>nspace</tt> feature the two <tt>Color</tt> classes are wrapped into the equivalent C# namespaces.
+Let's consider C# as the target language.
+With the two <tt>nspace</tt> feature flags, the two C# <tt>Color</tt> proxy classes are generated into the equivalent C# namespaces that mirror the C++ namespace hierarchies.
 A fully qualified constructor call of each these two types in C# is then:
 </p>
 
 <div class="targetlang">
 <pre>
-MyWorld.Material.Color materialColor = new MyWorld.Material.Color();
-MyWorld.Wrapping.Color wrappingColor = new MyWorld.Wrapping.Color();
+var materialColor = new MyWorld.Material.Color();
+var wrappingColor = new MyWorld.Wrapping.Color();
+</pre>
+</div>
+
+<p>
+Without the <tt>nspace</tt> feature flag, no namespaces are available in C# and the fully qualified constructor call of the type in C# would simply be:
+</p>
+<div class="targetlang">
+<pre>
+var materialColor = new Color();
 </pre>
 </div>
 
@@ -4837,8 +4868,185 @@ namespace MyWorld {
 </div>
 
 <p>
-<b>Compatibility Note:</b> The nspace feature was first introduced in SWIG-2.0.0.
+<b>Compatibility Note:</b> The simple <tt>%nspace</tt> feature flag was first introduced in SWIG-2.0.0.
 </p>
+
+<H4><a name="SWIGPlus_nspacemove">6.19.1.2 %nspacemove for modifying namespace hierarchies</a></H4>
+
+
+<p>
+The more complex mode for <tt>nspace</tt> provides the ability to move a type into a differently named target language equivalent of a namespace.
+This allows a fully flexible approach to mapping C++ namespaces into a target language equivalent of a namespace, such as:
+</p>
+
+<ul>
+  <li> Renaming a namespace.</li>
+  <li> Renaming any number of sub-namespaces of a namespace.</li>
+  <li> Moving a type to a completely different namespace.</li>
+  <li> Splitting many types in one namespace into multiple different namespaces.</li>
+  <li> Adding nested sub-namespaces to a namespace.</li>
+  <li> Removing nested sub-namespaces of namespace.</li>
+  <li> Combinations of the above.</li>
+</ul>
+
+<p>
+The <tt>nspace</tt> feature attaches to a C++ symbol and provides a target language namespace for that symbol to move to.
+The <tt>%nspacemove</tt> directive is a macro for the <tt>nspace</tt> feature as follows:
+</p>
+
+<div class="code">
+<pre>
+#define %nspacemove(NAMESPACE) %feature("nspace", #NAMESPACE)
+</pre>
+</div>
+
+<p>
+where the target namespace is provided in <tt>NAMESPACE</tt> and is specified in valid C++ syntax, such as <tt>A::B::C</tt>.
+Internally, SWIG converts the C++ namespace into a target language equivalent,
+so this might for example, result in a C# namespace called <tt>A.B.C</tt> or a Java package named <tt>A.B.C</tt>.
+Note that the target namespace does not have to actually exist in any of the C++ code that SWIG parses; it could be entirely made-up.
+</p>
+
+<p>
+Either the <tt>%nspacemove</tt> macro or the more verbose <tt>%feature</tt> syntax can be used. Please see the <a href="Customization.html#Customization_features">Features and the %feature directive</a> section for more details of SWIG features.
+</p>
+
+<p>
+An example follows:
+</p>
+
+<div class="code">
+<pre>
+// Enable the nspace feature flag for all symbols
+%nspace;
+
+// Override the nspace feature for a subset of symbols by moving them into different namespaces
+%nspacemove(A) A::B::C::Struct1;
+%feature("nspace", "A::B::X") A::B::C::Struct2;
+%nspacemove(A::B::C::D) A::B::C::Struct4;
+%nspacemove(Somewhere::Else) A::B::C::Struct5;
+
+%inline %{
+namespace A {
+  namespace B {
+    namespace C {
+      struct Struct1 {
+        // ...
+      };
+      struct Struct2 {
+        // ...
+      };
+      struct Struct3 {
+        // ...
+      };
+      struct Struct4 {
+        // ...
+      };
+      struct Struct5 {
+        // ...
+      };
+    }
+  }
+}
+%}
+</pre>
+</div>
+
+<p>
+The C# code below constructs each of the above classes.
+It shows the namespaces that the C# proxy classes have been moved into,
+noting though that <tt>Struct4</tt> merely exactly mirrors the C++ namespace hierarchy as it has the <tt>nspace</tt> feature flag attached to it.
+</p>
+
+<div class="targetlang">
+<pre>
+var s1 = new A.Struct1();
+var s2 = new A.B.X.Struct2();
+var s3 = new A.B.C.Struct3();
+var s4 = new A.B.C.D.Struct4();
+var s5 = new Somewhere.Else.Struct5();
+</pre>
+</div>
+
+<H4><a name="SWIGPlus_nspace_more">6.19.1.3 More about the nspace feature</a></H4>
+
+
+<p>
+When the <tt>nspace</tt> feature is attached to a class or enum, all contained symbols (members) are also automatically moved into the target language namespace.
+Contained symbols include all enum values, static and non-static class members as well as nested classes.
+There is no need for additional <tt>nspace</tt> features to be specified for all the contained symbols.
+Below is an example showing this.
+It also shows the nspace feature working for templates.
+</p>
+
+<div class="code">
+<pre>
+// Easy way to move all the Structure template instantiations into a different namespace
+%nspacemove(A::Different::Space) Space::Structure;
+
+%inline %{
+namespace Space {
+  template&lt;typename T&gt;
+  struct Structure {
+    static int Count;
+    static void StaticMethod(T t) {
+      // ...
+    }
+    struct NestedStruct {
+      // ...
+    };
+  };
+  template&lt;typename T&gt;
+  int Structure&lt;T&gt;::Count = 0;
+}
+%}
+%template(StructureInt) Space::Structure&lt;int&gt;;
+%template(StructureString) Space::Structure&lt;const char *&gt;;
+</pre>
+</div>
+
+<p>
+The C# code below shows the full C# namespace <tt>A.Different.Space</tt> being used as one would expect for all the contained symbols within a C# class.
+</p>
+
+<div class="targetlang">
+<pre>
+var s = new A.Different.Space.StructureInt();
+int count = A.Different.Space.StructureInt.Count;
+var n = new A.Different.Space.StructureInt.NestedStruct();
+A.Different.Space.StructureInt.StaticMethod(99);
+A.Different.Space.StructureString.StaticMethod("hi");
+</pre>
+</div>
+
+<p>
+Any attempt to give a different namespace value to a nested class or enum will issue a warning.
+For example, adding the following to the above in an attempt to move one of the instantiated nested classes into another namespace like this:
+</p>
+
+<div class="code">
+<pre>
+%nspacemove(Bad::Space) Space::Structure&lt;int&gt;::NestedStruct;
+... rest of example above ...
+</pre>
+</div>
+
+<p>
+will result in the following warning:
+</p>
+
+<div class="shell">
+<pre>
+Warning 406: Ignoring nspace setting (Bad::Space) for 'Space::Structure&lt; int &gt;::NestedStruct',
+Warning 406: as it conflicts with the nspace setting (A::Different::Space) for outer class 'Space::Structure&lt; int &gt;'.
+</pre>
+</div>
+
+<p>
+<b>Compatibility Note:</b> Modifying namespace hierarchies via <tt>%nspacemove</tt> was first introduced in SWIG-4.3.0.
+</p>
+
+
 
 <H2><a name="SWIGPlus_renaming_templated_types_namespaces">6.20 Renaming templated types in namespaces</a></H2>
 
@@ -5050,7 +5258,7 @@ string like this:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; print example.FOO
+&gt;&gt;&gt; print(example.FOO)
 _ff0d54a800000000_m_Object__f_double_double__double
 &gt;&gt;&gt;
 </pre>
@@ -5184,7 +5392,7 @@ example, you could do this in Python:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; f = make_Foo()
-&gt;&gt;&gt; print f.x
+&gt;&gt;&gt; print(f.x)
 0
 &gt;&gt;&gt; f.bar()
 &gt;&gt;&gt;
@@ -5928,7 +6136,7 @@ the virtual <tt>handle</tt> method, that is, the Python method <tt>handle</tt> i
 <pre>
 handler = PythonBinaryOp()
 result = example.binary_op_wrapper(10, 20, handler)
-print result
+print(result)
 </pre>
 </div>
 

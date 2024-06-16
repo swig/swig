@@ -335,8 +335,6 @@ CPP_TEST_CASES += \
 	namespace_typemap \
 	namespace_union \
 	namespace_virtual_method \
-	nspace \
-	nspace_extend \
 	native_directive \
 	naturalvar \
 	naturalvar_more \
@@ -352,6 +350,11 @@ CPP_TEST_CASES += \
 	nested_workaround \
 	newobject1 \
 	newobject3 \
+	nspace \
+	nspace_extend \
+	nspacemove \
+	nspacemove_nested \
+	nspacemove_stl \
 	null_pointer \
 	numeric_bounds_checking \
 	operator_overload \
@@ -554,6 +557,7 @@ CPP_TEST_CASES += \
 	typemap_directorout \
 	typemap_documentation \
 	typemap_global_scope \
+	typemap_isvoid \
 	typemap_manyargs \
 	typemap_namespace \
 	typemap_ns_using \
@@ -944,7 +948,6 @@ swig_and_compile_cpp_helper = \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT=$(2) NOLINK=true \
 	TARGET="$(TARGETPREFIX)$(1)$(TARGETSUFFIX)" INTERFACEDIR='$(INTERFACEDIR)' INTERFACE="$(1).i" \
-	EXTRA_CXXFLAGS="$(3)" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_cpp =  \

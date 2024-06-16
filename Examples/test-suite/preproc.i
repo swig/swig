@@ -387,8 +387,9 @@ int methodX(int x) { return x+100; }
 %}
 
 /*
-   Comma in macro - https://github.com/swig/swig/issues/974 (for C comments)
-   and https://github.com/swig/swig/pull/1166 (for //)
+   Regression tests for bugs handling a comma in a comment in a macro:
+   - https://github.com/swig/swig/issues/974 (for traditional C comments)
+   - https://github.com/swig/swig/pull/1166 (for //)
    Also see preproc_cpp.i
 */
 %inline %{
@@ -448,4 +449,64 @@ BAR2() {
     BAZVAR(1,2,3);
     return 0;
 }
+%}
+
+/* Regression test for bug fixed in SWIG 4.3.0 with handling a comment with
+ * double * before the /
+ */
+#define STARSTARSLASH(X,...)
+STARSTARSLASH(A,/** Test **/,B) /**/
+
+/* Regression test for handling elision of comma before ##__VA_ARGS__
+ * https://github.com/swig/swig/issues/2848
+ */
+#define DECLARE_GLOBAL_VAR(...) int global_var, ##__VA_ARGS__;
+#define DECLARE_GLOBAL_VAR2(NAMED...) int global_var2, ##NAMED;
+DECLARE_GLOBAL_VAR()
+DECLARE_GLOBAL_VAR2()
+
+/* Show the C compiler simple definitions as ##__VA_ARGS__ is a GCC extension
+ * so we can't rely on the compiler supporting it.
+ */
+%{
+int global_var = 42;
+int global_var2 = 345;
+%}
+
+/* Feature test for __VA_OPT__ support.  This was standardised in C++20 but
+ * we're only testing SWIG's support for it here so this doesn't require a
+ * C++20 compiler.
+ */
+#define DECLARE_GLOBAL_VA(N,...) int global_var##N __VA_OPT__(=)__VA_ARGS__;
+/* Named varargs is a GCC extension.  Both GCC and clang support __VA_OPT__
+ * with named varargs (albeit with a warning) and SWIG supports it too for
+ * compatibility.
+ */
+#define DECLARE_GLOBAL_NAMED(N,NAMED...) int global_var##N __VA_OPT__(=)NAMED;
+DECLARE_GLOBAL_VA(3)
+DECLARE_GLOBAL_VA(4,)
+DECLARE_GLOBAL_VA(5, )
+DECLARE_GLOBAL_VA(6, /**Hello,World)**/ )
+
+DECLARE_GLOBAL_NAMED(7)
+DECLARE_GLOBAL_NAMED(8,)
+DECLARE_GLOBAL_NAMED(9, )
+DECLARE_GLOBAL_NAMED(10, /**Hello,World)**/ )
+
+DECLARE_GLOBAL_VA(11,111)
+
+DECLARE_GLOBAL_NAMED(12,121)
+
+// Show the compiler simple definitions so we don't need __VA_OPT__ support.
+%{
+int global_var3 = 3;
+int global_var4 = 4;
+int global_var5 = 5;
+int global_var6 = 6;
+int global_var7 = 7;
+int global_var8 = 8;
+int global_var9 = 9;
+int global_var10 = 10;
+int global_var11 = 111;
+int global_var12 = 121;
 %}

@@ -387,6 +387,9 @@ typedef unsigned long SCM;
     $1 = ($1_ltype) SWIG_Guile_scm2newstr($input, &temp);
     $2 = ($2_ltype) temp;
 }
+%apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
+%apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
+%apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
 /* ------------------------------------------------------------
  * CLASS::* (member function pointer) typemaps

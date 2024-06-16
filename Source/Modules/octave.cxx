@@ -552,7 +552,7 @@ public:
     String *iname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(iname);
     String *overname = Copy(wname);
-    SwigType *d = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
 
     if (!overloaded && !addSymbol(iname, n))
@@ -728,9 +728,9 @@ public:
       Printf(f->code, "if (_outv.is_defined()) _outp = " "SWIG_Octave_AppendOutput(_outp, _outv);\n");
       Delete(tm);
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), iname);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), iname);
     }
-    emit_return_variable(n, d, f);
+    emit_return_variable(n, returntype, f);
 
     Printv(f->code, outarg, NIL);
     Printv(f->code, cleanup, NIL);
@@ -766,6 +766,9 @@ public:
 
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
     Replaceall(f->code, "$symname", iname);
     Wrapper_print(f, f_wrappers);
@@ -1274,7 +1277,7 @@ public:
     int is_void = 0;
     int is_pointer = 0;
     String *decl = Getattr(n, "decl");
-    String *returntype = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     String *name = Getattr(n, "name");
     String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");

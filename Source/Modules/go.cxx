@@ -1753,6 +1753,7 @@ private:
    * ----------------------------------------------------------------------- */
 
   void cleanupFunction(Node *n, Wrapper *f, ParmList *parms) {
+    SwigType *returntype = Getattr(n, "type");
     String *cleanup = freearg(parms);
     Printv(f->code, cleanup, NULL);
 
@@ -1773,6 +1774,9 @@ private:
       Printf(f->code, "%s\n", tm);
       Delete(tm);
     }
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
     Replaceall(f->code, "$symname", Getattr(n, "sym:name"));
   }

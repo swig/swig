@@ -23,11 +23,6 @@
 /* Python fragments for char* strings */
 %include <pystrings.swg>
 
-/* Backward compatibility output helper */
-%fragment("t_output_helper","header") %{
-#define t_output_helper SWIG_Python_AppendOutput
-%}
-
 
 /* ------------------------------------------------------------
  *  Unified typemap section
@@ -50,7 +45,7 @@
 /* Overload of the output/constant/exception/dirout handling */
 
 /* append output */
-#define SWIG_AppendOutput(result, obj)  SWIG_Python_AppendOutput(result, obj)
+#define SWIG_AppendOutput(result, obj)  SWIG_Python_AppendOutput(result, obj, $isvoid)
 
 /* set constant */
 #if defined(SWIGPYTHON_BUILTIN)
@@ -98,7 +93,7 @@
     if (robj && !PyErr_Occurred()) {
       SwigPyObject_append((PyObject *) SWIG_Python_GetSwigThis($result), 
 			  (PyObject *) SWIG_Python_GetSwigThis(robj));
-      Py_DECREF(robj);
+      SWIG_Py_DECREF(robj);
     }
   }
 }

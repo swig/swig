@@ -732,7 +732,7 @@ puts $foo                       ;# Print the value of foo
 
 # Python
 cvar.foo = 3.5                  # Set foo to 3.5
-print cvar.foo                  # Print value of foo
+print(cvar.foo)                 # Print value of foo
 
 # Perl
 $foo = 3.5;                     # Set foo to 3.5
@@ -1383,7 +1383,7 @@ Vector *wrap_cross_product(Vector *v1, Vector *v2) {
   Vector y = *v2;
   Vector *result;
   result = (Vector *) malloc(sizeof(Vector));
-  *(result) = cross(x, y);
+  *(result) = cross_product(x, y);
   return result;
 }
 </pre></div>
@@ -1392,10 +1392,10 @@ Vector *wrap_cross_product(Vector *v1, Vector *v2) {
 or if SWIG was run with the <tt>-c++</tt> option:</p>
 
 <div class="code"><pre>
-Vector *wrap_cross(Vector *v1, Vector *v2) {
+Vector *wrap_cross_product(Vector *v1, Vector *v2) {
   Vector x = *v1;
   Vector y = *v2;
-  Vector *result = new Vector(cross(x, y)); // Uses default copy constructor
+  Vector *result = new Vector(cross_product(x, y)); // Uses default copy constructor
   return result;
 }
 </pre></div>
@@ -3007,7 +3007,7 @@ this :</p>
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; v = Vector(3, 4, 0)                 # Create a new vector
-&gt;&gt;&gt; print v.magnitude()                # Print magnitude
+&gt;&gt;&gt; print(v.magnitude())                # Print magnitude
 5.0
 &gt;&gt;&gt; v.print()                  # Print it out
 [ 3, 4, 0 ]

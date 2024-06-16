@@ -214,7 +214,7 @@ public:
 
   virtual int functionWrapper(Node *n) {
     char *iname = GetChar(n, "sym:name");
-    SwigType *d = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     Parm *p;
 
@@ -283,7 +283,7 @@ public:
       {
 	String *parms = ParmList_protostr(l);
 	String *func = NewStringf("(*caller)(%s)", parms);
-	Wrapper_add_local(f, "caller", SwigType_lstr(d, func));	/*"(*caller)()")); */
+	Wrapper_add_local(f, "caller", SwigType_lstr(returntype, func));
       }
     }
 
@@ -385,9 +385,9 @@ public:
 	Replaceall(tm, "$owner", "0");
       Printv(f->code, tm, "\n", NIL);
     } else {
-      throw_unhandled_mzscheme_type_error(d);
+      throw_unhandled_mzscheme_type_error(returntype);
     }
-    emit_return_variable(n, d, f);
+    emit_return_variable(n, returntype, f);
 
     // Dump the argument output code
     Printv(f->code, Char(outarg), NIL);
@@ -412,6 +412,9 @@ public:
     Printv(f->code, tab4, "return SWIG_MzScheme_PackageValues(lenv, values);\n", NIL);
     Printf(f->code, "#undef FUNC_NAME\n");
     Printv(f->code, "}\n", NIL);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", iname);

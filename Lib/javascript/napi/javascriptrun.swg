@@ -372,7 +372,7 @@ SWIGRUNTIME Napi::Value _wrap_getCPtr(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   void *arg1 = (void *) 0 ;
-  long result;
+  intptr_t result;
   int res1;
 
   res1 = SWIG_GetInstancePtr(info.This(), &arg1);
@@ -380,7 +380,7 @@ SWIGRUNTIME Napi::Value _wrap_getCPtr(const Napi::CallbackInfo &info) {
     SWIG_Error(SWIG_ArgError(res1), " in method '" "getCPtr" "', argument " "1"" of type '" "void *""'");
   }
 
-  result = (long)arg1;
+  result = (intptr_t)arg1;
   jsresult = Napi::Number::New(env, result);
 
   return jsresult;
