@@ -9,7 +9,7 @@
 %insert("cheader") {
 typedef struct SWIGCDATA {
     char *data;
-    int   len;
+    size_t len;
 } SWIGCDATA;
 }
 
@@ -20,8 +20,8 @@ typedef struct SWIGCDATA {
     $result = $1;
 }
 
-%typemap(ctype) (const void *indata, int inlen) "const SWIGCDATA*"
-%typemap(in) (const void *indata, int inlen) {
+%typemap(ctype) (const void* BYTES, size_t LENGTH) "const SWIGCDATA*"
+%typemap(in) (const void* BYTES, size_t LENGTH) {
     $1 = $input->data;
     $2 = $input->len;
 }
