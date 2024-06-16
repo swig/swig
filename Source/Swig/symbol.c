@@ -993,7 +993,7 @@ void Swig_symbol_conflict_warn(Node *n, Node *c, const String *symname, int incl
   if (redefined) {
     Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
     Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
-  } else if (!Checkattr(n, "storage", "friend") && !Checkattr(c, "storage", "friend")) {
+  } else if (!Strstr(Getattr(n, "storage"), "friend") && !Strstr(Getattr(c, "storage"), "friend")) {
     Swig_warning(WARN_PARSE_REDUNDANT, Getfile(n), Getline(n), "%s\n", en);
     Swig_warning(WARN_PARSE_REDUNDANT, Getfile(c), Getline(c), "%s\n", ec);
   }
