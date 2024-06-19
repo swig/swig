@@ -29,7 +29,6 @@ try {
 if (!exception_thrown)
   throw new Error("double usage of take should have been an error");
 
-
 cpp11_move_typemaps.Counter.reset_counts();
 imt = new cpp11_move_typemaps.InstanceMethodsTester();
 
@@ -49,3 +48,5 @@ cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 1, 0, 2);
 delete mc;
 
 cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 1, 0, 2);
+
+// no-worker-threads

@@ -19,6 +19,7 @@ SWIG_From_dec(Type)(const Type& c)
 SWIG_From_dec(Type)(Type c)
 #endif
 {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
   SWIGV8_HANDLESCOPE_ESC();
 
   v8::Local<v8::Array> vals = SWIGV8_ARRAY_NEW(0);
@@ -38,6 +39,7 @@ SWIG_From_dec(Type)(Type c)
 SWIGINTERN int
 SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
 {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
   SWIGV8_HANDLESCOPE();
   
   if (o->IsArray()) {
@@ -80,6 +82,7 @@ SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
 SWIGINTERN int
 SWIG_AsVal_dec(Type) (SWIGV8_VALUE o, Type* val)
 {
+  v8::Isolate* isolate = v8::Isolate::GetCurrent();
   SWIGV8_HANDLESCOPE();
 
   if (o->IsArray()) {

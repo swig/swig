@@ -357,3 +357,5 @@ k1 = cpp11_std_unique_ptr.makeRefKlassUniquePtr("lvalueref");
 if (k1.getLabel() !== "lvalueref")
   throw new Error("wrong object label");
 k1 = cpp11_std_unique_ptr.makeRefKlassUniquePtr(null);
+
+// no-worker-threads

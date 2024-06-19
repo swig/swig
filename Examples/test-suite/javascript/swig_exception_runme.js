@@ -28,3 +28,5 @@ if (swig_exception.Shape.nshapes != 0) {
     throw "Shape.nshapes should be 0, actually " + swig_exception.Shape.nshapes;
 }
 */
+
+// no-worker-threads

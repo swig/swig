@@ -115,6 +115,10 @@ bool example_initialize(JSGlobalContextRef context, JSObjectRef *exports)</pre>
 <pre>
 void example_initialize(v8::Handle&lt;v8::Object&gt; exports)</pre>
 </div>
+<p>Node.js handles module initialization transparently, without requiring any
+calls on developer's behalf. Caveat lector! If module is to be used with
+<code>worker_threads</code>, then generated wrapper has to be compiled as at
+least C++11. Consult your compiler manual.</p>
 <p>
 <b>Note</b>: be aware that <code>v8</code> has a C++ API, and thus, the generated modules must be compiled as C++.
 </p>
