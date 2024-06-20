@@ -111,7 +111,6 @@ echo ""
 
 dnl Some test cases require Boost
 AX_BOOST_BASE(,,,)
-AC_SUBST(BOOST_CPPFLAGS)
 
 dnl Info for building shared libraries ... in order to run the examples
 
