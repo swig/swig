@@ -332,7 +332,7 @@ SWIG_R_ConvertPtrAndOwn(SEXP obj, void **ptr, swig_type_info *ty, int flags, int
     if (to == ty) {
       if (ptr) *ptr = vptr;
     } else {
-      swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
+      swig_cast_info *tc = SWIG_TypeCheckStruct(to,ty);
       int newmemory = 0;
       if (ptr) {
         int newmemory = 0;
@@ -412,7 +412,7 @@ SWIG_R_ConvertPacked(SEXP obj, void *ptr, size_t sz, swig_type_info *ty) {
   if (ty) {
     if (to != ty) {
       /* check type cast? */
-      swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
+      swig_cast_info *tc = SWIG_TypeCheckStruct(to,ty);
       if (!tc) return SWIG_ERROR;
     }
   }
