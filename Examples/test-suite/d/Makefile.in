@@ -75,9 +75,9 @@ SWIGOPT+=-splitproxy -package $*
 # Makes a directory for the testcase if it does not exist
 setup = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*_runme.2.d ]; then			\
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ;	\
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ;	\
 	else									\
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;			\
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $*" ;		\
 	fi;									\
 	if [ ! -d $*.2 ]; then					\
 	  mkdir $*.2;						\

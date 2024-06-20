@@ -71,6 +71,9 @@ INTERFACEDIR = ../
 SRCDIR     = $(srcdir)/
 SCRIPTDIR  = $(srcdir)
 
+# This can be set to ":" on make command line to suppress progress messages.
+ECHO_PROGRESS := echo
+
 # Regenerate Makefile if Makefile.in or config.status have changed.
 Makefile: $(srcdir)/Makefile.in ../../../config.status
 	cd ../../../ && $(SHELL) ./config.status $(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE)/Makefile
@@ -985,9 +988,9 @@ swig_and_compile_runtime = \
 
 setup = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi
 
 #######################################################################
