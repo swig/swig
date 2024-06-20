@@ -112,11 +112,6 @@ echo ""
 dnl Some test cases require Boost
 AX_BOOST_BASE(,,,)
 
-dnl Don't set flags to nonsensical values if Boost is not found.
-if test "x$BOOST_CPPFLAGS" = "x-I/include/boost-0"; then
-    BOOST_CPPFLAGS=
-fi
-
 dnl Info for building shared libraries ... in order to run the examples
 
 # SO is the extension of shared libraries (including the dot!)
