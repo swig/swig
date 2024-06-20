@@ -33,7 +33,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 54
+#serial 55
 
 # example boost program (need to pass version)
 m4_define([_AX_BOOST_BASE_PROGRAM],
@@ -289,6 +289,8 @@ AC_DEFUN([_AX_BOOST_BASE_RUNDETECT],[
         else
             AC_MSG_NOTICE([Your boost libraries seems to old (version $_version).])
         fi
+        BOOST_LDFLAGS=""
+        BOOST_CPPFLAGS=""
         # execute ACTION-IF-NOT-FOUND (if present):
         ifelse([$3], , :, [$3])
     else
