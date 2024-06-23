@@ -1801,8 +1801,7 @@ public:
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
 
-    bool isvoid = !Cmp(returntype, "void");
-    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
+    Replaceall(f->code, "$isvoid", is_void_return ? "1" : "0");
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", symname);
