@@ -1362,7 +1362,8 @@ static void expand_defaults(ParmList *expanded_templateparms) {
 ParmList *Swig_cparse_template_parms_expand(ParmList *instantiated_parms, Node *primary, Node *templ) {
   ParmList *expanded_templateparms = CopyParmList(instantiated_parms);
 
-  if (Equal(Getattr(primary, "templatetype"), "class")) {
+  String *templatetype = Getattr(primary, "templatetype");
+  if (Equal(templatetype, "class") || Equal(templatetype, "classforward")) {
     /* Class template */
     ParmList *templateparms = Getattr(primary, "templateparms");
     int variadic = merge_parameters(expanded_templateparms, templateparms);

@@ -27,6 +27,13 @@
       
     };
     
+    // Also test specialization without the primary template.
+    template <typename T> struct OnlySpecialized;
+
+    template <> struct OnlySpecialized<int>
+    {
+        void bar(const OnlySpecialized& other) { }
+    };
   }
 %}
 
