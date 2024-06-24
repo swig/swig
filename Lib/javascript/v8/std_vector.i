@@ -10,14 +10,14 @@
 %}
 
 
-%define SWIG_STD_VECTOR_INTERNAL(CTYPE, REFERENCE, CONST_REFERENCE)
+%define SWIG_STD_VECTOR_INTERNAL(CTYPE, CONST_REFERENCE)
       public:
         typedef size_t size_type;
         typedef ptrdiff_t difference_type;
         typedef CTYPE value_type;
         typedef value_type* pointer;
         typedef const value_type* const_pointer;
-        typedef REFERENCE reference;
+        typedef CTYPE& reference;
         typedef CONST_REFERENCE const_reference;
 
         vector();
@@ -53,12 +53,12 @@
 namespace std {
 
     template<class T> class vector {
-        SWIG_STD_VECTOR_INTERNAL(T, value_type&, const value_type&)
+        SWIG_STD_VECTOR_INTERNAL(T, const value_type&)
     };
 
     // bool specialization
     template<> class vector<bool> {
-        SWIG_STD_VECTOR_INTERNAL(bool, bool, bool)
+        SWIG_STD_VECTOR_INTERNAL(bool, bool)
     };
 }
 
