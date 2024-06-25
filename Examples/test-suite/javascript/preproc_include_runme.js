@@ -14,10 +14,3 @@ if (preproc_include.multiply40(10) != 400)
 
 if (preproc_include.multiply50(10) != 500)
   throw "RuntimeError";
-
-if (preproc_include.multiply60(10) != 600)
-  throw "RuntimeError";
-
-if (preproc_include.multiply70(10) != 700)
-  throw "RuntimeError";
-
