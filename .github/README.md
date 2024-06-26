@@ -170,4 +170,8 @@ You can find the new [SWIG Node-API project skeleton using `hadron`](https://git
 
 # `conan` / `meson`
 
-Alas, the current state of my affair has made working with `conan` and `meson` extremely difficult, since they decided to back it in a way that manages to combine the criminal with the ridiculous in an absolutely extraordinary way. At the moment, both software packages need to be installed from my own repositories.
+Alas, the current state of my affair has made working with `conan` and `meson` extremely difficult.
+
+In both projects, they tried to play a psychosis game with my work (my PRs) by doing simultaneously seemingly random acts and then trying to send me to see a psychiatrist. Given the context of the current affair, this has made any real work extremely difficult.
+
+At the moment, both software packages need to be installed from my own repositories.
