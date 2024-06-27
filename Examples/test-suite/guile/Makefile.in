@@ -19,6 +19,10 @@ top_builddir = @top_builddir@
 GUILE        = @GUILE@
 GUILE_RUNTIME=
 
+FAILING_CPP_TESTS = \
+char_binary_rev_len \
+director_binary_string_rev_len \
+
 C_TEST_CASES = long_long \
 	       list_vector \
 	       multivalue \

@@ -146,6 +146,7 @@ CPP_TEST_CASES += \
 	cast_operator \
 	casts \
 	char_binary \
+	char_binary_rev_len \
 	char_strings \
 	chartest \
 	class_case \
@@ -194,6 +195,7 @@ CPP_TEST_CASES += \
 	director_alternating \
 	director_basic \
 	director_binary_string \
+	director_binary_string_rev_len \
 	director_classes \
 	director_classic \
 	director_constructor \
