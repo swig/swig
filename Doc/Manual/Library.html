@@ -939,6 +939,23 @@ In the wrapper function, the passed string will be expanded to a pointer and len
 The <tt>(char *STRING, int LENGTH)</tt> multi-argument typemap is also available in addition to <tt>(char *STRING, size_t LENGTH)</tt>.
 </p>
 
+<p>
+We also support passing parameters in reverse order
+</p>
+
+<div class="code">
+<pre>
+%apply (size_t LENGTH, char *STRING) { (size_t len, char *str) };
+...
+size_t parity(size_t len, char *str, size_t initial);
+</pre>
+</div>
+
+<p>
+The usage from target language will be identical.
+In the wrapper function, the passed string will be expanded to a length parameter and pointer.
+</p>
+
 <H3><a name="Library_nn11">12.3.3 Using %newobject to release memory</a></H3>
 
 
