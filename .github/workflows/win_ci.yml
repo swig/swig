@@ -114,7 +114,8 @@ jobs:
           nuget install PCRE2 -OutputDirectory C:\Tools
           nuget install boost -OutputDirectory C:\Tools
 
-    - name: Setup MSVC
+    # Set MSVC compilers path and environment variables.
+    - name: Setup MSVC Env.
       if: ${{ env.COMPILER == '' || env.SWIGLANG == 'csharp' }}
       uses: TheMrMilchmann/setup-msvc-dev@v3
       with:
@@ -124,23 +125,18 @@ jobs:
       shell: bash
       run: |
           uname --all
-          # Tabs are used for here-documents indentation!
-          # YAML indentation is done with spaces only!
-          # Rest of bash code beside here-documents uses spaces as well :-)
 
           if [[ "$COMPILER" = "gcc" ]]; then
             PCRE2_PATH=/c/msys64/usr
             PCRE2_LD=-lpcre2-8
 
             if [[ "$SWIGLANG" = "python" ]]; then
-              MORE_MSYS_PKGS=python
+              MORE_MSYS_PKGS+=python
             fi
 
-            cat <<- EOF >> $GITHUB_ENV
-          		MORE_MSYS_PKGS=gcc pcre2-devel mingw-w64-x86_64-boost $MORE_MSYS_PKGS
-          		LIBS_CCACHE=-luserenv
-          		BOOST_PATH=/c/msys64/mingw64
-          	EOF
+            echo "MORE_MSYS_PKGS=gcc pcre2-devel mingw-w64-x86_64-boost $MORE_MSYS_PKGS" >> $GITHUB_ENV
+            echo "LIBS_CCACHE=-luserenv" >> $GITHUB_ENV
+            echo "BOOST_PATH=/c/msys64/mingw64" >> $GITHUB_ENV
 
           else # COMPILER: cccl wrapping MSVC
 
@@ -151,11 +147,9 @@ jobs:
             PCRE2_PATH=$(ls -d /c/tools/PCRE2*)
             PCRE2_LD=$PCRE2_CCCL_LD
 
-            cat <<- EOF >> $GITHUB_ENV
-          		CXX=/usr/bin/cccl
-          		CC=/usr/bin/cccl
-          		BOOST_PATH=$(ls -d /c/tools/boost*)/lib/native
-          	EOF
+            echo "CXX=/usr/bin/cccl" >> $GITHUB_ENV
+            echo "CC=/usr/bin/cccl" >> $GITHUB_ENV
+            echo "BOOST_PATH=$(ls -d /c/tools/boost*)/lib/native" >> $GITHUB_ENV
 
             if [[ "$SWIGLANG" = "python" ]] && [[ -n "$VER" ]]; then
               PY3VER=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64)
@@ -165,11 +159,9 @@ jobs:
 
           fi # COMPILER
 
-          cat <<- EOF >> $GITHUB_ENV
-          	PCRE2_CFLAGS=-I$PCRE2_PATH/include -DPCRE2_STATIC
-          	PCRE2_LIBS=-L$PCRE2_PATH/lib $PCRE2_LD
-          	SWIGJOBS=-j$NUMBER_OF_PROCESSORS
-          EOF
+          echo "PCRE2_CFLAGS=-I$PCRE2_PATH/include -DPCRE2_STATIC" >> $GITHUB_ENV
+          echo "PCRE2_LIBS=-L$PCRE2_PATH/lib $PCRE2_LD" >> $GITHUB_ENV
+          echo "SWIGJOBS=-j$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
 
           if [[ "$SWIGLANG" = "java" ]]; then
             declare -n java_path="JAVA_HOME_${VER}_X64"

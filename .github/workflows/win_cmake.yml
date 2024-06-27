@@ -34,6 +34,11 @@ jobs:
       BUILD_SYS: Visual Studio ${{ matrix.VER }}
 
     steps:
+    - name: Machine Info
+      shell: cmd
+      run: |
+          systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
+
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -86,4 +91,4 @@ jobs:
       shell: powershell
       run: |
           cmake --install .
-          C:\tools\swig\bin\swig.exe -version
+          C:\Tools\swig\bin\swig.exe -version
