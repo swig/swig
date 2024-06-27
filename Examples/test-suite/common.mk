@@ -409,6 +409,7 @@ CPP_TEST_CASES += \
 	restrict_cplusplus \
 	return_const_value \
 	return_value_scope \
+	rev_len_str \
 	rname \
 	samename \
 	sizet \
