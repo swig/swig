@@ -46,6 +46,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Doxygen/pydoc.h			\
 		Modules/allocate.cxx		\
 		Modules/contract.cxx		\
+		Modules/c.cxx		\
 		Modules/csharp.cxx		\
 		Modules/d.cxx			\
 		Modules/directors.cxx		\
