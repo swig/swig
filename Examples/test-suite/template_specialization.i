@@ -37,8 +37,9 @@
   }
 %}
 
-namespace vfncs {  
-
+namespace vfncs {
   %template(UnaryFunction_double) UnaryFunction<double>;  
   %template(UnaryFunction_bool) UnaryFunction<bool>;  
+
+  %template(OnlySpecialized_int) OnlySpecialized<int>;
 }

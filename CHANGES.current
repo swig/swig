@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-06-28: vadz
+            #2935 Fix instantiation of specialized template where the primary template
+            is a forward class template declaration.
+
 2024-06-16: wsfulton
             #2927 Don't ignore overloaded friend functions that are also declared
             constexpr.
