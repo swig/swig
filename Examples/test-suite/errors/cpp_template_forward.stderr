@@ -1,0 +1,4 @@
+cpp_template_forward.i:6: Warning 330: Template instantiation of forward class declaration 'Space::ForwardDeclaredTemplate< double >' with name 'ForwardDeclaredTemplate_double' is ineffective.
+cpp_template_forward.i:9: Warning 330: Template instantiation of forward class declaration 'Space::ForwardDeclaredSpecialized< int >' with name 'ForwardDeclaredTemplate_int' is ineffective.
+cpp_template_forward.i:10: Warning 330: Template instantiation of forward class declaration 'Space::ForwardDeclaredSpecialized< double >' with name 'ForwardDeclaredTemplate_double' is ineffective.
+cpp_template_forward.i:16: Warning 330: Template instantiation of forward class declaration 'Space::ForwardDeclaredMisplacedPrimary< double >' with name 'ForwardDeclaredTemplate_double' is ineffective.

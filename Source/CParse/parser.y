@@ -2905,7 +2905,7 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
                       if (GetFlag(nn, "instantiate")) {
 			Delattr(nn, "instantiate");
 			{
-			  int nnisclass = (Strcmp(Getattr(nn, "templatetype"), "class") == 0); /* if not a class template it is a function template */
+			  int nnisclass = (Strcmp(Getattr(nn, "templatetype"), "class") == 0); /* class template not a classforward nor function template */
 			  Parm *tparms = Getattr(nn, "templateparms");
 			  int specialized = !tparms; /* fully specialized (an explicit specialization) */
 			  String *tname = Copy(idcolonnt);
@@ -2959,6 +2959,13 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			    Setattr(templnode, "nested:outer", outer_class);
 			  }
                           add_symbols_copy(templnode);
+
+			  if (Equal(nodeType(templnode), "classforward")) {
+			    SWIG_WARN_NODE_BEGIN(templnode);
+			    /* A full template class definition is required in order to wrap a template class as a proxy class so this %template is ineffective. */
+			    Swig_warning(WARN_PARSE_TEMPLATE_FORWARD, cparse_file, cparse_line, "Template forward class instantiation '%s' with name '%s' is ineffective.\n", Swig_name_decl(templnode), Getattr(templnode, "sym:name"));
+			    SWIG_WARN_NODE_END(templnode);
+			  }
 
                           if (Strcmp(nodeType(templnode),"class") == 0) {
 

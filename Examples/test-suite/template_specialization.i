@@ -3,6 +3,8 @@
 %rename(not1) *::operator!() const;
 %rename(negate) *::operator-() const;
 
+%warnfilter(SWIGWARN_PARSE_TEMPLATE_FORWARD) vfncs::OnlySpecialized<double>;
+
 %inline %{
   
   namespace vfncs {
@@ -45,7 +47,7 @@ namespace vfncs {
   %template(OnlySpecialized_int) OnlySpecialized<int>;
 
   // Primary instantiation with only primary template forward declaration
-  %template(OnlySpecialized_double) OnlySpecialized<double>; // silently ignored - probably should warn
+  %template(OnlySpecialized_double) OnlySpecialized<double>; // ignored with a warning
 }
 
 %{
