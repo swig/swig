@@ -35,7 +35,7 @@ jobs:
 
     steps:
     - name: Machine Info
-      shell: cmd
+      shell: powershell
       run: |
           systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
 
@@ -50,7 +50,7 @@ jobs:
         key: ${{ matrix.os }}
 
     - name: Install NuGet Packages
-      shell: cmd
+      shell: powershell
       run: |
           nuget install PCRE2 -OutputDirectory C:\Tools
           nuget install Bison -OutputDirectory C:\Tools

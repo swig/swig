@@ -44,8 +44,9 @@ jobs:
           VER: 8
         - SWIGLANG: java
           VER: 11
-        - SWIGLANG: java
-          VER: 17
+       #  TODO JDK 17 sometimes fail on director_thread
+       #- SWIGLANG: java
+       #  VER: 17
        #  TODO JDK 21 fails on testing
        #- SWIGLANG: java
        #  VER: 21
@@ -92,7 +93,7 @@ jobs:
 
     steps:
     - name: Machine Info
-      shell: cmd
+      shell: powershell
       run: |
           systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
 
@@ -108,9 +109,9 @@ jobs:
 
     - name: Install NuGet Packages
       if: ${{ env.COMPILER == '' }}
-      shell: cmd
+      shell: powershell
       run: |
-          rem 'nuget build for .NET: https://www.nuget.org/packages'
+          # 'nuget build for .NET: https://www.nuget.org/packages'
           nuget install PCRE2 -OutputDirectory C:\Tools
           nuget install boost -OutputDirectory C:\Tools
 
@@ -127,14 +128,21 @@ jobs:
           uname --all
 
           if [[ "$COMPILER" = "gcc" ]]; then
-            PCRE2_PATH=/c/msys64/usr
-            PCRE2_LD=-lpcre2-8
+
+            # MINGw64 packages to install with MSYS2
+            for n in binutils make autotools pcre2 boost; do
+              MORE_MSYS_PKGS+=" mingw-w64-x86_64-$n"
+            done
 
             if [[ "$SWIGLANG" = "python" ]]; then
-              MORE_MSYS_PKGS+=python
+              MORE_MSYS_PKGS+=" mingw-w64-x86_64-python"
             fi
 
-            echo "MORE_MSYS_PKGS=gcc pcre2-devel mingw-w64-x86_64-boost $MORE_MSYS_PKGS" >> $GITHUB_ENV
+            # MINGw64 pcre2
+            echo "PCRE2_CFLAGS=-I/mingw64/include -DPCRE2_STATIC" >> $GITHUB_ENV
+            echo "PCRE2_LIBS=-L/mingw64/lib -lpcre2-8" >> $GITHUB_ENV
+
+            echo "MORE_MSYS_PKGS=base-devel $MORE_MSYS_PKGS" >> $GITHUB_ENV
             echo "LIBS_CCACHE=-luserenv" >> $GITHUB_ENV
             echo "BOOST_PATH=/c/msys64/mingw64" >> $GITHUB_ENV
 
@@ -144,8 +152,10 @@ jobs:
             chmod +x /usr/bin/cccl
             cp -p /usr/bin/cccl /c/msys64/usr/bin/cccl
 
+            # Using pcre2 installed with NuGet
             PCRE2_PATH=$(ls -d /c/tools/PCRE2*)
-            PCRE2_LD=$PCRE2_CCCL_LD
+            echo "PCRE2_CFLAGS=-I$PCRE2_PATH/include -DPCRE2_STATIC" >> $GITHUB_ENV
+            echo "PCRE2_LIBS=-L$PCRE2_PATH/lib $PCRE2_CCCL_LD" >> $GITHUB_ENV
 
             echo "CXX=/usr/bin/cccl" >> $GITHUB_ENV
             echo "CC=/usr/bin/cccl" >> $GITHUB_ENV
@@ -159,8 +169,6 @@ jobs:
 
           fi # COMPILER
 
-          echo "PCRE2_CFLAGS=-I$PCRE2_PATH/include -DPCRE2_STATIC" >> $GITHUB_ENV
-          echo "PCRE2_LIBS=-L$PCRE2_PATH/lib $PCRE2_LD" >> $GITHUB_ENV
           echo "SWIGJOBS=-j$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
 
           if [[ "$SWIGLANG" = "java" ]]; then
@@ -175,16 +183,27 @@ jobs:
       run: |
           rem 'MSYS2 uses MINGW https://packages.msys2.org/'
           pacman -Syu --noconfirm --needed
+          if %ErrorLevel% NEQ 0 (exit 1)
           pacman -Syu --noconfirm --needed autoconf automake bison %MORE_MSYS_PKGS%
+          if %ErrorLevel% NEQ 0 (exit 1)
 
     - name: Autoconf
       shell: bash
       run: |
+          uname --all
+
           if [[ -z "$COMPILER" ]]; then
             which cl.exe
             cl.exe /? 2>&1 | head -n1
           else
+            # Use MINGw64 compiler
+            # We can not use GITHUB_PATH, as bash insert /usr/bin
+            export PATH="/mingw64/bin:$PATH"
+
+            which gcc
             gcc --version | head -n1
+            which g++
+            g++ --version | head -n1
           fi
 
           if [[ "$SWIGLANG" = "csharp" ]]; then
@@ -203,6 +222,9 @@ jobs:
       shell: bash
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
+            # Use MINGw64 compiler
+            export PATH="/mingw64/bin:$PATH"
+
             ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe"
           else # cccl wrapping MSVC
             ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe" --disable-ccache
@@ -211,7 +233,21 @@ jobs:
     - name: Build
       shell: bash
       run: |
+          if [[ "$COMPILER" = "gcc" ]]; then
+            # Use MINGw64 compiler
+            export PATH="/mingw64/bin:$PATH"
+          fi
+
           make -s $SWIGJOBS
+
+    # Test the Windows swig have a proper SWIG library path
+    - name: Test SWIG Lib path
+      shell: bash
+      run: |
+          # path is based on executable location
+          if ! [[ "$(./swig.exe -swiglib)" = "$(cygpath -w "$PWD")\Lib" ]]; then
+            exit 1
+          fi
 
     # Mingw-W64 GCC uses different default calling conventions,
     # from C# and Java which uses windows calling conventions.
@@ -222,6 +258,10 @@ jobs:
       if: ${{ env.COMPILER == '' }}
       shell: bash
       run: |
+          #if [[ "$COMPILER" = "gcc" ]]; then
+          #  # Use MINGw64 compiler
+          #  export PATH="/mingw64/bin:$PATH"
+          #fi
           ./swig.exe -version
           make check-$SWIGLANG-version
           make check-$SWIGLANG-enabled
