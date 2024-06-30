@@ -1000,6 +1000,9 @@ Allocate():
 
   virtual int usingDeclaration(Node *n) {
 
+    if (GetFlag(n, "feature:ignore"))
+      return SWIG_OK;
+
     if (!Getattr(n, "namespace")) {
       Node *ns;
       /* using id */
@@ -1024,7 +1027,7 @@ Allocate():
       } else if (Equal(nodeType(ns), "constructor") && !GetFlag(n, "usingctor")) {
 	Swig_warning(WARN_PARSE_USING_CONSTRUCTOR, Getfile(n), Getline(n), "Using declaration '%s' for inheriting constructors uses base '%s' which is not an immediate base of '%s'.\n", SwigType_namestr(Getattr(n, "uname")), SwigType_namestr(Getattr(ns, "name")), SwigType_namestr(Getattr(parentNode(n), "name")));
       } else {
-	if (inclass && !GetFlag(n, "feature:ignore") && Getattr(n, "sym:name")) {
+	if (inclass && Getattr(n, "sym:name")) {
 	  {
 	    String *ntype = nodeType(ns);
 	    if (Equal(ntype, "cdecl") || Equal(ntype, "constructor") || Equal(ntype, "template") || Equal(ntype, "using")) {
