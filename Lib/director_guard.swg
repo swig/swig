@@ -2,31 +2,41 @@
  * director_guard.swg
  *
  * Generic Mutex implementation
- * Calling Language can have its own Mutex class:
- *  Define SWIG_HAVE_MUTEX before calling here.
- *  Class must be Basic Lockable.
- *  have public 'void lock()' and 'void unlock()' methods.
- *  See: https://en.cppreference.com/w/cpp/named_req/BasicLockable
+ *
+ * Before calling the file, you may choose the following:
+ * - SWIG_THREADS:
+ *   If set than we use mutexs.
+ *   If not set we do not use mutexs.
+ * - SWIG_HAVE_MUTEX:
+ *   If you have a language defined 'Mutex' class, set this flag.
+ *     The language 'Mutex' class need to be a Basic Lockable.
+ *     It must have public 'void lock()' and 'void unlock()' methods.
+ *     See: https://en.cppreference.com/w/cpp/named_req/BasicLockable
+ *   If the flag is unset, use one of the following in that order:
+ *   - C++ 11 or above, use std::mutex.
+ *   - Win32 use CRITICAL_SECTION.
+ *   - Use POSIX Pthread mutex.
+ *
  * ----------------------------------------------------------------------------- */
 
 #ifdef SWIG_THREADS
 
 #if __cplusplus >= 201103L
-
 /*
- * C++ 11
+ * C++ 11 or above
  * std::mutex        https://en.cppreference.com/w/cpp/thread/mutex
  * std::unique_lock  https://en.cppreference.com/w/cpp/thread/unique_lock
  */
 #include <mutex>
-#ifdef SWIG_HAVE_MUTEX /* Use Language defined Mutex class */
+#ifdef SWIG_HAVE_MUTEX
+/* Use Language defined Mutex class */
 #define SWIG_GUARD(_mutex) std::unique_lock<Mutex> _guard(_mutex)
-#define SWIG_GUARD_DEF(_cls, _mutex) Mutex _cls::_mutex
-#define SWIG_GUARD_DEC(_mutex) static Mutex _mutex
+#define SWIG_GUARD_DEFINITION(_cls, _mutex) Mutex _cls::_mutex
+#define SWIG_GUARD_DECLARATION(_mutex) static Mutex _mutex
 #else
 #define SWIG_GUARD(_mutex) std::unique_lock<std::mutex> _guard(_mutex)
-#define SWIG_GUARD_DEF(_cls, _mutex) std::mutex _cls::_mutex
-#define SWIG_GUARD_DEC(_mutex) static std::mutex _mutex
+#define SWIG_GUARD_DEFINITION(_cls, _mutex) std::mutex _cls::_mutex
+#define SWIG_GUARD_DECLARATION(_mutex) static std::mutex _mutex
 #endif
 
 #else /* __cplusplus */
@@ -80,15 +90,15 @@ namespace Swig {
     };
 }
 #define SWIG_GUARD(_mutex) Unique_lock _guard(_mutex)
-#define SWIG_GUARD_DEF(_cls, _mutex) Mutex _cls::_mutex
-#define SWIG_GUARD_DEC(_mutex) static Mutex _mutex
+#define SWIG_GUARD_DEFINITION(_cls, _mutex) Mutex _cls::_mutex
+#define SWIG_GUARD_DECLARATION(_mutex) static Mutex _mutex
 
 #endif /* __cplusplus */
 
 #else /* SWIG_THREADS */
 
 #define SWIG_GUARD(_mutex)
-#define SWIG_GUARD_DEF(_cls, _mutex)
-#define SWIG_GUARD_DEC(_mutex)
+#define SWIG_GUARD_DEFINITION(_cls, _mutex)
+#define SWIG_GUARD_DECLARATION(_mutex)
 
 #endif /* SWIG_THREADS */

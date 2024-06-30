@@ -235,7 +235,7 @@ namespace Swig {
   private:
     typedef std::map<void *, GCItem_var> swig_ownership_map;
     mutable swig_ownership_map swig_owner;
-    SWIG_GUARD_DEC(swig_mutex_own);
+    SWIG_GUARD_DECLARATION(swig_mutex_own);
 
   public:
     template <typename Type>
@@ -274,6 +274,6 @@ namespace Swig {
       return own;
     }
   };
-  SWIG_GUARD_DEF(Director, swig_mutex_own);
+  SWIG_GUARD_DEFINITION(Director, swig_mutex_own);
 }
 
