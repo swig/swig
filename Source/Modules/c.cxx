@@ -2139,7 +2139,9 @@ public:
 	s += len_enum_prefix;
       Printf(result, "e%s", s);
     } else {
-      Printf(result, "%s", Char(Swig_name_mangle_string(SwigType_base(type))));
+      // Use Swig_name_mangle_type() here and not Swig_name_mangle_string() to get slightly simpler mangled name for templates (notably avoiding "_Sp_" and
+      // "_SP_" fragments for the parentheses used by SWIG internally around template parameters).
+      Printf(result, "%s", Char(Swig_name_mangle_type(SwigType_base(type))));
     }
 
     Delete(prefix);
