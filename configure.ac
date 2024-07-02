@@ -122,7 +122,7 @@ then
 	case $host in
 	*-*-hp*) SO=.sl;;
 	*-*-darwin*) SO=.bundle;;
-	*-*-cygwin* | *-*-mingw*) SO=.dll;;
+	*-*-cygwin* | *-*-mingw* | *-*-msys*) SO=.dll;;
 	*) SO=.so;;
 	esac
 fi
@@ -137,7 +137,7 @@ if test -z "$LDSHARED"
 then
 	case $host in
 	*-*-aix*) LDSHARED="$CC -shared";;
-	*-*-cygwin* | *-*-mingw*)
+	*-*-cygwin* | *-*-mingw* | *-*-msys*)
             if test "$GCC" = yes; then
                 LDSHARED="\$(CC) -shared"
             else
@@ -203,7 +203,7 @@ then
              fi;;
         *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) +z ";;
         *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -bundle -undefined suppress -flat_namespace";;
-        *-*-cygwin* | *-*-mingw*)
+        *-*-cygwin* | *-*-mingw* | *-*-msys*)
             if test "$GCC" = yes; then
                 TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared "
             else
@@ -639,7 +639,7 @@ esac
 
 # CSharp on Windows platforms including Cygwin doesn't use libname.dll, rather name.dll when loading dlls
 case $host in
-*-*-cygwin* | *-*-mingw*) CSHARPLIBRARYPREFIX="";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) CSHARPLIBRARYPREFIX="";;
 *)CSHARPLIBRARYPREFIX="lib";;
 esac
 
@@ -705,7 +705,7 @@ fi
 
 # Do not prefix library file names with "lib" on Windows.
 case $host in
-*-*-cygwin* | *-*-mingw*) DLIBPREFIX="";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) DLIBPREFIX="";;
 *)DLIBPREFIX="lib";;
 esac
 
@@ -1107,7 +1107,7 @@ esac
 
 # Java on Windows platforms including Cygwin doesn't use libname.dll, rather name.dll when loading dlls
 case $host in
-*-*-cygwin* | *-*-mingw*) JAVALIBRARYPREFIX="";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) JAVALIBRARYPREFIX="";;
 *)JAVALIBRARYPREFIX="lib";;
 esac
 
@@ -2041,18 +2041,18 @@ else
     PYVER=0
   fi
   if test "x$PY3BIN" = xyes; then
-    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
-      PYTHON3="$PYTHON"
-    else
-      for py_ver in 3 3.15 3.14 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 ""; do
-        AC_CHECK_PROGS(PYTHON3, [python$py_ver])
-        if test -n "$PYTHON3"; then
-          AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
-          if test -n "$PY3CONFIG"; then
-            break
-          fi
+    for py_ver in 3 3.15 3.14 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 ""; do
+      AC_CHECK_PROGS(PYTHON3, [python$py_ver])
+      if test -n "$PYTHON3"; then
+        AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
+        if test -n "$PY3CONFIG"; then
+          break
         fi
-      done
+      fi
+    done
+    # Windows python can be in path and have python-config, fallback here!
+    if test -z "$PY3CONFIG" -a x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
+      PYTHON3="$PYTHON"
     fi
   else
     PYTHON3="$PY3BIN"
@@ -2076,43 +2076,7 @@ else
     PYSEPARATOR=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
     AC_MSG_RESULT($PYSEPARATOR)
 
-    if test x"$PY3OSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
-      # Windows installations are quite different to posix installations
-      # There is no python-config to use
-      AC_MSG_CHECKING(for Python 3.x prefix)
-      PY3PREFIX=`($PYTHON3 -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
-      AC_MSG_RESULT($PY3PREFIX)
-      PY3PREFIX=`echo "$PY3PREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
-      PYTHON_SO=.pyd
-
-      AC_MSG_CHECKING(for Python 3.x header files)
-      if test -r $PY3PREFIX/include/Python.h; then
-        PY3INCLUDE="-I$PY3PREFIX/include"
-      fi
-      AC_MSG_RESULT($PY3INCLUDE)
-
-      AC_MSG_CHECKING(for Python 3.x library directory)
-      if test -d $PY3PREFIX/libs; then
-        PY3LIB=$PY3PREFIX/libs
-        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
-        if test -r "$PY3LINKFILE"; then
-          PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
-        else
-          PY3LIB=
-        fi
-      fi
-      if test -z "$PY3LIB"; then
-        AC_MSG_RESULT([Not found])
-      else
-        AC_MSG_RESULT($PY3LIB)
-      fi
-      AC_MSG_CHECKING([for Python 3.x library])
-      if test -z "$PY3LINK"; then
-        AC_MSG_RESULT(Not found)
-      else
-        AC_MSG_RESULT($PY3LINK)
-      fi
-    elif test -n "$PY3CONFIG"; then
+    if test -n "$PY3CONFIG"; then
       AC_MSG_CHECKING([for Python 3.x prefix])
       PY3PREFIX=`($PY3CONFIG --prefix) 2>/dev/null`
       AC_MSG_RESULT($PY3PREFIX)
@@ -2170,6 +2134,45 @@ else
 
       PY3LINK="-l$PY3VERSION"
 
+      AC_MSG_CHECKING([for Python 3.x library])
+      if test -z "$PY3LINK"; then
+        AC_MSG_RESULT(Not found)
+      else
+        AC_MSG_RESULT($PY3LINK)
+      fi
+    fi
+
+    # Python on windows can have python-config, fallback here!
+    if test -z "$PY3INCLUDE" -o -z "$PY3LINK" && test x"$PY3OSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
+      # Windows installations are quite different to posix installations
+      # There is no python-config to use
+      AC_MSG_CHECKING(for Python 3.x prefix)
+      PY3PREFIX=`($PYTHON3 -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
+      AC_MSG_RESULT($PY3PREFIX)
+      PY3PREFIX=`echo "$PY3PREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
+      PYTHON_SO=.pyd
+
+      AC_MSG_CHECKING(for Python 3.x header files)
+      if test -r $PY3PREFIX/include/Python.h; then
+        PY3INCLUDE="-I$PY3PREFIX/include"
+      fi
+      AC_MSG_RESULT($PY3INCLUDE)
+
+      AC_MSG_CHECKING(for Python 3.x library directory)
+      if test -d $PY3PREFIX/libs; then
+        PY3LIB=$PY3PREFIX/libs
+        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
+        if test -r "$PY3LINKFILE"; then
+          PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
+        else
+          PY3LIB=
+        fi
+      fi
+      if test -z "$PY3LIB"; then
+        AC_MSG_RESULT([Not found])
+      else
+        AC_MSG_RESULT($PY3LIB)
+      fi
       AC_MSG_CHECKING([for Python 3.x library])
       if test -z "$PY3LINK"; then
         AC_MSG_RESULT(Not found)

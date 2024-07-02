@@ -32,7 +32,7 @@
 <li><a href="#Windows_swig_exe">Building swig.exe on Windows</a>
 <ul>
 <li><a href="#Windows_cmake">Building swig.exe using CMake</a>
-<li><a href="#Windows_msys2">Building swig.exe using MSYS2</a>
+<li><a href="#Windows_msys2">Building swig.exe using MSYS2 and Mingw-w64</a>
 <li><a href="#Windows_mingw_msys">Building swig.exe using MinGW and MSYS</a>
 <li><a href="#Windows_cygwin">Building swig.exe using Cygwin</a>
 <ul>
@@ -219,8 +219,9 @@ Normally this is not needed, so most people will want to ignore this section.
 </p>
 
 <p>
-There are various ways to build the SWIG executable including <a href="https://cmake.org/">CMake</a> which is able to generate project files for building with Visual Studio.
-SWIG can also be compiled and run using <a href="https://www.msys2.org/">MSYS2</a>, <a href="https://www.cygwin.com">Cygwin</a> or <a href="https://osdn.net/projects/mingw/">MinGW</a>, all of which provide a Unix like front end to Windows and comes free with the gcc C/C++ compiler.
+There are various ways to build the SWIG executable including <a href="https://cmake.org/">CMake</a> which is able to generate project files for building with <a href="https://visualstudio.microsoft.com/">Visual Studio</a> <a href="https://docs.microsoft.com//cpp/">MSVC</a>.<br>
+SWIG can also be compiled and run using <a href="https://www.msys2.org/">MSYS2</a> with <a href="https://www.mingw-w64.org/">Mingw-w64</a>, <a href="https://www.cygwin.com">Cygwin</a> or <a href="https://osdn.net/projects/mingw/">MinGW</a>, all of which provide a Unix like front end to Windows and comes free with the <a href="https://gcc.gnu.org/">GCC</a> C/C++ compiler.<br>
+SWIG can also be compiled with MSYS2 using MSVC and SWIG <a href="https://github.com/swig/cccl">MSVC wrapper</a>.<br>
 </p>
 
 
@@ -272,7 +273,6 @@ cd C:\swig
 
 $env:PATH="C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\Bison.3.7.4\bin;" + $env:PATH
 $PCRE_ROOT="C:\Tools\pcre2\PCRE2.10.39.0"
-$PCRE_PLATFORM="x64"
 
 cmake -G "Visual Studio 16 2019" -A "x64" `
 -DCMAKE_INSTALL_PREFIX="C:/swig/install2" `
@@ -304,7 +304,7 @@ cd install2/bin
     <pre>-python -c++ -o C:\Temp\doxygen_parsing.cpp C:\swig\Examples\test-suite\doxygen_parsing.i</pre>
 </div>
 
-<H3><a name="Windows_msys2">3.3.2 Building swig.exe using MSYS2</a></H3>
+<H3><a name="Windows_msys2">3.3.2 Building swig.exe using MSYS2 and Mingw-w64</a></H3>
 
 
 <p>
