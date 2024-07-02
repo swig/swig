@@ -1,22 +1,23 @@
 /* -----------------------------------------------------------------------------
  * director_guard.swg
  *
- * Generic Mutex implementation
+ * Generic Mutex implementation for directors
  *
- * Before calling the file, you may choose the following:
+ * Before including this file, there are two macros to define for choosing
+ * an implementation as follows:
  * - SWIG_THREADS:
- *   If set than we use mutexs.
- *   If not set we do not use mutexs.
+ *   If defined than mutexes are used.
+ *   If not defined then mutexes are not used.
  * - SWIG_HAVE_MUTEX:
- *   If you have a language defined 'Mutex' class, set this flag.
- *     The language 'Mutex' class need to be a Basic Lockable.
+ *   If there is a target language defined 'Mutex' class available, the target
+ *     language will define this macro to use the class over the options below.
+ *     The language 'Mutex' class needs to be Basic Lockable.
  *     It must have public 'void lock()' and 'void unlock()' methods.
  *     See: https://en.cppreference.com/w/cpp/named_req/BasicLockable
- *   If the flag is unset, use one of the following in that order:
- *   - C++ 11 or above, use std::mutex.
- *   - Win32 use CRITICAL_SECTION.
- *   - Use POSIX Pthread mutex.
- *
+ *   If the macro is not defined, one of the following will be used in this order:
+ *   - std::mutex if using C++11 or later.
+ *   - CRITICAL_SECTION on Windows.
+ *   - POSIX pthread mutex.
  * ----------------------------------------------------------------------------- */
 
 #ifdef SWIG_THREADS
