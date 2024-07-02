@@ -50,7 +50,7 @@
 
   public bool IsEmpty {
     get {
-      return empty();
+      return $modulePINVOKE.$csclazznameempty(swigCPtr);
     }
   }
 
@@ -294,7 +294,8 @@
 
 %enddef
 
-%csmethodmodifiers std::map::empty "private"
+%csattributes std::map::empty "[global::System.Obsolete(\"Use IsEmpty property instead\")]"
+
 %csmethodmodifiers std::map::size "private"
 %csmethodmodifiers std::map::getitem "private"
 %csmethodmodifiers std::map::setitem "private"

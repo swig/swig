@@ -47,7 +47,7 @@
 
   public bool IsEmpty {
     get {
-      return empty();
+      return $modulePINVOKE.$csclazznameempty(swigCPtr);
     }
   }
 
@@ -237,7 +237,8 @@
 #include <stdexcept>
 %}
 
-%csmethodmodifiers std::array::empty "private"
+%csattributes std::array::empty "[global::System.Obsolete(\"Use IsEmpty property instead\")]"
+
 %csmethodmodifiers std::array::getitemcopy "private"
 %csmethodmodifiers std::array::getitem "private"
 %csmethodmodifiers std::array::setitem "private"

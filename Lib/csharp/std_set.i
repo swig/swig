@@ -16,7 +16,8 @@
 #include <stdexcept>
 %}
 
-%csmethodmodifiers std::set::empty "private"
+%csattributes std::set::empty "[global::System.Obsolete(\"Use IsEmpty property instead\")]"
+
 %csmethodmodifiers std::set::size "private"
 %csmethodmodifiers std::set::getitem "private"
 %csmethodmodifiers std::set::create_iterator_begin "private"
@@ -47,7 +48,7 @@ class set {
 
   public bool IsEmpty {
     get {
-      return empty();
+      return $modulePINVOKE.$csclazznameempty(swigCPtr);
     }
   }
 

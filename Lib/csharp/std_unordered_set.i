@@ -16,7 +16,8 @@
 #include <stdexcept>
 %}
 
-%csmethodmodifiers std::unordered_set::empty "private"
+%csattributes std::unordered_set::empty "[global::System.Obsolete(\"Use IsEmpty property instead\")]"
+
 %csmethodmodifiers std::unordered_set::size "private"
 %csmethodmodifiers std::unordered_set::getitem "private"
 %csmethodmodifiers std::unordered_set::create_iterator_begin "private"
@@ -47,7 +48,7 @@ class unordered_set {
 
   public bool IsEmpty {
     get {
-      return empty();
+      return $modulePINVOKE.$csclazznameempty(swigCPtr);
     }
   }
 
