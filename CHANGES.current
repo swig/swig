@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-07-03: wsfulton
+            #2860 Enhance Windows.html documentation for the popular Visual C++ compiler
+            recommending users to correctly set the __cplusplus macro in order to benefit
+            from modern standards based features that SWIG provides.
+
 2024-07-02: erezgeva
 	    [Python, Ruby] #2870 Change the thread safety options for the director code
             that manages C++ director pointer ownership. Please define SWIG_THREADS to

@@ -189,6 +189,20 @@ with C++, it is safe, simple, portable, and debuggable.
 </p>
 
 <p>
+This approach results in generated code that uses just the most basic of C and C++ features,
+no matter how complex the input C++ is.
+SWIG will not force a newer standard of C++ to be required as the generated code complies
+with ISO standard C++98.
+However, there are a few features in later C++ standards that can be advantageous to use.
+For example, C++11 move semantics are available to provide performance improvements.
+So in some instances, SWIG will use features from newer C++ standards provided they are available.
+This is made possible via the <tt>__cplusplus</tt> macro,
+which is set by the C++ compiler to an appropriate standards defined value.
+This means that if your compiler is configured to support say the C++11 standard, then there
+may be some C++11 benefits available in the generated code, such as C++11 move semantics.
+</p>
+
+<p>
 Some of this chapter focuses on the low-level procedural interface to
 C++ that is used as the foundation for all language modules.  Keep in
 mind that the target languages also provide the high-level OO interface via
