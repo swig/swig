@@ -37,6 +37,7 @@ CPP_TEST_CASES += \
 	callback \
 	complextest \
 	director_stl \
+	director_guard \
 	director_wstring \
 	file_test \
 	iadd \
@@ -122,6 +123,7 @@ VALGRIND_OPT += --suppressions=pythonswig.supp
 
 # Custom tests - tests with additional commandline options
 python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
+director_guard.cpptest: SWIGOPT += -threads
 
 # Make sure just python_runtime_data_builtin.i uses the -builtin option. Note: does not use python_runtime_data.list for all steps.
 # PY_ABI_VER is unset for python_runtime_data_builtin because stable ABI is not supported by builtin
