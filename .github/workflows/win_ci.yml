@@ -143,7 +143,6 @@ jobs:
             echo "PCRE2_LIBS=-L/mingw64/lib -lpcre2-8" >> $GITHUB_ENV
 
             echo "MORE_MSYS_PKGS=base-devel $MORE_MSYS_PKGS" >> $GITHUB_ENV
-            echo "LIBS_CCACHE=-luserenv" >> $GITHUB_ENV
             echo "BOOST_PATH=/c/msys64/mingw64" >> $GITHUB_ENV
 
           else # COMPILER: cccl wrapping MSVC
