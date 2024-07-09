@@ -17,7 +17,7 @@ class CallThread(threading.Thread):
         for x in range(100):
             if self.caller.call() != "tst2":
                 raise RuntimeError("Should return true")
-            time.sleep(0.001)
+            time.sleep(0.001) # 1 millisecond
 
 callback = MinCallback()
 caller = director_guard.Caller(callback)
