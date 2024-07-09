@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-07-18: olly
+	    #1917 Stop removing `f` and `F` suffixes from float literals.
+	    This was resulting in incorrect generated C# and Java code.  For
+	    some cases such as `#define CONSTANT 1.0f` this was a regression
+	    introduced in 4.2.0 when we started more correctly wrapping these
+	    as `float` rather than `double`.
+
 2024-07-15: vadz
             #2941 Suppress warning WARN_PARSE_USING_UNDEF for ignored using declarations.
 
