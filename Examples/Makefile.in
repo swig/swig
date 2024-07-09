@@ -1252,15 +1252,12 @@ PYTHON_FLAGS =
 # Make sure these locate your Python installation
 ifneq (,$(PY2))
   PYTHON_INCLUDE= $(DEFS) @PYINCLUDE@
-  PY_LIB        = @PYLIB@
+  PYTHON_LIB    = @PYLIB@
   PYTHON        = @PYTHON@ $(PYTHON_FLAGS)
 else
   PYTHON_INCLUDE= $(DEFS) @PY3INCLUDE@
-  PY_LIB        = @PY3LIB@
+  PYTHON_LIB    = @PY3LIB@
   PYTHON        = @PYTHON3@ $(PYTHON_FLAGS)
-endif
-ifneq (,$(PY_LIB))
-  PYTHON_LIB    = -L$(PY_LIB)
 endif
 
 # Extra Python specific linking options
@@ -1292,7 +1289,7 @@ PYABI3AUDIT	  = @PYABI3AUDIT@
 python: $(SRCDIR_SRCS)
 	$(SWIG) -python $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(PYTHON_LIB) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 ifneq (,$(PY_ABI_VER))
 ifneq (,$(PYABI3AUDIT))
 	$(COMPILETOOL) $(PYABI3AUDIT) --assume-minimum-abi3 $(PY_ABI_VER) --report -o $(TARGET)_abi3_report.json $(LIBPREFIX)_$(TARGET)$(PYTHON_SO) || (cat $(TARGET)_abi3_report.json && false)
@@ -1306,7 +1303,7 @@ endif
 python_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -python -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(PYTHON_LIB) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 ifneq (,$(PY_ABI_VER))
 ifneq (,$(PYABI3AUDIT))
 	$(COMPILETOOL) $(PYABI3AUDIT) --assume-minimum-abi3 $(PY_ABI_VER) --report -o $(TARGET)_abi3_report.json $(LIBPREFIX)_$(TARGET)$(PYTHON_SO) || (cat $(TARGET)_abi3_report.json && false)

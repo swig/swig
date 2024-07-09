@@ -17,6 +17,16 @@ permissions:
   contents: read
 
 jobs:
+  # This action build using MSYS2 environment
+  # We use two compilers C/C++:
+  # - Microsoft Visual Studio compiler.
+  # - MING-w64 GCC compiler.
+  # We use 2 package managers
+  # - NuGet packages are compatible with Visual Studio compiler.
+  # - MSYS2 pacman with MSYS2 packages and MING-w64 packages.
+  #
+  # We try to use already installed software on GitHub windows
+  #  and install only missed software.
   win_ci:
     # When continue-on-error is true for an individual build,
     # that build can fail (it'll show red),
@@ -39,17 +49,28 @@ jobs:
           INSTALL: 'true'
         - SWIGLANG: csharp
           os: 'windows-2019'
+        - SWIGLANG: csharp
+          COMPILER: gcc
+        - SWIGLANG: csharp
           INSTALL: 'true'
+          COMPILER: gcc
+          os: 'windows-2019'
         - SWIGLANG: java
           VER: 8
         - SWIGLANG: java
           VER: 11
-       #  TODO JDK 17 sometimes fail on director_thread
+       #  FIXME: JDK 17 sometimes fail on director_thread
        #- SWIGLANG: java
        #  VER: 17
-       #  TODO JDK 21 fails on testing
+       #  FIXME: JDK 21 fails on testing
        #- SWIGLANG: java
        #  VER: 21
+        - SWIGLANG: java
+          COMPILER: gcc
+          VER: 8
+        - SWIGLANG: java
+          COMPILER: gcc
+          VER: 11
         - SWIGLANG: python
           VER: '3.7'
         - SWIGLANG: python
@@ -62,9 +83,21 @@ jobs:
           VER: '3.11'
         - SWIGLANG: python
           VER: '3.12'
-        - SWIGLANG: python
-          INSTALL: 'true'
+       #  FIXME: require probing in configure.ac
+       #  FIXME: Why testing with python using MING-w64 fails?
+       #- SWIGLANG: python
+       #  COMPILER: gcc
+       #  NOTEST: 'no-test'
+       #  FIXME: Why testing with ruby fails?
+        - SWIGLANG: ruby
+        # VER: '3.0.7'
+          NOTEST: 'no-test'
+       #- SWIGLANG: ruby
+       #  VER: '3.1.6'
+       #  NOTEST: 'no-test'
+        - SWIGLANG: ruby
           COMPILER: gcc
+          NOTEST: 'no-test'
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -77,6 +110,7 @@ jobs:
       SWIGLANG: ${{ matrix.SWIGLANG }}
       COMPILER: ${{ matrix.COMPILER }}
       INSTALL: ${{ matrix.INSTALL }}
+      NOTEST: ${{ matrix.NOTEST }}
       VER: ${{ matrix.VER }}
       OS: ${{ matrix.os }}
 
@@ -115,7 +149,7 @@ jobs:
           nuget install PCRE2 -OutputDirectory C:\Tools
           nuget install boost -OutputDirectory C:\Tools
 
-    # Set MSVC compilers path and environment variables.
+    # Set Microsoft Visual Studio compilers path and environment variables.
     - name: Setup MSVC Env.
       if: ${{ env.COMPILER == '' || env.SWIGLANG == 'csharp' }}
       uses: TheMrMilchmann/setup-msvc-dev@v3
@@ -127,18 +161,27 @@ jobs:
       run: |
           uname --all
 
+          # Using Mingw-W64
           if [[ "$COMPILER" = "gcc" ]]; then
 
-            # MINGw64 packages to install with MSYS2
+            # MING-w64 packages to install with MSYS2
             for n in binutils make autotools pcre2 boost; do
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-$n"
             done
 
-            if [[ "$SWIGLANG" = "python" ]]; then
+            case "$SWIGLANG" in
+            python)
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-python"
-            fi
+              ;;
+            ruby)
+              MORE_MSYS_PKGS+=" mingw-w64-x86_64-ruby"
+              ;;
+            perl)
+              MORE_MSYS_PKGS+=" mingw-w64-x86_64-perl"
+              ;;
+            esac
 
-            # MINGw64 pcre2
+            # MING-w64 pcre2
             echo "PCRE2_CFLAGS=-I/mingw64/include -DPCRE2_STATIC" >> $GITHUB_ENV
             echo "PCRE2_LIBS=-L/mingw64/lib -lpcre2-8" >> $GITHUB_ENV
 
@@ -160,27 +203,36 @@ jobs:
             echo "CC=/usr/bin/cccl" >> $GITHUB_ENV
             echo "BOOST_PATH=$(ls -d /c/tools/boost*)/lib/native" >> $GITHUB_ENV
 
-            if [[ "$SWIGLANG" = "python" ]] && [[ -n "$VER" ]]; then
-              PY3VER=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64)
-              echo "$PY3VER\Script" >> $GITHUB_PATH
-              echo "$PY3VER" >> $GITHUB_PATH
+            if [[ -n "$VER" ]]; then
+              case "$SWIGLANG" in
+              python)
+                PY3VER=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64)
+                echo "$PY3VER\\Script" >> $GITHUB_PATH
+                echo "$PY3VER" >> $GITHUB_PATH
+                ;;
+              ruby)
+                RUBYDIR=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64)
+                echo "$RUBYDIR\\bin" >> $GITHUB_PATH
+                ;;
+              esac
             fi
 
           fi # COMPILER
 
-          echo "SWIGJOBS=-j$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
-
+          # Java must use VER!
           if [[ "$SWIGLANG" = "java" ]]; then
             declare -n java_path="JAVA_HOME_${VER}_X64"
             echo "JAVA_HOME=$java_path" >> $GITHUB_ENV
           fi
+
+          echo "SWIGJOBS=-j$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
 
           echo 'C:\msys64\usr\bin' >> $GITHUB_PATH
 
     - name: Install MSYS2 Packages
       shell: cmd
       run: |
-          rem 'MSYS2 uses MINGW https://packages.msys2.org/'
+          rem 'MSYS2 https://packages.msys2.org/'
           pacman -Syu --noconfirm --needed
           if %ErrorLevel% NEQ 0 (exit 1)
           pacman -Syu --noconfirm --needed autoconf automake bison %MORE_MSYS_PKGS%
@@ -195,7 +247,7 @@ jobs:
             which cl.exe
             cl.exe /? 2>&1 | head -n1
           else
-            # Use MINGw64 compiler
+            # Use MING-w64 compiler
             # We can not use GITHUB_PATH, as bash insert /usr/bin
             export PATH="/mingw64/bin:$PATH"
 
@@ -205,13 +257,24 @@ jobs:
             g++ --version | head -n1
           fi
 
-          if [[ "$SWIGLANG" = "csharp" ]]; then
+          case "$SWIGLANG" in
+          csharp)
             which csc.exe
             csc.exe /? | head -n1
-          elif [[ "$SWIGLANG" = "python" ]]; then
+            ;;
+          python)
             which python.exe
             python -V
-          fi
+            ;;
+          ruby)
+            which ruby.exe
+            ruby -v
+            ;;
+          perl)
+            which perl.exe
+            perl -v | head -n3
+            ;;
+          esac
 
           make --version | head -n2
 
@@ -221,7 +284,7 @@ jobs:
       shell: bash
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
-            # Use MINGw64 compiler
+            # Use MING-w64 compiler
             export PATH="/mingw64/bin:$PATH"
 
             ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe"
@@ -233,7 +296,7 @@ jobs:
       shell: bash
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
-            # Use MINGw64 compiler
+            # Use MING-w64 compiler
             export PATH="/mingw64/bin:$PATH"
           fi
 
@@ -244,23 +307,18 @@ jobs:
       shell: bash
       run: |
           # path is based on executable location
-          if ! [[ "$(./swig.exe -swiglib)" = "$(cygpath -w "$PWD")\Lib" ]]; then
+          if ! [[ "$(./swig.exe -swiglib)" = "$(cygpath -w "$PWD")\\Lib" ]]; then
             exit 1
           fi
 
-    # Mingw-W64 GCC uses different default calling conventions,
-    # from C# and Java which uses windows calling conventions.
-    # As the tests rely on them, just skip them.
-    # See: Doc/Manual/Windows.html#Windows_interface_file
-    # As for python: Mingw-W64 python need a library in the link.
     - name: Test
-      if: ${{ env.COMPILER == '' }}
+      if: ${{ matrix.NOTEST == '' }}
       shell: bash
       run: |
-          #if [[ "$COMPILER" = "gcc" ]]; then
-          #  # Use MINGw64 compiler
-          #  export PATH="/mingw64/bin:$PATH"
-          #fi
+          if [[ "$COMPILER" = "gcc" ]]; then
+            # Use MING-w64 compiler
+            export PATH="/mingw64/bin:$PATH"
+          fi
           ./swig.exe -version
           make check-$SWIGLANG-version
           make check-$SWIGLANG-enabled
@@ -276,7 +334,7 @@ jobs:
           which swig.exe
           swig.exe -version
 
-          # TODO: Make install of ccache-swig do not work on Windows
+          # FIXME: install of ccache-swig do not work on Windows
           #if [[ "$COMPILER" = "gcc" ]]; then
           #  which ccache-swig.exe
           #  ccache-swig.exe -V

@@ -58,10 +58,10 @@ environment:
 # - SWIGLANG: java
 #   OSVARIANT: mingw
 #   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-# - SWIGLANG: python
-#   OSVARIANT: mingw
-#   WITHLANG: python
-#   APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+  - SWIGLANG: python
+    OSVARIANT: mingw
+    WITHLANG: python
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 
 #matrix:
 #  allow_failures:

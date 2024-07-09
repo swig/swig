@@ -566,7 +566,7 @@ else
 
 if test -z "$CSHARPCOMPILERBIN" ; then
   case $host in
-  *-*-cygwin* | *-*-mingw*)
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
     # prefer unified Mono mcs compiler (not to be confused with the ancient .NET 1 mcs) over older/alternative names.
     AC_CHECK_PROGS(CSHARPCOMPILER, csc mcs mono-csc gmcs cscc)
     if test -n "$CSHARPCOMPILER" && test "$CSHARPCOMPILER" = "csc" ; then
@@ -623,7 +623,7 @@ fi
 
 # Cygwin requires the Windows standard (Pascal) calling convention as it is a Windows executable and not a Cygwin built executable
 case $host in
-*-*-cygwin* | *-*-mingw*)
+*-*-cygwin* | *-*-mingw* | *-*-msys*)
     if test "$GCC" = yes; then
         CSHARPDYNAMICLINKING="$GCC_MNO_CYGWIN -mthreads -Wl,--add-stdcall-alias"
         CSHARPCFLAGS="$GCC_MNO_CYGWIN -mthreads"
@@ -1087,7 +1087,7 @@ esac
 
 # java.exe on Cygwin requires the Windows standard (Pascal) calling convention as it is a normal Windows executable and not a Cygwin built executable
 case $host in
-*-*-cygwin* | *-*-mingw*)
+*-*-cygwin* | *-*-mingw* | *-*-msys*)
     if test "$GCC" = yes; then
         JAVADYNAMICLINKING="$GCC_MNO_CYGWIN -mthreads -Wl,--add-stdcall-alias"
         JAVACFLAGS="$GCC_MNO_CYGWIN -mthreads"
@@ -1810,7 +1810,7 @@ fi
 
 # Cygwin (Windows) needs the library for dynamic linking
 case $host in
-*-*-cygwin* | *-*-mingw*) PERL5DYNAMICLINKING="-L$PERL5EXT -l$PERL5LIB";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) PERL5DYNAMICLINKING="-L$PERL5EXT -l$PERL5LIB";;
 *)PERL5DYNAMICLINKING="";;
 esac
 fi
@@ -1934,10 +1934,10 @@ else
 
       AC_MSG_CHECKING(for Python 2.x library directory)
       if test -d $PYPREFIX/libs; then
-        PYLIB=$PYPREFIX/libs
+        PYLIB="$PYPREFIX/libs"
         PYLINKFILE=`ls $PYLIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
         if test -r "$PYLINKFILE"; then
-          PYLINK=-l`basename $PYLINKFILE | sed -e 's/\.lib$//'`
+          PYLINK=-l`basename "$PYLINKFILE" | sed -e 's/\.lib$//'`
         else
           PYLIB=
         fi
@@ -1980,7 +1980,7 @@ else
       AC_MSG_CHECKING(for Python 2.x library directory)
       dirs="$PYVERSION/config $PYVERSION/$PYLIBDIR python/$PYLIBDIR"
       for i in $dirs; do
-        if test -d $PYEPREFIX/$PYLIBDIR/$i; then
+        if test -d "$PYEPREFIX/$PYLIBDIR/$i"; then
           PYLIB="$PYEPREFIX/$PYLIBDIR/$i"
           break
         fi
@@ -1993,6 +1993,7 @@ else
       AC_MSG_RESULT(Not found)
     else
       AC_MSG_RESULT($PYLIB)
+      PYLIB="-L$PYLIB"
     fi
     AC_MSG_CHECKING(for Python 2.x library)
     if test -z "$PYLINK"; then
@@ -2004,12 +2005,12 @@ else
 
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
-  *-*-cygwin* | *-*-mingw*)
-    PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
+    PYTHONDYNAMICLINKING="$PYLIB $PYLINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;
   *-*-aix*)
-    PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
+    PYTHONDYNAMICLINKING="$PYLIB $PYLINK"
     ;;
   *)PYTHONDYNAMICLINKING="";;
   esac
@@ -2041,18 +2042,18 @@ else
     PYVER=0
   fi
   if test "x$PY3BIN" = xyes; then
-    for py_ver in 3 3.15 3.14 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 ""; do
-      AC_CHECK_PROGS(PYTHON3, [python$py_ver])
-      if test -n "$PYTHON3"; then
-        AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
-        if test -n "$PY3CONFIG"; then
-          break
-        fi
-      fi
-    done
-    # Windows python can be in path and have python-config, fallback here!
-    if test -z "$PY3CONFIG" -a x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
+    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
       PYTHON3="$PYTHON"
+    else
+      for py_ver in 3 3.15 3.14 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 ""; do
+        AC_CHECK_PROGS(PYTHON3, [python$py_ver])
+        if test -n "$PYTHON3"; then
+          AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
+          if test -n "$PY3CONFIG"; then
+            break
+          fi
+        fi
+      done
     fi
   else
     PYTHON3="$PY3BIN"
@@ -2076,7 +2077,44 @@ else
     PYSEPARATOR=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
     AC_MSG_RESULT($PYSEPARATOR)
 
-    if test -n "$PY3CONFIG"; then
+    if test x"$PY3OSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
+      # Windows installations are quite different to posix installations
+      # There is no python-config to use
+      AC_MSG_CHECKING(for Python 3.x prefix)
+      PY3PREFIX=`($PYTHON3 -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
+      AC_MSG_RESULT($PY3PREFIX)
+      PY3PREFIX=`echo "$PY3PREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
+      PYTHON_SO=.pyd
+
+      AC_MSG_CHECKING(for Python 3.x header files)
+      if test -r $PY3PREFIX/include/Python.h; then
+        PY3INCLUDE="-I$PY3PREFIX/include"
+      fi
+      AC_MSG_RESULT($PY3INCLUDE)
+
+      AC_MSG_CHECKING(for Python 3.x library directory)
+      if test -d "$PY3PREFIX/libs"; then
+        PY3LIB="$PY3PREFIX/libs"
+        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
+        if test -r "$PY3LINKFILE"; then
+          PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
+        else
+          PY3LIB=
+        fi
+      fi
+      if test -z "$PY3LIB"; then
+        AC_MSG_RESULT([Not found])
+      else
+        AC_MSG_RESULT($PY3LIB)
+        PY3LIB="-L$PY3LIB"
+      fi
+      AC_MSG_CHECKING([for Python 3.x library])
+      if test -z "$PY3LINK"; then
+        AC_MSG_RESULT(Not found)
+      else
+        AC_MSG_RESULT($PY3LINK)
+      fi
+    elif test -n "$PY3CONFIG"; then
       AC_MSG_CHECKING([for Python 3.x prefix])
       PY3PREFIX=`($PY3CONFIG --prefix) 2>/dev/null`
       AC_MSG_RESULT($PY3PREFIX)
@@ -2122,7 +2160,7 @@ else
       done
       if test -z "$PY3LIB"; then
         # Last resort
-        if test -d $PY3EPREFIX/$PY3LIBDIR; then
+        if test -d "$PY3EPREFIX/$PY3LIBDIR"; then
           PY3LIB="$PY3EPREFIX/$PY3LIBDIR"
         fi
       fi
@@ -2130,6 +2168,7 @@ else
         AC_MSG_RESULT([Not found])
       else
         AC_MSG_RESULT($PY3LIB)
+        PY3LIB="-L$PY3LIB"
       fi
 
       PY3LINK="-l$PY3VERSION"
@@ -2141,56 +2180,17 @@ else
         AC_MSG_RESULT($PY3LINK)
       fi
     fi
-
-    # Python on windows can have python-config, fallback here!
-    if test -z "$PY3INCLUDE" -o -z "$PY3LINK" && test x"$PY3OSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
-      # Windows installations are quite different to posix installations
-      # There is no python-config to use
-      AC_MSG_CHECKING(for Python 3.x prefix)
-      PY3PREFIX=`($PYTHON3 -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
-      AC_MSG_RESULT($PY3PREFIX)
-      PY3PREFIX=`echo "$PY3PREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
-      PYTHON_SO=.pyd
-
-      AC_MSG_CHECKING(for Python 3.x header files)
-      if test -r $PY3PREFIX/include/Python.h; then
-        PY3INCLUDE="-I$PY3PREFIX/include"
-      fi
-      AC_MSG_RESULT($PY3INCLUDE)
-
-      AC_MSG_CHECKING(for Python 3.x library directory)
-      if test -d $PY3PREFIX/libs; then
-        PY3LIB=$PY3PREFIX/libs
-        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
-        if test -r "$PY3LINKFILE"; then
-          PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
-        else
-          PY3LIB=
-        fi
-      fi
-      if test -z "$PY3LIB"; then
-        AC_MSG_RESULT([Not found])
-      else
-        AC_MSG_RESULT($PY3LIB)
-      fi
-      AC_MSG_CHECKING([for Python 3.x library])
-      if test -z "$PY3LINK"; then
-        AC_MSG_RESULT(Not found)
-      else
-        AC_MSG_RESULT($PY3LINK)
-      fi
-    fi
   fi
 
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
-  *-*-cygwin* | *-*-mingw*)
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
     # PYTHON3DYNAMICLINKING ought to be replaced by $PY3CONFIG --ldflags
-    PYTHON3DYNAMICLINKING="-L$PY3LIB $PY3LINK"
+    PYTHON3DYNAMICLINKING="$PY3LIB $PY3LINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;
   *-*-aix*)
-    PYTHON3DYNAMICLINKING="-L$PY3LIB $PY3LINK"
+    PYTHON3DYNAMICLINKING="$PY3LIB $PY3LINK"
     ;;
   *)PYTHON3DYNAMICLINKING="";;
   esac
@@ -2356,7 +2356,7 @@ else
 fi
 
 case $host in
-*-*-cygwin* | *-*-mingw*)	RUBYDYNAMICLINKING="-L$RUBYLIB $RUBYLINK";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*)	RUBYDYNAMICLINKING="-L$RUBYLIB $RUBYLINK";;
 *)		RUBYDYNAMICLINKING="";;
 esac
 fi
@@ -2579,7 +2579,7 @@ fi
 
 # Cygwin (Windows) needs the library for dynamic linking
 case $host in
-*-*-cygwin* | *-*-mingw*) TCLDYNAMICLINKING="$TCLLIB";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) TCLDYNAMICLINKING="$TCLLIB";;
 *-*-aix*) TCLDYNAMICLINKING="$TCLLIB";;
 *)TCLDYNAMICLINKING="";;
 esac
@@ -2770,7 +2770,7 @@ dnl although this is probably more rare, also be built as a Cygwin program.
 dnl Using "mixed" path like we do here allows the path to work in both cases.
 case $host in
   *-*-mingw* ) ABS_SRCDIR=`${srcdir}/Tools/convertpath -m $ABS_SRCDIR` ;;
-  *-*-cygwin* ) ABS_SRCDIR=`cygpath --mixed $ABS_SRCDIR` ;;
+  *-*-cygwin* | *-*-msys*) ABS_SRCDIR=`cygpath --mixed $ABS_SRCDIR` ;;
 esac
 
 # Root directory
@@ -2785,7 +2785,7 @@ case $host in
 esac
 
 case $host in
-*-*-cygwin* | *-*-mingw*)
+*-*-cygwin* | *-*-mingw* | *-*-msys*)
   # Extra files generated by some Windows compilers
   EXTRA_CLEAN="*.stackdump *.exp *.lib *.pdb *.ilk"
   ;;
