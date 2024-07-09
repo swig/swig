@@ -1118,7 +1118,7 @@ static int look(Scanner *s) {
       } else if ((c == 'e') || (c == 'E')) {
 	state = 82;
       } else if ((c == 'f') || (c == 'F')) {
-	Delitem(s->text, DOH_END);
+//	Delitem(s->text, DOH_END);
 	return SWIG_TOKEN_FLOAT;
       } else if (isdigit(c)) {
 	state = 8;
@@ -1139,7 +1139,7 @@ static int look(Scanner *s) {
       else if ((c == 'e') || (c == 'E'))
 	state = 820;
       else if ((c == 'f') || (c == 'F')) {
-	Delitem(s->text, DOH_END);
+//	Delitem(s->text, DOH_END);
 	return SWIG_TOKEN_FLOAT;
       } else if ((c == 'l') || (c == 'L')) {
 	Delitem(s->text, DOH_END);
@@ -1276,7 +1276,7 @@ static int look(Scanner *s) {
       if (isdigit(c))
 	state = 86;
       else if ((c == 'f') || (c == 'F')) {
-	Delitem(s->text, DOH_END);
+//	Delitem(s->text, DOH_END);
 	return SWIG_TOKEN_FLOAT;
       } else if ((c == 'l') || (c == 'L')) {
 	Delitem(s->text, DOH_END);
