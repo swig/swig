@@ -62,9 +62,21 @@ jobs:
           VER: '3.11'
         - SWIGLANG: python
           VER: '3.12'
-        - SWIGLANG: python
+       #  TODO require fixing of probing in configure.ac
+       #- SWIGLANG: python
+       #  INSTALL: 'true'
+       #  COMPILER: gcc
+       #  NOTEST: 'no-test'
+        - SWIGLANG: ruby
+#         VER: '3.0.7'
+          NOTEST: 'no-test'
+        - SWIGLANG: ruby
+          VER: '3.1.6'
+          NOTEST: 'no-test'
+        - SWIGLANG: ruby
           INSTALL: 'true'
           COMPILER: gcc
+          NOTEST: 'no-test'
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -77,6 +89,7 @@ jobs:
       SWIGLANG: ${{ matrix.SWIGLANG }}
       COMPILER: ${{ matrix.COMPILER }}
       INSTALL: ${{ matrix.INSTALL }}
+      NOTEST: ${{ matrix.NOTEST }}
       VER: ${{ matrix.VER }}
       OS: ${{ matrix.os }}
 
@@ -134,9 +147,17 @@ jobs:
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-$n"
             done
 
-            if [[ "$SWIGLANG" = "python" ]]; then
+            case "$SWIGLANG" in
+            python)
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-python"
-            fi
+              ;;
+            ruby)
+              MORE_MSYS_PKGS+=" mingw-w64-x86_64-ruby"
+              ;;
+            perl)
+              MORE_MSYS_PKGS+=" mingw-w64-x86_64-perl"
+              ;;
+            esac
 
             # MINGw64 pcre2
             echo "PCRE2_CFLAGS=-I/mingw64/include -DPCRE2_STATIC" >> $GITHUB_ENV
@@ -160,20 +181,27 @@ jobs:
             echo "CC=/usr/bin/cccl" >> $GITHUB_ENV
             echo "BOOST_PATH=$(ls -d /c/tools/boost*)/lib/native" >> $GITHUB_ENV
 
-            if [[ "$SWIGLANG" = "python" ]] && [[ -n "$VER" ]]; then
-              PY3VER=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64)
-              echo "$PY3VER\Script" >> $GITHUB_PATH
-              echo "$PY3VER" >> $GITHUB_PATH
+            if [[ -n "$VER" ]]; then
+              case "$SWIGLANG" in
+              java)
+                declare -n java_path="JAVA_HOME_${VER}_X64"
+                echo "JAVA_HOME=$java_path" >> $GITHUB_ENV
+                ;;
+              python)
+                PY3VER=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64)
+                echo "$PY3VER\\Script" >> $GITHUB_PATH
+                echo "$PY3VER" >> $GITHUB_PATH
+                ;;
+              ruby)
+                RUBYDIR=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64)
+                echo "$RUBYDIR\\bin" >> $GITHUB_PATH
+                ;;
+              esac
             fi
 
           fi # COMPILER
 
           echo "SWIGJOBS=-j$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
-
-          if [[ "$SWIGLANG" = "java" ]]; then
-            declare -n java_path="JAVA_HOME_${VER}_X64"
-            echo "JAVA_HOME=$java_path" >> $GITHUB_ENV
-          fi
 
           echo 'C:\msys64\usr\bin' >> $GITHUB_PATH
 
@@ -205,13 +233,24 @@ jobs:
             g++ --version | head -n1
           fi
 
-          if [[ "$SWIGLANG" = "csharp" ]]; then
+          case "$SWIGLANG" in
+          csharp)
             which csc.exe
             csc.exe /? | head -n1
-          elif [[ "$SWIGLANG" = "python" ]]; then
+            ;;
+          python)
             which python.exe
             python -V
-          fi
+            ;;
+          ruby)
+            which ruby.exe
+            ruby -v
+            ;;
+          perl)
+            which perl.exe
+            perl -v | head -n3
+            ;;
+          esac
 
           make --version | head -n2
 
@@ -244,7 +283,7 @@ jobs:
       shell: bash
       run: |
           # path is based on executable location
-          if ! [[ "$(./swig.exe -swiglib)" = "$(cygpath -w "$PWD")\Lib" ]]; then
+          if ! [[ "$(./swig.exe -swiglib)" = "$(cygpath -w "$PWD")\\Lib" ]]; then
             exit 1
           fi
 
@@ -254,7 +293,7 @@ jobs:
     # See: Doc/Manual/Windows.html#Windows_interface_file
     # As for python: Mingw-W64 python need a library in the link.
     - name: Test
-      if: ${{ env.COMPILER == '' }}
+      if: ${{ matrix.NOTEST == '' }}
       shell: bash
       run: |
           #if [[ "$COMPILER" = "gcc" ]]; then

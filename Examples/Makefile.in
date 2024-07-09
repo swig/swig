@@ -1252,15 +1252,12 @@ PYTHON_FLAGS =
 # Make sure these locate your Python installation
 ifneq (,$(PY2))
   PYTHON_INCLUDE= $(DEFS) @PYINCLUDE@
-  PY_LIB        = @PYLIB@
+  PYTHON_LIB    = @PYLIB@
   PYTHON        = @PYTHON@ $(PYTHON_FLAGS)
 else
   PYTHON_INCLUDE= $(DEFS) @PY3INCLUDE@
-  PY_LIB        = @PY3LIB@
+  PYTHON_LIB    = @PY3LIB@
   PYTHON        = @PYTHON3@ $(PYTHON_FLAGS)
-endif
-ifneq (,$(PY_LIB))
-  PYTHON_LIB    = -L$(PY_LIB)
 endif
 
 # Extra Python specific linking options
