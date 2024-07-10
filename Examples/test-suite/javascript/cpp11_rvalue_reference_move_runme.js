@@ -85,3 +85,5 @@ var cpp11_rvalue_reference_move = require("cpp11_rvalue_reference_move");
     throw new Error("Should have thrown 'Cannot release ownership as memory is not owned' error");
   cpp11_rvalue_reference_move.Counter.check_counts(2, 0, 0, 0, 1, 1);
 }
+
+// no-worker-threads

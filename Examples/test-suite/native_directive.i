@@ -79,6 +79,7 @@ fail:
 %{
 
 static SwigV8ReturnValue JavaScript_alpha_count(const SwigV8Arguments &args) {
+  v8::Isolate* isolate = args.GetIsolate();
   SWIGV8_HANDLESCOPE();
   SWIGV8_VALUE jsresult;
   char *arg1 = (char *)0;
