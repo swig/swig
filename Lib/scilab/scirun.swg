@@ -217,7 +217,7 @@ SwigScilabCheckPtr(void *pvApiCtx, int iVar, swig_type_info *descriptor, char *f
     }
 
     if (descriptor) {
-      swig_cast_info *cast = SWIG_TypeCheck(SWIG_TypeName((swig_type_info*)pvTypeinfo), descriptor);
+      swig_cast_info *cast = SWIG_TypeCheckStruct((swig_type_info*)pvTypeinfo, descriptor);
       return (cast != NULL);
     }
     else {
@@ -275,7 +275,7 @@ SwigScilabPtrToObject(void *pvApiCtx, int iVar, void **pvObj, swig_type_info *de
 
     if (pvPtr) {
       if (descriptor) {
-        swig_cast_info *cast = SWIG_TypeCheck(SWIG_TypeName((swig_type_info *)pvTypeinfo), descriptor);
+        swig_cast_info *cast = SWIG_TypeCheckStruct((swig_type_info *)pvTypeinfo, descriptor);
         if (cast) {
           int newmemory = 0;
           pvPtr = SWIG_TypeCast(cast, pvPtr, &newmemory);

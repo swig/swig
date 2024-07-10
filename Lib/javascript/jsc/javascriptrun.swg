@@ -263,7 +263,7 @@ int SWIG_JSC_ConvertPacked(JSContextRef context, JSValueRef valRef, void *ptr, s
   if (ty) {
     if (to != ty) {
       /* check type cast? */
-      swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
+      swig_cast_info *tc = SWIG_TypeCheckStruct(to,ty);
       if (!tc) return SWIG_ERROR;
     }
   }
