@@ -29,7 +29,7 @@ jobs:
     # The name of the test follow the tested language
     name: >
       ${{ matrix.SWIGLANG }} ${{ matrix.VER }}
-      ${{ matrix.COMPILER || 'msvc' }} ${{ matrix.os }}
+      ${{ matrix.COMPILER || 'msvc' }} ${{ matrix.os }} ${{ matrix.NOTEST }}
       ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
