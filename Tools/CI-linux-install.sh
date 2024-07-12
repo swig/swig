@@ -162,7 +162,8 @@ case "$SWIGLANG" in
 		else
 			# Starting with version 2023.0.0 the download filename format changed.
 			case $VER in
-				20*) scilab_tarball=scilab-$VER.bin.x86_64-pc-linux-gnu.tar.xz ;;
+				2023.0*) scilab_tarball=scilab-$VER.bin.x86_64-pc-linux-gnu.tar.xz ;;
+				20*) scilab_tarball=scilab-$VER.bin.x86_64-linux-gnu.tar.xz ;;
 				*)   scilab_tarball=scilab-$VER.bin.linux-x86_64.tar.gz ;;
 			esac
 			$RETRY wget --progress=dot:giga "https://www.scilab.org/download/$VER/$scilab_tarball"
