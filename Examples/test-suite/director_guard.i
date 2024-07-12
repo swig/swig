@@ -1,4 +1,4 @@
-%module(directors="1", threads) director_guard;
+%module(directors="1", threads="1") director_guard;
 
 %feature("director") Callback;
 

@@ -3281,8 +3281,9 @@ need to be supported.
 <p>
 The director implementation uses a <tt>std::map</tt> to manage C++ pointer ownership.
 This code is not thread-safe by default.
-Adding the <tt>SWIG_THREADS</tt> macro when compiling the C++ code will use a mutex
-for managing the pointer ownership to make the implementation thread-safe.
+See <a href="Python.hthml#Python_multithreaded">Thread safety</a> for turning on thread-safety.
+This defines a macro called <tt>SWIG_THREADS</tt> which forces the C++ code to then use a mutex
+for managing the pointer ownership, which in turn makes the directors implementation thread-safe.
 </p>
 
 <p>
@@ -7428,7 +7429,7 @@ will not be able to run any other threads, even if the wrapped C/C++ code is wai
         <p>
         The <tt>threads</tt> module option in the *.i template file:
         </p>
-        <div class="code"><pre>%module("threads"=1)</pre></div>
+        <div class="code"><pre>%module(threads="1")</pre></div>
       </li>
     </ul>
   </li>

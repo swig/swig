@@ -15,7 +15,8 @@ Version 4.3.0 (in progress)
 2024-07-02: erezgeva
 	    [Python, Ruby] #2870 Change the thread safety options for the director code
             that manages C++ director pointer ownership. Please define SWIG_THREADS to
-            turn on thread safety. Implementation now includes a C++11 std::mutex option
+            turn on thread safety. For Python, this can also be done via the threads
+            module option or -threads. Implementation now includes a C++11 std::mutex option
             as priority over WIN32 and pthread mutexes. See director_guard.swg for further
             implementation details.
 
