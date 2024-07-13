@@ -161,10 +161,9 @@ jobs:
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
           SWIG_FEATURES: -builtin -O
-#       assertion in abi3audit after upgrade from 0.0.10 to 0.0.11
-#       - SWIGLANG: python
-#         VER: '3.8'
-#         PY_ABI_VER: '3.4'
+        - SWIGLANG: python
+          VER: '3.8'
+          PY_ABI_VER: '3.4'
         - SWIGLANG: r
         - SWIGLANG: ruby
           VER: '2.0'
