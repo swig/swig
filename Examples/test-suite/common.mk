@@ -71,6 +71,9 @@ INTERFACEDIR = ../
 SRCDIR     = $(srcdir)/
 SCRIPTDIR  = $(srcdir)
 
+# This can be set to ":" on make command line to suppress progress messages.
+ECHO_PROGRESS := echo
+
 # Regenerate Makefile if Makefile.in or config.status have changed.
 Makefile: $(srcdir)/Makefile.in ../../../config.status
 	cd ../../../ && $(SHELL) ./config.status $(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE)/Makefile
@@ -336,8 +339,6 @@ CPP_TEST_CASES += \
 	namespace_typemap \
 	namespace_union \
 	namespace_virtual_method \
-	nspace \
-	nspace_extend \
 	native_directive \
 	naturalvar \
 	naturalvar_more \
@@ -353,6 +354,11 @@ CPP_TEST_CASES += \
 	nested_workaround \
 	newobject1 \
 	newobject3 \
+	nspace \
+	nspace_extend \
+	nspacemove \
+	nspacemove_nested \
+	nspacemove_stl \
 	null_pointer \
 	numeric_bounds_checking \
 	operator_overload \
@@ -555,6 +561,7 @@ CPP_TEST_CASES += \
 	typemap_directorout \
 	typemap_documentation \
 	typemap_global_scope \
+	typemap_isvoid \
 	typemap_manyargs \
 	typemap_namespace \
 	typemap_ns_using \
@@ -613,6 +620,7 @@ CPP11_TEST_CASES += \
 	cpp11_auto_variable \
 	cpp11_brackets_expression \
 	cpp11_constexpr \
+	cpp11_constexpr_friend \
 	cpp11_copyctor_delete \
 	cpp11_decltype \
 	cpp11_default_delete \
@@ -985,9 +993,9 @@ swig_and_compile_runtime = \
 
 setup = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi
 
 #######################################################################

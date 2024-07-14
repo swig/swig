@@ -25,6 +25,8 @@
 <li><a href="#Preprocessor_typemap_delimiters">Preprocessor and Typemaps</a>
 <li><a href="#Preprocessor_nn10">Viewing preprocessor output</a>
 <li><a href="#Preprocessor_warning_error">The #error and #warning directives</a>
+<li><a href="#Preprocessor_trigraphs">Trigraphs</a>
+<li><a href="#Preprocessor_digraphs">Digraphs</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -369,7 +371,7 @@ used to solve the problem above like so:
 
 <p>
 An early non-standardised solution to this problem which gave a special
-meaning to the token sequence <tt>, ## __VAR_ARGS__</tt> is supported by
+meaning to the token sequence <tt>, ## __VA_ARGS__</tt> is supported by
 several C and C++ compilers, and also by SWIG 4.3.0 and later (it was
 documented as supported by earlier SWIG versions, but didn't actually work in
 at least SWIG 2.x and 3.x).  Using this feature you can get rid of the extra
@@ -384,7 +386,7 @@ comma like this:
 
 <p>
 SWIG also supports GNU-style variadic macros, which specify a name for the
-variable arguments instead of using <tt>__VA_ARGS__<tt>.  For example:
+variable arguments instead of using <tt>__VA_ARGS__</tt>.  For example:
 </p>
 
 <div class="code">
@@ -559,8 +561,10 @@ This might be useful as an aid to debugging and viewing the results of macro exp
 
 
 <p>
-SWIG supports the commonly used <tt>#warning</tt> and <tt>#error</tt> preprocessor directives.
+SWIG supports the standard <tt>#warning</tt> and <tt>#error</tt> preprocessor directives.
 The <tt>#warning</tt> directive will cause SWIG to issue a warning then continue processing.
+It was standardised in C++23 and C23, and has been widely supported as an extension by
+most C and C++ compilers for a long time.
 The <tt>#error</tt> directive will cause SWIG to exit with a fatal error.
 Example usage:
 </p>
@@ -585,6 +589,30 @@ commandline option is used. Alternatively, the <tt>#pragma</tt> directive can be
   #pragma SWIG cpperraswarn=0
 </pre>
 </div>
+
+<H2><a name="Preprocessor_trigraphs">11.11 Trigraphs</a></H2>
+
+
+<p>
+SWIG's preprocessor does not implement trigraphs (such as <tt>??!</tt> being
+mapped to <tt>|</tt>).  They are very rarely used deliberately but these
+character sequences sometimes occur in code where they aren't intended as
+trigraphs.  Compilers typically don't enable trigraph support by default, and
+they've been removed in C++17 and C23.
+</p>
+
+
+<H2><a name="Preprocessor_digraphs">11.12 Digraphs</a></H2>
+
+
+<p>
+SWIG's preprocessor does not currently implement digraphs (such as
+<tt>&lt;%</tt> being an alternative way to write the token <tt>{</tt>).
+These are standard in C++ and C95, but they're intended to support working with
+code on systems with very restricted character sets which are really rare
+these days so digraphs just don't seem to be used in practice.
+</p>
+
 
 </body>
 </html>

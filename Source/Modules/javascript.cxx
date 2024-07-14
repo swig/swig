@@ -1534,7 +1534,10 @@ int JSEmitter::emitCtor(Node *n) {
 
   Template t_ctor(getTemplate("js_ctor"));
 
-  String *wrap_name = Swig_name_wrapper(Getattr(n, "sym:name"));
+  // prepare the function wrapper name
+  String *iname = Getattr(n, "sym:name");
+  SwigType *returntype = Getattr(n, "type");
+  String *wrap_name = Swig_name_wrapper(iname);
   if (is_overloaded) {
     t_ctor = getTemplate("js_overloaded_ctor");
     Append(wrap_name, Getattr(n, "sym:overname"));
@@ -1556,6 +1559,8 @@ int JSEmitter::emitCtor(Node *n) {
 
   String *cleanup = emitCleanupCode(n, params);
 
+  bool isvoid = !Cmp(returntype, "void");
+
   t_ctor.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jswrapper", wrap_name)
       .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
@@ -1565,6 +1570,8 @@ int JSEmitter::emitCtor(Node *n) {
       .replace("$jsparent", state.clazz(PARENT_MANGLED))
       .replace("$jsargrequired", Getattr(n, ARGREQUIRED))
       .replace("$jscleanup", cleanup)
+      .replace("$isvoid", isvoid ? "1" : "0")
+      .replace("$symname", iname)
       .pretty_print(f_wrappers);
 
   Template t_ctor_case(getTemplate("js_ctor_dispatch_case"));
@@ -1876,6 +1883,7 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
 
   // prepare the function wrapper name
   String *iname = Getattr(n, "sym:name");
+  SwigType *returntype = Getattr(n, "type");
   String *wrap_name = Swig_name_wrapper(iname);
   if (is_overloaded) {
     t_function = getTemplate("js_overloaded_function");
@@ -1894,6 +1902,8 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
   marshalOutput(n, params, wrapper, action);
   String *cleanup = emitCleanupCode(n, params);
 
+  bool isvoid = !Cmp(returntype, "void");
+
   t_function.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jswrapper", wrap_name)
       .replace("$jslocals", wrapper->locals)
@@ -1902,6 +1912,8 @@ int JSEmitter::emitFunction(Node *n, bool is_member, bool is_static) {
       .replace("$jsargcount", Getattr(n, ARGCOUNT))
       .replace("$jsargrequired", Getattr(n, ARGREQUIRED))
       .replace("$jscleanup", cleanup)
+      .replace("$isvoid", isvoid ? "1" : "0")
+      .replace("$symname", iname)
       .pretty_print(f_wrappers);
 
   Delete(cleanup);
@@ -1955,8 +1967,6 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool) {
 
   Setattr(n, "wrap:name", final_wrap_name);
   state.function(WRAPPER_NAME, final_wrap_name);
-
-
 
   t_function.replace("$jslocals", wrapper->locals)
       .replace("$jscode", wrapper->code);
@@ -3850,6 +3860,9 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
     t_worker.print(jsasyncworker);
   }
 
+  SwigType *returntype = Getattr(n, "type");
+  bool isvoid = !Cmp(returntype, "void");
+
   String *result = NewString("");
   t_function.replace("$jsasyncworker", jsasyncworker)
       .replace("$jsmangledname", state.clazz(NAME_MANGLED))
@@ -3869,7 +3882,8 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
       .replace("$jscleanup", cleanup)
       .replace("$symname", iname)
       .replace("$jsargcount", Getattr(n, ARGCOUNT))
-      .replace("$jsargrequired", Getattr(n, ARGREQUIRED));
+      .replace("$jsargrequired", Getattr(n, ARGREQUIRED))
+      .replace("$isvoid", isvoid ? "1" : "0");
 
   t_function.pretty_print(result);
   Append(is_member ? f_template_definitions : GetClassUnit(GLOBAL_WRAPPERS), result);

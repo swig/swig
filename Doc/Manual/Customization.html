@@ -444,33 +444,29 @@ variables are replaced with.
 </tr>
 
 <tr>
+<td>$decl</td>
+<td>The fully qualified C/C++ declaration of the method being wrapped without the return type.</td>
+</tr>
+
+<tr>
+<td>$fulldecl</td>
+<td>The fully qualified C/C++ declaration of the method being wrapped including the return type.</td>
+</tr>
+
+<tr>
+<td>$isvoid</td>
+<td>Expands to 1 if the wrapped function has a void return, otherwise expands to 0.
+Note that it expands to 1 in destructors and 0 in constructors.</td>
+</tr>
+
+<tr>
 <td>$name</td>
 <td>The C/C++ symbol name for the function.</td>
 </tr>
 
 <tr>
-<td>$symname</td>
-<td>The symbol name used internally by SWIG</td>
-</tr>
-
-<tr>
 <td>$overname</td>
 <td>The extra mangling used in the symbol name for overloaded method. Expands to nothing if the wrapped method is not overloaded.</td>
-</tr>
-
-<tr>
-<td>$wrapname</td>
-<td>The language specific wrapper name (usually a C function name exported from the shared object/dll)</td>
-</tr>
-
-<tr>
-<td>$decl</td>
-<td>The fully qualified C/C++ declaration of the method being wrapped without the return type</td>
-</tr>
-
-<tr>
-<td>$fulldecl</td>
-<td>The fully qualified C/C++ declaration of the method being wrapped including the return type</td>
 </tr>
 
 <tr>
@@ -481,6 +477,16 @@ variables are replaced with.
 <tr>
 <td>$parentclasssymname</td>
 <td>The target language parent class name (if any) for a method.</td>
+</tr>
+
+<tr>
+<td>$symname</td>
+<td>The symbol name used internally by SWIG.</td>
+</tr>
+
+<tr>
+<td>$wrapname</td>
+<td>The language specific wrapper name (usually a C function name exported from the shared object/dll).</td>
 </tr>
 
 </table>

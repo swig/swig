@@ -117,10 +117,10 @@ SWIG_Python_SetConstant(PyObject *d, const char *name, PyObject *obj) {
 /* Append a value to the result obj */
 
 SWIGINTERN PyObject*
-SWIG_Python_AppendOutput(PyObject* result, PyObject* obj) {
+SWIG_Python_AppendOutput(PyObject* result, PyObject* obj, int is_void) {
   if (!result) {
     result = obj;
-  } else if (result == Py_None) {
+  } else if (result == Py_None && is_void) {
     SWIG_Py_DECREF(result);
     result = obj;
   } else {
@@ -1343,7 +1343,12 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
   (void)obj;
 # ifdef PyWeakref_CheckProxy
   if (PyWeakref_CheckProxy(pyobj)) {
+#if PY_VERSION_HEX >= 0x030D0000
+    PyWeakref_GetRef(pyobj, &pyobj);
+    Py_DECREF(pyobj);
+#else
     pyobj = PyWeakref_GET_OBJECT(pyobj);
+#endif
     if (pyobj && SwigPyObject_Check(pyobj))
       return (SwigPyObject*) pyobj;
   }

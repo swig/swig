@@ -40,6 +40,10 @@
 </ul>
 </ul>
 <li><a href="#Windows_interface_file">Microsoft extensions and other Windows quirks</a>
+<ul>
+<li><a href="#Windows_msvc_cpp_standards">Visual C++ standards compliance</a>
+<li><a href="#Windows_calling_conventions">Calling conventions</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -80,7 +84,7 @@ If you want to build your own swig.exe have a look at <a href="#Windows_swig_exe
 Microsoft Visual C++ is the most commonly used compiler for compiling and linking SWIG's output on Windows.
 The Examples directory has a few Visual C++ project files (.dsp files). 
 These were produced by Visual C++ 6.
-Newer versions of Visual Studio are able to open and convert these project files.
+Newer versions of Visual Studio, such as Visual Studio 2022, are able to open and convert these project files.
 Each C# example comes with a Visual Studio 2005 solution and associated project files instead of Visual C++ 6 project files.
 The project files have been set up to execute SWIG in a custom build rule for the SWIG interface (.i) file. 
 Alternatively run the <a href="#Windows_examples_cygwin">examples using Cygwin</a>.
@@ -498,6 +502,26 @@ Follow the Unix instructions in the README file in the SWIG root directory to bu
 </p>
 
 <H2><a name="Windows_interface_file">3.4 Microsoft extensions and other Windows quirks</a></H2>
+
+
+<H3><a name="Windows_msvc_cpp_standards">3.4.1 Visual C++ standards compliance</a></H3>
+
+
+<p>
+The Visual C++ compiler (MSVC) has a long history of not being standards compliant, but this has been getting better
+over the years.
+</p>
+
+<p>
+SWIG's <a href="SWIGPlus.html#SWIGPlus_nn3">approach for C++</a> is to generate standards compliant C++98 code along with
+enhancements for later standards if the C++ compiler supports a later standard.
+Unfortunately by default, in 2024, Visual C++ still does not set the <tt>__cplusplus</tt> macro correctly to pick up these later C++ standard features.
+MSVC users are urged to ensure this macro is defined correctly by consulting the latest Microsoft Visual C++ documentation, in particular,
+<a href="https://learn.microsoft.com/en-us/cpp/build/reference/std-specify-language-standard-version">/std</a> and 
+<a href="https://learn.microsoft.com/en-us/cpp/build/reference/zc-cplusplus">/Zc:__cplusplus</a>.
+</p>
+
+<H3><a name="Windows_calling_conventions">3.4.2 Calling conventions</a></H3>
 
 
 <p>

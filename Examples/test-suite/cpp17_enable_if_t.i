@@ -87,3 +87,32 @@ void tester2() {
 //  xxx<TestStruct>(); // compilation error
 }
 %}
+
+// Check fold expressions parse (#2868):
+#define FOLD_EXPR_TEST(OP, FUNC) \
+  template< \
+    typename... Ts, \
+    typename R = typename std::common_type_t<Ts...>, \
+    std::enable_if_t< \
+        (std::is_same_v<typename std::decay_t<Ts>,HalfInt> OP ...) \
+        && (std::is_constructible_v<HalfInt, R> \
+        || std::is_convertible_v<R, HalfInt>) \
+      >* = nullptr \
+  > \
+  constexpr inline R FUNC(const Ts&... t) { return std::min(static_cast<R>(t)...); }
+FOLD_EXPR_TEST(+, f1)
+FOLD_EXPR_TEST(-, f2)
+FOLD_EXPR_TEST(*, f3)
+FOLD_EXPR_TEST(/, f4)
+FOLD_EXPR_TEST(%, f5)
+FOLD_EXPR_TEST(&, f6)
+FOLD_EXPR_TEST(|, f7)
+FOLD_EXPR_TEST(^, f8)
+FOLD_EXPR_TEST(<<, f9)
+FOLD_EXPR_TEST(>>, f10)
+FOLD_EXPR_TEST(&&, f11)
+FOLD_EXPR_TEST(||, f12)
+FOLD_EXPR_TEST(==, f13)
+FOLD_EXPR_TEST(!=, f14)
+FOLD_EXPR_TEST(>=, f15)
+FOLD_EXPR_TEST(<=, f16)

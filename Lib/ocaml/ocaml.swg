@@ -299,6 +299,8 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
 %swig_enum_out(varout)
 %swig_enum_out(directorin)
 
+/* String & length typemap */
+
 %typemap(in) (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) {
     $1 = ($1_ltype) caml_string_val($input);
     $2 = ($2_ltype) caml_string_len($input);

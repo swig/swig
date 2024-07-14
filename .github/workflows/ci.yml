@@ -247,7 +247,7 @@ jobs:
           VER: '3.0'
           CPPSTD: c++11
         - SWIGLANG: ruby
-          VER: '3.1'
+          VER: '3.1.4' # import_fragments testcase started to fail on upgrade to 3.1.5, see https://github.com/swig/swig/issues/2800
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
@@ -259,7 +259,9 @@ jobs:
         - SWIGLANG: scilab
           os: ubuntu-22.04 # scilab 6.1.1
         - SWIGLANG: scilab
-          VER: '2023.0.0'
+          VER: '2023.1.0'
+        - SWIGLANG: scilab
+          VER: '2024.1.0'
         - SWIGLANG: tcl
         # c++11 testing
         - SWIGLANG: csharp

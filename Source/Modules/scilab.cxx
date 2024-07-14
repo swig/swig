@@ -515,6 +515,9 @@ public:
     /* TODO */
 
     /* Final substitutions if applicable */
+    bool isvoid = !Cmp(functionReturnType, "void");
+    Replaceall(wrapper->code, "$isvoid", isvoid ? "1" : "0");
+
     Replaceall(wrapper->code, "$symname", functionName);
 
     /* Set CheckInputArgument and CheckOutputArgument input arguments */

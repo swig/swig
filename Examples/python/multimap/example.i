@@ -15,7 +15,7 @@ extern int squareCubed (int n, int *OUTPUT);
 
 extern int    gcd(int x, int y);
 
-%typemap(in,fragment="t_output_helper") (int argc, char *argv[]) {
+%typemap(in) (int argc, char *argv[]) {
   int i;
   if (!PyList_Check($input)) {
     SWIG_exception(SWIG_ValueError, "Expecting a list");
@@ -128,7 +128,7 @@ extern int count(char *bytes, int len, char c);
 %#endif
 }
 
-/* Return the mutated string as a new object.  The t_output_helper
+/* Return the mutated string as a new object.  The SWIG_Python_AppendOutput
    function takes an object and appends it to the output object
    to create a tuple */
 
@@ -139,7 +139,7 @@ extern int count(char *bytes, int len, char c);
 %#else
    o = PyString_FromStringAndSize($1,$2);
 %#endif
-   $result = t_output_helper($result,o);
+   $result = SWIG_Python_AppendOutput($result, o, $isvoid);
    free($1);
 }   
 
