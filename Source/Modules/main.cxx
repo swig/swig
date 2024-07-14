@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -861,6 +861,53 @@ static void getoptions(int argc, char *argv[]) {
 
 static void SWIG_exit_handler(int status);
 
+#if defined(_WIN32)
+#  ifndef SWIG_LIB_RELATIVE_PATH
+#    define SWIG_LIB_RELATIVE_PATH "Lib"
+#  endif
+static String *get_swig_lib_path(void) {
+  char buf[MAX_PATH];
+  // TODO: if this is actually in install/bin/, need another call to strrchr
+  if (GetModuleFileName(0, buf, MAX_PATH) != 0) {
+    char * p = strrchr(buf, '\\');
+    if (p != 0) {
+      *p = '\0';
+      p = strrchr(buf, '\\');
+      if (p != 0) {
+        *p = '\0';
+        return NewStringf("%s\\%s", buf, SWIG_LIB_RELATIVE_PATH); // Native windows installation path
+      }
+    }
+  }
+  return NewStringf("");  // Unexpected error
+}
+#elif defined(SWIG_LIB_RELATIVE_TO_EXE) && defined(HAVE_UNISTD_H)
+#include <libgen.h>
+#include <unistd.h>
+#include <dlfcn.h>
+
+static String *get_swig_lib_path(void) {
+  Dl_info info;
+  if (dladdr("main", &info)) {
+    char realp_buffer[PATH_MAX];
+    // this is /path/to/swig_install/bin/swig
+    const char * res = realpath(info.dli_fname, realp_buffer);
+    if (!res) {
+      return NewString(SWIG_LIB);
+    }
+
+    // root dir
+    const char* root_dir = dirname(dirname(realp_buffer));
+    return NewStringf("%s/%s", root_dir, SWIG_LIB_RELATIVE_PATH);
+  }
+  return NewString(SWIG_LIB);
+}
+#else
+static String *get_swig_lib_path(void) {
+  return NewString(SWIG_LIB);
+}
+#endif
+
 int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   char *c;
 
@@ -895,19 +942,11 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
   // Check for SWIG_LIB environment variable
   if ((c = getenv("SWIG_LIB")) == (char *) 0) {
+    SwigLib = get_swig_lib_path();
 #if defined(_WIN32)
-    char buf[MAX_PATH];
-    char *p;
-    if (!(GetModuleFileName(0, buf, MAX_PATH) == 0 || (p = strrchr(buf, '\\')) == 0)) {
-      *(p + 1) = '\0';
-      SwigLib = NewStringf("%sLib", buf); // Native windows installation path
-    } else {
-      SwigLib = NewStringf("");	// Unexpected error
-    }
-    if (Len(SWIG_LIB_WIN_UNIX) > 0)
+    if (Len(SWIG_LIB_WIN_UNIX) > 0) {
       SwigLibWinUnix = NewString(SWIG_LIB_WIN_UNIX); // Unix installation path using a drive letter (for msys/mingw)
-#else
-    SwigLib = NewString(SWIG_LIB);
+    }
 #endif
   } else {
     SwigLib = NewString(c);
