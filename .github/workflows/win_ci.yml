@@ -142,7 +142,7 @@ jobs:
 
           if [[ "$COMPILER" = "gcc" ]]; then
 
-            # MINGw64 packages to install with MSYS2
+            # MinGW-w64 packages to install with MSYS2
             for n in binutils make autotools pcre2 boost; do
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-$n"
             done
@@ -159,7 +159,7 @@ jobs:
               ;;
             esac
 
-            # MINGw64 pcre2
+            # MinGW-w64 pcre2
             echo "PCRE2_CFLAGS=-I/mingw64/include -DPCRE2_STATIC" >> $GITHUB_ENV
             echo "PCRE2_LIBS=-L/mingw64/lib -lpcre2-8" >> $GITHUB_ENV
 
@@ -208,7 +208,7 @@ jobs:
     - name: Install MSYS2 Packages
       shell: cmd
       run: |
-          rem 'MSYS2 uses MINGW https://packages.msys2.org/'
+          rem 'MSYS2 uses MinGW https://packages.msys2.org/'
           pacman -Syu --noconfirm --needed
           if %ErrorLevel% NEQ 0 (exit 1)
           pacman -Syu --noconfirm --needed autoconf automake bison %MORE_MSYS_PKGS%
@@ -223,7 +223,7 @@ jobs:
             which cl.exe
             cl.exe /? 2>&1 | head -n1
           else
-            # Use MINGw64 compiler
+            # Use MinGW-w64 compiler
             # We can not use GITHUB_PATH, as bash insert /usr/bin
             export PATH="/mingw64/bin:$PATH"
 
@@ -260,7 +260,7 @@ jobs:
       shell: bash
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
-            # Use MINGw64 compiler
+            # Use MinGW-w64 compiler
             export PATH="/mingw64/bin:$PATH"
 
             ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe"
@@ -272,7 +272,7 @@ jobs:
       shell: bash
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
-            # Use MINGw64 compiler
+            # Use MinGW-w64 compiler
             export PATH="/mingw64/bin:$PATH"
           fi
 
@@ -287,17 +287,17 @@ jobs:
             exit 1
           fi
 
-    # Mingw-W64 GCC uses different default calling conventions,
+    # MinGW-w64 GCC uses different default calling conventions,
     # from C# and Java which uses windows calling conventions.
     # As the tests rely on them, just skip them.
     # See: Doc/Manual/Windows.html#Windows_interface_file
-    # As for python: Mingw-W64 python need a library in the link.
+    # As for python: MinGW-w64 python need a library in the link.
     - name: Test
       if: ${{ matrix.NOTEST == '' }}
       shell: bash
       run: |
           #if [[ "$COMPILER" = "gcc" ]]; then
-          #  # Use MINGw64 compiler
+          #  # Use MinGW-w64 compiler
           #  export PATH="/mingw64/bin:$PATH"
           #fi
           ./swig.exe -version
