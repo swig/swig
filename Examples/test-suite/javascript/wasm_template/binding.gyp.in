@@ -11,10 +11,11 @@
       '--js-library=<!(node -p "require(\'$emnapidir\').js_library")',
       '-sALLOW_MEMORY_GROWTH=1',
       '-sEXPORTED_FUNCTIONS=["_napi_register_wasm_v1","_malloc","_free"]',
+      '-sEXPORTED_RUNTIME_METHODS=["emnapiInit"]',
       '-sNO_DISABLE_EXCEPTION_CATCHING',
       '-sMODULARIZE=1',
       '-sEXPORT_NAME=$testcase',
-      '--bind'
+      '--bind',
       '-sUSE_BOOST_HEADERS=1',
       # These are the debug (extra-checks) options
       '-sSAFE_HEAP=1',

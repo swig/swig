@@ -112,13 +112,15 @@ ifeq (emcc, $(CC))
   	GYP_TEMPLATE = wasm_template
   	SWIGOPT += -DSWIG_EMSCRIPTEN
   	EMNAPI_LIB = -lemnapi
-# Some emscripten-specific warnings on certain tests
-cpp11_lambda_functions.cpptest: GYP_CFLAGS = \"-Wno-unused-lambda-capture\",
-li_typemaps_apply.cpptest: GYP_CFLAGS = \"-Wno-self-assign\",
-li_typemaps.cpptest: GYP_CFLAGS = \"-Wno-self-assign\",
-long_long_apply.cpptest: GYP_CFLAGS = \"-Wno-self-assign\",
-overload_template.cpptest: GYP_LDFLAGS = \"-sASSERTIONS=1\",
-overload_template_fast.cpptest: GYP_LDFLAGS = \"-sASSERTIONS=1\",
+
+  	# Some emscripten-specific warnings on certain tests
+  	cpp11_lambda_functions.cpptest: GYP_CFLAGS += \"-Wno-unused-lambda-capture\",
+  	li_typemaps_apply.cpptest: GYP_CFLAGS += \"-Wno-self-assign\",
+  	li_typemaps.cpptest: GYP_CFLAGS += \"-Wno-self-assign\",
+  	long_long_apply.cpptest: GYP_CFLAGS += \"-Wno-self-assign\",
+  	overload_template.cpptest: GYP_LDFLAGS += \"-sASSERTIONS=1\",
+  	overload_template_fast.cpptest: GYP_LDFLAGS += \"-sASSERTIONS=1\",
+        expressions.cpptest: GYP_CFLAGS += \"-Wno-constant-logical-operand\",
 else
   	GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I@NODENAPI_DIR@
   	GYP_TEMPLATE = node_template
@@ -156,13 +158,13 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
   # shut up some warnings
 
   # dunno... ignoring generously
-  apply_signed_char.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
-  constant_pointers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
-  cpp11_ref_qualifiers.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
-  director_basic.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
-  enum_thorough.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
-  member_funcptr_galore.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
-  director_unwrap_result.cpptest: GYP_CFLAGS = \"-Wno-ignored-qualifiers\",
+  apply_signed_char.cpptest: GYP_CFLAGS += \"-Wno-ignored-qualifiers\",
+  constant_pointers.cpptest: GYP_CFLAGS += \"-Wno-ignored-qualifiers\",
+  cpp11_ref_qualifiers.cpptest: GYP_CFLAGS += \"-Wno-ignored-qualifiers\",
+  director_basic.cpptest: GYP_CFLAGS += \"-Wno-ignored-qualifiers\",
+  enum_thorough.cpptest: GYP_CFLAGS += \"-Wno-ignored-qualifiers\",
+  member_funcptr_galore.cpptest: GYP_CFLAGS += \"-Wno-ignored-qualifiers\",
+  director_unwrap_result.cpptest: GYP_CFLAGS += \"-Wno-ignored-qualifiers\",
 
         # Produce a debug build (NAPI / V8):
 	# DEBUG=1 make <test_name>.cpptest

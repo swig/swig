@@ -83,6 +83,7 @@ fail:
 // NAPI async version
 Napi::Value JavaScript_alpha_count_Async(const Napi::CallbackInfo &info) {
   Napi::Env env(info.Env());
+#if NAPI_HAS_THREADS
 
   class Tasklet : public Napi::AsyncWorker {
     Napi::Env env;
@@ -151,6 +152,12 @@ Napi::Value JavaScript_alpha_count_Async(const Napi::CallbackInfo &info) {
   self->Init(info);
   self->Queue();
   return self->deferred.Promise();
+
+#else /* NAPI_HAS_THREADS */
+  SWIG_exception_fail(SWIG_ERROR, "Compiled without async support");
+  return Napi::Value();
+#endif /* NAPI_HAS_THREADS */
+
 #ifndef NAPI_CPP_EXCEPTIONS
 fail:
   return Napi::Value();
