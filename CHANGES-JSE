@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 5.0.4
 ===========================
 
+2024-07-14: mmomtchev
+            [JavaScript] Support emsdk up to 3.1.63
+
 2024-04-17: mmomtchev
             [JavaScript] Fix [mmomtchev/swig#52](https://github.com/mmomtchev/swig/issues/52),
             double free with certain arguments when a `check` typemap
