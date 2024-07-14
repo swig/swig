@@ -1397,7 +1397,7 @@ for d in $emsdkdirs ; do
   fi
 done
 
-if test -d ${EMSDK}; then
+if test -d "${EMSDK}"; then
   AC_MSG_RESULT(found in ${EMSDK})
 else
   AC_MSG_RESULT(not found)
@@ -1410,7 +1410,9 @@ AC_SUBST(EMSDK)
 
 AC_MSG_CHECKING(for emnapi)
 EMNAPI_DIR="${NODENPM_PREFIX}/lib/node_modules/emnapi"
-EMNAPI_INC_DIR=$(EMNAPI_DIR=${EMNAPI_DIR} ${NODEJS} -e 'try { console.log(require(process.env.EMNAPI_DIR).include); } catch {}')
+if test -n "${NODEJS}"; then
+  EMNAPI_INC_DIR=$(EMNAPI_DIR=${EMNAPI_DIR} ${NODEJS} -e 'try { console.log(require(process.env.EMNAPI_DIR).include); } catch {}')
+fi
 if test -r "${EMNAPI_INC_DIR}/emnapi.h" ; then
   AC_MSG_RESULT([found in ${EMNAPI_DIR}, emnapi.h found in ${EMNAPI_INC_DIR}])
 else
