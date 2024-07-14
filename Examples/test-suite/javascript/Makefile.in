@@ -127,23 +127,25 @@ endif
 SWIGOPT += -DV8_VERSION=$(JSV8_VERSION)
 
 _setup = \
-	echo -n "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;    \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo -n " (with run test)" ;                                    \
-	fi;                                                               \
-	if [ -n "$(ASYNC)" ]; then	                                  \
-	  echo -n " (async mode)" ;                                       \
-	fi;                                                               \
-	if [ -n "$(TYPESCRIPT)" ]; then	                                  \
-	  echo -n " (TypeScript mode)" ;                                  \
-	fi;                                                               \
-	if [ -n "$(SPLIT)" ]; then	                                  \
-	  echo -n " (split mode)" ;                                       \
-	fi;                                                               \
-	if [ "emcc" = "$(CC)" ]; then	                                  \
-	  echo -n " (emscripten WASM build)" ;                            \
-	fi;                                                               \
-          echo
+          INFO="(with run test)" ;                                        \
+          if [ -n "$(ASYNC)" ]; then	                                  \
+            INFO="$$INFO (async mode)" ;                                  \
+          fi;                                                             \
+          if [ -n "$(TYPESCRIPT)" ]; then	                          \
+            INFO="$$INFO (TypeScript mode)" ;                             \
+          fi;                                                             \
+          if [ -n "$(SPLIT)" ]; then	                                  \
+	    INFO="$$INFO (split mode)" ;                                  \
+	  fi;                                                             \
+	  if [ "emcc" = "$(CC)" ]; then	                                  \
+	    INFO="$$INFO (emscripten WASM build)" ;                       \
+	  fi;                                                             \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $* $$INFO" ;  \
+	else								  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;         \
+	fi;
+
 SWIGOPT += -$(JSENGINE)
 
 TSCOPT = --typeRoots @NODETYPES_DIR@ --target es2017 --module esnext --moduleResolution node --allowSyntheticDefaultImports

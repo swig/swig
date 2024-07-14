@@ -114,7 +114,7 @@
 <li><a href="#Java_simple_pointers">Simple pointers</a>
 <li><a href="#Java_c_arrays">Wrapping C arrays with Java arrays</a>
 <li><a href="#Java_unbounded_c_arrays">Unbounded C Arrays</a>
-<li><a href="#Java_binary_char">Binary data vs Strings</a>
+<li><a href="#Java_string_length">Passing a string with length</a>
 <li><a href="#Java_heap_allocations">Overriding new and delete to allocate from Java heap</a>
 </ul>
 <li><a href="#Java_typemaps">Java typemaps</a>
@@ -1929,7 +1929,7 @@ Each SWIG module can be placed into a separate package.
 <p>
 The default behaviour described above can be improved via the <a href="SWIGPlus.html#SWIGPlus_nspace">nspace feature</a>.
 Note that it only works for classes, structs, unions and enums declared within a named C++ namespace.
-When the nspace feature is used, the C++ namespaces are converted into Java packages of the same name.
+When the nspace feature is used (either the <tt>nspace</tt> feature flag or <tt>%nspacemove</tt>), the C++ namespaces are converted into Java packages of the same name.
 Proxy classes are thus declared within a package and this proxy makes numerous calls to the JNI intermediary class which is declared in the unnamed package by default.
 As Java does not support types declared in a named package accessing types declared in an unnamed package, the <tt>-package</tt> commandline option described earlier generally should be used to provide a parent package.
 So if SWIG is run using the <tt>-package com.myco</tt> option, a wrapped class, <tt>MyWorld::Material::Color</tt>, can then be accessed as <tt>com.myco.MyWorld.Material.Color</tt>.
@@ -5512,12 +5512,12 @@ well suited for applications in which you need to create buffers,
 package binary data, etc.
 </p>
 
-<H3><a name="Java_binary_char">27.8.5 Binary data vs Strings</a></H3>
+<H3><a name="Java_string_length">27.8.5 Passing a string with length</a></H3>
 
 
 <p>
-By default SWIG handles <tt>char *</tt> as a string but there is a handy multi-argument typemap available as mentioned in <a href="Library.html#Library_nn10">Passing binary data</a>.
-The following simple example demonstrates using a byte array instead of passing the default string type and length to the wrapped function.
+SWIG provides multi-argument typemap available as mentioned in <a href="Library.html#Library_nn10">Passing a string with length</a>.
+The following simple example demonstrates passing a string to the wrapped function.
 </p>
 
 
@@ -5536,13 +5536,13 @@ void binaryChar1(const char data[], size_t len) {
 </div>
 
 <p>
-Calling from Java requires just the byte array to be passed in as the multi-argument typemap being applied reduces the number of arguments in the target language to one, from the original two:
+Calling from Java requires a string to be passed in as the multi-argument typemap being applied reduces the number of arguments in the target language to one, from the original two:
 </p>
 
 <div class="code">
 <pre>
-byte[] data = "hi\0jk".getBytes();
-example.binaryChar1(data);     
+String str = "hi\0jk";
+example.binaryChar1(str);     
 </pre>
 </div>
 
@@ -5553,6 +5553,15 @@ resulting in the output
 <div class="code"><pre>
 $ java runme
 len: 5 data: 68 69 0 6a 6b
+</pre></div>
+
+<p>
+The typemap uses Java <tt>String::getBytes()</tt> to convert the string to the default system encoding. If you wish to use another encoding, you can modify the typemap. For example to convert the string to UTF-8 use:
+</p>
+
+<div class="code"><pre>
+%typemap(javain, throws="java.io.IllegalCharsetNameException")<br>
+  (const char *STRING, size_t LENGTH) %{($javainput == null) ? null : $javainput.getBytes("UTF-8")%}
 </pre></div>
 
 

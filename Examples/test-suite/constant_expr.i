@@ -35,3 +35,32 @@ namespace fakestd {
 void bar(fakestd::array<int, (1<2? 100 : 50)> *x) { }
 
 %}
+
+// Regression test for #2919, fixed in 4.3.0.
+//
+// sizeof() didn't work on complex expressions or types.
+//
+// This is just a parsing test for SWIG as it uses C++11 features.
+#include <type_traits>
+template <typename T>
+class InternalHelper {
+public:
+// Original source: https://github.com/protocolbuffers/protobuf/blob/v20.2/src/google/protobuf/arena.h#L449-L458
+    template <typename U>
+    static char DestructorSkippable(const typename U::DestructorSkippable_*);
+    template <typename U>
+    static double DestructorSkippable(...);
+
+    typedef std::integral_constant<
+        bool, sizeof(DestructorSkippable<T>(static_cast<const T*>(0))) ==
+                      sizeof(char) ||
+                  std::is_trivially_destructible<T>::value>
+        is_destructor_skippable;
+
+    // This is nonsensical, but provides a regression test for this not working with alignof() either.
+    typedef std::integral_constant<
+        bool, alignof(DestructorSkippable<T>(static_cast<const T*>(0))) ==
+                      alignof(char) ||
+                  std::is_trivially_destructible<T>::value>
+        test_alignof_too;
+};

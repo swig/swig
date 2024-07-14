@@ -608,7 +608,7 @@ public:
 
   virtual int functionWrapper(Node *n) {
     String *iname = Getattr(n, "sym:name");
-    SwigType *d = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     Parm *p;
     String *proc_name = 0;
@@ -831,9 +831,9 @@ public:
 	Replaceall(tm, "$owner", "0");
       Printv(f->code, tm, "\n", NIL);
     } else {
-      throw_unhandled_guile_type_error(d);
+      throw_unhandled_guile_type_error(returntype);
     }
-    emit_return_variable(n, d, f);
+    emit_return_variable(n, returntype, f);
 
     // Documentation
     if ((tm = Getattr(n, "tmap:out:doc"))) {
@@ -843,7 +843,7 @@ public:
       else
 	num_results = 0;
     } else {
-      String *s = SwigType_str(d, 0);
+      String *s = SwigType_str(returntype, 0);
       Chop(s);
       Printf(returns, "<%s>", s);
       Delete(s);
@@ -875,10 +875,13 @@ public:
       Printv(f->code, beforereturn, "\n", NIL);
     Printv(f->code, "return gswig_result;\n", NIL);
 
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
+
     /* Substitute the function name */
     Replaceall(f->code, "$symname", iname);
-    // Undefine the scheme name
 
+    // Undefine the scheme name
     Printf(f->code, "#undef FUNC_NAME\n");
     Printf(f->code, "}\n");
 

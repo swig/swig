@@ -457,7 +457,7 @@ BAR2() {
 #define STARSTARSLASH(X,...)
 STARSTARSLASH(A,/** Test **/,B) /**/
 
-/* Regression test for handling elision of comma before ##__VARARGS__
+/* Regression test for handling elision of comma before ##__VA_ARGS__
  * https://github.com/swig/swig/issues/2848
  */
 #define DECLARE_GLOBAL_VAR(...) int global_var, ##__VA_ARGS__;
@@ -465,7 +465,7 @@ STARSTARSLASH(A,/** Test **/,B) /**/
 DECLARE_GLOBAL_VAR()
 DECLARE_GLOBAL_VAR2()
 
-/* Show the C compiler simple definitions as ##__VARARGS__ is a GCC extension
+/* Show the C compiler simple definitions as ##__VA_ARGS__ is a GCC extension
  * so we can't rely on the compiler supporting it.
  */
 %{

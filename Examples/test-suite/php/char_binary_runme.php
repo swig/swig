@@ -26,13 +26,23 @@ pchar_setitem($pc, 4, 0);
 if (0) {
     check::equal($t->strlen($pc), 4, "bad multi-arg typemap");
     check::equal($t->ustrlen($pc), 4, "bad multi-arg typemap");
-
-    var_pchar_set($pc);
-    check::equal(var_pchar_get(), "hola", "bad pointer case");
-
-    var_namet_set($pc);
-    check::equal(var_namet_get(), "hola", "bad pointer case");
 }
+
+// FIXME: Cannot convert pc to string
+if (0) {
+    var_pchar_set($pc);
+} else {
+    var_pchar_set("hola");
+}
+check::equal(var_pchar_get(), "hola", "bad pointer case");
+
+// FIXME: Cannot convert pc to string
+if (0) {
+    var_namet_set($pc);
+} else {
+    var_namet_set("hola");
+}
+check::equal(var_namet_get(), "hola", "bad pointer case");
 
 delete_pchar($pc);
 

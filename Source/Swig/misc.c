@@ -985,6 +985,28 @@ List *Swig_scopename_tolist(const String *s) {
 }
 
 /* -----------------------------------------------------------------------------
+ * Swig_scopename_isvalid()
+ *
+ * Checks that s is a valid scopename (C++ namespace scope)
+ * ----------------------------------------------------------------------------- */
+
+int Swig_scopename_isvalid(const String *s) {
+  List *scopes = Swig_scopename_tolist(s);
+  int valid = 0;
+  Iterator si;
+
+  for (si = First(scopes); si.item; si = Next(si)) {
+    String *subscope = si.item;
+    valid = subscope && Len(subscope) > 0;
+    if (valid)
+      valid = Swig_symbol_isvalid(subscope);
+    if (!valid)
+      break;
+  }
+  return valid;
+}
+
+/* -----------------------------------------------------------------------------
  * Swig_scopename_check()
  *
  * Checks to see if a name is qualified with a scope name, examples:

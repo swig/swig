@@ -156,7 +156,7 @@ template<class K, class T, class C = std::less< K> > class map {
     map(const map& other);
 
     struct iterator {
-      %typemap(javaclassmodifiers) iterator "protected class"
+      %typemap(javaclassmodifiers) iterator "public class"
       %extend {
         std::map< K, T, C >::iterator getNextUnchecked() {
           std::map< K, T, C >::iterator copy = (*$self);

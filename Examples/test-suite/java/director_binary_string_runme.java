@@ -24,7 +24,7 @@ public class director_binary_string_runme {
       throw new RuntimeException("Unexpected sum: " + sum);
 
     if (sumData != 9*2*8)
-      throw new RuntimeException("Unexpected sum: " + sum);
+      throw new RuntimeException("Unexpected sumData: " + sumData);
 
     new Callback().run(null, null);
     callback = new DirectorBinaryStringCallback();
@@ -39,23 +39,31 @@ class DirectorBinaryStringCallback extends Callback {
   }
 
   @Override
-  public void run(byte[] dataBufferAA, byte[] dataBufferBB)
+  public int run(String dataBufferAA, String dataBufferBB)
   {
-    if (dataBufferAA != null)
-      for (int i = 0; i < dataBufferAA.length; i++)
-        dataBufferAA[i] = (byte)(dataBufferAA[i] * 2);
+    int ret = 0;
+    if (dataBufferAA != null) {
+      for (int i = 0; i < dataBufferAA.length(); i++)
+        ret += (int)dataBufferAA.charAt(i) * 2;
+    }
 
-    if (dataBufferBB != null)
-      for (int i = 0; i < dataBufferBB.length; i++)
-        dataBufferBB[i] = (byte)(dataBufferBB[i] * 3);
+    if (dataBufferBB != null) {
+      for (int i = 0; i < dataBufferBB.length(); i++) {
+        ret += (int)dataBufferBB.charAt(i) * 3;
+      }
+    }
+    return ret;
   }
 
   @Override
-  public void writeData(byte[] dataBufferAA)
+  public int writeData(String dataBufferAA)
   {
-    if (dataBufferAA != null)
-      for (int i = 0; i < dataBufferAA.length; i++)
-        dataBufferAA[i] = (byte)(dataBufferAA[i] * 2);
+    int ret = 0;
+    if (dataBufferAA != null) {
+      for (int i = 0; i < dataBufferAA.length(); i++)
+        ret += (int)dataBufferAA.charAt(i) * 2;
+    }
+    return ret;
   }
 }
 

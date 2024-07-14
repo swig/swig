@@ -36,6 +36,7 @@ endif
 CPP_TEST_CASES += \
 	callback \
 	complextest \
+	director_guard \
 	director_stl \
 	director_wstring \
 	file_test \

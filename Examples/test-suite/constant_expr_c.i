@@ -73,5 +73,7 @@ const int s7a = sizeof(3.14);
 const int s7b = sizeof 3.14;
 const int s8a = sizeof(2.1e-6);
 const int s8b = sizeof 2.1e-6;
+const int s9a = sizeof(-s8a);
+// const int s9b = sizeof -s8a; /* not currently supported */
 
 %}

@@ -1265,7 +1265,7 @@ public:
     }
     String *name = GetChar(n, "name");
     String *iname = GetChar(n, "sym:name");
-    SwigType *d = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *nodeType = Getattr(n, "nodeType");
     int newobject = GetFlag(n, "feature:new");
@@ -1583,9 +1583,9 @@ public:
       Replaceall(tm, "$owner", newobject ? "1" : "0");
       Printf(f->code, "%s\n", tm);
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), name);
     }
-    emit_return_variable(n, d, f);
+    emit_return_variable(n, returntype, f);
 
     List *return_types = phptypes->process_phptype(n, 0, "tmap:out:phptype");
 
@@ -1653,6 +1653,10 @@ public:
     }
 
     Replaceall(f->code, "$cleanup", cleanup);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
+
     Replaceall(f->code, "$symname", iname);
 
     Wrapper_print(f, s_wrappers);
@@ -2232,7 +2236,7 @@ public:
     int is_void = 0;
     int is_pointer = 0;
     String *decl = Getattr(n, "decl");
-    String *returntype = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     String *name = Getattr(n, "name");
     String *classname = Getattr(parent, "sym:name");
     String *c_classname = Getattr(parent, "name");

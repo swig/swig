@@ -44,6 +44,10 @@
 <li><a href="#Typemaps_nn22">Scope</a>
 <li><a href="#Typemaps_nn23">Declaring new local variables</a>
 <li><a href="#Typemaps_special_variables">Special variables</a>
+<ul>
+<li><a href="#Typemaps_type_special_variables">Type related special variables</a>
+<li><a href="#Typemaps_non_type_special_variables">Non-type related special variables</a>
+</ul>
 <li><a href="#Typemaps_special_variable_macros">Special variable macros</a>
 <ul>
 <li><a href="#Typemaps_special_macro_descriptor">$descriptor(type)</a>
@@ -246,7 +250,7 @@ that is inserted directly into the SWIG generated wrapper functions.
 The code is usually C or C++ code which will be generated into the C/C++ wrapper functions.
 Note that this isn't always the case as some target language modules allow target language 
 code within the typemaps which gets generated into target language specific files.
-Within this code, a number of special variables prefixed with a $ are expanded.  These are
+Within this code, a number of special variables prefixed with a <tt>$</tt> are expanded.  These are
 really just placeholders for C/C++ variables that are generated in the course
 of creating the wrapper function. In this case, <tt>$input</tt> refers to an
 input object that needs to be converted to C/C++ and <tt>$result</tt>
@@ -2130,12 +2134,21 @@ each type must have its own local variable declaration.
 
 
 <p>
+Special variables are prefixed with a <tt>$</tt> and are expanded by SWIG as part of the code generation process.
+</p>
+
+
+<H4><a name="Typemaps_type_special_variables">14.4.3.1 Type related special variables</a></H4>
+
+
+<p>
 Within all typemaps, the following special variables are expanded.
+These are related in some way to a typemap's type.
 This is by no means a complete list as some target languages have additional special variables which are documented in the language specific chapters.
 </p>
 
 <center>
-<table border=1 summary="Typemap special variables">
+<table border=1 summary="Typemap type related special variables">
 <tr><th>Variable</th><th>Meaning</th></tr>
 
 <tr>
@@ -2378,6 +2391,38 @@ Another approach, which only works for arrays is to use the <tt>$1_basetype</tt>
 </pre>
 </div>
 
+<H4><a name="Typemaps_non_type_special_variables">14.4.3.2 Non-type related special variables</a></H4>
+
+
+<p>
+The following are additional special variables.
+These are not specifically related to a typemap's type.
+</p>
+
+
+<center>
+<table border=1 summary="Non-type related special variables">
+<tr><th>Variable</th><th>Meaning</th></tr>
+
+<tr>
+<td>$<em>isvoid</em></td>
+<td>
+Expands to 1 if the wrapped function has a void return, otherwise expands to 0.
+Note that it expands to 1 in destructors and 0 in constructors.
+</td>
+</tr>
+
+<tr>
+<td>$<em>symname</em></td>
+<td>
+Name of function/method being wrapped.
+</td>
+</tr>
+
+
+</table>
+</center>
+
 <H3><a name="Typemaps_special_variable_macros">14.4.4 Special variable macros</a></H3>
 
 
@@ -2588,13 +2633,12 @@ to C.  For example:
 </div>
 
 <p>
-The following special variables are available:
+The following additional special variables are available:
 </p>
 
 <div class="code">
 <pre>
 $input            - Input object holding value to be converted.
-$symname          - Name of function/method being wrapped
 </pre>
 </div>
 
@@ -2670,13 +2714,12 @@ into the target language.  For example:
 </div>
 
 <p>
-The following special variables are available.
+The following additional special variables are available.
 </p>
 
 <div class="code">
 <pre>
 $result           - Result object returned to target language.
-$symname          - Name of function/method being wrapped
 </pre>
 </div>
 
@@ -2780,14 +2823,13 @@ with an "in" typemap---possibly to ignore the input value.  For example:
 </div>
 
 <p>
-The following special variables are available.
+The following additional special variables are available.
 </p>
 
 <div class="diagram">
 <pre>
 $result           - Result object returned to target language.
 $input            - The original input object passed.
-$symname          - Name of function/method being wrapped
 </pre>
 </div>
 

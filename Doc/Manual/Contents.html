@@ -102,6 +102,10 @@
 </ul>
 </ul>
 <li><a href="Windows.html#Windows_interface_file">Microsoft extensions and other Windows quirks</a>
+<ul>
+<li><a href="Windows.html#Windows_msvc_cpp_standards">Visual C++ standards compliance</a>
+<li><a href="Windows.html#Windows_calling_conventions">Calling conventions</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -275,6 +279,11 @@
 <li><a href="SWIGPlus.html#SWIGPlus_namespaces">Namespaces</a>
 <ul>
 <li><a href="SWIGPlus.html#SWIGPlus_nspace">The nspace feature for namespaces</a>
+<ul>
+<li><a href="SWIGPlus.html#SWIGPlus_nspace_feature_flag">%nspace for mirroring namespace hierarchies</a>
+<li><a href="SWIGPlus.html#SWIGPlus_nspacemove">%nspacemove for modifying namespace hierarchies</a>
+<li><a href="SWIGPlus.html#SWIGPlus_nspace_more">More about the nspace feature</a>
+</ul>
 </ul>
 <li><a href="SWIGPlus.html#SWIGPlus_renaming_templated_types_namespaces">Renaming templated types in namespaces</a>
 <li><a href="SWIGPlus.html#SWIGPlus_exception_specifications">Exception specifications</a>
@@ -383,6 +392,7 @@
 <li><a href="CPlusPlus17.html#CPlusPlus17_nested_namespaces">Nested namespace definitions</a>
 <li><a href="CPlusPlus17.html#CPlusPlus17_u8_char_literals">UTF-8 character literals</a>
 <li><a href="CPlusPlus17.html#CPlusPlus17_hexadecimal_floating_literals">Hexadecimal floating literals</a>
+<li><a href="CPlusPlus17.html#CPlusPlus17_fold_expressions">Fold expressions</a>
 </ul>
 <li><a href="CPlusPlus17.html#CPlusPlus17_standard_library_changes">Standard library changes</a>
 </ul>
@@ -401,6 +411,10 @@
 <li><a href="CPlusPlus20.html#CPlusPlus20_lambda_templates">Lambda templates</a>
 <li><a href="CPlusPlus20.html#CPlusPlus20_constexpr_destructors">Constexpr destructors</a>
 </ul>
+<li><a href="CPlusPlus20.html#CPlusPlus20_preprocessor_changes">Preprocessor changes</a>
+<ul>
+<li><a href="CPlusPlus20.html#CPlusPlus20_va_opt">__VA_OPT__()</a>
+</ul>
 <li><a href="CPlusPlus20.html#CPlusPlus20_standard_library_changes">Standard library changes</a>
 </ul>
 </div>
@@ -416,7 +430,7 @@
 <li><a href="Preprocessor.html#Preprocessor_condition_compilation">Conditional Compilation</a>
 <li><a href="Preprocessor.html#Preprocessor_nn5">Macro Expansion</a>
 <li><a href="Preprocessor.html#Preprocessor_nn6">SWIG Macros</a>
-<li><a href="Preprocessor.html#Preprocessor_nn7">C99 and GNU Extensions</a>
+<li><a href="Preprocessor.html#Preprocessor_nn7">Variadic Macros</a>
 <li><a href="Preprocessor.html#Preprocessor_delimiters">Preprocessing and delimiters</a>
 <ul>
 <li><a href="Preprocessor.html#Preprocessor_nn8">Preprocessing and %{ ... %} &amp; " ... " delimiters</a>
@@ -425,6 +439,8 @@
 <li><a href="Preprocessor.html#Preprocessor_typemap_delimiters">Preprocessor and Typemaps</a>
 <li><a href="Preprocessor.html#Preprocessor_nn10">Viewing preprocessor output</a>
 <li><a href="Preprocessor.html#Preprocessor_warning_error">The #error and #warning directives</a>
+<li><a href="Preprocessor.html#Preprocessor_trigraphs">Trigraphs</a>
+<li><a href="Preprocessor.html#Preprocessor_digraphs">Digraphs</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -446,7 +462,7 @@
 <li><a href="Library.html#Library_nn8">C string handling</a>
 <ul>
 <li><a href="Library.html#Library_nn9">Default string handling</a>
-<li><a href="Library.html#Library_nn10">Passing binary data</a>
+<li><a href="Library.html#Library_nn10">Passing a string with length</a>
 <li><a href="Library.html#Library_nn11">Using %newobject to release memory</a>
 <li><a href="Library.html#Library_nn12">cstring.i</a>
 </ul>
@@ -544,6 +560,10 @@
 <li><a href="Typemaps.html#Typemaps_nn22">Scope</a>
 <li><a href="Typemaps.html#Typemaps_nn23">Declaring new local variables</a>
 <li><a href="Typemaps.html#Typemaps_special_variables">Special variables</a>
+<ul>
+<li><a href="Typemaps.html#Typemaps_type_special_variables">Type related special variables</a>
+<li><a href="Typemaps.html#Typemaps_non_type_special_variables">Non-type related special variables</a>
+</ul>
 <li><a href="Typemaps.html#Typemaps_special_variable_macros">Special variable macros</a>
 <ul>
 <li><a href="Typemaps.html#Typemaps_special_macro_descriptor">$descriptor(type)</a>
@@ -1080,7 +1100,7 @@
 <li><a href="Java.html#Java_simple_pointers">Simple pointers</a>
 <li><a href="Java.html#Java_c_arrays">Wrapping C arrays with Java arrays</a>
 <li><a href="Java.html#Java_unbounded_c_arrays">Unbounded C Arrays</a>
-<li><a href="Java.html#Java_binary_char">Binary data vs Strings</a>
+<li><a href="Java.html#Java_string_length">Passing a string with length</a>
 <li><a href="Java.html#Java_heap_allocations">Overriding new and delete to allocate from Java heap</a>
 </ul>
 <li><a href="Java.html#Java_typemaps">Java typemaps</a>
@@ -1454,6 +1474,7 @@
 <li><a href="Python.html#Python_nn36">Exception unrolling</a>
 <li><a href="Python.html#Python_nn37">Overhead and code bloat</a>
 <li><a href="Python.html#Python_nn38">Typemaps</a>
+<li><a href="Python.html#Python_director_thread_safety">Thread safety</a>
 <li><a href="Python.html#Python_nn39">Miscellaneous</a>
 </ul>
 <li><a href="Python.html#Python_nn40">Common customization features</a>

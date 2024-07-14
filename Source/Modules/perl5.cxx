@@ -652,7 +652,7 @@ public:
   virtual int functionWrapper(Node *n) {
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
-    SwigType *d = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *overname = 0;
     int director_method = 0;
@@ -702,7 +702,7 @@ public:
     } else {
       Printf(f->code, "    if (items < %d) {\n", num_required);
     }
-    Printf(f->code, "        SWIG_croak(\"Usage: %s\");\n", usage_func(Char(iname), d, l));
+    Printf(f->code, "        SWIG_croak(\"Usage: %s\");\n", usage_func(Char(iname), returntype, l));
     Printf(f->code, "}\n");
 
     /* Write code to extract parameters. */
@@ -854,9 +854,9 @@ public:
       }
       Printf(f->code, "%s\n", tm);
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), name);
     }
-    emit_return_variable(n, d, f);
+    emit_return_variable(n, returntype, f);
 
     /* If there were any output args, take care of them. */
 
@@ -893,6 +893,10 @@ public:
 
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
+
     Replaceall(f->code, "$symname", iname);
 
     /* Dump the wrapper function */
@@ -2035,7 +2039,7 @@ public:
     Wrapper *w = NewWrapper();
     String *tm;
     String *wrap_args = NewString("");
-    String *returntype = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     String *value = Getattr(n, "value");
     String *storage = Getattr(n, "storage");
     bool pure_virtual = false;

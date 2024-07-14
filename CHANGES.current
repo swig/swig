@@ -7,6 +7,137 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-07-03: wsfulton
+            #2860 Enhance Windows.html documentation for the popular Visual C++ compiler
+            recommending users to correctly set the __cplusplus macro in order to benefit
+            from modern standards based features that SWIG provides.
+
+2024-07-02: erezgeva
+	    [Python, Ruby] #2870 Change the thread safety options for the director code
+            that manages C++ director pointer ownership. Please define SWIG_THREADS to
+            turn on thread safety. For Python, this can also be done via the threads
+            module option or -threads. Implementation now includes a C++11 std::mutex option
+            as priority over WIN32 and pthread mutexes. See director_guard.swg for further
+            implementation details.
+
+2024-06-28: vadz
+            #2935 Fix instantiation of specialized template where the primary template
+            is a forward class template declaration.
+
+2024-06-16: wsfulton
+            #2927 Don't ignore overloaded friend functions that are also declared
+            constexpr.
+
+2024-06-15: wsfulton
+            [Python] Removed deprecated pytuplehlp.swg file and t_output_helper.
+            Use SWIG_Python_AppendOutput instead of t_output_helper.
+
+2024-06-15: vadz
+            [Python] #2907 Fix returning null from functions with output parameters.
+            Ensures OUTPUT typemaps are handled consistently.
+
+            New declaration of SWIG_Python_AppendOutput is now:
+
+              SWIG_Python_AppendOutput(PyObject* result, PyObject* obj, int is_void);
+
+            The 3rd parameter is new and the new $isvoid special variable should be
+            passed to it, indicating whether or not the wrapped function returns void.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2024-06-15: wsfulton
+            #2907 Add $isvoid special variable which expands to 1 if the
+            wrapped function has a void return, otherwise expands to 0.
+
+2024-06-14: jschueller
+	    #2863 Support Python 3.13 (currently in prerelease).
+
+2024-06-13: erezgeva
+            #2609 Fix Java typemap (const char *STRING, size_t LENGTH) to
+            marshall as Java String instead of Java byte[]. If the old behaviour
+            is required, replace with typemap (const void *BYTES, size_t LENGTH).
+            Add multi-argument typemaps to most languages:
+              (const char *STRING, size_t LENGTH)
+            All languages now use a target language string type for this typemap.
+
+            New multi-argument typemaps have been added to most target languages
+            for use with C raw data (cdata):
+              (const void *BYTES, size_t LENGTH) to
+            Statically typed languages use a byte array for this typemap, while
+            scripting languages remain using a string.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+            * Raw C data: Go uses byte array and int64 for size.
+              Users can use the (const char *STRING, size_t LENGTH) typemaps for strings.
+
+2024-06-06: olly
+	    Support alignof(T) for arbitrary type T, and deduce the type of
+	    alignof(T) as size_t.
+
+2024-06-06: olly
+	    #2919 Support parsing `sizeof(X)` for any expression or type X by
+	    skipping balanced parentheses.  We don't need to actually parse X
+	    since the type of sizeof is always size_t.
+
+2024-06-05: leakec
+            #2873 Fix -fvirtual and using declarations for inheriting base class methods
+            corner case.
+
+2024-05-31: wsfulton
+            [C#, D, Java, Javascript, Lua] Fix %nspace and %nspacemove for nested
+            classes and enums in a class. For example:
+
+              %nspace Space::OuterClass80;
+              namespace Space {
+                struct OuterClass80 {
+                  struct InnerClass80 {
+                    struct BottomClass80 {};
+                  };
+                  enum InnerEnum80 { ie80a, ie80b };
+                };
+              }
+
+            Previously the following were additionally required for some languages:
+
+              %nspace Space::OuterClass80::InnerClass80;
+              %nspace Space::OuterClass80::InnerClass80::Bottom80;
+
+            Now the appropriate nspace setting is taken from the outer class.
+
+            A new warning has also been introduced to check and correct conflicting
+            nspace usage, for example if the following is additionally added:
+
+              %nspacemove(AnotherSpace) Space::OuterClass80::InnerClass80;
+
+            The following warning appears as an inner class can't be moved outside
+            of the outer class:
+
+              Warning 406: Ignoring nspace setting (AnotherSpace) for 'Space::OuterClass80::InnerClass80',
+              Warning 406: as it conflicts with the nspace setting (Space) for outer class 'Space::OuterClass80'.
+
+2024-05-31: wsfulton
+            [C#, D, Java, Javascript, Lua] #2782 Enhance the nspace feature with
+            %nspacemove for moving a class or enum into a differently named target
+            language equivalent of a namespace.
+
+2024-05-31: binaire10
+	    [Ruby] #2906 Fix SWIG wrappers for std::map and std::vector to
+	    work with Ruby's "select".
+
+2024-05-30: olly
+	    #2914 Handle alternative operator names in C++ preprocessor
+	    expressions.  Handle full set of alternative operator names in
+	    C++ expressions (previously only "and", "or" and "not" were
+	    understood).
+
+2024-05-15: olly
+	    #2868 Support C++17 fold expressions.
+
+2024-05-15: olly
+	    #2876 Report error if parser stack depth exceeded.  Previously SWIG
+	    would quietly exit with status 0 in this situation.
+
 2024-04-12: pfusik
             [Javascript] #2869 Fix JavaScript _wrap_getCPtr on 64-bit Windows
 
@@ -36,7 +167,7 @@ Version 4.3.0 (in progress)
             3. Use PyObject_Free instead of deprecated equivalents.
 
 2024-03-25: olly
-	    #2848 Fix elision of comma before ##__VARARGS__ which we document
+	    #2848 Fix elision of comma before ##__VA_ARGS__ which we document
 	    as supported but seems to have not worked since before 2009.
 
 2024-03-11: wsfulton
