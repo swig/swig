@@ -2005,7 +2005,7 @@ else
 
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
-  *-*-cygwin* | *-*-mingw*)
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
     PYTHONDYNAMICLINKING="$PYLIB $PYLINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;
@@ -2184,7 +2184,7 @@ else
 
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
-  *-*-cygwin* | *-*-mingw*)
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
     # PYTHON3DYNAMICLINKING ought to be replaced by $PY3CONFIG --ldflags
     PYTHON3DYNAMICLINKING="$PY3LIB $PY3LINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
