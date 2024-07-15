@@ -39,17 +39,28 @@ jobs:
           INSTALL: 'true'
         - SWIGLANG: csharp
           os: 'windows-2019'
+        - SWIGLANG: csharp
+          COMPILER: gcc
+        - SWIGLANG: csharp
           INSTALL: 'true'
+          COMPILER: gcc
+          os: 'windows-2019'
         - SWIGLANG: java
           VER: 8
         - SWIGLANG: java
           VER: 11
-       #  TODO JDK 17 sometimes fail on director_thread
+       #  FIXME: JDK 17 sometimes fail on director_thread
        #- SWIGLANG: java
        #  VER: 17
-       #  TODO JDK 21 fails on testing
+       #  FIXME: JDK 21 fails on testing
        #- SWIGLANG: java
        #  VER: 21
+        - SWIGLANG: java
+          COMPILER: gcc
+          VER: 8
+        - SWIGLANG: java
+          COMPILER: gcc
+          VER: 11
         - SWIGLANG: python
           VER: '3.7'
         - SWIGLANG: python
@@ -173,10 +184,6 @@ jobs:
 
             if [[ -n "$VER" ]]; then
               case "$SWIGLANG" in
-              java)
-                declare -n java_path="JAVA_HOME_${VER}_X64"
-                echo "JAVA_HOME=$java_path" >> $GITHUB_ENV
-                ;;
               python)
                 PY3VER=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64)
                 echo "$PY3VER\\Script" >> $GITHUB_PATH
@@ -190,6 +197,12 @@ jobs:
             fi
           fi # COMPILER
 
+          # Java must use VER!
+          if [[ "$SWIGLANG" = "java" ]]; then
+            declare -n java_path="JAVA_HOME_${VER}_X64"
+            echo "JAVA_HOME=$java_path" >> $GITHUB_ENV
+          fi
+
           echo "SWIGJOBS=-j$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
 
           echo 'C:\msys64\usr\bin' >> $GITHUB_PATH
@@ -197,7 +210,7 @@ jobs:
     - name: Install MSYS2 Packages
       shell: cmd
       run: |
-          rem 'MSYS2 uses MinGW https://packages.msys2.org/'
+          rem 'MSYS2 uses MinGW-w64 https://packages.msys2.org/'
           pacman -Syu --noconfirm --needed
           if %ErrorLevel% NEQ 0 (exit 1)
           pacman -Syu --noconfirm --needed autoconf automake bison %MORE_MSYS_PKGS%
@@ -276,19 +289,14 @@ jobs:
             exit 1
           fi
 
-    # MinGW-w64 GCC uses different default calling conventions,
-    # from C# and Java which uses windows calling conventions.
-    # As the tests rely on them, just skip them.
-    # See: Doc/Manual/Windows.html#Windows_interface_file
-    # As for python: MinGW-w64 python need a library in the link.
     - name: Test
       if: ${{ matrix.NOTEST == '' }}
       shell: bash
       run: |
-          #if [[ "$COMPILER" = "gcc" ]]; then
-          #  # Use MinGW-w64 compiler
-          #  export PATH="/mingw64/bin:$PATH"
-          #fi
+          if [[ "$COMPILER" = "gcc" ]]; then
+            # Use MinGW-w64 compiler
+            export PATH="/mingw64/bin:$PATH"
+          fi
           ./swig.exe -version
           make check-$SWIGLANG-version
           make check-$SWIGLANG-enabled
