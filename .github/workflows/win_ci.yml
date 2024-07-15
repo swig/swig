@@ -129,7 +129,7 @@ jobs:
           nuget install boost -OutputDirectory C:\Tools
 
     # Set MSVC compilers path and environment variables.
-    - name: Setup MSVC Env.
+    - name: Setup MSVC
       if: ${{ env.COMPILER == '' || env.SWIGLANG == 'csharp' }}
       uses: TheMrMilchmann/setup-msvc-dev@v3
       with:
@@ -141,7 +141,6 @@ jobs:
           uname --all
 
           if [[ "$COMPILER" = "gcc" ]]; then
-
             # MinGW-w64 packages to install with MSYS2
             for n in binutils make autotools pcre2 boost; do
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-$n"
@@ -165,9 +164,8 @@ jobs:
 
             echo "MORE_MSYS_PKGS=base-devel $MORE_MSYS_PKGS" >> $GITHUB_ENV
             echo "BOOST_PATH=/c/msys64/mingw64" >> $GITHUB_ENV
-
-          else # COMPILER: cccl wrapping MSVC
-
+          else
+             # COMPILER: cccl wrapping MSVC
             curl --retry 15 -s -L https://github.com/swig/cccl/raw/master/cccl > /usr/bin/cccl
             chmod +x /usr/bin/cccl
             cp -p /usr/bin/cccl /c/msys64/usr/bin/cccl
@@ -198,7 +196,6 @@ jobs:
                 ;;
               esac
             fi
-
           fi # COMPILER
 
           echo "SWIGJOBS=-j$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
@@ -262,9 +259,9 @@ jobs:
           if [[ "$COMPILER" = "gcc" ]]; then
             # Use MinGW-w64 compiler
             export PATH="/mingw64/bin:$PATH"
-
             ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe"
-          else # cccl wrapping MSVC
+          else
+             # cccl wrapping MSVC
             ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe" --disable-ccache
           fi
 
@@ -279,7 +276,7 @@ jobs:
           make -s $SWIGJOBS
 
     # Test the Windows swig have a proper SWIG library path
-    - name: Test SWIG Lib path
+    - name: Test swiglib
       shell: bash
       run: |
           # path is based on executable location
