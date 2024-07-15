@@ -167,6 +167,7 @@ install:
 - pwd
 - echo MAKEJOBS=%MAKEJOBS%
 - uname -a
+- systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
 
 build_script:
 - set PATH=C:\Tools\bison\Bison.3.7.4\bin;%PATH%
