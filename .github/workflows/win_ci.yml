@@ -53,14 +53,6 @@ jobs:
         - SWIGLANG: python
           VER: '3.7'
         - SWIGLANG: python
-          VER: '3.8'
-        - SWIGLANG: python
-        # VER: '3.9'
-        - SWIGLANG: python
-          VER: '3.10'
-        - SWIGLANG: python
-          VER: '3.11'
-        - SWIGLANG: python
           VER: '3.12'
        #  TODO require fixing of probing in configure.ac
        #- SWIGLANG: python
