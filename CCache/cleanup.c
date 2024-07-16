@@ -26,8 +26,8 @@ static struct files {
 	time_t mtime;
 	size_t size;
 } **files;
-static unsigned allocated;
-static unsigned num_files;
+static size_t allocated;
+static size_t num_files;
 static size_t total_size;
 static size_t total_files;
 static size_t size_threshold;
@@ -91,7 +91,7 @@ static void sort_and_clean(size_t minfiles)
 	   cached files have an identical time stamp, they will also be kept -
 	   this approach would not be needed if the cleanup was done at exit. */
 	if (minfiles != 0 && minfiles < num_files) {
-		unsigned minfiles_index = num_files - minfiles;
+		unsigned minfiles_index = (unsigned)(num_files - minfiles);
 		time_t minfiles_time = files[minfiles_index]->mtime;
 		for (i=1; i<=minfiles_index; i++) {
 			if (files[minfiles_index-i]->mtime == minfiles_time)
@@ -126,8 +126,8 @@ void cleanup_dir(const char *dir, size_t maxfiles, size_t maxsize, size_t minfil
 {
 	unsigned i;
 
-	size_threshold = maxsize * LIMIT_MULTIPLE;
-	files_threshold = maxfiles * LIMIT_MULTIPLE;
+	size_threshold = LIMIT_MULTIPLE(maxsize);
+	files_threshold = LIMIT_MULTIPLE(maxfiles);
 
 	num_files = 0;
 	total_size = 0;

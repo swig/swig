@@ -53,7 +53,7 @@
 
 #define MYNAME PROGRAM_NAME
 
-#define LIMIT_MULTIPLE 0.8
+#define LIMIT_MULTIPLE(n) ((n) * 4 / 5) // 0.8
 
 /* default maximum cache size */
 #ifndef DEFAULT_MAXSIZE
@@ -104,7 +104,7 @@ void hash_string(const char *s);
 void hash_int(int x);
 void hash_file(const char *fname);
 char *hash_result(void);
-void hash_buffer(const char *s, int len);
+void hash_buffer(const char *s, size_t len);
 
 void cc_log(const char *format, ...);
 void fatal(const char *msg);

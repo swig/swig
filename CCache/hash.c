@@ -23,7 +23,7 @@
 
 static struct mdfour md;
 
-void hash_buffer(const char *s, int len)
+void hash_buffer(const char *s, size_t len)
 {
 	mdfour_update(&md, (unsigned char *)s, len);
 }
@@ -47,7 +47,8 @@ void hash_int(int x)
 void hash_file(const char *fname)
 {
 	char buf[1024];
-	int fd, n;
+	int fd;
+	size_t n;
 
 	fd = open(fname, O_RDONLY|O_BINARY);
 	if (fd == -1) {
