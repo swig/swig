@@ -48,13 +48,7 @@ jobs:
         - SWIGLANG: java
           VER: 8
         - SWIGLANG: java
-          VER: 11
-       #  FIXME: JDK 17 sometimes fail on director_thread
-       #- SWIGLANG: java
-       #  VER: 17
-       #  FIXME: JDK 21 fails on testing
-       #- SWIGLANG: java
-       #  VER: 21
+          VER: 17
         - SWIGLANG: java
           COMPILER: gcc
           VER: 8
