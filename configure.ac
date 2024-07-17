@@ -2027,18 +2027,18 @@ else
     PYVER=0
   fi
   if test "x$PY3BIN" = xyes; then
-    if test x"$PYOSNAME" = x"nt" && test x"$PYSEPARATOR" = x"\\" && test $PYVER -ge 3; then
-      PYTHON3="$PYTHON"
-    else
-      for py_ver in 3 3.15 3.14 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 ""; do
-        AC_CHECK_PROGS(PYTHON3, [python$py_ver])
-        if test -n "$PYTHON3"; then
-          AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
-          if test -n "$PY3CONFIG"; then
-            break
-          fi
+    for py_ver in 3 3.15 3.14 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 ""; do
+      AC_CHECK_PROGS(PYTHON3, [python$py_ver])
+      if test -n "$PYTHON3"; then
+        AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
+        if test -n "$PY3CONFIG"; then
+          break
         fi
-      done
+      fi
+    done
+    # Windows python can be in path and have python-config, fallback here!
+    if test -z "$PY3CONFIG" && test x"$PYOSNAME" = x"nt" && test x"$PYSEPARATOR" = x"\\" && test $PYVER -ge 3; then
+      PYTHON3="$PYTHON"
     fi
   else
     PYTHON3="$PY3BIN"
@@ -2062,44 +2062,7 @@ else
     PYSEPARATOR=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
     AC_MSG_RESULT($PYSEPARATOR)
 
-    if test x"$PY3OSNAME" = x"nt" && test x"$PYSEPARATOR" = x"\\"; then
-      # Windows installations are quite different to posix installations
-      # There is no python-config to use
-      AC_MSG_CHECKING(for Python 3.x prefix)
-      PY3PREFIX=`($PYTHON3 -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
-      AC_MSG_RESULT($PY3PREFIX)
-      PY3PREFIX=`echo "$PY3PREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
-      PYTHON_SO=.pyd
-
-      AC_MSG_CHECKING(for Python 3.x header files)
-      if test -r $PY3PREFIX/include/Python.h; then
-        PY3INCLUDE="-I$PY3PREFIX/include"
-      fi
-      AC_MSG_RESULT($PY3INCLUDE)
-
-      AC_MSG_CHECKING(for Python 3.x library directory)
-      if test -d "$PY3PREFIX/libs"; then
-        PY3LIB="$PY3PREFIX/libs"
-        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
-        if test -r "$PY3LINKFILE"; then
-          PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
-        else
-          PY3LIB=
-        fi
-      fi
-      if test -z "$PY3LIB"; then
-        AC_MSG_RESULT([Not found])
-      else
-        AC_MSG_RESULT($PY3LIB)
-        PY3LIB="-L$PY3LIB"
-      fi
-      AC_MSG_CHECKING([for Python 3.x library])
-      if test -z "$PY3LINK"; then
-        AC_MSG_RESULT(Not found)
-      else
-        AC_MSG_RESULT($PY3LINK)
-      fi
-    elif test -n "$PY3CONFIG"; then
+    if test -n "$PY3CONFIG"; then
       AC_MSG_CHECKING([for Python 3.x prefix])
       PY3PREFIX=`($PY3CONFIG --prefix) 2>/dev/null`
       AC_MSG_RESULT($PY3PREFIX)
@@ -2163,6 +2126,51 @@ else
         AC_MSG_RESULT(Not found)
       else
         AC_MSG_RESULT($PY3LINK)
+      fi
+    fi
+
+    # windows Python
+    if test x"$PY3OSNAME" = x"nt"; then
+      PYTHON_SO=.pyd
+      # TODO: Do we need to probe?
+      #=`($PYTHON3 -c "import sys; import distutils.ccompiler;sys.stdout.write(distutils.ccompiler.new_compiler().shared_lib_extension)") 2>/dev/null`
+
+      if test -z "$PY3CONFIG"; then
+        AC_MSG_CHECKING(for Python 3.x prefix)
+        PY3PREFIX=`($PYTHON3 -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
+        AC_MSG_RESULT($PY3PREFIX)
+        if test x"$PYSEPARATOR" = x"\\" ; then
+          PY3PREFIX=`echo "$PY3PREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
+        fi
+
+        AC_MSG_CHECKING(for Python 3.x header files)
+        if test -r "$PY3PREFIX/include/Python.h"; then
+          PY3INCLUDE="-I$PY3PREFIX/include"
+        fi
+        AC_MSG_RESULT($PY3INCLUDE)
+
+        AC_MSG_CHECKING(for Python 3.x library directory)
+        if test -d "$PY3PREFIX/libs"; then
+          PY3LIB="$PY3PREFIX/libs"
+          PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
+          if test -r "$PY3LINKFILE"; then
+            PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
+          else
+            PY3LIB=
+          fi
+        fi
+        if test -z "$PY3LIB"; then
+          AC_MSG_RESULT([Not found])
+        else
+          AC_MSG_RESULT($PY3LIB)
+          PY3LIB="-L$PY3LIB"
+        fi
+        AC_MSG_CHECKING([for Python 3.x library])
+        if test -z "$PY3LINK"; then
+          AC_MSG_RESULT(Not found)
+        else
+          AC_MSG_RESULT($PY3LINK)
+        fi
       fi
     fi
   fi
@@ -2805,6 +2813,8 @@ if test "${srcdir}" = "."; then
     ], [SWIG_LIB_SET="env SWIG_LIB="], [])
 fi
 AC_SUBST(SWIG_LIB_SET)
+
+AC_SUBST(EXAMPLE_LIBS)
 
 AC_CONFIG_FILES([
     Makefile
