@@ -2643,10 +2643,9 @@ AC_SUBST(TCLLINK)
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
+dnl We only need CC and CXX to test the C target language, and both of those
+dnl are required to build SWIG.
 SKIP_C=
-if test -x "$CC" || test -z "$CXX" ; then
-  SKIP_C="1"
-fi
 AC_SUBST(SKIP_C)
 
 
