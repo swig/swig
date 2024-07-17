@@ -62,11 +62,8 @@ jobs:
         - SWIGLANG: python
           VER: '3.13'
           continue-on-error: true # Temporary until 3.13.5 is released, see https://github.com/swig/swig/issues/3198
-       #  TODO require fixing of probing in configure.ac
-       #- SWIGLANG: python
-       #  INSTALL: 'true'
-       #  COMPILER: gcc
-       #  NOTEST: 'no-test'
+        - SWIGLANG: python
+          COMPILER: gcc
         - SWIGLANG: ruby
           VER: '3.1'
           NOTEST: 'no-test'
@@ -149,6 +146,8 @@ jobs:
             case "$SWIGLANG" in
             python)
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-python"
+              # MinGW-w64 with iostream need static link
+              echo "EXAMPLE_LIBS=-static-libstdc++ -static-libgcc" >> $GITHUB_ENV
               ;;
             ruby)
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-ruby"
