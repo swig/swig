@@ -76,10 +76,6 @@ if (WITH_PCRE)
   set (HAVE_PCRE 1)
 endif()
 
-#if (WIN32)
-#  file (TO_NATIVE_PATH ${CMAKE_INSTALL_PREFIX}/${SWIG_LIB} SWIG_LIB_WIN_UNIX)
-#  string (REGEX REPLACE "\\\\" "\\\\\\\\" SWIG_LIB_WIN_UNIX "${SWIG_LIB_WIN_UNIX}")
-#endif ()
 configure_file (${SWIG_ROOT}/Tools/cmake/swigconfig.h.in
                 ${CMAKE_CURRENT_BINARY_DIR}/Source/Include/swigconfig.h)
 
