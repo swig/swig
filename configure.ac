@@ -251,6 +251,22 @@ then
 fi
 AC_MSG_RESULT($RPATH)
 
+dnl cygpath: Converts POSIX and Windows format paths
+dnl -m, --mixed    like --windows, but with regular slashes (C:/WINNT)
+dnl -u             (default) print Unix form of NAMEs (/cygdrive/c/winnt)
+dnl -w             print Windows form of NAMEs (C:\WINNT)
+dnl See: https://cygwin.com/cygwin-ug-net/cygpath.html
+AC_CHECK_TOOL([CYGPATH], [cygpath])
+dnl Fall back to convertpath
+AS_IF([test -z "$CYGPATH"],
+      [AC_MSG_CHECKING([alternative for cygpath])
+       AS_VAR_SET([CYGPATH], [`(cd ${srcdir} && pwd)`/Tools/convertpath])
+       AC_SUBST(CYGPATH)
+       AC_MSG_RESULT($CYGPATH)])
+      dnl '--mixed' and '-u' mimic cygpath '-m'
+      dnl '-w' mimic cygpath '-w'
+      dnl '-m' is bizzare. FIXME: why do we have this mode?
+
 # LINKFORSHARED are the flags passed to the $(CC) command that links
 # a few executables -- this is only needed for a few systems
 
@@ -883,18 +899,12 @@ dnl
 dnl If JAVA_HOME is defined and contains everything needed, as it's supposed to,
 dnl just use it. Otherwise try to locate the necessary files in the path.
 case $host in
-  *-*-cygwin*)
+  *-*-cygwin*|*-*-mingw*|*-*-msys*)
     dnl Ensure that JAVA_HOME is in the form we can use, it's typically set to Windows path by the installer.
     if test -n "$JAVA_HOME"; then
-      JAVA_HOME=`cygpath --mixed "$JAVA_HOME"`
+      JAVA_HOME="`$CYGPATH --mixed "$JAVA_HOME"`"
     fi
     dnl Java uses semicolons and not colons as separators in its classes search path under Windows.
-    JAVA_CLASSPATH_SEP=";"
-    ;;
-  *-*-mingw*)
-    if test -n "$JAVA_HOME"; then
-      JAVA_HOME=`${srcdir}/Tools/convertpath -u "$JAVA_HOME"`
-    fi
     JAVA_CLASSPATH_SEP=";"
     ;;
   *-*-darwin*)
@@ -2025,18 +2035,18 @@ else
     PYVER=0
   fi
   if test "x$PY3BIN" = xyes; then
-    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
-      PYTHON3="$PYTHON"
-    else
-      for py_ver in 3 3.15 3.14 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 ""; do
-        AC_CHECK_PROGS(PYTHON3, [python$py_ver])
-        if test -n "$PYTHON3"; then
-          AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
-          if test -n "$PY3CONFIG"; then
-            break
-          fi
+    for py_ver in 3 3.15 3.14 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 ""; do
+      AC_CHECK_PROGS(PYTHON3, [python$py_ver])
+      if test -n "$PYTHON3"; then
+        AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
+        if test -n "$PY3CONFIG"; then
+          break
         fi
-      done
+      fi
+    done
+    # Windows python can be in path and have python-config, fallback here!
+    if test -z "$PY3CONFIG" && test x"$PYOSNAME" = x"nt" && test x"$PYSEPARATOR" = x"\\" && test $PYVER -ge 3; then
+      PYTHON3="$PYTHON"
     fi
   else
     PYTHON3="$PY3BIN"
@@ -2060,44 +2070,7 @@ else
     PYSEPARATOR=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
     AC_MSG_RESULT($PYSEPARATOR)
 
-    if test x"$PY3OSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
-      # Windows installations are quite different to posix installations
-      # There is no python-config to use
-      AC_MSG_CHECKING(for Python 3.x prefix)
-      PY3PREFIX=`($PYTHON3 -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
-      AC_MSG_RESULT($PY3PREFIX)
-      PY3PREFIX=`echo "$PY3PREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
-      PYTHON_SO=.pyd
-
-      AC_MSG_CHECKING(for Python 3.x header files)
-      if test -r $PY3PREFIX/include/Python.h; then
-        PY3INCLUDE="-I$PY3PREFIX/include"
-      fi
-      AC_MSG_RESULT($PY3INCLUDE)
-
-      AC_MSG_CHECKING(for Python 3.x library directory)
-      if test -d "$PY3PREFIX/libs"; then
-        PY3LIB="$PY3PREFIX/libs"
-        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
-        if test -r "$PY3LINKFILE"; then
-          PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
-        else
-          PY3LIB=
-        fi
-      fi
-      if test -z "$PY3LIB"; then
-        AC_MSG_RESULT([Not found])
-      else
-        AC_MSG_RESULT($PY3LIB)
-        PY3LIB="-L$PY3LIB"
-      fi
-      AC_MSG_CHECKING([for Python 3.x library])
-      if test -z "$PY3LINK"; then
-        AC_MSG_RESULT(Not found)
-      else
-        AC_MSG_RESULT($PY3LINK)
-      fi
-    elif test -n "$PY3CONFIG"; then
+    if test -n "$PY3CONFIG"; then
       AC_MSG_CHECKING([for Python 3.x prefix])
       PY3PREFIX=`($PY3CONFIG --prefix) 2>/dev/null`
       AC_MSG_RESULT($PY3PREFIX)
@@ -2161,6 +2134,51 @@ else
         AC_MSG_RESULT(Not found)
       else
         AC_MSG_RESULT($PY3LINK)
+      fi
+    fi
+
+    # windows Python
+    if test x"$PY3OSNAME" = x"nt"; then
+      PYTHON_SO=.pyd
+      # TODO: Do we need to probe?
+      #=`($PYTHON3 -c "import sys; import distutils.ccompiler;sys.stdout.write(distutils.ccompiler.new_compiler().shared_lib_extension)") 2>/dev/null`
+
+      if test -z "$PY3CONFIG"; then
+        AC_MSG_CHECKING(for Python 3.x prefix)
+        PY3PREFIX=`($PYTHON3 -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
+        AC_MSG_RESULT($PY3PREFIX)
+        if test x"$PYSEPARATOR" = x"\\" ; then
+          PY3PREFIX=`echo "$PY3PREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
+        fi
+
+        AC_MSG_CHECKING(for Python 3.x header files)
+        if test -r "$PY3PREFIX/include/Python.h"; then
+          PY3INCLUDE="-I$PY3PREFIX/include"
+        fi
+        AC_MSG_RESULT($PY3INCLUDE)
+
+        AC_MSG_CHECKING(for Python 3.x library directory)
+        if test -d "$PY3PREFIX/libs"; then
+          PY3LIB="$PY3PREFIX/libs"
+          PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
+          if test -r "$PY3LINKFILE"; then
+            PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
+          else
+            PY3LIB=
+          fi
+        fi
+        if test -z "$PY3LIB"; then
+          AC_MSG_RESULT([Not found])
+        else
+          AC_MSG_RESULT($PY3LIB)
+          PY3LIB="-L$PY3LIB"
+        fi
+        AC_MSG_CHECKING([for Python 3.x library])
+        if test -z "$PY3LINK"; then
+          AC_MSG_RESULT(Not found)
+        else
+          AC_MSG_RESULT($PY3LINK)
+        fi
       fi
     fi
   fi
@@ -2752,19 +2770,18 @@ dnl built using MinGW or cccl compiler in Cygwin environment). However it may,
 dnl although this is probably more rare, also be built as a Cygwin program.
 dnl Using "mixed" path like we do here allows the path to work in both cases.
 case $host in
-  *-*-mingw* ) ABS_SRCDIR=`${srcdir}/Tools/convertpath -m $ABS_SRCDIR` ;;
-  *-*-cygwin* | *-*-msys*) ABS_SRCDIR=`cygpath --mixed $ABS_SRCDIR` ;;
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
+    ABS_SRCDIR="`$CYGPATH -m "$ABS_SRCDIR"`"
+    ;;
 esac
 
 # Root directory
 ROOT_DIR=`pwd`
 case $host in
-*-*-cygwin*)
-  # Translate path for native Windows compilers for use with 'make check'
-  if (cygpath --mixed $ROOT_DIR) >/dev/null 2>/dev/null; then
-    ROOT_DIR=`cygpath --mixed $ROOT_DIR`
-  fi
-  ;;
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
+    # Translate path for native Windows compilers for use with 'make check'
+    ROOT_DIR=`$CYGPATH --mixed $ROOT_DIR`
+    ;;
 esac
 
 case $host in
@@ -2778,6 +2795,28 @@ AC_SUBST(ROOT_DIR)
 AC_SUBST(EXTRA_CLEAN)
 AC_SUBST(ac_aux_dir)
 
+dnl For testing purposes, clear SWIG_LIB when building SWIG in the source
+dnl directory under Windows because it is supposed to work without SWIG_LIB
+dnl being set. Otherwise it always needs to be set.
+dnl FIXME: why clear SWIG_LIB?
+dnl        When using win32 API we set 'swiglib' relative to swig executable.
+dnl        This feature need a direct test!
+dnl        No reason to test in indirect way, its confusing!
+dnl        Secondly, we can compile on Windows without win32 API.
+dnl        And compile win32 API on non Windows system.
+AS_UNSET([HAVE_WIN32])
+SWIG_LIB_SET="env SWIG_LIB=\$(SWIG_LIB_DIR)"
+if test "${srcdir}" = "."; then
+    AC_EGREP_CPP([yes],
+    [#ifdef _WIN32
+     yes
+    #endif
+    ], [SWIG_LIB_SET="env SWIG_LIB="
+        AS_VAR_SET([HAVE_WIN32], [true])])
+fi
+AC_SUBST(SWIG_LIB_SET)
+AC_SUBST(HAVE_WIN32)
+
 # Configure SWIG_LIB path
 
 AC_ARG_WITH(swiglibdir,[  --with-swiglibdir=DIR   Put SWIG system-independent libraries into DIR.],
@@ -2788,8 +2827,10 @@ AC_DEFINE_DIR(SWIG_LIB, swig_lib, [Directory for SWIG system-independent librari
 
 case $build in
   # Windows does not understand unix directories. Convert into a windows directory with drive letter.
-  *-*-mingw*) SWIG_LIB_WIN_UNIX=`${srcdir}/Tools/convertpath -m $SWIG_LIB`;;
-  *-*-cygwin*) SWIG_LIB_WIN_UNIX=`cygpath --mixed "$SWIG_LIB"`;;
+  # FIXME: Why do we need this for?
+  *-*-cygwin* | *-*-mingw* )
+    SWIG_LIB_WIN_UNIX="`$CYGPATH -m "$SWIG_LIB"`"
+    ;;
   *) SWIG_LIB_WIN_UNIX="";;
 esac
 AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWIG system-independent libraries (Unix install on native Windows)])
@@ -2797,18 +2838,7 @@ AC_DEFINE_UNQUOTED(SWIG_LIB_WIN_UNIX, ["$SWIG_LIB_WIN_UNIX"], [Directory for SWI
 SWIG_LIB_PREINST=$ABS_SRCDIR/Lib
 AC_SUBST(SWIG_LIB_PREINST)
 
-dnl For testing purposes, clear SWIG_LIB when building SWIG in the source
-dnl directory under Windows because it is supposed to work without SWIG_LIB
-dnl being set. Otherwise it always needs to be set.
-SWIG_LIB_SET="env SWIG_LIB=\$(SWIG_LIB_DIR)"
-if test "${srcdir}" = "."; then
-    AC_EGREP_CPP([yes],
-    [#ifdef _WIN32
-     yes
-    #endif
-    ], [SWIG_LIB_SET="env SWIG_LIB="], [])
-fi
-AC_SUBST(SWIG_LIB_SET)
+AC_SUBST(EXAMPLE_LIBS)
 
 AC_CONFIG_FILES([
     Makefile
