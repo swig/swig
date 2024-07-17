@@ -1,4 +1,4 @@
-name: CI
+name: linux
 
 on:
   push:
@@ -199,7 +199,9 @@ jobs:
         - SWIGLANG: scilab
           os: ubuntu-22.04 # scilab 6.1.1
         - SWIGLANG: scilab
-          VER: '2023.0.0'
+          VER: '2023.1.0'
+        - SWIGLANG: scilab
+          VER: '2024.1.0'
         - SWIGLANG: tcl
         # c++11 testing
         - SWIGLANG: csharp

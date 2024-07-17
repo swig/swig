@@ -7,6 +7,30 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-07-15: vadz
+            #2941 Suppress warning WARN_PARSE_USING_UNDEF for ignored using declarations.
+
+2024-07-03: wsfulton
+            #2860 Enhance Windows.html documentation for the popular Visual C++ compiler
+            recommending users to correctly set the __cplusplus macro in order to benefit
+            from modern standards based features that SWIG provides.
+
+2024-07-02: erezgeva
+	    [Python, Ruby] #2870 Change the thread safety options for the director code
+            that manages C++ director pointer ownership. Please define SWIG_THREADS to
+            turn on thread safety. For Python, this can also be done via the threads
+            module option or -threads. Implementation now includes a C++11 std::mutex option
+            as priority over WIN32 and pthread mutexes. See director_guard.swg for further
+            implementation details.
+
+2024-06-28: vadz
+            #2935 Fix instantiation of specialized template where the primary template
+            is a forward class template declaration.
+
+2024-06-16: wsfulton
+            #2927 Don't ignore overloaded friend functions that are also declared
+            constexpr.
+
 2024-06-15: wsfulton
             [Python] Removed deprecated pytuplehlp.swg file and t_output_helper.
             Use SWIG_Python_AppendOutput instead of t_output_helper.

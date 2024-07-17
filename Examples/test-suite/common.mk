@@ -71,6 +71,12 @@ INTERFACEDIR = ../
 SRCDIR     = $(srcdir)/
 SCRIPTDIR  = $(srcdir)
 
+# This can be set to ":" on make command line to suppress progress messages.
+ECHO_PROGRESS := echo
+
+# Portable dos2unix / fromdos for stripping CR
+FROMDOS    = tr -d '\r'
+
 # Regenerate Makefile if Makefile.in or config.status have changed.
 Makefile: $(srcdir)/Makefile.in ../../../config.status
 	cd ../../../ && $(SHELL) ./config.status $(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE)/Makefile
@@ -615,6 +621,7 @@ CPP11_TEST_CASES += \
 	cpp11_auto_variable \
 	cpp11_brackets_expression \
 	cpp11_constexpr \
+	cpp11_constexpr_friend \
 	cpp11_copyctor_delete \
 	cpp11_decltype \
 	cpp11_default_delete \
@@ -965,7 +972,7 @@ swig_and_compile_c =  \
 	$(LANGUAGE)$(VARIANT)
 
 swig_and_compile_multi_cpp = \
-	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list | $(FROMDOS)` ; do \
 	  $(call swig_and_compile_cpp_helper,$${f},'$(SWIGOPT)'); \
 	done
 
@@ -984,9 +991,9 @@ swig_and_compile_runtime = \
 
 setup = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi
 
 #######################################################################

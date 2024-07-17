@@ -908,7 +908,7 @@ public:
       Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s\n", SwigType_str(returntype, 0));
     }
 
-    is_void_return = (Cmp(c_return_type, "void") == 0);
+    is_void_return = Cmp(c_return_type, "void") == 0;
     if (!is_void_return)
       Wrapper_add_localv(f, "jresult", c_return_type, "jresult = 0", NIL);
 
@@ -1130,8 +1130,7 @@ public:
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
 
-    bool isvoid = !Cmp(returntype, "void");
-    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
+    Replaceall(f->code, "$isvoid", is_void_return ? "1" : "0");
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", symname);

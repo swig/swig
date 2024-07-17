@@ -64,6 +64,7 @@
 <li><a href="#Python_nn36">Exception unrolling</a>
 <li><a href="#Python_nn37">Overhead and code bloat</a>
 <li><a href="#Python_nn38">Typemaps</a>
+<li><a href="#Python_director_thread_safety">Thread safety</a>
 <li><a href="#Python_nn39">Miscellaneous</a>
 </ul>
 <li><a href="#Python_nn40">Common customization features</a>
@@ -3274,7 +3275,22 @@ need to be supported.
 </p>
 
 
-<H3><a name="Python_nn39">33.5.7 Miscellaneous</a></H3>
+<H3><a name="Python_director_thread_safety">33.5.7 Thread safety</a></H3>
+
+
+<p>
+The director implementation uses a <tt>std::map</tt> to manage C++ pointer ownership.
+This code is not thread-safe by default.
+See <a href="Python.hthml#Python_multithreaded">Thread safety</a> for turning on thread-safety.
+This defines a macro called <tt>SWIG_THREADS</tt> which forces the C++ code to then use a mutex
+for managing the pointer ownership, which in turn makes the directors implementation thread-safe.
+</p>
+
+<p>
+Please see the <tt>director_guard.swg</tt> Library file for details of the implementation.
+</p>
+
+<H3><a name="Python_nn39">33.5.8 Miscellaneous</a></H3>
 
 
 <p>
@@ -3283,7 +3299,7 @@ be able to use std::vector, std::string, etc., as you would any other type.
 </p>
 
 <p>
-<b>Note:</b> The director typemaps for return types based in const
+<b>Note:</b> The director typemaps for return types based on const
 references, such as
 
 <div class="code">
@@ -3298,10 +3314,9 @@ class Foo {
 
 <p>
 will work only for simple call scenarios. Usually the resulting code
-is neither thread or reentrant safe. Hence, the user is advised to
+is neither thread nor reentrant safe. Hence, the user is advised to
 avoid returning const references in director methods. For example,
-the user could modify the method interface to use lvalue return
-types, wherever possible, for example
+the user could modify the method interface to use return by value semantics instead.
 </p>
 
 <div class="code">
@@ -7414,7 +7429,7 @@ will not be able to run any other threads, even if the wrapped C/C++ code is wai
         <p>
         The <tt>threads</tt> module option in the *.i template file:
         </p>
-        <div class="code"><pre>%module("threads"=1)</pre></div>
+        <div class="code"><pre>%module(threads="1")</pre></div>
       </li>
     </ul>
   </li>
