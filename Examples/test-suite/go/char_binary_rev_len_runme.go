@@ -4,6 +4,8 @@ import . "swigtests/char_binary_rev_len"
 
 func main() {
 	t := NewTest()
+	defer DeleteTest(t)
+
 	if t.Strlen("hile") != 4 {
 		panic("bad multi-arg typemap")
 	}
