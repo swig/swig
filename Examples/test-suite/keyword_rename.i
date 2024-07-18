@@ -40,6 +40,13 @@ KW(nil,local)
 /* Javascript keywords */
 KW(instanceof, finally)
 KW(finally, instanceof)
+KW(yield, with)
+
+/* Keywords used as member variables shouldn't be renamed */
+struct S {
+  int yield;
+};
+
 %}
 
 

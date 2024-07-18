@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-07-19: vadz
+	    [Javascript] #2940 Names of object properties can be keywords in
+	    Javascript so don't auto-rename them to have a leading underscore.
+
 2024-07-18: olly
 	    #1917 Stop removing `f` and `F` suffixes from float literals.
 	    This was resulting in incorrect generated C# and Java code.  For
