@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2014-07-19: olly
+	    -Wallkw now includes keywords for Javascript.
+
 2024-07-19: vadz
 	    [Javascript] #2940 Names of object properties can be keywords in
 	    Javascript so don't auto-rename them to have a leading underscore.
