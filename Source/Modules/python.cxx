@@ -1491,6 +1491,26 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * find_overload_with_docstring()
+   *
+   * This function should be called with the node pointing to the
+   * last element of an overload set and returns an overload with
+   * a docstring or null if there are none.
+   *
+   * The idea is that, because the Python docstring is shared by
+   * all overloads, it's this function return value and not the
+   * node itself which needs to be passes to docstring() later.
+   * ------------------------------------------------------------ */
+  Node* find_overload_with_docstring(Node* n) {
+    for (Node* node_with_doc = n; node_with_doc; node_with_doc = Getattr(node_with_doc, "sym:previousSibling")) {
+      if (have_docstring(node_with_doc))
+	return node_with_doc;
+    }
+
+    return NULL;
+  }
+
+  /* ------------------------------------------------------------
    * build_combined_docstring()
    *
    * Build the full docstring:
@@ -2432,8 +2452,12 @@ public:
     if (!fast || olddefs) {
       /* Make a wrapper function to insert the code into */
       Printv(f_dest, "\n", "def ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-      if (have_docstring(n))
-	Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4, true), "\n", NIL);
+
+      // When handling the last overloaded function in an overload set (and we're only called for the last one if the function is overloaded at all), we need to
+      // output the docstring if any of the overloads has any documentation, not just this last one.
+      if (Node* node_with_doc = find_overload_with_docstring(n))
+	Printv(f_dest, tab4, docstring(node_with_doc, AUTODOC_FUNC, tab4, true), "\n", NIL);
+
       if (have_pythonprepend(n))
 	Printv(f_dest, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
       if (have_pythonappend(n)) {
@@ -4748,14 +4772,14 @@ public:
 	  if (!have_addtofunc(n)) {
 	    if (!fastproxy || olddefs) {
 	      Printv(f_shadow, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-	      if (have_docstring(n))
-		Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
+	      if (Node* node_with_doc = find_overload_with_docstring(n))
+		Printv(f_shadow, tab8, docstring(node_with_doc, AUTODOC_METHOD, tab8), "\n", NIL);
 	      Printv(f_shadow, tab8, "return ", funcCall(fullname, callParms), "\n", NIL);
 	    }
 	  } else {
 	    Printv(f_shadow, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-	    if (have_docstring(n))
-	      Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
+	    if (Node* node_with_doc = find_overload_with_docstring(n))
+	      Printv(f_shadow, tab8, docstring(node_with_doc, AUTODOC_METHOD, tab8), "\n", NIL);
 	    if (have_pythonprepend(n)) {
 	      fproxy = 0;
 	      Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
@@ -4846,8 +4870,8 @@ public:
 	String *callParms = make_pyParmList(n, false, true, kw);
 	Printv(f_shadow, "\n", tab4, "@staticmethod", NIL);
 	Printv(f_shadow, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-	if (have_docstring(n))
-	  Printv(f_shadow, tab8, docstring(n, AUTODOC_STATICFUNC, tab8), "\n", NIL);
+	if (Node* node_with_doc = find_overload_with_docstring(n))
+	  Printv(f_shadow, tab8, docstring(node_with_doc, AUTODOC_STATICFUNC, tab8), "\n", NIL);
 	if (have_pythonprepend(n))
 	  Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
 	if (have_pythonappend(n)) {
@@ -4953,8 +4977,8 @@ public:
 	      }
 
 	      Printv(f_shadow, "\n", tab4, "def __init__(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-	      if (have_docstring(n))
-		Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
+	      if (Node* node_with_doc = find_overload_with_docstring(n))
+		Printv(f_shadow, tab8, docstring(node_with_doc, AUTODOC_CTOR, tab8), "\n", NIL);
 	      if (have_pythonprepend(n))
 		Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
 	      Printv(f_shadow, pass_self, NIL);
@@ -4981,8 +5005,8 @@ public:
 	      String *callParms = make_pyParmList(n, false, true, allow_kwargs);
 
 	      Printv(f_shadow_stubs, "\ndef ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-	      if (have_docstring(n))
-		Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR, tab4), "\n", NIL);
+	      if (Node* node_with_doc = find_overload_with_docstring(n))
+		Printv(f_shadow_stubs, tab4, docstring(node_with_doc, AUTODOC_CTOR, tab4), "\n", NIL);
 	      if (have_pythonprepend(n))
 		Printv(f_shadow_stubs, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
 	      Printv(f_shadow_stubs, tab4, "val = ", funcCall(subfunc, callParms), "\n", NIL);
