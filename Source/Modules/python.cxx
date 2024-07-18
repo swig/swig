@@ -2525,14 +2525,14 @@ public:
       if (fastproxy) {
 	Append(methods_proxydocs, "NULL");
       }
-    } else if (have_docstring(n)) {
+    } else if (Node* node_with_doc = find_overload_with_docstring(n)) {
       /* Use the low-level docstring here since this is the docstring that will be used for the C API */
-      String *ds = cdocstring(n, Getattr(n, "memberfunction") ? AUTODOC_METHOD : AUTODOC_FUNC, true);
+      String *ds = cdocstring(node_with_doc, Getattr(n, "memberfunction") ? AUTODOC_METHOD : AUTODOC_FUNC, true);
       Printf(methods, "\"%s\"", ds);
       if (fastproxy) {
 	/* In the fastproxy case, we must also record the high-level docstring for use in the Python shadow API */
 	Delete(ds);
-        ds = cdocstring(n, Getattr(n, "memberfunction") ? AUTODOC_METHOD : AUTODOC_FUNC);
+        ds = cdocstring(node_with_doc, Getattr(n, "memberfunction") ? AUTODOC_METHOD : AUTODOC_FUNC);
 	Printf(methods_proxydocs, "\"%s\"", ds);
       }
       Delete(ds);
