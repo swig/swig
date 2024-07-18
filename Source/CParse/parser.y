@@ -3270,12 +3270,6 @@ c_decl  : attribute[decl_attr] storage_class type declarator cpp_const attribute
 	      Setattr($$, "type", $type);
 	      Setattr($$, "storage", $storage_class);
 	      Setattr($$, "name", $declarator.id);
-	      if ($cpp_const.qualifier)
-	        decl = add_qualifier_to_declarator($declarator.type, $cpp_const.qualifier);
-	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
-	      Setattr($$, "type", $type);
-	      Setattr($$, "storage", $storage_class);
-	      Setattr($$, "name", $declarator.id);
 	      Setattr($$, "decl", decl);
 	      Setattr($$, "parms", $declarator.parms);
 
