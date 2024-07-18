@@ -10,7 +10,7 @@
 
 %include <javascriptruntime.swg>
 
-%include <javascriptkw.swg>
+%include <javascript/javascriptkw.swg>
 
 %include <javascriptcode.swg>
 
