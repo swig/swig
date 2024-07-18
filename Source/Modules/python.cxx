@@ -2661,9 +2661,8 @@ public:
     }
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
-    Node *p = Getattr(n, "sym:previousSibling");
     if (!builtin_self && (use_static_method || !builtin))
-      add_method(symname, wname, 0, p);
+      add_method(symname, wname, 0, Getattr(n, "sym:previousSibling") ? n : NULL);
 
     /* Create a shadow for this function (if enabled and not in a member function) */
     if (!builtin && shadow && !(shadow & PYSHADOW_MEMBER) && use_static_method) {
