@@ -42,7 +42,7 @@ KW(instanceof, finally)
 KW(finally, instanceof)
 KW(yield, with)
 
-/* Keywords used as member variables shouldn't be renamed */
+/* Keywords used as member variables shouldn't be renamed in Javascript. */
 struct S {
   int yield;
 };

@@ -2201,7 +2201,7 @@ int Language::classDirectorInit(Node *n) {
 int Language::classDirectorDestructor(Node *n) {
   /* 
      Always emit the virtual destructor in the declaration and in the
-     compilation unit.  Been explicit here can't make any damage, and
+     compilation unit.  Being explicit here can't make any damage, and
      can solve some nasty C++ compiler problems.
    */
   File *f_directors = Swig_filebyname("director");
