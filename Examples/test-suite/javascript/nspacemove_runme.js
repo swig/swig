@@ -4,8 +4,8 @@ var color1 = new nspacemove.Ooter.Extra.Inner1.Color();
 var color = new nspacemove.Ooter.Extra.Inner1.Color(color1);
 
 // class methods
-color.colorInstanceMethod(20.0);
-nspacemove.Ooter.Extra.Inner1.Color.colorStaticMethod(20.0);
+/* await */(color.colorInstanceMethod(20.0));
+/* await */(nspacemove.Ooter.Extra.Inner1.Color.colorStaticMethod(20.0));
 var created = /* await */ (nspacemove.Ooter.Extra.Inner1.Color.create());
 
 // class enums
@@ -45,7 +45,7 @@ if (nspacemove.Ooter.Extra.Inner1.Color.staticConstEnumMemberVariable !== nspace
 // Same class different namespaces
 var col1 = new nspacemove.Ooter.Extra.Inner1.Color();
 var col2 = /* await */ (nspacemove.Outer.Snner2.Color.create());
-col2.colors(col1, col1, col2, col2, col2);
+/* await */(col2.colors(col1, col1, col2, col2, col2));
 
 /* await */ (nspacemove.Outer.Inner1.namespaceFunction(color));
 nspacemove.Outer.Inner1.namespaceVar = 111;

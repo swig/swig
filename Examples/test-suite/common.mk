@@ -74,6 +74,9 @@ SCRIPTDIR  = $(srcdir)
 # This can be set to ":" on make command line to suppress progress messages.
 ECHO_PROGRESS := echo
 
+# Portable dos2unix / fromdos for stripping CR
+FROMDOS    = tr -d '\r'
+
 # Regenerate Makefile if Makefile.in or config.status have changed.
 Makefile: $(srcdir)/Makefile.in ../../../config.status
 	cd ../../../ && $(SHELL) ./config.status $(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE)/Makefile
@@ -974,7 +977,7 @@ swig_and_compile_c =  \
 	$(LANGUAGE)$(VARIANT)
 
 swig_and_compile_multi_cpp = \
-	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list | $(FROMDOS)` ; do \
 	  $(call swig_and_compile_cpp_helper,$${f},'$(SWIGOPT)'); \
 	done
 

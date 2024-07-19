@@ -898,7 +898,8 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
   // Create Library search directories
 
   // Check for SWIG_LIB environment variable
-  if ((c = getenv("SWIG_LIB")) == (char *) 0) {
+  c = getenv("SWIG_LIB");
+  if (c == (char *) 0 || *c == 0) {
 #if defined(_WIN32)
     char buf[MAX_PATH];
     char *p;

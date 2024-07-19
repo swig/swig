@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-07-15: vadz
+            #2941 Suppress warning WARN_PARSE_USING_UNDEF for ignored using declarations.
+
 2024-07-03: wsfulton
             #2860 Enhance Windows.html documentation for the popular Visual C++ compiler
             recommending users to correctly set the __cplusplus macro in order to benefit
