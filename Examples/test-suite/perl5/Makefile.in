@@ -34,7 +34,9 @@ C_TEST_CASES += \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-# none!
+
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
 
 # Custom tests - tests with additional commandline options
 cpp11_strongly_typed_enumerations_perl_const.cpptest: SWIGOPT += -const

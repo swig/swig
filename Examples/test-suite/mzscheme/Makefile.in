@@ -84,6 +84,9 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 # Custom tests - tests with additional commandline options
 # none!
 

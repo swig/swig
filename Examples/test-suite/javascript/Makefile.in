@@ -55,6 +55,9 @@ endif
 
 include $(srcdir)/../common.mk
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 _setup = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
 	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $* (with run test)" ; \

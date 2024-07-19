@@ -78,6 +78,9 @@ JAVA_PACKAGE = $*
 JAVA_PACKAGEOPT = -package $(JAVA_PACKAGE)
 SWIGOPT += $(JAVA_PACKAGEOPT)
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 # Custom tests - tests with additional commandline options
 cpp17_nspace_nested_namespaces.%: JAVA_PACKAGE = $*Package
 director_nspace.%: JAVA_PACKAGE = $*Package

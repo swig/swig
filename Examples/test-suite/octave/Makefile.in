@@ -34,6 +34,9 @@ include $(srcdir)/../common.mk
 LIBS       = -L.
 CSRCS      = octave_empty.c
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 # Custom tests - tests with additional commandline options
 # none!
 
