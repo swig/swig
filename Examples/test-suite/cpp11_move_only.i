@@ -2,7 +2,9 @@
 
 %include "cpp11_move_only_helper.i"
 
-#if defined(SWIGOCAML)
+#if defined(SWIGGO)
+%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) MoveOnly&&;
+#elif defined(SWIGOCAML)
 %rename(valu) val;
 #endif
 

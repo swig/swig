@@ -3,8 +3,10 @@
 // Tests overloading of integral and floating point types to verify the range checking required
 // for dispatch to the correct overloaded method
 
-#ifdef SWIGLUA
+#if defined SWIGGUILE || defined SWIGLUA || defined SWIGR
+// Guile seems to only have one integer type and one floating point type.
 // lua only has one numeric type, so most of the overloads shadow each other creating warnings
+// R seems to only have one integer type.
 %warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) Nums::over;
 #endif
 

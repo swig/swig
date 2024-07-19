@@ -84,6 +84,11 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 
+# Ensure testsuite remains free from SWIG warnings.
+# Currently there are a lot of SWIG warnings for mzscheme, but it is marked
+# as "Experimental" and slated for removal in 4.4.0 (#2830).
+#SWIGOPT += -Werror
+
 # Custom tests - tests with additional commandline options
 # none!
 

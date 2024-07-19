@@ -33,6 +33,9 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 TARGETPREFIX =# Should be php_ for Windows, empty otherwise
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 # Custom tests - tests with additional commandline options
 prefix.cpptest: SWIGOPT += -prefix Project
 

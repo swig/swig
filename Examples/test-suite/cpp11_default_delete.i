@@ -4,6 +4,11 @@
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED, SWIGWARN_LANG_OVERLOAD_SHADOW) trivial::trivial(trivial&&);
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED, SWIGWARN_LANG_OVERLOAD_SHADOW) trivial::operator =(trivial&&);
 
+#if defined SWIGGO
+%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) trivial&&;
+%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) moveonly&&;
+#endif
+
 %rename(Assignment) *::operator=;
 
 %inline %{

@@ -94,6 +94,9 @@ endif
 
 include $(srcdir)/../common.mk
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 ifneq (, $(ASYNC))
 	SWIGOPT += -async
 endif
