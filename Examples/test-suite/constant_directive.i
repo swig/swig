@@ -2,6 +2,13 @@
 
 // %constant and struct
 
+#ifdef SWIGGUILE
+// Suppress warnings for constants SWIG/Guile doesn't currently handle.
+%warnfilter(SWIGWARN_TYPEMAP_CONST_UNDEF) TYPE1_CONSTANT1;
+%warnfilter(SWIGWARN_TYPEMAP_CONST_UNDEF) TYPE1_CONSTANT2;
+%warnfilter(SWIGWARN_TYPEMAP_CONST_UNDEF) TYPE1CFPTR1DEF_CONSTANT1;
+#endif
+
 #ifdef SWIGOCAML
 %warnfilter(SWIGWARN_PARSE_KEYWORD) val;
 #endif

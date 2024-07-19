@@ -2,6 +2,10 @@
 
 // Testcase for testing rvalue reference input typemaps which assume the object is moved during a function call
 
+#if defined SWIGGO
+%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) MovableCopyable&&;
+#endif
+
 %include "cpp11_move_only_helper.i"
 
 %catches(std::string) MovableCopyable::check_numbers_match;

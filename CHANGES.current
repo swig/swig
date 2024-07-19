@@ -8,6 +8,11 @@ Version 4.4.0 (in progress)
 ===========================
 
 2024-10-22: olly
+	    #3034 SWIG's testsuite is now free of SWIG warnings for all target
+	    languages except mzscheme and the SWIG -Werror option is now
+	    enabled automatically to ensure this doesn't regress.
+
+2024-10-22: olly
 	    #2998 Drop support for specifying SWIG's internal type string
 	    representation in interface files.  This "secret developer feature"
 	    was only documented in developer documentation, and had no test

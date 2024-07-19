@@ -1,7 +1,19 @@
 %module cpp11_brackets_expression
 
+#ifdef SWIGGUILE
+// Suppress warnings SWIG/Guile emits because these constants have type size_t
+// which we don't show SWIG a definition of.
+%warnfilter(SWIGWARN_TYPEMAP_CONST_UNDEF) Piece::kOk2;
+%warnfilter(SWIGWARN_TYPEMAP_CONST_UNDEF) Piece::SimpleAsYouExpect123;
+%warnfilter(SWIGWARN_TYPEMAP_CONST_UNDEF) Piece::SimpleJust123;
+%warnfilter(SWIGWARN_TYPEMAP_CONST_UNDEF) Piece::AsYouExpect123;
+%warnfilter(SWIGWARN_PARSE_ASSIGNED_VALUE,SWIGWARN_TYPEMAP_CONST_UNDEF) Piece::kMaxSize;
+%warnfilter(SWIGWARN_PARSE_ASSIGNED_VALUE,SWIGWARN_TYPEMAP_CONST_UNDEF) Piece::Just123;
+#else
 %warnfilter(SWIGWARN_PARSE_ASSIGNED_VALUE) Piece::kMaxSize;
 %warnfilter(SWIGWARN_PARSE_ASSIGNED_VALUE) Piece::Just123;
+#endif
+
 %warnfilter(SWIGWARN_PARSE_ASSIGNED_VALUE) ::kMaxSizeGlobal;
 
 %inline %{
