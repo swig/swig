@@ -4365,6 +4365,9 @@ public:
     Printv(f, "#if PY_VERSION_HEX >= 0x030c0000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:getitem_version"), "getitem_version", "uint32_t");
     Printv(f, "#endif\n", NIL);
+    Printv(f, "#if PY_VERSION_HEX >= 0x030d0000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:init"), "init", "PyObject *");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "  }\n");
     Printv(f, "#endif\n", NIL);
     Printf(f, "};\n\n");

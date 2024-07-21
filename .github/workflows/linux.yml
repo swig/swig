@@ -152,6 +152,10 @@ jobs:
           VER: '3.12'
           CSTD: gnu99
         - SWIGLANG: python
+          VER: '3.13'
+          CSTD: gnu99
+          continue-on-error: true # Python 3.13 is still in beta
+        - SWIGLANG: python
           PY2: 2
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
