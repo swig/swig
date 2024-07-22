@@ -230,7 +230,7 @@ then
 		 fi;;
 	s390x*-*-*) CCSHARED="-fpic" ;;
 	s390*-*-*) CCSHARED="-fPIC" ;;
-	*-*-linux*) CCSHARED="-fpic";;
+	*-*-linux*) CCSHARED="-fPIC";;
 	*-*-freebsd* | *-*-openbsd*) CCSHARED="-fpic";;
 	*-*-netbsd*) CCSHARED="-fPIC";;
 	*-sco-sysv*) CCSHARED="-KPIC -dy -Bdynamic";;
