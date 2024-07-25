@@ -501,8 +501,8 @@ compiler.  For example:
 
 <div class="code"><pre>
 % swig -c++ -java example.i
-% g++ -c -fpic example.cxx
-% g++ -c -fpic example_wrap.cxx -I/usr/java/j2sdk1.4.1/include -I/usr/java/j2sdk1.4.1/include/linux
+% g++ -c -fPIC example.cxx
+% g++ -c -fPIC example_wrap.cxx -I/usr/java/j2sdk1.4.1/include -I/usr/java/j2sdk1.4.1/include/linux
 % g++ -shared example.o example_wrap.o -o libexample.so
 </pre></div>
 
