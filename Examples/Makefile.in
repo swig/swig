@@ -69,8 +69,7 @@ SWIG       = $(SWIG_LIB_SET) $(SWIGTOOL) $(SWIGEXE)
 
 LIBM       = @LIBM@
 LIBC       = @LIBC@
-LIBCRYPT   = @LIBCRYPT@
-SYSLIBS    = $(LIBM) $(LIBC) $(LIBCRYPT)
+SYSLIBS    = $(LIBM) $(LIBC)
 LIBPREFIX  =
 
 # RUNTOOL is for use with runtime tools, eg set it to valgrind
