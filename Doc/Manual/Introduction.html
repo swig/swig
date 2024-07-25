@@ -288,10 +288,10 @@ build a Tcl module (under Linux) as follows :
 </p>
 
 <div class="shell"><pre>
-unix &gt; <b>swig -tcl example.i</b>
-unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include</b>
-unix &gt; <b>gcc -shared example.o example_wrap.o -o example.so</b>
-unix &gt; <b>tclsh</b>
+$ <b>swig -tcl example.i</b>
+$ <b>gcc -c -fPIC example.c example_wrap.c -I/usr/include/tcl8.7</b>
+$ <b>gcc -shared example.o example_wrap.o -o example.so</b>
+$ <b>tclsh</b>
 % <b>load ./example.so</b>
 % <b>fact 4</b>
 24
