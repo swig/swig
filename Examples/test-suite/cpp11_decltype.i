@@ -41,9 +41,12 @@
 
 %ignore hidden_global_char;
 
+%ignore hidden_global_func;
+
 %inline %{
 #define DECLARE(VAR, VAL) decltype(VAL) VAR = VAL
   static const char hidden_global_char = '\0';
+  void hidden_global_func() { }
   class B {
   public:
     int i;
@@ -83,6 +86,9 @@
     // Test alternative operator names work in this context.
     decltype(((compl 42) and (not 1)) or (2 xor 4)) should_be_bool2;
 
+    // Feature test for noexcept as an operator.
+    decltype(noexcept(hidden_global_func)) should_be_bool3;
+
     decltype(E1) should_be_enum;
 
     auto get_number_sum(decltype(i+j) a) -> decltype(i+j) {
@@ -96,8 +102,5 @@
     auto negate(decltype(true) b) -> decltype(b) {
       return !b;
     }
-
-    // Feature test for noexcept as an operator.
-    decltype(noexcept(get_number_address)) should_be_bool3;
   };
 %}
