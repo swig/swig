@@ -5,7 +5,7 @@ require "tests.php";
 // No new functions
 check::functions(array());
 check::classes(array('cpp11_auto_variable'));
-check::globals(array('f', 't', 'zero', 'one', 'la', 'da', 'fa', 'lc', 'dc', 'fc', 'pi_approx', 'Bar', 'Bar2', 'Bar3', 'Foo', 'Foo2', 'Foo3'));
+check::globals(array('f', 't', 'zero', 'one', 'la', 'da', 'fa', 'lc', 'dc', 'fc', 'pi_approx', 'Bar', 'Bar2', 'Bar3', 'Foo', 'Foo2', 'Foo3', 'NOEXCEPT_FUNC'));
 
 check::equal(f_get(), false);
 check::equal(gettype(f_get()), "boolean");

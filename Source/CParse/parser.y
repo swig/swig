@@ -6637,6 +6637,14 @@ exprsimple     : exprnum
 		  $$.type = T_ULONG;
 		  $$.unary_arg_type = 0;
 	       }
+	       /* noexcept(X) always has type bool. */
+	       | NOEXCEPT LPAREN {
+		  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+		  $$.val = NewStringf("noexcept%s", scanner_ccode);
+		  Clear(scanner_ccode);
+		  $$.type = T_BOOL;
+		  $$.unary_arg_type = 0;
+	       }
 	       | SIZEOF ELLIPSIS LPAREN identifier RPAREN {
 		  $$.val = NewStringf("sizeof...(%s)", $identifier);
 		  $$.type = T_ULONG;

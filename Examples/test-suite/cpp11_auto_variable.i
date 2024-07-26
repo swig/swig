@@ -1,5 +1,7 @@
 %module cpp11_auto_variable
 
+%ignore func();
+
 %inline %{
 
 static auto t = true;
@@ -25,6 +27,9 @@ static constexpr auto Foo2 = Foo;
 
 static auto Bar3 = f ? zero : t;
 static constexpr auto Foo3 = f ? f : one;
+
+int func() { return 1; }
+static constexpr auto NOEXCEPT_FUNC = noexcept(func);
 
 %}
 

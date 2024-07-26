@@ -96,5 +96,8 @@
     auto negate(decltype(true) b) -> decltype(b) {
       return !b;
     }
+
+    // Feature test for noexcept as an operator.
+    decltype(noexcept(get_number_address)) should_be_bool3;
   };
 %}
