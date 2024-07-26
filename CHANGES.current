@@ -7,14 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
-2014-07-21: wsfulton
+2024-07-21: wsfulton
 	    [Python] Add missing slot for init in struct _specialization_cache
             needed for python-3.13 builtin wrappers.
 
-2014-07-21: shadchin
+2024-07-21: shadchin
 	    [Python] #2968 Add missing tp_versions_used slot needed for python-3.13.
 
-2014-07-19: olly
+2024-07-19: olly
 	    -Wallkw now includes keywords for Javascript.
 
 2024-07-19: vadz
