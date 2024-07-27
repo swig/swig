@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-07-27: olly
+	    #2087 Fix parsing of `noexcept` on a function pointer type used
+	    as the type of a function parameter.  We currently generate
+	    invalid C++ code if we try to wrap the function parameter, but
+	    at least the user can `%ignore` the parameter or the whole
+	    function, whereas the parse error was hard to work around.
+
 2024-07-26: olly
 	    Support parsing `noexcept(X)` in expressions, including deducing
 	    its type (which is always `bool`).

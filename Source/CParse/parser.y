@@ -5333,13 +5333,15 @@ parameter_declarator : declarator def_args {
             }
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const); */
-	    | direct_declarator LPAREN parms RPAREN cv_ref_qualifier {
+	    | direct_declarator LPAREN parms RPAREN qualifiers_exception_specification {
 	      SwigType *t;
 	      $$ = $direct_declarator;
 	      t = NewStringEmpty();
 	      SwigType_add_function(t,$parms);
-	      if ($cv_ref_qualifier.qualifier)
-	        SwigType_push(t, $cv_ref_qualifier.qualifier);
+	      if ($qualifiers_exception_specification.qualifier)
+		SwigType_push(t, $qualifiers_exception_specification.qualifier);
+	      if ($qualifiers_exception_specification.nexcept)
+		SwigType_add_qualifier(t, "noexcept");
 	      if (!$$.have_parms) {
 		$$.parms = $parms;
 		$$.have_parms = 1;
