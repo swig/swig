@@ -39,7 +39,13 @@ void *typedef_call1(AddByValueTypedef *& precallback, AddByValueTypedef * postca
 void *typedef_call2(AddByPointerTypedef *& precallback, AddByPointerTypedef * postcallback) { return 0; }
 void *typedef_call3(AddByReferenceTypedef *& precallback, AddByReferenceTypedef * postcallback) { return 0; }
 
+#if __cplusplus >= 201103L || defined(SWIG)
+# define NOEXCEPT noexcept
+#else
+# define NOEXCEPT
+#endif
+
 // Regression tests for #2087 (noexcept on a function pointer parameter type):
-void f2087a(int (*g)() noexcept) { (void)g; }
-void f2087b(int const (*g)() noexcept) { (void)g; }
+void f2087a(int (*g)() NOEXCEPT) { (void)g; }
+void f2087b(int const (*g)() NOEXCEPT) { (void)g; }
 %}
