@@ -34,8 +34,8 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		DOH/memory.c			\
 		DOH/string.c			\
 		DOH/void.c			\
-        Doxygen/csharpdoc.cxx		\
-        Doxygen/csharpdoc.h         \
+		Doxygen/csharpdoc.cxx		\
+		Doxygen/csharpdoc.h		\
 		Doxygen/doxyentity.cxx		\
 		Doxygen/doxyentity.h		\
 		Doxygen/doxyparser.cxx		\
