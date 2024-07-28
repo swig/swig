@@ -30,9 +30,6 @@ CPP_TEST_CASES = \
 	csharp_swig2_compatibility \
 	csharp_typemaps \
 	director_wstring \
-	doxygen_basic_translate \
-	doxygen_translate \
-	doxygen_nested_class \
 	enum_thorough_simple \
 	enum_thorough_typesafe \
 	exception_partial_info \
@@ -60,7 +57,6 @@ SRCDIR       = ../$(srcdir)/
 SWIGOPT += -namespace $*Namespace
 
 CSHARPFLAGSSPECIAL =
-SWIGOPT += -doxygen
 
 # Custom tests - tests with additional commandline options
 # doxygen tests have specific flags to generate XML documentation and deactivate warnings about XML generation

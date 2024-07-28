@@ -706,8 +706,9 @@ CPP20_TEST_BROKEN = \
 # Doxygen comment translation (currently Python and Java) and only if not
 # disabled by configure via SKIP_DOXYGEN_TEST_CASES.
 ifneq ($(SKIP_DOXYGEN_TEST_CASES),1)
-python_HAS_DOXYGEN := 1
+csharp_HAS_DOXYGEN := 1
 java_HAS_DOXYGEN := 1
+python_HAS_DOXYGEN := 1
 
 $(eval HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN))
 endif
