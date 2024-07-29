@@ -31,7 +31,7 @@ if (!strcmp(x,"Grok::blah"))
     error("Whoa! Bad return", x)
 endif
 
-x = d.far();
-if (!strcmp(x,"Spam::far"))
+x = d.far1();
+if (!strcmp(x,"Spam::far1"))
     error("Whoa! Bad return", x)
 endif
