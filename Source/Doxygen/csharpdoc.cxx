@@ -87,7 +87,7 @@ public:
     if (m_output->length() > lenIndentLevel) {
       const size_t start = m_output->length() - lenIndentLevel;
       if (m_output->compare(start, string::npos, Level()) == 0)
-        m_output->erase(start);
+	m_output->erase(start);
     }
   }
 
@@ -115,16 +115,16 @@ static void eraseLeadingNewLine(string &s) {
 }
 
 // Erase the first character in the string if it is a newline
-static void eraseAllNewLine(string &str) { 
-    for (size_t i = 0; i < str.size(); i++) {      
-        // if the character is a newline character
-        if (str[i] == '\n') {
-                // remove the character
-                str.erase(i, 1);
-                // decrement the index to account for the removed character
-                i--;
-            }
+static void eraseAllNewLine(string &str) {
+  for (size_t i = 0; i < str.size(); i++) {
+    // if the character is a newline character
+    if (str[i] == '\n') {
+      // remove the character
+      str.erase(i, 1);
+      // decrement the index to account for the removed character
+      i--;
     }
+  }
 }
 
 // Erase last characters in the string if it is a newline or a space
@@ -134,19 +134,16 @@ static void eraseTrailingSpaceNewLines(string &s) {
 }
 
 // escape some characters which cannot appear as it in C# comments
-static void escapeSpecificCharacters(string & str)
-{
+static void escapeSpecificCharacters(string &str) {
   for (size_t i = 0; i < str.size(); i++) {
-  if (str[i] == '<') {
-        str.replace(i, 1, "&lt;");
+    if (str[i] == '<') {
+      str.replace(i, 1, "&lt;");
+    } else if (str[i] == '>') {
+      str.replace(i, 1, "&gt;");
+    } else if (str[i] == '&') {
+      str.replace(i, 1, "&amp;");
     }
-  else if(str[i] == '>') {
-        str.replace(i, 1, "&gt;");
-    }
-  else if (str[i] == '&') {
-        str.replace(i, 1, "&amp;");
-    }
-}
+  }
 }
 
 // Check the generated docstring line by line and make sure that any
@@ -193,7 +190,7 @@ static std::string getCommandOption(const std::string &command, char openChar, c
   opt_begin = command.find(openChar);
   opt_end = command.find(closeChar);
   if (opt_begin != string::npos && opt_end != string::npos)
-    option = command.substr(opt_begin+1, opt_end-opt_begin-1);
+    option = command.substr(opt_begin + 1, opt_end - opt_begin - 1);
 
   return option;
 }
@@ -279,8 +276,8 @@ void CSharpDocConverter::fillStaticTables() {
   tagHandlers["image"] = make_handler(&CSharpDocConverter::handleTagImage);
   tagHandlers["li"] = make_handler(&CSharpDocConverter::handleTagMessage, "* ");
   tagHandlers["overload"] = make_handler(&CSharpDocConverter::handleTagMessage,
-                                         "This is an overloaded member function, provided for"
-                                         " convenience.\nIt differs from the above function only in what" " argument(s) it accepts.");
+					 "This is an overloaded member function, provided for"
+					 " convenience.\nIt differs from the above function only in what" " argument(s) it accepts.");
 #else
   tagHandlers["arg"] = make_handler(&CSharpDocConverter::handleAddList);
   tagHandlers["cond"] = make_handler(&CSharpDocConverter::handleIgnore);
@@ -292,7 +289,7 @@ void CSharpDocConverter::fillStaticTables() {
   tagHandlers["image"] = make_handler(&CSharpDocConverter::handleIgnore);
   tagHandlers["li"] = make_handler(&CSharpDocConverter::handleIgnore);
   tagHandlers["overload"] = make_handler(&CSharpDocConverter::handleIgnore);
-#endif                                      
+#endif
   tagHandlers["par"] = make_handler(&CSharpDocConverter::handleTagWord, "Title");
   tagHandlers["param"] = tagHandlers["tparam"] = make_handler(&CSharpDocConverter::handleTagParam);
   tagHandlers["ref"] = make_handler(&CSharpDocConverter::handleTagRef);
@@ -398,7 +395,6 @@ static std::string getCSharpDocType(Node *n, const_String_or_char_ptr lname = ""
     if (String *t = Getattr(n, "type"))
       s = SwigType_str(t, "");
   }
-
   /////////////////
 
   if (!s)
@@ -468,46 +464,45 @@ void CSharpDocConverter::translateEntity(DoxygenEntity &doxyEntity, std::string 
     (this->*(it->second.first)) (doxyEntity, translatedComment, it->second.second);
 }
 
-void CSharpDocConverter::handleIgnore(DoxygenEntity & tag, std::string &translatedComment, const std::string &)
-{
-  if (tag.entityList.size()) {    
-    tag.entityList.pop_front();    
+void CSharpDocConverter::handleIgnore(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
+  if (tag.entityList.size()) {
+    tag.entityList.pop_front();
   }
 
   translatedComment += translateSubtree(tag);
 }
 
 void CSharpDocConverter::handleSummary(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
-  
+
   translatedComment += "<summary>";
   std::string summary = translateSubtree(tag);
-  
+
   eraseAllNewLine(summary);
   trimWhitespace(summary);
   // remove final newlines
-  eraseTrailingSpaceNewLines(summary);  
+  eraseTrailingSpaceNewLines(summary);
   escapeSpecificCharacters(summary);
 
   translatedComment += summary;
-  
+
 
   translatedComment += "</summary>";
   translatedComment += "\n";
 }
 
-void CSharpDocConverter::handleLine(DoxygenEntity &tag, std::string &translatedComment, const std::string & tagName) {  
+void CSharpDocConverter::handleLine(DoxygenEntity &tag, std::string &translatedComment, const std::string &tagName) {
 
-  translatedComment += "<" + tagName +">";
+  translatedComment += "<" + tagName + ">";
   if (tag.entityList.size()) {
     translatedComment += tag.entityList.begin()->data;
-    tag.entityList.pop_front();    
+    tag.entityList.pop_front();
   }
-  translatedComment += "</" + tagName +">";
+  translatedComment += "</" + tagName + ">";
 }
 
 
 void CSharpDocConverter::handleNotHandled(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
- 
+
   std::string paragraph = translateSubtree(tag);
 
   eraseLeadingNewLine(paragraph);
@@ -518,8 +513,7 @@ void CSharpDocConverter::handleNotHandled(DoxygenEntity &tag, std::string &trans
   translatedComment += "\n";
 }
 
-void CSharpDocConverter::handleAddList(DoxygenEntity &tag, std::string &translatedComment, const std::string &)
-{
+void CSharpDocConverter::handleAddList(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
   std::string listItem = translateSubtree(tag);
   eraseAllNewLine(listItem);
 
@@ -529,16 +523,16 @@ void CSharpDocConverter::handleAddList(DoxygenEntity &tag, std::string &translat
 }
 
 
-void CSharpDocConverter::handleParagraph(DoxygenEntity &tag, std::string &translatedComment, const std::string & tagName) {
+void CSharpDocConverter::handleParagraph(DoxygenEntity &tag, std::string &translatedComment, const std::string &tagName) {
   translatedComment += "<";
   translatedComment += tagName;
   translatedComment += ">";
 
   std::string paragraph = translateSubtree(tag);
-  
+
   eraseAllNewLine(paragraph);
-  trimWhitespace(paragraph);  
-  eraseTrailingSpaceNewLines(paragraph);  
+  trimWhitespace(paragraph);
+  eraseTrailingSpaceNewLines(paragraph);
   escapeSpecificCharacters(paragraph);
 
   translatedComment += paragraph;
@@ -551,14 +545,14 @@ void CSharpDocConverter::handleParagraph(DoxygenEntity &tag, std::string &transl
 void CSharpDocConverter::handleVerbatimBlock(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
   string verb = translateSubtree(tag);
 
-  eraseLeadingNewLine(verb);  
+  eraseLeadingNewLine(verb);
 
   // Remove the last newline to prevent doubling the newline already present after \endverbatim
   trimWhitespace(verb); // Needed to catch trailing newline below
   eraseTrailingSpaceNewLines(verb);
   escapeSpecificCharacters(verb);
-  
-  translatedComment += verb;  
+
+  translatedComment += verb;
 }
 
 void CSharpDocConverter::handleMath(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg) {
@@ -596,12 +590,12 @@ void CSharpDocConverter::handleMath(DoxygenEntity &tag, std::string &translatedC
   if (start != std::string::npos) {
     for (size_t n = start; n <= end; n++) {
       if (formula[n] == '\n') {
-        // New lines must be suppressed in inline maths and indented in the block ones.
-        if (!inlineFormula)
-          translatedComment += formulaNL;
+	// New lines must be suppressed in inline maths and indented in the block ones.
+	if (!inlineFormula)
+	  translatedComment += formulaNL;
       } else {
-        // Just copy everything else.
-        translatedComment += formula[n];
+	// Just copy everything else.
+	translatedComment += formula[n];
       }
     }
   }
@@ -614,7 +608,7 @@ void CSharpDocConverter::handleMath(DoxygenEntity &tag, std::string &translatedC
 void CSharpDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg) {
   IndentGuard indent(translatedComment, m_indent);
 
-  trimWhitespace(translatedComment);  
+  trimWhitespace(translatedComment);
 
   translatedComment += "<code>";
 
@@ -632,14 +626,14 @@ void CSharpDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedC
   size_t startPos;
   // ">>>" would normally appear at the beginning, but doxygen comment
   // style may have space in front, so skip leading whitespace
-  if ((startPos=code.find_first_not_of(" \t")) != string::npos && code.substr(startPos,3) == ">>>")
+  if ((startPos = code.find_first_not_of(" \t")) != string::npos && code.substr(startPos, 3) == ">>>")
     isDocTestBlock = true;
 
   string codeIndent;
-  if (! isDocTestBlock) {
+  if (!isDocTestBlock) {
     // Use the current indent for the code-block line itself.
     translatedComment += indent.getFirstLineIndent();
-    
+
     // Specify the level of extra indentation that will be used for
     // subsequent lines within the code block.  Note that the correct
     // "starting indentation" is already present in the input, so we
@@ -669,7 +663,7 @@ void CSharpDocConverter::handleCode(DoxygenEntity &tag, std::string &translatedC
   // \endcode, so try and compensate by removing the last newline from
   // the code text:
   eraseTrailingSpaceNewLines(translatedComment);
-  
+
   translatedComment += "</code>";
   translatedComment += "\n";
 }
@@ -698,12 +692,12 @@ void CSharpDocConverter::handleTagSee(DoxygenEntity &tag, std::string &translate
   translatedComment += "\"/>\n";
 }
 
-void CSharpDocConverter::handleTagCharReplace(DoxygenEntity &, std::string &translatedComment, const std::string & arg) {  
-  translatedComment += arg;  
+void CSharpDocConverter::handleTagCharReplace(DoxygenEntity &, std::string &translatedComment, const std::string &arg) {
+  translatedComment += arg;
 }
 
-void CSharpDocConverter::handleTagChar(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {  
-  translatedComment += tag.typeOfEntity;  
+void CSharpDocConverter::handleTagChar(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
+  translatedComment += tag.typeOfEntity;
 }
 
 void CSharpDocConverter::handleTagIf(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg) {
@@ -716,7 +710,7 @@ void CSharpDocConverter::handleTagIf(DoxygenEntity &tag, std::string &translated
 }
 
 void CSharpDocConverter::handleTagWord(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg) {
-  translatedComment += arg +": ";
+  translatedComment += arg + ": ";
   if (tag.entityList.size())
     translatedComment += tag.entityList.begin()->data;
   tag.entityList.pop_front();
@@ -736,7 +730,7 @@ void CSharpDocConverter::handleTagImage(DoxygenEntity &tag, std::string &transla
 }
 
 void CSharpDocConverter::handleTagParam(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
-  
+
   if (tag.entityList.size() < 2)
     return;
 
@@ -758,7 +752,7 @@ void CSharpDocConverter::handleTagParam(DoxygenEntity &tag, std::string &transla
 }
 
 
-void CSharpDocConverter::handleTagReturn(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {  
+void CSharpDocConverter::handleTagReturn(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
   IndentGuard indent(translatedComment, m_indent);
 
   translatedComment += "<returns>";
@@ -768,28 +762,28 @@ void CSharpDocConverter::handleTagReturn(DoxygenEntity &tag, std::string &transl
 }
 
 
-void CSharpDocConverter::handleTagException(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {  
+void CSharpDocConverter::handleTagException(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
   IndentGuard indent(translatedComment, m_indent);
 
   DoxygenEntity paramNameEntity = *tag.entityList.begin();
   tag.entityList.pop_front();
 
-    const std::string &paramName = paramNameEntity.data;
+  const std::string &paramName = paramNameEntity.data;
 
-    const std::string paramType = getParamType(paramName);
+  const std::string paramType = getParamType(paramName);
   const std::string paramValue = getParamValue(paramName);
 
-    translatedComment += "<exception cref=\"" + paramName + "\">";
+  translatedComment += "<exception cref=\"" + paramName + "\">";
 
-    translatedComment += translateSubtree(tag);
-    eraseTrailingSpaceNewLines(translatedComment);
+  translatedComment += translateSubtree(tag);
+  eraseTrailingSpaceNewLines(translatedComment);
 
-    translatedComment += "</exception> \n";
+  translatedComment += "</exception> \n";
 }
 
 
 void CSharpDocConverter::handleTagRef(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
-  
+
   if (!tag.entityList.size())
     return;
 
@@ -875,7 +869,7 @@ void CSharpDocConverter::handleDoxyHtmlTag_tr(DoxygenEntity &tag, std::string &t
     if (nlPos != string::npos) {
       size_t startOfTableLinePos = translatedComment.find_first_not_of(" \t", nlPos + 1);
       if (startOfTableLinePos != string::npos) {
-        m_tableLineLen = translatedComment.size() - startOfTableLinePos;
+	m_tableLineLen = translatedComment.size() - startOfTableLinePos;
       }
     }
   } else {
@@ -887,7 +881,7 @@ void CSharpDocConverter::handleDoxyHtmlTag_tr(DoxygenEntity &tag, std::string &t
       translatedComment += string(m_tableLineLen, '-') + '\n';
 
       if (nlPos != string::npos) {
-        translatedComment += string(numLeadingSpaces, ' ');
+	translatedComment += string (numLeadingSpaces, ' ');
       }
       m_prevRowIsTH = false;
     }
@@ -967,4 +961,3 @@ String *CSharpDocConverter::makeDocumentation(Node *n) {
 
   return NewString(csharpDocString.c_str());
 }
-

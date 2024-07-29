@@ -26,7 +26,7 @@
 class CSharpDocConverter : public DoxygenTranslator {
 public:
   CSharpDocConverter(int flags = 0);
-  
+
   String *makeDocumentation(Node *node);
 
 protected:
@@ -68,7 +68,7 @@ protected:
   /*
    * Replace char by the one ine argument
    */
-  void handleTagCharReplace(DoxygenEntity &tag, std::string &translatedComment, const std::string & arg); 
+  void handleTagCharReplace(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
   /*
    * Print the name of tag to the output, used for escape-commands
@@ -83,12 +83,12 @@ protected:
   /**
    *  Print the content without any tag
   */
-  void handleNotHandled(DoxygenEntity &tag, std::string &translatedComment, const std::string & tagName);
+  void handleNotHandled(DoxygenEntity &tag, std::string &translatedComment, const std::string &tagName);
 
   /**
    *  Print the content as an item of a list
   */
-  void handleAddList(DoxygenEntity &tag, std::string &translatedComment, const std::string & tagName);
+  void handleAddList(DoxygenEntity &tag, std::string &translatedComment, const std::string &tagName);
 
   /*
    * Print only the content and strip original tag
@@ -106,8 +106,8 @@ protected:
   void handleLine(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg = std::string());
 
   /*
- * Print summary
- */
+   * Print summary
+   */
   void handleSummary(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg = std::string());
 
   /*
