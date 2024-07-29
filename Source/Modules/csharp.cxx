@@ -4734,12 +4734,15 @@ public:
    *--------------------------------------------------------------------*/
 
   bool have_docstring(Node *n) {
+    /* autodoc and docstring features not supported in C#
     String *str = Getattr(n, "feature:docstring");
 
     return ((str && Len(str) > 0)
 	|| (Getattr(n, "feature:autodoc") && !GetFlag(n, "feature:noautodoc"))
 	|| (doxygen && doxygenTranslator->hasDocumentation(n))
 	);
+    */
+    return doxygen && doxygenTranslator->hasDocumentation(n);
   }
 
   /* ------------------------------------------------------------
