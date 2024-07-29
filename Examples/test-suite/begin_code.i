@@ -12,13 +12,13 @@ using System.Text;
 
 
 %inline %{
-struct ABC {
+struct SWIG_ABC {
     void abc_method() {}
 };
 %}
 
 #if defined(SWIGCSHARP)
-%extend ABC {
+%extend SWIG_ABC {
 %proxycode %{
 public StringBuilder TestBeginProxy(string input) {
   return new StringBuilder(input);

@@ -22,6 +22,6 @@ x = typedef_inherit.do_blah2(d)
 if x != "Grok::blah":
     raise RuntimeError("Whoa! Bad return {}".format(x))
 
-x = d.far()
-if x != "Spam::far":
+x = d.far1()
+if x != "Spam::far1":
     raise RuntimeError("Whoa! Bad return {}".format(x))

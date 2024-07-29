@@ -497,6 +497,17 @@ then LIBC=$withval
 else AC_MSG_ERROR([proper usage is --with-libc=STRING])
 fi])
 
+case $host in
+  dnl Windows path separator
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
+    SH_PATH_SEP=';'
+    ;;
+  *) dnl POSIX path separator
+    SH_PATH_SEP=':'
+    ;;
+esac
+AC_SUBST(SH_PATH_SEP)
+
 #--------------------------------------------------------------------
 # Target languages
 #--------------------------------------------------------------------
@@ -940,14 +951,11 @@ case $host in
     if test -n "$JAVA_HOME"; then
       JAVA_HOME=`cygpath --mixed "$JAVA_HOME"`
     fi
-    dnl Java uses semicolons and not colons as separators in its classes search path under Windows.
-    JAVA_CLASSPATH_SEP=";"
     ;;
   *-*-mingw*)
     if test -n "$JAVA_HOME"; then
       JAVA_HOME=`${srcdir}/Tools/convertpath -u "$JAVA_HOME"`
     fi
-    JAVA_CLASSPATH_SEP=";"
     ;;
   *-*-darwin*)
     dnl Under OS X JAVA_HOME is not set by default, try to use the system default JRE.
@@ -960,11 +968,6 @@ case $host in
     if test -r "$JAVA_OSX_STD_INCDIR/jni.h"; then
       JAVA_HOME_INCDIR=$JAVA_OSX_STD_INCDIR
     fi
-    JAVA_CLASSPATH_SEP=":"
-    ;;
-  *)
-    dnl Assume generic Unix.
-    JAVA_CLASSPATH_SEP=":"
     ;;
 esac
 
@@ -1170,7 +1173,6 @@ fi
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
 AC_SUBST(JAVAINC)
-AC_SUBST(JAVA_CLASSPATH_SEP)
 AC_SUBST(JAVADYNAMICLINKING)
 AC_SUBST(JAVALIBRARYPREFIX)
 AC_SUBST(JAVASO)
@@ -2282,6 +2284,7 @@ if test -n "$RUBY"; then
 		dirs="$dirs $rb_archlibdir $rb_libdir $rb_bindir"
 
         rb_libruby=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
+        rb_dlibruby=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBRUBY"]]') 2>/dev/null`
         RUBYLINK=`($RUBY -rrbconfig -e '
             c = RbConfig::CONFIG
             if c.has_key? "LIBRUBYARG_STATIC" # 1.8.x
@@ -2309,9 +2312,10 @@ if test -n "$RUBY"; then
               puts link
             end') 2>/dev/null`
 
-		if test "$rb_libruby" != ""; then
+		if test -n "$rb_libruby" || test -n "$rb_dlibruby"; then
 			for i in $dirs; do
-				if test -r "$i/$rb_libruby"; then
+				if { test -n "$rb_libruby" && test -r $i/$rb_libruby ; } ||\
+				   { test -n "$rb_dlibruby" && test -r $i/$rb_dlibruby ; } ; then
 					RUBYLIB="$i"
 					break
 				fi
@@ -2339,7 +2343,7 @@ else
 fi
 
 case $host in
-*-*-cygwin* | *-*-mingw*)	RUBYDYNAMICLINKING="-L$RUBYLIB $RUBYLINK";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) RUBYDYNAMICLINKING="-L$RUBYLIB $RUBYLINK";;
 *)		RUBYDYNAMICLINKING="";;
 esac
 fi

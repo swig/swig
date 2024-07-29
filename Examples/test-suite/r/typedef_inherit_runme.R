@@ -24,6 +24,6 @@ unittest(x, "Spam::blah")
 x <- do_blah2(d)
 unittest(x, "Grok::blah")
 
-unittest(d$far(), "Spam::far")
+unittest(d$far1(), "Spam::far1")
 
 q(save="no")

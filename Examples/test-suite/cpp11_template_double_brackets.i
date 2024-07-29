@@ -17,11 +17,11 @@ std::map<int,std::map<int, std::map<int, std::map<int, double>>>> map4;
 %rename(InsertionOperator) operator<<;
 
 %inline %{
-class ABC {
+class SWIG_ABC {
 public:
   int a;
-  int operator>>(ABC &) { return 0; }
-  int operator<<(ABC &) { return 0; }
+  int operator>>(SWIG_ABC &) { return 0; }
+  int operator<<(SWIG_ABC &) { return 0; }
 };
 
 class DEF {
@@ -38,10 +38,10 @@ public:
   int a;
 
   template<typename U>
-    U operator>>(ABC &);
+    U operator>>(SWIG_ABC &);
 
   template<typename U>
-    U operator<<(ABC &);
+    U operator<<(SWIG_ABC &);
 };
 %}
 
