@@ -1382,7 +1382,7 @@ public:
    * the indentation string in 'indent'.
    * ------------------------------------------------------------ */
 
-  String *indent_docstring(const String *code, const_String_or_char_ptr indent) {
+  String *indent_docstring(const String *code, const char *indent) {
     String *out = NewString("");
     String *temp;
     char *t;
@@ -1501,7 +1501,7 @@ public:
    * may be empty if there is no docstring).
    * ------------------------------------------------------------ */
 
-  String *build_combined_docstring(Node *n, autodoc_t ad_type, const String *indent = "", bool low_level = false) {
+  String *build_combined_docstring(Node *n, autodoc_t ad_type, const char *indent = "", bool low_level = false) {
     bool add_autodoc = true;
     String *docstr = Getattr(n, "feature:docstring");
     if (docstr) {
@@ -1590,7 +1590,7 @@ public:
    * set then it will build a combined docstring.
    * ------------------------------------------------------------ */
 
-  String *docstring(Node *n, autodoc_t ad_type, const String *indent, bool low_level = false) {
+  String *docstring(Node *n, autodoc_t ad_type, const char *indent, bool low_level = false) {
     String *docstr = build_combined_docstring(n, ad_type, indent, low_level);
     const int len = Len(docstr);
     if (!len)

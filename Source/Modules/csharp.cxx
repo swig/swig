@@ -4762,7 +4762,7 @@ public:
    * Get documentation comments, if any
    *--------------------------------------------------------------------*/
 
-  String *docstring(Node *n, const String *indent, bool low_level = false) {
+  String *docstring(Node *n, const char *indent, bool low_level = false) {
     String *docstr = build_combined_docstring(n, indent, low_level);
     const int len = Len(docstr);
     if (!len)
@@ -4778,7 +4778,7 @@ public:
    * may be empty if there is no docstring).
    *--------------------------------------------------------------------*/
 
-  String *build_combined_docstring(Node *n, const String *indent = "", bool low_level = false) {
+  String *build_combined_docstring(Node *n, const char *indent = "", bool low_level = false) {
     String *docstr = NULL;
 
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
@@ -4800,7 +4800,7 @@ public:
       Delete(docstr);
       docstr = tmp;
     } else {
-      String *tmp = NewString("");
+      String *tmp = NewString(indent);
       Append(tmp, "/// ");
       Append(tmp, docstr);
       Append(tmp, "\n");
@@ -4819,7 +4819,7 @@ public:
    * the indentation string in 'indent'.
    * ------------------------------------------------------------ */
 
-  String *indent_docstring(const String *code, const_String_or_char_ptr indent) {
+  String *indent_docstring(const String *code, const char *indent) {
     String *out = NewString("");
     String *temp;
     char *t;
