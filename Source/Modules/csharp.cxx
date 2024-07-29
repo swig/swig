@@ -1214,7 +1214,9 @@ public:
 
       // Translate and write comment if flagged
       if (have_docstring(n)) {
-	Printv(enum_code, docstring(n, tab4, true), NIL, NIL);
+	String *ds = docstring(n, tab4, true);
+	Printv(enum_code, ds, NIL);
+	Delete(ds);
       }
 
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
@@ -1424,7 +1426,9 @@ public:
 
 	// Translate and write comment if flagged
 	if (have_docstring(n)) {
-	  Printv(enum_code, docstring(n, tab4, true), NIL, NIL);
+	  String *ds = docstring(n, tab4, true);
+	  Printv(enum_code, ds, NIL);
+	  Delete(ds);
 	}
 	Printf(enum_code, "  %s", symname);
 
@@ -1578,7 +1582,9 @@ public:
 
     // Translate and write comment if flagged
     if (have_docstring(n)) {
-      Printv(constants_code, docstring(n, tab4, true), NIL, NIL);
+      String *ds = docstring(n, tab4, true);
+      Printv(constants_code, ds, NIL);
+      Delete(ds);
     }
 
     Printf(constants_code, "  %s %s %s %s = ", methodmods, (const_feature_flag ? "const" : "static readonly"), return_type, itemname);
@@ -2256,7 +2262,9 @@ public:
 
     // Translate and write comment if flagged
     if (have_docstring(n)) {
-      Printv(proxy_class_def, docstring(n, tab4, true), NIL);
+      String *ds = docstring(n, tab4, true);
+      Printv(proxy_class_def, ds, NIL);
+      Delete(ds);
     }
 
     if (proxy_flag) {
@@ -2414,7 +2422,9 @@ public:
 
     // NO EFFECT
     if (have_docstring(n)) {
-      Printv(module_class_code, docstring(n, tab4, true), NIL);
+      String *ds = docstring(n, tab4, true);
+      Printv(module_class_code, ds, NIL);
+      Delete(ds);
     }
 
     return SWIG_OK;
@@ -2640,7 +2650,9 @@ public:
 
     // Translate and write comment if flagged
     if (have_docstring(n)) {
-      Printv(comment_code, docstring(n, tab4, true), NIL);
+      String *ds = docstring(n, tab4, true);
+      Printv(comment_code, ds, NIL);
+      Delete(ds);
     }
 
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in proxy class)
@@ -2739,7 +2751,9 @@ public:
 
 	// Translate and write comment if flagged
 	if (have_docstring(n)) {
-	  Printv(proxy_class_code, docstring(n, tab4, true), NIL);
+	  String *ds = docstring(n, tab4, true);
+	  Printv(proxy_class_code, ds, NIL);
+	  Delete(ds);
 	}
 
 	// Start property declaration
@@ -3003,7 +3017,9 @@ public:
 
       // Translate and write comment if flagged
       if (have_docstring(n)) {
-	Printv(comment_code, docstring(n, tab4, true), NIL);
+	String *ds = docstring(n, tab4, true);
+	Printv(comment_code, ds, NIL);
+	Delete(ds);
       }
 
       Printv(proxy_class_code, comment_code, NIL);
@@ -3190,8 +3206,11 @@ public:
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
     // Translate and write comment if flagged
-    if (have_docstring(n))
-      Printv(function_code, docstring(n, tab4, true), NIL, NIL);
+    if (have_docstring(n)) {
+      String *ds = docstring(n, tab4, true);
+      Printv(function_code, ds, NIL);
+      Delete(ds);
+    }
 
     Printf(function_code, "  %s static %s %s(", methodmods, return_type, func_name);
     Printv(imcall, imclass_name, ".", overloaded_name, "(", NIL);
