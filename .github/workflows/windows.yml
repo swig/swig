@@ -73,9 +73,7 @@ jobs:
           VER: '3.1.6'
           NOTEST: 'no-test'
         - SWIGLANG: ruby
-          INSTALL: 'true'
           COMPILER: gcc
-          NOTEST: 'no-test'
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -151,6 +149,8 @@ jobs:
               ;;
             ruby)
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-ruby"
+              # MinGW-w64 with iostream need static link
+              echo "EXAMPLE_LIBS=-static-libstdc++ -static-libgcc" >> $GITHUB_ENV
               ;;
             perl)
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-perl"
