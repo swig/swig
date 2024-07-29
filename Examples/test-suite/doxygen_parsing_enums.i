@@ -5,6 +5,7 @@
 
 	/**
 	 * Testing comments before enum items
+	 * Including two line comments
 	 */
 	enum SomeAnotherEnum
 	{
@@ -19,7 +20,12 @@
 		/**
 		 * The comment for the third item
 		 */
-		SOME_ITEM_3
+		SOME_ITEM_3,
+		/**
+		 * The comment for the fourth item
+		 * over two lines
+		 */
+		SOME_ITEM_4
 	};
 
 	/**

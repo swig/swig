@@ -1212,9 +1212,9 @@ public:
       EnumFeature enum_feature = decodeEnumFeature(n);
       String *typemap_lookup_type = Getattr(n, "name");
 
-      // Translate and write comment if flagged
+      // Translate documentation comments
       if (have_docstring(n)) {
-	String *ds = docstring(n, tab4, true);
+	String *ds = docstring(n, tab0, true);
 	Printv(enum_code, ds, NIL);
 	Delete(ds);
       }
@@ -1424,9 +1424,9 @@ public:
 	if (csattributes)
 	  Printf(enum_code, "  %s\n", csattributes);
 
-	// Translate and write comment if flagged
+	// Translate documentation comments
 	if (have_docstring(n)) {
-	  String *ds = docstring(n, tab4, true);
+	  String *ds = docstring(n, tab2, true);
 	  Printv(enum_code, ds, NIL);
 	  Delete(ds);
 	}
@@ -1580,9 +1580,9 @@ public:
     const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
-    // Translate and write comment if flagged
+    // Translate documentation comments
     if (have_docstring(n)) {
-      String *ds = docstring(n, tab4, true);
+      String *ds = docstring(n, tab2, true);
       Printv(constants_code, ds, NIL);
       Delete(ds);
     }
@@ -2260,9 +2260,9 @@ public:
 
     Language::classHandler(n);
 
-    // Translate and write comment if flagged
+    // Translate documentation comments
     if (have_docstring(n)) {
-      String *ds = docstring(n, tab4, true);
+      String *ds = docstring(n, tab0, true);
       Printv(proxy_class_def, ds, NIL);
       Delete(ds);
     }
@@ -2419,13 +2419,6 @@ public:
       Delete(overloaded_name);
     }
     static_flag = false;
-
-    // NO EFFECT
-    if (have_docstring(n)) {
-      String *ds = docstring(n, tab4, true);
-      Printv(module_class_code, ds, NIL);
-      Delete(ds);
-    }
 
     return SWIG_OK;
   }
@@ -2648,9 +2641,9 @@ public:
     if (is_interface)
       Printf(interface_class_code, ");\n");
 
-    // Translate and write comment if flagged
+    // Translate documentation comments
     if (have_docstring(n)) {
-      String *ds = docstring(n, tab4, true);
+      String *ds = docstring(n, tab2, true);
       Printv(comment_code, ds, NIL);
       Delete(ds);
     }
@@ -2749,9 +2742,9 @@ public:
 	if (!methodmods)
 	  methodmods = (is_public(n) ? public_string : protected_string);
 
-	// Translate and write comment if flagged
+	// Translate documentation comments
 	if (have_docstring(n)) {
-	  String *ds = docstring(n, tab4, true);
+	  String *ds = docstring(n, tab2, true);
 	  Printv(proxy_class_code, ds, NIL);
 	  Delete(ds);
 	}
@@ -3015,9 +3008,9 @@ public:
         Replaceall(function_code, "$imcall", imcall);
       }
 
-      // Translate and write comment if flagged
+      // Translate documentation comments
       if (have_docstring(n)) {
-	String *ds = docstring(n, tab4, true);
+	String *ds = docstring(n, tab2, true);
 	Printv(comment_code, ds, NIL);
 	Delete(ds);
       }
@@ -3205,9 +3198,9 @@ public:
     const String *methodmods = Getattr(n, "feature:cs:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
-    // Translate and write comment if flagged
+    // Translate documentation comments
     if (have_docstring(n)) {
-      String *ds = docstring(n, tab4, true);
+      String *ds = docstring(n, tab2, true);
       Printv(function_code, ds, NIL);
       Delete(ds);
     }
@@ -4748,8 +4741,7 @@ public:
   /* ------------------------------------------------------------
    * have_docstring()
    *
-   * Check if there is a docstring directive and it has text,
-   * or there is an autodoc flag set
+   * Check for Doxygen comments
    *--------------------------------------------------------------------*/
 
   bool have_docstring(Node *n) {
@@ -4767,9 +4759,7 @@ public:
   /* ------------------------------------------------------------
    * docstring()
    *
-   * Get the docstring text, stripping off {} if necessary,
-   * and enclose in triple double quotes.  If autodoc is also
-   * set then it will build a combined docstring.
+   * Get documentation comments, if any
    *--------------------------------------------------------------------*/
 
   String *docstring(Node *n, const String *indent, bool low_level = false) {
@@ -4784,12 +4774,7 @@ public:
   /* ------------------------------------------------------------
    * build_combined_docstring()
    *
-   * Build the full docstring which may be a combination of the
-   * explicit docstring and autodoc string or, if none of them
-   * is specified, obtained by translating Doxygen comment to
-   * Python.
-   *
-   * Return new string to be deleted by caller (never NIL but
+   * Return new dosucmentation string to be deleted by caller (never NIL but
    * may be empty if there is no docstring).
    *--------------------------------------------------------------------*/
 
@@ -4812,7 +4797,6 @@ public:
     if (Strchr(docstr, '\n')) {
       String *tmp = NewString("");
       Append(tmp, indent_docstring(docstr, indent));
-      Append(tmp, indent);
       Delete(docstr);
       docstr = tmp;
     } else {

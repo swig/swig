@@ -26,6 +26,11 @@ public class doxygen_parsing_enums_typeunsafe_runme {
     		" The comment for the third item \n" +
     		" \n" +
     		"");
+    wantedComments.put("doxygen_parsing_enums_typeunsafe.SomeAnotherEnum.SOME_ITEM_4",
+    		" The comment for the fourth item \n" +
+    		" over two lines \n" +
+    		" \n" +
+    		"");
     wantedComments.put("doxygen_parsing_enums_typeunsafe.SomeAnotherEnum.SOME_ITEM_1",
     		" The comment for the first item \n" +
     		" \n" +
@@ -35,6 +40,7 @@ public class doxygen_parsing_enums_typeunsafe_runme {
     		"");
     wantedComments.put("doxygen_parsing_enums_typeunsafe.SomeAnotherEnum",
     		" Testing comments before enum items \n" +
+    		" Including two line comments \n" +
     		" \n" +
     		"");
     wantedComments.put("doxygen_parsing_enums_typeunsafe.SomeAnotherEnum2",
