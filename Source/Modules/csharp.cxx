@@ -297,7 +297,7 @@ public:
 
     if (doxygen)
       doxygenTranslator = new CSharpDocConverter(doxygen_translator_flags);
-    
+
     // Add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGCSHARP 1", 0);
 
@@ -1214,7 +1214,7 @@ public:
 
       // Translate documentation comments
       if (have_docstring(n)) {
-	String *ds = docstring(n, tab0, true);
+	String *ds = docstring(n, tab0);
 	Printv(enum_code, ds, NIL);
 	Delete(ds);
       }
@@ -1426,7 +1426,7 @@ public:
 
 	// Translate documentation comments
 	if (have_docstring(n)) {
-	  String *ds = docstring(n, tab2, true);
+	  String *ds = docstring(n, tab2);
 	  Printv(enum_code, ds, NIL);
 	  Delete(ds);
 	}
@@ -1582,7 +1582,7 @@ public:
 
     // Translate documentation comments
     if (have_docstring(n)) {
-      String *ds = docstring(n, tab2, true);
+      String *ds = docstring(n, tab2);
       Printv(constants_code, ds, NIL);
       Delete(ds);
     }
@@ -2262,7 +2262,7 @@ public:
 
     // Translate documentation comments
     if (have_docstring(n)) {
-      String *ds = docstring(n, tab0, true);
+      String *ds = docstring(n, tab0);
       Printv(proxy_class_def, ds, NIL);
       Delete(ds);
     }
@@ -2643,7 +2643,7 @@ public:
 
     // Translate documentation comments
     if (have_docstring(n)) {
-      String *ds = docstring(n, tab2, true);
+      String *ds = docstring(n, tab2);
       Printv(comment_code, ds, NIL);
       Delete(ds);
     }
@@ -2744,7 +2744,7 @@ public:
 
 	// Translate documentation comments
 	if (have_docstring(n)) {
-	  String *ds = docstring(n, tab2, true);
+	  String *ds = docstring(n, tab2);
 	  Printv(proxy_class_code, ds, NIL);
 	  Delete(ds);
 	}
@@ -3010,7 +3010,7 @@ public:
 
       // Translate documentation comments
       if (have_docstring(n)) {
-	String *ds = docstring(n, tab2, true);
+	String *ds = docstring(n, tab2);
 	Printv(comment_code, ds, NIL);
 	Delete(ds);
       }
@@ -3134,7 +3134,6 @@ public:
     String *tm;
     Parm *p;
     Parm *last_parm = 0;
-    String *comment_code = NewString("");
     int i;
     String *imcall = NewString("");
     String *return_type = NewString("");
@@ -3200,7 +3199,7 @@ public:
 
     // Translate documentation comments
     if (have_docstring(n)) {
-      String *ds = docstring(n, tab2, true);
+      String *ds = docstring(n, tab2);
       Printv(function_code, ds, NIL);
       Delete(ds);
     }
@@ -4760,25 +4759,12 @@ public:
    * docstring()
    *
    * Get documentation comments, if any
-   *--------------------------------------------------------------------*/
-
-  String *docstring(Node *n, const char *indent, bool low_level = false) {
-    String *docstr = build_combined_docstring(n, indent, low_level);
-    const int len = Len(docstr);
-    if (!len)
-      return docstr;
-
-    return docstr;
-  }
-
-  /* ------------------------------------------------------------
-   * build_combined_docstring()
    *
-   * Return new dosucmentation string to be deleted by caller (never NIL but
+   * Return new documentation string to be deleted by caller (never NULL but
    * may be empty if there is no docstring).
    *--------------------------------------------------------------------*/
 
-  String *build_combined_docstring(Node *n, const char *indent = "", bool low_level = false) {
+  String *docstring(Node *n, const char *indent = "") {
     String *docstr = NULL;
 
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
@@ -4868,7 +4854,7 @@ public:
       char ch = c[i];
       if (!ch) {
         // Line is just whitespace - emit an empty line.
-        Printv(out, indent, "///", NIL, NIL);  
+        Printv(out, indent, "///", NIL);
         Putc('\n', out);
         continue;
       }

@@ -181,21 +181,6 @@ static string padCodeAndVerbatimBlocks(const string &docString) {
   return result;
 }
 
-// Helper function to extract the option value from a command,
-// e.g. param[in] -> in
-static std::string getCommandOption(const std::string &command, char openChar, char closeChar) {
-  string option;
-
-  size_t opt_begin, opt_end;
-  opt_begin = command.find(openChar);
-  opt_end = command.find(closeChar);
-  if (opt_begin != string::npos && opt_end != string::npos)
-    option = command.substr(opt_begin + 1, opt_end - opt_begin - 1);
-
-  return option;
-}
-
-
 /* static */
 CSharpDocConverter::TagHandlersMap::mapped_type CSharpDocConverter::make_handler(tagHandler handler) {
   return make_pair(handler, std::string());
