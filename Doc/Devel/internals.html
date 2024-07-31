@@ -1226,6 +1226,13 @@ Fatal internal error: Attempt to delete a non-DOH object.
 <p>
 This can be memory intensive as previously used memory in the pool is not re-used so is
 only recommended for diagnosing memory corruption problems.
+The valgrind tool is commonly used for debugging memory problems and <tt>DOH_DEBUG_MEMORY_POOLS</tt>
+should also be defined when using valgrind.
+</p>
+
+<h3>7.3 Further debugging information</h3>
+<p>
+There is also useful practical information about debugging SWIG in the <i>Extending SWIG to support new languages</i> chapter in the main documentation manual.
 </p>
 
 <hr>
