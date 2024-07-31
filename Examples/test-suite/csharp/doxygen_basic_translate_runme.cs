@@ -100,9 +100,7 @@ public class doxygen_basic_translate_runme {
   {
     _checker.checkText(doxygen_checker.CodeType.MEMBER, "function6", @"
              Test for default args
-             ");
-    _checker.checkObjectAttribute(doxygen_checker.CodeType.MEMBER, "function6", "param", 0, "name", "a");
-    _checker.checkObject(doxygen_checker.CodeType.MEMBER, "function6", "param", 0, " Some parameter, default is 42");
+            ");
   }
 
   public void test_function7()
@@ -131,14 +129,10 @@ public class doxygen_basic_translate_runme {
   public void test_function8()
   {
     _checker.checkObject(doxygen_checker.CodeType.MEMBER, "function8", "summary", 0, "Test variadic function");
-    _checker.checkObjectAttribute(doxygen_checker.CodeType.MEMBER, "function8", "param", 0, "name", "...");
-    _checker.checkObject(doxygen_checker.CodeType.MEMBER, "function8", "param", 0, " extra args");
   }
 
   public void test_function9()
   {
     _checker.checkObject(doxygen_checker.CodeType.MEMBER, "function9(System.Int32)", "summary", 0, "Test unnamed argument");
-    _checker.checkObjectAttribute(doxygen_checker.CodeType.MEMBER, "function9(System.Int32)", "param", 0, "name", "baz");
-    _checker.checkObject(doxygen_checker.CodeType.MEMBER, "function9(System.Int32)", "param", 0, " Description of baz");
   }
 }

@@ -439,6 +439,38 @@ std::string CSharpDocConverter::getParamValue(std::string param) {
   return value;
 }
 
+/**
+ * Returns true, if the given parameter exists in the current node
+ * (for example param is a name of function parameter). If feature
+ * 'doxygen:nostripparams' is set, then this method always returns
+ * true - parameters are copied to output regardless of presence in
+ * function params list.
+ */
+bool CSharpDocConverter::paramExists(std::string param) {
+
+  if (GetFlag(currentNode, "feature:doxygen:nostripparams")) {
+    return true;
+  }
+
+  ParmList *plist = CopyParmList(Getattr(currentNode, "parms"));
+
+  for (Parm *p = plist; p;) {
+
+    if (Getattr(p, "name") && Char(Getattr(p, "name")) == param) {
+      return true;
+    }
+    /* doesn't seem to work always: in some cases (especially for 'self' parameters)
+     * tmap:in is present, but tmap:in:next is not and so this code skips all the parameters
+     */
+    //p = Getattr(p, "tmap:in") ? Getattr(p, "tmap:in:next") : nextSibling(p);
+    p = nextSibling(p);
+  }
+
+  Delete(plist);
+
+  return false;
+}
+
 std::string CSharpDocConverter::translateSubtree(DoxygenEntity &doxygenEntity) {
   std::string translatedComment;
 
@@ -732,6 +764,9 @@ void CSharpDocConverter::handleTagImage(DoxygenEntity &tag, std::string &transla
 void CSharpDocConverter::handleTagParam(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
 
   if (tag.entityList.size() < 2)
+    return;
+
+  if (!paramExists(tag.entityList.begin()->data))
     return;
 
   IndentGuard indent(translatedComment, m_indent);
