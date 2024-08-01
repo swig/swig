@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-08-01: olly
+	    Fix wrapping of string constants containing bytes 0-8, 11, 12 or
+	    14-31 followed by a digit '0' to '7'.  We were emitting these bytes
+	    as a one or two character octal escape sequence which when
+	    interpreted would include the following character.
+
 2024-07-27: olly
 	    #2087 Fix parsing of `noexcept` on a function pointer type used
 	    as the type of a function parameter.  We currently generate

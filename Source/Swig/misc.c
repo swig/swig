@@ -357,11 +357,9 @@ int Swig_storage_isstatic(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_escape(String *s) {
-  String *ns;
-  int c;
-  ns = NewStringEmpty();
-
-  while ((c = Getc(s)) != EOF) {
+  String *ns = NewStringEmpty();
+  int c = Getc(s);
+  while (c != EOF) {
     if (c == '\n') {
       Printf(ns, "\\n");
     } else if (c == '\r') {
@@ -377,12 +375,21 @@ String *Swig_string_escape(String *s) {
     } else if (c == ' ') {
       Putc(c, ns);
     } else if (!isgraph(c)) {
+      int next_c = Getc(s);
       if (c < 0)
 	c += UCHAR_MAX + 1;
-      Printf(ns, "\\%o", c);
+      if (next_c >= '0' && next_c < '8') {
+	/* We need to emit 3 octal digits. */
+	Printf(ns, "\\%03o", c);
+      } else {
+	Printf(ns, "\\%o", c);
+      }
+      c = next_c;
+      continue;
     } else {
       Putc(c, ns);
     }
+    c = Getc(s);
   }
   return ns;
 }
