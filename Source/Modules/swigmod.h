@@ -40,6 +40,7 @@ extern String *argc_template_string;
 
 /* Miscellaneous stuff */
 
+#define  tab0   ""
 #define  tab2   "  "
 #define  tab4   "    "
 #define  tab8   "        "

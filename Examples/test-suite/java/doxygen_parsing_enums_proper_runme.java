@@ -27,6 +27,7 @@ public class doxygen_parsing_enums_proper_runme {
     		"");
     wantedComments.put("doxygen_parsing_enums_proper.SomeAnotherEnum",
     		" Testing comments before enum items \n" +
+    		" Including two line comments \n" +
     		" \n" +
     		"");
     wantedComments.put("doxygen_parsing_enums_proper.SomeAnotherEnum2.SOME_ITEM_30",
@@ -34,6 +35,11 @@ public class doxygen_parsing_enums_proper_runme {
     		"");
     wantedComments.put("doxygen_parsing_enums_proper.SomeAnotherEnum2",
     		" Testing comments after enum items \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing_enums_proper.SomeAnotherEnum.SOME_ITEM_4",
+    		" The comment for the fourth item \n" +
+    		" over two lines \n" +
     		" \n" +
     		"");
     wantedComments.put("doxygen_parsing_enums_proper.SomeAnotherEnum.SOME_ITEM_3",
