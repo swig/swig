@@ -29,7 +29,7 @@ jobs:
     # The name of the test follow the tested language
     name: >
       ${{ matrix.SWIGLANG }} ${{ matrix.VER }}
-      ${{ matrix.COMPILER || 'msvc' }} ${{ matrix.os }} ${{ matrix.NOTEST }}
+      ${{ matrix.COMPILER || 'msvc' }} ${{ matrix.os }}
       ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
@@ -65,7 +65,6 @@ jobs:
        #- SWIGLANG: python
        #  INSTALL: 'true'
        #  COMPILER: gcc
-       #  NOTEST: 'no-test'
         - SWIGLANG: ruby
           VER: '3.0.7'
           COMPILER: gcc
@@ -73,7 +72,11 @@ jobs:
           COMPILER: gcc
         - SWIGLANG: ruby
           VER: '3.1.6'
-          NOTEST: 'no-test'
+          COMPILER: gcc
+       # TODO Ruby bug fix for import_fragments
+       #- SWIGLANG: ruby
+       #  VER: '3.2.5'
+       #  COMPILER: gcc
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -86,7 +89,6 @@ jobs:
       SWIGLANG: ${{ matrix.SWIGLANG }}
       COMPILER: ${{ matrix.COMPILER }}
       INSTALL: ${{ matrix.INSTALL }}
-      NOTEST: ${{ matrix.NOTEST }}
       VER: ${{ matrix.VER }}
       OS: ${{ matrix.os }}
 
@@ -138,36 +140,53 @@ jobs:
           uname --all
 
           if [[ "$COMPILER" = "gcc" ]]; then
-            # MinGW-w64 packages to install with MSYS2
-            for n in binutils make autotools pcre2 boost; do
-              MORE_MSYS_PKGS+=" mingw-w64-x86_64-$n"
-            done
+            # MinGW-w64 variant to use
+            mingw_variant=mingw-w64-x86_64
+            mingw_dir=mingw64
 
             case "$SWIGLANG" in
             python)
-              MORE_MSYS_PKGS+=" mingw-w64-x86_64-python"
+              MORE_MSYS_PKGS+=" $mingw_variant-python"
               ;;
             ruby)
               if [[ -n "$VER" ]]; then
-                RUBYDIR=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64)
-                echo "$RUBYDIR\\bin" >> $GITHUB_PATH
+                ruby_dir=$(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64/bin
+                if $ruby_dir/ruby -v | grep ucrt; then
+                  # We need the MinGW-w64 using Universal CRT
+                  mingw_variant=mingw-w64-ucrt-x86_64
+                  mingw_dir=ucrt64
+                  MORE_MSYS_PKGS+=" $mingw_variant-gcc"
+                else
+                  # MinGW-w64 with iostream need static link
+                  echo "EXAMPLE_LIBS=-static-libstdc++ -static-libgcc" >> $GITHUB_ENV
+                fi
+                RUBYDIR=$(cygpath -w $ruby_dir)
+                echo "$RUBYDIR" >> $GITHUB_PATH
               else
-                MORE_MSYS_PKGS+=" mingw-w64-x86_64-ruby"
+                MORE_MSYS_PKGS+=" $mingw_variant-ruby"
+                # MinGW-w64 with iostream need static link
+                echo "EXAMPLE_LIBS=-static-libstdc++ -static-libgcc" >> $GITHUB_ENV
               fi
-              # MinGW-w64 with iostream need static link
-              echo "EXAMPLE_LIBS=-static-libstdc++ -static-libgcc" >> $GITHUB_ENV
               ;;
             perl)
-              MORE_MSYS_PKGS+=" mingw-w64-x86_64-perl"
+              MORE_MSYS_PKGS+=" $mingw_variant-perl"
               ;;
             esac
 
+            # MinGW-w64 packages to install with MSYS2
+            for n in binutils make autotools pcre2 boost; do
+              MORE_MSYS_PKGS+=" $mingw_variant-$n"
+            done
+
             # MinGW-w64 pcre2
-            echo "PCRE2_CFLAGS=-I/mingw64/include -DPCRE2_STATIC" >> $GITHUB_ENV
-            echo "PCRE2_LIBS=-L/mingw64/lib -lpcre2-8" >> $GITHUB_ENV
+            echo "PCRE2_CFLAGS=-I/$mingw_dir/include -DPCRE2_STATIC" >> $GITHUB_ENV
+            echo "PCRE2_LIBS=-L/$mingw_dir/lib -lpcre2-8" >> $GITHUB_ENV
 
             echo "MORE_MSYS_PKGS=base-devel $MORE_MSYS_PKGS" >> $GITHUB_ENV
-            echo "BOOST_PATH=/c/msys64/mingw64" >> $GITHUB_ENV
+            echo "BOOST_PATH=/c/msys64/$mingw_dir" >> $GITHUB_ENV
+
+            # gcc compiler location
+            echo "MINGW_CC=/$mingw_dir/bin" >> $GITHUB_ENV
           else
              # COMPILER: cccl wrapping MSVC
             curl --retry 15 -s -L https://github.com/swig/cccl/raw/cccl-1.4/cccl -o /usr/bin/cccl
@@ -229,7 +248,7 @@ jobs:
           else
             # Use MinGW-w64 compiler
             # We can not use GITHUB_PATH, as bash insert /usr/bin
-            export PATH="/mingw64/bin:$PATH"
+            export PATH="$MINGW_CC:$PATH"
 
             which gcc
             gcc --version | head -n1
@@ -265,7 +284,7 @@ jobs:
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
             # Use MinGW-w64 compiler
-            export PATH="/mingw64/bin:$PATH"
+            export PATH="$MINGW_CC:$PATH"
             ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe"
           else
              # cccl wrapping MSVC
@@ -277,7 +296,7 @@ jobs:
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
             # Use MinGW-w64 compiler
-            export PATH="/mingw64/bin:$PATH"
+            export PATH="$MINGW_CC:$PATH"
           fi
 
           make -s $SWIGJOBS
@@ -292,12 +311,11 @@ jobs:
           fi
 
     - name: Test
-      if: ${{ matrix.NOTEST == '' }}
       shell: bash
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
             # Use MinGW-w64 compiler
-            export PATH="/mingw64/bin:$PATH"
+            export PATH="$MINGW_CC:$PATH"
           fi
           ./swig.exe -version
           make check-$SWIGLANG-version
