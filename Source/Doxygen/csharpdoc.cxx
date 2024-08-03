@@ -100,6 +100,15 @@ private:
   IndentGuard(const IndentGuard &);
 };
 
+static void replaceAll(std::string &src, const std::string &token, const std::string &replace) {
+  std::string::size_type pos = src.find(token);
+
+  while (pos != std::string::npos) {
+    src.replace(pos, token.size(), replace);
+    pos = src.find(token, pos + replace.size());
+  }
+}
+
 static void trimWhitespace(string &s) {
   const string::size_type lastNonSpace = s.find_last_not_of(' ');
   if (lastNonSpace == string::npos)
@@ -704,8 +713,19 @@ void CSharpDocConverter::handleTagMessage(DoxygenEntity &tag, std::string &trans
 
 void CSharpDocConverter::handleTagSee(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
   translatedComment += "<seealso cref=\"";
-  translatedComment += translateSubtree(tag);
-  eraseTrailingSpaceNewLines(translatedComment);
+  std::string seeAlso = translateSubtree(tag);
+  escapeSpecificCharacters(seeAlso);
+
+  // Remove parameter list
+  // Alternative would be to try and convert them into C# types similar to Java implementation
+  std::string::size_type lbrace = seeAlso.find('(');
+  if (lbrace != std::string::npos)
+    seeAlso.erase(lbrace);
+
+  replaceAll(seeAlso, "::", ".");
+  eraseTrailingSpaceNewLines(seeAlso);
+
+  translatedComment += seeAlso;
   translatedComment += "\"/>\n";
 }
 

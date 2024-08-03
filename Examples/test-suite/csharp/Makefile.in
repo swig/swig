@@ -59,15 +59,14 @@ SWIGOPT += -namespace $*Namespace
 CSHARPFLAGSSPECIAL =
 
 # Custom tests - tests with additional commandline options
-# doxygen tests have specific flags to generate XML documentation and deactivate warnings about XML generation
-intermediary_classname.cpptest: SWIGOPT += -dllimport intermediary_classname
 complextest.cpptest: CSHARPFLAGSSPECIAL = -r:System.Numerics.dll
 csharp_lib_arrays.cpptest: CSHARPFLAGSSPECIAL = -unsafe
 csharp_lib_arrays_bool.cpptest: CSHARPFLAGSSPECIAL = -unsafe
 csharp_swig2_compatibility.cpptest: SWIGOPT += -DSWIG2_CSHARP
-doxygen_basic_translate.cpptest: CSHARPFLAGSSPECIAL = -doc:./doxygen_basic_translate/doxygen_basic_translate.xml -nowarn:"CS1591,CS1574,CS1572,CS1573"
-doxygen_translate.cpptest: 	CSHARPFLAGSSPECIAL = -doc:./doxygen_translate/doxygen_translate.xml -nowarn:"CS1591,CS1574"
-doxygen_nested_class.cpptest: 	CSHARPFLAGSSPECIAL = -doc:./doxygen_nested_class/doxygen_nested_class.xml -nowarn:"CS1591,CS1587"
+# Doxygen tests have specific flags to generate XML documentation and deactivate warnings about XML generation
+doxygen_%.cpptest: CSHARPFLAGSSPECIAL = -doc:./$*/$*.xml -nowarn:"CS0419,CS1572,CS1573,CS1574,CS1584,CS1591"
+doxygen_%.cpptest: CSHARPSRCS_EXTRA_RUN = `$(CSHARPCONVERTPATH) $(SCRIPTDIR)/doxygen_checker.cs`
+intermediary_classname.cpptest: SWIGOPT += -dllimport intermediary_classname
 
 # Rules for the different types of tests
 %.cpptest:
@@ -104,13 +103,12 @@ run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
 	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
 	  CSHARPFLAGS='-nologo -debug+ $(CSHARPFLAGSSPECIAL) -out:$*_runme.exe' \
-	  CSHARPSRCS='`$(CSHARPCONVERTPATH) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` `find $* -name "*.cs" -exec $(CSHARPCONVERTPATH) "{}" \+` "$(SCRIPTDIR)/doxygen_checker.cs"' csharp_compile && \
+	  CSHARPSRCS='`$(CSHARPCONVERTPATH) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)` `find $* -name "*.cs" -exec $(CSHARPCONVERTPATH) "{}" \+` $(CSHARPSRCS_EXTRA_RUN)' csharp_compile && \
 	  env LD_LIBRARY_PATH="$*:$$LD_LIBRARY_PATH" PATH="$*:$$PATH" SHLIB_PATH="$*:$$SHLIB_PATH" DYLD_FALLBACK_LIBRARY_PATH= $(RUNTOOL) $(CSHARPCILINTERPRETER) $(CSHARPCILINTERPRETER_FLAGS) ./$*_runme.exe; \
 	else \
-	  cd $* && \
-	  $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
-	  CSHARPFLAGS='-nologo -debug+ $(CSHARPFLAGSSPECIAL) -t:module -out:$*.netmodule' \
-	  CSHARPSRCS='`find . -name "*.cs" -exec ../$(CSHARPCONVERTPATH) "{}" \+`' csharp_compile; \
+	  $(MAKE) -f $*/$(top_builddir)/$(EXAMPLES)/Makefile \
+	  CSHARPFLAGS='-nologo -debug+ $(CSHARPFLAGSSPECIAL) -t:module -out:$*/$*.netmodule' \
+	  CSHARPSRCS='`find $* -name "*.cs" -exec $(CSHARPCONVERTPATH) "{}" \+`' csharp_compile; \
 	fi
 
 # Clean: remove testcase directories
