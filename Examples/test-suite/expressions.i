@@ -16,6 +16,6 @@ struct A
 
     // Regression test for alternative operator names - this failed to parse in
     // SWIG 4.2.0 and earlier.
-    int g(bool b = (compl 1 or not 2) xor (3 and 4) xor (3 bitand 6) xor (3 bitor 5) xor (2 + 2 not_eq 5)) { return (int)b; }
+    int g(int b = (compl 1 or not 2) xor (3 and 4) xor (3 bitand 6) xor (3 bitor 5) xor (2 + 2 not_eq 5)) { return b; }
 };
 %}
