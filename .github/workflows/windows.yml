@@ -67,13 +67,13 @@ jobs:
        #  COMPILER: gcc
        #  NOTEST: 'no-test'
         - SWIGLANG: ruby
-#         VER: '3.0.7'
-          NOTEST: 'no-test'
+          VER: '3.0.7'
+          COMPILER: gcc
+        - SWIGLANG: ruby
+          COMPILER: gcc
         - SWIGLANG: ruby
           VER: '3.1.6'
           NOTEST: 'no-test'
-        - SWIGLANG: ruby
-          COMPILER: gcc
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -148,7 +148,12 @@ jobs:
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-python"
               ;;
             ruby)
-              MORE_MSYS_PKGS+=" mingw-w64-x86_64-ruby"
+              if [[ -n "$VER" ]]; then
+                RUBYDIR=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64)
+                echo "$RUBYDIR\\bin" >> $GITHUB_PATH
+              else
+                MORE_MSYS_PKGS+=" mingw-w64-x86_64-ruby"
+              fi
               # MinGW-w64 with iostream need static link
               echo "EXAMPLE_LIBS=-static-libstdc++ -static-libgcc" >> $GITHUB_ENV
               ;;
