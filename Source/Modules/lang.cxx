@@ -629,24 +629,9 @@ int Language::constantDirective(Node *n) {
 
   if (!ImportMode) {
     Swig_require("constantDirective", n, "name", "?value", NIL);
-    String *name = Getattr(n, "name");
-    String *value = Getattr(n, "value");
-    if (!value) {
-      value = Copy(name);
-    } else {
-      /*      if (checkAttribute(n,"type","char")) {
-         value = NewString(value);
-         } else {
-         value = NewStringf("%(escape)s", value);
-         }
-       */
-      Setattr(n, "rawvalue", value);
-      value = NewStringf("%(escape)s", value);
-      if (!Len(value))
-	Append(value, "\\0");
-      /*      Printf(stdout,"'%s' = '%s'\n", name, value); */
+    if (!Getattr(n, "value")) {
+      Setattr(n, "value", Copy(Getattr(n, "name")));
     }
-    Setattr(n, "value", value);
     this->constantWrapper(n);
     Swig_restore(n);
     return SWIG_OK;

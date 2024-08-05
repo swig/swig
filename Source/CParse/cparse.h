@@ -80,6 +80,4 @@ extern "C" {
   if (wrnfilter) Swig_warnfilter(wrnfilter,0); \
  }
 
-#define COMPOUND_EXPR_VAL(dtype) \
-  ((dtype).type == T_CHAR || (dtype).type == T_WCHAR ? (dtype).rawval : (dtype).val)
 #endif

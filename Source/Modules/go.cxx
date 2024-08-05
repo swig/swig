@@ -1803,31 +1803,34 @@ private:
 
   virtual int constantWrapper(Node *n) {
     SwigType *type = Getattr(n, "type");
-
-    if (!SwigType_issimple(type) && SwigType_type(type) != T_STRING) {
-      return goComplexConstant(n, type);
-    }
-
-    if (Swig_storage_isstatic(n)) {
-      return goComplexConstant(n, type);
-    }
-
-    String *go_name = buildGoName(Getattr(n, "sym:name"), false, false);
-
-    String *tm = goType(n, type);
     String *value = Getattr(n, "value");
-
-    String *copy = NULL;
-    if (SwigType_type(type) == T_BOOL) {
+    int typecode = SwigType_type(type);
+    if (typecode == T_STRING) {
+      String *stringval = Getattr(n, "stringval");
+      if (!stringval) {
+	return goComplexConstant(n, type);
+      }
+      // Backslash sequences are somewhat different in Go and C/C++.
+      value = NewStringf("\"%(goescape)s\"", stringval); // FIXME leak
+    } else if (typecode == T_CHAR) {
+      String *stringval = Getattr(n, "stringval");
+      if (!stringval || Len(stringval) != 1) {
+	return goComplexConstant(n, type);
+      }
+      // Backslash sequences are somewhat different in Go and C/C++.
+      value = NewStringf("'%(goescape)s'", stringval); // FIXME leak
+    } else if (!SwigType_issimple(type)) {
+      return goComplexConstant(n, type);
+    } else if (Swig_storage_isstatic(n)) {
+      return goComplexConstant(n, type);
+    } else if (typecode == T_BOOL) {
       if (Cmp(value, "true") != 0 && Cmp(value, "false") != 0) {
 	return goComplexConstant(n, type);
       }
-    } else if (SwigType_type(type) == T_STRING || SwigType_type(type) == T_CHAR) {
-      // Backslash sequences are somewhat different in Go and C/C++.
-      if (Strchr(value, '\\') != 0) {
-	return goComplexConstant(n, type);
-      }
-    } else {
+    }
+
+    String *copy = NULL;
+    {
       // Accept a 0x prefix, and strip combinations of u and l
       // suffixes.  Otherwise accept digits, decimal point, and
       // exponentiation.  Treat anything else as too complicated to
@@ -1871,23 +1874,17 @@ private:
       }
     }
 
+    String *go_name = buildGoName(Getattr(n, "sym:name"), false, false);
+
     if (!checkNameConflict(go_name, n, NULL)) {
-      Delete(tm);
       Delete(go_name);
       Delete(copy);
       return SWIG_NOWRAP;
     }
 
-    Printv(f_go_wrappers, "const ", go_name, " ", tm, " = ", NULL);
-    if (SwigType_type(type) == T_STRING) {
-      Printv(f_go_wrappers, "\"", value, "\"", NULL);
-    } else if (SwigType_type(type) == T_CHAR) {
-      Printv(f_go_wrappers, "'", value, "'", NULL);
-    } else {
-      Printv(f_go_wrappers, value, NULL);
-    }
+    String *tm = goType(n, type);
 
-    Printv(f_go_wrappers, "\n", NULL);
+    Printv(f_go_wrappers, "const ", go_name, " ", tm, " = ", value, "\n", NIL);
 
     Delete(tm);
     Delete(go_name);
@@ -1977,46 +1974,16 @@ private:
       return SWIG_NOWRAP;
     }
 
-    String *rawval = Getattr(n, "rawval");
-    if (rawval && Len(rawval)) {
-      // Based on Swig_VargetToFunction
-      String *nname = NewStringf("(%s)", rawval);
-      String *call;
-      if (SwigType_isclass(type)) {
-	call = NewStringf("%s", nname);
-      } else {
-	call = SwigType_lcaststr(type, nname);
-      }
-      String *cres = Swig_cresult(type, Swig_cresult_name(), call);
-      Setattr(n, "wrap:action", cres);
-      Delete(nname);
-      Delete(call);
-      Delete(cres);
-    } else {
+    // FIXME: Check all this
+    {
       String *get = NewString("");
       Printv(get, Swig_cresult_name(), " = ", NULL);
 
-      char quote;
-      if (Getattr(n, "wrappedasconstant")) {
-        quote = '\0';
-      } else if (SwigType_type(type) == T_CHAR) {
-        quote = '\'';
-      } else if (SwigType_type(type) == T_STRING) {
+      if (SwigType_type(type) == T_STRING) {
         Printv(get, "(char *)", NULL);
-        quote = '"';
-      } else {
-        quote = '\0';
-      }
-
-      if (quote != '\0') {
-        Printf(get, "%c", quote);
       }
 
       Printv(get, Getattr(n, "value"), NULL);
-
-      if (quote != '\0') {
-        Printf(get, "%c", quote);
-      }
 
       Printv(get, ";\n", NULL);
 
