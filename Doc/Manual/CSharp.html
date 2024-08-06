@@ -2146,10 +2146,22 @@ to make the method and constructor public:
 Alternatively, instead of exposing these as public, consider 
 using the <tt>[assembly:InternalsVisibleTo("Name")]</tt> attribute available in the .NET framework when you
 know which assemblies these can be exposed to.
+</p>
+
+<p>
 Another approach would be to make these public, but also to hide them from intellisense by using
 the <tt>[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]</tt> attribute
-if you don't want users to easily stumble upon these so called 'internal workings' of the wrappers.
+if you don't want users to easily stumble upon these so called 'internal workings' of the wrappers.  You can
+do this like so:
 </p>
+
+<div class="code">
+<pre>
+#define PUBLIC_BUT_HIDDEN [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)] public
+SWIG_CSBODY_PROXY(PUBLIC_BUT_HIDDEN, PUBLIC_BUT_HIDDEN, SWIGTYPE)
+SWIG_CSBODY_TYPEWRAPPER(PUBLIC_BUT_HIDDEN, PUBLIC_BUT_HIDDEN, PUBLIC_BUT_HIDDEN, SWIGTYPE)
+</pre>
+</div>
 
 
 <H2><a name="CSharp_named_arguments">23.8 C# named and optional arguments</a></H2>
