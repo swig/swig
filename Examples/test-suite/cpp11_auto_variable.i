@@ -50,6 +50,13 @@ static constexpr auto Bad4 = &one;
 %}
 
 %inline %{
+// Concatenation of a literal with an encoding prefix and one without
+// was added in C++11.
+static auto wstring_lit_len1 = sizeof(L"123" "456") / sizeof(wchar_t) - 1;
+static auto wstring_lit_len2 = sizeof("123" L"456") / sizeof(wchar_t) - 1;
+%}
+
+%inline %{
 
 // FIXME: Not currently handled by SWIG's parser:
 //static auto constexpr greeting = "Hello";

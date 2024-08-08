@@ -690,8 +690,7 @@ public:
     String *nodeName = Getattr(node, "name");
     SwigType *type = Getattr(node, "type");
     String *constantName = Getattr(node, "sym:name");
-    String *rawValue = Getattr(node, "rawval");
-    String *constantValue = rawValue ? rawValue : Getattr(node, "value");
+    String *constantValue = Getattr(node, "value");
     String *constantTypemap = NULL;
 
     // If feature scilab:const enabled, constants & enums are wrapped to Scilab variables

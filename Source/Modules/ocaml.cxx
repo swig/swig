@@ -898,8 +898,7 @@ public:
   virtual int constantWrapper(Node *n) {
     String *name = Getattr(n, "feature:symname");
     SwigType *type = Getattr(n, "type");
-    String *rawval = Getattr(n, "rawval");
-    String *value = rawval ? rawval : Getattr(n, "value");
+    String *value = Getattr(n, "value");
     SwigType *qname = Getattr(n, "qualified:name");
 
     if (qname)

@@ -1186,9 +1186,11 @@ int R::enumvalueDeclaration(Node *n) {
     const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
     Setattr(n, "enumvalue", val);
   } else if (swigtype == T_CHAR) {
-    String *val = NewStringf("'%s'", Getattr(n, "enumvalue"));
-    Setattr(n, "enumvalue", val);
-    Delete(val);
+    if (Getattr(n, "enumstringval")) {
+      String *val = NewStringf("'%(escape)s'", Getattr(n, "enumstringval"));
+      Setattr(n, "enumvalue", val);
+      Delete(val);
+    }
   }
 
   if (GetFlag(parent, "scopedenum")) {

@@ -950,10 +950,6 @@ public:
     if (swigtype == T_BOOL) {
       const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
       Setattr(n, "enumvalue", val);
-    } else if (swigtype == T_CHAR) {
-      String *val = NewStringf("'%(escape)s'", Getattr(n, "enumvalue"));
-      Setattr(n, "enumvalue", val);
-      Delete(val);
     }
 
     // Emit the enum item.
@@ -1449,19 +1445,7 @@ public:
       // Note that this is only called for global constants, static member
       // constants are already handled in staticmemberfunctionHandler().
 
-      Swig_save("constantWrapper", n, "value", NIL);
       Swig_save("constantWrapper", n, "tmap:ctype:out", "tmap:imtype:out", "tmap:dtype:out", "tmap:out:null", "tmap:imtype:outattributes", "tmap:dtype:outattributes", NIL);
-
-      // Add the stripped quotes back in.
-      String *old_value = Getattr(n, "value");
-      SwigType *t = Getattr(n, "type");
-      if (SwigType_type(t) == T_STRING) {
-	Setattr(n, "value", NewStringf("\"%s\"", old_value));
-	Delete(old_value);
-      } else if (SwigType_type(t) == T_CHAR) {
-	Setattr(n, "value", NewStringf("\'%s\'", old_value));
-	Delete(old_value);
-      }
 
       SetFlag(n, "feature:immutable");
       int result = globalvariableHandler(n);
@@ -1472,7 +1456,6 @@ public:
 
     String *constants_code = NewString("");
     SwigType *t = Getattr(n, "type");
-    SwigType *valuetype = Getattr(n, "valuetype");
     ParmList *l = Getattr(n, "parms");
 
     // Attach the non-standard typemaps to the parameter list.
@@ -1505,20 +1488,9 @@ public:
     } else {
       // Just take the value from the C definition and hope it compiles in D.
       if (Getattr(n, "wrappedasconstant")) {
-	if (SwigType_type(valuetype) == T_CHAR)
-          Printf(constants_code, "\'%(escape)s\';\n", Getattr(n, "staticmembervariableHandler:value"));
-	else
-          Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
+	Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
       } else {
-	// Add the stripped quotes back in.
-	String* value = Getattr(n, "value");
-	if (SwigType_type(t) == T_STRING) {
-	  Printf(constants_code, "\"%s\";\n", value);
-	} else if (SwigType_type(t) == T_CHAR) {
-	  Printf(constants_code, "\'%s\';\n", value);
-	} else {
-	  Printf(constants_code, "%s;\n", value);
-	}
+	Printf(constants_code, "%s;\n", Getattr(n, "value"));
       }
     }
 

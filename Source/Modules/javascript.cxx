@@ -1207,8 +1207,7 @@ int JSEmitter::emitConstant(Node *n) {
   SwigType *type = Getattr(n, "type");
   String *iname = Getattr(n, "sym:name");
   String *wname = Swig_name_get(Getattr(current_namespace, NAME_MANGLED), iname);
-  String *rawval = Getattr(n, "rawval");
-  String *value = rawval ? rawval : Getattr(n, "value");
+  String *value = Getattr(n, "value");
 
   // HACK: forcing usage of cppvalue for v8 (which turned out to fix typedef_struct.i, et. al)
   if (State::IsSet(state.globals(FORCE_CPP)) && Getattr(n, "cppvalue") != NULL) {

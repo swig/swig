@@ -15,4 +15,7 @@ check::equal(YY, yy());
 check::equal(constant_expr::XX, constant_expr::xx());
 check::equal(constant_expr::YY, constant_expr::yy());
 
+check::equal(WSTRING_LIT_LEN1, 4);
+check::equal(WSTRING_LIT_LEN2, 4);
+
 check::done();
