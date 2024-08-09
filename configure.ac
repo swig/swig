@@ -534,6 +534,35 @@ AC_SUBST(ANT)
 AC_SUBST(NDKBUILD)
 
 #----------------------------------------------------------------
+# Nothing to look for in C case, just define some variables
+#----------------------------------------------------------------
+
+# Some tweaks for creating shared modules.
+C_SO='$(SO)'
+
+case $host in
+*-*-darwin*)
+        C_LDFLAGS='-dynamiclib'
+        C_SO=".dylib"
+        ;;
+*-*-cygwin* | *-*-mingw*)
+        # Nothing special to do.
+        ;;
+*)
+        # This is needed for linking with Boost which uses mutexes and does no
+        # harm in all the other cases.
+        C_LDFLAGS='-pthread'
+        ;;
+esac
+
+C_LDSHARED="\$(LDSHARED) $C_LDFLAGS"
+CXX_LDSHARED="\$(CXXSHARED) $C_LDFLAGS"
+
+AC_SUBST(C_LDSHARED)
+AC_SUBST(CXX_LDSHARED)
+AC_SUBST(C_SO)
+
+#----------------------------------------------------------------
 # Look for C#
 #----------------------------------------------------------------
 
@@ -2597,6 +2626,12 @@ AC_SUBST(TCLLINK)
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
+dnl We only need CC and CXX to test the C target language, and both of those
+dnl are required to build SWIG.
+SKIP_C=
+AC_SUBST(SKIP_C)
+
+
 SKIP_CSHARP=
 if test -z "$CSHARPCOMPILER" ; then
     SKIP_CSHARP="1"
@@ -2815,6 +2850,7 @@ AC_CONFIG_FILES([
     Examples/Makefile
     Examples/xml/Makefile
     Examples/test-suite/errors/Makefile
+    Examples/test-suite/c/Makefile
     Examples/test-suite/csharp/Makefile
     Examples/test-suite/d/Makefile
     Examples/test-suite/go/Makefile
@@ -2877,6 +2913,7 @@ EOF
 AC_OUTPUT
 
 langs=""
+test -n "$SKIP_C"		|| langs="${langs}c "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
 test -n "$SKIP_GO"		|| langs="${langs}go "

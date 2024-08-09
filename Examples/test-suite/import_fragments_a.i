@@ -1,5 +1,5 @@
-#if !defined(SWIGGO)
-// Prevent Go from generating a Go module import - this test is not set up as true multiple modules
+#if !defined(SWIGC) && !defined(SWIGGO)
+// Prevent C/Go from generating a C include/Go module import - this test is not set up as true multiple modules
 %module import_fragments_a
 #endif
 

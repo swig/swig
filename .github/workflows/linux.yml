@@ -57,6 +57,8 @@ jobs:
         - SWIGLANG: ""
           compiler: clang
           os: ubuntu-22.04
+        - SWIGLANG: c
+          CPPSTD: c++11
         - SWIGLANG: csharp
         - SWIGLANG: d
           VER: 'ldc'
