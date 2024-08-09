@@ -51,7 +51,7 @@
     
 
 #if defined(SWIGPYTHON) || defined(SWIGRUBY) || \
-  defined(SWIGJAVA) || defined(SWIGOCAML) || defined(SWIGCSHARP)
+  defined(SWIGJAVA) || defined(SWIGOBJECTIVEC) || defined(SWIGOCAML) || defined(SWIGCSHARP)
     virtual std::string do_step() const = 0;
 #else
     virtual std::string do_step() const {return "";};
