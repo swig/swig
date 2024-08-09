@@ -78,6 +78,7 @@ class JAVA:public Language {
   String *module_interfaces;	//interfaces for module class from %pragma
   String *imclass_class_modifiers;	//class modifiers for intermediary class overridden by %pragma
   String *module_class_modifiers;	//class modifiers for module class overridden by %pragma
+  String *constants_modifiers;	//access modifiers for constants interface overridden by %pragma
   String *upcasts_code;		//C++ casts for inheritance hierarchies C++ code
   String *imclass_cppcasts_code;	//C++ casts up inheritance hierarchies intermediary class code
   String *imclass_directors;	// Intermediate class director code
@@ -154,6 +155,7 @@ public:
       module_interfaces(NULL),
       imclass_class_modifiers(NULL),
       module_class_modifiers(NULL),
+      constants_modifiers(NULL),
       upcasts_code(NULL),
       imclass_cppcasts_code(NULL),
       imclass_directors(NULL),
@@ -436,6 +438,7 @@ public:
     module_interfaces = NewString("");
     module_imports = NewString("");
     module_class_modifiers = NewString("");
+    constants_modifiers = NewString("");
     imclass_imports = NewString("");
     imclass_cppcasts_code = NewString("");
     imclass_directors = NewString("");
@@ -643,7 +646,9 @@ public:
       if (module_imports)
 	Printf(f_module, "%s\n", module_imports);
 
-      Printf(f_module, "public interface %s {\n", constants_interface_name);
+      if (Len(constants_modifiers) > 0)
+	Printf(f_module, "%s ", constants_modifiers);
+      Printf(f_module, "%s {\n", constants_interface_name);
 
       // Write out all the global constants
       Printv(f_module, module_class_constants_code, NIL);
@@ -722,6 +727,8 @@ public:
     module_imports = NULL;
     Delete(module_class_modifiers);
     module_class_modifiers = NULL;
+    Delete(constants_modifiers);
+    constants_modifiers = NULL;
     Delete(imclass_imports);
     imclass_imports = NULL;
     Delete(imclass_cppcasts_code);
@@ -1699,6 +1706,7 @@ public:
    * moduleimports           - import statements for the module class
    * moduleinterfaces        - interface (implements) for the module class
    *
+   * constantsmodifiers      - access modifiers for the constants interface
    * ----------------------------------------------------------------------------- */
 
   virtual int pragmaDirective(Node *n) {
@@ -1758,6 +1766,9 @@ public:
 	} else if (Strcmp(code, "moduleinterfaces") == 0) {
 	  Delete(module_interfaces);
 	  module_interfaces = Copy(strvalue);
+	} else if (Strcmp(code, "constantsmodifiers") == 0) {
+	  Delete(constants_modifiers);
+	  constants_modifiers = Copy(strvalue);
 	} else {
 	  Swig_error(input_file, line_number, "Unrecognized pragma.\n");
 	}
