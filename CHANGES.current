@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-08-12: olly
+	    #657 Allow unmatched ' and " in #error and #warning.
+
 2024-08-09: wsfulton
 	    [Java] Add the constantsmodifiers pragma so that the visibility for the
             Java constants interface can be changed from public to default.
