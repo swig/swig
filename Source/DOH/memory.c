@@ -258,9 +258,9 @@ static void allocation_failed(size_t n, size_t size) {
   /* Report and exit as directly as possible to try to avoid further issues due
    * to lack of memory. */
   if (n == 1) {
-    fprintf(stderr, "Failed to allocate %lu bytes\n", (unsigned long)size);
+    fprintf(stderr, "Failed to allocate %llu bytes\n", (unsigned long long)size);
   } else {
-    fprintf(stderr, "Failed to allocate %lu*%lu bytes\n", (unsigned long)n, (unsigned long)size);
+    fprintf(stderr, "Failed to allocate %llu*%llu bytes\n", (unsigned long long)n, (unsigned long long)size);
   }
   DohExit(EXIT_FAILURE);
 }
