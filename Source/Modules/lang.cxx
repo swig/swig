@@ -630,7 +630,7 @@ int Language::constantDirective(Node *n) {
   if (!ImportMode) {
     Swig_require("constantDirective", n, "name", "?value", NIL);
     if (!Getattr(n, "value")) {
-      Setattr(n, "value", Copy(Getattr(n, "name")));
+      Setattr(n, "value", Getattr(n, "name"));
     }
     this->constantWrapper(n);
     Swig_restore(n);
