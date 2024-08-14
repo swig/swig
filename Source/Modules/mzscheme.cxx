@@ -578,7 +578,7 @@ public:
     } else {
       // Create a static variable and assign it a value
       String *var_name = NewStringf("_wrap_const_%s", Swig_name_mangle_string(Getattr(n, "sym:name")));
-      Printf(f_header, "static %s = %s;", SwigType_lstr(type, var_name), value);
+      Printf(f_header, "static %s = %s;\n", SwigType_lstr(type, var_name), value);
 
       // Now create a variable declaration
 
