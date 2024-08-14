@@ -1804,6 +1804,7 @@ private:
   virtual int constantWrapper(Node *n) {
     SwigType *type = Getattr(n, "type");
     String *value = Getattr(n, "value");
+    String *copy = NULL;
     int typecode = SwigType_type(type);
     if (typecode == T_STRING) {
       String *stringval = Getattr(n, "stringval");
@@ -1811,14 +1812,16 @@ private:
 	return goComplexConstant(n, type);
       }
       // Backslash sequences are somewhat different in Go and C/C++.
-      value = NewStringf("\"%(goescape)s\"", stringval); // FIXME leak
+      copy = NewStringf("\"%(goescape)s\"", stringval);
+      value = copy;
     } else if (typecode == T_CHAR) {
       String *stringval = Getattr(n, "stringval");
       if (!stringval || Len(stringval) != 1) {
 	return goComplexConstant(n, type);
       }
       // Backslash sequences are somewhat different in Go and C/C++.
-      value = NewStringf("'%(goescape)s'", stringval); // FIXME leak
+      copy = NewStringf("'%(goescape)s'", stringval);
+      value = copy;
     } else if (!SwigType_issimple(type)) {
       return goComplexConstant(n, type);
     } else if (Swig_storage_isstatic(n)) {
@@ -1829,7 +1832,6 @@ private:
       }
     }
 
-    String *copy = NULL;
     {
       // Accept a 0x prefix, and strip combinations of u and l
       // suffixes.  Otherwise accept digits, decimal point, and
@@ -1868,7 +1870,7 @@ private:
 	}
       }
       if (need_copy) {
-	copy = Copy(value);
+	if (!copy) copy = Copy(value);
 	Replaceall(copy, p + len, "");
 	value = copy;
       }
