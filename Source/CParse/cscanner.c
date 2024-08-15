@@ -141,14 +141,14 @@ void scanner_file(DOHFile * f) {
 }
 
 /* ----------------------------------------------------------------------------
- * start_inline(char *text, int line)
+ * scanner_start_inline(String *text, int line)
  *
  * Take a chunk of text and recursively feed it back into the scanner.  Used
  * by the %inline directive.
  * ------------------------------------------------------------------------- */
 
-void start_inline(char *text, int line) {
-  String *stext = NewString(text);
+void scanner_start_inline(String *text, int line) {
+  String *stext = Copy(text);
 
   Seek(stext,0,SEEK_SET);
   Setfile(stext,cparse_file);
