@@ -50,3 +50,6 @@ comment */
 
 %constant int ggg=;
 
+// Bad binary and octal constants
+%constant int badbin = 0b121;
+%constant int badoct = 018118055;

@@ -442,6 +442,9 @@ static void get_escape(Scanner *s) {
 	return;
       }
       if (c == 'e') {
+	// '\e' is a non-standard alternative to '\033' (the escape character)
+	// in both C and C++, but is supported by at least GCC and clang.  MSVC
+	// issues a warning and treats it as an 'e'.
 	Delitem(s->text, DOH_END);
 	Append(s->text,"\033");
 	return;
@@ -474,14 +477,22 @@ static void get_escape(Scanner *s) {
 	return;
       }
       break;
-    case 10:
-      if (!isdigit(c)) {
+    case 10: // Second digit of octal escape sequence
+    case 11: // Third digit of octal escape sequence
+      if (c < '0' || c > '7') {
 	retract(s,1);
 	Putc((char)result,s->text);
 	return;
       }
       result = (result << 3) + (c - '0');
       Delitem(s->text, DOH_END);
+      if (state == 11) {
+	if (result > 255)
+	  Swig_error(Scanner_file(s), Scanner_line(s), "octal escape sequence out of range\n");
+	Putc((char)result,s->text);
+	return;
+      }
+      state = 11;
       break;
     case 20:
       if (!isxdigit(c)) {
@@ -612,7 +623,7 @@ static int look(Scanner *s) {
       else if (c == ':')
 	state = 5;		/* maybe double colon */
       else if (c == '0')
-	state = 83;		/* An octal or hex value */
+	state = 83;		/* Maybe a hex, octal or binary number */
       else if (c == '\"') {
 	state = 2;              /* A string constant */
 	s->start_line = s->line;
@@ -1171,7 +1182,7 @@ static int look(Scanner *s) {
       }
       break;
     case 83:
-      /* Might be a hexadecimal or octal number */
+      /* Might be a hexadecimal, octal or binary number */
       if ((c = nextchar(s)) == EOF)
 	return SWIG_TOKEN_INT;
       if (isdigit(c))
@@ -1195,6 +1206,9 @@ static int look(Scanner *s) {
       break;
     case 84:
       /* This is an octal number */
+      if (c == '8' || c == '9') {
+	Swig_error(Scanner_file(s), Scanner_line(s), "Invalid digit '%c' in octal constant\n", c);
+      }
       if ((c = nextchar(s)) == EOF)
 	return SWIG_TOKEN_INT;
       if (isdigit(c))
@@ -1237,7 +1251,9 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_INT;
       if ((c == '0') || (c == '1'))
 	state = 850;
-      else if ((c == 'l') || (c == 'L')) {
+      else if (isdigit(c)) {
+	Swig_error(Scanner_file(s), Scanner_line(s), "Invalid digit '%c' in binary constant\n", c);
+      } else if ((c == 'l') || (c == 'L')) {
 	state = 87;
       } else if ((c == 'u') || (c == 'U')) {
 	state = 88;

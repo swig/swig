@@ -68,6 +68,10 @@
 <ul>
 <li><a href="#Java_module_class_pragmas">The Java module class pragmas</a>
 </ul>
+<li><a href="#Java_constants_interface">The Java constants interface</a>
+<ul>
+<li><a href="#Java_constants_interface_pragmas">The Java constants interface pragmas</a>
+</ul>
 <li><a href="#Java_proxy_classes">Java proxy classes</a>
 <ul>
 <li><a href="#Java_memory_management">Memory management</a>
@@ -2399,8 +2403,70 @@ The pragma code appears in the generated module class like this:
 See <a href="#Java_imclass_pragmas">The intermediary JNI class pragmas</a> section for further details on using pragmas.
 </p>
 
+<H3><a name="Java_constants_interface">27.4.3 The Java constants interface</a></H3>
 
-<H3><a name="Java_proxy_classes">27.4.3 Java proxy classes</a></H3>
+
+<p>
+C/C++ constants are generated as final static members in a constants interface as mentioned in the <a href="#Java_constants">Constants</a> section, such as the example in this section:
+</p>
+
+<div class="code"><pre>
+public interface exampleConstants {
+  public final static int EXPRESSION = (0x100+5);
+  public final static long BIG = exampleJNI.BIG_get();
+  public final static java.math.BigInteger LARGE = exampleJNI.LARGE_get();
+}
+</pre></div>
+
+<p>
+C/C++ enums can also be generated into the same constants interface as described in the <a href="#Java_enumerations">Enumerations</a> section.
+</p>
+
+<H4><a name="Java_constants_interface_pragmas">27.4.3.1 The Java constants interface pragmas</a></H4>
+
+
+<p>
+Scope for tailoring the generated interface is limited to one pragma, in the same manner as the intermediary JNI class pragmas and module class pragmas. The pragma details are:
+</p>
+
+<table BORDER summary="Java constants interface pragmas">
+<tr VALIGN=TOP>
+<td><b>Pragma</b></td>
+<td><b>Description</b></td>
+</tr>
+<tr>
+  <td>constantsmodifiers    </td> <td>Class modifiers and class type for the constants interface, defaults to <tt>public interface</tt></td>
+</tr>
+</table>
+
+
+<p>
+The pragma code appears in the generated constants interface like this:
+</p>
+
+<div class="code">
+<pre>
+[ constantsmodifiers pragma ] constantsname {
+... SWIG generated final static variables ...
+}
+</pre>
+</div>
+
+<p>
+where <tt>constantsname</tt> is a name created by concatenating the module name and <tt>Constants</tt>, for example, <tt>exampleConstants</tt> for a module named <tt>example</tt>.
+</p>
+
+<p>
+The only real use for this pragma is to change the visibility from public to default with:
+</p>
+
+<div class="code">
+<pre>
+%pragma(java) constantsmodifiers="interface"
+</pre>
+</div>
+
+<H3><a name="Java_proxy_classes">27.4.4 Java proxy classes</a></H3>
 
 
 <p>
@@ -2476,7 +2542,7 @@ int y = f.spam(5, new Foo());
 </pre>
 </div>
 
-<H4><a name="Java_memory_management">27.4.3.1 Memory management</a></H4>
+<H4><a name="Java_memory_management">27.4.4.1 Memory management</a></H4>
 
 
 <p>
@@ -2638,7 +2704,7 @@ and
 </p>
 
 
-<H4><a name="Java_inheritance_mirroring">27.4.3.2 Inheritance</a></H4>
+<H4><a name="Java_inheritance_mirroring">27.4.4.2 Inheritance</a></H4>
 
 
 <p>
@@ -2754,7 +2820,7 @@ However, true cross language polymorphism can be achieved using the <a href="#Ja
 </p>
 
 
-<H4><a name="Java_proxy_classes_gc">27.4.3.3 Proxy classes and garbage collection</a></H4>
+<H4><a name="Java_proxy_classes_gc">27.4.4.3 Proxy classes and garbage collection</a></H4>
 
 
 <p>
@@ -2837,7 +2903,7 @@ The section on <a href="#Java_typemaps">Java typemaps</a> details how to specify
 See the <a href="http://www.devx.com/Java/Article/30192">How to Handle Java Finalization's Memory-Retention Issues</a> article for alternative approaches to managing memory by avoiding finalizers altogether.
 </p>
 
-<H4><a name="Java_pgcpp">27.4.3.4 The premature garbage collection prevention parameter for proxy class marshalling</a></H4>
+<H4><a name="Java_pgcpp">27.4.4.4 The premature garbage collection prevention parameter for proxy class marshalling</a></H4>
 
 
 <p>
@@ -2959,7 +3025,7 @@ For example:
 <b>Compatibility note:</b> The generation of this additional parameter did not occur in versions prior to SWIG-1.3.30.
 </p>
 
-<H4><a name="Java_multithread_libraries">27.4.3.5 Single threaded applications and thread safety</a></H4>
+<H4><a name="Java_multithread_libraries">27.4.4.5 Single threaded applications and thread safety</a></H4>
 
 
 <p>
@@ -3047,7 +3113,7 @@ for (int i=0; i&lt;100000; i++) {
 </pre></div>
  
 
-<H3><a name="Java_type_wrapper_classes">27.4.4 Type wrapper classes</a></H3>
+<H3><a name="Java_type_wrapper_classes">27.4.5 Type wrapper classes</a></H3>
 
 
 <p>
@@ -3134,7 +3200,7 @@ public static void spam(SWIGTYPE_p_int x, SWIGTYPE_p_int y, int z) { ... }
 </div>
 
 
-<H3><a name="Java_enum_classes">27.4.5 Enum classes</a></H3>
+<H3><a name="Java_enum_classes">27.4.6 Enum classes</a></H3>
 
 
 <p>
@@ -3143,7 +3209,7 @@ The <a href="#Java_enumerations">Enumerations</a> section discussed these but om
 The following sub-sections detail the various types of enum classes that can be generated.
 </p>
 
-<H4><a name="Java_typesafe_enums_classes">27.4.5.1 Typesafe enum classes</a></H4>
+<H4><a name="Java_typesafe_enums_classes">27.4.6.1 Typesafe enum classes</a></H4>
 
 
 <p>
@@ -3227,7 +3293,7 @@ The <tt>swigValue</tt> method is used for marshalling in the other direction.
 The <tt>toString</tt> method is overridden so that the enum name is available.
 </p>
 
-<H4><a name="Java_proper_enums_classes">27.4.5.2 Proper Java enum classes</a></H4>
+<H4><a name="Java_proper_enums_classes">27.4.6.2 Proper Java enum classes</a></H4>
 
 
 <p>
@@ -3305,7 +3371,7 @@ These needn't be generated if the enum being wrapped does not have any initializ
 <a href="#Java_simpler_enum_classes">Simpler Java enums for enums without initializers</a> section describes how typemaps can be used to achieve this.
 </p>
 
-<H4><a name="Java_typeunsafe_enums_classes">27.4.5.3 Type unsafe enum classes</a></H4>
+<H4><a name="Java_typeunsafe_enums_classes">27.4.6.3 Type unsafe enum classes</a></H4>
 
 
 <p>
@@ -3336,7 +3402,7 @@ public final class Beverage {
 </pre>
 </div>
 
-<H3><a name="Java_interfaces">27.4.6 Interfaces</a></H3>
+<H3><a name="Java_interfaces">27.4.7 Interfaces</a></H3>
 
 
 <p>

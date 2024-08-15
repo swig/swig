@@ -1398,6 +1398,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
 %pragma(java) jniclassclassmodifiers="public class"
 %pragma(java) moduleclassmodifiers="public class"
+%pragma(java) constantsmodifiers="public interface"
 
 /* 64-bit architecture specific typemaps */
 #if defined(SWIGWORDSIZE64)
