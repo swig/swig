@@ -2317,7 +2317,7 @@ inline_directive : INLINE HBLOCK {
 		   Setline($HBLOCK,cparse_start_line);
 		   Setfile($HBLOCK,cparse_file);
 		   cpps = Preprocessor_parse($HBLOCK);
-		   start_inline(Char(cpps), cparse_start_line);
+		   scanner_start_inline(cpps, cparse_start_line);
 		   Delete($HBLOCK);
 		   Delete(cpps);
 		 }
@@ -2341,7 +2341,7 @@ inline_directive : INLINE HBLOCK {
 		   Setattr($$,"code", code);
 		   Delete(code);		   
 		   cpps=Copy(scanner_ccode);
-		   start_inline(Char(cpps), start_line);
+		   scanner_start_inline(cpps, start_line);
 		   Delete(cpps);
 		 }
                }

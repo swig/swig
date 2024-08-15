@@ -1419,11 +1419,10 @@ static void addline(DOH *s1, DOH *s2, int allow) {
   if (allow) {
     Append(s1, s2);
   } else {
-    char *c = Char(s2);
-    while (*c) {
-      if (*c == '\n')
+    int len = Len(s2);
+    for (int i = 0; i < len; ++i) {
+      if (Char(s2)[i] == '\n')
 	Putc('\n', s1);
-      c++;
     }
   }
 }
