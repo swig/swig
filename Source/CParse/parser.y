@@ -1638,8 +1638,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     // "b\x61r"      bar         "bar"
     // "b\141r"      bar         "bar"
     // "b" "ar"      bar         "bar"
+    // u8"bar"       bar         "bar"     C++11
+    // R"bar"        bar         "bar"     C++11
     // "\228\22"     "8"         "\"8\""
     // "\\\"\'"      \"'         "\\\"\'"
+    // R"(\"')"      \"'         "\\\"\'"  C++11
     // L"bar"        bar         L"bar"
     // L"b" L"ar"    bar         L"bar"
     // L"b" "ar"     bar         L"bar"    C++11
@@ -1651,7 +1654,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     // '\x22'        "           '\"'
     //
     // Zero bytes are allowed in stringval (DOH's String can hold a string
-    // with embedded zero bytes).
+    // with embedded zero bytes), but handling may currently be buggy in
+    // places.
     String *stringval;
     int     type;
     /* The type code for the argument when the top level operator is unary.
