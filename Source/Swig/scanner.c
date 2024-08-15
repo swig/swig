@@ -442,6 +442,9 @@ static void get_escape(Scanner *s) {
 	return;
       }
       if (c == 'e') {
+	// '\e' is a non-standard alternative to '\033' (the escape character)
+	// in both C and C++, but is supported by at least GCC and clang.  MSVC
+	// issues a warning and treats it as an 'e'.
 	Delitem(s->text, DOH_END);
 	Append(s->text,"\033");
 	return;
