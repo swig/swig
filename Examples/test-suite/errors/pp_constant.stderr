@@ -6,3 +6,6 @@ pp_constant.i:37: Warning 305: Bad constant value (ignored).
 pp_constant.i:44: Warning 305: Bad constant value (ignored).
 pp_constant.i:48: Warning 305: Bad constant value (ignored).
 pp_constant.i:51: Warning 305: Bad constant value (ignored).
+pp_constant.i:54: Error: Invalid digit '2' in binary constant
+pp_constant.i:55: Error: Invalid digit '8' in octal constant
+pp_constant.i:55: Error: Invalid digit '8' in octal constant

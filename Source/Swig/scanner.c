@@ -612,7 +612,7 @@ static int look(Scanner *s) {
       else if (c == ':')
 	state = 5;		/* maybe double colon */
       else if (c == '0')
-	state = 83;		/* An octal or hex value */
+	state = 83;		/* Maybe a hex, octal or binary number */
       else if (c == '\"') {
 	state = 2;              /* A string constant */
 	s->start_line = s->line;
@@ -1175,7 +1175,7 @@ static int look(Scanner *s) {
       }
       break;
     case 83:
-      /* Might be a hexadecimal or octal number */
+      /* Might be a hexadecimal, octal or binary number */
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_INT;
       if (isdigit(c))
@@ -1199,6 +1199,9 @@ static int look(Scanner *s) {
       break;
     case 84:
       /* This is an octal number */
+      if (c == '8' || c == '9') {
+	Swig_error(Scanner_file(s), Scanner_line(s), "Invalid digit '%c' in octal constant\n", c);
+      }
       if ((c = nextchar(s)) == 0)
 	return SWIG_TOKEN_INT;
       if (isdigit(c))
@@ -1241,7 +1244,9 @@ static int look(Scanner *s) {
 	return SWIG_TOKEN_INT;
       if ((c == '0') || (c == '1'))
 	state = 850;
-      else if ((c == 'l') || (c == 'L')) {
+      else if (isdigit(c)) {
+	Swig_error(Scanner_file(s), Scanner_line(s), "Invalid digit '%c' in binary constant\n", c);
+      } else if ((c == 'l') || (c == 'L')) {
 	state = 87;
       } else if ((c == 'u') || (c == 'U')) {
 	state = 88;

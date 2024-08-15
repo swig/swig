@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-08-15: olly
+	    SWIG now gives an error for digits 8 and 9 in octal constants -
+	    previously these were quietly accepted resulting in a bogus value.
+	    C++11 binary constants are now treated similarly - only digits 0
+	    and 1 were allowed before, but trying to use other digits now gives
+	    a clearer error.
+
 2024-08-12: olly
 	    #657 Allow unmatched ' and " in #error and #warning.
 
