@@ -474,14 +474,22 @@ static void get_escape(Scanner *s) {
 	return;
       }
       break;
-    case 10:
-      if (!isdigit(c)) {
+    case 10: // Second digit of octal escape sequence
+    case 11: // Third digit of octal escape sequence
+      if (c < '0' || c > '7') {
 	retract(s,1);
 	Putc((char)result,s->text);
 	return;
       }
       result = (result << 3) + (c - '0');
       Delitem(s->text, DOH_END);
+      if (state == 11) {
+	if (result > 255)
+	  Swig_error(Scanner_file(s), Scanner_line(s), "octal escape sequence out of range\n");
+	Putc((char)result,s->text);
+	return;
+      }
+      state = 11;
       break;
     case 20:
       if (!isxdigit(c)) {

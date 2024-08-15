@@ -8,6 +8,11 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-08-15: olly
+	    Fix parsing of octal string escapes.  We now stop when the next
+	    character is digit 8 or 9, and stop after 3 octal digits even if
+	    the next character is an octal digit.
+
+2024-08-15: olly
 	    SWIG now gives an error for digits 8 and 9 in octal constants -
 	    previously these were quietly accepted resulting in a bogus value.
 	    C++11 binary constants are now treated similarly - only digits 0
