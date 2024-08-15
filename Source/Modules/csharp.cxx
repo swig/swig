@@ -1344,9 +1344,10 @@ public:
       const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
       Setattr(n, "enumvalue", val);
     } else if (swigtype == T_CHAR) {
-      if (Getattr(n, "enumstringval")) {
+      String *enumstringval = Getattr(n, "enumstringval");
+      if (enumstringval) {
 	// Escape character literal for C#.
-	String *val = NewStringf("'%(csharpescape)s'", Getattr(n, "enumstringval"));
+	String *val = NewStringf("'%(csharpescape)s'", enumstringval);
 	Setattr(n, "enumvalue", val);
 	Delete(val);
       }
