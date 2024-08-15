@@ -1617,14 +1617,38 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     // emitting the C/C++ code for the literal, but that won't always be
     // a valid string literal in most target languages.
     //
+    // SWIG's scanner reads the string or character literal in the source code
+    // and interprets quoting and escape sequences.  Concatenation of adjacent
+    // string literals is currently handled here in the parser (though
+    // technically it should happen before parsing).
+    //
+    // stringval holds the actual value of the string (from the scanner,
+    // taking into account concatenation of adjacent string literals).
+    // Then val is created by escaping stringval using SWIG's %(escape)s
+    // Printf specification, and adding the appropriate quotes (and
+    // an L-prefix for wide literals).  So val is also a C/C++ source
+    // representation of the string, but may not be the same representation
+    // as in the source code (it should be equivalent though).
+    //
     // Some examples:
     //
-    //  val      stringval
-    // --------- -----------
-    // "str"     str
-    // "b\x61r"  bar
-    // 'x'       x
-    // '\022'    "
+    // C/C++ source  stringval   val       Notes
+    // ------------- ----------- --------- -------
+    // "bar"         bar         "bar"
+    // "b\x61r"      bar         "bar"
+    // "b\141r"      bar         "bar"
+    // "b" "ar"      bar         "bar"
+    // "\228\22"     "8"         "\"8\""
+    // "\\\"\'"      \"'         "\\\"\'"
+    // L"bar"        bar         L"bar"
+    // L"b" L"ar"    bar         L"bar"
+    // L"b" "ar"     bar         L"bar"    C++11
+    // "b" L"ar"     bar         L"bar"    C++11
+    // 'x'           x           'x'
+    // '\"'          "           '\"'
+    // '\42'         "           '\"'
+    // '\042'        "           '\"'
+    // '\x22'        "           '\"'
     //
     // Zero bytes are allowed in stringval (DOH's String can hold a string
     // with embedded zero bytes).
