@@ -1476,7 +1476,8 @@ public:
     String *tm;
     String *return_type = NewString("");
     String *constants_code = NewString("");
-    Swig_save("constantWrapper", n, "value", NIL);
+    // The value as C# code.
+    String *csvalue = Copy(Getattr(n, "value"));
     Swig_save("constantWrapper", n, "tmap:ctype:out", "tmap:imtype:out", "tmap:cstype:out", "tmap:out:null", "tmap:imtype:outattributes", "tmap:cstype:outattributes", NIL);
 
     bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
@@ -1538,9 +1539,8 @@ public:
       }
       if (quote) {
 	// Escape character literal for C#.
-	String *new_value = NewStringf("%c%(csharpescape)s%c", quote, Getattr(n, "stringval"), quote);
-	Setattr(n, "value", new_value);
-	Delete(new_value);
+	Delete(csvalue);
+	csvalue = NewStringf("%c%(csharpescape)s%c", quote, Getattr(n, "stringval"), quote);
       }
     }
 
@@ -1591,7 +1591,7 @@ public:
           Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
 	}
       } else {
-        Printf(constants_code, "%s;\n", Getattr(n, "value"));
+	Printf(constants_code, "%s;\n", csvalue);
       }
     }
 
@@ -1607,6 +1607,7 @@ public:
     Swig_restore(n);
     Delete(return_type);
     Delete(constants_code);
+    Delete(csvalue);
     return SWIG_OK;
   }
 
