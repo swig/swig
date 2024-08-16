@@ -53,3 +53,7 @@ comment */
 // Bad binary and octal constants
 %constant int badbin = 0b121;
 %constant int badoct = 018118055;
+
+// Bad octal escape sequences.
+%constant char * badbinstring = "\400";
+%constant char badbinchar = '\777';
