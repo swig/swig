@@ -1830,9 +1830,7 @@ private:
       if (Cmp(value, "true") != 0 && Cmp(value, "false") != 0) {
 	return goComplexConstant(n, type);
       }
-    }
-
-    {
+    } else {
       // Accept a 0x prefix, and strip combinations of u and l
       // suffixes.  Otherwise accept digits, decimal point, and
       // exponentiation.  Treat anything else as too complicated to
