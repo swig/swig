@@ -1974,8 +1974,21 @@ private:
       return SWIG_NOWRAP;
     }
 
-    // FIXME: Check all this
-    {
+    if (!Getattr(n, "stringval") && !Getattr(n, "enumvalueDeclaration:sym:name")) {
+      // Based on Swig_VargetToFunction
+      String *nname = NewStringf("(%s)", Getattr(n, "value"));
+      String *call;
+      if (SwigType_isclass(type)) {
+	call = NewStringf("%s", nname);
+      } else {
+	call = SwigType_lcaststr(type, nname);
+      }
+      String *cres = Swig_cresult(type, Swig_cresult_name(), call);
+      Setattr(n, "wrap:action", cres);
+      Delete(nname);
+      Delete(call);
+      Delete(cres);
+    } else {
       String *get = NewString("");
       Printv(get, Swig_cresult_name(), " = ", NULL);
 
