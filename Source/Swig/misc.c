@@ -450,13 +450,12 @@ static String *Swig_string_goescape(String *s) {
       Printf(ns, "\\t");
     } else if (c == '\\') {
       Printf(ns, "\\\\");
-    } else if (c == '\'') {
-      Printf(ns, "\\'");
-    } else if (c == '\"') {
-      Printf(ns, "\\\"");
-    } else if (c >= 32 && c < 127) {
+    } else if (c >= 32 && c < 127 && c != '\'' && c != '"') {
       Putc(c, ns);
     } else {
+      // In Go, \' isn't valid in a double quoted string, while \" isn't valid
+      // in a single quoted rune, so to avoid needing two different escaping
+      // functions we always escape both using hex escapes.
       assert(c >= 0);
       Printf(ns, "\\x%02x", c);
     }
