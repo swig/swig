@@ -1710,7 +1710,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <id> ID
 %token <str> HBLOCK
 %token <id> POUND 
-%token <id> STRING WSTRING
+%token <str> STRING WSTRING
 %token <loc> INCLUDE IMPORT INSERT
 %token <str> CHARCONST WCHARCONST
 %token <dtype> NUM_INT NUM_DOUBLE NUM_FLOAT NUM_LONGDOUBLE NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
@@ -7577,27 +7577,33 @@ idcolontailnt   : DCOLON identifier idcolontailnt[in] {
                ;
 
 /* Concatenated strings */
-string         : string[in] STRING { 
-                   $$ = NewStringf("%s%s", $in, $STRING);
-               }
-               | STRING { $$ = NewString($STRING);}
-               ; 
+string	       : string[in] STRING { 
+		   $$ = $in;
+		   Append($$, $STRING);
+		   Delete($STRING);
+	       }
+	       | STRING
+	       ; 
 wstring	       : wstring[in] WSTRING {
 		   // Concatenated wide strings: L"str1" L"str2"
-		   $$ = NewStringf("%s%s", $in, $WSTRING);
+		   $$ = $in;
+		   Append($$, $WSTRING);
+		   Delete($WSTRING);
 	       }
 	       | wstring[in] STRING {
 		   // Concatenated wide string and normal string literal: L"str1" "str2" (C++11).
-		   $$ = NewStringf("%s%s", $in, $STRING);
+		   $$ = $in;
+		   Append($$, $STRING);
+		   Delete($STRING);
 	       }
 	       | string[in] WSTRING {
 		   // Concatenated normal string and wide string literal: "str1" L"str2" (C++11).
-		   $$ = NewStringf("%s%s", $in, $WSTRING);
+		   $$ = $in;
+		   Append($$, $WSTRING);
+		   Delete($WSTRING);
 	       }
-	       | WSTRING {
-		   $$ = NewString($WSTRING);
-	       }
-               ;
+	       | WSTRING
+	       ;
 
 stringbrace    : string
                | LBRACE {

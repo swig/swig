@@ -34,6 +34,10 @@ check::equal(gettype(preproc_constants::CONST_BOOL2), "boolean", "preproc_consta
 check::equal(gettype(preproc_constants::CONST_CHAR), "string", "preproc_constants.CONST_CHAR has unexpected type");
 check::equal(gettype(preproc_constants::CONST_STRING1), "string", "preproc_constants.CONST_STRING1 has unexpected type");
 check::equal(gettype(preproc_constants::CONST_STRING2), "string", "preproc_constants.CONST_STRING2 has unexpected type");
+check::equal(gettype(preproc_constants::CONST_STRING3), "string", "preproc_constants.CONST_STRING3 has unexpected type");
+check::equal(gettype(preproc_constants::CONST_STRING4), "string", "preproc_constants.CONST_STRING4 has unexpected type");
+check::equal(preproc_constants::CONST_STRING4, "zer\0zer\0");
+check::equal(CONST_STRING4, "zer\0zer\0");
 
 check::equal(gettype(preproc_constants::INT_AND_BOOL), "integer", "preproc_constants.INT_AND_BOOL has unexpected type");
 check::equal(gettype(preproc_constants::INT_AND_CHAR), "integer", "preproc_constants.INT_AND_CHAR has unexpected type");

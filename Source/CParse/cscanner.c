@@ -377,11 +377,11 @@ static int yylook(void) {
       return TYPE_RAW;
       
     case SWIG_TOKEN_STRING:
-      yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
+      yylval.str = NewString(Scanner_text(scan));
       return STRING;
 
     case SWIG_TOKEN_WSTRING:
-      yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
+      yylval.str = NewString(Scanner_text(scan));
       return WSTRING;
       
     case SWIG_TOKEN_CHAR:

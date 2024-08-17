@@ -31,11 +31,15 @@
 }
 %}
 
+/* swig_string[] here ensures we handle embedded zero bytes in $value. */
 %typemap(classconsttab) char *,
                         const char *,
                         char [],
                         const char [] %{
-  zend_declare_class_constant_string(SWIG_Php_ce_$class, "$const_name", sizeof("$const_name") - 1, $value);
+{
+  static const char swig_string[] = $value;
+  zend_declare_class_constant_stringl(SWIG_Php_ce_$class, "$const_name", sizeof("$const_name") - 1, swig_string, sizeof(swig_string) - 1);
+}
 %}
 
 // This creates a zend_object to wrap the pointer, and we can't do that
