@@ -1098,10 +1098,8 @@ static int look(Scanner *s) {
 	Delitem(s->text, DOH_END);
 	return SWIG_TOKEN_WSTRING;
       } else if (c == '\\') {
-	if ((c = nextchar(s)) == 0) {
-	  Swig_error(cparse_file, cparse_start_line, "Unterminated wide string\n");
-	  return SWIG_TOKEN_ERROR;
-	}
+	Delitem(s->text, DOH_END);
+	get_escape(s);
       }
       break;
 
@@ -1114,10 +1112,8 @@ static int look(Scanner *s) {
 	Delitem(s->text, DOH_END);
 	return (SWIG_TOKEN_WCHAR);
       } else if (c == '\\') {
-	if ((c = nextchar(s)) == 0) {
-	  Swig_error(cparse_file, cparse_start_line, "Unterminated wide character literal\n");
-	  return SWIG_TOKEN_ERROR;
-	}
+	Delitem(s->text, DOH_END);
+	get_escape(s);
       }
       break;
 

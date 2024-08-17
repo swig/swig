@@ -12,6 +12,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swig.h"
+#include <assert.h>
 #include <errno.h>
 #include <ctype.h>
 #include <limits.h>
@@ -353,7 +354,8 @@ int Swig_storage_isstatic(Node *n) {
  * Swig_string_escape()
  *
  * Takes a string object and produces a string with escape codes added to it.
- * Octal escaping is used.
+ * Octal escaping is used.  The result is used for literal strings and characters
+ * in C/C++ and also Java and R.
  * ----------------------------------------------------------------------------- */
 
 String *Swig_string_escape(String *s) {
@@ -372,12 +374,11 @@ String *Swig_string_escape(String *s) {
       Printf(ns, "\\'");
     } else if (c == '\"') {
       Printf(ns, "\\\"");
-    } else if (c == ' ') {
+    } else if (c >= 32 && c < 127) {
       Putc(c, ns);
-    } else if (!isgraph(c)) {
+    } else {
       int next_c = Getc(s);
-      if (c < 0)
-	c += UCHAR_MAX + 1;
+      assert(c >= 0);
       if (next_c >= '0' && next_c < '8') {
 	/* We need to emit 3 octal digits. */
 	Printf(ns, "\\%03o", c);
@@ -386,8 +387,6 @@ String *Swig_string_escape(String *s) {
       }
       c = next_c;
       continue;
-    } else {
-      Putc(c, ns);
     }
     c = Getc(s);
   }
@@ -395,13 +394,13 @@ String *Swig_string_escape(String *s) {
 }
 
 /* -----------------------------------------------------------------------------
- * Swig_string_hexescape()
+ * Swig_string_csharpescape()
  *
- * Takes a string object and produces a string with escape codes added to it.
- * Hex escaping is used.
+ * Takes a string object and produces a string with escape codes added to it
+ * suitable for use as a C# string or character literal.
  * ----------------------------------------------------------------------------- */
 
-static String *Swig_string_hexescape(String *s) {
+static String *Swig_string_csharpescape(String *s) {
   String *ns;
   int c;
   ns = NewStringEmpty();
@@ -419,14 +418,46 @@ static String *Swig_string_hexescape(String *s) {
       Printf(ns, "\\'");
     } else if (c == '\"') {
       Printf(ns, "\\\"");
-    } else if (c == ' ') {
+    } else if (c >= 32 && c < 127) {
       Putc(c, ns);
-    } else if (!isgraph(c)) {
-      if (c < 0)
-	c += UCHAR_MAX + 1;
-      Printf(ns, "\\x%X", c);
     } else {
+      assert(c >= 0);
+      // Emit 4 hex digits in case the next character is a hex digit.
+      Printf(ns, "\\x%04X", c);
+    }
+  }
+  return ns;
+}
+
+/* -----------------------------------------------------------------------------
+ * Swig_string_goescape()
+ *
+ * Takes a string object and produces a string with escape codes added to it
+ * suitable for use as a Go string or character literal.
+ * ----------------------------------------------------------------------------- */
+
+static String *Swig_string_goescape(String *s) {
+  String *ns;
+  int c;
+  ns = NewStringEmpty();
+
+  while ((c = Getc(s)) != EOF) {
+    if (c == '\n') {
+      Printf(ns, "\\n");
+    } else if (c == '\r') {
+      Printf(ns, "\\r");
+    } else if (c == '\t') {
+      Printf(ns, "\\t");
+    } else if (c == '\\') {
+      Printf(ns, "\\\\");
+    } else if (c >= 32 && c < 127 && c != '\'' && c != '"') {
       Putc(c, ns);
+    } else {
+      // In Go, \' isn't valid in a double quoted string, while \" isn't valid
+      // in a single quoted rune, so to avoid needing two different escaping
+      // functions we always escape both using hex escapes.
+      assert(c >= 0);
+      Printf(ns, "\\x%02x", c);
     }
   }
   return ns;
@@ -1422,7 +1453,8 @@ Node *Swig_item_in_list(List *list, const_String_or_char_ptr name) {
 void Swig_init(void) {
   /* Set some useful string encoding methods */
   DohEncoding("escape", Swig_string_escape);
-  DohEncoding("hexescape", Swig_string_hexescape);
+  DohEncoding("csharpescape", Swig_string_csharpescape);
+  DohEncoding("goescape", Swig_string_goescape);
   DohEncoding("upper", Swig_string_upper);
   DohEncoding("lower", Swig_string_lower);
   DohEncoding("title", Swig_string_title);

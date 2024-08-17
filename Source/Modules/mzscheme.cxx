@@ -564,53 +564,21 @@ public:
     SwigType *type = Getattr(n, "type");
     String *value = Getattr(n, "value");
 
-    String *var_name = NewString("");
-    String *proc_name = NewString("");
-    String *rvalue = NewString("");
-    String *temp = NewString("");
     String *tm;
-
-    // Make a static variable;
-
-    Printf(var_name, "_wrap_const_%s", Swig_name_mangle_string(Getattr(n, "sym:name")));
-
-    // Build the name for scheme.
-    Printv(proc_name, iname, NIL);
-    Replaceall(proc_name, "_", "-");
 
     if ((SwigType_type(type) == T_USER) && (!is_a_pointer(type))) {
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
       return SWIG_NOWRAP;
     }
-    // See if there's a typemap
 
-    Printv(rvalue, value, NIL);
-    if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 1)) {
-      temp = Copy(rvalue);
-      Clear(rvalue);
-      Printv(rvalue, "\"", temp, "\"", NIL);
-    }
-    if ((SwigType_type(type) == T_CHAR) && (is_a_pointer(type) == 0)) {
-      Delete(temp);
-      temp = Copy(rvalue);
-      Clear(rvalue);
-      Printv(rvalue, "'", temp, "'", NIL);
-    }
+    // See if there's a typemap
     if ((tm = Swig_typemap_lookup("constant", n, name, 0))) {
-      Replaceall(tm, "$value", rvalue);
+      Replaceall(tm, "$value", value);
       Printf(f_init, "%s\n", tm);
     } else {
-      // Create variable and assign it a value
-
-      Printf(f_header, "static %s = ", SwigType_lstr(type, var_name));
-      bool is_enum_item = (Cmp(nodeType(n), "enumitem") == 0);
-      if ((SwigType_type(type) == T_STRING)) {
-	Printf(f_header, "\"%s\";\n", value);
-      } else if (SwigType_type(type) == T_CHAR && !is_enum_item) {
-	Printf(f_header, "\'%s\';\n", value);
-      } else {
-	Printf(f_header, "%s;\n", value);
-      }
+      // Create a static variable and assign it a value
+      String *var_name = NewStringf("_wrap_const_%s", Swig_name_mangle_string(Getattr(n, "sym:name")));
+      Printf(f_header, "static %s = %s;\n", SwigType_lstr(type, var_name), value);
 
       // Now create a variable declaration
 
@@ -626,10 +594,8 @@ public:
 	variableWrapper(nn);
 	Delete(nn);
       }
+      Delete(var_name);
     }
-    Delete(proc_name);
-    Delete(rvalue);
-    Delete(temp);
     return SWIG_OK;
   }
 
