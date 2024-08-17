@@ -3,6 +3,9 @@
 #ifdef SWIGCSHARP
 %csconst(1) CONST_STRING4;
 #endif
+#ifdef SWIGD
+%dmanifestconst CONST_STRING4;
+#endif
 #ifdef SWIGJAVA
 %javaconst(1) CONST_STRING4;
 #endif
