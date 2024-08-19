@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-08-19: wsfulton
+	    [Python] #2993 Add missing std::filesystem namespace to std_filesystem.i.
+
 2024-08-17: olly
 	    #904 #1907 #2579 Fix string literal and character literal wrapping bugs.
 
