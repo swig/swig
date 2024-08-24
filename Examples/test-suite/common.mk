@@ -586,6 +586,7 @@ CPP_TEST_CASES += \
 	using_directive_and_declaration \
 	using_directive_and_declaration_forward \
 	using_extend \
+	using_extend_flatten \
 	using_inherit \
 	using_member \
 	using_member_multiple_inherit \
