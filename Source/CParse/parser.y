@@ -447,7 +447,7 @@ static void add_symbols(Node *n) {
 	}
       } else if (Equal(nodeType(n), "using")) {
 	String *uname = Getattr(n, "uname");
-	Node *cls = current_class ? current_class : currentOuterClass; /* Current class seems to vary depending on whether it is a template class or a plain class */
+	Node *cls = currentOuterClass;
 	String *nprefix = 0;
 	String *nlast = 0;
 	Swig_scopename_split(uname, &nprefix, &nlast);
@@ -716,7 +716,7 @@ static void add_symbols_copy(Node *n) {
     add_oldname = Getattr(n,"sym:name");
     if ((add_oldname) || (Getattr(n,"sym:needs_symtab"))) {
       int old_inclass = -1;
-      Node *old_current_class = 0;
+      Node *oldCurrentOuterClass = 0;
       if (add_oldname) {
 	DohIncref(add_oldname);
 	/*  Disable this, it prevents %rename to work with templates */
@@ -747,9 +747,9 @@ static void add_symbols_copy(Node *n) {
       }
       if (strcmp(cnodeType,"class") == 0) {
 	old_inclass = inclass;
+	oldCurrentOuterClass = currentOuterClass;
 	inclass = 1;
-	old_current_class = current_class;
-	current_class = n;
+	currentOuterClass = n;
 	if (Strcmp(Getattr(n,"kind"),"class") == 0) {
 	  cplus_mode = CPLUS_PRIVATE;
 	} else {
@@ -776,7 +776,7 @@ static void add_symbols_copy(Node *n) {
       }
       if (strcmp(cnodeType,"class") == 0) {
 	inclass = old_inclass;
-	current_class = old_current_class;
+	currentOuterClass = oldCurrentOuterClass;
       }
     } else {
       if (strcmp(cnodeType,"extend") == 0) {
