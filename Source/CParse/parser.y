@@ -427,11 +427,19 @@ static void add_symbols(Node *n) {
     if (inclass) {
       String *name = Getattr(n, "name");
       if (isfriend) {
-	/* For friends, set the scope to the same as the class that the friend is defined/declared in, that is, pop scope once */
+	/* Friends methods in a class are declared in the namespace enclosing the class (outer most class if a nested class) */
 	String *prefix = name ? Swig_scopename_prefix(name) : 0;
+	Node *outer = currentOuterClass;
 	old_prefix = Namespaceprefix;
-	old_scope = Swig_symbol_popscope();
+	old_scope = Swig_symbol_current();
+
+	assert(outer);
+	while (Getattr(outer, "nested:outer")) {
+	  outer = Getattr(outer, "nested:outer");
+	}
+	Swig_symbol_setscope(Getattr(outer, "prev_symtab"));
 	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+
 	if (!prefix) {
 	  /* To check - this should probably apply to operators too */
 	  if (name && !is_operator(name) && Namespaceprefix) {
@@ -441,9 +449,7 @@ static void add_symbols(Node *n) {
 	  }
 	} else {
 	  /* Qualified friend declarations should not be possible as they are ignored in the parse tree */
-	  /* TODO: uncomment out for swig-4.3.0
 	  assert(0);
-	  */
 	}
       } else if (Equal(nodeType(n), "using")) {
 	String *uname = Getattr(n, "uname");
@@ -695,12 +701,9 @@ static void add_symbols(Node *n) {
 /* add symbols a parse tree node copy */
 
 static void add_symbols_copy(Node *n) {
-  String *name;
   int    emode = 0;
   while (n) {
-    char *cnodeType = Char(nodeType(n));
-
-    if (strcmp(cnodeType,"access") == 0) {
+    if (Equal(nodeType(n), "access")) {
       String *kind = Getattr(n,"kind");
       if (Strcmp(kind,"public") == 0) {
 	cplus_mode = CPLUS_PUBLIC;
@@ -738,14 +741,8 @@ static void add_symbols_copy(Node *n) {
 	Swig_symbol_cadd(Getattr(n,"partialargs"),n);
       }
       add_only_one = 0;
-      name = Getattr(n,"name");
-      if (Getattr(n,"requires_symtab")) {
-	Swig_symbol_newscope();
-	Swig_symbol_setscopename(name);
-	Delete(Namespaceprefix);
-	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-      }
-      if (strcmp(cnodeType,"class") == 0) {
+      if (Equal(nodeType(n), "class")) {
+	Setattr(n, "prev_symtab", Swig_symbol_current());
 	old_inclass = inclass;
 	oldCurrentOuterClass = currentOuterClass;
 	inclass = 1;
@@ -756,12 +753,21 @@ static void add_symbols_copy(Node *n) {
 	  cplus_mode = CPLUS_PUBLIC;
 	}
       }
-      if (strcmp(cnodeType,"extend") == 0) {
+      if (Equal(nodeType(n), "extend")) {
 	emode = cplus_mode;
 	cplus_mode = CPLUS_PUBLIC;
       }
+
+      if (Getattr(n, "requires_symtab")) {
+	Swig_symbol_newscope();
+	Swig_symbol_setscopename(Getattr(n, "name"));
+	Delete(Namespaceprefix);
+	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+      }
+
       add_symbols_copy(firstChild(n));
-      if (strcmp(cnodeType,"extend") == 0) {
+
+      if (Equal(nodeType(n), "extend")) {
 	cplus_mode = emode;
       }
       if (Getattr(n,"requires_symtab")) {
@@ -774,17 +780,17 @@ static void add_symbols_copy(Node *n) {
 	Delete(add_oldname);
 	add_oldname = 0;
       }
-      if (strcmp(cnodeType,"class") == 0) {
+      if (Equal(nodeType(n), "class")) {
 	inclass = old_inclass;
 	currentOuterClass = oldCurrentOuterClass;
       }
     } else {
-      if (strcmp(cnodeType,"extend") == 0) {
+      if (Equal(nodeType(n), "extend")) {
 	emode = cplus_mode;
 	cplus_mode = CPLUS_PUBLIC;
       }
       add_symbols_copy(firstChild(n));
-      if (strcmp(cnodeType,"extend") == 0) {
+      if (Equal(nodeType(n), "extend")) {
 	cplus_mode = emode;
       }
     }
@@ -4095,6 +4101,10 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       Setattr($$,"storage",$storage_class);
 	       Setattr($$,"unnamed",unnamed);
 	       Setattr($$,"allows_typedef","1");
+
+	       /* preserve the current scope */
+	       Setattr($$, "prev_symtab", Swig_symbol_current());
+
 	       if (currentOuterClass) {
 		 SetFlag($$, "nested");
 		 Setattr($$, "nested:outer", currentOuterClass);
@@ -4124,6 +4134,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
                List *bases = 0;
 	       String *name = 0;
 	       Node *n;
+	       Symtab *cscope;
 	       Classprefix = 0;
 	       (void)$node;
 	       $$ = currentOuterClass;
@@ -4132,6 +4143,10 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		 inclass = 0;
 	       else
 		 restore_access_mode($$);
+
+	       cscope = Getattr($$, "prev_symtab");
+	       Delattr($$, "prev_symtab");
+
 	       unnamed = Getattr($$,"unnamed");
                /* Check for pure-abstract class */
 	       Setattr($$,"abstracts", pure_abstracts($cpp_members));
@@ -4139,9 +4154,6 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
 		 String *name = n ? Copy(Getattr(n, "name")) : 0;
 		 $$ = nested_forward_declaration($storage_class, $cpptype, 0, name, n);
-		 Swig_symbol_popscope();
-	         Delete(Namespaceprefix);
-		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       } else if (n) {
 	         appendSibling($$,n);
 		 /* If a proper typedef name was given, we'll use it to set the scope name */
@@ -4211,9 +4223,9 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   add_symbols($$);
 		   add_symbols(n);
 		   Delattr($$, "class_rename");
-		 }else if (cparse_cplusplus)
+		 } else if (cparse_cplusplus)
 		   $$ = 0; /* ignore unnamed structs for C++ */
-	         Delete(unnamed);
+		   Delete(unnamed);
 	       } else { /* unnamed struct w/o declarator*/
 		 Swig_symbol_popscope();
 	         Delete(Namespaceprefix);
@@ -4222,6 +4234,9 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		 Delete($$);
 		 $$ = $cpp_members; /* pass member list to outer class/namespace (instead of self)*/
 	       }
+	       Swig_symbol_setscope(cscope);
+	       Delete(Namespaceprefix);
+	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       Classprefix = currentOuterClass ? Getattr(currentOuterClass, "Classprefix") : 0;
               }
              ;

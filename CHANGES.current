@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-08-05: wsfulton
+            #2845 Fix duplicate friend wrappers for friend declarations in nested
+            classes.
+
 2024-09-03: olly
 	    #3010 Improve handling of zero bytes in input files.  This is
 	    certainly a corner case, but GCC and clang both accept zero bytes

@@ -269,6 +269,7 @@ CPP_TEST_CASES += \
 	features \
 	fragments \
 	friends \
+	friends_nested \
 	friends_operator_overloading \
 	friends_template \
 	funcptr_cpp \
