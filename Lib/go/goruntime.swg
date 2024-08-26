@@ -174,7 +174,7 @@ type _ sync.Mutex
 %insert(go_director) %{
 
 var swigDirectorTrack struct {
-	sync.Mutex
+	sync.RWMutex
 	m map[int]interface{}
 	c int
 }
@@ -192,8 +192,8 @@ func swigDirectorAdd(v interface{}) int {
 }
 
 func swigDirectorLookup(c int) interface{} {
-	swigDirectorTrack.Lock()
-	defer swigDirectorTrack.Unlock()
+	swigDirectorTrack.RLock()
+	defer swigDirectorTrack.RUnlock()
 	ret := swigDirectorTrack.m[c]
 	if ret == nil {
 		panic("C++ director pointer not found (possible	use-after-free)")
