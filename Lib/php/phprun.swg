@@ -23,11 +23,7 @@ extern "C" {
 #define SWIG_BOOL_CONSTANT(N, V) REGISTER_BOOL_CONSTANT(#N, V, CONST_CS | CONST_PERSISTENT)
 #define SWIG_LONG_CONSTANT(N, V) REGISTER_LONG_CONSTANT(#N, V, CONST_CS | CONST_PERSISTENT)
 #define SWIG_DOUBLE_CONSTANT(N, V) REGISTER_DOUBLE_CONSTANT(#N, V, CONST_CS | CONST_PERSISTENT)
-/* swig_string[] here ensures we handle embedded zero bytes in V. */
-#define SWIG_STRING_CONSTANT(N, V) do {\
-    static const char swig_string[] = (V);\
-    REGISTER_STRINGL_CONSTANT(#N, swig_string, sizeof(swig_string) - 1, CONST_CS | CONST_PERSISTENT);\
-} while (0)
+#define SWIG_STRING_CONSTANT(N, V) REGISTER_STRING_CONSTANT(#N, (char*)V, CONST_CS | CONST_PERSISTENT)
 #define SWIG_CHAR_CONSTANT(N, V) do {\
     char swig_char = (V);\
     REGISTER_STRINGL_CONSTANT(#N, &swig_char, 1, CONST_CS | CONST_PERSISTENT);\
