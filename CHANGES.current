@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-08-30: olly
+	    #2996 Fix generic string literal handling to handle embedded zero
+	    bytes.  This allows such strings to work for C# (with %csconst), D
+	    (with %dmanifestconst), Go and Java (with %javaconst).  For other
+	    target languages SWIG-generated wrappers still truncate such string
+	    literals at a zero byte (which is probably the best we can do for
+	    target languages where the native string can't contain zero bytes).
+
 2024-08-23: wsfulton
             [Java] #2991 Document solutions for mismatch in C++ access specifiers
             and Java access modifiers in an inheritance hierarchy.

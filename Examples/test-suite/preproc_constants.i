@@ -1,5 +1,15 @@
 %module preproc_constants
 
+#ifdef SWIGCSHARP
+%csconst(1) CONST_STRING4;
+#endif
+#ifdef SWIGD
+%dmanifestconst CONST_STRING4;
+#endif
+#ifdef SWIGJAVA
+%javaconst(1) CONST_STRING4;
+#endif
+
 %{
 #if defined(__clang__)
 //Suppress: warning: use of logical '&&' with constant operand [-Wconstant-logical-operand]
@@ -48,6 +58,9 @@
 #define CONST_STRING1   "const string"
 #define CONST_STRING2   "const" " string"
 #define CONST_STRING3   "log-revprops"
+// Ideally we shouldn't truncate at a zero byte in target languages where the
+// native string type allows strings to contain a zero byte.
+#define CONST_STRING4   "zer\0" "zer\0"
 
 // Expressions - runtime tests check the type for any necessary type promotions of the expressions
 
