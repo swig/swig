@@ -1201,6 +1201,14 @@ int SwigType_istemplate(const SwigType *t) {
   return 0;
 }
 
+
+int SwigType_is_iterator(const SwigType *t){
+  char *ct = Char(t);
+  if (strstr(ct, "iterator") != NULL) 
+    return 1;
+  return 0;
+}
+
 /* -----------------------------------------------------------------------------
  * SwigType_base()
  *

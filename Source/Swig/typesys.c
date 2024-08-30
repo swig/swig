@@ -1566,7 +1566,10 @@ SwigType *SwigType_alttype(const SwigType *t, int local_tmap) {
   }
 
   if (use_wrapper) {
-      w = NewStringf("SwigValueWrapper<( typename %s)>", td);
+    if(SwigType_is_iterator(t))
+        w = NewStringf("SwigValueWrapper<( typename %s)>", td);
+    else
+      w = NewStringf("SwigValueWrapper<(%s)>", td);
   }
   Delete(td);
   return w;
