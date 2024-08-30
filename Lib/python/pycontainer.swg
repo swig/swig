@@ -504,7 +504,7 @@ namespace swig {
     if (!SWIG_IsOK(res) || !iter) {
       %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
     } else {
-      swig::SwigPyIterator_T<$type > *iter_t = dynamic_cast<swig::SwigPyIterator_T<$type > *>(iter);
+      swig::SwigPyIterator_T< typename $type > *iter_t = dynamic_cast<swig::SwigPyIterator_T< typename $type > *>(iter);
       if (iter_t) {
 	$1 = iter_t->get_current();
       } else {
@@ -572,7 +572,7 @@ namespace swig {
     // Although __getitem__, front, back actually use a const value_type& return type, the typemaps below
     // use non-const so that they can be easily overridden by users if necessary.
     %typemap(ret, fragment="reference_container_owner", noblock=1) value_type& __getitem__, value_type& front, value_type& back {
-      (void)swig::container_owner<swig::traits<$*1_ltype>::category>::back_reference($result, $self);
+      (void)swig::container_owner< typename swig::traits< typename $*1_ltype>::category>::back_reference($result, $self);
     }
   }
 %enddef
