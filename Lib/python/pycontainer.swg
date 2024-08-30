@@ -473,15 +473,15 @@ namespace swig {
 
   %typemap(out,noblock=1,fragment="SwigPyIterator_T")
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
-    $result = SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &)),
+    $result = SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const typename $type &)),
 				 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN);
   }
   %typemap(out,noblock=1,fragment="SwigPyIterator_T")
     std::pair<iterator, iterator>, std::pair<const_iterator, const_iterator> {
     $result = PyTuple_New(2);
-    PyTuple_SetItem($result,0,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &).first),
+    PyTuple_SetItem($result,0,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const typename $type &).first),
 						 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));
-    PyTuple_SetItem($result,1,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &).second),
+    PyTuple_SetItem($result,1,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const typename $type &).second),
 						 swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));    
   }
 
@@ -490,9 +490,9 @@ namespace swig {
   %typemap(out,noblock=1,fragment="SwigPyPairBoolOutputIterator")
     std::pair<iterator, bool>, std::pair<const_iterator, bool> {
     $result = PyTuple_New(2);
-    PyTuple_SetItem($result,0,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const $type &).first),
+    PyTuple_SetItem($result,0,SWIG_NewPointerObj(Make_output_iterator(%static_cast($1,const typename $type &).first),
 					       swig::SwigPyIterator::descriptor(),SWIG_POINTER_OWN));    
-    PyTuple_SetItem($result,1,SWIG_From(bool)(%static_cast($1,const $type &).second));
+    PyTuple_SetItem($result,1,SWIG_From(bool)(%static_cast($1,const typename $type &).second));
   }
 
   %typemap(in,noblock=1,fragment="SwigPyIterator_T")
@@ -517,7 +517,7 @@ namespace swig {
     iterator, reverse_iterator, const_iterator, const_reverse_iterator {
     swig::SwigPyIterator *iter = 0;
     int res = SWIG_ConvertPtr($input, %as_voidptrptr(&iter), swig::SwigPyIterator::descriptor(), 0);
-    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::SwigPyIterator_T<$type > *>(iter) != 0));
+    $1 = (SWIG_IsOK(res) && iter && (dynamic_cast<swig::SwigPyIterator_T< typename $type > *>(iter) != 0));
   }
 
   %fragment("SwigPyIterator_T");

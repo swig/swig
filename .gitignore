@@ -225,3 +225,7 @@ Examples/r/*/.RData
 Examples/test-suite/scilab/*/
 loader.sce
 
+vcpkg.json
+CMakePresets.json
+.cache
+.vscode
