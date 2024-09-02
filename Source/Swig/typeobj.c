@@ -1202,16 +1202,13 @@ int SwigType_istemplate(const SwigType *t) {
 }
 
 /* -----------------------------------------------------------------------------
- * SwigType_template_parameter_isiterator()
+ * SwigType_isiterator()
  *
  * Tests whether a type is a template whose parameter is an iterator.
- * For example: SwigValueWrapper< std::vector< enum EnumVector::numbers >::reverse_iterator >
+ * For example: std::vector< enum EnumVector::numbers >::reverse_iterator
  * ----------------------------------------------------------------------------- */
 
-int SwigType_template_parameter_isiterator(const SwigType *t){
-  if (!SwigType_istemplate(t))
-    return 0;
-
+int SwigType_isiterator(const SwigType *t){
   char *ct = Char(t);
 
   if (strstr(ct, "iterator"))

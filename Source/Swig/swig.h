@@ -162,7 +162,7 @@ extern "C" {
   extern int SwigType_ismutable(const SwigType *t);
   extern int SwigType_isvarargs(const SwigType *t);
   extern int SwigType_istemplate(const SwigType *t);
-  extern int SwigType_template_parameter_isiterator(const SwigType *t);
+  extern int SwigType_isiterator(const SwigType *t);
   extern int SwigType_isenum(const SwigType *t);
   extern int SwigType_check_decl(const SwigType *t, const_String_or_char_ptr decl);
   extern SwigType *SwigType_strip_qualifiers(const SwigType *t);

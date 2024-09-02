@@ -1566,7 +1566,7 @@ SwigType *SwigType_alttype(const SwigType *t, int local_tmap) {
   }
 
 	if (use_wrapper) {
-    if (SwigType_template_parameter_isiterator(t)) {
+    if (SwigType_isiterator(t)) {
       /*  For the original generated statement:
           SwigValueWrapper< std::vector< enum EnumVector::numbers >::reverse_iterator > result;
           MSVC (version 14.41) requires a typename prefix to compile, like this:
