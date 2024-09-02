@@ -1213,9 +1213,8 @@ int SwigType_template_parameter_isiterator(const SwigType *t){
     return 0;
 
   char *ct = Char(t);
-  char* pFound = strstr(ct, "iterator");
 
-  if (pFound && strlen(t) - (pFound - ct) == 9)
+  if (strstr(ct, "iterator"))
     return 1;
 
   return 0;
