@@ -1571,6 +1571,7 @@ SwigType *SwigType_alttype(const SwigType *t, int local_tmap) {
           SwigValueWrapper< std::vector< enum EnumVector::numbers >::reverse_iterator > result;
           MSVC (version 14.41) requires a typename prefix to compile, like this:
           SwigValueWrapper< typename std::vector< enum EnumVector::numbers >::reverse_iterator > result;
+          See issue https://github.com/swig/swig/issues/3008
       */
       w = NewStringf("SwigValueWrapper<( typename %s)>", td);
     } else {	
