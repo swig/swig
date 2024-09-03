@@ -1826,51 +1826,27 @@ private:
       return goComplexConstant(n, type);
     } else if (Swig_storage_isstatic(n)) {
       return goComplexConstant(n, type);
-    } else if (typecode == T_BOOL) {
-      if (Cmp(value, "true") != 0 && Cmp(value, "false") != 0) {
-	return goComplexConstant(n, type);
+    } else if (Getattr(n, "numval")) {
+      value = Getattr(n, "numval");
+      if (typecode == T_BOOL) {
+        copy = NewString(*Char(value) == '0' ? "false" : "true");
+        value = copy;
       }
     } else {
-      // Accept a 0x prefix, and strip combinations of u and l
-      // suffixes.  Otherwise accept digits, decimal point, and
-      // exponentiation.  Treat anything else as too complicated to
-      // handle as a Go constant.
+      // Currently numval only gets set for integer and boolean literals, so
+      // check for a floating point literal we can just use in Go here.
+      //
+      // Accept digits, decimal point, and exponentiation.  Treat anything else
+      // as too complicated to handle as a Go constant.
       char *p = Char(value);
-      int len = (int)strlen(p);
-      bool need_copy = false;
-      while (len > 0) {
-	char c = p[len - 1];
-	if (c != 'l' && c != 'L' && c != 'u' && c != 'U') {
-	  break;
-	}
-	--len;
-	need_copy = true;
-      }
-      bool is_hex = false;
-      int i = 0;
-      if (p[0] == '0' && (p[1] == 'x' || p[1] == 'X')) {
-	i = 2;
-	is_hex = true;
-      }
-      for (; i < len; ++i) {
+      for (int i = 0; p[i]; ++i) {
 	switch (p[i]) {
 	case '0': case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9':
-	  break;
-	case 'a': case 'b': case 'c': case 'd': case 'f': case 'A': case 'B': case 'C': case 'D': case 'F':
-	  if (!is_hex) {
-	    return goComplexConstant(n, type);
-	  }
-	  break;
 	case '.': case 'e': case 'E': case '+': case '-':
 	  break;
 	default:
 	  return goComplexConstant(n, type);
 	}
-      }
-      if (need_copy) {
-	if (!copy) copy = Copy(value);
-	Replaceall(copy, p + len, "");
-	value = copy;
       }
     }
 

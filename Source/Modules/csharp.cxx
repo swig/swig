@@ -1340,10 +1340,7 @@ public:
 
     // Deal with enum values that are not int
     int swigtype = SwigType_type(Getattr(n, "type"));
-    if (swigtype == T_BOOL) {
-      const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
-      Setattr(n, "enumvalue", val);
-    } else if (swigtype == T_CHAR) {
+    if (swigtype == T_CHAR) {
       String *enumstringval = Getattr(n, "enumstringval");
       if (enumstringval) {
 	// Escape character literal for C#.
@@ -1351,6 +1348,9 @@ public:
 	Setattr(n, "enumvalue", val);
 	Delete(val);
       }
+    } else {
+      String *numval = Getattr(n, "enumnumval");
+      if (numval) Setattr(n, "enumvalue", numval);
     }
 
     {

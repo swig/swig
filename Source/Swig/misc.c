@@ -355,7 +355,7 @@ int Swig_storage_isstatic(Node *n) {
  *
  * Takes a string object and produces a string with escape codes added to it.
  * Octal escaping is used.  The result is used for literal strings and characters
- * in C/C++ and also Java and R.
+ * in C/C++ and also Java, Python, R and Ruby.
  *
  * The result is suitable for wrapping in single or double quotes to form a
  * character or string literal.
