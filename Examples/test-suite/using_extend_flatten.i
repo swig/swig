@@ -20,8 +20,8 @@ public:
 class ExtendDerived : public ExtendBase
 {
 public:
-    void two() override;
-    void three() override;
+    void two();
+    void three();
 };
 %}
 
