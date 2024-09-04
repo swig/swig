@@ -226,7 +226,7 @@ String *Swig_read_file(FILE *f) {
   assert(str);
   while (1) {
     size_t c = fread(buffer, 1, sizeof(buffer), f);
-    if (c > 0) Write(str, buffer, c);
+    if (c > 0) Write(str, buffer, (int)c);
     if (c < sizeof(buffer)) break;
   }
   len = Len(str);
