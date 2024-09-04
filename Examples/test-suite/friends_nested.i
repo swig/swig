@@ -81,7 +81,7 @@ namespace BB {
    struct squeezed_in {
     struct more_mark_t
     {
-      more_mark_t operator<<(unsigned i) const;
+      more_mark_t operator<<(unsigned i) const; // 6
       friend std::ostream& operator<<(std::ostream& os, const more_mark_t& m); // 5
     };
    };
@@ -98,7 +98,7 @@ namespace CPP17::AA::BB {
    struct squeezed_in {
     struct more_mark_t
     {
-      more_mark_t operator<<(unsigned i) const;
+      more_mark_t operator<<(unsigned i) const; // 6
       friend std::ostream& operator<<(std::ostream& os, const more_mark_t& m); // 5
     };
    };
@@ -109,6 +109,7 @@ namespace CPP17::AA::BB {
 namespace CPP17 {
 namespace AA {
 namespace BB {
+  more_acc_cond::squeezed_in::more_mark_t more_acc_cond::squeezed_in::more_mark_t::operator<<(unsigned i) const { std::ostream& os = std_cout_reference(); os << "operator<< 6" << std::endl; return more_acc_cond::squeezed_in::more_mark_t(); }
   std::ostream& operator<<(std::ostream& os, const more_acc_cond::squeezed_in::more_mark_t& m) { os << "operator<< 5" << std::endl; return os; } // 5
 }
 }
