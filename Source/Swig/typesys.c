@@ -502,6 +502,9 @@ static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
     String *qname = Getattr(ss, "qname");
     if (qname) {
       full = NewStringf("%s::%s", qname, nameprefix);
+      if (Strncmp(full, "enum ", 5) == 0) {
+	Delslice(full, 0, 5);
+      }
     } else {
       full = NewString(nameprefix);
     }
@@ -740,9 +743,11 @@ SwigType *SwigType_typedef_resolve(const SwigType *t) {
 	    type = Copy(namebase);
 	    Insert(type, 0, "::");
 	    Insert(type, 0, rnameprefix);
-	    if (strncmp(Char(type), "::", 2) == 0) {
-	      Delitem(type, 0);
-	      Delitem(type, 0);
+	    if (Strncmp(type, "enum ", 5) == 0) {
+	      Delslice(type, 0, 5);
+	    }
+	    if (Strncmp(type, "::", 2) == 0) {
+	      Delslice(type, 0, 2);
 	    }
 	    newtype = 1;
 	  } else {

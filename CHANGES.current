@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-09: olly
+	    #197 #675 #1677 #2047 Fix incorrect inclusion of "enum " when
+	    qualifying C++11 "enum class" enumerator names.
+
 2024-09-07: wsfulton
             #2875 Fix swig-4.1.0 regression using the %interface family of macros
             for multiple inheritance and common bases.
