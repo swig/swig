@@ -15,6 +15,7 @@ public:
     void one();
     virtual void two();
     virtual void three();
+    virtual ~ExtendBase() {}
 };
 
 class ExtendDerived : public ExtendBase
