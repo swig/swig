@@ -430,6 +430,7 @@ static void add_symbols(Node *n) {
 	/* Friends methods in a class are declared in the namespace enclosing the class (outer most class if a nested class) */
 	String *prefix = name ? Swig_scopename_prefix(name) : 0;
 	Node *outer = currentOuterClass;
+	Symtab *namespace_symtab;
 	old_prefix = Namespaceprefix;
 	old_scope = Swig_symbol_current();
 
@@ -437,7 +438,10 @@ static void add_symbols(Node *n) {
 	while (Getattr(outer, "nested:outer")) {
 	  outer = Getattr(outer, "nested:outer");
 	}
-	Swig_symbol_setscope(Getattr(outer, "prev_symtab"));
+	namespace_symtab = Getattr(outer, "sym:symtab");
+	if (!namespace_symtab)
+	  namespace_symtab = Getattr(outer, "prev_symtab");
+	Swig_symbol_setscope(namespace_symtab);
 	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 
 	if (!prefix) {
@@ -742,7 +746,7 @@ static void add_symbols_copy(Node *n) {
       }
       add_only_one = 0;
       if (Equal(nodeType(n), "class")) {
-	Setattr(n, "prev_symtab", Swig_symbol_current());
+	/* add_symbols() above sets "sym:symtab", so "prev_symtab" is not required */
 	old_inclass = inclass;
 	oldCurrentOuterClass = currentOuterClass;
 	inclass = 1;

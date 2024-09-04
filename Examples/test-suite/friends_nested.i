@@ -145,3 +145,80 @@ int innerfriend() {
   return instance.anon_inner.inner_member_var;
 }
 %}
+
+///////////////////////////////////////////////////////////////
+// Test nested templates and classes
+///////////////////////////////////////////////////////////////
+
+// %feature("flatnested"); // This ought to work for languages that don't support nested structs, but InnerInnerStruct is multiply defined at the time of writing
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+
+%inline %{
+namespace OuterSpace {
+namespace InnerSpace {
+struct OuterClass {
+  template<typename T> struct InnerTemplate {
+    InnerTemplate(T i) : val(i) {}
+    void InstanceMethod(T i) {}
+    static void StaticMethod(T i) {}
+    friend T friendly(InnerTemplate/*<T>*/ t) {return t.val; }
+    T thung(InnerTemplate/*<T>*/ t) {return t.val; }
+
+    struct InnerInnerStruct {
+      InnerInnerStruct(T p) : priv(p) {}
+      friend T friendly_inner_qualified(const InnerTemplate<T>::InnerInnerStruct& i) { return i.priv; }
+//      friend T friendly_inner(const InnerInnerStruct& i) { return i.priv; } // TODO: without template parameters
+      void dosomething(const InnerInnerStruct& x) {}
+      void useinner(const InnerTemplate& x) {}
+    private:
+      T priv;
+    };
+
+    void use_inner_inner(InnerInnerStruct iis) {}
+
+    template<typename X> struct InnerInnerTemplate {
+      InnerInnerTemplate(T t, X x) : t_private(t), x_private(x) {}
+      friend X friendly_inner_x(const InnerTemplate<T>::InnerInnerTemplate<X>& i) { return i.x_private; }
+      friend T friendly_inner_t(const InnerTemplate<T>::InnerInnerTemplate<X>& i) { return i.t_private; }
+      void doanything(const InnerInnerTemplate& x) {}
+      void useT(const T& ttt) {}
+      void useX(const X& xxx) {}
+      struct VeryInner {
+        VeryInner(const T& t, const X& x) {}
+        friend X very_inner(const InnerTemplate<T>::InnerInnerTemplate<X>::VeryInner& vi) { return 0; }
+      };
+    private:
+      T t_private;
+      X x_private;
+    };
+
+  private:
+    T val;
+  };
+#if defined(SWIG)
+  // Template instantation within the class
+  %template(InnerDouble) InnerTemplate<double>;
+  %template(InnerShort) InnerTemplate<short>;
+#endif
+};
+}
+}
+%}
+
+%extend OuterSpace::InnerSpace::OuterClass {
+  // Template instantation after the class is fully defined and added to the symbol tables
+  %template(InnerInt) InnerTemplate<int>;
+}
+
+
+%extend OuterSpace::InnerSpace::OuterClass::InnerTemplate<double> {
+  %template(InnerInnerBool) InnerInnerTemplate<bool>;
+}
+%extend OuterSpace::InnerSpace::OuterClass::InnerTemplate<int> {
+  %template(InnerInnerChar) InnerInnerTemplate<char>;
+}
+%extend OuterSpace::InnerSpace::OuterClass::InnerTemplate<short> {
+  %template(InnerInnerString) InnerInnerTemplate<char *>;
+}
+
+#endif
