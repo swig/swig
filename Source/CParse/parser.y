@@ -440,7 +440,7 @@ static void add_symbols(Node *n) {
 	}
 	namespace_symtab = Getattr(outer, "sym:symtab");
 	if (!namespace_symtab)
-	  namespace_symtab = Getattr(outer, "prev_symtab");
+	  namespace_symtab = Getattr(outer, "unofficial:symtab");
 	Swig_symbol_setscope(namespace_symtab);
 	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 
@@ -746,7 +746,7 @@ static void add_symbols_copy(Node *n) {
       }
       add_only_one = 0;
       if (Equal(nodeType(n), "class")) {
-	/* add_symbols() above sets "sym:symtab", so "prev_symtab" is not required */
+	/* add_symbols() above sets "sym:symtab", so "unofficial:symtab" is not required */
 	old_inclass = inclass;
 	oldCurrentOuterClass = currentOuterClass;
 	inclass = 1;
@@ -3860,8 +3860,8 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   }
 		   Setattr($$,"allows_typedef","1");
 
-		   /* preserve the current scope */
-		   Setattr($$,"prev_symtab",Swig_symbol_current());
+		   /* Temporary unofficial symtab for use until add_symbols() adds "sym:symtab" */
+		   Setattr($$, "unofficial:symtab", Swig_symbol_current());
 		  
 		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
 		   scope = resolve_create_node_scope($idcolon, 1, &errored_flag);
@@ -3959,8 +3959,8 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
                    }
 		   if (!currentOuterClass)
 		     inclass = 0;
-		   cscope = Getattr($$, "prev_symtab");
-		   Delattr($$, "prev_symtab");
+		   cscope = Getattr($$, "unofficial:symtab");
+		   Delattr($$, "unofficial:symtab");
 		   
 		   /* Check for pure-abstract class */
 		   Setattr($$,"abstracts", pure_abstracts($cpp_members));
@@ -4106,8 +4106,8 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       Setattr($$,"unnamed",unnamed);
 	       Setattr($$,"allows_typedef","1");
 
-	       /* preserve the current scope */
-	       Setattr($$, "prev_symtab", Swig_symbol_current());
+	       /* Temporary unofficial symtab for use until add_symbols() adds "sym:symtab" */
+	       Setattr($$, "unofficial:symtab", Swig_symbol_current());
 
 	       if (currentOuterClass) {
 		 SetFlag($$, "nested");
@@ -4148,8 +4148,8 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       else
 		 restore_access_mode($$);
 
-	       cscope = Getattr($$, "prev_symtab");
-	       Delattr($$, "prev_symtab");
+	       cscope = Getattr($$, "unofficial:symtab");
+	       Delattr($$, "unofficial:symtab");
 
 	       unnamed = Getattr($$,"unnamed");
                /* Check for pure-abstract class */
