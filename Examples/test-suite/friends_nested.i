@@ -118,12 +118,19 @@ namespace BB {
 
 
 %inline %{
+#if defined(SWIG)
+#define STATIC_FOR_ANONYMOUS
+#else
+// For gcc in C++98 mode (at least) to avoid:
+// error: unnamed type with no linkage used to declare variable ‘<unnamed class> instance’ with linkage 
+#define STATIC_FOR_ANONYMOUS static
+#endif
 struct BaseForAnon {
     virtual ~BaseForAnon() {}
 };
 
 // Unnamed nested classes are ignored but were causing code that did not compile
-class /*unnamed*/ : public BaseForAnon {
+STATIC_FOR_ANONYMOUS class /*unnamed*/ : public BaseForAnon {
   int member_var;
 public:
   friend int myfriend();
