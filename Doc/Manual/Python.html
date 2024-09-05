@@ -213,7 +213,6 @@ Suppose that you defined a SWIG module such as the following:
 %module example
 
 %{
-#define SWIG_FILE_WITH_INIT
 #include "example.h"
 %}
 
@@ -222,9 +221,7 @@ int fact(int n);
 </div>
 
 <p>
-The <tt>#define SWIG_FILE_WITH_INIT</tt> line inserts a macro that specifies that the
-resulting C file should be built as a Python extension, inserting the module
-<tt>init</tt> code. This <tt>.i</tt> file wraps the following simple C file:
+This <tt>.i</tt> file wraps the following simple C file:
 </p>
 
 <div class="code">
