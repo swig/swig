@@ -21,13 +21,6 @@ environment:
     VSVER: 16
     VER: 39
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-  - SWIGLANG: java
-    VSVER: 17
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: java
-    VSVER: 17
-    Platform: x86
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: python
     VSVER: 17
     VER: 310
