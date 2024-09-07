@@ -22,9 +22,6 @@ environment:
     VER: 39
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
   - SWIGLANG: python
-    OSVARIANT: cygwin
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: python
     OSVARIANT: mingw
     WITHLANG: python
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
