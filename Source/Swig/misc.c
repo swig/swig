@@ -1436,21 +1436,23 @@ int Swig_is_generated_overload(Node *n) {
 /* -----------------------------------------------------------------------------
  * Swig_item_in_list()
  *
- * If the input name is the name of an item in the list, return the item
+ * If the input item is in the list, return the item.
+ * Note: uses DohCmp for comparisons so for a List of String *, Strcmp is ultimately
+ * used for item comparisons to determine if a string is in the list.
  * ----------------------------------------------------------------------------- */
 
-Node *Swig_item_in_list(List *list, const_String_or_char_ptr name) {
-  Node *item = 0;
+Node *Swig_item_in_list(List *list, const DOH *item) {
+  Node *found_item = 0;
   if (list) {
     Iterator it;
     for (it = First(list); it.item; it = Next(it)) {
-      if (Strcmp(name, it.item) == 0) {
-	item = it.item;
+      if (DohCmp(item, it.item) == 0) {
+	found_item = it.item;
 	break;
       }
     }
   }
-  return item;
+  return found_item;
 }
 
 /* -----------------------------------------------------------------------------
