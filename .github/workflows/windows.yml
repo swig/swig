@@ -55,12 +55,14 @@ jobs:
         - SWIGLANG: java
           COMPILER: gcc
           VER: 11
-       # Next two are ignored due to new visual c++ not handling containers of enums
+       # Next two are using old VC++ as the new visual c++ not handling containers of enums
        # See https://github.com/swig/swig/issues/3008
-       #- SWIGLANG: python
-       #  VER: '3.7'
-       #- SWIGLANG: python
-       #  VER: '3.12'
+        - SWIGLANG: python
+          VER: '3.7'
+          os: 'windows-2019'
+        - SWIGLANG: python
+          VER: '3.12'
+          os: 'windows-2019'
        #  TODO require fixing of probing in configure.ac
        #- SWIGLANG: python
        #  INSTALL: 'true'
