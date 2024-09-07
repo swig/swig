@@ -21,15 +21,17 @@ environment:
     VSVER: 16
     VER: 39
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-  - SWIGLANG: python
-    VSVER: 17
-    VER: 310
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: python
-    VSVER: 17
-    VER: 310
-    Platform: x86
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+ # Next two are ignored due to new visual c++ not handling containers of enums
+ # See https://github.com/swig/swig/issues/3008
+ #- SWIGLANG: python
+ #  VSVER: 17
+ #  VER: 310
+ #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
+ #- SWIGLANG: python
+ #  VSVER: 17
+ #  VER: 310
+ #  Platform: x86
+ #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: python
     OSVARIANT: cygwin
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
