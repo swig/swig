@@ -293,8 +293,8 @@ SWIGCLINKAGE SWIGINTERN int NAME(TYPE x) {
 %define %$ismemberget    "match$memberget"="1"  %enddef
 %define %$ismemberset    "match$memberset"="1"  %enddef
 
-%define %$isgnuhidden    "match$attribute$gnu$visibility"="hidden"  %enddef
-%define %$isgnuvisible   "match$attribute$gnu$visibility"="default" %enddef
+%define %$isgnuhidden    "match$attribute$gnu$visibility"="\"hidden\""  %enddef
+%define %$isgnuvisible   "match$attribute$gnu$visibility"="\"default\"" %enddef
 
 %define %$isdeprecated   "match$attribute$deprecated"  %enddef
 

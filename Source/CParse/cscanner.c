@@ -151,14 +151,14 @@ void scanner_file(DOHFile * f) {
 }
 
 /* ----------------------------------------------------------------------------
- * start_inline(char *text, int line)
+ * scanner_start_inline(String *text, int line)
  *
  * Take a chunk of text and recursively feed it back into the scanner.  Used
  * by the %inline directive.
  * ------------------------------------------------------------------------- */
 
-void start_inline(char *text, int line) {
-  String *stext = NewString(text);
+void scanner_start_inline(String *text, int line) {
+  String *stext = Copy(text);
 
   Seek(stext,0,SEEK_SET);
   Setfile(stext,cparse_file);
@@ -395,11 +395,11 @@ static int yylook(void) {
       return TYPE_RAW;
       
     case SWIG_TOKEN_STRING:
-      yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
+      yylval.str = NewString(Scanner_text(scan));
       return STRING;
 
     case SWIG_TOKEN_WSTRING:
-      yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
+      yylval.str = NewString(Scanner_text(scan));
       return WSTRING;
       
     case SWIG_TOKEN_CHAR:

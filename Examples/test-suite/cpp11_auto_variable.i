@@ -1,5 +1,7 @@
 %module cpp11_auto_variable
 
+%ignore func();
+
 %inline %{
 
 static auto t = true;
@@ -26,6 +28,9 @@ static constexpr auto Foo2 = Foo;
 static auto Bar3 = f ? zero : t;
 static constexpr auto Foo3 = f ? f : one;
 
+int func() { return 1; }
+static constexpr auto NOEXCEPT_FUNC = noexcept(func);
+
 %}
 
 // SWIG currently can't deduce the type for examples below.
@@ -42,6 +47,13 @@ static constexpr auto Bad2 = &f;
 static auto Bad3 = &zero;
 static constexpr auto Bad4 = &one;
 
+%}
+
+%inline %{
+// Concatenation of a literal with an encoding prefix and one without
+// was added in C++11.
+static auto wstring_lit_len1 = sizeof(L"123" "456") / sizeof(wchar_t) - 1;
+static auto wstring_lit_len2 = sizeof("123" L"456") / sizeof(wchar_t) - 1;
 %}
 
 %inline %{

@@ -270,6 +270,7 @@ CPP_TEST_CASES += \
 	features \
 	fragments \
 	friends \
+	friends_nested \
 	friends_operator_overloading \
 	friends_template \
 	funcptr_cpp \
@@ -588,6 +589,7 @@ CPP_TEST_CASES += \
 	using_directive_and_declaration \
 	using_directive_and_declaration_forward \
 	using_extend \
+	using_extend_flatten \
 	using_inherit \
 	using_member \
 	using_member_multiple_inherit \
@@ -719,7 +721,7 @@ ifneq ($(SKIP_DOXYGEN_TEST_CASES),1)
 python_HAS_DOXYGEN := 1
 java_HAS_DOXYGEN := 1
 
-$(eval HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN))
+HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN)
 endif
 
 ifdef HAS_DOXYGEN
@@ -734,6 +736,7 @@ DOXYGEN_TEST_CASES += \
 	doxygen_ignore \
 	doxygen_misc_constructs \
 	doxygen_nested_class \
+	doxygen_overloads \
 	doxygen_parsing \
 	doxygen_parsing_enums \
 	doxygen_translate \

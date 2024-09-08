@@ -661,8 +661,7 @@ public:
     String *iname = Getattr(n, "sym:name");
     String *nsname = !namespace_option ? Copy(iname) : NewStringf("%s::%s", ns_name, iname);
     SwigType *type = Getattr(n, "type");
-    String *rawval = Getattr(n, "rawval");
-    String *value = rawval ? rawval : Getattr(n, "value");
+    String *value = Getattr(n, "value");
     String *tm;
 
     if (!addSymbol(iname, n))

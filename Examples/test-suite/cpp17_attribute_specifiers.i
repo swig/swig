@@ -1,6 +1,6 @@
 %module cpp17_attribute_specifiers
 
-%rename("$ignore", match$attribute$gnu$visibility="hidden") "";
+%rename("$ignore", match$attribute$gnu$visibility="\"hidden\"") "";
 
 %inline %{
 [[using gnu: visibility("hidden"), cold]] int hidden(int a) { return a + 2; }

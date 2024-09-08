@@ -3507,7 +3507,9 @@ make ret_by_value.ctest RUNTOOL="valgrind --leak-check=full"
 
 <p>
 This will probably make more sense if you look at the output of the above as it will show the exact commands being executed.
-SWIG can be analyzed for bad memory accesses using:
+SWIG can be analyzed for bad memory by first rebuilding swig with just the <tt>-g</tt> option.
+Also define DOH_DEBUG_MEMORY_POOLS, see <a href="#Extending_further_info"></a> section.
+SWIG can then be invoked via valgrind using:
 </p>
 
 <div class="shell"><pre>

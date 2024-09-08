@@ -50,6 +50,17 @@ struct W : T {};
 %}
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
+%interface(IV1)
+%interface(IV2)
+%interface(V3)
+#endif
+%inline %{
+struct IV1 : virtual IA {};
+struct IV2 : virtual IA {};
+struct V3 : IV1, IV2 {};
+%}
+
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %interface_impl(Undesirables);
 #endif
 
