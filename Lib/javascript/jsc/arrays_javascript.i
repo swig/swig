@@ -52,7 +52,7 @@
       {
         SWIG_exception_fail(SWIG_ERROR, "Failed to convert $input to double");
       }
-      arg$argnum[i] = temp;
+      $1[i] = temp;
     }
   }
   else

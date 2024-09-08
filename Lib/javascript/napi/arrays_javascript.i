@@ -53,7 +53,7 @@
       if (!SWIG_IsOK(res)) {
         SWIG_Error(SWIG_ERROR, "Failed to convert $input to double");
       }
-      arg$argnum[i] = temp;
+      $1[i] = temp;
     }
   } else {
     Napi::Env env = $input.Env();

@@ -38,6 +38,7 @@
 <li><a href="#Javascript_class_example">Class</a>
 <li><a href="#Javascript_STL_example">STL Containers</a>
 <li><a href="#Javascript_Buffer_example"><code>Buffer</code> and <code>ArrayBuffer</code></a>
+<li><a href="#Javascript_C_arrays_example"><code>C</code> (flat pointer) arrays</a>
 </ul>
 <li><a href="#Javascript_exceptions">Exceptions</a>
 <ul>
@@ -812,7 +813,7 @@ let last2 = vec2[vec2.length - 1];
   </li>
 </ul>
 
-<H4><a name="Javascript_Buffer_example">28.4.4.1 Zero-copy <code>ArrayBuffer</code></a></H4>
+<H4><a>28.4.4.1 Zero-copy <code>ArrayBuffer</code></a></H4>
 
 <p>For applications requiring high efficiency or access to shared memory, a zero-copy <code>ArrayBuffer</code> can be used. This should be avoided when possible because it is error-prone and it is not compatible with WASM or some alternative Node-API implementations which define <a href="https://github.com/nodejs/node-addon-api/blob/main/doc/external_buffer.md"><code>NODE_API_NO_EXTERNAL_BUFFERS_ALLOWED</code></a> such as Electron.</p>
 
@@ -852,6 +853,42 @@ let last2 = vec2[vec2.length - 1];
     }
   }</pre>
   </div>
+
+<H3><a name="Javascript_C_arrays_example">28.4.5 <code>C</code> (flat pointer) arrays</a></H3>
+<p>Just like with STL containers, there are two approaches to handling C (flat pointer) arrays depending on whether C will use the JavaScript structure or JavaScript will use the C structure.</p>
+<p>The language-independnant SWIG feature <code>%array_class</code> allows to wrap any array structure as an object, providing a constructor and methods for setting and retrieving data.
+  This method allows for zero-copy sharing of a memory buffer between C and JavaScript but it is less practical as the array is not a JavaScript array but rather a SWIG object can must be accessed through its own methods.</p>
+<p>A JavaScript-specific transfer by copying is available in <code>arrays_javascript.i</code>.
+This allows for more seamless integration at the price of copying the array at each function call:</p>
+<div class="code">
+  <pre>
+    // We are wrapping:
+    // int fn1(int *data_var, size_t len)
+    // int fn2(int data_fixed[3])
+    // int fn3(int *data_var_auto, size_t len_auto)
+
+    %include &lt;arrays_javascript.i&gt;
+
+    %apply int[] { int *data_var };
+    %apply int[3] { int data_fixed[3] };
+
+    // This supposes Node-API
+    %typemap(in) (int *data_var_auto, size_t len_auto) {
+      $typemap(in, double [], 1=$1, 2=$2);
+      // we know the size from JavaScript
+      $2 = $input.As<Napi::Array>().Length();
+    }
+  </pre>
+</div>
+<p>Then in JavaScript:</p>
+<div class="code">
+  <pre>
+    fn1([1, 2, 3], 3);
+    fn2([1, 2, 3]);
+    fn3([1, 2, 3]);
+  </pre>
+</div>
+<p>By default, these typemaps are available for <code>int</code> and <code>double</code> - check <code>arrays_javascript.i</code> to see how to add more types.</p>
 <H2><a name="Javascript_exceptions">28.5 Exceptions</a></H2>
 
 <H3><a name="Javascript_jsc_exceptions">28.5.1 Handling Exceptions in JavascriptCore</a></H3>
