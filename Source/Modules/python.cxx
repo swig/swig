@@ -1490,6 +1490,26 @@ public:
   }
 
   /* ------------------------------------------------------------
+   * find_overload_with_docstring()
+   *
+   * This function should be called with the node pointing to the
+   * last element of an overload set and returns an overload with
+   * a docstring or null if there are none.
+   *
+   * The idea is that, because the Python docstring is shared by
+   * all overloads, it's this function return value and not the
+   * node itself which needs to be passes to docstring() later.
+   * ------------------------------------------------------------ */
+  Node *find_overload_with_docstring(Node *n) {
+    for (Node *node_with_doc = n; node_with_doc; node_with_doc = Getattr(node_with_doc, "sym:previousSibling")) {
+      if (have_docstring(node_with_doc))
+	return node_with_doc;
+    }
+
+    return NULL;
+  }
+
+  /* ------------------------------------------------------------
    * build_combined_docstring()
    *
    * Build the full docstring:
@@ -2431,8 +2451,12 @@ public:
     if (!fast || olddefs) {
       /* Make a wrapper function to insert the code into */
       Printv(f_dest, "\n", "def ", name, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-      if (have_docstring(n))
-	Printv(f_dest, tab4, docstring(n, AUTODOC_FUNC, tab4, true), "\n", NIL);
+
+      // When handling the last overloaded function in an overload set (and we're only called for the last one if the function is overloaded at all), we need to
+      // output the docstring if any of the overloads has any documentation, not just this last one.
+      if (Node *node_with_doc = find_overload_with_docstring(n))
+	Printv(f_dest, tab4, docstring(node_with_doc, AUTODOC_FUNC, tab4, true), "\n", NIL);
+
       if (have_pythonprepend(n))
 	Printv(f_dest, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
       if (have_pythonappend(n)) {
@@ -2500,14 +2524,14 @@ public:
       if (fastproxy) {
 	Append(methods_proxydocs, "NULL");
       }
-    } else if (have_docstring(n)) {
+    } else if (Node *node_with_doc = find_overload_with_docstring(n)) {
       /* Use the low-level docstring here since this is the docstring that will be used for the C API */
-      String *ds = cdocstring(n, Getattr(n, "memberfunction") ? AUTODOC_METHOD : AUTODOC_FUNC, true);
+      String *ds = cdocstring(node_with_doc, Getattr(n, "memberfunction") ? AUTODOC_METHOD : AUTODOC_FUNC, true);
       Printf(methods, "\"%s\"", ds);
       if (fastproxy) {
 	/* In the fastproxy case, we must also record the high-level docstring for use in the Python shadow API */
 	Delete(ds);
-        ds = cdocstring(n, Getattr(n, "memberfunction") ? AUTODOC_METHOD : AUTODOC_FUNC);
+        ds = cdocstring(node_with_doc, Getattr(n, "memberfunction") ? AUTODOC_METHOD : AUTODOC_FUNC);
 	Printf(methods_proxydocs, "\"%s\"", ds);
       }
       Delete(ds);
@@ -2636,9 +2660,8 @@ public:
     }
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, f_wrappers);
-    Node *p = Getattr(n, "sym:previousSibling");
     if (!builtin_self && (use_static_method || !builtin))
-      add_method(symname, wname, 0, p);
+      add_method(symname, wname, 0, Getattr(n, "sym:previousSibling") ? n : NULL);
 
     /* Create a shadow for this function (if enabled and not in a member function) */
     if (!builtin && shadow && !(shadow & PYSHADOW_MEMBER) && use_static_method) {
@@ -3588,8 +3611,7 @@ public:
     String *name = Getattr(n, "name");
     String *iname = Getattr(n, "sym:name");
     SwigType *type = Getattr(n, "type");
-    String *rawval = Getattr(n, "rawval");
-    String *value = rawval ? rawval : Getattr(n, "value");
+    String *value = Getattr(n, "value");
     String *tm;
     int have_tm = 0;
     int have_builtin_symname = 0;
@@ -4212,7 +4234,10 @@ public:
     printSlot(f, getSlot(), "tp_print");
     Printv(f, "#endif\n", NIL);
     Printv(f, "#if PY_VERSION_HEX >= 0x030c0000\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:tp_watched"), "tp_watched", "char");
+    printSlot(f, getSlot(n, "feature:python:tp_watched"), "tp_watched", "unsigned char");
+    Printv(f, "#endif\n", NIL);
+    Printv(f, "#if PY_VERSION_HEX >= 0x030d00a4\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:tp_versions_used"), "tp_versions_used", "uint16_t");
     Printv(f, "#endif\n", NIL);
 
     Printv(f, "#ifdef COUNT_ALLOCS\n", NIL);
@@ -4360,6 +4385,9 @@ public:
     printSlot(f, getSlot(n, "feature:python:getitem"), "getitem", "PyObject *");
     Printv(f, "#if PY_VERSION_HEX >= 0x030c0000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:getitem_version"), "getitem_version", "uint32_t");
+    Printv(f, "#endif\n", NIL);
+    Printv(f, "#if PY_VERSION_HEX >= 0x030d0000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:init"), "init", "PyObject *");
     Printv(f, "#endif\n", NIL);
     Printf(f, "  }\n");
     Printv(f, "#endif\n", NIL);
@@ -4747,14 +4775,14 @@ public:
 	  if (!have_addtofunc(n)) {
 	    if (!fastproxy || olddefs) {
 	      Printv(f_shadow, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-	      if (have_docstring(n))
-		Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
+	      if (Node *node_with_doc = find_overload_with_docstring(n))
+		Printv(f_shadow, tab8, docstring(node_with_doc, AUTODOC_METHOD, tab8), "\n", NIL);
 	      Printv(f_shadow, tab8, "return ", funcCall(fullname, callParms), "\n", NIL);
 	    }
 	  } else {
 	    Printv(f_shadow, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-	    if (have_docstring(n))
-	      Printv(f_shadow, tab8, docstring(n, AUTODOC_METHOD, tab8), "\n", NIL);
+	    if (Node *node_with_doc = find_overload_with_docstring(n))
+	      Printv(f_shadow, tab8, docstring(node_with_doc, AUTODOC_METHOD, tab8), "\n", NIL);
 	    if (have_pythonprepend(n)) {
 	      fproxy = 0;
 	      Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
@@ -4845,8 +4873,8 @@ public:
 	String *callParms = make_pyParmList(n, false, true, kw);
 	Printv(f_shadow, "\n", tab4, "@staticmethod", NIL);
 	Printv(f_shadow, "\n", tab4, "def ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-	if (have_docstring(n))
-	  Printv(f_shadow, tab8, docstring(n, AUTODOC_STATICFUNC, tab8), "\n", NIL);
+	if (Node *node_with_doc = find_overload_with_docstring(n))
+	  Printv(f_shadow, tab8, docstring(node_with_doc, AUTODOC_STATICFUNC, tab8), "\n", NIL);
 	if (have_pythonprepend(n))
 	  Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
 	if (have_pythonappend(n)) {
@@ -4952,8 +4980,8 @@ public:
 	      }
 
 	      Printv(f_shadow, "\n", tab4, "def __init__(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-	      if (have_docstring(n))
-		Printv(f_shadow, tab8, docstring(n, AUTODOC_CTOR, tab8), "\n", NIL);
+	      if (Node *node_with_doc = find_overload_with_docstring(n))
+		Printv(f_shadow, tab8, docstring(node_with_doc, AUTODOC_CTOR, tab8), "\n", NIL);
 	      if (have_pythonprepend(n))
 		Printv(f_shadow, indent_pythoncode(pythonprepend(n), tab8, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
 	      Printv(f_shadow, pass_self, NIL);
@@ -4980,8 +5008,8 @@ public:
 	      String *callParms = make_pyParmList(n, false, true, allow_kwargs);
 
 	      Printv(f_shadow_stubs, "\ndef ", symname, "(", parms, ")", returnTypeAnnotation(n), ":\n", NIL);
-	      if (have_docstring(n))
-		Printv(f_shadow_stubs, tab4, docstring(n, AUTODOC_CTOR, tab4), "\n", NIL);
+	      if (Node *node_with_doc = find_overload_with_docstring(n))
+		Printv(f_shadow_stubs, tab4, docstring(node_with_doc, AUTODOC_CTOR, tab4), "\n", NIL);
 	      if (have_pythonprepend(n))
 		Printv(f_shadow_stubs, indent_pythoncode(pythonprepend(n), tab4, Getfile(n), Getline(n), "%pythonprepend or %feature(\"pythonprepend\")"), "\n", NIL);
 	      Printv(f_shadow_stubs, tab4, "val = ", funcCall(subfunc, callParms), "\n", NIL);

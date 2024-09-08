@@ -1650,9 +1650,7 @@ int Swig_VargetToFunction(Node *n, int flags) {
   } else {
     String *nname = 0;
     if (Equal(nodeType(n), "constant")) {
-      String *rawval = Getattr(n, "rawval");
-      String *value = rawval ? rawval : Getattr(n, "value");
-      nname = NewStringf("(%s)", value);
+      nname = NewStringf("(%s)", Getattr(n, "value"));
     } else {
       nname = SwigType_namestr(name);
     }

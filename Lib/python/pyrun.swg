@@ -392,6 +392,9 @@ swig_varlink_type(void) {
 #if PY_VERSION_HEX >= 0x030C0000
       0,                                  /* tp_watched */
 #endif
+#if PY_VERSION_HEX >= 0x030d00a4
+      0,                                  /* tp_versions_used */
+#endif
 #ifdef COUNT_ALLOCS
       0,                                  /* tp_allocs */
       0,                                  /* tp_frees */
@@ -1025,6 +1028,9 @@ SwigPyObject_TypeOnce(void) {
 #if PY_VERSION_HEX >= 0x030C0000
       0,                                    /* tp_watched */
 #endif
+#if PY_VERSION_HEX >= 0x030d00a4
+      0,                                    /* tp_versions_used */
+#endif
 #ifdef COUNT_ALLOCS
       0,                                    /* tp_allocs */
       0,                                    /* tp_frees */
@@ -1243,6 +1249,9 @@ SwigPyPacked_TypeOnce(void) {
 #endif
 #if PY_VERSION_HEX >= 0x030C0000
       0,                                    /* tp_watched */
+#endif
+#if PY_VERSION_HEX >= 0x030d00a4
+      0,                                    /* tp_versions_used */
 #endif
 #ifdef COUNT_ALLOCS
       0,                                    /* tp_allocs */

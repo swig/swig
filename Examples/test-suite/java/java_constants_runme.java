@@ -1,5 +1,6 @@
 
 import java_constants.*;
+import java.lang.reflect.*;
 
 public class java_constants_runme {
   static {
@@ -25,5 +26,13 @@ public class java_constants_runme {
           default:
               break;
       }
+
+      // Check the altered constants interface access modifier
+      Class[] cls = java_constants.class.getInterfaces();
+      Class constantsInterface = cls[0];
+      int modifiers = constantsInterface.getModifiers();
+      boolean isDefaultAccessModifier = !(Modifier.isPublic(modifiers) || Modifier.isProtected(modifiers) || Modifier.isPrivate(modifiers));
+      if (!isDefaultAccessModifier)
+        throw new RuntimeException("java_constantsConstants interface access modifiers not default access");
   }
 }

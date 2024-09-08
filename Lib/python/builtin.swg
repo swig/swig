@@ -273,6 +273,9 @@ SwigPyStaticVar_Type(void) {
 #if PY_VERSION_HEX >= 0x030c0000
       0,                                        /* tp_watched */
 #endif
+#if PY_VERSION_HEX >= 0x030d00a4
+      0,                                        /* tp_versions_used */
+#endif
 #ifdef COUNT_ALLOCS
       0,                                        /* tp_allocs */
       0,                                        /* tp_frees */
@@ -363,6 +366,9 @@ SwigPyObjectType(void) {
 #endif
 #if PY_VERSION_HEX >= 0x030c0000
       0,                                        /* tp_watched */
+#endif
+#if PY_VERSION_HEX >= 0x030d00a4
+      0,                                        /* tp_versions_used */
 #endif
 #ifdef COUNT_ALLOCS
       0,                                        /* tp_allocs */

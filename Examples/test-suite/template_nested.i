@@ -4,6 +4,8 @@
 
 #if !defined(SWIGCSHARP) && !defined(SWIGJAVA)
 #pragma SWIG nowarn=SWIGWARN_PARSE_NAMED_NESTED_CLASS
+%warnfilter(SWIGWARN_PARSE_TEMPLATE_NESTED) ns::OuterClass::Inner1;
+%warnfilter(SWIGWARN_PARSE_TEMPLATE_NESTED) ns::OuterClass::Inner2;
 #endif
 
 namespace ns {

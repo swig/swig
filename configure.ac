@@ -111,7 +111,6 @@ echo ""
 
 dnl Some test cases require Boost
 AX_BOOST_BASE(,,,)
-AC_SUBST(BOOST_CPPFLAGS)
 
 dnl Info for building shared libraries ... in order to run the examples
 
@@ -219,20 +218,17 @@ then
 fi
 AC_MSG_RESULT($TRYLINKINGWITHCXX)
 # CCSHARED are the C *flags* used to create objects to go into a shared
-# library (module) -- this is only needed for a few systems
+# library (module).  Typically an option is needed to tell the compiler
+# to general Position-Independent Code (PIC).
 AC_MSG_CHECKING(CCSHARED)
 if test -z "$CCSHARED"
 then
 	case $host in
 	*-*-hp*) if test "$GCC" = yes
-		 then CCSHARED="-fpic"
+		 then CCSHARED="-fPIC"
 		 else CCSHARED="+z"
 		 fi;;
-	s390x*-*-*) CCSHARED="-fpic" ;;
-	s390*-*-*) CCSHARED="-fPIC" ;;
-	*-*-linux*) CCSHARED="-fpic";;
-	*-*-freebsd* | *-*-openbsd*) CCSHARED="-fpic";;
-	*-*-netbsd*) CCSHARED="-fPIC";;
+	*-*-linux* | *-*-freebsd* | *-*-netbsd* | *-*-openbsd*) CCSHARED="-fPIC";;
 	*-sco-sysv*) CCSHARED="-KPIC -dy -Bdynamic";;
 	*-*-irix6*)  case $CC in
 		   *gcc*) CCSHARED="-shared";;
@@ -460,17 +456,6 @@ esac
 AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
 AC_CHECK_LIB(dld, shl_load)	# Dynamic linking for HP-UX
 
-dnl The following three libraries (nsl,inet,socket) are needed on Sequent,
-dnl and must be checked for in this order since each library depends on the
-dnl preceding one.
-dnl
-dnl Most SVR4 platforms will need -lsocket and -lnsl.  However on SGI IRIX 5,
-dnl these exist but are broken, so we use AC_SEARCH_LIBS which will only try
-dnl the library if the function isn't already available without it.
-AC_SEARCH_LIBS(t_open, nsl) # SVR4
-AC_SEARCH_LIBS(gethostbyname, inet) # Sequent
-AC_SEARCH_LIBS(socket, socket) # SVR4 sockets
-
 # check for --with-libm=...
 AC_SUBST(LIBM)
 LIBM=-lm
@@ -480,8 +465,6 @@ then LIBM=$withval
 else AC_MSG_ERROR([proper usage is --with-libm=STRING])
 fi])
 AC_CHECK_LIB(ieee, main, [LIBM="-lieee $LIBM"])
-AC_CHECK_LIB(crypt,crypt, [LIBCRYPT="-lcrypt"])
-AC_SUBST(LIBCRYPT)
 
 # check for --with-libc=...
 AC_SUBST(LIBC)

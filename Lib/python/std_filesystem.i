@@ -8,6 +8,12 @@
 #include <filesystem>
 %}
 
+namespace std {
+  namespace filesystem {
+    class path;
+  }
+}
+
 %fragment("SWIG_std_filesystem", "header") {
 SWIGINTERN PyObject *SWIG_std_filesystem_importPathClass() {
   PyObject *module = PyImport_ImportModule("pathlib");

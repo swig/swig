@@ -77,3 +77,14 @@ const int s9a = sizeof(-s8a);
 // const int s9b = sizeof -s8a; /* not currently supported */
 
 %}
+
+/* Regression test for #1917, fixed in 4.3.0. */
+#ifdef SWIGCSHARP
+%csconst(1) float_suffix_test;
+#endif
+#ifdef SWIGJAVA
+%javaconst(1) float_suffix_test;
+#endif
+%constant const float float_suffix_test = 4.0f;
+%constant const float float_suffix_test2 = 4.0f;
+#define float_suffix_test3 4.0f

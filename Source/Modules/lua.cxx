@@ -1053,8 +1053,7 @@ public:
       lua_name = iname;
     String *nsname = Copy(iname);
     SwigType *type = Getattr(n, "type");
-    String *rawval = Getattr(n, "rawval");
-    String *value = rawval ? rawval : Getattr(n, "value");
+    String *value = Getattr(n, "value");
     String *tm;
     String *lua_name_v2 = 0;
     String *tm_v2 = 0;
