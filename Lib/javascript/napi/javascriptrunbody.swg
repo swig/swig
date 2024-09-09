@@ -343,29 +343,6 @@ fail:
 #endif
 }
 
-SWIGRUNTIME Napi::Value _wrap_getCPtr(const Napi::CallbackInfo &info) {
-  Napi::Env env = info.Env();
-  Napi::Value jsresult;
-  void *arg1 = (void *) 0 ;
-  long result;
-  int res1;
-
-  res1 = SWIG_GetInstancePtr(info.This(), &arg1);
-  if (!SWIG_IsOK(res1)) {
-    SWIG_Error(SWIG_ArgError(res1), " in method '" "getCPtr" "', argument " "1"" of type '" "void *""'");
-  }
-
-  result = (long)arg1;
-  jsresult = Napi::Number::New(env, result);
-
-  return jsresult;
-#ifndef NAPI_CPP_EXCEPTIONS
-  goto fail;
-fail:
-  return Napi::Value();
-#endif
-}
-
 /* ---------------------------------------------------------------------------
  * PackedData object
  * (objects visible to JS that do not have a dedicated wrapper but must preserve type)
