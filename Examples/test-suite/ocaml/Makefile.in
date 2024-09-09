@@ -34,6 +34,11 @@ director_using_member_scopes \
 enum_thorough \
 smart_pointer_inherit \
 
+# SWG-JSE exclusive tests
+FAILING_CPP_TESTS += \
+enum_nspace \
+types_directive_nspace \
+
 FAILING_C_TESTS = \
 enums \
 
@@ -52,9 +57,9 @@ run_testcase = \
 		fi ; \
 		$(OCC) $(OCAMLPP) -c $(ml_runme) && \
 		if [ -f $(top_srcdir)/Examples/test-suite/$*.list ]; then \
-			$(OCC) swig.cmo -custom -g -cc '$(CXX)' -o $*_runme `cat $(top_srcdir)/Examples/test-suite/$(*).list | sed -e 's/\(.*\)/\1_wrap.o \1.cmo/g'`&& $(RUNTOOL) ./$*_runme; \
+			$(OCC) swig.cmo -custom -g -cc '$(CXX)' $(OCAML_CC_OPTS) -o $*_runme `cat $(top_srcdir)/Examples/test-suite/$(*).list | sed -e 's/\(.*\)/\1_wrap.o \1.cmo/g'`&& $(RUNTOOL) ./$*_runme; \
 		else \
-			$(OCC) swig.cmo -custom -g -cc '$(CXX)' -o $*_runme $(*).cmo $(*)_runme.cmo $(*)_wrap.o && $(RUNTOOL) ./$*_runme; \
+			$(OCC) swig.cmo -custom -g -cc '$(CXX)' $(OCAML_CC_OPTS) -o $*_runme $(*).cmo $(*)_runme.cmo $(*)_wrap.o && $(RUNTOOL) ./$*_runme; \
 		fi ; \
 	fi ;
 
@@ -80,6 +85,7 @@ SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 %.multicpptest:
 	+$(swig_and_compile_multi_cpp)
 	$(setup)
+	$(eval OCAML_CC_OPTS := -ccopt -Wl,--allow-multiple-definition)
 	$(run_testcase)
 
 swig.cmi:
