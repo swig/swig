@@ -101,7 +101,11 @@ echo "Checking packages required for SWIG developers."
 echo "Note : None of the following packages are required for users to compile and install SWIG from the distributed tarball"
 echo ""
 
-AC_CHECK_PROGS([BISON], [bison], [$MISSING bison])
+if test -z "$BISON"; then
+  AC_CHECK_PROGS([BISON], [bison], [$MISSING bison])
+else
+  AC_MSG_NOTICE([Using bison from environment variable BISON... ${BISON}])
+fi
 
 echo ""
 echo "Checking for installed target languages and other information in order to compile and run"
@@ -2911,7 +2915,8 @@ AC_CONFIG_FILES([CCache/ccache_swig_config.h])
 # source directory, and provides a rule for updating the Makefile from
 # its original source.
 AC_CONFIG_COMMANDS([Examples],[
-  if test "x${srcdir}" != "x." ; then
+  # -ef is path equality - which is everything but trivial
+  if ! test "${srcdir}" -ef "." ; then
     AC_MSG_NOTICE([generating Examples build tree])
     for mkfile in `cd ${srcdir} && find Examples/ -type f -name Makefile`; do
       dir=`dirname ${mkfile}`

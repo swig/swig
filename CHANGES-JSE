@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 5.0.5 (9 Sep 2024)
 ===========================
 
+2024-09-09: mmomtchev
+            [build] `conan` build compatibility: getting `bison` from the
+            environment and case-insensitive path equality test
+
 2024-09-08: mmomtchev
             [JavaScript] Fix [mmomtchev/swig#37](https://github.com/mmomtchev/swig/issues/37),
             Generated code compilation fails with `clang` on Windows
