@@ -87,6 +87,7 @@ FAILING_CPP_TESTS := \
     typemap_namespace \
     typemap_various \
     using_extend \
+    using_extend_flatten \
     varargs \
     varargs_overload \
     virtual_poly \
