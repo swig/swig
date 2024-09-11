@@ -201,12 +201,13 @@ Wrapping C functions and variables is obviously performed in a straightforward w
 
 <p>
 It is also possible to output arbitrary additional code into the generated header by using <tt>%insert</tt> directive with <tt>cheader</tt> section, e.g.
+</p>
+
 <div class="code"><pre>
 %insert("cheader") %{
 #include "another.h"
 %}
 </pre></div>
-</p>
 
 <H3><a name="C_functions"></a>36.3.1 Functions</H3>
 
@@ -241,7 +242,7 @@ Now one might think, what's the use of creating such functions in C? The answer 
 
 <div class="code"><pre>
 %typemap(check) int POSITIVE {
-  if ($1 <= 0)
+  if ($1 &lt;= 0)
     fprintf(stderr, "Expected positive value in $name.\n");
 }
 
@@ -255,11 +256,11 @@ And now the generated result looks like:
 <div class="targetlang"><pre>
 int _wrap_gcd(int arg1, int arg2) {
   {
-    if (arg1 <= 0)
+    if (arg1 &lt;= 0)
       fprintf(stderr, "Expected positive value in gcd.\n");
   }
   {
-    if (arg1 <= 0)
+    if (arg1 &lt;= 0)
       fprintf(stderr, "Expected positive value in gcd.\n");
   }
   int result;
@@ -329,17 +330,17 @@ By default, SWIG attempts to build a natural C interface to your C/C++ code.
     <td>Empty structure <tt>Example</tt></td>
   </tr>
   <tr>
-    <td>Public, mutable member variable <tt><tt>Foo Example::foo</tt></td>
-    <td><tt>
-      Example_foo_get(Example *e);</br>
+    <td>Public, mutable member variable <tt>Foo Example::foo</tt></td>
+    <td><div class="targetlang"><pre>
+      Example_foo_get(Example *e);
       Example_foo_set(Example *e, Foo *f);
-    </tt></td>
+    </pre></div></td>
   </tr>
   <tr>
-    <td>Public, immutable member variable <tt><tt>Foo Example::bar</tt></td>
-    <td><tt>
-      Example_foo_get(Example *e);</br>
-    </tt></td>
+    <td>Public, immutable member variable <tt>Foo Example::bar</tt></td>
+    <td><div class="targetlang"><pre>
+      Example_foo_get(Example *e);
+    </pre></div></td>
   </tr>
 </table>
 This section briefly covers the essential aspects of this wrapping.
@@ -444,28 +445,28 @@ area: 7.068583
   </tr>
   <tr>
       <td><tt>ctype</tt></td>
-      <td>Provides types used for the C API and</br>
-          Typecasts wrapper functions return values in proxy functions</br>
-          <code>
-              MyClass *MyClass_new(void) {</br>
-              &nbsp;return (MyClass *)MyClass_new();</br>
-              }
-          </code>
+      <td>Provides types used for the C API and<br>
+          Typecasts wrapper functions return values in proxy functions
+<div class="targetlang"><pre>
+MyClass *MyClass_new(void) {
+  return (MyClass *)MyClass_new();
+}
+</pre></div>
       </td>
   </tr>
   <tr>
     <td><tt>in</tt></td>
-    <td>Mapping of wrapper functions parameters to local C++ variables</br>
-       </br>
-       <code>
-          SwigObj* MyClass_do(SwigObj *carg1) {</br>
-            &nbsp;SomeCPPClass *arg1 = 0;</br>
-            &nbsp;if (carg1)</br>
-              &nbsp;&nbsp;arg1 = (SomeCPPClass*)carg1->obj</br>
-            &nbsp;else</br>
-              &nbsp;&nbsp;arg1 = 0;</br>
-          }
-       </code></td>
+    <td>Mapping of wrapper functions parameters to local C++ variables
+<div class="targetlang"><pre>
+SwigObj* MyClass_do(SwigObj *carg1) {
+  SomeCPPClass *arg1 = 0;
+  if (carg1)
+    arg1 = (SomeCPPClass*)carg1->obj
+  else
+    arg1 = 0;
+}
+</pre></div>
+       </td>
   </tr>
   <tr>
     <td><tt>out</tt></td>
@@ -505,8 +506,13 @@ area: 7.068583
 
 <H3>C Typemaps, a Code Generation Walkthrough</H3>
 
-To get a better idea of which typemap is used for which generated code, have a look at the following 'walk through'.</br>
+<p>
+To get a better idea of which typemap is used for which generated code, have a look at the following 'walk through'.
+</p>
+
+<p>
 Let's assume we have the following C++ interface file, we'd like to generate code for:
+</p>
 
 <H4>The Interface</H4>
 <div class="code"><pre>
@@ -516,14 +522,15 @@ Let's assume we have the following C++ interface file, we'd like to generate cod
 %{
   class SomeClass{};
   template &lt;typename T&gt; class SomeTemplateClass{};
-  SomeClass someFunction(SomeTemplateClass&lt;int&gt; &someParameter, int simpleInt);
+  SomeClass someFunction(SomeTemplateClass&lt;int&gt; &amp;someParameter, int simpleInt);
 %}
 
 %template (SomeIntTemplateClass) SomeTemplateClass&lt;int&gt;;
 </pre></div>
 
-
+<p>
 What we would like to generate as a C interface of this function would be something like this:
+</p>
 
 <div class="targetlang"><pre>
 // wrapper header file
@@ -544,24 +551,27 @@ void SomeIntTemplateClass_delete(SomeIntTemplateClass * carg1);
 </pre></div>
 
 <H4>The Wrapper</H4>
+
+<p>
 We'll examine the generation of the wrapper function first.
+</p>
 
 <div class="targetlang"><pre>
 SWIGEXPORTC SwigObj * module_someFunction(SwigObj * carg1, int carg2) {
   SomeClass * cppresult;
-  SomeTemplateClass< int > *arg1 = 0 ;
+  SomeTemplateClass&lt; int &gt; *arg1 = 0 ;
   int arg2 ;
   SwigObj * result;
   
   {
     if (carg1)
-    arg1 = (SomeTemplateClass< int > *) carg1->obj;
+    arg1 = (SomeTemplateClass&lt; int &gt; *) carg1->obj;
     else
-    arg1 = (SomeTemplateClass< int > *) 0;
+    arg1 = (SomeTemplateClass&lt; int &gt; *) 0;
   }
   arg2 = (int) carg2;
   {
-    const SomeClass &_result_ref =  someFunction(*arg1,arg2);cppresult = (SomeClass*) &_result_ref;
+    const SomeClass &amp;_result_ref =  someFunction(*arg1,arg2);cppresult = (SomeClass*) &amp;_result_ref;
   }
   {
     result = SWIG_create_object(cppresult, SWIG_STR(SomeClass));
@@ -570,8 +580,10 @@ SWIGEXPORTC SwigObj * module_someFunction(SwigObj * carg1, int carg2) {
 }
 </pre></div>
 
-It might be helpful to think of the way function calls are generated as a composition of building blocks.</br>
+<p>
+It might be helpful to think of the way function calls are generated as a composition of building blocks.
 A typical wrapper will be composited with these [optional] blocks:
+</p>
 
 <ol>
 <li>Prototype</li>
@@ -586,7 +598,9 @@ A typical wrapper will be composited with these [optional] blocks:
 <li>Assignment to C return value</li>
 </ol>
 
+<p>
 Let's go through it step by step and start with the wrapper prototype
+</p>
 
 <div class="targetlang"><pre>
 ctype                        ctype            ctype
@@ -594,7 +608,9 @@ ctype                        ctype            ctype
 SwigObj * module_someFunction(SwigObj * carg1, int carg2);
 </pre></div>
 
+<p>
 As first unit of the wrapper code, a variable to hold the return value of the function is emitted to the wrapper's body
+</p>
 
 <div class="targetlang"><pre>
 ctype
@@ -602,15 +618,19 @@ ctype
 SwigObj * result;
 </pre></div>
 
+<p>
 Now for each of the C++ function's arguments, a local variable with the very same type is emitted to the wrapper's body.
+</p>
 
 <div class="targetlang"><pre>
-SomeTemplateClass< int > *arg1 = 0 ;
+SomeTemplateClass&lt; int &gt; *arg1 = 0 ;
 int arg2 ;
 </pre></div>
 
-If it's a C++ function that is wrapped (in this case it is), another variable is emitted for the 'original' return value of the C++ function.</br>
+<p>
+If it's a C++ function that is wrapped (in this case it is), another variable is emitted for the 'original' return value of the C++ function.
 At this point, we simply 'inject' behavior if it's a C++ function that is wrapped (in this case it obviously is).
+</p>
 
 <div class="targetlang"><pre>
 cppouttype
@@ -618,50 +638,68 @@ cppouttype
 SomeClass * cppresult;
 </pre></div>
 
+<p>
 Next, the values of the input parameters are assigned to the local variables using the 'in' typemap.
+</p>
 
 <div class="targetlang"><pre>
 {
   if (carg1)
-  arg1 = (SomeTemplateClass< int > *) carg1->obj;
+  arg1 = (SomeTemplateClass&lt; int &gt; *) carg1->obj;
   else
-  arg1 = (SomeTemplateClass< int > *) 0;
+  arg1 = (SomeTemplateClass&lt; int &gt; *) 0;
 }
 arg2 = (int) carg2;
 </pre></div>
 
-A reasonable question would be: "Why aren't the parameters assigned in the declaration of their local counterparts?"</br>
-As seen above, for complex types pointers have to be verified before extracting and </br>
-casting the actual data pointer from the provided SwigObj pointer.</br>
-This could easily become messy if it was done in the same line with the local variable declaration.</br>
 <p>
-At this point we are ready to call the C++ function with our parameters.</br>
+A reasonable question would be: "Why aren't the parameters assigned in the declaration of their local counterparts?"
+As seen above, for complex types pointers have to be verified before extracting and
+casting the actual data pointer from the provided SwigObj pointer.
+This could easily become messy if it was done in the same line with the local variable declaration.
 </p>
+
+<p>
+At this point we are ready to call the C++ function with our parameters.
+</p>
+
 <div class="targetlang"><pre>
 {
-  const SomeClass &_result_ref =  someFunction(*arg1,arg2);cppresult = (SomeClass*) &_result_ref;
+  const SomeClass &amp;_result_ref =  someFunction(*arg1,arg2);cppresult = (SomeClass*) &amp;_result_ref;
 }
 </pre></div>
+
+<p>
 Subsequently, the return value is assigned to the dedicated return value variable using the 'out' typemap
+</p>
+
 <div class="targetlang"><pre>
 {
   result = SWIG_create_object(cppresult, SWIG_STR(SomeClass));
 }
 </pre></div>
 
+<p>
 Finally, the return value variable is returned.
+</p>
+
 <div class="targetlang"><pre>
 return result;
 </pre></div>
 
+<p>
 Note that typemaps may use <tt>$null</tt> special variable which will be
 replaced with either <tt>0</tt> or nothing, depending on whether the function
 has a non-void return value or not.
+</p>
 
 <H4>The Proxy</H4>
-Compared to the wrapper code generation, the header code is very simple.</br>
+
+<p>
+Compared to the wrapper code generation, the header code is very simple.
 Basically it contains just the declarations corresponding to the definitions
 above.
+</p>
 
 <div class="targetlang"><pre>
 // wrapper header file
@@ -695,27 +733,36 @@ When <tt>-c++</tt> command line option is used (and <tt>-nocxx</tt> one is not),
 
 <p>
 C++ wrappers try to provide a similar API to the original C++ API being wrapped, notably any class <tt>Foo</tt> in the original API appears as a class with the same name in the wrappers namespace, and has the same, or similar, public methods. A class <tt>Bar</tt> deriving from <tt>Foo</tt> also derives from it in the wrappers and so on. There are some differences with the original API, however. Some of them are due to fundamental limitations of the approach used, e.g.:
+</p>
+
 <ul>
   <li>Only template instantiations are present in the wrappers, not the templates themselves.</li>
 </ul>
 
+<p>
 Other ones are due to things that could be supported but haven't been implemented yet:
+</p>
+
 <ul>
   <li>Only single, not multiple, inheritance is currently supported.</li>
   <li>Only enums using <tt>int</tt> (or smaller type) as underlying type are supported.</li>
 </ul>
-</p>
 
 <H3>36.6.1 Additional customization possibilities</H3>
 
+<p>
 Generated C++ code can be customized by inserting custom code in the following sections:
+</p>
 
 <ul>
   <li><tt>cxxheader</tt> for including additional headers and other declarations in the global scope.</li>
   <li><tt>cxxcode</tt> for additional code to appear after the declarations of all wrapper classes, inside the module-specific namespace.</li>
 </ul>
 
+<p>
 The following features are taken into account when generating C++ wrappers:
+</p>
+
 <ul>
   <li><tt>cxxignore</tt> May be set to skip generation of C++ wrappers for the given function or class, while still generating C wrappers for them.</li>
 </ul>
@@ -734,7 +781,7 @@ If necessary, a custom exception type may be used instead of <tt>SWIG_CException
 #ifndef SWIG_swig_check_DEFINED
 #define SWIG_swig_check_DEFINED 1
 
-#include <stdexcept>
+#include &lt;stdexcept&gt;
 
 class Exception : public std::runtime_error {
 public:
@@ -749,7 +796,7 @@ inline void swig_check() {
   }
 }
 
-template <typename T> T swig_check(T x) {
+template &lt;typename T&gt; T swig_check(T x) {
   swig_check();
   return x;
 }
