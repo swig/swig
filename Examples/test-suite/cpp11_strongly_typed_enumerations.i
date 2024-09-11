@@ -263,3 +263,14 @@ private:
     Val2 = 1172,
   };
 %}
+
+// Test handling of %rename of enum class and an enumerator.
+%rename(Enum18) QEnum18;
+%rename(Val1) QVal1;
+%inline %{
+  enum class QEnum18
+  {
+    QVal1 = 1181,
+    Val2 = 1182,
+  };
+%}
