@@ -3526,6 +3526,16 @@ c_decl_tail    : SEMI {
               ;
 
 initializer   : def_args
+	      | COLON expr {
+		$$.val = 0;
+		$$.stringval = 0;
+		$$.type = 0;
+		$$.bitfield = $expr.val;
+		$$.throws = 0;
+		$$.throwf = 0;
+		$$.nexcept = 0;
+		$$.final = 0;
+	      }
               ;
 
 cpp_alternate_rettype : primitive_type
@@ -5360,16 +5370,6 @@ def_args       : EQUAL definetype {
 		 $$.type = T_UNKNOWN;
 		 $$.unary_arg_type = 0;
 		 $$.bitfield = 0;
-		 $$.throws = 0;
-		 $$.throwf = 0;
-		 $$.nexcept = 0;
-		 $$.final = 0;
-	       }
-               | COLON expr { 
-		 $$.val = 0;
-		 $$.stringval = 0;
-		 $$.type = 0;
-		 $$.bitfield = $expr.val;
 		 $$.throws = 0;
 		 $$.throwf = 0;
 		 $$.nexcept = 0;
