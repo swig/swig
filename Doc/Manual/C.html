@@ -135,17 +135,17 @@ $ swig -c -help
 
 <tr>
 <td>-namespace &lt;nspace&gt;</td>
-<td>Generate wrappers with the prefix based on the provided namespace, e.g. if the option value is <tt>outer::inner</tt>, the prefix <tt>outer_inner_</tt> will be used. Notice that this is different from using SWIG <tt>nspace</tt> feature, as it applies the the prefix to all the symbols, regardless of the namespace they were actually declared in. Notably, this allows to export instantiations of templates defined in the <tt>std</tt> namespace, such as <tt>std::vector</tt>, using a custom prefix rather than <tt>std_</tt>.</td>
+<td>Generate wrappers with the prefix based on the provided namespace, e.g. if the option value is <tt>outer::inner</tt>, the prefix <tt>outer_inner_</tt> will be used. Notice that this is different from using SWIG <tt>nspace</tt> feature, as it applies the prefix to all the symbols, regardless of the namespace they were actually declared in. Notably, this provides a way to export instantiations of templates defined in the <tt>std</tt> namespace, such as <tt>std::vector</tt>, using a custom prefix rather than <tt>std_</tt>.</td>
 </tr>
 
 <tr>
 <td>-nocxx</td>
-<td>Don't generate C++ wrappers, even when <tt>-c++</tt> option is used. See <a href="#C_cxx_wrappers">C++ Wrappers</a> section for more details.</td>
+<td>Don't generate C++ wrappers, even when the <tt>-c++</tt> option is used. See <a href="#C_cxx_wrappers">C++ Wrappers</a> section for more details.</td>
 </tr>
 
 <tr>
 <td>-noexcept</td>
-<td>generate wrappers with no support of exception handling; see <a href="#C_exceptions">Exceptions</a> chapter for more details </td>
+<td>generate wrappers with no support for exception handling; see <a href="#C_exceptions">Exceptions</a> chapter for more details </td>
 </tr>
 
 </table>
@@ -196,11 +196,11 @@ This will compile the application code (<tt>runme.c</tt>) and link it against th
 
 
 <p>
-Wrapping C functions and variables is obviously performed in a straightforward way. There is no need to perform type conversions, and all language constructs can be preserved in their original form. However, SWIG allows you to enhance the code with some additional elements, for instance using <tt>check</tt> typemap or <tt>%extend</tt> directive.
+Wrapping C functions and variables is obviously performed in a straightforward way. There is no need to perform type conversions, and all language constructs can be preserved in their original form. However, SWIG allows you to enhance the code with some additional elements, for instance using a <tt>check</tt> typemap or <tt>%extend</tt> directive.
 </p>
 
 <p>
-It is also possible to output arbitrary additional code into the generated header by using <tt>%insert</tt> directive with <tt>cheader</tt> section, e.g.
+It is also possible to output arbitrary additional code into the generated header by using the <tt>%insert</tt> directive with <tt>cheader</tt> section, e.g.
 </p>
 
 <div class="code"><pre>
