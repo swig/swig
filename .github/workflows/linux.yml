@@ -330,6 +330,10 @@ jobs:
           CPPSTD: c++17
           GCC: 13
         # c++20 testing (using gcc13)
+        - SWIGLANG: c
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-22.04
         - SWIGLANG: python
           CPPSTD: c++20
           GCC: 13
