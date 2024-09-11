@@ -159,7 +159,7 @@ The next step is to build a dynamically loadable module, which we can link to ou
 
 <div class="shell"><pre>
 $ swig -c example.i
-$ gcc -c example_wrap.c
+$ gcc -fPIC -c example_wrap.c
 $ gcc -shared example_wrap.o -o libexample.so
 </pre></div>
 
