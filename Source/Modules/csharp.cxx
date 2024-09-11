@@ -2103,8 +2103,10 @@ public:
     Printv(f_interface, typemapLookup(n, "csimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
     Printv(f_interface, typemapLookup(n, "csinterfacemodifiers", Getattr(n, "classtypeobj"), WARN_CSHARP_TYPEMAP_INTERFACEMODIFIERS_UNDEF), NIL);
     Printf(f_interface, " %s", interface_name);
+
+    String *additional = Getattr(n, "feature:interface:additional");
+    String *bases = additional ? NewStringf(" : %s", additional) : 0;
     if (List *baselist = Getattr(n, "bases")) {
-      String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
 	if (GetFlag(base.item, "feature:ignore") || !GetFlag(base.item, "feature:interface"))
 	  continue; // TODO: warn about skipped non-interface bases
@@ -2116,10 +2118,10 @@ public:
 	  Append(bases, base_iname);
 	}
       }
-      if (bases) {
-	Printv(f_interface, bases, NIL);
-	Delete(bases);
-      }
+    }
+    if (bases) {
+      Printv(f_interface, bases, NIL);
+      Delete(bases);
     }
     Printf(f_interface, " {\n");
 
