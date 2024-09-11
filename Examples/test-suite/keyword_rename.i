@@ -47,6 +47,12 @@ struct S {
   int yield;
 };
 
+struct S make_S_with_yield(int yield) {
+  struct S s;
+  s.yield = yield;
+  return s;
+}
+
 %}
 
 
