@@ -3068,12 +3068,6 @@ public:
 	    Swig_error(Getfile(n), Getline(n), "Unsupported boolean enum value \"%s\".\n", value);
 	  }
 	  break;
-
-	case T_CHAR:
-	  // SWIG parser doesn't put single quotes around char values, for some reason, so add them here.
-	  cvalue.assign_owned(NewStringf("'%(escape)s'", value));
-	  break;
-
 	default:
 	  cvalue.assign_non_owned(value);
       }
@@ -3093,32 +3087,8 @@ public:
 
   virtual int constantWrapper(Node *n) {
     String *name = Getattr(n, "sym:name");
-    // If it's a #define or a %constant, use raw value and hope that it will work in C as well as in C++. This is not ideal, but using "value" is even worse, as
-    // it doesn't even work for simple char constants such as "#define MY_X 'x'", that would end up unquoted in the generated code.
-    String *value = Getattr(n, "rawval");
-
-    if (!value) {
-      // Check if it's not a static member variable because its "value" is a reference to a C++ variable and won't translate to C correctly.
-      //
-      // Arguably, those should be handled in overridden memberconstantHandler() and not here.
-      value = Getattr(n, "staticmembervariableHandler:value");
-      if (value && Equal(Getattr(n, "valuetype"), "char")) {
-	// We need to quote this value.
-	const unsigned char c = *Char(value);
-	Clear(value);
-	if (isalnum(c)) {
-	  Printf(value, "'%c'", c);
-	} else {
-	  Printf(value, "'\\x%x%x'", c / 0x10, c % 0x10);
-	}
-      }
-    }
-
-    if (!value) {
-      // Fall back on whatever SWIG parsed the value as for all the rest.
-      value = Getattr(n, "value");
-    }
-
+    // We use the "value" and hope that it will work in C as well as in C++.
+    String *value = Getattr(n, "value");
     Printv(sect_wrappers_decl, "#define ", name, " ", value, "\n", NIL);
     return SWIG_OK;
   }
