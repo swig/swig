@@ -2813,7 +2813,6 @@ AC_SUBST(SWIG_LIB_SET)
 AC_CONFIG_FILES([
     Makefile
     Examples/Makefile
-    Examples/xml/Makefile
     Examples/test-suite/errors/Makefile
     Examples/test-suite/csharp/Makefile
     Examples/test-suite/d/Makefile
