@@ -43,6 +43,7 @@
 <ul>
 <li><a name="i7.1" href="#7.1">7.1 Debugging DOH Types The Hard Way</a>
 <li><a name="i7.2" href="#7.2">7.2 Debugging DOH memory allocation problems</a>
+<li><a name="i7.3" href="#7.3">7.3 Further debugging information</a>
 </ul>
 </ul>
 
@@ -1226,10 +1227,21 @@ Fatal internal error: Attempt to delete a non-DOH object.
 <p>
 This can be memory intensive as previously used memory in the pool is not re-used so is
 only recommended for diagnosing memory corruption problems.
+The valgrind tool is commonly used for debugging memory problems and <tt>DOH_DEBUG_MEMORY_POOLS</tt>
+should also be defined when using valgrind.
+</p>
+
+
+<a name="7.3" href="#i7.3">
+<h3>7.3 Further debugging information</h3>
+</a>
+
+<p>
+There is also useful practical information about debugging SWIG in the <i>Extending SWIG to support new languages</i> chapter in the main documentation manual.
 </p>
 
 <hr>
-Copyright (C) 1999-2022 SWIG Development Team.
+Copyright (C) 1999-2024 SWIG Development Team.
 
 </body>
 </html>

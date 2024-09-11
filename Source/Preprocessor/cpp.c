@@ -75,6 +75,29 @@ static int skip_tochar(String *s, int ch, String *out) {
   return 0;
 }
 
+/* Skip to a specified character or the end of the line */
+static int skip_tochar_or_eol(String *s, int ch, String *out) {
+  int c;
+  while ((c = Getc(s)) != EOF) {
+    if (c == '\n') {
+	Ungetc(c, s);
+	break;
+    }
+    if (out)
+      Putc(c, out);
+    if (c == ch)
+      break;
+    if (c == '\\') {
+      c = Getc(s);
+      if ((c != EOF) && (out))
+	Putc(c, out);
+    }
+  }
+  if (c == EOF)
+    return -1;
+  return 0;
+}
+
 static void copy_location(const DOH *s1, DOH *s2) {
   Setfile(s2, Getfile((DOH *) s1));
   Setline(s2, Getline((DOH *) s1));
@@ -1396,11 +1419,10 @@ static void addline(DOH *s1, DOH *s2, int allow) {
   if (allow) {
     Append(s1, s2);
   } else {
-    char *c = Char(s2);
-    while (*c) {
-      if (*c == '\n')
+    int len = Len(s2);
+    for (int i = 0; i < len; ++i) {
+      if (Char(s2)[i] == '\n')
 	Putc('\n', s1);
-      c++;
     }
   }
 }
@@ -1608,10 +1630,10 @@ state1:
 	state = 45;
       } else if (c == '\"') {
 	Putc(c, value);
-	skip_tochar(s, '\"', value);
+	skip_tochar_or_eol(s, '\"', value);
       } else if (c == '\'') {
 	Putc(c, value);
-	skip_tochar(s, '\'', value);
+	skip_tochar_or_eol(s, '\'', value);
       } else {
 	Putc(c, value);
 	if (c == '\\')

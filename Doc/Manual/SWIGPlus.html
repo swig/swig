@@ -1043,8 +1043,34 @@ void Foo_items_set(Foo *self, List *value) {
 </div>
 
 <p>
-More information about this can be found in the SWIG Basics chapter,
-<a href="SWIG.html#SWIG_structure_data_members">Structure data members</a> section. 
+More information about this can be found in the SWIG Basics chapter in the
+<a href="SWIG.html#SWIG_structure_data_members">Structure data members</a> and
+<a href="SWIG.html#SWIG_readonly_variables">Creating read-only variables</a> sections.
+</p>
+
+<p>
+Additionally, any C++ type that is not assignable is also wrapped as a read-only member.
+Consider the class below which is non-assignable due to the private assignment operator:
+</p>
+
+<div class="code">
+<pre>
+class NonAssignable {
+private:
+  NonAssignable &amp; operator=(const NonAssignable &amp;);
+public:
+  NonAssignable();
+};
+
+struct ImmutableVars {
+  NonAssignable non_assignable;
+};
+</pre>
+</div>
+
+<p>
+The <tt>non_assignable</tt> member variable is immutable by default as SWIG detects that <tt>NonAssignable</tt> is not assignable.
+SWIG must of course see the full type information in order to get this correct, otherwise you may have to use <tt>%immutable</tt> to make the variable read-only.
 </p>
 
 <p>

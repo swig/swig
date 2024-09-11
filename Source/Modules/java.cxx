@@ -78,6 +78,7 @@ class JAVA:public Language {
   String *module_interfaces;	//interfaces for module class from %pragma
   String *imclass_class_modifiers;	//class modifiers for intermediary class overridden by %pragma
   String *module_class_modifiers;	//class modifiers for module class overridden by %pragma
+  String *constants_modifiers;	//access modifiers for constants interface overridden by %pragma
   String *upcasts_code;		//C++ casts for inheritance hierarchies C++ code
   String *imclass_cppcasts_code;	//C++ casts up inheritance hierarchies intermediary class code
   String *imclass_directors;	// Intermediate class director code
@@ -154,6 +155,7 @@ public:
       module_interfaces(NULL),
       imclass_class_modifiers(NULL),
       module_class_modifiers(NULL),
+      constants_modifiers(NULL),
       upcasts_code(NULL),
       imclass_cppcasts_code(NULL),
       imclass_directors(NULL),
@@ -436,6 +438,7 @@ public:
     module_interfaces = NewString("");
     module_imports = NewString("");
     module_class_modifiers = NewString("");
+    constants_modifiers = NewString("");
     imclass_imports = NewString("");
     imclass_cppcasts_code = NewString("");
     imclass_directors = NewString("");
@@ -643,7 +646,9 @@ public:
       if (module_imports)
 	Printf(f_module, "%s\n", module_imports);
 
-      Printf(f_module, "public interface %s {\n", constants_interface_name);
+      if (Len(constants_modifiers) > 0)
+	Printf(f_module, "%s ", constants_modifiers);
+      Printf(f_module, "%s {\n", constants_interface_name);
 
       // Write out all the global constants
       Printv(f_module, module_class_constants_code, NIL);
@@ -722,6 +727,8 @@ public:
     module_imports = NULL;
     Delete(module_class_modifiers);
     module_class_modifiers = NULL;
+    Delete(constants_modifiers);
+    constants_modifiers = NULL;
     Delete(imclass_imports);
     imclass_imports = NULL;
     Delete(imclass_cppcasts_code);
@@ -1415,9 +1422,11 @@ public:
       const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
       Setattr(n, "enumvalue", val);
     } else if (swigtype == T_CHAR) {
-      String *val = NewStringf("'%(escape)s'", Getattr(n, "enumvalue"));
-      Setattr(n, "enumvalue", val);
-      Delete(val);
+      if (Getattr(n, "enumstringval")) {
+	String *val = NewStringf("'%(escape)s'", Getattr(n, "enumstringval"));
+	Setattr(n, "enumvalue", val);
+	Delete(val);
+      }
     }
 
     {
@@ -1533,12 +1542,10 @@ public:
   virtual int constantWrapper(Node *n) {
     String *symname = Getattr(n, "sym:name");
     SwigType *t = Getattr(n, "type");
-    SwigType *valuetype = Getattr(n, "valuetype");
     ParmList *l = Getattr(n, "parms");
     String *tm;
     String *return_type = NewString("");
     String *constants_code = NewString("");
-    Swig_save("constantWrapper", n, "value", NIL);
 
     // Translate and write javadoc comment if flagged
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
@@ -1591,16 +1598,6 @@ public:
       Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, "No jstype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
-    // Add the stripped quotes back in
-    String *new_value = NewString("");
-    if (SwigType_type(t) == T_STRING) {
-      Printf(new_value, "\"%s\"", Copy(Getattr(n, "value")));
-      Setattr(n, "value", new_value);
-    } else if (SwigType_type(t) == T_CHAR) {
-      Printf(new_value, "\'%s\'", Copy(Getattr(n, "value")));
-      Setattr(n, "value", new_value);
-    }
-
     const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
@@ -1634,12 +1631,9 @@ public:
     } else {
       // Alternative constant handling will use the C syntax to make a true Java constant and hope that it compiles as Java code
       if (Getattr(n, "wrappedasconstant")) {
-	if (SwigType_type(valuetype) == T_CHAR)
-          Printf(constants_code, "\'%(escape)s\';\n", Getattr(n, "staticmembervariableHandler:value"));
-	else
-          Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
+	Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
       } else {
-        Printf(constants_code, "%s;\n", Getattr(n, "value"));
+	Printf(constants_code, "%s;\n", Getattr(n, "value"));
       }
     }
 
@@ -1653,7 +1647,6 @@ public:
     }
     // Cleanup
     Swig_restore(n);
-    Delete(new_value);
     Delete(return_type);
     Delete(constants_code);
     return SWIG_OK;
@@ -1699,6 +1692,7 @@ public:
    * moduleimports           - import statements for the module class
    * moduleinterfaces        - interface (implements) for the module class
    *
+   * constantsmodifiers      - access modifiers for the constants interface
    * ----------------------------------------------------------------------------- */
 
   virtual int pragmaDirective(Node *n) {
@@ -1758,6 +1752,9 @@ public:
 	} else if (Strcmp(code, "moduleinterfaces") == 0) {
 	  Delete(module_interfaces);
 	  module_interfaces = Copy(strvalue);
+	} else if (Strcmp(code, "constantsmodifiers") == 0) {
+	  Delete(constants_modifiers);
+	  constants_modifiers = Copy(strvalue);
 	} else {
 	  Swig_error(input_file, line_number, "Unrecognized pragma.\n");
 	}

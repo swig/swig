@@ -68,6 +68,13 @@ public class multiple_inheritance_interfaces_runme {
     checkBaseAndInterfaces(V.class, false, "S", new String[] {});
     checkBaseAndInterfaces(W.class, false, "T", new String[] {});
 
+    checkBaseAndInterfaces(IV1SwigInterface.class, true, "", new String[] {"IA"});
+    checkBaseAndInterfaces(IV2SwigInterface.class, true, "", new String[] {"IA"});
+    checkBaseAndInterfaces(IV1.class, false, "", new String[] {"IV1SwigInterface", "IA"});
+    checkBaseAndInterfaces(IV2.class, false, "", new String[] {"IV2SwigInterface", "IA"});
+    checkBaseAndInterfaces(V3.class, false, "", new String[] {"V3SwigInterface", "IV1SwigInterface", "IA", "IV2SwigInterface"});
+    checkBaseAndInterfaces(V3SwigInterface.class, true, "", new String[] {"IV1SwigInterface", "IV2SwigInterface"});
+
     // overloaded methods check
     D d = new D();
     d.ia();

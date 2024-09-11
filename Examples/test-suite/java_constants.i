@@ -3,6 +3,7 @@
 
 %module java_constants
 
+%pragma(java) constantsmodifiers="interface" // change to default access
 
 %constant short DIPSTICK=100;
 

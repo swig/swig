@@ -158,9 +158,9 @@
 
 <p>
 This chapter describes SWIG's support of Python.  SWIG is compatible
-with all recent Python versions (Python 2.7 and Python &gt;= 3.3), though
-the oldest Python 3 version we regularly test with is Python 3.5.  SWIG 4.0.x
-supported Python 3.2.  SWIG 3.0.x supported older Python 2.x and 3.x.
+with all recent Python versions (Python 2.7 and Python &gt;= 3.5).  Python 3.3
+and 3.4 may still work but we are no longer regularly testing with them.
+SWIG 4.0.x supported Python 3.2.  SWIG 3.0.x supported older Python 2.x and 3.x.
 </p>
 
 <p>
@@ -213,7 +213,6 @@ Suppose that you defined a SWIG module such as the following:
 %module example
 
 %{
-#define SWIG_FILE_WITH_INIT
 #include "example.h"
 %}
 
@@ -222,9 +221,7 @@ int fact(int n);
 </div>
 
 <p>
-The <tt>#define SWIG_FILE_WITH_INIT</tt> line inserts a macro that specifies that the
-resulting C file should be built as a Python extension, inserting the module
-<tt>init</tt> code. This <tt>.i</tt> file wraps the following simple C file:
+This <tt>.i</tt> file wraps the following simple C file:
 </p>
 
 <div class="code">

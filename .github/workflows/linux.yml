@@ -154,6 +154,10 @@ jobs:
           VER: '3.12'
           CSTD: gnu99
         - SWIGLANG: python
+          VER: '3.13'
+          CSTD: gnu99
+          continue-on-error: true # Python 3.13 is still in beta
+        - SWIGLANG: python
           PY2: 2
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
@@ -500,6 +504,18 @@ jobs:
                 # Apparently we ought to be using `ocamldep` to generate make
                 # dependencies.
                 unset SWIGJOBS
+                ;;
+              scilab)
+                case $VER in
+                  ""|6.*|2023.*|2024.0.*)
+                    # Some older versions of scilab sporadically fail with:
+                    # terminate called after throwing an instance of 'std::filesystem::__cxx11::filesystem_error'
+                    # #2942 says "this issue was fixed in Scilab 2024.1.0"
+                    # and that it was probably introduced in 6.x (we've
+                    # seen it with 6.1.0.0, but haven't with 5.x).
+                    unset SWIGJOBS
+                    ;;
+                esac
                 ;;
             esac
 

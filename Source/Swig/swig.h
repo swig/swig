@@ -344,7 +344,7 @@ extern int        ParmList_is_compactdefargs(ParmList *p);
 
   extern int Swig_value_wrapper_mode(int mode);
   extern int Swig_is_generated_overload(Node *n);
-  extern Node *Swig_item_in_list(List *list, const String *name);
+  extern Node *Swig_item_in_list(List *list, const DOH *item);
 
   typedef enum { EMF_STANDARD, EMF_MICROSOFT } ErrorMessageFormat;
 

@@ -427,11 +427,23 @@ static void add_symbols(Node *n) {
     if (inclass) {
       String *name = Getattr(n, "name");
       if (isfriend) {
-	/* For friends, set the scope to the same as the class that the friend is defined/declared in, that is, pop scope once */
+	/* Friends methods in a class are declared in the namespace enclosing the class (outer most class if a nested class) */
 	String *prefix = name ? Swig_scopename_prefix(name) : 0;
+	Node *outer = currentOuterClass;
+	Symtab *namespace_symtab;
 	old_prefix = Namespaceprefix;
-	old_scope = Swig_symbol_popscope();
+	old_scope = Swig_symbol_current();
+
+	assert(outer);
+	while (Getattr(outer, "nested:outer")) {
+	  outer = Getattr(outer, "nested:outer");
+	}
+	namespace_symtab = Getattr(outer, "sym:symtab");
+	if (!namespace_symtab)
+	  namespace_symtab = Getattr(outer, "unofficial:symtab");
+	Swig_symbol_setscope(namespace_symtab);
 	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+
 	if (!prefix) {
 	  /* To check - this should probably apply to operators too */
 	  if (name && !is_operator(name) && Namespaceprefix) {
@@ -441,13 +453,11 @@ static void add_symbols(Node *n) {
 	  }
 	} else {
 	  /* Qualified friend declarations should not be possible as they are ignored in the parse tree */
-	  /* TODO: uncomment out for swig-4.3.0
 	  assert(0);
-	  */
 	}
       } else if (Equal(nodeType(n), "using")) {
 	String *uname = Getattr(n, "uname");
-	Node *cls = current_class ? current_class : currentOuterClass; /* Current class seems to vary depending on whether it is a template class or a plain class */
+	Node *cls = currentOuterClass;
 	String *nprefix = 0;
 	String *nlast = 0;
 	Swig_scopename_split(uname, &nprefix, &nlast);
@@ -695,12 +705,9 @@ static void add_symbols(Node *n) {
 /* add symbols a parse tree node copy */
 
 static void add_symbols_copy(Node *n) {
-  String *name;
   int    emode = 0;
   while (n) {
-    char *cnodeType = Char(nodeType(n));
-
-    if (strcmp(cnodeType,"access") == 0) {
+    if (Equal(nodeType(n), "access")) {
       String *kind = Getattr(n,"kind");
       if (Strcmp(kind,"public") == 0) {
 	cplus_mode = CPLUS_PUBLIC;
@@ -716,7 +723,7 @@ static void add_symbols_copy(Node *n) {
     add_oldname = Getattr(n,"sym:name");
     if ((add_oldname) || (Getattr(n,"sym:needs_symtab"))) {
       int old_inclass = -1;
-      Node *old_current_class = 0;
+      Node *oldCurrentOuterClass = 0;
       if (add_oldname) {
 	DohIncref(add_oldname);
 	/*  Disable this, it prevents %rename to work with templates */
@@ -738,30 +745,33 @@ static void add_symbols_copy(Node *n) {
 	Swig_symbol_cadd(Getattr(n,"partialargs"),n);
       }
       add_only_one = 0;
-      name = Getattr(n,"name");
-      if (Getattr(n,"requires_symtab")) {
-	Swig_symbol_newscope();
-	Swig_symbol_setscopename(name);
-	Delete(Namespaceprefix);
-	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
-      }
-      if (strcmp(cnodeType,"class") == 0) {
+      if (Equal(nodeType(n), "class")) {
+	/* add_symbols() above sets "sym:symtab", so "unofficial:symtab" is not required */
 	old_inclass = inclass;
+	oldCurrentOuterClass = currentOuterClass;
 	inclass = 1;
-	old_current_class = current_class;
-	current_class = n;
+	currentOuterClass = n;
 	if (Strcmp(Getattr(n,"kind"),"class") == 0) {
 	  cplus_mode = CPLUS_PRIVATE;
 	} else {
 	  cplus_mode = CPLUS_PUBLIC;
 	}
       }
-      if (strcmp(cnodeType,"extend") == 0) {
+      if (Equal(nodeType(n), "extend")) {
 	emode = cplus_mode;
 	cplus_mode = CPLUS_PUBLIC;
       }
+
+      if (Getattr(n, "requires_symtab")) {
+	Swig_symbol_newscope();
+	Swig_symbol_setscopename(Getattr(n, "name"));
+	Delete(Namespaceprefix);
+	Namespaceprefix = Swig_symbol_qualifiedscopename(0);
+      }
+
       add_symbols_copy(firstChild(n));
-      if (strcmp(cnodeType,"extend") == 0) {
+
+      if (Equal(nodeType(n), "extend")) {
 	cplus_mode = emode;
       }
       if (Getattr(n,"requires_symtab")) {
@@ -774,17 +784,17 @@ static void add_symbols_copy(Node *n) {
 	Delete(add_oldname);
 	add_oldname = 0;
       }
-      if (strcmp(cnodeType,"class") == 0) {
+      if (Equal(nodeType(n), "class")) {
 	inclass = old_inclass;
-	current_class = old_current_class;
+	currentOuterClass = oldCurrentOuterClass;
       }
     } else {
-      if (strcmp(cnodeType,"extend") == 0) {
+      if (Equal(nodeType(n), "extend")) {
 	emode = cplus_mode;
 	cplus_mode = CPLUS_PUBLIC;
       }
       add_symbols_copy(firstChild(n));
-      if (strcmp(cnodeType,"extend") == 0) {
+      if (Equal(nodeType(n), "extend")) {
 	cplus_mode = emode;
       }
     }
@@ -1242,6 +1252,7 @@ static Node *nested_forward_declaration(const String *storage, const String *kin
     Setattr(n, "name", sname);
     Setattr(n, "storage", storage);
     Setattr(n, "sym:weak", "1");
+    SetFlag(n, "nested:forward");
     add_symbols(n);
     nn = n;
   }
@@ -1608,8 +1619,54 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
   const char  *id;
   List  *bases;
   struct Define {
+    // The value of the expression as C/C++ code.
     String *val;
-    String *rawval;
+    // If type is a string or char type, this is the actual value of that
+    // string or char type as a String.  This is useful in cases where we
+    // want to emit the string in the target language - we could just try
+    // emitting the C/C++ code for the literal, but that won't always be
+    // a valid string literal in most target languages.
+    //
+    // SWIG's scanner reads the string or character literal in the source code
+    // and interprets quoting and escape sequences.  Concatenation of adjacent
+    // string literals is currently handled here in the parser (though
+    // technically it should happen before parsing).
+    //
+    // stringval holds the actual value of the string (from the scanner,
+    // taking into account concatenation of adjacent string literals).
+    // Then val is created by escaping stringval using SWIG's %(escape)s
+    // Printf specification, and adding the appropriate quotes (and
+    // an L-prefix for wide literals).  So val is also a C/C++ source
+    // representation of the string, but may not be the same representation
+    // as in the source code (it should be equivalent though).
+    //
+    // Some examples:
+    //
+    // C/C++ source  stringval   val       Notes
+    // ------------- ----------- --------- -------
+    // "bar"         bar         "bar"
+    // "b\x61r"      bar         "bar"
+    // "b\141r"      bar         "bar"
+    // "b" "ar"      bar         "bar"
+    // u8"bar"       bar         "bar"     C++11
+    // R"bar"        bar         "bar"     C++11
+    // "\228\22"     "8"         "\"8\""
+    // "\\\"\'"      \"'         "\\\"\'"
+    // R"(\"')"      \"'         "\\\"\'"  C++11
+    // L"bar"        bar         L"bar"
+    // L"b" L"ar"    bar         L"bar"
+    // L"b" "ar"     bar         L"bar"    C++11
+    // "b" L"ar"     bar         L"bar"    C++11
+    // 'x'           x           'x'
+    // '\"'          "           '\"'
+    // '\42'         "           '\"'
+    // '\042'        "           '\"'
+    // '\x22'        "           '\"'
+    //
+    // Zero bytes are allowed in stringval (DOH's String can hold a string
+    // with embedded zero bytes), but handling may currently be buggy in
+    // places.
+    String *stringval;
     int     type;
     /* The type code for the argument when the top level operator is unary.
      * This is useful because our grammar parses cases such as (7)*6 as a
@@ -1663,7 +1720,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <id> ID
 %token <str> HBLOCK
 %token <id> POUND 
-%token <id> STRING WSTRING
+%token <str> STRING WSTRING
 %token <loc> INCLUDE IMPORT INSERT
 %token <str> CHARCONST WCHARCONST
 %token <dtype> NUM_INT NUM_DOUBLE NUM_FLOAT NUM_LONGDOUBLE NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
@@ -2053,7 +2110,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		   Setattr($$, "name", $identifier);
 		   Setattr($$, "type", type);
 		   Setattr($$, "value", $definetype.val);
-		   if ($definetype.rawval) Setattr($$, "rawval", $definetype.rawval);
+		   if ($definetype.stringval) Setattr($$, "stringval", $definetype.stringval);
 		   Setattr($$, "storage", "%constant");
 		   SetFlag($$, "feature:immutable");
 		   add_symbols($$);
@@ -2073,7 +2130,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		 Setattr($$, "name", $declarator.id);
 		 Setattr($$, "type", $type);
 		 Setattr($$, "value", $def_args.val);
-		 if ($def_args.rawval) Setattr($$, "rawval", $def_args.rawval);
+		 if ($def_args.stringval) Setattr($$, "stringval", $def_args.stringval);
 		 Setattr($$, "storage", "%constant");
 		 SetFlag($$, "feature:immutable");
 		 add_symbols($$);
@@ -2092,7 +2149,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		 Setattr($$, "name", $direct_declarator.id);
 		 Setattr($$, "type", $type);
 		 Setattr($$, "value", $def_args.val);
-		 if ($def_args.rawval) Setattr($$, "rawval", $def_args.rawval);
+		 if ($def_args.stringval) Setattr($$, "stringval", $def_args.stringval);
 		 Setattr($$, "storage", "%constant");
 		 SetFlag($$, "feature:immutable");
 		 add_symbols($$);
@@ -2270,7 +2327,7 @@ inline_directive : INLINE HBLOCK {
 		   Setline($HBLOCK,cparse_start_line);
 		   Setfile($HBLOCK,cparse_file);
 		   cpps = Preprocessor_parse($HBLOCK);
-		   start_inline(Char(cpps), cparse_start_line);
+		   scanner_start_inline(cpps, cparse_start_line);
 		   Delete($HBLOCK);
 		   Delete(cpps);
 		 }
@@ -2294,7 +2351,7 @@ inline_directive : INLINE HBLOCK {
 		   Setattr($$,"code", code);
 		   Delete(code);		   
 		   cpps=Copy(scanner_ccode);
-		   start_inline(Char(cpps), start_line);
+		   scanner_start_inline(cpps, start_line);
 		   Delete(cpps);
 		 }
                }
@@ -2960,10 +3017,13 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 			  }
                           add_symbols_copy(templnode);
 
-			  if (Equal(nodeType(templnode), "classforward")) {
+			  if (Equal(nodeType(templnode), "classforward") && !(GetFlag(templnode, "feature:ignore") || GetFlag(templnode, "hidden"))) {
 			    SWIG_WARN_NODE_BEGIN(templnode);
 			    /* A full template class definition is required in order to wrap a template class as a proxy class so this %template is ineffective. */
-			    Swig_warning(WARN_PARSE_TEMPLATE_FORWARD, cparse_file, cparse_line, "Template forward class instantiation '%s' with name '%s' is ineffective.\n", Swig_name_decl(templnode), Getattr(templnode, "sym:name"));
+			    if (GetFlag(templnode, "nested:forward"))
+			      Swig_warning(WARN_PARSE_TEMPLATE_NESTED, cparse_file, cparse_line, "Unsupported template nested class '%s' cannot be used to instantiate a full template class with name '%s'.\n", Swig_name_decl(templnode), Getattr(templnode, "sym:name"));
+			    else
+			      Swig_warning(WARN_PARSE_TEMPLATE_FORWARD, cparse_file, cparse_line, "Template forward class '%s' cannot be used to instantiate a full template class with name '%s'.\n", Swig_name_decl(templnode), Getattr(templnode, "sym:name"));
 			    SWIG_WARN_NODE_END(templnode);
 			  }
 
@@ -3182,6 +3242,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"decl",decl);
 	      Setattr($$,"parms",$declarator.parms);
 	      Setattr($$,"value",$initializer.val);
+	      if ($initializer.stringval) Setattr($$, "stringval", $initializer.stringval);
 	      Setattr($$,"throws",$cpp_const.throws);
 	      Setattr($$,"throw",$cpp_const.throwf);
 	      Setattr($$,"noexcept",$cpp_const.nexcept);
@@ -3412,6 +3473,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "name", $idcolon);
 	      Setattr($$, "decl", NewStringEmpty());
 	      Setattr($$, "value", $definetype.val);
+	      if ($definetype.stringval) Setattr($$, "stringval", $definetype.stringval);
 	      Setattr($$, "valuetype", type);
 	   }
 	   ;
@@ -3430,6 +3492,7 @@ c_decl_tail    : SEMI {
 		 Setattr($$,"decl",$declarator.type);
 		 Setattr($$,"parms",$declarator.parms);
 		 Setattr($$,"value",$initializer.val);
+		 if ($initializer.stringval) Setattr($$, "stringval", $initializer.stringval);
 		 Setattr($$,"throws",$cpp_const.throws);
 		 Setattr($$,"throw",$cpp_const.throwf);
 		 Setattr($$,"noexcept",$cpp_const.nexcept);
@@ -3797,8 +3860,8 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   }
 		   Setattr($$,"allows_typedef","1");
 
-		   /* preserve the current scope */
-		   Setattr($$,"prev_symtab",Swig_symbol_current());
+		   /* Temporary unofficial symtab for use until add_symbols() adds "sym:symtab" */
+		   Setattr($$, "unofficial:symtab", Swig_symbol_current());
 		  
 		   /* If the class name is qualified.  We need to create or lookup namespace/scope entries */
 		   scope = resolve_create_node_scope($idcolon, 1, &errored_flag);
@@ -3896,8 +3959,8 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
                    }
 		   if (!currentOuterClass)
 		     inclass = 0;
-		   cscope = Getattr($$, "prev_symtab");
-		   Delattr($$, "prev_symtab");
+		   cscope = Getattr($$, "unofficial:symtab");
+		   Delattr($$, "unofficial:symtab");
 		   
 		   /* Check for pure-abstract class */
 		   Setattr($$,"abstracts", pure_abstracts($cpp_members));
@@ -4042,6 +4105,10 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       Setattr($$,"storage",$storage_class);
 	       Setattr($$,"unnamed",unnamed);
 	       Setattr($$,"allows_typedef","1");
+
+	       /* Temporary unofficial symtab for use until add_symbols() adds "sym:symtab" */
+	       Setattr($$, "unofficial:symtab", Swig_symbol_current());
+
 	       if (currentOuterClass) {
 		 SetFlag($$, "nested");
 		 Setattr($$, "nested:outer", currentOuterClass);
@@ -4071,6 +4138,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
                List *bases = 0;
 	       String *name = 0;
 	       Node *n;
+	       Symtab *cscope;
 	       Classprefix = 0;
 	       (void)$node;
 	       $$ = currentOuterClass;
@@ -4079,6 +4147,10 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		 inclass = 0;
 	       else
 		 restore_access_mode($$);
+
+	       cscope = Getattr($$, "unofficial:symtab");
+	       Delattr($$, "unofficial:symtab");
+
 	       unnamed = Getattr($$,"unnamed");
                /* Check for pure-abstract class */
 	       Setattr($$,"abstracts", pure_abstracts($cpp_members));
@@ -4086,9 +4158,6 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       if (cparse_cplusplus && currentOuterClass && ignore_nested_classes && !GetFlag($$, "feature:flatnested")) {
 		 String *name = n ? Copy(Getattr(n, "name")) : 0;
 		 $$ = nested_forward_declaration($storage_class, $cpptype, 0, name, n);
-		 Swig_symbol_popscope();
-	         Delete(Namespaceprefix);
-		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       } else if (n) {
 	         appendSibling($$,n);
 		 /* If a proper typedef name was given, we'll use it to set the scope name */
@@ -4158,9 +4227,9 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   add_symbols($$);
 		   add_symbols(n);
 		   Delattr($$, "class_rename");
-		 }else if (cparse_cplusplus)
+		 } else if (cparse_cplusplus)
 		   $$ = 0; /* ignore unnamed structs for C++ */
-	         Delete(unnamed);
+		   Delete(unnamed);
 	       } else { /* unnamed struct w/o declarator*/
 		 Swig_symbol_popscope();
 	         Delete(Namespaceprefix);
@@ -4169,6 +4238,9 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		 Delete($$);
 		 $$ = $cpp_members; /* pass member list to outer class/namespace (instead of self)*/
 	       }
+	       Swig_symbol_setscope(cscope);
+	       Delete(Namespaceprefix);
+	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       Classprefix = currentOuterClass ? Getattr(currentOuterClass, "Classprefix") : 0;
               }
              ;
@@ -4454,7 +4526,8 @@ templateparameter : templcpptype def_args {
 		    $$ = NewParmWithoutFileLineInfo($templcpptype, 0);
 		    Setfile($$, cparse_file);
 		    Setline($$, cparse_line);
-		    Setattr($$, "value", $def_args.rawval ? $def_args.rawval : $def_args.val);
+		    Setattr($$, "value", $def_args.val);
+		    if ($def_args.stringval) Setattr($$, "stringval", $def_args.stringval);
 		  }
 		  | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype idcolon def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewStringf("template< %s > %s %s", ParmList_str_defaultargs($template_parms), $cpptype, $idcolon), $idcolon);
@@ -5255,6 +5328,7 @@ valparm        : parm {
                   Setfile($$,cparse_file);
 		  Setline($$,cparse_line);
 		  Setattr($$,"value",$valexpr.val);
+		  if ($valexpr.stringval) Setattr($$, "stringval", $valexpr.stringval);
                }
                ;
 
@@ -5282,7 +5356,7 @@ def_args       : EQUAL definetype {
                | EQUAL LBRACE {
 		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
 		 $$.val = NewString(scanner_ccode);
-		 $$.rawval = 0;
+		 $$.stringval = 0;
 		 $$.type = T_UNKNOWN;
 		 $$.unary_arg_type = 0;
 		 $$.bitfield = 0;
@@ -5293,7 +5367,7 @@ def_args       : EQUAL definetype {
 	       }
                | COLON expr { 
 		 $$.val = 0;
-		 $$.rawval = 0;
+		 $$.stringval = 0;
 		 $$.type = 0;
 		 $$.bitfield = $expr.val;
 		 $$.throws = 0;
@@ -5303,7 +5377,7 @@ def_args       : EQUAL definetype {
 	       }
                | %empty {
                  $$.val = 0;
-                 $$.rawval = 0;
+		 $$.stringval = 0;
                  $$.type = T_UNKNOWN;
 		 $$.unary_arg_type = 0;
 		 $$.bitfield = 0;
@@ -5316,26 +5390,28 @@ def_args       : EQUAL definetype {
 
 parameter_declarator : declarator def_args {
                  $$ = $declarator;
-		 $$.defarg = $def_args.rawval ? $def_args.rawval : $def_args.val;
+		 $$.defarg = $def_args.val;
             }
             | abstract_declarator def_args {
               $$ = $abstract_declarator;
-	      $$.defarg = $def_args.rawval ? $def_args.rawval : $def_args.val;
+	      $$.defarg = $def_args.val;
             }
             | def_args {
    	      $$.type = 0;
               $$.id = 0;
-	      $$.defarg = $def_args.rawval ? $def_args.rawval : $def_args.val;
+	      $$.defarg = $def_args.val;
             }
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const); */
-	    | direct_declarator LPAREN parms RPAREN cv_ref_qualifier {
+	    | direct_declarator LPAREN parms RPAREN qualifiers_exception_specification {
 	      SwigType *t;
 	      $$ = $direct_declarator;
 	      t = NewStringEmpty();
 	      SwigType_add_function(t,$parms);
-	      if ($cv_ref_qualifier.qualifier)
-	        SwigType_push(t, $cv_ref_qualifier.qualifier);
+	      if ($qualifiers_exception_specification.qualifier)
+		SwigType_push(t, $qualifiers_exception_specification.qualifier);
+	      if ($qualifiers_exception_specification.nexcept)
+		SwigType_add_qualifier(t, "noexcept");
 	      if (!$$.have_parms) {
 		$$.parms = $parms;
 		$$.have_parms = 1;
@@ -6367,11 +6443,6 @@ type_specifier : TYPE_INT {
 
 definetype     : expr {
                    $$ = $expr;
-		   if ($$.type == T_STRING) {
-		     $$.rawval = NewStringf("\"%(escape)s\"",$$.val);
-		   } else if ($$.type != T_CHAR && $$.type != T_WSTRING && $$.type != T_WCHAR) {
-		     $$.rawval = NewStringf("%s", $$.val);
-		   }
 		   $$.qualifier = 0;
 		   $$.refqualifier = 0;
 		   $$.bitfield = 0;
@@ -6390,7 +6461,7 @@ default_delete : deleted_definition
 /* For C++ deleted definition '= delete' */
 deleted_definition : DELETE_KW {
 		  $$.val = NewString("delete");
-		  $$.rawval = 0;
+		  $$.stringval = 0;
 		  $$.type = T_STRING;
 		  $$.unary_arg_type = 0;
 		  $$.qualifier = 0;
@@ -6406,7 +6477,7 @@ deleted_definition : DELETE_KW {
 /* For C++ explicitly defaulted functions '= default' */
 explicit_default : DEFAULT {
 		  $$.val = NewString("default");
-		  $$.rawval = 0;
+		  $$.stringval = 0;
 		  $$.type = T_STRING;
 		  $$.unary_arg_type = 0;
 		  $$.qualifier = 0;
@@ -6520,6 +6591,9 @@ edecl          :  identifier {
 		   Setattr($$,"type",type);
 		   SetFlag($$,"feature:immutable");
 		   Setattr($$,"enumvalue", $etype.val);
+		   if ($etype.stringval) {
+		     Setattr($$, "enumstringval", $etype.stringval);
+		   }
 		   Setattr($$,"value",$identifier);
 		   Delete(type);
                  }
@@ -6609,10 +6683,40 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 exprsimple     : exprnum
                | exprmem
                | string {
-		    $$.val = $string;
-                    $$.type = T_STRING;
-		    $$.unary_arg_type = 0;
-               }
+		  $$.stringval = $string;
+		  $$.val = NewStringf("\"%(escape)s\"", $string);
+		  $$.type = T_STRING;
+		  $$.unary_arg_type = 0;
+	       }
+	       | wstring {
+		  $$.stringval = $wstring;
+		  $$.val = NewStringf("L\"%(escape)s\"", $wstring);
+		  $$.type = T_WSTRING;
+		  $$.unary_arg_type = 0;
+	       }
+	       | CHARCONST {
+		  $$.stringval = $CHARCONST;
+		  $$.val = NewStringf("'%(escape)s'", $CHARCONST);
+		  $$.type = T_CHAR;
+		  $$.unary_arg_type = 0;
+		  $$.bitfield = 0;
+		  $$.throws = 0;
+		  $$.throwf = 0;
+		  $$.nexcept = 0;
+		  $$.final = 0;
+	       }
+	       | WCHARCONST {
+		  $$.stringval = $WCHARCONST;
+		  $$.val = NewStringf("L'%(escape)s'", $WCHARCONST);
+		  $$.type = T_WCHAR;
+		  $$.unary_arg_type = 0;
+		  $$.bitfield = 0;
+		  $$.throws = 0;
+		  $$.throwf = 0;
+		  $$.nexcept = 0;
+		  $$.final = 0;
+	       }
+
 	       /* In sizeof(X) X can be a type or expression.  We don't actually
 		* need to parse X as the type of sizeof is always size_t (which
 		* SWIG handles as T_ULONG), so we just skip to the closing ')' and
@@ -6633,6 +6737,14 @@ exprsimple     : exprnum
 		  $$.type = T_ULONG;
 		  $$.unary_arg_type = 0;
 	       }
+	       /* noexcept(X) always has type bool. */
+	       | NOEXCEPT LPAREN {
+		  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+		  $$.val = NewStringf("noexcept%s", scanner_ccode);
+		  Clear(scanner_ccode);
+		  $$.type = T_BOOL;
+		  $$.unary_arg_type = 0;
+	       }
 	       | SIZEOF ELLIPSIS LPAREN identifier RPAREN {
 		  $$.val = NewStringf("sizeof...(%s)", $identifier);
 		  $$.type = T_ULONG;
@@ -6648,43 +6760,6 @@ exprsimple     : exprnum
 		  $$.type = T_ULONG;
 		  $$.unary_arg_type = 0;
 	       }
-	       | wstring {
-		    $$.val = $wstring;
-		    $$.rawval = NewStringf("L\"%s\"", $$.val);
-                    $$.type = T_WSTRING;
-		    $$.unary_arg_type = 0;
-	       }
-               | CHARCONST {
-		  $$.val = NewString($CHARCONST);
-		  if (Len($$.val)) {
-		    $$.rawval = NewStringf("'%(escape)s'", $$.val);
-		  } else {
-		    $$.rawval = NewString("'\\0'");
-		  }
-		  $$.type = T_CHAR;
-		  $$.unary_arg_type = 0;
-		  $$.bitfield = 0;
-		  $$.throws = 0;
-		  $$.throwf = 0;
-		  $$.nexcept = 0;
-		  $$.final = 0;
-	       }
-               | WCHARCONST {
-		  $$.val = NewString($WCHARCONST);
-		  if (Len($$.val)) {
-		    $$.rawval = NewStringf("L\'%s\'", $$.val);
-		  } else {
-		    $$.rawval = NewString("L'\\0'");
-		  }
-		  $$.type = T_WCHAR;
-		  $$.unary_arg_type = 0;
-		  $$.bitfield = 0;
-		  $$.throws = 0;
-		  $$.throwf = 0;
-		  $$.nexcept = 0;
-		  $$.final = 0;
-	       }
-
                ;
 
 valexpr        : exprsimple
@@ -6693,8 +6768,8 @@ valexpr        : exprsimple
 /* grouping */
                |  LPAREN expr RPAREN %prec CAST {
 		    $$.val = NewStringf("(%s)",$expr.val);
-		    if ($expr.rawval) {
-		      $$.rawval = NewStringf("(%s)",$expr.rawval);
+		    if ($expr.stringval) {
+		      $$.stringval = Copy($expr.stringval);
 		    }
 		    $$.type = $expr.type;
 	       }
@@ -6783,7 +6858,7 @@ valexpr        : exprsimple
                | AND expr {
 		 $$ = $expr;
 		 $$.val = NewStringf("&%s", $expr.val);
-		 $$.rawval = 0;
+		 $$.stringval = 0;
 		 /* Record the type code for expr so we can properly handle
 		  * cases such as (6)&7 which get parsed using this rule then
 		  * the rule for a C-style cast.
@@ -6803,7 +6878,7 @@ valexpr        : exprsimple
                | STAR expr {
 		 $$ = $expr;
 		 $$.val = NewStringf("*%s", $expr.val);
-		 $$.rawval = 0;
+		 $$.stringval = 0;
 		 /* Record the type code for expr so we can properly handle
 		  * cases such as (6)*7 which get parsed using this rule then
 		  * the rule for a C-style cast.
@@ -6835,59 +6910,59 @@ exprnum        :  NUM_INT
                ;
 
 exprcompound   : expr[lhs] PLUS expr[rhs] {
-		 $$.val = NewStringf("%s+%s", COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s+%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] MINUS expr[rhs] {
-		 $$.val = NewStringf("%s-%s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s-%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] STAR expr[rhs] {
-		 $$.val = NewStringf("%s*%s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s*%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] SLASH expr[rhs] {
-		 $$.val = NewStringf("%s/%s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s/%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] MODULO expr[rhs] {
-		 $$.val = NewStringf("%s%%%s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s%%%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] AND expr[rhs] {
-		 $$.val = NewStringf("%s&%s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s&%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] OR expr[rhs] {
-		 $$.val = NewStringf("%s|%s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s|%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] XOR expr[rhs] {
-		 $$.val = NewStringf("%s^%s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s^%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] LSHIFT expr[rhs] {
-		 $$.val = NewStringf("%s << %s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s << %s", $lhs.val, $rhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
                | expr[lhs] RSHIFT expr[rhs] {
-		 $$.val = NewStringf("%s >> %s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s >> %s", $lhs.val, $rhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
                | expr[lhs] LAND expr[rhs] {
-		 $$.val = NewStringf("%s&&%s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s&&%s", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr[lhs] LOR expr[rhs] {
-		 $$.val = NewStringf("%s||%s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s||%s", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr[lhs] EQUALTO expr[rhs] {
-		 $$.val = NewStringf("%s==%s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s==%s", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr[lhs] NOTEQUALTO expr[rhs] {
-		 $$.val = NewStringf("%s!=%s",COMPOUND_EXPR_VAL($lhs),COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s!=%s", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       /* Trying to parse `>` in the general case results in conflicts
@@ -6895,7 +6970,7 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		* parentheses and we can handle that case.
 		*/
 	       | LPAREN expr[lhs] GREATERTHAN expr[rhs] RPAREN {
-		 $$.val = NewStringf("(%s > %s)", COMPOUND_EXPR_VAL($lhs), COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("(%s > %s)", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 
@@ -6905,15 +6980,15 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		* covers all user-reported cases.
 		*/
                | LPAREN exprsimple[lhs] LESSTHAN expr[rhs] RPAREN {
-		 $$.val = NewStringf("(%s < %s)", COMPOUND_EXPR_VAL($lhs), COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("(%s < %s)", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr[lhs] GREATERTHANOREQUALTO expr[rhs] {
-		 $$.val = NewStringf("%s >= %s", COMPOUND_EXPR_VAL($lhs), COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s >= %s", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr[lhs] LESSTHANOREQUALTO expr[rhs] {
-		 $$.val = NewStringf("%s <= %s", COMPOUND_EXPR_VAL($lhs), COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s <= %s", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 
@@ -6929,59 +7004,59 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 	       //
 	       // = += -= *= /= %= ^= &= |= <<= >>= , .* ->*.
 	       | expr[lhs] PLUS ELLIPSIS {
-		 $$.val = NewStringf("%s+...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s+...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] MINUS ELLIPSIS {
-		 $$.val = NewStringf("%s-...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s-...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] STAR ELLIPSIS {
-		 $$.val = NewStringf("%s*...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s*...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] SLASH ELLIPSIS {
-		 $$.val = NewStringf("%s/...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s/...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] MODULO ELLIPSIS {
-		 $$.val = NewStringf("%s%%...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s%%...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] AND ELLIPSIS {
-		 $$.val = NewStringf("%s&...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s&...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] OR ELLIPSIS {
-		 $$.val = NewStringf("%s|...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s|...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] XOR ELLIPSIS {
-		 $$.val = NewStringf("%s^...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s^...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] LSHIFT ELLIPSIS {
-		 $$.val = NewStringf("%s << ...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s << ...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] RSHIFT ELLIPSIS {
-		 $$.val = NewStringf("%s >> ...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s >> ...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] LAND ELLIPSIS {
-		 $$.val = NewStringf("%s&&...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s&&...", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr[lhs] LOR ELLIPSIS {
-		 $$.val = NewStringf("%s||...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s||...", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr[lhs] EQUALTO ELLIPSIS {
-		 $$.val = NewStringf("%s==...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s==...", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr[lhs] NOTEQUALTO ELLIPSIS {
-		 $$.val = NewStringf("%s!=...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s!=...", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       /* Trying to parse `>` in the general case results in conflicts
@@ -6989,7 +7064,7 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		* parentheses and we can handle that case.
 		*/
 	       | LPAREN expr[lhs] GREATERTHAN ELLIPSIS RPAREN {
-		 $$.val = NewStringf("(%s > ...)", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("(%s > ...)", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       /* Similarly for `<` except trying to handle exprcompound on the
@@ -6998,20 +7073,20 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		* covers all user-reported cases.
 		*/
 	       | LPAREN exprsimple[lhs] LESSTHAN ELLIPSIS RPAREN {
-		 $$.val = NewStringf("(%s < %s)", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("(%s < %s)", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr[lhs] GREATERTHANOREQUALTO ELLIPSIS {
-		 $$.val = NewStringf("%s >= ...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s >= ...", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr[lhs] LESSTHANOREQUALTO ELLIPSIS {
-		 $$.val = NewStringf("%s <= ...", COMPOUND_EXPR_VAL($lhs));
+		 $$.val = NewStringf("%s <= ...", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 
 	       | expr[lhs] LESSEQUALGREATER expr[rhs] {
-		 $$.val = NewStringf("%s <=> %s", COMPOUND_EXPR_VAL($lhs), COMPOUND_EXPR_VAL($rhs));
+		 $$.val = NewStringf("%s <=> %s", $lhs.val, $rhs.val);
 		 /* `<=>` returns one of `std::strong_ordering`,
 		  * `std::partial_ordering` or `std::weak_ordering`.  The main
 		  * thing to do with the return value in this context is to
@@ -7025,7 +7100,7 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		 $$.unary_arg_type = 0;
 	       }
 	       | expr[expr1] QUESTIONMARK expr[expr2] COLON expr[expr3] %prec QUESTIONMARK {
-		 $$.val = NewStringf("%s?%s:%s", COMPOUND_EXPR_VAL($expr1), COMPOUND_EXPR_VAL($expr2), COMPOUND_EXPR_VAL($expr3));
+		 $$.val = NewStringf("%s?%s:%s", $expr1.val, $expr2.val, $expr3.val);
 		 /* This may not be exactly right, but is probably good enough
 		  * for the purposes of parsing constant expressions. */
 		 $$.type = promote($expr2.type, $expr3.type);
@@ -7053,7 +7128,7 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		 $$.type = promote_type($in.type);
 	       }
                | LNOT expr[in] {
-                 $$.val = NewStringf("!%s",COMPOUND_EXPR_VAL($in));
+                 $$.val = NewStringf("!%s", $in.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | type LPAREN {
@@ -7521,22 +7596,33 @@ idcolontailnt   : DCOLON identifier idcolontailnt[in] {
                ;
 
 /* Concatenated strings */
-string         : string[in] STRING { 
-                   $$ = NewStringf("%s%s", $in, $STRING);
-               }
-               | STRING { $$ = NewString($STRING);}
-               ; 
-/* Concatenated wide strings: L"str1" L"str2" */
-wstring         : wstring[in] WSTRING {
-                   $$ = NewStringf("%s%s", $in, $WSTRING);
-               }
-/* Concatenated wide string and normal string literal: L"str1" "str2" */
-/*not all the compilers support this concatenation mode, so perhaps better to postpone it*/
-               /*| wstring STRING { here $STRING comes unescaped, we have to escape it back first via NewStringf("%(escape)s)"
-                   $$ = NewStringf("%s%s", $wstring, $STRING);
-	       }*/
-               | WSTRING { $$ = NewString($WSTRING);}
-               ;
+string	       : string[in] STRING { 
+		   $$ = $in;
+		   Append($$, $STRING);
+		   Delete($STRING);
+	       }
+	       | STRING
+	       ; 
+wstring	       : wstring[in] WSTRING {
+		   // Concatenated wide strings: L"str1" L"str2"
+		   $$ = $in;
+		   Append($$, $WSTRING);
+		   Delete($WSTRING);
+	       }
+	       | wstring[in] STRING {
+		   // Concatenated wide string and normal string literal: L"str1" "str2" (C++11).
+		   $$ = $in;
+		   Append($$, $STRING);
+		   Delete($STRING);
+	       }
+	       | string[in] WSTRING {
+		   // Concatenated normal string and wide string literal: "str1" L"str2" (C++11).
+		   $$ = $in;
+		   Append($$, $WSTRING);
+		   Delete($WSTRING);
+	       }
+	       | WSTRING
+	       ;
 
 stringbrace    : string
                | LBRACE {
