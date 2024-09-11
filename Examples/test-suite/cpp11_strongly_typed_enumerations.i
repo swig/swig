@@ -274,3 +274,37 @@ private:
     Val2 = 1182,
   };
 %}
+
+// Regression tests for cases where SWIG incorrectly included "enum " when
+// qualifying the emunerator name:
+
+// #197
+%include <std_vector.i>
+%inline %{
+template<Enum17 E> class Bar {};
+%}
+%template(Enum17Vector) std::vector<Bar<Enum17::Val1>>;
+
+// #675
+%template(Enum17Bar) Bar<Enum17::Val2>;
+%inline %{
+class SubEnum17Bar : public Bar<Enum17::Val2> {};
+%}
+
+// #1677
+%inline %{
+#include <bitset>
+typedef std::bitset<static_cast<unsigned>(Enum17::Val1)> type1677;
+type1677 classify(int a) { return type1677{}; }
+bool has_type(const type1677&, const Enum17&) { return false; }
+%}
+
+// #2047
+%feature("compactdefaultargs") MyClass::my_func;
+%inline %{
+class MyClass {
+  public:
+    enum class PRINT_SETUP { TO_CONSOLE, TO_CSV };
+    void my_func(const PRINT_SETUP& e = PRINT_SETUP::TO_CONSOLE) { (void)e; }
+};
+%}

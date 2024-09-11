@@ -8,6 +8,10 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-09-11: olly
+	    #197 #675 #1677 #2047 Fix incorrect inclusion of "enum " when
+	    qualifying C++11 "enum class" enumerator names.
+
+2024-09-11: olly
 	    [Perl] #630 Fix wrapping of C++11 enum class when -const command line
 	    option is specified.
 
