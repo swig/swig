@@ -2363,6 +2363,8 @@ inline_directive : INLINE HBLOCK {
    %insert("section") "filename"
    %insert(section) %{ ... %}
    %insert("section") %{ ... %}
+   %insert(section) { ... }
+   %insert("section") { ... }
    ------------------------------------------------------------ */
 
 insert_directive : HBLOCK {
@@ -2778,7 +2780,6 @@ varargs_parms   : parms
    %typemap(method) type "..."
    %typemap(method) type;    - typemap deletion
    %typemap(method) type1,type2,... = type;    - typemap copy
-   %typemap type1,type2,... = type;            - typemap copy
    ------------------------------------------------------------ */
 
 typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
@@ -3137,7 +3138,6 @@ template_directive: SWIGTEMPLATE LPAREN idstringopt RPAREN idcolonnt LESSTHAN va
 
 /* ------------------------------------------------------------
    %warn "text"
-   %warn(no)
    ------------------------------------------------------------ */
 
 warn_directive : WARN string {
