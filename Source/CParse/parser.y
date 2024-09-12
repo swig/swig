@@ -1678,7 +1678,6 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String *final;
   } dtype;
   struct {
-    const char *type;
     String *filename;
     int   line;
   } loc;
@@ -1707,6 +1706,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
   Parm         *p;
   ParmList     *pl;
   int           intvalue;
+  enum { INCLUDE_INCLUDE, INCLUDE_IMPORT } includetype;
   Node         *node;
 };
 
@@ -1717,7 +1717,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <str> HBLOCK
 %token <id> POUND 
 %token <str> STRING WSTRING
-%token <loc> INCLUDE IMPORT INSERT
+%token INCLUDE IMPORT INSERT
 %token <str> CHARCONST WCHARCONST
 %token <dtype> NUM_INT NUM_DOUBLE NUM_FLOAT NUM_LONGDOUBLE NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
 %token <intvalue> TYPEDEF
@@ -1817,7 +1817,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <id>       idstring idstringopt;
 %type <id>       pragma_lang;
 %type <str>      pragma_arg;
-%type <loc>      includetype;
+%type <includetype> includetype;
 %type <type>     pointer primitive_type;
 %type <decl>     declarator direct_declarator notso_direct_declarator parameter_declarator plain_declarator;
 %type <decl>     abstract_declarator direct_abstract_declarator ctor_end;
@@ -2265,11 +2265,15 @@ include_directive: includetype options string BEGINFILE <loc>{
                      String *mname = 0;
                      $$ = $interface;
 		     scanner_set_location($loc.filename, $loc.line + 1);
-		     if (strcmp($includetype.type,"include") == 0) set_nodeType($$,"include");
-		     if (strcmp($includetype.type,"import") == 0) {
-		       mname = $options ? Getattr($options,"module") : 0;
-		       set_nodeType($$,"import");
-		       if (import_mode) --import_mode;
+		     switch ($includetype) {
+		       case INCLUDE_INCLUDE:
+			 set_nodeType($$, "include");
+			 break;
+		       case INCLUDE_IMPORT:
+			 mname = $options ? Getattr($options, "module") : 0;
+			 set_nodeType($$, "import");
+			 if (import_mode) --import_mode;
+			 break;
 		     }
 		     
 		     Setattr($$,"name",$string);
@@ -2308,9 +2312,9 @@ include_directive: includetype options string BEGINFILE <loc>{
                }
                ;
 
-includetype    : INCLUDE { $$.type = "include"; }
-               | IMPORT  { $$.type = "import"; ++import_mode;}
-               ;
+includetype    : INCLUDE { $$ = INCLUDE_INCLUDE; }
+	       | IMPORT  { $$ = INCLUDE_IMPORT; ++import_mode;}
+	       ;
 
 /* ------------------------------------------------------------
    %inline %{ ... %}
