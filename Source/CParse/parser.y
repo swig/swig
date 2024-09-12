@@ -7079,7 +7079,19 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		 $$ = default_dtype;
 		 $$.val = NewStringf("-%s",$in.val);
 		 if ($in.numval) {
-		   $$.numval = NewStringf("-%s", $in.numval);
+		   switch ($in.type) {
+		     case T_CHAR: // Unsigned on some architectures.
+		     case T_UCHAR:
+		     case T_USHORT:
+		     case T_UINT:
+		     case T_ULONG:
+		     case T_ULONGLONG:
+		       // Avoid negative numval with an unsigned type.
+		       break;
+		     default:
+		       $$.numval = NewStringf("-%s", $in.numval);
+		       break;
+		   }
 		   Delete($in.numval);
 		 }
 		 $$.type = promote_type($in.type);
