@@ -54,6 +54,11 @@
 
 int  yyparse(void);
 
+// Default-initialised instances of token types to avoid uninitialised fields.
+// The compiler will initialise all fields to zero or NULL for us.
+
+static const struct Define default_dtype;
+
 /* NEW Variables */
 
 static void    *top = 0;      /* Top of the generated parse tree */
@@ -3527,14 +3532,8 @@ c_decl_tail    : SEMI {
 
 initializer   : def_args
 	      | COLON expr {
-		$$.val = 0;
-		$$.stringval = 0;
-		$$.type = 0;
+		$$ = default_dtype;
 		$$.bitfield = $expr.val;
-		$$.throws = 0;
-		$$.throwf = 0;
-		$$.nexcept = 0;
-		$$.final = 0;
 	      }
               ;
 
@@ -5080,36 +5079,16 @@ cpp_swig_directive: pragma_directive
 
 cpp_vend       : cpp_const SEMI { 
                      Clear(scanner_ccode);
-                     $$.val = 0;
-                     $$.qualifier = $cpp_const.qualifier;
-                     $$.refqualifier = $cpp_const.refqualifier;
-                     $$.bitfield = 0;
-                     $$.throws = $cpp_const.throws;
-                     $$.throwf = $cpp_const.throwf;
-                     $$.nexcept = $cpp_const.nexcept;
-                     $$.final = $cpp_const.final;
-                }
+                     $$ = $cpp_const;
+               }
                | cpp_const EQUAL definetype SEMI { 
                      Clear(scanner_ccode);
+                     $$ = $cpp_const;
                      $$.val = $definetype.val;
-                     $$.qualifier = $cpp_const.qualifier;
-                     $$.refqualifier = $cpp_const.refqualifier;
-                     $$.bitfield = 0;
-                     $$.throws = $cpp_const.throws; 
-                     $$.throwf = $cpp_const.throwf; 
-                     $$.nexcept = $cpp_const.nexcept;
-                     $$.final = $cpp_const.final;
                }
                | cpp_const LBRACE { 
                      if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
-                     $$.val = 0;
-                     $$.qualifier = $cpp_const.qualifier;
-                     $$.refqualifier = $cpp_const.refqualifier;
-                     $$.bitfield = 0;
-                     $$.throws = $cpp_const.throws; 
-                     $$.throwf = $cpp_const.throwf; 
-                     $$.nexcept = $cpp_const.nexcept;
-                     $$.final = $cpp_const.final;
+                     $$ = $cpp_const;
                }
                ;
 
@@ -5346,14 +5325,20 @@ callparms      : valexpr callptail {
 		 $$ = $valexpr;
 		 Printf($$.val, "%s", $callptail.val);
 	       }
-	       | %empty { $$.val = NewStringEmpty(); }
+	       | %empty {
+	         $$ = default_dtype;
+		 $$.val = NewStringEmpty();
+	       }
 	       ;
 
 callptail      : COMMA valexpr callptail[in] {
+	         $$ = default_dtype;
 		 $$.val = NewStringf(",%s%s", $valexpr.val, $in.val);
-		 $$.type = 0;
 	       }
-	       | %empty { $$.val = NewStringEmpty(); }
+	       | %empty {
+	         $$ = default_dtype;
+		 $$.val = NewStringEmpty();
+	       }
 	       ;
 
 def_args       : EQUAL definetype { 
@@ -5365,26 +5350,13 @@ def_args       : EQUAL definetype {
                }
                | EQUAL LBRACE {
 		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
+		 $$ = default_dtype;
 		 $$.val = NewString(scanner_ccode);
-		 $$.stringval = 0;
 		 $$.type = T_UNKNOWN;
-		 $$.unary_arg_type = 0;
-		 $$.bitfield = 0;
-		 $$.throws = 0;
-		 $$.throwf = 0;
-		 $$.nexcept = 0;
-		 $$.final = 0;
 	       }
                | %empty {
-                 $$.val = 0;
-		 $$.stringval = 0;
+		 $$ = default_dtype;
                  $$.type = T_UNKNOWN;
-		 $$.unary_arg_type = 0;
-		 $$.bitfield = 0;
-		 $$.throws = 0;
-		 $$.throwf = 0;
-		 $$.nexcept = 0;
-		 $$.final = 0;
                }
                ;
 
@@ -6186,7 +6158,6 @@ pointer    : STAR type_qualifier pointer[in] {
 /* cv-qualifier plus C++11 ref-qualifier for non-static member functions */
 cv_ref_qualifier : type_qualifier {
 		  $$.qualifier = $type_qualifier;
-		  $$.refqualifier = 0;
 	       }
 	       | type_qualifier ref_qualifier {
 		  $$.qualifier = $type_qualifier;
@@ -6441,18 +6412,9 @@ type_specifier : TYPE_INT {
                 }
                ;
 
-definetype     : expr {
-                   $$ = $expr;
-		   $$.qualifier = 0;
-		   $$.refqualifier = 0;
-		   $$.bitfield = 0;
-		   $$.throws = 0;
-		   $$.throwf = 0;
-		   $$.nexcept = 0;
-		   $$.final = 0;
-                }
-                | default_delete
-                ;
+definetype     : expr
+               | default_delete
+               ;
 
 default_delete : deleted_definition
                 | explicit_default
@@ -6460,33 +6422,17 @@ default_delete : deleted_definition
 
 /* For C++ deleted definition '= delete' */
 deleted_definition : DELETE_KW {
+		  $$ = default_dtype;
 		  $$.val = NewString("delete");
-		  $$.stringval = 0;
 		  $$.type = T_STRING;
-		  $$.unary_arg_type = 0;
-		  $$.qualifier = 0;
-		  $$.refqualifier = 0;
-		  $$.bitfield = 0;
-		  $$.throws = 0;
-		  $$.throwf = 0;
-		  $$.nexcept = 0;
-		  $$.final = 0;
 		}
 		;
 
 /* For C++ explicitly defaulted functions '= default' */
 explicit_default : DEFAULT {
+		  $$ = default_dtype;
 		  $$.val = NewString("default");
-		  $$.stringval = 0;
 		  $$.type = T_STRING;
-		  $$.unary_arg_type = 0;
-		  $$.qualifier = 0;
-		  $$.refqualifier = 0;
-		  $$.bitfield = 0;
-		  $$.throws = 0;
-		  $$.throwf = 0;
-		  $$.nexcept = 0;
-		  $$.final = 0;
 		}
 		;
 
@@ -6620,9 +6566,9 @@ etype            : expr {
 expr           : valexpr
                | type {
 		 Node *n;
+		 $$ = default_dtype;
 		 $$.val = $type;
 		 $$.type = T_UNKNOWN;
-		 $$.unary_arg_type = 0;
 		 /* Check if value is in scope */
 		 n = Swig_symbol_clookup($type,0);
 		 if (n) {
@@ -6646,12 +6592,12 @@ expr           : valexpr
 
 /* simple member access expressions */
 exprmem        : ID[lhs] ARROW ID[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s->%s", $lhs, $rhs);
-		 $$.type = 0;
 	       }
 	       | ID[lhs] ARROW ID[rhs] LPAREN callparms RPAREN {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s->%s(%s)", $lhs, $rhs, $callparms.val);
-		 $$.type = 0;
 	       }
 	       | exprmem[in] ARROW ID {
 		 $$ = $in;
@@ -6662,12 +6608,12 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 		 Printf($$.val, "->%s(%s)", $ID, $callparms.val);
 	       }
 	       | ID[lhs] PERIOD ID[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s.%s", $lhs, $rhs);
-		 $$.type = 0;
 	       }
 	       | ID[lhs] PERIOD ID[rhs] LPAREN callparms RPAREN {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s.%s(%s)", $lhs, $rhs, $callparms.val);
-		 $$.type = 0;
 	       }
 	       | exprmem[in] PERIOD ID {
 		 $$ = $in;
@@ -6683,38 +6629,28 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 exprsimple     : exprnum
                | exprmem
                | string {
+		  $$ = default_dtype;
 		  $$.stringval = $string;
 		  $$.val = NewStringf("\"%(escape)s\"", $string);
 		  $$.type = T_STRING;
-		  $$.unary_arg_type = 0;
 	       }
 	       | wstring {
+		  $$ = default_dtype;
 		  $$.stringval = $wstring;
 		  $$.val = NewStringf("L\"%(escape)s\"", $wstring);
 		  $$.type = T_WSTRING;
-		  $$.unary_arg_type = 0;
 	       }
 	       | CHARCONST {
+		  $$ = default_dtype;
 		  $$.stringval = $CHARCONST;
 		  $$.val = NewStringf("'%(escape)s'", $CHARCONST);
 		  $$.type = T_CHAR;
-		  $$.unary_arg_type = 0;
-		  $$.bitfield = 0;
-		  $$.throws = 0;
-		  $$.throwf = 0;
-		  $$.nexcept = 0;
-		  $$.final = 0;
 	       }
 	       | WCHARCONST {
+		  $$ = default_dtype;
 		  $$.stringval = $WCHARCONST;
 		  $$.val = NewStringf("L'%(escape)s'", $WCHARCONST);
 		  $$.type = T_WCHAR;
-		  $$.unary_arg_type = 0;
-		  $$.bitfield = 0;
-		  $$.throws = 0;
-		  $$.throwf = 0;
-		  $$.nexcept = 0;
-		  $$.final = 0;
 	       }
 
 	       /* In sizeof(X) X can be a type or expression.  We don't actually
@@ -6724,31 +6660,31 @@ exprsimple     : exprnum
 		*/
 	       | SIZEOF LPAREN {
 		  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+		  $$ = default_dtype;
 		  $$.val = NewStringf("sizeof%s", scanner_ccode);
 		  Clear(scanner_ccode);
 		  $$.type = T_ULONG;
-		  $$.unary_arg_type = 0;
                }
 	       /* alignof(T) always has type size_t. */
 	       | ALIGNOF LPAREN {
 		  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+		  $$ = default_dtype;
 		  $$.val = NewStringf("alignof%s", scanner_ccode);
 		  Clear(scanner_ccode);
 		  $$.type = T_ULONG;
-		  $$.unary_arg_type = 0;
 	       }
 	       /* noexcept(X) always has type bool. */
 	       | NOEXCEPT LPAREN {
 		  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+		  $$ = default_dtype;
 		  $$.val = NewStringf("noexcept%s", scanner_ccode);
 		  Clear(scanner_ccode);
 		  $$.type = T_BOOL;
-		  $$.unary_arg_type = 0;
 	       }
 	       | SIZEOF ELLIPSIS LPAREN identifier RPAREN {
+		  $$ = default_dtype;
 		  $$.val = NewStringf("sizeof...(%s)", $identifier);
 		  $$.type = T_ULONG;
-		  $$.unary_arg_type = 0;
                }
 	       /* `sizeof expr` without parentheses is valid for an expression,
 		* but not for a type.  This doesn't support `sizeof x` (or
@@ -6756,9 +6692,9 @@ exprsimple     : exprnum
 		* code).
 		*/
 	       | SIZEOF exprsimple[in] {
+		  $$ = default_dtype;
 		  $$.val = NewStringf("sizeof(%s)", $in.val);
 		  $$.type = T_ULONG;
-		  $$.unary_arg_type = 0;
 	       }
                ;
 
@@ -6767,6 +6703,7 @@ valexpr        : exprsimple
 
 /* grouping */
                |  LPAREN expr RPAREN %prec CAST {
+	            $$ = default_dtype;
 		    $$.val = NewStringf("(%s)",$expr.val);
 		    if ($expr.stringval) {
 		      $$.stringval = Copy($expr.stringval);
@@ -6910,58 +6847,72 @@ exprnum        :  NUM_INT
                ;
 
 exprcompound   : expr[lhs] PLUS expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s+%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] MINUS expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s-%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] STAR expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s*%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] SLASH expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s/%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] MODULO expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s%%%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] AND expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s&%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] OR expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s|%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] XOR expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s^%s", $lhs.val, $rhs.val);
 		 $$.type = promote($lhs.type,$rhs.type);
 	       }
                | expr[lhs] LSHIFT expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s << %s", $lhs.val, $rhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
                | expr[lhs] RSHIFT expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s >> %s", $lhs.val, $rhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
                | expr[lhs] LAND expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s&&%s", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr[lhs] LOR expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s||%s", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr[lhs] EQUALTO expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s==%s", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr[lhs] NOTEQUALTO expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s!=%s", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
@@ -6970,6 +6921,7 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		* parentheses and we can handle that case.
 		*/
 	       | LPAREN expr[lhs] GREATERTHAN expr[rhs] RPAREN {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("(%s > %s)", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
@@ -6980,14 +6932,17 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		* covers all user-reported cases.
 		*/
                | LPAREN exprsimple[lhs] LESSTHAN expr[rhs] RPAREN {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("(%s < %s)", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr[lhs] GREATERTHANOREQUALTO expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s >= %s", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | expr[lhs] LESSTHANOREQUALTO expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s <= %s", $lhs.val, $rhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
@@ -7004,58 +6959,72 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 	       //
 	       // = += -= *= /= %= ^= &= |= <<= >>= , .* ->*.
 	       | expr[lhs] PLUS ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s+...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] MINUS ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s-...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] STAR ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s*...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] SLASH ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s/...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] MODULO ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s%%...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] AND ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s&...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] OR ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s|...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] XOR ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s^...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] LSHIFT ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s << ...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] RSHIFT ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s >> ...", $lhs.val);
 		 $$.type = promote_type($lhs.type);
 	       }
 	       | expr[lhs] LAND ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s&&...", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr[lhs] LOR ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s||...", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr[lhs] EQUALTO ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s==...", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr[lhs] NOTEQUALTO ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s!=...", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
@@ -7064,6 +7033,7 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		* parentheses and we can handle that case.
 		*/
 	       | LPAREN expr[lhs] GREATERTHAN ELLIPSIS RPAREN {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("(%s > ...)", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
@@ -7073,19 +7043,23 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		* covers all user-reported cases.
 		*/
 	       | LPAREN exprsimple[lhs] LESSTHAN ELLIPSIS RPAREN {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("(%s < %s)", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr[lhs] GREATERTHANOREQUALTO ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s >= ...", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 	       | expr[lhs] LESSTHANOREQUALTO ELLIPSIS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s <= ...", $lhs.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
 
 	       | expr[lhs] LESSEQUALGREATER expr[rhs] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s <=> %s", $lhs.val, $rhs.val);
 		 /* `<=>` returns one of `std::strong_ordering`,
 		  * `std::partial_ordering` or `std::weak_ordering`.  The main
@@ -7100,12 +7074,14 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		 $$.unary_arg_type = 0;
 	       }
 	       | expr[expr1] QUESTIONMARK expr[expr2] COLON expr[expr3] %prec QUESTIONMARK {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("%s?%s:%s", $expr1.val, $expr2.val, $expr3.val);
 		 /* This may not be exactly right, but is probably good enough
 		  * for the purposes of parsing constant expressions. */
 		 $$.type = promote($expr2.type, $expr3.type);
 	       }
                | MINUS expr[in] %prec UMINUS {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("-%s",$in.val);
 		 $$.type = promote_type($in.type);
 		 /* Record the type code for expr so we can properly handle
@@ -7115,6 +7091,7 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		 $$.unary_arg_type = $in.type;
 	       }
                | PLUS expr[in] %prec UMINUS {
+		 $$ = default_dtype;
                  $$.val = NewStringf("+%s",$in.val);
 		 $$.type = promote_type($in.type);
 		 /* Record the type code for expr so we can properly handle
@@ -7124,14 +7101,17 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		 $$.unary_arg_type = $in.type;
 	       }
                | NOT expr[in] {
+		 $$ = default_dtype;
 		 $$.val = NewStringf("~%s",$in.val);
 		 $$.type = promote_type($in.type);
 	       }
                | LNOT expr[in] {
+		 $$ = default_dtype;
                  $$.val = NewStringf("!%s", $in.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
                | type LPAREN {
+		 $$ = default_dtype;
 		 String *qty;
 		 if (skip_balanced('(',')') < 0) Exit(EXIT_FAILURE);
 		 qty = Swig_symbol_type_qualify($type,0);
@@ -7317,55 +7297,41 @@ class_virt_specifier_opt : FINAL {
                ;
 
 exception_specification : THROW LPAREN parms RPAREN {
+		    $$ = default_dtype;
                     $$.throws = $parms;
                     $$.throwf = NewString("1");
-                    $$.nexcept = 0;
-                    $$.final = 0;
 	       }
 	       | NOEXCEPT {
-                    $$.throws = 0;
-                    $$.throwf = 0;
+		    $$ = default_dtype;
                     $$.nexcept = NewString("true");
-                    $$.final = 0;
 	       }
 	       | virt_specifier_seq {
-                    $$.throws = 0;
-                    $$.throwf = 0;
-                    $$.nexcept = 0;
+		    $$ = default_dtype;
                     $$.final = $virt_specifier_seq;
 	       }
 	       | THROW LPAREN parms RPAREN virt_specifier_seq {
+		    $$ = default_dtype;
                     $$.throws = $parms;
                     $$.throwf = NewString("1");
-                    $$.nexcept = 0;
                     $$.final = $virt_specifier_seq;
 	       }
 	       | NOEXCEPT virt_specifier_seq {
-                    $$.throws = 0;
-                    $$.throwf = 0;
+		    $$ = default_dtype;
                     $$.nexcept = NewString("true");
-                    $$.final = $virt_specifier_seq;
 	       }
 	       | NOEXCEPT LPAREN expr RPAREN {
-                    $$.throws = 0;
-                    $$.throwf = 0;
+		    $$ = default_dtype;
                     $$.nexcept = $expr.val;
-                    $$.final = 0;
 	       }
 	       ;	
 
 qualifiers_exception_specification : cv_ref_qualifier {
-                    $$.throws = 0;
-                    $$.throwf = 0;
-                    $$.nexcept = 0;
-                    $$.final = 0;
+		    $$ = default_dtype;
                     $$.qualifier = $cv_ref_qualifier.qualifier;
                     $$.refqualifier = $cv_ref_qualifier.refqualifier;
                }
                | exception_specification {
 		    $$ = $exception_specification;
-                    $$.qualifier = 0;
-                    $$.refqualifier = 0;
                }
                | cv_ref_qualifier exception_specification {
 		    $$ = $exception_specification;
@@ -7376,12 +7342,7 @@ qualifiers_exception_specification : cv_ref_qualifier {
 
 cpp_const      : qualifiers_exception_specification
                | %empty {
-                    $$.throws = 0;
-                    $$.throwf = 0;
-                    $$.nexcept = 0;
-                    $$.final = 0;
-                    $$.qualifier = 0;
-                    $$.refqualifier = 0;
+                 $$ = default_dtype;
                }
                ;
 

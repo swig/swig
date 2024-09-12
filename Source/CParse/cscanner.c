@@ -43,6 +43,11 @@ int cparse_cplusplusout = 0;
 /* To allow better error reporting */
 String *cparse_unknown_directive = 0;
 
+// Default-initialised instances of token types to avoid uninitialised fields.
+// The compiler will initialise all fields to zero or NULL for us.
+
+static const struct Define default_dtype;
+
 /* Private vars */
 static int scan_init = 0;
 static int num_brace = 0;
@@ -614,39 +619,46 @@ int yylex(void) {
   switch (l) {
 
   case NUM_INT:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_INT;
     goto num_common;
   case NUM_DOUBLE:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_DOUBLE;
     goto num_common;
   case NUM_FLOAT:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_FLOAT;
     goto num_common;
   case NUM_LONGDOUBLE:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_LONGDOUBLE;
     goto num_common;
   case NUM_ULONG:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_ULONG;
     goto num_common;
   case NUM_LONG:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_LONG;
     goto num_common;
   case NUM_UNSIGNED:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_UINT;
     goto num_common;
   case NUM_LONGLONG:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_LONGLONG;
     goto num_common;
   case NUM_ULONGLONG:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_ULONGLONG;
     goto num_common;
   case NUM_BOOL:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_BOOL;
 num_common:
-    yylval.dtype.unary_arg_type = 0;
     yylval.dtype.val = NewString(Scanner_text(scan));
-    yylval.dtype.bitfield = 0;
-    yylval.dtype.throws = 0;
     return (l);
 
   case ID:
