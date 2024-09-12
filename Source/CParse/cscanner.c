@@ -1061,8 +1061,6 @@ num_common:
     return (ID);
   case POUND:
     return yylex();
-  case SWIG_TOKEN_COMMENT:
-    return yylex();
   default:
     return (l);
   }
