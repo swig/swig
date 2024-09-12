@@ -1686,7 +1686,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     String *filename;
     int   line;
   } loc;
-  struct {
+  struct Decl {
     char      *id;
     SwigType  *type;
     String    *defarg;
@@ -1844,6 +1844,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 // Default-initialised instances of token types to avoid uninitialised fields.
 // The compiler will initialise all fields to zero or NULL for us.
 
+static const struct Decl default_decl;
 static const struct Define default_dtype;
 
 /* C++ decltype/auto type deduction. */
@@ -5369,8 +5370,7 @@ parameter_declarator : declarator def_args {
 	      $$.defarg = $def_args.val;
             }
             | def_args {
-   	      $$.type = 0;
-              $$.id = 0;
+	      $$ = default_decl;
 	      $$.defarg = $def_args.val;
             }
 	    /* Member function pointers with qualifiers. eg.
@@ -5395,7 +5395,6 @@ parameter_declarator : declarator def_args {
 		Delete($$.type);
 		$$.type = t;
 	      }
-	      $$.defarg = 0;
 	    }
             ;
 
@@ -5455,10 +5454,8 @@ plain_declarator : declarator {
 	      }
 	    }
             | %empty {
-   	      $$.type = 0;
-              $$.id = 0;
-	      $$.parms = 0;
-	      }
+	      $$ = default_decl;
+	    }
             ;
 
 declarator :  pointer notso_direct_declarator {
@@ -5684,32 +5681,24 @@ declarator :  pointer notso_direct_declarator {
 
 notso_direct_declarator : idcolon {
                 /* Note: This is non-standard C.  Template declarator is allowed to follow an identifier */
+		 $$ = default_decl;
                  $$.id = Char($idcolon);
-		 $$.type = 0;
-		 $$.parms = 0;
-		 $$.have_parms = 0;
                   }
                   | NOT idcolon {
+		  $$ = default_decl;
                   $$.id = Char(NewStringf("~%s",$idcolon));
-                  $$.type = 0;
-                  $$.parms = 0;
-                  $$.have_parms = 0;
                   }
 
 /* This generates a shift-reduce conflict with constructors */
                  | LPAREN idcolon RPAREN {
+		  $$ = default_decl;
                   $$.id = Char($idcolon);
-                  $$.type = 0;
-                  $$.parms = 0;
-                  $$.have_parms = 0;
                   }
 
 /*
                   | LPAREN AND idcolon RPAREN {
+		     $$ = default_decl;
                      $$.id = Char($idcolon);
-                     $$.type = 0;
-                     $$.parms = 0;
-                     $$.have_parms = 0;
                   }
 */
 /* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
@@ -5775,26 +5764,20 @@ notso_direct_declarator : idcolon {
 
 direct_declarator : idcolon {
                 /* Note: This is non-standard C.  Template declarator is allowed to follow an identifier */
+		 $$ = default_decl;
                  $$.id = Char($idcolon);
-		 $$.type = 0;
-		 $$.parms = 0;
-		 $$.have_parms = 0;
                   }
                   
                   | NOT idcolon {
+		  $$ = default_decl;
                   $$.id = Char(NewStringf("~%s",$idcolon));
-                  $$.type = 0;
-                  $$.parms = 0;
-                  $$.have_parms = 0;
                   }
 
 /* This generate a shift-reduce conflict with constructors */
 /*
                   | LPAREN idcolon RPAREN {
+		  $$ = default_decl;
                   $$.id = Char($idcolon);
-                  $$.type = 0;
-                  $$.parms = 0;
-                  $$.have_parms = 0;
                   }
 */
 /* Technically, this should be LPAREN declarator RPAREN, but we get reduce/reduce conflicts */
@@ -5909,31 +5892,22 @@ direct_declarator : idcolon {
                     int operator"" _mySuffix(const char* val, int length) {...} */
 		 /* This produces one S/R conflict. */
                  | OPERATOR ID LPAREN parms RPAREN {
+		    $$ = default_decl;
 		    SwigType *t;
                     Append($OPERATOR, " "); /* intervening space is mandatory */
                     Append($OPERATOR, Char($ID));
 		    $$.id = Char($OPERATOR);
 		    t = NewStringEmpty();
 		    SwigType_add_function(t,$parms);
-		    if (!$$.have_parms) {
-		      $$.parms = $parms;
-		      $$.have_parms = 1;
-		    }
-		    if (!$$.type) {
-		      $$.type = t;
-		    } else {
-		      SwigType_push(t, $$.type);
-		      Delete($$.type);
-		      $$.type = t;
-		    }
+		    $$.parms = $parms;
+		    $$.have_parms = 1;
+		    $$.type = t;
 		  }
                   ;
 
 abstract_declarator : pointer variadic_opt {
+		    $$ = default_decl;
 		    $$.type = $pointer;
-                    $$.id = 0;
-		    $$.parms = 0;
-		    $$.have_parms = 0;
 		    if ($variadic_opt) SwigType_add_variadic($$.type);
                   }
                   | pointer direct_abstract_declarator { 
@@ -5943,19 +5917,15 @@ abstract_declarator : pointer variadic_opt {
 		     Delete($direct_abstract_declarator.type);
                   }
                   | pointer AND variadic_opt {
+		    $$ = default_decl;
 		    $$.type = $pointer;
 		    SwigType_add_reference($$.type);
-		    $$.id = 0;
-		    $$.parms = 0;
-		    $$.have_parms = 0;
 		    if ($variadic_opt) SwigType_add_variadic($$.type);
 		  }
                   | pointer LAND variadic_opt {
+		    $$ = default_decl;
 		    $$.type = $pointer;
 		    SwigType_add_rvalue_reference($$.type);
-		    $$.id = 0;
-		    $$.parms = 0;
-		    $$.have_parms = 0;
 		    if ($variadic_opt) SwigType_add_variadic($$.type);
 		  }
                   | pointer AND direct_abstract_declarator {
@@ -5996,42 +5966,32 @@ abstract_declarator : pointer variadic_opt {
 		    }
                   }
                   | AND variadic_opt {
-                    $$.id = 0;
-                    $$.parms = 0;
-		    $$.have_parms = 0;
+		    $$ = default_decl;
                     $$.type = NewStringEmpty();
 		    SwigType_add_reference($$.type);
 		    if ($variadic_opt) SwigType_add_variadic($$.type);
                   }
                   | LAND variadic_opt {
-                    $$.id = 0;
-                    $$.parms = 0;
-		    $$.have_parms = 0;
+		    $$ = default_decl;
                     $$.type = NewStringEmpty();
 		    SwigType_add_rvalue_reference($$.type);
 		    if ($variadic_opt) SwigType_add_variadic($$.type);
                   }
                   | idcolon DSTAR { 
+		    $$ = default_decl;
 		    $$.type = NewStringEmpty();
                     SwigType_add_memberpointer($$.type,$idcolon);
-                    $$.id = 0;
-                    $$.parms = 0;
-		    $$.have_parms = 0;
       	          }
                   | idcolon DSTAR type_qualifier {
+		    $$ = default_decl;
 		    $$.type = NewStringEmpty();
 		    SwigType_add_memberpointer($$.type, $idcolon);
 		    SwigType_push($$.type, $type_qualifier);
-		    $$.id = 0;
-		    $$.parms = 0;
-		    $$.have_parms = 0;
 		  }
                   | pointer idcolon DSTAR { 
+		    $$ = default_decl;
 		    SwigType *t = NewStringEmpty();
                     $$.type = $pointer;
-		    $$.id = 0;
-		    $$.parms = 0;
-		    $$.have_parms = 0;
 		    SwigType_add_memberpointer(t,$idcolon);
 		    SwigType_push($$.type,t);
 		    Delete(t);
@@ -6070,17 +6030,13 @@ direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET RBRACKET {
 		    $$.type = t;
                   }
                   | LBRACKET RBRACKET { 
+		    $$ = default_decl;
 		    $$.type = NewStringEmpty();
-		    $$.id = 0;
-		    $$.parms = 0;
-		    $$.have_parms = 0;
 		    SwigType_add_array($$.type,"");
                   }
                   | LBRACKET expr RBRACKET { 
+		    $$ = default_decl;
 		    $$.type = NewStringEmpty();
-		    $$.id = 0;
-		    $$.parms = 0;
-		    $$.have_parms = 0;
 		    SwigType_add_array($$.type,$expr.val);
 		  }
                   | LPAREN abstract_declarator RPAREN {
@@ -6122,11 +6078,11 @@ direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET RBRACKET {
 		    }
 		  }
                   | LPAREN parms RPAREN {
+		    $$ = default_decl;
                     $$.type = NewStringEmpty();
                     SwigType_add_function($$.type,$parms);
 		    $$.parms = $parms;
 		    $$.have_parms = 1;
-		    $$.id = 0;
                   }
                   ;
 
@@ -7348,8 +7304,7 @@ cpp_const      : qualifiers_exception_specification
 
 ctor_end       : cpp_const ctor_initializer SEMI { 
                     Clear(scanner_ccode); 
-                    $$.have_parms = 0; 
-                    $$.defarg = 0; 
+		    $$ = default_decl;
 		    $$.throws = $cpp_const.throws;
 		    $$.throwf = $cpp_const.throwf;
 		    $$.nexcept = $cpp_const.nexcept;
@@ -7361,8 +7316,7 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                     if ($cpp_const.qualifier)
                       Swig_error(cparse_file, cparse_line, "Constructor cannot have a qualifier.\n");
                     if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
-                    $$.have_parms = 0; 
-                    $$.defarg = 0; 
+		    $$ = default_decl;
                     $$.throws = $cpp_const.throws;
                     $$.throwf = $cpp_const.throwf;
                     $$.nexcept = $cpp_const.nexcept;
@@ -7370,34 +7324,22 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                }
                | LPAREN parms RPAREN SEMI { 
                     Clear(scanner_ccode); 
+		    $$ = default_decl;
                     $$.parms = $parms; 
                     $$.have_parms = 1; 
-                    $$.defarg = 0; 
-		    $$.throws = 0;
-		    $$.throwf = 0;
-		    $$.nexcept = 0;
-		    $$.final = 0;
                }
                | LPAREN parms RPAREN LBRACE {
                     if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
+		    $$ = default_decl;
                     $$.parms = $parms; 
                     $$.have_parms = 1; 
-                    $$.defarg = 0; 
-                    $$.throws = 0;
-                    $$.throwf = 0;
-                    $$.nexcept = 0;
-                    $$.final = 0;
                }
                | EQUAL definetype SEMI { 
-                    $$.have_parms = 0; 
+		    $$ = default_decl;
                     $$.defarg = $definetype.val; 
-                    $$.throws = 0;
-                    $$.throwf = 0;
-                    $$.nexcept = 0;
-                    $$.final = 0;
                }
                | exception_specification EQUAL default_delete SEMI {
-                    $$.have_parms = 0;
+		    $$ = default_decl;
                     $$.defarg = $default_delete.val;
                     $$.throws = $exception_specification.throws;
                     $$.throwf = $exception_specification.throwf;
