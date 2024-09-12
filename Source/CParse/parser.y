@@ -54,11 +54,6 @@
 
 int  yyparse(void);
 
-// Default-initialised instances of token types to avoid uninitialised fields.
-// The compiler will initialise all fields to zero or NULL for us.
-
-static const struct Define default_dtype;
-
 /* NEW Variables */
 
 static void    *top = 0;      /* Top of the generated parse tree */
@@ -1845,6 +1840,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <str>      class_virt_specifier_opt;
 
 %{
+
+// Default-initialised instances of token types to avoid uninitialised fields.
+// The compiler will initialise all fields to zero or NULL for us.
+
+static const struct Define default_dtype;
 
 /* C++ decltype/auto type deduction. */
 static SwigType *deduce_type(const struct Define *dtype) {
