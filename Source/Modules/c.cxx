@@ -2185,6 +2185,10 @@ public:
        }
        Printv(wrapper->def, return_type, " ", wname.get(), "(", proto, ") {\n", NIL);
 
+       if (!is_void_return) {
+            Printv(wrapper->code, return_type, " result;\n", NIL);
+       }
+
        // attach 'check' typemaps
        Swig_typemap_attach_parms("check", parms, wrapper);
 
@@ -2203,7 +2207,6 @@ public:
 
        Append(wrapper->code, prepend_feature(n));
        if (!is_void_return) {
-            Printv(wrapper->code, return_type, " result;\n", NIL);
             Printf(wrapper->code, "result = ");
        }
        Printv(wrapper->code, Getattr(n, "name"), "(", arg_names, ");\n", NIL);

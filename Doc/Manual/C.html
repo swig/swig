@@ -255,15 +255,15 @@ And now the generated result looks like:
 
 <div class="targetlang"><pre>
 int _wrap_gcd(int arg1, int arg2) {
-  {
-    if (arg1 &lt;= 0)
-      fprintf(stderr, "Expected positive value in gcd.\n");
-  }
-  {
-    if (arg1 &lt;= 0)
-      fprintf(stderr, "Expected positive value in gcd.\n");
-  }
   int result;
+  {
+    if (arg1 &lt;= 0)
+      fprintf(stderr, "Expected positive value in gcd.\n");
+  }
+  {
+    if (arg1 &lt;= 0)
+      fprintf(stderr, "Expected positive value in gcd.\n");
+  }
   result = gcd(arg1,arg2);
   return result;
 }
