@@ -54,7 +54,7 @@
 /* Unused since 4.2.0: #define WARN_DEPRECATED_NODEFAULT     123 */
 /* Unused since 4.1.0: #define WARN_DEPRECATED_TYPEMAP_LANG  124 */
 /* Unused since 4.2.0: #define WARN_DEPRECATED_INPUT_FILE    125 */
-#define WARN_DEPRECATED_NESTED_WORKAROUND 126
+/* Unused since 4.3.0: #define WARN_DEPRECATED_NESTED_WORKAROUND 126 */
 
 /* -- Preprocessor -- */
 

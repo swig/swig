@@ -5963,12 +5963,12 @@ However, there was a workaround for nested class support in these older versions
 the nested class in the global scope, adding in a typedef for the nested class in the global scope and
 using the "nestedworkaround" feature on the nested class. This resulted in approximately the
 same behaviour as the "flatnested" feature. With proper nested class support now available in SWIG-3.0.0, this
-feature has been deprecated and no longer works requiring code changes. If you see the following warning:
+feature was deprecated and has now been removed. If you see the following error:
 </p>
 
 <div class="shell">
 <pre>
-example.i:8: Warning 126: The nestedworkaround feature is deprecated
+example.i:8: Error: Unknown directive '%nestedworkaround'
 </pre>
 </div>
 

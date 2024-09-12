@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-12: olly
+	    Remove remains of %nestedworkaround and the nestedworkaround
+	    feature it uses, which were deprecated over 10 years ago in SWIG
+	    3.0.0.  Since then uses of these have done nothing except emit a
+	    warning.
+
 2024-09-11: wsfulton
             [C# Java] #1188 Add the %interface_additional macro to the family of
             %interface macros for adding additional interfaces for the generated
