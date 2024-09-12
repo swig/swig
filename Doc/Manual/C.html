@@ -169,7 +169,7 @@ Or, for C++ input:
 
 <div class="shell"><pre>
 $ swig -c++ -c example.i
-$ g++ -c example_wrap.cxx
+$ g++ -fPIC -c example_wrap.cxx
 $ g++ -shared example_wrap.o -o libexample.so
 </pre></div>
 
