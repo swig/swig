@@ -243,7 +243,7 @@ Now one might think, what's the use of creating such functions in C? The answer 
 <div class="code"><pre>
 %typemap(check) int POSITIVE {
   if ($1 &lt;= 0)
-    fprintf(stderr, "Expected positive value in $name.\n");
+    fprintf(stderr, "Expected positive value for parameter $1 in $name.\n");
 }
 
 int gcd(int POSITIVE, int POSITIVE);
@@ -258,11 +258,11 @@ int _wrap_gcd(int arg1, int arg2) {
   int result;
   {
     if (arg1 &lt;= 0)
-      fprintf(stderr, "Expected positive value in gcd.\n");
+      fprintf(stderr, "Expected positive value for parameter arg1 in gcd.\n");
   }
   {
-    if (arg1 &lt;= 0)
-      fprintf(stderr, "Expected positive value in gcd.\n");
+    if (arg2 &lt;= 0)
+      fprintf(stderr, "Expected positive value for parameter arg2 in gcd.\n");
   }
   result = gcd(arg1,arg2);
   return result;
