@@ -541,8 +541,8 @@ static int yylook(void) {
     case SWIG_TOKEN_BACKSLASH:
       break;
     default:
-      Swig_error(cparse_file, cparse_line, "Illegal token '%s'.\n", Scanner_text(scan));
-      return (ILLEGAL);
+      Swig_error(cparse_file, cparse_line, "Unexpected token '%s'.\n", Scanner_text(scan));
+      Exit(EXIT_FAILURE);
     }
   }
 }
