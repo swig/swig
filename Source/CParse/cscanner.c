@@ -957,7 +957,6 @@ num_common:
 	return (SIZEOF);
 
       if (strcmp(yytext, "typedef") == 0) {
-	yylval.intvalue = 0;
 	return (TYPEDEF);
       }
 
@@ -994,7 +993,6 @@ num_common:
       if (strcmp(yytext, "%constant") == 0)
 	return (CONSTANT);
       if (strcmp(yytext, "%typedef") == 0) {
-	yylval.intvalue = 1;
 	return (TYPEDEF);
       }
       if (strcmp(yytext, "%native") == 0)

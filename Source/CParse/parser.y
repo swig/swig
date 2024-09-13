@@ -1720,7 +1720,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token INCLUDE IMPORT INSERT
 %token <str> CHARCONST WCHARCONST
 %token <dtype> NUM_INT NUM_DOUBLE NUM_FLOAT NUM_LONGDOUBLE NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
-%token <intvalue> TYPEDEF
+%token TYPEDEF
 %token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN LBRACE RBRACE PERIOD ELLIPSIS
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF ALIGNOF MODULE LBRACKET RBRACKET
@@ -1732,7 +1732,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token STATIC_ASSERT CONSTEXPR THREAD_LOCAL DECLTYPE AUTO NOEXCEPT /* C++11 keywords */
 %token OVERRIDE FINAL /* C++11 identifiers with special meaning */
 %token USING
-%token <node> NAMESPACE
+%token NAMESPACE
 %token NATIVE INLINE
 %token TYPEMAP ECHO APPLY CLEAR SWIGTEMPLATE FRAGMENT
 %token WARN 
@@ -1742,7 +1742,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token QUESTIONMARK
 %token TYPES PARMS
 %token NONID DSTAR DCNOT
-%token <intvalue> TEMPLATE
+%token TEMPLATE
 %token <str> OPERATOR
 %token <str> CONVERSIONOPERATOR
 %token PARSETYPE PARSEPARM PARSEPARMS
@@ -1801,7 +1801,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <p>        parm_no_dox parm valparm rawvalparms valparms valptail ;
 %type <p>        typemap_parm tm_list tm_tail ;
 %type <p>        templateparameter ;
-%type <type>     templcpptype cpptype classkey classkeyopt;
+%type <type>     templcpptype cpptype;
+%type            classkey classkeyopt;
 %type <id>       access_specifier;
 %type <node>     base_specifier;
 %type <str>      variadic_opt;
@@ -1830,8 +1831,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <ptype>    type_specifier primitive_type_list ;
 %type <node>     fname stringtype;
 %type <node>     featattr;
-%type <node>     lambda_introducer lambda_body lambda_template;
-%type <pl>       lambda_tail;
+%type            lambda_introducer lambda_body lambda_template lambda_tail;
 %type <str>      virt_specifier_seq virt_specifier_seq_opt;
 %type <str>      class_virt_specifier_opt;
 
@@ -3580,29 +3580,23 @@ cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer lambda_temp
 
 lambda_introducer : LBRACKET {
 		  if (skip_balanced('[',']') < 0) Exit(EXIT_FAILURE);
-		  $$ = 0;
 	        }
 		;
 
 lambda_template : LESSTHAN {
 		  if (skip_balanced('<','>') < 0) Exit(EXIT_FAILURE);
-		  $$ = 0;
 		}
-		| %empty { $$ = 0; }
+		| %empty
 		;
 
 lambda_body : LBRACE {
 		  if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
-		  $$ = 0;
 		}
 
-lambda_tail :	SEMI {
-		  $$ = 0;
-		}
+lambda_tail :	SEMI
 		| LPAREN {
 		  if (skip_balanced('(',')') < 0) Exit(EXIT_FAILURE);
 		} SEMI {
-		  $$ = 0;
 		}
 		;
 
@@ -7201,23 +7195,18 @@ cpptype        : templcpptype
                ;
 
 classkey       : CLASS {
-                   $$ = NewString("class");
-		   if (!inherit_list) last_cpptype = $$;
+		   if (!inherit_list) last_cpptype = NewString("class");
                }
                | STRUCT {
-                   $$ = NewString("struct");
-		   if (!inherit_list) last_cpptype = $$;
+		   if (!inherit_list) last_cpptype = NewString("struct");
                }
                | UNION {
-                   $$ = NewString("union");
-		   if (!inherit_list) last_cpptype = $$;
+		   if (!inherit_list) last_cpptype = NewString("union");
                }
                ;
 
 classkeyopt    : classkey
-               | %empty {
-		   $$ = 0;
-               }
+               | %empty
                ;
 
 opt_virtual    : VIRTUAL
