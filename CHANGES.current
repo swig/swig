@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-13: vadz
+	    [C] #2086 Add support for C as a target language.  This support is
+	    currently experimental.
+
 2024-09-12: olly
 	    Remove remains of %nestedworkaround and the nestedworkaround
 	    feature it uses, which were deprecated over 10 years ago in SWIG
