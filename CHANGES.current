@@ -7,3 +7,21 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2024-10-22: olly
+	    #2998 Drop support for specifying SWIG's internal type string
+	    representation in interface files.  This "secret developer feature"
+	    was only documented in developer documentation, and had no test
+	    coverage.
+
+	    It allowed specifying an SWIG internal syntax type string, e.g.:
+
+	      `p.a(10).p.f(int, p.f(int).int)` foo(int, int (*x)(int));
+
+	    In the unlikely event that anyone was using this, we recommend you
+	    use the standard C/C++ type syntax instead, which will work with
+	    previous SWIG releases too, e.g.:
+
+	      (*(*foo(int, int (*)(int)))[10])(int, int (*)(int));
+
+	    The C/C++ syntax has the major advantage of being the same syntax
+	    that C/C++ compilers use.
