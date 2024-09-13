@@ -63,7 +63,6 @@ extern void         Scanner_locator(Scanner *, String *loc);
 #define   SWIG_TOKEN_AT           25       /* @ */
 #define   SWIG_TOKEN_DOLLAR       26       /* $ */
 #define   SWIG_TOKEN_CODEBLOCK    27       /* %{ ... %} ... */
-#define   SWIG_TOKEN_RSTRING      28       /* `charconst` */
 #define   SWIG_TOKEN_LONGLONG     29       /* 314LL */
 #define   SWIG_TOKEN_ULONGLONG    30       /* 314ULL */
 #define   SWIG_TOKEN_QUESTION     31       /* ? */

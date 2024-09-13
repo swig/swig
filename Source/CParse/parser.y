@@ -1764,7 +1764,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <str> CHARCONST WCHARCONST
 %token <dtype> NUM_INT NUM_DOUBLE NUM_FLOAT NUM_LONGDOUBLE NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
 %token TYPEDEF
-%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
+%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN LBRACE RBRACE PERIOD ELLIPSIS
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF ALIGNOF MODULE LBRACKET RBRACKET
 %token BEGINFILE ENDOFFILE
@@ -3641,7 +3641,6 @@ cpp_alternate_rettype : primitive_type
 		$$ = $idcolon;
 		Insert($$, 0, "enum ");
 	      }
-              | TYPE_RAW
               | idcolon { $$ = $idcolon; }
               | idcolon AND {
                 $$ = $idcolon;
@@ -5259,7 +5258,6 @@ anonymous_bitfield :  storage_class anon_bitfield_type COLON expr SEMI { Delete(
 anon_bitfield_type : primitive_type
                | TYPE_BOOL
                | TYPE_VOID
-               | TYPE_RAW
 
                | idcolon { $$ = $idcolon; }
                ;
@@ -6333,7 +6331,6 @@ type_right     : primitive_type
                | TYPE_BOOL
                | TYPE_VOID
                | c_enum_key idcolon { $$ = NewStringf("enum %s", $idcolon); }
-               | TYPE_RAW
 
                | idcolon %expect 1 {
 		  $$ = $idcolon;

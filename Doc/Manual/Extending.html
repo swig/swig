@@ -1953,35 +1953,10 @@ special base type of <tt>v(...)</tt>.
 </p>
 
 <p>
-If you want to experiment with type encodings, the raw type strings can
-be inserted into an interface file using backticks `` wherever a type
-is expected.  For instance, here is
-an extremely perverted example:
-</p>
-
-<div class="diagram">
-<pre>
-`p.a(10).p.f(int, p.f(int).int)` foo(int, int (*x)(int));
-</pre>
-</div>
-
-<p>
-This corresponds to the immediately obvious C declaration:
-</p>
-
-<div class="diagram">
-<pre>
-(*(*foo(int, int (*)(int)))[10])(int, int (*)(int));
-</pre>
-</div>
-
-<p>
-Aside from the potential use of this declaration on a C programming quiz,
-it motivates the use of the special SWIG encoding of types.   The SWIG
-encoding is much easier to work with because types can be easily examined,
-modified, and constructed using simple string operations (comparison,
-substrings, concatenation, etc.).   For example, in the parser, a declaration
-like this
+SWIG's encoding as it is much easier to work with than the C/C++ type syntax -
+types can be easily examined, modified, and constructed using simple string
+operations (comparison, substrings, concatenation, etc.).   For
+example, in the parser, a declaration like this
 </p>
 
 <div class="code">
