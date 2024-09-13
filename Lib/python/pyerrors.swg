@@ -39,6 +39,9 @@ SWIG_Python_ErrorType(int code) {
   case SWIG_AttributeError:
     type = PyExc_AttributeError;
     break;
+  case SWIG_NullReferenceError:
+    type = PyExc_TypeError;
+    break;
   default:
     type = PyExc_RuntimeError;
   }

@@ -24,13 +24,13 @@ end
 begin
   Li_std_wstring.test_reference(nil)
   raise RuntimeError, "NULL check failed"
-rescue ArgumentError => e
+rescue NullReferenceError => e
   swig_assert_simple(e.message.include? "invalid null reference")
 end
 begin
   Li_std_wstring.test_const_reference(nil)
   raise RuntimeError, "NULL check failed"
-rescue ArgumentError => e
+rescue NullReferenceError => e
   swig_assert_simple(e.message.include? "invalid null reference")
 end
 

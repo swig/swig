@@ -45,7 +45,7 @@
 %typemap(in, canthrow=1) SWIGTYPE ($&1_type argp)
 %{ argp = ($&1_ltype)$input;
    if (!argp) {
-     SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "Attempt to dereference null $1_type");
+     SWIG_DSetPendingException(SWIG_DNullReferenceException, "Attempt to dereference null $1_type");
      return $null;
    }
    $1 = *argp; %}
@@ -65,7 +65,7 @@
   "$input = (void *)new $1_ltype(SWIG_STD_MOVE($1));"
 %typemap(directorout) SWIGTYPE
 %{ if (!$input) {
-     SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "Unexpected null return for type $1_type");
+     SWIG_DSetPendingException(SWIG_DNullReferenceException, "Unexpected null return for type $1_type");
      return $null;
    }
    $result = *($&1_ltype)$input; %}
@@ -122,7 +122,7 @@
 
 %typemap(in, canthrow=1) SWIGTYPE & %{ $1 = ($1_ltype)$input;
   if (!$1) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "$1_type is null");
+    SWIG_DSetPendingException(SWIG_DNullReferenceException, "$1_type is null");
     return $null;
   } %}
 %typemap(out) SWIGTYPE & "$result = (void *)$1;"
@@ -131,7 +131,7 @@
   "$input = ($1_ltype) &$1;"
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &
 %{ if (!$input) {
-     SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "Unexpected null return for type $1_type");
+     SWIG_DSetPendingException(SWIG_DNullReferenceException, "Unexpected null return for type $1_type");
      return $null;
    }
    $result = ($1_ltype)$input; %}
@@ -159,7 +159,7 @@
 
 %typemap(in, canthrow=1, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter) %{ $1 = ($1_ltype)$input;
   if (!$1) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "$1_type is null");
+    SWIG_DSetPendingException(SWIG_DNullReferenceException, "$1_type is null");
     return $null;
   }
   rvrdeleter.reset($1); %}
@@ -169,7 +169,7 @@
   "$input = ($1_ltype) &$1;"
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &&
 %{ if (!$input) {
-     SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "Unexpected null return for type $1_type");
+     SWIG_DSetPendingException(SWIG_DNullReferenceException, "Unexpected null return for type $1_type");
      return $null;
    }
    $result = ($1_ltype)$input; %}

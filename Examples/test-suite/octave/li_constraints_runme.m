@@ -52,7 +52,7 @@ try
   # Empty matrix translate to null pointer
   li_constraints.test_nonnull([]);
 catch
-  have_exception = strcmp("Received a NULL pointer. (SWIG_ValueError)", lasterr) == 1;
+  have_exception = strcmp("Received a NULL pointer. (SWIG_NullReferenceError)", lasterr) == 1;
 end
 if (!have_exception)
     error("test_nonnull should perform exception with 'null' value");

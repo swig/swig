@@ -7,6 +7,26 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-14: wsfulton
+            C++ reference errors when passing in a 'NULL' change of behaviour.
+            Most languages now use "NullReferenceError" in the error message
+            where they previously used "ValueError". Also exception changes:
+
+            Guile:    "swig-null-reference-error" instead of "swig-value-error"
+            MzScheme: "swig-null-reference-error" instead of "swig-value-error"
+            PHP:      zend_ce_type_error instead of zend_ce_value_error
+            Python:   Consistently raises TypeError instead of a mix of ValueError
+                      and TypeError.
+            Ruby:     Consistently raises NullReferenceError instead of a mix of
+                      ArgumentError and NullReferenceErrorError.
+
+            The consistent raising of a TypeError instead of ValueError for Python
+            ensures that incorrectly passing 'None' into a C++ reference argument
+            will correctly convert the error into a NotImplemented error for
+            the rich comparisons implementations per PEP 207. Fixes #2987
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2024-09-13: vadz
 	    [C] #2086 Add support for C as a target language.  This support is
 	    currently experimental.
