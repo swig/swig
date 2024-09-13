@@ -14,6 +14,11 @@ extern "C" {
 # error These bindings need PHP 8 or later - to generate PHP7 bindings use SWIG < 4.1.0; to generate PHP5 bindings use: SWIG < 4.0.0 and swig -php5
 #endif
 
+/* For PHP 8.0 */
+#ifndef ZSTR_INIT_LITERAL
+# define ZSTR_INIT_LITERAL(S, P) zend_string_init((S), strlen(S), (P))
+#endif
+
 #include "zend_inheritance.h"
 #include "zend_exceptions.h"
 #include "zend_inheritance.h"

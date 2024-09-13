@@ -1117,7 +1117,7 @@ public:
     Printf(f->code, "PHP_METHOD(%s%s,__set) {\n", prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
-    Printf(f->code, "  zval args[2];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
+    Printf(f->code, "  zval args[2];\n  zend_string *arg2 = 0;\n\n");
     Printf(f->code, "  if(ZEND_NUM_ARGS() != 2 || zend_get_parameters_array_ex(2, args) != SUCCESS) {\n");
     Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
     Printf(f->code, "  if (!arg) {\n");
@@ -1155,7 +1155,7 @@ public:
     Printf(f->code, "PHP_METHOD(%s%s,__get) {\n",prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
-    Printf(f->code, "  zval args[1];\n zval tempZval;\n  zend_string *arg2 = 0;\n\n");
+    Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
     Printf(f->code, "  if(ZEND_NUM_ARGS() != 1 || zend_get_parameters_array_ex(1, args) != SUCCESS) {\n");
     Printf(f->code, "\tWRONG_PARAM_COUNT;\n}\n\n");
     Printf(f->code, "  if (!arg) {\n");
@@ -2060,14 +2060,18 @@ public:
     String *v_name = GetChar(n, "name");
 
     Printf(magic_set, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
-    Printf(magic_set, "ZVAL_STRING(&tempZval, \"%s_set\");\n", v_name);
-    Printf(magic_set, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,1,&args[1]);\n");
-    Printf(magic_set, "zval_ptr_dtor(&tempZval);\n}\n");
+    Printf(magic_set, "zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_set\", 0);\n", v_name);
+    Append(magic_set, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
+    Append(magic_set, "zend_string_release(swig_funcname);\n");
+    Printf(magic_set, "zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 1, &args[1]);\n");
+    Printf(magic_set, "}\n");
 
     Printf(magic_get, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
-    Printf(magic_get, "ZVAL_STRING(&tempZval, \"%s_get\");\n", v_name);
-    Printf(magic_get, "call_user_function(EG(function_table),ZEND_THIS,&tempZval,return_value,0,NULL);\n");
-    Printf(magic_get, "zval_ptr_dtor(&tempZval);\n}\n");
+    Printf(magic_get, "zend_string *swig_funcname = ZSTR_INIT_LITERAL(\"%s_get\", 0);\n", v_name);
+    Append(magic_get, "zend_function *swig_zend_func = zend_std_get_method(&Z_OBJ_P(ZEND_THIS), swig_funcname, NULL);\n");
+    Append(magic_get, "zend_string_release(swig_funcname);\n");
+    Printf(magic_get, "zend_call_known_instance_method(swig_zend_func, Z_OBJ_P(ZEND_THIS), return_value, 0, NULL);\n");
+    Printf(magic_get, "}\n");
 
     Printf(magic_isset, "\nelse if (strcmp(ZSTR_VAL(arg2),\"%s\") == 0) {\n", v_name);
     Printf(magic_isset, "RETVAL_TRUE;\n}\n");

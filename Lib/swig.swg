@@ -115,11 +115,6 @@
 #define %nocallback     %feature("callback","0")
 #define %clearcallback  %feature("callback","")
 
-/* the %nestedworkaround directive (deprecated) */
-#define %nestedworkaround       %feature("nestedworkaround")
-#define %nonestedworkaround     %feature("nestedworkaround","0")
-#define %clearnestedworkaround  %feature("nestedworkaround","")
-
 /* the %flatnested directive */
 #define %flatnested       %feature("flatnested")
 #define %noflatnested     %feature("flatnested","0")

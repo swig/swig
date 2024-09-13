@@ -7,6 +7,25 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-12: olly
+	    Remove remains of %nestedworkaround and the nestedworkaround
+	    feature it uses, which were deprecated over 10 years ago in SWIG
+	    3.0.0.  Since then uses of these have done nothing except emit a
+	    warning.
+
+2024-09-11: wsfulton
+            [C# Java] #1188 Add the %interface_additional macro to the family of
+            %interface macros for adding additional interfaces for the generated
+            interface to extend/derive from.
+
+2024-09-11: olly
+	    #197 #675 #1677 #2047 Fix incorrect inclusion of "enum " when
+	    qualifying C++11 "enum class" enumerator names.
+
+2024-09-11: olly
+	    [Perl] #630 Fix wrapping of C++11 enum class when -const command line
+	    option is specified.
+
 2024-09-07: wsfulton
             #2875 Fix swig-4.1.0 regression using the %interface family of macros
             for multiple inheritance and common bases.

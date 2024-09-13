@@ -136,7 +136,6 @@ OBJS      = $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@)
 
 distclean:
 	rm -f Makefile
-	rm -f xml/Makefile
 
 ##################################################################
 # Very generic invocation of swig
