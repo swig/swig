@@ -377,10 +377,6 @@ static int yylook(void) {
 
       /* Look for multi-character sequences */
       
-    case SWIG_TOKEN_RSTRING:
-      yylval.type = NewString(Scanner_text(scan));
-      return TYPE_RAW;
-      
     case SWIG_TOKEN_STRING:
       yylval.str = NewString(Scanner_text(scan));
       return STRING;

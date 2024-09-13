@@ -697,58 +697,6 @@ static String *Swig_string_schemify(String *s) {
   return ns;
 }
 
-/* -----------------------------------------------------------------------------
- * Swig_string_typecode()
- *
- * Takes a string with possible type-escapes in it and replaces them with
- * real C datatypes.
- * ----------------------------------------------------------------------------- */
-
-static String *Swig_string_typecode(String *s) {
-  String *ns;
-  int c;
-  String *tc;
-  ns = NewStringEmpty();
-  while ((c = Getc(s)) != EOF) {
-    if (c == '`') {
-      String *str = 0;
-      tc = NewStringEmpty();
-      while ((c = Getc(s)) != EOF) {
-	if (c == '`')
-	  break;
-	Putc(c, tc);
-      }
-      str = SwigType_str(tc, 0);
-      Append(ns, str);
-      Delete(str);
-    } else {
-      Putc(c, ns);
-      if (c == '\'') {
-	while ((c = Getc(s)) != EOF) {
-	  Putc(c, ns);
-	  if (c == '\'')
-	    break;
-	  if (c == '\\') {
-	    c = Getc(s);
-	    Putc(c, ns);
-	  }
-	}
-      } else if (c == '\"') {
-	while ((c = Getc(s)) != EOF) {
-	  Putc(c, ns);
-	  if (c == '\"')
-	    break;
-	  if (c == '\\') {
-	    c = Getc(s);
-	    Putc(c, ns);
-	  }
-	}
-      }
-    }
-  }
-  return ns;
-}
-
 static String *string_mangle(String *s) {
   return Swig_name_mangle_string(s);
 }
@@ -1472,7 +1420,6 @@ void Swig_init(void) {
   DohEncoding("ctitle", Swig_string_ccase);
   DohEncoding("lctitle", Swig_string_lccase);
   DohEncoding("utitle", Swig_string_ucase);
-  DohEncoding("typecode", Swig_string_typecode);
   DohEncoding("mangle", string_mangle);
   DohEncoding("command", Swig_string_command);
   DohEncoding("schemify", Swig_string_schemify);
