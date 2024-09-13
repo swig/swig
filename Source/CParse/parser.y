@@ -1618,10 +1618,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     // The value of the expression as C/C++ code.
     String *val;
     // If type is a string or char type, this is the actual value of that
-    // string or char type as a String.  This is useful in cases where we
-    // want to emit the string in the target language - we could just try
-    // emitting the C/C++ code for the literal, but that won't always be
-    // a valid string literal in most target languages.
+    // string or char type as a String (in cases where SWIG can determine
+    // it - currently that means for literals).  This is useful in cases where
+    // we want to emit a string or character literal in the target language -
+    // we could just try emitting the C/C++ code for the literal, but that
+    // won't always be correct in most target languages.
     //
     // SWIG's scanner reads the string or character literal in the source code
     // and interprets quoting and escape sequences.  Concatenation of adjacent
@@ -1663,8 +1664,43 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     // with embedded zero bytes), but handling may currently be buggy in
     // places.
     String *stringval;
-    // FIXME: document numval
-    // May be set for integer, bool, pointer types
+    // If type is an integer or boolean type, this is the actual value of that
+    // type as a base 10 integer in a String (in cases where SWIG can determine
+    // this value - currently that means for literals).  This is useful in
+    // cases where we want to emit an integer or boolean literal in the target
+    // language - we could just try emitting the C/C++ code for the literal,
+    // but that won't always be correct in most target languages.
+    //
+    // SWIG doesn't attempt to evaluate constant expressions, except that it
+    // can handle unary - (because a negative integer literal is actually
+    // syntactically unary minus applied to a positive integer literal),
+    // unary + (for consistency with unary -) and parentheses (because
+    // literals in #define are often in parentheses).  These operators are
+    // handled in the parser so whitespace is also handled within such
+    // expressions.
+    //
+    // Some examples:
+    //
+    // C/C++ source  numval      val       Notes
+    // ------------- ----------- --------- -------
+    // 123           123         123
+    // 0x7b          123         0x7b
+    // 0x7B          123         0x7B
+    // 0173          123         0173
+    // 0b1111011     123         0b1111011 C++14
+    // -10           -10         -10	   numval not set for unsigned type
+    // -0x00a        -10         -0x00a    numval not set for unsigned type
+    // -012          -10         -012      numval not set for unsigned type
+    // -0b1010       -10         -0b1010   C++14; numval not set for unsigned
+    // (42)          42          (42)
+    // +42           42          +42
+    // +(42)         42          +(42)
+    // -(42)         -42         -(42)     numval not set for unsigned type
+    // (-(42))       -42         (-(42))   numval not set for unsigned type
+    // false         0           false
+    // (false)       0           (false)
+    // true          1           true
+    // (true)        1           (true)
     String *numval;
     int     type;
     /* The type code for the argument when the top level operator is unary.
