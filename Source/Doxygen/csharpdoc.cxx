@@ -259,31 +259,17 @@ void CSharpDocConverter::fillStaticTables() {
   tagHandlers["warning"] = make_handler(&CSharpDocConverter::handleLine, "remarks");
   tagHandlers["xmlonly"] = make_handler(&CSharpDocConverter::handleNotHandled);
   // these commands have special handlers
-#if 0
-  tagHandlers["arg"] = make_handler(&CSharpDocConverter::handleTagMessage, "* ");
-  tagHandlers["cond"] = make_handler(&CSharpDocConverter::handleTagMessage, "Conditional comment: ");
-  tagHandlers["else"] = make_handler(&CSharpDocConverter::handleTagIf, "Else: ");
-  tagHandlers["elseif"] = make_handler(&CSharpDocConverter::handleTagIf, "Else if: ");
-  tagHandlers["endcond"] = make_handler(&CSharpDocConverter::handleTagMessage, "End of conditional comment.");
-  tagHandlers["if"] = make_handler(&CSharpDocConverter::handleTagIf, "If: ");
-  tagHandlers["ifnot"] = make_handler(&CSharpDocConverter::handleTagIf, "If not: ");
-  tagHandlers["image"] = make_handler(&CSharpDocConverter::handleTagImage);
-  tagHandlers["li"] = make_handler(&CSharpDocConverter::handleTagMessage, "* ");
-  tagHandlers["overload"] = make_handler(&CSharpDocConverter::handleTagMessage,
-					 "This is an overloaded member function, provided for"
-					 " convenience.\nIt differs from the above function only in what" " argument(s) it accepts.");
-#else
   tagHandlers["arg"] = make_handler(&CSharpDocConverter::handleAddList);
   tagHandlers["cond"] = make_handler(&CSharpDocConverter::handleIgnore);
-  tagHandlers["else"] = make_handler(&CSharpDocConverter::handleTagWord, "Else");
-  tagHandlers["elseif"] = make_handler(&CSharpDocConverter::handleTagWord, "Else If");
+  tagHandlers["else"] = make_handler(&CSharpDocConverter::handleIgnore);
+  tagHandlers["elseif"] = make_handler(&CSharpDocConverter::handleIgnore);
   tagHandlers["endcond"] = make_handler(&CSharpDocConverter::handleIgnore);
-  tagHandlers["if"] = make_handler(&CSharpDocConverter::handleTagWord, "If");
-  tagHandlers["ifnot"] = make_handler(&CSharpDocConverter::handleTagWord, "If Not");
+  tagHandlers["if"] = make_handler(&CSharpDocConverter::handleIgnore);
+  tagHandlers["ifnot"] = make_handler(&CSharpDocConverter::handleIgnore);
   tagHandlers["image"] = make_handler(&CSharpDocConverter::handleIgnore);
   tagHandlers["li"] = make_handler(&CSharpDocConverter::handleIgnore);
   tagHandlers["overload"] = make_handler(&CSharpDocConverter::handleIgnore);
-#endif
+
   tagHandlers["par"] = make_handler(&CSharpDocConverter::handleTagWord, "Title");
   tagHandlers["param"] = tagHandlers["tparam"] = make_handler(&CSharpDocConverter::handleTagParam);
   tagHandlers["ref"] = make_handler(&CSharpDocConverter::handleTagRef);
