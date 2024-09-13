@@ -70,7 +70,7 @@ public class doxygen_basic_translate_runme {
   {
     _checker.checkText(doxygen_checker.CodeType.MEMBER, "function4", @"
              A test of some mixed tag usage
-             If: CONDITION
+            
              This *code* fragment shows us something .
              Title: Minuses:
              * it's senseless
