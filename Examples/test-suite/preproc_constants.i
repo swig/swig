@@ -82,7 +82,7 @@
 #define EXPR_MOD         0xFF % 2
 
 #define EXPR_PLUS        0xFF + 2
-#define EXPR_MINUS       0xFF + 2
+#define EXPR_MINUS       0xFF - 2
 
 #define EXPR_LSHIFT      0xFF << 2
 #define EXPR_RSHIFT      0xFF >> 2
