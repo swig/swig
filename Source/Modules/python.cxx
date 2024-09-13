@@ -2117,7 +2117,9 @@ public:
    * ------------------------------------------------------------ */
   String *convertValue(String *v, String *numval, String *stringval, SwigType *type) {
     if (stringval) {
-      return NewStringf("'%(escape)s'", stringval);
+      return NIL;
+      // FIXME: This needs more careful testing.
+      // return NewStringf("'%(escape)s'", stringval);
     }
     if (numval) {
       SwigType *resolved_type = SwigType_typedef_resolve_all(type);

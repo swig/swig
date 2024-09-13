@@ -789,12 +789,11 @@ private:
     if (v && Len(v) > 0) {
       if (Equal(v, "NULL") || Equal(v, "nullptr"))
 	return SwigType_ispointer(type) ? NewString("nil") : NewString("0");
-#if 0 // FIXME: TRUE and FALSE are not standard and could be defined in other ways
+      // FIXME: TRUE and FALSE are not standard and could be defined in other ways
       if (Equal(v, "TRUE"))
 	return NewString("True");
       if (Equal(v, "FALSE"))
 	return NewString("False");
-#endif
     }
     return 0;
   }
