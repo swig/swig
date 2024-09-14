@@ -44,7 +44,7 @@ the steps look like this (Linux):
 <blockquote>
 <pre>
 unix % swig -tcl interface.i
-unix % gcc -fpic -c interface_wrap.c -I/usr/local/include
+unix % gcc -fPIC -c interface_wrap.c -I/usr/local/include
 unix % gcc -shared interface_wrap.o $(OBJS) -o interface.so
 unix % tclsh8.3
 % load ./interface.so

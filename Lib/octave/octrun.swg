@@ -43,6 +43,8 @@ SWIGRUNTIME octave_value SWIG_ErrorType(int code) {
     return "SWIG_SystemError";
   case SWIG_AttributeError:
     return "SWIG_AttributeError";
+  case SWIG_NullReferenceError:
+    return "SWIG_NullReferenceError";
   }
   return "SWIG unknown error";
 }

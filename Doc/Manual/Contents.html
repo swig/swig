@@ -94,7 +94,7 @@
 <li><a href="Windows.html#Windows_swig_exe">Building swig.exe on Windows</a>
 <ul>
 <li><a href="Windows.html#Windows_cmake">Building swig.exe using CMake</a>
-<li><a href="Windows.html#Windows_msys2">Building swig.exe using MSYS2</a>
+<li><a href="Windows.html#Windows_msys2">Building swig.exe using MSYS2 and MinGW-w64</a>
 <li><a href="Windows.html#Windows_mingw_msys">Building swig.exe using MinGW and MSYS</a>
 <li><a href="Windows.html#Windows_cygwin">Building swig.exe using Cygwin</a>
 <ul>
@@ -102,6 +102,10 @@
 </ul>
 </ul>
 <li><a href="Windows.html#Windows_interface_file">Microsoft extensions and other Windows quirks</a>
+<ul>
+<li><a href="Windows.html#Windows_msvc_cpp_standards">Visual C++ standards compliance</a>
+<li><a href="Windows.html#Windows_calling_conventions">Calling conventions</a>
+</ul>
 </ul>
 </div>
 <!-- INDEX -->
@@ -558,7 +562,7 @@
 <li><a href="Typemaps.html#Typemaps_special_variables">Special variables</a>
 <ul>
 <li><a href="Typemaps.html#Typemaps_type_special_variables">Type related special variables</a>
-<li><a href="Typemaps.html#Typemaps_additional_special_variables">Non-type related special variables</a>
+<li><a href="Typemaps.html#Typemaps_non_type_special_variables">Non-type related special variables</a>
 </ul>
 <li><a href="Typemaps.html#Typemaps_special_variable_macros">Special variable macros</a>
 <ul>
@@ -1050,6 +1054,10 @@
 <ul>
 <li><a href="Java.html#Java_module_class_pragmas">The Java module class pragmas</a>
 </ul>
+<li><a href="Java.html#Java_constants_interface">The Java constants interface</a>
+<ul>
+<li><a href="Java.html#Java_constants_interface_pragmas">The Java constants interface pragmas</a>
+</ul>
 <li><a href="Java.html#Java_proxy_classes">Java proxy classes</a>
 <ul>
 <li><a href="Java.html#Java_memory_management">Memory management</a>
@@ -1079,8 +1087,9 @@
 <ul>
 <li><a href="Java.html#Java_customizing_director_exceptions">Customizing director exceptions</a>
 </ul>
+<li><a href="Java.html#Java_protected_virtual_methods">Accessing virtual protected methods</a>
+<li><a href="Java.html#Java_allprotected">Accessing non-virtual protected members</a>
 </ul>
-<li><a href="Java.html#Java_allprotected">Accessing protected members</a>
 <li><a href="Java.html#Java_common_customization">Common customization features</a>
 <ul>
 <li><a href="Java.html#Java_helper_functions">C/C++ helper functions</a>
@@ -1470,6 +1479,7 @@
 <li><a href="Python.html#Python_nn36">Exception unrolling</a>
 <li><a href="Python.html#Python_nn37">Overhead and code bloat</a>
 <li><a href="Python.html#Python_nn38">Typemaps</a>
+<li><a href="Python.html#Python_director_thread_safety">Thread safety</a>
 <li><a href="Python.html#Python_nn39">Miscellaneous</a>
 </ul>
 <li><a href="Python.html#Python_nn40">Common customization features</a>

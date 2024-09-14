@@ -26,6 +26,7 @@
    can be dynamically loaded in future versions. */
 
 extern "C" {
+  Language *swig_c(void);
   Language *swig_csharp(void);
   Language *swig_d(void);
   Language *swig_go(void);
@@ -52,7 +53,7 @@ extern "C" {
 
 static TargetLanguageModule modules[] = {
   {"-allegrocl", NULL, "ALLEGROCL", Disabled},
-  {"-cffi", NULL, "CFFI", Disabled},
+  {"-c", swig_c, "C", Experimental},
   {"-chicken", NULL, "CHICKEN", Disabled},
   {"-clisp", NULL, "CLISP", Disabled},
   {"-csharp", swig_csharp, "C#", Supported},

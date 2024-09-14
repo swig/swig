@@ -45,6 +45,7 @@ typedef enum {
   SWIG_OCamlIndexOutOfBoundsException,
   SWIG_OCamlRuntimeException,
   SWIG_OCamlSystemException,
+  SWIG_OCamlNullReferenceException,
   SWIG_OCamlUnknownError
 } SWIG_OCamlExceptionCodes;
 
@@ -54,6 +55,7 @@ SWIGINTERN void SWIG_OCamlThrowException(SWIG_OCamlExceptionCodes code, const ch
 
   switch (code) {
   case SWIG_OCamlIllegalArgumentException:
+  case SWIG_OCamlNullReferenceException:
     caml_invalid_argument(msg);
     break;
   case SWIG_OCamlSystemException:

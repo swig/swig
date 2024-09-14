@@ -71,6 +71,12 @@ INTERFACEDIR = ../
 SRCDIR     = $(srcdir)/
 SCRIPTDIR  = $(srcdir)
 
+# This can be set to ":" on make command line to suppress progress messages.
+ECHO_PROGRESS := echo
+
+# Portable dos2unix / fromdos for stripping CR
+FROMDOS    = tr -d '\r'
+
 # Regenerate Makefile if Makefile.in or config.status have changed.
 Makefile: $(srcdir)/Makefile.in ../../../config.status
 	cd ../../../ && $(SHELL) ./config.status $(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE)/Makefile
@@ -263,6 +269,7 @@ CPP_TEST_CASES += \
 	features \
 	fragments \
 	friends \
+	friends_nested \
 	friends_operator_overloading \
 	friends_template \
 	funcptr_cpp \
@@ -580,6 +587,7 @@ CPP_TEST_CASES += \
 	using_directive_and_declaration \
 	using_directive_and_declaration_forward \
 	using_extend \
+	using_extend_flatten \
 	using_inherit \
 	using_member \
 	using_member_multiple_inherit \
@@ -710,7 +718,7 @@ csharp_HAS_DOXYGEN := 1
 java_HAS_DOXYGEN := 1
 python_HAS_DOXYGEN := 1
 
-$(eval HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN))
+HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN)
 endif
 
 ifdef HAS_DOXYGEN
@@ -725,6 +733,7 @@ DOXYGEN_TEST_CASES += \
 	doxygen_ignore \
 	doxygen_misc_constructs \
 	doxygen_nested_class \
+	doxygen_overloads \
 	doxygen_parsing \
 	doxygen_parsing_enums \
 	doxygen_translate \
@@ -967,7 +976,7 @@ swig_and_compile_c =  \
 	$(LANGUAGE)$(VARIANT)
 
 swig_and_compile_multi_cpp = \
-	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list | $(FROMDOS)` ; do \
 	  $(call swig_and_compile_cpp_helper,$${f},'$(SWIGOPT)'); \
 	done
 
@@ -986,9 +995,9 @@ swig_and_compile_runtime = \
 
 setup = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi
 
 #######################################################################

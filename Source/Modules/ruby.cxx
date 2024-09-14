@@ -1155,6 +1155,7 @@ public:
     if (Swig_directors_enabled()) {
       // Insert director runtime into the f_runtime file (make it occur before %header section)
       Swig_insert_file("director_common.swg", f_runtime);
+      Swig_insert_file("director_guard.swg", f_runtime);
       Swig_insert_file("director.swg", f_runtime);
     }
 
@@ -2295,8 +2296,7 @@ public:
 
     char *iname = GetChar(n, "sym:name");
     SwigType *type = Getattr(n, "type");
-    String *rawval = Getattr(n, "rawval");
-    String *value = rawval ? rawval : Getattr(n, "value");
+    String *value = Getattr(n, "value");
 
     if (current == CLASS_CONST) {
       iname = klass->strip(iname);

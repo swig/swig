@@ -288,10 +288,10 @@ build a Tcl module (under Linux) as follows :
 </p>
 
 <div class="shell"><pre>
-unix &gt; <b>swig -tcl example.i</b>
-unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include</b>
-unix &gt; <b>gcc -shared example.o example_wrap.o -o example.so</b>
-unix &gt; <b>tclsh</b>
+$ <b>swig -tcl example.i</b>
+$ <b>gcc -c -fPIC example.c example_wrap.c -I/usr/include/tcl8.7</b>
+$ <b>gcc -shared example.o example_wrap.o -o example.so</b>
+$ <b>tclsh</b>
 % <b>load ./example.so</b>
 % <b>fact 4</b>
 24
@@ -342,17 +342,16 @@ unix &gt;
 
 
 <p>
-Finally, let's build a module for Python (shown for Irix).
+Finally, let's build a module for Python (shown for Linux).
 </p>
 
 <div class="shell"><pre>
-unix &gt; <b>swig -python example.i</b>
-unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include/python2.0</b>
-unix &gt; <b>gcc -shared example.o example_wrap.o -o _example.so</b>
-unix &gt; <b>python</b>
-Python 2.0 (#6, Feb 21 2001, 13:29:45)
-[GCC egcs-2.91.66 19990314/Linux (egcs-1.1.2 release)] on linux2
-Type "copyright", "credits" or "license" for more information.     
+$ <b>swig -python example.i</b>
+$ <b>gcc -c -fPIC example.c example_wrap.c -I/usr/include/python3.12</b>
+$ <b>gcc -shared example.o example_wrap.o -o _example.so</b>
+$ <b>python3</b>
+Python 3.12.4 (main, Jun 12 2024, 19:06:53) [GCC 13.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
 &gt;&gt;&gt; <b>import example</b>
 &gt;&gt;&gt; <b>example.fact(4)</b>
 24

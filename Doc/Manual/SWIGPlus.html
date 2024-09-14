@@ -189,6 +189,20 @@ with C++, it is safe, simple, portable, and debuggable.
 </p>
 
 <p>
+This approach results in generated code that uses just the most basic of C and C++ features,
+no matter how complex the input C++ is.
+SWIG will not force a newer standard of C++ to be required as the generated code complies
+with ISO standard C++98.
+However, there are a few features in later C++ standards that can be advantageous to use.
+For example, C++11 move semantics are available to provide performance improvements.
+So in some instances, SWIG will use features from newer C++ standards provided they are available.
+This is made possible via the <tt>__cplusplus</tt> macro,
+which is set by the C++ compiler to an appropriate standards defined value.
+This means that if your compiler is configured to support say the C++11 standard, then there
+may be some C++11 benefits available in the generated code, such as C++11 move semantics.
+</p>
+
+<p>
 Some of this chapter focuses on the low-level procedural interface to
 C++ that is used as the foundation for all language modules.  Keep in
 mind that the target languages also provide the high-level OO interface via
@@ -1029,8 +1043,34 @@ void Foo_items_set(Foo *self, List *value) {
 </div>
 
 <p>
-More information about this can be found in the SWIG Basics chapter,
-<a href="SWIG.html#SWIG_structure_data_members">Structure data members</a> section. 
+More information about this can be found in the SWIG Basics chapter in the
+<a href="SWIG.html#SWIG_structure_data_members">Structure data members</a> and
+<a href="SWIG.html#SWIG_readonly_variables">Creating read-only variables</a> sections.
+</p>
+
+<p>
+Additionally, any C++ type that is not assignable is also wrapped as a read-only member.
+Consider the class below which is non-assignable due to the private assignment operator:
+</p>
+
+<div class="code">
+<pre>
+class NonAssignable {
+private:
+  NonAssignable &amp; operator=(const NonAssignable &amp;);
+public:
+  NonAssignable();
+};
+
+struct ImmutableVars {
+  NonAssignable non_assignable;
+};
+</pre>
+</div>
+
+<p>
+The <tt>non_assignable</tt> member variable is immutable by default as SWIG detects that <tt>NonAssignable</tt> is not assignable.
+SWIG must of course see the full type information in order to get this correct, otherwise you may have to use <tt>%immutable</tt> to make the variable read-only.
 </p>
 
 <p>
@@ -5923,12 +5963,12 @@ However, there was a workaround for nested class support in these older versions
 the nested class in the global scope, adding in a typedef for the nested class in the global scope and
 using the "nestedworkaround" feature on the nested class. This resulted in approximately the
 same behaviour as the "flatnested" feature. With proper nested class support now available in SWIG-3.0.0, this
-feature has been deprecated and no longer works requiring code changes. If you see the following warning:
+feature was deprecated and has now been removed. If you see the following error:
 </p>
 
 <div class="shell">
 <pre>
-example.i:8: Warning 126: The nestedworkaround feature is deprecated
+example.i:8: Error: Unknown directive '%nestedworkaround'
 </pre>
 </div>
 

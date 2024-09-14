@@ -13,16 +13,17 @@ environment:
     MAKEJOBS: 2
 
   matrix:
-  - SWIGLANG: csharp
-    VSVER: 12
-  - SWIGLANG: csharp
-    VSVER: 14
-  - SWIGLANG: csharp
-    VSVER: 17
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: csharp
-    VSVER: 17
-    Platform: x86
+  - SWIGLANG: python
+    VSVER: 15
+    VER: 38
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+  - SWIGLANG: python
+    VSVER: 16
+    VER: 39
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+  - SWIGLANG: python
+    OSVARIANT: mingw
+    WITHLANG: python
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
 
 #matrix:
@@ -127,6 +128,7 @@ install:
 - pwd
 - echo MAKEJOBS=%MAKEJOBS%
 - uname -a
+- systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
 
 build_script:
 - set PATH=C:\Tools\bison\Bison.3.7.4\bin;%PATH%

@@ -7,6 +7,168 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-14: wsfulton
+            C++ reference errors when passing in a 'NULL' change of behaviour.
+            Most languages now use "NullReferenceError" in the error message
+            where they previously used "ValueError". Also exception changes:
+
+            Guile:    "swig-null-reference-error" instead of "swig-value-error"
+            MzScheme: "swig-null-reference-error" instead of "swig-value-error"
+            PHP:      zend_ce_type_error instead of zend_ce_value_error
+            Python:   Consistently raises TypeError instead of a mix of ValueError
+                      and TypeError.
+            Ruby:     Consistently raises NullReferenceError instead of a mix of
+                      ArgumentError and NullReferenceErrorError.
+
+            The consistent raising of a TypeError instead of ValueError for Python
+            ensures that incorrectly passing 'None' into a C++ reference argument
+            will correctly convert the error into a NotImplemented error for
+            the rich comparisons implementations per PEP 207. Fixes #2987
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2024-09-13: vadz
+	    [C] #2086 Add support for C as a target language.  This support is
+	    currently experimental.
+
+2024-09-12: olly
+	    Remove remains of %nestedworkaround and the nestedworkaround
+	    feature it uses, which were deprecated over 10 years ago in SWIG
+	    3.0.0.  Since then uses of these have done nothing except emit a
+	    warning.
+
+2024-09-11: wsfulton
+            [C# Java] #1188 Add the %interface_additional macro to the family of
+            %interface macros for adding additional interfaces for the generated
+            interface to extend/derive from.
+
+2024-09-11: olly
+	    #197 #675 #1677 #2047 Fix incorrect inclusion of "enum " when
+	    qualifying C++11 "enum class" enumerator names.
+
+2024-09-11: olly
+	    [Perl] #630 Fix wrapping of C++11 enum class when -const command line
+	    option is specified.
+
+2024-09-07: wsfulton
+            #2875 Fix swig-4.1.0 regression using the %interface family of macros
+            for multiple inheritance and common bases.
+
+2024-09-06: olly
+	    [Python] Stop documenting to define SWIG_FILE_WITH_INIT - this does
+	    not actually do anything (and apparently never has!)
+
+2024-09-05: wsfulton
+            #2845 Fix duplicate friend wrappers for friend declarations in nested
+            classes.
+
+2024-09-03: olly
+	    #3010 Improve handling of zero bytes in input files.  This is
+	    certainly a corner case, but GCC and clang both accept zero bytes
+	    at least in comments, and SWIG's current handling is to ignore
+	    the zero byte and all following characters up to and including the
+	    next newline, so for example if a // comment contains a zero byte
+	    SWIG would quietly ignore the next line.
+
+2024-08-30: olly
+	    #2996 Fix generic string literal handling to handle embedded zero
+	    bytes.  This allows such strings to work for C# (with %csconst), D
+	    (with %dmanifestconst), Go and Java (with %javaconst).  For other
+	    target languages SWIG-generated wrappers still truncate such string
+	    literals at a zero byte (which is probably the best we can do for
+	    target languages where the native string can't contain zero bytes).
+
+2024-08-23: wsfulton
+            [Java] #2991 Document solutions for mismatch in C++ access specifiers
+            and Java access modifiers in an inheritance hierarchy.
+
+2024-08-19: wsfulton
+	    [Python] #2993 Add missing std::filesystem namespace to std_filesystem.i.
+
+2024-08-17: olly
+	    #904 #1907 #2579 Fix string literal and character literal wrapping bugs.
+
+2024-08-15: olly
+	    Fix parsing of octal string escapes.  We now stop when the next
+	    character is digit 8 or 9, and stop after 3 octal digits even if
+	    the next character is an octal digit.
+
+2024-08-15: olly
+	    SWIG now gives an error for digits 8 and 9 in octal constants -
+	    previously these were quietly accepted resulting in a bogus value.
+	    C++11 binary constants are now treated similarly - only digits 0
+	    and 1 were allowed before, but trying to use other digits now gives
+	    a clearer error.
+
+2024-08-12: olly
+	    #657 Allow unmatched ' and " in #error and #warning.
+
+2024-08-09: wsfulton
+	    [Java] Add the constantsmodifiers pragma so that the visibility for the
+            Java constants interface can be changed from public to default.
+
+2024-08-02: vadz
+	    [Python] #2966 Fix overloaded Doxygen comments. Sometimes the Doxygen
+            comments were not combined into one Pydoc comment.
+
+2024-08-01: olly
+	    Fix wrapping of string constants containing bytes 0-8, 11, 12 or
+	    14-31 followed by a digit '0' to '7'.  We were emitting these bytes
+	    as a one or two character octal escape sequence which when
+	    interpreted would include the following character.
+
+2024-07-27: olly
+	    #2087 Fix parsing of `noexcept` on a function pointer type used
+	    as the type of a function parameter.  We currently generate
+	    invalid C++ code if we try to wrap the function parameter, but
+	    at least the user can `%ignore` the parameter or the whole
+	    function, whereas the parse error was hard to work around.
+
+2024-07-26: olly
+	    Support parsing `noexcept(X)` in expressions, including deducing
+	    its type (which is always `bool`).
+
+2024-07-21: wsfulton
+	    [Python] Add missing slot for init in struct _specialization_cache
+            needed for python-3.13 builtin wrappers.
+
+2024-07-21: shadchin
+	    [Python] #2968 Add missing tp_versions_used slot needed for python-3.13.
+
+2024-07-19: olly
+	    -Wallkw now includes keywords for Javascript.
+
+2024-07-19: vadz
+	    [Javascript] #2940 Names of object properties can be keywords in
+	    Javascript so don't auto-rename them to have a leading underscore.
+
+2024-07-18: olly
+	    #1917 Stop removing `f` and `F` suffixes from float literals.
+	    This was resulting in incorrect generated C# and Java code.  For
+	    some cases such as `#define CONSTANT 1.0f` this was a regression
+	    introduced in 4.2.0 when we started more correctly wrapping these
+	    as `float` rather than `double`.
+
+2024-07-15: vadz
+            #2941 Suppress warning WARN_PARSE_USING_UNDEF for ignored using declarations.
+
+2024-07-03: wsfulton
+            #2860 Enhance Windows.html documentation for the popular Visual C++ compiler
+            recommending users to correctly set the __cplusplus macro in order to benefit
+            from modern standards based features that SWIG provides.
+
+2024-07-02: erezgeva
+	    [Python, Ruby] #2870 Change the thread safety options for the director code
+            that manages C++ director pointer ownership. Please define SWIG_THREADS to
+            turn on thread safety. For Python, this can also be done via the threads
+            module option or -threads. Implementation now includes a C++11 std::mutex option
+            as priority over WIN32 and pthread mutexes. See director_guard.swg for further
+            implementation details.
+
+2024-06-28: vadz
+            #2935 Fix instantiation of specialized template where the primary template
+            is a forward class template declaration.
+
 2024-06-16: wsfulton
             #2927 Don't ignore overloaded friend functions that are also declared
             constexpr.

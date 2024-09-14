@@ -49,6 +49,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
       throw Napi::RangeError::New(env, msg);
     case SWIG_ValueError:
     case SWIG_TypeError:
+    case SWIG_NullReferenceError:
       throw Napi::TypeError::New(env, msg);
   }
 }
@@ -90,6 +91,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
       return;
     case SWIG_ValueError:
     case SWIG_TypeError:
+    case SWIG_NullReferenceError:
       Napi::TypeError::New(env, msg).ThrowAsJavaScriptException();
       return;
   }

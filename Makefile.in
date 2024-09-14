@@ -58,6 +58,7 @@ docs-main:
 # All the languages SWIG speaks (when it wants to)
 #####################################################################
 
+skip-c		= test -n "@SKIP_C@"
 skip-csharp	= test -n "@SKIP_CSHARP@"
 skip-d		= test -n "@SKIP_D@"
 skip-go		= test -n "@SKIP_GO@"
@@ -99,6 +100,7 @@ check-aliveness:
 	test -x ./$(TARGET)
 	./$(TARGET) -version
 	./$(TARGET) -help
+	@$(skip-c) 	  || ./$(TARGET) -c          -help
 	@$(skip-csharp)   || ./$(TARGET) -csharp     -help
 	@$(skip-d) 	  || ./$(TARGET) -d          -help
 	@$(skip-go)	  || ./$(TARGET) -go         -help
@@ -157,6 +159,7 @@ check-%-version :
 # Checks examples for compilation (does not run them)
 check-examples:					\
 	check-android-examples			\
+	check-c-examples			\
 	check-csharp-examples			\
 	check-d-examples			\
 	check-go-examples			\
@@ -176,6 +179,7 @@ check-examples:					\
 	check-tcl-examples			\
 
 android_examples   :=$(shell sed '/^\#/d' $(srcdir)/Examples/android/check.list)
+c_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/c/check.list)
 csharp_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/csharp/check.list)
 d_examples         :=$(shell sed '/^\#/d' $(srcdir)/Examples/d/check.list)
 go_examples        :=$(shell sed '/^\#/d' $(srcdir)/Examples/go/check.list)
@@ -217,6 +221,7 @@ check-%-examples :
 # Checks testcases in the test-suite excluding those which are known to be broken
 check-test-suite:				\
 	check-errors-test-suite			\
+	check-c-test-suite			\
 	check-csharp-test-suite			\
 	check-d-test-suite			\
 	check-go-test-suite			\
@@ -264,6 +269,7 @@ check: check-aliveness check-ccache check-versions check-examples check-test-sui
 
 # Run known-to-be-broken as well as not broken testcases in the test-suite
 all-test-suite:					\
+	all-c-test-suite			\
 	all-csharp-test-suite			\
 	all-d-test-suite			\
 	all-go-test-suite			\
@@ -287,6 +293,7 @@ all-%-test-suite:
 
 # Run known-to-be-broken testcases in the test-suite
 broken-test-suite:				\
+	broken-c-test-suite			\
 	broken-csharp-test-suite		\
 	broken-d-test-suite			\
 	broken-go-test-suite			\
@@ -418,10 +425,10 @@ $(srcdir)/Lib/swigwarn.swg: $(srcdir)/Source/Include/swigwarn.h
 # TARGETS: install & friends
 #####################################################################
 
-INSTALL         = @abs_srcdir@/Tools/config/install-sh -c
-INSTALL_DATA    = ${INSTALL} -m 644
-INSTALL_PROGRAM = ${INSTALL} -m 755
-MKINSTDIRS      = @abs_srcdir@/Tools/config/install-sh -m 0755 -d
+INSTALL         = @abs_srcdir@/Tools/config/install-sh
+INSTALL_DATA    = ${INSTALL} -c -m 644
+INSTALL_PROGRAM = ${INSTALL} -c -m 755
+MKINSTDIRS      = ${INSTALL} -m 0755 -d
 # Use standard autoconf approach to transform executable name using --program-prefix and --program-suffix
 transform	= @program_transform_name@
 
@@ -435,7 +442,7 @@ install-main:
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
 lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
-	csharp lua r go d javascript javascript/jsc \
+	csharp lua r c go d javascript javascript/jsc \
 	javascript/v8 javascript/napi scilab xml
 
 lib-modules = std

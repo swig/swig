@@ -1,0 +1,325 @@
+name: windows
+
+on:
+  push:
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'appveyor.yml'
+  pull_request:
+    branches: master
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'appveyor.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  win_ci:
+    # When continue-on-error is true for an individual build,
+    # that build can fail (it'll show red),
+    # but it won't fail the overall tests
+    continue-on-error: ${{ matrix.continue-on-error || false }}
+
+    # https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md
+    runs-on: ${{ matrix.os || 'windows-2022' }}
+
+    # The name of the test follow the tested language
+    name: >
+      ${{ matrix.SWIGLANG }} ${{ matrix.VER }}
+      ${{ matrix.COMPILER || 'msvc' }} ${{ matrix.os }} ${{ matrix.NOTEST }}
+      ${{ matrix.continue-on-error && '(can fail)' }}
+
+    strategy:
+      matrix:
+        include:
+        - SWIGLANG: csharp
+          INSTALL: 'true'
+        - SWIGLANG: csharp
+          os: 'windows-2019'
+        - SWIGLANG: csharp
+          COMPILER: gcc
+        - SWIGLANG: csharp
+          INSTALL: 'true'
+          COMPILER: gcc
+          os: 'windows-2019'
+        - SWIGLANG: java
+          VER: 8
+        - SWIGLANG: java
+          VER: 17
+        - SWIGLANG: java
+          COMPILER: gcc
+          VER: 8
+        - SWIGLANG: java
+          COMPILER: gcc
+          VER: 11
+       # Next two are using old VC++ as the new visual c++ not handling containers of enums
+       # See https://github.com/swig/swig/issues/3008
+        - SWIGLANG: python
+          VER: '3.7'
+          os: 'windows-2019'
+        - SWIGLANG: python
+          VER: '3.12'
+          os: 'windows-2019'
+       #  TODO require fixing of probing in configure.ac
+       #- SWIGLANG: python
+       #  INSTALL: 'true'
+       #  COMPILER: gcc
+       #  NOTEST: 'no-test'
+        - SWIGLANG: ruby
+#         VER: '3.0.7'
+          NOTEST: 'no-test'
+        - SWIGLANG: ruby
+          VER: '3.1.6'
+          NOTEST: 'no-test'
+        - SWIGLANG: ruby
+          INSTALL: 'true'
+          COMPILER: gcc
+          NOTEST: 'no-test'
+      # Run all of them, as opposed to aborting when one fails
+      fail-fast: false
+
+    env:
+      CFLAGS: '-O2'
+      CXXFLAGS: '-O2'
+      CCCL_OPTIONS: '--cccl-muffle /W3 /EHsc'
+      PCRE2_CCCL_LD: '-lpcre2-8-static --cccl-link /NODEFAULTLIB:MSVCRT'
+      CHECK_OPTIONS: 'CSHARPOPTIONS=-platform:x64'
+      SWIGLANG: ${{ matrix.SWIGLANG }}
+      COMPILER: ${{ matrix.COMPILER }}
+      INSTALL: ${{ matrix.INSTALL }}
+      NOTEST: ${{ matrix.NOTEST }}
+      VER: ${{ matrix.VER }}
+      OS: ${{ matrix.os }}
+
+# cl.exe:
+#  https://learn.microsoft.com//cpp/build/reference/compiler-options
+#  /EHc  extern "C" defaults to nothrow.
+#  /EHs  Enable C++ exception handling (no SEH exceptions).
+#  /W3   Warning level.
+#  /WX   Treat warnings as errors.
+#  https://learn.microsoft.com//cpp/build/reference/linker-options
+#  cl.exe pass linker:
+#  /VERBOSE:LIB        Outputs progress messages during the link process.
+#  /NODEFAULTLIB:lib   Ignore library 'lib'
+
+    steps:
+    - name: Machine Info
+      shell: powershell
+      run: |
+          systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        show-progress: true
+
+    - name: Install CCache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ matrix.os || 'windows-2022' }}-${{ matrix.COMPILER || 'msvc' }}
+
+    - name: Install NuGet Packages
+      if: ${{ env.COMPILER == '' }}
+      shell: powershell
+      run: |
+          # 'nuget build for .NET: https://www.nuget.org/packages'
+          nuget install PCRE2 -OutputDirectory C:\Tools
+          nuget install boost -OutputDirectory C:\Tools
+
+    # Set MSVC compilers path and environment variables.
+    - name: Setup MSVC
+      if: ${{ env.COMPILER == '' || env.SWIGLANG == 'csharp' }}
+      uses: TheMrMilchmann/setup-msvc-dev@v3
+      with:
+        arch: x64
+
+    - name: Prepare Environment
+      shell: bash
+      run: |
+          uname --all
+
+          if [[ "$COMPILER" = "gcc" ]]; then
+            # MinGW-w64 packages to install with MSYS2
+            for n in binutils make autotools pcre2 boost; do
+              MORE_MSYS_PKGS+=" mingw-w64-x86_64-$n"
+            done
+
+            case "$SWIGLANG" in
+            python)
+              MORE_MSYS_PKGS+=" mingw-w64-x86_64-python"
+              ;;
+            ruby)
+              MORE_MSYS_PKGS+=" mingw-w64-x86_64-ruby"
+              ;;
+            perl)
+              MORE_MSYS_PKGS+=" mingw-w64-x86_64-perl"
+              ;;
+            esac
+
+            # MinGW-w64 pcre2
+            echo "PCRE2_CFLAGS=-I/mingw64/include -DPCRE2_STATIC" >> $GITHUB_ENV
+            echo "PCRE2_LIBS=-L/mingw64/lib -lpcre2-8" >> $GITHUB_ENV
+
+            echo "MORE_MSYS_PKGS=base-devel $MORE_MSYS_PKGS" >> $GITHUB_ENV
+            echo "BOOST_PATH=/c/msys64/mingw64" >> $GITHUB_ENV
+          else
+             # COMPILER: cccl wrapping MSVC
+            curl --retry 15 -s -L https://github.com/swig/cccl/raw/master/cccl > /usr/bin/cccl
+            chmod +x /usr/bin/cccl
+            cp -p /usr/bin/cccl /c/msys64/usr/bin/cccl
+
+            # Using pcre2 installed with NuGet
+            PCRE2_PATH=$(ls -d /c/tools/PCRE2*)
+            echo "PCRE2_CFLAGS=-I$PCRE2_PATH/include -DPCRE2_STATIC" >> $GITHUB_ENV
+            echo "PCRE2_LIBS=-L$PCRE2_PATH/lib $PCRE2_CCCL_LD" >> $GITHUB_ENV
+
+            echo "CXX=/usr/bin/cccl" >> $GITHUB_ENV
+            echo "CC=/usr/bin/cccl" >> $GITHUB_ENV
+            echo "BOOST_PATH=$(ls -d /c/tools/boost*)/lib/native" >> $GITHUB_ENV
+
+            if [[ -n "$VER" ]]; then
+              case "$SWIGLANG" in
+              python)
+                PY3VER=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64)
+                echo "$PY3VER\\Script" >> $GITHUB_PATH
+                echo "$PY3VER" >> $GITHUB_PATH
+                ;;
+              ruby)
+                RUBYDIR=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64)
+                echo "$RUBYDIR\\bin" >> $GITHUB_PATH
+                ;;
+              esac
+            fi
+          fi # COMPILER
+
+          # Java must use VER!
+          if [[ "$SWIGLANG" = "java" ]]; then
+            declare -n java_path="JAVA_HOME_${VER}_X64"
+            echo "JAVA_HOME=$java_path" >> $GITHUB_ENV
+          fi
+
+          echo "SWIGJOBS=-j$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
+
+          echo 'C:\msys64\usr\bin' >> $GITHUB_PATH
+
+    - name: Install MSYS2 Packages
+      shell: cmd
+      run: |
+          rem 'MSYS2 uses MinGW-w64 https://packages.msys2.org/'
+          pacman -Syu --noconfirm --needed
+          if %ErrorLevel% NEQ 0 (exit 1)
+          pacman -Syu --noconfirm --needed autoconf automake bison %MORE_MSYS_PKGS%
+          if %ErrorLevel% NEQ 0 (exit 1)
+
+    - name: Autoconf
+      shell: bash
+      run: |
+          uname --all
+
+          if [[ -z "$COMPILER" ]]; then
+            which cl.exe
+            cl.exe /? 2>&1 | head -n1
+          else
+            # Use MinGW-w64 compiler
+            # We can not use GITHUB_PATH, as bash insert /usr/bin
+            export PATH="/mingw64/bin:$PATH"
+
+            which gcc
+            gcc --version | head -n1
+            which g++
+            g++ --version | head -n1
+          fi
+
+          case "$SWIGLANG" in
+          csharp)
+            which csc.exe
+            csc.exe /? | head -n1
+            ;;
+          python)
+            which python.exe
+            python -V
+            ;;
+          ruby)
+            which ruby.exe
+            ruby -v
+            ;;
+          perl)
+            which perl.exe
+            perl -v | head -n3
+            ;;
+          esac
+
+          make --version | head -n2
+
+          ./autogen.sh
+
+    - name: Configure
+      shell: bash
+      run: |
+          if [[ "$COMPILER" = "gcc" ]]; then
+            # Use MinGW-w64 compiler
+            export PATH="/mingw64/bin:$PATH"
+            ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe"
+          else
+             # cccl wrapping MSVC
+            ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe" --disable-ccache
+          fi
+
+    - name: Build
+      shell: bash
+      run: |
+          if [[ "$COMPILER" = "gcc" ]]; then
+            # Use MinGW-w64 compiler
+            export PATH="/mingw64/bin:$PATH"
+          fi
+
+          make -s $SWIGJOBS
+
+    # Test the Windows swig have a proper SWIG library path
+    - name: Test swiglib
+      shell: bash
+      run: |
+          # path is based on executable location
+          if ! [[ "$(./swig.exe -swiglib)" = "$(cygpath -w "$PWD")\\Lib" ]]; then
+            exit 1
+          fi
+
+    - name: Test
+      if: ${{ matrix.NOTEST == '' }}
+      shell: bash
+      run: |
+          if [[ "$COMPILER" = "gcc" ]]; then
+            # Use MinGW-w64 compiler
+            export PATH="/mingw64/bin:$PATH"
+          fi
+          ./swig.exe -version
+          make check-$SWIGLANG-version
+          make check-$SWIGLANG-enabled
+          make -k check-$SWIGLANG-examples $SWIGJOBS $CHECK_OPTIONS
+          make -k check-$SWIGLANG-test-suite $SWIGJOBS $CHECK_OPTIONS
+
+    - name: Install
+      if: ${{ env.INSTALL == 'true' }}
+      shell: bash
+      run: |
+          make -s install > /dev/null
+
+          which swig.exe
+          swig.exe -version
+
+          # TODO: Make install of ccache-swig do not work on Windows
+          #if [[ "$COMPILER" = "gcc" ]]; then
+          #  which ccache-swig.exe
+          #  ccache-swig.exe -V
+          #fi
+
+    # The test by itself is not related to the installation.
+    # We just want to save testing time :-)
+    - name: Clean
+      if: ${{ env.INSTALL == 'true' }}
+      shell: bash
+      run: |
+          make check-maintainer-clean

@@ -66,7 +66,7 @@ setup = \
 	  mkdir $(TEST_DIR); \
 	fi; \
 	if [ -f $(SRC_RUNME_SCRIPT) ]; then	\
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	  if [ ! -f $(TEST_DIR) ]; then	\
 	    cp $(SRC_RUNME_SCRIPT) $(TEST_DIR); \
 	  fi; \
@@ -77,7 +77,7 @@ setup = \
 	    cp $(srcdir)/swigtest.quit $(TEST_DIR); \
 	  fi; \
 	else \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ; \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $*" ; \
 	fi; \
 
 # Runs the testcase. A testcase is only run if
