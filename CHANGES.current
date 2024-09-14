@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-15: FredBonThermo
+	    [C#] #2835 Support -doxygen option for converting doxygen comments to
+	    XML formatted C# comments.
+
 2024-09-14: wsfulton
             #2987 C++ reference errors when passing in a 'NULL' change of
             behaviour.  Most languages now use "NullReferenceError" in the
