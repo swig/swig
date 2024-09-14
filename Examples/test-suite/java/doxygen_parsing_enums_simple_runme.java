@@ -25,6 +25,11 @@ public class doxygen_parsing_enums_simple_runme {
     		" The comment for the third item \n" +
     		" \n" +
     		"");
+    wantedComments.put("doxygen_parsing_enums_simple.doxygen_parsing_enums_simpleConstants.SOME_ITEM_4",
+    		" The comment for the fourth item \n" +
+    		" over two lines \n" +
+    		" \n" +
+    		"");
     wantedComments.put("doxygen_parsing_enums_simple.doxygen_parsing_enums_simpleConstants.SOME_ITEM_2",
     		" The comment for the second item \n" +
     		" \n" +

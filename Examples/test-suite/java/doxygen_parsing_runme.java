@@ -31,8 +31,16 @@ public class doxygen_parsing_runme {
     wantedComments.put("doxygen_parsing.SomeAnotherClass.setClassAttr3(int)",
     		"The class attribute post-comment with details \n" +
     		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherClass.setClassAttr4(int)",
+	        " The class attribute comment with \n" + 
+	        " two lines of comments \n" + 
+    		"");
     wantedComments.put("doxygen_parsing.SomeAnotherStruct.setStructAttr3(int)",
     		"The struct attribute post-comment with details \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.setStructAttr4(int)",
+	        " The struct attribute comment with \n" + 
+	        " two lines of comments \n" + 
     		"");
     wantedComments.put("doxygen_parsing.SomeAnotherClass.classMethodExtended2(int, int)",
     		" The class method with parameter \n" +
@@ -90,6 +98,10 @@ public class doxygen_parsing_runme {
     wantedComments.put("doxygen_parsing.SomeAnotherStruct.getStructAttr3()",
     		"The struct attribute post-comment with details \n" +
     		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.getStructAttr4()",
+	        " The struct attribute comment with \n" + 
+	        " two lines of comments \n" + 
+    		"");
     wantedComments.put("doxygen_parsing.doxygen_parsing.getSomeVar()",
     		" The var comment \n" +
     		" \n" +
@@ -114,6 +126,10 @@ public class doxygen_parsing_runme {
     wantedComments.put("doxygen_parsing.SomeAnotherClass.getClassAttr3()",
     		"The class attribute post-comment with details \n" +
     		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherClass.getClassAttr4()",
+	        " The class attribute comment with \n" + 
+	        " two lines of comments \n" + 
+    		"");
     wantedComments.put("doxygen_parsing.SomeAnotherClass.classMethod()",
     		" The class method comment.<br>\n" +
                 " <br>\n" +
@@ -126,11 +142,27 @@ public class doxygen_parsing_runme {
     		" @param b Parameter b \n" +
     		" \n" +
     		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.structStaticMethod(int, int)",
+	        " The struct static method one line comment \n" + 
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.SomeAnotherStruct.structStaticMethod2(int, int)",
+	        " The struct static method with parameters \n" +
+	        " Two lines of comments \n" +
+    		" \n" +
+    		" @param aaa Parameter aaa \n" +
+    		" @param bbb Parameter bbb \n" +
+    		" \n" +
+    		"");
     wantedComments.put("doxygen_parsing.SomeAnotherClass.setClassAttr2(int)",
     		"The class attribute post-comment \n" +
     		"");
     wantedComments.put("doxygen_parsing.doxygen_parsingConstants.CONSTANT_VALUE",
     		"The constant comment \n" +
+    		"");
+    wantedComments.put("doxygen_parsing.doxygen_parsingConstants.CONSTANT_VALUE_TWO_LINE",
+                " A two line \n" +
+                " constant comment \n" +
     		"");
     wantedComments.put("doxygen_parsing.Foo1636.getGroupmember1()",
 	        "groupmember1 description");
