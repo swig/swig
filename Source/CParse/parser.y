@@ -1618,10 +1618,11 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     // The value of the expression as C/C++ code.
     String *val;
     // If type is a string or char type, this is the actual value of that
-    // string or char type as a String.  This is useful in cases where we
-    // want to emit the string in the target language - we could just try
-    // emitting the C/C++ code for the literal, but that won't always be
-    // a valid string literal in most target languages.
+    // string or char type as a String (in cases where SWIG can determine
+    // it - currently that means for literals).  This is useful in cases where
+    // we want to emit a string or character literal in the target language -
+    // we could just try emitting the C/C++ code for the literal, but that
+    // won't always be correct in most target languages.
     //
     // SWIG's scanner reads the string or character literal in the source code
     // and interprets quoting and escape sequences.  Concatenation of adjacent
