@@ -23,26 +23,23 @@
 </ul>
 <li><a href="#Doxygen_additional_options">Additional command line options</a>
 </ul>
-<li><a href="#Doxygen_to_javadoc">Doxygen to Javadoc</a>
+<li><a href="#Doxygen_javadoc">Doxygen to Javadoc</a>
 <ul>
-<li><a href="#Doxygen_basic_example">Basic example</a>
+<li><a href="#Doxygen_javadoc_basic_example">Basic Javadoc example</a>
 <li><a href="#Doxygen_javadoc_tags">Javadoc tags</a>
-<li><a href="#Doxygen_unsupported_tags">Unsupported tags</a>
-<li><a href="#Doxygen_further_details">Further details</a>
+<li><a href="#Doxygen_javadoc_unsupported_tags">Unsupported tags for Javadoc</a>
 </ul>
-<li><a href="#Doxygen_to_pydoc">Doxygen to Pydoc</a>
+<li><a href="#Doxygen_pydoc">Doxygen to Pydoc</a>
 <ul>
-<li><a href="#Doxygen_python_basic_example">Basic example</a>
+<li><a href="#Doxygen_pydoc_basic_example">Basic Pydoc example</a>
 <li><a href="#Doxygen_pydoc_tags">Pydoc translator</a>
-<li><a href="#Doxygen_python_unsupported_tags">Unsupported tags</a>
-<li><a href="#Doxygen_python_further_details">Further details</a>
+<li><a href="#Doxygen_pydoc_unsupported_tags">Unsupported tags for Pydoc</a>
 </ul>
-<li><a href="#Doxygen_to_csharpXml">Doxygen to XML Csharp documentation</a>
+<li><a href="#Doxygen_csharp">Doxygen to XML C# documentation</a>
 <ul>
-<li><a href="#Doxygen_csharp_basic_example">Basic example</a>
-<li><a href="#Doxygen_csharp_tags">CSharp tags</a>
-<li><a href="#Doxygen_csharp_unsupported_tags">Unsupported tags</a>
-<li><a href="#Doxygen_csharp_further_details">Further details</a>
+<li><a href="#Doxygen_csharp_basic_example">Basic C# example</a>
+<li><a href="#Doxygen_csharp_tags">C# tags</a>
+<li><a href="#Doxygen_csharp_unsupported_tags">Unsupported tags for C#</a>
 </ul>
 <li><a href="#Doxygen_troubleshooting">Troubleshooting</a>
 <ul>
@@ -454,7 +451,7 @@ This is only applicable to Java at the moment.
 ALSO TO BE ADDED (Javadoc auto brief?)
 </p>
 
-<H2><a name="Doxygen_to_javadoc">18.3 Doxygen to Javadoc</a></H2>
+<H2><a name="Doxygen_javadoc">18.3 Doxygen to Javadoc</a></H2>
 
 
 <p>
@@ -463,7 +460,7 @@ automatically placed in the correct locations in the resulting module
 and proxy files.
 </p>
 
-<H3><a name="Doxygen_basic_example">18.3.1 Basic example</a></H3>
+<H3><a name="Doxygen_javadoc_basic_example">18.3.1 Basic Javadoc example</a></H3>
 
 
 <p>
@@ -555,13 +552,13 @@ code.
 <p>
 The Javadoc translator will handle most of the tags conversions (see the
 table below). It will also automatically translate link-objects
-params, in \see and \link...\endlink commands. For example,
-'someFunction(std::string)' will be converted to
-'someFunction(String)'.  If 
+params, in <tt>\see</tt> and <tt>\link...\endlink</tt> commands. For example,
+<tt>someFunction(std::string)</tt> will be converted to
+<tt>someFunction(String)</tt>.  If
 you don't want such behaviour, you could turn this off by using the
-'doxygen:nolinktranslate' feature. Also all '\param' and '\tparam'
+<tt>doxygen:nolinktranslate</tt> feature. Also all <tt>\param</tt> and <tt>\tparam</tt>
 commands are stripped out, if the specified parameter is not present in
-the function. Use 'doxygen:nostripparams' to avoid.
+the function. Use <tt>doxygen:nostripparams</tt> to avoid.
 </p>
 
 <p>
@@ -832,11 +829,11 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </table>
 </div>
 
-<H3><a name="Doxygen_unsupported_tags">18.3.3 Unsupported tags</a></H3>
+<H3><a name="Doxygen_javadoc_unsupported_tags">18.3.3 Unsupported tags for Javadoc</a></H3>
 
 
 <p>
-Doxygen has a wealth of tags such as @latexonly that have no
+Doxygen has a wealth of tags such as <tt>@latexonly</tt> that have no
 equivalent in Javadoc (all supported tags are listed in
 <a href="https://docs.oracle.com/javase/7/docs/technotes/tools/windows/javadoc.html">Javadoc documentation</a>).
 As a result several tags have no
@@ -999,14 +996,7 @@ comment, the whole comment block is ignored:
 
 
 
-<H3><a name="Doxygen_further_details">18.3.4 Further details</a></H3>
-
-
-<p>
-TO BE ADDED.
-</p>
-
-<H2><a name="Doxygen_to_pydoc">18.4 Doxygen to Pydoc</a></H2>
+<H2><a name="Doxygen_pydoc">18.4 Doxygen to Pydoc</a></H2>
 
 
 <p>
@@ -1017,7 +1007,7 @@ Doxygen or Javadoc, so most of Doxygen commands are translated by merely
 copying the appropriate command text.
 </p>
 
-<H3><a name="Doxygen_python_basic_example">18.4.1 Basic example</a></H3>
+<H3><a name="Doxygen_pydoc_basic_example">18.4.1 Basic Pydoc example</a></H3>
 
 
 <p>
@@ -1434,11 +1424,11 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </table>
 </div>
 
-<H3><a name="Doxygen_python_unsupported_tags">18.4.3 Unsupported tags</a></H3>
+<H3><a name="Doxygen_pydoc_unsupported_tags">18.4.3 Unsupported tags for Pydoc</a></H3>
 
 
 <p>
-Doxygen has a wealth of tags such as @latexonly that have no
+Doxygen has a wealth of tags such as <tt>@latexonly</tt> that have no
 equivalent in Pydoc.  As a result several tags that have no
 translation (or particular use, such as some linking and section tags)
 are suppressed with their content just printed out (if it has any
@@ -1550,15 +1540,7 @@ Here is the list of these tags:
   </ul>
 </div>
 
-<H3><a name="Doxygen_python_further_details">18.4.4 Further details</a></H3>
-
-
-<p>
-TO BE ADDED.
-</p>
-
-
-<H2><a name="Doxygen_to_csharpXml">18.5 Doxygen to XML Csharp documentation</a></H2>
+<H2><a name="Doxygen_csharp">18.5 Doxygen to XML C# documentation</a></H2>
 
 
 <p>
@@ -1567,7 +1549,7 @@ automatically placed in the correct locations in the resulting module
 and proxy files.
 </p>
 
-<H3><a name="Doxygen_csharp_basic_example">18.5.1 Basic example</a></H3>
+<H3><a name="Doxygen_csharp_basic_example">18.5.1 Basic C# example</a></H3>
 
 
 <p>
@@ -1614,7 +1596,7 @@ Simply running SWIG should result in the following code being present in Shapes.
 public class Shape {
 
 ...
-///  Important Variables x
+  ///  Important Variables x
   public double x {
     set {
       ShapesCsPINVOKE.Shape_x_set(swigCPtr, value);
@@ -1669,9 +1651,9 @@ public class Shape {
 </pre></div>
 
 <p>
-The code CSharp-wise should be identical to what would have been
-generated without the doxygen functionality enabled.  When the Doxygen Translator
-module encounters a comment that contains nothing useful or a doxygen comment that it cannot
+Otherwise, the code should be identical to what would have been
+generated without the Doxygen functionality enabled.  When the Doxygen Translator
+module encounters a comment that contains nothing useful or a Doxygen comment that it cannot
 parse, it will not affect the functionality of the SWIG generated
 code.
 </p>
@@ -1679,22 +1661,22 @@ code.
 <p>
 The translator will handle most of the tags conversions (see the
 table below). It will also automatically translate link-objects
-params, in &lt;seealso&gt; tags .
-Also all '\param' and '\tparam' commands are stripped out, if the specified parameter is not present in
-the function. Use 'doxygen:nostripparams' to avoid.
+params, in <tt>&lt;seealso&gt;</tt> tags .
+Also all <tt>\param</tt> and <tt>\tparam</tt> commands are stripped out, if the specified parameter is not present in
+the function. Use <tt>doxygen:nostripparams</tt> to avoid.
 </p>
 
 <p>
-CSharp translator features summary
+C# translator features summary
 (see <a href="Customization.html#Customization_features">%feature
 directives</a>):
 </p>
 
-<H3><a name="Doxygen_csharp_tags">18.5.2 CSharp tags</a></H3>
+<H3><a name="Doxygen_csharp_tags">18.5.2 C# tags</a></H3>
 
 
 <p>
-Here is the list of all Doxygen tags and the description of how they are translated to CSharp XML
+Here is the list of all Doxygen tags and the description of how they are translated to C# XML
 </p>
 <div class="diagram">
 <table border="0" summary="CSharp XML Doxygen tags">
@@ -1952,12 +1934,12 @@ Here is the list of all Doxygen tags and the description of how they are transla
 </table>
 </div>
 
-<H3><a name="Doxygen_csharp_unsupported_tags">18.5.3 Unsupported tags</a></H3>
+<H3><a name="Doxygen_csharp_unsupported_tags">18.5.3 Unsupported tags for C#</a></H3>
 
 
 <p>
-Doxygen has a wealth of tags such as @latexonly that have no
-equivalent in CSharp XML (all supported tags are listed in
+Doxygen has a wealth of tags such as <tt>@latexonly</tt> that have no
+equivalent in C# XML (all supported tags are listed in
 <a href="https://www.doxygen.nl/manual/xmlcmds.html">XML documentation</a>).
 As a result several tags have no
 translation or particular use, such as some linking and section tags.
@@ -2116,8 +2098,6 @@ comment, the whole comment block is ignored:
   </ul>
 </div>
 
-<H3><a name="Doxygen_csharp_further_details">18.5.4 Further details</a></H3>
-
 
 <H2><a name="Doxygen_troubleshooting">18.6 Troubleshooting</a></H2>
 
@@ -2195,7 +2175,7 @@ This section contains information for developers enhancing the Doxygen translato
 If this functionality is turned on, SWIG places all comments found
 into the SWIG parse tree.  Nodes contain an additional attribute
 called <tt>doxygen</tt> when a comment is present.  Individual nodes
-containing Doxygen with Structural Indicators, such as @file, as their
+containing Doxygen with Structural Indicators, such as <tt>@file</tt>, as their
 first command, are also present in the parse tree.  These individual
 "blobs" of Doxygen such as :
 </p>
