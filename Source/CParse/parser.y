@@ -6656,9 +6656,7 @@ valexpr        : exprsimple
                |  LPAREN expr RPAREN %prec CAST {
 	            $$ = default_dtype;
 		    $$.val = NewStringf("(%s)",$expr.val);
-		    if ($expr.stringval) {
-		      $$.stringval = Copy($expr.stringval);
-		    }
+		    $$.stringval = Copy($expr.stringval);
 		    $$.type = $expr.type;
 	       }
 
