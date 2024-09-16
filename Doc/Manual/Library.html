@@ -27,6 +27,10 @@
 <li><a href="#Library_nn11">Using %newobject to release memory</a>
 <li><a href="#Library_nn12">cstring.i</a>
 </ul>
+<li><a href="#Library_c_standard_library">C standard library</a>
+<ul>
+<li><a href="#Library_complex">Complex numbers</a>
+</ul>
 <li><a href="#Library_stl_cpp_library">STL/C++ library</a>
 <ul>
 <li><a href="#Library_std_string">std::string</a>
@@ -1436,7 +1440,53 @@ structure or class instead.
 </li>
 </ul>
 
-<H2><a name="Library_stl_cpp_library">12.4 STL/C++ library</a></H2>
+<H2><a name="Library_c_standard_library">12.4 C standard library</a></H2>
+
+<H3><a name="Library_complex">12.4.1 Complex floating types</a></H3>
+
+<p>
+SWIG has some support for complex floating types.  By default the keyword
+<tt>_Complex</tt> is understood by the parser but <tt>complex</tt> is not
+treated as a keyword because it may be used as an identifier.
+</p>
+
+<p>
+SWIG is only able to fully wrap complex floating types for some target
+languages.  If you are using such a target language for complex floating types,
+you should include <tt>complex.i</tt> to enable this support:
+</p>
+
+<div class="code">
+<pre>
+%include "complex.i"
+</pre>
+</div>
+
+<p>
+If SWIG is in C++ code this will actually include <tt>std_complex.i</tt>
+for you; otherwise it will include <tt>ccomplex.i</tt>.
+</p>
+
+<p>
+For target languages without support this will fail to find a file to
+include.  In this case, if you are wrapping headers which use <tt>complex</tt>
+then you'll need to add a define to your SWIG interface file to get SWIG to
+parse the headers:
+</p>
+
+<div class="code">
+<pre>
+#define complex _Complex
+</pre>
+</div>
+
+<p>
+Then if wrapping as opaque types is not useful to you, you can use
+<a href="SWIG.html#SWIG_ignore"><tt>%ignore</tt></a> to tell SWIG not to wrap
+the functions and/or variables which use complex floating types.
+</p>
+
+<H2><a name="Library_stl_cpp_library">12.5 STL/C++ library</a></H2>
 
 
 <p>
@@ -1484,7 +1534,7 @@ Please look for the library files in the appropriate language library directory.
 </p>
 
 
-<H3><a name="Library_std_string">12.4.1 std::string</a></H3>
+<H3><a name="Library_std_string">12.5.1 std::string</a></H3>
 
 
 <p>
@@ -1568,7 +1618,7 @@ void foo(string s, const String &amp;t);     // std_string typemaps still applie
 </pre>
 </div>
 
-<H3><a name="Library_std_string_view">12.4.2 std::string_view</a></H3>
+<H3><a name="Library_std_string_view">12.5.2 std::string_view</a></H3>
 
 
 <p>
@@ -1612,7 +1662,7 @@ needs (e.g. put it in a member variable) - you can't return a temporary target
 language string.  In both cases SWIG will issue a warning by default.
 </p>
 
-<H3><a name="Library_std_vector">12.4.3 std::vector</a></H3>
+<H3><a name="Library_std_vector">12.5.3 std::vector</a></H3>
 
 
 <p>
@@ -1791,7 +1841,7 @@ if you want to make their head explode.
 details and the public API exposed to the interpreter vary.
 </p>
 
-<H3><a name="Library_stl_exceptions">12.4.4 STL exceptions</a></H3>
+<H3><a name="Library_stl_exceptions">12.5.4 STL exceptions</a></H3>
 
 
 <p>
@@ -1841,10 +1891,10 @@ The <tt>%exception</tt> directive can be used by placing the following code befo
 Any thrown STL exceptions will then be gracefully handled instead of causing a crash.
 </p>
 
-<H3><a name="Library_std_shared_ptr">12.4.5 shared_ptr smart pointer</a></H3>
+<H3><a name="Library_std_shared_ptr">12.5.5 shared_ptr smart pointer</a></H3>
 
 
-<H4><a name="Library_shared_ptr_basics">12.4.5.1 shared_ptr basics</a></H4>
+<H4><a name="Library_shared_ptr_basics">12.5.5.1 shared_ptr basics</a></H4>
 
 
 <p>
@@ -1940,7 +1990,7 @@ System.out.println(val1 + " " + val2);
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_inheritance">12.4.5.2 shared_ptr and inheritance</a></H4>
+<H4><a name="Library_shared_ptr_inheritance">12.5.5.2 shared_ptr and inheritance</a></H4>
 
 
 <p>
@@ -2031,7 +2081,7 @@ Adding the missing <tt>%shared_ptr</tt> macros will fix this:
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_overloading">12.4.5.3 shared_ptr and method overloading</a></H4>
+<H4><a name="Library_shared_ptr_overloading">12.5.5.3 shared_ptr and method overloading</a></H4>
 
 
 <p>
@@ -2053,7 +2103,7 @@ SWIG will choose to wrap just the first method by default.
 For the interested reader, SWIG detects that they are equivalent types via the <a href=Typemaps.html#Typemaps_typecheck_pointer>typecheck typemaps</a> in the shared_ptr library.
 </p>
 
-<H4><a name="Library_shared_ptr_templates">12.4.5.4 shared_ptr and templates</a></H4>
+<H4><a name="Library_shared_ptr_templates">12.5.5.4 shared_ptr and templates</a></H4>
 
 
 <p>
@@ -2095,14 +2145,14 @@ The SWIG code below shows the required ordering:
 </pre>
 </div>
 
-<H4><a name="Library_shared_ptr_directors">12.4.5.5 shared_ptr and directors</a></H4>
+<H4><a name="Library_shared_ptr_directors">12.5.5.5 shared_ptr and directors</a></H4>
 
 
 <p>
 The languages that support shared_ptr also have support for using shared_ptr with directors.
 </p>
 
-<H3><a name="Library_std_unique_ptr">12.4.6 unique_ptr smart pointer</a></H3>
+<H3><a name="Library_std_unique_ptr">12.5.6 unique_ptr smart pointer</a></H3>
 
 
 <p>
@@ -2122,7 +2172,7 @@ The ownership and move semantics described here can of course be modified if not
 by copying and customising the typemaps in the appropriate <tt>std_unique_ptr.i</tt> library file.
 </p>
 
-<H4><a name="Library_std_unique_ptr_by_value">12.4.6.1 unique_ptr passed by value</a></H4>
+<H4><a name="Library_std_unique_ptr_by_value">12.5.6.1 unique_ptr passed by value</a></H4>
 
 
 <p>
@@ -2230,7 +2280,7 @@ Attempts to pass ownership from a proxy class to a <tt>std::unique</tt> paramete
 in a "Cannot release ownership as memory is not owned" exception. For example, if <tt>example.take(k)</tt> in the example above is called twice.
 </p>
 
-<H4><a name="Library_std_unique_ptr_by_ref">12.4.6.2 unique_ptr passed by reference</a></H4>
+<H4><a name="Library_std_unique_ptr_by_ref">12.5.6.2 unique_ptr passed by reference</a></H4>
 
 
 <p>
@@ -2294,7 +2344,7 @@ std::unique_ptr&lt;Klass&gt; &amp;&amp; RvalueRefReturn();
 This initial support contained the move semantics when passing a <tt>std::unique_ptr</tt> around by value. Support for passing a <tt>std::unique_ptr</tt> around by reference was added in SWIG-4.3.0.
 </p>
 
-<H3><a name="Library_std_auto_ptr">12.4.7 auto_ptr smart pointer</a></H3>
+<H3><a name="Library_std_auto_ptr">12.5.7 auto_ptr smart pointer</a></H3>
 
 
 <p>
@@ -2363,10 +2413,10 @@ That is, it works the same way covered in the previous section for <tt>std::uniq
 Input parameters also work the same way as <tt>std::unique_ptr</tt> covered in the previous section.
 </p>
 
-<H2><a name="Library_nn16">12.5 Utility Libraries</a></H2>
+<H2><a name="Library_nn16">12.6 Utility Libraries</a></H2>
 
 
-<H3><a name="Library_nn17">12.5.1 exception.i</a></H3>
+<H3><a name="Library_nn17">12.6.1 exception.i</a></H3>
 
 
 <p>
@@ -2428,7 +2478,7 @@ For example:
 </div>
 
 
-<H3><a name="Library_attributes">12.5.2 attribute.i</a></H3>
+<H3><a name="Library_attributes">12.6.2 attribute.i</a></H3>
 
 
 <p>
@@ -2646,7 +2696,7 @@ shared_ptr which has <tt>%naturalvar</tt> turned on in
 <tt>%shared_ptr</tt>.
 </p>
 
-<H4><a name="Library_attribute_templates">12.5.2.1 %attribute and C++ templates</a></H4>
+<H4><a name="Library_attribute_templates">12.6.2.1 %attribute and C++ templates</a></H4>
 
 
 <p>

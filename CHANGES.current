@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-16: olly
+	    #2560 Document complex.i in the manual.
+
 2024-09-15: FredBonThermo
 	    [C#] #2835 Support -doxygen option for converting doxygen comments to
 	    XML formatted C# comments.
