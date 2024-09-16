@@ -4701,23 +4701,21 @@ This requires fixing with one of two solutions:
 
 
 <ol>
-<p>
-<li>Change the access modifier to public for the derived class by adding the following before SWIG parses the <tt>DerivedClass</tt>:</li>
-</p>
+<li><p>Change the access modifier to public for the derived class by adding the following before SWIG parses the <tt>DerivedClass:</tt></p>
 <div class="code">
 <pre>
 %feature("java:methodmodifiers") DerivedClass::baseMethod2 "public"
 </pre>
 </div>
+</li>
 
-<p>
-<li>Simply ignore the method in the derived class altogether as it cannot be used as a <tt>protected</tt> method in Java as the C++ design intended:</li>
-</p>
+<li><p>Simply ignore the method in the derived class altogether as it cannot be used as a <tt>protected</tt> method in Java as the C++ design intended:</p>
 <div class="code">
 <pre>
 %ignore DerivedClass::baseMethod2;
 </pre>
 </div>
+</li>
 
 </ol>
 
