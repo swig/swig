@@ -6681,6 +6681,7 @@ valexpr        : exprsimple
 		       $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		       break;
 		   }
+		   $$.stringval = 0;
 		 }
 		 /* As well as C-style casts, this grammar rule currently also
 		  * matches a binary operator with a LHS in parentheses for
@@ -6707,6 +6708,7 @@ valexpr        : exprsimple
 		 if ($rhs.type != T_STRING) {
 		   SwigType_push($lhs.val,$pointer);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
+		   $$.stringval = 0;
 		 }
  	       }
                | LPAREN expr[lhs] AND RPAREN expr[rhs] %prec CAST {
@@ -6715,6 +6717,7 @@ valexpr        : exprsimple
 		 if ($rhs.type != T_STRING) {
 		   SwigType_add_reference($lhs.val);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
+		   $$.stringval = 0;
 		 }
  	       }
                | LPAREN expr[lhs] LAND RPAREN expr[rhs] %prec CAST {
@@ -6723,6 +6726,7 @@ valexpr        : exprsimple
 		 if ($rhs.type != T_STRING) {
 		   SwigType_add_rvalue_reference($lhs.val);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
+		   $$.stringval = 0;
 		 }
  	       }
                | LPAREN expr[lhs] pointer AND RPAREN expr[rhs] %prec CAST {
@@ -6732,6 +6736,7 @@ valexpr        : exprsimple
 		   SwigType_push($lhs.val,$pointer);
 		   SwigType_add_reference($lhs.val);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
+		   $$.stringval = 0;
 		 }
  	       }
                | LPAREN expr[lhs] pointer LAND RPAREN expr[rhs] %prec CAST {
@@ -6741,6 +6746,7 @@ valexpr        : exprsimple
 		   SwigType_push($lhs.val,$pointer);
 		   SwigType_add_rvalue_reference($lhs.val);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
+		   $$.stringval = 0;
 		 }
  	       }
                | AND expr {
