@@ -488,7 +488,7 @@ public:
       Append(decl_str, tex_name);
 
       if (value) {
-        String *new_value = convertValue(value, Getattr(p, "type"));
+        String *new_value = convertValue(value, Getattr(p, "numval"), Getattr(p, "stringval"), Getattr(p, "type"));
         if (new_value) {
           value = new_value;
         } else {
@@ -517,23 +517,23 @@ public:
    *    Check if string v can be an Octave value literal,
    *    (eg. number or string), or translate it to an Octave literal.
    * ------------------------------------------------------------ */
-  String *convertValue(String *v, SwigType *t) {
-    if (v && Len(v) > 0) {
-      char fc = (Char(v))[0];
-      if (('0' <= fc && fc <= '9') || '\'' == fc || '"' == fc) {
-        /* number or string (or maybe NULL pointer) */
-        if (SwigType_ispointer(t) && Strcmp(v, "0") == 0)
-          return NewString("None");
-        else
-          return v;
-      }
-      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
-        return SwigType_ispointer(t) ? NewString("nil") : NewString("0");
-      if (Strcmp(v, "true") == 0 || Strcmp(v, "TRUE") == 0)
-        return NewString("true");
-      if (Strcmp(v, "false") == 0 || Strcmp(v, "FALSE") == 0)
-        return NewString("false");
+  String *convertValue(String *v, String *numval, String *stringval, SwigType *t) {
+    if (stringval) {
+      return stringval;
     }
+    if (numval) {
+      if (SwigType_type(t) == T_BOOL) {
+	return NewString(*Char(numval) == '0' ? "false" : "true");
+      }
+      return numval;
+    }
+    if (Equal(v, "0") || Equal(v, "NULL") || Equal(v, "nullptr"))
+      return SwigType_ispointer(t) ? NewString("None") : NewString("0");
+    // FIXME: TRUE and FALSE are not standard and could be defined in other ways
+    if (Equal(v, "TRUE"))
+      return NewString("true");
+    if (Equal(v, "FALSE"))
+      return NewString("false");
     return 0;
   }
 

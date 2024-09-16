@@ -1664,6 +1664,44 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     // with embedded zero bytes), but handling may currently be buggy in
     // places.
     String *stringval;
+    // If type is an integer or boolean type, this is the actual value of that
+    // type as a base 10 integer in a String (in cases where SWIG can determine
+    // this value - currently that means for literals).  This is useful in
+    // cases where we want to emit an integer or boolean literal in the target
+    // language - we could just try emitting the C/C++ code for the literal,
+    // but that won't always be correct in most target languages.
+    //
+    // SWIG doesn't attempt to evaluate constant expressions, except that it
+    // can handle unary - (because a negative integer literal is actually
+    // syntactically unary minus applied to a positive integer literal),
+    // unary + (for consistency with unary -) and parentheses (because
+    // literals in #define are often in parentheses).  These operators are
+    // handled in the parser so whitespace is also handled within such
+    // expressions.
+    //
+    // Some examples:
+    //
+    // C/C++ source  numval      val       Notes
+    // ------------- ----------- --------- -------
+    // 123           123         123
+    // 0x7b          123         0x7b
+    // 0x7B          123         0x7B
+    // 0173          123         0173
+    // 0b1111011     123         0b1111011 C++14
+    // -10           -10         -10	   numval not set for unsigned type
+    // -0x00a        -10         -0x00a    numval not set for unsigned type
+    // -012          -10         -012      numval not set for unsigned type
+    // -0b1010       -10         -0b1010   C++14; numval not set for unsigned
+    // (42)          42          (42)
+    // +42           42          +42
+    // +(42)         42          +(42)
+    // -(42)         -42         -(42)     numval not set for unsigned type
+    // (-(42))       -42         (-(42))   numval not set for unsigned type
+    // false         0           false
+    // (false)       0           (false)
+    // true          1           true
+    // (true)        1           (true)
+    String *numval;
     int     type;
     /* The type code for the argument when the top level operator is unary.
      * This is useful because our grammar parses cases such as (7)*6 as a
@@ -1686,6 +1724,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     char      *id;
     SwigType  *type;
     String    *defarg;
+    String    *stringdefarg;
+    String    *numdefarg;
     ParmList  *parms;
     short      have_parms;
     ParmList  *throws;
@@ -2114,6 +2154,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		   Setattr($$, "type", type);
 		   Setattr($$, "value", $definetype.val);
 		   if ($definetype.stringval) Setattr($$, "stringval", $definetype.stringval);
+		   if ($definetype.numval) Setattr($$, "numval", $definetype.numval);
 		   Setattr($$, "storage", "%constant");
 		   SetFlag($$, "feature:immutable");
 		   add_symbols($$);
@@ -2134,6 +2175,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		 Setattr($$, "type", $type);
 		 Setattr($$, "value", $def_args.val);
 		 if ($def_args.stringval) Setattr($$, "stringval", $def_args.stringval);
+		 if ($def_args.numval) Setattr($$, "numval", $def_args.numval);
 		 Setattr($$, "storage", "%constant");
 		 SetFlag($$, "feature:immutable");
 		 add_symbols($$);
@@ -2153,6 +2195,7 @@ constant_directive :  CONSTANT identifier EQUAL definetype SEMI {
 		 Setattr($$, "type", $type);
 		 Setattr($$, "value", $def_args.val);
 		 if ($def_args.stringval) Setattr($$, "stringval", $def_args.stringval);
+		 if ($def_args.numval) Setattr($$, "numval", $def_args.numval);
 		 Setattr($$, "storage", "%constant");
 		 SetFlag($$, "feature:immutable");
 		 add_symbols($$);
@@ -3250,6 +3293,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$,"parms",$declarator.parms);
 	      Setattr($$,"value",$initializer.val);
 	      if ($initializer.stringval) Setattr($$, "stringval", $initializer.stringval);
+	      if ($initializer.numval) Setattr($$, "numval", $initializer.numval);
 	      Setattr($$,"throws",$cpp_const.throws);
 	      Setattr($$,"throw",$cpp_const.throwf);
 	      Setattr($$,"noexcept",$cpp_const.nexcept);
@@ -3481,6 +3525,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "decl", NewStringEmpty());
 	      Setattr($$, "value", $definetype.val);
 	      if ($definetype.stringval) Setattr($$, "stringval", $definetype.stringval);
+	      if ($definetype.numval) Setattr($$, "numval", $definetype.numval);
 	      Setattr($$, "valuetype", type);
 	   }
 	   ;
@@ -3500,6 +3545,7 @@ c_decl_tail    : SEMI {
 		 Setattr($$,"parms",$declarator.parms);
 		 Setattr($$,"value",$initializer.val);
 		 if ($initializer.stringval) Setattr($$, "stringval", $initializer.stringval);
+		 if ($initializer.numval) Setattr($$, "numval", $initializer.numval);
 		 Setattr($$,"throws",$cpp_const.throws);
 		 Setattr($$,"throw",$cpp_const.throwf);
 		 Setattr($$,"noexcept",$cpp_const.nexcept);
@@ -3813,9 +3859,12 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 			    Delete(code);
 			  }
 			}
-			if ($ctor_end.defarg) {
-			  Setattr($$,"value",$ctor_end.defarg);
-			}
+			if ($ctor_end.defarg)
+			  Setattr($$, "value", $ctor_end.defarg);
+			if ($ctor_end.stringdefarg)
+			  Setattr($$, "stringval", $ctor_end.stringdefarg);
+			if ($ctor_end.numdefarg)
+			  Setattr($$, "numval", $ctor_end.numdefarg);
 			Setattr($$,"throws",$ctor_end.throws);
 			Setattr($$,"throw",$ctor_end.throwf);
 			Setattr($$,"noexcept",$ctor_end.nexcept);
@@ -4533,6 +4582,7 @@ templateparameter : templcpptype def_args {
 		    Setline($$, cparse_line);
 		    Setattr($$, "value", $def_args.val);
 		    if ($def_args.stringval) Setattr($$, "stringval", $def_args.stringval);
+		    if ($def_args.numval) Setattr($$, "numval", $def_args.numval);
 		  }
 		  | TEMPLATE LESSTHAN template_parms GREATERTHAN cpptype idcolon def_args {
 		    $$ = NewParmWithoutFileLineInfo(NewStringf("template< %s > %s %s", ParmList_str_defaultargs($template_parms), $cpptype, $idcolon), $idcolon);
@@ -4862,7 +4912,11 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		}
 		SetFlag($$,"feature:new");
 		if ($ctor_end.defarg)
-		  Setattr($$,"value",$ctor_end.defarg);
+		  Setattr($$, "value", $ctor_end.defarg);
+		if ($ctor_end.stringdefarg)
+		  Setattr($$, "stringval", $ctor_end.stringdefarg);
+		if ($ctor_end.numdefarg)
+		  Setattr($$, "numval", $ctor_end.numdefarg);
 	      } else {
 		$$ = 0;
 		Delete($storage_class);
@@ -5233,9 +5287,12 @@ parm_no_dox	: rawtype parameter_declarator {
 		   $$ = NewParmWithoutFileLineInfo($rawtype,$parameter_declarator.id);
 		   Setfile($$,cparse_file);
 		   Setline($$,cparse_line);
-		   if ($parameter_declarator.defarg) {
-		     Setattr($$,"value",$parameter_declarator.defarg);
-		   }
+		   if ($parameter_declarator.defarg)
+		     Setattr($$, "value", $parameter_declarator.defarg);
+		   if ($parameter_declarator.stringdefarg)
+		     Setattr($$, "stringval", $parameter_declarator.stringdefarg);
+		   if ($parameter_declarator.numdefarg)
+		     Setattr($$, "numval", $parameter_declarator.numdefarg);
 		}
                 | ELLIPSIS {
 		  SwigType *t = NewString("v(...)");
@@ -5314,6 +5371,7 @@ valparm        : parm {
 		  Setline($$,cparse_line);
 		  Setattr($$,"value",$valexpr.val);
 		  if ($valexpr.stringval) Setattr($$, "stringval", $valexpr.stringval);
+		  if ($valexpr.numval) Setattr($$, "numval", $valexpr.numval);
                }
                ;
 
@@ -5359,14 +5417,20 @@ def_args       : EQUAL definetype {
 parameter_declarator : declarator def_args {
                  $$ = $declarator;
 		 $$.defarg = $def_args.val;
+		 $$.stringdefarg = $def_args.stringval;
+		 $$.numdefarg = $def_args.numval;
             }
             | abstract_declarator def_args {
-              $$ = $abstract_declarator;
+	      $$ = $abstract_declarator;
 	      $$.defarg = $def_args.val;
+	      $$.stringdefarg = $def_args.stringval;
+	      $$.numdefarg = $def_args.numval;
             }
             | def_args {
 	      $$ = default_decl;
 	      $$.defarg = $def_args.val;
+	      $$.stringdefarg = $def_args.stringval;
+	      $$.numdefarg = $def_args.numval;
             }
 	    /* Member function pointers with qualifiers. eg.
 	      int f(short (Funcs::*parm)(bool) const); */
@@ -6491,6 +6555,9 @@ edecl          :  identifier {
 		   if ($etype.stringval) {
 		     Setattr($$, "enumstringval", $etype.stringval);
 		   }
+		   if ($etype.numval) {
+		     Setattr($$, "enumnumval", $etype.numval);
+		   }
 		   Setattr($$,"value",$identifier);
 		   Delete(type);
                  }
@@ -6657,6 +6724,7 @@ valexpr        : exprsimple
 	            $$ = default_dtype;
 		    $$.val = NewStringf("(%s)",$expr.val);
 		    $$.stringval = Copy($expr.stringval);
+		    $$.numval = Copy($expr.numval);
 		    $$.type = $expr.type;
 	       }
 
@@ -6680,6 +6748,7 @@ valexpr        : exprsimple
 		       break;
 		   }
 		   $$.stringval = 0;
+		   $$.numval = 0;
 		 }
 		 /* As well as C-style casts, this grammar rule currently also
 		  * matches a binary operator with a LHS in parentheses for
@@ -6707,6 +6776,7 @@ valexpr        : exprsimple
 		   SwigType_push($lhs.val,$pointer);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
+		   $$.numval = 0;
 		 }
  	       }
                | LPAREN expr[lhs] AND RPAREN expr[rhs] %prec CAST {
@@ -6716,6 +6786,7 @@ valexpr        : exprsimple
 		   SwigType_add_reference($lhs.val);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
+		   $$.numval = 0;
 		 }
  	       }
                | LPAREN expr[lhs] LAND RPAREN expr[rhs] %prec CAST {
@@ -6725,6 +6796,7 @@ valexpr        : exprsimple
 		   SwigType_add_rvalue_reference($lhs.val);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
+		   $$.numval = 0;
 		 }
  	       }
                | LPAREN expr[lhs] pointer AND RPAREN expr[rhs] %prec CAST {
@@ -6735,6 +6807,7 @@ valexpr        : exprsimple
 		   SwigType_add_reference($lhs.val);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
+		   $$.numval = 0;
 		 }
  	       }
                | LPAREN expr[lhs] pointer LAND RPAREN expr[rhs] %prec CAST {
@@ -6745,12 +6818,14 @@ valexpr        : exprsimple
 		   SwigType_add_rvalue_reference($lhs.val);
 		   $$.val = NewStringf("(%s) %s", SwigType_str($lhs.val,0), $rhs.val);
 		   $$.stringval = 0;
+		   $$.numval = 0;
 		 }
  	       }
                | AND expr {
 		 $$ = $expr;
 		 $$.val = NewStringf("&%s", $expr.val);
 		 $$.stringval = 0;
+		 $$.numval = 0;
 		 /* Record the type code for expr so we can properly handle
 		  * cases such as (6)&7 which get parsed using this rule then
 		  * the rule for a C-style cast.
@@ -6771,6 +6846,7 @@ valexpr        : exprsimple
 		 $$ = $expr;
 		 $$.val = NewStringf("*%s", $expr.val);
 		 $$.stringval = 0;
+		 $$.numval = 0;
 		 /* Record the type code for expr so we can properly handle
 		  * cases such as (6)*7 which get parsed using this rule then
 		  * the rule for a C-style cast.
@@ -7038,6 +7114,22 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
                | MINUS expr[in] %prec UMINUS {
 		 $$ = default_dtype;
 		 $$.val = NewStringf("-%s",$in.val);
+		 if ($in.numval) {
+		   switch ($in.type) {
+		     case T_CHAR: // Unsigned on some architectures.
+		     case T_UCHAR:
+		     case T_USHORT:
+		     case T_UINT:
+		     case T_ULONG:
+		     case T_ULONGLONG:
+		       // Avoid negative numval with an unsigned type.
+		       break;
+		     default:
+		       $$.numval = NewStringf("-%s", $in.numval);
+		       break;
+		   }
+		   Delete($in.numval);
+		 }
 		 $$.type = promote_type($in.type);
 		 /* Record the type code for expr so we can properly handle
 		  * cases such as (6)-7 which get parsed using this rule then
@@ -7048,6 +7140,7 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
                | PLUS expr[in] %prec UMINUS {
 		 $$ = default_dtype;
                  $$.val = NewStringf("+%s",$in.val);
+		 $$.numval = $in.numval;
 		 $$.type = promote_type($in.type);
 		 /* Record the type code for expr so we can properly handle
 		  * cases such as (6)+7 which get parsed using this rule then
@@ -7331,10 +7424,14 @@ ctor_end       : cpp_const ctor_initializer SEMI {
                | EQUAL definetype SEMI { 
 		    $$ = default_decl;
                     $$.defarg = $definetype.val; 
+		    $$.stringdefarg = $definetype.stringval;
+		    $$.numdefarg = $definetype.numval;
                }
                | exception_specification EQUAL default_delete SEMI {
 		    $$ = default_decl;
                     $$.defarg = $default_delete.val;
+		    $$.stringdefarg = $default_delete.stringval;
+		    $$.numdefarg = $default_delete.numval;
                     $$.throws = $exception_specification.throws;
                     $$.throwf = $exception_specification.throwf;
                     $$.nexcept = $exception_specification.nexcept;

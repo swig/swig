@@ -1797,7 +1797,7 @@ public:
 
       // Write default value
       if (value && !calling) {
-	String *new_value = convertValue(value, Getattr(p, "type"));
+	String *new_value = convertValue(value, Getattr(p, "numval"), Getattr(p, "stringval"), Getattr(p, "type"));
 	if (new_value) {
 	  value = new_value;
 	} else {
@@ -2035,32 +2035,12 @@ public:
   String *convertIntegerValue(String *v, SwigType *resolved_type) {
     const char *const s = Char(v);
     char *end;
-    String *result = NIL;
 
     // Check if this is an integer number in any base.
     errno = 0;
     long value = strtol(s, &end, 0);
-    if (errno == ERANGE || end == s)
+    if (errno == ERANGE || end == s || *end != '\0') {
       return NIL;
-
-    if (*end != '\0') {
-      // If there is a suffix after the number, we can safely ignore "l"
-      // and (provided the number is unsigned) "u", and also combinations of
-      // these, but not anything else.
-      for (char *p = end; *p != '\0'; ++p) {
-        switch (*p) {
-          case 'l':
-          case 'L':
-	    break;
-          case 'u':
-          case 'U':
-	    if (value < 0)
-	      return NIL;
-            break;
-          default:
-            return NIL;
-        }
-      }
     }
     // So now we are certain that we are indeed dealing with an integer
     // that has a representation as long given by value.
@@ -2073,30 +2053,14 @@ public:
     }
 #endif
 
-    if (Cmp(resolved_type, "bool") == 0)
+    if (Equal(resolved_type, "bool"))
       // Allow integers as the default value for a bool parameter.
       return NewString(value ? "True" : "False");
 
     if (value == 0)
       return NewString(SwigType_ispointer(resolved_type) ? "None" : "0");
 
-    // v may still be octal or hexadecimal:
-    const char *p = s;
-    if (*p == '+' || *p == '-')
-      ++p;
-    if (*p == '0' && *(p+1) != 'x' && *(p+1) != 'X') {
-      // This must have been an octal number. This is the only case we
-      // cannot use in Python directly, since Python 2 and 3 use non-
-      // compatible representations.
-      result = NewString(*s == '-' ? "int(\"-" : "int(\"");
-      String *octal_string = NewStringWithSize(p, (int) (end - p));
-      Append(result, octal_string);
-      Append(result, "\", 8)");
-      Delete(octal_string);
-      return result;
-    }
-    result = *end == '\0' ? Copy(v) : NewStringWithSize(s, (int) (end - s));
-    return result;
+    return Copy(v);
   }
 
   /* ------------------------------------------------------------
@@ -2151,30 +2115,36 @@ public:
    * constant. Return an equivalent Python representation,
    * or NIL if it isn't, or we are unsure.
    * ------------------------------------------------------------ */
-  String *convertValue(String *v, SwigType *type) {
-    const char *const s = Char(v);
-    String *result = NIL;
+  String *convertValue(String *v, String *numval, String *stringval, SwigType *type) {
+    if (stringval) {
+      return NIL;
+      // FIXME: This needs more careful testing.
+      // return NewStringf("'%(escape)s'", stringval);
+    }
+    if (numval) {
+      SwigType *resolved_type = SwigType_typedef_resolve_all(type);
+      if (Equal(resolved_type, "bool")) {
+	Delete(resolved_type);
+	return NewString(*Char(numval) == '0' ? "False" : "True");
+      }
+      String *result = convertIntegerValue(numval, resolved_type);
+      Delete(resolved_type);
+      return result;
+    }
     SwigType *resolved_type = SwigType_typedef_resolve_all(type);
 
-    result = convertIntegerValue(v, resolved_type);
+    String *result = convertDoubleValue(v);
     if (!result) {
-      result = convertDoubleValue(v);
-      if (!result) {
-	if (Strcmp(v, "true") == 0)
-	  result = NewString("True");
-	else if (Strcmp(v, "false") == 0)
-	  result = NewString("False");
-	else if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
-	  result = SwigType_ispointer(resolved_type) ? NewString("None") : NewString("0");
-	// This could also be an enum type, default value of which could be
-	// representable in Python if it doesn't include any scope (which could,
-	// but currently is not, translated).
-	else if (!Strchr(s, ':')) {
-	  Node *lookup = Swig_symbol_clookup(v, 0);
-	  if (lookup) {
-	    if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
-	      result = Copy(Getattr(lookup, "sym:name"));
-	  }
+      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
+	result = SwigType_ispointer(resolved_type) ? NewString("None") : NewString("0");
+      // This could also be an enum type, default value of which could be
+      // representable in Python if it doesn't include any scope (which could,
+      // but currently is not, translated).
+      else if (!Strchr(v, ':')) {
+	Node *lookup = Swig_symbol_clookup(v, 0);
+	if (lookup) {
+	  if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
+	    result = Copy(Getattr(lookup, "sym:name"));
 	}
       }
     }
@@ -2222,7 +2192,7 @@ public:
 
       String *value = Getattr(p, "value");
       if (value) {
-	String *convertedValue = convertValue(value, Getattr(p, "type"));
+	String *convertedValue = convertValue(value, Getattr(p, "numval"), Getattr(p, "stringval"), Getattr(p, "type"));
 	if (!convertedValue)
 	  return false;
 	Delete(convertedValue);

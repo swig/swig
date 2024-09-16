@@ -19,6 +19,7 @@
 #include "parser.h"
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 /* Scanner object */
 static Scanner *scan = 0;
@@ -654,11 +655,45 @@ int yylex(void) {
     yylval.dtype = default_dtype;
     yylval.dtype.type = T_ULONGLONG;
     goto num_common;
+num_common: {
+    yylval.dtype.val = NewString(Scanner_text(scan));
+    const char *c = Char(yylval.dtype.val);
+    if (c[0] == '0') {
+      // Convert to base 10 using strtoull().
+      unsigned long long value;
+      char *e;
+      errno = 0;
+      if (c[1] == 'b' || c[1] == 'B') {
+	/* strtoull() doesn't handle binary literal prefixes so skip the prefix
+	 * and specify base 2 explicitly. */
+	value = strtoull(c + 2, &e, 2);
+      } else {
+	value = strtoull(c, &e, 0);
+      }
+      if (errno != ERANGE) {
+	while (*e && strchr("ULul", *e)) ++e;
+      }
+      if (errno != ERANGE && *e == '\0') {
+	yylval.dtype.numval = NewStringf("%llu", value);
+      } else {
+	// Our unsigned long long isn't wide enough or this isn't an integer.
+      }
+    } else {
+      const char *e = c;
+      while (isdigit((unsigned char)*e)) ++e;
+      int len = e - c;
+      while (*e && strchr("ULul", *e)) ++e;
+      if (*e == '\0') {
+        yylval.dtype.numval = NewStringWithSize(c, len);
+      }
+    }
+    return (l);
+  }
   case NUM_BOOL:
     yylval.dtype = default_dtype;
     yylval.dtype.type = T_BOOL;
-num_common:
     yylval.dtype.val = NewString(Scanner_text(scan));
+    yylval.dtype.numval = NewString(Equal(yylval.dtype.val, "false") ? "0" : "1");
     return (l);
 
   case ID:
