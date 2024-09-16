@@ -1,2 +1,2 @@
-/* File : example.c */
+/* File : example.cxx */
 
