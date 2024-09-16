@@ -8,6 +8,28 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-09-16: olly
+	    #2995 SWIG now has generic handling for converting integer and
+	    boolean literal values for use in target language code, replacing
+	    code to do with in many of the target language backends.  This is
+	    mainly an internal clean-up but it does fix a bug in the code it
+	    replaces when wrapping code such as this:
+
+	      typedef enum { T = (bool)1 } b;
+
+	    With suitable enum wrapping settings, SWIG could incorrect wrap T
+	    with value 0 in C#, D and Java.
+
+	    Such cases now work correctly for D, but for C# and Java SWIG now
+	    generates invalid C#/Java code because the C++ enum initialiser
+	    expression isn't valid for initialising a C#/Java enum - this is
+	    really an improvement over generating code which compiled but used
+	    the wrong value!
+
+	    If you are affected by this, use %csconstvalue/%javaconstvalue to
+	    specify the value of such enumerators as a suitable C#/Java
+	    expression.
+
+2024-09-16: olly
 	    #2560 Document complex.i in the manual.
 
 2024-09-15: FredBonThermo
