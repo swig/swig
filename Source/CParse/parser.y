@@ -2942,7 +2942,7 @@ tm_list_builder: typemap_parm {
 		 // a right recursion rule because "Right recursion uses up
 		 // space on the Bison stack in proportion to the number of
 		 // elements in the sequence".
-		 set_nextSibling($$.last, $typemap_parm);
+		 set_nextSibling($in.last, $typemap_parm);
 		 $$.parms = $in.parms;
 		 $$.last = $typemap_parm;
 	       }
