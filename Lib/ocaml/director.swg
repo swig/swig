@@ -20,10 +20,10 @@ namespace Swig {
       DirectorException(const char *msg="") : swig_msg(msg) {
       }
 
-      virtual ~DirectorException() throw() {
+      virtual ~DirectorException() noexcept {
       }
 
-      const char *what() const throw() {
+      const char *what() const noexcept {
         return swig_msg.c_str();
       }
   };
@@ -84,4 +84,3 @@ namespace Swig {
       }
   };
 }
-

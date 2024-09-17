@@ -39,7 +39,7 @@ struct NoExceptClass {
 // Undefined symbols for architecture x86_64: "___cxa_deleted_virtual", referenced from: vtable for NoExceptClass
 #if !(defined(__clang__) && __cplusplus >= 201703L)
   virtual void noo4() const noexcept = delete;
-  virtual void noo5() const throw() = delete;
+  virtual void noo5() const noexcept = delete;
 #endif
 };
 

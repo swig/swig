@@ -12,8 +12,8 @@
 namespace std {
   struct exception 
   {
-    virtual ~exception() throw();
-    virtual const char* what() const throw();
+    virtual ~exception() noexcept;
+    virtual const char* what() const noexcept;
   };
 
   struct bad_cast : exception 

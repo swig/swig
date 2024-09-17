@@ -3603,7 +3603,7 @@ cpp_alternate_rettype : primitive_type
    auto myFunc = [] { return something; };
    auto myFunc = [](int x, int y) { return x+y; };
    auto myFunc = [](int x, int y) -> int { return x+y; };
-   auto myFunc = [](int x, int y) throw() -> int { return x+y; };
+   auto myFunc = [](int x, int y) noexcept -> int { return x+y; };
    auto six = [](int x, int y) { return x+y; }(4, 2);
    ------------------------------------------------------------ */
 cpp_lambda_decl : storage_class AUTO idcolon EQUAL lambda_introducer lambda_template LPAREN parms RPAREN cpp_const lambda_body lambda_tail {
@@ -7737,4 +7737,3 @@ ParmList *Swig_cparse_parms(String *s, Node *file_line_node) {
    /*   Printf(stdout,"parmsparse: '%s' ---> '%s'\n", s, top); */
    return (ParmList *)top;
 }
-

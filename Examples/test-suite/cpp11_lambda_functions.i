@@ -27,7 +27,7 @@
 %warnfilter(SWIGWARN_CPP11_LAMBDA) Space1::Space2::lambda20;
 
 // throw is invalid in C++17 and later, only SWIG to use it
-#define TESTCASE_THROW0() throw()
+#define TESTCASE_THROW0() noexcept
 #define TESTCASE_THROW1(T1) throw(T1)
 %{
 #define TESTCASE_THROW0()
@@ -120,4 +120,3 @@ int(*lambda101notauto)(int, int) = [] (int a, int b) { return a + b; };
 int lambda102 = [] (int a, int b) mutable { return a + b; }(1, 2);
 void lambda_init(int = ([]{ return 0; })());
 %}
-

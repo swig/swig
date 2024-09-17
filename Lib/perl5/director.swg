@@ -151,7 +151,7 @@ namespace Swig {
       SvREFCNT_inc(err);
     }
 
-    const char *what() const throw() {
+    const char *what() const noexcept {
       return SvPV_nolen(err);
     }
 
@@ -172,10 +172,10 @@ namespace Swig {
     }
 
   public:
-    virtual ~DirectorWrapException() throw() {
+    virtual ~DirectorWrapException() noexcept {
     }
 
-    const char *what() const throw() {
+    const char *what() const noexcept {
       return msg.c_str();
     }
 
@@ -314,4 +314,3 @@ namespace Swig {
 }
 
 #endif
-

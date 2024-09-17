@@ -21,17 +21,17 @@ extern "C" SWIGEXPORTC void SWIG_CException_Raise(int code, const char* msg);
 #ifndef SWIG_CException_DEFINED
 class SWIG_CException {
 public:
-  SWIG_CException(const SWIG_CException& ex) throw() : code(ex.code), msg(strdup(ex.msg)) { }
+  SWIG_CException(const SWIG_CException& ex) noexcept : code(ex.code), msg(strdup(ex.msg)) { }
   ~SWIG_CException() { free(const_cast<char*>(msg)); }
 
   const int code;
   const char* const msg;
 
-  static SWIG_CException* get_pending() throw() {
+  static SWIG_CException* get_pending() noexcept {
     return PendingException;
   }
 
-  static void reset_pending() throw() {
+  static void reset_pending() noexcept {
     if (PendingException) {
       delete PendingException;
       PendingException = 0;

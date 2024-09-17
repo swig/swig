@@ -35,7 +35,7 @@ namespace std {
     class failure : public exception
     {
     public:
-      explicit failure(const string& __str) throw();
+      explicit failure(const string& __str) noexcept;
     };
 #endif
 
@@ -137,7 +137,7 @@ namespace std {
 
     // Storage:
     static int 
-    xalloc() throw();
+    xalloc() noexcept;
 
     inline long& 
     iword(int __ix);

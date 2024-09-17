@@ -19,9 +19,9 @@ namespace std
   class exception 
   {
   public:
-    exception() throw() { }
-    virtual ~exception() throw();
-    virtual const char* what() const throw();
+    exception() noexcept { }
+    virtual ~exception() noexcept;
+    virtual const char* what() const noexcept;
   }; 
 }
 

@@ -428,12 +428,12 @@ namespace Swig {
     DirectorException(const char *msg) : jenv_(SWIG_NULLPTR), throwable_(SWIG_NULLPTR), classname_(SWIG_NULLPTR), msg_(msg ? copystr(msg) : SWIG_NULLPTR) {
     }
 
-    ~DirectorException() throw() {
+    ~DirectorException() noexcept {
       delete[] classname_;
       delete[] msg_;
     }
 
-    const char *what() const throw() {
+    const char *what() const noexcept {
       return msg_ ? msg_ : "Unspecified DirectorException message";
     }
 
@@ -538,4 +538,3 @@ namespace Swig {
     return matches;
   }
 }
-

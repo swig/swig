@@ -2489,8 +2489,8 @@ public:
       Printf(f_directors_h, "    virtual ~%s() noexcept;\n", DirectorClassName);
       Printf(f_directors, "%s::~%s() noexcept {%s}\n\n", DirectorClassName, DirectorClassName, body);
     } else if (Getattr(n, "throw")) {
-      Printf(f_directors_h, "    virtual ~%s() throw();\n", DirectorClassName);
-      Printf(f_directors, "%s::~%s() throw() {%s}\n\n", DirectorClassName, DirectorClassName, body);
+      Printf(f_directors_h, "    virtual ~%s() noexcept;\n", DirectorClassName);
+      Printf(f_directors, "%s::~%s() noexcept {%s}\n\n", DirectorClassName, DirectorClassName, body);
     } else {
       Printf(f_directors_h, "    virtual ~%s();\n", DirectorClassName);
       Printf(f_directors, "%s::~%s() {%s}\n\n", DirectorClassName, DirectorClassName, body);

@@ -132,7 +132,7 @@ namespace Swig {
     }
 
   public:
-    virtual ~DirectorException() throw() {
+    virtual ~DirectorException() noexcept {
     }
 
     VALUE getType() const {
@@ -148,7 +148,7 @@ namespace Swig {
       return swig_msg;
     }
 
-    const char *what() const throw() {
+    const char *what() const noexcept {
       return swig_msg.c_str();
     }
   };
@@ -276,4 +276,3 @@ namespace Swig {
   };
   SWIG_GUARD_DEFINITION(Director, swig_mutex_own);
 }
-
