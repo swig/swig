@@ -1913,6 +1913,37 @@ static SwigType *deduce_type(const struct Define *dtype) {
   return NULL;
 }
 
+static Node *new_enum_node(SwigType *enum_base_type) {
+  Node *n = new_node("enum");
+  if (enum_base_type) {
+    switch (SwigType_type(enum_base_type)) {
+      case T_USER:
+	// We get T_USER if the underlying type is a typedef.  Unfortunately we
+	// aren't able to resolve a typedef at this point, so we have to assume
+	// it's a typedef to an integral or boolean type.
+	break;
+      case T_BOOL:
+      case T_SCHAR:
+      case T_UCHAR:
+      case T_SHORT:
+      case T_USHORT:
+      case T_INT:
+      case T_UINT:
+      case T_LONG:
+      case T_ULONG:
+      case T_LONGLONG:
+      case T_ULONGLONG:
+      case T_CHAR:
+      case T_WCHAR:
+	break;
+      default:
+	Swig_error(cparse_file, cparse_line, "Underlying type of enum must be an integral type\n");
+    }
+    Setattr(n, "enumbase", enum_base_type);
+  }
+  return n;
+}
+
 %}
 
 %%
@@ -3715,13 +3746,12 @@ c_enum_forward_decl : storage_class c_enum_key ename c_enum_inherit SEMI {
 c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBRACE SEMI {
 		  SwigType *ty = 0;
 		  int scopedenum = $ename && !Equal($c_enum_key, "enum");
-                  $$ = new_node("enum");
+		  $$ = new_enum_node($c_enum_inherit);
 		  ty = NewStringf("enum %s", $ename);
 		  Setattr($$,"enumkey",$c_enum_key);
 		  if (scopedenum)
 		    SetFlag($$, "scopedenum");
 		  Setattr($$,"name",$ename);
-		  Setattr($$, "enumbase", $c_enum_inherit);
 		  Setattr($$,"type",ty);
 		  appendChild($$,$enumlist);
 		  add_symbols($$);      /* Add to tag space */
@@ -3748,11 +3778,10 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 		 int       unnamedinstance = 0;
 		 int scopedenum = $ename && !Equal($c_enum_key, "enum");
 
-		 $$ = new_node("enum");
+		 $$ = new_enum_node($c_enum_inherit);
 		 Setattr($$,"enumkey",$c_enum_key);
 		 if (scopedenum)
 		   SetFlag($$, "scopedenum");
-		 Setattr($$, "enumbase", $c_enum_inherit);
 		 if ($ename) {
 		   Setattr($$,"name",$ename);
 		   ty = NewStringf("enum %s", $ename);

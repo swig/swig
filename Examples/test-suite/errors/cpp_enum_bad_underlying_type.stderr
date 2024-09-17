@@ -1,0 +1,1 @@
+cpp_enum_bad_underlying_type.i:5: Error: Underlying type of enum must be an integral type
