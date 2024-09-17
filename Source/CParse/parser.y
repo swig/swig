@@ -1843,7 +1843,6 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <str>      storage_class;
 %type <intvalue> storage_class_raw storage_class_list;
 %type <pl>       parms rawparms varargs_parms ;
-%type <pl>       templateparameterstail;
 %type <p>        parm_no_dox parm valparm rawvalparms valparms valptail ;
 %type <p>        typemap_parm tm_list;
 %type <pbuilder> tm_list_builder;
@@ -1873,6 +1872,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <str>      idcolon idcolontail idcolonnt idcolontailnt idtemplate idtemplatetemplate stringbrace stringbracesemi;
 %type <str>      string stringnum wstring;
 %type <tparms>   template_parms;
+%type <pbuilder> template_parms_builder;
 %type <dtype>    cpp_vend;
 %type <intvalue> rename_namewarn;
 %type <ptype>    type_specifier primitive_type_list ;
@@ -4610,12 +4610,27 @@ cpp_template_possible:  c_decl
                 | cpp_conversion_operator
                 ;
 
-template_parms : templateparameter templateparameterstail {
-                      set_nextSibling($templateparameter,$templateparameterstail);
-                      $$ = $templateparameter;
-                   }
-                   | %empty { $$ = 0; }
-                   ;
+template_parms : template_parms_builder {
+		 $$ = $template_parms_builder.parms;
+	       }
+	       | %empty {
+		 $$ = 0;
+	       }
+	       ;
+
+template_parms_builder : templateparameter {
+		    $$.parms = $$.last = $templateparameter;
+		  }
+		  | template_parms_builder[in] COMMA templateparameter {
+		    // Build a linked list in the order specified, but avoiding
+		    // a right recursion rule because "Right recursion uses up
+		    // space on the Bison stack in proportion to the number of
+		    // elements in the sequence".
+		    set_nextSibling($in.last, $templateparameter);
+		    $$.parms = $in.parms;
+		    $$.last = $templateparameter;
+		  }
+		  ;
 
 templateparameter : templcpptype def_args {
 		    $$ = NewParmWithoutFileLineInfo($templcpptype, 0);
@@ -4663,13 +4678,6 @@ templateparameter : templcpptype def_args {
 		    }
                   }
                   ;
-
-templateparameterstail : COMMA templateparameter templateparameterstail[in] {
-                         set_nextSibling($templateparameter,$in);
-                         $$ = $templateparameter;
-                       }
-                       | %empty { $$ = 0; }
-                       ;
 
 /* Namespace support */
 
