@@ -1749,6 +1749,10 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
   int           intvalue;
   enum { INCLUDE_INCLUDE, INCLUDE_IMPORT } includetype;
   Node         *node;
+  struct {
+    Parm       *parms;
+    Parm       *last;
+  } pbuilder;
 };
 
 /* Define special token END for end of input. */
@@ -1841,7 +1845,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <pl>       parms rawparms varargs_parms ;
 %type <pl>       templateparameterstail;
 %type <p>        parm_no_dox parm valparm rawvalparms valparms valptail ;
-%type <p>        typemap_parm tm_list tm_tail ;
+%type <p>        typemap_parm tm_list;
+%type <pbuilder> tm_list_builder;
 %type <p>        templateparameter ;
 %type <type>     templcpptype cpptype;
 %type            classkey classkeyopt;
@@ -2893,17 +2898,23 @@ typemap_type   : kwargs {
                 }
                ;
 
-tm_list        : typemap_parm tm_tail {
-                 $$ = $typemap_parm;
-		 set_nextSibling($$,$tm_tail);
-		}
+tm_list        : tm_list_builder {
+		 $$ = $tm_list_builder.parms;
+	       }
                ;
 
-tm_tail        : COMMA typemap_parm tm_tail[in] {
-                 $$ = $typemap_parm;
-		 set_nextSibling($$,$in);
-                }
-               | %empty { $$ = 0;}
+tm_list_builder: typemap_parm {
+                 $$.parms = $$.last = $typemap_parm;
+	       }
+	       | tm_list_builder[in] COMMA typemap_parm {
+		 // Build a linked list in the order specified, but avoiding
+		 // a right recursion rule because "Right recursion uses up
+		 // space on the Bison stack in proportion to the number of
+		 // elements in the sequence".
+		 set_nextSibling($$.last, $typemap_parm);
+		 $$.parms = $in.parms;
+		 $$.last = $typemap_parm;
+	       }
                ;
 
 typemap_parm   : type plain_declarator {
