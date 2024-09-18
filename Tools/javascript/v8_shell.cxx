@@ -24,10 +24,10 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_ESCAPE(val) return scope.Escape(val)
 
 #define SWIGV8_CURRENT_CONTEXT() v8::Isolate::GetCurrent()->GetCurrentContext()
-#define SWIGV8_STRING_NEW(str) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), str)
+#define SWIGV8_STRING_NEW(str) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), str, v8::NewStringType::kNormal)).ToLocalChecked()
+#define SWIGV8_EXTERNAL_NEW(val) v8::External::New(v8::Isolate::GetCurrent(), val)
 #define SWIGV8_FUNCTEMPLATE_NEW(func) v8::FunctionTemplate::New(v8::Isolate::GetCurrent(), func)
 #define SWIGV8_OBJECT_NEW() v8::Object::New(v8::Isolate::GetCurrent())
-#define SWIGV8_EXTERNAL_NEW(val) v8::External::New(v8::Isolate::GetCurrent(), val)
 #define SWIGV8_UNDEFINED() v8::Undefined(v8::Isolate::GetCurrent())
 
 typedef v8::Local<v8::Context> SwigV8Context;
@@ -79,6 +79,10 @@ private:
 #error "implement dll loading"
 #endif
 
+// This should not really be a global, but the v8 SetHidden() mechanism we
+// used to use to avoid that has gone.
+static V8Shell *the_shell;
+
 V8Shell::V8Shell() {}
 
 V8Shell::~V8Shell() {}
@@ -86,7 +90,8 @@ V8Shell::~V8Shell() {}
 bool V8Shell::RunScript(const std::string &scriptPath) {
   std::string source = ReadFile(scriptPath);
 
-  v8::Isolate *isolate = v8::Isolate::New();
+  v8::Isolate::CreateParams create_params;
+  v8::Isolate *isolate = v8::Isolate::New(create_params);
   v8::Isolate::Scope isolate_scope(isolate);
 
   SWIGV8_HANDLESCOPE();
@@ -101,11 +106,7 @@ bool V8Shell::RunScript(const std::string &scriptPath) {
   context->Enter();
 
   // Store a pointer to this shell for later use
-
-  v8::Handle<v8::Object> global = context->Global();
-  v8::Local<v8::External> __shell__ = SWIGV8_EXTERNAL_NEW((void*) (long) this);
-
-  global->SetHiddenValue(SWIGV8_STRING_NEW("__shell__"), __shell__);
+  the_shell = this;
 
   // Node.js compatibility: make `print` available as `console.log()`
   ExecuteScript("var console = {}; console.log = print;", "<console>");
@@ -169,8 +170,9 @@ bool V8Shell::InitializeEngine() {
 bool V8Shell::ExecuteScript(const std::string &source, const std::string &name) {
   SWIGV8_HANDLESCOPE();
 
-  v8::TryCatch try_catch;
-  v8::Handle<v8::Script> script = v8::Script::Compile(SWIGV8_STRING_NEW(source.c_str()), SWIGV8_STRING_NEW(name.c_str()));
+  v8::TryCatch try_catch(v8::Isolate::GetCurrent());
+  v8::ScriptOrigin origin(v8::Isolate::GetCurrent(), SWIGV8_STRING_NEW(name.c_str()));
+  v8::Handle<v8::Script> script = v8::Script::Compile(SWIGV8_CURRENT_CONTEXT(), SWIGV8_STRING_NEW(source.c_str()), &origin).ToLocalChecked();
 
   // Stop if script is empty
   if (script.IsEmpty()) {
@@ -179,7 +181,7 @@ bool V8Shell::ExecuteScript(const std::string &source, const std::string &name) 
     return false;
   }
 
-  v8::Handle<v8::Value> result = script->Run();
+  v8::Handle<v8::Value> result = script->Run(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
 
   // Print errors that happened during execution.
   if (try_catch.HasCaught()) {
@@ -196,7 +198,7 @@ bool V8Shell::DisposeEngine() {
 
 SwigV8Context V8Shell::CreateShellContext() {
   // Create a template for the global object.
-  v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New();
+  v8::Handle<v8::ObjectTemplate> global = v8::ObjectTemplate::New(v8::Isolate::GetCurrent());
 
   // Bind global functions
   global->Set(SWIGV8_STRING_NEW("print"), SWIGV8_FUNCTEMPLATE_NEW(V8Shell::Print));
@@ -242,7 +244,7 @@ SwigV8ReturnValue V8Shell::Print(const SwigV8Arguments &args) {
     } else {
       printf(" ");
     }
-    v8::String::Utf8Value str(args[i]);
+    v8::String::Utf8Value str(v8::Isolate::GetCurrent(), args[i]);
     const char *cstr = V8Shell::ToCString(str);
     printf("%s", cstr);
   }
@@ -259,17 +261,13 @@ SwigV8ReturnValue V8Shell::Require(const SwigV8Arguments &args) {
     printf("Illegal arguments for `require`");
   }
 
-  v8::String::Utf8Value str(args[0]);
+  v8::String::Utf8Value str(v8::Isolate::GetCurrent(), args[0]);
   const char *cstr = V8Shell::ToCString(str);
   std::string moduleName(cstr);
 
   v8::Local<v8::Object> global = SWIGV8_CURRENT_CONTEXT()->Global();
 
-  v8::Local<v8::Value> hidden = global->GetHiddenValue(SWIGV8_STRING_NEW("__shell__"));
-  v8::Local<v8::External> __shell__ = v8::Local<v8::External>::Cast(hidden);
-  V8Shell *_this = (V8Shell *) (long) __shell__->Value();
-
-  v8::Handle<v8::Value> module = _this->Import(moduleName);
+  v8::Handle<v8::Value> module = the_shell->Import(moduleName);
 
   SWIGV8_RETURN(module);
 }
@@ -277,7 +275,7 @@ SwigV8ReturnValue V8Shell::Require(const SwigV8Arguments &args) {
 SwigV8ReturnValue V8Shell::Quit(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
 
-  int exit_code = args[0]->Int32Value();
+  int exit_code = args[0]->Int32Value(SWIGV8_CURRENT_CONTEXT()).ToChecked();
   fflush(stdout);
   fflush(stderr);
   exit(exit_code);
@@ -293,7 +291,7 @@ SwigV8ReturnValue V8Shell::Version(const SwigV8Arguments &args) {
 void V8Shell::ReportException(v8::TryCatch *try_catch) {
   SWIGV8_HANDLESCOPE();
 
-  v8::String::Utf8Value exception(try_catch->Exception());
+  v8::String::Utf8Value exception(v8::Isolate::GetCurrent(), try_catch->Exception());
   const char *exception_string = V8Shell::ToCString(exception);
   v8::Handle<v8::Message> message = try_catch->Message();
   if (message.IsEmpty()) {
@@ -302,12 +300,12 @@ void V8Shell::ReportException(v8::TryCatch *try_catch) {
     printf("%s\n", exception_string);
   } else {
     // Print (filename):(line number): (message).
-    v8::String::Utf8Value filename(message->GetScriptResourceName());
+    v8::String::Utf8Value filename(v8::Isolate::GetCurrent(), message->GetScriptResourceName());
     const char *filename_string = V8Shell::ToCString(filename);
-    int linenum = message->GetLineNumber();
+    int linenum = message->GetLineNumber(SWIGV8_CURRENT_CONTEXT()).ToChecked();
     printf("%s:%i: %s\n", filename_string, linenum, exception_string);
     // Print line of source code.
-    v8::String::Utf8Value sourceline(message->GetSourceLine());
+    v8::String::Utf8Value sourceline(v8::Isolate::GetCurrent(), message->GetSourceLine(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked());
     const char *sourceline_string = V8Shell::ToCString(sourceline);
     printf("%s\n", sourceline_string);
     // Print wavy underline (GetUnderline is deprecated).
@@ -320,7 +318,7 @@ void V8Shell::ReportException(v8::TryCatch *try_catch) {
       printf("^");
     }
     printf("\n");
-    v8::String::Utf8Value stack_trace(try_catch->StackTrace());
+    v8::String::Utf8Value stack_trace(v8::Isolate::GetCurrent(), try_catch->StackTrace(SWIGV8_CURRENT_CONTEXT(), try_catch->Exception()).ToLocalChecked());
     if (stack_trace.length() > 0) {
       const char *stack_trace_string = V8Shell::ToCString(stack_trace);
       printf("%s\n", stack_trace_string);
