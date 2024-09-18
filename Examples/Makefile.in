@@ -842,7 +842,7 @@ ifeq (jsc, $(ENGINE))
 	fi
 endif
 ifeq (v8, $(ENGINE))
-	echo "Unknown v8 version."
+	@printf '%s\n' '#include <v8-version.h>' 'SWIGMAGICv8: V8_MAJOR_VERSION.V8_MINOR_VERSION.V8_BUILD_NUMBER.V8_PATCH_LEVEL'|$(CXX) $(JSINCLUDES) -xc++ -E -|sed 's/ \. /./g;s/SWIGMAGIC//p;d'
 endif
 
 # -----------------------------------------------------------------
