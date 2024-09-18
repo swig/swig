@@ -91,6 +91,7 @@ bool V8Shell::RunScript(const std::string &scriptPath) {
   std::string source = ReadFile(scriptPath);
 
   v8::Isolate::CreateParams create_params;
+  create_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
   v8::Isolate *isolate = v8::Isolate::New(create_params);
   v8::Isolate::Scope isolate_scope(isolate);
 
