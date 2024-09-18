@@ -1753,6 +1753,10 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
     Parm       *parms;
     Parm       *last;
   } pbuilder;
+  struct {
+    Node       *node;
+    Node       *last;
+  } nodebuilder;
 };
 
 /* Define special token END for end of input. */
@@ -1832,6 +1836,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 /* C++ declarations */
 %type <node>     cpp_declaration cpp_class_decl cpp_forward_class_decl cpp_template_decl;
 %type <node>     cpp_members cpp_member cpp_member_no_dox;
+%type <nodebuilder> cpp_members_builder;
 %type <node>     cpp_constructor_decl cpp_destructor_decl cpp_protection_decl cpp_conversion_operator cpp_static_assert;
 %type <node>     cpp_swig_directive cpp_template_possible cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl cpp_lambda_decl;
@@ -4841,44 +4846,52 @@ Printf(stdout, "  Scope %s [creating single scope C++17 style]\n", scopename);
              }
              ;
 
-cpp_members  : cpp_member cpp_members[in] {
-                   $$ = $cpp_member;
-                   /* Insert cpp_member (including any siblings) to the front of the cpp_members linked list */
-		   if ($$) {
-		     Node *p = $$;
-		     Node *pp =0;
-		     while (p) {
-		       pp = p;
-		       p = nextSibling(p);
-		     }
-		     set_nextSibling(pp,$in);
-		     if ($in)
-		       set_previousSibling($in, pp);
-		   } else {
-		     $$ = $in;
-		   }
-	     }
-	     | cpp_member DOXYGENSTRING /* Misplaced doxygen string after a member, quietly ignore, like Doxygen does */
-             | EXTEND LBRACE { 
-	       extendmode = 1;
-	       if (cplus_mode != CPLUS_PUBLIC) {
-		 Swig_error(cparse_file,cparse_line,"%%extend can only be used in a public section\n");
+cpp_members : cpp_members_builder {
+		 $$ = $cpp_members_builder.node;
 	       }
-             } cpp_members[extend_members] RBRACE {
-	       extendmode = 0;
-	     } cpp_members[in] {
-	       $$ = new_node("extend");
-	       mark_nodes_as_extend($extend_members);
-	       appendChild($$,$extend_members);
-	       set_nextSibling($$,$in);
+	       | cpp_members_builder DOXYGENSTRING {
+		 /* Quietly ignore misplaced doxygen string after a member, like Doxygen does */
+		 $$ = $cpp_members_builder.node;
+	       }
+	       | %empty {
+		 $$ = 0;
+	       }
+	       | DOXYGENSTRING {
+		 /* Quietly ignore misplaced doxygen string in empty class, like Doxygen does */
+		 $$ = 0;
+	       }
+	       | error {
+		 Swig_error(cparse_file, cparse_line, "Syntax error in input(3).\n");
+		 Exit(EXIT_FAILURE);
+	       }
+	       ;
+
+cpp_members_builder : cpp_member {
+	     $$.node = $$.last = $cpp_member;
+	   }
+	   | cpp_members_builder[in] cpp_member {
+	     // Build a linked list in the order specified, but avoiding
+	     // a right recursion rule because "Right recursion uses up
+	     // space on the Bison stack in proportion to the number of
+	     // elements in the sequence".
+	     if ($cpp_member) {
+	       if ($in.node) {
+		 Node *last = $in.last;
+		 /* Advance to the last sibling. */
+		 for (Node *p = last; p; p = nextSibling(p)) {
+		   last = p;
+		 }
+		 set_nextSibling(last, $cpp_member);
+		 set_previousSibling($cpp_member, last);
+		 $$.node = $in.node;
+	       } else {
+		 $$.node = $$.last = $cpp_member;
+	       }
+	     } else {
+	       $$ = $in;
 	     }
-             | include_directive
-             | %empty { $$ = 0;}
-	     | error {
-	       Swig_error(cparse_file,cparse_line,"Syntax error in input(3).\n");
-	       Exit(EXIT_FAILURE);
-	     }
-             ;
+	   }
+	   ;
 
 /* ======================================================================
  *                         C++ Class members
@@ -4914,6 +4927,7 @@ cpp_member_no_dox : c_declaration
              | cpp_using_decl
              | cpp_template_decl
              | cpp_catch_decl
+	     | include_directive
              | template_directive
              | warn_directive
              | anonymous_bitfield { $$ = 0; }
@@ -4929,6 +4943,17 @@ cpp_member   : cpp_member_no_dox
              | cpp_member_no_dox DOXYGENPOSTSTRING {
 	         $$ = $cpp_member_no_dox;
 		 set_comment($cpp_member_no_dox, $DOXYGENPOSTSTRING);
+	     }
+	     | EXTEND LBRACE {
+	       extendmode = 1;
+	       if (cplus_mode != CPLUS_PUBLIC) {
+		 Swig_error(cparse_file,cparse_line,"%%extend can only be used in a public section\n");
+	       }
+	     } cpp_members RBRACE {
+	       extendmode = 0;
+	       $$ = new_node("extend");
+	       mark_nodes_as_extend($cpp_members);
+	       appendChild($$, $cpp_members);
 	     }
              ;
 

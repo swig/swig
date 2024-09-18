@@ -183,6 +183,11 @@
       int bbbb; //! not for bbbb value, is quietly ignored by Doxygen and SWIG
     };
 
+    struct OrphanedComment
+    {
+      /** Doxygen quietly ignores this; SWIG < 4.3.0 gave parse error. */
+    };
+
     #include "doxygen_misc_constructs.h"
 
 %}
