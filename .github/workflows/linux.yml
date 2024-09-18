@@ -511,12 +511,13 @@ jobs:
                 ;;
               scilab)
                 case $VER in
-                  ""|6.*|2023.*|2024.0.*)
+                  ""|6.*|2023.*|2024.0.*|2024.1.*)
                     # Some older versions of scilab sporadically fail with:
                     # terminate called after throwing an instance of 'std::filesystem::__cxx11::filesystem_error'
-                    # #2942 says "this issue was fixed in Scilab 2024.1.0"
-                    # and that it was probably introduced in 6.x (we've
-                    # seen it with 6.1.0.0, but haven't with 5.x).
+                    # #2942 says that it was probably introduced in 6.x (we've
+                    # seen it with 6.1.0.0, but haven't with 5.x); it also says
+                    # "this issue was fixed in Scilab 2024.1.0" but we are
+                    # still seeing sporadic failures with that version.
                     unset SWIGJOBS
                     ;;
                 esac
