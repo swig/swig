@@ -755,7 +755,7 @@ endif
 NAPI_DIR = @NODENAPI_DIR@
 
 javascript_wrapper:
-ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
+ifneq (jsc,$(JSENGINE))
 	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
 else
 	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
@@ -771,6 +771,9 @@ ifeq (node,$(JSENGINE))
 else ifeq (napi,$(JSENGINE))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
 	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+else ifeq (v8,$(JSENGINE))
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CCSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
