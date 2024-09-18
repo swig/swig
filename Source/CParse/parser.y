@@ -2732,19 +2732,7 @@ rename_namewarn : RENAME {
    ------------------------------------------------------------ */
 
                   /* Non-global feature */
-feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbracesemi {
-                    String *val = $stringbracesemi ? NewString($stringbracesemi) : NewString("1");
-                    new_feature($idstring, val, 0, $declarator.id, $declarator.type, $declarator.parms, $cpp_const.qualifier);
-                    $$ = 0;
-                    scanner_clear_rename();
-                  }
-                  | FEATURE LPAREN idstring COMMA stringnum RPAREN declarator cpp_const SEMI {
-                    String *val = Len($stringnum) ? $stringnum : 0;
-                    new_feature($idstring, val, 0, $declarator.id, $declarator.type, $declarator.parms, $cpp_const.qualifier);
-                    $$ = 0;
-                    scanner_clear_rename();
-                  }
-                  | FEATURE LPAREN idstring featattr RPAREN declarator cpp_const stringbracesemi {
+feature_directive : FEATURE LPAREN idstring featattr RPAREN declarator cpp_const stringbracesemi {
                     String *val = $stringbracesemi ? NewString($stringbracesemi) : NewString("1");
                     new_feature($idstring, val, $featattr, $declarator.id, $declarator.type, $declarator.parms, $cpp_const.qualifier);
                     $$ = 0;
@@ -2758,18 +2746,6 @@ feature_directive : FEATURE LPAREN idstring RPAREN declarator cpp_const stringbr
                   }
 
                   /* Global feature */
-                  | FEATURE LPAREN idstring RPAREN stringbracesemi {
-                    String *val = $stringbracesemi ? NewString($stringbracesemi) : NewString("1");
-                    new_feature($idstring, val, 0, 0, 0, 0, 0);
-                    $$ = 0;
-                    scanner_clear_rename();
-                  }
-                  | FEATURE LPAREN idstring COMMA stringnum RPAREN SEMI {
-                    String *val = Len($stringnum) ? $stringnum : 0;
-                    new_feature($idstring, val, 0, 0, 0, 0, 0);
-                    $$ = 0;
-                    scanner_clear_rename();
-                  }
                   | FEATURE LPAREN idstring featattr RPAREN stringbracesemi {
                     String *val = $stringbracesemi ? NewString($stringbracesemi) : NewString("1");
                     new_feature($idstring, val, $featattr, 0, 0, 0, 0);
@@ -2789,17 +2765,15 @@ stringbracesemi : stringbrace
                 | PARMS LPAREN parms RPAREN SEMI { $$ = $parms; } 
                 ;
 
-featattr        : COMMA idstring EQUAL stringnum {
+featattr        : COMMA idstring EQUAL stringnum featattr[in] {
 		  $$ = NewHash();
 		  Setattr($$,"name",$idstring);
 		  Setattr($$,"value",$stringnum);
-                }
-                | COMMA idstring EQUAL stringnum featattr[in] {
-		  $$ = NewHash();
-		  Setattr($$,"name",$idstring);
-		  Setattr($$,"value",$stringnum);
-                  set_nextSibling($$,$in);
-                }
+		  if ($in) set_nextSibling($$, $in);
+		}
+		| %empty {
+		  $$ = 0;
+		}
 		;
 
 /* %varargs() directive. */
