@@ -1843,7 +1843,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <str>      storage_class;
 %type <intvalue> storage_class_raw storage_class_list;
 %type <pl>       parms rawparms varargs_parms ;
-%type <p>        parm_no_dox parm valparm rawvalparms valparms valptail ;
+%type <p>        parm_no_dox parm valparm valparms;
+%type <pbuilder> valparms_builder;
 %type <p>        typemap_parm tm_list;
 %type <pbuilder> tm_list_builder;
 %type <p>        templateparameter ;
@@ -5358,33 +5359,32 @@ parm		: parm_no_dox
 		}
 		;
 
-valparms        : rawvalparms {
-                 Parm *p;
-		 $$ = $rawvalparms;
-		 p = $rawvalparms;
-                 while (p) {
+valparms : valparms_builder {
+		 $$ = $valparms_builder.parms;
+                 for (Parm *p = $$; p; p = nextSibling(p)) {
 		   if (Getattr(p,"type")) {
 		     Replace(Getattr(p,"type"),"typename ", "", DOH_REPLACE_ANY);
 		   }
-		   p = nextSibling(p);
                  }
-               }
-    	       ;
+	       }
+	       | %empty {
+		 $$ = 0;
+	       }
+	       ;
 
-rawvalparms     : valparm valptail {
-                  set_nextSibling($valparm,$valptail);
-                  $$ = $valparm;
-		}
-               | %empty { $$ = 0; }
-               ;
-
-valptail       : COMMA valparm valptail[in] {
-                 set_nextSibling($valparm,$in);
-		 $$ = $valparm;
-                }
-               | %empty { $$ = 0; }
-               ;
-
+valparms_builder : valparm {
+		    $$.parms = $$.last = $valparm;
+		  }
+		  | valparms_builder[in] COMMA valparm {
+		    // Build a linked list in the order specified, but avoiding
+		    // a right recursion rule because "Right recursion uses up
+		    // space on the Bison stack in proportion to the number of
+		    // elements in the sequence".
+		    set_nextSibling($in.last, $valparm);
+		    $$.parms = $in.parms;
+		    $$.last = $valparm;
+		  }
+		  ;
 
 valparm        : parm {
 		  $$ = $parm;
