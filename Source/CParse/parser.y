@@ -6249,7 +6249,7 @@ type_qualifier : type_qualifier_raw {
 	          $$ = NewStringEmpty();
 	          if ($type_qualifier_raw) SwigType_add_qualifier($$,$type_qualifier_raw);
                }
-               | type_qualifier_raw type_qualifier[in] {
+               | type_qualifier[in] type_qualifier_raw {
 		  $$ = $in;
 	          if ($type_qualifier_raw) SwigType_add_qualifier($$,$type_qualifier_raw);
                }
