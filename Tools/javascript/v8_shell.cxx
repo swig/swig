@@ -176,7 +176,7 @@ bool V8Shell::ExecuteScript(const std::string &source, const std::string &name) 
   SWIGV8_HANDLESCOPE();
 
   v8::TryCatch try_catch(v8::Isolate::GetCurrent());
-#if SWIGV8_VERSION < 0x0900
+#if V8_MAJOR_VERSION < 9
   v8::ScriptOrigin origin(SWIGV8_STRING_NEW(name.c_str()));
 #else
   v8::ScriptOrigin origin(v8::Isolate::GetCurrent(), SWIGV8_STRING_NEW(name.c_str()));
@@ -327,7 +327,7 @@ void V8Shell::ReportException(v8::TryCatch *try_catch) {
       printf("^");
     }
     printf("\n");
-    v8::String::Utf8Value stack_trace(v8::Isolate::GetCurrent(), try_catch->StackTrace(SWIGV8_CURRENT_CONTEXT(), try_catch->Exception()).ToLocalChecked());
+    v8::String::Utf8Value stack_trace(v8::Isolate::GetCurrent(), try_catch->StackTrace(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked());
     if (stack_trace.length() > 0) {
       const char *stack_trace_string = V8Shell::ToCString(stack_trace);
       printf("%s\n", stack_trace_string);
