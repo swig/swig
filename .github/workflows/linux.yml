@@ -45,16 +45,12 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: javascript
           ENGINE: v8
-          CONFIGOPTS: --with-jsv8inc=/usr/include/v8
-          CONFIGOPTS2: --with-jsv8lib=/usr/lib/x86_64-linux-gnu
           CSTD: c++14
           CPPSTD: c++14
           VER: '7.8' # oldest we can easily test as libnode-dev in 20.04 doesn't have the V8 headers
           os: ubuntu-22.04
         - SWIGLANG: javascript
           ENGINE: v8
-          CONFIGOPTS: --with-jsv8inc=/usr/include/v8
-          CONFIGOPTS2: --with-jsv8lib=/usr/lib/x86_64-linux-gnu
           CSTD: c++14
           CPPSTD: c++14
           VER: '10.2'
@@ -72,8 +68,6 @@ jobs:
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
-      CONFIGOPTS: ${{ matrix.CONFIGOPTS }}
-      CONFIGOPTS2: ${{ matrix.CONFIGOPTS2 }}
       PY_ABI_VER: ${{ matrix.PY_ABI_VER }}
 
     steps:
@@ -171,7 +165,6 @@ jobs:
           if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
           if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
-          if test -n "$CONFIGOPTS2"; then CONFIGOPTS+=("$CONFIGOPTS2"); fi
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 
