@@ -692,6 +692,11 @@ class Allocate:public Dispatcher {
     } else if (SwigType_isarray(type)) {
       SwigType *array_type = SwigType_array_type(type);
       assignable = is_assignable_type(array_type);
+    } else if (SwigType_isreference(type) || SwigType_isrvalue_reference(type)) {
+      SwigType *base_type = Copy(type);
+      SwigType_del_element(base_type);
+      assignable = is_assignable_type(base_type);
+      Delete(base_type);
     }
     return assignable;
   }

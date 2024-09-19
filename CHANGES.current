@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-19: wsfulton
+            #2866 Fix incorrect variable setters being generated when wrapping
+            reference member variables. A setter is no longer generated if the
+            type of the reference member variable is non-assignable.
+
 2024-09-18: olly
 	    Fix parse error for a misplaced Doxygen comment which is the only
 	    thing in a class/struct.
