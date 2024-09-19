@@ -48,13 +48,15 @@ jobs:
           CONFIGOPTS: --with-jsv8inc=/usr/include/v8
           CONFIGOPTS2: --with-jsv8lib=/usr/lib/x86_64-linux-gnu
           CPPSTD: c++14
-          os: ubuntu-22.04 # v8 7.8; libnode-dev in 20.04 doesn't have the V8 headers
+          VER: '7.8' # oldest we can easily test as libnode-dev in 20.04 doesn't have the V8 headers
+          os: ubuntu-22.04
         - SWIGLANG: javascript
           ENGINE: v8
           CONFIGOPTS: --with-jsv8inc=/usr/include/v8
           CONFIGOPTS2: --with-jsv8lib=/usr/lib/x86_64-linux-gnu
           CPPSTD: c++14
-          os: ubuntu-24.04 # v8 10.2
+          VER: '10.2'
+          os: ubuntu-24.04
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 

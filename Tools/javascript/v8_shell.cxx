@@ -176,7 +176,11 @@ bool V8Shell::ExecuteScript(const std::string &source, const std::string &name) 
   SWIGV8_HANDLESCOPE();
 
   v8::TryCatch try_catch(v8::Isolate::GetCurrent());
+#if SWIGV8_VERSION < 0x0900
+  v8::ScriptOrigin origin(SWIGV8_STRING_NEW(name.c_str()));
+#else
   v8::ScriptOrigin origin(v8::Isolate::GetCurrent(), SWIGV8_STRING_NEW(name.c_str()));
+#endif
   v8::Handle<v8::Script> script = v8::Script::Compile(SWIGV8_CURRENT_CONTEXT(), SWIGV8_STRING_NEW(source.c_str()), &origin).ToLocalChecked();
 
   // Stop if script is empty
