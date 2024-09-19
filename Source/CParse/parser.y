@@ -1861,7 +1861,8 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
-%type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem callparms callptail;
+%type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
+%type <str>      callparms rawcallparms;
 %type <id>       ename ;
 %type <id>       less_valparms_greater;
 %type <str>      type_qualifier;
@@ -5423,23 +5424,19 @@ valparm        : parm {
                }
                ;
 
-callparms      : valexpr callptail {
-		 $$ = $valexpr;
-		 Printf($$.val, "%s", $callptail.val);
-	       }
+callparms      : rawcallparms
 	       | %empty {
-	         $$ = default_dtype;
-		 $$.val = NewStringEmpty();
+		 $$ = 0;
 	       }
 	       ;
 
-callptail      : COMMA valexpr callptail[in] {
-	         $$ = default_dtype;
-		 $$.val = NewStringf(",%s%s", $valexpr.val, $in.val);
+rawcallparms   : rawcallparms[in] COMMA valexpr {
+		 $$ = $in;
+		 Printf($in, ",%s", $valexpr.val);
+		 Delete($valexpr.val);
 	       }
-	       | %empty {
-	         $$ = default_dtype;
-		 $$.val = NewStringEmpty();
+	       | valexpr {
+		 $$ = $valexpr.val;
 	       }
 	       ;
 
@@ -6663,7 +6660,8 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 	       }
 	       | ID[lhs] ARROW ID[rhs] LPAREN callparms RPAREN {
 		 $$ = default_dtype;
-		 $$.val = NewStringf("%s->%s(%s)", $lhs, $rhs, $callparms.val);
+		 $$.val = NewStringf("%s->%s(%s)", $lhs, $rhs, $callparms);
+		 Delete($callparms);
 	       }
 	       | exprmem[in] ARROW ID {
 		 $$ = $in;
@@ -6671,7 +6669,8 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 	       }
 	       | exprmem[in] ARROW ID LPAREN callparms RPAREN {
 		 $$ = $in;
-		 Printf($$.val, "->%s(%s)", $ID, $callparms.val);
+		 Printf($$.val, "->%s(%s)", $ID, $callparms);
+		 Delete($callparms);
 	       }
 	       | ID[lhs] PERIOD ID[rhs] {
 		 $$ = default_dtype;
@@ -6679,7 +6678,8 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 	       }
 	       | ID[lhs] PERIOD ID[rhs] LPAREN callparms RPAREN {
 		 $$ = default_dtype;
-		 $$.val = NewStringf("%s.%s(%s)", $lhs, $rhs, $callparms.val);
+		 $$.val = NewStringf("%s.%s(%s)", $lhs, $rhs, $callparms);
+		 Delete($callparms);
 	       }
 	       | exprmem[in] PERIOD ID {
 		 $$ = $in;
@@ -6687,7 +6687,8 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 	       }
 	       | exprmem[in] PERIOD ID LPAREN callparms RPAREN {
 		 $$ = $in;
-		 Printf($$.val, ".%s(%s)", $ID, $callparms.val);
+		 Printf($$.val, ".%s(%s)", $ID, $callparms);
+		 Delete($callparms);
 	       }
 	       ;
 
