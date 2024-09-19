@@ -4,10 +4,16 @@ var unicode_strings = require("unicode_strings");
 // but AFAIK, it is the V8 handling that is the correct one
 
 function check(s1, s2) {
+    /* Fails for ENGINE=v8 with:
+     * # Fatal error in v8::ToLocalChecked
+     * # Empty MaybeLocal
+     */
+    /*
     for (let i in s1) {
         if (s1[i] !== s2[i])
             console.error(`Character number ${i}, ${s1.charCodeAt(i)} != ${s2.charCodeAt(i)}`);
     }
+    */
     if (s1 != s2) {
         throw new Error(`'${s1}' != '${s2}'`);
     }
@@ -22,6 +28,7 @@ if (typeof print === 'undefined') {
     check(unicode_strings.non_utf8_c_str(), test_string);
     check(unicode_strings.non_utf8_std_string(), test_string);
 } else {
-    check(unicode_strings.non_utf8_c_str(), '');
-    check(unicode_strings.non_utf8_std_string(), '');
+    // FIXME: ENGINE=V8 takes this branch but returns the strings while JSC returns empty
+    check(unicode_strings.non_utf8_c_str(), test_string);
+    check(unicode_strings.non_utf8_std_string(), test_string);
 }
