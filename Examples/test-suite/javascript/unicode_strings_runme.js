@@ -24,11 +24,10 @@ function check(s1, s2) {
 // JSC silently refuses it
 test_string = "h\ufffdllo w\u00f6rld";
 
-if (typeof print === 'undefined') {
+if (typeof version !== 'undefined') {
     check(unicode_strings.non_utf8_c_str(), test_string);
     check(unicode_strings.non_utf8_std_string(), test_string);
 } else {
-    // FIXME: ENGINE=V8 takes this branch but returns the strings while JSC returns empty
-    check(unicode_strings.non_utf8_c_str(), test_string);
-    check(unicode_strings.non_utf8_std_string(), test_string);
+    check(unicode_strings.non_utf8_c_str(), '');
+    check(unicode_strings.non_utf8_std_string(), '');
 }
