@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <libplatform/libplatform.h>
 #include <v8.h>
 #include <vector>
 
@@ -89,6 +90,9 @@ V8Shell::~V8Shell() {}
 
 bool V8Shell::RunScript(const std::string &scriptPath) {
   std::string source = ReadFile(scriptPath);
+
+  v8::V8::InitializePlatform(v8::platform::NewDefaultPlatform().release());
+  v8::V8::Initialize();
 
   v8::Isolate::CreateParams create_params;
   create_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
