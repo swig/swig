@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-20: olly
+	    [Javascript] Fix problems with v8 support.  The tests and examples
+	    now work, and configure can now successfully probe for v8 without
+	    assistance on Debian and Ubuntu.
+
 2024-09-19: wsfulton
             #2866 Fix incorrect variable setters being generated when wrapping
             reference member variables. A setter is no longer generated if the

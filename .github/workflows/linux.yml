@@ -335,6 +335,18 @@ jobs:
           CPPSTD: c++20
           GCC: 13
           os: ubuntu-22.04
+        - SWIGLANG: javascript
+          ENGINE: v8
+          CSTD: c++14
+          CPPSTD: c++14
+          VER: '7.8' # oldest we can easily test as libnode-dev in 20.04 doesn't have the V8 headers
+          os: ubuntu-22.04
+        - SWIGLANG: javascript
+          ENGINE: v8
+          CSTD: c++14
+          CPPSTD: c++14
+          VER: '10.2'
+          os: ubuntu-24.04
         # Experimental languages (these are allowed to fail)
         - SWIGLANG: mzscheme
           continue-on-error: true
