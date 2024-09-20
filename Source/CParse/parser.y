@@ -2051,6 +2051,7 @@ declaration    : swig_directive
 
                | error CONVERSIONOPERATOR {
                   $$ = 0;
+		  Delete($CONVERSIONOPERATOR);
                   skip_decl();
                }
                ;
@@ -5034,6 +5035,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 Setattr($$,"parms",$parms);
 		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
+		 Delete($CONVERSIONOPERATOR);
               }
                | storage_class CONVERSIONOPERATOR type AND LPAREN parms RPAREN cpp_vend {
 		 SwigType *decl;
@@ -5055,6 +5057,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 Setattr($$,"parms",$parms);
 		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
+		 Delete($CONVERSIONOPERATOR);
 	       }
                | storage_class CONVERSIONOPERATOR type LAND LPAREN parms RPAREN cpp_vend {
 		 SwigType *decl;
@@ -5076,6 +5079,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 Setattr($$,"parms",$parms);
 		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
+		 Delete($CONVERSIONOPERATOR);
 	       }
 
                | storage_class CONVERSIONOPERATOR type pointer AND LPAREN parms RPAREN cpp_vend {
@@ -5099,6 +5103,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 Setattr($$,"parms",$parms);
 		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
+		 Delete($CONVERSIONOPERATOR);
 	       }
 
               | storage_class CONVERSIONOPERATOR type LPAREN parms RPAREN cpp_vend {
@@ -5119,6 +5124,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		Setattr($$,"parms",$parms);
 		Setattr($$,"conversion_operator","1");
 		add_symbols($$);
+		Delete($CONVERSIONOPERATOR);
               }
               ;
 
@@ -7556,13 +7562,15 @@ idcolon        : idtemplate idcolontail {
 		 $$ = NewStringf("::%s",$idtemplatetemplate);
                }
                | OPERATOR %expect 1 {
-                 $$ = NewStringf("%s", $OPERATOR);
+		 $$ = $OPERATOR;
 	       }
                | OPERATOR less_valparms_greater {
-                 $$ = NewStringf("%s%s", $OPERATOR, $less_valparms_greater);
+		 $$ = $OPERATOR;
+		 Append($$, $less_valparms_greater);
 	       }
                | NONID DCOLON OPERATOR {
-                 $$ = NewStringf("::%s",$OPERATOR);
+		 $$ = $OPERATOR;
+		 Insert($$, 0, "::");
                }
                ;
 
@@ -7574,10 +7582,11 @@ idcolontail    : DCOLON idtemplatetemplate idcolontail[in] {
                    $$ = NewStringf("::%s",$idtemplatetemplate);
                }
                | DCOLON OPERATOR {
-                   $$ = NewStringf("::%s",$OPERATOR);
+		   $$ = $OPERATOR;
+		   Insert($$, 0, "::");
                }
 /*               | DCOLON CONVERSIONOPERATOR {
-                 $$ = NewString($CONVERSIONOPERATOR);                 
+		 $$ = $CONVERSIONOPERATOR;
 		 } */
 
                | DCNOT idtemplate {
@@ -7616,10 +7625,11 @@ idcolonnt     : identifier idcolontailnt {
 		 $$ = NewStringf("::%s",$identifier);
                }
                | OPERATOR {
-                 $$ = NewString($OPERATOR);
+		 $$ = $OPERATOR;
 	       }
                | NONID DCOLON OPERATOR {
-                 $$ = NewStringf("::%s",$OPERATOR);
+		 $$ = $OPERATOR;
+		 Insert($$, 0, "::");
                }
                ;
 
@@ -7631,7 +7641,8 @@ idcolontailnt   : DCOLON identifier idcolontailnt[in] {
                    $$ = NewStringf("::%s",$identifier);
                }
                | DCOLON OPERATOR {
-                   $$ = NewStringf("::%s",$OPERATOR);
+		   $$ = $OPERATOR;
+		   Insert($$, 0, "::");
                }
                | DCNOT identifier {
 		 $$ = NewStringf("::~%s",$identifier);
