@@ -817,7 +817,7 @@ javascript_cpp: $(SRCDIR_SRCS) javascript_custom_interpreter
 # -----------------------------------------------------------------
 
 javascript_custom_interpreter:
-	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
+	$(MAKE) -C $(ROOT_DIR)/Tools/javascript JSENGINE='$(JSENGINE)'
 
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 javascript_run:
@@ -865,7 +865,7 @@ javascript_clean:
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *@SO@
 	rm -f binding.gyp example-gypcopy.cxx
-	cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean
+	$(MAKE) -C $(ROOT_DIR)/Tools/javascript -s clean
 
 ##################################################################
 #####                       LUA                             ######

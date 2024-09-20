@@ -229,7 +229,7 @@ syntax_check_testcase = \
 
 # Compiles C files then runs the testcase unconditionally.
 do_run_testcase = \
-	cd $* && $(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	$(MAKE) -C $* -f $(top_builddir)/$(EXAMPLES)/Makefile \
 	  SRCDIR='$(SRCDIR)' \
 	  RUNME=$*$(RUNMESUFFIX) \
 	  RUNME_EXT=$(patsubst .%,%,$(suffix $(wildcard $(srcdir)/$*$(RUNMESUFFIX).c*))) \
