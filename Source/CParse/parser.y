@@ -1857,7 +1857,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type            classkey classkeyopt;
 %type <id>       access_specifier;
 %type <node>     base_specifier;
-%type <str>      variadic_opt;
+%type <intvalue> variadic_opt;
 %type <type>     type rawtype type_right anon_bitfield_type decltype decltypeexpr cpp_alternate_rettype;
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
@@ -7263,7 +7263,7 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
                ;
 
 variadic_opt  : ELLIPSIS {
-	        $$ = NewString("...");
+		$$ = 1;
 	      }
 	      | %empty {
 	        $$ = 0;
