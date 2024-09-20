@@ -486,16 +486,6 @@ jobs:
             make $SWIGJOBS check-errors-test-suite
           else
             case "$SWIGLANG" in
-              javascript)
-                case "$ENGINE" in
-                  v8 | jsc)
-                    # Running tests using v8 or jsc involves creating a custom
-                    # interpreter in Tools/javascript, which is currently broken
-                    # for parallel builds (we attempt to update this interpreter
-                    # while running, resulting in "Text file busy" error).
-                    unset SWIGJOBS
-                esac
-                ;;
               ocaml)
                 # `make check-ocaml-test-suite` fails with parallel make with:
                 #

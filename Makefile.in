@@ -198,8 +198,19 @@ ruby_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/ruby/check.list)
 scilab_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/scilab/check.list)
 tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 
+# Running tests using v8 or jsc involves creating a custom interpreter in
+# Tools/javascript.  This causes problems for parallel builds (we attempt to
+# update this interpreter when it's already running, resulting in a "Text file
+# busy" error).  We can avoid this by ensuring we have built the custom
+# interpreter before running the tests.
+check-javascript-prepare:
+	@case $(ENGINE) in jsc|v8) cd Tools/javascript && $(MAKE) javascript ;; esac
+
+check-%-prepare:
+	@:
+
 # all examples
-check-%-examples :
+check-%-examples : check-%-prepare
 	@if test -z "$(skip-$*)"; then				\
 	  echo $* unknown;					\
 	  exit 1;						\
@@ -240,7 +251,7 @@ check-test-suite:				\
 	check-scilab-test-suite			\
 	check-tcl-test-suite			\
 
-check-%-test-suite:
+check-%-test-suite: check-%-prepare
 	@if test -z "$(skip-$*)"; then					\
 	  echo $* unknown;						\
 	  exit 1;							\
