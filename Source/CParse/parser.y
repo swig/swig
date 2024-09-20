@@ -2005,6 +2005,7 @@ interface      : interface[in] declaration {
                    $$ = $in;
                }
                | interface[in] DOXYGENSTRING {
+		   Delete(currentDeclComment);
                    currentDeclComment = $DOXYGENSTRING; 
                    $$ = $in;
                }
@@ -2012,7 +2013,9 @@ interface      : interface[in] declaration {
                    Node *node = lastChild($in);
                    if (node) {
                      set_comment(node, $DOXYGENPOSTSTRING);
-                   }
+		   } else {
+		     Delete($DOXYGENPOSTSTRING);
+		   }
                    $$ = $in;
                }
                | %empty {
@@ -2312,6 +2315,7 @@ fragment_directive: FRAGMENT LPAREN fname COMMA kwargs RPAREN HBLOCK {
 		   Setattr($$,"section",Getattr(p,"name"));
 		   Setattr($$,"kwargs",nextSibling(p));
 		   Setattr($$,"code",$HBLOCK);
+		   Delete($HBLOCK);
                  }
                  | FRAGMENT LPAREN fname COMMA kwargs RPAREN LBRACE {
 		   Hash *p = $kwargs;
@@ -2423,10 +2427,9 @@ inline_directive : INLINE HBLOCK {
 		   Setfile($HBLOCK,cparse_file);
 		   cpps = Preprocessor_parse($HBLOCK);
 		   scanner_start_inline(cpps, cparse_start_line);
-		   Delete($HBLOCK);
 		   Delete(cpps);
 		 }
-		 
+		 Delete($HBLOCK);
 	       }
                | INLINE LBRACE {
                  String *cpps;
@@ -2465,6 +2468,7 @@ inline_directive : INLINE HBLOCK {
 insert_directive : HBLOCK {
                  $$ = new_node("insert");
 		 Setattr($$,"code",$HBLOCK);
+		 Delete($HBLOCK);
 	       }
                | INSERT LPAREN idstring RPAREN string {
 		 String *code = NewStringEmpty();
@@ -2480,6 +2484,7 @@ insert_directive : HBLOCK {
 		 $$ = new_node("insert");
 		 Setattr($$,"section",$idstring);
 		 Setattr($$,"code",$HBLOCK);
+		 Delete($HBLOCK);
                }
                | INSERT LPAREN idstring RPAREN LBRACE {
 		 String *code;
@@ -3386,6 +3391,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 
 	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
+	      Delete($storage_class);
            }
 	   | storage_class type declarator cpp_const EQUAL error SEMI {
 	      String *decl = $declarator.type;
@@ -3431,6 +3437,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 
 	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
+	      Delete($storage_class);
 	   }
            /* Alternate function syntax introduced in C++11:
               auto funcName(int x, int y) -> int; */
@@ -3490,6 +3497,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 
 	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
+	      Delete($storage_class);
            }
            /* C++14 allows the trailing return type to be omitted.  It's
             * probably not feasible for SWIG to deduce it but we should
@@ -3537,6 +3545,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 
 	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
+	      Delete($storage_class);
 	   }
 	   /* C++11 auto variable declaration. */
 	   | storage_class AUTO idcolon EQUAL definetype SEMI {
@@ -3552,6 +3561,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      if ($definetype.stringval) Setattr($$, "stringval", $definetype.stringval);
 	      if ($definetype.numval) Setattr($$, "numval", $definetype.numval);
 	      Setattr($$, "valuetype", type);
+	      Delete($storage_class);
 	   }
 	   ;
 
@@ -3715,6 +3725,7 @@ c_enum_forward_decl : storage_class c_enum_key ename c_enum_inherit SEMI {
 		   Setattr($$, "enumbase", $c_enum_inherit);
 		   Setattr($$,"type",ty);
 		   Setattr($$,"sym:weak", "1");
+		   Delete($storage_class);
 		   add_symbols($$);
 	      }
               ;
@@ -3752,6 +3763,7 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 		    Delete(Namespaceprefix);
 		    Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		  }
+		  Delete($storage_class);
                }
 	       | storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBRACE declarator cpp_const initializer c_decl_tail {
 		 Node *n;
@@ -3846,6 +3858,7 @@ c_enum_decl :  storage_class c_enum_key ename c_enum_inherit LBRACE enumlist RBR
 		 }
 
 	         add_symbols(n);
+		 Delete($storage_class);
 		 Delete(unnamed);
 	       }
                ;
@@ -3894,9 +3907,8 @@ c_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 			Setattr($$,"final",$ctor_end.final);
 			err = 0;
 		      }
-		    } else {
-		      Delete($storage_class);
 		    }
+		    Delete($storage_class);
 		    if (err) {
 		      Swig_error(cparse_file,cparse_line,"Syntax error in input(2).\n");
 		      Exit(EXIT_FAILURE);
@@ -4164,6 +4176,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		   Delete(Namespaceprefix);
 		   Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 		   Classprefix = currentOuterClass ? Getattr(currentOuterClass, "Classprefix") : 0;
+		   Delete($storage_class);
 	       }
 
 /* An unnamed struct, possibly with a typedef */
@@ -4319,6 +4332,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 	       Delete(Namespaceprefix);
 	       Namespaceprefix = Swig_symbol_qualifiedscopename(0);
 	       Classprefix = currentOuterClass ? Getattr(currentOuterClass, "Classprefix") : 0;
+	       Delete($storage_class);
               }
              ;
 
@@ -4828,6 +4842,7 @@ cpp_members : cpp_members_builder {
 	       | cpp_members_builder DOXYGENSTRING {
 		 /* Quietly ignore misplaced doxygen string after a member, like Doxygen does */
 		 $$ = $cpp_members_builder.node;
+		 Delete($DOXYGENSTRING);
 	       }
 	       | %empty {
 		 $$ = 0;
@@ -4835,6 +4850,7 @@ cpp_members : cpp_members_builder {
 	       | DOXYGENSTRING {
 		 /* Quietly ignore misplaced doxygen string in empty class, like Doxygen does */
 		 $$ = 0;
+		 Delete($DOXYGENSTRING);
 	       }
 	       | error {
 		 Swig_error(cparse_file, cparse_line, "Syntax error in input(3).\n");
@@ -4970,8 +4986,8 @@ cpp_constructor_decl : storage_class type LPAREN parms RPAREN ctor_end {
 		  Setattr($$, "numval", $ctor_end.numdefarg);
 	      } else {
 		$$ = 0;
-		Delete($storage_class);
               }
+	      Delete($storage_class);
               }
               ;
 
@@ -5012,6 +5028,7 @@ cpp_destructor_decl : storage_class NOT idtemplate LPAREN parms RPAREN cpp_vend 
 	       if ($cpp_vend.qualifier)
 		 Swig_error(cparse_file, cparse_line, "Destructor %s %s cannot have a qualifier.\n", Swig_name_decl($$), SwigType_str($cpp_vend.qualifier, 0));
 	       add_symbols($$);
+	       Delete($storage_class);
 	      }
               ;
 
@@ -5036,6 +5053,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
 		 Delete($CONVERSIONOPERATOR);
+		 Delete($storage_class);
               }
                | storage_class CONVERSIONOPERATOR type AND LPAREN parms RPAREN cpp_vend {
 		 SwigType *decl;
@@ -5058,6 +5076,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
 		 Delete($CONVERSIONOPERATOR);
+		 Delete($storage_class);
 	       }
                | storage_class CONVERSIONOPERATOR type LAND LPAREN parms RPAREN cpp_vend {
 		 SwigType *decl;
@@ -5080,6 +5099,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
 		 Delete($CONVERSIONOPERATOR);
+		 Delete($storage_class);
 	       }
 
                | storage_class CONVERSIONOPERATOR type pointer AND LPAREN parms RPAREN cpp_vend {
@@ -5104,6 +5124,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		 Setattr($$,"conversion_operator","1");
 		 add_symbols($$);
 		 Delete($CONVERSIONOPERATOR);
+		 Delete($storage_class);
 	       }
 
               | storage_class CONVERSIONOPERATOR type LPAREN parms RPAREN cpp_vend {
@@ -5125,6 +5146,7 @@ cpp_conversion_operator : storage_class CONVERSIONOPERATOR type pointer LPAREN p
 		Setattr($$,"conversion_operator","1");
 		add_symbols($$);
 		Delete($CONVERSIONOPERATOR);
+		Delete($storage_class);
               }
               ;
 
