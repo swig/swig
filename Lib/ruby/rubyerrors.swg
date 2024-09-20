@@ -8,8 +8,7 @@
 
 
 /* Define custom exceptions for errors that do not map to existing Ruby
-   exceptions.  Note this only works for C++ since a global cannot be
-   initialized by a function in C.  For C, fallback to rb_eRuntimeError.*/
+   exceptions. */
 
 SWIGINTERN VALUE 
 getNullReferenceError(void) {
