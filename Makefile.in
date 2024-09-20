@@ -153,7 +153,7 @@ check-%-version :
 	  echo skipping $* version;				\
 	else							\
 	  echo showing $* version;				\
-	  $(MAKE) -C Examples $(FLAGS) $*_version 		\
+	  $(MAKE) -C Examples $(FLAGS) $*_version;		\
 	fi
 
 # Checks examples for compilation (does not run them)
@@ -229,7 +229,7 @@ check-%-examples : check-%-prepare
 %.actionexample:
 	@$(MAKE) -C Examples Makefile
 	@echo $(ACTION)ing Examples/$(LANGUAGE)/$*
-	@$(MAKE) -C Examples/$(LANGUAGE)/$* $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE))
+	@$(MAKE) -C Examples/$(LANGUAGE)/$* $(FLAGS) $(ACTION) RUNPIPE=$(RUNPIPE)
 
 # Checks testcases in the test-suite excluding those which are known to be broken
 check-test-suite:				\
