@@ -7438,6 +7438,7 @@ exception_specification : THROW LPAREN parms RPAREN {
 	       | NOEXCEPT virt_specifier_seq {
 		    $$ = default_dtype;
                     $$.nexcept = NewString("true");
+		    $$.final = $virt_specifier_seq;
 	       }
 	       | NOEXCEPT LPAREN expr RPAREN {
 		    $$ = default_dtype;
