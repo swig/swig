@@ -334,3 +334,16 @@ struct CDA {
 };
 %}
 
+// Regression test for https://sourceforge.net/p/swig/bugs/325/
+%include wchar.i
+%inline %{
+int archiving_on( char * archivpath, char * chmodstr = (char *)"ug+rw" ) {
+  return archivpath && chmodstr[0] == 'u';
+}
+
+// Wide character version
+#include <wchar.h>
+int archiving_onw( wchar_t * archivpath, wchar_t * chmodstr = (wchar_t *)L"ug+rw" ) {
+  return archivpath && chmodstr[0] == 'u';
+}
+%}
