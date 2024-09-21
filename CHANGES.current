@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-19: wsfulton
+            #2879 Don't show warning SWIGWARN_LANG_SMARTPTR_MISSING (520) if
+            class is ignored.
+
 2024-09-21: olly
 	    SWIG was ignoring `final` if specified after `noexcept`.
 
