@@ -1,4 +1,3 @@
-#!/usr/bin/evn python
 from cpp_static import *
 
 

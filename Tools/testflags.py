@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 def get_cflags(language, std, compiler):
     if std == None or len(std) == 0:
