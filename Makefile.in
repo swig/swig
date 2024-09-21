@@ -204,8 +204,10 @@ tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 # busy" error).  We can avoid this by ensuring we have built the custom
 # interpreter before running the tests.
 ifeq ($(ENGINE), $(filter $(ENGINE), jsc v8))
+ifeq ($(ACTION), check)
 check-javascript-prepare:
 	@$(MAKE) $(FLAGS) -C Tools/javascript javascript
+endif
 endif
 
 check-%-prepare:
