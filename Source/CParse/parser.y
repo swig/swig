@@ -2358,6 +2358,7 @@ include_directive: includetype options string BEGINFILE <loc>{
                      String *mname = 0;
                      $$ = $interface;
 		     scanner_set_location($loc.filename, $loc.line + 1);
+		     Delete($loc.filename);
 		     switch ($includetype) {
 		       case INCLUDE_INCLUDE:
 			 set_nodeType($$, "include");
@@ -2871,6 +2872,8 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		     Setattr($$,"code", code);
 		     Delete(code);
 		     appendChild($$,$tm_list);
+		     Delete($typemap_type.kwargs);
+		     Delete($typemap_type.method);
 		   }
 	       }
                | TYPEMAP LPAREN typemap_type RPAREN tm_list SEMI {
@@ -2879,7 +2882,9 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		   $$ = new_node("typemap");
 		   Setattr($$,"method",$typemap_type.method);
 		   appendChild($$,$tm_list);
+		   Delete($typemap_type.method);
 		 }
+		 Delete($typemap_type.kwargs);
 	       }
                | TYPEMAP LPAREN typemap_type RPAREN tm_list EQUAL typemap_parm SEMI {
 		   $$ = 0;
@@ -2888,7 +2893,9 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 		     Setattr($$,"method",$typemap_type.method);
 		     Setattr($$,"pattern", Getattr($typemap_parm,"pattern"));
 		     appendChild($$,$tm_list);
+		     Delete($typemap_type.method);
 		   }
+		   Delete($typemap_type.kwargs);
 	       }
                ;
 
