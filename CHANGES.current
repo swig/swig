@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-22: wsfulton
+            #3023 The binary executables in the Windows distribution are now
+            64-bit now instead of 32-bit. Any 32-bit Windows OS users will need
+            to build their own version using instructions in Windows.html or
+            the "Getting Started Guide" for Windows on the Wiki at
+            https://github.com/swig/swig/wiki/Getting-Started#windows.
+
 2024-09-21: wsfulton
             #2879 Don't show warning SWIGWARN_LANG_SMARTPTR_MISSING (520) if
             class is ignored.
