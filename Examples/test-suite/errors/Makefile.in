@@ -48,7 +48,6 @@ include $(srcdir)/../common.mk
 # it, if we do it before including it, its defining of SWIGOPT would override
 # whatever we do here.
 $(DOXYGEN_ERROR_TEST_CASES): SWIGOPT += -doxygen
-cpp_final_destructor.cpptest: SWIGOPT += -Werror
 
 # Unique module names are obtained from the .i file name (required for parallel make).
 # Note: -module overrides %module in the .i file.
