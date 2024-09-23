@@ -7633,10 +7633,6 @@ idcolontail    : DCOLON idtemplatetemplate idcolontail[in] {
 		   $$ = $OPERATOR;
 		   Insert($$, 0, "::");
                }
-/*               | DCOLON CONVERSIONOPERATOR {
-		 $$ = $CONVERSIONOPERATOR;
-		 } */
-
                | DCNOT idtemplate {
 		 $$ = NewStringf("::~%s",$idtemplate);
                }
