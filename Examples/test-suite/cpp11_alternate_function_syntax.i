@@ -29,7 +29,7 @@ struct SomeStruct {
   auto output(short) -> Hello&&;
   auto output(int) -> const Hello&;
   enum E { A, B };
-  auto output(double) -> enum E;
+  auto output(double) -> enum E { return A; }
 
   virtual auto addFinal(int x, int y) const noexcept -> int final { return x + y; }
   virtual ~SomeStruct() = default;
@@ -49,6 +49,5 @@ auto SomeStruct::addAlternateMemberPtrConstParm(int x, int (SomeStruct::*mp)(int
 auto SomeStruct::output() -> Hello& { static Hello h; return h; }
 auto SomeStruct::output(short) -> Hello&& { static Hello h; return std::move(h); }
 auto SomeStruct::output(int) -> const Hello& { static Hello h; return h; }
-auto SomeStruct::output(double) -> enum E { return A; }
 
 %}
