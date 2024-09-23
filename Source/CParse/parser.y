@@ -3630,11 +3630,26 @@ initializer   : def_args
 cpp_alternate_rettype : primitive_type
               | TYPE_BOOL
               | TYPE_VOID
+              | c_enum_key idcolon { $$ = NewStringf("enum %s", $idcolon); }
               | TYPE_RAW
               | idcolon { $$ = $idcolon; }
               | idcolon AND {
                 $$ = $idcolon;
                 SwigType_add_reference($$);
+              }
+              | idcolon LAND {
+                $$ = $idcolon;
+                SwigType_add_rvalue_reference($$);
+              }
+              | CONST_QUAL idcolon AND {
+                $$ = $idcolon;
+                SwigType_add_qualifier($$, "const");
+                SwigType_add_reference($$);
+              }
+              | CONST_QUAL idcolon LAND {
+                $$ = $idcolon;
+                SwigType_add_qualifier($$, "const");
+                SwigType_add_rvalue_reference($$);
               }
               | decltype
               ;

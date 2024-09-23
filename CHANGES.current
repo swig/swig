@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-23: olly
+	    #3031 Improve support for C++11 trailing return types.  SWIG now
+	    supports const references, const and non-const rvalue references,
+	    and enum types with an explicit `enum`, `enum class` or `enum
+	    struct`.
+
 2024-09-22: wsfulton
             #3023 The binary executables in the Windows distribution are now
             64-bit now instead of 32-bit. Any 32-bit Windows OS users will need
