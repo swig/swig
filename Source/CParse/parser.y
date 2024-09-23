@@ -6244,20 +6244,16 @@ direct_abstract_declarator : direct_abstract_declarator[in] LBRACKET RBRACKET {
                   ;
 
 
-pointer    : STAR type_qualifier pointer[in] { 
-             $$ = NewStringEmpty();
+pointer    : pointer[in] STAR type_qualifier {
+	     $$ = $in;
              SwigType_add_pointer($$);
 	     SwigType_push($$,$type_qualifier);
-	     SwigType_push($$,$in);
-	     Delete($in);
            }
-           | STAR pointer[in] {
-	     $$ = NewStringEmpty();
+	   | pointer[in] STAR {
+	     $$ = $in;
 	     SwigType_add_pointer($$);
-	     SwigType_push($$,$in);
-	     Delete($in);
-	   } 
-           | STAR type_qualifier { 
+	   }
+	   | STAR type_qualifier {
 	     $$ = NewStringEmpty();
 	     SwigType_add_pointer($$);
 	     SwigType_push($$,$type_qualifier);
