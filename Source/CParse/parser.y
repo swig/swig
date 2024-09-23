@@ -3630,7 +3630,10 @@ initializer   : def_args
 cpp_alternate_rettype : primitive_type
               | TYPE_BOOL
               | TYPE_VOID
-              | c_enum_key idcolon { $$ = NewStringf("enum %s", $idcolon); }
+	      | c_enum_key idcolon {
+		$$ = $idcolon;
+		Insert($$, 0, "enum ");
+	      }
               | TYPE_RAW
               | idcolon { $$ = $idcolon; }
               | idcolon AND {
