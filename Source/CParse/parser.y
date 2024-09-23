@@ -1829,6 +1829,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 
 /* C declarations */
 %type <node>     c_declaration c_decl c_decl_tail c_enum_decl c_enum_forward_decl c_constructor_decl;
+%type <nodebuilder> c_decl_tail_builder;
 %type <type>     c_enum_inherit;
 %type <node>     enumlist enumlist_item edecl_with_dox edecl;
 %type <id>       c_enum_key;
@@ -3574,51 +3575,54 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 
 /* Allow lists of variables and functions to be built up */
 
-c_decl_tail    : SEMI { 
-                   $$ = 0;
-                   Clear(scanner_ccode); 
-               }
-               | COMMA declarator cpp_const initializer c_decl_tail[in] {
-		 $$ = new_node("cdecl");
-		 if ($cpp_const.qualifier) SwigType_push($declarator.type,$cpp_const.qualifier);
-		 Setattr($$,"refqualifier",$cpp_const.refqualifier);
-		 Setattr($$,"name",$declarator.id);
-		 Setattr($$,"decl",$declarator.type);
-		 Setattr($$,"parms",$declarator.parms);
-		 Setattr($$,"value",$initializer.val);
-		 if ($initializer.stringval) Setattr($$, "stringval", $initializer.stringval);
-		 if ($initializer.numval) Setattr($$, "numval", $initializer.numval);
-		 Setattr($$,"throws",$cpp_const.throws);
-		 Setattr($$,"throw",$cpp_const.throwf);
-		 Setattr($$,"noexcept",$cpp_const.nexcept);
-		 Setattr($$,"final",$cpp_const.final);
-		 if ($initializer.bitfield) {
-		   Setattr($$,"bitfield", $initializer.bitfield);
-		 }
-		 if (!$in) {
-		   if (Len(scanner_ccode)) {
-		     String *code = Copy(scanner_ccode);
-		     Setattr($$,"code",code);
-		     Delete(code);
-		   }
-		 } else {
-		   set_nextSibling($$, $in);
-		 }
+c_decl_tail    : LBRACE {
+		   if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
+		   $$ = 0;
 	       }
-               | LBRACE { 
-                   if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);
-                   $$ = 0;
-               }
-               | error {
+	       | c_decl_tail_builder SEMI {
+		 $$ = $c_decl_tail_builder.node;
+		 Clear(scanner_ccode);
+	       }
+	       | error {
 		   $$ = 0;
 		   if (yychar == RPAREN) {
-		       Swig_error(cparse_file, cparse_line, "Unexpected closing parenthesis (')').\n");
+		     Swig_error(cparse_file, cparse_line, "Unexpected closing parenthesis (')').\n");
 		   } else {
-		       Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon (';').\n");
+		     Swig_error(cparse_file, cparse_line, "Syntax error - possibly a missing semicolon (';').\n");
 		   }
 		   Exit(EXIT_FAILURE);
-               }
-              ;
+	       }
+	       ;
+
+c_decl_tail_builder : c_decl_tail_builder[in] COMMA declarator cpp_const initializer {
+		 $$ = $in;
+		 Node *n = new_node("cdecl");
+		 if ($cpp_const.qualifier) SwigType_push($declarator.type,$cpp_const.qualifier);
+		 Setattr(n,"refqualifier",$cpp_const.refqualifier);
+		 Setattr(n,"name",$declarator.id);
+		 Setattr(n,"decl",$declarator.type);
+		 Setattr(n,"parms",$declarator.parms);
+		 Setattr(n,"value",$initializer.val);
+		 if ($initializer.stringval) Setattr(n, "stringval", $initializer.stringval);
+		 if ($initializer.numval) Setattr(n, "numval", $initializer.numval);
+		 Setattr(n,"throws",$cpp_const.throws);
+		 Setattr(n,"throw",$cpp_const.throwf);
+		 Setattr(n,"noexcept",$cpp_const.nexcept);
+		 Setattr(n,"final",$cpp_const.final);
+		 if ($initializer.bitfield) {
+		   Setattr(n,"bitfield", $initializer.bitfield);
+		 }
+		 if ($$.node) {
+		   set_nextSibling($$.last, n);
+		 } else {
+		   $$.node = n;
+		 }
+		 $$.last = n;
+	       }
+	       | %empty {
+		 $$.node = $$.last = 0;
+	       }
+	       ;
 
 initializer   : def_args
 	      | COLON expr {
