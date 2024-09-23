@@ -224,7 +224,7 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
-          VER: '3.3'
+          VER: '3.3.4' # cpp11_rvalue_reference_move testcase apparently started to fail on upgrade to 3.3.5, see https://github.com/swig/swig/issues/3030
         - SWIGLANG: ruby
           CPPSTD: c++11
         - SWIGLANG: scilab
