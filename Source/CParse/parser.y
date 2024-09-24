@@ -7780,7 +7780,7 @@ kwargs         : idstring EQUAL stringnum {
 
 stringnum      : string
                | exprnum {
-                 $$ = Char($exprnum.val);
+		 $$ = $exprnum.val;
                }
                ;
 
