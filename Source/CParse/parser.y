@@ -1866,7 +1866,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
 %type <str>      callparms rawcallparms;
 %type <id>       ename ;
-%type <id>       less_valparms_greater;
+%type <str>      less_valparms_greater;
 %type <str>      type_qualifier;
 %type <str>      ref_qualifier;
 %type <id>       type_qualifier_raw;
@@ -7576,7 +7576,7 @@ mem_initializer : idcolon LPAREN {
 less_valparms_greater : LESSTHAN valparms GREATERTHAN {
                      String *s = NewStringEmpty();
                      SwigType_add_template(s,$valparms);
-                     $$ = Char(s);
+		     $$ = s;
 		     scanner_last_id(1);
                 }
 		;
@@ -7616,6 +7616,7 @@ idcolon        : idtemplate idcolontail {
                | OPERATOR less_valparms_greater {
 		 $$ = $OPERATOR;
 		 Append($$, $less_valparms_greater);
+		 Delete($less_valparms_greater);
 	       }
                | NONID DCOLON OPERATOR {
 		 $$ = $OPERATOR;
@@ -7641,16 +7642,20 @@ idcolontail    : DCOLON idtemplatetemplate idcolontail[in] {
 
 
 idtemplate    : identifier {
-		$$ = NewStringf("%s", $identifier);
+		$$ = NewString($identifier);
 	      }
 	      | identifier less_valparms_greater {
-		$$ = NewStringf("%s%s", $identifier, $less_valparms_greater);
+		$$ = NewString($identifier);
+		Append($$, $less_valparms_greater);
+		Delete($less_valparms_greater);
 	      }
               ;
 
 idtemplatetemplate : idtemplate
 	      | TEMPLATE identifier less_valparms_greater {
-		$$ = NewStringf("%s%s", $identifier, $less_valparms_greater);
+		$$ = NewString($identifier);
+		Append($$, $less_valparms_greater);
+		Delete($less_valparms_greater);
 	      }
               ;
 
