@@ -7760,7 +7760,7 @@ kwargs_builder : idstring EQUAL stringnum {
 		 Delete($stringnum);
 		 $$.node = $$.last = n;
 	       }
-	       | kwargs_builder[in] COMMA idstring EQUAL stringtyoe {
+	       | kwargs_builder[in] COMMA idstring EQUAL stringnum {
 		 $$ = $in;
 		 Node *n = NewHash();
 		 Setattr(n, "name", $idstring);
