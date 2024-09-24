@@ -966,6 +966,11 @@ num_common: {
 	if (strcmp(yytext, "class") == 0) {
 	  Swig_warning(WARN_PARSE_CLASS_KEYWORD, cparse_file, cparse_line, "class keyword used, but not in C++ mode.\n");
 	}
+	if (strcmp(yytext, "_Bool") == 0) {
+	  /* C99 boolean type. */
+	  yylval.type = NewSwigType(T_BOOL);
+	  return (TYPE_BOOL);
+	}
 	if (strcmp(yytext, "_Complex") == 0) {
 	  yylval.type = NewSwigType(T_COMPLEX);
 	  return (TYPE_COMPLEX);
