@@ -1842,6 +1842,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <node>     cpp_swig_directive cpp_template_possible cpp_opt_declarators ;
 %type <node>     cpp_using_decl cpp_namespace_decl cpp_catch_decl cpp_lambda_decl;
 %type <node>     kwargs options;
+%type <nodebuilder> kwargs_builder;
 
 /* Misc */
 %type <id>       identifier;
@@ -7747,36 +7748,52 @@ options        : LPAREN kwargs RPAREN {
 
  
 /* Keyword arguments */
-kwargs         : idstring EQUAL stringnum {
-		 $$ = NewHash();
-		 Setattr($$,"name",$idstring);
-		 Setattr($$,"value",$stringnum);
-               }
-               | idstring EQUAL stringnum COMMA kwargs[in] {
-		 $$ = NewHash();
-		 Setattr($$,"name",$idstring);
-		 Setattr($$,"value",$stringnum);
-		 set_nextSibling($$,$in);
-               }
-               | idstring {
-                 $$ = NewHash();
-                 Setattr($$,"name",$idstring);
+kwargs	       : kwargs_builder {
+		 $$ = $kwargs_builder.node;
 	       }
-               | idstring COMMA kwargs[in] {
-                 $$ = NewHash();
-                 Setattr($$,"name",$idstring);
-                 set_nextSibling($$,$in);
-               }
-               | idstring EQUAL stringtype  {
-                 $$ = $stringtype;
-		 Setattr($$,"name",$idstring);
-               }
-               | idstring EQUAL stringtype COMMA kwargs[in] {
-                 $$ = $stringtype;
-		 Setattr($$,"name",$idstring);
-		 set_nextSibling($$,$in);
-               }
-               ;
+	       ;
+
+kwargs_builder : idstring EQUAL stringnum {
+		 Node *n = NewHash();
+		 Setattr(n, "name", $idstring);
+		 Setattr(n, "value", $stringnum);
+		 Delete($stringnum);
+		 $$.node = $$.last = n;
+	       }
+	       | kwargs_builder[in] COMMA idstring EQUAL stringtyoe {
+		 $$ = $in;
+		 Node *n = NewHash();
+		 Setattr(n, "name", $idstring);
+		 Setattr(n, "value", $stringnum);
+		 Delete($stringnum);
+		 set_nextSibling($$.last, n);
+		 $$.last = n;
+	       }
+	       | idstring {
+		 Node *n = NewHash();
+		 Setattr(n, "name", $idstring);
+		 $$.node = $$.last = n;
+	       }
+	       | kwargs_builder[in] COMMA idstring {
+		 $$ = $in;
+		 Node *n = NewHash();
+		 Setattr(n, "name", $idstring);
+		 set_nextSibling($$.last, n);
+		 $$.last = n;
+	       }
+	       | idstring EQUAL stringtype {
+		 Node *n = $stringtype;
+		 Setattr(n, "name", $idstring);
+		 $$.node = $$.last = n;
+	       }
+	       | kwargs_builder[in] COMMA idstring EQUAL stringtype {
+		 $$ = $in;
+		 Node *n = $stringtype;
+		 Setattr(n, "name", $idstring);
+		 set_nextSibling($$.last, n);
+		 $$.last = n;
+	       }
+	       ;
 
 stringnum      : string
                | exprnum {
