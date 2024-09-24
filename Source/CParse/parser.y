@@ -6057,7 +6057,7 @@ direct_declarator : idcolon {
 		    $$ = default_decl;
 		    SwigType *t;
                     Append($OPERATOR, " "); /* intervening space is mandatory */
-                    Append($OPERATOR, Char($ID));
+		    Append($OPERATOR, $ID);
 		    $$.id = Char($OPERATOR);
 		    t = NewStringEmpty();
 		    SwigType_add_function(t,$parms);
