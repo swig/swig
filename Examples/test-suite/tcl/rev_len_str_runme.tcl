@@ -10,7 +10,9 @@ if { [ t strlen $str ] != 4 } {
    exit 1
 }
 
-# The universal character Escape Sequence is 2 bytes
+# The Escape Sequence of zero is translated to 2 UTF-8 bytes,
+# as done in Modified UTF-8.
+# Standard UTF-8 repreasent zero as a single byte with value zero.
 set str2 "hi\u0000"
 if { [ t strlen $str2 ] != 4 } {
    puts stderr "bad multi-arg typemap"

@@ -458,7 +458,7 @@
     %argument_fail(res,"$type",$symname, $argnum);
   }
   $2 = %reinterpret_cast(buf, $2_ltype);
-  $1 = %numeric_cast((size - 1), $1_ltype);
+  $1 = %numeric_cast(size - 1, $1_ltype);
 }
 %typemap(freearg,noblock=1,match="in") (size_t LENGTH, const Char *STRING) {
   if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);

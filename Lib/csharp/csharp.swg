@@ -1135,9 +1135,7 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
 #endif
 %}
 
-/* string & length typemap */
-
-/* string & length typemap */
+/* String & length typemap */
 
 %typemap(cstype) (const char *STRING, size_t LENGTH) "string"
 %typemap(ctype)  (const char *STRING, size_t LENGTH) "void *"
@@ -1188,7 +1186,7 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
 %typemap(in, canthrow=1, fragment="SWIG_csharp_string") (size_t LENGTH, const char *STRING) {
   SWIG_csharp_string *p;
   p = (SWIG_csharp_string *)$input;
-  if(p != SWIG_NULLPTR) {
+  if (p != SWIG_NULLPTR) {
     $2 = ($2_ltype)p->str;
     $1 = ($1_ltype)p->size; /* We use number of bytes */
   } else {
@@ -1200,7 +1198,7 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
   {
      SWIG_csharp_string *p;
      p = (SWIG_csharp_string *)$input;
-     if(p != SWIG_NULLPTR) {
+     if (p != SWIG_NULLPTR) {
         free(p->str);
         free(p);
      }

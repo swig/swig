@@ -85,8 +85,6 @@
 
 /* String & length typemap */
 
-/* String & length typemap */
-
 %typemap(in, phptype="string", noblock=1) (const char *STRING, size_t LENGTH) %{
    convert_to_string(&$input);
    $1 = ($1_ltype) Z_STRVAL($input);

@@ -54,8 +54,6 @@
 
 /* String & length typemap */
 
-/* String & length typemap */
-
 %typemap(in,checkfn="lua_isstring") (const char *STRING, size_t LENGTH) {
   size_t len;
   $1 = ($1_ltype)lua_tolstring(L, $input, &len);
