@@ -1864,7 +1864,6 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %type <bases>    base_list inherit raw_inherit;
 %type <dtype>    definetype def_args etype default_delete deleted_definition explicit_default;
 %type <dtype>    expr exprnum exprsimple exprcompound valexpr exprmem;
-%type <str>      callparms rawcallparms;
 %type <id>       ename ;
 %type <str>      less_valparms_greater;
 %type <str>      type_qualifier;
@@ -5482,22 +5481,6 @@ valparm        : parm {
                }
                ;
 
-callparms      : rawcallparms
-	       | %empty {
-		 $$ = 0;
-	       }
-	       ;
-
-rawcallparms   : rawcallparms[in] COMMA valexpr {
-		 $$ = $in;
-		 Printf($in, ",%s", $valexpr.val);
-		 Delete($valexpr.val);
-	       }
-	       | valexpr {
-		 $$ = $valexpr.val;
-	       }
-	       ;
-
 def_args       : EQUAL definetype { 
                  $$ = $definetype;
                }
@@ -6712,37 +6695,41 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 		 $$ = default_dtype;
 		 $$.val = NewStringf("%s->%s", $lhs, $rhs);
 	       }
-	       | ID[lhs] ARROW ID[rhs] LPAREN callparms RPAREN {
+	       | ID[lhs] ARROW ID[rhs] LPAREN {
+		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = default_dtype;
-		 $$.val = NewStringf("%s->%s(%s)", $lhs, $rhs, $callparms);
-		 Delete($callparms);
+		 $$.val = NewStringf("%s->%s%s", $lhs, $rhs, scanner_ccode);
+		 Clear(scanner_ccode);
 	       }
 	       | exprmem[in] ARROW ID {
 		 $$ = $in;
 		 Printf($$.val, "->%s", $ID);
 	       }
-	       | exprmem[in] ARROW ID LPAREN callparms RPAREN {
+	       | exprmem[in] ARROW ID LPAREN {
+		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = $in;
-		 Printf($$.val, "->%s(%s)", $ID, $callparms);
-		 Delete($callparms);
+		 Printf($$.val, "->%s%s", $ID, scanner_ccode);
+		 Clear(scanner_ccode);
 	       }
 	       | ID[lhs] PERIOD ID[rhs] {
 		 $$ = default_dtype;
 		 $$.val = NewStringf("%s.%s", $lhs, $rhs);
 	       }
-	       | ID[lhs] PERIOD ID[rhs] LPAREN callparms RPAREN {
+	       | ID[lhs] PERIOD ID[rhs] LPAREN {
+		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = default_dtype;
-		 $$.val = NewStringf("%s.%s(%s)", $lhs, $rhs, $callparms);
-		 Delete($callparms);
+		 $$.val = NewStringf("%s.%s%s", $lhs, $rhs, scanner_ccode);
+		 Clear(scanner_ccode);
 	       }
 	       | exprmem[in] PERIOD ID {
 		 $$ = $in;
 		 Printf($$.val, ".%s", $ID);
 	       }
-	       | exprmem[in] PERIOD ID LPAREN callparms RPAREN {
+	       | exprmem[in] PERIOD ID LPAREN {
+		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = $in;
-		 Printf($$.val, ".%s(%s)", $ID, $callparms);
-		 Delete($callparms);
+		 Printf($$.val, ".%s%s", $ID, scanner_ccode);
+		 Clear(scanner_ccode);
 	       }
 	       ;
 

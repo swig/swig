@@ -347,3 +347,16 @@ int archiving_onw( wchar_t * archivpath, wchar_t * chmodstr = (wchar_t *)L"ug+rw
   return archivpath && chmodstr[0] == 'u';
 }
 %}
+
+%{
+struct SomeClass {
+  int d(int x) const { return x; }
+};
+static SomeClass someobject;
+%}
+%inline %{
+// Regression test - SWIG >= 4.3.0 avoids parsing parameter lists of method
+// calls and instead just skips from `(` to the matching closing `)`.  That
+// means SWIG can now handle any expression in a method call parameter list.
+int nasty_default_expression(int x = someobject.d(sizeof -x)) { return x; }
+%}

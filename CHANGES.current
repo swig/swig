@@ -8,6 +8,11 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-09-25: olly
+	    SWIG can now handle arbitrary expressions in the parameter list of
+	    a method call.  We don't actually need to parse expressions in this
+	    context so we can just skip to the matching closing parenthesis.
+
+2024-09-25: olly
 	    Add support for C99 _Bool.  SWIG now treats _Bool as an alias for
 	    the bool keyword when in C mode.
 
