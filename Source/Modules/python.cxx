@@ -4370,9 +4370,9 @@ public:
     Printf(f, "  }\n");
     Printv(f, "#endif\n", NIL);
     Printf(f, "};\n\n");
-    Printf(f, "static PyTypeObject* create_%s_type(PyTypeObject* type, PyTypeObject** bases, PyObject* dict) {\n", templ);
-    Printv(f, "  PyObject* tuple_bases;\n", NIL);
-    Printf(f, "  PyTypeObject* pytype = (PyTypeObject*)&%s_type;\n", templ);
+    Printf(f, "static PyTypeObject *create_%s_type(PyTypeObject *type, PyTypeObject **bases, PyObject *dict) {\n", templ);
+    Printv(f, "  PyObject *tuple_bases;\n", NIL);
+    Printf(f, "  PyTypeObject *pytype = (PyTypeObject *)&%s_type;\n", templ);
     Printf(f, "  pytype->tp_dict = dict;\n");
     Printv(f, "  SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);
     static String *tp_new = NewString("PyType_GenericNew");
@@ -4390,9 +4390,9 @@ public:
 
     Printv(f, "#else\n", NIL);
 
-    Printf(f, "static PyTypeObject* create_%s_type(PyTypeObject* type, PyTypeObject** bases, PyObject* dict) {\n", templ);
+    Printf(f, "static PyTypeObject *create_%s_type(PyTypeObject *type, PyTypeObject **bases, PyObject *dict) {\n", templ);
     Printf(f, "  PyMemberDef members[] = {\n");
-    Printf(f, "  {(char*)\"__dictoffset__\", T_PYSSIZET, %s, READONLY, NULL},\n", getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default));
+    Printf(f, "  {(char *)\"__dictoffset__\", T_PYSSIZET, %s, READONLY, NULL},\n", getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default));
     Printf(f, "  {NULL, 0, 0, 0, NULL}};\n");
     Printf(f, "  PyType_Slot slots[] = {\n");
     printSlot2(f, getSlot(n, "feature:python:tp_init", tp_init), "tp_init", "initproc");
@@ -4486,8 +4486,8 @@ public:
     Printf(f, "  %s,\n", getSlot(n, "feature:python:tp_flags", tp_flags_py3), "tp_flags");
     Printf(f, "  slots\n");
     Printf(f, "  };\n");
-    Printv(f, "  PyObject* tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
-    Printf(f, "  PyTypeObject* pytype = (PyTypeObject*)PyType_FromSpecWithBases(&spec, tuple_bases);\n");
+    Printv(f, "  PyObject *tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
+    Printf(f, "  PyTypeObject *pytype = (PyTypeObject*)PyType_FromSpecWithBases(&spec, tuple_bases);\n");
     Printf(f, "  PyDict_Merge(pytype->tp_dict, dict, 1);\n");
     Printv(f, "  SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);
     Printf(f, "  PyType_Modified(pytype);\n");
@@ -4524,7 +4524,7 @@ public:
     Printv(f_init, "    }\n", NIL);
     Printf(f_init, "    SwigPyBuiltin_%s_clientdata.pytype = builtin_pytype;\n", mname);
     if (GetFlag(n, "feature:implicitconv")) {
-      Printf(f_init, "    SwigPyBuiltin_%s_clientdata.klass = (PyObject*)builtin_pytype;\n", mname);
+      Printf(f_init, "    SwigPyBuiltin_%s_clientdata.klass = (PyObject *)builtin_pytype;\n", mname);
     }
     Printv(f_init, "    SWIG_Py_INCREF((PyObject *)builtin_pytype);\n", NIL);
     Printf(f_init, "    PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype);\n", symname);

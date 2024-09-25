@@ -404,7 +404,7 @@ SwigPyStaticVar_new_getset(PyTypeObject *type, PyGetSetDef *getset) {
   return descr;
 }
 
-SWIGINTERN PyObject*
+SWIGINTERN PyObject *
 SwigPyBuiltin_InitBases(PyTypeObject **bases) {
   Py_ssize_t base_count = 0;
   PyTypeObject **b;
