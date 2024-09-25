@@ -4379,7 +4379,7 @@ public:
     Printf(f, "  pytype->tp_new = %s;\n", getSlot(n, "feature:python:tp_new", tp_new));
     Printv(f, "  tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
     Printv(f, "  pytype->tp_base = bases[0];\n", NIL);
-    Printv(f, "  Py_INCREF(pytype->tp_base);\n", NIL);
+    Printv(f, "  SWIG_Py_INCREF(pytype->tp_base);\n", NIL);
     Printv(f, "  pytype->tp_bases = tuple_bases;\n", NIL);
     Printv(f, "  if (PyType_Ready(pytype) < 0) {\n", NIL);
     Printf(f, "    PyErr_SetString(PyExc_TypeError, \"Could not create type '%s'.\");\n", symname);
