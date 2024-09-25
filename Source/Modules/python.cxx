@@ -157,7 +157,7 @@ static void printSlot2(File *f, String *slotval, const char *slotname, const cha
     slotval = slotval_override = NewStringf("(%s) %s", functype, slotval);
   int len = Len(slotval);
   int fieldwidth = len > 41 ? (len > 61 ? 0 : 61 - len) : 41 - len;
-  Printf(f, "{ Py_%s,%*s(void*)%s },\n", slotname, fieldwidth, "", slotval);
+  Printf(f, "    { Py_%s,%*s(void *)%s },\n", slotname, fieldwidth, "", slotval);
   Delete(slotval_override);
 }
 
@@ -4119,6 +4119,7 @@ public:
     static String *tp_basicsize = NewStringf("sizeof(SwigPyObject)");
     static String *tp_dictoffset_default = NewString("offsetof(SwigPyObject, dict)");
     static String *tp_hash = NewString("SwigPyObject_hash");
+    static String *tp_new = NewString("PyType_GenericNew");
     String *tp_as_number = NewStringf("&%s_type.as_number", templ);
     String *tp_as_sequence = NewStringf("&%s_type.as_sequence", templ);
     String *tp_as_mapping = NewStringf("&%s_type.as_mapping", templ);
@@ -4370,12 +4371,11 @@ public:
     Printf(f, "  }\n");
     Printv(f, "#endif\n", NIL);
     Printf(f, "};\n\n");
-    Printf(f, "static PyTypeObject *create_%s_type(PyTypeObject *type, PyTypeObject **bases, PyObject *dict) {\n", templ);
+    Printf(f, "static PyTypeObject *%s_type_create(PyTypeObject *type, PyTypeObject **bases, PyObject *dict) {\n", templ);
     Printv(f, "  PyObject *tuple_bases;\n", NIL);
     Printf(f, "  PyTypeObject *pytype = (PyTypeObject *)&%s_type;\n", templ);
     Printf(f, "  pytype->tp_dict = dict;\n");
     Printv(f, "  SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);
-    static String *tp_new = NewString("PyType_GenericNew");
     Printf(f, "  pytype->tp_new = %s;\n", getSlot(n, "feature:python:tp_new", tp_new));
     Printv(f, "  tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
     Printv(f, "  pytype->tp_base = bases[0];\n", NIL);
@@ -4390,10 +4390,11 @@ public:
 
     Printv(f, "#else\n", NIL);
 
-    Printf(f, "static PyTypeObject *create_%s_type(PyTypeObject *type, PyTypeObject **bases, PyObject *dict) {\n", templ);
+    Printf(f, "static PyTypeObject *%s_type_create(PyTypeObject *type, PyTypeObject **bases, PyObject *dict) {\n", templ);
     Printf(f, "  PyMemberDef members[] = {\n");
-    Printf(f, "  {(char *)\"__dictoffset__\", T_PYSSIZET, %s, READONLY, NULL},\n", getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default));
-    Printf(f, "  {NULL, 0, 0, 0, NULL}};\n");
+    Printf(f, "    { (char *)\"__dictoffset__\", T_PYSSIZET, %s, READONLY, NULL },\n", getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default));
+    Printf(f, "    { NULL, 0, 0, 0, NULL }\n");
+    Printf(f, "  };\n");
     Printf(f, "  PyType_Slot slots[] = {\n");
     printSlot2(f, getSlot(n, "feature:python:tp_init", tp_init), "tp_init", "initproc");
     printSlot2(f, getSlot(n, "feature:python:tp_dealloc", tp_dealloc_bad), "tp_dealloc", "destructor");
@@ -4476,15 +4477,15 @@ public:
     printSlot2(f, getSlot(n, "feature:python:sq_inplace_concat"), "sq_inplace_concat", "binaryfunc");
     printSlot2(f, getSlot(n, "feature:python:sq_inplace_repeat"), "sq_inplace_repeat", "ssizeargfunc");
 
-    Printf(f, "  {Py_tp_members, members},\n");
-    Printf(f, "  { 0, NULL}\n");
+    Printf(f, "    { Py_tp_members, members },\n");
+    Printf(f, "    { 0, NULL }\n");
     Printf(f, "  };\n");
-    Printf(f, "PyType_Spec spec = {\n");
-    Printf(f, "  %s,\n", quoted_symname);
-    Printf(f, "  sizeof(SwigPyObject),\n");
-    Printf(f, "  0,\n");
-    Printf(f, "  %s,\n", getSlot(n, "feature:python:tp_flags", tp_flags_py3), "tp_flags");
-    Printf(f, "  slots\n");
+    Printf(f, "  PyType_Spec spec = {\n");
+    Printf(f, "    %s,\n", quoted_symname);
+    Printf(f, "    sizeof(SwigPyObject),\n");
+    Printf(f, "    0,\n");
+    Printf(f, "    %s,\n", getSlot(n, "feature:python:tp_flags", tp_flags_py3), "tp_flags");
+    Printf(f, "    slots\n");
     Printf(f, "  };\n");
     Printv(f, "  PyObject *tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
     Printf(f, "  PyTypeObject *pytype = (PyTypeObject*)PyType_FromSpecWithBases(&spec, tuple_bases);\n");
@@ -4514,7 +4515,7 @@ public:
 
     Printf(f, "SWIGINTERN SwigPyClientData %s_clientdata = {0, 0, 0, 0, 0, 0, 0};\n\n", templ);
 
-    Printf(f_init, "    builtin_pytype = create_%s_type(metatype, builtin_bases, d);\n", templ);
+    Printf(f_init, "    builtin_pytype = %s_type_create(metatype, builtin_bases, d);\n", templ);
     Printf(f_init, "    if(!builtin_pytype) {\n", templ);
     Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     Printv(f_init, "      return NULL;\n", NIL);
