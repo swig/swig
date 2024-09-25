@@ -7,6 +7,9 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at https://swig.org/release.html.
 
+SWIG-4.3.0 summary:
+- MzScheme/Racket is deprecated and will be removed in SWIG-4.4.
+
 SWIG-4.2.1 summary:
 - Tcl 9.0 support.
 - Octave 9.0 support.

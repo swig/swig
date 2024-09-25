@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-25: wsfulton
+            #920 #2830 MzScheme/Racket Deprecation notice.
+
+            This language module no longer works with modern Racket versions
+            (Racket 8 and later) due to the introduction of a different C API.
+            We are thus putting out a plea for a Racket maintainer to step
+            forward and rewrite the MzScheme module for Racket 8, otherwise it
+            will be removed in swig-4.4.
+
 2024-09-25: olly
 	    SWIG can now handle arbitrary expressions in the parameter list of
 	    a method call.  We don't actually need to parse expressions in this
