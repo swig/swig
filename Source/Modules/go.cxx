@@ -1803,6 +1803,11 @@ private:
 
   virtual int constantWrapper(Node *n) {
     SwigType *type = Getattr(n, "type");
+
+    if (Swig_storage_isstatic(n)) {
+      return goComplexConstant(n, type);
+    }
+
     String *value = Getattr(n, "value");
     String *copy = NULL;
     int typecode = SwigType_type(type);
