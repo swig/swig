@@ -43,7 +43,7 @@ struct ConstExpressions {
   constexpr static int KKK1 = 201;
   // Regression tests for https://github.com/swig/swig/issues/284 :
   explicit constexpr ConstExpressions(int) { }
-  constexpr explicit ConstExpressions(double) { }
+  constexpr explicit ConstExpressions(const char*) { }
   // Regression tests for  https://github.com/swig/swig/issues/2079 :
   constexpr friend bool operator==(ConstExpressions,ConstExpressions) { return true; }
   friend constexpr bool operator!=(ConstExpressions,ConstExpressions) { return false; }

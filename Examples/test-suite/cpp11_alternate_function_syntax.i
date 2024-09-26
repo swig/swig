@@ -25,11 +25,11 @@ struct SomeStruct {
   // Returning a reference didn't parse in SWIG < 4.1.0 (#231)
   auto output() -> Hello&;
 
-  // These returns types didn't parse in SWIG < 4.3.0 (#3031)
-  auto output(short) -> Hello&&;
-  auto output(int) -> const Hello&;
+  // These return types didn't parse in SWIG < 4.3.0 (#3031)
+  auto output_rvalueref() -> Hello&&;
+  auto output_constref() -> const Hello&;
   enum E { A, B };
-  auto output(double) -> enum E { return A; }
+  auto output_enum() -> enum E { return A; }
 
   virtual auto addFinal(int x, int y) const noexcept -> int final { return x + y; }
   virtual ~SomeStruct() = default;
@@ -47,7 +47,7 @@ auto SomeStruct::addAlternateMemberPtrConstParm(int x, int (SomeStruct::*mp)(int
   return 1000*x + (this->*mp)(x, x);
 }
 auto SomeStruct::output() -> Hello& { static Hello h; return h; }
-auto SomeStruct::output(short) -> Hello&& { static Hello h; return std::move(h); }
-auto SomeStruct::output(int) -> const Hello& { static Hello h; return h; }
+auto SomeStruct::output_rvalueref() -> Hello&& { static Hello h; return std::move(h); }
+auto SomeStruct::output_constref() -> const Hello& { static Hello h; return h; }
 
 %}
