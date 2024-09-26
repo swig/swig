@@ -31,6 +31,9 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 LIBS       = -L.
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 # Custom tests - tests with additional commandline options
 lua_no_module_global.%: SWIGOPT += -nomoduleglobal
 
