@@ -8,6 +8,11 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-09-26: olly
+	    [R] `%include std_deque.i` in SWIG/R no longer results in warning:
+
+	      Warning 490: Fragment 'StdDequeTraits' not found.
+
+2024-09-26: olly
 	    SWIG now recognises --version as an alias for -version (it has
 	    supported --help as an alias for -help since 2006).
 

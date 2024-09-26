@@ -5,6 +5,25 @@
 
 // Deque
 
+%fragment("StdDequeTraits", "header", fragment="StdSequenceTraits")
+%{
+  namespace swig {
+    template <class T>
+    struct traits_asptr<std::deque<T> >  {
+      static int asptr(SWIG_Object obj, std::deque<T>  **vec) {
+	return traits_asptr_stdseq<std::deque<T> >::asptr(obj, vec);
+      }
+    };
+
+    template <class T>
+    struct traits_from<std::deque<T> > {
+      static SWIG_Object from(const std::deque<T>& vec) {
+	return traits_from_stdseq<std::deque<T> >::from(vec);
+      }
+    };
+  }
+%}
+
 %define %std_deque_methods(deque...)  
   %std_sequence_methods(deque)
 
