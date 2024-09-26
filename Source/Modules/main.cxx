@@ -631,7 +631,7 @@ static void getoptions(int argc, char *argv[]) {
 	} else {
 	  Swig_arg_error();
 	}
-      } else if (strcmp(argv[i], "-version") == 0) {
+      } else if (strcmp(argv[i], "-version") == 0 || strcmp(argv[1], "--version") == 0) {
 	fprintf(stdout, "\nSWIG Version %s\n", Swig_package_version());
 	fprintf(stdout, "\nCompiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
 	fprintf(stdout, "\nConfigured options: %cpcre\n",

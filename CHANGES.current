@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-26: olly
+	    SWIG now recognises --version as an alias for -version (it has
+	    supported --help as an alias for -help since 2006).
+
 2024-09-25: wsfulton
             #920 #2830 MzScheme/Racket Deprecation notice.
 
