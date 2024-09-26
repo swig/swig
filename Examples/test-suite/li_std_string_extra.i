@@ -1,5 +1,12 @@
 %module li_std_string_extra
 
+#if defined SWIGSCILAB
+// Not sure what's going on here but we get:
+// .././../li_std_string_extra.i:12: Warning 402: Base class 'std::string' is incomplete.
+// ../../../../Lib/typemaps/std_string.swg:16: Warning 402: Only forward declaration 'std::string' was found.
+%warnfilter(SWIGWARN_TYPE_INCOMPLETE) A;
+#endif
+
 %naturalvar A;
 
 
