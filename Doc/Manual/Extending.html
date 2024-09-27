@@ -69,6 +69,7 @@
 <ul>
 <li><a href="#Extending_supported_status">Supported status</a>
 <li><a href="#Extending_experimental_status">Experimental status</a>
+<li><a href="#Extending_deprecated_status">Deprecated status</a>
 </ul>
 <li><a href="#Extending_prerequisites">Prerequisites for adding a new language module to the SWIG distribution</a>
 </ul>
@@ -3609,7 +3610,7 @@ should be avoided as unlike the SWIG developers, users will never have consisten
 
 
 <p>
-Target languages are given a status of either 'Supported' or 'Experimental' depending on their maturity as broadly outlined in
+Target languages are given a status of either 'Supported', 'Experimental' or 'Deprecated' depending on their maturity as broadly outlined in
 the <a href="Introduction.html#Introduction_target_languages">Target language introduction</a>.
 This section provides more details on how this status is given.
 </p>
@@ -3725,6 +3726,31 @@ Some minimum requirements and notes about languages with the 'Experimental' stat
   If a language module has an official maintainer, then a backwards compatibility guarantee may be provided at the maintainer's discretion and should be documented as such.
 </li>
 </ul>
+
+<H4><a name="Extending_deprecated_status">41.10.15.3 Deprecated status</a></H4>
+
+
+<p>
+Unfortunately target languages that once met 'Experimental' or 'Supported' status can become non-functional and simply bit rot
+due to neglect or due to the language's C/C++ API evolving and changing over time.
+If there is no language maintainer and the maintenance burden becomes too much for the core
+SWIG developers to keep the test-suite working with easily available versions of the target language,
+the language is put into the 'Deprecated' status.
+</p>
+
+<p>
+Changing the status to 'Deprecated' is an unfortunate step not done lightly and only if recent versions cannot successfully
+run the test-suite and examples on the Github Actions Continuous Integration platform.
+As the target language would once have had a working set of examples and test-suite, this usually only occurs
+when the more modern operating system distributions available on Github can no longer run any distribution supplied version of the target language.
+</p>
+
+<p>
+Changing status to 'Deprecated' flags it for removal from SWIG in a subsequent release (usually one SWIG release).
+This step becomes the final plea for help from the community who use the target language.
+The language will need updating by an interested community member to meet the requirements of at least 'Experimental' status in order to prevent removal.
+If you are a user of a 'Deprecated' target language and would like to keep it available in future releases, please contact the SWIG developers for details of how you can help.
+</p>
 
 <H3><a name="Extending_prerequisites">41.10.16 Prerequisites for adding a new language module to the SWIG distribution</a></H3>
 
