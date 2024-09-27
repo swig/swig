@@ -2,6 +2,11 @@
    move operator which is currently mapped to the reference & operator. */
 %module cpp11_rvalue_reference
 
+#if defined SWIGGO
+// Several: Warning 507: No Go typemap defined for int &&
+# pragma SWIG nowarn=SWIGWARN_LANG_NATIVE_UNIMPL
+#endif
+
 %inline %{
 #include <utility>
 class A {
