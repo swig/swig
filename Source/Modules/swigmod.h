@@ -359,7 +359,7 @@ extern "C" {
   typedef Language *(*ModuleFactory) (void);
 }
 
-enum Status {Disabled, Experimental, Supported};
+enum Status {Disabled, Deprecated, Experimental, Supported};
 
 struct TargetLanguageModule {
   const char *name;

@@ -224,6 +224,7 @@
 #define WARN_LANG_EXPERIMENTAL        524
 #define WARN_LANG_DIRECTOR_FINAL      525
 #define WARN_LANG_USING_NAME_DIFFERENT 526
+#define WARN_LANG_DEPRECATED          527
 
 /* -- Doxygen comments -- */
 

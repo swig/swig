@@ -64,7 +64,7 @@ static TargetLanguageModule modules[] = {
   {"-javascript", swig_javascript, "Javascript", Supported},
   {"-lua", swig_lua, "Lua", Supported},
   {"-modula3", NULL, "Modula 3", Disabled},
-  {"-mzscheme", swig_mzscheme, "MzScheme/Racket", Experimental},
+  {"-mzscheme", swig_mzscheme, "MzScheme/Racket", Deprecated},
   {"-ocaml", swig_ocaml, "OCaml", Experimental},
   {"-octave", swig_octave, "Octave", Supported},
   {"-perl", swig_perl5, NULL, Supported},
@@ -254,6 +254,12 @@ int main(int margc, char **margv) {
 	Printf(stdout, "\nExperimental Target Language Options\n");
 	for (int j = 0; modules[j].name; j++) {
 	  if (modules[j].help && modules[j].status == Experimental) {
+	    Printf(stdout, "     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
+	  }
+	}
+	Printf(stdout, "\nDeprecated Target Language Options\n");
+	for (int j = 0; modules[j].name; j++) {
+	  if (modules[j].help && modules[j].status == Deprecated) {
 	    Printf(stdout, "     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
 	  }
 	}

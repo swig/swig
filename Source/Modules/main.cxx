@@ -1304,6 +1304,12 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	    "Target language %s specified by %s is an experimental language. "
 	    "Please read about SWIG experimental languages, https://swig.org/Doc4.0/Introduction.html#Introduction_experimental_status.\n",
 	    tlm->help ? tlm->help : "", tlm->name);
+	} else if (tlm->status == Deprecated) {
+	  Swig_warning(WARN_LANG_DEPRECATED, "SWIG", 1, "Deprecated target language. "
+	    "Target language %s specified by %s is a deprecated target language. "
+	    "It will be removed in the next release of SWIG unless a new maintainer steps forward "
+	    "to bring it up to experimental status, see https://swig.org/Doc4.0/Introduction.html#Introduction_experimental_status.\n",
+	    tlm->help ? tlm->help : "", tlm->name);
 	}
 
 	lang->top(top);
