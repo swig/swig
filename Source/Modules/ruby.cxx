@@ -3125,7 +3125,14 @@ public:
 	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
 	}
       } else {
-	String *cres = SwigType_lstr(returntype, "c_result");
+	String *cres;
+	SwigType *vt = cplus_value_type(returntype);
+	if (!vt) {
+	  cres = SwigType_lstr(returntype, "c_result");
+	} else {
+	  cres = SwigType_lstr(vt, "c_result");
+	  Delete(vt);
+	}
 	Printf(w->code, "%s;\n", cres);
 	Delete(cres);
       }
