@@ -1064,7 +1064,7 @@ SwigPyObject_TypeOnce(void) {
     "SwigPyObject",
     sizeof(SwigPyObject),
     0,
-    Py_TPFLAGS_DEFAULT,
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
     slots
   };
   return (PyTypeObject *)PyType_FromSpec(&spec);
