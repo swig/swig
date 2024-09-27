@@ -128,7 +128,7 @@ This type of usage can be useful from target languages too to avoid copying larg
 </p>
 
 <p>
-If you do wrap a function/contructor with an rvalue reference parameter and pass a proxy class to it, SWIG will assume that after the call, the rvalue reference parameter object will have been 'moved'.
+If you do wrap a function/constructor with an rvalue reference parameter and pass a proxy class to it, SWIG will assume that after the call, the rvalue reference parameter object will have been 'moved'.
 The proxy class passed as the rvalue reference, will own the underlying C++ object up until it is used as an rvalue reference parameter.
 Afterwards, the proxy class will have the underlying C++ pointer set to the nullptr so that the proxy class instance cannot be used again and the underlying (moved from) C++ object will be deleted after the function/constructor call has returned.
 </p>
