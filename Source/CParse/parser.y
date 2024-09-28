@@ -4345,7 +4345,7 @@ cpp_class_decl: storage_class cpptype idcolon class_virt_specifier_opt inherit L
 		 } else if (cparse_cplusplus)
 		   $$ = 0; /* ignore unnamed structs for C++ */
 		   Delete(unnamed);
-	       } else { /* unnamed struct w/o declarator*/
+	       } else { /* unnamed struct without declarator*/
 		 Swig_symbol_popscope();
 	         Delete(Namespaceprefix);
 		 Namespaceprefix = Swig_symbol_qualifiedscopename(0);
