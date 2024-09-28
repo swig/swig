@@ -794,7 +794,7 @@ public:
     Printf(f_header, "#else\n");
     Printf(f_header, "#  define SWIG_init    init%s\n\n", module);
     Printf(f_header, "#endif\n");
-    Printf(f_header, "#define SWIG_name    \"%s\"\n", module);
+    Printf(f_runtime, "#define SWIG_name    \"%s\"\n", module);
 
     Printf(f_wrappers, "#ifdef __cplusplus\n");
     Printf(f_wrappers, "extern \"C\" {\n");
