@@ -1938,7 +1938,9 @@ In order to use <tt>boost::shared_ptr</tt>, the <tt>boost_shared_ptr.i</tt> libr
 </div>
 
 <p>
-You can only use one of these variants of shared_ptr in your interface file at a time.
+You can only use one of these variants of shared_ptr in your interface file at a time
+(also SWIG doesn't currently support using both <tt>%shared_ptr(T)</tt> and
+<tt>%unique_ptr<T></tt> on the same type <tt>T</tt>).
 All three variants must be used in conjunction with the <tt>%shared_ptr(T)</tt> macro,
 where <tt>T</tt> is the underlying pointer type equating to usage <tt>shared_ptr&lt;T&gt;</tt>.
 The type <tt>T</tt> must be non-primitive.
@@ -2172,6 +2174,11 @@ Ordering requirements for using this smart pointer macro are the same as the
 equivalent <tt>%shared_ptr(T)</tt> macro covered in the previous section.
 The ownership and move semantics described here can of course be modified if not suitable
 by copying and customising the typemaps in the appropriate <tt>std_unique_ptr.i</tt> library file.
+</p>
+
+<p>
+Note that SWIG doesn't currently support using both <tt>%shared_ptr(T)</tt> and
+<tt>%unique_ptr<T></tt> on the same type <tt>T</tt>.
 </p>
 
 <H4><a name="Library_std_unique_ptr_by_value">12.5.6.1 unique_ptr passed by value</a></H4>
