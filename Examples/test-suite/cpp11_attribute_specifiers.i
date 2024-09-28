@@ -45,11 +45,9 @@ struct [[nodiscard]] S { };
 
 const char *test_string_literal() { return "Test [[ and ]] in string literal"; }
 
-#if 0
-// Check that SWIG doesn't choke on ]] when it's not part of an attribute.
-// FIXME: SWIG's parser doesn't handle this case currently.
-int *a;
+// Check that SWIG handles ]] as two ] tokens when it's not part of an attribute.
+int aa = 0;
+int *a = &aa;
 int b = a[a[0]];
-#endif
 
 %}
