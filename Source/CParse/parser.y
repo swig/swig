@@ -3569,6 +3569,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      if ($definetype.numval) Setattr($$, "numval", $definetype.numval);
 	      Setattr($$, "valuetype", type);
 	      Delete($storage_class);
+	      Delete(type);
 	   }
 	   /* C++11 auto variable declaration for which we can't parse the initialiser. */
 	   | storage_class AUTO idcolon EQUAL error SEMI {
@@ -3580,6 +3581,7 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "decl", NewStringEmpty());
 	      Setattr($$, "valuetype", type);
 	      Delete($storage_class);
+	      Delete(type);
 	   }
 	   ;
 
