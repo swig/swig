@@ -1618,6 +1618,12 @@ int Scanner_skip_balanced(Scanner *s, int startchar, int endchar) {
       num_levels++;
     } else if (tok == endtok) {
       if (--num_levels == 0) break;
+    } else if (tok == SWIG_TOKEN_RRBRACKET && endtok == SWIG_TOKEN_RBRACKET) {
+      num_levels -= 2;
+      if (num_levels <= 0) {
+	if (num_levels < 0) Scanner_pushtoken(s, SWIG_TOKEN_RBRACKET, "]");
+	break;
+      }
     } else if (tok == SWIG_TOKEN_COMMENT) {
       char *loc = Char(s->text);
       if (strncmp(loc, "/*@SWIG", 7) == 0 && loc[Len(s->text)-3] == '@') {

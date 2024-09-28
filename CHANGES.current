@@ -19,6 +19,11 @@ Version 4.3.0 (in progress)
             trailing whitespace.
 
 2024-09-29: olly
+	    SWIG can now handle arbitrary expressions as a subscript (i.e. in
+	    `[`...`]`).  We don't actually need to parse expressions in this
+	    context so we can just skip to the matching closing square bracket.
+
+2024-09-29: olly
 	    C++11 auto variables for which SWIG can't parse the initialiser
 	    now give a warning and are ignored rather than SWIG exiting with a
 	    parse error.

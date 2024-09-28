@@ -2,7 +2,7 @@
 require "tests.php";
 
 // New functions
-check::functions(array('archiving_on', 'archiving_onw', 'doublevalue1','doublevalue2','seek','seek2','seek3','seek4','seek5','seek6','seek7','seek8','seek9','seeka','seekb','anonymous','booltest','casts1','casts2','chartest1','chartest2','chartest3','chartest4','chartest5','chartest6','dummy','afunction','reftest1','reftest2','chops','exceptionspec','constructorcall','cfunc1','cfunc2','cfunc3','nasty_default_expression','slightly_off_square'));
+check::functions(array('archiving_on', 'archiving_onw', 'doublevalue1','doublevalue2','seek','seek2','seek3','seek4','seek5','seek6','seek7','seek8','seek9','seeka','seekb','anonymous','booltest','casts1','casts2','chartest1','chartest2','chartest3','chartest4','chartest5','chartest6','dummy','afunction','reftest1','reftest2','chops','exceptionspec','constructorcall','cfunc1','cfunc2','cfunc3','nasty_default_expression','slightly_off_square','subscripted_default_arg'));
 // New classes
 check::classes(array('TrickyInPython','default_args','EnumClass','DerivedEnumClass','Tree','Foo','MyClass1','MyClass2','Except','Statics','Tricky','Klass','ConstMethods','Pointf','CDA'));
 // New vars

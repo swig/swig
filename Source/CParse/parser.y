@@ -5493,9 +5493,13 @@ valparm        : parm {
 def_args       : EQUAL definetype { 
                  $$ = $definetype;
                }
-               | EQUAL definetype LBRACKET expr RBRACKET { 
-		 $$ = $definetype;
-		 $$.val = NewStringf("%s[%s]", $definetype.val, $expr.val);
+	       | EQUAL definetype LBRACKET {
+		 if (skip_balanced('[', ']') < 0) Exit(EXIT_FAILURE);
+		 $$ = default_dtype;
+		 $$.type = T_UNKNOWN;
+		 $$.val = $definetype.val;
+		 Append($$.val, scanner_ccode);
+		 Clear(scanner_ccode);
                }
                | EQUAL LBRACE {
 		 if (skip_balanced('{','}') < 0) Exit(EXIT_FAILURE);

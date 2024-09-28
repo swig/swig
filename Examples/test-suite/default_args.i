@@ -360,3 +360,10 @@ static SomeClass someobject;
 // means SWIG can now handle any expression in a method call parameter list.
 int nasty_default_expression(int x = someobject.d(sizeof - sizeof 1)) { return x; }
 %}
+
+%inline %{
+// Regression test - SWIG >= 4.3.0 avoids parsing subscript expressions and instead
+// just skips from `[` to the matching closing `]`.  That
+// means SWIG can now handle any expression as the subscript.
+int subscripted_default_arg(int x = "abcdefghij"[sizeof - sizeof 1]) { return x; }
+%}
