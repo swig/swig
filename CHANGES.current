@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-29: olly
+	    C++11 auto variables for which SWIG can't parse the initialiser
+	    now give a warning and are ignored rather than SWIG exiting with a
+	    parse error.
+
 2024-09-26: olly
 	    SWIG now recognises --version as an alias for -version (it has
 	    supported --help as an alias for -help since 2006).

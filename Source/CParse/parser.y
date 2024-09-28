@@ -3570,6 +3570,17 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 	      Setattr($$, "valuetype", type);
 	      Delete($storage_class);
 	   }
+	   /* C++11 auto variable declaration for which we can't parse the initialiser. */
+	   | storage_class AUTO idcolon EQUAL error SEMI {
+	      SwigType *type = NewString("auto");
+	      $$ = new_node("cdecl");
+	      Setattr($$, "type", type);
+	      Setattr($$, "storage", $storage_class);
+	      Setattr($$, "name", $idcolon);
+	      Setattr($$, "decl", NewStringEmpty());
+	      Setattr($$, "valuetype", type);
+	      Delete($storage_class);
+	   }
 	   ;
 
 /* Allow lists of variables and functions to be built up */
