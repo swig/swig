@@ -358,9 +358,9 @@ swig_varlink_type(void) {
       0,                                  /* tp_itemsize */
       (destructor) swig_varlink_dealloc,  /* tp_dealloc */
 #if PY_VERSION_HEX < 0x030800b4
-      (printfunc)0,                       /*tp_print*/
+      (printfunc)0,                       /* tp_print */
 #else
-      (Py_ssize_t)0,                      /*tp_vectorcall_offset*/
+      (Py_ssize_t)0,                      /* tp_vectorcall_offset */
 #endif
       (getattrfunc) swig_varlink_getattr, /* tp_getattr */
       (setattrfunc) swig_varlink_setattr, /* tp_setattr */
@@ -971,9 +971,9 @@ SwigPyObject_TypeOnce(void) {
       0,                                    /* tp_itemsize */
       (destructor)SwigPyObject_dealloc,     /* tp_dealloc */
 #if PY_VERSION_HEX < 0x030800b4
-      (printfunc)0,                         /*tp_print*/
+      (printfunc)0,                         /* tp_print */
 #else
-      (Py_ssize_t)0,                        /*tp_vectorcall_offset*/
+      (Py_ssize_t)0,                        /* tp_vectorcall_offset */
 #endif
       (getattrfunc)0,                       /* tp_getattr */
       (setattrfunc)0,                       /* tp_setattr */
@@ -1193,9 +1193,9 @@ SwigPyPacked_TypeOnce(void) {
       0,                                    /* tp_itemsize */
       (destructor)SwigPyPacked_dealloc,     /* tp_dealloc */
 #if PY_VERSION_HEX < 0x030800b4
-      (printfunc)0,                         /*tp_print*/
+      (printfunc)0,                         /* tp_print */
 #else
-      (Py_ssize_t)0,                        /*tp_vectorcall_offset*/
+      (Py_ssize_t)0,                        /* tp_vectorcall_offset */
 #endif
       (getattrfunc)0,                       /* tp_getattr */
       (setattrfunc)0,                       /* tp_setattr */

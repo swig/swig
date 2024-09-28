@@ -146,7 +146,7 @@ static void printSlot(File *f, String *slotval, const char *slotname, const char
   if (functype && Strcmp(slotval, "0") == 0)
     slotval = slotval_override = NewStringf("(%s) %s", functype, slotval);
   int len = Len(slotval);
-  int fieldwidth = len > 41 ? (len > 61 ? 0 : 61 - len) : 41 - len;
+  int fieldwidth = len >= 39 ? 1 : 39 - len;
   Printf(f, "    %s,%*s/* %s */\n", slotval, fieldwidth, "", slotname);
   Delete(slotval_override);
 }
@@ -155,8 +155,8 @@ static void printSlot2(File *f, String *slotval, const char *slotname, const cha
   String *slotval_override = 0;
   if (functype && Strcmp(slotval, "0") == 0)
     slotval = slotval_override = NewStringf("(%s) %s", functype, slotval);
-  int len = Len(slotval);
-  int fieldwidth = len > 41 ? (len > 61 ? 0 : 61 - len) : 41 - len;
+  int len = Len(slotname);
+  int fieldwidth = len >= 30 ? 1 : 30 - len;
   Printf(f, "    { Py_%s,%*s(void *)%s },\n", slotname, fieldwidth, "", slotval);
   Delete(slotval_override);
 }
