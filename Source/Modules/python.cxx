@@ -1614,6 +1614,17 @@ public:
       Append(tmp, indent);
       Delete(docstr);
       docstr = tmp;
+    } else {
+      // Removing leading and trailing whitespace for single line docstrings
+      Chop(docstr);
+      const char *c = Char(docstr);
+      if (isspace((int)*c)) {
+	while(isspace((int)*(++c))) {
+	}
+	String *old_docstr = docstr;
+	docstr = NewString(c);
+	Delete(old_docstr);
+      }
     }
 
     return docstr;
