@@ -1156,11 +1156,11 @@ SwigPyPacked_Check(PyObject *op) {
   tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
   if (!tp_name)
     return 0;
-  cmp = PyUnicode_CompareWithASCIIString(tp_name, SWIG_name ".SwigPyPacked");
+  cmp = PyUnicode_CompareWithASCIIString(tp_name, "SwigPyPacked");
   SWIG_Py_DECREF(tp_name);
   return cmp == 0;
 #else
-  return (strcmp(op_type->tp_name, SWIG_name ".SwigPyPacked") == 0);
+  return (strcmp(op_type->tp_name, "SwigPyPacked") == 0);
 #endif
 }
 
@@ -1188,7 +1188,7 @@ SwigPyPacked_TypeOnce(void) {
       PyObject_HEAD_INIT(NULL)
       0,                                    /* ob_size */
 #endif
-      SWIG_name ".SwigPyPacked",            /* tp_name */
+      "SwigPyPacked",                       /* tp_name */
       sizeof(SwigPyPacked),                 /* tp_basicsize */
       0,                                    /* tp_itemsize */
       (destructor)SwigPyPacked_dealloc,     /* tp_dealloc */
@@ -1281,7 +1281,7 @@ SwigPyPacked_TypeOnce(void) {
     { 0, NULL }
   };
   PyType_Spec spec = {
-    SWIG_name ".SwigPyPacked",
+    "SwigPyPacked",
     sizeof(SwigPyPacked),
     0,
     Py_TPFLAGS_DEFAULT,
