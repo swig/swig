@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-09-29: clintonstimpson
+            [Python] #2350 Switch implementation from static types to heap
+            types using PyType_FromSpec() introduced in Python 3.
+
+            This currently only applies to the default code generation and is not
+            available for the -builtin code generation.
+
 2024-09-29: olly
 	    C++11 auto variables for which SWIG can't parse the initialiser
 	    now give a warning and are ignored rather than SWIG exiting with a
