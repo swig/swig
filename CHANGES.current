@@ -50,16 +50,6 @@ Version 4.3.0 (in progress)
 	    Add support for C99 _Bool.  SWIG now treats _Bool as an alias for
 	    the bool keyword when in C mode.
 
-2024-09-24: olly
-	    #2884 SWIG no longer accepts the invalid definition of a function
-	    as the final part of a declaration, e.g.
-
-	      int x, f() { return 42; }
-
-	    was previously accepted but now gives:
-
-	      c.i:4: Error: Syntax error - possibly a missing semicolon (';').
-
 2024-09-23: olly
 	    #3031 Improve support for C++11 trailing return types.  SWIG now
 	    supports const references, const and non-const rvalue references,
