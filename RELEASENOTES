@@ -18,9 +18,8 @@ SWIG-4.3.0 summary:
 - Various enum and enum class wrapping improvements.
 - Other C++ handling improvements around templates, friends, C++11
   trailing return types and C++17 fold expressions.
-- Many parser improvements to parse more corner cases of C and C++,
-  especially expressions.
-- Embedded zeros in strings improvements.
+- Many parser improvements for both C and C++, especially expressions.
+- Improvements to handling of string and character literals.
 - Minor preprocessor fixes.
 - Python: Stricter stable ABI conformance, add support for python-3.13.
 - C#: Add support for converting Doxygen comments into XML C# comments.
