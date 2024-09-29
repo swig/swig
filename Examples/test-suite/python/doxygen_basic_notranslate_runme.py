@@ -15,7 +15,7 @@ The comment text
 )
 
 comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function1),
-    r"""Single line comment """
+    r"""Single line comment"""
 )
 comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function2),
     r"""A test of a very very very very very very very very very very very very very very very very
@@ -53,7 +53,7 @@ int main() { while(true); }
 \endif"""
 )
 comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function5),
-    r"""This is a post comment. """
+    r"""This is a post comment."""
 )
 comment_verifier.check(inspect.getdoc(doxygen_basic_notranslate.function6),
     r"""Test for default args
