@@ -9,8 +9,10 @@
 // - Types from std library:
 //  |- std::string
 
-
-// 1) Implementation for custom types
+#if !defined(JAVA_NULLABLE_ANNOTATION)
+// By default it's empty if you like to use @Nullable anntotation define it. (ex. "@javax.annotation.Nullable")
+#define JAVA_NULLABLE_ANNOTATION " " 
+#endif
 
 // Main user macro for defining optional typemaps for both const and non-const pointer types
 %define %optional(TYPE...)
@@ -25,13 +27,11 @@ SWIG_STD_OPTIONAL_TYPEMAPS(const, TYPE)
 // Language specific macro implementing specific customisations for handling the std optional
 %define SWIG_STD_OPTIONAL_TYPEMAPS_IMPLEMENTATION(PTRCTOR_VISIBILITY, CPTR_VISIBILITY, CONST, TYPE...)
 
+// 1) Implementation for custom types
+
 // %naturalvar is as documented for member variables
 %naturalvar TYPE;
 %naturalvar std::optional< CONST TYPE >;
-
-%typemap(javaimports) SWIGTYPE %{
-import androidx.annotation.Nullable;
-%}
 
 // plain value
 %typemap(in) CONST TYPE ($&1_type argp = 0) %{
@@ -141,7 +141,7 @@ import androidx.annotation.Nullable;
 %typemap (jstype) std::optional< CONST TYPE >,
                   std::optional< CONST TYPE > &,
                   std::optional< CONST TYPE > *,
-                  std::optional< CONST TYPE > *& "@Nullable $typemap(jstype, TYPE)"
+                  std::optional< CONST TYPE > *& JAVA_NULLABLE_ANNOTATION "$typemap(jstype, TYPE)"
 
 %typemap(javain) std::optional< CONST TYPE >,
                  std::optional< CONST TYPE > &,
@@ -242,10 +242,6 @@ import androidx.annotation.Nullable;
 #include <optional>
 %}
 
-%typemap(javaimports) SWIGTYPE %{
-import androidx.annotation.Nullable;
-%}
-
 namespace std {
   template<typename T> class optional {};
 }
@@ -257,7 +253,8 @@ namespace std {
 %typemap(jtype)  std::optional<type>,
                  std::optional<type> * "java_type"
 %typemap(jstype) std::optional<type>,
-                 std::optional<type> * "@Nullable java_type"
+                 std::optional<type> * JAVA_NULLABLE_ANNOTATION "java_type"
+
 %typemap(in) std::optional<type> {
   if ($input) {
     jclass sbufClass = JCALL1(GetObjectClass, jenv, $input);
@@ -311,15 +308,6 @@ namespace std {
 
 // 3) Implementation for std library types
 
-%typemap(javaimports) SWIGTYPE %{
-import androidx.annotation.Nullable;
-%}
-
-namespace std {
-  template<typename T> class optional {};
-}
-
-// std::optional<std::string>
 %include <std_string.i>
 
 %typemap(jni)    std::optional<std::string>,
@@ -327,7 +315,7 @@ namespace std {
 %typemap(jtype)  std::optional<std::string>, 
                  std::optional<std::string> * "String"
 %typemap(jstype) std::optional<std::string>,
-                 std::optional<std::string> * "@Nullable String"
+                 std::optional<std::string> * JAVA_NULLABLE_ANNOTATION "String"
 
 %typemap(in) std::optional<std::string> %{
   if ($input) {
