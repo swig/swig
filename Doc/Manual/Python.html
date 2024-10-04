@@ -2298,7 +2298,7 @@ import _example
 class Foo(object):
     def __init__(self):
         self.this = _example.new_Foo()
-        self.thisown = 1
+        self.thisown = True
     def __del__(self):
         if self.thisown:
             _example.delete_Foo(self.this)
@@ -2348,7 +2348,7 @@ like in a proxy class:
 class Foo(object):
     def __init__(self):
         self.this = _example.new_Foo()
-        self.thisown = 1
+        self.thisown = True
 </pre>
 </div>
 
@@ -2706,10 +2706,10 @@ in the file <tt>python/pyopers.swg</tt> in the SWIG library.
 when the <tt>-builtin</tt> option is used.</p>
 
 <p>
-Associated with proxy object, is an ownership flag <tt>.thisown</tt>   The value of this
-flag determines who is responsible for deleting the underlying C++ object.   If set to 1,
+Associated with proxy object, is an ownership flag <tt>thisown</tt>.  The value of this
+flag determines who is responsible for deleting the underlying C++ object.   If set to <tt>True</tt>,
 the Python interpreter will destroy the C++ object when the proxy class is
-garbage collected.   If set to 0 (or if the attribute is missing), then the destruction
+garbage collected.   If set to <tt>False</tt> (or if the attribute is missing), then the destruction
 of the proxy class has no effect on the C++ object.
 </p>
 
@@ -2723,8 +2723,9 @@ ownership of the result.  For example:
 class Foo {
 public:
   Foo();
-  Foo bar();
+  ~Foo();
 };
+Foo CreateFoo();
 </pre>
 </div>
 
@@ -2736,26 +2737,83 @@ In Python:
 <pre>
 &gt;&gt;&gt; f = Foo()
 &gt;&gt;&gt; f.thisown
-1
-&gt;&gt;&gt; g = f.bar()
+True
+&gt;&gt;&gt; g = CreateFoo()
 &gt;&gt;&gt; g.thisown
-1
+True
 </pre>
 </div>
 
 <p>
-On the other hand, when pointers are returned to Python, there is often no way to know where
-they came from.  Therefore, the ownership is set to zero.  For example:
+The type information is a Python class, a proxy of the underlying C++ type:
+</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; type(f)
+&lt;class 'example.Foo'&gt;
+&gt;&gt;&gt; f
+&lt;example.Foo; proxy of &lt;Swig Object of type 'Foo *' at 0x7f5a86d48600&gt; &gt;
+True
+</pre>
+</div>
+
+<p>
+Unlike a C or C++ compiler, SWIG can work with incomplete type information and generate
+wrapper code even if the definition of <tt>class Foo</tt> is not provided to SWIG.
+However, this has negative consequences in the form of a memory leak.
+</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; h = CreateFoo()
+&gt;&gt;&gt; type(h)
+&lt;class 'SwigPyObject'&gt;
+&gt;&gt;&gt; h
+&lt;Swig Object of type 'Foo *' at 0x7fc341b4d6f0&gt;
+&gt;&gt;&gt; quit()
+swig/python detected a memory leak of type 'Foo *', no destructor found.
+</pre>
+</div>
+
+<p>
+Note that the type is no longer a proxy Python class, but is instead a generic <tt>SwigPyObject</tt> type.
+The memory leak warning is shown as SWIG has no way of knowing how to call the destructor with this generic type.
+The recommendation is to fix the leak by providing the missing type information.
+However, for those who don't care about memory leaks, the warning can also be suppressed by
+by defining <tt>SWIG_PYTHON_SILENT_MEMLEAK</tt> when compiling the generated C/C++ wrapper code, such as passing
+<tt>-DSWIG_PYTHON_SILENT_MEMLEAK</tt> to the compiler or getting SWIG to define this macro at the beginning
+of the generated wrapper code by adding the following to the interface file using:
+</p>
+
+<div class="code">
+<pre>
+%begin %{
+#define SWIG_PYTHON_SILENT_MEMLEAK
+%}
+</pre>
+</div>
+
+<p>
+The generic <tt>SwigPyObject</tt> type also has a <tt>disown()</tt> method which can be called to deactivate the warning.
+</p>
+
+<p>
+Next, let's consider returning raw pointers even when the full type information is available to SWIG.
+When pointers or references are returned to Python, there is often no way to know where
+they came from and how to manage the memory that they point to.
+Therefore, the ownership is set to <tt>False</tt>.  For example:
 </p>
 
 <div class="code">
 <pre>
 class Foo {
 public:
-  ...
-  Foo *spam();
-  ...
+  Foo();
+  ~Foo();
 };
+Foo *PointerCreate();
+Foo &lt;ReferenceCreate();
 </pre>
 </div>
 
@@ -2763,11 +2821,12 @@ public:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; f = Foo()
-&gt;&gt;&gt; s = f.spam()
-&gt;&gt;&gt; print(s.thisown)
-0
-&gt;&gt;&gt;
+&gt;&gt;&gt; p = PointerCreate()
+&gt;&gt;&gt; p.thisown
+False
+&gt;&gt;&gt; r = ReferenceCreate()
+&gt;&gt;&gt; r.thisown
+False
 </pre>
 </div>
 
@@ -2810,10 +2869,10 @@ is assigned to a global variable.  For example:
 <pre>
 &gt;&gt;&gt; f = example.Foo()
 &gt;&gt;&gt; f.thisown
-1
+True
 &gt;&gt;&gt; example.cvar.head = f
 &gt;&gt;&gt; f.thisown
-0
+False
 &gt;&gt;&gt;
 </pre>
 </div>
@@ -2828,12 +2887,12 @@ Similarly, this occurs for members.  For example:
 &gt;&gt;&gt; f = example.Foo()
 &gt;&gt;&gt; g = example.Foo()
 &gt;&gt;&gt; f.thisown
-1
+True
 &gt;&gt;&gt; g.thisown
-1
+True
 &gt;&gt;&gt; f.next = g
 &gt;&gt;&gt; g.thisown
-0
+False
 &gt;&gt;&gt;
 </pre>
 </div>
@@ -2865,7 +2924,7 @@ Now, consider the following Python code:
 &gt;&gt;&gt; n = Node()             # Create a node
 &gt;&gt;&gt; n.set_value(v)         # Set value
 &gt;&gt;&gt; v.thisown
-1
+True
 &gt;&gt;&gt; del v
 </pre>
 </div>
@@ -2885,7 +2944,7 @@ To work around this, it is always possible to flip the ownership flag. For examp
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; v.thisown = 0
+&gt;&gt;&gt; v.thisown = False
 </pre>
 </div>
 
@@ -3115,7 +3174,7 @@ collected.
 <p>
 This relationship can be reversed by calling the special
 <tt>__disown__()</tt> method of the proxy class. After calling this
-method, the <tt>.thisown</tt> flag is set to zero, and the director
+method, the <tt>thisown</tt> flag is set to <tt>False</tt>, and the director
 class increments the reference count of the Python object. When the
 director class is deleted it decrements the reference count. Assuming no
 outstanding references to the Python object remain, the Python object
