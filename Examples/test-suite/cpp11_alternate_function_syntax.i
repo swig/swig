@@ -8,6 +8,8 @@
 %ignore addAlternateMemberPtrConstParm(int x, int (SomeStruct::*mp)(int, int) const) const;
 // SWIG/C doesn't currently support wrapping rvalue reference return types.
 %ignore SomeStruct::output(short);
+#elif defined SWIGGO
+%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) output_rvalueref;
 #endif
 
 %inline %{

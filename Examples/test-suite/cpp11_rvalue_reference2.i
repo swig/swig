@@ -2,6 +2,11 @@
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) globalrrval;
 
+#if defined SWIGGO
+// Several: Warning 507: No Go typemap defined for int &&
+# pragma SWIG nowarn=SWIGWARN_LANG_NATIVE_UNIMPL
+#endif
+
 // This testcase tests lots of different places that rvalue reference syntax can be used
 
 %typemap(in) Something && "/*in Something && typemap*/"

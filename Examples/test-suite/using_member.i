@@ -9,6 +9,16 @@
 %rename(greater) one::DD::great;
 %rename(greaterstill) one::DD::great(bool);
 
+#ifdef SWIGLUA
+// Lua does now have a separate integer type, but didn't used to
+// and SWIG doesn't yet know about it (see #1918) so for now suppress
+// warnings about functions with overloads on int vs double, etc.
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) B::get(double);
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) one::two::three::interface1::AA::great(float);
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) one::CC::great;
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) one::DD::great(float);
+#endif
+
 %inline %{
 namespace interface1
 {

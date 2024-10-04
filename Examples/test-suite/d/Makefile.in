@@ -56,6 +56,9 @@ SRCDIR       = ../$(srcdir)/
 TARGETSUFFIX = _wrap
 SWIGOPT+=-splitproxy -package $*
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 # Rules for the different types of tests
 %.cpptest:
 	$(setup)
