@@ -1,5 +1,7 @@
 %module cpp11_attribute_specifiers
 
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) a;
+
 %inline %{
 
 #if defined(__GNUC__)
