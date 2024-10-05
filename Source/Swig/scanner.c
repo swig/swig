@@ -31,7 +31,6 @@ struct Scanner {
   int     start_line;		/* Starting line of certain declarations */
   int     line;
   int     yylen;	        /* Length of text pushed into text */
-  String *file;
   String *error;                /* Last error message (if any) */
   int     error_line;           /* Error line number */
   int     freeze_line;          /* Suspend line number updates */
@@ -58,7 +57,6 @@ Scanner *NewScanner(void) {
   Scanner *s;
   s = (Scanner *) Malloc(sizeof(Scanner));
   s->line = 1;
-  s->file = 0;
   s->nexttoken = -1;
   s->start_line = 1;
   s->yylen = 0;
@@ -85,7 +83,6 @@ void DelScanner(Scanner *s) {
   Delete(s->scanobjs);
   Delete(s->brackets);
   Delete(s->text);
-  Delete(s->file);
   Delete(s->error);
   Delete(s->str);
   Free(s->idstart);
@@ -113,7 +110,6 @@ void Scanner_clear(Scanner *s) {
   s->yylen = 0;
   /* Should these be cleared too?
   s->idstart;
-  s->file;
   s->error_line;
   s->freeze_line;
   */
