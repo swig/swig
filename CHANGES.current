@@ -8,6 +8,11 @@ Version 4.3.0 (in progress)
 ===========================
 
 2024-10-05: wsfulton
+            [Ruby] Removed backwards compatible output_helper fragment and macro.
+            Use SWIG_AppendOutput instead of output_helper (does not require the
+            output_helper macro).
+
+2024-10-05: wsfulton
             [Ruby] #2907 Fix returning null from functions with output parameters.
             Ensures OUTPUT and INOUT typemaps are handled consistently wrt return
             type.
@@ -18,6 +23,15 @@ Version 4.3.0 (in progress)
 
             The 3rd parameter is new and the new $isvoid special variable should be
             passed to it, indicating whether or not the wrapped function returns void.
+
+            Also consider replacing with:
+
+              SWIG_AppendOutput(VALUE target, VALUE o);
+
+            which calls SWIG_Ruby_AppendOutput with same parameters but adding $isvoid
+            for final parameter.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
 
 2024-09-29: clintonstimpson
             [Python] #2350 Switch implementation from static types to heap

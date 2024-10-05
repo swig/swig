@@ -20,11 +20,6 @@
 /* Ruby fragments for char* strings */
 %include <rubystrings.swg>
 
-/* Backward compatibility output helper */
-%fragment("output_helper","header") %{
-#define output_helper SWIG_Ruby_AppendOutput
-%}
-
 /* ------------------------------------------------------------
  *  Unified typemap section
  * ------------------------------------------------------------ */
