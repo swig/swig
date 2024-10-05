@@ -60,4 +60,5 @@ void AddOne1r(double& INOUT);
     *INOUT += 42;
     return NULL;
   }
+  void *getNull() { return NULL; }
 %}
