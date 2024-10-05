@@ -9,9 +9,9 @@
 
 require 'swig_assert'
 
-require 'inout'
+require 'inout_typemaps'
 
-include Inout
+include Inout_typemaps
 
 swig_assert_equal_simple(AddOne1(1), 2)
 

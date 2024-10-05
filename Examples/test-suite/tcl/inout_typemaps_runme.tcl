@@ -1,5 +1,5 @@
 
-if [ catch { load ./inout[info sharedlibextension] Inout} err_msg ] {
+if [ catch { load ./inout_typemaps[info sharedlibextension] Inout_typemaps} err_msg ] {
 	puts stderr "Could not load shared object:\n$err_msg"
 }
 

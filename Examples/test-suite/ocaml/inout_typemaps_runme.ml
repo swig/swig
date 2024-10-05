@@ -1,5 +1,5 @@
 open Swig
-open Inout
+open Inout_typemaps
 
 let _ =
   assert (_AddOne1 '(1.) as float = 2.);

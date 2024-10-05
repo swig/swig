@@ -1,4 +1,4 @@
-%module inout
+%module inout_typemaps
 
 %include "typemaps.i"
 %include "std_pair.i"
