@@ -949,7 +949,7 @@ swig -python -help
 <tr><td>-castmode       </td><td>Enable the casting mode, which allows implicit cast between types in Python</td></tr>
 <tr><td>-debug-doxygen-parser     </td><td>Display doxygen parser module debugging information</td></tr>
 <tr><td>-debug-doxygen-translator </td><td>Display doxygen translator module debugging information</td></tr>
-<tr><td>-dirvtable      </td><td>Generate a pseudo virtual table for directors for faster dispatch</td></tr>
+<tr><td>-dirvtable      </td><td>Generate a pseudo virtual table for directors for faster dispatch (warning: currently the vtable is per-object and never freed so this option causes memory leaks)</td></tr>
 <tr><td>-doxygen        </td><td>Convert C++ doxygen comments to pydoc comments in proxy classes</td></tr>
 <tr><td>-extranative    </td><td>Return extra native wrappers for C++ std containers wherever possible</td></tr>
 <tr><td>-fastproxy      </td><td>Use fast proxy mechanism for member methods</td></tr>
