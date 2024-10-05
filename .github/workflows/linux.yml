@@ -88,11 +88,10 @@ jobs:
         - SWIGLANG: javascript
           ENGINE: jsc
           VER: '4.0'
-        # Suddenly requires c++17 without any apparent change from previous successful job
-        #- SWIGLANG: javascript
-        #- ENGINE: napi
-        #- VER: '18'
-        #- CPPSTD: c++11
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '18'
+          CPPSTD: c++11
         - SWIGLANG: javascript
           ENGINE: node
           VER: '12'
