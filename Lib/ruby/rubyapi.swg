@@ -7,8 +7,8 @@ extern "C" {
 #endif
 
 SWIGINTERN VALUE
-SWIG_Ruby_AppendOutput(VALUE target, VALUE o) {
-  if (NIL_P(target)) {
+SWIG_Ruby_AppendOutput(VALUE target, VALUE o, int is_void) {
+  if (NIL_P(target) && is_void) {
     target = o;
   } else {
     if (TYPE(target) != T_ARRAY) {

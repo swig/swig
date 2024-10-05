@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-10-05: wsfulton
+            [Ruby] #2907 Fix returning null from functions with output parameters.
+            Ensures OUTPUT and INOUT typemaps are handled consistently wrt return
+            type.
+
+            New declaration of SWIG_Ruby_AppendOutput is now:
+
+              SWIG_Ruby_AppendOutput(VALUE target, VALUE o, int is_void);
+
+            The 3rd parameter is new and the new $isvoid special variable should be
+            passed to it, indicating whether or not the wrapped function returns void.
+
 2024-09-29: clintonstimpson
             [Python] #2350 Switch implementation from static types to heap
             types using PyType_FromSpec() introduced in Python 3.
@@ -291,7 +303,8 @@ Version 4.3.0 (in progress)
 
 2024-06-15: vadz
             [Python] #2907 Fix returning null from functions with output parameters.
-            Ensures OUTPUT typemaps are handled consistently.
+            Ensures OUTPUT and INOUT typemaps are handled consistently wrt return
+            type.
 
             New declaration of SWIG_Python_AppendOutput is now:
 

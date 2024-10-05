@@ -42,7 +42,7 @@
 /* Overload of the output/constant/exception handling */
 
 /* append output */
-#define SWIG_AppendOutput(result,obj)    SWIG_Ruby_AppendOutput(result, obj)
+#define SWIG_AppendOutput(result,obj)    SWIG_Ruby_AppendOutput(result, obj, $isvoid)
 
 /* set constant */
 #define SWIG_SetConstant(name, obj)      rb_define_const($module, name, obj)
