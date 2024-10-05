@@ -37,9 +37,6 @@ smart_pointer_inherit \
 FAILING_C_TESTS = \
 enums \
 
-CPP_TEST_CASES += \
-	inout \
-
 C_TEST_CASES += \
 	multivalue \
 

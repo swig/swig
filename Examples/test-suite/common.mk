@@ -291,6 +291,7 @@ CPP_TEST_CASES += \
 	inherit_target_language \
 	inherit_void_arg \
 	inline_initializer \
+	inout \
 	insert_directive \
 	keyword_rename \
 	kind \

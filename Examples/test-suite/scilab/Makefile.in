@@ -20,7 +20,6 @@ C_TEST_CASES += \
 	scilab_identifier_name \
 
 CPP_TEST_CASES += \
-	inout \
 	primitive_types \
 	scilab_li_matrix \
 	scilab_multivalue \

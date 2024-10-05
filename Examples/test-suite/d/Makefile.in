@@ -25,6 +25,7 @@ CPP11_TEST_CASES = \
 
 # "D classes support the single inheritance paradigm" https://dlang.org/spec/class.html
 FAILING_CPP_TESTS += \
+	inout \
 	using_composition \
 	using_extend \
 
