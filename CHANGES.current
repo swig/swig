@@ -20,6 +20,9 @@ Version 4.3.0 (in progress)
             appropriately setting the is_void parameter using the $isvoid special
             variable.
 
+            The t_output_helper fragment is also deprecated and is no longer needed
+            as the SWIG_Php_AppendOutput is now always generated.
+
 2024-10-05: wsfulton
             [Ruby] Removed backwards compatible output_helper fragment and macro.
             Use SWIG_AppendOutput instead of output_helper (does not require the

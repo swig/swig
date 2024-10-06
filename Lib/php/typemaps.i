@@ -33,7 +33,7 @@
 %}
 %typemap(argout) TYPE *INPUT, TYPE &INPUT ""
 %typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp), TYPE &OUTPUT(TYPE temp) "$1 = &temp;"
-%typemap(argout,fragment="t_output_helper") TYPE *OUTPUT, TYPE &OUTPUT
+%typemap(argout) TYPE *OUTPUT, TYPE &OUTPUT
 {
   zval o;
   ZVAL_BOOL(&o, temp$argnum);
@@ -59,7 +59,7 @@
 %}
 %typemap(argout) TYPE *INPUT, TYPE &INPUT ""
 %typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp), TYPE &OUTPUT(TYPE temp) "$1 = &temp;"
-%typemap(argout,fragment="t_output_helper") TYPE *OUTPUT, TYPE &OUTPUT
+%typemap(argout) TYPE *OUTPUT, TYPE &OUTPUT
 {
   zval o;
   ZVAL_DOUBLE(&o, temp$argnum);
@@ -84,7 +84,7 @@
 %}
 %typemap(argout) TYPE *INPUT, TYPE &INPUT ""
 %typemap(in,numinputs=0) TYPE *OUTPUT(TYPE temp), TYPE &OUTPUT(TYPE temp) "$1 = &temp;"
-%typemap(argout,fragment="t_output_helper") TYPE *OUTPUT, TYPE &OUTPUT
+%typemap(argout) TYPE *OUTPUT, TYPE &OUTPUT
 {
   zval o;
   ZVAL_LONG(&o, temp$argnum);
@@ -116,7 +116,7 @@ INT_TYPEMAP(unsigned char);
 INT_TYPEMAP(signed char);
 
 INT_TYPEMAP(long long);
-%typemap(argout,fragment="t_output_helper") long long *OUTPUT
+%typemap(argout) long long *OUTPUT
 {
   zval o;
   if ((long long)LONG_MIN <= temp$argnum && temp$argnum <= (long long)LONG_MAX) {
@@ -149,7 +149,7 @@ INT_TYPEMAP(long long);
 %}
 
 INT_TYPEMAP(unsigned long long);
-%typemap(argout,fragment="t_output_helper") unsigned long long *OUTPUT
+%typemap(argout) unsigned long long *OUTPUT
 {
   zval o;
   if (temp$argnum <= (unsigned long long)LONG_MAX) {
@@ -249,7 +249,7 @@ INT_TYPEMAP(unsigned long long);
 %}
 %typemap(in,numinputs=0) char OUTPUT[ANY] ( char temp[$1_dim0] )
   "$1 = temp;";
-%typemap(argout,fragment="t_output_helper") char OUTPUT[ANY]
+%typemap(argout) char OUTPUT[ANY]
 {
   zval o;
   ZVAL_STRINGL(&o, temp$argnum, $1_dim0);
