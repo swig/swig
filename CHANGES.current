@@ -7,6 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-10-06: wsfulton
+            [PHP] #2907 Fix returning NULL from functions with output parameters.
+            Ensures OUTPUT and INOUT typemaps are handled consistently wrt return
+            type.
+
+            Added:
+              void SWIG_Php_AppendOutput(zval *target, zval *o, int is_void);
+
+            The t_output_helper function is deprecated. Replace t_output_helper
+            in typemaps with SWIG_AppendOutput which calls SWIG_Php_AppendOutput
+            appropriately setting the is_void parameter using the $isvoid special
+            variable.
+
 2024-10-05: wsfulton
             [Ruby] Removed backwards compatible output_helper fragment and macro.
             Use SWIG_AppendOutput instead of output_helper (does not require the
@@ -15,7 +28,7 @@ Version 4.3.0 (in progress)
 	    *** POTENTIAL INCOMPATIBILITY ***
 
 2024-10-05: wsfulton
-            [Ruby] #2907 Fix returning null from functions with output parameters.
+            [Ruby] #2907 Fix returning NULL from functions with output parameters.
             Ensures OUTPUT and INOUT typemaps are handled consistently wrt return
             type.
 

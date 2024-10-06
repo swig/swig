@@ -37,7 +37,7 @@
 {
   zval o;
   ZVAL_BOOL(&o, temp$argnum);
-  t_output_helper($result, &o);
+  SWIG_AppendOutput($result, &o);
 }
 %typemap(in, phptype="float") TYPE *REFERENCE (TYPE lvalue), TYPE &REFERENCE (TYPE lvalue)
 %{
@@ -63,7 +63,7 @@
 {
   zval o;
   ZVAL_DOUBLE(&o, temp$argnum);
-  t_output_helper($result, &o);
+  SWIG_AppendOutput($result, &o);
 }
 %typemap(in, phptype="float") TYPE *REFERENCE (TYPE dvalue), TYPE &REFERENCE (TYPE dvalue)
 %{
@@ -88,7 +88,7 @@
 {
   zval o;
   ZVAL_LONG(&o, temp$argnum);
-  t_output_helper($result, &o);
+  SWIG_AppendOutput($result, &o);
 }
 %typemap(in, phptype="int") TYPE *REFERENCE (TYPE lvalue), TYPE &REFERENCE (TYPE lvalue)
 %{
@@ -124,7 +124,7 @@ INT_TYPEMAP(long long);
   } else {
     ZVAL_NEW_STR(&o, zend_strpprintf(0, "%lld", (long long)temp$argnum));
   }
-  t_output_helper($result, &o);
+  SWIG_AppendOutput($result, &o);
 }
 %typemap(in, phptype="int|string") TYPE *REFERENCE (long long lvalue)
 %{
@@ -157,7 +157,7 @@ INT_TYPEMAP(unsigned long long);
   } else {
     ZVAL_NEW_STR(&o, zend_strpprintf(0, "%llu", (unsigned long long)temp$argnum));
   }
-  t_output_helper($result, &o);
+  SWIG_AppendOutput($result, &o);
 }
 %typemap(in, phptype="int|string") TYPE *REFERENCE (unsigned long long lvalue)
 %{
@@ -253,7 +253,7 @@ INT_TYPEMAP(unsigned long long);
 {
   zval o;
   ZVAL_STRINGL(&o, temp$argnum, $1_dim0);
-  t_output_helper($result, &o);
+  SWIG_AppendOutput($result, &o);
 }
 
 %typemap(in,numinputs=0,phptype="?SWIGTYPE") void **OUTPUT (int force),

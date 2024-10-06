@@ -113,7 +113,7 @@ namespace std {
     {
       zval o;
       ZVAL_STRINGL(&o, $1->data(), $1->size());
-      t_output_helper($result, &o);
+      SWIG_AppendOutput($result, &o);
     }
     %typemap(in) string& INOUT = const string&;
     %typemap(argout) string& INOUT = string& OUTPUT;

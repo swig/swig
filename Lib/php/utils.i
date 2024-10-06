@@ -93,16 +93,21 @@
 %}
 %enddef
 
+#define SWIG_AppendOutput(result, obj)  SWIG_Php_AppendOutput(result, obj, $isvoid)
+
+/* Deprecated backwards compatibility macro */
+#define t_output_helper SWIG_AppendOutput
+
 %fragment("t_output_helper","header") %{
 static void
-t_output_helper(zval *target, zval *o) {
+SWIG_Php_AppendOutput(zval *target, zval *o, int is_void) {
   zval tmp;
   if (Z_TYPE_P(target) == IS_ARRAY) {
     /* it's already an array, just append */
     add_next_index_zval(target, o);
     return;
   }
-  if (Z_TYPE_P(target) == IS_NULL) {
+  if (Z_TYPE_P(target) == IS_NULL && is_void) {
     /* NULL isn't refcounted */
     ZVAL_COPY_VALUE(target, o);
     return;
