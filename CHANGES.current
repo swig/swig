@@ -10,7 +10,9 @@ Version 4.3.0 (in progress)
 2024-10-05: wsfulton
             [Ruby] Removed backwards compatible output_helper fragment and macro.
             Use SWIG_AppendOutput instead of output_helper (does not require the
-            output_helper macro).
+            output_helper fragment).
+
+	    *** POTENTIAL INCOMPATIBILITY ***
 
 2024-10-05: wsfulton
             [Ruby] #2907 Fix returning null from functions with output parameters.
@@ -314,6 +316,8 @@ Version 4.3.0 (in progress)
 2024-06-15: wsfulton
             [Python] Removed deprecated pytuplehlp.swg file and t_output_helper.
             Use SWIG_Python_AppendOutput instead of t_output_helper.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
 
 2024-06-15: vadz
             [Python] #2907 Fix returning null from functions with output parameters.

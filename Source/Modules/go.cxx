@@ -3264,7 +3264,9 @@ private:
     Swig_typemap_attach_parms("imtype", parms, NULL);
     int parm_count = emit_num_arguments(parms);
 
-    SwigType *result = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
+    SwigType *result = returntype;
+    bool is_void = !(Cmp(returntype, "void"));
 
     // Save the type for overload processing.
     Setattr(n, "go:type", result);
@@ -3998,6 +4000,7 @@ private:
 
       Printv(w->code, "}", NULL);
 
+      Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
       Replaceall(w->code, "$symname", symname);
       Wrapper_print(w, f_c_directors);
     }

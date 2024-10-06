@@ -5891,6 +5891,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
   /* emit the director method */
   if (status == SWIG_OK) {
+    Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
     if (!Getattr(n, "defaultargs")) {
       Replaceall(w->code, "$symname", symname);
       Wrapper_print(w, f_directors);
