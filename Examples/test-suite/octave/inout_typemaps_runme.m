@@ -16,6 +16,6 @@ a = inout_typemaps.AddOne2p({10,20},30);
 assert(a{1}, 11); # Wrong
 assert(a{2}, 21); # Wrong
 
-a = inout_typemaps.AddOne3p(1,{1,1},1);
+a = inout_typemaps.AddOne3p(10,{20,30},40);
 # TODO
-# assert(a == [2,{2,2},2])
+# assert(a == [11,{21,31},41])

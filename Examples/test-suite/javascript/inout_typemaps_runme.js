@@ -4,7 +4,7 @@ if (inout_typemaps.AddOne1(1) != 2) {
     throw new Error;
 }
 
-if (JSON.stringify(inout_typemaps.AddOne3(1, 1, 1)) != JSON.stringify([2, 2, 2])) {
+if (JSON.stringify(inout_typemaps.AddOne3(10, 20, 30)) != JSON.stringify([11, 21, 31])) {
     throw new Error;
 }
 

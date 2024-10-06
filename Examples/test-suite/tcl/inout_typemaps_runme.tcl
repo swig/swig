@@ -11,7 +11,7 @@ if {[lindex $a 0] != 11} { error "fail AddOne3[0]" }
 if {[lindex $a 1] != 21} { error "fail AddOne3[1]" }
 if {[lindex $a 2] != 31} { error "fail AddOne3[2]" }
 
-if {[AddOne1r 1] != 2} { error "fail AddOner" }
+if {[AddOne1r 20] != 21} { error "fail AddOner" }
 
 set a [NonVoidOut -42]
 if {[lindex $a 0] != "NULL"} { error "fail NonVoidOut[0]" }
