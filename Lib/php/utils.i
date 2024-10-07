@@ -95,7 +95,7 @@
 
 #define SWIG_AppendOutput(result, obj)  SWIG_Php_AppendOutput(result, obj, $isvoid)
 
-/* Deprecated backwards compatibility macro */
+/* Deprecated (since 4.3.0) backwards compatibility macro */
 #define t_output_helper SWIG_AppendOutput
 
 /* Deprecated fragment */
