@@ -213,7 +213,7 @@ static void* SWIG_Php_free_obj(zend_object *object) {
   return NULL;
 }
 
-static void
+SWIGINTERN void
 SWIG_Php_AppendOutput(zval *target, zval *o, int is_void) {
   zval tmp;
   if (Z_TYPE_P(target) == IS_ARRAY) {
