@@ -21,7 +21,7 @@ Version 4.3.0 (in progress)
             variable.
 
             The t_output_helper fragment is also deprecated and is no longer needed
-            as the SWIG_Php_AppendOutput is now always generated.
+            as the SWIG_Php_AppendOutput function is now always generated.
 
 2024-10-05: wsfulton
             [Ruby] Removed backwards compatible output_helper fragment and macro.
