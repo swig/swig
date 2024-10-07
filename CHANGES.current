@@ -345,7 +345,7 @@ Version 4.3.0 (in progress)
 
 2024-06-15: wsfulton
             [Python] Removed deprecated pytuplehlp.swg file and t_output_helper.
-            Use SWIG_Python_AppendOutput instead of t_output_helper.
+            Use SWIG_AppendOutput as a direct replacement for t_output_helper.
 
 	    *** POTENTIAL INCOMPATIBILITY ***
 
@@ -361,6 +361,13 @@ Version 4.3.0 (in progress)
             The 3rd parameter is new and the new $isvoid special variable
             should be passed to it, indicating whether or not the wrapped
             function returns void.
+
+            Also consider replacing with:
+
+              SWIG_AppendOutput(PyObject* result, PyObject* obj);
+
+            which calls SWIG_Python_AppendOutput with same parameters but adding $isvoid
+            for final parameter.
 
 	    *** POTENTIAL INCOMPATIBILITY ***
 

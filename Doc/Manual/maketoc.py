@@ -28,7 +28,7 @@ for c in chs:
     c = c.strip()
     print("Processing " + c)
     if c:
-        os.system("python makechap.py %s %d >> Contents.html" % (c,num))
+        os.system("python3 makechap.py %s %d >> Contents.html" % (c,num))
     num += 1
 
 f = open("Contents.html","a")
