@@ -1554,21 +1554,19 @@ String *Scanner_text(Scanner *s) {
  * ----------------------------------------------------------------------------- */
 
 void Scanner_skip_line(Scanner *s) {
-  char c;
-  int done = 0;
   Clear(s->text);
   Setfile(s->text, Getfile(s->str));
   Setline(s->text, s->line);
-  while (!done) {
+  while (1) {
+    int c;
     if ((c = nextchar(s)) == EOF)
       return;
     if (c == '\\') {
       nextchar(s);
     } else if (c == '\n') {
-      done = 1;
+      return;
     }
   }
-  return;
 }
 
 /* -----------------------------------------------------------------------------
