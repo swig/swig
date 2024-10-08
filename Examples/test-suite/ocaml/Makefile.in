@@ -31,6 +31,7 @@ director_enum \
 director_primitives \
 director_string \
 director_using_member_scopes \
+director_rev_len_str \
 enum_thorough \
 smart_pointer_inherit \
 
