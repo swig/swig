@@ -170,9 +170,6 @@ public:
     /* Set scilab configuration file */
     SWIG_config_file("scilab.swg");
 
-    /* Set typemap for scilab */
-    SWIG_typemap_lang("scilab");
-
     allow_overloading();
   }
 

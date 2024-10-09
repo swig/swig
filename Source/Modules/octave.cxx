@@ -132,7 +132,6 @@ public:
     SWIG_library_directory("octave");
     Preprocessor_define("SWIGOCTAVE 1", 0);
     SWIG_config_file("octave.swg");
-    SWIG_typemap_lang("octave");
     allow_overloading();
 
     // Octave API is C++, so output must be C++ compatible even when wrapping C code

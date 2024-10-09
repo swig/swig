@@ -335,8 +335,6 @@ public:
     // use in our library files.
     Preprocessor_define("SWIG_D_VERSION 2", 0);
 
-    // Add typemap definitions
-    SWIG_typemap_lang("d");
     SWIG_config_file("d.swg");
 
     allow_overloading();

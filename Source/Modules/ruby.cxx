@@ -908,8 +908,6 @@ public:
     /* Add a symbol to the parser for conditional compilation */
     Preprocessor_define("SWIGRUBY 1", 0);
 
-    /* Add typemap definitions */
-    SWIG_typemap_lang("ruby");
     SWIG_config_file("ruby.swg");
     allow_overloading();
   }

@@ -107,10 +107,6 @@ public:
 
     Preprocessor_define("SWIGMZSCHEME 1", 0);
 
-    // Set name of typemaps
-
-    SWIG_typemap_lang("mzscheme");
-
     // Read in default typemaps */
     SWIG_config_file("mzscheme.swg");
     allow_overloading();

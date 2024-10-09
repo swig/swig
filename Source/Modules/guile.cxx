@@ -121,7 +121,6 @@ public:
     int i;
 
      SWIG_library_directory("guile");
-     SWIG_typemap_lang("guile");
 
     // Look for certain command line options
     for (i = 1; i < argc; i++) {

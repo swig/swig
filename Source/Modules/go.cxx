@@ -361,8 +361,6 @@ private:
       Preprocessor_define("SWIGGO_INTGO_SIZE 0", 0);
     }
 
-    // Add typemap definitions.
-    SWIG_typemap_lang("go");
     SWIG_config_file("go.swg");
 
     allow_overloading();

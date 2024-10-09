@@ -472,7 +472,6 @@ public:
     if (!global_name)
       global_name = NewString("cvar");
     Preprocessor_define("SWIGPYTHON 1", 0);
-    SWIG_typemap_lang("python");
     SWIG_config_file("python.swg");
     allow_overloading();
   }
