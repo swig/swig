@@ -301,8 +301,6 @@ public:
     // Add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGCSHARP 1", 0);
 
-    // Add typemap definitions
-    SWIG_typemap_lang("csharp");
     SWIG_config_file("csharp.swg");
 
     allow_overloading();

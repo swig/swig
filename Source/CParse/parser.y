@@ -223,8 +223,6 @@ static void set_comment(Node *n, String *comment) {
  *                              Variables
  * ----------------------------------------------------------------------------- */
 
-static char  *typemap_lang = 0;    /* Current language setting */
-
 static int cplus_mode  = 0;
 
 /* C++ modes */
@@ -278,10 +276,6 @@ static const char* storage_class_string(int c) {
 
 /* include types */
 static int   import_mode = 0;
-
-void SWIG_typemap_lang(const char *tm_lang) {
-  typemap_lang = Swig_copy_string(tm_lang);
-}
 
 void SWIG_cparse_set_compact_default_args(int defargs) {
   compact_default_args = defargs;
@@ -2904,7 +2898,7 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 	       }
                ;
 
-/* typemap method type (lang,method) or (method) */
+/* typemap method and optional kwargs */
 
 typemap_type   : kwargs {
 		 String *name = Getattr($kwargs, "name");
