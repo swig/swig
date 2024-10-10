@@ -119,7 +119,7 @@ jobs:
           ENGINE: napi
           VER: '18'
           CPPSTD: c++14
-          SWIG_FEATURES: -async
+          SWIG_FEATURES: -async -w470
           desc: Async
         - SWIGLANG: javascript
           ENGINE: napi
