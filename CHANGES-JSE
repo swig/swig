@@ -4,6 +4,21 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
+Version 5.0.6
+===========================
+
+2024-10-10: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#72](https://github.com/mmomtchev/swig/issues/72),
+            correctly resolve TypeScript types from C/C++ forward
+            declarations
+
+2024-10-10: mmomtchev
+            [JavaScript] Add `-debug-tstypes` debug option for aiding
+            when debugging TypeScript types resolution
+
+2024-10-10: mmomtchev
+            [JavaScript] Generate correct TypeScript type for `char []`
+
 Version 5.0.5 (9 Sep 2024)
 ===========================
 

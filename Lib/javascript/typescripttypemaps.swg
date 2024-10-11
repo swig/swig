@@ -14,7 +14,7 @@
 /**
  * Primitives types
  */
-%typemap(ts) char*, std::string, std::string *, std::string & "string";
+%typemap(ts) char*, char[], std::string, std::string *, std::string & "string";
 %typemap(ts) bool "boolean";
 
 #define SIGNS(N) N, unsigned N, signed N

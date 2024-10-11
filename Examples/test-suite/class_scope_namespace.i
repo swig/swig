@@ -5,6 +5,13 @@
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) H::HH;
 %warnfilter(SWIGWARN_PARSE_NAMED_NESTED_CLASS) Space8::I_::II;
 
+#ifdef SWIGTYPESCRIPT
+// TypeScript tracks defined types and A will collide with
+// Space1::SubSpace1::A without %nspace
+%nspace;
+%warnfilter(302) Space8::I_;
+#endif
+
 %inline %{
 struct A;
 namespace Space1 {
