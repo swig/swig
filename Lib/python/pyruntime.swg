@@ -30,7 +30,10 @@
 #else
 # include <Python.h>
 #endif
+
+#if PY_VERSION_HEX < 0x030c0000
 #include <structmember.h>
+#endif
 
 #if __GNUC__ >= 7
 #pragma GCC diagnostic pop
