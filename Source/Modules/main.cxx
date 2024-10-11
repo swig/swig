@@ -632,7 +632,7 @@ static void getoptions(int argc, char *argv[]) {
 	} else {
 	  Swig_arg_error();
 	}
-      } else if (strcmp(argv[i], "-version") == 0) {
+      } else if (strcmp(argv[i], "-version") == 0 || strcmp(argv[1], "--version") == 0) {
 	fprintf(stdout, "\nSWIG JSE Version %s\n", Swig_package_version());
 	fprintf(stdout, "\nCompiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
 	fprintf(stdout, "\nConfigured options: %cpcre\n",
@@ -1311,7 +1311,13 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	if (tlm->status == Experimental) {
 	  Swig_warning(WARN_LANG_EXPERIMENTAL, "SWIG", 1, "Experimental target language. "
 	    "Target language %s specified by %s is an experimental language. "
-	    "Please read about SWIG experimental languages, https://swig.org/Doc4.0/Introduction.html#Introduction_experimental_status.\n",
+	    "See the 'Target Languages' section in the Introduction chapter of the SWIG documentation.\n",
+	    tlm->help ? tlm->help : "", tlm->name);
+	} else if (tlm->status == Deprecated) {
+	  Swig_warning(WARN_LANG_DEPRECATED, "SWIG", 1, "Deprecated target language. "
+	    "Target language %s specified by %s is a deprecated target language. "
+	    "It will be removed in the next release of SWIG unless a new maintainer steps forward to bring it up to at least experimental status. "
+	    "See the 'Target Languages' section in the Introduction chapter of the SWIG documentation.\n",
 	    tlm->help ? tlm->help : "", tlm->name);
 	}
 

@@ -31,7 +31,6 @@ struct Scanner {
   int     start_line;		/* Starting line of certain declarations */
   int     line;
   int     yylen;	        /* Length of text pushed into text */
-  String *file;
   String *error;                /* Last error message (if any) */
   int     error_line;           /* Error line number */
   int     freeze_line;          /* Suspend line number updates */
@@ -58,7 +57,6 @@ Scanner *NewScanner(void) {
   Scanner *s;
   s = (Scanner *) Malloc(sizeof(Scanner));
   s->line = 1;
-  s->file = 0;
   s->nexttoken = -1;
   s->start_line = 1;
   s->yylen = 0;
@@ -85,7 +83,6 @@ void DelScanner(Scanner *s) {
   Delete(s->scanobjs);
   Delete(s->brackets);
   Delete(s->text);
-  Delete(s->file);
   Delete(s->error);
   Delete(s->str);
   Free(s->idstart);
@@ -113,7 +110,6 @@ void Scanner_clear(Scanner *s) {
   s->yylen = 0;
   /* Should these be cleared too?
   s->idstart;
-  s->file;
   s->error_line;
   s->freeze_line;
   */
@@ -1558,21 +1554,19 @@ String *Scanner_text(Scanner *s) {
  * ----------------------------------------------------------------------------- */
 
 void Scanner_skip_line(Scanner *s) {
-  char c;
-  int done = 0;
   Clear(s->text);
   Setfile(s->text, Getfile(s->str));
   Setline(s->text, s->line);
-  while (!done) {
+  while (1) {
+    int c;
     if ((c = nextchar(s)) == EOF)
       return;
     if (c == '\\') {
       nextchar(s);
     } else if (c == '\n') {
-      done = 1;
+      return;
     }
   }
-  return;
 }
 
 /* -----------------------------------------------------------------------------
@@ -1618,6 +1612,12 @@ int Scanner_skip_balanced(Scanner *s, int startchar, int endchar) {
       num_levels++;
     } else if (tok == endtok) {
       if (--num_levels == 0) break;
+    } else if (tok == SWIG_TOKEN_RRBRACKET && endtok == SWIG_TOKEN_RBRACKET) {
+      num_levels -= 2;
+      if (num_levels <= 0) {
+	if (num_levels < 0) Scanner_pushtoken(s, SWIG_TOKEN_RBRACKET, "]");
+	break;
+      }
     } else if (tok == SWIG_TOKEN_COMMENT) {
       char *loc = Char(s->text);
       if (strncmp(loc, "/*@SWIG", 7) == 0 && loc[Len(s->text)-3] == '@') {

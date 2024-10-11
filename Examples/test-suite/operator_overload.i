@@ -15,6 +15,11 @@ see bottom for a set of possible tests
 	    SWIGWARN_IGNORE_OPERATOR_LOR);
 #endif
 
+#if defined(SWIGC)
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_EQ, 
+      SWIGWARN_IGNORE_OPERATOR_PLUSPLUS);
+#endif
+
 #if !defined(SWIGLUA) && !defined(SWIGR)
 %rename(Equal) operator =;
 %rename(PlusEqual) operator +=;

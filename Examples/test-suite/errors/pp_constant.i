@@ -57,3 +57,7 @@ comment */
 // Bad octal escape sequences.
 %constant char * badbinstring = "\400";
 %constant char badbinchar = '\777';
+
+// SWIG < 4.3.0 used to allow a bitfield width here, which makes no sense.
+%constant int colon_not_allowed : 3;
+%constant short (Funcs::*pmf)(bool) const : 1;

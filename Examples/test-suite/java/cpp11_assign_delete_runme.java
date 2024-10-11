@@ -114,5 +114,31 @@ public class cpp11_assign_delete_runme {
     StaticMembersMemberArrayVars smmv = cpp11_assign_delete.getGlobalStaticMembersMemberArrayVars();
     cpp11_assign_delete.setGlobalStaticMembersMemberArrayVars(smmv);
     }
+
+    // (5) Test indirectly non-assignable member variables via classes that themselves have non-assignable reference member variables
+    {
+    MembersMemberRefVars m = new MembersMemberRefVars();
+
+    // These will only have getters
+    MemberPublicRefVar mpv1 = m.getMemberPublic();
+    MemberProtectedRefVar mpv2 = m.getMemberProtected();
+    MemberPrivateRefVar mpv3 = m.getMemberPrivate();
+
+    MemberPublicRefVar smpv1 = StaticMembersMemberRefVars.getStaticMemberPublic();
+    MemberProtectedRefVar smpv2 = StaticMembersMemberRefVars.getStaticMemberProtected();
+    MemberPrivateRefVar smpv3 = StaticMembersMemberRefVars.getStaticMemberPrivate();
+
+    MemberPublicRefVar gmpv1 = cpp11_assign_delete.getGlobalRefMemberPublic();
+    MemberProtectedRefVar gmpv2 = cpp11_assign_delete.getGlobalRefMemberProtected();
+    MemberPrivateRefVar gmpv3 = cpp11_assign_delete.getGlobalRefMemberPrivate();
+
+    // Setters and getters available
+    StaticMembersMemberRefVarsHolder smmvh = new StaticMembersMemberRefVarsHolder();
+    StaticMembersMemberRefVars member = smmvh.getMember();
+    smmvh.setMember(member);
+
+    StaticMembersMemberRefVars smmv = cpp11_assign_delete.getGlobalStaticMembersMemberRefVars();
+    cpp11_assign_delete.setGlobalStaticMembersMemberRefVars(smmv);
+    }
   }
 }

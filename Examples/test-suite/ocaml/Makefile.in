@@ -42,9 +42,6 @@ types_directive_nspace \
 FAILING_C_TESTS = \
 enums \
 
-CPP_TEST_CASES += \
-	inout \
-
 C_TEST_CASES += \
 	multivalue \
 

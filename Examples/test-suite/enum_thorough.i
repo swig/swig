@@ -660,6 +660,16 @@ struct EnumCharStruct {
     enumcharAE3 = '\xC6' // AE (latin1 encoded)
   };
 };
+
+// We can't test this for C# and Java it seems.
+#if !defined(SWIGCSHARP) && !defined(SWIGJAVA)
+enum Enum2995 {
+   T1 = (1 == 1),
+   T2 = !false,
+   F1 = (1 != 1),
+   F2 = !true,
+};
+#endif
 %}
 
 #if defined(SWIGJAVA)

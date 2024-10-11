@@ -1,5 +1,7 @@
 %module cpp11_attribute_specifiers
 
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) a;
+
 %rename("_noret_%s", match$attribute$noreturn=1) "";
 %rename("_%s", match$attribute$nodiscard=1) "";
 %rename("__deprecated_%s", %$isdeprecated, notmatch$attribute$nodiscard) "";
@@ -72,11 +74,9 @@ const char *test_string_literal() { return "Test [[ and ]] in string literal"; }
 [[gnu::visibility("default")]] int visible(int a) { return a + 1; }
 [[gnu::visibility("hidden"), gnu::always_inline]] int hidden(int a) { return a + 2; }
 
-// Check that SWIG doesn't choke on ]] when it's not part of an attribute.
-void test_fn() {
-  int data[1] = { 0 };
-  int *a = data;
-  int b = a[a[0]];
-}
+// Check that SWIG handles ]] as two ] tokens when it's not part of an attribute.
+int aa = 0;
+int *a = &aa;
+int b = a[a[0]];
 
 %}

@@ -58,6 +58,7 @@ static String *builtin_tp_init = 0;
 static String *builtin_methods = 0;
 static String *builtin_default_unref = 0;
 static String *builtin_closures_code = 0;
+static String *f_varlinks = 0;
 
 static String *methods;
 static String *methods_proxydocs;
@@ -145,8 +146,18 @@ static void printSlot(File *f, String *slotval, const char *slotname, const char
   if (functype && Strcmp(slotval, "0") == 0)
     slotval = slotval_override = NewStringf("(%s) %s", functype, slotval);
   int len = Len(slotval);
-  int fieldwidth = len > 41 ? (len > 61 ? 0 : 61 - len) : 41 - len;
+  int fieldwidth = len >= 39 ? 1 : 39 - len;
   Printf(f, "    %s,%*s/* %s */\n", slotval, fieldwidth, "", slotname);
+  Delete(slotval_override);
+}
+
+static void printSlot2(File *f, String *slotval, const char *slotname, const char *functype = NULL) {
+  String *slotval_override = 0;
+  if (functype && Strcmp(slotval, "0") == 0)
+    slotval = slotval_override = NewStringf("(%s) %s", functype, slotval);
+  int len = Len(slotname);
+  int fieldwidth = len >= 30 ? 1 : 30 - len;
+  Printf(f, "    { Py_%s,%*s(void *)%s },\n", slotname, fieldwidth, "", slotval);
   Delete(slotval_override);
 }
 
@@ -555,6 +566,7 @@ public:
     class_members = NewHash();
     builtin_methods = NewString("");
     builtin_default_unref = NewString("delete $self;");
+    f_varlinks = NewString("");
 
     if (builtin) {
       f_builtins = NewString("");
@@ -782,7 +794,7 @@ public:
     Printf(f_header, "#else\n");
     Printf(f_header, "#  define SWIG_init    init%s\n\n", module);
     Printf(f_header, "#endif\n");
-    Printf(f_header, "#define SWIG_name    \"%s\"\n", module);
+    Printf(f_runtime, "#define SWIG_name    \"%s\"\n", module);
 
     Append(const_code, "static swig_const_info swig_const_table[] = {\n");
     Append(methods, "static PyMethodDef SwigMethods[] = {\n");
@@ -836,6 +848,8 @@ public:
       Printf(f_init, "  SWIG_Python_FixMethods(SwigMethods_proxydocs, swig_const_table, swig_types, swig_type_initial);\n\n");
 
     initialize_threads(f_init);
+
+    Dump(f_varlinks, f_init);
 
     Printf(f_init, "#if PY_VERSION_HEX >= 0x03000000\n");
     Printf(f_init, "  return m;\n");
@@ -914,6 +928,7 @@ public:
     Delete(f_directors_h);
     Delete(f_runtime);
     Delete(f_begin);
+    Delete(f_varlinks);
 
     return SWIG_OK;
   }
@@ -1383,7 +1398,7 @@ public:
    * the indentation string in 'indent'.
    * ------------------------------------------------------------ */
 
-  String *indent_docstring(const String *code, const_String_or_char_ptr indent) {
+  String *indent_docstring(const String *code, const char *indent) {
     String *out = NewString("");
     String *temp;
     char *t;
@@ -1522,7 +1537,7 @@ public:
    * may be empty if there is no docstring).
    * ------------------------------------------------------------ */
 
-  String *build_combined_docstring(Node *n, autodoc_t ad_type, const String *indent = "", bool low_level = false) {
+  String *build_combined_docstring(Node *n, autodoc_t ad_type, const char *indent = "", bool low_level = false) {
     bool add_autodoc = true;
     String *docstr = Getattr(n, "feature:docstring");
     if (docstr) {
@@ -1598,6 +1613,17 @@ public:
       Append(tmp, indent);
       Delete(docstr);
       docstr = tmp;
+    } else {
+      // Removing leading and trailing whitespace for single line docstrings
+      Chop(docstr);
+      const char *c = Char(docstr);
+      if (isspace((int)*c)) {
+	while(isspace((int)*(++c))) {
+	}
+	String *old_docstr = docstr;
+	docstr = NewString(c);
+	Delete(old_docstr);
+      }
     }
 
     return docstr;
@@ -1611,7 +1637,7 @@ public:
    * set then it will build a combined docstring.
    * ------------------------------------------------------------ */
 
-  String *docstring(Node *n, autodoc_t ad_type, const String *indent, bool low_level = false) {
+  String *docstring(Node *n, autodoc_t ad_type, const char *indent, bool low_level = false) {
     String *docstr = build_combined_docstring(n, ad_type, indent, low_level);
     const int len = Len(docstr);
     if (!len)
@@ -1796,7 +1822,7 @@ public:
 
       // Write default value
       if (value && !calling) {
-	String *new_value = convertValue(value, Getattr(p, "type"));
+	String *new_value = convertValue(value, Getattr(p, "numval"), Getattr(p, "stringval"), Getattr(p, "type"));
 	if (new_value) {
 	  value = new_value;
 	} else {
@@ -2034,32 +2060,12 @@ public:
   String *convertIntegerValue(String *v, SwigType *resolved_type) {
     const char *const s = Char(v);
     char *end;
-    String *result = NIL;
 
     // Check if this is an integer number in any base.
     errno = 0;
     long value = strtol(s, &end, 0);
-    if (errno == ERANGE || end == s)
+    if (errno == ERANGE || end == s || *end != '\0') {
       return NIL;
-
-    if (*end != '\0') {
-      // If there is a suffix after the number, we can safely ignore "l"
-      // and (provided the number is unsigned) "u", and also combinations of
-      // these, but not anything else.
-      for (char *p = end; *p != '\0'; ++p) {
-        switch (*p) {
-          case 'l':
-          case 'L':
-	    break;
-          case 'u':
-          case 'U':
-	    if (value < 0)
-	      return NIL;
-            break;
-          default:
-            return NIL;
-        }
-      }
     }
     // So now we are certain that we are indeed dealing with an integer
     // that has a representation as long given by value.
@@ -2072,30 +2078,14 @@ public:
     }
 #endif
 
-    if (Cmp(resolved_type, "bool") == 0)
+    if (Equal(resolved_type, "bool"))
       // Allow integers as the default value for a bool parameter.
       return NewString(value ? "True" : "False");
 
     if (value == 0)
       return NewString(SwigType_ispointer(resolved_type) ? "None" : "0");
 
-    // v may still be octal or hexadecimal:
-    const char *p = s;
-    if (*p == '+' || *p == '-')
-      ++p;
-    if (*p == '0' && *(p+1) != 'x' && *(p+1) != 'X') {
-      // This must have been an octal number. This is the only case we
-      // cannot use in Python directly, since Python 2 and 3 use non-
-      // compatible representations.
-      result = NewString(*s == '-' ? "int(\"-" : "int(\"");
-      String *octal_string = NewStringWithSize(p, (int) (end - p));
-      Append(result, octal_string);
-      Append(result, "\", 8)");
-      Delete(octal_string);
-      return result;
-    }
-    result = *end == '\0' ? Copy(v) : NewStringWithSize(s, (int) (end - s));
-    return result;
+    return Copy(v);
   }
 
   /* ------------------------------------------------------------
@@ -2150,30 +2140,36 @@ public:
    * constant. Return an equivalent Python representation,
    * or NIL if it isn't, or we are unsure.
    * ------------------------------------------------------------ */
-  String *convertValue(String *v, SwigType *type) {
-    const char *const s = Char(v);
-    String *result = NIL;
+  String *convertValue(String *v, String *numval, String *stringval, SwigType *type) {
+    if (stringval) {
+      return NIL;
+      // FIXME: This needs more careful testing.
+      // return NewStringf("'%(escape)s'", stringval);
+    }
+    if (numval) {
+      SwigType *resolved_type = SwigType_typedef_resolve_all(type);
+      if (Equal(resolved_type, "bool")) {
+	Delete(resolved_type);
+	return NewString(*Char(numval) == '0' ? "False" : "True");
+      }
+      String *result = convertIntegerValue(numval, resolved_type);
+      Delete(resolved_type);
+      return result;
+    }
     SwigType *resolved_type = SwigType_typedef_resolve_all(type);
 
-    result = convertIntegerValue(v, resolved_type);
+    String *result = convertDoubleValue(v);
     if (!result) {
-      result = convertDoubleValue(v);
-      if (!result) {
-	if (Strcmp(v, "true") == 0)
-	  result = NewString("True");
-	else if (Strcmp(v, "false") == 0)
-	  result = NewString("False");
-	else if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
-	  result = SwigType_ispointer(resolved_type) ? NewString("None") : NewString("0");
-	// This could also be an enum type, default value of which could be
-	// representable in Python if it doesn't include any scope (which could,
-	// but currently is not, translated).
-	else if (!Strchr(s, ':')) {
-	  Node *lookup = Swig_symbol_clookup(v, 0);
-	  if (lookup) {
-	    if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
-	      result = Copy(Getattr(lookup, "sym:name"));
-	  }
+      if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
+	result = SwigType_ispointer(resolved_type) ? NewString("None") : NewString("0");
+      // This could also be an enum type, default value of which could be
+      // representable in Python if it doesn't include any scope (which could,
+      // but currently is not, translated).
+      else if (!Strchr(v, ':')) {
+	Node *lookup = Swig_symbol_clookup(v, 0);
+	if (lookup) {
+	  if (Cmp(Getattr(lookup, "nodeType"), "enumitem") == 0)
+	    result = Copy(Getattr(lookup, "sym:name"));
 	}
       }
     }
@@ -2221,7 +2217,7 @@ public:
 
       String *value = Getattr(p, "value");
       if (value) {
-	String *convertedValue = convertValue(value, Getattr(p, "type"));
+	String *convertedValue = convertValue(value, Getattr(p, "numval"), Getattr(p, "stringval"), Getattr(p, "type"));
 	if (!convertedValue)
 	  return false;
 	Delete(convertedValue);
@@ -3567,10 +3563,10 @@ public:
     Wrapper_print(getf, f_wrappers);
 
     /* Now add this to the variable linking mechanism */
-    Printf(f_init, "\t SWIG_addvarlink(globals, \"%s\", %s, %s);\n", iname, vargetname, varsetname);
+    Printf(f_varlinks, "\t SWIG_addvarlink(globals, \"%s\", %s, %s);\n", iname, vargetname, varsetname);
     if (builtin && shadow && !assignable && !in_class) {
-      Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", PyObject_GetAttrString(globals, \"%s\"));\n", iname, iname);
-      Printf(f_init, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", iname);
+      Printf(f_varlinks, "\t PyDict_SetItemString(md, \"%s\", PyObject_GetAttrString(globals, \"%s\"));\n", iname, iname);
+      Printf(f_varlinks, "\t SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", iname);
     }
     Delete(vargetname);
     Delete(varsetname);
@@ -3970,8 +3966,7 @@ public:
     String *mname = SwigType_manglestr(sname);
 
     Printf(f_init, "\n/* type '%s' */\n", rname);
-    Printf(f_init, "    builtin_pytype = (PyTypeObject *)&SwigPyBuiltin_%s_type;\n", mname);
-    Printf(f_init, "    builtin_pytype->tp_dict = d = PyDict_New();\n");
+    Printf(f_init, "    d = PyDict_New();\n");
 
     Delete(sname);
     Delete(rname);
@@ -3989,17 +3984,10 @@ public:
     String *pmname = SwigType_manglestr(pname);
     String *templ = NewStringf("SwigPyBuiltin_%s", mname);
     int funpack = fastunpack;
-    static String *tp_new = NewString("PyType_GenericNew");
 
     if (have_builtin_static_member_method_callback) {
       Printf(f_init, "  SWIG_Python_FixMethods(SwigPyBuiltin_%s_methods, swig_const_table, swig_types, swig_type_initial);\n", mname);
     }
-
-    Printv(f_init, "  SwigPyBuiltin_SetMetaType(builtin_pytype, metatype);\n", NIL);
-
-    // We can’t statically initialize a structure member with a function defined in another C module
-    // So this is done in the initialization function instead, see https://docs.python.org/2/extending/newtypes.html
-    Printf(f_init, "  builtin_pytype->tp_new = %s;\n", getSlot(n, "feature:python:tp_new", tp_new));
 
     Printv(f_init, "  builtin_base_count = 0;\n", NIL);
     List *baselist = Getattr(n, "bases");
@@ -4031,7 +4019,6 @@ public:
 	max_bases = base_count;
     }
     Printv(f_init, "  builtin_bases[builtin_base_count] = NULL;\n", NIL);
-    Printv(f_init, "  SwigPyBuiltin_InitBases(builtin_pytype, builtin_bases);\n", NIL);
     builtin_bases_needed = 1;
 
     // Check for non-public destructor, in which case tp_dealloc will issue
@@ -4142,11 +4129,13 @@ public:
     static String *tp_basicsize = NewStringf("sizeof(SwigPyObject)");
     static String *tp_dictoffset_default = NewString("offsetof(SwigPyObject, dict)");
     static String *tp_hash = NewString("SwigPyObject_hash");
+    static String *tp_new = NewString("PyType_GenericNew");
     String *tp_as_number = NewStringf("&%s_type.as_number", templ);
     String *tp_as_sequence = NewStringf("&%s_type.as_sequence", templ);
     String *tp_as_mapping = NewStringf("&%s_type.as_mapping", templ);
     String *tp_as_buffer = NewStringf("&%s_type.as_buffer", templ);
 
+    Printv(f, "#ifndef SWIG_HEAPTYPES\n", NIL);
     Printf(f, "static PyHeapTypeObject %s_type = {\n", templ);
 
     // PyTypeObject ht_type
@@ -4392,6 +4381,133 @@ public:
     Printf(f, "  }\n");
     Printv(f, "#endif\n", NIL);
     Printf(f, "};\n\n");
+    Printf(f, "static PyTypeObject *%s_type_create(PyTypeObject *type, PyTypeObject **bases, PyObject *dict) {\n", templ);
+    Printv(f, "  PyObject *tuple_bases;\n", NIL);
+    Printf(f, "  PyTypeObject *pytype = (PyTypeObject *)&%s_type;\n", templ);
+    Printf(f, "  pytype->tp_dict = dict;\n");
+    Printv(f, "  SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);
+    Printf(f, "  pytype->tp_new = %s;\n", getSlot(n, "feature:python:tp_new", tp_new));
+    Printv(f, "  tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
+    Printv(f, "  pytype->tp_base = bases[0];\n", NIL);
+    Printv(f, "  SWIG_Py_INCREF(pytype->tp_base);\n", NIL);
+    Printv(f, "  pytype->tp_bases = tuple_bases;\n", NIL);
+    Printv(f, "  if (PyType_Ready(pytype) < 0) {\n", NIL);
+    Printf(f, "    PyErr_SetString(PyExc_TypeError, \"Could not create type '%s'.\");\n", symname);
+    Printv(f, "    return NULL;\n", NIL);
+    Printv(f, "  }\n", NIL);
+    Printf(f, "  return pytype;\n");
+    Printf(f, "}\n\n");
+
+    Printv(f, "#else\n", NIL);
+
+    Printf(f, "static PyTypeObject *%s_type_create(PyTypeObject *type, PyTypeObject **bases, PyObject *dict) {\n", templ);
+    Printf(f, "  PyMemberDef members[] = {\n");
+    Printf(f, "    { (char *)\"__dictoffset__\", T_PYSSIZET, %s, READONLY, NULL },\n", getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default));
+    Printf(f, "    { NULL, 0, 0, 0, NULL }\n");
+    Printf(f, "  };\n");
+    Printf(f, "  PyType_Slot slots[] = {\n");
+    printSlot2(f, getSlot(n, "feature:python:tp_init", tp_init), "tp_init", "initproc");
+    printSlot2(f, getSlot(n, "feature:python:tp_dealloc", tp_dealloc_bad), "tp_dealloc", "destructor");
+    printSlot2(f, getSlot(n, "feature:python:tp_alloc"), "tp_alloc", "allocfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_free"), "tp_free", "freefunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_is_gc"), "tp_is_gc", "inquiry");
+    printSlot2(f, getSlot(n, "feature:python:tp_del"), "tp_del", "destructor");
+
+    if (have_docstring(n)) {
+      String *ds = cdocstring(n, AUTODOC_CLASS);
+      String *tp_doc = NewString("");
+      Printf(tp_doc, "\"%s\"", ds);
+      Delete(ds);
+      printSlot2(f, tp_doc, "tp_doc");
+      Delete(tp_doc);
+    } else {
+      printSlot2(f, quoted_tp_doc_str, "tp_doc");
+    }
+    printSlot2(f, getSlot(n, "feature:python:tp_repr"), "tp_repr", "reprfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_str"), "tp_str", "reprfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_traverse"), "tp_traverse", "traverseproc");
+    printSlot2(f, getSlot(n, "feature:python:tp_clear"), "tp_clear", "inquiry");
+    printSlot2(f, getSlot(n, "feature:python:tp_richcompare", richcompare_func), "tp_richcompare", "richcmpfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_methods", methods_name), "tp_methods");
+    printSlot2(f, getSlot(n, "feature:python:tp_getset", getset_name), "tp_getset");
+    printSlot2(f, getSlot(n, "feature:python:tp_hash", tp_hash), "tp_hash", "hashfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_call"), "tp_call", "ternaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_getattro"), "tp_getattro", "getattrofunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_setattro"), "tp_setattro", "setattrofunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_descr_get"), "tp_descr_get", "descrgetfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_descr_set"), "tp_descr_set", "descrsetfunc");
+    printSlot2(f, getSlot(n, "feature:python:mp_length"), "mp_length", "lenfunc");
+    printSlot2(f, getSlot(n, "feature:python:mp_subscript"), "mp_subscript", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:mp_ass_subscript"), "mp_ass_subscript", "objobjargproc");
+    printSlot2(f, getSlot(n, "feature:python:tp_iter"), "tp_iter", "getiterfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_iternext"), "tp_iternext", "iternextfunc");
+    //
+    // nb_* slots
+    printSlot2(f, getSlot(n, "feature:python:nb_add"), "nb_add", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_subtract"), "nb_subtract", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_multiply"), "nb_multiply", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_remainder"), "nb_remainder", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_divmod"), "nb_divmod", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_power"), "nb_power", "ternaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_negative"), "nb_negative", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_positive"), "nb_positive", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_absolute"), "nb_absolute", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_nonzero"), "nb_bool", "inquiry");
+    printSlot2(f, getSlot(n, "feature:python:nb_invert"), "nb_invert", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_lshift"), "nb_lshift", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_rshift"), "nb_rshift", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_and"), "nb_and", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_xor"), "nb_xor", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_or"), "nb_or", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_int"), "nb_int", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_float"), "nb_float", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_add"), "nb_inplace_add", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_subtract"), "nb_inplace_subtract", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_multiply"), "nb_inplace_multiply", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_remainder"), "nb_inplace_remainder", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_power"), "nb_inplace_power", "ternaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_lshift"), "nb_inplace_lshift", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_rshift"), "nb_inplace_rshift", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_and"), "nb_inplace_and", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_xor"), "nb_inplace_xor", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_or"), "nb_inplace_or", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_floor_divide"), "nb_floor_divide", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_divide"), "nb_true_divide", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_floor_divide"), "nb_inplace_floor_divide", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_divide"), "nb_inplace_true_divide", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_index"), "nb_index", "unaryfunc");
+
+    // sequence
+    printSlot2(f, getSlot(n, "feature:python:sq_length"), "sq_length", "lenfunc");
+    printSlot2(f, getSlot(n, "feature:python:sq_concat"), "sq_concat", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:sq_repeat"), "sq_repeat", "ssizeargfunc");
+    printSlot2(f, getSlot(n, "feature:python:sq_item"), "sq_item", "ssizeargfunc");
+    printSlot2(f, getSlot(n, "feature:python:sq_ass_item"), "sq_ass_item", "ssizeobjargproc");
+    printSlot2(f, getSlot(n, "feature:python:sq_contains"), "sq_contains", "objobjproc");
+    printSlot2(f, getSlot(n, "feature:python:sq_inplace_concat"), "sq_inplace_concat", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:sq_inplace_repeat"), "sq_inplace_repeat", "ssizeargfunc");
+
+    Printf(f, "    { Py_tp_members, members },\n");
+    Printf(f, "    { 0, NULL }\n");
+    Printf(f, "  };\n");
+    Printf(f, "  PyType_Spec spec = {\n");
+    Printf(f, "    %s,\n", quoted_symname);
+    Printf(f, "    sizeof(SwigPyObject),\n");
+    Printf(f, "    0,\n");
+    Printf(f, "    %s,\n", getSlot(n, "feature:python:tp_flags", tp_flags_py3), "tp_flags");
+    Printf(f, "    slots\n");
+    Printf(f, "  };\n");
+    Printv(f, "  PyObject *tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
+    Printf(f, "  PyTypeObject *pytype = (PyTypeObject*)PyType_FromSpecWithBases(&spec, tuple_bases);\n");
+    Printf(f, "  PyDict_Merge(pytype->tp_dict, dict, 1);\n");
+    Printv(f, "  SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);
+    Printf(f, "  PyType_Modified(pytype);\n");
+    Printf(f, "  Py_DECREF(dict);\n");
+    Printf(f, "  return pytype;\n");
+
+    Printv(f, "}\n", NULL);
+
+    Printv(f, "#endif\n", NIL);
 
     String *clientdata = NewString("");
     Printf(clientdata, "&%s_clientdata", templ);
@@ -4407,22 +4523,20 @@ public:
       Delete(psmart);
     }
 
-    String *clientdata_klass = NewString("0");
-    if (GetFlag(n, "feature:implicitconv")) {
-      Clear(clientdata_klass);
-      Printf(clientdata_klass, "(PyObject *) &%s_type", templ);
-    }
+    Printf(f, "SWIGINTERN SwigPyClientData %s_clientdata = {0, 0, 0, 0, 0, 0, 0};\n\n", templ);
 
-    Printf(f, "SWIGINTERN SwigPyClientData %s_clientdata = {%s, 0, 0, 0, 0, 0, (PyTypeObject *)&%s_type};\n\n", templ, clientdata_klass, templ);
-
-    Printv(f_init, "    if (PyType_Ready(builtin_pytype) < 0) {\n", NIL);
-    Printf(f_init, "      PyErr_SetString(PyExc_TypeError, \"Could not create type '%s'.\");\n", symname);
+    Printf(f_init, "    builtin_pytype = %s_type_create(metatype, builtin_bases, d);\n", templ);
+    Printf(f_init, "    if(!builtin_pytype) {\n", templ);
     Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     Printv(f_init, "      return NULL;\n", NIL);
     Printv(f_init, "#else\n", NIL);
     Printv(f_init, "      return;\n", NIL);
     Printv(f_init, "#endif\n", NIL);
     Printv(f_init, "    }\n", NIL);
+    Printf(f_init, "    SwigPyBuiltin_%s_clientdata.pytype = builtin_pytype;\n", mname);
+    if (GetFlag(n, "feature:implicitconv")) {
+      Printf(f_init, "    SwigPyBuiltin_%s_clientdata.klass = (PyObject *)builtin_pytype;\n", mname);
+    }
     Printv(f_init, "    SWIG_Py_INCREF((PyObject *)builtin_pytype);\n", NIL);
     Printf(f_init, "    PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype);\n", symname);
     Printf(f_init, "    SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", symname);
@@ -4444,7 +4558,6 @@ public:
     Delete(quoted_symname);
     Delete(quoted_tp_doc_str);
     Delete(tp_init);
-    Delete(clientdata_klass);
     Delete(richcompare_func);
     Delete(getset_name);
     Delete(methods_name);
@@ -5777,6 +5890,7 @@ int PYTHON::classDirectorMethod(Node *n, Node *parent, String *super) {
 
   /* emit the director method */
   if (status == SWIG_OK) {
+    Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
     if (!Getattr(n, "defaultargs")) {
       Replaceall(w->code, "$symname", symname);
       Wrapper_print(w, f_directors);

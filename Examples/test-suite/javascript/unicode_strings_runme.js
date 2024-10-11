@@ -4,9 +4,16 @@ var unicode_strings = require("unicode_strings");
 // but AFAIK, it is the V8 handling that is the correct one
 
 function check(s1, s2) {
-    for (let i in s1) {
-        if (s1[i] !== s2[i])
-            console.error(`Character number ${i}, ${s1.charCodeAt(i)} != ${s2.charCodeAt(i)}`);
+    // @ts-ignore
+    if (typeof version === 'undefined') {
+        /* Fails for ENGINE=v8 with:
+         * # Fatal error in v8::ToLocalChecked
+         * # Empty MaybeLocal
+         */
+        for (let i in s1) {
+            if (s1[i] !== s2[i])
+                console.error(`Character number ${i}, ${s1.charCodeAt(i)} != ${s2.charCodeAt(i)}`);
+        }
     }
     if (s1 != s2) {
         throw new Error(`'${s1}' != '${s2}'`);
@@ -21,7 +28,10 @@ function check(s1, s2) {
 var test_string_node = "h\ufffdllo w\u00f6rld";
 var test_string_wasm = "w\u00f6rld";
 
-if (typeof print === 'undefined') {
+// @ts-ignore
+if (typeof print === 'undefined' || typeof version !== 'undefined') {
+    // With ENGINE=v8 we have `print` and `version`.
+    // With ENGINE=node or ENGINE=napi we don't have either.
     // @ts-ignore
     if (typeof wasm_module === 'undefined') {
       check(/* await */(unicode_strings.non_utf8_c_str()), test_string_node);
@@ -33,6 +43,7 @@ if (typeof print === 'undefined') {
         throw new Error('mismatch');
     }
 } else {
+    // With ENGINE=jsc we have `print` but not `version`.
     check(/* await */(unicode_strings.non_utf8_c_str()), '');
     check(/* await */(unicode_strings.non_utf8_std_string()), '');
 }

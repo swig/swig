@@ -19,6 +19,7 @@
 #include "parser.h"
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 
 /* Scanner object */
 static Scanner *scan = 0;
@@ -45,6 +46,11 @@ int cparse_ignore_attrs = 0;
 
 /* To allow better error reporting */
 String *cparse_unknown_directive = 0;
+
+// Default-initialised instances of token types to avoid uninitialised fields.
+// The compiler will initialise all fields to zero or NULL for us.
+
+static const struct Define default_dtype;
 
 /* Private vars */
 static int scan_init = 0;
@@ -554,8 +560,8 @@ static int yylook(void) {
     case SWIG_TOKEN_BACKSLASH:
       break;
     default:
-      Swig_error(cparse_file, cparse_line, "Illegal token '%s'.\n", Scanner_text(scan));
-      return (ILLEGAL);
+      Swig_error(cparse_file, cparse_line, "Unexpected token '%s'.\n", Scanner_text(scan));
+      Exit(EXIT_FAILURE);
     }
   }
 }
@@ -632,39 +638,80 @@ int yylex(void) {
   switch (l) {
 
   case NUM_INT:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_INT;
     goto num_common;
   case NUM_DOUBLE:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_DOUBLE;
     goto num_common;
   case NUM_FLOAT:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_FLOAT;
     goto num_common;
   case NUM_LONGDOUBLE:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_LONGDOUBLE;
     goto num_common;
   case NUM_ULONG:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_ULONG;
     goto num_common;
   case NUM_LONG:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_LONG;
     goto num_common;
   case NUM_UNSIGNED:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_UINT;
     goto num_common;
   case NUM_LONGLONG:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_LONGLONG;
     goto num_common;
   case NUM_ULONGLONG:
+    yylval.dtype = default_dtype;
     yylval.dtype.type = T_ULONGLONG;
     goto num_common;
-  case NUM_BOOL:
-    yylval.dtype.type = T_BOOL;
-num_common:
-    yylval.dtype.unary_arg_type = 0;
+num_common: {
     yylval.dtype.val = NewString(Scanner_text(scan));
-    yylval.dtype.bitfield = 0;
-    yylval.dtype.throws = 0;
+    const char *c = Char(yylval.dtype.val);
+    if (c[0] == '0') {
+      // Convert to base 10 using strtoull().
+      unsigned long long value;
+      char *e;
+      errno = 0;
+      if (c[1] == 'b' || c[1] == 'B') {
+	/* strtoull() doesn't handle binary literal prefixes so skip the prefix
+	 * and specify base 2 explicitly. */
+	value = strtoull(c + 2, &e, 2);
+      } else {
+	value = strtoull(c, &e, 0);
+      }
+      if (errno != ERANGE) {
+	while (*e && strchr("ULul", *e)) ++e;
+      }
+      if (errno != ERANGE && *e == '\0') {
+	yylval.dtype.numval = NewStringf("%llu", value);
+      } else {
+	// Our unsigned long long isn't wide enough or this isn't an integer.
+      }
+    } else {
+      const char *e = c;
+      while (isdigit((unsigned char)*e)) ++e;
+      int len = e - c;
+      while (*e && strchr("ULul", *e)) ++e;
+      if (*e == '\0') {
+        yylval.dtype.numval = NewStringWithSize(c, len);
+      }
+    }
+    return (l);
+  }
+  case NUM_BOOL:
+    yylval.dtype = default_dtype;
+    yylval.dtype.type = T_BOOL;
+    yylval.dtype.val = NewString(Scanner_text(scan));
+    yylval.dtype.numval = NewString(Equal(yylval.dtype.val, "false") ? "0" : "1");
     return (l);
 
   case ID:
@@ -937,6 +984,11 @@ num_common:
 	if (strcmp(yytext, "class") == 0) {
 	  Swig_warning(WARN_PARSE_CLASS_KEYWORD, cparse_file, cparse_line, "class keyword used, but not in C++ mode.\n");
 	}
+	if (strcmp(yytext, "_Bool") == 0) {
+	  /* C99 boolean type. */
+	  yylval.type = NewSwigType(T_BOOL);
+	  return (TYPE_BOOL);
+	}
 	if (strcmp(yytext, "_Complex") == 0) {
 	  yylval.type = NewSwigType(T_COMPLEX);
 	  return (TYPE_COMPLEX);
@@ -963,7 +1015,6 @@ num_common:
 	return (SIZEOF);
 
       if (strcmp(yytext, "typedef") == 0) {
-	yylval.intvalue = 0;
 	return (TYPEDEF);
       }
 
@@ -1000,7 +1051,6 @@ num_common:
       if (strcmp(yytext, "%constant") == 0)
 	return (CONSTANT);
       if (strcmp(yytext, "%typedef") == 0) {
-	yylval.intvalue = 1;
 	return (TYPEDEF);
       }
       if (strcmp(yytext, "%native") == 0)
@@ -1066,8 +1116,6 @@ num_common:
     last_id = 1;
     return (ID);
   case POUND:
-    return yylex();
-  case SWIG_TOKEN_COMMENT:
     return yylex();
   default:
     return (l);

@@ -4,8 +4,8 @@
 
 %inline %{
 
-// This test is broken in Java
-#if ! defined(SWIGJAVA)
+// This test is broken in Java and C
+#if ! defined(SWIGJAVA) &&  ! defined(SWIGC)
 
 namespace outer {
   namespace inner {

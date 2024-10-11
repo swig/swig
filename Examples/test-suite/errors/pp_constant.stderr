@@ -11,3 +11,5 @@ pp_constant.i:55: Error: Invalid digit '8' in octal constant
 pp_constant.i:55: Error: Invalid digit '8' in octal constant
 pp_constant.i:58: Error: octal escape sequence out of range
 pp_constant.i:59: Error: octal escape sequence out of range
+pp_constant.i:62: Warning 305: Bad constant value (ignored).
+pp_constant.i:63: Warning 305: Bad constant value (ignored).

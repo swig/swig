@@ -43,6 +43,8 @@ SWIGRUNTIME octave_value SWIG_ErrorType(int code) {
     return "SWIG_SystemError";
   case SWIG_AttributeError:
     return "SWIG_AttributeError";
+  case SWIG_NullReferenceError:
+    return "SWIG_NullReferenceError";
   }
   return "SWIG unknown error";
 }
@@ -218,7 +220,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
   //
   // These should really be decoupled, with the class support added to Octave
   // and the shadow class given by an m-file script. That would dramatically 
-  // reduce the runtime complexity, and be more in line w/ other modules.
+  // reduce the runtime complexity, and be more in line with other modules.
 
   class octave_swig_type:public octave_base_value {
     struct cpp_ptr {

@@ -335,10 +335,14 @@ swig_varlink_setattr(PyObject *o, char *n, PyObject *p) {
   return res;
 }
 
+#if !defined(SWIGPYTHON_BUILTIN) && PY_VERSION_HEX >= 0x03030000
+#define SWIG_HEAPTYPES
+#endif
+
 SWIGINTERN PyTypeObject*
 swig_varlink_type(void) {
   static char varlink__doc__[] = "Swig var link object";
-#ifndef Py_LIMITED_API
+#ifndef SWIG_HEAPTYPES
   static PyTypeObject varlink_type;
   static int type_init = 0;
   if (!type_init) {
@@ -354,9 +358,9 @@ swig_varlink_type(void) {
       0,                                  /* tp_itemsize */
       (destructor) swig_varlink_dealloc,  /* tp_dealloc */
 #if PY_VERSION_HEX < 0x030800b4
-      (printfunc)0,                       /*tp_print*/
+      (printfunc)0,                       /* tp_print */
 #else
-      (Py_ssize_t)0,                      /*tp_vectorcall_offset*/
+      (Py_ssize_t)0,                      /* tp_vectorcall_offset */
 #endif
       (getattrfunc) swig_varlink_getattr, /* tp_getattr */
       (setattrfunc) swig_varlink_setattr, /* tp_setattr */
@@ -907,7 +911,7 @@ swigobject_methods[] = {
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_TypeOnce(void) {
   static char swigobject_doc[] = "Swig object carries a C/C++ instance pointer";
-#ifndef Py_LIMITED_API
+#ifndef SWIG_HEAPTYPES
   static PyNumberMethods SwigPyObject_as_number = {
     (binaryfunc)0, /*nb_add*/
     (binaryfunc)0, /*nb_subtract*/
@@ -967,9 +971,9 @@ SwigPyObject_TypeOnce(void) {
       0,                                    /* tp_itemsize */
       (destructor)SwigPyObject_dealloc,     /* tp_dealloc */
 #if PY_VERSION_HEX < 0x030800b4
-      (printfunc)0,                         /*tp_print*/
+      (printfunc)0,                         /* tp_print */
 #else
-      (Py_ssize_t)0,                        /*tp_vectorcall_offset*/
+      (Py_ssize_t)0,                        /* tp_vectorcall_offset */
 #endif
       (getattrfunc)0,                       /* tp_getattr */
       (setattrfunc)0,                       /* tp_setattr */
@@ -1060,7 +1064,7 @@ SwigPyObject_TypeOnce(void) {
     "SwigPyObject",
     sizeof(SwigPyObject),
     0,
-    Py_TPFLAGS_DEFAULT,
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
     slots
   };
   return (PyTypeObject *)PyType_FromSpec(&spec);
@@ -1173,7 +1177,7 @@ SwigPyPacked_dealloc(PyObject *v)
 SWIGRUNTIME PyTypeObject*
 SwigPyPacked_TypeOnce(void) {
   static char swigpacked_doc[] = "Swig object carries a C/C++ instance pointer";
-#ifndef Py_LIMITED_API
+#ifndef SWIG_HEAPTYPES
   static PyTypeObject swigpypacked_type;
   static int type_init = 0;
   if (!type_init) {
@@ -1189,9 +1193,9 @@ SwigPyPacked_TypeOnce(void) {
       0,                                    /* tp_itemsize */
       (destructor)SwigPyPacked_dealloc,     /* tp_dealloc */
 #if PY_VERSION_HEX < 0x030800b4
-      (printfunc)0,                         /*tp_print*/
+      (printfunc)0,                         /* tp_print */
 #else
-      (Py_ssize_t)0,                        /*tp_vectorcall_offset*/
+      (Py_ssize_t)0,                        /* tp_vectorcall_offset */
 #endif
       (getattrfunc)0,                       /* tp_getattr */
       (setattrfunc)0,                       /* tp_setattr */

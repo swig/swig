@@ -8,7 +8,7 @@
 %typemap(in, canthrow=1) SWIGTYPE MOVE ($&1_type argp)
 %{ argp = ($&1_ltype)$input;
    if (!argp) {
-     SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "Attempt to dereference null $1_type");
+     SWIG_DSetPendingException(SWIG_DNullReferenceException, "Attempt to dereference null $1_type");
      return $null;
    }
    SwigValueWrapper< $1_ltype >::reset($1, argp); %}

@@ -50,6 +50,7 @@
 <ul>
 <li><a href="Introduction.html#Introduction_supported_status">Supported status</a>
 <li><a href="Introduction.html#Introduction_experimental_status">Experimental status</a>
+<li><a href="Introduction.html#Introduction_deprecated_status">Deprecated status</a>
 </ul>
 <li><a href="Introduction.html#Introduction_nn4">A SWIG example</a>
 <ul>
@@ -466,6 +467,10 @@
 <li><a href="Library.html#Library_nn11">Using %newobject to release memory</a>
 <li><a href="Library.html#Library_nn12">cstring.i</a>
 </ul>
+<li><a href="Library.html#Library_c_standard_library">C standard library</a>
+<ul>
+<li><a href="Library.html#Library_complex">Complex floating types</a>
+</ul>
 <li><a href="Library.html#Library_stl_cpp_library">STL/C++ library</a>
 <ul>
 <li><a href="Library.html#Library_std_string">std::string</a>
@@ -699,19 +704,23 @@
 </ul>
 <li><a href="Doxygen.html#Doxygen_additional_options">Additional command line options</a>
 </ul>
-<li><a href="Doxygen.html#Doxygen_to_javadoc">Doxygen to Javadoc</a>
+<li><a href="Doxygen.html#Doxygen_javadoc">Doxygen to Javadoc</a>
 <ul>
-<li><a href="Doxygen.html#Doxygen_basic_example">Basic example</a>
+<li><a href="Doxygen.html#Doxygen_javadoc_basic_example">Basic Javadoc example</a>
 <li><a href="Doxygen.html#Doxygen_javadoc_tags">Javadoc tags</a>
-<li><a href="Doxygen.html#Doxygen_unsupported_tags">Unsupported tags</a>
-<li><a href="Doxygen.html#Doxygen_further_details">Further details</a>
+<li><a href="Doxygen.html#Doxygen_javadoc_unsupported_tags">Unsupported tags for Javadoc</a>
 </ul>
-<li><a href="Doxygen.html#Doxygen_to_pydoc">Doxygen to Pydoc</a>
+<li><a href="Doxygen.html#Doxygen_pydoc">Doxygen to Pydoc</a>
 <ul>
-<li><a href="Doxygen.html#Doxygen_python_basic_example">Basic example</a>
+<li><a href="Doxygen.html#Doxygen_pydoc_basic_example">Basic Pydoc example</a>
 <li><a href="Doxygen.html#Doxygen_pydoc_tags">Pydoc translator</a>
-<li><a href="Doxygen.html#Doxygen_python_unsupported_tags">Unsupported tags</a>
-<li><a href="Doxygen.html#Doxygen_python_further_details">Further details</a>
+<li><a href="Doxygen.html#Doxygen_pydoc_unsupported_tags">Unsupported tags for Pydoc</a>
+</ul>
+<li><a href="Doxygen.html#Doxygen_csharp">Doxygen to XML C# documentation</a>
+<ul>
+<li><a href="Doxygen.html#Doxygen_csharp_basic_example">Basic C# example</a>
+<li><a href="Doxygen.html#Doxygen_csharp_tags">C# tags</a>
+<li><a href="Doxygen.html#Doxygen_csharp_unsupported_tags">Unsupported tags for C#</a>
 </ul>
 <li><a href="Doxygen.html#Doxygen_troubleshooting">Troubleshooting</a>
 <ul>
@@ -1862,7 +1871,53 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Mzscheme.html#Mzscheme">38 SWIG and MzScheme/Racket</a></h3>
+<h3><a href="C.html#C">38 SWIG and C as the target language</a></h3>
+
+<!-- INDEX -->
+<div class="sectiontoc">
+<ul>
+<li><a href="C.html#C_overview">Overview</a>
+<ul>
+<li><a href="C.html#C_shortcomings">Known C++ Shortcomings in Generated C API</a>
+</ul>
+<li><a href="C.html#C_preliminaries">Preliminaries</a>
+<ul>
+<li><a href="C.html#C_running_swig">Running SWIG</a>
+<li><a href="C.html#C_commandline">Command line options</a>
+<li><a href="C.html#C_dynamic">Compiling a dynamic module</a>
+<li><a href="C.html#C_using_module">Using the generated module</a>
+</ul>
+<li><a href="C.html#C_basic_c_wrapping">Basic C wrapping</a>
+<ul>
+<li><a href="C.html#C_functions">Functions</a>
+<li><a href="C.html#C_variables">Variables</a>
+</ul>
+<li><a href="C.html#C_basic_cpp_wrapping">Basic C++ wrapping</a>
+<ul>
+<li><a href="C.html#C_enums">Enums</a>
+<li><a href="C.html#C_classes">Classes</a>
+</ul>
+<li><a href="C.html#C_developer">Backend Developer Documentation</a>
+<li><a href="C.html#C_typemaps">Typemaps</a>
+<ul>
+<li><a href="C.html#C_typemaps_walkthrough">C Typemaps, a Code Generation Walkthrough</a>
+<ul>
+<li><a href="C.html#C_walkthrough_interface">The Interface</a>
+<li><a href="C.html#C_walkthrough_wrapper">The Wrapper</a>
+<li><a href="C.html#C_walkthrough_proxy">The Proxy</a>
+</ul>
+</ul>
+<li><a href="C.html#C_exceptions">Exception handling</a>
+<li><a href="C.html#C_cxx_wrappers">C++ Wrappers</a>
+<ul>
+<li><a href="C.html#C_additional_possibilities">Additional customization possibilities</a>
+<li><a href="C.html#C_exception_handling">Exception handling</a>
+</ul>
+</ul>
+</div>
+<!-- INDEX -->
+
+<h3><a href="Mzscheme.html#Mzscheme">39 SWIG and MzScheme/Racket</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1874,7 +1929,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Ocaml.html#Ocaml">39 SWIG and OCaml</a></h3>
+<h3><a href="Ocaml.html#Ocaml">40 SWIG and OCaml</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1929,7 +1984,7 @@
 </div>
 <!-- INDEX -->
 
-<h3><a href="Extending.html#Extending">40 Extending SWIG to support new languages</a></h3>
+<h3><a href="Extending.html#Extending">41 Extending SWIG to support new languages</a></h3>
 
 <!-- INDEX -->
 <div class="sectiontoc">
@@ -1992,6 +2047,7 @@
 <ul>
 <li><a href="Extending.html#Extending_supported_status">Supported status</a>
 <li><a href="Extending.html#Extending_experimental_status">Experimental status</a>
+<li><a href="Extending.html#Extending_deprecated_status">Deprecated status</a>
 </ul>
 <li><a href="Extending.html#Extending_prerequisites">Prerequisites for adding a new language module to the SWIG distribution</a>
 </ul>

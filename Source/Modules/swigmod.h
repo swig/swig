@@ -40,6 +40,7 @@ extern String *argc_template_string;
 
 /* Miscellaneous stuff */
 
+#define  tab0   ""
 #define  tab2   "  "
 #define  tab4   "    "
 #define  tab8   "        "
@@ -358,7 +359,7 @@ extern "C" {
   typedef Language *(*ModuleFactory) (void);
 }
 
-enum Status {Disabled, Experimental, Supported};
+enum Status {Disabled, Deprecated, Experimental, Supported};
 
 struct TargetLanguageModule {
   const char *name;

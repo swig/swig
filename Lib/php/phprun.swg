@@ -14,6 +14,11 @@ extern "C" {
 # error These bindings need PHP 8 or later - to generate PHP7 bindings use SWIG < 4.1.0; to generate PHP5 bindings use: SWIG < 4.0.0 and swig -php5
 #endif
 
+/* For PHP 8.0 */
+#ifndef ZSTR_INIT_LITERAL
+# define ZSTR_INIT_LITERAL(S, P) zend_string_init((S), strlen(S), (P))
+#endif
+
 #include "zend_inheritance.h"
 #include "zend_exceptions.h"
 #include "zend_inheritance.h"
@@ -206,4 +211,23 @@ static void* SWIG_Php_free_obj(zend_object *object) {
     if (obj->newobject) return obj->ptr;
   }
   return NULL;
+}
+
+SWIGINTERN void
+SWIG_Php_AppendOutput(zval *target, zval *o, int is_void) {
+  zval tmp;
+  if (Z_TYPE_P(target) == IS_ARRAY) {
+    /* it's already an array, just append */
+    add_next_index_zval(target, o);
+    return;
+  }
+  if (Z_TYPE_P(target) == IS_NULL && is_void) {
+    /* NULL isn't refcounted */
+    ZVAL_COPY_VALUE(target, o);
+    return;
+  }
+  ZVAL_DUP(&tmp, target);
+  array_init(target);
+  add_next_index_zval(target, &tmp);
+  add_next_index_zval(target, o);
 }

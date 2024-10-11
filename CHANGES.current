@@ -7,17 +7,223 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-10-06: wsfulton
+            [PHP] #2907 Fix returning NULL from functions with output
+            parameters.
+
+            Ensures OUTPUT and INOUT typemaps are handled consistently wrt
+            return type.
+
+            Added:
+              void SWIG_Php_AppendOutput(zval *target, zval *o, int is_void);
+
+            The t_output_helper function is deprecated. Replace t_output_helper
+            in typemaps with SWIG_AppendOutput which calls
+            SWIG_Php_AppendOutput appropriately setting the is_void parameter
+            using the $isvoid special variable.
+
+            The t_output_helper fragment is also deprecated and is no longer
+            needed as the SWIG_Php_AppendOutput function is now always
+            generated.
+
+2024-10-05: wsfulton
+            [Ruby] Removed backwards compatible output_helper fragment and
+            macro.
+
+            Use SWIG_AppendOutput instead of output_helper (does not require
+            the output_helper fragment).
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2024-10-05: wsfulton
+            [Ruby] #2907 Fix returning NULL from functions with output
+            parameters.
+
+            Ensures OUTPUT and INOUT typemaps are handled consistently wrt
+            return type.
+
+            New declaration of SWIG_Ruby_AppendOutput is now:
+
+              SWIG_Ruby_AppendOutput(VALUE target, VALUE o, int is_void);
+
+            The 3rd parameter is new and the new $isvoid special variable
+            should be passed to it, indicating whether or not the wrapped
+            function returns void.
+
+            Also consider replacing with:
+
+              SWIG_AppendOutput(VALUE target, VALUE o);
+
+            which calls SWIG_Ruby_AppendOutput with same parameters but adding
+            $isvoid for final parameter.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2024-09-29: clintonstimpson
+            [Python] #2350 Switch implementation from static types to heap
+            types using PyType_FromSpec() introduced in Python 3.
+
+            This currently only applies to the default code generation and is
+            not available for the -builtin code generation.
+
+2024-09-29: wsfulton
+            [Python] Single line docstring comments are stripped of leading and
+            trailing whitespace.
+
+2024-09-29: olly
+	    SWIG can now handle arbitrary expressions as a subscript (i.e. in
+	    `[`...`]`).  We don't actually need to parse expressions in this
+	    context so we can just skip to the matching closing square bracket.
+
+2024-09-29: olly
+	    C++11 auto variables for which SWIG can't parse the initialiser
+	    now give a warning and are ignored rather than SWIG exiting with a
+	    parse error.
+
+2024-09-26: olly
+	    SWIG now recognises --version as an alias for -version (it has
+	    supported --help as an alias for -help since 2006).
+
+2024-09-25: wsfulton
+            [MzScheme/Racket] #920 #2830 MzScheme/Racket Deprecation notice.
+
+            This language module no longer works with modern Racket versions
+            (Racket 8 and later) due to the introduction of a different C API.
+            We are thus putting out a plea for a Racket maintainer to step
+            forward and rewrite the MzScheme module for Racket 8, otherwise it
+            will be removed in swig-4.4.
+
+2024-09-25: olly
+	    SWIG can now handle arbitrary expressions in the parameter list of
+	    a method call.  We don't actually need to parse expressions in this
+	    context so we can just skip to the matching closing parenthesis.
+
+2024-09-25: olly
+	    Add support for C99 _Bool.  SWIG now treats _Bool as an alias for
+	    the bool keyword when in C mode.
+
+2024-09-23: olly
+	    #3031 Improve support for C++11 trailing return types.  SWIG now
+	    supports const references, const and non-const rvalue references,
+	    and enum types with an explicit `enum`, `enum class` or `enum
+	    struct`.
+
+2024-09-22: wsfulton
+            #3023 The binary executables in the Windows distribution are now
+            64-bit now instead of 32-bit. Any 32-bit Windows OS users will need
+            to build their own version using instructions in Windows.html or
+            the "Getting Started Guide" for Windows on the Wiki at
+            https://github.com/swig/swig/wiki/Getting-Started#windows.
+
+2024-09-21: wsfulton
+            #2879 Don't show warning SWIGWARN_LANG_SMARTPTR_MISSING (520) if
+            class is ignored.
+
+2024-09-21: olly
+	    SWIG was ignoring `final` if specified after `noexcept`.
+
+2024-09-20: olly
+	    [Javascript] Fix problems with v8 support.  The tests and examples
+	    now work, and configure can now successfully probe for v8 without
+	    assistance on Debian and Ubuntu.
+
+2024-09-19: wsfulton
+            #2866 Fix incorrect variable setters being generated when wrapping
+            reference member variables. A setter is no longer generated if the
+            type of the reference member variable is non-assignable.
+
+2024-09-18: olly
+	    Fix parse error for a misplaced Doxygen comment which is the only
+	    thing in a class/struct.
+
+2024-09-18: olly
+	    Fix parse error for %include/#include in a class/struct followed
+	    by a member declaration.
+
+2024-09-16: olly
+	    #2995 SWIG now has generic handling for converting integer and
+	    boolean literal values for use in target language code, replacing
+	    code to do with in many of the target language backends.  This is
+	    mainly an internal clean-up but it does fix a bug in the code it
+	    replaces when wrapping code such as this:
+
+	      typedef enum { T = (bool)1 } b;
+
+	    With suitable enum wrapping settings, SWIG could incorrect wrap T
+	    with value 0 in C#, D and Java.
+
+	    Such cases now work correctly for D, but for C# and Java SWIG now
+	    generates invalid C#/Java code because the C++ enum initialiser
+	    expression isn't valid for initialising a C#/Java enum - this is
+	    really an improvement over generating code which compiled but used
+	    the wrong value!
+
+	    If you are affected by this, use %csconstvalue/%javaconstvalue to
+	    specify the value of such enumerators as a suitable C#/Java
+	    expression.
+
+2024-09-16: olly
+	    #2560 Document complex.i in the manual.
+
+2024-09-15: FredBonThermo
+	    [C#] #2835 Support -doxygen option for converting doxygen comments
+	    to XML formatted C# comments.
+
+2024-09-14: wsfulton
+            #2987 C++ reference errors when passing in a 'NULL' change of
+            behaviour.  Most languages now use "NullReferenceError" in the
+            error message where they previously used "ValueError". Also
+            exception changes:
+
+            Guile:    "swig-null-reference-error" instead of "swig-value-error"
+            MzScheme: "swig-null-reference-error" instead of "swig-value-error"
+            PHP:      TypeError instead of ValueError
+            Python:   Consistently raises TypeError instead of a mix of
+                      ValueError and TypeError.
+            Ruby:     Consistently raises NullReferenceError instead of a mix
+                      of ArgumentError and NullReferenceErrorError.
+
+            The consistent raising of a TypeError instead of ValueError for
+            Python ensures that incorrectly passing 'None' into a C++ reference
+            argument will correctly convert the error into a NotImplemented
+            error for the rich comparisons implementations per PEP 207.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
+2024-09-13: vadz
+	    [C] #2086 Add support for C as a target language.  This support is
+	    currently experimental.
+
+2024-09-12: olly
+	    Remove remains of %nestedworkaround and the nestedworkaround
+	    feature it uses, which were deprecated over 10 years ago in SWIG
+	    3.0.0.  Since then uses of these have done nothing except emit a
+	    warning.
+
+2024-09-11: wsfulton
+            [C# Java] #1188 Add the %interface_additional macro to the family
+            of %interface macros for adding additional interfaces for the
+            %generated interface to extend/derive from.
+
+2024-09-11: olly
+	    #197 #675 #1677 #2047 Fix incorrect inclusion of "enum " when
+	    qualifying C++11 "enum class" enumerator names.
+
+2024-09-11: olly
+	    [Perl] #630 Fix wrapping of C++11 enum class when -const command
+	    line option is specified.
+
 2024-09-07: wsfulton
-            #2875 Fix swig-4.1.0 regression using the %interface family of macros
-            for multiple inheritance and common bases.
+            #2875 Fix swig-4.1.0 regression using the %interface family of
+            macros for multiple inheritance and common bases.
 
 2024-09-06: olly
 	    [Python] Stop documenting to define SWIG_FILE_WITH_INIT - this does
 	    not actually do anything (and apparently never has!)
 
 2024-09-05: wsfulton
-            #2845 Fix duplicate friend wrappers for friend declarations in nested
-            classes.
+            #2845 Fix duplicate friend wrappers for friend declarations in
+            nested classes.
 
 2024-09-03: olly
 	    #3010 Improve handling of zero bytes in input files.  This is
@@ -36,14 +242,16 @@ Version 4.3.0 (in progress)
 	    target languages where the native string can't contain zero bytes).
 
 2024-08-23: wsfulton
-            [Java] #2991 Document solutions for mismatch in C++ access specifiers
-            and Java access modifiers in an inheritance hierarchy.
+            [Java] #2991 Document solutions for mismatch in C++ access
+            specifiers and Java access modifiers in an inheritance hierarchy.
 
 2024-08-19: wsfulton
-	    [Python] #2993 Add missing std::filesystem namespace to std_filesystem.i.
+	    [Python] #2993 Add missing std::filesystem namespace to
+	    std_filesystem.i.
 
 2024-08-17: olly
-	    #904 #1907 #2579 Fix string literal and character literal wrapping bugs.
+	    #904 #1907 #2579 Fix string literal and character literal wrapping
+	    bugs.
 
 2024-08-15: olly
 	    Fix parsing of octal string escapes.  We now stop when the next
@@ -61,12 +269,13 @@ Version 4.3.0 (in progress)
 	    #657 Allow unmatched ' and " in #error and #warning.
 
 2024-08-09: wsfulton
-	    [Java] Add the constantsmodifiers pragma so that the visibility for the
-            Java constants interface can be changed from public to default.
+	    [Java] #409 Add the constantsmodifiers pragma so that the
+	    visibility for the Java constants interface can be changed from
+	    public to default.
 
 2024-08-02: vadz
-	    [Python] #2966 Fix overloaded Doxygen comments. Sometimes the Doxygen
-            comments were not combined into one Pydoc comment.
+	    [Python] #2966 Fix overloaded Doxygen comments. Sometimes the
+	    Doxygen comments were not combined into one Pydoc comment.
 
 2024-08-01: olly
 	    Fix wrapping of string constants containing bytes 0-8, 11, 12 or
@@ -90,7 +299,8 @@ Version 4.3.0 (in progress)
             needed for python-3.13 builtin wrappers.
 
 2024-07-21: shadchin
-	    [Python] #2968 Add missing tp_versions_used slot needed for python-3.13.
+	    [Python] #2968 Add missing tp_versions_used slot needed for
+	    python-3.13.
 
 2024-07-19: olly
 	    -Wallkw now includes keywords for Javascript.
@@ -107,43 +317,57 @@ Version 4.3.0 (in progress)
 	    as `float` rather than `double`.
 
 2024-07-15: vadz
-            #2941 Suppress warning WARN_PARSE_USING_UNDEF for ignored using declarations.
+            #2941 Suppress warning WARN_PARSE_USING_UNDEF for ignored using
+            declarations.
 
 2024-07-03: wsfulton
-            #2860 Enhance Windows.html documentation for the popular Visual C++ compiler
-            recommending users to correctly set the __cplusplus macro in order to benefit
-            from modern standards based features that SWIG provides.
+            #2860 Enhance Windows.html documentation for the popular Visual C++
+            compiler recommending users to correctly set the __cplusplus macro
+            in order to benefit from modern standards based features that SWIG
+            provides.
 
 2024-07-02: erezgeva
-	    [Python, Ruby] #2870 Change the thread safety options for the director code
-            that manages C++ director pointer ownership. Please define SWIG_THREADS to
-            turn on thread safety. For Python, this can also be done via the threads
-            module option or -threads. Implementation now includes a C++11 std::mutex option
-            as priority over WIN32 and pthread mutexes. See director_guard.swg for further
+	    [Python, Ruby] #2870 Change the thread safety options for the
+            director code that manages C++ director pointer ownership. Please
+            define SWIG_THREADS to turn on thread safety. For Python, this can
+            also be done via the threads module option or -threads.
+            Implementation now includes a C++11 std::mutex option as priority
+            over WIN32 and pthread mutexes. See director_guard.swg for further
             implementation details.
 
 2024-06-28: vadz
-            #2935 Fix instantiation of specialized template where the primary template
-            is a forward class template declaration.
+            #2935 Fix instantiation of specialized template where the primary
+            template is a forward class template declaration.
 
 2024-06-16: wsfulton
-            #2927 Don't ignore overloaded friend functions that are also declared
-            constexpr.
+            #2927 Don't ignore overloaded friend functions that are also
+            declared constexpr.
 
 2024-06-15: wsfulton
             [Python] Removed deprecated pytuplehlp.swg file and t_output_helper.
-            Use SWIG_Python_AppendOutput instead of t_output_helper.
+            Use SWIG_AppendOutput as a direct replacement for t_output_helper.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
 
 2024-06-15: vadz
-            [Python] #2907 Fix returning null from functions with output parameters.
-            Ensures OUTPUT typemaps are handled consistently.
+            [Python] #2907 Fix returning null from functions with output
+            parameters.  Ensures OUTPUT and INOUT typemaps are handled
+            consistently wrt return type.
 
             New declaration of SWIG_Python_AppendOutput is now:
 
               SWIG_Python_AppendOutput(PyObject* result, PyObject* obj, int is_void);
 
-            The 3rd parameter is new and the new $isvoid special variable should be
-            passed to it, indicating whether or not the wrapped function returns void.
+            The 3rd parameter is new and the new $isvoid special variable
+            should be passed to it, indicating whether or not the wrapped
+            function returns void.
+
+            Also consider replacing with:
+
+              SWIG_AppendOutput(PyObject* result, PyObject* obj);
+
+            which calls SWIG_Python_AppendOutput with same parameters but adding $isvoid
+            for final parameter.
 
 	    *** POTENTIAL INCOMPATIBILITY ***
 
@@ -156,22 +380,30 @@ Version 4.3.0 (in progress)
 
 2024-06-13: erezgeva
             #2609 Fix Java typemap (const char *STRING, size_t LENGTH) to
-            marshall as Java String instead of Java byte[]. If the old behaviour
-            is required, replace with typemap (const void *BYTES, size_t LENGTH).
-            Add multi-argument typemaps to most languages:
-              (const char *STRING, size_t LENGTH)
-            All languages now use a target language string type for this typemap.
+            marshall as Java String instead of Java byte[]. If the old
+            behaviour is required, replace with typemap (const void *BYTES,
+            size_t LENGTH).
 
-            New multi-argument typemaps have been added to most target languages
-            for use with C raw data (cdata):
+            Add multi-argument typemaps to most languages:
+
+              (const char *STRING, size_t LENGTH)
+
+            All languages now use a target language string type for this
+            typemap.
+
+            New multi-argument typemaps have been added to most target
+            languages for use with C raw data (cdata):
+
               (const void *BYTES, size_t LENGTH) to
+
             Statically typed languages use a byte array for this typemap, while
             scripting languages remain using a string.
 
 	    *** POTENTIAL INCOMPATIBILITY ***
 
             * Raw C data: Go uses byte array and int64 for size.
-              Users can use the (const char *STRING, size_t LENGTH) typemaps for strings.
+            Users can use the (const char *STRING, size_t LENGTH) typemaps for
+            strings.
 
 2024-06-06: olly
 	    Support alignof(T) for arbitrary type T, and deduce the type of
@@ -183,12 +415,12 @@ Version 4.3.0 (in progress)
 	    since the type of sizeof is always size_t.
 
 2024-06-05: leakec
-            #2873 Fix -fvirtual and using declarations for inheriting base class methods
-            corner case.
+            #2873 Fix -fvirtual and using declarations for inheriting base
+            class methods corner case.
 
 2024-05-31: wsfulton
-            [C#, D, Java, Javascript, Lua] Fix %nspace and %nspacemove for nested
-            classes and enums in a class. For example:
+            [C#, D, Java, Javascript, Lua] Fix %nspace and %nspacemove for
+            nested classes and enums in a class. For example:
 
               %nspace Space::OuterClass80;
               namespace Space {
@@ -200,28 +432,30 @@ Version 4.3.0 (in progress)
                 };
               }
 
-            Previously the following were additionally required for some languages:
+            Previously the following were additionally required for some
+            languages:
 
               %nspace Space::OuterClass80::InnerClass80;
               %nspace Space::OuterClass80::InnerClass80::Bottom80;
 
             Now the appropriate nspace setting is taken from the outer class.
 
-            A new warning has also been introduced to check and correct conflicting
-            nspace usage, for example if the following is additionally added:
+            A new warning has also been introduced to check and correct
+            conflicting nspace usage, for example if the following is
+            additionally added:
 
               %nspacemove(AnotherSpace) Space::OuterClass80::InnerClass80;
 
-            The following warning appears as an inner class can't be moved outside
-            of the outer class:
+            The following warning appears as an inner class can't be moved
+            outside of the outer class:
 
               Warning 406: Ignoring nspace setting (AnotherSpace) for 'Space::OuterClass80::InnerClass80',
               Warning 406: as it conflicts with the nspace setting (Space) for outer class 'Space::OuterClass80'.
 
 2024-05-31: wsfulton
-            [C#, D, Java, Javascript, Lua] #2782 Enhance the nspace feature with
-            %nspacemove for moving a class or enum into a differently named target
-            language equivalent of a namespace.
+            [C#, D, Java, Javascript, Lua] #2782 Enhance the nspace feature
+            with %nspacemove for moving a class or enum into a differently
+            named %target language equivalent of a namespace.
 
 2024-05-31: binaire10
 	    [Ruby] #2906 Fix SWIG wrappers for std::map and std::vector to
@@ -244,27 +478,30 @@ Version 4.3.0 (in progress)
             [Javascript] #2869 Fix JavaScript _wrap_getCPtr on 64-bit Windows
 
 2024-04-12: wsfulton
-            [Javascript, MzScheme, Python, Ruby] #202 Remove the vast majority of the
-            /*@SWIG:...*/ locator strings in the generated wrappers for these 4 languages
-            to help with reproducible builds.
+            [Javascript, MzScheme, Python, Ruby] #202 Remove the vast majority
+            of the /*@SWIG:...*/ locator strings in the generated wrappers for
+            these 4 languages to help with reproducible builds.
 
 2024-04-08: thewtex
             [Python] #2856 Include stdlib.h for more recent Python Stable ABI
 
 2024-03-28: olly
-	    Fix preprocessor to handle C-style comment ending **/ in macro argument.
+	    Fix preprocessor to handle C-style comment ending **/ in macro
+	    argument.
 
 2024-03-27: wsfulton
-            [Python] #2844 Fix for using more than one std::string_view type in a method.
+            [Python] #2844 Fix for using more than one std::string_view type in
+            a method.
 
 2024-03-27: wsfulton
-            [R] #2847 Add missing std::vector<long> and std::vector<long long> typemaps
-            which were missing depending on whether or not SWIGWORDSIZE64 was defined.
+            [R] #2847 Add missing std::vector<long> and std::vector<long long>
+            typemaps which were missing depending on whether or not
+            SWIGWORDSIZE64 was defined.
 
 2024-03-25: wsfulton
             [Python] #2826 Stricter stable ABI conformance.
-            1. Use Py_DecRef and Py_IncRef when Py_LIMITED_API is defined instead of
-               macro equivalents, such as Py_INCREF.
+            1. Use Py_DecRef and Py_IncRef when Py_LIMITED_API is defined
+               instead of macro equivalents, such as Py_INCREF.
             2. Don't use PyUnicode_GetLength from python-3.7 and later.
             3. Use PyObject_Free instead of deprecated equivalents.
 
@@ -273,8 +510,8 @@ Version 4.3.0 (in progress)
 	    as supported but seems to have not worked since before 2009.
 
 2024-03-11: wsfulton
-            [C#] #2829 Improve handling and documentation of missing enum base type
-            information.
+            [C#] #2829 Improve handling and documentation of missing enum base
+            type information.
 
 2024-03-07: wsfulton
             [Ocaml] Fix SWIGTYPE MOVE 'in' typemap to fix compilation error.
@@ -284,23 +521,27 @@ Version 4.3.0 (in progress)
             (SWIGWARN_TYPEMAP_TYPECHECK_UNDEF).
 
 2024-03-06: wsfulton
-            Add support for std::unique_ptr & typemaps. Non-const inputs implement
-            move semantics from proxy class to C++ layer, otherwise const inputs
-            and all reference returns behave like any other lvalue reference to a class.
+            Add support for std::unique_ptr & typemaps. Non-const inputs
+            implement move semantics from proxy class to C++ layer, otherwise
+            const inputs and all reference returns behave like any other lvalue
+            reference to a class.
 
 2024-03-06: wsfulton
-            [Javascript, MzScheme, Octave] Support NULL being passed into char* typemaps.
+            [Javascript, MzScheme, Octave] Support NULL being passed into char*
+            typemaps.
 
 2024-03-06: christophe-calmejane,wsfulton
-            #2650 Add support for movable std::unique_ptr by adding in std::unique_ptr &&
-            input typemaps. The std::unique && output typemaps do not support move
-            semantics by default and behave like lvalue references.
+            #2650 Add support for movable std::unique_ptr by adding in
+            std::unique_ptr && input typemaps. The std::unique && output
+            typemaps do not support move semantics by default and behave like
+            lvalue references.
 
 2024-03-06: wsfulton
-            Add missing use of move constructor instead of copy constructor when
-            passing movable types by value. This was previously implemented only for
-            parameters passed to a global function or static member function and is
-            now extended to parameters passed to member methods as well as constructors.
+            Add missing use of move constructor instead of copy constructor
+            when passing movable types by value. This was previously
+            implemented only for parameters passed to a global function or
+            static member function and is now extended to parameters passed to
+            member methods as well as constructors.
 
 2024-03-01: olly
 	    [Java] #2819 Suppress Java removal warnings for uses of
@@ -310,13 +551,15 @@ Version 4.3.0 (in progress)
 	    of Runtime.exec() in the doxygen example.
 
 2024-02-28: wsfulton
-            #1754 Fix compilation errors in generated code when instantiating a templated
-            static method within a template (non-static methods and constructors were
-            always okay). For example:
+            #1754 Fix compilation errors in generated code when instantiating a
+            templated static method within a template (non-static methods and
+            constructors were always okay). For example:
 
               template <typename T> class X {
                 template <class InputIterator>
-                  static void fn(InputIterator first, InputIterator last) { ... }
+                  static void fn(InputIterator first, InputIterator last) {
+                    ...
+                  }
               };
               class SimpleIterator { ... };
 

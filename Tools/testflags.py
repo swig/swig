@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 def get_cflags(language, std, compiler):
     if std == None or len(std) == 0:
@@ -9,6 +9,7 @@ def get_cflags(language, std, compiler):
         # use c99 or gnu99 if feature is necessary for using target language
         c_common = c_common + " -Wdeclaration-after-statement"
     cflags = {
+             "c":"-Werror " + c_common,
         "csharp":"-Werror " + c_common,
              "d":"-Werror " + c_common,
             "go":"-Werror " + c_common,
@@ -40,6 +41,7 @@ def get_cxxflags(language, std, compiler):
         std = "c++98"
     cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers"
     cxxflags = {
+             "c":"-Werror " + cxx_common,
         "csharp":"-Werror " + cxx_common,
              "d":"-Werror " + cxx_common,
             "go":"-Werror " + cxx_common,

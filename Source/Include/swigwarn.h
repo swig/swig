@@ -54,7 +54,7 @@
 /* Unused since 4.2.0: #define WARN_DEPRECATED_NODEFAULT     123 */
 /* Unused since 4.1.0: #define WARN_DEPRECATED_TYPEMAP_LANG  124 */
 /* Unused since 4.2.0: #define WARN_DEPRECATED_INPUT_FILE    125 */
-#define WARN_DEPRECATED_NESTED_WORKAROUND 126
+/* Unused since 4.3.0: #define WARN_DEPRECATED_NESTED_WORKAROUND 126 */
 
 /* -- Preprocessor -- */
 
@@ -224,6 +224,7 @@
 #define WARN_LANG_EXPERIMENTAL        524
 #define WARN_LANG_DIRECTOR_FINAL      525
 #define WARN_LANG_USING_NAME_DIFFERENT 526
+#define WARN_LANG_DEPRECATED          527
 
 /* -- Doxygen comments -- */
 
@@ -271,6 +272,11 @@
 #define WARN_R_TYPEMAP_RTYPECHECK_UNDEF       751
 
 /* please leave 750-759 free for R */
+
+#define WARN_C_TYPEMAP_CTYPE_UNDEF            760
+#define WARN_C_UNSUPPORTTED                   761
+
+/* please leave 760-779 free for C */
 
 #define WARN_RUBY_WRONG_NAME                  801
 #define WARN_RUBY_MULTIPLE_INHERITANCE        802

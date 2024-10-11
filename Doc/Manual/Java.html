@@ -3445,6 +3445,10 @@ There is more than one macro in order to provide a choice for choosing the Java 
   <td><tt>%interface_custom("PROXY", "INTERFACE", CTYPE)</tt></td>
   <td>For C++ class <tt>CTYPE</tt>, proxy class name is given by the string <tt>PROXY</tt>, interface name is given by the string <tt>INTERFACE</tt>. The <tt>PROXY</tt> and <tt>INTERFACE</tt> names can use the <a href="SWIG.html#SWIG_advanced_renaming">string formatting functions</a> used in <tt>%rename</tt>.</td>
 </tr>
+<tr>
+  <td><tt>%interface_additional("PROXY", "INTERFACE", "ADDITIONAL", CTYPE)</tt></td>
+  <td>For C++ class <tt>CTYPE</tt>, proxy class name is given by the string <tt>PROXY</tt>, interface name is given by the string <tt>INTERFACE</tt>. The <tt>PROXY</tt> and <tt>INTERFACE</tt> names can use the <a href="SWIG.html#SWIG_advanced_renaming">string formatting functions</a> used in <tt>%rename</tt>. <tt>ADDITIONAL</tt> should contain a comma separated list of interfaces for the interface class to additionally extend. This is for adding interfaces not parsed by SWIG and is useful for adding in pure Java interfaces</td>
+</tr>
 </table>
 
 <p>
@@ -3648,8 +3652,82 @@ which calls an appropriate C++ cast of the pointer up the inheritance chain.
 </p>
 
 <p>
+The <tt>%interface_additional</tt> macro is useful for adding additional interfaces to the Java interface class.
+Consider a simple class hierarchy, where <tt>Whizz</tt> inherits from <tt>Bang</tt> and we want
+these two classes to be wrapped as Java interfaces and the <tt>Whizz</tt> interface to additionally extend from the pure Java interface <tt>java.util.EventListener</tt>.
+</p>
+
+<div class="code">
+<pre>
+%interface_custom("Bang", "IBang", Space::Bang);
+%interface_additional("Whizz", "IWhizz", "java.util.EventListener", Space::Whizz)
+
+namespace Space {
+  struct Bang {
+    virtual void bang() = 0;
+  };
+  struct Whizz : Bang {
+    virtual void whizz() = 0;
+  };
+}
+</pre>
+</div>
+
+<p>
+The classes and interfaces generated are shown below, noting that <tt>IWhizz</tt> extends the additional interface <tt>java.util.EventListener</tt>:
+</p>
+
+<div class="code">
+<pre>
+public interface IBang { ... }
+
+public interface IWhizz extends java.util.EventListener, IBang { ... }
+
+public class Bang implements IBang { ... }
+
+public class Whizz implements IWhizz, IBang { ... }
+</pre>
+</div>
+
+<p>
+Note the subtle difference to the <tt>javainterfaces</tt> typemap discussed elsewhere.
+The typemap applies to the generated Java proxy class only, not the Java interface.
+A slight change to our example above as follows:
+</p>
+
+<div class="code">
+<pre>
+%interface_custom("Bang", "IBang", Space::Bang);
+%interface_custom("Whizz", "IWhizz", Space::Whizz)
+%typemap(javainterfaces) Space::Whizz "java.util.EventListener"
+
+namespace Space {
+... as shown above ...
+}
+</pre>
+</div>
+
+<p>
+will then the generate different code for the proxy class <tt>Whizz</tt> and the interface <tt>IWhizz</tt> as follows:
+</p>
+
+<div class="code">
+<pre>
+public interface IBang { ... }
+
+public interface IWhizz extends IBang { ... }
+
+public class Bang implements IBang { ... }
+
+public class Whizz implements IWhizz, IBang, java.util.EventListener { ... }
+
+</pre>
+</div>
+
+<p>
+Finally, a note on the implementation of the interface macros.
 The interface macros are implemented using the <tt>interface</tt> feature and typemaps.
-For example:
+A couple of examples:
 </p>
 
 <div class="code">
@@ -3658,16 +3736,28 @@ For example:
 %feature("interface", name="%sSwigInterface") CTYPE;
 INTERFACE_TYPEMAPS(CTYPE)
 %enddef
+
+%define %interface_additional(PROXY, INTERFACE, ADDITIONAL, CTYPE...)
+%rename(PROXY) CTYPE;
+%feature("interface", name=INTERFACE, additional=ADDITIONAL) CTYPE;
+INTERFACE_TYPEMAPS(CTYPE)
+%enddef
 </pre>
 </div>
 
 <p>
-The feature accepts one attribute called <tt>name</tt>, which is the name of the Java interface mentioned earlier.
+The feature accepts two attributes named <tt>name</tt> and <tt>additional</tt>.
+The <tt>name</tt> attribute should contain the name of the Java interface.
+The <tt>additional</tt> attribute should contain additional interfaces for the interface class, not parsed by SWIG.
 The <tt>INTERFACE_TYPEMAPS</tt> macro implements the typemaps and can be viewed in the
-<tt>swiginterface.i</tt> file and contain
+<tt>swiginterface.i</tt> file and contains
 the usual Java typemaps for generating code plus the <tt>javainterfacecode</tt>
 typemap which is only used when a class is marked with the <tt>interface</tt> feature.
 See <a href="Java.html#Java_code_typemaps">Java code typemaps</a> for details.
+</p>
+
+<p>
+<b>Compatibility note:</b> The <tt>additional</tt> attribute and <tt>%interface_additional</tt> macro was added in SWIG-4.3.0.
 </p>
 
 <H2><a name="Java_directors">27.5 Cross language polymorphism using directors</a></H2>
@@ -4611,23 +4701,21 @@ This requires fixing with one of two solutions:
 
 
 <ol>
-<p>
-<li>Change the access modifier to public for the derived class by adding the following before SWIG parses the <tt>DerivedClass</tt>:</li>
-</p>
+<li><p>Change the access modifier to public for the derived class by adding the following before SWIG parses the <tt>DerivedClass:</tt></p>
 <div class="code">
 <pre>
 %feature("java:methodmodifiers") DerivedClass::baseMethod2 "public"
 </pre>
 </div>
+</li>
 
-<p>
-<li>Simply ignore the method in the derived class altogether as it cannot be used as a <tt>protected</tt> method in Java as the C++ design intended:</li>
-</p>
+<li><p>Simply ignore the method in the derived class altogether as it cannot be used as a <tt>protected</tt> method in Java as the C++ design intended:</p>
 <div class="code">
 <pre>
 %ignore DerivedClass::baseMethod2;
 </pre>
 </div>
+</li>
 
 </ol>
 
@@ -6987,7 +7075,7 @@ The "javaimports" typemap is ignored if the enum class is wrapped by an inner Ja
 <div class="code">
 <pre>
 [ javaimports typemap ]
-[ javainterfacemodifiers typemap ] [ javainterfacename ] {
+[ javainterfacemodifiers typemap ] [ name ] [extends additional [, ...] ] {
 [ javainterfacecode:cptrmethod typemap attribute ]
 ... interface declarations ...
 }
@@ -6995,7 +7083,9 @@ The "javaimports" typemap is ignored if the enum class is wrapped by an inner Ja
 </div>
 
 <p>
-where <tt>javainterfacename</tt> is the <tt>name</tt> attribute in the <a href="Java.html#Java_interfaces">interface feature</a>.
+where <tt>name</tt> is the <tt>name</tt> attribute and
+<tt>additional</tt> is the <tt>additional</tt> attribute
+in the <a href="Java.html#Java_interfaces">interface feature</a>.
 </p>
 
 <p>

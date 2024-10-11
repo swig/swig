@@ -17,7 +17,6 @@ CPP_TEST_CASES += \
 	callback \
 	director_stl \
 	exception_partial_info \
-	inout \
 	li_cdata_carrays_cpp \
 	li_factory \
 	php_iterator \

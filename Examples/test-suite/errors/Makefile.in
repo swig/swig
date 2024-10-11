@@ -62,12 +62,12 @@ STRIP_SRCDIR = sed -e 's|\\|/|g' -e 's|^$(SRCDIR)||'
 
 # Rules for the different types of tests
 %.cpptest:
-	echo "$(ACTION)ing errors testcase $*"
+	$(ECHO_PROGRESS) "$(ACTION)ing errors testcase $*"
 	-$(SWIGINVOKE) -c++ -python -Wall -Fstandard $(MODULE_OPTION) $(SWIGOPT) $(SRCDIR)$*.i 2>&1 | $(FROMDOS) | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
 	$(COMPILETOOL) diff -c $(SRCDIR)$*.stderr $*.$(ERROR_EXT)
 
 %.ctest:
-	echo "$(ACTION)ing errors testcase $*"
+	$(ECHO_PROGRESS) "$(ACTION)ing errors testcase $*"
 	-$(SWIGINVOKE) -python -Wall -Fstandard $(MODULE_OPTION) $(SWIGOPT) $(SRCDIR)$*.i 2>&1 | $(FROMDOS) | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
 	$(COMPILETOOL) diff -c $(SRCDIR)$*.stderr $*.$(ERROR_EXT)
 

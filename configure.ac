@@ -538,6 +538,35 @@ AC_SUBST(ANT)
 AC_SUBST(NDKBUILD)
 
 #----------------------------------------------------------------
+# Nothing to look for in C case, just define some variables
+#----------------------------------------------------------------
+
+# Some tweaks for creating shared modules.
+C_SO='$(SO)'
+
+case $host in
+*-*-darwin*)
+        C_LDFLAGS='-dynamiclib'
+        C_SO=".dylib"
+        ;;
+*-*-cygwin* | *-*-mingw*)
+        # Nothing special to do.
+        ;;
+*)
+        # This is needed for linking with Boost which uses mutexes and does no
+        # harm in all the other cases.
+        C_LDFLAGS='-pthread'
+        ;;
+esac
+
+C_LDSHARED="\$(LDSHARED) $C_LDFLAGS"
+CXX_LDSHARED="\$(CXXSHARED) $C_LDFLAGS"
+
+AC_SUBST(C_LDSHARED)
+AC_SUBST(CXX_LDSHARED)
+AC_SUBST(C_SO)
+
+#----------------------------------------------------------------
 # Look for C#
 #----------------------------------------------------------------
 
@@ -1280,17 +1309,12 @@ else
   AC_MSG_CHECKING(for V8 Javascript v8.h)
   AC_ARG_WITH(jsv8inc, [  --with-jsv8inc=path     Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"], [JSV8INCDIR=])
 
-  # if not include dir is specified we try to find
+  # if include dir is not specified we try to find it
   if test -z "$JSV8INCDIR"; then
-    # Add in default directory for JavaScriptCore headers for Linux and Mac OS X
+    # Add in default directory for v8 headers for Linux
     case $host in
     *-*-linux*)
-      JSV8INCDIR="/usr/include /usr/local/include/ $JSV8INCDIR"
-      ;;
-    *-*-darwin*)
-      JSV8INCDIR="$JSV8INCDIR"
-      ;;
-    *)
+      JSV8INCDIR="/usr/include/v8 /usr/include /usr/local/include/v8 /usr/local/include"
       ;;
     esac
   fi
@@ -1298,51 +1322,52 @@ else
   for d in $JSV8INCDIR ; do
     if test -r "$d/v8.h" ; then
       JSV8INCDIR=$d
-      JSV8INC=-I\"$d\"
+      JSV8INC=-I$d
       break
     fi
   done
 
+  JSV8DYNAMICLINKING=
+  JSV8ENABLED=
+  JSV8LIB=
   if test "$JSV8INC" = "" ; then
     AC_MSG_RESULT(not found)
   else
     AC_MSG_RESULT($JSV8INCDIR)
+
+    # check for V8 library
+    AC_MSG_CHECKING(for V8 Javascript library)
+    AC_ARG_WITH(jsv8lib,[  --with-jsv8lib=path     Set location of V8 Javascript library directory],[JSV8LIBDIR=-L"$withval"], [JSV8LIBDIR=])
+
+    AC_LANG_PUSH([C++])
+    save_CPPFLAGS=$CPPFLAGS
+    save_LDFLAGS=$LDFLAGS
+    save_LIBS=$LIBS
+    CPPFLAGS=$JSV8INC
+    LDFLAGS=$JSV8LIBDIR
+    LIBS=-lv8
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <v8.h>], [v8::V8::Initialize();])], [
+	JSV8ENABLED=1
+	JSV8LIB=$JSV8LIBDIR${JSV8LIBDIR:+ }$LIBS
+	AC_MSG_RESULT([$JSV8LIB])
+      ], [
+	AC_MSG_RESULT(not found)
+      ])
+    CPPFLAGS=$save_CPPFLAGS
+    LDFLAGS=$save_LDFLAGS
+    LIBS=$save_LIBS
+    AC_LANG_POP([C++])
+
+    # linking options
+    case $host in
+    *-*-darwin*)
+      JSV8DYNAMICLINKING="$JSV8LIB"
+      ;;
+    *-*-linux*)
+      JSV8DYNAMICLINKING="$JSV8LIB"
+      ;;
+    esac
   fi
-
-  # check for V8 library
-  AC_MSG_CHECKING(for V8 Javascript library)
-  AC_ARG_WITH(jsv8lib,[  --with-jsv8lib=path     Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
-
-  v8libdirs="$JSV8LIBDIR /usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
-  for d in $v8libdirs ; do
-    if test -r $d/libv8$JSSO; then
-      JSV8LIBDIR=$d
-      JSV8LIB="-L$d -lv8"
-      break
-    fi
-  done
-
-  if test "$JSV8LIB" = "" ; then
-    AC_MSG_RESULT(not found)
-    JSV8ENABLED=
-  else
-    AC_MSG_RESULT($JSV8LIBDIR)
-    JSV8ENABLED=1
-  fi
-
-
-  # linking options
-  case $host in
-  *-*-darwin*)
-    JSV8DYNAMICLINKING="$JSV8LIB"
-    ;;
-  *-*-linux*)
-    JSV8DYNAMICLINKING="$JSV8LIB"
-    ;;
-  *)
-    JSV8DYNAMICLINKING=""
-    ;;
-  esac
 
 fi
 
@@ -2664,6 +2689,12 @@ AC_SUBST(TCLLINK)
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
+dnl We only need CC and CXX to test the C target language, and both of those
+dnl are required to build SWIG.
+SKIP_C=
+AC_SUBST(SKIP_C)
+
+
 SKIP_CSHARP=
 if test -z "$CSHARPCOMPILER" ; then
     SKIP_CSHARP="1"
@@ -2880,8 +2911,8 @@ AC_SUBST(SWIG_LIB_SET)
 AC_CONFIG_FILES([
     Makefile
     Examples/Makefile
-    Examples/xml/Makefile
     Examples/test-suite/errors/Makefile
+    Examples/test-suite/c/Makefile
     Examples/test-suite/csharp/Makefile
     Examples/test-suite/d/Makefile
     Examples/test-suite/go/Makefile
@@ -2945,6 +2976,7 @@ EOF
 AC_OUTPUT
 
 langs=""
+test -n "$SKIP_C"		|| langs="${langs}c "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
 test -n "$SKIP_GO"		|| langs="${langs}go "

@@ -56,7 +56,7 @@ check_double(true, $nonzero, "nonzero", -10);
 $have_exception = false;
 try {
   test_nonnull(null);
-} catch(ValueError $e) {
+} catch(TypeError $e) {
   $msg = $e->getMessage();
   $have_exception = strcmp($msg, "Received a NULL pointer.") === 0;
 }

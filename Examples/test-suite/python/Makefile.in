@@ -42,7 +42,6 @@ CPP_TEST_CASES += \
 	file_test \
 	iadd \
 	implicittest \
-	inout \
 	inplaceadd \
 	input \
 	li_cstring \

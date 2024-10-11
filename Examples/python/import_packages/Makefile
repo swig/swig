@@ -24,17 +24,17 @@ check: build
 		done; \
 	fi
 	for s in $(import_packages_subdirs); do \
-		(cd $$s && $(MAKE) check) || exit 1; \
+		$(MAKE) -C $$s check || exit 1; \
 	done
 
 build:
 	for s in $(import_packages_subdirs); do \
-		(cd $$s && $(MAKE) SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' build) || exit 1; \
+		$(MAKE) -C $$s SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' build || exit 1; \
 	done
 
 static:
 	for s in $(import_packages_subdirs); do \
-		(cd $$s && $(MAKE) SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' static) || exit 1; \
+		$(MAKE) -C $$s SWIGOPT='$(SWIGOPT)' LIBS='$(LIBS)' static || exit 1; \
 	done
 
 clean:
@@ -45,5 +45,5 @@ clean:
 		done; \
 	fi
 	for s in $(import_packages_subdirs); do \
-		(cd $$s && $(MAKE) clean) || exit 1; \
+		$(MAKE) -C $$s clean || exit 1; \
 	done

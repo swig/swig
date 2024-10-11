@@ -4,8 +4,8 @@
 %warnfilter(SWIGWARN_PARSE_KEYWORD) val;
 #endif
 
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) ptr;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) UsdGeomTokensPtr;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ptr;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) UsdGeomTokensPtr;
 %immutable UsdGeomTokens;
 
 // Don't call our getters get_xxx() as that collides with generated getters in

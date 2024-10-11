@@ -58,6 +58,8 @@ jobs:
         - SWIGLANG: ""
           compiler: clang
           os: ubuntu-22.04
+        - SWIGLANG: c
+          CPPSTD: c++11
         - SWIGLANG: csharp
         - SWIGLANG: d
           VER: 'ldc'
@@ -119,7 +121,7 @@ jobs:
           ENGINE: napi
           VER: '18'
           CPPSTD: c++14
-          SWIG_FEATURES: -async -w470
+          SWIG_FEATURES: -async
           desc: Async
         - SWIGLANG: javascript
           ENGINE: napi
@@ -216,7 +218,6 @@ jobs:
         - SWIGLANG: python
           VER: '3.13'
           CSTD: gnu99
-          continue-on-error: true # Python 3.13 is still in beta
         - SWIGLANG: python
           PY2: 2
           SWIG_FEATURES: -builtin
@@ -226,6 +227,12 @@ jobs:
         - SWIGLANG: python
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
+          SWIG_FEATURES: -builtin -O
+        - SWIGLANG: python
+          VER: '3.13'
+          SWIG_FEATURES: -builtin
+        - SWIGLANG: python
+          VER: '3.13'
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
           VER: '3.8'
@@ -300,7 +307,7 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
-          VER: '3.3'
+          VER: '3.3.4' # cpp11_rvalue_reference_move testcase apparently started to fail on upgrade to 3.3.5, see https://github.com/swig/swig/issues/3030
         - SWIGLANG: ruby
           CPPSTD: c++11
         - SWIGLANG: scilab
@@ -390,6 +397,10 @@ jobs:
           CPPSTD: c++17
           GCC: 13
         # c++20 testing (using gcc13)
+        - SWIGLANG: c
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-22.04
         - SWIGLANG: python
           CPPSTD: c++20
           GCC: 13
@@ -406,6 +417,18 @@ jobs:
           CPPSTD: c++20
           GCC: 13
           os: ubuntu-22.04
+        - SWIGLANG: javascript
+          ENGINE: v8
+          CSTD: c++14
+          CPPSTD: c++14
+          VER: '7.8' # oldest we can easily test as libnode-dev in 20.04 doesn't have the V8 headers
+          os: ubuntu-22.04
+        - SWIGLANG: javascript
+          ENGINE: v8
+          CSTD: c++14
+          CPPSTD: c++14
+          VER: '10.2'
+          os: ubuntu-24.04
         # Experimental languages (these are allowed to fail)
         - SWIGLANG: mzscheme
           continue-on-error: true
@@ -571,16 +594,6 @@ jobs:
             make $SWIGJOBS check-errors-test-suite
           else
             case "$SWIGLANG" in
-              javascript)
-                case "$ENGINE" in
-                  v8 | jsc)
-                    # Running tests using v8 or jsc involves creating a custom
-                    # interpreter in Tools/javascript, which is currently broken
-                    # for parallel builds (we attempt to update this interpreter
-                    # while running, resulting in "Text file busy" error).
-                    unset SWIGJOBS
-                esac
-                ;;
               ocaml)
                 # `make check-ocaml-test-suite` fails with parallel make with:
                 #
@@ -593,12 +606,13 @@ jobs:
                 ;;
               scilab)
                 case $VER in
-                  ""|6.*|2023.*|2024.0.*)
+                  ""|6.*|2023.*|2024.0.*|2024.1.*)
                     # Some older versions of scilab sporadically fail with:
                     # terminate called after throwing an instance of 'std::filesystem::__cxx11::filesystem_error'
-                    # #2942 says "this issue was fixed in Scilab 2024.1.0"
-                    # and that it was probably introduced in 6.x (we've
-                    # seen it with 6.1.0.0, but haven't with 5.x).
+                    # #2942 says that it was probably introduced in 6.x (we've
+                    # seen it with 6.1.0.0, but haven't with 5.x); it also says
+                    # "this issue was fixed in Scilab 2024.1.0" but we are
+                    # still seeing sporadic failures with that version.
                     unset SWIGJOBS
                     ;;
                 esac

@@ -1418,15 +1418,15 @@ public:
 
     // Deal with enum values that are not int
     int swigtype = SwigType_type(Getattr(n, "type"));
-    if (swigtype == T_BOOL) {
-      const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
-      Setattr(n, "enumvalue", val);
-    } else if (swigtype == T_CHAR) {
+    if (swigtype == T_CHAR) {
       if (Getattr(n, "enumstringval")) {
 	String *val = NewStringf("'%(escape)s'", Getattr(n, "enumstringval"));
 	Setattr(n, "enumvalue", val);
 	Delete(val);
       }
+    } else {
+      String *numval = Getattr(n, "enumnumval");
+      if (numval) Setattr(n, "enumvalue", numval);
     }
 
     {
@@ -2094,8 +2094,10 @@ public:
     Printv(f_interface, typemapLookup(n, "javaimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
     Printv(f_interface, typemapLookup(n, "javainterfacemodifiers", Getattr(n, "classtypeobj"), WARN_JAVA_TYPEMAP_INTERFACEMODIFIERS_UNDEF), NIL);
     Printf(f_interface, " %s", interface_name);
+
+    String *additional = Getattr(n, "feature:interface:additional");
+    String *bases = additional ? Copy(additional) : 0;
     if (List *baselist = Getattr(n, "bases")) {
-      String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
 	if (GetFlag(base.item, "feature:ignore") || !GetFlag(base.item, "feature:interface"))
 	  continue; // TODO: warn about skipped non-interface bases
@@ -2107,10 +2109,10 @@ public:
 	  Append(bases, base_iname);
 	}
       }
-      if (bases) {
-	Printv(f_interface, " extends ", bases, NIL);
-	Delete(bases);
-      }
+    }
+    if (bases) {
+      Printv(f_interface, " extends ", bases, NIL);
+      Delete(bases);
     }
     Printf(f_interface, " {\n");
 
@@ -4516,6 +4518,7 @@ public:
       } else {
 	Replaceall(w->code, "$null", "");
       }
+      Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
       if (!GetFlag(n, "feature:ignore"))
 	Printv(imclass_directors, callback_def, callback_code, NIL);
       if (!Getattr(n, "defaultargs")) {

@@ -77,8 +77,10 @@ line 3
 %{  first line
   second line%}
 
-%feature("docstring") docstringX "  one line docs"
-%feature("docstring") docstringY "one line docs"
+%feature("docstring") docstringW "one line docs"
+%feature("docstring") docstringX "  one line docs leading whitespace"
+%feature("docstring") docstringY "one line docs trailing whitespace\t  "
+%feature("docstring") docstringZ "\tone line docs whitespace  \t"
 
 %inline %{
 struct DocStrings {
@@ -92,7 +94,9 @@ struct DocStrings {
   void docstringA() {}
   void docstringB() {}
   void docstringC() {}
+  void docstringW() {}
   void docstringX() {}
   void docstringY() {}
+  void docstringZ() {}
 };
 %}

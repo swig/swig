@@ -20,5 +20,5 @@ static:
 clean:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' TARGET='foo' python_clean
 	if test -d pkg1; then \
-		cd pkg1 && $(MAKE) -f $(TOP)/../Makefile SRCDIR='$(SRCDIR)' TARGET='foo' python_clean; \
+		$(MAKE) -C pkg1 -f $(TOP)/../Makefile SRCDIR='$(SRCDIR)' TARGET='foo' python_clean; \
 	fi

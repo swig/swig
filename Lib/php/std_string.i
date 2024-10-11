@@ -109,11 +109,11 @@ namespace std {
     %typemap(in) string& INPUT = const string&;
     %typemap(in, numinputs=0) string& OUTPUT ($*1_ltype temp)
     %{ $1 = &temp; %}
-    %typemap(argout,fragment="t_output_helper") string& OUTPUT
+    %typemap(argout) string& OUTPUT
     {
       zval o;
       ZVAL_STRINGL(&o, $1->data(), $1->size());
-      t_output_helper($result, &o);
+      SWIG_AppendOutput($result, &o);
     }
     %typemap(in) string& INOUT = const string&;
     %typemap(argout) string& INOUT = string& OUTPUT;

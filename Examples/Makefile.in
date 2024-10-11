@@ -136,7 +136,6 @@ OBJS      = $(SRCS:.c=.@OBJEXT@) $(CXXSRCS:.cxx=.@OBJEXT@)
 
 distclean:
 	rm -f Makefile
-	rm -f xml/Makefile
 
 ##################################################################
 # Very generic invocation of swig
@@ -199,6 +198,72 @@ android_clean:
 	rm -f $(INTERFACEDIR)$(TARGET)_wrap.*
 	rm -f `find $(PACKAGEDIR) -name \*.java | grep -v $(PROJECTNAME).java`
 	rm -rf obj
+
+##################################################################
+#####                           C                           ######
+##################################################################
+
+# ----------------------------------------------------------------
+# Build a C dynamically loadable module
+# ----------------------------------------------------------------
+
+CLIBPREFIX = lib
+C_LDSHARED = @C_LDSHARED@
+CXX_LDSHARED = @CXX_LDSHARED@
+C_SO = @C_SO@
+
+c: $(SRCDIR_SRCS)
+	$(SWIG) -c $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
+	$(CC) -c $(CCSHARED) $(SRCDIR_INCLUDE) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES)
+	$(COMPILETOOL) $(C_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
+
+c_cpp: $(SRCDIR_SRCS)
+	$(SWIG) -c++ -c $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+	$(CXX) -c $(CCSHARED) $(SRCDIR_INCLUDE) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_CXXSRCS) $(INCLUDES)
+	$(COMPILETOOL) $(CXX_LDSHARED) $(CFLAGS) $(OBJS) $(IOBJS) $(LIBS) $(CPP_DLLIBS) -o $(CLIBPREFIX)$(TARGET)$(C_SO)
+
+c_compile_c: $(SRCDIR)$(RUNME).c
+	$(COMPILETOOL) $(CC) $(CPPFLAGS) $(CFLAGS) -o $(RUNME)_$(RUNME_EXT) -I. -I.. $< -L. -l$(TARGET)
+
+c_compile_cxx: $(SRCDIR)$(RUNME).cxx
+	$(COMPILETOOL) $(CXX) $(CPPFLAGS) $(CXXFLAGS) -o $(RUNME)_$(RUNME_EXT) -I. -I.. $< -L. -l$(TARGET)
+
+$(eval c_compile: c_compile_$(RUNME_EXT))
+
+# This target is used for the unit tests: if we don't have any test code to
+# run, we at least can check that the generated header can be included without
+# giving any syntax errors, both when compiling it as C and C++ code.
+c_syntax_check: c_syntax_check_c c_syntax_check_cxx
+
+c_syntax_check_c:
+	$(CC) -fsyntax-only -x c -I$(SRCDIR)$(INTERFACEDIR) $(C_HEADER)
+
+c_syntax_check_cxx:
+	$(CXX) -fsyntax-only -x c++ -I$(SRCDIR)$(INTERFACEDIR) $(C_HEADER)
+
+# -----------------------------------------------------------------
+# Run C example
+# -----------------------------------------------------------------
+
+c_run: c_compile
+	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) ./$(RUNME)_$(RUNME_EXT) $(RUNPIPE)
+
+# -----------------------------------------------------------------
+# Version display
+# -----------------------------------------------------------------
+
+c_version:
+	$(CC) --version | head -n 1
+
+# -----------------------------------------------------------------
+# Cleaning the C examples
+# -----------------------------------------------------------------
+
+c_clean:
+	rm -f *_wrap.[ch] *_wrap.cxx
+	rm -f core @EXTRA_CLEAN@
+	rm -f *.@OBJEXT@ *@SO@
+	rm -f $(RUNME)_c $(RUNME)_cxx
 
 ##################################################################
 #####                       CSHARP                          ######
@@ -691,7 +756,7 @@ endif
 NAPI_DIR = @NODENAPI_DIR@
 
 javascript_wrapper:
-ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
+ifneq (jsc,$(JSENGINE))
 	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
 else
 	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
@@ -707,6 +772,9 @@ ifeq (node,$(JSENGINE))
 else ifeq (napi,$(JSENGINE))
 	sed -e 's|$$srcdir|./$(SRCDIR)|g' $(SRCDIR)binding.gyp.in > binding.gyp
 	MAKEFLAGS= CXXFLAGS="$(CXXFLAGS) -I$(NAPI_DIR)" $(NODEGYP) --loglevel=silent configure build 1>>/dev/null
+else ifeq (v8,$(JSENGINE))
+	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CCSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
@@ -724,11 +792,18 @@ endif
 # These targets are used by the test-suite:
 
 javascript: $(SRCDIR_SRCS) javascript_custom_interpreter
+ifeq (v8, $(ENGINE))
+	$(SWIG) -javascript $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
+else
 	$(SWIG) -javascript $(SWIGOPT) $(INTERFACEPATH)
+endif
 ifeq (jsc, $(ENGINE))
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-else # (v8 | node) # v8 and node must be compiled as c++
+else ifeq (v8, $(ENGINE)) # v8 must be compiled as c++
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+else # node and napi must be compiled as c++
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(JSINCLUDES)
 	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 endif
@@ -743,7 +818,7 @@ javascript_cpp: $(SRCDIR_SRCS) javascript_custom_interpreter
 # -----------------------------------------------------------------
 
 javascript_custom_interpreter:
-	(cd $(ROOT_DIR)/Tools/javascript && $(MAKE) JSENGINE='$(JSENGINE)')
+	$(MAKE) -C $(ROOT_DIR)/Tools/javascript JSENGINE='$(JSENGINE)'
 
 ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 ifneq (,$(findstring async,$(SWIG_FEATURES)))
@@ -784,7 +859,7 @@ ifeq (jsc, $(ENGINE))
 	fi
 endif
 ifeq (v8, $(ENGINE))
-	echo "Unknown v8 version."
+	@printf '%s\n' '#include <v8-version.h>' 'SWIGMAGICv8: V8_MAJOR_VERSION.V8_MINOR_VERSION.V8_BUILD_NUMBER.V8_PATCH_LEVEL'|$(CXX) $(JSINCLUDES) -xc++ -E -|sed 's/ \. /./g;s/SWIGMAGIC//p;d'
 endif
 
 # -----------------------------------------------------------------
@@ -798,7 +873,7 @@ javascript_clean:
 	rm -f *.@OBJEXT@ *@SO@
 	rm -f binding.gyp example-gypcopy.cxx
 	rm -f example.d.ts
-	cd $(ROOT_DIR)/Tools/javascript && $(MAKE) -s clean
+	$(MAKE) -C $(ROOT_DIR)/Tools/javascript -s clean
 
 ##################################################################
 #####                       LUA                             ######
@@ -1350,7 +1425,7 @@ python_run: $(PYSCRIPT)
 ifneq (,$(PYCODESTYLE))
 	$(COMPILETOOL) $(PYCODESTYLE) $(PYCODESTYLE_FLAGS) $(PYSCRIPT)
 endif
-	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYSCRIPT) $(RUNPIPE)
+	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYFLAGS) $(PYSCRIPT) $(RUNPIPE)
 
 ifneq (,$(SRCDIR))
 $(RUNME).py: $(SRCDIR)$(RUNME).py
