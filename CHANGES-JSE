@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 5.0.6
 ===========================
 
+2024-10-14: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#76](https://github.com/mmomtchev/swig/issues/76),
+            track namespaces for forward class declarations
+
 2024-10-10: mmomtchev
             [JavaScript] Fix [mmomtchev/swig#72](https://github.com/mmomtchev/swig/issues/72),
             correctly resolve TypeScript types from C/C++ forward
