@@ -99,6 +99,7 @@ jobs:
           CPPSTD: c++14
           SWIG_FEATURES: -async -w470
           desc: Async
+          cacheid: -napi-async
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '18'
@@ -106,42 +107,49 @@ jobs:
           SWIG_FEATURES: -async -async-locking -DSWIG_NAPI_FULL_LOCKING=1
           ASAN: 1
           desc: Async+ASAN
+          cacheid: -napi-async-locked-asan
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '18'
           CPPSTD: c++14
           SWIG_FEATURES: -async -async-locking -DSWIG_NAPI_FULL_LOCKING=1
           desc: Async w/ locking
+          cacheid: -napi-async-locked
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '18'
           CPPSTD: c++14
           SWIG_FEATURES: -typescript
           desc: TypeScript
+          cacheid: -napi-typescript
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '18'
           CPPSTD: c++14
           SWIG_FEATURES: -typescript -async -w470
           desc: TypeScript w/ async
+          cacheid: -napi-typescript-async
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '18'
           CPPSTD: c++14
           SWIG_FEATURES: -split
           desc: Code splitting
+          cacheid: -napi-splitting
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '18'
           CPPSTD: c++14
           SWIG_FEATURES: -split -async -async-locking -DSWIG_NAPI_FULL_LOCKING=1
           desc: Async w/ splitting & locking
+          cacheid: -napi-splitting-async
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '18'
           CPPSTD: c++14
           COMPILER: emscripten
           desc: WASM
+          cacheid: -napi-wasm
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '18'
@@ -149,6 +157,7 @@ jobs:
           COMPILER: emscripten
           SWIG_FEATURES: -async -async-locking -DSWIG_NAPI_FULL_LOCKING=1
           desc: WASM w/ async & locking
+          cacheid: -napi-wasm-async
         - SWIGLANG: lua
         - SWIGLANG: octave
           CPPSTD: c++11
@@ -243,7 +252,7 @@ jobs:
     - name: Install CCache
       uses: hendrikmuhs/ccache-action@v1.2
       with:
-        key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}
+        key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}${{ matrix.cacheid }}
 
 # Uncomment to debug via ssh, see https://github.com/mxschmitt/action-tmate
 #    - name: Setup tmate session
