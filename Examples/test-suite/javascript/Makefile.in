@@ -122,6 +122,7 @@ ifeq (emcc, $(CC))
   	overload_template.cpptest: GYP_LDFLAGS += \"-sASSERTIONS=1\",
   	overload_template_fast.cpptest: GYP_LDFLAGS += \"-sASSERTIONS=1\",
         expressions.cpptest: GYP_CFLAGS += \"-Wno-constant-logical-operand\",
+        cpp11_userdefined_literals.cpptest: GYP_CFLAGS += \"-Wno-deprecated-literal-operator\",
 else
   	GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I@NODENAPI_DIR@
   	GYP_TEMPLATE = node_template

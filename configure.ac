@@ -1221,7 +1221,8 @@ else
         fi
       fi
       if test -n "$JSNAPIENABLED"; then
-        AC_MSG_RESULT([$NODENAPI_DIR])
+        NODENAPI_VERSION=`node -p "require('$NODENPM_PREFIX/lib/node_modules/node-addon-api/package.json').version"`
+        AC_MSG_RESULT([$NODENAPI_VERSION in $NODENAPI_DIR])
       else
         AC_MSG_RESULT([not found])
       fi

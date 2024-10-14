@@ -56,7 +56,7 @@ case "$SWIGLANG" in
 				else
 					$RETRY npm install -g node-gyp
 				fi
-				$RETRY npm install -g node-addon-api
+				$RETRY npm install -g node-addon-api@8.1.0
                                 if [ "$COMPILER" == "emscripten" ]; then
       				        $RETRY npm install --ignore-scripts -g emnapi @emnapi/runtime
                                 fi
