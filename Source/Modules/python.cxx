@@ -4402,7 +4402,7 @@ public:
 
     Printf(f, "static PyTypeObject *%s_type_create(PyTypeObject *type, PyTypeObject **bases, PyObject *dict) {\n", templ);
     Printf(f, "  PyMemberDef members[] = {\n");
-    Printf(f, "    { (char *)\"__dictoffset__\", T_PYSSIZET, %s, READONLY, NULL },\n", getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default));
+    Printf(f, "    { (char *)\"__dictoffset__\", Py_T_PYSSIZET, %s, Py_READONLY, NULL },\n", getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default));
     Printf(f, "    { NULL, 0, 0, 0, NULL }\n");
     Printf(f, "  };\n");
     Printf(f, "  PyType_Slot slots[] = {\n");
