@@ -668,6 +668,7 @@ class TypePass:private Dispatcher {
     if ((!inclass) || (CPlusPlus)) {
       String *name = Getattr(n, "name");
       SwigType_typedef_class(name);
+      nspace_setting(n, Getattr(n, "nested:outer"));
     }
     return SWIG_OK;
   }

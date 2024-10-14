@@ -774,7 +774,13 @@ void TYPESCRIPT::registerType(Node *n, bool forward) {
   if (!forward) {
     ctype = Copy(Getattr(n, "classtype"));
   } else {
-    ctype = Copy(Getattr(n, "name"));
+    String *cnspace = Getattr(n, "sym:nspace");
+    if (cnspace) {
+      ctype = NewStringEmpty();
+      Printf(ctype, "%s::%s", cnspace, Getattr(n, "name"));
+    } else {
+      ctype = Copy(Getattr(n, "name"));
+    }
     SetFlag(jsnode, "forward");
   }
   if (js_debug_tstypes) {
