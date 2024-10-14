@@ -18,9 +18,12 @@ Version 4.3.0 (in progress)
               void SWIG_Php_AppendOutput(zval *target, zval *o, int is_void);
 
             The t_output_helper function is deprecated. Replace t_output_helper
-            in typemaps with SWIG_AppendOutput which calls
-            SWIG_Php_AppendOutput appropriately setting the is_void parameter
-            using the $isvoid special variable.
+            in typemaps with SWIG_AppendOutput which calls SWIG_Php_AppendOutput
+            appropriately setting the is_void parameter using the $isvoid special
+            variable. If t_output_helper is currently being used and a completely
+            backwards compatible (but technically incorrect) solution is required,
+            then use SWIG_Php_AppendOutput and pass 1 instead of $isvoid for the
+            is_void parameter.
 
             The t_output_helper fragment is also deprecated and is no longer
             needed as the SWIG_Php_AppendOutput function is now always
@@ -48,7 +51,9 @@ Version 4.3.0 (in progress)
 
             The 3rd parameter is new and the new $isvoid special variable
             should be passed to it, indicating whether or not the wrapped
-            function returns void.
+            function returns void. If SWIG_Python_AppendOutput is currently being
+            used and a completely backwards compatible (but technically incorrect)
+            solution is required, then pass 1 for the is_void parameter.
 
             Also consider replacing with:
 
@@ -360,7 +365,9 @@ Version 4.3.0 (in progress)
 
             The 3rd parameter is new and the new $isvoid special variable
             should be passed to it, indicating whether or not the wrapped
-            function returns void.
+            function returns void. If SWIG_Python_AppendOutput is currently being
+            used and a completely backwards compatible (but technically incorrect)
+            solution is required, then pass 1 for the is_void parameter.
 
             Also consider replacing with:
 
