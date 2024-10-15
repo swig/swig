@@ -23,6 +23,10 @@ C_TEST_CASES += \
 	li_cstring \
 	li_cwstring
 
+# New SWIG JSE tests that fail in TCL
+FAILING_CPP_TESTS := \
+	nspace_class_forward2 \
+
 include $(srcdir)/../common.mk
 
 # Overridden variables here

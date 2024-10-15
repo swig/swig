@@ -36,6 +36,9 @@ namespace Foo {
     %typemap(din) Str1 * = char *;
     %typemap(dout) Str1 * = char *;
 #endif
+#ifdef SWIGTYPESCRIPT
+    %typemap(ts) Str1 * = char *;
+#endif
     %typemap(in) Str1 * = char *;
 #if !(defined(SWIGCSHARP) || defined(SWIGLUA) || defined(SWIGPHP) || defined(SWIGMZSCHEME) || defined(SWIGOCAML) || defined(SWIGGO) || defined(SWIGD))
     %typemap(freearg) Str1 * = char *;

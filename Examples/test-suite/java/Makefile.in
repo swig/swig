@@ -70,6 +70,11 @@ DOXYGEN_TEST_CASES := \
 	doxygen_parsing_enums_typesafe \
 	doxygen_parsing_enums_typeunsafe \
 
+# New SWIG JSE tests that fail in Java
+FAILING_CPP_TESTS := \
+	enum_nspace \
+	nspace_class_forward2 \
+
 include $(srcdir)/../common.mk
 
 # Overridden variables here

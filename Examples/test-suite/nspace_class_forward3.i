@@ -1,6 +1,4 @@
-%module nspace_class_forward2
-
-%nspace;
+%module nspace_class_forward3
 
 %inline %{
   namespace NS {

@@ -150,6 +150,7 @@ CPP_TEST_CASES += \
 	class_case \
 	class_scope_namespace \
 	class_forward \
+	class_forward2 \
 	class_ignore \
 	class_scope_weird \
 	compactdefaultargs \
@@ -360,6 +361,8 @@ CPP_TEST_CASES += \
 	newobject1 \
 	newobject3 \
 	nspace \
+	nspace_class_forward2 \
+	nspace_class_forward3 \
 	nspace_extend \
 	nspacemove \
 	nspacemove_nested \

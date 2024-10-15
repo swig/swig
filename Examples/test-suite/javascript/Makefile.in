@@ -70,8 +70,6 @@ CPP_TEST_CASES += \
 	napi_li_std_map \
 	napi_li_std_pair \
 	napi_li_std_vector \
-	class_forward2 \
-	nspace_class_forward2 \
 	cpp11_shared_ptr_const \
 	cpp11_shared_ptr_upcast \
 	cpp11_smart_pointer_compatibility
@@ -132,24 +130,22 @@ endif
 SWIGOPT += -DV8_VERSION=$(JSV8_VERSION)
 
 _setup = \
-	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-          INFO="(with run test)" ;                                        \
-          if [ -n "$(ASYNC)" ]; then	                                  \
-            INFO="$$INFO (async mode)" ;                                  \
-          fi;                                                             \
-          if [ -n "$(TYPESCRIPT)" ]; then	                          \
-            INFO="$$INFO (TypeScript mode)" ;                             \
-          fi;                                                             \
-          if [ -n "$(SPLIT)" ]; then	                                  \
-	    INFO="$$INFO (split mode)" ;                                  \
-	  fi;                                                             \
-	  if [ "emcc" = "$(CC)" ]; then	                                  \
-	    INFO="$$INFO (emscripten WASM build)" ;                       \
-	  fi;                                                             \
-	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $* $$INFO" ;  \
-	else								  \
-	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;         \
-	fi;
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then   \
+	  INFO="(with run test)" ;                                      \
+	fi;                                                             \
+	if [ -n "$(ASYNC)" ]; then	                                \
+	  INFO="$$INFO (async mode)" ;                                  \
+	fi;                                                             \
+	if [ -n "$(TYPESCRIPT)" ]; then	                                \
+	  INFO="$$INFO (TypeScript mode)" ;                             \
+	fi;                                                             \
+	if [ -n "$(SPLIT)" ]; then	                                \
+	  INFO="$$INFO (split mode)" ;                                  \
+	fi;                                                             \
+	if [ "emcc" = "$(CC)" ]; then	                                \
+	  INFO="$$INFO (emscripten WASM build)" ;                       \
+	fi;                                                             \
+	$(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $* $$INFO" ;  \
 
 SWIGOPT += -$(JSENGINE)
 

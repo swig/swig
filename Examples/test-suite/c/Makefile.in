@@ -49,6 +49,7 @@ FAILING_CPP_TESTS := \
     director_unwrap \
     director_unwrap_result \
     enum_thorough \
+    enum_nspace \
     extend \
     extend_default \
     extern_c \

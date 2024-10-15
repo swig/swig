@@ -133,6 +133,9 @@ namespace test {
 	%typemap(freearg) string_class * {
 	    delete $1;
 	}
+#ifdef SWIGTYPESCRIPT
+%typemap(ts) string_class * "string";
+#endif
 #endif
 }
 

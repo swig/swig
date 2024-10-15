@@ -2,6 +2,11 @@
 
 %warnfilter(515);
 
+#ifdef SWIGTYPESCRIPT
+/* TypeScript tracks all type definitions and will correctly report the name collision for Foo */
+%rename(Foo2) A::B::Foo;
+#endif
+
 
 %inline %{
 

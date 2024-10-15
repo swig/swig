@@ -372,7 +372,7 @@ public:
   virtual int top(Node *);
   virtual void main(int, char *[]);
   virtual String *expandTSvars(String *, DOH *);
-  virtual void registerType(Node *, bool);
+  virtual void registerType(Node *);
 
 protected:
   virtual String *emitArguments(Node *);
@@ -521,7 +521,18 @@ int TYPESCRIPT::top(Node *n) {
     if (js_debug_tstypes) {
       Printf(stdout, "Emitting a symbol declaration for %s, found only a forward declaration\n", name);
     }
-    Printf(f_typescript, "declare type %s = symbol;\n", name);
+    List *namespaces = Split(name, '.', -1);
+    int scopes = 0;
+    for (Iterator n = First(namespaces); n.item; n = Next(n)) {
+      if (Next(n).item) {
+        Printf(f_typescript, "export namespace %s {\n", n.item);
+        scopes++;
+      } else {
+        Printf(f_typescript, "%s type %s = symbol;\n", scopes > 0 ? "" : "declare", n.item);
+      }
+    }
+    for (int i = 0; i < scopes; i++)
+      Printf(f_typescript, "}\n");
     empty = false;
   }
 
@@ -763,26 +774,20 @@ int TYPESCRIPT::constructorHandler(Node *n) {
  * Track C/C++ types for resolving inverse equivalence
  * ($jsname in ts/tsout typemaps)
  * --------------------------------------------------------------------- */
-void TYPESCRIPT::registerType(Node *n, bool forward) {
+void TYPESCRIPT::registerType(Node *n) {
+  //Swig_print(n, 1);
   Hash *jsnode = NewHash();
   String *jsname = NewStringEmpty();
+  bool forward = Equal(Getattr(n, "nodeType"), "classforward");
   String *nspace = parent->currentNamespacePrefix();
+
   Printf(jsname, "%s%s", nspace, Getattr(n, "sym:name"));
   Setattr(jsnode, "name", jsname);
-
-  String *ctype = NULL;
-  if (!forward) {
-    ctype = Copy(Getattr(n, "classtype"));
-  } else {
-    String *cnspace = Getattr(n, "sym:nspace");
-    if (cnspace) {
-      ctype = NewStringEmpty();
-      Printf(ctype, "%s::%s", cnspace, Getattr(n, "name"));
-    } else {
-      ctype = Copy(Getattr(n, "name"));
-    }
+  String *ctype = Copy(Getattr(n, "classtype"));
+  if (forward) {
     SetFlag(jsnode, "forward");
   }
+
   if (js_debug_tstypes) {
     Printf(stdout, "%s:%d registering %s (C/C++) ==> %s (JS) (%s)\n",
            Getfile(n), Getline(n), ctype, jsname,
@@ -1134,7 +1139,7 @@ int JAVASCRIPT::classHandler(Node *n) {
   emitter->enterClass(n);
   if (ts_emitter) {
     /* Remember the mapping for the TypeScript definitions */
-    ts_emitter->registerType(n, false);
+    ts_emitter->registerType(n);
     ts_emitter->enterClass(n);
   }
 
@@ -1149,14 +1154,17 @@ int JAVASCRIPT::classHandler(Node *n) {
 
 int JAVASCRIPT::classforwardDeclaration(Node *n) {
   emitter->switchNamespace(n);
+  int r = Language::classforwardDeclaration(n);
+  if (r != SWIG_OK)
+    return r;
   if (ts_emitter) {
     /* In the case of a forward declaration we create
      * a temporary empty type that will be overwritten
      * when the full type becomes available
      */
-    ts_emitter->registerType(n, true);
+    ts_emitter->registerType(n);
   }
-  return Language::classforwardDeclaration(n);
+  return SWIG_OK;
 }
 
 int JAVASCRIPT::fragmentDirective(Node *n) {

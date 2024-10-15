@@ -4,9 +4,6 @@
 
 %inline %{
 
-// This test is broken in Java and C
-#if ! defined(SWIGJAVA) &&  ! defined(SWIGC)
-
 namespace outer {
   namespace inner {
     typedef enum _choice {
@@ -31,6 +28,4 @@ bool select2(outer::inner::Choice arg) {
 bool select4(outer::YetAnotherName arg) {
   return arg == outer::inner::YES;
 }
-
-#endif
 %}
