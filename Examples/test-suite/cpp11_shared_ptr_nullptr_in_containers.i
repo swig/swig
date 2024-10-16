@@ -24,7 +24,7 @@ public:
 
 %}
 
-%template() std::vector<std::shared_ptr<C> >;
+%template(c_array) std::vector<std::shared_ptr<C> >;
 
 %inline %{
 

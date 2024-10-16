@@ -8,6 +8,10 @@ Version 5.0.6
 ===========================
 
 2024-10-16: mmomtchev
+            [JavaScript] Fix [mmomtchev/swig#84](https://github.com/mmomtchev/swig/issues/84),
+            `std::shared_ptr` typemaps do not work with `NULL` values
+
+2024-10-16: mmomtchev
             [JavaScript] Use TypeScript type branding for representing C/C++
             opaque objects and allow `null` values
 
