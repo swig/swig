@@ -528,7 +528,10 @@ int TYPESCRIPT::top(Node *n) {
         Printf(f_typescript, "export namespace %s {\n", n.item);
         scopes++;
       } else {
-        Printf(f_typescript, "%s type %s = symbol;\n", scopes > 0 ? "" : "declare", n.item);
+        Template t_enum(parent->getTemplate("ts_opaque_declaration"));
+        t_enum.replace("$jsname", n.item)
+            .replace("$js_qualified_name", name)
+            .print(f_typescript);
       }
     }
     for (int i = 0; i < scopes; i++)
@@ -709,7 +712,9 @@ int TYPESCRIPT::enumDeclaration(Node *n) {
 
   Template t_enum(parent->getTemplate("ts_enum_declaration"));
 
-  t_enum.replace("$jsname", name).print(f_declarations);
+  t_enum.replace("$jsname", name)
+      .replace("$js_qualified_name", js_name)
+      .print(f_declarations);
   return SWIG_OK;
 }
 

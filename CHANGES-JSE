@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 5.0.6
 ===========================
 
+2024-10-16: mmomtchev
+            [JavaScript] Use TypeScript type branding for representing C/C++
+            opaque objects and allow `null` values
+
 2024-10-15: mmomtchev
             [JavaScript] Fix [mmomtchev/swig#80](https://github.com/mmomtchev/swig/issues/80),
             namespaces for forward class declarations without `%nspace`
