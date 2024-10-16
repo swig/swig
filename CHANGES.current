@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-10-16: wsfulton
+            #2213 Documentation for the XML output options of SWIG's parse tree has
+            been added to the Extending chapter.
+
 2024-10-09: wsfulton
             Remove -xmllang option used with -xml, which had no effect on the output.
 
