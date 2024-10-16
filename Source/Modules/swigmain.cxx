@@ -228,9 +228,13 @@ int main(int margc, char **margv) {
       bool is_target_language_module = false;
       for (int j = 0; modules[j].name; j++) {
 	if (strcmp(modules[j].name, argv[i]) == 0) {
-	  language_module = &modules[j];
-	  is_target_language_module = true;
-	  break;
+	  if (!language_module) {
+	    language_module = &modules[j];
+	    is_target_language_module = true;
+	  } else {
+	    Printf(stderr, "Only one target language can be supported at a time (both %s and %s were specified).\n", language_module->name, argv[i]);
+	    Exit(EXIT_FAILURE);
+	  }
 	}
       }
       if (is_target_language_module) {
