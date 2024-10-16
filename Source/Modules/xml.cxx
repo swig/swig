@@ -30,7 +30,7 @@ public:
   XML() :indent_level(0) , id(0) {
   }
   
-  virtual ~ XML() {
+  ~XML() {
   }
 
   virtual void main(int argc, char *argv[]) {
@@ -261,6 +261,9 @@ public:
     Printf(out, "</%s>\n", markup);
   }
 
+  NestedClassSupport nestedClassesSupport() const {
+    return NCS_Full;
+  }
 };
 
 /* -----------------------------------------------------------------------------
