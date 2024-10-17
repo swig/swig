@@ -58,6 +58,9 @@ SWIGOPT += -namespace $*Namespace
 
 CSHARPFLAGSSPECIAL =
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 # Custom tests - tests with additional commandline options
 complextest.cpptest: CSHARPFLAGSSPECIAL = -r:System.Numerics.dll
 csharp_lib_arrays.cpptest: CSHARPFLAGSSPECIAL = -unsafe

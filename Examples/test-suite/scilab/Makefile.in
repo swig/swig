@@ -35,6 +35,9 @@ include $(srcdir)/../common.mk
 # Overridden variables
 SRCDIR = ../$(srcdir)/
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 # Local variables
 TEST_DIR = $*.dir
 RUNME_SCRIPT = $(SCRIPTPREFIX)$*$(SCRIPTSUFFIX)

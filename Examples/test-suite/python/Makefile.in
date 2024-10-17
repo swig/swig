@@ -120,6 +120,9 @@ include $(srcdir)/../common.mk
 LIBS         = -L.
 VALGRIND_OPT += --suppressions=pythonswig.supp
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 # Custom tests - tests with additional commandline options
 python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 
