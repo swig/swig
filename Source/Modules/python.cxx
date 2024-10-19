@@ -2145,22 +2145,24 @@ public:
       // FIXME: This needs more careful testing.
       // return NewStringf("'%(escape)s'", stringval);
     }
+    SwigType *resolved_type = SwigType_typedef_resolve_all(type);
+    SwigType *unqualified_type = SwigType_strip_qualifiers(resolved_type);
     if (numval) {
-      SwigType *resolved_type = SwigType_typedef_resolve_all(type);
-      if (Equal(resolved_type, "bool")) {
+      if (Equal(unqualified_type, "bool")) {
 	Delete(resolved_type);
+	Delete(unqualified_type);
 	return NewString(*Char(numval) == '0' ? "False" : "True");
       }
-      String *result = convertIntegerValue(numval, resolved_type);
+      String *result = convertIntegerValue(numval, unqualified_type);
       Delete(resolved_type);
+      Delete(unqualified_type);
       return result;
     }
-    SwigType *resolved_type = SwigType_typedef_resolve_all(type);
 
     String *result = convertDoubleValue(v);
     if (!result) {
       if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
-	result = SwigType_ispointer(resolved_type) ? NewString("None") : NewString("0");
+	result = SwigType_ispointer(unqualified_type) ? NewString("None") : NewString("0");
       // This could also be an enum type, default value of which could be
       // representable in Python if it doesn't include any scope (which could,
       // but currently is not, translated).
@@ -2174,6 +2176,7 @@ public:
     }
 
     Delete(resolved_type);
+    Delete(unqualified_type);
     return result;
   }
 
