@@ -777,11 +777,14 @@ private:
     }
     if (numval) {
       SwigType *resolved_type = SwigType_typedef_resolve_all(type);
-      if (Equal(resolved_type, "bool")) {
+      SwigType *unqualified_type = SwigType_strip_qualifiers(resolved_type);
+      if (Equal(unqualified_type, "bool")) {
 	Delete(resolved_type);
+	Delete(unqualified_type);
 	return NewString(*Char(numval) == '0' ? "false" : "true");
       }
       Delete(resolved_type);
+      Delete(unqualified_type);
       if (SwigType_ispointer(type) && Equal(v, "0"))
 	return NewString("None");
       return Copy(v);
