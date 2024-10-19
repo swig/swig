@@ -779,7 +779,7 @@ private:
       SwigType *resolved_type = SwigType_typedef_resolve_all(type);
       if (Equal(resolved_type, "bool")) {
 	Delete(resolved_type);
-	return NewString(*Char(numval) == '0' ? "False" : "True");
+	return NewString(*Char(numval) == '0' ? "false" : "true");
       }
       Delete(resolved_type);
       if (SwigType_ispointer(type) && Equal(v, "0"))
@@ -791,9 +791,9 @@ private:
 	return SwigType_ispointer(type) ? NewString("nil") : NewString("0");
       // FIXME: TRUE and FALSE are not standard and could be defined in other ways
       if (Equal(v, "TRUE"))
-	return NewString("True");
+	return NewString("true");
       if (Equal(v, "FALSE"))
-	return NewString("False");
+	return NewString("false");
     }
     return 0;
   }
