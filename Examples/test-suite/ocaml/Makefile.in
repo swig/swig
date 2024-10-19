@@ -58,6 +58,10 @@ run_testcase = \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
+
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 SWIGOPT += -w524 # Suppress SWIGWARN_LANG_EXPERIMENTAL warning
 
 # Custom tests - tests with additional commandline options

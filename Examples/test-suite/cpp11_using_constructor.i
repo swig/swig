@@ -2,6 +2,16 @@
 
 // Note: this testcase is also used by cpp11_director_using_constructor.i
 
+#ifdef SWIGLUA
+// Lua does now have a separate integer type, but didn't used to
+// and SWIG doesn't yet know about it (see #1918) so for now suppress
+// warnings about functions with overloads on int vs double, etc.
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) TemplateConstructor1Base::TemplateConstructor1Base(double,char const *);
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) TemplateConstructor1Derived::TemplateConstructor1Derived(double,char const *);
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) TemplateConstructor1Base::TemplateConstructor1Base(double,char const *);
+%warnfilter(SWIGWARN_LANG_OVERLOAD_SHADOW) TemplateConstructor1Derived::TemplateConstructor1Derived(double,char const *);
+#endif
+
 %inline %{
 // Public base constructors
 struct PublicBase1 {

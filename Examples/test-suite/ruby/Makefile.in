@@ -66,6 +66,9 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 SWIGOPT += -w801 -noautorename -features autodoc=4
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 # Custom tests - tests with additional commandline options
 ruby_alias_global_function.ctest: SWIGOPT += -globalmodule
 ruby_global_immutable_vars.ctest: SWIGOPT += -globalmodule
