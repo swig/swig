@@ -3652,7 +3652,7 @@ public:
 	// class type (the SWIG_init() is called before shadow classes are
 	// defined and registered).
         Printf(f_wrappers, "SWIGINTERN PyObject *%s_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", iname);
-        Printf(f_wrappers, tab2 "PyObject *module;\n");
+        Printf(f_wrappers, tab2 "PyObject *module = NULL;\n");
         Printf(f_wrappers, tab2 "PyObject *d;\n");
 	Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args, \"swigconstant\", 1, 1, &module)) return NULL;\n");
         Printf(f_wrappers, tab2 "d = PyModule_GetDict(module);\n");
@@ -4734,7 +4734,7 @@ public:
 	Clear(builtin_closures);
       } else {
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
-	Printv(f_wrappers, "  PyObject *obj;\n", NIL);
+	Printv(f_wrappers, "  PyObject *obj = NULL;\n", NIL);
 	Printv(f_wrappers, "  if (!SWIG_Python_UnpackTuple(args, \"swigregister\", 1, 1, &obj)) return NULL;\n", NIL);
 
 	Printv(f_wrappers,
