@@ -57,6 +57,9 @@
 /* raise */
 #define SWIG_Raise(obj, type, desc)     SWIG_Python_Raise(obj, type, desc)
 
+/* clear errors */
+#define %error_clear PyErr_Clear()
+
 /* Include the unified typemap library */
 %include <typemaps/swigtypemaps.swg>
 
