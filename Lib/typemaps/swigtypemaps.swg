@@ -121,6 +121,12 @@
 #endif
 #endif
 
+/*==== clear errors ====*/
+
+#ifndef %error_clear
+#define %error_clear
+#endif
+
 /*==== director output exception ====*/
 
 #if defined(SWIG_DIRECTOR_TYPEMAPS)

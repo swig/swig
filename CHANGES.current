@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.0 (in progress)
 ===========================
 
+2024-10-20: wsfulton
+            #3051 Fix seg fault passing invalid unicode values when expecting a
+            std::string type - fix for python-3.13.
+
 2024-10-19: olly
 	    [ruby] Documentation comments now use `true` and `false` for bool
 	    parameter default values, instead of `True` and `False` (which are

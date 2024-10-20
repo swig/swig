@@ -17,12 +17,8 @@ SWIG_AsPtr_dec(String)(SWIG_Object obj, String **val)
       return SWIG_OLDOBJ;
     }
   } else {
-    static int init = 0;
-    static swig_type_info* descriptor = 0;
-    if (!init) {
-      descriptor = SWIG_TypeQuery(#String " *");
-      init = 1;
-    }
+    %error_clear;
+    static swig_type_info *descriptor = SWIG_TypeQuery(#String " *");
     if (descriptor) {
       String *vptr;
       int res = SWIG_ConvertPtr(obj, (void**)&vptr, descriptor, 0);
