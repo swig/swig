@@ -16,13 +16,13 @@
 class Base
 {
 public:
-  virtual ~Base() throw() {}
+  virtual ~Base() noexcept {}
 };
 
 
 class Bar : public Base
 {
 public:
-  virtual std::string pang() throw() { return "Bar::pang()"; }
+  virtual std::string pang() noexcept { return "Bar::pang()"; }
 };
 %}
