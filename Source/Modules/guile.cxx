@@ -12,6 +12,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
+#include <assert.h>
 #include <ctype.h>
 
 // Note string broken in half for compilers that can't handle long strings
@@ -1093,8 +1094,7 @@ public:
 
     int assignable = !is_immutable(n);
 
-    if (1 || (SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
-
+    {
       Printf(f->def, "static SCM\n%s(SCM s_0)\n{\n", var_name);
 
       /* Define the scheme name in C. This define is used by several Guile
@@ -1111,6 +1111,8 @@ public:
 	  /* Printv(f->code,tm,"\n",NIL); */
 	  emit_action_code(n, f->code, tm);
 	} else {
+	  // The fake variable constantWrapper() creates is immutable.
+	  assert(!GetFlag(n, "guile:reallywrappingaconstant"));
 	  throw_unhandled_guile_type_error(t);
 	}
 	Printf(f->code, "}\n");
@@ -1123,6 +1125,12 @@ public:
 	/* Printv(f->code,tm,"\n",NIL); */
 	emit_action_code(n, f->code, tm);
       } else {
+	if (GetFlag(n, "guile:reallywrappingaconstant")) {
+	  Delete(var_name);
+	  Delete(proc_name);
+	  DelWrapper(f);
+	  return SWIG_ERROR;
+	}
 	throw_unhandled_guile_type_error(t);
       }
       Printf(f->code, "\nreturn gswig_result;\n");
@@ -1241,9 +1249,6 @@ public:
 	  Delete(signature2);
 	Delete(doc);
       }
-
-    } else {
-      Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number, "Unsupported variable type %s (ignored).\n", SwigType_str(t, 0));
     }
     Delete(var_name);
     Delete(proc_name);
@@ -1286,12 +1291,6 @@ public:
     proc_name = NewString(iname);
     Replaceall(proc_name, "_", "-");
 
-    if ((SwigType_type(nctype) == T_USER) && (!is_a_pointer(nctype))) {
-      Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
-      Delete(var_name);
-      DelWrapper(f);
-      return SWIG_NOWRAP;
-    }
     // See if there's a typemap
 
     if ((tm = Swig_typemap_lookup("constant", n, name, 0))) {
@@ -1301,7 +1300,8 @@ public:
       // Create variable and assign it a value
       Printf(f_header, "static %s = (%s)(%s);\n", SwigType_str(type, var_name), SwigType_str(type, 0), value);
     }
-    {
+    int result = SWIG_OK;
+    if (Len(nctype) > 0) {
       /* Hack alert: will cleanup later -- Dave */
       Node *nn = NewHash();
       Setfile(nn, Getfile(n));
@@ -1313,14 +1313,22 @@ public:
       if (constasvar) {
 	SetFlag(nn, "feature:constasvar");
       }
-      variableWrapper(nn);
+      SetFlag(nn, "guile:reallywrappingaconstant");
+      if (variableWrapper(nn) == SWIG_ERROR) {
+	Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
+	result = SWIG_NOWRAP;
+      }
+
       Delete(nn);
+    } else {
+      Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
+      result = SWIG_NOWRAP;
     }
     Delete(var_name);
     Delete(nctype);
     Delete(proc_name);
     DelWrapper(f);
-    return SWIG_OK;
+    return result;
   }
 
   /* ------------------------------------------------------------
