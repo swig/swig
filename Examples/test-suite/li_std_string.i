@@ -1,12 +1,6 @@
 %module li_std_string
 %include <std_string.i>
 
-#ifdef SWIGGUILE
-// Suppress warnings for constants SWIG/Guile doesn't currently handle.
-%warnfilter(SWIGWARN_TYPEMAP_CONST_UNDEF) MY_STRING;
-%warnfilter(SWIGWARN_TYPEMAP_CONST_UNDEF) MY_STRING_2;
-#endif
-
 #if defined(SWIGLUA) || defined(SWIGPHP) || defined(SWIGUTL)
 %apply std::string& INPUT { std::string &input }
 %apply std::string& INOUT { std::string &inout }
