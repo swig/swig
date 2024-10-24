@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2024-10-25: olly
+	    [Guile] Allow wrapping anything with a `varout` typemap as a
+	    constant.
+
 2024-10-24: olly
 	    [Perl] https://sourceforge.net/p/swig/bugs/1134/ Ensure C++
 	    local variables get destroyed before throwing a Perl exception.
