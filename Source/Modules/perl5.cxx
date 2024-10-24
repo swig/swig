@@ -883,7 +883,7 @@ public:
       }
     }
 
-    Printv(f->code, "XSRETURN(argvi);\n", "fail:\n", cleanup, "SWIG_croak_null();\n" "}\n" "}\n", NIL);
+    Printv(f->code, "XSRETURN(argvi);\n" "fail:;\n", cleanup, "}\n" "SWIG_croak_null();\n" "}\n", NIL);
 
     /* Add the dXSARGS last */
 
