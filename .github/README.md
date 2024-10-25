@@ -2,6 +2,8 @@
 
 This is SWIG JavaScript Evolution, an up-to-date fork of the SWIG project with a focus on JavaScript - native/Node.js, WASM/Node.js and WASM/browser.
 
+**Update: since Oct 24 I am homeless and living in my van. I lost access to most of my computer hardware. The eviction from my home has been timed for maximum effect as I was not present when it happened. I have only a single set of clothes and no means to get anything else. Please, if you use my software, consider asking everyone around you if they are taking part in this extortion and why.**
+
 # Major New Features
 
 * Interfacing with Node.js entirely through Node-API
