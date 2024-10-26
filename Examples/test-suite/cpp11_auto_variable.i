@@ -62,3 +62,11 @@ static auto wstring_lit_len2 = sizeof("123" L"456") / sizeof(wchar_t) - 1;
 //static auto constexpr greeting = "Hello";
 
 %}
+
+%inline %{
+/* Regression test for #3058 */
+auto CAST_HAD_WRONG_PRECEDENCE1 = (0)*1+2;
+auto CAST_HAD_WRONG_PRECEDENCE2 = (0)&1|2;
+auto CAST_HAD_WRONG_PRECEDENCE3 = (0)-1|2;
+auto CAST_HAD_WRONG_PRECEDENCE4 = (0)+1|2;
+%}

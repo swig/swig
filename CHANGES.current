@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2024-10-27: olly
+	    #3058 Fix precedence of casts, which should have the same high
+	    precedence as unary plus and minus, but actually had a lower
+	    precedence than anything else.  This could lead to the wrong type
+	    being deduced in obscure cases, but also prevented SWIG deducing a
+	    type for expressions such as (0)*1+2 which SWIG parses as a cast
+	    and then fixes up afterwards.  A bug fixed in 4.3.0 made this
+	    latter problem manifest more often (previously type deduction
+	    happened to work for (0)*1+2 due to an internal field not getting
+	    cleared properly).
+
 2024-10-25: olly
 	    [Guile] Allow wrapping anything with a `varout` typemap as a
 	    constant.

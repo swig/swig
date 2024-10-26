@@ -1795,7 +1795,6 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <str> DOXYGENSTRING
 %token <str> DOXYGENPOSTSTRING
 
-%precedence CAST
 %left  QUESTIONMARK
 %left  LOR
 %left  LAND
@@ -1811,7 +1810,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %left  LSHIFT RSHIFT
 %left  PLUS MINUS
 %left  STAR SLASH MODULO
-%precedence UMINUS NOT LNOT
+%precedence UMINUS NOT LNOT CAST
 %token DCOLON
 
 %type <node>     program interface declaration swig_directive ;
