@@ -63,8 +63,15 @@ static auto wstring_lit_len2 = sizeof("123" L"456") / sizeof(wchar_t) - 1;
 
 %}
 
+%{
+// Suppress -Wparentheses warnings since we're testing correct handling of
+// operator precedence in the absence of parentheses to enforce the order.
+#ifdef __GNUC__
+# pragma GCC diagnostic ignored "-Wparentheses"
+#endif
+%}
 %inline %{
-/* Regression test for #3058 */
+// Regression test for #3058.
 auto CAST_HAD_WRONG_PRECEDENCE1 = (0)*1+2;
 auto CAST_HAD_WRONG_PRECEDENCE2 = (0)&1|2;
 auto CAST_HAD_WRONG_PRECEDENCE3 = (0)-1|2;
