@@ -112,11 +112,9 @@ static String *Swig_clocal(SwigType *t, const_String_or_char_ptr name, const_Str
   default:
     if (value) {
       String *lcaststr = SwigType_lcaststr(t, value);
-      String *lstr = SwigType_lstr(t, 0);
       String *lstrn = SwigType_lstr(t, name);
-      Printf(decl, "%s = (%s) %s", lstrn, lstr, lcaststr);
+      Printf(decl, "%s = %s", lstrn, lcaststr);
       Delete(lcaststr);
-      Delete(lstr);
       Delete(lstrn);
     } else {
       String *lstrname = SwigType_lstr(t, name);
