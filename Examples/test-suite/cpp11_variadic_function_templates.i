@@ -52,7 +52,7 @@ template<typename... Args>
 template<typename... Args>
   static void notifyMyTypesA(void (*fn)(Args...)) {} // conventional function ptr
 template<typename... Args>
-  static void notifyMyTypesB(void fn(Args...)) {}; // unconventional function (ptr)
+  static void notifyMyTypesB(void fn(Args...)) {} // unconventional function (ptr)
 };
 %}
 %{
