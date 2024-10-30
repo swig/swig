@@ -2231,7 +2231,7 @@ proxy class in the same way that SWIG handles a C++ function returning a class b
 The target language proxy class then owns the memory pointed to by the raw pointer
 and memory handling is identical to normal SWIG proxy class handling of the underlying C++ memory.
 Note that an object returned by value is first copied/moved from the stack onto the heap in order to obtain
-a raw pointer on the heap, whereas the underlying raw pointer in <tt>std::unique_ptr</tt> already points to an object the heap.
+a raw pointer on the heap, whereas the underlying raw pointer in <tt>std::unique_ptr</tt> already points to an object on the heap.
 </p>
 
 <p>
