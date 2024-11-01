@@ -703,20 +703,21 @@ public:
 	 * onwards (implicit relative imports raised a DeprecationWarning in 2.6,
 	 * and fail in 2.7 onwards).
 	 *
-	 * First check for __package__ which is available from 2.6 onwards, see PEP366.
+	 * First check for __spec__.parent which is available from 3.4 onwards,
+     * see https://docs.python.org/3/reference/import.html#spec.
 	 * Next try determine the shadow wrapper's package based on the __name__ it
 	 * was given by the importer that loaded it.
 	 * If the module is in a package, load the low-level C/C++ module from the
 	 * same package, otherwise load it as a global module.
 	 */
         Printv(default_import_code, "# Import the low-level C/C++ module\n", NULL);
-        Printv(default_import_code, "if __package__ or \".\" in __name__:\n", NULL);
+        Printv(default_import_code, "if getattr(__spec__, \"parent\", None) or \".\" in __name__:\n", NULL);
         Printv(default_import_code, tab4, "from . import ", module, "\n", NULL);
         Printv(default_import_code, "else:\n", NULL);
         Printv(default_import_code, tab4, "import ", module, "\n", NULL);
       } else {
         Printv(default_import_code, "# Pull in all the attributes from the low-level C/C++ module\n", NULL);
-        Printv(default_import_code, "if __package__ or \".\" in __name__:\n", NULL);
+        Printv(default_import_code, "if getattr(__spec__, \"parent\", None) or \".\" in __name__:\n", NULL);
         Printv(default_import_code, tab4, "from .", module, " import *\n", NULL);
         Printv(default_import_code, "else:\n", NULL);
         Printv(default_import_code, tab4, "from ", module, " import *\n", NULL);
