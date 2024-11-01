@@ -229,7 +229,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
     SwigType *pt = Getattr(p, "type");
     if ((SwigType_type(pt) != T_VOID)) {
       String *local = 0;
-      String *type = Getattr(p, "type");
+      SwigType *type = SwigType_typedef_resolve_all(pt);
       /* default values only emitted if in compact default args mode */
       String *pvalue = (compactdefargs) ? Getattr(p, "value") : 0;
 
