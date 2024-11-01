@@ -335,6 +335,10 @@ swig_varlink_setattr(PyObject *o, char *n, PyObject *p) {
   return res;
 }
 
+#if defined(Py_LIMITED_API)
+# define SWIG_HEAPTYPES
+#endif
+
 SWIGINTERN PyTypeObject*
 swig_varlink_type(void) {
   static char varlink__doc__[] = "Swig var link object";
