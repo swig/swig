@@ -25,7 +25,7 @@ void DohDelete(DOH *obj) {
   if (!obj)
     return;
   if (!DohCheck(b)) {
-    fputs("Fatal internal error: Attempt to delete a non-DOH object.\n", stderr);
+    fputs("Internal error: Attempt to delete a non-DOH object.\n", stderr);
     Exit(EXIT_FAILURE);
   }
   if (b->flag_intern)
@@ -55,7 +55,7 @@ DOH *DohCopy(const DOH *obj) {
   if (!obj)
     return 0;
   if (!DohCheck(b)) {
-    fputs("Fatal internal error: Attempt to copy a non-DOH object.\n", stderr);
+    fputs("Internal error: Attempt to copy a non-DOH object.\n", stderr);
     Exit(EXIT_FAILURE);
   }
   objinfo = b->type;

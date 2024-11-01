@@ -449,7 +449,7 @@ public:
       Printf(f_init, "}\n");
       break;
     default:
-      fputs("Fatal internal error: Invalid Guile linkage setting.\n", stderr);
+      Printf(stderr, "Internal error: Invalid Guile linkage setting.\n");
       Exit(EXIT_FAILURE);
     }
 
