@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2024-11-01: wsfulton
+            Fix internal error handling parameters that are typedefs to references
+            when using the compactdefaultargs feature.
+
 2024-10-30: wsfulton
             #1851 Fix handling of parameters with default arguments that are
             initializer lists when using -keyword or the compactdefaultargs option.

@@ -31,6 +31,9 @@ public:
   Defaults2(int a = PRIVATE_DEFAULT) {}
   double ret(double d = PUBLIC_DEFAULT) { return d; }
   double nodefault(int x) { return x; }
+
+  typedef const Defaults1& ConstDefaults1;
+  void references(const Defaults1& d10 = Defaults1(10), ConstDefaults1 d20 = Defaults1(20)) {}
 };
 %}
 
