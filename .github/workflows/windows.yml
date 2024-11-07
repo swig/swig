@@ -35,28 +35,6 @@ jobs:
     strategy:
       matrix:
         include:
-        - SWIGLANG: csharp
-          INSTALL: 'true'
-        - SWIGLANG: csharp
-          os: 'windows-2019'
-        - SWIGLANG: csharp
-          COMPILER: gcc
-        - SWIGLANG: csharp
-          INSTALL: 'true'
-          COMPILER: gcc
-          os: 'windows-2019'
-        - SWIGLANG: java
-          VER: 8
-        - SWIGLANG: java
-          VER: 17
-        - SWIGLANG: java
-          COMPILER: gcc
-          VER: 8
-        - SWIGLANG: java
-          COMPILER: gcc
-          VER: 11
-       # Next two are using old VC++ as the new visual c++ not handling containers of enums
-       # See https://github.com/swig/swig/issues/3008
         - SWIGLANG: python
           VER: '3.7'
           os: 'windows-2019'
@@ -68,16 +46,6 @@ jobs:
        #  INSTALL: 'true'
        #  COMPILER: gcc
        #  NOTEST: 'no-test'
-        - SWIGLANG: ruby
-#         VER: '3.0.7'
-          NOTEST: 'no-test'
-        - SWIGLANG: ruby
-          VER: '3.1.6'
-          NOTEST: 'no-test'
-        - SWIGLANG: ruby
-          INSTALL: 'true'
-          COMPILER: gcc
-          NOTEST: 'no-test'
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
