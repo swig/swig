@@ -132,3 +132,9 @@ SWIG_Python_str_FromChar(const char *c)
 # define SWIG_Py_DECREF Py_DECREF
 # define SWIG_Py_XDECREF Py_XDECREF
 #endif
+
+// this declaration was deprecated and removed in Python>=3.13, but we still use it in pybuffer.i
+#if (PY_VERSION_HEX >= 0x030d0000) && defined(Py_LIMITED_API) && (Py_LIMITED_API < 0x030b0000)
+int PyObject_AsReadBuffer(PyObject *obj, const void **buffer, Py_ssize_t *buffer_len);
+int PyObject_AsWriteBuffer(PyObject *obj, void **buffer, Py_ssize_t *buffer_len);
+#endif

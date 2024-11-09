@@ -33,10 +33,6 @@
     %#pragma warning(push)
     %#pragma warning(disable: 4996)
   %#endif
-%#if PY_VERSION_HEX >= 0x030d0000
-  // the declaration was removed if Python 3.13, redeclare-it ourselves
-  //int PyObject_AsWriteBuffer(PyObject *obj, void **buffer, Py_ssize_t *buffer_len);
-%#endif
   res = PyObject_AsWriteBuffer($input, &buf, &size);
   %#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
     %#pragma GCC diagnostic pop
@@ -87,10 +83,6 @@
     %#pragma warning(disable: 4996)
   %#endif
   Py_ssize_t size;
-%#if PY_VERSION_HEX >= 0x030d0000
-  // the declaration was removed if Python 3.13, redeclare-it ourselves
-  //int PyObject_AsWriteBuffer(PyObject *obj, void **buffer, Py_ssize_t *buffer_len);
-%#endif
   res = PyObject_AsWriteBuffer($input, &buf, &size);
   %#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
     %#pragma GCC diagnostic pop
@@ -139,10 +131,6 @@
     %#pragma warning(push)
     %#pragma warning(disable: 4996)
   %#endif
-%#if PY_VERSION_HEX >= 0x030d0000
-  // the declaration was removed if Python 3.13, redeclare-it ourselves
-  //int PyObject_AsReadBuffer(PyObject *obj, const void **buffer, Py_ssize_t *buffer_len);
-%#endif
   res = PyObject_AsReadBuffer($input, &buf, &size);
   %#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
     %#pragma GCC diagnostic pop
@@ -195,10 +183,6 @@
     %#pragma warning(disable: 4996)
   %#endif
   Py_ssize_t size;
-%#if PY_VERSION_HEX >= 0x030d0000
-  // the declaration was removed if Python 3.13, redeclare-it ourselves
-  //int PyObject_AsReadBuffer(PyObject *obj, const void **buffer, Py_ssize_t *buffer_len);
-%#endif
   res = PyObject_AsReadBuffer($input, &buf, &size);
   %#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
     %#pragma GCC diagnostic pop
