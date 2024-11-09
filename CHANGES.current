@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2024-11-09: wsfulton
+            #3064 Perform repeated typedef lookups instead of a single typedef
+            lookup on the type being applied in %apply when looking for a family
+            of typemaps to apply.
+
 2024-11-01: wsfulton
             Fix internal error handling parameters that are typedefs to references
             when using the compactdefaultargs feature.
