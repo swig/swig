@@ -125,6 +125,7 @@ CPP_TEST_CASES += \
 	anonymous_bitfield \
 	apply_signed_char \
 	apply_strings \
+	apply_typemap_typedefs \
 	argcargvtest \
 	argout \
 	array_member \
