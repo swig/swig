@@ -156,6 +156,9 @@ jobs:
         - SWIGLANG: python
           VER: '3.8'
           PY_ABI_VER: '3.4'
+        - SWIGLANG: python
+          VER: '3.13'
+          PY_ABI_VER: '3.9'
         - SWIGLANG: r
         - SWIGLANG: ruby
           VER: '2.0'
