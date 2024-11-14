@@ -10,7 +10,6 @@
   #  define _POSIX_SOURCE 199506L
   #endif
   #include <stdio.h>
-  #include <errno.h>
   #include <unistd.h>
 %}
 
@@ -20,8 +19,7 @@
        which reads or writes from a dup'ed file descriptor.
  */
 
-%typemap(in, doc="$NAME is a file port or a FILE * pointer") FILE *
-{
+%typemap(in, doc="$NAME is a file port or a FILE * pointer", fragment="<errno.h>") FILE * {
   if (SWIG_ConvertPtr($input, (void**) &($1), $1_descriptor, 0) != 0) {
     if (!(SCM_FPORTP($input))) {
       scm_wrong_type_arg("$symname", $argnum, $input);
