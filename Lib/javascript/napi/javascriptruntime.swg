@@ -33,7 +33,6 @@
 #endif
 #include <napi.h>
 
-#include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <assert.h>

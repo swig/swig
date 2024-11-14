@@ -246,6 +246,7 @@ SWIG_AsVal_dec(ptrdiff_t)(SWIG_Object obj, ptrdiff_t *val)
 
 %fragment("SWIG_CanCastAsInteger","header",
 	  fragment=SWIG_AsVal_frag(double),
+	  fragment="<errno.h>",
 	  fragment="<float.h>",
 	  fragment="<math.h>") {
 SWIGINTERNINLINE int
