@@ -225,6 +225,7 @@ CPP_TEST_CASES += \
 	director_protected_overloaded \
 	director_redefined \
 	director_ref \
+	director_rev_len_str \
 	director_simple \
 	director_smartptr \
 	director_template \
@@ -415,6 +416,7 @@ CPP_TEST_CASES += \
 	restrict_cplusplus \
 	return_const_value \
 	return_value_scope \
+	rev_len_str \
 	rname \
 	samename \
 	sizet \
