@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.1 (in progress)
 ===========================
 
+2024-11-21: olly
+	    [Java] #3070 Fix regression wrapping enum values which don't fit
+	    in a Java signed int.
+
 2024-10-27: olly
 	    #3058 Fix precedence of casts, which should have the same high
 	    precedence as unary plus and minus, but actually had a lower
