@@ -13,6 +13,7 @@
 
 #include "swigmod.h"
 #include "cparse.h"
+#include <errno.h>
 #include <limits.h>		// for INT_MAX
 #include <ctype.h>
 #include "javadoc.h"
@@ -1428,6 +1429,7 @@ public:
 	const char *p = Char(numval);
 	if (isdigit(p[0])) {
 	  char *e;
+	  errno = 0;
 	  unsigned long long value = strtoull(p, &e, 0);
 	  if (errno != ERANGE && *e == '\0' && value >= 0x80000000) {
 	    // Use hex for larger unsigned integer constants in Java code since
