@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2024-11-21: olly
+	    [Java] #3070 Fix regression wrapping enum values which don't fit
+	    in a Java signed int.
+
 2024-11-09: wsfulton
             #3064 Perform repeated typedef lookups instead of a single typedef
             lookup on the type being applied in %apply when looking for a family
