@@ -2344,6 +2344,16 @@ wheel size: 0
 </div>
 
 <p>
+or even a memory access violation error such as
+</p>
+
+<div class="shell">
+<pre>
+Fatal error. System.AccessViolationException: Attempted to read or write protected memory. This is often an indication that other memory is corrupt.
+</pre>
+</div>
+
+<p>
 The garbage collector is non-deterministic; sometimes it does not collect any objects and other times it does.
 What has happened this time is the garbage collector has collected the <tt>Bike</tt> instance as it doesn't think it is needed any more.
 The proxy instance, <tt>wheel</tt>, contains a reference to memory that was deleted when the <tt>Bike</tt> instance was collected.
