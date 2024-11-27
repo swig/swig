@@ -1,3 +1,45 @@
+// Purpose: SWIG interface file for std::optional<> type.
+//
+// This file defines macros for handling optional types in SWIG.
+// The macros provided are %optional, %optional_string, and %optional_arithmetic.
+//
+// Usage:
+//
+// 1. %optional_arithmetic(TYPE, INTERNAL_NAME):
+//    This macro is used to bind arithmetic types (int, float, double, etc.) to C# nullable value type (represented as Nullable<T>).
+//    Example:
+//    %optional_arithmetic(double, OptDouble)
+//    This will generate code to handle std::optional<double>.
+//    An internal class name OptDouble will be created to bind the optional type from C++ to C# nullable value type.
+// 
+// 2. %optional_string():
+//    This macro is used specifically for std::optional<std::string>.
+//    Example:
+//    %optional_string()
+//    This will generate code to handle std::optional<std::string>.
+//
+// 3. %optional(TYPE):
+//    This macro is used to bind structs and classes to either C# nullable reference type (if SWIG_STD_OPTIONAL_USE_NULLABLE_REFERENCE_TYPES is defined) or C# non-nullable reference type.
+//    Example:
+//    %optional(MyStruct)
+//    This will generate code to handle std::optional<MyStruct>.
+//
+// The SWIG_STD_OPTIONAL_DEFAULT_TYPES macro is used to define a set of default types that are supported by SWIG when working with std::optional.
+// This macro ensures that common types such as int, double, and std::string are automatically recognized and handled by SWIG when generating bindings.
+//
+// The SWIG_STD_OPTIONAL_USE_NULLABLE_REFERENCE_TYPES macro definition is used to enable the use of nullable reference types in the generated SWIG bindings.
+// When this macro is defined, SWIG will generate code that treats std::optional types as C# nullable reference types, allowing the compiler to run null-state analysis (C# >= 8 required).
+// When this macro is defined, any module using this file should be declared with the #nullable enable directive.
+// Example:
+// %module(csbegin="#nullable enable\n") MyModule
+// 
+
+#if defined(SWIG_STD_OPTIONAL_USE_NULLABLE_REFERENCE_TYPES)
+%define SWIG_STD_OPTIONAL_NULLABLE_TYPE "?" %enddef
+#else
+%define SWIG_STD_OPTIONAL_NULLABLE_TYPE "" %enddef
+#endif
+
 %{
     #include <optional>
 %}
@@ -23,7 +65,7 @@ namespace std {
 
 %naturalvar std::optional< TYPE >;
 
-%typemap(cstype) std::optional< TYPE >, std::optional< TYPE > const & "$typemap(cstype, TYPE)"
+%typemap(cstype) std::optional< TYPE >, std::optional< TYPE > const & "$typemap(cstype, TYPE)"SWIG_STD_OPTIONAL_NULLABLE_TYPE
 
 
 // This typemap is used to convert C# nullable type to the handler passed to the
@@ -51,7 +93,7 @@ namespace std {
 
 
 // This code is used for the optional-valued properties in C#.
-%typemap(cstype) std::optional< TYPE > *, std::optional< TYPE > const * "$typemap(cstype, TYPE)"
+%typemap(cstype) std::optional< TYPE > *, std::optional< TYPE > const * "$typemap(cstype, TYPE)"SWIG_STD_OPTIONAL_NULLABLE_TYPE
 %typemap(csin) std::optional< TYPE > *, std::optional< TYPE > const * "$typemap(cstype, TYPE).getCPtr($csinput)"
 
 %typemap(csvarin, excode=SWIGEXCODE) std::optional< TYPE > *, std::optional< TYPE > const * %{
@@ -148,7 +190,7 @@ namespace std {
 // std::optional<std::string>
 %typemap(ctype) std::optional<std::string> "const char *"
 %typemap(imtype) std::optional<std::string> "string"
-%typemap(cstype) std::optional<std::string> "string"
+%typemap(cstype) std::optional<std::string> "string"SWIG_STD_OPTIONAL_NULLABLE_TYPE
 
 %typemap(csdirectorin) std::optional<std::string> "$iminput"
 %typemap(csdirectorout) std::optional<std::string> "$cscall"
@@ -173,7 +215,7 @@ namespace std {
 // std::optional<std::string> const &
 %typemap(ctype) std::optional<std::string> const & "const char *"
 %typemap(imtype) std::optional<std::string> const & "string"
-%typemap(cstype) std::optional<std::string> const & "string"
+%typemap(cstype) std::optional<std::string> const & "string"SWIG_STD_OPTIONAL_NULLABLE_TYPE
 
 %typemap(csdirectorin) std::optional<std::string> const & "$iminput"
 %typemap(csdirectorout) std::optional<std::string> const & "$cscall"
@@ -205,7 +247,7 @@ namespace std {
 // std::optional<std::string> * (used to map C# properties)
 %typemap(ctype) std::optional<std::string> * "const char *"
 %typemap(imtype) std::optional<std::string> * "string"
-%typemap(cstype) std::optional<std::string> * "string"
+%typemap(cstype) std::optional<std::string> * "string"SWIG_STD_OPTIONAL_NULLABLE_TYPE
 
 %typemap(csdirectorin) std::optional<std::string> * "$iminput"
 %typemap(csdirectorout) std::optional<std::string> * "$cscall"
@@ -236,8 +278,7 @@ namespace std {
 
 %enddef
 
-
-#if !defined(SWIG_NO_STD_OPTIONAL_DEFAULT_TYPES)
+#if defined(SWIG_STD_OPTIONAL_DEFAULT_TYPES)
   %optional_arithmetic(bool, OptBool)
   %optional_arithmetic(std::int8_t, OptSignedByte)
   %optional_arithmetic(std::int16_t, OptSignedShort)
