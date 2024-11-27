@@ -52,7 +52,7 @@ public class runme
 				var optStruct = testOptionals.getStructOptional();
 				if (optStruct == null)
 					throw new Exception("TestOptionals.setStructOptional() failed");
-				if (optStruct.a != 56u || optStruct.b != 78u)
+				if (optStruct?.a != 56u || optStruct?.b != 78u)
 					throw new Exception("TestOptionals.setStructOptional() failed");
 				// Clear the optional
 				testOptionals.setStructOptional(null);

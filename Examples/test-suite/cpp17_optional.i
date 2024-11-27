@@ -1,5 +1,6 @@
 %module(directors="1") cpp17_optional
 #if defined SWIGCSHARP
+#define SWIG_STD_OPTIONAL_DEFAULT_TYPES
 %include <std_optional.i>
 
 %optional(test::Struct)
@@ -280,8 +281,8 @@ namespace test
     class TestObjectDirected
     {
     public:
-        TestObjectDirected() {};
-        virtual ~TestObjectDirected() {};
+        TestObjectDirected() = default;
+        virtual ~TestObjectDirected() = default;
     
         virtual std::string onValueOptionalChanged(const std::optional<std::uint32_t> value) const { return ""; }
         virtual std::string onReferenceOptionalChanged(const std::optional<std::uint32_t>& reference) const { return ""; }
