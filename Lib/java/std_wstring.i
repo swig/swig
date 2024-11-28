@@ -28,10 +28,10 @@ class wstring;
 %typemap(in) wstring
 %{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
-    return $null;
+    SWIG_fail;
   }
   const jchar *$1_pstr = jenv->GetStringChars($input, 0);
-  if (!$1_pstr) return $null;
+  if (!$1_pstr) SWIG_fail;
   jsize $1_len = jenv->GetStringLength($input);
   if ($1_len) {
     $1.reserve($1_len);
@@ -45,10 +45,10 @@ class wstring;
 %typemap(directorout) wstring
 %{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
-    return $null;
+    SWIG_fail;
   }
   const jchar *$1_pstr = jenv->GetStringChars($input, 0);
-  if (!$1_pstr) return $null;
+  if (!$1_pstr) SWIG_fail;
   jsize $1_len = jenv->GetStringLength($input);
   if ($1_len) {
     $result.reserve($1_len);
@@ -93,7 +93,7 @@ class wstring;
     message[i] = (char)$1[i];
   }
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, message.c_str());
-  return $null; %}
+  SWIG_fail; %}
 
 // const wstring &
 %typemap(jni) const wstring & "jstring"
@@ -105,10 +105,10 @@ class wstring;
 %typemap(in) const wstring &
 %{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
-    return $null;
+    SWIG_fail;
   }
   const jchar *$1_pstr = jenv->GetStringChars($input, 0);
-  if (!$1_pstr) return $null;
+  if (!$1_pstr) SWIG_fail;
   jsize $1_len = jenv->GetStringLength($input);
   std::wstring $1_str;
   if ($1_len) {
@@ -124,10 +124,10 @@ class wstring;
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const wstring & 
 %{if(!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null std::wstring");
-    return $null;
+    SWIG_fail;
   }
   const jchar *$1_pstr = jenv->GetStringChars($input, 0);
-  if (!$1_pstr) return $null;
+  if (!$1_pstr) SWIG_fail;
   jsize $1_len = jenv->GetStringLength($input);
   /* possible thread/reentrant code problem */
   static std::wstring $1_str;
@@ -174,7 +174,7 @@ class wstring;
     message[i] = (char)$1[i];
   }
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, message.c_str());
-  return $null; %}
+  SWIG_fail; %}
 
 }
 

@@ -29,10 +29,10 @@ class string;
 %typemap(in) string 
 %{ if(!$input) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
-     return $null;
+     SWIG_fail;
     } 
     const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-    if (!$1_pstr) return $null;
+    if (!$1_pstr) SWIG_fail;
     $1.assign($1_pstr);
     jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
@@ -41,10 +41,10 @@ class string;
      if (!jenv->ExceptionCheck()) {
        SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
      }
-     return $null;
+     SWIG_fail;
    } 
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-   if (!$1_pstr) return $null;
+   if (!$1_pstr) SWIG_fail;
    $result.assign($1_pstr);
    jenv->ReleaseStringUTFChars($input, $1_pstr); %}
 
@@ -65,7 +65,7 @@ class string;
 
 %typemap(throws) string
 %{ SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1.c_str());
-   return $null; %}
+   SWIG_fail; %}
 
 // const string &
 %typemap(jni) const string & "jstring"
@@ -77,10 +77,10 @@ class string;
 %typemap(in) const string &
 %{ if(!$input) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
-     return $null;
+     SWIG_fail;
    }
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-   if (!$1_pstr) return $null;
+   if (!$1_pstr) SWIG_fail;
    $*1_ltype $1_str($1_pstr);
    $1 = &$1_str;
    jenv->ReleaseStringUTFChars($input, $1_pstr); %}
@@ -88,10 +88,10 @@ class string;
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const string &
 %{ if(!$input) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
-     return $null;
+     SWIG_fail;
    }
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
-   if (!$1_pstr) return $null;
+   if (!$1_pstr) SWIG_fail;
    /* possible thread/reentrant code problem */
    static $*1_ltype $1_str;
    $1_str = $1_pstr;
@@ -115,7 +115,7 @@ class string;
 
 %typemap(throws) const string &
 %{ SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1.c_str());
-   return $null; %}
+   SWIG_fail; %}
 
 }
 

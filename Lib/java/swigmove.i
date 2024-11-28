@@ -9,7 +9,7 @@
 %{ argp = *($&1_ltype*)&$input; 
    if (!argp) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
-     return $null;
+     SWIG_fail;
    }
   SwigValueWrapper< $1_ltype >::reset($1, argp); %}
 

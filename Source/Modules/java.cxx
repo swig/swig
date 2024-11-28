@@ -932,6 +932,9 @@ public:
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
 
+    // Put the body of the function in its own block, so that variables declared inside
+    // the body can be skipped by SWIG_fail goto statements.
+    Printv(f->code, "{\n", NIL);
     // Parameter overloading
     Setattr(n, "wrap:parms", l);
     Setattr(n, "wrap:name", wname);
@@ -1104,7 +1107,13 @@ public:
     Printv(f->code, outarg, NIL);
 
     /* Output cleanup code */
-    Printv(f->code, cleanup, NIL);
+    Printv(f->code, "}\n", NIL);
+    Printv(f->code, "fail:\n", NIL);
+    if (Len(cleanup)) {
+      Printv(f->code, cleanup, NIL);
+    } else {
+      Printv(f->code, ";\n", NIL);
+    }
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
@@ -4506,6 +4515,7 @@ public:
 	     SwigType_namestr(c_classname), SwigType_namestr(name));
       Printf(w->code, "}\n");
 
+      Printf(w->code, "fail:\n");
       Printf(w->code, "if (swigjobj) jenv->DeleteLocalRef(swigjobj);\n");
 
       if (!is_void)
