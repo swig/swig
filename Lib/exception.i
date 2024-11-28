@@ -132,7 +132,7 @@ SWIGINTERN void SWIG_JavaException(JNIEnv *jenv, int code, const char *msg) {
 %}
 
 #define SWIG_exception(code, msg)\
-{ SWIG_JavaException(jenv, code, msg); return $null; }
+{ SWIG_JavaException(jenv, code, msg); SWIG_fail; }
 #endif // SWIGJAVA
 
 #ifdef SWIGOCAML

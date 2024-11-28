@@ -76,7 +76,7 @@
   if (excpcls) {
     jenv->ThrowNew(excpcls, $1.what());
    }
-  return $null;
+  SWIG_fail;
 %}
 
 %typemap(throws,throws="MyJavaException1") int %{
@@ -85,7 +85,7 @@
   if (excpcls) {
     jenv->ThrowNew(excpcls, "Threw some integer");
   }
-  return $null;
+  SWIG_fail;
 %}
 
 %typemap(throws,throws="MyJavaException2") MyNS::Exception2 %{
@@ -93,7 +93,7 @@
   if (excpcls) {
     jenv->ThrowNew(excpcls, $1.what());
   }
-  return $null;
+  SWIG_fail;
 %}
 
 %typemap(throws,throws="MyJavaUnexpected") MyNS::Unexpected %{
@@ -101,7 +101,7 @@
   if (excpcls) {
     jenv->ThrowNew(excpcls, $1.what());
   }
-  return $null;
+  SWIG_fail;
 %}
 
 // Use generic exception translation approach like python, ruby
@@ -126,7 +126,7 @@
     $action
   } catch (Swig::DirectorException & direxcp) {
     direxcp.throwException(jenv);  // jenv always available in JNI code
-    return $null;
+    SWIG_fail;
   }
 %}
 
