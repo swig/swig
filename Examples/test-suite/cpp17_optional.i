@@ -1,5 +1,5 @@
 %module(directors="1") cpp17_optional
-#if defined SWIGCSHARP
+#if defined SWIGCSHARP || defined SWIGPYTHON
 #define SWIG_STD_OPTIONAL_DEFAULT_TYPES
 %include <std_optional.i>
 
