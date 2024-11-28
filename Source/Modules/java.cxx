@@ -1109,11 +1109,11 @@ public:
     /* Output cleanup code */
     Printv(f->code, "}\n", NIL);
     Printv(f->code, "fail:\n", NIL);
-    if (Len(cleanup)) {
-      Printv(f->code, cleanup, NIL);
-    } else {
-      Printv(f->code, ";\n", NIL);
-    }
+    // This null statement ensures there's a statement after the label, which
+    // is required until C++23. The 'cleanup' string may be non-empty whitespace
+    // which isn't sufficient.
+    Printv(f->code, ";\n", NIL);
+    Printv(f->code, cleanup, NIL);
 
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
