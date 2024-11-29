@@ -418,6 +418,29 @@ public:
       Printf(f_header,"#define SWIG_init    %s\n\n", boot_name);
       Printf(f_header,"#define SWIG_name   \"%s::%s\"\n", cmodule, boot_name);
       Printf(f_header,"#define SWIG_prefix \"%s::\"\n", cmodule);
+
+      /* Support for static variables when using threads, see perldoc perlxs */
+      Printf(f_header, "#define MY_CXT_KEY \"%s::_guts\" XS_VERSION\n", module);
+      Printf(f_init, "/* Support for static variables when using threads,");
+      Printf(f_init, " see \"perldoc perlxs\" */\n");
+      Printf(f_init, "\n#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
+      Printf(f_init, "\n#ifdef SWIG_USE_MY_CXT\n");
+      Printf(f_init, "XS(XS_%s_CLONE) {\n", underscore_module);
+      Printf(f_init, "\t dVAR; dXSARGS;\n");
+      Printf(f_init, "\t MY_CXT_CLONE;\n");
+      Printf(f_init, "\t XSRETURN_EMPTY;\n");
+      Printf(f_init, "}\n");
+      Printf(f_init, "#endif\n\n");
+      Printf(f_init, "SWIGRUNTIME void\n");
+      Printf(f_init, "SWIG_MyCxtInit(void) {\n");
+      Printf(f_init, "#ifdef SWIG_USE_MY_CXT\n");
+      Printf(f_init, "\t MY_CXT_INIT;\n");
+      Printf(f_init, "\t newXS(\"%s::CLONE\", XS_%s_CLONE,  (char*)__FILE__);\n",
+          module, underscore_module);
+      Printf(f_init, "#endif\n");
+      Printf(f_init, "}\n\n");
+      Printf(f_init, "#ifdef __cplusplus\n}\n#endif\n");
+
       Delete(boot_name);
     }
 
