@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2024-12-07: arbrauns
+	    [Lua] #3083 Fix "unsigned long long" being interpreted as "signed
+	    long long".
+
 2024-11-22: wsfulton
             Use new <errno.h> fragment for including this header when needed instead
             of either always including it or relying on it being included elsewhere.
