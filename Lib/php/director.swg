@@ -136,10 +136,10 @@ namespace Swig {
       if (!EG(exception)) zend_throw_exception(NULL, swig_msg.c_str(), code);
     }
 
-    virtual ~DirectorException() throw() {
+    virtual ~DirectorException() noexcept {
     }
 
-    const char *what() const throw() {
+    const char *what() const noexcept {
       return swig_msg.c_str();
     }
 
