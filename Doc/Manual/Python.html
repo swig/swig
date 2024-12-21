@@ -4136,7 +4136,7 @@ or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line 
 The default SWIG command line options generate code that enable the limited API/stable ABI.
 Some options, such as <tt>-builtin</tt>, <tt>-fastproxy</tt> (used by <tt>-O</tt>) do not use the limited API and hence when <tt>Py_LIMITED_API</tt> is defined there will be missing symbols during compilation.
 Compatibility of user's custom typemaps is of course dependent on the Python APIs used in the typemaps.
-Use of typemaps requires passing the <tt>-fastdispatch</tt> option to SWIG (which is typically otherwise enabled by the abi3-incompatible <tt>-O</tt>).
+If you disable <tt>-O</tt>, you could consider enabling <tt>-fastdispatch</tt> as this option is abi3 compatible.
 </p>
 
 <p>
