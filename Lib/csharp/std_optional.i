@@ -73,7 +73,12 @@ namespace std {
 %typemap(csin) std::optional< TYPE >, std::optional< TYPE > const & "$typemap(cstype, TYPE).getCPtr($csinput)"
 
 // This is used for functions returning optional values.
-%typemap(csout, excode=SWIGEXCODE) std::optional< TYPE >, std::optional< TYPE > const & {
+%typemap(csout, excode=SWIGEXCODE) std::optional< TYPE > {
+    var instance = $imcall;
+    var ret = (instance != global::System.IntPtr.Zero) ? new $typemap(cstype, TYPE)(instance, true) : null;$excode
+    return ret;
+  }
+%typemap(csout, excode=SWIGEXCODE) std::optional< TYPE > const &, std::optional< TYPE > *, std::optional< TYPE > const * {
     var instance = $imcall;
     var ret = (instance != global::System.IntPtr.Zero) ? new $typemap(cstype, TYPE)(instance, $owner) : null;$excode
     return ret;
@@ -83,8 +88,9 @@ namespace std {
     $1 = &var;
     var = ($input == nullptr) ? std::nullopt : std::optional< TYPE > { *(TYPE*) $input };
 %}
+
 %typemap(out) std::optional< TYPE > const & %{ 
-    $result = $1->has_value() ? new TYPE { $1->value() } : nullptr;
+    $result = $1->has_value() ? &$1->value() : nullptr;
 %}
 
 %typemap(out) std::optional< TYPE > %{ 
@@ -112,9 +118,8 @@ namespace std {
     var = ($input == nullptr) ? std::nullopt : std::optional< TYPE > { *(TYPE*) $input };
 %}
 %typemap(out) std::optional< TYPE > * %{ 
-    $result = $1->has_value() ? new TYPE { $1->value() } : nullptr;
+    $result = $1->has_value() ? &$1->value() : nullptr;
 %}
-
 
 %typemap(csdirectorin) std::optional< TYPE >, std::optional< TYPE > const & "($iminput != global::System.IntPtr.Zero) ? new $typemap(cstype, TYPE)($iminput, true) : null"
 
