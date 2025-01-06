@@ -83,6 +83,10 @@ namespace test
         {
             _structOptional = value;
         }
+        void setStructOptionalCopy(StructOptional const value)
+        {
+            _structOptional = value;
+        }
 
     private:
         SimpleOptional _simpleOptional {};
