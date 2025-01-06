@@ -84,9 +84,15 @@ namespace std {
     return ret;
   }
 
-%typemap(in) std::optional< TYPE >, std::optional< TYPE > const & (std::optional< TYPE > var) %{
+%typemap(in) std::optional< TYPE > const & (std::optional< TYPE > var) %{
     $1 = &var;
     var = ($input == nullptr) ? std::nullopt : std::optional< TYPE > { *(TYPE*) $input };
+%}
+
+%typemap(in) std::optional< TYPE > %{
+    if ($input != nullptr) {
+      $1 = *static_cast<TYPE*>($input);
+    }
 %}
 
 %typemap(out) std::optional< TYPE > const & %{ 
