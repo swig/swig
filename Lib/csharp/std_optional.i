@@ -5,12 +5,14 @@
 //
 // Usage:
 //
-// 1. %optional_arithmetic(TYPE, INTERNAL_NAME):
+// 1. %optional_arithmetic(TYPE, INTERNAL_NAME [, CLASSMODIFIER]):
 //    This macro is used to bind arithmetic types (int, float, double, etc.) to C# nullable value type (represented as Nullable<T>).
 //    Example:
 //    %optional_arithmetic(double, OptDouble)
 //    This will generate code to handle std::optional<double>.
-//    An internal class name OptDouble will be created to bind the optional type from C++ to C# nullable value type.
+//    An internal class name OptDouble will be created to bind the optional type from C++ to C# nullable value type. The internal class will be marked as internal by default.
+//    If you want to change the access modifier of the internal class for one specific type, you can pass an optional CLASSMODIFIER parameter to the macro.
+//    See the SWIG_STD_OPTIONAL_INTERNAL_CLASS_MODIFIER macro for more information.
 // 
 // 2. %optional_string():
 //    This macro is used specifically for std::optional<std::string>.
@@ -32,13 +34,22 @@
 // When this macro is defined, any module using this file should be declared with the #nullable enable directive.
 // Example:
 // %module(csbegin="#nullable enable\n") MyModule
-// 
+//
+// The SWIG_STD_OPTIONAL_INTERNAL_CLASS_MODIFIER macro is used to define the access modifier for the internal class generated for the arithmetic optional types. By default it is set to internal.
+// You may want to define it to 'public' so the internal class is accessible from outside the assembly it's defined in. See the documentation of the SWIG_CSBODY_PROXY macro for more information.
+// Defining this macro will affect all optional arithmetic types defined in the module.
 
 #if defined(SWIG_STD_OPTIONAL_USE_NULLABLE_REFERENCE_TYPES)
 %define SWIG_STD_OPTIONAL_NULLABLE_TYPE "?" %enddef
 #else
 %define SWIG_STD_OPTIONAL_NULLABLE_TYPE "" %enddef
 #endif
+
+#ifndef SWIG_STD_OPTIONAL_STRINGIFY
+#define SWIG_STD_OPTIONAL_STRINGIFY_(x) #x
+#define SWIG_STD_OPTIONAL_STRINGIFY(x) SWIG_STD_OPTIONAL_STRINGIFY_(x)
+#endif
+
 
 %{
     #include <optional>
@@ -132,17 +143,27 @@ namespace std {
 
 %enddef
 
-
 // ----------------------------------------------------------------------------
 // optional arithmetic specialisation
 // ----------------------------------------------------------------------------
-%define %optional_arithmetic(TYPE, NAME)
+// Macro to set the class modifier for the internal class generated for the
+// optional type.
+#ifndef SWIG_STD_OPTIONAL_INTERNAL_CLASS_MODIFIER
+#define SWIG_STD_OPTIONAL_INTERNAL_CLASS_MODIFIER internal
+#endif
+
+// Define the optional arithmetic types.
+%define %optional_arithmetic(TYPE, NAME, CLASSMODIFIER...)
  
 // The std::optional<> specializations themselves are only going to be used
 // inside our own code, the user will deal with either T? or T, depending on
 // whether T is a value or a reference type, so make them private to our own
 // assembly.
-%typemap(csclassmodifiers) std::optional< TYPE > "internal class"
+#if #CLASSMODIFIER == ""
+%typemap(csclassmodifiers) std::optional< TYPE > SWIG_STD_OPTIONAL_STRINGIFY(SWIG_STD_OPTIONAL_INTERNAL_CLASS_MODIFIER) " class"
+#else
+%typemap(csclassmodifiers) std::optional< TYPE > SWIG_STD_OPTIONAL_STRINGIFY(CLASSMODIFIER) " class"
+#endif
 
 // Do this to use reference typemaps instead of the pointer ones used by
 // default for the member variables of this type.
