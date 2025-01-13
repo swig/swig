@@ -2,13 +2,13 @@
 // This is the ret_by_value runtime testcase. It checks that SWIG handles
 // return by value okay.
 
-import cpp11_optional_primitive_types.*;
+import cpp17_optional_primitive_types.*;
 
-public class cpp11_optional_primitive_types_runme {
+public class cpp17_optional_primitive_types_runme {
 
   static {
     try {
-	System.loadLibrary("cpp11_optional_primitive_types");
+	System.loadLibrary("cpp17_optional_primitive_types");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. See the chapter on Dynamic Linking Problems in the SWIG Java documentation for help.\n" + e);
       System.exit(1);

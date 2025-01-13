@@ -1,6 +1,6 @@
 /* Simpple test to check is getting/setting class property by value or optional works properly */
 
-%module cpp11_optional_custom_types
+%module cpp17_optional_custom_types
 
 %include std_optional.i
 

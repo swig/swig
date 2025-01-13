@@ -8,6 +8,7 @@
 //  |- double
 // - Types from std library:
 //  |- std::string
+// - Enum types
 
 #if !defined(JAVA_NULLABLE_ANNOTATION)
 // By default it's empty if you like to use @Nullable anntotation define it. (ex. "@javax.annotation.Nullable")
@@ -267,23 +268,26 @@ namespace std {
 %typemap(out) std::optional<type> {
   jclass clazz = JCALL1(FindClass, jenv, "java/lang/java_type");
   jmethodID mid = JCALL3(GetMethodID, jenv, clazz, "<init>", "(signature)V");
-  jobject obj = $1 ? JCALL3(NewObject, jenv, clazz, mid, *$1) : 0;
+  jobject obj = $1.has_value() ? JCALL3(NewObject, jenv, clazz, mid, *$1) : 0;
   $result = obj;
 }
 
 %typemap(in) std::optional<type> * {
+
+  $*1_ltype optVal = std::nullopt;
   if ($input) {
     jclass sbufClass = JCALL1(GetObjectClass, jenv, $input);
     jmethodID mid = JCALL3(GetMethodID, jenv, sbufClass, "value", "()signature");
     j_type val = (j_type)JCALL2(calling_method, jenv, $input, mid);
     if (JCALL0(ExceptionCheck, jenv)) return $null;
-    $1 = new $*1_ltype((type)val);
+    optVal = (type)val;
   }
+  $1 = &optVal;
 }
 %typemap(out) std::optional<type> * {
   jclass clazz = JCALL1(FindClass, jenv, "java/lang/java_type");
   jmethodID mid = JCALL3(GetMethodID, jenv, clazz, "<init>", "(signature)V");
-  jobject obj = $1 ? JCALL3(NewObject, jenv, clazz, mid, **$1) : 0;
+  jobject obj = $1->has_value() ? JCALL3(NewObject, jenv, clazz, mid, **$1) : 0;
   $result = obj;
 }
 
@@ -304,6 +308,7 @@ namespace std {
 %AddOptionalTypeForPrimitive(int, Integer, jint, I, CallIntMethod, intValue)
 %AddOptionalTypeForPrimitive(float, Float, jfloat, F, CallFloatMethod, floatValue)
 %AddOptionalTypeForPrimitive(long, Long, jlong, J, CallLongMethod, longValue)
+%AddOptionalTypeForPrimitive(long long, Long, jlong, J, CallLongMethod, longValue)
 %AddOptionalTypeForPrimitive(double, Double, jdouble, D, CallDoubleMethod, doubleValue)
 
 // 3) Implementation for std library types
@@ -326,19 +331,21 @@ namespace std {
   }
 %}
 %typemap(out) std::optional<std::string> %{ 
-    $result = $1 ? jenv->NewStringUTF($1->c_str()) : 0; 
+    $result = $1.has_value() ? jenv->NewStringUTF($1->c_str()) : 0; 
 %}
 
 %typemap(in) std::optional<std::string> * %{
+  $*1_ltype optVal = std::nullopt;
   if ($input) {
     const char *pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
     if (!pstr) return $null;
-    $1 = new $*1_ltype(std::string(pstr));
+    optVal = std::string(pstr);
     jenv->ReleaseStringUTFChars($input, pstr);
   }
+  $1 = &optVal;
 %}
 %typemap(out) std::optional<std::string> * %{ 
-    $result = $1 ? jenv->NewStringUTF((*$1)->c_str()) : 0; 
+    $result = $1->has_value() ? jenv->NewStringUTF((*$1)->c_str()) : 0;
 %}
 
 %typemap(javain)  std::optional<std::string>,
@@ -351,3 +358,50 @@ namespace std {
 }
 
 %template() std::optional<std::string>;
+
+// 4) Implementation for enum types
+
+%define %optional_enum(TYPE)
+
+%typemap(jni)    std::optional< TYPE >,
+                 std::optional< TYPE > * "jint"
+%typemap(jtype)  std::optional< TYPE >,
+                 std::optional< TYPE > *  "int"
+%typemap(jstype) std::optional< TYPE >,
+                 std::optional< TYPE > *  JAVA_NULLABLE_ANNOTATION "$typemap(jstype, TYPE)"
+
+%typemap(in) std::optional< TYPE > %{
+    if ($input != -1) {
+        $1 = (TYPE)$input;
+    } else {
+        $1 = std::nullopt;
+    }
+%}
+%typemap(out) std::optional< TYPE > %{ 
+    $result = (&$1)->has_value() ? (jint)((&$1))->value() : -1;
+%}
+
+%typemap(in) std::optional< TYPE > * %{
+    $*1_ltype optVal = std::nullopt;
+    if ($input != -1) {
+        optVal = (TYPE)$input;
+    }
+    $1 = &optVal;
+%}
+%typemap(out) std::optional< TYPE > * %{ 
+    $result = $1->has_value() ? (jint)($1)->value() : -1;
+%}
+
+%typemap(javain)  std::optional< TYPE >,
+                  std::optional< TYPE > * "($javainput == null) ? -1 : $javainput.swigValue()"
+
+%typemap(javaout) std::optional< TYPE > {
+    int swigVal = $jnicall;
+    return (swigVal == -1) ? null : $typemap(jstype, TYPE).swigToEnum(swigVal);
+}
+%typemap(javaout) std::optional< TYPE > * {
+    int swigVal = $jnicall; 
+    return (swigVal == -1) ? null : $typemap(jstype, TYPE).swigToEnum(swigVal);
+}
+
+%enddef
