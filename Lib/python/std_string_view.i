@@ -29,23 +29,23 @@ namespace std {
     %}
 
     %typemap(in) string_view (PyObject *bytes = NULL) {
-        Py_ssize_t len;
+        Py_ssize_t $1_len;
 %#ifdef SWIG_PYTHON_STRICT_BYTE_CHAR
-        const char *p = PyBytes_AsString($input);
-        if (!p) SWIG_fail;
-        len = PyBytes_Size($input);
+        const char *$1_p = PyBytes_AsString($input);
+        if (!$1_p) SWIG_fail;
+        $1_len = PyBytes_Size($input);
 %#else
-        const char *p;
+        const char *$1_p;
         if (PyUnicode_Check($input)) {
-          p = SWIG_PyUnicode_AsUTF8AndSize($input, &len, &bytes);
-          if (!p) SWIG_fail;
+          $1_p = SWIG_PyUnicode_AsUTF8AndSize($input, &$1_len, &bytes);
+          if (!$1_p) SWIG_fail;
         } else {
-          p = PyBytes_AsString($input);
-          if (!p) SWIG_fail;
-          len = PyBytes_Size($input);
+          $1_p = PyBytes_AsString($input);
+          if (!$1_p) SWIG_fail;
+          $1_len = PyBytes_Size($input);
         }
 %#endif
-        $1 = std::string_view(p, len);
+        $1 = std::string_view($1_p, $1_len);
     }
 
     %typemap(freearg) string_view %{
