@@ -4,6 +4,7 @@
 %include <std_optional.i>
 
 %optional(test::Struct)
+%optional(test::SubStruct)
 %optional(test::Point)
 %optional(test::Circle)
 %optional(test::Rect)
@@ -30,14 +31,21 @@ namespace test
     // Example using a string
     using StringOptional = std::optional<std::string>;
 
+    // Sub struct to be used for struct test
+    struct SubStruct
+    {
+        std::uint32_t z;
+    };
+    using SubStructOptional = std::optional<SubStruct>;
+
     // Example using a struct
     struct Struct
     {
         std::uint32_t a;
         std::uint32_t b;
+        SubStructOptional sub;
     };
     using StructOptional = std::optional<Struct>;
-
 
     // Define a class that uses all the above types (input and output parameters)
     class TestOptionals
@@ -63,11 +71,19 @@ namespace test
             _stringOptional = value;
         }
 
-        StructOptional getStructOptional() const
+        StructOptional const& getStructOptional() const
+        {
+            return _structOptional;
+        }
+        StructOptional getStructOptionalCopy() const
         {
             return _structOptional;
         }
         void setStructOptional(StructOptional const& value)
+        {
+            _structOptional = value;
+        }
+        void setStructOptionalCopy(StructOptional const value)
         {
             _structOptional = value;
         }

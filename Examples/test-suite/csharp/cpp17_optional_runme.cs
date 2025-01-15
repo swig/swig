@@ -47,13 +47,28 @@ public class runme
 			}
 			// setStructOptional()
 			{
-				var structObj = new Struct { a = 56u, b = 78u };
+				var structObj = new Struct { a = 56u, b = 78u, sub = new SubStruct { z = 99u } };
 				testOptionals.setStructOptional(structObj);
 				var optStruct = testOptionals.getStructOptional();
 				if (optStruct == null)
 					throw new Exception("TestOptionals.setStructOptional() failed");
-				if (optStruct?.a != 56u || optStruct?.b != 78u)
+				if (optStruct?.a != 56u || optStruct?.b != 78u || optStruct?.sub.z != 99u)
 					throw new Exception("TestOptionals.setStructOptional() failed");
+				var optStructCopy = testOptionals.getStructOptionalCopy();
+				if (optStructCopy == null)
+					throw new Exception("TestOptionals.setStructOptional() failed");
+				if (optStructCopy?.a != 56u || optStructCopy?.b != 78u || optStructCopy?.sub.z != 99u)
+					throw new Exception("TestOptionals.setStructOptional() failed");
+				// Test struct modifier
+				structObj.a = 4u;
+				structObj.b = 2u;
+				structObj.sub.z = 1u;
+				testOptionals.setStructOptional(structObj);
+				if (optStruct?.a != 4u || optStruct?.b != 2u || optStruct?.sub?.z != 1u)
+					throw new Exception("TestOptionals.setStructOptional() failed");
+				if (optStructCopy?.a != 56u || optStructCopy?.b != 78u || optStructCopy?.sub?.z != 99u)
+					throw new Exception("TestOptionals.setStructOptional() failed");
+
 				// Clear the optional
 				testOptionals.setStructOptional(null);
 				optStruct = testOptionals.getStructOptional();
