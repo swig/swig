@@ -1,10 +1,34 @@
 from cpp17_optional import *
 
-test_optionals = TestOptionals()
+# Object instantiation
+# -----------------------------------------------------------------------------
+
+# test instantiation no namespace struct
+nonstruct = NoNamespaceStruct()
+nonstruct.a = 67
+
+assert nonstruct.a == 67, "Expected nonstruct.a to be 67, got {}".format(repr(nonstruct.a))
+
+# test instantiation struct instantiation
+struct = Struct()
+struct.a = 12
+struct.b = 34
+
+substruct = SubStruct()
+substruct.z = 9
+
+struct.sub = substruct
+
+assert struct.a == 12, "Expected struct.a to be 12, got {}".format(repr(struct.a))
+assert struct.b == 34, "Expected struct.b to be 34, got {struct.b}".format(repr(struct.b))
+
+assert struct.sub.z == 9, "Expected struct.sub.zto be 9, got {struct.sub.z}".format(repr(struct.sub.z))
 
 
 # Simple Optional
 # -----------------------------------------------------------------------------
+
+test_optionals = TestOptionals()
 
 # test get simple optional initial
 optU32 = test_optionals.getSimpleOptional()
@@ -81,6 +105,22 @@ test_optionals.setStructOptional(None)
 
 optStruct_after_clear = test_optionals.getStructOptional()
 assert optStruct_after_clear is None, "Expected None after clear, got {}".format(repr(optStruct_after_clear))
+
+# test initial get struct optional copy
+optStruct = test_optionals.getStructOptionalCopy()
+assert optStruct is None or isinstance(optStruct, Struct), "Expected None or Struct, got {}".format(repr(optStruct))
+
+# test set struct optional copy
+struct = Struct()
+struct.a = 56
+struct.b = 78
+
+test_optionals.setStructOptional(struct)
+
+optStruct_after_set = test_optionals.getStructOptionalCopy()
+assert isinstance(optStruct_after_set, Struct), "Expected Struct instance, got {}".format(repr(optStruct_after_set))
+assert optStruct_after_set.a == 56, "Expected struct.a to be 56, got {}".format(optStruct_after_set.a)
+assert optStruct_after_set.b == 78, "Expected struct.b to be 78, got {}".format(optStruct_after_set.b)
 
 
 # Primitive type Optionals
@@ -389,30 +429,38 @@ assert obj.getCircleOpt() is None, "Expected optional circle to be None"
 
 test_default_directed = TestObjectDirected()
 
-# CHECKME: add better description - test default directed doValueOptionalChanged with value
+# test default directed doValueOptionalChanged with value
 result = test_default_directed.doValueOptionalChanged(42)
 assert result == "", "Expected empty string when value is provided."
 
-# CHECKME: add better description - test default directed doValueOptionalChanged with none
+# test default directed doValueOptionalChanged with none
 result = test_default_directed.doValueOptionalChanged(None)
 assert result == "", "Expected empty string when None is passed."
 
-# CHECKME: add better description - test default directed doReferenceOptionalChanged with value
+# test default directed doReferenceOptionalChanged with value
 result = test_default_directed.doReferenceOptionalChanged(99)
 assert result == "", "Expected empty string when reference value is provided."
 
-# CHECKME: add better description - test default directed doReferenceOptionalChanged with none
+# test default directed doReferenceOptionalChanged with none
 result = test_default_directed.doReferenceOptionalChanged(None)
 assert result == "", "Expected empty string when None is passed as reference."
 
-# CHECKME: add better description - test default directed onClassReferenceOptionalChanged with value
+# test default directed doClassReferenceOptionalChanged with value
 rect = Rect(5.0, 3.0)
-result = test_default_directed.onClassReferenceOptionalChanged(rect)
+result = test_default_directed.doClassReferenceOptionalChanged(rect)
 assert result == "", "Expected empty string when a valid Rect object is provided."
 
-# CHECKME: add better description - test default directed onClassReferenceOptionalChanged with none
-result = test_default_directed.onClassReferenceOptionalChanged(None)
+# test default directed doClassReferenceOptionalChanged with none
+result = test_default_directed.doClassReferenceOptionalChanged(None)
 assert result == "", "Expected empty string when None is passed as a class reference."
+
+# test default directed doStringReferenceOptionalChanged with value
+result = test_default_directed.doStringReferenceOptionalChanged("Testing")
+assert result == "", "Expected empty string when reference value is provided."
+
+# test default directed doStringReferenceOptionalChanged with value none
+result = test_default_directed.doReferenceOptionalChanged(None)
+assert result == "", "Expected empty string when None is passed as reference."
 
 
 # Derived directed Optionals
@@ -429,31 +477,42 @@ class TestObjectDerived(TestObjectDirected):
     def onClassReferenceOptionalChanged(self, reference):
         return "None" if reference is None else "class reference: {}".format(reference.toString())
 
+    def onStringReferenceOptionalChanged(self, reference):
+        return "None" if reference is None else "string reference: {}".format(reference)
+
 test_derived_directed = TestObjectDerived()
 
-# CHECKME: add better description - test derived directed doValueOptionalChanged with value
+# test derived directed doValueOptionalChanged with value
 result = test_derived_directed.doValueOptionalChanged(42)
 assert result == "value: 42", "Expected 'value: 42' when a valid value is provided."
 
-# CHECKME: add better description - test derived directed doValueOptionalChanged with none
+# test derived directed doValueOptionalChanged with none
 result = test_derived_directed.doValueOptionalChanged(None)
 assert result == "None", "Expected 'None' when None is passed."
 
-# CHECKME: add better description - test derived directed doReferenceOptionalChanged with value
+# test derived directed doReferenceOptionalChanged with value
 result = test_derived_directed.doReferenceOptionalChanged(99)
 assert result == "reference: 99", "Expected 'reference: 99' when reference value is provided."
 
-# CHECKME: add better description - test derived directed doReferenceOptionalChanged with none
+# test derived directed doReferenceOptionalChanged with none
 result = test_derived_directed.doReferenceOptionalChanged(None)
 assert result == "None", "Expected 'None' when None is passed as reference."
 
-# CHECKME: add better description - test derived directed doClassReferenceOptionalChanged with value
+# test derived directed doClassReferenceOptionalChanged with value
 rect = Rect(5.0, 3.0)
 result = test_derived_directed.doClassReferenceOptionalChanged(rect)
 assert (
     result == "class reference: {}".format(rect.toString())
 ), "Expected 'class reference: {}' when a valid Rect object is provided.".format(rect.toString())
 
-# CHECKME: add better description - test derived directed doClassReferenceOptionalChanged with none
+# test derived directed doClassReferenceOptionalChanged with none
 result = test_derived_directed.doClassReferenceOptionalChanged(None)
 assert result == "None", "Expected 'None' when None is passed as a class reference."
+
+# test derived directed doStringReferenceOptionalChanged with value
+result = test_derived_directed.doStringReferenceOptionalChanged("Testing")
+assert result == "string reference: Testing", "Expected 'string reference: Testing' when reference value is provided."
+
+# test derived directed doStringReferenceOptionalChanged with value none
+result = test_derived_directed.doReferenceOptionalChanged(None)
+assert result == "None", "Expected 'None' when None is passed as reference."
