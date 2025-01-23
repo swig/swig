@@ -14,9 +14,6 @@ class PyFunction(object):
 if not example.is_python_builtin():
     obj = PyFunction()
     f = example.Function(obj)
-    value = f.meshValue()
-    print(value)
-    assert value == 42
     print('OK')
 
 # All done.

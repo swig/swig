@@ -17,8 +17,8 @@ class Function
 {
 public:
 	explicit Function(PyObject * pyCallable = 0);
-	int meshValue() { return meshValue_;}
+	int meshValue() { return meshValue_;}	int meshValue_;
+
 private:
 	PyObject * pyObj_;
-	int meshValue_;
 };
