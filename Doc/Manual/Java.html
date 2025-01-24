@@ -3515,11 +3515,11 @@ Consider the following C++ code:
 namespace Space {
   struct Base1 {
     virtual void Method1();
-    virtual Base1();
+    virtual ~Base1();
   };
   struct Base2 {
     virtual void Method2();
-    virtual Base2();
+    virtual ~Base2();
   };
   struct Derived : Base1, Base2 {
   };
