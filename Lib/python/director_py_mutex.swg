@@ -16,9 +16,9 @@ namespace Swig {
        PyThread_type_lock mutex_;
    public:
        Mutex() : mutex_(PyThread_allocate_lock()) {}
-       ~Mutex() { PyThread_release_lock(mutex_); }
+       ~Mutex() { PyThread_free_lock(mutex_); }
        void lock() { PyThread_acquire_lock(mutex_, WAIT_LOCK); }
-       void unlock() { PyThread_free_lock(mutex_); }
+       void unlock() { PyThread_release_lock(mutex_); }
    };
 }
 #endif
