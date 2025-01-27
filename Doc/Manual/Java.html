@@ -3514,11 +3514,11 @@ Consider the following C++ code:
 <pre>
 namespace Space {
   struct Base1 {
-    virtual void Method1();
+    virtual void Method1() const;
     virtual ~Base1();
   };
   struct Base2 {
-    virtual void Method2();
+    virtual void Method2() const;
     virtual ~Base2();
   };
   struct Derived : Base1, Base2 {
@@ -3668,10 +3668,10 @@ these two classes to be wrapped as Java interfaces and the <tt>Whizz</tt> interf
 
 namespace Space {
   struct Bang {
-    virtual void bang() = 0;
+    virtual void bang() const = 0;
   };
   struct Whizz : Bang {
-    virtual void whizz() = 0;
+    virtual void whizz() const = 0;
   };
 }
 </pre>
@@ -3727,6 +3727,16 @@ public class Whizz implements IWhizz, IBang, java.util.EventListener { ... }
 
 </pre>
 </div>
+
+<p>
+Note that if a class uses one of the <tt>%interface</tt> family of macros on an abstract class
+(one with pure virtual methods such as <tt>Bang</tt> above) and
+another C++ class derives from it and is also abstract, say because it does not implement all
+pure virtual methods up the class hierarchy, then the wrapped Java proxy class will be abstract too.
+The generated Java proxy class for the derived class will not be compilable by the Java compiler as it is also abstract.
+The simple advice to avoid this problem is to use one of the <tt>%interface</tt> macros on all classes that are abstract
+in an inheritance chain as SWIG will then generate both a Java interface and a Java proxy class with an implementation for the interface methods for the wrapped abstract C++ class.
+</p>
 
 <p>
 Finally, a note on the implementation of the interface macros.
