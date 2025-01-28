@@ -3786,6 +3786,35 @@ public:
   }
 
   /* -----------------------------------------------------------------------------
+   * containsCSharpNullableValueType()
+   * Determine whether the cstype in the typemap is a C# nullable value type.
+   * ----------------------------------------------------------------------------- */
+
+  bool containsCSharpNullableValueType(String* typemap)
+  {
+    const char* csharp_basic_types[] = {
+        "sbyte?", "byte?",
+        "short?", "ushort?",
+        "int?", "uint?",
+        "long?", "ulong?",
+        "char?",
+        "float?", "double?",
+        "bool?",
+        "decimal?"
+    };
+
+    for (size_t i = 0; i < sizeof(csharp_basic_types) / sizeof(csharp_basic_types[0]); ++i)
+    {
+      if (Strcmp(typemap, csharp_basic_types[i]) == 0)
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /* -----------------------------------------------------------------------------
    * excodeSubstitute()
    * If a method can throw a C# exception, additional exception code is added to
    * check for the pending exception so that it can then throw the exception. The
@@ -4253,7 +4282,10 @@ public:
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
 		} else if (Replace(tm, "out ", "", flags) || Replace(tm, "out\t", "", flags)) {
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
+		} else if (containsCSharpNullableValueType(tm)) {
+		  Printf(proxy_method_types, "typeof(%s)", tm);
 		} else {
+		  Replace(tm, "?", "", DOH_REPLACE_ID_END | DOH_REPLACE_NOCOMMENT);
 		  Printf(proxy_method_types, "typeof(%s)", tm);
 		}
 	      } else {
