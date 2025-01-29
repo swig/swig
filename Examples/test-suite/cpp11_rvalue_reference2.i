@@ -13,7 +13,10 @@
 %rename(OperatorRValue) Thingy::operator int&&;
 %rename(memberFnRenamed) memberFn(short &&i);
 %feature("compactdefaultargs") Thingy::compactDefaultArgs(const bool &&b = (const bool &&)PublicGlobalTrue, const UserDef &&u  = (const UserDef &&)PublicUserDef);
+#ifndef SWIG_JAVASCRIPT_NAPI
+// https://github.com/mmomtchev/swig/issues/88
 %feature("compactdefaultargs") Thingy::moreCompactDefaultArgs;
+#endif
 %feature("exception") Thingy::privateDefaultArgs(const bool &&b = (const bool &&)PrivateTrue);
 %ignore Thingy::operator=;
 

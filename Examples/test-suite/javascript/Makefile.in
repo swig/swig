@@ -74,6 +74,10 @@ CPP_TEST_CASES += \
 	cpp11_shared_ptr_upcast \
 	cpp11_smart_pointer_compatibility
 
+# FIXME: Return-value optimization is broken in NAPI
+# https://github.com/mmomtchev/swig/issues/87
+typemap_out_optimal.cpptest: SWIGOPT += -w474
+
 # napi_exports_file is a test that uses Node.js ES6 and has no meaning in WASM
 ifneq (emcc, $(CC))
 CPP_TEST_CASES += \
@@ -96,6 +100,14 @@ include $(srcdir)/../common.mk
 
 # Ensure testsuite remains free from SWIG warnings.
 SWIGOPT += -Werror
+
+# JavaScript tests that are expected to raise a warning
+# (351 is the no destructors warning)
+# TODO: Implement proper warnfilters for JavaScript (and assign number range)
+default_constructor.cpptest: SWIGOPT += -w351
+import_nomodule.cpptest: SWIGOPT += -w351
+inherit_missing.cpptest: SWIGOPT += -w351
+smart_pointer_static.cpptest: SWIGOPT += -w351 -w516
 
 ifneq (, $(ASYNC))
 	SWIGOPT += -async
