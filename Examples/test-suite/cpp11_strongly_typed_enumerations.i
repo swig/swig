@@ -300,7 +300,10 @@ bool has_type(const type1677&, const Enum17&) { return false; }
 %}
 
 // #2047
+#ifndef SWIG_JAVASCRIPT_NAPI
+// see https://github.com/mmomtchev/swig/issues/88
 %feature("compactdefaultargs") MyClass::my_func;
+#endif
 %inline %{
 class MyClass {
   public:

@@ -112,11 +112,9 @@ static String *Swig_clocal(SwigType *t, const_String_or_char_ptr name, const_Str
   default:
     if (value) {
       String *lcaststr = SwigType_lcaststr(t, value);
-      String *lstr = SwigType_lstr(t, 0);
       String *lstrn = SwigType_lstr(t, name);
-      Printf(decl, "%s = (%s) %s", lstrn, lstr, lcaststr);
+      Printf(decl, "%s = %s", lstrn, lcaststr);
       Delete(lcaststr);
-      Delete(lstr);
       Delete(lstrn);
     } else {
       String *lstrname = SwigType_lstr(t, name);
@@ -231,7 +229,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
     SwigType *pt = Getattr(p, "type");
     if ((SwigType_type(pt) != T_VOID)) {
       String *local = 0;
-      String *type = Getattr(p, "type");
+      SwigType *type = SwigType_typedef_resolve_all(pt);
       /* default values only emitted if in compact default args mode */
       String *pvalue = (compactdefargs) ? Getattr(p, "value") : 0;
 
@@ -242,27 +240,13 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
       int tycode = SwigType_type(type);
       if (tycode == T_REFERENCE) {
 	if (pvalue) {
-	  SwigType *tvalue;
-	  String *defname, *defvalue, *rvalue, *qvalue;
-	  rvalue = SwigType_typedef_resolve_all(pvalue);
-	  qvalue = SwigType_typedef_qualified(rvalue);
-	  defname = NewStringf("%s_defvalue", lname);
-	  tvalue = Copy(type);
-	  SwigType_del_reference(tvalue);
-	  tycode = SwigType_type(tvalue);
-	  if (tycode != T_USER) {
-	    /* plain primitive type, we copy the def value */
-	    String *lstr = SwigType_lstr(tvalue, defname);
-	    defvalue = NewStringf("%s = %s", lstr, qvalue);
-	    Delete(lstr);
-	  } else {
-	    /* user type, we copy the reference value */
-	    String *str = SwigType_str(type, defname);
-	    defvalue = NewStringf("%s = %s", str, qvalue);
-	    Delete(str);
-	  }
+	  String *rvalue = SwigType_typedef_resolve_all(pvalue);
+	  String *qvalue = SwigType_typedef_qualified(rvalue);
+	  String *defname = NewStringf("%s_defvalue", lname);
+	  String *str = SwigType_str(pt, defname);
+	  String *defvalue = NewStringf("%s = %s", str, qvalue);
 	  Wrapper_add_localv(w, defname, defvalue, NIL);
-	  Delete(tvalue);
+	  Delete(str);
 	  Delete(rvalue);
 	  Delete(qvalue);
 	  Delete(defname);
@@ -270,27 +254,13 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	}
       } else if (tycode == T_RVALUE_REFERENCE) {
 	if (pvalue) {
-	  SwigType *tvalue;
-	  String *defname, *defvalue, *rvalue, *qvalue;
-	  rvalue = SwigType_typedef_resolve_all(pvalue);
-	  qvalue = SwigType_typedef_qualified(rvalue);
-	  defname = NewStringf("%s_defrvalue", lname);
-	  tvalue = Copy(type);
-	  SwigType_del_rvalue_reference(tvalue);
-	  tycode = SwigType_type(tvalue);
-	  if (tycode != T_USER) {
-	    /* plain primitive type, we copy the def value */
-	    String *lstr = SwigType_lstr(tvalue, defname);
-	    defvalue = NewStringf("%s = %s", lstr, qvalue);
-	    Delete(lstr);
-	  } else {
-	    /* user type, we copy the reference value */
-	    String *str = SwigType_str(type, defname);
-	    defvalue = NewStringf("%s = %s", str, qvalue);
-	    Delete(str);
-	  }
+	  String *rvalue = SwigType_typedef_resolve_all(pvalue);
+	  String *qvalue = SwigType_typedef_qualified(rvalue);
+	  String *defname = NewStringf("%s_defrvalue", lname);
+	  String *str = SwigType_str(pt, defname);
+	  String *defvalue = NewStringf("%s = %s", str, qvalue);
 	  Wrapper_add_localv(w, defname, defvalue, NIL);
-	  Delete(tvalue);
+	  Delete(str);
 	  Delete(rvalue);
 	  Delete(qvalue);
 	  Delete(defname);

@@ -1795,8 +1795,6 @@ public:
 
     SWIG_library_directory("c");
 
-    // add typemap definitions
-    SWIG_typemap_lang("c");
     SWIG_config_file("c.swg");
 
     String* const ns_prefix_ = ns_prefix ? NewStringf("%s_", ns_prefix) : NewString("");

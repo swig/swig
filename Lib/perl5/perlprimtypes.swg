@@ -46,6 +46,7 @@ SWIG_From_dec(long)(long value)
 }
 
 %fragment(SWIG_AsVal_frag(long),"header",
+	  fragment="<errno.h>",
 	  fragment="<limits.h>",
 	  fragment="<stdlib.h>",
 	  fragment="SWIG_CanCastAsInteger") {
@@ -113,6 +114,7 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header",
+	  fragment="<errno.h>",
 	  fragment="<limits.h>",
 	  fragment="<stdlib.h>",
 	  fragment="SWIG_CanCastAsInteger") {
@@ -189,6 +191,7 @@ SWIG_From_dec(long long)(long long value)
 
 %fragment(SWIG_AsVal_frag(long long),"header",
 	  fragment="SWIG_LongLongAvailable",
+	  fragment="<errno.h>",
 	  fragment="<stdlib.h>",
 	  fragment="SWIG_CanCastAsInteger") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
@@ -269,6 +272,7 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
 	  fragment="SWIG_LongLongAvailable",
+	  fragment="<errno.h>",
 	  fragment="<stdlib.h>",
 	  fragment="SWIG_CanCastAsInteger") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
@@ -331,7 +335,8 @@ SWIG_From_dec(double)(double value)
 }
 }
 
-%fragment(SWIG_AsVal_frag(double),"header") {
+%fragment(SWIG_AsVal_frag(double),"header",
+	  fragment="<errno.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(double)(SV *obj, double *val)
 {

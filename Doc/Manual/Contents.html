@@ -84,11 +84,8 @@
 <ul>
 <li><a href="Windows.html#Windows_csharp">C#</a>
 <li><a href="Windows.html#Windows_java">Java</a>
-<li><a href="Windows.html#Windows_perl">Perl</a>
 <li><a href="Windows.html#Windows_python">Python</a>
 <li><a href="Windows.html#Windows_tcl">TCL</a>
-<li><a href="Windows.html#Windows_r">R</a>
-<li><a href="Windows.html#Windows_ruby">Ruby</a>
 </ul>
 <li><a href="Windows.html#Windows_other_compilers">Instructions for using the Examples with other compilers</a>
 </ul>
@@ -143,16 +140,17 @@
 <li><a href="SWIG.html#SWIG_nn2">Running SWIG</a>
 <ul>
 <li><a href="SWIG.html#SWIG_nn3">Input format</a>
-<li><a href="SWIG.html#SWIG_output">SWIG Output</a>
+<li><a href="SWIG.html#SWIG_output">SWIG output</a>
 <li><a href="SWIG.html#SWIG_nn5">Comments</a>
 <li><a href="SWIG.html#SWIG_nn6">C Preprocessor</a>
-<li><a href="SWIG.html#SWIG_nn7">SWIG Directives</a>
-<li><a href="SWIG.html#SWIG_nn8">Parser Limitations</a>
+<li><a href="SWIG.html#SWIG_nn7">SWIG directives</a>
+<li><a href="SWIG.html#SWIG_nn8">Parser limitations</a>
+<li><a href="SWIG.html#SWIG_parse_tree">Parse tree</a>
 </ul>
-<li><a href="SWIG.html#SWIG_nn9">Wrapping Simple C Declarations</a>
+<li><a href="SWIG.html#SWIG_nn9">Wrapping simple C declarations</a>
 <ul>
-<li><a href="SWIG.html#SWIG_nn10">Basic Type Handling</a>
-<li><a href="SWIG.html#SWIG_nn11">Global Variables</a>
+<li><a href="SWIG.html#SWIG_nn10">Basic type handling</a>
+<li><a href="SWIG.html#SWIG_nn11">Global variables</a>
 <li><a href="SWIG.html#SWIG_nn12">Constants</a>
 <li><a href="SWIG.html#SWIG_nn13">A brief word about const</a>
 <li><a href="SWIG.html#SWIG_nn14">A cautionary tale of char *</a>
@@ -619,6 +617,9 @@
 <li><a href="Typemaps.html#Typemaps_typecheck_pointer">SWIG_TYPECHECK_POINTER precedence level and the typecheck typemap</a>
 </ul>
 <li><a href="Typemaps.html#Typemaps_nn48">More about %apply and %clear</a>
+<ul>
+<li><a href="Typemaps.html#Typemaps_apply_typedefs">Typedefs and %apply</a>
+</ul>
 <li><a href="Typemaps.html#Typemaps_nn47">Passing data between typemaps</a>
 <li><a href="Typemaps.html#Typemaps_nn52">C++ "this" pointer</a>
 <li><a href="Typemaps.html#Typemaps_nn51">Where to go for more information?</a>
@@ -866,7 +867,11 @@
 <li><a href="CSharp.html#CSharp_named_arguments">C# named and optional arguments</a>
 <li><a href="CSharp.html#CSharp_typemap_examples">C# Typemap examples</a>
 <ul>
-<li><a href="CSharp.html#CSharp_memory_management_member_variables">Memory management when returning references to member variables</a>
+<li><a href="CSharp.html#CSharp_memory_management_member_variables">Memory management for accessing member variables</a>
+<ul>
+<li><a href="CSharp.html#CSharp_memory_management_member_variables_accessors">Member variables via accessor methods</a>
+<li><a href="CSharp.html#CSharp_memory_management_member_variables_direct">Direct access to member variables</a>
+</ul>
 <li><a href="CSharp.html#CSharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
 <li><a href="CSharp.html#CSharp_date_marshalling">Date marshalling using the csin typemap and associated attributes</a>
 <li><a href="CSharp.html#CSharp_date_properties">A date example demonstrating marshalling of C# properties</a>
@@ -1142,7 +1147,11 @@
 <li><a href="Java.html#Java_adding_equals_method">Adding an equals method to the Java classes</a>
 <li><a href="Java.html#Java_void_pointers">Void pointers and a common Java base class</a>
 <li><a href="Java.html#Java_struct_pointer_pointer">Struct pointer to pointer</a>
-<li><a href="Java.html#Java_memory_management_member_variables">Memory management when returning references to member variables</a>
+<li><a href="Java.html#Java_memory_management_member_variables">Memory management for accessing member variables</a>
+<ul>
+<li><a href="Java.html#Java_memory_management_member_variables_accessors">Member variables via accessor methods</a>
+<li><a href="Java.html#Java_memory_management_member_variables_direct">Direct access to member variables</a>
+</ul>
 <li><a href="Java.html#Java_memory_management_objects">Memory management for objects passed to the C++ layer</a>
 <li><a href="Java.html#Java_date_marshalling">Date marshalling using the javain typemap and associated attributes</a>
 </ul>

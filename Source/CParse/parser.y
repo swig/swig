@@ -223,8 +223,6 @@ static void set_comment(Node *n, String *comment) {
  *                              Variables
  * ----------------------------------------------------------------------------- */
 
-static char  *typemap_lang = 0;    /* Current language setting */
-
 static int cplus_mode  = 0;
 
 /* C++ modes */
@@ -278,10 +276,6 @@ static const char* storage_class_string(int c) {
 
 /* include types */
 static int   import_mode = 0;
-
-void SWIG_typemap_lang(const char *tm_lang) {
-  typemap_lang = Swig_copy_string(tm_lang);
-}
 
 void SWIG_cparse_set_compact_default_args(int defargs) {
   compact_default_args = defargs;
@@ -1772,7 +1766,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <str> CHARCONST WCHARCONST
 %token <dtype> NUM_INT NUM_DOUBLE NUM_FLOAT NUM_LONGDOUBLE NUM_UNSIGNED NUM_LONG NUM_ULONG NUM_LONGLONG NUM_ULONGLONG NUM_BOOL
 %token TYPEDEF
-%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_RAW TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
+%token <type> TYPE_INT TYPE_UNSIGNED TYPE_SHORT TYPE_LONG TYPE_FLOAT TYPE_DOUBLE TYPE_CHAR TYPE_WCHAR TYPE_VOID TYPE_SIGNED TYPE_BOOL TYPE_COMPLEX TYPE_NON_ISO_INT8 TYPE_NON_ISO_INT16 TYPE_NON_ISO_INT32 TYPE_NON_ISO_INT64
 %token LPAREN RPAREN COMMA SEMI EXTERN LBRACE RBRACE PERIOD ELLIPSIS
 %token CONST_QUAL VOLATILE REGISTER STRUCT UNION EQUAL SIZEOF ALIGNOF MODULE LBRACKET RBRACKET LLBRACKET RRBRACKET
 %token BEGINFILE ENDOFFILE
@@ -1801,7 +1795,6 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %token <str> DOXYGENSTRING
 %token <str> DOXYGENPOSTSTRING
 
-%precedence CAST
 %left  QUESTIONMARK
 %left  LOR
 %left  LAND
@@ -1817,7 +1810,7 @@ static String *add_qualifier_to_declarator(SwigType *type, SwigType *qualifier) 
 %left  LSHIFT RSHIFT
 %left  PLUS MINUS
 %left  STAR SLASH MODULO
-%precedence UMINUS NOT LNOT
+%precedence UMINUS NOT LNOT CAST
 %token DCOLON
 
 %type <node>     program interface declaration swig_directive ;
@@ -2904,7 +2897,7 @@ typemap_directive :  TYPEMAP LPAREN typemap_type RPAREN tm_list stringbrace {
 	       }
                ;
 
-/* typemap method type (lang,method) or (method) */
+/* typemap method and optional kwargs */
 
 typemap_type   : kwargs {
 		 String *name = Getattr($kwargs, "name");
@@ -3679,7 +3672,6 @@ cpp_alternate_rettype : primitive_type
 		$$ = $idcolon;
 		Insert($$, 0, "enum ");
 	      }
-              | TYPE_RAW
               | idcolon { $$ = $idcolon; }
               | idcolon AND {
                 $$ = $idcolon;
@@ -5354,7 +5346,6 @@ anonymous_bitfield :  attribute storage_class anon_bitfield_type COLON expr SEMI
 anon_bitfield_type : primitive_type
                | TYPE_BOOL
                | TYPE_VOID
-               | TYPE_RAW
 
                | idcolon { $$ = $idcolon; }
                ;
@@ -6429,7 +6420,6 @@ type_right     : primitive_type
                | TYPE_BOOL
                | TYPE_VOID
                | c_enum_key idcolon { $$ = NewStringf("enum %s", $idcolon); }
-               | TYPE_RAW
 
                | idcolon %expect 1 {
 		  $$ = $idcolon;

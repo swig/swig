@@ -269,9 +269,6 @@ public:
     /* Set language-specific configuration file */
     SWIG_config_file("lua.swg");
 
-    /* Set typemap language */
-    SWIG_typemap_lang("lua");
-
     /* Enable overloaded methods support */
     allow_overloading();
   }

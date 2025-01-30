@@ -335,10 +335,6 @@ swig_varlink_setattr(PyObject *o, char *n, PyObject *p) {
   return res;
 }
 
-#if !defined(SWIGPYTHON_BUILTIN) && PY_VERSION_HEX >= 0x03030000
-#define SWIG_HEAPTYPES
-#endif
-
 SWIGINTERN PyTypeObject*
 swig_varlink_type(void) {
   static char varlink__doc__[] = "Swig var link object";
@@ -393,7 +389,7 @@ swig_varlink_type(void) {
 #if (PY_VERSION_HEX >= 0x03080000) && (PY_VERSION_HEX < 0x03090000)
       0,                                  /* tp_print */
 #endif
-#if PY_VERSION_HEX >= 0x030C0000
+#if PY_VERSION_HEX >= 0x030c0000
       0,                                  /* tp_watched */
 #endif
 #if PY_VERSION_HEX >= 0x030d00a4
@@ -1029,7 +1025,7 @@ SwigPyObject_TypeOnce(void) {
 #if (PY_VERSION_HEX >= 0x03080000) && (PY_VERSION_HEX < 0x03090000)
       0,                                    /* tp_print */
 #endif
-#if PY_VERSION_HEX >= 0x030C0000
+#if PY_VERSION_HEX >= 0x030c0000
       0,                                    /* tp_watched */
 #endif
 #if PY_VERSION_HEX >= 0x030d00a4
@@ -1251,7 +1247,7 @@ SwigPyPacked_TypeOnce(void) {
 #if (PY_VERSION_HEX >= 0x03080000) && (PY_VERSION_HEX < 0x03090000)
       0,                                    /* tp_print */
 #endif
-#if PY_VERSION_HEX >= 0x030C0000
+#if PY_VERSION_HEX >= 0x030c0000
       0,                                    /* tp_watched */
 #endif
 #if PY_VERSION_HEX >= 0x030d00a4
@@ -1356,7 +1352,7 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
   (void)obj;
 # ifdef PyWeakref_CheckProxy
   if (PyWeakref_CheckProxy(pyobj)) {
-#if PY_VERSION_HEX >= 0x030D0000
+#if PY_VERSION_HEX >= 0x030d0000
     PyWeakref_GetRef(pyobj, &pyobj);
     Py_DECREF(pyobj);
 #else

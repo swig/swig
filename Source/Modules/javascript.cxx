@@ -1360,9 +1360,6 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
   // Add a symbol to the parser for conditional compilation
   Preprocessor_define("SWIGJAVASCRIPT 1", 0);
 
-  // Add typemap definitions
-  SWIG_typemap_lang("javascript");
-
   // Set configuration file
   SWIG_config_file("javascript.swg");
 

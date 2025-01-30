@@ -128,9 +128,6 @@ public:
     // Add a symbol for this module
 
     Preprocessor_define("SWIGOCAML 1", 0);
-    // Set name of typemaps
-
-    SWIG_typemap_lang("ocaml");
 
     // Read in default typemaps */
     SWIG_config_file("ocaml.i");

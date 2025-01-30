@@ -1,5 +1,9 @@
 %module nspace_class_forward3
 
+#ifdef SWIGPHP
+%rename(func) fn;
+#endif
+
 %inline %{
   namespace NS {
     class Foo;

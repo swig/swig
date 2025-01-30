@@ -8,6 +8,10 @@
  * Fragments for C header files
  * ----------------------------------------------------------------------------- */
 
+%fragment("<errno.h>", "header") %{
+#include <errno.h>
+%}
+
 %fragment("<float.h>", "header") %{
 #include <float.h>
 %}

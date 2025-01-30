@@ -21,11 +21,8 @@
 <ul>
 <li><a href="#Windows_csharp">C#</a>
 <li><a href="#Windows_java">Java</a>
-<li><a href="#Windows_perl">Perl</a>
 <li><a href="#Windows_python">Python</a>
 <li><a href="#Windows_tcl">TCL</a>
-<li><a href="#Windows_r">R</a>
-<li><a href="#Windows_ruby">Ruby</a>
 </ul>
 <li><a href="#Windows_other_compilers">Instructions for using the Examples with other compilers</a>
 </ul>
@@ -72,7 +69,7 @@ SWIG does not come with the usual Windows type installation program, however it 
 
 
 <p>
-The swigwin distribution contains the SWIG Windows 32-bit executable, swig.exe, which will run on both 32-bit and 64-bit versions of Windows.
+The swigwin distribution contains the SWIG Windows 64-bit executable, swig.exe, which will only run on 64-bit versions of Windows.
 If you want to build your own swig.exe have a look at <a href="#Windows_swig_exe">Building swig.exe on Windows</a>.
 </p>
 
@@ -81,11 +78,12 @@ If you want to build your own swig.exe have a look at <a href="#Windows_swig_exe
 
 
 <p>
-Microsoft Visual C++ is the most commonly used compiler for compiling and linking SWIG's output on Windows.
-The Examples directory has a few Visual C++ project files (.dsp files). 
-These were produced by Visual C++ 6.
-Newer versions of Visual Studio, such as Visual Studio 2022, are able to open and convert these project files.
-Each C# example comes with a Visual Studio 2005 solution and associated project files instead of Visual C++ 6 project files.
+Microsoft Visual C++ is used for compiling and linking SWIG's output on Windows for some languages.
+However, MinGW and gcc is often the only supported toolchain for a number of target languages.
+The Examples directory has a few Visual C++ project files (.vcxproj files) where the target languages are known to work with Visual C++.
+These were produced by Visual Studio 2019.
+Newer versions of Visual Studio, such as Visual Studio 2022, are able to open and convert these project files if necessary.
+Each C# example comes with a Visual Studio 2019 solution in addition to the .vcxproj file the C# (.csproj) project file.
 The project files have been set up to execute SWIG in a custom build rule for the SWIG interface (.i) file. 
 Alternatively run the <a href="#Windows_examples_cygwin">examples using Cygwin</a>.
 
@@ -98,10 +96,8 @@ More information on each of the examples is available with the examples distribu
 <p>
 Ensure the SWIG executable is as supplied in the SWIG root directory in order for the examples to work. 
 Most languages require some environment variables to be set <b>before</b> running Visual C++. 
-Note that Visual C++ must be re-started to pick up any changes in environment variables. 
-Open up an example .dsp file, Visual C++ will prompt you to upgrade the project and convert
-it into an MSBuild project (.vcxproj file) and Solution (.sln file).
-Note that older versions of Visual C++ will simply create a workspace for you (.dsw file).
+Note that Visual Studio must be re-started to pick up any changes in environment variables. 
+Open up an example .vcxproj file or .sln file, Visual Studio will prompt you to upgrade the project if necessary.
 Ensure the Release build is selected then do a Rebuild Solution from the Build menu.
 The required environment variables are displayed with their current values during the build.
 </p>
@@ -117,7 +113,7 @@ If you are interested in how the project files are set up there is explanatory i
 
 <p>
 The C# examples do not require any environment variables to be set as a C# project file is included.
-Just open up the .sln solution file in Visual Studio 2005 or later, select Release Build, and do a Rebuild Solution from the Build menu.
+Just open up the .sln solution file in Visual Studio 2019 or later, select Release Build, and do a Rebuild Solution from the Build menu.
 The accompanying C# and C++ project files are automatically used by the solution file.
 </p>
 
@@ -128,80 +124,38 @@ The accompanying C# and C++ project files are automatically used by the solution
 <p>
 <b><tt>JAVA_INCLUDE</tt></b> : Set this to the directory containing jni.h<br>
 <b><tt>JAVA_BIN</tt></b> : Set this to the bin directory containing javac.exe<p>
-Example using JDK1.3:<br>
+Example using the openjdk package installed in a Conda environment:<br>
 <tt>
-JAVA_INCLUDE: D:\jdk1.3\include<br>
-JAVA_BIN: D:\jdk1.3\bin<br>
+JAVA_INCLUDE: C:\miniconda3\envs\java\Library\lib\jvm\include<br>
+JAVA_BIN: C:\miniconda3\envs\java\Library\lib\jvm\bin<br>
 </tt>
 </p>
 
 
-<H4><a name="Windows_perl">3.2.1.3 Perl</a></H4>
-
-
-<p>
-<b><tt>PERL5_INCLUDE</tt></b> : Set this to the directory containing perl.h<br>
-<b><tt>PERL5_LIB</tt></b> : Set this to the Perl library including path for linking<p>
-Example using nsPerl 5.004_04:<p>
-<tt>
-PERL5_INCLUDE: D:\nsPerl5.004_04\lib\CORE<br>
-PERL5_LIB: D:\nsPerl5.004_04\lib\CORE\perl.lib<br>
-</tt>
-</p>
-
-
-<H4><a name="Windows_python">3.2.1.4 Python</a></H4>
+<H4><a name="Windows_python">3.2.1.3 Python</a></H4>
 
 
 <p>
 <b><tt>PYTHON_INCLUDE</tt></b> : Set this to the directory that contains Python.h<br>
 <b><tt>PYTHON_LIB</tt></b> : Set this to the Python library including path for linking<p>
-Example using Python 2.1.1:<br>
+Example using Python 3.13 installed in a Conda environment:<br>
 <tt>
-PYTHON_INCLUDE: D:\python21\include<br>
-PYTHON_LIB: D:\python21\libs\python21.lib<br>
+PYTHON_INCLUDE: C:\miniconda3\envs\python\include<br>
+PYTHON_LIB: C:\miniconda3\envs\python\libs\python313.lib<br>
 </tt>
 </p>
 
 
-<H4><a name="Windows_tcl">3.2.1.5 TCL</a></H4>
+<H4><a name="Windows_tcl">3.2.1.4 TCL</a></H4>
 
 
 <p>
 <b><tt>TCL_INCLUDE</tt></b> : Set this to the directory containing tcl.h<br>
 <b><tt>TCL_LIB</tt></b> : Set this to the TCL library including path for linking<p>
-Example using ActiveTcl 8.3.3.3<br>
+Example using ActiveTcl 8.6<br>
 <tt>
-TCL_INCLUDE: D:\tcl\include<br>
-TCL_LIB: D:\tcl\lib\tcl83.lib<br>
-</tt>
-</p>
-
-
-<H4><a name="Windows_r">3.2.1.6 R</a></H4>
-
-
-<p>
-<b><tt>R_INCLUDE</tt></b> : Set this to the directory containing R.h<br>
-<b><tt>R_LIB</tt></b> : Set this to the R library (Rdll.lib) including path for linking. The library needs to be built as described in the R README.packages file (the pexports.exe approach is the easiest).<p>
-Example using R 2.5.1:<br>
-<tt>
-R_INCLUDE: C:\Program Files\R\R-2.5.1\include<br>
-R_LIB: C:\Program Files\R\R-2.5.1\bin\Rdll.lib<br>
-</tt>
-</p>
-
-
-<H4><a name="Windows_ruby">3.2.1.7 Ruby</a></H4>
-
-
-<p>
-<b><tt>RUBY_INCLUDE</tt></b> : Set this to the directory containing ruby.h<br>
-<b><tt>RUBY_LIB</tt></b> : Set this to the ruby library including path for linking<p>
-Example using Ruby 1.6.4:<br>
-<tt>
-RUBY_INCLUDE: D:\ruby\lib\ruby\1.6\i586-mswin32<br>
-RUBY_LIB: D:\ruby\lib\mswin32-ruby16.lib<br>
+TCL_INCLUDE: C:\ActiveTcl\include<br>
+TCL_LIB: C:\ActiveTcl\lib\tcl86t.lib<br>
 </tt>
 </p>
 
@@ -223,7 +177,7 @@ Normally this is not needed, so most people will want to ignore this section.
 </p>
 
 <p>
-There are various ways to build the SWIG executable including <a href="https://cmake.org/">CMake</a> which is able to generate project files for building with <a href="https://visualstudio.microsoft.com/">Visual Studio</a> <a href="https://docs.microsoft.com//cpp/">MSVC</a>.<br>
+There are various ways to build the SWIG executable including <a href="https://cmake.org/">CMake</a> which is able to generate project files for building with <a href="https://visualstudio.microsoft.com/">Visual Studio</a> <a href="https://docs.microsoft.com/cpp/">MSVC</a>.<br>
 SWIG can also be compiled and run using <a href="https://www.msys2.org/">MSYS2</a> with <a href="https://www.mingw-w64.org/">MinGW-w64</a>, <a href="https://www.cygwin.com">Cygwin</a> or <a href="https://osdn.net/projects/mingw/">MinGW</a>, all of which provide a Unix like front end to Windows and comes free with the <a href="https://gcc.gnu.org/">GCC</a> C/C++ compiler.<br>
 SWIG can also be compiled with MSYS2 using MSVC and SWIG <a href="https://github.com/swig/cccl">MSVC wrapper</a>.<br>
 </p>

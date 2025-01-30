@@ -30,7 +30,9 @@ FAILING_CPP_TESTS := \
 include $(srcdir)/../common.mk
 
 # Overridden variables here
-# none!
+
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
 
 # Custom tests - tests with additional commandline options
 # none!

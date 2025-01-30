@@ -269,8 +269,10 @@ cast it to that & accept the loss of precision.
 An alternative solution would be a long long struct or class
 with the relevant operators.
 */
-%apply long {long long, signed long long, unsigned long long};
-%apply const long& {const long long&, const signed long long&, const unsigned long long&};
+%apply long {long long, signed long long};
+%apply unsigned long {unsigned long long};
+%apply const long& {const long long&, const signed long long&};
+%apply const unsigned long& {const unsigned long long&};
 
 /* It is possible to also pass a lua_State* into a function, so
 void fn(int a, float b, lua_State* s) is wrappable as

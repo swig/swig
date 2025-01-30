@@ -1,11 +1,13 @@
-Microsoft Visual Studio Solution File, Format Version 9.00
-# Visual Studio 2005
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31112.23
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "example-cs", "example-cs.csproj", "{C17D27DF-4C57-4625-AEE0-A40C4F48FF1A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C2302635-D489-4678-96B4-70F5309DCBE6} = {C2302635-D489-4678-96B4-70F5309DCBE6}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example-vc", "example-vc.vcproj", "{C2302635-D489-4678-96B4-70F5309DCBE6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example", "example-vc.vcxproj", "{C2302635-D489-4678-96B4-70F5309DCBE6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,5 +36,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B92DB7B6-D8C3-43B8-A656-A03D5D8C6B93}
 	EndGlobalSection
 EndGlobal

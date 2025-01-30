@@ -128,7 +128,7 @@ extern int count(char *bytes, int len, char c);
 %#endif
 }
 
-/* Return the mutated string as a new object.  The SWIG_Python_AppendOutput
+/* Return the mutated string as a new object.  The SWIG_AppendOutput
    function takes an object and appends it to the output object
    to create a tuple */
 
@@ -139,7 +139,7 @@ extern int count(char *bytes, int len, char c);
 %#else
    o = PyString_FromStringAndSize($1,$2);
 %#endif
-   $result = SWIG_Python_AppendOutput($result, o, $isvoid);
+   $result = SWIG_AppendOutput($result, o);
    free($1);
 }   
 

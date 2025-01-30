@@ -1,5 +1,9 @@
 %module nspace_class_forward2
 
+#ifdef SWIGPHP
+%rename(func) NS::fn;
+#endif
+
 %nspace;
 
 %inline %{

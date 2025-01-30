@@ -45,7 +45,11 @@
 <li><a href="#CSharp_named_arguments">C# named and optional arguments</a>
 <li><a href="#CSharp_typemap_examples">C# Typemap examples</a>
 <ul>
-<li><a href="#CSharp_memory_management_member_variables">Memory management when returning references to member variables</a>
+<li><a href="#CSharp_memory_management_member_variables">Memory management for accessing member variables</a>
+<ul>
+<li><a href="#CSharp_memory_management_member_variables_accessors">Member variables via accessor methods</a>
+<li><a href="#CSharp_memory_management_member_variables_direct">Direct access to member variables</a>
+</ul>
 <li><a href="#CSharp_memory_management_objects">Memory management for objects passed to the C++ layer</a>
 <li><a href="#CSharp_date_marshalling">Date marshalling using the csin typemap and associated attributes</a>
 <li><a href="#CSharp_date_properties">A date example demonstrating marshalling of C# properties</a>
@@ -78,7 +82,7 @@ SWIG C# works equally well on non-Microsoft operating systems such as Linux, Sol
 <p>
 SWIG 3 and later requires .NET 2.0 at a minimum.
 There are some minor exceptions, where the minimum required is .NET 4.0.
-This is when using the <tt>std::complex</tt> and <tt>std::list</tt> STL containers.
+This is when using the <tt>std::complex</tt>, <tt>std::set</tt> and <tt>std::unordered_set</tt> STL containers.
 </p>
 
 <p>
@@ -182,11 +186,13 @@ The <tt>-namespace &lt;name&gt;</tt> commandline option will generate all code i
 C# supports nested namespaces that are not lexically nested, so nested namespaces will of course also work. For example:
 <tt>-namespace com.bloggs.widget</tt>, will generate code into C# namespaces:
 
-<div class="code"><pre>
+<div class="targetlang">
+<pre>
 namespace com.bloggs.widget {
   ...
 }
-</pre></div>
+</pre>
+</div>
 Note that by default, the generated C# classes have no namespace and the module name is unrelated to namespaces. The module name is just like in Java and is merely used to name some of the generated classes.
 </li>
 
@@ -360,7 +366,7 @@ char * function(char *);
 The output type is thus IntPtr and the input type is string. The resulting intermediary C# code is:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public static extern global::System.IntPtr function(string jarg1);
 </pre>
@@ -395,7 +401,7 @@ void SetMsg(const char *msg) {}
 The intermediary class will then have the marshalling as specified by everything in the 'imtype' typemap:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 class examplePINVOKE {
   ...
@@ -454,7 +460,7 @@ public:
 will generate a C# proxy class:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 [ThreadSafe]
 public class AClass : global::System.IDisposable {
@@ -494,7 +500,7 @@ An example for attaching attributes to the enum and enum values is shown below.
 which will result in the following C# enum:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 [global::System.ComponentModel.Description("Colours")]
 public enum Couleur {
@@ -952,7 +958,7 @@ Please refer to this section for details, but for convenience, the C# usage for 
 For the <tt>%array_functions</tt> example, the equivalent usage would be:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 SWIGTYPE_p_double a = example.new_doubleArray(10);  // Create an array
 for (int i=0; i&lt;10; i++)
@@ -966,7 +972,7 @@ example.delete_doubleArray(a);                      // Destroy array
 and for the <tt>%array_class</tt> example, the equivalent usage would be:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 doubleArray c = new doubleArray(10);    // Create double[10]
 for (int i=0; i&lt;10; i++)
@@ -1028,7 +1034,7 @@ We can now instruct SWIG to use the default marshalling typemaps by
 As a result, we get the following method in the module class:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public static void myArrayCopy(int[] sourceArray, int[] targetArray, int nitems) {
   examplePINVOKE.myArrayCopy(sourceArray, targetArray, nitems);
@@ -1043,7 +1049,7 @@ that SWIG has generated code that uses attributes
 marshalling for the arrays:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 [global::System.Runtime.InteropServices.DllImport("example", EntryPoint="CSharp_myArrayCopy")]
 public static extern void myArrayCopy([global::System.Runtime.InteropServices.In, global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPArray)]int[] jarg1, 
@@ -1081,7 +1087,7 @@ Now, we can instruct SWIG to wrap this by
 This results in the module class method
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
   public static void myArraySwap(int[] array1, int[] array2, int nitems) {
     examplePINVOKE.myArraySwap(array1, array2, nitems);
@@ -1093,7 +1099,7 @@ This results in the module class method
 and intermediary class method
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
   [global::System.Runtime.InteropServices.DllImport("example", EntryPoint="CSharp_myArraySwap")]
   public static extern void myArraySwap([global::System.Runtime.InteropServices.In, global::System.Runtime.InteropServices.Out, global::System.Runtime.InteropServices.MarshalAs(UnmanagedType.LPArray)]int[] jarg1, 
@@ -1164,7 +1170,7 @@ case when using P/Invoke default marshalling.
 As a result, we get the following method in the module class:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
   public unsafe static void myArrayCopy(int[] sourceArray, int[] targetArray, int nitems) {
     fixed ( int *swig_ptrTo_sourceArray = sourceArray ) {
@@ -1189,7 +1195,7 @@ Also the intermediary class method looks a little different from the default mar
 example - the method is expecting an IntPtr as the parameter type.
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 [global::System.Runtime.InteropServices.DllImport("example", EntryPoint="CSharp_myArrayCopy")]
 public static extern void myArrayCopy(global::System.IntPtr jarg1, global::System.IntPtr jarg2, int jarg3);
@@ -1348,7 +1354,7 @@ void positivesonly(int number) {
 When the following C# code is executed:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class runme {
   static void Main() {
@@ -1399,7 +1405,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_positivesonly(int jarg1) {
 This largely comes from the "check" typemap. The managed code in the module class is:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class example {
   public static void positivesonly(int number) {
@@ -1434,7 +1440,7 @@ If the "check" typemap did not exist, then
 the following module class would instead be generated:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class example {
   public static void positivesonly(int number) {
@@ -1532,7 +1538,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_negativesonly(int jarg1) {
 The managed code generated does check for the pending exception as mentioned earlier as the C# version of <tt>%exception</tt> has the <tt>canthrow</tt> attribute set by default:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
   public static void negativesonly(int value) {
     examplePINVOKE.negativesonly(value);
@@ -1687,7 +1693,7 @@ It stores the pending exception in Thread Local Storage so that the exception ha
 The boiler plate code above must be used in addition to a handcrafted <tt>CustomApplicationException</tt>:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 // Custom C# Exception
 class CustomApplicationException : global::System.ApplicationException {
@@ -1722,7 +1728,7 @@ void oddsonly(int input) throw (std::out_of_range) {
 The "throws" typemap now simply calls our new <tt>SWIG_CSharpSetPendingExceptionCustom()</tt> function so that the exception can be caught, as such:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 try {
   example.oddsonly(2);
@@ -1807,7 +1813,7 @@ for the class <tt>Base</tt>.
 The following is a C# class inheriting from <tt>Base</tt>:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class CSharpDerived : Base
 {
@@ -1881,7 +1887,7 @@ when the director feature is enabled for the <tt>Base</tt> class.
 Below is the generated C# <tt>Base</tt> director class.
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class Base : global::System.IDisposable {
   private global::System.Runtime.InteropServices.HandleRef swigCPtr;
@@ -1985,7 +1991,7 @@ It calls the intermediary method <tt>Base_director_connect()</tt> which is reall
 This method simply maps each C# delegate onto a C function pointer.
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 SWIGEXPORT void SWIGSTDCALL CSharp_Base_director_connect(void *objarg, 
                                         SwigDirector_Base::SWIG_Callback0_t callback0,
@@ -2053,7 +2059,7 @@ void SwigDirector_Base::BaseBoolMethod(Base const &amp;b, bool flag) {
 The delegates from the above example are <tt>public</tt> by default:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
   public delegate uint SwigDelegateBase_0(uint x);
   public delegate void SwigDelegateBase_1(global::System.IntPtr b, bool flag);
@@ -2067,7 +2073,7 @@ For example, using <tt>%feature("csdirectordelegatemodifiers") "internal"</tt>
 before SWIG parses the Base class will change all the delegates to <tt>internal</tt>:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
   internal delegate uint SwigDelegateBase_0(uint x);
   internal delegate void SwigDelegateBase_1(global::System.IntPtr b, bool flag);
@@ -2098,7 +2104,7 @@ Recall that C++ methods with default parameters generate overloaded methods for 
 with two <tt>DefaultMethod</tt> override methods:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class CSharpDefaults : Defaults
 {
@@ -2226,7 +2232,7 @@ Let's consider an example:
 The generated C# proxy class contains:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class Foo : global::System.IDisposable {
   ...
@@ -2266,16 +2272,21 @@ might look at the files "<tt>csharp.swg</tt>" and "<tt>typemaps.i</tt>" in
 the SWIG library.
 
 
-<H3><a name="CSharp_memory_management_member_variables">23.9.1 Memory management when returning references to member variables</a></H3>
+<H3><a name="CSharp_memory_management_member_variables">23.9.1 Memory management for accessing member variables</a></H3>
 
 
 <p>
-This example shows how to prevent premature garbage collection of objects when the underlying C++ class returns a pointer or reference to a member variable.
-The example is a direct equivalent to this <a href="Java.html#Java_memory_management_objects">Java equivalent</a>.
+There are lifetime issues that need to be considered when accessing member variables directly or via an accessor method that returns by pointer or reference.
+Accessor methods that return by value are fine as a copy is made and the lifetime of the copied object is managed entirely by the CLR without any additional underlying C/C++ pointers to worry about.
+The examples here show how to prevent premature garbage collection of objects when the underlying C++ class returns a pointer or reference to a member variable.
 </p>
 
+
+<H4><a name="CSharp_memory_management_member_variables_accessors">23.9.1.1 Member variables via accessor methods</a></H4>
+
+
 <p>
-Consider the following C++ code:
+Consider the following C++ code which provides the <tt>getWheel()</tt> accessor method to return a reference to a member variable:
 </p>
 
 <div class="code">
@@ -2289,7 +2300,7 @@ class Bike {
   Wheel wheel;
 public:
   Bike(int val) : wheel(val) {}
-  Wheel&amp; getWheel() { return wheel; }
+  Wheel &amp;getWheel() { return wheel; }
 };
 </pre>
 </div>
@@ -2299,30 +2310,52 @@ and the following usage from C# after running the code through SWIG:
 </p>
 
 
-<div class="code">
+<div class="targetlang">
 <pre>
-  Wheel wheel = new Bike(10).getWheel();
-  global::System.Console.WriteLine("wheel size: " + wheel.size);
-  // Simulate a garbage collection
-  global::System.GC.Collect();
-  global::System.GC.WaitForPendingFinalizers();
-  global::System.Console.WriteLine("wheel size: " + wheel.size);
+    static Wheel grabWheel()
+    {
+        Wheel wheel = new Bike(10).getWheel();
+        global::System.Console.WriteLine("wheel size: " + wheel.size);
+        return wheel;
+    }
+    static void Main()
+    {
+        Wheel wheel = grabWheel();
+
+        // Simulate a garbage collection
+        global::System.GC.Collect();
+        global::System.GC.WaitForPendingFinalizers();
+
+        global::System.Console.WriteLine("wheel size: " + wheel.size);
+    }
 </pre>
 </div>
 
+
 <p>
-Don't be surprised that if the resulting output gives strange results such as...
+Don't be surprised that if the resulting output gives strange results after the garbage collector has run such as...
 </p>
 
 <div class="shell">
 <pre>
 wheel size: 10
-wheel size: 135019664
+wheel size: 0
 </pre>
 </div>
 
 <p>
-What has happened here is the garbage collector has collected the <tt>Bike</tt> instance as it doesn't think it is needed any more.
+or even a memory access violation error such as
+</p>
+
+<div class="shell">
+<pre>
+Fatal error. System.AccessViolationException: Attempted to read or write protected memory. This is often an indication that other memory is corrupt.
+</pre>
+</div>
+
+<p>
+The garbage collector is non-deterministic; sometimes it does not collect any objects and other times it does.
+What has happened this time is the garbage collector has collected the <tt>Bike</tt> instance as it doesn't think it is needed any more.
 The proxy instance, <tt>wheel</tt>, contains a reference to memory that was deleted when the <tt>Bike</tt> instance was collected.
 In order to prevent the garbage collector from collecting the <tt>Bike</tt> instance a reference to the <tt>Bike</tt> must
 be added to the <tt>wheel</tt> instance. You can do this by adding the reference when the <tt>getWheel()</tt> method
@@ -2343,7 +2376,7 @@ is called using the following typemaps.
 // Add a C# reference to prevent premature garbage collection and resulting use
 // of dangling C++ pointer. Intended for methods that return pointers or
 // references to a member variable.
-%typemap(csout, excode=SWIGEXCODE) Wheel&amp; getWheel {
+%typemap(csout, excode=SWIGEXCODE) Wheel &amp;getWheel {
     global::System.IntPtr cPtr = $imcall;$excode
     $csclassname ret = null;
     if (cPtr != global::System.IntPtr.Zero) {
@@ -2360,7 +2393,7 @@ The code in the first typemap gets added to the <tt>Wheel</tt> proxy class.
 The code in the second typemap constitutes the bulk of the code in the generated <tt>getWheel()</tt> function:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class Wheel : global::System.IDisposable {
   ...
@@ -2388,13 +2421,126 @@ public class Bike : global::System.IDisposable {
 
 <p>
 Note the <tt>addReference</tt> call.
+The second display of the wheel size from C# will now be reliable without inadvertent garbage collection.
+</p>
+
+
+<H4><a name="CSharp_memory_management_member_variables_direct">23.9.1.2 Direct access to member variables</a></H4>
+
+
+<p>
+Accessing public member variables directly unfortunately has the same problem.
+Consider a simple change to the <tt>Bike</tt> class above so that the <tt>getWheel()</tt> method is replaced by direct public access to the <tt>wheel</tt> member variable:
+</p>
+
+<div class="code">
+<pre>
+class Bike {
+public:
+  Wheel wheel;
+  Bike(int val) : wheel(val) {}
+};
+</pre>
+</div>
+
+<p>
+As described in <a href="SWIGPlus.html#SWIGPlus_member_data">Member data</a> and for reasons described in
+<a href="SWIG.html#SWIG_structure_data_members">Structure data members</a>,
+public member variables are wrapped <i><b>as if</b></i> the class had two public accessor methods using pointers where the getter returns a pointer to the member:
+</p>
+
+<div class="code">
+<pre>
+class Bike {
+  ...
+public:
+  Wheel *wheel();
+  void wheel(Wheel *w);
+  ...
+};
+</pre>
+</div>
+
+<p>
+The C# code for accessing the member variable directly is shown below including the same garbage collection:
+</p>
+
+<div class="targetlang">
+<pre>
+  static Wheel grabWheel()
+  {
+    Wheel wheel = new Bike(10).wheel;
+    global::System.Console.WriteLine("wheel size: " + wheel.size);
+    return wheel;
+  }
+  static void Main()
+  {
+    Wheel wheel = grabWheel();
+
+    // Simulate a garbage collection
+    global::System.GC.Collect();
+    global::System.GC.WaitForPendingFinalizers();
+
+    global::System.Console.WriteLine("wheel size: " + wheel.size);
+  }
+</pre>
+</div>
+
+<p>
+The same early garbage collection problem is prevented again by adding a reference.
+However, the 'csvarout' typemap is used for obtaining member variables instead of the 'csout' typemap for function return types.
+</p>
+
+<div class="code">
+<pre>
+%typemap(csvarout, excode=SWIGEXCODE2) Wheel *wheel %{
+    get {
+      global::System.IntPtr cPtr = $imcall;$excode
+      $csclassname ret = null;
+      if (cPtr != global::System.IntPtr.Zero) {
+        ret = new $csclassname(cPtr, $owner);
+        ret.addReference(this);
+      }
+      return ret;
+    } %}
+</pre>
+</div>
+
+<p>
+Note that the name of the type in the typemap is <tt>wheel</tt> (the member variable name).
+Being familiar with <a href="Typemaps.html#Typemaps_debugging_search">Debugging typemap pattern matching</a> is highly recommended to see these details.
+The generated property getter is then:
+</p>
+
+<div class="targetlang">
+<pre>
+public class Bike : global::System.IDisposable {
+  ...
+  public Wheel wheel {
+    ...
+    get {
+      global::System.IntPtr cPtr = examplePINVOKE.Bike_wheel_get(swigCPtr);
+      Wheel ret = null;
+      if (cPtr != global::System.IntPtr.Zero) {
+        ret = new Wheel(cPtr, false);
+        ret.addReference(this);
+      }
+      return ret;
+    }
+  }
+}
+</pre>
+</div>
+
+<p>
+There are no premature garbage collection issues with member variable setters as there are no reference or pointer lifetime issues given the member variable is copied by value.
 </p>
 
 <H3><a name="CSharp_memory_management_objects">23.9.2 Memory management for objects passed to the C++ layer</a></H3>
 
 
 <p>
-The example is a direct equivalent to this <a href="Java.html#Java_memory_management_objects">Java equivalent</a>.
+The example is a direct equivalent to this <a href="Java.html#Java_memory_management_objects">Java example</a>.
 Managing memory can be tricky when using C++ and C# proxy classes.
 The previous example shows one such case and this example looks at memory management for a class passed to a C++ method which expects the object to remain in scope
 after the function has returned. Consider the following two C++ classes:
@@ -2433,7 +2579,7 @@ and usage from C++
 and more or less equivalent usage from C#
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
   Container container = new Container();
   Element element = new Element(20);
@@ -2446,7 +2592,7 @@ The C++ code will always print out 20, but the value printed out may not be this
 In order to understand why, consider a garbage collection occurring...
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
   Container container = new Container();
   Element element = new Element(20);
@@ -2465,7 +2611,7 @@ which ultimately means the <tt>container</tt> variable is holding a dangling poi
 One solution is to add in the appropriate references in the C# layer...
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class Container : global::System.IDisposable {
 
@@ -2509,7 +2655,7 @@ The 'post' code is generated into a finally block after the PInvoke call so the 
 as mentioned earlier, <tt>setElement</tt> is actually:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
   public void setElement(Element e) {
     try {
@@ -2560,7 +2706,7 @@ Note that <tt>dateIn</tt> is const and therefore read only and <tt>dateOut</tt> 
 First let's look at the code that is generated by default, where the C# proxy class <tt>CDate</tt> is used in the proxy interface:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class Action : global::System.IDisposable {
   ...
@@ -2598,7 +2744,7 @@ where '$csclassname' is translated into the proxy class name, <tt>CDate</tt> and
 From C#, the intention is then to call into a modified API with something like:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 System.DateTime dateIn = new System.DateTime(2011, 4, 13);
 System.DateTime dateOut = new System.DateTime();
@@ -2641,7 +2787,7 @@ The typemaps to achieve this are shown below.
 The resulting generated proxy code in the <tt>Action</tt> class follows:
  </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class Action : global::System.IDisposable {
   ...
@@ -2717,7 +2863,7 @@ void addYears(CDate *pDate, int years) {
 If usage of <tt>CDate *</tt> commonly follows this input/output pattern, usage from C# like the following
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 System.DateTime christmasEve = new System.DateTime(2000, 12, 24);
 example.addYears(ref christmasEve, 10); // christmasEve now contains 2010-12-24
@@ -2746,7 +2892,7 @@ will be possible with the following <tt>CDate *</tt> typemaps
 Globals are wrapped by the module class and for a module called example, the typemaps result in the following code:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class example {
   public static void addYears(ref System.DateTime pDate, int years) {
@@ -2790,7 +2936,7 @@ void subtractYears(CDate *pDate, int years) {
 The resulting generated code shows the termination of the <tt>using</tt> block:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class example {
   public static void subtractYears(ref System.DateTime pDate, int years) {
@@ -2827,7 +2973,7 @@ CDate ImportantDate = CDate(1999, 12, 31);
 The aim is to use <tt>System.DateTime</tt> from C# when accessing this date as shown in the following usage where the module name is 'example':
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 example.ImportantDate = new System.DateTime(2000, 11, 22);
 System.DateTime importantDate = example.ImportantDate;
@@ -2873,7 +3019,7 @@ The typemap type required is thus <tt>CDate *</tt>. Given that the previous sect
 For a module called example, the typemaps result in the following code:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class example {
   public static System.DateTime ImportantDate {
@@ -2916,7 +3062,8 @@ The 'pre' and 'post' attributes in the "csdirectorin" typemap act like the attri
 For example if we modify the <a href="#CSharp_date_marshalling">Date marshalling example</a> like this:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang">
+<pre>
 class CDate {
   ...
   void setYear(int);
@@ -2928,7 +3075,8 @@ struct Action {
   virtual ~Action();
   ...
 };
-</pre></div>
+</pre>
+</div>
 
 <p>
 and declare <tt>%feature ("director")</tt> for the <tt>Action</tt> class, we would have to define additional
@@ -2949,7 +3097,8 @@ marshalling rules for <tt>CDate &amp;</tt> parameter. The typemap may look like 
 The generated proxy class code will then contain the following wrapper for calling user-overloaded <tt>someCallback()</tt>:
 </p>
 
-<div class="code"><pre>
+<div class="targetlang">
+<pre>
 ...
   private void SwigDirectorMethodsomeCallback(global::System.IntPtr date) {
     System.DateTime tempdate = new System.DateTime();
@@ -2964,7 +3113,8 @@ The generated proxy class code will then contain the following wrapper for calli
     }
   }
 ...
-</pre></div>
+</pre>
+</div>
 <p>
 Pay special attention to the memory management issues, using these attributes.
 </p>
@@ -2992,7 +3142,7 @@ public:
 The default C# proxy class generated is:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class ExtendMe : global::System.IDisposable {
   ...
@@ -3028,7 +3178,7 @@ If instead we use the following typemap to override this for just the <tt>Extend
 The C# proxy class becomes a partial class:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public partial class ExtendMe : global::System.IDisposable {
   ...
@@ -3043,7 +3193,7 @@ public partial class ExtendMe : global::System.IDisposable {
 You can then of course declare another part of the partial class elsewhere, for example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public partial class ExtendMe : global::System.IDisposable {
   public int Part2() {
@@ -3057,7 +3207,7 @@ public partial class ExtendMe : global::System.IDisposable {
 and compile the following code:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 ExtendMe em = new ExtendMe();
 Console.WriteLine("part1: {0}", em.Part1());
@@ -3091,7 +3241,7 @@ struct NotABaseClass {
 The default C# proxy class method generated with Dispose method is:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class NotABaseClass : global::System.IDisposable {
   ...
@@ -3107,7 +3257,7 @@ The <tt>csclassmodifiers</tt> typemap can be used to modify the class modifiers 
 the <tt>csmethodmodifiers</tt> feature can be used on the destructor to modify the proxy's <tt>Dispose</tt> method:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 %typemap(csclassmodifiers) NotABaseClass "public sealed class"
 %csmethodmodifiers NotABaseClass::~NotABaseClass "public /*virtual*/";
@@ -3118,7 +3268,7 @@ the <tt>csmethodmodifiers</tt> feature can be used on the destructor to modify t
 The relevant generated code is thus:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public sealed class NotABaseClass : global::System.IDisposable {
   ...
@@ -3133,7 +3283,7 @@ public sealed class NotABaseClass : global::System.IDisposable {
 Any attempt to derive from the <tt>NotABaseClass</tt> in C# will result in a C# compiler error, for example:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class Derived : NotABaseClass {
 };
@@ -3185,7 +3335,7 @@ If we declare the following typemap before SWIG parses the <tt>ExtendMe</tt> cla
 The generated C# proxy class will instead be:
 </p>
 
-<div class="code">
+<div class="targetlang">
 <pre>
 public class ExtendMe : global::System.IDisposable {
   ...

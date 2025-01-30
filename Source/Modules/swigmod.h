@@ -355,7 +355,6 @@ private:
 };
 
 extern "C" {
-  void SWIG_typemap_lang(const char *);
   typedef Language *(*ModuleFactory) (void);
 }
 

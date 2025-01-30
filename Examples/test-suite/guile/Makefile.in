@@ -30,6 +30,9 @@ include $(srcdir)/../common.mk
 # Overridden variables here
 INCLUDES    += -I$(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/guile
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 # Custom tests - tests with additional commandline options
 %.multicpptest: SWIGOPT += $(GUILE_RUNTIME)
 

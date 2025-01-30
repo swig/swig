@@ -98,6 +98,9 @@
 <li><a href="#Typemaps_typecheck_pointer">SWIG_TYPECHECK_POINTER precedence level and the typecheck typemap</a>
 </ul>
 <li><a href="#Typemaps_nn48">More about %apply and %clear</a>
+<ul>
+<li><a href="#Typemaps_apply_typedefs">Typedefs and %apply</a>
+</ul>
 <li><a href="#Typemaps_nn47">Passing data between typemaps</a>
 <li><a href="#Typemaps_nn52">C++ "this" pointer</a>
 <li><a href="#Typemaps_nn51">Where to go for more information?</a>
@@ -5104,7 +5107,6 @@ For example:
 %typemap(check) int *POSITIVE {
   if (*$1 &lt;= 0) {
     SWIG_exception(SWIG_ValueError, "Expected a positive number!\n");
-    return NULL;
   }
 }
 
@@ -5143,6 +5145,88 @@ will delete the typemaps for all the typemap methods; namely "in", "check" and "
 %typemap(arginit) int *invalue;
 </pre>
 </div>
+
+<H3><a name="Typemaps_apply_typedefs">14.14.1 Typedefs and %apply</a></H3>
+
+
+<p>
+Consider a similar example to that shown earlier but this time with a couple of typedefs:
+</p>
+
+<div class="code">
+<pre>
+%typemap(check) int *NEGATIVE {
+  if (*$1 &gt;= 0) {
+    SWIG_exception(SWIG_ValueError, "Expected a negative number!\n");
+  }
+}
+
+typedef int integer;
+typedef integer negative_integer;
+void fff(negative_integer *number);
+</pre>
+</div>
+
+<p>
+Typically <tt>%apply</tt> is specified with the exact type <i>being applied</i>, such as <tt>int *</tt> in the following case:
+</p>
+
+<div class="code">
+<pre>
+%apply int *NEGATIVE { negative_integer *number };
+</pre>
+</div>
+
+<p>
+to find an exact typemap match: <tt>int *NEGATIVE</tt>.
+</p>
+
+<p>
+However, the following will also work in this case:
+</p>
+
+<div class="code">
+<pre>
+%apply negative_integer *NEGATIVE { negative_integer *number };
+</pre>
+</div>
+
+<p>
+as SWIG will use the typedefs to find a match. Typemaps will be searched for until one matches by following the typedefs in the expected order:
+</p>
+
+<ul>
+<li> <tt>negative_integer *NEGATIVE</tt>
+<li> <tt>integer *NEGATIVE</tt>
+<li> <tt>int *NEGATIVE</tt>
+</ul>
+
+<p>
+Note that the search looks for a <b>family of typemaps</b> and will stop when a typemap with <b>any matching method name</b> is found.
+So for example, consider the addition of an "argout" typemap method to the example:
+</p>
+
+<div class="code">
+<pre>
+%typemap(argout) negative_integer *NEGATIVE {
+  // return value somehow
+}
+</pre>
+</div>
+
+<p>
+There is then at least one typemap method creating a family of typemaps: <tt>negative_integer *NEGATIVE</tt>.
+As the search halts on the closest match when chasing typedefs,
+and this family of typemaps does not have a "check" typemap method, there is no "check" typemap method to apply.
+</p>
+
+<p>
+In summary, the addition of the better matching "argout" typemap
+for <tt>negative_integer *NEGATIVE</tt>
+introduces a new family of typemaps resulting in the previously matching "check" typemap 
+for <tt>int *NEGATIVE</tt>
+no longer being available for applying.
+</p>
 
 <H2><a name="Typemaps_nn47">14.15 Passing data between typemaps</a></H2>
 

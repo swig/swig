@@ -322,7 +322,7 @@ void Swig_require(const char *ns, Node *n, ...) {
     }
     obj = Getattr(n, name);
     if (!opt && !obj) {
-      Swig_error(Getfile(n), Getline(n), "Fatal error (Swig_require).  Missing attribute '%s' in node '%s'.\n", name, nodeType(n));
+      Swig_error(Getfile(n), Getline(n), "Internal error (Swig_require).  Missing attribute '%s' in node '%s'.\n", name, nodeType(n));
       Exit(EXIT_FAILURE);
     }
     if (!obj)

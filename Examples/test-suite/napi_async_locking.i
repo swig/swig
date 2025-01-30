@@ -5,6 +5,7 @@
 %feature("sync", "Sync");
 %feature("async:locking", "1");
 %feature("async:locking", "0") Integer::computeUnlocked;
+%warnfilter(SWIGWARN_TYPEMAP_THREAD_UNSAFE) Integer::computeUnlocked;
 
 %apply SWIGTYPE LOCK  {Integer};
 %apply SWIGTYPE *LOCK {Integer *};

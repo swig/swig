@@ -13,6 +13,7 @@
 
 #include "swigmod.h"
 #include "cparse.h"
+#include <errno.h>
 #include <limits.h>		// for INT_MAX
 #include <ctype.h>
 #include "javadoc.h"
@@ -319,8 +320,6 @@ public:
     // Add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGJAVA 1", 0);
 
-    // Add typemap definitions
-    SWIG_typemap_lang("java");
     SWIG_config_file("java.swg");
 
     allow_overloading();
@@ -1426,7 +1425,26 @@ public:
       }
     } else {
       String *numval = Getattr(n, "enumnumval");
-      if (numval) Setattr(n, "enumvalue", numval);
+      if (numval) {
+	const char *p = Char(numval);
+	if (isdigit(p[0])) {
+	  char *e;
+	  errno = 0;
+	  unsigned long long value = strtoull(p, &e, 0);
+	  if (errno != ERANGE && *e == '\0' && value >= 0x80000000) {
+	    // Use hex for larger unsigned integer constants in Java code since
+	    // Java allows implicit conversion to a signed integer value.
+	    String *hexval = NewStringf("0x%llx", value);
+	    Setattr(n, "enumvalue", hexval);
+	    Delete(hexval);
+	  } else {
+	    Setattr(n, "enumvalue", numval);
+	  }
+	} else {
+	  // Emit negative values as-is.
+	  Setattr(n, "enumvalue", numval);
+	}
+      }
     }
 
     {

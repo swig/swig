@@ -1,5 +1,9 @@
 %module class_forward2
 
+#ifdef SWIGPHP
+%rename(func) fn;
+#endif
+
 %inline %{
   class Foo;
   int fn(Foo *f);

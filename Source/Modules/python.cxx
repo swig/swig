@@ -472,7 +472,6 @@ public:
     if (!global_name)
       global_name = NewString("cvar");
     Preprocessor_define("SWIGPYTHON 1", 0);
-    SWIG_typemap_lang("python");
     SWIG_config_file("python.swg");
     allow_overloading();
   }
@@ -2146,22 +2145,24 @@ public:
       // FIXME: This needs more careful testing.
       // return NewStringf("'%(escape)s'", stringval);
     }
+    SwigType *resolved_type = SwigType_typedef_resolve_all(type);
+    SwigType *unqualified_type = SwigType_strip_qualifiers(resolved_type);
     if (numval) {
-      SwigType *resolved_type = SwigType_typedef_resolve_all(type);
-      if (Equal(resolved_type, "bool")) {
+      if (Equal(unqualified_type, "bool")) {
 	Delete(resolved_type);
+	Delete(unqualified_type);
 	return NewString(*Char(numval) == '0' ? "False" : "True");
       }
-      String *result = convertIntegerValue(numval, resolved_type);
+      String *result = convertIntegerValue(numval, unqualified_type);
       Delete(resolved_type);
+      Delete(unqualified_type);
       return result;
     }
-    SwigType *resolved_type = SwigType_typedef_resolve_all(type);
 
     String *result = convertDoubleValue(v);
     if (!result) {
       if (Strcmp(v, "NULL") == 0 || Strcmp(v, "nullptr") == 0)
-	result = SwigType_ispointer(resolved_type) ? NewString("None") : NewString("0");
+	result = SwigType_ispointer(unqualified_type) ? NewString("None") : NewString("0");
       // This could also be an enum type, default value of which could be
       // representable in Python if it doesn't include any scope (which could,
       // but currently is not, translated).
@@ -2175,6 +2176,7 @@ public:
     }
 
     Delete(resolved_type);
+    Delete(unqualified_type);
     return result;
   }
 
@@ -3650,7 +3652,7 @@ public:
 	// class type (the SWIG_init() is called before shadow classes are
 	// defined and registered).
         Printf(f_wrappers, "SWIGINTERN PyObject *%s_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", iname);
-        Printf(f_wrappers, tab2 "PyObject *module;\n");
+        Printf(f_wrappers, tab2 "PyObject *module = NULL;\n");
         Printf(f_wrappers, tab2 "PyObject *d;\n");
 	Printf(f_wrappers, tab2 "if (!SWIG_Python_UnpackTuple(args, \"swigconstant\", 1, 1, &module)) return NULL;\n");
         Printf(f_wrappers, tab2 "d = PyModule_GetDict(module);\n");
@@ -4402,7 +4404,7 @@ public:
 
     Printf(f, "static PyTypeObject *%s_type_create(PyTypeObject *type, PyTypeObject **bases, PyObject *dict) {\n", templ);
     Printf(f, "  PyMemberDef members[] = {\n");
-    Printf(f, "    { (char *)\"__dictoffset__\", T_PYSSIZET, %s, READONLY, NULL },\n", getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default));
+    Printf(f, "    { (char *)\"__dictoffset__\", Py_T_PYSSIZET, %s, Py_READONLY, NULL },\n", getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default));
     Printf(f, "    { NULL, 0, 0, 0, NULL }\n");
     Printf(f, "  };\n");
     Printf(f, "  PyType_Slot slots[] = {\n");
@@ -4732,7 +4734,7 @@ public:
 	Clear(builtin_closures);
       } else {
 	Printv(f_wrappers, "SWIGINTERN PyObject *", class_name, "_swigregister(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {\n", NIL);
-	Printv(f_wrappers, "  PyObject *obj;\n", NIL);
+	Printv(f_wrappers, "  PyObject *obj = NULL;\n", NIL);
 	Printv(f_wrappers, "  if (!SWIG_Python_UnpackTuple(args, \"swigregister\", 1, 1, &obj)) return NULL;\n", NIL);
 
 	Printv(f_wrappers,

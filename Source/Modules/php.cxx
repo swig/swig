@@ -542,7 +542,6 @@ public:
 
     Preprocessor_define("SWIGPHP 1", 0);
     Preprocessor_define("SWIGPHP7 1", 0);
-    SWIG_typemap_lang("php");
     SWIG_config_file("php.swg");
     allow_overloading();
   }

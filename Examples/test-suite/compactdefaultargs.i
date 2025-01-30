@@ -17,11 +17,13 @@ public:
 const double Defaults1::PUBLIC_DEFAULT = -1.0;
 %}
 
+#ifndef SWIG_JAVASCRIPT_NAPI // see https://github.com/mmomtchev/swig/issues/88
 // compactdefaultargs now on by default
 %feature("compactdefaultargs");
 
 // Turn compactdefaultargs off for the constructor which can't work with this feature
 %feature("compactdefaultargs", "0") Defaults2(int a = PRIVATE_DEFAULT);
+#endif
 
 %inline %{
 class Defaults2 {
@@ -31,6 +33,9 @@ public:
   Defaults2(int a = PRIVATE_DEFAULT) {}
   double ret(double d = PUBLIC_DEFAULT) { return d; }
   double nodefault(int x) { return x; }
+
+  typedef const Defaults1& ConstDefaults1;
+  void references(const Defaults1& d10 = Defaults1(10), ConstDefaults1 d20 = Defaults1(20)) {}
 };
 %}
 
