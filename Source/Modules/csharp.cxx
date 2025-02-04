@@ -3803,6 +3803,12 @@ public:
         "decimal?"
     };
 
+    const size_t len = Len(typemap);
+    if ((len == 0) || (Char(typemap)[len - 1] != '?'))
+    {
+      return false;
+    }
+
     for (size_t i = 0; i < sizeof(csharp_basic_types) / sizeof(csharp_basic_types[0]); ++i)
     {
       if (Strcmp(typemap, csharp_basic_types[i]) == 0)
