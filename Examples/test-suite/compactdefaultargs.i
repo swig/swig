@@ -15,6 +15,8 @@ public:
 
 %{
 const double Defaults1::PUBLIC_DEFAULT = -1.0;
+const int abc = 1234;
+int def = 1234;
 %}
 
 // compactdefaultargs now on by default
@@ -35,6 +37,9 @@ public:
   typedef const Defaults1& ConstDefaults1;
   void references(const Defaults1& d10 = Defaults1(10), ConstDefaults1 d20 = Defaults1(20)) {}
 };
+
+void string_function(const char *str = "") {}
+void ptr_function(const int *p1 = &abc, int *p2 = &def) {}
 %}
 
 %{
