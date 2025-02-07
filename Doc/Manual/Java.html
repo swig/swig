@@ -4339,7 +4339,7 @@ For example, you can just ignore them:
   if ($error) {
     $directorthrowshandlers
     jenv-&gt;ExceptionClear();
-    return $null; // exception is ignored
+    SWIG_fail; // exception is ignored
   }
 %}
 </pre>
@@ -4390,7 +4390,7 @@ You can copy the code below into an interface file and run SWIG on it and examin
     std::cout &lt;&lt; "Generic std::exception catch handler" &lt;&lt; std::endl;
     jclass clazz = jenv-&gt;FindClass("java/lang/RuntimeException");
     jenv-&gt;ThrowNew(clazz, e.what()); 
-    return $null;
+    SWIG_fail;
   }
 %}
 
@@ -4423,7 +4423,7 @@ namespace MyNS {
     std::cout &lt;&lt; "$1_type class found (throws typemap)" &lt;&lt; std::endl;
     jenv-&gt;ThrowNew(excep, $1.whatsup());
   }
-  return $null;
+  SWIG_fail;
 %}
 
 // These are the exceptions that the director method MyClass::dirmethod will have catch handlers for.
@@ -5125,7 +5125,7 @@ or a NULL pointer perhaps).  Here is a simple example of how you might handle th
   if (!result) {
     jclass clazz = (*jenv)-&gt;FindClass(jenv, "java/lang/OutOfMemoryError");
     (*jenv)-&gt;ThrowNew(jenv, clazz, "Not enough memory");
-    return $null;
+    SWIG_fail;
   }
 }
 void *malloc(size_t nbytes);
@@ -5167,7 +5167,7 @@ that.  For example:
   if (err_occurred()) {
     jclass clazz = (*jenv)-&gt;FindClass(jenv, "java/lang/OutOfMemoryError");
     (*jenv)-&gt;ThrowNew(jenv, clazz, "Not enough memory");
-    return $null;
+    SWIG_fail;
   }
 }
 void *malloc(size_t nbytes);
@@ -5177,7 +5177,7 @@ void *malloc(size_t nbytes);
 <p>
 If no declaration name is given to <tt>%exception</tt>, it is applied to all wrapper functions.
 The <tt>$action</tt> is a SWIG special variable and is replaced by the C/C++ function call being wrapped.
-The <tt>return $null;</tt> handles all native method return types, namely those that have a void return and those that do not.
+The <tt>SWIG_fail;</tt> handles all native method return types, namely those that have a void return and those that do not.
 This is useful for typemaps that will be used in native method returning all return types. 
 See the section on
 <a href="#Java_special_variables">Java special variables</a> for further explanation.
@@ -5195,7 +5195,7 @@ We can catch the C++ exception and rethrow it as a Java exception like this:</p>
   } catch (std::out_of_range &amp;e) {
     jclass clazz = jenv-&gt;FindClass("java/lang/Exception");
     jenv-&gt;ThrowNew(clazz, "Range error");
-    return $null;
+    SWIG_fail;
   }
 }
 
@@ -5224,7 +5224,7 @@ See <a href="Customization.html#Customization_clearing_features">Clearing featur
   } catch (std::out_of_range &amp;e) {
     jclass clazz = jenv-&gt;FindClass("java/lang/Exception");
     jenv-&gt;ThrowNew(clazz, "Range error");
-    return $null;
+    SWIG_fail;
   }
 }
 
@@ -5255,6 +5255,14 @@ public class FooClass {
 The examples above first use the C JNI calling syntax then the C++ JNI calling syntax. The C++ calling syntax will not compile as C and also vice versa.
 It is however possible to write JNI calls which will compile under both C and C++ and is covered in the <a href="#Java_typemaps_for_c_and_cpp">Typemaps for both C and C++ compilation</a> section. 
 </p>
+
+<p>
+<tt>SWIG_fail</tt> is a C macro which when called within the context of SWIG wrapper function,
+will jump to the error handler code. This will call any cleanup code (freeing any temp variables)
+and then return from the wrapper function so that the JVM can raise the Java exception.
+This macro should always be called after setting a Java error in code snippets, such as typemaps and <tt>%exception</tt>, that are ultimately generated into the wrapper function.
+</p>
+
 
 <p>
 The language-independent <tt>exception.i</tt> library file can also be used
@@ -6435,6 +6443,13 @@ The "argout" typemap sometimes sets values in function parameters which are pass
 </p>
 
 <p>
+If you need an intermediate variable in your "in" typemap that also needs a "freearg" you need to
+put its declaration in an "initarg" typemap. This is so that its initialization happens before
+any "SWIG_fail" lines (as SWIG_fail does a "goto", and gotos may not skip variable initialization).
+You can look at the predefined "std::string_view" typemaps for examples.
+</p>
+
+<p>
 Note that the "in" typemap marshals the JNI type held in the "jni" typemap to the real C/C++ type and for the opposite direction,
 the "out" typemap marshals the real C/C++ type to the JNI type held in the "jni" typemap.
 For <a href="#Java_default_non_primitive_typemaps">non-primitive types</a> 
@@ -6693,7 +6708,7 @@ Used in input typemaps to return early from JNI functions that have either void 
 %typemap(check) int * %{ 
   if (error) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array element error");
-    return $null;
+    SWIG_fail;
   }
 %}
 </pre></div>
@@ -7221,7 +7236,7 @@ A typemap for C character strings is:
   $input = 0;
   if ($1) {
     $input = JCALL1(NewStringUTF, jenv, (const char *)$1);
-    if (!$input) return $null;
+    if (!$input) SWIG_fail;
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
@@ -7276,7 +7291,7 @@ A typemap for C character strings is:
   $1 = 0;
   if ($input) {
     $result = (char *)jenv-&gt;GetStringUTFChars($input, 0);
-    if (!$1) return $null;
+    if (!$1) SWIG_fail;
   }
 }
 </pre>
@@ -7595,7 +7610,7 @@ The default generic "throws" typemap looks like this:
 %typemap(throws) SWIGTYPE, SWIGTYPE &amp;, SWIGTYPE *, SWIGTYPE [ANY] %{
   SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException,
                           "C++ $1_type exception thrown");
-  return $null;
+  SWIG_fail;
 %}
 </pre>
 </div>
@@ -7613,7 +7628,7 @@ If, however, we wanted to throw a checked exception, say <tt>java.io.IOException
   jclass excep = jenv-&gt;FindClass("java/io/IOException");
   if (excep)
     jenv-&gt;ThrowNew(excep, $1.what().c_str());
-  return $null;
+  SWIG_fail;
 }
 </pre>
 </div>

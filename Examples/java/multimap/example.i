@@ -24,7 +24,7 @@ int i;
   $1 = (*jenv)->GetArrayLength(jenv, $input);
   if ($1 == 0) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
-    return $null;
+    SWIG_fail;
   }
   $2 = (char **) malloc(($1+1)*sizeof(char *));
   jsarray = (jstring *) malloc($1*sizeof(jstring));

@@ -30,7 +30,7 @@
   $input = 0;
   if ($1) {
     $input = JCALL1(NewByteArray, jenv, (jsize)$2);
-    if (!$input) return $null;
+    if (!$input) SWIG_fail;
     JCALL4(SetByteArrayRegion, jenv, $input, 0, (jsize)$2, (jbyte *)$1);
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);

@@ -29,7 +29,11 @@
 #   define JCALL7(func, jenv, ar1, ar2, ar3, ar4, ar5, ar6, ar7) (*jenv)->func(jenv, ar1, ar2, ar3, ar4, ar5, ar6, ar7)
 #endif
 
+#define SWIG_fail                 goto fail
+
 %insert(runtime) %{
+#define SWIG_fail                 goto fail
+
 #include <jni.h>
 #include <stdlib.h>
 #include <string.h>

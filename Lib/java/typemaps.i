@@ -101,7 +101,7 @@ INPUT_TYPEMAP(double, jdouble, double, "D");
 
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
-    return $null;
+    SWIG_fail;
   }
   clazz = JCALL1(GetObjectClass, jenv, $input);
   mid = JCALL3(GetMethodID, jenv, clazz, "toByteArray", "()[B");
@@ -194,11 +194,11 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 {
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
-    return $null;
+    SWIG_fail;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
-    return $null;
+    SWIG_fail;
   }
   temp = ($*1_ltype)0;
   $1 = &temp; 
@@ -214,13 +214,13 @@ There are no char *OUTPUT typemaps, however you can apply the signed char * type
 
 %typemap(directorin,descriptor=JNIDESC) TYPE &OUTPUT %{
   $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
-  if (!$input) return $null;
+  if (!$input) SWIG_fail;
   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
 %typemap(directorin,descriptor=JNIDESC) TYPE *OUTPUT %{
   if ($1) {
     $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
-    if (!$input) return $null;
+    if (!$input) SWIG_fail;
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
 
@@ -264,11 +264,11 @@ OUTPUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
 {
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
-    return $null;
+    SWIG_fail;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
-    return $null;
+    SWIG_fail;
   }
   temp = false;
   $1 = &temp; 
@@ -384,11 +384,11 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 %typemap(in) TYPE *INOUT, TYPE &INOUT {
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
-    return $null;
+    SWIG_fail;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
-    return $null;
+    SWIG_fail;
   }
   $1 = ($1_ltype) JCALL2(Get##JAVATYPE##ArrayElements, jenv, $input, 0); 
 }
@@ -400,7 +400,7 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 
 %typemap(directorin,descriptor=JNIDESC) TYPE &INOUT %{
   $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
-  if (!$input) return $null;
+  if (!$input) SWIG_fail;
   JNITYPE $1_jvalue = (JNITYPE)$1;
   JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
   Swig::LocalRefGuard $1_refguard(jenv, $input); %}
@@ -408,7 +408,7 @@ There are no char *INOUT typemaps, however you can apply the signed char * typem
 %typemap(directorin,descriptor=JNIDESC) TYPE *INOUT %{
   if ($1) {
     $input = JCALL1(New##JAVATYPE##Array, jenv, 1);
-    if (!$input) return $null;
+    if (!$input) SWIG_fail;
     JNITYPE $1_jvalue = (JNITYPE)*$1;
     JCALL4(Set##JAVATYPE##ArrayRegion, jenv, $input, 0, 1, &$1_jvalue);
   }
@@ -454,11 +454,11 @@ INOUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
 %typemap(in) bool *INOUT (bool btemp, jboolean *jbtemp), bool &INOUT (bool btemp, jboolean *jbtemp) {
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
-    return $null;
+    SWIG_fail;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
-    return $null;
+    SWIG_fail;
   }
   jbtemp = JCALL2(GetBooleanArrayElements, jenv, $input, 0);
   btemp = (*jbtemp) ? true : false;
@@ -498,16 +498,16 @@ INOUT_TYPEMAP(double, jdouble, double, Double, "[D", jdoubleArray);
 
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
-    return $null;
+    SWIG_fail;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
-    return $null;
+    SWIG_fail;
   }
   bigint = JCALL2(GetObjectArrayElement, jenv, $input, 0);
   if (!bigint) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array element null");
-    return $null;
+    SWIG_fail;
   }
   clazz = JCALL1(GetObjectClass, jenv, bigint);
   mid = JCALL3(GetMethodID, jenv, clazz, "toByteArray", "()[B");
