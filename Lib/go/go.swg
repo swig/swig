@@ -485,10 +485,10 @@ rvrdeleter.reset($1); %}
 %{
   {
     p := Swig_malloc(len($input) + 1)
-    s := (*[1<<30]byte)(unsafe.Pointer(p))[:len($input) + 1]
+    s := unsafe.Slice((*byte)(unsafe.Pointer(p)), len($input) + 1)
     copy(s, $input)
     s[len($input)] = 0
-    $result = *(*string)(unsafe.Pointer(&s))
+    $result = unsafe.String((*byte)(unsafe.Pointer(p)), len($input) + 1)
   }
 %}
 
