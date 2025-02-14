@@ -22,7 +22,7 @@ static _gostring_ Swig_AllocateString(const char *p, size_t l) {
 type swig_gostring struct { p uintptr; n int }
 func swigCopyString(s string) string {
   p := *(*swig_gostring)(unsafe.Pointer(&s))
-  r := string(unsafe.Slice((*byte)(unsafe.Pointer(p.p)), p.n))
+  r := string((*[0x7fffffff]byte)(unsafe.Pointer(p.p))[:p.n])
   Swig_free(p.p)
   return r
 }

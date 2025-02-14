@@ -28,9 +28,9 @@ class string;
 %{
   {
     p := Swig_malloc(len($input))
-    s := unsafe.Slice((*byte)(unsafe.Pointer(p)), len($input))
+    s := (*[1<<30]byte)(unsafe.Pointer(p))[:len($input)]
     copy(s, $input)
-    $result = unsafe.String((*byte)(unsafe.Pointer(p)), len($input))
+    $result = *(*string)(unsafe.Pointer(&s))
   }
 %}
 
@@ -65,9 +65,9 @@ class string;
 %{
   {
     p := Swig_malloc(len($input))
-    s := unsafe.Slice((*byte)(unsafe.Pointer(p)), len($input))
+    s := (*[1<<30]byte)(unsafe.Pointer(p))[:len($input)]
     copy(s, $input)
-    $result = unsafe.String((*byte)(unsafe.Pointer(p)), len($input))
+    $result = *(*string)(unsafe.Pointer(&s))
   }
 %}
 
@@ -110,7 +110,7 @@ class string;
 %{
   if $input != nil {
     p := Swig_malloc(len(*$input))
-    s := unsafe.Slice((*byte)(unsafe.Pointer(p)), len(*$input))
+    s := (*[1<<30]byte)(unsafe.Pointer(p))[:len(*$input)]
     copy(s, *$input)
     $result = (*string)(unsafe.Pointer(&s))
   } else {

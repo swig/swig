@@ -46,7 +46,7 @@ struct swigcdata {
     $result = nil
   } else {
     b := make([]byte, p.size)
-    a := unsafe.Slice((*byte)(unsafe.Pointer(p.data)), p.size)
+    a := (*[0x7fffffff]byte)(unsafe.Pointer(p.data))[:p.size]
     copy(b, a)
     Swig_free(p.data)
     Swig_free(uintptr(unsafe.Pointer(p)))
