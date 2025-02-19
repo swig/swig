@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-02-19: wsfulton
+            Add support for $n special variable expansion in the names of typemap
+            local variables, such as:
+
+              %typemap(in) int MYINT (int $1_temp) { ... }
+
+            $1_temp is typically expanded to arg1_temp, arg2_temp etc depending on
+            which argument the typemap is applied to.
+
 2025-02-05: wsfulton
             #3075 Regression fix when using -keyword, kwargs or compactdefaultargs
             option. Restore generating a non-const cast to the default value when

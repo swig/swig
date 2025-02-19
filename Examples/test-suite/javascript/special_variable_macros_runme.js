@@ -35,3 +35,6 @@ if (special_variable_macros.makeStringInt("stringint", 999) != "stringint") {
 if (special_variable_macros.provideStringInt(999) != "1000") {
     throw new Error("test failed");
 }
+if (special_variable_macros.shortFunction(1, 1) != (200*2 + 200*3)) {
+    throw new Error("test failed");
+}

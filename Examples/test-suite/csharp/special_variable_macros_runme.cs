@@ -24,5 +24,7 @@ public class runme {
       throw new Exception("test failed");
     if (special_variable_macros.provideStringInt(999) != "1000")
       throw new Exception("test failed");
+    if (special_variable_macros.shortFunction(1, 1) != (200*2 + 200*3))
+      throw new Exception("test failed");
   }
 }
