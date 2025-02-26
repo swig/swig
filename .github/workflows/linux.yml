@@ -70,15 +70,10 @@ jobs:
           VER: '2.103.1'
           CPPSTD: c++17
         - SWIGLANG: go
-          VER: '1.6'
+          VER: '1.20'
           CSTD: gnu11
         - SWIGLANG: go
-          VER: '1.8'
-        - SWIGLANG: go
-          VER: '1.12'
-          CSTD: gnu11
-        - SWIGLANG: go
-          VER: '1.17'
+          VER: '1.24'
         - SWIGLANG: guile
         - SWIGLANG: guile
           VER: '2.2'
@@ -197,7 +192,7 @@ jobs:
         - SWIGLANG: csharp
           CPPSTD: c++11
         - SWIGLANG: go
-          VER: '1.17'
+          VER: '1.20'
           CPPSTD: c++11
           CSTD: gnu11
         - SWIGLANG: guile
@@ -237,7 +232,7 @@ jobs:
         - SWIGLANG: csharp
           CPPSTD: c++14
         - SWIGLANG: go
-          VER: '1.17'
+          VER: '1.20'
           CPPSTD: c++14
           CSTD: gnu11
         - SWIGLANG: guile
@@ -272,7 +267,7 @@ jobs:
           CPPSTD: c++17
           GCC: 13
         - SWIGLANG: go
-          VER: '1.17'
+          VER: '1.20'
           CPPSTD: c++17
           GCC: 13
           CSTD: gnu17
