@@ -23,7 +23,7 @@ jobs:
     # but it won't fail the overall build
     continue-on-error: ${{ matrix.continue-on-error || false }}
 
-    runs-on: ${{ matrix.os || 'ubuntu-20.04' }}
+    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
@@ -341,7 +341,7 @@ jobs:
           ENGINE: v8
           CSTD: c++14
           CPPSTD: c++14
-          VER: '7.8' # oldest we can easily test as libnode-dev in 20.04 doesn't have the V8 headers
+          VER: '7.8' # oldest we can easily test
           os: ubuntu-22.04
         - SWIGLANG: javascript
           ENGINE: v8
@@ -355,7 +355,7 @@ jobs:
         - SWIGLANG: ocaml
           CPPSTD: c++17
           GCC: 13
-          os: ubuntu-22.04 # ocaml-4.08 in ubuntu-20.04 doesn't work
+          os: ubuntu-22.04
           continue-on-error: true
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
@@ -393,7 +393,7 @@ jobs:
     - name: Install CCache
       uses: hendrikmuhs/ccache-action@v1
       with:
-        key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}
+        key: ${{ matrix.os || 'ubuntu-22.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}
 
 # Uncomment to debug via ssh, see https://github.com/mxschmitt/action-tmate
 #    - name: Setup tmate session
