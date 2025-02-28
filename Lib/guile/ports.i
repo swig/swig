@@ -10,7 +10,7 @@
   #  define _POSIX_SOURCE 199506L
   #endif
   #ifndef _POSIX_C_SOURCE
-  /* This is needed on Ubuntu 22.04
+  /* This is needed on Ubuntu 22.04. */
   #  define _POSIX_C_SOURCE 200112L
   #endif
   #include <stdio.h>
