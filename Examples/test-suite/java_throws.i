@@ -20,7 +20,7 @@
         jclass excep = jenv->FindClass("java/lang/NoSuchFieldException");
         if (excep)
             jenv->ThrowNew(excep, "Value of 10 not acceptable");
-        return $null;
+        SWIG_fail;
     }
 }
 
@@ -42,7 +42,7 @@ short full_of_exceptions(int num) {
     if (excep) {
         jenv->ThrowNew(excep, "Test exception");
     }
-    return $null;
+    SWIG_fail;
 }
 %inline %{
 bool throw_spec_function(int value) TESTCASE_THROW1(int) { throw (int)0; }
@@ -106,7 +106,7 @@ try {
     jclass excep = jenv->FindClass("java_throws/MyException");
     if (excep)
         jenv->ThrowNew(excep, "exception message");
-    return $null;
+    SWIG_fail;
 }
 %}
 %enddef
@@ -155,7 +155,7 @@ try {
     jclass excep = jenv->FindClass("java_throws/MyException");
     if (excep)
         jenv->ThrowNew(excep, "exception message");
-    return $null;
+    SWIG_fail;
 }
 %}
 
@@ -174,7 +174,7 @@ try {
     jclass excep = jenv->FindClass("java_throws/MyException");
     if (excep)
         jenv->ThrowNew(excep, "exception message");
-    return $null;
+    SWIG_fail;
 }
 %}
 

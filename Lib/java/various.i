@@ -108,11 +108,11 @@
 %typemap(in) char **STRING_OUT($*1_ltype temp) {
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "array null");
-    return $null;
+    SWIG_fail;
   }
   if (JCALL1(GetArrayLength, jenv, $input) == 0) {
     SWIG_JavaThrowException(jenv, SWIG_JavaIndexOutOfBoundsException, "Array must contain at least 1 element");
-    return $null;
+    SWIG_fail;
   }
   $1 = &temp; 
   *$1 = 0;

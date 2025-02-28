@@ -10,17 +10,17 @@
   $1_ltype i, len;
   if ($input == (jobjectArray)0) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null array");
-    return $null;
+    SWIG_fail;
   }
   len = ($1_ltype)JCALL1(GetArrayLength, jenv, $input);
   if (len < 0) {
     SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "array length negative");
-    return $null;
+    SWIG_fail;
   }
   $2 = ($2_ltype) malloc((len+1)*sizeof($*2_ltype));
   if ($2 == NULL) {
     SWIG_JavaThrowException(jenv, SWIG_JavaOutOfMemoryError, "memory allocation failed");
-    return $null;
+    SWIG_fail;
   }
   $1 = len;
   for (i = 0; i < len; i++) {
