@@ -1899,7 +1899,7 @@ if test x"${PYBIN}" = xno; then
 else
   # First figure out the name of the Python 2.x executable
   if test "x$PYBIN" = xyes; then
-    AC_CHECK_PROGS(PYTHON, [python python2.7])
+    AC_CHECK_PROGS(PYTHON, [python2.7 python2 python])
   else
     PYTHON="$PYBIN"
   fi
