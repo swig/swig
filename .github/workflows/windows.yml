@@ -89,6 +89,8 @@ jobs:
       NOTEST: ${{ matrix.NOTEST }}
       VER: ${{ matrix.VER }}
       OS: ${{ matrix.os }}
+      SET_MSVC: ${{ matrix.COMPILER == '' || matrix.SWIGLANG == 'csharp' }}
+      ALWAYS_RUN: ${{ matrix.ALWAYS_RUN }}
 
 # cl.exe:
 #  https://learn.microsoft.com//cpp/build/reference/compiler-options
@@ -110,15 +112,30 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        show-progress: true
+        show-progress: false
+        submodules: recursive
+
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v44
+
+    # Test with ALWAYS_RUN alway run
+    - name: Probe files belong to test
+      id: doTest
+      shell: bash
+      env:
+        ALL_FILES: ${{ steps.changed-files.outputs.all_changed_and_modified_files }}
+      run: |
+        $GITHUB_WORKSPACE/Tools/CI-selective.sh
 
     - name: Install CCache
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       uses: hendrikmuhs/ccache-action@v1
       with:
         key: ${{ matrix.os || 'windows-2022' }}-${{ matrix.COMPILER || 'msvc' }}
 
     - name: Install NuGet Packages
-      if: ${{ env.COMPILER == '' }}
+      if: ${{ steps.dotest.outputs.runtest != 'skip' && env.COMPILER == '' }}
       shell: powershell
       run: |
           # 'nuget build for .NET: https://www.nuget.org/packages'
@@ -127,12 +144,13 @@ jobs:
 
     # Set MSVC compilers path and environment variables.
     - name: Setup MSVC
-      if: ${{ env.COMPILER == '' || env.SWIGLANG == 'csharp' }}
+      if: ${{ steps.doTest.outputs.runTest != 'skip' && env.SET_MSVC }}
       uses: TheMrMilchmann/setup-msvc-dev@v3
       with:
         arch: x64
 
     - name: Prepare Environment
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       shell: bash
       run: |
           uname --all
@@ -202,6 +220,7 @@ jobs:
           echo 'C:\msys64\usr\bin' >> $GITHUB_PATH
 
     - name: Install MSYS2 Packages
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       shell: cmd
       run: |
           rem 'MSYS2 uses MinGW-w64 https://packages.msys2.org/'
@@ -211,6 +230,7 @@ jobs:
           if %ErrorLevel% NEQ 0 (exit 1)
 
     - name: Autoconf
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       shell: bash
       run: |
           uname --all
@@ -253,6 +273,7 @@ jobs:
           ./autogen.sh
 
     - name: Configure
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       shell: bash
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
@@ -265,6 +286,7 @@ jobs:
           fi
 
     - name: Build
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       shell: bash
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
@@ -276,6 +298,7 @@ jobs:
 
     # Test the Windows swig have a proper SWIG library path
     - name: Test swiglib
+      if: ${{ steps.doTest.outputs.runTest != 'skip' }}
       shell: bash
       run: |
           # path is based on executable location
@@ -284,7 +307,7 @@ jobs:
           fi
 
     - name: Test
-      if: ${{ matrix.NOTEST == '' }}
+      if: ${{ steps.doTest.outputs.runTest != 'skip' && matrix.NOTEST == '' }}
       shell: bash
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
@@ -298,7 +321,7 @@ jobs:
           make -k check-$SWIGLANG-test-suite $SWIGJOBS $CHECK_OPTIONS
 
     - name: Install
-      if: ${{ env.INSTALL == 'true' }}
+      if: ${{ steps.doTest.outputs.runTest != 'skip' && env.INSTALL == 'true' }}
       shell: bash
       run: |
           make -s install > /dev/null
@@ -315,7 +338,7 @@ jobs:
     # The test by itself is not related to the installation.
     # We just want to save testing time :-)
     - name: Clean
-      if: ${{ env.INSTALL == 'true' }}
+      if: ${{ steps.doTest.outputs.runTest != 'skip' && env.INSTALL == 'true' }}
       shell: bash
       run: |
           make check-maintainer-clean
