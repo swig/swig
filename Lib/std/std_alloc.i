@@ -29,12 +29,12 @@ namespace std
       template<typename _Tp1>
         struct rebind;
 
-      allocator() throw();
+      allocator() noexcept;
       
-      allocator(const allocator& other) throw();
+      allocator(const allocator& other) noexcept;
       template<typename _Tp1>
-        allocator(const allocator<_Tp1>& other) throw();
-      ~allocator() throw();
+        allocator(const allocator<_Tp1>& other) noexcept;
+      ~allocator() noexcept;
       
 
       pointer
@@ -55,7 +55,7 @@ namespace std
       deallocate(pointer __p, size_type __n);
 
       size_type
-      max_size() const throw();
+      max_size() const noexcept;
 
       void construct(pointer __p, const _Tp& __val);
       void destroy(pointer __p);
