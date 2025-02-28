@@ -1913,6 +1913,25 @@ static SwigType *deduce_type(const struct Define *dtype) {
   return NULL;
 }
 
+// Append scanner_ccode to expr, normalising runs of whitespace to a single
+// space (in particular newlines are problematic in the generated
+// swig_type_info).
+static void append_expr_from_scanner(String *expr) {
+  int len = Len(scanner_ccode);
+  int in_space = 0;
+  for (int i = 0; i < len; ++i) {
+    char ch = Char(scanner_ccode)[i];
+    if (isspace((unsigned char)ch)) {
+      if (!in_space) Putc(' ', expr);
+      in_space = 1;
+    } else {
+      Putc(ch, expr);
+      in_space = 0;
+    }
+  }
+  Clear(scanner_ccode);
+}
+
 static Node *new_enum_node(SwigType *enum_base_type) {
   Node *n = new_node("enum");
   if (enum_base_type) {
@@ -6701,8 +6720,8 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 	       | ID[lhs] ARROW ID[rhs] LPAREN {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = default_dtype;
-		 $$.val = NewStringf("%s->%s%s", $lhs, $rhs, scanner_ccode);
-		 Clear(scanner_ccode);
+		 $$.val = NewStringf("%s->%s", $lhs, $rhs);
+		 append_expr_from_scanner($$.val);
 	       }
 	       | exprmem[in] ARROW ID {
 		 $$ = $in;
@@ -6711,8 +6730,8 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 	       | exprmem[in] ARROW ID LPAREN {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = $in;
-		 Printf($$.val, "->%s%s", $ID, scanner_ccode);
-		 Clear(scanner_ccode);
+		 Printf($$.val, "->%s", $ID);
+		 append_expr_from_scanner($$.val);
 	       }
 	       | ID[lhs] PERIOD ID[rhs] {
 		 $$ = default_dtype;
@@ -6721,8 +6740,8 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 	       | ID[lhs] PERIOD ID[rhs] LPAREN {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = default_dtype;
-		 $$.val = NewStringf("%s.%s%s", $lhs, $rhs, scanner_ccode);
-		 Clear(scanner_ccode);
+		 $$.val = NewStringf("%s.%s", $lhs, $rhs);
+		 append_expr_from_scanner($$.val);
 	       }
 	       | exprmem[in] PERIOD ID {
 		 $$ = $in;
@@ -6731,8 +6750,8 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 	       | exprmem[in] PERIOD ID LPAREN {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = $in;
-		 Printf($$.val, ".%s%s", $ID, scanner_ccode);
-		 Clear(scanner_ccode);
+		 Printf($$.val, ".%s", $ID);
+		 append_expr_from_scanner($$.val);
 	       }
 	       ;
 
@@ -6772,24 +6791,24 @@ exprsimple     : exprnum
 	       | SIZEOF LPAREN {
 		  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		  $$ = default_dtype;
-		  $$.val = NewStringf("sizeof%s", scanner_ccode);
-		  Clear(scanner_ccode);
+		  $$.val = NewString("sizeof");
+		  append_expr_from_scanner($$.val);
 		  $$.type = T_ULONG;
                }
 	       /* alignof(T) always has type size_t. */
 	       | ALIGNOF LPAREN {
 		  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		  $$ = default_dtype;
-		  $$.val = NewStringf("alignof%s", scanner_ccode);
-		  Clear(scanner_ccode);
+		  $$.val = NewString("alignof");
+		  append_expr_from_scanner($$.val);
 		  $$.type = T_ULONG;
 	       }
 	       /* noexcept(X) always has type bool. */
 	       | NOEXCEPT LPAREN {
 		  if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		  $$ = default_dtype;
-		  $$.val = NewStringf("noexcept%s", scanner_ccode);
-		  Clear(scanner_ccode);
+		  $$.val = NewString("noexcept");
+		  append_expr_from_scanner($$.val);
 		  $$.type = T_BOOL;
 	       }
 	       | SIZEOF ELLIPSIS LPAREN identifier RPAREN {
@@ -7253,16 +7272,14 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 	       }
                | type LPAREN {
 		 $$ = default_dtype;
-		 String *qty;
 		 if (skip_balanced('(',')') < 0) Exit(EXIT_FAILURE);
-		 qty = Swig_symbol_type_qualify($type,0);
+
+		 String *qty = Swig_symbol_type_qualify($type, 0);
 		 if (SwigType_istemplate(qty)) {
 		   String *nstr = SwigType_namestr(qty);
 		   Delete(qty);
 		   qty = nstr;
 		 }
-		 $$.val = NewStringf("%s%s",qty,scanner_ccode);
-		 Clear(scanner_ccode);
 		 /* Try to deduce the type - this could be a C++ "constructor
 		  * cast" such as `double(4)` or a function call such as
 		  * `some_func()`.  In the latter case we get T_USER, but that
@@ -7274,7 +7291,9 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
 		 $$.type = SwigType_type(qty);
 		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
 		 $$.unary_arg_type = 0;
-		 Delete(qty);
+
+		 $$.val = qty;
+		 append_expr_from_scanner($$.val);
                }
                ;
 
