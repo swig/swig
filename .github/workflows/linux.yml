@@ -35,13 +35,9 @@ jobs:
         - SWIGLANG: ""
           CPPFLAGS: "-DDOH_POISON"
         - SWIGLANG: ""
-          GCC: 7
+          GCC: 9
           CPPSTD: c++98
           CSTD: c99
-        - SWIGLANG: ""
-          GCC: 7
-        - SWIGLANG: ""
-          GCC: 8
         - SWIGLANG: ""
           GCC: 9
         - SWIGLANG: ""
@@ -77,8 +73,6 @@ jobs:
         #  VER: '1.24'
         - SWIGLANG: guile
         - SWIGLANG: guile
-          VER: '2.2'
-        - SWIGLANG: guile
           VER: '3.0'
         - SWIGLANG: java
         - SWIGLANG: javascript
@@ -113,10 +107,12 @@ jobs:
         #- SWIGLANG: python
         #  VER: '3.4'
         #  os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
-        - SWIGLANG: python
-          VER: '3.5'
-        - SWIGLANG: python
-          VER: '3.6'
+        #- SWIGLANG: python
+        #  VER: '3.5'
+        #  os: ubuntu-20.04 # Python < 3.7 not available for 20.04.
+        #- SWIGLANG: python
+        #  VER: '3.6'
+        #  os: ubuntu-20.04 # Python < 3.7 not available for 20.04.
         - SWIGLANG: python
           VER: '3.7'
         - SWIGLANG: python
@@ -161,17 +157,20 @@ jobs:
           VER: '2.2'
         - SWIGLANG: ruby
           VER: '2.3'
-        - SWIGLANG: ruby
-          VER: '2.4'
-        - SWIGLANG: ruby
-          VER: '2.5'
-        - SWIGLANG: ruby
-          VER: '2.6'
-        - SWIGLANG: ruby
-          VER: '2.7'
-        - SWIGLANG: ruby
-          VER: '3.0'
-          CPPSTD: c++11
+# These all fail with ubuntu-22.04 with error:
+#   Error running '__rvm_make -j4',
+#   please read /usr/share/rvm/log/1740710476_ruby-3.0.0/make.log
+#        - SWIGLANG: ruby
+#          VER: '2.4'
+#        - SWIGLANG: ruby
+#          VER: '2.5'
+#        - SWIGLANG: ruby
+#          VER: '2.6'
+#        - SWIGLANG: ruby
+#          VER: '2.7'
+#        - SWIGLANG: ruby
+#          VER: '3.0'
+#          CPPSTD: c++11
         - SWIGLANG: ruby
           VER: '3.1.4' # import_fragments testcase started to fail on upgrade to 3.1.5, see https://github.com/swig/swig/issues/2800
           CPPSTD: c++11
@@ -349,9 +348,6 @@ jobs:
           CPPSTD: c++14
           VER: '10.2'
           os: ubuntu-24.04
-        # Experimental languages (these are allowed to fail)
-        - SWIGLANG: mzscheme
-          continue-on-error: true
         - SWIGLANG: ocaml
           CPPSTD: c++17
           GCC: 13
