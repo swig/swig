@@ -1913,21 +1913,25 @@ static SwigType *deduce_type(const struct Define *dtype) {
   return NULL;
 }
 
-// Append scanner_ccode to expr, normalising runs of whitespace to a single
-// space (in particular newlines are problematic in the generated
-// swig_type_info).
+// Append scanner_ccode to expr.  Some cleaning up of the code may be done.
 static void append_expr_from_scanner(String *expr) {
-  int len = Len(scanner_ccode);
-  int in_space = 0;
-  for (int i = 0; i < len; ++i) {
-    char ch = Char(scanner_ccode)[i];
-    if (isspace((unsigned char)ch)) {
-      if (!in_space) Putc(' ', expr);
-      in_space = 1;
-    } else {
+  if (Strchr(scanner_ccode, '"') == NULL) {
+    // Append scanner_ccode, changing any whitespace character to a space.
+    int len = Len(scanner_ccode);
+    for (int i = 0; i < len; ++i) {
+      char ch = Char(scanner_ccode)[i];
+      if (isspace((unsigned char)ch)) ch = ' ';
       Putc(ch, expr);
-      in_space = 0;
     }
+  } else {
+    // The code contains a double quote so leave it be as changing a
+    // backslash-escaped linefeed character (i.e. `\` followed by byte 0x0a)
+    // in a string literal into a space will insert a space into the string
+    // literal's value.  An expression containing a double quote won't work if
+    // used in a context where a swig_type_info is generated as the typename
+    // gets substituted into a string literal without any escaping which will
+    // result in invalid code due to the double quotes.
+    Append(expr, scanner_ccode);
   }
   Clear(scanner_ccode);
 }
