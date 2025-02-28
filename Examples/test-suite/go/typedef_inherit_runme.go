@@ -29,8 +29,8 @@ func main() {
 		panic(x)
 	}
 
-	x = d.Far()
-	if x != "Spam::far" {
+	x = d.Far1()
+	if x != "Spam::far1" {
 		panic(x)
 	}
 }
