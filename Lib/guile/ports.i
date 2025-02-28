@@ -4,7 +4,7 @@
  * Guile typemaps for handling ports
  * ----------------------------------------------------------------------------- */
 
-%{
+%begin %{
   #ifndef _POSIX_SOURCE
   /* This is needed on Solaris for fdopen(). */
   #  define _POSIX_SOURCE 199506L
