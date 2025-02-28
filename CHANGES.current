@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-02-28: olly
+	    #3127 Fix bad generated code in some cases when a constant
+	    expression is split over multiple lines and used as part of a type.
+	    This manifested in cases where SWIG's parser gets the expression
+	    text by skipping to the matching closing parenthesis and grabbing
+	    the skipped program text.
+
 2025-02-19: wsfulton
             Add support for $n special variable expansion in the names of typemap
             local variables, such as:
