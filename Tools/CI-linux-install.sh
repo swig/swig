@@ -67,7 +67,7 @@ case "$SWIGLANG" in
 		esac
 		;;
 	"guile")
-		$RETRY sudo apt-get -qq install guile-${VER:-2.0}-dev
+		$RETRY sudo apt-get -qq install guile-${VER:-2.2}-dev
 		;;
 	"lua")
 		if [[ -z "$VER" ]]; then
@@ -117,7 +117,7 @@ case "$SWIGLANG" in
 			$RETRY sudo apt-get -qq install python${VER}-dev
 			WITHLANG=$WITHLANG=$SWIGLANG$VER
 		elif [[ "$PY2" ]]; then
-			$RETRY sudo apt-get install -qq python-dev
+			$RETRY sudo apt-get install -qq python2-dev
 		else
 			$RETRY sudo apt-get install -qq python3-dev
 		fi
