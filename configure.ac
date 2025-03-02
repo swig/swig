@@ -2724,13 +2724,6 @@ fi
 AC_SUBST(SKIP_PYTHON)
 
 
-SKIP_PYTHON3=
-if test -z "$PY3INCLUDE" || test -z "$PY3LINK" ; then
-    SKIP_PYTHON3="1"
-fi
-AC_SUBST(SKIP_PYTHON3)
-
-
 SKIP_R=
 if test -z "$RBIN" ; then
     SKIP_R="1"
