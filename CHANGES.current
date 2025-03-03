@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-03-03: olly
+	    [guile] The typemaps in ports.i now generate code which compiles
+	    even if the wrapper is compiled with in a strict standards
+	    conformance mode such as -std=c11.
+
 2025-02-28: olly
 	    #3127 Fix bad generated code in some cases when a constant
 	    expression is split over multiple lines and used as part of a type.
