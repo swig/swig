@@ -463,7 +463,7 @@ jobs:
           if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
           if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
-          if test "$PY2" = "2"; then CONFIGOPTS+=(--without-python3); fi
+          if test "$PY2" = "2"; then CONFIGOPTS+=(--with-python=python2 --without-python3); fi
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 
