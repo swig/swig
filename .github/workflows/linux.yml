@@ -72,9 +72,9 @@ jobs:
         - SWIGLANG: go
           VER: '1.20'
           CSTD: gnu11
-        # Go 1.24 doesn't build with -Wdeclaration-after-statement
-        #- SWIGLANG: go
-        #  VER: '1.24'
+        - SWIGLANG: go
+          VER: '1.24'
+          CSTD: gnu99 # Go 1.24 doesn't build with -Wdeclaration-after-statement
         - SWIGLANG: guile
         - SWIGLANG: guile
           VER: '2.2'
