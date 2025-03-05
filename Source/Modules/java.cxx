@@ -932,6 +932,9 @@ public:
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
 
+    // Put the body of the function in its own block, so that variables declared inside
+    // the body can be skipped by SWIG_fail goto statements.
+    Printv(f->code, "{\n", NIL);
     // Parameter overloading
     Setattr(n, "wrap:parms", l);
     Setattr(n, "wrap:name", wname);
@@ -1104,6 +1107,12 @@ public:
     Printv(f->code, outarg, NIL);
 
     /* Output cleanup code */
+    Printv(f->code, "}\n", NIL);
+    Printv(f->code, "fail:\n", NIL);
+    // This null statement ensures there's a statement after the label, which
+    // is required until C++23. The 'cleanup' string may be non-empty whitespace
+    // which isn't sufficient.
+    Printv(f->code, ";\n", NIL);
     Printv(f->code, cleanup, NIL);
 
     /* Look to see if there is any newfree cleanup code */
@@ -4506,6 +4515,7 @@ public:
 	     SwigType_namestr(c_classname), SwigType_namestr(name));
       Printf(w->code, "}\n");
 
+      Printf(w->code, "fail:\n");
       Printf(w->code, "if (swigjobj) jenv->DeleteLocalRef(swigjobj);\n");
 
       if (!is_void)
