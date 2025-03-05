@@ -48,7 +48,7 @@
     };
 
     template<typename OutIter>
-    inline SwigPyIterator*
+    inline _SwigPyIterator*
     make_output_key_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, PyObject *seq = 0)
     {
       return new SwigPyMapKeyIterator_T<OutIter>(current, begin, end, seq);
@@ -66,7 +66,7 @@
     
 
     template<typename OutIter>
-    inline SwigPyIterator*
+    inline _SwigPyIterator*
     make_output_value_iterator(const OutIter& current, const OutIter& begin, const OutIter& end, PyObject *seq = 0)
     {
       return new SwigPyMapValueIterator_T<OutIter>(current, begin, end, seq);
@@ -150,17 +150,17 @@
 
   %extend {
     %newobject iterkeys(PyObject **PYTHON_SELF);
-    swig::SwigPyIterator* iterkeys(PyObject **PYTHON_SELF) {
+    swig::_SwigPyIterator* iterkeys(PyObject **PYTHON_SELF) {
       return swig::make_output_key_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
       
     %newobject itervalues(PyObject **PYTHON_SELF);
-    swig::SwigPyIterator* itervalues(PyObject **PYTHON_SELF) {
+    swig::_SwigPyIterator* itervalues(PyObject **PYTHON_SELF) {
       return swig::make_output_value_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
 
     %newobject iteritems(PyObject **PYTHON_SELF);
-    swig::SwigPyIterator* iteritems(PyObject **PYTHON_SELF) {
+    swig::_SwigPyIterator* iteritems(PyObject **PYTHON_SELF) {
       return swig::make_output_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
   }
@@ -259,12 +259,12 @@
     }
 
     %newobject key_iterator(PyObject **PYTHON_SELF);
-    swig::SwigPyIterator* key_iterator(PyObject **PYTHON_SELF) {
+    swig::_SwigPyIterator* key_iterator(PyObject **PYTHON_SELF) {
       return swig::make_output_key_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
 
     %newobject value_iterator(PyObject **PYTHON_SELF);
-    swig::SwigPyIterator* value_iterator(PyObject **PYTHON_SELF) {
+    swig::_SwigPyIterator* value_iterator(PyObject **PYTHON_SELF) {
       return swig::make_output_value_iterator(self->begin(), self->begin(), self->end(), *PYTHON_SELF);
     }
   }

@@ -27,7 +27,7 @@
 %fragment("PySequence_Base", "header", fragment="SwigPySequence_Base") {}
 %fragment("PySwigIterator_T", "header", fragment="SwigPyIterator_T") {}
 %fragment("PyPairBoolOutputIterator", "header", fragment="SwigPyPairBoolOutputIterator") {}
-%fragment("PySwigIterator", "header", fragment="SwigPyIterator") {}
+%fragment("PySwigIterator", "header", fragment="_SwigPyIterator") {}
 %fragment("PySwigIterator_T", "header", fragment="SwigPyIterator_T") {}
 
 %inline %{
@@ -40,7 +40,7 @@
 #define PySwigClientData SwigPyClientData
 #define PySwigClientData_Del SwigPyClientData_Del
 #define PySwigClientData_New SwigPyClientData_New
-#define PySwigIterator SwigPyIterator
+#define PySwigIterator _SwigPyIterator
 #define PySwigIteratorClosed_T SwigPyIteratorClosed_T
 #define PySwigIteratorOpen_T SwigPyIteratorOpen_T
 #define PySwigIterator_T SwigPyIterator_T
