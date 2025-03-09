@@ -276,7 +276,7 @@ SWIG_init(void) {
 #else
   m = Py_InitModule(SWIG_name, SwigMethods);
 # ifdef Py_GIL_DISABLED
-	PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
+    PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
 # endif	
 #endif
 
