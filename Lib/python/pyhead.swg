@@ -75,7 +75,20 @@ SWIG_Python_str_FromChar(const char *c)
 #define Py_hash_t long
 #endif
 
-#ifdef Py_LIMITED_API
+#ifdef Py_GIL_DISABLED
+# undef PyTuple_GET_ITEM
+# undef PyTuple_SET_ITEM
+# undef PyTuple_GET_SIZE
+# undef PyCFunction_GET_FLAGS
+# undef PyCFunction_GET_FUNCTION
+# undef PyCFunction_GET_SELF
+# undef PyList_GET_ITEM
+# undef PyList_SET_ITEM
+# undef PySliceObject
+#endif
+
+
+#if defined(Py_LIMITED_API) || defined(Py_GIL_DISABLED)
 # define PyTuple_GET_ITEM PyTuple_GetItem
 /* Note that PyTuple_SetItem() has different semantics from PyTuple_SET_ITEM as it decref's the original tuple item, so in general they cannot be used
   interchangeably. However in SWIG-generated code PyTuple_SET_ITEM is only used with newly initialized tuples without any items and for them this does work. */
@@ -90,7 +103,7 @@ SWIG_Python_str_FromChar(const char *c)
 #endif
 
 /* Increment and Decrement wrappers - for portability when using the stable abi and for performance otherwise */
-#ifdef Py_LIMITED_API
+#if defined(Py_LIMITED_API) || defined(Py_GIL_DISABLED)
 # define SWIG_Py_INCREF Py_IncRef
 # define SWIG_Py_XINCREF Py_IncRef
 # define SWIG_Py_DECREF Py_DecRef

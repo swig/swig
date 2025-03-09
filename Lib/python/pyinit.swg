@@ -275,6 +275,9 @@ SWIG_init(void) {
   m = PyModule_Create(&SWIG_module);
 #else
   m = Py_InitModule(SWIG_name, SwigMethods);
+# ifdef Py_GIL_DISABLED
+	PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
+# endif	
 #endif
 
   md = d = PyModule_GetDict(m);
