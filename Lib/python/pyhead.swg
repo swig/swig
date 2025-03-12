@@ -25,6 +25,37 @@
 #  define SWIG_Python_str_FromFormat PyString_FromFormat
 #endif
 
+/*
+  Py_TYPE and related functions are officially part of the limited API only
+  since 3.11, and while we don't actually break ABI compatibility by using
+  them even with the earlier versions because they are implemented as inline
+  functions in Python headers, doing this does provoke an audit failure from
+  abi3audit tool, so avoid using them if we target anything earlier than 3.11.
+ */
+#if defined(Py_LIMITED_API) && Py_LIMITED_API+0 < 0x030B0000
+#   undef Py_TYPE
+#   define Py_TYPE SWIG_Py_TYPE
+
+#   undef Py_IS_TYPE
+#   define Py_IS_TYPE SWIG_Py_IS_TYPE
+
+#   undef PyObject_TypeCheck
+#   define PyObject_TypeCheck SWIG_PyObject_TypeCheck
+
+/*
+  These functions are verbatim copies of the corresponding functions in
+  Python's own object.h.
+ */
+inline PyTypeObject *SWIG_Py_TYPE(const PyObject *ob) {
+    return ob->ob_type;
+}
+inline int SWIG_Py_IS_TYPE(PyObject *ob, PyTypeObject *type) {
+    return Py_TYPE(ob) == type;
+}
+inline int SWIG_PyObject_TypeCheck(PyObject *ob, PyTypeObject *type) {
+    return Py_IS_TYPE(ob, type) || PyType_IsSubtype(Py_TYPE(ob), type);
+}
+#endif /* !Py_LIMITED_API || Py_LIMITED_API >= 3.11 */
 
 /* Wrapper around PyUnicode_AsUTF8AndSize - call Py_XDECREF on the returned pbytes when finished with the returned string */
 SWIGINTERN const char *
