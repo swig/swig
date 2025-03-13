@@ -3,6 +3,10 @@ from langobj import *
 
 
 x = 256*256+1
+
+# avoid immortal object in no-gil scenario
+x += 1
+
 rx = sys.getrefcount(x)
 v = identity(x)
 rv = sys.getrefcount(v)

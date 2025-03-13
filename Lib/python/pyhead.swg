@@ -103,7 +103,7 @@ SWIG_Python_str_FromChar(const char *c)
 #endif
 
 /* Increment and Decrement wrappers - for portability when using the stable abi and for performance otherwise */
-#if defined(Py_LIMITED_API) || defined(Py_GIL_DISABLED)
+#ifdef Py_LIMITED_API
 # define SWIG_Py_INCREF Py_IncRef
 # define SWIG_Py_XINCREF Py_IncRef
 # define SWIG_Py_DECREF Py_DecRef

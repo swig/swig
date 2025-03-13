@@ -2075,6 +2075,13 @@ else
     if test -z "$PYVER"; then
       PYVER=0
     fi
+
+    AC_MSG_CHECKING([for $PYTHON3 GIL is disabled])
+    PYGIL=`($PYTHON3 -c "import sysconfig; print(not bool(sysconfig.get_config_var('Py_GIL_DISABLED')))") 2>/dev/null`
+    AC_MSG_RESULT($PYGIL)
+    if test x"$PYGIL" = x"False"; then
+      PYTHON3="$PYTHON3 -Xgil=0"
+    fi
   fi
 
   if test $PYVER -ge 3; then
