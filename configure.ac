@@ -21,7 +21,15 @@ AH_BOTTOM([
 
 dnl Check for programs that a user requires to build SWIG
 AC_PROG_CC
+CC=$(echo $CC | sed -e "s/ .*//") # Strip -std flags that autoconf foists onto CC
+AC_MSG_CHECKING([CC to use for compiling])
+AC_MSG_RESULT([$CC])
+
 AC_PROG_CXX
+CXX=$(echo $CXX | sed -e "s/ .*//") # Strip -std flags that autoconf foists onto CXX
+AC_MSG_CHECKING([CXX to use for compiling])
+AC_MSG_RESULT([$CXX])
+
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 
 AC_COMPILE_WARNINGS # Increase warning levels
