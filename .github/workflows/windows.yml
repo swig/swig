@@ -37,10 +37,8 @@ jobs:
         include:
         - SWIGLANG: csharp
           INSTALL: 'true'
-          continue-on-error: true # Started failing 2025-02-14.
         - SWIGLANG: csharp
           os: 'windows-2019'
-          continue-on-error: true # Started failing 2025-02-14.
         - SWIGLANG: csharp
           COMPILER: gcc
         - SWIGLANG: csharp
@@ -49,10 +47,8 @@ jobs:
           os: 'windows-2019'
         - SWIGLANG: java
           VER: 8
-          continue-on-error: true # Started failing 2025-02-14.
         - SWIGLANG: java
           VER: 17
-          continue-on-error: true # Started failing 2025-02-14.
         - SWIGLANG: java
           COMPILER: gcc
           VER: 8
@@ -61,10 +57,8 @@ jobs:
           VER: 11
         - SWIGLANG: python
           VER: '3.7'
-          continue-on-error: true # Started failing 2025-02-14.
         - SWIGLANG: python
           VER: '3.12'
-          continue-on-error: true # Started failing 2025-02-14.
        #  TODO require fixing of probing in configure.ac
        #- SWIGLANG: python
        #  INSTALL: 'true'
@@ -73,11 +67,9 @@ jobs:
         - SWIGLANG: ruby
 #         VER: '3.0.7'
           NOTEST: 'no-test'
-          continue-on-error: true # Started failing 2025-02-14.
         - SWIGLANG: ruby
           VER: '3.1.6'
           NOTEST: 'no-test'
-          continue-on-error: true # Started failing 2025-02-14.
         - SWIGLANG: ruby
           INSTALL: 'true'
           COMPILER: gcc
