@@ -278,21 +278,25 @@
   }
 %}
 
-%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") TYPE {
+%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") TYPE %{{
     if (swigCPtr != 0) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        $jnicall;
+        deleteCPtr();
       }
       swigCPtr = 0;
     }
   }
 
+  protected void deleteCPtr() {
+    $jnicall;
+  }%}
+
 %typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized") TYPE {
     if (swigCPtr != 0) {
       if (swigCMemOwnDerived) {
         swigCMemOwnDerived = false;
-        $jnicall;
+        $jnicall;//deleteCPtr#6
       }
       swigCPtr = 0;
     }

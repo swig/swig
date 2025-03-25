@@ -295,7 +295,7 @@
 %typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") TYPE {
     if(swigCPtr != 0 && swigCMemOwnBase) {
       swigCMemOwnBase = false;
-      $jnicall;
+      $jnicall;//deleteCPtr#1
     }
     swigCPtr = 0;
   }
@@ -303,7 +303,7 @@
 %typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized") TYPE {
     if(swigCPtr != 0 && swigCMemOwnDerived) {
       swigCMemOwnDerived = false;
-      $jnicall;
+      $jnicall;//deleteCPtr#2
     }
     swigCPtr = 0;
     super.delete();
@@ -446,7 +446,7 @@
     if (swigCPtr != 0) {
       if (swigCMemOwnBase) {
         swigCMemOwnBase = false;
-        $jnicall;
+        $jnicall;//deleteCPtr#3
       }
       swigCPtr = 0;
     }
@@ -456,7 +456,7 @@
     if (swigCPtr != 0) {
       if (swigCMemOwnDerived) {
         swigCMemOwnDerived = false;
-        $jnicall;
+        $jnicall;//deleteCPtr#4
       }
       swigCPtr = 0;
     }
