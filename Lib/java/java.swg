@@ -1304,8 +1304,7 @@ SWIG_JAVABODY_PROXY(protected, protected, SWIGTYPE)
 SWIG_JAVABODY_TYPEWRAPPER(protected, protected, protected, SWIGTYPE)
 
 %typemap(javafinalize) SWIGTYPE %{
-  @SuppressWarnings({"deprecation", "removal"})
-  protected void finalize() {
+  @Override protected void finalize() {
     delete();
   }
 %}
@@ -1344,26 +1343,34 @@ SWIG_PROXY_CONSTRUCTOR(true, false, TYPENAME)
 // Set the default for SWIGTYPE: Java owns the C/C++ object.
 SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 
-%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized", parameters="") SWIGTYPE {
+%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized", parameters="") SWIGTYPE %{{
     if (swigCPtr != 0) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        $jnicall;
+        deleteCPtr();
       }
       swigCPtr = 0;
     }
   }
 
-%typemap(javadestruct_derived, methodname="delete", methodmodifiers="public synchronized", parameters="") SWIGTYPE {
+  protected void deleteCPtr() {
+    $jnicall;
+  }%}
+
+%typemap(javadestruct_derived, methodname="delete", methodmodifiers="@Override public synchronized", parameters="") SWIGTYPE %{{
     if (swigCPtr != 0) {
       if (swigCMemOwn) {
         swigCMemOwn = false;
-        $jnicall;
+        deleteCPtr();
       }
       swigCPtr = 0;
     }
     super.delete();
   }
+
+  @Override protected void deleteCPtr() {
+    $jnicall;
+  }%}
 
 %typemap(directordisconnect, methodname="swigDirectorDisconnect") SWIGTYPE %{
   protected void $methodname() {
@@ -1424,8 +1431,8 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 /* String & length */
 %typemap(jni)     (const char *STRING, size_t LENGTH) "jbyteArray"
 %typemap(jtype)   (const char *STRING, size_t LENGTH) "byte[]"
-%typemap(jstype)  (const char *STRING, size_t LENGTH) "String"
-%typemap(javain)  (const char *STRING, size_t LENGTH) %{($javainput == null) ? null : $javainput.getBytes()%}
+%typemap(jstype)  (const char *STRING, size_t LENGTH) "byte[]"
+%typemap(javain)  (const char *STRING, size_t LENGTH) "$javainput"
 %typemap(freearg) (const char *STRING, size_t LENGTH) ""
 %typemap(in)      (const char *STRING, size_t LENGTH) {
   if ($input) {
@@ -1439,7 +1446,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %typemap(argout)  (const char *STRING, size_t LENGTH) {
   if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, JNI_ABORT);
 }
-%typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) (const char *STRING, size_t LENGTH) {
+%typemap(directorin, descriptor="[B", noblock=1) (const char *STRING, size_t LENGTH) {
   $input = 0;
   if ($1) {
     $input = JCALL1(NewByteArray, jenv, (jsize)$2);
@@ -1448,7 +1455,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
-%typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "($jniinput == null) ? null : new String($jniinput)"
+%typemap(javadirectorin, descriptor="[B") (const char *STRING, size_t LENGTH) "$jniinput"
 %apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
 /* Enable write-back for non-const version */
 %typemap(argout)  (char *STRING, size_t LENGTH) {
