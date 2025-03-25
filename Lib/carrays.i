@@ -77,7 +77,7 @@ void NAME##_setitem(TYPE *ary, size_t index, TYPE value);
 
 %define %array_class(TYPE,NAME)
 %{
-typedef TYPE NAME;
+using NAME = TYPE;
 %}
 typedef struct {
   /* Put language specific enhancements here */
