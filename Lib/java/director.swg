@@ -55,6 +55,8 @@ SWIGINTERN int Swig::GetThreadName(char *name, size_t len) {
 #include <pthread.h>
 #endif
 
+#include <string>
+
 namespace Swig {
 
   /* Java object wrapper */
@@ -104,7 +106,7 @@ namespace Swig {
       if (jthis_) {
         if (weak_global_) {
           if (jenv->IsSameObject(jthis_, SWIG_NULLPTR) == JNI_FALSE)
-            jenv->DeleteWeakGlobalRef((jweak)jthis_);
+            jenv->DeleteWeakGlobalRef(jthis_);
         } else
           jenv->DeleteGlobalRef(jthis_);
       }
@@ -130,7 +132,7 @@ namespace Swig {
       } else {
 	/* Java releases ownership of C++ object's lifetime */
         if (weak_global_) {
-          jenv->DeleteWeakGlobalRef((jweak)jthis_);
+          jenv->DeleteWeakGlobalRef(jthis_);
           jthis_ = jenv->NewGlobalRef(jself);
           weak_global_ = false;
         }
@@ -197,7 +199,7 @@ namespace Swig {
 #if defined(__ANDROID__)
         JNIEnv **jenv = &jenv_;
 #else
-        void **jenv = (void **)&jenv_;
+        auto jenv = (void **)&jenv_;
 #endif
         env_status = director_->swig_jvm_->GetEnv((void **)&jenv_, JNI_VERSION_1_2);
         JavaVMAttachArgs args;
@@ -331,7 +333,7 @@ namespace Swig {
   public:
     JavaString(JNIEnv *jenv, jstring jstr) : jenv_(jenv), jstr_(jstr), cstr_(SWIG_NULLPTR) {
       if (jenv_ && jstr_)
-	cstr_ = (const char *) jenv_->GetStringUTFChars(jstr_, SWIG_NULLPTR);
+	cstr_ = jenv_->GetStringUTFChars(jstr_, SWIG_NULLPTR);
     }
 
     ~JavaString() {
@@ -375,8 +377,7 @@ namespace Swig {
       jstring jmsg = SWIG_NULLPTR;
       if (jenv && throwable) {
 	jenv->ExceptionClear(); // Cannot invoke methods with any pending exceptions
-	jclass throwclz = jenv->GetObjectClass(throwable);
-	if (throwclz) {
+	if (jclass throwclz = jenv->GetObjectClass(throwable); throwclz) {
 	  // All Throwable classes have a getMessage() method, so call it to extract the exception message
 	  jmethodID getMessageMethodID = jenv->GetMethodID(throwclz, "getMessage", "()Ljava/lang/String;");
 	  if (getMessageMethodID)
@@ -407,7 +408,7 @@ namespace Swig {
 	  if (clzclz) {
 	    jmethodID getNameMethodID = jenv->GetMethodID(clzclz, "getName", "()Ljava/lang/String;");
 	    if (getNameMethodID) {
-	      jstring jstr_classname = (jstring)(jenv->CallObjectMethod(throwclz, getNameMethodID));
+	      auto jstr_classname = (jstring)(jenv->CallObjectMethod(throwclz, getNameMethodID));
               // Copy strings, since there is no guarantee that jenv will be active when handled
               if (jstr_classname) {
                 JavaString jsclassname(jenv, jstr_classname);
@@ -454,7 +455,7 @@ namespace Swig {
           // Try and reconstruct original exception, but original stacktrace is not reconstructed
           jenv->ExceptionClear();
 
-          jmethodID ctorMethodID = SWIG_NULLPTR;
+          const _jmethodID *ctorMethodID = SWIG_NULLPTR;
           jclass throwableclass = SWIG_NULLPTR;
           if (classname_) {
             throwableclass = jenv->FindClass(classname_);
@@ -494,9 +495,10 @@ namespace Swig {
     static char *copystr(const char *srcmsg) {
       char *target = SWIG_NULLPTR;
       if (srcmsg) {
-	size_t msglen = strlen(srcmsg) + 1;
-	target = new char[msglen];
-	strncpy(target, srcmsg, msglen);
+        std::string msgStr(srcmsg);
+        target = new char[msgStr.size() + 1];
+        std::copy(msgStr.begin(), msgStr.end(), target);
+        target[msgStr.size()] = '\0';
       }
       return target;
     }
