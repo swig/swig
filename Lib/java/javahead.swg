@@ -37,7 +37,7 @@
 
 %insert(runtime) %{
 /* Support for throwing Java exceptions */
-typedef enum {
+enum SWIG_JavaExceptionCodes {
   SWIG_JavaOutOfMemoryError = 1,
   SWIG_JavaIOException,
   SWIG_JavaRuntimeException,
@@ -48,12 +48,12 @@ typedef enum {
   SWIG_JavaDirectorPureVirtual,
   SWIG_JavaUnknownError,
   SWIG_JavaIllegalStateException,
-} SWIG_JavaExceptionCodes;
+};
 
-typedef struct {
+struct SWIG_JavaExceptions_t {
   SWIG_JavaExceptionCodes code;
   const char *java_exception;
-} SWIG_JavaExceptions_t;
+};
 %}
 
 %insert(runtime) {
