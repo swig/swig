@@ -102,7 +102,7 @@ install:
       $env:CC="gcc"
       $env:CXX="g++"
     }
-- if "%OSVARIANT%"=="" bash -c "cd /usr/bin && curl --retry 15 -s -L https://github.com/swig/cccl/archive/cccl-1.2.tar.gz | tar -xz --strip 1 cccl-cccl-1.2/cccl"
+- if "%OSVARIANT%"=="" bash -c "cd /usr/bin && curl --retry 15 -s -L https://github.com/swig/cccl/archive/cccl-1.4.tar.gz | tar -xz --strip 1 cccl-cccl-1.4/cccl"
 - if "%OSVARIANT%"=="" call "%VCVARSBAT%" %VCVARSARG%
 - if "%OSVARIANT%"=="" appveyor-retry appveyor DownloadFile https://github.com/PhilipHazel/pcre2/archive/refs/tags/pcre2-10.39.zip
 - if "%OSVARIANT%"=="" 7z x pcre2-10.39.zip
