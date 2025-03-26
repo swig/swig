@@ -138,6 +138,9 @@ jobs:
           VER: '3.13'
           CSTD: gnu99
         - SWIGLANG: python
+          VER: '3.14'
+          CSTD: gnu99
+        - SWIGLANG: python
           PY2: 2
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
