@@ -59,11 +59,8 @@ jobs:
           VER: '3.7'
         - SWIGLANG: python
           VER: '3.12'
-       #  TODO require fixing of probing in configure.ac
-       #- SWIGLANG: python
-       #  INSTALL: 'true'
-       #  COMPILER: gcc
-       #  NOTEST: 'no-test'
+        - SWIGLANG: python
+          COMPILER: gcc
         - SWIGLANG: ruby
 #         VER: '3.0.7'
           NOTEST: 'no-test'
@@ -146,6 +143,8 @@ jobs:
             case "$SWIGLANG" in
             python)
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-python"
+              # MinGW-w64 with iostream need static link
+              echo "EXAMPLE_LIBS=-static-libstdc++ -static-libgcc" >> $GITHUB_ENV
               ;;
             ruby)
               MORE_MSYS_PKGS+=" mingw-w64-x86_64-ruby"
