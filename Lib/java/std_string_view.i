@@ -27,13 +27,16 @@ class string_view;
 %typemap(javadirectorin) string_view "$jniinput"
 %typemap(javadirectorout) string_view "$javacall"
 
+%typemap(arginit) string_view
+%{ const char *$1_pstr = 0; %}
+
 %typemap(in) string_view
 %{ if(!$input) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
-     return $null;
+     SWIG_fail;
    }
-   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
-   if (!$1_pstr) return $null;
+   $1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
+   if (!$1_pstr) SWIG_fail;
    $1 = std::string_view($1_pstr); %}
 
 /* std::string_view requires the string data to remain valid while the
@@ -46,10 +49,10 @@ class string_view;
      if (!jenv->ExceptionCheck()) {
        SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
      }
-     return $null;
+     SWIG_fail;
    }
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
-   if (!$1_pstr) return $null;
+   if (!$1_pstr) SWIG_fail;
    /* possible thread/reentrant code problem */
    static std::string $1_str;
    $1_str = $1_pstr;
@@ -77,7 +80,7 @@ class string_view;
 
 %typemap(throws) string_view
 %{ SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, std::string($1).c_str());
-   return $null; %}
+   SWIG_fail; %}
 
 // const string_view &
 %typemap(jni) const string_view & "jstring"
@@ -86,13 +89,16 @@ class string_view;
 %typemap(javadirectorin) const string_view & "$jniinput"
 %typemap(javadirectorout) const string_view & "$javacall"
 
+%typemap(arginit) const string_view &
+%{ const char *$1_pstr = 0; %}
+
 %typemap(in) const string_view &
 %{ if(!$input) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
-     return $null;
+     SWIG_fail;
    }
-   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
-   if (!$1_pstr) return $null;
+   $1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
+   if (!$1_pstr) SWIG_fail;
    $*1_ltype $1_str($1_pstr);
    $1 = &$1_str; %}
 
@@ -104,10 +110,10 @@ class string_view;
 %typemap(directorout,warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const string_view &
 %{ if(!$input) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
-     return $null;
+     SWIG_fail;
    }
    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
-   if (!$1_pstr) return $null;
+   if (!$1_pstr) SWIG_fail;
    /* possible thread/reentrant code problem */
    static std::string $1_str;
    $1_str = $1_pstr;
@@ -133,6 +139,6 @@ class string_view;
 
 %typemap(throws) const string_view &
 %{ SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, std::string($1).c_str());
-   return $null; %}
+   SWIG_fail; %}
 
 }

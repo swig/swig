@@ -326,7 +326,7 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
-    return $null;
+    SWIG_fail;
   }
   clazz = JCALL1(GetObjectClass, jenv, $input);
   mid = JCALL3(GetMethodID, jenv, clazz, "toByteArray", "()[B");
@@ -353,7 +353,7 @@ SWIGINTERN jint SWIG_JavaIntFromSize_t(size_t size) {
 
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
-    return $null;
+    SWIG_fail;
   }
   clazz = JCALL1(GetObjectClass, jenv, $input);
   mid = JCALL3(GetMethodID, jenv, clazz, "toByteArray", "()[B");
@@ -421,7 +421,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
  $1 = 0;
   if ($input) {
     $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
-    if (!$1) return $null;
+    if (!$1) SWIG_fail;
   }
 }
 
@@ -429,7 +429,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   $1 = 0;
   if ($input) {
     $result = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
-    if (!$result) return $null;
+    if (!$result) SWIG_fail;
   }
 }
 
@@ -437,7 +437,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   $input = 0;
   if ($1) {
     $input = JCALL1(NewStringUTF, jenv, (const char *)$1);
-    if (!$input) return $null;
+    if (!$input) SWIG_fail;
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
@@ -452,7 +452,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
  $1 = 0;
   if ($input) {
     temp = ($*1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
-    if (!temp) return $null;
+    if (!temp) SWIG_fail;
   }
   $1 = &temp;
 }
@@ -577,7 +577,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
-    return $null;
+    SWIG_fail;
   }
   clazz = JCALL1(GetObjectClass, jenv, $input);
   mid = JCALL3(GetMethodID, jenv, clazz, "toByteArray", "()[B");
@@ -606,7 +606,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 
   if (!$input) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "BigInteger null");
-    return $null;
+    SWIG_fail;
   }
   clazz = JCALL1(GetObjectClass, jenv, $input);
   mid = JCALL3(GetMethodID, jenv, clazz, "toByteArray", "()[B");
@@ -651,7 +651,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %{ argp = *($&1_ltype*)&$input; 
    if (!argp) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Attempt to dereference null $1_type");
-     return $null;
+     SWIG_fail;
    }
    $1 = *argp; %}
 
@@ -659,7 +659,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %{ argp = *($&1_ltype*)&$input; 
    if (!argp) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected null return for type $1_type");
-     return $null;
+     SWIG_fail;
    }
    $result = *argp; %}
 
@@ -686,19 +686,19 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   const char *temp = 0;
   if ($input) {
     temp = JCALL2(GetStringUTFChars, jenv, $input, 0);
-    if (!temp) return $null;
+    if (!temp) SWIG_fail;
   }
   SWIG_UnpackData(temp, (void *)&$1, sizeof($1));
 }
 %typemap(in) SWIGTYPE & %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type is null");
-    return $null;
+    SWIG_fail;
   } %}
 %typemap(in, fragment="<memory>") SWIGTYPE && (std::unique_ptr<$*1_ltype> rvrdeleter) %{ $1 = *($&1_ltype)&$input;
   if (!$1) {
     SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "$1_type is null");
-    return $null;
+    SWIG_fail;
   }
   rvrdeleter.reset($1); %}
 %typemap(out) SWIGTYPE *
@@ -727,13 +727,13 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &
 %{ if (!$input) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected null return for type $1_type");
-     return $null;
+     SWIG_fail;
    }
    $result = *($&1_ltype)&$input; %}
 %typemap(directorout, warning=SWIGWARN_TYPEMAP_DIRECTOROUT_PTR_MSG) SWIGTYPE &&
 %{ if (!$input) {
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "Unexpected null return for type $1_type");
-     return $null;
+     SWIG_fail;
    }
    $result = *($&1_ltype)&$input; %}
 %typemap(directorin,descriptor="L$packagepath/$javaclassname;") SWIGTYPE &
@@ -756,7 +756,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   $1 = 0;
   if ($input) {
     $1 = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
-    if (!$1) return $null;
+    if (!$1) SWIG_fail;
   }
 }
 
@@ -764,7 +764,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   $1 = 0;
   if ($input) {
     $result = ($1_ltype)JCALL2(GetStringUTFChars, jenv, $input, 0);
-    if (!$result) return $null;
+    if (!$result) SWIG_fail;
   }
 }
 
@@ -772,7 +772,7 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
   $input = 0;
   if ($1) {
     $input = JCALL1(NewStringUTF, jenv, (const char *)$1);
-    if (!$input) return $null;
+    if (!$input) SWIG_fail;
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
 }
@@ -1041,21 +1041,21 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
 %{ char error_msg[256];
    SWIG_snprintf(error_msg, sizeof(error_msg), "C++ $1_type exception thrown, value: %d", $1);
    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, error_msg);
-   return $null; %}
+   SWIG_fail; %}
 
 %typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE &&, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY]
 %{ (void)$1;
    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "C++ $1_type exception thrown");
-   return $null; %}
+   SWIG_fail; %}
 
 %typemap(throws) char *
 %{ SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, $1);
-   return $null; %}
+   SWIG_fail; %}
 
 /* For methods to raise/throw the original Java exception thrown in a director method */
 %typemap(throws) Swig::DirectorException
 %{  $1.throwException(jenv);
-    return $null; %}
+    SWIG_fail; %}
 
 /* Java to C++ DirectorException should already be handled. Suppress warning and do nothing in the
    event a user specifies a global: %catches(Swig::DirectorException); */
@@ -1443,7 +1443,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
   $input = 0;
   if ($1) {
     $input = JCALL1(NewByteArray, jenv, (jsize)$2);
-    if (!$input) return $null;
+    if (!$input) SWIG_fail;
     JCALL4(SetByteArrayRegion, jenv, $input, 0, (jsize)$2, (jbyte *)$1);
   }
   Swig::LocalRefGuard $1_refguard(jenv, $input);
