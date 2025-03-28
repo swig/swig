@@ -50,6 +50,8 @@ jobs:
         - SWIGLANG: java
           VER: 17
         - SWIGLANG: java
+          VER: 21
+        - SWIGLANG: java
           COMPILER: gcc
           VER: 8
         - SWIGLANG: java
