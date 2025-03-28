@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-04-02: wsfulton
+            [Java] Fix javac -Xlint warnings:
+
+            - [cast] redundant cast in std::unordered_map wrappers put method
+            - [rawtypes] found raw type in std::list constructor wrapper
+
 2025-04-02: olly
 	    #3152 Remove typemaps for `signed wchar_t` and `unsigned wchar_t`
 	    in C++ mode.  These types aren't specified by the C++ standard and
@@ -25,7 +31,7 @@ Version 4.4.0 (in progress)
 	    #3149 [Octave] Fix to compile with Octave 10.0
 
 2025-03-03: olly
-	    [guile] The typemaps in ports.i now generate code which compiles
+	    [Guile] The typemaps in ports.i now generate code which compiles
 	    even if the wrapper is compiled with in a strict standards
 	    conformance mode such as -std=c11.
 

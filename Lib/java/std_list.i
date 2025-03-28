@@ -39,7 +39,7 @@ namespace std {
 
 %typemap(javabase) std::list<T> "java.util.AbstractSequentialList<$typemap(jboxtype, T)>"
 %proxycode %{
-  public $javaclassname(java.util.Collection c) {
+  public $javaclassname(java.util.Collection<? extends $typemap(jboxtype, T)> c) {
     this();
     java.util.ListIterator<$typemap(jboxtype, T)> it = listIterator(0);
     // Special case the "copy constructor" here to avoid lots of cross-language calls
