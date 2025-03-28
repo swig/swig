@@ -664,6 +664,7 @@ JAVALDSHARED = @JAVALDSHARED@
 JAVACXXSHARED = @JAVACXXSHARED@
 JAVACFLAGS = @JAVACFLAGS@
 JAVAFLAGS = @JAVAFLAGS@
+JAVAC_OPTIONS = @JAVAC_OPTIONS@
 JAVA = @JAVA@
 JAVAC = @JAVAC@ -d .
 
@@ -690,7 +691,7 @@ java_cpp: $(SRCDIR_SRCS)
 # ----------------------------------------------------------------
 
 java_compile: $(SRCDIR_SRCS)
-	$(COMPILETOOL) $(JAVAC) $(addprefix $(SRCDIR),$(JAVASRCS))
+	$(COMPILETOOL) $(JAVAC) $(JAVAC_OPTIONS) $(addprefix $(SRCDIR),$(JAVASRCS))
 
 # -----------------------------------------------------------------
 # Run java example

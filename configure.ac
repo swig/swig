@@ -1153,6 +1153,7 @@ case $host in
     JAVACXXSHARED='$(CXXSHARED)'
     ;;
 esac
+JAVAC_OPTIONS="-Xlint"
 fi
 
 # Quote for spaces in path to executables
@@ -1177,6 +1178,7 @@ AC_SUBST(JAVALDSHARED)
 AC_SUBST(JAVACXXSHARED)
 AC_SUBST(JAVAFLAGS)
 AC_SUBST(JAVACFLAGS)
+AC_SUBST(JAVAC_OPTIONS)
 
 #----------------------------------------------------------------
 # Look for Javascript
