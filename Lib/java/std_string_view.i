@@ -32,7 +32,7 @@ class string_view;
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
      return $null;
    }
-   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
+   const char *$1_pstr = jenv->GetStringUTFChars($input, 0);
    if (!$1_pstr) return $null;
    $1 = std::string_view($1_pstr); %}
 
@@ -48,7 +48,7 @@ class string_view;
      }
      return $null;
    }
-   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
+   const char *$1_pstr = jenv->GetStringUTFChars($input, 0);
    if (!$1_pstr) return $null;
    /* possible thread/reentrant code problem */
    static std::string $1_str;
@@ -91,7 +91,7 @@ class string_view;
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
      return $null;
    }
-   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
+   const char *$1_pstr = jenv->GetStringUTFChars($input, 0);
    if (!$1_pstr) return $null;
    $*1_ltype $1_str($1_pstr);
    $1 = &$1_str; %}
@@ -106,7 +106,7 @@ class string_view;
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
      return $null;
    }
-   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0);
+   const char *$1_pstr = jenv->GetStringUTFChars($input, 0);
    if (!$1_pstr) return $null;
    /* possible thread/reentrant code problem */
    static std::string $1_str;
