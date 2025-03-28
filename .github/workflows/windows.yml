@@ -163,8 +163,9 @@ jobs:
             echo "BOOST_PATH=/c/msys64/mingw64" >> $GITHUB_ENV
           else
              # COMPILER: cccl wrapping MSVC
-            curl --retry 15 -s -L https://github.com/swig/cccl/raw/master/cccl > /usr/bin/cccl
+            curl --retry 15 -s -L https://github.com/swig/cccl/raw/cccl-1.4/cccl -o /usr/bin/cccl
             chmod +x /usr/bin/cccl
+            /usr/bin/cccl --version
             cp -p /usr/bin/cccl /c/msys64/usr/bin/cccl
 
             # Using pcre2 installed with NuGet
