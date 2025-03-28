@@ -22,7 +22,7 @@ AH_BOTTOM([
 dnl Check for programs that a user requires to build SWIG
 cc_overridden_by_user=${CC:+y}
 AC_PROG_CC
-if -z "$cc_overridden_by_user" ; then
+if test -z "$cc_overridden_by_user" ; then
   dnl autoconf 2.70 started to add a -std option to the probed value of CC if
   dnl needed to enable support for newer C standards.  We don't want this so
   dnl remove any options unless CC was overridden on the command line or in the
@@ -34,7 +34,7 @@ AC_MSG_RESULT([$CC])
 
 cxx_overridden_by_user=${CXX:+y}${CCC:+y}
 AC_PROG_CXX
-if -z "$cxx_overridden_by_user" ; then
+if test -z "$cxx_overridden_by_user" ; then
   dnl autoconf 2.70 started to add a -std option to the probed value of CXX if
   dnl needed to enable support for newer C++ standards.  We don't want this so
   dnl remove any options unless CXX/CCC was overridden on the command line or
