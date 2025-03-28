@@ -70,7 +70,7 @@ static jbyteArray SWIG_JavaArrayOutCDATA(JNIEnv *jenv, char *result, jsize sz) {
 }
 }
 %typemap(out, fragment="SWIG_JavaArrayOutCDATA") SWIGCDATA
-%{$result = SWIG_JavaArrayOutCDATA(jenv, (char *)$1.data, $1.len); %}
+%{$result = SWIG_JavaArrayOutCDATA(jenv, (char *)$1.data, (jsize)$1.len); %}
 %typemap(javaout) SWIGCDATA {
     return $jnicall;
   }
