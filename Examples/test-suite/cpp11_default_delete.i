@@ -107,11 +107,11 @@ struct moveonly {
 };
 
 struct ConstructorThrow {
-  ConstructorThrow() throw() = default;
-  ConstructorThrow(const ConstructorThrow&) throw() = delete;
-  ConstructorThrow(ConstructorThrow&&) throw() = delete;
-  ConstructorThrow& operator=(const ConstructorThrow&) throw() = delete;
-  ~ConstructorThrow() throw() = default;
+  ConstructorThrow() noexcept = default;
+  ConstructorThrow(const ConstructorThrow&) noexcept = delete;
+  ConstructorThrow(ConstructorThrow&&) noexcept = delete;
+  ConstructorThrow& operator=(const ConstructorThrow&) noexcept = delete;
+  ~ConstructorThrow() noexcept = default;
 };
 
 %}
