@@ -18,6 +18,7 @@ class java_director_exception_feature_nspace_Consts {
 
 // an exception not mentioned or wrapped by the swig interface,
 // to reconstruct using generic DirectorException handling
+@SuppressWarnings("serial")
 class java_director_exception_feature_nspace_NewCheckedException extends Exception {
     public java_director_exception_feature_nspace_NewCheckedException(String s) {
         super(s);
@@ -26,6 +27,7 @@ class java_director_exception_feature_nspace_NewCheckedException extends Excepti
 
 // an exception not mentioned or wrapped by the swig interface,
 // to reconstruct using generic DirectorException handling
+@SuppressWarnings("serial")
 class java_director_exception_feature_nspace_NewUncheckedException extends RuntimeException {
     public java_director_exception_feature_nspace_NewUncheckedException(String s) {
         super(s);
@@ -34,6 +36,7 @@ class java_director_exception_feature_nspace_NewUncheckedException extends Runti
 
 // an exception not constructible from a string,
 // to test DirectorException fallback reconstruction
+@SuppressWarnings("serial")
 class java_director_exception_feature_nspace_UnconstructibleException extends Exception {
     private int extrastate;
     public java_director_exception_feature_nspace_UnconstructibleException(int a, String s) {

@@ -82,6 +82,9 @@ SWIGOPT += $(JAVA_PACKAGEOPT)
 # Ensure testsuite remains free from SWIG warnings.
 SWIGOPT += -Werror
 
+# Suppress -Xlint
+inherit_target_language.%: JAVAC_OPTIONS=
+
 # Custom tests - tests with additional commandline options
 cpp17_nspace_nested_namespaces.%: JAVA_PACKAGE = $*Package
 director_nspace.%: JAVA_PACKAGE = $*Package
