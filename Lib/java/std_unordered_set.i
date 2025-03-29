@@ -48,6 +48,7 @@ class unordered_set {
 
 %typemap(javabase) std::unordered_set<Key> "java.util.AbstractSet<$typemap(jboxtype, Key)>"
 %proxycode %{
+  @SuppressWarnings("this-escape")
   public $javaclassname(java.util.Collection<? extends $typemap(jboxtype, Key)> collection) {
     this();
     addAll(collection);

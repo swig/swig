@@ -39,6 +39,7 @@ namespace std {
 
 %typemap(javabase) std::list<T> "java.util.AbstractSequentialList<$typemap(jboxtype, T)>"
 %proxycode %{
+  @SuppressWarnings("this-escape")
   public $javaclassname(java.util.Collection<? extends $typemap(jboxtype, T)> c) {
     this();
     java.util.ListIterator<$typemap(jboxtype, T)> it = listIterator(0);
@@ -66,7 +67,7 @@ namespace std {
         if (index < 0 || index > $javaclassname.this.size())
           throw new IndexOutOfBoundsException("Index: " + index);
         pos = $javaclassname.this.begin();
-	pos = pos.advance_unchecked(index);
+        pos = pos.advance_unchecked(index);
         return this;
       }
 

@@ -8,6 +8,12 @@ Version 4.4.0 (in progress)
 ===========================
 
 2025-04-02: wsfulton
+            [Java] Fix javac -Xlint warning (JDK 21):
+
+            [this-escape] possible 'this' escape before subclass is fully initialized
+            in std::list, std::vector, std::set, std::unordered_set constructors.
+
+2025-04-02: wsfulton
             [Java] Fix javac -Xlint warnings:
 
             - [cast] redundant cast in std::unordered_map wrappers put method
