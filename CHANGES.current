@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.1 (in progress)
 ===========================
 
+2025-03-31: alatina
+	    #3149 [Octave] Fix to compile with Octave 10.0
+
 2025-01-27: StefanBattmer
 	    [Python] #2889 Fix regression when using directors and threads
 	    but not using limited API.
