@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-03-31: alatina
+	    #3149 [Octave] Fix to compile with Octave 10.0
+
 2025-03-03: olly
 	    [guile] The typemaps in ports.i now generate code which compiles
 	    even if the wrapper is compiled with in a strict standards
