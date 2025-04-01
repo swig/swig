@@ -1017,31 +1017,25 @@ else
   JAVAC="$JAVACBIN"
 fi
 
-# Check Java version: we require Java 9 or later for Doxygen tests.
 if test -n "$JAVAC"; then
-    AC_MSG_CHECKING(if java version is 9 or greater)
-    javac_version=`"$JAVAC" -version 2>&1`
-    java_version_num=`echo $javac_version | sed -n 's/^javac //p'`
-    if test -z "$java_version_num"; then
-        AC_MSG_WARN([unknown format for Java version returned by "$JAVAC" ($javac_version)])
-        JAVA_SKIP_DOXYGEN_TEST_CASES=1
-        AC_MSG_RESULT(unknown)
-    else
-        dnl Until Java 8 version number was in format "1.x", starting from
-        dnl Java 9 it's just "x".
-        case $java_version_num in
-            1.*)
-                JAVA_SKIP_DOXYGEN_TEST_CASES=1
-                AC_MSG_RESULT([no, disabling Doxygen tests])
-                ;;
+  AC_MSG_CHECKING(java major version)
+  javac_version=`"$JAVAC" -version 2>&1`
+  java_version_num=`echo $javac_version | sed -n 's/^javac //p'`
+  JAVA_VERSION_MAJOR="1"
+  if test -n "$java_version_num"; then
+    dnl Until Java 8 version number was in format "1.x.y_z", starting from Java 9 it's "x.y.z".
+    JAVA_VERSION_MAJOR=[$(echo "$java_version_num" | sed -e "s/^1\.//" | sed -e "s/^\([0-9]\+\)\..*/\1/")]
+  fi
+  AC_MSG_RESULT([$JAVA_VERSION_MAJOR])
 
-            *)
-                AC_MSG_RESULT(yes)
-                ;;
-        esac
-    fi
+# Check Java version: we require Java 9 or later for Doxygen tests.
+  JAVA_SKIP_DOXYGEN_TEST_CASES=
+  if test "$JAVA_VERSION_MAJOR" -le "8"; then
+    JAVA_SKIP_DOXYGEN_TEST_CASES="1"
+  fi
 
-    AC_SUBST(JAVA_SKIP_DOXYGEN_TEST_CASES)
+  AC_SUBST(JAVA_VERSION_MAJOR)
+  AC_SUBST(JAVA_SKIP_DOXYGEN_TEST_CASES)
 fi
 
 AC_MSG_CHECKING(for java include file jni.h)

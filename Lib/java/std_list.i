@@ -22,6 +22,7 @@ SWIGINTERN jint SWIG_ListSize(size_t size) {
 }
 }
 
+%javamethodmodifiers std::list::push_back "private";
 %javamethodmodifiers std::list::begin "private";
 %javamethodmodifiers std::list::insert "private";
 %javamethodmodifiers std::list::doSize "private";
@@ -54,7 +55,7 @@ namespace std {
   }
 
   public boolean add($typemap(jboxtype, T) value) {
-    addLast(value);
+    push_back(value);
     return true;
   }
 
@@ -185,14 +186,7 @@ namespace std {
     void clear();
     %rename(remove) erase;
     iterator erase(iterator pos);
-    %rename(removeLast) pop_back;
-    void pop_back();
-    %rename(removeFirst) pop_front;
-    void pop_front();
-    %rename(addLast) push_back;
     void push_back(const T &value);
-    %rename(addFirst) push_front;
-    void push_front(const T &value);
     iterator begin();
     iterator end();
     iterator insert(iterator pos, const T &value);

@@ -9,6 +9,18 @@
 #include <numeric>
 %}
 
+#if defined(SWIGJAVA) && JAVA_VERSION_MAJOR < 21
+// Test these methods which were removed in swig-4.0 as JDK added the same methods
+// in the java.util.AbstractSequentialList base but unfortunately two of them use
+// a different return type.
+%extend std::list {
+  void removeLast() { $self->pop_back(); }
+  void removeFirst() { $self->pop_front(); }
+  void addLast(const T &value) { $self->push_back(value); }
+  void addFirst(const T &value) { $self->push_front(value); }
+}
+#endif
+
 %template(BoolList) std::list<bool>;
 %template(CharList) std::list<char>;
 %template(ShortList) std::list<short>;

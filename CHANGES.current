@@ -8,6 +8,26 @@ Version 4.4.0 (in progress)
 ===========================
 
 2025-04-02: wsfulton
+            [Java] #3156 Support JDK 21 and std::list. Fixes removeFirst() and removeLast()
+            incompatibilities with methods of the same name in the base class,
+            AbstractSequentialList, which were added in JDK 21 with a different
+            return type. The addFirst() and addLast() methods were also added, all part
+            of JEP-431 Sequenced Collections, see https://openjdk.org/jeps/431.
+
+            If these 4 methods are needed, as SWIG previously generated them, then add
+            the following to your interface file after %include <std_list.i>:
+
+              %extend std::list {
+                void removeLast() { $self->pop_back(); }
+                void removeFirst() { $self->pop_front(); }
+                void addLast(const T &value) { $self->push_back(value); }
+                void addFirst(const T &value) { $self->push_front(value); }
+              }
+
+            But note that this will give javac compiler errors when using JDK 21 and
+            later for removeFirst() and removeLast().
+
+2025-04-02: wsfulton
             [Java] Fix javac -Xlint warning (JDK 21):
 
             [this-escape] possible 'this' escape before subclass is fully initialized
