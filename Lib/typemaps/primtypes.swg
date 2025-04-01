@@ -130,13 +130,6 @@ SWIG_AsVal_dec(bool)(SWIG_Object obj, bool *val)
 %numeric_slong(int,             "<limits.h>", INT_MIN, INT_MAX)
 %numeric_ulong(unsigned int,    "<limits.h>", UINT_MAX)
 
-/* signed/unsigned wchar_t */
-
-#ifdef __cplusplus
-%numeric_slong(signed wchar_t,   "<wchar.h>", WCHAR_MIN, WCHAR_MAX)
-%numeric_ulong(unsigned wchar_t, "<wchar.h>", UWCHAR_MAX)
-#endif
-
 /* float */
 
 %numeric_float(float,           "SWIG_Float_Overflow_Check", SWIG_Float_Overflow_Check(v))

@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-04-02: olly
+	    #3152 Remove typemaps for `signed wchar_t` and `unsigned wchar_t`
+	    in C++ mode.  These types aren't specified by the C++ standard and
+	    give an error with modern versions of GCC, clang or MSVC.  Older
+	    GCC and clang did allow them (tested with GCC 8 and clang 8), but
+	    our typemap code used `UWCHAR_MAX` which doesn't seem to have ever
+	    been defined by any compiler.
+
 2025-04-01: olly
 	    #920 #2830 [MzScheme/Racket] Remove support for MzScheme/Racket.
 	    It's a long time since SWIG's support was actively maintained and
