@@ -250,21 +250,39 @@ int main(int margc, char **margv) {
 	if (strcmp(argv[i], "--help") == 0)
 	  strcpy(argv[i], "-help");
 	Printf(stdout, "Supported Target Language Options\n");
+	int experimental_count = 0, deprecated_count = 0;
 	for (int j = 0; modules[j].name; j++) {
-	  if (modules[j].help && modules[j].status == Supported) {
-	    Printf(stdout, "     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
+	  if (modules[j].help) {
+	    switch (modules[j].status) {
+	      case Supported:
+		Printf(stdout, "     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
+		break;
+	      case Experimental:
+		++experimental_count;
+		break;
+	      case Deprecated:
+		++deprecated_count;
+		break;
+	      case Disabled:
+		// Avoids -Wswitch GCC warning.
+		break;
+	    }
 	  }
 	}
-	Printf(stdout, "\nExperimental Target Language Options\n");
-	for (int j = 0; modules[j].name; j++) {
-	  if (modules[j].help && modules[j].status == Experimental) {
-	    Printf(stdout, "     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
+	if (experimental_count) {
+	  Printf(stdout, "\nExperimental Target Language Options\n");
+	  for (int j = 0; modules[j].name; j++) {
+	    if (modules[j].help && modules[j].status == Experimental) {
+	      Printf(stdout, "     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
+	    }
 	  }
 	}
-	Printf(stdout, "\nDeprecated Target Language Options\n");
-	for (int j = 0; modules[j].name; j++) {
-	  if (modules[j].help && modules[j].status == Deprecated) {
-	    Printf(stdout, "     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
+	if (deprecated_count) {
+	  Printf(stdout, "\nDeprecated Target Language Options\n");
+	  for (int j = 0; modules[j].name; j++) {
+	    if (modules[j].help && modules[j].status == Deprecated) {
+	      Printf(stdout, "     %-15s - Generate %s wrappers\n", modules[j].name, modules[j].help);
+	    }
 	  }
 	}
 	// Swig_mark_arg not called as the general -help options also need to be displayed later on
