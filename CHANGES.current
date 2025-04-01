@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-04-01: olly
+	    #920 #2830 [MzScheme/Racket] Remove support for MzScheme/Racket.
+	    It's a long time since SWIG's support was actively maintained and
+	    a major overhaul would be needed to support Racket 8, for which
+	    nobody has stepped forward in over 3 years.
+
 2025-03-31: alatina
 	    #3149 [Octave] Fix to compile with Octave 10.0
 
@@ -88,8 +94,8 @@ Version 4.4.0 (in progress)
 
 2024-10-22: olly
 	    #3034 SWIG's testsuite is now free of SWIG warnings for all target
-	    languages except mzscheme and the SWIG -Werror option is now
-	    enabled automatically to ensure this doesn't regress.
+	    languages and the SWIG -Werror option is now enabled automatically
+	    to ensure this doesn't regress.
 
 2024-10-22: olly
 	    #2998 Drop support for specifying SWIG's internal type string

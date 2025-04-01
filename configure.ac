@@ -463,11 +463,6 @@ case $host in
    *) PHP_SO=$SO;;
 esac
 
-AC_SUBST(MZSCHEME_SO)
-case $host in
-   *) MZSCHEME_SO=.so;;
-esac
-
 AC_SUBST(LUA_SO)
 case $host in
    *-*-darwin*) LUA_SO=.so;;
@@ -1523,48 +1518,6 @@ AC_SUBST(LUADYNAMICLINKING)
 AC_SUBST(LUAFLAGS)
 AC_SUBST(LUALINK)
 AC_SUBST(LUABIN)
-
-#----------------------------------------------------------------
-# Look for MzScheme
-#----------------------------------------------------------------
-
-AC_ARG_WITH(mzscheme, AS_HELP_STRING([--without-mzscheme], [Disable MzScheme])
-AS_HELP_STRING([--with-mzscheme=path], [Set location of MzScheme executable]),[ MZSCHEMEBIN="$withval"], [MZSCHEMEBIN="$alllang_default"])
-AC_ARG_WITH(mzc, AS_HELP_STRING([--with-mzc=path], [Set location of MzScheme's mzc]), [ MZCBIN="$withval"], [MZCBIN=])
-
-# First, check for "--without-mzscheme" or "--with-mzscheme=no".
-if test x"${MZSCHEMEBIN}" = xno; then
-  AC_MSG_NOTICE([Disabling MzScheme])
-  MZC=
-else
-  if test "x$MZSCHEMEBIN" = xyes; then
-     AC_PATH_PROG(MZSCHEME, mzscheme)
-  else
-     MZSCHEME="$MZSCHEMEBIN"
-  fi
-
-  if test -z "$MZCBIN"; then
-     AC_PATH_PROG(MZC, mzc)
-  fi
-
-  if test -n "$MZSCHEME"; then
-    AC_MSG_CHECKING(for MzScheme dynext object)
-    MZDYNOBJ=`$MZSCHEME --eval '(begin (require dynext/link) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (printf "~a" x)) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
-    if test -f "$MZDYNOBJ"; then
-      :
-    else
-      # older versions (3.72 approx and earlier)
-      MZDYNOBJ=`$MZSCHEME --mute-banner --version --eval '(begin (require (lib "link.ss" "dynext")) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x) (display " ")) ((current-make-standard-link-libraries)))) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x)) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
-    fi
-    if test -f "$MZDYNOBJ"; then
-      AC_MSG_RESULT($MZDYNOBJ)
-    else
-      AC_MSG_RESULT(not found)
-      MZDYNOBJ=""
-    fi
-  fi
-fi
-AC_SUBST(MZDYNOBJ)
 
 #----------------------------------------------------------------
 # Look for OCaml
@@ -2703,13 +2656,6 @@ fi
 AC_SUBST(SKIP_LUA)
 
 
-SKIP_MZSCHEME=
-if test -z "$MZC" || test -z "$MZDYNOBJ" ; then
-    SKIP_MZSCHEME="1"
-fi
-AC_SUBST(SKIP_MZSCHEME)
-
-
 SKIP_OCAML=
 if test -z "$OCAMLC" || test -z "$CAMLP4" ; then
     SKIP_OCAML="1"
@@ -2868,7 +2814,6 @@ AC_CONFIG_FILES([
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
     Examples/test-suite/lua/Makefile
-    Examples/test-suite/mzscheme/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
     Examples/test-suite/perl5/Makefile
@@ -2931,7 +2876,6 @@ test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
-test -n "$SKIP_MZSCHEME"	|| langs="${langs}mzscheme "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "

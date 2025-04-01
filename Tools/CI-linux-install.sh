@@ -76,9 +76,6 @@ case "$SWIGLANG" in
 			$RETRY sudo apt-get -qq install lua${VER} liblua${VER}-dev
 		fi
 		;;
-	"mzscheme")
-		$RETRY sudo apt-get -qq install racket
-		;;
 	"ocaml")
 		$RETRY sudo apt-get -qq install ocaml camlp4
 		;;

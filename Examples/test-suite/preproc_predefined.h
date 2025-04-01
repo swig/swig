@@ -8,7 +8,6 @@
   +defined(SWIGJAVA)\
   +defined(SWIGJAVASCRIPT)\
   +defined(SWIGLUA)\
-  +defined(SWIGMZSCHEME)\
   +defined(SWIGOCAML)\
   +defined(SWIGOCTAVE)\
   +defined(SWIGPERL)\
