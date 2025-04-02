@@ -186,7 +186,11 @@ jobs:
         - SWIGLANG: scilab
           VER: '2023.1.0'
         - SWIGLANG: scilab
+          os: ubuntu-24.04 # scilab 2024.0.0
+        - SWIGLANG: scilab
           VER: '2024.1.0'
+        - SWIGLANG: scilab
+          VER: '2025.0.0'
         - SWIGLANG: tcl
         # c++11 testing
         - SWIGLANG: csharp

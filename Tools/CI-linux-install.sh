@@ -158,7 +158,7 @@ case "$SWIGLANG" in
 		if [[ -z "$VER" ]]; then
 			$RETRY sudo apt-get -qq install scilab
 		else
-			# Starting with version 2023.0.0 the download filename format changed.
+			# Starting with version 2023.1.0 the download filename format changed.
 			case $VER in
 				2023.0*) scilab_tarball=scilab-$VER.bin.x86_64-pc-linux-gnu.tar.xz ;;
 				20*) scilab_tarball=scilab-$VER.bin.x86_64-linux-gnu.tar.xz ;;
