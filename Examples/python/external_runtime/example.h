@@ -3,22 +3,15 @@
 #include <iostream>
 #include "Python.h"
 
-class Mesh
-{
+class Mesh {
+  int value_;
 public:
-	Mesh(const int value = 0)
-	: value_(value) {}
-	int value() { return value_;}
-private:
-	int value_;
+  Mesh(const int value = 0) : value_(value) {}
+  int value() { return value_; }
 };
 
-class Function
-{
+class MeshCaller {
+  PyObject *pyObj_;
 public:
-	explicit Function(PyObject * pyCallable = 0);
-	int meshValue() { return meshValue_;}	int meshValue_;
-
-private:
-	PyObject * pyObj_;
+  explicit MeshCaller(PyObject *pyCallable = 0);
 };
