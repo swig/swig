@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.3.1 (in progress)
 ===========================
 
+2025-04-10: jschueller, wsfulton
+            [Python] #3067 Fix compile errors regression using external runtime and
+            PY_LIMITED_API.
+
 2025-03-31: alatina
 	    #3149 [Octave] Fix to compile with Octave 10.0
 
