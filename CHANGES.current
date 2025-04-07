@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-04-10: jschueller, wsfulton
+            [Python] #3067 Fix compile errors regression using external runtime and
+            PY_LIMITED_API.
+
 2025-04-02: wsfulton
             [Java] #3156 Support JDK 21 and std::list. Fixes removeFirst() and removeLast()
             incompatibilities with methods of the same name in the base class,
