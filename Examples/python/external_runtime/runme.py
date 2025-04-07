@@ -5,18 +5,16 @@
 import example
 
 
-class PyFunction(object):
+class MeshHolder(object):
     def __init__(self):
         self.__mesh = example.Mesh(42)
     def mesh(self):
         return self.__mesh
 
-if not example.is_python_builtin():
-    obj = PyFunction()
-    f = example.Function(obj)
-    print('OK')
+if example.is_python_builtin():
+    print("SWIG external runtime and builtin not currently working")
+else:
+    obj = MeshHolder()
+    f = example.MeshCaller(obj)
 
-# All done.
-
-print("")
-print("python exit")
+print("All done")
