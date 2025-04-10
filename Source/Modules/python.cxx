@@ -4374,6 +4374,11 @@ public:
     Printv(f, "#if PY_VERSION_HEX >= 0x030b0000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:_ht_tpname"), "_ht_tpname", "char *");
 
+    // void *ht_token;
+    Printv(f, "#if PY_VERSION_HEX >= 0x030e0000\n", NIL);
+    printSlot(f, getSlot(n, "feature:python:ht_token"), "ht_token", "void *");
+    Printv(f, "#endif\n", NIL);
+
     // struct _specialization_cache _spec_cache;
     Printf(f, "  {\n");
     printSlot(f, getSlot(n, "feature:python:getitem"), "getitem", "PyObject *");
