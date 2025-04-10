@@ -97,7 +97,7 @@ public class long_long_runme {
 
     boolean failed = false;
     for (int i=0; i<bigIntegers.size(); ++i) {
-      BigInteger bi = (BigInteger)bigIntegers.get(i);
+      BigInteger bi = bigIntegers.get(i);
       long longReturn = long_long.UnsignedToSigned(bi);
       if (bi.longValue() != longReturn) {
         System.err.println("Conversion to long failed, in:" + bi + " out:" + longReturn);

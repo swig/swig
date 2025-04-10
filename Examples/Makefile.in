@@ -665,6 +665,7 @@ JAVALDSHARED = @JAVALDSHARED@
 JAVACXXSHARED = @JAVACXXSHARED@
 JAVACFLAGS = @JAVACFLAGS@
 JAVAFLAGS = @JAVAFLAGS@
+JAVAC_OPTIONS = @JAVAC_OPTIONS@
 JAVA = @JAVA@
 JAVAC = @JAVAC@ -d .
 
@@ -691,7 +692,7 @@ java_cpp: $(SRCDIR_SRCS)
 # ----------------------------------------------------------------
 
 java_compile: $(SRCDIR_SRCS)
-	$(COMPILETOOL) $(JAVAC) $(addprefix $(SRCDIR),$(JAVASRCS))
+	$(COMPILETOOL) $(JAVAC) $(JAVAC_OPTIONS) $(addprefix $(SRCDIR),$(JAVASRCS))
 
 # -----------------------------------------------------------------
 # Run java example
@@ -957,54 +958,6 @@ lua_clean:
 	rm -f *_wrap* *~ .~* mylua@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
 	rm -f *.@OBJEXT@ *$(LUA_SO)
-
-##################################################################
-#####                       MZSCHEME                        ######
-##################################################################
-
-MZSCHEME = mzscheme
-MZC = @MZC@
-MZDYNOBJ = @MZDYNOBJ@
-MZSCHEME_SO = @MZSCHEME_SO@
-MZSCHEME_SCRIPT = $(SRCDIR)$(RUNME).scm
-
-# ----------------------------------------------------------------
-# Build a C/C++ dynamically loadable module
-# ----------------------------------------------------------------
-
-mzscheme: $(SRCDIR_SRCS)
-	$(SWIG) -mzscheme $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(COMPILETOOL) $(MZC) `echo " $(CPPFLAGS) $(INCLUDES) $(CFLAGS)" | sed 's/ -/ ++ccf -/g'` --cc $(ISRCS) $(SRCDIR_SRCS)
-	$(COMPILETOOL) $(MZC) --ld $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS)
-
-mzscheme_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -mzscheme -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	env CFLAGS= $(COMPILETOOL) $(MZC) `echo " $(CPPFLAGS) $(INCLUDES) $(CXXFLAGS)" | sed 's/ -/ ++ccf -/g'` --cc $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
-	$(CXXSHARED) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $(LIBPREFIX)$(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS)
-
-# -----------------------------------------------------------------
-# Run mzscheme example
-# -----------------------------------------------------------------
-
-mzscheme_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(MZSCHEME) -r $(MZSCHEME_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-mzscheme_version:
-	$(MZSCHEME) -v
-	$(MZC) -v
-
-# -----------------------------------------------------------------
-# Cleaning the mzscheme examples
-# -----------------------------------------------------------------
-
-mzscheme_clean:
-	rm -f *_wrap* *~ .~*
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *$(MZSCHEME_SO)
 
 ##################################################################
 #####                       OCAML                           ######

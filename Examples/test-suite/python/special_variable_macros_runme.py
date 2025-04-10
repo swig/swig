@@ -24,3 +24,5 @@ if special_variable_macros.makeStringInt("stringint", 999) != "stringint":
     raise "test failed"
 if special_variable_macros.provideStringInt(999) != "1000":
     raise "test failed"
+if special_variable_macros.shortFunction(1, 1) != (200*2 + 200*3):
+    raise "test failed"

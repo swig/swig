@@ -28,8 +28,8 @@ public class java_constants_runme {
       }
 
       // Check the altered constants interface access modifier
-      Class[] cls = java_constants.class.getInterfaces();
-      Class constantsInterface = cls[0];
+      Class<?>[] cls = java_constants.class.getInterfaces();
+      Class<?> constantsInterface = cls[0];
       int modifiers = constantsInterface.getModifiers();
       boolean isDefaultAccessModifier = !(Modifier.isPublic(modifiers) || Modifier.isProtected(modifiers) || Modifier.isPrivate(modifiers));
       if (!isDefaultAccessModifier)

@@ -869,16 +869,35 @@ static Hash *typemap_search_multi(const_String_or_char_ptr tmap_method, ParmList
 }
 
 
-static void replace_local_types(ParmList *p, const String *name, const String *rep) {
-  SwigType *t;
+static int replace_with_override(String *src, const DOHString_or_char *token, const DOHString_or_char *replace, int flags, Hash *override_vars) {
+  String *override_replace = override_vars ? Getattr(override_vars, token) : NULL;
+  if (override_replace)
+    return Replace(src, token, override_replace, flags);
+  return Replace(src, token, replace, flags);
+}
+
+static void replace_local_types(ParmList *p, const String *name, const String *replace) {
   while (p) {
-    t = Getattr(p, "type");
-    Replace(t, name, rep, DOH_REPLACE_ANY);
+    SwigType *t = Getattr(p, "type");
+    Replace(t, name, replace, DOH_REPLACE_ANY);
     p = nextSibling(p);
   }
 }
 
-static int check_locals(ParmList *p, const char *s) {
+static void replace_local_names(ParmList *p, const String *name, const String *replace, Hash *override_vars) {
+  while (p) {
+    int replaced = 0;
+    SwigType *n = Getattr(p, "name");
+    SwigType *origname = Copy(n);
+    replaced = replace_with_override(n, name, replace, DOH_REPLACE_NUMBER_END, override_vars);
+    if (replaced > 0 && !Getattr(p, "origname"))
+      Setattr(p, "origname", origname);
+    Delete(origname);
+    p = nextSibling(p);
+  }
+}
+
+static int check_locals_type(ParmList *p, const char *s) {
   while (p) {
     char *c = GetChar(p, "type");
     if (strstr(c, s))
@@ -886,13 +905,6 @@ static int check_locals(ParmList *p, const char *s) {
     p = nextSibling(p);
   }
   return 0;
-}
-
-static int replace_with_override(String *src, const DOHString_or_char *token, const DOHString_or_char *rep, int flags, Hash *override_vars) {
-  String *override_replace = override_vars ? Getattr(override_vars, token) : NULL;
-  if (override_replace)
-    return Replace(src, token, override_replace, flags);
-  return Replace(src, token, rep, flags);
 }
 
 /* -----------------------------------------------------------------------------
@@ -917,15 +929,15 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
   if (!pname)
     pname = lname;
   {
-    Parm *p;
-    int rep = 0;
-    p = locals;
+    int replace = 0;
+    Parm *p = locals;
     while (p) {
-      if (Strchr(Getattr(p, "type"), '$'))
-	rep = 1;
+      String *pname = Getattr(p, "name");
+      if (Strchr(Getattr(p, "type"), '$') || (pname && Strchr(pname, '$')))
+	replace = 1;
       p = nextSibling(p);
     }
-    if (!rep)
+    if (!replace)
       locals = 0;
   }
 
@@ -985,7 +997,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
 
     sc = Char(s);
 
-    if (strstr(sc, "type") || check_locals(locals, "type")) {
+    if (strstr(sc, "type") || check_locals_type(locals, "type")) {
       /* Given type : $type */
       ts = SwigType_str(type, 0);
       if (index == 1) {
@@ -998,7 +1010,7 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
       Delete(ts);
       sc = Char(s);
     }
-    if (strstr(sc, "ltype") || check_locals(locals, "ltype")) {
+    if (strstr(sc, "ltype") || check_locals_type(locals, "ltype")) {
       /* Local type:  $ltype */
       ltype = SwigType_ltype(type);
       ts = SwigType_str(ltype, 0);
@@ -1208,6 +1220,8 @@ static int typemap_replace_vars(String *s, ParmList *locals, SwigType *type, Swi
   /* Replace the bare $n variable */
   sprintf(var, "$%d", index);
   bare_substitution_count = replace_with_override(s, var, lname, DOH_REPLACE_NUMBER_END, override_vars);
+  replace_local_names(locals, var, lname, override_vars);
+
   Delete(ftype);
   return bare_substitution_count;
 }
@@ -1245,7 +1259,7 @@ static void typemap_locals(String *s, ParmList *l, Wrapper *f, int argnum) {
 	/* If the user gave us $type as the name of the local variable, we'll use
 	   the passed datatype instead */
 
-	if ((argnum >= 0) && (!isglobal)) {
+	if ((argnum >= 0) && !isglobal && !Getattr(p, "origname")) {
 	  Printf(str, "%s%d", pn, argnum);
 	} else {
 	  Append(str, pn);

@@ -2090,7 +2090,7 @@ wrap_foo() {
 </pre>
 </div>
 
-<p>There is an exception: if the variable name starts with the <tt>_global_</tt> prefix,
+<p>There are two exceptions: First, if the variable name starts with the <tt>_global_</tt> prefix,
 the argument number is not appended. Such variables can be used throughout the generated
 wrapper function. For example, the above typemap could be rewritten to use <tt>_global_temp</tt>
 instead of <tt>temp</tt> and the generated code would then contain a single <tt>_global_temp</tt> variable
@@ -2105,14 +2105,32 @@ instead of <tt>temp1</tt>, <tt>temp2</tt> and <tt>temp3</tt>:
 </pre>
 </div>
 
+<p>
+The second exception occurs if the local variable name contains the special variable <tt>$n</tt> in the variable name.
+Special variables are covered in the next section, but simply the <tt>$n</tt> special variable is expanded to a unique parameter name, such as <tt>arg1</tt>, <tt>arg2</tt> etc.
+As this special variable already contains a unique name, there is no further need to append an argument number suffix to make the temporary variable name unique.
+So in the example below, <tt>$1_temp</tt> is typically expanded to <tt>arg1_temp</tt>, <tt>arg2_temp</tt> etc depending on which argument the typemap is being used for:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) std::string * <b>(std::string $1_temp)</b> {
+ ... as above ...
+}
+</pre>
+</div>
 
 <p>
-Some typemaps do not recognize local variables (or they may simply not
-apply). At this time, only typemaps that apply to argument conversion support this (input typemaps such as the "in" typemap).
+<b>Compatibility note: </b> Support for <tt>$n</tt> expansion in typemap local variable names was added in SWIG-4.4.0.
 </p>
 
 <p>
 <b>Note:</b>
+</p>
+
+<p>
+Some typemaps do not recognize local variables (or they may simply not
+apply). At this time, only typemaps that apply to argument conversion support this (input typemaps such as the "in" typemap).
 </p>
 
 <p>

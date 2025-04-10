@@ -74,4 +74,22 @@ struct A {
 };
 constexpr A a{42};
 constexpr int N = a.i;
+
+// Regression test for https://github.com/swig/swig/issues/3127 fixed in 4.4.0:
+#include <array>
+
+constexpr std::size_t my_enum_size =
+   sizeof(
+    decltype(
+      42
+    )
+  ) ? 1 + static_cast<std::size_t>(
+    4
+  ) : alignof(
+    std::size_t
+  );
+
+std::array<bool, my_enum_size> do_something() {
+  return std::array<bool, my_enum_size>{true,true,true,true,true};
+}
 %}

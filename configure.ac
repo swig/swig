@@ -20,8 +20,30 @@ AH_BOTTOM([
 ])
 
 dnl Check for programs that a user requires to build SWIG
+cc_overridden_by_user=${CC:+y}
 AC_PROG_CC
+if test -z "$cc_overridden_by_user" ; then
+  dnl autoconf 2.70 started to add a -std option to the probed value of CC if
+  dnl needed to enable support for newer C standards.  We don't want this so
+  dnl remove any options unless CC was overridden on the command line or in the
+  dnl environment.
+  CC=$(echo "$CC" | sed -e "s/ .*//")
+fi
+AC_MSG_CHECKING([CC to use for compiling])
+AC_MSG_RESULT([$CC])
+
+cxx_overridden_by_user=${CXX:+y}${CCC:+y}
 AC_PROG_CXX
+if test -z "$cxx_overridden_by_user" ; then
+  dnl autoconf 2.70 started to add a -std option to the probed value of CXX if
+  dnl needed to enable support for newer C++ standards.  We don't want this so
+  dnl remove any options unless CXX/CCC was overridden on the command line or
+  dnl in the environment.
+  CXX=$(echo "$CXX" | sed -e "s/ .*//")
+fi
+AC_MSG_CHECKING([CXX to use for compiling])
+AC_MSG_RESULT([$CXX])
+
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 
 AC_COMPILE_WARNINGS # Increase warning levels
@@ -443,11 +465,6 @@ AC_SUBST(PHP_SO)
 case $host in
    *-*-darwin*) PHP_SO=.so;;
    *) PHP_SO=$SO;;
-esac
-
-AC_SUBST(MZSCHEME_SO)
-case $host in
-   *) MZSCHEME_SO=.so;;
 esac
 
 AC_SUBST(LUA_SO)
@@ -1004,31 +1021,25 @@ else
   JAVAC="$JAVACBIN"
 fi
 
-# Check Java version: we require Java 9 or later for Doxygen tests.
 if test -n "$JAVAC"; then
-    AC_MSG_CHECKING(if java version is 9 or greater)
-    javac_version=`"$JAVAC" -version 2>&1`
-    java_version_num=`echo $javac_version | sed -n 's/^javac //p'`
-    if test -z "$java_version_num"; then
-        AC_MSG_WARN([unknown format for Java version returned by "$JAVAC" ($javac_version)])
-        JAVA_SKIP_DOXYGEN_TEST_CASES=1
-        AC_MSG_RESULT(unknown)
-    else
-        dnl Until Java 8 version number was in format "1.x", starting from
-        dnl Java 9 it's just "x".
-        case $java_version_num in
-            1.*)
-                JAVA_SKIP_DOXYGEN_TEST_CASES=1
-                AC_MSG_RESULT([no, disabling Doxygen tests])
-                ;;
+  AC_MSG_CHECKING(java major version)
+  javac_version=`"$JAVAC" -version 2>&1`
+  java_version_num=`echo $javac_version | sed -n 's/^javac //p'`
+  JAVA_VERSION_MAJOR="1"
+  if test -n "$java_version_num"; then
+    dnl Until Java 8 version number was in format "1.x.y_z", starting from Java 9 it's "x.y.z".
+    JAVA_VERSION_MAJOR=[$(echo "$java_version_num" | sed -e "s/^1\.//" | sed -e "s/^\([0-9]\+\)\..*/\1/")]
+  fi
+  AC_MSG_RESULT([$JAVA_VERSION_MAJOR])
 
-            *)
-                AC_MSG_RESULT(yes)
-                ;;
-        esac
-    fi
+# Check Java version: we require Java 9 or later for Doxygen tests.
+  JAVA_SKIP_DOXYGEN_TEST_CASES=
+  if test "$JAVA_VERSION_MAJOR" -le "8"; then
+    JAVA_SKIP_DOXYGEN_TEST_CASES="1"
+  fi
 
-    AC_SUBST(JAVA_SKIP_DOXYGEN_TEST_CASES)
+  AC_SUBST(JAVA_VERSION_MAJOR)
+  AC_SUBST(JAVA_SKIP_DOXYGEN_TEST_CASES)
 fi
 
 AC_MSG_CHECKING(for java include file jni.h)
@@ -1140,6 +1151,7 @@ case $host in
     JAVACXXSHARED='$(CXXSHARED)'
     ;;
 esac
+JAVAC_OPTIONS="-Xlint"
 fi
 
 # Quote for spaces in path to executables
@@ -1164,6 +1176,7 @@ AC_SUBST(JAVALDSHARED)
 AC_SUBST(JAVACXXSHARED)
 AC_SUBST(JAVAFLAGS)
 AC_SUBST(JAVACFLAGS)
+AC_SUBST(JAVAC_OPTIONS)
 
 #----------------------------------------------------------------
 # Look for Javascript
@@ -1571,48 +1584,6 @@ AC_SUBST(LUALINK)
 AC_SUBST(LUABIN)
 
 #----------------------------------------------------------------
-# Look for MzScheme
-#----------------------------------------------------------------
-
-AC_ARG_WITH(mzscheme, AS_HELP_STRING([--without-mzscheme], [Disable MzScheme])
-AS_HELP_STRING([--with-mzscheme=path], [Set location of MzScheme executable]),[ MZSCHEMEBIN="$withval"], [MZSCHEMEBIN="$alllang_default"])
-AC_ARG_WITH(mzc, AS_HELP_STRING([--with-mzc=path], [Set location of MzScheme's mzc]), [ MZCBIN="$withval"], [MZCBIN=])
-
-# First, check for "--without-mzscheme" or "--with-mzscheme=no".
-if test x"${MZSCHEMEBIN}" = xno; then
-  AC_MSG_NOTICE([Disabling MzScheme])
-  MZC=
-else
-  if test "x$MZSCHEMEBIN" = xyes; then
-     AC_PATH_PROG(MZSCHEME, mzscheme)
-  else
-     MZSCHEME="$MZSCHEMEBIN"
-  fi
-
-  if test -z "$MZCBIN"; then
-     AC_PATH_PROG(MZC, mzc)
-  fi
-
-  if test -n "$MZSCHEME"; then
-    AC_MSG_CHECKING(for MzScheme dynext object)
-    MZDYNOBJ=`$MZSCHEME --eval '(begin (require dynext/link) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (printf "~a" x)) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
-    if test -f "$MZDYNOBJ"; then
-      :
-    else
-      # older versions (3.72 approx and earlier)
-      MZDYNOBJ=`$MZSCHEME --mute-banner --version --eval '(begin (require (lib "link.ss" "dynext")) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x) (display " ")) ((current-make-standard-link-libraries)))) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x)) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
-    fi
-    if test -f "$MZDYNOBJ"; then
-      AC_MSG_RESULT($MZDYNOBJ)
-    else
-      AC_MSG_RESULT(not found)
-      MZDYNOBJ=""
-    fi
-  fi
-fi
-AC_SUBST(MZDYNOBJ)
-
-#----------------------------------------------------------------
 # Look for OCaml
 #----------------------------------------------------------------
 
@@ -1989,7 +1960,7 @@ else
     fi
   fi
 
-  if test $PYVER -eq 1 -o $PYVER -eq 2; then
+  if test $PYVER -eq 2; then
     AC_MSG_CHECKING(for Python 2.x prefix)
     PYPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYPREFIX)
@@ -2749,13 +2720,6 @@ fi
 AC_SUBST(SKIP_LUA)
 
 
-SKIP_MZSCHEME=
-if test -z "$MZC" || test -z "$MZDYNOBJ" ; then
-    SKIP_MZSCHEME="1"
-fi
-AC_SUBST(SKIP_MZSCHEME)
-
-
 SKIP_OCAML=
 if test -z "$OCAMLC" || test -z "$CAMLP4" ; then
     SKIP_OCAML="1"
@@ -2790,13 +2754,6 @@ if (test -z "$PYINCLUDE" || test -z "$PYLINK") &&
     SKIP_PYTHON="1"
 fi
 AC_SUBST(SKIP_PYTHON)
-
-
-SKIP_PYTHON3=
-if test -z "$PY3INCLUDE" || test -z "$PY3LINK" ; then
-    SKIP_PYTHON3="1"
-fi
-AC_SUBST(SKIP_PYTHON3)
 
 
 SKIP_R=
@@ -2921,7 +2878,6 @@ AC_CONFIG_FILES([
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
     Examples/test-suite/lua/Makefile
-    Examples/test-suite/mzscheme/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
     Examples/test-suite/perl5/Makefile
@@ -2985,7 +2941,6 @@ test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
-test -n "$SKIP_MZSCHEME"	|| langs="${langs}mzscheme "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "
