@@ -6552,7 +6552,7 @@ An input interface file, foo.i, results in the two modules foo.py and _foo.so fo
 
 <p>
 In this configuration, the pure Python module, foo.py, tries to load the C/C++ module, _foo, from the same package foo.py is
-located in.  The package name is determined from the <tt>__package__</tt>
+located in.  The package name is determined from the <tt>__spec__.parent</tt> (or <tt>__package__</tt> before Python 3.4)
 attribute if available, see <a href="https://www.python.org/dev/peps/pep-0366/">PEP 366</a>. Otherwise it is derived from the <tt>__name__</tt>
 attribute given to foo.py by the Python loader that imported foo.py.
 The interface file for this configuration would contain:
@@ -6675,7 +6675,7 @@ The code is generated into the pure Python module, foo.py, and merely imports th
 
 <div class="targetlang">
 <pre>
-if __package__ or '.' in __name__:
+if getattr(__spec__, "parent", None) or '.' in __name__:
     from . import _foo
 else:
     import _foo
@@ -6760,7 +6760,7 @@ The default import loading code is thus different:
 
 <div class="targetlang">
 <pre>
-if __package__ or '.' in __name__:
+if getattr(__spec__, "parent", None) or '.' in __name__:
     from ._foo import *
 else:
     from _foo import *
