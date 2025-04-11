@@ -258,17 +258,17 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 		RUNME="$(srcdir)/$*$(SCRIPTSUFFIX)" && \
 		if [ -f "$${RUNME}" ]; then \
 			if [ "$(CC)" = "emcc" ]; then \
-				sed -e \
-					's@\(var\|let\|const\)[[:space:]]*\(.*\)[[:space:]]*=[[:space:]]*require(\("\|\x27\)\(.*\)\("\|\x27\))@import wasm_module from "'"$(CURDIR)"'/\4/index.js"; const \2 = await wasm_module;@g;' \
+				sed -E \
+					's@(var|let|const)[[:space:]]*(.*)[[:space:]]*=[[:space:]]*require\(("|\x27)(.*)("|\x27)\)@import wasm_module from "'"$(CURDIR)"'/\4/index.js"; const \2 = await wasm_module;@g;' \
 					$${RUNME} > $*$(SCRIPTWASMSUFFIX) \
 				&& \
 				RUNME=$*$(SCRIPTWASMSUFFIX); \
 			fi && \
 			if [ -n "$(ASYNC)" ]; then \
-				sed -e \
+				sed -E \
 					's@/\* await \*/@await resolve@g; \
 					s@/\* async \*/@async@g; \
-					s@\(var\|let\|const\)[[:space:]]*\(.*\)[[:space:]]*=[[:space:]]*require(\("\|\x27\)\(.*\)\("\|\x27\))@import \2 from "'"$(CURDIR)"'/\4/index.js"@g; \
+					s@(var|let|const)[[:space:]]*(.*)[[:space:]]*=[[:space:]]*require\(("|\x27)(.*)("|\x27)\)@import \2 from "'"$(CURDIR)"'/\4/index.js"@g; \
 					1s@^@import resolve from "./'$(srcdir)'/resolve.mjs"; @' \
 					$${RUNME} > $*$(SCRIPTASYNCSUFFIX) \
 				&& \
@@ -279,9 +279,9 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 				RUNME=$*_mjs_runme.mjs; \
 			fi && \
 			if [ -n "$(TYPESCRIPT)" ]; then \
-				sed -e \
-					's@\(var\|let\|const\)[[:space:]]*\(.*\)[[:space:]]*=[[:space:]]*require(\("\|\x27\)\(.*\)\("\|\x27\))@import \2 from "'"$(CURDIR)"'/\4/index.js"@g; \
-					s|.*//[[:space:]]*@ts-replace\(.*\)|\1|g; ' \
+				sed -E \
+					's@(var|let|const)[[:space:]]*(.*)[[:space:]]*=[[:space:]]*require\(("|\x27)(.*)("|\x27)\)@import \2 from "'"$(CURDIR)"'/\4/index.js"@g; \
+					s|.*//[[:space:]]*@ts-replace(.*)|\1|g; ' \
 					$${RUNME} > $*_ts_runme.ts && \
 					cp $*.d.ts $*/index.d.ts && \
 					$(TSC) $(TSCOPT) $*_ts_runme.ts && \
