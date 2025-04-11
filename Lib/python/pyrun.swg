@@ -353,7 +353,7 @@ swig_varlink_type(void) {
       PyObject_HEAD_INIT(NULL)
       0,                                  /* ob_size */
 #endif
-      "swigvarlink",                      /* tp_name */
+      ".swigvarlink",                     /* tp_name */
       sizeof(swig_varlinkobject),         /* tp_basicsize */
       0,                                  /* tp_itemsize */
       (destructor) swig_varlink_dealloc,  /* tp_dealloc */
@@ -424,7 +424,7 @@ swig_varlink_type(void) {
     { 0, NULL }
   };
   PyType_Spec spec = {
-    "swigvarlink",
+    ".swigvarlink",
     sizeof(swig_varlinkobject),
     0,
     Py_TPFLAGS_DEFAULT,
