@@ -750,7 +750,7 @@ SwigPyObject_Check(PyObject *op) {
 #ifdef SWIGPYTHON_BUILTIN
   if (PyType_IsSubtype(op_type, target_tp))
     return 1;
-  return (strcmp(op_type->tp_name, "SwigPyObject") == 0);
+  return (strcmp(op_type->tp_name, ".SwigPyObject") == 0);
 #else
 # ifdef Py_LIMITED_API
   int cmp;
@@ -766,7 +766,7 @@ SwigPyObject_Check(PyObject *op) {
   SWIG_Py_DECREF(tp_name);
   return cmp == 0;
 # else
-  return (strcmp(op_type->tp_name, "SwigPyObject") == 0);
+  return (strcmp(op_type->tp_name, ".SwigPyObject") == 0);
 # endif
 #endif
 }
@@ -966,7 +966,7 @@ SwigPyObject_TypeOnce(void) {
       PyObject_HEAD_INIT(NULL)
       0,                                    /* ob_size */
 #endif
-      "SwigPyObject",                       /* tp_name */
+      ".SwigPyObject",                      /* tp_name */
       sizeof(SwigPyObject),                 /* tp_basicsize */
       0,                                    /* tp_itemsize */
       (destructor)SwigPyObject_dealloc,     /* tp_dealloc */
@@ -1061,7 +1061,7 @@ SwigPyObject_TypeOnce(void) {
     { 0, NULL }
   };
   PyType_Spec spec = {
-    "SwigPyObject",
+    ".SwigPyObject",
     sizeof(SwigPyObject),
     0,
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
