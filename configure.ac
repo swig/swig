@@ -153,6 +153,26 @@ then
 fi
 AC_MSG_RESULT($SO)
 
+# For languages that haven't been fully split
+AC_MSG_CHECKING([linker option to ignore multiple definitions of the same symbol])
+case $host in
+  *-*-linux*)
+    MULTIPLE_DEFS="-Wl,--allow-multiple-definition"
+    ;;
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
+    case $CC in
+      *cccl) MULTIPLE_DEFS="--cccl-link /FORCE:MULTIPLE" ;;
+      *cl) MULTIPLE_DEFS="/FORCE:MULTIPLE" ;;
+    esac
+    ;;
+esac
+if test -n "$MULTIPLE_DEFS"; then
+  AC_MSG_RESULT($MULTIPLE_DEFS)
+else
+  AC_MSG_RESULT([not supported])
+fi
+AC_SUBST(MULTIPLE_DEFS)
+
 # LDSHARED is the ld *command* used to create shared library
 # -- "ld" on SunOS 4.x.x, "ld -G" on SunOS 5.x, "ld -shared" on IRIX 5
 # (Shared libraries in this instance are shared modules to be loaded into

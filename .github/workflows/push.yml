@@ -17,25 +17,17 @@ permissions:
 jobs:
   build:
 
-    # When continue-on-error is true for an individual build, that build can fail (it'll show red),
-    # but it won't fail the overall build
-    continue-on-error: ${{ matrix.continue-on-error || false }}
-
-    runs-on: ${{ matrix.os || 'ubuntu-20.04' }}
+    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }}${{matrix.ASAN && ' ASAN'}} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.EXTRA_CXXFLAGS }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }}${{matrix.ASAN && ' ASAN'}} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }}
 
     strategy:
       matrix:
         include:
         - SWIGLANG: ""
           CPPFLAGS: "-DDOH_POISON"
-        - SWIGLANG: ""
-          GCC: 7
-        - SWIGLANG: ""
-          GCC: 8
         - SWIGLANG: ""
           GCC: 9
         - SWIGLANG: ""
@@ -218,9 +210,6 @@ jobs:
           CPPSTD: c++20
           GCC: 13
           os: ubuntu-22.04
-        # Experimental languages (these are allowed to fail)
-        - SWIGLANG: mzscheme
-          continue-on-error: true
         #- SWIGLANG: ocaml
         #  CPPSTD: c++17
         #  GCC: 13
@@ -239,7 +228,6 @@ jobs:
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
       CPPFLAGS: ${{ matrix.CPPFLAGS }}
-      EXTRA_CXXFLAGS: ${{ matrix.EXTRA_CXXFLAGS }}
       COMPILER: ${{ matrix.compiler || 'gcc' }}
       ASAN: ${{ matrix.ASAN }}
 
@@ -252,7 +240,7 @@ jobs:
     - name: Install CCache
       uses: hendrikmuhs/ccache-action@v1.2
       with:
-        key: ${{ matrix.os || 'ubuntu-20.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}${{ matrix.cacheid }}
+        key: ${{ matrix.os || 'ubuntu-22.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}${{ matrix.cacheid }}
 
 # Uncomment to debug via ssh, see https://github.com/mxschmitt/action-tmate
 #    - name: Setup tmate session
@@ -350,6 +338,7 @@ jobs:
           if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
           if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
+          if test "$PY2" = "2"; then CONFIGOPTS+=(--with-python=python2 --without-python3); fi
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 
@@ -384,8 +373,8 @@ jobs:
             esac
 
             # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
-            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC) $EXTRA_CFLAGS"
-            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC) $EXTRA_CXXFLAGS"
+            cflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)
+            cxxflags=$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
             #make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"

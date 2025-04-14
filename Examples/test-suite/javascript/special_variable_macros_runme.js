@@ -45,9 +45,6 @@ if (/* await */(special_variable_macros.testJim(name)) != "multiname num") {
 if (/* await */(special_variable_macros.testJohn(new special_variable_macros.PairIntBool(10, false))) != 123) {
     throw new Error("test failed");
 }
-if (special_variable_macros.shortFunction(1, 1) != (200*2 + 200*3)) {
-    throw new Error("test failed");
-}
-if (special_variable_macros.shortFunction(1, 1) != (200*2 + 200*3)) {
+if (/* await */(special_variable_macros.shortFunction(1, 1)) != (200*2 + 200*3)) {
     throw new Error("test failed");
 }
