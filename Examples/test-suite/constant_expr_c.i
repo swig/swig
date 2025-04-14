@@ -59,12 +59,12 @@ int yy() { return YY; }
  */
 const int s1a = sizeof(X); /* worked before 4.1.0 */
 //const int s1b = sizeof X; /* not currently supported */
-const int s2a = sizeof("a string" );
-const int s2b = sizeof "a string";
+const int s2a = sizeof("a  string" );
+const int s2b = sizeof "a  string";
 const int s3a = sizeof('c');
 const int s3b = sizeof('c');
-const int s4a = sizeof(L"a wstring");
-const int s4b = sizeof L"a wstring";
+const int s4a = sizeof(L"a  wstring");
+const int s4b = sizeof L"a  wstring";
 const int s5a = sizeof(L'C');
 const int s5b = sizeof L'C';
 const int s6a = sizeof(sizeof(X));

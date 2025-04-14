@@ -12,11 +12,11 @@ public class multiple_inheritance_interfaces_runme {
     }
   }
 
-  private static void checkBaseAndInterfaces(Class cls, boolean interfaceExpected, String base, String[] interfaces) {
+  private static void checkBaseAndInterfaces(Class<?> cls, boolean interfaceExpected, String base, String[] interfaces) {
     String[] expectedInterfaces = new String[interfaces.length];
     for (int i=0; i<interfaces.length; ++i)
       expectedInterfaces[i] = "interface multiple_inheritance_interfaces." + interfaces[i];
-    Class[] actualInterfaces = cls.getInterfaces();
+    Class<?>[] actualInterfaces = cls.getInterfaces();
     String expectedInterfacesString = Arrays.toString(expectedInterfaces);
     String actualInterfacesString = Arrays.toString(actualInterfaces);
     if (!expectedInterfacesString.equals(actualInterfacesString))

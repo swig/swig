@@ -5,7 +5,7 @@ var { Integer } = cpp11_smart_pointer_compatibility;
 
 /* async */ function check(actual, expected) {
   if (/* await */(actual) !== expected)
-    throw new Error(`expected ${expected}, got ${actual}`);
+    throw new Error(`expected ${expected}, got ${/* await */(actual)}`);
 }
 
 /* async */ function checkThrows(op, err) {

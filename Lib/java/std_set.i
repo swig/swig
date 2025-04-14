@@ -48,6 +48,7 @@ class set {
 
 %typemap(javabase) std::set<T> "java.util.AbstractSet<$typemap(jboxtype, T)>"
 %proxycode %{
+  @SuppressWarnings("this-escape")
   public $javaclassname(java.util.Collection<? extends $typemap(jboxtype, T)> collection) {
     this();
     addAll(collection);

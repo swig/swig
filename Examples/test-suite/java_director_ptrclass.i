@@ -68,7 +68,7 @@ public:
   $result = bar::Ptr< bar::Baz >(*( bar::Baz**)&$input);
 }
 %typemap(javadirectorin) bar::Ptr< bar::Baz > %{
-  ((long)$jniinput == 0) ? null : new $typemap(jstype, bar::Baz)($jniinput, false)
+  ($jniinput == 0) ? null : new $typemap(jstype, bar::Baz)($jniinput, false)
 %}
 %typemap(javadirectorout) bar::Ptr< bar::Baz > "$typemap(jstype, bar::Baz).getCPtr($javacall)"
 

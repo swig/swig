@@ -16,7 +16,7 @@ public class nested_inheritance_interface_runme {
   }
 
   public static void main(String argv[]) {
-	Class[] BNInterfaces = B.N.class.getInterfaces();
+    Class<?>[] BNInterfaces = B.N.class.getInterfaces();
     String expectedInterfacesString = "[interface nested_inheritance_interface.IASwigInterface]";
     String actualInterfacesString = Arrays.toString(BNInterfaces);
     if (!expectedInterfacesString.equals(actualInterfacesString))

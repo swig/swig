@@ -66,7 +66,6 @@ skip-guile	= test -n "@SKIP_GUILE@"
 skip-java	= test -n "@SKIP_JAVA@"
 skip-javascript	= test -n "@SKIP_JAVASCRIPT@"
 skip-lua    	= test -n "@SKIP_LUA@"
-skip-mzscheme	= test -n "@SKIP_MZSCHEME@"
 skip-ocaml      = test -n "@SKIP_OCAML@"
 skip-octave     = test -n "@SKIP_OCTAVE@"
 skip-perl5	= test -n "@SKIP_PERL5@"
@@ -108,7 +107,6 @@ check-aliveness:
 	@$(skip-java)     || ./$(TARGET) -java       -help
 	@$(skip-javascript) || ./$(TARGET) -javascript -help
 	@$(skip-lua)      || ./$(TARGET) -lua        -help
-	@$(skip-mzscheme) || ./$(TARGET) -mzscheme   -help
 	@$(skip-ocaml)    || ./$(TARGET) -ocaml      -help
 	@$(skip-octave)   || ./$(TARGET) -octave     -help
 	@$(skip-perl5)    || ./$(TARGET) -perl       -help
@@ -132,7 +130,6 @@ check-versions:					\
 	check-java-version			\
 	check-javascript-version		\
 	check-lua-version			\
-	check-mzscheme-version			\
 	check-ocaml-version			\
 	check-octave-version			\
 	check-perl5-version			\
@@ -167,7 +164,6 @@ check-examples:					\
 	check-java-examples			\
 	check-javascript-examples		\
 	check-lua-examples			\
-	check-mzscheme-examples			\
 	check-ocaml-examples			\
 	check-octave-examples			\
 	check-perl5-examples			\
@@ -187,7 +183,6 @@ guile_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/guile/check.list)
 java_examples      :=$(shell sed '/^\#/d' $(srcdir)/Examples/java/check.list)
 javascript_examples:=$(shell sed '/^\#/d' $(srcdir)/Examples/javascript/check.list)
 lua_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/lua/check.list)
-mzscheme_examples  :=$(shell sed '/^\#/d' $(srcdir)/Examples/mzscheme/check.list)
 ocaml_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/ocaml/check.list)
 octave_examples    :=$(shell sed '/^\#/d' $(srcdir)/Examples/octave/check.list)
 perl5_examples     :=$(shell sed '/^\#/d' $(srcdir)/Examples/perl5/check.list)
@@ -244,7 +239,6 @@ check-test-suite:				\
 	check-java-test-suite			\
 	check-javascript-test-suite		\
 	check-lua-test-suite			\
-	check-mzscheme-test-suite		\
 	check-ocaml-test-suite			\
 	check-octave-test-suite			\
 	check-perl5-test-suite			\
@@ -292,7 +286,6 @@ all-test-suite:					\
 	all-java-test-suite			\
 	all-javascript-test-suite		\
 	all-lua-test-suite			\
-	all-mzscheme-test-suite			\
 	all-ocaml-test-suite			\
 	all-octave-test-suite			\
 	all-perl5-test-suite			\
@@ -316,7 +309,6 @@ broken-test-suite:				\
 	broken-java-test-suite			\
 	broken-javascript-test-suite		\
 	broken-lua-test-suite			\
-	broken-mzscheme-test-suite		\
 	broken-ocaml-test-suite			\
 	broken-octave-test-suite		\
 	broken-perl5-test-suite			\
@@ -456,7 +448,7 @@ install-main:
 	@echo "Installing $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@"
 	@$(INSTALL_PROGRAM) $(TARGET) $(DESTDIR)$(BIN_DIR)/`echo $(TARGET_NOEXE) | sed '$(transform)'`@EXEEXT@
 
-lib-languages = typemaps tcl perl5 python guile java mzscheme ruby php ocaml octave \
+lib-languages = typemaps tcl perl5 python guile java ruby php ocaml octave \
 	csharp lua r c go d javascript javascript/jsc \
 	javascript/v8 javascript/napi scilab xml
 

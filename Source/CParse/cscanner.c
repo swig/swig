@@ -695,7 +695,7 @@ num_common: {
     } else {
       const char *e = c;
       while (isdigit((unsigned char)*e)) ++e;
-      int len = e - c;
+      int len = (int)(e - c);
       while (*e && strchr("ULul", *e)) ++e;
       if (*e == '\0') {
         yylval.dtype.numval = NewStringWithSize(c, len);

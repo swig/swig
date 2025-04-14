@@ -27,19 +27,21 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 %typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jboxtype, CTYPE)>"
 %typemap(javainterfaces) std::vector< CTYPE > "java.util.RandomAccess"
 %proxycode %{
+  @SuppressWarnings("this-escape")
   public $javaclassname($typemap(jstype, CTYPE)[] initialElements) {
     this();
-    reserve(initialElements.length);
+    doReserve(initialElements.length);
 
     for ($typemap(jstype, CTYPE) element : initialElements) {
-      add(element);
+      doAdd(element);
     }
   }
 
+  @SuppressWarnings("this-escape")
   public $javaclassname(Iterable<$typemap(jboxtype, CTYPE)> initialElements) {
     this();
     for ($typemap(jstype, CTYPE) element : initialElements) {
-      add(element);
+      doAdd(element);
     }
   }
 

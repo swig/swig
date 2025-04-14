@@ -1949,7 +1949,7 @@ public:
 
 	  maybe_owned_dohptr ns_component;
 	  if (next) {
-	    ns_component.assign_owned(NewStringWithSize(c, next - c));
+	    ns_component.assign_owned(NewStringWithSize(c, (int)(next - c)));
 	  } else {
 	    ns_component.assign_non_owned((DOH*)c);
 	  }
@@ -2132,7 +2132,7 @@ public:
     } else if (SwigType_isenum(type)) {
       String* enumname = Swig_scopename_last(type);
       const char* s = Char(enumname);
-      static const int len_enum_prefix = strlen("enum ");
+      static const size_t len_enum_prefix = strlen("enum ");
       if (strncmp(s, "enum ", len_enum_prefix) == 0)
 	s += len_enum_prefix;
       Printf(result, "e%s", s);
@@ -2503,7 +2503,7 @@ public:
 
 		// However don't add a cast which is already there.
 		if (strncmp(p, Char(result_cast), strlen(Char(result_cast))) != 0)
-		  Insert(tm, p - start, result_cast);
+		  Insert(tm, (int)(p - start), result_cast);
 	      }
                  Replaceall(tm, "$result", "result");
 		 Replaceall(tm, "$owner", GetFlag(n, "feature:new") ? "1" : "0");

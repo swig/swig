@@ -579,7 +579,7 @@ GUILE         = @GUILE@
 GUILE_CFLAGS  = @GUILE_CFLAGS@
 GUILE_SO      = @GUILE_SO@
 # TODO: Fix the consequences of the code splitting
-GUILE_LIBS    = @GUILE_LIBS@ -Wl,--allow-multiple-definition
+GUILE_LIBS    = @GUILE_LIBS@ @MULTIPLE_DEFS@
 GUILE_LIBOPTS = @LIBS@ $(SYSLIBS)
 GUILE_LIBPREFIX = lib
 GUILE_SCRIPT  = $(SRCDIR)$(RUNME).scm
@@ -665,6 +665,7 @@ JAVALDSHARED = @JAVALDSHARED@
 JAVACXXSHARED = @JAVACXXSHARED@
 JAVACFLAGS = @JAVACFLAGS@
 JAVAFLAGS = @JAVAFLAGS@
+JAVAC_OPTIONS = @JAVAC_OPTIONS@
 JAVA = @JAVA@
 JAVAC = @JAVAC@ -d .
 
@@ -691,7 +692,7 @@ java_cpp: $(SRCDIR_SRCS)
 # ----------------------------------------------------------------
 
 java_compile: $(SRCDIR_SRCS)
-	$(COMPILETOOL) $(JAVAC) $(addprefix $(SRCDIR),$(JAVASRCS))
+	$(COMPILETOOL) $(JAVAC) $(JAVAC_OPTIONS) $(addprefix $(SRCDIR),$(JAVASRCS))
 
 # -----------------------------------------------------------------
 # Run java example
@@ -882,7 +883,7 @@ javascript_clean:
 # lua flags
 LUA_INCLUDE= @LUAFLAGS@
 # TODO: Fix the consequences of the code splitting
-LUA_LIB    = @LUALINK@ -Wl,--allow-multiple-definition
+LUA_LIB    = @LUALINK@ @MULTIPLE_DEFS@
 
 # Extra specific dynamic linking options
 LUA_DLNK   = @LUADYNAMICLINKING@
@@ -959,54 +960,6 @@ lua_clean:
 	rm -f *.@OBJEXT@ *$(LUA_SO)
 
 ##################################################################
-#####                       MZSCHEME                        ######
-##################################################################
-
-MZSCHEME = mzscheme
-MZC = @MZC@
-MZDYNOBJ = @MZDYNOBJ@
-MZSCHEME_SO = @MZSCHEME_SO@
-MZSCHEME_SCRIPT = $(SRCDIR)$(RUNME).scm
-
-# ----------------------------------------------------------------
-# Build a C/C++ dynamically loadable module
-# ----------------------------------------------------------------
-
-mzscheme: $(SRCDIR_SRCS)
-	$(SWIG) -mzscheme $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	$(COMPILETOOL) $(MZC) `echo " $(CPPFLAGS) $(INCLUDES) $(CFLAGS)" | sed 's/ -/ ++ccf -/g'` --cc $(ISRCS) $(SRCDIR_SRCS)
-	$(COMPILETOOL) $(MZC) --ld $(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS)
-
-mzscheme_cpp: $(SRCDIR_SRCS)
-	$(SWIG) -mzscheme -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	env CFLAGS= $(COMPILETOOL) $(MZC) `echo " $(CPPFLAGS) $(INCLUDES) $(CXXFLAGS)" | sed 's/ -/ ++ccf -/g'` --cc $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS)
-	$(CXXSHARED) $(CPPFLAGS) $(CXXFLAGS) $(LDFLAGS) -o $(LIBPREFIX)$(TARGET)$(MZSCHEME_SO) $(OBJS) $(IOBJS) $(MZDYNOBJ) $(CPP_DLLIBS)
-
-# -----------------------------------------------------------------
-# Run mzscheme example
-# -----------------------------------------------------------------
-
-mzscheme_run:
-	env LD_LIBRARY_PATH=$$PWD $(RUNTOOL) $(MZSCHEME) -r $(MZSCHEME_SCRIPT) $(RUNPIPE)
-
-# -----------------------------------------------------------------
-# Version display
-# -----------------------------------------------------------------
-
-mzscheme_version:
-	$(MZSCHEME) -v
-	$(MZC) -v
-
-# -----------------------------------------------------------------
-# Cleaning the mzscheme examples
-# -----------------------------------------------------------------
-
-mzscheme_clean:
-	rm -f *_wrap* *~ .~*
-	rm -f core @EXTRA_CLEAN@
-	rm -f *.@OBJEXT@ *$(MZSCHEME_SO)
-
-##################################################################
 #####                       OCAML                           ######
 ##################################################################
 
@@ -1019,7 +972,7 @@ OCAMLMKTOP=$(COMPILETOOL) @OCAMLMKTOP@
 NOLINK ?= false
 OCAMLPP= -pp "camlp4o ./swigp4.cmo"
 OCAMLP4WHERE=`$(COMPILETOOL) @CAMLP4@ -where`
-OCAML_LIBS=-ccopt -Wl,--allow-multiple-definition
+OCAML_LIBS=-ccopt @MULTIPLE_DEFS@
 
 ocaml_core:
 	mkdir -p ./localtmp
@@ -1346,11 +1299,11 @@ endif
 
 # Extra Python specific linking options
 ifneq (,$(PY2))
-  PYTHON_DLNK   = @PYTHONDYNAMICLINKING@
-  PYTHON_LINK   = @PYLINK@
+  PYTHON_DLNK   = @PYTHONDYNAMICLINKING@ @MULTIPLE_DEFS@
+  PYTHON_LINK   = @PYLINK@ @MULTIPLE_DEFS@
 else
-  PYTHON_DLNK   = @PYTHON3DYNAMICLINKING@
-  PYTHON_LINK   = @PY3LINK@
+  PYTHON_DLNK   = @PYTHON3DYNAMICLINKING@ @MULTIPLE_DEFS@
+  PYTHON_LINK   = @PY3LINK@ @MULTIPLE_DEFS@
 endif
 
 # Set PY_ABI_VER to the target ABI version, such as 3.4, if wanting a stable ABI build
@@ -1373,7 +1326,7 @@ PYABI3AUDIT	  = @PYABI3AUDIT@
 python: $(SRCDIR_SRCS)
 	$(SWIG) -python $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(PYTHON_INCLUDE)
-	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(IOBJS) $(OBJS) $(PYTHON_DLNK) $(LIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 ifneq (,$(PY_ABI_VER))
 ifneq (,$(PYABI3AUDIT))
 	$(COMPILETOOL) $(PYABI3AUDIT) --assume-minimum-abi3 $(PY_ABI_VER) --report -o $(TARGET)_abi3_report.json $(LIBPREFIX)_$(TARGET)$(PYTHON_SO) || (cat $(TARGET)_abi3_report.json && false)
@@ -1387,7 +1340,7 @@ endif
 python_cpp: $(SRCDIR_SRCS)
 	$(SWIG) -python -c++ $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 	$(CXX) -c $(CCSHARED) $(CPPFLAGS) $(CXXFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(SRCDIR_CXXSRCS) $(INCLUDES) $(PYTHON_INCLUDE)
-	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
+	$(CXXSHARED) $(CXXFLAGS) $(LDFLAGS) $(IOBJS) $(OBJS) $(PYTHON_DLNK) $(LIBS) $(CPP_DLLIBS) -o $(LIBPREFIX)_$(TARGET)$(PYTHON_SO)
 ifneq (,$(PY_ABI_VER))
 ifneq (,$(PYABI3AUDIT))
 	$(COMPILETOOL) $(PYABI3AUDIT) --assume-minimum-abi3 $(PY_ABI_VER) --report -o $(TARGET)_abi3_report.json $(LIBPREFIX)_$(TARGET)$(PYTHON_SO) || (cat $(TARGET)_abi3_report.json && false)

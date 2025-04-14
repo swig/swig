@@ -7,6 +7,88 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-04-10: jschueller, wsfulton
+            [Python] #3067 Fix compile errors regression using external runtime and
+            PY_LIMITED_API.
+
+2025-04-02: wsfulton
+            [Java] #3156 Support JDK 21 and std::list. Fixes removeFirst() and removeLast()
+            incompatibilities with methods of the same name in the base class,
+            AbstractSequentialList, which were added in JDK 21 with a different
+            return type. The addFirst() and addLast() methods were also added, all part
+            of JEP-431 Sequenced Collections, see https://openjdk.org/jeps/431.
+
+            If these 4 methods are needed, as SWIG previously generated them, then add
+            the following to your interface file after %include <std_list.i>:
+
+              %extend std::list {
+                void removeLast() { $self->pop_back(); }
+                void removeFirst() { $self->pop_front(); }
+                void addLast(const T &value) { $self->push_back(value); }
+                void addFirst(const T &value) { $self->push_front(value); }
+              }
+
+            But note that this will give javac compiler errors when using JDK 21 and
+            later for removeFirst() and removeLast().
+
+2025-04-02: wsfulton
+            [Java] Fix javac -Xlint warning [this-escape] - JDK 21
+
+            [this-escape] possible 'this' escape before subclass is fully initialized
+
+            Add @WarningSuppressions("this-escape") annotation to all director
+            constructors as the warning is a false positive. Similarly for
+            std::list, std::vector, std::set, std::unordered_set constructors.
+
+2025-04-02: wsfulton
+            [Java] Fix javac -Xlint warnings:
+
+            - [cast] redundant cast in std::unordered_map wrappers put method
+            - [rawtypes] found raw type in std::list constructor wrapper
+
+2025-04-02: olly
+	    #3152 Remove typemaps for `signed wchar_t` and `unsigned wchar_t`
+	    in C++ mode.  These types aren't specified by the C++ standard and
+	    give an error with modern versions of GCC, clang or MSVC.  Older
+	    GCC and clang did allow them (tested with GCC 8 and clang 8), but
+	    our typemap code used `UWCHAR_MAX` which doesn't seem to have ever
+	    been defined by any compiler.
+
+2025-04-01: olly
+	    #920 #2830 [MzScheme/Racket] Remove support for MzScheme/Racket.
+	    It's a long time since SWIG's support was actively maintained and
+	    a major overhaul would be needed to support Racket 8, for which
+	    nobody has stepped forward in over 3 years.
+
+2025-03-31: alatina
+	    #3149 [Octave] Fix to compile with Octave 10.0
+
+2025-03-03: olly
+	    [Guile] The typemaps in ports.i now generate code which compiles
+	    even if the wrapper is compiled with in a strict standards
+	    conformance mode such as -std=c11.
+
+2025-02-28: olly
+	    #3127 Fix bad generated code in some cases when a constant
+	    expression is split over multiple lines and used as part of a type.
+	    This manifested in cases where SWIG's parser gets the expression
+	    text by skipping to the matching closing parenthesis and grabbing
+	    the skipped program text.
+
+2025-02-19: wsfulton
+            Add support for $n special variable expansion in the names of typemap
+            local variables, such as:
+
+              %typemap(in) int MYINT (int $1_temp) { ... }
+
+            $1_temp is typically expanded to arg1_temp, arg2_temp etc depending on
+            which argument the typemap is applied to.
+
+2025-02-05: wsfulton
+            #3075 Regression fix when using -keyword, kwargs or compactdefaultargs
+            option. Restore generating a non-const cast to the default value when
+            wrapping const pointer default arguments.
+
 2025-01-27: StefanBattmer
 	    [Python] #2889 Fix regression when using directors and threads
 	    but not using limited API.
@@ -59,8 +141,8 @@ Version 4.4.0 (in progress)
 
 2024-10-22: olly
 	    #3034 SWIG's testsuite is now free of SWIG warnings for all target
-	    languages except mzscheme and the SWIG -Werror option is now
-	    enabled automatically to ensure this doesn't regress.
+	    languages and the SWIG -Werror option is now enabled automatically
+	    to ensure this doesn't regress.
 
 2024-10-22: olly
 	    #2998 Drop support for specifying SWIG's internal type string

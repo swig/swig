@@ -67,3 +67,5 @@ public:
 
 %constant int WSTRING_LIT_LEN1 = (sizeof(L"1234")/sizeof(wchar_t) - 1);
 %constant int WSTRING_LIT_LEN2 = (sizeof(L"12" L"34")/sizeof(wchar_t) - 1);
+%constant int WSTRING_LIT_LEN3 = (sizeof(L"12\
+" "34")/sizeof(wchar_t) - 1);

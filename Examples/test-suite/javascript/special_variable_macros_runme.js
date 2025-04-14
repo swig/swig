@@ -30,10 +30,13 @@ if (/* await */(special_variable_macros.testJim(name)) != "multiname num") {
 if (/* await */(special_variable_macros.testJohn(new special_variable_macros.PairIntBool(10, false))) != 123) {
     throw new Error("test failed");
 }
-if (/* await */(special_variable_macros.testJames(name)) != "SWIGTYPE_Name") {
+if (/* await */(special_variable_macros.makeStringInt("stringint", 999)) != "stringint") {
     throw new Error("test failed");
 }
-if (/* await */(special_variable_macros.makeStringInt("stringint", 999)) != "stringint") {
+if (/* await */(special_variable_macros.provideStringInt(999)) != "1000") {
+    throw new Error("test failed");
+}
+if (/* await */(special_variable_macros.testJames(name)) != "SWIGTYPE_Name") {
     throw new Error("test failed");
 }
 if (/* await */(special_variable_macros.testJim(name)) != "multiname num") {
@@ -42,6 +45,6 @@ if (/* await */(special_variable_macros.testJim(name)) != "multiname num") {
 if (/* await */(special_variable_macros.testJohn(new special_variable_macros.PairIntBool(10, false))) != 123) {
     throw new Error("test failed");
 }
-if (/* await */(special_variable_macros.provideStringInt(999)) != "1000") {
-  throw new Error("test failed");
+if (/* await */(special_variable_macros.shortFunction(1, 1)) != (200*2 + 200*3)) {
+    throw new Error("test failed");
 }
