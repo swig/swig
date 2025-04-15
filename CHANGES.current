@@ -7,10 +7,6 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
-2025-04-10: jschueller, wsfulton
-            [Python] #3067 Fix compile errors regression using external runtime and
-            PY_LIMITED_API.
-
 2025-04-02: wsfulton
             [Java] #3156 Support JDK 21 and std::list. Fixes removeFirst() and removeLast()
             incompatibilities with methods of the same name in the base class,
@@ -60,9 +56,6 @@ Version 4.4.0 (in progress)
 	    a major overhaul would be needed to support Racket 8, for which
 	    nobody has stepped forward in over 3 years.
 
-2025-03-31: alatina
-	    #3149 [Octave] Fix to compile with Octave 10.0
-
 2025-03-03: olly
 	    [Guile] The typemaps in ports.i now generate code which compiles
 	    even if the wrapper is compiled with in a strict standards
@@ -89,10 +82,6 @@ Version 4.4.0 (in progress)
             option. Restore generating a non-const cast to the default value when
             wrapping const pointer default arguments.
 
-2025-01-27: StefanBattmer
-	    [Python] #2889 Fix regression when using directors and threads
-	    but not using limited API.
-
 2024-12-07: arbrauns
 	    [Lua] #3083 Fix "unsigned long long" being interpreted as "signed
 	    long long".
@@ -102,10 +91,6 @@ Version 4.4.0 (in progress)
             of either always including it or relying on it being included elsewhere.
             Fixes the removal of errno.h when defining PY_LIMITED_API for python-3.11
             and later.
-
-2024-11-21: olly
-	    [Java] #3070 Fix regression wrapping enum values which don't fit
-	    in a Java signed int.
 
 2024-11-09: wsfulton
             #3064 Perform repeated typedef lookups instead of a single typedef
@@ -119,17 +104,6 @@ Version 4.4.0 (in progress)
 2024-10-30: wsfulton
             #1851 Fix handling of parameters with default arguments that are
             initializer lists when using -keyword or the compactdefaultargs option.
-
-2024-10-27: olly
-	    #3058 Fix precedence of casts, which should have the same high
-	    precedence as unary plus and minus, but actually had a lower
-	    precedence than anything else.  This could lead to the wrong type
-	    being deduced in obscure cases, but also prevented SWIG deducing a
-	    type for expressions such as (0)*1+2 which SWIG parses as a cast
-	    and then fixes up afterwards.  A bug fixed in 4.3.0 made this
-	    latter problem manifest more often (previously type deduction
-	    happened to work for (0)*1+2 due to an internal field not getting
-	    cleared properly).
 
 2024-10-25: olly
 	    [Guile] Allow wrapping anything with a `varout` typemap as a
