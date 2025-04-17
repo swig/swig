@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-04-17: klausspanderen
+            [Python] #3137 Add support for free threading Python (aka no-gil) where the
+            GIL can be disabled.
+
 2025-04-02: wsfulton
             [Java] #3156 Support JDK 21 and std::list. Fixes removeFirst() and removeLast()
             incompatibilities with methods of the same name in the base class,
