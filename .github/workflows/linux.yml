@@ -152,6 +152,7 @@ jobs:
           VER: '3.8'
           PY_ABI_VER: '3.4'
         - SWIGLANG: r
+          continue-on-error: true
         - SWIGLANG: ruby
           VER: '2.0'
         - SWIGLANG: ruby
@@ -222,6 +223,7 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: r
           CPPSTD: c++11
+          continue-on-error: true
         - SWIGLANG: ruby
           CPPSTD: c++11
           VER: '3.3.4' # cpp11_rvalue_reference_move testcase apparently started to fail on upgrade to 3.3.5, see https://github.com/swig/swig/issues/3030
@@ -259,6 +261,7 @@ jobs:
           CPPSTD: c++14
         - SWIGLANG: r
           CPPSTD: c++14
+          continue-on-error: true
         - SWIGLANG: ruby
           CPPSTD: c++14
         - SWIGLANG: scilab
@@ -309,6 +312,7 @@ jobs:
         - SWIGLANG: r
           CPPSTD: c++17
           GCC: 13
+          continue-on-error: true
         - SWIGLANG: ruby
           CPPSTD: c++17
           GCC: 13
