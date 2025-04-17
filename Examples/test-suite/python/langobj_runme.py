@@ -4,7 +4,7 @@ from langobj import *
 
 x = 256*256+1
 
-# avoid immortal object in no-gil scenario
+# avoid an immortal object for the ref count check to always work such as when using no-gil
 x += 1
 
 rx = sys.getrefcount(x)
