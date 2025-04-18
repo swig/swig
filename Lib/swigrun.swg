@@ -270,12 +270,12 @@ SWIG_TypeEquiv(const char *nb, const char *tb) {
 /*
  * Hash function for type name strings, based on maRushPrime1Hash (http://amsoftware.narod.ru/algo2.html)
  */
-SWIGRUNTIME unsigned int SWIG_Hash(const char *str, int len) {
+SWIGRUNTIME unsigned int SWIG_Hash(const char *str, unsigned int len) {
   const unsigned char *data = (const unsigned char *)str;
   unsigned int hash = len, i = 0, k;
-  int rem = len;
+  int rem = (int)len;
 
-  while (rem >= sizeof(unsigned int)) {
+  while (rem >= (int)sizeof(unsigned int)) {
     k = *(unsigned int *)data;
     k += i++;
     hash ^= k;
@@ -284,14 +284,25 @@ SWIGRUNTIME unsigned int SWIG_Hash(const char *str, int len) {
     rem -= sizeof(unsigned int);
   }
 
-  k = 0;
   switch (rem) {
     case 3: k = (unsigned int)(data[2]) << 16;
-    case 2: k |= (unsigned int)(data[1]) << 8;
-    case 1: k |= (unsigned int)(data[0]);
+            k |= (unsigned int)(data[1]) << 8;
+            k |= (unsigned int)(data[0]);
             k += i++;
             hash ^= k;
             hash *= 171717;
+            break;
+    case 2: k = (unsigned int)(data[1]) << 8;
+            k |= (unsigned int)(data[0]);
+            k += i++;
+            hash ^= k;
+            hash *= 171717;
+            break;
+    case 1: k = (unsigned int)(data[0]);
+            k += i++;
+            hash ^= k;
+            hash *= 171717;
+            break;
   }
   return hash;
 }
@@ -317,21 +328,23 @@ SWIG_TypeCheck(const char *c, swig_type_info *ty) {
         swig_cast_info *iter;
         swig_cast_info *last = head + head->value;
         swig_cast_info *first = head + 1;
+        int search = 1;
 
-        switch (hashed) {
-        case 0:
+        if (!hashed) {
           if (head->value < scan_threshold) {
             for (iter = first; iter <= last; iter++) {
               if (strcmp(iter->type->name, c) == 0) {
                 return iter;
               }
             }
-            break;
+            search = 0;
+          } else {
+            hashed = 1;
+            hash_value = SWIG_Hash(c, (unsigned int)strlen(c));
           }
-          hashed = 1;
-          hash_value = SWIG_Hash(c, strlen(c));
+        }
 
-        default:
+        if (search) {
           /* Binary search over sorted <'next'|'value'> pairs */
           do {
             iter = first + ((last - first) >> 1);
