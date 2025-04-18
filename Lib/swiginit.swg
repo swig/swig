@@ -127,8 +127,8 @@ extern "C" {
  * of the array while ordering them by addresses of their 'type' structs.
  */
 SWIGINTERN int SWIG_CastCmpStruct(const void *pa, const void *pb) {
-  register swig_cast_info *pca = (swig_cast_info *)pa;
-  register swig_cast_info *pcb = (swig_cast_info *)pb;
+  swig_cast_info *pca = (swig_cast_info *)pa;
+  swig_cast_info *pcb = (swig_cast_info *)pb;
   if (pca->type < pcb->type)
     return (pca->next || pcb->next == 0) ? -1 : 1;
   if (pca->type > pcb->type)
