@@ -2722,6 +2722,21 @@ public:
       String *mangled_overname = Swig_name_construct(getNSpace(), overloaded_name);
       String *imcall = NewString("");
 
+#if 0
+      // TODO: add full support for Java annotations - implementation should be same as C# attributes
+      const String *annotations = Getattr(n, "feature:java:annotations");
+#else
+      const String *annotations = NULL;
+#endif
+      // Default annotation for director constructors is a warning suppression
+      static const String *suppress_warning_this_escape = NewString("@SuppressWarnings(\"this-escape\")");
+      if (!annotations && feature_director)
+	    annotations = suppress_warning_this_escape;
+      if (annotations) {
+	      Printf(function_code, "  %s\n", annotations);
+	      Printf(helper_code, "  %s\n", annotations);
+      }
+
       const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
       methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
