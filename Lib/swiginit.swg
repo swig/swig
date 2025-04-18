@@ -127,8 +127,8 @@ extern "C" {
  * of the array while ordering them by addresses of their 'type' structs.
  */
 SWIGINTERN int SWIG_CastCmpStruct(const void *pa, const void *pb) {
-  register swig_cast_info *pca = (swig_cast_info *)pa;
-  register swig_cast_info *pcb = (swig_cast_info *)pb;
+  swig_cast_info *pca = (swig_cast_info *)pa;
+  swig_cast_info *pcb = (swig_cast_info *)pb;
   if (pca->type < pcb->type)
     return (pca->next || pcb->next == 0) ? -1 : 1;
   if (pca->type > pcb->type)
@@ -275,7 +275,6 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
       }
 
       if (!target_type) {
-
 #ifdef SWIGRUNTIME_DEBUG
         printf("SWIG_InitializeModule: adding cast %s\n", cast->type->name);
 #endif
@@ -284,7 +283,6 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
         num_mapped++;
 
         if (type == cast->type) {
-
 #ifdef SWIGRUNTIME_DEBUG
           printf("%s : self cast at pos [%li]\n", type->name, cast - first);
 #endif
@@ -299,10 +297,8 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
           first++;
 
         } else {
-
           unsigned int length = strlen(cast->type->name);
           cast->value = SWIG_Hash(cast->type->name, length);
-
         }
       }
       cast++;
@@ -328,7 +324,6 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
 
       num_mapped -= (first - cast);
       if (num_mapped > 1) {
-
         /* Sort <'next','value'> pairs by 'value' for binary search in SWIG_TypeCheck */
 
         SWIG_CastHashSort(first, num_mapped);

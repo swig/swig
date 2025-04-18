@@ -7,7 +7,7 @@
 
 /* This should only be incremented when either the layout of swig_type_info changes,
    or for whatever reason, the runtime changes incompatibly */
-#define SWIG_RUNTIME_VERSION "4"
+#define SWIG_RUNTIME_VERSION "5"
 
 /* define SWIG_TYPE_TABLE_NAME as "SWIG_TYPE_TABLE" */
 #ifdef SWIG_TYPE_TABLE
@@ -271,9 +271,9 @@ SWIG_TypeEquiv(const char *nb, const char *tb) {
  * Hash function for type name strings, based on maRushPrime1Hash (http://amsoftware.narod.ru/algo2.html)
  */
 SWIGRUNTIME unsigned int SWIG_Hash(const char *str, int len) {
-  register const unsigned char *data = (const unsigned char *)str;
-  register unsigned int hash = len, i = 0, k;
-  register int rem = len;
+  const unsigned char *data = (const unsigned char *)str;
+  unsigned int hash = len, i = 0, k;
+  int rem = len;
 
   while (rem >= sizeof(unsigned int)) {
     k = *(unsigned int *)data;
