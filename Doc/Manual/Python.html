@@ -78,6 +78,7 @@
 <li><a href="#Python_fastproxy">-fastproxy</a>
 </ul>
 <li><a href="#Python_stable_abi">Stable ABI</a>
+<li><a href="#Python_free_threading">Free threading Python</a>
 </ul>
 <li><a href="#Python_nn45">Tips and techniques</a>
 <ul>
@@ -157,13 +158,7 @@
 
 
 <p>
-This chapter describes SWIG's support of Python.  SWIG is compatible
-with all recent Python versions (Python 2.7 and Python &gt;= 3.5).  Python 3.3
-and 3.4 may still work but we are no longer regularly testing with them.
-SWIG 4.0.x supported Python 3.2.  SWIG 3.0.x supported older Python 2.x and 3.x.
-</p>
-
-<p>
+This chapter describes SWIG's support of Python.
 This chapter covers most SWIG features, but certain low-level details
 are covered in less depth than in earlier chapters.  At the
 very least, make sure you read the "<a href="SWIG.html#SWIG">SWIG
@@ -171,6 +166,14 @@ Basics</a>" chapter.
 </p>
 
 <H2><a name="Python_nn2">33.1 Overview</a></H2>
+
+
+<p>
+SWIG is compatible
+with all recent Python versions (Python 2.7 and Python &gt;= 3.5).  Python 3.3
+and 3.4 may still work but we are no longer regularly testing with them.
+SWIG-4.0 supported Python 3.2.  SWIG-3.0 supported older Python 2.x and 3.x.
+</p>
 
 
 <p>
@@ -4193,6 +4196,24 @@ So merely by changing your compiler optimisation level may switch your Python ex
 <b>Compatibility Note:</b> Support for the stable ABI was added in SWIG-4.2.0.
 </p>
 
+<H3><a name="Python_free_threading">33.6.7 Free threading Python</a></H3>
+
+
+<p>
+<a href="https://docs.python.org/3/howto/free-threading-python.html">Free threading Python</a>
+disables the Global Interpreter Lock (GIL) for improved parallel execution or multi-threaded
+execution.
+Python free threading was first released with experimental support for Python 3.13 and requires a special build of Python.
+SWIG supports free threading Python; just use a free threading build of Python.
+In particular, the Python header files from the free threading build of Python must be used
+when compiling the SWIG generated code.
+This is needed for the C/C++ compiler to be aware of the <tt>Py_GIL_DISABLED</tt> Python macro,
+which identifies the free threading build, and is used by the SWIG generated code.
+</p>
+
+<p>
+<b>Compatibility Note:</b> Support for free threading Python was added in SWIG-4.4.0.
+</p>
 
 <H2><a name="Python_nn45">33.7 Tips and techniques</a></H2>
 
