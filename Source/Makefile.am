@@ -99,7 +99,9 @@ eswig_SOURCES =	CParse/cscanner.c		\
 
 bin_PROGRAMS = eswig
 
-CParse/parser.c CParse/parser.h: CParse/parser.y
+# Use GNU make's grouped targets to avoid repeated bison execution for
+# each target.
+CParse/parser.c CParse/parser.h &: CParse/parser.y
 	$(BISON) $(AM_YFLAGS) $(YFLAGS) --output=CParse/parser.c $(srcdir)/CParse/parser.y
 
 # The executable is copied to the root directory for installation and running the test-suite.
