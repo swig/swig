@@ -46,6 +46,11 @@ la <- new("A");
 la@ui <- as.integer(5)
 # Removing the next line makes this fail in R 2.4
 la@str <- ""
+# The next two need initialising from R 4.5 onwards to avoid a segfault in
+# R_swig_A_i_set/R_swig_A_d_set when copyToC() is called.
+# TODO: how to check they are not initialised in C? - Rf_isInteger seems to succeed.
+la@i <- as.integer(-6)
+la@d <- as.double(1.2)
 
 other = A()
 foo <- copyToC(la, other)
