@@ -99,8 +99,14 @@ eswig_SOURCES =	CParse/cscanner.c		\
 
 bin_PROGRAMS = eswig
 
-CParse/parser.c CParse/parser.h: CParse/parser.y
+# The rule below builds both parser.c and parser.h, but Makefile does
+# not allow a way to specify multiple outputs. We split the rule in two
+# to avoid double 'bison' invocation.
+CParse/parser.c: CParse/parser.y
 	$(BISON) $(AM_YFLAGS) $(YFLAGS) --output=CParse/parser.c $(srcdir)/CParse/parser.y
+
+CParse/parser.h: CParse/parser.c
+	touch CParse/parser.h
 
 # The executable is copied to the root directory for installation and running the test-suite.
 # This occurs on each invocation of make and is a step towards providing support for multiple
