@@ -330,6 +330,12 @@ jobs:
           GCC: 13
           os: ubuntu-22.04
         - SWIGLANG: javascript
+          ENGINE: jsc
+          CPPSTD: c++20
+          VER: '4.1'
+          GCC: 13
+          os: ubuntu-22.04
+        - SWIGLANG: javascript
           ENGINE: napi
           VER: '22'
           CPPSTD: c++20
