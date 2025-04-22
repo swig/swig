@@ -176,11 +176,11 @@ jobs:
 #          VER: '3.0'
 #          CPPSTD: c++11
         - SWIGLANG: ruby
-          VER: '3.1.4' # import_fragments testcase started to fail on upgrade to 3.1.5, see https://github.com/swig/swig/issues/2800
+          VER: '3.1'
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
-          VER: '3.2.2' # import_fragments testcase started to fail on upgrade to 3.2.3, see https://github.com/swig/swig/issues/2800
+          VER: '3.2'
         - SWIGLANG: scilab
           VER: '5.5.2'
         - SWIGLANG: scilab
@@ -225,7 +225,7 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
-          VER: '3.3.4' # cpp11_rvalue_reference_move testcase apparently started to fail on upgrade to 3.3.5, see https://github.com/swig/swig/issues/3030
+          VER: '3.3'
         - SWIGLANG: ruby
           CPPSTD: c++11
         - SWIGLANG: scilab
