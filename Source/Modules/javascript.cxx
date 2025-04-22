@@ -26,11 +26,6 @@ static bool js_napi_default_is_async = false;
 static bool js_napi_default_is_locked = false;
 
 /**
- * Enable code splitting (NAPI only)
- */
-static bool code_splitting = false;
-
-/**
  * Generate an exports file (NAPI only)
  */
 static String *js_napi_generate_exports = NULL;
@@ -1229,7 +1224,6 @@ Javascript Options (available with -javascript)\n\
      -typescript            - generates a TypeScript ambient module (d.ts file)\n\
      -exports <file>        - generate a .cjs exports file that can be used with both require and import,\n\
                                  <file> is the name of shared library binary (NAPI only)\n\
-     -split                 - use code splitting, produce multiple compilation units (NAPI only)\n\
      -debug-codetemplates   - generates information about the origin of code templates\n\
      -debug-tstypes         - print debug information about TS types equivalence\n";
 
@@ -1292,9 +1286,6 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-typescript") == 0) {
         Swig_mark_arg(i);
         ts_enabled = true;
-      } else if (strcmp(argv[i], "-split") == 0) {
-        Swig_mark_arg(i);
-        code_splitting = true;
       } else if (strcmp(argv[i], "-exports") == 0) {
         if (argv[i + 1]) {
           js_napi_generate_exports = NewString(argv[i + 1]);
@@ -1674,7 +1665,7 @@ int JSEmitter::emitCtor(Node *n) {
   Printf(wrapper->locals, "%sresult;", SwigType_str(Getattr(n, "type"), 0));
 
   marshalInputArgs(n, params, wrapper, Ctor, true, false);
-  String *action = emit_action(n);
+  String *action = emit_action(n, CodeSplitting ? "wrapper" : NULL, CodeSplitting ? "header" : NULL);
   Printv(wrapper->code, action, "\n", 0);
 
   String *cleanup = emitCleanupCode(n, params);
@@ -3375,12 +3366,12 @@ int NAPIEmitter::dump(Node *n) {
 
   File *f_main_file = NewFile(Getattr(n, "outfile"), "w", SWIG_output_files());
   Swig_banner(f_main_file);
-  if (code_splitting) {
+  if (CodeSplitting) {
     Printf(f_main_file, "\n#include \"%s\"\n\n", header_file);
   }
 
   File *f_header_file;
-  if (code_splitting) {
+  if (CodeSplitting) {
     f_header_file = NewFile(header_file, "w", SWIG_output_files());
   } else {
     f_header_file = f_main_file;
@@ -3396,7 +3387,7 @@ int NAPIEmitter::dump(Node *n) {
   List *units = Keys(f_split_wrappers);
   File *file = f_main_file;
   for (Iterator it = First(units); it.item; it = Next(it)) {
-    if (code_splitting) {
+    if (CodeSplitting) {
       String *file_name = NewString("");
       Printf(file_name, "%s_%s.%s", output_root, it.item, output_ext);
       file = NewFile(file_name, "w", SWIG_output_files());
@@ -3950,7 +3941,8 @@ int NAPIEmitter::emitFunctionDefinition(Node *n, bool is_member, bool is_static,
   String *guard = emitGuard(n);
   String *locking = emitLocking(n, params, wrapper);
 
-  Hash *action = emit_action_hash(n);
+  Hash *action = emit_action_hash(n, CodeSplitting ? "wrapper" : NULL,
+                                  CodeSplitting ? "header" : NULL);
 
   String *rethrow = NewStringEmpty();
   if (is_async) {

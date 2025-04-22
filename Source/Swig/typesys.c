@@ -153,6 +153,8 @@ static Hash *current_symtab = 0;	/* Current symbol table                        
 static Typetab *global_scope = 0;	/* The global scope                             */
 static Hash *scopes = 0;	/* Hash table containing fully qualified scopes */
 
+extern int CodeSplitting;
+
 /* Performance optimization */
 #define SWIG_TYPEDEF_RESOLVE_CACHE 
 static Hash *typedef_resolve_cache = 0;
@@ -2136,8 +2138,10 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
   Printf(table, "SWIGINTERN swig_type_info *swig_type_initial[] = {\n");
   Printf(cast_init, "SWIGINTERN swig_cast_info *swig_cast_initial[] = {\n");
 
-  Printf(f_forward, "SWIGCLINKAGE SWIGINTERN swig_type_info *swig_type_initial[];\n");
-  Printf(f_forward, "SWIGCLINKAGE SWIGINTERN swig_cast_info *swig_cast_initial[];\n");
+  if (CodeSplitting) {
+    Printf(f_forward, "SWIGCLINKAGE SWIGINTERN swig_type_info *swig_type_initial[];\n");
+    Printf(f_forward, "SWIGCLINKAGE SWIGINTERN swig_cast_info *swig_cast_initial[];\n");
+  }
 
   Printf(table, "\n/* -------- TYPES TABLE (BEGIN) -------- */\n\n");
 
@@ -2290,14 +2294,20 @@ void SwigType_emit_type_table(File *f_forward, File *f_table) {
   Printf(f_table, "%s\n", cast_init);
   Printf(f_table, "\n/* -------- TYPE CONVERSION AND EQUIVALENCE RULES (END) -------- */\n\n");
 
-  Printf(f_table, "SWIGINTERN swig_type_info *swig_types[%d];\n", i + 1);
-  Printf(f_table, "SWIGINTERN swig_module_info swig_module = {swig_types, %d, 0, 0, 0, 0};\n", i);
-
-  Printf(f_forward, "SWIGCLINKAGE SWIGINTERN swig_type_info *swig_types[];\n");
-  Printf(f_forward, "SWIGCLINKAGE SWIGINTERN swig_module_info swig_module;\n");
   Printf(f_forward, "#define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)\n");
-  Printf(f_forward, "#define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)\n");
-  Printf(f_forward, "\n/* -------- TYPES TABLE (END) -------- */\n\n");
+  Printf(f_forward,
+         "#define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)\n");
+  if (CodeSplitting) {
+    Printf(f_table, "SWIGINTERN swig_type_info *swig_types[%d];\n", i + 1);
+    Printf(f_table, "SWIGINTERN swig_module_info swig_module = {swig_types, %d, 0, 0, 0, 0};\n", i);
+
+    Printf(f_forward, "SWIGCLINKAGE SWIGINTERN swig_type_info *swig_types[];\n");
+    Printf(f_forward, "SWIGCLINKAGE SWIGINTERN swig_module_info swig_module;\n");
+    Printf(f_forward, "\n/* -------- TYPES TABLE (END) -------- */\n\n");
+  } else {
+    Printf(f_forward, "SWIGINTERN swig_type_info *swig_types[%d];\n", i + 1);
+    Printf(f_forward, "SWIGINTERN swig_module_info swig_module = {swig_types, %d, 0, 0, 0, 0};\n", i);
+  }
 
   Delete(types);
   Delete(table);

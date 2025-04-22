@@ -35,6 +35,8 @@ int ForceExtern = 0;		// Force extern mode
 int Verbose = 0;
 int AddExtern = 0;
 int NoExcept = 0;
+// Enable code splitting (Javascript NAPI only at the moment)
+int CodeSplitting = 0;
 extern "C" {
   int UseWrapperSuffix = 0;	// If 1, append suffix to non-overloaded functions too.
 }
@@ -87,6 +89,7 @@ static const char *usage1 = "\
      -directors      - Turn on director mode for all the classes, mainly for testing\n\
      -dirprot        - Turn on wrapping of protected members for director classes (default)\n\
      -D<symbol>[=<value>] - Define symbol <symbol> (for conditional compilation)\n\
+     -split           - use code splitting, produce multiple compilation units (JavaScript NAPI only at the moment)\n\
 ";
 
 static const char *usage2 = "\
@@ -416,6 +419,17 @@ static void SWIG_dump_runtime() {
   Printf(runtime, "%s", s);
   Delete(s);
 
+  if (!CodeSplitting) {
+    s = Swig_include_sys("swigrun_body.swg");
+    if (!s) {
+      Printf(stderr, "*** Unable to open 'swigrun_body.swg'\n");
+      Delete(runtime);
+      Exit(EXIT_FAILURE);
+    }
+    Printf(runtime, "%s", s);
+    Delete(s);
+  }
+
   s = lang->runtimeCode();
   Printf(runtime, "%s", s);
   Delete(s);
@@ -468,6 +482,10 @@ static void getoptions(int argc, char *argv[]) {
       } else if ((strcmp(argv[i], "-verbose") == 0) || (strcmp(argv[i], "-v") == 0)) {
 	Verbose = 1;
 	Swig_mark_arg(i);
+      } else if (strcmp(argv[i], "-split") == 0) {
+        Swig_mark_arg(i);
+        CodeSplitting = 1;
+        Preprocessor_define("SWIGCODESPLIT", 1);
       } else if (strcmp(argv[i], "-c++") == 0) {
 	CPlusPlus = 1;
 	Swig_cparse_cplusplus(1);
@@ -510,7 +528,7 @@ static void getoptions(int argc, char *argv[]) {
 	    stdc_define = "__STDC_VERSION__ 201710L";
 	  } else if (strcmp(std, "23") == 0) {
 	    stdc_define = "__STDC_VERSION__ 202311L";
-	  } else {
+    } else {
 	    Printf(stderr, "Unrecognised C standard version in option '%s'\n", argv[i]);
 	    Exit(EXIT_FAILURE);
 	  }

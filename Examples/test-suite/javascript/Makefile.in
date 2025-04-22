@@ -70,6 +70,7 @@ CPP_TEST_CASES += \
 	napi_li_std_map \
 	napi_li_std_pair \
 	napi_li_std_vector \
+	extend_splitting \
 	cpp11_shared_ptr_const \
 	cpp11_shared_ptr_upcast \
 	cpp11_smart_pointer_compatibility
@@ -116,6 +117,12 @@ ifneq (, $(ASYNC_LOCKING))
 	ASYNC = 1
 	SWIGOPT += -async -async-locking -DSWIG_NAPI_FULL_LOCKING=1
 endif
+
+# This is required because most of the tests use %inline
+# which goes to the header file in split mode
+LDFLAGS_MULDEFS = @MULTIPLE_DEFS@
+# This one should work w/o it
+extend_splitting.cpptest: LDFLAGS_MULDEFS=
 
 # emscripten is cross-compilation, skip the platform flags
 ifeq (emcc, $(CC))
@@ -233,7 +240,8 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 			s|$$srcdir|$(srcdir)|g; \
 			s|$$emnapidir|$(EMNAPI_DIR)|g; \
 			s|$$emnapilib|$(EMNAPI_LIB)|g; \
-			s|$$sources|$(SOURCES)|g;' \
+			s|$$sources|$(SOURCES)|g; \
+			s|$$muldefs|$(LDFLAGS_MULDEFS)|g;' \
 			$(srcdir)/$(GYP_TEMPLATE)/binding.gyp.in > $*/binding.gyp && \
 		sed -e 's|$$testcase|$*|g; s|$$build|$(BUILD)|g; \
 			s|$$npmprefix|$(NPM_PREFIX)|g;' \

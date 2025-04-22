@@ -416,10 +416,10 @@ int emit_action_code(Node *n, String *wrappercode, String *eaction) {
  * Emits the call to the wrapped function. 
  * Adds in exception specification exception handling and %exception code.
  * ----------------------------------------------------------------------------- */
-String* emit_action(Node *n) {
+String* emit_action(Node *n, const char *action_section, const char *declaration_section) {
   String *code = NewStringEmpty();
 
-  Hash *action = emit_action_hash(n);
+  Hash *action = emit_action_hash(n, action_section, declaration_section);
 
   String *preaction = Getattr(action, "preaction");
   if (preaction) {
@@ -465,7 +465,7 @@ String* emit_action(Node *n) {
  * }
  * -----------------------------------------------------------------------------
  */
-Hash *emit_action_hash(Node *n) {
+Hash *emit_action_hash(Node *n, const char *action_section, const char *declaration_section) {
   Hash *output = NewHash();
   String *pre_try = NewStringEmpty();
   String *tm;
@@ -495,10 +495,19 @@ Hash *emit_action_hash(Node *n) {
 
   /* Emit wrapper code (if any) */
   wrap = Getattr(n, "wrap:code");
-  if (wrap && Swig_filebyname("header") != Getattr(n, "wrap:code:done")) {
-    File *f_code = Swig_filebyname("header");
+  if (!action_section)
+    action_section = "header";
+  if (wrap && Swig_filebyname(action_section) != Getattr(n, "wrap:code:done")) {
+    File *f_code = Swig_filebyname(action_section);
     if (f_code) {
       Printv(f_code, wrap, NIL);
+    }
+    String *declaration = Getattr(n, "wrap:declaration");
+    if (declaration && declaration_section) {
+      File *f_declaration = Swig_filebyname(declaration_section);
+      if (f_declaration) {
+        Printv(f_declaration, declaration, "\n", NIL);
+      }
     }
     Setattr(n, "wrap:code:done", f_code);
   }

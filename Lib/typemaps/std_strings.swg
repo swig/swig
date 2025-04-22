@@ -1,13 +1,19 @@
 
 /* defining the String asptr/from methods */
+#ifdef SWIGCODESPLIT
+#define STD_STRINGS_BODY_SECTION "wrapper"
+#else
+#define STD_STRINGS_BODY_SECTION "header"
+#endif
 
 %define %std_string_asptr(String, Char, SWIG_AsCharPtrAndSize, Frag)
 %fragment(SWIG_AsPtr_frag(String),"header",
           fragment="run_" SWIG_AsPtr_frag(String)) {
-SWIGCLINKAGE int
-SWIG_AsPtr_dec(String)(SWIG_Object obj, String **val);
+#ifdef SWIGCODESPLIT
+SWIGCLINKAGE int SWIG_AsPtr_dec(String)(SWIG_Object obj, String **val);
+#endif
 }
-%fragment("run_" SWIG_AsPtr_frag(String),"wrapper",fragment=Frag) {
+%fragment("run_" SWIG_AsPtr_frag(String),STD_STRINGS_BODY_SECTION,fragment=Frag) {
 SWIGCLINKAGE int
 SWIG_AsPtr_dec(String)(SWIG_Object obj, String **val) 
 {
@@ -59,10 +65,11 @@ SWIG_From_dec(String)(const String& s)
 %define %std_string_asval(String)
 %fragment(SWIG_AsVal_frag(String),"header",
           fragment="run_" SWIG_AsVal_frag(String)) {
-SWIGCLINKAGE int
-SWIG_AsVal_dec(String)(SWIG_Object obj, String *val);
+#ifdef SWIGCODESPLIT
+SWIGCLINKAGE int SWIG_AsVal_dec(String)(SWIG_Object obj, String *val);
+#endif
 }
-%fragment("run_" SWIG_AsVal_frag(String),"wrapper", fragment=SWIG_AsPtr_frag(String)) {
+%fragment("run_" SWIG_AsVal_frag(String),STD_STRINGS_BODY_SECTION, fragment=SWIG_AsPtr_frag(String)) {
 SWIGCLINKAGE int
 SWIG_AsVal_dec(String)(SWIG_Object obj, String *val)
 {

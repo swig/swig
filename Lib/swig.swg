@@ -198,9 +198,11 @@
 */
    
 %define %aggregate_check(TYPE, NAME, FIRST, ...)
+#ifdef SWIGCODESPLIT
 %header %{
 SWIGCLINKAGE SWIGINTERN int NAME(TYPE x);
 %}
+#endif
 %wrapper %{
 SWIGCLINKAGE SWIGINTERN int NAME(TYPE x) {
     static  TYPE values[] = { FIRST, ##__VA_ARGS__ };
@@ -590,7 +592,11 @@ namespace std {
  *  Runtime code
  * ----------------------------------------------------------------------------- */
 
-
+#ifdef SWIGCODESPLIT
+%insert("runtime") %{
+#define SWIGCODESPLIT
+%}
+#endif
 %insert("runtime") "swiglabels.swg"
 
 

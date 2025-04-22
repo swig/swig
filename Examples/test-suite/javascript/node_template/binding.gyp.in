@@ -7,7 +7,7 @@
       "target_name": "$testcase",
       "sources": [ $sources ], 
       "include_dirs": ["../$srcdir/.."],
-      "ldflags": [ "-Wl,-z,muldefs" ],
+      "ldflags": [ "$muldefs" ],
       'defines': [
         'BUILDING_NODE_EXTENSION=1',
       ],
