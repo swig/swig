@@ -353,7 +353,7 @@ swig_varlink_type(void) {
       PyObject_HEAD_INIT(NULL)
       0,                                  /* ob_size */
 #endif
-      ".swigvarlink",                     /* tp_name */
+      "builtins.swigvarlink",             /* tp_name */
       sizeof(swig_varlinkobject),         /* tp_basicsize */
       0,                                  /* tp_itemsize */
       (destructor) swig_varlink_dealloc,  /* tp_dealloc */
@@ -424,7 +424,7 @@ swig_varlink_type(void) {
     { 0, NULL }
   };
   PyType_Spec spec = {
-    ".swigvarlink",
+    "builtins.swigvarlink",
     sizeof(swig_varlinkobject),
     0,
     Py_TPFLAGS_DEFAULT,
@@ -750,7 +750,7 @@ SwigPyObject_Check(PyObject *op) {
 #ifdef SWIGPYTHON_BUILTIN
   if (PyType_IsSubtype(op_type, target_tp))
     return 1;
-  return (strcmp(op_type->tp_name, ".SwigPyObject") == 0);
+  return (strcmp(op_type->tp_name, "builtins.SwigPyObject") == 0);
 #else
 # ifdef Py_LIMITED_API
   int cmp;
@@ -766,7 +766,7 @@ SwigPyObject_Check(PyObject *op) {
   SWIG_Py_DECREF(tp_name);
   return cmp == 0;
 # else
-  return (strcmp(op_type->tp_name, ".SwigPyObject") == 0);
+  return (strcmp(op_type->tp_name, "builtins.SwigPyObject") == 0);
 # endif
 #endif
 }
@@ -966,7 +966,7 @@ SwigPyObject_TypeOnce(void) {
       PyObject_HEAD_INIT(NULL)
       0,                                    /* ob_size */
 #endif
-      ".SwigPyObject",                      /* tp_name */
+      "builtins.SwigPyObject",              /* tp_name */
       sizeof(SwigPyObject),                 /* tp_basicsize */
       0,                                    /* tp_itemsize */
       (destructor)SwigPyObject_dealloc,     /* tp_dealloc */
@@ -1061,7 +1061,7 @@ SwigPyObject_TypeOnce(void) {
     { 0, NULL }
   };
   PyType_Spec spec = {
-    ".SwigPyObject",
+    "builtins.SwigPyObject",
     sizeof(SwigPyObject),
     0,
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
@@ -1160,7 +1160,7 @@ SwigPyPacked_Check(PyObject *op) {
   SWIG_Py_DECREF(tp_name);
   return cmp == 0;
 #else
-  return (strcmp(op_type->tp_name, ".SwigPyPacked") == 0);
+  return (strcmp(op_type->tp_name, "builtins.SwigPyPacked") == 0);
 #endif
 }
 
@@ -1188,7 +1188,7 @@ SwigPyPacked_TypeOnce(void) {
       PyObject_HEAD_INIT(NULL)
       0,                                    /* ob_size */
 #endif
-      ".SwigPyPacked",                      /* tp_name */
+      "builtins.SwigPyPacked",              /* tp_name */
       sizeof(SwigPyPacked),                 /* tp_basicsize */
       0,                                    /* tp_itemsize */
       (destructor)SwigPyPacked_dealloc,     /* tp_dealloc */
@@ -1281,7 +1281,7 @@ SwigPyPacked_TypeOnce(void) {
     { 0, NULL }
   };
   PyType_Spec spec = {
-    ".SwigPyPacked",
+    "builtins.SwigPyPacked",
     sizeof(SwigPyPacked),
     0,
     Py_TPFLAGS_DEFAULT,
