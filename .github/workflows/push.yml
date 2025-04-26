@@ -167,7 +167,7 @@ jobs:
           PY2: 2
           SWIG_FEATURES: -builtin
         - SWIGLANG: r
-          continue-on-error: true
+          os: ubuntu-24.04
         - SWIGLANG: ruby
           VER: '2.0'
         - SWIGLANG: scilab

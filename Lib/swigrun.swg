@@ -247,42 +247,7 @@ SWIG_TypeEquiv(const char *nb, const char *tb);
 /*
  * Hash function for type name strings, based on maRushPrime1Hash (http://amsoftware.narod.ru/algo2.html)
  */
-SWIGRUNTIME unsigned int SWIG_Hash(const char *str, unsigned int len) {
-  const unsigned char *data = (const unsigned char *)str;
-  unsigned int hash = len, i = 0, k;
-  int rem = (int)len;
-
-  while (rem >= (int)sizeof(unsigned int)) {
-    k = *(unsigned int *)data;
-    k += i++;
-    hash ^= k;
-    hash *= 171717;
-    data += sizeof(unsigned int);
-    rem -= sizeof(unsigned int);
-  }
-
-  switch (rem) {
-    case 3: k = (unsigned int)(data[2]) << 16;
-            k |= (unsigned int)(data[1]) << 8;
-            k |= (unsigned int)(data[0]);
-            k += i++;
-            hash ^= k;
-            hash *= 171717;
-            break;
-    case 2: k = (unsigned int)(data[1]) << 8;
-            k |= (unsigned int)(data[0]);
-            k += i++;
-            hash ^= k;
-            hash *= 171717;
-            break;
-    case 1: k = (unsigned int)(data[0]);
-            k += i++;
-            hash ^= k;
-            hash *= 171717;
-            break;
-  }
-  return hash;
-}
+SWIGRUNTIME unsigned int SWIG_Hash(const char *str, unsigned int len);
 
 /*
   Check the typename
