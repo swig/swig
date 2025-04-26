@@ -7,6 +7,19 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-04-18: akorobka
+            #103 Thread safety bugfix in the runtime type system.
+
+            Replaces the casting linked list with a list of arrays that does not get
+            modified at runtime. The content of the cast arrays is sorted during the
+            initialization so that subsequent lookups can use binary search over the
+            entries obtaining O(log n) performance.
+
+            Bump SWIG_RUNTIME_VERSION to 5 due to associated changes in runtime type
+            system.
+
+	    *** POTENTIAL INCOMPATIBILITY ***
+
 2025-04-17: klausspanderen
             [Python] #3137 Add support for free threading Python (aka no-gil) where the
             GIL can be disabled.

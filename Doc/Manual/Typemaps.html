@@ -56,6 +56,7 @@
 </ul>
 <li><a href="#Typemaps_special_variable_attributes">Special variables and typemap attributes</a>
 <li><a href="#Typemaps_special_variables_and_macros">Special variables combined with special variable macros</a>
+<li><a href="#Typemaps_copy_special_variable_macro">Using $typemap for copying typemaps</a>
 </ul>
 <li><a href="#Typemaps_nn25">Common typemap methods</a>
 <ul>
@@ -2472,7 +2473,7 @@ This macro is mostly used in the scripting target languages and is demonstrated 
 
 <p>
 This macro uses the <a href="#Typemaps_pattern_matching">pattern matching rules</a> described earlier to lookup and 
-then substitute the special variable macro with the code in the matched typemap.
+then substitute the special variable macro with the body of the matched typemap.
 The typemap to search for is specified by the arguments, where <tt>method</tt> is the typemap method name and 
 <tt>typepattern</tt> is a type pattern as per the <tt>%typemap</tt> specification in the <a href="#Typemaps_defining">Defining a typemap</a> section.
 </p>
@@ -2560,6 +2561,7 @@ which expands to
 was introduced in SWIG-4.1.0.
 </p>
 
+
 <H3><a name="Typemaps_special_variable_attributes">14.4.5 Special variables and typemap attributes</a></H3>
 
 
@@ -2627,6 +2629,144 @@ which then expands to:
 %typemap(cstype, out="uint") unsigned int&amp; "uint"
 </pre>
 </div>
+
+
+<H3><a name="Typemaps_copy_special_variable_macro">14.4.7 Using $typemap for copying typemaps</a></H3>
+
+
+<p>
+The <tt>$typemap</tt> special variable macro can be used to copy entire typemaps or parts thereof.
+Consider the existence of the following named typemap:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype, out="void *") unsigned short &amp; MYMAP "unsigned short *"
+</pre>
+</div>
+
+<p>
+The best and simplest way to <a href="Typemaps.html#Typemaps_nn13">copy a typemap</a> in its entirety, say for use everywhere an <tt>unsigned short &amp;</tt> is parsed is:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype) unsigned short &amp; = unsigned short &amp; MYMAP;
+</pre>
+</div>
+
+<p>
+A naive approach to copying the typemap via the <tt>$typemap</tt> special variable could be:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype) unsigned short &amp; "$typemap(ctype, unsigned short &amp; MYMAP)"
+</pre>
+</div>
+
+<p>
+However, it is incorrect in this case as the new typemap only copies the typemap body from <tt>MYMAP</tt>
+and is missing the typemap attributes from the original. It is actually just the same as:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype) unsigned short &amp; "unsigned short *"
+</pre>
+</div>
+
+<p>
+The typemap attributes need copying as well. There is only one attribute in this case, so a full <i>typemap copy equivalent</i> is:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype, out="$typemap(ctype:out, unsigned short &amp; MYMAP)") unsigned short &amp; "$typemap(ctype, unsigned short &amp; MYMAP)"
+</pre>
+</div>
+
+<p>
+Generally one would only use <tt>$typemap</tt> as a way to copy another typemap and then tweak it slightly.
+For example in this case we could use the original typemap body and use a different "out" attribute as follows:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype, out="unsigned int *") unsigned short &amp; "$typemap(ctype, unsigned short &amp; MYMAP)"
+</pre>
+</div>
+
+<p>
+This technique can be used to use an existing or default typemap and then say append or prepend some code.
+Consider the <tt>bool</tt> "in" typemap shipped with SWIG for C#:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) bool %{ $1 = $input ? true : false; %}
+</pre>
+</div>
+
+<p>
+The following creates a new typemap which re-uses the above typemap body and adds some simple "printf" logging.
+It effectively replaces the default typemap shipped with SWIG.
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) bool NAMED_DEFAULT = bool;
+%typemap(in) bool %{
+  /* custom typemap */
+  $typemap(in, bool NAMED_DEFAULT)
+  printf("bool input value: %s\n", $1 ? "true" : "false");
+%}
+
+void bool_input(bool flag);
+</pre>
+</div>
+
+<p>
+The relevant snippet of generated code for C# when wrapping the <tt>bool_input</tt> method shown are the last three lines of the generated code:
+</p>
+
+<div class="code">
+<pre>
+SWIGEXPORT void SWIGSTDCALL CSharp_bool_input(unsigned int jarg1) {
+  bool arg1 ;
+
+  /* logging typemap */
+  arg1 = jarg1 ? true : false;
+  printf("bool input value: %s\n", arg1 ? "true" : "false");
+</pre>
+</div>
+
+<p>
+The <tt>NAMED_DEFAULT</tt> intermediate/temporary typemap copy is a trick required to avoid a recursive lookup error
+</p>
+<div class="shell">
+<pre>
+Error: Likely recursive $typemap calls containing $typemap(in, bool). Use -debug-tmsearch to debug.
+</pre>
+</div>
+
+<p>
+caused if used as follows:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) bool %{
+  /* logging typemap */
+  $typemap(in, bool)
+  printf("bool input value: %s\n", $1 ? "true" : "false");
+%}
+</pre>
+</div>
+
+<p>
+because <tt>$typemap(in, bool)</tt> is attempting to copy itself.
+</p>
 
 
 <H2><a name="Typemaps_nn25">14.5 Common typemap methods</a></H2>
