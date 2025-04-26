@@ -56,29 +56,112 @@ SWIG_TypeEquiv(const char *nb, const char *tb) {
 }
 
 /*
+ * Hash function for type name strings, based on maRushPrime1Hash (http://amsoftware.narod.ru/algo2.html)
+ */
+SWIGRUNTIME unsigned int SWIG_Hash(const char *str, unsigned int len) {
+  const unsigned char *data = (const unsigned char *)str;
+  unsigned int hash = len, i = 0, k;
+  int rem = (int)len;
+
+  while (rem >= (int)sizeof(unsigned int)) {
+    memcpy(&k, data, sizeof(k));
+    k += i++;
+    hash ^= k;
+    hash *= 171717;
+    data += sizeof(unsigned int);
+    rem -= sizeof(unsigned int);
+  }
+
+  switch (rem) {
+    case 3: k = (unsigned int)(data[2]) << 16;
+            k |= (unsigned int)(data[1]) << 8;
+            k |= (unsigned int)(data[0]);
+            k += i++;
+            hash ^= k;
+            hash *= 171717;
+            break;
+    case 2: k = (unsigned int)(data[1]) << 8;
+            k |= (unsigned int)(data[0]);
+            k += i++;
+            hash ^= k;
+            hash *= 171717;
+            break;
+    case 1: k = (unsigned int)(data[0]);
+            k += i++;
+            hash ^= k;
+            hash *= 171717;
+            break;
+  }
+  return hash;
+}
+
+/*
   Check the typename
 */
 SWIGRUNTIME swig_cast_info *
 SWIG_TypeCheck(const char *c, swig_type_info *ty) {
+  static const unsigned int scan_threshold = 4;
   if (ty) {
-    swig_cast_info *iter = ty->cast;
-    while (iter) {
-      if (strcmp(iter->type->name, c) == 0) {
-        if (iter == ty->cast)
-          return iter;
-#ifndef Py_GIL_DISABLED
-        /* Move iter to the top of the linked list */
-        iter->prev->next = iter->next;
-        if (iter->next)
-          iter->next->prev = iter->prev;
-        iter->next = ty->cast;
-        iter->prev = 0;
-        if (ty->cast) ty->cast->prev = iter;
-        ty->cast = iter;
-#endif        
-        return iter;
+    swig_cast_info *head = ty->cast;
+    unsigned int hash_value = 0;
+    int hashed = 0;
+
+    while (head) {
+
+      if (strcmp(head->type->name, c) == 0) {
+        return head;
       }
-      iter = iter->next;
+
+      if (head->value) {
+        swig_cast_info *iter;
+        swig_cast_info *last = head + head->value;
+        swig_cast_info *first = head + 1;
+        int search = 1;
+
+        if (!hashed) {
+          if (head->value < scan_threshold) {
+            for (iter = first; iter <= last; iter++) {
+              if (strcmp(iter->type->name, c) == 0) {
+                return iter;
+              }
+            }
+            search = 0;
+          } else {
+            hashed = 1;
+            hash_value = SWIG_Hash(c, (unsigned int)strlen(c));
+          }
+        }
+
+        if (search) {
+          /* Binary search over sorted <'next'|'value'> pairs */
+          do {
+            iter = first + ((last - first) >> 1);
+            if (iter->value < hash_value) {
+              first = iter + 1;
+            } else if (iter->value == hash_value) {
+
+              if (strcmp(iter->next->type->name, c) == 0) {
+                return iter->next;
+              }
+
+              /* Hash collision check */
+              for (last = iter + 1; last->next && last->value == hash_value; last++) {
+                if (strcmp(last->next->type->name, c) == 0) {
+                  return last->next;
+                }
+              }
+              for (first = iter - 1; first != head && first->value == hash_value; first--) {
+                if (strcmp(first->next->type->name, c) == 0) {
+                  return first->next;
+                }
+              }
+              break;
+            } else
+              last = iter - 1;
+          } while (first <= last);
+        }
+      }
+      head = head->next;
     }
   }
   return 0;
@@ -90,24 +173,29 @@ SWIG_TypeCheck(const char *c, swig_type_info *ty) {
 SWIGRUNTIME swig_cast_info *
 SWIG_TypeCheckStruct(const swig_type_info *from, swig_type_info *ty) {
   if (ty) {
-    swig_cast_info *iter = ty->cast;
-    while (iter) {
-      if (iter->type == from) {
-        if (iter == ty->cast)
-          return iter;
-#ifndef Py_GIL_DISABLED
-        /* Move iter to the top of the linked list */
-        iter->prev->next = iter->next;
-        if (iter->next)
-          iter->next->prev = iter->prev;
-        iter->next = ty->cast;
-        iter->prev = 0;
-        if (ty->cast) ty->cast->prev = iter;
-        ty->cast = iter;
-#endif        
-        return iter;
+    swig_cast_info *head = ty->cast;
+    while (head) {
+      if (head->type == from) {
+        return head;
       }
-      iter = iter->next;
+
+      if (head->value) {
+        swig_cast_info *iter;
+        swig_cast_info *last = head + head->value;
+        swig_cast_info *first = head + 1;
+
+        /* Binary search over sorted array of casts */
+        do {
+          iter = first + ((last - first) >> 1);
+          if (iter->type < from) {
+            first = iter + 1;
+          } else if (iter->type == from) {
+            return iter;
+          } else
+            last = iter - 1;
+        } while (first <= last);
+      }
+      head = head->next;
     }
   }
   return 0;
@@ -154,20 +242,24 @@ SWIG_TypePrettyName(const swig_type_info *type) {
 */
 SWIGRUNTIME void
 SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
-  swig_cast_info *cast = ti->cast;
+  swig_cast_info *head = ti->cast;
   /* if (ti->clientdata == clientdata) return; */
   ti->clientdata = clientdata;
 
-  while (cast) {
-    if (!cast->converter) {
-      swig_type_info *tc = cast->type;
-      if (!tc->clientdata) {
-	SWIG_TypeClientData(tc, clientdata);
+  while (head) {
+    swig_cast_info *cast;
+    for (cast = head; (cast - head) <= head->value; cast++) {
+      if (!cast->converter) {
+        swig_type_info *tc = cast->type;
+        if (!tc->clientdata) {
+          SWIG_TypeClientData(tc, clientdata);
+        }
       }
     }
-    cast = cast->next;
+    head = head->next;
   }
 }
+
 SWIGRUNTIME void
 SWIG_TypeNewClientData(swig_type_info *ti, void *clientdata) {
   SWIG_TypeClientData(ti, clientdata);

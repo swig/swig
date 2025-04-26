@@ -7,7 +7,7 @@
 
 /* This should only be incremented when either the layout of swig_type_info changes,
    or for whatever reason, the runtime changes incompatibly */
-#define SWIG_RUNTIME_VERSION "4"
+#define SWIG_RUNTIME_VERSION "5"
 
 /* define SWIG_TYPE_TABLE_NAME as "SWIG_TYPE_TABLE" */
 #ifdef SWIG_TYPE_TABLE
@@ -205,8 +205,8 @@ typedef struct swig_type_info {
 typedef struct swig_cast_info {
   swig_type_info         *type;			/* pointer to type that is equivalent to this type */
   swig_converter_func     converter;		/* function to cast the void pointers */
-  struct swig_cast_info  *next;			/* pointer to next cast in linked list */
-  struct swig_cast_info  *prev;			/* pointer to the previous cast */
+  struct swig_cast_info  *next;			/* pointer to next array of casts | pointer to cast hashed by value */
+  unsigned int            value;		/* index of the last valid element in the array | typename hash value */
 } swig_cast_info;
 
 /* Structure used to store module information
@@ -245,13 +245,18 @@ SWIG_TypeCmp(const char *nb, const char *tb);
 SWIGRUNTIME int
 SWIG_TypeEquiv(const char *nb, const char *tb);
 /*
+ * Hash function for type name strings, based on maRushPrime1Hash (http://amsoftware.narod.ru/algo2.html)
+ */
+SWIGRUNTIME unsigned int SWIG_Hash(const char *str, unsigned int len);
+
+/*
   Check the typename
 */
 SWIGRUNTIME swig_cast_info *
 SWIG_TypeCheck(const char *c, swig_type_info *ty);
 
 /*
-  Identical to SWIG_TypeCheck, except strcmp is replaced with a pointer comparison
+  Check the type by type address
 */
 SWIGRUNTIME swig_cast_info *
 SWIG_TypeCheckStruct(const swig_type_info *from, swig_type_info *ty);
