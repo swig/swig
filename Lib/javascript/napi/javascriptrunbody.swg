@@ -393,3 +393,57 @@ Napi::Value SWIG_NAPI_AppendOutput(Napi::Env env, Napi::Value result, Napi::Valu
   arr.Set(arr.Length(), obj);
   return arr;
 }
+
+/* ---------------------------------------------------------------------------
+ * Execute the jobs on the queue on the main thread
+ * ---------------------------------------------------------------------------*/
+#if NAPI_HAS_THREADS
+void SWIG_NAPI_RunMainThreadQueue(uv_async_t *async) {
+#ifdef SWIGRUNTIME_DEBUG
+  printf("Running scheduled tasks on main thread\n");
+#endif
+  auto env_data = reinterpret_cast<EnvInstanceData *>(async->data);
+
+  // As the lambdas are very light, it is better to not release the lock at all
+  std::lock_guard<std::mutex> lock(env_data->js_main_thread.lock);
+  while (!env_data->js_main_thread.jobs.empty()) {
+    env_data->js_main_thread.jobs.front()();
+    env_data->js_main_thread.jobs.pop();
+  }
+  // Disable the async because the queue is empty
+  // (we do not want to block Node from exiting)
+#ifndef __EMSCRIPTEN__
+  uv_unref(reinterpret_cast<uv_handle_t *>(env_data->js_main_thread.handle));
+#endif
+}
+#endif
+
+
+/* ---------------------------------------------------------------------------
+ * Schedule a job to run on the main thread
+ * ---------------------------------------------------------------------------*/
+void SWIG_NAPI_RunOnJSMainThread(EnvInstanceData *env_data, std::function<void()> &&job) {
+#if NAPI_HAS_THREADS
+  if (env_data->js_main_thread.main_thread_id == std::this_thread::get_id()) {
+#ifdef SWIGRUNTIME_DEBUG
+    printf("Running scheduled task synchronously on the main thread\n");
+#endif
+    job();
+  } else {
+#ifdef SWIGRUNTIME_DEBUG
+    printf("Scheduling a task on the main thread\n");
+#endif
+    std::lock_guard<std::mutex> lock(env_data->js_main_thread.lock);
+    env_data->js_main_thread.jobs.emplace(std::move(job));
+    assert(uv_async_send(env_data->js_main_thread.handle) == 0);
+#ifndef __EMSCRIPTEN__
+    uv_ref(reinterpret_cast<uv_handle_t *>(env_data->js_main_thread.handle));
+#endif
+  }
+#else
+#ifdef SWIGRUNTIME_DEBUG
+  printf("Running a task on the main thread w/o thread support\n");
+#endif
+  job();
+#endif
+}

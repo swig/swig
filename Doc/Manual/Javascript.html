@@ -39,6 +39,7 @@
 <li><a href="#Javascript_STL_example">STL Containers</a>
 <li><a href="#Javascript_Buffer_example"><code>Buffer</code> and <code>ArrayBuffer</code></a>
 <li><a href="#Javascript_C_arrays_example"><code>C</code> (flat pointer) arrays</a>
+<li><a href="#Javascript_smart_pointer_example">Smart pointers</a>
 </ul>
 <li><a href="#Javascript_exceptions">Exceptions</a>
 <ul>
@@ -881,6 +882,13 @@ This allows for more seamless integration at the price of copying the array at e
   </pre>
 </div>
 <p>By default, these typemaps are available for <code>int</code> and <code>double</code> - check <code>arrays_javascript.i</code> to see how to add more types.</p>
+
+<H3><a name="Javascript_smart_pointer_example">28.4.6 Smart pointers</a></H3>
+
+<p>SWIG for JavaScript supports natively smart pointers with the usual <a href="CPlusPlus11.html#CPlusPlus11_general_purpose_smart_pointers">SWIG semantics</a>. Support for <code>std::shared_ptr</code> is complete, while <code>std::unique_ptr</code> has some caveats since in JavaScript it is impossible to express the fact the a function can take the ownership of a passed object, leaving the original object in an inconsistent state.</p>
+
+<p>Additionally, SWIG Node-API is the only engine which provides an integration of the reference counting of a <code>std::shared_ptr</code> with the reference counting of the GC. This means that Node-API allows C++ to keep a copy of a passed <code>std::shared_ptr</code> and the GC won't destroy this object until C++ has deleted its last copy.</p>
+
 <H2><a name="Javascript_exceptions">28.5 Exceptions</a></H2>
 
 <H3><a name="Javascript_jsc_exceptions">28.5.1 Handling Exceptions in JavascriptCore</a></H3>
