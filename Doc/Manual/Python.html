@@ -6675,7 +6675,7 @@ The code is generated into the pure Python module, foo.py, and merely imports th
 
 <div class="targetlang">
 <pre>
-if getattr(__spec__, "parent", None) or '.' in __name__:
+if getattr(globals().get("__spec__"), "parent", None) or __package__ or '.' in __name__:
     from . import _foo
 else:
     import _foo
@@ -6760,7 +6760,7 @@ The default import loading code is thus different:
 
 <div class="targetlang">
 <pre>
-if getattr(__spec__, "parent", None) or '.' in __name__:
+if getattr(globals().get("__spec__"), "parent", None) or __package__ or '.' in __name__:
     from ._foo import *
 else:
     from _foo import *

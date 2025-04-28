@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-04-28: jschueller, henryiii
+            [Python] #2967 Use __spec__.parent as the first approach to obtaining
+            a module's package name when importing the low-level C/C++ module as the
+            previous approach looking for __package__ is due to be removed in python-3.15.
+            __package__ is now used as a fallback if __spec__.parent fails.
+
+2025-04-28: jschueller, henryiii
+            [Python] #3066 #3159 Add ht_token slot for python-3.14 support.
+
 2025-04-18: akorobka
             #103 Thread safety bugfix in the runtime type system.
 
