@@ -225,3 +225,7 @@ Examples/r/*/.RData
 # Scilab
 Examples/test-suite/scilab/*/
 loader.sce
+
+/.direnv
+/.envrc
+bazel-*

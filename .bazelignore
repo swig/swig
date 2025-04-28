@@ -1,0 +1,7 @@
+.direnv/
+build/
+debug/
+src/sta/build/
+src/sta/debug/
+# delete line below when CI can handle it and it runs in minutes
+test/orfs/

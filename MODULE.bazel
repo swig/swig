@@ -1,0 +1,8 @@
+module(
+    name = "swig",
+    version = "4.3.0",
+    compatibility_level = 0,
+)
+
+bazel_dep(name = "pcre2", version = "10.43")
+bazel_dep(name = "platforms", version = "0.0.10")
