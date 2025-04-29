@@ -75,7 +75,7 @@ Examples/test-suite/*/Makefile
 Examples/xml/Makefile
 /Makefile
 Source/Include/stamp-h1
-Source/Include/swigconfig.h
+#Source/Include/swigconfig.h
 Source/Makefile
 Tools/javascript/Makefile
 .deps
@@ -88,9 +88,9 @@ preinst-swig
 CCache/ccache-swig
 CCache/ccache-swig.1
 CCache/web/ccache-swig-man.html
-Lib/swigwarn.swg
-Source/CParse/parser.c
-Source/CParse/parser.h
+#Lib/swigwarn.swg
+#Source/CParse/parser.c
+#Source/CParse/parser.h
 Source/eswig
 Source/TAGS
 swig
