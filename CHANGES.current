@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-04-29: r-barnes, wsfulton
+            #3027 Remove generation of empty dynamic exception specifications - throw(),
+            which are deprecated in c++11. This was only when using the director feature.
+            A new macro SWIG_NOEXCEPT is used which ensures that throw() or noexcept is
+            used for the appropriate C++ standard that the compiler is compiling for.
+
 2025-04-28: jschueller, henryiii
             [Python] #2967 Use __spec__.parent as the first approach to obtaining
             a module's package name when importing the low-level C/C++ module as the
