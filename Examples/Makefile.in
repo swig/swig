@@ -841,13 +841,30 @@ endif
 javascript_version:
 ifeq (, $(ENGINE))
 	@if [ "$(NODEJS)" != "" ]; then \
+		echo "Engine: jsc"; \
 	  echo "Node.js: `($(NODEJS) --version)`"; \
 	  echo "node-gyp: `($(NODEGYP) --version)`"; \
 	else \
 	  echo "Version depends on the interpreter"; \
 	fi
 endif
-ifeq ($(ENGINE), $(filter $(ENGINE), node napi))
+ifeq (napi, $(ENGINE))
+	echo "Engine: napi"
+	echo "Node.js: `($(NODEJS) --version)`"
+	echo "node-gyp: `($(NODEGYP) --version)`"
+	@echo -n node-addon-api:\ 
+	@if [ -n "@NODENAPI_DIR@" ]; then echo "@NODENAPI_DIR@"; else echo "not found"; fi
+	@echo -n TypeScript:\ 
+	@if [ -n "@TSC@" ]; then @TSC@ --version; else echo "not found"; fi
+	@echo -n @types/node:\ 
+	@if [ -n "@NODETYPES_DIR@" ]; then echo "@NODETYPES_DIR@"; else echo "not found"; fi 
+	@echo -n emscripten:\ 
+	@if [ -n "@EMSDK@" ]; then echo "@EMSDK@"; else echo "not found"; fi 
+	@echo -n emnapi:\ 
+	@if [ -n "@EMNAPI_DIR@" ]; then echo "@EMNAPI_DIR@"; else echo "not found"; fi 
+endif
+ifeq (node, $(ENGINE))
+	echo "Engine: node"
 	echo "Node.js: `($(NODEJS) --version)`"
 	echo "node-gyp: `($(NODEGYP) --version)`"
 endif
@@ -859,6 +876,7 @@ ifeq (jsc, $(ENGINE))
 	fi
 endif
 ifeq (v8, $(ENGINE))
+	echo "Engine: v8"
 	@printf '%s\n' '#include <v8-version.h>' 'SWIGMAGICv8: V8_MAJOR_VERSION.V8_MINOR_VERSION.V8_BUILD_NUMBER.V8_PATCH_LEVEL'|$(CXX) $(JSINCLUDES) -xc++ -E -|sed 's/ \. /./g;s/SWIGMAGIC//p;d'
 endif
 
