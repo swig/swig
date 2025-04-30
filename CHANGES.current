@@ -12,6 +12,8 @@ Version 4.4.0 (in progress)
             into Python. This has been changed from INT_MAX to PY_SSIZE_T_MAX in line
             with the Python C API maximum string length handling change in python-2.5.
 
+            Similarly for the number of elements in the Python STL container wrappers.
+
 2025-04-29: r-barnes, wsfulton
             #3027 Remove generation of empty dynamic exception specifications - throw(),
             which are deprecated in c++11. This was only when using the director feature.
