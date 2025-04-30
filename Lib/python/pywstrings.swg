@@ -73,7 +73,7 @@ SWIGINTERNINLINE PyObject *
 SWIG_FromWCharPtrAndSize(const wchar_t * carray, size_t size)
 {
   if (carray) {
-    if (size > INT_MAX) {
+    if (size > (size_t)PY_SSIZE_T_MAX) {
       swig_type_info* pwchar_descriptor = SWIG_pwchar_descriptor();
       return pwchar_descriptor ? 
 	SWIG_InternalNewPointerObj(%const_cast(carray,wchar_t *), pwchar_descriptor, 0) : SWIG_Py_Void();
