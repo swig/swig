@@ -162,13 +162,16 @@ then
             if test "$GCC" = yes; then
                 LDSHARED="\$(CC) -shared"
             else
-                if test "cl" = $CC ;  then
+		case $CC in
+		cl|"cl "*)
                     # Microsoft Visual C++ (MSVC)
                     LDSHARED="\$(CC) -nologo -LD"
-                else
+		    ;;
+		*)
                     # Unknown compiler try gcc approach
                     LDSHARED="\$(CC) -shared"
-                fi
+		    ;;
+		esac
             fi ;;
 	*-*-irix5*) LDSHARED="ld -shared";;
 	*-*-irix6*) LDSHARED="ld ${SGI_ABI} -shared -all";;
@@ -228,12 +231,15 @@ then
             if test "$GCC" = yes; then
                 TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared "
             else
-                if test "cl" = $CXX ;  then
+		case $CXX in
+		cl|"cl "*)
                     # Microsoft Visual C++ (MSVC)
                     TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -nologo -LD"
-                else
+		    ;;
+		*)
                     TRYLINKINGWITHCXX="#unknown Windows compiler"
-                fi
+		    ;;
+		esac
             fi ;;
         *)       TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared ";;
         esac
