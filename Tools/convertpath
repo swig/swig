@@ -25,7 +25,7 @@ case "$option" in
         *-msys) echo `cmd //c echo "$@" | sed -e "s/[ ]*$//"`;;
         *) echo "The -m option is only supported on MinGW MSYS" 1>&2; exit 1 ;;
       esac ;;
-  -u) shift; echo $@ | sed -e 's,\\,/,g' ;;
+  -u|--mixed) shift; echo $@ | sed -e 's,\\,/,g' ;;
   -w) shift; echo $@ | sed -e 's,/,\\,g' ;;
   -h) shift; usage; ;;
   *) usage; exit 1 ;;
