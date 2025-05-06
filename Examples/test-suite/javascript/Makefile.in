@@ -70,6 +70,7 @@ CPP_TEST_CASES += \
 	napi_li_std_map \
 	napi_li_std_pair \
 	napi_li_std_vector \
+	napi_callback \
 	extend_splitting \
 	cpp11_shared_ptr_const \
 	cpp11_shared_ptr_upcast \

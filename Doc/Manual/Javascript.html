@@ -40,6 +40,7 @@
 <li><a href="#Javascript_Buffer_example"><code>Buffer</code> and <code>ArrayBuffer</code></a>
 <li><a href="#Javascript_C_arrays_example"><code>C</code> (flat pointer) arrays</a>
 <li><a href="#Javascript_smart_pointer_example">Smart pointers</a>
+<li><a href="#Javascript_function_example"><code>std::function</code> and plain C functions pointers</a>
 </ul>
 <li><a href="#Javascript_exceptions">Exceptions</a>
 <ul>
@@ -888,6 +889,119 @@ This allows for more seamless integration at the price of copying the array at e
 <p>SWIG for JavaScript supports natively smart pointers with the usual <a href="CPlusPlus11.html#CPlusPlus11_general_purpose_smart_pointers">SWIG semantics</a>. Support for <code>std::shared_ptr</code> is complete, while <code>std::unique_ptr</code> has some caveats since in JavaScript it is impossible to express the fact the a function can take the ownership of a passed object, leaving the original object in an inconsistent state.</p>
 
 <p>Additionally, SWIG Node-API is the only engine which provides an integration of the reference counting of a <code>std::shared_ptr</code> with the reference counting of the GC. This means that Node-API allows C++ to keep a copy of a passed <code>std::shared_ptr</code> and the GC won't destroy this object until C++ has deleted its last copy.</p>
+
+<H3><a name="Javascript_function_example">28.4.7 <code>std::function</code> and plain C functions pointers</a></H3>
+
+<p>SWIG Node-API provides built-in typemaps that can transform JavaScript functions passed as arguments into <code>std::function</code> or - with some quirks and limitations - to a plain C function pointer.</p>
+
+<p>Currently, SWIG does not provide the necessary language features needed to implement a generic function typemap and a separate user typemap must be declared for each function signature. There is a built-in helper <code>SWIG_NAPI_Callback</code> that takes care of most of the complexity required in order to generate the trampoline. <code>SWIG_NAPI_Callback</code> returns a <code>std::function</code> which when called from C++ will convert the arguments, invoke the JavaScript callback and convert back the returned value. It also automatically handles asynchronous execution, including async callbacks. The function returned is trivially copy-constructible and can be copied and kept on the C++ side. Deleting its last copy will release the resources that it holds. It can be called from any thread and it is fully reentrant. If it is called on the main thread, it will enter JavaScript synchronously. If it is called on any other thread, it will wait for JavaScript to be ready to execute it. Asynchronous JavaScript callbacks are supported only when the caller is asynchronous too - ie the returned function is called from a background thread. In this case the if the function is called concurrently from multiple threads, the JavaScript will also be reentrant - meaning that a first invocation may be waiting on an <code>await</code> statement when a second invocation is made. In all other cases, concurrent calls will result sequential execution of the JavaScript callbacks.</p>
+
+<p><b>Note</b>:&nbsp;<em>Current versions of Node.js have an <a href="https://github.com/nodejs/node-addon-api/issues/1658">issue</a> that results a false positive of the unhandled rejection check if the callback is an asynchronous function that throws or otherwise returns a rejected <code>Promise</code>. Disabling this check - by using the CLI option or by registering an <code>unhandledRejection</code> event handler will solve the issue.</em></p>
+
+<p><b>Note</b>:&nbsp;<em>Converting functions to a plain C function pointer has some limitations. It is possible only if the C callback mechanism supports accepting and passing back a <code>void*</code> context pointer - which is the usual way of implementing callbacks in C. Additionally, plain C function pointers do not have a destructor, which means that releasing the resources held by the function must be done manually.</em></p>
+
+<p>The following is an example typemap that converts <code>std::function<std::string(int, const std::string &)></code></p>.
+
+<div class="code">
+  <pre>%typemap(in) std::function&lt;std::string(int, const std::string &amp;)&gt; {
+  if (!$input.IsFunction()) {
+    %argument_fail(SWIG_TypeError, &quot;$type&quot;, $symname, $argnum);
+  }
+  
+  // SWIG_NAPI_Callback returns an std::function that can be used to call into JS
+  $1 = SWIG_NAPI_Callback&lt;std::string, int, const std::string &amp;&gt;(
+    // First argument is the JavaScript function
+    $input,
+    // The second argument is a function
+    // The first two arguments are fixed - the Node-API environment pointer
+    //   and a reference to a napi_value vector that will receive the
+    //   converted arguments
+    // The next arguments are the C++ function type arguments
+    std::function&lt;void(Napi::Env, std::vector&lt;napi_value&gt; &amp;, int, const std::string &amp;)&gt;(
+        [](Napi::Env env, std::vector&lt;napi_value&gt; &amp;js_args, int passcode, const std::string &amp;name) -&gt; void {
+        // $typemap allows to simply insert the existing SWIG typemap for this type
+        $typemap(out, int, 1=passcode, result=js_args.at(0), argnum=callback argument 1);
+        $typemap(out, std::string, 1=name, result=js_args.at(1), argnum=callback argument 2);
+      }
+    ),
+    // This argument is a function that will convert the returned value
+    [](Napi::Env env, Napi::Value js_ret) -&gt; std::string {
+      std::string c_ret;
+      // The existing SWIG typemap can be used
+      $typemap(in, std::string, input=js_ret, 1=c_ret, argnum=JavaScript callback return value)
+      return c_ret;
+    },
+    // This will be the value of &#39;this&#39; inside the JavaScript function
+    env.Global()
+  );
+}
+
+// This is the associated TypeScript type
+%typemap(ts) std::function&lt;std::string(int, const std::string &amp;)&gt;
+  &quot;(this: typeof globalThis, pass: number, name: string) =&gt; Promise&lt;string&gt; | string&quot;;</pre>
+</div>
+
+<p>For functions that do not return a value or do no take input arguments, pass empty functions:</p>
+
+<div class="code">
+<pre>%typemap(in) std::function&lt;void()&gt; {
+  if (!$input.IsFunction()) {
+    %argument_fail(SWIG_TypeError, &quot;$type&quot;, $symname, $argnum);
+  }
+  
+  $1 = SWIG_NAPI_Callback&lt;void&gt;(
+    $input,
+    // Empty input typemaps
+    std::function&lt;void(Napi::Env, std::vector&lt;napi_value&gt; &amp;)&gt;(
+        [](Napi::Env env, std::vector&lt;napi_value&gt; &amp;) -&gt; void {}
+    ),
+    /// Empty output typemap
+    [](Napi::Env env, Napi::Value) -&gt; void {},
+    env.Global()
+  );
+}
+
+// The TypeScript type
+%typemap(ts) std::function&lt;void()&gt;
+  &quot;(this: typeof globalThis) =&gt; void | Promise&lt;void&gt;&quot;;</pre>
+</div>
+
+<p>Plain C function pointers can be converted by creating a wrapper that takes <code>std::function</code>:
+</p>
+
+<div class="code">
+  <pre>// This wrapper receives an std::function to be compatible with SWIG_NAPI_Callback
+// and calls a function that expects a C function pointer provided that the C function
+// accepts a context that is passed back.
+// It wraps a function that looks like:
+// std::string fn_C_ptr(std::string (*fn)(void *, int, const std::string &amp;), void *context);
+%wrapper %{
+std::string fn_C_ptr_wrapper(std::function&lt;std::string(int, const std::string &amp;)&gt; fn) {
+  // In this particular example fn should be valid in the lambda
+  // But in order to support functions that keep the callback and call it
+  // later, we choose to make a copy.
+  // This also protects from unexpected return value optimizations by the
+  // compiler.
+  using cb_t = decltype(fn);
+  auto *cb = new cb_t{fn};
+  return fn_C_ptr(
+      [](void *data, int arg1, const std::string &amp;arg2) -&gt; std::string {
+        // This code supposes that C++ won&#39;t keep the function pointer
+        // and deletes the std::function after the first call
+        // If the function will be called repeatedly, there must be
+        // some mechanism to free this object after the last call
+        // Transferring the ownership to a unique_ptr allows to handle
+        // the exception case
+        auto fn_ = std::unique_ptr&lt;cb_t&gt;(reinterpret_cast&lt;cb_t*&gt;(data));
+        auto result = (*fn_)(arg1, arg2);
+        return result;
+      },
+      cb);
+}
+%}</pre>
+</div>
+
+<p>Asynchronous JavaScript callbacks are supported only if the multithreading support is enabled - ie everywhere except the special monothreaded WASM build that does not require COOP/COEP. If the returned value is a <code>Promise</code> it will be automatically resolved while the C++ code waits on a semaphore.</p>
 
 <H2><a name="Javascript_exceptions">28.5 Exceptions</a></H2>
 

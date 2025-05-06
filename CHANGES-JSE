@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version next
 ===========================
 
+2025-05-05: mmomtchev
+            [JavaScript] Provide built-in helpers for handling `std::function`
+            arguments
+
 2025-04-23: mmomtchev
             [JavaScript] Integrate `std::shared_ptr` with the JavaScript reference counting
             of the GC

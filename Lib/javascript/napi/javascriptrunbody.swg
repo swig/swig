@@ -435,7 +435,8 @@ void SWIG_NAPI_RunOnJSMainThread(EnvInstanceData *env_data, std::function<void()
 #endif
     std::lock_guard<std::mutex> lock(env_data->js_main_thread.lock);
     env_data->js_main_thread.jobs.emplace(std::move(job));
-    assert(uv_async_send(env_data->js_main_thread.handle) == 0);
+    if (uv_async_send(env_data->js_main_thread.handle) != 0)
+      std::abort();
 #ifndef __EMSCRIPTEN__
     uv_ref(reinterpret_cast<uv_handle_t *>(env_data->js_main_thread.handle));
 #endif

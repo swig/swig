@@ -1,6 +1,6 @@
 {
   'variables': {
-    'source_glob': [ '<!@(node -p "fs.readdirSync(\'..\').filter(f => f.match(/^$testcase_wrap.*\.cxx/)).map(f => path.join(\'..\', f)).join(\' \')")' ]
+    'source_glob': [ '<!@(node -p "fs.readdirSync(\'..\').filter(f => f.match(/^$testcase_wrap.*\\.cxx/)).map(f => path.join(\'..\', f)).join(\' \')")' ]
   },
   'target_defaults': {
     'cflags': [
