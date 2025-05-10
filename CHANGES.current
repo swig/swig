@@ -7,6 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-05-10: jschueller, wsfulton
+            [Python] #2881 #3061 #3160 DeprecationWarning fixes when using 'python -Walways'
+            or if using one of the types being warned about:
+
+              DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+              DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+              DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+            The warning was present if code was generated without using -builtin in 4.3.x.
+            The warning was only present if using the Python limited API in 4.2.1 and earlier.
+
 2025-04-30: wsfulton
             [Python] #3134 Fix maximum size of strings being marshalled from C/C++
             into Python. This has been changed from INT_MAX to PY_SSIZE_T_MAX in line
