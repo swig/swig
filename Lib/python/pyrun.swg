@@ -114,8 +114,25 @@ SWIG_Python_SetConstant(PyObject *d, const char *name, PyObject *obj) {
 
 #endif
 
-/* Append a value to the result obj */
+/* SWIG runtime data Python module */
+static PyObject *Swig_runtime_data_module_global = NULL;
 
+/* Create/obtain the single swig_runtime_data module which is used across different SWIG generated modules */
+SWIGINTERN PyObject *
+SWIG_runtime_data_module() {
+  if (!Swig_runtime_data_module_global) {
+#if PY_VERSION_HEX >= 0x03000000
+    Swig_runtime_data_module_global = PyImport_AddModule(SWIG_RUNTIME_MODULE);
+#else
+    static PyMethodDef swig_empty_runtime_method_table[] = { {NULL, NULL, 0, NULL} }; /* Sentinel */
+    Swig_runtime_data_module_global = Py_InitModule(SWIG_RUNTIME_MODULE, swig_empty_runtime_method_table);
+#endif
+    SWIG_Py_XINCREF(Swig_runtime_data_module_global);
+  }
+  return Swig_runtime_data_module_global;
+}
+
+/* Append a value to the result obj */
 SWIGINTERN PyObject*
 SWIG_Python_AppendOutput(PyObject* result, PyObject* obj, int is_void) {
   if (!result) {
@@ -341,7 +358,7 @@ swig_varlink_setattr(PyObject *o, char *n, PyObject *p) {
 
 SWIGINTERN PyTypeObject*
 swig_varlink_type(void) {
-  static char varlink__doc__[] = "Swig var link object";
+  static char varlink__doc__[] = "Swig variable link object";
 #ifndef SWIG_HEAPTYPES
   static PyTypeObject varlink_type;
   static int type_init = 0;
@@ -407,10 +424,13 @@ swig_varlink_type(void) {
       0                                   /* tp_next */
 #endif
     };
+    PyObject *runtime_data_module = SWIG_runtime_data_module();
     varlink_type = tmp;
     type_init = 1;
     if (PyType_Ready(&varlink_type) < 0)
       return NULL;
+    if (PyModule_AddObject(runtime_data_module, "swigvarlink", (PyObject *)&varlink_type) == 0)
+      SWIG_Py_INCREF((PyObject *)&varlink_type);
   }
   return &varlink_type;
 #else
@@ -430,7 +450,11 @@ swig_varlink_type(void) {
     Py_TPFLAGS_DEFAULT,
     slots
   };
-  return (PyTypeObject *)PyType_FromSpec(&spec);
+  PyObject *pytype = PyType_FromSpec(&spec);
+  PyObject *runtime_data_module = SWIG_runtime_data_module();
+  if (pytype && PyModule_AddObject(runtime_data_module, "swigvarlink", pytype) == 0)
+    SWIG_Py_INCREF(pytype);
+  return (PyTypeObject *)pytype;
 #endif
 }
 
@@ -910,7 +934,7 @@ swigobject_methods[] = {
 
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_TypeOnce(void) {
-  static char swigobject_doc[] = "Swig object carries a C/C++ instance pointer";
+  static char swigobject_doc[] = "Swig object holding a C/C++ pointer";
 #ifndef SWIG_HEAPTYPES
   static PyNumberMethods SwigPyObject_as_number = {
     (binaryfunc)0, /*nb_add*/
@@ -1043,10 +1067,13 @@ SwigPyObject_TypeOnce(void) {
       0                                     /* tp_next */
 #endif
     };
+    PyObject *runtime_data_module = SWIG_runtime_data_module();
     swigpyobject_type = tmp;
     type_init = 1;
     if (PyType_Ready(&swigpyobject_type) != 0)
       return NULL;
+    if (PyModule_AddObject(runtime_data_module, "SwigPyObject", (PyObject *)&swigpyobject_type) == 0)
+      SWIG_Py_INCREF((PyObject *)&swigpyobject_type);
   }
   return &swigpyobject_type;
 #else
@@ -1067,7 +1094,11 @@ SwigPyObject_TypeOnce(void) {
     Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
     slots
   };
-  return (PyTypeObject *)PyType_FromSpec(&spec);
+  PyObject *pytype = PyType_FromSpec(&spec);
+  PyObject *runtime_data_module = SWIG_runtime_data_module();
+  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObject", pytype) == 0)
+    SWIG_Py_INCREF(pytype);
+  return (PyTypeObject *)pytype;
 #endif
 }
 
@@ -1150,7 +1181,7 @@ SwigPyPacked_Check(PyObject *op) {
   PyObject *tp_name;
 #endif
   PyTypeObject* op_type = Py_TYPE(op);
-  if (op_type == SwigPyPacked_TypeOnce())
+  if (op_type == SwigPyPacked_type())
     return 1;
 #ifdef Py_LIMITED_API
   tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
@@ -1176,7 +1207,7 @@ SwigPyPacked_dealloc(PyObject *v)
 
 SWIGRUNTIME PyTypeObject*
 SwigPyPacked_TypeOnce(void) {
-  static char swigpacked_doc[] = "Swig object carries a C/C++ instance pointer";
+  static char swigpacked_doc[] = "Swig object holding a C/C++ function pointer";
 #ifndef SWIG_HEAPTYPES
   static PyTypeObject swigpypacked_type;
   static int type_init = 0;
@@ -1265,10 +1296,13 @@ SwigPyPacked_TypeOnce(void) {
       0                                     /* tp_next */
 #endif
     };
+    PyObject *runtime_data_module = SWIG_runtime_data_module();
     swigpypacked_type = tmp;
     type_init = 1;
     if (PyType_Ready(&swigpypacked_type) != 0)
       return NULL;
+    if (PyModule_AddObject(runtime_data_module, "SwigPyPacked", (PyObject *)&swigpypacked_type) == 0)
+      SWIG_Py_INCREF((PyObject *)&swigpypacked_type);
   }
   return &swigpypacked_type;
 #else
@@ -1287,7 +1321,11 @@ SwigPyPacked_TypeOnce(void) {
     Py_TPFLAGS_DEFAULT,
     slots
   };
-  return (PyTypeObject *)PyType_FromSpec(&spec);
+  PyObject *pytype = PyType_FromSpec(&spec);
+  PyObject *runtime_data_module = SWIG_runtime_data_module();
+  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyPacked", pytype) == 0)
+    SWIG_Py_INCREF(pytype);
+  return (PyTypeObject *)pytype;
 #endif
 }
 
@@ -1815,6 +1853,12 @@ SWIG_Python_GetModule(void *SWIGUNUSEDPARM(clientdata)) {
 }
 
 
+#if defined(SWIG_REFCNT_DEBUG)
+#define SWIG_PYOBJ_REFCNT(OBJ) fprintf(stdout, "" #OBJ " count %ld\n", (OBJ ? Py_REFCNT(OBJ) : 0))
+#else
+#define SWIG_PYOBJ_REFCNT(OBJ)
+#endif
+
 static int interpreter_counter = 0; /* how many (sub-)interpreters are using swig_module's types */
 
 SWIGRUNTIME void
@@ -1825,7 +1869,7 @@ SWIG_Python_DestroyModule(PyObject *obj)
   size_t i;
   if (--interpreter_counter != 0) /* another sub-interpreter may still be using the swig_module's types */
     return;
-  for (i =0; i < swig_module->size; ++i) {
+  for (i = 0; i < swig_module->size; ++i) {
     swig_type_info *ty = types[i];
     if (ty->owndata) {
       SwigPyClientData *data = (SwigPyClientData *) ty->clientdata;
@@ -1833,27 +1877,32 @@ SWIG_Python_DestroyModule(PyObject *obj)
       if (data) SwigPyClientData_Del(data);
     }
   }
-  SWIG_Py_DECREF(SWIG_This());
+  SWIG_Py_XDECREF(Swig_This_global);
+  SWIG_PYOBJ_REFCNT(Swig_This_global);
   Swig_This_global = NULL;
-  SWIG_Py_DECREF(SWIG_globals());
+
+  SWIG_Py_XDECREF(Swig_Globals_global);
+  SWIG_PYOBJ_REFCNT(Swig_Globals_global);
   Swig_Globals_global = NULL;
-  SWIG_Py_DECREF(SWIG_Python_TypeCache());
+
+  SWIG_Py_XDECREF(Swig_TypeCache_global);
+  SWIG_PYOBJ_REFCNT(Swig_TypeCache_global);
   Swig_TypeCache_global = NULL;
+
+  SWIG_PYOBJ_REFCNT(Swig_Capsule_global);
   Swig_Capsule_global = NULL;
+
+  SWIG_Py_XDECREF(Swig_runtime_data_module_global);
+  SWIG_PYOBJ_REFCNT(Swig_runtime_data_module_global);
+  Swig_runtime_data_module_global = NULL;
 }
 
 SWIGRUNTIME void
 SWIG_Python_SetModule(swig_module_info *swig_module) {
-#if PY_VERSION_HEX >= 0x03000000
- /* Add a dummy module object into sys.modules */
-  PyObject *module = PyImport_AddModule(SWIG_RUNTIME_MODULE);
-#else
-  static PyMethodDef swig_empty_runtime_method_table[] = { {NULL, NULL, 0, NULL} }; /* Sentinel */
-  PyObject *module = Py_InitModule(SWIG_RUNTIME_MODULE, swig_empty_runtime_method_table);
-#endif
+  PyObject *runtime_data_module = SWIG_runtime_data_module();
   PyObject *pointer = PyCapsule_New((void *) swig_module, SWIGPY_CAPSULE_NAME, SWIG_Python_DestroyModule);
-  if (pointer && module) {
-    if (PyModule_AddObject(module, SWIGPY_CAPSULE_ATTR_NAME, pointer) == 0) {
+  if (pointer && runtime_data_module) {
+    if (PyModule_AddObject(runtime_data_module, SWIGPY_CAPSULE_ATTR_NAME, pointer) == 0) {
       ++interpreter_counter;
       Swig_Capsule_global = pointer;
     } else {
