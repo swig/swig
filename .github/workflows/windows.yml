@@ -58,19 +58,19 @@ jobs:
           COMPILER: gcc
           VER: 11
         - SWIGLANG: python
-          VER: '3.7'
+          VER: '3.9'
         - SWIGLANG: python
-          VER: '3.12'
+          VER: '3.13'
        #  TODO require fixing of probing in configure.ac
        #- SWIGLANG: python
        #  INSTALL: 'true'
        #  COMPILER: gcc
        #  NOTEST: 'no-test'
         - SWIGLANG: ruby
-#         VER: '3.0.7'
+          VER: '3.1'
           NOTEST: 'no-test'
         - SWIGLANG: ruby
-          VER: '3.1.6'
+          VER: '3.3'
           NOTEST: 'no-test'
         - SWIGLANG: ruby
           INSTALL: 'true'
