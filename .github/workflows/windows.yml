@@ -182,12 +182,14 @@ jobs:
             if [[ -n "$VER" ]]; then
               case "$SWIGLANG" in
               python)
-                PY3VER=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64)
-                echo "$PY3VER\\Script" >> $GITHUB_PATH
-                echo "$PY3VER" >> $GITHUB_PATH
+                PYTHONDIR_UNIX=$(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64
+                PYTHONDIR=$(cygpath -w $PYTHONDIR_UNIX)
+                echo "$PYTHONDIR\\Script" >> $GITHUB_PATH
+                echo "$PYTHONDIR" >> $GITHUB_PATH
                 ;;
               ruby)
-                RUBYDIR=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64)
+                RUBYDIR_UNIX=$(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64
+                RUBYDIR=$(cygpath -w $RUBYDIR_UNIX)
                 echo "$RUBYDIR\\bin" >> $GITHUB_PATH
                 ;;
               esac
