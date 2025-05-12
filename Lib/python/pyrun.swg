@@ -257,7 +257,7 @@ typedef struct swig_varlinkobject {
 } swig_varlinkobject;
 
 SWIGINTERN PyObject *
-swig_varlink_repr(PyObject *SWIGUNUSEDPARM(v)) {
+SwigVarLink_repr(PyObject *SWIGUNUSEDPARM(v)) {
 #if PY_VERSION_HEX >= 0x03000000
   return PyUnicode_InternFromString("<Swig global variables>");
 #else
@@ -266,7 +266,7 @@ swig_varlink_repr(PyObject *SWIGUNUSEDPARM(v)) {
 }
 
 SWIGINTERN PyObject *
-swig_varlink_str(PyObject *o) {
+SwigVarLink_str(PyObject *o) {
   swig_varlinkobject *v = (swig_varlinkobject *) o;
 #if PY_VERSION_HEX >= 0x03000000
   PyObject *str = PyUnicode_InternFromString("(");
@@ -305,7 +305,7 @@ swig_varlink_str(PyObject *o) {
 }
 
 SWIGINTERN void
-swig_varlink_dealloc(PyObject *o) {
+SwigVarLink_dealloc(PyObject *o) {
   swig_varlinkobject *v = (swig_varlinkobject *) o;
   swig_globalvar *var = v->vars;
   while (var) {
@@ -317,7 +317,7 @@ swig_varlink_dealloc(PyObject *o) {
 }
 
 SWIGINTERN PyObject *
-swig_varlink_getattr(PyObject *o, char *n) {
+SwigVarLink_getattr(PyObject *o, char *n) {
   swig_varlinkobject *v = (swig_varlinkobject *) o;
   PyObject *res = NULL;
   swig_globalvar *var = v->vars;
@@ -335,7 +335,7 @@ swig_varlink_getattr(PyObject *o, char *n) {
 }
 
 SWIGINTERN int
-swig_varlink_setattr(PyObject *o, char *n, PyObject *p) {
+SwigVarLink_setattr(PyObject *o, char *n, PyObject *p) {
   swig_varlinkobject *v = (swig_varlinkobject *) o;
   int res = 1;
   swig_globalvar *var = v->vars;
@@ -358,7 +358,7 @@ swig_varlink_setattr(PyObject *o, char *n, PyObject *p) {
 
 SWIGINTERN PyTypeObject*
 swig_varlink_type(void) {
-  static char varlink__doc__[] = "Swig variable link object";
+  static char SwigVarLink_doc[] = "Swig variable link object";
 #ifndef SWIG_HEAPTYPES
   static PyTypeObject varlink_type;
   static int type_init = 0;
@@ -370,30 +370,30 @@ swig_varlink_type(void) {
       PyObject_HEAD_INIT(NULL)
       0,                                  /* ob_size */
 #endif
-      SWIG_RUNTIME_MODULE ".swigvarlink", /* tp_name */
+      SWIG_RUNTIME_MODULE ".SwigVarLink", /* tp_name */
       sizeof(swig_varlinkobject),         /* tp_basicsize */
       0,                                  /* tp_itemsize */
-      (destructor) swig_varlink_dealloc,  /* tp_dealloc */
+      (destructor) SwigVarLink_dealloc,   /* tp_dealloc */
 #if PY_VERSION_HEX < 0x030800b4
       (printfunc)0,                       /* tp_print */
 #else
       (Py_ssize_t)0,                      /* tp_vectorcall_offset */
 #endif
-      (getattrfunc) swig_varlink_getattr, /* tp_getattr */
-      (setattrfunc) swig_varlink_setattr, /* tp_setattr */
+      (getattrfunc) SwigVarLink_getattr,  /* tp_getattr */
+      (setattrfunc) SwigVarLink_setattr,  /* tp_setattr */
       0,                                  /* tp_compare */
-      (reprfunc) swig_varlink_repr,       /* tp_repr */
+      (reprfunc) SwigVarLink_repr,        /* tp_repr */
       0,                                  /* tp_as_number */
       0,                                  /* tp_as_sequence */
       0,                                  /* tp_as_mapping */
       0,                                  /* tp_hash */
       0,                                  /* tp_call */
-      (reprfunc) swig_varlink_str,        /* tp_str */
+      (reprfunc) SwigVarLink_str,         /* tp_str */
       0,                                  /* tp_getattro */
       0,                                  /* tp_setattro */
       0,                                  /* tp_as_buffer */
       0,                                  /* tp_flags */
-      varlink__doc__,                     /* tp_doc */
+      SwigVarLink_doc,                    /* tp_doc */
       0,                                  /* tp_traverse */
       0,                                  /* tp_clear */
       0,                                  /* tp_richcompare */
@@ -429,22 +429,22 @@ swig_varlink_type(void) {
     type_init = 1;
     if (PyType_Ready(&varlink_type) < 0)
       return NULL;
-    if (PyModule_AddObject(runtime_data_module, "swigvarlink", (PyObject *)&varlink_type) == 0)
+    if (PyModule_AddObject(runtime_data_module, "SwigVarLink", (PyObject *)&varlink_type) == 0)
       SWIG_Py_INCREF((PyObject *)&varlink_type);
   }
   return &varlink_type;
 #else
   PyType_Slot slots[] = {
-    { Py_tp_dealloc, (void *)swig_varlink_dealloc },
-    { Py_tp_repr, (void *)swig_varlink_repr },
-    { Py_tp_getattr, (void *)swig_varlink_getattr },
-    { Py_tp_setattr, (void *)swig_varlink_setattr },
-    { Py_tp_str, (void *)swig_varlink_str },
-    { Py_tp_doc, (void *)varlink__doc__ },
+    { Py_tp_dealloc, (void *)SwigVarLink_dealloc },
+    { Py_tp_repr, (void *)SwigVarLink_repr },
+    { Py_tp_getattr, (void *)SwigVarLink_getattr },
+    { Py_tp_setattr, (void *)SwigVarLink_setattr },
+    { Py_tp_str, (void *)SwigVarLink_str },
+    { Py_tp_doc, (void *)SwigVarLink_doc },
     { 0, NULL }
   };
   PyType_Spec spec = {
-    SWIG_RUNTIME_MODULE ".swigvarlink",
+    SWIG_RUNTIME_MODULE ".SwigVarLink",
     sizeof(swig_varlinkobject),
     0,
     Py_TPFLAGS_DEFAULT,
@@ -452,7 +452,7 @@ swig_varlink_type(void) {
   };
   PyObject *pytype = PyType_FromSpec(&spec);
   PyObject *runtime_data_module = SWIG_runtime_data_module();
-  if (pytype && PyModule_AddObject(runtime_data_module, "swigvarlink", pytype) == 0)
+  if (pytype && PyModule_AddObject(runtime_data_module, "SwigVarLink", pytype) == 0)
     SWIG_Py_INCREF(pytype);
   return (PyTypeObject *)pytype;
 #endif
@@ -715,7 +715,7 @@ SwigPyObject_repr(SwigPyObject *v)
 }
 
 /* We need a version taking two PyObject* parameters so it's a valid
- * PyCFunction to use in swigobject_methods[]. */
+ * PyCFunction to use in SwigPyObject_methods[]. */
 SWIGRUNTIME PyObject *
 SwigPyObject_repr2(PyObject *v, PyObject *SWIGUNUSEDPARM(args))
 {
@@ -922,7 +922,7 @@ SwigPyObject_own(PyObject *v, PyObject *args)
 }
 
 static PyMethodDef
-swigobject_methods[] = {
+SwigPyObject_methods[] = {
   {"disown",  SwigPyObject_disown,  METH_NOARGS,  "releases ownership of the pointer"},
   {"acquire", SwigPyObject_acquire, METH_NOARGS,  "acquires ownership of the pointer"},
   {"own",     SwigPyObject_own,     METH_VARARGS, "returns/sets ownership of the pointer"},
@@ -934,7 +934,7 @@ swigobject_methods[] = {
 
 SWIGRUNTIME PyTypeObject*
 SwigPyObject_TypeOnce(void) {
-  static char swigobject_doc[] = "Swig object holding a C/C++ pointer";
+  static char SwigPyObject_doc[] = "Swig object holding a C/C++ pointer";
 #ifndef SWIG_HEAPTYPES
   static PyNumberMethods SwigPyObject_as_number = {
     (binaryfunc)0, /*nb_add*/
@@ -1017,14 +1017,14 @@ SwigPyObject_TypeOnce(void) {
       0,                                    /* tp_setattro */
       0,                                    /* tp_as_buffer */
       Py_TPFLAGS_DEFAULT,                   /* tp_flags */
-      swigobject_doc,                       /* tp_doc */
+      SwigPyObject_doc,                     /* tp_doc */
       0,                                    /* tp_traverse */
       0,                                    /* tp_clear */
       (richcmpfunc)SwigPyObject_richcompare,/* tp_richcompare */
       0,                                    /* tp_weaklistoffset */
       0,                                    /* tp_iter */
       0,                                    /* tp_iternext */
-      swigobject_methods,                   /* tp_methods */
+      SwigPyObject_methods,                 /* tp_methods */
       0,                                    /* tp_members */
       0,                                    /* tp_getset */
       0,                                    /* tp_base */
@@ -1081,9 +1081,9 @@ SwigPyObject_TypeOnce(void) {
     { Py_tp_dealloc, (void *)SwigPyObject_dealloc },
     { Py_tp_repr, (void *)SwigPyObject_repr },
     { Py_tp_getattro, (void *)PyObject_GenericGetAttr },
-    { Py_tp_doc, (void *)swigobject_doc },
+    { Py_tp_doc, (void *)SwigPyObject_doc },
     { Py_tp_richcompare, (void *)SwigPyObject_richcompare },
-    { Py_tp_methods, (void *)swigobject_methods },
+    { Py_tp_methods, (void *)SwigPyObject_methods },
     { Py_nb_int, (void *)SwigPyObject_long },
     { 0, NULL }
   };
@@ -1207,7 +1207,7 @@ SwigPyPacked_dealloc(PyObject *v)
 
 SWIGRUNTIME PyTypeObject*
 SwigPyPacked_TypeOnce(void) {
-  static char swigpacked_doc[] = "Swig object holding a C/C++ function pointer";
+  static char SwigPyPacked_doc[] = "Swig object holding a C/C++ function pointer";
 #ifndef SWIG_HEAPTYPES
   static PyTypeObject swigpypacked_type;
   static int type_init = 0;
@@ -1246,7 +1246,7 @@ SwigPyPacked_TypeOnce(void) {
       0,                                    /* tp_setattro */
       0,                                    /* tp_as_buffer */
       Py_TPFLAGS_DEFAULT,                   /* tp_flags */
-      swigpacked_doc,                       /* tp_doc */
+      SwigPyPacked_doc,                     /* tp_doc */
       0,                                    /* tp_traverse */
       0,                                    /* tp_clear */
       0,                                    /* tp_richcompare */
@@ -1311,7 +1311,7 @@ SwigPyPacked_TypeOnce(void) {
     { Py_tp_repr, (void *)SwigPyPacked_repr },
     { Py_tp_str, (void *)SwigPyPacked_str },
     { Py_tp_getattro, (void *)PyObject_GenericGetAttr },
-    { Py_tp_doc, (void *)swigpacked_doc },
+    { Py_tp_doc, (void *)SwigPyPacked_doc },
     { 0, NULL }
   };
   PyType_Spec spec = {

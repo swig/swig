@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-05-11: wsfulton
+            [Python] Move the SwigPyObject, SwigPyPacked, SwigVarLink (renamed from
+            swigvarlink) support Python types to the SWIG runtime module (currently called
+            swig_runtime_data5).
+
+            Note that these affect the Python runtime implementation, so the recently bumped
+            SWIG_RUNTIME_VERSION to 5 for all scripting languages will now include this change.
+
 2025-05-10: jschueller, wsfulton
             [Python] #2881 #3061 #3160 DeprecationWarning fixes when using 'python -Walways'
             or if using one of the types being warned about:
