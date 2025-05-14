@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-05-13: wsfulton
+            Fix undefined behaviour in directorout typemaps for void * and const char *& if
+            the same wrapped function is called more than once. Note that using returning
+            pointers in directors is still full of traps and not recommended. As such,
+            warning SWIGWARN_TYPEMAP_DIRECTOROUT_PTR (473) continues to be issued.
+
 2025-05-11: wsfulton
             [Python] Move the SwigPyObject, SwigPyPacked, SwigVarLink (renamed from
             swigvarlink) support Python types to the SWIG runtime module (currently called
