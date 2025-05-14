@@ -111,11 +111,17 @@ case "$SWIGLANG" in
 		if [[ "$VER" ]]; then
 			$RETRY sudo add-apt-repository -y ppa:deadsnakes/ppa
 			$RETRY sudo apt-get -qq update
-			if [[ "$VER" != *"t" ]]; then
-				$RETRY sudo apt-get -qq install python${VER}-dev
-			else
-				$RETRY sudo apt-get -qq install python${VER::-1}-dev python${VER::-1}-nogil
-			fi
+			case "$VER" in
+				*-dbg)
+					$RETRY sudo apt-get -qq install python${VER::-4}-dev python${VER}
+				  ;;
+				*t)
+					$RETRY sudo apt-get -qq install python${VER::-1}-dev python${VER::-1}-nogil
+				  ;;
+				*)
+					$RETRY sudo apt-get -qq install python${VER}-dev
+				;;
+			esac
 			WITHLANG=$WITHLANG=$SWIGLANG$VER
 		elif [[ "$PY2" ]]; then
 			$RETRY sudo apt-get install -qq python2-dev
