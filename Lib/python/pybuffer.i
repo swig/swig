@@ -16,12 +16,20 @@
  * functions, as they provides the only way to access buffer data with limited
  * API, which doesn't include Py_buffer definition. We also disable the
  * warnings about doing this because they're not useful in our case.
+ * Unfortunately this only works up to Python<3.13,
+ * but the new protocol can be used from the stable api since 3.11.
  */
+
+%{
+#if (PY_VERSION_HEX >= 0x030d0000) && defined(Py_LIMITED_API) && (Py_LIMITED_API<0x030b0000)
+#error "The old buffer api was removed in Python 3.13 and is only part of the stable abi since 3.11"
+#endif
+%}
 
 %define %pybuffer_mutable_binary(TYPEMAP, SIZE)
 %typemap(in) (TYPEMAP, SIZE) {
   int res; Py_ssize_t size = 0; void *buf = 0;
-%#ifndef Py_LIMITED_API
+%#if !defined(Py_LIMITED_API) || (defined(Py_LIMITED_API) && Py_LIMITED_API>=0x030b0000)
   Py_buffer view;
   res = PyObject_GetBuffer($input, &view, PyBUF_WRITABLE);
 %#else
@@ -44,7 +52,7 @@
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
-%#ifndef Py_LIMITED_API
+%#if !defined(Py_LIMITED_API) || (defined(Py_LIMITED_API) && Py_LIMITED_API>=0x030b0000)
   size = view.len;
   buf = view.buf;
   PyBuffer_Release(&view);
@@ -70,7 +78,7 @@
 %define %pybuffer_mutable_string(TYPEMAP)
 %typemap(in) (TYPEMAP) {
   int res; void *buf = 0;
-%#ifndef Py_LIMITED_API
+%#if !defined(Py_LIMITED_API) || (defined(Py_LIMITED_API) && Py_LIMITED_API>=0x030b0000)
   Py_buffer view;
   res = PyObject_GetBuffer($input, &view, PyBUF_WRITABLE);
 %#else
@@ -94,7 +102,7 @@
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP)", $symname, $argnum);
   }
-%#ifndef Py_LIMITED_API
+%#if !defined(Py_LIMITED_API) || (defined(Py_LIMITED_API) && Py_LIMITED_API>=0x030b0000)
   buf = view.buf;
   PyBuffer_Release(&view);
 %#endif
@@ -119,7 +127,7 @@
 %define %pybuffer_binary(TYPEMAP, SIZE)
 %typemap(in) (TYPEMAP, SIZE) {
   int res; Py_ssize_t size = 0; const void *buf = 0;
-%#ifndef Py_LIMITED_API
+%#if !defined(Py_LIMITED_API) || (defined(Py_LIMITED_API) && Py_LIMITED_API>=0x030b0000)
   Py_buffer view;
   res = PyObject_GetBuffer($input, &view, PyBUF_CONTIG_RO);
 %#else
@@ -142,7 +150,7 @@
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
-%#ifndef Py_LIMITED_API
+%#if !defined(Py_LIMITED_API) || (defined(Py_LIMITED_API) && Py_LIMITED_API>=0x030b0000)
   size = view.len;
   buf = view.buf;
   PyBuffer_Release(&view);
@@ -170,7 +178,7 @@
 %define %pybuffer_string(TYPEMAP)
 %typemap(in) (TYPEMAP) {
   int res; const void *buf = 0;
-%#ifndef Py_LIMITED_API
+%#if !defined(Py_LIMITED_API) || (defined(Py_LIMITED_API) && Py_LIMITED_API>=0x030b0000)
   Py_buffer view;
   res = PyObject_GetBuffer($input, &view, PyBUF_CONTIG_RO);
 %#else
@@ -194,7 +202,7 @@
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP)", $symname, $argnum);
   }
-%#ifndef Py_LIMITED_API
+%#if !defined(Py_LIMITED_API) || (defined(Py_LIMITED_API) && Py_LIMITED_API>=0x030b0000)
   buf = view.buf;
   PyBuffer_Release(&view);
 %#endif
