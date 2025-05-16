@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-05-16: wsfulton
+            #3179 Fix a regression using -kwargs since swig-4.1 in template expansion of
+            function parameter values.
+
 2025-05-13: wsfulton
             Fix undefined behaviour in directorout typemaps for void * and const char *& if
             the same wrapped function is called more than once. Note that using returning
