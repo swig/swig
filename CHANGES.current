@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-05-19: jschueller
+            [Python] #3059 Use new buffer protocol for PY_LIMITED_API for python-3.11
+            and later since this is when it was added to the stable ABI, noting that
+            the old buffer protocol was removed in python-3.13.
+
 2025-05-16: wsfulton
             #3179 Fix a regression using -kwargs since swig-4.1 in template expansion of
             function parameter values.
