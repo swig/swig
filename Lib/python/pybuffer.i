@@ -16,15 +16,9 @@
  * functions, as they provides the only way to access buffer data with limited
  * API, which doesn't include Py_buffer definition. We also disable the
  * warnings about doing this because they're not useful in our case.
- * Unfortunately this only works up to Python<3.13,
- * but the new protocol can be used from the stable api since 3.11.
+ * Unfortunately this only works with python-3.12 and earlier,
+ * but the new protocol is only in the stable abi from python-3.11.
  */
-
-%{
-#if (PY_VERSION_HEX >= 0x030d0000) && defined(Py_LIMITED_API) && (Py_LIMITED_API<0x030b0000)
-#error "The old buffer api was removed in Python 3.13 and is only part of the stable abi since 3.11"
-#endif
-%}
 
 %define %pybuffer_mutable_binary(TYPEMAP, SIZE)
 %typemap(in) (TYPEMAP, SIZE) {
