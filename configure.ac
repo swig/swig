@@ -1254,11 +1254,7 @@ else
 
   JSCOREVERSION=
 
-  if test -z "$JSCOREINCDIR" && test -n "$JSCORELIB"; then
-    AC_MSG_ERROR([Either both or none of --with-jcoreinc --with-jscorelib should be specified])
-  elif test -n "$JSCOREINCDIR" && test -z "$JSCORELIB"; then
-    AC_MSG_ERROR([Either both or none of --with-jcoreinc --with-jscorelib should be specified])
-  elif test -z "$JSCOREINCDIR" && test -z "$JSCORELIB"; then
+  if test -z "$JSCOREINCDIR" && test -z "$JSCORELIB"; then
     if test -n "$PKG_CONFIG"; then
       AC_MSG_CHECKING(for JavaScriptCore/Webkit)
       if $PKG_CONFIG javascriptcoregtk-4.1 2>/dev/null ; then
@@ -1290,6 +1286,8 @@ else
         JSCENABLED=1
       fi
     fi
+  elif test -z "$JSCOREINCDIR" || test -z "$JSCORELIB"; then
+    AC_MSG_ERROR([Either both or none of --with-jcoreinc --with-jscorelib should be specified])
   else
     AC_MSG_CHECKING(for JavaScriptCore/Webkit include flags)
     JSCOREINC=-I\"$JSCOREINCDIR\"
