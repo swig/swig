@@ -1259,7 +1259,7 @@ else
   elif test -n "$JSCOREINCDIR" -a -z "$JSCORELIB"; then
     AC_MSG_ERROR([Either both or none of --with-jcoreinc --with-jscorelib should be specified])
   elif test -z "$JSCOREINCDIR" -a -z "$JSCORELIB"; then
-    if test -z "$JSCORELIB" -a -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG"; then
       AC_MSG_CHECKING(for JavaScriptCore/Webkit)
       if $PKG_CONFIG javascriptcoregtk-4.1 2>/dev/null ; then
         JSCORELIB=`$PKG_CONFIG --libs javascriptcoregtk-4.1`
