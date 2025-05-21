@@ -1259,23 +1259,23 @@ else
   elif test -n "$JSCOREINCDIR" -a -z "$JSCORELIB"; then
     AC_MSG_ERROR([Either both or none of --with-jcoreinc --with-jscorelib should be specified])
   elif test -z "$JSCOREINCDIR" -a -z "$JSCORELIB"; then
-    if test -z "$JSCORELIB" -a -n "$PKG_CONFIG "; then
+    if test -z "$JSCORELIB" -a -n "$PKG_CONFIG"; then
       AC_MSG_CHECKING(for JavaScriptCore/Webkit)
-      if $PKG_CONFIG  javascriptcoregtk-4.1 2>/dev/null ; then
-        JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-4.1`
-        JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-4.1`
-        JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-4.1`
-      elif $PKG_CONFIG  javascriptcoregtk-4.0 2>/dev/null ; then
-        JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-4.0`
-        JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-4.0`
-        JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-4.0`
-      elif $PKG_CONFIG  javascriptcoregtk-3.0 2>/dev/null ; then
-        JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-3.0`
-        JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-3.0`
-        JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-3.0`
-      elif $PKG_CONFIG  javascriptcoregtk-1.0 2>/dev/null ; then
-        JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-1.0`
-        JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-1.0`
+      if $PKG_CONFIG javascriptcoregtk-4.1 2>/dev/null ; then
+        JSCORELIB=`$PKG_CONFIG --libs javascriptcoregtk-4.1`
+        JSCOREINC=`$PKG_CONFIG --cflags-only-I javascriptcoregtk-4.1`
+        JSCOREVERSION=`$PKG_CONFIG --modversion javascriptcoregtk-4.1`
+      elif $PKG_CONFIG javascriptcoregtk-4.0 2>/dev/null ; then
+        JSCORELIB=`$PKG_CONFIG --libs javascriptcoregtk-4.0`
+        JSCOREINC=`$PKG_CONFIG --cflags-only-I javascriptcoregtk-4.0`
+        JSCOREVERSION=`$PKG_CONFIG --modversion javascriptcoregtk-4.0`
+      elif $PKG_CONFIG javascriptcoregtk-3.0 2>/dev/null ; then
+        JSCORELIB=`$PKG_CONFIG --libs javascriptcoregtk-3.0`
+        JSCOREINC=`$PKG_CONFIG --cflags-only-I javascriptcoregtk-3.0`
+        JSCOREVERSION=`$PKG_CONFIG --modversion javascriptcoregtk-3.0`
+      elif $PKG_CONFIG javascriptcoregtk-1.0 2>/dev/null ; then
+        JSCORELIB=`$PKG_CONFIG --libs javascriptcoregtk-1.0`
+        JSCOREVERSION=`$PKG_CONFIG --modversion javascriptcoregtk-1.0`
       fi
       if test -z "$JSCORELIB"; then
         AC_MSG_RESULT(not found)
@@ -2425,8 +2425,8 @@ else
         dirs="$SCI/include $SCI/../../include"
       elif test -d "$headers"; then
         dirs="$headers"
-      elif test -n "$PKG_CONFIG "; then
-        dirs=`$PKG_CONFIG  scilab --cflags-only-I | sed -e 's/-I//g'`
+      elif test -n "$PKG_CONFIG"; then
+        dirs=`$PKG_CONFIG scilab --cflags-only-I | sed -e 's/-I//g'`
       else
         dirs="/usr/include"
       fi
