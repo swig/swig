@@ -10,7 +10,7 @@ Version 4.3.1 (15 Apr 2025)
 
 2025-04-10: jschueller, wsfulton
             [Python] #3067 Fix compile errors regression using external runtime and
-            PY_LIMITED_API.
+            Py_LIMITED_API.
 
 2025-03-31: alatina
 	    [Octave] #3149 Fix to compile with Octave 10.0
