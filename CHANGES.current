@@ -7,6 +7,57 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-05-16: wsfulton
+            #3179 Fix a regression using -kwargs since swig-4.1 in template expansion of
+            function parameter values.
+
+2025-05-13: wsfulton
+            Fix undefined behaviour in directorout typemaps for void * and const char *& if
+            the same wrapped function is called more than once. Note that using returning
+            pointers in directors is still full of traps and not recommended. As such,
+            warning SWIGWARN_TYPEMAP_DIRECTOROUT_PTR (473) continues to be issued.
+
+2025-05-11: wsfulton
+            [Python] Move the SwigPyObject, SwigPyPacked, SwigVarLink (renamed from
+            swigvarlink) support Python types to the SWIG runtime module (currently called
+            swig_runtime_data5).
+
+            Note that these affect the Python runtime implementation, so the recently bumped
+            SWIG_RUNTIME_VERSION to 5 for all scripting languages will now include this change.
+
+2025-05-10: jschueller, wsfulton
+            [Python] #2881 #3061 #3160 DeprecationWarning fixes when using 'python -Walways'
+            or if using one of the types being warned about:
+
+              DeprecationWarning: builtin type SwigPyPacked has no __module__ attribute
+              DeprecationWarning: builtin type SwigPyObject has no __module__ attribute
+              DeprecationWarning: builtin type swigvarlink has no __module__ attribute
+
+            The warning was present if code was generated without using -builtin in 4.3.x.
+            The warning was only present if using the Python limited API in 4.2.1 and earlier.
+
+2025-04-30: wsfulton
+            [Python] #3134 Fix maximum size of strings being marshalled from C/C++
+            into Python. This has been changed from INT_MAX to PY_SSIZE_T_MAX in line
+            with the Python C API maximum string length handling change in python-2.5.
+
+            Similarly for the number of elements in the Python STL container wrappers.
+
+2025-04-29: r-barnes, wsfulton
+            #3027 Remove generation of empty dynamic exception specifications - throw(),
+            which are deprecated in c++11. This was only when using the director feature.
+            A new macro SWIG_NOEXCEPT is used which ensures that throw() or noexcept is
+            used for the appropriate C++ standard that the compiler is compiling for.
+
+2025-04-28: jschueller, henryiii
+            [Python] #2967 Use __spec__.parent as the first approach to obtaining
+            a module's package name when importing the low-level C/C++ module as the
+            previous approach looking for __package__ is due to be removed in python-3.15.
+            __package__ is now used as a fallback if __spec__.parent fails.
+
+2025-04-28: jschueller, henryiii
+            [Python] #3066 #3159 Add ht_token slot for python-3.14 support.
+
 2025-04-18: akorobka
             #103 Thread safety bugfix in the runtime type system.
 

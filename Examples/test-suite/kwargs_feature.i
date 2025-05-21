@@ -54,6 +54,9 @@
 
     T bar(T a = 1, T b = 0) {return a + b; }
     static T statbar(T a = 1, T b = 0) {return a + b; }
+
+    enum AnEnum {ENUMVAL1, ENUMVAL2};
+    void enumIn(AnEnum a = ENUMVAL1) {}
   };
 
 %}

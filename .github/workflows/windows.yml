@@ -59,19 +59,19 @@ jobs:
           COMPILER: gcc
           VER: 11
         - SWIGLANG: python
-          VER: '3.7'
+          VER: '3.9'
         - SWIGLANG: python
-          VER: '3.12'
+          VER: '3.13'
        #  TODO require fixing of probing in configure.ac
        #- SWIGLANG: python
        #  INSTALL: 'true'
        #  COMPILER: gcc
        #  NOTEST: 'no-test'
         - SWIGLANG: ruby
-#         VER: '3.0.7'
+          VER: '3.1'
           NOTEST: 'no-test'
         - SWIGLANG: ruby
-          VER: '3.1.6'
+          VER: '3.3'
           NOTEST: 'no-test'
         - SWIGLANG: ruby
           INSTALL: 'true'
@@ -183,12 +183,14 @@ jobs:
             if [[ -n "$VER" ]]; then
               case "$SWIGLANG" in
               python)
-                PY3VER=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64)
-                echo "$PY3VER\\Script" >> $GITHUB_PATH
-                echo "$PY3VER" >> $GITHUB_PATH
+                PYTHONDIR_UNIX=$(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64
+                PYTHONDIR=$(cygpath -w $PYTHONDIR_UNIX)
+                echo "$PYTHONDIR\\Script" >> $GITHUB_PATH
+                echo "$PYTHONDIR" >> $GITHUB_PATH
                 ;;
               ruby)
-                RUBYDIR=$(cygpath -w $(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64)
+                RUBYDIR_UNIX=$(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64
+                RUBYDIR=$(cygpath -w $RUBYDIR_UNIX)
                 echo "$RUBYDIR\\bin" >> $GITHUB_PATH
                 ;;
               esac

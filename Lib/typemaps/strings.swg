@@ -192,7 +192,8 @@
   if (!SWIG_IsOK(res)) {
     %dirout_fail(res, "$type");
   }
-  static $*1_ltype tmp = buf;
+  static $*1_ltype tmp;
+  tmp = buf;
   $result = &tmp;
   if (alloc == SWIG_NEWOBJ) {
     swig_acquire_ownership_array(buf);

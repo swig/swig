@@ -42,7 +42,7 @@ enum exceptions_support {
 // When using scoped_dohptr, it's very simple to accidentally pass it to a vararg function, such as Printv() or Printf(), resulting in catastrophic results
 // during run-time (crash or, worse, junk in the generated output), so make sure gcc warning about this, which is not enabled by default for some reason (see
 // https://gcc.gnu.org/bugzilla/show_bug.cgi?id=64867 for more information), is enabled.
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
   #pragma GCC diagnostic error "-Wconditionally-supported"
 #endif // __GNUC__
 

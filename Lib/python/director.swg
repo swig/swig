@@ -177,7 +177,7 @@ namespace Swig {
       SWIG_PYTHON_THREAD_END_BLOCK;
     }
 
-    virtual ~DirectorException() throw() {
+    virtual ~DirectorException() SWIG_NOEXCEPT {
     }
 
     /* Deprecated, use what() instead */
@@ -185,7 +185,7 @@ namespace Swig {
       return what();
     }
 
-    const char *what() const throw() {
+    const char *what() const SWIG_NOEXCEPT {
       return swig_msg.c_str();
     }
 

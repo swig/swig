@@ -297,8 +297,7 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
           first++;
 
         } else {
-          unsigned int length = strlen(cast->type->name);
-          cast->value = SWIG_Hash(cast->type->name, length);
+          cast->value = SWIG_Hash(cast->type->name, (unsigned int)strlen(cast->type->name));
         }
       }
       cast++;
@@ -322,7 +321,7 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
       cast = swig_module.cast_initial[i];
       cast->value = num_mapped - 1;
 
-      num_mapped -= (first - cast);
+      num_mapped -= (int)(first - cast);
       if (num_mapped > 1) {
         /* Sort <'next','value'> pairs by 'value' for binary search in SWIG_TypeCheck */
 

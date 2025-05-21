@@ -854,7 +854,7 @@ namespace swig {
       }
 %#endif
       size_type size = seq.size();
-      if (size <= (size_type)INT_MAX) {
+      if (size <= (size_type)PY_SSIZE_T_MAX) {
 	PyObject *obj = PyTuple_New((Py_ssize_t)size);
 	Py_ssize_t i = 0;
 	for (const_iterator it = seq.begin(); it != seq.end(); ++it, ++i) {

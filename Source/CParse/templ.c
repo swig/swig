@@ -176,8 +176,8 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
       Append(typelist, Getattr(n, "name"));
     }
 
-    expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
-    expand_parms(n, "throws", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
+    expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
+    expand_parms(n, "throws", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
 
   } else if (Equal(nodeType, "class")) {
     /* Patch base classes */
@@ -252,8 +252,8 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     }
     Append(cpatchlist, Getattr(n, "code"));
     Append(typelist, Getattr(n, "decl"));
-    expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
-    expand_parms(n, "throws", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
+    expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
+    expand_parms(n, "throws", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
   } else if (Equal(nodeType, "destructor")) {
     /* We only need to patch the dtor of the template itself, not the destructors of any nested classes, so check that the parent of this node is the root
      * template node, with the special exception for %extend which adds its methods under an intermediate node. */
@@ -314,10 +314,10 @@ static void cparse_template_expand(Node *templnode, Node *n, String *tname, Stri
     Append(cpatchlist, Getattr(n, "code"));
     Append(typelist, Getattr(n, "type"));
     Append(typelist, Getattr(n, "decl"));
-    expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
-    expand_parms(n, "kwargs", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
-    expand_parms(n, "pattern", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 1);
-    expand_parms(n, "throws", unexpanded_variadic_parm, expanded_variadic_parms, cpatchlist, typelist, 0);
+    expand_parms(n, "parms", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
+    expand_parms(n, "kwargs", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
+    expand_parms(n, "pattern", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 1);
+    expand_parms(n, "throws", unexpanded_variadic_parm, expanded_variadic_parms, patchlist, typelist, 0);
     cn = firstChild(n);
     while (cn) {
       cparse_template_expand(templnode, cn, tname, rname, templateargs, patchlist, typelist, cpatchlist, unexpanded_variadic_parm, expanded_variadic_parms);
@@ -576,6 +576,11 @@ int Swig_cparse_template_expand(Node *n, String *rname, ParmList *tparms, Symtab
 	    /* Patch String or SwigType with SwigType, eg T => int in Foo<(T)>, or TT => Hello<(int)> in X<(TT)>::meth */
 	    String *s = Getitem(patchlist, i);
 	    Replace(s, name, dvalue, DOH_REPLACE_ID);
+	    /* Try treat the string as a proper SwigType thought it's usually a string containing an unparsed
+	     * C type.  The proper fix would be to parse the String to convert it to a SwigType say using
+	     * Swig_cparse_type, but we'd need a re-entrant parser for that. This hack usually works for simple types.
+	     */
+	    SwigType_typename_replace(s, tbase, name_with_templateargs);
 	  }
 
 	  sz = Len(typelist);

@@ -16,7 +16,7 @@ struct A
 
     // Regression test for alternative operator names - this failed to parse in
     // SWIG 4.2.0 and earlier.
-    int g(int b = (compl 1 or not 2) xor (3 and 4) xor (3 bitand 6) xor (3 bitor 5) xor (2 + 2 not_eq 5)) { return b; }
+    int g(int b = (compl 1 or not 2) xor (1 and not false) xor (3 bitand 6) xor (3 bitor 5) xor (2 + 2 not_eq 5)) { return b; }
 };
 
 const unsigned char LASTCHAR1 = "hello world"[sizeof"hello world" - 2];
