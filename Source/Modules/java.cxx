@@ -4755,6 +4755,7 @@ public:
 
     directorDeclaration(n);
 
+    Printf(f_directors_h, "namespace {\n");
     Printf(f_directors_h, "%s {\n", Getattr(n, "director:decl"));
     Printf(f_directors_h, "\npublic:\n");
     Printf(f_directors_h, "    void swig_connect_director(JNIEnv *jenv, jobject jself, jclass jcls, bool swig_mem_own, bool weak_global);\n");
@@ -4897,7 +4898,8 @@ public:
       Printf(f_directors_h, "    }\n");
     }
 
-    Printf(f_directors_h, "};\n\n");
+    Printf(f_directors_h, "};\n");
+    Printf(f_directors_h, "}  // namespace\n\n");
     Printf(w->code, "}\n");
     Printf(w->code, "}\n");
 
