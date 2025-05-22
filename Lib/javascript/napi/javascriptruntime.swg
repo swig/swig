@@ -52,3 +52,4 @@
 %insert(wrapper) "javascriptrunbody.swg"; /* SWIG Node-API runtime (declarations) */
 
 %include <javascriptrunasync.swg>;      /* Asynchronous execution framework */
+%include <javascripthelpers.swg>;       /* Built-in optional helpers as fragments */

@@ -25,7 +25,7 @@
 // and can resolve automatically Promises returned from JS (ie it supports JS async callbacks)
 // It uses the rather complex SWIG_NAPI_Callback code fragment that is candidate for inclusion
 // in the SWIG JSE standard library
-%typemap(in) std::function<std::string(int, const std::string &)> giver {
+%typemap(in, fragment="SWIG_NAPI_Callback") std::function<std::string(int, const std::string &)> giver {
   if (!$input.IsFunction()) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }
@@ -48,7 +48,7 @@
 }
 
 // Same but for void (*)()
-%typemap(in) std::function<void()> cb {
+%typemap(in, fragment="SWIG_NAPI_Callback") std::function<void()> cb {
   if (!$input.IsFunction()) {
     %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
   }

@@ -24,7 +24,7 @@
 // These typemaps obtain a JS persistent reference
 // that is freed when the shared_ptr is destroyed,
 // signaling the GC that C++ has released the value
-%typemap(in) std::shared_ptr<CONST TYPE> {
+%typemap(in, fragment="SWIG_NAPI_RunOnJSMainThread") std::shared_ptr<CONST TYPE> {
   TYPE *plain_ptr;
   int res = SWIG_ConvertPtr($input, reinterpret_cast<void**>(&plain_ptr), $descriptor(TYPE *), %convertptr_flags);
   if (!SWIG_IsOK(res)) {
@@ -45,7 +45,7 @@
   });
 }
 
-%typemap(in) std::shared_ptr<CONST TYPE> *, std::shared_ptr<CONST TYPE> & {
+%typemap(in, fragment="SWIG_NAPI_RunOnJSMainThread") std::shared_ptr<CONST TYPE> *, std::shared_ptr<CONST TYPE> & {
   TYPE *plain_ptr;
   int res = SWIG_ConvertPtr($input, reinterpret_cast<void**>(&plain_ptr), $descriptor(TYPE *), %convertptr_flags);
   if (!SWIG_IsOK(res)) {

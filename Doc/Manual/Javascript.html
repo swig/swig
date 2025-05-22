@@ -892,7 +892,7 @@ This allows for more seamless integration at the price of copying the array at e
 
 <H3><a name="Javascript_function_example">28.4.7 <code>std::function</code> and plain C functions pointers</a></H3>
 
-<p>SWIG Node-API provides built-in typemaps that can transform JavaScript functions passed as arguments into <code>std::function</code> or - with some quirks and limitations - to a plain C function pointer.</p>
+<p>SWIG Node-API provides a built-in helper fragment that can transform JavaScript functions passed as arguments into <code>std::function</code> or - with some quirks and limitations - to a plain C function pointer.</p>
 
 <p>Currently, SWIG does not provide the necessary language features needed to implement a generic function typemap and a separate user typemap must be declared for each function signature. There is a built-in helper <code>SWIG_NAPI_Callback</code> that takes care of most of the complexity required in order to generate the trampoline. <code>SWIG_NAPI_Callback</code> returns a <code>std::function</code> which when called from C++ will convert the arguments, invoke the JavaScript callback and convert back the returned value. It also automatically handles asynchronous execution, including async callbacks. The function returned is trivially copy-constructible and can be copied and kept on the C++ side. Deleting its last copy will release the resources that it holds. It can be called from any thread and it is fully reentrant. If it is called on the main thread, it will enter JavaScript synchronously. If it is called on any other thread, it will wait for JavaScript to be ready to execute it. Asynchronous JavaScript callbacks are supported only when the caller is asynchronous too - ie the returned function is called from a background thread. In this case the if the function is called concurrently from multiple threads, the JavaScript will also be reentrant - meaning that a first invocation may be waiting on an <code>await</code> statement when a second invocation is made. In all other cases, concurrent calls will result sequential execution of the JavaScript callbacks.</p>
 
@@ -903,7 +903,7 @@ This allows for more seamless integration at the price of copying the array at e
 <p>The following is an example typemap that converts <code>std::function<std::string(int, const std::string &)></code></p>.
 
 <div class="code">
-  <pre>%typemap(in) std::function&lt;std::string(int, const std::string &amp;)&gt; {
+  <pre>%typemap(in, fragment=&quot;SWIG_NAPI_Callback&quot;) std::function&lt;std::string(int, const std::string &amp;)&gt; {
   if (!$input.IsFunction()) {
     %argument_fail(SWIG_TypeError, &quot;$type&quot;, $symname, $argnum);
   }
@@ -944,7 +944,7 @@ This allows for more seamless integration at the price of copying the array at e
 <p>For functions that do not return a value or do no take input arguments, pass empty functions:</p>
 
 <div class="code">
-<pre>%typemap(in) std::function&lt;void()&gt; {
+<pre>%typemap(in, fragment=&quot;SWIG_NAPI_Callback&quot;) std::function&lt;void()&gt; {
   if (!$input.IsFunction()) {
     %argument_fail(SWIG_TypeError, &quot;$type&quot;, $symname, $argnum);
   }
