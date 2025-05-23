@@ -2012,7 +2012,7 @@ SWIG_Python_TypeError(const char *type, PyObject *obj)
     {
 #ifndef Py_LIMITED_API
       /* tp_name is not accessible */
-      const char *otype = (obj ? obj->ob_type->tp_name : 0); 
+      const char *otype = (obj ? Py_TYPE(obj)->tp_name : 0); 
       if (otype) {
 	PyObject *str = PyObject_Str(obj);
 	PyObject *bytes = NULL;
@@ -2050,7 +2050,7 @@ SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int SWIGUNUSEDPARM(arg
 #ifdef SWIGPYTHON_BUILTIN
 SWIGRUNTIME int
 SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
-  PyTypeObject *tp = obj->ob_type;
+  PyTypeObject *tp = Py_TYPE(obj);
   PyObject *descr;
   PyObject *encoded_name;
   descrsetfunc f;
@@ -2066,7 +2066,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   if (!PyString_Check(name))
 # endif
   {
-    PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%.200s'", name->ob_type->tp_name);
+    PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%.200s'", Py_TYPE(name)->tp_name);
     return -1;
   } else {
     SWIG_Py_INCREF(name);
@@ -2080,7 +2080,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   descr = _PyType_Lookup(tp, name);
   f = NULL;
   if (descr != NULL)
-    f = descr->ob_type->tp_descr_set;
+    f = Py_TYPE(descr)->tp_descr_set;
   if (!f) {
     if (PyString_Check(name)) {
       encoded_name = name;

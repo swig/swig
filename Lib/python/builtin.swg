@@ -32,7 +32,7 @@ SWIG_PyNumber_AsPyHash(PyObject *obj) {
 
 SWIGINTERN int
 SwigPyBuiltin_BadInit(PyObject *self, PyObject *SWIGUNUSEDPARM(args), PyObject *SWIGUNUSEDPARM(kwds)) {
-  PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", self->ob_type->tp_name);
+  PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", Py_TYPE(self)->tp_name);
   return -1;
 }
 
@@ -40,7 +40,7 @@ SWIGINTERN void
 SwigPyBuiltin_BadDealloc(PyObject *obj) {
   SwigPyObject *sobj = (SwigPyObject *)obj;
   if (sobj->own) {
-    PyErr_Format(PyExc_TypeError, "Swig detected a memory leak in type '%.300s': no callable destructor found.", obj->ob_type->tp_name);
+    PyErr_Format(PyExc_TypeError, "Swig detected a memory leak in type '%.300s': no callable destructor found.", Py_TYPE(obj)->tp_name);
   }
 }
 
@@ -88,7 +88,7 @@ SwigPyBuiltin_SetterClosure (PyObject *obj, PyObject *val, void *closure) {
   }
   getset = (SwigPyGetSet *)closure;
   if (!getset->set) {
-    PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", obj->ob_type->tp_name);
+    PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", Py_TYPE(obj)->tp_name);
     return -1;
   }
   tuple = PyTuple_New(1);
@@ -111,7 +111,7 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
   }
   getset = (SwigPyGetSet *)closure;
   if (!getset->set) {
-    PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", obj->ob_type->tp_name);
+    PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", Py_TYPE(obj)->tp_name);
     return -1;
   }
   result = (*getset->set)(obj, val);
@@ -180,7 +180,7 @@ SwigPyObjectType_setattro(PyObject *typeobject, PyObject *name, PyObject *value)
   attribute = _PyType_Lookup(type, name);
   if (attribute != NULL) {
     /* Implement descriptor functionality, if any */
-    local_set = attribute->ob_type->tp_descr_set;
+    local_set = Py_TYPE(attribute)->tp_descr_set;
     if (local_set != NULL)
       return local_set(attribute, (PyObject *)type, value);
 #if PY_VERSION_HEX >= 0x03000000
@@ -481,7 +481,7 @@ SwigPyBuiltin_destructor_closure(SwigPyWrapperFunction wrapper, const char *wrap
     PyErr_Restore(type, value, traceback);
     SWIG_Py_XDECREF(o);
   }
-  if (PyType_IS_GC(a->ob_type)) {
+  if (PyType_IS_GC(Py_TYPE(a))) {
     PyObject_GC_Del(a);
   } else {
     PyObject_Free(a);

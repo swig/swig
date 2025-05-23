@@ -4714,7 +4714,7 @@ public:
       SwigType_add_pointer(p_real_classname);
       String *mangle = SwigType_manglestr(p_real_classname);
       String *descriptor = NewStringf("SWIGTYPE%s", mangle);
-      Printv(none_comparison, "self->ob_type != ((SwigPyClientData *)(", descriptor, ")->clientdata)->pytype", NIL);
+      Printv(none_comparison, "Py_TYPE(self) != ((SwigPyClientData *)(", descriptor, ")->clientdata)->pytype", NIL);
       Delete(descriptor);
       Delete(mangle);
       Delete(p_real_classname);
