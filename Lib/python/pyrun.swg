@@ -11,8 +11,8 @@
 # error "This version of SWIG only supports Python >= 2.7"
 #endif
 
-#if PY_VERSION_HEX >= 0x03000000 && PY_VERSION_HEX < 0x03030000
-# error "This version of SWIG only supports Python 3 >= 3.3"
+#if PY_VERSION_HEX >= 0x03000000 && PY_VERSION_HEX < 0x03050000
+# error "This version of SWIG only supports Python 3 >= 3.5"
 #endif
 
 /* Common SWIG API */
