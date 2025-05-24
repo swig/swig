@@ -852,11 +852,7 @@ public:
 
     Dump(f_varlinks, f_init);
 
-    Printf(f_init, "#if PY_VERSION_HEX >= 0x03000000\n");
-    Printf(f_init, "  return m;\n");
-    Printf(f_init, "#else\n");
-    Printf(f_init, "  return;\n");
-    Printf(f_init, "#endif\n");
+    Printf(f_init, "  return 0;\n");
     Printf(f_init, "}\n");
 
     Printf(f_wrappers, "#ifdef __cplusplus\n");
@@ -3479,11 +3475,7 @@ public:
       Printf(f_init, "\t globals = SWIG_globals();\n");
       Printf(f_init, "\t if (!globals) {\n");
       Printf(f_init, "     PyErr_SetString(PyExc_TypeError, \"Failure to create SWIG globals.\");\n");
-      Printf(f_init, "#if PY_VERSION_HEX >= 0x03000000\n");
-      Printf(f_init, "\t   return NULL;\n");
-      Printf(f_init, "#else\n");
-      Printf(f_init, "\t   return;\n");
-      Printf(f_init, "#endif\n");
+      Printf(f_init, "\t   return -1;\n");
       Printf(f_init, "\t }\n");
       Printf(f_init, "\t PyDict_SetItemString(md, \"%s\", globals);\n", global_name);
       if (builtin)
@@ -4012,11 +4004,7 @@ public:
 	Printv(f_init, "    builtin_bases[builtin_base_count++] = ((SwigPyClientData *) builtin_basetype->clientdata)->pytype;\n", NIL);
 	Printv(f_init, "  } else {\n", NIL);
 	Printf(f_init, "    PyErr_SetString(PyExc_TypeError, \"Could not create type '%s' as base '%s' has not been initialized.\\n\");\n", symname, bname);
-	Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-	Printv(f_init, "      return NULL;\n", NIL);
-	Printv(f_init, "#else\n", NIL);
-	Printv(f_init, "      return;\n", NIL);
-	Printv(f_init, "#endif\n", NIL);
+	Printv(f_init, "      return -1;\n", NIL);
 	Printv(f_init, "  }\n", NIL);
 	Delete(base_name);
 	Delete(base_mname);
@@ -4538,11 +4526,7 @@ public:
 
     Printf(f_init, "    builtin_pytype = %s_type_create(metatype, builtin_bases, d);\n", templ);
     Printf(f_init, "    if(!builtin_pytype) {\n", templ);
-    Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
-    Printv(f_init, "      return NULL;\n", NIL);
-    Printv(f_init, "#else\n", NIL);
-    Printv(f_init, "      return;\n", NIL);
-    Printv(f_init, "#endif\n", NIL);
+    Printv(f_init, "      return -1;\n", NIL);
     Printv(f_init, "    }\n", NIL);
     Printf(f_init, "    SwigPyBuiltin_%s_clientdata.pytype = builtin_pytype;\n", mname);
     if (GetFlag(n, "feature:implicitconv")) {
