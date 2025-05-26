@@ -3780,7 +3780,7 @@ public:
 
       Printf(f_runtime, "namespace Swig {\n");
       Printf(f_runtime, "  namespace {\n");
-      Printf(f_runtime, "    jclass jclass_%s = NULL;\n", imclass_name);
+      Printf(f_runtime, "    jclass jclass_%s = SWIG_NULLPTR;\n", imclass_name);
       Printf(f_runtime, "    jmethodID director_method_ids[%d];\n", n_methods);
       Printf(f_runtime, "  }\n");
       Printf(f_runtime, "}\n");
@@ -4182,7 +4182,7 @@ public:
 
       Wrapper_add_localv(w, "swigjnienv", "JNIEnvWrapper", "swigjnienv(this)", NIL, NIL);
       Wrapper_add_localv(w, jenvstr, "JNIEnv *", jenvstr, "= swigjnienv.getJNIEnv()", NIL);
-      Wrapper_add_localv(w, jobjstr, "jobject", jobjstr, "= (jobject) NULL", NIL);
+      Wrapper_add_localv(w, jobjstr, "jobject", jobjstr, "= (jobject) SWIG_NULLPTR", NIL);
       Delete(jenvstr);
       Delete(jobjstr);
 
@@ -4215,7 +4215,7 @@ public:
     if (!ignored_method) {
       Printf(w->code, "}\n");
       Printf(w->code, "swigjobj = swig_get_self(jenv);\n");
-      Printf(w->code, "if (swigjobj && jenv->IsSameObject(swigjobj, NULL) == JNI_FALSE) {\n");
+      Printf(w->code, "if (swigjobj && jenv->IsSameObject(swigjobj, SWIG_NULLPTR) == JNI_FALSE) {\n");
     }
 
     /* Start the Java field descriptor for the intermediate class's upcall (insert jself object) */
