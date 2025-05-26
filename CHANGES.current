@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-06-09: tvlEIVA
+	    [Javascript] #3138 Use SetNativeDataProperty() instead of
+	    SetAccessor() which fixes compatibility with recent v8 versions.
+
 2025-06-09: olly
 	    The $function variable in %exception/feature:except typemaps is
 	    no longer recognised.  It was marked as deprecated in 2008.
