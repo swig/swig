@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-05-28: olly
+	    #3186 Fix parse error for C++14 forward declaration of function with
+	    auto return type and no trailing return type.
+
 2025-05-19: jschueller
             [Python] #3059 Use new buffer protocol for PY_LIMITED_API for python-3.11
             and later since this is when it was added to the stable ABI, noting that

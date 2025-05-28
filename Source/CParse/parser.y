@@ -3570,6 +3570,49 @@ c_decl  : storage_class type declarator cpp_const initializer c_decl_tail {
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
 	      Delete($storage_class);
 	   }
+	   // C++14.  Like the previous case but a declaration rather than a
+	   // definition.  A C++ compiler will deduce the return type when it
+	   // sees the corresponding definition, but SWIG may never see that
+	   // definition.
+	   | storage_class AUTO declarator cpp_const SEMI {
+	      $$ = new_node("cdecl");
+	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
+	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
+	      Setattr($$, "type", NewString("auto"));
+	      Setattr($$, "storage", $storage_class);
+	      Setattr($$, "name", $declarator.id);
+	      Setattr($$, "decl", $declarator.type);
+	      Setattr($$, "parms", $declarator.parms);
+	      Setattr($$, "throws", $cpp_const.throws);
+	      Setattr($$, "throw", $cpp_const.throwf);
+	      Setattr($$, "noexcept", $cpp_const.nexcept);
+	      Setattr($$, "final", $cpp_const.final);
+
+	      if ($declarator.id) {
+		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
+		String *p = Swig_scopename_prefix($declarator.id);
+		if (p) {
+		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
+		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
+		    String *lstr = Swig_scopename_last($declarator.id);
+		    Setattr($$, "name", lstr);
+		    Delete(lstr);
+		  } else {
+		    Delete($$);
+		    $$ = 0;
+		  }
+		  Delete(p);
+		} else if (Strncmp($declarator.id, "::", 2) == 0) {
+		  /* global scope declaration/definition ignored */
+		  Delete($$);
+		  $$ = 0;
+		}
+	      }
+
+	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
+		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
+	      Delete($storage_class);
+	   }
 	   /* C++11 auto variable declaration. */
 	   | storage_class AUTO idcolon EQUAL definetype SEMI {
 	      SwigType *type = deduce_type(&$definetype);
