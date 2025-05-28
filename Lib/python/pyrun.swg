@@ -1877,23 +1877,23 @@ SWIG_Python_DestroyModule(PyObject *obj)
       if (data) SwigPyClientData_Del(data);
     }
   }
-  SWIG_Py_XDECREF(Swig_This_global);
   SWIG_PYOBJ_REFCNT(Swig_This_global);
+  SWIG_Py_XDECREF(Swig_This_global);
   Swig_This_global = NULL;
 
-  SWIG_Py_XDECREF(Swig_Globals_global);
   SWIG_PYOBJ_REFCNT(Swig_Globals_global);
+  SWIG_Py_XDECREF(Swig_Globals_global);
   Swig_Globals_global = NULL;
 
-  SWIG_Py_XDECREF(Swig_TypeCache_global);
   SWIG_PYOBJ_REFCNT(Swig_TypeCache_global);
+  SWIG_Py_XDECREF(Swig_TypeCache_global);
   Swig_TypeCache_global = NULL;
 
   SWIG_PYOBJ_REFCNT(Swig_Capsule_global);
   Swig_Capsule_global = NULL;
 
-  SWIG_Py_XDECREF(Swig_runtime_data_module_global);
   SWIG_PYOBJ_REFCNT(Swig_runtime_data_module_global);
+  SWIG_Py_XDECREF(Swig_runtime_data_module_global);
   Swig_runtime_data_module_global = NULL;
 }
 
