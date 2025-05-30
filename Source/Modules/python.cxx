@@ -4549,7 +4549,14 @@ public:
       Printf(f_init, "    SwigPyBuiltin_%s_clientdata.klass = (PyObject *)builtin_pytype;\n", mname);
     }
     Printv(f_init, "    SWIG_Py_INCREF((PyObject *)builtin_pytype);\n", NIL);
-    Printf(f_init, "    PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype);\n", symname);
+    Printf(f_init, "    if (PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype) != 0) {\n", symname);
+    Printf(f_init, "      SWIG_Py_DECREF(builtin_pytype);\n");
+    Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
+    Printv(f_init, "      return NULL;\n", NIL);
+    Printv(f_init, "#else\n", NIL);
+    Printv(f_init, "      return;\n", NIL);
+    Printv(f_init, "#endif\n", NIL);
+    Printf(f_init, "    }\n", symname);
     Printf(f_init, "    SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", symname);
     Printv(f_init, "    d = md;\n", NIL);
 
