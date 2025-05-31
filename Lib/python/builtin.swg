@@ -294,7 +294,8 @@ SwigPyStaticVar_Type(void) {
 
 SWIGINTERN PyTypeObject*
 SwigPyObjectType(void) {
-  static char swigpyobjecttype_doc[] = "Metaclass for SWIG wrapped types";
+  static char SwigPyObjectType_doc[] = "Metaclass for SWIG wrapped types";
+#ifndef SWIG_HEAPTYPES
   static PyTypeObject swigpyobjecttype_type;
   static int type_init = 0;
   if (!type_init) {
@@ -305,7 +306,7 @@ SwigPyObjectType(void) {
       PyObject_HEAD_INIT(&PyType_Type)
       0,                                        /* ob_size */
 #endif
-      "SwigPyObjectType",                       /* tp_name */
+      SWIG_RUNTIME_MODULE ".SwigPyObjectType",  /* tp_name */
       PyType_Type.tp_basicsize,                 /* tp_basicsize */
       0,                                        /* tp_itemsize */
       0,                                        /* tp_dealloc */
@@ -328,7 +329,7 @@ SwigPyObjectType(void) {
       SwigPyObjectType_setattro,                /* tp_setattro */
       0,                                        /* tp_as_buffer */
       Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_CLASS, /* tp_flags */
-      swigpyobjecttype_doc,                     /* tp_doc */
+      SwigPyObjectType_doc,                     /* tp_doc */
       0,                                        /* tp_traverse */
       0,                                        /* tp_clear */
       0,                                        /* tp_richcompare */
@@ -385,6 +386,26 @@ SwigPyObjectType(void) {
       return NULL;
   }
   return &swigpyobjecttype_type;
+#else
+  PyType_Slot slots[] = {
+    { Py_tp_setattro, (void *)SwigPyObjectType_setattro },
+    { Py_tp_doc, (void *)SwigPyObjectType_doc},
+    { Py_tp_base, (void *)&PyType_Type},
+    { 0, NULL }
+  };
+  PyType_Spec spec = {
+    SWIG_RUNTIME_MODULE ".SwigPyObjectType",
+    (int)PyType_Type.tp_basicsize,
+    0,
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_CLASS,
+    slots
+  };
+  PyObject *pytype = PyType_FromSpec(&spec);
+  PyObject *runtime_data_module = SWIG_runtime_data_module();
+  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObjectType", pytype) == 0)
+    SWIG_Py_INCREF(pytype);
+  return (PyTypeObject *)pytype;
+#endif
 }
 
 SWIGINTERN PyGetSetDescrObject *
