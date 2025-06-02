@@ -200,7 +200,9 @@ SwigPyObjectType_setattro(PyObject *typeobject, PyObject *name, PyObject *value)
 }
 
 SWIGINTERN PyTypeObject*
-SwigPyStaticVar_Type(void) {
+SwigPyStaticVar_TypeOnce(void) {
+  static char SwigPyStaticVar_doc[] = "Swig member static variables";
+#ifndef SWIG_HEAPTYPES
   static PyTypeObject staticvar_type;
   static int type_init = 0;
   if (!type_init) {
@@ -211,7 +213,7 @@ SwigPyStaticVar_Type(void) {
       PyObject_HEAD_INIT(&PyType_Type)
       0,                                        /* ob_size */
 #endif
-      "swig_static_var_getset_descriptor",      /* tp_name */
+      SWIG_RUNTIME_MODULE ".SwigPyStaticVar",   /* tp_name */
       sizeof(PyGetSetDescrObject),              /* tp_basicsize */
       0,                                        /* tp_itemsize */
       (destructor)SwigPyStaticVar_dealloc,      /* tp_dealloc */
@@ -234,7 +236,7 @@ SwigPyStaticVar_Type(void) {
       0,                                        /* tp_setattro */
       0,                                        /* tp_as_buffer */
       Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_HAVE_CLASS, /* tp_flags */
-      0,                                        /* tp_doc */
+      SwigPyStaticVar_doc,                      /* tp_doc */
       SwigPyStaticVar_traverse,                 /* tp_traverse */
       0,                                        /* tp_clear */
       0,                                        /* tp_richcompare */
@@ -290,6 +292,36 @@ SwigPyStaticVar_Type(void) {
       return NULL;
   }
   return &staticvar_type;
+#else
+  PyType_Slot slots[] = {
+    { Py_tp_doc, (void *)SwigPyStaticVar_doc},
+    { Py_tp_dealloc, (void *)(destructor)SwigPyStaticVar_dealloc },
+    { Py_tp_repr, (void *)(reprfunc)SwigPyStaticVar_repr },
+    { Py_tp_getattro, (void *)PyObject_GenericGetAttr },
+    { Py_tp_traverse, (void *)SwigPyStaticVar_traverse },
+    { Py_tp_descr_get, (void *)(descrgetfunc)SwigPyStaticVar_get },
+    { Py_tp_descr_set, (void *)(descrsetfunc)SwigPyStaticVar_set },
+    { 0, NULL }
+  };
+  PyType_Spec spec = {
+    SWIG_RUNTIME_MODULE ".SwigPyStaticVar",
+    sizeof(PyGetSetDescrObject),
+    0,
+    Py_TPFLAGS_DEFAULT|Py_TPFLAGS_HAVE_GC|Py_TPFLAGS_HAVE_CLASS,
+    slots
+  };
+  PyObject *pytype = PyType_FromSpec(&spec);
+  PyObject *runtime_data_module = SWIG_runtime_data_module();
+  if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyStaticVar", pytype) == 0)
+    SWIG_Py_INCREF(pytype);
+  return (PyTypeObject *)pytype;
+#endif
+}
+
+SWIGRUNTIME PyTypeObject *
+SwigPyStaticVar_Type(void) {
+  static PyTypeObject *SWIG_STATIC_POINTER(type) = SwigPyStaticVar_TypeOnce();
+  return type;
 }
 
 SWIGINTERN PyTypeObject*
