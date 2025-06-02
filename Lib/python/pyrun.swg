@@ -1213,7 +1213,7 @@ SwigPyPacked_TypeOnce(void) {
   static int type_init = 0;
   if (!type_init) {
     const PyTypeObject tmp = {
-#if PY_VERSION_HEX>=0x03000000
+#if PY_VERSION_HEX >= 0x03000000
       PyVarObject_HEAD_INIT(NULL, 0)
 #else
       PyObject_HEAD_INIT(NULL)
@@ -1230,7 +1230,7 @@ SwigPyPacked_TypeOnce(void) {
 #endif
       (getattrfunc)0,                       /* tp_getattr */
       (setattrfunc)0,                       /* tp_setattr */
-#if PY_VERSION_HEX>=0x03000000
+#if PY_VERSION_HEX >= 0x03000000
       0, /* tp_reserved in 3.0.1 */
 #else
       (cmpfunc)SwigPyPacked_compare,        /* tp_compare */
@@ -1378,7 +1378,7 @@ SWIG_This(void)
 /* #define SWIG_PYTHON_SLOW_GETSET_THIS */
 
 /* TODO: I don't know how to implement the fast getset in Python 3 right now */
-#if PY_VERSION_HEX>=0x03000000
+#if PY_VERSION_HEX >= 0x03000000
 #define SWIG_PYTHON_SLOW_GETSET_THIS 
 #endif
 
