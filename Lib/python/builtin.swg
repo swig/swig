@@ -286,10 +286,13 @@ SwigPyStaticVar_TypeOnce(void) {
       0                                         /* tp_next */
 #endif
     };
+    PyObject *runtime_data_module = SWIG_runtime_data_module();
     staticvar_type = tmp;
     type_init = 1;
     if (PyType_Ready(&staticvar_type) < 0)
       return NULL;
+    if (PyModule_AddObject(runtime_data_module, "SwigPyStaticVar", (PyObject *)&staticvar_type) == 0)
+      SWIG_Py_INCREF((PyObject *)&staticvar_type);
   }
   return &staticvar_type;
 #else
@@ -325,7 +328,7 @@ SwigPyStaticVar_Type(void) {
 }
 
 SWIGINTERN PyTypeObject*
-SwigPyObjectType(void) {
+SwigPyObjectType_TypeOnce(void) {
   static char SwigPyObjectType_doc[] = "Metaclass for SWIG wrapped types";
 #ifndef SWIG_HEAPTYPES
   static PyTypeObject swigpyobjecttype_type;
@@ -411,11 +414,14 @@ SwigPyObjectType(void) {
       0                                         /* tp_next */
 #endif
     };
+    PyObject *runtime_data_module = SWIG_runtime_data_module();
     swigpyobjecttype_type = tmp;
     type_init = 1;
     swigpyobjecttype_type.tp_base = &PyType_Type;
     if (PyType_Ready(&swigpyobjecttype_type) < 0)
       return NULL;
+    if (PyModule_AddObject(runtime_data_module, "SwigPyObjectType", (PyObject *)&swigpyobjecttype_type) == 0)
+      SWIG_Py_INCREF((PyObject *)&swigpyobjecttype_type);
   }
   return &swigpyobjecttype_type;
 #else
@@ -438,6 +444,12 @@ SwigPyObjectType(void) {
     SWIG_Py_INCREF(pytype);
   return (PyTypeObject *)pytype;
 #endif
+}
+
+SWIGRUNTIME PyTypeObject *
+SwigPyObjectType_Type(void) {
+  static PyTypeObject *SWIG_STATIC_POINTER(type) = SwigPyObjectType_TypeOnce();
+  return type;
 }
 
 SWIGINTERN PyGetSetDescrObject *

@@ -254,7 +254,7 @@ SWIG_init(void) {
   (void)self;
 
   /* Metaclass is used to implement static member variables */
-  metatype = SwigPyObjectType();
+  metatype = SwigPyObjectType_Type();
   assert(metatype);
 
   SwigPyStaticVar_Type();
