@@ -12,6 +12,13 @@
 extern "C" {
 #endif
 #include "api_scilab.h"
+#ifndef CONST_PTR /* Scilab < 2025.0.0 */
+#ifdef __cplusplus
+#define CONST_PTR const
+#else
+#define CONST_PTR
+#endif
+#endif
 #if SCI_VERSION_MAJOR < 5 || SCI_VERSION_MAJOR == 5 && SCI_VERSION_MINOR < 4
 #define __USE_DEPRECATED_STACK_FUNCTIONS__
 #include "stack-c.h"
