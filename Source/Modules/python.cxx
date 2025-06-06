@@ -4559,7 +4559,7 @@ public:
     }
     Printv(f_init, "    SWIG_Py_INCREF((PyObject *)builtin_pytype);\n", NIL);
     Printf(f_init, "    if (PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype) != 0) {\n", symname);
-    Printf(f_init, "      SWIG_Py_DECREF(builtin_pytype);\n");
+    Printf(f_init, "      SWIG_Py_DECREF((PyObject *)builtin_pytype);\n");
     Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     Printv(f_init, "      return NULL;\n", NIL);
     Printv(f_init, "#else\n", NIL);
