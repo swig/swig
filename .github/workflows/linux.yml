@@ -203,6 +203,8 @@ jobs:
           VER: '2023.1.0'
         - SWIGLANG: scilab
           VER: '2024.1.0'
+        - SWIGLANG: scilab
+          VER: '2025.1.0'
         - SWIGLANG: tcl
         # c++11 testing
         - SWIGLANG: csharp
