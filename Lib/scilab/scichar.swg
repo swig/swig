@@ -167,7 +167,7 @@ SWIG_SciString_FromCharPtr(void *pvApiCtx, int iVarOut, const char *pchValue) {
     const char* pstStrings[1];
     pstStrings[0] = pchValue;
 
-    sciErr = createMatrixOfString(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, 1, 1, (CONST_PTR char**)pstStrings);
+    sciErr = createMatrixOfString(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, 1, 1, (char CONST_PTR* CONST_PTR*)pstStrings);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       return SWIG_ERROR;
@@ -237,7 +237,7 @@ SWIGINTERN int
 SWIG_SciString_FromCharPtrArrayAndSize(void *pvApiCtx, int iVarOut, int iRows, int iCols, char **charPtrArray) {
   SciErr sciErr;
 
-  sciErr = createMatrixOfString(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, (CONST_PTR char* CONST_PTR*) charPtrArray);
+  sciErr = createMatrixOfString(pvApiCtx, SWIG_NbInputArgument(pvApiCtx) + iVarOut, iRows, iCols, (char CONST_PTR* CONST_PTR*)charPtrArray);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -267,7 +267,7 @@ SWIG_CreateScilabVariable_dec(char)(void *pvApiCtx, const char* psVariableName, 
   sValue[1] = '\0';
   psStrings[0] = sValue;
 
-  sciErr = createNamedMatrixOfString(pvApiCtx, psVariableName, 1, 1, (CONST_PTR char**)psStrings);
+  sciErr = createNamedMatrixOfString(pvApiCtx, psVariableName, 1, 1, (char CONST_PTR* CONST_PTR*)psStrings);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
@@ -283,7 +283,7 @@ SWIG_CreateScilabVariable_dec(charptr)(void *pvApiCtx, const char* psVariableNam
   CONST_PTR char* psStrings[1];
   psStrings[0] = psVariableValue;
 
-  sciErr = createNamedMatrixOfString(pvApiCtx, psVariableName, 1, 1, (CONST_PTR char**)psStrings);
+  sciErr = createNamedMatrixOfString(pvApiCtx, psVariableName, 1, 1, (char CONST_PTR* CONST_PTR*)psStrings);
   if (sciErr.iErr) {
     printError(&sciErr, 0);
     return SWIG_ERROR;
