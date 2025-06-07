@@ -477,7 +477,7 @@ SwigPyBuiltin_InitBases(PyTypeObject **bases) {
   Py_ssize_t i;
 
   if (!bases[0]) {
-    bases[0] = SwigPyObject_type();
+    bases[0] = SwigPyObject_Type();
     bases[1] = NULL;
   }
   for (b = bases; *b != NULL; ++b)

@@ -357,7 +357,7 @@ SwigVarLink_setattr(PyObject *o, char *n, PyObject *p) {
 #endif
 
 SWIGINTERN PyTypeObject*
-swig_varlink_type(void) {
+SwigVarLink_TypeOnce(void) {
   static char SwigVarLink_doc[] = "Swig variable link object";
 #ifndef SWIG_HEAPTYPES
   static PyTypeObject varlink_type;
@@ -458,10 +458,16 @@ swig_varlink_type(void) {
 #endif
 }
 
+SWIGRUNTIME PyTypeObject*
+SwigVarLink_Type(void) {
+  static PyTypeObject *SWIG_STATIC_POINTER(type) = SwigVarLink_TypeOnce();
+  return type;
+}
+
 /* Create a variable linking object for use later */
 SWIGINTERN PyObject *
 SWIG_Python_newvarlink(void) {
-  swig_varlinkobject *result = PyObject_New(swig_varlinkobject, swig_varlink_type());
+  swig_varlinkobject *result = PyObject_New(swig_varlinkobject, SwigVarLink_Type());
   if (result) {
     result->vars = 0;
   }
@@ -751,7 +757,7 @@ SWIGRUNTIME PyTypeObject* SwigPyObject_TypeOnce(void);
 #ifdef SWIGPYTHON_BUILTIN
 static swig_type_info *SwigPyObject_stype = 0;
 SWIGRUNTIME PyTypeObject*
-SwigPyObject_type(void) {
+SwigPyObject_Type(void) {
     SwigPyClientData *cd;
     assert(SwigPyObject_stype);
     cd = (SwigPyClientData*) SwigPyObject_stype->clientdata;
@@ -761,7 +767,7 @@ SwigPyObject_type(void) {
 }
 #else
 SWIGRUNTIME PyTypeObject*
-SwigPyObject_type(void) {
+SwigPyObject_Type(void) {
   static PyTypeObject *SWIG_STATIC_POINTER(type) = SwigPyObject_TypeOnce();
   return type;
 }
@@ -769,7 +775,7 @@ SwigPyObject_type(void) {
 
 SWIGRUNTIMEINLINE int
 SwigPyObject_Check(PyObject *op) {
-  PyTypeObject *target_tp = SwigPyObject_type();
+  PyTypeObject *target_tp = SwigPyObject_Type();
   PyTypeObject *op_type = Py_TYPE(op);
 #ifdef SWIGPYTHON_BUILTIN
   if (PyType_IsSubtype(op_type, target_tp))
@@ -1105,7 +1111,7 @@ SwigPyObject_TypeOnce(void) {
 SWIGRUNTIME PyObject *
 SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
 {
-  SwigPyObject *sobj = PyObject_New(SwigPyObject, SwigPyObject_type());
+  SwigPyObject *sobj = PyObject_New(SwigPyObject, SwigPyObject_Type());
   if (sobj) {
     sobj->ptr  = ptr;
     sobj->ty   = ty;
@@ -1169,7 +1175,7 @@ SwigPyPacked_compare(SwigPyPacked *v, SwigPyPacked *w)
 SWIGRUNTIME PyTypeObject* SwigPyPacked_TypeOnce(void);
 
 SWIGRUNTIME PyTypeObject*
-SwigPyPacked_type(void) {
+SwigPyPacked_Type(void) {
   static PyTypeObject *SWIG_STATIC_POINTER(type) = SwigPyPacked_TypeOnce();
   return type;
 }
@@ -1181,7 +1187,7 @@ SwigPyPacked_Check(PyObject *op) {
   PyObject *tp_name;
 #endif
   PyTypeObject* op_type = Py_TYPE(op);
-  if (op_type == SwigPyPacked_type())
+  if (op_type == SwigPyPacked_Type())
     return 1;
 #ifdef Py_LIMITED_API
   tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
@@ -1332,7 +1338,7 @@ SwigPyPacked_TypeOnce(void) {
 SWIGRUNTIME PyObject *
 SwigPyPacked_New(void *ptr, size_t size, swig_type_info *ty)
 {
-  SwigPyPacked *sobj = PyObject_New(SwigPyPacked, SwigPyPacked_type());
+  SwigPyPacked *sobj = PyObject_New(SwigPyPacked, SwigPyPacked_Type());
   if (sobj) {
     void *pack = malloc(size);
     if (pack) {
