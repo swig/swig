@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-06-07: wsfulton
+            Remove pyname_compati.i file providing legacy names which changed in
+            swig-1.3.37.
+
 2025-05-28: olly
 	    #3186 Fix parse error for C++14 forward declaration of function with
 	    auto return type and no trailing return type.
