@@ -58,7 +58,7 @@ static jbyteArray SWIG_JavaArrayOutCDATA(JNIEnv *jenv, char *result, jsize sz) {
   if (!jresult) {
     return SWIG_NULLPTR;
   }
-  arr = JCALL2(GetByteArrayElements, jenv, jresult, 0);
+  arr = JCALL2(GetByteArrayElements, jenv, jresult, SWIG_NULLPTR);
   if (!arr) {
     return SWIG_NULLPTR;
   }
