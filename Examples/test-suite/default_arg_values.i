@@ -14,6 +14,7 @@ struct Display {
   float draw1(float v = NULL_FOR_FLOAT) { return v; }
   float draw2(float *v = NULL_FOR_FLOAT) { return v ? *v : 0; }
   int draw3(int index = 0, const bool interpolate = true) { return interpolate ? index : -index; }
+  int draw4(bool const& interpolate = true) { return interpolate ? 1 : -1; }
   bool bool0(bool x = 0) { return x; }
   bool bool1(bool x = 1) { return x; }
 

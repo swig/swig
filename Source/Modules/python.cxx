@@ -2150,7 +2150,15 @@ public:
       // return NewStringf("'%(escape)s'", stringval);
     }
     SwigType *resolved_type = SwigType_typedef_resolve_all(type);
-    SwigType *unqualified_type = SwigType_strip_qualifiers(resolved_type);
+    SwigType *unqualified_type = NIL;
+    if (SwigType_isreference(resolved_type)) {
+	SwigType *t = Copy(resolved_type);
+	t = SwigType_del_reference(t);
+	unqualified_type = SwigType_strip_qualifiers(t);
+	Delete(t);
+    } else {
+	unqualified_type = SwigType_strip_qualifiers(resolved_type);
+    }
     if (numval) {
       if (Equal(unqualified_type, "bool")) {
 	Delete(resolved_type);

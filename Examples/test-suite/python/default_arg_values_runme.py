@@ -18,6 +18,12 @@ if d.draw2(p) != 123:
 if d.draw3() != 0:
     raise RuntimeError
 
+if d.draw4() != 1:
+    raise RuntimeError
+
+if d.draw4(False) != -1:
+    raise RuntimeError
+
 if d.bool0() != False or type(d.bool0()) != type(False):
     raise RuntimeError
 
