@@ -780,10 +780,10 @@ SwigPyObject_Check(PyObject *op) {
   PyTypeObject *target_tp = SwigPyObject_Type();
   PyTypeObject *op_type = Py_TYPE(op);
 #ifdef SWIGPYTHON_BUILTIN
-  if (PyType_IsSubtype(op_type, target_tp))
-    return 1;
-  return (strcmp(op_type->tp_name, SWIG_RUNTIME_MODULE ".SwigPyObject") == 0);
+  /* Only builtin types have SwigPyObject as a base type */
+  return PyType_IsSubtype(op_type, target_tp);
 #else
+  /* Check for an exact match to SwigPyObject */
 # ifdef Py_LIMITED_API
   int cmp;
   PyObject *tp_name;
@@ -791,6 +791,7 @@ SwigPyObject_Check(PyObject *op) {
   if (op_type == target_tp)
     return 1;
 # ifdef Py_LIMITED_API
+  /* Fallback for multiple modules */
   tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
   if (!tp_name)
     return 0;
@@ -1184,14 +1185,17 @@ SwigPyPacked_Type(void) {
 
 SWIGRUNTIMEINLINE int
 SwigPyPacked_Check(PyObject *op) {
+  PyTypeObject *target_tp = SwigPyPacked_Type();
+  PyTypeObject *op_type = Py_TYPE(op);
+  /* Check for an exact match to SwigPyPacked */
 #ifdef Py_LIMITED_API
   int cmp;
   PyObject *tp_name;
 #endif
-  PyTypeObject* op_type = Py_TYPE(op);
-  if (op_type == SwigPyPacked_Type())
+  if (op_type == target_tp)
     return 1;
 #ifdef Py_LIMITED_API
+  /* Fallback for multiple modules */
   tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
   if (!tp_name)
     return 0;
