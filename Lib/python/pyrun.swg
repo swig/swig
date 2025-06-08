@@ -353,7 +353,9 @@ SwigVarLink_setattr(PyObject *o, char *n, PyObject *p) {
 }
 
 #if !defined(SWIGPYTHON_BUILTIN) && PY_VERSION_HEX >= 0x03030000
+#if !defined(SWIG_HEAPTYPES)
 #define SWIG_HEAPTYPES
+#endif
 #endif
 
 SWIGINTERN PyTypeObject*

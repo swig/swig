@@ -499,12 +499,12 @@ SwigPyBuiltin_ThisClosure (PyObject *self, void *SWIGUNUSEDPARM(closure)) {
 }
 
 SWIGINTERN void
-SwigPyBuiltin_SetMetaType (PyTypeObject *type, PyTypeObject *metatype)
+SwigPyBuiltin_SetMetaType(PyTypeObject *type, PyTypeObject *metatype)
 {
 #if PY_VERSION_HEX >= 0x030900a4
-    Py_SET_TYPE(type, metatype);
+  Py_SET_TYPE((PyObject *)type, metatype);
 #else
-    Py_TYPE(type) = metatype;
+  Py_TYPE(type) = metatype;
 #endif
 }
 
