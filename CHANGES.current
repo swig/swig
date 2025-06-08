@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-06-09: olly
+	    [Tcl] #2887 Fix -external-runtime to generate a header which works
+	    with Tcl 8.x.  Regression introduced in SWIG 4.2.1.  As a bonus
+	    the generated header no longer requires the user to include tcl.h
+	    and various standard C library headers before including it.
+
 2025-05-28: olly
 	    #3186 Fix parse error for C++14 forward declaration of function with
 	    auto return type and no trailing return type.
