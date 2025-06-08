@@ -1,6 +1,10 @@
-# - Find PCRE2
-# Perl Compatible Regular Expressions
-# https://www.pcre.org/
+# FindPCRE2.cmake
+#
+# CMake find module for Perl Compatible Regular Expressions.
+#
+# In particular, it looks for the more recent PCRE2, not the EOL PCRE library.
+#
+# See https://www.pcre.org/ for more details.
 
 # This find module first tries to use the upstream PCRE2 CMake config script
 # that is bundled with more recent PCRE2 versions since 10.38.
