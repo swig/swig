@@ -20,6 +20,8 @@
 #   PCRE2_LIBRARIES       PCRE2 library files
 #   PCRE2_INCLUDE_DIRS    PCRE2 include directories
 
+include(FindPackageHandleStandardArgs)
+
 # if not defined, use PCRE2_USE_STATIC_LIBS=ON for Windows
 if(WIN32 AND NOT DEFINED PCRE2_USE_STATIC_LIBS)
   set(PCRE2_USE_STATIC_LIBS ON)
@@ -32,8 +34,10 @@ if(WIN32)
   endif()
 endif()
 # attempt to locate using upstream config script and return if found
-find_package(PCRE2 CONFIG)
+find_package(PCRE2 QUIET CONFIG)
 if(PCRE2_FOUND)
+  # ensure that on success, find module message is printed
+  find_package_handle_standard_args(PCRE2 CONFIG_MODE HANDLE_COMPONENTS)
   return()
 endif()
 
@@ -102,8 +106,6 @@ if(TARGET PCRE2::8BIT)
   set(PCRE2_LIBRARIES ${PCRE2_LIBRARY})
   set(PCRE2_INCLUDE_DIRS ${PCRE2_INCLUDE_DIR})
 endif()
-
-include(FindPackageHandleStandardArgs)
 
 # build list of required variables (include DLL for shared on Windows)
 # note: PCRE2_LIBRARIES goes first so it shows in the message
