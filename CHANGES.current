@@ -8,6 +8,15 @@ Version 4.4.0 (in progress)
 ===========================
 
 2025-06-09: olly
+	    The $function variable in %exception/feature:except typemaps is
+	    no longer recognised.  It was marked as deprecated in 2008.
+	    Use $action (added in 2001) instead which has exactly the same
+	    value.
+
+	    SWIG/D has an unrelated $function variable which is substituted in
+	    %pragma(d) wrapperloaderbindcommand - this is still supported.
+
+2025-06-09: olly
 	    [Python] #3162 Fix wrapping of a bool const& parameter with a
 	    default value.  Regression introduced in SWIG 4.3.0.
 
