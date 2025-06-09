@@ -111,10 +111,10 @@ jobs:
         #  os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
         #- SWIGLANG: python
         #  VER: '3.5'
-        #  os: ubuntu-20.04 # Python < 3.7 not available for 20.04.
+        #  os: ubuntu-20.04 # Python < 3.7 not available for 22.04.
         #- SWIGLANG: python
         #  VER: '3.6'
-        #  os: ubuntu-20.04 # Python < 3.7 not available for 20.04.
+        #  os: ubuntu-20.04 # Python < 3.7 not available for 22.04.
         - SWIGLANG: python
           VER: '3.7'
         - SWIGLANG: python
