@@ -4413,6 +4413,7 @@ public:
 
     Printf(f, "static PyTypeObject *%s_type_create(PyTypeObject *type, PyTypeObject **bases, PyObject *dict) {\n", templ);
     Printf(f, "  PyMemberDef members[] = {\n");
+    Printf(f, "    { (char *)\"__dictoffset__\", Py_T_PYSSIZET, %s, Py_READONLY, NULL },\n", getSlot(n, "feature:python:tp_dictoffset", tp_dictoffset_default));
     Printf(f, "    { NULL, 0, 0, 0, NULL }\n");
     Printf(f, "  };\n");
     Printf(f, "  PyType_Slot slots[] = {\n");
@@ -4510,6 +4511,10 @@ public:
     Printv(f, "  PyObject *tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
     Printf(f, "  PyTypeObject *pytype = (PyTypeObject *)PyType_FromSpecWithBases(&spec, tuple_bases);\n");
     Printf(f, "  if (pytype) {\n");
+    Printv(f, "#if PY_VERSION_HEX < 0x03090000\n", NIL);
+    Printf(f, "    /* Workaround as __dictoffset__ above is only supported from python-3.9 */\n");
+    Printf(f, "    pytype->tp_dictoffset = offsetof(SwigPyObject, dict);\n");
+    Printv(f, "#endif\n", NIL);
     Printf(f, "    if (PyDict_Merge(pytype->tp_dict, dict, 1) == 0) {\n");
     Printv(f, "      SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);
     Printf(f, "      PyType_Modified(pytype);\n");
