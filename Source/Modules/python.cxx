@@ -4517,10 +4517,19 @@ public:
     Printf(f, "    slots\n");
     Printf(f, "  };\n");
     Printv(f, "  PyObject *tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
-    Printf(f, "  PyTypeObject *pytype = (PyTypeObject*)PyType_FromSpecWithBases(&spec, tuple_bases);\n");
-    Printf(f, "  PyDict_Merge(pytype->tp_dict, dict, 1);\n");
-    Printv(f, "  SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);
-    Printf(f, "  PyType_Modified(pytype);\n");
+    Printf(f, "  PyTypeObject *pytype = (PyTypeObject *)PyType_FromSpecWithBases(&spec, tuple_bases);\n");
+    Printf(f, "  if (pytype) {\n");
+    Printv(f, "#if PY_VERSION_HEX < 0x03090000\n", NIL);
+    Printf(f, "    /* Workaround as __dictoffset__ above is only supported from python-3.9 */\n");
+    Printf(f, "    pytype->tp_dictoffset = offsetof(SwigPyObject, dict);\n");
+    Printv(f, "#endif\n", NIL);
+    Printf(f, "    if (PyDict_Merge(pytype->tp_dict, dict, 1) == 0) {\n");
+    Printv(f, "      SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);
+    Printf(f, "      PyType_Modified(pytype);\n");
+    Printf(f, "    } else {\n");
+    Printf(f, "      pytype = 0;\n");
+    Printf(f, "    }\n");
+    Printf(f, "  }\n");
     Printf(f, "  Py_DECREF(dict);\n");
     Printf(f, "  return pytype;\n");
 
@@ -4557,7 +4566,14 @@ public:
       Printf(f_init, "    SwigPyBuiltin_%s_clientdata.klass = (PyObject *)builtin_pytype;\n", mname);
     }
     Printv(f_init, "    SWIG_Py_INCREF((PyObject *)builtin_pytype);\n", NIL);
-    Printf(f_init, "    PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype);\n", symname);
+    Printf(f_init, "    if (PyModule_AddObject(m, \"%s\", (PyObject *)builtin_pytype) != 0) {\n", symname);
+    Printf(f_init, "      SWIG_Py_DECREF((PyObject *)builtin_pytype);\n");
+    Printv(f_init, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
+    Printv(f_init, "      return NULL;\n", NIL);
+    Printv(f_init, "#else\n", NIL);
+    Printv(f_init, "      return;\n", NIL);
+    Printv(f_init, "#endif\n", NIL);
+    Printf(f_init, "    }\n", symname);
     Printf(f_init, "    SwigPyBuiltin_AddPublicSymbol(public_interface, \"%s\");\n", symname);
     Printv(f_init, "    d = md;\n", NIL);
 

@@ -7,6 +7,18 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-06-11: wsfulton
+            [Python] Add support for -builtin and heap types turned on with
+            -DSWIG_HEAPTYPES. This is an important step towards supporting a number of
+            modern Python wrapper features including Py_LIMITED_API (Stable ABI compliance),
+            and sharing types between interpreters. Caveat is that currently only
+            python-3.12 and later is required when wrapping C++ classes involved in
+            multiple inheritance, so consider this experimental for now.
+
+2025-06-11: wsfulton
+            Remove pyname_compati.i file providing legacy names which changed in
+            swig-1.3.37.
+
 2025-06-09: tvlEIVA
 	    [Javascript] #3138 Use SetNativeDataProperty() instead of
 	    SetAccessor() which fixes compatibility with recent v8 versions.
@@ -29,7 +41,6 @@ Version 4.4.0 (in progress)
 	    with Tcl 8.x.  Regression introduced in SWIG 4.2.1.  As a bonus
 	    the generated header no longer requires the user to include tcl.h
 	    and various standard C library headers before including it.
-
 2025-05-28: olly
 	    #3186 Fix parse error for C++14 forward declaration of function with
 	    auto return type and no trailing return type.
