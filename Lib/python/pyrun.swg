@@ -63,6 +63,7 @@
 #define SWIG_Error(code, msg)            		SWIG_Python_SetErrorMsg(SWIG_ErrorType(code), msg) 
 #define SWIG_fail                        		goto fail					   
 
+#include <cstddef>
 
 /* Runtime API implementation */
 
@@ -1086,6 +1087,10 @@ SwigPyObject_TypeOnce(void) {
   }
   return &swigpyobject_type;
 #else
+  static PyMemberDef SwigPyObject_members[] = {
+      { (char *)"__dictoffset__", Py_T_PYSSIZET, offsetof(SwigPyObject, dict), Py_READONLY, NULL },
+      { NULL, 0, 0, 0, NULL }
+  };
   PyType_Slot slots[] = {
     { Py_tp_dealloc, (void *)SwigPyObject_dealloc },
     { Py_tp_repr, (void *)SwigPyObject_repr },
@@ -1094,6 +1099,7 @@ SwigPyObject_TypeOnce(void) {
     { Py_tp_richcompare, (void *)SwigPyObject_richcompare },
     { Py_tp_methods, (void *)SwigPyObject_methods },
     { Py_nb_int, (void *)SwigPyObject_long },
+    { Py_tp_members, (void *)SwigPyObject_members },
     { 0, NULL }
   };
   PyType_Spec spec = {
