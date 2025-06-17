@@ -6764,40 +6764,21 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 		 $$ = default_dtype;
 		 $$.val = NewStringf("%s->%s", $lhs, $rhs);
 	       }
-	       | ID[lhs] ARROW ID[rhs] LPAREN {
-		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
-		 $$ = default_dtype;
-		 $$.val = NewStringf("%s->%s", $lhs, $rhs);
-		 append_expr_from_scanner($$.val);
-	       }
 	       | exprmem[in] ARROW ID {
 		 $$ = $in;
 		 Printf($$.val, "->%s", $ID);
-	       }
-	       | exprmem[in] ARROW ID LPAREN {
-		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
-		 $$ = $in;
-		 Printf($$.val, "->%s", $ID);
-		 append_expr_from_scanner($$.val);
 	       }
 	       | ID[lhs] PERIOD ID[rhs] {
 		 $$ = default_dtype;
 		 $$.val = NewStringf("%s.%s", $lhs, $rhs);
 	       }
-	       | ID[lhs] PERIOD ID[rhs] LPAREN {
-		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
-		 $$ = default_dtype;
-		 $$.val = NewStringf("%s.%s", $lhs, $rhs);
-		 append_expr_from_scanner($$.val);
-	       }
 	       | exprmem[in] PERIOD ID {
 		 $$ = $in;
 		 Printf($$.val, ".%s", $ID);
 	       }
-	       | exprmem[in] PERIOD ID LPAREN {
+	       | exprmem[in] LPAREN {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = $in;
-		 Printf($$.val, ".%s", $ID);
 		 append_expr_from_scanner($$.val);
 	       }
 	       ;
