@@ -8,8 +8,10 @@
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) UsdGeomTokensPtr;
 %immutable UsdGeomTokens;
 
-// helper() only exists to test we can parse more complex expressions.
+// These helpers only exists to test we can parse more complex expressions.
 %ignore helper;
+%ignore H::helper;
+%ignore H::helping;
 
 // Don't call our getters get_xxx() as that collides with generated getters in
 // some languages (e.g. csharp).
@@ -76,8 +78,16 @@ void CreateMaterialBindSubsetz(int num = UsdGeomTokens.g_face(1,2).g_val().g_val
 
 // Regression tests for #3197.
 Tokens& helper(bool = false, bool = false) { return UsdGeomTokens; }
+namespace H {
+Tokens& helper(bool = false, bool = false) { return UsdGeomTokens; }
+static Tokens helping;
+}
 void ParseTest1(int num = helper().face.val.val) {}
 void ParseTest2(int num = helper().g_face().val.val) {}
+void ParseTest3(int num = H::helper().face.val.val) {}
+void ParseTest4(int num = H::helper().g_face().val.val) {}
+void ParseTest5(int num = H::helping.face.val.val) {}
+void ParseTest6(int num = H::helping.g_face().val.val) {}
 void ParseTestN(bool b = (helper().g_face().val.val < helper().face.val.val)) {}
 
 %}

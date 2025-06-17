@@ -6760,17 +6760,17 @@ expr           : valexpr
 	       ;
 
 /* member access expressions and function calls */
-exprmem        : ID[lhs] ARROW ID[rhs] {
+exprmem        : idcolon ARROW ID {
 		 $$ = default_dtype;
-		 $$.val = NewStringf("%s->%s", $lhs, $rhs);
+		 $$.val = NewStringf("%s->%s", $idcolon, $ID);
 	       }
 	       | exprmem[in] ARROW ID {
 		 $$ = $in;
 		 Printf($$.val, "->%s", $ID);
 	       }
-	       | ID[lhs] PERIOD ID[rhs] {
+	       | idcolon PERIOD ID {
 		 $$ = default_dtype;
-		 $$.val = NewStringf("%s.%s", $lhs, $rhs);
+		 $$.val = NewStringf("%s.%s", $idcolon, $ID);
 	       }
 	       | exprmem[in] PERIOD ID {
 		 $$ = $in;

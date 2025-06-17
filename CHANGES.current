@@ -8,9 +8,10 @@ Version 4.4.0 (in progress)
 ===========================
 
 2025-06-17: olly
-	    #3197 Improve parsing of expressions related to functions calls.
-	    For example, the following no longer give parse errors:  `g().d()`,
-	    `g().D`, `(f(1) < g(2))`, `sizeof f(a,b)`
+	    #3197 Improve parsing of expressions related to functions calls
+	    and/or member access.  For example, the following no longer give
+	    parse errors:  `g().d()`, `g().D`, `a::b.c()`, `x::y.z`, `(f(1) <
+	    g(2))`, `sizeof f(a,b)`
 
 2025-06-11: wsfulton
             [Python] Add support for -builtin and heap types turned on with
