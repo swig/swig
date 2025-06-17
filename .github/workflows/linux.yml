@@ -104,12 +104,6 @@ jobs:
         - SWIGLANG: python
           PY2: 2
         #- SWIGLANG: python
-        #  VER: '3.3'
-        #  os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
-        #- SWIGLANG: python
-        #  VER: '3.4'
-        #  os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
-        #- SWIGLANG: python
         #  VER: '3.5'
         #  os: ubuntu-20.04 # Python < 3.7 not available for 22.04.
         #- SWIGLANG: python
