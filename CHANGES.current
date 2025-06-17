@@ -7,6 +7,11 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-06-17: olly
+	    #3197 Improve parsing of expressions related to functions calls.
+	    For example, the following no longer give parse errors:  `g().d()`,
+	    `g().D`, `(f(1) < g(2))`, `sizeof f(a,b)`
+
 2025-06-11: wsfulton
             [Python] Add support for -builtin and heap types turned on with
             -DSWIG_HEAPTYPES. This is an important step towards supporting a number of
@@ -42,6 +47,7 @@ Version 4.4.0 (in progress)
 	    with Tcl 8.x.  Regression introduced in SWIG 4.2.1.  As a bonus
 	    the generated header no longer requires the user to include tcl.h
 	    and various standard C library headers before including it.
+
 2025-05-28: olly
 	    #3186 Fix parse error for C++14 forward declaration of function with
 	    auto return type and no trailing return type.

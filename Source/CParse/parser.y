@@ -6759,7 +6759,7 @@ expr           : valexpr
                }
 	       ;
 
-/* simple member access expressions */
+/* member access expressions and function calls */
 exprmem        : ID[lhs] ARROW ID[rhs] {
 		 $$ = default_dtype;
 		 $$.val = NewStringf("%s->%s", $lhs, $rhs);
@@ -6779,6 +6779,31 @@ exprmem        : ID[lhs] ARROW ID[rhs] {
 	       | exprmem[in] LPAREN {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = $in;
+		 append_expr_from_scanner($$.val);
+	       }
+	       | type LPAREN {
+		 $$ = default_dtype;
+		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+
+		 String *qty = Swig_symbol_type_qualify($type, 0);
+		 if (SwigType_istemplate(qty)) {
+		   String *nstr = SwigType_namestr(qty);
+		   Delete(qty);
+		   qty = nstr;
+		 }
+		 /* Try to deduce the type - this could be a C++ "constructor
+		  * cast" such as `double(4)` or a function call such as
+		  * `some_func()`.  In the latter case we get T_USER, but that
+		  * is wrong so we map it to T_UNKNOWN until we can actually
+		  * deduce the return type of a function call (which is
+		  * complicated because the return type can vary between
+		  * overloaded forms).
+		  */
+		 $$.type = SwigType_type(qty);
+		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
+		 $$.unary_arg_type = 0;
+
+		 $$.val = qty;
 		 append_expr_from_scanner($$.val);
 	       }
 	       ;
@@ -7298,31 +7323,6 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
                  $$.val = NewStringf("!%s", $in.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-               | type LPAREN {
-		 $$ = default_dtype;
-		 if (skip_balanced('(',')') < 0) Exit(EXIT_FAILURE);
-
-		 String *qty = Swig_symbol_type_qualify($type, 0);
-		 if (SwigType_istemplate(qty)) {
-		   String *nstr = SwigType_namestr(qty);
-		   Delete(qty);
-		   qty = nstr;
-		 }
-		 /* Try to deduce the type - this could be a C++ "constructor
-		  * cast" such as `double(4)` or a function call such as
-		  * `some_func()`.  In the latter case we get T_USER, but that
-		  * is wrong so we map it to T_UNKNOWN until we can actually
-		  * deduce the return type of a function call (which is
-		  * complicated because the return type can vary between
-		  * overloaded forms).
-		  */
-		 $$.type = SwigType_type(qty);
-		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
-		 $$.unary_arg_type = 0;
-
-		 $$.val = qty;
-		 append_expr_from_scanner($$.val);
-               }
                ;
 
 variadic_opt  : ELLIPSIS {
