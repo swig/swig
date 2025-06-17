@@ -2085,7 +2085,7 @@ Version 4.1.0 (24 Oct 2022)
 2022-09-29: olly
 	    #2303 SWIG's internal hash tables now use a better hash function.
 
-	    The old hash function only considerd the last five characters
+	    The old hash function only considered the last five characters
 	    plus the least significant bit of the last-but-sixth character,
 	    which as you might guess generated a lot of many-way collisions.
 
