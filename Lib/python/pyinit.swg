@@ -4,10 +4,6 @@
 
 %insert(init) "swiginit.swg"
 
-#if defined(SWIGPYTHON_BUILTIN)
-%fragment("<stddef.h>"); // For offsetof
-#endif
-
 #if defined SWIGPYTHON_FASTPROXY && !defined SWIGPYTHON_BUILTIN
 
 %insert(runtime) %{

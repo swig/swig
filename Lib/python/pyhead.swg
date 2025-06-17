@@ -1,3 +1,9 @@
+#if !defined(SWIGPYTHON_BUILTIN) && PY_VERSION_HEX >= 0x03030000
+#if !defined(SWIG_HEAPTYPES)
+#define SWIG_HEAPTYPES
+#endif
+#endif
+
 /* Compatibility macros for Python 3 */
 #if PY_VERSION_HEX >= 0x03000000
 
@@ -24,6 +30,16 @@
 #else
 #  define SWIG_Python_str_FromFormat PyString_FromFormat
 #endif
+
+#if defined(SWIG_HEAPTYPES)
+#if PY_VERSION_HEX < 0x030c0000
+#include <structmember.h>
+#define Py_READONLY READONLY
+#define Py_T_PYSSIZET T_PYSSIZET
+#endif
+#endif
+
+#include <stddef.h> /* For offsetof */
 
 
 /* Wrapper around PyUnicode_AsUTF8AndSize - call Py_XDECREF on the returned pbytes when finished with the returned string */

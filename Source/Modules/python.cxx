@@ -4141,7 +4141,7 @@ public:
     String *tp_flags_py3 = NewString("Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE");
 
     static String *tp_basicsize = NewStringf("sizeof(SwigPyObject)");
-    static String *tp_dictoffset_default = NewString("offsetof(SwigPyObject, dict)");
+    static String *tp_dictoffset_default = NewString("offsetof(SwigPyObject, swigdict)");
     static String *tp_hash = NewString("SwigPyObject_hash");
     static String *tp_new = NewString("PyType_GenericNew");
     String *tp_as_number = NewStringf("&%s_type.as_number", templ);
