@@ -155,6 +155,9 @@ jobs:
         - SWIGLANG: python
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
+          VER: '3.8'
+          SWIG_FEATURES: -builtin
+        - SWIGLANG: python
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
           VER: '3.13'
