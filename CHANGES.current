@@ -7,19 +7,17 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-06-18: wsfulton
+            [Python] #3196 Add support for -builtin and heap types turned on with
+            -DSWIG_HEAPTYPES. This is an important step towards supporting a number of
+            modern Python wrapper features including Py_LIMITED_API (Stable ABI compliance),
+            and sharing types between interpreters.
+
 2025-06-17: olly
 	    #3197 Improve parsing of expressions related to functions calls
 	    and/or member access.  For example, the following no longer give
 	    parse errors:  `g().d()`, `g().D`, `a::b.c()`, `x::y.z`, `(f(1) <
 	    g(2))`, `sizeof f(a,b)`
-
-2025-06-11: wsfulton
-            [Python] Add support for -builtin and heap types turned on with
-            -DSWIG_HEAPTYPES. This is an important step towards supporting a number of
-            modern Python wrapper features including Py_LIMITED_API (Stable ABI compliance),
-            and sharing types between interpreters. Caveat is that currently only
-            python-3.12 and later is required when wrapping C++ classes involved in
-            multiple inheritance, so consider this experimental for now.
 
 2025-06-11: wsfulton
             Remove pyname_compat.i file providing legacy names which changed in

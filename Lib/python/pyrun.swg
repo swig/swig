@@ -63,7 +63,6 @@
 #define SWIG_Error(code, msg)            		SWIG_Python_SetErrorMsg(SWIG_ErrorType(code), msg) 
 #define SWIG_fail                        		goto fail					   
 
-
 /* Runtime API implementation */
 
 /* Error manipulation */
@@ -352,12 +351,6 @@ SwigVarLink_setattr(PyObject *o, char *n, PyObject *p) {
   return res;
 }
 
-#if !defined(SWIGPYTHON_BUILTIN) && PY_VERSION_HEX >= 0x03030000
-#if !defined(SWIG_HEAPTYPES)
-#define SWIG_HEAPTYPES
-#endif
-#endif
-
 SWIGINTERN PyTypeObject*
 SwigVarLink_TypeOnce(void) {
   static char SwigVarLink_doc[] = "Swig variable link object";
@@ -633,9 +626,7 @@ typedef struct {
   swig_type_info *ty;
   int own;
   PyObject *next;
-#ifdef SWIGPYTHON_BUILTIN
-  PyObject *dict;
-#endif
+  PyObject *swigdict;
 } SwigPyObject;
 
 
@@ -646,11 +637,11 @@ SwigPyObject_get___dict__(PyObject *v, PyObject *SWIGUNUSEDPARM(args))
 {
   SwigPyObject *sobj = (SwigPyObject *)v;
 
-  if (!sobj->dict)
-    sobj->dict = PyDict_New();
+  if (!sobj->swigdict)
+    sobj->swigdict = PyDict_New();
 
-  SWIG_Py_XINCREF(sobj->dict);
-  return sobj->dict;
+  SWIG_Py_XINCREF(sobj->swigdict);
+  return sobj->swigdict;
 }
 
 #endif
@@ -862,9 +853,7 @@ SwigPyObject_dealloc(PyObject *v)
     SWIG_Py_XDECREF(Swig_Capsule_global);
   }
   SWIG_Py_XDECREF(next);
-#ifdef SWIGPYTHON_BUILTIN
-  SWIG_Py_XDECREF(sobj->dict);
-#endif
+  SWIG_Py_XDECREF(sobj->swigdict);
   PyObject_Free(v);
 }
 
@@ -1086,6 +1075,10 @@ SwigPyObject_TypeOnce(void) {
   }
   return &swigpyobject_type;
 #else
+  static PyMemberDef SwigPyObject_members[] = {
+      { (char *)"__dictoffset__", Py_T_PYSSIZET, offsetof(SwigPyObject, swigdict), Py_READONLY, NULL },
+      { NULL, 0, 0, 0, NULL }
+  };
   PyType_Slot slots[] = {
     { Py_tp_dealloc, (void *)SwigPyObject_dealloc },
     { Py_tp_repr, (void *)SwigPyObject_repr },
@@ -1094,6 +1087,7 @@ SwigPyObject_TypeOnce(void) {
     { Py_tp_richcompare, (void *)SwigPyObject_richcompare },
     { Py_tp_methods, (void *)SwigPyObject_methods },
     { Py_nb_int, (void *)SwigPyObject_long },
+    { Py_tp_members, (void *)SwigPyObject_members },
     { 0, NULL }
   };
   PyType_Spec spec = {
@@ -1105,6 +1099,15 @@ SwigPyObject_TypeOnce(void) {
   };
   PyObject *pytype = PyType_FromSpec(&spec);
   PyObject *runtime_data_module = SWIG_runtime_data_module();
+#ifdef SWIGPYTHON_BUILTIN
+/* TODO: While this __dictoffset__ is only used with the builtin wrappers, SwigPyObject ought to be
+   identical when created for use by proxy classes in case it is shared across multiple modules. */
+#if PY_VERSION_HEX < 0x03090000
+    /* Workaround as __dictoffset__ above is only supported from python-3.9 */
+  if (pytype)
+    ((PyTypeObject *)pytype)->tp_dictoffset = offsetof(SwigPyObject, swigdict);
+#endif
+#endif
   if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObject", pytype) == 0)
     SWIG_Py_INCREF(pytype);
   return (PyTypeObject *)pytype;
@@ -1120,9 +1123,7 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
     sobj->ty   = ty;
     sobj->own  = own;
     sobj->next = 0;
-#ifdef SWIGPYTHON_BUILTIN
-    sobj->dict = 0;
-#endif
+    sobj->swigdict = 0;
     if (own == SWIG_POINTER_OWN) {
       /* Obtain a reference to the Python capsule wrapping the module information, so that the
        * module information is correctly destroyed after all SWIG python objects have been freed
@@ -1787,17 +1788,13 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
 	  newobj = (SwigPyObject *) newobj->next;
         newobj->next = next_self;
         newobj = (SwigPyObject *)next_self;
-#ifdef SWIGPYTHON_BUILTIN
-        newobj->dict = 0;
-#endif
+        newobj->swigdict = 0;
       }
     } else {
       newobj = PyObject_New(SwigPyObject, clientdata->pytype);
-#ifdef SWIGPYTHON_BUILTIN
       if (newobj) {
-        newobj->dict = 0;
+        newobj->swigdict = 0;
       }
-#endif
     }
     if (newobj) {
       newobj->ptr = ptr;
