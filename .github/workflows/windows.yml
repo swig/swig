@@ -61,7 +61,6 @@ jobs:
           VER: '3.9'
         - SWIGLANG: python
           VER: '3.13'
-          continue-on-error: true # Temporary until 3.13.5 is released, see https://github.com/swig/swig/issues/3198
        #  TODO require fixing of probing in configure.ac
        #- SWIGLANG: python
        #  INSTALL: 'true'
