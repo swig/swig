@@ -1099,9 +1099,9 @@ SwigPyObject_TypeOnce(void) {
   };
   PyObject *pytype = PyType_FromSpec(&spec);
   PyObject *runtime_data_module = SWIG_runtime_data_module();
-#ifdef SWIGPYTHON_BUILTIN
-/* TODO: While this __dictoffset__ is only used with the builtin wrappers, SwigPyObject ought to be
-   identical when created for use by proxy classes in case it is shared across multiple modules. */
+# if !defined(Py_LIMITED_API)
+/* While this __dictoffset__ is only used with the builtin wrappers, SwigPyObject ought to be
+   identical when created for use by proxy class wrappers in case it is shared across multiple modules. */
 #if PY_VERSION_HEX < 0x03090000
     /* Workaround as __dictoffset__ above is only supported from python-3.9 */
   if (pytype)
