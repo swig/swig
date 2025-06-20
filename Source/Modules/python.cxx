@@ -4420,13 +4420,19 @@ public:
     Printv(f, "#else\n", NIL);
 
     Printf(f, "static PyTypeObject *%s_type_create(PyTypeObject *type, PyTypeObject **bases, PyObject *dict) {\n", templ);
+
+    // All slots
     Printf(f, "  PyType_Slot slots[] = {\n");
+
+    // tp slots
     printSlot2(f, getSlot(n, "feature:python:tp_init", tp_init), "tp_init", "initproc");
     printSlot2(f, getSlot(n, "feature:python:tp_dealloc", tp_dealloc_bad), "tp_dealloc", "destructor");
     printSlot2(f, getSlot(n, "feature:python:tp_alloc"), "tp_alloc", "allocfunc");
+    printSlot2(f, getSlot(n, "feature:python:tp_new"), "tp_new", "newfunc");
     printSlot2(f, getSlot(n, "feature:python:tp_free"), "tp_free", "freefunc");
     printSlot2(f, getSlot(n, "feature:python:tp_is_gc"), "tp_is_gc", "inquiry");
-    printSlot2(f, getSlot(n, "feature:python:tp_del"), "tp_del", "destructor");
+    printSlot2(f, getSlot(n, "feature:python:tp_finalize"), "tp_finalize", "destructor");
+    printSlot2(f, getSlot(n, "feature:python:tp_vectorcall"), "tp_vectorcall", "vectorcallfunc");
 
     if (have_docstring(n)) {
       String *ds = cdocstring(n, AUTODOC_CLASS);
@@ -4438,12 +4444,14 @@ public:
     } else {
       printSlot2(f, quoted_tp_doc_str, "tp_doc");
     }
+
     printSlot2(f, getSlot(n, "feature:python:tp_repr"), "tp_repr", "reprfunc");
     printSlot2(f, getSlot(n, "feature:python:tp_str"), "tp_str", "reprfunc");
     printSlot2(f, getSlot(n, "feature:python:tp_traverse"), "tp_traverse", "traverseproc");
     printSlot2(f, getSlot(n, "feature:python:tp_clear"), "tp_clear", "inquiry");
     printSlot2(f, getSlot(n, "feature:python:tp_richcompare", richcompare_func), "tp_richcompare", "richcmpfunc");
     printSlot2(f, getSlot(n, "feature:python:tp_methods", methods_name), "tp_methods");
+    // printSlot2(f, getSlot(n, "feature:python:tp_members"), "tp_members");
     printSlot2(f, getSlot(n, "feature:python:tp_getset", getset_name), "tp_getset");
     printSlot2(f, getSlot(n, "feature:python:tp_hash", tp_hash), "tp_hash", "hashfunc");
     printSlot2(f, getSlot(n, "feature:python:tp_call"), "tp_call", "ternaryfunc");
@@ -4451,13 +4459,23 @@ public:
     printSlot2(f, getSlot(n, "feature:python:tp_setattro"), "tp_setattro", "setattrofunc");
     printSlot2(f, getSlot(n, "feature:python:tp_descr_get"), "tp_descr_get", "descrgetfunc");
     printSlot2(f, getSlot(n, "feature:python:tp_descr_set"), "tp_descr_set", "descrsetfunc");
-    printSlot2(f, getSlot(n, "feature:python:mp_length"), "mp_length", "lenfunc");
-    printSlot2(f, getSlot(n, "feature:python:mp_subscript"), "mp_subscript", "binaryfunc");
-    printSlot2(f, getSlot(n, "feature:python:mp_ass_subscript"), "mp_ass_subscript", "objobjargproc");
     printSlot2(f, getSlot(n, "feature:python:tp_iter"), "tp_iter", "getiterfunc");
     printSlot2(f, getSlot(n, "feature:python:tp_iternext"), "tp_iternext", "iternextfunc");
-    //
-    // nb_* slots
+
+    // effectively deprecated slots, see https://docs.python.org/3/c-api/typeobj.html:
+    //  tp_getattr
+    //  tp_setattr
+    //  tp_weaklistoffset
+    //  tp_dictoffset
+    //  tp_del
+
+    // async method slots
+    printSlot2(f, getSlot(n, "feature:python:am_await"), "am_await", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:am_aiter"), "am_aiter", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:am_anext"), "am_anext", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:am_send"), "am_send", "sendfunc");
+
+    // number slots
     printSlot2(f, getSlot(n, "feature:python:nb_add"), "nb_add", "binaryfunc");
     printSlot2(f, getSlot(n, "feature:python:nb_subtract"), "nb_subtract", "binaryfunc");
     printSlot2(f, getSlot(n, "feature:python:nb_multiply"), "nb_multiply", "binaryfunc");
@@ -4491,8 +4509,15 @@ public:
     printSlot2(f, getSlot(n, "feature:python:nb_inplace_floor_divide"), "nb_inplace_floor_divide", "binaryfunc");
     printSlot2(f, getSlot(n, "feature:python:nb_inplace_divide"), "nb_inplace_true_divide", "binaryfunc");
     printSlot2(f, getSlot(n, "feature:python:nb_index"), "nb_index", "unaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_matrix_multiply"), "nb_matrix_multiply", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:nb_inplace_matrix_multiply"), "nb_inplace_matrix_multiply", "binaryfunc");
 
-    // sequence
+    // mapping slots
+    printSlot2(f, getSlot(n, "feature:python:mp_length"), "mp_length", "lenfunc");
+    printSlot2(f, getSlot(n, "feature:python:mp_subscript"), "mp_subscript", "binaryfunc");
+    printSlot2(f, getSlot(n, "feature:python:mp_ass_subscript"), "mp_ass_subscript", "objobjargproc");
+
+    // sequence slots
     printSlot2(f, getSlot(n, "feature:python:sq_length"), "sq_length", "lenfunc");
     printSlot2(f, getSlot(n, "feature:python:sq_concat"), "sq_concat", "binaryfunc");
     printSlot2(f, getSlot(n, "feature:python:sq_repeat"), "sq_repeat", "ssizeargfunc");
@@ -4501,6 +4526,10 @@ public:
     printSlot2(f, getSlot(n, "feature:python:sq_contains"), "sq_contains", "objobjproc");
     printSlot2(f, getSlot(n, "feature:python:sq_inplace_concat"), "sq_inplace_concat", "binaryfunc");
     printSlot2(f, getSlot(n, "feature:python:sq_inplace_repeat"), "sq_inplace_repeat", "ssizeargfunc");
+
+    // buffer slots
+    printSlot2(f, getSlot(n, "feature:python:bf_getbuffer"), "bf_getbuffer", "getbufferproc");
+    printSlot2(f, getSlot(n, "feature:python:bf_releasebuffer"), "bf_releasebuffer", "releasebufferproc");
 
     Printf(f, "    { 0, NULL }\n");
     Printf(f, "  };\n");
