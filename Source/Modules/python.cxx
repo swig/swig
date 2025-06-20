@@ -4458,7 +4458,7 @@ public:
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:tp_clear"), "tp_clear", "inquiry");
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:tp_richcompare", richcompare_func), "tp_richcompare", "richcmpfunc");
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:tp_methods", methods_name), "tp_methods");
-    // printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:tp_members"), "tp_members");
+    printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:tp_members"), "tp_members");
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:tp_getset", getset_name), "tp_getset");
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:tp_hash", tp_hash), "tp_hash", "hashfunc");
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:tp_call"), "tp_call", "ternaryfunc");

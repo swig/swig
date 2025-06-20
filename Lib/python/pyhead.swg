@@ -1,4 +1,4 @@
-#if !defined(SWIGPYTHON_BUILTIN) && PY_VERSION_HEX >= 0x03030000
+#if PY_VERSION_HEX >= 0x03030000 && !defined(SWIG_NO_HEAPTYPES)
 #if !defined(SWIG_HEAPTYPES)
 #define SWIG_HEAPTYPES
 #endif
