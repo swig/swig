@@ -40,9 +40,6 @@ extern "C" {
 
 #define SWIG_fail goto fail
 
-static const char *default_error_msg = "Unknown error occurred";
-static int default_error_code = E_ERROR;
-
 #define SWIG_PHP_Arg_Error_Msg(argnum,extramsg) "Error in argument " #argnum " "#extramsg
 
 #define SWIG_PHP_Error(code,msg) do { zend_throw_exception(NULL, msg, code); SWIG_fail; } while (0)
