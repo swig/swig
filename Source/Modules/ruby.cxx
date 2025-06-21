@@ -1151,7 +1151,8 @@ public:
       mod_docstring = NULL;
     }
 
-    Printf(f_header, "static VALUE %s;\n", modvar);
+    if (!useGlobalModule)
+      Printf(f_header, "static VALUE %s;\n", modvar);
 
     /* Start generating the initialization function */
     String* docs = docstring(n, AUTODOC_CLASS);
