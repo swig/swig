@@ -161,7 +161,7 @@ jobs:
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
           VER: '3.8'
-          PY_ABI_VER: '3.4'
+          PY_ABI_VER: '3.5'
         - SWIGLANG: r
           os: ubuntu-24.04
         - SWIGLANG: ruby

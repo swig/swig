@@ -173,8 +173,7 @@ Basics</a>" chapter.
 
 <p>
 SWIG is compatible
-with all recent Python versions (Python 2.7 and Python &gt;= 3.5).  Python 3.3
-and 3.4 may still work but we are no longer regularly testing with them.
+with all recent Python versions (Python 2.7 and Python &gt;= 3.5).
 SWIG-4.0 supported Python 3.2.  SWIG-3.0 supported older Python 2.x and 3.x.
 </p>
 
@@ -4189,19 +4188,19 @@ This is enabled by defining <tt>Py_LIMITED_API</tt> during the compilation of th
 </p>
 
 <p>
-SWIG supports the stable ABI, but only version 3.4 of Python and later is supported.
-There are two recommended approaches for using SWIG and the stable ABI and both require setting the <tt>Py_LIMITED_API</tt> macro to be set to <tt>0x03040000</tt> as a minimum value (Python 3.4).
+SWIG supports the stable ABI, but only version 3.5 of Python and later is supported.
+There are two recommended approaches for using SWIG and the stable ABI and both require setting the <tt>Py_LIMITED_API</tt> macro to be set to <tt>0x03050000</tt> as a minimum value (Python 3.5).
 Either set this using <tt>%begin</tt> by adding the following into your interface file so that this macro appears at the beginning of the generated C/C++ code:
 </p>
 
 <div class="code"><pre>
 %begin %{
-#define Py_LIMITED_API 0x03040000
+#define Py_LIMITED_API 0x03050000
 %}
 </pre></div>
 
 <p>
-or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line option, for example, <tt>-DPy_LIMITED_API=0x03040000</tt>.
+or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line option, for example, <tt>-DPy_LIMITED_API=0x03050000</tt>.
 </p>
 
 <p>
