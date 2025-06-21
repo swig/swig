@@ -2886,13 +2886,7 @@ public:
     }
 
     /* Generate code for argument marshalling */
-    if (funpack) {
-      if (num_arguments > (builtin_self && !constructor ? 1 : 0) && !overname) {
-	sprintf(source, "PyObject *swig_obj[%d]", num_arguments);
-	Wrapper_add_localv(f, "swig_obj", source, NIL);
-      }
-    }
-
+    bool swig_obj_added = false;
 
     if (constructor && num_arguments == 1 && num_required == 1) {
       if (Cmp(storage, "explicit") == 0) {
@@ -2928,9 +2922,14 @@ public:
       }
       if (!parse_from_tuple)
 	sprintf(source, "self");
-      else if (funpack)
+      else if (funpack) {
+	if (!swig_obj_added && !overname) {
+	  sprintf(source, "PyObject *swig_obj[%d]", num_arguments);
+	  Wrapper_add_localv(f, "swig_obj", source, NIL);
+	  swig_obj_added = true;
+	}
 	sprintf(source, "swig_obj[%d]", add_self && !overname ? i - 1 : i);
-      else
+      } else
 	sprintf(source, "obj%d", builtin_ctor ? i + 1 : i);
 
       if (parse_from_tuple) {
