@@ -1251,6 +1251,13 @@ public:
 
   String *runtimeCode() {
     String *s = NewString("");
+    String *sincludes = Swig_include_sys("tclincludes.swg");
+    if (!sincludes) {
+      Printf(stderr, "*** Unable to open 'tclincludes.swg'\n");
+    } else {
+      Append(s, sincludes);
+      Delete(sincludes);
+    }
     String *serrors = Swig_include_sys("tclerrors.swg");
     if (!serrors) {
       Printf(stderr, "*** Unable to open 'tclerrors.swg'\n");

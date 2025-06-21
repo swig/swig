@@ -6759,45 +6759,51 @@ expr           : valexpr
                }
 	       ;
 
-/* simple member access expressions */
-exprmem        : ID[lhs] ARROW ID[rhs] {
+/* member access expressions and function calls */
+exprmem        : idcolon ARROW ID {
 		 $$ = default_dtype;
-		 $$.val = NewStringf("%s->%s", $lhs, $rhs);
-	       }
-	       | ID[lhs] ARROW ID[rhs] LPAREN {
-		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
-		 $$ = default_dtype;
-		 $$.val = NewStringf("%s->%s", $lhs, $rhs);
-		 append_expr_from_scanner($$.val);
+		 $$.val = NewStringf("%s->%s", $idcolon, $ID);
 	       }
 	       | exprmem[in] ARROW ID {
 		 $$ = $in;
 		 Printf($$.val, "->%s", $ID);
 	       }
-	       | exprmem[in] ARROW ID LPAREN {
-		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
-		 $$ = $in;
-		 Printf($$.val, "->%s", $ID);
-		 append_expr_from_scanner($$.val);
-	       }
-	       | ID[lhs] PERIOD ID[rhs] {
+	       | idcolon PERIOD ID {
 		 $$ = default_dtype;
-		 $$.val = NewStringf("%s.%s", $lhs, $rhs);
-	       }
-	       | ID[lhs] PERIOD ID[rhs] LPAREN {
-		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
-		 $$ = default_dtype;
-		 $$.val = NewStringf("%s.%s", $lhs, $rhs);
-		 append_expr_from_scanner($$.val);
+		 $$.val = NewStringf("%s.%s", $idcolon, $ID);
 	       }
 	       | exprmem[in] PERIOD ID {
 		 $$ = $in;
 		 Printf($$.val, ".%s", $ID);
 	       }
-	       | exprmem[in] PERIOD ID LPAREN {
+	       | exprmem[in] LPAREN {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = $in;
-		 Printf($$.val, ".%s", $ID);
+		 append_expr_from_scanner($$.val);
+	       }
+	       | type LPAREN {
+		 $$ = default_dtype;
+		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+
+		 String *qty = Swig_symbol_type_qualify($type, 0);
+		 if (SwigType_istemplate(qty)) {
+		   String *nstr = SwigType_namestr(qty);
+		   Delete(qty);
+		   qty = nstr;
+		 }
+		 /* Try to deduce the type - this could be a C++ "constructor
+		  * cast" such as `double(4)` or a function call such as
+		  * `some_func()`.  In the latter case we get T_USER, but that
+		  * is wrong so we map it to T_UNKNOWN until we can actually
+		  * deduce the return type of a function call (which is
+		  * complicated because the return type can vary between
+		  * overloaded forms).
+		  */
+		 $$.type = SwigType_type(qty);
+		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
+		 $$.unary_arg_type = 0;
+
+		 $$.val = qty;
 		 append_expr_from_scanner($$.val);
 	       }
 	       ;
@@ -7317,31 +7323,6 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
                  $$.val = NewStringf("!%s", $in.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-               | type LPAREN {
-		 $$ = default_dtype;
-		 if (skip_balanced('(',')') < 0) Exit(EXIT_FAILURE);
-
-		 String *qty = Swig_symbol_type_qualify($type, 0);
-		 if (SwigType_istemplate(qty)) {
-		   String *nstr = SwigType_namestr(qty);
-		   Delete(qty);
-		   qty = nstr;
-		 }
-		 /* Try to deduce the type - this could be a C++ "constructor
-		  * cast" such as `double(4)` or a function call such as
-		  * `some_func()`.  In the latter case we get T_USER, but that
-		  * is wrong so we map it to T_UNKNOWN until we can actually
-		  * deduce the return type of a function call (which is
-		  * complicated because the return type can vary between
-		  * overloaded forms).
-		  */
-		 $$.type = SwigType_type(qty);
-		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
-		 $$.unary_arg_type = 0;
-
-		 $$.val = qty;
-		 append_expr_from_scanner($$.val);
-               }
                ;
 
 variadic_opt  : ELLIPSIS {

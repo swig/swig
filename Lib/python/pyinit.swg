@@ -4,10 +4,6 @@
 
 %insert(init) "swiginit.swg"
 
-#if defined(SWIGPYTHON_BUILTIN)
-%fragment("<stddef.h>"); // For offsetof
-#endif
-
 #if defined SWIGPYTHON_FASTPROXY && !defined SWIGPYTHON_BUILTIN
 
 %insert(runtime) %{
@@ -254,8 +250,10 @@ SWIG_init(void) {
   (void)self;
 
   /* Metaclass is used to implement static member variables */
-  metatype = SwigPyObjectType();
+  metatype = SwigPyObjectType_Type();
   assert(metatype);
+
+  SwigPyStaticVar_Type();
 #endif
 
   (void)globals;
@@ -264,9 +262,10 @@ SWIG_init(void) {
   SWIG_runtime_data_module();
   SWIG_This();
   SWIG_Python_TypeCache();
-  SwigPyPacked_type();
+  SwigPyPacked_Type();
+  SwigVarLink_Type();
 #ifndef SWIGPYTHON_BUILTIN
-  SwigPyObject_type();
+  SwigPyObject_Type();
 #endif
 
   /* Fix SwigMethods to carry the callback ptrs when needed */
@@ -305,11 +304,11 @@ SWIG_init(void) {
   }
 
   /* All objects have a 'this' attribute */
-  this_descr = PyDescr_NewGetSet(SwigPyObject_type(), &this_getset_def);
+  this_descr = PyDescr_NewGetSet(SwigPyObject_Type(), &this_getset_def);
   (void)this_descr;
 
   /* All objects have a 'thisown' attribute */
-  thisown_descr = PyDescr_NewGetSet(SwigPyObject_type(), &thisown_getset_def);
+  thisown_descr = PyDescr_NewGetSet(SwigPyObject_Type(), &thisown_getset_def);
   (void)thisown_descr;
 
   public_interface = PyList_New(0);

@@ -398,7 +398,6 @@ int emit_action_code(Node *n, String *wrappercode, String *eaction) {
   if ((tm) && Len(tm) && (Strcmp(tm, "1") != 0)) {
     if (Strchr(tm, '$')) {
       Swig_replace_special_variables(n, parentNode(n), tm);
-      Replaceall(tm, "$function", eaction); // deprecated
       Replaceall(tm, "$action", eaction);
     }
     Printv(wrappercode, tm, "\n", NIL);
