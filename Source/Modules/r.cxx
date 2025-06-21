@@ -533,14 +533,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   /*  Using weird name and struct to avoid potential conflicts. */
   Wrapper_add_local(f, "r_swig_cb_data", "RCallbackFunctionData *r_swig_cb_data = R_SWIG_getCallbackFunctionData()");
   String *lvar = NewString("r_swig_cb_data");
-
-  Wrapper_add_local(f, "r_tmp", "SEXP r_tmp"); // for use in converting arguments to R objects for call.
-  Wrapper_add_local(f, "r_nprotect", "int r_nprotect = 0"); // for use in converting arguments to R objects for call.
-  Wrapper_add_local(f, "r_vmax", "char * r_vmax= 0"); // for use in converting arguments to R objects for call.
-
-  // Add local for error code in return value.  This is not in emit_return_variable because that assumes an out typemap
-  // whereas the type makes are reverse
-  Wrapper_add_local(f, "ecode", "int ecode = 0");
+  bool r_tmp_needed = false;
 
   p = parms;
   int nargs = ParmList_len(parms);
@@ -578,13 +571,13 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
       Replaceall(tm,"$owner", "0");
       Delete(lstr);
     } 
-    
+
+    r_tmp_needed = true;
     Printf(setExprElements, "%s\n", tm);
     Printf(setExprElements, "SETCAR(r_swig_cb_data->el, %s);\n", "r_tmp");
     Printf(setExprElements, "r_swig_cb_data->el = CDR(r_swig_cb_data->el);\n\n");
 
     Printf(s_paramTypes, "'%s'", SwigType_manglestr(tt));
-
 
     p = nextSibling(p);
     if(p) {
@@ -594,6 +587,11 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   }
 
   Printf(f->def,  ") {\n");
+
+  if (r_tmp_needed)
+    Wrapper_add_local(f, "r_tmp", "SEXP r_tmp"); // for use in converting arguments to R objects for call.
+  Wrapper_add_local(f, "r_nprotect", "int r_nprotect = 0"); // for use in converting arguments to R objects for call.
+  Wrapper_add_local(f, "r_vmax", "char * r_vmax= 0"); // for use in converting arguments to R objects for call.
 
   Printf(f->code, "Rf_protect(%s->expr = Rf_allocVector(LANGSXP, %d));\n", lvar, nargs + 1);
   Printf(f->code, "r_nprotect++;\n");
