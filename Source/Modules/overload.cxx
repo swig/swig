@@ -428,7 +428,7 @@ static String *ReplaceFormat(const_String_or_char_ptr fmt, int j) {
 String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *maxargs) {
   int i, j;
 
-  *maxargs = 1;
+  *maxargs = 0;
 
   String *f = NewString("");
   String *sw = NewString("");
@@ -615,7 +615,7 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
 static String *overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int *maxargs, const_String_or_char_ptr fmt_fastdispatch) {
   int i, j;
 
-  *maxargs = 1;
+  *maxargs = 0;
 
   String *f = NewString("");
 
@@ -783,7 +783,7 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
 
   int i, j;
 
-  *maxargs = 1;
+  *maxargs = 0;
 
   String *f = NewString("");
 

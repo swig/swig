@@ -801,11 +801,13 @@ public:
 
     Octave_begin_function(n, f->def, iname, wname, true);
     Wrapper_add_local(f, "argc", "int argc = args.length()");
-    Printf(tmp, "octave_value_ref argv[%d]={", maxargs);
-    for (int j = 0; j < maxargs; ++j)
-      Printf(tmp, "%soctave_value_ref(args,%d)", j ? "," : " ", j);
-    Printf(tmp, "}");
-    Wrapper_add_local(f, "argv", tmp);
+    if (maxargs > 0) {
+      Printf(tmp, "octave_value_ref argv[%d]={", maxargs);
+      for (int j = 0; j < maxargs; ++j)
+	Printf(tmp, "%soctave_value_ref(args,%d)", j ? "," : " ", j);
+      Printf(tmp, "}");
+      Wrapper_add_local(f, "argv", tmp);
+    }
     Printv(f->code, dispatch, "\n", NIL);
     Printf(f->code, "error(\"No matching function for overload\");\n");
     Printf(f->code, "return octave_value_list();\n");
