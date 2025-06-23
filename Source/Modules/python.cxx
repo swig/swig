@@ -2580,6 +2580,7 @@ public:
     bool add_self = builtin_self && (!builtin_ctor || director_class);
 
     int maxargs;
+    bool check_emitted = false;
 
     String *tmp = NewString("");
     String *dispatch;
@@ -2588,7 +2589,7 @@ public:
     String *dispatch_code = NewStringf("return %s", dispatch_call);
 
     if (castmode) {
-      dispatch = Swig_overload_dispatch_cast(n, dispatch_code, &maxargs);
+      dispatch = Swig_overload_dispatch_cast(n, dispatch_code, &maxargs, &check_emitted);
     } else {
       String *fastdispatch_code;
       if (builtin_ctor)
@@ -2599,7 +2600,7 @@ public:
 	Insert(fastdispatch_code, 0, "{\n");
 	Append(fastdispatch_code, "\n}");
       }
-      dispatch = Swig_overload_dispatch(n, dispatch_code, &maxargs, fastdispatch_code);
+      dispatch = Swig_overload_dispatch(n, dispatch_code, &maxargs, &check_emitted, fastdispatch_code);
       Delete(fastdispatch_code);
     }
 

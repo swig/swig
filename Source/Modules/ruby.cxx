@@ -2043,8 +2043,9 @@ public:
     /* Last node in overloaded chain */
 
     int maxargs;
+    bool check_emitted = false;
     String *tmp = NewString("");
-    String *dispatch = Swig_overload_dispatch(n, "return %s(nargs, args, self);", &maxargs);
+    String *dispatch = Swig_overload_dispatch(n, "return %s(nargs, args, self);", &maxargs, &check_emitted);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 

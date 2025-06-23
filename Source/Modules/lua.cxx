@@ -839,8 +839,9 @@ public:
     /* Last node in overloaded chain */
 
     int maxargs;
+    bool check_emitted = false;
     String *tmp = NewString("");
-    String *dispatch = Swig_overload_dispatch(n, "return %s(L);", &maxargs);
+    String *dispatch = Swig_overload_dispatch(n, "return %s(L);", &maxargs, &check_emitted);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -861,12 +862,14 @@ public:
 
     Printv(f->def, "static int ", wname, "(lua_State* L) {", NIL);
     Wrapper_add_local(f, "argc", "int argc");
-    Printf(tmp, "int argv[%d]={1", maxargs + 1);
-    for (int i = 1; i <= maxargs; i++) {
-      Printf(tmp, ",%d", i + 1);
+    if (maxargs > 0 && check_emitted) {
+      Printf(tmp, "int argv[%d]={1", maxargs + 1);
+      for (int i = 1; i <= maxargs; i++) {
+	Printf(tmp, ",%d", i + 1);
+      }
+      Printf(tmp, "}");
+      Wrapper_add_local(f, "argv", tmp);
     }
-    Printf(tmp, "}");
-    Wrapper_add_local(f, "argv", tmp);
     Printf(f->code, "argc = lua_gettop(L);\n");
 
     Replaceall(dispatch, "$args", "self,args");

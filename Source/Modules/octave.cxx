@@ -796,12 +796,13 @@ public:
     String *iname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(iname);
     int maxargs;
-    String *dispatch = Swig_overload_dispatch(n, "return %s(args, nargout);", &maxargs);
+    bool check_emitted = false;
+    String *dispatch = Swig_overload_dispatch(n, "return %s(args, nargout);", &maxargs, &check_emitted);
     String *tmp = NewString("");
 
     Octave_begin_function(n, f->def, iname, wname, true);
     Wrapper_add_local(f, "argc", "int argc = args.length()");
-    if (maxargs > 0) {
+    if (maxargs > 0 && check_emitted) {
       Printf(tmp, "octave_value_ref argv[%d]={", maxargs);
       for (int j = 0; j < maxargs; ++j)
 	Printf(tmp, "%soctave_value_ref(args,%d)", j ? "," : " ", j);

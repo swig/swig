@@ -908,7 +908,8 @@ public:
     } else if (!Getattr(n, "sym:nextSibling")) {
       /* Generate overloaded dispatch function */
       int maxargs;
-      String *dispatch = Swig_overload_dispatch_cast(n, "PUSHMARK(MARK); SWIG_CALLXS(%s); return;", &maxargs);
+      bool check_emitted = false;
+      String *dispatch = Swig_overload_dispatch_cast(n, "PUSHMARK(MARK); SWIG_CALLXS(%s); return;", &maxargs, &check_emitted);
 
       /* Generate a dispatch wrapper for all overloaded functions */
 
