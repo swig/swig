@@ -191,7 +191,6 @@ SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyO
 
 SWIGINTERN int SWIG_mod_exec(PyObject *module);
 
-
 #ifdef __cplusplus
 extern "C"
 #endif
@@ -206,8 +205,8 @@ SWIG_init(void) {
 
 #if PY_VERSION_HEX >= 0x03000000
   static PyModuleDef_Slot SwigSlots[] = {
-    {Py_mod_exec, (void*)SWIG_mod_exec},
-    {0, NULL}
+    { Py_mod_exec, (void *)SWIG_mod_exec },
+    { 0, NULL }
   };
 
   static struct PyModuleDef SWIG_module = {
@@ -224,16 +223,12 @@ SWIG_init(void) {
 
   return PyModuleDef_Init(&SWIG_module);
 #else
-  PyObject *m;
-  m = Py_InitModule(SWIG_name, SwigMethods);
-  if (m == NULL) return;
-  if (SWIG_mod_exec(m) != 0)
-  {
+  PyObject *m = Py_InitModule(SWIG_name, SwigMethods);
+  if (m && SWIG_mod_exec(m) != 0) {
     Py_DECREF(m);
-    return;
   }
 #endif
-} /* SWIG_init */
+}
 
 SWIGINTERN int SWIG_mod_exec(PyObject *m) {
   PyObject *d, *md, *globals;
