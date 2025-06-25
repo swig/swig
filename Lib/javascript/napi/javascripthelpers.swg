@@ -240,14 +240,15 @@ void SWIG_NAPI_Callback_CallJS(Napi::Env env,
           call_context->ready = true;
           call_context->cv.notify_one();
         });
+      napi_value args[] = {on_resolve, on_reject};
+      // This is the correct way of handling a Promise
+      // from C++
+      // https://github.com/nodejs/node-addon-api/issues/1658
 #if NAPI_HAS_THREADS && !defined(__EMSCRIPTEN__)
-      js_ret.ToObject().Get("then").As<Napi::Function>().MakeCallback(js_ret, 1, &on_resolve,
-        call_context->context->js_async_context);
-      js_ret.ToObject().Get("catch").As<Napi::Function>().MakeCallback(js_ret, 1, &on_reject,
+      js_ret.ToObject().Get("then").As<Napi::Function>().MakeCallback(js_ret, 2, args,
         call_context->context->js_async_context);
 #else
-      js_ret.ToObject().Get("then").As<Napi::Function>().Call(js_ret, 1, &on_resolve);
-      js_ret.ToObject().Get("catch").As<Napi::Function>().Call(js_ret, 1, &on_reject);
+      js_ret.ToObject().Get("then").As<Napi::Function>().Call(js_ret, 2, args);
 #endif
       return;
 #else

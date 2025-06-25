@@ -1,18 +1,5 @@
 const napi_callback = require('napi_callback');
 
-// FIXME: Alas, V8, Node, or someone else with the authority to do so,
-// creates an invisible from Node-API Promise when calling
-// a JS function that returns a Promise from C++. This Promise
-// has no other effects besides the fact that it
-// triggers the Node.js unhandledRejection check.
-// The Promise does not have a stack trace and it seems to
-// be originating somewhere in the C++ code.
-// AFAIK, it is almost certainly not an expected behavior.
-// https://github.com/nodejs/node-addon-api/issues/1658
-process.on('unhandledRejection', (e) => {
-  console.log('warning, unhandled rejection', e)
-});
-
 /**
  * Sync callback
  */
