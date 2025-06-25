@@ -23,8 +23,8 @@ jobs:
     # but it won't fail the overall tests
     continue-on-error: ${{ matrix.continue-on-error || false }}
 
-    # https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md
-    runs-on: ${{ matrix.os || 'windows-2022' }}
+    # https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md
+    runs-on: ${{ matrix.os || 'windows-2025' }}
 
     # The name of the test follow the tested language
     name: >
@@ -39,13 +39,8 @@ jobs:
         - SWIGLANG: csharp
           INSTALL: 'true'
         - SWIGLANG: csharp
-          os: 'windows-2019'
-        - SWIGLANG: csharp
-          COMPILER: gcc
-        - SWIGLANG: csharp
           INSTALL: 'true'
           COMPILER: gcc
-          os: 'windows-2019'
         - SWIGLANG: java
           VER: 8
         - SWIGLANG: java
@@ -122,7 +117,7 @@ jobs:
     - name: Install CCache
       uses: hendrikmuhs/ccache-action@v1
       with:
-        key: ${{ matrix.os || 'windows-2022' }}-${{ matrix.COMPILER || 'msvc' }}
+        key: ${{ matrix.os || 'windows-2025' }}-${{ matrix.COMPILER || 'msvc' }}
 
     - name: Install NuGet Packages
       if: ${{ env.COMPILER == '' }}
