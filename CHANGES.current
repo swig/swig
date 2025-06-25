@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-06-27: ianlancetaylor
+            Use unsafe for Go strings rather than byte arrays.
+            Update minimum Go supported version to 1.20.
+
 2025-06-23: jschueller
             #3184 #3196 [Python] Support multi-phase module initialization.
 
