@@ -87,7 +87,7 @@ SwigPyBuiltin_SetterClosure (PyObject *obj, PyObject *val, void *closure) {
     return -1;
   }
   if (!val) {
-    PyErr_Format(PyExc_TypeError, "Illegal member variable deletion in type '%.300s'", obj->ob_type->tp_name);
+    PyErr_Format(PyExc_TypeError, "Illegal member variable deletion in type '%.300s'", Py_TYPE(obj)->tp_name);
     return -1;
   }
   getset = (SwigPyGetSet *)closure;
@@ -114,7 +114,7 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
     return -1;
   }
   if (!val) {
-    PyErr_Format(PyExc_TypeError, "Illegal member variable deletion in type '%.300s'", obj->ob_type->tp_name);
+    PyErr_Format(PyExc_TypeError, "Illegal member variable deletion in type '%.300s'", Py_TYPE(obj)->tp_name);
     return -1;
   }
   getset = (SwigPyGetSet *)closure;
