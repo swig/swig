@@ -86,6 +86,10 @@ SwigPyBuiltin_SetterClosure (PyObject *obj, PyObject *val, void *closure) {
     PyErr_Format(PyExc_TypeError, "Missing getset closure");
     return -1;
   }
+  if (!val) {
+    PyErr_Format(PyExc_TypeError, "Illegal member variable deletion in type '%.300s'", obj->ob_type->tp_name);
+    return -1;
+  }
   getset = (SwigPyGetSet *)closure;
   if (!getset->set) {
     PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", Py_TYPE(obj)->tp_name);
@@ -107,6 +111,10 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
   PyObject *result;
   if (!closure) {
     PyErr_Format(PyExc_TypeError, "Missing getset closure");
+    return -1;
+  }
+  if (!val) {
+    PyErr_Format(PyExc_TypeError, "Illegal member variable deletion in type '%.300s'", obj->ob_type->tp_name);
     return -1;
   }
   getset = (SwigPyGetSet *)closure;
