@@ -83,16 +83,16 @@ SwigPyBuiltin_SetterClosure (PyObject *obj, PyObject *val, void *closure) {
   SwigPyGetSet *getset;
   PyObject *tuple, *result;
   if (!closure) {
-    PyErr_Format(PyExc_TypeError, "Missing getset closure");
+    PyErr_Format(PyExc_AttributeError, "Missing getset closure");
     return -1;
   }
   if (!val) {
-    PyErr_Format(PyExc_TypeError, "Illegal member variable deletion in type '%.300s'", Py_TYPE(obj)->tp_name);
+    PyErr_Format(PyExc_AttributeError, "Illegal member variable deletion in type '%.300s'", Py_TYPE(obj)->tp_name);
     return -1;
   }
   getset = (SwigPyGetSet *)closure;
   if (!getset->set) {
-    PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", Py_TYPE(obj)->tp_name);
+    PyErr_Format(PyExc_AttributeError, "Illegal member variable assignment in type '%.300s'", Py_TYPE(obj)->tp_name);
     return -1;
   }
   tuple = PyTuple_New(1);
@@ -110,16 +110,16 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
   SwigPyGetSet *getset;
   PyObject *result;
   if (!closure) {
-    PyErr_Format(PyExc_TypeError, "Missing getset closure");
+    PyErr_Format(PyExc_AttributeError, "Missing getset closure");
     return -1;
   }
   if (!val) {
-    PyErr_Format(PyExc_TypeError, "Illegal member variable deletion in type '%.300s'", Py_TYPE(obj)->tp_name);
+    PyErr_Format(PyExc_AttributeError, "Illegal member variable deletion in type '%.300s'", Py_TYPE(obj)->tp_name);
     return -1;
   }
   getset = (SwigPyGetSet *)closure;
   if (!getset->set) {
-    PyErr_Format(PyExc_TypeError, "Illegal member variable assignment in type '%.300s'", Py_TYPE(obj)->tp_name);
+    PyErr_Format(PyExc_AttributeError, "Illegal member variable assignment in type '%.300s'", Py_TYPE(obj)->tp_name);
     return -1;
   }
   result = (*getset->set)(obj, val);

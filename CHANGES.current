@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-06-27: wsfulton
+            [Python] Raise an AttributeError instead of TypeError when there are internal
+            and unexpected coding errors around member variable wrappers.
+
+2025-06-27: jim-easterbrook
+            [Python] #3206 Fix seg fault or return without exception error when attempting
+            to delete (del) a wrapped member variable (builtin wrappers). This will now
+            raise an AttributeError.
+
 2025-06-27: ianlancetaylor
             Use unsafe for Go strings rather than byte arrays.
             Update minimum Go supported version to 1.20.
