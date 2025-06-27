@@ -41,6 +41,6 @@ try:
 except AttributeError as e:
     error_message = str(e)
 
-# Check for different error messages builtin vs non-builtin wrappers
-if not ("Illegal member variable deletion" in error_message or "object has no deleter" in error_message):
+# Check for different error messages builtin vs non-builtin wrappers (error message changed in python-3.11)
+if not ("Illegal member variable deletion" in error_message or "object has no deleter" in error_message or "can't delete attribute" in error_message):
     raise RuntimeError("Unexpected error message: {}".format(error_message))
