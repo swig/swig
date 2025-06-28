@@ -9210,12 +9210,30 @@ A few things to note:
   javapackage typemap, but SWIG doesn't generate the right JNI field
   descriptor.</i>
   <p>
-  Use the template's renamed name as the argument to the "javapackage" typemap:
+  Provide the package name in a "javapackage" typemap for the type:
   </p>
 <div class="code">
 <pre>
-%typemap(javapackage)  std::vector&lt;int&gt;  "your.package.here"
+%typemap(javapackage)  std::vector&lt;int&gt;  "com.funky"
 %template(VectorOfInt) std::vector&lt;int&gt;;
+
+%feature("director") MyDirector;
+struct MyDirector {
+  virtual ~MyDirector();
+  virtual void takeVector(std::vector<int> vec);
+};
+</pre>
+</div>
+
+  <p>
+  The descriptor <tt>com/funky/VectorOfInt</tt> for <tt>VectorOfInt</tt> in the generated code
+  will then be derived from the provided package "com.funky". Below shows the relevant snippet of generated code
+  with the full descriptor:
+  </p>
+
+<div class="code">
+<pre>
+    SwigDirectorMethod(jenv, baseclass, "takeVector", "(Lcom/funky/VectorOfInt;)V")
 </pre>
 </div>
   </li>
