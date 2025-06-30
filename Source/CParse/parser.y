@@ -3600,7 +3600,7 @@ c_decl  : attribute[decl_attr] storage_class type declarator cpp_const attribute
 	   // definition.  A C++ compiler will deduce the return type when it
 	   // sees the corresponding definition, but SWIG may never see that
 	   // definition.
-	   | storage_class AUTO declarator cpp_const SEMI {
+	   | attribute storage_class AUTO declarator cpp_const SEMI {
 	      $$ = new_node("cdecl");
 	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
 	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
