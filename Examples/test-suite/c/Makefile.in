@@ -72,6 +72,7 @@ FAILING_CPP_TESTS := \
     nested_class \
     private_assign \
     special_variable_macros \
+    string_constants \
     template_basic \
     template_default \
     template_enum \

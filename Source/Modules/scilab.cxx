@@ -571,9 +571,10 @@ public:
     String *functionName = Getattr(node, "sym:name");
     String *wrapperName = Swig_name_wrapper(functionName);
     int maxargs = 0;
+    bool check_emitted = false;
 
     /* Generate the dispatch function */
-    String *dispatch = Swig_overload_dispatch(node, "return %s(SWIG_GatewayArguments);", &maxargs);
+    String *dispatch = Swig_overload_dispatch(node, "return %s(SWIG_GatewayArguments);", &maxargs, &check_emitted);
     String *tmp = NewString("");
 
     Printv(wrapper->def, "SWIGEXPORT int ", wrapperName, "(SWIG_GatewayParameters) {\n", NIL);

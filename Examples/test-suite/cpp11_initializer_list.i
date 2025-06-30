@@ -18,6 +18,19 @@
 #endif
 %}
 
+#if defined(SWIGLUA) || defined(SWIGOCTAVE)
+%{
+// The empty typecheck typemap for std::initializer_list results in $input not being used and a resulting unused variable warning
+#if defined(__GNUC__)
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#elif defined(__clang__)
+#pragma clang diagnostic ignored "-Wunused-variable"
+#elif defined(_MSC_VER)
+#pragma warning(disable : 4990)
+#endif
+%}
+#endif
+
 %inline %{
 #include <initializer_list>
 #include <string>

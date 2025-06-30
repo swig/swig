@@ -27,9 +27,7 @@ jobs:
       matrix:
         include:
         - VER: '17 2022'
-          os: 'windows-2022'
-        - VER: '16 2019'
-          os: 'windows-2019'
+          os: 'windows-2025'
 
     env:
       BUILD_SYS: Visual Studio ${{ matrix.VER }}

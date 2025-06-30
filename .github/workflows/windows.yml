@@ -24,12 +24,13 @@ jobs:
     # but it won't fail the overall tests
     continue-on-error: ${{ matrix.continue-on-error || false }}
 
-    # https://github.com/actions/runner-images/blob/main/images/windows/Windows2022-Readme.md
-    runs-on: ${{ matrix.os || 'windows-2022' }}
+    # https://github.com/actions/runner-images/blob/main/images/windows/Windows2025-Readme.md
+    runs-on: ${{ matrix.os || 'windows-2025' }}
 
     # The name of the test follow the tested language
     name: >
       ${{ matrix.SWIGLANG }} ${{ matrix.VER }}
+      ${{ matrix.SWIG_FEATURES }}
       ${{ matrix.COMPILER || 'msvc' }} ${{ matrix.os }} ${{ matrix.NOTEST }}
       ${{ matrix.continue-on-error && '(can fail)' }}
 
@@ -39,13 +40,8 @@ jobs:
         - SWIGLANG: csharp
           INSTALL: 'true'
         - SWIGLANG: csharp
-          os: 'windows-2019'
-        - SWIGLANG: csharp
-          COMPILER: gcc
-        - SWIGLANG: csharp
           INSTALL: 'true'
           COMPILER: gcc
-          os: 'windows-2019'
         - SWIGLANG: java
           VER: 8
         - SWIGLANG: java
@@ -60,6 +56,9 @@ jobs:
           VER: 11
         - SWIGLANG: python
           VER: '3.9'
+        - SWIGLANG: python
+          VER: '3.10'
+          SWIG_FEATURES: -builtin
         - SWIGLANG: python
           VER: '3.13'
        #  TODO require fixing of probing in configure.ac
@@ -87,11 +86,12 @@ jobs:
       PCRE2_CCCL_LD: '-lpcre2-8-static --cccl-link /NODEFAULTLIB:MSVCRT'
       CHECK_OPTIONS: 'CSHARPOPTIONS=-platform:x64'
       SWIGLANG: ${{ matrix.SWIGLANG }}
+      VER: ${{ matrix.VER }}
+      SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
       COMPILER: ${{ matrix.COMPILER }}
+      OS: ${{ matrix.os }}
       INSTALL: ${{ matrix.INSTALL }}
       NOTEST: ${{ matrix.NOTEST }}
-      VER: ${{ matrix.VER }}
-      OS: ${{ matrix.os }}
 
 # cl.exe:
 #  https://learn.microsoft.com//cpp/build/reference/compiler-options
@@ -118,7 +118,7 @@ jobs:
     - name: Install CCache
       uses: hendrikmuhs/ccache-action@v1
       with:
-        key: ${{ matrix.os || 'windows-2022' }}-${{ matrix.COMPILER || 'msvc' }}
+        key: ${{ matrix.os || 'windows-2025' }}-${{ matrix.COMPILER || 'msvc' }}
 
     - name: Install NuGet Packages
       if: ${{ env.COMPILER == '' }}

@@ -777,7 +777,15 @@ private:
     }
     if (numval) {
       SwigType *resolved_type = SwigType_typedef_resolve_all(type);
-      SwigType *unqualified_type = SwigType_strip_qualifiers(resolved_type);
+      SwigType *unqualified_type = NIL;
+      if (SwigType_isreference(resolved_type)) {
+	  SwigType *t = Copy(resolved_type);
+	  t = SwigType_del_reference(t);
+	  unqualified_type = SwigType_strip_qualifiers(t);
+	  Delete(t);
+      } else {
+	  unqualified_type = SwigType_strip_qualifiers(resolved_type);
+      }
       if (Equal(unqualified_type, "bool")) {
 	Delete(resolved_type);
 	Delete(unqualified_type);
@@ -1143,7 +1151,8 @@ public:
       mod_docstring = NULL;
     }
 
-    Printf(f_header, "static VALUE %s;\n", modvar);
+    if (!useGlobalModule)
+      Printf(f_header, "static VALUE %s;\n", modvar);
 
     /* Start generating the initialization function */
     String* docs = docstring(n, AUTODOC_CLASS);
@@ -2034,8 +2043,9 @@ public:
     /* Last node in overloaded chain */
 
     int maxargs;
+    bool check_emitted = false;
     String *tmp = NewString("");
-    String *dispatch = Swig_overload_dispatch(n, "return %s(nargs, args, self);", &maxargs);
+    String *dispatch = Swig_overload_dispatch(n, "return %s(nargs, args, self);", &maxargs, &check_emitted);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 

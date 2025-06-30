@@ -3596,6 +3596,49 @@ c_decl  : attribute[decl_attr] storage_class type declarator cpp_const attribute
 		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
 	      Delete($storage_class);
 	   }
+	   // C++14.  Like the previous case but a declaration rather than a
+	   // definition.  A C++ compiler will deduce the return type when it
+	   // sees the corresponding definition, but SWIG may never see that
+	   // definition.
+	   | storage_class AUTO declarator cpp_const SEMI {
+	      $$ = new_node("cdecl");
+	      if ($cpp_const.qualifier) SwigType_push($declarator.type, $cpp_const.qualifier);
+	      Setattr($$, "refqualifier", $cpp_const.refqualifier);
+	      Setattr($$, "type", NewString("auto"));
+	      Setattr($$, "storage", $storage_class);
+	      Setattr($$, "name", $declarator.id);
+	      Setattr($$, "decl", $declarator.type);
+	      Setattr($$, "parms", $declarator.parms);
+	      Setattr($$, "throws", $cpp_const.throws);
+	      Setattr($$, "throw", $cpp_const.throwf);
+	      Setattr($$, "noexcept", $cpp_const.nexcept);
+	      Setattr($$, "final", $cpp_const.final);
+
+	      if ($declarator.id) {
+		/* Ignore all scoped declarations, could be 1. out of class function definition 2. friend function declaration 3. ... */
+		String *p = Swig_scopename_prefix($declarator.id);
+		if (p) {
+		  if ((Namespaceprefix && Strcmp(p, Namespaceprefix) == 0) ||
+		      (Classprefix && Strcmp(p, Classprefix) == 0)) {
+		    String *lstr = Swig_scopename_last($declarator.id);
+		    Setattr($$, "name", lstr);
+		    Delete(lstr);
+		  } else {
+		    Delete($$);
+		    $$ = 0;
+		  }
+		  Delete(p);
+		} else if (Strncmp($declarator.id, "::", 2) == 0) {
+		  /* global scope declaration/definition ignored */
+		  Delete($$);
+		  $$ = 0;
+		}
+	      }
+
+	      if ($cpp_const.qualifier && $storage_class && Strstr($storage_class, "static"))
+		Swig_error(cparse_file, cparse_line, "Static function %s cannot have a qualifier.\n", Swig_name_decl($$));
+	      Delete($storage_class);
+	   }
 	   /* C++11 auto variable declaration. */
 	   | attribute storage_class AUTO idcolon EQUAL definetype SEMI {
 	      SwigType *type = deduce_type(&$definetype);
@@ -6814,45 +6857,51 @@ expr           : valexpr
                }
 	       ;
 
-/* simple member access expressions */
-exprmem        : ID[lhs] ARROW ID[rhs] {
+/* member access expressions and function calls */
+exprmem        : idcolon ARROW ID {
 		 $$ = default_dtype;
-		 $$.val = NewStringf("%s->%s", $lhs, $rhs);
-	       }
-	       | ID[lhs] ARROW ID[rhs] LPAREN {
-		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
-		 $$ = default_dtype;
-		 $$.val = NewStringf("%s->%s", $lhs, $rhs);
-		 append_expr_from_scanner($$.val);
+		 $$.val = NewStringf("%s->%s", $idcolon, $ID);
 	       }
 	       | exprmem[in] ARROW ID {
 		 $$ = $in;
 		 Printf($$.val, "->%s", $ID);
 	       }
-	       | exprmem[in] ARROW ID LPAREN {
-		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
-		 $$ = $in;
-		 Printf($$.val, "->%s", $ID);
-		 append_expr_from_scanner($$.val);
-	       }
-	       | ID[lhs] PERIOD ID[rhs] {
+	       | idcolon PERIOD ID {
 		 $$ = default_dtype;
-		 $$.val = NewStringf("%s.%s", $lhs, $rhs);
-	       }
-	       | ID[lhs] PERIOD ID[rhs] LPAREN {
-		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
-		 $$ = default_dtype;
-		 $$.val = NewStringf("%s.%s", $lhs, $rhs);
-		 append_expr_from_scanner($$.val);
+		 $$.val = NewStringf("%s.%s", $idcolon, $ID);
 	       }
 	       | exprmem[in] PERIOD ID {
 		 $$ = $in;
 		 Printf($$.val, ".%s", $ID);
 	       }
-	       | exprmem[in] PERIOD ID LPAREN {
+	       | exprmem[in] LPAREN {
 		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
 		 $$ = $in;
-		 Printf($$.val, ".%s", $ID);
+		 append_expr_from_scanner($$.val);
+	       }
+	       | type LPAREN {
+		 $$ = default_dtype;
+		 if (skip_balanced('(', ')') < 0) Exit(EXIT_FAILURE);
+
+		 String *qty = Swig_symbol_type_qualify($type, 0);
+		 if (SwigType_istemplate(qty)) {
+		   String *nstr = SwigType_namestr(qty);
+		   Delete(qty);
+		   qty = nstr;
+		 }
+		 /* Try to deduce the type - this could be a C++ "constructor
+		  * cast" such as `double(4)` or a function call such as
+		  * `some_func()`.  In the latter case we get T_USER, but that
+		  * is wrong so we map it to T_UNKNOWN until we can actually
+		  * deduce the return type of a function call (which is
+		  * complicated because the return type can vary between
+		  * overloaded forms).
+		  */
+		 $$.type = SwigType_type(qty);
+		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
+		 $$.unary_arg_type = 0;
+
+		 $$.val = qty;
 		 append_expr_from_scanner($$.val);
 	       }
 	       ;
@@ -7372,31 +7421,6 @@ exprcompound   : expr[lhs] PLUS expr[rhs] {
                  $$.val = NewStringf("!%s", $in.val);
 		 $$.type = cparse_cplusplus ? T_BOOL : T_INT;
 	       }
-               | type LPAREN {
-		 $$ = default_dtype;
-		 if (skip_balanced('(',')') < 0) Exit(EXIT_FAILURE);
-
-		 String *qty = Swig_symbol_type_qualify($type, 0);
-		 if (SwigType_istemplate(qty)) {
-		   String *nstr = SwigType_namestr(qty);
-		   Delete(qty);
-		   qty = nstr;
-		 }
-		 /* Try to deduce the type - this could be a C++ "constructor
-		  * cast" such as `double(4)` or a function call such as
-		  * `some_func()`.  In the latter case we get T_USER, but that
-		  * is wrong so we map it to T_UNKNOWN until we can actually
-		  * deduce the return type of a function call (which is
-		  * complicated because the return type can vary between
-		  * overloaded forms).
-		  */
-		 $$.type = SwigType_type(qty);
-		 if ($$.type == T_USER) $$.type = T_UNKNOWN;
-		 $$.unary_arg_type = 0;
-
-		 $$.val = qty;
-		 append_expr_from_scanner($$.val);
-               }
                ;
 
 variadic_opt  : ELLIPSIS {

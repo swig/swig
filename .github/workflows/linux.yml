@@ -176,20 +176,16 @@ jobs:
           VER: '8.2'
         - SWIGLANG: php
           VER: '8.3'
+        - SWIGLANG: php
+          VER: '8.4'
         - SWIGLANG: python
           PY2: 2
         #- SWIGLANG: python
-        #  VER: '3.3'
-        #  os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
-        #- SWIGLANG: python
-        #  VER: '3.4'
-        #  os: ubuntu-18.04 # Python < 3.5 not available for 20.04.
-        #- SWIGLANG: python
         #  VER: '3.5'
-        #  os: ubuntu-20.04 # Python < 3.7 not available for 20.04.
+        #  os: ubuntu-20.04 # Python < 3.7 not available for 22.04.
         #- SWIGLANG: python
         #  VER: '3.6'
-        #  os: ubuntu-20.04 # Python < 3.7 not available for 20.04.
+        #  os: ubuntu-20.04 # Python < 3.7 not available for 22.04.
         - SWIGLANG: python
           VER: '3.7'
         - SWIGLANG: python
@@ -214,6 +210,11 @@ jobs:
           CSTD: gnu99
         - SWIGLANG: python
           VER: '3.14'
+          PY_ABI_VER: '3.14'
+          CSTD: gnu99
+          continue-on-error: true
+        - SWIGLANG: python
+          VER: '3.14'
           CSTD: gnu99
           continue-on-error: true
         - SWIGLANG: python
@@ -225,6 +226,9 @@ jobs:
         - SWIGLANG: python
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
+          VER: '3.8'
+          SWIG_FEATURES: -builtin
+        - SWIGLANG: python
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
           VER: '3.13'
@@ -234,7 +238,7 @@ jobs:
           SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
           VER: '3.8'
-          PY_ABI_VER: '3.4'
+          PY_ABI_VER: '3.5'
         - SWIGLANG: r
           os: ubuntu-24.04
         - SWIGLANG: ruby
@@ -245,20 +249,20 @@ jobs:
           VER: '2.2'
         - SWIGLANG: ruby
           VER: '2.3'
-# These all fail with ubuntu-22.04 with error:
+# Ruby 2.4 and 2.6 both fail with ubuntu-22.04 with error:
 #   Error running '__rvm_make -j4',
 #   please read /usr/share/rvm/log/1740710476_ruby-3.0.0/make.log
 #        - SWIGLANG: ruby
 #          VER: '2.4'
-#        - SWIGLANG: ruby
-#          VER: '2.5'
+        - SWIGLANG: ruby
+          VER: '2.5'
 #        - SWIGLANG: ruby
 #          VER: '2.6'
-#        - SWIGLANG: ruby
-#          VER: '2.7'
-#        - SWIGLANG: ruby
-#          VER: '3.0'
-#          CPPSTD: c++11
+        - SWIGLANG: ruby
+          VER: '2.7'
+        - SWIGLANG: ruby
+          VER: '3.0'
+          CPPSTD: c++11
         - SWIGLANG: ruby
           VER: '3.1'
           CPPSTD: c++11
@@ -275,6 +279,8 @@ jobs:
           VER: '2023.1.0'
         - SWIGLANG: scilab
           VER: '2024.1.0'
+        - SWIGLANG: scilab
+          VER: '2025.1.0'
         - SWIGLANG: tcl
         # c++11 testing
         - SWIGLANG: csharp

@@ -7,7 +7,7 @@
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
 {
-%#if PY_VERSION_HEX>=0x03000000
+%#if PY_VERSION_HEX >= 0x03000000
 %#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
   if (PyBytes_Check(obj))
 %#else
@@ -22,7 +22,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
     int ret = SWIG_OK;
     if (alloc)
       *alloc = SWIG_OLDOBJ;
-%#if PY_VERSION_HEX>=0x03000000 && defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
+%#if PY_VERSION_HEX >= 0x03000000 && defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
     if (PyBytes_AsStringAndSize(obj, &cstr, &len) == -1)
       return SWIG_TypeError;
 %#else
@@ -49,7 +49,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
 %#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
 %#error "Cannot use both SWIG_PYTHON_2_UNICODE and SWIG_PYTHON_STRICT_BYTE_CHAR at once"
 %#endif
-%#if PY_VERSION_HEX<0x03000000
+%#if PY_VERSION_HEX < 0x03000000
     if (PyUnicode_Check(obj)) {
       char *cstr; Py_ssize_t len;
       if (!alloc && cptr) {

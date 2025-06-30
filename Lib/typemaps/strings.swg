@@ -302,8 +302,7 @@
 
 /* varout */
 
-%typemap(varout,fragment=#SWIG_CharBufLen)
-  Char [ANY], const Char [ANY] {
+%typemap(varout,fragment=#SWIG_CharBufLen) Char [ANY], const Char [ANY] {
 %#ifndef SWIG_PRESERVE_CARRAY_SIZE
   size_t size = SWIG_CharBufLen($1, $1_dim0);
 %#else
@@ -382,9 +381,7 @@
  * --- Really fix size Char arrays, including '\0'chars at the end ---
  * ------------------------------------------------------------------- */
 
-%typemap(varout,noblock=1,fragment=#SWIG_FromCharPtrAndSize)
-  Char FIXSIZE[ANY], const Char FIXSIZE[ANY]
-{
+%typemap(varout,noblock=1,fragment=#SWIG_FromCharPtrAndSize) Char FIXSIZE[ANY], const Char FIXSIZE[ANY] {
   %set_varoutput(SWIG_FromCharPtrAndSize($1, $1_dim0));
 }
 

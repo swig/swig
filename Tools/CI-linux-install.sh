@@ -140,9 +140,14 @@ case "$SWIGLANG" in
 	"ruby")
 		if [[ "$VER" ]]; then
 			case "$VER" in
-				3.1 | 3.2 | 3.3 )
+				2.5 | 2.7 | 3.0 | 3.1 | 3.2 | 3.3 )
 					# Ruby 3.1+ support is currently only rvm master (2023-04-19)
 					# YOLO
+					#
+					# Ruby 2.5, 2.7 and 3.0 work with this
+					# rvm but no longer seem to with the
+					# PPA rvm.  2.4 and 2.6 fail with either.
+					# (2025-06-18)
 					curl -sSL https://rvm.io/mpapis.asc | gpg --import -
 					curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
 					curl -sSL https://get.rvm.io | bash -s stable
