@@ -128,6 +128,7 @@ void DirectorTest_director_testmethodSwigExplicitDirectorTest(int i) {}
 %typemap(directorargout) int i {
   $symname(99);
   int isvoid_special_variable = $isvoid;
+  (void)isvoid_special_variable;
 }
 %feature("director") DirectorTest;
 %inline %{

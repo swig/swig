@@ -1703,7 +1703,7 @@ when the returned object's finalizer is run by the garbage collector).
 Working with null pointers is easy. 
 A Java <tt>null</tt> can be used whenever a method expects a proxy class or typewrapper class.
 However, it is not possible to pass null to C/C++ functions that take parameters by value or by reference. 
-If you try you will get a NullPointerException.
+If you try you will get a <tt>NullPointerException</tt>.
 </p>
 
 <div class="targetlang">
@@ -2884,7 +2884,7 @@ As the shutdown hook is guaranteed you could also make a JNI call to clean up an
 
 <li>
 <p>Call the <tt>delete()</tt> function manually which will immediately invoke the C++ destructor. 
-As a suggestion it may be a good idea to set the object to null so that should the object be inadvertently used again a Java null pointer exception is thrown, the alternative would crash the JVM by using a null C pointer. 
+As a suggestion it may be a good idea to set the object to null so that should the object be inadvertently used again a Java <tt>NullPointerException</tt> is thrown, the alternative would crash the JVM by using a NULL pointer for the C++ "this" pointer.
 For example given a SWIG generated class A:</p>
 <div class="targetlang"><pre>
 A myA = new A();
@@ -2892,12 +2892,26 @@ A myA = new A();
 myA.delete();
 // any use of myA here would crash the JVM 
 myA=null;
-// any use of myA here would cause a Java null pointer exception to be thrown
+// any use of myA here would cause a Java NullPointerException to be thrown
 </pre></div>
 
 <p>
 The SWIG generated code ensures that the memory is not deleted twice, in the event the finalizers get called in addition to the manual <tt>delete()</tt> call.
 </p>
+
+<p>
+An even more robust solution would be to provide the 'check' typemap to check for a NULL C pointer and automatically convert it into a Java <tt>NullPointerException</tt> as described in the
+<a href="Typemaps.html#Typemaps_nn52">C++ "this" pointer</a> section.
+Then the JVM crash would be avoided and instead a more user-friendly exception would occur, such as:
+</p>
+
+<div class="targetlang"><pre>
+A myA = new A();
+// use myA ...
+myA.delete();
+// any use of myA here would cause a Java NullPointerException to be thrown
+</pre></div>
+
 </li>
 
 <li>
@@ -7021,7 +7035,7 @@ name specified in the <tt>interface</tt> feature.
 
 <p>
 <b>Compatibility Note:</b> In SWIG-1.3.21 and earlier releases, typemaps called "javagetcptr" and "javaptrconstructormodifiers" were available.
-These are deprecated and the "javabody" typemap can be used instead.
+These were removed and the "javabody" typemap can be used instead.
 The <tt>javainterfacecode</tt> typemap and interface feature was introduced in SWIG-3.0.9.
 </p>
 
@@ -9196,12 +9210,30 @@ A few things to note:
   javapackage typemap, but SWIG doesn't generate the right JNI field
   descriptor.</i>
   <p>
-  Use the template's renamed name as the argument to the "javapackage" typemap:
+  Provide the package name in a "javapackage" typemap for the type:
   </p>
 <div class="code">
 <pre>
-%typemap(javapackage)  std::vector&lt;int&gt;  "your.package.here"
+%typemap(javapackage)  std::vector&lt;int&gt;  "com.funky"
 %template(VectorOfInt) std::vector&lt;int&gt;;
+
+%feature("director") MyDirector;
+struct MyDirector {
+  virtual ~MyDirector();
+  virtual void takeVector(std::vector<int> vec);
+};
+</pre>
+</div>
+
+  <p>
+  The descriptor <tt>com/funky/VectorOfInt</tt> for <tt>VectorOfInt</tt> in the generated code
+  will then be derived from the provided package "com.funky". Below shows the relevant snippet of generated code
+  with the full descriptor:
+  </p>
+
+<div class="code">
+<pre>
+    SwigDirectorMethod(jenv, baseclass, "takeVector", "(Lcom/funky/VectorOfInt;)V")
 </pre>
 </div>
   </li>

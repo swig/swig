@@ -10,7 +10,7 @@ Version 4.3.1 (15 Apr 2025)
 
 2025-04-10: jschueller, wsfulton
             [Python] #3067 Fix compile errors regression using external runtime and
-            PY_LIMITED_API.
+            Py_LIMITED_API.
 
 2025-03-31: alatina
 	    [Octave] #3149 Fix to compile with Octave 10.0
@@ -2085,7 +2085,7 @@ Version 4.1.0 (24 Oct 2022)
 2022-09-29: olly
 	    #2303 SWIG's internal hash tables now use a better hash function.
 
-	    The old hash function only considerd the last five characters
+	    The old hash function only considered the last five characters
 	    plus the least significant bit of the last-but-sixth character,
 	    which as you might guess generated a lot of many-way collisions.
 

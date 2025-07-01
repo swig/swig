@@ -951,7 +951,8 @@ public:
 	/* Emit overloading dispatch function */
 
 	int maxargs;
-	String *dispatch = Swig_overload_dispatch(n, "return %s(argc,argv);", &maxargs);
+	bool check_emitted = false;
+	String *dispatch = Swig_overload_dispatch(n, "return %s(argc,argv);", &maxargs, &check_emitted);
 
 	/* Generate a dispatch wrapper for all overloaded functions */
 

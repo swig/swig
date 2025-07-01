@@ -204,7 +204,7 @@ struct OuterClass {
     T val;
   };
 #if defined(SWIG)
-  // Template instantation within the class
+  // Template instantiation within the class
   %template(InnerDouble) InnerTemplate<double>;
   %template(InnerShort) InnerTemplate<short>;
 #endif
@@ -214,7 +214,7 @@ struct OuterClass {
 %}
 
 %extend OuterSpace::InnerSpace::OuterClass {
-  // Template instantation after the class is fully defined and added to the symbol tables
+  // Template instantiation after the class is fully defined and added to the symbol tables
   %template(InnerInt) InnerTemplate<int>;
 }
 

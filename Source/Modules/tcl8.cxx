@@ -500,7 +500,8 @@ public:
 	/* Emit overloading dispatch function */
 
 	int maxargs;
-	String *dispatch = Swig_overload_dispatch(n, "return %s(clientData, interp, objc, argv - 1);", &maxargs);
+	bool check_emitted = false;
+	String *dispatch = Swig_overload_dispatch(n, "return %s(clientData, interp, objc, argv - 1);", &maxargs, &check_emitted);
 
 	/* Generate a dispatch wrapper for all overloaded functions */
 
@@ -1251,6 +1252,13 @@ public:
 
   String *runtimeCode() {
     String *s = NewString("");
+    String *sincludes = Swig_include_sys("tclincludes.swg");
+    if (!sincludes) {
+      Printf(stderr, "*** Unable to open 'tclincludes.swg'\n");
+    } else {
+      Append(s, sincludes);
+      Delete(sincludes);
+    }
     String *serrors = Swig_include_sys("tclerrors.swg");
     if (!serrors) {
       Printf(stderr, "*** Unable to open 'tclerrors.swg'\n");

@@ -325,12 +325,17 @@ AC_MSG_RESULT($LINKFORSHARED)
 AC_MSG_CHECKING(CFLAGS to use for testing (PLATCFLAGS))
 case $host in
   *-*-solaris*) if test "$GCC" = yes
-    then PLATCFLAGS=
+    then PLATCFLAGS=-Wno-unused-function
     else PLATCFLAGS=
       #    else PLATCFLAGS="-errtags=yes" # Need more work as C examples use ld for linking
     fi;;
   *-*-aix*) PLATCFLAGS="$CFLAGS";;
-  *) PLATCFLAGS=
+  *) if test "$GCC" = yes
+    # With code splitting, unused functions are not static
+    # anymore and with gcc this triggers a warning
+    then PLATCFLAGS=-Wno-unused-function
+    else PLATCFLAGS=
+    fi;;
 esac
 AC_MSG_RESULT($PLATCFLAGS)
 

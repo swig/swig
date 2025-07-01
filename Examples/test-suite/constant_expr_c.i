@@ -75,6 +75,10 @@ const int s8a = sizeof(2.1e-6);
 const int s8b = sizeof 2.1e-6;
 const int s9a = sizeof(-s8a);
 // const int s9b = sizeof -s8a; /* not currently supported */
+const int s10a = sizeof(xx());
+// Before 4.4.0 this gave:
+// Warning 328: Value assigned to s10b not used due to limited parsing implementation.
+const int s10b = sizeof xx();
 
 %}
 

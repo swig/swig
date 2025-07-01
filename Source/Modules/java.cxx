@@ -4833,21 +4833,6 @@ public:
     Printf(w->def, "static jclass baseclass = swig_new_global_ref(jenv, \"%s\");\n", internal_classname);
     Printf(w->def, "if (!baseclass) return;\n");
 
-    if (first_class_dmethod != curr_class_dmethod) {
-      Printf(w->def, "static SwigDirectorMethod methods[] = {\n");
-
-      for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
-	UpcallData *udata = Getitem(dmethods_seq, i);
-
-	Printf(w->def, "SwigDirectorMethod(jenv, baseclass, \"%s\", \"%s\")", Getattr(udata, "method"), Getattr(udata, "fdesc"));
-	if (i != curr_class_dmethod - 1)
-	  Putc(',', w->def);
-	Putc('\n', w->def);
-      }
-
-      Printf(w->def, "};");
-    }
-
     Printf(w->code, "if (swig_set_self(jenv, jself, swig_mem_own, weak_global)) {\n");
 
     int n_methods = curr_class_dmethod - first_class_dmethod;
@@ -4882,6 +4867,19 @@ public:
       if (GetFlag(n, "feature:director:assumeoverride")) {
         Printf(w->code, "  swig_override[i] = derived;\n");
       } else {
+	Printf(w->def, "static SwigDirectorMethod methods[] = {\n");
+
+	for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+	  UpcallData *udata = Getitem(dmethods_seq, i);
+
+	  Printf(w->def, "SwigDirectorMethod(jenv, baseclass, \"%s\", \"%s\")", Getattr(udata, "method"), Getattr(udata, "fdesc"));
+	  if (i != curr_class_dmethod - 1)
+	    Putc(',', w->def);
+	  Putc('\n', w->def);
+	}
+
+	Printf(w->def, "};");
+
         Printf(w->code, "  swig_override[i] = false;\n");
         Printf(w->code, "  if (derived) {\n");
         Printf(w->code, "    jmethodID methid = jenv->GetMethodID(jcls, methods[i].name, methods[i].desc);\n");

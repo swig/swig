@@ -41,12 +41,16 @@ static constexpr auto NOEXCEPT_FUNC = noexcept(func);
 %warnfilter(SWIGWARN_CPP11_AUTO) Bad4;
 
 %inline %{
-
 static auto Bad1 = &t;
 static constexpr auto Bad2 = &f;
 static auto Bad3 = &zero;
 static constexpr auto Bad4 = &one;
-
+%}
+%{
+// Wunused-variable warning suppression
+bool warning_suppression() {
+  return Bad1 || Bad3;
+}
 %}
 
 %inline %{

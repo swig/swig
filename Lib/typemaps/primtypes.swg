@@ -10,8 +10,6 @@
     bool
     signed char
     unsigned char
-    signed wchar_t     // in C++
-    unsigned wchar_t   // in C++
     short
     unsigned short
     int

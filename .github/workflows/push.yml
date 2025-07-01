@@ -54,15 +54,11 @@ jobs:
           VER: '2.103.1'
           CPPSTD: c++17
         - SWIGLANG: go
-          VER: '1.6'
+          VER: '1.20'
           CSTD: gnu11
         - SWIGLANG: go
-          VER: '1.8'
-        - SWIGLANG: go
-          VER: '1.12'
-          CSTD: gnu11
-        - SWIGLANG: go
-          VER: '1.17'
+          VER: '1.24'
+          CSTD: gnu99 # Go 1.24 doesn't build with -Wdeclaration-after-statement
         - SWIGLANG: guile
         - SWIGLANG: guile
           VER: '2.2'
@@ -176,10 +172,6 @@ jobs:
         # c++11 testing
         - SWIGLANG: csharp
           CPPSTD: c++11
-        - SWIGLANG: go
-          VER: '1.17'
-          CPPSTD: c++11
-          CSTD: gnu11
         - SWIGLANG: guile
           CPPSTD: c++11
         - SWIGLANG: java
