@@ -32,7 +32,7 @@ SWIG_PyNumber_AsPyHash(PyObject *obj) {
 
 SWIGINTERN int
 SwigPyBuiltin_BadInit(PyObject *self, PyObject *SWIGUNUSEDPARM(args), PyObject *SWIGUNUSEDPARM(kwds)) {
-  PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%.300s'", Py_TYPE(self)->tp_name);
+  PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%s'", Py_TYPE(self)->tp_name);
   return -1;
 }
 
@@ -40,7 +40,7 @@ SWIGINTERN void
 SwigPyBuiltin_BadDealloc(PyObject *obj) {
   SwigPyObject *sobj = (SwigPyObject *)obj;
   if (sobj->own) {
-    PyErr_Format(PyExc_TypeError, "Swig detected a memory leak in type '%.300s': no callable destructor found.", Py_TYPE(obj)->tp_name);
+    PyErr_Format(PyExc_TypeError, "Swig detected a memory leak in type '%s': no callable destructor found.", Py_TYPE(obj)->tp_name);
   }
 }
 
@@ -87,12 +87,12 @@ SwigPyBuiltin_SetterClosure (PyObject *obj, PyObject *val, void *closure) {
     return -1;
   }
   if (!val) {
-    PyErr_Format(PyExc_AttributeError, "Illegal member variable deletion in type '%.300s'", Py_TYPE(obj)->tp_name);
+    PyErr_Format(PyExc_AttributeError, "Illegal member variable deletion in type '%s'", Py_TYPE(obj)->tp_name);
     return -1;
   }
   getset = (SwigPyGetSet *)closure;
   if (!getset->set) {
-    PyErr_Format(PyExc_AttributeError, "Illegal member variable assignment in type '%.300s'", Py_TYPE(obj)->tp_name);
+    PyErr_Format(PyExc_AttributeError, "Illegal member variable assignment in type '%s'", Py_TYPE(obj)->tp_name);
     return -1;
   }
   tuple = PyTuple_New(1);
@@ -114,12 +114,12 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
     return -1;
   }
   if (!val) {
-    PyErr_Format(PyExc_AttributeError, "Illegal member variable deletion in type '%.300s'", Py_TYPE(obj)->tp_name);
+    PyErr_Format(PyExc_AttributeError, "Illegal member variable deletion in type '%s'", Py_TYPE(obj)->tp_name);
     return -1;
   }
   getset = (SwigPyGetSet *)closure;
   if (!getset->set) {
-    PyErr_Format(PyExc_AttributeError, "Illegal member variable assignment in type '%.300s'", Py_TYPE(obj)->tp_name);
+    PyErr_Format(PyExc_AttributeError, "Illegal member variable assignment in type '%s'", Py_TYPE(obj)->tp_name);
     return -1;
   }
   result = (*getset->set)(obj, val);
@@ -158,9 +158,9 @@ SwigPyStaticVar_get(PyGetSetDescrObject *descr, PyObject *obj, PyObject *SWIGUNU
   if (descr->d_getset->get != NULL)
     return descr->d_getset->get(obj, descr->d_getset->closure);
 #if PY_VERSION_HEX >= 0x03000000
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not readable", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%S' of '%s' objects is not readable", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
 #else
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not readable", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%s' of '%s' objects is not readable", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
 #endif
   return NULL;
 }
@@ -170,9 +170,9 @@ SwigPyStaticVar_set(PyGetSetDescrObject *descr, PyObject *obj, PyObject *value) 
   if (descr->d_getset->set != NULL)
     return descr->d_getset->set(obj, value, descr->d_getset->closure);
 #if PY_VERSION_HEX >= 0x03000000
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300S' of '%.100s' objects is not writable", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%S' of '%s' objects is not writable", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
 #else
-  PyErr_Format(PyExc_AttributeError, "attribute '%.300s' of '%.100s' objects is not writable", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
+  PyErr_Format(PyExc_AttributeError, "attribute '%s' of '%s' objects is not writable", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
 #endif
   return -1;
 }
@@ -192,15 +192,15 @@ SwigPyObjectType_setattro(PyObject *typeobject, PyObject *name, PyObject *value)
     if (local_set != NULL)
       return local_set(attribute, (PyObject *)type, value);
 #if PY_VERSION_HEX >= 0x03000000
-    PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%.50s.%.400S'", type->tp_name, name);
+    PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%s.%S'", type->tp_name, name);
 #else 
-    PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%.50s.%.400s'", type->tp_name, PyString_AS_STRING(name));
+    PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%s.%s'", type->tp_name, PyString_AS_STRING(name));
 #endif
   } else {
 #if PY_VERSION_HEX >= 0x03000000
-    PyErr_Format(PyExc_AttributeError, "type '%.50s' has no attribute '%.400S'", type->tp_name, name);
+    PyErr_Format(PyExc_AttributeError, "type '%s' has no attribute '%S'", type->tp_name, name);
 #else
-    PyErr_Format(PyExc_AttributeError, "type '%.50s' has no attribute '%.400s'", type->tp_name, PyString_AS_STRING(name));
+    PyErr_Format(PyExc_AttributeError, "type '%s' has no attribute '%s'", type->tp_name, PyString_AS_STRING(name));
 #endif
   }
 

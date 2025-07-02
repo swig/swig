@@ -2075,7 +2075,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   if (!PyString_Check(name))
 # endif
   {
-    PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%.200s'", Py_TYPE(name)->tp_name);
+    PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%s'", Py_TYPE(name)->tp_name);
     return -1;
   } else {
     SWIG_Py_INCREF(name);
@@ -2099,7 +2099,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
       if (!encoded_name)
         goto done;
     }
-    PyErr_Format(PyExc_AttributeError, "'%.100s' object has no attribute '%.200s'", tp->tp_name, PyString_AsString(encoded_name));
+    PyErr_Format(PyExc_AttributeError, "'%s' object has no attribute '%s'", tp->tp_name, PyString_AsString(encoded_name));
     SWIG_Py_DECREF(encoded_name);
   } else {
     res = f(descr, obj, value);
