@@ -9,7 +9,7 @@ else
 endif
 
 LANGUAGE     = python
-PYFLAGS      = -Walways
+PYFLAGS      = -Werror
 SCRIPTSUFFIX = _runme.py
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,E741,W291,W391
