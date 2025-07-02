@@ -20,7 +20,7 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array, int report) 
     if (!isEmptyMatrix(pvApiCtx, *array)) {
       return SWIG_TypeError;
     }
-    *array = SWIG_NULLPTR;
+    *array = NULL;
   }
   return SWIG_OK;
 }
@@ -38,16 +38,16 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array, int report) 
     SWIG_fail;
   }
 
-  if (array == SWIG_NULLPTR) {
+  if (array == NULL) {
     /* Special case for empty matrix. */
     $1 = 0;
     $2 = ($2_ltype) malloc(sizeof($*2_ltype));
-    $2[0] = SWIG_NULLPTR;
+    $2[0] = NULL;
   } else {
     /* first call to retrieve dimensions */
     rows = 0;
     cols = 0;
-    sciErr = getMatrixOfString(pvApiCtx, array, &rows, &cols, SWIG_NULLPTR, SWIG_NULLPTR);
+    sciErr = getMatrixOfString(pvApiCtx, array, &rows, &cols, NULL, NULL);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       SWIG_fail;
@@ -55,12 +55,12 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array, int report) 
     len = rows * cols;
     memsize = sizeof(int) * len;
     aLen = (int*)malloc(memsize);
-    if (aLen == SWIG_NULLPTR) {
+    if (aLen == NULL) {
       SWIG_exception_fail(SWIG_MemoryError, "fail allocate sizes array");
     }
     memset(aLen, 0, memsize);
     /*second call to retrieve length of each string */
-    sciErr = getMatrixOfString(pvApiCtx, array, &rows, &cols, aLen, SWIG_NULLPTR);
+    sciErr = getMatrixOfString(pvApiCtx, array, &rows, &cols, aLen, NULL);
     if (sciErr.iErr) {
       printError(&sciErr, 0);
       free((void *)aLen);
@@ -69,14 +69,14 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array, int report) 
     memsize = sizeof($*2_ltype) * (len + 1);
     $1 = ($1_ltype) len;
     $2 = ($2_ltype) malloc(memsize);
-    if ($2 == SWIG_NULLPTR) {
+    if ($2 == NULL) {
       free((void *)aLen);
       SWIG_exception_fail(SWIG_MemoryError, "fail allocate array");
     }
     memset($2, 0, memsize);
     for(i = 0 ; i < len ; i++) {
       $2[i] = ($*2_ltype)malloc(aLen[i] + 1);
-      if ($2[i] == SWIG_NULLPTR) {
+      if ($2[i] == NULL) {
         free((void *)aLen);
         SWIG_exception_fail(SWIG_MemoryError, "fail allocate array string element");
       }
@@ -88,7 +88,7 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array, int report) 
       free((void *)aLen);
       SWIG_fail;
     }
-    $2[len] = SWIG_NULLPTR;
+    $2[len] = NULL;
     free((void *)aLen);
   }
 }
@@ -99,7 +99,7 @@ SWIGINTERN int SWIG_AsVal_strings (SwigSciObject iVar, int **array, int report) 
 }
 
 %typemap(freearg) (int ARGC, char **ARGV) {
-  if ($2 != SWIG_NULLPTR) {
+  if ($2) {
     $1_ltype i;
     for (i = 0; i < $1; i++) {
       free((void *)$2[i]);

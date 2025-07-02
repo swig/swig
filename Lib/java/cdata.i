@@ -56,11 +56,11 @@ static jbyteArray SWIG_JavaArrayOutCDATA(JNIEnv *jenv, char *result, jsize sz) {
   int i;
   jresult = JCALL1(NewByteArray, jenv, sz);
   if (!jresult) {
-    return SWIG_NULLPTR;
+    return NULL;
   }
   arr = JCALL2(GetByteArrayElements, jenv, jresult, 0);
   if (!arr) {
-    return SWIG_NULLPTR;
+    return NULL;
   }
   for (i=0; i<sz; i++) {
     arr[i] = (jbyte)result[i];

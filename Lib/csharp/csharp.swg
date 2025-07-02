@@ -1093,23 +1093,23 @@ typedef struct { int len; int size; char* str; } SWIG_csharp_string;
 SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_string_to_c(int size, int len, char *str) {
   SWIG_csharp_string *ret;
   ret = (SWIG_csharp_string *)malloc(sizeof(SWIG_csharp_string));
-  if (ret == SWIG_NULLPTR) {
+  if (ret == NULL) {
     SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate string container.");
-    return SWIG_NULLPTR;
+    return NULL;
   }
   if (size > 0) {
     /* The string is in UTF8 encoding */
     ret->str = (char *)malloc(size + 1);
-    if (ret->str == SWIG_NULLPTR) {
+    if (ret->str == NULL) {
       SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate string.");
       free(ret);
-      return SWIG_NULLPTR;
+      return NULL;
     }
     memcpy(ret->str, str, size + 1);
     ret->size = size; /* number of bytes in the UTF8 encoding */
     ret->len = len;   /* number of characters in string */
   } else {
-    ret->str = SWIG_NULLPTR;
+    ret->str = NULL;
     ret->size = 0;
     ret->len = 0;
   }
@@ -1144,7 +1144,7 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
 %typemap(in, canthrow=1, fragment="SWIG_csharp_string") (const char *STRING, size_t LENGTH) {
   SWIG_csharp_string *p;
   p = (SWIG_csharp_string *)$input;
-  if (p != SWIG_NULLPTR) {
+  if (p) {
     $1 = ($1_ltype)p->str;
     $2 = ($2_ltype)p->size; /* We use number of bytes */
   } else {
@@ -1155,7 +1155,7 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
 %typemap(freearg, fragment="SWIG_csharp_string") (const char *STRING, size_t LENGTH) {
   SWIG_csharp_string *p;
   p = (SWIG_csharp_string *)$input;
-  if (p != SWIG_NULLPTR) {
+  if (p) {
     free(p->str);
     free(p);
   }
