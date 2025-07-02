@@ -4406,7 +4406,6 @@ public:
     Printv(f, "  SWIG_Py_INCREF(pytype->tp_base);\n", NIL);
     Printv(f, "  pytype->tp_bases = tuple_bases;\n", NIL);
     Printv(f, "  if (PyType_Ready(pytype) < 0) {\n", NIL);
-    Printf(f, "    PyErr_SetString(PyExc_TypeError, \"Could not create type '%s'.\");\n", symname);
     Printv(f, "    return NULL;\n", NIL);
     Printv(f, "  }\n", NIL);
     Printf(f, "  return pytype;\n");
