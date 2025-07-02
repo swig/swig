@@ -9,7 +9,6 @@ else
 endif
 
 LANGUAGE     = python
-PYNOGIL      = @PYNOGIL@
 PYFLAGS      = -Walways
 SCRIPTSUFFIX = _runme.py
 PYCODESTYLE       = @PYCODESTYLE@
@@ -170,7 +169,7 @@ endif
 # a file is found which has _runme.py appended after the testcase name.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=.:$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(PYNOGIL) $(PYFLAGS) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=.:$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(PYFLAGS) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean: remove the generated .py file
@@ -193,5 +192,5 @@ hugemod:
 	perl hugemod.pl $(hugemod_runme)
 	$(MAKE) hugemod_a.cpptest
 	$(MAKE) hugemod_b.cpptest
-	time $(PYTHON) $(PYNOGIL) $(PYFLAGS) $(hugemod_runme)
-	time $(PYTHON) $(PYNOGIL) $(PYFLAGS) $(hugemod_runme)
+	time $(PYTHON) $(PYFLAGS) $(hugemod_runme)
+	time $(PYTHON) $(PYFLAGS) $(hugemod_runme)
