@@ -7661,7 +7661,8 @@ Python code or using C/C++ native locking.
 
 <p>
 Note that free-threading support is separate to the standard multithreading support described
-in the previous section. For example, one can still declare that functions should or shouldn't release the GIL, but that will only have an effect when and if the GIL is available in the
+in the previous section. For example, one can still declare that functions should or shouldn't
+release the GIL, but that will only have an effect when and if the GIL is available in the
 Python interpreter to begin with. If your wrapped code is thread-unsafe, you should use
 an explicit locking system for it and should not rely on the GIL to protect it.
 </p>
