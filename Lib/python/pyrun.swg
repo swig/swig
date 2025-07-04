@@ -782,23 +782,22 @@ SwigPyObject_Check(PyObject *op) {
   return PyType_IsSubtype(op_type, target_tp);
 #else
   /* Check for an exact match to SwigPyObject */
-# ifdef Py_LIMITED_API
-  int cmp;
-  PyObject *tp_name;
-#endif
-  if (op_type == target_tp)
+  if (op_type == target_tp) {
     return 1;
-# ifdef Py_LIMITED_API
-  /* Fallback for multiple modules */
-  tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
-  if (!tp_name)
-    return 0;
-  cmp = PyUnicode_CompareWithASCIIString(tp_name, "SwigPyObject");
-  SWIG_Py_DECREF(tp_name);
-  return cmp == 0;
-# else
-  return (strcmp(op_type->tp_name, SWIG_RUNTIME_MODULE ".SwigPyObject") == 0);
-# endif
+  } else {
+    /* Fallback for multiple modules */
+#if PY_VERSION_HEX >= 0x03000000
+    int cmp;
+    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(op_type);
+    if (!tpname)
+      return 0;
+    cmp = PyUnicode_CompareWithASCIIString(tpname, SWIG_RUNTIME_MODULE ".SwigPyObject");
+    SWIG_Py_DECREF(tpname);
+    return cmp == 0;
+#else
+    return strcmp(op_type->tp_name, SWIG_RUNTIME_MODULE ".SwigPyObject") == 0;
+#endif
+  }
 #endif
 }
 
@@ -1106,7 +1105,7 @@ SwigPyObject_TypeOnce(void) {
   };
   PyObject *pytype = PyType_FromSpec(&spec);
   PyObject *runtime_data_module = SWIG_runtime_data_module();
-# if !defined(Py_LIMITED_API)
+#if !defined(Py_LIMITED_API)
 /* While this __dictoffset__ is only used with the builtin wrappers, SwigPyObject ought to be
    identical when created for use by proxy class wrappers in case it is shared across multiple modules. */
 #if PY_VERSION_HEX < 0x03090000
