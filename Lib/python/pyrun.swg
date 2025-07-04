@@ -2008,49 +2008,6 @@ SwigPyObject_GetDesc(PyObject *self)
   return ty ? ty->str : "";
 }
 
-SWIGRUNTIME void
-SWIG_Python_TypeError(const char *type, PyObject *obj)
-{
-  (void) obj;
-  if (type) {
-#if defined(SWIG_COBJECT_TYPES)
-    if (obj && SwigPyObject_Check(obj)) {
-      const char *otype = (const char *) SwigPyObject_GetDesc(obj);
-      if (otype) {
-	PyErr_Format(PyExc_TypeError, "a '%s' is expected, 'SwigPyObject(%s)' is received",
-		     type, otype);
-	return;
-      }
-    } else 
-#endif      
-    {
-#ifndef Py_LIMITED_API
-      /* tp_name is not accessible */
-      const char *otype = (obj ? Py_TYPE(obj)->tp_name : 0); 
-      if (otype) {
-	PyObject *str = PyObject_Str(obj);
-	PyObject *bytes = NULL;
-	const char *cstr = str ? SWIG_PyUnicode_AsUTF8AndSize(str, NULL, &bytes) : 0;
-	if (cstr) {
-	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s(%s)' is received",
-		       type, otype, cstr);
-	} else {
-	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
-		       type, otype);
-	}
-	SWIG_Py_XDECREF(bytes);
-	SWIG_Py_XDECREF(str);
-	return;
-      }
-#endif
-    }   
-    PyErr_Format(PyExc_TypeError, "a '%s' is expected", type);
-  } else {
-    PyErr_Format(PyExc_TypeError, "unexpected type is received");
-  }
-}
-
-
 /* Convert a pointer value, signal an exception on a type mismatch */
 SWIGRUNTIME void *
 SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int SWIGUNUSEDPARM(argnum), int flags) {
