@@ -1195,23 +1195,22 @@ SwigPyPacked_Check(PyObject *op) {
   PyTypeObject *target_tp = SwigPyPacked_Type();
   PyTypeObject *op_type = Py_TYPE(op);
   /* Check for an exact match to SwigPyPacked */
-#ifdef Py_LIMITED_API
-  int cmp;
-  PyObject *tp_name;
-#endif
-  if (op_type == target_tp)
+  if (op_type == target_tp) {
     return 1;
-#ifdef Py_LIMITED_API
-  /* Fallback for multiple modules */
-  tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
-  if (!tp_name)
-    return 0;
-  cmp = PyUnicode_CompareWithASCIIString(tp_name, "SwigPyPacked");
-  SWIG_Py_DECREF(tp_name);
-  return cmp == 0;
+  } else {
+    /* Fallback for multiple modules */
+#if PY_VERSION_HEX >= 0x03000000
+    int cmp;
+    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(op_type);
+    if (!tpname)
+      return 0;
+    cmp = PyUnicode_CompareWithASCIIString(tpname, SWIG_RUNTIME_MODULE ".SwigPyPacked");
+    SWIG_Py_DECREF(tpname);
+    return cmp == 0;
 #else
-  return (strcmp(op_type->tp_name, SWIG_RUNTIME_MODULE ".SwigPyPacked") == 0);
+    return strcmp(op_type->tp_name, SWIG_RUNTIME_MODULE ".SwigPyPacked") == 0;
 #endif
+  }
 }
 
 SWIGRUNTIME void
