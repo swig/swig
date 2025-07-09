@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-07-09: timfel
+            [Python] #3217 Fix undefined behaviour in SwigPyObject_richcompare and
+            SwigPyObject_compare.
+
 2025-06-27: wsfulton
             [Python] Raise an AttributeError instead of TypeError when there are internal
             and unexpected coding errors around member variable wrappers.

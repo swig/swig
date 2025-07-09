@@ -722,26 +722,33 @@ SwigPyObject_repr2(PyObject *v, PyObject *SWIGUNUSEDPARM(args))
 }
 
 SWIGRUNTIME int
-SwigPyObject_compare(SwigPyObject *v, SwigPyObject *w)
+SwigPyObject_compare(PyObject *v, PyObject *w)
 {
-  void *i = v->ptr;
-  void *j = w->ptr;
+  /* tp_compare is only called when both objects have the same type, so
+   * the casts are guaranteed to be ok. */
+  void *i = ((SwigPyObject *)v)->ptr;
+  void *j = ((SwigPyObject *)w)->ptr;
   return (i < j) ? -1 : ((i > j) ? 1 : 0);
 }
 
+SWIGRUNTIMEINLINE int SwigPyObject_Check(PyObject *);
+
 /* Added for Python 3.x, would it also be useful for Python 2.x? */
 SWIGRUNTIME PyObject*
-SwigPyObject_richcompare(SwigPyObject *v, SwigPyObject *w, int op)
+SwigPyObject_richcompare(PyObject *v, PyObject *w, int op)
 {
   PyObject* res = NULL;
   if (!PyErr_Occurred()) {
-    if (op != Py_EQ && op != Py_NE) {
+    /* Per https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_richcompare
+     * the first argument is guaranteed to be an instance of SwigPyObject, but the
+     * second is not, so we typecheck that one. */
+    if (op != Py_EQ && op != Py_NE || !SwigPyObject_Check(w)) {
       SWIG_Py_INCREF(Py_NotImplemented);
       return Py_NotImplemented;
     }
     res = PyBool_FromLong( (SwigPyObject_compare(v, w)==0) == (op == Py_EQ) ? 1 : 0);
   }
-  return res;  
+  return res;
 }
 
 
