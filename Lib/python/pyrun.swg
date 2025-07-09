@@ -731,6 +731,8 @@ SwigPyObject_compare(PyObject *v, PyObject *w)
   return (i < j) ? -1 : ((i > j) ? 1 : 0);
 }
 
+SWIGRUNTIMEINLINE int SwigPyObject_Check(PyObject *);
+
 /* Added for Python 3.x, would it also be useful for Python 2.x? */
 SWIGRUNTIME PyObject*
 SwigPyObject_richcompare(PyObject *v, PyObject *w, int op)
