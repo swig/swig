@@ -627,6 +627,7 @@ typedef struct {
   int own;
   PyObject *next;
   PyObject *swigdict;
+  PyObject *weakreflist;
 } SwigPyObject;
 
 
@@ -1019,7 +1020,7 @@ SwigPyObject_TypeOnce(void) {
       0,                                    /* tp_traverse */
       0,                                    /* tp_clear */
       (richcmpfunc)SwigPyObject_richcompare,/* tp_richcompare */
-      0,                                    /* tp_weaklistoffset */
+      offsetof(SwigPyObject, weakreflist),  /* tp_weaklistoffset */
       0,                                    /* tp_iter */
       0,                                    /* tp_iternext */
       SwigPyObject_methods,                 /* tp_methods */
@@ -1108,6 +1109,8 @@ SwigPyObject_TypeOnce(void) {
     ((PyTypeObject *)pytype)->tp_dictoffset = offsetof(SwigPyObject, swigdict);
 #endif
 #endif
+  if (pytype)
+    ((PyTypeObject *)pytype)->tp_weaklistoffset = offsetof(SwigPyObject, weakreflist);
   if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObject", pytype) == 0)
     SWIG_Py_INCREF(pytype);
   return (PyTypeObject *)pytype;
@@ -1124,6 +1127,7 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
     sobj->own  = own;
     sobj->next = 0;
     sobj->swigdict = 0;
+    sobj->weakreflist = 0;
     if (own == SWIG_POINTER_OWN) {
       /* Obtain a reference to the Python capsule wrapping the module information, so that the
        * module information is correctly destroyed after all SWIG python objects have been freed
@@ -1789,11 +1793,13 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
         newobj->next = next_self;
         newobj = (SwigPyObject *)next_self;
         newobj->swigdict = 0;
+        newobj->weakreflist = 0;
       }
     } else {
       newobj = PyObject_New(SwigPyObject, clientdata->pytype);
       if (newobj) {
         newobj->swigdict = 0;
+        newobj->weakreflist = 0;
       }
     }
     if (newobj) {

@@ -111,6 +111,7 @@ C_TEST_CASES += \
 	li_cwstring \
 	python_nondynamic \
 	python_varargs_typemap \
+	python_weakref \
 
 MULTI_CPP_TEST_CASES += \
 	import_callback \

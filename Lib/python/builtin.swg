@@ -540,6 +540,8 @@ SWIGINTERN void
 SwigPyBuiltin_destructor_closure(SwigPyWrapperFunction wrapper, const char *wrappername, PyObject *a) {
   SwigPyObject *sobj;
   sobj = (SwigPyObject *)a;
+  if (sobj->weakreflist != NULL)
+    PyObject_ClearWeakRefs(a);
   SWIG_Py_XDECREF(sobj->swigdict);
   if (sobj->own) {
     PyObject *o;
