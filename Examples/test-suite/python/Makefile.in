@@ -66,6 +66,7 @@ CPP_TEST_CASES += \
 	python_annotations_c \
 	python_annotations_variable_c \
 	python_append \
+	python_bufferinterface \
 	python_builtin \
 	python_destructor_exception \
 	python_director \
