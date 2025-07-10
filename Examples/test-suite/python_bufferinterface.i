@@ -1,5 +1,13 @@
 %module python_bufferinterface
 
+#if defined(SWIGPYTHON_BUILTIN)
+%begin %{
+#if defined(Py_LIMITED_API)
+#undef Py_LIMITED_API // PyBuffer_FillInfo not in limited API
+#endif
+%}
+#endif
+
 %feature("python:bf_getbuffer", functype="getbufferproc")
     Buffer "Buffer::getbuffer";
 %feature("python:bf_releasebuffer", functype="releasebufferproc")
