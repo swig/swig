@@ -1108,9 +1108,9 @@ SwigPyObject_TypeOnce(void) {
   if (pytype)
     ((PyTypeObject *)pytype)->tp_dictoffset = offsetof(SwigPyObject, swigdict);
 #endif
-#endif
   if (pytype)
     ((PyTypeObject *)pytype)->tp_weaklistoffset = offsetof(SwigPyObject, weakreflist);
+#endif
   if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObject", pytype) == 0)
     SWIG_Py_INCREF(pytype);
   return (PyTypeObject *)pytype;
