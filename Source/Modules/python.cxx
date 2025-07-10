@@ -4523,7 +4523,7 @@ public:
 
     // buffer slots
     if (Getattr(n, "feature:python:bf_getbuffer")) {
-      Printv(f, "#if PY_VERSION_HEX >= 0x03090000\n", NIL);
+      Printv(f, "#if !defined(Py_LIMITED_API) && PY_VERSION_HEX >= 0x03090000 || Py_LIMITED_API+0 >= 0x030b0000\n", NIL);
       printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:bf_getbuffer"), "bf_getbuffer", "getbufferproc");
       printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:bf_releasebuffer"), "bf_releasebuffer", "releasebufferproc");
       Printv(f, "#endif\n", NIL);
@@ -4541,7 +4541,7 @@ public:
     Printv(f, "  PyObject *tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
     Printf(f, "  PyTypeObject *pytype = (PyTypeObject *)PyType_FromSpecWithBases(&spec, tuple_bases);\n");
     if (Getattr(n, "feature:python:bf_getbuffer")) {
-      Printv(f, "#if PY_VERSION_HEX < 0x03090000\n", NIL);
+      Printv(f, "#if !defined(Py_LIMITED_API) && PY_VERSION_HEX < 0x03090000\n", NIL);
       Printf(f, "  if (pytype) {\n");
       Printf(f, "    *((PyTypeObject *)pytype)->tp_as_buffer = (PyBufferProcs){\n");
       Printf(f, "      .bf_getbuffer = ");
