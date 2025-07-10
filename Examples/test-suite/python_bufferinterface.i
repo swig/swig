@@ -1,23 +1,23 @@
 %module python_bufferinterface
 
-#if defined(SWIGPYTHON_BUILTIN)
-%begin %{
-#if defined(Py_LIMITED_API)
-#undef Py_LIMITED_API // PyBuffer_FillInfo not in limited API
-#endif
-%}
-#endif
-
 %feature("python:bf_getbuffer", functype="getbufferproc")
     Buffer "Buffer::getbuffer";
 %feature("python:bf_releasebuffer", functype="releasebufferproc")
     Buffer "Buffer::releasebuffer";
 
 %inline %{
-#ifdef SWIGPYTHON_BUILTIN
-  bool is_python_builtin() { return true; }
+#ifndef SWIGPYTHON_BUILTIN
+  bool should_work() { return false; }
 #else
-  bool is_python_builtin() { return false; }
+#ifndef Py_LIMITED_API
+  bool should_work() { return true; }
+#else
+#if Py_LIMITED_API+0 >= 0x030b0000
+  bool should_work() { return true; }
+#else
+  bool should_work() { return false; }
+#endif
+#endif
 #endif
 
   static char data[1024];
