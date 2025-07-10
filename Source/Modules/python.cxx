@@ -4522,8 +4522,12 @@ public:
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:sq_inplace_repeat"), "sq_inplace_repeat", "ssizeargfunc");
 
     // buffer slots
-    printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:bf_getbuffer"), "bf_getbuffer", "getbufferproc");
-    printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:bf_releasebuffer"), "bf_releasebuffer", "releasebufferproc");
+    if (Getattr(n, "feature:python:bf_getbuffer")) {
+      Printv(f, "#if PY_VERSION_HEX >= 0x03090000\n", NIL);
+      printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:bf_getbuffer"), "bf_getbuffer", "getbufferproc");
+      printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:bf_releasebuffer"), "bf_releasebuffer", "releasebufferproc");
+      Printv(f, "#endif\n", NIL);
+    }
 
     Printf(f, "    { 0, NULL }\n");
     Printf(f, "  };\n");
@@ -4536,6 +4540,18 @@ public:
     Printf(f, "  };\n");
     Printv(f, "  PyObject *tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
     Printf(f, "  PyTypeObject *pytype = (PyTypeObject *)PyType_FromSpecWithBases(&spec, tuple_bases);\n");
+    if (Getattr(n, "feature:python:bf_getbuffer")) {
+      Printv(f, "#if PY_VERSION_HEX < 0x03090000\n", NIL);
+      Printf(f, "  if (pytype) {\n");
+      Printf(f, "    *((PyTypeObject *)pytype)->tp_as_buffer = (PyBufferProcs){\n");
+      Printf(f, "      .bf_getbuffer = ");
+      Printv(f, getSlot(n, "feature:python:bf_getbuffer"), NIL);
+      Printf(f, ",\n      .bf_releasebuffer = ");
+      Printv(f, getSlot(n, "feature:python:bf_releasebuffer"), NIL);
+      Printf(f, "\n    };\n");
+      Printf(f, "  }\n");
+      Printv(f, "#endif\n", NIL);
+    }
     Printf(f, "  if (pytype) {\n");
     Printf(f, "    if (PyDict_Merge(pytype->tp_dict, dict, 1) == 0) {\n");
     Printv(f, "      SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);
