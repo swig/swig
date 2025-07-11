@@ -1,12 +1,10 @@
 %module python_bufferinterface
 
-#if defined(SWIGPYTHON_BUILTIN)
 %begin %{
 #if defined(Py_LIMITED_API) && Py_LIMITED_API+0 < 0x030b0000
 #undef Py_LIMITED_API // Py_buffer is not defined in Py_LIMITED_API < 3.11
 #endif
 %}
-#endif
 
 %feature("python:bf_getbuffer", functype="getbufferproc")
     Buffer "Buffer::getbuffer";
