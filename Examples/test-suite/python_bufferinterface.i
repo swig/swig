@@ -31,7 +31,13 @@
   class Buffer {
   public:
     static int getbuffer(PyObject *exporter, Py_buffer *view, int flags) {
+#if defined(Py_LIMITED_API) && Py_LIMITED_API+0 < 0x030b0000
+      PyErr_SetNone(PyExc_BufferError);
+      view->obj = NULL;
+      return -1;
+#else
       return PyBuffer_FillInfo(view, exporter, &data, sizeof(data), 1, flags);
+#endif
     };
     static void releasebuffer(PyObject *exporter, Py_buffer *view) {
     };
