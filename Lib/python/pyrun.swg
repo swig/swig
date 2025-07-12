@@ -742,7 +742,7 @@ SwigPyObject_richcompare(PyObject *v, PyObject *w, int op)
     /* Per https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_richcompare
      * the first argument is guaranteed to be an instance of SwigPyObject, but the
      * second is not, so we typecheck that one. */
-    if (op != Py_EQ && op != Py_NE || !SwigPyObject_Check(w)) {
+    if ((op != Py_EQ && op != Py_NE) || !SwigPyObject_Check(w)) {
       SWIG_Py_INCREF(Py_NotImplemented);
       return Py_NotImplemented;
     }
