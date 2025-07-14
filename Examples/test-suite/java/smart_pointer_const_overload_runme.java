@@ -9,74 +9,74 @@ public class smart_pointer_const_overload_runme {
   }
   
   public static void test(Bar b, Foo f) {
-    Assert(f.getX() == 0);
+    Assert(f.getX1() == 0);
 
     // Test member variable get
-    Assert(b.getX() == 0);
-    Assert(f.getAccess() == CONST_ACCESS);
+    Assert(b.getX1() == 0);
+    Assert(f.getAccess1() == CONST_ACCESS);
 
     // Test member variable set
-    b.setX(1);
-    Assert(f.getX() == 1);
-    Assert(f.getAccess() == MUTABLE_ACCESS);
+    b.setX1(1);
+    Assert(f.getX1() == 1);
+    Assert(f.getAccess1() == MUTABLE_ACCESS);
     
     // Test const method
-    Assert(b.getx() == 1);
-    Assert(f.getAccess() == CONST_ACCESS);
+    Assert(b.getx1() == 1);
+    Assert(f.getAccess1() == CONST_ACCESS);
     
     // Test mutable method
-    b.setx(2);
+    b.setx1(2);
 
-    Assert(f.getX() == 2);
-    Assert(f.getAccess() == MUTABLE_ACCESS);
+    Assert(f.getX1() == 2);
+    Assert(f.getAccess1() == MUTABLE_ACCESS);
     
     // Test extended const method
     Assert(b.getx2() == 2);
-    Assert(f.getAccess() == CONST_ACCESS);
+    Assert(f.getAccess1() == CONST_ACCESS);
     
     // Test extended mutable method
     b.setx2(3);
 
-    Assert(f.getX() == 3);
-    Assert(f.getAccess() == MUTABLE_ACCESS);
+    Assert(f.getX1() == 3);
+    Assert(f.getAccess1() == MUTABLE_ACCESS);
       
     // Test static method
     b.statMethod();
 
-    Assert(f.getAccess() == CONST_ACCESS);
+    Assert(f.getAccess1() == CONST_ACCESS);
 
     // Test const member
-    f.setAccess(MUTABLE_ACCESS);
+    f.setAccess1(MUTABLE_ACCESS);
     
     Assert(b.getY() == 0);
-    Assert(f.getAccess() == CONST_ACCESS);
+    Assert(f.getAccess1() == CONST_ACCESS);
     
     // Test get through mutable pointer to const member
-    f.setAccess(MUTABLE_ACCESS);
+    f.setAccess1(MUTABLE_ACCESS);
     
     Assert(smart_pointer_const_overload.get_int(b.getYp()) == 0);
-    Assert(f.getAccess() == CONST_ACCESS);
+    Assert(f.getAccess1() == CONST_ACCESS);
 
     // Test get through const pointer to mutable member
-    f.setX(4);
-    f.setAccess(MUTABLE_ACCESS);
+    f.setX1(4);
+    f.setAccess1(MUTABLE_ACCESS);
     
     Assert(smart_pointer_const_overload.get_int(b.getXp()) == 4);
-    Assert(f.getAccess() == CONST_ACCESS);
+    Assert(f.getAccess1() == CONST_ACCESS);
       
     // Test set through const pointer to mutable member
-    f.setAccess(MUTABLE_ACCESS);
+    f.setAccess1(MUTABLE_ACCESS);
     smart_pointer_const_overload.set_int(b.getXp(), 5);
     
-    Assert(f.getX() == 5);
-    Assert(f.getAccess() == CONST_ACCESS);
+    Assert(f.getX1() == 5);
+    Assert(f.getAccess1() == CONST_ACCESS);
   
     // Test set pointer to const member
     b.setYp(smart_pointer_const_overload.new_int(6));
   
     Assert(f.getY() == 0);
     Assert(smart_pointer_const_overload.get_int(f.getYp()) == 6);
-    Assert(f.getAccess() == MUTABLE_ACCESS);
+    Assert(f.getAccess1() == MUTABLE_ACCESS);
   
     smart_pointer_const_overload.delete_int(f.getYp());
   }
