@@ -206,9 +206,11 @@ SWIG_init(void) {
 #if PY_VERSION_HEX >= 0x03000000
   static PyModuleDef_Slot SwigSlots[] = {
     { Py_mod_exec, (void *)SWIG_mod_exec },
-    #ifdef Py_GIL_DISABLED
+#ifdef SWIGPYTHON_NOGIL
+#ifdef Py_GIL_DISABLED
     {Py_mod_gil, Py_MOD_GIL_NOT_USED},
-    #endif
+#endif
+#endif
     { 0, NULL }
   };
 

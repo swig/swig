@@ -963,6 +963,7 @@ swig -python -help
 <tr><td>-interface &lt;mod&gt;</td><td>Set low-level C/C++ module name to &lt;mod&gt; (default: module name prefixed by '_')</td></tr>
 <tr><td>-keyword        </td><td>Use keyword arguments</td></tr>
 <tr><td>-nofastunpack   </td><td>Use traditional UnpackTuple method to parse the argument functions</td></tr>
+<tr><td>-nogil          </td><td>Enable free-threading if supported by the Python interpreter</td></tr>
 <tr><td>-noh            </td><td>Don't generate the output header file</td></tr>
 <tr><td>-noproxy        </td><td>Don't generate proxy classes</td></tr>
 <tr><td>-nortti         </td><td>Disable the use of the native C++ RTTI with directors</td></tr>
@@ -7641,10 +7642,12 @@ will not be able to run any other threads, even if the wrapped C/C++ code is wai
 <a href="https://docs.python.org/3/howto/free-threading-python.html">Free threading Python</a>
 disables the Global Interpreter Lock (GIL) for improved parallel execution or multi-threaded
 execution.
-Python free threading was first released with experimental support for Python 3.13 and requires a special build of Python where the GIL can be disabled.
-SWIG supports free threading Python; just use a free threading build of Python.
-In particular, the Python header files from the free threading build of Python must be used
-when compiling the SWIG generated code.
+Python free threading was first released with experimental support for Python 3.13 and requires a
+special build of Python where the GIL can be disabled.
+SWIG support for free threading Python is opt-in; you must pass the <tt>-nogil</tt> flag to swig to
+indicate that the wrapped code is thread-safe. The flag has no effect on Python builds that don't
+support free threading. In particular, the Python header files from the free threading build of
+Python must be used when compiling the SWIG generated code.
 This is needed for the C/C++ compiler to be aware of the <tt>Py_GIL_DISABLED</tt> Python macro,
 which identifies the free threading build, and is used by the SWIG generated code.
 Please see the <a href="https://py-free-threading.github.io/">Python free-threading guide</a>

@@ -7,9 +7,8 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
-2025-07-15: crusaderky
-            [Python] Modules are now marked free-threading compatible; it is no longer
-            necessary to set the PYTHON_GIL=0 environment variable on 3.13t and 3.14t.
+2025-07-16: crusaderky
+            [Python] Added -nogil flag to mark modules as free-threading compatible.
 
 2025-07-09: timfel
             [Python] #3217 Fix undefined behaviour in SwigPyObject_richcompare and
