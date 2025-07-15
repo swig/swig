@@ -4096,7 +4096,7 @@ public:
     Delete(richcompare_list);
     Printv(f, "  if (!result && !PyErr_Occurred()) {\n", NIL);
     Printv(f, "    if (SwigPyObject_Check(self) && SwigPyObject_Check(other)) {\n", NIL);
-    Printv(f, "      result = SwigPyObject_richcompare((SwigPyObject *)self, (SwigPyObject *)other, op);\n", NIL);
+    Printv(f, "      result = SwigPyObject_richcompare(self, other, op);\n", NIL);
     Printv(f, "    } else {\n", NIL);
     Printv(f, "      result = Py_NotImplemented;\n", NIL);
     Printv(f, "      SWIG_Py_INCREF(result);\n", NIL);

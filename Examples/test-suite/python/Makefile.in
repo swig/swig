@@ -80,6 +80,7 @@ CPP_TEST_CASES += \
 	python_strict_unicode \
 	python_threads \
 	python_typemap_macro \
+	python_various \
 	simutry \
 	std_containers \
 	swigobject \
