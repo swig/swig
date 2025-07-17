@@ -19,9 +19,9 @@ data = python_bufferinterface.ReadOnlyData()
 view = memoryview(data)
 check('readonly', view.readonly, True)
 check('read data', view[:10], b"This string represents"[:10])
-check('not released', python_bufferinterface.cvar.released, False)
+check('not released', data.released, False)
 view.release()
-check('released', python_bufferinterface.cvar.released, True)
+check('released', data.released, True)
 
 data = python_bufferinterface.ReadWriteData()
 view = memoryview(data)
@@ -29,12 +29,12 @@ check('readonly', view.readonly, False)
 text = b'Lorem ipsum dolor sit amet'
 view[:len(text)] = b'Lorem ipsum dolor sit amet'
 check('read data', view[:len(text)], text)
-check('not released', python_bufferinterface.cvar.released, False)
+check('not released', data.released, False)
 view.release()
-check('released', python_bufferinterface.cvar.released, True)
+check('released', data.released, True)
 
 view = memoryview(data)
 check('written data', view[:len(text)], text)
-check('not released', python_bufferinterface.cvar.released, False)
+check('not released', data.released, False)
 del view
-check('released', python_bufferinterface.cvar.released, True)
+check('released', data.released, True)

@@ -36,14 +36,12 @@
 #endif
 %}
 
-%ignore data;
-
 %inline %{
-  static char data[1024];
-  static bool released;
-
   class BaseClassData {
+  private:
+    char data[1024];
   public:
+    bool released; // public so runme.py can use it as a diagnostic
     BaseClassData() {
       released = true;
       strcpy(data, "This string represents a large block of memory.");
@@ -51,16 +49,23 @@
     static int getbuffer(PyObject *exporter, Py_buffer *view, int flags,
                          bool readonly) {
 #if defined(Py_LIMITED_API) && Py_LIMITED_API+0 < 0x030b0000
+      goto fail;
+#endif
+      BaseClassData *self = 0;
+      if (!SWIG_IsOK(SWIG_ConvertPtr(exporter, (void**)&self, SWIGTYPE_p_BaseClassData, 0)))
+        goto fail;
+      self->released = false;
+      return PyBuffer_FillInfo(view, exporter, &self->data, sizeof(self->data), readonly ? 1 : 0, flags);
+fail:
       PyErr_SetNone(PyExc_BufferError);
       view->obj = NULL;
       return -1;
-#else
-      released = false;
-      return PyBuffer_FillInfo(view, exporter, &data, sizeof(data), readonly ? 1 : 0, flags);
-#endif
     };
     static void releasebuffer(PyObject *exporter, Py_buffer *view) {
-      released = true;
+      BaseClassData *self = 0;
+      if (!SWIG_IsOK(SWIG_ConvertPtr(exporter, (void**)&self, SWIGTYPE_p_BaseClassData, 0)))
+        return;
+      self->released = true;
     };
   };
 
