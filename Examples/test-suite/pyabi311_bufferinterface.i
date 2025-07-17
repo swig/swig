@@ -1,4 +1,4 @@
-%module pyabi312_bufferinterface
+%module pyabi311_bufferinterface
 
 %begin %{
 #if defined(Py_LIMITED_API) && Py_LIMITED_API+0 < 0x030b0000

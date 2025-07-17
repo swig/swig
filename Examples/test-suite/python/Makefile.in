@@ -90,15 +90,15 @@ CPP_TEST_CASES += \
 #	director_profile
 
 ifeq (,$(PY_ABI_VER))
-PY_ABI_312:=1
+PY_ABI_311:=1
 else
 PY_ABI_VER_INTEGER:=$(shell printf "%d%02d" $(subst ., ,$(PY_ABI_VER)))
-PY_ABI_312:=$(shell test $(PY_ABI_VER_INTEGER) -ge 312 && echo "1")
+PY_ABI_311:=$(shell test $(PY_ABI_VER_INTEGER) -ge 311 && echo "1")
 endif
 
-# Test requiring python-3.12 minimum if using Py_LIMITED_API
-ifeq (1,$(PY_ABI_312))
-CPP_TEST_CASES += pyabi312_bufferinterface
+# Test requiring python-3.11 minimum if using Py_LIMITED_API
+ifeq (1,$(PY_ABI_311))
+CPP_TEST_CASES += pyabi311_bufferinterface
 endif
 
 
