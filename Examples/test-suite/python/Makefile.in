@@ -66,7 +66,6 @@ CPP_TEST_CASES += \
 	python_annotations_c \
 	python_annotations_variable_c \
 	python_append \
-	python_bufferinterface \
 	python_builtin \
 	python_destructor_exception \
 	python_director \
@@ -89,6 +88,19 @@ CPP_TEST_CASES += \
 	template_matrix \
 
 #	director_profile
+
+ifeq (,$(PY_ABI_VER))
+PY_ABI_312:=1
+else
+PY_ABI_VER_INTEGER:=$(shell printf "%d%02d" $(subst ., ,$(PY_ABI_VER)))
+PY_ABI_312:=$(shell test $(PY_ABI_VER_INTEGER) -ge 312 && echo "1")
+endif
+
+# Test requiring python-3.12 minimum if using Py_LIMITED_API
+ifeq (1,$(PY_ABI_312))
+CPP_TEST_CASES += pyabi312_bufferinterface
+endif
+
 
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
