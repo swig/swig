@@ -42,20 +42,21 @@
   static char data[1024];
   static bool released;
 
-  class ReadOnlyData {
+  class BaseClassData {
   public:
-    ReadOnlyData() {
+    BaseClassData() {
       released = true;
       strcpy(data, "This string represents a large block of memory.");
     };
-    static int getbuffer(PyObject *exporter, Py_buffer *view, int flags) {
+    static int getbuffer(PyObject *exporter, Py_buffer *view, int flags,
+                         bool readonly) {
 #if defined(Py_LIMITED_API) && Py_LIMITED_API+0 < 0x030b0000
       PyErr_SetNone(PyExc_BufferError);
       view->obj = NULL;
       return -1;
 #else
       released = false;
-      return PyBuffer_FillInfo(view, exporter, &data, sizeof(data), 1, flags);
+      return PyBuffer_FillInfo(view, exporter, &data, sizeof(data), readonly ? 1 : 0, flags);
 #endif
     };
     static void releasebuffer(PyObject *exporter, Py_buffer *view) {
@@ -63,24 +64,17 @@
     };
   };
 
-  class ReadWriteData {
+  class ReadOnlyData: public BaseClassData {
   public:
-    ReadWriteData() {
-      released = true;
-      strcpy(data, "This string represents a large block of memory.");
-    };
     static int getbuffer(PyObject *exporter, Py_buffer *view, int flags) {
-#if defined(Py_LIMITED_API) && Py_LIMITED_API+0 < 0x030b0000
-      PyErr_SetNone(PyExc_BufferError);
-      view->obj = NULL;
-      return -1;
-#else
-      released = false;
-      return PyBuffer_FillInfo(view, exporter, &data, sizeof(data), 0, flags);
-#endif
+      return BaseClassData::getbuffer(exporter, view, flags, true);
     };
-    static void releasebuffer(PyObject *exporter, Py_buffer *view) {
-      released = true;
+  };
+
+  class ReadWriteData: public BaseClassData {
+  public:
+    static int getbuffer(PyObject *exporter, Py_buffer *view, int flags) {
+      return BaseClassData::getbuffer(exporter, view, flags, false);
     };
   };
 %}
