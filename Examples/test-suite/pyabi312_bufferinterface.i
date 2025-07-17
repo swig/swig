@@ -2,7 +2,8 @@
 
 %begin %{
 #if defined(Py_LIMITED_API) && Py_LIMITED_API+0 < 0x030b0000
-#undef Py_LIMITED_API // Py_buffer is not defined in Py_LIMITED_API < 3.11
+// Examples/tests-suite/python/Makefile should only run this test with Py_LIMITED_API >= 3.11
+#error testcase misconfiguration - Py_buffer is not defined in Py_LIMITED_API < 3.11
 #endif
 %}
 
