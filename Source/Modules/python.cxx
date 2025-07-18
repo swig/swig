@@ -4543,12 +4543,14 @@ public:
     if (Getattr(n, "feature:python:bf_getbuffer")) {
       Printv(f, "#if !defined(Py_LIMITED_API) && PY_VERSION_HEX < 0x03090000\n", NIL);
       Printf(f, "  if (pytype) {\n");
-      Printf(f, "    *((PyTypeObject *)pytype)->tp_as_buffer = (PyBufferProcs){\n");
-      Printf(f, "      .bf_getbuffer = ");
+      Printf(f, "    PyBufferProcs *as_buffer = (PyBufferProcs*)malloc(sizeof(PyBufferProcs));\n");
+      Printf(f, "    as_buffer->bf_getbuffer = ");
       Printv(f, getSlot(n, "feature:python:bf_getbuffer"), NIL);
-      Printf(f, ",\n      .bf_releasebuffer = ");
+      Printf(f, ";\n");
+      Printf(f, "    as_buffer->bf_releasebuffer = ");
       Printv(f, getSlot(n, "feature:python:bf_releasebuffer"), NIL);
-      Printf(f, "\n    };\n");
+      Printf(f, ";\n");
+      Printf(f, "    pytype->tp_as_buffer = as_buffer;\n");
       Printf(f, "  }\n");
       Printv(f, "#endif\n", NIL);
     }
