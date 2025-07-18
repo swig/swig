@@ -92,6 +92,7 @@ static int extranative = 0;
 static int nortti = 0;
 static int relativeimport = 0;
 static int flat_static_method = 0;
+static int nogil = 0;
 
 /* flags for the make_autodoc function */
 namespace {
@@ -123,6 +124,7 @@ Python Options (available with -python)\n\
      -keyword        - Use keyword arguments\n";
 static const char *usage2 = "\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions\n\
+     -nogil          - Enable free-threading if supported by the Python interpreter\n\
      -noh            - Don't generate the output header file\n";
 static const char *usage3 = "\
      -noproxy        - Don't generate proxy classes\n\
@@ -414,6 +416,10 @@ public:
 	  builtin = 1;
 	  Preprocessor_define("SWIGPYTHON_BUILTIN", 0);
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-nogil") == 0) {
+	  nogil = 1;
+	  Preprocessor_define("SWIGPYTHON_NOGIL", 0);
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-relativeimport") == 0) {
 	  relativeimport = 1;
 	  Swig_mark_arg(i);
@@ -642,6 +648,10 @@ public:
 
     if (fastproxy) {
       Printf(f_runtime, "#define SWIGPYTHON_FASTPROXY\n");
+    }
+
+    if (nogil) {
+      Printf(f_runtime, "#define SWIGPYTHON_NOGIL\n");
     }
 
     Printf(f_runtime, "\n");
