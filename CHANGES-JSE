@@ -4,7 +4,7 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 5.0.6
+Version 5.0.7
 ===========================
 
 2025-05-05: mmomtchev
@@ -17,7 +17,7 @@ Version 5.0.6
             [mmomtchev/swig#92](https://github.com/mmomtchev/swig/issues/92), 
             [mmomtchev/swig#95](https://github.com/mmomtchev/swig/issues/95)
 
-Version 5.0.6
+Version 5.0.6 (21 May 2025)
 ===========================
 
 2024-10-16: mmomtchev
