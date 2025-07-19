@@ -1416,7 +1416,11 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     PyWeakref_GetRef(pyobj, &pyobj);
     Py_DECREF(pyobj);
 #else
+#ifndef Py_LIMITED_API
     pyobj = PyWeakref_GET_OBJECT(pyobj);
+#else
+    pyobj = PyWeakref_GetObject(pyobj);
+#endif
 #endif
     if (pyobj && SwigPyObject_Check(pyobj))
       return (SwigPyObject*) pyobj;
@@ -1438,7 +1442,11 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     } else {
 #ifdef PyWeakref_CheckProxy
       if (PyWeakref_CheckProxy(pyobj)) {
-	PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
+#ifndef Py_LIMITED_API
+        PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
+#else
+        PyObject *wobj = PyWeakref_GetObject(pyobj);
+#endif
 	return wobj ? SWIG_Python_GetSwigThis(wobj) : 0;
       }
 #endif
