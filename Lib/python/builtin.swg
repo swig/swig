@@ -32,7 +32,13 @@ SWIG_PyNumber_AsPyHash(PyObject *obj) {
 
 SWIGINTERN int
 SwigPyBuiltin_BadInit(PyObject *self, PyObject *SWIGUNUSEDPARM(args), PyObject *SWIGUNUSEDPARM(kwds)) {
+#if PY_VERSION_HEX >= 0x03000000
+  PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(Py_TYPE(self));
+  PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%S'", tpname);
+  SWIG_Py_DECREF(tpname);
+#else
   PyErr_Format(PyExc_TypeError, "Cannot create new instances of type '%s'", Py_TYPE(self)->tp_name);
+#endif
   return -1;
 }
 
@@ -40,7 +46,13 @@ SWIGINTERN void
 SwigPyBuiltin_BadDealloc(PyObject *obj) {
   SwigPyObject *sobj = (SwigPyObject *)obj;
   if (sobj->own) {
+#if PY_VERSION_HEX >= 0x03000000
+    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(Py_TYPE(obj));
+    PyErr_Format(PyExc_TypeError, "Swig detected a memory leak in type '%S': no callable destructor found.", tpname);
+    SWIG_Py_DECREF(tpname);
+#else
     PyErr_Format(PyExc_TypeError, "Swig detected a memory leak in type '%s': no callable destructor found.", Py_TYPE(obj)->tp_name);
+#endif
   }
 }
 
@@ -87,12 +99,24 @@ SwigPyBuiltin_SetterClosure (PyObject *obj, PyObject *val, void *closure) {
     return -1;
   }
   if (!val) {
+#if PY_VERSION_HEX >= 0x03000000
+    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(Py_TYPE(obj));
+    PyErr_Format(PyExc_AttributeError, "Illegal member variable deletion in type '%S'", tpname);
+    SWIG_Py_DECREF(tpname);
+#else
     PyErr_Format(PyExc_AttributeError, "Illegal member variable deletion in type '%s'", Py_TYPE(obj)->tp_name);
+#endif
     return -1;
   }
   getset = (SwigPyGetSet *)closure;
   if (!getset->set) {
+#if PY_VERSION_HEX >= 0x03000000
+    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(Py_TYPE(obj));
+    PyErr_Format(PyExc_AttributeError, "Illegal member variable assignment in type '%S'", tpname);
+    SWIG_Py_DECREF(tpname);
+#else
     PyErr_Format(PyExc_AttributeError, "Illegal member variable assignment in type '%s'", Py_TYPE(obj)->tp_name);
+#endif
     return -1;
   }
   tuple = PyTuple_New(1);
@@ -114,12 +138,24 @@ SwigPyBuiltin_FunpackSetterClosure (PyObject *obj, PyObject *val, void *closure)
     return -1;
   }
   if (!val) {
+#if PY_VERSION_HEX >= 0x03000000
+    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(Py_TYPE(obj));
+    PyErr_Format(PyExc_AttributeError, "Illegal member variable deletion in type '%S'", tpname);
+    SWIG_Py_DECREF(tpname);
+#else
     PyErr_Format(PyExc_AttributeError, "Illegal member variable deletion in type '%s'", Py_TYPE(obj)->tp_name);
+#endif
     return -1;
   }
   getset = (SwigPyGetSet *)closure;
   if (!getset->set) {
+#if PY_VERSION_HEX >= 0x03000000
+    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(Py_TYPE(obj));
+    PyErr_Format(PyExc_AttributeError, "Illegal member variable assignment in type '%S'", tpname);
+    SWIG_Py_DECREF(tpname);
+#else
     PyErr_Format(PyExc_AttributeError, "Illegal member variable assignment in type '%s'", Py_TYPE(obj)->tp_name);
+#endif
     return -1;
   }
   result = (*getset->set)(obj, val);
@@ -138,7 +174,6 @@ SwigPyStaticVar_dealloc(PyDescrObject *descr) {
 SWIGINTERN PyObject *
 SwigPyStaticVar_repr(PyGetSetDescrObject *descr) {
 #if PY_VERSION_HEX >= 0x03000000
-
   return PyUnicode_FromFormat("<class attribute '%S' of type '%s'>", PyDescr_NAME(descr), PyDescr_TYPE(descr)->tp_name);
 #else
   return PyString_FromFormat("<class attribute '%s' of type '%s'>", PyString_AsString(PyDescr_NAME(descr)), PyDescr_TYPE(descr)->tp_name);
@@ -181,24 +216,29 @@ SWIGINTERN int
 SwigPyObjectType_setattro(PyObject *typeobject, PyObject *name, PyObject *value) {
   PyObject *attribute;
   PyTypeObject *type;
-  descrsetfunc local_set;
 
   assert(PyType_Check(typeobject));
   type = (PyTypeObject *)typeobject;
   attribute = _PyType_Lookup(type, name);
   if (attribute != NULL) {
     /* Implement descriptor functionality, if any */
-    local_set = Py_TYPE(attribute)->tp_descr_set;
-    if (local_set != NULL)
-      return local_set(attribute, (PyObject *)type, value);
+    descrsetfunc local_set = Py_TYPE(attribute)->tp_descr_set;
+    if (local_set == NULL) {
 #if PY_VERSION_HEX >= 0x03000000
-    PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%s.%S'", type->tp_name, name);
+      PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(type);
+      PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%S.%S'", tpname, name);
+      SWIG_Py_DECREF(tpname);
 #else 
-    PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%s.%s'", type->tp_name, PyString_AS_STRING(name));
+      PyErr_Format(PyExc_AttributeError, "cannot modify read-only attribute '%s.%s'", type->tp_name, PyString_AS_STRING(name));
 #endif
+    } else {
+      return local_set(attribute, (PyObject *)type, value);
+    }
   } else {
 #if PY_VERSION_HEX >= 0x03000000
-    PyErr_Format(PyExc_AttributeError, "type '%s' has no attribute '%S'", type->tp_name, name);
+    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(type);
+    PyErr_Format(PyExc_AttributeError, "type '%S' has no attribute '%S'", tpname, name);
+    SWIG_Py_DECREF(tpname);
 #else
     PyErr_Format(PyExc_AttributeError, "type '%s' has no attribute '%s'", type->tp_name, PyString_AS_STRING(name));
 #endif

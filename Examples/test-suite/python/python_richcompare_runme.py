@@ -83,6 +83,10 @@ if (a1 == 42) :
 if not (a1 != 42) :
     raise RuntimeError("Comparing class (with overloaded operator ==) to incompatible type, != returned False")
 
+if sys.version_info[0] >= 3:
+    if a1.__eq__(None) is not NotImplemented:
+        raise RuntimeError("Comparing to incompatible type should return NotImplemented")
+
 # Check inequalities
 #-------------------------------------------------------------------------
 

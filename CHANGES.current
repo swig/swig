@@ -7,6 +7,20 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-07-18: crusaderky
+            [Python] #3215 Added -nogil flag to mark modules as free-threading compatible.
+
+2025-07-18: jim-easterbrook
+            [Python] #3219 Python builtin heap types buffer support via the
+            "python:bf_getbuffer" and "python:bf_releasebuffer" features improvement.
+            Add workarounds/fixes for python-3.9 and earlier and ignore when using
+            the limited API for versions prior to python-3.11 instead of generating
+            code that won't compile.
+
+2025-07-09: timfel
+            [Python] #3217 Fix undefined behaviour in SwigPyObject_richcompare and
+            SwigPyObject_compare.
+
 2025-06-27: wsfulton
             [Python] Raise an AttributeError instead of TypeError when there are internal
             and unexpected coding errors around member variable wrappers.

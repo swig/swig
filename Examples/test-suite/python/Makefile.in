@@ -9,8 +9,7 @@ else
 endif
 
 LANGUAGE     = python
-PYNOGIL      = @PYNOGIL@
-PYFLAGS      = -Walways
+PYFLAGS      = -Werror
 SCRIPTSUFFIX = _runme.py
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,E741,W291,W391
@@ -81,12 +80,26 @@ CPP_TEST_CASES += \
 	python_strict_unicode \
 	python_threads \
 	python_typemap_macro \
+	python_various \
 	simutry \
 	std_containers \
 	swigobject \
 	template_matrix \
 
 #	director_profile
+
+ifeq (,$(PY_ABI_VER))
+PY_ABI_311:=1
+else
+PY_ABI_VER_INTEGER:=$(shell printf "%d%02d" $(subst ., ,$(PY_ABI_VER)))
+PY_ABI_311:=$(shell test $(PY_ABI_VER_INTEGER) -ge 311 && echo "1")
+endif
+
+# Test requiring python-3.11 minimum if using Py_LIMITED_API
+ifeq (1,$(PY_ABI_311))
+CPP_TEST_CASES += pyabi311_bufferinterface
+endif
+
 
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
@@ -171,7 +184,7 @@ endif
 # a file is found which has _runme.py appended after the testcase name.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=.:$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(PYNOGIL) $(PYFLAGS) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=.:$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(PYFLAGS) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean: remove the generated .py file
@@ -194,5 +207,5 @@ hugemod:
 	perl hugemod.pl $(hugemod_runme)
 	$(MAKE) hugemod_a.cpptest
 	$(MAKE) hugemod_b.cpptest
-	time $(PYTHON) $(PYNOGIL) $(PYFLAGS) $(hugemod_runme)
-	time $(PYTHON) $(PYNOGIL) $(PYFLAGS) $(hugemod_runme)
+	time $(PYTHON) $(PYFLAGS) $(hugemod_runme)
+	time $(PYTHON) $(PYFLAGS) $(hugemod_runme)
