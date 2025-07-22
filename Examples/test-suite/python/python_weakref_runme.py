@@ -1,3 +1,4 @@
+import sys
 import weakref
 
 import python_weakref
@@ -29,8 +30,9 @@ check("wrong number of weak references", weakref.getweakrefcount(ts), 1)
 # weak reference proxy with callback
 ts_ref_cb = weakref.proxy(ts, callback)
 check("wrong number of weak references", weakref.getweakrefcount(ts), 2)
-# weakref proxy fails "is" but passes "=="
-check("deref'd weakref != object", ts_ref_cb, ts)
+if sys.version_info >= (3,0):
+    # weakref proxy fails "is" but passes "=="
+    check("deref'd weakref != object", ts_ref_cb, ts)
 check("weakref proxy not usable", ts_ref_cb.x, 123)
 
 # delete object
