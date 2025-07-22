@@ -1404,6 +1404,7 @@ SWIG_This(void)
 #define SWIG_PYTHON_SLOW_GETSET_THIS 
 #endif
 
+/* Returns a borrowed reference to the 'this' object */
 SWIGRUNTIME SwigPyObject *
 SWIG_Python_GetSwigThis(PyObject *pyobj) 
 {
@@ -1414,18 +1415,18 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
 
 #ifdef SWIGPYTHON_BUILTIN
   (void)obj;
-# ifdef PyWeakref_CheckProxy
   if (PyWeakref_CheckProxy(pyobj)) {
 #if PY_VERSION_HEX >= 0x030d0000
-    PyWeakref_GetRef(pyobj, &pyobj);
-    Py_DECREF(pyobj);
+    if (PyWeakref_GetRef(pyobj, &pyobj) > 0)
+      Py_DECREF(pyobj);
+    else
+      pyobj = NULL;
 #else
-    pyobj = PyWeakref_GET_OBJECT(pyobj);
+    pyobj = PyWeakref_GetObject(pyobj);
 #endif
     if (pyobj && SwigPyObject_Check(pyobj))
       return (SwigPyObject*) pyobj;
   }
-# endif
   return NULL;
 #else
 
@@ -1440,13 +1441,11 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
       PyObject *dict = *dictptr;
       obj = dict ? PyDict_GetItem(dict, SWIG_This()) : 0;
     } else {
-#ifdef PyWeakref_CheckProxy
       if (PyWeakref_CheckProxy(pyobj)) {
-	PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
+        PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
 	return wobj ? SWIG_Python_GetSwigThis(wobj) : 0;
       }
-#endif
-      obj = PyObject_GetAttr(pyobj,SWIG_This());
+      obj = PyObject_GetAttr(pyobj, SWIG_This());
       if (obj) {
 	SWIG_Py_DECREF(obj);
       } else {
@@ -1456,7 +1455,7 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     }
   }
 #else
-  obj = PyObject_GetAttr(pyobj,SWIG_This());
+  obj = PyObject_GetAttr(pyobj, SWIG_This());
   if (obj) {
     SWIG_Py_DECREF(obj);
   } else {
