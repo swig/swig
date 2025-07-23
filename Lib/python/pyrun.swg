@@ -1084,7 +1084,7 @@ SwigPyObject_TypeOnce(void) {
 #else
   static PyMemberDef SwigPyObject_members[] = {
       { (char *)"__dictoffset__", Py_T_PYSSIZET, offsetof(SwigPyObject, swigdict), Py_READONLY, NULL },
-      { (char *)"__weaklistoffset__", Py_T_PYSSIZET, offsetof(SwigPyObject, weakreflist), Py_READONLY },
+      { (char *)"__weaklistoffset__", Py_T_PYSSIZET, offsetof(SwigPyObject, weakreflist), Py_READONLY, NULL },
       { NULL, 0, 0, 0, NULL }
   };
   PyType_Slot slots[] = {
