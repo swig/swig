@@ -209,10 +209,9 @@ Examples/python/**/foo.py
 Examples/python/**/robin.py
 Examples/python/**/runme3.py
 Examples/python/**/spam.py
-Examples/python/doxygen/example.html
-Examples/python/external_runtime/swig_runtime.hxx
 Examples/python/import_packages/module_is_init/pkg1/__init__.py
 Examples/python/import_packages/namespace_pkg/path4.zip
+Examples/python/doxygen/example.html
 
 # R
 Examples/test-suite/r/*.R
