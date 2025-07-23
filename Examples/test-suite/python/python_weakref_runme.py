@@ -36,6 +36,7 @@ if sys.version_info >= (3,0):
 check("weakref proxy not usable", ts_ref_cb.x, 123)
 
 # delete object
+check("callback was called", callbacks, [])
 del ts
-check("deref'd weakref is not None", ts_ref() is None, True)
 check("callback wasn't called", callbacks, [ts_ref_cb])
+check("deref'd weakref is not None", ts_ref() is None, True)

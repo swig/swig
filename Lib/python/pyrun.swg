@@ -1084,6 +1084,7 @@ SwigPyObject_TypeOnce(void) {
 #else
   static PyMemberDef SwigPyObject_members[] = {
       { (char *)"__dictoffset__", Py_T_PYSSIZET, offsetof(SwigPyObject, swigdict), Py_READONLY, NULL },
+      { (char *)"__weaklistoffset__", Py_T_PYSSIZET, offsetof(SwigPyObject, weakreflist), Py_READONLY },
       { NULL, 0, 0, 0, NULL }
   };
   PyType_Slot slots[] = {
@@ -1110,12 +1111,12 @@ SwigPyObject_TypeOnce(void) {
 /* While this __dictoffset__ is only used with the builtin wrappers, SwigPyObject ought to be
    identical when created for use by proxy class wrappers in case it is shared across multiple modules. */
 #if PY_VERSION_HEX < 0x03090000
-    /* Workaround as __dictoffset__ above is only supported from python-3.9 */
-  if (pytype)
+    /* Workaround as __dictoffset__ and __weaklistoffset__ above are only supported from python-3.9 */
+  if (pytype) {
     ((PyTypeObject *)pytype)->tp_dictoffset = offsetof(SwigPyObject, swigdict);
-#endif
-  if (pytype)
     ((PyTypeObject *)pytype)->tp_weaklistoffset = offsetof(SwigPyObject, weakreflist);
+  }
+#endif
 #endif
   if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObject", pytype) == 0)
     SWIG_Py_INCREF(pytype);
