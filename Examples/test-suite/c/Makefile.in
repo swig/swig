@@ -99,7 +99,7 @@ FAILING_CPP_TESTS := \
 
 # Ignore warnings about failing to apply typemaps because none are defined:
 # usually there is no need for special typemaps in C.
-char_binary.cpptest director_binary_string.cpptest li_typemaps.cpptest li_typemaps_apply.cpptest long_long_apply.cpptest: SWIGOPT += -w453
+li_typemaps.cpptest li_typemaps_apply.cpptest long_long_apply.cpptest: SWIGOPT += -w453
 
 include $(srcdir)/../common.mk
 
