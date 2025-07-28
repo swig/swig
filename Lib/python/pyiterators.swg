@@ -13,9 +13,6 @@
 
 %fragment("SwigPyIterator","header",fragment="<stddef.h>") {
 namespace swig {
-  struct stop_iteration {
-  };
-
   struct SwigPyIterator {
   private:
     SwigPtr_PyObject _seq;
@@ -37,7 +34,7 @@ namespace swig {
     // Backward iterator method, very common in C++, but not required in Python
     virtual SwigPyIterator *decr(size_t /*n*/ = 1)
     {
-      throw stop_iteration();
+      return NULL;
     }
 
     // Random access iterator methods, but not required in Python
@@ -271,7 +268,7 @@ namespace swig {
     
     PyObject *value() const {
       if (base::current == end) {
-	throw stop_iteration();
+	return NULL;
       } else {
 	return from(static_cast<const value_type&>(*(base::current)));
       }
@@ -286,7 +283,7 @@ namespace swig {
     {
       while (n--) {
 	if (base::current == end) {
-	  throw stop_iteration();
+	  return NULL;
 	} else {
 	  ++base::current;
 	}
@@ -321,7 +318,7 @@ namespace swig {
     {
       while (n--) {
 	if (base::current == base0::begin) {
-	  throw stop_iteration();
+	  return NULL;
 	} else {
 	  --base::current;
 	}
@@ -366,17 +363,18 @@ namespace swig {
 %fragment("SwigPyIterator");
 namespace swig 
 {
-  /*
-    Throw a StopIteration exception
-  */
-  %ignore stop_iteration;
-  struct stop_iteration {};
-  
-  %typemap(throws) stop_iteration {
-    (void)$1;
-    SWIG_SetErrorObj(PyExc_StopIteration, SWIG_Py_Void());
-    SWIG_fail;
-  }
+#define SWIG_PY_RAISE_STOP_ITERATION { $action if (result == NULL) { SWIG_SetErrorObj(PyExc_StopIteration, SWIG_Py_Void()); SWIG_fail; } }
+  %exception SwigPyIterator::value() const SWIG_PY_RAISE_STOP_ITERATION
+  %exception SwigPyIterator::incr(size_t n = 1) SWIG_PY_RAISE_STOP_ITERATION
+  %exception SwigPyIterator::decr(size_t n = 1) SWIG_PY_RAISE_STOP_ITERATION
+  %exception SwigPyIterator::__next__() SWIG_PY_RAISE_STOP_ITERATION
+  %exception SwigPyIterator::next() SWIG_PY_RAISE_STOP_ITERATION
+  %exception SwigPyIterator::previous() SWIG_PY_RAISE_STOP_ITERATION
+  %exception SwigPyIterator::advance(ptrdiff_t n) SWIG_PY_RAISE_STOP_ITERATION
+  %exception SwigPyIterator::operator += (ptrdiff_t n) SWIG_PY_RAISE_STOP_ITERATION
+  %exception SwigPyIterator::operator -= (ptrdiff_t n) SWIG_PY_RAISE_STOP_ITERATION
+  %exception SwigPyIterator::operator + (ptrdiff_t n) const SWIG_PY_RAISE_STOP_ITERATION
+  %exception SwigPyIterator::operator - (ptrdiff_t n) const SWIG_PY_RAISE_STOP_ITERATION
 
   /* 
      Mark methods that return new objects
@@ -397,19 +395,8 @@ namespace swig
   }
 #endif
 
-  %catches(swig::stop_iteration) SwigPyIterator::value() const;
-  %catches(swig::stop_iteration) SwigPyIterator::incr(size_t n = 1);
-  %catches(swig::stop_iteration) SwigPyIterator::decr(size_t n = 1);
   %catches(std::invalid_argument) SwigPyIterator::distance(const SwigPyIterator &x) const;
   %catches(std::invalid_argument) SwigPyIterator::equal (const SwigPyIterator &x) const;
-  %catches(swig::stop_iteration) SwigPyIterator::__next__();
-  %catches(swig::stop_iteration) SwigPyIterator::next();
-  %catches(swig::stop_iteration) SwigPyIterator::previous();
-  %catches(swig::stop_iteration) SwigPyIterator::advance(ptrdiff_t n);
-  %catches(swig::stop_iteration) SwigPyIterator::operator += (ptrdiff_t n);
-  %catches(swig::stop_iteration) SwigPyIterator::operator -= (ptrdiff_t n);
-  %catches(swig::stop_iteration) SwigPyIterator::operator + (ptrdiff_t n) const;
-  %catches(swig::stop_iteration) SwigPyIterator::operator - (ptrdiff_t n) const;
 
   struct SwigPyIterator
   {
