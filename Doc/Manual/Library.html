@@ -940,7 +940,7 @@ The <tt>(char *STRING, int LENGTH)</tt> multi-argument typemap is also available
 </p>
 
 <p>
-We also support passing parameters in reverse order
+SWIG also supports passing these parameters but in reverse order, for example:
 </p>
 
 <div class="code">
@@ -953,7 +953,7 @@ size_t parity(size_t len, char *str, size_t initial);
 
 <p>
 The usage from target language will be identical.
-In the wrapper function, the passed string will be expanded to a length parameter and pointer.
+In the wrapper function, the supplied string will be expanded to a length parameter and pointer.
 </p>
 
 <H3><a name="Library_nn11">12.3.3 Using %newobject to release memory</a></H3>

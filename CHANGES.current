@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-07-28: erezgeva
+            #2937 Add missing support for (size_t LENGTH, char *STRING) multi-argument typemaps.
+
 2025-07-23: jim-easterbrook
             [Python] #3218 Added weakref support to builtin wrappers.
 

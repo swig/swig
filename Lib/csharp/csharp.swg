@@ -1142,8 +1142,7 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
 %typemap(imtype) (const char *STRING, size_t LENGTH) "global::System.IntPtr"
 %typemap(csin)   (const char *STRING, size_t LENGTH) "$modulePINVOKE.SWIGStringWithLengthHelper.SWIG_csharp_string_to_c($csinput)"
 %typemap(in, canthrow=1, fragment="SWIG_csharp_string") (const char *STRING, size_t LENGTH) {
-  SWIG_csharp_string *p;
-  p = (SWIG_csharp_string *)$input;
+  SWIG_csharp_string *p = (SWIG_csharp_string *)$input;
   if (p) {
     $1 = ($1_ltype)p->str;
     $2 = ($2_ltype)p->size; /* We use number of bytes */
@@ -1153,8 +1152,7 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
   }
 }
 %typemap(freearg, fragment="SWIG_csharp_string") (const char *STRING, size_t LENGTH) {
-  SWIG_csharp_string *p;
-  p = (SWIG_csharp_string *)$input;
+  SWIG_csharp_string *p = (SWIG_csharp_string *)$input;
   if (p) {
     free(p->str);
     free(p);
@@ -1184,8 +1182,7 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
 %typemap(imtype) (size_t LENGTH, const char *STRING) "global::System.IntPtr"
 %typemap(csin)   (size_t LENGTH, const char *STRING) "$modulePINVOKE.SWIGStringWithLengthHelper.SWIG_csharp_string_to_c($csinput)"
 %typemap(in, canthrow=1, fragment="SWIG_csharp_string") (size_t LENGTH, const char *STRING) {
-  SWIG_csharp_string *p;
-  p = (SWIG_csharp_string *)$input;
+  SWIG_csharp_string *p = (SWIG_csharp_string *)$input;
   if (p) {
     $2 = ($2_ltype)p->str;
     $1 = ($1_ltype)p->size; /* We use number of bytes */
@@ -1194,16 +1191,13 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
     $2 = 0;
   }
 }
-%typemap(freearg, fragment="SWIG_csharp_string") (size_t LENGTH, const char *STRING) %{
-  {
-     SWIG_csharp_string *p;
-     p = (SWIG_csharp_string *)$input;
-     if (p) {
-        free(p->str);
-        free(p);
-     }
+%typemap(freearg, fragment="SWIG_csharp_string") (size_t LENGTH, const char *STRING) {
+  SWIG_csharp_string *p = (SWIG_csharp_string *)$input;
+  if (p) {
+    free(p->str);
+    free(p);
   }
-%}
+}
 %typemap(directorin) (size_t LENGTH, const char *STRING) %{
   if ($2 && $1 > 0) {
     $input = malloc(sizeof(SWIG_csharp_string));
