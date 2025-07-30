@@ -4207,7 +4207,7 @@ or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line 
 <p>
 The default SWIG command line options generate code that enable the limited API/stable ABI.
 Some options, such as <tt>-builtin</tt>, <tt>-fastproxy</tt> (used by <tt>-O</tt>) do not use the limited API and hence when <tt>Py_LIMITED_API</tt> is defined there will be missing symbols during compilation.
-Limited API is only guaranteed to work with the default code generation options.
+The limited API is only known to work with the default code generation options.
 Compatibility of user's custom typemaps is of course dependent on the Python APIs used in the typemaps.
 </p>
 
