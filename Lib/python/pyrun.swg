@@ -1958,7 +1958,11 @@ SWIG_Python_TypeQuery(const char *type)
            PyDict_SetDefault below may not return obj, but the descriptor inside will be
            the same.
         */
+#if PY_VERSION_HEX >= 0x03040000
         PyDict_SetDefault(cache, key, obj);
+#else
+        PyDict_SetItem(cache, key, obj);
+#endif
         SWIG_Py_DECREF(obj);
       }
     }
