@@ -1948,7 +1948,17 @@ SWIG_Python_TypeQuery(const char *type)
     if (descriptor) {
       obj = PyCapsule_New((void*) descriptor, NULL, NULL);
       if (obj) {
-        PyDict_SetItem(cache, key, obj);
+        /* Free-threading race condition:
+           If another thread hits this code branch at the same time, it may populate the
+           cache with a different object. This in turn may cause a third thread, which
+           gets a cache hit from PyDict_GetItem, to call PyCapsule_GetPointer on a dead
+           pointer and segfault.
+
+           To prevent that, ensure that once a capsule enters the cache it never leaves.
+           PyDict_SetDefault below may not return obj, but the descriptor inside will be
+           the same.
+        */
+        PyDict_SetDefault(cache, key, obj);
         SWIG_Py_DECREF(obj);
       }
     }
