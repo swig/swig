@@ -1191,7 +1191,7 @@ public:
 
       // Get the D code to convert the parameter value to the type used in the
       // intermediary D module.
-      if ((tm = lookupDTypemap(p, "din"))) {
+      if ((tm = lookupDTypemap(p, "din", true))) {
 	Replaceall(tm, "$dinput", arg);
 	String *pre = Getattr(p, "tmap:din:pre");
 	if (pre) {
