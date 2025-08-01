@@ -93,6 +93,15 @@ SWIG_Python_str_FromChar(const char *c)
 #define Py_hash_t long
 #endif
 
+#ifndef _Py_CAST
+#  define _Py_CAST(type, expr) ((type)(expr))
+#endif
+
+// Cast argument to PyObject* type.
+#ifndef _PyObject_CAST
+#  define _PyObject_CAST(op) _Py_CAST(PyObject*, op)
+#endif
+
 // bpo-42262 added Py_NewRef() to Python 3.10.0a3
 #if PY_VERSION_HEX < 0x030A00A3 && !defined(Py_NewRef)
 static inline PyObject* _Py_NewRef(PyObject *obj)
