@@ -71,10 +71,11 @@ jobs:
         - SWIGLANG: ruby
           VER: '3.3'
           NOTEST: 'no-test'
-        - SWIGLANG: ruby
-          INSTALL: 'true'
-          COMPILER: gcc
-          NOTEST: 'no-test'
+       # https://github.com/swig/swig/issues/3237 ::at_quick_exit bug in ruby-3.4.5-1
+       #- SWIGLANG: ruby
+       #  INSTALL: 'true'
+       #  COMPILER: gcc
+       #  NOTEST: 'no-test'
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
