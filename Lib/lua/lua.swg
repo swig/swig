@@ -60,6 +60,9 @@
   SWIG_contract_assert($1, "non null string");
   $2 = ($2_ltype)len;
 }
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING_LENGTH) (const char *STRING, size_t LENGTH) {
+    $1 = lua_isstring(L, $input);
+}
 %apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
 %apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
@@ -71,6 +74,9 @@
   $2 = ($2_ltype)lua_tolstring(L, $input, &len);
   SWIG_contract_assert($2, "non null string");
   $1 = ($1_ltype)len;
+}
+%typemap(typecheck, precedence=SWIG_TYPECHECK_LENGTH_STRING) (size_t LENGTH, const char *STRING) {
+    $1 = lua_isstring(L, $input);
 }
 %apply (size_t LENGTH, const char *STRING) { (size_t LENGTH, char *STRING) }
 %apply (size_t LENGTH, const char *STRING) { (int LENGTH, const char *STRING) }
