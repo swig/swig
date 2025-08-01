@@ -4,6 +4,8 @@ import . "swigtests/char_binary"
 
 func main() {
 	t := NewTest()
+	defer DeleteTest(t)
+
 	if t.Strlen("hile") != 4 {
 		panic("bad multi-arg typemap")
 	}
@@ -20,6 +22,8 @@ func main() {
 
 	// creating a raw char*
 	pc := New_pchar(5)
+	defer Delete_pchar(pc)
+
 	Pchar_setitem(pc, 0, 'h')
 	Pchar_setitem(pc, 1, 'o')
 	Pchar_setitem(pc, 2, 'l')
@@ -50,6 +54,4 @@ func main() {
     if GetVar_namet() != "hola" {
         panic("bad pointer case")
     }
-
-	Delete_pchar(pc)
 }
