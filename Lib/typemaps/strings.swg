@@ -411,21 +411,21 @@
  * ------------------------------------------------------------ */
 
 /* Here len doesn't include the '0' terminator */
-%typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize) 
-  (Char *STRING, size_t LENGTH) (int res, Char *buf = 0, size_t size = 0, int alloc = 0)
+%typemap(in,noblock=1,fragment=#SWIG_AsCharPtrAndSize)
+  (const Char *STRING, size_t LENGTH) (int res, Char *buf = 0, size_t size = 0, int alloc = 0)
 {
   res = SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc);
-  if (!SWIG_IsOK(res)) { 
+  if (!SWIG_IsOK(res)) {
     %argument_fail(res,"$type",$symname, $argnum);
-  }  
+  }
   $1 = %reinterpret_cast(buf, $1_ltype);
   $2 = %numeric_cast(size - 1, $2_ltype);
 }
-%typemap(freearg,noblock=1,match="in") (Char *STRING, size_t LENGTH) {
+%typemap(freearg,noblock=1,match="in") (const Char *STRING, size_t LENGTH) {
   if (alloc$argnum == SWIG_NEWOBJ) SWIG_DeleteCharArray(buf$argnum);
 }
 %typemap(directorin,noblock=1,fragment=#SWIG_FromCharPtrAndSize)
-    (Char *STRING, size_t LENGTH)
+    (const Char *STRING, size_t LENGTH)
 {
   if ($1 && $2 > 0) {
     $input = SWIG_FromCharPtrAndSize((const char*)$1, (size_t)$2);
@@ -433,18 +433,28 @@
     $input = SWIG_FromCharPtrAndSize("", 0);
   }
 }
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING_LENGTH,fragment=#SWIG_FromCharPtrAndSize)
+    (const Char *STRING, size_t LENGTH) {
+  Char *buf = 0;
+  size_t size = 0;
+  int alloc = 0;
+  $1 = SWIG_IsOK(SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc));
+}
 
-%typemap(in) (const Char *STRING, size_t LENGTH) = (Char *STRING, size_t LENGTH);
-%typemap(freearg) (const Char *STRING, size_t LENGTH) = (Char *STRING, size_t LENGTH);
-%typemap(directorin) (const Char *STRING, size_t LENGTH) = (Char *STRING, size_t LENGTH);
+%typemap(in) (Char *STRING, size_t LENGTH) = (const Char *STRING, size_t LENGTH);
+%typemap(freearg) (Char *STRING, size_t LENGTH) = (const Char *STRING, size_t LENGTH);
+%typemap(directorin) (Char *STRING, size_t LENGTH) = (const Char *STRING, size_t LENGTH);
+%typemap(typecheck) (Char *STRING, size_t LENGTH) = (const Char *STRING, size_t LENGTH);
 
 /* old 'int' form */
-%typemap(in) (Char *STRING, int LENGTH) = (Char *STRING, size_t LENGTH);
-%typemap(freearg) (Char *STRING, int LENGTH) = (Char *STRING, size_t LENGTH);
-%typemap(directorin) (Char *STRING, int LENGTH) = (Char *STRING, size_t LENGTH);
-%typemap(in) (const Char *STRING, int LENGTH) = (Char *STRING, size_t LENGTH);
-%typemap(freearg) (const Char *STRING, int LENGTH) = (Char *STRING, size_t LENGTH);
-%typemap(directorin) (const Char *STRING, int LENGTH) = (Char *STRING, size_t LENGTH);
+%typemap(in) (const Char *STRING, int LENGTH) = (const Char *STRING, size_t LENGTH);
+%typemap(freearg) (const Char *STRING, int LENGTH) = (const Char *STRING, size_t LENGTH);
+%typemap(directorin) (const Char *STRING, int LENGTH) = (const Char *STRING, size_t LENGTH);
+%typemap(typecheck) (const Char *STRING, int LENGTH) = (const Char *STRING, size_t LENGTH);
+%typemap(in) (Char *STRING, int LENGTH) = (const Char *STRING, size_t LENGTH);
+%typemap(freearg) (Char *STRING, int LENGTH) = (const Char *STRING, size_t LENGTH);
+%typemap(directorin) (Char *STRING, int LENGTH) = (const Char *STRING, size_t LENGTH);
+%typemap(typecheck) (Char *STRING, int LENGTH) = (const Char *STRING, size_t LENGTH);
 
 /* reverse order typemap */
 
@@ -470,18 +480,28 @@
     $input = SWIG_FromCharPtrAndSize("", 0);
   }
 }
+%typemap(typecheck, precedence=SWIG_TYPECHECK_LENGTH_STRING,fragment=#SWIG_FromCharPtrAndSize)
+    (size_t LENGTH, const Char *STRING) {
+  Char *buf = 0;
+  size_t size = 0;
+  int alloc = 0;
+  $1 = SWIG_IsOK(SWIG_AsCharPtrAndSize($input, &buf, &size, &alloc));
+}
 
 %typemap(in) (size_t LENGTH, Char *STRING) = (size_t LENGTH, const Char *STRING);
 %typemap(freearg) (size_t LENGTH, Char *STRING) = (size_t LENGTH, const Char *STRING);
 %typemap(directorin) (size_t LENGTH, Char *STRING) = (size_t LENGTH, const Char *STRING);
+%typemap(typecheck) (size_t LENGTH, Char *STRING) = (size_t LENGTH, const Char *STRING);
 
 /* old 'int' form */
 %typemap(in) (int LENGTH, const Char *STRING) = (size_t LENGTH, const Char *STRING);
 %typemap(freearg) (int LENGTH, const Char *STRING) = (size_t LENGTH, const Char *STRING);
 %typemap(directorin) (int LENGTH, const Char *STRING) = (size_t LENGTH, const Char *STRING);
+%typemap(typecheck) (int LENGTH, const Char *STRING) = (size_t LENGTH, const Char *STRING);
 %typemap(in) (int LENGTH, Char *STRING) = (size_t LENGTH, Char *STRING);
 %typemap(freearg) (int LENGTH, Char *STRING) = (size_t LENGTH, Char *STRING);
 %typemap(directorin) (int LENGTH, Char *STRING) = (size_t LENGTH, Char *STRING);
+%typemap(typecheck) (int LENGTH, Char *STRING) = (size_t LENGTH, Char *STRING);
 
 %enddef
 

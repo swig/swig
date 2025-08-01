@@ -13,10 +13,12 @@
 
 %inline %{
 struct Test {
+  size_t isize;
   size_t strlen(size_t len, const char *str) {
     return len;
   }
-  Test() {}
-  Test(size_t leng, const char *stri) {}
+  Test() { isize = 0; }
+  Test(size_t leng, const char *stri) { isize = leng; }
+  size_t getisize() { return  isize; }
 };
 %}
