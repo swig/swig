@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-08-01: erezgeva
+            [D] #3234 Ensure 'dtype' multi-argument typemaps are being correctly used.
+
 2025-07-28: erezgeva
             #2937 Add missing support for (size_t LENGTH, char *STRING) multi-argument typemaps.
 
