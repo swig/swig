@@ -1939,7 +1939,7 @@ SWIG_Python_TypeQuery(const char *type)
   swig_type_info *descriptor;
   PyObject *cache = SWIG_Python_TypeCache();
   PyObject *obj;
-  PyDict_GetItemStringRef(cache, type, &obj);
+  SWIG_PyDict_GetItemStringRef(cache, type, &obj);
   if (obj) {
     descriptor = (swig_type_info *) PyCapsule_GetPointer(obj, NULL);
   } else {
