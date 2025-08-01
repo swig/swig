@@ -93,6 +93,58 @@ SWIG_Python_str_FromChar(const char *c)
 #define Py_hash_t long
 #endif
 
+// bpo-42262 added Py_NewRef() to Python 3.10.0a3
+#if PY_VERSION_HEX < 0x030A00A3 && !defined(Py_NewRef)
+static inline PyObject* _Py_NewRef(PyObject *obj)
+{
+    Py_INCREF(obj);
+    return obj;
+}
+#define Py_NewRef(obj) _Py_NewRef(_PyObject_CAST(obj))
+#endif
+
+// gh-106004 added PyDict_GetItemRef() and PyDict_GetItemStringRef()
+// to Python 3.13.0a1
+#if PY_VERSION_HEX < 0x030D00A1
+static inline int
+PyDict_GetItemRef(PyObject *mp, PyObject *key, PyObject **result)
+{
+#if PY_VERSION_HEX >= 0x03000000
+    PyObject *item = PyDict_GetItemWithError(mp, key);
+#else
+    PyObject *item = _PyDict_GetItemWithError(mp, key);
+#endif
+    if (item != NULL) {
+        *result = Py_NewRef(item);
+        return 1;  // found
+    }
+    if (!PyErr_Occurred()) {
+        *result = NULL;
+        return 0;  // not found
+    }
+    *result = NULL;
+    return -1;
+}
+
+static inline int
+PyDict_GetItemStringRef(PyObject *mp, const char *key, PyObject **result)
+{
+    int res;
+#if PY_VERSION_HEX >= 0x03000000
+    PyObject *key_obj = PyUnicode_FromString(key);
+#else
+    PyObject *key_obj = PyString_FromString(key);
+#endif
+    if (key_obj == NULL) {
+        *result = NULL;
+        return -1;
+    }
+    res = PyDict_GetItemRef(mp, key_obj, result);
+    Py_DECREF(key_obj);
+    return res;
+}
+#endif
+
 #if defined(Py_LIMITED_API)
 # define PyTuple_GET_ITEM PyTuple_GetItem
 /* Note that PyTuple_SetItem() has different semantics from PyTuple_SET_ITEM as it decref's the original tuple item, so in general they cannot be used

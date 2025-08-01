@@ -1936,10 +1936,10 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
 SWIGRUNTIME swig_type_info *
 SWIG_Python_TypeQuery(const char *type)
 {
-  PyObject *cache = SWIG_Python_TypeCache();
-  PyObject *key = SWIG_Python_str_FromChar(type); 
-  PyObject *obj = PyDict_GetItem(cache, key);
   swig_type_info *descriptor;
+  PyObject *cache = SWIG_Python_TypeCache();
+  PyObject *obj;
+  PyDict_GetItemStringRef(cache, type, &obj);
   if (obj) {
     descriptor = (swig_type_info *) PyCapsule_GetPointer(obj, NULL);
   } else {
@@ -1947,27 +1947,10 @@ SWIG_Python_TypeQuery(const char *type)
     descriptor = SWIG_TypeQueryModule(swig_module, swig_module, type);
     if (descriptor) {
       obj = PyCapsule_New((void*) descriptor, NULL, NULL);
-      if (obj) {
-        /* Free-threading race condition:
-           If another thread hits this code branch at the same time, it may populate the
-           cache with a different object. This in turn may cause a third thread, which
-           gets a cache hit from PyDict_GetItem, to call PyCapsule_GetPointer on a dead
-           pointer and segfault.
-
-           To prevent that, ensure that once a capsule enters the cache it never leaves.
-           PyDict_SetDefault below may not return obj, but the descriptor inside will be
-           the same.
-        */
-#if PY_VERSION_HEX >= 0x03040000
-        PyDict_SetDefault(cache, key, obj);
-#else
-        PyDict_SetItem(cache, key, obj);
-#endif
-        SWIG_Py_DECREF(obj);
-      }
+      if (obj) PyDict_SetItemString(cache, type, obj);
     }
   }
-  SWIG_Py_DECREF(key);
+  SWIG_Py_XDECREF(obj);
   return descriptor;
 }
 
