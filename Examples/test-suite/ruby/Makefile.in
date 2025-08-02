@@ -13,6 +13,7 @@ HAVE_CXX20   = @HAVE_CXX20@
 srcdir       = @srcdir@
 top_srcdir   = @top_srcdir@
 top_builddir = @top_builddir@
+SHELL_PATH_SEP = @SHELL_PATH_SEP@
 
 FAILING_CPP_TESTS = \
 	cpp17_map_no_default_ctor \
@@ -95,9 +96,9 @@ ruby_naming.cpptest: SWIGOPT += -autorename
 # a file is found which has _runme.rb appended after the testcase name.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I$(srcdir):. $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I'$(srcdir)$(SHELL_PATH_SEP).' -- $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	elif [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*.so ] ; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I$(srcdir):. -r$(SCRIPTDIR)/$(SCRIPTPREFIX)$*.so -e '' ; \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH $(RUNTOOL) $(RUBY) $(RUBYFLAGS) -I'$(srcdir)$(SHELL_PATH_SEP).' -r$(SCRIPTDIR)/$(SCRIPTPREFIX)$*.so -e '' ; \
 	fi
 
 # Clean

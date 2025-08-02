@@ -22,6 +22,6 @@ x = typedef_inherit.do_blah2(d);
 if (x != "Grok::blah")
     print ("Whoa! Bad return" + x);
 
-x = d.far();
-if (x != "Spam::far")
+x = d.far1();
+if (x != "Spam::far1")
     print ("Whoa! Bad return" + x);
