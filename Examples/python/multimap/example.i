@@ -15,7 +15,7 @@ extern int squareCubed (int n, int *OUTPUT);
 
 extern int    gcd(int x, int y);
 
-%typemap(in,fragment="t_output_helper") (int argc, char *argv[]) {
+%typemap(in) (int argc, char *argv[]) {
   int i;
   if (!PyList_Check($input)) {
     SWIG_exception(SWIG_ValueError, "Expecting a list");
@@ -47,7 +47,7 @@ extern int    gcd(int x, int y);
       $2[i] = (char *)malloc(strlen(strtmp) + 1);
       if ($2[i])
         strcpy($2[i], strtmp);
-      Py_DECREF(utf8str);
+      Py_DecRef(utf8str);
     }
 %#else
     $2[i] = PyString_AsString(s);
@@ -84,7 +84,7 @@ extern int gcdmain(int argc, char *argv[]);
   PyBytes_AsStringAndSize(utf8str, &cstr, &len);
   $1 = strncpy((char *)malloc(len+1), cstr, (size_t)len);
   $2 = (int)len;
-  Py_DECREF(utf8str);
+  Py_DecRef(utf8str);
 %#else
   if (!PyString_Check($input)) {
     PyErr_SetString(PyExc_ValueError,"Expected a string");
@@ -120,7 +120,7 @@ extern int count(char *bytes, int len, char c);
   PyBytes_AsStringAndSize(utf8str, &cstr, &len);
   $1 = strncpy((char *)malloc(len+1), cstr, (size_t)len);
   $2 = (int)len;
-  Py_DECREF(utf8str);
+  Py_DecRef(utf8str);
 %#else
   $2 = (int)PyString_Size($input);
   $1 = (char *) malloc($2+1);
@@ -128,7 +128,7 @@ extern int count(char *bytes, int len, char c);
 %#endif
 }
 
-/* Return the mutated string as a new object.  The t_output_helper
+/* Return the mutated string as a new object.  The SWIG_AppendOutput
    function takes an object and appends it to the output object
    to create a tuple */
 
@@ -139,7 +139,7 @@ extern int count(char *bytes, int len, char c);
 %#else
    o = PyString_FromStringAndSize($1,$2);
 %#endif
-   $result = t_output_helper($result,o);
+   $result = SWIG_AppendOutput($result, o);
    free($1);
 }   
 

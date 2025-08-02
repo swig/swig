@@ -61,4 +61,11 @@
 (if (not (string=? (get-null (stdstring-empty)) "non-null"))
   (error "get-null stdstring-empty test"))
 
+(if (not (string=? (aString) "something"))
+  (error "aString test"))
+(if (not (string=? (MY-STRING) ""))
+  (error "MY-STRING test"))
+(if (not (string=? (MY-STRING-2) "OK"))
+  (error "MY-STRING-2 test"))
+
 (exit 0)

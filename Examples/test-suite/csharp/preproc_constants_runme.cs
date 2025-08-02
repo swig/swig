@@ -39,6 +39,9 @@ public class runme {
     assert( typeof(char) == preproc_constants.CONST_CHAR.GetType() );
     assert( typeof(string) == preproc_constants.CONST_STRING1.GetType() );
     assert( typeof(string) == preproc_constants.CONST_STRING2.GetType() );
+    assert( typeof(string) == preproc_constants.CONST_STRING3.GetType() );
+    assert( typeof(string) == preproc_constants.CONST_STRING4.GetType() );
+    assert( preproc_constants.CONST_STRING4 == "zer\0zer\0" );
 
     assert( typeof(int) == preproc_constants.INT_AND_BOOL.GetType() );
     assert( typeof(int) == preproc_constants.INT_AND_CHAR.GetType() );

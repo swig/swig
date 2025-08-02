@@ -4,6 +4,11 @@
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED, SWIGWARN_LANG_OVERLOAD_SHADOW) trivial::trivial(trivial&&);
 %warnfilter(SWIGWARN_LANG_OVERLOAD_IGNORED, SWIGWARN_LANG_OVERLOAD_SHADOW) trivial::operator =(trivial&&);
 
+#if defined SWIGGO
+%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) trivial&&;
+%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) moveonly&&;
+#endif
+
 %rename(Assignment) *::operator=;
 
 %inline %{
@@ -102,11 +107,11 @@ struct moveonly {
 };
 
 struct ConstructorThrow {
-  ConstructorThrow() throw() = default;
-  ConstructorThrow(const ConstructorThrow&) throw() = delete;
-  ConstructorThrow(ConstructorThrow&&) throw() = delete;
-  ConstructorThrow& operator=(const ConstructorThrow&) throw() = delete;
-  ~ConstructorThrow() throw() = default;
+  ConstructorThrow() noexcept = default;
+  ConstructorThrow(const ConstructorThrow&) noexcept = delete;
+  ConstructorThrow(ConstructorThrow&&) noexcept = delete;
+  ConstructorThrow& operator=(const ConstructorThrow&) noexcept = delete;
+  ~ConstructorThrow() noexcept = default;
 };
 
 %}

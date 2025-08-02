@@ -2,6 +2,12 @@
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK);
 
+#if defined SWIGGO
+// Several: Warning 507: No Go typemap defined for int &&
+// and other rvalue reference types
+# pragma SWIG nowarn=SWIGWARN_LANG_NATIVE_UNIMPL
+#endif
+
 %inline %{
 #include <utility>
 struct Thing {};

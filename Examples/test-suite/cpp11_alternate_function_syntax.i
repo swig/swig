@@ -2,6 +2,16 @@
    declarations and definitions introduced in C++11. */
 %module cpp11_alternate_function_syntax
 
+#ifdef SWIGC
+// SWIG/C doesn't currently support wrapping pointer to member.
+%ignore addAlternateMemberPtrParm(int x, int (SomeStruct::*mp)(int, int));
+%ignore addAlternateMemberPtrConstParm(int x, int (SomeStruct::*mp)(int, int) const) const;
+// SWIG/C doesn't currently support wrapping rvalue reference return types.
+%ignore SomeStruct::output(short);
+#elif defined SWIGGO
+%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) output_rvalueref;
+#endif
+
 %inline %{
 struct Hello {};
 
@@ -16,6 +26,12 @@ struct SomeStruct {
 
   // Returning a reference didn't parse in SWIG < 4.1.0 (#231)
   auto output() -> Hello&;
+
+  // These return types didn't parse in SWIG < 4.3.0 (#3031)
+  auto output_rvalueref() -> Hello&&;
+  auto output_constref() -> const Hello&;
+  enum E { A, B };
+  auto output_enum() -> enum E { return A; }
 
   virtual auto addFinal(int x, int y) const noexcept -> int final { return x + y; }
   virtual ~SomeStruct() = default;
@@ -33,5 +49,7 @@ auto SomeStruct::addAlternateMemberPtrConstParm(int x, int (SomeStruct::*mp)(int
   return 1000*x + (this->*mp)(x, x);
 }
 auto SomeStruct::output() -> Hello& { static Hello h; return h; }
+auto SomeStruct::output_rvalueref() -> Hello&& { static Hello h; return std::move(h); }
+auto SomeStruct::output_constref() -> const Hello& { static Hello h; return h; }
 
 %}

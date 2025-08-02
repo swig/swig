@@ -83,6 +83,13 @@ class PyTest (TestDirector):
     def ident(self, x):
         return x
 
+    # The warning for const char * and const char *& warning is suppressed:
+    #  Warning 473: Returning a reference, pointer or pointer wrapper in a director method is not recommended.
+    # ident_extra_ref is a hack to add an extra reference in order to avoid returning a pointer to deleted memory.
+    def ident_extra_ref(self, x):
+        self.extra_ref = x
+        return x
+
     def vval_bool(self, x): return self.ident(x)
 
     def vval_schar(self, x): return self.ident(x)
@@ -111,9 +118,9 @@ class PyTest (TestDirector):
 
     def vval_char(self, x): return self.ident(x)
 
-    def vval_pchar(self, x): return self.ident(x)
+    def vval_pchar(self, x): return self.ident_extra_ref(x)
 
-    def vval_pcharc(self, x): return self.ident(x)
+    def vval_pcharc(self, x): return self.ident_extra_ref(x)
 
     def vval_pint(self, x): return self.ident(x)
 
@@ -151,9 +158,9 @@ class PyTest (TestDirector):
 
     def vref_char(self, x): return self.ident(x)
 
-    def vref_pchar(self, x): return self.ident(x)
+    def vref_pchar(self, x): return self.ident_extra_ref(x)
 
-    def vref_pcharc(self, x): return self.ident(x)
+    def vref_pcharc(self, x): return self.ident_extra_ref(x)
 
     def vref_pint(self, x): return self.ident(x)
 

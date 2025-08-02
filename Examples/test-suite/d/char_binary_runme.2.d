@@ -4,6 +4,8 @@ import char_binary.char_binary;
 import char_binary.Test;
 import std.stdio;
 
+static import std.conv;
+
 void main() {
    Test t = new Test();
    string str = "hile";
@@ -12,7 +14,16 @@ void main() {
       throw new Exception("bad multi-arg typemap");
    }
 
+   if (t.ustrlen(str) != 4) {
+      writeln(t.ustrlen(str));
+      throw new Exception("bad multi-arg typemap");
+   }
+
    if (t.strlen("hil\000") != 4) {
+      throw new Exception("bad multi-arg typemap");
+   }
+
+   if (t.ustrlen("hil\000") != 4) {
       throw new Exception("bad multi-arg typemap");
    }
 
@@ -23,5 +34,25 @@ void main() {
    pchar_setitem(pc, 2, 'l');
    pchar_setitem(pc, 3, 'a');
    pchar_setitem(pc, 4, 0);
+
+   string pc_s = std.conv.to!string(pc); // convert char[5] to string
+
+   if (t.strlen(pc_s) != 4) {
+       throw new Exception("bad multi-arg typemap");
+   }
+   if (t.ustrlen(pc_s) != 4) {
+       throw new Exception("bad multi-arg typemap");
+   }
+
+   var_pchar = pc_s;
+   if (var_pchar != "hola") {
+       throw new Exception("bad pointer case");
+   }
+
+   var_namet = pc_s;
+   if (var_namet != "hola") {
+       throw new Exception("bad pointer case");
+   }
+
    delete_pchar(pc);
 }

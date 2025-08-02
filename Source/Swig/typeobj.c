@@ -390,7 +390,7 @@ SwigType *SwigType_del_pointer(SwigType *t) {
     c++;
   }
   if (strncmp(c, "p.", 2)) {
-    printf("Fatal error: SwigType_del_pointer applied to non-pointer.\n");
+    Printf(stderr, "Internal error: SwigType_del_pointer applied to non-pointer type %s.\n", t);
     Exit(EXIT_FAILURE);
   }
   Delslice(t, 0, (int)((c - s) + 2));
@@ -434,7 +434,7 @@ SwigType *SwigType_add_reference(SwigType *t) {
 SwigType *SwigType_del_reference(SwigType *t) {
   char *c = Char(t);
   if (strncmp(c, "r.", 2)) {
-    printf("Fatal error: SwigType_del_reference applied to non-reference.\n");
+    Printf(stderr, "Internal error: SwigType_del_reference applied to non-reference type %s.\n", t);
     Exit(EXIT_FAILURE);
   }
   Delslice(t, 0, 2);
@@ -471,7 +471,7 @@ SwigType *SwigType_add_rvalue_reference(SwigType *t) {
 SwigType *SwigType_del_rvalue_reference(SwigType *t) {
   char *c = Char(t);
   if (strncmp(c, "z.", 2)) {
-    fprintf(stderr, "Fatal error: SwigType_del_rvalue_reference() applied to non-rvalue-reference.\n");
+    Printf(stderr, "Internal error: SwigType_del_rvalue_reference() applied to non-rvalue-reference type %s.\n", t);
     Exit(EXIT_FAILURE);
   }
   Delslice(t, 0, 2);
@@ -508,7 +508,7 @@ SwigType *SwigType_add_variadic(SwigType *t) {
 SwigType *SwigType_del_variadic(SwigType *t) {
   char *c = Char(t);
   if (strncmp(c, "v.", 2)) {
-    printf("Fatal error: SwigType_del_variadic applied to non-variadic.\n");
+    Printf(stderr, "Internal error: SwigType_del_variadic applied to non-variadic type %s.\n", t);
     Exit(EXIT_FAILURE);
   }
   Delslice(t, 0, 2);
@@ -714,7 +714,7 @@ SwigType *SwigType_add_array(SwigType *t, const_String_or_char_ptr size) {
 SwigType *SwigType_del_array(SwigType *t) {
   char *c = Char(t);
   if (strncmp(c, "a(", 2)) {
-    fprintf(stderr, "Fatal error: SwigType_del_array() applied to non-array.\n");
+    Printf(stderr, "Internal error: SwigType_del_array() applied to non-array type %s.\n", t);
     Exit(EXIT_FAILURE);
   }
   Delslice(t, 0, element_size(c));
@@ -810,7 +810,7 @@ void SwigType_array_setdim(SwigType *t, int n, const_String_or_char_ptr rep) {
 
   start = c;
   if (strncmp(c, "a(", 2)) {
-    fprintf(stderr, "Fatal error: SwigType_array_type applied to non-array.\n");
+    Printf(stderr, "Internal error: SwigType_array_type applied to non-array type %s.\n", t);
     Exit(EXIT_FAILURE);
   }
 
@@ -920,7 +920,7 @@ SwigType *SwigType_pop_function(SwigType *t) {
     c = Char(t);
   }
   if (strncmp(c, "f(", 2)) {
-    fprintf(stderr, "Fatal error. SwigType_pop_function applied to non-function.\n");
+    Printf(stderr, "Internal error. SwigType_pop_function applied to non-function type %s.\n", t);
     Exit(EXIT_FAILURE);
   }
   g = SwigType_pop(t);

@@ -4,10 +4,6 @@
 
 %insert(init) "swiginit.swg"
 
-#if defined(SWIGPYTHON_BUILTIN)
-%fragment("<stddef.h>"); // For offsetof
-#endif
-
 #if defined SWIGPYTHON_FASTPROXY && !defined SWIGPYTHON_BUILTIN
 
 %insert(runtime) %{
@@ -57,7 +53,7 @@ SWIG_Python_InstallConstants(PyObject *d, swig_const_info constants[]) {
     }
     if (obj) {
       PyDict_SetItemString(d, constants[i].name, obj);
-      Py_DECREF(obj);
+      SWIG_Py_DECREF(obj);
     }
   }
 }
@@ -193,6 +189,8 @@ SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyO
  *  Partial Init method
  * -----------------------------------------------------------------------------*/
 
+SWIGINTERN int SWIG_mod_exec(PyObject *module);
+
 #ifdef __cplusplus
 extern "C"
 #endif
@@ -204,21 +202,41 @@ SWIGEXPORT
   void
 #endif
 SWIG_init(void) {
-  PyObject *m, *d, *md, *globals;
 
 #if PY_VERSION_HEX >= 0x03000000
+  static PyModuleDef_Slot SwigSlots[] = {
+    { Py_mod_exec, (void *)SWIG_mod_exec },
+#ifdef SWIGPYTHON_NOGIL
+#ifdef Py_GIL_DISABLED
+    { Py_mod_gil, Py_MOD_GIL_NOT_USED },
+#endif
+#endif
+    { 0, NULL }
+  };
+
   static struct PyModuleDef SWIG_module = {
     PyModuleDef_HEAD_INIT,
     SWIG_name,
     NULL,
-    -1,
+    0,
     SwigMethods,
-    NULL,
+    SwigSlots,
     NULL,
     NULL,
     NULL
   };
+
+  return PyModuleDef_Init(&SWIG_module);
+#else
+  PyObject *m = Py_InitModule(SWIG_name, SwigMethods);
+  if (m && SWIG_mod_exec(m) != 0) {
+    Py_DECREF(m);
+  }
 #endif
+}
+
+SWIGINTERN int SWIG_mod_exec(PyObject *m) {
+  PyObject *d, *md, *globals;
 
 #if defined(SWIGPYTHON_BUILTIN)
   static SwigPyClientData SwigPyObject_clientdata = {0, 0, 0, 0, 0, 0, 0};
@@ -254,28 +272,30 @@ SWIG_init(void) {
   (void)self;
 
   /* Metaclass is used to implement static member variables */
-  metatype = SwigPyObjectType();
+  metatype = SwigPyObjectType_Type();
   assert(metatype);
+
+  SwigPyStaticVar_Type();
 #endif
 
   (void)globals;
 
   /* Create singletons now to avoid potential deadlocks with multi-threaded usage after module initialization */
+  SWIG_runtime_data_module();
   SWIG_This();
   SWIG_Python_TypeCache();
-  SwigPyPacked_type();
+  SwigPyPacked_Type();
+  SwigVarLink_Type();
 #ifndef SWIGPYTHON_BUILTIN
-  SwigPyObject_type();
+  SwigPyObject_Type();
 #endif
 
   /* Fix SwigMethods to carry the callback ptrs when needed */
   SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_type_initial);
 
-#if PY_VERSION_HEX >= 0x03000000
-  m = PyModule_Create(&SWIG_module);
-#else
-  m = Py_InitModule(SWIG_name, SwigMethods);
-#endif
+#ifdef Py_GIL_DISABLED
+    PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
+#endif	
 
   md = d = PyModule_GetDict(m);
   (void)md;
@@ -293,19 +313,15 @@ SWIG_init(void) {
     SwigPyObject_clientdata.pytype = swigpyobject;
   } else if (swigpyobject->tp_basicsize != cd->pytype->tp_basicsize) {
     PyErr_SetString(PyExc_RuntimeError, "Import error: attempted to load two incompatible swig-generated modules.");
-# if PY_VERSION_HEX >= 0x03000000
-    return NULL;
-# else
-    return;
-# endif
+    return -1;
   }
 
   /* All objects have a 'this' attribute */
-  this_descr = PyDescr_NewGetSet(SwigPyObject_type(), &this_getset_def);
+  this_descr = PyDescr_NewGetSet(SwigPyObject_Type(), &this_getset_def);
   (void)this_descr;
 
   /* All objects have a 'thisown' attribute */
-  thisown_descr = PyDescr_NewGetSet(SwigPyObject_type(), &thisown_getset_def);
+  thisown_descr = PyDescr_NewGetSet(SwigPyObject_Type(), &thisown_getset_def);
   (void)thisown_descr;
 
   public_interface = PyList_New(0);
@@ -313,7 +329,7 @@ SWIG_init(void) {
   (void)public_symbol;
 
   PyDict_SetItemString(md, "__all__", public_interface);
-  Py_DECREF(public_interface);
+  SWIG_Py_DECREF(public_interface);
   for (i = 0; SwigMethods[i].ml_name != NULL; ++i)
     SwigPyBuiltin_AddPublicSymbol(public_interface, SwigMethods[i].ml_name);
   for (i = 0; swig_const_table[i].name != 0; ++i)

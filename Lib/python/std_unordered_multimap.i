@@ -47,7 +47,7 @@
 	  return SWIG_InternalNewPointerObj(new unordered_multimap_type(unordered_multimap), desc, SWIG_POINTER_OWN);
 	} else {
 	  size_type size = unordered_multimap.size();
-	  Py_ssize_t pysize = (size <= (size_type) INT_MAX) ? (Py_ssize_t) size : -1;
+	  Py_ssize_t pysize = (size <= (size_type)PY_SSIZE_T_MAX) ? (Py_ssize_t)size : -1;
 	  if (pysize < 0) {
 	    SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	    PyErr_SetString(PyExc_OverflowError, "unordered_multimap size not valid in python");

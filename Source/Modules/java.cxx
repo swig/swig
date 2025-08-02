@@ -13,6 +13,7 @@
 
 #include "swigmod.h"
 #include "cparse.h"
+#include <errno.h>
 #include <limits.h>		// for INT_MAX
 #include <ctype.h>
 #include "javadoc.h"
@@ -78,6 +79,7 @@ class JAVA:public Language {
   String *module_interfaces;	//interfaces for module class from %pragma
   String *imclass_class_modifiers;	//class modifiers for intermediary class overridden by %pragma
   String *module_class_modifiers;	//class modifiers for module class overridden by %pragma
+  String *constants_modifiers;	//access modifiers for constants interface overridden by %pragma
   String *upcasts_code;		//C++ casts for inheritance hierarchies C++ code
   String *imclass_cppcasts_code;	//C++ casts up inheritance hierarchies intermediary class code
   String *imclass_directors;	// Intermediate class director code
@@ -154,6 +156,7 @@ public:
       module_interfaces(NULL),
       imclass_class_modifiers(NULL),
       module_class_modifiers(NULL),
+      constants_modifiers(NULL),
       upcasts_code(NULL),
       imclass_cppcasts_code(NULL),
       imclass_directors(NULL),
@@ -317,8 +320,6 @@ public:
     // Add a symbol to the parser for conditional compilation
     Preprocessor_define("SWIGJAVA 1", 0);
 
-    // Add typemap definitions
-    SWIG_typemap_lang("java");
     SWIG_config_file("java.swg");
 
     allow_overloading();
@@ -332,7 +333,8 @@ public:
   virtual int top(Node *n) {
 
     // Get any options set in the module directive
-    Node *optionsnode = Getattr(Getattr(n, "module"), "options");
+    Node *module = Getattr(n, "module");
+    Node *optionsnode = Getattr(module, "options");
 
     if (optionsnode) {
       if (Getattr(optionsnode, "jniclassname"))
@@ -417,9 +419,9 @@ public:
     constants_interface_name = NewStringf("%sConstants", module_class_name);
 
     // module class and intermediary classes are always created
-    if (!addSymbol(imclass_name, n))
+    if (!addSymbol(imclass_name, module))
       return SWIG_ERROR;
-    if (!addSymbol(module_class_name, n))
+    if (!addSymbol(module_class_name, module))
       return SWIG_ERROR;
 
     imclass_class_code = NewString("");
@@ -435,6 +437,7 @@ public:
     module_interfaces = NewString("");
     module_imports = NewString("");
     module_class_modifiers = NewString("");
+    constants_modifiers = NewString("");
     imclass_imports = NewString("");
     imclass_cppcasts_code = NewString("");
     imclass_directors = NewString("");
@@ -642,7 +645,9 @@ public:
       if (module_imports)
 	Printf(f_module, "%s\n", module_imports);
 
-      Printf(f_module, "public interface %s {\n", constants_interface_name);
+      if (Len(constants_modifiers) > 0)
+	Printf(f_module, "%s ", constants_modifiers);
+      Printf(f_module, "%s {\n", constants_interface_name);
 
       // Write out all the global constants
       Printv(f_module, module_class_constants_code, NIL);
@@ -721,6 +726,8 @@ public:
     module_imports = NULL;
     Delete(module_class_modifiers);
     module_class_modifiers = NULL;
+    Delete(constants_modifiers);
+    constants_modifiers = NULL;
     Delete(imclass_imports);
     imclass_imports = NULL;
     Delete(imclass_cppcasts_code);
@@ -852,7 +859,7 @@ public:
 
   virtual int functionWrapper(Node *n) {
     String *symname = Getattr(n, "sym:name");
-    SwigType *t = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     String *tm;
     Parm *p;
@@ -898,16 +905,16 @@ public:
     if ((tm = Swig_typemap_lookup("jni", n, "", 0))) {
       Printf(c_return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s\n", SwigType_str(t, 0));
+      Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s\n", SwigType_str(returntype, 0));
     }
 
     if ((tm = Swig_typemap_lookup("jtype", n, "", 0))) {
       Printf(im_return_type, "%s", tm);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s\n", SwigType_str(t, 0));
+      Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s\n", SwigType_str(returntype, 0));
     }
 
-    is_void_return = (Cmp(c_return_type, "void") == 0);
+    is_void_return = Cmp(c_return_type, "void") == 0;
     if (!is_void_return)
       Wrapper_add_localv(f, "jresult", c_return_type, "jresult = 0", NIL);
 
@@ -1088,9 +1095,9 @@ public:
 	if (Len(tm))
 	  Printf(f->code, "\n");
       } else {
-	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(t, 0), Getattr(n, "name"));
+	Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), Getattr(n, "name"));
       }
-      emit_return_variable(n, t, f);
+      emit_return_variable(n, returntype, f);
     }
 
     /* Output argument output code */
@@ -1128,6 +1135,8 @@ public:
 
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
+
+    Replaceall(f->code, "$isvoid", is_void_return ? "1" : "0");
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", symname);
@@ -1245,11 +1254,6 @@ public:
 	return SWIG_NOWRAP;
 
       String *nspace = Getattr(n, "sym:nspace"); // NSpace/getNSpace() only works during Language::enumDeclaration call
-      if (proxy_flag && !is_wrapping_class()) {
-	// Global enums / enums in a namespace
-	assert(!full_imclass_name);
-	constructIntermediateClassName(n);
-      }
 
       enum_code = NewString("");
       String *symname = Getattr(n, "sym:name");
@@ -1300,8 +1304,19 @@ public:
 	}
       }
 
+      if (proxy_flag && !is_wrapping_class()) {
+	// Global enums / enums in a namespace
+	assert(!full_imclass_name);
+	constructIntermediateClassName(n);
+      }
+
       // Emit each enum item
       Language::enumDeclaration(n);
+
+      if (proxy_flag && !is_wrapping_class()) {
+	Delete(full_imclass_name);
+	full_imclass_name = 0;
+      }
 
       if ((enum_feature != SimpleEnum) && symname && typemap_lookup_type) {
 	// Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Java enum
@@ -1369,11 +1384,6 @@ public:
 
       Delete(enum_code);
       enum_code = NULL;
-
-      if (proxy_flag && !is_wrapping_class()) {
-	Delete(full_imclass_name);
-	full_imclass_name = 0;
-      }
     }
     return SWIG_OK;
   }
@@ -1407,13 +1417,34 @@ public:
 
     // Deal with enum values that are not int
     int swigtype = SwigType_type(Getattr(n, "type"));
-    if (swigtype == T_BOOL) {
-      const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
-      Setattr(n, "enumvalue", val);
-    } else if (swigtype == T_CHAR) {
-      String *val = NewStringf("'%(escape)s'", Getattr(n, "enumvalue"));
-      Setattr(n, "enumvalue", val);
-      Delete(val);
+    if (swigtype == T_CHAR) {
+      if (Getattr(n, "enumstringval")) {
+	String *val = NewStringf("'%(escape)s'", Getattr(n, "enumstringval"));
+	Setattr(n, "enumvalue", val);
+	Delete(val);
+      }
+    } else {
+      String *numval = Getattr(n, "enumnumval");
+      if (numval) {
+	const char *p = Char(numval);
+	if (isdigit(p[0])) {
+	  char *e;
+	  errno = 0;
+	  unsigned long long value = strtoull(p, &e, 0);
+	  if (errno != ERANGE && *e == '\0' && value >= 0x80000000) {
+	    // Use hex for larger unsigned integer constants in Java code since
+	    // Java allows implicit conversion to a signed integer value.
+	    String *hexval = NewStringf("0x%llx", value);
+	    Setattr(n, "enumvalue", hexval);
+	    Delete(hexval);
+	  } else {
+	    Setattr(n, "enumvalue", numval);
+	  }
+	} else {
+	  // Emit negative values as-is.
+	  Setattr(n, "enumvalue", numval);
+	}
+      }
     }
 
     {
@@ -1529,12 +1560,10 @@ public:
   virtual int constantWrapper(Node *n) {
     String *symname = Getattr(n, "sym:name");
     SwigType *t = Getattr(n, "type");
-    SwigType *valuetype = Getattr(n, "valuetype");
     ParmList *l = Getattr(n, "parms");
     String *tm;
     String *return_type = NewString("");
     String *constants_code = NewString("");
-    Swig_save("constantWrapper", n, "value", NIL);
 
     // Translate and write javadoc comment if flagged
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
@@ -1587,16 +1616,6 @@ public:
       Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, "No jstype typemap defined for %s\n", SwigType_str(t, 0));
     }
 
-    // Add the stripped quotes back in
-    String *new_value = NewString("");
-    if (SwigType_type(t) == T_STRING) {
-      Printf(new_value, "\"%s\"", Copy(Getattr(n, "value")));
-      Setattr(n, "value", new_value);
-    } else if (SwigType_type(t) == T_CHAR) {
-      Printf(new_value, "\'%s\'", Copy(Getattr(n, "value")));
-      Setattr(n, "value", new_value);
-    }
-
     const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
     methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
@@ -1630,12 +1649,9 @@ public:
     } else {
       // Alternative constant handling will use the C syntax to make a true Java constant and hope that it compiles as Java code
       if (Getattr(n, "wrappedasconstant")) {
-	if (SwigType_type(valuetype) == T_CHAR)
-          Printf(constants_code, "\'%(escape)s\';\n", Getattr(n, "staticmembervariableHandler:value"));
-	else
-          Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
+	Printf(constants_code, "%s;\n", Getattr(n, "staticmembervariableHandler:value"));
       } else {
-        Printf(constants_code, "%s;\n", Getattr(n, "value"));
+	Printf(constants_code, "%s;\n", Getattr(n, "value"));
       }
     }
 
@@ -1649,7 +1665,6 @@ public:
     }
     // Cleanup
     Swig_restore(n);
-    Delete(new_value);
     Delete(return_type);
     Delete(constants_code);
     return SWIG_OK;
@@ -1695,6 +1710,7 @@ public:
    * moduleimports           - import statements for the module class
    * moduleinterfaces        - interface (implements) for the module class
    *
+   * constantsmodifiers      - access modifiers for the constants interface
    * ----------------------------------------------------------------------------- */
 
   virtual int pragmaDirective(Node *n) {
@@ -1754,6 +1770,9 @@ public:
 	} else if (Strcmp(code, "moduleinterfaces") == 0) {
 	  Delete(module_interfaces);
 	  module_interfaces = Copy(strvalue);
+	} else if (Strcmp(code, "constantsmodifiers") == 0) {
+	  Delete(constants_modifiers);
+	  constants_modifiers = Copy(strvalue);
 	} else {
 	  Swig_error(input_file, line_number, "Unrecognized pragma.\n");
 	}
@@ -2093,8 +2112,10 @@ public:
     Printv(f_interface, typemapLookup(n, "javaimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
     Printv(f_interface, typemapLookup(n, "javainterfacemodifiers", Getattr(n, "classtypeobj"), WARN_JAVA_TYPEMAP_INTERFACEMODIFIERS_UNDEF), NIL);
     Printf(f_interface, " %s", interface_name);
+
+    String *additional = Getattr(n, "feature:interface:additional");
+    String *bases = additional ? Copy(additional) : 0;
     if (List *baselist = Getattr(n, "bases")) {
-      String *bases = 0;
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
 	if (GetFlag(base.item, "feature:ignore") || !GetFlag(base.item, "feature:interface"))
 	  continue; // TODO: warn about skipped non-interface bases
@@ -2106,10 +2127,10 @@ public:
 	  Append(bases, base_iname);
 	}
       }
-      if (bases) {
-	Printv(f_interface, " extends ", bases, NIL);
-	Delete(bases);
-      }
+    }
+    if (bases) {
+      Printv(f_interface, " extends ", bases, NIL);
+      Delete(bases);
     }
     Printf(f_interface, " {\n");
 
@@ -2700,6 +2721,21 @@ public:
       String *overloaded_name = getOverloadedName(n);
       String *mangled_overname = Swig_name_construct(getNSpace(), overloaded_name);
       String *imcall = NewString("");
+
+#if 0
+      // TODO: add full support for Java annotations - implementation should be same as C# attributes
+      const String *annotations = Getattr(n, "feature:java:annotations");
+#else
+      const String *annotations = NULL;
+#endif
+      // Default annotation for director constructors is a warning suppression
+      static const String *suppress_warning_this_escape = NewString("@SuppressWarnings(\"this-escape\")");
+      if (!annotations && feature_director)
+	annotations = suppress_warning_this_escape;
+      if (annotations) {
+	Printf(function_code, "  %s\n", annotations);
+	Printf(helper_code, "  %s\n", annotations);
+      }
 
       const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
       methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
@@ -4515,6 +4551,7 @@ public:
       } else {
 	Replaceall(w->code, "$null", "");
       }
+      Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
       if (!GetFlag(n, "feature:ignore"))
 	Printv(imclass_directors, callback_def, callback_code, NIL);
       if (!Getattr(n, "defaultargs")) {
@@ -4796,21 +4833,6 @@ public:
     Printf(w->def, "static jclass baseclass = swig_new_global_ref(jenv, \"%s\");\n", internal_classname);
     Printf(w->def, "if (!baseclass) return;\n");
 
-    if (first_class_dmethod != curr_class_dmethod) {
-      Printf(w->def, "static SwigDirectorMethod methods[] = {\n");
-
-      for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
-	UpcallData *udata = Getitem(dmethods_seq, i);
-
-	Printf(w->def, "SwigDirectorMethod(jenv, baseclass, \"%s\", \"%s\")", Getattr(udata, "method"), Getattr(udata, "fdesc"));
-	if (i != curr_class_dmethod - 1)
-	  Putc(',', w->def);
-	Putc('\n', w->def);
-      }
-
-      Printf(w->def, "};");
-    }
-
     Printf(w->code, "if (swig_set_self(jenv, jself, swig_mem_own, weak_global)) {\n");
 
     int n_methods = curr_class_dmethod - first_class_dmethod;
@@ -4845,6 +4867,19 @@ public:
       if (GetFlag(n, "feature:director:assumeoverride")) {
         Printf(w->code, "  swig_override[i] = derived;\n");
       } else {
+	Printf(w->def, "static SwigDirectorMethod methods[] = {\n");
+
+	for (int i = first_class_dmethod; i < curr_class_dmethod; ++i) {
+	  UpcallData *udata = Getitem(dmethods_seq, i);
+
+	  Printf(w->def, "SwigDirectorMethod(jenv, baseclass, \"%s\", \"%s\")", Getattr(udata, "method"), Getattr(udata, "fdesc"));
+	  if (i != curr_class_dmethod - 1)
+	    Putc(',', w->def);
+	  Putc('\n', w->def);
+	}
+
+	Printf(w->def, "};");
+
         Printf(w->code, "  swig_override[i] = false;\n");
         Printf(w->code, "  if (derived) {\n");
         Printf(w->code, "    jmethodID methid = jenv->GetMethodID(jcls, methods[i].name, methods[i].desc);\n");

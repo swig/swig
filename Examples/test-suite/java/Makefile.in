@@ -6,8 +6,9 @@ LANGUAGE     = java
 JAVA         = @JAVA@
 JAVAC        = @JAVAC@
 JAVAFLAGS    = @JAVAFLAGS@
+JAVAC_OPTIONS = @JAVAC_OPTIONS@
+JAVA_VERSION_MAJOR = @JAVA_VERSION_MAJOR@
 JAVA_CLASSPATH_SEP = @JAVA_CLASSPATH_SEP@
-JAVA_TOOLS_JAR     = @JAVA_TOOLS_JAR@
 SCRIPTSUFFIX = _runme.java
 SKIP_DOXYGEN_TEST_CASES = @JAVA_SKIP_DOXYGEN_TEST_CASES@
 
@@ -77,6 +78,13 @@ SRCDIR       = ../$(srcdir)/
 JAVA_PACKAGE = $*
 JAVA_PACKAGEOPT = -package $(JAVA_PACKAGE)
 SWIGOPT += $(JAVA_PACKAGEOPT)
+SWIGOPT += -DJAVA_VERSION_MAJOR=$(JAVA_VERSION_MAJOR)
+
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
+# Suppress -Xlint
+inherit_target_language.%: JAVAC_OPTIONS=
 
 # Custom tests - tests with additional commandline options
 cpp17_nspace_nested_namespaces.%: JAVA_PACKAGE = $*Package
@@ -87,6 +95,9 @@ java_nspacewithoutpackage.%: JAVA_PACKAGEOPT =
 multiple_inheritance_nspace.%: JAVA_PACKAGE = $*Package
 nspace.%: JAVA_PACKAGE = $*Package
 nspace_extend.%: JAVA_PACKAGE = $*Package
+nspacemove.%: JAVA_PACKAGE = $*Package
+nspacemove_nested.%: JAVA_PACKAGE = $*Package
+nspacemove_stl.%: JAVA_PACKAGE = $*Package
 
 # Rules for the different types of tests
 %.cpptest:
@@ -107,9 +118,9 @@ nspace_extend.%: JAVA_PACKAGE = $*Package
 # Makes a directory for the testcase if it does not exist
 setup = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;			  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $*" ;	  \
 	fi;								  \
 	if [ ! -d $(JAVA_PACKAGE) ]; then						  \
 	  mkdir $(JAVA_PACKAGE);							  \
@@ -117,7 +128,7 @@ setup = \
 
 # Doxygen test cases need to be compiled together with the CommentParser class.
 CommentParser.class:
-	$(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(srcdir)/CommentParser.java
+	$(COMPILETOOL) $(JAVAC) $(JAVAC_OPTIONS) -classpath $(JAVA_CLASSPATH) -d . $(srcdir)/CommentParser.java
 
 JAVA_CLASSPATH := .
 $(DOXYGEN_TEST_CASES:=.cpptest): CommentParser.class
@@ -126,9 +137,9 @@ $(DOXYGEN_TEST_CASES:=.cpptest): CommentParser.class
 # a file is found which has _runme.java appended after the testcase name.
 # Note Java uses LD_LIBRARY_PATH under Unix, PATH under Cygwin/Windows, SHLIB_PATH on HPUX and DYLD_LIBRARY_PATH on Mac OS X.
 run_testcase = \
-	cd $(JAVA_PACKAGE) && $(COMPILETOOL) $(JAVAC) -classpath . `find . -name "*.java"` && cd .. && \
+	cd $(JAVA_PACKAGE) && $(COMPILETOOL) $(JAVAC) $(JAVAC_OPTIONS) -classpath . `find . -name "*.java"` && cd .. && \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  $(COMPILETOOL) $(JAVAC) -classpath $(JAVA_CLASSPATH) -d . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
+	  $(COMPILETOOL) $(JAVAC) $(JAVAC_OPTIONS) -classpath $(JAVA_CLASSPATH) -d . $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) && \
 	  env LD_LIBRARY_PATH="$(JAVA_PACKAGE):$$LD_LIBRARY_PATH" PATH="$(JAVA_PACKAGE):$$PATH" SHLIB_PATH="$(JAVA_PACKAGE):$$SHLIB_PATH" DYLD_LIBRARY_PATH="$(JAVA_PACKAGE):$$DYLD_LIBRARY_PATH" $(RUNTOOL) $(JAVA) $(JAVAFLAGS) -classpath $(JAVA_CLASSPATH) $*_runme; \
 	fi
 

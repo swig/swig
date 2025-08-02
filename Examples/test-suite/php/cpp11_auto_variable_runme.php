@@ -5,7 +5,7 @@ require "tests.php";
 // No new functions
 check::functions(array());
 check::classes(array('cpp11_auto_variable'));
-check::globals(array('f', 't', 'zero', 'one', 'la', 'da', 'fa', 'lc', 'dc', 'fc', 'pi_approx', 'Bar', 'Bar2', 'Bar3', 'Foo', 'Foo2', 'Foo3'));
+check::globals(array('f', 't', 'zero', 'one', 'la', 'da', 'fa', 'lc', 'dc', 'fc', 'pi_approx', 'wstring_lit_len1', 'wstring_lit_len2', 'Bar', 'Bar2', 'Bar3', 'CAST_HAD_WRONG_PRECEDENCE1', 'CAST_HAD_WRONG_PRECEDENCE2', 'CAST_HAD_WRONG_PRECEDENCE3', 'CAST_HAD_WRONG_PRECEDENCE4', 'Foo', 'Foo2', 'Foo3', 'NOEXCEPT_FUNC'));
 
 check::equal(f_get(), false);
 check::equal(gettype(f_get()), "boolean");
@@ -38,3 +38,6 @@ check::equal(dc_get(), 1.0);
 // PHP doesn't have a native "long double" type, so SWIG/PHP doesn't have
 // typemaps for it and so it should get wrapped as an opaque type.
 check::str_contains(lc_get(), "SWIGPointer(");
+
+check::equal(wstring_lit_len1_get(), 6);
+check::equal(wstring_lit_len2_get(), 6);

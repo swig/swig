@@ -53,21 +53,16 @@ endif
 endif
 endif
 
-ifneq (, $(V8_VERSION))
-    JSV8_VERSION=$(V8_VERSION)
-else
-    JSV8_VERSION=0x031110
-endif
-
 include $(srcdir)/../common.mk
 
-SWIGOPT += -DV8_VERSION=$(JSV8_VERSION)
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
 
 _setup = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $* (with run test)" ; \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;     \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;     \
 	fi;
 
 SWIGOPT += -$(JSENGINE)

@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[4.2.1],[https://www.swig.org])
+AC_INIT([swig],[4.4.0],[https://www.swig.org])
 AC_PREREQ([2.60])
 
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
@@ -20,8 +20,30 @@ AH_BOTTOM([
 ])
 
 dnl Check for programs that a user requires to build SWIG
+cc_overridden_by_user=${CC:+y}
 AC_PROG_CC
+if test -z "$cc_overridden_by_user" ; then
+  dnl autoconf 2.70 started to add a -std option to the probed value of CC if
+  dnl needed to enable support for newer C standards.  We don't want this so
+  dnl remove any options unless CC was overridden on the command line or in the
+  dnl environment.
+  CC=$(echo "$CC" | sed -e "s/ .*//")
+fi
+AC_MSG_CHECKING([CC to use for compiling])
+AC_MSG_RESULT([$CC])
+
+cxx_overridden_by_user=${CXX:+y}${CCC:+y}
 AC_PROG_CXX
+if test -z "$cxx_overridden_by_user" ; then
+  dnl autoconf 2.70 started to add a -std option to the probed value of CXX if
+  dnl needed to enable support for newer C++ standards.  We don't want this so
+  dnl remove any options unless CXX/CCC was overridden on the command line or
+  dnl in the environment.
+  CXX=$(echo "$CXX" | sed -e "s/ .*//")
+fi
+AC_MSG_CHECKING([CXX to use for compiling])
+AC_MSG_RESULT([$CXX])
+
 AM_PROG_CC_C_O  # Needed for subdir-objects in AUTOMAKE_OPTIONS
 
 AC_COMPILE_WARNINGS # Increase warning levels
@@ -111,7 +133,6 @@ echo ""
 
 dnl Some test cases require Boost
 AX_BOOST_BASE(,,,)
-AC_SUBST(BOOST_CPPFLAGS)
 
 dnl Info for building shared libraries ... in order to run the examples
 
@@ -122,7 +143,7 @@ then
 	case $host in
 	*-*-hp*) SO=.sl;;
 	*-*-darwin*) SO=.bundle;;
-	*-*-cygwin* | *-*-mingw*) SO=.dll;;
+	*-*-cygwin* | *-*-mingw* | *-*-msys*) SO=.dll;;
 	*) SO=.so;;
 	esac
 fi
@@ -137,17 +158,20 @@ if test -z "$LDSHARED"
 then
 	case $host in
 	*-*-aix*) LDSHARED="$CC -shared";;
-	*-*-cygwin* | *-*-mingw*)
+	*-*-cygwin* | *-*-mingw* | *-*-msys*)
             if test "$GCC" = yes; then
                 LDSHARED="\$(CC) -shared"
             else
-                if test "cl" = $CC ;  then
+		case $CC in
+		cl|"cl "*)
                     # Microsoft Visual C++ (MSVC)
                     LDSHARED="\$(CC) -nologo -LD"
-                else
+		    ;;
+		*)
                     # Unknown compiler try gcc approach
                     LDSHARED="\$(CC) -shared"
-                fi
+		    ;;
+		esac
             fi ;;
 	*-*-irix5*) LDSHARED="ld -shared";;
 	*-*-irix6*) LDSHARED="ld ${SGI_ABI} -shared -all";;
@@ -203,36 +227,36 @@ then
              fi;;
         *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) +z ";;
         *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -bundle -undefined suppress -flat_namespace";;
-        *-*-cygwin* | *-*-mingw*)
+        *-*-cygwin* | *-*-mingw* | *-*-msys*)
             if test "$GCC" = yes; then
                 TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared "
             else
-                if test "cl" = $CXX ;  then
+		case $CXX in
+		cl|"cl "*)
                     # Microsoft Visual C++ (MSVC)
                     TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -nologo -LD"
-                else
+		    ;;
+		*)
                     TRYLINKINGWITHCXX="#unknown Windows compiler"
-                fi
+		    ;;
+		esac
             fi ;;
         *)       TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared ";;
         esac
 fi
 AC_MSG_RESULT($TRYLINKINGWITHCXX)
 # CCSHARED are the C *flags* used to create objects to go into a shared
-# library (module) -- this is only needed for a few systems
+# library (module).  Typically an option is needed to tell the compiler
+# to general Position-Independent Code (PIC).
 AC_MSG_CHECKING(CCSHARED)
 if test -z "$CCSHARED"
 then
 	case $host in
 	*-*-hp*) if test "$GCC" = yes
-		 then CCSHARED="-fpic"
+		 then CCSHARED="-fPIC"
 		 else CCSHARED="+z"
 		 fi;;
-	s390x*-*-*) CCSHARED="-fpic" ;;
-	s390*-*-*) CCSHARED="-fPIC" ;;
-	*-*-linux*) CCSHARED="-fpic";;
-	*-*-freebsd* | *-*-openbsd*) CCSHARED="-fpic";;
-	*-*-netbsd*) CCSHARED="-fPIC";;
+	*-*-linux* | *-*-freebsd* | *-*-netbsd* | *-*-openbsd*) CCSHARED="-fPIC";;
 	*-sco-sysv*) CCSHARED="-KPIC -dy -Bdynamic";;
 	*-*-irix6*)  case $CC in
 		   *gcc*) CCSHARED="-shared";;
@@ -445,11 +469,6 @@ case $host in
    *) PHP_SO=$SO;;
 esac
 
-AC_SUBST(MZSCHEME_SO)
-case $host in
-   *) MZSCHEME_SO=.so;;
-esac
-
 AC_SUBST(LUA_SO)
 case $host in
    *-*-darwin*) LUA_SO=.so;;
@@ -460,17 +479,6 @@ esac
 AC_CHECK_LIB(dl, dlopen)	# Dynamic linking for SunOS/Solaris and SYSV
 AC_CHECK_LIB(dld, shl_load)	# Dynamic linking for HP-UX
 
-dnl The following three libraries (nsl,inet,socket) are needed on Sequent,
-dnl and must be checked for in this order since each library depends on the
-dnl preceding one.
-dnl
-dnl Most SVR4 platforms will need -lsocket and -lnsl.  However on SGI IRIX 5,
-dnl these exist but are broken, so we use AC_SEARCH_LIBS which will only try
-dnl the library if the function isn't already available without it.
-AC_SEARCH_LIBS(t_open, nsl) # SVR4
-AC_SEARCH_LIBS(gethostbyname, inet) # Sequent
-AC_SEARCH_LIBS(socket, socket) # SVR4 sockets
-
 # check for --with-libm=...
 AC_SUBST(LIBM)
 LIBM=-lm
@@ -480,8 +488,6 @@ then LIBM=$withval
 else AC_MSG_ERROR([proper usage is --with-libm=STRING])
 fi])
 AC_CHECK_LIB(ieee, main, [LIBM="-lieee $LIBM"])
-AC_CHECK_LIB(crypt,crypt, [LIBCRYPT="-lcrypt"])
-AC_SUBST(LIBCRYPT)
 
 # check for --with-libc=...
 AC_SUBST(LIBC)
@@ -551,6 +557,35 @@ AC_SUBST(ANT)
 AC_SUBST(NDKBUILD)
 
 #----------------------------------------------------------------
+# Nothing to look for in C case, just define some variables
+#----------------------------------------------------------------
+
+# Some tweaks for creating shared modules.
+C_SO='$(SO)'
+
+case $host in
+*-*-darwin*)
+        C_LDFLAGS='-dynamiclib'
+        C_SO=".dylib"
+        ;;
+*-*-cygwin* | *-*-mingw*)
+        # Nothing special to do.
+        ;;
+*)
+        # This is needed for linking with Boost which uses mutexes and does no
+        # harm in all the other cases.
+        C_LDFLAGS='-pthread'
+        ;;
+esac
+
+C_LDSHARED="\$(LDSHARED) $C_LDFLAGS"
+CXX_LDSHARED="\$(CXXSHARED) $C_LDFLAGS"
+
+AC_SUBST(C_LDSHARED)
+AC_SUBST(CXX_LDSHARED)
+AC_SUBST(C_SO)
+
+#----------------------------------------------------------------
 # Look for C#
 #----------------------------------------------------------------
 
@@ -566,7 +601,7 @@ else
 
 if test -z "$CSHARPCOMPILERBIN" ; then
   case $host in
-  *-*-cygwin* | *-*-mingw*)
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
     # prefer unified Mono mcs compiler (not to be confused with the ancient .NET 1 mcs) over older/alternative names.
     AC_CHECK_PROGS(CSHARPCOMPILER, csc mcs mono-csc gmcs cscc)
     if test -n "$CSHARPCOMPILER" && test "$CSHARPCOMPILER" = "csc" ; then
@@ -623,7 +658,7 @@ fi
 
 # Cygwin requires the Windows standard (Pascal) calling convention as it is a Windows executable and not a Cygwin built executable
 case $host in
-*-*-cygwin* | *-*-mingw*)
+*-*-cygwin* | *-*-mingw* | *-*-msys*)
     if test "$GCC" = yes; then
         CSHARPDYNAMICLINKING="$GCC_MNO_CYGWIN -mthreads -Wl,--add-stdcall-alias"
         CSHARPCFLAGS="$GCC_MNO_CYGWIN -mthreads"
@@ -639,7 +674,7 @@ esac
 
 # CSharp on Windows platforms including Cygwin doesn't use libname.dll, rather name.dll when loading dlls
 case $host in
-*-*-cygwin* | *-*-mingw*) CSHARPLIBRARYPREFIX="";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) CSHARPLIBRARYPREFIX="";;
 *)CSHARPLIBRARYPREFIX="lib";;
 esac
 
@@ -679,11 +714,14 @@ else
 
   if test -z "$D2COMPILERBIN" ; then
     AC_CHECK_PROGS(D2COMPILER, dmd ldmd2 ldc2 gdmd)
-    if test -n "$D2COMPILER" ; then
-      old_ac_ext=$ac_ext
-      ac_ext=d
-      AC_MSG_CHECKING(whether the D2 compiler works)
-      cat > conftest.$ac_ext <<_ACEOF
+  else
+    D2COMPILER="$D2COMPILERBIN"
+  fi
+  if test -n "$D2COMPILER" ; then
+    old_ac_ext=$ac_ext
+    ac_ext=d
+    AC_MSG_CHECKING(whether the D2 compiler works)
+    cat > conftest.$ac_ext <<_ACEOF
 import std.algorithm;
 void main() {
 }
@@ -695,17 +733,14 @@ _ACEOF
         [_AC_MSG_LOG_CONFTEST AC_MSG_RESULT([no])
         D2COMPILER=]
       )
-      rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext conftest.out
-      ac_ext=$old_ac_ext
-    fi
-  else
-    D2COMPILER="$D2COMPILERBIN"
+    rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext conftest.out
+    ac_ext=$old_ac_ext
   fi
 fi
 
 # Do not prefix library file names with "lib" on Windows.
 case $host in
-*-*-cygwin* | *-*-mingw*) DLIBPREFIX="";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) DLIBPREFIX="";;
 *)DLIBPREFIX="lib";;
 esac
 
@@ -828,7 +863,7 @@ else
         AC_MSG_RESULT([$guile_bindir])
         GUILE="$guile_bindir/guile"
       fi
-      if ! test -f "$GUILE" ; then
+      if test ! -f "$GUILE" ; then
         GUILE=
         AC_PATH_PROG(GUILE, guile)
       fi
@@ -988,31 +1023,25 @@ else
   JAVAC="$JAVACBIN"
 fi
 
-# Check Java version: we require Java 9 or later for Doxygen tests.
 if test -n "$JAVAC"; then
-    AC_MSG_CHECKING(if java version is 9 or greater)
-    javac_version=`"$JAVAC" -version 2>&1`
-    java_version_num=`echo $javac_version | sed -n 's/^javac //p'`
-    if test -z "$java_version_num"; then
-        AC_MSG_WARN([unknown format for Java version returned by "$JAVAC" ($javac_version)])
-        JAVA_SKIP_DOXYGEN_TEST_CASES=1
-        AC_MSG_RESULT(unknown)
-    else
-        dnl Until Java 8 version number was in format "1.x", starting from
-        dnl Java 9 it's just "x".
-        case $java_version_num in
-            1.*)
-                JAVA_SKIP_DOXYGEN_TEST_CASES=1
-                AC_MSG_RESULT([no, disabling Doxygen tests])
-                ;;
+  AC_MSG_CHECKING(java major version)
+  javac_version=`"$JAVAC" -version 2>&1`
+  java_version_num=`echo $javac_version | sed -n 's/^javac //p'`
+  JAVA_VERSION_MAJOR="1"
+  if test -n "$java_version_num"; then
+    dnl Until Java 8 version number was in format "1.x.y_z", starting from Java 9 it's "x.y.z".
+    JAVA_VERSION_MAJOR=[$(echo "$java_version_num" | sed -e "s/^1\.//" | sed -e "s/^\([0-9]\+\)\..*/\1/")]
+  fi
+  AC_MSG_RESULT([$JAVA_VERSION_MAJOR])
 
-            *)
-                AC_MSG_RESULT(yes)
-                ;;
-        esac
-    fi
+# Check Java version: we require Java 9 or later for Doxygen tests.
+  JAVA_SKIP_DOXYGEN_TEST_CASES=
+  if test "$JAVA_VERSION_MAJOR" -le "8"; then
+    JAVA_SKIP_DOXYGEN_TEST_CASES="1"
+  fi
 
-    AC_SUBST(JAVA_SKIP_DOXYGEN_TEST_CASES)
+  AC_SUBST(JAVA_VERSION_MAJOR)
+  AC_SUBST(JAVA_SKIP_DOXYGEN_TEST_CASES)
 fi
 
 AC_MSG_CHECKING(for java include file jni.h)
@@ -1087,7 +1116,7 @@ esac
 
 # java.exe on Cygwin requires the Windows standard (Pascal) calling convention as it is a normal Windows executable and not a Cygwin built executable
 case $host in
-*-*-cygwin* | *-*-mingw*)
+*-*-cygwin* | *-*-mingw* | *-*-msys*)
     if test "$GCC" = yes; then
         JAVADYNAMICLINKING="$GCC_MNO_CYGWIN -mthreads -Wl,--add-stdcall-alias"
         JAVACFLAGS="$GCC_MNO_CYGWIN -mthreads"
@@ -1107,7 +1136,7 @@ esac
 
 # Java on Windows platforms including Cygwin doesn't use libname.dll, rather name.dll when loading dlls
 case $host in
-*-*-cygwin* | *-*-mingw*) JAVALIBRARYPREFIX="";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) JAVALIBRARYPREFIX="";;
 *)JAVALIBRARYPREFIX="lib";;
 esac
 
@@ -1124,6 +1153,7 @@ case $host in
     JAVACXXSHARED='$(CXXSHARED)'
     ;;
 esac
+JAVAC_OPTIONS="-Xlint"
 fi
 
 # Quote for spaces in path to executables
@@ -1148,6 +1178,7 @@ AC_SUBST(JAVALDSHARED)
 AC_SUBST(JAVACXXSHARED)
 AC_SUBST(JAVAFLAGS)
 AC_SUBST(JAVACFLAGS)
+AC_SUBST(JAVAC_OPTIONS)
 
 #----------------------------------------------------------------
 # Look for Javascript
@@ -1223,28 +1254,24 @@ else
 
   JSCOREVERSION=
 
-  if test -z "$JSCOREINCDIR" -a -n "$JSCORELIB"; then
-    AC_MSG_ERROR([Either both or none of --with-jcoreinc --with-jscorelib should be specified])
-  elif test -n "$JSCOREINCDIR" -a -z "$JSCORELIB"; then
-    AC_MSG_ERROR([Either both or none of --with-jcoreinc --with-jscorelib should be specified])
-  elif test -z "$JSCOREINCDIR" -a -z "$JSCORELIB"; then
-    if test -z "$JSCORELIB" -a -n "$PKG_CONFIG "; then
+  if test -z "$JSCOREINCDIR" && test -z "$JSCORELIB"; then
+    if test -n "$PKG_CONFIG"; then
       AC_MSG_CHECKING(for JavaScriptCore/Webkit)
-      if $PKG_CONFIG  javascriptcoregtk-4.1 2>/dev/null ; then
-        JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-4.1`
-        JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-4.1`
-        JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-4.1`
-      elif $PKG_CONFIG  javascriptcoregtk-4.0 2>/dev/null ; then
-        JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-4.0`
-        JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-4.0`
-        JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-4.0`
-      elif $PKG_CONFIG  javascriptcoregtk-3.0 2>/dev/null ; then
-        JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-3.0`
-        JSCOREINC=`$PKG_CONFIG  --cflags-only-I javascriptcoregtk-3.0`
-        JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-3.0`
-      elif $PKG_CONFIG  javascriptcoregtk-1.0 2>/dev/null ; then
-        JSCORELIB=`$PKG_CONFIG  --libs javascriptcoregtk-1.0`
-        JSCOREVERSION=`$PKG_CONFIG  --modversion javascriptcoregtk-1.0`
+      if $PKG_CONFIG javascriptcoregtk-4.1 2>/dev/null ; then
+        JSCORELIB=`$PKG_CONFIG --libs javascriptcoregtk-4.1`
+        JSCOREINC=`$PKG_CONFIG --cflags-only-I javascriptcoregtk-4.1`
+        JSCOREVERSION=`$PKG_CONFIG --modversion javascriptcoregtk-4.1`
+      elif $PKG_CONFIG javascriptcoregtk-4.0 2>/dev/null ; then
+        JSCORELIB=`$PKG_CONFIG --libs javascriptcoregtk-4.0`
+        JSCOREINC=`$PKG_CONFIG --cflags-only-I javascriptcoregtk-4.0`
+        JSCOREVERSION=`$PKG_CONFIG --modversion javascriptcoregtk-4.0`
+      elif $PKG_CONFIG javascriptcoregtk-3.0 2>/dev/null ; then
+        JSCORELIB=`$PKG_CONFIG --libs javascriptcoregtk-3.0`
+        JSCOREINC=`$PKG_CONFIG --cflags-only-I javascriptcoregtk-3.0`
+        JSCOREVERSION=`$PKG_CONFIG --modversion javascriptcoregtk-3.0`
+      elif $PKG_CONFIG javascriptcoregtk-1.0 2>/dev/null ; then
+        JSCORELIB=`$PKG_CONFIG --libs javascriptcoregtk-1.0`
+        JSCOREVERSION=`$PKG_CONFIG --modversion javascriptcoregtk-1.0`
       fi
       if test -z "$JSCORELIB"; then
         AC_MSG_RESULT(not found)
@@ -1259,6 +1286,8 @@ else
         JSCENABLED=1
       fi
     fi
+  elif test -z "$JSCOREINCDIR" || test -z "$JSCORELIB"; then
+    AC_MSG_ERROR([Either both or none of --with-jcoreinc --with-jscorelib should be specified])
   else
     AC_MSG_CHECKING(for JavaScriptCore/Webkit include flags)
     JSCOREINC=-I\"$JSCOREINCDIR\"
@@ -1277,17 +1306,12 @@ else
   AC_MSG_CHECKING(for V8 Javascript v8.h)
   AC_ARG_WITH(jsv8inc, [  --with-jsv8inc=path     Set location of Javascript v8 include directory], [JSV8INCDIR="$withval"], [JSV8INCDIR=])
 
-  # if not include dir is specified we try to find
+  # if include dir is not specified we try to find it
   if test -z "$JSV8INCDIR"; then
-    # Add in default directory for JavaScriptCore headers for Linux and Mac OS X
+    # Add in default directory for v8 headers for Linux
     case $host in
     *-*-linux*)
-      JSV8INCDIR="/usr/include /usr/local/include/ $JSV8INCDIR"
-      ;;
-    *-*-darwin*)
-      JSV8INCDIR="$JSV8INCDIR"
-      ;;
-    *)
+      JSV8INCDIR="/usr/include/v8 /usr/include /usr/local/include/v8 /usr/local/include"
       ;;
     esac
   fi
@@ -1295,51 +1319,52 @@ else
   for d in $JSV8INCDIR ; do
     if test -r "$d/v8.h" ; then
       JSV8INCDIR=$d
-      JSV8INC=-I\"$d\"
+      JSV8INC=-I$d
       break
     fi
   done
 
+  JSV8DYNAMICLINKING=
+  JSV8ENABLED=
+  JSV8LIB=
   if test "$JSV8INC" = "" ; then
     AC_MSG_RESULT(not found)
   else
     AC_MSG_RESULT($JSV8INCDIR)
+
+    # check for V8 library
+    AC_MSG_CHECKING(for V8 Javascript library)
+    AC_ARG_WITH(jsv8lib,[  --with-jsv8lib=path     Set location of V8 Javascript library directory],[JSV8LIBDIR=-L"$withval"], [JSV8LIBDIR=])
+
+    AC_LANG_PUSH([C++])
+    save_CPPFLAGS=$CPPFLAGS
+    save_LDFLAGS=$LDFLAGS
+    save_LIBS=$LIBS
+    CPPFLAGS=$JSV8INC
+    LDFLAGS=$JSV8LIBDIR
+    LIBS=-lv8
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([#include <v8.h>], [v8::V8::Initialize();])], [
+	JSV8ENABLED=1
+	JSV8LIB=$JSV8LIBDIR${JSV8LIBDIR:+ }$LIBS
+	AC_MSG_RESULT([$JSV8LIB])
+      ], [
+	AC_MSG_RESULT(not found)
+      ])
+    CPPFLAGS=$save_CPPFLAGS
+    LDFLAGS=$save_LDFLAGS
+    LIBS=$save_LIBS
+    AC_LANG_POP([C++])
+
+    # linking options
+    case $host in
+    *-*-darwin*)
+      JSV8DYNAMICLINKING="$JSV8LIB"
+      ;;
+    *-*-linux*)
+      JSV8DYNAMICLINKING="$JSV8LIB"
+      ;;
+    esac
   fi
-
-  # check for V8 library
-  AC_MSG_CHECKING(for V8 Javascript library)
-  AC_ARG_WITH(jsv8lib,[  --with-jsv8lib=path     Set location of V8 Javascript library directory],[JSV8LIBDIR="$withval"], [JSV8LIB=])
-
-  v8libdirs="$JSV8LIBDIR /usr/lib64/ /usr/local/lib64/ /usr/lib/ /usr/local/lib/"
-  for d in $v8libdirs ; do
-    if test -r $d/libv8$JSSO; then
-      JSV8LIBDIR=$d
-      JSV8LIB="-L$d -lv8"
-      break
-    fi
-  done
-
-  if test "$JSV8LIB" = "" ; then
-    AC_MSG_RESULT(not found)
-    JSV8ENABLED=
-  else
-    AC_MSG_RESULT($JSV8LIBDIR)
-    JSV8ENABLED=1
-  fi
-
-
-  # linking options
-  case $host in
-  *-*-darwin*)
-    JSV8DYNAMICLINKING="$JSV8LIB"
-    ;;
-  *-*-linux*)
-    JSV8DYNAMICLINKING="$JSV8LIB"
-    ;;
-  *)
-    JSV8DYNAMICLINKING=""
-    ;;
-  esac
 
 fi
 
@@ -1495,48 +1520,6 @@ AC_SUBST(LUALINK)
 AC_SUBST(LUABIN)
 
 #----------------------------------------------------------------
-# Look for MzScheme
-#----------------------------------------------------------------
-
-AC_ARG_WITH(mzscheme, AS_HELP_STRING([--without-mzscheme], [Disable MzScheme])
-AS_HELP_STRING([--with-mzscheme=path], [Set location of MzScheme executable]),[ MZSCHEMEBIN="$withval"], [MZSCHEMEBIN="$alllang_default"])
-AC_ARG_WITH(mzc, AS_HELP_STRING([--with-mzc=path], [Set location of MzScheme's mzc]), [ MZCBIN="$withval"], [MZCBIN=])
-
-# First, check for "--without-mzscheme" or "--with-mzscheme=no".
-if test x"${MZSCHEMEBIN}" = xno; then
-  AC_MSG_NOTICE([Disabling MzScheme])
-  MZC=
-else
-  if test "x$MZSCHEMEBIN" = xyes; then
-     AC_PATH_PROG(MZSCHEME, mzscheme)
-  else
-     MZSCHEME="$MZSCHEMEBIN"
-  fi
-
-  if test -z "$MZCBIN"; then
-     AC_PATH_PROG(MZC, mzc)
-  fi
-
-  if test -n "$MZSCHEME"; then
-    AC_MSG_CHECKING(for MzScheme dynext object)
-    MZDYNOBJ=`$MZSCHEME --eval '(begin (require dynext/link) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (printf "~a" x)) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
-    if test -f "$MZDYNOBJ"; then
-      :
-    else
-      # older versions (3.72 approx and earlier)
-      MZDYNOBJ=`$MZSCHEME --mute-banner --version --eval '(begin (require (lib "link.ss" "dynext")) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x) (display " ")) ((current-make-standard-link-libraries)))) (with-handlers (((lambda args #t) (lambda args #f))) (for-each (lambda (x) (display x)) (expand-for-link-variant (current-standard-link-libraries)))))' 2>/dev/null`
-    fi
-    if test -f "$MZDYNOBJ"; then
-      AC_MSG_RESULT($MZDYNOBJ)
-    else
-      AC_MSG_RESULT(not found)
-      MZDYNOBJ=""
-    fi
-  fi
-fi
-AC_SUBST(MZDYNOBJ)
-
-#----------------------------------------------------------------
 # Look for OCaml
 #----------------------------------------------------------------
 
@@ -1671,7 +1654,7 @@ if test -n "$OCTAVE"; then
    save_CXXFLAGS="${CXXFLAGS}"
    CXXFLAGS="-Werror -O0"
    AC_COMPILE_IFELSE([
-      AC_LANG_PROGRAM([],[])
+      AC_LANG_PROGRAM
    ],[
       OCTAVE_CXXFLAGS="${OCTAVE_CXXFLAGS} -O0"
    ])
@@ -1684,7 +1667,11 @@ if test -n "$OCTAVE"; then
      OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "-L`${mkoctfile} -p ${var}`
    done
    for var in RDYNAMIC_FLAG RLD_FLAG OCTAVE_LIBS LIBS; do
-     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`${mkoctfile} -p ${var}`
+     # RLD_FLAG gives "mkoctfile: unknown variable 'RLD_FLAG'" on stderr
+     # with Octave 7.3 so just discard stderr here.  Apparently RLD_FLAG has
+     # reported an empty value since somewhere between 3.4.3 and 3.6.1 so
+     # can be removed below once we require Octave 4.
+     OCTAVE_LDFLAGS="${OCTAVE_LDFLAGS} "`${mkoctfile} -p ${var} 2>/dev/null`
    done
    AC_MSG_RESULT([$OCTAVE_LDFLAGS])
 
@@ -1909,7 +1896,7 @@ else
     fi
   fi
 
-  if test $PYVER -eq 1 -o $PYVER -eq 2; then
+  if test $PYVER -eq 2; then
     AC_MSG_CHECKING(for Python 2.x prefix)
     PYPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYPREFIX)
@@ -1917,7 +1904,7 @@ else
     PYEPREFIX=`($PYTHON -c "import sys; sys.stdout.write(sys.exec_prefix)") 2>/dev/null`
     AC_MSG_RESULT($PYEPREFIX)
 
-    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
+    if test x"$PYOSNAME" = x"nt" && test x"$PYSEPARATOR" = x"\\"; then
       # Windows installations are quite different to posix installations (MinGW path separator is a forward slash)
       PYPREFIX=`echo "$PYPREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
       PYTHON_SO=.pyd
@@ -1930,10 +1917,10 @@ else
 
       AC_MSG_CHECKING(for Python 2.x library directory)
       if test -d $PYPREFIX/libs; then
-        PYLIB=$PYPREFIX/libs
+        PYLIB="$PYPREFIX/libs"
         PYLINKFILE=`ls $PYLIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
         if test -r "$PYLINKFILE"; then
-          PYLINK=-l`basename $PYLINKFILE | sed -e 's/\.lib$//'`
+          PYLINK=-l`basename "$PYLINKFILE" | sed -e 's/\.lib$//'`
         else
           PYLIB=
         fi
@@ -1976,7 +1963,7 @@ else
       AC_MSG_CHECKING(for Python 2.x library directory)
       dirs="$PYVERSION/config $PYVERSION/$PYLIBDIR python/$PYLIBDIR"
       for i in $dirs; do
-        if test -d $PYEPREFIX/$PYLIBDIR/$i; then
+        if test -d "$PYEPREFIX/$PYLIBDIR/$i"; then
           PYLIB="$PYEPREFIX/$PYLIBDIR/$i"
           break
         fi
@@ -1989,6 +1976,7 @@ else
       AC_MSG_RESULT(Not found)
     else
       AC_MSG_RESULT($PYLIB)
+      PYLIB="-L$PYLIB"
     fi
     AC_MSG_CHECKING(for Python 2.x library)
     if test -z "$PYLINK"; then
@@ -2000,12 +1988,12 @@ else
 
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
-  *-*-cygwin* | *-*-mingw*)
-    PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
+    PYTHONDYNAMICLINKING="$PYLIB $PYLINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;
   *-*-aix*)
-    PYTHONDYNAMICLINKING="-L$PYLIB $PYLINK"
+    PYTHONDYNAMICLINKING="$PYLIB $PYLINK"
     ;;
   *)PYTHONDYNAMICLINKING="";;
   esac
@@ -2037,10 +2025,10 @@ else
     PYVER=0
   fi
   if test "x$PY3BIN" = xyes; then
-    if test x"$PYOSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\" -a $PYVER -ge 3; then
+    if test x"$PYOSNAME" = x"nt" && test x"$PYSEPARATOR" = x"\\" && test $PYVER -ge 3; then
       PYTHON3="$PYTHON"
     else
-      for py_ver in 3 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 3.2 ""; do
+      for py_ver in 3 3.15 3.14 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 ""; do
         AC_CHECK_PROGS(PYTHON3, [python$py_ver])
         if test -n "$PYTHON3"; then
           AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
@@ -2072,7 +2060,7 @@ else
     PYSEPARATOR=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
     AC_MSG_RESULT($PYSEPARATOR)
 
-    if test x"$PY3OSNAME" = x"nt" -a x"$PYSEPARATOR" = x"\\"; then
+    if test x"$PY3OSNAME" = x"nt" && test x"$PYSEPARATOR" = x"\\"; then
       # Windows installations are quite different to posix installations
       # There is no python-config to use
       AC_MSG_CHECKING(for Python 3.x prefix)
@@ -2088,8 +2076,8 @@ else
       AC_MSG_RESULT($PY3INCLUDE)
 
       AC_MSG_CHECKING(for Python 3.x library directory)
-      if test -d $PY3PREFIX/libs; then
-        PY3LIB=$PY3PREFIX/libs
+      if test -d "$PY3PREFIX/libs"; then
+        PY3LIB="$PY3PREFIX/libs"
         PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
         if test -r "$PY3LINKFILE"; then
           PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
@@ -2101,6 +2089,7 @@ else
         AC_MSG_RESULT([Not found])
       else
         AC_MSG_RESULT($PY3LIB)
+        PY3LIB="-L$PY3LIB"
       fi
       AC_MSG_CHECKING([for Python 3.x library])
       if test -z "$PY3LINK"; then
@@ -2154,7 +2143,7 @@ else
       done
       if test -z "$PY3LIB"; then
         # Last resort
-        if test -d $PY3EPREFIX/$PY3LIBDIR; then
+        if test -d "$PY3EPREFIX/$PY3LIBDIR"; then
           PY3LIB="$PY3EPREFIX/$PY3LIBDIR"
         fi
       fi
@@ -2162,6 +2151,7 @@ else
         AC_MSG_RESULT([Not found])
       else
         AC_MSG_RESULT($PY3LIB)
+        PY3LIB="-L$PY3LIB"
       fi
 
       PY3LINK="-l$PY3VERSION"
@@ -2177,13 +2167,13 @@ else
 
   # Cygwin (Windows) needs the library for dynamic linking
   case $host in
-  *-*-cygwin* | *-*-mingw*)
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
     # PYTHON3DYNAMICLINKING ought to be replaced by $PY3CONFIG --ldflags
-    PYTHON3DYNAMICLINKING="-L$PY3LIB $PY3LINK"
+    PYTHON3DYNAMICLINKING="$PY3LIB $PY3LINK"
     DEFS="-DUSE_DL_IMPORT $DEFS"
     ;;
   *-*-aix*)
-    PYTHON3DYNAMICLINKING="-L$PY3LIB $PY3LINK"
+    PYTHON3DYNAMICLINKING="$PY3LIB $PY3LINK"
     ;;
   *)PYTHON3DYNAMICLINKING="";;
   esac
@@ -2200,6 +2190,9 @@ if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
     AC_MSG_CHECKING(pycodestyle version)
     pycodestyle_version=`$PYCODESTYLE --version 2>/dev/null`
     AC_MSG_RESULT($pycodestyle_version)
+  fi
+  if test -n "$PY3INCLUDE" ; then
+    AC_CHECK_PROGS(PYABI3AUDIT, [abi3audit])
   fi
 fi
 
@@ -2318,7 +2311,7 @@ if test -n "$RUBY"; then
 
 		if test "$rb_libruby" != ""; then
 			for i in $dirs; do
-				if (test -r $i/$rb_libruby;) then
+				if test -r "$i/$rb_libruby"; then
 					RUBYLIB="$i"
 					break
 				fi
@@ -2422,8 +2415,8 @@ else
         dirs="$SCI/include $SCI/../../include"
       elif test -d "$headers"; then
         dirs="$headers"
-      elif test -n "$PKG_CONFIG "; then
-        dirs=`$PKG_CONFIG  scilab --cflags-only-I | sed -e 's/-I//g'`
+      elif test -n "$PKG_CONFIG"; then
+        dirs=`$PKG_CONFIG scilab --cflags-only-I | sed -e 's/-I//g'`
       else
         dirs="/usr/include"
       fi
@@ -2604,6 +2597,12 @@ AC_SUBST(TCLLINK)
 # Determine which languages to use for examples/test-suite
 #----------------------------------------------------------------
 
+dnl We only need CC and CXX to test the C target language, and both of those
+dnl are required to build SWIG.
+SKIP_C=
+AC_SUBST(SKIP_C)
+
+
 SKIP_CSHARP=
 if test -z "$CSHARPCOMPILER" ; then
     SKIP_CSHARP="1"
@@ -2643,7 +2642,7 @@ AC_SUBST(SKIP_JAVA)
 
 
 SKIP_JAVASCRIPT=
-if test -z "$JAVASCRIPT" || ( test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" && test -z "$JSNAPIENABLED" ) ; then
+if test -z "$JAVASCRIPT" || { test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" && test -z "$JSNAPIENABLED" ; } ; then
     SKIP_JAVASCRIPT="1"
 fi
 AC_SUBST(SKIP_JAVASCRIPT)
@@ -2655,13 +2654,6 @@ if test -z "$LUABIN" || test -z "$LUADYNAMICLOADLIB"; then
     SKIP_LUA="1"
 fi
 AC_SUBST(SKIP_LUA)
-
-
-SKIP_MZSCHEME=
-if test -z "$MZC" || test -z "$MZDYNOBJ" ; then
-    SKIP_MZSCHEME="1"
-fi
-AC_SUBST(SKIP_MZSCHEME)
 
 
 SKIP_OCAML=
@@ -2693,18 +2685,11 @@ AC_SUBST(SKIP_PERL5)
 
 
 SKIP_PYTHON=
-if (test -z "$PYINCLUDE" || test -z "$PYLINK") &&
-   (test -z "$PY3INCLUDE" || test -z "$PY3LINK") ; then
+if { test -z "$PYINCLUDE" || test -z "$PYLINK" ; } &&
+   { test -z "$PY3INCLUDE" || test -z "$PY3LINK" ; } ; then
     SKIP_PYTHON="1"
 fi
 AC_SUBST(SKIP_PYTHON)
-
-
-SKIP_PYTHON3=
-if test -z "$PY3INCLUDE" || test -z "$PY3LINK" ; then
-    SKIP_PYTHON3="1"
-fi
-AC_SUBST(SKIP_PYTHON3)
 
 
 SKIP_R=
@@ -2760,7 +2745,7 @@ dnl although this is probably more rare, also be built as a Cygwin program.
 dnl Using "mixed" path like we do here allows the path to work in both cases.
 case $host in
   *-*-mingw* ) ABS_SRCDIR=`${srcdir}/Tools/convertpath -m $ABS_SRCDIR` ;;
-  *-*-cygwin* ) ABS_SRCDIR=`cygpath --mixed $ABS_SRCDIR` ;;
+  *-*-cygwin* | *-*-msys*) ABS_SRCDIR=`cygpath --mixed $ABS_SRCDIR` ;;
 esac
 
 # Root directory
@@ -2775,7 +2760,7 @@ case $host in
 esac
 
 case $host in
-*-*-cygwin* | *-*-mingw*)
+*-*-cygwin* | *-*-mingw* | *-*-msys*)
   # Extra files generated by some Windows compilers
   EXTRA_CLEAN="*.stackdump *.exp *.lib *.pdb *.ilk"
   ;;
@@ -2820,8 +2805,8 @@ AC_SUBST(SWIG_LIB_SET)
 AC_CONFIG_FILES([
     Makefile
     Examples/Makefile
-    Examples/xml/Makefile
     Examples/test-suite/errors/Makefile
+    Examples/test-suite/c/Makefile
     Examples/test-suite/csharp/Makefile
     Examples/test-suite/d/Makefile
     Examples/test-suite/go/Makefile
@@ -2829,7 +2814,6 @@ AC_CONFIG_FILES([
     Examples/test-suite/java/Makefile
     Examples/test-suite/javascript/Makefile
     Examples/test-suite/lua/Makefile
-    Examples/test-suite/mzscheme/Makefile
     Examples/test-suite/ocaml/Makefile
     Examples/test-suite/octave/Makefile
     Examples/test-suite/perl5/Makefile
@@ -2884,6 +2868,7 @@ EOF
 AC_OUTPUT
 
 langs=""
+test -n "$SKIP_C"		|| langs="${langs}c "
 test -n "$SKIP_CSHARP"		|| langs="${langs}csharp "
 test -n "$SKIP_D"		|| langs="${langs}d "
 test -n "$SKIP_GO"		|| langs="${langs}go "
@@ -2891,7 +2876,6 @@ test -n "$SKIP_GUILE"		|| langs="${langs}guile "
 test -n "$SKIP_JAVA"		|| langs="${langs}java "
 test -n "$SKIP_JAVASCRIPT"	|| langs="${langs}javascript "
 test -n "$SKIP_LUA"		|| langs="${langs}lua "
-test -n "$SKIP_MZSCHEME"	|| langs="${langs}mzscheme "
 test -n "$SKIP_OCAML"		|| langs="${langs}ocaml "
 test -n "$SKIP_OCTAVE"		|| langs="${langs}octave "
 test -n "$SKIP_PERL5"		|| langs="${langs}perl5 "

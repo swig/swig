@@ -62,3 +62,12 @@ struct NoExceptDefaultDelete {
 
 %}
 
+// Regression tests for #2087 (noexcept on a function pointer parameter type).
+//
+// FIXME: We've only fixed `noexcept` on parameter types which are function
+// pointers to parse - the generated code has `noexcept` in the wrong place
+// and won't compile so for now we only check SWIG can parse this.
+%ignore f2087a;
+%ignore f2087b;
+void f2087a(int (*g)() noexcept) { (void)g; }
+void f2087b(int const (*g)() noexcept) { (void)g; }

@@ -43,7 +43,7 @@ struct ConstExpressions {
   constexpr static int KKK1 = 201;
   // Regression tests for https://github.com/swig/swig/issues/284 :
   explicit constexpr ConstExpressions(int) { }
-  constexpr explicit ConstExpressions(double) { }
+  constexpr explicit ConstExpressions(const char*) { }
   // Regression tests for  https://github.com/swig/swig/issues/2079 :
   constexpr friend bool operator==(ConstExpressions,ConstExpressions) { return true; }
   friend constexpr bool operator!=(ConstExpressions,ConstExpressions) { return false; }
@@ -74,4 +74,22 @@ struct A {
 };
 constexpr A a{42};
 constexpr int N = a.i;
+
+// Regression test for https://github.com/swig/swig/issues/3127 fixed in 4.4.0:
+#include <array>
+
+constexpr std::size_t my_enum_size =
+   sizeof(
+    decltype(
+      42
+    )
+  ) ? 1 + static_cast<std::size_t>(
+    4
+  ) : alignof(
+    std::size_t
+  );
+
+std::array<bool, my_enum_size> do_something() {
+  return std::array<bool, my_enum_size>{true,true,true,true,true};
+}
 %}

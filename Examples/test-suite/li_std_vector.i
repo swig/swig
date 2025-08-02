@@ -150,3 +150,17 @@ int sum(int v) {
   return v;
 }
 %}
+
+// Variables
+%inline %{
+struct VariableHolder {
+  static std::vector<int> static_variable;
+  std::vector<int> instance_variable;
+};
+std::vector<int> VariableHolder::static_variable;
+std::vector<int> global_variable;
+
+void vector_append(std::vector<int>& vec, int val) {
+  vec.push_back(val);
+}
+%}

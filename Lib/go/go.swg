@@ -485,10 +485,10 @@ rvrdeleter.reset($1); %}
 %{
   {
     p := Swig_malloc(len($input) + 1)
-    s := (*[1<<30]byte)(unsafe.Pointer(p))[:len($input) + 1]
+    s := unsafe.Slice((*byte)(unsafe.Pointer(p)), len($input) + 1)
     copy(s, $input)
     s[len($input)] = 0
-    $result = *(*string)(unsafe.Pointer(&s))
+    $result = unsafe.String((*byte)(unsafe.Pointer(p)), len($input) + 1)
   }
 %}
 
@@ -498,31 +498,69 @@ rvrdeleter.reset($1); %}
 
 /* String & length */
 
-%typemap(gotype) (char *STRING, size_t LENGTH) "string"
+%typemap(gotype) (const char *STRING, size_t LENGTH) "string"
 
-%typemap(in) (char *STRING, size_t LENGTH)
+%typemap(in) (const char *STRING, size_t LENGTH)
 %{
   $1 = ($1_ltype)$input.p;
   $2 = ($2_ltype)$input.n;
 %}
 
-%typemap(out,fragment="AllocateString") (char *STRING, size_t LENGTH)
+%typemap(freearg) (const char *STRING, size_t LENGTH) ""
+
+%typemap(out,fragment="AllocateString") (const char *STRING, size_t LENGTH)
 %{ $result = Swig_AllocateString((char*)$1, (size_t)$2); %}
 
-%typemap(goout,fragment="CopyString") (char *STRING, size_t LENGTH)
+%typemap(goout,fragment="CopyString") (const char *STRING, size_t LENGTH)
 %{ $result = swigCopyString($1) %}
 
-%typemap(directorin,fragment="AllocateString") (char *STRING, size_t LENGTH)
+%typemap(directorin,fragment="AllocateString") (const char *STRING, size_t LENGTH)
 %{ $input = Swig_AllocateString((char*)$1, $2); %}
 
-%typemap(godirectorin,fragment="CopyString") (char *STRING, size_t LENGTH)
+%typemap(godirectorin,fragment="CopyString") (const char *STRING, size_t LENGTH)
 %{ $result = swigCopyString($input) %}
 
-%typemap(directorout) (char *STRING, size_t LENGTH)
+%typemap(directorout) (const char *STRING, size_t LENGTH)
 %{
   $1 = ($1_ltype)$input.p;
   $2 = ($2_ltype)$input.n;
 %}
+%apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
+%apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
+%apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
+
+/* Length & string reverse order typemap */
+
+%typemap(gotype) (size_t LENGTH, const char *STRING) "string"
+
+%typemap(in) (size_t LENGTH, const char *STRING)
+%{
+  $2 = ($2_ltype)$input.p;
+  $1 = ($1_ltype)$input.n;
+%}
+
+%typemap(freearg) (size_t LENGTH, const char *STRING) ""
+
+%typemap(out,fragment="AllocateString") (size_t LENGTH, const char *STRING)
+%{ $result = Swig_AllocateString((char*)$2, (size_t)$1); %}
+
+%typemap(goout,fragment="CopyString") (size_t LENGTH, const char *STRING)
+%{ $result = swigCopyString($2) %}
+
+%typemap(directorin,fragment="AllocateString") (size_t LENGTH, const char *STRING)
+%{ $input = Swig_AllocateString((char*)$2, $1); %}
+
+%typemap(godirectorin,fragment="CopyString") (size_t LENGTH, const char *STRING)
+%{ $result = swigCopyString($input) %}
+
+%typemap(directorout) (size_t LENGTH, const char *STRING)
+%{
+  $2 = ($2_ltype)$input.p;
+  $1 = ($1_ltype)$input.n;
+%}
+%apply (size_t LENGTH, const char *STRING) { (int LENGTH, const char *STRING) }
+%apply (size_t LENGTH, const char *STRING) { (size_t LENGTH, char *STRING) }
+%apply (size_t LENGTH, char *STRING) { (int LENGTH, char *STRING) }
 
 /* The int & type needs to convert to intgo.  */
 

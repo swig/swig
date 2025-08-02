@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import os
@@ -34,7 +34,7 @@ print("Making source tarball")
 force = "--force-tag" if force_tag else ""
 skip = "--skip-checks" if skip_checks else ""
 toolsdir = os.path.dirname(os.path.abspath(__file__))
-cmd = "python {}/mkdist.py {} {} --branch {} {}".format(toolsdir, force, skip, branch, version).split()
+cmd = "{} {}/mkdist.py {} {} --branch {} {}".format(sys.executable, toolsdir, force, skip, branch, version).split()
 run_command(*cmd) and failed("")
 
 print("Build Windows package")

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ###############################################################################
 # Takes a chapter as input and adds internal links and numbering to all

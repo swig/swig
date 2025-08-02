@@ -486,7 +486,7 @@ static Node *first_nontemplate(Node *n) {
  * Handle swig pragma directives.  
  * -------------------------------------------------------------------------- */
 
-void swig_pragma(char *lang, char *name, char *value) {
+static void swig_pragma(char *lang, char *name, char *value) {
   if (strcmp(lang, "swig") == 0) {
     if (strcmp(name, "attributefunction") == 0) {
       String *nvalue = NewString(value);
@@ -629,24 +629,9 @@ int Language::constantDirective(Node *n) {
 
   if (!ImportMode) {
     Swig_require("constantDirective", n, "name", "?value", NIL);
-    String *name = Getattr(n, "name");
-    String *value = Getattr(n, "value");
-    if (!value) {
-      value = Copy(name);
-    } else {
-      /*      if (checkAttribute(n,"type","char")) {
-         value = NewString(value);
-         } else {
-         value = NewStringf("%(escape)s", value);
-         }
-       */
-      Setattr(n, "rawvalue", value);
-      value = NewStringf("%(escape)s", value);
-      if (!Len(value))
-	Append(value, "\\0");
-      /*      Printf(stdout,"'%s' = '%s'\n", name, value); */
+    if (!Getattr(n, "value")) {
+      Setattr(n, "value", Getattr(n, "name"));
     }
-    Setattr(n, "value", value);
     this->constantWrapper(n);
     Swig_restore(n);
     return SWIG_OK;
@@ -1328,9 +1313,10 @@ int Language::staticmemberfunctionHandler(Node *n) {
   SwigType *type = Getattr(n, "type");
   ParmList *parms = Getattr(n, "parms");
   String *cb = GetFlagAttr(n, "feature:callback");
-  String *cname, *mrename;
+  String *cname;
+  String *mrename = Swig_name_member(NSpace, ClassPrefix, symname);
 
-  if (!Extend) {
+  if (!(Extend && GetFlag(n, "isextendmember"))) {
     Node *sb = Getattr(n, "cplus:staticbase");
     String *sname = Getattr(sb, "name");
     if (isNonVirtualProtectedAccess(n))
@@ -1343,10 +1329,7 @@ int Language::staticmemberfunctionHandler(Node *n) {
     cname = Swig_name_member(NSpace, mname, name);
     Delete(mname);
     Delete(classname_str);
-  }
-  mrename = Swig_name_member(NSpace, ClassPrefix, symname);
 
-  if (Extend) {
     String *code = Getattr(n, "code");
     String *defaultargs = Getattr(n, "defaultargs");
     String *mangled = Swig_name_mangle_string(mrename);
@@ -1829,6 +1812,8 @@ int Language::typedefHandler(Node *n) {
    */
   SwigType *name = Getattr(n, "name");
   SwigType *decl = Getattr(n, "decl");
+  Setfile(name, Getfile(n));
+  Setline(name, Getline(n));
   if (!SwigType_ispointer(decl) && !SwigType_isreference(decl)) {
     SwigType *pname = Copy(name);
     SwigType_add_pointer(pname);
@@ -2201,12 +2186,15 @@ int Language::classDirectorInit(Node *n) {
 int Language::classDirectorDestructor(Node *n) {
   /* 
      Always emit the virtual destructor in the declaration and in the
-     compilation unit.  Been explicit here can't make any damage, and
+     compilation unit.  Being explicit here can't make any damage, and
      can solve some nasty C++ compiler problems.
    */
   File *f_directors = Swig_filebyname("director");
   File *f_directors_h = Swig_filebyname("director_h");
-  if (Getattr(n, "throw")) {
+  if (Getattr(n, "noexcept")) {
+    Printf(f_directors_h, "    virtual ~%s() noexcept;\n", DirectorClassName);
+    Printf(f_directors, "%s::~%s() noexcept {\n}\n\n", DirectorClassName, DirectorClassName);
+  } else if (Getattr(n, "throw")) {
     Printf(f_directors_h, "    virtual ~%s() throw();\n", DirectorClassName);
     Printf(f_directors, "%s::~%s() throw() {\n}\n\n", DirectorClassName, DirectorClassName);
   } else {
@@ -3016,8 +3004,8 @@ void Language::main(int argc, char *argv[]) {
  * ----------------------------------------------------------------------------- */
 
 int Language::addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope) {
-  //Printf( stdout, "addSymbol: %s %s\n", s, scope );
-  Hash *symbols = Getattr(symtabs, scope ? scope : "");
+  //Printf( stdout, "addSymbol: %s %s %s:%d\n", s, scope, Getfile(n), Getline(n) );
+  Hash *symbols = symbolScopeLookup(scope);
   if (!symbols) {
     symbols = symbolAddScope(scope);
   } else {
@@ -3064,15 +3052,15 @@ int Language::addInterfaceSymbol(const String *interface_name, Node *n, const_St
  * Language::symbolAddScope()
  *
  * Creates a scope (symbols Hash) for given name. This method is auxiliary,
- * you don't have to call it - addSymbols will lazily create scopes automatically.
+ * you don't have to call it - addSymbol will lazily create scopes automatically.
  * If scope with given name already exists, then do nothing.
  * Returns newly created (or already existing) scope.
  * ----------------------------------------------------------------------------- */
-Hash* Language::symbolAddScope(const_String_or_char_ptr scope) {
+Hash *Language::symbolAddScope(const_String_or_char_ptr scope/*, Node *n*/) {
   Hash *symbols = symbolScopeLookup(scope);
-  if(!symbols) {
+  if (!symbols) {
     // The order in which the following code is executed is important. In the Language
-    // constructor addScope("") is called to create a top level scope.
+    // constructor symbolAddScope("") is called to create a top level scope.
     // Thus we must first add a symbols hash to symtab and only then add pseudo
     // symbols to the top-level scope.
 
@@ -3084,8 +3072,22 @@ Hash* Language::symbolAddScope(const_String_or_char_ptr scope) {
     // Alternatively the target language must add it in before attempting to add symbols into the scope.
     const_String_or_char_ptr top_scope = "";
     Hash *topscope_symbols = Getattr(symtabs, top_scope);
-    Hash *pseudo_symbol = NewHash();
-    Setattr(pseudo_symbol, "sym:scope", "1");
+
+    // TODO:
+    //   Stop using pseudo scopes, the symbol Node containing the new scope should be passed into this function.
+    //   This will require explicit calls to symbolScopeLookup() in each language and removing the call from addSymbol().
+    //   addSymbol() should then instead assert that the scope exists.
+    //   All this just to fix up the file/line numbering of the scopes for error reporting.
+    //Node *symbol = n;
+    Node *symbol = Getattr(topscope_symbols, scope);
+
+    Hash *pseudo_symbol = 0;
+    if (symbol) {
+      pseudo_symbol = symbol;
+    } else {
+      pseudo_symbol = NewHash();
+      Setattr(pseudo_symbol, "sym:scope", "1");
+    }
     Setattr(topscope_symbols, scope, pseudo_symbol);
   }
   return symbols;
@@ -3097,7 +3099,7 @@ Hash* Language::symbolAddScope(const_String_or_char_ptr scope) {
  * Lookup and returns a symtable (hash) representing given scope. Hash contains
  * all symbols in this scope.
  * ----------------------------------------------------------------------------- */
-Hash* Language::symbolScopeLookup( const_String_or_char_ptr scope ) {
+Hash *Language::symbolScopeLookup(const_String_or_char_ptr scope) {
   Hash *symbols = Getattr(symtabs, scope ? scope : "");
   return symbols;
 }
@@ -3116,7 +3118,7 @@ Hash* Language::symbolScopeLookup( const_String_or_char_ptr scope ) {
  * There is no difference from symbolLookup() method except for signature
  * and return type.
  * ----------------------------------------------------------------------------- */
-Hash* Language::symbolScopePseudoSymbolLookup( const_String_or_char_ptr scope )
+Hash *Language::symbolScopePseudoSymbolLookup(const_String_or_char_ptr scope)
 {
   /* Getting top scope */
   const_String_or_char_ptr top_scope = "";
@@ -3143,6 +3145,7 @@ void Language::dumpSymbols() {
       while (it.key) {
 	String *symname = it.key;
 	Printf(stdout, "  %s\n", symname);
+	//Printf(stdout, "  %s (%s:%d)\n", symname, Getfile(it.item), Getline(it.item));
 	it = Next(it);
       }
     }

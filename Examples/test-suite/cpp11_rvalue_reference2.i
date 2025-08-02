@@ -2,12 +2,18 @@
 
 %warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) globalrrval;
 
+#if defined SWIGGO
+// Several: Warning 507: No Go typemap defined for int &&
+# pragma SWIG nowarn=SWIGWARN_LANG_NATIVE_UNIMPL
+#endif
+
 // This testcase tests lots of different places that rvalue reference syntax can be used
 
 %typemap(in) Something && "/*in Something && typemap*/"
 %rename(OperatorRValue) Thingy::operator int&&;
 %rename(memberFnRenamed) memberFn(short &&i);
 %feature("compactdefaultargs") Thingy::compactDefaultArgs(const bool &&b = (const bool &&)PublicGlobalTrue, const UserDef &&u  = (const UserDef &&)PublicUserDef);
+%feature("compactdefaultargs") Thingy::moreCompactDefaultArgs;
 %feature("exception") Thingy::privateDefaultArgs(const bool &&b = (const bool &&)PrivateTrue);
 %ignore Thingy::operator=;
 
@@ -30,6 +36,7 @@ struct Thingy {
   static short && staticRvalueInOut(short &&i) { return std::move(i); }
   // test both primitive and user defined rvalue reference default arguments and compactdefaultargs
   void compactDefaultArgs(const bool &&b = (const bool &&)PublicGlobalTrue, const UserDef &&u  = (const UserDef &&)PublicUserDef) {}
+  void moreCompactDefaultArgs(UserDef&& ud1 = UserDef(), UserDef&& ud2 = {}, const UserDef&& ud3= {}, UserDef ud4 = {}) {}
   void privateDefaultArgs(const bool &&b = (const bool &&)PrivateTrue) {}
   operator int &&() { return std::move(valval); }
   Thingy(const Thingy& rhs) : valval(rhs.valval), lvalref(rhs.lvalref), rvalref(std::move(rhs.rvalref)) {}

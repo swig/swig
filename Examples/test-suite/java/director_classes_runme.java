@@ -139,7 +139,7 @@ public class director_classes_runme {
   }
 
   // Same as Class.getSimpleName() which is not present in all jdks
-  static String getSimpleName(Class klass) {
+  static String getSimpleName(Class<?> klass) {
     String fullName = klass.getName();
     Package packag = klass.getPackage();
     String simpleName = null;

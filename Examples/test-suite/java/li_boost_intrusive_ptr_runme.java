@@ -13,6 +13,8 @@ public class li_boost_intrusive_ptr_runme {
   // Debugging flag
   public final static boolean debug = false;
 
+  // Suppress warning about System.runFinalization() call.
+  @SuppressWarnings({"deprecation", "removal"})
   private static void WaitForGC()
   {
     System.gc();
@@ -23,6 +25,8 @@ public class li_boost_intrusive_ptr_runme {
     }
   }
 
+  // Suppress warning about System.runFinalization() call.
+  @SuppressWarnings({"deprecation", "removal"})
   public static void main(String argv[])
   {
     if (debug)

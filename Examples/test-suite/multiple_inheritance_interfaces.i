@@ -50,6 +50,17 @@ struct W : T {};
 %}
 
 #if defined(SWIGJAVA) || defined(SWIGCSHARP)
+%interface(IV1)
+%interface(IV2)
+%interface(V3)
+#endif
+%inline %{
+struct IV1 : virtual IA {};
+struct IV2 : virtual IA {};
+struct V3 : IV1, IV2 {};
+%}
+
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %interface_impl(Undesirables);
 #endif
 
@@ -118,4 +129,49 @@ namespace Space {
     virtual ~X() {}
   };
 }
+%}
+
+// Test additional interfaces - these are designed for non-C++ interfaces
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
+%interface_custom("Additional1", "IAdditional1", IAdditional1)
+#endif
+
+#if defined(SWIGJAVA)
+%interface_additional("Additional2", "IAdditional2", "java.util.EventListener", IAdditional2)
+%interface_additional("Additional3", "IAdditional3", "java.util.EventListener", IAdditional3)
+#elif defined(SWIGCSHARP)
+%interface_additional("Additional2", "IAdditional2", "global::System.ICloneable", IAdditional2)
+%interface_additional("Additional3", "IAdditional3", "global::System.ICloneable", IAdditional3)
+%extend IAdditional2 {
+%proxycode %{
+  public virtual object Clone() {
+    return new Additional2(this);
+  }
+%}
+}
+%extend IAdditional3 {
+%proxycode %{
+  public virtual object Clone() {
+    return new Additional3(this);
+  }
+%}
+}
+%extend AdditionalConcrete {
+%proxycode %{
+  public virtual object Clone() {
+    return new AdditionalConcrete(this);
+  }
+%}
+}
+#endif
+
+%copyctor AdditionalConcrete;
+%copyctor IAdditional2;
+%copyctor IAdditional3;
+
+%inline %{
+struct IAdditional1 { virtual ~IAdditional1() {} };
+struct IAdditional2 { virtual ~IAdditional2() {} };
+struct IAdditional3 : IAdditional1, IAdditional2 {};
+struct AdditionalConcrete : IAdditional1, IAdditional2 {};
 %}

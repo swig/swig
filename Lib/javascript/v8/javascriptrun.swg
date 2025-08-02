@@ -4,11 +4,7 @@
  * Useful table of versions: https://nodejs.org/en/download/releases/
  * ---------------------------------------------------------------------------*/
 
-#if (SWIG_V8_VERSION < 0x0704)
-#define SWIGV8_STRING_NEW2(cstr, len) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), cstr, v8::String::kNormalString, len)
-#else
 #define SWIGV8_STRING_NEW2(cstr, len) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), cstr, v8::NewStringType::kNormal, len)).ToLocalChecked()
-#endif
 
 typedef void SwigV8ReturnValue;
 typedef v8::FunctionCallbackInfo<v8::Value> SwigV8Arguments;
@@ -24,19 +20,10 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_CURRENT_CONTEXT() v8::Isolate::GetCurrent()->GetCurrentContext()
 #define SWIGV8_THROW_EXCEPTION(err) v8::Isolate::GetCurrent()->ThrowException(err)
 
-#if (SWIG_V8_VERSION < 0x0704)
-#define SWIGV8_STRING_NEW(str) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), str, v8::String::kNormalString)
-#define SWIGV8_SYMBOL_NEW(sym) v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), sym, v8::String::kNormalString)
-#else
 #define SWIGV8_STRING_NEW(str) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), str, v8::NewStringType::kNormal)).ToLocalChecked()
 #define SWIGV8_SYMBOL_NEW(sym) (v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), sym, v8::NewStringType::kNormal)).ToLocalChecked()
-#endif
 
-#if (SWIG_V8_VERSION < 0x0704)
-#define SWIGV8_MAYBE_CHECK(maybe) maybe.FromJust()
-#else
 #define SWIGV8_MAYBE_CHECK(maybe) maybe.Check()
-#endif
 
 #define SWIGV8_ARRAY_NEW(size) v8::Array::New(v8::Isolate::GetCurrent(), size)
 #define SWIGV8_BOOLEAN_NEW(bool) v8::Boolean::New(v8::Isolate::GetCurrent(), bool)
@@ -61,16 +48,6 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 
 #define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ.Reset(v8::Isolate::GetCurrent(), class);
 
-#if SWIG_V8_VERSION < 0x0608
-#define SWIGV8_TO_OBJECT(handle) (handle)->ToObject()
-#define SWIGV8_TO_STRING(handle) (handle)->ToString()
-#define SWIGV8_NUMBER_VALUE(handle) (handle)->NumberValue()
-#define SWIGV8_INTEGER_VALUE(handle) (handle)->IntegerValue()
-#define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue()
-#define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(buffer, len)
-#define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length()
-#define SWIGV8_OBJECT_TEMPLATE_INSTACE(tmpl) tmpl->NewInstance();
-#else
 #define SWIGV8_TO_OBJECT(handle) (handle)->ToObject(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
 #define SWIGV8_TO_STRING(handle) (handle)->ToString(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
 #define SWIGV8_NUMBER_VALUE(handle) (handle)->NumberValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
@@ -78,12 +55,7 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(v8::Isolate::GetCurrent(), buffer, len)
 #define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length(v8::Isolate::GetCurrent())
 #define SWIGV8_OBJECT_TEMPLATE_INSTACE(tmpl) tmpl->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
-#if (SWIG_V8_VERSION < 0x0704)
-#define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
-#else
 #define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue(v8::Isolate::GetCurrent())
-#endif
-#endif
 
 /* ---------------------------------------------------------------------------
  * Error handling
@@ -255,12 +227,6 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(SWIGV8_OBJECT obj, void *ptr, swig_type_i
   } else {
     cdata->handle.SetWeak(cdata, SWIGV8_Proxy_DefaultDtor, v8::WeakCallbackType::kParameter);
   }
-
-#if (SWIG_V8_VERSION < 0x0704)
-  cdata->handle.MarkIndependent();
-// Looks like future versions do not require that anymore:
-// https://monorail-prod.appspot.com/p/chromium/issues/detail?id=923361#c11
-#endif
 }
 
 SWIGRUNTIME int SWIG_V8_ConvertPtr(SWIGV8_VALUE valRef, void **ptr, swig_type_info *info, int flags) {
@@ -349,7 +315,7 @@ SWIGRUNTIME SwigV8ReturnValue _wrap_getCPtr(const SwigV8Arguments &args) {
   
   SWIGV8_VALUE jsresult;
   void *arg1 = (void *) 0 ;
-  long result;
+  intptr_t result;
   int res1;
 
   res1 = SWIG_GetInstancePtr(args.Holder(), &arg1);
@@ -357,7 +323,7 @@ SWIGRUNTIME SwigV8ReturnValue _wrap_getCPtr(const SwigV8Arguments &args) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getCPtr" "', argument " "1"" of type '" "void *""'");
   }
 
-  result = (long)arg1;
+  result = (intptr_t)arg1;
   jsresult = SWIGV8_NUMBER_NEW(result);
 
   SWIGV8_RETURN(jsresult);
@@ -459,14 +425,7 @@ SWIGV8_VALUE SWIGV8_NewPackedObj(void *data, size_t size, swig_type_info *type) 
 
   cdata->handle.SetWeak(cdata, _wrap_SwigV8PackedData_delete, v8::WeakCallbackType::kParameter);
 
-#if (SWIG_V8_VERSION < 0x0704)
-  cdata->handle.MarkIndependent();
-// Looks like future versions do not require that anymore:
-// https://monorail-prod.appspot.com/p/chromium/issues/detail?id=923361#c11
-#endif
-
   SWIGV8_ESCAPE(obj);
-
 }
 
 #define SWIG_ConvertMember(obj, ptr, sz, ty)            SWIGV8_ConvertPacked(obj, ptr, sz, ty)

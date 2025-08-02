@@ -19,6 +19,7 @@ class java_director_exception_feature_Consts {
 
 // an exception not mentioned or wrapped by the swig interface,
 // to reconstruct using generic DirectorException handling
+@SuppressWarnings("serial")
 class NewCheckedException extends Exception {
     public NewCheckedException(String s) {
         super(s);
@@ -27,6 +28,7 @@ class NewCheckedException extends Exception {
 
 // an exception not mentioned or wrapped by the swig interface,
 // to reconstruct using generic DirectorException handling
+@SuppressWarnings("serial")
 class NewUncheckedException extends RuntimeException {
     public NewUncheckedException(String s) {
         super(s);
@@ -35,6 +37,7 @@ class NewUncheckedException extends RuntimeException {
 
 // an exception not constructable from a string,
 // to test DirectorException fallback reconstruction
+@SuppressWarnings("serial")
 class UnconstructableException extends Exception {
     private int extrastate;
     public UnconstructableException(int a, String s) {

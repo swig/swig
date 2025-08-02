@@ -14,16 +14,17 @@
 <li><a href="#SWIG_nn2">Running SWIG</a>
 <ul>
 <li><a href="#SWIG_nn3">Input format</a>
-<li><a href="#SWIG_output">SWIG Output</a>
+<li><a href="#SWIG_output">SWIG output</a>
 <li><a href="#SWIG_nn5">Comments</a>
 <li><a href="#SWIG_nn6">C Preprocessor</a>
-<li><a href="#SWIG_nn7">SWIG Directives</a>
-<li><a href="#SWIG_nn8">Parser Limitations</a>
+<li><a href="#SWIG_nn7">SWIG directives</a>
+<li><a href="#SWIG_nn8">Parser limitations</a>
+<li><a href="#SWIG_parse_tree">Parse tree</a>
 </ul>
-<li><a href="#SWIG_nn9">Wrapping Simple C Declarations</a>
+<li><a href="#SWIG_nn9">Wrapping simple C declarations</a>
 <ul>
-<li><a href="#SWIG_nn10">Basic Type Handling</a>
-<li><a href="#SWIG_nn11">Global Variables</a>
+<li><a href="#SWIG_nn10">Basic type handling</a>
+<li><a href="#SWIG_nn11">Global variables</a>
 <li><a href="#SWIG_nn12">Constants</a>
 <li><a href="#SWIG_nn13">A brief word about const</a>
 <li><a href="#SWIG_nn14">A cautionary tale of char *</a>
@@ -137,7 +138,7 @@ Supported Target Language Options
      -xml            - Generate XML wrappers
 
 Experimental Target Language Options
-     -mzscheme       - Generate MzScheme/Racket wrappers
+     -c              - Generate C wrappers
      -ocaml          - Generate OCaml wrappers
 
 General Options
@@ -297,7 +298,7 @@ semantics in SWIG is analogous to that of the declarations section
 used in input files to parser generation tools such as yacc or bison.
 </p>
 
-<H3><a name="SWIG_output">5.1.2 SWIG Output</a></H3>
+<H3><a name="SWIG_output">5.1.2 SWIG output</a></H3>
 
 
 <p>
@@ -363,8 +364,9 @@ generated C/C++ file if not overridden with <tt>-outdir</tt>.
 <p>
 C and C++ style comments may appear anywhere in interface files.  In
 previous versions of SWIG, comments were used to generate
-documentation files. However, this feature is currently under repair
-and will reappear in a later SWIG release.
+documentation files.
+Doxygen comments can now be used to generate target language specific documentation, see the
+<a href="Doxygen.html">Doxygen</a> chapter.
 </p>
 
 <H3><a name="SWIG_nn6">5.1.4 C Preprocessor</a></H3>
@@ -391,7 +393,7 @@ make it more powerful than the normal C preprocessor.  These
 extensions are described in the "<a href="Preprocessor.html#Preprocessor">Preprocessor</a>" chapter.
 </p>
 
-<H3><a name="SWIG_nn7">5.1.5 SWIG Directives</a></H3>
+<H3><a name="SWIG_nn7">5.1.5 SWIG directives</a></H3>
 
 
 <p>
@@ -422,7 +424,7 @@ included in C header files using conditional compilation like this:
 it is parsing an input file.
 </p>
 
-<H3><a name="SWIG_nn8">5.1.6 Parser Limitations</a></H3>
+<H3><a name="SWIG_nn8">5.1.6 Parser limitations</a></H3>
 
 
 <p>
@@ -520,7 +522,16 @@ does not utilize a separate <em>typedef-name</em> terminal symbol as
 described on p. 234 of K&amp;R).
 </p>
 
-<H2><a name="SWIG_nn9">5.2 Wrapping Simple C Declarations</a></H2>
+<H3><a name="SWIG_parse_tree">5.1.7 Parse tree</a></H3>
+
+
+<p>
+SWIG can dump its parse tree in either a simple text or XML format.
+This can be useful for advanced development or debugging purposes.
+Details are covered in the developer documentation <a href="Extending.html#Extending">Extending SWIG</a> chapter.
+</p>
+
+<H2><a name="SWIG_nn9">5.2 Wrapping simple C declarations</a></H2>
 
 
 <p>
@@ -583,7 +594,7 @@ environments, and semantics, it is not always possible to do so.   The
 next few sections describe various aspects of this mapping.
 </p>
 
-<H3><a name="SWIG_nn10">5.2.1 Basic Type Handling</a></H3>
+<H3><a name="SWIG_nn10">5.2.1 Basic type handling</a></H3>
 
 
 <p>
@@ -708,7 +719,7 @@ will use the same internal representation (e.g., UCS-2 vs. UCS-4).
 You may need to write some special conversion functions.
 </p>
 
-<H3><a name="SWIG_nn11">5.2.2 Global Variables</a></H3>
+<H3><a name="SWIG_nn11">5.2.2 Global variables</a></H3>
 
 
 <p>
@@ -732,7 +743,7 @@ puts $foo                       ;# Print the value of foo
 
 # Python
 cvar.foo = 3.5                  # Set foo to 3.5
-print cvar.foo                  # Print value of foo
+print(cvar.foo)                 # Print value of foo
 
 # Perl
 $foo = 3.5;                     # Set foo to 3.5
@@ -1383,7 +1394,7 @@ Vector *wrap_cross_product(Vector *v1, Vector *v2) {
   Vector y = *v2;
   Vector *result;
   result = (Vector *) malloc(sizeof(Vector));
-  *(result) = cross(x, y);
+  *(result) = cross_product(x, y);
   return result;
 }
 </pre></div>
@@ -1392,10 +1403,10 @@ Vector *wrap_cross_product(Vector *v1, Vector *v2) {
 or if SWIG was run with the <tt>-c++</tt> option:</p>
 
 <div class="code"><pre>
-Vector *wrap_cross(Vector *v1, Vector *v2) {
+Vector *wrap_cross_product(Vector *v1, Vector *v2) {
   Vector x = *v1;
   Vector y = *v2;
-  Vector *result = new Vector(cross(x, y)); // Uses default copy constructor
+  Vector *result = new Vector(cross_product(x, y)); // Uses default copy or move constructor
   return result;
 }
 </pre></div>
@@ -1779,6 +1790,10 @@ For example:
 const int foo;               /* Read only variable */
 char * const version="1.0";  /* Read only variable */
 </pre></div>
+
+<p>
+SWIG will also create read-only variables for non-assignable types, more details in the <a href="SWIGPlus.html#SWIGPlus_member_data">Member data</a> section in the C++ chapter.
+</p>
 
 <H3><a name="SWIG_rename_ignore">5.4.7 Renaming and ignoring declarations</a></H3>
 
@@ -3007,7 +3022,7 @@ this :</p>
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; v = Vector(3, 4, 0)                 # Create a new vector
-&gt;&gt;&gt; print v.magnitude()                # Print magnitude
+&gt;&gt;&gt; print(v.magnitude())                # Print magnitude
 5.0
 &gt;&gt;&gt; v.print()                  # Print it out
 [ 3, 4, 0 ]

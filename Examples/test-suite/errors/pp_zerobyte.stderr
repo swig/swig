@@ -1,0 +1,5 @@
+pp_zerobyte.i:6: Error: CPP #error "case 1a". Use the -cpperraswarn option to continue swig processing.
+pp_zerobyte.i:7: Error: CPP #error "case 1b". Use the -cpperraswarn option to continue swig processing.
+pp_zerobyte.i:9: Error: CPP #error "case 2a". Use the -cpperraswarn option to continue swig processing.
+pp_zerobyte.i:10: Error: CPP #error "case 2b". Use the -cpperraswarn option to continue swig processing.
+pp_zerobyte.i:14: Error: CPP #error "case 3". Use the -cpperraswarn option to continue swig processing.

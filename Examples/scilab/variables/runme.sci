@@ -54,6 +54,7 @@ try
     path_set("Whoa!");
     printf("Hey, what''s going on?!?! This shouldn''t work\n");
 catch
+    errclear();
     printf("Good.\n");
 end
 printf("     Trying to set ''status''\n");
@@ -61,6 +62,7 @@ try
     status_set(0);
     printf("Hey, what''s going on?!?! This shouldn''t work\n");
 catch
+    errclear();
     printf("Good.\n");
 end
 

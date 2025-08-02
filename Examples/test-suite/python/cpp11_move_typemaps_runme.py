@@ -27,3 +27,23 @@ except RuntimeError as e:
     exception_thrown = True
 if not exception_thrown:
     raise RuntimeError("Should have thrown 'Cannot release ownership as memory is not owned' error")
+
+Counter.reset_counts()
+imt = InstanceMethodsTester()
+
+mo = MoveOnly(333)
+Counter.check_counts(1, 0, 0, 0, 0, 0)
+imt.instance_take_move_only(mo)
+Counter.check_counts(1, 0, 0, 1, 0, 2)
+del mo
+
+Counter.check_counts(1, 0, 0, 1, 0, 2)
+Counter.reset_counts()
+
+mc = MovableCopyable(444)
+Counter.check_counts(1, 0, 0, 0, 0, 0)
+imt.instance_take_movable_copyable(mc)
+Counter.check_counts(1, 0, 0, 1, 0, 2)
+del mc
+
+Counter.check_counts(1, 0, 0, 1, 0, 2)

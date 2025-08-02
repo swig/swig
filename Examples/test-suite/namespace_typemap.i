@@ -87,7 +87,7 @@ namespace test {
 	%typemap(in) string_class * {
 	    PyObject *bytes = NULL;
 	    $1 = new string_class(SWIG_PyUnicode_AsUTF8AndSize($input, NULL, &bytes));
-	    Py_XDECREF(bytes);
+	    Py_DecRef(bytes);
 	}
 	%typemap(freearg) string_class * {
 	    delete $1;

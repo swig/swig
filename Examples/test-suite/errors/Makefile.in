@@ -54,22 +54,21 @@ $(DOXYGEN_ERROR_TEST_CASES): SWIGOPT += -doxygen
 MODULE_OPTION=-module $*
 nomodule.ctest: MODULE_OPTION =
 
-# Portable dos2unix / todos for stripping CR
-TODOS        = tr -d '\r'
-#TODOS        = sed -e 's/\r$$//' # On Mac OS X behaves as if written 's/r$$//'
+# Portable dos2unix / fromdos for stripping CR
+FROMDOS       = tr -d '\r'
 
 # strip source directory from output, so that diffs compare
 STRIP_SRCDIR = sed -e 's|\\|/|g' -e 's|^$(SRCDIR)||'
 
 # Rules for the different types of tests
 %.cpptest:
-	echo "$(ACTION)ing errors testcase $*"
-	-$(SWIGINVOKE) -c++ -python -Wall -Fstandard $(MODULE_OPTION) $(SWIGOPT) $(SRCDIR)$*.i 2>&1 | $(TODOS) | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
+	$(ECHO_PROGRESS) "$(ACTION)ing errors testcase $*"
+	-$(SWIGINVOKE) -c++ -python -Wall -Fstandard $(MODULE_OPTION) $(SWIGOPT) $(SRCDIR)$*.i 2>&1 | $(FROMDOS) | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
 	$(COMPILETOOL) diff -c $(SRCDIR)$*.stderr $*.$(ERROR_EXT)
 
 %.ctest:
-	echo "$(ACTION)ing errors testcase $*"
-	-$(SWIGINVOKE) -python -Wall -Fstandard $(MODULE_OPTION) $(SWIGOPT) $(SRCDIR)$*.i 2>&1 | $(TODOS) | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
+	$(ECHO_PROGRESS) "$(ACTION)ing errors testcase $*"
+	-$(SWIGINVOKE) -python -Wall -Fstandard $(MODULE_OPTION) $(SWIGOPT) $(SRCDIR)$*.i 2>&1 | $(FROMDOS) | $(STRIP_SRCDIR) > $*.$(ERROR_EXT)
 	$(COMPILETOOL) diff -c $(SRCDIR)$*.stderr $*.$(ERROR_EXT)
 
 %.clean:

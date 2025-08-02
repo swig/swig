@@ -1,8 +1,8 @@
-*** ANNOUNCE: SWIG 4.2.1 (in progress) ***
+*** ANNOUNCE: SWIG 4.4.0 (in progress) ***
 
 https://www.swig.org
 
-We're pleased to announce SWIG-4.2.1, the latest SWIG release.
+We're pleased to announce SWIG-4.4.0, the latest SWIG release.
 
 What is SWIG?
 =============
@@ -10,7 +10,7 @@ What is SWIG?
 SWIG is a software development tool that reads C/C++ header files and
 generates the wrapper code needed to make C and C++ code accessible
 from other programming languages including Perl, Python, Tcl, Ruby,
-PHP, C#, Go, Java, Javascript, Lua, Scheme (Guile, MzScheme), D,
+PHP, C#, Go, Java, Javascript, Lua, Scheme (Guile), D,
 Ocaml, Octave, R, Scilab.  SWIG can also export its parse tree in
 the form of XML.  Major applications of SWIG include generation of
 scripting language extension modules, rapid prototyping, testing,
@@ -25,11 +25,11 @@ Availability
 ============
 The release is available for download on Sourceforge at
 
-     https://prdownloads.sourceforge.net/swig/swig-4.2.1.tar.gz
+     https://prdownloads.sourceforge.net/swig/swig-4.4.0.tar.gz
 
 A Windows version is also available at
 
-     https://prdownloads.sourceforge.net/swig/swigwin-4.2.1.zip
+     https://prdownloads.sourceforge.net/swig/swigwin-4.4.0.zip
 
 Please report problems with this release to the swig-devel mailing list,
 details at https://www.swig.org/mail.html.

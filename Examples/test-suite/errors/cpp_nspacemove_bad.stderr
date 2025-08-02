@@ -1,0 +1,12 @@
+cpp_nspacemove_bad.i:18: Error: '2' is not a valid identifier for nspace.
+cpp_nspacemove_bad.i:19: Error: '1abc' is not a valid identifier for nspace.
+cpp_nspacemove_bad.i:20: Error: 'abc.def' is not a valid identifier for nspace.
+cpp_nspacemove_bad.i:21: Error: '0gh::ij' is not a valid identifier for nspace.
+cpp_nspacemove_bad.i:22: Error: 'kl::1mn' is not a valid identifier for nspace.
+cpp_nspacemove_bad.i:23: Error: 'kl::mn<int>' is not a valid identifier for nspace.
+cpp_nspacemove_bad.i:50: Error: ':' is not a valid identifier for nspace.
+cpp_nspacemove_bad.i:51: Error: 'X: :Y' is not a valid identifier for nspace.
+cpp_nspacemove_bad.i:52: Error: 'X:Y' is not a valid identifier for nspace.
+cpp_nspacemove_bad.i:53: Error: 'X::Y::' is not a valid identifier for nspace.
+cpp_nspacemove_bad.i:54: Error: 'X:::Y' is not a valid identifier for nspace.
+cpp_nspacemove_bad.i:55: Error: 'X::::Y' is not a valid identifier for nspace.

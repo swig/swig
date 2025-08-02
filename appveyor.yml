@@ -13,16 +13,6 @@ environment:
     MAKEJOBS: 2
 
   matrix:
-  - SWIGLANG: csharp
-    VSVER: 12
-  - SWIGLANG: csharp
-    VSVER: 14
-  - SWIGLANG: python
-    VSVER: 14
-    VER: 27
-    PY2: 2
-  - BUILDSYSTEM: cmake
-    VSVER: 14
   - SWIGLANG: python
     VSVER: 15
     VER: 38
@@ -31,35 +21,6 @@ environment:
     VSVER: 16
     VER: 39
     APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-  - SWIGLANG: csharp
-    VSVER: 17
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: csharp
-    VSVER: 17
-    Platform: x86
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: java
-    VSVER: 17
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: java
-    VSVER: 17
-    Platform: x86
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: python
-    VSVER: 17
-    VER: 310
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: python
-    VSVER: 17
-    VER: 310
-    Platform: x86
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: python
-    OSVARIANT: cygwin
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
-  - SWIGLANG: java
-    OSVARIANT: mingw
-    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2022
   - SWIGLANG: python
     OSVARIANT: mingw
     WITHLANG: python
@@ -141,7 +102,7 @@ install:
       $env:CC="gcc"
       $env:CXX="g++"
     }
-- if "%OSVARIANT%"=="" bash -c "cd /usr/bin && curl --retry 15 -s -L https://github.com/swig/cccl/archive/cccl-1.2.tar.gz | tar -xz --strip 1 cccl-cccl-1.2/cccl"
+- if "%OSVARIANT%"=="" bash -c "cd /usr/bin && curl --retry 15 -s -L https://github.com/swig/cccl/archive/cccl-1.4.tar.gz | tar -xz --strip 1 cccl-cccl-1.4/cccl"
 - if "%OSVARIANT%"=="" call "%VCVARSBAT%" %VCVARSARG%
 - if "%OSVARIANT%"=="" appveyor-retry appveyor DownloadFile https://github.com/PhilipHazel/pcre2/archive/refs/tags/pcre2-10.39.zip
 - if "%OSVARIANT%"=="" 7z x pcre2-10.39.zip
@@ -167,6 +128,7 @@ install:
 - pwd
 - echo MAKEJOBS=%MAKEJOBS%
 - uname -a
+- systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
 
 build_script:
 - set PATH=C:\Tools\bison\Bison.3.7.4\bin;%PATH%

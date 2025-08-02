@@ -33,4 +33,3 @@ void *typedef_call1(AddByValueTypedef *& precallback, AddByValueTypedef * postca
 void *typedef_call2(AddByPointerTypedef *& precallback, AddByPointerTypedef * postcallback) { return 0; }
 void *typedef_call3(AddByReferenceTypedef *& precallback, AddByReferenceTypedef * postcallback) { return 0; }
 %}
-

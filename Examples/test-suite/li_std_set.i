@@ -22,7 +22,7 @@
     %template(set_int) std::multiset<int>;
     %template(v_int) std::vector<int>;
     %template(set_string) std::set<std::string>;
-#elif defined(SWIGJAVA) || defined(SWIGCSHARP)
+#elif defined(SWIGC) || defined(SWIGJAVA) || defined(SWIGCSHARP)
     // This operator is only defined because it's needed to store objects of
     // type Foo in std::set in C++, we don't need to wrap it.
     %ignore operator<;

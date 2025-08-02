@@ -119,12 +119,7 @@ namespace swig {
     }
       
     static swig_type_info* descriptor() {
-      static int init = 0;
-      static swig_type_info* desc = 0;
-      if (!init) {
-	desc = SWIG_TypeQuery("swig::SwigPyIterator *");
-	init = 1;
-      }	
+      static swig_type_info* desc = SWIG_TypeQuery("swig::SwigPyIterator *");
       return desc;
     }    
   };
@@ -132,7 +127,7 @@ namespace swig {
 %#if defined(SWIGPYTHON_BUILTIN)
   inline PyObject* make_output_iterator_builtin (PyObject *pyself)
   {
-    Py_INCREF(pyself);
+    SWIG_Py_INCREF(pyself);
     return pyself;
   }
 %#endif

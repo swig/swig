@@ -16,12 +16,28 @@
  * functions, as they provides the only way to access buffer data with limited
  * API, which doesn't include Py_buffer definition. We also disable the
  * warnings about doing this because they're not useful in our case.
+ * Unfortunately this only works with python-3.12 and earlier,
+ * but the new protocol is only in the stable abi from python-3.11.
  */
 
+%fragment("SWIG_pybuffer", "header") %{
+#if !defined(SWIG_NO_PYTHON_OLD_BUFFER_PROTOCOL)
+#if defined(Py_LIMITED_API) && Py_LIMITED_API<0x030b0000
+#define SWIG_PYTHON_OLD_BUFFER_PROTOCOL
+#endif
+#endif
+
+#if defined(SWIG_PYTHON_OLD_BUFFER_PROTOCOL) && PY_VERSION_HEX >= 0x030d0000
+#if defined(Py_LIMITED_API) && Py_LIMITED_API<0x030b0000
+#error "The old Buffer Protocol was removed in python-3.13 and is only part of the stable ABI from python-3.11"
+#endif
+#endif
+%}
+
 %define %pybuffer_mutable_binary(TYPEMAP, SIZE)
-%typemap(in) (TYPEMAP, SIZE) {
+%typemap(in, fragment="SWIG_pybuffer") (TYPEMAP, SIZE) {
   int res; Py_ssize_t size = 0; void *buf = 0;
-%#ifndef Py_LIMITED_API
+%#if !defined(SWIG_PYTHON_OLD_BUFFER_PROTOCOL)
   Py_buffer view;
   res = PyObject_GetBuffer($input, &view, PyBUF_WRITABLE);
 %#else
@@ -44,7 +60,7 @@
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
-%#ifndef Py_LIMITED_API
+%#if !defined(SWIG_PYTHON_OLD_BUFFER_PROTOCOL)
   size = view.len;
   buf = view.buf;
   PyBuffer_Release(&view);
@@ -68,9 +84,9 @@
  */
 
 %define %pybuffer_mutable_string(TYPEMAP)
-%typemap(in) (TYPEMAP) {
+%typemap(in, fragment="SWIG_pybuffer") (TYPEMAP) {
   int res; void *buf = 0;
-%#ifndef Py_LIMITED_API
+%#if !defined(SWIG_PYTHON_OLD_BUFFER_PROTOCOL)
   Py_buffer view;
   res = PyObject_GetBuffer($input, &view, PyBUF_WRITABLE);
 %#else
@@ -94,7 +110,7 @@
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP)", $symname, $argnum);
   }
-%#ifndef Py_LIMITED_API
+%#if !defined(SWIG_PYTHON_OLD_BUFFER_PROTOCOL)
   buf = view.buf;
   PyBuffer_Release(&view);
 %#endif
@@ -117,9 +133,9 @@
  */
 
 %define %pybuffer_binary(TYPEMAP, SIZE)
-%typemap(in) (TYPEMAP, SIZE) {
+%typemap(in, fragment="SWIG_pybuffer") (TYPEMAP, SIZE) {
   int res; Py_ssize_t size = 0; const void *buf = 0;
-%#ifndef Py_LIMITED_API
+%#if !defined(SWIG_PYTHON_OLD_BUFFER_PROTOCOL)
   Py_buffer view;
   res = PyObject_GetBuffer($input, &view, PyBUF_CONTIG_RO);
 %#else
@@ -142,7 +158,7 @@
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP, SIZE)", $symname, $argnum);
   }
-%#ifndef Py_LIMITED_API
+%#if !defined(SWIG_PYTHON_OLD_BUFFER_PROTOCOL)
   size = view.len;
   buf = view.buf;
   PyBuffer_Release(&view);
@@ -168,9 +184,9 @@
  */
 
 %define %pybuffer_string(TYPEMAP)
-%typemap(in) (TYPEMAP) {
+%typemap(in, fragment="SWIG_pybuffer") (TYPEMAP) {
   int res; const void *buf = 0;
-%#ifndef Py_LIMITED_API
+%#if !defined(SWIG_PYTHON_OLD_BUFFER_PROTOCOL)
   Py_buffer view;
   res = PyObject_GetBuffer($input, &view, PyBUF_CONTIG_RO);
 %#else
@@ -194,7 +210,7 @@
     PyErr_Clear();
     %argument_fail(res, "(TYPEMAP)", $symname, $argnum);
   }
-%#ifndef Py_LIMITED_API
+%#if !defined(SWIG_PYTHON_OLD_BUFFER_PROTOCOL)
   buf = view.buf;
   PyBuffer_Release(&view);
 %#endif

@@ -17,6 +17,9 @@ SWIG_JSC_AsCharPtrAndSize(JSContextRef context, JSValueRef valRef, char** cptr, 
     if(cptr) *cptr = cstr;
 
     return SWIG_OK;
+  } else if (JSValueIsNull(context, valRef)) {
+    if (cptr) *cptr = 0;
+    return SWIG_OK;
   } else {
     if(JSValueIsObject(context, valRef)) {
       JSObjectRef obj = JSValueToObject(context, valRef, NULL);

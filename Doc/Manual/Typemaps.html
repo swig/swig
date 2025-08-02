@@ -44,6 +44,10 @@
 <li><a href="#Typemaps_nn22">Scope</a>
 <li><a href="#Typemaps_nn23">Declaring new local variables</a>
 <li><a href="#Typemaps_special_variables">Special variables</a>
+<ul>
+<li><a href="#Typemaps_type_special_variables">Type related special variables</a>
+<li><a href="#Typemaps_non_type_special_variables">Non-type related special variables</a>
+</ul>
 <li><a href="#Typemaps_special_variable_macros">Special variable macros</a>
 <ul>
 <li><a href="#Typemaps_special_macro_descriptor">$descriptor(type)</a>
@@ -52,6 +56,7 @@
 </ul>
 <li><a href="#Typemaps_special_variable_attributes">Special variables and typemap attributes</a>
 <li><a href="#Typemaps_special_variables_and_macros">Special variables combined with special variable macros</a>
+<li><a href="#Typemaps_copy_special_variable_macro">Using $typemap for copying typemaps</a>
 </ul>
 <li><a href="#Typemaps_nn25">Common typemap methods</a>
 <ul>
@@ -94,6 +99,9 @@
 <li><a href="#Typemaps_typecheck_pointer">SWIG_TYPECHECK_POINTER precedence level and the typecheck typemap</a>
 </ul>
 <li><a href="#Typemaps_nn48">More about %apply and %clear</a>
+<ul>
+<li><a href="#Typemaps_apply_typedefs">Typedefs and %apply</a>
+</ul>
 <li><a href="#Typemaps_nn47">Passing data between typemaps</a>
 <li><a href="#Typemaps_nn52">C++ "this" pointer</a>
 <li><a href="#Typemaps_nn51">Where to go for more information?</a>
@@ -246,7 +254,7 @@ that is inserted directly into the SWIG generated wrapper functions.
 The code is usually C or C++ code which will be generated into the C/C++ wrapper functions.
 Note that this isn't always the case as some target language modules allow target language 
 code within the typemaps which gets generated into target language specific files.
-Within this code, a number of special variables prefixed with a $ are expanded.  These are
+Within this code, a number of special variables prefixed with a <tt>$</tt> are expanded.  These are
 really just placeholders for C/C++ variables that are generated in the course
 of creating the wrapper function. In this case, <tt>$input</tt> refers to an
 input object that needs to be converted to C/C++ and <tt>$result</tt>
@@ -2083,7 +2091,7 @@ wrap_foo() {
 </pre>
 </div>
 
-<p>There is an exception: if the variable name starts with the <tt>_global_</tt> prefix,
+<p>There are two exceptions: First, if the variable name starts with the <tt>_global_</tt> prefix,
 the argument number is not appended. Such variables can be used throughout the generated
 wrapper function. For example, the above typemap could be rewritten to use <tt>_global_temp</tt>
 instead of <tt>temp</tt> and the generated code would then contain a single <tt>_global_temp</tt> variable
@@ -2098,14 +2106,32 @@ instead of <tt>temp1</tt>, <tt>temp2</tt> and <tt>temp3</tt>:
 </pre>
 </div>
 
+<p>
+The second exception occurs if the local variable name contains the special variable <tt>$n</tt> in the variable name.
+Special variables are covered in the next section, but simply the <tt>$n</tt> special variable is expanded to a unique parameter name, such as <tt>arg1</tt>, <tt>arg2</tt> etc.
+As this special variable already contains a unique name, there is no further need to append an argument number suffix to make the temporary variable name unique.
+So in the example below, <tt>$1_temp</tt> is typically expanded to <tt>arg1_temp</tt>, <tt>arg2_temp</tt> etc depending on which argument the typemap is being used for:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) std::string * <b>(std::string $1_temp)</b> {
+ ... as above ...
+}
+</pre>
+</div>
 
 <p>
-Some typemaps do not recognize local variables (or they may simply not
-apply). At this time, only typemaps that apply to argument conversion support this (input typemaps such as the "in" typemap).
+<b>Compatibility note: </b> Support for <tt>$n</tt> expansion in typemap local variable names was added in SWIG-4.4.0.
 </p>
 
 <p>
 <b>Note:</b>
+</p>
+
+<p>
+Some typemaps do not recognize local variables (or they may simply not
+apply). At this time, only typemaps that apply to argument conversion support this (input typemaps such as the "in" typemap).
 </p>
 
 <p>
@@ -2130,12 +2156,21 @@ each type must have its own local variable declaration.
 
 
 <p>
+Special variables are prefixed with a <tt>$</tt> and are expanded by SWIG as part of the code generation process.
+</p>
+
+
+<H4><a name="Typemaps_type_special_variables">14.4.3.1 Type related special variables</a></H4>
+
+
+<p>
 Within all typemaps, the following special variables are expanded.
+These are related in some way to a typemap's type.
 This is by no means a complete list as some target languages have additional special variables which are documented in the language specific chapters.
 </p>
 
 <center>
-<table border=1 summary="Typemap special variables">
+<table border=1 summary="Typemap type related special variables">
 <tr><th>Variable</th><th>Meaning</th></tr>
 
 <tr>
@@ -2378,6 +2413,38 @@ Another approach, which only works for arrays is to use the <tt>$1_basetype</tt>
 </pre>
 </div>
 
+<H4><a name="Typemaps_non_type_special_variables">14.4.3.2 Non-type related special variables</a></H4>
+
+
+<p>
+The following are additional special variables.
+These are not specifically related to a typemap's type.
+</p>
+
+
+<center>
+<table border=1 summary="Non-type related special variables">
+<tr><th>Variable</th><th>Meaning</th></tr>
+
+<tr>
+<td>$<em>isvoid</em></td>
+<td>
+Expands to 1 if the wrapped function has a void return, otherwise expands to 0.
+Note that it expands to 1 in destructors and 0 in constructors.
+</td>
+</tr>
+
+<tr>
+<td>$<em>symname</em></td>
+<td>
+Name of function/method being wrapped.
+</td>
+</tr>
+
+
+</table>
+</center>
+
 <H3><a name="Typemaps_special_variable_macros">14.4.4 Special variable macros</a></H3>
 
 
@@ -2406,7 +2473,7 @@ This macro is mostly used in the scripting target languages and is demonstrated 
 
 <p>
 This macro uses the <a href="#Typemaps_pattern_matching">pattern matching rules</a> described earlier to lookup and 
-then substitute the special variable macro with the code in the matched typemap.
+then substitute the special variable macro with the body of the matched typemap.
 The typemap to search for is specified by the arguments, where <tt>method</tt> is the typemap method name and 
 <tt>typepattern</tt> is a type pattern as per the <tt>%typemap</tt> specification in the <a href="#Typemaps_defining">Defining a typemap</a> section.
 </p>
@@ -2494,6 +2561,7 @@ which expands to
 was introduced in SWIG-4.1.0.
 </p>
 
+
 <H3><a name="Typemaps_special_variable_attributes">14.4.5 Special variables and typemap attributes</a></H3>
 
 
@@ -2563,6 +2631,144 @@ which then expands to:
 </div>
 
 
+<H3><a name="Typemaps_copy_special_variable_macro">14.4.7 Using $typemap for copying typemaps</a></H3>
+
+
+<p>
+The <tt>$typemap</tt> special variable macro can be used to copy entire typemaps or parts thereof.
+Consider the existence of the following named typemap:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype, out="void *") unsigned short &amp; MYMAP "unsigned short *"
+</pre>
+</div>
+
+<p>
+The best and simplest way to <a href="Typemaps.html#Typemaps_nn13">copy a typemap</a> in its entirety, say for use everywhere an <tt>unsigned short &amp;</tt> is parsed is:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype) unsigned short &amp; = unsigned short &amp; MYMAP;
+</pre>
+</div>
+
+<p>
+A naive approach to copying the typemap via the <tt>$typemap</tt> special variable could be:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype) unsigned short &amp; "$typemap(ctype, unsigned short &amp; MYMAP)"
+</pre>
+</div>
+
+<p>
+However, it is incorrect in this case as the new typemap only copies the typemap body from <tt>MYMAP</tt>
+and is missing the typemap attributes from the original. It is actually just the same as:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype) unsigned short &amp; "unsigned short *"
+</pre>
+</div>
+
+<p>
+The typemap attributes need copying as well. There is only one attribute in this case, so a full <i>typemap copy equivalent</i> is:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype, out="$typemap(ctype:out, unsigned short &amp; MYMAP)") unsigned short &amp; "$typemap(ctype, unsigned short &amp; MYMAP)"
+</pre>
+</div>
+
+<p>
+Generally one would only use <tt>$typemap</tt> as a way to copy another typemap and then tweak it slightly.
+For example in this case we could use the original typemap body and use a different "out" attribute as follows:
+</p>
+
+<div class="code">
+<pre>
+%typemap(ctype, out="unsigned int *") unsigned short &amp; "$typemap(ctype, unsigned short &amp; MYMAP)"
+</pre>
+</div>
+
+<p>
+This technique can be used to use an existing or default typemap and then say append or prepend some code.
+Consider the <tt>bool</tt> "in" typemap shipped with SWIG for C#:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) bool %{ $1 = $input ? true : false; %}
+</pre>
+</div>
+
+<p>
+The following creates a new typemap which re-uses the above typemap body and adds some simple "printf" logging.
+It effectively replaces the default typemap shipped with SWIG.
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) bool NAMED_DEFAULT = bool;
+%typemap(in) bool %{
+  /* custom typemap */
+  $typemap(in, bool NAMED_DEFAULT)
+  printf("bool input value: %s\n", $1 ? "true" : "false");
+%}
+
+void bool_input(bool flag);
+</pre>
+</div>
+
+<p>
+The relevant snippet of generated code for C# when wrapping the <tt>bool_input</tt> method shown are the last three lines of the generated code:
+</p>
+
+<div class="code">
+<pre>
+SWIGEXPORT void SWIGSTDCALL CSharp_bool_input(unsigned int jarg1) {
+  bool arg1 ;
+
+  /* logging typemap */
+  arg1 = jarg1 ? true : false;
+  printf("bool input value: %s\n", arg1 ? "true" : "false");
+</pre>
+</div>
+
+<p>
+The <tt>NAMED_DEFAULT</tt> intermediate/temporary typemap copy is a trick required to avoid a recursive lookup error
+</p>
+<div class="shell">
+<pre>
+Error: Likely recursive $typemap calls containing $typemap(in, bool). Use -debug-tmsearch to debug.
+</pre>
+</div>
+
+<p>
+caused if used as follows:
+</p>
+
+<div class="code">
+<pre>
+%typemap(in) bool %{
+  /* logging typemap */
+  $typemap(in, bool)
+  printf("bool input value: %s\n", $1 ? "true" : "false");
+%}
+</pre>
+</div>
+
+<p>
+because <tt>$typemap(in, bool)</tt> is attempting to copy itself.
+</p>
+
+
 <H2><a name="Typemaps_nn25">14.5 Common typemap methods</a></H2>
 
 
@@ -2588,13 +2794,12 @@ to C.  For example:
 </div>
 
 <p>
-The following special variables are available:
+The following additional special variables are available:
 </p>
 
 <div class="code">
 <pre>
 $input            - Input object holding value to be converted.
-$symname          - Name of function/method being wrapped
 </pre>
 </div>
 
@@ -2670,13 +2875,12 @@ into the target language.  For example:
 </div>
 
 <p>
-The following special variables are available.
+The following additional special variables are available.
 </p>
 
 <div class="code">
 <pre>
 $result           - Result object returned to target language.
-$symname          - Name of function/method being wrapped
 </pre>
 </div>
 
@@ -2780,14 +2984,13 @@ with an "in" typemap---possibly to ignore the input value.  For example:
 </div>
 
 <p>
-The following special variables are available.
+The following additional special variables are available.
 </p>
 
 <div class="diagram">
 <pre>
 $result           - Result object returned to target language.
 $input            - The original input object passed.
-$symname          - Name of function/method being wrapped
 </pre>
 </div>
 
@@ -3719,7 +3922,7 @@ might write typemaps like this:
 
 // Return the buffer.  Discarding any previous return result
 %typemap(argout) (void *rbuffer, size_t len) {
-  Py_XDECREF($result);   /* Blow away any previous result */
+  Py_DecRef($result);   /* Blow away any previous result */
   if (result &lt; 0) {      /* Check for I/O error */
     free($1);
     PyErr_SetFromErrno(PyExc_IOError);
@@ -5062,7 +5265,6 @@ For example:
 %typemap(check) int *POSITIVE {
   if (*$1 &lt;= 0) {
     SWIG_exception(SWIG_ValueError, "Expected a positive number!\n");
-    return NULL;
   }
 }
 
@@ -5101,6 +5303,88 @@ will delete the typemaps for all the typemap methods; namely "in", "check" and "
 %typemap(arginit) int *invalue;
 </pre>
 </div>
+
+<H3><a name="Typemaps_apply_typedefs">14.14.1 Typedefs and %apply</a></H3>
+
+
+<p>
+Consider a similar example to that shown earlier but this time with a couple of typedefs:
+</p>
+
+<div class="code">
+<pre>
+%typemap(check) int *NEGATIVE {
+  if (*$1 &gt;= 0) {
+    SWIG_exception(SWIG_ValueError, "Expected a negative number!\n");
+  }
+}
+
+typedef int integer;
+typedef integer negative_integer;
+void fff(negative_integer *number);
+</pre>
+</div>
+
+<p>
+Typically <tt>%apply</tt> is specified with the exact type <i>being applied</i>, such as <tt>int *</tt> in the following case:
+</p>
+
+<div class="code">
+<pre>
+%apply int *NEGATIVE { negative_integer *number };
+</pre>
+</div>
+
+<p>
+to find an exact typemap match: <tt>int *NEGATIVE</tt>.
+</p>
+
+<p>
+However, the following will also work in this case:
+</p>
+
+<div class="code">
+<pre>
+%apply negative_integer *NEGATIVE { negative_integer *number };
+</pre>
+</div>
+
+<p>
+as SWIG will use the typedefs to find a match. Typemaps will be searched for until one matches by following the typedefs in the expected order:
+</p>
+
+<ul>
+<li> <tt>negative_integer *NEGATIVE</tt>
+<li> <tt>integer *NEGATIVE</tt>
+<li> <tt>int *NEGATIVE</tt>
+</ul>
+
+<p>
+Note that the search looks for a <b>family of typemaps</b> and will stop when a typemap with <b>any matching method name</b> is found.
+So for example, consider the addition of an "argout" typemap method to the example:
+</p>
+
+<div class="code">
+<pre>
+%typemap(argout) negative_integer *NEGATIVE {
+  // return value somehow
+}
+</pre>
+</div>
+
+<p>
+There is then at least one typemap method creating a family of typemaps: <tt>negative_integer *NEGATIVE</tt>.
+As the search halts on the closest match when chasing typedefs,
+and this family of typemaps does not have a "check" typemap method, there is no "check" typemap method to apply.
+</p>
+
+<p>
+In summary, the addition of the better matching "argout" typemap
+for <tt>negative_integer *NEGATIVE</tt>
+introduces a new family of typemaps resulting in the previously matching "check" typemap 
+for <tt>int *NEGATIVE</tt>
+no longer being available for applying.
+</p>
 
 <H2><a name="Typemaps_nn47">14.15 Passing data between typemaps</a></H2>
 

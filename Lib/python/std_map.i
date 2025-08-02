@@ -110,7 +110,7 @@
       static PyObject *asdict(const map_type& map) {
 	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	size_type size = map.size();
-	Py_ssize_t pysize = (size <= (size_type) INT_MAX) ? (Py_ssize_t) size : -1;
+	Py_ssize_t pysize = (size <= (size_type)PY_SSIZE_T_MAX) ? (Py_ssize_t)size : -1;
 	if (pysize < 0) {
 	  PyErr_SetString(PyExc_OverflowError, "map size not valid in python");
 	  SWIG_PYTHON_THREAD_END_BLOCK;
@@ -202,7 +202,7 @@
     
     PyObject* keys() {
       Map::size_type size = self->size();
-      Py_ssize_t pysize = (size <= (Map::size_type) INT_MAX) ? (Py_ssize_t) size : -1;
+      Py_ssize_t pysize = (size <= (Map::size_type)PY_SSIZE_T_MAX) ? (Py_ssize_t)size : -1;
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       if (pysize < 0) {
 	PyErr_SetString(PyExc_OverflowError, "map size not valid in python");
@@ -220,7 +220,7 @@
     
     PyObject* values() {
       Map::size_type size = self->size();
-      Py_ssize_t pysize = (size <= (Map::size_type) INT_MAX) ? (Py_ssize_t) size : -1;
+      Py_ssize_t pysize = (size <= (Map::size_type)PY_SSIZE_T_MAX) ? (Py_ssize_t)size : -1;
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       if (pysize < 0) {
 	PyErr_SetString(PyExc_OverflowError, "map size not valid in python");
@@ -238,7 +238,7 @@
     
     PyObject* items() {
       Map::size_type size = self->size();
-      Py_ssize_t pysize = (size <= (Map::size_type) INT_MAX) ? (Py_ssize_t) size : -1;
+      Py_ssize_t pysize = (size <= (Map::size_type)PY_SSIZE_T_MAX) ? (Py_ssize_t)size : -1;
       SWIG_PYTHON_THREAD_BEGIN_BLOCK;
       if (pysize < 0) {
 	PyErr_SetString(PyExc_OverflowError, "map size not valid in python");

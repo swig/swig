@@ -17,6 +17,7 @@
 <ul>
 <li><a href="#Introduction_supported_status">Supported status</a>
 <li><a href="#Introduction_experimental_status">Experimental status</a>
+<li><a href="#Introduction_deprecated_status">Deprecated status</a>
 </ul>
 <li><a href="#Introduction_nn4">A SWIG example</a>
 <ul>
@@ -166,13 +167,13 @@ SWIG is very broadly composed of two components.
 A core component creates a parse tree from the input ISO C/C++ and SWIG directives (extensions to the C/C++ standards).
 The parse tree is then passed to a second component, one of the target language modules for generating code specific to a higher level language.
 SWIG supports many different target languages.
-These target languages are given a status of either Supported or Experimental.
-This status is provided to indicate the level of maturity to expect when using a particular target language as not all target languages are fully developed.
+These target languages are given a status of either Supported, Experimental or Deprecated.
+This status is provided to indicate the level of maturity to expect when using a particular target language as not all target languages are fully developed or being kept up to date.
 </p>
 
 <p>
 The second part of the SWIG documentation contains a chapter for each target level language.
-The target language chapters are under one of two sections indicating the status (Supported or Experimental) for that language.
+The target language chapters are under one of the sections indicating the status (Supported, Experimental or Deprecated) for that language.
 </p>
 
 <H3><a name="Introduction_supported_status">2.3.1 Supported status</a></H3>
@@ -219,6 +220,24 @@ The usual <a href="Warnings.html#Warnings_suppression">warning suppression</a> t
 
 <p>
 The above is a short summary and further details are outlined in the <a href="Extending.html#Extending_experimental_status">Experimental status</a> section in the Extending chapter.
+</p>
+
+<H3><a name="Introduction_deprecated_status">2.3.3 Deprecated status</a></H3>
+
+
+<p>
+A target language that was once 'Supported' or 'Experimental' is changed to the 'Deprecated' status when
+it has been neglected over time and become non-functional.
+It requires interested community member's contributions to restore it to its former status.
+</p>
+
+<p>
+Please see the <a href="Extending.html#Extending_deprecated_status">Deprecated status</a> section in the Extending chapter for more details.
+</p>
+
+<p>
+SWIG displays a deprecated warning notice whenever a 'Deprecated' language is used.
+The usual <a href="Warnings.html#Warnings_suppression">warning suppression</a> techniques can be used if required.
 </p>
 
 <H2><a name="Introduction_nn4">2.4 A SWIG example</a></H2>
@@ -288,10 +307,10 @@ build a Tcl module (under Linux) as follows :
 </p>
 
 <div class="shell"><pre>
-unix &gt; <b>swig -tcl example.i</b>
-unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include</b>
-unix &gt; <b>gcc -shared example.o example_wrap.o -o example.so</b>
-unix &gt; <b>tclsh</b>
+$ <b>swig -tcl example.i</b>
+$ <b>gcc -c -fPIC example.c example_wrap.c -I/usr/include/tcl8.7</b>
+$ <b>gcc -shared example.o example_wrap.o -o example.so</b>
+$ <b>tclsh</b>
 % <b>load ./example.so</b>
 % <b>fact 4</b>
 24
@@ -342,17 +361,16 @@ unix &gt;
 
 
 <p>
-Finally, let's build a module for Python (shown for Irix).
+Finally, let's build a module for Python (shown for Linux).
 </p>
 
 <div class="shell"><pre>
-unix &gt; <b>swig -python example.i</b>
-unix &gt; <b>gcc -c -fpic example.c example_wrap.c -I/usr/local/include/python2.0</b>
-unix &gt; <b>gcc -shared example.o example_wrap.o -o _example.so</b>
-unix &gt; <b>python</b>
-Python 2.0 (#6, Feb 21 2001, 13:29:45)
-[GCC egcs-2.91.66 19990314/Linux (egcs-1.1.2 release)] on linux2
-Type "copyright", "credits" or "license" for more information.     
+$ <b>swig -python example.i</b>
+$ <b>gcc -c -fPIC example.c example_wrap.c -I/usr/include/python3.12</b>
+$ <b>gcc -shared example.o example_wrap.o -o _example.so</b>
+$ <b>python3</b>
+Python 3.12.4 (main, Jun 12 2024, 19:06:53) [GCC 13.2.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
 &gt;&gt;&gt; <b>import example</b>
 &gt;&gt;&gt; <b>example.fact(4)</b>
 24

@@ -16,7 +16,9 @@ public:
     int blah(int x); 
     int spam(int x); 
     Integer bar(Integer x); 
+#ifndef SWIGC
     void (Foo:: *func_ptr) (int);
+#endif
 }; 
  
 inline Foo :: Foo () {}

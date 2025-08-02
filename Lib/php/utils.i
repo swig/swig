@@ -93,23 +93,10 @@
 %}
 %enddef
 
-%fragment("t_output_helper","header") %{
-static void
-t_output_helper(zval *target, zval *o) {
-  zval tmp;
-  if (Z_TYPE_P(target) == IS_ARRAY) {
-    /* it's already an array, just append */
-    add_next_index_zval(target, o);
-    return;
-  }
-  if (Z_TYPE_P(target) == IS_NULL) {
-    /* NULL isn't refcounted */
-    ZVAL_COPY_VALUE(target, o);
-    return;
-  }
-  ZVAL_DUP(&tmp, target);
-  array_init(target);
-  add_next_index_zval(target, &tmp);
-  add_next_index_zval(target, o);
-}
-%}
+#define SWIG_AppendOutput(result, obj)  SWIG_Php_AppendOutput(result, obj, $isvoid)
+
+/* Deprecated (since 4.3.0) backwards compatibility macro */
+#define t_output_helper SWIG_AppendOutput
+
+/* Deprecated fragment */
+%fragment("t_output_helper","header") {}

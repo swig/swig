@@ -170,9 +170,6 @@ public:
     /* Set scilab configuration file */
     SWIG_config_file("scilab.swg");
 
-    /* Set typemap for scilab */
-    SWIG_typemap_lang("scilab");
-
     allow_overloading();
   }
 
@@ -515,6 +512,9 @@ public:
     /* TODO */
 
     /* Final substitutions if applicable */
+    bool isvoid = !Cmp(functionReturnType, "void");
+    Replaceall(wrapper->code, "$isvoid", isvoid ? "1" : "0");
+
     Replaceall(wrapper->code, "$symname", functionName);
 
     /* Set CheckInputArgument and CheckOutputArgument input arguments */
@@ -571,9 +571,10 @@ public:
     String *functionName = Getattr(node, "sym:name");
     String *wrapperName = Swig_name_wrapper(functionName);
     int maxargs = 0;
+    bool check_emitted = false;
 
     /* Generate the dispatch function */
-    String *dispatch = Swig_overload_dispatch(node, "return %s(SWIG_GatewayArguments);", &maxargs);
+    String *dispatch = Swig_overload_dispatch(node, "return %s(SWIG_GatewayArguments);", &maxargs, &check_emitted);
     String *tmp = NewString("");
 
     Printv(wrapper->def, "SWIGEXPORT int ", wrapperName, "(SWIG_GatewayParameters) {\n", NIL);
@@ -687,8 +688,7 @@ public:
     String *nodeName = Getattr(node, "name");
     SwigType *type = Getattr(node, "type");
     String *constantName = Getattr(node, "sym:name");
-    String *rawValue = Getattr(node, "rawval");
-    String *constantValue = rawValue ? rawValue : Getattr(node, "value");
+    String *constantValue = Getattr(node, "value");
     String *constantTypemap = NULL;
 
     // If feature scilab:const enabled, constants & enums are wrapped to Scilab variables

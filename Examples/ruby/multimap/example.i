@@ -68,10 +68,10 @@ extern int count(char *bytes, int len, char c);
 
 /* Return the mutated string as a new object.  */
 
-%typemap(argout, fragment="output_helper") (char *str, int len) {
+%typemap(argout) (char *str, int len) {
    VALUE o;
    o = rb_str_new($1,$2);
-   $result = output_helper($result,o);
+   $result = SWIG_AppendOutput($result, o);
    free($1);
 }   
 

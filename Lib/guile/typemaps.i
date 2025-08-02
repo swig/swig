@@ -382,11 +382,31 @@ typedef unsigned long SCM;
  * String & length
  * ------------------------------------------------------------ */
 
-%typemap(in) (char *STRING, int LENGTH), (char *STRING, size_t LENGTH) {
+%typemap(in) (const char *STRING, size_t LENGTH)(int must_free = 0) {
     size_t temp;
     $1 = ($1_ltype) SWIG_Guile_scm2newstr($input, &temp);
     $2 = ($2_ltype) temp;
+    must_free = 1;
 }
+%typemap(freearg) (const char *STRING, size_t LENGTH) "if (must_free$argnum) SWIG_free($1);"
+
+%apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
+%apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
+%apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
+
+/* Length & string reverse order typemap */
+
+%typemap(in) (size_t LENGTH, const char *STRING)(int must_free = 0) {
+    size_t temp;
+    $2 = ($2_ltype) SWIG_Guile_scm2newstr($input, &temp);
+    $1 = ($1_ltype) temp;
+    must_free = 1;
+}
+%typemap(freearg) (size_t LENGTH, const char *STRING) "if (must_free$argnum) SWIG_free($2);"
+
+%apply (size_t LENGTH, const char *STRING) { (int LENGTH, const char *STRING) }
+%apply (size_t LENGTH, const char *STRING) { (size_t LENGTH, char *STRING) }
+%apply (size_t LENGTH, char *STRING) { (int LENGTH, char *STRING) }
 
 /* ------------------------------------------------------------
  * CLASS::* (member function pointer) typemaps

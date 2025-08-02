@@ -1,0 +1,2 @@
+swig_typemap_typecheck.i:8: Warning 472: Overloaded method overloaded(Integer,double) with no explicit typecheck typemap for arg 0 of type 'Integer'.
+swig_typemap_typecheck.i:8: Warning 472: Dispatching calls to this method may not work correctly, see the 'Typemaps and Overloading' section in the Typemaps chapter of the SWIG documentation.

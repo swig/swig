@@ -122,8 +122,8 @@
 # pragma warning disable 592
 #endif
 
-#if __cplusplus >=201103L
-# define SWIG_NULLPTR nullptr
+#if defined(__cplusplus) && __cplusplus >=201103L
+# define SWIG_NOEXCEPT noexcept
 #else
-# define SWIG_NULLPTR NULL
+# define SWIG_NOEXCEPT throw()
 #endif 
