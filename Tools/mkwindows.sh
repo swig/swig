@@ -1,33 +1,76 @@
-#!/bin/sh
-
-# Build Windows distribution (swigwin-x.y.z.zip) from source tarball (swig-x.y.x.tar.gz)
-# Requires running in either:
-# - MinGW environment
-# - Linux using MinGW cross compiler
-# - Cygwin using MinGW compiler
+#!/bin/bash
 
 # path to zip program
 zip=
 
 wine=
 
+bits="64"
+
 # options for configure
 extraconfigureoptions=
 compileflags="-O2 -Wall -Wextra"
 
-if test x$1 != x; then
-    version=$1
-    if test x$2 != x; then
-        zip=$2;
-        echo zip: $zip;
-    fi
-else
-    echo "Usage: mkwindows.sh version [zip]"
-    echo "       Build SWIG Windows distribution from source tarball. Works on Cygwin, MinGW or Linux."
-    echo "       version should be in format x.y.z, for example 4.1.0"
-    echo "       zip is full path to zip program - default is /c/cygwin/bin/zip on MinGW, zip on Linux and Cygwin"
-    exit 1
+usage()
+{
+    cat <<EOF
+Usage: $0 [--bits BITS] [--help] [--zip ZIP] version
+Positional arguments:
+  version     	  version string for input tarball and output zip file,
+                  in format x.y.z, for example 4.1.0 or 4.1.0-beta1
+Options:
+  -b, --bits BITS Compile for 32-bit or 64-bit architecture,
+                  BITS must be one of 32 or 64, default is 64
+  -h, --help      Show this help
+  -z, --zip ZIP   ZIP should contain the path to zip executable, default
+		  is /c/cygwin/bin/zip on MinGW, zip on Linux and Cygwin
+
+$0 builds the SWIG Windows distribution (swigwin-x.y.z.zip) from a source
+tarball (swig-x.y.x.tar.gz)
+
+Requires running in either:
+- MinGW environment
+- Linux using MinGW cross compiler
+- Cygwin using MinGW compiler
+EOF
+}
+
+echo_error_exit()
+{
+  echo "$@" >&2
+  exit 1
+}
+
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -b|--bits)
+      shift
+      bits="$1"
+      ;;
+    -z|--zip)
+      shift
+      zip="$1"
+      ;;
+    -*|--*)
+      echo_error_exit "Unknown option $1"
+      ;;
+    *)
+      version="$1"
+      ;;
+  esac
+  shift
+done
+
+if [ -z "$version" ]; then
+  usage
+  exit 1
 fi
+
+echo "Creating swigwin-$version.zip SWIG Windows distribution ($bits-bits binary)..."
 
 uname=`uname -a`
 mingw=`echo "$uname" | grep -i mingw`
@@ -46,23 +89,36 @@ else
       wine=$(which wine)
     fi
     if test x$wine = x; then
-      echo "Could not detect wine - please install wine-stable package."
-      exit 1;
+      echo_error_exit "Could not detect wine - please install wine-stable package."
     fi
-    echo "Checking that mingw 32-bit gcc is installed/available"
-    if test -n "`which i686-w64-mingw32-gcc`" ; then
-      i686-w64-mingw32-gcc --version || exit 1
-      i686-w64-mingw32-g++ --version || exit 1
-      extraconfigureoptions="--host=i686-w64-mingw32 --build=i686-linux"
-      # Statically link so that libstdc++-6.dll and libgcc_s_sjlj-1.dll don't have to be shipped
-      compileflags="$compileflags -static-libgcc -static-libstdc++"
-    elif test -n "`which i586-mingw32msvc-gcc`" ; then
-      i586-mingw32msvc-gcc --version || exit 1
-      i586-mingw32msvc-g++ --version || exit 1
-      extraconfigureoptions="--host=i586-mingw32msvc --build=i686-linux"
+    if [ "$bits" = "32" ]; then
+      echo "Checking that mingw 32-bit gcc is installed/available"
+      if test -n "`which i686-w64-mingw32-gcc`" ; then
+        i686-w64-mingw32-gcc --version || exit 1
+        i686-w64-mingw32-g++ --version || exit 1
+        extraconfigureoptions="--host=i686-w64-mingw32 --build=i686-linux"
+        # Statically link so that libstdc++-6.dll and libgcc_s_sjlj-1.dll don't have to be shipped
+        compileflags="$compileflags -static-libgcc -static-libstdc++"
+      elif test -n "`which i586-mingw32msvc-gcc`" ; then
+        i586-mingw32msvc-gcc --version || exit 1
+        i586-mingw32msvc-g++ --version || exit 1
+        extraconfigureoptions="--host=i586-mingw32msvc --build=i686-linux"
+      else
+        echo_error_exit "Could not detect mingw gcc - please install mingw-w64 package."
+      fi
+    elif [ "$bits" = "64" ]; then
+      echo "Checking that mingw 64-bit gcc is installed/available"
+      if test -n "`which x86_64-w64-mingw32-gcc`" ; then
+        x86_64-w64-mingw32-gcc --version || exit 1
+        x86_64-w64-mingw32-g++ --version || exit 1
+        extraconfigureoptions="--host=x86_64-w64-mingw32 --build=x86_64-linux"
+        # Statically link so that libstdc++-6.dll and libgcc_s_sjlj-1.dll don't have to be shipped
+        compileflags="$compileflags -m64 -static-libgcc -static-libstdc++"
+      else
+        echo_error_exit "Could not detect mingw gcc - please install mingw-w64 package."
+      fi
     else
-      echo "Could not detect mingw gcc - please install mingw-w64 package."
-      exit 1;
+      echo_error_exit "Invalid value for bits:$bits."
     fi
   else 
     if test "$cygwin"; then
@@ -72,8 +128,7 @@ else
       fi
       compileflags="$compileflags -mno-cygwin"
     else
-      echo "Unknown platform. Requires either Linux or MinGW."
-      exit 1;
+      echo_error_exit "Unknown platform. Requires either Linux or MinGW."
     fi
   fi
 fi
@@ -87,9 +142,7 @@ tarball=$swigbasename.tar.gz
 pcre_tarball=`ls pcre2-*.tar.*`
 
 if ! test -f "$pcre_tarball"; then
-  echo "Could not find PCRE2 tarball. Please download a PCRE2 source tarball from https://www.pcre.org"
-  echo "and place in the same directory as the SWIG tarball."
-  exit 1
+  echo_error_exit "Could not find PCRE2 tarball. Please download a PCRE2 source tarball from https://www.pcre.org and place in the same directory as the SWIG tarball."
 fi
 
 if test -f "$tarball"; then
@@ -135,12 +188,10 @@ if test -f "$tarball"; then
       rm -rf $builddir
       echo "Finished building $swigwinbasename.zip"
     else
-      echo "Expecting tarball to create directory: $swigbasename but it does not exist"
-      exit 1
+      echo_error_exit "Expecting tarball to create directory: $swigbasename but it does not exist"
     fi
 else
-    echo tarball missing: $tarball 
-    exit 1
+  echo_error_exit "tarball missing: $tarball"
 fi
 
 exit 0

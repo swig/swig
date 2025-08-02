@@ -189,13 +189,6 @@ Guile
 	  protection on the classes that need it.
 
 
-Mzscheme
---------
-
-**     Port list-vector.i and pointer-in-out.i from Guile.
-
-**     Add shadow class support for the Swindle system. 
-
 Ocaml
 -----
 **     I've been working with my camlp4 module and type information

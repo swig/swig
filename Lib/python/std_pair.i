@@ -140,7 +140,7 @@ SwigPython_std_pair_repr (PyObject *o)
     PyTuple_SET_ITEM(tuple, 0, PyObject_GetAttrString(o, (char*) "first"));
     PyTuple_SET_ITEM(tuple, 1, PyObject_GetAttrString(o, (char*) "second"));
     PyObject *result = PyObject_Repr(tuple);
-    Py_DECREF(tuple);
+    SWIG_Py_DECREF(tuple);
     return result;
 }
 

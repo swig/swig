@@ -33,3 +33,16 @@ typedef struct {
 typedef struct {
 %include "inctest.h"
 } MY_THINGS;
+
+// Regression test: we failed to handle the case of a member after the include.
+%{
+struct MY_THINGS2 {
+#include "inctest2.h"
+int failed_before_swig_430;
+};
+%}
+
+struct MY_THINGS2 {
+%include "inctest2.h"
+int failed_before_swig_430;
+};

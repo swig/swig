@@ -20,6 +20,7 @@
 %include <d/dkw.swg>
 %include <go/gokw.swg>
 %include <java/javakw.swg>
+%include <javascript/javascriptkw.swg>
 %include <lua/luakw.swg>
 %include <ocaml/ocamlkw.swg>
 %include <perl5/perlkw.swg>

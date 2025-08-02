@@ -1,4 +1,4 @@
-/* File : example.c */
+/* File : example.cxx */
 
 #include "example.h"
 #include <math.h>

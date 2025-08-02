@@ -21,6 +21,7 @@
 #define SPECIALCHARAE1 'Æ' // AE (latin1 encoded)
 #define SPECIALCHARAE2 '\306' // AE (latin1 encoded)
 #define SPECIALCHARAE3 '\xC6' // AE (latin1 encoded)
+#define SPECIALCHARPAREN (';')
 
 #if defined(SWIGJAVA)
 %javaconst(1);
@@ -42,9 +43,11 @@
 #define X_SPECIALCHARAE1 'Æ' // AE (latin1 encoded)
 #define X_SPECIALCHARAE2 '\306' // AE (latin1 encoded)
 #define X_SPECIALCHARAE3 '\xC6' // AE (latin1 encoded)
+#define X_SPECIALCHARPAREN (';')
 
 %inline 
 {
   const int ia = (int)'a';
   const int ib = 'b';
+  const int iparen = (';');
 }

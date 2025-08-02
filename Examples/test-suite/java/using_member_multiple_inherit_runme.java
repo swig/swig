@@ -42,5 +42,10 @@ public class using_member_multiple_inherit_runme {
     mb.multmethod("hi");
     mb.multmethod(123, 234);
     mb.multmethod(123, 345, 567);
+
+    // Multiple inheritance, with no override on parent class. 
+    Vusing2 vu = new Vusing2();
+    vu.usingmethod(3);
+    vu.usingmethod("hi");
   }
 }

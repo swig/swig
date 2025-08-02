@@ -3,6 +3,7 @@ module cpp11_move_typemaps_runme;
 import cpp11_move_typemaps.Counter;
 import cpp11_move_typemaps.MoveOnly;
 import cpp11_move_typemaps.MovableCopyable;
+import cpp11_move_typemaps.InstanceMethodsTester;
 import std.conv;
 import std.algorithm;
 
@@ -38,5 +39,25 @@ void main() {
     }
     if (!exception_thrown)
       throw new Exception("double usage of take should have been an error");
+  }
+
+  {
+    Counter.reset_counts();
+    InstanceMethodsTester imt = new InstanceMethodsTester();
+    {
+      scope MoveOnly mo = new MoveOnly(333);
+      Counter.check_counts(1, 0, 0, 0, 0, 0);
+      imt.instance_take_move_only(mo);
+      Counter.check_counts(1, 0, 0, 1, 0, 2);
+    }
+    Counter.check_counts(1, 0, 0, 1, 0, 2);
+    Counter.reset_counts();
+    {
+      scope MovableCopyable mc = new MovableCopyable(444);
+      Counter.check_counts(1, 0, 0, 0, 0, 0);
+      imt.instance_take_movable_copyable(mc);
+      Counter.check_counts(1, 0, 0, 1, 0, 2);
+    }
+    Counter.check_counts(1, 0, 0, 1, 0, 2);
   }
 }

@@ -425,7 +425,11 @@ struct A {
 <H3><a name="D_nspace">24.8.1 Extended namespace support (nspace)</a></H3>
 
 
-<p>By default, SWIG flattens all C++ namespaces into a single target language namespace, but as for Java and C#, the <a href="SWIGPlus.html#SWIGPlus_nspace"><tt>nspace</tt></a> feature is supported for D. If it is active, C++ namespaces are mapped to D packages/modules. Note, however, that like for the other languages, <em>free</em> variables and functions are not supported yet; currently, they are all allows written to the main proxy D module.</p>
+<p>By default, SWIG flattens all C++ namespaces into a flattened D module hierarchy, but as for Java and C#, the <a href="SWIGPlus.html#SWIGPlus_nspace"><tt>nspace</tt></a> feature is supported for D.
+If the feature is active, C++ namespaces are mapped to D packages/modules.
+This includes the <tt>nspace</tt> feature flag for mirroring the C++ namespaces into D namespaces as a scoped D module/package name.
+It also includes <tt>%nspacemove</tt> for transforming a C++ namespace into a completely different scoped D module/package name.
+Note, however, that like for the other languages, <em>free</em> variables and functions are not supported yet; currently, they are all available in the main proxy D module.</p>
 
 
 <H3><a name="D_native_pointer_support">24.8.2 Native pointer support</a></H3>

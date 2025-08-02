@@ -150,3 +150,9 @@ LotsInherit4.LotsStaticMethod(a, b, c, d)
 lots4.InstanceMethod()
 LotsInherit4.StaticMethod()
 
+# PlainStruct
+ps = PlainStruct()
+ps.PlainStructParms0()
+ps.PlainStructParms1(a)
+ps.PlainStructParms2(a, b)
+ps.PlainStructParms3(a, b, c)

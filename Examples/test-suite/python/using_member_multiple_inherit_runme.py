@@ -30,3 +30,8 @@ mb.multmethod(123)
 mb.multmethod("hi")
 mb.multmethod(123, 234)
 mb.multmethod(123, 345, 567)
+
+# Multiple inheritance, with no override on parent class. 
+vu = Vusing2()
+vu.usingmethod(3)
+vu.usingmethod("hi")

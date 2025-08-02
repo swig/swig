@@ -2,12 +2,14 @@
 
 %include "cpp11_move_only_helper.i"
 
-#if defined(SWIGOCAML)
+#if defined(SWIGGO)
+%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) MoveOnly&&;
+#elif defined(SWIGOCAML)
 %rename(valu) val;
 #endif
 
 %ignore MoveOnly::operator=;
-//%valuewrapper MoveOnly; // SWIG sets %valuewrapper by default for move-only types
+//%valuewrapper MoveOnly; // SWIG sets %valuewrapper by default for move-only types (actually when there is no assignment operator)
 
 %inline %{
 #include <iostream>
@@ -57,5 +59,26 @@ struct MovableCopyable {
   static const MovableCopyable createConst() { return MovableCopyable(111); }
 
   static void take(MovableCopyable mc) { if (trace) cout << "take(MovableCopyable)" << " " << &mc << endl; }
+};
+%}
+
+%inline %{
+struct InstanceMethodsTester {
+  #if defined(WRAP_TAKE_METHOD)
+  void instance_take_move_only(MoveOnly mo) { if (trace) cout << "instance_take_move_only(MoveOnly)" << " " << &mo << endl; }
+  #endif
+  void instance_take_movable_copyable(MovableCopyable mc) { if (trace) cout << "instance_take_movable_copyable(MovableCopyable)" << " " << &mc << endl; }
+};
+#if defined(WRAP_TAKE_METHOD)
+void global_take_move_only(MoveOnly mo) { if (trace) cout << "global_take_move_only(MoveOnly)" << " " << &mo << endl; }
+#endif
+void global_take_movable_copyable(MovableCopyable mc) { if (trace) cout << "global_take_movable_copyable(MovableCopyable)" << " " << &mc << endl; }
+
+
+struct ConstructorTester {
+  #if defined(WRAP_TAKE_METHOD)
+  ConstructorTester(MoveOnly mo) { if (trace) cout << "ConstructorTester(MoveOnly)" << " " << &mo << endl; }
+  #endif
+  ConstructorTester(MovableCopyable mc) { if (trace) cout << "ConstructorTester(MovableCopyable)" << " " << &mc << endl; }
 };
 %}

@@ -68,6 +68,7 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 }
 
 %fragment(SWIG_AsVal_frag(unsigned long),"header",
+	  fragment="<errno.h>",
 	  fragment="<limits.h>") {
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(Tcl_Obj *obj, unsigned long *val) {
@@ -173,6 +174,7 @@ SWIG_From_dec(unsigned long long)(unsigned long long value)
 %fragment(SWIG_AsVal_frag(unsigned long long),"header",
 	  fragment=SWIG_AsVal_frag(unsigned long),
 	  fragment="SWIG_LongLongAvailable",
+	  fragment="<errno.h>",
 	  fragment="<stdlib.h>") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN int

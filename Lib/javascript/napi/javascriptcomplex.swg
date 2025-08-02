@@ -13,7 +13,11 @@
           fragment=SWIG_From_frag(double))
 {
 SWIGINTERNINLINE Napi::Value
-SWIG_From_dec(Type)(%ifcplusplus(const Type&, Type) c)
+#if defined(__cplusplus)
+SWIG_From_dec(Type)(const Type& c)
+#else
+SWIG_From_dec(Type)(Type c)
+#endif
 {
   Napi::Array vals = Napi::Array::New(0);
 

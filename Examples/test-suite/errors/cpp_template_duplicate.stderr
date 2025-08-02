@@ -1,0 +1,10 @@
+cpp_template_duplicate.i:13: Warning 404: Duplicate template instantiation of 'vector< boolean_T >' with name 'std_vector_boolean_type_duplicate' ignored,
+cpp_template_duplicate.i:12: Warning 404: previous instantiation of 'vector< boolean_T >' with name 'std_vector_boolean_type'.
+cpp_template_duplicate.i:17: Warning 404: Duplicate template instantiation of 'vector< boolean_T >' with name 'std_vector_boolean_type_again' ignored,
+cpp_template_duplicate.i:12: Warning 404: previous instantiation of 'vector< boolean_T >' with name 'std_vector_boolean_type'.
+cpp_template_duplicate.i:18: Warning 404: Duplicate template instantiation of 'vector< uint8_T >' with name 'std_vector_uint8_type_again' ignored,
+cpp_template_duplicate.i:14: Warning 404: previous instantiation of 'vector< uint8_T >' with name 'std_vector_uint8_type'.
+cpp_template_duplicate.i:12: Warning 404: Duplicate template instantiation of 'vector< boolean_T >' with name 'std_vector_boolean_type' ignored,
+cpp_template_duplicate.i:19: Warning 404: previous instantiation of 'vector< unsigned char >' with name 'std_vector_unsigned_char'.
+cpp_template_duplicate.i:14: Warning 404: Duplicate template instantiation of 'vector< uint8_T >' with name 'std_vector_uint8_type' ignored,
+cpp_template_duplicate.i:19: Warning 404: previous instantiation of 'vector< unsigned char >' with name 'std_vector_unsigned_char'.

@@ -333,7 +333,6 @@ SWIG_R_ConvertPtrAndOwn(SEXP obj, void **ptr, swig_type_info *ty, int flags, int
       if (ptr) *ptr = vptr;
     } else {
       swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
-      int newmemory = 0;
       if (ptr) {
         int newmemory = 0;
         *ptr = SWIG_TypeCast(tc, vptr, &newmemory);

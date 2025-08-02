@@ -1,5 +1,6 @@
 from python_docstring import *
 import inspect
+import sys
 
 def check(got, expected):
     expected_list = expected.split("\n")
@@ -86,15 +87,21 @@ check(inspect.getdoc(DocStrings.docstringC),
     "second line"
     )
 
-# One line doc special case, use __doc__
-check(DocStrings.docstringX.__doc__,
-    "  one line docs"
-    )
+# One line doc special case, use __doc__ to check for stripped whitespace
+check(DocStrings.docstringW.__doc__, "one line docs")
+check(DocStrings.docstringX.__doc__, "one line docs leading whitespace")
+check(DocStrings.docstringY.__doc__, "one line docs trailing whitespace")
+check(DocStrings.docstringZ.__doc__, "one line docs whitespace")
 
+check(inspect.getdoc(DocStrings.docstringW),
+    "one line docs"
+    )
 check(inspect.getdoc(DocStrings.docstringX),
-    "one line docs"
+    "one line docs leading whitespace"
     )
-
 check(inspect.getdoc(DocStrings.docstringY),
-    "one line docs"
+    "one line docs trailing whitespace"
+    )
+check(inspect.getdoc(DocStrings.docstringZ),
+    "one line docs whitespace"
     )

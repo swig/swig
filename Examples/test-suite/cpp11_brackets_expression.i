@@ -13,7 +13,7 @@ static constexpr int global_one_two_three() { return 123; }
 
 class Piece {
 public:
-    typedef size_t size_type;
+    typedef unsigned size_type;
     typedef int difference_type;
 
     static constexpr size_type kOk2 = std::numeric_limits<difference_type>::max();

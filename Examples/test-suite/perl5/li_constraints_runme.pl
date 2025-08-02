@@ -49,7 +49,7 @@ check_double(1, $nonzero, "nonzero", -10);
 my $ret = eval { li_constraints::test_nonnull(undef); 1; };
 my $err = $@;
 is($ret, undef, "li_constraints::test_nonnull throw exception with null");
-ok($err =~ "^ValueError Received a NULL pointer.", "li_constraints::test_nonnull throw proper exception");
+ok($err =~ "^NullReferenceError Received a NULL pointer.", "li_constraints::test_nonnull throw proper exception");
 my $ptr = li_constraints::get_nonnull();
 # There should be no exception, we can use Perl lambda function
 $ret = (sub { li_constraints::test_nonnull($ptr); 1; })->();

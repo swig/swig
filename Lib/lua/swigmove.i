@@ -16,3 +16,5 @@
   }
   SwigValueWrapper< $1_ltype >::reset($1, ($&1_type)argp);
 }
+
+%typemap(typecheck) SWIGTYPE MOVE = SWIGTYPE;

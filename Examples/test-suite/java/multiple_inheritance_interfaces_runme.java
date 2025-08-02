@@ -12,11 +12,11 @@ public class multiple_inheritance_interfaces_runme {
     }
   }
 
-  private static void checkBaseAndInterfaces(Class cls, boolean interfaceExpected, String base, String[] interfaces) {
+  private static void checkBaseAndInterfaces(Class<?> cls, boolean interfaceExpected, String base, String[] interfaces) {
     String[] expectedInterfaces = new String[interfaces.length];
     for (int i=0; i<interfaces.length; ++i)
       expectedInterfaces[i] = "interface multiple_inheritance_interfaces." + interfaces[i];
-    Class[] actualInterfaces = cls.getInterfaces();
+    Class<?>[] actualInterfaces = cls.getInterfaces();
     String expectedInterfacesString = Arrays.toString(expectedInterfaces);
     String actualInterfacesString = Arrays.toString(actualInterfaces);
     if (!expectedInterfacesString.equals(actualInterfacesString))
@@ -67,6 +67,13 @@ public class multiple_inheritance_interfaces_runme {
     checkBaseAndInterfaces(U.class, false, "R", new String[] {});
     checkBaseAndInterfaces(V.class, false, "S", new String[] {});
     checkBaseAndInterfaces(W.class, false, "T", new String[] {});
+
+    checkBaseAndInterfaces(IV1SwigInterface.class, true, "", new String[] {"IA"});
+    checkBaseAndInterfaces(IV2SwigInterface.class, true, "", new String[] {"IA"});
+    checkBaseAndInterfaces(IV1.class, false, "", new String[] {"IV1SwigInterface", "IA"});
+    checkBaseAndInterfaces(IV2.class, false, "", new String[] {"IV2SwigInterface", "IA"});
+    checkBaseAndInterfaces(V3.class, false, "", new String[] {"V3SwigInterface", "IV1SwigInterface", "IA", "IV2SwigInterface"});
+    checkBaseAndInterfaces(V3SwigInterface.class, true, "", new String[] {"IV1SwigInterface", "IV2SwigInterface"});
 
     // overloaded methods check
     D d = new D();

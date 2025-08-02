@@ -1,1 +1,4 @@
-c_enum_badvalue.i:6: Error: Type error. Expecting an integral type
+c_enum_badvalue.i:5: Error: Type error. Expecting an integral type
+c_enum_badvalue.i:6: Error: Invalid digit '2' in binary constant
+c_enum_badvalue.i:7: Error: Invalid digit '8' in octal constant
+c_enum_badvalue.i:7: Error: Invalid digit '8' in octal constant

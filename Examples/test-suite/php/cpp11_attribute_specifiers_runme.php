@@ -6,8 +6,8 @@ require "tests.php";
 check::functions(array('noReturn','noDiscard','noDiscardDeprecated','maybeUnused1','maybeUnused2','likely','test_string_literal'));
 // New classes
 check::classes(array('cpp11_attribute_specifiers','S'));
-// No new vars
-check::globals(array());
+// New vars
+check::globals(array('a', 'aa', 'b'));
 
 check::equal(test_string_literal(), 'Test [[ and ]] in string literal', "test_string_literal() wrong");
 

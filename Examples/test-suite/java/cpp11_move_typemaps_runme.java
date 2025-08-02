@@ -47,5 +47,27 @@ public class cpp11_move_typemaps_runme {
       if (!exception_thrown)
         throw new RuntimeException("double usage of take should have been an error");
     }
+
+    {
+      Counter.reset_counts();
+      InstanceMethodsTester imt = new InstanceMethodsTester();
+      {
+        MoveOnly mo = new MoveOnly(333);
+        Counter.check_counts(1, 0, 0, 0, 0, 0);
+        imt.instance_take_move_only(mo);
+        Counter.check_counts(1, 0, 0, 1, 0, 2);
+        mo.delete();
+      }
+      Counter.check_counts(1, 0, 0, 1, 0, 2);
+      Counter.reset_counts();
+      {
+        MovableCopyable mc = new MovableCopyable(444);
+        Counter.check_counts(1, 0, 0, 0, 0, 0);
+        imt.instance_take_movable_copyable(mc);
+        Counter.check_counts(1, 0, 0, 1, 0, 2);
+        mc.delete();
+      }
+      Counter.check_counts(1, 0, 0, 1, 0, 2);
+    }
   }
 }

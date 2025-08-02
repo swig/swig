@@ -1011,6 +1011,8 @@ String *SwigType_lcaststr(const SwigType *s, const_String_or_char_ptr name) {
   String *result;
 
   result = NewStringEmpty();
+  if (name && Len(name) == 0)
+    name = 0;
 
   if (SwigType_isarray(s)) {
     String *lstr = SwigType_lstr(s, 0);
@@ -1032,6 +1034,20 @@ String *SwigType_lcaststr(const SwigType *s, const_String_or_char_ptr name) {
     String *lstr = SwigType_lstr(s, 0);
     Printf(result, "(%s)%s", lstr, name);
     Delete(lstr);
+  } else if (SwigType_ispointer(s)) {
+    SwigType *sc = Copy(s);
+    Delete(SwigType_pop(sc));
+    if (SwigType_isqualifier(sc) && name && !Equal(name, "0")) {
+      /* Only cast const pointer values (remove const in cast - they are assigned to a non-const pointer type) */
+      SwigType_add_pointer(sc);
+      String *lstr = SwigType_lstr(sc, 0);
+      Printf(result, "(%s)%s", lstr, name);
+      Delete(lstr);
+    } else {
+      if (name)
+	Append(result, name);
+    }
+    Delete(sc);
   } else {
     if (name)
       Append(result, name);

@@ -21,6 +21,7 @@ public class director_thread_runme {
     if (d.getVal() >= 0) {
         throw new RuntimeException("Failed. Val: " + d.getVal());
     }
+    d.stop();
   }
 }
 

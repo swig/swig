@@ -20,6 +20,7 @@ FAILING_CPP_TESTS = \
 CPP_TEST_CASES = \
 	li_cstring \
 	li_factory \
+	li_std_containers_int \
 	li_std_functors \
 	li_std_list \
 	li_std_multimap \
@@ -64,6 +65,9 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 SWIGOPT += -w801 -noautorename -features autodoc=4
+
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
 
 # Custom tests - tests with additional commandline options
 ruby_alias_global_function.ctest: SWIGOPT += -globalmodule

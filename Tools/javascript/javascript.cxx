@@ -11,7 +11,7 @@ void print_usage() {
   std::cout << "javascript [-i] [-jsc|-v8] [-l module] <js-file>" << std::endl;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) try {
 
 #if defined(JAVASCRIPT_INTERPRETER_STOP)
   std::cout << "Attach your Debugger and press any key to continue" << std::endl;
@@ -63,4 +63,7 @@ int main(int argc, char* argv[]) {
   delete shell;
 
   return 0;
+} catch (const char* message) {
+  printf("FAIL: Threw const char* exception: %s\n", message);
+  return 1;
 }

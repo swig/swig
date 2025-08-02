@@ -306,3 +306,29 @@ std::string provideStringInt(Space::Pair<std::string, int> p) {
   return p.first;
 }
 %}
+
+// Part 3: $typemap() and the 'in' typemap $1 variable substitution in the typemap temporary names list
+%typemap(in) short MYSHORT ($1_type $1_temp_name = 200) %{
+  $1 = $1_temp_name;
+%}
+%typemap(in) short MYSHORT_OUTER {
+  // MYSHORT_OUTER 'in' start
+  int $1_outer = 0;
+  $typemap(in, short MYSHORT, 1=$1_outer)
+  $1 = $1_outer;
+  // MYSHORT_OUTER 'in' end
+}
+%apply short MYSHORT_OUTER { short x, short y }
+%inline %{
+short shortFunction(short x, short y) {
+  return x*2 + y*3;
+}
+%}
+
+%typemap(arginit) int MYINT "$1 = 0;"
+%typemap(in) int MYINT (int $1_temp_name = 300) "" // $1 only appears in temporary list variable name, check this is expanded
+%typemap(argout) int MYINT %{ $1_temp_name *= 2; %} // check that $1_temp_name is available
+%apply int MYINT { int myint1, int myint2 }
+%inline %{
+void intFunction(int myint1, int myint2) {}
+%}

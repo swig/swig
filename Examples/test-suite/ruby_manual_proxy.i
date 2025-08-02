@@ -4,7 +4,7 @@
 %typemap(in, numinputs=0) SWIGTYPE ** ($*1_ltype temp) "$1 = &temp;"
 
 %typemap(argout) SWIGTYPE **OUTPARAM {
-  $result = SWIG_Ruby_AppendOutput($result, SWIG_NewPointerObj(*$1, $*1_descriptor, 0));
+  $result = SWIG_AppendOutput($result, SWIG_NewPointerObj(*$1, $*1_descriptor, 0));
 }
 
 %apply SWIGTYPE **OUTPARAM {

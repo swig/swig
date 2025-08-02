@@ -114,10 +114,8 @@ static ID swig_lowerthan_id = 0;
 
 SWIGRUNTIME VALUE 
 getExceptionClass(void) {
-  static int init = 0;
-  static VALUE rubyExceptionClass ;
-  if (!init) {
-    init = 1;
+  static VALUE rubyExceptionClass = Qnil;
+  if (rubyExceptionClass == Qnil) {
     rubyExceptionClass = rb_const_get(_mSWIG, rb_intern("Exception"));
   }
   return rubyExceptionClass;

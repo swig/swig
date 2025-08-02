@@ -58,11 +58,16 @@
 
 
 <p>Javascript is a prototype-based scripting language that is dynamic, weakly typed and has first-class functions. Its arguably the most popular language for web development.
-Javascript has gone beyond being a browser-based scripting language and with <a href="https://nodejs.org">node.js</a>, it is also used as a backend development language.</p>
+Javascript has gone beyond being a browser-based scripting language and can be used as a backend development language with <a href="https://nodejs.org">node.js</a>.</p>
 <p>Native Javascript extensions can be used for applications that embed a web-browser view or that embed a Javascript engine (such as <em>node.js</em>). Extending a general purpose web-browser is not possible as this would be a severe security issue.</p>
-<p>SWIG Javascript currently supports <strong>JavascriptCore</strong>, the Javascript engine used by <code>Safari/Webkit</code>, and <a href="https://v8.dev/"><strong>v8</strong></a>, which is used by <code>Chromium</code> and <code>node.js</code>.</p>
+<p>SWIG/Javascript currently supports:</p>
+<ul>
+<li><strong>Node.js</strong> 12 or later.  SWIG can optionally generate Node-API code, which needs Node.js 12.17 or later.</li>
+<li><strong>JavascriptCore</strong> 4.0 or later.  JavascriptCore is used by Safari/Webkit</li>
+<li><a href="https://v8.dev/"><strong>v8</strong></a> 7.4 or later (we currently CI test with 7.8 and 10.2).  v8 is used by Chromium and Node.js.</li>
+</ul>
 <p><a href="https://webkit.org/">WebKit</a> is a modern browser implementation available as open-source which can be embedded into an application.
-With <a href="https://github.com/rogerwang/node-webkit">node-webkit</a> there is a platform which uses Google's <code>Chromium</code> as Web-Browser widget and <code>node.js</code> for javascript extensions.
+<a href="https://github.com/nwjs/nw.js">NW.jst</a> provides an app runtime which uses Google's Chromium as Web-Browser widget and node.js for javascript extensions.
 </p>
 
 <H2><a name="Javascript_preliminaries">28.2 Preliminaries</a></H2>
@@ -91,13 +96,6 @@ $ swig -javascript -jsc example.i</pre>
 <pre>
 $ swig -c++ -javascript -jsc example.i</pre>
 </div>
-<p>The V8 code that SWIG generates requires at least V8 5.0. Keep in mind
-that this is the V8 version, not Node.js. To give some perspective, Node.js v6.0
-uses V8 5.0, v12.0 - 7.4, v14.0 - 8.1...</p>
-<p>The Node-API code that SWIG generates requires Node-API version 6.
-This Node-API is available starting from Node.js v10.20 on the v10.x branch,
-Node.js v12.17 on the v12.x branch and all versions starting from v14.0.
-</p>
 <p>To generate code for V8, you would run swig like so:</p>
 <div class="shell">
 <pre>
@@ -148,11 +146,6 @@ $ make check-javascript-examples ENGINE=jsc</pre>
 <div class="shell">
 <pre>
 $ make check-javascript-test-suite ENGINE=jsc</pre>
-</div>
-<p>You can specify a specific <code>V8</code> version for running the examples and tests</p>
-<div class="shell">
-<pre>
-$ make check-javascript-examples V8_VERSION=0x032530 ENGINE=v8</pre>
 </div>
 
 <H3><a name="Javascript_known_issues">28.2.3 Known Issues</a></H3>

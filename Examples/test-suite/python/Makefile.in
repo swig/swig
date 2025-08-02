@@ -3,13 +3,13 @@
 #######################################################################
 
 ifneq (,$(PY2))
-  PYBIN = @PYTHON@
+  PYTHON = @PYTHON@
 else
-  PYBIN = @PYTHON3@
+  PYTHON = @PYTHON3@
 endif
 
 LANGUAGE     = python
-PYTHON       = $(PYBIN)
+PYFLAGS      = -Werror
 SCRIPTSUFFIX = _runme.py
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,E741,W291,W391
@@ -36,12 +36,12 @@ endif
 CPP_TEST_CASES += \
 	callback \
 	complextest \
+	director_guard \
 	director_stl \
 	director_wstring \
 	file_test \
 	iadd \
 	implicittest \
-	inout \
 	inplaceadd \
 	input \
 	li_cstring \
@@ -80,12 +80,26 @@ CPP_TEST_CASES += \
 	python_strict_unicode \
 	python_threads \
 	python_typemap_macro \
+	python_various \
 	simutry \
 	std_containers \
 	swigobject \
 	template_matrix \
 
 #	director_profile
+
+ifeq (,$(PY_ABI_VER))
+PY_ABI_311:=1
+else
+PY_ABI_VER_INTEGER:=$(shell printf "%d%02d" $(subst ., ,$(PY_ABI_VER)))
+PY_ABI_311:=$(shell test $(PY_ABI_VER_INTEGER) -ge 311 && echo "1")
+endif
+
+# Test requiring python-3.11 minimum if using Py_LIMITED_API
+ifeq (1,$(PY_ABI_311))
+CPP_TEST_CASES += pyabi311_bufferinterface
+endif
+
 
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \
@@ -110,8 +124,10 @@ C_TEST_CASES += \
 	li_cwstring \
 	python_nondynamic \
 	python_varargs_typemap \
+	python_weakref \
 
 MULTI_CPP_TEST_CASES += \
+	import_callback \
 	python_runtime_data \
 
 include $(srcdir)/../common.mk
@@ -120,14 +136,18 @@ include $(srcdir)/../common.mk
 LIBS         = -L.
 VALGRIND_OPT += --suppressions=pythonswig.supp
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 # Custom tests - tests with additional commandline options
 python_flatstaticmethod.cpptest: SWIGOPT += -flatstaticmethod
 
 # Make sure just python_runtime_data_builtin.i uses the -builtin option. Note: does not use python_runtime_data.list for all steps.
+# PY_ABI_VER is unset for python_runtime_data_builtin because stable ABI is not supported by builtin
 python_runtime_data.multicpptest: override SWIG_FEATURES := $(filter-out -builtin,$(SWIG_FEATURES))
 python_runtime_data.multicpptest: override SWIGOPT := $(filter-out -builtin,$(SWIGOPT))
 python_runtime_data.multicpptest: swig_and_compile_multi_cpp = \
-	$(call swig_and_compile_cpp_helper,python_runtime_data_builtin,'$(SWIGOPT) -builtin') && \
+	$(call swig_and_compile_cpp_helper,python_runtime_data_builtin,'$(SWIGOPT) -builtin' PY_ABI_VER=) && \
 	$(call swig_and_compile_cpp_helper,python_runtime_data_nobuiltin,'$(SWIGOPT)')
 
 # Rules for the different types of tests
@@ -164,7 +184,7 @@ endif
 # a file is found which has _runme.py appended after the testcase name.
 run_testcase = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then \
-	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=.:$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
+	  env LD_LIBRARY_PATH=.:$$LD_LIBRARY_PATH PYTHONPATH=.:$(srcdir):$$PYTHONPATH $(RUNTOOL) $(PYTHON) $(PYFLAGS) $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX); \
 	fi
 
 # Clean: remove the generated .py file
@@ -174,16 +194,18 @@ run_testcase = \
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' python_clean
 	rm -f clientdata_prop_a.py clientdata_prop_b.py import_stl_a.py import_stl_b.py
-	rm -f hugemod.h hugemod_a.i hugemod_b.i hugemod_a.py hugemod_b.py hugemod_runme.py
+	rm -f ../hugemod.h ../hugemod_a.i ../hugemod_b.i hugemod_a.py hugemod_b.py $(hugemod_runme)
 	rm -f imports_a.py imports_b.py mod_a.py mod_b.py multi_import_a.py
 	rm -f multi_import_b.py multi_import_d.py packageoption_a.py packageoption_b.py packageoption_c.py
 	rm -f template_typedef_cplx2.py python_runtime_data_builtin.py python_runtime_data_nobuiltin.py
+	rm -f import_callback_x.py import_callback_y.py
 
-hugemod_runme = hugemod$(SCRIPTPREFIX)
+hugemod_runme = $(SCRIPTPREFIX)hugemod$(SCRIPTSUFFIX)
 
+# Note: hugemod not run by default
 hugemod:
 	perl hugemod.pl $(hugemod_runme)
 	$(MAKE) hugemod_a.cpptest
 	$(MAKE) hugemod_b.cpptest
-	sh -c "time $(PYTHON) $(hugemod_runme)"
-	sh -c "time $(PYTHON) $(hugemod_runme)"
+	time $(PYTHON) $(PYFLAGS) $(hugemod_runme)
+	time $(PYTHON) $(PYFLAGS) $(hugemod_runme)

@@ -1,0 +1,28 @@
+cpp_nspacemove.i:37: Warning 406: Ignoring nspace setting (Bad::Space1) for 'Space::OuterClass1::InnerClass1',
+cpp_nspacemove.i:36: Warning 406: as it conflicts with the nspace setting (Space) for outer class 'Space::OuterClass1'.
+cpp_nspacemove.i:40: Warning 406: Ignoring nspace setting (Bad::Space1) for 'Space::OuterClass1::InnerEnum1',
+cpp_nspacemove.i:36: Warning 406: as it conflicts with the nspace setting (Space) for outer class 'Space::OuterClass1'.
+cpp_nspacemove.i:44: Warning 406: Ignoring nspace setting (0) for 'Space::OuterClass2::InnerClass2',
+cpp_nspacemove.i:43: Warning 406: as it conflicts with the nspace setting (Space) for outer class 'Space::OuterClass2'.
+cpp_nspacemove.i:47: Warning 406: Ignoring nspace setting (0) for 'Space::OuterClass2::InnerEnum2',
+cpp_nspacemove.i:43: Warning 406: as it conflicts with the nspace setting (Space) for outer class 'Space::OuterClass2'.
+cpp_nspacemove.i:51: Warning 406: Ignoring nspace setting (Bad::Space3) for 'Space::OuterClass3::InnerClass3',
+cpp_nspacemove.i:50: Warning 406: as it conflicts with the nspace setting (NewSpace3) for outer class 'Space::OuterClass3'.
+cpp_nspacemove.i:54: Warning 406: Ignoring nspace setting (Bad::Space3) for 'Space::OuterClass3::InnerEnum3',
+cpp_nspacemove.i:50: Warning 406: as it conflicts with the nspace setting (NewSpace3) for outer class 'Space::OuterClass3'.
+cpp_nspacemove.i:58: Warning 406: Ignoring nspace setting (0) for 'Space::OuterClass4::InnerClass4',
+cpp_nspacemove.i:57: Warning 406: as it conflicts with the nspace setting (NewSpace4::NewSubSpace4) for outer class 'Space::OuterClass4'.
+cpp_nspacemove.i:61: Warning 406: Ignoring nspace setting (0) for 'Space::OuterClass4::InnerEnum4',
+cpp_nspacemove.i:57: Warning 406: as it conflicts with the nspace setting (NewSpace4::NewSubSpace4) for outer class 'Space::OuterClass4'.
+cpp_nspacemove.i:65: Warning 406: Ignoring nspace setting (NewSpace5) for 'Space::OuterClass5::InnerClass5',
+cpp_nspacemove.i:64: Warning 406: as it conflicts with the nspace setting () for outer class 'Space::OuterClass5'.
+cpp_nspacemove.i:68: Warning 406: Ignoring nspace setting (NewSpace5) for 'Space::OuterClass5::InnerEnum5',
+cpp_nspacemove.i:64: Warning 406: as it conflicts with the nspace setting () for outer class 'Space::OuterClass5'.
+cpp_nspacemove.i:72: Warning 406: Ignoring nspace setting (1) for 'Space::OuterClass6::InnerClass6',
+cpp_nspacemove.i:71: Warning 406: as it conflicts with the nspace setting () for outer class 'Space::OuterClass6'.
+cpp_nspacemove.i:75: Warning 406: Ignoring nspace setting (1) for 'Space::OuterClass6::InnerEnum6',
+cpp_nspacemove.i:71: Warning 406: as it conflicts with the nspace setting () for outer class 'Space::OuterClass6'.
+cpp_nspacemove.i:79: Warning 406: Ignoring nspace setting (NewSpace7) for 'Space::OuterClass7::InnerClass7',
+cpp_nspacemove.i:78: Warning 406: as it conflicts with the nspace setting () for outer class 'Space::OuterClass7'.
+cpp_nspacemove.i:82: Warning 406: Ignoring nspace setting (NewSpace7) for 'Space::OuterClass7::InnerEnum7',
+cpp_nspacemove.i:78: Warning 406: as it conflicts with the nspace setting () for outer class 'Space::OuterClass7'.

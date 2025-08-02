@@ -46,7 +46,7 @@ public class runme {
     System.out.println( "ucvar     =" + example.getUcvar() );
     System.out.println( "fvar      =" + example.getFvar() );
     System.out.println( "dvar      =" + example.getDvar() );
-    System.out.println( "cvar      =" + (char)example.getCvar() );
+    System.out.println( "cvar      =" + example.getCvar() );
     System.out.println( "strvar    =" + example.getStrvar() );
     System.out.println( "cstrvar   =" + example.getCstrvar() );
     System.out.println( "iptrvar   =" + Long.toHexString(SWIGTYPE_p_int.getCPtr(example.getIptrvar())) );
@@ -62,7 +62,7 @@ public class runme {
 
     System.out.println( "     Trying to set 'path'" );
     try {
-        Method m = example.class.getDeclaredMethod("setPath", new Class[] {String.class});
+        Method m = example.class.getDeclaredMethod("setPath", String.class);
         m.invoke(example.class, new Object[] {"Whoa!"} );
         System.out.println( "Hey, what's going on?!?! This shouldn't work" );
     }
@@ -75,7 +75,7 @@ public class runme {
 
     System.out.println( "     Trying to set 'status'" );
     try {
-        Method m = example.class.getDeclaredMethod("setStatus", new Class[] {Integer.class});
+        Method m = example.class.getDeclaredMethod("setStatus", int.class);
         m.invoke(example.class, new Object[] {Integer.valueOf(0)} );
         System.out.println( "Hey, what's going on?!?! This shouldn't work" );
     }

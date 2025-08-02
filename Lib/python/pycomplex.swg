@@ -12,7 +12,11 @@
 %fragment(SWIG_From_frag(Type),"header")
 {
 SWIGINTERNINLINE PyObject*
-SWIG_From(Type)(%ifcplusplus(const Type&, Type) c)
+#if defined(__cplusplus)
+SWIG_From_dec(Type)(const Type& c)
+#else
+SWIG_From_dec(Type)(Type c)
+#endif
 {
   return PyComplex_FromDoubles(Real(c), Imag(c));
 }

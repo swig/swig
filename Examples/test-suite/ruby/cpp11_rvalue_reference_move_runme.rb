@@ -74,7 +74,7 @@ Cpp11_rvalue_reference_move::Counter.reset_counts()
 exception_thrown = false
 begin
   Cpp11_rvalue_reference_move::MovableCopyable.movein(nil)
-rescue ArgumentError => e
+rescue NullReferenceError => e
   if (!e.to_s.include? "invalid null reference")
     raise RuntimeError, "incorrect exception message: #{e.to_s}"
   end

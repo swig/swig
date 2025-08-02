@@ -6,8 +6,9 @@ my $modsize = 399; #adjust it so you can have a smaller or bigger hugemod
 
 my $runme = shift @ARGV;
 
-open HEADER, ">hugemod.h" or die "error";
 open TEST, ">$runme" or die "error";
+chdir("..") or die "can't cd";
+open HEADER, ">hugemod.h" or die "error";
 open I1, ">hugemod_a.i" or die "error";
 open I2, ">hugemod_b.i" or die "error";
 
@@ -19,7 +20,7 @@ print I1 "\%include \"hugemod.h\";\n";
 print I1 "\%{ #include \"hugemod.h\" \%}\n";
 
 print I2 "\%module hugemod_b;\n";
-print I2 "\%import \"hugemod.h\";\n";
+print I2 "\%import \"hugemod_a.i\";\n";
 print I2 "\%{ #include \"hugemod.h\" \%}\n";
 print I2 "\%inline \%{\n";
 

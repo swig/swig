@@ -14,7 +14,7 @@ end
 def checkCount(expected_count)
     actual_count = Li_std_auto_ptr::Klass.getTotal_count()
     if (actual_count != expected_count)
-        raise RuntimeError, "Counts incorrect, expected:" + expected_count + " actual:" + actual_count
+        raise RuntimeError, "Counts incorrect, expected:#{expected_count} actual:#{actual_count}"
     end
 end
 

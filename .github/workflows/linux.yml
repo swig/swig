@@ -1,0 +1,561 @@
+name: linux
+
+on:
+  push:
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'appveyor.yml'
+  pull_request:
+    branches: master
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'appveyor.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    # When continue-on-error is true for an individual build, that build can fail (it'll show red),
+    # but it won't fail the overall build
+    continue-on-error: ${{ matrix.continue-on-error || false }}
+
+    runs-on: ${{ matrix.os || 'ubuntu-22.04' }}
+
+    # By default, the name of the build is the language used and SWIG options, but matrix entries
+    # can define the additional "desc" field with any additional information to include in the name.
+    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.PY_ABI_VER && format('abi={0}', matrix.PY_ABI_VER) }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+
+    strategy:
+      matrix:
+        include:
+        - SWIGLANG: ""
+          CPPFLAGS: "-DDOH_POISON"
+        - SWIGLANG: ""
+          GCC: 9
+          CPPSTD: c++98
+          CSTD: c99
+        - SWIGLANG: ""
+          GCC: 9
+        - SWIGLANG: ""
+          GCC: 10
+        - SWIGLANG: ""
+          GCC: 11
+        - SWIGLANG: ""
+          GCC: 12
+          os: ubuntu-22.04
+        - SWIGLANG: ""
+          GCC: 13
+          os: ubuntu-22.04
+        - SWIGLANG: ""
+          compiler: clang
+          os: ubuntu-22.04
+        - SWIGLANG: c
+          CPPSTD: c++11
+        - SWIGLANG: csharp
+        - SWIGLANG: d
+          VER: 'ldc'
+          CPPSTD: c++14
+        - SWIGLANG: d
+          VER: 'gdmd'
+          CPPSTD: c++11
+        - SWIGLANG: d
+          VER: '2.103.1'
+          CPPSTD: c++17
+        - SWIGLANG: go
+          VER: '1.20'
+          CSTD: gnu11
+        - SWIGLANG: go
+          VER: '1.24'
+          CSTD: gnu99 # Go 1.24 doesn't build with -Wdeclaration-after-statement
+        - SWIGLANG: guile
+        - SWIGLANG: guile
+          VER: '3.0'
+        - SWIGLANG: java
+        - SWIGLANG: javascript
+          ENGINE: jsc
+          VER: '4.0'
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '12'
+          CPPSTD: c++11
+        - SWIGLANG: lua
+        - SWIGLANG: lua
+          VER: '5.3'
+        - SWIGLANG: octave
+          CPPSTD: c++11
+        - SWIGLANG: octave
+          os: ubuntu-22.04 # Octave 6.4.0
+          CPPSTD: c++11
+        - SWIGLANG: perl5
+        - SWIGLANG: php
+          VER: '8.0'
+        - SWIGLANG: php
+          VER: '8.1'
+        - SWIGLANG: php
+          VER: '8.2'
+        - SWIGLANG: php
+          VER: '8.3'
+        - SWIGLANG: php
+          VER: '8.4'
+        - SWIGLANG: python
+          PY2: 2
+        #- SWIGLANG: python
+        #  VER: '3.5'
+        #  os: ubuntu-20.04 # Python < 3.7 not available for 22.04.
+        #- SWIGLANG: python
+        #  VER: '3.6'
+        #  os: ubuntu-20.04 # Python < 3.7 not available for 22.04.
+        - SWIGLANG: python
+          VER: '3.7'
+        - SWIGLANG: python
+          VER: '3.8'
+        - SWIGLANG: python
+          VER: '3.9'
+        - SWIGLANG: python
+          VER: '3.10'
+        - SWIGLANG: python
+          VER: '3.11'
+        - SWIGLANG: python
+          VER: '3.12'
+          CSTD: gnu99
+        - SWIGLANG: python
+          VER: '3.13'
+          CSTD: gnu99
+        - SWIGLANG: python
+          VER: '3.13-dbg'
+          CSTD: gnu99
+        - SWIGLANG: python
+          VER: '3.13'
+          CSTD: gnu99
+          SWIG_FEATURES: -nogil  # Test that -nogil has no effect on non-free-threading Python
+        - SWIGLANG: python
+          VER: '3.13t'
+          CSTD: gnu99
+          SWIG_FEATURES: -nogil
+        - SWIGLANG: python
+          VER: '3.14'
+          PY_ABI_VER: '3.14'
+          CSTD: gnu99
+          continue-on-error: true
+        - SWIGLANG: python
+          VER: '3.14'
+          CSTD: gnu99
+          continue-on-error: true
+        - SWIGLANG: python
+          PY2: 2
+          SWIG_FEATURES: -builtin
+        - SWIGLANG: python
+          PY2: 2
+          SWIG_FEATURES: -builtin -O
+        - SWIGLANG: python
+          SWIG_FEATURES: -builtin
+        - SWIGLANG: python
+          VER: '3.8'
+          SWIG_FEATURES: -builtin
+        - SWIGLANG: python
+          SWIG_FEATURES: -builtin -O
+        - SWIGLANG: python
+          VER: '3.13'
+          SWIG_FEATURES: -builtin
+        - SWIGLANG: python
+          VER: '3.13'
+          SWIG_FEATURES: -builtin -O
+        - SWIGLANG: python
+          VER: '3.8'
+          PY_ABI_VER: '3.5'
+        - SWIGLANG: r
+          os: ubuntu-24.04
+        - SWIGLANG: ruby
+          VER: '2.0'
+        - SWIGLANG: ruby
+          VER: '2.1'
+        - SWIGLANG: ruby
+          VER: '2.2'
+        - SWIGLANG: ruby
+          VER: '2.3'
+# Ruby 2.4 and 2.6 both fail with ubuntu-22.04 with error:
+#   Error running '__rvm_make -j4',
+#   please read /usr/share/rvm/log/1740710476_ruby-3.0.0/make.log
+#        - SWIGLANG: ruby
+#          VER: '2.4'
+        - SWIGLANG: ruby
+          VER: '2.5'
+#        - SWIGLANG: ruby
+#          VER: '2.6'
+        - SWIGLANG: ruby
+          VER: '2.7'
+        - SWIGLANG: ruby
+          VER: '3.0'
+          CPPSTD: c++11
+        - SWIGLANG: ruby
+          VER: '3.1'
+          CPPSTD: c++11
+        - SWIGLANG: ruby
+          CPPSTD: c++11
+          VER: '3.2'
+        - SWIGLANG: scilab
+          VER: '5.5.2'
+        - SWIGLANG: scilab
+          VER: '6.0.2'
+        - SWIGLANG: scilab
+          os: ubuntu-22.04 # scilab 6.1.1
+        - SWIGLANG: scilab
+          VER: '2023.1.0'
+        - SWIGLANG: scilab
+          VER: '2024.1.0'
+        - SWIGLANG: scilab
+          VER: '2025.1.0'
+        - SWIGLANG: tcl
+        # c++11 testing
+        - SWIGLANG: csharp
+          CPPSTD: c++11
+        - SWIGLANG: go
+          VER: '1.20'
+          CPPSTD: c++11
+          CSTD: gnu11
+        - SWIGLANG: guile
+          CPPSTD: c++11
+        - SWIGLANG: java
+          CPPSTD: c++11
+        - SWIGLANG: javascript
+          ENGINE: jsc
+          VER: '4.1'
+          os: ubuntu-22.04
+          CPPSTD: c++11
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '14'
+          CPPSTD: c++11
+        - SWIGLANG: lua
+          CPPSTD: c++11
+        - SWIGLANG: perl5
+          CPPSTD: c++11
+        - SWIGLANG: php
+          CPPSTD: c++11
+          CSTD: gnu11
+        - SWIGLANG: python
+          CPPSTD: c++11
+        - SWIGLANG: r
+          CPPSTD: c++11
+        - SWIGLANG: ruby
+          CPPSTD: c++11
+          VER: '3.3'
+        - SWIGLANG: ruby
+          CPPSTD: c++11
+        - SWIGLANG: scilab
+          CPPSTD: c++11
+        - SWIGLANG: tcl
+          CPPSTD: c++11
+        # c++14 testing
+        - SWIGLANG: csharp
+          CPPSTD: c++14
+        - SWIGLANG: go
+          VER: '1.20'
+          CPPSTD: c++14
+          CSTD: gnu11
+        - SWIGLANG: guile
+          CPPSTD: c++14
+        - SWIGLANG: java
+          CPPSTD: c++14
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '16'
+          CPPSTD: c++14
+        - SWIGLANG: lua
+          CPPSTD: c++14
+        - SWIGLANG: octave
+          CPPSTD: c++14
+        - SWIGLANG: perl5
+          CPPSTD: c++14
+        - SWIGLANG: php
+          CPPSTD: c++14
+          CSTD: gnu11
+        - SWIGLANG: python
+          CPPSTD: c++14
+        - SWIGLANG: r
+          CPPSTD: c++14
+        - SWIGLANG: ruby
+          CPPSTD: c++14
+        - SWIGLANG: scilab
+          CPPSTD: c++14
+        - SWIGLANG: tcl
+          CPPSTD: c++14
+        # c++17 testing (using gcc13)
+        - SWIGLANG: csharp
+          CPPSTD: c++17
+          GCC: 13
+        - SWIGLANG: go
+          VER: '1.20'
+          CPPSTD: c++17
+          GCC: 13
+          CSTD: gnu17
+        - SWIGLANG: guile
+          CPPSTD: c++17
+          GCC: 13
+        - SWIGLANG: java
+          CPPSTD: c++17
+          GCC: 13
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '18'
+          CPPSTD: c++17
+          GCC: 13
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '20'
+          CPPSTD: c++17
+          GCC: 13
+        - SWIGLANG: lua
+          CPPSTD: c++17
+          GCC: 13
+        - SWIGLANG: octave
+          CPPSTD: c++17
+          GCC: 13
+        - SWIGLANG: perl5
+          CPPSTD: c++17
+          GCC: 13
+        - SWIGLANG: php
+          CPPSTD: c++17
+          CSTD: gnu17
+          GCC: 13
+        - SWIGLANG: python
+          CPPSTD: c++17
+          GCC: 13
+        - SWIGLANG: r
+          CPPSTD: c++17
+          GCC: 13
+          os: ubuntu-24.04
+        - SWIGLANG: ruby
+          CPPSTD: c++17
+          GCC: 13
+        - SWIGLANG: scilab
+          CPPSTD: c++17
+          GCC: 13
+        - SWIGLANG: tcl
+          CPPSTD: c++17
+          GCC: 13
+        # c++20 testing (using gcc13)
+        - SWIGLANG: c
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-22.04
+        - SWIGLANG: python
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-22.04
+        - SWIGLANG: javascript
+          ENGINE: jsc
+          CPPSTD: c++20
+          VER: '4.1'
+          GCC: 13
+          os: ubuntu-22.04
+        - SWIGLANG: javascript
+          ENGINE: napi
+          VER: '22'
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-22.04
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '20'
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-22.04
+        - SWIGLANG: javascript
+          ENGINE: v8
+          CSTD: c++14
+          CPPSTD: c++14
+          VER: '7.8' # oldest we can easily test
+          os: ubuntu-22.04
+        - SWIGLANG: javascript
+          ENGINE: v8
+          CSTD: c++14
+          CPPSTD: c++14
+          VER: '10.2'
+          os: ubuntu-24.04
+        - SWIGLANG: ocaml
+          CPPSTD: c++17
+          GCC: 13
+          os: ubuntu-22.04
+          continue-on-error: true
+      # Run all of them, as opposed to aborting when one fails
+      fail-fast: false
+
+    env:
+      SWIGLANG: ${{ matrix.SWIGLANG }}
+      PY2: ${{ matrix.PY2 }}
+      VER: ${{ matrix.VER }}
+      ENGINE: ${{ matrix.ENGINE }}
+      SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
+      GCC: ${{ matrix.GCC }}
+      CSTD: ${{ matrix.CSTD }}
+      CPPSTD: ${{ matrix.CPPSTD }}
+      CPPFLAGS: ${{ matrix.CPPFLAGS }}
+      PY_ABI_VER: ${{ matrix.PY_ABI_VER }}
+
+    steps:
+    - name: Machine Info
+      run: |
+          echo "nproc..."
+          nproc --all
+          echo "uname..."
+          uname --all
+          echo "meminfo..."
+          cat /proc/meminfo
+          echo "lsb-release..."
+          cat /etc/lsb-release
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        show-progress: false
+        submodules: recursive
+
+    - name: Install CCache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ matrix.os || 'ubuntu-22.04' }}-${{ matrix.compiler || 'gcc' }}${{ matrix.GCC }}
+
+# Uncomment to debug via ssh, see https://github.com/mxschmitt/action-tmate
+#    - name: Setup tmate session
+#      uses: mxschmitt/action-tmate@v3
+
+    - name: Install Dependencies
+      run: |
+          set -x
+          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
+          echo PATH="$PATH" >> $GITHUB_ENV
+
+          source $GITHUB_WORKSPACE/Tools/GHA-linux-install.sh
+          echo WITHLANG="$WITHLANG" >> $GITHUB_ENV
+
+          case $(uname) in
+              Linux)
+                  cpu_count=$(nproc)
+                  ;;
+
+              Darwin)
+                  cpu_count=$(sysctl -n hw.ncpu)
+                  ;;
+
+              *)
+                  cpu_count=1
+                  ;;
+          esac
+
+          if [[ $cpu_count != 1 ]]; then
+            echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
+          fi
+
+          if test '${{ matrix.compiler }}' = 'clang'; then
+            CC="clang"
+            CXX="clang++"
+
+            CFLAGS="$CFLAGS -fPIE"
+            CXXFLAGS="$CXXFLAGS -fPIE"
+          elif test -n "$GCC"; then
+            CC="gcc-$GCC"
+            CXX="g++-$GCC"
+          else
+            CC="gcc"
+            CXX="g++"
+          fi
+
+          export CC CXX
+
+          echo CC="$CC" >> $GITHUB_ENV
+          echo CXX="$CXX" >> $GITHUB_ENV
+
+          ls -la $(which $CC) $(which $CXX)
+          $CC --version
+          $CXX --version
+
+    - name: Configure
+      run: |
+          source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
+          set -x
+
+          if [[ -z "$CSTD" ]]; then
+            case "$CPPSTD" in
+              c++11) export CSTD=c11 ;;
+              c++14) export CSTD=c11 ;;
+              c++17) export CSTD=c17 ;;
+              c++20) export CSTD=c17 ;;
+            esac
+            echo CSTD="$CSTD" >> $GITHUB_ENV
+          fi
+          if test -z "$CPPSTD"; then CONFIGOPTS+=("--disable-cpp11-testing"); fi
+          if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
+          if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
+          if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
+          if test "$PY2" = "2"; then CONFIGOPTS+=(--with-python=python2 --without-python3); fi
+          echo "${CONFIGOPTS[@]}"
+          ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
+
+    - name: Build
+      working-directory: build/build
+      run: |
+          set -x
+          make -s $SWIGJOBS
+          ./swig -version && ./swig -pcreversion
+
+    - name: Test
+      working-directory: build/build
+      run: |
+          source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
+          set -x
+
+          if test -z "$SWIGLANG"; then
+            make $SWIGJOBS check-ccache
+            make $SWIGJOBS check-errors-test-suite
+          else
+            case "$SWIGLANG" in
+              ocaml)
+                # `make check-ocaml-test-suite` fails with parallel make with:
+                #
+                # File "swig.ml", line 1:
+                # Error: Could not find the .cmi file for interface swig.mli.
+                #
+                # Apparently we ought to be using `ocamldep` to generate make
+                # dependencies.
+                unset SWIGJOBS
+                ;;
+              scilab)
+                case $VER in
+                  ""|6.*|2023.*|2024.0.*|2024.1.*)
+                    # Some older versions of scilab sporadically fail with:
+                    # terminate called after throwing an instance of 'std::filesystem::__cxx11::filesystem_error'
+                    # #2942 says that it was probably introduced in 6.x (we've
+                    # seen it with 6.1.0.0, but haven't with 5.x); it also says
+                    # "this issue was fixed in Scilab 2024.1.0" but we are
+                    # still seeing sporadic failures with that version.
+                    unset SWIGJOBS
+                    ;;
+                esac
+                ;;
+            esac
+
+            # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
+            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)"
+            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)"
+            make check-$SWIGLANG-version
+            make check-$SWIGLANG-enabled
+            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" PY_ABI_VER="$PY_ABI_VER"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags" PY_ABI_VER="$PY_ABI_VER"
+          fi
+
+    - name: Install
+      working-directory: build/build
+      run: |
+          set -x
+          if test -z "$SWIGLANG"; then sudo make install && swig -version && ccache-swig -V; fi
+
+    - name: Clean
+      working-directory: build/build
+      run: |
+          set -x
+          make check-maintainer-clean && ../../configure

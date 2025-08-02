@@ -1,0 +1,4 @@
+cpp_template_forward.i:6: Warning 330: Template forward class 'Space::ForwardDeclaredTemplate< double >' cannot be used to instantiate a full template class with name 'ForwardDeclaredTemplate_double'.
+cpp_template_forward.i:9: Warning 330: Template forward class 'Space::ForwardDeclaredSpecialized< int >' cannot be used to instantiate a full template class with name 'ForwardDeclaredTemplate_int'.
+cpp_template_forward.i:10: Warning 330: Template forward class 'Space::ForwardDeclaredSpecialized< double >' cannot be used to instantiate a full template class with name 'ForwardDeclaredTemplate_double'.
+cpp_template_forward.i:16: Warning 330: Template forward class 'Space::ForwardDeclaredMisplacedPrimary< double >' cannot be used to instantiate a full template class with name 'ForwardDeclaredTemplate_double'.

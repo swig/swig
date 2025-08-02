@@ -33,8 +33,8 @@ public class runme {
       System.out.println("        perimeter = " + shapes[i].perimeter());
     }
 
-    String command = "javadoc -quiet -public -d javadocs example.java Shape.java Circle.java Square.java RectangleInt.java";
-    System.out.println("\nRunning: " + command);
+    String[] command = {"javadoc", "-quiet", "-public", "-d", "javadocs", "example.java", "Shape.java", "Circle.java", "Square.java", "RectangleInt.java"};
+    System.out.println("\nRunning: " + String.join(" ", command));
     Process p = Runtime.getRuntime().exec(command);
     int exitCode = p.waitFor();
     System.out.println("javadoc exited with code " + exitCode);

@@ -8,14 +8,14 @@
    This module also tests whether SWIG correctly parses custom string delimiters.
 */
 %module cpp11_raw_string_literals
-%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) bb;
-%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) ee;
-%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) gg;
-%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) xx;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) cc;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) dd;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) hh;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) ii;
+%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK) bb;
+%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK) ee;
+%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK) gg;
+%warnfilter(SWIGWARN_TYPEMAP_CHARLEAK) xx;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) cc;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) dd;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) hh;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ii;
 
 #if defined(SWIGTCL) || defined(SWIGCSHARP) || defined(SWIGOCTAVE) || defined(SWIGRUBY) || defined(SWIGPYTHON) || defined(SWIGJAVA)
 %include <std_wstring.i>

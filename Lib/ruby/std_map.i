@@ -214,7 +214,7 @@
 	  VALUE k = swig::from<Map::key_type>(i->first);
 	  VALUE v = swig::from<Map::mapped_type>(i->second);
 	  if ( RTEST( rb_yield_values(2, k, v) ) )
-	    $self->insert(r->end(), *i);
+	    r->insert(r->end(), *i);
 	}
 	
       return r;

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 78;
+use Test::More tests => 80;
 BEGIN { use_ok('cpp11_strongly_typed_enumerations') }
 require_ok('cpp11_strongly_typed_enumerations');
 
@@ -166,3 +166,5 @@ enumCheck(cpp11_strongly_typed_enumerations::globalTest1($cpp11_strongly_typed_e
 enumCheck(cpp11_strongly_typed_enumerations::globalTest2($cpp11_strongly_typed_enumerations::Class1::Enum12_Val5c), 1121);
 #enumCheck(cpp11_strongly_typed_enumerations::globalTest3($cpp11_strongly_typed_enumerations::Class1::Struct1::Enum12_Val5f), 3121);
 
+$val = enumCheck($cpp11_strongly_typed_enumerations::Enum18_Val1, 1181);
+$val = enumCheck($cpp11_strongly_typed_enumerations::Enum18_Val2, 1182);

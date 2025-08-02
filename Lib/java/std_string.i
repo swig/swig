@@ -31,7 +31,7 @@ class string;
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
      return $null;
     } 
-    const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+    const char *$1_pstr = jenv->GetStringUTFChars($input, 0); 
     if (!$1_pstr) return $null;
     $1.assign($1_pstr);
     jenv->ReleaseStringUTFChars($input, $1_pstr); %}
@@ -43,7 +43,7 @@ class string;
      }
      return $null;
    } 
-   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+   const char *$1_pstr = jenv->GetStringUTFChars($input, 0); 
    if (!$1_pstr) return $null;
    $result.assign($1_pstr);
    jenv->ReleaseStringUTFChars($input, $1_pstr); %}
@@ -79,7 +79,7 @@ class string;
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
      return $null;
    }
-   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+   const char *$1_pstr = jenv->GetStringUTFChars($input, 0); 
    if (!$1_pstr) return $null;
    $*1_ltype $1_str($1_pstr);
    $1 = &$1_str;
@@ -90,7 +90,7 @@ class string;
      SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
      return $null;
    }
-   const char *$1_pstr = (const char *)jenv->GetStringUTFChars($input, 0); 
+   const char *$1_pstr = jenv->GetStringUTFChars($input, 0); 
    if (!$1_pstr) return $null;
    /* possible thread/reentrant code problem */
    static $*1_ltype $1_str;

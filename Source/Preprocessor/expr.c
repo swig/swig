@@ -473,7 +473,7 @@ int Preprocessor_expr(DOH *s, int *error) {
       break;
 
     default:
-      fprintf(stderr, "Internal error in expression evaluator.\n");
+      Printf(stderr, "Internal error in expression evaluator.\n");
       Exit(EXIT_FAILURE);
     }
   }

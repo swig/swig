@@ -27,6 +27,8 @@ SWIG_Perl_ErrorType(int code) {
     return "SystemError";
   case SWIG_AttributeError:
     return "AttributeError";
+  case SWIG_NullReferenceError:
+    return "NullReferenceError";
   default:
     return "RuntimeError";
   }

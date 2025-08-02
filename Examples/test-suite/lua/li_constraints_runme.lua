@@ -6,7 +6,7 @@ function check_func(except, f, val, name)
   actual, err = pcall(f, val);
   assert(actual == except, 'function perform exception wrongly');
   if name == nil then
-    r = 'SWIG_ValueError:Received a NULL pointer.';
+    r = 'SWIG_NullReferenceError:Received a NULL pointer.';
   else
     r = 'SWIG_ValueError:Expected a ' .. name .. ' value.';
   end

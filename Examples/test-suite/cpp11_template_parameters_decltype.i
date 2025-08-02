@@ -6,6 +6,10 @@ template <decltype(true) X = true>
 void A() { }
 %}
 
+// Additional test for #1589 (just check SWIG can parse this).
+%ignore x1589;
+int x1589(int y = std::declval<M>().begin()->first) { return y; }
+
 // %template(A) A<>; // not working
 %template(A) A<true>; // workaround
 

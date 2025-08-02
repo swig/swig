@@ -71,6 +71,12 @@ INTERFACEDIR = ../
 SRCDIR     = $(srcdir)/
 SCRIPTDIR  = $(srcdir)
 
+# This can be set to ":" on make command line to suppress progress messages.
+ECHO_PROGRESS := echo
+
+# Portable dos2unix / fromdos for stripping CR
+FROMDOS    = tr -d '\r'
+
 # Regenerate Makefile if Makefile.in or config.status have changed.
 Makefile: $(srcdir)/Makefile.in ../../../config.status
 	cd ../../../ && $(SHELL) ./config.status $(EXAMPLES)/$(TEST_SUITE)/$(LANGUAGE)/Makefile
@@ -119,6 +125,7 @@ CPP_TEST_CASES += \
 	anonymous_bitfield \
 	apply_signed_char \
 	apply_strings \
+	apply_typemap_typedefs \
 	argcargvtest \
 	argout \
 	array_member \
@@ -139,6 +146,7 @@ CPP_TEST_CASES += \
 	cast_operator \
 	casts \
 	char_binary \
+	char_binary_rev_len \
 	char_strings \
 	chartest \
 	class_case \
@@ -187,6 +195,7 @@ CPP_TEST_CASES += \
 	director_alternating \
 	director_basic \
 	director_binary_string \
+	director_binary_string_rev_len \
 	director_classes \
 	director_classic \
 	director_constructor \
@@ -263,6 +272,7 @@ CPP_TEST_CASES += \
 	features \
 	fragments \
 	friends \
+	friends_nested \
 	friends_operator_overloading \
 	friends_template \
 	funcptr_cpp \
@@ -284,6 +294,7 @@ CPP_TEST_CASES += \
 	inherit_target_language \
 	inherit_void_arg \
 	inline_initializer \
+	inout_typemaps \
 	insert_directive \
 	keyword_rename \
 	kind \
@@ -335,8 +346,6 @@ CPP_TEST_CASES += \
 	namespace_typemap \
 	namespace_union \
 	namespace_virtual_method \
-	nspace \
-	nspace_extend \
 	native_directive \
 	naturalvar \
 	naturalvar_more \
@@ -352,6 +361,11 @@ CPP_TEST_CASES += \
 	nested_workaround \
 	newobject1 \
 	newobject3 \
+	nspace \
+	nspace_extend \
+	nspacemove \
+	nspacemove_nested \
+	nspacemove_stl \
 	null_pointer \
 	numeric_bounds_checking \
 	operator_overload \
@@ -463,6 +477,7 @@ CPP_TEST_CASES += \
 	template_default_inherit \
 	template_default_qualify \
 	template_default_vw \
+	template_duplicate \
 	template_empty_inherit \
 	template_enum \
 	template_enum_ns_inherit \
@@ -553,6 +568,7 @@ CPP_TEST_CASES += \
 	typemap_directorout \
 	typemap_documentation \
 	typemap_global_scope \
+	typemap_isvoid \
 	typemap_manyargs \
 	typemap_namespace \
 	typemap_ns_using \
@@ -575,6 +591,7 @@ CPP_TEST_CASES += \
 	using_directive_and_declaration \
 	using_directive_and_declaration_forward \
 	using_extend \
+	using_extend_flatten \
 	using_inherit \
 	using_member \
 	using_member_multiple_inherit \
@@ -610,6 +627,7 @@ CPP11_TEST_CASES += \
 	cpp11_auto_variable \
 	cpp11_brackets_expression \
 	cpp11_constexpr \
+	cpp11_constexpr_friend \
 	cpp11_copyctor_delete \
 	cpp11_decltype \
 	cpp11_default_delete \
@@ -649,6 +667,7 @@ CPP11_TEST_CASES += \
 	cpp11_template_double_brackets \
 	cpp11_template_explicit \
 	cpp11_template_parameters_decltype \
+	cpp11_template_templated_methods \
 	cpp11_template_typedefs \
 	cpp11_type_traits \
 	cpp11_type_aliasing \
@@ -696,13 +715,14 @@ CPP20_TEST_CASES += \
 CPP20_TEST_BROKEN = \
 
 # Doxygen support test cases: can only be used with languages supporting
-# Doxygen comment translation (currently Python and Java) and only if not
+# Doxygen comment translation (currently a subset of languages) and only if not
 # disabled by configure via SKIP_DOXYGEN_TEST_CASES.
 ifneq ($(SKIP_DOXYGEN_TEST_CASES),1)
-python_HAS_DOXYGEN := 1
+csharp_HAS_DOXYGEN := 1
 java_HAS_DOXYGEN := 1
+python_HAS_DOXYGEN := 1
 
-$(eval HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN))
+HAS_DOXYGEN := $($(LANGUAGE)_HAS_DOXYGEN)
 endif
 
 ifdef HAS_DOXYGEN
@@ -717,6 +737,7 @@ DOXYGEN_TEST_CASES += \
 	doxygen_ignore \
 	doxygen_misc_constructs \
 	doxygen_nested_class \
+	doxygen_overloads \
 	doxygen_parsing \
 	doxygen_parsing_enums \
 	doxygen_translate \
@@ -942,7 +963,6 @@ swig_and_compile_cpp_helper = \
 	SWIG_LIB_DIR='$(SWIG_LIB_DIR)' SWIGEXE='$(SWIGEXE)' \
 	LIBS='$(LIBS)' INCLUDES='$(INCLUDES)' SWIGOPT=$(2) NOLINK=true \
 	TARGET="$(TARGETPREFIX)$(1)$(TARGETSUFFIX)" INTERFACEDIR='$(INTERFACEDIR)' INTERFACE="$(1).i" \
-	EXTRA_CXXFLAGS="$(3)" \
 	$(LANGUAGE)$(VARIANT)_cpp
 
 swig_and_compile_cpp =  \
@@ -960,7 +980,7 @@ swig_and_compile_c =  \
 	$(LANGUAGE)$(VARIANT)
 
 swig_and_compile_multi_cpp = \
-	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list` ; do \
+	for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list | $(FROMDOS)` ; do \
 	  $(call swig_and_compile_cpp_helper,$${f},'$(SWIGOPT)'); \
 	done
 
@@ -979,9 +999,9 @@ swig_and_compile_runtime = \
 
 setup = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $* (with run test)" ; \
 	else								  \
-	  echo "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) testcase $*" ;		  \
 	fi
 
 #######################################################################

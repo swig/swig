@@ -41,7 +41,7 @@
     getslice(const std::array<T, N>* self, Difference i, Difference j) {
       typedef std::array<T, N> Sequence;
       typename Sequence::size_type size = self->size();
-      typename Sequence::size_type ii = swig::check_index(i, size, (i == size && j == size));
+      typename Sequence::size_type ii = swig::check_index(i, size, (i == (Difference)size && j == (Difference)size));
       typename Sequence::size_type jj = swig::slice_index(j, size);
 
       if (ii == 0 && jj == size) {

@@ -20,6 +20,11 @@
 	    SWIGWARN_PHP_MULTIPLE_INHERITANCE,
 	    SWIGWARN_RUBY_MULTIPLE_INHERITANCE) LotsInherit;
 
+#if defined SWIGGO
+%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) ParmsPtrRValueRef;
+%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) ParmsRValueRef;
+#endif
+
 ////////////////////////
 // Variadic templates //
 ////////////////////////
@@ -218,3 +223,13 @@ public:
 %template(FixedAndVariadicParms1) FixedAndVariadicParms<A>;
 %template(FixedAndVariadicParms2) FixedAndVariadicParms<A,B>;
 %template(FixedAndVariadicParms3) FixedAndVariadicParms<A,B,C>;
+
+%inline %{
+struct PlainStruct {
+    template<typename ... VVV> void ParmsPlainStructVariadic(const VVV& ... args) {}
+};
+%}
+%template(PlainStructParms0) PlainStruct::ParmsPlainStructVariadic<>;
+%template(PlainStructParms1) PlainStruct::ParmsPlainStructVariadic<A>;
+%template(PlainStructParms2) PlainStruct::ParmsPlainStructVariadic<A,B>;
+%template(PlainStructParms3) PlainStruct::ParmsPlainStructVariadic<A,B,C>;

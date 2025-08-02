@@ -17,14 +17,14 @@ extern "C" {
 typedef struct { int len; char* array[1]; } SWIG_csharp_string_array;
 
 static void* SWIG_csharp_string_array_free(SWIG_csharp_string_array *arr) {
-  if (arr != SWIG_NULLPTR) {
+  if (arr) {
     int i;
     for(i = 0; i < arr->len; i++) {
       free(arr->array[i]);
     }
     free(arr);
   }
-  return SWIG_NULLPTR;
+  return NULL;
 }
 
 SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_string_array_to_c(int len, void *array) {
@@ -37,9 +37,9 @@ SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_string_array_to_c(int len, void *array)
    */
   alen = sizeof(SWIG_csharp_string_array) + sizeof(char *) * len;
   ret = (SWIG_csharp_string_array *)malloc(alen);
-  if (ret == SWIG_NULLPTR) {
+  if (ret == NULL) {
     SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate array.");
-    return SWIG_NULLPTR;
+    return NULL;
   }
   memset(ret, 0, alen);
   ret->len = len;
@@ -47,14 +47,14 @@ SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_string_array_to_c(int len, void *array)
   for(i = 0; i < len; i++) {
     slen = strlen(ptr[i]) + 1;
     p = (char*)malloc(slen);
-    if (p == SWIG_NULLPTR) {
+    if (p == NULL) {
       SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to alloc a string.");
       return SWIG_csharp_string_array_free(ret);
     }
     memcpy(p, ptr[i], slen);
     ret->array[i] = p;
   }
-  ret->array[i] = SWIG_NULLPTR;
+  ret->array[i] = NULL;
   return ret;
 }
 
@@ -65,7 +65,7 @@ SWIGEXPORT void* SWIGSTDCALL SWIG_csharp_string_array_to_c(int len, void *array)
 
 %typemap(in, canthrow=1, fragment="SWIG_csharp_string_array") (int ARGC, char **ARGV) %{
   SWIG_csharp_string_array *arr = (SWIG_csharp_string_array*)$input;
-  if (arr != SWIG_NULLPTR) {
+  if (arr) {
     $1 = ($1_ltype)arr->len;
     $2 = ($2_ltype)arr->array;
   }

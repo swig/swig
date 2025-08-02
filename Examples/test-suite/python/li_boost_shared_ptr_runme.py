@@ -156,7 +156,7 @@ class li_boost_shared_ptr_runme:
         try:
             li_boost_shared_ptr.valuetest(k)
             raise RuntimeError("Failed to catch null pointer")
-        except ValueError:
+        except TypeError:
             pass
 
         if (li_boost_shared_ptr.pointertest(k) != None):
@@ -165,7 +165,7 @@ class li_boost_shared_ptr_runme:
         try:
             li_boost_shared_ptr.reftest(k)
             raise RuntimeError("Failed to catch null pointer")
-        except ValueError:
+        except TypeError:
             pass
 
         # test null pointers emitted from C++
@@ -476,7 +476,7 @@ class li_boost_shared_ptr_runme:
         try:
             m.MemberValue = None
             raise RuntimeError("Failed to catch null pointer")
-        except ValueError:
+        except TypeError:
             pass
 
         # ////////////////////////////////// Global variables /////////////////
@@ -514,7 +514,7 @@ class li_boost_shared_ptr_runme:
         try:
             li_boost_shared_ptr.cvar.GlobalValue = None
             raise RuntimeError("Failed to catch null pointer")
-        except ValueError:
+        except TypeError:
             pass
 
         # plain pointer
@@ -548,7 +548,7 @@ class li_boost_shared_ptr_runme:
         try:
             li_boost_shared_ptr.cvar.GlobalReference = None
             raise RuntimeError("Failed to catch null pointer")
-        except ValueError:
+        except TypeError:
             pass
 
         # ////////////////////////////////// Templates ////////////////////////

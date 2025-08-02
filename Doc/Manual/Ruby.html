@@ -2885,9 +2885,9 @@ example:</p>
   $1 = &amp;temp;
 }
 
-%typemap(argout, fragment="output_helper") int *out {
+%typemap(argout) int *out {
   // Append output value $1 to $result (assuming a single integer in this case)
-  $result = output_helper( $result, INT2NUM(*$1) );
+  $result = SWIG_AppendOutput( $result, INT2NUM(*$1) );
 }</pre>
 </div>
 
@@ -3187,9 +3187,8 @@ exception.
 member functions.</p>
 
 <div class="code"><pre>
-%typemap(directorargout,
-fragment="output_helper") int {
-  $result = output_helper( $result, NUM2INT($1) );
+%typemap(directorargout) int {
+  $result = SWIG_AppendOutput( $result, NUM2INT($1) );
 }
 </pre></div>
 

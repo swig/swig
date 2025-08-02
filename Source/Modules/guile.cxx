@@ -12,6 +12,7 @@
  * ----------------------------------------------------------------------------- */
 
 #include "swigmod.h"
+#include <assert.h>
 #include <ctype.h>
 
 // Note string broken in half for compilers that can't handle long strings
@@ -121,7 +122,6 @@ public:
     int i;
 
      SWIG_library_directory("guile");
-     SWIG_typemap_lang("guile");
 
     // Look for certain command line options
     for (i = 1; i < argc; i++) {
@@ -449,7 +449,7 @@ public:
       Printf(f_init, "}\n");
       break;
     default:
-      fputs("Fatal internal error: Invalid Guile linkage setting.\n", stderr);
+      Printf(stderr, "Internal error: Invalid Guile linkage setting.\n");
       Exit(EXIT_FAILURE);
     }
 
@@ -608,7 +608,7 @@ public:
 
   virtual int functionWrapper(Node *n) {
     String *iname = Getattr(n, "sym:name");
-    SwigType *d = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     Parm *p;
     String *proc_name = 0;
@@ -831,9 +831,9 @@ public:
 	Replaceall(tm, "$owner", "0");
       Printv(f->code, tm, "\n", NIL);
     } else {
-      throw_unhandled_guile_type_error(d);
+      throw_unhandled_guile_type_error(returntype);
     }
-    emit_return_variable(n, d, f);
+    emit_return_variable(n, returntype, f);
 
     // Documentation
     if ((tm = Getattr(n, "tmap:out:doc"))) {
@@ -843,7 +843,7 @@ public:
       else
 	num_results = 0;
     } else {
-      String *s = SwigType_str(d, 0);
+      String *s = SwigType_str(returntype, 0);
       Chop(s);
       Printf(returns, "<%s>", s);
       Delete(s);
@@ -875,10 +875,13 @@ public:
       Printv(f->code, beforereturn, "\n", NIL);
     Printv(f->code, "return gswig_result;\n", NIL);
 
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
+
     /* Substitute the function name */
     Replaceall(f->code, "$symname", iname);
-    // Undefine the scheme name
 
+    // Undefine the scheme name
     Printf(f->code, "#undef FUNC_NAME\n");
     Printf(f->code, "}\n");
 
@@ -948,7 +951,8 @@ public:
 	/* Emit overloading dispatch function */
 
 	int maxargs;
-	String *dispatch = Swig_overload_dispatch(n, "return %s(argc,argv);", &maxargs);
+	bool check_emitted = false;
+	String *dispatch = Swig_overload_dispatch(n, "return %s(argc,argv);", &maxargs, &check_emitted);
 
 	/* Generate a dispatch wrapper for all overloaded functions */
 
@@ -1091,8 +1095,7 @@ public:
 
     int assignable = !is_immutable(n);
 
-    if (1 || (SwigType_type(t) != T_USER) || (is_a_pointer(t))) {
-
+    {
       Printf(f->def, "static SCM\n%s(SCM s_0)\n{\n", var_name);
 
       /* Define the scheme name in C. This define is used by several Guile
@@ -1109,6 +1112,8 @@ public:
 	  /* Printv(f->code,tm,"\n",NIL); */
 	  emit_action_code(n, f->code, tm);
 	} else {
+	  // The fake variable constantWrapper() creates is immutable.
+	  assert(!GetFlag(n, "guile:reallywrappingaconstant"));
 	  throw_unhandled_guile_type_error(t);
 	}
 	Printf(f->code, "}\n");
@@ -1121,6 +1126,12 @@ public:
 	/* Printv(f->code,tm,"\n",NIL); */
 	emit_action_code(n, f->code, tm);
       } else {
+	if (GetFlag(n, "guile:reallywrappingaconstant")) {
+	  Delete(var_name);
+	  Delete(proc_name);
+	  DelWrapper(f);
+	  return SWIG_ERROR;
+	}
 	throw_unhandled_guile_type_error(t);
       }
       Printf(f->code, "\nreturn gswig_result;\n");
@@ -1239,9 +1250,6 @@ public:
 	  Delete(signature2);
 	Delete(doc);
       }
-
-    } else {
-      Swig_warning(WARN_TYPEMAP_VAR_UNDEF, input_file, line_number, "Unsupported variable type %s (ignored).\n", SwigType_str(t, 0));
     }
     Delete(var_name);
     Delete(proc_name);
@@ -1259,8 +1267,7 @@ public:
     char *name = GetChar(n, "name");
     char *iname = GetChar(n, "sym:name");
     SwigType *type = Getattr(n, "type");
-    String *rawval = Getattr(n, "rawval");
-    String *value = rawval ? rawval : Getattr(n, "value");
+    String *value = Getattr(n, "value");
     int constasvar = GetFlag(n, "feature:constasvar");
 
 
@@ -1285,12 +1292,6 @@ public:
     proc_name = NewString(iname);
     Replaceall(proc_name, "_", "-");
 
-    if ((SwigType_type(nctype) == T_USER) && (!is_a_pointer(nctype))) {
-      Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
-      Delete(var_name);
-      DelWrapper(f);
-      return SWIG_NOWRAP;
-    }
     // See if there's a typemap
 
     if ((tm = Swig_typemap_lookup("constant", n, name, 0))) {
@@ -1300,7 +1301,8 @@ public:
       // Create variable and assign it a value
       Printf(f_header, "static %s = (%s)(%s);\n", SwigType_str(type, var_name), SwigType_str(type, 0), value);
     }
-    {
+    int result = SWIG_OK;
+    if (Len(nctype) > 0) {
       /* Hack alert: will cleanup later -- Dave */
       Node *nn = NewHash();
       Setfile(nn, Getfile(n));
@@ -1312,14 +1314,22 @@ public:
       if (constasvar) {
 	SetFlag(nn, "feature:constasvar");
       }
-      variableWrapper(nn);
+      SetFlag(nn, "guile:reallywrappingaconstant");
+      if (variableWrapper(nn) == SWIG_ERROR) {
+	Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
+	result = SWIG_NOWRAP;
+      }
+
       Delete(nn);
+    } else {
+      Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
+      result = SWIG_NOWRAP;
     }
     Delete(var_name);
     Delete(nctype);
     Delete(proc_name);
     DelWrapper(f);
-    return SWIG_OK;
+    return result;
   }
 
   /* ------------------------------------------------------------

@@ -9,6 +9,7 @@ enum
 exception
 exceptproxy
 extend
+external_runtime
 funcptr
 funcptr2
 functor

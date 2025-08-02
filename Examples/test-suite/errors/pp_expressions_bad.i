@@ -77,3 +77,9 @@
 #if MY_VERSION_AT_LEAST(1,2,3)
 #warning This should not warn
 #endif
+
+/* Test errors for bad digits in binary and octal constants. */
+#if 0b01210
+#endif
+#if 018118055
+#endif

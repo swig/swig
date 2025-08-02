@@ -35,6 +35,7 @@ public class doxygen_parsing_enums_typesafe_runme {
     		"");
     wantedComments.put("doxygen_parsing_enums_typesafe.SomeAnotherEnum",
     		" Testing comments before enum items \n" +
+    		" Including two line comments \n" +
     		" \n" +
     		"");
     wantedComments.put("doxygen_parsing_enums_typesafe.SomeAnotherEnum2.SOME_ITEM_10",
@@ -42,6 +43,11 @@ public class doxygen_parsing_enums_typesafe_runme {
     		"");
     wantedComments.put("doxygen_parsing_enums_typesafe.SomeAnotherEnum.SOME_ITEM_3",
     		" The comment for the third item \n" +
+    		" \n" +
+    		"");
+    wantedComments.put("doxygen_parsing_enums_typesafe.SomeAnotherEnum.SOME_ITEM_4",
+    		" The comment for the fourth item \n" +
+    		" over two lines \n" +
     		" \n" +
     		"");
     wantedComments.put("doxygen_parsing_enums_typesafe.SomeAnotherEnum2.SOME_ITEM_30",

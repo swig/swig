@@ -32,6 +32,9 @@ include $(srcdir)/../common.mk
 
 INCLUDES = -I$(abs_top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)
 
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
 .SUFFIXES: .cpptest .ctest .multicpptest
 
 # Rules for the different types of tests

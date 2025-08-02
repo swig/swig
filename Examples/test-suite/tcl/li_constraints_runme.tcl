@@ -44,7 +44,7 @@ check_double 0 nonzero "nonzero" -10
 
 set actual [ catch { test_nonnull NULL } err_msg ]
 if { ($actual != 1) ||
-     ([ string equal $err_msg "ValueError Received a NULL pointer." ] != 1) } {
+     ([ string equal $err_msg "NullReferenceError Received a NULL pointer." ] != 1) } {
 	error "Test 'test_nonnull' with null value fail"
 }
 set nonnull [ get_nonnull ]

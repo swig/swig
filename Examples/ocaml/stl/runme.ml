@@ -7,7 +7,7 @@ let v = new_StringVector '()
 
 let _ = 
   for i = 0 to (Array.length Sys.argv) - 1 do
-    let str = (Sys.argv.(i)) to string in v -> push_back (str)
+    let str = (Sys.argv.(i)) to string in ignore(v -> push_back (str))
   done
 
 let _ = _vec_write '(v)

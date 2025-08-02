@@ -12,12 +12,12 @@
 %{
 #include <string>
 SWIGINTERNINLINE
-CAML_VALUE SwigString_FromString(const std::string &s) {
+value SwigString_FromString(const std::string &s) {
   return caml_val_string((char *)s.c_str());
 }
 
 SWIGINTERNINLINE
-std::string SwigString_AsString(CAML_VALUE o) {
+std::string SwigString_AsString(value o) {
   return std::string((char *)caml_ptr_val(o,0));
 }
 %}

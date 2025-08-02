@@ -67,7 +67,7 @@ case "$SWIGLANG" in
 		esac
 		;;
 	"guile")
-		$RETRY sudo apt-get -qq install guile-${VER:-2.0}-dev
+		$RETRY sudo apt-get -qq install guile-${VER:-2.2}-dev
 		;;
 	"lua")
 		if [[ -z "$VER" ]]; then
@@ -75,9 +75,6 @@ case "$SWIGLANG" in
 		else
 			$RETRY sudo apt-get -qq install lua${VER} liblua${VER}-dev
 		fi
-		;;
-	"mzscheme")
-		$RETRY sudo apt-get -qq install racket
 		;;
 	"ocaml")
 		$RETRY sudo apt-get -qq install ocaml camlp4
@@ -102,6 +99,10 @@ case "$SWIGLANG" in
 		;;
 	"python")
 		pip install --user pycodestyle
+		if [[ "$PY_ABI_VER" ]]; then
+			# assertion in abi3audit 0.0.11, fixed in 0.0.12
+			pip install --user 'abi3audit>=0.0.12'
+		fi
 		if [[ "$PY2" ]]; then
 			WITHLANG=$SWIGLANG
 		else
@@ -110,10 +111,20 @@ case "$SWIGLANG" in
 		if [[ "$VER" ]]; then
 			$RETRY sudo add-apt-repository -y ppa:deadsnakes/ppa
 			$RETRY sudo apt-get -qq update
-			$RETRY sudo apt-get -qq install python${VER}-dev
+			case "$VER" in
+				*-dbg)
+					$RETRY sudo apt-get -qq install python${VER::-4}-dev python${VER}
+				  ;;
+				*t)
+					$RETRY sudo apt-get -qq install python${VER::-1}-dev python${VER::-1}-nogil
+				  ;;
+				*)
+					$RETRY sudo apt-get -qq install python${VER}-dev
+				;;
+			esac
 			WITHLANG=$WITHLANG=$SWIGLANG$VER
 		elif [[ "$PY2" ]]; then
-			$RETRY sudo apt-get install -qq python-dev
+			$RETRY sudo apt-get install -qq python2-dev
 		else
 			$RETRY sudo apt-get install -qq python3-dev
 		fi
@@ -124,9 +135,14 @@ case "$SWIGLANG" in
 	"ruby")
 		if [[ "$VER" ]]; then
 			case "$VER" in
-				3.1 | 3.2 | 3.3 )
+				2.5 | 2.7 | 3.0 | 3.1 | 3.2 | 3.3 )
 					# Ruby 3.1+ support is currently only rvm master (2023-04-19)
 					# YOLO
+					#
+					# Ruby 2.5, 2.7 and 3.0 work with this
+					# rvm but no longer seem to with the
+					# PPA rvm.  2.4 and 2.6 fail with either.
+					# (2025-06-18)
 					curl -sSL https://rvm.io/mpapis.asc | gpg --import -
 					curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
 					curl -sSL https://get.rvm.io | bash -s stable
@@ -159,7 +175,8 @@ case "$SWIGLANG" in
 		else
 			# Starting with version 2023.0.0 the download filename format changed.
 			case $VER in
-				20*) scilab_tarball=scilab-$VER.bin.x86_64-pc-linux-gnu.tar.xz ;;
+				2023.0*) scilab_tarball=scilab-$VER.bin.x86_64-pc-linux-gnu.tar.xz ;;
+				20*) scilab_tarball=scilab-$VER.bin.x86_64-linux-gnu.tar.xz ;;
 				*)   scilab_tarball=scilab-$VER.bin.linux-x86_64.tar.gz ;;
 			esac
 			$RETRY wget --progress=dot:giga "https://www.scilab.org/download/$VER/$scilab_tarball"

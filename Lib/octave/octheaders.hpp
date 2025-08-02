@@ -12,6 +12,9 @@
 #if !defined(SWIG_OCTAVE_OCTHEADERS_HPP)
 #define SWIG_OCTAVE_OCTHEADERS_HPP
 
+// Required C headers
+#include <assert.h>
+
 // Required C++ headers
 #include <cstdlib>
 #include <climits>

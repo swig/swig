@@ -61,3 +61,8 @@ INTERFACE_TYPEMAPS(CTYPE)
 INTERFACE_TYPEMAPS(CTYPE)
 %enddef
 
+%define %interface_additional(PROXY, INTERFACE, ADDITIONAL, CTYPE...)
+%rename(PROXY) CTYPE;
+%feature("interface", name=INTERFACE, additional=ADDITIONAL) CTYPE;
+INTERFACE_TYPEMAPS(CTYPE)
+%enddef

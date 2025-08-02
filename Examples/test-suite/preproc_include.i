@@ -24,6 +24,8 @@ int multiply50(int a) { return a*50; }
 
 %include INCLUDE_E
 
+// node-gyp tool doesn't handle spaces in the dependencies correctly (see #2930), so skip this part when using it.
+#ifndef BUILDING_NODE_EXTENSION
 %inline %{
 #define INCLUDE_F /*comments*/ "preproc_include_f withspace.h"/*testing*/
 #include INCLUDE_F
@@ -34,6 +36,7 @@ int multiply50(int a) { return a*50; }
 int multiply60(int a) { return a*60; }
 int multiply70(int a) { return a*70; }
 %}
+#endif // !BUILDING_NODE_EXTENSION
 
 %define nested_include_1(HEADER)
 %include <HEADER>

@@ -27,13 +27,13 @@ except TypeError as e:
 try:
       li_std_wstring.test_reference(None)
       raise RuntimeError("NULL check failed")
-except ValueError as e:
+except TypeError as e:
     if "invalid null reference" not in str(e):
         raise RuntimeError("Missing text {}".format(e))
 try:
     li_std_wstring.test_const_reference(None)
     raise RuntimeError("NULL check failed")
-except ValueError as e:
+except TypeError as e:
     if "invalid null reference" not in str(e):
         raise RuntimeError("Missing text {}".format(e))
 

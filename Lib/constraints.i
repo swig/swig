@@ -175,7 +175,7 @@
                 Pointer           NONNULL
 {
   if (!$1) {
-    SWIG_exception(SWIG_ValueError,"Received a NULL pointer.");
+    SWIG_exception(SWIG_NullReferenceError,"Received a NULL pointer.");
   }
 }
 

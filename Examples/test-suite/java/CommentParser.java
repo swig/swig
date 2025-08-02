@@ -129,7 +129,7 @@ public class CommentParser implements Doclet {
 
         while (it.hasNext()) {
             
-            Entry<String, String> e = (Entry<String, String>) it.next();
+            Entry<String, String> e = it.next();
             String actualStr = e.getValue();
             String wantedStr = wantedComments.get(e.getKey());
             // this may be weird, but I don't know any more effective solution
@@ -222,7 +222,7 @@ public class CommentParser implements Doclet {
         
         while (it.hasNext()) {
             
-            Entry<String, String> e = (Entry<String, String>) it.next();
+            Entry<String, String> e = it.next();
             String commentText = e.getValue();
             commentText = commentText.replace("\\", "\\\\");
             commentText = commentText.replace("\"", "\\\"");

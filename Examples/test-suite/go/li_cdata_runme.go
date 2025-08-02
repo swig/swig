@@ -3,11 +3,11 @@ package main
 import . "swigtests/li_cdata"
 
 func main() {
-	s := "ABC abc"
+	s := []byte("ABC\x00abc")
 	m := Malloc(256)
-	Memmove(m, s, len(s))
-	ss := Cdata(m, 7)
-	if string(ss) != "ABC abc" {
+	Memmove(m, s)
+	ss := Cdata(m, int64(7))
+	if string(ss) != "ABC\x00abc" {
 		panic("failed")
 	}
 }

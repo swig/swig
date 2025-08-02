@@ -58,7 +58,8 @@ std::string pathPtrToStr(const std::filesystem::path * p) {
     return p->string();
 }
 
-std::filesystem::path roundTrip(const std::filesystem::path& p) {
+namespace stdfs = std::filesystem;
+std::filesystem::path roundTrip(const stdfs::path& p) {
     return p;
 }
 %}

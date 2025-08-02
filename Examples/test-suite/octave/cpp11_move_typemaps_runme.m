@@ -7,19 +7,19 @@ cpp11_move_typemaps
 
 Counter.reset_counts();
 mo = MoveOnly(111);
-Counter_check_counts(1, 0, 0, 0, 0, 0);
+Counter.check_counts(1, 0, 0, 0, 0, 0);
 MoveOnly.take(mo);
-Counter_check_counts(1, 0, 0, 1, 0, 2);
+Counter.check_counts(1, 0, 0, 1, 0, 2);
 clear mo;
-Counter_check_counts(1, 0, 0, 1, 0, 2);
+Counter.check_counts(1, 0, 0, 1, 0, 2);
 
 Counter.reset_counts();
 mo = MovableCopyable(111);
-Counter_check_counts(1, 0, 0, 0, 0, 0);
+Counter.check_counts(1, 0, 0, 0, 0, 0);
 MovableCopyable.take(mo);
-Counter_check_counts(1, 0, 0, 1, 0, 2);
+Counter.check_counts(1, 0, 0, 1, 0, 2);
 clear mo;
-Counter_check_counts(1, 0, 0, 1, 0, 2);
+Counter.check_counts(1, 0, 0, 1, 0, 2);
 
 mo = MoveOnly(222);
 MoveOnly.take(mo);
@@ -35,3 +35,23 @@ end_try_catch
 if (!exception_thrown)
     error("double usage of take should have been an error");
 endif
+
+Counter.reset_counts();
+imt = InstanceMethodsTester();
+
+mo = MoveOnly(333);
+Counter.check_counts(1, 0, 0, 0, 0, 0);
+imt.instance_take_move_only(mo);
+Counter.check_counts(1, 0, 0, 1, 0, 2);
+clear mo;
+
+Counter.check_counts(1, 0, 0, 1, 0, 2);
+Counter.reset_counts();
+
+mc = MovableCopyable(444);
+Counter.check_counts(1, 0, 0, 0, 0, 0);
+imt.instance_take_movable_copyable(mc);
+Counter.check_counts(1, 0, 0, 1, 0, 2);
+clear mc;
+
+Counter.check_counts(1, 0, 0, 1, 0, 2);

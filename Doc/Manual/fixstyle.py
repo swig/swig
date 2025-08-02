@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Replace the inline htmldoc stylesheet with the SWIG stylesheet
 

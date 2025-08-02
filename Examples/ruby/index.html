@@ -45,7 +45,7 @@ the steps look like this (Linux):
 <blockquote>
 <pre>
 % swig -ruby interface.i
-% gcc -fpic -c interface_wrap.c -I/usr/local/lib/ruby/1.4/i686-linux
+% gcc -fPIC -c interface_wrap.c -I/usr/local/lib/ruby/1.4/i686-linux
 % gcc -shared interface_wrap.o $(OBJS) -o interface.so 
 % ruby
 require 'interface'

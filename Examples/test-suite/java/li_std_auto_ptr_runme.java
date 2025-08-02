@@ -10,6 +10,8 @@ public class li_std_auto_ptr_runme {
     }
   }
 
+  // Suppress warning about System.runFinalization() call.
+  @SuppressWarnings({"deprecation", "removal"})
   private static void WaitForGC()
   {
     System.gc();

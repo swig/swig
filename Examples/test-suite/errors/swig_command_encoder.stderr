@@ -1,1 +1,1 @@
-SWIG:1: Error: Command encoder no longer supported - use regex encoder instead.
+SWIG:EOF: Error: Command encoder no longer supported - use regex encoder instead, command:sed -e 's//([a-z]/)//U/1/' -e 's//(_/)/([a-z]/)//U/2/g' <<<x

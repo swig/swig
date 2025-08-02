@@ -35,3 +35,6 @@ pp_expressions_bad.i:73: Warning 202: Could not evaluate expression '(4 <=> 2) <
 pp_expressions_bad.i:73: Warning 202: Syntax error
 pp_expressions_bad.i:77: Warning 202: Could not evaluate expression 'MY_VERSION_AT_LEAST(1,2,3)'
 pp_expressions_bad.i:77: Warning 202: Use of undefined function-like macro
+pp_expressions_bad.i:82: Error: Invalid digit '2' in binary constant
+pp_expressions_bad.i:84: Error: Invalid digit '8' in octal constant
+pp_expressions_bad.i:84: Error: Invalid digit '8' in octal constant

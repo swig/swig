@@ -533,14 +533,7 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   /*  Using weird name and struct to avoid potential conflicts. */
   Wrapper_add_local(f, "r_swig_cb_data", "RCallbackFunctionData *r_swig_cb_data = R_SWIG_getCallbackFunctionData()");
   String *lvar = NewString("r_swig_cb_data");
-
-  Wrapper_add_local(f, "r_tmp", "SEXP r_tmp"); // for use in converting arguments to R objects for call.
-  Wrapper_add_local(f, "r_nprotect", "int r_nprotect = 0"); // for use in converting arguments to R objects for call.
-  Wrapper_add_local(f, "r_vmax", "char * r_vmax= 0"); // for use in converting arguments to R objects for call.
-
-  // Add local for error code in return value.  This is not in emit_return_variable because that assumes an out typemap
-  // whereas the type makes are reverse
-  Wrapper_add_local(f, "ecode", "int ecode = 0");
+  bool r_tmp_needed = false;
 
   p = parms;
   int nargs = ParmList_len(parms);
@@ -578,13 +571,13 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
       Replaceall(tm,"$owner", "0");
       Delete(lstr);
     } 
-    
+
+    r_tmp_needed = true;
     Printf(setExprElements, "%s\n", tm);
     Printf(setExprElements, "SETCAR(r_swig_cb_data->el, %s);\n", "r_tmp");
     Printf(setExprElements, "r_swig_cb_data->el = CDR(r_swig_cb_data->el);\n\n");
 
     Printf(s_paramTypes, "'%s'", SwigType_manglestr(tt));
-
 
     p = nextSibling(p);
     if(p) {
@@ -594,6 +587,11 @@ String * R::createFunctionPointerHandler(SwigType *t, Node *n, int *numArgs) {
   }
 
   Printf(f->def,  ") {\n");
+
+  if (r_tmp_needed)
+    Wrapper_add_local(f, "r_tmp", "SEXP r_tmp"); // for use in converting arguments to R objects for call.
+  Wrapper_add_local(f, "r_nprotect", "int r_nprotect = 0"); // for use in converting arguments to R objects for call.
+  Wrapper_add_local(f, "r_vmax", "char * r_vmax= 0"); // for use in converting arguments to R objects for call.
 
   Printf(f->code, "Rf_protect(%s->expr = Rf_allocVector(LANGSXP, %d));\n", lvar, nargs + 1);
   Printf(f->code, "r_nprotect++;\n");
@@ -1182,13 +1180,15 @@ int R::enumvalueDeclaration(Node *n) {
   
   // Deal with enum values that are not int
   int swigtype = SwigType_type(Getattr(n, "type"));
-  if (swigtype == T_BOOL) {
-    const char *val = Equal(Getattr(n, "enumvalue"), "true") ? "1" : "0";
-    Setattr(n, "enumvalue", val);
-  } else if (swigtype == T_CHAR) {
-    String *val = NewStringf("'%s'", Getattr(n, "enumvalue"));
-    Setattr(n, "enumvalue", val);
-    Delete(val);
+  if (swigtype == T_CHAR) {
+    if (Getattr(n, "enumstringval")) {
+      String *val = NewStringf("'%(escape)s'", Getattr(n, "enumstringval"));
+      Setattr(n, "enumvalue", val);
+      Delete(val);
+    }
+  } else {
+    String *numval = Getattr(n, "enumnumval");
+    if (numval) Setattr(n, "enumvalue", numval);
   }
 
   if (GetFlag(parent, "scopedenum")) {
@@ -1656,11 +1656,11 @@ void R::dispatchFunction(Node *n) {
 int R::functionWrapper(Node *n) {
   String *fname = Getattr(n, "name");
   String *iname = Getattr(n, "sym:name");
-  String *type = Getattr(n, "type");
+  String *returntype = Getattr(n, "type");
 
   if (debugMode) {
     Printf(stdout,
-	   "<functionWrapper> %s %s %s\n", fname, iname, type);
+	   "<functionWrapper> %s %s %s\n", fname, iname, returntype);
   }
   String *overname = 0;
   String *nodeType = Getattr(n, "nodeType");
@@ -1703,17 +1703,14 @@ int R::functionWrapper(Node *n) {
     p = nextSibling(p);
   }
 
-  String *unresolved_return_type =
-    Copy(type);
-  if (expandTypedef(type) &&
-      SwigType_istypedef(type)) {
-    SwigType *resolved =
-      SwigType_typedef_resolve_all(type);
+  String *unresolved_return_type = Copy(returntype);
+  if (expandTypedef(returntype) && SwigType_istypedef(returntype)) {
+    SwigType *resolved = SwigType_typedef_resolve_all(returntype);
     if (debugMode)
       Printf(stdout, "<functionWrapper> resolved %s\n", Copy(unresolved_return_type));
     if (expandTypedef(resolved)) {
-      type = Copy(resolved);
-      Setattr(n, "type", type);
+      returntype = Copy(resolved);
+      Setattr(n, "type", returntype);
     }
   }
   if (debugMode)
@@ -1756,8 +1753,8 @@ int R::functionWrapper(Node *n) {
   Wrapper *f = NewWrapper();
   Wrapper *sfun = NewWrapper();
 
-  int isVoidReturnType = (Strcmp(type, "void") == 0);
-  // Need to use the unresolved return type since
+  int isVoidReturnType = (Strcmp(returntype, "void") == 0);
+  // Need to use the unresolved returntype since
   // typedef resolution removes the const which causes a
   // mismatch with the function action
   emit_return_variable(n, unresolved_return_type, f);
@@ -1769,8 +1766,7 @@ int R::functionWrapper(Node *n) {
     addCopyParam = addCopyParameter(rtype);
 
   if (debugMode)
-    Printf(stdout, "Adding a .copy argument to %s for %s = %s\n",
-	   iname, type, addCopyParam ? "yes" : "no");
+    Printf(stdout, "Adding a .copy argument to %s for %s = %s\n", iname, returntype, addCopyParam ? "yes" : "no");
 
   Printv(f->def, "SWIGEXPORT SEXP\n", wname, " ( ", NIL);
 
@@ -2017,7 +2013,7 @@ int R::functionWrapper(Node *n) {
 
   } else {
     Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number,
-		 "Unable to use return type %s in function %s.\n", SwigType_str(type, 0), fname);
+		 "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), fname);
   }
 
 
@@ -2109,6 +2105,9 @@ int R::functionWrapper(Node *n) {
   
   Printv(f->code, "}\n", NIL);
   Printv(sfun->code, "\n}", NIL);
+
+  bool isvoid = !Cmp(returntype, "void");
+  Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
   /* Substitute the function name */
   Replaceall(f->code,"$symname",iname);

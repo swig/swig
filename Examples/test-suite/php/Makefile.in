@@ -17,7 +17,6 @@ CPP_TEST_CASES += \
 	callback \
 	director_stl \
 	exception_partial_info \
-	inout \
 	li_cdata_carrays_cpp \
 	li_factory \
 	php_iterator \
@@ -33,6 +32,9 @@ include $(srcdir)/../common.mk
 
 # Overridden variables here
 TARGETPREFIX =# Should be php_ for Windows, empty otherwise
+
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
 
 # Custom tests - tests with additional commandline options
 prefix.cpptest: SWIGOPT += -prefix Project

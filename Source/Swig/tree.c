@@ -99,7 +99,7 @@ void Swig_print_node(Node *obj) {
 	Equal(k, "previousSibling") || Equal(k, "symtab") || Equal(k, "csymtab") || Equal(k, "sym:symtab") || Equal(k, "sym:nextSibling") ||
 	Equal(k, "sym:previousSibling") || Equal(k, "csym:nextSibling") || Equal(k, "csym:previousSibling"))) {
       /* Do nothing */
-    } else if (Equal(k, "kwargs") || Equal(k, "parms") || Equal(k, "wrap:parms") || Equal(k, "pattern") || Equal(k, "templateparms") || Equal(k, "throws")) {
+    } else if (Equal(k, "kwargs") || Equal(k, "parms") || Equal(k, "wrap:parms") || Equal(k, "pattern") || Equal(k, "templateparms") || Equal(k, "templateparmsraw") || Equal(k, "template_parameters") || Equal(k, "throws")) {
       print_indent(2);
       /* Differentiate parameter lists by displaying within single quotes */
       Printf(stdout, "%-12s - \'%s\'\n", k, ParmList_str_defaultargs(value));
@@ -322,7 +322,7 @@ void Swig_require(const char *ns, Node *n, ...) {
     }
     obj = Getattr(n, name);
     if (!opt && !obj) {
-      Swig_error(Getfile(n), Getline(n), "Fatal error (Swig_require).  Missing attribute '%s' in node '%s'.\n", name, nodeType(n));
+      Swig_error(Getfile(n), Getline(n), "Internal error (Swig_require).  Missing attribute '%s' in node '%s'.\n", name, nodeType(n));
       Exit(EXIT_FAILURE);
     }
     if (!obj)

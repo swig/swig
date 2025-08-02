@@ -68,6 +68,18 @@ if [i for i in mii.items()] != [(1, 2)]:
     raise RuntimeError("iteritems")
 
 
+# map global variable
+li_std_map.populate(li_std_map.cvar.MyMap)
+li_std_map.cvar.MyMap["eeeeee"] = 6
+keys = " ".join([k for k in list(li_std_map.cvar.MyMap.keys())])
+if keys != "a aa zzz xxxx aaaaa eeeeee":
+    raise RuntimeError("Keys are wrong or in wrong order: " + keys)
+
+values = " ".join([str(v) for v in list(li_std_map.cvar.MyMap.values())])
+if values != "1 2 3 4 5 6":
+    raise RuntimeError("Values are wrong or in wrong order: " + values)
+
+
 slmap = li_std_map.StringLengthNumberMap()
 li_std_map.populate(slmap)
 

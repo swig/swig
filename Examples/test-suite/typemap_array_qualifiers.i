@@ -1,5 +1,10 @@
 %module typemap_array_qualifiers
 
+// Including this fragment ensures math.h is included before the '#define volatile' below,
+// without which gave peculiar partial specialization errors for javascript jsc and -std=c++20
+// - volatile is used in the template parameters of numeric_limits on Linux.
+%fragment("<math.h>");
+
 %define CLEAR_SWIGTYPE_TYPEMAPS
 %typemap(in)
    SWIGTYPE,

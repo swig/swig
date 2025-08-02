@@ -44,7 +44,7 @@ the steps look like this (Linux):
 <blockquote>
 <pre>
 % swig -python interface.i
-% gcc -fpic -c interface_wrap.c -I/usr/local/include/python1.5
+% gcc -fPIC -c interface_wrap.c -I/usr/local/include/python1.5
 % gcc -shared interface_wrap.o $(OBJS) -o interfacemodule.so 
 % python
 Python 1.5.2 (#3, Oct  9 1999, 22:09:34)  [GCC 2.95.1 19990816 (release)] on linux2

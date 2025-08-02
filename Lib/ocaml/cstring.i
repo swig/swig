@@ -210,7 +210,7 @@
  * This macro is used to return character data that was
  * allocated with new or malloc.
  *
- *     %cstring_output_allocated(char **outx, free($1));
+ *     %cstring_output_allocate(char **outx, free(*$1));
  *     void foo(char **outx) {
  *         *outx = (char *) malloc(512);
  *         strcpy(outx,"blah blah\n");
@@ -238,7 +238,7 @@
  * This macro is used to return character data that was
  * allocated with new or malloc.
  *
- *     %cstring_output_allocated(char **outx, int *sz, free($1));
+ *     %cstring_output_allocate_size(char **outx, int *sz, free(*$1));
  *     void foo(char **outx, int *sz) {
  *         *outx = (char *) malloc(512);
  *         strcpy(outx,"blah blah\n");

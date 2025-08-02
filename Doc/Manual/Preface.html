@@ -206,13 +206,16 @@ advantage of different features etc:
 
 <div class="code"><pre>
 #if SWIG_VERSION &gt;= 0x010311
-/* Use some fancy new feature */
+/* Use some fancy new SWIG feature */
 #endif
 </pre></div>
 
 <p>
-Note: The version symbol is not defined in the generated SWIG
-wrapper file. The SWIG preprocessor has defined SWIG_VERSION since SWIG-1.3.11.
+Note: The SWIG preprocessor has defined SWIG_VERSION since SWIG-1.3.11.
+</p>
+
+<p>
+The SWIG_VERSION macro is also generated into the SWIG wrapper file for use by the C preprocessor in the generated code since SWIG-4.1.0.
 </p>
 
 <H2><a name="Preface_release_notes">1.9 Release notes</a></H2>
@@ -438,7 +441,7 @@ don't intend to use these features in your own programs.
 </p>
 
 <p>
-Note: The test-suite currently contains over 600 tests.  If you
+Note: The test-suite currently contains over 800 tests.  If you
 have many different target languages installed and a slow machine, it
 might take more than an hour to run the test-suite.
 </p>

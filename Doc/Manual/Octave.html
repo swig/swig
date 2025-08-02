@@ -51,8 +51,8 @@
 
 
 <p>
-         Octave is a high-level language intended for numerical programming that is mostly compatible with MATLAB.
-More information can be found at <a href="https://www.gnu.org/software/octave/">Octave web site</a>.
+Octave is a high-level language intended for numerical programming that is mostly compatible with MATLAB.
+More information can be found at <a href="https://octave.org/">Octave web site</a>.
 </p>
 
 <p>
@@ -64,7 +64,8 @@ Also, there are a dozen or so examples in the Examples/octave directory, and hun
 
 
 <p>
-SWIG is regularly tested against the following versions of Octave: 3.8, 4.0, 4.2.
+SWIG is regularly tested against the following versions of Octave: 5.2, 6.4.
+SWIG 4.2.1 has also been manually tested with 7.3, 8.4 and 9.0.
 </p>
 
 <p>
@@ -104,9 +105,6 @@ The <tt>-c++</tt> option is also required when wrapping C++ code:
 
 <div class="shell"><pre>$ swig -octave -c++ -o example_wrap.cpp example.i </pre></div>
 
-<p>
-This creates a C++ source file "example_wrap.cpp". A C++ file is generated even when wrapping C code as Octave is itself written in C++ and requires wrapper code to be in the same language. The generated C++ source file contains the low-level wrappers that need to be compiled and linked with the rest of your C/C++ application (in this case, the gcd implementation) to create an extension module.
-</p>
 
 <H3><a name="Octave_nn4">30.2.1 Command-line options</a></H3>
 
@@ -864,6 +862,7 @@ The use of threads in wrapped Director code is not supported; i.e., an Octave-si
 
 
 <p>
+As noted above, <tt>swig_ref</tt> represents a reference counted pointer to a C/C++-side object. It also contains a flag indicating whether Octave or the C/C++ code owns the object. If Octave owns it, any destructors will be called when the reference count reaches zero. If the C/C++ side owns the object, then destructors will not be called when the reference count goes to zero.
 As noted above, <tt>swig_ref</tt> represents a reference counted pointer to a C/C++-side object. It also contains a flag indicating whether Octave or the C/C++ code owns the object. If Octave owns it, any destructors will be called when the reference count reaches zero. If the C/C++ side owns the object, then destructors will not be called when the reference count goes to zero.
 </p>
 <p>

@@ -13,6 +13,8 @@ public class java_director_runme {
     }
   }
 
+  // Suppress warning about System.runFinalization() call.
+  @SuppressWarnings({"deprecation", "removal"})
   private static void WaitForGC()
   {
     System.gc();

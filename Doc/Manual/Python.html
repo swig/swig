@@ -54,6 +54,7 @@
 <li><a href="#Python_builtin_limitations">Limitations</a>
 <li><a href="#Python_builtin_overloads">Operator overloads and slots -- use them!</a>
 </ul>
+<li><a href="#Python_runtime_module">Python runtime module</a>
 <li><a href="#Python_nn30">Memory management</a>
 </ul>
 <li><a href="#Python_directors">Cross language polymorphism</a>
@@ -64,8 +65,8 @@
 <li><a href="#Python_nn36">Exception unrolling</a>
 <li><a href="#Python_nn37">Overhead and code bloat</a>
 <li><a href="#Python_nn38">Typemaps</a>
+<li><a href="#Python_director_thread_safety">Thread safety</a>
 <li><a href="#Python_nn39">Miscellaneous</a>
-<li><a href="#Python_stable_abi">Stable ABI</a>
 </ul>
 <li><a href="#Python_nn40">Common customization features</a>
 <ul>
@@ -77,6 +78,7 @@
 <ul>
 <li><a href="#Python_fastproxy">-fastproxy</a>
 </ul>
+<li><a href="#Python_stable_abi">Stable ABI</a>
 </ul>
 <li><a href="#Python_nn45">Tips and techniques</a>
 <ul>
@@ -146,8 +148,11 @@
 </ul>
 <li><a href="#Python_multithreaded">Support for Multithreaded Applications</a>
 <ul>
-<li><a href="#Python_thread_UI">UI for Enabling Multithreading Support</a>
+<li><a href="#Python_thread_UI">Enabling Multithreading Support and the GIL</a>
+<ul>
 <li><a href="#Python_thread_performance">Multithread Performance</a>
+</ul>
+<li><a href="#Python_free_threading">Free threading Python</a>
 </ul>
 </ul>
 </div>
@@ -156,12 +161,7 @@
 
 
 <p>
-This chapter describes SWIG's support of Python.  SWIG is compatible
-with all recent Python versions (Python 2.7 and Python &gt;= 3.3).  SWIG 4.0.x
-supported Python 3.2.  SWIG 3.0.x supported older Python 2.x and 3.x.
-</p>
-
-<p>
+This chapter describes SWIG's support of Python.
 This chapter covers most SWIG features, but certain low-level details
 are covered in less depth than in earlier chapters.  At the
 very least, make sure you read the "<a href="SWIG.html#SWIG">SWIG
@@ -169,6 +169,13 @@ Basics</a>" chapter.
 </p>
 
 <H2><a name="Python_nn2">33.1 Overview</a></H2>
+
+
+<p>
+SWIG is compatible
+with all recent Python versions (Python 2.7 and Python &gt;= 3.5).
+SWIG-4.0 supported Python 3.2.  SWIG-3.0 supported older Python 2.x and 3.x.
+</p>
 
 
 <p>
@@ -211,7 +218,6 @@ Suppose that you defined a SWIG module such as the following:
 %module example
 
 %{
-#define SWIG_FILE_WITH_INIT
 #include "example.h"
 %}
 
@@ -220,9 +226,7 @@ int fact(int n);
 </div>
 
 <p>
-The <tt>#define SWIG_FILE_WITH_INIT</tt> line inserts a macro that specifies that the
-resulting C file should be built as a Python extension, inserting the module
-<tt>init</tt> code. This <tt>.i</tt> file wraps the following simple C file:
+This <tt>.i</tt> file wraps the following simple C file:
 </p>
 
 <div class="code">
@@ -320,7 +324,7 @@ Here is a sample <tt>setup.py</tt> file for the above example:
 
 <div class="code">
 <pre>
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 setup.py file for SWIG example
@@ -888,7 +892,7 @@ and use the <tt>import</tt> command as normal. For example :
 <div class="targetlang"><pre>
 $ python
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; print example.fact(4)
+&gt;&gt;&gt; print(example.fact(4))
 24
 &gt;&gt;&gt;
 </pre></div>
@@ -950,7 +954,7 @@ swig -python -help
 <tr><td>-castmode       </td><td>Enable the casting mode, which allows implicit cast between types in Python</td></tr>
 <tr><td>-debug-doxygen-parser     </td><td>Display doxygen parser module debugging information</td></tr>
 <tr><td>-debug-doxygen-translator </td><td>Display doxygen translator module debugging information</td></tr>
-<tr><td>-dirvtable      </td><td>Generate a pseudo virtual table for directors for faster dispatch</td></tr>
+<tr><td>-dirvtable      </td><td>Generate a pseudo virtual table for directors for faster dispatch (warning: currently the vtable is per-object and never freed so this option causes memory leaks)</td></tr>
 <tr><td>-doxygen        </td><td>Convert C++ doxygen comments to pydoc comments in proxy classes</td></tr>
 <tr><td>-extranative    </td><td>Return extra native wrappers for C++ std containers wherever possible</td></tr>
 <tr><td>-fastproxy      </td><td>Use fast proxy mechanism for member methods</td></tr>
@@ -959,6 +963,7 @@ swig -python -help
 <tr><td>-interface &lt;mod&gt;</td><td>Set low-level C/C++ module name to &lt;mod&gt; (default: module name prefixed by '_')</td></tr>
 <tr><td>-keyword        </td><td>Use keyword arguments</td></tr>
 <tr><td>-nofastunpack   </td><td>Use traditional UnpackTuple method to parse the argument functions</td></tr>
+<tr><td>-nogil          </td><td>Enable free-threading if supported by the Python interpreter</td></tr>
 <tr><td>-noh            </td><td>Don't generate the output header file</td></tr>
 <tr><td>-noproxy        </td><td>Don't generate proxy classes</td></tr>
 <tr><td>-nortti         </td><td>Disable the use of the native C++ RTTI with directors</td></tr>
@@ -996,6 +1001,10 @@ module name, make sure you don't use the same name as a built-in
 Python command or standard module name.
 </p>
 
+<p>
+There is also a further 'behind the scenes' Python runtime module, but this implementation detail is covered later.
+</p>
+
 <H3><a name="Python_nn15">33.3.2 Functions</a></H3>
 
 
@@ -1015,7 +1024,7 @@ like you think it does:
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; import example
-&gt;&gt;&gt; print example.fact(4)
+&gt;&gt;&gt; print(example.fact(4))
 24
 &gt;&gt;&gt;
 </pre></div>
@@ -1075,7 +1084,7 @@ Now look at the Python interface:
 <div class="targetlang"><pre>
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; # Print out value of a C global variable
-&gt;&gt;&gt; print example.cvar.My_variable
+&gt;&gt;&gt; print(example.cvar.My_variable)
 4
 &gt;&gt;&gt; # Set the value of a C global variable
 &gt;&gt;&gt; example.cvar.density = 0.8442
@@ -1237,7 +1246,7 @@ simply represented as opaque values using an especial Python container object:
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; print f
+&gt;&gt;&gt; print(f)
 &lt;Swig Object of type 'FILE *' at 0xb7d6f470&gt;
 </pre></div>
 
@@ -1255,7 +1264,7 @@ always retrieve it by casting the pointer object to a string:
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; print str(f)
+&gt;&gt;&gt; print(str(f))
 _c0671108_p_FILE
 </pre></div>
 
@@ -1266,7 +1275,7 @@ integer:
 </p>
 
 <div class="targetlang"><pre>
-&gt;&gt;&gt; print int(f)
+&gt;&gt;&gt; print(int(f))
 135833352
 </pre></div>
 
@@ -1362,7 +1371,7 @@ is used as follows:
 &gt;&gt;&gt; v = example.Vector()
 &gt;&gt;&gt; v.x = 3.5
 &gt;&gt;&gt; v.y = 7.2
-&gt;&gt;&gt; print v.x, v.y, v.z
+&gt;&gt;&gt; print(v.x, v.y, v.z)
 3.5 7.2 0.0
 &gt;&gt;&gt;
 </pre></div>
@@ -1378,7 +1387,7 @@ something like this:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; print v
+&gt;&gt;&gt; print(v)
 &lt;C Vector instance at _18e31408_p_Vector&gt;
 </pre>
 </div>
@@ -1392,7 +1401,7 @@ attribute.  For example:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; print v.this
+&gt;&gt;&gt; print(v.this)
 _18e31408_p_Vector
 &gt;&gt;&gt;
 </pre>
@@ -1448,7 +1457,7 @@ If accessed in Python, you will see behavior like this:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; b = example.Bar()
-&gt;&gt;&gt; print b.x
+&gt;&gt;&gt; print(b.x)
 _801861a4_p_int
 &gt;&gt;&gt;
 </pre>
@@ -1580,7 +1589,7 @@ you can use it in Python like this:
 &gt;&gt;&gt; l.insert("Lager")
 &gt;&gt;&gt; l.get(1)
 'Stout'
-&gt;&gt;&gt; print l.length
+&gt;&gt;&gt; print(l.length)
 3
 &gt;&gt;&gt;
 </pre></div>
@@ -2022,7 +2031,7 @@ it works in Python as follows:
 6
 &gt;&gt;&gt; v = example.Vector()
 &gt;&gt;&gt; v.x = 3.4
-&gt;&gt;&gt; print v.y
+&gt;&gt;&gt; print(v.y)
 0.0
 &gt;&gt;&gt;
 </pre>
@@ -2299,7 +2308,7 @@ import _example
 class Foo(object):
     def __init__(self):
         self.this = _example.new_Foo()
-        self.thisown = 1
+        self.thisown = True
     def __del__(self):
         if self.thisown:
             _example.delete_Foo(self.this)
@@ -2349,7 +2358,7 @@ like in a proxy class:
 class Foo(object):
     def __init__(self):
         self.this = _example.new_Foo()
-        self.thisown = 1
+        self.thisown = True
 </pre>
 </div>
 
@@ -2700,17 +2709,79 @@ in the file <tt>python/pyopers.swg</tt> in the SWIG library.
 </p>
 
 
-<H3><a name="Python_nn30">33.4.3 Memory management</a></H3>
+<H3><a name="Python_runtime_module">33.4.3 Python runtime module</a></H3>
+
+
+<p>
+In addition to the two Python modules that are generated by SWIG, there is also a third 'behind the scenes' Python runtime module.
+The runtime module is very much an implementation level detail, but is mentioned here for completeness and for the inquisitive!
+</p>
+
+<p>
+SWIG implements a run-time type checker for checking a Python type/class as it passes between the Python and C/C++ layers.
+It is also used when multiple SWIG modules need to share type information with each other (when using the <tt>%import</tt> directive).
+More details can be found in the <a href="Modules.html#Modules_nn2">SWIG runtime code</a> and <a href="Typemaps.html#Typemaps_runtime_type_checker">run-time type checker</a> sections.
+The runtime module contains the following:
+</p>
+
+<ol>
+  <li> A <a href="https://docs.python.org/3/c-api/capsule.html">Python Capsule</a> containing a pointer to the underlying C module data structure used by the runtime type checker. For multiple modules to access the common runtime implementation. The Capsule is named <tt>type_pointer_capsule</tt> except when using <tt>-builtin</tt> when it is instead called <tt>type_pointer_capsule_builtin</tt>.</li>
+  <li> The builtin type <tt>SwigPyObject</tt> - Swig object holding a C/C++ pointer. For 'normal' pointers, that is, not for function pointers nor member function pointers.</li>
+  <li> The builtin type <tt>SwigPyObjectType</tt> - Metaclass for SWIG wrapped types. Only used by <t>-builtin</tt>.</li>
+  <li> The builtin type <tt>SwigPyPacked</tt> - Swig object holding a C/C++ function pointer. For C pointers to a function or C++ member function pointers.</li>
+  <li> The builtin type <tt>SwigPyStaticVar</tt> - Swig member static variables. Only used by <t>-builtin</tt>.</li>
+  <li> The builtin type <tt>SwigVarLink</tt> - Swig variable link object. The type used by the 'cvar' field for accessing C/C++ global variables.</li>
+</ol>
+
+<p>
+If multiple SWIG modules are being used, the C/C++ wrapped proxy classes/types can be shared or used across the different modules via the SWIG runtime.
+The runtime is accessed and shared via the Capsule in the runtime module.
+The Python runtime module is implemented as a Python builtin module. While users are unlikely to use or import the runtime module directly, it can be inspected simply enough.
+The name of the module is <tt>swig_runtime_data</tt> appended with the runtime version as defined by <tt>SWIG_RUNTIME_VERSION</tt>.
+First import your SWIG generated module. Next find the exact runtime module name so you know what to import before inspecting it with say <tt>dir</tt>.
+The interpreter session below demonstrates this with a SWIG generated module called <tt>example</tt>:
+</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; import example
+&gt;&gt;&gt; import sys
+&gt;&gt;&gt; list(m for m in sys.modules if m.startswith("swig_runtime_data"))
+['swig_runtime_data5']
+&gt;&gt;&gt; import swig_runtime_data5
+&gt;&gt;&gt; dir(swig_runtime_data5)
+['SwigPyObject', 'SwigPyPacked', 'SwigVarLink', '__doc__', '__loader__', '__name__', '__package__',
+'__spec__', 'type_pointer_capsule']
+</pre>
+</div>
+
+<p>
+The output when using <tt>-builtin</tt> is of course slightly different:
+</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; dir(swig_runtime_data5)
+['SwigPyObject', 'SwigPyObjectType', 'SwigPyPacked', 'SwigPyStaticVar', 'SwigVarLink', '__doc__',
+'__loader__', '__name__', '__package__', '__spec__', 'type_pointer_capsule_builtin']
+</pre>
+</div>
+
+<p>
+<b>Compatibility Note:</b> Only the Capsule was stored in the Python runtime module prior to SWIG-4.4.0.
+</p>
+
+<H3><a name="Python_nn30">33.4.4 Memory management</a></H3>
 
 
 <p>NOTE: Although this section refers to proxy objects, everything here also applies
 when the <tt>-builtin</tt> option is used.</p>
 
 <p>
-Associated with proxy object, is an ownership flag <tt>.thisown</tt>   The value of this
-flag determines who is responsible for deleting the underlying C++ object.   If set to 1,
+Associated with proxy object, is an ownership flag <tt>thisown</tt>.  The value of this
+flag determines who is responsible for deleting the underlying C++ object.   If set to <tt>True</tt>,
 the Python interpreter will destroy the C++ object when the proxy class is
-garbage collected.   If set to 0 (or if the attribute is missing), then the destruction
+garbage collected.   If set to <tt>False</tt> (or if the attribute is missing), then the destruction
 of the proxy class has no effect on the C++ object.
 </p>
 
@@ -2724,8 +2795,9 @@ ownership of the result.  For example:
 class Foo {
 public:
   Foo();
-  Foo bar();
+  ~Foo();
 };
+Foo CreateFoo();
 </pre>
 </div>
 
@@ -2737,26 +2809,83 @@ In Python:
 <pre>
 &gt;&gt;&gt; f = Foo()
 &gt;&gt;&gt; f.thisown
-1
-&gt;&gt;&gt; g = f.bar()
+True
+&gt;&gt;&gt; g = CreateFoo()
 &gt;&gt;&gt; g.thisown
-1
+True
 </pre>
 </div>
 
 <p>
-On the other hand, when pointers are returned to Python, there is often no way to know where
-they came from.  Therefore, the ownership is set to zero.  For example:
+The type information is a Python class, a proxy of the underlying C++ type:
+</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; type(f)
+&lt;class 'example.Foo'&gt;
+&gt;&gt;&gt; f
+&lt;example.Foo; proxy of &lt;Swig Object of type 'Foo *' at 0x7f5a86d48600&gt; &gt;
+True
+</pre>
+</div>
+
+<p>
+Unlike a C or C++ compiler, SWIG can work with incomplete type information and generate
+wrapper code even if the definition of <tt>class Foo</tt> is not provided to SWIG.
+However, this has negative consequences in the form of a memory leak.
+</p>
+
+<div class="targetlang">
+<pre>
+&gt;&gt;&gt; h = CreateFoo()
+&gt;&gt;&gt; type(h)
+&lt;class 'SwigPyObject'&gt;
+&gt;&gt;&gt; h
+&lt;Swig Object of type 'Foo *' at 0x7fc341b4d6f0&gt;
+&gt;&gt;&gt; quit()
+swig/python detected a memory leak of type 'Foo *', no destructor found.
+</pre>
+</div>
+
+<p>
+Note that the type is no longer a proxy Python class, but is instead a generic <tt>SwigPyObject</tt> type.
+The memory leak warning is shown as SWIG has no way of knowing how to call the destructor with this generic type.
+The recommendation is to fix the leak by providing the missing type information.
+However, for those who don't care about memory leaks, the warning can also be suppressed by
+by defining <tt>SWIG_PYTHON_SILENT_MEMLEAK</tt> when compiling the generated C/C++ wrapper code, such as passing
+<tt>-DSWIG_PYTHON_SILENT_MEMLEAK</tt> to the compiler or getting SWIG to define this macro at the beginning
+of the generated wrapper code by adding the following to the interface file using:
+</p>
+
+<div class="code">
+<pre>
+%begin %{
+#define SWIG_PYTHON_SILENT_MEMLEAK
+%}
+</pre>
+</div>
+
+<p>
+The generic <tt>SwigPyObject</tt> type also has a <tt>disown()</tt> method which can be called to deactivate the warning.
+</p>
+
+<p>
+Next, let's consider returning raw pointers even when the full type information is available to SWIG.
+When pointers or references are returned to Python, there is often no way to know where
+they came from and how to manage the memory that they point to.
+Therefore, the ownership is set to <tt>False</tt>.  For example:
 </p>
 
 <div class="code">
 <pre>
 class Foo {
 public:
-  ...
-  Foo *spam();
-  ...
+  Foo();
+  ~Foo();
 };
+Foo *PointerCreate();
+Foo &amp;ReferenceCreate();
 </pre>
 </div>
 
@@ -2764,11 +2893,12 @@ public:
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; f = Foo()
-&gt;&gt;&gt; s = f.spam()
-&gt;&gt;&gt; print s.thisown
-0
-&gt;&gt;&gt;
+&gt;&gt;&gt; p = PointerCreate()
+&gt;&gt;&gt; p.thisown
+False
+&gt;&gt;&gt; r = ReferenceCreate()
+&gt;&gt;&gt; r.thisown
+False
 </pre>
 </div>
 
@@ -2811,10 +2941,10 @@ is assigned to a global variable.  For example:
 <pre>
 &gt;&gt;&gt; f = example.Foo()
 &gt;&gt;&gt; f.thisown
-1
+True
 &gt;&gt;&gt; example.cvar.head = f
 &gt;&gt;&gt; f.thisown
-0
+False
 &gt;&gt;&gt;
 </pre>
 </div>
@@ -2829,12 +2959,12 @@ Similarly, this occurs for members.  For example:
 &gt;&gt;&gt; f = example.Foo()
 &gt;&gt;&gt; g = example.Foo()
 &gt;&gt;&gt; f.thisown
-1
+True
 &gt;&gt;&gt; g.thisown
-1
+True
 &gt;&gt;&gt; f.next = g
 &gt;&gt;&gt; g.thisown
-0
+False
 &gt;&gt;&gt;
 </pre>
 </div>
@@ -2866,7 +2996,7 @@ Now, consider the following Python code:
 &gt;&gt;&gt; n = Node()             # Create a node
 &gt;&gt;&gt; n.set_value(v)         # Set value
 &gt;&gt;&gt; v.thisown
-1
+True
 &gt;&gt;&gt; del v
 </pre>
 </div>
@@ -2886,7 +3016,7 @@ To work around this, it is always possible to flip the ownership flag. For examp
 
 <div class="targetlang">
 <pre>
-&gt;&gt;&gt; v.thisown = 0
+&gt;&gt;&gt; v.thisown = False
 </pre>
 </div>
 
@@ -3016,7 +3146,7 @@ class MyFoo(mymodule.Foo):
 #       super().__init__(foo) # Alternative construction for Python3
 
     def one(self):
-        print "one from Python"
+        print("one from Python")
 </pre>
 </div>
 
@@ -3116,7 +3246,7 @@ collected.
 <p>
 This relationship can be reversed by calling the special
 <tt>__disown__()</tt> method of the proxy class. After calling this
-method, the <tt>.thisown</tt> flag is set to zero, and the director
+method, the <tt>thisown</tt> flag is set to <tt>False</tt>, and the director
 class increments the reference count of the Python object. When the
 director class is deleted it decrements the reference count. Assuming no
 outstanding references to the Python object remain, the Python object
@@ -3273,7 +3403,22 @@ need to be supported.
 </p>
 
 
-<H3><a name="Python_nn39">33.5.7 Miscellaneous</a></H3>
+<H3><a name="Python_director_thread_safety">33.5.7 Thread safety</a></H3>
+
+
+<p>
+The director implementation uses a <tt>std::map</tt> to manage C++ pointer ownership.
+This code is not thread-safe by default.
+See <a href="Python.hthml#Python_multithreaded">Thread safety</a> for turning on thread-safety.
+This defines a macro called <tt>SWIG_THREADS</tt> which forces the C++ code to then use a mutex
+for managing the pointer ownership, which in turn makes the directors implementation thread-safe.
+</p>
+
+<p>
+Please see the <tt>director_guard.swg</tt> Library file for details of the implementation.
+</p>
+
+<H3><a name="Python_nn39">33.5.8 Miscellaneous</a></H3>
 
 
 <p>
@@ -3282,7 +3427,7 @@ be able to use std::vector, std::string, etc., as you would any other type.
 </p>
 
 <p>
-<b>Note:</b> The director typemaps for return types based in const
+<b>Note:</b> The director typemaps for return types based on const
 references, such as
 
 <div class="code">
@@ -3297,10 +3442,9 @@ class Foo {
 
 <p>
 will work only for simple call scenarios. Usually the resulting code
-is neither thread or reentrant safe. Hence, the user is advised to
+is neither thread nor reentrant safe. Hence, the user is advised to
 avoid returning const references in director methods. For example,
-the user could modify the method interface to use lvalue return
-types, wherever possible, for example
+the user could modify the method interface to use return by value semantics instead.
 </p>
 
 <div class="code">
@@ -3317,41 +3461,6 @@ class Foo {
 If that is not possible, the user should avoid enabling the
 director feature for reentrant, recursive or threaded member
 methods that return const references.
-</p>
-
-<H3><a name="Python_stable_abi">33.5.8 Stable ABI</a></H3>
-
-
-<p>
-By default, the version of Python used to compile the wrappers needs to be the same as that used during runtime.
-Alternatvely, the <a href="https://docs.python.org/3/c-api/stable.html">Python Stable ABI</a> enables a single compiled binary to be used by different versions of Python.
-This is enabled by defining <tt>Py_LIMITED_API</tt> during the compilation of the C/C++ wrapper code and setting this macro to a particular minimum version of Python that one wants to support.
-</p>
-
-<p>
-SWIG supports the stable ABI, but only version 3.4 of Python and later is supported.
-There are two recommended approaches for using SWIG and the stable ABI and both require setting the <tt>Py_LIMITED_API</tt> macro to be set to <tt>0x03040000</tt> as a minimum value (Python 3.4).
-Either set this using <tt>%begin</tt> by adding the following into your interface file so that this macro appears at the beginning of the generated C/C++ code:
-</p>
-
-<div class="code"><pre>
-%begin %{
-#define Py_LIMITED_API 0x03040000
-%}
-</pre></div>
-
-<p>
-or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line option, for example, <tt>-DPy_LIMITED_API=0x03040000</tt>.
-</p>
-
-<p>
-The default SWIG command line options generate code that enable the limited API/stable ABI.
-Some options, such as <tt>-builtin</tt>, <tt>-fast</tt> (used by <tt>-O</tt>) do not use the limited API and hence when <tt>Py_LIMITED_API</tt> is defined there will be missing symbols during compilation.
-Compatibility of user's custom typemaps is of course dependent on the Python APIs used in the typemaps.
-</p>
-
-<p>
-<b>Compatibility Note:</b> Support for the stable ABI was added in SWIG-4.2.0.
 </p>
 
 <H2><a name="Python_nn40">33.6 Common customization features</a></H2>
@@ -3755,7 +3864,7 @@ Now, in Python
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; v = example.Vector(2, 3, 4)
-&gt;&gt;&gt; print v
+&gt;&gt;&gt; print(v)
 Vector(2, 3, 4)
 &gt;&gt;&gt;
 </pre>
@@ -3789,7 +3898,7 @@ Use it like this:
 &gt;&gt;&gt; import example
 &gt;&gt;&gt; v = example.Vector(2, 3, 4)
 &gt;&gt;&gt; w = example.Vector(10, 11, 12)
-&gt;&gt;&gt; print v+w
+&gt;&gt;&gt; print(v+w)
 Vector(12, 14, 16)
 &gt;&gt;&gt;
 </pre>
@@ -4070,6 +4179,93 @@ While this possibly provides the best of both worlds, the time to import the mod
 The command line options mentioned above also apply to wrapped C/C++ global functions, not just class methods.
 </p>
 
+<H3><a name="Python_stable_abi">33.6.6 Stable ABI</a></H3>
+
+
+<p>
+By default, the version of Python used to compile the wrappers needs to be the same as that used during runtime.
+Alternatvely, the <a href="https://docs.python.org/3/c-api/stable.html">Python Stable ABI</a> enables a single compiled binary to be used by different versions of Python.
+This is enabled by defining <tt>Py_LIMITED_API</tt> during the compilation of the C/C++ wrapper code and setting this macro to a particular minimum version of Python that one wants to support.
+</p>
+
+<p>
+SWIG supports the stable ABI, but only version 3.5 of Python and later is supported.
+There are two recommended approaches for using SWIG and the stable ABI and both require setting the <tt>Py_LIMITED_API</tt> macro to be set to <tt>0x03050000</tt> as a minimum value (Python 3.5).
+Either set this using <tt>%begin</tt> by adding the following into your interface file so that this macro appears at the beginning of the generated C/C++ code:
+</p>
+
+<div class="code"><pre>
+%begin %{
+#define Py_LIMITED_API 0x03050000
+%}
+</pre></div>
+
+<p>
+or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line option, for example, <tt>-DPy_LIMITED_API=0x03050000</tt>.
+</p>
+
+<p>
+The default SWIG command line options generate code that enable the limited API/stable ABI.
+Some options, such as <tt>-builtin</tt>, <tt>-fastproxy</tt> (used by <tt>-O</tt>) do not use the limited API and hence when <tt>Py_LIMITED_API</tt> is defined there will be missing symbols during compilation.
+The limited API is only known to work with the default code generation options.
+Compatibility of user's custom typemaps is of course dependent on the Python APIs used in the typemaps.
+</p>
+
+<p>
+As discussed in the official <a href="https://docs.python.org/3/c-api/stable.html">Python Stable ABI</a> documentation, there is no guarantee that code conforms to the Limited API or Stable ABI when defining <tt>Py_LIMITED_API</tt>.
+There are a number of recommendations and caveats detailed there which are worth studying.
+The Stable ABI is also evolving and being modified with each Python release.
+In fact there is a Python C API working group, <a href="https://github.com/capi-workgroup/">capi-workgroup</a>, which was setup in the first half of 2023.
+The <a href="https://github.com/capi-workgroup/problems/issues">capi-workgroup/problems issues</a> is very enlightening reading for anyone using the Stable ABI.
+<a href="https://peps.python.org/pep-0733/">PEP 733</a> came out of the working group and is an evaluation of Python's C API.
+</p>
+
+<p>
+There is a lot of information to digest in this space, but a simple approach would be to follow the offical recommendation of testing an extension with all minor Python versions you want to support,
+and to build with the lowest supported version.
+SWIG supports at least Python 3.4 for the Stable ABI so this would be a good version to compile a SWIG extension against.
+There is also a useful tool <a href="https://github.com/trailofbits/abi3audit/">abi3audit</a> which can be used to check the compiled extension for Stable ABI conformance.
+It can be easily installed with pip and then used to check a SWIG generated shared object or wheel even.
+Note that if you are using it to check a shared object, the shared object must be renamed to have abi3 in the name.
+For example, below is the output on Linux for the class example shipped with SWIG, if <tt>Py_LIMITED_API</tt> is set as described earlier:
+</p>
+
+<div class="shell">
+<pre>
+~/swig/Examples/python/class $ mv _example.so _example.abi3.so
+~/swig/Examples/python/class $ abi3audit --assume-minimum-abi3 3.4 _example.abi3.so
+[22:12:18] WARNING  no wheel to infer abi3 version from; assuming (3.4)
+[22:12:18] _example.abi3.so: 1 extensions scanned; 0 ABI version mismatches and 0 ABI violations found
+</pre>
+</div>
+
+<p>
+If <tt>Py_LIMITED_API</tt> is not set, the check fails, but this should be expected:
+</p>
+
+<div class="shell">
+<pre>
+~/swig/Examples/python/class $ mv _example.so _example.abi3.so
+~/swig/Examples/python/class $ abi3audit --report --assume-minimum-abi3 3.4 _example.abi3.so
+[22:22:27] WARNING  no wheel to infer abi3 version from; assuming (3.4)
+[22:22:27] _example.abi3.so: 1 extensions scanned; 1 ABI version mismatches and 0 ABI violations found
+{"specs": {"_example.abi3.so": {"kind": "object", "object": {"name": "_example.abi3.so",
+"result": {"is_abi3": true, "is_abi3_baseline_compatible": false, "baseline": "3.4", "computed": "3.10",
+"non_abi3_symbols": [], "future_abi3_objects": {"PyUnicode_AsUTF8AndSize": "3.10"}}}}}}
+</pre>
+</div>
+
+<p>
+Note that ABI conformance as measured by <tt>abi3audit</tt> is far from simple and can depend on function inlining.
+There are functions in Python.h, which if inlined, become ABI compliant.
+Your chances of your C or C++ compiler inlining functions is greater with higher compiler optimisation levels.
+So merely by changing your compiler optimisation level may switch your Python extension from being identified as ABI compliant or not.
+</p>
+
+<p>
+<b>Compatibility Note:</b> Support for the stable ABI was added in SWIG-4.2.0.
+</p>
+
 <H2><a name="Python_nn45">33.7 Tips and techniques</a></H2>
 
 
@@ -4129,10 +4325,10 @@ In Python, this allows you to pass simple values.  For example:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = add(3, 4)
-&gt;&gt;&gt; print a
+&gt;&gt;&gt; print(a)
 7
 &gt;&gt;&gt; b = sub(7, 4)
-&gt;&gt;&gt; print b
+&gt;&gt;&gt; print(b)
 3
 &gt;&gt;&gt;
 </pre>
@@ -4192,7 +4388,7 @@ In Python, a mutated parameter shows up as a return value.  For example:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; a = negate(3)
-&gt;&gt;&gt; print a
+&gt;&gt;&gt; print(a)
 -3
 &gt;&gt;&gt;
 </pre>
@@ -4238,9 +4434,9 @@ When used in Python, the function will return multiple values.
 <pre>
 bytes, success = send_message("Hello World")
 if not success:
-    print "Whoa!"
+    print("Whoa!")
 else:
-    print "Sent", bytes
+    print("Sent", bytes)
 </pre>
 </div>
 
@@ -4336,10 +4532,10 @@ In Python, you would use the functions like this:
 <div class="targetlang">
 <pre>
 &gt;&gt;&gt; result = new_intp()
-&gt;&gt;&gt; print result
+&gt;&gt;&gt; print(result)
 _108fea8_p_int
 &gt;&gt;&gt; add(3, 4, result)
-&gt;&gt;&gt; print intp_value(result)
+&gt;&gt;&gt; print(intp_value(result))
 7
 &gt;&gt;&gt;
 </pre>
@@ -4353,7 +4549,7 @@ If you replace <tt>%pointer_functions()</tt> by <tt>%pointer_class(type, name)</
 <pre>
 &gt;&gt;&gt; result = intp()
 &gt;&gt;&gt; add(3, 4, result)
-&gt;&gt;&gt; print result.value()
+&gt;&gt;&gt; print(result.value())
 7
 </pre>
 </div>
@@ -4471,9 +4667,9 @@ just such a typemap is already defined. Just do this:
 
 <div class="code">
 <pre>
-%apply (char *STRING, int LENGTH) { (char *data, int size) };
+%apply (char *STRING, size_t LENGTH) { (char *data, size_t size) };
 ...
-int parity(char *data, int size, int initial);
+int parity(char *data, size_t size, int initial);
 </pre>
 </div>
 
@@ -5149,8 +5345,8 @@ A typemap can be used to handle this case as follows :
     PyTuple_SetItem(o3, 0, o);
     o2 = $result;
     $result = PySequence_Concat(o2, o3);
-    Py_DECREF(o2);
-    Py_DECREF(o3);
+    Py_DecRef(o2);
+    Py_DecRef(o3);
   }
 }
 
@@ -5187,7 +5383,7 @@ function can now be used as follows:
 
 <div class="targetlang"><pre>
 &gt;&gt;&gt; a = spam(4, 5)
-&gt;&gt;&gt; print a
+&gt;&gt;&gt; print(a)
 (0, 2.45, 5.0)
 &gt;&gt;&gt; x, y, z = spam(4, 5)
 &gt;&gt;&gt;
@@ -5265,12 +5461,12 @@ arrays of different sizes.  To do this, you might write a typemap as follows:
   for (i =0; i &lt; $1_dim0; i++) {
     PyObject *o = PySequence_GetItem($input, i);
     if (!PyFloat_Check(o)) {
-      Py_XDECREF(o);
+      Py_DecRef(o);
       PyErr_SetString(PyExc_ValueError, "Expecting a sequence of floats");
       SWIG_fail;
     }
     temp[i] = PyFloat_AsDouble(o);
-    Py_DECREF(o);
+    Py_DecRef(o);
   }
   $1 = &amp;temp[0];
 }
@@ -5311,12 +5507,12 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
   for (i =0; i &lt; size; i++) {
     PyObject *o = PySequence_GetItem(input, i);
     if (!PyFloat_Check(o)) {
-      Py_XDECREF(o);
+      Py_DecRef(o);
       PyErr_SetString(PyExc_ValueError, "Expecting a sequence of floats");
       return 0;
     }
     ptr[i] = PyFloat_AsDouble(o);
-    Py_DECREF(o);
+    Py_DecRef(o);
   }
   return 1;
 }
@@ -6424,7 +6620,7 @@ An input interface file, foo.i, results in the two modules foo.py and _foo.so fo
 
 <p>
 In this configuration, the pure Python module, foo.py, tries to load the C/C++ module, _foo, from the same package foo.py is
-located in.  The package name is determined from the <tt>__package__</tt>
+located in.  The package name is determined from the <tt>__spec__.parent</tt> (or <tt>__package__</tt> before Python 3.4)
 attribute if available, see <a href="https://www.python.org/dev/peps/pep-0366/">PEP 366</a>. Otherwise it is derived from the <tt>__name__</tt>
 attribute given to foo.py by the Python loader that imported foo.py.
 The interface file for this configuration would contain:
@@ -6547,7 +6743,7 @@ The code is generated into the pure Python module, foo.py, and merely imports th
 
 <div class="targetlang">
 <pre>
-if __package__ or '.' in __name__:
+if getattr(globals().get("__spec__"), "parent", None) or __package__ or '.' in __name__:
     from . import _foo
 else:
     import _foo
@@ -6602,9 +6798,9 @@ example:
 <pre>
 %define MODULEIMPORT
 "
-print 'Loading low-level module $module'
+print('Loading low-level module $module')
 import $module
-print 'Module has loaded'
+print('Module has loaded')
 "
 %enddef
 
@@ -6618,9 +6814,9 @@ This will of course generate the following into the pure Python module:
 
 <div class="targetlang">
 <pre>
-print 'Loading low-level module $module'
+print('Loading low-level module $module')
 import _foo
-print 'Module has loaded'
+print('Module has loaded')
 </pre>
 </div>
 
@@ -6632,7 +6828,7 @@ The default import loading code is thus different:
 
 <div class="targetlang">
 <pre>
-if __package__ or '.' in __name__:
+if getattr(globals().get("__spec__"), "parent", None) or __package__ or '.' in __name__:
     from ._foo import *
 else:
     from _foo import *
@@ -7332,6 +7528,15 @@ prohibiting it.
 <H2><a name="Python_multithreaded">33.13 Support for Multithreaded Applications</a></H2>
 
 
+<p>
+This section discusses multithreading for use in a traditional Python interpreter which uses
+the Global Interpreter Lock (GIL). It also discusses the special free threading builds of Python
+which have the GIL disabled.
+</p>
+
+<H3><a name="Python_thread_UI">33.13.1 Enabling Multithreading Support and the GIL</a></H3>
+
+
 <p>By default, SWIG does not enable support for multithreaded Python applications.  More
 specifically, the Python wrappers generated by SWIG will not release the
     Python's interpreter's Global Interpreter Lock (GIL) when wrapped C/C++ code is
@@ -7343,8 +7548,6 @@ will not be able to run any other threads, even if the wrapped C/C++ code is wai
     release of the GIL either for all wrapped code  in a module or on a more selective basis.  The user
     interface for this is described in the next section.
 </p>
-
-<H3><a name="Python_thread_UI">33.13.1 UI for Enabling Multithreading Support</a></H3>
 
 
 <p>The user interface is as follows:</p>
@@ -7361,7 +7564,7 @@ will not be able to run any other threads, even if the wrapped C/C++ code is wai
         <p>
         The <tt>threads</tt> module option in the *.i template file:
         </p>
-        <div class="code"><pre>%module("threads"=1)</pre></div>
+        <div class="code"><pre>%module(threads="1")</pre></div>
       </li>
     </ul>
   </li>
@@ -7387,7 +7590,7 @@ will not be able to run any other threads, even if the wrapped C/C++ code is wai
   </li>
 </ol>
 
-<H3><a name="Python_thread_performance">33.13.2 Multithread Performance</a></H3>
+<H4><a name="Python_thread_performance">33.13.1.1 Multithread Performance</a></H4>
 
 
 <p>
@@ -7431,6 +7634,45 @@ will not be able to run any other threads, even if the wrapped C/C++ code is wai
     needed. Note that for some methods deactivating the
     'thread block' or 'thread allow' code is not an option,
     so, be careful.
+</p>
+
+<H3><a name="Python_free_threading">33.13.2 Free threading Python</a></H3>
+
+
+<p>
+<a href="https://docs.python.org/3/howto/free-threading-python.html">Free threading Python</a>
+disables the Global Interpreter Lock (GIL) for improved parallel execution or multi-threaded
+execution.
+Python free threading was first released with experimental support for Python 3.13 and requires a
+special build of Python where the GIL can be disabled.
+SWIG support for free threading Python is opt-in; you must pass the <tt>-nogil</tt> flag to swig to
+indicate that the wrapped code is thread-safe. The flag has no effect on Python builds that don't
+support free threading. In particular, the Python header files from the free threading build of
+Python must be used when compiling the SWIG generated code.
+This is needed for the C/C++ compiler to be aware of the <tt>Py_GIL_DISABLED</tt> Python macro,
+which identifies the free threading build, and is used by the SWIG generated code.
+Please see the <a href="https://py-free-threading.github.io/">Python free-threading guide</a>
+site for further resources and information around free threading in Python.
+</p>
+
+<p>
+SWIG does not add any thread-unsafe code generation, barring some corner cases where a warning is issued (warning 470 in the <a href="Warnings.html">Warnings chapter</a>).
+However, this does not automatically make the code thread-safe for using in a free threading Python interpreter as it requires
+the code being wrapped by SWIG to also be thread-safe.
+Users must also write thread-safe code and prevent unsafe shared mutation using either Python-level locking in
+Python code or using C/C++ native locking.
+</p>
+
+<p>
+Note that free-threading support is separate to the standard multithreading support described
+in the previous section. For example, one can still declare that functions should or shouldn't
+release the GIL, but that will only have an effect when and if the GIL is available in the
+Python interpreter to begin with. If your wrapped code is thread-unsafe, you should use
+an explicit locking system for it and should not rely on the GIL to protect it.
+</p>
+
+<p>
+<b>Compatibility Note:</b> Support for free threading Python was added in SWIG-4.4.0.
 </p>
 
 </body>

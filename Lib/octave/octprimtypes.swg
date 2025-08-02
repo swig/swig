@@ -226,20 +226,25 @@ SWIG_AsCharPtrAndSize(octave_value ov, char** cptr, size_t* psize, int *alloc)
 %#endif
     && ov.rows() == 1 && ov.columns() == 1)
     ov = ov.cell_value()(0);
-  if (!ov.is_string())
-    return SWIG_TypeError;
-  
-  std::string str=ov.string_value();
-  size_t len=str.size();
-  char* cstr=(char*)str.c_str();
-  if (alloc) {
-    *cptr = %new_copy_array(cstr, len + 1, char);
-    *alloc = SWIG_NEWOBJ;
-  } else if (cptr)
-    *cptr = cstr;
-  if (psize)
-    *psize = len + 1;
-  return SWIG_OK;
+
+    if (ov.is_string()) {
+      std::string str=ov.string_value();
+      size_t len=str.size();
+      char* cstr=(char*)str.c_str();
+      if (alloc) {
+        *cptr = reinterpret_cast< char* >(memcpy(new char[len + 1], cstr, sizeof(char)*(len + 1)));
+        *alloc = SWIG_NEWOBJ;
+      } else if (cptr)
+        *cptr = cstr;
+      if (psize)
+        *psize = len + 1;
+    } else if (!ov.is_defined() || (ov.is_matrix_type() && ov.rows() == 0 && ov.columns() == 0) ) {
+      if (cptr)
+        *cptr = 0;
+    } else {
+      return SWIG_TypeError;
+    }
+    return SWIG_OK;
 }
 }
 

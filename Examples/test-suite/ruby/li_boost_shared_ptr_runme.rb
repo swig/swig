@@ -184,7 +184,7 @@ class Li_boost_shared_ptr_runme
         begin
             Li_boost_shared_ptr::valuetest(k)
             raise RuntimeError, "Failed to catch null pointer"
-        rescue ArgumentError
+        rescue NullReferenceError
         end
 
         if (Li_boost_shared_ptr::pointertest(k) != nil)
@@ -194,7 +194,7 @@ class Li_boost_shared_ptr_runme
         begin
             Li_boost_shared_ptr::reftest(k)
             raise RuntimeError, "Failed to catch null pointer"
-        rescue ArgumentError
+        rescue NullReferenceError
         end
 
         # $owner
@@ -508,7 +508,7 @@ class Li_boost_shared_ptr_runme
         begin
             m.MemberValue = nil
             raise RuntimeError, "Failed to catch null pointer"
-        rescue ArgumentError
+        rescue NullReferenceError
         end
 
         # ////////////////////////////////// Global variables /////////////////
@@ -547,7 +547,7 @@ class Li_boost_shared_ptr_runme
         begin
             Li_boost_shared_ptr.GlobalValue = nil
             raise RuntimeError, "Failed to catch null pointer"
-        rescue ArgumentError
+        rescue NullReferenceError
         end
 
         # plain pointer
@@ -582,7 +582,7 @@ class Li_boost_shared_ptr_runme
         begin
             Li_boost_shared_ptr.GlobalReference = nil
             raise RuntimeError, "Failed to catch null pointer"
-        rescue ArgumentError
+        rescue NullReferenceError
         end
 
         # ////////////////////////////////// Templates ////////////////////////

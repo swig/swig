@@ -43,7 +43,7 @@ Counter.reset_counts()
 exception_thrown = False
 try:
     MovableCopyable.movein(None)
-except ValueError as e:
+except TypeError as e:
     if "invalid null reference" not in str(e):
         raise RuntimeError("incorrect exception message:" + str(e))
     exception_thrown = True

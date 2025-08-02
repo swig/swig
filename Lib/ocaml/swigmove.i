@@ -6,6 +6,8 @@
  * ----------------------------------------------------------------------------- */
 
 %typemap(in, noblock=1) SWIGTYPE MOVE (void *argp = 0) {
-  argp1 = ($&1_ltype) caml_ptr_val($input,$&1_descriptor);
+  argp = ($&1_ltype) caml_ptr_val($input,$&1_descriptor);
   SwigValueWrapper< $1_ltype >::reset($1, ($&1_type)argp);
 }
+
+%typemap(typecheck) SWIGTYPE MOVE = SWIGTYPE;

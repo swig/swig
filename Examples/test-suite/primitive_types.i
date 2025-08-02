@@ -328,7 +328,7 @@ macro(size_t,             pfx, sizet)
     a << pfx##_##name;
     b << def_##name;
     if (a.str() != b.str()) {
-      std::cout << "failing in pfx""_""name : "
+      std::cout << "var_check failing in pfx""_""name : "
 		<< a.str() << " : " << b.str() << std::endl;
     }
   }
@@ -339,7 +339,7 @@ macro(size_t,             pfx, sizet)
     a << pfx##_##name;
     b << def_##name;
     if (a.str() != b.str()) {
-      std::cout << "failing in pfx""_""name : "
+      std::cout << "var_array_check failing in pfx""_""name : "
 		<< a.str() << " : " << b.str() << std::endl;
     }
 %enddef
@@ -352,7 +352,7 @@ macro(size_t,             pfx, sizet)
     a << pfx##_##name(pfx##_##tmp##name);
     b << def_##name;
     if (a.str() != b.str()) {
-      std::cout << "failing in pfx""_""name : "
+      std::cout << "call_check failing in pfx""_""name : "
 		<< a.str() << " : " << b.str() << std::endl;
     }
   }

@@ -1,10 +1,10 @@
 %module cpp11_ref_qualifiers
 
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) ccextra2;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) ccextra3;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) cc2;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) cc3;
-%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK_MSG) cc5;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ccextra2;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) ccextra3;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) cc2;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) cc3;
+%warnfilter(SWIGWARN_TYPEMAP_SWIGTYPELEAK) cc5;
 
 %include <std_string.i>
 

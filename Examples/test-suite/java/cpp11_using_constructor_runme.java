@@ -155,8 +155,8 @@ public class cpp11_using_constructor_runme {
     // Introspection to make sure these are actually generated in the derived class
     try {
       TemplateConstructor1Derived.class.getDeclaredMethod("normal_method", (java.lang.Class[])null);
-      TemplateConstructor1Derived.class.getDeclaredMethod("template_method", new java.lang.Class[]{String.class, String.class});
-      TemplateConstructor1Derived.class.getDeclaredMethod("template_method", new java.lang.Class[]{int.class, String.class});
+      TemplateConstructor1Derived.class.getDeclaredMethod("template_method", String.class, String.class);
+      TemplateConstructor1Derived.class.getDeclaredMethod("template_method", int.class, String.class);
     } catch (NoSuchMethodException e) {
       throw new RuntimeException(e);
     }

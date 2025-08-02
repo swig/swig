@@ -161,35 +161,30 @@ static void SWIGUNUSED SWIG_croak_null()
 
 SWIGRUNTIME const char *
 SWIG_Perl_TypeProxyName(const swig_type_info *type) {
-  if (!type) return NULL;
-  if (type->clientdata != NULL) {
-    return (const char*) type->clientdata;
-  } 
-  else {
-    return type->name;
+  if (type) {
+    if (type->clientdata != NULL) {
+      return (const char *) type->clientdata;
+    }
+    else {
+      return type->name;
+    }
   }
+  return NULL;
 }
 
-/* Identical to SWIG_TypeCheck, except for strcmp comparison */
+/* SWIG_TypeCheck without binary search by hash value */
 SWIGRUNTIME swig_cast_info *
 SWIG_TypeProxyCheck(const char *c, swig_type_info *ty) {
   if (ty) {
-    swig_cast_info *iter = ty->cast;
-    while (iter) {
-      if (strcmp(SWIG_Perl_TypeProxyName(iter->type), c) == 0) {
-        if (iter == ty->cast)
-          return iter;
-        /* Move iter to the top of the linked list */
-        iter->prev->next = iter->next;
-        if (iter->next)
-          iter->next->prev = iter->prev;
-        iter->next = ty->cast;
-        iter->prev = 0;
-        if (ty->cast) ty->cast->prev = iter;
-        ty->cast = iter;
-        return iter;
+    swig_cast_info *head, *cast;
+    head = ty->cast;
+    while (head) {
+      for (cast = head; (cast - head) <= head->value; cast++) {
+        if (strcmp(SWIG_Perl_TypeProxyName(cast->type), c) == 0) {
+          return cast;
+        }
       }
-      iter = iter->next;
+      head = head->next;
     }
   }
   return 0;

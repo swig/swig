@@ -24,7 +24,7 @@ is(li_std_string::test_const_reference("Fum"), "Fum", "Test 3");
 
 # Verify type-checking for %typemap(in) const std::string & {}
 eval { li_std_string::test_const_reference(undef) };
-like($@, qr/\bValueError\b/, "Test 4");
+like($@, qr/\bNullReferenceError\b/, "Test 4");
 
 #
 # Input and output typemaps for pointers and non-const references to

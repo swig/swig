@@ -1,0 +1,9 @@
+cpp_template_missing_base.i:3: Warning 401: Nothing known about base class 'High'. Ignored.
+cpp_template_missing_base.i:8: Warning 402: Base class 'Small' is incomplete.
+cpp_template_missing_base.i:6: Warning 402: Only forward declaration 'Small' was found.
+cpp_template_missing_base.i:15: Warning 401: Nothing known about base class 'B::ABC< A::XYZ >'. Ignored.
+cpp_template_missing_base.i:15: Warning 401: Maybe you forgot to instantiate 'B::ABC< A::XYZ >' using %template.
+cpp_template_missing_base.i:15: Warning 401: Base class 'B::ABC< int >' has no name as it is an empty template instantiated with '%template()'. Ignored.
+cpp_template_missing_base.i:26: Warning 401: The %template directive must be written before 'B::ABC< int >' is used as a base class and be declared with a name.
+cpp_template_missing_base.i:30: Warning 401: Base class 'WrongOrderBase< int >' undefined.
+cpp_template_missing_base.i:35: Warning 401: 'WrongOrderBase< int >' must be defined before it is used as a base class.

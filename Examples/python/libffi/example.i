@@ -2,7 +2,12 @@
 %module example
 
 %{
-#include <unistd.h>
+#ifdef _WIN32
+# include <process.h>
+# define execlp _execlp
+#else
+# include <unistd.h>
+#endif
 #include <ffi.h>
 %}
 

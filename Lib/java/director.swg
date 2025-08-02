@@ -60,11 +60,11 @@ namespace Swig {
   /* Java object wrapper */
   class JObjectWrapper {
   public:
-    JObjectWrapper() : jthis_(SWIG_NULLPTR), weak_global_(true) {
+    JObjectWrapper() : jthis_(NULL), weak_global_(true) {
     }
 
     ~JObjectWrapper() {
-      jthis_ = SWIG_NULLPTR;
+      jthis_ = NULL;
       weak_global_ = true;
     }
 
@@ -103,13 +103,13 @@ namespace Swig {
 #endif
       if (jthis_) {
         if (weak_global_) {
-          if (jenv->IsSameObject(jthis_, SWIG_NULLPTR) == JNI_FALSE)
+          if (jenv->IsSameObject(jthis_, NULL) == JNI_FALSE)
             jenv->DeleteWeakGlobalRef((jweak)jthis_);
         } else
           jenv->DeleteGlobalRef(jthis_);
       }
 
-      jthis_ = SWIG_NULLPTR;
+      jthis_ = NULL;
       weak_global_ = true;
     }
 
@@ -193,7 +193,7 @@ namespace Swig {
       JNIEnv *jenv_;
       int env_status;
     public:
-      JNIEnvWrapper(const Director *director) : director_(director), jenv_(SWIG_NULLPTR), env_status(0) {
+      JNIEnvWrapper(const Director *director) : director_(director), jenv_(NULL), env_status(0) {
 #if defined(__ANDROID__)
         JNIEnv **jenv = &jenv_;
 #else
@@ -202,8 +202,8 @@ namespace Swig {
         env_status = director_->swig_jvm_->GetEnv((void **)&jenv_, JNI_VERSION_1_2);
         JavaVMAttachArgs args;
         args.version = JNI_VERSION_1_2;
-        args.group = SWIG_NULLPTR;
-        args.name = SWIG_NULLPTR;
+        args.group = NULL;
+        args.name = NULL;
 #if defined(SWIG_JAVA_USE_THREAD_NAME)
         char thread_name[64];  // MAX_TASK_COMM_LEN=16 is hard-coded in the Linux kernel and MacOS has MAXTHREADNAMESIZE=64.
         if (Swig::GetThreadName(thread_name, sizeof(thread_name)) == 0) {
@@ -267,7 +267,7 @@ namespace Swig {
 #if defined(DEBUG_DIRECTOR_OWNED)
       std::cout << "Swig::Director::disconnect_director_self(" << jobj << ")" << std::endl;
 #endif
-      if (jobj && jenv->IsSameObject(jobj, SWIG_NULLPTR) == JNI_FALSE) {
+      if (jobj && jenv->IsSameObject(jobj, NULL) == JNI_FALSE) {
         jmethodID disconn_meth = jenv->GetMethodID(jenv->GetObjectClass(jobj), disconn_method, "()V");
         if (disconn_meth) {
 #if defined(DEBUG_DIRECTOR_OWNED)
@@ -280,11 +280,11 @@ namespace Swig {
 
     jclass swig_new_global_ref(JNIEnv *jenv, const char *classname) {
       jclass clz = jenv->FindClass(classname);
-      return clz ? (jclass)jenv->NewGlobalRef(clz) : SWIG_NULLPTR;
+      return clz ? (jclass)jenv->NewGlobalRef(clz) : NULL;
     }
 
   public:
-    Director(JNIEnv *jenv) : swig_jvm_((JavaVM *) SWIG_NULLPTR), swig_self_() {
+    Director(JNIEnv *jenv) : swig_jvm_((JavaVM *) NULL), swig_self_() {
       /* Acquire the Java VM pointer */
       jenv->GetJavaVM(&swig_jvm_);
     }
@@ -329,9 +329,9 @@ namespace Swig {
   // Simple holder for a Java string during exception handling, providing access to a c-style string
   class JavaString {
   public:
-    JavaString(JNIEnv *jenv, jstring jstr) : jenv_(jenv), jstr_(jstr), cstr_(SWIG_NULLPTR) {
+    JavaString(JNIEnv *jenv, jstring jstr) : jenv_(jenv), jstr_(jstr), cstr_(NULL) {
       if (jenv_ && jstr_)
-	cstr_ = (const char *) jenv_->GetStringUTFChars(jstr_, SWIG_NULLPTR);
+	cstr_ = (const char *) jenv_->GetStringUTFChars(jstr_, NULL);
     }
 
     ~JavaString() {
@@ -372,7 +372,7 @@ namespace Swig {
 
     // Get exception message by calling Java method Throwable.getMessage()
     static jstring exceptionMessageFromThrowable(JNIEnv *jenv, jthrowable throwable) {
-      jstring jmsg = SWIG_NULLPTR;
+      jstring jmsg = NULL;
       if (jenv && throwable) {
 	jenv->ExceptionClear(); // Cannot invoke methods with any pending exceptions
 	jclass throwclz = jenv->GetObjectClass(throwable);
@@ -382,7 +382,7 @@ namespace Swig {
 	  if (getMessageMethodID)
 	    jmsg = (jstring)jenv->CallObjectMethod(throwable, getMessageMethodID);
 	}
-	if (jmsg == SWIG_NULLPTR && jenv->ExceptionCheck())
+	if (jmsg == NULL && jenv->ExceptionCheck())
 	  jenv->ExceptionClear();
       }
       return jmsg;
@@ -396,7 +396,7 @@ namespace Swig {
   public:
 
     // Construct exception from a Java throwable
-    DirectorException(JNIEnv *jenv, jthrowable throwable) : jenv_(jenv), throwable_(throwable), classname_(SWIG_NULLPTR), msg_(SWIG_NULLPTR) {
+    DirectorException(JNIEnv *jenv, jthrowable throwable) : jenv_(jenv), throwable_(throwable), classname_(NULL), msg_(NULL) {
 
       // Call Java method Object.getClass().getName() to obtain the throwable's class name (delimited by '/')
       if (jenv && throwable) {
@@ -411,7 +411,7 @@ namespace Swig {
               // Copy strings, since there is no guarantee that jenv will be active when handled
               if (jstr_classname) {
                 JavaString jsclassname(jenv, jstr_classname);
-                const char *classname = jsclassname.c_str(SWIG_NULLPTR);
+                const char *classname = jsclassname.c_str(NULL);
                 if (classname)
                   classname_ = copypath(classname);
               }
@@ -421,19 +421,19 @@ namespace Swig {
       }
 
       JavaExceptionMessage exceptionmsg(jenv, throwable);
-      msg_ = copystr(exceptionmsg.message(SWIG_NULLPTR));
+      msg_ = copystr(exceptionmsg.message(NULL));
     }
 
     // More general constructor for handling as a java.lang.RuntimeException
-    DirectorException(const char *msg) : jenv_(SWIG_NULLPTR), throwable_(SWIG_NULLPTR), classname_(SWIG_NULLPTR), msg_(msg ? copystr(msg) : SWIG_NULLPTR) {
+    DirectorException(const char *msg) : jenv_(NULL), throwable_(NULL), classname_(NULL), msg_(msg ? copystr(msg) : NULL) {
     }
 
-    ~DirectorException() throw() {
+    ~DirectorException() SWIG_NOEXCEPT {
       delete[] classname_;
       delete[] msg_;
     }
 
-    const char *what() const throw() {
+    const char *what() const SWIG_NOEXCEPT {
       return msg_ ? msg_ : "Unspecified DirectorException message";
     }
 
@@ -446,7 +446,7 @@ namespace Swig {
           jthrowable throwable = jenv->ExceptionOccurred();
           if (throwable && jenv->IsSameObject(throwable, throwable_) == JNI_FALSE) {
             jenv->ExceptionClear();
-            throwable = SWIG_NULLPTR;
+            throwable = NULL;
           }
           if (!throwable)
             jenv->Throw(throwable_);
@@ -454,8 +454,8 @@ namespace Swig {
           // Try and reconstruct original exception, but original stacktrace is not reconstructed
           jenv->ExceptionClear();
 
-          jmethodID ctorMethodID = SWIG_NULLPTR;
-          jclass throwableclass = SWIG_NULLPTR;
+          jmethodID ctorMethodID = NULL;
+          jclass throwableclass = NULL;
           if (classname_) {
             throwableclass = jenv->FindClass(classname_);
             if (throwableclass)
@@ -492,7 +492,7 @@ namespace Swig {
     }
 
     static char *copystr(const char *srcmsg) {
-      char *target = SWIG_NULLPTR;
+      char *target = NULL;
       if (srcmsg) {
 	size_t msglen = strlen(srcmsg) + 1;
 	target = new char[msglen];

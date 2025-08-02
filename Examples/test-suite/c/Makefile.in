@@ -1,0 +1,250 @@
+#######################################################################
+# Makefile for C test-suite
+#######################################################################
+
+LANGUAGE     = c
+C            = gcc
+CXX          = g++
+RUNMESUFFIX  = _runme
+srcdir       = @srcdir@
+top_srcdir   = ../@top_srcdir@
+top_builddir = ../@top_builddir@
+
+CPP_TEST_CASES := \
+				 c_backend_cpp_natural_std_string \
+				 c_backend_cpp_exception
+
+CPP11_TEST_CASES := \
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_nullptr_in_containers \
+	cpp11_shared_ptr_overload \
+	cpp11_shared_ptr_upcast \
+
+# The following tests are currently broken and need to be fixed.
+FAILING_C_TESTS := \
+    arrays \
+    funcptr \
+    function_typedef \
+    lextype \
+    li_carrays \
+    nested \
+    nested_extend_c \
+    nested_structs \
+    typedef_struct \
+    union_parameter \
+    unions \
+
+FAILING_CPP_TESTS := \
+    apply_signed_char \
+    array_member \
+    array_typedef_memberin \
+    arrayref \
+    arrays_dimensionless \
+    arrays_global \
+    arrays_global_twodim \
+    assign_const \
+    assign_reference \
+    cpp_enum \
+    constant_pointers \
+    director_unwrap \
+    director_unwrap_result \
+    enum_thorough \
+    extend \
+    extend_default \
+    extern_c \
+    extern_template_method \
+    funcptr_cpp \
+    global_scope_types \
+    grouping \
+    import_nomodule \
+    li_attribute \
+    li_attribute_template \
+    li_boost_shared_ptr_attribute \
+    li_std_auto_ptr \
+    li_std_deque \
+    li_std_wstring \
+    li_windows \
+    member_funcptr_galore \
+    member_pointer \
+    member_pointer_const \
+    mixed_types \
+    nested_class \
+    private_assign \
+    special_variable_macros \
+    string_constants \
+    template_basic \
+    template_default \
+    template_enum \
+    template_explicit \
+    template_function_parm \
+    template_template_parameters \
+    template_typedef_fnc \
+    typedef_array_member \
+    typedef_funcptr \
+    typedef_struct_cpp \
+    typemap_namespace \
+    typemap_various \
+    using_extend \
+    using_extend_flatten \
+    varargs \
+    varargs_overload \
+    virtual_poly \
+    cpp11_ref_qualifiers \
+    cpp11_ref_qualifiers_typemaps \
+    cpp11_result_of \
+    cpp11_rvalue_reference \
+    cpp11_rvalue_reference2 \
+    cpp11_rvalue_reference3 \
+    cpp11_type_aliasing \
+
+# Ignore warnings about failing to apply typemaps because none are defined:
+# usually there is no need for special typemaps in C.
+li_typemaps.cpptest li_typemaps_apply.cpptest long_long_apply.cpptest: SWIGOPT += -w453
+
+include $(srcdir)/../common.mk
+
+# Overridden variables here
+
+# Ensure testsuite remains free from SWIG warnings.
+SWIGOPT += -Werror
+
+# Suppress warnings about experimental status and unsupported features -- there are just too many of those for now for these warnings to be useful.
+SWIGOPT += -w524 -w761
+
+%.ctest: SWIGOPT += -nocxx
+
+# Tests for which C++ wrappers currently don't compile.
+contract.cpptest: SWIG_NOCXX = -nocxx # Class derived from a base class with multiple base classes and hence ignored.
+conversion.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type not handled specially.
+conversion_namespace.cpptest: SWIG_NOCXX = -nocxx # Conversion operator name not handled correctly.
+conversion_ns_template.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return not handled specially.
+cpp11_default_delete.cpptest: SWIG_NOCXX = -nocxx # Assignment operator and r-value references not handled.
+cpp11_explicit_conversion_operators.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
+cpp11_noexcept.cpptest: SWIG_NOCXX = -nocxx # Assignment operator.
+default_constructor.cpptest: SWIG_NOCXX = -nocxx # Something weird with OSRSpatialReferenceShadow.
+director_conversion_operators.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
+director_frob.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type.
+extend_template_method.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
+features.cpptest: SWIG_NOCXX = -nocxx # Conversion operator return type not handled specially.
+global_namespace.cpptest: SWIG_NOCXX = -nocxx # Const const reference type.
+li_carrays_cpp.cpptest: SWIG_NOCXX = -nocxx # Arrays not really supported currently.
+li_cdata_cpp.cpptest: SWIG_NOCXX = -nocxx # No support for multiarg typemaps required here.
+member_template.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
+multiple_inheritance_abstract.cpptest: SWIG_NOCXX = -nocxx # Multiple inheritance not supported.
+multiple_inheritance_interfaces.cpptest: SWIG_NOCXX = -nocxx
+multiple_inheritance_nspace.cpptest: SWIG_NOCXX = -nocxx
+multiple_inheritance_shared_ptr.cpptest: SWIG_NOCXX = -nocxx
+namespace_class.cpptest: SWIG_NOCXX = -nocxx # Many broken type names.
+operator_pointer_ref.cpptest: SWIG_NOCXX = -nocxx
+operbool.cpptest: SWIG_NOCXX = -nocxx
+overload_null.cpptest: SWIG_NOCXX = -nocxx
+overload_template.cpptest: SWIG_NOCXX = -nocxx
+overload_template_fast.cpptest: SWIG_NOCXX = -nocxx
+pure_virtual.cpptest: SWIG_NOCXX = -nocxx
+rename1.cpptest: SWIG_NOCXX = -nocxx
+rename2.cpptest: SWIG_NOCXX = -nocxx
+rename3.cpptest: SWIG_NOCXX = -nocxx
+rename4.cpptest: SWIG_NOCXX = -nocxx
+rename_wildcard.cpptest: SWIG_NOCXX = -nocxx
+return_const_value.cpptest: SWIG_NOCXX = -nocxx
+smart_pointer_member.cpptest: SWIG_NOCXX = -nocxx
+smart_pointer_template_const_overload.cpptest: SWIG_NOCXX = -nocxx
+smart_pointer_templatemethods.cpptest: SWIG_NOCXX = -nocxx # Wrong form of template function name.
+struct_initialization_cpp.cpptest: SWIG_NOCXX = -nocxx # Arrays in initialization not supported.
+template_const_ref.cpptest: SWIG_NOCXX = -nocxx
+template_default_arg_overloaded.cpptest: SWIG_NOCXX = -nocxx
+template_inherit_abstract.cpptest: SWIG_NOCXX = -nocxx
+template_methods.cpptest: SWIG_NOCXX = -nocxx
+template_nested.cpptest: SWIG_NOCXX = -nocxx
+template_nested_flat.cpptest: SWIG_NOCXX = -nocxx
+template_qualifier.cpptest: SWIG_NOCXX = -nocxx
+template_static.cpptest: SWIG_NOCXX = -nocxx
+typemap_array_qualifiers.cpptest: SWIG_NOCXX = -nocxx # Arrays not supported.
+valuewrapper_const.cpptest: SWIG_NOCXX = -nocxx # Misplaced const.
+
+# Avoid conflict with the C++ keyword for some tests.
+SWIG_NS = $*
+
+dynamic_cast.cpptest: SWIG_NS = dyn_cast
+typename.cpptest: SWIG_NS = type_name
+
+%.multicpptest: SWIGOPT += -namespace $*
+
+%.cpptest: SWIGOPT += -namespace $(SWIG_NS) $(SWIG_NOCXX)
+
+SRCDIR       = ../$(srcdir)/
+
+# Make function to check if we have an executable test for the given test base name.
+define has_runme
+-f $(srcdir)/$1$(RUNMESUFFIX).c -o -f $(srcdir)/$1$(RUNMESUFFIX).cxx
+endef
+
+# Rules for the different types of tests
+%.cpptest: 
+	$(setup)
+	+(cd $* && $(swig_and_compile_cpp))
+	+if [ $(call has_runme,$*) ]; then \
+	  $(do_run_testcase); \
+	else \
+	  cd $* && $(call syntax_check_testcase,$*); \
+	fi
+
+%.ctest:
+	$(setup)
+	+(cd $* && $(swig_and_compile_c))
+	+if [ $(call has_runme,$*) ]; then \
+	  $(do_run_testcase); \
+	else \
+	  cd $* && $(call syntax_check_testcase,$*,_c); \
+	fi
+
+%.multicpptest: 
+	$(setup)
+	+(cd $* && $(swig_and_compile_multi_cpp))
+	+if [ $(call has_runme,$*) ]; then \
+	  $(do_run_testcase); \
+	else \
+	  cd $* && for f in `cat $(top_srcdir)/$(EXAMPLES)/$(TEST_SUITE)/$*.list`; do \
+	    $(call syntax_check_testcase,$${f}) || exit 1; \
+	  done; \
+	fi
+
+# Makes a directory for the testcase if it does not exist
+setup = \
+	if [  $(call has_runme,$*) ]; then	  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing testcase $* (with run test) under $(LANGUAGE)" ; \
+	else								  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing testcase $* under $(LANGUAGE)" ;		  \
+	fi;								  \
+	if [ ! -d $* ]; then						  \
+		mkdir $*;						  \
+	fi;
+
+# Checks the header syntax if there is no runnable testcase for it.
+#
+# The optional second argument can be "_c" to check syntax using C compiler only
+# (by default both C and C++ compilers are used).
+syntax_check_testcase = \
+	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	  SRCDIR='$(SRCDIR)' \
+	  INTERFACEDIR='$(INTERFACEDIR)' \
+	  C_HEADER=$1_wrap.h \
+	  c_syntax_check$2
+
+# Compiles C files then runs the testcase unconditionally.
+do_run_testcase = \
+	$(MAKE) -C $* -f $(top_builddir)/$(EXAMPLES)/Makefile \
+	  SRCDIR='$(SRCDIR)' \
+	  RUNME=$*$(RUNMESUFFIX) \
+	  RUNME_EXT=$(patsubst .%,%,$(suffix $(wildcard $(srcdir)/$*$(RUNMESUFFIX).c*))) \
+	  TARGET='$*' \
+	  c_run
+
+# Clean: remove testcase directories
+%.clean:
+	@if [ -d $* ]; then \
+		rm -rf $*; \
+	fi;
+
+clean:
+	@rm -f *_wrap.* *~ *.exe *.dll *.so *.out *runme

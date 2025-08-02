@@ -1,5 +1,7 @@
 %module cpp11_auto_variable
 
+%ignore func();
+
 %inline %{
 
 static auto t = true;
@@ -26,6 +28,9 @@ static constexpr auto Foo2 = Foo;
 static auto Bar3 = f ? zero : t;
 static constexpr auto Foo3 = f ? f : one;
 
+int func() { return 1; }
+static constexpr auto NOEXCEPT_FUNC = noexcept(func);
+
 %}
 
 // SWIG currently can't deduce the type for examples below.
@@ -36,12 +41,23 @@ static constexpr auto Foo3 = f ? f : one;
 %warnfilter(SWIGWARN_CPP11_AUTO) Bad4;
 
 %inline %{
-
 static auto Bad1 = &t;
 static constexpr auto Bad2 = &f;
 static auto Bad3 = &zero;
 static constexpr auto Bad4 = &one;
+%}
+%{
+// Wunused-variable warning suppression
+bool warning_suppression() {
+  return Bad1 || Bad3;
+}
+%}
 
+%inline %{
+// Concatenation of a literal with an encoding prefix and one without
+// was added in C++11.
+static auto wstring_lit_len1 = sizeof(L"123" "456") / sizeof(wchar_t) - 1;
+static auto wstring_lit_len2 = sizeof("123" L"456") / sizeof(wchar_t) - 1;
 %}
 
 %inline %{
@@ -49,4 +65,19 @@ static constexpr auto Bad4 = &one;
 // FIXME: Not currently handled by SWIG's parser:
 //static auto constexpr greeting = "Hello";
 
+%}
+
+%{
+// Suppress -Wparentheses warnings since we're testing correct handling of
+// operator precedence in the absence of parentheses to enforce the order.
+#ifdef __GNUC__
+# pragma GCC diagnostic ignored "-Wparentheses"
+#endif
+%}
+%inline %{
+// Regression test for #3058.
+auto CAST_HAD_WRONG_PRECEDENCE1 = (0)*1+2;
+auto CAST_HAD_WRONG_PRECEDENCE2 = (0)&1|2;
+auto CAST_HAD_WRONG_PRECEDENCE3 = (0)-1|2;
+auto CAST_HAD_WRONG_PRECEDENCE4 = (0)+1|2;
 %}

@@ -68,10 +68,8 @@ This chapter describes SWIG's support of Ocaml.
 </p>
 
 <p>
-Ocaml is a relatively recent addition to the ML family,
-and is a recent addition to SWIG.  It's the second compiled, typed
-language to be added.  Ocaml has widely acknowledged benefits for engineers,
-mostly derived from a sophisticated type system, compile-time checking
+Ocaml was the second compiled, typed language to be added to SWIG.
+Ocaml has a sophisticated type system, compile-time checking
 which eliminates several classes of common programming errors, and good
 native performance.  While all of this is wonderful, there are well-written
 C and C++ libraries that Ocaml users will want to take advantage of as
@@ -92,7 +90,8 @@ If you're not familiar with the Objective Caml language, you can visit
 
 
 <p>
-SWIG is compatible with OCaml 3.12.0 and above.  Given the choice,
+SWIG is known to be compatible with OCaml 4.13.1 and above - older versions
+are not regularly tested.  Given the choice,
 you should use the latest stable release.  The SWIG Ocaml module has
 been tested on Linux (x86, PPC, Sparc) and Cygwin on Windows.  The
 best way to determine whether your system will work is to compile the
@@ -260,7 +259,16 @@ option is not needed when you build native code.
 
 
 <p>
-As mentioned above, .cxx files need special
+Ocaml's C extension API unfortunately defines a <tt>value</tt> typedef - this
+overly-generic name can collide with the C or C++ API being wrapped if it
+defines a variable, function, member or type also called <tt>value</tt>.
+Prior to SWIG 4.2.1, SWIG attempted to work around this but the hack used
+itself caused problems so we've removed it.  The problem is not one SWIG
+created, nor one SWIG can really solve.
+</p>
+
+<p>
+As mentioned earlier, C++ files need special
 handling to be compiled with <tt>ocamlc</tt>.  Other than that, C code
 that uses <tt>class</tt> as a non-keyword, and C code that is too
 liberal with pointer types may not compile under the C++ compiler.

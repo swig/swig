@@ -1377,13 +1377,15 @@ add exception specification to functions or globally (respectively).
 
 
 <p>
-Since SWIG-3.0.0 C++ namespaces are supported via the %nspace feature.
+C++ namespaces are supported via the %nspace feature.
 </p>
-<p> Namespaces are mapped into Lua tables. Each of those tables contains names that were defined within appropriate namespace. Namespaces structure (a.k.a nested namespaces) is preserved. Consider the following C++ code:
+<p> Namespaces are mapped into Lua tables. Each of those tables contains names that were defined within an appropriate namespace. Namespace hierarchies (a.k.a nested namespaces) are preserved. Consider the following C++ code:
 </p>
-<div class="code"><pre>%module example
-%nspace MyWorld::Nested::Dweller;
+<div class="code"><pre>
+%module example
+
 %nspace MyWorld::World;
+%nspace MyWorld::Nested::Dweller;
 
 int module_function() { return 7; }
 int module_variable = 9;
@@ -1411,34 +1413,69 @@ Now, from Lua usage is as follows:
 
 <div class="targetlang"><pre>
 &gt; print(example.module_function())
-7
+7.0
 &gt; print(example.module_variable)
-9
+9.0
 &gt; print(example.MyWorld.World():create_world())
-17
-&gt; print(example.MyWorld.World.world_max_count)
-9
+17.0
+&gt; print(example.MyWorld.World().world_max_count)
+9.0
 &gt; print(example.MyWorld.Nested.Dweller.MALE)
 0
 &gt; print(example.MyWorld.Nested.Dweller.count())
-19
-&gt;
+19.0
 </pre></div>
+
+<p>
+The hierarchies in Lua are the same as the C++ hierarchies when using <tt>%nspace</tt>,
+however, we could instead completely change these hierarchies with <tt>%nspacemove</tt>.
+Consider the code above with the two <tt>%nspace</tt> lines of code removed and replaced with the following:
+</p>
+
+<div class="code"><pre>
+%nspacemove(DifferentWorld::SubSpace1::SubSpace2) MyWorld::World;
+%nspacemove(DifferentWorld) MyWorld::Nested::Dweller;
+</pre></div>
+
+<p>
+The Lua code uses the completely modified hierarchies:
+</p>
+
+<div class="targetlang"><pre>
+&gt; print(example.module_function())
+7.0
+&gt; print(example.module_variable)
+9.0
+&gt; print(example.DifferentWorld.SubSpace1.SubSpace2.World():create_world())
+17.0
+&gt; print(example.DifferentWorld.SubSpace1.SubSpace2.World().world_max_count)
+9.0
+&gt; print(example.DifferentWorld.Dweller.MALE)
+0
+&gt; print(example.DifferentWorld.Dweller.count())
+19.0
+</pre></div>
+
 <H4><a name="Lua_nn27">29.3.17.1 Compatibility Note </a></H4>
 
+
+<p>
+The nspace feature was first supported by the Lua module in SWIG-3.0.0
+</p>
 
 <p>
 If SWIG is running in a backwards compatible way, i.e. without the <tt>-no-old-metatable-bindings</tt> option, then additional old-style names are generated (notice the underscore):
 </p>
 <div class="targetlang"><pre>
-9
 &gt; print(example.MyWorld.Nested.Dweller_MALE)
 0
 &gt; print(example.MyWorld.Nested.Dweller_count())
-11
-&gt;
+19.0
 </pre></div>
 
+<p>
+The ability to move symbols into different namespaces via <tt>%nspacemove</tt> was introduced in SWIG-4.3.0.
+</p>
 
 <H4><a name="Lua_nn29">29.3.17.2 Names </a></H4>
 

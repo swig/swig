@@ -1,7 +1,7 @@
 %module friends_template
 
 #if defined(SWIGOCTAVE)
-%warnfilter(SWIGWARN_IGNORE_OPERATOR_RSHIFT_MSG) operator>>;
+%warnfilter(SWIGWARN_IGNORE_OPERATOR_RSHIFT) operator>>;
 #endif
 
 

@@ -9,6 +9,49 @@
 #include <numeric>
 %}
 
+#if 1
+#if defined(SWIGJAVA) && JAVA_VERSION_MAJOR < 21
+// Test these methods which were removed in swig-4.0 as JDK added the same methods
+// in the java.util.AbstractSequentialList base but unfortunately two of them use
+// a different return type.
+%extend std::list {
+  void removeLast() { $self->pop_back(); }
+  void removeFirst() { $self->pop_front(); }
+  void addLast(const T &value) { $self->push_back(value); }
+  void addFirst(const T &value) { $self->push_front(value); }
+}
+#endif
+#else
+// Alternative implementation suggested in https://github.com/swig/swig/issues/3156
+%extend std::list {
+%proxycode %{
+  public $typemap(jboxtype, T) removeLast() {
+    if (this.isEmpty()) {
+      throw new java.util.NoSuchElementException();
+    } else {
+      return this.remove(this.size() - 1);
+    }
+  }
+
+  public $typemap(jboxtype, T) removeFirst() {
+    if (this.isEmpty()) {
+      throw new java.util.NoSuchElementException();
+    } else {
+      return this.remove(0);
+    }
+  }
+
+  public void addLast($typemap(jboxtype, T) value) {
+    this.add(value);
+  }
+
+  public void addFirst($typemap(jboxtype, T) value) {
+    this.add(0, value);
+  }
+%}
+}
+#endif
+
 %template(BoolList) std::list<bool>;
 %template(CharList) std::list<char>;
 %template(ShortList) std::list<short>;

@@ -2,6 +2,12 @@
 
 // %constant and struct
 
+#ifdef SWIGGUILE
+// Suppress warning for function pointer constant which SWIG/Guile doesn't
+// currently handle.
+%warnfilter(SWIGWARN_TYPEMAP_CONST_UNDEF) TYPE1CFPTR1DEF_CONSTANT1;
+#endif
+
 #ifdef SWIGOCAML
 %warnfilter(SWIGWARN_PARSE_KEYWORD) val;
 #endif
@@ -52,3 +58,13 @@ Type1 getType1Instance() { return Type1(111); }
 /* Regular constant */
 %constant int TYPE_INT = 0;
 %constant enum EnumType newValue = enumValue;
+
+/* Test handling of %constant with an implicit type which SWIG can't handle. */
+#pragma SWIG nowarn=SWIGWARN_PARSE_UNSUPPORTED_VALUE
+%ignore ignored_int_variable;
+%inline %{
+int ignored_int_variable = 42;
+%}
+%constant unsupported_constant_value1 = &ignored_int_variable;
+%constant unsupported_constant_value2 = getType1Instance;
+%constant unsupported_constant_value3 = &getType1Instance;

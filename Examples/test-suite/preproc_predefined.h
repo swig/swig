@@ -1,5 +1,6 @@
 /* This list will need updating when new target languages are added. */
 #if (0\
+  +defined(SWIGC)\
   +defined(SWIGCSHARP)\
   +defined(SWIGD)\
   +defined(SWIGGO)\
@@ -7,7 +8,6 @@
   +defined(SWIGJAVA)\
   +defined(SWIGJAVASCRIPT)\
   +defined(SWIGLUA)\
-  +defined(SWIGMZSCHEME)\
   +defined(SWIGOCAML)\
   +defined(SWIGOCTAVE)\
   +defined(SWIGPERL)\

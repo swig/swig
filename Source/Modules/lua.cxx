@@ -269,9 +269,6 @@ public:
     /* Set language-specific configuration file */
     SWIG_config_file("lua.swg");
 
-    /* Set typemap language */
-    SWIG_typemap_lang("lua");
-
     /* Enable overloaded methods support */
     allow_overloading();
   }
@@ -516,7 +513,7 @@ public:
     String *iname = Getattr(n, "sym:name");
     String *lua_name = Getattr(n, "lua:name");
     assert(lua_name);
-    SwigType *d = Getattr(n, "type");
+    SwigType *returntype = Getattr(n, "type");
     ParmList *l = Getattr(n, "parms");
     Parm *p;
     String *tm;
@@ -746,9 +743,9 @@ public:
       Printf(f->code, "%s\n", tm);
       //      returnval++;
     } else {
-      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(d, 0), name);
+      Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), name);
     }
-    emit_return_variable(n, d, f);
+    emit_return_variable(n, returntype, f);
 
     /* Output argument output code */
     Printv(f->code, outarg, NIL);
@@ -782,6 +779,9 @@ public:
 
     /* Substitute the cleanup code */
     Replaceall(f->code, "$cleanup", cleanup);
+
+    bool isvoid = !Cmp(returntype, "void");
+    Replaceall(f->code, "$isvoid", isvoid ? "1" : "0");
 
     /* Substitute the function name */
     Replaceall(f->code, "$symname", iname);
@@ -839,8 +839,9 @@ public:
     /* Last node in overloaded chain */
 
     int maxargs;
+    bool check_emitted = false;
     String *tmp = NewString("");
-    String *dispatch = Swig_overload_dispatch(n, "return %s(L);", &maxargs);
+    String *dispatch = Swig_overload_dispatch(n, "return %s(L);", &maxargs, &check_emitted);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 
@@ -861,12 +862,14 @@ public:
 
     Printv(f->def, "static int ", wname, "(lua_State* L) {", NIL);
     Wrapper_add_local(f, "argc", "int argc");
-    Printf(tmp, "int argv[%d]={1", maxargs + 1);
-    for (int i = 1; i <= maxargs; i++) {
-      Printf(tmp, ",%d", i + 1);
+    if (maxargs > 0 && check_emitted) {
+      Printf(tmp, "int argv[%d]={1", maxargs + 1);
+      for (int i = 1; i <= maxargs; i++) {
+	Printf(tmp, ",%d", i + 1);
+      }
+      Printf(tmp, "}");
+      Wrapper_add_local(f, "argv", tmp);
     }
-    Printf(tmp, "}");
-    Wrapper_add_local(f, "argv", tmp);
     Printf(f->code, "argc = lua_gettop(L);\n");
 
     Replaceall(dispatch, "$args", "self,args");
@@ -1050,8 +1053,7 @@ public:
       lua_name = iname;
     String *nsname = Copy(iname);
     SwigType *type = Getattr(n, "type");
-    String *rawval = Getattr(n, "rawval");
-    String *value = rawval ? rawval : Getattr(n, "value");
+    String *value = Getattr(n, "value");
     String *tm;
     String *lua_name_v2 = 0;
     String *tm_v2 = 0;

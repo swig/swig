@@ -27,13 +27,13 @@ class string;
 
 %typemap(in, canthrow=1) string, const string &
 %{ if (!$input) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "null string");
+    SWIG_DSetPendingException(SWIG_DNullReferenceException, "null string");
     return $null;
   }
   $1.assign($input); %}
 %typemap(in, canthrow=1) const string &
 %{ if (!$input) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "null string");
+    SWIG_DSetPendingException(SWIG_DNullReferenceException, "null string");
     return $null;
    }
    $*1_ltype $1_str($input);
@@ -52,14 +52,14 @@ class string;
 
 %typemap(directorout, canthrow=1) string
 %{ if (!$input) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "null string");
+    SWIG_DSetPendingException(SWIG_DNullReferenceException, "null string");
     return $null;
   }
   $result.assign($input); %}
 
 %typemap(directorout, canthrow=1, warning=SWIGWARN_TYPEMAP_THREAD_UNSAFE_MSG) const string &
 %{ if (!$input) {
-    SWIG_DSetPendingException(SWIG_DIllegalArgumentException, "null string");
+    SWIG_DSetPendingException(SWIG_DNullReferenceException, "null string");
     return $null;
   }
   /* possible thread/reentrant code problem */

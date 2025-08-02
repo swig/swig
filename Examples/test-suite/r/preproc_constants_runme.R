@@ -7,6 +7,5 @@ cacheMetaData(1)
 
 v <- enumToInteger('kValue', '_MyEnum')
 print(v)
-# temporarily removed until fixed (in progress, see Github patch #500)
-#unittest(v,4)
+unittest(v,4)
 q(save="no")

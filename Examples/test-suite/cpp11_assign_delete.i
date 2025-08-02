@@ -170,3 +170,53 @@ struct StaticMembersMemberArrayVarsHolder {
 };
 StaticMembersMemberArrayVars GlobalStaticMembersMemberArrayVars;
 %}
+
+// (5) Test indirectly non-assignable member variables via classes that themselves have non-assignable reference member variables
+%inline %{
+AssignPublic GlobalAssignPublic;
+AssignProtected GlobalAssignProtected;
+AssignPrivate GlobalAssignPrivate;
+
+struct MemberPublicRefVar {
+  AssignPublic& MemberRefVarPublic;
+  MemberPublicRefVar() : MemberRefVarPublic(GlobalAssignPublic) {}
+};
+
+struct MemberProtectedRefVar {
+  MemberProtectedRefVar() : MemberRefVarProtected(GlobalAssignProtected) {}
+protected:
+  AssignProtected& MemberRefVarProtected;
+};
+
+struct MemberPrivateRefVar {
+  MemberPrivateRefVar() : MemberRefVarPrivate(GlobalAssignPrivate) {}
+private:
+  AssignPrivate& MemberRefVarPrivate;
+};
+
+struct MembersMemberRefVars {
+  // These will only have getters
+  MemberPublicRefVar MemberPublic;
+  MemberProtectedRefVar MemberProtected;
+  MemberPrivateRefVar MemberPrivate;
+};
+
+struct StaticMembersMemberRefVars {
+  static MemberPublicRefVar StaticMemberPublic;
+  static MemberProtectedRefVar StaticMemberProtected;
+  static MemberPrivateRefVar StaticMemberPrivate;
+};
+MemberPublicRefVar StaticMembersMemberRefVars::StaticMemberPublic;
+MemberProtectedRefVar StaticMembersMemberRefVars::StaticMemberProtected;
+MemberPrivateRefVar StaticMembersMemberRefVars::StaticMemberPrivate;
+
+MemberPublicRefVar GlobalRefMemberPublic;
+MemberProtectedRefVar GlobalRefMemberProtected;
+MemberPrivateRefVar GlobalRefMemberPrivate;
+
+// Setters and getters available
+struct StaticMembersMemberRefVarsHolder {
+    StaticMembersMemberRefVars Member;
+};
+StaticMembersMemberRefVars GlobalStaticMembersMemberRefVars;
+%}

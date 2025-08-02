@@ -1,7 +1,5 @@
 %module(directors="1",dirprot="1") director_using
 
-%warnfilter(SWIGWARN_PHP_PUBLIC_BASE) FooBar;
-
 %{
 #include <string>
 #include <iostream>

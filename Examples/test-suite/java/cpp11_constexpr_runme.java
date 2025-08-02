@@ -24,9 +24,9 @@ public class cpp11_constexpr_runme {
     check(cpp11_constexpr.DDD(), 40);
 
     ConstExpressions ce = new ConstExpressions(0);
-    check(ce.JJJ, 100);
-    check(ce.KKK, 200);
-    check(ce.LLL, 300);
+    check(ConstExpressions.JJJ, 100);
+    check(ConstExpressions.KKK, 200);
+    check(ConstExpressions.LLL, 300);
     check(ce.MMM(), 400);
     check(ce.NNN(), 500);
   }

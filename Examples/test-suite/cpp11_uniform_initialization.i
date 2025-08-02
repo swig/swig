@@ -18,7 +18,7 @@ struct AltStruct {
   double getY() { return y_; }
  
 private:
-  int x_;
+  int x_, x2_{0};
   double y_;
 };
  

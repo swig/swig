@@ -260,3 +260,22 @@ begin
   lv = LanguageVector.new('crapola')
 rescue
 end
+
+swig_assert_equal("IntVector.new([1,2,3,4,5,6,7,8]).select {|x| x%2 == 1 }.to_s", "\"1357\"", binding)
+
+# Variables
+vh = VariableHolder.new
+vector_append(vh.instance_variable, 10)
+swig_assert_equal("vh.instance_variable[0]", "10", binding)
+vh.instance_variable.clear
+swig_assert_equal("vh.instance_variable.empty?", "true", binding)
+
+vector_append(VariableHolder.static_variable, 20)
+swig_assert_equal("VariableHolder.static_variable[0]", "20", binding)
+VariableHolder.static_variable.clear
+swig_assert_equal("VariableHolder.static_variable.empty?", "true", binding)
+
+vector_append(Li_std_vector::global_variable, 30)
+swig_assert_equal("Li_std_vector::global_variable[0]", "30", binding)
+Li_std_vector::global_variable.clear
+swig_assert_equal("Li_std_vector::global_variable.empty?", "true", binding)

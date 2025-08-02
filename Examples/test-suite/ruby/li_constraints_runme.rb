@@ -54,7 +54,7 @@ have_exception = false
 begin
   test_nonnull(nil)
 rescue => e
-  have_exception = e.class == ArgumentError && e.message == "Received a NULL pointer."
+  have_exception = e.class == NullReferenceError && e.message == "Received a NULL pointer."
 end
 if not have_exception
   raise RuntimeError, "test_nonnull should perform exception with 'null' value"

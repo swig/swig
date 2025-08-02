@@ -11,12 +11,12 @@ check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' python_run
 
 build:
-	cd $(PKG1DIR) && $(MAKE) SWIGOPT='$(SWIGOPT) -relativeimport' LIBS='$(LIBS)' build
+	$(MAKE) -C $(PKG1DIR) SWIGOPT='$(SWIGOPT) -relativeimport' LIBS='$(LIBS)' build
 
 static:
-	cd $(PKG1DIR) && $(MAKE) SWIGOPT='$(SWIGOPT) -relativeimport' LIBS='$(LIBS)' static
+	$(MAKE) -C $(PKG1DIR) SWIGOPT='$(SWIGOPT) -relativeimport' LIBS='$(LIBS)' static
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' python_clean
-	cd py2 && $(MAKE) clean
-	cd py3 && $(MAKE) clean
+	$(MAKE) -C py2 clean
+	$(MAKE) -C py3 clean

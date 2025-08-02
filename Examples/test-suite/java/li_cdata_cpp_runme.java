@@ -13,12 +13,12 @@ public class li_cdata_cpp_runme {
 
   public static void main(String argv[]) throws Throwable
   {
-    byte[] s = "ABC abc".getBytes();
+    byte[] s = "ABC\0abc".getBytes("UTF-8");
     SWIGTYPE_p_void m = li_cdata_cpp.malloc(256);
     li_cdata_cpp.memmove(m, s);
     byte[] ss = li_cdata_cpp.cdata(m, 7);
-    String ss_string = new String(ss);
-    if (!ss_string.equals("ABC abc"))
+    String ss_string = new String(ss, "UTF-8");
+    if (!ss_string.equals("ABC\0abc"))
       throw new RuntimeException("failed got: " + ss_string);
   }
 }

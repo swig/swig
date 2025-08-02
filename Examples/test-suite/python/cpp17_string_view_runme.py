@@ -35,6 +35,8 @@ stringPtr = cpp17_string_view.test_reference_out()
 
 cpp17_string_view.test_reference(stringPtr)
 
+cpp17_string_view.test_multiple("fee", "fi", "fo", "fum")
+
 # Global variables
 s = "initial string"
 if cpp17_string_view.ConstGlobalString != "const global string":

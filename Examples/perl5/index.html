@@ -42,7 +42,7 @@ the steps look like this (Linux):
 <blockquote>
 <pre>
 % swig -perl5 interface.i
-% gcc -fpic -c -Dbool=char -I/usr/lib/perl5/5.00503/i386-linux/CORE interface_wrap.c
+% gcc -fPIC -c -Dbool=char -I/usr/lib/perl5/5.00503/i386-linux/CORE interface_wrap.c
 % gcc -shared interface_wrap.o $(OBJS) -o interface.so 
 % perl
 use interface;

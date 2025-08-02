@@ -2,11 +2,9 @@ var char_binary = require("char_binary");
 
 var t = new char_binary.Test();
 if (t.strlen('hile') != 4) {
-  print(t.strlen('hile'));
   throw("bad multi-arg typemap 1");
 }
 if (t.ustrlen('hile') != 4) {
-  print(t.ustrlen('hile'));
   throw("bad multi-arg typemap 1");
 }
 
@@ -37,7 +35,6 @@ if (t.ustrlen(pc) != 4) {
 
 char_binary.var_pchar = pc;
 if (char_binary.var_pchar != "hola") {
-  print(char_binary.var_pchar);
   throw("bad pointer case (1)");
 }
 

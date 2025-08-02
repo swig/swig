@@ -56,7 +56,11 @@ SWIGINTERN VALUE SWIG_Complex_Imaginary(VALUE obj) {
 %fragment(SWIG_From_frag(Type),"header",fragment="rb_complex_new")
 {
 SWIGINTERNINLINE VALUE
-SWIG_From(Type)(%ifcplusplus(const Type&, Type) c)
+#if defined(__cplusplus)
+SWIG_From_dec(Type)(const Type& c)
+#else
+SWIG_From_dec(Type)(Type c)
+#endif
 {
   VALUE re = rb_float_new(Real(c));
   VALUE im = rb_float_new(Imag(c));

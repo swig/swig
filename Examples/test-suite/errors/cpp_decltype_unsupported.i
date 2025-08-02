@@ -41,10 +41,10 @@ decltype(1 <=> 2) spaceship = (1 <=> 2);
 // Array dereference.
 decltype(("abc"[1])) array_deref = 0;
 constexpr auto array_deref2{"abc"[1]};
+constexpr auto array_deref4 = ("abc"[1]);
 // FIXME: SWIG fails to parse these cases:
 #ifndef SWIG
 decltype("abc"[1]) array_deref3 = 0;
-constexpr auto array_deref4 = ("abc"[1]);
 constexpr auto array_deref5("abc"[1]);
 #endif
 
@@ -52,6 +52,8 @@ constexpr auto array_deref5("abc"[1]);
 // FIXME SWIG fails to parse both these with `Error: Missing ')'. Reached end of input.`
 //decltype(1 < 2) lt_test = 0;
 //decltype(1 > 2) gt_test = 0;
+constexpr auto lt_test2 = 1 < 2;
+constexpr auto gt_test2 = 1 > 2;
 
 // Assignment.
 bool a;

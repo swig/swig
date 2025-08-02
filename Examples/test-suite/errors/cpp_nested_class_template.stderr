@@ -1,0 +1,2 @@
+cpp_nested_class_template.i:7: Warning 325: Nested struct not currently supported (Inner1 ignored)
+cpp_nested_class_template.i:11: Warning 331: Unsupported template nested class 'ns::OuterClass::Inner1< double >' cannot be used to instantiate a full template class with name 'T_OuterClassInner1Double'.

@@ -33,11 +33,15 @@ printf("Foo = %f\n", Foo_get());
 ierr = execstr('gcd(-42, 105)', 'errcatch');
 if ierr <> 20003 then
   error("gcd(-42, 105) must provoke a RunTimeError")
+else
+  errclear()
 end
 
 ierr = execstr('fact(-4)', 'errcatch');
 if ierr <> 20003 then
   error("fact(-4) must provoke a RunTimeError")
+else
+  errclear()
 end
 
 exit

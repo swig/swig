@@ -6,7 +6,7 @@ documentation.
 Last updated: February 23, 2005
 
 The file we are concerned with here should be named langrun.swg.  A good example
-of a simple file is the Lib/mzscheme/mzrun.swg file.  First, a few requirements
+of a simple file is the Lib/ruby/rubyrun.swg file.  First, a few requirements
 and notes:
 
 1) Every function in this file should be declared static.  
@@ -77,7 +77,7 @@ You would then call
 SWIG_InitializeModule(0)
 
 2) If GetModule and SetModule need to take a custom pointer (most notably an
-environment pointer, see tcl or mzscheme), then you should write
+environment pointer, see tcl), then you should write
 swig_module_info *SWIG_Language_GetModule(void *clientdata)
 void SWIG_Language_SetModule(void *clientdata, swig_module_info *mod);
 and also define
@@ -105,7 +105,7 @@ Standard Functions
 These functions are not required and their API is not formalized, but almost all
 language modules implement them for consistency across languages.  Throughout
 this discussion, I will use LangType to represent the underlying language type
-(Scheme_Object * in mzscheme, PyObject * in python, etc)
+(PyObject * in python, etc)
 
 
 

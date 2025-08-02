@@ -5,7 +5,7 @@
 %include "std_vector.i"
 
 %define VECTOR_DOUBLE_JAVAIN_POST
-"      int count$javainput = (int)d$javainput.size();
+"      int count$javainput = d$javainput.size();
       $javainput = new double[count$javainput];
       for (int i=0; i<count$javainput; ++i) {
         $javainput[i] = d$javainput.get(i);
@@ -27,7 +27,7 @@
   "$javaclassname.getCPtr(d$javainput)"
 
 // post only in javain typemap
-%typemap(javain, post="      int size = (int)$javainput.size();\n      for (int i=0; i<size; ++i) {\n        $javainput.set(i, $javainput.get(i)/100);\n      }") std::vector<double> &vpost
+%typemap(javain, post="      int size = $javainput.size();\n      for (int i=0; i<size; ++i) {\n        $javainput.set(i, $javainput.get(i)/100);\n      }") std::vector<double> &vpost
   "$javaclassname.getCPtr($javainput)"
 
 %inline %{

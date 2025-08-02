@@ -22,7 +22,7 @@
 %{
 #include <boost/shared_ptr.hpp>
 #include <boost/intrusive_ptr.hpp>
-#include <boost/detail/atomic_count.hpp>
+#include <boost/smart_ptr/detail/atomic_count.hpp>
 
 // Uncomment macro below to turn on intrusive_ptr memory leak checking as described above
 //#define INTRUSIVE_PTR_WRAPPER

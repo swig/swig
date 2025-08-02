@@ -112,11 +112,9 @@ static String *Swig_clocal(SwigType *t, const_String_or_char_ptr name, const_Str
   default:
     if (value) {
       String *lcaststr = SwigType_lcaststr(t, value);
-      String *lstr = SwigType_lstr(t, 0);
       String *lstrn = SwigType_lstr(t, name);
-      Printf(decl, "%s = (%s) %s", lstrn, lstr, lcaststr);
+      Printf(decl, "%s = %s", lstrn, lcaststr);
       Delete(lcaststr);
-      Delete(lstr);
       Delete(lstrn);
     } else {
       String *lstrname = SwigType_lstr(t, name);
@@ -160,7 +158,7 @@ String *Swig_wrapped_var_type(SwigType *t, int varcref) {
   return ty;
 }
 
-String *Swig_wrapped_member_var_type(SwigType *t, int varcref) {
+static String *Swig_wrapped_member_var_type(SwigType *t, int varcref) {
   SwigType *ty;
 
   if (!Strstr(t, "enum $unnamed")) {
@@ -231,7 +229,7 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
     SwigType *pt = Getattr(p, "type");
     if ((SwigType_type(pt) != T_VOID)) {
       String *local = 0;
-      String *type = Getattr(p, "type");
+      SwigType *type = SwigType_typedef_resolve_all(pt);
       /* default values only emitted if in compact default args mode */
       String *pvalue = (compactdefargs) ? Getattr(p, "value") : 0;
 
@@ -242,27 +240,13 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
       int tycode = SwigType_type(type);
       if (tycode == T_REFERENCE) {
 	if (pvalue) {
-	  SwigType *tvalue;
-	  String *defname, *defvalue, *rvalue, *qvalue;
-	  rvalue = SwigType_typedef_resolve_all(pvalue);
-	  qvalue = SwigType_typedef_qualified(rvalue);
-	  defname = NewStringf("%s_defvalue", lname);
-	  tvalue = Copy(type);
-	  SwigType_del_reference(tvalue);
-	  tycode = SwigType_type(tvalue);
-	  if (tycode != T_USER) {
-	    /* plain primitive type, we copy the def value */
-	    String *lstr = SwigType_lstr(tvalue, defname);
-	    defvalue = NewStringf("%s = %s", lstr, qvalue);
-	    Delete(lstr);
-	  } else {
-	    /* user type, we copy the reference value */
-	    String *str = SwigType_str(type, defname);
-	    defvalue = NewStringf("%s = %s", str, qvalue);
-	    Delete(str);
-	  }
+	  String *rvalue = SwigType_typedef_resolve_all(pvalue);
+	  String *qvalue = SwigType_typedef_qualified(rvalue);
+	  String *defname = NewStringf("%s_defvalue", lname);
+	  String *str = SwigType_str(pt, defname);
+	  String *defvalue = NewStringf("%s = %s", str, qvalue);
 	  Wrapper_add_localv(w, defname, defvalue, NIL);
-	  Delete(tvalue);
+	  Delete(str);
 	  Delete(rvalue);
 	  Delete(qvalue);
 	  Delete(defname);
@@ -270,27 +254,13 @@ int Swig_cargs(Wrapper *w, ParmList *p) {
 	}
       } else if (tycode == T_RVALUE_REFERENCE) {
 	if (pvalue) {
-	  SwigType *tvalue;
-	  String *defname, *defvalue, *rvalue, *qvalue;
-	  rvalue = SwigType_typedef_resolve_all(pvalue);
-	  qvalue = SwigType_typedef_qualified(rvalue);
-	  defname = NewStringf("%s_defrvalue", lname);
-	  tvalue = Copy(type);
-	  SwigType_del_rvalue_reference(tvalue);
-	  tycode = SwigType_type(tvalue);
-	  if (tycode != T_USER) {
-	    /* plain primitive type, we copy the def value */
-	    String *lstr = SwigType_lstr(tvalue, defname);
-	    defvalue = NewStringf("%s = %s", lstr, qvalue);
-	    Delete(lstr);
-	  } else {
-	    /* user type, we copy the reference value */
-	    String *str = SwigType_str(type, defname);
-	    defvalue = NewStringf("%s = %s", str, qvalue);
-	    Delete(str);
-	  }
+	  String *rvalue = SwigType_typedef_resolve_all(pvalue);
+	  String *qvalue = SwigType_typedef_qualified(rvalue);
+	  String *defname = NewStringf("%s_defrvalue", lname);
+	  String *str = SwigType_str(pt, defname);
+	  String *defvalue = NewStringf("%s = %s", str, qvalue);
 	  Wrapper_add_localv(w, defname, defvalue, NIL);
-	  Delete(tvalue);
+	  Delete(str);
 	  Delete(rvalue);
 	  Delete(qvalue);
 	  Delete(defname);
@@ -532,7 +502,10 @@ static String *Swig_cmethod_call(const_String_or_char_ptr name, ParmList *parms,
       String *rcaststr = SwigType_rcaststr(pt, pname);
       if (comma)
 	Append(func, ",");
-      Append(func, rcaststr);
+      if (cparse_cplusplus && SwigType_type(pt) == T_USER)
+	Printv(func, "SWIG_STD_MOVE(", rcaststr, ")", NIL);
+      else
+	Printv(func, rcaststr, NIL);
       Delete(rcaststr);
       Delete(pname);
       comma = 1;
@@ -572,7 +545,7 @@ String *Swig_cconstructor_call(const_String_or_char_ptr name) {
  *
  * ----------------------------------------------------------------------------- */
 
-String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, ParmList *parms, int skip_self) {
+static String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, ParmList *parms, int skip_self) {
   String *func;
   String *nname;
   int i = 0;
@@ -605,7 +578,10 @@ String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, ParmList *p
 	  pname = Copy(Getattr(p, "name"));
       }
       rcaststr = SwigType_rcaststr(pt, pname);
-      Append(func, rcaststr);
+      if (cparse_cplusplus && SwigType_type(pt) == T_USER)
+	Printv(func, "SWIG_STD_MOVE(", rcaststr, ")", NIL);
+      else
+	Printv(func, rcaststr, NIL);
       Delete(rcaststr);
       comma = 1;
       Delete(pname);
@@ -621,11 +597,11 @@ String *Swig_cppconstructor_call(const_String_or_char_ptr name, ParmList *parms)
   return Swig_cppconstructor_base_call(name, parms, 0);
 }
 
-String *Swig_cppconstructor_nodirector_call(const_String_or_char_ptr name, ParmList *parms) {
+static String *Swig_cppconstructor_nodirector_call(const_String_or_char_ptr name, ParmList *parms) {
   return Swig_cppconstructor_base_call(name, parms, 1);
 }
 
-String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmList *parms) {
+static String *Swig_cppconstructor_director_call(const_String_or_char_ptr name, ParmList *parms) {
   return Swig_cppconstructor_base_call(name, parms, 0);
 }
 
@@ -1639,9 +1615,7 @@ int Swig_VargetToFunction(Node *n, int flags) {
   } else {
     String *nname = 0;
     if (Equal(nodeType(n), "constant")) {
-      String *rawval = Getattr(n, "rawval");
-      String *value = rawval ? rawval : Getattr(n, "value");
-      nname = NewStringf("(%s)", value);
+      nname = NewStringf("(%s)", Getattr(n, "value"));
     } else {
       nname = SwigType_namestr(name);
     }

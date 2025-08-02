@@ -73,7 +73,7 @@ code.  SWIG fills this gap.
 There are (at least) two different Go compilers.  The first is the gc compiler
 of the <a href="https://golang.org/doc/install">Go distribution</a>, normally
 invoked via the <a href="https://golang.org/cmd/go/">go tool</a>.
-SWIG supports the gc compiler version 1.2 or later.
+SWIG supports the gc compiler version 1.20 or later.
 The second Go compiler is the <a href="https://golang.org/doc/install/gccgo">
 gccgo compiler</a>, which is a frontend to the GCC compiler suite.
 The interface to C/C++ code is completely different for the two Go compilers.
@@ -372,7 +372,7 @@ class.
 SWIG will represent static methods of C++ classes as ordinary Go
 functions.  SWIG will use names like <tt>ClassNameMethodName</tt>.
 SWIG will give static members getter and setter functions with names
-like <tt>GetClassName_VarName</tt>.
+like <tt>GetClassNameVarName</tt>.
 </p>
 
 <p>

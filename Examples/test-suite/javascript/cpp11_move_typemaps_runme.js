@@ -28,3 +28,24 @@ try {
 }
 if (!exception_thrown)
   throw new Error("double usage of take should have been an error");
+
+
+cpp11_move_typemaps.Counter.reset_counts();
+imt = new cpp11_move_typemaps.InstanceMethodsTester();
+
+mo = new cpp11_move_typemaps.MoveOnly(333);
+cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 0, 0, 0);
+imt.instance_take_move_only(mo);
+cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 1, 0, 2);
+delete mo;
+
+cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 1, 0, 2);
+cpp11_move_typemaps.Counter.reset_counts();
+
+mc = new cpp11_move_typemaps.MovableCopyable(444);
+cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 0, 0, 0);
+imt.instance_take_movable_copyable(mc);
+cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 1, 0, 2);
+delete mc;
+
+cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 1, 0, 2);

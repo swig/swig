@@ -46,7 +46,7 @@ check_double(True, nonzero, "nonzero", -10)
 have_exception = False
 try:
    li_constraints.test_nonnull(None)
-except ValueError as e:
+except TypeError as e:
    have_exception = "Received a NULL pointer." == "%s"%(e)
 if not have_exception:
    raise Exception("test_nonnull should perform exception with 'null' value")

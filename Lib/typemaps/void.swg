@@ -74,7 +74,8 @@
   if (!SWIG_IsOK(res)) { 
     %dirout_fail(res,"$type");
   }
-  static $*ltype temp = %reinterpret_cast(argp, $*ltype);
+  static $*ltype temp;
+  temp = %reinterpret_cast(argp, $*ltype);
   $result =  &temp;
 }
 

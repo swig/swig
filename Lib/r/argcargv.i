@@ -25,13 +25,13 @@
     pstr = CHARACTER_POINTER($input);
   }
   $2 = ($2_ltype) malloc(($1+1)*sizeof($*2_ltype));
-  if ($2 == SWIG_NULLPTR) {
+  if ($2 == NULL) {
     SWIG_exception_fail(SWIG_MemoryError, "Memory allocation failed.");
   }
   for (i = 0; i < $1; i++) {
     $2[i] = ($*2_ltype)STRING_VALUE(pstr[i]);
   }
-  $2[i] = SWIG_NULLPTR;
+  $2[i] = NULL;
 }
 %typemap(freearg,noblock=1) (int ARGC, char **ARGV) {
   free((void *)$2);

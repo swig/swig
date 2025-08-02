@@ -5,6 +5,7 @@ import enum_thorough.enum_thorough;
 import enum_thorough.AnonStruct;
 import enum_thorough.colour;
 import enum_thorough.DifferentTypes;
+import enum_thorough.Enum2995;
 import enum_thorough.FirStruct;
 import enum_thorough.HairStruct;
 import enum_thorough.IgnoreTest;
@@ -444,5 +445,12 @@ void main() {
     enforce(cast(int)globalDifferentTypesTest(global_enum) == 'C', "global differentTypes 5 failed");
     global_enum = global_typedefaultint;
     enforce(cast(int)globalDifferentTypesTest(global_enum) == 'D', "global differentTypes 6 failed");
+  }
+  // Regression tests for bad handling of bool expressions (#2995)
+  {
+    enforce(cast(int)Enum2995.T1 == 1, "Enum2995 T1 failed");
+    enforce(cast(int)Enum2995.T2 == 1, "Enum2995 T2 failed");
+    enforce(cast(int)Enum2995.F1 == 0, "Enum2995 F1 failed");
+    enforce(cast(int)Enum2995.F2 == 0, "Enum2995 F2 failed");
   }
 }

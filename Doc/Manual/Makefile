@@ -22,7 +22,7 @@ HTMLDOC_OPTIONS = "--book --toclevels 4 --no-numbered --toctitle \"Table of Cont
 all: maketoc check generate
 
 maketoc:
-	python maketoc.py
+	python3 maketoc.py
 
 # Use this to regenerate CCache.html should this ever be needed
 CCache.html: ../../CCache/ccache.yo
@@ -48,7 +48,7 @@ generate: SWIGDocumentation.html
 
 SWIGDocumentation.html: swightml.book
 	htmldoc --batch swightml.book || true
-	python fixstyle.py SWIGDocumentation.html
+	python3 fixstyle.py SWIGDocumentation.html
 
 swightml.book: chapters Sections.html
 	echo "#HTMLDOC 1.8.24" > swightml.book

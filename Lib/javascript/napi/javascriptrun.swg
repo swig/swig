@@ -49,6 +49,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
       throw Napi::RangeError::New(env, msg);
     case SWIG_ValueError:
     case SWIG_TypeError:
+    case SWIG_NullReferenceError:
       throw Napi::TypeError::New(env, msg);
   }
 }
@@ -90,6 +91,7 @@ SWIGINTERN void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg) {
       return;
     case SWIG_ValueError:
     case SWIG_TypeError:
+    case SWIG_NullReferenceError:
       Napi::TypeError::New(env, msg).ThrowAsJavaScriptException();
       return;
   }
@@ -372,7 +374,7 @@ SWIGRUNTIME Napi::Value _wrap_getCPtr(const Napi::CallbackInfo &info) {
   Napi::Env env = info.Env();
   Napi::Value jsresult;
   void *arg1 = (void *) 0 ;
-  long result;
+  intptr_t result;
   int res1;
 
   res1 = SWIG_GetInstancePtr(info.This(), &arg1);
@@ -380,7 +382,7 @@ SWIGRUNTIME Napi::Value _wrap_getCPtr(const Napi::CallbackInfo &info) {
     SWIG_Error(SWIG_ArgError(res1), " in method '" "getCPtr" "', argument " "1"" of type '" "void *""'");
   }
 
-  result = (long)arg1;
+  result = (intptr_t)arg1;
   jsresult = Napi::Number::New(env, result);
 
   return jsresult;

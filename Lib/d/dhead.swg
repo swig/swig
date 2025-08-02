@@ -24,7 +24,8 @@ typedef enum {
   SWIG_DIllegalArgumentException,
   SWIG_DIllegalElementException,
   SWIG_DIOException,
-  SWIG_DNoSuchElementException
+  SWIG_DNoSuchElementException,
+  SWIG_DNullReferenceException
 } SWIG_DExceptionCodes;
 
 typedef void (* SWIG_DExceptionCallback_t)(const char *);
@@ -39,7 +40,8 @@ static SWIG_DException_t SWIG_d_exceptions[] = {
   { SWIG_DIllegalArgumentException, NULL },
   { SWIG_DIllegalElementException, NULL },
   { SWIG_DIOException, NULL },
-  { SWIG_DNoSuchElementException, NULL }
+  { SWIG_DNoSuchElementException, NULL },
+  { SWIG_DNullReferenceException, NULL }
 };
 
 static void SWIGUNUSED SWIG_DSetPendingException(SWIG_DExceptionCodes code, const char *msg) {
@@ -58,12 +60,14 @@ SWIGEXPORT void SWIGRegisterExceptionCallbacks_$module(
   SWIG_DExceptionCallback_t illegalArgumentCallback,
   SWIG_DExceptionCallback_t illegalElementCallback,
   SWIG_DExceptionCallback_t ioCallback,
-  SWIG_DExceptionCallback_t noSuchElementCallback) {
+  SWIG_DExceptionCallback_t noSuchElementCallback,
+  SWIG_DExceptionCallback_t nullReferenceCallback) {
   SWIG_d_exceptions[SWIG_DException].callback = exceptionCallback;
   SWIG_d_exceptions[SWIG_DIllegalArgumentException].callback = illegalArgumentCallback;
   SWIG_d_exceptions[SWIG_DIllegalElementException].callback = illegalElementCallback;
   SWIG_d_exceptions[SWIG_DIOException].callback = ioCallback;
   SWIG_d_exceptions[SWIG_DNoSuchElementException].callback = noSuchElementCallback;
+  SWIG_d_exceptions[SWIG_DNullReferenceException].callback = nullReferenceCallback;
 }
 %}
 
@@ -76,6 +80,7 @@ private class SwigExceptionHelper {
   static this() {
 	// The D1/Tango version maps C++ exceptions to multiple exception types.
     swigRegisterExceptionCallbacks$module(
+      &setException,
       &setException,
       &setException,
       &setException,

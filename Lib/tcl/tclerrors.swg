@@ -39,6 +39,9 @@ SWIG_Tcl_ErrorType(int code) {
   case SWIG_AttributeError:
     type = "AttributeError";
     break;
+  case SWIG_NullReferenceError:
+    type = "NullReferenceError";
+    break;
   default:
     type = "RuntimeError";
   }

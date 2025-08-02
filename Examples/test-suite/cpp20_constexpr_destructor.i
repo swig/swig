@@ -34,6 +34,7 @@ class DtorF {
 public:
     virtual constexpr ~DtorF() = 0;
 };
+constexpr DtorF::~DtorF() {}
 
 class DtorG {
 public:

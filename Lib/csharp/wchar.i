@@ -92,18 +92,6 @@ static SWIG_CSharpWStringExceptionHelperCallback SWIG_csharp_ApplicationExceptio
     [global::System.Runtime.InteropServices.DllImport("$dllimport", EntryPoint="SWIGRegisterWStringExceptionCallback_$module")]
     public static extern void SWIGRegisterWStringExceptionCallback_$module(SWIGWStringExceptionDelegate applicationExceptionUTF16Delegate, SWIGWStringExceptionDelegate applicationExceptionUTF32Delegate);
 
-    static string CreateWStringFromUTF16([global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]global::System.IntPtr cString, int length) {
-      return global::System.Runtime.InteropServices.Marshal.PtrToStringUni(cString, length);
-    }
-
-    public static string CreateWStringFromUTF32([global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]global::System.IntPtr cString, int length) {
-      if (length == 0)
-        return string.Empty;
-
-      byte[] buffer = new byte[length * 4];
-      return global::System.Text.Encoding.UTF32.GetString(buffer);
-    }
-
     static void SetPendingApplicationExceptionUTF16([global::System.Runtime.InteropServices.MarshalAs(global::System.Runtime.InteropServices.UnmanagedType.LPWStr)]global::System.IntPtr cString, int length) {
       string message = SWIGWStringHelper.CreateWStringFromUTF16(cString, length);
       SWIGPendingException.Set(new global::System.ApplicationException(message, SWIGPendingException.Retrieve()));

@@ -292,7 +292,8 @@ extern(C) void function(
   SwigExceptionCallback illegalArgumentCallback,
   SwigExceptionCallback illegalElementCallback,
   SwigExceptionCallback ioCallback,
-  SwigExceptionCallback noSuchElementCallback) swigRegisterExceptionCallbacks$module;
+  SwigExceptionCallback noSuchElementCallback,
+  SwigExceptionCallback nullReferenceCallback) swigRegisterExceptionCallbacks$module;
 
 extern(C) void function(SwigStringCallback callback) swigRegisterStringCallback$module;
 %}

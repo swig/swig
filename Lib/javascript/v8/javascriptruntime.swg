@@ -34,7 +34,6 @@
                          (V8_MINOR_VERSION / 10) * 16 + \
                          (V8_MINOR_VERSION % 10))
 
-#include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <assert.h>
