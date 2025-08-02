@@ -93,6 +93,17 @@ SWIG_Python_str_FromChar(const char *c)
 #define Py_hash_t long
 #endif
 
+// gh-114329 added PyList_GetItemRef() to Python 3.13.0a4
+#if PY_VERSION_HEX < 0x030D00A4
+static inline PyObject *
+PyList_GetItemRef(PyObject *op, Py_ssize_t index)
+{
+    PyObject *item = PyList_GetItem(op, index);
+    Py_XINCREF(item);
+    return item;
+}
+#endif
+
 #if defined(Py_LIMITED_API)
 # define PyTuple_GET_ITEM PyTuple_GetItem
 /* Note that PyTuple_SetItem() has different semantics from PyTuple_SET_ITEM as it decref's the original tuple item, so in general they cannot be used
