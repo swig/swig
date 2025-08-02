@@ -500,13 +500,13 @@ fi])
 case $host in
   dnl Windows path separator
   *-*-cygwin* | *-*-mingw* | *-*-msys*)
-    SH_PATH_SEP=';'
+    SHELL_PATH_SEP=';'
     ;;
   *) dnl POSIX path separator
-    SH_PATH_SEP=':'
+    SHELL_PATH_SEP=':'
     ;;
 esac
-AC_SUBST(SH_PATH_SEP)
+AC_SUBST(SHELL_PATH_SEP)
 
 #--------------------------------------------------------------------
 # Target languages
