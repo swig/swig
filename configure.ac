@@ -2143,13 +2143,6 @@ else
     if test -z "$PYVER"; then
       PYVER=0
     fi
-
-    AC_MSG_CHECKING([if $PYTHON3 GIL can be disabled])
-    PYGIL=`($PYTHON3 -c "import sysconfig; print('yes' if bool(sysconfig.get_config_var('Py_GIL_DISABLED')) else 'no')") 2>/dev/null`
-    AC_MSG_RESULT($PYGIL)
-    if test x"$PYGIL" = x"yes"; then
-      PYNOGIL="-X gil=0"
-    fi
   fi
 
   if test $PYVER -ge 3; then
@@ -2278,7 +2271,6 @@ else
   *)PYTHON3DYNAMICLINKING="";;
   esac
 
-  AC_SUBST(PYNOGIL)
   AC_SUBST(PY3INCLUDE)
   AC_SUBST(PY3LIB)
   AC_SUBST(PY3LINK)

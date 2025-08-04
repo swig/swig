@@ -50,7 +50,7 @@
   $2 = &temp_len;
 }
 %typemap(argout) (void **buffer_data, size_t *buffer_len) {
-  if (*$1 != SWIG_NULLPTR) {
+  if (*$1 != NULL) {
     Napi::Buffer<char> buf = Napi::Buffer<char>::Copy(env, static_cast<char *>(*$1), *$2);
     NAPI_CHECK_RESULT(buf.As<Napi::Value>(), $result);
   } else {

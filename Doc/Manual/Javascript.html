@@ -820,7 +820,7 @@ let last2 = vec2[vec2.length - 1];
   $2 = &temp_len;
 }
 %typemap(argout) (void **static_data, size_t *static_len) {
-  if (*$1 != SWIG_NULLPTR) {
+  if (*$1 != NULL) {
     Napi::ArrayBuffer buf = Napi::ArrayBuffer::New(env, *$1, *$2);
     NAPI_CHECK_RESULT(buf.As<Napi::Value>(), $result);
   } else {
@@ -837,7 +837,7 @@ let last2 = vec2[vec2.length - 1];
     $2 = &temp_len;
   }
   %typemap(argout) (void **arraybuffer_data, size_t *arraybuffer_len) {
-    if (*$1 != SWIG_NULLPTR) {
+    if (*$1 != NULL) {
       Napi::ArrayBuffer buf = Napi::ArrayBuffer::New(env, *$1, *$2, [](Napi::Env env, void *data) {
         free(data);
       });

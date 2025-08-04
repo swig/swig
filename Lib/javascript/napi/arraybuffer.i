@@ -56,7 +56,7 @@
   $2 = &temp_len;
 }
 %typemap(argout) RETURN_NEW_BUFFER_SIGNATURE %{
-  if (*$1 != SWIG_NULLPTR) {
+  if (*$1 != NULL) {
     Napi::ArrayBuffer buf = Napi::ArrayBuffer::New(env, *$2);
     memcpy(buf.Data(), *$1, *$2);
 #ifdef __EMSCRIPTEN__

@@ -92,6 +92,7 @@ static int extranative = 0;
 static int nortti = 0;
 static int relativeimport = 0;
 static int flat_static_method = 0;
+static int nogil = 0;
 
 /* flags for the make_autodoc function */
 namespace {
@@ -123,6 +124,7 @@ Python Options (available with -python)\n\
      -keyword        - Use keyword arguments\n";
 static const char *usage2 = "\
      -nofastunpack   - Use traditional UnpackTuple method to parse the argument functions\n\
+     -nogil          - Enable free-threading if supported by the Python interpreter\n\
      -noh            - Don't generate the output header file\n";
 static const char *usage3 = "\
      -noproxy        - Don't generate proxy classes\n\
@@ -414,6 +416,10 @@ public:
 	  builtin = 1;
 	  Preprocessor_define("SWIGPYTHON_BUILTIN", 0);
 	  Swig_mark_arg(i);
+	} else if (strcmp(argv[i], "-nogil") == 0) {
+	  nogil = 1;
+	  Preprocessor_define("SWIGPYTHON_NOGIL", 0);
+	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-relativeimport") == 0) {
 	  relativeimport = 1;
 	  Swig_mark_arg(i);
@@ -642,6 +648,10 @@ public:
 
     if (fastproxy) {
       Printf(f_runtime, "#define SWIGPYTHON_FASTPROXY\n");
+    }
+
+    if (nogil) {
+      Printf(f_runtime, "#define SWIGPYTHON_NOGIL\n");
     }
 
     Printf(f_runtime, "\n");
@@ -4095,7 +4105,7 @@ public:
     Delete(richcompare_list);
     Printv(f, "  if (!result && !PyErr_Occurred()) {\n", NIL);
     Printv(f, "    if (SwigPyObject_Check(self) && SwigPyObject_Check(other)) {\n", NIL);
-    Printv(f, "      result = SwigPyObject_richcompare((SwigPyObject *)self, (SwigPyObject *)other, op);\n", NIL);
+    Printv(f, "      result = SwigPyObject_richcompare(self, other, op);\n", NIL);
     Printv(f, "    } else {\n", NIL);
     Printv(f, "      result = Py_NotImplemented;\n", NIL);
     Printv(f, "      SWIG_Py_INCREF(result);\n", NIL);
@@ -4405,7 +4415,6 @@ public:
     Printv(f, "  SWIG_Py_INCREF(pytype->tp_base);\n", NIL);
     Printv(f, "  pytype->tp_bases = tuple_bases;\n", NIL);
     Printv(f, "  if (PyType_Ready(pytype) < 0) {\n", NIL);
-    Printf(f, "    PyErr_SetString(PyExc_TypeError, \"Could not create type '%s'.\");\n", symname);
     Printv(f, "    return NULL;\n", NIL);
     Printv(f, "  }\n", NIL);
     Printf(f, "  return pytype;\n");
@@ -4522,8 +4531,14 @@ public:
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:sq_inplace_repeat"), "sq_inplace_repeat", "ssizeargfunc");
 
     // buffer slots
-    printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:bf_getbuffer"), "bf_getbuffer", "getbufferproc");
-    printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:bf_releasebuffer"), "bf_releasebuffer", "releasebufferproc");
+    String *bf_getbuffer = Getattr(n, "feature:python:bf_getbuffer");
+    String *bf_releasebuffer = Getattr(n, "feature:python:bf_releasebuffer");
+    if (bf_getbuffer || bf_releasebuffer) {
+      Printv(f, "#if !defined(Py_LIMITED_API) && PY_VERSION_HEX >= 0x03090000 || Py_LIMITED_API+0 >= 0x030b0000\n", NIL);
+      printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:bf_getbuffer"), "bf_getbuffer", "getbufferproc");
+      printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:bf_releasebuffer"), "bf_releasebuffer", "releasebufferproc");
+      Printv(f, "#endif\n", NIL);
+    }
 
     Printf(f, "    { 0, NULL }\n");
     Printf(f, "  };\n");
@@ -4536,6 +4551,16 @@ public:
     Printf(f, "  };\n");
     Printv(f, "  PyObject *tuple_bases = SwigPyBuiltin_InitBases(bases);\n", NIL);
     Printf(f, "  PyTypeObject *pytype = (PyTypeObject *)PyType_FromSpecWithBases(&spec, tuple_bases);\n");
+    if (bf_getbuffer || bf_releasebuffer) {
+      Printv(f, "#if !defined(Py_LIMITED_API) && PY_VERSION_HEX < 0x03090000\n", NIL);
+      Printf(f, "  if (pytype) {\n");
+      if (bf_getbuffer)
+	Printf(f, "    pytype->tp_as_buffer->bf_getbuffer = %s;\n", getSlot(n, "feature:python:bf_getbuffer"));
+      if (bf_releasebuffer)
+        Printf(f, "    pytype->tp_as_buffer->bf_releasebuffer = %s;\n", getSlot(n, "feature:python:bf_releasebuffer"));
+      Printf(f, "  }\n");
+      Printv(f, "#endif\n", NIL);
+    }
     Printf(f, "  if (pytype) {\n");
     Printf(f, "    if (PyDict_Merge(pytype->tp_dict, dict, 1) == 0) {\n");
     Printv(f, "      SwigPyBuiltin_SetMetaType(pytype, type);\n", NIL);

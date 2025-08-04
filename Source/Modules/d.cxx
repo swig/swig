@@ -2768,7 +2768,7 @@ private:
 	{
 	  String *proxy_type = NewString("");
 
-	  if ((tm = lookupDTypemap(p, "dtype"))) {
+	  if ((tm = lookupDTypemap(p, "dtype", true))) {
 	    const String *inattributes = Getattr(p, "tmap:dtype:inattributes");
 	    Printf(proxy_type, "%s%s", inattributes ? inattributes : empty_string, tm);
 	    {
