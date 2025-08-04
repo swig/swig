@@ -34,11 +34,11 @@
 SWIGRUNTIME Napi::Error SWIG_NAPI_NewError(Napi::Env env, int type, const char *msg);
 SWIGRUNTIME inline Napi::Error SWIG_NAPI_NewError(Napi::Env env, const char *msg);
 SWIGRUNTIME inline Napi::Error SWIG_NAPI_NewError(Napi::Env env, Napi::Value obj,
-        const char *msg = SWIG_NULLPTR, swig_type_info *info = SWIG_NULLPTR);
+        const char *msg = NULL, swig_type_info *info = NULL);
 SWIGRUNTIME void SWIG_NAPI_Raise(Napi::Env env, const char *msg);
 SWIGRUNTIME void SWIG_NAPI_Raise(Napi::Env env, int type, const char *msg);
 SWIGRUNTIME void SWIG_NAPI_Raise(Napi::Env env, Napi::Value obj,
-        const char *msg = SWIG_NULLPTR, swig_type_info *info = SWIG_NULLPTR);
+        const char *msg = NULL, swig_type_info *info = NULL);
 SWIGRUNTIME bool SWIG_NAPI_IsWrappedObject(Napi::Env env, Napi::Object v);
 SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, swig_type_info *info, int flags);
 SWIGRUNTIME int SWIG_NAPI_GetInstancePtr(Napi::Value valRef, void **ptr);
@@ -69,7 +69,7 @@ void JS_veto_set_variable(const Napi::CallbackInfo &info);
       return SWIG_NAPI_Status::REJECT;                                        \
     } while (0)
 
-#define SWIG_NAPI_ASSERT_NOTNULL_ENV            assert((napi_env)env != SWIG_NULLPTR)
+#define SWIG_NAPI_ASSERT_NOTNULL_ENV            assert((napi_env)env != NULL)
 
 // The two methods of handling exceptions
 #ifdef NAPI_CPP_EXCEPTIONS
@@ -194,10 +194,10 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
     SWIG_NAPI_ObjectWrap_templ(const Napi::CallbackInfo &info);
     SWIG_NAPI_ObjectWrap_templ(bool, const Napi::CallbackInfo &info) :
         Napi::ObjectWrap<SWIG_OBJ_WRAP>(info),
-        self(SWIG_NULLPTR),
+        self(NULL),
         owned(true),
         size(0),
-        info(SWIG_NULLPTR),
+        info(NULL),
         finalizer(nullptr),
         _lock() {}
     virtual ~SWIG_NAPI_ObjectWrap_templ() = default;
@@ -220,7 +220,7 @@ class SWIG_NAPI_ObjectWrap_templ : public Napi::ObjectWrap<SWIG_OBJ_WRAP> {
 
 template <typename SWIG_OBJ_WRAP>
 SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::SWIG_NAPI_ObjectWrap_templ(const Napi::CallbackInfo &info) :
-        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info), size(0), info(SWIG_NULLPTR), finalizer(SWIG_NULLPTR), _lock() { 
+        Napi::ObjectWrap<SWIG_OBJ_WRAP>(info), size(0), info(NULL), finalizer(NULL), _lock() { 
   Napi::Env env = info.Env();
   if (info.Length() == 1 && info[0].IsExternal()) {
     // This constructor has been called internally from C++/SWIG
@@ -266,9 +266,9 @@ void SWIG_NAPI_ObjectWrap_templ<SWIG_OBJ_WRAP>::SWIG_Finalize() {
   if (this->finalizer) {
     (*this->finalizer)();
     delete this->finalizer;
-    this->finalizer = SWIG_NULLPTR;
+    this->finalizer = NULL;
     this->owned = false;
-    this->self = SWIG_NULLPTR;
+    this->self = NULL;
   }
 }
 

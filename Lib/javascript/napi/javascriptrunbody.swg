@@ -129,7 +129,7 @@ SWIG_NAPI_PackedObjectWrap_inst::~SWIG_NAPI_PackedObjectWrap_inst() {
   this->SWIG_Finalize();
   if (this->owned) {
     delete[] static_cast<uint8_t *>(this->self);
-    this->self = SWIG_NULLPTR;
+    this->self = NULL;
     this->owned = false;
   }
 }
@@ -160,7 +160,7 @@ SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
   ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(objRef);
 
   // Now check if the SWIG type is compatible unless the types match exactly or the type is unknown
-  if(info && ow->info != info && ow->info != SWIG_NULLPTR) {
+  if(info && ow->info != info && ow->info != NULL) {
     swig_cast_info *tc = SWIG_TypeCheckStruct(ow->info, info);
     if (!tc && ow->info->name) {
       tc = SWIG_TypeCheck(ow->info->name, info);
@@ -183,7 +183,7 @@ SWIGRUNTIME int SWIG_NAPI_ConvertInstancePtr(Napi::Object objRef, void **ptr, sw
       ow->owned = false;
     }
     if (flags & SWIG_POINTER_CLEAR) {
-      ow->self = SWIG_NULLPTR;
+      ow->self = NULL;
     }
   }
   return SWIG_OK;
@@ -204,7 +204,7 @@ SWIGRUNTIME int SWIG_NAPI_GetInstancePtr(Napi::Value valRef, void **ptr) {
   NAPI_CHECK_RESULT(valRef.ToObject(), objRef);
   ow = Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(objRef);
 
-  if(ow->self == SWIG_NULLPTR) {
+  if(ow->self == NULL) {
     return SWIG_ERROR;
   }
 
@@ -247,17 +247,17 @@ SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_t
   Napi::External<void> native;
   Napi::FunctionReference *ctor;
 
-  if (ptr == SWIG_NULLPTR) {
+  if (ptr == NULL) {
     return env.Null();
   }
   native = Napi::External<void>::New(env, ptr);
 
-  size_t *idx = info != SWIG_NULLPTR ?
+  size_t *idx = info != NULL ?
         reinterpret_cast<SWIG_NAPI_ClientData *>(info->clientdata) :
-        SWIG_NULLPTR;
+        NULL;
   if ((flags & SWIG_NAPI_PACKEDOBJECT) == SWIG_NAPI_PACKEDOBJECT) {
     ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_PackedObjectWrapCtor;
-  } else if (idx == SWIG_NULLPTR) {
+  } else if (idx == NULL) {
     // This type does not have a dedicated wrapper
     ctor = env.GetInstanceData<EnvInstanceData>()->SWIG_NAPI_ObjectWrapCtor;
   } else {
@@ -268,7 +268,7 @@ SWIGRUNTIME Napi::Value SWIG_NAPI_NewPointerObj(Napi::Env env, void *ptr, swig_t
   NAPI_CHECK_RESULT(ctor->New({native}), wrapped);
 
   // Preserve the type even if using the generic wrapper
-  if (idx == SWIG_NULLPTR && info != SWIG_NULLPTR) {
+  if (idx == NULL && info != NULL) {
     Napi::Object obj;
     NAPI_CHECK_RESULT(wrapped.ToObject(), obj);
     Napi::ObjectWrap<SWIG_NAPI_ObjectWrap_inst>::Unwrap(obj)->info = info;

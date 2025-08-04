@@ -269,7 +269,7 @@ ${classname_mangled}_templ<SWIG_OBJ_WRAP>::~${classname_mangled}_templ() {
   auto arg1 = reinterpret_cast<$jstype>(this->self);
   if (this->owned && arg1) {
     ${destructor_action}
-    this->self = SWIG_NULLPTR;
+    this->self = NULL;
   }
 }
 %}
@@ -413,7 +413,7 @@ fail:
   do {
     Napi::Function f = Napi::Function::New(env, $jsgetter);
     Napi::Value value;
-    NAPI_CHECK_RESULT(f.Call(0, SWIG_NULLPTR), value);
+    NAPI_CHECK_RESULT(f.Call(0, NULL), value);
     Napi::PropertyDescriptor pd = Napi::PropertyDescriptor::Value("$jsname", value,
       static_cast<napi_property_attributes>(napi_writable | napi_enumerable | napi_configurable));
     NAPI_CHECK_MAYBE($jsparent.DefineProperty(pd));
@@ -497,8 +497,8 @@ fail:
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   $jsasyncworker
   Napi::Env env = info.Env();
-  $jsmangledname_$jswrapper_Tasklet *context = SWIG_NULLPTR;
-  SWIG_NAPI_AsyncWorker *worker = SWIG_NULLPTR;
+  $jsmangledname_$jswrapper_Tasklet *context = NULL;
+  SWIG_NAPI_AsyncWorker *worker = NULL;
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
@@ -723,8 +723,8 @@ template <typename SWIG_OBJ_WRAP>
 Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   $jsasyncworker
   Napi::Env env = info.Env();
-  $jsmangledname_$jswrapper_Tasklet *context = SWIG_NULLPTR;
-  SWIG_NAPI_AsyncWorker *worker = SWIG_NULLPTR;
+  $jsmangledname_$jswrapper_Tasklet *context = NULL;
+  SWIG_NAPI_AsyncWorker *worker = NULL;
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
@@ -833,8 +833,8 @@ template <typename SWIG_OBJ_WRAP>
 Napi::Value $jsmangledname_templ<SWIG_OBJ_WRAP>::$jswrapper(const Napi::CallbackInfo &info) {
   $jsasyncworker
   Napi::Env env = info.Env();
-  $jsmangledname_$jswrapper_Tasklet *context = SWIG_NULLPTR;
-  SWIG_NAPI_AsyncWorker *worker = SWIG_NULLPTR;
+  $jsmangledname_$jswrapper_Tasklet *context = NULL;
+  SWIG_NAPI_AsyncWorker *worker = NULL;
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
@@ -914,8 +914,8 @@ fail:
 Napi::Value $jswrapper(const Napi::CallbackInfo &info) {
   $jsasyncworker
   Napi::Env env = info.Env();
-  $jsmangledname_$jswrapper_Tasklet *context = SWIG_NULLPTR;
-  SWIG_NAPI_AsyncWorker *worker = SWIG_NULLPTR;
+  $jsmangledname_$jswrapper_Tasklet *context = NULL;
+  SWIG_NAPI_AsyncWorker *worker = NULL;
   if(static_cast<int>(info.Length()) < $jsargrequired || static_cast<int>(info.Length()) > $jsargcount) {
     SWIG_Error(SWIG_ERROR, "Illegal number of arguments for $jswrapper.");
   }
@@ -1000,7 +1000,7 @@ fail:
 
     virtual void SWIG_NAPI_Execute() override {
       // This runs the action code in a worker thread and V8 is not accessible
-      Napi::Env env(SWIG_NULLPTR);
+      Napi::Env env(NULL);
       $jsguard
       $jslock
       $jspreaction
@@ -1278,7 +1278,7 @@ fail:
   // jsnapi_registerclass
   Napi::Function $jsmangledname_ctor = $jsmangledname_inst::GetClass(env);
   $jsparent.Set("$jsname", $jsmangledname_ctor);
-  if (SWIGTYPE_$jsmangledtype->clientdata == SWIG_NULLPTR) {
+  if (SWIGTYPE_$jsmangledtype->clientdata == NULL) {
     SWIGTYPE_$jsmangledtype->clientdata = new size_t($jsclassidx);
   }
   Napi::FunctionReference *$jsmangledname_ctor_ref = new Napi::FunctionReference();
