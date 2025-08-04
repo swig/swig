@@ -30,6 +30,11 @@ SWIG_AsArgcArgv(PyObject *input, swig_type_info *ppchar_info, size_t *argc, char
   if (argv) *argv = %new_array(size + 1, char*);
 
   for (i = 0; i < size; ++i) {
+    /* Thread safety: a list could be modified by another thread while this function
+       is running, causing its elements to get dereferenced between PyList_GetItem and
+       SWIG_AsCharPtrAndSize, resulting in a segfault.
+       tuples are immutable, so this is not an issue for them.
+     */
     PyObject *obj = is_list ? PyList_GetItemRef(input, i) : PyTuple_GetItem(input, i);
     if (!obj) {
       // List was shrunk by another thread. Return early with SWIG_OK.
