@@ -206,8 +206,13 @@ jobs:
           VER: '3.13-dbg'
           CSTD: gnu99
         - SWIGLANG: python
-          VER: '3.13t' # no-gil testing
+          VER: '3.13'
           CSTD: gnu99
+          SWIG_FEATURES: -nogil  # Test that -nogil has no effect on non-free-threading Python
+        - SWIGLANG: python
+          VER: '3.13t'
+          CSTD: gnu99
+          SWIG_FEATURES: -nogil
         - SWIGLANG: python
           VER: '3.14'
           PY_ABI_VER: '3.14'

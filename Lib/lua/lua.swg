@@ -64,6 +64,18 @@
 %apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
+/* Length & string reverse order typemap */
+
+%typemap(in,checkfn="lua_isstring") (size_t LENGTH, const char *STRING) {
+  size_t len;
+  $2 = ($2_ltype)lua_tolstring(L, $input, &len);
+  SWIG_contract_assert($2, "non null string");
+  $1 = ($1_ltype)len;
+}
+%apply (size_t LENGTH, const char *STRING) { (size_t LENGTH, char *STRING) }
+%apply (size_t LENGTH, const char *STRING) { (int LENGTH, const char *STRING) }
+%apply (size_t LENGTH, char *STRING) { (int LENGTH, char *STRING) }
+
 /* -----------------------------------------------------------------------------
  *                          Overloaded operator support
  * ----------------------------------------------------------------------------- */

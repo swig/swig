@@ -10,7 +10,7 @@
   $1_ltype i, len;
   len = $input.len;
   $2 = ($2_ltype) malloc((len+1)*sizeof($*2_ltype));
-  if ($2 == SWIG_NULLPTR) {
+  if ($2 == NULL) {
     SWIG_DSetPendingException(SWIG_DException, "memory allocation failed");
     return $null;
   }
@@ -18,7 +18,7 @@
   for (i = 0; i < len; i++) {
     $2[i] = $input.array[i].str;
   }
-  $2[i] = SWIG_NULLPTR;
+  $2[i] = NULL;
 }
 
 %typemap(freearg) (int ARGC, char **ARGV) {

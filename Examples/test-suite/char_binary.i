@@ -4,8 +4,11 @@ A test case for testing non null terminated char pointers.
 
 %module char_binary
 
+#if !defined(SWIGC)
+/* There is no concept of a higher level binary string in C */
 %apply (char *STRING, size_t LENGTH) { (const char *str, size_t len) }
 %apply (char *STRING, size_t LENGTH) { (const unsigned char *str, size_t len) }
+#endif
 
 %inline %{
 struct Test {
