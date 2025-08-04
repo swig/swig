@@ -16,12 +16,17 @@ SWIG_AsArgcArgv(PyObject *input, swig_type_info *ppchar_info, size_t *argc, char
     return SWIG_OK;
   }
   PyErr_Clear();
-  int is_list = PyList_Check(input);
-  if (!is_list && !PyTuple_Check(input)) return SWIG_TypeError;
-
-  size_t i;
   res = SWIG_OK;
-  size_t size = is_list ? PyList_Size(input) : PyTuple_Size(input);
+  
+  int is_list = 0;
+  size_t i;
+  Py_ssize_t size = PyTuple_Size(input);
+  if (size < 0) {
+    PyErr_Clear();
+    size = PyList_Size(input);
+    if (size < 0) return SWIG_TypeError; // not a list nor tuple
+    is_list = 1;
+  }
   if (argv) *argv = %new_array(size + 1, char*);
 
   for (i = 0; i < size; ++i) {
