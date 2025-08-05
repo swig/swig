@@ -68,8 +68,12 @@ class TestArgcArgv(unittest.TestCase):
     def test_bad_args_memory_leak(self):
         # Allocate argv and some of its elements, then raise.
         # valgrind or similar should not report any memory leaks after running this test.
+        x = "x"
+        x += "x"  # constants are immortal
+        y = "this is a long string"
+        y += "that can be deallocated"
         with self.assertRaises(TypeError):
-            mainc(["x", "this is a long string", 1])
+            mainc([x, y, 1])
 
     def test_threading_race_conditions(self):
         # Increase these for local torture testing
