@@ -69,7 +69,7 @@ class TestArgcArgv(unittest.TestCase):
         # Allocate argv and some of its elements, then raise.
         # valgrind or similar should not report any memory leaks after running this test.
         with self.assertRaises(TypeError):
-            mainc([random_string(), 1])
+            mainc(["x", "this is a long string", 1])
 
     def test_threading_race_conditions(self):
         # Increase these for local torture testing
