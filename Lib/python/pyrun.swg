@@ -120,16 +120,10 @@ static PyObject *Swig_runtime_data_module_global = NULL;
 SWIGINTERN PyObject *
 SWIG_runtime_data_module() {
   if (!Swig_runtime_data_module_global) {
-#if PY_VERSION_HEX >= 0x030D00A0
-    /* On free-threaded Python, handle race condition with other SWIG-compiled
-       Python modules creating the same module at the same time.
-       Note that global variables are local to the current Python module,
-       so a mutex would not help!
-     */
-    PyImport_AddModule(SWIG_RUNTIME_MODULE);
-    /* Now we are guaranteed that a module is referenced by sys.modules,
-       but not necessarily the one returned by the previous function call.
-     */
+#if PY_VERSION_HEX >= 0x030D0000
+    /* free-threading note: the GIL is always enabled when this function is first called
+       by SWIG_init, so there's no risk of race conditions
+     */  
     Swig_runtime_data_module_global = PyImport_AddModuleRef(SWIG_RUNTIME_MODULE);
 #elif PY_VERSION_HEX >= 0x03000000
     Swig_runtime_data_module_global = PyImport_AddModule(SWIG_RUNTIME_MODULE);
