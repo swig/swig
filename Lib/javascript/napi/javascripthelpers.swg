@@ -26,7 +26,8 @@ void SWIG_NAPI_RunMainThreadQueue(uv_async_t *);
     std::abort();
   if (uv_async_init(event_loop, js_main_thread.handle, SWIG_NAPI_RunMainThreadQueue) != 0)
     std::abort();
-  // The initial status of the async handle is inactive
+  // Do not block the event loop exit, this queue is used
+  // for finalizers
 #ifndef __EMSCRIPTEN__
   uv_unref(reinterpret_cast<uv_handle_t *>(js_main_thread.handle));
 #endif
@@ -52,11 +53,6 @@ void SWIG_NAPI_RunMainThreadQueue(uv_async_t *async) {
     env_data->js_main_thread.jobs.front()();
     env_data->js_main_thread.jobs.pop();
   }
-  // Disable the async because the queue is empty
-  // (we do not want to block Node from exiting)
-#ifndef __EMSCRIPTEN__
-  uv_unref(reinterpret_cast<uv_handle_t *>(env_data->js_main_thread.handle));
-#endif
 }
 #endif
 
@@ -79,9 +75,6 @@ void SWIG_NAPI_RunOnJSMainThread(EnvInstanceData *env_data, std::function<void()
     env_data->js_main_thread.jobs.emplace(std::move(job));
     if (uv_async_send(env_data->js_main_thread.handle) != 0)
       std::abort();
-#ifndef __EMSCRIPTEN__
-    uv_ref(reinterpret_cast<uv_handle_t *>(env_data->js_main_thread.handle));
-#endif
   }
 #else
 #ifdef SWIGRUNTIME_DEBUG

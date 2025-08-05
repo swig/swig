@@ -8,12 +8,18 @@ Version 5.0.7
 ===========================
 
 2025-05-05: mmomtchev
+            [JavaScript] Do not call `uv_ref` in background threads since it
+            is not thread safe and can result an erroneous value of the
+            active open handles that can block the event loop exit
+            [mmomtchev/swig#107]https://github.com/mmomtchev/swig/issues/107
+
+2025-05-05: mmomtchev
             [JavaScript] Provide built-in helpers for handling `std::function`
             arguments
 
 2025-04-23: mmomtchev
-            [JavaScript] Integrate `std::shared_ptr` with the JavaScript reference counting
-            of the GC
+            [JavaScript] Integrate `std::shared_ptr` with the JavaScript
+            reference counting of the GC
             [mmomtchev/swig#92](https://github.com/mmomtchev/swig/issues/92), 
             [mmomtchev/swig#95](https://github.com/mmomtchev/swig/issues/95)
 
