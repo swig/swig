@@ -198,6 +198,45 @@
         currentObject = null;
     }
   }
+
+  // A user-defined conversion operator from List<CSTYPE>
+  public static implicit operator $csclassname(global::System.Collections.Generic.List<$typemap(cstype, CTYPE)> convertInstance) {
+    var newInstance = new $csclassname();
+
+    foreach(var item in convertInstance) {
+      newInstance.Add(item);
+    }
+
+    return newInstance;
+  }
+
+  // A user-defined conversion operator to List<CSTYPE>
+  public static implicit operator global::System.Collections.Generic.List<$typemap(cstype, CTYPE)>($csclassname convertInstance) {
+    var newInstance = new global::System.Collections.Generic.List<$typemap(cstype, CTYPE)>();
+
+    foreach(var item in convertInstance) {
+      newInstance.Add(item);
+    }
+
+    return newInstance;
+  }
+
+  // A user-defined conversion operator from Array<CSTYPE>
+  public static implicit operator $csclassname($typemap(cstype, CTYPE)[] convertInstance) {
+    var newInstance = new $csclassname();
+
+    foreach(var item in convertInstance) {
+      newInstance.Add(item);
+    }
+
+    return newInstance;
+  }
+
+  // A user-defined conversion operator to Array<CSTYPE>
+  public static implicit operator $typemap(cstype, CTYPE)[]($csclassname convertInstance) {
+    return convertInstance.ToArray();
+  }
+
 %}
 
   public:
