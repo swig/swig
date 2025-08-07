@@ -126,7 +126,7 @@ def test_threading_race_conditions():
     swig_run_threaded(torture, max_workers=MAX_WORKERS)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     for k, v in list(globals().items()):
         if k.startswith("test_") and callable(v):
             v()

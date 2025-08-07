@@ -32,9 +32,14 @@ def swig_random_string(length=None):
     return "".join(chars)
 
 
-def swig_run_threaded(func, max_workers=8, pass_count=False,
-                      pass_barrier=False, outer_iterations=1,
-                      prepare_args=None):
+def swig_run_threaded(
+    func,
+    max_workers=8,
+    pass_count=False,
+    pass_barrier=False,
+    outer_iterations=1,
+    prepare_args=None,
+):
     """Runs a function many times in parallel.
     Copied from numpy/testing/_private/utils.py::run_threaded
     """
@@ -62,9 +67,11 @@ def swig_run_threaded(func, max_workers=8, pass_count=False,
                 for arg in all_args:
                     futures.append(tpe.submit(*arg))
             except RuntimeError as e:
-                print("Spawning {} threads failed with "
-                      "error {} (likely due to resource limits on the "
-                      "system running the tests)".format(max_workers, e))
+                print(
+                    "Spawning {} threads failed with "
+                    "error {} (likely due to resource limits on the "
+                    "system running the tests)".format(max_workers, e)
+                )
             finally:
                 if len(futures) < max_workers and pass_barrier:
                     barrier.abort()
