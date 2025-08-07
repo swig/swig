@@ -1,9 +1,27 @@
+import contextlib
 import random
 import string
 import sys
 
 
-def random_string(length=None):
+def swig_assert(condition, msg="Assertion failed"):
+    """Variant of `assert` that is not disabled by the -O flag"""
+    if not condition:
+        raise AssertionError(msg)
+
+
+@contextlib.contextmanager
+def swig_assert_raises(exc_cls):
+    """Reimplementation of pytest.raises context manager."""
+    try:
+        yield
+    except exc_cls:
+        pass
+    else:
+        raise AssertionError("{} was not raised".format(exc_cls.__name__))
+
+
+def swig_random_string(length=None):
     if length is None:
         length = random.randint(0, 16)
     domain = string.ascii_letters + string.digits
@@ -14,9 +32,9 @@ def random_string(length=None):
     return "".join(chars)
 
 
-def run_threaded(func, max_workers=8, pass_count=False,
-                 pass_barrier=False, outer_iterations=1,
-                 prepare_args=None):
+def swig_run_threaded(func, max_workers=8, pass_count=False,
+                      pass_barrier=False, outer_iterations=1,
+                      prepare_args=None):
     """Runs a function many times in parallel.
     Copied from numpy/testing/_private/utils.py::run_threaded
     """
