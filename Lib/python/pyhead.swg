@@ -114,15 +114,16 @@ static inline PyObject* _Py_NewRef(PyObject *obj)
 
 // gh-106004 added PyDict_GetItemRef() and PyDict_GetItemStringRef()
 // to Python 3.13.0a1
+// functions are renamed here for compatibility with abi3audit
 #if PY_VERSION_HEX < 0x030D00A1
 static inline int
-PyDict_GetItemRef(PyObject *mp, PyObject *key, PyObject **result)
+SWIG_PyDict_GetItemRef(PyObject *mp, PyObject *key, PyObject **result)
 {
-#if PY_VERSION_HEX >= 0x03000000
+#  if PY_VERSION_HEX >= 0x03000000
     PyObject *item = PyDict_GetItemWithError(mp, key);
-#else
+#  else
     PyObject *item = _PyDict_GetItemWithError(mp, key);
-#endif
+#  endif
     if (item != NULL) {
         *result = Py_NewRef(item);
         return 1;  // found
@@ -136,22 +137,25 @@ PyDict_GetItemRef(PyObject *mp, PyObject *key, PyObject **result)
 }
 
 static inline int
-PyDict_GetItemStringRef(PyObject *mp, const char *key, PyObject **result)
+SWIG_PyDict_GetItemStringRef(PyObject *mp, const char *key, PyObject **result)
 {
     int res;
-#if PY_VERSION_HEX >= 0x03000000
+#  if PY_VERSION_HEX >= 0x03000000
     PyObject *key_obj = PyUnicode_FromString(key);
-#else
+#  else
     PyObject *key_obj = PyString_FromString(key);
-#endif
+#  endif
     if (key_obj == NULL) {
         *result = NULL;
         return -1;
     }
-    res = PyDict_GetItemRef(mp, key_obj, result);
+    res = SWIG_PyDict_GetItemRef(mp, key_obj, result);
     Py_DECREF(key_obj);
     return res;
 }
+#else
+#  define SWIG_PyDict_GetItemRef PyDict_GetItemRef
+#  define SWIG_PyDict_GetItemStringRef PyDict_GetItemStringRef
 #endif
 
 #if defined(Py_LIMITED_API)
