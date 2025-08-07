@@ -1486,6 +1486,7 @@ String *Preprocessor_parse(String *s) {
   int mask = 0;
   int start_level = 0;
   int cpp_lines = 0;
+  int comment_style = 0;
   int cond_lines[256];
 
   /* Blow away all carriage returns */
@@ -1671,6 +1672,7 @@ state1:
       break;
     case 46: /* in C++ comment */
       if (c == '\n') {
+	comment_style = 1;
 	Ungetc(c, s);
 	state = 50;
       } else
@@ -1710,11 +1712,15 @@ state1:
 	      Swig_error_silent(0);
 	      /*              Printf(stdout,"checking '%s'\n", v1); */
 	      if (!checkpp_id(v1)) {
-		if (Len(comment) == 0)
-		  Printf(ns, "%%constant %s = %s;\n", Getattr(m, kpp_name), v1);
-		else
-		  Printf(ns, "%%constant %s = %s; /*%s*/\n", Getattr(m, kpp_name), v1, comment);
-		cpp_lines--;
+              if (Len(comment) == 0)
+                  Printf(ns, "%%constant %s = %s;\n", Getattr(m, kpp_name), v1);
+              else if (comment_style == 1) {
+                  Printf(ns, "%%constant %s = %s; //%s\n", Getattr(m, kpp_name), v1, comment);
+                  comment_style = 0;
+              }
+              else
+                  Printf(ns, "%%constant %s = %s; /*%s*/\n", Getattr(m, kpp_name), v1, comment);
+              cpp_lines--;
 	      }
 	      Delete(v1);
 	    }
