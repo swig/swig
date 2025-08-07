@@ -220,7 +220,7 @@ void CSharpDocConverter::fillStaticTables() {
   tagHandlers["&"] = make_handler(&CSharpDocConverter::handleTagCharReplace, "&amp;");
   tagHandlers["#"] = make_handler(&CSharpDocConverter::handleTagChar);
   tagHandlers["%"] = make_handler(&CSharpDocConverter::handleTagChar);
-  tagHandlers["~"] = make_handler(&CSharpDocConverter::handleTagChar);
+  tagHandlers["~"] = make_handler(&CSharpDocConverter::handleTagCharReplace, "@~");
   tagHandlers["\""] = make_handler(&CSharpDocConverter::handleTagChar);
   tagHandlers["."] = make_handler(&CSharpDocConverter::handleTagChar);
   tagHandlers["::"] = make_handler(&CSharpDocConverter::handleTagChar);
