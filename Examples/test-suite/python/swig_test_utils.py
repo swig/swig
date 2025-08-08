@@ -9,6 +9,11 @@ def swig_assert(condition, msg="Assertion failed"):
     if not condition:
         raise AssertionError(msg)
 
+def swig_check(lhs, rhs):
+    """More user friendly assert function which shows values in an AssertionError if they are not equal"""
+    if not lhs == rhs:
+        raise AssertionError("'{lhs}' != '{rhs}', repr(lhs)={lr}, repr(rhs)={rr}".format(lhs=lhs, rhs=rhs, lr=repr(lhs), rr=repr(rhs)))
+
 
 @contextlib.contextmanager
 def swig_assert_raises(exc_cls):
