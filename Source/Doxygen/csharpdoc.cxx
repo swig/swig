@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-
+#include <ctype.h>
 #include "swigmod.h"
 
 // define static tables, they are filled in CSharpDocConverter's constructor
@@ -220,7 +220,7 @@ void CSharpDocConverter::fillStaticTables() {
   tagHandlers["&"] = make_handler(&CSharpDocConverter::handleTagCharReplace, "&amp;");
   tagHandlers["#"] = make_handler(&CSharpDocConverter::handleTagChar);
   tagHandlers["%"] = make_handler(&CSharpDocConverter::handleTagChar);
-  tagHandlers["~"] = make_handler(&CSharpDocConverter::handleTagCharReplace, "@~");
+  tagHandlers["~"] = make_handler(&CSharpDocConverter::handleTagCharReplace, "\\~");
   tagHandlers["\""] = make_handler(&CSharpDocConverter::handleTagChar);
   tagHandlers["."] = make_handler(&CSharpDocConverter::handleTagChar);
   tagHandlers["::"] = make_handler(&CSharpDocConverter::handleTagChar);
@@ -714,7 +714,7 @@ void CSharpDocConverter::handleTagSee(DoxygenEntity& tag, std::string& translate
     bool has_content = false;
     for (size_t i = 0; i < seeAlso.size(); i++)
     {
-        if (std::isspace(seeAlso[i]))
+        if (isspace(seeAlso[i]))
         {
             if (!has_content)
             {
