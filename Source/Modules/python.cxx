@@ -2884,8 +2884,7 @@ public:
     int onearg = funpack && (tuple_required == 1 && tuple_arguments == 1);
 
     if (builtin && funpack && !overname && !builtin_ctor) {
-      int compactdefargs = ParmList_is_compactdefargs(l);
-      if (!(compactdefargs && (tuple_arguments > tuple_required || varargs))) {
+      if (!(tuple_arguments > tuple_required || varargs)) {
 	String *argattr = NewStringf("%d", tuple_arguments);
 	Setattr(n, "python:argcount", argattr);
 	Delete(argattr);

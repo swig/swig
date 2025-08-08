@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-08-06: olly, jim-easterbrook
+            [Python] #2786 Fix handling of "default" typemap applied to method which
+            takes a single argument when "-builtin" option is used.
+
 2025-08-01: erezgeva
             [D] #3234 Ensure 'dtype' multi-argument typemaps are being correctly used.
 
