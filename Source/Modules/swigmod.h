@@ -388,8 +388,8 @@ void emit_mark_varargs(ParmList *l);
 String *emit_action(Node *n);
 int emit_action_code(Node *n, String *wrappercode, String *action);
 void Swig_overload_check(Node *n);
-String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *, const_String_or_char_ptr fmt_fastdispatch = 0);
-String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *);
+String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxargs, bool *check_emitted, const_String_or_char_ptr fmt_fastdispatch = 0);
+String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *maxargs, bool *check_emitted);
 List *Swig_overload_rank(Node *n, bool script_lang_wrapping);
 SwigType *cplus_value_type(SwigType *t);
 

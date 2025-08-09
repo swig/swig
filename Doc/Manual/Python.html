@@ -173,8 +173,7 @@ Basics</a>" chapter.
 
 <p>
 SWIG is compatible
-with all recent Python versions (Python 2.7 and Python &gt;= 3.5).  Python 3.3
-and 3.4 may still work but we are no longer regularly testing with them.
+with all recent Python versions (Python 2.7 and Python &gt;= 3.5).
 SWIG-4.0 supported Python 3.2.  SWIG-3.0 supported older Python 2.x and 3.x.
 </p>
 
@@ -964,6 +963,7 @@ swig -python -help
 <tr><td>-interface &lt;mod&gt;</td><td>Set low-level C/C++ module name to &lt;mod&gt; (default: module name prefixed by '_')</td></tr>
 <tr><td>-keyword        </td><td>Use keyword arguments</td></tr>
 <tr><td>-nofastunpack   </td><td>Use traditional UnpackTuple method to parse the argument functions</td></tr>
+<tr><td>-nogil          </td><td>Enable free-threading if supported by the Python interpreter</td></tr>
 <tr><td>-noh            </td><td>Don't generate the output header file</td></tr>
 <tr><td>-noproxy        </td><td>Don't generate proxy classes</td></tr>
 <tr><td>-nortti         </td><td>Disable the use of the native C++ RTTI with directors</td></tr>
@@ -4189,24 +4189,25 @@ This is enabled by defining <tt>Py_LIMITED_API</tt> during the compilation of th
 </p>
 
 <p>
-SWIG supports the stable ABI, but only version 3.4 of Python and later is supported.
-There are two recommended approaches for using SWIG and the stable ABI and both require setting the <tt>Py_LIMITED_API</tt> macro to be set to <tt>0x03040000</tt> as a minimum value (Python 3.4).
+SWIG supports the stable ABI, but only version 3.5 of Python and later is supported.
+There are two recommended approaches for using SWIG and the stable ABI and both require setting the <tt>Py_LIMITED_API</tt> macro to be set to <tt>0x03050000</tt> as a minimum value (Python 3.5).
 Either set this using <tt>%begin</tt> by adding the following into your interface file so that this macro appears at the beginning of the generated C/C++ code:
 </p>
 
 <div class="code"><pre>
 %begin %{
-#define Py_LIMITED_API 0x03040000
+#define Py_LIMITED_API 0x03050000
 %}
 </pre></div>
 
 <p>
-or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line option, for example, <tt>-DPy_LIMITED_API=0x03040000</tt>.
+or simply define the macro using your C/C++ compiler's <tt>-D</tt> command line option, for example, <tt>-DPy_LIMITED_API=0x03050000</tt>.
 </p>
 
 <p>
 The default SWIG command line options generate code that enable the limited API/stable ABI.
-Some options, such as <tt>-builtin</tt>, <tt>-fast</tt> (used by <tt>-O</tt>) do not use the limited API and hence when <tt>Py_LIMITED_API</tt> is defined there will be missing symbols during compilation.
+Some options, such as <tt>-builtin</tt>, <tt>-fastproxy</tt> (used by <tt>-O</tt>) do not use the limited API and hence when <tt>Py_LIMITED_API</tt> is defined there will be missing symbols during compilation.
+The limited API is only known to work with the default code generation options.
 Compatibility of user's custom typemaps is of course dependent on the Python APIs used in the typemaps.
 </p>
 
@@ -7642,10 +7643,12 @@ will not be able to run any other threads, even if the wrapped C/C++ code is wai
 <a href="https://docs.python.org/3/howto/free-threading-python.html">Free threading Python</a>
 disables the Global Interpreter Lock (GIL) for improved parallel execution or multi-threaded
 execution.
-Python free threading was first released with experimental support for Python 3.13 and requires a special build of Python where the GIL can be disabled.
-SWIG supports free threading Python; just use a free threading build of Python.
-In particular, the Python header files from the free threading build of Python must be used
-when compiling the SWIG generated code.
+Python free threading was first released with experimental support for Python 3.13 and requires a
+special build of Python where the GIL can be disabled.
+SWIG support for free threading Python is opt-in; you must pass the <tt>-nogil</tt> flag to swig to
+indicate that the wrapped code is thread-safe. The flag has no effect on Python builds that don't
+support free threading. In particular, the Python header files from the free threading build of
+Python must be used when compiling the SWIG generated code.
 This is needed for the C/C++ compiler to be aware of the <tt>Py_GIL_DISABLED</tt> Python macro,
 which identifies the free threading build, and is used by the SWIG generated code.
 Please see the <a href="https://py-free-threading.github.io/">Python free-threading guide</a>
@@ -7658,6 +7661,14 @@ However, this does not automatically make the code thread-safe for using in a fr
 the code being wrapped by SWIG to also be thread-safe.
 Users must also write thread-safe code and prevent unsafe shared mutation using either Python-level locking in
 Python code or using C/C++ native locking.
+</p>
+
+<p>
+Note that free-threading support is separate to the standard multithreading support described
+in the previous section. For example, one can still declare that functions should or shouldn't
+release the GIL, but that will only have an effect when and if the GIL is available in the
+Python interpreter to begin with. If your wrapped code is thread-unsafe, you should use
+an explicit locking system for it and should not rely on the GIL to protect it.
 </p>
 
 <p>

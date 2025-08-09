@@ -1674,7 +1674,7 @@ SWIGRUNTIME void SWIG_Octave_LinkGlobalValue(std::string name) {
   std::shared_ptr<octave::stack_frame> stackFrame = tree_eval.get_current_stack_frame();
 #else
   octave::call_stack& callStack = tree_eval.get_call_stack();
-  std::shared_ptr<octave::stack_frame> stackFrame = tree_eval.get_current_stack_frame();
+  std::shared_ptr<octave::stack_frame> stackFrame = callStack.get_current_stack_frame();
 #endif
   octave::symbol_record sym=symscope.lookup_symbol(name);
   stackFrame->mark_global(sym);

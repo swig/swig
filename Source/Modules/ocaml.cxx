@@ -703,10 +703,9 @@ public:
     if (isOverloaded) {
       if (!Getattr(n, "sym:nextSibling")) {
 	int maxargs;
+	bool check_emitted = false;
 	Wrapper *df = NewWrapper();
-	String *dispatch = Swig_overload_dispatch(n,
-						  "free(argv);\n" "CAMLreturn(%s(args));\n",
-						  &maxargs);
+	String *dispatch = Swig_overload_dispatch(n, "free(argv);\n" "CAMLreturn(%s(args));\n", &maxargs, &check_emitted);
 
 	Wrapper_add_local(df, "argv", "value *argv");
 

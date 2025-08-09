@@ -34,8 +34,8 @@ typedef struct spam {
     return (char *) "Spam::blah";
   }
 
-  const char *far() {
-    return "Spam::far";
+  const char *far1() {
+    return "Spam::far1";
   }
 } Spam;
 

@@ -796,16 +796,19 @@ public:
     String *iname = Getattr(n, "sym:name");
     String *wname = Swig_name_wrapper(iname);
     int maxargs;
-    String *dispatch = Swig_overload_dispatch(n, "return %s(args, nargout);", &maxargs);
+    bool check_emitted = false;
+    String *dispatch = Swig_overload_dispatch(n, "return %s(args, nargout);", &maxargs, &check_emitted);
     String *tmp = NewString("");
 
     Octave_begin_function(n, f->def, iname, wname, true);
     Wrapper_add_local(f, "argc", "int argc = args.length()");
-    Printf(tmp, "octave_value_ref argv[%d]={", maxargs);
-    for (int j = 0; j < maxargs; ++j)
-      Printf(tmp, "%soctave_value_ref(args,%d)", j ? "," : " ", j);
-    Printf(tmp, "}");
-    Wrapper_add_local(f, "argv", tmp);
+    if (maxargs > 0 && check_emitted) {
+      Printf(tmp, "octave_value_ref argv[%d]={", maxargs);
+      for (int j = 0; j < maxargs; ++j)
+	Printf(tmp, "%soctave_value_ref(args,%d)", j ? "," : " ", j);
+      Printf(tmp, "}");
+      Wrapper_add_local(f, "argv", tmp);
+    }
     Printv(f->code, dispatch, "\n", NIL);
     Printf(f->code, "error(\"No matching function for overload\");\n");
     Printf(f->code, "return octave_value_list();\n");

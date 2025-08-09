@@ -434,7 +434,7 @@ $(GOPATHPARENTDIR)/go.mod:
 	@mkdir $(GOPATHDIR) 2>/dev/null || true
 	echo "module swigtests" > $(GOPATHDIR)/go.mod
 	echo "" >> $(GOPATHDIR)/go.mod
-	echo "go 1.12" >> $(GOPATHDIR)/go.mod
+	echo "go 1.20" >> $(GOPATHDIR)/go.mod
 	mv -f $(GOPATHDIR)/go.mod $(GOPATHPARENTDIR)/go.mod
 
 go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
@@ -1303,8 +1303,7 @@ else
   PYTHON_SO      = @PYTHON_SO@
 endif
 
-PYNOGIL           = @PYNOGIL@
-PYFLAGS           = -Walways
+PYFLAGS           = -Werror
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,W291,W391
 PYABI3AUDIT	  = @PYABI3AUDIT@
@@ -1368,7 +1367,7 @@ python_run: $(PYSCRIPT)
 ifneq (,$(PYCODESTYLE))
 	$(COMPILETOOL) $(PYCODESTYLE) $(PYCODESTYLE_FLAGS) $(PYSCRIPT)
 endif
-	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYNOGIL) $(PYFLAGS) $(PYSCRIPT) $(RUNPIPE)
+	env PYTHONPATH=$$PWD $(RUNTOOL) $(PYTHON) $(PYFLAGS) $(PYSCRIPT) $(RUNPIPE)
 
 ifneq (,$(SRCDIR))
 $(RUNME).py: $(SRCDIR)$(RUNME).py

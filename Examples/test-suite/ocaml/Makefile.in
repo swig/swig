@@ -26,6 +26,7 @@ cpp11_strongly_typed_enumerations \
 cpp_enum \
 default_constructor \
 director_binary_string \
+director_binary_string_rev_len \
 director_comparison_operators \
 director_enum \
 director_primitives \

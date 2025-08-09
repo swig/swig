@@ -1,6 +1,7 @@
 import pathlib
 
 from cpp17_std_filesystem import *
+from swig_test_utils import swig_assert, swig_check
 
 
 def check_flag(flag):
@@ -13,7 +14,7 @@ def format_msg(p, p2):
 
 
 def check(p, p2):
-    assert p == p2, format_msg(p, p2)
+    swig_check(p, p2)
 
 
 # Test the output typemap. The wrapped C++ functions
@@ -61,4 +62,4 @@ if roundTripped != roundTrippedSquared:
     lines.append("roundTripped, roundTrippedSquared: " + format_msg(roundTripped, roundTrippedSquared))
 if specialPath != roundTrippedSquared:
     lines.append("specialPath, roundTrippedSquared: " + format_msg(specialPath, roundTrippedSquared))
-assert not lines, "\n".join(lines)
+swig_assert(not lines, "\n".join(lines))

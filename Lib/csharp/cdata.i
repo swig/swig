@@ -24,21 +24,21 @@ typedef struct { int len; void *ptr; } SWIG_csharp_bytes;
 
 SWIGEXPORT void *SWIGSTDCALL SWIG_csharp_bytes_to_c(int len, void *ptr) {
   SWIG_csharp_bytes *ret = (SWIG_csharp_bytes *)malloc(sizeof(SWIG_csharp_bytes));
-  if (ret == SWIG_NULLPTR) {
+  if (ret == NULL) {
     SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate bytes container.");
-    return SWIG_NULLPTR;
+    return NULL;
   }
   if (len > 0) {
     ret->ptr = malloc(len);
-    if (ret->ptr == SWIG_NULLPTR) {
+    if (ret->ptr == NULL) {
       SWIG_CSharpSetPendingException(SWIG_CSharpOutOfMemoryException, "fail to duplicate bytes.");
       free(ret);
-      return SWIG_NULLPTR;
+      return NULL;
     }
     memcpy(ret->ptr, ptr, len);
     ret->len = len;
   } else {
-    ret->ptr = SWIG_NULLPTR;
+    ret->ptr = NULL;
     ret->len = 0;
   }
   return ret;
@@ -55,7 +55,7 @@ SWIGEXPORT void *SWIGSTDCALL SWIG_csharp_bytes_to_c(int len, void *ptr) {
 %typemap(csin)   (const void *BYTES, size_t LENGTH) "$modulePINVOKE.SWIG_csharp_bytes_to_c($csinput)"
 %typemap(in, canthrow=1, fragment="SWIG_csharp_bytes") (const void *BYTES, size_t LENGTH) {
   SWIG_csharp_bytes *p = (SWIG_csharp_bytes *)$input;
-  if (p != SWIG_NULLPTR) {
+  if (p) {
     $1 = ($1_ltype)p->ptr;
     $2 = ($2_ltype)p->len;
   } else {
@@ -65,7 +65,7 @@ SWIGEXPORT void *SWIGSTDCALL SWIG_csharp_bytes_to_c(int len, void *ptr) {
 }
 %typemap(freearg, fragment="SWIG_csharp_bytes") (const void *BYTES, size_t LENGTH) {
   SWIG_csharp_bytes *p = (SWIG_csharp_bytes *)$input;
-  if (p != SWIG_NULLPTR) {
+  if (p) {
     free(p->ptr);
     free(p);
   }
@@ -87,8 +87,8 @@ extern "C" {
 
 SWIGEXPORT int SWIGSTDCALL SWIG_csharp_data(SWIGCDATA *d, void **ptr) {
   int ret = 0;
-  if (d != SWIG_NULLPTR) {
-    if (d->len > 0 && d->data != SWIG_NULLPTR) {
+  if (d) {
+    if (d->len > 0 && d->data) {
       *ptr = (void *)d->data;
       ret = (int)d->len;
     }
@@ -107,7 +107,7 @@ SWIGEXPORT int SWIGSTDCALL SWIG_csharp_data(SWIGCDATA *d, void **ptr) {
 %typemap(cstype) SWIGCDATA "byte[]"
 %typemap(out) SWIGCDATA %{
   $result = (SWIGCDATA*)malloc(sizeof($1));
-  if ($result != SWIG_NULLPTR) {
+  if ($result) {
     memcpy($result, &$1, sizeof($1));
   }
 %}

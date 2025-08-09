@@ -1,4 +1,4 @@
-#if !defined(SWIGPYTHON_BUILTIN) && PY_VERSION_HEX >= 0x03030000
+#if PY_VERSION_HEX >= 0x03030000 && !defined(SWIG_NO_HEAPTYPES)
 #if !defined(SWIG_HEAPTYPES)
 #define SWIG_HEAPTYPES
 #endif
@@ -66,7 +66,7 @@ SWIG_PyUnicode_AsUTF8AndSize(PyObject *str, Py_ssize_t *psize, PyObject **pbytes
 #endif
 }
 
-SWIGINTERN PyObject*
+SWIGINTERN PyObject *
 SWIG_Python_str_FromChar(const char *c)
 {
 #if PY_VERSION_HEX >= 0x03000000
@@ -93,20 +93,18 @@ SWIG_Python_str_FromChar(const char *c)
 #define Py_hash_t long
 #endif
 
-#ifdef Py_GIL_DISABLED
-# undef PyTuple_GET_ITEM
-# undef PyTuple_SET_ITEM
-# undef PyTuple_GET_SIZE
-# undef PyCFunction_GET_FLAGS
-# undef PyCFunction_GET_FUNCTION
-# undef PyCFunction_GET_SELF
-# undef PyList_GET_ITEM
-# undef PyList_SET_ITEM
-# undef PySliceObject
+// gh-114329 added PyList_GetItemRef() to Python 3.13.0a4
+#if PY_VERSION_HEX < 0x030D00A4
+static inline PyObject *
+PyList_GetItemRef(PyObject *op, Py_ssize_t index)
+{
+    PyObject *item = PyList_GetItem(op, index);
+    Py_XINCREF(item);
+    return item;
+}
 #endif
 
-
-#if defined(Py_LIMITED_API) || defined(Py_GIL_DISABLED)
+#if defined(Py_LIMITED_API)
 # define PyTuple_GET_ITEM PyTuple_GetItem
 /* Note that PyTuple_SetItem() has different semantics from PyTuple_SET_ITEM as it decref's the original tuple item, so in general they cannot be used
   interchangeably. However in SWIG-generated code PyTuple_SET_ITEM is only used with newly initialized tuples without any items and for them this does work. */
@@ -131,4 +129,32 @@ SWIG_Python_str_FromChar(const char *c)
 # define SWIG_Py_XINCREF Py_XINCREF
 # define SWIG_Py_DECREF Py_DECREF
 # define SWIG_Py_XDECREF Py_XDECREF
+#endif
+
+#if PY_VERSION_HEX >= 0x03000000
+SWIGINTERN PyObject *
+SWIG_PyType_GetFullyQualifiedName(PyTypeObject *type) {
+#if PY_VERSION_HEX >= 0x030d0000
+  return PyType_GetFullyQualifiedName(type);
+#else
+  PyObject *result = NULL;
+  PyObject *qualname = PyObject_GetAttrString((PyObject *)type, "__qualname__");
+  if (qualname) {
+    PyObject *mod = PyObject_GetAttrString((PyObject *)type, "__module__");
+    if (mod) {
+      if (PyUnicode_Check(mod) && PyUnicode_CompareWithASCIIString(mod, "builtins") && PyUnicode_CompareWithASCIIString(mod, "__main__")) {
+        result = PyUnicode_FromFormat("%U%c%U", mod, '.', qualname);
+        SWIG_Py_DECREF(qualname);
+      } else {
+        result = qualname;
+      }
+      SWIG_Py_DECREF(mod);
+    } else {
+      result = qualname;
+    }
+  }
+
+  return result;
+#endif
+}
 #endif

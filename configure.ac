@@ -497,6 +497,17 @@ then LIBC=$withval
 else AC_MSG_ERROR([proper usage is --with-libc=STRING])
 fi])
 
+case $host in
+  dnl Windows path separator
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
+    SHELL_PATH_SEP=';'
+    ;;
+  *) dnl POSIX path separator
+    SHELL_PATH_SEP=':'
+    ;;
+esac
+AC_SUBST(SHELL_PATH_SEP)
+
 #--------------------------------------------------------------------
 # Target languages
 #--------------------------------------------------------------------
@@ -940,14 +951,11 @@ case $host in
     if test -n "$JAVA_HOME"; then
       JAVA_HOME=`cygpath --mixed "$JAVA_HOME"`
     fi
-    dnl Java uses semicolons and not colons as separators in its classes search path under Windows.
-    JAVA_CLASSPATH_SEP=";"
     ;;
   *-*-mingw*)
     if test -n "$JAVA_HOME"; then
       JAVA_HOME=`${srcdir}/Tools/convertpath -u "$JAVA_HOME"`
     fi
-    JAVA_CLASSPATH_SEP=";"
     ;;
   *-*-darwin*)
     dnl Under OS X JAVA_HOME is not set by default, try to use the system default JRE.
@@ -960,11 +968,6 @@ case $host in
     if test -r "$JAVA_OSX_STD_INCDIR/jni.h"; then
       JAVA_HOME_INCDIR=$JAVA_OSX_STD_INCDIR
     fi
-    JAVA_CLASSPATH_SEP=":"
-    ;;
-  *)
-    dnl Assume generic Unix.
-    JAVA_CLASSPATH_SEP=":"
     ;;
 esac
 
@@ -1170,7 +1173,6 @@ fi
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
 AC_SUBST(JAVAINC)
-AC_SUBST(JAVA_CLASSPATH_SEP)
 AC_SUBST(JAVADYNAMICLINKING)
 AC_SUBST(JAVALIBRARYPREFIX)
 AC_SUBST(JAVASO)
@@ -2050,13 +2052,6 @@ else
     if test -z "$PYVER"; then
       PYVER=0
     fi
-
-    AC_MSG_CHECKING([if $PYTHON3 GIL can be disabled])
-    PYGIL=`($PYTHON3 -c "import sysconfig; print('yes' if bool(sysconfig.get_config_var('Py_GIL_DISABLED')) else 'no')") 2>/dev/null`
-    AC_MSG_RESULT($PYGIL)
-    if test x"$PYGIL" = x"yes"; then
-      PYNOGIL="-X gil=0"
-    fi
   fi
 
   if test $PYVER -ge 3; then
@@ -2185,7 +2180,6 @@ else
   *)PYTHON3DYNAMICLINKING="";;
   esac
 
-  AC_SUBST(PYNOGIL)
   AC_SUBST(PY3INCLUDE)
   AC_SUBST(PY3LIB)
   AC_SUBST(PY3LINK)
@@ -2290,6 +2284,7 @@ if test -n "$RUBY"; then
 		dirs="$dirs $rb_archlibdir $rb_libdir $rb_bindir"
 
         rb_libruby=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
+        rb_dlibruby=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBRUBY"]]') 2>/dev/null`
         RUBYLINK=`($RUBY -rrbconfig -e '
             c = RbConfig::CONFIG
             if c.has_key? "LIBRUBYARG_STATIC" # 1.8.x
@@ -2317,9 +2312,10 @@ if test -n "$RUBY"; then
               puts link
             end') 2>/dev/null`
 
-		if test "$rb_libruby" != ""; then
+		if test -n "$rb_libruby" || test -n "$rb_dlibruby"; then
 			for i in $dirs; do
-				if test -r "$i/$rb_libruby"; then
+				if { test -n "$rb_libruby" && test -r $i/$rb_libruby ; } ||\
+				   { test -n "$rb_dlibruby" && test -r $i/$rb_dlibruby ; } ; then
 					RUBYLIB="$i"
 					break
 				fi
@@ -2347,7 +2343,7 @@ else
 fi
 
 case $host in
-*-*-cygwin* | *-*-mingw*)	RUBYDYNAMICLINKING="-L$RUBYLIB $RUBYLINK";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) RUBYDYNAMICLINKING="-L$RUBYLIB $RUBYLINK";;
 *)		RUBYDYNAMICLINKING="";;
 esac
 fi

@@ -2,9 +2,12 @@
 
 %feature("director") Callback;
 
+#if !defined(SWIGC)
+/* There is no concept of a higher level binary string in C */
 %apply (char *STRING, size_t LENGTH) { (char *dataBufferAA, int sizeAA) };
 %apply (char *STRING, size_t LENGTH) { (char *dataBufferBB, int sizeBB) };
 %apply (const char *STRING, size_t LENGTH) { (const char *data, size_t datalen) };
+#endif
 
 %inline %{
 #include <stdlib.h>

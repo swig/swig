@@ -1004,8 +1004,9 @@ public:
     /* Last node in overloaded chain */
 
     int maxargs;
+    bool check_emitted = false;
     String *tmp = NewStringEmpty();
-    String *dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs);
+    String *dispatch = Swig_overload_dispatch(n, "%s(INTERNAL_FUNCTION_PARAM_PASSTHRU); return;", &maxargs, &check_emitted);
 
     /* Generate a dispatch wrapper for all overloaded functions */
 

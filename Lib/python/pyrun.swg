@@ -11,8 +11,8 @@
 # error "This version of SWIG only supports Python >= 2.7"
 #endif
 
-#if PY_VERSION_HEX >= 0x03000000 && PY_VERSION_HEX < 0x03030000
-# error "This version of SWIG only supports Python 3 >= 3.3"
+#if PY_VERSION_HEX >= 0x03000000 && PY_VERSION_HEX < 0x03050000
+# error "This version of SWIG only supports Python 3 >= 3.5"
 #endif
 
 /* Common SWIG API */
@@ -627,6 +627,7 @@ typedef struct {
   int own;
   PyObject *next;
   PyObject *swigdict;
+  PyObject *weakreflist;
 } SwigPyObject;
 
 
@@ -722,26 +723,33 @@ SwigPyObject_repr2(PyObject *v, PyObject *SWIGUNUSEDPARM(args))
 }
 
 SWIGRUNTIME int
-SwigPyObject_compare(SwigPyObject *v, SwigPyObject *w)
+SwigPyObject_compare(PyObject *v, PyObject *w)
 {
-  void *i = v->ptr;
-  void *j = w->ptr;
+  /* tp_compare is only called when both objects have the same type, so
+   * the casts are guaranteed to be ok. */
+  void *i = ((SwigPyObject *)v)->ptr;
+  void *j = ((SwigPyObject *)w)->ptr;
   return (i < j) ? -1 : ((i > j) ? 1 : 0);
 }
 
+SWIGRUNTIMEINLINE int SwigPyObject_Check(PyObject *);
+
 /* Added for Python 3.x, would it also be useful for Python 2.x? */
 SWIGRUNTIME PyObject*
-SwigPyObject_richcompare(SwigPyObject *v, SwigPyObject *w, int op)
+SwigPyObject_richcompare(PyObject *v, PyObject *w, int op)
 {
   PyObject* res = NULL;
   if (!PyErr_Occurred()) {
-    if (op != Py_EQ && op != Py_NE) {
+    /* Per https://docs.python.org/3/c-api/typeobj.html#c.PyTypeObject.tp_richcompare
+     * the first argument is guaranteed to be an instance of SwigPyObject, but the
+     * second is not, so we typecheck that one. */
+    if ((op != Py_EQ && op != Py_NE) || !SwigPyObject_Check(w)) {
       SWIG_Py_INCREF(Py_NotImplemented);
       return Py_NotImplemented;
     }
     res = PyBool_FromLong( (SwigPyObject_compare(v, w)==0) == (op == Py_EQ) ? 1 : 0);
   }
-  return res;  
+  return res;
 }
 
 
@@ -775,23 +783,22 @@ SwigPyObject_Check(PyObject *op) {
   return PyType_IsSubtype(op_type, target_tp);
 #else
   /* Check for an exact match to SwigPyObject */
-# ifdef Py_LIMITED_API
-  int cmp;
-  PyObject *tp_name;
-#endif
-  if (op_type == target_tp)
+  if (op_type == target_tp) {
     return 1;
-# ifdef Py_LIMITED_API
-  /* Fallback for multiple modules */
-  tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
-  if (!tp_name)
-    return 0;
-  cmp = PyUnicode_CompareWithASCIIString(tp_name, "SwigPyObject");
-  SWIG_Py_DECREF(tp_name);
-  return cmp == 0;
-# else
-  return (strcmp(op_type->tp_name, SWIG_RUNTIME_MODULE ".SwigPyObject") == 0);
-# endif
+  } else {
+    /* Fallback for multiple modules */
+#if PY_VERSION_HEX >= 0x03000000
+    int cmp;
+    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(op_type);
+    if (!tpname)
+      return 0;
+    cmp = PyUnicode_CompareWithASCIIString(tpname, SWIG_RUNTIME_MODULE ".SwigPyObject");
+    SWIG_Py_DECREF(tpname);
+    return cmp == 0;
+#else
+    return strcmp(op_type->tp_name, SWIG_RUNTIME_MODULE ".SwigPyObject") == 0;
+#endif
+  }
 #endif
 }
 
@@ -1019,7 +1026,7 @@ SwigPyObject_TypeOnce(void) {
       0,                                    /* tp_traverse */
       0,                                    /* tp_clear */
       (richcmpfunc)SwigPyObject_richcompare,/* tp_richcompare */
-      0,                                    /* tp_weaklistoffset */
+      offsetof(SwigPyObject, weakreflist),  /* tp_weaklistoffset */
       0,                                    /* tp_iter */
       0,                                    /* tp_iternext */
       SwigPyObject_methods,                 /* tp_methods */
@@ -1077,6 +1084,7 @@ SwigPyObject_TypeOnce(void) {
 #else
   static PyMemberDef SwigPyObject_members[] = {
       { (char *)"__dictoffset__", Py_T_PYSSIZET, offsetof(SwigPyObject, swigdict), Py_READONLY, NULL },
+      { (char *)"__weaklistoffset__", Py_T_PYSSIZET, offsetof(SwigPyObject, weakreflist), Py_READONLY, NULL },
       { NULL, 0, 0, 0, NULL }
   };
   PyType_Slot slots[] = {
@@ -1099,13 +1107,15 @@ SwigPyObject_TypeOnce(void) {
   };
   PyObject *pytype = PyType_FromSpec(&spec);
   PyObject *runtime_data_module = SWIG_runtime_data_module();
-# if !defined(Py_LIMITED_API)
+#if !defined(Py_LIMITED_API)
 /* While this __dictoffset__ is only used with the builtin wrappers, SwigPyObject ought to be
    identical when created for use by proxy class wrappers in case it is shared across multiple modules. */
 #if PY_VERSION_HEX < 0x03090000
-    /* Workaround as __dictoffset__ above is only supported from python-3.9 */
-  if (pytype)
+    /* Workaround as __dictoffset__ and __weaklistoffset__ above are only supported from python-3.9 */
+  if (pytype) {
     ((PyTypeObject *)pytype)->tp_dictoffset = offsetof(SwigPyObject, swigdict);
+    ((PyTypeObject *)pytype)->tp_weaklistoffset = offsetof(SwigPyObject, weakreflist);
+  }
 #endif
 #endif
   if (pytype && PyModule_AddObject(runtime_data_module, "SwigPyObject", pytype) == 0)
@@ -1124,6 +1134,7 @@ SwigPyObject_New(void *ptr, swig_type_info *ty, int own)
     sobj->own  = own;
     sobj->next = 0;
     sobj->swigdict = 0;
+    sobj->weakreflist = 0;
     if (own == SWIG_POINTER_OWN) {
       /* Obtain a reference to the Python capsule wrapping the module information, so that the
        * module information is correctly destroyed after all SWIG python objects have been freed
@@ -1189,23 +1200,22 @@ SwigPyPacked_Check(PyObject *op) {
   PyTypeObject *target_tp = SwigPyPacked_Type();
   PyTypeObject *op_type = Py_TYPE(op);
   /* Check for an exact match to SwigPyPacked */
-#ifdef Py_LIMITED_API
-  int cmp;
-  PyObject *tp_name;
-#endif
-  if (op_type == target_tp)
+  if (op_type == target_tp) {
     return 1;
-#ifdef Py_LIMITED_API
-  /* Fallback for multiple modules */
-  tp_name = PyObject_GetAttrString((PyObject *)op_type, "__name__");
-  if (!tp_name)
-    return 0;
-  cmp = PyUnicode_CompareWithASCIIString(tp_name, "SwigPyPacked");
-  SWIG_Py_DECREF(tp_name);
-  return cmp == 0;
+  } else {
+    /* Fallback for multiple modules */
+#if PY_VERSION_HEX >= 0x03000000
+    int cmp;
+    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(op_type);
+    if (!tpname)
+      return 0;
+    cmp = PyUnicode_CompareWithASCIIString(tpname, SWIG_RUNTIME_MODULE ".SwigPyPacked");
+    SWIG_Py_DECREF(tpname);
+    return cmp == 0;
 #else
-  return (strcmp(op_type->tp_name, SWIG_RUNTIME_MODULE ".SwigPyPacked") == 0);
+    return strcmp(op_type->tp_name, SWIG_RUNTIME_MODULE ".SwigPyPacked") == 0;
 #endif
+  }
 }
 
 SWIGRUNTIME void
@@ -1395,6 +1405,7 @@ SWIG_This(void)
 #define SWIG_PYTHON_SLOW_GETSET_THIS 
 #endif
 
+/* Returns a borrowed reference to the 'this' object */
 SWIGRUNTIME SwigPyObject *
 SWIG_Python_GetSwigThis(PyObject *pyobj) 
 {
@@ -1405,18 +1416,18 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
 
 #ifdef SWIGPYTHON_BUILTIN
   (void)obj;
-# ifdef PyWeakref_CheckProxy
   if (PyWeakref_CheckProxy(pyobj)) {
 #if PY_VERSION_HEX >= 0x030d0000
-    PyWeakref_GetRef(pyobj, &pyobj);
-    Py_DECREF(pyobj);
+    if (PyWeakref_GetRef(pyobj, &pyobj) > 0)
+      Py_DECREF(pyobj);
+    else
+      pyobj = NULL;
 #else
-    pyobj = PyWeakref_GET_OBJECT(pyobj);
+    pyobj = PyWeakref_GetObject(pyobj);
 #endif
     if (pyobj && SwigPyObject_Check(pyobj))
       return (SwigPyObject*) pyobj;
   }
-# endif
   return NULL;
 #else
 
@@ -1431,13 +1442,11 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
       PyObject *dict = *dictptr;
       obj = dict ? PyDict_GetItem(dict, SWIG_This()) : 0;
     } else {
-#ifdef PyWeakref_CheckProxy
       if (PyWeakref_CheckProxy(pyobj)) {
-	PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
+        PyObject *wobj = PyWeakref_GET_OBJECT(pyobj);
 	return wobj ? SWIG_Python_GetSwigThis(wobj) : 0;
       }
-#endif
-      obj = PyObject_GetAttr(pyobj,SWIG_This());
+      obj = PyObject_GetAttr(pyobj, SWIG_This());
       if (obj) {
 	SWIG_Py_DECREF(obj);
       } else {
@@ -1447,7 +1456,7 @@ SWIG_Python_GetSwigThis(PyObject *pyobj)
     }
   }
 #else
-  obj = PyObject_GetAttr(pyobj,SWIG_This());
+  obj = PyObject_GetAttr(pyobj, SWIG_This());
   if (obj) {
     SWIG_Py_DECREF(obj);
   } else {
@@ -1789,11 +1798,13 @@ SWIG_Python_NewPointerObj(PyObject *self, void *ptr, swig_type_info *type, int f
         newobj->next = next_self;
         newobj = (SwigPyObject *)next_self;
         newobj->swigdict = 0;
+        newobj->weakreflist = 0;
       }
     } else {
       newobj = PyObject_New(SwigPyObject, clientdata->pytype);
       if (newobj) {
         newobj->swigdict = 0;
+        newobj->weakreflist = 0;
       }
     }
     if (newobj) {
@@ -2003,49 +2014,6 @@ SwigPyObject_GetDesc(PyObject *self)
   return ty ? ty->str : "";
 }
 
-SWIGRUNTIME void
-SWIG_Python_TypeError(const char *type, PyObject *obj)
-{
-  (void) obj;
-  if (type) {
-#if defined(SWIG_COBJECT_TYPES)
-    if (obj && SwigPyObject_Check(obj)) {
-      const char *otype = (const char *) SwigPyObject_GetDesc(obj);
-      if (otype) {
-	PyErr_Format(PyExc_TypeError, "a '%s' is expected, 'SwigPyObject(%s)' is received",
-		     type, otype);
-	return;
-      }
-    } else 
-#endif      
-    {
-#ifndef Py_LIMITED_API
-      /* tp_name is not accessible */
-      const char *otype = (obj ? Py_TYPE(obj)->tp_name : 0); 
-      if (otype) {
-	PyObject *str = PyObject_Str(obj);
-	PyObject *bytes = NULL;
-	const char *cstr = str ? SWIG_PyUnicode_AsUTF8AndSize(str, NULL, &bytes) : 0;
-	if (cstr) {
-	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s(%s)' is received",
-		       type, otype, cstr);
-	} else {
-	  PyErr_Format(PyExc_TypeError, "a '%s' is expected, '%s' is received",
-		       type, otype);
-	}
-	SWIG_Py_XDECREF(bytes);
-	SWIG_Py_XDECREF(str);
-	return;
-      }
-#endif
-    }   
-    PyErr_Format(PyExc_TypeError, "a '%s' is expected", type);
-  } else {
-    PyErr_Format(PyExc_TypeError, "unexpected type is received");
-  }
-}
-
-
 /* Convert a pointer value, signal an exception on a type mismatch */
 SWIGRUNTIME void *
 SWIG_Python_MustGetPtr(PyObject *obj, swig_type_info *ty, int SWIGUNUSEDPARM(argnum), int flags) {
@@ -2075,7 +2043,13 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   if (!PyString_Check(name))
 # endif
   {
-    PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%.200s'", Py_TYPE(name)->tp_name);
+#if PY_VERSION_HEX >= 0x03000000
+    PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(Py_TYPE(name));
+    PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%S'", tpname);
+    SWIG_Py_DECREF(tpname);
+#else
+    PyErr_Format(PyExc_TypeError, "attribute name must be string, not '%s'", Py_TYPE(name)->tp_name);
+#endif
     return -1;
   } else {
     SWIG_Py_INCREF(name);
@@ -2099,7 +2073,15 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
       if (!encoded_name)
         goto done;
     }
-    PyErr_Format(PyExc_AttributeError, "'%.100s' object has no attribute '%.200s'", tp->tp_name, PyString_AsString(encoded_name));
+#if PY_VERSION_HEX >= 0x03000000
+    {
+      PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(tp);
+      PyErr_Format(PyExc_AttributeError, "'%S' object has no attribute '%s'", tpname, PyString_AsString(encoded_name));
+      SWIG_Py_DECREF(tpname);
+    }
+#else
+    PyErr_Format(PyExc_AttributeError, "'%s' object has no attribute '%s'", tp->tp_name, PyString_AsString(encoded_name));
+#endif
     SWIG_Py_DECREF(encoded_name);
   } else {
     res = f(descr, obj, value);

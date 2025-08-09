@@ -189,6 +189,8 @@ SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyO
  *  Partial Init method
  * -----------------------------------------------------------------------------*/
 
+SWIGINTERN int SWIG_mod_exec(PyObject *module);
+
 #ifdef __cplusplus
 extern "C"
 #endif
@@ -200,21 +202,41 @@ SWIGEXPORT
   void
 #endif
 SWIG_init(void) {
-  PyObject *m, *d, *md, *globals;
 
 #if PY_VERSION_HEX >= 0x03000000
+  static PyModuleDef_Slot SwigSlots[] = {
+    { Py_mod_exec, (void *)SWIG_mod_exec },
+#ifdef SWIGPYTHON_NOGIL
+#ifdef Py_GIL_DISABLED
+    { Py_mod_gil, Py_MOD_GIL_NOT_USED },
+#endif
+#endif
+    { 0, NULL }
+  };
+
   static struct PyModuleDef SWIG_module = {
     PyModuleDef_HEAD_INIT,
     SWIG_name,
     NULL,
-    -1,
+    0,
     SwigMethods,
-    NULL,
+    SwigSlots,
     NULL,
     NULL,
     NULL
   };
+
+  return PyModuleDef_Init(&SWIG_module);
+#else
+  PyObject *m = Py_InitModule(SWIG_name, SwigMethods);
+  if (m && SWIG_mod_exec(m) != 0) {
+    Py_DECREF(m);
+  }
 #endif
+}
+
+SWIGINTERN int SWIG_mod_exec(PyObject *m) {
+  PyObject *d, *md, *globals;
 
 #if defined(SWIGPYTHON_BUILTIN)
   static SwigPyClientData SwigPyObject_clientdata = {0, 0, 0, 0, 0, 0, 0};
@@ -271,11 +293,6 @@ SWIG_init(void) {
   /* Fix SwigMethods to carry the callback ptrs when needed */
   SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_type_initial);
 
-#if PY_VERSION_HEX >= 0x03000000
-  m = PyModule_Create(&SWIG_module);
-#else
-  m = Py_InitModule(SWIG_name, SwigMethods);
-#endif
 #ifdef Py_GIL_DISABLED
     PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
 #endif	
@@ -296,11 +313,7 @@ SWIG_init(void) {
     SwigPyObject_clientdata.pytype = swigpyobject;
   } else if (swigpyobject->tp_basicsize != cd->pytype->tp_basicsize) {
     PyErr_SetString(PyExc_RuntimeError, "Import error: attempted to load two incompatible swig-generated modules.");
-# if PY_VERSION_HEX >= 0x03000000
-    return NULL;
-# else
-    return;
-# endif
+    return -1;
   }
 
   /* All objects have a 'this' attribute */
