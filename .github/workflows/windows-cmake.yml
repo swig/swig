@@ -29,7 +29,8 @@ jobs:
           os: 'windows-2025'
 
     env:
-      BUILD_SYS: Visual Studio ${{ matrix.VER }}
+      # CMake generator used
+      CMAKE_GENERATOR: Visual Studio ${{ matrix.VER }}
 
     steps:
     - name: Machine Info
@@ -47,6 +48,9 @@ jobs:
       with:
         key: ${{ matrix.os }}
 
+    # note: NuGet packages a static version of PCRE2 that assumes a
+    # statically-linked non-debug C runtime library (e.g. compiling with /MT).
+    # see https://learn.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features?view=msvc-170
     - name: Install NuGet Packages
       shell: powershell
       run: |
@@ -65,15 +69,18 @@ jobs:
 
     - name: Configure
       shell: powershell
+      # note: use CMAKE_MSVC_RUNTIME_LIBRARY to use static C runtimes. this is
+      # specifically due to the static non-debug C runtime used by NuGet PCRE2.
+      # if using /NODEFAULTLIB, you need /NODEFAULTLIB:MSVCRT when building the
+      # release configs and /NODEFAULTLIB:MSVCRTD for the debug config
       run: |
           cmake --version
-          cmake -G "$env:BUILD_SYS" -A x64 `
+          cmake -G "$env:CMAKE_GENERATOR" -A x64 `
           -DCMAKE_INSTALL_PREFIX="C:\Tools\swig" `
-          -DCMAKE_C_FLAGS="/W3 /EHsc /DPCRE2_STATIC" `
-          -DCMAKE_CXX_FLAGS="/W3 /EHsc /DPCRE2_STATIC" `
-          -DPCRE2_INCLUDE_DIR="$env:PCRE2_PATH\include" `
-          -DPCRE2_LIBRARY="$env:PCRE2_PATH\lib\pcre2-8-static.lib" `
-          -DLINK_FLAGS="/NODEFAULTLIB:MSVCRT" -S . -B .
+          -DCMAKE_C_FLAGS="/W3 /EHsc" `
+          -DCMAKE_CXX_FLAGS="/W3 /EHsc" `
+          -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>" `
+          -DPCRE2_ROOT="$env:PCRE2_PATH" -S . -B .
 
     - name: Build
       shell: powershell
