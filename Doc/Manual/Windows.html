@@ -48,7 +48,7 @@
 
 
 <p>
-This chapter describes SWIG usage on Microsoft Windows. 
+This chapter describes SWIG usage on Microsoft Windows.
 Installing SWIG and running the examples is covered as well as building the SWIG executable.
 Usage within the Unix like environments MinGW and Cygwin is also detailed.
 </p>
@@ -84,7 +84,7 @@ The Examples directory has a few Visual C++ project files (.vcxproj files) where
 These were produced by Visual Studio 2019.
 Newer versions of Visual Studio, such as Visual Studio 2022, are able to open and convert these project files if necessary.
 Each C# example comes with a Visual Studio 2019 solution in addition to the .vcxproj file the C# (.csproj) project file.
-The project files have been set up to execute SWIG in a custom build rule for the SWIG interface (.i) file. 
+The project files have been set up to execute SWIG in a custom build rule for the SWIG interface (.i) file.
 Alternatively run the <a href="#Windows_examples_cygwin">examples using Cygwin</a>.
 
 <p>
@@ -94,9 +94,9 @@ More information on each of the examples is available with the examples distribu
 
 
 <p>
-Ensure the SWIG executable is as supplied in the SWIG root directory in order for the examples to work. 
-Most languages require some environment variables to be set <b>before</b> running Visual C++. 
-Note that Visual Studio must be re-started to pick up any changes in environment variables. 
+Ensure the SWIG executable is as supplied in the SWIG root directory in order for the examples to work.
+Most languages require some environment variables to be set <b>before</b> running Visual C++.
+Note that Visual Studio must be re-started to pick up any changes in environment variables.
 Open up an example .vcxproj file or .sln file, Visual Studio will prompt you to upgrade the project if necessary.
 Ensure the Release build is selected then do a Rebuild Solution from the Build menu.
 The required environment variables are displayed with their current values during the build.
@@ -172,7 +172,7 @@ If you do not have access to Visual C++ you will have to set up project files / 
 
 <p>
 The SWIG distribution provides a pre-built swig.exe and so it is not necessary for users to build the SWIG executable.
-However, this section is provided for those that want to modify the SWIG source code in a Windows environment. 
+However, this section is provided for those that want to modify the SWIG source code in a Windows environment.
 Normally this is not needed, so most people will want to ignore this section.
 </p>
 
@@ -187,9 +187,9 @@ SWIG can also be compiled with MSYS2 using MSVC and SWIG <a href="https://github
 
 
 <p>
-SWIG can be built using <a href="https://cmake.org/">CMake</a> and Visual Studio rather than autotools. As with the other approaches to 
+SWIG can be built using <a href="https://cmake.org/">CMake</a> and Visual Studio rather than autotools. As with the other approaches to
 building SWIG the dependencies need to be installed. The steps below are one of a number of ways of installing the dependencies without requiring Cygwin or MinGW.
-For fully working build steps always check the Continuous Integration (CI) setups currently detailed in the <a href="https://github.com/swig/swig/tree/master/.github/workflows/nuget.yml">GitHub Actions YAML file</a>.
+For fully working build steps always check the Continuous Integration (CI) setups currently detailed in the <a href="https://github.com/swig/swig/tree/master/.github/workflows/windows.yml">GitHub Actions YAML file</a>.
 </p>
 
 <ol>
@@ -200,17 +200,17 @@ For fully working build steps always check the Continuous Integration (CI) setup
     <li>
         Install <a href="https://www.nuget.org/packages/CMake-win64/">CMake-win64 Nuget package</a> using the following command: <pre>C:\Tools\nuget install CMake-win64 -Version 3.15.5 -OutputDirectory C:\Tools\CMake</pre>
         Using PowerShell the equivalent syntax is: <pre>&amp; "C:\Tools\nuget" install CMake-win64 -Version 3.15.5 -OutputDirectory C:\Tools\CMake</pre>
-        Alternatively you can download CMake from <a href="https://cmake.org/download/">https://cmake.org/download/</a>.
+        Alternatively you can download CMake from <a href="https://cmake.org/download/">https://cmake.org/download/</a> or install a copy through your Visual Studio installer.
     </li>
     <li>
         Install the <a href="https://www.nuget.org/packages/bison/">Bison Nuget package</a> using the following command: <pre>C:\Tools\nuget install Bison -Version 3.7.4 -OutputDirectory C:\Tools\bison</pre>
         Alternatively download Bison from <a href="https://sourceforge.net/projects/winflexbison/files/">https://sourceforge.net/projects/winflexbison/files/</a> (Bison 3.7.4 is used in this example)
-        and save to a folder e.g. <tt>C:\Tools\Bison</tt>
+        and save to a folder, e.g. <tt>C:\Tools\Bison</tt>
     </li>
     <li>
         Install the <a href="https://www.nuget.org/packages/pcre2/">PCRE2 Nuget package</a> using the following command: <pre>C:\Tools\nuget install PCRE2 -Version 10.39 -OutputDirectory C:\Tools\pcre2</pre>
-        Note this is a x64 build, if this is not suitable PCRE2 can be built from source using <a href="https://github.com/PhilipHazel/pcre2/">https://github.com/PhilipHazel/pcre2/</a>.
-        Alternatively, set <tt>WITH_PCRE=OFF</tt> to disable PCRE2 support if you are sure you do not require it. 
+        Note this is a x64 build, if this is not suitable PCRE2 can be built from source using <a href="https://github.com/PCRE2Project/pcre2">https://github.com/PCRE2Project/pcre2</a>.
+        Alternatively, set <tt>WITH_PCRE=OFF</tt> to disable PCRE2 support if you are sure you do not require it.
     </li>
     <li>
         We will also need the SWIG source code. Either download a zipped archive from GitHub, or if git is installed clone the latest codebase
@@ -219,10 +219,12 @@ For fully working build steps always check the Continuous Integration (CI) setup
     </li>
     <li>
     <p>
-        Now we have all the required dependencies we can build SWIG using PowerShell and the commands below. We are assuming Visual Studio 2019 is installed. For other versions of Visual Studio change <tt>"Visual Studio 16 2019 -A x64"</tt> to the relevant
-        <a href="https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html#visual-studio-generators">Visual Studio Generator</a> and
-        architecture. We add the required build tools to the system PATH, and then
-        build a Release version of SWIG. If all runs successfully a new swig.exe should be generated in the <tt>C:/swig/install2/bin</tt> folder.
+        Now we have all the required dependencies we can build SWIG using PowerShell and the commands below. We are assuming Visual Studio 2019 or higher is installed and we will be building a 64-bit version of SWIG.
+        For documentation on specific Visual Studio generators see the associated
+        <a href="https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html#visual-studio-generators">Visual Studio Generators</a> documentation.
+        We add the required build tools to the system <tt>PATH</tt> and then
+        build a Release version of SWIG. If all runs successfully a new
+        <tt>swig.exe</tt> should be generated in <tt>C:/swig/install2/bin</tt>.
     </p>
     </li>
 </ol>
@@ -232,18 +234,12 @@ cd C:\swig
 $env:PATH="C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\Bison.3.7.4\bin;" + $env:PATH
 $PCRE_ROOT="C:\Tools\pcre2\PCRE2.10.39.0"
 
-cmake -G "Visual Studio 16 2019" -A "x64" `
--DCMAKE_INSTALL_PREFIX="C:/swig/install2" `
--DCMAKE_C_FLAGS="/DPCRE2_STATIC" `
--DCMAKE_CXX_FLAGS="/DPCRE2_STATIC" `
--DPCRE2_INCLUDE_DIR="$PCRE_ROOT/include" `
--DPCRE2_LIBRARY="$PCRE_ROOT/lib/pcre2-8-static.lib" `
--S . -B build
+cmake -S . -B build -A x64 -DCMAKE_INSTALL_PREFIX="C:/swig/install2" -DPCRE2_ROOT="$PCRE_ROOT"
 
 cmake --build build --config Release
 cmake --install build --config Release
 
-# to test the exe built correctly
+# to test that the exe built correctly
 cd install2/bin
 ./swig.exe -version
 ./swig.exe -help
@@ -256,7 +252,13 @@ cd install2/bin
     <pre>cmake --build build --config Debug</pre>
 </div>
 <p>
-    A Visual Studio solution file should be generated named swig.sln. This can be opened and debugged by running the swig project and setting <tt>Properties &gt; Debugging &gt; Command Arguments</tt>. For example to debug one of the test-suite .i files included with the SWIG source use the following:
+    A Visual Studio solution file should be generated in <tt>build</tt> named
+    <tt>swig.sln</tt>. This can be opened and debugged by running the swig
+    project and setting <tt>Properties &gt; Debugging &gt; Command Arguments</tt>.
+</p>
+<p>
+    For example, to debug one of the test-suite <tt>.i</tt> files included with
+    the SWIG source use the following:
 </p>
 <div class="shell">
     <pre>-python -c++ -o C:\Temp\doxygen_parsing.cpp C:\swig\Examples\test-suite\doxygen_parsing.i</pre>
@@ -439,9 +441,9 @@ make
 
 <p>
 Note that SWIG can also be built using Cygwin.
-However, SWIG will then require the Cygwin DLL when executing. 
+However, SWIG will then require the Cygwin DLL when executing.
 Follow the Unix instructions in the README file in the SWIG root directory.
-Note that the Cygwin environment will also allow one to regenerate the autotool generated files which are supplied with the release distribution. 
+Note that the Cygwin environment will also allow one to regenerate the autotool generated files which are supplied with the release distribution.
 These files are generated using the <tt>autogen.sh</tt> script and will only need regenerating in circumstances such as changing the build system.
 </p>
 
@@ -450,7 +452,7 @@ These files are generated using the <tt>autogen.sh</tt> script and will only nee
 
 
 <p>
-The examples and test-suite work as successfully on Cygwin as on any other Unix operating system. 
+The examples and test-suite work as successfully on Cygwin as on any other Unix operating system.
 The modules which are known to work are Python, Tcl, Perl, Ruby, Java and C#.
 Follow the Unix instructions in the README file in the SWIG root directory to build the examples.
 </p>
@@ -471,7 +473,7 @@ SWIG's <a href="SWIGPlus.html#SWIGPlus_nn3">approach for C++</a> is to generate 
 enhancements for later standards if the C++ compiler supports a later standard.
 Unfortunately by default, in 2024, Visual C++ still does not set the <tt>__cplusplus</tt> macro correctly to pick up these later C++ standard features.
 MSVC users are urged to ensure this macro is defined correctly by consulting the latest Microsoft Visual C++ documentation, in particular,
-<a href="https://learn.microsoft.com/en-us/cpp/build/reference/std-specify-language-standard-version">/std</a> and 
+<a href="https://learn.microsoft.com/en-us/cpp/build/reference/std-specify-language-standard-version">/std</a> and
 <a href="https://learn.microsoft.com/en-us/cpp/build/reference/zc-cplusplus">/Zc:__cplusplus</a>.
 </p>
 
