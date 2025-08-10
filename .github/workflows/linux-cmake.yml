@@ -68,7 +68,6 @@ jobs:
 
     # note: can use -j$(nproc) for parallel testing
     - name: Test
-      shell: powershell
       run: ctest --test-dir build -V --output-on-failure
 
     - name: Install
