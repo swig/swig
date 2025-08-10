@@ -36,10 +36,6 @@ jobs:
         # note: can add Ninja, 'Ninja Multi-Config' for ubuntu runners
         generator: ['Unix Makefiles']
 
-    env:
-      # install prefix for SWIG CI build
-      SWIG_INSTALL_PREFIX: /usr/local/swig-dev
-
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -60,7 +56,6 @@ jobs:
       run: |
           cmake --version
           cmake -G "${{ matrix.generator }}" \
-            -DCMAKE_INSTALL_PREFIX=${{ env.SWIG_INSTALL_PREFIX }} \
             -DCMAKE_BUILD_TYPE=Release -S . -B build
 
     - name: Build
@@ -70,7 +65,8 @@ jobs:
     - name: Test
       run: ctest --test-dir build -V --output-on-failure
 
+    # note: CMAKE_INSTALL_PREFIX defaults /usr/local for Unix systems
     - name: Install
       run: |
           cmake --install build
-          ${{ env.SWIG_INSTALL_PREFIX }}/bin/swig -version
+          /usr/local/bin/swig -version
