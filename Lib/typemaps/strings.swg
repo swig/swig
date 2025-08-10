@@ -433,7 +433,7 @@
     $input = SWIG_FromCharPtrAndSize("", 0);
   }
 }
-%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING_LENGTH,fragment=#SWIG_FromCharPtrAndSize)
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING,fragment=#SWIG_FromCharPtrAndSize)
     (const Char *STRING, size_t LENGTH) {
   Char *buf = 0;
   size_t size = 0;
@@ -480,7 +480,7 @@
     $input = SWIG_FromCharPtrAndSize("", 0);
   }
 }
-%typemap(typecheck, precedence=SWIG_TYPECHECK_LENGTH_STRING,fragment=#SWIG_FromCharPtrAndSize)
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING,fragment=#SWIG_FromCharPtrAndSize)
     (size_t LENGTH, const Char *STRING) {
   Char *buf = 0;
   size_t size = 0;

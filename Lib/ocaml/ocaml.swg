@@ -305,7 +305,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     $1 = ($1_ltype) caml_string_val($input);
     $2 = ($2_ltype) caml_string_len($input);
 }
-%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING_LENGTH) (const char *STRING, size_t LENGTH) {
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) (const char *STRING, size_t LENGTH) {
     $1 = (Tag_val($input) == C_string);
 }
 %apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
@@ -318,7 +318,7 @@ SIMPLE_MAP(unsigned long long,caml_val_ulong,caml_long_val);
     $2 = ($2_ltype) caml_string_val($input);
     $1 = ($1_ltype) caml_string_len($input);
 }
-%typemap(typecheck, precedence=SWIG_TYPECHECK_LENGTH_STRING) (size_t LENGTH, const char *STRING) {
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) (size_t LENGTH, const char *STRING) {
     $1 = (Tag_val($input) == C_string);
 }
 %apply (size_t LENGTH, const char *STRING) { (int LENGTH, const char *STRING) }

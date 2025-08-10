@@ -557,7 +557,9 @@ SWIGINTERN const char * SWIG_UnpackData(const char *c, void *ptr, size_t sz) {
     char *,
     char *&,
     char[ANY],
-    char[]
+    char[],
+    (const char *STRING, size_t LENGTH),
+    (size_t LENGTH, const char *STRING)
     ""
 
 %typecheck(SWIG_TYPECHECK_POINTER)
