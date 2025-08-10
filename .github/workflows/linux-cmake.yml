@@ -1,0 +1,77 @@
+# linux-cmake.yml
+#
+# GitHub Actions workflow for SWIG CMake build on Linux.
+#
+
+name: linux-cmake
+
+# same triggers as the other workflows
+on:
+  push:
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'appveyor.yml'
+  pull_request:
+    branches: master
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'appveyor.yml'
+
+# same permissions as other worflows
+permissions:
+  contents: read
+
+# only defines one job, the "cmake" job
+jobs:
+  cmake:
+    runs-on: ${{ matrix.os }}
+    name: CMake ${{ matrix.os }} ${{ matrix.generator }}
+
+    strategy:
+      matrix:
+        # note: -arm variants exist for arm64 testing
+        os: [ubuntu-22.04, ubuntu-24.04]
+        # note: can add Ninja, 'Ninja Multi-Config' for ubuntu runners
+        generator: ['Unix Makefiles']
+
+    env:
+      # install prefix for SWIG CI build
+      SWIG_INSTALL_PREFIX: /usr/local/swig-dev
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        show-progress: true
+
+    - name: Machine Info
+      run: uname -a
+
+    # note: bison is pre-installed via APT already for Ubuntu runners
+    - name: Install Dependencies
+      run: |
+          sudo apt install libpcre2-dev
+
+    # single-config build configuration
+    # note: no need to use PCRE2_ROOT as PCRE2 is installed via APT
+    - name: Configure
+      run: |
+          cmake --version
+          cmake -G "${{ matrix.generator }}" \
+            -DCMAKE_INSTALL_PREFIX=${{ env.SWIG_INSTALL_PREFIX }} \
+            -DCMAKE_BUILD_TYPE=Release -S . -B build
+
+    - name: Build
+      run: cmake --build build -j
+
+    # note: can use -j$(nproc) for parallel testing
+    - name: Test
+      shell: powershell
+      run: ctest --test-dir build -V --output-on-failure
+
+    - name: Install
+      run: |
+          cmake --install build
+          ${{ env.SWIG_INSTALL_PREFIX }}/bin/swig -version
