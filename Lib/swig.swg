@@ -380,9 +380,6 @@ static int NAME(TYPE x) {
 %define SWIG_TYPECHECK_DOUBLE_PTR        2090    %enddef
 %define SWIG_TYPECHECK_CHAR_PTR          2130    %enddef
 
-%define SWIG_TYPECHECK_STRING_LENGTH     3001    %enddef
-%define SWIG_TYPECHECK_LENGTH_STRING     3002    %enddef
-
 %define SWIG_TYPECHECK_SWIGOBJECT        5000    %enddef
 
 

@@ -97,7 +97,7 @@
      ZVAL_STRINGL($input, (const char*)$1, (size_t)$2);
    }
 }
-%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING_LENGTH) (const char *STRING, size_t LENGTH) {
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) (const char *STRING, size_t LENGTH) {
     $1 = (Z_TYPE($input) == IS_STRING);
 }
 %apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
@@ -118,7 +118,7 @@
      ZVAL_STRINGL($input, (const char*)$2, (size_t)$1);
    }
 }
-%typemap(typecheck, precedence=SWIG_TYPECHECK_LENGTH_STRING) (size_t LENGTH, const char *STRING) {
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) (size_t LENGTH, const char *STRING) {
     $1 = (Z_TYPE($input) == IS_STRING);
 }
 %apply (size_t LENGTH, const char *STRING) { (int LENGTH, const char *STRING) }

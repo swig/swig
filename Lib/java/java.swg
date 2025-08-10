@@ -980,7 +980,9 @@ Swig::LocalRefGuard $1_refguard(jenv, $input); }
     char *,
     char *&,
     char[ANY],
-    char []
+    char [],
+    (const char *STRING, size_t LENGTH),
+    (size_t LENGTH, const char *STRING)
     ""
 
 %typecheck(SWIG_TYPECHECK_BOOL_ARRAY) /* Java boolean[] */

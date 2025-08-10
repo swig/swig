@@ -389,7 +389,7 @@ typedef unsigned long SCM;
     must_free = 1;
 }
 %typemap(freearg) (const char *STRING, size_t LENGTH) "if (must_free$argnum) SWIG_free($1);"
-%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING_LENGTH) (const char *STRING, size_t LENGTH) {
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) (const char *STRING, size_t LENGTH) {
     $1 = scm_is_string($input);
 }
 
@@ -405,7 +405,7 @@ typedef unsigned long SCM;
     must_free = 1;
 }
 %typemap(freearg) (size_t LENGTH, const char *STRING) "if (must_free$argnum) SWIG_free($2);"
-%typemap(typecheck, precedence=SWIG_TYPECHECK_LENGTH_STRING) (size_t LENGTH, const char *STRING) {
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) (size_t LENGTH, const char *STRING) {
     $1 = scm_is_string($input);
 }
 

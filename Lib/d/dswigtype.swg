@@ -258,6 +258,7 @@ typedef struct { size_t len; void *array; } SWIG_c_array;
 %typemap(ctype,default="={0,0}") (const char *STRING, size_t LENGTH) "SWIG_c_dstring"
 %typemap(din) (const char *STRING, size_t LENGTH) "$dinput"
 %typemap(freearg) (const char *STRING, size_t LENGTH) ""
+%typecheck(SWIG_TYPECHECK_STRING) (const char *STRING, size_t LENGTH) ""
 %typemap(in, canthrow=1) (const char *STRING, size_t LENGTH) %{
   $1 = ($1_ltype)$input.str;
   $2 = ($2_ltype)$input.len;
@@ -292,6 +293,7 @@ typedef struct { size_t len; void *array; } SWIG_c_array;
 %typemap(ctype,default="={0,0}") (size_t LENGTH, const char *STRING) "SWIG_c_dstring"
 %typemap(din) (size_t LENGTH, const char *STRING) "$dinput"
 %typemap(freearg) (size_t LENGTH, const char *STRING) ""
+%typecheck(SWIG_TYPECHECK_STRING) (size_t LENGTH, const char *STRING) ""
 %typemap(in, canthrow=1) (size_t LENGTH, const char *STRING) %{
   $2 = ($2_ltype)$input.str;
   $1 = ($1_ltype)$input.len;
