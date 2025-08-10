@@ -27,7 +27,8 @@ permissions:
 jobs:
   cmake:
     runs-on: ${{ matrix.os }}
-    name: CMake ${{ matrix.os }} ${{ matrix.generator }}
+    # "cmake" is already in the workflow file name
+    name: ${{ matrix.os }} ${{ matrix.generator }}
 
     strategy:
       matrix:
@@ -38,7 +39,7 @@ jobs:
 
     env:
       # install prefix for SWIG CI build
-      SWIG_INSTALL_PREFIX: /usr/local/swig-dev
+      SWIG_INSTALL_PREFIX: '${{ github.workspace }}/install'
 
     steps:
     - name: Checkout
