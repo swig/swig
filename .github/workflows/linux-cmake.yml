@@ -34,7 +34,9 @@ jobs:
       matrix:
         # note: -arm variants exist for arm64 testing
         os: [ubuntu-22.04, ubuntu-24.04]
-        # note: can add Ninja, 'Ninja Multi-Config' for ubuntu runners
+        # note: can add Ninja too for ubuntu runners. 'Ninja Multi-Config' can
+        # be used for multi-config testing, but requires some changes to how
+        # CMake/CTest are being invoked in the below steps
         generator: ['Unix Makefiles']
 
     env:
