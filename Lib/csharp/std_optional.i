@@ -55,7 +55,6 @@
     #include <optional>
 %}
 
-%include <stdint.i>
 %include <std_string.i>
 
 namespace std {
