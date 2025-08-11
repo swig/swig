@@ -1,6 +1,7 @@
 %module(directors="1") cpp17_optional
 #if defined SWIGCSHARP
 #define SWIG_STD_OPTIONAL_DEFAULT_TYPES
+%include <stdint.i>
 %include <std_optional.i>
 
 %optional(test::Struct)
@@ -121,7 +122,7 @@ namespace test
         void               setInt(int i) { _numberInt = i; }
         std::optional<int> getIntOpt() const { return _numberIntOpt; }
         void               setIntOpt(std::optional<int> i) { _numberIntOpt = i; }
-        // Flaot optional testing
+        // Float optional testing
         float                getFloat() const { return _numberFloat; }
         void                 setFloat(float f) { _numberFloat = f; }
         std::optional<float> getFloatOpt() const { return _numberFloatOpt; }
