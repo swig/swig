@@ -1158,6 +1158,7 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
     free(p);
   }
 }
+%typecheck(SWIG_TYPECHECK_STRING) (const char *STRING, size_t LENGTH) ""
 
 %typemap(directorin) (const char *STRING, size_t LENGTH) %{
   if ($1 && $2 > 0) {
@@ -1198,6 +1199,8 @@ SWIGEXPORT char *SWIGSTDCALL SWIG_csharp_string_str(SWIG_csharp_string *p) {
     free(p);
   }
 }
+%typecheck(SWIG_TYPECHECK_STRING) (size_t LENGTH, const char *STRING) ""
+
 %typemap(directorin) (size_t LENGTH, const char *STRING) %{
   if ($2 && $1 > 0) {
     $input = malloc(sizeof(SWIG_csharp_string));

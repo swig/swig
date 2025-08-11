@@ -7,6 +7,24 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-08-11: erezgeva
+            #3238 Add typecheck typemaps for adding in overloading support to the
+            (size_t LENGTH, char *STRING) and (char *STRING, size_t LENGTH) family of
+            multi-argument typemaps.
+
+2025-08-11: erezgeva, wsfulton
+            [D] #3236 Add missing use of 'din' typemap in constructors.
+
+2025-08-11: QuantamHD
+            [Tcl] #3246 Fix memory leak in constant registration.
+
+2025-08-08: crusaderky
+            #3230 [Python] SWIG_AsArgcArgv memory fixes and thread-safety fixes for
+            free-threading Python.
+
+2025-08-01: erezgeva
+            [D] #3234 Ensure 'dtype' multi-argument typemaps are being correctly used.
+
 2025-07-28: erezgeva
             #2937 Add missing support for (size_t LENGTH, char *STRING) multi-argument typemaps.
 

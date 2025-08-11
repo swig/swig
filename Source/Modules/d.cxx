@@ -1191,7 +1191,7 @@ public:
 
       // Get the D code to convert the parameter value to the type used in the
       // intermediary D module.
-      if ((tm = lookupDTypemap(p, "din"))) {
+      if ((tm = lookupDTypemap(p, "din", true))) {
 	Replaceall(tm, "$dinput", arg);
 	String *pre = Getattr(p, "tmap:din:pre");
 	if (pre) {
@@ -2768,7 +2768,7 @@ private:
 	{
 	  String *proxy_type = NewString("");
 
-	  if ((tm = lookupDTypemap(p, "dtype"))) {
+	  if ((tm = lookupDTypemap(p, "dtype", true))) {
 	    const String *inattributes = Getattr(p, "tmap:dtype:inattributes");
 	    Printf(proxy_type, "%s%s", inattributes ? inattributes : empty_string, tm);
 	    {

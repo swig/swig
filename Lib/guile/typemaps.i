@@ -389,13 +389,15 @@ typedef unsigned long SCM;
     must_free = 1;
 }
 %typemap(freearg) (const char *STRING, size_t LENGTH) "if (must_free$argnum) SWIG_free($1);"
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) (const char *STRING, size_t LENGTH) {
+    $1 = scm_is_string($input);
+}
 
 %apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
 %apply (const char *STRING, size_t LENGTH) { (char *STRING, size_t LENGTH) }
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
 /* Length & string reverse order typemap */
-
 %typemap(in) (size_t LENGTH, const char *STRING)(int must_free = 0) {
     size_t temp;
     $2 = ($2_ltype) SWIG_Guile_scm2newstr($input, &temp);
@@ -403,6 +405,9 @@ typedef unsigned long SCM;
     must_free = 1;
 }
 %typemap(freearg) (size_t LENGTH, const char *STRING) "if (must_free$argnum) SWIG_free($2);"
+%typemap(typecheck, precedence=SWIG_TYPECHECK_STRING) (size_t LENGTH, const char *STRING) {
+    $1 = scm_is_string($input);
+}
 
 %apply (size_t LENGTH, const char *STRING) { (int LENGTH, const char *STRING) }
 %apply (size_t LENGTH, const char *STRING) { (size_t LENGTH, char *STRING) }

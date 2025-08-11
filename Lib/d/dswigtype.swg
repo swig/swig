@@ -256,8 +256,9 @@ typedef struct { size_t len; void *array; } SWIG_c_array;
 %typemap(imtype)  (const char *STRING, size_t LENGTH) "string"
 %typemap(dtype)   (const char *STRING, size_t LENGTH) "string"
 %typemap(ctype,default="={0,0}") (const char *STRING, size_t LENGTH) "SWIG_c_dstring"
-%typemap(din, nativepointer="std.conv.to!string($dinput)") (const char *STRING, size_t LENGTH) "$dinput"
+%typemap(din) (const char *STRING, size_t LENGTH) "$dinput"
 %typemap(freearg) (const char *STRING, size_t LENGTH) ""
+%typecheck(SWIG_TYPECHECK_STRING) (const char *STRING, size_t LENGTH) ""
 %typemap(in, canthrow=1) (const char *STRING, size_t LENGTH) %{
   $1 = ($1_ltype)$input.str;
   $2 = ($2_ltype)$input.len;
@@ -282,4 +283,40 @@ typedef struct { size_t len; void *array; } SWIG_c_array;
   $1 = ($1_ltype)$input.str;
   $2 = ($2_ltype)$input.len;
 }
+%apply (const char *STRING, size_t LENGTH) { (const char *STRING, int LENGTH) }
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
+
+/* Length & string reverse order typemap */
+
+%typemap(imtype)  (size_t LENGTH, const char *STRING) "string"
+%typemap(dtype)   (size_t LENGTH, const char *STRING) "string"
+%typemap(ctype,default="={0,0}") (size_t LENGTH, const char *STRING) "SWIG_c_dstring"
+%typemap(din) (size_t LENGTH, const char *STRING) "$dinput"
+%typemap(freearg) (size_t LENGTH, const char *STRING) ""
+%typecheck(SWIG_TYPECHECK_STRING) (size_t LENGTH, const char *STRING) ""
+%typemap(in, canthrow=1) (size_t LENGTH, const char *STRING) %{
+  $2 = ($2_ltype)$input.str;
+  $1 = ($1_ltype)$input.len;
+%}
+%typemap(argout)  (size_t LENGTH, const char *STRING) {
+  $input.str = (char *)$2;
+  $input.len = (size_t)$1;
+}
+%typemap(directorin) (size_t LENGTH, const char *STRING) {
+  $input.str = (char *)$2;
+  $input.len = (size_t)$1;
+}
+%typemap(ddirectorin) (size_t LENGTH, const char *STRING) "std.conv.to!string($winput)"
+%apply (size_t LENGTH, const char *STRING) { (size_t LENGTH, char *STRING) }
+/* Enable write-back for non-const version */
+%typemap(argout)  (size_t LENGTH, char *STRING) {
+  $input.str = (char *)$2;
+  $input.len = (size_t)$1;
+}
+%typemap(directorargout) (size_t LENGTH, char *STRING)
+{
+  $2 = ($2_ltype)$input.str;
+  $1 = ($1_ltype)$input.len;
+}
+%apply (size_t LENGTH, const char *STRING) { (int LENGTH, const char *STRING) }
+%apply (size_t LENGTH, char *STRING) { (int LENGTH, char *STRING) }
