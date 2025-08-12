@@ -127,7 +127,7 @@ static inline PyObject* _Py_NewRef(PyObject *obj)
 // to Python 3.13.0a1
 // functions are renamed here for compatibility with abi3audit
 #if PY_VERSION_HEX < 0x030D00A1
-static inline int
+SWIGINTERN int
 SWIG_PyDict_GetItemRef(PyObject *mp, PyObject *key, PyObject **result)
 {
 #  if PY_VERSION_HEX >= 0x03000000
