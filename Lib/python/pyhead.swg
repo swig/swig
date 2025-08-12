@@ -123,9 +123,9 @@ SWIG_Python_str_FromChar(const char *c)
 #if PY_VERSION_HEX >= 0x03000000
 SWIGINTERN PyObject *
 SWIG_PyType_GetFullyQualifiedName(PyTypeObject *type) {
-#if PY_VERSION_HEX >= 0x030d0000
+#  if PY_VERSION_HEX >= 0x030d0000
   return PyType_GetFullyQualifiedName(type);
-#else
+#  else
   PyObject *result = NULL;
   PyObject *qualname = PyObject_GetAttrString((PyObject *)type, "__qualname__");
   if (qualname) {
@@ -144,6 +144,8 @@ SWIG_PyType_GetFullyQualifiedName(PyTypeObject *type) {
   }
 
   return result;
+#  endif
+}
 #endif
 
 // gh-114329 added PyList_GetItemRef() to Python 3.13.0a4
@@ -202,7 +204,4 @@ SWIG_PyDict_GetItemStringRef(PyObject *mp, const char *key, PyObject **result)
 #else
 #  define SWIG_PyDict_GetItemRef PyDict_GetItemRef
 #  define SWIG_PyDict_GetItemStringRef PyDict_GetItemStringRef
-#endif
-
-}
 #endif
