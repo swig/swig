@@ -136,7 +136,8 @@ SWIG_PyDict_GetItemRef(PyObject *mp, PyObject *key, PyObject **result)
     PyObject *item = _PyDict_GetItemWithError(mp, key);
 #  endif
     if (item != NULL) {
-        *result = Py_NewRef(item);
+      *result = (PyObject *)(item);
+      SWIG_Py_INCREF(*result);
         return 1;  // found
     }
     if (!PyErr_Occurred()) {
