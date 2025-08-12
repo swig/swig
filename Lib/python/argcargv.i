@@ -30,7 +30,7 @@ SWIG_AsArgcArgv(PyObject *input, swig_type_info *ppchar_info, size_t *argc, char
        SWIG_AsCharPtrAndSize, resulting in a segfault.
        tuples are immutable, so this is not an issue for them.
      */
-    PyObject *obj = is_list ? PyList_GetItemRef(input, i) : PyTuple_GetItem(input, i);
+    PyObject *obj = is_list ? SWIG_PyList_GetItemRef(input, i) : PyTuple_GetItem(input, i);
     if (!obj) {
       // List was shrunk by another thread. Return early with SWIG_OK.
       PyErr_Clear();

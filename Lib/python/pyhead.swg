@@ -151,12 +151,14 @@ SWIG_PyType_GetFullyQualifiedName(PyTypeObject *type) {
 // gh-114329 added PyList_GetItemRef() to Python 3.13.0a4
 #if PY_VERSION_HEX < 0x030D00A4
 SWIGINTERN PyObject *
-PyList_GetItemRef(PyObject *op, Py_ssize_t index)
+SWIG_PyList_GetItemRef(PyObject *op, Py_ssize_t index)
 {
     PyObject *item = PyList_GetItem(op, index);
     Py_XINCREF(item);
     return item;
 }
+#else
+#  define SWIG_PyList_GetItemRef PyList_GetItemRef
 #endif
 
 // gh-106004 added PyDict_GetItemRef() and PyDict_GetItemStringRef()
