@@ -148,7 +148,7 @@ SWIG_PyDict_GetItemRef(PyObject *mp, PyObject *key, PyObject **result)
     return -1;
 }
 
-static inline int
+SWIGINTERN int
 SWIG_PyDict_GetItemStringRef(PyObject *mp, const char *key, PyObject **result)
 {
     int res;
