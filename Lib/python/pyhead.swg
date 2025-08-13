@@ -93,17 +93,6 @@ SWIG_Python_str_FromChar(const char *c)
 #define Py_hash_t long
 #endif
 
-// gh-114329 added PyList_GetItemRef() to Python 3.13.0a4
-#if PY_VERSION_HEX < 0x030D00A4
-static inline PyObject *
-PyList_GetItemRef(PyObject *op, Py_ssize_t index)
-{
-    PyObject *item = PyList_GetItem(op, index);
-    Py_XINCREF(item);
-    return item;
-}
-#endif
-
 #if defined(Py_LIMITED_API)
 # define PyTuple_GET_ITEM PyTuple_GetItem
 /* Note that PyTuple_SetItem() has different semantics from PyTuple_SET_ITEM as it decref's the original tuple item, so in general they cannot be used
@@ -157,4 +146,61 @@ SWIG_PyType_GetFullyQualifiedName(PyTypeObject *type) {
   return result;
 #endif
 }
+#endif
+
+// gh-114329 added PyList_GetItemRef() to Python 3.13.0a4
+#if PY_VERSION_HEX < 0x030D00A4
+SWIGINTERN PyObject *
+SWIG_PyList_GetItemRef(PyObject *op, Py_ssize_t index) {
+  PyObject *item = PyList_GetItem(op, index);
+  Py_XINCREF(item);
+  return item;
+}
+#else
+# define SWIG_PyList_GetItemRef PyList_GetItemRef
+#endif
+
+// gh-106004 added PyDict_GetItemRef() and PyDict_GetItemStringRef()
+// to Python 3.13.0a1
+// functions are renamed here for compatibility with abi3audit
+#if PY_VERSION_HEX < 0x030D00A1
+SWIGINTERN int
+SWIG_PyDict_GetItemRef(PyObject *mp, PyObject *key, PyObject **result) {
+#if PY_VERSION_HEX >= 0x03000000
+  PyObject *item = PyDict_GetItemWithError(mp, key);
+#else
+  PyObject *item = _PyDict_GetItemWithError(mp, key);
+#endif
+  if (item != NULL) {
+    *result = (PyObject *)(item);
+    SWIG_Py_INCREF(*result);
+    return 1;  // found
+  }
+  if (!PyErr_Occurred()) {
+    *result = NULL;
+    return 0;  // not found
+  }
+  *result = NULL;
+  return -1;
+}
+
+SWIGINTERN int
+SWIG_PyDict_GetItemStringRef(PyObject *mp, const char *key, PyObject **result) {
+  int res;
+#if PY_VERSION_HEX >= 0x03000000
+  PyObject *key_obj = PyUnicode_FromString(key);
+#else
+  PyObject *key_obj = PyString_FromString(key);
+#endif
+  if (key_obj == NULL) {
+    *result = NULL;
+    return -1;
+  }
+  res = SWIG_PyDict_GetItemRef(mp, key_obj, result);
+  Py_DECREF(key_obj);
+  return res;
+}
+#else
+# define SWIG_PyDict_GetItemRef PyDict_GetItemRef
+# define SWIG_PyDict_GetItemStringRef PyDict_GetItemStringRef
 #endif

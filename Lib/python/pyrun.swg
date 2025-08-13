@@ -1943,10 +1943,10 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
 SWIGRUNTIME swig_type_info *
 SWIG_Python_TypeQuery(const char *type)
 {
-  PyObject *cache = SWIG_Python_TypeCache();
-  PyObject *key = SWIG_Python_str_FromChar(type); 
-  PyObject *obj = PyDict_GetItem(cache, key);
   swig_type_info *descriptor;
+  PyObject *cache = SWIG_Python_TypeCache();
+  PyObject *obj;
+  SWIG_PyDict_GetItemStringRef(cache, type, &obj);
   if (obj) {
     descriptor = (swig_type_info *) PyCapsule_GetPointer(obj, NULL);
   } else {
@@ -1954,13 +1954,10 @@ SWIG_Python_TypeQuery(const char *type)
     descriptor = SWIG_TypeQueryModule(swig_module, swig_module, type);
     if (descriptor) {
       obj = PyCapsule_New((void*) descriptor, NULL, NULL);
-      if (obj) {
-        PyDict_SetItem(cache, key, obj);
-        SWIG_Py_DECREF(obj);
-      }
+      if (obj) PyDict_SetItemString(cache, type, obj);
     }
   }
-  SWIG_Py_DECREF(key);
+  SWIG_Py_XDECREF(obj);
   return descriptor;
 }
 
