@@ -120,10 +120,9 @@ static PyObject *Swig_runtime_data_module_global = NULL;
 SWIGINTERN PyObject *
 SWIG_runtime_data_module() {
   if (!Swig_runtime_data_module_global) {
-#if PY_VERSION_HEX >= 0x030D0000
+#if PY_VERSION_HEX >= 0x030d0000
     /* free-threading note: the GIL is always enabled when this function is first called
-       by SWIG_init, so there's no risk of race conditions
-     */  
+       by SWIG_init, so there's no risk of race conditions */
     Swig_runtime_data_module_global = PyImport_AddModuleRef(SWIG_RUNTIME_MODULE);
 #elif PY_VERSION_HEX >= 0x03000000
     Swig_runtime_data_module_global = PyImport_AddModule(SWIG_RUNTIME_MODULE);

@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-08-13: crusaderky
+            #3235 [Python] Free-threaded race condition fix in SWIG_TypeQuery.
+
 2025-08-11: erezgeva
             #3238 Add typecheck typemaps for adding in overloading support to the
             (size_t LENGTH, char *STRING) and (char *STRING, size_t LENGTH) family of
