@@ -27,8 +27,7 @@ permissions:
 jobs:
   cmake:
     runs-on: ${{ matrix.os }}
-    # "cmake" is already in the workflow file name
-    name: ${{ matrix.os }} ${{ matrix.generator }}
+    name: CMake ${{ matrix.os }}
 
     strategy:
       matrix:
@@ -37,7 +36,6 @@ jobs:
         # note: can add Ninja too for ubuntu runners. 'Ninja Multi-Config' can
         # be used for multi-config testing, but requires some changes to how
         # CMake/CTest are being invoked in the below steps
-        generator: ['Unix Makefiles']
 
     env:
       # install prefix for SWIG CI build
@@ -57,14 +55,14 @@ jobs:
       run: |
           sudo apt install libpcre2-dev
 
-    # single-config build configuration
+    # single-config build configuration (uses default single-config generator)
     # note: no need to use PCRE2_ROOT as PCRE2 is installed via APT
     - name: Configure
       run: |
           cmake --version
-          cmake -G "${{ matrix.generator }}" \
-            -DCMAKE_INSTALL_PREFIX=${{ env.SWIG_INSTALL_PREFIX }} \
-            -DCMAKE_BUILD_TYPE=Release -S . -B build
+          cmake -S . -B build \
+            -DCMAKE_INSTALL_PREFIX=${{ env.SWIG_INSTALL_PREFIX }}
+            -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
       run: cmake --build build -j
