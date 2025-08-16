@@ -61,7 +61,7 @@ jobs:
       run: |
           cmake --version
           cmake -S . -B build \
-            -DCMAKE_INSTALL_PREFIX=${{ env.SWIG_INSTALL_PREFIX }}
+            -DCMAKE_INSTALL_PREFIX=${{ env.SWIG_INSTALL_PREFIX }} \
             -DCMAKE_BUILD_TYPE=Release
 
     - name: Build
