@@ -120,14 +120,20 @@ static PyObject *Swig_runtime_data_module_global = NULL;
 SWIGINTERN PyObject *
 SWIG_runtime_data_module() {
   if (!Swig_runtime_data_module_global) {
-#if PY_VERSION_HEX >= 0x03000000
+#if PY_VERSION_HEX >= 0x030d0000
+    /* free-threading note: the GIL is always enabled when this function is first called
+       by SWIG_init, so there's no risk of race conditions */
+    Swig_runtime_data_module_global = PyImport_AddModuleRef(SWIG_RUNTIME_MODULE);
+#elif PY_VERSION_HEX >= 0x03000000
     Swig_runtime_data_module_global = PyImport_AddModule(SWIG_RUNTIME_MODULE);
+    SWIG_Py_XINCREF(Swig_runtime_data_module_global);
 #else
     static PyMethodDef swig_empty_runtime_method_table[] = { {NULL, NULL, 0, NULL} }; /* Sentinel */
     Swig_runtime_data_module_global = Py_InitModule(SWIG_RUNTIME_MODULE, swig_empty_runtime_method_table);
-#endif
     SWIG_Py_XINCREF(Swig_runtime_data_module_global);
+#endif
   }
+  assert(Swig_runtime_data_module_global);
   return Swig_runtime_data_module_global;
 }
 
@@ -1936,10 +1942,10 @@ SWIG_Python_SetModule(swig_module_info *swig_module) {
 SWIGRUNTIME swig_type_info *
 SWIG_Python_TypeQuery(const char *type)
 {
-  PyObject *cache = SWIG_Python_TypeCache();
-  PyObject *key = SWIG_Python_str_FromChar(type); 
-  PyObject *obj = PyDict_GetItem(cache, key);
   swig_type_info *descriptor;
+  PyObject *cache = SWIG_Python_TypeCache();
+  PyObject *obj;
+  SWIG_PyDict_GetItemStringRef(cache, type, &obj);
   if (obj) {
     descriptor = (swig_type_info *) PyCapsule_GetPointer(obj, NULL);
   } else {
@@ -1947,13 +1953,10 @@ SWIG_Python_TypeQuery(const char *type)
     descriptor = SWIG_TypeQueryModule(swig_module, swig_module, type);
     if (descriptor) {
       obj = PyCapsule_New((void*) descriptor, NULL, NULL);
-      if (obj) {
-        PyDict_SetItem(cache, key, obj);
-        SWIG_Py_DECREF(obj);
-      }
+      if (obj) PyDict_SetItemString(cache, type, obj);
     }
   }
-  SWIG_Py_DECREF(key);
+  SWIG_Py_XDECREF(obj);
   return descriptor;
 }
 

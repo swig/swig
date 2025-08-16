@@ -507,6 +507,7 @@ rvrdeleter.reset($1); %}
 %}
 
 %typemap(freearg) (const char *STRING, size_t LENGTH) ""
+%typecheck(SWIG_TYPECHECK_STRING) (const char *STRING, size_t LENGTH) ""
 
 %typemap(out,fragment="AllocateString") (const char *STRING, size_t LENGTH)
 %{ $result = Swig_AllocateString((char*)$1, (size_t)$2); %}
@@ -540,6 +541,7 @@ rvrdeleter.reset($1); %}
 %}
 
 %typemap(freearg) (size_t LENGTH, const char *STRING) ""
+%typecheck(SWIG_TYPECHECK_STRING) (size_t LENGTH, const char *STRING) ""
 
 %typemap(out,fragment="AllocateString") (size_t LENGTH, const char *STRING)
 %{ $result = Swig_AllocateString((char*)$2, (size_t)$1); %}
