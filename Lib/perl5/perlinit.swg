@@ -27,6 +27,9 @@ XS(SWIG_init) {
     (void)items;
 
     SWIG_InitializeModule(0);
+#ifdef SWIG_USE_MY_CXT
+    SWIG_MyCxtInit();
+#endif
 
     /* Install commands */
     for (i = 0; swig_commands[i].name; i++) {
