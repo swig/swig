@@ -8,6 +8,10 @@ Version 4.4.0 (in progress)
 ===========================
 
 2025-10-02: wsfulton
+            [Python] #3189 Modify StopIteration implementation for it to work across
+            multiple modules.
+
+2025-10-02: wsfulton
             [Python] Fix out typemaps for PyObject * to correctly handle NULL return.
 
             NULL is used as the return value for indicating that a Python exception
