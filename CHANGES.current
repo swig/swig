@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-08-27: olly
+	    [PHP] Fix unused label warnings (-Wunused-label in GCC and clang).
+
 2025-08-18: greyshepherd-star
             #3248 [C#] Fix potential null poiner deref calling equals method in std::list.
 
