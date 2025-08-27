@@ -10,7 +10,7 @@ Version 4.4.0 (in progress)
 2025-08-18: greyshepherd-star
             #3248 [C#] Fix potential null poiner deref calling equals method in std::list.
 
-2024-08-13: olly, jim-easterbrook
+2025-08-13: olly, jim-easterbrook
 	    [Python] #2786 Fix handling of "default" typemap applied to method which
 	    takes a single argument when "-builtin" option is used.
 
