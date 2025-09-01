@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-09-01: AnnaAraslanova
+            [Python] #3254 Bug fix - mark modules as no-gil compatible only when -nogil
+            flag is used.
+
 2025-08-27: olly
 	    [PHP] Fix unused label warnings (-Wunused-label in GCC and clang).
 
