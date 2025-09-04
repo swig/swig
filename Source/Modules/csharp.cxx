@@ -1793,7 +1793,7 @@ public:
       SwigType *bsmart = Getattr(base, "smart");
       if (Len(interface_list))
 	Append(interface_list, ", ");
-      Append(interface_list, interface_name);
+      Append(interface_list, getInterfaceName(c_baseclassname, true));
 
       Node *attributes = NewHash();
       String *interface_code = Copy(typemapLookup(base, "csinterfacecode", Getattr(base, "classtypeobj"), WARN_CSHARP_TYPEMAP_INTERFACECODE_UNDEF, attributes));
