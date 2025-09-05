@@ -103,11 +103,7 @@ case "$SWIGLANG" in
 			# assertion in abi3audit 0.0.11, fixed in 0.0.12
 			pip install --user 'abi3audit>=0.0.12'
 		fi
-		if [[ "$PY2" ]]; then
-			WITHLANG=$SWIGLANG
-		else
-			WITHLANG=${SWIGLANG}3
-		fi
+		WITHLANG=${SWIGLANG}3
 		if [[ "$VER" ]]; then
 			$RETRY sudo add-apt-repository -y ppa:deadsnakes/ppa
 			$RETRY sudo apt-get -qq update
@@ -123,8 +119,6 @@ case "$SWIGLANG" in
 				;;
 			esac
 			WITHLANG=$WITHLANG=$SWIGLANG$VER
-		elif [[ "$PY2" ]]; then
-			$RETRY sudo apt-get install -qq python2-dev
 		else
 			$RETRY sudo apt-get install -qq python3-dev
 		fi
