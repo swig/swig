@@ -398,5 +398,15 @@ public class li_std_list_runme {
           throw new Exception("StructConstPtrList test (2) failed (a deep copy was incorrectly made), i:" + i);
       }
     }
+
+    // Null iterator checks
+    global::System.IntPtr zero = global::System.IntPtr.Zero;
+    global::System.IntPtr nonzero = IntList.getCPtr(list).Handle;
+    if (!list.equals(zero, zero))
+      throw new Exception("equals(zero, zero) incorrect");
+    if (list.equals(nonzero, zero))
+      throw new Exception("equals(nonzero, zero) incorrect");
+    if (list.equals(zero, nonzero))
+      throw new Exception("equals(zero, nonzero) incorrect");
   }
 }

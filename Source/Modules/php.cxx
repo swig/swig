@@ -1063,7 +1063,7 @@ public:
     Printv(f->code, dispatch, "\n", NIL);
 
     Printf(f->code, "zend_throw_exception(zend_ce_type_error, \"No matching function for overloaded '%s'\", 0);\n", symname);
-    Printv(f->code, "fail:\n", NIL);
+    Printv(f->code, "fail: SWIGUNUSED;\n", NIL);
     Printv(f->code, "return;\n", NIL);
     Printv(f->code, "}\n", NIL);
     Wrapper_print(f, s_wrappers);
@@ -1145,7 +1145,7 @@ public:
     }
     Printf(f->code, "}\n");
 
-    Printf(f->code, "fail:\n");
+    Printf(f->code, "fail: SWIGUNUSED;\n");
     Printf(f->code, "return;\n");
     Printf(f->code, "}\n\n\n");
 
@@ -1178,7 +1178,7 @@ public:
       Printf(f->code, "RETVAL_NULL();\n}\n");
     }
 
-    Printf(f->code, "fail:\n");
+    Printf(f->code, "fail: SWIGUNUSED;\n");
     Printf(f->code, "return;\n");
     Printf(f->code, "}\n\n\n");
 
@@ -1211,7 +1211,7 @@ public:
       Printf(f->code, "RETVAL_FALSE;\n}\n");
     }
 
-    Printf(f->code, "fail:\n");
+    Printf(f->code, "fail: SWIGUNUSED;\n");
     Printf(f->code, "return;\n");
     Printf(f->code, "}\n\n\n");
 
@@ -1646,7 +1646,7 @@ public:
     }
 
     if (!static_setter) {
-      Printf(f->code, "fail:\n");
+      Printf(f->code, "fail: SWIGUNUSED;\n");
       Printv(f->code, cleanup, NIL);
       Printf(f->code, "return;\n");
       Printf(f->code, "}\n");
@@ -2486,7 +2486,7 @@ public:
       Delete(outarg);
     }
 
-    Append(w->code, "fail: ;\n");
+    Append(w->code, "fail: SWIGUNUSED;\n");
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
 	String *rettype = SwigType_str(returntype, 0);

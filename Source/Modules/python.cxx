@@ -3377,8 +3377,7 @@ public:
       }
       Setattr(h, "getter", "SwigPyObject_get___dict__");
       if (!Getattr(h, "doc")) {
-	Setattr(n, "doc:high:name", Getattr(n, "name"));
-	Setattr(h, "doc", cdocstring(n, AUTODOC_VAR));
+	Setattr(h, "doc", "dictionary for instance variables");
       }
     }
 

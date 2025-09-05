@@ -99,8 +99,10 @@ jobs:
           VER: '8.2'
         - SWIGLANG: php
           VER: '8.3'
+          CPPSTD: c++11 # C++98 not supported by PHP.
         - SWIGLANG: php
           VER: '8.4'
+          CPPSTD: c++11 # C++98 not supported by PHP.
         - SWIGLANG: python
           PY2: 2
         #- SWIGLANG: python

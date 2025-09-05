@@ -60,10 +60,8 @@ jobs:
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
           VER: '3.13'
-       #  TODO require fixing of probing in configure.ac
-       #- SWIGLANG: python
-       #  INSTALL: 'true'
-       #  COMPILER: gcc
+        - SWIGLANG: python
+          COMPILER: gcc
         - SWIGLANG: ruby
           COMPILER: gcc
         - SWIGLANG: ruby
@@ -108,7 +106,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        show-progress: true
+        show-progress: false
 
     - name: Install CCache
       uses: hendrikmuhs/ccache-action@v1
@@ -143,6 +141,14 @@ jobs:
             case "$SWIGLANG" in
             python)
               MORE_MSYS_PKGS+=" $mingw_variant-python"
+              # MinGW-w64 using MSVCRT runtime seems to have an issue with finding
+              # the proper STL library (iostream classes) on runtime,
+              # As a workaround we use static link.
+              # Once we switch to MinGW-w64 with UCRT runtime, the issue will be solved.
+              # See: https://www.msys2.org/docs/environments/#msvcrt-vs-ucrt
+              if [[ "$mingw_variant" = "mingw-w64-x86_64" ]]; then
+                echo "EXAMPLE_LIBS=-static-libstdc++ -static-libgcc" >> $GITHUB_ENV
+              fi
               ;;
             ruby)
               mingw_variant=mingw-w64-ucrt-x86_64

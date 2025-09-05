@@ -1,6 +1,6 @@
 /* -----------------------------------------------------------------------------
  * Type initialization:
- * This problem is tough by the requirement that no dynamic
+ * This problem is made tough by the requirement that no dynamic
  * memory is used. Also, since swig_type_info structures store pointers to
  * swig_cast_info structures and swig_cast_info structures store pointers back
  * to swig_type_info structures, we need some lookup code at initialization.

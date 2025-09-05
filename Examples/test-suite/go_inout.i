@@ -280,6 +280,6 @@ class C2 : public C1 {
 %inline
 %{
 bool Strings(char *ps[], int cs) {
-  return cs == 2 && strcmp(ps[0], "1") == 0 && strcmp(ps[1], "2") == 0 & ps[2] == NULL;
+  return cs == 2 && strcmp(ps[0], "1") == 0 && strcmp(ps[1], "2") == 0 && ps[2] == NULL;
 }
 %}
