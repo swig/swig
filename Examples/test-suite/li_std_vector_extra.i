@@ -37,7 +37,7 @@ namespace std {
     operator T() const { return val; }
   };
 %}
-specialize_std_vector(Param<int>,PyInt_Check,PyInt_AsLong,PyInt_FromLong);
+specialize_std_vector(Param<int>,PyLong_Check,PyLong_AsLong,PyLong_FromLong);
 %template(PIntVector) std::vector<Param<int> >;
 
 %inline %{

@@ -20,8 +20,8 @@ namespace std
 			   PyComplex_ImagAsDouble($input));
     } else if (PyFloat_Check($input)) {
       $1 = std::complex<T>(PyFloat_AsDouble($input), 0);
-    } else if (PyInt_Check($input)) {
-      $1 = std::complex<T>(PyInt_AsLong($input), 0);
+    } else if (PyLong_Check($input)) {
+      $1 = std::complex<T>(PyLong_AsLong($input), 0);
     }
     else {
       PyErr_SetString(PyExc_TypeError,"Expected a complex");
@@ -37,8 +37,8 @@ namespace std
     } else if (PyFloat_Check($input)) {
       temp = std::complex<T>(PyFloat_AsDouble($input), 0);
       $1 = &temp;
-    } else if (PyInt_Check($input)) {
-      temp = std::complex<T>(PyInt_AsLong($input), 0);
+    } else if (PyLong_Check($input)) {
+      temp = std::complex<T>(PyLong_AsLong($input), 0);
       $1 = &temp;
     } else {	
       PyErr_SetString(PyExc_TypeError,"Expected a complex");
