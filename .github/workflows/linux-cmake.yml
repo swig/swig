@@ -45,7 +45,8 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        show-progress: true
+        # if fetch-depth is 0 or >1 progress output will clutter the log
+        show-progress: false
 
     - name: Machine Info
       run: uname -a
