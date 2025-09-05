@@ -48,8 +48,17 @@ jobs:
         # if fetch-depth is 0 or >1 progress output will clutter the log
         show-progress: false
 
+    # note: same steps as in linux.yml
     - name: Machine Info
-      run: uname -a
+      run: |
+          echo "nproc..."
+          nproc --all
+          echo "uname..."
+          uname --all
+          echo "meminfo..."
+          cat /proc/meminfo
+          echo "lsb-release..."
+          cat /etc/lsb-release
 
     # note: bison is pre-installed via APT already for Ubuntu runners
     - name: Install Dependencies
