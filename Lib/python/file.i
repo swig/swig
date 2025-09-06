@@ -17,12 +17,6 @@ SWIG_AsValFilePtr(PyObject *obj, FILE **val) {
     if (val) *val = (FILE *)vptr;
     return SWIG_OK;
   }
-%#if PY_VERSION_HEX < 0x03000000
-  if (PyFile_Check(obj)) {
-    if (val) *val =  PyFile_AsFile(obj);
-    return SWIG_OK;
-  }
-%#endif
   return SWIG_TypeError;
 }
 }
