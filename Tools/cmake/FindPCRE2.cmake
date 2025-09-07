@@ -5,12 +5,16 @@
 # In particular, it looks for the more recent PCRE2, not the EOL PCRE library.
 #
 # See https://www.pcre.org/ for more details.
-
+#
 # This find module first tries to use the upstream PCRE2 CMake config script
 # that is bundled with more recent PCRE2 versions since 10.38.
 #
 # If config search fails, the original find logic will be used, and if
-# successful will define the imported PCRE2::8BIT library target.
+# successful will define the imported PCRE2::8BIT library target. You will need
+# to specify 8BIT in the find_package COMPONENTS argument, e.g.
+#
+#   find_package(PCRE2 10.39 REQUIRED COMPONENTS 8BIT)
+#   target_link_libraries(my_target PRIVATE PCRE2::8BIT)
 #
 # On Windows, PCRE2_USE_STATIC_LIBS is implicitly set to ON if not defined.
 # Usually PCRE2 is built static on Windows to begin with so this is desired.
@@ -19,6 +23,7 @@
 #
 #   PCRE2_LIBRARIES       PCRE2 library files
 #   PCRE2_INCLUDE_DIRS    PCRE2 include directories
+#
 
 include(FindPackageHandleStandardArgs)
 
