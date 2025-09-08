@@ -61,8 +61,8 @@ typedef size_t uintgo;
 // Set the host compiler struct attribute that will be
 // used to match gc's struct layout. For example, on 386 Windows,
 // gcc wants to 8-align int64s, but gc does not.
-// Use __gcc_struct__ to work around http://gcc.gnu.org/PR52991 on x86,
-// and https://golang.org/issue/5603.
+// Use __gcc_struct__ to work around https://gcc.gnu.org/PR52991 on x86,
+// and https://go.dev/issue/5603.
 // See: https://github.com/golang/go/blob/fcbf04f9b93b4cd8addd05c2ed784118eb50a46c/src/cmd/cgo/out.go#L663
 %insert(runtime) %{
 # if !defined(__clang__) && (defined(__i386__) || defined(__x86_64__))
