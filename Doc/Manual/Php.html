@@ -63,6 +63,15 @@ SWIG 1.3.37.  There never was a PHP6 release.
 </p>
 
 <p>
+C++ PHP extensions should to be compiled as C++11 or newer - this is
+a requirement of current versions of PHP (apparently undocumented but
+confirmed by the PHP developers).  Modern C++ compilers have defaulted
+to C++11 or newer since sufficiently long ago that this should just
+work unless you are deliberately using an old compiler version or
+you specifically tell the compiler to compile as C++98.
+</p>
+
+<p>
 In order to use this module, you will need to have a copy of the PHP
 include files to compile the SWIG generated C/C++ sources.  If you installed
 PHP from a binary package, you may need to install a "php-dev" or "php-devel"

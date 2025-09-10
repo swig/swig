@@ -293,9 +293,11 @@ SWIGINTERN int SWIG_mod_exec(PyObject *m) {
   /* Fix SwigMethods to carry the callback ptrs when needed */
   SWIG_Python_FixMethods(SwigMethods, swig_const_table, swig_types, swig_type_initial);
 
+#ifdef SWIGPYTHON_NOGIL
 #ifdef Py_GIL_DISABLED
-    PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
-#endif	
+  PyUnstable_Module_SetGIL(m, Py_MOD_GIL_NOT_USED);
+#endif
+#endif
 
   md = d = PyModule_GetDict(m);
   (void)md;

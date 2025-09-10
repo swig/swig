@@ -86,7 +86,10 @@ static int             swigconstTableinit = 0;
 SWIGINTERN void
 SWIG_Tcl_SetConstantObj(Tcl_Interp *interp, const char* name, Tcl_Obj *obj) {
   int newobj;
-  Tcl_ObjSetVar2(interp,Tcl_NewStringObj(name,-1), NULL, obj, TCL_GLOBAL_ONLY);
+  Tcl_Obj *varNamePtr = Tcl_NewStringObj(name, -1);
+  Tcl_IncrRefCount(varNamePtr);
+  Tcl_ObjSetVar2(interp,varNamePtr, NULL, obj, TCL_GLOBAL_ONLY);
+  Tcl_DecrRefCount(varNamePtr);
   Tcl_SetHashValue(Tcl_CreateHashEntry(&swigconstTable, name, &newobj), (ClientData) obj);
 }
 

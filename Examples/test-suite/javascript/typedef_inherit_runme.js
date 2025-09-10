@@ -22,6 +22,6 @@ x = /* await */(typedef_inherit.do_blah2(d));
 if (x != "Grok::blah")
     throw new Error("Whoa! Bad return" + x);
 
-x = /* await */(d.far());
-if (x != "Spam::far")
+x = /* await */(d.far1());
+if (x != "Spam::far1")
     throw new Error("Whoa! Bad return" + x);

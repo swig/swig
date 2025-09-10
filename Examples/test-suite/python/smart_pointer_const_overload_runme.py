@@ -5,99 +5,99 @@ MUTABLE_ACCESS = 2
 
 
 def test(b, f):
-    if f.x != 0:
+    if f.x1 != 0:
         raise RuntimeError
 
     # Test member variable get
-    if b.x != 0:
+    if b.x1 != 0:
         raise RuntimeError
 
-    if f.access != CONST_ACCESS:
+    if f.access1 != CONST_ACCESS:
         raise RuntimeError
 
     # Test member variable set
-    b.x = 1
+    b.x1 = 1
 
-    if f.x != 1:
+    if f.x1 != 1:
         raise RuntimeError
 
-    if f.access != MUTABLE_ACCESS:
+    if f.access1 != MUTABLE_ACCESS:
         raise RuntimeError
 
     # Test const method
-    if b.getx() != 1:
+    if b.getx1() != 1:
         raise RuntimeError
 
-    if f.access != CONST_ACCESS:
+    if f.access1 != CONST_ACCESS:
         raise RuntimeError
 
     # Test mutable method
-    b.setx(2)
+    b.setx1(2)
 
-    if f.x != 2:
+    if f.x1 != 2:
         raise RuntimeError
 
-    if f.access != MUTABLE_ACCESS:
+    if f.access1 != MUTABLE_ACCESS:
         raise RuntimeError
 
     # Test extended const method
     if b.getx2() != 2:
         raise RuntimeError
 
-    if f.access != CONST_ACCESS:
+    if f.access1 != CONST_ACCESS:
         raise RuntimeError
 
     # Test extended mutable method
     b.setx2(3)
 
-    if f.x != 3:
+    if f.x1 != 3:
         raise RuntimeError
 
-    if f.access != MUTABLE_ACCESS:
+    if f.access1 != MUTABLE_ACCESS:
         raise RuntimeError
 
     # Test static method
     b.statMethod()
 
-    if f.access != CONST_ACCESS:
+    if f.access1 != CONST_ACCESS:
         raise RuntimeError
 
     # Test const member
-    f.access = MUTABLE_ACCESS
+    f.access1 = MUTABLE_ACCESS
 
     if b.y != 0:
         raise RuntimeError
 
-    if f.access != CONST_ACCESS:
+    if f.access1 != CONST_ACCESS:
         raise RuntimeError
 
     # Test get through mutable pointer to const member
-    f.access = MUTABLE_ACCESS
+    f.access1 = MUTABLE_ACCESS
 
     if get_int(b.yp) != 0:
         raise RuntimeError
 
-    if f.access != CONST_ACCESS:
+    if f.access1 != CONST_ACCESS:
         raise RuntimeError
 
     # Test get through const pointer to mutable member
-    f.x = 4
-    f.access = MUTABLE_ACCESS
+    f.x1 = 4
+    f.access1 = MUTABLE_ACCESS
 
     if get_int(b.xp) != 4:
         raise RuntimeError
 
-    if f.access != CONST_ACCESS:
+    if f.access1 != CONST_ACCESS:
         raise RuntimeError
 
     # Test set through const pointer to mutable member
-    f.access = MUTABLE_ACCESS
+    f.access1 = MUTABLE_ACCESS
     set_int(b.xp, 5)
 
-    if f.x != 5:
+    if f.x1 != 5:
         raise RuntimeError
 
-    if f.access != CONST_ACCESS:
+    if f.access1 != CONST_ACCESS:
         raise RuntimeError
 
     # Test set pointer to const member
@@ -109,7 +109,7 @@ def test(b, f):
     if get_int(f.yp) != 6:
         raise RuntimeError
 
-    if f.access != MUTABLE_ACCESS:
+    if f.access1 != MUTABLE_ACCESS:
         raise RuntimeError
 
     delete_int(f.yp)

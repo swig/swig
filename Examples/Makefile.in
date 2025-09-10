@@ -53,7 +53,7 @@ prefix     = @prefix@
 exec_prefix= @exec_prefix@
 SRCS       =
 INCLUDES   =
-LIBS       =
+LIBS       = @EXAMPLE_LIBS@
 INTERFACE  =
 INTERFACEDIR  =
 INTERFACEPATH = $(SRCDIR)$(INTERFACEDIR)$(INTERFACE)
@@ -402,10 +402,6 @@ d_clean:
 #####                       Go                              ######
 ##################################################################
 
-# TODO: The Go make targets need simplifying to use configure time
-# configuration or to use Make's ifeq rather than using lots of
-# runtime shell code. The output will then be a lot less verbose.
-
 GO = @GO@
 GOGCC = @GOGCC@
 GCCGO = @GCCGO@
@@ -413,7 +409,13 @@ GOOPT = @GOOPT@
 GCCGOOPT = @GCCGOOPT@
 GOVERSIONOPTION = @GOVERSIONOPTION@
 
-GOSWIGARG = `if $(GOGCC) ; then echo -gccgo; fi`
+ifneq (false, $(GOGCC))
+GOSWIGARG = -gccgo
+GOBUILDARG = -compiler=gccgo
+else
+GOSWIGARG =
+GOBUILDARG =
+endif
 
 GOSRCS = $(INTERFACE:.i=.go)
 GOCSRCS = $(INTERFACE:.i=_gc.c)
@@ -467,7 +469,7 @@ go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 	export CGO_CFLAGS; \
 	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
 	export CGO_LDFLAGS; \
-	(cd $(GOPATHDIR)/ && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o $(GOPACKAGE)); \
+	(cd $(GOPATHDIR)/ && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
 	stat=$$?; \
 	if test $$stat != 0; then \
 	  exit $$stat; \
@@ -479,7 +481,7 @@ go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 	  mkdir gopath/$(GOMOD)/src/swigtests 2>/dev/null || true; \
 	  mkdir gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=) 2>/dev/null || true; \
 	  cp $(GOPATHDIR)/* gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=)/; \
-	  (cd gopath/$(GOMOD)/src/runme && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o runme $(RUNME).go); \
+	  (cd gopath/$(GOMOD)/src/runme && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o runme $(RUNME).go); \
 	  stat=$$?; \
 	  if test $$stat != 0; then \
 	    exit $$stat; \
@@ -526,7 +528,7 @@ go_cpp: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 	export CGO_CXXFLAGS; \
 	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
 	export CGO_LDFLAGS; \
-	(cd $(GOPATHDIR) && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o $(GOPACKAGE)); \
+	(cd $(GOPATHDIR) && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
 	stat=$$?; \
 	if test $$stat != 0; then \
 	  exit $$stat; \
@@ -538,7 +540,7 @@ go_cpp: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 	  mkdir gopath/$(GOMOD)/src/swigtests 2>/dev/null || true; \
 	  mkdir gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=) 2>/dev/null || true; \
 	  cp $(GOPATHDIR)/* gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=)/; \
-	  (cd gopath/$(GOMOD)/src/runme && $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o runme $(RUNME).go); \
+	  (cd gopath/$(GOMOD)/src/runme && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o runme $(RUNME).go); \
 	  stat=$$?; \
 	  if test $$stat != 0; then \
 	    exit $$stat; \

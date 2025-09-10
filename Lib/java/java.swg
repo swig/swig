@@ -1439,6 +1439,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %typemap(argout)  (const char *STRING, size_t LENGTH) {
   if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$1, JNI_ABORT);
 }
+%typecheck(SWIG_TYPECHECK_STRING) (const char *STRING, size_t LENGTH) ""
 %typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) (const char *STRING, size_t LENGTH) {
   $input = 0;
   if ($1) {
@@ -1456,6 +1457,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 }
 %typemap(directorargout, noblock=1) (char *STRING, size_t LENGTH)
 { if ($input && $1) JCALL4(GetByteArrayRegion, jenv, $input, 0, (jsize)$2, (jbyte *)$1); }
+
 %apply (char *STRING, size_t LENGTH) { (char *STRING, int LENGTH) }
 
 /* Length & string reverse order typemap */
@@ -1477,6 +1479,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 %typemap(argout)  (size_t LENGTH, const char *STRING) {
   if ($input) JCALL3(ReleaseByteArrayElements, jenv, $input, (jbyte *)$2, JNI_ABORT);
 }
+%typecheck(SWIG_TYPECHECK_STRING) (size_t LENGTH, const char *STRING) ""
 %typemap(directorin, descriptor="Ljava/lang/String;", noblock=1) (size_t LENGTH, const char *STRING) {
   $input = 0;
   if ($2) {
@@ -1494,6 +1497,7 @@ SWIG_PROXY_CONSTRUCTOR(true, true, SWIGTYPE)
 }
 %typemap(directorargout, noblock=1) (size_t LENGTH, char *STRING)
 { if ($input && $2) JCALL4(GetByteArrayRegion, jenv, $input, 0, (jsize)$1, (jbyte *)$2); }
+
 %apply (size_t LENGTH, char *STRING) { (int LENGTH, char *STRING) }
 
 /* java keywords */

@@ -31,7 +31,7 @@ jobs:
     name: >
       ${{ matrix.SWIGLANG }} ${{ matrix.VER }}
       ${{ matrix.SWIG_FEATURES }}
-      ${{ matrix.COMPILER || 'msvc' }} ${{ matrix.os }} ${{ matrix.NOTEST }}
+      ${{ matrix.COMPILER || 'msvc' }} ${{ matrix.os }}
       ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
@@ -61,22 +61,16 @@ jobs:
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
           VER: '3.13'
-       #  TODO require fixing of probing in configure.ac
-       #- SWIGLANG: python
-       #  INSTALL: 'true'
-       #  COMPILER: gcc
-       #  NOTEST: 'no-test'
+        - SWIGLANG: python
+          COMPILER: gcc
         - SWIGLANG: ruby
-          VER: '3.1'
-          NOTEST: 'no-test'
+          COMPILER: gcc
+        - SWIGLANG: ruby
+          VER: '3.2'
+          COMPILER: gcc
         - SWIGLANG: ruby
           VER: '3.3'
-          NOTEST: 'no-test'
-       # https://github.com/swig/swig/issues/3237 ::at_quick_exit bug in ruby-3.4.5-1
-       #- SWIGLANG: ruby
-       #  INSTALL: 'true'
-       #  COMPILER: gcc
-       #  NOTEST: 'no-test'
+          COMPILER: gcc
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -92,7 +86,6 @@ jobs:
       COMPILER: ${{ matrix.COMPILER }}
       OS: ${{ matrix.os }}
       INSTALL: ${{ matrix.INSTALL }}
-      NOTEST: ${{ matrix.NOTEST }}
 
 # cl.exe:
 #  https://learn.microsoft.com//cpp/build/reference/compiler-options
@@ -114,7 +107,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        show-progress: true
+        show-progress: false
 
     - name: Install CCache
       uses: hendrikmuhs/ccache-action@v1
@@ -142,29 +135,54 @@ jobs:
           uname --all
 
           if [[ "$COMPILER" = "gcc" ]]; then
-            # MinGW-w64 packages to install with MSYS2
-            for n in binutils make autotools pcre2 boost; do
-              MORE_MSYS_PKGS+=" mingw-w64-x86_64-$n"
-            done
+            # MinGW-w64 variant to use
+            mingw_variant=mingw-w64-x86_64
+            mingw_dir=mingw64
 
             case "$SWIGLANG" in
             python)
-              MORE_MSYS_PKGS+=" mingw-w64-x86_64-python"
+              MORE_MSYS_PKGS+=" $mingw_variant-python"
+              # MinGW-w64 using MSVCRT runtime seems to have an issue with finding
+              # the proper STL library (iostream classes) on runtime,
+              # As a workaround we use static link.
+              # Once we switch to MinGW-w64 with UCRT runtime, the issue will be solved.
+              # See: https://www.msys2.org/docs/environments/#msvcrt-vs-ucrt
+              if [[ "$mingw_variant" = "mingw-w64-x86_64" ]]; then
+                echo "EXAMPLE_LIBS=-static-libstdc++ -static-libgcc" >> $GITHUB_ENV
+              fi
               ;;
             ruby)
-              MORE_MSYS_PKGS+=" mingw-w64-x86_64-ruby"
+              mingw_variant=mingw-w64-ucrt-x86_64
+              MORE_MSYS_PKGS+=" $mingw_variant-gcc"
+              # We need the MinGW-w64 using Universal CRT
+              mingw_dir=ucrt64
+              if [[ -n "$VER" ]]; then
+                ruby_dir=$(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64/bin
+                RUBYDIR=$(cygpath -w $ruby_dir)
+                echo "$RUBYDIR" >> $GITHUB_PATH
+              else
+                MORE_MSYS_PKGS+=" $mingw_variant-ruby"
+              fi
               ;;
             perl)
-              MORE_MSYS_PKGS+=" mingw-w64-x86_64-perl"
+              MORE_MSYS_PKGS+=" $mingw_variant-perl"
               ;;
             esac
 
+            # MinGW-w64 packages to install with MSYS2
+            for n in binutils make autotools pcre2 boost; do
+              MORE_MSYS_PKGS+=" $mingw_variant-$n"
+            done
+
             # MinGW-w64 pcre2
-            echo "PCRE2_CFLAGS=-I/mingw64/include -DPCRE2_STATIC" >> $GITHUB_ENV
-            echo "PCRE2_LIBS=-L/mingw64/lib -lpcre2-8" >> $GITHUB_ENV
+            echo "PCRE2_CFLAGS=-I/$mingw_dir/include -DPCRE2_STATIC" >> $GITHUB_ENV
+            echo "PCRE2_LIBS=-L/$mingw_dir/lib -lpcre2-8" >> $GITHUB_ENV
 
             echo "MORE_MSYS_PKGS=base-devel $MORE_MSYS_PKGS" >> $GITHUB_ENV
-            echo "BOOST_PATH=/c/msys64/mingw64" >> $GITHUB_ENV
+            echo "BOOST_PATH=/c/msys64/$mingw_dir" >> $GITHUB_ENV
+
+            # gcc compiler location
+            echo "MINGW_CC=/$mingw_dir/bin" >> $GITHUB_ENV
           else
              # COMPILER: cccl wrapping MSVC
             curl --retry 15 -s -L https://github.com/swig/cccl/raw/cccl-1.4/cccl -o /usr/bin/cccl
@@ -228,7 +246,7 @@ jobs:
           else
             # Use MinGW-w64 compiler
             # We can not use GITHUB_PATH, as bash insert /usr/bin
-            export PATH="/mingw64/bin:$PATH"
+            export PATH="$MINGW_CC:$PATH"
 
             which gcc
             gcc --version | head -n1
@@ -264,7 +282,7 @@ jobs:
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
             # Use MinGW-w64 compiler
-            export PATH="/mingw64/bin:$PATH"
+            export PATH="$MINGW_CC:$PATH"
             ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe"
           else
              # cccl wrapping MSVC
@@ -276,7 +294,7 @@ jobs:
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
             # Use MinGW-w64 compiler
-            export PATH="/mingw64/bin:$PATH"
+            export PATH="$MINGW_CC:$PATH"
           fi
 
           make -s $SWIGJOBS
@@ -291,12 +309,11 @@ jobs:
           fi
 
     - name: Test
-      if: ${{ matrix.NOTEST == '' }}
       shell: bash
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
             # Use MinGW-w64 compiler
-            export PATH="/mingw64/bin:$PATH"
+            export PATH="$MINGW_CC:$PATH"
           fi
           ./swig.exe -version
           make check-$SWIGLANG-version

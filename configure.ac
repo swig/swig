@@ -526,6 +526,17 @@ then LIBC=$withval
 else AC_MSG_ERROR([proper usage is --with-libc=STRING])
 fi])
 
+case $host in
+  dnl Windows path separator
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
+    SHELL_PATH_SEP=';'
+    ;;
+  *) dnl POSIX path separator
+    SHELL_PATH_SEP=':'
+    ;;
+esac
+AC_SUBST(SHELL_PATH_SEP)
+
 #--------------------------------------------------------------------
 # Target languages
 #--------------------------------------------------------------------
@@ -969,14 +980,11 @@ case $host in
     if test -n "$JAVA_HOME"; then
       JAVA_HOME=`cygpath --mixed "$JAVA_HOME"`
     fi
-    dnl Java uses semicolons and not colons as separators in its classes search path under Windows.
-    JAVA_CLASSPATH_SEP=";"
     ;;
   *-*-mingw*)
     if test -n "$JAVA_HOME"; then
       JAVA_HOME=`${srcdir}/Tools/convertpath -u "$JAVA_HOME"`
     fi
-    JAVA_CLASSPATH_SEP=";"
     ;;
   *-*-darwin*)
     dnl Under OS X JAVA_HOME is not set by default, try to use the system default JRE.
@@ -989,11 +997,6 @@ case $host in
     if test -r "$JAVA_OSX_STD_INCDIR/jni.h"; then
       JAVA_HOME_INCDIR=$JAVA_OSX_STD_INCDIR
     fi
-    JAVA_CLASSPATH_SEP=":"
-    ;;
-  *)
-    dnl Assume generic Unix.
-    JAVA_CLASSPATH_SEP=":"
     ;;
 esac
 
@@ -1199,7 +1202,6 @@ fi
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
 AC_SUBST(JAVAINC)
-AC_SUBST(JAVA_CLASSPATH_SEP)
 AC_SUBST(JAVADYNAMICLINKING)
 AC_SUBST(JAVALIBRARYPREFIX)
 AC_SUBST(JAVASO)
@@ -2118,18 +2120,18 @@ else
     PYVER=0
   fi
   if test "x$PY3BIN" = xyes; then
-    if test x"$PYOSNAME" = x"nt" && test x"$PYSEPARATOR" = x"\\" && test $PYVER -ge 3; then
-      PYTHON3="$PYTHON"
-    else
-      for py_ver in 3 3.15 3.14 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 ""; do
-        AC_CHECK_PROGS(PYTHON3, [python$py_ver])
-        if test -n "$PYTHON3"; then
-          AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
-          if test -n "$PY3CONFIG"; then
-            break
-          fi
+    for py_ver in 3 3.15 3.14 3.13 3.12 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4 3.3 ""; do
+      AC_CHECK_PROGS(PYTHON3, [python$py_ver])
+      if test -n "$PYTHON3"; then
+        AC_CHECK_PROGS(PY3CONFIG, [$PYTHON3-config])
+        if test -n "$PY3CONFIG"; then
+          break
         fi
-      done
+      fi
+    done
+    # Windows python can be in path and have python-config, fallback here!
+    if test -z "$PY3CONFIG" && test x"$PYOSNAME" = x"nt" && test x"$PYSEPARATOR" = x"\\" && test $PYVER -ge 3; then
+      PYTHON3="$PYTHON"
     fi
   else
     PYTHON3="$PY3BIN"
@@ -2153,44 +2155,7 @@ else
     PYSEPARATOR=`($PYTHON3 -c "import sys, os; sys.stdout.write(os.sep)") 2>/dev/null`
     AC_MSG_RESULT($PYSEPARATOR)
 
-    if test x"$PY3OSNAME" = x"nt" && test x"$PYSEPARATOR" = x"\\"; then
-      # Windows installations are quite different to posix installations
-      # There is no python-config to use
-      AC_MSG_CHECKING(for Python 3.x prefix)
-      PY3PREFIX=`($PYTHON3 -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
-      AC_MSG_RESULT($PY3PREFIX)
-      PY3PREFIX=`echo "$PY3PREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
-      PYTHON_SO=.pyd
-
-      AC_MSG_CHECKING(for Python 3.x header files)
-      if test -r $PY3PREFIX/include/Python.h; then
-        PY3INCLUDE="-I$PY3PREFIX/include"
-      fi
-      AC_MSG_RESULT($PY3INCLUDE)
-
-      AC_MSG_CHECKING(for Python 3.x library directory)
-      if test -d "$PY3PREFIX/libs"; then
-        PY3LIB="$PY3PREFIX/libs"
-        PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
-        if test -r "$PY3LINKFILE"; then
-          PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
-        else
-          PY3LIB=
-        fi
-      fi
-      if test -z "$PY3LIB"; then
-        AC_MSG_RESULT([Not found])
-      else
-        AC_MSG_RESULT($PY3LIB)
-        PY3LIB="-L$PY3LIB"
-      fi
-      AC_MSG_CHECKING([for Python 3.x library])
-      if test -z "$PY3LINK"; then
-        AC_MSG_RESULT(Not found)
-      else
-        AC_MSG_RESULT($PY3LINK)
-      fi
-    elif test -n "$PY3CONFIG"; then
+    if test -n "$PY3CONFIG"; then
       AC_MSG_CHECKING([for Python 3.x prefix])
       PY3PREFIX=`($PY3CONFIG --prefix) 2>/dev/null`
       AC_MSG_RESULT($PY3PREFIX)
@@ -2254,6 +2219,51 @@ else
         AC_MSG_RESULT(Not found)
       else
         AC_MSG_RESULT($PY3LINK)
+      fi
+    fi
+
+    # windows Python
+    if test x"$PY3OSNAME" = x"nt"; then
+      PYTHON_SO=.pyd
+      # TODO: Do we need to probe?
+      #=`($PYTHON3 -c "import sys; import distutils.ccompiler;sys.stdout.write(distutils.ccompiler.new_compiler().shared_lib_extension)") 2>/dev/null`
+
+      if test -z "$PY3CONFIG"; then
+        AC_MSG_CHECKING(for Python 3.x prefix)
+        PY3PREFIX=`($PYTHON3 -c "import sys; sys.stdout.write(sys.prefix)") 2>/dev/null`
+        AC_MSG_RESULT($PY3PREFIX)
+        if test x"$PYSEPARATOR" = x"\\" ; then
+          PY3PREFIX=`echo "$PY3PREFIX" | sed -e 's,\\\\,/,g'` # Forward slashes are easier to use and even work on Windows most of the time
+        fi
+
+        AC_MSG_CHECKING(for Python 3.x header files)
+        if test -r "$PY3PREFIX/include/Python.h"; then
+          PY3INCLUDE="-I$PY3PREFIX/include"
+        fi
+        AC_MSG_RESULT($PY3INCLUDE)
+
+        AC_MSG_CHECKING(for Python 3.x library directory)
+        if test -d "$PY3PREFIX/libs"; then
+          PY3LIB="$PY3PREFIX/libs"
+          PY3LINKFILE=`ls $PY3LIB/python*.lib | grep "python[[0-9]][[0-9]]\+\.lib"`
+          if test -r "$PY3LINKFILE"; then
+            PY3LINK=-l`basename $PY3LINKFILE | sed -e 's/\.lib$//'`
+          else
+            PY3LIB=
+          fi
+        fi
+        if test -z "$PY3LIB"; then
+          AC_MSG_RESULT([Not found])
+        else
+          AC_MSG_RESULT($PY3LIB)
+          PY3LIB="-L$PY3LIB"
+        fi
+        AC_MSG_CHECKING([for Python 3.x library])
+        if test -z "$PY3LINK"; then
+          AC_MSG_RESULT(Not found)
+        else
+          AC_MSG_RESULT($PY3LINK)
+        fi
       fi
     fi
   fi
@@ -2375,6 +2385,7 @@ if test -n "$RUBY"; then
 		dirs="$dirs $rb_archlibdir $rb_libdir $rb_bindir"
 
         rb_libruby=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBRUBY_A"]]') 2>/dev/null`
+        rb_dlibruby=`($RUBY -rrbconfig -e 'print RbConfig::CONFIG[["LIBRUBY"]]') 2>/dev/null`
         RUBYLINK=`($RUBY -rrbconfig -e '
             c = RbConfig::CONFIG
             if c.has_key? "LIBRUBYARG_STATIC" # 1.8.x
@@ -2402,9 +2413,10 @@ if test -n "$RUBY"; then
               puts link
             end') 2>/dev/null`
 
-		if test "$rb_libruby" != ""; then
+		if test -n "$rb_libruby" || test -n "$rb_dlibruby"; then
 			for i in $dirs; do
-				if test -r "$i/$rb_libruby"; then
+				if { test -n "$rb_libruby" && test -r $i/$rb_libruby ; } ||\
+				   { test -n "$rb_dlibruby" && test -r $i/$rb_dlibruby ; } ; then
 					RUBYLIB="$i"
 					break
 				fi
@@ -2432,7 +2444,7 @@ else
 fi
 
 case $host in
-*-*-cygwin* | *-*-mingw*)	RUBYDYNAMICLINKING="-L$RUBYLIB $RUBYLINK";;
+*-*-cygwin* | *-*-mingw* | *-*-msys*) RUBYDYNAMICLINKING="-L$RUBYLIB $RUBYLINK";;
 *)		RUBYDYNAMICLINKING="";;
 esac
 fi
@@ -2894,6 +2906,8 @@ if test "${srcdir}" = "."; then
     ], [SWIG_LIB_SET="env SWIG_LIB="], [])
 fi
 AC_SUBST(SWIG_LIB_SET)
+
+AC_SUBST(EXAMPLE_LIBS)
 
 AC_CONFIG_FILES([
     Makefile
