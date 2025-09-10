@@ -38,6 +38,8 @@ This is SWIG JavaScript Evolution, an up-to-date fork of the SWIG project with a
   
   Unlike all other supported languages, SWIG WASM does not target native code - on this platform JavaScript is the native language and the C/C++ code is the exotic environment. SWIG WASM is made possible by [`emnapi`](https://github.com/toyobayashi/emnapi) which provides a Node-API interface for interfacing with the JS engine in the browser.
 
+  If you are new to the WASM ecosystem, be sure to check [Quick Overview of the WASM Ecosystem for Newcomers](https://gist.github.com/mmomtchev/9a2574c9834cff35df675669a2cb943d).
+
 * Code Splitting
 
   Although this feature has been mentioned many times in the past, the memory requirements of WASM compilation make it mandatory. SWIG JSE can produce separate C++ headers and multiple compilation units. At the moment only JavaScript Node-API and Javascript WASM can use this feature, but it is planned to eventually extend it to Python.
