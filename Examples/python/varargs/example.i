@@ -28,7 +28,7 @@ int printf(const char *fmt, ...);
 /* An alternative approach using typemaps */
 %typemap(in) (const char *fmt, ...) {
    $1 = "%s";
-   $2 = (void *) PyString_AsString($input);
+   $2 = (void *) PyBytes_AsString($input);
 }
 #endif
 

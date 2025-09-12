@@ -522,7 +522,6 @@ like this:
   for (i = 0; i &lt; argc; i++) {
     PyObject *pyobj = PyTuple_GetItem(varargs, i);
     char *str = 0;
-%#if PY_VERSION_HEX&gt;=0x03000000
     const char *strtmp = 0;
     PyObject *pystr;
     if (!PyUnicode_Check(pyobj)) {
@@ -538,25 +537,12 @@ like this:
     if (str)
       strcpy(str, strtmp);
     Py_DecRef(pystr);
-%#else  
-    if (!PyString_Check(pyobj)) {
-      PyErr_SetString(PyExc_ValueError, "Expected a string");
-      SWIG_fail;
-    }
-    str = PyString_AsString(pyobj);
-%#endif
     vargs[i] = str;
   }
   $1 = (void *)vargs;
 }
 
 %typemap(freearg) (...) {
-%#if PY_VERSION_HEX&gt;=0x03000000
-  int i;
-  for (i = 0; i &lt; 10; i++) {
-    free(vargs$argnum[i]);
-  }
-%#endif
 }
 </pre>
 </div>
@@ -741,9 +727,9 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
   argv = (vtype *) malloc(argc*sizeof(vtype));
   for (i = 0; i &lt; argc; i++) {
     PyObject *o = PyTuple_GetItem(varargs, i);
-    if (PyInt_Check(o)) {
+    if (PyLong_Check(o)) {
       argv[i].type = VT_INT;
-      argv[i].val.ivalue = PyInt_AsLong(o);
+      argv[i].val.ivalue = PyLong_AsLong(o);
     } else if (PyFloat_Check(o)) {
       argv[i].type = VT_DOUBLE;
       argv[i].val.dvalue = PyFloat_AsDouble(o);
