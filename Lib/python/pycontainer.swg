@@ -543,7 +543,7 @@ namespace swig {
 %newobject __getitem__(SWIGPY_SLICEOBJECT *slice);
 
 #if defined(SWIGPYTHON_BUILTIN)
-  %feature("python:slot", "nb_nonzero", functype="inquiry") __nonzero__;
+  %feature("python:slot", "nb_bool", functype="inquiry") __bool__;
   %feature("python:slot", "sq_length", functype="lenfunc") __len__;
 #endif // SWIGPYTHON_BUILTIN
 
