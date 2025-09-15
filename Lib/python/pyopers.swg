@@ -128,19 +128,17 @@
 %feature("python:slot", "tp_call", functype="ternarycallfunc") *::operator();
 
 #if defined(SWIGPYTHON_BUILTIN)
-%pybinoperator(__nonzero__,   *::operator bool,		inquiry, nb_nonzero);
+%pybinoperator(__bool__,      *::operator bool,		inquiry, nb_bool);
 %pybinoperator(__truediv__,   *::operator/    ,		binaryfunc, nb_divide);
 #else
 %feature("shadow")      *::operator bool %{
-def __nonzero__(self):
+def __bool__(self):
     return $action(self)
-__bool__ = __nonzero__
 %};
-%rename(__nonzero__)    *::operator bool;
+%rename(__bool__)    *::operator bool;
 %feature("shadow")      *::operator/ %{
 def __truediv__(self, *args):
     return $action(self, *args)
-__div__ = __truediv__
 %};
 %rename(__truediv__)    *::operator/;
 %pythonmaybecall        *::operator/;
