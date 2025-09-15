@@ -916,7 +916,7 @@ SwigPyObject_TypeOnce(void) {
     (unaryfunc)0,  /*nb_negative*/
     (unaryfunc)0,  /*nb_positive*/
     (unaryfunc)0,  /*nb_absolute*/
-    (inquiry)0,    /*nb_nonzero*/
+    (inquiry)0,    /*nb_bool*/
     0,		   /*nb_invert*/
     0,		   /*nb_lshift*/
     0,		   /*nb_rshift*/
