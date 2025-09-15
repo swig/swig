@@ -1327,7 +1327,6 @@ public:
      *     generated).
      *
      * see:
-     * https://docs.python.org/2/reference/lexical_analysis.html#blank-lines
      * https://docs.python.org/3/reference/lexical_analysis.html#blank-lines
      */
     for (si = First(clist); si.item; si = Next(si), ++py_line) {
@@ -2082,7 +2081,7 @@ public:
     // So now we are certain that we are indeed dealing with an integer
     // that has a representation as long given by value.
 
-    // Restrict to guaranteed supported range in Python, see maxint docs: https://docs.python.org/2/library/sys.html#sys.maxint
+    // Restrict to guaranteed supported range in Python, see maxsize docs: https://docs.python.org/3/library/sys.html#sys.maxsize
     // Don't do this pointless check when long is 32 bits or smaller as strtol will have already failed with ERANGE
 #if LONG_MAX > PYTHON_INT_MAX || LONG_MIN < PYTHON_INT_MIN
     if (value > PYTHON_INT_MAX || value < PYTHON_INT_MIN) {
@@ -4257,7 +4256,7 @@ public:
     printSlot(f, getSlot(n, "feature:python:nb_negative"), "nb_negative", "unaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_positive"), "nb_positive", "unaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_absolute"), "nb_absolute", "unaryfunc");
-    printSlot(f, getSlot(n, "feature:python:nb_nonzero"), "nb_nonzero", "inquiry");
+    printSlot(f, getSlot(n, "feature:python:nb_bool"), "nb_bool", "inquiry");
     printSlot(f, getSlot(n, "feature:python:nb_invert"), "nb_invert", "unaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_lshift"), "nb_lshift", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_rshift"), "nb_rshift", "binaryfunc");
@@ -4431,7 +4430,7 @@ public:
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:nb_negative"), "nb_negative", "unaryfunc");
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:nb_positive"), "nb_positive", "unaryfunc");
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:nb_absolute"), "nb_absolute", "unaryfunc");
-    printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:nb_nonzero"), "nb_bool", "inquiry");
+    printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:nb_bool"), "nb_bool", "inquiry");
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:nb_invert"), "nb_invert", "unaryfunc");
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:nb_lshift"), "nb_lshift", "binaryfunc");
     printHeapTypesSlot(f, getHeapTypesSlot(n, "feature:python:nb_rshift"), "nb_rshift", "binaryfunc");

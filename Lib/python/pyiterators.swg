@@ -54,19 +54,13 @@ namespace swig {
     // C++ common/needed methods
     virtual SwigPyIterator *copy() const = 0;
 
-    PyObject *next()     
+    PyObject *__next__()
     {
       SWIG_PYTHON_THREAD_BEGIN_BLOCK; // disable threads       
       PyObject *obj = value();
       incr();       
       SWIG_PYTHON_THREAD_END_BLOCK; // re-enable threads
       return obj;     
-    }
-
-    /* Make an alias for Python 3.x */
-    PyObject *__next__()
-    {
-      return next();
     }
 
     PyObject *previous()
@@ -403,7 +397,6 @@ namespace swig
   %catches(std::invalid_argument) SwigPyIterator::distance(const SwigPyIterator &x) const;
   %catches(std::invalid_argument) SwigPyIterator::equal (const SwigPyIterator &x) const;
   %catches(swig::stop_iteration) SwigPyIterator::__next__();
-  %catches(swig::stop_iteration) SwigPyIterator::next();
   %catches(swig::stop_iteration) SwigPyIterator::previous();
   %catches(swig::stop_iteration) SwigPyIterator::advance(ptrdiff_t n);
   %catches(swig::stop_iteration) SwigPyIterator::operator += (ptrdiff_t n);
@@ -436,7 +429,6 @@ namespace swig
     // C++ common/needed methods
     virtual SwigPyIterator *copy() const = 0;
 
-    PyObject *next();
     PyObject *__next__();
     PyObject *previous();
     SwigPyIterator *advance(ptrdiff_t n);
