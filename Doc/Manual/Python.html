@@ -2693,11 +2693,7 @@ public:
 };
 
 %{
-#if PY_VERSION_HEX &gt;= 0x03020000
   static Py_hash_t myHashFunc(PyObject *pyobj)
-#else
-  static long myHashFunc(PyObject *pyobj)
-#endif
   {
     MyClass *cobj;
     // Convert pyobj to cobj
