@@ -7290,10 +7290,8 @@ namespace std {
 
 <p>
 will generate a Python proxy class <tt>Mapii</tt> inheriting from
-<tt>collections.abc.MutableMap</tt> for Python 3.3 and later, or <tt>collections.MutableMap</tt>
-for earlier versions and a proxy class <tt>IntList</tt>
-inheriting from <tt>collections.abc.MutableSequence</tt> for Python 3.3 or later,
-or <tt>collections.MutableSequence</tt> for earlier versions.
+<tt>collections.abc.MutableMap</tt> and a proxy class <tt>IntList</tt>
+inheriting from <tt>collections.abc.MutableSequence</tt>.
 </p>
 
 <p>
@@ -7302,9 +7300,8 @@ used to define an abstract base class for your own C++ class:
 </p>
 
 <div class="code"><pre>
-%pythonabc(MySet, collections.abc.MutableSet); # Python 3.3 and later
-%pythonabc(MySet, collections.MutableSet);     # Prior to Python 3.3
-%pythonabc(MySet, "collections.abc.MutableSet if _swig_python_version_info &gt;= (3, 3) else collections.MutableSet"); # All Python versions
+%pythonabc(MySet, collections.abc.MutableSet);
+%pythonabc(MySet, "collections.abc.MutableSet");
 </pre></div>
 
 <p>
@@ -7316,8 +7313,6 @@ For details of abstract base class, please see
 <b>Compatibility Note:</b> SWIG-4.0.0 changed the base classes to use the
 <tt>collections.abc</tt> module instead of <tt>collections</tt> due to the deprecation
 of the classes in the <tt>collections</tt> module in Python 3.7.
-The <tt>collections.abc</tt> module was introduced in Python 3.3 and hence this feature
-requires Python 3.3 or later.
 SWIG-4.1.0 introduced the flexibility of using
 either the <tt>collections.abc</tt> module for Python 3.3 and later or the <tt>collections</tt> module for earlier Python versions.
 </p>
