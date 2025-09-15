@@ -1,11 +1,7 @@
 TOP        = ../../..
 LIBS       =
 
-ifneq (,$(PY2))
-  PKG1DIR  = "py2"
-else
-  PKG1DIR  = "py3"
-endif
+PKG1DIR  = "py3"
 
 check: build
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' python_run
@@ -18,5 +14,4 @@ static:
 
 clean:
 	$(MAKE) -f $(TOP)/Makefile SRCDIR='$(SRCDIR)' python_clean
-	$(MAKE) -C py2 clean
 	$(MAKE) -C py3 clean

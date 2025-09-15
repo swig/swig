@@ -48,8 +48,6 @@ def swig_run_threaded(
     """Runs a function many times in parallel.
     Copied from numpy/testing/_private/utils.py::run_threaded
     """
-    if sys.version_info < (3, 2):
-        return
     import concurrent.futures
     import threading
 
