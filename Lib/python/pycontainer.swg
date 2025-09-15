@@ -14,11 +14,7 @@
 %{
 #include <iostream>
 
-#if PY_VERSION_HEX >= 0x03020000
-# define SWIGPY_SLICEOBJECT PyObject
-#else
-# define SWIGPY_SLICEOBJECT PySliceObject
-#endif
+#define SWIGPY_SLICEOBJECT PyObject
 %}
 
 
