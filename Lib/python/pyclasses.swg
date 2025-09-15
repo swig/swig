@@ -121,7 +121,7 @@ namespace swig {
   as in
 
   int func () {
-    SwigVar_PyObject obj = PyString_FromString("hello");
+    SwigVar_PyObject obj = PyUnicode_FromString("hello");
   }
 
   ie, 'obj' is created and destructed in the same scope from

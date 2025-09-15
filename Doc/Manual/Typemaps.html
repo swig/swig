@@ -159,8 +159,8 @@ are used to convert integer values.  For example:
 
 <div class="code">
 <pre>
-long PyInt_AsLong(PyObject *obj);      /* Python --&gt; C */
-PyObject *PyInt_FromLong(long x);      /* C --&gt; Python */
+long PyLong_AsLong(PyObject *obj);      /* Python --&gt; C */
+PyObject *PyLong_FromLong(long x);      /* C --&gt; Python */
 </pre>
 </div>
 
@@ -182,9 +182,9 @@ PyObject *wrap_factorial(PyObject *self, PyObject *args) {
   PyObject *resultobj;
 
   if (!PyArg_ParseTuple("O:factorial", &amp;obj1)) return NULL;
-  <b>arg1 = PyInt_AsLong(obj1);</b>
+  <b>arg1 = PyLong_AsLong(obj1);</b>
   result = factorial(arg1);
-  <b>resultobj = PyInt_FromLong(result);</b>
+  <b>resultobj = PyLong_FromLong(result);</b>
   return resultobj;
 }
 </pre>
@@ -234,12 +234,12 @@ a special <tt>%typemap</tt> directive is used.  For example:
 <pre>
 /* Convert from Python --&gt; C */
 %typemap(in) int {
-  $1 = PyInt_AsLong($input);
+  $1 = PyLong_AsLong($input);
 }
 
 /* Convert from C --&gt; Python */
 %typemap(out) int {
-  $result = PyInt_FromLong($1);
+  $result = PyLong_FromLong($1);
 }
 </pre>
 </div>
@@ -293,19 +293,19 @@ PyObject *wrap_gcd(PyObject *self, PyObject *args) {
 
   /* "in" typemap, argument 1 */<b>
   {
-    arg1 = PyInt_AsLong(obj1);
+    arg1 = PyLong_AsLong(obj1);
   }
 </b>
   /* "in" typemap, argument 2 */<b>
   {
-    arg2 = PyInt_AsLong(obj2);
+    arg2 = PyLong_AsLong(obj2);
   }
 </b>
   result = gcd(arg1, arg2);
 
   /* "out" typemap, return value */<b>
   {
-    resultobj = PyInt_FromLong(result);
+    resultobj = PyLong_FromLong(result);
   }
 </b>
   return resultobj;
@@ -793,11 +793,11 @@ Here are some examples of valid typemap specifications:
 <pre>
 /* Simple typemap declarations */
 %typemap(in) int {
-  $1 = PyInt_AsLong($input);
+  $1 = PyLong_AsLong($input);
 }
-%typemap(in) int "$1 = PyInt_AsLong($input);"
+%typemap(in) int "$1 = PyLong_AsLong($input);"
 %typemap(in) int %{ 
-  $1 = PyInt_AsLong($input);
+  $1 = PyLong_AsLong($input);
 %}
 
 /* Typemap with extra argument name */
@@ -1899,7 +1899,7 @@ When a typemap is defined like this:
 <div class="code">
 <pre>
 %typemap(in) int {
-  $1 = PyInt_AsLong($input);
+  $1 = PyLong_AsLong($input);
 }
 </pre>
 </div>
@@ -1915,7 +1915,7 @@ wrap_whatever() {
   ...
   // Typemap code
   {
-    arg1 = PyInt_AsLong(obj1);
+    arg1 = PyLong_AsLong(obj1);
   }
   ...
 }
@@ -1951,12 +1951,12 @@ Occasionally, typemap code will be specified using a few alternative forms.  For
 
 <div class="code">
 <pre>
-%typemap(in) int "$1 = PyInt_AsLong($input);"
+%typemap(in) int "$1 = PyLong_AsLong($input);"
 %typemap(in) int %{
-$1 = PyInt_AsLong($input);
+$1 = PyLong_AsLong($input);
 %}
 %typemap(in, noblock=1) int {
-$1 = PyInt_AsLong($input);
+$1 = PyLong_AsLong($input);
 }
 </pre>
 </div>
@@ -2301,7 +2301,7 @@ This is useful when a typemap might match multiple C datatype.  For example:
 <div class="code">
 <pre>
 %typemap(in)  int, short, long {
-  $1 = ($1_ltype) PyInt_AsLong($input);
+  $1 = ($1_ltype) PyLong_AsLong($input);
 }
 </pre>
 </div>
@@ -2349,7 +2349,7 @@ If necessary, type related substitutions can also be used when declaring locals.
 <div class="code">
 <pre>
 %typemap(in) int * ($*1_type temp) {
-  temp = PyInt_AsLong($input);
+  temp = PyLong_AsLong($input);
   $1 = &amp;temp;
 }
 </pre>
@@ -2788,7 +2788,7 @@ to C.  For example:
 <div class="code">
 <pre>
 %typemap(in) int {
-  $1 = PyInt_AsLong($input);
+  $1 = PyLong_AsLong($input);
 }
 </pre>
 </div>
@@ -2842,7 +2842,7 @@ to see whether or not it matches a specific type.  For example:
 <div class="code">
 <pre>
 %typemap(typecheck, precedence=SWIG_TYPECHECK_INTEGER) int {
-  $1 = PyInt_Check($input) ? 1 : 0;
+  $1 = PyLong_Check($input) ? 1 : 0;
 }
 </pre>
 </div>
@@ -2869,7 +2869,7 @@ into the target language.  For example:
 <div class="code">
 <pre>
 %typemap(out) int {
-  $result = PyInt_FromLong($1);
+  $result = PyLong_FromLong($1);
 }
 </pre>
 </div>
@@ -3908,11 +3908,11 @@ might write typemaps like this:
 
 // typemap for an incoming buffer
 %typemap(in) (void *rbuffer, size_t len) {
-  if (!PyInt_Check($input)) {
+  if (!PyLong_Check($input)) {
     PyErr_SetString(PyExc_ValueError, "Expecting an integer");
     SWIG_fail;
   }
-  $2 = PyInt_AsLong($input);
+  $2 = PyLong_AsLong($input);
   if ($2 &lt; 0) {
     PyErr_SetString(PyExc_ValueError, "Positive integer expected");
     SWIG_fail;
@@ -4978,14 +4978,14 @@ The following excerpt from the Python module illustrates this:
   enum SWIGTYPE,
   bool, const bool &amp;
 {
-  $1 = (PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
+  $1 = (PyLong_Check($input) || PyLong_Check($input)) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_DOUBLE)
   float, double,
   const float &amp;, const double &amp;
 {
-  $1 = (PyFloat_Check($input) || PyInt_Check($input) || PyLong_Check($input)) ? 1 : 0;
+  $1 = (PyFloat_Check($input) || PyLong_Check($input) || PyLong_Check($input)) ? 1 : 0;
 }
 
 %typecheck(SWIG_TYPECHECK_CHAR) char {
@@ -5057,7 +5057,7 @@ If you write a typecheck typemap and omit the precedence level, for example comm
 <div class="code">
 <pre>
 %typemap(typecheck /*, precedence=SWIG_TYPECHECK_INTEGER*/) int {
-  $1 = PyInt_Check($input) ? 1 : 0;
+  $1 = PyLong_Check($input) ? 1 : 0;
 }
 </pre>
 </div>
@@ -5402,12 +5402,12 @@ to them.  For example, you could do this:
 <div class="code">
 <pre>
 %typemap(in) int *(int temp) {
-  temp = (int) PyInt_AsLong($input);
+  temp = (int) PyLong_AsLong($input);
   $1 = &amp;temp;
 }
 
 %typemap(argout) int * {
-  PyObject *o = PyInt_FromLong(temp$argnum);
+  PyObject *o = PyLong_FromLong(temp$argnum);
   ...
 }
 </pre>

@@ -4985,7 +4985,7 @@ like this:
 <div class="code">
 <pre>
 %typemap(out) int {
-    $result = PyInt_FromLong((long) $1);
+    $result = PyLong_FromLong((long) $1);
 }
 </pre>
 </div>
@@ -5098,9 +5098,9 @@ The following functions may prove to be useful.
 
 <div class="code">
 <pre>
-PyObject *PyInt_FromLong(long l);
-long      PyInt_AsLong(PyObject *);
-int       PyInt_Check(PyObject *);
+PyObject *PyLong_FromLong(long l);
+long      PyLong_AsLong(PyObject *);
+int       PyLong_Check(PyObject *);
 </pre>
 </div>
 

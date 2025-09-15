@@ -86,7 +86,7 @@ SWIG_Python_SetErrorMsg(PyObject *errtype, const char *msg) {
 
 SWIGINTERN void
 SwigPyBuiltin_AddPublicSymbol(PyObject *seq, const char *key) {
-  PyObject *s = PyString_InternFromString(key);
+  PyObject *s = PyUnicode_InternFromString(key);
   PyList_Append(seq, s);
   SWIG_Py_DECREF(s);
 }
@@ -546,7 +546,7 @@ SwigPyClientData_New(PyObject* obj)
     data->klass = obj;
     SWIG_Py_INCREF(data->klass);
     /* the newraw method and newargs arguments used to create a new raw instance */
-    if (PyClass_Check(obj)) {
+    if (PyObject_IsInstance(obj, (PyObject *)&PyType_Type)) {
       data->newraw = 0;
       SWIG_Py_INCREF(obj);
       data->newargs = obj;
@@ -667,7 +667,7 @@ SWIGRUNTIME PyObject *
 SwigPyObject_repr(SwigPyObject *v)
 {
   const char *name = SWIG_TypePrettyName(v->ty);
-  PyObject *repr = SWIG_Python_str_FromFormat("<Swig Object of type '%s' at %p>", (name ? name : "unknown"), (void *)v);
+  PyObject *repr = PyUnicode_FromFormat("<Swig Object of type '%s' at %p>", (name ? name : "unknown"), (void *)v);
   if (repr && v->next) {
     PyObject *nrep = SwigPyObject_repr((SwigPyObject *)v->next);
     if (nrep) {
@@ -1094,9 +1094,9 @@ SwigPyPacked_repr(SwigPyPacked *v)
 {
   char result[SWIG_BUFFER_SIZE];
   if (SWIG_PackDataName(result, v->pack, v->size, 0, sizeof(result))) {
-    return SWIG_Python_str_FromFormat("<Swig Packed at %s%s>", result, v->ty->name);
+    return PyUnicode_FromFormat("<Swig Packed at %s%s>", result, v->ty->name);
   } else {
-    return SWIG_Python_str_FromFormat("<Swig Packed %s>", v->ty->name);
+    return PyUnicode_FromFormat("<Swig Packed %s>", v->ty->name);
   }  
 }
 
@@ -1105,9 +1105,9 @@ SwigPyPacked_str(SwigPyPacked *v)
 {
   char result[SWIG_BUFFER_SIZE];
   if (SWIG_PackDataName(result, v->pack, v->size, 0, sizeof(result))){
-    return SWIG_Python_str_FromFormat("%s%s", result, v->ty->name);
+    return PyUnicode_FromFormat("%s%s", result, v->ty->name);
   } else {
-    return SWIG_Python_str_FromChar(v->ty->name);
+    return PyUnicode_FromFormat(v->ty->name);
   }  
 }
 
@@ -1938,13 +1938,13 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   int res = -1;
 
 # ifdef Py_USING_UNICODE
-  if (PyString_Check(name)) {
-    name = PyUnicode_Decode(PyString_AsString(name), PyString_Size(name), NULL, NULL);
+  if (PyBytes_Check(name)) {
+    name = PyUnicode_Decode(PyBytes_AsString(name), PyBytes_Size(name), NULL, NULL);
     if (!name)
       return -1;
   } else if (!PyUnicode_Check(name))
 # else
-  if (!PyString_Check(name))
+  if (!PyBytes_Check(name))
 # endif
   {
     PyObject *tpname = SWIG_PyType_GetFullyQualifiedName(Py_TYPE(name));
@@ -1965,7 +1965,7 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
   if (descr != NULL)
     f = Py_TYPE(descr)->tp_descr_set;
   if (!f) {
-    if (PyString_Check(name)) {
+    if (PyBytes_Check(name)) {
       encoded_name = name;
       SWIG_Py_INCREF(name);
     } else {

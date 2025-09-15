@@ -203,21 +203,19 @@ namespace swig {
 %fragment("<string>");
 %{
 PyObject* SwigInt_FromBool(bool b) {
-    return PyInt_FromLong(b ? 1L : 0L);
+    return PyLong_FromLong(b ? 1L : 0L);
 }
 double SwigNumber_Check(PyObject* o) {
-    return PyFloat_Check(o) || PyInt_Check(o) || PyLong_Check(o);
+    return PyFloat_Check(o) || PyLong_Check(o);
 }
 double SwigNumber_AsDouble(PyObject* o) {
-    return PyFloat_Check(o) ? PyFloat_AsDouble(o)
-        : (PyInt_Check(o) ?   double(PyInt_AsLong(o))
-                            : double(PyLong_AsLong(o)));
+    return PyFloat_Check(o) ? PyFloat_AsDouble(o) : (double)PyLong_AsLong(o);
 }
 PyObject* SwigString_FromString(const std::string& s) {
     return PyString_FromStringAndSize(s.data(),s.size());
 }
 std::string SwigString_AsString(PyObject* o) {
-    return std::string(PyString_AsString(o));
+    return std::string(PyBytes_AsString(o));
 }
 %}
 
