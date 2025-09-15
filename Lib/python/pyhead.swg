@@ -4,9 +4,7 @@
 #endif
 #endif
 
-/* Compatibility macros for Python 3 */
-#if PY_VERSION_HEX >= 0x03000000
-
+/* py2/3 compatibility macros not used by swig itself anymore but kept for compatibility with user typemaps */
 #define PyClass_Check(obj) PyObject_IsInstance(obj, (PyObject *)&PyType_Type)
 #define PyInt_Check(x) PyLong_Check(x)
 #define PyInt_AsLong(x) PyLong_AsLong(x)
@@ -20,8 +18,6 @@
 #define PyString_InternFromString(key) PyUnicode_InternFromString(key)
 #define Py_TPFLAGS_HAVE_CLASS Py_TPFLAGS_BASETYPE
 #define _PyLong_FromSsize_t(x) PyLong_FromSsize_t(x)
-
-#endif
 
 /* SWIG APIs for compatibility of both Python 2 & 3 */
 

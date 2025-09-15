@@ -727,9 +727,9 @@ As a more extreme example of libffi, here is some code that attempts to wrap <tt
   argv = (vtype *) malloc(argc*sizeof(vtype));
   for (i = 0; i &lt; argc; i++) {
     PyObject *o = PyTuple_GetItem(varargs, i);
-    if (PyInt_Check(o)) {
+    if (PyLong_Check(o)) {
       argv[i].type = VT_INT;
-      argv[i].val.ivalue = PyInt_AsLong(o);
+      argv[i].val.ivalue = PyLong_AsLong(o);
     } else if (PyFloat_Check(o)) {
       argv[i].type = VT_DOUBLE;
       argv[i].val.dvalue = PyFloat_AsDouble(o);

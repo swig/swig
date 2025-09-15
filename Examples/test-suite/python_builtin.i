@@ -251,7 +251,7 @@ public:
   }
   void __setitem__(int idx, PyObject* value) {
     this->idx = idx;
-    this->value = value ? (int)PyInt_AsLong(value) : -11;
+    this->value = value ? (int)PyLong_AsLong(value) : -11;
   }
   void __call__(PyObject* args, PyObject* kw) {
     this->args_count = args ? (int)PyTuple_Size(args) : -11;
