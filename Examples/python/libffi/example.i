@@ -23,11 +23,11 @@
    argv = (char **) malloc(sizeof(char *)*(argc+1));
    for (i = 0; i < argc; i++) {
       PyObject *o = PyTuple_GetItem(varargs,i);
-      if (!PyString_Check(o)) {
+      if (!PyBytes_Check(o)) {
           PyErr_SetString(PyExc_ValueError,"Expected a string");
           SWIG_fail;
       }
-      argv[i] = PyString_AsString(o);
+      argv[i] = PyBytes_AsString(o);
    }
    argv[i] = NULL;
    $1 = (void *) argv;
@@ -96,21 +96,21 @@ int execlp(const char *path, const char *arg1, ...);
   int    argc;
   int    i;
 
-  $1 = PyString_AsString($input);
+  $1 = PyBytes_AsString($input);
 
   argc = PyTuple_Size(varargs);
   argv = (vtype *) malloc(argc*sizeof(vtype));
   for (i = 0; i < argc; i++) {
     PyObject *o = PyTuple_GetItem(varargs,i);
-    if (PyInt_Check(o)) {
+    if (PyLong_Check(o)) {
       argv[i].type = VT_INT;
-      argv[i].val.ivalue = PyInt_AsLong(o);
+      argv[i].val.ivalue = PyLong_AsLong(o);
     } else if (PyFloat_Check(o)) {
       argv[i].type = VT_DOUBLE;
       argv[i].val.dvalue = PyFloat_AsDouble(o);
-    } else if (PyString_Check(o)) {
+    } else if (PyBytes_Check(o)) {
       argv[i].type = VT_POINTER;
-      argv[i].val.pvalue = (void *) PyString_AsString(o);
+      argv[i].val.pvalue = (void *) PyBytes_AsString(o);
     } else {
       free(argv);
       PyErr_SetString(PyExc_ValueError,"Unsupported argument type");
