@@ -71,10 +71,8 @@
 	SWIG_PYTHON_THREAD_BEGIN_BLOCK;
 	if (PyDict_Check(obj)) {
 	  SwigVar_PyObject items = PyObject_CallMethod(obj,(char *)"items",NULL);
-%#if PY_VERSION_HEX >= 0x03000000
           /* In Python 3.x the ".items()" method returns a dict_items object */
           items = PySequence_Fast(items, ".items() didn't return a sequence!");
-%#endif
 	  res = traits_asptr_stdseq<std::unordered_map<K,T,Hash,Compare,Alloc>, std::pair<K, T> >::asptr(items, val);
 	} else {
 	  unordered_map_type *p = 0;

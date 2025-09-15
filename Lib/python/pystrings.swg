@@ -7,14 +7,10 @@
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
 {
-%#if PY_VERSION_HEX >= 0x03000000
 %#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
   if (PyBytes_Check(obj))
 %#else
   if (PyUnicode_Check(obj))
-%#endif
-%#else  
-  if (PyString_Check(obj))
 %#endif
   {
     char *cstr; Py_ssize_t len;
@@ -22,7 +18,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
     int ret = SWIG_OK;
     if (alloc)
       *alloc = SWIG_OLDOBJ;
-%#if PY_VERSION_HEX >= 0x03000000 && defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
+%#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
     if (PyBytes_AsStringAndSize(obj, &cstr, &len) == -1)
       return SWIG_TypeError;
 %#else
@@ -45,34 +41,6 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
     SWIG_Py_XDECREF(bytes);
     return ret;
   } else {
-%#if defined(SWIG_PYTHON_2_UNICODE)
-%#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
-%#error "Cannot use both SWIG_PYTHON_2_UNICODE and SWIG_PYTHON_STRICT_BYTE_CHAR at once"
-%#endif
-%#if PY_VERSION_HEX < 0x03000000
-    if (PyUnicode_Check(obj)) {
-      char *cstr; Py_ssize_t len;
-      if (!alloc && cptr) {
-        return SWIG_RuntimeError;
-      }
-      obj = PyUnicode_AsUTF8String(obj);
-      if (!obj)
-        return SWIG_TypeError;
-      if (PyString_AsStringAndSize(obj, &cstr, &len) != -1) {
-        if (cptr) {
-          if (alloc) *alloc = SWIG_NEWOBJ;
-          *cptr = %new_copy_array(cstr, len + 1, char);
-        }
-        if (psize) *psize = (size_t)(len + 1);
-
-        SWIG_Py_XDECREF(obj);
-        return SWIG_OK;
-      } else {
-        SWIG_Py_XDECREF(obj);
-      }
-    }
-%#endif
-%#endif
 
     swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
     if (pchar_descriptor) {
@@ -99,14 +67,10 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
       return pchar_descriptor ? 
 	SWIG_InternalNewPointerObj(%const_cast(carray,char *), pchar_descriptor, 0) : SWIG_Py_Void();
     } else {
-%#if PY_VERSION_HEX >= 0x03000000
 %#if defined(SWIG_PYTHON_STRICT_BYTE_CHAR)
       return PyBytes_FromStringAndSize(carray, %numeric_cast(size, Py_ssize_t));
 %#else
       return PyUnicode_DecodeUTF8(carray, %numeric_cast(size, Py_ssize_t), "surrogateescape");
-%#endif
-%#else
-      return PyString_FromStringAndSize(carray, %numeric_cast(size, Py_ssize_t));
 %#endif
     }
   } else {

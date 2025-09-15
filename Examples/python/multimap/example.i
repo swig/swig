@@ -27,16 +27,11 @@ extern int    gcd(int x, int y);
   $2 = (char **) malloc((size_t)($1+1)*sizeof(char *));
   for (i = 0; i < $1; i++) {
     PyObject *s = PyList_GetItem($input,i);
-%#if PY_VERSION_HEX >= 0x03000000
     if (!PyUnicode_Check(s)) 
-%#else
-    if (!PyString_Check(s)) 
-%#endif
     {
       free($2);
       SWIG_exception(SWIG_ValueError, "List items must be strings");
     }
-%#if PY_VERSION_HEX >= 0x03000000
     {
       PyObject *utf8str = PyUnicode_AsUTF8String(s);
       const char *strtmp = 0;
@@ -49,27 +44,21 @@ extern int    gcd(int x, int y);
         strcpy($2[i], strtmp);
       Py_DecRef(utf8str);
     }
-%#else
-    $2[i] = PyString_AsString(s);
-%#endif
   }
   $2[i] = 0;
 }
 
 %typemap(freearg) (int argc, char *argv[]) {
-%#if PY_VERSION_HEX >= 0x03000000
   int i;
   for (i = 0; i < $1; i++) {
     free($2[i]);
   }
-%#endif
 }
 
 extern int gcdmain(int argc, char *argv[]);
 
 %typemap(in) (char *bytes, int len) {
 
-%#if PY_VERSION_HEX >= 0x03000000
   char *cstr;
   Py_ssize_t len;
   PyObject *utf8str;
@@ -85,20 +74,10 @@ extern int gcdmain(int argc, char *argv[]);
   $1 = strncpy((char *)malloc((size_t)(len+1)), cstr, (size_t)len);
   $2 = (int)len;
   Py_DecRef(utf8str);
-%#else
-  if (!PyString_Check($input)) {
-    PyErr_SetString(PyExc_ValueError,"Expected a string");
-    SWIG_fail;
-  }
-  $1 = PyString_AsString($input);
-  $2 = (int)PyString_Size($input);
-%#endif
 }
 
 %typemap(freearg) (char *bytes, int len) {
-%#if PY_VERSION_HEX >= 0x03000000
   free($1);
-%#endif
 }
 
 extern int count(char *bytes, int len, char c);
@@ -110,7 +89,6 @@ extern int count(char *bytes, int len, char c);
    so that we don't violate its mutability */
 
 %typemap(in) (char *str, int len) {
-%#if PY_VERSION_HEX >= 0x03000000
   char *cstr;
   Py_ssize_t len;
   PyObject *utf8str = PyUnicode_AsUTF8String($input);
@@ -121,11 +99,6 @@ extern int count(char *bytes, int len, char c);
   $1 = strncpy((char *)malloc((size_t)(len+1)), cstr, (size_t)len);
   $2 = (int)len;
   Py_DecRef(utf8str);
-%#else
-  $2 = (int)PyString_Size($input);
-  $1 = (char *) malloc((size_t)($2+1));
-  memmove($1,PyString_AsString($input),(size_t)$2);
-%#endif
 }
 
 /* Return the mutated string as a new object.  The SWIG_AppendOutput
@@ -134,11 +107,7 @@ extern int count(char *bytes, int len, char c);
 
 %typemap(argout) (char *str, int len) {
    PyObject *o;
-%#if PY_VERSION_HEX >= 0x03000000
    o = PyUnicode_FromStringAndSize($1,$2);
-%#else
-   o = PyString_FromStringAndSize($1,$2);
-%#endif
    $result = SWIG_AppendOutput($result, o);
    free($1);
 }   

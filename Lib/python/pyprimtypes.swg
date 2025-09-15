@@ -75,12 +75,6 @@ SWIGINTERNINLINE PyObject*
 SWIGINTERN int
 SWIG_AsVal_dec(long)(PyObject *obj, long* val)
 {
-%#if PY_VERSION_HEX < 0x03000000
-  if (PyInt_Check(obj)) {
-    if (val) *val = PyInt_AsLong(obj);
-    return SWIG_OK;
-  } else
-%#endif
   if (PyLong_Check(obj)) {
     long v = PyLong_AsLong(obj);
     if (!PyErr_Occurred()) {
@@ -137,17 +131,6 @@ SWIG_From_dec(unsigned long)(unsigned long value)
 SWIGINTERN int
 SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val) 
 {
-%#if PY_VERSION_HEX < 0x03000000
-  if (PyInt_Check(obj)) {
-    long v = PyInt_AsLong(obj);
-    if (v >= 0) {
-      if (val) *val = (unsigned long)v;
-      return SWIG_OK;
-    } else {
-      return SWIG_OverflowError;
-    }
-  } else
-%#endif
   if (PyLong_Check(obj)) {
     unsigned long v = PyLong_AsUnsignedLong(obj);
     if (!PyErr_Occurred()) {
@@ -319,11 +302,6 @@ SWIG_AsVal_dec(double)(PyObject *obj, double *val)
   if (PyFloat_Check(obj)) {
     if (val) *val = PyFloat_AsDouble(obj);
     return SWIG_OK;
-%#if PY_VERSION_HEX < 0x03000000
-  } else if (PyInt_Check(obj)) {
-    if (val) *val = (double) PyInt_AsLong(obj);
-    return SWIG_OK;
-%#endif
   } else if (PyLong_Check(obj)) {
     double v = PyLong_AsDouble(obj);
     if (!PyErr_Occurred()) {

@@ -808,11 +808,7 @@ public:
     Printf(f_header, "\n/*-----------------------------------------------\n              @(target):= %s.so\n\
   ------------------------------------------------*/\n", module);
 
-    Printf(f_header, "#if PY_VERSION_HEX >= 0x03000000\n");
-    Printf(f_header, "#  define SWIG_init    PyInit_%s\n\n", module);
-    Printf(f_header, "#else\n");
-    Printf(f_header, "#  define SWIG_init    init%s\n\n", module);
-    Printf(f_header, "#endif\n");
+    Printf(f_header, "#define SWIG_init    PyInit_%s\n\n", module);
     Printf(f_runtime, "#define SWIG_name    \"%s\"\n", module);
 
     Printf(f_wrappers, "#ifdef __cplusplus\n");
@@ -4157,12 +4153,7 @@ public:
 
     // PyTypeObject ht_type
     Printf(f, "  {\n");
-    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     Printv(f, "    PyVarObject_HEAD_INIT(NULL, 0)\n", NIL);
-    Printv(f, "#else\n", NIL);
-    Printf(f, "    PyObject_HEAD_INIT(NULL)\n");
-    printSlot(f, getSlot(), "ob_size");
-    Printv(f, "#endif\n", NIL);
     printSlot(f, quoted_symname, "tp_name");
     printSlot(f, getSlot(n, "feature:python:tp_basicsize", tp_basicsize), "tp_basicsize");
     printSlot(f, getSlot(n, "feature:python:tp_itemsize"), "tp_itemsize");
@@ -4174,11 +4165,7 @@ public:
     Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_getattr"), "tp_getattr", "getattrfunc");
     printSlot(f, getSlot(n, "feature:python:tp_setattr"), "tp_setattr", "setattrfunc");
-    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_compare"), "tp_compare");
-    Printv(f, "#else\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:tp_compare"), "tp_compare", "cmpfunc");
-    Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_repr"), "tp_repr", "reprfunc");
     printSlot(f, getSlot(n, "feature:python:tp_as_number", tp_as_number), "tp_as_number");
     printSlot(f, getSlot(n, "feature:python:tp_as_sequence", tp_as_sequence), "tp_as_sequence");
@@ -4189,11 +4176,7 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_getattro"), "tp_getattro", "getattrofunc");
     printSlot(f, getSlot(n, "feature:python:tp_setattro"), "tp_setattro", "setattrofunc");
     printSlot(f, getSlot(n, "feature:python:tp_as_buffer", tp_as_buffer), "tp_as_buffer");
-    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_flags", tp_flags_py3), "tp_flags");
-    Printv(f, "#else\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:tp_flags", tp_flags), "tp_flags");
-    Printv(f, "#endif\n", NIL);
     if (have_docstring(n)) {
       String *ds = cdocstring(n, AUTODOC_CLASS);
       String *tp_doc = NewString("");
@@ -4230,9 +4213,7 @@ public:
     printSlot(f, getSlot(n, "feature:python:tp_weaklist"), "tp_weaklist", "PyObject *");
     printSlot(f, getSlot(n, "feature:python:tp_del"), "tp_del", "destructor");
     printSlot(f, getSlot(n, "feature:python:tp_version_tag"), "tp_version_tag", "int");
-    Printv(f, "#if PY_VERSION_HEX >= 0x03040000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_finalize"), "tp_finalize", "destructor");
-    Printv(f, "#endif\n", NIL);
     Printv(f, "#if PY_VERSION_HEX >= 0x03080000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:tp_vectorcall"), "tp_vectorcall", "vectorcallfunc");
     Printv(f, "#endif\n", NIL);
@@ -4256,7 +4237,6 @@ public:
     Printf(f, "  },\n");
 
     // PyAsyncMethods as_async
-    Printv(f, "#if PY_VERSION_HEX >= 0x03050000\n", NIL);
     Printf(f, "  {\n");
     printSlot(f, getSlot(n, "feature:python:am_await"), "am_await", "unaryfunc");
     printSlot(f, getSlot(n, "feature:python:am_aiter"), "am_aiter", "unaryfunc");
@@ -4265,16 +4245,12 @@ public:
     printSlot(f, getSlot(n, "feature:python:am_send"), "am_send", "sendfunc");
     Printv(f, "# endif\n", NIL);
     Printf(f, "  },\n");
-    Printv(f, "#endif\n", NIL);
 
     // PyNumberMethods as_number
     Printf(f, "  {\n");
     printSlot(f, getSlot(n, "feature:python:nb_add"), "nb_add", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_subtract"), "nb_subtract", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_multiply"), "nb_multiply", "binaryfunc");
-    Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:nb_divide"), "nb_divide", "binaryfunc");
-    Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:nb_remainder"), "nb_remainder", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_divmod"), "nb_divmod", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_power"), "nb_power", "ternaryfunc");
@@ -4288,26 +4264,12 @@ public:
     printSlot(f, getSlot(n, "feature:python:nb_and"), "nb_and", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_xor"), "nb_xor", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_or"), "nb_or", "binaryfunc");
-    Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:nb_coerce"), "nb_coerce", "coercion");
-    Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:nb_int"), "nb_int", "unaryfunc");
-    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:nb_reserved"), "nb_reserved", "void *");
-    Printv(f, "#else\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:nb_long"), "nb_long", "unaryfunc");
-    Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:nb_float"), "nb_float", "unaryfunc");
-    Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:nb_oct"), "nb_oct", "unaryfunc");
-    printSlot(f, getSlot(n, "feature:python:nb_hex"), "nb_hex", "unaryfunc");
-    Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:nb_inplace_add"), "nb_inplace_add", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_subtract"), "nb_inplace_subtract", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_multiply"), "nb_inplace_multiply", "binaryfunc");
-    Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:nb_inplace_divide"), "nb_inplace_divide", "binaryfunc");
-    Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:nb_inplace_remainder"), "nb_inplace_remainder", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_power"), "nb_inplace_power", "ternaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_lshift"), "nb_inplace_lshift", "binaryfunc");
@@ -4320,10 +4282,8 @@ public:
     printSlot(f, getSlot(n, "feature:python:nb_inplace_floor_divide"), "nb_inplace_floor_divide", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_divide"), "nb_inplace_true_divide", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_index"), "nb_index", "unaryfunc");
-    Printv(f, "#if PY_VERSION_HEX >= 0x03050000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:nb_matrix_multiply"), "nb_matrix_multiply", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:nb_inplace_matrix_multiply"), "nb_inplace_matrix_multiply", "binaryfunc");
-    Printv(f, "#endif\n", NIL);
     Printf(f, "  },\n");
 
     // PyMappingMethods as_mapping;
@@ -4339,17 +4299,9 @@ public:
     printSlot(f, getSlot(n, "feature:python:sq_concat"), "sq_concat", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:sq_repeat"), "sq_repeat", "ssizeargfunc");
     printSlot(f, getSlot(n, "feature:python:sq_item"), "sq_item", "ssizeargfunc");
-    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:was_sq_slice"), "was_sq_slice", "void *");
-    Printv(f, "#else\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:sq_slice"), "sq_slice", "ssizessizeargfunc");
-    Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:sq_ass_item"), "sq_ass_item", "ssizeobjargproc");
-    Printv(f, "#if PY_VERSION_HEX >= 0x03000000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:was_sq_ass_slice"), "was_sq_ass_slice", "void *");
-    Printv(f, "#else\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:sq_ass_slice"), "sq_ass_slice", "ssizessizeobjargproc");
-    Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:sq_contains"), "sq_contains", "objobjproc");
     printSlot(f, getSlot(n, "feature:python:sq_inplace_concat"), "sq_inplace_concat", "binaryfunc");
     printSlot(f, getSlot(n, "feature:python:sq_inplace_repeat"), "sq_inplace_repeat", "ssizeargfunc");
@@ -4357,12 +4309,6 @@ public:
 
     // PyBufferProcs as_buffer;
     Printf(f, "  {\n");
-    Printv(f, "#if PY_VERSION_HEX < 0x03000000\n", NIL);
-    printSlot(f, getSlot(n, "feature:python:bf_getreadbuffer"), "bf_getreadbuffer", "readbufferproc");
-    printSlot(f, getSlot(n, "feature:python:bf_getwritebuffer"), "bf_getwritebuffer", "writebufferproc");
-    printSlot(f, getSlot(n, "feature:python:bf_getsegcount"), "bf_getsegcount", "segcountproc");
-    printSlot(f, getSlot(n, "feature:python:bf_getcharbuffer"), "bf_getcharbuffer", "charbufferproc");
-    Printv(f, "#endif\n", NIL);
     printSlot(f, getSlot(n, "feature:python:bf_getbuffer"), "bf_getbuffer", "getbufferproc");
     printSlot(f, getSlot(n, "feature:python:bf_releasebuffer"), "bf_releasebuffer", "releasebufferproc");
     Printf(f, "  },\n");
@@ -4370,12 +4316,10 @@ public:
     // PyObject *ht_name, *ht_slots, *ht_qualname;
     printSlot(f, getSlot(n, "feature:python:ht_name"), "ht_name", "PyObject *");
     printSlot(f, getSlot(n, "feature:python:ht_slots"), "ht_slots", "PyObject *");
-    Printv(f, "#if PY_VERSION_HEX >= 0x03030000\n", NIL);
     printSlot(f, getSlot(n, "feature:python:ht_qualname"), "ht_qualname", "PyObject *");
 
     // struct _dictkeysobject *ht_cached_keys;
     printSlot(f, getSlot(n, "feature:python:ht_cached_keys"), "ht_cached_keys");
-    Printv(f, "#endif\n", NIL);
 
     // PyObject *ht_module;
     Printv(f, "#if PY_VERSION_HEX >= 0x03090000\n", NIL);

@@ -3,11 +3,7 @@
  * ------------------------------------------------------------ */
 
 %{
-#if PY_VERSION_HEX >= 0x03020000
-# define SWIGPY_UNICODE_ARG(obj) ((PyObject*) (obj))
-#else
-# define SWIGPY_UNICODE_ARG(obj) ((PyUnicodeObject*) (obj))
-#endif
+#define SWIGPY_UNICODE_ARG(obj) ((PyObject*) (obj))
 %}
 
 %fragment("SWIG_AsWCharPtrAndSize","header",fragment="<wchar.h>",fragment="SWIG_pwchar_descriptor") {
@@ -16,28 +12,12 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
 {
   PyObject *tmp = 0;
   int isunicode = PyUnicode_Check(obj);
-%#if PY_VERSION_HEX < 0x03000000 && !defined(SWIG_PYTHON_STRICT_UNICODE_WCHAR)
-  if (!isunicode && PyString_Check(obj)) {
-    tmp = PyUnicode_FromObject(obj);
-    if (tmp) {
-      isunicode = 1;
-      obj = tmp;
-    } else {
-      PyErr_Clear();
-      return SWIG_TypeError;
-    }
-  }
-%#endif
   if (isunicode) {
-%#if PY_VERSION_HEX >= 0x03030000
 %# if !defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x03070000
     Py_ssize_t len = PyUnicode_GetLength(obj);
 %# else
     Py_ssize_t len = PyUnicode_AsWideChar(SWIGPY_UNICODE_ARG(obj), NULL, 0) - 1;
 %# endif
-%#else
-    Py_ssize_t len = PyUnicode_GetSize(obj);
-%#endif
     if (cptr) {
       Py_ssize_t length;
       *cptr = %new_array((size_t)(len + 1), wchar_t);
