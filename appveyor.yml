@@ -75,10 +75,10 @@ install:
       $env:CXX="cccl"
       if ($env:VSVER -ge 17) {
         $env:VCVARSBAT="C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars$env:MBITS.bat"
-        $env:BOOSTROOT="C:/Libraries/boost_1_83_0"
+        $env:BOOSTROOT="C:/Libraries/boost_1_86_0"
       } elseif ($env:VSVER -eq 16) {
         $env:VCVARSBAT="C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvars$env:MBITS.bat"
-        $env:BOOSTROOT="C:/Libraries/boost_1_83_0"
+        $env:BOOSTROOT="C:/Libraries/boost_1_86_0"
       } elseif ($env:VSVER -eq 15) {
         $env:VCVARSBAT="C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars$env:MBITS.bat"
         $env:BOOSTROOT="C:/Libraries/boost_1_69_0"
