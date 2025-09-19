@@ -13,6 +13,8 @@
 
 %{
 #include <iostream>
+
+#define SWIGPY_SLICEOBJECT PyObject
 %}
 
 
@@ -538,7 +540,11 @@ namespace swig {
 
 %define %swig_container_methods(Container...)
 
-%newobject __getitem__(PyObject *slice);
+/* deprecated in Python 2 */
+#if 1
+  %newobject __getslice__;
+#endif
+  %newobject __getitem__(SWIGPY_SLICEOBJECT *slice);
 
 #if defined(SWIGPYTHON_BUILTIN)
   %feature("python:slot", "nb_bool", functype="inquiry") __bool__;
@@ -586,13 +592,13 @@ namespace swig {
 
   %extend {
     /* typemap for slice object support */
-    %typemap(in) PyObject* {
+    %typemap(in) SWIGPY_SLICEOBJECT* {
       if (!PySlice_Check($input)) {
         %argument_fail(SWIG_TypeError, "$type", $symname, $argnum);
       }
-      $1 = (PyObject *) $input;
+      $1 = (SWIGPY_SLICEOBJECT *) $input;
     }
-    %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) PyObject* {
+    %typemap(typecheck,precedence=SWIG_TYPECHECK_POINTER) SWIGPY_SLICEOBJECT* {
       $1 = PySlice_Check($input);
     }
 
@@ -603,7 +609,7 @@ namespace swig {
     /* Overloaded methods for Python 3 compatibility 
      * (Also useful in Python 2.x)
      */
-    Sequence* __getitem__(PyObject *slice) throw (std::out_of_range, std::invalid_argument) {
+    Sequence* __getitem__(SWIGPY_SLICEOBJECT *slice) throw (std::out_of_range, std::invalid_argument) {
       Py_ssize_t i, j, step;
       if( !PySlice_Check(slice) ) {
         SWIG_Error(SWIG_TypeError, "Slice object expected.");
@@ -615,7 +621,7 @@ namespace swig {
       return swig::getslice(self, id, jd, step);
     }
 
-    void __setitem__(PyObject *slice, const Sequence& v) throw (std::out_of_range, std::invalid_argument) {
+    void __setitem__(SWIGPY_SLICEOBJECT *slice, const Sequence& v) throw (std::out_of_range, std::invalid_argument) {
       Py_ssize_t i, j, step;
       if( !PySlice_Check(slice) ) {
         SWIG_Error(SWIG_TypeError, "Slice object expected.");
@@ -627,7 +633,7 @@ namespace swig {
       swig::setslice(self, id, jd, step, v);
     }
 
-    void __setitem__(PyObject *slice) throw (std::out_of_range, std::invalid_argument) {
+    void __setitem__(SWIGPY_SLICEOBJECT *slice) throw (std::out_of_range, std::invalid_argument) {
       Py_ssize_t i, j, step;
       if( !PySlice_Check(slice) ) {
         SWIG_Error(SWIG_TypeError, "Slice object expected.");
@@ -639,7 +645,7 @@ namespace swig {
       swig::delslice(self, id, jd, step);
     }
 
-    void __delitem__(PyObject *slice) throw (std::out_of_range, std::invalid_argument) {
+    void __delitem__(SWIGPY_SLICEOBJECT *slice) throw (std::out_of_range, std::invalid_argument) {
       Py_ssize_t i, j, step;
       if( !PySlice_Check(slice) ) {
         SWIG_Error(SWIG_TypeError, "Slice object expected.");
