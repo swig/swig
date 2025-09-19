@@ -94,7 +94,7 @@ input files, and how it handles standard ISO C declarations.  C++ support is
 described in the next chapter.  However, C++ programmers should still read this
 chapter to understand the basics.
 Specific details about each target language are described in later
-chapters. 
+chapters.
 </p>
 
 <H2><a name="SWIG_nn2">5.1 Running SWIG</a></H2>
@@ -269,7 +269,7 @@ The most common format of a SWIG interface is as follows:
 </p>
 
 <div class="code"><pre>
-%module mymodule 
+%module mymodule
 %{
 #include "myheader.h"
 %}
@@ -326,12 +326,12 @@ for the target scripting language. SWIG is not a stub compiler nor is it
 usually necessary to edit the output file (and if you look at the output,
 you probably won't want to). To build the final extension module, the
 SWIG output file is compiled and linked with the rest of your C/C++
-program to create a shared library. 
+program to create a shared library.
 </p>
 
 <p>
 For many target languages SWIG will also generate proxy class files in the
-target language. The default output directory for these language 
+target language. The default output directory for these language
 specific files is the same directory as the generated C/C++ file. This
 can be modified using the <tt>-outdir</tt> option. For example:
 </p>
@@ -351,12 +351,75 @@ pyfiles/example.py
 If the <tt>-outcurrentdir</tt> option is used (without <tt>-o</tt>)
 then SWIG behaves like a typical C/C++
 compiler and the default output directory is then the current directory. Without
-this option the default output directory is the path to the input file. 
+this option the default output directory is the path to the input file.
 If <tt>-o</tt> and
 <tt>-outcurrentdir</tt> are used together, <tt>-outcurrentdir</tt> is effectively ignored
 as the output directory for the language files is the same directory as the
 generated C/C++ file if not overridden with <tt>-outdir</tt>.
 </p>
+
+<p>
+Some of the <tt>-M</tt> family of options will cause SWIG to produce an extra
+file that describes the dependencies of the source file generated from the
+<tt>.i</tt> file being processed. The format of this dependency file follows the
+format of a standard Make
+<a href="https://www.gnu.org/software/make/manual/html_node/Rule-Syntax.html">rule</a>,
+e.g.
+</p>
+
+<div class="code">
+<pre>
+example_wrap.c: \
+  example.i
+</pre>
+</div>
+
+<p>
+This dependency information can be used by build systems to optimally determine
+when SWIG needs to be re-run on the <tt>.i</tt> file instead of blindly running
+SWIG every time as part of the build, which can be slow if there are multiple
+<tt>.i</tt> files to process or generated sources to compile/link. The provided
+dependency informaton also helps build systems avoid the opposite scenario of
+not running SWIG on the <tt>.i</tt> files enough, which typically happens when
+a file processed by <tt>%include</tt> has changed but the <tt>.i</tt> file
+itself has not changed.
+</p>
+
+<p>
+Since the SWIG <tt>-M</tt> options emulate the
+<a href="https://gcc.gnu.org/onlinedocs/gcc/Preprocessor-Options.html#index-M">GCC -M options</a>,
+most people will find the following form of invoking SWIG convenient for build
+system integration:
+</p>
+
+<div class="shell">
+<pre>
+$ swig -c++ -python -MMD -MF example_wrap.cpp.d -o example_wrap.cpp example.i
+</pre>
+</div>
+
+<p>
+The <tt>-MMD</tt> option causes SWIG to generate the dependency information in
+the <tt>example_wrap.cpp.d</tt> file as part of the <tt>.i</tt> processing,
+excluding the files in the SWIG library. By default, the dependency file name is
+<tt>example_wrap.d</tt>; <tt>-MF</tt> is used to specify an alternative file name
+to use. In contrast, the <tt>-M</tt> or <tt>-MM</tt> options only generate the
+dependency information but do <i>not</i> generate the C/C++ wrapper file, so if
+you only need the dependency file, you might use a command like the following:
+</p>
+
+<div class="shell">
+<pre>
+$ swig -c++ -python -MM -MF example_wrap.cpp.d example.i
+</pre>
+</div>
+
+<p>
+However, you should prefer <tt>-MD</tt> or <tt>-MMD</tt> when possible so a
+single SWIG invocation can generate the dependency file and the C/C++ wrapper
+in a single invocation.
+</p>
+
 
 <H3><a name="SWIG_nn5">5.1.3 Comments</a></H3>
 
@@ -400,7 +463,7 @@ extensions are described in the "<a href="Preprocessor.html#Preprocessor">Prepro
 Most of SWIG's operation is controlled by special directives that are
 always preceded by a "<tt>%</tt>" to distinguish them from normal C
 declarations. These directives are used to give SWIG hints or to alter
-SWIG's parsing behavior in some manner.   
+SWIG's parsing behavior in some manner.
 </p>
 
 <p>
@@ -412,7 +475,7 @@ included in C header files using conditional compilation like this:
 <div class="code"><pre>
 /* header.h  --- Some header file */
 
-/* SWIG directives -- only seen if SWIG is running */ 
+/* SWIG directives -- only seen if SWIG is running */
 #ifdef SWIG
 %module foo
 #endif
@@ -475,7 +538,7 @@ For example
 
 <div class="code">
 <pre>
-/* bar not wrapped unless foo has been defined and 
+/* bar not wrapped unless foo has been defined and
    the declaration of bar within foo has already been parsed */
 int foo::bar(int) {
   ... whatever ...
@@ -486,7 +549,7 @@ int foo::bar(int) {
 
 <li>
 <p>
-Certain advanced features of C++ such as nested classes 
+Certain advanced features of C++ such as nested classes
 are not yet fully supported. Please see the C++ <a href="SWIGPlus.html#SWIGPlus_nested_classes">Nested classes</a> section
 for more information.
 </p>
@@ -627,8 +690,8 @@ bool
 <p>
 When an integral value is converted from C, a cast is used to convert it to
 the representation in the target language.
-Thus, a 16 bit short in C may be promoted to a 32 bit integer.  When integers are 
-converted in the other direction, the value is cast back into the original C type.  
+Thus, a 16 bit short in C may be promoted to a 32 bit integer.  When integers are
+converted in the other direction, the value is cast back into the original C type.
 If the value is too large to fit, it is silently truncated.
 <!-- Dave: Maybe we should fix this -->
 </p>
@@ -705,7 +768,7 @@ on <a href="Typemaps.html#Typemaps">Typemaps</a> for details about this.
 
 <p>
 At this time, SWIG provides limited support for Unicode and
-wide-character strings (the C <tt>wchar_t</tt> type).  
+wide-character strings (the C <tt>wchar_t</tt> type).
 Some languages provide typemaps for wchar_t, but bear in mind these
 might not be portable across different operating systems.  This is a
 delicate topic that is poorly understood by many programmers and not
@@ -815,7 +878,7 @@ EXTERN void foo();
 </pre>
 </div>
 <p>
-In this case, you probably don't want to create a constant called 
+In this case, you probably don't want to create a constant called
 <tt>EXTERN</tt> (what would the value be?).  In general,
 SWIG will not create constants for macros unless the value can
 be completely determined by the preprocessor.  For instance, in the above example,
@@ -886,7 +949,7 @@ constants corresponding to different C datatypes.  Although it is not
 usually needed for simple values, it is more useful when working
 with pointers and other more complex datatypes.  Typically, <tt>%constant</tt>
 is only used when you want to add constants to the scripting language
-interface that are not defined in the original header file. 
+interface that are not defined in the original header file.
 </p>
 
 <H3><a name="SWIG_nn13">5.2.4 A brief word about const</a></H3>
@@ -1025,9 +1088,9 @@ language---data that you shouldn't be touching.
 </p>
 
 <p>
-The bottom line: don't rely on <tt>char *</tt> for anything other than read-only 
+The bottom line: don't rely on <tt>char *</tt> for anything other than read-only
 input values.   However, it must be noted that you could change the behavior of SWIG
-using <a href="Typemaps.html#Typemaps">typemaps</a>.  
+using <a href="Typemaps.html#Typemaps">typemaps</a>.
 </p>
 
 <H2><a name="SWIG_nn15">5.3 Pointers and complex objects</a></H2>
@@ -1165,7 +1228,7 @@ this module into Python, you can use the functions just like you
 expect :</p>
 
 <div class="targetlang"><pre>
-# Copy a file 
+# Copy a file
 def filecopy(source, target):
     f1 = fopen(source, "r")
     f2 = fopen(target, "w")
@@ -1197,7 +1260,7 @@ void matrix_multiply(Matrix *a, Matrix *b, Matrix *c);
 <p>
 SWIG has no idea what a "<tt>Matrix</tt>" is.  However, it is obviously
 a pointer to something so SWIG generates a wrapper using its generic pointer
-handling code. 
+handling code.
 </p>
 
 <p>
@@ -1541,7 +1604,7 @@ is due to the fact that SWIG is trying to release the old value using
 <tt>free</tt> or <tt>delete</tt> when the string literal value currently assigned to the variable wasn't
 allocated using <tt>malloc()</tt> or <tt>new</tt>.
 To fix this behavior, you can
-either mark the variable as read-only, write a typemap (as described in Chapter 6), 
+either mark the variable as read-only, write a typemap (as described in Chapter 6),
 or write a special set function as shown.  Another alternative is to declare the
 variable as an array:
 </p>
@@ -1582,7 +1645,7 @@ pointer to point to some other value.  When setting a variable of this
 type, SWIG allocates a new string (using malloc or new) and changes
 the pointer to point to the new value.  However, repeated
 modifications of the value will result in a memory leak since the old
-value is not released. 
+value is not released.
 </p>
 
 
@@ -1613,9 +1676,9 @@ void transpose(double (*a)[20]);
 </pre></div>
 
 <p>
-Like C, SWIG does not perform array bounds checking.  
+Like C, SWIG does not perform array bounds checking.
 It is up to the
-user to make sure the pointer points to a suitably allocated region of memory. 
+user to make sure the pointer points to a suitably allocated region of memory.
 </p>
 
 <p>
@@ -1757,7 +1820,7 @@ double y;                       // Read-write
 </pre></div>
 
 <p>
-The <tt>%mutable</tt> and <tt>%immutable</tt> directives are actually 
+The <tt>%mutable</tt> and <tt>%immutable</tt> directives are actually
 <a href="Customization.html#Customization_features">%feature directives</a> defined like this:
 </p>
 
@@ -2152,7 +2215,7 @@ such match expressions, for example
 <p>
 will capitalize the names of all the enum elements but not change the case of
 the other declarations. Similarly, <tt>%$isclass</tt>, <tt>%$isfunction</tt>,
-<tt>%$isconstructor</tt>, <tt>%$isunion</tt>, <tt>%$istemplate</tt>, 
+<tt>%$isconstructor</tt>, <tt>%$isunion</tt>, <tt>%$istemplate</tt>,
 and <tt>%$isvariable</tt> can be used. Many other checks are possible and this
 documentation is not exhaustive, see the "%rename predicates" section in
 <tt>swig.swg</tt> for the full list of supported match expressions.
@@ -2348,7 +2411,7 @@ arguments specified in a SWIG interface work with both C and C++.
 </p>
 
 <p>
-<b>Note:</b> There is a subtle semantic issue concerning the use 
+<b>Note:</b> There is a subtle semantic issue concerning the use
 of default arguments and the SWIG generated wrapper code.  When default
 arguments are used in C code, the default values are emitted into the wrappers and the
 function is invoked with a full set of arguments. This is different to when wrapping C++
@@ -2581,10 +2644,10 @@ gets transformed into the following set of accessor functions :</p>
 double Vector_x_get(struct Vector *obj) {
   return obj-&gt;x;
 }
-double Vector_y_get(struct Vector *obj) { 
+double Vector_y_get(struct Vector *obj) {
   return obj-&gt;y;
 }
-double Vector_z_get(struct Vector *obj) { 
+double Vector_z_get(struct Vector *obj) {
   return obj-&gt;z;
 }
 void Vector_x_set(struct Vector *obj, double value) {
@@ -2733,7 +2796,7 @@ perform memory allocation.
 Arrays may appear as the members of structures, but they will be
 read-only. SWIG will write an accessor function that returns the
 pointer to the first element of the array, but will not write a
-function to change the contents of the array itself. 
+function to change the contents of the array itself.
 When this
 situation is detected, SWIG may generate a warning message such as the
 following :</p>
@@ -2788,7 +2851,7 @@ void Bar_f_set(Bar *b, Foo *value) {
 <p>
 The reasons for this are somewhat subtle but have to do with the
 problem of modifying and accessing data inside the data member.  For
-example, suppose you wanted to modify the value of <tt>f.x</tt> 
+example, suppose you wanted to modify the value of <tt>f.x</tt>
 of a <tt>Bar</tt> object like this:
 </p>
 
@@ -2879,7 +2942,7 @@ interfaces, you can use the <tt>%nodefaultctor</tt> directive or the
 </p>
 
 <div class="shell"><pre>
-swig -nodefaultctor example.i 
+swig -nodefaultctor example.i
 </pre></div>
 
 <p>
@@ -2895,7 +2958,7 @@ or
 </pre></div>
 
 <p>
-If you need more precise control, <tt>%nodefaultctor</tt> can selectively target individual structure 
+If you need more precise control, <tt>%nodefaultctor</tt> can selectively target individual structure
 definitions.  For example:
 </p>
 
@@ -2943,7 +3006,7 @@ has now been enabled as the default behavior.
 <p>
 <b>Note:</b> There is also the
 <tt>%nodefault</tt> directive, which disables both the default or
-implicit destructor generation. This could lead to memory leaks across 
+implicit destructor generation. This could lead to memory leaks across
 the target languages, and it is highly recommended you don't use them.
 </p>
 
@@ -3011,8 +3074,8 @@ You can make a <tt>Vector</tt> look a lot like a class by writing a SWIG interfa
 Note the usage of the <tt>$self</tt> special variable.
 Its usage is identical to a C++ 'this' pointer and should be used whenever access to the struct instance is required.
 Also note that C++ constructor and destructor syntax has been used to simulate a constructor and destructor, even for C code.
-There is one subtle difference to a normal C++ constructor implementation though and that is although the constructor declaration 
-is as per a normal C++ constructor, the newly constructed object must be returned <b>as if</b> the constructor declaration 
+There is one subtle difference to a normal C++ constructor implementation though and that is although the constructor declaration
+is as per a normal C++ constructor, the newly constructed object must be returned <b>as if</b> the constructor declaration
 had a return value, a <tt>Vector *</tt> in this case.
 </p>
 
@@ -3299,7 +3362,7 @@ modify the interface file in certain cases.
 </p>
 
 <p>
-Finally, note that nesting is handled differently in C++ mode, 
+Finally, note that nesting is handled differently in C++ mode,
 see <a href="SWIGPlus.html#SWIGPlus_nested_classes">Nested classes</a>.
 </p>
 
@@ -3338,7 +3401,7 @@ the following function is generated instead:
 <div class="code">
 <pre>
 static int
-_wrap_Vector_x_get(ClientData clientData, Tcl_Interp *interp, 
+_wrap_Vector_x_get(ClientData clientData, Tcl_Interp *interp,
                    int objc, Tcl_Obj *const objv[]) {
   struct Vector *arg1 ;
   double result ;
@@ -3396,8 +3459,8 @@ type-checking and other support functions that are used by the rest of the modul
 </li>
 
 <li><b>Header section</b>.  <br>
-This is user-defined support code that has been included by 
-the <tt>%{ ... %}</tt> directive.  Usually this consists of header files and 
+This is user-defined support code that has been included by
+the <tt>%{ ... %}</tt> directive.  Usually this consists of header files and
 other helper functions.
 </li>
 
@@ -3474,13 +3537,13 @@ The valid sections and order of the sections in the generated C/C++ wrapper file
 
 <p>
 The bare <tt>%{ ... %}</tt> directive is a shortcut that is the same as
-<tt>%header %{ ... %}</tt>. 
+<tt>%header %{ ... %}</tt>.
 </p>
 
 <p>
-The <tt>%begin</tt> section is effectively empty as it just contains the SWIG banner by default. 
+The <tt>%begin</tt> section is effectively empty as it just contains the SWIG banner by default.
 This section is provided as a way for users to insert code at the top of the wrapper file before any other code is generated.
-Everything in a code insertion block is copied verbatim into the output file and is 
+Everything in a code insertion block is copied verbatim into the output file and is
 not parsed by SWIG.   Most SWIG input files have at least one such block to include header
 files and support C code.  Additional code blocks may be placed anywhere in a
 SWIG file as needed. </p>
@@ -3513,7 +3576,7 @@ static Vector *new_Vector() {
 }
 
 %}
-// Now wrap it 
+// Now wrap it
 Vector *new_Vector();
 </pre></div>
 
@@ -3569,7 +3632,7 @@ SWIG directives inside a <tt>%{ ... %}</tt> block.</p>
 
 
 <p>
-When code is included in the <tt>%init</tt> section, it is copied directly into the 
+When code is included in the <tt>%init</tt> section, it is copied directly into the
 module initialization function.  For example, if you needed to perform some extra
 initialization on module loading, you could write this:
 </p>
@@ -3621,12 +3684,12 @@ interface to your program.
 
 <li>Copy the appropriate declarations into the interface file or use
 SWIG's <tt>%include</tt> directive to process an entire C
-source/header file. 
+source/header file.
 
 <li>Make sure everything in the interface file uses ISO C/C++ syntax.
 
 <li>Make sure all necessary `<tt>typedef</tt>' declarations and
-type-information is available in the interface file. 
+type-information is available in the interface file.
 In particular, ensure that the type information is specified in the correct order as required by a C/C++ compiler.
 Most importantly, define a type before it is used! A C compiler will tell you
 if the full type information is not available if it is needed, whereas
@@ -3642,7 +3705,7 @@ correctly, the wrappers can be sub-optimal and even result in uncompilable C/C++
 
 <p>
 Although this may sound complicated, the process turns out to be
-fairly easy once you get the hang of it. 
+fairly easy once you get the hang of it.
 </p>
 
 <p>
@@ -3768,7 +3831,7 @@ working with dynamic loading. There are a few approaches to solving
 the <tt>main()</tt> conflict :</p>
 
 <ul>
-<li>Get rid of <tt>main()</tt> entirely. 
+<li>Get rid of <tt>main()</tt> entirely.
 
 <li>Rename <tt>main()</tt> to something else. You can do this by
 compiling your C program with an option like <tt>-Dmain=oldmain</tt>.
