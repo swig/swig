@@ -16,7 +16,6 @@
   for (i = 0; i < argc; i++) {
     PyObject *pyobj = PyTuple_GetItem(varargs, i);
     char *str = 0;
-%#if PY_VERSION_HEX>=0x03000000
     const char *strtmp = 0;
     PyObject *pystr;
     if (!PyUnicode_Check(pyobj)) {
@@ -32,13 +31,6 @@
     if (str)
       strcpy(str, strtmp);
     Py_DecRef(pystr);
-%#else  
-    if (!PyString_Check(pyobj)) {
-      PyErr_SetString(PyExc_ValueError, "Expected a string");
-      SWIG_fail;
-    }
-    str = PyString_AsString(pyobj);
-%#endif
     vargs[i] = str;
   }
   $1 = (void *)vargs;
@@ -51,12 +43,10 @@
 }
 
 %typemap(freearg) (...) {
-%#if PY_VERSION_HEX>=0x03000000
   int i;
   for (i = 0; i < 10; i++) {
     free(vargs$argnum[i]);
   }
-%#endif
 }
 
 %inline {
