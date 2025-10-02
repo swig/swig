@@ -7,6 +7,11 @@
  * own iterators. As an example (real one since we use it for STL/STD
  * containers), the template SwigPyIterator_T does the
  * implementation for generic C++ iterators.
+ *
+ * The concept here is for a 'closed' iterator to implement a true Python
+ * iterator which raises a StopIteration at the end of an iteration over a range.
+ * A 'closed' iterator is more like a traditional C++ iterator and does not
+ * raise a StopIteration.
  * ----------------------------------------------------------------------------- */
 
 %include <std_common.i>
