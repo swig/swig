@@ -7,6 +7,13 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-10-02: wsfulton
+            [Python] Fix out typemaps for PyObject * to correctly handle NULL return.
+
+            NULL is used as the return value for indicating that a Python exception
+            has been raised. Previously C Python API code could have been called,
+            but now execution is immediately returned to the Python interpreter.
+
 2025-09-01: AnnaAraslanova
             [Python] #3254 Bug fix - mark modules as no-gil compatible only when -nogil
             flag is used.

@@ -24,3 +24,13 @@ if type != "python_various.WrappedClass":
 type = GetFullyQualifiedName(datetime.date(2020, 1, 20))  # Test a Python standard library class
 if type != "datetime.date":
     raise RuntimeError("wrong type {}".format(type))
+
+# Test return NULL for PyObject *
+# Was resulting in: SystemError: <built-in function pyobject_test> returned a result with an exception set
+try:
+    pyobject_test(-5)
+    raise RuntimeError("missing ArithmeticError")
+except ArithmeticError as e:
+    pass
+
+pyobject_test(5)
