@@ -73,6 +73,12 @@ Version 4.4.0 (in progress)
             [Python] #3217 Fix undefined behaviour in SwigPyObject_richcompare and
             SwigPyObject_compare.
 
+2025-07-04: wsfulton
+            [Python] #3260 Remove unused, out of date SWIG_Python_TypeError method.
+            This support function designed for typemaps stopped being used within SWIG
+            typemaps 20 years ago. Any users still relying on it have a few options
+            which are outlined in #3260.
+
 2025-06-27: wsfulton
             [Python] Raise an AttributeError instead of TypeError when there are internal
             and unexpected coding errors around member variable wrappers.
