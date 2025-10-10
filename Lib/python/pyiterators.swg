@@ -10,7 +10,7 @@
  *
  * The concept here is for a 'closed' iterator to implement a true Python
  * iterator which raises a StopIteration at the end of an iteration over a range.
- * A 'closed' iterator is more like a traditional C++ iterator and does not
+ * An 'open' iterator is more like a traditional C++ iterator and does not
  * raise a StopIteration.
  * ----------------------------------------------------------------------------- */
 
