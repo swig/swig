@@ -142,11 +142,9 @@ jobs:
           VER: '3.14'
           PY_ABI_VER: '3.14'
           CSTD: gnu99
-          continue-on-error: true
         - SWIGLANG: python
           VER: '3.14'
           CSTD: gnu99
-          continue-on-error: true
         - SWIGLANG: python
           PY2: 2
           SWIG_FEATURES: -builtin
