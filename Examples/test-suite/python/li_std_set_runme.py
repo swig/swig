@@ -128,4 +128,4 @@ b += 3
 # b.value() # undefined behaviour
 
 b = s.begin() # open iterator
-b += 4 # no StopIteration
+# b += 4 # no StopIteration, but can't test this as the iterator is now two off the end, which is undefined behaviour
