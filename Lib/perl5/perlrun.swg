@@ -117,7 +117,7 @@ typedef int (*SwigMagicFunc)(struct interpreter *, SV *, MAGIC *);
 
 #endif /* MULTIPLICITY */
 
-static void SWIGUNUSED SWIG_croak_null()
+static void SWIGUNUSED SWIG_croak_null(void)
 {
   SV *err = get_sv("@", GV_ADD);
   if (sv_isobject(err))

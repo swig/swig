@@ -118,7 +118,7 @@ static PyObject *Swig_runtime_data_module_global = NULL;
 
 /* Create/obtain the single swig_runtime_data module which is used across different SWIG generated modules */
 SWIGINTERN PyObject *
-SWIG_runtime_data_module() {
+SWIG_runtime_data_module(void) {
   if (!Swig_runtime_data_module_global) {
 #if PY_VERSION_HEX >= 0x030d0000
     /* free-threading note: the GIL is always enabled when this function is first called

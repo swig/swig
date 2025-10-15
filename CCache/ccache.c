@@ -1132,7 +1132,7 @@ static void process_args(int argc, char **argv)
 	}
 }
 
-static void detect_swig()
+static void detect_swig(void)
 {
 	char *basename = str_basename(orig_args->argv[0]);
 	if (strstr(basename, "swig") || getenv("CCACHE_SWIG")) {
