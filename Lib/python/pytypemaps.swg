@@ -68,6 +68,18 @@
  *  Python extra typemaps / typemap overrides
  * ------------------------------------------------------------ */
 
+/* Add missing error handling to PyObject * */
+%typemap(out,noblock=1) PyObject * {
+  $result = $1;
+  if (!$result) SWIG_fail;
+}
+
+%typemap(out,noblock=1)  PyObject * const & {
+  $result = *$1;
+  if (!$result) SWIG_fail;
+}
+
+
 /* Get the address of the 'python self' object */
 
 %typemap(in,numinputs=0,noblock=1) PyObject **PYTHON_SELF {
