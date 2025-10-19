@@ -4,11 +4,11 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
-Version 4.4.0 (in progress)
+Version 4.4.0 (20 Oct 2025)
 ===========================
 
 2025-10-19: phetdam
-            [Python] Update docs for using setuptools instead of distutils. Improve
+            [Python] #3286 Update docs for using setuptools instead of distutils. Improve
             docs for the -M family of options for dependency file generation.
 
 2025-10-15: pertusus
@@ -33,14 +33,14 @@ Version 4.4.0 (in progress)
 	    [PHP] Fix unused label warnings (-Wunused-label in GCC and clang).
 
 2025-08-18: greyshepherd-star
-            #3248 [C#] Fix potential null poiner deref calling equals method in std::list.
+            [C#] #3248 Fix potential null poiner deref calling equals method in std::list.
 
 2025-08-13: olly, jim-easterbrook
 	    [Python] #2786 Fix handling of "default" typemap applied to method which
 	    takes a single argument when "-builtin" option is used.
 
 2025-08-13: crusaderky
-            #3235 [Python] Free-threaded race condition fix in SWIG_TypeQuery.
+            [Python] #3235 Free-threaded race condition fix in SWIG_TypeQuery.
 
 2025-08-11: erezgeva
             #3238 Add typecheck typemaps for adding in overloading support to the
@@ -54,7 +54,7 @@ Version 4.4.0 (in progress)
             [Tcl] #3246 Fix memory leak in constant registration.
 
 2025-08-08: crusaderky
-            #3230 [Python] SWIG_AsArgcArgv memory fixes and thread-safety fixes for
+            [Python] #3230 SWIG_AsArgcArgv memory fixes and thread-safety fixes for
             free-threading Python.
 
 2025-08-01: erezgeva
@@ -96,11 +96,11 @@ Version 4.4.0 (in progress)
             raise an AttributeError.
 
 2025-06-27: ianlancetaylor
-            Use unsafe for Go strings rather than byte arrays.
+            [Go] Use unsafe for Go strings rather than byte arrays.
             Update minimum Go supported version to 1.20.
 
 2025-06-23: jschueller
-            #3184 #3196 [Python] Support multi-phase module initialization.
+            [Python] #3184 #3196 Support multi-phase module initialization.
 
 2025-06-23: wsfulton
             Fix numerous unused variable warnings (-Wunused-variable in gcc).
@@ -271,7 +271,7 @@ Version 4.4.0 (in progress)
 	    been defined by any compiler.
 
 2025-04-01: olly
-	    #920 #2830 [MzScheme/Racket] Remove support for MzScheme/Racket.
+	    [MzScheme/Racket] #920 #2830 Remove support for MzScheme/Racket.
 	    It's a long time since SWIG's support was actively maintained and
 	    a major overhaul would be needed to support Racket 8, for which
 	    nobody has stepped forward in over 3 years.
