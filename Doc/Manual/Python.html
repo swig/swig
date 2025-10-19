@@ -351,7 +351,7 @@ instances that represent each C or C++ extension module to build. For example:
 <pre>
 """SWIG example setuptools script.
 
-This handles invoking SWIG even when called via pip/build. Python 3.6 required.
+This handles invoking SWIG even when called via pip/build. Python 3.6 minimum required.
 """
 
 from setuptools import Extension, setup
@@ -569,7 +569,7 @@ hassle in the opinion of this author).
 deprecated and has not been actively maintained for many years.  Even though it
 appears to "work" with Python 2.7, no future support is guaranteed.
 If using static linking, you might want to rely on a different approach
-(perhaps using distutils).
+(perhaps using setuptools).
 </p>
 
 <H3><a name="Python_nn9">33.2.5 Using your module</a></H3>
@@ -736,7 +736,7 @@ read the man pages).
 Compilation of C++ extensions has traditionally been a tricky problem.
 Since the Python interpreter is written in C, you need to take steps to
 make sure C++ is properly initialized and that modules are compiled
-correctly. This should be a non-issue if you're using distutils, as
+correctly. This should be a non-issue if you're using setuptools, as
 it takes care of all that for you. The following is included for
 historical reasons, and in case you need to compile on your own.
 </p>

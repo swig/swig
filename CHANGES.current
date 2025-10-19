@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.0 (in progress)
 ===========================
 
+2025-10-19: phetdam
+            [Python] Update docs for using setuptools instead of distutils. Improve
+            docs for the -M family of options for dependency file generation.
+
 2025-10-15: pertusus
             Fix some -Wstrict-prototypes warnings.
 
