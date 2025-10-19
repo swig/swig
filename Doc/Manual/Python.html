@@ -2781,9 +2781,9 @@ The runtime module contains the following:
 <ol>
   <li> A <a href="https://docs.python.org/3/c-api/capsule.html">Python Capsule</a> containing a pointer to the underlying C module data structure used by the runtime type checker. For multiple modules to access the common runtime implementation. The Capsule is named <tt>type_pointer_capsule</tt> except when using <tt>-builtin</tt> when it is instead called <tt>type_pointer_capsule_builtin</tt>.</li>
   <li> The builtin type <tt>SwigPyObject</tt> - Swig object holding a C/C++ pointer. For 'normal' pointers, that is, not for function pointers nor member function pointers.</li>
-  <li> The builtin type <tt>SwigPyObjectType</tt> - Metaclass for SWIG wrapped types. Only used by <t>-builtin</tt>.</li>
+  <li> The builtin type <tt>SwigPyObjectType</tt> - Metaclass for SWIG wrapped types. Only used by <tt>-builtin</tt>.</li>
   <li> The builtin type <tt>SwigPyPacked</tt> - Swig object holding a C/C++ function pointer. For C pointers to a function or C++ member function pointers.</li>
-  <li> The builtin type <tt>SwigPyStaticVar</tt> - Swig member static variables. Only used by <t>-builtin</tt>.</li>
+  <li> The builtin type <tt>SwigPyStaticVar</tt> - Swig member static variables. Only used by <tt>-builtin</tt>.</li>
   <li> The builtin type <tt>SwigVarLink</tt> - Swig variable link object. The type used by the 'cvar' field for accessing C/C++ global variables.</li>
 </ol>
 
