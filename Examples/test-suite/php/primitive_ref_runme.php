@@ -8,7 +8,7 @@ require "tests.php";
 # comparison.
 function long_long_equal($a,$b,$message) {
   if (! ($a===$b))
-    if (! ((double)$a===$b))
+    if (! ((float)$a===$b))
       return check::fail($message . ": '$a'!=='$b'");
   return TRUE;
 }
