@@ -22,7 +22,7 @@ SWIG-4.4.0 summary:
 - Various improvements related to parsing expressions.
 - Runtime type system thread safety fixes.
 - Minor fixes and improvements specific to:
-  C#, D, Guile, Java, Javascript, Lua, Perl, PHP, Python, Tcl
+  C#, D, Guile, Java, Javascript, Lua, Perl, PHP, Python, Tcl.
 
 SWIG-4.3.1 summary:
 - Small number of regression fixes for Python and Java.
