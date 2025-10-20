@@ -2,8 +2,10 @@
 
 require "tests.php";
 
-# A large long long number is too big, so PHP makes treats it as a double, but SWIG opts to return it as a string.
-# The conversion to double can lose precision so this isn't an exact comparison.
+# A large long long number is too big, so PHP treats it as a float (C double),
+# but SWIG opts to return it as a string.
+# The conversion to C double can lose precision so this isn't an exact
+# comparison.
 function long_long_equal($a,$b,$message) {
   if (! ($a===$b))
     if (! ((double)$a===$b))
