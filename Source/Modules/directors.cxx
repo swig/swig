@@ -32,13 +32,18 @@ String *Swig_csuperclass_call(String *base, String *method, ParmList *l) {
   Printf(call, "%s(", method);
   for (p = l; p; p = nextSibling(p)) {
     String *pname = Getattr(p, "name");
+    String *pname_created = 0;
     if (!pname && Cmp(Getattr(p, "type"), "void")) {
-      pname = NewString("");
-      Printf(pname, "arg%d", arg_idx++);
+      pname_created = NewStringf("arg%d", arg_idx++);
     }
     if (p != l)
       Printf(call, ", ");
-    Printv(call, pname, NIL);
+    String *parm_name = pname_created ? pname_created : pname;
+    if (SwigType_isrvalue_reference(Getattr(p, "type")))
+      Printv(call, "std::move(", parm_name, ")", NIL);
+    else
+      Printv(call, parm_name, NIL);
+    Delete(pname_created);
   }
   Printf(call, ")");
   return call;

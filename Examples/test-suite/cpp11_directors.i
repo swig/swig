@@ -14,3 +14,15 @@ class Foo {
 };
 
 %}
+
+
+%inline %{
+struct MoveOnlyNode {
+  MoveOnlyNode(const MoveOnlyNode& other) = delete;
+#if !defined(SWIGGO)
+  MoveOnlyNode(MoveOnlyNode&& other) = default;
+  MoveOnlyNode() = default;
+  virtual ~MoveOnlyNode() = default;
+#endif
+};
+%}

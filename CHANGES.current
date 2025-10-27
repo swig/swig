@@ -7,3 +7,5 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2025-10-27: wsfulton
+            #3276 Add missing std::move when wrapping move constructors for directors.
