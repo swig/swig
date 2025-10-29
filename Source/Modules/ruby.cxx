@@ -842,9 +842,9 @@ public:
       current = NO_CPP;
       director_prot_ctor_code = NewString("");
       Printv(director_prot_ctor_code,
-          "if ( $comparison ) { /* subclassed */\n",
-          "  $director_new \n",
-          "} else {\n", "  rb_raise(rb_eRuntimeError,\"accessing abstract class or protected constructor\"); \n", "  return Qnil;\n", "}\n", NIL);
+          "if ($comparison) { /* subclassed */\n",
+          "  $director_new\n",
+          "} else {\n", "  rb_raise(rb_eRuntimeError,\"accessing abstract class or protected constructor\");\n", "  return Qnil;\n", "}\n", NIL);
       director_multiple_inheritance = 0;
       directorLanguage();
     }
@@ -2633,12 +2633,12 @@ public:
     if (cname)
       cname[0] = (char)toupper(cname[0]);
     Printv(director_prot_ctor_code,
-	   "if ( $comparison ) { /* subclassed */\n",
-	   "  $director_new \n",
-	   "} else {\n", "  rb_raise(rb_eNameError,\"accessing abstract class or protected constructor\"); \n", "  return Qnil;\n", "}\n", NIL);
+	   "if ($comparison) { /* subclassed */\n",
+	   "  $director_new\n",
+	   "} else {\n", "  rb_raise(rb_eNameError,\"accessing abstract class or protected constructor\");\n", "  return Qnil;\n", "}\n", NIL);
     Delete(director_ctor_code);
     director_ctor_code = NewString("");
-    Printv(director_ctor_code, "if ( $comparison ) { /* subclassed */\n", "  $director_new \n", "} else {\n", "  $nondirector_new \n", "}\n", NIL);
+    Printv(director_ctor_code, "if ($comparison) { /* subclassed */\n", "  $director_new\n", "} else {\n", "  $nondirector_new\n", "}\n", NIL);
     Delete(name);
   }
 

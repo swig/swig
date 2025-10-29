@@ -78,9 +78,9 @@ public:
     /* Add code to manage protected constructors and directors */
     director_prot_ctor_code = NewString("");
     Printv(director_prot_ctor_code,
-           "if ( $comparison ) { /* subclassed */\n",
-           "  $director_new \n",
-           "} else {\n", "  error(\"accessing abstract class or protected constructor\"); \n", "  SWIG_fail;\n", "}\n", NIL);
+           "if ($comparison) { /* subclassed */\n",
+           "  $director_new\n",
+           "} else {\n", "  error(\"accessing abstract class or protected constructor\");\n", "  SWIG_fail;\n", "}\n", NIL);
 
     enable_cplus_runtime_mode();
     allow_overloading();
