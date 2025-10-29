@@ -9,3 +9,5 @@ Version 4.5.0 (in progress)
 
 2025-10-27: wsfulton
             #3276 Add missing std::move when wrapping move constructors for directors.
+            Also add missing std::move for wrapped director (virtual) methods with
+            rvalue references.

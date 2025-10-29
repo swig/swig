@@ -25,6 +25,14 @@ struct MoveOnlyNode {
   MoveOnlyNode(int a, double d) {}
   MoveOnlyNode() = default;
   virtual ~MoveOnlyNode() = default;
+  virtual void rvalues_int(int &&) {}
+  virtual void rvalues_mo(MoveOnlyNode &&) {}
+  virtual void rvalues_mo_overload(MoveOnlyNode &&) {}
+  virtual void rvalues_mo_overload(int, double, MoveOnlyNode &&) {}
+
+  using DoubleRVR = double&&;
+  using MoveOnlyNodeRVR = MoveOnlyNode&&;
+  virtual void rvalues_using(DoubleRVR, MoveOnlyNodeRVR p2) {}
 #endif
 };
 }

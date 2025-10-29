@@ -101,27 +101,29 @@ String *Swig_director_declaration(Node *n) {
  * ----------------------------------------------------------------------------- */
 
 String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
-  String *func;
+  String *func = NewString("");
   int comma = 0;
   Parm *p = parms;
-  SwigType *pt;
-  String *nname;
-
-  func = NewString("");
-  nname = SwigType_namestr(name);
+  String *nname = SwigType_namestr(name);
   Printf(func, "%s(", nname);
+
   while (p) {
-    String *pname;
-    pt = Getattr(p, "type");
+    SwigType *pt = Getattr(p, "type");
     if ((SwigType_type(pt) != T_VOID)) {
+      SwigType *rpt = SwigType_typedef_resolve_all(pt);
+      String *pname = Getattr(p, "name");
       if (comma)
-	Printf(func, ",");
-      pname = Getattr(p, "name");
-      Printf(func, "%s", pname);
+	Append(func, ",");
+      if (SwigType_isrvalue_reference(rpt))
+	Printv(func, "std::move(", pname, ")", NIL);
+      else
+	Printv(func, pname, NIL);
+      Delete(rpt);
       comma = 1;
     }
     p = nextSibling(p);
   }
+
   Printf(func, ")");
   return func;
 }
