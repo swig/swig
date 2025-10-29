@@ -4635,15 +4635,10 @@ public:
    * ------------------------------------------------------------ */
 
   void directorPrefixArgs(Node *n) {
-    Parm *p;
-
     /* Need to prepend 'jenv' to the director constructor's argument list */
-
     String *jenv_type = NewString("JNIEnv");
-
     SwigType_add_pointer(jenv_type);
-
-    p = NewParm(jenv_type, NewString("jenv"), n);
+    Parm *p = NewParm(jenv_type, NewString("jenv"), n);
     Setattr(p, "arg:byname", "1");
     set_nextSibling(p, NULL);
 

@@ -17,12 +17,15 @@ class Foo {
 
 
 %inline %{
+namespace BT {
 struct MoveOnlyNode {
   MoveOnlyNode(const MoveOnlyNode& other) = delete;
 #if !defined(SWIGGO)
   MoveOnlyNode(MoveOnlyNode&& other) = default;
+  MoveOnlyNode(int a, double d) {}
   MoveOnlyNode() = default;
   virtual ~MoveOnlyNode() = default;
 #endif
 };
+}
 %}

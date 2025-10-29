@@ -1248,7 +1248,7 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
 	Replaceall(tmp_none_comparison, "$arg", "arg1");
 
 	director_call = Swig_cppconstructor_director_call(directorname, directorparms);
-	nodirector_call = Swig_cppconstructor_nodirector_call(classname, parms);
+	nodirector_call = prefix_args ? Swig_cppconstructor_director_call(classname, parms) : Swig_cppconstructor_nodirector_call(classname, parms);
 
 	if (abstract) {
 	  /* whether or not the abstract class has been subclassed in python,
