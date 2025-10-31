@@ -2919,25 +2919,19 @@ private:
       Append(dwname, unique_id);
       Setattr(n, "wrap:name", dwname);
 
-      String *action = NewString("");
-      Printv(action, Swig_cresult_name(), " = new SwigDirector_", class_name, "(", NULL);
-      String *pname = Swig_cparm_name(NULL, 0);
-      Printv(action, pname, NULL);
-      Delete(pname);
-      p = parms;
-      for (int i = 0; i < parm_count; ++i) {
-	p = getParm(p);
-	String *pname = Swig_cparm_name(NULL, i + 1);
-	Printv(action, ", ", NULL);
-	if (SwigType_isreference(Getattr(p, "type"))) {
-	  Printv(action, "*", NULL);
-	}
-	Printv(action, pname, NULL);
-	Delete(pname);
-	p = nextParm(p);
+      {
+	// It might be possible to rewrite this to use $director_new
+	String *director_class_name = NewStringf("SwigDirector_%s", class_name);
+	String *constructor_call = Swig_cppconstructor_call(director_class_name, first_parm);
+	SwigType *type = Copy(getClassType());
+	SwigType_add_pointer(type);
+	String *cres = Swig_cresult(type, Swig_cresult_name(), constructor_call);
+	Setattr(n, "wrap:action", cres);
+	Delete(cres);
+	Delete(type);
+	Delete(constructor_call);
+	Delete(director_class_name);
       }
-      Printv(action, ");", NULL);
-      Setattr(n, "wrap:action", action);
 
       cgoWrapperInfo info;
 
