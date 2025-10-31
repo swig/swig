@@ -247,7 +247,7 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
-          VER: '3.3'
+          VER: '3.3.9' # 3.3.10 has an error: -Werror=missing-field-initializers, see https://bugs.ruby-lang.org/issues/21659
         - SWIGLANG: ruby
           CPPSTD: c++11
         - SWIGLANG: scilab
