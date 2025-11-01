@@ -7,6 +7,14 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2025-11-01: wsfulton
+            Multiple typedefs involving references fix.
+
+            If a typedef to a typedef of a reference was wrapped, uncompilable code was
+            generated. Note: this was previously okay with just a single typedef to a
+            reference. Affected wrapping global and member variables as well as parameters
+            in member methods and constructors.
+
 2025-10-27: wsfulton
             #3276 Add missing std::move when wrapping move constructors for directors.
             Also add missing std::move for wrapped director (virtual) methods with

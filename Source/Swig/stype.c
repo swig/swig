@@ -850,6 +850,8 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
     td = 0;
   } else {
     td = SwigType_typedef_resolve(rs);
+    if (td)
+      td = SwigType_typedef_resolve_all(td);
   }
 
   if (td) {
