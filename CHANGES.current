@@ -8,6 +8,9 @@ Version 4.5.0 (in progress)
 ===========================
 
 2025-11-01: wsfulton
+            Fix wrapping rvalue reference typedefs in director constructors.
+
+2025-11-01: wsfulton
             Multiple typedefs involving references fix.
 
             If a typedef to a typedef of a reference was wrapped, uncompilable code was

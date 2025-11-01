@@ -31,15 +31,17 @@ String *Swig_csuperclass_call(String *base, String *method, ParmList *l) {
   }
   Printf(call, "%s(", method);
   for (p = l; p; p = nextSibling(p)) {
+    SwigType *pt = Getattr(p, "type");
+    SwigType *rpt = SwigType_typedef_resolve_all(pt);
     String *pname = Getattr(p, "name");
     String *pname_created = 0;
-    if (!pname && Cmp(Getattr(p, "type"), "void")) {
+    if (!pname && (SwigType_type(pt) != T_VOID)) {
       pname_created = NewStringf("arg%d", arg_idx++);
     }
     if (p != l)
       Printf(call, ", ");
     String *parm_name = pname_created ? pname_created : pname;
-    if (SwigType_isrvalue_reference(Getattr(p, "type")))
+    if (SwigType_isrvalue_reference(rpt))
       Printv(call, "std::move(", parm_name, ")", NIL);
     else
       Printv(call, parm_name, NIL);
