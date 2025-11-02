@@ -20,7 +20,6 @@ class Foo {
 namespace BT {
 struct MoveOnlyNode {
   MoveOnlyNode(const MoveOnlyNode& other) = delete;
-#if !defined(SWIGGO)
   MoveOnlyNode(MoveOnlyNode&& other) = default;
   MoveOnlyNode(int a, double d) {}
   MoveOnlyNode() = default;
@@ -36,16 +35,13 @@ struct MoveOnlyNode {
   using DoubleRVR2 = DoubleRVR;
   using MoveOnlyNodeRVR2 = MoveOnlyNodeRVR;
   virtual void rvalues_using2(DoubleRVR2 p1, MoveOnlyNodeRVR2) {}
-#endif
 };
 struct MoveOnlyThing {
-#if !defined(SWIGGO)
   using MOT = MoveOnlyThing&&;
   using MOT2 = MOT;
   MoveOnlyThing(const MoveOnlyThing& other) = delete;
   MoveOnlyThing(MOT2 other) = default;
   virtual ~MoveOnlyThing() = default;
-#endif
 };
 }
 %}

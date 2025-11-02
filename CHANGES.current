@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2025-11-02: wsfulton
+            [Go] Fix various compilation problems when wrapping rvalues references.
+
 2025-11-01: wsfulton
             Fix wrapping rvalue reference typedefs in director constructors.
 
