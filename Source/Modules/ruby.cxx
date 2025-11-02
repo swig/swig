@@ -2676,7 +2676,6 @@ public:
       if (parms)
 	set_nextSibling(self, parms);
       Setattr(n, "parms", self);
-      Setattr(n, "wrap:self", "1");
       Delete(self);
     }
 
@@ -2686,7 +2685,6 @@ public:
     Language::constructorHandler(n);
 
     /* Restore original parameter list */
-    Delattr(n, "wrap:self");
     Swig_restore(n);
 
     /* Done */

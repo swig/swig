@@ -5102,7 +5102,6 @@ public:
       if (parms)
 	set_nextSibling(self, parms);
       Setattr(n, "parms", self);
-      Setattr(n, "wrap:self", "1");
       Setattr(n, "hidden", "1");
       Delete(self);
     }
@@ -5112,7 +5111,6 @@ public:
     Language::constructorHandler(n);
     shadow = oldshadow;
 
-    Delattr(n, "wrap:self");
     Swig_restore(n);
 
     if (!Getattr(n, "sym:nextSibling")) {
