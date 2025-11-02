@@ -15,7 +15,7 @@
   struct RefTester {
     int int_member;
     IntRefAgain ref_int;
-    RefTester(IntRefAgain i) : int_member(ref_int), ref_int(int_member) {}
+    RefTester(IntRefAgain i) : int_member(i), ref_int(int_member) {}
     int reftester_func(IntRefAgain i) { return i; }
     static int reftester_static_func(IntRefAgain i) { return i; }
   };
