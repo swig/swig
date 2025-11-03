@@ -169,7 +169,7 @@ namespace swig {
     }
 
     
-    bool equal (const SwigPyIterator &iter) const
+    bool equal (const SwigPyIterator &iter) const override
     {
       const self_type *iters = dynamic_cast<const self_type *>(&iter);
       if (iters) {
@@ -179,7 +179,7 @@ namespace swig {
       }
     }
     
-    ptrdiff_t distance(const SwigPyIterator &iter) const
+    ptrdiff_t distance(const SwigPyIterator &iter) const override
     {
       const self_type *iters = dynamic_cast<const self_type *>(&iter);
       if (iters) {
@@ -221,16 +221,16 @@ namespace swig {
     {
     }
     
-    PyObject *value() const {
+    PyObject *value() const override {
       return from(static_cast<const value_type&>(*(base::current)));
     }
     
-    SwigPyIterator *copy() const
+    SwigPyIterator *copy() const override
     {
       return new self_type(*this);
     }
 
-    SwigPyIterator *incr(size_t n = 1)
+    SwigPyIterator *incr(size_t n = 1) override
     {
       // Open iterator does not raise StopIteration
       while (n--) {
@@ -258,7 +258,7 @@ namespace swig {
     {
     }
 
-    SwigPyIterator *decr(size_t n = 1)
+    SwigPyIterator *decr(size_t n = 1) override
     {
       // Open iterator does not raise StopIteration
       while (n--) {
@@ -285,7 +285,7 @@ namespace swig {
     {
     }
     
-    PyObject *value() const {
+    PyObject *value() const override {
       if (base::current == end) {
 	base::raise_stop_iteration();
 	return NULL;
@@ -294,12 +294,12 @@ namespace swig {
       }
     }
     
-    SwigPyIterator *copy() const
+    SwigPyIterator *copy() const override
     {
       return new self_type(*this);
     }
 
-    SwigPyIterator *incr(size_t n = 1)
+    SwigPyIterator *incr(size_t n = 1) override
     {
       while (n--) {
 	if (base::current == end) {
@@ -335,7 +335,7 @@ namespace swig {
     {
     }
 
-    SwigPyIterator *decr(size_t n = 1)
+    SwigPyIterator *decr(size_t n = 1) override
     {
       while (n--) {
 	if (base::current == base0::begin) {
