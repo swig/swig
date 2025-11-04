@@ -22,6 +22,10 @@
 %header %{
 #define OUT_NULL_VALUE env.Null()
 %}
+#elif defined(SWIG_JAVASCRIPT_QUICKJS)
+%header %{
+#define OUT_NULL_VALUE JS_NULL
+%}
 #else
 %header %{
 #define OUT_NULL_VALUE 0

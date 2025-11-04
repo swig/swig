@@ -1,6 +1,6 @@
 var smart_pointer_templatevariables = require("smart_pointer_templatevariables");
 
-d = new smart_pointer_templatevariables.DiffImContainerPtr_D(smart_pointer_templatevariables.create(1234, 5678));
+var d = new smart_pointer_templatevariables.DiffImContainerPtr_D(smart_pointer_templatevariables.create(1234, 5678));
 
 // TODO xyz has been commented out in the shared test file, find out why
 

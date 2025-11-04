@@ -1,6 +1,6 @@
 var rename_predicates = require("rename_predicates");
 
-r = new rename_predicates.RenamePredicates(123);
+var r = new rename_predicates.RenamePredicates(123);
 r.MF_member_function();
 rename_predicates.RenamePredicates.MF_static_member_function();
 r.MF_extend_function_before();
@@ -40,7 +40,7 @@ rename_predicates.CA_CamelCase();
 rename_predicates.LC_lowerCamelCase();
 rename_predicates.UC_under_case_it();
 
-ex = new rename_predicates.ExtendCheck();
+var ex = new rename_predicates.ExtendCheck();
 ex.MF_real_member1();
 ex.MF_real_member2();
 ex.EX_EXTENDMETHOD1();

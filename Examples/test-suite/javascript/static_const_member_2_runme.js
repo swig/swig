@@ -1,7 +1,7 @@
 var static_const_member_2 = require("static_const_member_2");
 
-c = new static_const_member_2.Test_int();
-a = c.forward_field;
+var c = new static_const_member_2.Test_int();
+var a = c.forward_field;
 a = c.current_profile;
 a = c.RightIndex;
 a = static_const_member_2.Test_int.backward_field;

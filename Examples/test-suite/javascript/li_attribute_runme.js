@@ -1,6 +1,6 @@
 var li_attribute = require("li_attribute");
 
-aa = new li_attribute.A(1, 2, 3);
+var aa = new li_attribute.A(1, 2, 3);
 
 if (aa.a != 1) {
     throw new Error;
@@ -25,7 +25,7 @@ if (aa.d != aa.b) {
 if (aa.c != 3) {
     throw new Error;
 }
-fail = true;
+var fail = true;
 try {
     aa.c = 5;
 } catch (e) {
@@ -35,7 +35,7 @@ if (aa.c != 3 || fail) {
     throw new Error;
 }
 
-pi = new li_attribute.Param_i(7);
+var pi = new li_attribute.Param_i(7);
 if (pi.value != 7) {
     throw new Error;
 }
@@ -45,16 +45,16 @@ if (pi.value != 3) {
     throw new Error;
 }
 
-b = new li_attribute.B(aa);
+var b = new li_attribute.B(aa);
 
 if (b.a.c != 3) {
     throw new Error;
 }
 
 // class/struct attribute with get/set methods using return/pass by reference
-myFoo = new li_attribute.MyFoo();
+var myFoo = new li_attribute.MyFoo();
 myFoo.x = 8;
-myClass = new li_attribute.MyClass();
+var myClass = new li_attribute.MyClass();
 myClass.Foo = myFoo;
 if (myClass.Foo.x != 8) {
     throw new Error;
@@ -65,7 +65,7 @@ if (myClass.Foo2.x != 8) {
 }
 
 // class/struct attribute with get/set methods using return/pass by value
-myClassVal = new li_attribute.MyClassVal();
+var myClassVal = new li_attribute.MyClassVal();
 if (myClassVal.ReadWriteFoo.x != -1) {
     throw new Error;
 }
@@ -81,7 +81,7 @@ if (myClassVal.ReadOnlyFoo.x != 8) {
 }
 
 // string attribute with get/set methods using return/pass by value
-myStringyClass = new li_attribute.MyStringyClass("initial string");
+var myStringyClass = new li_attribute.MyStringyClass("initial string");
 if (myStringyClass.ReadWriteString != "initial string") {
     throw new Error;
 }

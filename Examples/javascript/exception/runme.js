@@ -1,7 +1,7 @@
 var example = require("example");
 
 console.log("Trying to catch some exceptions.");
-t = new example.Test();
+var t = new example.Test();
 try{
   t.unknown();
   throw -1;

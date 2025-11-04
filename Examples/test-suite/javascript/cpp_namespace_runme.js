@@ -8,7 +8,7 @@ if (cpp_namespace.Foo != 42){
     throw ("Bad variable value error!");
 }
 
-t = new cpp_namespace.Test();
+var t = new cpp_namespace.Test();
 if (t.method() != "Test::method"){
     throw ("Bad method return value error!");
 }
@@ -20,12 +20,13 @@ if (cpp_namespace.do_method2(t) != "Test::method"){
     throw ("Bad return value error!");
 }
 cpp_namespace.weird("hello", 4);
-delete t;
+// delete t;
+t = null;
 
-t2 = new cpp_namespace.Test2();
-t3 = new cpp_namespace.Test3();
-t4 = new cpp_namespace.Test4();
-t5 = new cpp_namespace.Test5();
+var t2 = new cpp_namespace.Test2();
+var t3 = new cpp_namespace.Test3();
+var t4 = new cpp_namespace.Test4();
+var t5 = new cpp_namespace.Test5();
 if (cpp_namespace.foo3(42) != 42){
     throw ("Bad return value error!");
 }
