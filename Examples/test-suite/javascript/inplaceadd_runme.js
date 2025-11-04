@@ -1,5 +1,5 @@
 var inplaceadd = require("inplaceadd");
-a = new inplaceadd.A(7);
+var a = new inplaceadd.A(7);
 
 a.addTo(5);
 if (a.val != 12) {

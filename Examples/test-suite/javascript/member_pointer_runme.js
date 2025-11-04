@@ -11,19 +11,19 @@ function check(what, expected, actual) {
 
 // Get the pointers
 
-area_pt = member_pointer.areapt();
-perim_pt = member_pointer.perimeterpt();
+var area_pt = member_pointer.areapt();
+var perim_pt = member_pointer.perimeterpt();
 
 // Create some objects
 
-s = new member_pointer.Square(10);
+var s = new member_pointer.Square(10);
 
 // Do some calculations
 
 check("Square area ", 100.0, member_pointer.do_op(s, area_pt));
 check("Square perim", 40.0, member_pointer.do_op(s, perim_pt));
 
-memberPtr = member_pointer.areavar;
+var memberPtr = member_pointer.areavar;
 memberPtr = member_pointer.perimetervar;
 
 // Try the variables

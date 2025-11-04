@@ -6,7 +6,7 @@ function check(got, expected) {
     }
 }
 
-x = new typemap_template_typedef.XXXInt();
+var x = new typemap_template_typedef.XXXInt();
 
 check(x.aa1(0), 0);
 check(x.aa2(0), 55);

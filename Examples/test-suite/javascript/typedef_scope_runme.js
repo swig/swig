@@ -1,7 +1,7 @@
 var typedef_scope = require("typedef_scope");
 
-b = new typedef_scope.Bar();
-x = b.test1(42,"hello");
+var b = new typedef_scope.Bar();
+var x = b.test1(42,"hello");
 if (x != 42)
     print("Failed!!");
 

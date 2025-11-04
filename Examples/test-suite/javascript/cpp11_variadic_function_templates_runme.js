@@ -2,7 +2,7 @@ var cpp11_variadic_function_templates = require("cpp11_variadic_function_templat
 
 const {A, B, C, D, variadicmix1} = cpp11_variadic_function_templates;
 
-ec = new cpp11_variadic_function_templates.EmplaceContainer();
+var ec = new cpp11_variadic_function_templates.EmplaceContainer();
 ec.emplace(new A());
 ec.emplace(new A(), new B());
 ec.emplace(new A(), new B(), new C());
@@ -13,9 +13,9 @@ function check(expected, got) {
         throw new Error("failed: {} != {}".format(expected, got));
     }
 }
-a = new A();
-b = new B();
-c = new C();
+var a = new A();
+var b = new B();
+var c = new C();
 check(variadicmix1(), 20);
 check(variadicmix1(a), 20);
 check(variadicmix1(a, b), 10);

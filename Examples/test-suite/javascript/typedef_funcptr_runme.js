@@ -1,7 +1,7 @@
 var typedef_funcptr = require("typedef_funcptr");
 
-a = 100;
-b = 10;
+var a = 100;
+var b = 10;
 
 if (typedef_funcptr.do_op(a, b, typedef_funcptr.addf) != 110) {
   throw new Error("addf failed");

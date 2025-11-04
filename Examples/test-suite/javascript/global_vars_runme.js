@@ -4,7 +4,7 @@ var global_vars = require("global_vars");
 // not an error
 
 global_vars.init();
-b = global_vars.b;
+var b = global_vars.b;
 if (b != "string b") {
     throw new Error("Unexpected string: " + b.toString());
 }
@@ -14,7 +14,7 @@ if (b != "a string value") {
     throw new Error("Unexpected string: " + b.toString());
 }
 
-x = global_vars.x;
+var x = global_vars.x;
 if (x != 1234) {
     throw new Error("Unexpected x: " + x.toString());
 }

@@ -1,14 +1,14 @@
 var template_typemaps_typedef = require("template_typemaps_typedef");
 
-m1 = new template_typemaps_typedef.MultimapIntA();
+var m1 = new template_typemaps_typedef.MultimapIntA();
 
-dummy_pair = m1.make_dummy_pair();
-val = m1.typemap_test(dummy_pair).val;
+var dummy_pair = m1.make_dummy_pair();
+var val = m1.typemap_test(dummy_pair).val;
 if (val != 1234) {
     throw new Error("typemaps not working");
 }
 
-m2 = new template_typemaps_typedef.MultimapAInt();
+var m2 = new template_typemaps_typedef.MultimapAInt();
 
 // TODO: typemaps and specializations not quite working as expected. T needs expanding, but at least the right typemap is being picked up.
 //dummy_pair = m2.make_dummy_pair()

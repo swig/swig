@@ -1,6 +1,6 @@
 var overload_extend2 = require("overload_extend2");
 
-f = new overload_extend2.Foo();
+var f = new overload_extend2.Foo();
 if (f.test(3) != 1) {
     throw new Error;
 }
