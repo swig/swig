@@ -156,6 +156,7 @@ Examples/java/*/*.java
 Examples/java/doxygen/javadocs
 
 # Javascript
+Examples/javascript/*/*.quick.js
 Examples/test-suite/javascript/*/
 *.gyp
 

@@ -1,4 +1,5 @@
-var test = require("argcargvtest");
+var argcargvtest = require("argcargvtest");
+var test = argcargvtest;
 
 const largs = ["hi", "hola", "hello"];
 if (test.mainc(largs) != 3)
@@ -12,7 +13,7 @@ if (test.mainv(targs, 1) != "hola")
 if (test.mainv(targs, 2) != "<<NULL>>")
    throw "calling mainv failed";
 
-caughtException = false;
+var caughtException = false;
 try {
    test.mainv("hello", 1);
 } catch (err) {

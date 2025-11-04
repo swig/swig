@@ -1,16 +1,16 @@
 var li_std_auto_ptr = require("li_std_auto_ptr");
 
 var checkCount = function(expected_count) {
-  actual_count = li_std_auto_ptr.Klass.getTotal_count();
+  let actual_count = li_std_auto_ptr.Klass.getTotal_count();
   if (actual_count != expected_count)
     throw new Error("Counts incorrect, expected:" + expected_count + " actual:" + actual_count);
 }
 
 // Test raw pointer handling involving virtual inheritance
 {
-  kini = new li_std_auto_ptr.KlassInheritance("KlassInheritanceInput");
+  let kini = new li_std_auto_ptr.KlassInheritance("KlassInheritanceInput");
   checkCount(1);
-  s = li_std_auto_ptr.useKlassRawPtr(kini);
+  let s = li_std_auto_ptr.useKlassRawPtr(kini);
   if (s !== "KlassInheritanceInput")
     throw new Error("Incorrect string: " + s);
   // delete kini;
@@ -22,9 +22,9 @@ var checkCount = function(expected_count) {
 
 // auto_ptr as input
 {
-  kin = new li_std_auto_ptr.Klass("KlassInput");
+  let kin = new li_std_auto_ptr.Klass("KlassInput");
   checkCount(1);
-  s = li_std_auto_ptr.takeKlassAutoPtr(kin);
+  let s = li_std_auto_ptr.takeKlassAutoPtr(kin);
   checkCount(0);
   if (s !== "KlassInput")
     throw new Error("Incorrect string: " + s);
@@ -35,15 +35,15 @@ var checkCount = function(expected_count) {
 }
 
 {
-  kin = new li_std_auto_ptr.Klass("KlassInput");
+  let kin = new li_std_auto_ptr.Klass("KlassInput");
   checkCount(1);
-  s = li_std_auto_ptr.takeKlassAutoPtr(kin);
+  let s = li_std_auto_ptr.takeKlassAutoPtr(kin);
   checkCount(0);
   if (s !== "KlassInput")
     throw new Error("Incorrect string: " + s);
   if (!li_std_auto_ptr.is_nullptr(kin))
     throw new Error("is_nullptr failed");
-  exception_thrown = false;
+  let exception_thrown = false;
   try {
     li_std_auto_ptr.takeKlassAutoPtr(kin);
   } catch (e) {
@@ -58,9 +58,9 @@ var checkCount = function(expected_count) {
 }
 
 {
-  kin = new li_std_auto_ptr.Klass("KlassInput");
-  exception_thrown = false;
-  notowned = li_std_auto_ptr.get_not_owned_ptr(kin);
+  let kin = new li_std_auto_ptr.Klass("KlassInput");
+  let exception_thrown = false;
+  let notowned = li_std_auto_ptr.get_not_owned_ptr(kin);
   try {
     li_std_auto_ptr.takeKlassAutoPtr(notowned);
   } catch (e) {
@@ -78,9 +78,9 @@ var checkCount = function(expected_count) {
 }
 
 {
-  kini = new li_std_auto_ptr.KlassInheritance("KlassInheritanceInput");
+  let kini = new li_std_auto_ptr.KlassInheritance("KlassInheritanceInput");
   checkCount(1);
-  s = li_std_auto_ptr.takeKlassAutoPtr(kini);
+  let s = li_std_auto_ptr.takeKlassAutoPtr(kini);
   checkCount(0);
   if (s !== "KlassInheritanceInput")
     throw new Error("Incorrect string: " + s);
@@ -105,11 +105,11 @@ checkCount(0);
 
 
 // auto_ptr as output
-k1 = li_std_auto_ptr.makeKlassAutoPtr("first");
+var k1 = li_std_auto_ptr.makeKlassAutoPtr("first");
 if (k1.getLabel() !== "first")
   throw new Error("wrong object label");
 
-k2 = li_std_auto_ptr.makeKlassAutoPtr("second");
+var k2 = li_std_auto_ptr.makeKlassAutoPtr("second");
 checkCount(2);
 
 // delete k1;

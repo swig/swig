@@ -21,7 +21,7 @@ try {
 
 c = null;
 s = null;
-e = null;
+//e = null;
 
 /* FIXME: Garbage collection needs to happen before this check will work.
 if (swig_exception.Shape.nshapes != 0) {

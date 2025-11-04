@@ -1,16 +1,16 @@
 var cpp11_std_unique_ptr = require("cpp11_std_unique_ptr");
 
 var checkCount = function(expected_count) {
-  actual_count = cpp11_std_unique_ptr.Klass.getTotal_count();
+  let actual_count = cpp11_std_unique_ptr.Klass.getTotal_count();
   if (actual_count != expected_count)
     throw new Error("Counts incorrect, expected:" + expected_count + " actual:" + actual_count);
 }
 
 // Test raw pointer handling involving virtual inheritance
 {
-  kini = new cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput");
+  let kini = new cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput");
   checkCount(1);
-  s = cpp11_std_unique_ptr.useKlassRawPtr(kini);
+  let s = cpp11_std_unique_ptr.useKlassRawPtr(kini);
   if (s !== "KlassInheritanceInput")
     throw new Error("Incorrect string: " + s);
   // delete kini;
@@ -23,9 +23,9 @@ var checkCount = function(expected_count) {
 ///// INPUT BY VALUE /////
 // unique_ptr as input
 {
-  kin = new cpp11_std_unique_ptr.Klass("KlassInput");
+  let kin = new cpp11_std_unique_ptr.Klass("KlassInput");
   checkCount(1);
-  s = cpp11_std_unique_ptr.takeKlassUniquePtr(kin);
+  let s = cpp11_std_unique_ptr.takeKlassUniquePtr(kin);
   checkCount(0);
   if (s !== "KlassInput")
     throw new Error("Incorrect string: " + s);
@@ -36,15 +36,15 @@ var checkCount = function(expected_count) {
 }
 
 {
-  kin = new cpp11_std_unique_ptr.Klass("KlassInput");
+  let kin = new cpp11_std_unique_ptr.Klass("KlassInput");
   checkCount(1);
-  s = cpp11_std_unique_ptr.takeKlassUniquePtr(kin);
+  let s = cpp11_std_unique_ptr.takeKlassUniquePtr(kin);
   checkCount(0);
   if (s !== "KlassInput")
     throw new Error("Incorrect string: " + s);
   if (!cpp11_std_unique_ptr.is_nullptr(kin))
     throw new Error("is_nullptr failed");
-  exception_thrown = false;
+  let exception_thrown = false;
   try {
     cpp11_std_unique_ptr.takeKlassUniquePtr(kin);
   } catch (e) {
@@ -59,9 +59,9 @@ var checkCount = function(expected_count) {
 }
 
 {
-  kin = new cpp11_std_unique_ptr.Klass("KlassInput");
-  exception_thrown = false;
-  notowned = cpp11_std_unique_ptr.get_not_owned_ptr(kin);
+  let kin = new cpp11_std_unique_ptr.Klass("KlassInput");
+  let exception_thrown = false;
+  let notowned = cpp11_std_unique_ptr.get_not_owned_ptr(kin);
   try {
     cpp11_std_unique_ptr.takeKlassUniquePtr(notowned);
   } catch (e) {
@@ -79,9 +79,9 @@ var checkCount = function(expected_count) {
 }
 
 {
-  kini = new cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput");
+  let kini = new cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput");
   checkCount(1);
-  s = cpp11_std_unique_ptr.takeKlassUniquePtr(kini);
+  let s = cpp11_std_unique_ptr.takeKlassUniquePtr(kini);
   checkCount(0);
   if (s !== "KlassInheritanceInput")
     throw new Error("Incorrect string: " + s);
@@ -108,9 +108,9 @@ checkCount(0);
 ///// INPUT BY RVALUE REF /////
 // unique_ptr as input
 {
-  kin = new cpp11_std_unique_ptr.Klass("KlassInput");
+  let kin = new cpp11_std_unique_ptr.Klass("KlassInput");
   checkCount(1);
-  s = cpp11_std_unique_ptr.moveKlassUniquePtr(kin);
+  let s = cpp11_std_unique_ptr.moveKlassUniquePtr(kin);
   checkCount(0);
   if (s !== "KlassInput")
     throw new Error("Incorrect string: " + s);
@@ -121,15 +121,15 @@ checkCount(0);
 }
 
 {
-  kin = new cpp11_std_unique_ptr.Klass("KlassInput");
+  let kin = new cpp11_std_unique_ptr.Klass("KlassInput");
   checkCount(1);
-  s = cpp11_std_unique_ptr.moveKlassUniquePtr(kin);
+  let s = cpp11_std_unique_ptr.moveKlassUniquePtr(kin);
   checkCount(0);
   if (s !== "KlassInput")
     throw new Error("Incorrect string: " + s);
   if (!cpp11_std_unique_ptr.is_nullptr(kin))
     throw new Error("is_nullptr failed");
-  exception_thrown = false;
+  let exception_thrown = false;
   try {
     cpp11_std_unique_ptr.moveKlassUniquePtr(kin);
   } catch (e) {
@@ -144,9 +144,9 @@ checkCount(0);
 }
 
 {
-  kin = new cpp11_std_unique_ptr.Klass("KlassInput");
-  exception_thrown = false;
-  notowned = cpp11_std_unique_ptr.get_not_owned_ptr(kin);
+  let kin = new cpp11_std_unique_ptr.Klass("KlassInput");
+  let exception_thrown = false;
+  let notowned = cpp11_std_unique_ptr.get_not_owned_ptr(kin);
   try {
     cpp11_std_unique_ptr.moveKlassUniquePtr(notowned);
   } catch (e) {
@@ -164,9 +164,9 @@ checkCount(0);
 }
 
 {
-  kini = new cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput");
+  let kini = new cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput");
   checkCount(1);
-  s = cpp11_std_unique_ptr.moveKlassUniquePtr(kini);
+  let s = cpp11_std_unique_ptr.moveKlassUniquePtr(kini);
   checkCount(0);
   if (s !== "KlassInheritanceInput")
     throw new Error("Incorrect string: " + s);
@@ -193,9 +193,9 @@ checkCount(0);
 ///// INPUT BY NON-CONST LVALUE REF /////
 // unique_ptr as input
 {
-  kin = new cpp11_std_unique_ptr.Klass("KlassInput");
+  let kin = new cpp11_std_unique_ptr.Klass("KlassInput");
   checkCount(1);
-  s = cpp11_std_unique_ptr.moveRefKlassUniquePtr(kin);
+  let s = cpp11_std_unique_ptr.moveRefKlassUniquePtr(kin);
   checkCount(0);
   if (s !== "KlassInput")
     throw new Error("Incorrect string: " + s);
@@ -206,15 +206,15 @@ checkCount(0);
 }
 
 {
-  kin = new cpp11_std_unique_ptr.Klass("KlassInput");
+  let kin = new cpp11_std_unique_ptr.Klass("KlassInput");
   checkCount(1);
-  s = cpp11_std_unique_ptr.moveRefKlassUniquePtr(kin);
+  let s = cpp11_std_unique_ptr.moveRefKlassUniquePtr(kin);
   checkCount(0);
   if (s !== "KlassInput")
     throw new Error("Incorrect string: " + s);
   if (!cpp11_std_unique_ptr.is_nullptr(kin))
     throw new Error("is_nullptr failed");
-  exception_thrown = false;
+  let exception_thrown = false;
   try {
     cpp11_std_unique_ptr.moveRefKlassUniquePtr(kin);
   } catch (e) {
@@ -229,9 +229,9 @@ checkCount(0);
 }
 
 {
-  kin = new cpp11_std_unique_ptr.Klass("KlassInput");
-  exception_thrown = false;
-  notowned = cpp11_std_unique_ptr.get_not_owned_ptr(kin);
+  let kin = new cpp11_std_unique_ptr.Klass("KlassInput");
+  let exception_thrown = false;
+  let notowned = cpp11_std_unique_ptr.get_not_owned_ptr(kin);
   try {
     cpp11_std_unique_ptr.moveRefKlassUniquePtr(notowned);
   } catch (e) {
@@ -249,9 +249,9 @@ checkCount(0);
 }
 
 {
-  kini = new cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput");
+  let kini = new cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput");
   checkCount(1);
-  s = cpp11_std_unique_ptr.moveRefKlassUniquePtr(kini);
+  let s = cpp11_std_unique_ptr.moveRefKlassUniquePtr(kini);
   checkCount(0);
   if (s !== "KlassInheritanceInput")
     throw new Error("Incorrect string: " + s);
@@ -278,9 +278,9 @@ checkCount(0);
 ///// INPUT BY CONST LVALUE REF /////
 // unique_ptr as input
 {
-  kin = new cpp11_std_unique_ptr.Klass("KlassInput");
+  let kin = new cpp11_std_unique_ptr.Klass("KlassInput");
   checkCount(1);
-  s = cpp11_std_unique_ptr.useRefKlassUniquePtr(kin);
+  let s = cpp11_std_unique_ptr.useRefKlassUniquePtr(kin);
   checkCount(1);
   if (s !== "KlassInput")
     throw new Error("Incorrect string: " + s);
@@ -291,9 +291,9 @@ checkCount(0);
 }
 
 {
-  kini = new cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput");
+  let kini = new cpp11_std_unique_ptr.KlassInheritance("KlassInheritanceInput");
   checkCount(1);
-  s = cpp11_std_unique_ptr.useRefKlassUniquePtr(kini);
+  let s = cpp11_std_unique_ptr.useRefKlassUniquePtr(kini);
   checkCount(1);
   if (s !== "KlassInheritanceInput")
     throw new Error("Incorrect string: " + s);
@@ -312,7 +312,7 @@ if (cpp11_std_unique_ptr.useRefOverloadTest() != 0)
   throw new RuntimeException("useRefOverloadTest failed");
 if (cpp11_std_unique_ptr.useRefOverloadTest(null) != 1)
   throw new RuntimeException("useRefOverloadTest failed");
-kin = new cpp11_std_unique_ptr.Klass("over")
+var kin = new cpp11_std_unique_ptr.Klass("over")
 if (cpp11_std_unique_ptr.useRefOverloadTest(kin) != 1)
   throw new RuntimeException("useRefOverloadTest failed");
 checkCount(1);
@@ -323,11 +323,11 @@ checkCount(0);
 
 
 // unique_ptr as output
-k1 = cpp11_std_unique_ptr.makeKlassUniquePtr("first");
+var k1 = cpp11_std_unique_ptr.makeKlassUniquePtr("first");
 if (k1.getLabel() !== "first")
   throw new Error("wrong object label");
 
-k2 = cpp11_std_unique_ptr.makeKlassUniquePtr("second");
+var k2 = cpp11_std_unique_ptr.makeKlassUniquePtr("second");
 checkCount(2);
 
 // delete k1;

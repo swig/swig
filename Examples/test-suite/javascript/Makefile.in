@@ -9,6 +9,8 @@ SCRIPTSUFFIX = _runme.js
 OBJEXT = @OBJEXT@
 SO = @SO@
 GYP_CXXFLAGS = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ -I$(shell npm config get prefix)/lib/node_modules/node-addon-api
+QUICKJS = @JSQUICKJSBIN@
+QSCRIPTSUFFIX = _runme.quick.js
 
 HAVE_CXX11   = @HAVE_CXX11@
 HAVE_CXX14   = @HAVE_CXX14@
@@ -46,8 +48,12 @@ else
 ifneq (, @JSV8ENABLED@)
     JSENGINE=v8
 else
+ifneq (, @JSQUICKJSENABLED@)
+    JSENGINE=quickjs
+else
     # Shouldn't happen, but avoid empty value if it does.
     JSENGINE=node
+endif
 endif
 endif
 endif
@@ -58,12 +64,24 @@ include $(srcdir)/../common.mk
 # Ensure testsuite remains free from SWIG warnings.
 SWIGOPT += -Werror
 
+ifeq (quickjs, $(JSENGINE))
+_setup = \
+	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $* (with run test)" ; \
+	  sed -e "/require/ s/'/\"/g" $(srcdir)/$*$(SCRIPTSUFFIX) | \
+	  sed -e 's/^var\s*\([a-zA-Z0-9_]*\)\s*=\s*\brequire\b("\([^"]*\).*/import {\2} from "\2.so"\nif("\1" != "\2")\n  var \1 = \2;/g' \
+			-e 's/\bdelete\b\s*\([^;]*\)/\1 = null/g'  >$(srcdir)/$*$(QSCRIPTSUFFIX); \
+	else  \
+	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;     \
+	fi;
+else
 _setup = \
 	if [ -f $(SCRIPTDIR)/$(SCRIPTPREFIX)$*$(SCRIPTSUFFIX) ]; then	  \
 	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $* (with run test)" ; \
 	else								  \
 	  $(ECHO_PROGRESS) "$(ACTION)ing $(LANGUAGE) ($(JSENGINE)) testcase $*" ;     \
 	fi;
+endif
 
 SWIGOPT += -$(JSENGINE)
 
@@ -138,10 +156,18 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 
 else
 
+ifeq (quickjs, $(JSENGINE))
+	run_testcase = \
+		if [ -f $(srcdir)/$*$(QSCRIPTSUFFIX) ]; then \
+		  $(RUNTOOL) $(QUICKJS) $(srcdir)/$*$(QSCRIPTSUFFIX); \
+		  $(RM) $(srcdir)/$*$(QSCRIPTSUFFIX); \
+		fi
+else
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
 		  $(RUNTOOL) $(top_builddir)/Tools/javascript/javascript -$(JSENGINE) $(srcdir)/$*$(SCRIPTSUFFIX); \
 		fi
+endif
 
   %.ctest:
 		$(_setup)

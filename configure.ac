@@ -1368,6 +1368,67 @@ else
     esac
   fi
 
+  #----------------------------------------------------------------
+  # Look for QuickJS settings (JSQUICKJSINCDIR, JSQUICKJSBIN)
+  #----------------------------------------------------------------
+
+  # check for include files
+  AC_MSG_CHECKING(for QuickJS Javascript quickjs.h)
+  AC_ARG_WITH(jsquickjsinc, [  --with-jsquickjsinc=path     Set location of Javascript QuickJS include directory], [JSQUICKJSINCDIR="$withval"], [JSQUICKJSINCDIR=])
+
+  # if include dir is not specified we try to find it
+  if test -z "$JSQUICKJSINCDIR"; then
+    # Add in default directory for QuickJS headers for Linux
+    case $host in
+    *-*-linux*)
+      JSQUICKJSINCDIR="/usr/include/quickjs /usr/include /usr/local/include/quickjs /usr/local/include"
+      ;;
+    esac
+  fi
+
+  for d in $JSQUICKJSINCDIR ; do
+    if test -r "$d/quickjs.h" ; then
+      JSQUICKJSINCDIR=$d
+      JSQUICKJSINC="-I$d -D_GNU_SOURCE -fwrapv -DJS_SHARED_LIBRARY"
+      break
+    fi
+  done
+
+  JSQUICKJSBIN=
+  JSQUICKJSENABLED=
+  if test "$JSQUICKJSINC" = "" ; then
+    AC_MSG_RESULT(not found)
+  else
+    AC_MSG_RESULT($JSQUICKJSINCDIR)
+
+    # check for QuickJS binary 'qjs'
+    AC_MSG_CHECKING(for QuickJS Javascript executable)
+    AC_ARG_WITH(jsquickjsbin,[  --with-jsquickjsbin=path     Set location of QuickJS Javascript executable],[JSQUICKJSBIN="$withval"], [JSQUICKJSBIN=])
+    # if binary path is not specified we try to find it
+    if test -z "$JSQUICKJSBIN"; then
+      # Add in default directory for QuickJS headers for Linux
+      case $host in
+      *-*-linux*)
+        JSQUICKJSBIN="/usr/bin/qjs /usr/local/bin/qjs"
+        ;;
+      esac
+    fi
+
+    for d in $JSQUICKJSBIN ; do
+      if test -x "$d" ; then
+        JSQUICKJSBIN=$d
+        break
+      fi
+    done
+    
+    if test -x "$JSQUICKJSBIN" ; then
+      JSQUICKJSENABLED=1
+      AC_MSG_RESULT($JSQUICKJSBIN)
+    else
+      AC_MSG_RESULT(not found)
+    fi
+  fi
+
 fi
 
 AC_SUBST(JSINTERPRETERCXX)
@@ -1378,9 +1439,12 @@ AC_SUBST(JSCOREDYNAMICLINKING)
 AC_SUBST(JSCOREVERSION)
 AC_SUBST(JSV8INC)
 AC_SUBST(JSV8DYNAMICLINKING)
+AC_SUBST(JSQUICKJSINC)
+AC_SUBST(JSQUICKJSBIN)
 
 AC_SUBST(JSCENABLED)
 AC_SUBST(JSV8ENABLED)
+AC_SUBST(JSQUICKJSENABLED)
 
 AC_SUBST(NODEJS)
 AC_SUBST(NODEGYP)
@@ -2654,7 +2718,7 @@ AC_SUBST(SKIP_JAVA)
 
 
 SKIP_JAVASCRIPT=
-if test -z "$JAVASCRIPT" || { test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" && test -z "$JSNAPIENABLED" ; } ; then
+if test -z "$JAVASCRIPT" || { test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" && test -z "$JSNAPIENABLED" && test -z "$JSQUICKJSENABLED" ; } ; then
     SKIP_JAVASCRIPT="1"
 fi
 AC_SUBST(SKIP_JAVASCRIPT)
