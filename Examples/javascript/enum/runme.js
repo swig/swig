@@ -21,7 +21,7 @@ example.enum_test(example.GREEN, example.Foo.LUDICROUS);
 example.enum_test(1234,5678);
 
 console.log("\nTesting use of enum with class method");
-f = new example.Foo();
+var f = new example.Foo();
 
 f.enum_test(example.Foo.IMPULSE);
 f.enum_test(example.Foo.WARP);

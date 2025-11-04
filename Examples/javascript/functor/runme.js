@@ -1,13 +1,13 @@
 var example = require("example");
 
-a = new example.intSum(1);
-b = new example.doubleSum(100.0);
-c = new example.intSum();
+var a = new example.intSum(1);
+var b = new example.doubleSum(100.0);
+var c = new example.intSum();
 
 // Use the objects.  They should be callable just like a normal
 // javascript function.
 
-for (i=1;i<=100;i++) {
+for (let i=1;i<=100;i++) {
     a.call(i);                // Note: function call
     b.call(Math.sqrt(i));     // Note: function call
     c.call(i);

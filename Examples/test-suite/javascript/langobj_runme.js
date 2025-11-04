@@ -1,7 +1,7 @@
 var langobj = require("langobj");
 
-x = "hello";
-v = langobj.identity(x);
+var x = "hello";
+var v = langobj.identity(x);
 if (v !== x) {
     throw new Error;
 }

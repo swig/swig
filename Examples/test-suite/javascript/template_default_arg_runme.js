@@ -1,11 +1,11 @@
 var template_default_arg = require("template_default_arg");
 
 
-helloInt = new template_default_arg.Hello_int();
+var helloInt = new template_default_arg.Hello_int();
 helloInt.foo(template_default_arg.Hello_int.hi);
 
 
-x = new template_default_arg.X_int();
+var x = new template_default_arg.X_int();
 if ((x.meth(20, 200) != 200)) {
     throw new Error(("X_int test 1 failed"));
 }
@@ -17,7 +17,7 @@ if ((x.meth() != 0)) {
 }
 
 
-y = new template_default_arg.Y_unsigned();
+var y = new template_default_arg.Y_unsigned();
 if ((y.meth(20.0, 200) != 200)) {
     throw new Error(("Y_unsigned test 1 failed"));
 }
@@ -51,9 +51,9 @@ y.meth(new template_default_arg.Hello_int());
 y.meth();
 
 
-fz = new template_default_arg.Foo_Z_8();
+var fz = new template_default_arg.Foo_Z_8();
 x = new template_default_arg.X_Foo_Z_8();
-fzc = x.meth(fz);
+var fzc = x.meth(fz);
 
 
 // Templated functions

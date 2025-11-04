@@ -1,7 +1,7 @@
 var cpp11_move_typemaps = require("cpp11_move_typemaps");
 
 cpp11_move_typemaps.Counter.reset_counts();
-mo = new cpp11_move_typemaps.MoveOnly(111);
+var mo = new cpp11_move_typemaps.MoveOnly(111);
 cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 0, 0, 0);
 cpp11_move_typemaps.MoveOnly.take(mo);
 cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 1, 0, 2);
@@ -18,7 +18,7 @@ cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 1, 0, 2);
 
 mo = new cpp11_move_typemaps.MoveOnly(222);
 cpp11_move_typemaps.MoveOnly.take(mo);
-exception_thrown = false;
+var exception_thrown = false;
 try {
   cpp11_move_typemaps.MoveOnly.take(mo);
 } catch (e) {
@@ -31,7 +31,7 @@ if (!exception_thrown)
 
 
 cpp11_move_typemaps.Counter.reset_counts();
-imt = new cpp11_move_typemaps.InstanceMethodsTester();
+var imt = new cpp11_move_typemaps.InstanceMethodsTester();
 
 mo = new cpp11_move_typemaps.MoveOnly(333);
 cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 0, 0, 0);
@@ -42,7 +42,7 @@ delete mo;
 cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 1, 0, 2);
 cpp11_move_typemaps.Counter.reset_counts();
 
-mc = new cpp11_move_typemaps.MovableCopyable(444);
+var mc = new cpp11_move_typemaps.MovableCopyable(444);
 cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 0, 0, 0);
 imt.instance_take_movable_copyable(mc);
 cpp11_move_typemaps.Counter.check_counts(1, 0, 0, 1, 0, 2);

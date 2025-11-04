@@ -8,8 +8,8 @@ if (overload_simple.foo("hello") != "foo:char *") {
     throw new Error("foo(char *)");
 }
 
-f = new overload_simple.Foo();
-b = new overload_simple.Bar();
+var f = new overload_simple.Foo();
+var b = new overload_simple.Bar();
 
 if (overload_simple.foo(f) != "foo:Foo *") {
     throw new Error("foo(Foo *)");
@@ -19,13 +19,13 @@ if (overload_simple.foo(b) != "foo:Bar *") {
     throw new Error("foo(Bar *)");
 }
 
-v = overload_simple.malloc_void(32);
+var v = overload_simple.malloc_void(32);
 
 if (overload_simple.foo(v) != "foo:void *") {
     throw new Error("foo(void *)");
 }
 
-s = new overload_simple.Spam();
+var s = new overload_simple.Spam();
 
 if (s.foo(3) != "foo:int") {
     throw new Error("Spam::foo(int)");
@@ -101,5 +101,5 @@ if (s.type != "void *") {
 
 overload_simple.free_void(v);
 
-a = new overload_simple.ClassA();
+var a = new overload_simple.ClassA();
 b = a.method1(1);

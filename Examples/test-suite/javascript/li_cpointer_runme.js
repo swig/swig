@@ -1,7 +1,7 @@
 var li_cpointer = require("li_cpointer");
 
 
-p = li_cpointer.new_intp();
+var p = li_cpointer.new_intp();
 
 if (li_cpointer.intp_value(p) != 0) {
     throw new Error("not initialized");

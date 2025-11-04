@@ -2,9 +2,9 @@ var example = require("example");
 
 /* Call our gcd() function */
 
-x = 42;
-y = 105;
-g = example.gcd(x,y);
+var x = 42;
+var y = 105;
+var g = example.gcd(x,y);
 console.log("GCD of x and y is=" + g);
 
 /* Manipulate the Foo global variable */

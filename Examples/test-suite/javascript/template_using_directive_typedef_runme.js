@@ -1,8 +1,8 @@
 var template_using_directive_typedef = require("template_using_directive_typedef")
 
-vo = new template_using_directive_typedef.Vector_Obj();
+var vo = new template_using_directive_typedef.Vector_Obj();
 
-h = new template_using_directive_typedef.Holder();
+var h = new template_using_directive_typedef.Holder();
 h.holder_use1(vo, vo, vo);
 h.holder_use2(vo, vo, vo);
 h.holder_use3(vo, vo, vo);

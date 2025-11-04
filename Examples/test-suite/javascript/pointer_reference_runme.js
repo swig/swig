@@ -1,11 +1,11 @@
 var pointer_reference = require("pointer_reference");
 
-s = pointer_reference.get();
+var s = pointer_reference.get();
 if (s.value != 10) {
     throw new Error("get test failed");
 }
 
-ss = new pointer_reference.Struct(20);
+var ss = new pointer_reference.Struct(20);
 pointer_reference.set(ss);
 if (pointer_reference.Struct.instance.value != 20) {
     throw new Error("set test failed");

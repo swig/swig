@@ -1,6 +1,6 @@
 var cpp11_ref_qualifiers = require("cpp11_ref_qualifiers");
 
-h = new cpp11_ref_qualifiers.Host();
+var h = new cpp11_ref_qualifiers.Host();
 
 // Basic testing
 h.h1();
@@ -11,7 +11,7 @@ h.h7();
 h.h();
 
 // %feature testing
-f = new cpp11_ref_qualifiers.Features();
+var f = new cpp11_ref_qualifiers.Features();
 if (f.F1() != "F1") {
     throw new Error("Fail");
 }
@@ -33,7 +33,7 @@ if (f.C3(0) != "C3") {
 }
 
 // %rename testing
-r = new cpp11_ref_qualifiers.Renames();
+var r = new cpp11_ref_qualifiers.Renames();
 r.RR1();
 r.RR2();
 r.RR3();
@@ -43,9 +43,9 @@ r.SS2(0);
 r.SS3(0);
 
 // Conversion operators
-co = new cpp11_ref_qualifiers.ConversionOperators();
-s = co.StringConvertCopy();
+var co = new cpp11_ref_qualifiers.ConversionOperators();
+var s = co.StringConvertCopy();
 s = co.StringConvertMove();
 
-co2 = new cpp11_ref_qualifiers.ConversionOperators2();
+var co2 = new cpp11_ref_qualifiers.ConversionOperators2();
 s = co2.StringConvertMove();

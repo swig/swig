@@ -10,7 +10,7 @@ global_functions.global_void();
 check(global_functions.global_one(1), 1);
 check(global_functions.global_two(2, 2), 4);
 
-fail = true;
+var fail = true;
 try {
     global_functions.global_void(1);
 } catch (e) {

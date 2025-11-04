@@ -1,7 +1,7 @@
 var template_extend1 = require("template_extend1");
 
-a = new template_extend1.lBaz();
-b = new template_extend1.dBaz();
+var a = new template_extend1.lBaz();
+var b = new template_extend1.dBaz();
 
 if (a.foo() != "lBaz::foo") {
     throw new Error;

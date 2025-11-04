@@ -4,14 +4,14 @@ var { Op } = operator_overload;
 // first check all the operators are implemented correctly from pure C++ code
 Op.sanity_check();
 
-pop = (new Op(6)).Divide(new Op(3));
+var pop = (new Op(6)).Divide(new Op(3));
 
 // test routine
-a = new Op();
-b = new Op(5);
-c = new Op(b); // copy construct
-d = new Op(2);
-dd = new Op();
+var a = new Op();
+var b = new Op(5);
+var c = new Op(b); // copy construct
+var d = new Op(2);
+var dd = new Op();
 dd.Equal(d); // assignment operator
 
 // test equality
@@ -49,7 +49,7 @@ if (!b.GreaterThanEqual(d)) {
 }
 
 // test +=
-e = new Op(3);
+var e = new Op(3);
 e.PlusEqual(d);
 if (!e.EqualEqual(b)) {
   throw new Error(`e==b (${e.i}==${b.i})`);
@@ -73,8 +73,8 @@ if (!e.EqualEqual(d)) {
 }
 
 // test +
-f = new Op(1);
-g = new Op(1);
+var f = new Op(1);
+var g = new Op(1);
 if (!f.Plus(g).EqualEqual(new Op(2))) {
   throw new Error("f+g==Op(2)");
 }
