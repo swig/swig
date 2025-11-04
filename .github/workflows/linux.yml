@@ -86,10 +86,12 @@ jobs:
         - SWIGLANG: lua
           VER: '5.3'
         - SWIGLANG: octave
-          CPPSTD: c++11
-        - SWIGLANG: octave
           os: ubuntu-22.04 # Octave 6.4.0
           CPPSTD: c++11
+        - SWIGLANG: octave
+          os: ubuntu-24.04 # Octave 8.4.0
+          CPPSTD: c++11
+          continue-on-error: true # Until testing with Octave 8.4.0 known to pass.
         - SWIGLANG: perl5
         - SWIGLANG: php
           VER: '8.0'
