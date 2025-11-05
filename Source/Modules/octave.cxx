@@ -528,11 +528,6 @@ public:
     }
     if (Equal(v, "0") || Equal(v, "NULL") || Equal(v, "nullptr"))
       return SwigType_ispointer(t) ? NewString("None") : NewString("0");
-    // FIXME: TRUE and FALSE are not standard and could be defined in other ways
-    if (Equal(v, "TRUE"))
-      return NewString("true");
-    if (Equal(v, "FALSE"))
-      return NewString("false");
     return 0;
   }
 

@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2025-11-06: olly
+	    [Octave, Ruby] #3282 `FALSE` and `TRUE` are no longer treated as
+	    aliases of `false` and `true` when generating documentation comments.
+
 2025-11-02: wsfulton
             [Go] Fix various compilation problems when wrapping rvalues references.
 
