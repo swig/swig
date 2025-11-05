@@ -8,7 +8,7 @@ Version 4.5.0 (in progress)
 ===========================
 
 2025-11-06: olly
-	    [Octave, Ruby] #3282 `FALSE` and `TRUE` are no longer treated as
+	    [Octave, Ruby] #3281 `FALSE` and `TRUE` are no longer treated as
 	    aliases of `false` and `true` when generating documentation comments.
 
 2025-11-02: wsfulton
