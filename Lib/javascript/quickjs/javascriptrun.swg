@@ -537,13 +537,13 @@ unsigned int SWIG_QuickJS_ArrayLength(JSContext *ctx, JSValue arr)
   int idx;
   assert(JS_IsArray(ctx, arr));
   
-#if defined(SWIGRUN_DEBUG) && SWIGRUN_DEBUG>=4
-  printf("SWIG_ArrayLength: %p\n", &arr);
-#endif     
   idx_val = JS_GetPropertyStr(ctx, arr, "length");
   if(JS_ToInt32(ctx, &idx, idx_val)) return 0;
   assert(idx>=0);
   JS_FreeValue(ctx, idx_val); 
+#if defined(SWIGRUN_DEBUG) && SWIGRUN_DEBUG>=6
+  printf("SWIG_ArrayLength: %d\n", idx);
+#endif     
   return idx;
 }
 
