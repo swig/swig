@@ -276,7 +276,7 @@ SWIGRUNTIME unsigned int SWIG_Hash(const char *str, unsigned int len) {
   int rem = (int)len;
 
   while (rem >= (int)sizeof(unsigned int)) {
-    k = *(unsigned int *)data;
+    memcpy(&k, data, sizeof(unsigned int));
     k += i++;
     hash ^= k;
     hash *= 171717;
