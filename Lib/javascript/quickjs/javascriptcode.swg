@@ -113,7 +113,7 @@ static void $jswrapper(JSRuntime *rt, JSValueConst this_val)
   SwigObjectData *swig_object = (SwigObjectData *)JS_GetOpaque(this_val, JS_GetClassID(this_val));
 
 #if defined(SWIGRUN_DEBUG) && SWIGRUN_DEBUG>=4
-  printf("$jswrapper: %p\n", swig_object);
+  printf("$jswrapper: %p (%p) (own=%d)\n", swig_object, swig_object->ptr, swig_object->own);  
 #endif   
   
   if(swig_object) {
@@ -122,6 +122,7 @@ static void $jswrapper(JSRuntime *rt, JSValueConst this_val)
     }
     /* remove the object data to make sure that it isn't accessed elsewhere */
     JS_SetOpaque(this_val, NULL);
+    memset(swig_object, 0, sizeof(SwigObjectData));
     js_free_rt(rt, swig_object);
   }
 }
@@ -140,7 +141,7 @@ static void $jswrapper(JSRuntime *rt, JSValueConst this_val)
   SwigObjectData *swig_object = (SwigObjectData *)JS_GetOpaque(this_val, JS_GetClassID(this_val));
 
 #if defined(SWIGRUN_DEBUG) && SWIGRUN_DEBUG>=4
-  printf("$jswrapper: %p\n", swig_object);
+  printf("$jswrapper: %p (%p) (own=%d)\n", swig_object, swig_object->ptr, swig_object->own);  
 #endif   
   
   if(swig_object) {
@@ -150,6 +151,7 @@ static void $jswrapper(JSRuntime *rt, JSValueConst this_val)
     }
     /* remove the object data to make sure that it isn't accessed elsewhere */
     JS_SetOpaque(this_val, NULL);
+    memset(swig_object, 0, sizeof(SwigObjectData));
     js_free_rt(rt, swig_object);
   }
 }
