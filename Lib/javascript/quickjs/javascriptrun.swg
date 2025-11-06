@@ -97,7 +97,7 @@ SWIGRUNTIME JSValue _wrap_SwigObject_disown(JSContext *ctx, JSValueConst this_va
   }
   
   SwigObjectData *swig_object = (SwigObjectData *)JS_GetOpaque(this_val, JS_GetClassID(this_val));
-  if(swig_object == NULL) {
+  if((swig_object == NULL) || (swig_object->magic != SWIG_OBJECT_MAGIC)) {
     return JS_ThrowTypeError(ctx, "SWIGObject_disown");
   }
 
@@ -179,6 +179,7 @@ void SwigObject_delete(JSRuntime *rt, JSValue this_val)
   printf("SwigObject_delete: %p (%s)\n", swig_object, (swig_object && swig_object->type)?SWIG_TypePrettyName(swig_object->type):"unknwon type");
 #endif  
   if (swig_object && swig_object->magic == SWIG_OBJECT_MAGIC) {
+    memset(swig_object, 0, sizeof(SwigObjectData));
     js_free_rt(rt, swig_object);
     JS_SetOpaque(this_val, NULL);
   }
@@ -217,12 +218,14 @@ SWIGRUNTIME int SWIG_QuickJS_ConvertPtr(JSContext *ctx, JSValueConst val, void**
  
   if(JS_IsObject(val)) {
     swig_object = (SwigObjectData*)JS_GetOpaque(val, JS_GetClassID(val));
-    if (swig_object == NULL) {
+    if (swig_object == NULL || swig_object->magic != SWIG_OBJECT_MAGIC) {
       return SWIG_ERROR;
     }
-    if(swig_object->magic != SWIG_OBJECT_MAGIC) {
-      return SWIG_ERROR;
-    }
+    
+#if defined(SWIGRUN_DEBUG) && SWIGRUN_DEBUG>=4
+   printf("SWIG_QuickJS_ConvertPtr: %p (%p,%s) (flags=%x) (own=%d)\n", swig_object, swig_object->ptr, type?SWIG_TypePrettyName(type):"unknown type", 
+      flags, swig_object->own);
+#endif      
     assert(ptr);
     *ptr = NULL;
     if (!type || swig_object->type == type) {
