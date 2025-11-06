@@ -12,6 +12,9 @@
 #include <errno.h>
 #include <limits.h>
 
+#ifndef SWIG_JAVASCRIPT_QUICKJS
+#define SWIG_JAVASCRIPT_QUICKJS 1
+#endif
 
 /* Max length of type name */
 #define SWIG_QUICKJS_CLASS_NAME_MAX 1024

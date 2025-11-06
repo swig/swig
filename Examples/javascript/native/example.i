@@ -39,7 +39,7 @@ int placeholder();
         return Napi::Value();
     }
 
-#elif defined(SWIGQUICKJS) /* Engine: QuickJS */
+#elif defined(SWIG_JAVASCRIPT_QUICKJS) /* Engine: QuickJS */
 
     static JSValue JavaScript_do_work(JSContext *ctx,
         JSValueConst this_val, int argc, JSValueConst argv[]) {
