@@ -145,20 +145,19 @@ JSModuleDef *SWIG_INIT(JSContext *ctx, const char *module_name)
 
 SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 {
-    JSValue globalObject;
+  JSValue globalObject;
 
-    SWIG_InitializeModule(ctx);
+  SWIG_InitializeModule(ctx);
 
 
-    /* Register helper functions at global level */
-    globalObject = JS_GetGlobalObject(ctx);
+  /* Register helper functions at global level */
+  globalObject = JS_GetGlobalObject(ctx);
 
-    JS_SetPropertyStr(ctx, globalObject, "SWIG_type", 
-        JS_NewCFunction(ctx, _wrap_SWIG_QuickJS_typename, "SWIG_type", 1));
+  /* SWIG_type: return the type of a variable (as a string) */
+  JS_SetPropertyStr(ctx, globalObject, "SWIG_type", 
+      JS_NewCFunction(ctx, _wrap_SWIG_QuickJS_typename, "SWIG_type", 1));
 
-    JS_FreeValue(ctx, globalObject);
-    
-    
+  JS_FreeValue(ctx, globalObject);
 %} /* end of %insert(init) */
 
 /* -----------------------------------------------------------------------------
