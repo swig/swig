@@ -132,6 +132,10 @@ jobs:
           VER: '3.13'
           CSTD: gnu99
         - SWIGLANG: python
+          VER: '3.13'
+          PY_ABI_VER: '3.9'
+          CSTD: gnu99
+        - SWIGLANG: python
           VER: '3.13-dbg'
           CSTD: gnu99
         - SWIGLANG: python
