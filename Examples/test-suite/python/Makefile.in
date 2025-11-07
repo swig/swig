@@ -74,7 +74,6 @@ CPP_TEST_CASES += \
 	python_moduleimport \
 	python_overload_simple_cast \
 	python_pickle \
-	python_pybuffer \
 	python_pythoncode \
 	python_richcompare \
 	python_strict_unicode \
@@ -98,6 +97,7 @@ endif
 # Test requiring python-3.11 minimum if using Py_LIMITED_API
 ifeq (1,$(PY_ABI_311))
 CPP_TEST_CASES += pyabi311_bufferinterface
+CPP_TEST_CASES += python_pybuffer
 endif
 
 
