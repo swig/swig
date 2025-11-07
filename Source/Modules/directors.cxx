@@ -46,6 +46,7 @@ String *Swig_csuperclass_call(String *base, String *method, ParmList *l) {
     else
       Printv(call, parm_name, NIL);
     Delete(pname_created);
+    Delete(rpt);
   }
   Printf(call, ")");
   return call;

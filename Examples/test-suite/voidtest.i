@@ -1,9 +1,11 @@
 %module voidtest
 
 %inline %{
+void globalfunc(void) {}
 
-void globalfunc(void) {
-}
+typedef void VOID_TP;
+typedef VOID_TP VOID_TYPE;
+void globalfunc_typedef(VOID_TYPE) {}
 
 class Foo {
 public:
@@ -13,6 +15,14 @@ public:
    static void staticmemberfunc(void) { }
 };
 
+class FooVoidTypedef {
+public:
+#if 0
+   FooVoidTypedef(VOID_TYPE) { }
+#endif
+   void memberfunc(VOID_TYPE) { }
+   static void staticmemberfunc(VOID_TYPE) { }
+};
 
 void *vfunc1(void *f) { return f; }
 void *vfunc2(Foo *f) { return f; }
