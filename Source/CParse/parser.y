@@ -407,9 +407,6 @@ static void add_symbols(Node *n) {
   String *decl;
   String *wrn = 0;
 
-  if (inclass && n) {
-    cparse_normalize_void(n);
-  }
   while (n) {
     String *symname = 0;
     String *old_prefix = 0;

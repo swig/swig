@@ -48,6 +48,32 @@ class TypePass:private Dispatcher {
     normalize(0) {
   }
 
+  /* -----------------------------------------------------------------------------
+   * normalize_void()
+   *
+   * This function is used to replace arguments of the form (void) with empty
+   * arguments in C++ class constructors and methods only (not global functions).
+   * ----------------------------------------------------------------------------- */
+
+  void normalize_void(Node *n) {
+    String *decl = Getattr(n, "decl");
+    Parm *parms = Getattr(n, "parms");
+
+    if (SwigType_isfunction(decl)) {
+      if ((ParmList_len(parms) == 1) && (SwigType_type(Getattr(parms, "type")) == T_VOID)) {
+	String *qualifiers = SwigType_pop_function_qualifiers(decl);
+	String *func = SwigType_pop_function(decl);
+	SwigType_add_function(decl, 0);
+	SwigType_push(decl, qualifiers);
+
+	Delattr(n, "parms");
+
+	Delete(func);
+	Delete(qualifiers);
+      }
+    }
+  }
+
   /* Normalize a type. Replaces type with fully qualified version */
   void normalize_type(SwigType *ty) {
     SwigType *qty;
@@ -749,6 +775,9 @@ class TypePass:private Dispatcher {
     }
 
     /* Normalize types. */
+    if (inclass) {
+      normalize_void(n);
+    }
     SwigType *ty = Getattr(n, "type");
     if (!ty) {
       return SWIG_OK;
@@ -819,6 +848,10 @@ class TypePass:private Dispatcher {
       Delattr(n, "throws");
     }
 
+    /* Normalize types. */
+    if (inclass) {
+      normalize_void(n);
+    }
     normalize_parms(Getattr(n, "parms"));
     normalize_parms(Getattr(n, "throws"));
 

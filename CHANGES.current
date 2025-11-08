@@ -7,6 +7,16 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2025-11-08: wsfulton
+            Fix handling of typedef to void in class methods/constructor's parameter
+            lists, such as:
+
+              typedef void VOID_TYPE;
+              struct S {
+                 S(VOID_TYPE);
+                 int f(VOID_TYPE) const;
+              };
+
 2025-11-06: olly
 	    [Octave, Ruby] #3281 `FALSE` and `TRUE` are no longer treated as
 	    aliases of `false` and `true` when generating documentation comments.

@@ -17,10 +17,11 @@ public:
 
 class FooVoidTypedef {
 public:
-#if 0
    FooVoidTypedef(VOID_TYPE) { }
-#endif
    void memberfunc(VOID_TYPE) { }
+   void memberfunc_const(VOID_TYPE) const { }
+   void *memberfunc_const_voidptr(VOID_TYPE) const { return 0; }
+   virtual ~FooVoidTypedef() { }
    static void staticmemberfunc(VOID_TYPE) { }
 };
 
