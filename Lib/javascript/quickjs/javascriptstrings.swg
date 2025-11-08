@@ -30,7 +30,7 @@ SWIG_QuickJS_AsCharPtrAndSize(JSContext *ctx, JSValueConst val, char** cptr, siz
       swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
       if (pchar_descriptor) {
         void* vptr = 0;
-        if (SWIG_ConvertPtr(val, &vptr, pchar_descriptor, 0) == SWIG_OK) {
+        if (SWIG_IsOK(SWIG_ConvertPtr(val, &vptr, pchar_descriptor, 0))) {
           if (cptr) *cptr = (char *) vptr;
           if (psize) *psize = vptr ? (strlen((char *)vptr) + 1) : 0;
           if (alloc) *alloc = SWIG_OLDOBJ;
