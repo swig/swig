@@ -41,7 +41,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
     }
 %#endif
     if (cptr) *cptr = cstr;
-    if (psize) *psize = len + 1;
+    if (psize) *psize = (size_t)(len + 1);
     SWIG_Py_XDECREF(bytes);
     return ret;
   } else {
@@ -63,7 +63,7 @@ SWIG_AsCharPtrAndSize(PyObject *obj, char **cptr, size_t *psize, int *alloc)
           if (alloc) *alloc = SWIG_NEWOBJ;
           *cptr = %new_copy_array(cstr, len + 1, char);
         }
-        if (psize) *psize = len + 1;
+        if (psize) *psize = (size_t)(len + 1);
 
         SWIG_Py_XDECREF(obj);
         return SWIG_OK;
