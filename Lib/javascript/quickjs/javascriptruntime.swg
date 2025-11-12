@@ -19,6 +19,17 @@
 /* Max length of type name */
 #define SWIG_QUICKJS_CLASS_NAME_MAX 1024
 
+/* Flags fr SWIGRUN_DEBUG */
+#if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG>0)
+/* additional check with 'magic' field in structures: */
+#define SWIGRUN_DEBUG_TYPECHECK 0x01
+/* trace events like throw exceptiopn: */
+#define SWIGRUN_DEBUG_TRACE     0x02
+/* trace all Ptr objects actions: NewPtr, ConvertPtr and delete: */
+#define SWIGRUN_DEBUG_PTRTRACE  0x04
+#define SWIGRUN_DEBUG_ARRAYLEN  0x80
+#endif
+
 /* macro to replace the QuickJS macros, which are not C++ compatible */
 #define SWIG_JS_CFUNC_DEF(name, length, func1) { name, length, func1 }
 #define SWIG_JS_CGETSET_DEF(name, fgetter, fsetter) { name, fgetter, fsetter }
@@ -70,7 +81,9 @@ typedef struct {
 } SWIG_QuickJS_ConstantListEntry;
 
 typedef struct {
+#if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)
   unsigned magic;
+#endif      
   const char *class_name;
   JSClassFinalizer *dtor;
   JSCFunction *ctor;

@@ -2,17 +2,22 @@
 
 /*
  * SWIG_QuickJS_createRegistries: initialize the registry objects:
- *   - class registry (needed for multiple inheritance)
- *   - generic registry (used in callbacks)
- * Theses registries are properties of a global registry "QuickJS"
+ *   - class registry (needed for multiple inheritance) (table)
+ *   - generic registry (used in callbacks) (array)
+ * These registries are properties of a global registry "QuickJS"
  * => QuickJS.class_registry, QuickJS.registry 
+ * Returns -1 in case of exception, 0 if OK.
  */ 
 SWIGINTERN int SWIG_QuickJS_createRegistries(JSContext *ctx)
 {
   JSValueConst registry, class_registry, generic_registry;
   JSValueConst globalObject;
   JSAtom atom;  
+
   globalObject = JS_GetGlobalObject(ctx);
+  if(JS_IsException(globalObject)) {
+    return -1;
+  }
   
   atom = JS_NewAtom(ctx, "QuickJS");
   if (atom == JS_ATOM_NULL) { return -1; }
@@ -44,7 +49,7 @@ SWIGINTERN int SWIG_QuickJS_createRegistries(JSContext *ctx)
   atom = JS_NewAtom(ctx, "registry");
   if (atom == JS_ATOM_NULL) { return -1; }
   if(!JS_HasProperty(ctx, registry, atom)) {
-    generic_registry = JS_NewObject(ctx);
+    generic_registry = JS_NewArray(ctx);
     if(JS_IsException(generic_registry)) return -1;
     JS_DefinePropertyValue(ctx, registry, atom, generic_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
   }
@@ -68,6 +73,9 @@ SWIGINTERN JSValueConst SWIG_QuickJS_getRegistry(JSContext *ctx)
   JSAtom atom;
 
   globalObject = JS_GetGlobalObject(ctx);
+  if(JS_IsException(globalObject)) {
+    return globalObject;
+  }
   
   atom = JS_NewAtom(ctx, "QuickJS");
   if (atom == JS_ATOM_NULL) { 
@@ -75,15 +83,19 @@ SWIGINTERN JSValueConst SWIG_QuickJS_getRegistry(JSContext *ctx)
   }
   
   global_registry = JS_GetProperty(ctx, globalObject, atom);
-  if(JS_IsException(global_registry)) return JS_EXCEPTION;
   JS_FreeAtom(ctx, atom);
+  if(JS_IsException(global_registry)) {
+    return global_registry;
+  }
   
   atom = JS_NewAtom(ctx, "registry");
   if (atom == JS_ATOM_NULL) { 
     return JS_EXCEPTION;
   }
   registry = JS_GetProperty(ctx, global_registry, atom);
-  if(JS_IsException(registry)) return JS_EXCEPTION;
+  if(JS_IsException(registry)) {
+    return registry;
+  }
 
   JS_FreeAtom(ctx, atom);
   JS_FreeValue(ctx, global_registry);
@@ -93,9 +105,82 @@ SWIGINTERN JSValueConst SWIG_QuickJS_getRegistry(JSContext *ctx)
 }
 
 /*
+ * SWIG_QuickJS_registryAdd: add a value in the generic registry
+ * Return -1 in case of exception and an integer reference
+ * if OK.
+ */
+int SWIG_QuickJS_registryAdd(JSContext *ctx, JSValueConst value)
+{
+  JSValueConst registry;
+  uint32_t idx;
+
+  registry = SWIG_QuickJS_getRegistry(ctx);
+  if(JS_IsException(registry)) { return -1; }
+  
+  idx = SWIG_QuickJS_ArrayLength(ctx, registry);
+  JS_SetPropertyUint32(ctx, registry, idx, JS_DupValue(ctx, value));
+  JS_FreeValue(ctx, registry);
+  return (int)idx;
+}
+
+/*
+ * SWIG_QuickJS_registryRemove: remove a value from the generic registry
+ * Return -1 in case of exception, 0 otherwise.
+ */
+int SWIG_QuickJS_registryRemove(JSContext *ctx, int idx)
+{
+  JSValueConst registry;
+  JSValue v;
+  JSAtom atom;
+  uint32_t len;
+
+  assert(idx >= 0);
+  registry = SWIG_QuickJS_getRegistry(ctx);
+  if(JS_IsException(registry)) { return -1; }
+  
+  len = (uint32_t)SWIG_QuickJS_ArrayLength(ctx, registry);
+  if((uint32_t)idx < len) {
+    v = JS_GetPropertyUint32(ctx, registry, (uint32_t)idx);
+    if(!(JS_IsException(v) || JS_IsNull(v) || JS_IsUndefined(v))) {
+      JS_FreeValue(ctx, v);
+    }
+    atom = JS_NewAtomUInt32(ctx, idx);
+    JS_DeleteProperty(ctx, registry, atom, 0);
+    JS_FreeAtom(ctx, atom);
+    //JS_SetPropertyUint32(ctx, registry, (uint32_t)idx, JS_UNDEFINED);
+  }
+  JS_FreeValue(ctx, registry);
+  return 0;
+}
+
+/*
+ * SWIG_QuickJS_registryGet: get a value from the generic registry
+ * Return the value (*) or an exception.
+ * (*) The returned value should be freed.
+ */
+JSValueConst SWIG_QuickJS_registryGet(JSContext *ctx, int idx)
+{
+  JSValueConst registry;
+  uint32_t len;
+  JSValueConst jsresult;
+
+  assert(idx >= 0);
+  registry = SWIG_QuickJS_getRegistry(ctx);
+  if(JS_IsException(registry)) { return registry; }
+  
+  len = (uint32_t)SWIG_QuickJS_ArrayLength(ctx, registry);
+  if((uint32_t)idx > len) {
+    return JS_ThrowRangeError(ctx, "Invalid index %d for registry", idx);
+  }
+  jsresult = JS_GetPropertyUint32(ctx, registry, (uint32_t)idx);
+  JS_FreeValue(ctx, registry);
+  return jsresult;
+}
+
+/*
  * SWIG_QuickJS_getClassRegistry: returns the instance of the
  * class registry: QuickJS.class_registry.
- * The returred value should be freed.
+ * The returned value should be freed.
  */
 SWIGINTERN JSValueConst SWIG_QuickJS_getClassRegistry(JSContext *ctx)
 {
@@ -104,6 +189,9 @@ SWIGINTERN JSValueConst SWIG_QuickJS_getClassRegistry(JSContext *ctx)
   JSAtom atom;
 
   globalObject = JS_GetGlobalObject(ctx);
+  if(JS_IsException(globalObject)) {
+    return globalObject;
+  }
   
   atom = JS_NewAtom(ctx, "QuickJS");
   if (atom == JS_ATOM_NULL) { 
@@ -111,15 +199,19 @@ SWIGINTERN JSValueConst SWIG_QuickJS_getClassRegistry(JSContext *ctx)
   }
   
   registry = JS_GetProperty(ctx, globalObject, atom);
-  if(JS_IsException(registry)) return JS_EXCEPTION;
   JS_FreeAtom(ctx, atom);
+  if(JS_IsException(registry)) {
+    return registry;
+  }
   
   atom = JS_NewAtom(ctx, "class_registry");
   if (atom == JS_ATOM_NULL) { 
     return JS_EXCEPTION;
   }
   class_registry = JS_GetProperty(ctx, registry, atom);
-  if(JS_IsException(class_registry)) { return JS_EXCEPTION; }
+  if(JS_IsException(class_registry)) {
+    return class_registry; 
+  }
 
   JS_FreeAtom(ctx, atom);
   JS_FreeValue(ctx, registry);
@@ -129,7 +221,9 @@ SWIGINTERN JSValueConst SWIG_QuickJS_getClassRegistry(JSContext *ctx)
 }
 
 /*
- * SWIG_QuickJS_classRegistryLookup: search for a class by name in the registry
+ * SWIG_QuickJS_classRegistryLookup: search for a class by name in the registry.
+ * Return the class prototype (*) or an exception.
+ * (*) The returned value should be freed.
  */
 SWIGINTERN JSValueConst SWIG_QuickJS_classRegistryLookup(JSContext *ctx, const char *class_name)
 {
@@ -156,6 +250,7 @@ SWIGINTERN JSValueConst SWIG_QuickJS_classRegistryLookup(JSContext *ctx, const c
 
 /*
  * SWIG_QuickJS_classRegistryAdd: add a prototype in the class registry
+ * Return -1 in case of exception, 0 otherwise.
  */
 SWIGINTERN int SWIG_QuickJS_classRegistryAdd(JSContext *ctx, const char *name, JSValueConst proto)
 {
@@ -204,7 +299,7 @@ SWIGINTERN int JS_registerProperties(JSContext *ctx,
   for(i=0; i<prototype_functions_num; i++) {
     /* special case: __str__ becomes toString */
     fname = prototype_functions[i].name;
-    if(!strcmp(fname, "__str__")) {
+    if((!strcmp(fname, "__str__")) || (!strcmp(fname, "__tostring"))) {
       fname = "toString";
     }
     r = JS_DefinePropertyValueStr(ctx, object,
@@ -408,7 +503,9 @@ SWIGINTERN JSValueConst SWIG_QuickJS_getBasePrototype(JSContext *ctx, const char
       if(r<0) { return JS_EXCEPTION; }
     } else {
       /* if a base is invalid or not found, it is ignored */
+#if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TRACE)
       printf("Warning: base class '%s' for '%s' not found (ignored)\n", bases[i], class_name);
+#endif      
     }
   }
   /* Register the new prototype in the class registry (as class1+class2... or similar)
@@ -435,6 +532,11 @@ SWIGINTERN int JS_registerClass(JSContext *ctx,
   JSValue ctor;
   JSClassDef def = {clsDef->class_name, clsDef->dtor, NULL, NULL, NULL};
   int r;
+  
+  /* Ensure that the dtor is defined */
+  if(clsDef->dtor == NULL) {
+    def.finalizer = SwigObject_delete;
+  }
   
   /* Create the classID and the class object */
   clsDef->class_id = 0;

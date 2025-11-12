@@ -3095,6 +3095,7 @@ private:
 
   String *NULL_STR;
   String *VETO_SET;
+  String *moduleName;
 
   // output file and major code parts
   File *f_wrap_cpp;
@@ -3128,11 +3129,11 @@ void QuickJSEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper
 
   // store number of arguments for argument checks
   // in QuickJS, the 'this' argument is a dedicated (JSValueConst this_val) parameter
-  // of the wrapped functions: therefore, it must not be counted in the 
+  // of the wrapped functions: therefore, it must not be counted in the
   // number of arguments/required arguments
   int arg_shift = 0;
   int num_args = emit_num_arguments(parms);
-  
+
   // detect if "this" is included or not
   if (is_member && mode!=Ctor && !(is_static || Strstr(Getattr(n,"storage"), "static"))) {
     arg_shift = 1;
@@ -3140,7 +3141,7 @@ void QuickJSEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper
 
   //const char *_modes[] = {"setter", "getter", "ctor", "function"};
   //String *kind = Getattr(n, "kind");
-  //Printv(stdout, "marshalInputArgs: ", Getattr(n, "sym:name"), " ", kind, " ", Getattr(n,"storage"), NIL); 
+  //Printv(stdout, "marshalInputArgs: ", Getattr(n, "sym:name"), " ", kind, " ", Getattr(n,"storage"), NIL);
   //Printf(stdout, " num_args=%d, arg_shift=%d (is_member=%d, is_static=%d, mode=%s, smartptr=%d)\n",
   //  num_args, arg_shift, is_member, is_static, _modes[mode], GetFlag(n, "allocate:smartpointeraccess"));
   //Swig_print_node(n);
@@ -3220,6 +3221,17 @@ void QuickJSEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper
 int QuickJSEmitter::initialize(Node *n) {
   JSEmitter::initialize(n);
 
+  moduleName = Getattr(n, "name");
+
+  /* don't want the 'exports' namespace, we want the global namespace to
+   * have the name of the module */
+  Delete(current_namespace);
+  Hash *global_namespace = createNamespaceEntry((const char*)Data(moduleName), 0, 0);
+
+  Setattr(namespaces, "::", global_namespace);
+  current_namespace = global_namespace;
+
+
   /* Get the output file name */
   String *outfile = Getattr(n, "outfile");
 
@@ -3254,10 +3266,9 @@ int QuickJSEmitter::initialize(Node *n) {
 }
 
 int QuickJSEmitter::dump(Node *n) {
-
   /* Get the module name */
   String *module = Getattr(n, "name");
-
+  
   Template initializer_define(getTemplate("js_initializer_define"));
   initializer_define.replace("$jsname", module).pretty_print(f_header);
 
@@ -3292,7 +3303,7 @@ int QuickJSEmitter::close() {
   return SWIG_OK;
 }
 
-int QuickJSEmitter::emitConstant(Node *n) 
+int QuickJSEmitter::emitConstant(Node *n)
 {
   // From JSEmitter::emitConstant
   // HACK: somehow it happened under Mac OS X that before everything started
@@ -3303,7 +3314,7 @@ int QuickJSEmitter::emitConstant(Node *n)
     return SWIG_ERROR;
   }
 
-  
+
   bool is_member = GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
   Template t_constant = getTemplate("quickjs_constant_declaration");
   SwigType *type = Getattr(n, "type");
@@ -3311,7 +3322,7 @@ int QuickJSEmitter::emitConstant(Node *n)
   String *iname;
   String *value = Getattr(n, "value");
   const char *qjs_type = NULL;
-  
+
   if (Equal(Getattr(n, "view"), "memberconstantHandler")) {
     iname = Getattr(n, "memberconstantHandler:sym:name");
   } else {
@@ -3337,11 +3348,11 @@ int QuickJSEmitter::emitConstant(Node *n)
     } else if (!Cmp(base, "char")) {
         qjs_type = "CHAR";
     } else if (!Cmp(base, "bool")) {
-        qjs_type = "BOOL";      
+        qjs_type = "BOOL";
     } else if (!Cmp(base, "std::string")) {
-        qjs_type = "STRING";      
+        qjs_type = "STRING";
      }
-  } 
+  }
   if(qjs_type == NULL && !Cmp(base, "char") && SwigType_ispointer(type)) {
     qjs_type = "STRING";
   }
@@ -3349,7 +3360,7 @@ int QuickJSEmitter::emitConstant(Node *n)
   /*
   if(qjs_type == NULL) {
     Printv(stdout, "QuickJSEmitter::emitConstant ", iname, " type=", type, " base=", base, "\n", NIL);
-    
+
     Printv(stdout, "\tPointer=", SwigType_ispointer(type)?"1":"0", NIL);
     Printv(stdout, " FunctionPointer=", SwigType_isfunctionpointer(type)?"1":"0", NIL);
     Printv(stdout, " MemberPointer=", SwigType_ismemberpointer(type)?"1":"0", NIL);
@@ -3372,7 +3383,7 @@ int QuickJSEmitter::emitConstant(Node *n)
   t_constant.replace("$jstype", qjs_type)
     .replace("$jsname", iname)
     .replace("$jsvalue", value);
-  
+
   if (is_member) {
     t_constant.pretty_print(state.clazz(CONSTANTS));
   } else {
@@ -3390,7 +3401,7 @@ int QuickJSEmitter::enterFunction(Node *n) {
 }
 
 int QuickJSEmitter::exitFunction(Node *n) {
-  
+
   Template t_function = getTemplate("quickjs_function_declaration");
 
   bool is_member = GetFlag(n, "ismember") != 0 || GetFlag(n, "feature:extend") != 0;
@@ -3408,7 +3419,7 @@ int QuickJSEmitter::exitFunction(Node *n) {
     }
   }
 
-  String *argcount_s; 
+  String *argcount_s;
   //Printv(stdout, "ARGCOUNT=", Getattr(n, ARGCOUNT), "\n", NIL);
   if (Getattr(n, ARGCOUNT) == NULL) {
     argcount_s = NewStringf("%d", 0);
@@ -3434,7 +3445,7 @@ int QuickJSEmitter::exitFunction(Node *n) {
 }
 
 int QuickJSEmitter::enterVariable(Node *n) {
-  
+
   JSEmitter::enterVariable(n);
   state.variable(GETTER, NULL_STR);
   state.variable(SETTER, VETO_SET);
@@ -3463,13 +3474,13 @@ int QuickJSEmitter::exitVariable(Node *n) {
 }
 
 int QuickJSEmitter::enterClass(Node *n) {
-  
+
   JSEmitter::enterClass(n);
   state.clazz(MEMBER_VARIABLES, NewString(""));
   state.clazz(MEMBER_FUNCTIONS, NewString(""));
   state.clazz(STATIC_VARIABLES, NewString(""));
   state.clazz(STATIC_FUNCTIONS, NewString(""));
-  state.clazz(CONSTANTS, NewString(""));  
+  state.clazz(CONSTANTS, NewString(""));
 
   Template t_class_decl = getTemplate("quickjs_class_declaration");
   t_class_decl.replace("$jsmangledname", state.clazz(NAME_MANGLED))
@@ -3482,9 +3493,9 @@ int QuickJSEmitter::enterClass(Node *n) {
 }
 
 int QuickJSEmitter::exitClass(Node *n) {
-  
+
   Template t_class_tables(getTemplate("quickjs_class_tables"));
-  
+
   /* prepare registration of base class(es) (multiple inheritance) */
   String *jsclass_inheritance = NewString("");
   List *baselist = Getattr(n, "bases");
@@ -3492,12 +3503,12 @@ int QuickJSEmitter::exitClass(Node *n) {
   if (baselist) {
     Iterator base = First(baselist);
     while(base.item) {
-      // pass base classes that have to be ignored 
+      // pass base classes that have to be ignored
       // XXX check or not if the base class is known (quickjs:mangledname) => see impact on trans-module inheritance?
       while (base.item && (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "quickjs:mangledname"))) {
         base = Next(base);
       }
-      if(base.item) {  
+      if(base.item) {
         Printv(jsclass_inheritance, "\"", Getattr(base.item, "quickjs:mangledname"), "\", ", NIL);
         b_num++;
         base = Next(base);
@@ -3507,7 +3518,7 @@ int QuickJSEmitter::exitClass(Node *n) {
     //  Printv(stdout, "Bases for ", state.clazz(NAME_MANGLED), ": ", jsclass_inheritance, "\n", NIL);
     //}
   }
-  
+
   t_class_tables.replace("$jsmangledname", state.clazz(NAME_MANGLED))
       .replace("$jsclassconstants", state.clazz(CONSTANTS))
       .replace("$jsclassvariables", state.clazz(MEMBER_VARIABLES))
@@ -3529,7 +3540,7 @@ int QuickJSEmitter::exitClass(Node *n) {
   /* adds a class template statement to initializer function */
   Template t_classtemplate(getTemplate("quickjs_class_definition"));
 
-#if 0  
+#if 0
   // single inheritance case
   Node *base_class = getBaseClass(n);
   if (base_class != NULL && Getattr(base_class, "quickjs:mangledname")) {
@@ -3550,7 +3561,7 @@ int QuickJSEmitter::exitClass(Node *n) {
       .replace("$jsctor", state.clazz(CTOR))
       .replace("$jsdtor", state.clazz(DTOR))
       .pretty_print(state.globals(INITIALIZER));
-#if 0 
+#if 0
   Delete(jsclass_inheritance);
 #endif
 
@@ -3568,7 +3579,7 @@ int QuickJSEmitter::exitClass(Node *n) {
 }
 
 Hash *QuickJSEmitter::createNamespaceEntry(const char *name, const char *parent, const char *parent_mangled) {
-  
+
   Hash *entry = JSEmitter::createNamespaceEntry(name, parent, parent_mangled);
   Setattr(entry, "functions", NewString(""));
   Setattr(entry, "values", NewString(""));
@@ -3600,9 +3611,9 @@ int QuickJSEmitter::emitNamespaces() {
     t_createNamespace.replace("$jsmangledname", name_mangled);
     Append(state.globals(CREATE_NAMESPACES), t_createNamespace.str());
 
-    // Don't register 'exports' as namespace. It is included in the 
+    // Don't register the global namespace as namespace. It is included in the
     // module object.
-    if (!Equal("exports", name)) {
+    if (!Equal(moduleName, name)) {
       Template t_registerNamespace(getTemplate("quickjs_nspace_registration"));
       t_registerNamespace.replace("$jsmangledname", name_mangled)
           .replace("$jsname", name)
