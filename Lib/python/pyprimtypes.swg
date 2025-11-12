@@ -141,7 +141,7 @@ SWIG_AsVal_dec(unsigned long)(PyObject *obj, unsigned long *val)
   if (PyInt_Check(obj)) {
     long v = PyInt_AsLong(obj);
     if (v >= 0) {
-      if (val) *val = v;
+      if (val) *val = (unsigned long)v;
       return SWIG_OK;
     } else {
       return SWIG_OverflowError;

@@ -24,7 +24,7 @@ extern int    gcd(int x, int y);
   if ($1 == 0) {
     SWIG_exception(SWIG_ValueError, "List must contain at least 1 element");
   }
-  $2 = (char **) malloc(($1+1)*sizeof(char *));
+  $2 = (char **) malloc((size_t)($1+1)*sizeof(char *));
   for (i = 0; i < $1; i++) {
     PyObject *s = PyList_GetItem($input,i);
 %#if PY_VERSION_HEX >= 0x03000000
@@ -82,7 +82,7 @@ extern int gcdmain(int argc, char *argv[]);
     SWIG_fail;
   }
   PyBytes_AsStringAndSize(utf8str, &cstr, &len);
-  $1 = strncpy((char *)malloc(len+1), cstr, (size_t)len);
+  $1 = strncpy((char *)malloc((size_t)(len+1)), cstr, (size_t)len);
   $2 = (int)len;
   Py_DecRef(utf8str);
 %#else
@@ -118,13 +118,13 @@ extern int count(char *bytes, int len, char c);
     SWIG_fail;
   }
   PyBytes_AsStringAndSize(utf8str, &cstr, &len);
-  $1 = strncpy((char *)malloc(len+1), cstr, (size_t)len);
+  $1 = strncpy((char *)malloc((size_t)(len+1)), cstr, (size_t)len);
   $2 = (int)len;
   Py_DecRef(utf8str);
 %#else
   $2 = (int)PyString_Size($input);
-  $1 = (char *) malloc($2+1);
-  memmove($1,PyString_AsString($input),$2);
+  $1 = (char *) malloc((size_t)($2+1));
+  memmove($1,PyString_AsString($input),(size_t)$2);
 %#endif
 }
 

@@ -23,7 +23,7 @@ SWIG_wcsnlen(const wchar_t* s, size_t maxlen)
   const wchar_t *p;
   for (p = s; maxlen-- && *p; p++)
     ;
-  return p - s;
+  return (size_t)(p - s);
 }
 }
 

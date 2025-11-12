@@ -144,7 +144,7 @@ SWIG_AsCharPtrAndSize(SEXP obj, char** cptr, size_t* psize, int *alloc)
       *cptr = %reinterpret_cast(malloc(len + 1), char *);
       *cptr = strcpy(*cptr, cstr);
     }
-    if (psize) *psize = len + 1;
+    if (psize) *psize = (size_t)(len + 1);
     return SWIG_OK;
   }
   return SWIG_TypeError;
