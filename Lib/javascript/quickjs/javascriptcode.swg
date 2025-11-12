@@ -112,7 +112,7 @@ static void $jswrapper(JSRuntime *rt, JSValueConst this_val)
 {
   SwigObjectData *swig_object = (SwigObjectData *)JS_GetOpaque(this_val, JS_GetClassID(this_val));
 
-#if defined(SWIGRUN_DEBUG) && SWIGRUN_DEBUG>=4
+#if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_PTRTRACE)
   printf("$jswrapper: %p (%p) (own=%d)\n", swig_object, swig_object->ptr, swig_object->own);  
 #endif   
   
@@ -140,7 +140,7 @@ static void $jswrapper(JSRuntime *rt, JSValueConst this_val)
 {
   SwigObjectData *swig_object = (SwigObjectData *)JS_GetOpaque(this_val, JS_GetClassID(this_val));
 
-#if defined(SWIGRUN_DEBUG) && SWIGRUN_DEBUG>=4
+#if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_PTRTRACE)
   printf("$jswrapper: %p (%p) (own=%d)\n", swig_object, swig_object->ptr, swig_object->own);  
 #endif   
   
@@ -375,7 +375,9 @@ static const char *$jsmangledname_class_bases[] = {
  * ----------------------------------------------------------------------------- */
 %fragment ("quickjs_class_definition", "templates")
 %{
+#if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)  
   $jsmangledname_class_definition.magic = SWIG_PROTOTYPE_CLASS_MAGIC;
+#endif  
   $jsmangledname_class_definition.class_name = "$jsmangledname";
   $jsmangledname_class_definition.dtor = $jsdtor;
   $jsmangledname_class_definition.ctor = $jsctor;

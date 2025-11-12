@@ -3036,6 +3036,7 @@ private:
 
   String *NULL_STR;
   String *VETO_SET;
+  String *moduleName;
 
   // output file and major code parts
   File *f_wrap_cpp;
@@ -3161,6 +3162,17 @@ void QuickJSEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper
 int QuickJSEmitter::initialize(Node *n) {
   JSEmitter::initialize(n);
 
+  moduleName = Getattr(n, "name");
+
+  /* don't want the 'exports' namespace, we want the global namespace to
+   * have the name of the module */
+  Delete(current_namespace);
+  Hash *global_namespace = createNamespaceEntry((const char*)Data(moduleName), 0, 0);
+
+  Setattr(namespaces, "::", global_namespace);
+  current_namespace = global_namespace;
+
+
   /* Get the output file name */
   String *outfile = Getattr(n, "outfile");
 
@@ -3195,7 +3207,6 @@ int QuickJSEmitter::initialize(Node *n) {
 }
 
 int QuickJSEmitter::dump(Node *n) {
-
   /* Get the module name */
   String *module = Getattr(n, "name");
 
@@ -3541,9 +3552,9 @@ int QuickJSEmitter::emitNamespaces() {
     t_createNamespace.replace("$jsmangledname", name_mangled);
     Append(state.globals(CREATE_NAMESPACES), t_createNamespace.str());
 
-    // Don't register 'exports' as namespace. It is included in the
+    // Don't register the global namespace as namespace. It is included in the
     // module object.
-    if (!Equal("exports", name)) {
+    if (!Equal(moduleName, name)) {
       Template t_registerNamespace(getTemplate("quickjs_nspace_registration"));
       t_registerNamespace.replace("$jsmangledname", name_mangled)
           .replace("$jsname", name)

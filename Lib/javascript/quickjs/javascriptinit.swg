@@ -36,9 +36,9 @@ SWIG_QuickJS_GetModule(JSContext *ctx)
     return (swig_module_info*)info;
 }
 
-#define SWIG_GetModule(clientdata)                SWIG_QuickJS_GetModule(clientdata)
-#define SWIG_SetModule(clientdata, pointer)       SWIG_QuickJS_SetModule(clientdata, pointer)
-#define SWIG_INIT_CLIENT_DATA_TYPE                JSContext*
+#define SWIG_GetModule(clientdata)                SWIG_QuickJS_GetModule((JSContext*)clientdata)
+#define SWIG_SetModule(clientdata, pointer)       SWIG_QuickJS_SetModule((JSContext*)clientdata, pointer)
+#define SWIG_INIT_CLIENT_DATA_TYPE                void*
 %}
 
 %insert(init) "swiginit.swg"
@@ -50,6 +50,9 @@ SWIG_QuickJS_GetModule(JSContext *ctx)
 %fragment ("js_initializer_define", "templates") %{
 #ifndef SWIG_INIT  
 #define SWIG_INIT js_init_module
+#endif
+#ifndef DEFAULT_NAMESPACE
+#define DEFAULT_NAMESPACE $jsname_namespace
 #endif
 %}
 
@@ -118,7 +121,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
   JS_NewClass(JS_GetRuntime(ctx), d->class_id, &class_def);
 
   /* Register the swig object class, which is the class of the instances of wrapped objects */
-  r = JS_registerClass(ctx, exports_namespace,
+  r = JS_registerClass(ctx, DEFAULT_NAMESPACE,
                           SWIG_QuickJS_swig_object_class_definition.class_name,
                           &SWIG_QuickJS_swig_object_class_definition,
                           false);
@@ -127,7 +130,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
   }
 
   /* Register the packed data class */
-  r = JS_registerClass(ctx, exports_namespace,
+  r = JS_registerClass(ctx, DEFAULT_NAMESPACE,
                           SWIG_QuickJS_packed_data_class_definition.class_name,
                           &SWIG_QuickJS_packed_data_class_definition,
                           false);
@@ -177,7 +180,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
     /* Register namespaces */
     $jsregisternamespaces
 
-    if(JS_SetModuleExport(ctx, m, "$jsname", exports_namespace)) {
+    if(JS_SetModuleExport(ctx, m, "$jsname", DEFAULT_NAMESPACE)) {
         return SWIG_ERROR;
     }
     return SWIG_OK;
