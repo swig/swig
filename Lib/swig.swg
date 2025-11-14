@@ -704,6 +704,13 @@ template <typename T> T SwigValueInit() {
 #endif
 
 #endif
+
+#if defined(__cplusplus) && (__cplusplus >=201103L)
+# define SWIG_OVERRIDE override
+#else
+# define SWIG_OVERRIDE
+#endif
+
 %}
 #endif
 
