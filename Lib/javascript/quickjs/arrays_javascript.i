@@ -66,7 +66,6 @@
 
 %typemap(out, fragment=NAME) CTYPE[ANY] {
   int length = $1_dim0;
-  JSValue values[length];
   int i;
 
   $result = JS_NewArray(ctx);
@@ -81,9 +80,59 @@
 
 JAVASCRIPT_ARRAYS_IN_DECL("SWIG_GetIntProperty", int, , SWIG_ArrayLength(array))
 JAVASCRIPT_ARRAYS_IN_DECL("SWIG_GetIntProperty", int, ANY, $1_dim0)
-JAVASCRIPT_ARRAYS_IN_DECL("SWIG_CGetNumberProperty", double, , SWIG_ArrayLength(array))
+JAVASCRIPT_ARRAYS_IN_DECL("SWIG_GetNumberProperty", double, , SWIG_ArrayLength(array))
 JAVASCRIPT_ARRAYS_IN_DECL("SWIG_GetNumberProperty", double, ANY, $1_dim0)
 
 JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_OutInt", int)
 JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_OutNumber", double)
 
+%define JAVASCRIPT_VARARRAYS_IN_DECL(NAME, CTYPE, LTYPE)
+
+%typemap(in, fragment=NAME) (CTYPE *INPUT, LTYPE) {
+  LTYPE i;
+  LTYPE length;
+  JSValue array;
+  
+  if(!JS_IsArray(ctx, $input)) {
+    SWIG_exception_fail(SWIG_ERROR, "input is not an array");
+  }  
+  array = $input;
+  length = $2;  
+  $1  = ($*1_ltype *)js_malloc(ctx, sizeof($*1_ltype) * length);
+  
+  // Get each element from array
+  for (i = 0; i < length; i++) {
+    JSValue jsvalue = JS_GetPropertyUint32(ctx, array, (uint32_t)i);
+    $*1_ltype temp;
+
+    // Get primitive value from JSObject
+    int res = SWIG_AsVal(CTYPE)(jsvalue, &temp);
+    if (!SWIG_IsOK(res)) {
+      SWIG_exception_fail(SWIG_ERROR, "Failed to convert $input to array item type");
+    }
+    arg$argnum[i] = temp;
+    JS_FreeValue(ctx, jsvalue);
+  }
+}
+
+%typemap(freearg) (CTYPE *INPUT, LTYPE) {
+    js_free(ctx, $1);
+}
+
+%enddef
+
+%define JAVASCRIPT_VARARRAYS_ARGOUT_DECL(NAME, CTYPE, LTYPE)
+
+%typemap(out, fragment=NAME) (CTYPE *INOUT, LTYPE) {
+  LTYPE length = $2;
+  LTYPE i;
+
+  $result = JS_NewArray(ctx);
+  if(!JS_IsException($result)) {
+    for (i = 0; i < length; i++) {
+      JS_SetPropertyUint32(ctx, $result, (uint32_t)i, SWIG_From(CTYPE)($1[i]));
+    }
+  }
+}
+
+%enddef
