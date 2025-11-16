@@ -15,7 +15,7 @@
 #define SWIG_AS_DECL_ARGS SWIG_QUICKJS_AS_DECL_ARGS
 #define SWIG_AS_CALL_ARGS SWIG_QUICKJS_AS_CALL_ARGS
 
-/* Include fundamental fragemt definitions */
+/* Include fundamental fragment definitions */
 %include <typemaps/fragments.swg>
 
 /* Look for user fragments file. */
