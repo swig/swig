@@ -397,16 +397,12 @@ String *Swig_cfunction_call(const_String_or_char_ptr name, ParmList *parms) {
       SwigType *rpt = SwigType_typedef_resolve_all(pt);
       String *pname = Swig_cparm_name(p, i);
       String *rcaststr = SwigType_rcaststr(rpt, pname);
-
-      if (comma) {
+      if (comma)
 	Append(func, ",");
-      }
-
       if (cparse_cplusplus && SwigType_type(rpt) == T_USER)
 	Printv(func, "SWIG_STD_MOVE(", rcaststr, ")", NIL);
       else
 	Printv(func, rcaststr, NIL);
-
       Delete(rpt);
       Delete(pname);
       Delete(rcaststr);
@@ -1248,7 +1244,7 @@ int Swig_ConstructorToFunction(Node *n, const_String_or_char_ptr nspace, String 
 	Replaceall(tmp_none_comparison, "$arg", "arg1");
 
 	director_call = Swig_cppconstructor_director_call(directorname, directorparms);
-	nodirector_call = Swig_cppconstructor_nodirector_call(classname, parms);
+	nodirector_call = prefix_args ? Swig_cppconstructor_director_call(classname, parms) : Swig_cppconstructor_nodirector_call(classname, parms);
 
 	if (abstract) {
 	  /* whether or not the abstract class has been subclassed in python,

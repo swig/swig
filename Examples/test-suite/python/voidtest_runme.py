@@ -1,11 +1,18 @@
 import voidtest
 
 voidtest.globalfunc()
+voidtest.globalfunc_typedef()
 f = voidtest.Foo()
 f.memberfunc()
 
 voidtest.Foo.staticmemberfunc()
 
+fv = voidtest.FooVoidTypedef()
+fv.memberfunc()
+fv.memberfunc_const()
+fv.memberfunc_const_voidptr()
+
+voidtest.FooVoidTypedef.staticmemberfunc()
 
 def fvoid():
     pass
