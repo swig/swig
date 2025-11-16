@@ -142,3 +142,119 @@ to a Python variable you might do this :
 */
 
 %include <typemaps/typemaps.swg>
+
+/*
+ * Arrays of pointers
+ */
+
+%{
+SWIGINTERN int SWIG_QuickJS_read_ptr_array(JSContext *ctx, JSValueConst arr, void **array,int size, swig_type_info *type)
+{
+	JSValue v;
+  int i;
+	for (i = 0; i < size; i++) {
+		v = JS_GetPropertyUint32(ctx, arr, i);
+    if(JS_IsException(v)) return 0;
+		if (!SWIG_IsOK(SWIG_QuickJS_ConvertPtr(ctx, v, &array[i], type, 0))) {
+			JS_FreeValue(ctx, v);
+			return 0;
+		}
+		JS_FreeValue(ctx, v);
+	}
+	return 1;
+}
+
+SWIGINTERN void** SWIG_QuickJS_get_ptr_array_fixed(JSContext *ctx, JSValueConst arr, int size, swig_type_info *type)
+{
+	void **array;
+	if ((!JS_IsArray(ctx, arr)) || (SWIG_QuickJS_ArrayLength(ctx, arr) != (uint32_t)size)) {
+		JS_ThrowTypeError(ctx, "expected an array of size %d", size);
+		return 0;
+	}
+	array=js_malloc(ctx, size*sizeof(void*));
+  if(array == NULL) {
+    JS_ThrowOutOfMemory(ctx);
+    return 0;
+  }
+	if (!SWIG_QuickJS_read_ptr_array(ctx,arr,array,size,type)) {
+		JS_ThrowTypeError(ctx, "array must contain pointers of type %s", SWIG_TypeName(type));
+		js_free(ctx, array);
+		return 0;
+	}
+	return array;
+}
+
+SWIGINTERN void** SWIG_QuickJS_get_ptr_array_var(JSContext *ctx, JSValueConst arr, int* size,swig_type_info *type)
+{
+	void **array;
+  if (!JS_IsArray(ctx, arr)) {
+		JS_ThrowTypeError(ctx, "expected an array");
+		return 0;
+	}
+	*size=SWIG_QuickJS_ArrayLength(ctx, arr);
+	if (*size<1){
+		JS_ThrowTypeError(ctx, "array appears to be empty");
+		return 0;
+	}
+	array=js_malloc(ctx,(*size)*sizeof(void*));
+  if(array == NULL) {
+    JS_ThrowOutOfMemory(ctx);
+    return 0;
+  }  
+	if (!SWIG_QuickJS_read_ptr_array(ctx, arr, array, *size, type)) {
+		JS_ThrowTypeError(ctx, "array must contain pointers of type %s", SWIG_TypeName(type));
+		js_free(ctx, array);
+		return 0;
+	}
+	return array;
+}
+
+SWIGINTERN void SWIG_QuickJS_write_ptr_array(JSContext *ctx, void **array, int size, swig_type_info *type, int own)
+{
+	int i;
+	JSValue arr = JS_NewArray(ctx);
+  
+  if(JS_IsException(arr)) return;
+	for (i = 0; i < size; i++) {
+		JS_SetPropertyUint32(ctx, arr, (uint32_t)i,
+      SWIG_QuickJS_NewPointerObj(ctx, array[i], type, own));
+	}
+}
+%}
+
+// fixed size array's
+%typemap(in) SWIGTYPE* INPUT[ANY]
+%{	$1 = ($ltype)SWIG_QuickJS_get_ptr_array_fixed(ctx, $input,$1_dim0,$*1_descriptor);
+	if (!$1) SWIG_fail;%}
+
+%typemap(freearg) SWIGTYPE* INPUT[ANY]
+%{	js_free(ctx, $1);%}
+
+// variable size array's
+%typemap(in) (SWIGTYPE **INPUT,int)
+%{	$1 = ($ltype)SWIG_QuickJS_get_ptr_array_var(ctx, $input,&$2,$*1_descriptor);
+	if (!$1) SWIG_fail;%}
+
+%typemap(freearg) (SWIGTYPE **INPUT,int)
+%{	js_free(ctx, $1);%}
+
+// out fixed arrays
+%typemap(in,numinputs=0) SWIGTYPE* OUTPUT[ANY]
+%{  $1 = js_malloc(ctx,(sizeof $*1_type)*($1_dim0)); %}
+
+%typemap(argout) SWIGTYPE* OUTPUT[ANY]
+%{	SWIG_QuickJS_write_ptr_array(ctx, (void**)$1,$1_dim0,$*1_descriptor,0); %}
+
+%typemap(freearg) SWIGTYPE* OUTPUT[ANY]
+%{	js_free(ctx, $1); %}
+
+// inout fixed arrays
+%typemap(in) SWIGTYPE* INOUT[ANY]=SWIGTYPE* INPUT[ANY];
+%typemap(argout) SWIGTYPE* INOUT[ANY]=SWIGTYPE* OUTPUT[ANY];
+%typemap(freearg) SWIGTYPE* INOUT[ANY]=SWIGTYPE* INPUT[ANY];
+// inout variable arrays
+%typemap(in) (SWIGTYPE** INOUT,int)=(SWIGTYPE** INPUT,int);
+%typemap(argout) (SWIGTYPE** INOUT,int)
+%{	SWIG_write_ptr_array(ctx, (void**)$1,$2,$*1_descriptor,0); %}
+%typemap(freearg) (SWIGTYPE**INOUT,int)=(SWIGTYPE**INPUT,int);
+
