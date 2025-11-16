@@ -70,7 +70,7 @@ SWIG_QuickJS_FromCharPtrAndSize(JSContext *ctx, const char* carray, size_t size)
       return result;
     }
   } else {
-    return JS_UNDEFINED;
+    return JS_NULL;
   }
 }
 }
