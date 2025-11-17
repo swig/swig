@@ -4,6 +4,10 @@ def get_cflags(language, std, compiler):
     if std == None or len(std) == 0:
         std = "gnu89"
     c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers -Wunused-variable"
+
+    # signed to unsigned conversions warnings, type conversion
+    sign_conversion_flags = " -Wconversion -Wsign-conversion"
+
     if std == "gnu89" or std == "gnu90":
         # gnu89 standard allows declaration after headers
         # use c99 or gnu99 if feature is necessary for using target language
@@ -21,7 +25,7 @@ def get_cflags(language, std, compiler):
         "octave":"-Werror " + c_common,
          "perl5":"-Werror " + c_common,
            "php":"-Werror " + c_common,
-        "python":"-Werror " + c_common,
+        "python":"-Werror " + c_common + sign_conversion_flags,
              "r":"-Werror " + c_common,
           "ruby":"-Werror " + c_common,
         "scilab":"-Werror " + c_common + " -Wno-unused-variable",
