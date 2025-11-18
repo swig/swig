@@ -17,7 +17,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-
+#include <ctype.h>
 #include "swigmod.h"
 
 // define static tables, they are filled in CSharpDocConverter's constructor
@@ -220,7 +220,7 @@ void CSharpDocConverter::fillStaticTables() {
   tagHandlers["&"] = make_handler(&CSharpDocConverter::handleTagCharReplace, "&amp;");
   tagHandlers["#"] = make_handler(&CSharpDocConverter::handleTagChar);
   tagHandlers["%"] = make_handler(&CSharpDocConverter::handleTagChar);
-  tagHandlers["~"] = make_handler(&CSharpDocConverter::handleTagChar);
+  tagHandlers["~"] = make_handler(&CSharpDocConverter::handleTagCharReplace, "\\~");
   tagHandlers["\""] = make_handler(&CSharpDocConverter::handleTagChar);
   tagHandlers["."] = make_handler(&CSharpDocConverter::handleTagChar);
   tagHandlers["::"] = make_handler(&CSharpDocConverter::handleTagChar);
@@ -697,22 +697,45 @@ void CSharpDocConverter::handleTagMessage(DoxygenEntity &tag, std::string &trans
   translatedComment += "\">\n";
 }
 
-void CSharpDocConverter::handleTagSee(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
-  translatedComment += "<seealso cref=\"";
-  std::string seeAlso = translateSubtree(tag);
-  escapeSpecificCharacters(seeAlso);
+void CSharpDocConverter::handleTagSee(DoxygenEntity& tag, std::string& translatedComment, const std::string&) {
+    std::string seeAlso = translateSubtree(tag);
+    escapeSpecificCharacters(seeAlso);
+    // Remove parameter list
+        // Alternative would be to try and convert them into C# types similar to Java implementation
+    std::string::size_type lbrace = seeAlso.find('(');
+    if (lbrace != std::string::npos)
+        seeAlso.erase(lbrace);
 
-  // Remove parameter list
-  // Alternative would be to try and convert them into C# types similar to Java implementation
-  std::string::size_type lbrace = seeAlso.find('(');
-  if (lbrace != std::string::npos)
-    seeAlso.erase(lbrace);
+    replaceAll(seeAlso, "::", ".");
+    eraseTrailingSpaceNewLines(seeAlso);
 
-  replaceAll(seeAlso, "::", ".");
-  eraseTrailingSpaceNewLines(seeAlso);
-
-  translatedComment += seeAlso;
-  translatedComment += "\"/>\n";
+    translatedComment += "<seealso cref=\"";
+    size_t last_pos = 0;
+    bool has_content = false;
+    for (size_t i = 0; i < seeAlso.size(); i++)
+    {
+        if (isspace(seeAlso[i]))
+        {
+            if (!has_content)
+            {
+                last_pos = i + 1;
+                continue;
+            }
+            translatedComment += seeAlso.substr(last_pos, i - last_pos);
+            translatedComment += "\"/>\n" "<seealso cref=\"";
+            last_pos = i + 1;
+            has_content = false;
+        }
+        else
+        {
+            has_content = true;
+        }
+    }
+    if (has_content)
+    {
+        translatedComment += seeAlso.substr(last_pos, seeAlso.size() - last_pos);
+        translatedComment += "\"/>\n";
+    }
 }
 
 void CSharpDocConverter::handleTagCharReplace(DoxygenEntity &, std::string &translatedComment, const std::string &arg) {
