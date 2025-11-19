@@ -3,6 +3,7 @@ constant
 enum
 exception
 functor
+multiinheritance
 native
 nspace
 operator
