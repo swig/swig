@@ -25,13 +25,13 @@ console.log("proto_d=" + proto_d + " (" + Object.keys(proto_d) + ")");
 
 console.log("(check) " + example.A.count + " created");
 
-console.log("d as b: " + d.b);
-console.log("d as c: " + d.c);
+console.log("d as b: " + d.b + " (expect 1)");
+console.log("d as c: " + d.c + " (expect 1)");
 
 d.b = example.B.BLUE;
 d.c = example.C.BLUE;
-console.log("d as b: " + d.b);
-console.log("d as c: " + d.c);
+console.log("d as b: " + d.b + " (expect 0)");
+console.log("d as c: " + d.c + " (expect 2)");
 
 // ----- Object cleansing -----
 d = null;

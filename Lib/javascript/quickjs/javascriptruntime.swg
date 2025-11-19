@@ -27,7 +27,10 @@
 #define SWIGRUN_DEBUG_TRACE     0x02
 /* trace all Ptr objects actions: NewPtr, ConvertPtr and delete: */
 #define SWIGRUN_DEBUG_PTRTRACE  0x04
-#define SWIGRUN_DEBUG_ARRAYLEN  0x80
+#define SWIGRUN_DEBUG_BASES     0x80
+/* behind 0xff; debug flags barely needed */
+#define SWIGRUN_DEBUG_MULTIMODULE 0x100
+#define SWIGRUN_DEBUG_ARRAYLEN  0x8000
 #endif
 
 /* macro to replace the QuickJS macros, which are not C++ compatible */
