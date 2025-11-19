@@ -7,6 +7,7 @@ skip_commits:
     - 'CHANGES*'
     - 'Doc/**'
     - 'Tools/CI-*'
+    - 'Tools/GHA-*'
 
 environment:
   global:

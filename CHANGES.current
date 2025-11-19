@@ -7,3 +7,35 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2025-11-08: wsfulton
+            Fix handling of typedef to void in class methods/constructor's parameter
+            lists, such as:
+
+              typedef void VOID_TYPE;
+              struct S {
+                 S(VOID_TYPE);
+                 int f(VOID_TYPE) const;
+              };
+
+2025-11-06: olly
+	    [Octave, Ruby] #3281 `FALSE` and `TRUE` are no longer treated as
+	    aliases of `false` and `true` when generating documentation comments.
+
+2025-11-02: wsfulton
+            [Go] Fix various compilation problems when wrapping rvalues references.
+
+2025-11-01: wsfulton
+            Fix wrapping rvalue reference typedefs in director constructors.
+
+2025-11-01: wsfulton
+            Multiple typedefs involving references fix.
+
+            If a typedef to a typedef of a reference was wrapped, uncompilable code was
+            generated. Note: this was previously okay with just a single typedef to a
+            reference. Affected wrapping global and member variables as well as parameters
+            in member methods and constructors.
+
+2025-10-27: wsfulton
+            #3276 Add missing std::move when wrapping move constructors for directors.
+            Also add missing std::move for wrapped director (virtual) methods with
+            rvalue references.

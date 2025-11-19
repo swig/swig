@@ -65,8 +65,8 @@ public:
   OCAML() {
     director_prot_ctor_code = NewString("");
     Printv(director_prot_ctor_code,
-	   "if ( $comparison ) { /* subclassed */\n",
-	   "  $director_new \n", "} else {\n", "  caml_failwith(\"accessing abstract class or protected constructor\"); \n", "}\n", NIL);
+	   "if ($comparison) { /* subclassed */\n",
+	   "  $director_new\n", "} else {\n", "  caml_failwith(\"accessing abstract class or protected constructor\"); \n", "}\n", NIL);
     director_multiple_inheritance = 1;
     directorLanguage();
   }

@@ -800,11 +800,6 @@ private:
     if (v && Len(v) > 0) {
       if (Equal(v, "NULL") || Equal(v, "nullptr"))
 	return SwigType_ispointer(type) ? NewString("nil") : NewString("0");
-      // FIXME: TRUE and FALSE are not standard and could be defined in other ways
-      if (Equal(v, "TRUE"))
-	return NewString("true");
-      if (Equal(v, "FALSE"))
-	return NewString("false");
     }
     return 0;
   }
@@ -842,9 +837,9 @@ public:
       current = NO_CPP;
       director_prot_ctor_code = NewString("");
       Printv(director_prot_ctor_code,
-          "if ( $comparison ) { /* subclassed */\n",
-          "  $director_new \n",
-          "} else {\n", "  rb_raise(rb_eRuntimeError,\"accessing abstract class or protected constructor\"); \n", "  return Qnil;\n", "}\n", NIL);
+          "if ($comparison) { /* subclassed */\n",
+          "  $director_new\n",
+          "} else {\n", "  rb_raise(rb_eRuntimeError,\"accessing abstract class or protected constructor\");\n", "  return Qnil;\n", "}\n", NIL);
       director_multiple_inheritance = 0;
       directorLanguage();
     }
@@ -2633,12 +2628,12 @@ public:
     if (cname)
       cname[0] = (char)toupper(cname[0]);
     Printv(director_prot_ctor_code,
-	   "if ( $comparison ) { /* subclassed */\n",
-	   "  $director_new \n",
-	   "} else {\n", "  rb_raise(rb_eNameError,\"accessing abstract class or protected constructor\"); \n", "  return Qnil;\n", "}\n", NIL);
+	   "if ($comparison) { /* subclassed */\n",
+	   "  $director_new\n",
+	   "} else {\n", "  rb_raise(rb_eNameError,\"accessing abstract class or protected constructor\");\n", "  return Qnil;\n", "}\n", NIL);
     Delete(director_ctor_code);
     director_ctor_code = NewString("");
-    Printv(director_ctor_code, "if ( $comparison ) { /* subclassed */\n", "  $director_new \n", "} else {\n", "  $nondirector_new \n", "}\n", NIL);
+    Printv(director_ctor_code, "if ($comparison) { /* subclassed */\n", "  $director_new\n", "} else {\n", "  $nondirector_new\n", "}\n", NIL);
     Delete(name);
   }
 
@@ -2676,7 +2671,6 @@ public:
       if (parms)
 	set_nextSibling(self, parms);
       Setattr(n, "parms", self);
-      Setattr(n, "wrap:self", "1");
       Delete(self);
     }
 
@@ -2686,7 +2680,6 @@ public:
     Language::constructorHandler(n);
 
     /* Restore original parameter list */
-    Delattr(n, "wrap:self");
     Swig_restore(n);
 
     /* Done */
