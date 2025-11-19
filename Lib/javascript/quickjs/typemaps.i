@@ -171,7 +171,7 @@ SWIGINTERN void** SWIG_QuickJS_get_ptr_array_fixed(JSContext *ctx, JSValueConst 
 		JS_ThrowTypeError(ctx, "expected an array of size %d", size);
 		return 0;
 	}
-	array=js_malloc(ctx, size*sizeof(void*));
+	array=(void**)js_malloc(ctx, size*sizeof(void*));
   if(array == NULL) {
     JS_ThrowOutOfMemory(ctx);
     return 0;
@@ -196,7 +196,7 @@ SWIGINTERN void** SWIG_QuickJS_get_ptr_array_var(JSContext *ctx, JSValueConst ar
 		JS_ThrowTypeError(ctx, "array appears to be empty");
 		return 0;
 	}
-	array=js_malloc(ctx,(*size)*sizeof(void*));
+	array=(void**)js_malloc(ctx,(*size)*sizeof(void*));
   if(array == NULL) {
     JS_ThrowOutOfMemory(ctx);
     return 0;

@@ -64,6 +64,8 @@
 
 %define JAVASCRIPT_ARRAYS_OUT_DECL(NAME, CTYPE)
 
+%fragment(NAME, "header", fragment=SWIG_AsVal_frag(CTYPE)) {}
+
 %typemap(out, fragment=NAME) CTYPE[ANY] {
   int length = $1_dim0;
   int i;
@@ -86,22 +88,24 @@ JAVASCRIPT_ARRAYS_IN_DECL("SWIG_GetNumberProperty", double, ANY, $1_dim0)
 JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_OutInt", int)
 JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_OutNumber", double)
 
+/*
+ * Typemap for variable size arrays, including a size argument 
+ * like: f(int *array, int length) */
 %define JAVASCRIPT_VARARRAYS_IN_DECL(NAME, CTYPE, LTYPE)
 
 %typemap(in, fragment=NAME) (CTYPE *INPUT, LTYPE) {
   LTYPE i;
-  LTYPE length;
   JSValue array;
   
   if(!JS_IsArray(ctx, $input)) {
     SWIG_exception_fail(SWIG_ERROR, "input is not an array");
   }  
+  $2 = (LTYPE)SWIG_QuickJS_ArrayLength(ctx, $input);  
   array = $input;
-  length = $2;  
-  $1  = ($*1_ltype *)js_malloc(ctx, sizeof($*1_ltype) * length);
+  $1  = ($*1_ltype *)js_malloc(ctx, sizeof($*1_ltype) * $2);
   
   // Get each element from array
-  for (i = 0; i < length; i++) {
+  for (i = 0; i < $2; i++) {
     JSValue jsvalue = JS_GetPropertyUint32(ctx, array, (uint32_t)i);
     $*1_ltype temp;
 
