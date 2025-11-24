@@ -150,14 +150,26 @@ typedef struct {
  */
 SWIGRUNTIME JSValue _wrap_SwigObject_disown(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst argv[])
 {
+  SwigObjectData *swig_object;
+  
+  if(argc!=0) {
+    SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for SwigObject_disown.");
+  }
+    
   if(SWIG_QuickJS_IsSwigObject(ctx, this_val) <= 0) {
     return JS_ThrowTypeError(ctx, "SWIGObject_disown");
   }
 
-  SwigObjectData *swig_object = (SwigObjectData *)JS_GetOpaque(this_val, JS_GetClassID(this_val));
+  swig_object = (SwigObjectData *)JS_GetOpaque(this_val, JS_GetClassID(this_val));
+#if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_PTRTRACE)
+   printf("SwigObject_disown: %p (%p) (own=%d)\n", swig_object, swig_object->ptr, swig_object->own);
+#endif
   swig_object->own = false;
 
   return JS_UNDEFINED;
+  goto fail;
+  fail:
+  return JS_EXCEPTION;  
 }
 
 SWIGRUNTIME JSValue _wrap_SwigObject_equals(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst argv[])
@@ -323,13 +335,25 @@ SWIGRUNTIME int SWIG_QuickJS_ConvertPtr(JSContext *ctx, JSValueConst val, void**
       int newmemory = 0;
       *ptr = SWIG_TypeCast(tc, swig_object->ptr, &newmemory);
       assert(!newmemory); /* newmemory handling not yet implemented */
-    } else {
+    } else if (swig_object->type->clientdata && type->clientdata) {
+      /* this part implements the cross-module inheritance, see
+       * explanation around baseRegistry in javascripthelpers.swg */
       int found = 0;
       SWIG_QuickJS_ClassDefinition *clsDef = (SWIG_QuickJS_ClassDefinition*)(swig_object->type->clientdata);
       SWIG_QuickJS_ClassDefinition *pClsDef = (SWIG_QuickJS_ClassDefinition*)(type->clientdata);
       JSValueConst base_map = SWIG_QuickJS_baseRegistryClassLookup(ctx, clsDef->class_name);
+#if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)
+      if(clsDef->magic != SWIG_PROTOTYPE_CLASS_MAGIC) {
+        printf("SWIG_QuickJS_ConvertPtr: Warning: not a class %s\n", swig_object->type->str);
+        return SWIG_ERROR;
+      }
+      if(pClsDef->magic != SWIG_PROTOTYPE_CLASS_MAGIC) {
+        printf("SWIG_QuickJS_ConvertPtr: Warning: not a class %s\n", type->str);
+        return SWIG_ERROR;
+      }
+#endif       
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_BASES)
-      printf("Source %s to target %s\n", clsDef->class_name, pClsDef->class_name);
+      printf("SWIG_QuickJS_ConvertPtr: check source %s to target %s\n", clsDef->class_name, pClsDef->class_name);
 #endif      
       if(JS_IsObject(base_map)) {
         JSAtom atom = JS_NewAtom(ctx, pClsDef->class_name);
@@ -343,6 +367,8 @@ SWIGRUNTIME int SWIG_QuickJS_ConvertPtr(JSContext *ctx, JSValueConst val, void**
         return SWIG_ERROR;
       }
       *ptr = swig_object->ptr;
+    } else {
+      return SWIG_ERROR;
     }
   }
 
