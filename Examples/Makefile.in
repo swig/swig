@@ -732,7 +732,6 @@ JSINCLUDES = @JSCOREINC@ @JSV8INC@ @JSQUICKJSINC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
 NODEJS = @NODEJS@
 NODEGYP = @NODEGYP@
-QUICKJS = @JSQUICKJSBIN@
 ifneq (, $(ENGINE))
     JSENGINE=$(ENGINE)
 else
@@ -829,16 +828,9 @@ javascript_cpp: $(SRCDIR_SRCS) javascript_custom_interpreter
 # Running a Javascript example
 # -----------------------------------------------------------------
 javascript_custom_interpreter:
-ifneq (quickjs, $(JSENGINE))
 	$(MAKE) -C $(ROOT_DIR)/Tools/javascript JSENGINE='$(JSENGINE)'
-endif
 
-ifeq (quickjs, $(JSENGINE))
-javascript_run:
-	sed -e 's/^var\s*\([a-zA-Z0-9_]*\)\s*=\s*\brequire\b("\([^"]*\).*/import {\2} from "\2.so";/g' \
-			$(SRCDIR)$(RUNME).js >$(SRCDIR)$(RUNME).quick.js
-	$(RUNTOOL) $(QUICKJS) $(SRCDIR)$(RUNME).quick.js $(RUNPIPE)
-else ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
+ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 javascript_run:
 	env NODE_PATH=$$PWD:$(SRCDIR) $(RUNTOOL) $(NODEJS) $(SRCDIR)$(RUNME).js $(RUNPIPE)
 else

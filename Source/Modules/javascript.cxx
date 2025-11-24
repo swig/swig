@@ -3106,7 +3106,7 @@ private:
 };
 
 QuickJSEmitter::QuickJSEmitter()
-:  JSEmitter(JSEmitter::JavascriptCore), NULL_STR(NewString("NULL")), VETO_SET(NewString("JS_veto_set_variable")), f_wrap_cpp(NULL), f_runtime(NULL), f_header(NULL), f_init(NULL) {
+:  JSEmitter(JSEmitter::JavascriptCore), NULL_STR(NewString("NULL")), VETO_SET(NewString("SWIG_QuickJS_veto_set_variable")), f_wrap_cpp(NULL), f_runtime(NULL), f_header(NULL), f_init(NULL) {
 }
 
 QuickJSEmitter::~QuickJSEmitter() {
