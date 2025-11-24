@@ -383,10 +383,10 @@ SWIGINTERN JSValueConst SWIG_QuickJS_getBaseRegistry(JSContext *ctx)
 }
 
 /*
- * Base registry definition: the objective is to store in a object
+ * Base registry definition: the objective is to store in an object
  * used as a map all the bases of a given class. The base registry
- * records 1 object per class (name), in which the key will be
- * the base class (and the value is the boolean true but only the
+ * records 1 object per class (name), in which the keys will be
+ * the base classes (and the value is the boolean 'true' but only the
  * existence of the key will be checked).
  * 
  * SWIG_QuickJS_baseRegistryClassAdd: add a class in
@@ -420,8 +420,8 @@ SWIGINTERN JSValueConst SWIG_QuickJS_baseRegistryClassAdd(JSContext *ctx, const 
 
 /*
  * SWIG_QuickJS_baseRegistryClassLookup: find a class in
- * the base registry and returns its base map if found
- * Return JS_UNDEFINED inf not found, Object otherwise.
+ * the base registry and returns its base map if found,
+ * or JS_UNDEFINED if not found or an exception.
  * The returned value should be freed.
  */
 SWIGINTERN JSValueConst SWIG_QuickJS_baseRegistryClassLookup(JSContext *ctx, const char *name)
@@ -447,11 +447,11 @@ SWIGINTERN JSValueConst SWIG_QuickJS_baseRegistryClassLookup(JSContext *ctx, con
 
 
 /*
- * JS_registerProperties: funtion to register properties
+ * SWIG_QuickJS_registerProperties: funtion to register properties
  * in 'object': functions, variables and constants.
  * Used by registerClass and registerNamespace.
  */
-SWIGINTERN int JS_registerProperties(JSContext *ctx, 
+SWIGINTERN int SWIG_QuickJS_registerProperties(JSContext *ctx, 
                             const char* name,
                             JSValue object,
                             const SWIG_QuickJS_FunctionListEntry* prototype_functions,
@@ -767,13 +767,13 @@ SWIGINTERN JSValueConst SWIG_QuickJS_getBasePrototype(JSContext *ctx, const char
 }
 
 /*
- * JS_registerClass: register a class in a namespace,
+ * SWIG_QuickJS_registerClass: register a class in a namespace,
  * taking care of creating the class definition,
  * the constructor, the prototype and linking
  * together all of these.
  * If reg=true, the class is registered in the class registry.
  */
-SWIGINTERN int JS_registerClass(JSContext *ctx, 
+SWIGINTERN int SWIG_QuickJS_registerClass(JSContext *ctx, 
                             JSValueConst nspace,
                             const char* clsName,
                             SWIG_QuickJS_ClassDefinition* clsDef,
@@ -797,7 +797,7 @@ SWIGINTERN int JS_registerClass(JSContext *ctx,
   clsDef->prototype = JS_NewObjectClass(ctx, SWIG_QuickJS_swig_prototype_class_class_definition.class_id);
   if(JS_IsException(clsDef->prototype)) { return -1; }
   
-  r = JS_registerProperties(ctx, clsName, clsDef->prototype, 
+  r = SWIG_QuickJS_registerProperties(ctx, clsName, clsDef->prototype, 
             clsDef->functions, clsDef->functions_num,
             clsDef->variables, clsDef->variables_num,
             clsDef->constants, clsDef->constants_num);
@@ -836,10 +836,10 @@ SWIGINTERN int JS_registerClass(JSContext *ctx,
 }
 
 /*
- * JS_veto_set_variable: helper function 'setter' for constants, throwing
+ * SWIG_QuickJS_veto_set_variable: helper function 'setter' for constants, throwing
  * an error in case of an attempt to modify the value
  */
-SWIGINTERN JSValue JS_veto_set_variable(JSContext *ctx, JSValue this_val, JSValue value)
+SWIGINTERN JSValue SWIG_QuickJS_veto_set_variable(JSContext *ctx, JSValue this_val, JSValue value)
 {
     SWIG_exception(SWIG_ERROR, "Tried to write read-only variable.");
 fail:    
@@ -849,7 +849,7 @@ fail:
 /* JS_initializeNamespace: create a namespace object, with its 
  * global functions, variables and constants.
  */
-SWIGINTERN int JS_initializeNamespace(JSContext *ctx, 
+SWIGINTERN int SWIG_QuickJS_initializeNamespace(JSContext *ctx, 
                             const char *name, JSValue *nspace,
                             const SWIG_QuickJS_FunctionListEntry* namespace_functions,
                             int namespace_functions_num,
@@ -865,7 +865,7 @@ SWIGINTERN int JS_initializeNamespace(JSContext *ctx,
   
   *nspace = JS_NewObject(ctx);
   if(JS_IsException(*nspace)) { return -1; }
-  return JS_registerProperties(ctx, name, *nspace, 
+  return SWIG_QuickJS_registerProperties(ctx, name, *nspace, 
             namespace_functions, namespace_functions_num,
             namespace_variables, namespace_variables_num,
             namespace_constants, namespace_constants_num);

@@ -154,13 +154,6 @@ ifeq ($(JSENGINE), $(filter $(JSENGINE), node napi))
 
 else
 
-ifeq (quickjs, $(JSENGINE))
-	run_testcase = \
-		if [ -f $(srcdir)/$*$(QSCRIPTSUFFIX) ]; then \
-		  $(RUNTOOL) $(QUICKJS) $(srcdir)/$*$(QSCRIPTSUFFIX); \
-		  $(RM) $(srcdir)/$*$(QSCRIPTSUFFIX); \
-		fi
-else
 	run_testcase = \
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
 		  $(RUNTOOL) $(top_builddir)/Tools/javascript/javascript -$(JSENGINE) $(srcdir)/$*$(SCRIPTSUFFIX); \
@@ -181,8 +174,6 @@ endif
 		$(_setup)
 		+$(swig_and_compile_multi_cpp)
 		$(run_testcase)
-
-endif
 
 
 %.clean:

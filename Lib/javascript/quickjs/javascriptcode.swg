@@ -422,7 +422,7 @@ static const char *$jsmangledname_class_bases[] = {
  * ----------------------------------------------------------------------------- */
 %fragment ("quickjs_class_registration", "templates")
 %{
-  if(JS_registerClass(ctx, 
+  if(SWIG_QuickJS_registerClass(ctx, 
       $jsnspace_namespace, 
       "$jsname", 
       &$jsmangledname_class_definition,
@@ -461,7 +461,7 @@ static JSValue $jsmangledname_namespace;
  * ----------------------------------------------------------------------------- */
 %fragment ("quickjs_nspace_definition", "templates")
 %{
-  JS_initializeNamespace(ctx, 
+  SWIG_QuickJS_initializeNamespace(ctx, 
     "$jsmangledname",
     &($jsmangledname_namespace), 
     $jsmangledname_functions, countof($jsmangledname_functions),

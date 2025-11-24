@@ -124,7 +124,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 
 
   /* Register the swig prototype class, which is the class of the prototype of wrapper objects
-   * but, as it cannot have itself as prototype, register it manually (not with JS_register_class())
+   * but, as it cannot have itself as prototype, register it manually (not with SWIG_QuickJS_register_class())
    * The class_id of the prototype class is stored in the swigObjectRegistry, in order to create
    * the class_id and register the class only once */
   SWIG_QuickJS_ClassDefinition *d = &SWIG_QuickJS_swig_prototype_class_class_definition;
@@ -162,7 +162,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 #endif
     JS_FreeValue(ctx, v);
   } else {
-    r = JS_registerClass(ctx, DEFAULT_NAMESPACE,
+    r = SWIG_QuickJS_registerClass(ctx, DEFAULT_NAMESPACE,
                           SWIG_QuickJS_swig_object_class_definition.class_name,
                           &SWIG_QuickJS_swig_object_class_definition,
                           false);
@@ -201,7 +201,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 #endif
     JS_FreeValue(ctx, v);
   } else {
-    r = JS_registerClass(ctx, DEFAULT_NAMESPACE,
+    r = SWIG_QuickJS_registerClass(ctx, DEFAULT_NAMESPACE,
                           SWIG_QuickJS_packed_data_class_definition.class_name,
                           &SWIG_QuickJS_packed_data_class_definition,
                           false);
