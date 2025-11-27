@@ -143,14 +143,14 @@ nocppval
 # define %new_instance(Type...)             (new Type())
 # define %new_copy(val,Type...)             (new Type(%static_cast(val, const Type&)))
 # define %new_array(size,Type...)           (new Type[size]())
-# define %new_copy_array(ptr,size,Type...)  %reinterpret_cast(memcpy(new Type[size], ptr, sizeof(Type)*(size)), Type*)
+# define %new_copy_array(ptr,size,Type...)  %reinterpret_cast(memcpy(new Type[size], ptr, sizeof(Type)*(size_t)(size)), Type*)
 # define %delete(cptr)                      delete cptr
 # define %delete_array(cptr)                delete[] cptr
 #else /* C case */
 # define %new_instance(Type...)             (Type *)calloc(1,sizeof(Type))
 # define %new_copy(val,Type...)             (Type *)memcpy(%new_instance(Type),&val,sizeof(Type))
 # define %new_array(size,Type...)           (Type *)calloc(size, sizeof(Type))
-# define %new_copy_array(ptr,size,Type...)  (Type *)memcpy(malloc((size)*sizeof(Type)), ptr, sizeof(Type)*(size))
+# define %new_copy_array(ptr,size,Type...)  (Type *)memcpy(malloc((size)*sizeof(Type)), ptr, sizeof(Type)*(size_t)(size))
 # define %delete(cptr)                      free((char*)cptr)
 # define %delete_array(cptr)                free((char*)cptr)
 #endif /* __cplusplus */

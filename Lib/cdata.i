@@ -44,7 +44,7 @@
 %include <typemaps/cdata_begin.swg>
 
 %typemap(out,noblock=1,fragment="SWIG_FromCharPtrAndSize") SWIGCDATA {
-  %set_output(SWIG_FromCharPtrAndSize($1.data,$1.len));
+  %set_output(SWIG_FromCharPtrAndSize($1.data,(size_t)($1.len)));
 }
 
 %include <typemaps/cdata_end.swg>

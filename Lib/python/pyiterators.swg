@@ -92,7 +92,7 @@ namespace swig {
 
     SwigPyIterator *advance(ptrdiff_t n)
     {
-      return  (n > 0) ?  incr(n) : decr(-n);
+      return  (n > 0) ?  incr((size_t)n) : decr((size_t)(-n));
     }
       
     bool operator == (const SwigPyIterator& x)  const

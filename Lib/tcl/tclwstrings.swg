@@ -32,7 +32,7 @@ SWIG_AsWCharPtrAndSize(Tcl_Obj *obj, wchar_t** cptr, size_t* psize, int *alloc)
       *cptr = (wchar_t*)dst;
       if (alloc) *alloc = SWIG_NEWOBJ;
     }
-    if (psize) *psize = len + 1;
+    if (psize) *psize = (size_t)(len + 1);
     return SWIG_OK;
   }
   return SWIG_TypeError;
