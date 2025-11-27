@@ -135,6 +135,8 @@ class GO:public Language {
   String *soname;
   // Size in bits of the Go type "int".  0 if not specified.
   int intgo_type_size;
+  // Flag for not adding unique IDs to generated names.
+  bool no_unique_id;
 
   /* Output files */
   File *f_c_begin;
@@ -331,7 +333,10 @@ private:
 	  } else {
 	    Swig_arg_error();
 	  }
-	} else if (strcmp(argv[i], "-help") == 0) {
+	} else if (strcmp(argv[i], "-no-unique-id") == 0) {
+    Swig_mark_arg(i);
+    no_unique_id = true;
+  } else if (strcmp(argv[i], "-help") == 0) {
 	  Printf(stdout, "%s\n", usage);
 	}
       }
@@ -440,19 +445,21 @@ private:
     String *go_filename = NewString("");
     Printf(go_filename, "%s%s.go", SWIG_output_directory(), module);
 
-    // Generate a unique ID based on a hash of the SWIG input.
-    swig_uint64 hash = {0, 0};
-    FILE *swig_input = Swig_open(swig_filename);
-    if (swig_input == NULL) {
-      FileErrorDisplay(swig_filename);
-      Exit(EXIT_FAILURE);
-    }
-    String *swig_input_content = Swig_read_file(swig_input);
-    siphash(&hash, Char(swig_input_content), Len(swig_input_content));
-    Delete(swig_input_content);
-    fclose(swig_input);
     unique_id = NewString("");
-    Printf(unique_id, "_%s_%08x%08x", getModuleName(package), hash.hi, hash.lo);
+    if (!no_unique_id) {
+      // Generate a unique ID based on a hash of the SWIG input.
+      swig_uint64 hash = {0, 0};
+      FILE *swig_input = Swig_open(swig_filename);
+      if (swig_input == NULL) {
+        FileErrorDisplay(swig_filename);
+        Exit(EXIT_FAILURE);
+      }
+      String *swig_input_content = Swig_read_file(swig_input);
+      siphash(&hash, Char(swig_input_content), Len(swig_input_content));
+      Delete(swig_input_content);
+      fclose(swig_input);
+      Printf(unique_id, "_%s_%08x%08x", getModuleName(package), hash.hi, hash.lo);
+    }
 
     // Open files.
 
@@ -5713,4 +5720,5 @@ Go Options (available with -go)\n\
      -package <name>     - Set name of the Go package to <name>\n\
      -use-shlib          - Force use of a shared library\n\
      -soname <name>      - Set shared library holding C/C++ code to <name>\n\
+     -no-unique-id       - Do not add unique IDs to generated names\n\
 \n";
