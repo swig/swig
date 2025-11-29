@@ -10,6 +10,7 @@
  */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <quickjs.h>
 #include <cutils.h>
 #include <quickjs-libc.h>
