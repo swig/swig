@@ -143,6 +143,7 @@ to a Python variable you might do this :
 
 %include <typemaps/typemaps.swg>
 
+
 /*
  * Arrays of pointers
  */
@@ -209,16 +210,17 @@ SWIGINTERN void** SWIG_QuickJS_get_ptr_array_var(JSContext *ctx, JSValueConst ar
 	return array;
 }
 
-SWIGINTERN void SWIG_QuickJS_write_ptr_array(JSContext *ctx, void **array, int size, swig_type_info *type, int own)
+SWIGINTERN JSValueConst SWIG_QuickJS_write_ptr_array(JSContext *ctx, void **array, int size, swig_type_info *type, int own)
 {
 	int i;
-	JSValue arr = JS_NewArray(ctx);
+	JSValueConst arr = JS_NewArray(ctx);
   
-  if(JS_IsException(arr)) return;
+  if(JS_IsException(arr)) return arr;
 	for (i = 0; i < size; i++) {
 		JS_SetPropertyUint32(ctx, arr, (uint32_t)i,
       SWIG_QuickJS_NewPointerObj(ctx, array[i], type, own));
 	}
+  return arr;
 }
 %}
 
@@ -243,7 +245,8 @@ SWIGINTERN void SWIG_QuickJS_write_ptr_array(JSContext *ctx, void **array, int s
 %{  $1 = js_malloc(ctx,(sizeof $*1_type)*($1_dim0)); %}
 
 %typemap(argout) SWIGTYPE* OUTPUT[ANY]
-%{	SWIG_QuickJS_write_ptr_array(ctx, (void**)$1,$1_dim0,$*1_descriptor,0); %}
+%{	$result = SWIG_QuickJS_AppendOutput(ctx, $result, 
+      SWIG_QuickJS_write_ptr_array(ctx, (void**)$1,$1_dim0,$*1_descriptor,0)); %}
 
 %typemap(freearg) SWIGTYPE* OUTPUT[ANY]
 %{	js_free(ctx, $1); %}
@@ -258,3 +261,12 @@ SWIGINTERN void SWIG_QuickJS_write_ptr_array(JSContext *ctx, void **array, int s
 %{	SWIG_write_ptr_array(ctx, (void**)$1,$2,$*1_descriptor,0); %}
 %typemap(freearg) (SWIGTYPE**INOUT,int)=(SWIGTYPE**INPUT,int);
 
+/* -----------------------------------------------------------------------------
+ *                          Pointer-Pointer typemaps
+ * ----------------------------------------------------------------------------- */
+%typemap(in,numinputs=0) SWIGTYPE** OUTPUT ($*ltype temp)
+%{ temp = ($*ltype)NULL;
+   $1 = &temp; %}
+%typemap(argout) SWIGTYPE** OUTPUT
+%{  $result = SWIG_QuickJS_AppendOutput(ctx, $result, 
+      SWIG_QuickJS_NewPointerObj(ctx,*$1,$*descriptor,SWIG_POINTER_OWN)); %}

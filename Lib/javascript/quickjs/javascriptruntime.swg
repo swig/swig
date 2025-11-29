@@ -6,17 +6,14 @@
 
 %insert(runtime) %{
 #include <quickjs.h>
+#include <quickjs-libc.h>
 #include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
 
-
-#ifndef SWIG_JAVASCRIPT_QUICKJS
-#define SWIG_JAVASCRIPT_QUICKJS 1
-#endif
-
+#include "swigquickjs.h"
 
 /* Max length of type name */
 #define SWIG_QUICKJS_CLASS_NAME_MAX 1024
