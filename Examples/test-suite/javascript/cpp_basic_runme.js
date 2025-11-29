@@ -71,6 +71,8 @@ f.func_ptr=func2_ptr;
 check(cb.test_func_ptr(f,2)==-8);
 
 // check the __str__ mapping into toString
+// (only in QuickJS)
+if (typeof QuickJS != "undefined") {
 var f2_name = f2.toString();
 
 var f3 = new cb.FooSub();
@@ -82,6 +84,8 @@ var f4_name = f4.toString();
 check( f2_name == "Foo" );
 check( f3_name == "Foo" );
 check( f4_name == "FooSubSub" );
+}
+
 
 // Test __eq implementation supplied by default
 // eq_f1 and eq_f2 are different objects but
