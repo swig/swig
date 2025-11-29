@@ -12,8 +12,6 @@ extern "C" {
 #endif
 
 /* forward declarations */
-const char *SWIG_QuickJS_ValueStr(JSContext *ctx, JSValueConst this_val);
-const char *SWIG_QuickJS_typename(JSContext *ctx, JSValueConst this_val);
 SWIGRUNTIME int SWIG_QuickJS_IsSwigObject(JSContext *ctx, JSValueConst this_val);
 SWIGINTERN JSValueConst SWIG_QuickJS_baseRegistryClassLookup(JSContext *ctx, const char *name);
 
@@ -41,7 +39,7 @@ SWIGRUNTIME void SWIG_QuickJS_exception(JSContext *ctx, int code, const char* ms
 #define SWIG_QUICKJS_VALUE_MAX_LEN 512
 #define SWIG_QUICKJS_EXCEPTION_MSG_MAX_LEN 600
 
-static void SWIG_QuickJS_strcat(void *s, const char *v, long unsigned len) {
+SWIGINTERN void SWIG_QuickJS_strcat(void *s, const char *v, long unsigned len) {
   if(v && len>=1 && (strlen((const char *)s)+len<SWIG_QUICKJS_VALUE_MAX_LEN)) strncat((char*)s, v, len);
 }
 
@@ -119,7 +117,7 @@ SWIGRUNTIME void SWIG_QuickJS_raise(JSContext *ctx, JSValueConst obj, const char
 SWIGRUNTIME const SWIG_QuickJS_FunctionListEntry swig_prototype_class_prototype_functions[] = {
 };
 
-static SWIG_QuickJS_ClassDefinition SWIG_QuickJS_swig_prototype_class_class_definition = \
+SWIGINTERN SWIG_QuickJS_ClassDefinition SWIG_QuickJS_swig_prototype_class_class_definition = \
   {
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)
     SWIG_PROTOTYPE_CLASS_MAGIC,
@@ -426,6 +424,9 @@ SWIGRUNTIME JSValue SWIG_QuickJS_NewPointerObj(JSContext *ctx, void *ptr, swig_t
   return result;
 }
 
+JSValue SWIG_QuickJS_NewVoidPointerObj(JSContext *ctx, void *ptr, int flags) {
+  return SWIG_QuickJS_NewPointerObj(ctx, ptr, NULL, flags);
+}
 
 #define SWIG_ConvertPtr(obj, ptr, type, flags)    SWIG_QuickJS_ConvertPtr(ctx, obj, ptr, type, flags)
 #define SWIG_NewPointerObj(ptr, type, flags)      SWIG_QuickJS_NewPointerObj(ctx, ptr, type, flags)
@@ -496,7 +497,7 @@ SWIGRUNTIME void SwigPackedData_delete(JSRuntime *rt, JSValue this_val)
   JS_SetOpaque(this_val, NULL);
 }
 
-static SWIG_QuickJS_ClassDefinition SWIG_QuickJS_packed_data_class_definition = \
+SWIGINTERN SWIG_QuickJS_ClassDefinition SWIG_QuickJS_packed_data_class_definition = \
   {
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)
     SWIG_PROTOTYPE_CLASS_MAGIC,
@@ -731,6 +732,8 @@ JSValue SWIG_QuickJS_AppendOutput(JSContext *ctx, JSValue result, JSValue obj)
    * - an array: the multiple ouput has started in this array, append the object to it
    * - any other value (primitive type, object): create an array and put the current result
    * at position 0 and put the object at position 1.
+   * XXX limitation: if the initial result is an array, this function is confused and
+   * will not create a new array to hold the results.
    */
   JSValue r;
   int idx;
