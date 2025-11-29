@@ -72,7 +72,7 @@ check(cb.test_func_ptr(f,2)==-8);
 
 // check the __str__ mapping into toString
 // (only in QuickJS)
-if (typeof QuickJS != "undefined") {
+if (typeof QuickJS !== "undefined") {
 var f2_name = f2.toString();
 
 var f3 = new cb.FooSub();

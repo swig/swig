@@ -24,7 +24,7 @@ function check(s1, s2) {
 // JSC silently refuses it
 var test_string = "h\ufffdllo w\u00f6rld";
 
-if (typeof print === 'undefined' || typeof version !== 'undefined' || typeof QuickJS !== undefined) {
+if (typeof print === 'undefined' || typeof version !== 'undefined' || typeof QuickJS !== "undefined") {
     // With ENGINE=v8 we have `print` and `version`.
     // With ENGINE=node or ENGINE=napi we don't have either.
     check(unicode_strings.non_utf8_c_str(), test_string);
