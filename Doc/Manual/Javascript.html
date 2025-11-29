@@ -157,9 +157,10 @@ $ sudo apt-get install libnode-dev</pre>
   <pre>
 $ sudo npm install -g node-addon-api</pre>
 </div>
-<p>Running with QuickJS requires the <code>qjs</code> executable and the <code>quickjs</code> headers. These can be defined
+<p>Running with QuickJS requires the sources of QuickKS to be available and compiled.. This source path can be defined
 in the <code>configure</code> step. Note that it is advised to download and build QuickJS, as supported version is currently 2025-09-13
 and default version in distribution may be out of date.</p>
+<p>Note: due to differences in API, the quickjs-ng fork is not supported yet.</p>
 
 <p>For instance, in Ubuntu 24.04, theses instructions install QuickJS 2021-03-27, which is too old for this module:</p>
 <div class="shell">
@@ -179,6 +180,7 @@ $ make check-javascript-test-suite ENGINE=jsc</pre>
 </div>
 
 <H3><a name="Javascript_known_issues">28.2.3 Known Issues</a></H3>
+
 
 <p>At the moment, the Javascript generators pass all tests syntactically, i.e., the generated source code compiles. However, there are still remaining runtime issues.</p>
 
@@ -473,15 +475,13 @@ open new windows, and many more things.
 
 
 <ul>
-  <li>QuickJS does not provide a <code>require</code> function but only <code>import</code>. For the test suite and examples, the <code>require</code> instructions are dynamically replaced by <code>import</code> instructions.</li>
-  <li>QuickJS does not accept to <code>delete</code> toplevel variables. The <code>delete x</code> code is dynamically replaced by <code>x = null</code>.</li>
+  <li>QuickJS default executable <code>qjs</code> does not provide a <code>require</code> function but only <code>import</code>. For the test suite and examples, a specific QuickJS interpretor is build in <code>Tools/javascript</code>.</li>
 </ul>
-<p><b>Note</b>: these substitutions are performed in the Makefile, with <code>sed</code>, creation a (temporary) <em>runme.quick.js</em> file.</p>
 
 <H4><a name="Javascript_quickjs_other">28.3.4.2 QuickJS runtime specificities</a></H4>
 
 
-<p>Generated modules include a global variable named <code>QuickJS</code> which is an object used as a registry (same concept as in Lua). 
+<p>Generated modules include a global variable named <code>QuickJS</code> which is an object used as a registry (concept similar to the one in Lua). 
 <p>The instruction <code>typeof QuickJS !== "undefined"</code> allows to detect if running in the QuickJS interpreter.</p>
 
 <p>This registry includes a class registry, storing the prototypes of generated classes and supporting:</p>

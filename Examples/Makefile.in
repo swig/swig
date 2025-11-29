@@ -746,6 +746,7 @@ ifneq (, @JSV8ENABLED@)
 else
 ifneq (, @JSQUICKJSENABLED@)
     JSENGINE=quickjs
+    CPPFLAGS += -I$(SWIG_LIB_DIR)/javascript/quickjs
 else
     # Shouldn't happen, but avoid empty value if it does.
     JSENGINE=node
