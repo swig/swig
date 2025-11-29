@@ -96,6 +96,7 @@ Source/eswig
 Source/TAGS
 swig
 Tools/javascript/javascript
+Tools/javascript/quickjs
 
 # Generated documentation
 Doc/Manual/SWIGDocumentation.html
