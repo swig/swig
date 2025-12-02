@@ -229,7 +229,22 @@ swig -go -help
   example, with <code>-import-prefix mymodule</code>, a SWIG
   interface file <code>%import mypackage</code> will become a Go
   import statement <code>import "mymodule/mypackage"</code>.</td>
+</tr>
+
+<tr>
+<td>-unique-id</td>
+<td>Enables the generation of a unique ID to suffix the generated 
+  wrapper functions with. This is the default behaviour.</td>
+</tr>
+
+<tr>
+<td>-no-unique-id</td>
+<td>Disables the generation of a unique ID to suffix the generated 
+  wrapper functions with. This might lead to naming conflicts when
+  there are multiple SWIG inputs.</td>
+</tr>
 </table>
+
 
 
 <H3><a name="Go_outputs">25.3.2 Generated Wrapper Files</a></H3>
