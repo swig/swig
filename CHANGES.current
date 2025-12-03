@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.4.1 (in progress)
 ===========================
 
+2025-12-03: jschueller
+            [Python] #3285 Fix builds with python>=3.13 and Py_LIMITED_API<3.13.
+
 2025-11-14: jschueller
             [Python] #3280 Add override specifier to SwigPyIterator methods for c++11
             and later.
