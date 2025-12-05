@@ -22,7 +22,7 @@ SWIG_strnlen(const char* s, size_t maxlen)
   const char *p;
   for (p = s; maxlen-- && *p; p++)
     ;
-  return p - s;
+  return (size_t)(p - s);
 }
 }
 
