@@ -27,6 +27,9 @@ Version 4.5.0 (in progress)
                  int f(VOID_TYPE) const;
               };
 
+2025-11-06: degasus
+	    #3284 Fix -fsanitize=undefined problem in the SWIG runtime code.
+
 2025-11-06: olly
 	    [Octave, Ruby] #3281 `FALSE` and `TRUE` are no longer treated as
 	    aliases of `false` and `true` when generating documentation comments.
