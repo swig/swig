@@ -13,3 +13,6 @@ Version 4.4.1 (7 Dec 2025)
 2025-11-14: jschueller
             [Python] #3280 Add override specifier to SwigPyIterator methods for c++11
             and later.
+
+2025-11-06: degasus
+	    #3284 Fix -fsanitize=undefined problem in the SWIG runtime code.
