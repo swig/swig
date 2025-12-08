@@ -10,13 +10,6 @@ Version 4.5.0 (in progress)
 2025-12-05: jaw
             [Python] #3287 Fixes for gcc warnings: -Wconversion -Wsign-conversion.
 
-2025-12-03: jschueller
-            [Python] #3285 Fix builds with python>=3.13 and Py_LIMITED_API<3.13.
-
-2025-11-14: jschueller
-            [Python] #3280 Add override specifier to SwigPyIterator methods for c++11
-            and later.
-
 2025-11-08: wsfulton
             Fix handling of typedef to void in class methods/constructor's parameter
             lists, such as:
@@ -26,9 +19,6 @@ Version 4.5.0 (in progress)
                  S(VOID_TYPE);
                  int f(VOID_TYPE) const;
               };
-
-2025-11-06: degasus
-	    #3284 Fix -fsanitize=undefined problem in the SWIG runtime code.
 
 2025-11-06: olly
 	    [Octave, Ruby] #3281 `FALSE` and `TRUE` are no longer treated as

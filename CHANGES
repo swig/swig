@@ -5,6 +5,19 @@ See the RELEASENOTES file for a summary of changes in each release.
 Issue # numbers mentioned below can be found on Github. For more details, add
 the issue number to the end of the URL: https://github.com/swig/swig/issues/
 
+Version 4.4.1 (7 Dec 2025)
+==========================
+
+2025-12-03: jschueller
+            [Python] #3285 Fix builds with python>=3.13 and Py_LIMITED_API<3.13.
+
+2025-11-14: jschueller
+            [Python] #3280 Add override specifier to SwigPyIterator methods for c++11
+            and later.
+
+2025-11-06: degasus
+	    #3284 Fix -fsanitize=undefined problem in the SWIG runtime code.
+
 Version 4.4.0 (20 Oct 2025)
 ===========================
 

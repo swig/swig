@@ -7,6 +7,11 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at https://swig.org/release.html.
 
+SWIG-4.4.1 summary:
+- Fix errors with some combinations of Py_LIMITED_API and recent Python
+  versions.
+- A couple of other minor fixes/improvements.
+
 SWIG-4.4.0 summary:
 - Python-3.14 and early Python-3.15 support including modernisations:
   - Remove some DeprecationWarnings.
