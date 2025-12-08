@@ -127,6 +127,8 @@ private:
   File *f_wrappers;
   File *f_init;
   File *f_initbeforefunc;
+  File *f_directors;
+  File *f_directors_h;
   String *s_luacode;		// luacode to be called during init
   String *module;		//name of the module
 
@@ -187,12 +189,18 @@ public:
       f_wrappers(0),
       f_init(0),
       f_initbeforefunc(0),
+      f_directors(0),
+      f_directors_h(0),
       s_luacode(0),
       module(0),
       have_constructor(0),
       have_destructor(0), destructor_action(0), proxy_class_name(0), full_proxy_class_name(0), class_static_nspace(0), constructor_name(0) {
     for (int i = 0; i < STATES_COUNT; i++)
       current[i] = false;
+
+    /* Enable director support */
+    director_multiple_inheritance = 1;
+    directorLanguage(1);
   }
   /* NEW LANGUAGE NOTE:***********************************************
      This is called to initialise the system & read any command line args
@@ -294,6 +302,8 @@ public:
     f_header = NewString("");
     f_wrappers = NewString("");
     f_initbeforefunc = NewString("");
+    f_directors = NewString("");
+    f_directors_h = NewString("");
 
     /* Register file targets with the SWIG file handler */
     Swig_register_filebyname("header", f_header);
@@ -302,6 +312,8 @@ public:
     Swig_register_filebyname("runtime", f_runtime);
     Swig_register_filebyname("init", f_init);
     Swig_register_filebyname("initbeforefunc", f_initbeforefunc);
+    Swig_register_filebyname("director", f_directors);
+    Swig_register_filebyname("director_h", f_directors_h);
 
 
     s_luacode = NewString("");
@@ -324,6 +336,18 @@ public:
     if (squash_bases)
       Printf(f_runtime, "#define SWIG_LUA_SQUASH_BASES\n");
 
+    /* Check if directors are enabled for this module */
+    Node *mod = Getattr(n, "module");
+    if (mod) {
+      Node *options = Getattr(mod, "options");
+      if (options && Getattr(options, "directors")) {
+	allow_directors();
+	if (Getattr(options, "dirprot")) {
+	  allow_dirprot();
+	}
+      }
+    }
+
     //    if (NoInclude) {
     //      Printf(f_runtime, "#define SWIG_NOINCLUDE\n");
     //    }
@@ -345,6 +369,14 @@ public:
     /* %init code inclusion, effectively in the SWIG_init function */
     Printf(f_init, "void SWIG_init_user(lua_State* L)\n{\n");
     Language::top(n);
+
+    /* Insert director runtime into the f_runtime file if directors are enabled */
+    if (Swig_directors_enabled()) {
+      Printf(f_runtime, "#define SWIG_DIRECTORS\n");
+      Swig_insert_file("director_common.swg", f_runtime);
+      Swig_insert_file("luadirector.swg", f_runtime);
+    }
+
     Printf(f_init, "/* exec Lua code if applicable */\nSWIG_Lua_dostring(L,SWIG_LUACODE);\n");
     Printf(f_init, "}\n");
 
@@ -360,7 +392,21 @@ public:
        NEW LANGUAGE NOTE:END *********************************************** */
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
+    /* Emit director header declarations */
+    if (Len(f_directors_h) > 0) {
+      Printf(f_begin, "\n/* Director header */\n");
+      Printf(f_begin, "#ifdef __cplusplus\n");
+      Dump(f_directors_h, f_begin);
+      Printf(f_begin, "#endif\n\n");
+    }
     Dump(f_wrappers, f_begin);
+    /* Emit director method implementations */
+    if (Len(f_directors) > 0) {
+      Printf(f_begin, "\n/* Director method implementations */\n");
+      Printf(f_begin, "#ifdef __cplusplus\n");
+      Dump(f_directors, f_begin);
+      Printf(f_begin, "#endif\n\n");
+    }
     Dump(f_initbeforefunc, f_begin);
     /* for the Lua code it needs to be properly escaped to be added into the C/C++ code */
     escapeCode(s_luacode);
@@ -372,6 +418,8 @@ public:
     Delete(f_wrappers);
     Delete(f_init);
     Delete(f_initbeforefunc);
+    Delete(f_directors);
+    Delete(f_directors_h);
     Delete(f_runtime);
     Delete(f_begin);
 
@@ -559,6 +607,20 @@ public:
 
     /* Attach the standard typemaps */
     emit_attach_parmmaps(l, f);
+
+    /* Director upcall check - for director classes, we need to detect if we're
+       being called from within a director method callback (upcall). This is used to decide
+       whether to call the parent class method directly or use virtual dispatch.
+       When upcall is true, we call the parent class method to avoid infinite recursion.
+       NOTE: The actual check is done after arguments are parsed (below). */
+    String *nodeType = Getattr(n, "nodeType");
+    int destructor = (nodeType && !Cmp(nodeType, "destructor"));
+    int director_method = is_member_director(n) && !is_smart_pointer() && !destructor;
+    if (director_method) {
+      Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+      Wrapper_add_local(f, "upcall", "bool upcall = false");
+    }
+
     Setattr(n, "wrap:parms", l);
 
     /* Get number of required and total arguments */
@@ -653,6 +715,12 @@ public:
     // add all argcheck code
     Printv(f->code, argument_check, argument_parse, NIL);
 
+    /* Add director upcall check after arguments are parsed */
+    if (director_method) {
+      Append(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
+      Append(f->code, "upcall = (director && director->swig_is_upcall_active());\n");
+    }
+
     /* Check for trailing varargs */
     if (varargs) {
       if (p && (tm = Getattr(p, "tmap:in"))) {
@@ -705,6 +773,9 @@ public:
     // Remember C name of the wrapping function
     Setattr(n, "wrap:name", wname);
 
+    /* Emit director dynamic cast for protected/non-public member access */
+    Swig_director_emit_dynamic_cast(n, f);
+
     /* Emit the function call */
     String *actioncode = emit_action(n);
 
@@ -733,6 +804,17 @@ public:
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), name);
     }
     emit_return_variable(n, returntype, f);
+
+    /* For director constructors, connect the director to the Lua object */
+    if (current[CONSTRUCTOR] && Swig_directorclass(n)) {
+      Printf(f->code, "{\n");
+      Printf(f->code, "  Swig::Director *director = SWIG_DIRECTOR_CAST(%s);\n", Swig_cresult_name());
+      /* Use lua_gettop(L) instead of SWIG_arg because SWIG_arg is the return count (1),
+       * but the userdata is at the top of the stack which may be at a different position
+       * if there were constructor arguments on the stack */
+      Printf(f->code, "  if (director) director->swig_connect_director(L, lua_gettop(L));\n");
+      Printf(f->code, "}\n");
+    }
 
     /* Output argument output code */
     Printv(f->code, outarg, NIL);
@@ -2216,6 +2298,484 @@ public:
     return result;
   }
 
+  /* ---------------------------------------------------------------
+   * Director support for Lua
+   * --------------------------------------------------------------- */
+
+  /* ------------------------------------------------------------
+   * classDirectorInit()
+   *
+   * Initialize the director class declaration.
+   * ------------------------------------------------------------ */
+
+  int classDirectorInit(Node *n) {
+    String *declaration = Swig_director_declaration(n);
+    Printf(f_directors_h, "\n");
+    Printf(f_directors_h, "%s\n", declaration);
+    Printf(f_directors_h, "public:\n");
+    Delete(declaration);
+
+    /* For Lua, we always create a director object if directors are enabled.
+     * The Lua object will be connected later via swig_connect_director().
+     * We override none_comparison and director_ctor_code to always use the director constructor. */
+    Delete(none_comparison);
+    none_comparison = NewString("");	/* Empty comparison - always use director */
+
+    Delete(director_ctor_code);
+    director_ctor_code = NewString("$director_new");
+
+    return Language::classDirectorInit(n);
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorEnd()
+   *
+   * Complete the director class declaration.
+   * ------------------------------------------------------------ */
+
+  int classDirectorEnd(Node *n) {
+    String *classname = Swig_class_name(n);
+
+    if (dirprot_mode()) {
+      Printf(f_directors_h, "\n");
+      Printf(f_directors_h, "/* Internal director utilities */\n");
+      Printf(f_directors_h, "public:\n");
+      Printf(f_directors_h, "    bool swig_get_inner(const char *swig_protected_method_name) const {\n");
+      Printf(f_directors_h, "      std::map<std::string, bool>::const_iterator iv = swig_inner.find(swig_protected_method_name);\n");
+      Printf(f_directors_h, "      return (iv != swig_inner.end() ? iv->second : false);\n");
+      Printf(f_directors_h, "    }\n");
+      Printf(f_directors_h, "    void swig_set_inner(const char *swig_protected_method_name, bool swig_val) const {\n");
+      Printf(f_directors_h, "      swig_inner[swig_protected_method_name] = swig_val;\n");
+      Printf(f_directors_h, "    }\n");
+      Printf(f_directors_h, "private:\n");
+      Printf(f_directors_h, "    mutable std::map<std::string, bool> swig_inner;\n");
+    }
+
+    Printf(f_directors_h, "};\n\n");
+    Delete(classname);
+    return Language::classDirectorEnd(n);
+  }
+
+  /* ------------------------------------------------------------
+   * directorPrefixArgs()
+   *
+   * Set up director prefix arguments (lua_State *L).
+   * ------------------------------------------------------------ */
+
+  void directorPrefixArgs(Node *n) {
+    /* Need to prepend 'L' (lua_State*) to the director constructor's argument list */
+    String *type = NewString("lua_State");
+    SwigType_add_pointer(type);
+    Parm *p = NewParm(type, NewString("L"), n);
+    Setattr(p, "arg:byname", "1");
+    set_nextSibling(p, NULL);
+
+    Setattr(n, "director:prefix_args", p);
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorConstructor()
+   *
+   * Emit a director constructor.
+   * ------------------------------------------------------------ */
+
+  int classDirectorConstructor(Node *n) {
+    Node *parent = Getattr(n, "parentNode");
+    String *sub = NewString("");
+    String *decl = Getattr(n, "decl");
+    String *classname = directorClassName(parent);
+
+    /* Insert self parameter (lua_State*) */
+    Parm *p;
+    ParmList *superparms = Getattr(n, "parms");
+    ParmList *parms = CopyParmList(superparms);
+    String *type = NewString("lua_State");
+    SwigType_add_pointer(type);
+    p = NewParm(type, NewString("L"), n);
+    set_nextSibling(p, parms);
+    parms = p;
+
+    /* Set prefix args so that the wrapper code generator knows to add L */
+    directorPrefixArgs(n);
+
+    if (!Getattr(n, "defaultargs")) {
+      /* Constructor wrapper */
+      {
+	Wrapper *w = NewWrapper();
+	String *call;
+	String *basetype = Getattr(parent, "classtype");
+	String *target = Swig_method_decl(0, decl, classname, parms, 0);
+	call = Swig_csuperclass_call(0, basetype, superparms);
+	Printf(w->def, "%s::%s: %s, Swig::Director(L) {\n", classname, target, call);
+	Append(w->def, "}\n");
+	Delete(target);
+	Wrapper_print(w, f_directors);
+	Delete(call);
+	DelWrapper(w);
+      }
+
+      /* Constructor header declaration */
+      {
+	String *target = Swig_method_decl(0, decl, classname, parms, 1);
+	Printf(f_directors_h, "    %s;\n", target);
+	Delete(target);
+      }
+    }
+
+    Delete(sub);
+    Delete(classname);
+    Delete(parms);
+    return Language::classDirectorConstructor(n);
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorDefaultConstructor()
+   *
+   * Emit a director default constructor.
+   * ------------------------------------------------------------ */
+
+  int classDirectorDefaultConstructor(Node *n) {
+    Node *parent = Swig_methodclass(n);
+    String *classname = directorClassName(parent);
+
+    /* Set prefix args so that the wrapper code generator knows to add L */
+    directorPrefixArgs(n);
+
+    {
+      Wrapper *w = NewWrapper();
+      Printf(w->def, "%s::%s(lua_State *L) : Swig::Director(L) {\n", classname, classname);
+      Append(w->def, "}\n");
+      Wrapper_print(w, f_directors);
+      DelWrapper(w);
+    }
+    Printf(f_directors_h, "    %s(lua_State *L);\n", classname);
+    Delete(classname);
+    return Language::classDirectorDefaultConstructor(n);
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorMethod()
+   *
+   * Emit a virtual director method to pass a method call on to the
+   * underlying Lua object.
+   * ------------------------------------------------------------ */
+
+  int classDirectorMethod(Node *n, Node *parent, String *super) {
+    int is_void = 0;
+    int is_pointer = 0;
+    String *decl = Getattr(n, "decl");
+    String *name = Getattr(n, "name");
+    String *c_classname = Getattr(parent, "name");
+    String *symname = Getattr(n, "sym:name");
+    String *declaration = NewString("");
+    ParmList *l = Getattr(n, "parms");
+    Wrapper *w = NewWrapper();
+    String *tm;
+    String *wrap_args = NewString("");
+    SwigType *returntype = Getattr(n, "type");
+    String *value = Getattr(n, "value");
+    String *storage = Getattr(n, "storage");
+    bool pure_virtual = false;
+    int status = SWIG_OK;
+    int idx;
+    bool ignored_method = GetFlag(n, "feature:ignore") ? true : false;
+
+    if (Cmp(storage, "virtual") == 0) {
+      if (Cmp(value, "0") == 0) {
+	pure_virtual = true;
+      }
+    }
+
+    /* determine if the method returns a pointer */
+    is_pointer = SwigType_ispointer_return(decl);
+    is_void = (!Cmp(returntype, "void") && !is_pointer);
+
+    /* virtual method definition */
+    String *target;
+    String *pclassname = directorClassName(parent);
+    String *qualified_name = NewStringf("%s::%s", pclassname, name);
+    SwigType *rtype = Getattr(n, "conversion_operator") ? 0 : Getattr(n, "classDirectorMethods:type");
+    target = Swig_method_decl(rtype, decl, qualified_name, l, 0);
+    Printf(w->def, "%s", target);
+    Delete(qualified_name);
+    Delete(target);
+
+    /* header declaration */
+    target = Swig_method_decl(rtype, decl, name, l, 1);
+    Printf(declaration, "    virtual %s", target);
+    Delete(target);
+
+    // Get any exception classes in the throws typemap
+    if (Getattr(n, "noexcept")) {
+      Append(w->def, " noexcept");
+      Append(declaration, " noexcept");
+    }
+    ParmList *throw_parm_list = 0;
+    if ((throw_parm_list = Getattr(n, "throws")) || Getattr(n, "throw")) {
+      Parm *p;
+      int gencomma = 0;
+
+      Append(w->def, " throw(");
+      Append(declaration, " throw(");
+
+      if (throw_parm_list)
+	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+      for (p = throw_parm_list; p; p = nextSibling(p)) {
+	if (Getattr(p, "tmap:throws")) {
+	  if (gencomma++) {
+	    Append(w->def, ", ");
+	    Append(declaration, ", ");
+	  }
+	  String *str = SwigType_str(Getattr(p, "type"), 0);
+	  Append(w->def, str);
+	  Append(declaration, str);
+	  Delete(str);
+	}
+      }
+
+      Append(w->def, ")");
+      Append(declaration, ")");
+    }
+
+    Append(w->def, " {");
+    Append(declaration, ";\n");
+
+    /* declare method return value */
+    if (!is_void && (!ignored_method || pure_virtual)) {
+      if (!SwigType_isclass(returntype)) {
+	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+	  Delete(construct_result);
+	} else {
+	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
+	}
+      } else {
+	String *cres = SwigType_lstr(returntype, "c_result");
+	Printf(w->code, "%s;\n", cres);
+	Delete(cres);
+      }
+    }
+
+    if (ignored_method) {
+      if (!pure_virtual) {
+	if (!is_void)
+	  Printf(w->code, "return ");
+	String *super_call = Swig_method_call(super, l);
+	Printf(w->code, "%s;\n", super_call);
+	Delete(super_call);
+      } else {
+	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
+	       SwigType_namestr(name));
+      }
+    } else {
+      /* attach typemaps to arguments (C++ -> Lua) */
+      String *arglist = NewString("");
+
+      Swig_director_parms_fixup(l);
+
+      Swig_typemap_attach_parms("in", l, 0);
+      Swig_typemap_attach_parms("directorin", l, w);
+      Swig_typemap_attach_parms("directorargout", l, w);
+
+      Parm *p;
+      char source[256];
+
+      int outputs = 0;
+      if (!is_void)
+	outputs++;
+
+      /* Get lua state */
+      Printf(w->code, "lua_State *L = swig_get_lua_state();\n");
+      Printf(w->code, "if (!L) {\n");
+      Printf(w->code, "  Swig::DirectorException::raise(\"'L' uninitialized, maybe you forgot to call swig_connect_director.\");\n");
+      Printf(w->code, "}\n");
+
+      Printf(w->code, "int top = lua_gettop(L);\n");
+
+      /* Get self onto stack */
+      Printf(w->code, "if (!swig_get_self(L)) {\n");
+      Printf(w->code, "  Swig::DirectorException::raise(\"'self' uninitialized, maybe you forgot to call swig_connect_director.\");\n");
+      Printf(w->code, "}\n");
+      Printf(w->code, "int obj_idx = lua_gettop(L);\n");
+
+      /* Get method from object - first try uservalue table, then metatable */
+      Printf(w->code, "lua_getuservalue(L, obj_idx);\n");
+      Printf(w->code, "if (lua_istable(L, -1)) {\n");
+      Printf(w->code, "  lua_pushstring(L, \"%s\");\n", symname);
+      Printf(w->code, "  lua_rawget(L, -2);\n");
+      Printf(w->code, "  if (!lua_isfunction(L, -1)) {\n");
+      Printf(w->code, "    lua_pop(L, 2); /* pop nil and uservalue table */\n");
+      Printf(w->code, "    lua_pushnil(L); /* placeholder for consistency */\n");
+      Printf(w->code, "  } else {\n");
+      Printf(w->code, "    lua_remove(L, -2); /* remove uservalue table, keep function */\n");
+      Printf(w->code, "  }\n");
+      Printf(w->code, "} else {\n");
+      Printf(w->code, "  lua_pop(L, 1); /* pop non-table uservalue */\n");
+      Printf(w->code, "  lua_pushnil(L); /* placeholder */\n");
+      Printf(w->code, "}\n");
+      Printf(w->code, "if (!lua_isfunction(L, -1)) {\n");
+      Printf(w->code, "  lua_pop(L, 1); /* pop placeholder */\n");
+      Printf(w->code, "  lua_settop(L, top);\n");
+      if (pure_virtual) {
+	Printf(w->code, "  Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
+	       SwigType_namestr(name));
+      } else {
+	// Call parent method instead
+	if (!is_void) {
+	  Printf(w->code, "  return ");
+	}
+	String *super_call = Swig_method_call(super, l);
+	Printf(w->code, "%s;\n", super_call);
+	Delete(super_call);
+	if (is_void) {
+	  Printf(w->code, "  return;\n");
+	}
+      }
+      Printf(w->code, "}\n");
+
+      /* Push self as first argument */
+      Printf(w->code, "lua_pushvalue(L, obj_idx);\n");
+
+      /* build argument list and type conversion string */
+      idx = 0;
+      int nargs = 0;
+      p = l;
+      while (p) {
+	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+	  p = Getattr(p, "tmap:in:next");
+	  continue;
+	}
+
+	if (Getattr(p, "tmap:directorargout") != 0)
+	  outputs++;
+
+	String *pname = Getattr(p, "name");
+	String *ptype = Getattr(p, "type");
+
+	if ((tm = Getattr(p, "tmap:directorin")) != 0) {
+	  sprintf(source, "obj%d", idx++);
+	  Replaceall(tm, "$input", source);
+	  Replaceall(tm, "$owner", "0");
+	  Printv(wrap_args, tm, "\n", NIL);
+	  nargs++;
+	  p = Getattr(p, "tmap:directorin:next");
+	  continue;
+	} else if (Cmp(ptype, "void")) {
+	  Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
+		       "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0),
+		       SwigType_namestr(c_classname), SwigType_namestr(name));
+	  status = SWIG_NOWRAP;
+	  break;
+	}
+	p = nextSibling(p);
+      }
+
+      if (status == SWIG_OK) {
+	/* wrap complex arguments to Lua objects */
+	Printv(w->code, wrap_args, NIL);
+
+	/* Mark that we're entering an upcall to prevent infinite recursion */
+	Printf(w->code, "swig_begin_upcall();\n");
+
+	/* Call the Lua method */
+	Printf(w->code, "int pcall_result = lua_pcall(L, %d, %d, 0);\n", nargs + 1, is_void ? 0 : 1);
+	Printf(w->code, "swig_end_upcall();\n");
+	Printf(w->code, "if (pcall_result != 0) {\n");
+	Printf(w->code, "  std::string err = \"Error calling %s: \";\n", symname);
+	Printf(w->code, "  err += lua_tostring(L, -1);\n");
+	Printf(w->code, "  lua_settop(L, top);\n");
+	Printf(w->code, "  Swig::DirectorMethodException::raise(err.c_str());\n");
+	Printf(w->code, "}\n");
+
+	/* marshal return value */
+	if (!is_void) {
+	  /* Create a variable to hold the Lua stack index for $input */
+	  Printf(w->code, "int SWIG_lua_result = lua_gettop(L);\n");
+	  tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
+	  if (tm != 0) {
+	    Replaceall(tm, "$input", "SWIG_lua_result");
+	    Replaceall(tm, "$result", "c_result");
+	    Printf(w->code, "%s\n", tm);
+	    Delete(tm);
+	  } else {
+	    Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number, "Unable to use return type %s in director method %s::%s (skipping method).\n",
+			 SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+	    status = SWIG_ERROR;
+	  }
+	}
+
+	/* Clean up Lua stack */
+	Printf(w->code, "lua_settop(L, top);\n");
+      }
+
+      Delete(arglist);
+    }
+
+    if (!is_void) {
+      if (!(ignored_method && !pure_virtual)) {
+	String *rettype = SwigType_str(returntype, 0);
+	if (!SwigType_isreference(returntype)) {
+	  Printf(w->code, "return (%s) c_result;\n", rettype);
+	} else {
+	  Printf(w->code, "return (%s) *c_result;\n", rettype);
+	}
+	Delete(rettype);
+      }
+    }
+
+    Append(w->code, "}\n");
+
+    // We expose protected methods via an extra public inline method
+    String *inline_extra_method = NewString("");
+    if (dirprot_mode() && !is_public(n) && !pure_virtual) {
+      Printv(inline_extra_method, declaration, NIL);
+      String *extra_method_name = NewStringf("%sSwigPublic", name);
+      Replaceall(inline_extra_method, name, extra_method_name);
+      Replaceall(inline_extra_method, ";\n", " {\n      ");
+      if (!is_void)
+	Printf(inline_extra_method, "return ");
+      String *methodcall = Swig_method_call(super, l);
+      Printv(inline_extra_method, methodcall, ";\n    }\n", NIL);
+      Delete(methodcall);
+      Delete(extra_method_name);
+    }
+
+    /* emit the director method */
+    if (status == SWIG_OK) {
+      if (!Getattr(n, "defaultargs")) {
+	Replaceall(w->code, "$symname", symname);
+	Wrapper_print(w, f_directors);
+	Printv(f_directors_h, declaration, NIL);
+	Printv(f_directors_h, inline_extra_method, NIL);
+      }
+    }
+
+    /* clean up */
+    Delete(wrap_args);
+    Delete(pclassname);
+    Delete(declaration);
+    Delete(inline_extra_method);
+    DelWrapper(w);
+    return status;
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorMethods()
+   * ------------------------------------------------------------ */
+
+  int classDirectorMethods(Node *n) {
+    return Language::classDirectorMethods(n);
+  }
+
+  /* ------------------------------------------------------------
+   * classDirectorDisown()
+   * ------------------------------------------------------------ */
+
+  int classDirectorDisown(Node *n) {
+    (void) n;
+    return SWIG_OK;
+  }
 };
 
 /* -----------------------------------------------------------------------------
