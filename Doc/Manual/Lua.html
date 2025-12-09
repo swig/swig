@@ -2051,5 +2051,174 @@ It is currently not recommended to edit this field or add some user code, to cha
 <p>
 It is also currently not possible to change the ownership flag on the data (unlike most other scripting languages, Lua does not permit access to the data from within the interpreter).
 </p>
+<H2><a name="Lua_directors">29.8 Cross language polymorphism using directors</a></H2>
+<p>
+Directors enable C++ virtual methods to be overridden in Lua. This allows Lua code to extend C++ classes
+and override virtual methods, enabling polymorphism that spans both languages.
+</p>
+<H3><a name="Lua_directors_enabling">29.8.1 Enabling directors</a></H3>
+<p>
+The director feature is disabled by default. To use directors you must make two changes to the interface file.
+First, add the "directors" option to the %module directive:
+</p>
+<div class="code">
+<pre>
+%module(directors="1") mymodule
+</pre>
+</div>
+<p>
+Second, use the %feature("director") directive to specify which classes should get directors:
+</p>
+<div class="code">
+<pre>
+// Enable directors for all classes with virtual methods
+%feature("director");
+// Or enable for specific classes
+%feature("director") MyClass;
+</pre>
+</div>
+<p>
+You can use %feature("nodirector") to disable directors for specific classes or methods:
+</p>
+<div class="code">
+<pre>
+%feature("director") Foo;
+%feature("nodirector") Foo::bar;  // bar() won't have director support
+</pre>
+</div>
+<H3><a name="Lua_directors_usage">29.8.2 Using directors in Lua</a></H3>
+<p>
+When directors are enabled, SWIG provides helper functions to override virtual methods in Lua.
+These functions make it easy to extend C++ classes from Lua without exposing internal implementation details.
+</p>
+<H4>29.8.2.1 Helper Functions</H4>
+<p>
+SWIG provides the following helper functions when directors are enabled:
+</p>
+<ul>
+<li><b>swig_override(obj, methodName, func)</b> - Override a single virtual method</li>
+<li><b>swig_get_override(obj, methodName)</b> - Get the current override function for a method</li>
+<li><b>swig_derive(obj, overrides)</b> - Override multiple virtual methods at once</li>
+</ul>
+<H4>29.8.2.2 Basic Example</H4>
+<p>
+Given a C++ class:
+</p>
+<div class="code">
+<pre>
+// myclass.i
+%module(directors="1") mymodule
+%feature("director") MyClass;
+%inline %{
+class MyClass {
+public:
+virtual ~MyClass() {}
+virtual std::string getMessage() { return "C++ default"; }
+void printMessage() { std::cout &lt;&lt; getMessage() &lt;&lt; std::endl; }
+};
+%}
+</pre>
+</div>
+<p>
+You can override the virtual method in Lua:
+</p>
+<div class="targetlang">
+<pre>
+require("mymodule")
+-- Create an instance
+local obj = mymodule.MyClass()
+-- Override the virtual method
+swig_override(obj, "getMessage", function(self)
+return "Hello from Lua!"
+end)
+-- This will call the Lua override
+obj:printMessage()  -- Prints: "Hello from Lua!"
+</pre>
+</div>
+<H4>29.8.2.3 Overriding multiple methods</H4>
+<p>
+Use <tt>swig_derive</tt> to override multiple methods at once:
+</p>
+<div class="targetlang">
+<pre>
+local obj = mymodule.MyClass()
+swig_derive(obj, {
+getMessage = function(self)
+return "Overridden getMessage"
+end,
+anotherMethod = function(self, arg)
+return arg * 2
+end
+})
+</pre>
+</div>
+<H4>29.8.2.4 Creating derived class patterns</H4>
+<p>
+You can create a pattern similar to class inheritance in Lua:
+</p>
+<div class="targetlang">
+<pre>
+-- Define a "derived class" constructor
+local function MyDerivedClass()
+local obj = mymodule.MyClass()
+swig_derive(obj, {
+getMessage = function(self)
+return "MyDerivedClass message"
+end
+})
+return obj
+end
+-- Use it
+local derived = MyDerivedClass()
+derived:printMessage()  -- Calls the Lua override
+</pre>
+</div>
+<H4>29.8.2.5 Getting the current override</H4>
+<p>
+Use <tt>swig_get_override</tt> to retrieve the current override function:
+</p>
+<div class="targetlang">
+<pre>
+local obj = mymodule.MyClass()
+swig_override(obj, "getMessage", function(self) return "test" end)
+local func = swig_get_override(obj, "getMessage")
+print(func(obj))  -- Prints: "test"
+</pre>
+</div>
+<H3><a name="Lua_directors_exceptions">29.8.3 Exception handling in directors</a></H3>
+<p>
+When a Lua function overriding a virtual method throws an error (using Lua's <tt>error()</tt> function),
+the error will be caught and can be handled appropriately. The error message from Lua is preserved
+and can be caught on the C++ side.
+</p>
+<div class="targetlang">
+<pre>
+local obj = mymodule.MyClass()
+swig_override(obj, "someMethod", function(self)
+error("Something went wrong in Lua!")
+end)
+-- When C++ calls this method, the Lua error will be propagated
+</pre>
+</div>
+<H3><a name="Lua_directors_caveats">29.8.4 Director caveats and limitations</a></H3>
+<ul>
+<li>
+<b>Per-instance overrides:</b> Overrides are set per-instance, not per-class. Each object can have
+different overrides, which is more flexible than traditional class-based inheritance.
+</li>
+<li>
+<b>No automatic upcall:</b> When overriding a method, there is currently no automatic way to call the
+base class implementation from within the override. If you need this functionality, you must design
+your C++ interface to expose the base implementation explicitly.
+</li>
+<li>
+<b>Thread safety:</b> Directors are not inherently thread-safe. If you use Lua with multiple threads,
+ensure proper synchronization when calling director methods.
+</li>
+<li>
+<b>Performance:</b> Director calls involve crossing the Lua/C++ boundary, which has some overhead.
+For performance-critical code called very frequently, consider keeping the implementation in C++.
+</li>
+</ul>
 </body>
 </html>
