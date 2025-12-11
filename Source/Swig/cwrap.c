@@ -589,7 +589,7 @@ static String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, Parm
         if (Len(rcaststr))
           Printv(func, "SWIG_STD_TYPED_MOVE(", pname, ",", rcaststr, ")", NIL);
         else
-          Printv(func, "SWIG_MOVE(", pname, ")", NIL);
+          Printv(func, "SWIG_STD_MOVE(", pname, ")", NIL);
       } else {
         rcaststr = SwigType_rcaststr(pt, pname, 0);
         Printv(func, rcaststr, NIL);
