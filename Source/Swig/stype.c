@@ -982,7 +982,7 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       String *tsuffix = SwigType_templatesuffix(element);
       List *parms = SwigType_templateargslist(element);
       String *t = tprefix;
-      Append(t, "<");
+      Append(t, "< ");
       int plen = Len(parms);
       for (int j = 0; j < plen; j++) {
         String *p = SwigType_str(Getitem(parms, j), 0);
