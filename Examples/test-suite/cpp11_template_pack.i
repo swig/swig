@@ -1,4 +1,4 @@
-%module template_pack
+%module cpp11_template_pack
 
 %inline %{
   template <typename T, typename... U>
