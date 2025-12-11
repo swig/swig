@@ -980,6 +980,11 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
     } else if (SwigType_istemplate(element)) {
       String *tprefix = SwigType_templateprefix(element);
       String *tsuffix = SwigType_templatesuffix(element);
+      if (tsuffix && Len(tsuffix)) {
+        String *expand = SwigType_namestr(tsuffix);
+        Delete(tsuffix);
+        tsuffix = expand;
+      }
       List *parms = SwigType_templateargslist(element);
       String *t = tprefix;
       Append(t, "< ");
