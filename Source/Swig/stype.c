@@ -981,19 +981,22 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       String *tprefix = SwigType_templateprefix(element);
       String *tsuffix = SwigType_templatesuffix(element);
       List *parms = SwigType_templateargslist(element);
+      String *t = NewString("");
       int plen = Len(parms);
-      Append(result, tprefix);
-      Append(result, "<");
+      Append(t, tprefix);
+      Append(t, "<");
       for (int j = 0; j < plen; j++) {
         String *p = SwigType_str(Getitem(parms, j), 0);
-        Append(result, p);
+        Append(t, p);
         Delete(p);
         if (j < (plen - 1))
-          Append(result, ",");
+          Append(t, ",");
       }
-      Append(result, ">");
-      Append(result, tsuffix);
+      Append(t, ">");
+      Append(t, tsuffix);
+      Insert(result, 0, t);
       Delete(parms);
+      Delete(t);
       clear = 0;
     } else {
       String *bs = SwigType_namestr(element);
