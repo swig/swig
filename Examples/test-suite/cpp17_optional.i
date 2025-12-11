@@ -1,5 +1,6 @@
 %module(directors="1") cpp17_optional
 #if defined SWIGCSHARP
+//#define SWIG_STD_OPTIONAL_USE_NULLABLE_REFERENCE_TYPES // Enable this to use nullable reference types for optional class types in C# (requires C# 8.0 or later). Not supported by the CI
 #define SWIG_STD_OPTIONAL_DEFAULT_TYPES
 %include <stdint.i>
 %include <std_optional.i>
@@ -9,6 +10,10 @@
 %optional(test::Point)
 %optional(test::Circle)
 %optional(test::Rect)
+
+// Enum types with different underlying types
+%optional_enum_uint8(test::SmallEnum)
+%optional_enum_int64(test::BigEnum)
 
 %feature("director") test::TestObjectDirected;
 
@@ -26,6 +31,21 @@ using NoNamespaceStructOptional = std::optional<NoNamespaceStruct>;
 
 namespace test
 {
+    // Enum types for testing
+    enum class SmallEnum : std::uint8_t
+    {
+        Value1 = 1,
+        Value2 = 2,
+        Value3 = 255
+    };
+
+    enum class BigEnum : std::int64_t
+    {
+        Small = -1000000000000LL,
+        Zero = 0,
+        Large = 1000000000000LL
+    };
+
     // Example using simple type (eg. std::uint32_t)
     using SimpleOptional = std::optional<std::uint32_t>;
 
@@ -294,6 +314,23 @@ namespace test
         double width;
         double height;
     };
+
+    // Class to test enum optional types
+    class TestEnums
+    {
+    public:
+        TestEnums() = default;
+
+        std::optional<SmallEnum> getSmallEnumOpt() const { return _smallEnum; }
+        void setSmallEnumOpt(std::optional<SmallEnum> e) { _smallEnum = e; }
+
+        std::optional<BigEnum> getBigEnumOpt() const { return _bigEnum; }
+        void setBigEnumOpt(std::optional<BigEnum> e) { _bigEnum = e; }
+
+    private:
+        std::optional<SmallEnum> _smallEnum;
+        std::optional<BigEnum> _bigEnum;
+    };
     
     class TestObjectDirected
     {
@@ -301,31 +338,52 @@ namespace test
         TestObjectDirected() = default;
         virtual ~TestObjectDirected() = default;
     
-        virtual std::string onValueOptionalChanged(const std::optional<std::uint32_t> value) const { return ""; }
-        virtual std::string onReferenceOptionalChanged(const std::optional<std::uint32_t>& reference) const { return ""; }
+        // Director methods for uint32_t optional (by value and by reference)
+        virtual std::optional<std::uint32_t> onUint32OptionalChanged(const std::optional<std::uint32_t>& value) const { return std::nullopt; }
     
-        const std::string doValueOptionalChanged(const std::optional<std::uint32_t> value) const
+        std::optional<std::uint32_t> doUint32OptionalChanged(const std::optional<std::uint32_t>& value) const
         {
-            return onValueOptionalChanged(value);
+            return onUint32OptionalChanged(value);
         }
     
-        const std::string doReferenceOptionalChanged(const std::optional<std::uint32_t>& reference) const
-        {
-            return onReferenceOptionalChanged(reference);
-        }
+        // Director methods for class optional (Rect)
+        virtual std::optional<Rect> onRectOptionalChanged(const std::optional<Rect>& value) const { return std::nullopt; }
     
-        virtual std::string onClassReferenceOptionalChanged(const std::optional<Rect>& reference) const { return ""; }
-    
-        const std::string doClassReferenceOptionalChanged(const std::optional<Rect>& reference) const
+        std::optional<Rect> doRectOptionalChanged(const std::optional<Rect>& value) const
         {
-            return onClassReferenceOptionalChanged(reference);
+            return onRectOptionalChanged(value);
         }
 
-        virtual std::string onStringReferenceOptionalChanged(const std::optional<std::string>& reference) const { return ""; }
+        // Director methods for string optional
+        virtual std::optional<std::string> onStringOptionalChanged(const std::optional<std::string>& value) const { return std::nullopt; }
 
-        const std::string doStringReferenceOptionalChanged(const std::optional<std::string>& reference) const
+        std::optional<std::string> doStringOptionalChanged(const std::optional<std::string>& value) const
         {
-            return onStringReferenceOptionalChanged(reference);
+            return onStringOptionalChanged(value);
+        }
+
+        // Director methods for primitive optional (int)
+        virtual std::optional<int> onIntOptionalChanged(const std::optional<int>& value) const { return std::nullopt; }
+
+        std::optional<int> doIntOptionalChanged(const std::optional<int>& value) const
+        {
+            return onIntOptionalChanged(value);
+        }
+
+        // Director methods for SmallEnum optional (uint8_t underlying)
+        virtual std::optional<SmallEnum> onSmallEnumOptionalChanged(const std::optional<SmallEnum>& value) const { return std::nullopt; }
+
+        std::optional<SmallEnum> doSmallEnumOptionalChanged(const std::optional<SmallEnum>& value) const
+        {
+            return onSmallEnumOptionalChanged(value);
+        }
+
+        // Director methods for BigEnum optional (int64_t underlying)
+        virtual std::optional<BigEnum> onBigEnumOptionalChanged(const std::optional<BigEnum>& value) const { return std::nullopt; }
+
+        std::optional<BigEnum> doBigEnumOptionalChanged(const std::optional<BigEnum>& value) const
+        {
+            return onBigEnumOptionalChanged(value);
         }
     };
 } // namespace test
