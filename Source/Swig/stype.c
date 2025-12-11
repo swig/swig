@@ -824,6 +824,7 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   String *nextelement;
   String *forwardelement;
   String *member_function_qualifiers = 0;
+  String *qualifier = 0;
   SwigType *td, *tc = 0;
   const SwigType *rs;
   List *elements;
@@ -885,11 +886,14 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       if (!member_function_qualifiers) {
 	DOH *q = 0;
 	q = SwigType_parm(element);
-        // skip const for now
-	/*Insert(result, 0, " ");
-	Insert(result, 0, q);*/
-	Delete(q);
-	clear = 0;
+        if (!qualifier)
+          qualifier = NewString("");
+	Append(qualifier, q);
+        Append(qualifier, " ");
+        Delete(q);
+        clear = 0;
+        element = nextelement;
+        continue;
       }
     } else if (SwigType_ispointer(element)) {
       Insert(result, 0, "*");
@@ -1009,6 +1013,11 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       Insert(result, 0, " ");
       Insert(result, 0, bs);
       Delete(bs);
+    }
+    if (qualifier) {
+      Insert(result, 0, qualifier);
+      Delete(qualifier);
+      qualifier = 0;
     }
     element = nextelement;
   }
