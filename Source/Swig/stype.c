@@ -1474,6 +1474,30 @@ void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, Parm
       Append(e, ").");
       Delete(fparms);
     }
+    if (SwigType_istemplate(e)) {
+      int j, jlen;
+      List *tparms = SwigType_templateargslist(e);
+      String *tprefix = SwigType_templateprefix(e);
+      String *tsuffix = SwigType_templatesuffix(e);
+      Clear(e);
+      Append(e, tprefix);
+      Append(e, "<(");
+      jlen = Len(tparms);
+      for (j = 0; j < jlen; j++) {
+        SwigType *type = Getitem(tparms, j);
+        SwigType_variadic_replace(type, unexpanded_variadic_parm, expanded_variadic_parms);
+        if (Len(type) > 0) {
+          if (j != 0)
+            Putc(',', e);
+          Append(e, type);
+        } else {
+          assert(j = jlen - 1);
+        }
+      }
+      Append(e, ")>");
+      Append(e, tsuffix);
+      Delete(tparms);
+    }
     Append(nt, e);
   }
   Clear(t);
