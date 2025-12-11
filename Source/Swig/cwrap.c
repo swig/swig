@@ -396,16 +396,18 @@ String *Swig_cfunction_call(const_String_or_char_ptr name, ParmList *parms) {
     if ((SwigType_type(pt) != T_VOID)) {
       SwigType *rpt = SwigType_typedef_resolve_all(pt);
       String *pname = Swig_cparm_name(p, i);
-      String *rcaststr = SwigType_rcaststr(rpt, pname);
+      String *rcaststr;
       if (comma)
 	Append(func, ",");
-      if (cparse_cplusplus && SwigType_type(rpt) == T_USER)
-	Printv(func, "SWIG_STD_MOVE(", rcaststr, ")", NIL);
-      else
-	Printv(func, rcaststr, NIL);
+      if (cparse_cplusplus && SwigType_type(rpt) == T_USER) {
+        rcaststr = SwigType_namestr(rpt);
+        Printv(func, "SWIG_STD_TYPED_MOVE(", pname, ",", rcaststr, ")", NIL);
+      } else {
+        rcaststr = SwigType_rcaststr(rpt, pname);
+        Printv(func, rcaststr, NIL);
+      }
       Delete(rpt);
       Delete(pname);
-      Delete(rcaststr);
       comma = 1;
       i++;
     }
@@ -498,10 +500,13 @@ static String *Swig_cmethod_call(const_String_or_char_ptr name, ParmList *parms,
       String *rcaststr = SwigType_rcaststr(pt, pname);
       if (comma)
 	Append(func, ",");
-      if (cparse_cplusplus && SwigType_type(pt) == T_USER)
-	Printv(func, "SWIG_STD_MOVE(", rcaststr, ")", NIL);
-      else
-	Printv(func, rcaststr, NIL);
+      if (cparse_cplusplus && SwigType_type(pt) == T_USER) {
+        String *rcaststr = SwigType_namestr(pt);
+        Printv(func, "SWIG_STD_TYPED_MOVE(", pname, ",", rcaststr, ")", NIL);
+      } else {
+        String *rcaststr = SwigType_rcaststr(pt, pname);
+        Printv(func, rcaststr, NIL);
+      }
       Delete(rcaststr);
       Delete(pname);
       comma = 1;
@@ -573,11 +578,13 @@ static String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, Parm
 	else
 	  pname = Copy(Getattr(p, "name"));
       }
-      rcaststr = SwigType_rcaststr(pt, pname);
-      if (cparse_cplusplus && SwigType_type(pt) == T_USER)
-	Printv(func, "SWIG_STD_MOVE(", rcaststr, ")", NIL);
-      else
-	Printv(func, rcaststr, NIL);
+      if (cparse_cplusplus && SwigType_type(pt) == T_USER) {
+        rcaststr = SwigType_namestr(pt);
+        Printv(func, "SWIG_STD_TYPED_MOVE(", pname, ",", rcaststr, ")", NIL);
+      } else {
+        rcaststr = SwigType_rcaststr(pt, pname);
+        Printv(func, rcaststr, NIL);
+      }
       Delete(rcaststr);
       comma = 1;
       Delete(pname);

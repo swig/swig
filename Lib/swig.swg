@@ -699,8 +699,10 @@ template <typename T> T SwigValueInit() {
 
 #if __cplusplus >= 201103L
 # define SWIG_STD_MOVE(OBJ) std::move(OBJ)
+# define SWIG_STD_TYPED_MOVE(OBJ, ...) static_cast<std::remove_reference<__VA_ARGS__>::type &&>(OBJ)
 #else
 # define SWIG_STD_MOVE(OBJ) OBJ
+# define SWIG_STD_TYPED_MOVE(OBJ, ...) std::move(OBJ)
 #endif
 
 #if __cplusplus >= 201103L
