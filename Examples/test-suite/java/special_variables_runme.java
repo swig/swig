@@ -48,6 +48,6 @@ public class special_variables_runme {
   }
   static void verify(String received, String expected) {
     if (!received.equals(expected))
-      throw new RuntimeException("Incorrect, received: " + received);
+      throw new RuntimeException("Incorrect, received: '" + received + "', expected: '" + expected + "'");
   }
 }
