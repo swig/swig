@@ -992,7 +992,7 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
         if (j < (plen - 1))
           Append(t, ",");
       }
-      Append(t, ">");
+      Append(t, "> ");
       Append(t, tsuffix);
       Insert(result, 0, t);
       Delete(parms);
