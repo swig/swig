@@ -977,6 +977,24 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
 	clear = 0;
       }
       isfunction = 1;
+    } else if (SwigType_istemplate(element)) {
+      String *tprefix = SwigType_templateprefix(element);
+      String *tsuffix = SwigType_templatesuffix(element);
+      List *parms = SwigType_templateargslist(element);
+      int plen = Len(parms);
+      Append(result, tprefix);
+      Append(result, "<");
+      for (int j = 0; j < plen; j++) {
+        String *p = SwigType_str(Getitem(parms, j), 0);
+        Append(result, p);
+        Delete(p);
+        if (j < (plen - 1))
+          Append(result, ",");
+      }
+      Append(result, ">");
+      Append(result, tsuffix);
+      Delete(parms);
+      clear = 0;
     } else {
       String *bs = SwigType_namestr(element);
       Insert(result, 0, " ");
