@@ -885,8 +885,9 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       if (!member_function_qualifiers) {
 	DOH *q = 0;
 	q = SwigType_parm(element);
-	Insert(result, 0, " ");
-	Insert(result, 0, q);
+        // skip const for now
+	/*Insert(result, 0, " ");
+	Insert(result, 0, q);*/
 	Delete(q);
 	clear = 0;
       }
