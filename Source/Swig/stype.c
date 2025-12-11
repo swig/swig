@@ -1023,8 +1023,10 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
     }
     Append(cast, name);
   }
-  Insert(cast, 0, "(");
-  Append(cast, ")");
+  if (name) {
+    Insert(cast, 0, "(");
+    Append(cast, ")");
+  }
   Delete(result);
   Delete(tc);
   return cast;
