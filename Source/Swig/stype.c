@@ -1021,6 +1021,7 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
     }
     element = nextelement;
   }
+  assert(qualifier == 0);
   Delete(elements);
   if (clear) {
     cast = NewStringEmpty();
