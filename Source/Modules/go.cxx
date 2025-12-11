@@ -5717,15 +5717,15 @@ extern "C" Language *swig_go(void) {
 const char * const GO::usage = "\
 Go Options (available with -go)\n\
      -cgo                - Generate cgo input files\n\
-     -no-cgo             - Do not generate cgo input files\n\
      -gccgo              - Generate code for gccgo rather than gc\n\
      -go-pkgpath <p>     - Like gccgo -fgo-pkgpath option\n\
      -go-prefix <p>      - Like gccgo -fgo-prefix option\n\
      -import-prefix <p>  - Prefix to add to %import directives\n\
      -intgosize <s>      - Set size of Go int type--32 or 64 bits\n\
+     -no-cgo             - Do not generate cgo input files\n\
+     -no-unique-id       - Do not add unique IDs to generated names\n\
      -package <name>     - Set name of the Go package to <name>\n\
+     -unique-id          - Add unique IDs to generated names (default)\n\
      -use-shlib          - Force use of a shared library\n\
      -soname <name>      - Set shared library holding C/C++ code to <name>\n\
-     -unique-id          - Add unique IDs to generated names\n\
-     -no-unique-id       - Do not add unique IDs to generated names\n\
 \n";
