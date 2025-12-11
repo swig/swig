@@ -4020,7 +4020,7 @@ public:
     if (!ignored_method)
       overloaded_name = getOverloadedName(n);
 
-    qualified_return = SwigType_rcaststr(returntype, "c_result");
+    qualified_return = SwigType_rcaststr(returntype, "c_result", 0);
 
     if (!is_void && (!ignored_method || pure_virtual)) {
       if (!SwigType_isclass(returntype)) {

@@ -814,11 +814,12 @@ String *SwigType_lstr(const SwigType *s, const_String_or_char_ptr id) {
 /* -----------------------------------------------------------------------------
  * SwigType_rcaststr()
  *
- * Produces a casting string that maps the type returned by lstr() to the real 
+ * Produces a casting string that maps the type returned by lstr() to the real
  * datatype printed by str().
+ *      -   nocast=1 produces a castable type without the (cast).
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
+String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name, int nocast) {
   String *result, *cast;
   String *element = 0;
   String *nextelement;
@@ -1016,16 +1017,16 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   Delete(elements);
   if (clear) {
     cast = NewStringEmpty();
-  } else {
+  } else if (!nocast) {
     cast = NewStringf("(%s)", result);
+  } else {
+    cast = NewStringf("%s", result);
   }
   if (name) {
     if (isreference) {
       Append(cast, "*");
     }
     Append(cast, name);
-  }
-  if (name) {
     Insert(cast, 0, "(");
     Append(cast, ")");
   }

@@ -141,7 +141,7 @@ extern "C" {
   extern String *SwigType_parm(const SwigType *p);
   extern String *SwigType_str(const SwigType *s, const_String_or_char_ptr id);
   extern String *SwigType_lstr(const SwigType *s, const_String_or_char_ptr id);
-  extern String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr id);
+  extern String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr id, int nocast);
   extern String *SwigType_lcaststr(const SwigType *s, const_String_or_char_ptr id);
   extern String *SwigType_manglestr(const SwigType *t);
   extern SwigType *SwigType_ltype(const SwigType *t);

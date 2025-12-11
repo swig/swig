@@ -196,7 +196,7 @@ static String *Swig_wrapped_var_deref(SwigType *t, const_String_or_char_ptr name
       return NewStringf("*%s", name);
     }
   } else {
-    return SwigType_rcaststr(t, name);
+    return SwigType_rcaststr(t, name, 0);
   }
 }
 
@@ -314,7 +314,7 @@ String *Swig_cresult(SwigType *t, const_String_or_char_ptr name, const_String_or
       SwigType_del_rvalue_reference(tt);
       SwigType_add_qualifier(tt, "const");
       SwigType_add_reference(tt);
-      const_lvalue_str = SwigType_rcaststr(tt, 0);
+      const_lvalue_str = SwigType_rcaststr(tt, 0, 0);
 
       Printf(fcall, "%s = (%s) &%s", name, lstr, const_lvalue_str);
 
@@ -400,10 +400,13 @@ String *Swig_cfunction_call(const_String_or_char_ptr name, ParmList *parms) {
       if (comma)
 	Append(func, ",");
       if (cparse_cplusplus && SwigType_type(rpt) == T_USER) {
-        rcaststr = SwigType_namestr(rpt);
-        Printv(func, "SWIG_STD_TYPED_MOVE(", pname, ",", rcaststr, ")", NIL);
+        rcaststr = SwigType_rcaststr(rpt, NIL, 1);
+        if (Len(rcaststr))
+          Printv(func, "SWIG_STD_TYPED_MOVE(", pname, ",", rcaststr, ")", NIL);
+        else
+          Printv(func, "SWIG_STD_MOVE(", pname, ")", NIL);
       } else {
-        rcaststr = SwigType_rcaststr(rpt, pname);
+        rcaststr = SwigType_rcaststr(rpt, pname, 0);
         Printv(func, rcaststr, NIL);
       }
       Delete(rpt);
@@ -454,7 +457,7 @@ static String *Swig_cmethod_call(const_String_or_char_ptr name, ParmList *parms,
 
   if (director_type) {
     const char *pname = "darg";
-    String *rcaststr = SwigType_rcaststr(director_type, pname);
+    String *rcaststr = SwigType_rcaststr(director_type, pname, 0);
     Replaceall(func, "this", rcaststr);
     Delete(rcaststr);
   } else {
@@ -469,7 +472,7 @@ static String *Swig_cmethod_call(const_String_or_char_ptr name, ParmList *parms,
       Delete(pname);
     } else {
       String *pname = Swig_cparm_name(p, 0);
-      String *rcaststr = SwigType_rcaststr(pt, pname);
+      String *rcaststr = SwigType_rcaststr(pt, pname, 0);
       Replaceall(func, "this", rcaststr);
       Delete(rcaststr);
       Delete(pname);
@@ -497,14 +500,17 @@ static String *Swig_cmethod_call(const_String_or_char_ptr name, ParmList *parms,
     pt = Getattr(p, "type");
     if ((SwigType_type(pt) != T_VOID)) {
       String *pname = Swig_cparm_name(p, i);
-      String *rcaststr = SwigType_rcaststr(pt, pname);
+      String *rcaststr = NIL;
       if (comma)
 	Append(func, ",");
       if (cparse_cplusplus && SwigType_type(pt) == T_USER) {
-        String *rcaststr = SwigType_namestr(pt);
-        Printv(func, "SWIG_STD_TYPED_MOVE(", pname, ",", rcaststr, ")", NIL);
+        String *rcaststr = SwigType_rcaststr(pt, NIL, 1);
+        if (Len(rcaststr))
+          Printv(func, "SWIG_STD_TYPED_MOVE(", pname, ",", rcaststr, ")", NIL);
+        else
+          Printv(func, "SWIG_STD_MOVE(", pname, ")", NIL);
       } else {
-        String *rcaststr = SwigType_rcaststr(pt, pname);
+        String *rcaststr = SwigType_rcaststr(pt, pname, 0);
         Printv(func, rcaststr, NIL);
       }
       Delete(rcaststr);
@@ -579,10 +585,13 @@ static String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, Parm
 	  pname = Copy(Getattr(p, "name"));
       }
       if (cparse_cplusplus && SwigType_type(pt) == T_USER) {
-        rcaststr = SwigType_namestr(pt);
-        Printv(func, "SWIG_STD_TYPED_MOVE(", pname, ",", rcaststr, ")", NIL);
+        rcaststr = SwigType_rcaststr(pt, NIL, 1);
+        if (Len(rcaststr))
+          Printv(func, "SWIG_STD_TYPED_MOVE(", pname, ",", rcaststr, ")", NIL);
+        else
+          Printv(func, "SWIG_MOVE(", pname, ")", NIL);
       } else {
-        rcaststr = SwigType_rcaststr(pt, pname);
+        rcaststr = SwigType_rcaststr(pt, pname, 0);
         Printv(func, rcaststr, NIL);
       }
       Delete(rcaststr);
@@ -1112,7 +1121,7 @@ int Swig_MethodToFunction(Node *n, const_String_or_char_ptr nspace, String *clas
 	SwigType *pt = Getattr(pp, "type");
 	if ((SwigType_type(pt) != T_VOID)) {
 	  String *pname = Swig_cparm_name(pp, i++);
-	  String *rcaststr = SwigType_rcaststr(pt, pname);
+	  String *rcaststr = SwigType_rcaststr(pt, pname, 0);
 	  Append(func, rcaststr);
 	  Delete(rcaststr);
 	  Delete(pname);
