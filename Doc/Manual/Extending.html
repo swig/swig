@@ -3619,7 +3619,7 @@ Some topics that you'll want to be sure to address include:
 The coding guidelines for the C/C++ source code are pretty much K&amp;R C style.
 The style can be inferred from the existing code base and is
 largely dictated by the <tt>indent</tt> code beautifier tool set to K&amp;R style.
-The code can formatted using the make targets in the Source directory.
+The code can be formatted using the make targets in the Source directory.
 Below is an example of how to format the emit.cxx file:
 </p>
 
@@ -3631,7 +3631,12 @@ $ make beautify-file INDENTFILE=Modules/emit.cxx
 </blockquote>
 
 <p>
-Of particular note is indentation is set to 2 spaces and a tab is used instead of 8 spaces.
+The tool is far from perfect as it is more of a C beautify than a C++ beautifier; sometimes the output it
+generates need fixing up.
+</p>
+
+<p>
+Of particular note regarding the code style is indentation is set to 2 spaces and a tab is used instead of 8 spaces.
 The generated C/C++ code should also follow this style as close as possible. However, tabs
 should be avoided as unlike the SWIG developers, users will never have consistent tab settings.
 </p>
