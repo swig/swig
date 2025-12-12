@@ -886,10 +886,10 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       if (!member_function_qualifiers) {
 	DOH *q = 0;
 	q = SwigType_parm(element);
-        Insert(result, 0, " ");
-        Insert(result, 0, q);
-        Delete(q);
-        clear = 0;
+	Insert(result, 0, " ");
+	Insert(result, 0, q);
+	Delete(q);
+	clear = 0;
       }
     } else if (SwigType_ispointer(element)) {
       Insert(result, 0, "*");
@@ -982,20 +982,20 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       String *tprefix = SwigType_templateprefix(element);
       String *tsuffix = SwigType_templatesuffix(element);
       if (tsuffix && Len(tsuffix)) {
-        String *expand = SwigType_namestr(tsuffix);
-        Delete(tsuffix);
-        tsuffix = expand;
+	String *expand = SwigType_namestr(tsuffix);
+	Delete(tsuffix);
+	tsuffix = expand;
       }
       List *parms = SwigType_templateargslist(element);
       String *t = tprefix;
       Append(t, "< ");
       int plen = Len(parms);
       for (int j = 0; j < plen; j++) {
-        String *p = SwigType_str(Getitem(parms, j), 0);
-        Append(t, p);
-        Delete(p);
-        if (j < (plen - 1))
-          Append(t, ",");
+	String *p = SwigType_str(Getitem(parms, j), 0);
+	Append(t, p);
+	Delete(p);
+	if (j < (plen - 1))
+	  Append(t, ",");
       }
       Append(t, " >");
       Append(t, tsuffix);
@@ -1528,15 +1528,15 @@ void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, Parm
       Append(e, "<(");
       jlen = Len(tparms);
       for (j = 0; j < jlen; j++) {
-        SwigType *type = Getitem(tparms, j);
-        SwigType_variadic_replace(type, unexpanded_variadic_parm, expanded_variadic_parms);
-        if (Len(type) > 0) {
-          if (j != 0)
-            Putc(',', e);
-          Append(e, type);
-        } else {
-          assert(j = jlen - 1);
-        }
+	SwigType *type = Getitem(tparms, j);
+	SwigType_variadic_replace(type, unexpanded_variadic_parm, expanded_variadic_parms);
+	if (Len(type) > 0) {
+	  if (j != 0)
+	    Putc(',', e);
+	  Append(e, type);
+	} else {
+	  assert(j = jlen - 1);
+	}
       }
       Append(e, ")>");
       Append(e, tsuffix);
