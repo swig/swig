@@ -816,16 +816,15 @@ String *SwigType_lstr(const SwigType *s, const_String_or_char_ptr id) {
  *
  * Produces a casting string that maps the type returned by lstr() to the real
  * datatype printed by str().
- *      -   nocast=1 produces a castable type without the (cast).
+ *      -   movecast=1 try to emit a move cast.
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name, int nocast) {
+String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name, int movecast) {
   String *result, *cast;
   String *element = 0;
   String *nextelement;
   String *forwardelement;
   String *member_function_qualifiers = 0;
-  String *qualifier = 0;
   SwigType *td, *tc = 0;
   const SwigType *rs;
   List *elements;
@@ -1013,24 +1012,35 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name, int 
     }
     element = nextelement;
   }
-  assert(qualifier == 0);
   Delete(elements);
+
+  const char *ref = isreference ? "*" : "";
   if (clear) {
-    cast = NewStringEmpty();
-  } else if (!nocast) {
-    cast = NewStringf("(%s)", result);
+    // No casting necessary
+    cast = NewStringf("%s%s", ref, name ? name : "");
+  } else if (movecast && cparse_cplusplus && SwigType_type(s) == T_USER) {
+    // Can't move cast without a named value
+    assert(name);
+    if (Len(result)) {
+      // Move cast with a type
+      cast = NewStringf("SWIG_STD_TYPED_MOVE(%s%s, %s)", ref, name, result);
+    } else {
+      // Move, no casting necessary
+      cast = NewStringf("SWIG_STD_MOVE(%s%s)", ref, name);
+    }
   } else {
-    cast = NewStringf("%s", result);
-  }
-  if (name) {
-    if (isreference) {
-      Append(cast, "*");
-    }
-    Append(cast, name);
-    if (!clear) {
-      Insert(cast, 0, "(");
-      Append(cast, ")");
-    }
+    // C-style operator cast with value
+    if (Len(result) && name)
+      cast = NewStringf("((%s) %s%s)", result, ref, name);
+    // Only a C-style cast without a value
+    else if (Len(result))
+      cast = NewStringf("(%s)", result);
+    // Named value, but no casting necessary
+    else if (name)
+      cast = NewStringf("%s%s", ref, name);
+    else
+    // No name given and no cast necessary
+      cast = NewStringEmpty();
   }
   Delete(result);
   Delete(tc);
