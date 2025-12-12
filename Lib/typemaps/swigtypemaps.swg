@@ -170,5 +170,5 @@
 %include <typemaps/string.swg>
 %include <typemaps/misctypes.swg>
 %include <typemaps/enumint.swg>
-%include <typemaps/std_function.swg>
+
 

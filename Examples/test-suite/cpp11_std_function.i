@@ -1,9 +1,9 @@
 %module cpp11_std_function
 
-// function is a reserved keyword in many languages
-%rename(_cpp_function) function;
+#if defined(SWIGJAVASCRIPT)
 
 %include <std_string.i>
+%include <std_function.i>
 
 %{
   #include <functional>
@@ -22,3 +22,5 @@
 %}
 
 %template(call_function) _SWIG_call_std_function<std::string, int, const std::string &>;
+
+#endif
