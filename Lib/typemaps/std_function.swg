@@ -17,8 +17,8 @@ namespace std {
 }
 
 %inline %{
-  template <typename RET, typename... ARGS>
-  RET _SWIG_call_std_function(std::function<RET(ARGS...)> fn, ARGS ...args) {
-    return fn(args...);
-  }
+template <typename RET, typename... ARGS>
+RET _SWIG_call_std_function(std::function<RET(ARGS...)> fn, ARGS ...args) {
+  return fn(args...);
+}
 %}

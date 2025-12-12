@@ -3,6 +3,11 @@
 // function is a reserved word in many languages
 %warnfilter(SWIGWARN_PARSE_KEYWORD);
 
+%header %{
+#include <functional>
+#include <string>
+%}
+
 %include <std_string.i>
 %include <std/std_function.i>
 %include <exception.i>
@@ -14,11 +19,6 @@
       SWIG_exception(SWIG_RuntimeError, e.what());
     }
 }
-
-%header %{
-#include <functional>
-#include <string>
-%}
 
 %rename(cpp_function_string_int_const_string) std::function<std::string(int, const std::string &)>;
 
