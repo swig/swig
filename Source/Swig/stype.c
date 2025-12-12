@@ -814,7 +814,7 @@ String *SwigType_lstr(const SwigType *s, const_String_or_char_ptr id) {
 /* -----------------------------------------------------------------------------
  * SwigType_rcaststr()
  *
- * Produces a casting string that maps the type returned by lstr() to the real
+ * Produces a casting string that maps the type returned by lstr() to the real 
  * datatype printed by str().
  * ----------------------------------------------------------------------------- */
 
