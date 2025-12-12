@@ -1,10 +1,8 @@
 %module cpp11_std_function
 
-#if defined(SWIG_JAVASCRIPT_NAPI)
-
 %include <std_string.i>
-%include <std_function.i>
-%include exception.i
+%include <std/std_function.i>
+%include <exception.i>
 
 %exception {
     try {
@@ -40,5 +38,3 @@ std::function<std::string(int, const std::string &)> return_function(int ask_for
 
 %template(cpp_function_string_int_const_string) std::function<std::string(int, const std::string &)>;
 %template(call_function) _SWIG_call_std_function<std::string, int, const std::string &>;
-
-#endif
