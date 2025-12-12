@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * luadirector.swg
+ * director.swg
  *
  * This file contains support for director classes so that Lua proxy
  * methods can be called from C++.

@@ -2051,10 +2051,14 @@ It is currently not recommended to edit this field or add some user code, to cha
 <p>
 It is also currently not possible to change the ownership flag on the data (unlike most other scripting languages, Lua does not permit access to the data from within the interpreter).
 </p>
+
+
 <H2><a name="Lua_directors">29.8 Cross language polymorphism using directors</a></H2>
 <p>
-Directors enable C++ virtual methods to be overridden in Lua. This allows Lua code to extend C++ classes
-and override virtual methods, enabling polymorphism that spans both languages.
+Directors enable C++ virtual methods to be overridden in Lua.
+Lua classes do not support polymorphism but an equivalent can be obtained by extending the classes with helper methods. 
+This allows Lua code to extend C++ classes
+and override virtual methods, effectively enabling polymorphism that spans both languages.
 </p>
 <H3><a name="Lua_directors_enabling">29.8.1 Enabling directors</a></H3>
 <p>
@@ -2204,20 +2208,20 @@ end)
 <ul>
 <li>
 <b>Per-instance overrides:</b> Overrides are set per-instance, not per-class. Each object can have
-different overrides, which is more flexible than traditional class-based inheritance.
+different overrides, which is more flexible than traditional class based inheritance.
 </li>
 <li>
 <b>No automatic upcall:</b> When overriding a method, there is currently no automatic way to call the
 base class implementation from within the override. If you need this functionality, you must design
-your C++ interface to expose the base implementation explicitly.
+your C++ interface to explicitly expose the base implementation.
 </li>
 <li>
 <b>Thread safety:</b> Directors are not inherently thread-safe. If you use Lua with multiple threads,
 ensure proper synchronization when calling director methods.
 </li>
 <li>
-<b>Performance:</b> Director calls involve crossing the Lua/C++ boundary, which has some overhead.
-For performance-critical code called very frequently, consider keeping the implementation in C++.
+<b>Performance:</b> Director calls involve crossing the Lua/C++ boundary, which has an overhead.
+For performance critical code called very frequently, consider keeping the implementation purely in C++.
 </li>
 </ul>
 </body>

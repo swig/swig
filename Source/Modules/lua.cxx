@@ -374,7 +374,7 @@ public:
     if (Swig_directors_enabled()) {
       Printf(f_runtime, "#define SWIG_DIRECTORS\n");
       Swig_insert_file("director_common.swg", f_runtime);
-      Swig_insert_file("luadirector.swg", f_runtime);
+      Swig_insert_file("director.swg", f_runtime);
     }
 
     Printf(f_init, "/* exec Lua code if applicable */\nSWIG_Lua_dostring(L,SWIG_LUACODE);\n");
@@ -393,19 +393,12 @@ public:
     Dump(f_runtime, f_begin);
     Dump(f_header, f_begin);
     /* Emit director header declarations */
-    if (Len(f_directors_h) > 0) {
-      Printf(f_begin, "\n/* Director header */\n");
-      Printf(f_begin, "#ifdef __cplusplus\n");
+    if (Swig_directors_enabled()) {
       Dump(f_directors_h, f_begin);
-      Printf(f_begin, "#endif\n\n");
     }
     Dump(f_wrappers, f_begin);
-    /* Emit director method implementations */
-    if (Len(f_directors) > 0) {
-      Printf(f_begin, "\n/* Director method implementations */\n");
-      Printf(f_begin, "#ifdef __cplusplus\n");
+    if (Swig_directors_enabled()) {
       Dump(f_directors, f_begin);
-      Printf(f_begin, "#endif\n\n");
     }
     Dump(f_initbeforefunc, f_begin);
     /* for the Lua code it needs to be properly escaped to be added into the C/C++ code */
@@ -2650,7 +2643,6 @@ public:
 	if (Getattr(p, "tmap:directorargout") != 0)
 	  outputs++;
 
-	String *pname = Getattr(p, "name");
 	String *ptype = Getattr(p, "type");
 
 	if ((tm = Getattr(p, "tmap:directorin")) != 0) {
