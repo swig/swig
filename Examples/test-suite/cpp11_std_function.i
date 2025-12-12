@@ -10,6 +10,8 @@
   #include <string>
 %}
 
+%rename(cpp_function_string_int_const_string) std::function<std::string(int, const std::string &)>;
+
 std::function<std::string(int, const std::string &)> return_function(int ask_for_pass);
 
 %header %{
@@ -27,6 +29,7 @@ std::function<std::string(int, const std::string &)> return_function(int ask_for
   }
 %}
 
+%template(cpp_function_string_int_const_string) std::function<std::string(int, const std::string &)>;
 %template(call_function) _SWIG_call_std_function<std::string, int, const std::string &>;
 
 #endif
