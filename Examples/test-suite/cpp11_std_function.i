@@ -1,6 +1,6 @@
 %module cpp11_std_function
 
-#if defined(SWIGJAVASCRIPT)
+#if defined(SWIG_JAVASCRIPT_NAPI)
 
 %include <std_string.i>
 %include <std_function.i>
@@ -10,7 +10,13 @@
   #include <string>
 %}
 
-%inline %{
+std::function<std::string(int, const std::string &)> return_function(int ask_for_pass);
+
+%header %{
+  std::function<std::string(int, const std::string &)> return_function(int ask_for_pass);
+%}
+
+%wrapper %{
   std::function<std::string(int, const std::string &)> return_function(int ask_for_pass) {
     return [ask_for_pass](int passcode, const std::string &name) -> std::string {
       if (passcode == ask_for_pass) {
