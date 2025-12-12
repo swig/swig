@@ -1015,7 +1015,7 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name, int 
   Delete(elements);
 
   const char *ref = isreference ? "*" : "";
-  if (movecast && cparse_cplusplus && SwigType_type(s) == T_USER) {
+  if (movecast) {
     // Can't move cast without a named value
     assert(name);
     if (clear || Len(result) == 0) {

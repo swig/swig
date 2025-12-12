@@ -398,7 +398,8 @@ String *Swig_cfunction_call(const_String_or_char_ptr name, ParmList *parms) {
       String *pname = Swig_cparm_name(p, i);
       if (comma)
 	Append(func, ",");
-      String *rcaststr = SwigType_rcaststr(pt, pname, 1);
+      int movecast = cparse_cplusplus && SwigType_type(rpt) == T_USER;
+      String *rcaststr = SwigType_rcaststr(pt, pname, movecast);
       Printv(func, rcaststr, NIL);
       Delete(rpt);
       Delete(pname);
@@ -493,7 +494,8 @@ static String *Swig_cmethod_call(const_String_or_char_ptr name, ParmList *parms,
       String *pname = Swig_cparm_name(p, i);
       if (comma)
 	Append(func, ",");
-      String *rcaststr = SwigType_rcaststr(pt, pname, 1);
+      int movecast = cparse_cplusplus && SwigType_type(pt) == T_USER;
+      String *rcaststr = SwigType_rcaststr(pt, pname, movecast);
       Printv(func, rcaststr, NIL);
       Delete(rcaststr);
       Delete(pname);
@@ -565,7 +567,8 @@ static String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, Parm
 	else
 	  pname = Copy(Getattr(p, "name"));
       }
-      String *rcaststr = SwigType_rcaststr(pt, pname, 1);
+      int movecast = cparse_cplusplus && SwigType_type(pt) == T_USER;
+      String *rcaststr = SwigType_rcaststr(pt, pname, movecast);
       Printv(func, rcaststr, NIL);
       Delete(rcaststr);
       comma = 1;
