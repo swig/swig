@@ -41,7 +41,9 @@
   template <typename RET, typename... ARGS> class cpp_function<RET(ARGS...)> {
     public:
     cpp_function() = default;
-    RET operator()(ARGS... args);
+    RET operator()(ARGS...) {
+      return RET{};
+    };
   };
   template <typename RET, typename... ARGS>
   RET call_function(cpp_function<RET(ARGS...)> fn, ARGS ...args) {
