@@ -396,12 +396,13 @@ String *Swig_cfunction_call(const_String_or_char_ptr name, ParmList *parms) {
     if ((SwigType_type(pt) != T_VOID)) {
       SwigType *rpt = SwigType_typedef_resolve_all(pt);
       String *pname = Swig_cparm_name(p, i);
+      String *rcaststr = SwigType_rcaststr(rpt, pname);
       if (comma)
 	Append(func, ",");
-      String *rcaststr = SwigType_rcaststr(pt, pname);
       Printv(func, rcaststr, NIL);
       Delete(rpt);
       Delete(pname);
+      Delete(rcaststr);
       comma = 1;
       i++;
     }
@@ -491,9 +492,9 @@ static String *Swig_cmethod_call(const_String_or_char_ptr name, ParmList *parms,
     pt = Getattr(p, "type");
     if ((SwigType_type(pt) != T_VOID)) {
       String *pname = Swig_cparm_name(p, i);
+      String *rcaststr = SwigType_rcaststr(pt, pname);
       if (comma)
 	Append(func, ",");
-      String *rcaststr = SwigType_rcaststr(pt, pname);
       Printv(func, rcaststr, NIL);
       Delete(rcaststr);
       Delete(pname);
@@ -552,6 +553,7 @@ static String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, Parm
   while (p) {
     pt = Getattr(p, "type");
     if ((SwigType_type(pt) != T_VOID)) {
+      String *rcaststr = 0;
       String *pname = 0;
       if (comma)
 	Append(func, ",");
@@ -565,7 +567,7 @@ static String *Swig_cppconstructor_base_call(const_String_or_char_ptr name, Parm
 	else
 	  pname = Copy(Getattr(p, "name"));
       }
-      String *rcaststr = SwigType_rcaststr(pt, pname);
+      rcaststr = SwigType_rcaststr(pt, pname);
       Printv(func, rcaststr, NIL);
       Delete(rcaststr);
       comma = 1;
