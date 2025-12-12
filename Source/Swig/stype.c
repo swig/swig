@@ -1022,7 +1022,6 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name, int 
       // Move, no casting necessary
       cast = NewStringf("SWIG_STD_MOVE(%s%s)", ref, name);
     } else {
-      assert(Len(result) > 0);
       // Move cast with a type
       cast = NewStringf("SWIG_STD_TYPED_MOVE(%s%s, %s)", ref, name, result);
     }
