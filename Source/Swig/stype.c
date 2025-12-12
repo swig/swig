@@ -1023,22 +1023,21 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       // Move cast with a type
       cast = NewStringf("SWIG_STD_TYPED_MOVE(%s%s, %s)", ref, name, result);
     }
-  } else if (clear) {
-    // No casting necessary
-    cast = NewStringf("%s%s", ref, name ? name : "");
-  } else {
+  } else if (clear && name) {
+    // Named value with no casting necessary
+    cast = NewStringf("%s%s", ref, name);
+  } else if (Len(result) && name) {
     // C-style operator cast with value
-    if (Len(result) && name)
-      cast = NewStringf("((%s) %s%s)", result, ref, name);
+    cast = NewStringf("((%s) %s%s)", result, ref, name);
+  } else if (Len(result)) {
     // Only a C-style cast without a value
-    else if (Len(result))
-      cast = NewStringf("(%s)", result);
+    cast = NewStringf("(%s)", result);
+  } else if (name) {
     // Named value, but no casting necessary
-    else if (name)
-      cast = NewStringf("%s%s", ref, name);
-    else
+    cast = NewStringf("%s%s", ref, name);
+  } else {
     // No name given and no cast necessary
-      cast = NewStringEmpty();
+    cast = NewStringEmpty();
   }
   Delete(result);
   Delete(tc);
