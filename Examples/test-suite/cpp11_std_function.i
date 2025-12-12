@@ -4,6 +4,15 @@
 
 %include <std_string.i>
 %include <std_function.i>
+%include exception.i
+
+%exception {
+    try {
+        $action
+    } catch (const std::exception& e) {
+      SWIG_exception(SWIG_RuntimeError, e.what());
+    }
+}
 
 %{
   #include <functional>
