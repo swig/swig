@@ -1015,19 +1015,20 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name, int 
   Delete(elements);
 
   const char *ref = isreference ? "*" : "";
-  if (clear) {
-    // No casting necessary
-    cast = NewStringf("%s%s", ref, name ? name : "");
-  } else if (movecast && cparse_cplusplus && SwigType_type(s) == T_USER) {
+  if (movecast && cparse_cplusplus && SwigType_type(s) == T_USER) {
     // Can't move cast without a named value
     assert(name);
-    if (Len(result)) {
-      // Move cast with a type
-      cast = NewStringf("SWIG_STD_TYPED_MOVE(%s%s, %s)", ref, name, result);
-    } else {
+    if (clear || Len(result) == 0) {
       // Move, no casting necessary
       cast = NewStringf("SWIG_STD_MOVE(%s%s)", ref, name);
+    } else {
+      assert(Len(result) > 0);
+      // Move cast with a type
+      cast = NewStringf("SWIG_STD_TYPED_MOVE(%s%s, %s)", ref, name, result);
     }
+  } else if (clear) {
+    // No casting necessary
+    cast = NewStringf("%s%s", ref, name ? name : "");
   } else {
     // C-style operator cast with value
     if (Len(result) && name)
