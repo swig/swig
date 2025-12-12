@@ -32,17 +32,6 @@
   int fnFuncPtr(T (*fn)(U...)) {
     return 3;
   }
-
-  // The special case of std::function
-  template <typename> class cpp_function {};
-  template <typename RET, typename... ARGS> class cpp_function<RET(ARGS...)> {
-    public:
-    cpp_function() = default;
-  };
-  template <typename RET, typename... ARGS>
-  RET callFunction(cpp_function<RET(ARGS...)> fn, ARGS && ...args) {
-    return fn(args...);
-  }
 %}
 
 
@@ -53,5 +42,3 @@
 %template(fnObject_Object_Unique) fnObject<Object<const std::string &>, Unique<const std::string &>>;
 %template(fnUnique_Object_Unique) fnUnique<Object<const std::string &>, Unique<const std::string &>>;
 %template(fnFunctPtr_void_Object_Unique) fnFuncPtr<void, Object<const std::string &>, Unique<const std::string &>>;
-
-%template(CPPFunction) cpp_function<std::string(int, const std::string &)>;
