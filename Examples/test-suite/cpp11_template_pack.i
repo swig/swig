@@ -14,7 +14,7 @@
   public:
     Unique() = delete;
     Unique(const Unique &) = delete;
-    Unique(const Unique &&) = default;
+    Unique(Unique &&) = default;
     Unique(int x): v{x} {};
   };
 
