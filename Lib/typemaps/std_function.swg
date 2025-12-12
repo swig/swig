@@ -16,15 +16,7 @@ namespace std {
   };
 }
 
-template <typename RET, typename... ARGS>
-RET _SWIG_call_std_function(std::function<RET(ARGS...)> fn, ARGS ...args);
-
-%header %{
-  template <typename RET, typename... ARGS>
-  RET _SWIG_call_std_function(std::function<RET(ARGS...)> fn, ARGS ...args);
-%}
-
-%wrapper %{
+%inline %{
   template <typename RET, typename... ARGS>
   RET _SWIG_call_std_function(std::function<RET(ARGS...)> fn, ARGS ...args) {
     return fn(args...);
