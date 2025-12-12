@@ -3992,7 +3992,7 @@ private:
 	assert(is_pure_virtual);
 	Printv(w->code, "  _swig_gopanic(\"call to pure virtual function ", Getattr(parent, "sym:name"), name, "\");\n", NULL);
 	if (!is_void) {
-	  String *retstr = SwigType_rcaststr(returntype, "c_result", 0);
+	  String *retstr = SwigType_rcaststr(returntype, "c_result");
 	  Printv(w->code, "  return ", retstr, ";\n", NULL);
 	  Delete(retstr);
 	}
@@ -4130,7 +4130,7 @@ private:
 	Replaceall(tm, "$input", Swig_cresult_name());
 	Replaceall(tm, "$result", "c_result");
 	Printv(w->code, "  ", tm, "\n", NULL);
-	String *retstr = SwigType_rcaststr(returntype, "c_result", 0);
+	String *retstr = SwigType_rcaststr(returntype, "c_result");
 	Printv(w->code, "  return ", retstr, ";\n", NULL);
 	Delete(retstr);
 	Delete(tm);

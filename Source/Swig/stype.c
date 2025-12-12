@@ -819,7 +819,7 @@ String *SwigType_lstr(const SwigType *s, const_String_or_char_ptr id) {
  *      -   movecast=1 try to emit a move cast.
  * ----------------------------------------------------------------------------- */
 
-String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name, int) {
+String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   String *result, *cast;
   String *element = 0;
   String *nextelement;
@@ -1015,9 +1015,8 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name, int)
   Delete(elements);
 
   const char *ref = isreference ? "*" : "";
-  if (cparse_cplusplus && SwigType_type(s) == T_USER) {
-    // Can't move cast without a named value
-    assert(name);
+  // Can't move cast without a named value
+  if (name && cparse_cplusplus && SwigType_type(s) == T_USER) {
     if (clear || Len(result) == 0) {
       // Move, no casting necessary
       cast = NewStringf("SWIG_STD_MOVE(%s%s)", ref, name);

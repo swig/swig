@@ -4046,7 +4046,7 @@ public:
     }
 
 
-    qualified_return = SwigType_rcaststr(returntype, "c_result", 0);
+    qualified_return = SwigType_rcaststr(returntype, "c_result");
 
     if (!is_void && (!ignored_method || pure_virtual)) {
       if (!SwigType_isclass(returntype)) {
