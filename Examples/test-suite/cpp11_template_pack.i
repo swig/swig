@@ -49,6 +49,9 @@
   }
 %}
 
+%{
+#include <string>
+%}
 
 %template(fnObject_3int) fnObject<int, int, int>;
 %template(fnUnique_3int) fnUnique<int, int, int>;
