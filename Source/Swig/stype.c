@@ -1021,7 +1021,7 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
       cast = NewStringf("SWIG_STD_MOVE(%s%s)", ref, name);
     } else {
       // Move cast with a type
-      cast = NewStringf("SWIG_STD_MOVE_CAST<%s>(%s%s)", result, ref, name);
+      cast = NewStringf("SWIG_STD_MOVE_CAST< %s >(%s%s)", result, ref, name);
     }
   } else if (clear && name) {
     // Named value with no casting necessary
