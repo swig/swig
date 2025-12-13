@@ -35,8 +35,8 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_YY_CPARSE_PARSER_H_INCLUDED
-# define YY_YY_CPARSE_PARSER_H_INCLUDED
+#ifndef YY_YY_PARSER_H_INCLUDED
+# define YY_YY_PARSER_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -87,113 +87,112 @@ extern int yydebug;
     TYPE_SIGNED = 33,              /* TYPE_SIGNED  */
     TYPE_BOOL = 34,                /* TYPE_BOOL  */
     TYPE_COMPLEX = 35,             /* TYPE_COMPLEX  */
-    TYPE_RAW = 36,                 /* TYPE_RAW  */
-    TYPE_NON_ISO_INT8 = 37,        /* TYPE_NON_ISO_INT8  */
-    TYPE_NON_ISO_INT16 = 38,       /* TYPE_NON_ISO_INT16  */
-    TYPE_NON_ISO_INT32 = 39,       /* TYPE_NON_ISO_INT32  */
-    TYPE_NON_ISO_INT64 = 40,       /* TYPE_NON_ISO_INT64  */
-    LPAREN = 41,                   /* LPAREN  */
-    RPAREN = 42,                   /* RPAREN  */
-    COMMA = 43,                    /* COMMA  */
-    SEMI = 44,                     /* SEMI  */
-    EXTERN = 45,                   /* EXTERN  */
-    LBRACE = 46,                   /* LBRACE  */
-    RBRACE = 47,                   /* RBRACE  */
-    PERIOD = 48,                   /* PERIOD  */
-    ELLIPSIS = 49,                 /* ELLIPSIS  */
-    CONST_QUAL = 50,               /* CONST_QUAL  */
-    VOLATILE = 51,                 /* VOLATILE  */
-    REGISTER = 52,                 /* REGISTER  */
-    STRUCT = 53,                   /* STRUCT  */
-    UNION = 54,                    /* UNION  */
-    EQUAL = 55,                    /* EQUAL  */
-    SIZEOF = 56,                   /* SIZEOF  */
-    ALIGNOF = 57,                  /* ALIGNOF  */
-    MODULE = 58,                   /* MODULE  */
-    LBRACKET = 59,                 /* LBRACKET  */
-    RBRACKET = 60,                 /* RBRACKET  */
-    BEGINFILE = 61,                /* BEGINFILE  */
-    ENDOFFILE = 62,                /* ENDOFFILE  */
-    CONSTANT = 63,                 /* CONSTANT  */
-    RENAME = 64,                   /* RENAME  */
-    NAMEWARN = 65,                 /* NAMEWARN  */
-    EXTEND = 66,                   /* EXTEND  */
-    PRAGMA = 67,                   /* PRAGMA  */
-    FEATURE = 68,                  /* FEATURE  */
-    VARARGS = 69,                  /* VARARGS  */
-    ENUM = 70,                     /* ENUM  */
-    CLASS = 71,                    /* CLASS  */
-    TYPENAME = 72,                 /* TYPENAME  */
-    PRIVATE = 73,                  /* PRIVATE  */
-    PUBLIC = 74,                   /* PUBLIC  */
-    PROTECTED = 75,                /* PROTECTED  */
-    COLON = 76,                    /* COLON  */
-    STATIC = 77,                   /* STATIC  */
-    VIRTUAL = 78,                  /* VIRTUAL  */
-    FRIEND = 79,                   /* FRIEND  */
-    THROW = 80,                    /* THROW  */
-    CATCH = 81,                    /* CATCH  */
-    EXPLICIT = 82,                 /* EXPLICIT  */
-    STATIC_ASSERT = 83,            /* STATIC_ASSERT  */
-    CONSTEXPR = 84,                /* CONSTEXPR  */
-    THREAD_LOCAL = 85,             /* THREAD_LOCAL  */
-    DECLTYPE = 86,                 /* DECLTYPE  */
-    AUTO = 87,                     /* AUTO  */
-    NOEXCEPT = 88,                 /* NOEXCEPT  */
-    OVERRIDE = 89,                 /* OVERRIDE  */
-    FINAL = 90,                    /* FINAL  */
-    USING = 91,                    /* USING  */
-    NAMESPACE = 92,                /* NAMESPACE  */
-    NATIVE = 93,                   /* NATIVE  */
-    INLINE = 94,                   /* INLINE  */
-    TYPEMAP = 95,                  /* TYPEMAP  */
-    ECHO = 96,                     /* ECHO  */
-    APPLY = 97,                    /* APPLY  */
-    CLEAR = 98,                    /* CLEAR  */
-    SWIGTEMPLATE = 99,             /* SWIGTEMPLATE  */
-    FRAGMENT = 100,                /* FRAGMENT  */
-    WARN = 101,                    /* WARN  */
-    LESSTHAN = 102,                /* LESSTHAN  */
-    GREATERTHAN = 103,             /* GREATERTHAN  */
-    DELETE_KW = 104,               /* DELETE_KW  */
-    DEFAULT = 105,                 /* DEFAULT  */
-    LESSTHANOREQUALTO = 106,       /* LESSTHANOREQUALTO  */
-    GREATERTHANOREQUALTO = 107,    /* GREATERTHANOREQUALTO  */
-    EQUALTO = 108,                 /* EQUALTO  */
-    NOTEQUALTO = 109,              /* NOTEQUALTO  */
-    LESSEQUALGREATER = 110,        /* LESSEQUALGREATER  */
-    ARROW = 111,                   /* ARROW  */
-    QUESTIONMARK = 112,            /* QUESTIONMARK  */
-    TYPES = 113,                   /* TYPES  */
-    PARMS = 114,                   /* PARMS  */
-    NONID = 115,                   /* NONID  */
-    DSTAR = 116,                   /* DSTAR  */
-    DCNOT = 117,                   /* DCNOT  */
-    TEMPLATE = 118,                /* TEMPLATE  */
-    OPERATOR = 119,                /* OPERATOR  */
-    CONVERSIONOPERATOR = 120,      /* CONVERSIONOPERATOR  */
-    PARSETYPE = 121,               /* PARSETYPE  */
-    PARSEPARM = 122,               /* PARSEPARM  */
-    PARSEPARMS = 123,              /* PARSEPARMS  */
-    DOXYGENSTRING = 124,           /* DOXYGENSTRING  */
-    DOXYGENPOSTSTRING = 125,       /* DOXYGENPOSTSTRING  */
-    CAST = 126,                    /* CAST  */
-    LOR = 127,                     /* LOR  */
-    LAND = 128,                    /* LAND  */
-    OR = 129,                      /* OR  */
-    XOR = 130,                     /* XOR  */
-    AND = 131,                     /* AND  */
-    LSHIFT = 132,                  /* LSHIFT  */
-    RSHIFT = 133,                  /* RSHIFT  */
-    PLUS = 134,                    /* PLUS  */
-    MINUS = 135,                   /* MINUS  */
-    STAR = 136,                    /* STAR  */
-    SLASH = 137,                   /* SLASH  */
-    MODULO = 138,                  /* MODULO  */
-    UMINUS = 139,                  /* UMINUS  */
-    NOT = 140,                     /* NOT  */
-    LNOT = 141,                    /* LNOT  */
-    DCOLON = 142                   /* DCOLON  */
+    TYPE_NON_ISO_INT8 = 36,        /* TYPE_NON_ISO_INT8  */
+    TYPE_NON_ISO_INT16 = 37,       /* TYPE_NON_ISO_INT16  */
+    TYPE_NON_ISO_INT32 = 38,       /* TYPE_NON_ISO_INT32  */
+    TYPE_NON_ISO_INT64 = 39,       /* TYPE_NON_ISO_INT64  */
+    LPAREN = 40,                   /* LPAREN  */
+    RPAREN = 41,                   /* RPAREN  */
+    COMMA = 42,                    /* COMMA  */
+    SEMI = 43,                     /* SEMI  */
+    EXTERN = 44,                   /* EXTERN  */
+    LBRACE = 45,                   /* LBRACE  */
+    RBRACE = 46,                   /* RBRACE  */
+    PERIOD = 47,                   /* PERIOD  */
+    ELLIPSIS = 48,                 /* ELLIPSIS  */
+    CONST_QUAL = 49,               /* CONST_QUAL  */
+    VOLATILE = 50,                 /* VOLATILE  */
+    REGISTER = 51,                 /* REGISTER  */
+    STRUCT = 52,                   /* STRUCT  */
+    UNION = 53,                    /* UNION  */
+    EQUAL = 54,                    /* EQUAL  */
+    SIZEOF = 55,                   /* SIZEOF  */
+    ALIGNOF = 56,                  /* ALIGNOF  */
+    MODULE = 57,                   /* MODULE  */
+    LBRACKET = 58,                 /* LBRACKET  */
+    RBRACKET = 59,                 /* RBRACKET  */
+    BEGINFILE = 60,                /* BEGINFILE  */
+    ENDOFFILE = 61,                /* ENDOFFILE  */
+    CONSTANT = 62,                 /* CONSTANT  */
+    RENAME = 63,                   /* RENAME  */
+    NAMEWARN = 64,                 /* NAMEWARN  */
+    EXTEND = 65,                   /* EXTEND  */
+    PRAGMA = 66,                   /* PRAGMA  */
+    FEATURE = 67,                  /* FEATURE  */
+    VARARGS = 68,                  /* VARARGS  */
+    ENUM = 69,                     /* ENUM  */
+    CLASS = 70,                    /* CLASS  */
+    TYPENAME = 71,                 /* TYPENAME  */
+    PRIVATE = 72,                  /* PRIVATE  */
+    PUBLIC = 73,                   /* PUBLIC  */
+    PROTECTED = 74,                /* PROTECTED  */
+    COLON = 75,                    /* COLON  */
+    STATIC = 76,                   /* STATIC  */
+    VIRTUAL = 77,                  /* VIRTUAL  */
+    FRIEND = 78,                   /* FRIEND  */
+    THROW = 79,                    /* THROW  */
+    CATCH = 80,                    /* CATCH  */
+    EXPLICIT = 81,                 /* EXPLICIT  */
+    STATIC_ASSERT = 82,            /* STATIC_ASSERT  */
+    CONSTEXPR = 83,                /* CONSTEXPR  */
+    THREAD_LOCAL = 84,             /* THREAD_LOCAL  */
+    DECLTYPE = 85,                 /* DECLTYPE  */
+    AUTO = 86,                     /* AUTO  */
+    NOEXCEPT = 87,                 /* NOEXCEPT  */
+    OVERRIDE = 88,                 /* OVERRIDE  */
+    FINAL = 89,                    /* FINAL  */
+    USING = 90,                    /* USING  */
+    NAMESPACE = 91,                /* NAMESPACE  */
+    NATIVE = 92,                   /* NATIVE  */
+    INLINE = 93,                   /* INLINE  */
+    TYPEMAP = 94,                  /* TYPEMAP  */
+    ECHO = 95,                     /* ECHO  */
+    APPLY = 96,                    /* APPLY  */
+    CLEAR = 97,                    /* CLEAR  */
+    SWIGTEMPLATE = 98,             /* SWIGTEMPLATE  */
+    FRAGMENT = 99,                 /* FRAGMENT  */
+    WARN = 100,                    /* WARN  */
+    LESSTHAN = 101,                /* LESSTHAN  */
+    GREATERTHAN = 102,             /* GREATERTHAN  */
+    DELETE_KW = 103,               /* DELETE_KW  */
+    DEFAULT = 104,                 /* DEFAULT  */
+    LESSTHANOREQUALTO = 105,       /* LESSTHANOREQUALTO  */
+    GREATERTHANOREQUALTO = 106,    /* GREATERTHANOREQUALTO  */
+    EQUALTO = 107,                 /* EQUALTO  */
+    NOTEQUALTO = 108,              /* NOTEQUALTO  */
+    LESSEQUALGREATER = 109,        /* LESSEQUALGREATER  */
+    ARROW = 110,                   /* ARROW  */
+    QUESTIONMARK = 111,            /* QUESTIONMARK  */
+    TYPES = 112,                   /* TYPES  */
+    PARMS = 113,                   /* PARMS  */
+    NONID = 114,                   /* NONID  */
+    DSTAR = 115,                   /* DSTAR  */
+    DCNOT = 116,                   /* DCNOT  */
+    TEMPLATE = 117,                /* TEMPLATE  */
+    OPERATOR = 118,                /* OPERATOR  */
+    CONVERSIONOPERATOR = 119,      /* CONVERSIONOPERATOR  */
+    PARSETYPE = 120,               /* PARSETYPE  */
+    PARSEPARM = 121,               /* PARSEPARM  */
+    PARSEPARMS = 122,              /* PARSEPARMS  */
+    DOXYGENSTRING = 123,           /* DOXYGENSTRING  */
+    DOXYGENPOSTSTRING = 124,       /* DOXYGENPOSTSTRING  */
+    LOR = 125,                     /* LOR  */
+    LAND = 126,                    /* LAND  */
+    OR = 127,                      /* OR  */
+    XOR = 128,                     /* XOR  */
+    AND = 129,                     /* AND  */
+    LSHIFT = 130,                  /* LSHIFT  */
+    RSHIFT = 131,                  /* RSHIFT  */
+    PLUS = 132,                    /* PLUS  */
+    MINUS = 133,                   /* MINUS  */
+    STAR = 134,                    /* STAR  */
+    SLASH = 135,                   /* SLASH  */
+    MODULO = 136,                  /* MODULO  */
+    UMINUS = 137,                  /* UMINUS  */
+    NOT = 138,                     /* NOT  */
+    LNOT = 139,                    /* LNOT  */
+    CAST = 140,                    /* CAST  */
+    DCOLON = 141                   /* DCOLON  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -202,7 +201,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 1608 "./CParse/parser.y"
+#line 1605 "parser.y"
 
   const char  *id;
   List  *bases;
@@ -350,7 +349,7 @@ union YYSTYPE
     Node       *last;
   } nodebuilder;
 
-#line 354 "CParse/parser.h"
+#line 353 "parser.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -365,4 +364,4 @@ extern YYSTYPE yylval;
 int yyparse (void);
 
 
-#endif /* !YY_YY_CPARSE_PARSER_H_INCLUDED  */
+#endif /* !YY_YY_PARSER_H_INCLUDED  */
