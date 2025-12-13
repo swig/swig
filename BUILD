@@ -69,7 +69,6 @@ cc_binary(
         "Source/Modules/lang.cxx",
         "Source/Modules/lua.cxx",
         "Source/Modules/main.cxx",
-        "Source/Modules/mzscheme.cxx",
         "Source/Modules/nested.cxx",
         "Source/Modules/ocaml.cxx",
         "Source/Modules/octave.cxx",
