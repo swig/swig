@@ -6,6 +6,7 @@
 %header %{
 #include <functional>
 #include <string>
+#include <stdexcept>
 %}
 
 %include <std_string.i>
