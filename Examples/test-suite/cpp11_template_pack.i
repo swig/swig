@@ -13,7 +13,12 @@
     int v;
   public:
     Unique() = delete;
+// R lacks support for moving
+#if !defined(SWIGR)
     Unique(const Unique &) = delete;
+#else
+    Unique(const Unique &) = default;
+#endif
     Unique(Unique &&) = default;
     Unique(int x): v{x} {};
   };
