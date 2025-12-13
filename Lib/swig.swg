@@ -698,17 +698,21 @@ template <typename T> T SwigValueInit() {
 }
 
 #if __cplusplus >= 201103L
-  template <typename T, typename U> inline typename std::remove_reference<T>::type && SWIG_STD_MOVE_CAST(U &obj) {
+  template <typename T, typename U>
+  SWIGINTERNINLINE typename std::remove_reference<T>::type && SWIG_STD_MOVE_CAST(U &obj) {
     return static_cast<typename std::remove_reference<T>::type &&>(obj);
   }
-  template <typename T> inline typename std::remove_reference<T>::type && SWIG_STD_MOVE(T &obj) {
+  template <typename T>
+  SWIGINTERNINLINE typename std::remove_reference<T>::type && SWIG_STD_MOVE(T &obj) {
     return std::move(obj);
   }
 #else
-  template <typename T, typename U> inline T SWIG_STD_MOVE_CAST(U &obj) {
+  template <typename T, typename U>
+  SWIGINTERNINLINE T SWIG_STD_MOVE_CAST(U &obj) {
     return (T)(obj);
   }
-  template <typename T> inline T &SWIG_STD_MOVE(T &obj) {
+  template <typename T>
+  SWIGINTERNINLINE T &SWIG_STD_MOVE(T &obj) {
     return obj;
   }
 #endif
