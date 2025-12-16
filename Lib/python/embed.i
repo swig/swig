@@ -28,7 +28,7 @@
 
 #if __GNUC__ >= 7
 #pragma GCC diagnostic push
-#if defined(__cplusplus) && __cplusplus >=201703L
+#if defined(__cplusplus) && __cplusplus >= 201703L
 #pragma GCC diagnostic ignored "-Wregister" /* For python-2.7 headers that use register */
 #endif
 #endif

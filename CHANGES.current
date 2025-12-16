@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2025-12-12: christophe-calmejane
+            [Lua] #3295 Add director support for Lua.
+
+2025-12-05: jaw
+            [Python] #3287 Fixes for gcc warnings: -Wconversion -Wsign-conversion.
+
 2025-11-08: wsfulton
             Fix handling of typedef to void in class methods/constructor's parameter
             lists, such as:

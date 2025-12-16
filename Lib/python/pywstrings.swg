@@ -40,7 +40,7 @@ SWIG_AsWCharPtrAndSize(PyObject *obj, wchar_t **cptr, size_t *psize, int *alloc)
 %#endif
     if (cptr) {
       Py_ssize_t length;
-      *cptr = %new_array(len + 1, wchar_t);
+      *cptr = %new_array((size_t)(len + 1), wchar_t);
       length = PyUnicode_AsWideChar(SWIGPY_UNICODE_ARG(obj), *cptr, len);
       if (length == -1) {
         PyErr_Clear();

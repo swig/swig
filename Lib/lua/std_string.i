@@ -103,6 +103,37 @@ typemaps to tell SWIG what to do.
 %typemap(in) string &INOUT =const string &;
 %typemap(argout) string &INOUT = string &OUTPUT;
 
+/* Director typemaps for std::string */
+%typemap(directorin) string
+%{ lua_pushlstring(L, $1.data(), $1.size()); %}
+
+%typemap(directorin) const string &
+%{ lua_pushlstring(L, $1.data(), $1.size()); %}
+
+%typemap(directorout) string
+%{
+  if (lua_isstring(L, $input)) {
+    size_t len;
+    const char *ptr = lua_tolstring(L, $input, &len);
+    $result.assign(ptr, len);
+  } else {
+    Swig::DirectorTypeMismatchException::raise(L, "Failed to convert return value to std::string");
+  }
+%}
+
+%typemap(directorout) const string &
+%{
+  if (lua_isstring(L, $input)) {
+    size_t len;
+    const char *ptr = lua_tolstring(L, $input, &len);
+    static std::string temp;
+    temp.assign(ptr, len);
+    $result = &temp;
+  } else {
+    Swig::DirectorTypeMismatchException::raise(L, "Failed to convert return value to const std::string&");
+  }
+%}
+
 /*
 A really cut down version of the string class
 

@@ -11,6 +11,7 @@ endif
 LANGUAGE     = python
 PYFLAGS      = -Werror
 SCRIPTSUFFIX = _runme.py
+PY_VER_3_DIGIT    = @PY_VER_3_DIGIT@
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,E741,W291,W391
 
@@ -74,7 +75,6 @@ CPP_TEST_CASES += \
 	python_moduleimport \
 	python_overload_simple_cast \
 	python_pickle \
-	python_pybuffer \
 	python_pythoncode \
 	python_richcompare \
 	python_strict_unicode \
@@ -100,6 +100,15 @@ ifeq (1,$(PY_ABI_311))
 CPP_TEST_CASES += pyabi311_bufferinterface
 endif
 
+# Test requiring python-3.11 minimum if using Py_LIMITED_API if and only if python>=3.13
+ifeq (1,$(PY_ABI_311))
+CPP_TEST_CASES += python_pybuffer
+else
+PY_313:=$(shell test $(PY_VER_3_DIGIT) -ge 313 && echo "1")
+ifeq (,$(PY_313))
+CPP_TEST_CASES += python_pybuffer
+endif
+endif
 
 CPP11_TEST_CASES = \
 	cpp11_hash_tables \

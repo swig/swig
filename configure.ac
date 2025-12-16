@@ -2270,6 +2270,13 @@ else
   AC_SUBST(PYTHON3DYNAMICLINKING)
 fi
 
+if test -n "$PYTHON3"; then
+  AC_MSG_CHECKING([for python 3.x three digit version])
+  PY_VER_3_DIGIT=`($PYTHON3 -c "import sys; print('%d%02d' % (sys.version_info.major, sys.version_info.minor))") 2>/dev/null`
+  AC_MSG_RESULT($PY_VER_3_DIGIT)
+  AC_SUBST(PY_VER_3_DIGIT)
+fi
+
 if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then
   AC_CHECK_PROGS(PYCODESTYLE, pycodestyle)
   if test -n "$PYCODESTYLE"; then
