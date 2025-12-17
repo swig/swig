@@ -80,12 +80,13 @@ jobs:
       # release configs and /NODEFAULTLIB:MSVCRTD for the debug config
       run: |
           cmake --version
-          cmake -G "$env:CMAKE_GENERATOR" -A x64 `
+          cmake -S . -B . -G "$env:CMAKE_GENERATOR" -A x64 `
           -DCMAKE_INSTALL_PREFIX="C:\Tools\swig" `
           -DCMAKE_C_FLAGS="/W3 /EHsc" `
           -DCMAKE_CXX_FLAGS="/W3 /EHsc" `
           -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>" `
-          -DPCRE2_ROOT="$env:PCRE2_PATH" -S . -B .
+          -DPCRE2_ROOT="$env:PCRE2_PATH" `
+          -DPCRE2_USE_STATIC_LIBS=ON
 
     - name: Build
       shell: powershell
