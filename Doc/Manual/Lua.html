@@ -2055,10 +2055,20 @@ It is also currently not possible to change the ownership flag on the data (unli
 
 <H2><a name="Lua_directors">29.8 Cross language polymorphism using directors</a></H2>
 <p>
-Directors enable C++ virtual methods to be overridden in Lua.
-Lua classes do not support polymorphism but an equivalent can be obtained by extending the classes with helper methods. 
-This allows Lua code to extend C++ classes
-and override virtual methods, effectively enabling polymorphism that spans both languages.
+Unlike languages such as Python or Java, Lua does not have built-in class inheritance or polymorphism.
+Lua uses prototype-based object orientation, where objects can be extended dynamically but there is no
+native concept of virtual methods or class hierarchies.
+</p>
+<p>
+SWIG's director feature bridges this gap by allowing C++ virtual methods to be overridden in Lua.
+When a C++ class has directors enabled, SWIG generates wrapper code that checks for Lua overrides
+before calling the C++ implementation. This effectively enables cross-language polymorphism:
+Lua code can extend C++ classes and override virtual methods, and C++ code calling these
+virtual methods will correctly invoke the Lua implementations.
+</p>
+<p>
+SWIG provides helper functions (<tt>swig_override</tt>, <tt>swig_derive</tt>, <tt>swig_get_override</tt>)
+that make it easy to set up these overrides without needing to understand the underlying implementation details.
 </p>
 <H3><a name="Lua_directors_enabling">29.8.1 Enabling directors</a></H3>
 <p>
@@ -2113,7 +2123,11 @@ Given a C++ class:
 // myclass.i
 %module(directors="1") mymodule
 %feature("director") MyClass;
+
+%include &lt;std_string.i&gt;
+
 %inline %{
+#include &lt;iostream&gt;
 class MyClass {
 public:
 virtual ~MyClass() {}
@@ -2123,6 +2137,11 @@ void printMessage() { std::cout &lt;&lt; getMessage() &lt;&lt; std::endl; }
 %}
 </pre>
 </div>
+<p>
+<b>Note:</b> The <tt>%include &lt;std_string.i&gt;</tt> is required when using <tt>std::string</tt> with directors.
+It provides the necessary typemaps to convert strings between C++ and Lua, including the director typemaps.
+Without it, you will get a "Failed to convert return value" error at runtime.
+</p>
 <p>
 You can override the virtual method in Lua:
 </p>
@@ -2179,14 +2198,26 @@ derived:printMessage()  -- Calls the Lua override
 </div>
 <H4>29.8.2.5 Getting the current override</H4>
 <p>
-Use <tt>swig_get_override</tt> to retrieve the current override function:
+Use <tt>swig_get_override</tt> to retrieve the current override function for a method.
+If no override has been set for the specified method, it returns <tt>nil</tt>.
 </p>
 <div class="targetlang">
 <pre>
 local obj = mymodule.MyClass()
-swig_override(obj, "getMessage", function(self) return "test" end)
+
+-- Before setting an override, swig_get_override returns nil
 local func = swig_get_override(obj, "getMessage")
+assert(func == nil)  -- No override set yet
+
+-- After setting an override
+swig_override(obj, "getMessage", function(self) return "test" end)
+func = swig_get_override(obj, "getMessage")
+assert(type(func) == "function")  -- Now it returns the function
 print(func(obj))  -- Prints: "test"
+
+-- Getting an override for a non-existent method also returns nil
+local noFunc = swig_get_override(obj, "nonExistentMethod")
+assert(noFunc == nil)
 </pre>
 </div>
 <H3><a name="Lua_directors_exceptions">29.8.3 Exception handling in directors</a></H3>
