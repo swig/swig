@@ -69,6 +69,18 @@ namespace Swig {
 
 #endif
 
+#ifdef SWIGLUA
+
+%exception {
+  try { $action }
+  catch (Swig::DirectorException &e) { 
+    lua_pushstring(L, e.what());
+    SWIG_fail;
+  }
+}
+
+#endif
+
 %feature("director") Foo;
 
 %inline {

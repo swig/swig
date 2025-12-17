@@ -308,7 +308,7 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
         swig_cast_info *tmp;
 
         /* Sort casts by type address for binary search in SWIG_TypeCheckStruct */
-        qsort(first, cast - first, sizeof(swig_cast_info), SWIG_CastCmpStruct);
+        qsort(first, (size_t)(cast - first), sizeof(swig_cast_info), SWIG_CastCmpStruct);
 
         /* Remap back links for added entries */
         cast = swig_module.cast_initial[i] + num_mapped;
@@ -319,7 +319,7 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
 
       /* Set the value field of the first entry to the index of the last added entry */
       cast = swig_module.cast_initial[i];
-      cast->value = num_mapped - 1;
+      cast->value = (unsigned int)(num_mapped - 1);
 
       num_mapped -= (int)(first - cast);
       if (num_mapped > 1) {

@@ -23,13 +23,15 @@
 %fragment("SWIG_pybuffer", "header") %{
 #if !defined(SWIG_NO_PYTHON_OLD_BUFFER_PROTOCOL)
 #if defined(Py_LIMITED_API) && Py_LIMITED_API<0x030b0000
+#if !defined(SWIG_PYTHON_OLD_BUFFER_PROTOCOL)
 #define SWIG_PYTHON_OLD_BUFFER_PROTOCOL
+#endif
 #endif
 #endif
 
 #if defined(SWIG_PYTHON_OLD_BUFFER_PROTOCOL) && PY_VERSION_HEX >= 0x030d0000
 #if defined(Py_LIMITED_API) && Py_LIMITED_API<0x030b0000
-#error "The old Buffer Protocol was removed in python-3.13 and is only part of the stable ABI from python-3.11"
+#error "The old Buffer Protocol was removed in python-3.13, including from the Stable ABI. Note that the new Buffer Protocol must be used from python-3.13, however, it is only available in the Stable ABI from python-3.11, so Py_LIMITED_API must be >= 0x030b0000 for python-3.13 and later."
 #endif
 #endif
 %}

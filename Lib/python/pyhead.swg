@@ -121,7 +121,9 @@ SWIG_Python_str_FromChar(const char *c)
 #endif
 
 #if PY_VERSION_HEX >= 0x03000000
-#if PY_VERSION_HEX < 0x030d00a6
+#if (PY_VERSION_HEX >= 0x030d00a6) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d00a6)
+# define SWIG_PyType_GetFullyQualifiedName PyType_GetFullyQualifiedName
+#else
 SWIGINTERN PyObject *
 SWIG_PyType_GetFullyQualifiedName(PyTypeObject *type) {
   PyObject *result = NULL;
@@ -143,26 +145,27 @@ SWIG_PyType_GetFullyQualifiedName(PyTypeObject *type) {
 
   return result;
 }
-#else
-# define SWIG_PyType_GetFullyQualifiedName PyType_GetFullyQualifiedName
 #endif
 #endif
 
 /* gh-114329 added PyList_GetItemRef() to Python 3.13.0a4 */
-#if PY_VERSION_HEX < 0x030d00a4
+#if (PY_VERSION_HEX >= 0x030d00a4) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d00a4)
+# define SWIG_PyList_GetItemRef PyList_GetItemRef
+#else
 SWIGINTERN PyObject *
 SWIG_PyList_GetItemRef(PyObject *op, Py_ssize_t index) {
   PyObject *item = PyList_GetItem(op, index);
   Py_XINCREF(item);
   return item;
 }
-#else
-# define SWIG_PyList_GetItemRef PyList_GetItemRef
 #endif
 
 /* gh-106004 added PyDict_GetItemRef() and PyDict_GetItemStringRef() to Python 3.13.0a1
    functions are renamed here for compatibility with abi3audit */
-#if PY_VERSION_HEX < 0x030d00a1
+#if (PY_VERSION_HEX >= 0x030d00a1) && (!defined(Py_LIMITED_API) || Py_LIMITED_API+0 >= 0x030d00a1)
+# define SWIG_PyDict_GetItemRef PyDict_GetItemRef
+# define SWIG_PyDict_GetItemStringRef PyDict_GetItemStringRef
+#else
 SWIGINTERN int
 SWIG_PyDict_GetItemRef(PyObject *mp, PyObject *key, PyObject **result) {
 #if PY_VERSION_HEX >= 0x03000000
@@ -199,7 +202,4 @@ SWIG_PyDict_GetItemStringRef(PyObject *mp, const char *key, PyObject **result) {
   Py_DECREF(key_obj);
   return res;
 }
-#else
-# define SWIG_PyDict_GetItemRef PyDict_GetItemRef
-# define SWIG_PyDict_GetItemStringRef PyDict_GetItemStringRef
 #endif
