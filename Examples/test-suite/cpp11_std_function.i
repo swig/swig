@@ -23,14 +23,8 @@
 
 %rename(cpp_function_string_int_const_string) std::function<std::string(int, const std::string &)>;
 
-std::function<std::string(int, const std::string &)> return_function(int ask_for_pass);
-
-%header %{
-extern "C++" std::function<std::string(int, const std::string &)> return_function(int ask_for_pass);
-%}
-
-%wrapper %{
-extern "C++" std::function<std::string(int, const std::string &)> return_function(int ask_for_pass) {
+%inline %{
+std::function<std::string(int, const std::string &)> return_function(int ask_for_pass) {
   return [ask_for_pass](int passcode, const std::string &name) -> std::string {
     if (passcode == ask_for_pass) {
       return name + " passed the test";
