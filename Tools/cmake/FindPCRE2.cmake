@@ -36,8 +36,9 @@
 #   find_package(PCRE2 10.39 REQUIRED COMPONENTS 8BIT)
 #   target_link_libraries(my_target PRIVATE PCRE2::8BIT)
 #
-# On Windows, PCRE2_USE_STATIC_LIBS is implicitly set to ON if not defined.
-# Usually PCRE2 is built static on Windows to begin with so this is desired.
+# To match the behavior of the upstream PCRE2 CMake config script, the
+# PCRE2_USE_STATIC_LIBS CMake variable can be set to ON to explicitly look
+# for the PCRE2::8BIT static library instead of the shared library.
 #
 # When search succeeds, PCRE2_FOUND is true, and these variables are set:
 #
@@ -47,16 +48,11 @@
 
 include(FindPackageHandleStandardArgs)
 
-# if not defined, use PCRE2_USE_STATIC_LIBS=ON for Windows
-if(WIN32 AND NOT DEFINED PCRE2_USE_STATIC_LIBS)
-  set(PCRE2_USE_STATIC_LIBS ON)
-endif()
-if(WIN32)
-  if(PCRE2_USE_STATIC_LIBS)
-    message(STATUS "PCRE2 libs: Static")
-  else()
-    message(STATUS "PCRE2 libs: Shared")
-  endif()
+# PCRE2_USE_STATIC_LIBS can be used to control static/shared PCRE2 search
+if(PCRE2_USE_STATIC_LIBS)
+  message(STATUS "PCRE2 libs: Static")
+else()
+  message(STATUS "PCRE2 libs: Shared")
 endif()
 # attempt to locate using upstream config script and return if found
 find_package(PCRE2 QUIET CONFIG)
@@ -81,8 +77,15 @@ if(PCRE2_INCLUDE_DIR)
 endif()
 # find library. on Windows static name has the -static suffix
 # note: NO_CACHE used since PCRE2_LIBRARY has a different meaning on Windows
-if(WIN32 AND PCRE2_USE_STATIC_LIBS)
-  find_library(PCRE2_LIBRARY NAMES pcre2-8-static NO_CACHE)
+if(PCRE2_USE_STATIC_LIBS)
+  if(WIN32)
+    find_library(PCRE2_LIBRARY NAMES pcre2-8-static NO_CACHE)
+  # for non-Windows, explicitly specify we want the static library. supported
+  # platforms all use .a as the static library suffix fortunately
+  else()
+    find_library(PCRE2_LIBRARY NAMES libpcre2.a libpcre2-8.a NO_CACHE)
+  endif()
+# note: CMAKE_FIND_LIBRARY_PREFIXES orders the shared library suffices first
 else()
   find_library(PCRE2_LIBRARY NAMES pcre2 pcre2-8 NO_CACHE)
 endif()
@@ -92,28 +95,26 @@ if(WIN32 AND NOT PCRE2_USE_STATIC_LIBS)
 endif()
 # add PCRE2::8BIT target if library found
 if(PCRE2_LIBRARY)
-  # on Windows we explicitly distinguish static and shared because we know if
-  # we explicitly requested static or shared
-  if(WIN32)
-    if(PCRE2_USE_STATIC_LIBS)
-      add_library(PCRE2::8BIT STATIC IMPORTED)
-      set_target_properties(
-        PCRE2::8BIT PROPERTIES
-        INTERFACE_COMPILE_DEFINITIONS "PCRE2_STATIC"
-        IMPORTED_LINK_INTERFACE_LANGUAGES "C"
-        IMPORTED_LOCATION "${PCRE2_LIBRARY}"
-      )
-    # still need DLL file for shared on Windows
-    elseif(PCRE2_LIBRARY_DLL)
-      add_library(PCRE2::8BIT SHARED IMPORTED)
-      set_target_properties(
-        PCRE2::8BIT PROPERTIES
-        IMPORTED_IMPLIB "${PCRE2_LIBRARY}"
-        IMPORTED_LOCATION "${PCRE2_LIBRARY_DLL}"
-      )
-    endif()
+  # for static we have some additional INTERFACE properties to add
+  if(PCRE2_USE_STATIC_LIBS)
+    add_library(PCRE2::8BIT STATIC IMPORTED)
+    set_target_properties(
+      PCRE2::8BIT PROPERTIES
+      INTERFACE_COMPILE_DEFINITIONS "PCRE2_STATIC"
+      IMPORTED_LINK_INTERFACE_LANGUAGES "C"
+      IMPORTED_LOCATION "${PCRE2_LIBRARY}"
+    )
+  # need DLL file for shared on Windows
+  elseif(WIN32 AND PCRE2_LIBRARY_DLL)
+    add_library(PCRE2::8BIT SHARED IMPORTED)
+    set_target_properties(
+      PCRE2::8BIT PROPERTIES
+      IMPORTED_IMPLIB "${PCRE2_LIBRARY}"
+      IMPORTED_LOCATION "${PCRE2_LIBRARY_DLL}"
+    )
+  # non-Windows shared library
   else()
-    add_library(PCRE2::8BIT UNKNOWN IMPORTED)
+    add_library(PCRE2::8BIT SHARED IMPORTED)
     set_target_properties(
       PCRE2::8BIT PROPERTIES
       IMPORTED_LOCATION "${PCRE2_LIBRARY}"
