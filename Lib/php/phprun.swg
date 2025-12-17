@@ -71,7 +71,7 @@ swig_object_wrapper * swig_php_fetch_object(zend_object *obj) {
 
 #define SWIG_as_voidptr(a) const_cast< void * >(static_cast< const void * >(a))
 
-static void
+SWIGUNUSED static void
 SWIG_SetPointerZval(zval *z, void *ptr, swig_type_info *type, int newobject) {
   // Return PHP NULL for a C/C++ NULL pointer.
   if (!ptr) {
@@ -169,7 +169,7 @@ SWIG_ConvertPtrAndOwn(zval *z, void **ptr, swig_type_info *ty, int flags, swig_o
   return -1;
 }
 
-static int
+SWIGUNUSED static int
 SWIG_ConvertPtr(zval *z, void **ptr, swig_type_info *ty, int flags) {
   return SWIG_ConvertPtrAndOwn(z, ptr, ty, flags, 0);
 }
@@ -190,7 +190,7 @@ static void SWIG_Php_SetModule(swig_module_info *pointer, int module_number) {
 }
 
 /* Common parts of the "create_object" object handler. */
-static zend_object *SWIG_Php_do_create_object(zend_class_entry *ce, zend_object_handlers *handlers) {
+SWIGUNUSED static zend_object *SWIG_Php_do_create_object(zend_class_entry *ce, zend_object_handlers *handlers) {
   swig_object_wrapper *obj = (swig_object_wrapper*)zend_object_alloc(sizeof(swig_object_wrapper), ce);
   zend_object_std_init(&obj->std, ce);
   object_properties_init(&obj->std, ce);
@@ -201,7 +201,7 @@ static zend_object *SWIG_Php_do_create_object(zend_class_entry *ce, zend_object_
 
 /* Common parts of the "free_obj" object handler.
    Returns void* pointer if the C/C++ object should be destroyed. */
-static void* SWIG_Php_free_obj(zend_object *object) {
+SWIGUNUSED static void* SWIG_Php_free_obj(zend_object *object) {
   if (object) {
     swig_object_wrapper *obj = swig_php_fetch_object(object);
     zend_object_std_dtor(&obj->std);

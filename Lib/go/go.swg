@@ -602,6 +602,44 @@ rvrdeleter.reset($1); %}
 %typemap(argout) const int & ""
 %typemap(directorargout) const int & ""
 
+/* The int && type needs to convert to intgo.  */
+
+%typemap(gotype) int && "*int"
+
+%typemap(in) int && (int e)
+%{
+  e = (int)*$input;
+  $1 = &e;
+%}
+
+%typemap(out) int &&
+%{ $result = new intgo(*$1); %}
+
+%typemap(argout) int &&
+%{ *$input = (intgo)e$argnum; %}
+
+%typemap(goout) int && ""
+
+%typemap(directorin) int && (intgo e)
+%{
+  e = (intgo)$1;
+  $input = &e;
+%}
+
+%typemap(godirectorin) int && ""
+
+%typemap(directorout) int &&
+%{
+  $*1_ltype f = ($*1_ltype)*$input;
+  $result = ($1_ltype)&f;
+%}
+
+%typemap(directorargout) int &&
+%{ $1 = (int)*$input; %}
+
+%typemap(argout) const int && ""
+%typemap(directorargout) const int && ""
+
 /* Enums.  We can't do the right thing for enums in typemap(gotype) so
    we deliberately don't define them.  The right thing would be to
    capitalize the name.  This is instead done in go.cxx.  */

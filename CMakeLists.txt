@@ -4,10 +4,6 @@ set (CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
 
 project (swig)
 
-if (POLICY CMP0074)
-  cmake_policy (SET CMP0074 NEW)
-endif()
-
 file (STRINGS configure.ac line LIMIT_COUNT 1 REGEX "AC_INIT\\(.*\\)" )
 if (line MATCHES "AC_INIT\\(\\[(.*)\\],[ \t]*\\[(.*)\\],[ \t]*\\[(.*)\\]\\)" )
   set (SWIG_VERSION ${CMAKE_MATCH_2})

@@ -1,9 +1,5 @@
 %module cpp11_variadic_function_templates
 
-#if defined SWIGGO
-%warnfilter(SWIGWARN_LANG_NATIVE_UNIMPL) EmplaceContainer::emplace;
-#endif
-
 // Some tests for variadic function templates
 %inline %{
 class A {

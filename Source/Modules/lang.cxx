@@ -374,7 +374,7 @@ cplus_runtime(0) {
   argv_template_string = NewString("argv[%d]");
 
   /* Default director constructor code, passed to Swig_ConstructorToFunction */
-  Printv(director_ctor_code, "if ( $comparison ) { /* subclassed */\n", "  $director_new \n", "} else {\n", "  $nondirector_new \n", "}\n", NIL);
+  Printv(director_ctor_code, "if ($comparison) { /* subclassed */\n", "  $director_new\n", "} else {\n", "  $nondirector_new\n", "}\n", NIL);
 
   assert(!this_);
   this_ = this;

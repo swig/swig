@@ -2919,25 +2919,19 @@ private:
       Append(dwname, unique_id);
       Setattr(n, "wrap:name", dwname);
 
-      String *action = NewString("");
-      Printv(action, Swig_cresult_name(), " = new SwigDirector_", class_name, "(", NULL);
-      String *pname = Swig_cparm_name(NULL, 0);
-      Printv(action, pname, NULL);
-      Delete(pname);
-      p = parms;
-      for (int i = 0; i < parm_count; ++i) {
-	p = getParm(p);
-	String *pname = Swig_cparm_name(NULL, i + 1);
-	Printv(action, ", ", NULL);
-	if (SwigType_isreference(Getattr(p, "type"))) {
-	  Printv(action, "*", NULL);
-	}
-	Printv(action, pname, NULL);
-	Delete(pname);
-	p = nextParm(p);
+      {
+	// It might be possible to rewrite this to use $director_new
+	String *director_class_name = NewStringf("SwigDirector_%s", class_name);
+	String *constructor_call = Swig_cppconstructor_call(director_class_name, first_parm);
+	SwigType *type = Copy(getClassType());
+	SwigType_add_pointer(type);
+	String *cres = Swig_cresult(type, Swig_cresult_name(), constructor_call);
+	Setattr(n, "wrap:action", cres);
+	Delete(cres);
+	Delete(type);
+	Delete(constructor_call);
+	Delete(director_class_name);
       }
-      Printv(action, ");", NULL);
-      Setattr(n, "wrap:action", action);
 
       cgoWrapperInfo info;
 
@@ -2979,12 +2973,16 @@ private:
     p = parms;
     for (int i = 0; i < parm_count; ++i) {
       p = getParm(p);
+      SwigType *type = SwigType_typedef_resolve_all(Getattr(p, "type"));
       if (i > 0) {
 	Printv(f_c_directors, ", ", NULL);
       }
       String *pn = Getattr(p, "name");
       assert(pn);
-      Printv(f_c_directors, pn, NULL);
+      if (SwigType_isrvalue_reference(type))
+	Printv(f_c_directors, "std::move(", pn, ")", NULL);
+      else
+	Printv(f_c_directors, pn, NULL);
       p = nextParm(p);
     }
     Printv(f_c_directors, "),\n", NULL);
@@ -3745,6 +3743,8 @@ private:
 	  Printv(action, Swig_cresult_name(), " = (", SwigType_lstr(returntype, 0), ")", NULL);
 	  if (SwigType_isreference(returntype)) {
 	    Printv(action, "&", NULL);
+	  } else if (SwigType_isrvalue_reference(returntype)) {
+	    Printv(action, "&&", NULL);
 	  }
 	}
 	Printv(action, Swig_cparm_name(NULL, 0), "->", upcall_method_name, "(", NULL);
@@ -3752,7 +3752,8 @@ private:
 	p = parms;
 	int i = 0;
 	while (p != NULL) {
-	  if (SwigType_type(Getattr(p, "type")) != T_VOID) {
+	  SwigType *type = SwigType_typedef_resolve_all(Getattr(p, "type"));
+	  if (SwigType_type(type) != T_VOID) {
 	    String *pname = Swig_cparm_name(NULL, i + 1);
 	    if (i > 0) {
 	      Printv(action, ", ", NULL);
@@ -3762,11 +3763,13 @@ private:
 	    // pointer type by gcCTypeForGoValue.  We are calling a
 	    // function which expects a reference so we need to convert
 	    // back.
-	    if (SwigType_isreference(Getattr(p, "type"))) {
-	      Printv(action, "*", NULL);
+	    if (SwigType_isreference(type)) {
+	      Printv(action, "*", pname, NULL);
+	    } else if (SwigType_isrvalue_reference(type)) {
+	      Printv(action, "std::move(*", pname, ")", NULL);
+	    } else {
+	      Printv(action, pname, NULL);
 	    }
-
-	    Printv(action, pname, NULL);
 	    Delete(pname);
 	    i++;
 	  }
@@ -3969,7 +3972,7 @@ private:
 
       if (!is_void) {
 	if (!SwigType_isclass(returntype)) {
-	  if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+	  if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype) || SwigType_isrvalue_reference(returntype))) {
 	    String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
 	    Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
 	    Delete(construct_result);
@@ -4805,7 +4808,7 @@ private:
 	  is_conflict = true;
 	}
       }
-    } else if (SwigType_ispointer(t) || SwigType_isarray(t) || SwigType_isqualifier(t) || SwigType_isreference(t)) {
+    } else if (SwigType_ispointer(t) || SwigType_isarray(t) || SwigType_isqualifier(t) || SwigType_isreference(t) || SwigType_isrvalue_reference(t)) {
       SwigType *r = Copy(t);
       if (SwigType_ispointer(r)) {
 	SwigType_del_pointer(r);
@@ -4813,8 +4816,10 @@ private:
 	SwigType_del_array(r);
       } else if (SwigType_isqualifier(r)) {
 	SwigType_del_qualifier(r);
-      } else {
+      } else if (SwigType_isreference(r)) {
 	SwigType_del_reference(r);
+      } else if (SwigType_isrvalue_reference(r)) {
+	SwigType_del_rvalue_reference(r);
       }
 
       if (!checkIgnoredType(n, go_name, r)) {
@@ -5041,6 +5046,29 @@ private:
       }
       ret = goTypeWithInfo(n, r, false, p_is_interface);
       Delete(r);
+    } else if (SwigType_isrvalue_reference(t)) {
+      SwigType *r = Copy(t);
+      SwigType_del_rvalue_reference(r);
+
+      // If this is a const reference, and we are looking at a pointer
+      // to it, then we just use the pointer we already have.
+      bool add_pointer = true;
+      if (SwigType_isqualifier(r)) {
+	String *q = SwigType_parm(r);
+	if (Strcmp(q, "const") == 0) {
+	  SwigType *c = Copy(r);
+	  SwigType_del_qualifier(c);
+	  if (SwigType_ispointer(c)) {
+	    add_pointer = false;
+	  }
+	  Delete(c);
+	}
+      }
+      if (add_pointer) {
+	SwigType_add_pointer(r);
+      }
+      ret = goTypeWithInfo(n, r, false, p_is_interface);
+      Delete(r);
     } else if (SwigType_isqualifier(t)) {
       SwigType *r = Copy(t);
       SwigType_del_qualifier(r);
@@ -5198,6 +5226,8 @@ private:
 	    SwigType_del_array(ty);
 	  } else if (SwigType_isreference(ty)) {
 	    SwigType_del_reference(ty);
+	  } else if (SwigType_isrvalue_reference(ty)) {
+	    SwigType_del_rvalue_reference(ty);
 	  } else if (SwigType_isqualifier(ty)) {
 	    SwigType_del_qualifier(ty);
 	  } else {
@@ -5240,6 +5270,8 @@ private:
 	SwigType_del_array(ty);
       } else if (SwigType_isreference(ty)) {
 	SwigType_del_reference(ty);
+      } else if (SwigType_isrvalue_reference(ty)) {
+	SwigType_del_rvalue_reference(ty);
       } else if (SwigType_isqualifier(ty)) {
 	SwigType_del_qualifier(ty);
       } else {
@@ -5325,6 +5357,16 @@ private:
 	}
       }
       Delete(tt);
+    } else if (SwigType_isrvalue_reference(t)) {
+      SwigType* tt = Copy(t);
+      SwigType_del_rvalue_reference(tt);
+      if (SwigType_isqualifier(tt)) {
+	String* q = SwigType_parm(tt);
+	if (Strcmp(q, "const") == 0) {
+	  is_const_ref = true;
+	}
+      }
+      Delete(tt);
     }
     if (!is_const_ref) {
       while (Strncmp(gt, "*", 1) == 0) {
@@ -5392,6 +5434,8 @@ private:
       }
       if (SwigType_isreference(t)) {
 	SwigType_del_reference(t);
+      } else if (SwigType_isrvalue_reference(t)) {
+	SwigType_del_rvalue_reference(t);
       }
       SwigType_add_pointer(t);
       ret = SwigType_lstr(t, name);
@@ -5400,10 +5444,13 @@ private:
       return ret;
     } else {
       SwigType *t = SwigType_typedef_resolve_all(type);
-      if (!has_typemap && SwigType_isreference(t)) {
+      if (!has_typemap && (SwigType_isreference(t) || SwigType_isrvalue_reference(t))) {
 	// A const reference to a known type, or to a pointer, is not
 	// mapped to a pointer.
-	SwigType_del_reference(t);
+	if (SwigType_isreference(t))
+	  SwigType_del_reference(t);
+	else if (SwigType_isrvalue_reference(t))
+	  SwigType_del_rvalue_reference(t);
 	if (SwigType_isqualifier(t)) {
 	  String *q = SwigType_parm(t);
 	  if (Strcmp(q, "const") == 0) {
@@ -5461,7 +5508,7 @@ private:
     }
 
     Append(ret, tail);
-    if (!has_typemap && SwigType_isreference(type)) {
+    if (!has_typemap && (SwigType_isreference(type) || SwigType_isrvalue_reference(type))) {
       Append(ret, "* ");
     }
     Append(ret, name);

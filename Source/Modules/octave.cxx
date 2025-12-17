@@ -78,9 +78,9 @@ public:
     /* Add code to manage protected constructors and directors */
     director_prot_ctor_code = NewString("");
     Printv(director_prot_ctor_code,
-           "if ( $comparison ) { /* subclassed */\n",
-           "  $director_new \n",
-           "} else {\n", "  error(\"accessing abstract class or protected constructor\"); \n", "  SWIG_fail;\n", "}\n", NIL);
+           "if ($comparison) { /* subclassed */\n",
+           "  $director_new\n",
+           "} else {\n", "  error(\"accessing abstract class or protected constructor\");\n", "  SWIG_fail;\n", "}\n", NIL);
 
     enable_cplus_runtime_mode();
     allow_overloading();
@@ -528,11 +528,6 @@ public:
     }
     if (Equal(v, "0") || Equal(v, "NULL") || Equal(v, "nullptr"))
       return SwigType_ispointer(t) ? NewString("None") : NewString("0");
-    // FIXME: TRUE and FALSE are not standard and could be defined in other ways
-    if (Equal(v, "TRUE"))
-      return NewString("true");
-    if (Equal(v, "FALSE"))
-      return NewString("false");
     return 0;
   }
 
@@ -1128,7 +1123,6 @@ public:
       if (parms)
         set_nextSibling(self, parms);
       Setattr(n, "parms", self);
-      Setattr(n, "wrap:self", "1");
       Setattr(n, "hidden", "1");
       Delete(self);
     }

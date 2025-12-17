@@ -276,12 +276,12 @@ SWIGRUNTIME unsigned int SWIG_Hash(const char *str, unsigned int len) {
   int rem = (int)len;
 
   while (rem >= (int)sizeof(unsigned int)) {
-    k = *(unsigned int *)data;
+    memcpy(&k, data, sizeof(unsigned int));
     k += i++;
     hash ^= k;
     hash *= 171717;
     data += sizeof(unsigned int);
-    rem -= sizeof(unsigned int);
+    rem -= (int)sizeof(unsigned int);
   }
 
   switch (rem) {
@@ -626,7 +626,7 @@ SWIG_PackVoidPtr(char *buff, void *ptr, const char *name, size_t bsz) {
   if ((2*sizeof(void *) + 2) > bsz) return 0;
   *(r++) = '_';
   r = SWIG_PackData(r,&ptr,sizeof(void *));
-  if (strlen(name) + 1 > (bsz - (r - buff))) return 0;
+  if (strlen(name) + 1 > (bsz - (size_t)(r - buff))) return 0;
   strcpy(r,name);
   return buff;
 }

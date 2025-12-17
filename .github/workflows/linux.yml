@@ -86,9 +86,10 @@ jobs:
         - SWIGLANG: lua
           VER: '5.3'
         - SWIGLANG: octave
+          os: ubuntu-22.04 # Octave 6.4.0
           CPPSTD: c++11
         - SWIGLANG: octave
-          os: ubuntu-22.04 # Octave 6.4.0
+          os: ubuntu-24.04 # Octave 8.4.0
           CPPSTD: c++11
         - SWIGLANG: perl5
         - SWIGLANG: php
@@ -102,6 +103,9 @@ jobs:
           CPPSTD: c++11 # C++98 not supported by PHP.
         - SWIGLANG: php
           VER: '8.4'
+          CPPSTD: c++11 # C++98 not supported by PHP.
+        - SWIGLANG: php
+          VER: '8.5'
           CPPSTD: c++11 # C++98 not supported by PHP.
         - SWIGLANG: python
           PY2: 2
@@ -126,6 +130,10 @@ jobs:
           CSTD: gnu99
         - SWIGLANG: python
           VER: '3.13'
+          CSTD: gnu99
+        - SWIGLANG: python
+          VER: '3.13'
+          PY_ABI_VER: '3.9'
           CSTD: gnu99
         - SWIGLANG: python
           VER: '3.13-dbg'
@@ -243,7 +251,7 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
-          VER: '3.3'
+          VER: '3.3.9' # 3.3.10 has an error: -Werror=missing-field-initializers, see https://bugs.ruby-lang.org/issues/21659
         - SWIGLANG: ruby
           CPPSTD: c++11
         - SWIGLANG: scilab

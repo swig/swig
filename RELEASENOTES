@@ -7,6 +7,28 @@ Release Notes
 Detailed release notes are available with the release and are also
 published on the SWIG web site at https://swig.org/release.html.
 
+SWIG-4.4.1 summary:
+- Fix errors with some combinations of Py_LIMITED_API and recent Python
+  versions.
+- A couple of other minor fixes/improvements.
+
+SWIG-4.4.0 summary:
+- Python-3.14 and early Python-3.15 support including modernisations:
+  - Remove some DeprecationWarnings.
+  - Added support for free-threading Python.
+  - Multi-phase module initialization.
+  - Use heap types instead of static types.
+- Go minimum version is now 1.20.
+- Removed support for MzScheme/Racket.
+- Minor typemap improvements.
+- compactdefaultarg feature improvements and fixes.
+- Fewer C, C++ and Java compiler warnings in generated code.
+- c++-14 auto return type parsing fixes.
+- Various improvements related to parsing expressions.
+- Runtime type system thread safety fixes.
+- Minor fixes and improvements specific to:
+  C#, D, Guile, Java, Javascript, Lua, Perl, PHP, Python, Tcl.
+
 SWIG-4.3.1 summary:
 - Small number of regression fixes for Python and Java.
 - Corner case operator precedence bug fix affecting type deduction.

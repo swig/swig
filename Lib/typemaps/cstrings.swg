@@ -225,7 +225,7 @@
   if (buff$argnum) %delete_array(buff$argnum);
 } 
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtrAndSize) (TYPEMAP,SIZE) { 
-  %append_output(SWIG_FromCharPtrAndSize($1,*$2));
+  %append_output(SWIG_FromCharPtrAndSize($1,(size_t)(*$2)));
 }
 %enddef
 
@@ -278,7 +278,7 @@
 %typemap(freearg,match="in") (TYPEMAP,SIZE) ""
 %typemap(argout,noblock=1,fragment=#SWIG_FromCharPtrAndSize)(TYPEMAP,SIZE) {   
   if (*$1) {
-    %append_output(SWIG_FromCharPtrAndSize(*$1,*$2));
+    %append_output(SWIG_FromCharPtrAndSize(*$1,(size_t)(*$2)));
     RELEASE;
   }
 }

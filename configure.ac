@@ -2,7 +2,7 @@ dnl Process this file with autoconf to produce a configure script.
 dnl The macros which aren't shipped with the autotools are stored in the
 dnl Tools/config directory in .m4 files.
 
-AC_INIT([swig],[4.4.0],[https://www.swig.org])
+AC_INIT([swig],[4.5.0],[https://www.swig.org])
 AC_PREREQ([2.60])
 
 AC_CONFIG_SRCDIR([Source/Swig/swig.h])
@@ -2192,6 +2192,13 @@ else
   AC_SUBST(PY3LIB)
   AC_SUBST(PY3LINK)
   AC_SUBST(PYTHON3DYNAMICLINKING)
+fi
+
+if test -n "$PYTHON3"; then
+  AC_MSG_CHECKING([for python 3.x three digit version])
+  PY_VER_3_DIGIT=`($PYTHON3 -c "import sys; print('%d%02d' % (sys.version_info.major, sys.version_info.minor))") 2>/dev/null`
+  AC_MSG_RESULT($PY_VER_3_DIGIT)
+  AC_SUBST(PY_VER_3_DIGIT)
 fi
 
 if test -n "$PYINCLUDE" || test -n "$PY3INCLUDE" ; then

@@ -236,9 +236,9 @@ public:
     /* Add code to manage protected constructors and directors */
     director_prot_ctor_code = NewString("");
     Printv(director_prot_ctor_code,
-	   "if ( $comparison ) { /* subclassed */\n",
-	   "  $director_new \n",
-	   "} else {\n", "  SWIG_SetErrorMsg(PyExc_RuntimeError,\"accessing abstract class or protected constructor\"); \n", "  SWIG_fail;\n", "}\n", NIL);
+	   "if ($comparison) { /* subclassed */\n",
+	   "  $director_new\n",
+	   "} else {\n", "  SWIG_SetErrorMsg(PyExc_RuntimeError,\"accessing abstract class or protected constructor\");\n", "  SWIG_fail;\n", "}\n", NIL);
     director_multiple_inheritance = 1;
     directorLanguage();
   }
@@ -5102,7 +5102,6 @@ public:
       if (parms)
 	set_nextSibling(self, parms);
       Setattr(n, "parms", self);
-      Setattr(n, "wrap:self", "1");
       Setattr(n, "hidden", "1");
       Delete(self);
     }
@@ -5112,7 +5111,6 @@ public:
     Language::constructorHandler(n);
     shadow = oldshadow;
 
-    Delattr(n, "wrap:self");
     Swig_restore(n);
 
     if (!Getattr(n, "sym:nextSibling")) {

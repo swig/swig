@@ -2117,42 +2117,20 @@ public:
 
   virtual int constructorHandler(Node *n) {
     if (Swig_directorclass(n)) {
-      String *ctype = GetChar(Swig_methodclass(n), "classtype");
-      String *sname = GetChar(Swig_methodclass(n), "sym:name");
-      String *args = NewStringEmpty();
-      ParmList *p = Getattr(n, "parms");
-      int i;
-
-      for (i = 0; p; p = nextSibling(p), i++) {
-	if (i) {
-	  Printf(args, ", ");
-	}
-	if (Strcmp(GetChar(p, "type"), SwigType_str(GetChar(p, "type"), 0))) {
-	  SwigType *t = Getattr(p, "type");
-	  Printf(args, "%s", SwigType_rcaststr(t, 0));
-	  if (SwigType_isreference(t)) {
-	    Append(args, "*");
-	  }
-	}
-	Printf(args, "arg%d", i+1);
-      }
 
       /* director ctor code is specific for each class */
       Delete(director_ctor_code);
+      Delete(director_prot_ctor_code);
       director_ctor_code = NewStringEmpty();
       director_prot_ctor_code = NewStringEmpty();
       Printf(director_ctor_code, "if (Z_OBJCE_P(arg0) == SWIG_Php_ce_%s) { /* not subclassed */\n", class_name);
       Printf(director_prot_ctor_code, "if (Z_OBJCE_P(arg0) == SWIG_Php_ce_%s) { /* not subclassed */\n", class_name);
-      Printf(director_ctor_code, "  %s = new %s(%s);\n", Swig_cresult_name(), ctype, args);
+      Printf(director_ctor_code, "  $nondirector_new\n");
       Printf(director_prot_ctor_code,
 	     "  zend_throw_exception(zend_ce_type_error, \"accessing abstract class or protected constructor\", 0);\n"
 	     "  return;\n");
-      if (i) {
-	Insert(args, 0, ", ");
-      }
-      Printf(director_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0%s);\n}\n", Swig_cresult_name(), ctype, sname, args);
-      Printf(director_prot_ctor_code, "} else {\n  %s = (%s *)new SwigDirector_%s(arg0%s);\n}\n", Swig_cresult_name(), ctype, sname, args);
-      Delete(args);
+      Printf(director_ctor_code, "} else {\n  $director_new\n}\n");
+      Printf(director_prot_ctor_code, "} else {\n  $director_new\n}\n");
 
       wrapperType = directorconstructor;
     } else {
@@ -2188,6 +2166,21 @@ public:
     return Language::classDirectorEnd(n);
   }
 
+  /* ------------------------------------------------------------
+   * directorPrefixArgs()
+   * ------------------------------------------------------------ */
+
+  void directorPrefixArgs(Node *n) {
+    /* Need to prepend 'self' to the director constructor's argument list */
+    String *jenv_type = NewString("zval");
+    SwigType_add_pointer(jenv_type);
+    Parm *p = NewParm(jenv_type, NewString("arg0"), n);
+    Setattr(p, "arg:byname", "1");
+    set_nextSibling(p, NULL);
+
+    Setattr(n, "director:prefix_args", p);
+  }
+
   int classDirectorConstructor(Node *n) {
     Node *parent = Getattr(n, "parentNode");
     String *decl = Getattr(n, "decl");
@@ -2204,6 +2197,8 @@ public:
     p = NewParm(type, NewString("self"), n);
     set_nextSibling(p, parms);
     parms = p;
+
+    directorPrefixArgs(n);
 
     if (!Getattr(n, "defaultargs")) {
       // There should always be a "self" parameter first.
