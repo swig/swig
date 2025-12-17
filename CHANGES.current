@@ -7,6 +7,12 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2025-17-12: ysmilda
+            [Go] #3291 
+               - Add `-unique-id` and `-no-unique-id` flags to enable/disable the addition of a unique id to the generated function names.
+               - Deprecate `-cgo` flag as this doesn't do anything.
+               - Cleanup docs and help output.
+
 2025-11-08: wsfulton
             Fix handling of typedef to void in class methods/constructor's parameter
             lists, such as:
