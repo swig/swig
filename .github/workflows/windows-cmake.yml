@@ -55,6 +55,9 @@ jobs:
       with:
         key: ${{ matrix.os }}
 
+    # The NuGet PCRE2 package is build with '/MT' to statically links the the UCRT library.
+    # See explanation on linking option:
+    # https://learn.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features
     - name: Install NuGet Packages
       shell: powershell
       run: |
@@ -71,17 +74,21 @@ jobs:
           BISON_PATH=$(cygpath -w "$(ls -d /C/Tools/Bison*)/bin")
           echo "$BISON_PATH" >> $GITHUB_PATH
 
+    # Use CMAKE_MSVC_RUNTIME_LIBRARY to use static C runtimes,
+    # since NuGet PCRE2 uses static liked non-debug C runtime.
+    # Using /NODEFAULTLIB, require /NODEFAULTLIB:MSVCRT for the release configuration,
+    # and /NODEFAULTLIB:MSVCRTD for the debug configuration
     - name: Configure
       shell: powershell
       run: |
           cmake --version
-          cmake -G "$env:BUILD_SYS" -A x64 `
+          cmake -S . -B . -G "$env:BUILD_SYS" -A x64 `
           -DCMAKE_INSTALL_PREFIX="C:\Tools\swig" `
-          -DCMAKE_C_FLAGS="/W3 /EHsc /DPCRE2_STATIC" `
-          -DCMAKE_CXX_FLAGS="/W3 /EHsc /DPCRE2_STATIC" `
-          -DPCRE2_INCLUDE_DIR="$env:PCRE2_PATH\include" `
-          -DPCRE2_LIBRARY="$env:PCRE2_PATH\lib\pcre2-8-static.lib" `
-          -DLINK_FLAGS="/NODEFAULTLIB:MSVCRT" -S . -B .
+          -DCMAKE_C_FLAGS="/W3 /EHsc" `
+          -DCMAKE_CXX_FLAGS="/W3 /EHsc" `
+          -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>" `
+          -DPCRE2_ROOT="$env:PCRE2_PATH" `
+          -DPCRE2_USE_STATIC_LIBS=ON
 
     - name: Build
       shell: powershell
