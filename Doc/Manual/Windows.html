@@ -212,7 +212,7 @@ For fully working build steps always check the Continuous Integration (CI) setup
     </li>
     <li>
         Install the <a href="https://www.nuget.org/packages/pcre2/">PCRE2 Nuget package</a> using the following command: <pre>C:\Tools\nuget install PCRE2 -Version 10.39 -OutputDirectory C:\Tools\pcre2</pre>
-        Note this is a x64 build, if this is not suitable PCRE2 can be built from source using <a href="https://github.com/PCRE2Project/pcre2">https://github.com/PCRE2Project/pcre2</a>.
+        Note this is a x64 static library build; if this is not suitable PCRE2 can be built from source using <a href="https://github.com/PCRE2Project/pcre2">https://github.com/PCRE2Project/pcre2</a>.
         Alternatively, set <tt>WITH_PCRE=OFF</tt> to disable PCRE2 support if you are sure you do not require it.
     </li>
     <li>
@@ -237,7 +237,13 @@ cd C:\swig
 $env:PATH="C:\Tools\CMake\CMake-win64.3.15.5\bin;C:\Tools\bison\Bison.3.7.4\bin;" + $env:PATH
 $PCRE_ROOT="C:\Tools\pcre2\PCRE2.10.39.0"
 
-cmake -S . -B build -A x64 -DCMAKE_INSTALL_PREFIX="C:/swig/install2" -DPCRE2_ROOT="$PCRE_ROOT"
+# CMAKE_INSTALL_PREFIX: where cmake --install will install SWIG
+# PCRE2_ROOT: where PCRE2 is installed
+# PCRE2_USE_STATIC_LIBS: ON to search for static PCRE2 libraries
+cmake -S . -B build -A x64 `
+  -DCMAKE_INSTALL_PREFIX="C:/swig/install2" `
+  -DPCRE2_ROOT="$PCRE_ROOT" `
+  -DPCRE2_USE_STATIC_LIBS=ON
 
 cmake --build build --config Release
 cmake --install build --config Release
