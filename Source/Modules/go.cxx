@@ -135,6 +135,8 @@ class GO:public Language {
   String *soname;
   // Size in bits of the Go type "int".  0 if not specified.
   int intgo_type_size;
+  // Flag for adding unique IDs to generated names.
+  bool generate_unique_id;
 
   /* Output files */
   File *f_c_begin;
@@ -207,6 +209,7 @@ public:
      use_shlib(false),
      soname(NULL),
      intgo_type_size(0),
+     generate_unique_id(true),
      f_c_begin(NULL),
      f_go_begin(NULL),
      f_c_runtime(NULL),
@@ -331,7 +334,13 @@ private:
 	  } else {
 	    Swig_arg_error();
 	  }
-	} else if (strcmp(argv[i], "-help") == 0) {
+	} else if (strcmp(argv[i], "-no-unique-id") == 0) {
+    Swig_mark_arg(i);
+    generate_unique_id = false;
+  } else if (strcmp(argv[i], "-unique-id") == 0) {
+    Swig_mark_arg(i);
+    generate_unique_id = true;
+  } else if (strcmp(argv[i], "-help") == 0) {
 	  Printf(stdout, "%s\n", usage);
 	}
       }
@@ -440,19 +449,23 @@ private:
     String *go_filename = NewString("");
     Printf(go_filename, "%s%s.go", SWIG_output_directory(), module);
 
-    // Generate a unique ID based on a hash of the SWIG input.
-    swig_uint64 hash = {0, 0};
-    FILE *swig_input = Swig_open(swig_filename);
-    if (swig_input == NULL) {
-      FileErrorDisplay(swig_filename);
-      Exit(EXIT_FAILURE);
-    }
-    String *swig_input_content = Swig_read_file(swig_input);
-    siphash(&hash, Char(swig_input_content), Len(swig_input_content));
-    Delete(swig_input_content);
-    fclose(swig_input);
     unique_id = NewString("");
-    Printf(unique_id, "_%s_%08x%08x", getModuleName(package), hash.hi, hash.lo);
+    if (generate_unique_id) {
+      // Generate a unique ID based on a hash of the SWIG input.
+      swig_uint64 hash = {0, 0};
+      FILE *swig_input = Swig_open(swig_filename);
+      if (swig_input == NULL) {
+        FileErrorDisplay(swig_filename);
+        Exit(EXIT_FAILURE);
+      }
+      String *swig_input_content = Swig_read_file(swig_input);
+      siphash(&hash, Char(swig_input_content), Len(swig_input_content));
+      Delete(swig_input_content);
+      fclose(swig_input);
+      Printf(unique_id, "_%s_%08x%08x", getModuleName(package), hash.hi, hash.lo);
+    } else {
+      Printf(unique_id, "_%s", getModuleName(package));
+    }
 
     // Open files.
 
@@ -5703,14 +5716,14 @@ extern "C" Language *swig_go(void) {
 // Usage message.
 const char * const GO::usage = "\
 Go Options (available with -go)\n\
-     -cgo                - Generate cgo input files\n\
-     -no-cgo             - Do not generate cgo input files\n\
      -gccgo              - Generate code for gccgo rather than gc\n\
      -go-pkgpath <p>     - Like gccgo -fgo-pkgpath option\n\
      -go-prefix <p>      - Like gccgo -fgo-prefix option\n\
      -import-prefix <p>  - Prefix to add to %import directives\n\
      -intgosize <s>      - Set size of Go int type--32 or 64 bits\n\
+     -no-unique-id       - Do not add unique IDs to generated names\n\
      -package <name>     - Set name of the Go package to <name>\n\
+     -unique-id          - Add unique IDs to generated names (default)\n\
      -use-shlib          - Force use of a shared library\n\
      -soname <name>      - Set shared library holding C/C++ code to <name>\n\
 \n";
