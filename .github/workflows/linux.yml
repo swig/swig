@@ -143,7 +143,7 @@ jobs:
           VER: '4.0'
         - SWIGLANG: javascript
           ENGINE: quickjs
-          VER: 2025-09-13
+          VER: '2025-09-13'
           CSTD: c99
         - SWIGLANG: javascript
           ENGINE: node
@@ -316,7 +316,7 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: javascript
           ENGINE: quickjs
-          VER: 2025-09-13
+          VER: '2025-09-13'
           os: ubuntu-22.04
           CPPSTD: c++11
         - SWIGLANG: javascript
@@ -481,7 +481,7 @@ jobs:
           os: ubuntu-24.04
         - SWIGLANG: javascript
           ENGINE: quickjs
-          VER: 2025-09-13
+          VER: '2025-09-13'
           CPPSTD: c++20
           GCC: 13
           os: ubuntu-22.04
