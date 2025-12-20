@@ -1,3 +1,5 @@
+/* QuickJS test only */
+if (typeof QuickJS != "undefined") {
 var example = require("example");
 
 // ----- check inherited enum values -----
@@ -40,3 +42,4 @@ console.log("(check) " + example.A.count + " remain");
 
 console.log("Done.");
 
+} /* quickjs only */
