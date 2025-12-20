@@ -1,7 +1,7 @@
-/* QuickJS test only */
-if (typeof QuickJS != "undefined") {
 var example = require("example");
 
+/* QuickJS test only */
+if (typeof QuickJS != "undefined") {
 // ----- check inherited enum values -----
 console.log("============== D enums ===============");
 console.log("D.RED="+example.D.RED+" GREEN="+example.D.GREEN+" BLUE="+example.D.BLUE);
