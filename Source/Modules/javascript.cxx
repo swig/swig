@@ -587,12 +587,12 @@ void JAVASCRIPT::main(int argc, char *argv[]) {
 	Swig_mark_arg(i);
 	engine = JSEmitter::NAPI;
       } else if (strcmp(argv[i], "-quickjs") == 0) {
-        if (engine != -1) {
-          Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
-          Exit(EXIT_FAILURE);
-        }
-        Swig_mark_arg(i);
-        engine = JSEmitter::QuickJS;
+	if (engine != -1) {
+	  Printf(stderr, ERR_MSG_ONLY_ONE_ENGINE_PLEASE);
+	  Exit(EXIT_FAILURE);
+	}
+	Swig_mark_arg(i);
+	engine = JSEmitter::QuickJS;
       } else if (strcmp(argv[i], "-debug-codetemplates") == 0) {
 	Swig_mark_arg(i);
 	js_template_enable_debug = true;
@@ -3169,21 +3169,21 @@ void QuickJSEmitter::marshalInputArgs(Node *n, ParmList *parms, Wrapper *wrapper
     case Getter:
     case Function:
       if (is_member && !is_static && i == 0) {
-        Printv(arg, "this_val", 0);
-        i++;
+	Printv(arg, "this_val", 0);
+	i++;
       } else {
-        Printf(arg, "argv[%d]", i-arg_shift);
-        SetInt(p, INDEX, i-arg_shift);
-        i += GetInt(p, "tmap:in:numinputs");
+	Printf(arg, "argv[%d]", i-arg_shift);
+	SetInt(p, INDEX, i-arg_shift);
+	i += GetInt(p, "tmap:in:numinputs");
       }
       break;
     case Setter:
       if (is_member && !is_static && i == 0) {
-        Printv(arg, "this_val", 0);
-        i++;
+	Printv(arg, "this_val", 0);
+	i++;
       } else {
-        Printv(arg, "value", 0);
-        i++;
+	Printv(arg, "value", 0);
+	i++;
       }
       break;
     case Ctor:
@@ -3330,9 +3330,10 @@ int QuickJSEmitter::emitConstant(Node *n)
   }
 
   // For simple types, generate "direct" QuickJS constants (otherwise, use read-only variables)
+  // This is different from other javascript engines, for which we always emit read-only variables
   if(SwigType_issimple(type) ||
       (SwigType_isconst(type) && SwigType_isqualifier(type) && !SwigType_ispointer(type) && !SwigType_isfunctionpointer(type) && \
-        !SwigType_ismemberpointer(type) && !SwigType_isarray(type))) {
+	!SwigType_ismemberpointer(type) && !SwigType_isarray(type))) {
     if(Equal(Getattr(n, "view"), "enumvalueDeclaration") || Getattr(n, "enumvalueDeclaration:name") || SwigType_isenum(type)) {
       qjs_type = "ENUM";
     } else if(!Cmp(base, "long")  || !Cmp(base, "long long")) {
@@ -3346,34 +3347,16 @@ int QuickJSEmitter::emitConstant(Node *n)
     } else if (!Cmp(base, "double") || !Cmp(base, "float")) {
       qjs_type = "DOUBLE";
     } else if (!Cmp(base, "char")) {
-        qjs_type = "CHAR";
+	qjs_type = "CHAR";
     } else if (!Cmp(base, "bool")) {
-        qjs_type = "BOOL";
+	qjs_type = "BOOL";
     } else if (!Cmp(base, "std::string")) {
-        qjs_type = "STRING";
+	qjs_type = "STRING";
      }
   }
   if(qjs_type == NULL && !Cmp(base, "char") && SwigType_ispointer(type)) {
     qjs_type = "STRING";
   }
-
-  /*
-  if(qjs_type == NULL) {
-    Printv(stdout, "QuickJSEmitter::emitConstant ", iname, " type=", type, " base=", base, "\n", NIL);
-
-    Printv(stdout, "\tPointer=", SwigType_ispointer(type)?"1":"0", NIL);
-    Printv(stdout, " FunctionPointer=", SwigType_isfunctionpointer(type)?"1":"0", NIL);
-    Printv(stdout, " MemberPointer=", SwigType_ismemberpointer(type)?"1":"0", NIL);
-    Printv(stdout, " Reference=", SwigType_isreference(type)?"1":"0", NIL);
-    Printv(stdout, " Array=", SwigType_isarray(type)?"1":"0", NIL);
-    Printv(stdout, " Function=",  SwigType_isfunction(type)?"1":"0", "\n", NIL);
-    Printv(stdout, "\tQualifier=", SwigType_isqualifier(type)?"1":"0", NIL);
-    Printv(stdout, " Const=", SwigType_isconst(type)?"1":"0", NIL);
-    Printv(stdout, " Simple=", SwigType_issimple(type)?"1":"0", NIL);
-    Printv(stdout, " Mutable=", SwigType_ismutable(type)?"1":"0", NIL);
-    Printv(stdout, " Enum=", SwigType_isenum(type)?"1":"0", "\n", NIL);
-  }
-  */
 
   if(qjs_type == NULL) {
     // fallback to the "constant as read-only variable" mechanisem
@@ -3461,7 +3444,7 @@ int QuickJSEmitter::exitVariable(Node *n) {
 
   if (GetFlag(n, "ismember")) {
     if (GetFlag(state.variable(), IS_STATIC)
-        || Equal(Getattr(n, "nodeType"), "enumitem")) {
+	|| Equal(Getattr(n, "nodeType"), "enumitem")) {
       t_variable.pretty_print(state.clazz(STATIC_VARIABLES));
     } else {
       t_variable.pretty_print(state.clazz(MEMBER_VARIABLES));
@@ -3506,12 +3489,12 @@ int QuickJSEmitter::exitClass(Node *n) {
       // pass base classes that have to be ignored
       // XXX check or not if the base class is known (quickjs:mangledname) => see impact on trans-module inheritance?
       while (base.item && (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "quickjs:mangledname"))) {
-        base = Next(base);
+	base = Next(base);
       }
       if(base.item) {
-        Printv(jsclass_inheritance, "\"", Getattr(base.item, "quickjs:mangledname"), "\", ", NIL);
-        b_num++;
-        base = Next(base);
+	Printv(jsclass_inheritance, "\"", Getattr(base.item, "quickjs:mangledname"), "\", ", NIL);
+	b_num++;
+	base = Next(base);
       }
     }
     //if(b_num > 0) { /* XXX trace for debug */
@@ -3533,8 +3516,8 @@ int QuickJSEmitter::exitClass(Node *n) {
   if (GetFlag(state.clazz(), IS_ABSTRACT)) {
     Template t_veto_ctor(getTemplate("js_veto_ctor"));
     t_veto_ctor.replace("$jswrapper", state.clazz(CTOR))
-        .replace("$jsname", state.clazz(NAME))
-        .pretty_print(f_wrappers);
+	.replace("$jsname", state.clazz(NAME))
+	.pretty_print(f_wrappers);
   }
 
   /* adds a class template statement to initializer function */
@@ -3546,13 +3529,13 @@ int QuickJSEmitter::exitClass(Node *n) {
   if (base_class != NULL && Getattr(base_class, "quickjs:mangledname")) {
     Template t_inherit(getTemplate("quickjs_class_inherit"));
     t_inherit.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-        .replace("$jsbaseclassname", SwigType_manglestr(Getattr(base_class, "name")))
-        .replace("$jsbaseclassmangled", Getattr(base_class, "quickjs:mangledname"))
-        .pretty_print(jsclass_inheritance);
+	.replace("$jsbaseclassname", SwigType_manglestr(Getattr(base_class, "name")))
+	.replace("$jsbaseclassmangled", Getattr(base_class, "quickjs:mangledname"))
+	.pretty_print(jsclass_inheritance);
   } else {
     Template t_inherit(getTemplate("quickjs_class_noinherit"));
     t_inherit.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-        .pretty_print(jsclass_inheritance);
+	.pretty_print(jsclass_inheritance);
   }
 #endif
   t_classtemplate.replace("$jsmangledname", state.clazz(NAME_MANGLED))
@@ -3601,11 +3584,11 @@ int QuickJSEmitter::emitNamespaces() {
 
     Template namespace_definition(getTemplate("quickjs_nspace_declaration"));
     namespace_definition.replace("$jsglobalvariables", variables)
-        .replace("$jsglobalconstants", constants)
-        .replace("$jsglobalfunctions", functions)
-        .replace("$jsnspace", name_mangled)
-        .replace("$jsmangledname", name_mangled)
-        .pretty_print(f_wrap_cpp);
+	.replace("$jsglobalconstants", constants)
+	.replace("$jsglobalfunctions", functions)
+	.replace("$jsnspace", name_mangled)
+	.replace("$jsmangledname", name_mangled)
+	.pretty_print(f_wrap_cpp);
 
     Template t_createNamespace(getTemplate("quickjs_nspace_definition"));
     t_createNamespace.replace("$jsmangledname", name_mangled);
@@ -3616,8 +3599,8 @@ int QuickJSEmitter::emitNamespaces() {
     if (!Equal(moduleName, name)) {
       Template t_registerNamespace(getTemplate("quickjs_nspace_registration"));
       t_registerNamespace.replace("$jsmangledname", name_mangled)
-          .replace("$jsname", name)
-          .replace("$jsparent", parent_mangled);
+	  .replace("$jsname", name)
+	  .replace("$jsparent", parent_mangled);
       Append(state.globals(REGISTER_NAMESPACES), t_registerNamespace.str());
     }
   }
