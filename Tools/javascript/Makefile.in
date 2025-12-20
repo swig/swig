@@ -78,10 +78,8 @@ javascript: $(JS_INTERPRETER_OBJS) $(QUICKJS)
 	$(JSCXX)  $(CXXFLAGS) $(JS_INTERPRETER_OBJS) $(LDFLAGS) -o javascript $(JSDYNAMICLINKING) $(LINKFLAGS)
 
 ifeq (1, $(JSQUICKJSENABLED))
-$(QUICKJS): swigqjs.c
+$(QUICKJS): $(srcdir)/swigqjs.c
 	$(CC) -rdynamic -o $@ -g -Wall $(QJSINC) $(QJSVERSION) $< $(QJSSRC) $(QJSLIB)
-else:
-quickjs:
 endif
 
 clean:
