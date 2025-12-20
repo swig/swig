@@ -79,6 +79,10 @@ jobs:
           ENGINE: jsc
           VER: '4.0'
         - SWIGLANG: javascript
+          ENGINE: quickjs
+          VER: 2025-09-13
+          CSTD: c99
+        - SWIGLANG: javascript
           ENGINE: node
           VER: '12'
           CPPSTD: c++11
@@ -235,6 +239,11 @@ jobs:
           os: ubuntu-22.04
           CPPSTD: c++11
         - SWIGLANG: javascript
+          ENGINE: quickjs
+          VER: 2025-09-13
+          os: ubuntu-22.04
+          CPPSTD: c++11
+        - SWIGLANG: javascript
           ENGINE: node
           VER: '14'
           CPPSTD: c++11
@@ -363,6 +372,7 @@ jobs:
           os: ubuntu-22.04
         - SWIGLANG: javascript
           ENGINE: quickjs
+          VER: 2025-09-13
           CPPSTD: c++20
           GCC: 13
           os: ubuntu-22.04
@@ -506,6 +516,7 @@ jobs:
           if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
           if test "$PY2" = "2"; then CONFIGOPTS+=(--with-python=python2 --without-python3); fi
+          if test "$SWIGLANG" = "javascript -a "$ENGINE" = "quickjs" then CONFIGOPTS+=(--with-jsquickjssrc=$HOME/quickjs-$VER); fi
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 

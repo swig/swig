@@ -66,7 +66,7 @@ case "$SWIGLANG" in
 				;;
 			"quickjs")
 				cd $HOME
-				$RETRY  wget -qhttps://bellard.org/quickjs/quickjs-2025-09-13-2.tar.xz
+				$RETRY  wget -q https://bellard.org/quickjs/quickjs-2025-09-13-2.tar.xz
 				tar -Jxf quickjs-2025-09-13-2.tar.xz
 				cd quickjs-2025-09-13
 				make libquickjs.a
