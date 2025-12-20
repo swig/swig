@@ -146,7 +146,6 @@ else
 		if [ -f $(srcdir)/$*$(SCRIPTSUFFIX) ]; then \
 		  $(RUNTOOL) $(top_builddir)/Tools/javascript/javascript -$(JSENGINE) $(srcdir)/$*$(SCRIPTSUFFIX); \
 		fi
-endif
 
   %.ctest:
 		$(_setup)
@@ -162,6 +161,8 @@ endif
 		$(_setup)
 		+$(swig_and_compile_multi_cpp)
 		$(run_testcase)
+
+endif
 
 
 %.clean:
