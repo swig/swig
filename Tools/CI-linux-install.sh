@@ -111,6 +111,13 @@ case "$SWIGLANG" in
 			"v8")
 				$RETRY sudo apt-get -qq install libnode-dev
 				;;
+			"quickjs")
+				cd $HOME
+				$RETRY  wget -qhttps://bellard.org/quickjs/quickjs-2025-09-13-2.tar.xz
+				tar -Jxf quickjs-2025-09-13-2.tar.xz
+				cd quickjs-2025-09-13
+				make libquickjs.a
+				;;
 		esac
 		;;
 	"guile")
