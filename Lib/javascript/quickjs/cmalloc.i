@@ -3,7 +3,7 @@
 #else
 // use quickjs malloc
 /* 
- * Same functionality as tyepamps/cmalloc.swg,
+ * Same functionality as typemaps/cmalloc.swg,
  * except that quickjs malloc is used (allows
  * tracking of memory leaks).
  * 
