@@ -4,8 +4,8 @@ var example = require("example");
 // ----- Object creation -----
 
 console.log("Creating some objects:");
-a = new example.Vector(3,4,5);
-b = new example.Vector(10,11,12);
+var a = new example.Vector(3,4,5);
+var b = new example.Vector(10,11,12);
 
 console.log("   created" + a.print());
 console.log("   created" + b.print());
@@ -16,7 +16,7 @@ console.log("   created" + b.print());
 // It returns a new allocated object.
 
 console.log("Adding a+b");
-c = example.addv(a, b);
+var c = example.addv(a, b);
 console.log("a+b = " + c.print());
 
 
@@ -27,7 +27,7 @@ console.log("a+b = " + c.print());
 
 // Note: Using the high-level interface here
 console.log("Creating an array of vectors");
-va = new example.VectorArray(10);
+var va = new example.VectorArray(10);
 console.log("va = " + va);	 
 
 // ----- Set some values in the array -----
@@ -47,14 +47,14 @@ va.set(2,example.addv(a,b));
 // Get some values from the array
 
 console.log("Getting some array values");
-for (i = 0; i < 5; i++) {
-	temp = va.get(i);
+for (let i = 0; i < 5; i++) {
+	let temp = va.get(i);
     console.log(i,temp.print());
 }
 
 // Watch under resource meter to check on this
 console.log("Making sure we don't leak memory.");
-for (i = 0; i < 1000000; i++) {
+for (let i = 0; i < 1000000; i++) {
     c = va.get(i % 10);
 }
 //---------TODO---------

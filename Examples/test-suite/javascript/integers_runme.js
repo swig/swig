@@ -7,7 +7,7 @@ function checkOne(val, signed, typeName) {
   if ((!signed && val < 0) || (size < 8))
     return // out of range, skip test
 
-  ret = integers[typeName + '_identity'](val)
+  let ret = integers[typeName + '_identity'](val)
   if (ret !== val)
     throw "Incorrect value: expected " + val + ", got " + ret
 }

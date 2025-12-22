@@ -1,8 +1,8 @@
 var typemap_documentation = require("typemap_documentation");
 
-f = new typemap_documentation.Foo();
+var f = new typemap_documentation.Foo();
 f.x = 55;
-b = new typemap_documentation.Bar();
+var b = new typemap_documentation.Bar();
 b.y = 44;
 
 if (55 != typemap_documentation.GrabVal(f)) {

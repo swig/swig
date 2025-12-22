@@ -1,9 +1,9 @@
 var overload_template_fast = require("overload_template_fast");
 
-f = overload_template_fast.foo();
+var f = overload_template_fast.foo();
 
-a = overload_template_fast.maximum(3, 4);
-b = overload_template_fast.maximum(3.4, 5.2);
+var a = overload_template_fast.maximum(3, 4);
+var b = overload_template_fast.maximum(3.4, 5.2);
 
 // overload_template_fast.mix 1
 if (overload_template_fast.mix1("hi") != 101) {
@@ -91,7 +91,7 @@ if (overload_template_fast.overload(1, 1) != 20) {
 if (overload_template_fast.overload(1, "hello") != 30) {
     throw new Error("overload(int t, const char *)");
 }
-k = new overload_template_fast.Klass();
+var k = new overload_template_fast.Klass();
 if (overload_template_fast.overload(k) != 10) {
     throw new Error("overload(Klass t)");
 }
