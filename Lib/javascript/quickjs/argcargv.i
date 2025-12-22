@@ -34,7 +34,7 @@ SWIGINTERN int SWIG_AsVal_string(JSContext *ctx, JSValue obj, const char** str)
   }
   memset($2, 0, arraysize);
   for (i = 0; i < len; i++) {
-    int res, slen;
+    int res;
     const char *str;
     JSValue jsvalue = JS_GetPropertyUint32(ctx, array, (uint32_t)i);
     res = SWIG_AsVal_string(ctx, jsvalue, &str);
