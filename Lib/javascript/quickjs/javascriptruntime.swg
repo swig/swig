@@ -85,7 +85,7 @@ typedef struct {
 typedef struct {
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)
   unsigned magic;
-#endif      
+#endif
   const char *class_name;
   JSClassFinalizer *dtor;
   JSCFunction *ctor;

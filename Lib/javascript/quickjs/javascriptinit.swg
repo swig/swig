@@ -100,6 +100,24 @@ JSModuleDef *SWIG_INIT(JSContext *ctx, const char *module_name)
     return m;
 }
 
+SWIGINTERN int SWIG_module_local_initialize(JSContext *ctx, JSModuleDef *m)
+{
+  int r = 0;
+
+%} /* end of %insert(init) */
+
+/* -----------------------------------------------------------------------------
+ * js_initializer:  template for the top part of thr module initializer function
+ *   - $jsname:                   module name
+ *   - $jsglobalnamespace         declaration of the module namespace
+ *   - $jscreatenamespaces:       part with code for creating namespace object
+ *   - $jscreateclasses:          part with code for creating classes
+ *   - $jsregisternamespaces:     part with code for registration of namespaces*
+ * ----------------------------------------------------------------------------- */
+%fragment ("js_initializer", "templates") %{
+
+  return r;
+} /* end of SWIG_module_local_initialize */
 
 SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 {
@@ -122,6 +140,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
   swigObjectRegistry = SWIG_QuickJS_getSwigObjectRegistry(ctx);
   if(JS_IsException(swigObjectRegistry)) {return SWIG_ERROR;}
 
+  $jsglobalnamespace
 
   /* Register the swig prototype class, which is the class of the prototype of wrapper objects
    * but, as it cannot have itself as prototype, register it manually (not with SWIG_QuickJS_register_class())
@@ -135,13 +154,15 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
     if(JS_ToUint32(ctx, &(d->class_id), v)) {return SWIG_ERROR;}
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_MULTIMODULE)
     printf("SWIG_module_initialize: info - %s found in swigObjectRegistry (%u).\n", d->class_name, d->class_id);
-#endif    
-    JS_FreeValue(ctx, v);    
+#endif
+    JS_FreeValue(ctx, v);
   } else {
     assert(JS_NewClassID(&(d->class_id)));
     JSClassDef class_def = { d->class_name, d->dtor, NULL, NULL, NULL };
-    JS_NewClass(JS_GetRuntime(ctx), d->class_id, &class_def);
-    JS_SetProperty(ctx, swigObjectRegistry, atom, JS_NewUint32(ctx, d->class_id));
+    r = JS_NewClass(JS_GetRuntime(ctx), d->class_id, &class_def);
+    if (r == -1) { return SWIG_ERROR; }
+    r = JS_SetProperty(ctx, swigObjectRegistry, atom, JS_NewUint32(ctx, d->class_id));
+    if (r == -1) { return SWIG_ERROR; }
   }
   JS_FreeAtom(ctx, atom);
 
@@ -184,7 +205,8 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
     d->prototype = v;
     JS_FreeValue(ctx, v);
   } else {
-    JS_SetProperty(ctx, swigObjectRegistry, atom, JS_DupValue(ctx, d->prototype));
+    r = JS_SetProperty(ctx, swigObjectRegistry, atom, JS_DupValue(ctx, d->prototype));
+    if (r == -1) { return SWIG_ERROR; }
   }
   JS_FreeAtom(ctx, atom);
 
@@ -208,7 +230,8 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
     if(r <= 0) {
       return SWIG_ERROR;
     }
-    JS_SetProperty(ctx, swigObjectRegistry, atom, JS_NewUint32(ctx, d->class_id));
+    r = JS_SetProperty(ctx, swigObjectRegistry, atom, JS_NewUint32(ctx, d->class_id));
+    if (r == -1) { return SWIG_ERROR; }
   }
   JS_FreeAtom(ctx, atom);
 
@@ -223,7 +246,8 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
     d->prototype = v;
     JS_FreeValue(ctx, v);
   } else {
-    JS_SetProperty(ctx, swigObjectRegistry, atom, JS_DupValue(ctx, d->prototype));
+    r = JS_SetProperty(ctx, swigObjectRegistry, atom, JS_DupValue(ctx, d->prototype));
+    if (r == -1) { return SWIG_ERROR; }
   }
   JS_FreeAtom(ctx, atom);
 
@@ -237,18 +261,19 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
     if(JS_ToUint32(ctx, &SWIG_QuickJS_module_info_class_id, v)) {return SWIG_ERROR;}
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_MULTIMODULE)
     printf("SWIG_module_initialize: info - swig_module_info found in swigObjectRegistry (%u).\n", SWIG_QuickJS_module_info_class_id);
-#endif    
-    JS_FreeValue(ctx, v);    
+#endif
+    JS_FreeValue(ctx, v);
   } else {
     assert(JS_NewClassID(&SWIG_QuickJS_module_info_class_id));
     JSClassDef module_info_class_def = { "swig_module_info", NULL, NULL, NULL, NULL };
-    JS_NewClass(JS_GetRuntime(ctx), SWIG_QuickJS_module_info_class_id, &module_info_class_def);
-    JS_SetProperty(ctx, swigObjectRegistry, atom, JS_NewUint32(ctx, SWIG_QuickJS_module_info_class_id));
+    r = JS_NewClass(JS_GetRuntime(ctx), SWIG_QuickJS_module_info_class_id, &module_info_class_def);
+    if (r == -1) { return SWIG_ERROR; }
+    r = JS_SetProperty(ctx, swigObjectRegistry, atom, JS_NewUint32(ctx, SWIG_QuickJS_module_info_class_id));
+    if (r == -1) { return SWIG_ERROR; }
   }
-  JS_FreeAtom(ctx, atom);  
+  JS_FreeAtom(ctx, atom);
 
   JS_FreeValue(ctx, swigObjectRegistry);
-
 
 #if 0
   /* Create the JS Class to store/retreive namespace info  => XXX not useful ? Namespace
@@ -261,35 +286,27 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
   /* Register helper functions at global level */
   globalObject = JS_GetGlobalObject(ctx);
   /* SWIG_type: return the type of a variable (as a string) */
-  JS_SetPropertyStr(ctx, globalObject, "SWIG_type",
+  r = JS_SetPropertyStr(ctx, globalObject, "SWIG_type",
       JS_NewCFunction(ctx, _wrap_SWIG_QuickJS_typename, "SWIG_type", 1));
+  if (r == -1) { return SWIG_ERROR; }
   JS_FreeValue(ctx, globalObject);
 
-%} /* end of %insert(init) */
+  r = SWIG_module_local_initialize(ctx, m);
+  if (r == -1) { return SWIG_ERROR; }
 
-/* -----------------------------------------------------------------------------
- * js_initializer:  template for the module initializer function
- *   - $jsname:                   module name
- *   - $jscreatenamespaces:       part with code for creating namespace objects
- *   - $jscreateclasses:          part with code for creating classes
- *   - $jsregisternamespaces:     part with code for registration of namespaces
- * ----------------------------------------------------------------------------- */
-%fragment ("js_initializer", "templates") %{
+  /* Create objects for namespaces */
+  $jscreatenamespaces
 
+  /* Register classes */
+  $jsregisterclasses
 
-    /* Create objects for namespaces */
-    $jscreatenamespaces
-  
-    /* Register classes */
-    $jsregisterclasses
+  /* Register namespaces */
+  $jsregisternamespaces
 
-    /* Register namespaces */
-    $jsregisternamespaces
-
-    if(JS_SetModuleExport(ctx, m, "$jsname", DEFAULT_NAMESPACE)) {
-        return SWIG_ERROR;
-    }
-    return SWIG_OK;
+  if(JS_SetModuleExport(ctx, m, "$jsname", DEFAULT_NAMESPACE)) {
+    return SWIG_ERROR;
+  }
+  return SWIG_OK;
 }
 #ifdef __cplusplus
 }
