@@ -22,7 +22,7 @@ int SWIG_AsVal_dec(bool)(JSValue obj, bool *val)
     return SWIG_ERROR;
   }
   v = JS_ToBool(ctx, obj);
-  if(v < 0) 
+  if(v < 0)
     return SWIG_ERROR;
   if(val) *val = (bool)v;
   return SWIG_OK;
@@ -49,7 +49,7 @@ SWIG_From_dec(long)(long value)
   return JS_NewInt64(ctx, value);
 %#else
   return JS_NewInt32(ctx, value);
-%#endif  
+%#endif
 }
 }
 
@@ -60,18 +60,21 @@ SWIG_AsVal_dec(long)(JSValueConst obj, long* val)
 {
 %#if defined(LLONG_MAX) && (LONG_WIDTH == LLONG_WIDTH)
   int64_t v;
-%#else  
-  int32_t v;
-%#endif  
-  if (!JS_IsNumber(obj)) {
+  if (!(JS_IsNumber(obj) || JS_IsBigInt(ctx, obj))) {
     return SWIG_TypeError;
   }
+%#else
+  int32_t v;
+  if(!JS_IsNumber(obj)) {
+    return SWIG_TypeError;
+  }
+%#endif
   if(val) {
 %#if defined(LLONG_MAX) && (LONG_WIDTH == LLONG_WIDTH)
-    if(JS_ToInt64(ctx, &v, obj))
+    if(JS_ToInt64Ext(ctx, &v, obj))
 %#else
     if(JS_ToInt32(ctx, &v, obj))
-%#endif    
+%#endif
       return SWIG_ERROR;
     *val = (long)v;
   }
@@ -91,7 +94,7 @@ SWIG_From_dec(unsigned long)(unsigned long value)
   return JS_NewInt64(ctx, value);
 %#else
   return JS_NewUint32(ctx, value);
-%#endif  
+%#endif
 }
 }
 
@@ -102,26 +105,29 @@ SWIG_AsVal_dec(unsigned long)(JSValueConst obj, unsigned long *val)
 {
 %#if defined(LLONG_MAX) && (LONG_WIDTH == LLONG_WIDTH)
   int64_t v;
+  if (!(JS_IsNumber(obj) || JS_IsBigInt(ctx, obj))) {
+    return SWIG_TypeError;
+  }
 %#else
   uint32_t v;
-%#endif  
   if(!JS_IsNumber(obj)) {
     return SWIG_TypeError;
   }
+%#endif
 
   if(val) {
 %#if defined(LLONG_MAX) && (LONG_WIDTH == LLONG_WIDTH)
-    if(JS_ToInt64(ctx, &v, obj))
+    if(JS_ToInt64Ext(ctx, &v, obj))
       return SWIG_ERROR;
-    if(v<0) 
+    if(v<0)
       return SWIG_OverflowError;
 %#else
     if(JS_ToUint32(ctx, &v, obj))
       return SWIG_ERROR;
-%#endif    
+%#endif
     *val = (unsigned long)v;
   }
-  
+
   return SWIG_OK;
 }
 }
@@ -222,7 +228,7 @@ SWIG_AsVal_dec(double)(JSValueConst obj, double *val)
   if(!JS_IsNumber(obj)) {
     return SWIG_TypeError;
   }
-  if(val) 
+  if(val)
     if(JS_ToFloat64(ctx, val, obj))
       return SWIG_ERROR;
 

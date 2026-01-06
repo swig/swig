@@ -149,11 +149,11 @@ typedef struct {
 SWIGRUNTIME JSValue _wrap_SwigObject_disown(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst argv[])
 {
   SwigObjectData *swig_object;
-  
+
   if(argc!=0) {
     SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for SwigObject_disown.");
   }
-    
+
   if(SWIG_QuickJS_IsSwigObject(ctx, this_val) <= 0) {
     return JS_ThrowTypeError(ctx, "SWIGObject_disown");
   }
@@ -167,7 +167,7 @@ SWIGRUNTIME JSValue _wrap_SwigObject_disown(JSContext *ctx, JSValueConst this_va
   return JS_UNDEFINED;
   goto fail;
   fail:
-  return JS_EXCEPTION;  
+  return JS_EXCEPTION;
 }
 
 SWIGRUNTIME JSValue _wrap_SwigObject_equals(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst argv[])
@@ -349,10 +349,10 @@ SWIGRUNTIME int SWIG_QuickJS_ConvertPtr(JSContext *ctx, JSValueConst val, void**
         printf("SWIG_QuickJS_ConvertPtr: Warning: not a class %s\n", type->str);
         return SWIG_ERROR;
       }
-#endif       
+#endif
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_BASES)
       printf("SWIG_QuickJS_ConvertPtr: check source %s to target %s\n", clsDef->class_name, pClsDef->class_name);
-#endif      
+#endif
       if(JS_IsObject(base_map)) {
         JSAtom atom = JS_NewAtom(ctx, pClsDef->class_name);
         if(atom != JS_ATOM_NULL) {
