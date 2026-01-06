@@ -121,12 +121,19 @@ JSValue myjs_load_module(JSContext *ctx, const char *basename, const char *filen
   if (JS_HasProperty(ctx, r, atom)) {
     /* module loaded as basename */
     jsresult = JS_GetProperty(ctx, r, atom);
-#ifdef MYQJS_DEBUG
     if(JS_IsObject(jsresult)) {
+#ifdef MYQJS_DEBUG
       printf("load_module: %s loaded from %s\n", basename, filename);
+#endif      
+    } else {
+      JS_FreeAtom(ctx, atom);
+#ifdef MYQJS_DEBUG
+      printf("load_module: warning, loaded module from %s does not define %s\n", filename, basename);
+#endif      
+      return JS_ThrowReferenceError(ctx, "%s not defined", basename);
     }
-#endif
   } else {
+    JS_FreeAtom(ctx, atom);
 #ifdef MYQJS_DEBUG
     printf("load_module: %s not found inside module %s\n", basename, filename);
 #endif
