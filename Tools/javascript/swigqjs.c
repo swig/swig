@@ -368,7 +368,6 @@ int main(int argc, char **argv)
     }
 
     if (optind >= argc) {
-        /* no file: interactive mode */
         printf("Error: missing file to run.\n");
     } else {
         const char *filename;
