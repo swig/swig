@@ -96,7 +96,10 @@ static JSValue $jswrapper(JSContext *ctx, JSValueConst this_val, int argc, JSVal
 %{
   if(argc >= $jsargrequired && argc <= $jsargcount) {
     this_val = $jswrapper(ctx, this_val, argc, argv);
-    if(!JS_IsException(this_val)) { return this_val; }
+    if(!JS_IsException(this_val)) {
+      JS_FreeValue(ctx, JS_GetException(ctx)); /* clear previous exception in the dispatch */
+      return this_val;
+    }
   }
 %}
 
@@ -113,9 +116,9 @@ static void $jswrapper(JSRuntime *rt, JSValueConst this_val)
   SwigObjectData *swig_object = (SwigObjectData *)JS_GetOpaque(this_val, JS_GetClassID(this_val));
 
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_PTRTRACE)
-  printf("$jswrapper: %p (%p) (own=%d)\n", swig_object, swig_object->ptr, swig_object->own);  
-#endif   
-  
+  printf("$jswrapper: %p (%p) (own=%d)\n", swig_object, swig_object->ptr, swig_object->own);
+#endif
+
   if(swig_object) {
     if (swig_object->own) {
       js_free_rt(rt, ($jstype)swig_object->ptr);
@@ -141,9 +144,9 @@ static void $jswrapper(JSRuntime *rt, JSValueConst this_val)
   SwigObjectData *swig_object = (SwigObjectData *)JS_GetOpaque(this_val, JS_GetClassID(this_val));
 
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_PTRTRACE)
-  printf("$jswrapper: %p (%p) (own=%d)\n", swig_object, swig_object->ptr, swig_object->own);  
-#endif   
-  
+  printf("$jswrapper: %p (%p) (own=%d)\n", swig_object, swig_object->ptr, swig_object->own);
+#endif
+
   if(swig_object) {
     if (swig_object->own) {
       $jstype arg1 = ($jstype)swig_object->ptr;
@@ -255,7 +258,7 @@ static JSValue $jswrapper(JSContext *ctx, JSValueConst this_val, int argc, JSVal
  * js_overloaded_function:  template for a overloaded function
  *   - $jswrapper:     wrapper function name
  *   - $jslocals:      locals part of wrapper
- *   - $jsargcount:    required number of arguments
+ *   - $jsargcount:    max number of arguments
  *   - $jsargrequired: required number of arguments
  *   - $jscode:        code part of wrapper
  * ----------------------------------------------------------------------------- */
@@ -375,9 +378,9 @@ static const char *$jsmangledname_class_bases[] = {
  * ----------------------------------------------------------------------------- */
 %fragment ("quickjs_class_definition", "templates")
 %{
-#if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)  
+#if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)
   $jsmangledname_class_definition.magic = SWIG_PROTOTYPE_CLASS_MAGIC;
-#endif  
+#endif
   $jsmangledname_class_definition.class_name = "$jsmangledname";
   $jsmangledname_class_definition.dtor = $jsdtor;
   $jsmangledname_class_definition.ctor = $jsctor;
@@ -386,7 +389,7 @@ static const char *$jsmangledname_class_bases[] = {
   /* actual class_id is computed in 'registerClass' */
   $jsmangledname_class_definition.class_id = JS_INVALID_CLASS_ID;
   /* actual prototype is computed in 'registerClass' */
-  $jsmangledname_class_definition.prototype = JS_UNDEFINED;  
+  $jsmangledname_class_definition.prototype = JS_UNDEFINED;
   $jsmangledname_class_definition.functions = $jsmangledname_class_functions;
   $jsmangledname_class_definition.functions_num = countof($jsmangledname_class_functions);
   $jsmangledname_class_definition.variables = $jsmangledname_class_variables;
@@ -395,7 +398,7 @@ static const char *$jsmangledname_class_bases[] = {
   $jsmangledname_class_definition.constants_num = countof($jsmangledname_class_constants);
   $jsmangledname_class_definition.bases = $jsmangledname_class_bases;
   $jsmangledname_class_definition.bases_num = countof($jsmangledname_class_bases);
-  
+
   SWIGTYPE_$jsmangledtype->clientdata = (void*)&$jsmangledname_class_definition;
 %}
 
@@ -404,7 +407,7 @@ static const char *$jsmangledname_class_bases[] = {
     if (SWIGTYPE_p$jsbaseclassname != NULL) {
       $jsmangledname_class_definition.base_prototype = $jsbaseclassmangled_class_definition.prototype;
     } else {
-      $jsmangledname_class_definition.base_prototype = SWIG_QuickJS_swig_object_class_definition.prototype;      
+      $jsmangledname_class_definition.base_prototype = SWIG_QuickJS_swig_object_class_definition.prototype;
     }
 %}
 
@@ -422,9 +425,9 @@ static const char *$jsmangledname_class_bases[] = {
  * ----------------------------------------------------------------------------- */
 %fragment ("quickjs_class_registration", "templates")
 %{
-  if(SWIG_QuickJS_registerClass(ctx, 
-      $jsnspace_namespace, 
-      "$jsname", 
+  if(SWIG_QuickJS_registerClass(ctx,
+      $jsnspace_namespace,
+      "$jsname",
       &$jsmangledname_class_definition,
       true) < 0) {
     return SWIG_ERROR;
@@ -452,7 +455,7 @@ static const SWIG_QuickJS_ConstantListEntry $jsnspace_constants[] = {
   $jsglobalconstants
 };
 
-static JSValue $jsmangledname_namespace;
+static JSValue $jsmangledname_namespace = JS_UNDEFINED;
 %}
 
 /* -----------------------------------------------------------------------------
@@ -461,9 +464,9 @@ static JSValue $jsmangledname_namespace;
  * ----------------------------------------------------------------------------- */
 %fragment ("quickjs_nspace_definition", "templates")
 %{
-  SWIG_QuickJS_initializeNamespace(ctx, 
+  SWIG_QuickJS_initializeNamespace(ctx,
     "$jsmangledname",
-    &($jsmangledname_namespace), 
+    &($jsmangledname_namespace),
     $jsmangledname_functions, countof($jsmangledname_functions),
     $jsmangledname_variables, countof($jsmangledname_variables),
     $jsmangledname_constants, countof($jsmangledname_constants));
