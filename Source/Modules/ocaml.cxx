@@ -97,7 +97,6 @@ public:
       if (argv[i]) {
 	if (strcmp(argv[i], "-help") == 0) {
 	  fputs(usage, stdout);
-	  Exit(EXIT_SUCCESS);
 	} else if (strcmp(argv[i], "-where") == 0) {
 	  PrintIncludeArg();
 	  Exit(EXIT_SUCCESS);
@@ -132,7 +131,6 @@ public:
     // Read in default typemaps */
     SWIG_config_file("ocaml.i");
     allow_overloading();
-
   }
 
   /* Swig_director_declaration()

@@ -1763,7 +1763,7 @@ public:
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
         if (strcmp(argv[i], "-help") == 0) {
-          Printf(stdout, "%s\n", usage);
+          Printf(stdout, "%s", usage);
         } else if (strcmp(argv[i], "-namespace") == 0) {
 	  if (argv[i + 1]) {
 	    ns_cxx = NewString(argv[i + 1]);
@@ -3113,10 +3113,10 @@ extern "C" Language *swig_c(void) {
  * Static member variables
  * ----------------------------------------------------------------------------- */
 
-const char *C::usage = (char *) "\
+const char *C::usage = "\
 C Options (available with -c)\n\
-     -namespace ns - use prefix based on the provided namespace\n\
-     -nocxx        - do not generate C++ wrappers\n\
-     -noexcept     - do not generate exception handling code\n\
+     -namespace ns   - use prefix based on the provided namespace\n\
+     -nocxx          - do not generate C++ wrappers\n\
+     -noexcept       - do not generate exception handling code\n\
 \n";
 

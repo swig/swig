@@ -533,13 +533,14 @@ int JAVASCRIPT::top(Node *n) {
   return SWIG_OK;
 }
 
-static const char *usage = (char *)"\
+static const char *usage = "\
 Javascript Options (available with -javascript)\n\
      -jsc                   - creates a JavascriptCore extension \n\
      -v8                    - creates a v8 extension \n\
      -node                  - creates a node.js extension \n\
      -napi                  - creates a NAPI extension \n\
-     -debug-codetemplates   - generates information about the origin of code templates\n";
+     -debug-codetemplates   - generates information about the origin of code templates\n\
+\n";
 
 /* ---------------------------------------------------------------------
  * main()

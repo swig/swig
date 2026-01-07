@@ -15,7 +15,8 @@
 
 static const char *usage = "\
 XML Options (available with -xml)\n\
-     -xmllite        - More lightweight version of XML\n";
+     -xmllite        - More lightweight version of XML\n\
+\n";
 
 static File *out = 0;
 static int xmllite = 0;

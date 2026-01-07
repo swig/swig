@@ -290,7 +290,7 @@ public:
 	  doxygen_translator_flags |= DoxygenTranslator::debug_parser;
 	  Swig_mark_arg(i);
 	} else if (strcmp(argv[i], "-help") == 0) {
-	  Printf(stdout, "%s\n", usage);
+	  Printf(stdout, "%s", usage);
 	}
       }
     }

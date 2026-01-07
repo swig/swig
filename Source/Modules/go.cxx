@@ -341,7 +341,7 @@ private:
     Swig_mark_arg(i);
     generate_unique_id = true;
   } else if (strcmp(argv[i], "-help") == 0) {
-	  Printf(stdout, "%s\n", usage);
+	  Printf(stdout, "%s", usage);
 	}
       }
     }
