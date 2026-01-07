@@ -268,8 +268,8 @@ static DohObjInfo DohFileType = {
   0,				/* doh_sequence */
   &FileFileMethods,		/* doh_file     */
   0,				/* doh_string   */
-  0,				/* doh_callable */
-  0,				/* doh_position */
+  0,				/* doh_reserved */
+  0,				/* clientdata */
 };
 
 /* -----------------------------------------------------------------------------

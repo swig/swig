@@ -189,7 +189,7 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "reprfunc", "SWIGPY_REPRFUNC_CLOSURE",
     "hashfunc", "SWIGPY_HASHFUNC_CLOSURE",
     "iternextfunc", "SWIGPY_ITERNEXTFUNC_CLOSURE",
-    NULL
+    NULL,
   };
 
   static const char *funpack_functypes[] = {
@@ -209,7 +209,7 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     "reprfunc", "SWIGPY_REPRFUNC_CLOSURE",
     "hashfunc", "SWIGPY_HASHFUNC_CLOSURE",
     "iternextfunc", "SWIGPY_ITERNEXTFUNC_CLOSURE",
-    NULL
+    NULL,
   };
 
   if (!functype)

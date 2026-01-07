@@ -76,7 +76,7 @@ static String *getRClassName(String *retType, int deRef=0, int upRef=0) {
   } 
   String *tmp = NewString("");
   Insert(tmp, 0, Char(SwigType_manglestr(resolved)));
-  return(tmp);
+  return tmp;
 }
 
 /* --------------------------------------------------------------
@@ -95,7 +95,7 @@ static String * getRClassNameCopyStruct(String *retType, int addRef) {
 #ifdef R_SWIG_VERBOSE
     Printf(stdout, "SwigType_split return an empty list for %s\n", retType);
 #endif
-    return(tmp);
+    return tmp;
   }
 
 
@@ -182,7 +182,7 @@ static int addCopyParameter(SwigType *type) {
     ok = Strncmp(type, "p.", 2);
   }
 
-  return(ok);
+  return ok;
 }
 
 static void replaceRClass(String *tm, SwigType *type) {
@@ -875,7 +875,7 @@ List *R::filterMemberList(List *class_member_types,
       }
     }
   }
-  return(CM);
+  return CM;
 }
 
 # if 0
@@ -2217,7 +2217,7 @@ int R::addRegistrationRoutine(String *rname, int nargs) {
 int R::outputRegistrationRoutines(File *out) {
   int i, n;
   if(!registrationTable)
-    return(0);
+    return 0;
   if(inCPlusMode)
     Printf(out, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n");
 
@@ -2721,7 +2721,7 @@ void R::main(int argc, char *argv[]) {
 int R::outputCommandLineArguments(File *out)
 {
   if(Argc < 1 || !Argv || !Argv[0])
-    return(-1);
+    return -1;
 
   Printf(out, "\n##   Generated via the command line invocation:\n##\t");
   for(int i = 0; i < Argc ; i++) {
