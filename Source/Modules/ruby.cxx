@@ -139,7 +139,7 @@ Ruby Options (available with -ruby)\n\
      -minherit       - Attempt to support multiple inheritance\n\
      -noautorename   - Disable renaming of classes and methods (default)\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
-";
+\n";
 
 
 #define RCLASS(hash, name) (RClass*)(Getattr(hash, name) ? Data(Getattr(hash, name)) : 0)
@@ -894,7 +894,7 @@ public:
 	    Swig_arg_error();
 	  }
 	} else if (strcmp(argv[i], "-help") == 0) {
-	  Printf(stdout, "%s\n", usage);
+	  Printf(stdout, "%s", usage);
 	} else if (strcmp(argv[i], "-cppcast") == 0) {
 	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
 	  Swig_mark_arg(i);

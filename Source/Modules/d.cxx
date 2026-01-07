@@ -323,7 +323,7 @@ public:
 	  Swig_mark_arg(i);
 	  split_proxy_dmodule = true;
 	} else if (strcmp(argv[i], "-help") == 0) {
-	  Printf(stdout, "%s\n", usage);
+	  Printf(stdout, "%s", usage);
 	}
       }
     }

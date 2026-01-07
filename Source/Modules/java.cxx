@@ -309,7 +309,7 @@ public:
 	  Swig_mark_arg(i);
 	  old_variable_names = true;
 	} else if (strcmp(argv[i], "-help") == 0) {
-	  Printf(stdout, "%s\n", usage);
+	  Printf(stdout, "%s", usage);
 	}
       }
     }

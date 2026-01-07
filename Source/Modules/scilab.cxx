@@ -17,16 +17,16 @@
 
 static const int SCILAB_IDENTIFIER_NAME_CHAR_MAX = 24;
 
-static const char *usage = (char *) " \
-Scilab options (available with -scilab)\n \
-     -builder                               - Generate a Scilab builder script\n \
-     -buildercflags <cflags>                - Add <cflags> to the builder compiler flags\n \
-     -builderflagscript <file>              - Set the Scilab script <file> to use by builder to configure the build flags\n \
-     -builderldflags <ldflags>              - Add <ldflags> to the builder linker flags\n \
-     -buildersources <files>                - Add the (comma separated) files <files> to the builder sources\n \
-     -builderverbositylevel <level>         - Set the builder verbosity level to <level> (default 0: off, 2: high)\n \
-     -gatewayxml <gateway_id>               - Generate gateway xml with the given <gateway_id>\n \
-     -gatewayxml6                           - Generate gateway xml for Scilab 6\n \
+static const char *usage = "\
+Scilab options (available with -scilab)\n\
+     -builder                       - Generate a Scilab builder script\n\
+     -buildercflags <cflags>        - Add <cflags> to the builder compiler flags\n\
+     -builderflagscript <file>      - Set the Scilab script <file> to use by builder to configure build flags\n\
+     -builderldflags <ldflags>      - Add <ldflags> to the builder linker flags\n\
+     -buildersources <files>        - Add the (comma separated) files <files> to the builder sources\n\
+     -builderverbositylevel <level> - Set the builder verbosity level to <level> (default 0: off, 2: high)\n\
+     -gatewayxml <gateway_id>       - Generate gateway xml with the given <gateway_id>\n\
+     -gatewayxml6                   - Generate gateway xml for Scilab 6\n\
 \n";
 
 
@@ -110,7 +110,7 @@ public:
     for (int argIndex = 1; argIndex < argc; argIndex++) {
       if (argv[argIndex] != NULL) {
 	if (strcmp(argv[argIndex], "-help") == 0) {
-	  Printf(stdout, "%s\n", usage);
+	  Printf(stdout, "%s", usage);
 	} else if (strcmp(argv[argIndex], "-builder") == 0) {
 	  Swig_mark_arg(argIndex);
 	  generateBuilder = true;

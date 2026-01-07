@@ -20,7 +20,8 @@ Tcl 8 Options (available with -tcl8)\n\
      -nosafe         - Leave out SafeInit module function.\n\
      -prefix <name>  - Set a prefix <name> to be prepended to all names\n\
      -namespace      - Build module into a Tcl 8 namespace\n\
-     -pkgversion     - Set package version\n\n";
+     -pkgversion     - Set package version\n\
+\n";
 
 static String *cmd_tab = 0;	/* Table of command names    */
 static String *var_tab = 0;	/* Table of global variables */
