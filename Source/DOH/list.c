@@ -333,8 +333,8 @@ DohObjInfo DohListType = {
   &ListListMethods,		/* doh_sequence */
   0,				/* doh_file */
   0,				/* doh_string */
-  0,				/* doh_callable */
-  0,				/* doh_position */
+  0,				/* doh_reserved */
+  0,				/* clientdata */
 };
 
 /* -----------------------------------------------------------------------------

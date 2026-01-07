@@ -558,8 +558,8 @@ DohObjInfo DohHashType = {
   0,				/* doh_sequence */
   0,				/* doh_file */
   0,				/* doh_string */
-  0,				/* doh_positional */
-  0,
+  0,				/* doh_reserved */
+  0,				/* clientdata */
 };
 
 /* -----------------------------------------------------------------------------

@@ -128,7 +128,7 @@ public:
 
     Preprocessor_define("SWIGOCAML 1", 0);
 
-    // Read in default typemaps */
+    // Read in default typemaps
     SWIG_config_file("ocaml.i");
     allow_overloading();
   }

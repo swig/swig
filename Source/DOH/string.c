@@ -1134,8 +1134,8 @@ DohObjInfo DohStringType = {
   &StringListMethods,		/* doh_sequence */
   &StringFileMethods,		/* doh_file */
   &StringStringMethods,		/* doh_string */
-  0,				/* doh_position */
-  0
+  0,				/* doh_reserved */
+  0,				/* clientdata */
 };
 
 

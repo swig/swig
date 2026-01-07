@@ -408,11 +408,15 @@ struct cxx_wrappers
 {
   // Default ctor doesn't do anything, use initialize() if C++ wrappers really need to be generated.
   cxx_wrappers() :
-    except_check_start(NULL), except_check_end(NULL),
-    sect_cxx_h(NULL), sect_types(NULL), sect_decls(NULL), sect_impls(NULL) {
-    node_func_ = NULL;
-    rtype_desc_ = NULL;
-    ptype_desc_ = NULL;
+    except_check_start(NULL),
+    except_check_end(NULL),
+    sect_cxx_h(NULL),
+    sect_types(NULL),
+    sect_decls(NULL),
+    sect_impls(NULL),
+    ptype_desc_(NULL),
+    rtype_desc_(NULL),
+    node_func_(NULL) {
   }
 
   void initialize() {
