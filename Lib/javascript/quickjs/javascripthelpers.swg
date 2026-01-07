@@ -14,6 +14,7 @@ SWIGINTERN int SWIG_QuickJS_createRegistries(JSContext *ctx)
   JSValue swig_object_registry, base_registry;
   JSValueConst globalObject;
   JSAtom atom;
+  int r;
 
   globalObject = JS_GetGlobalObject(ctx);
   if(JS_IsException(globalObject)) {
@@ -23,14 +24,17 @@ SWIGINTERN int SWIG_QuickJS_createRegistries(JSContext *ctx)
   atom = JS_NewAtom(ctx, "QuickJS");
   if (atom == JS_ATOM_NULL) { return -1; }
 
-  if(!JS_HasProperty(ctx, globalObject, atom)) {
+  r = JS_HasProperty(ctx, globalObject, atom);
+  if(r == -1)  { return -1; }
+  if(!r) {
     registry = JS_NewObject(ctx);
-    if(JS_IsException(registry)) return -1;
-    JS_DefinePropertyValue(ctx, globalObject, atom, registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+    if(JS_IsException(registry)) { return -1; }
+    r = JS_DefinePropertyValue(ctx, globalObject, atom, registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+    if(r == -1) { return -1; }
     JS_DupValue(ctx, registry);
   } else {
     registry = JS_GetProperty(ctx, globalObject, atom);
-    if(JS_IsException(registry)) return -1;
+    if(JS_IsException(registry)) { return -1; }
     if(!JS_IsObject(registry)) {
       JS_ThrowTypeError(ctx, "QuickJS registry anomaly (not an object). Please report.\n");
       return -1;
@@ -40,37 +44,49 @@ SWIGINTERN int SWIG_QuickJS_createRegistries(JSContext *ctx)
 
   atom = JS_NewAtom(ctx, "class_registry");
   if (atom == JS_ATOM_NULL) { return -1; }
-  if(!JS_HasProperty(ctx, registry, atom)) {
+  r = JS_HasProperty(ctx, registry, atom);
+  if(r == -1)  { return -1; }
+  if(!r) {
     class_registry = JS_NewObject(ctx);
-    if(JS_IsException(class_registry)) return -1;
-    JS_DefinePropertyValue(ctx, registry, atom, class_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+    if(JS_IsException(class_registry)) { return -1; }
+    r = JS_DefinePropertyValue(ctx, registry, atom, class_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+    if(r == -1) { return -1; }
   }
   JS_FreeAtom(ctx, atom);
 
   atom = JS_NewAtom(ctx, "base_registry");
   if (atom == JS_ATOM_NULL) { return -1; }
-  if(!JS_HasProperty(ctx, registry, atom)) {
+  r = JS_HasProperty(ctx, registry, atom);
+  if(r == -1)  { return -1; }
+  if(!r) {
     base_registry = JS_NewObject(ctx);
     if(JS_IsException(base_registry)) return -1;
-    JS_DefinePropertyValue(ctx, registry, atom, base_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+    r = JS_DefinePropertyValue(ctx, registry, atom, base_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+    if(r == -1) { return -1; }
   }
   JS_FreeAtom(ctx, atom);
 
   atom = JS_NewAtom(ctx, "registry");
   if (atom == JS_ATOM_NULL) { return -1; }
-  if(!JS_HasProperty(ctx, registry, atom)) {
+  r = JS_HasProperty(ctx, registry, atom);
+  if(r == -1)  { return -1; }
+  if(!r) {
     generic_registry = JS_NewArray(ctx);
     if(JS_IsException(generic_registry)) return -1;
-    JS_DefinePropertyValue(ctx, registry, atom, generic_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+    r = JS_DefinePropertyValue(ctx, registry, atom, generic_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+    if(r == -1) { return -1; }
   }
   JS_FreeAtom(ctx, atom);
 
   atom = JS_NewAtom(ctx, "swig_object");
   if (atom == JS_ATOM_NULL) { return -1; }
-  if(!JS_HasProperty(ctx, registry, atom)) {
+  r = JS_HasProperty(ctx, registry, atom);
+  if(r == -1)  { return -1; }
+  if(!r) {
     swig_object_registry = JS_NewObject(ctx);
     if(JS_IsException(swig_object_registry)) return -1;
-    JS_DefinePropertyValue(ctx, registry, atom, swig_object_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+    r = JS_DefinePropertyValue(ctx, registry, atom, swig_object_registry, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+    if(r == -1) { return -1; }
   }
   JS_FreeAtom(ctx, atom);
 
@@ -132,12 +148,14 @@ int SWIG_QuickJS_registryAdd(JSContext *ctx, JSValueConst value)
 {
   JSValueConst registry;
   uint32_t idx;
+  int r;
 
   registry = SWIG_QuickJS_getRegistry(ctx);
   if(JS_IsException(registry)) { return -1; }
 
   idx = SWIG_QuickJS_ArrayLength(ctx, registry);
-  JS_SetPropertyUint32(ctx, registry, idx, JS_DupValue(ctx, value));
+  r = JS_SetPropertyUint32(ctx, registry, idx, JS_DupValue(ctx, value));
+  if(r == -1) { return -1; }
   JS_FreeValue(ctx, registry);
   return (int)idx;
 }
@@ -293,6 +311,7 @@ SWIGINTERN JSValueConst SWIG_QuickJS_classRegistryLookup(JSContext *ctx, const c
   JSValueConst class_registry;
   JSValueConst proto = JS_UNDEFINED;
   JSAtom atom;
+  int r;
 
   class_registry = SWIG_QuickJS_getClassRegistry(ctx);
   if(JS_IsException(class_registry)) return JS_EXCEPTION;
@@ -303,7 +322,9 @@ SWIGINTERN JSValueConst SWIG_QuickJS_classRegistryLookup(JSContext *ctx, const c
     return JS_EXCEPTION;
   }
 
-  if(JS_HasProperty(ctx, class_registry, atom)) {
+  r = JS_HasProperty(ctx, class_registry, atom);
+  if(r == -1) { return JS_EXCEPTION; }
+  if(r) {
     proto = JS_GetProperty(ctx, class_registry, atom);
   }
 
@@ -320,6 +341,7 @@ SWIGINTERN int SWIG_QuickJS_classRegistryAdd(JSContext *ctx, const char *name, J
 {
   JSValueConst class_registry;
   JSAtom atom;
+  int r;
 
   class_registry = SWIG_QuickJS_getClassRegistry(ctx);
   if(JS_IsException(class_registry)) { return -1; }
@@ -328,12 +350,15 @@ SWIGINTERN int SWIG_QuickJS_classRegistryAdd(JSContext *ctx, const char *name, J
   if (atom == JS_ATOM_NULL) {
     return -1;
   }
-  if(JS_HasProperty(ctx, class_registry, atom)) {
+  r = JS_HasProperty(ctx, class_registry, atom);
+  if(r == -1) { return -1; }
+  if(r) {
     JS_ThrowInternalError(ctx, "class %s already registered", name);
     return -1;
   }
   JS_DupValue(ctx, proto);
-  JS_DefinePropertyValue(ctx, class_registry, atom, proto, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+  r = JS_DefinePropertyValue(ctx, class_registry, atom, proto, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+  if(r == -1) { return -1; }
   JS_FreeAtom(ctx, atom);
   JS_FreeValue(ctx, class_registry);
   return 0;
@@ -399,17 +424,20 @@ SWIGINTERN JSValueConst SWIG_QuickJS_baseRegistryClassAdd(JSContext *ctx, const 
   JSValueConst base_registry;
   JSAtom atom;
   JSValue jsresult;
+  int r;
 
   base_registry = SWIG_QuickJS_getBaseRegistry(ctx);
   if(JS_IsException(base_registry)) { return base_registry; }
 
   atom = JS_NewAtom(ctx, name);
-  if (atom == JS_ATOM_NULL) {
-    return JS_EXCEPTION;
-  }
-  if(!JS_HasProperty(ctx, base_registry, atom)) {
+  if (atom == JS_ATOM_NULL) { return JS_EXCEPTION; }
+  r = JS_HasProperty(ctx, base_registry, atom);
+  if(r == -1) { return JS_EXCEPTION; }
+  if(!r) {
     jsresult = JS_NewObject(ctx);
-    JS_DefinePropertyValue(ctx, base_registry, atom, JS_DupValue(ctx, jsresult), JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+    if(JS_IsException(jsresult)) { return jsresult; }
+    r = JS_DefinePropertyValue(ctx, base_registry, atom, JS_DupValue(ctx, jsresult), JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE);
+    if(r == -1) { return JS_EXCEPTION; }
   } else {
     jsresult = JS_ThrowReferenceError(ctx, "class %s already in the base registry", name);
   }
@@ -450,6 +478,7 @@ SWIGINTERN JSValueConst SWIG_QuickJS_baseRegistryClassLookup(JSContext *ctx, con
  * SWIG_QuickJS_registerProperties: funtion to register properties
  * in 'object': functions, variables and constants.
  * Used by registerClass and registerNamespace.
+ * Returns -1 in case of exception, 0 otherwise.
  */
 SWIGINTERN int SWIG_QuickJS_registerProperties(JSContext *ctx,
                             const char* name,
@@ -485,7 +514,7 @@ SWIGINTERN int SWIG_QuickJS_registerProperties(JSContext *ctx,
       printf("Error :failed to register function %s in %s\n",
         prototype_functions[i].name, name);
 #endif
-      return r;
+      return -1;
     }
   }
   for(i=0; i<prototype_variables_num; i++) {
@@ -510,7 +539,7 @@ SWIGINTERN int SWIG_QuickJS_registerProperties(JSContext *ctx,
       printf("Error :failed to register variable %s in %s\n",
         prototype_variables[i].name, name);
 #endif
-      return r;
+      return -1;
     }
   }
 
@@ -563,17 +592,17 @@ SWIGINTERN int SWIG_QuickJS_registerProperties(JSContext *ctx,
       printf("Error :failed to register constant %s in %s\n",
         prototype_constants[i].name, name);
 #endif
-      return r;
+      return -1;
     }
   }
-  return 1;
+  return 0;
 }
 
 /* SWIG_QuickJS_basesAdd: helper function in inheritance to fill the base map
  * of a class
  * See base registry above.
  */
-SWIGINTERN void SWIG_QuickJS_basesAdd(JSContext *ctx, JSValueConst base_map, const char *base_name)
+SWIGINTERN int SWIG_QuickJS_basesAdd(JSContext *ctx, JSValueConst base_map, const char *base_name)
 {
   JSValueConst basebase;
   JSAtom atom;
@@ -583,12 +612,14 @@ SWIGINTERN void SWIG_QuickJS_basesAdd(JSContext *ctx, JSValueConst base_map, con
   JSValue prop_value;
   const char *s;
 #endif
+  int r;
   int j;
 
   basebase = SWIG_QuickJS_baseRegistryClassLookup(ctx, base_name);
   if(JS_IsObject(basebase)) {
     /* copy all the base ancestors into the current base map... */
-    JS_GetOwnPropertyNames(ctx, &prop_names, &prop_num, basebase, JS_GPN_STRING_MASK);
+    r = JS_GetOwnPropertyNames(ctx, &prop_names, &prop_num, basebase, JS_GPN_STRING_MASK);
+    if(r == -1) { return -1; }
     for(j=0; j<(int)prop_num; j++) {
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_BASES)
       s = JS_AtomToCString(ctx, prop_names[j].atom);
@@ -600,11 +631,14 @@ SWIGINTERN void SWIG_QuickJS_basesAdd(JSContext *ctx, JSValueConst base_map, con
 #endif
       /* only add a ancestor if not already recorded (from another branch
        * in multi-inheritance */
-      if(!JS_HasProperty(ctx, base_map, prop_names[j].atom)) {
+      r = JS_HasProperty(ctx, base_map, prop_names[j].atom);
+      if(r == -1) { return -1; }
+      if(!r) {
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_BASES)
         printf("+");
 #endif
-        JS_SetProperty(ctx, base_map, prop_names[j].atom, JS_NewBool(ctx, 1));
+        r = JS_SetProperty(ctx, base_map, prop_names[j].atom, JS_NewBool(ctx, 1));
+        if(r == -1) { return -1; }
       }
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_BASES)
       JS_FreeValue(ctx, prop_value);
@@ -620,12 +654,14 @@ SWIGINTERN void SWIG_QuickJS_basesAdd(JSContext *ctx, JSValueConst base_map, con
 #endif
   atom = JS_NewAtom(ctx, base_name);
   if((atom != JS_ATOM_NULL) && (!JS_HasProperty(ctx, base_map, atom))) {
-    JS_SetProperty(ctx, base_map, atom, JS_NewBool(ctx, 1));
+    r = JS_SetProperty(ctx, base_map, atom, JS_NewBool(ctx, 1));
+    if(r == -1) { return -1; }
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_BASES)
     printf("+");
 #endif
   }
   JS_FreeAtom(ctx, atom);
+  return 0;
 }
 
 
@@ -650,16 +686,18 @@ SWIGINTERN int SWIG_QuickJS_getBasePrototype1(JSContext *ctx, JSValue proto, JSV
     for(j=0; j<(int)prop_num; j++) {
       /* only add properties that are not already present (ie coming from a
        * previous base). */
-      if(!JS_HasProperty(ctx, proto, prop_names[j].atom)) {
+      r = JS_HasProperty(ctx, proto, prop_names[j].atom);
+      if(r == -1) { return -1; }
+      if(!r) {
         r = JS_GetOwnProperty(ctx, &prop, base, prop_names[j].atom);
-        if(r<0) { return -1; }
-        if(r==0) { JS_ThrowInternalError(ctx, "property missing"); return -1; }
+        if(r < 0) { return -1; }
+        if(r == 0) { JS_ThrowInternalError(ctx, "property missing"); return -1; }
         if(prop.flags & JS_PROP_GETSET) {
           r = JS_DefinePropertyGetSet(ctx, proto, prop_names[j].atom, prop.getter, prop.setter, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE|JS_PROP_THROW);
         } else {
           r = JS_DefinePropertyValue(ctx, proto, prop_names[j].atom, prop.value, JS_PROP_CONFIGURABLE|JS_PROP_ENUMERABLE|JS_PROP_THROW);
         }
-        if(r<0) { return -1; }
+        if(r < 0) { return -1; }
       }
     }
     JS_FreePropertyEnum(ctx, prop_names, prop_num);
@@ -702,7 +740,8 @@ SWIGINTERN JSValueConst SWIG_QuickJS_getBasePrototype(JSContext *ctx, const char
   /* the name of each base class will be printed by 'basesAdd' */
 #endif
   for(i=0; i<bases_num; i++) {
-    SWIG_QuickJS_basesAdd(ctx, base_map, bases[i]);
+    r = SWIG_QuickJS_basesAdd(ctx, base_map, bases[i]);
+    if(r == -1) return JS_EXCEPTION;
   }
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_BASES)
   printf("\n");
@@ -747,7 +786,7 @@ SWIGINTERN JSValueConst SWIG_QuickJS_getBasePrototype(JSContext *ctx, const char
     if (JS_IsObject(base)) {
       /* note: base value is freed by this function */
       r = SWIG_QuickJS_getBasePrototype1(ctx, proto, base);
-      if(r<0) { return JS_EXCEPTION; }
+      if(r < 0) { return JS_EXCEPTION; }
     } else {
       /* if a base is invalid or not found, it is ignored */
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TRACE)
@@ -798,7 +837,7 @@ SWIGINTERN int SWIG_QuickJS_registerClass(JSContext *ctx,
             clsDef->functions, clsDef->functions_num,
             clsDef->variables, clsDef->variables_num,
             clsDef->constants, clsDef->constants_num);
-  if(r <= 0) { return r; }
+  if(r < 0) { return r; }
   r = JS_DefinePropertyValueStr(ctx, clsDef->prototype, ".of.",
             JS_NewString(ctx, clsDef->class_name), 0);
   if(r <= 0) { return r; }
@@ -826,7 +865,8 @@ SWIGINTERN int SWIG_QuickJS_registerClass(JSContext *ctx,
   JS_SetClassProto(ctx, clsDef->class_id, clsDef->prototype);
 
   /* Register the constructor in its namespace */
-  JS_SetPropertyStr(ctx, nspace, clsName, ctor);
+  r = JS_SetPropertyStr(ctx, nspace, clsName, ctor);
+  if(r == -1) { return -1; }
 
   if(reg) {
     /* Register the class definition in the class registry */
@@ -851,6 +891,7 @@ fail:
 
 /* JS_initializeNamespace: create a namespace object, with its
  * global functions, variables and constants.
+ * returns -1 in case of exception, 0 otherwise.
  */
 SWIGINTERN int SWIG_QuickJS_initializeNamespace(JSContext *ctx,
                             const char *name, JSValue *nspace,

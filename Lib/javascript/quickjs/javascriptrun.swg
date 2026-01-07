@@ -27,10 +27,10 @@ SWIGRUNTIME void SWIG_QuickJS_exception(JSContext *ctx, int code, const char* ms
 #endif
 
   exception = JS_NewError(ctx);
-  JS_DefinePropertyValueStr(ctx, exception, "message",
+  (void)JS_DefinePropertyValueStr(ctx, exception, "message",
                            JS_NewString(ctx, msg?msg:"exception"),
                            JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
-  JS_DefinePropertyValueStr(ctx, exception, "code",
+  (void)JS_DefinePropertyValueStr(ctx, exception, "code",
                            JS_NewInt32(ctx, code),
                            JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
   JS_Throw(ctx, exception);
@@ -54,6 +54,7 @@ const char *SWIG_QuickJS_ValueStr(JSContext *ctx, JSValueConst this_val)
   uint32_t prop_num;
   JSValue prop_value;
   int j;
+  int r;
 
   static char val[SWIG_QUICKJS_VALUE_MAX_LEN] = "";
 
@@ -70,13 +71,18 @@ const char *SWIG_QuickJS_ValueStr(JSContext *ctx, JSValueConst this_val)
 
   if(has_prop) {
     /* get the own properties of the value */
-    JS_GetOwnPropertyNames(ctx, &prop_names, &prop_num, obj, JS_GPN_STRING_MASK);
-    for(j=0; j<(int)prop_num; j++) {
-      prop_value = JS_GetProperty(ctx, obj, prop_names[j].atom);
-      JS_PrintValue(ctx, SWIG_QuickJS_strcat, val, prop_value, NULL);
-      JS_FreeValue(ctx, prop_value);
+    r = JS_GetOwnPropertyNames(ctx, &prop_names, &prop_num, obj, JS_GPN_STRING_MASK);
+    if(r >= 0) {
+      for(j=0; j<(int)prop_num; j++) {
+        prop_value = JS_GetProperty(ctx, obj, prop_names[j].atom);
+        JS_PrintValue(ctx, SWIG_QuickJS_strcat, val, prop_value, NULL);
+        JS_FreeValue(ctx, prop_value);
+      }
+      JS_FreePropertyEnum(ctx, prop_names, prop_num);
+    } else {
+      /* ignore exception */
+      JS_FreeValue(ctx, JS_GetException(ctx));
     }
-    JS_FreePropertyEnum(ctx, prop_names, prop_num);
   }
   return val;
 }
@@ -92,7 +98,8 @@ SWIGRUNTIME void SWIG_QuickJS_raise(JSContext *ctx, JSValueConst obj, const char
 #endif
   exception = JS_NewError(ctx);
   snprintf(buffer, SWIG_QUICKJS_EXCEPTION_MSG_MAX_LEN, "%s (%s)", val, SWIG_QuickJS_typename(ctx,obj));
-  JS_DefinePropertyValueStr(ctx, exception, "message",
+  /* ignore exception, if any - will be overwritten by JS_Throw() below */
+  (void)JS_DefinePropertyValueStr(ctx, exception, "message",
                            JS_NewString(ctx, buffer),
                            JS_PROP_WRITABLE | JS_PROP_CONFIGURABLE);
   JS_FreeValue(ctx, obj);
@@ -728,6 +735,7 @@ unsigned int SWIG_QuickJS_ArrayLength(JSContext *ctx, JSValue arr)
 JSValue SWIG_QuickJS_AppendOutput(JSContext *ctx, JSValue result, JSValue obj)
 {
   /* if the current result is
+   * - exception: returns it
    * - undefined: create an array and put the object at position 0
    * - an array: the multiple ouput has started in this array, append the object to it
    * - any other value (primitive type, object): create an array and put the current result
@@ -736,7 +744,11 @@ JSValue SWIG_QuickJS_AppendOutput(JSContext *ctx, JSValue result, JSValue obj)
    * will not create a new array to hold the results.
    */
   JSValue r;
+  int z;
   int idx;
+  
+  if(JS_IsException(result)) return result;
+  
   if(JS_IsException(obj)) {
     r = obj;
     if(JS_IsArray(ctx, result)) {
@@ -751,11 +763,20 @@ JSValue SWIG_QuickJS_AppendOutput(JSContext *ctx, JSValue result, JSValue obj)
       idx = SWIG_QuickJS_ArrayLength(ctx, r);
     } else {
       r = JS_NewArray(ctx);
-      JS_SetPropertyUint32(ctx,r,0,result);
+      if(JS_IsException(r)) return r;
+      z = JS_SetPropertyUint32(ctx,r,0,result);
+      if(z == -1) {
+        JS_FreeValue(ctx, r);
+        return JS_EXCEPTION;
+      }
       idx = 1;
     }
 
-    JS_SetPropertyUint32(ctx,r,(uint32_t)idx,obj);
+    z = JS_SetPropertyUint32(ctx,r,(uint32_t)idx,obj);
+    if(z == -1) {
+      JS_FreeValue(ctx, r);
+      return JS_EXCEPTION;
+    }
   }
 
   return r;
