@@ -429,7 +429,7 @@ static const char *$jsmangledname_class_bases[] = {
       $jsnspace_namespace,
       "$jsname",
       &$jsmangledname_class_definition,
-      true) < 0) {
+      true) <= 0) {
     return SWIG_ERROR;
   }
 %}
@@ -464,12 +464,14 @@ static JSValue $jsmangledname_namespace = JS_UNDEFINED;
  * ----------------------------------------------------------------------------- */
 %fragment ("quickjs_nspace_definition", "templates")
 %{
-  SWIG_QuickJS_initializeNamespace(ctx,
+  if(SWIG_QuickJS_initializeNamespace(ctx,
     "$jsmangledname",
     &($jsmangledname_namespace),
     $jsmangledname_functions, countof($jsmangledname_functions),
     $jsmangledname_variables, countof($jsmangledname_variables),
-    $jsmangledname_constants, countof($jsmangledname_constants));
+    $jsmangledname_constants, countof($jsmangledname_constants)) == -1) {
+      return SWIG_ERROR;
+  }
 %}
 
 /* -----------------------------------------------------------------------------
@@ -480,5 +482,7 @@ static JSValue $jsmangledname_namespace = JS_UNDEFINED;
  * ----------------------------------------------------------------------------- */
 %fragment ("quickjs_nspace_registration", "templates")
 %{
-  JS_SetPropertyStr(ctx, $jsparent_namespace, "$jsname", $jsmangledname_namespace);
+  if(JS_SetPropertyStr(ctx, $jsparent_namespace, "$jsname", $jsmangledname_namespace) == -1) {
+    return SWIG_ERROR;
+  }
 %}
