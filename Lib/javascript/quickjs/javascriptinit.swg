@@ -10,9 +10,11 @@ SWIG_QuickJS_SetModule(JSContext *ctx, swig_module_info *swig_module)
     globalObject = JS_GetGlobalObject(ctx);
 
     object = JS_NewObjectClass(ctx, SWIG_QuickJS_module_info_class_id);
-    JS_SetOpaque(object, (void*)swig_module);
-
-    JS_SetPropertyStr(ctx, globalObject, "swig_module_info_data", object);
+    if(!JS_IsException(object)) {
+      JS_SetOpaque(object, (void*)swig_module);
+      
+      (void)JS_SetPropertyStr(ctx, globalObject, "swig_module_info_data", object);
+    }
     JS_FreeValue(ctx, globalObject);
 }
 
@@ -26,8 +28,10 @@ SWIG_QuickJS_GetModule(JSContext *ctx)
     globalObject = JS_GetGlobalObject(ctx);
 
     object = JS_GetPropertyStr(ctx, globalObject, "swig_module_info_data");
-    if (JS_IsException(object))
-        return 0;
+    if (JS_IsException(object)) {
+      JS_FreeValue(ctx, globalObject);
+      return 0;
+    }
     if (!JS_IsUndefined(object)) {
         info = (swig_module_info*)JS_GetOpaque(object, SWIG_QuickJS_module_info_class_id);
     }
@@ -138,7 +142,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
   /* Get the swig-object-registry (stores common swig items, like prototypes, in order
    * not to duplicate them for every module loaded. */
   swigObjectRegistry = SWIG_QuickJS_getSwigObjectRegistry(ctx);
-  if(JS_IsException(swigObjectRegistry)) {return SWIG_ERROR;}
+  if(JS_IsException(swigObjectRegistry)) { return SWIG_ERROR; }
 
   $jsglobalnamespace
 
@@ -148,10 +152,13 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
    * the class_id and register the class only once */
   SWIG_QuickJS_ClassDefinition *d = &SWIG_QuickJS_swig_prototype_class_class_definition;
   atom = JS_NewAtom(ctx, d->class_name);
-  if(JS_HasProperty(ctx, swigObjectRegistry, atom)) {
+  if (atom == JS_ATOM_NULL) { return SWIG_ERROR; }
+  r = JS_HasProperty(ctx, swigObjectRegistry, atom);
+  if(r == -1)  { return SWIG_ERROR; }
+  if(r) {
     v = JS_GetProperty(ctx, swigObjectRegistry, atom);
-    if(!JS_IsNumber(v)) {return SWIG_ERROR;}
-    if(JS_ToUint32(ctx, &(d->class_id), v)) {return SWIG_ERROR;}
+    if(!JS_IsNumber(v)) { return SWIG_ERROR; }
+    if(JS_ToUint32(ctx, &(d->class_id), v)) { return SWIG_ERROR; }
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_MULTIMODULE)
     printf("SWIG_module_initialize: info - %s found in swigObjectRegistry (%u).\n", d->class_name, d->class_id);
 #endif
@@ -174,10 +181,13 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
    * */
   d = &SWIG_QuickJS_swig_object_class_definition;
   atom = JS_NewAtom(ctx, d->class_name);
-  if(JS_HasProperty(ctx, swigObjectRegistry, atom)) {
+  if (atom == JS_ATOM_NULL) { return SWIG_ERROR; }
+  r = JS_HasProperty(ctx, swigObjectRegistry, atom);
+  if(r == -1)  { return SWIG_ERROR; }
+  if(r) {
     v = JS_GetProperty(ctx, swigObjectRegistry, atom);
-    if(!JS_IsNumber(v)) {return SWIG_ERROR;}
-    if(JS_ToUint32(ctx, &(d->class_id), v)) {return SWIG_ERROR;}
+    if(!JS_IsNumber(v)) { return SWIG_ERROR; }
+    if(JS_ToUint32(ctx, &(d->class_id), v)) { return SWIG_ERROR; }
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_MULTIMODULE)
     printf("SWIG_module_initialize: info - %s found in swigObjectRegistry (%u).\n", d->class_name, d->class_id);
 #endif
@@ -196,12 +206,15 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 
   snprintf(buf, 128, "%s_prototype", d->class_name);
   atom = JS_NewAtom(ctx, buf);
-  if(JS_HasProperty(ctx, swigObjectRegistry, atom)) {
+  if (atom == JS_ATOM_NULL) { return SWIG_ERROR; }
+  r = JS_HasProperty(ctx, swigObjectRegistry, atom);
+  if(r == -1)  { return SWIG_ERROR; }
+  if(r) {
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_MULTIMODULE)
     printf("SWIG_module_initialize: info - %s found in swigObjectRegistry.\n", buf);
 #endif
     v = JS_GetProperty(ctx, swigObjectRegistry, atom);
-    if(!JS_IsObject(v)) {return SWIG_ERROR;}
+    if(!JS_IsObject(v)) { return SWIG_ERROR; }
     d->prototype = v;
     JS_FreeValue(ctx, v);
   } else {
@@ -214,10 +227,13 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
    * alreaady defined and stored in the swigObjectRegistry). */
   d = &SWIG_QuickJS_packed_data_class_definition;
   atom = JS_NewAtom(ctx, d->class_name);
-  if(JS_HasProperty(ctx, swigObjectRegistry, atom)) {
+  if (atom == JS_ATOM_NULL) { return SWIG_ERROR; }
+  r = JS_HasProperty(ctx, swigObjectRegistry, atom);
+  if(r == -1)  { return SWIG_ERROR; }
+  if(r) {
     v = JS_GetProperty(ctx, swigObjectRegistry, atom);
-    if(!JS_IsNumber(v)) {return SWIG_ERROR;}
-    if(JS_ToUint32(ctx, &(d->class_id), v)) {return SWIG_ERROR;}
+    if(!JS_IsNumber(v)) { return SWIG_ERROR; }
+    if(JS_ToUint32(ctx, &(d->class_id), v)) { return SWIG_ERROR; }
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_MULTIMODULE)
     printf("SWIG_module_initialize: info - %s found in swigObjectRegistry (%u).\n", d->class_name, d->class_id);
 #endif
@@ -237,12 +253,15 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 
   snprintf(buf, 128, "%s_prototype", d->class_name);
   atom = JS_NewAtom(ctx, buf);
-  if(JS_HasProperty(ctx, swigObjectRegistry, atom)) {
+  if (atom == JS_ATOM_NULL) { return SWIG_ERROR; }
+  r = JS_HasProperty(ctx, swigObjectRegistry, atom);
+  if(r == -1)  { return SWIG_ERROR; }
+  if(r) {
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_MULTIMODULE)
     printf("SWIG_module_initialize: info - %s found in swigObjectRegistry.\n", buf);
 #endif
     v = JS_GetProperty(ctx, swigObjectRegistry, atom);
-    if(!JS_IsObject(v)) {return SWIG_ERROR;}
+    if(!JS_IsObject(v)) { return SWIG_ERROR; }
     d->prototype = v;
     JS_FreeValue(ctx, v);
   } else {
@@ -255,10 +274,13 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
    * note: this object has no properties at all, not registered as an actual class
    * (for now)  */
   atom = JS_NewAtom(ctx, "swig_module_info");
-  if(JS_HasProperty(ctx, swigObjectRegistry, atom)) {
+  if (atom == JS_ATOM_NULL) { return SWIG_ERROR; }
+  r = JS_HasProperty(ctx, swigObjectRegistry, atom);
+  if(r == -1)  { return SWIG_ERROR; }
+  if(r) {
     v = JS_GetProperty(ctx, swigObjectRegistry, atom);
-    if(!JS_IsNumber(v)) {return SWIG_ERROR;}
-    if(JS_ToUint32(ctx, &SWIG_QuickJS_module_info_class_id, v)) {return SWIG_ERROR;}
+    if(!JS_IsNumber(v)) { return SWIG_ERROR; }
+    if(JS_ToUint32(ctx, &SWIG_QuickJS_module_info_class_id, v)) { return SWIG_ERROR; }
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_MULTIMODULE)
     printf("SWIG_module_initialize: info - swig_module_info found in swigObjectRegistry (%u).\n", SWIG_QuickJS_module_info_class_id);
 #endif
