@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -31,6 +32,15 @@ int main(int argc, char* argv[]) try {
       shell = JSShell::Create(JSShell::V8);
     } else if(strcmp(argv[idx], "-jsc") == 0) {
       shell = JSShell::Create(JSShell::JSC);
+#ifdef QJSPATH      
+    } else if(strcmp(argv[idx], "-quickjs") == 0) {
+      // adjust the argument list
+      argv[idx] = strdup("quickjs");
+      // never returns
+      execv(QJSPATH, &(argv[idx]));
+      printf("Failed: 'quickjs' executable not found\n");
+      exit(1);
+#endif      
     } else if(strcmp(argv[idx], "-i") == 0) {
       interactive = true;
     } else if(strcmp(argv[idx], "-L") == 0) {

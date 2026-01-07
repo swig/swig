@@ -1,6 +1,6 @@
 var extend_placement = require("extend_placement");
 
-foo = new extend_placement.Foo();
+var foo = new extend_placement.Foo();
 foo = new extend_placement.Foo(1);
 foo = new extend_placement.Foo(1, 1);
 foo.spam();
@@ -12,7 +12,7 @@ foo.spam(new extend_placement.Foo());
 foo.spam(new extend_placement.Foo(), 1.0);
 
 
-bar = new extend_placement.Bar();
+var bar = new extend_placement.Bar();
 bar = new extend_placement.Bar(1);
 bar.spam();
 bar.spam("hello");
