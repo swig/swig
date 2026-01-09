@@ -13,7 +13,8 @@
 
 // Enum types with different underlying types
 %optional_enum_uint8(test::SmallEnum)
-%optional_enum_int64(test::BigEnum)
+%optional_enum_uint64(test::BigEnum)
+%optional_primitive(AliasEnum)
 
 %feature("director") test::TestObjectDirected;
 
@@ -28,6 +29,7 @@ struct NoNamespaceStruct
     int a;
 };
 using NoNamespaceStructOptional = std::optional<NoNamespaceStruct>;
+using AliasEnum = std::int64_t;
 
 namespace test
 {
@@ -39,11 +41,11 @@ namespace test
         Value3 = 255
     };
 
-    enum class BigEnum : std::int64_t
+    enum class BigEnum : std::uint64_t
     {
-        Small = -1000000000000LL,
+        Small = 10ULL,
         Zero = 0,
-        Large = 1000000000000LL
+        Large = 1000000000000ULL
     };
 
     // Example using simple type (eg. std::uint32_t)
@@ -65,6 +67,8 @@ namespace test
         std::uint32_t a;
         std::uint32_t b;
         SubStructOptional sub;
+        std::optional<BigEnum> bigEnumOpt;
+        std::optional<AliasEnum> aliasEnumOpt;
     };
     using StructOptional = std::optional<Struct>;
 
