@@ -171,60 +171,63 @@ static void printHeapTypesSlot(File *f, String *slotval, const char *slotname, c
 }
 
 static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
-  static const char *functypes[] = {
-    "unaryfunc", "SWIGPY_UNARYFUNC_CLOSURE",
-    "destructor", "SWIGPY_DESTRUCTOR_CLOSURE",
-    "inquiry", "SWIGPY_INQUIRY_CLOSURE",
-    "getiterfunc", "SWIGPY_GETITERFUNC_CLOSURE",
-    "binaryfunc", "SWIGPY_BINARYFUNC_CLOSURE",
-    "ternaryfunc", "SWIGPY_TERNARYFUNC_CLOSURE",
-    "ternarycallfunc", "SWIGPY_TERNARYCALLFUNC_CLOSURE",
-    "lenfunc", "SWIGPY_LENFUNC_CLOSURE",
-    "ssizeargfunc", "SWIGPY_SSIZEARGFUNC_CLOSURE",
-    "ssizessizeargfunc", "SWIGPY_SSIZESSIZEARGFUNC_CLOSURE",
-    "ssizeobjargproc", "SWIGPY_SSIZEOBJARGPROC_CLOSURE",
-    "ssizessizeobjargproc", "SWIGPY_SSIZESSIZEOBJARGPROC_CLOSURE",
-    "objobjproc", "SWIGPY_OBJOBJPROC_CLOSURE",
-    "objobjargproc", "SWIGPY_OBJOBJARGPROC_CLOSURE",
-    "reprfunc", "SWIGPY_REPRFUNC_CLOSURE",
-    "hashfunc", "SWIGPY_HASHFUNC_CLOSURE",
-    "iternextfunc", "SWIGPY_ITERNEXTFUNC_CLOSURE",
-    NULL,
+  struct FunctionClosure {
+    const char *function;
+    const char *closure;
   };
 
-  static const char *funpack_functypes[] = {
-    "unaryfunc", "SWIGPY_UNARYFUNC_CLOSURE",
-    "destructor", "SWIGPY_DESTRUCTOR_CLOSURE",
-    "inquiry", "SWIGPY_INQUIRY_CLOSURE",
-    "getiterfunc", "SWIGPY_GETITERFUNC_CLOSURE",
-    "ternaryfunc", "SWIGPY_TERNARYFUNC_CLOSURE",
-    "ternarycallfunc", "SWIGPY_TERNARYCALLFUNC_CLOSURE",
-    "lenfunc", "SWIGPY_LENFUNC_CLOSURE",
-    "ssizeargfunc", "SWIGPY_FUNPACK_SSIZEARGFUNC_CLOSURE",
-    "ssizessizeargfunc", "SWIGPY_SSIZESSIZEARGFUNC_CLOSURE",
-    "ssizeobjargproc", "SWIGPY_SSIZEOBJARGPROC_CLOSURE",
-    "ssizessizeobjargproc", "SWIGPY_SSIZESSIZEOBJARGPROC_CLOSURE",
-    "objobjproc", "SWIGPY_FUNPACK_OBJOBJPROC_CLOSURE",
-    "objobjargproc", "SWIGPY_OBJOBJARGPROC_CLOSURE",
-    "reprfunc", "SWIGPY_REPRFUNC_CLOSURE",
-    "hashfunc", "SWIGPY_HASHFUNC_CLOSURE",
-    "iternextfunc", "SWIGPY_ITERNEXTFUNC_CLOSURE",
-    NULL,
+  static const FunctionClosure functypes[] = {
+    {"unaryfunc",            "SWIGPY_UNARYFUNC_CLOSURE"           },
+    {"destructor",           "SWIGPY_DESTRUCTOR_CLOSURE"          },
+    {"inquiry",              "SWIGPY_INQUIRY_CLOSURE"             },
+    {"getiterfunc",          "SWIGPY_GETITERFUNC_CLOSURE"         },
+    {"binaryfunc",           "SWIGPY_BINARYFUNC_CLOSURE"          },
+    {"ternaryfunc",          "SWIGPY_TERNARYFUNC_CLOSURE"         },
+    {"ternarycallfunc",      "SWIGPY_TERNARYCALLFUNC_CLOSURE"     },
+    {"lenfunc",              "SWIGPY_LENFUNC_CLOSURE"             },
+    {"ssizeargfunc",         "SWIGPY_SSIZEARGFUNC_CLOSURE"        },
+    {"ssizessizeargfunc",    "SWIGPY_SSIZESSIZEARGFUNC_CLOSURE"   },
+    {"ssizeobjargproc",      "SWIGPY_SSIZEOBJARGPROC_CLOSURE"     },
+    {"ssizessizeobjargproc", "SWIGPY_SSIZESSIZEOBJARGPROC_CLOSURE"},
+    {"objobjproc",           "SWIGPY_OBJOBJPROC_CLOSURE"          },
+    {"objobjargproc",        "SWIGPY_OBJOBJARGPROC_CLOSURE"       },
+    {"reprfunc",             "SWIGPY_REPRFUNC_CLOSURE"            },
+    {"hashfunc",             "SWIGPY_HASHFUNC_CLOSURE"            },
+    {"iternextfunc",         "SWIGPY_ITERNEXTFUNC_CLOSURE"        },
+  };
+
+  static const FunctionClosure funpack_functypes[] = {
+    {"unaryfunc",            "SWIGPY_UNARYFUNC_CLOSURE"           },
+    {"destructor",           "SWIGPY_DESTRUCTOR_CLOSURE"          },
+    {"inquiry",              "SWIGPY_INQUIRY_CLOSURE"             },
+    {"getiterfunc",          "SWIGPY_GETITERFUNC_CLOSURE"         },
+    {"ternaryfunc",          "SWIGPY_TERNARYFUNC_CLOSURE"         },
+    {"ternarycallfunc",      "SWIGPY_TERNARYCALLFUNC_CLOSURE"     },
+    {"lenfunc",              "SWIGPY_LENFUNC_CLOSURE"             },
+    {"ssizeargfunc",         "SWIGPY_FUNPACK_SSIZEARGFUNC_CLOSURE"},
+    {"ssizessizeargfunc",    "SWIGPY_SSIZESSIZEARGFUNC_CLOSURE"   },
+    {"ssizeobjargproc",      "SWIGPY_SSIZEOBJARGPROC_CLOSURE"     },
+    {"ssizessizeobjargproc", "SWIGPY_SSIZESSIZEOBJARGPROC_CLOSURE"},
+    {"objobjproc",           "SWIGPY_FUNPACK_OBJOBJPROC_CLOSURE"  },
+    {"objobjargproc",        "SWIGPY_OBJOBJARGPROC_CLOSURE"       },
+    {"reprfunc",             "SWIGPY_REPRFUNC_CLOSURE"            },
+    {"hashfunc",             "SWIGPY_HASHFUNC_CLOSURE"            },
+    {"iternextfunc",         "SWIGPY_ITERNEXTFUNC_CLOSURE"        },
   };
 
   if (!functype)
     return NULL;
-  char *c = Char(functype);
-  int i;
+
+  const char *c = Char(functype);
   if (funpack) {
-    for (i = 0; funpack_functypes[i] != NULL; i += 2) {
-      if (!strcmp(c, funpack_functypes[i]))
-	return NewStringf("%s(%s)", funpack_functypes[i + 1], wrapper);
+    for (size_t i = 0; i < sizeof(funpack_functypes)/sizeof(FunctionClosure); ++i) {
+      if (strcmp(c, funpack_functypes[i].function) == 0)
+        return NewStringf("%s(%s)", funpack_functypes[i].closure, wrapper);
     }
   } else {
-    for (i = 0; functypes[i] != NULL; i += 2) {
-      if (!strcmp(c, functypes[i]))
-	return NewStringf("%s(%s)", functypes[i + 1], wrapper);
+    for (size_t i = 0; i < sizeof(functypes)/sizeof(FunctionClosure); ++i) {
+      if (strcmp(c, functypes[i].function) == 0)
+        return NewStringf("%s(%s)", functypes[i].closure, wrapper);
     }
   }
   return NULL;
@@ -423,50 +426,51 @@ public:
 	} else if (strcmp(argv[i], "-relativeimport") == 0) {
 	  relativeimport = 1;
 	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-cppcast") == 0 ||
-		   strcmp(argv[i], "-fastinit") == 0 ||
-		   strcmp(argv[i], "-fastquery") == 0 ||
-		   strcmp(argv[i], "-fastunpack") == 0 ||
-		   strcmp(argv[i], "-modern") == 0 ||
-		   strcmp(argv[i], "-modernargs") == 0 ||
-		   strcmp(argv[i], "-noproxydel") == 0 ||
-		   strcmp(argv[i], "-safecstrings") == 0) {
-	  Printf(stderr, "Deprecated command line option: %s. Ignored, this option is now always on.\n", argv[i]);
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-py3") == 0) {
-	  Printf(stderr, "Deprecated command line option: %s. Ignored, this option is no longer supported.\n", argv[i]);
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-aliasobj0") == 0 ||
-		   strcmp(argv[i], "-buildnone") == 0 ||
-		   strcmp(argv[i], "-classic") == 0 ||
-		   strcmp(argv[i], "-classptr") == 0 ||
-		   strcmp(argv[i], "-new_repr") == 0 ||
-		   strcmp(argv[i], "-new_vwm") == 0 ||
-		   strcmp(argv[i], "-newrepr") == 0 ||
-		   strcmp(argv[i], "-noaliasobj0") == 0 ||
-		   strcmp(argv[i], "-nobuildnone") == 0 ||
-		   strcmp(argv[i], "-nocastmode") == 0 ||
-		   strcmp(argv[i], "-nocppcast") == 0 ||
-		   strcmp(argv[i], "-nodirvtable") == 0 ||
-		   strcmp(argv[i], "-noextranative") == 0 ||
-		   strcmp(argv[i], "-nofastinit") == 0 ||
-		   strcmp(argv[i], "-nofastproxy") == 0 ||
-		   strcmp(argv[i], "-nofastquery") == 0 ||
-		   strcmp(argv[i], "-nomodern") == 0 ||
-		   strcmp(argv[i], "-nomodernargs") == 0 ||
-		   strcmp(argv[i], "-noolddefs") == 0 ||
-		   strcmp(argv[i], "-nooutputtuple") == 0 ||
-		   strcmp(argv[i], "-noproxyimport") == 0 ||
-		   strcmp(argv[i], "-nosafecstrings") == 0 ||
-		   strcmp(argv[i], "-old_repr") == 0 ||
-		   strcmp(argv[i], "-oldrepr") == 0 ||
-		   strcmp(argv[i], "-outputtuple") == 0 ||
-		   strcmp(argv[i], "-proxydel") == 0) {
-	  Printf(stderr, "Deprecated command line option: %s. This option is no longer available.\n", argv[i]);
-	  Swig_mark_arg(i);
-	  Exit(EXIT_FAILURE);
-	}
-
+          // clang-format off
+        } else if (strcmp(argv[i], "-cppcast") == 0 ||
+                   strcmp(argv[i], "-fastinit") == 0 ||
+                   strcmp(argv[i], "-fastquery") == 0 ||
+                   strcmp(argv[i], "-fastunpack") == 0 ||
+                   strcmp(argv[i], "-modern") == 0 ||
+                   strcmp(argv[i], "-modernargs") == 0 ||
+                   strcmp(argv[i], "-noproxydel") == 0 ||
+                   strcmp(argv[i], "-safecstrings") == 0) {
+          Printf(stderr, "Deprecated command line option: %s. Ignored, this option is now always on.\n", argv[i]);
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-py3") == 0) {
+          Printf(stderr, "Deprecated command line option: %s. Ignored, this option is no longer supported.\n", argv[i]);
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-aliasobj0") == 0 ||
+                   strcmp(argv[i], "-buildnone") == 0 ||
+                   strcmp(argv[i], "-classic") == 0 ||
+                   strcmp(argv[i], "-classptr") == 0 ||
+                   strcmp(argv[i], "-new_repr") == 0 ||
+                   strcmp(argv[i], "-new_vwm") == 0 ||
+                   strcmp(argv[i], "-newrepr") == 0 ||
+                   strcmp(argv[i], "-noaliasobj0") == 0 ||
+                   strcmp(argv[i], "-nobuildnone") == 0 ||
+                   strcmp(argv[i], "-nocastmode") == 0 ||
+                   strcmp(argv[i], "-nocppcast") == 0 ||
+                   strcmp(argv[i], "-nodirvtable") == 0 ||
+                   strcmp(argv[i], "-noextranative") == 0 ||
+                   strcmp(argv[i], "-nofastinit") == 0 ||
+                   strcmp(argv[i], "-nofastproxy") == 0 ||
+                   strcmp(argv[i], "-nofastquery") == 0 ||
+                   strcmp(argv[i], "-nomodern") == 0 ||
+                   strcmp(argv[i], "-nomodernargs") == 0 ||
+                   strcmp(argv[i], "-noolddefs") == 0 ||
+                   strcmp(argv[i], "-nooutputtuple") == 0 ||
+                   strcmp(argv[i], "-noproxyimport") == 0 ||
+                   strcmp(argv[i], "-nosafecstrings") == 0 ||
+                   strcmp(argv[i], "-old_repr") == 0 ||
+                   strcmp(argv[i], "-oldrepr") == 0 ||
+                   strcmp(argv[i], "-outputtuple") == 0 ||
+                   strcmp(argv[i], "-proxydel") == 0) {
+          Printf(stderr, "Deprecated command line option: %s. This option is no longer available.\n", argv[i]);
+          Swig_mark_arg(i);
+          Exit(EXIT_FAILURE);
+          // clang-format on
+        }
       }
     }
 
