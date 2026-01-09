@@ -415,7 +415,7 @@ namespace std {
 
 
 // ============================================================================
-// %optional_enum(TYPE, UNDERLYING, SIZE, READ_METHOD, WRITE_METHOD) - For enum types
+// %optional_enum(TYPE, UNDERLYING, SIZE, READ_METHOD, WRITE_METHOD, WRITE_TYPE) - For enum types
 // ============================================================================
 // Internal macro - use the convenience macros below instead:
 //   %optional_enum_int8(TYPE)  - for enums with std::int8_t underlying type
@@ -426,8 +426,9 @@ namespace std {
 //   %optional_enum_uint32(TYPE)   - for enums with std::uint32_t underlying type
 //   %optional_enum_int64(TYPE)   - for enums with std::int64_t underlying type
 //   %optional_enum_uint64(TYPE)  - for enums with std::uint64_t underlying type
+// WRITE_TYPE is the type expected by WRITE_METHOD (e.g., long for WriteInt64)
 
-%define %optional_enum(TYPE, UNDERLYING, SIZE, READ_METHOD, WRITE_METHOD)
+%define %optional_enum(TYPE, UNDERLYING, SIZE, READ_METHOD, WRITE_METHOD, WRITE_TYPE)
 
 %naturalvar std::optional< TYPE >;
 
@@ -441,7 +442,7 @@ namespace std {
 
 // Convert C# nullable enum to IntPtr for input - using Marshal methods
 %typemap(csin,
-         pre="    global::System.IntPtr opt_$csinput = global::System.IntPtr.Zero;\n    if ($csinput.HasValue) {\n      opt_$csinput = global::System.Runtime.InteropServices.Marshal.AllocHGlobal(SIZE);\n      global::System.Runtime.InteropServices.Marshal.WRITE_METHOD(opt_$csinput, (UNDERLYING)$csinput.Value);\n    }",
+         pre="    global::System.IntPtr opt_$csinput = global::System.IntPtr.Zero;\n    if ($csinput.HasValue) {\n      opt_$csinput = global::System.Runtime.InteropServices.Marshal.AllocHGlobal(SIZE);\n      global::System.Runtime.InteropServices.Marshal.WRITE_METHOD(opt_$csinput, (WRITE_TYPE)(UNDERLYING)$csinput.Value);\n    }",
          post="\n    if (opt_$csinput != global::System.IntPtr.Zero) {\n      global::System.Runtime.InteropServices.Marshal.FreeHGlobal(opt_$csinput);\n    }"
          ) std::optional< TYPE >, std::optional< TYPE > const& "opt_$csinput"
 
@@ -495,7 +496,7 @@ namespace std {
       global::System.IntPtr opt_value = global::System.IntPtr.Zero;
       if (value.HasValue) {
         opt_value = global::System.Runtime.InteropServices.Marshal.AllocHGlobal(SIZE);
-        global::System.Runtime.InteropServices.Marshal.WRITE_METHOD(opt_value, (UNDERLYING)value.Value);
+        global::System.Runtime.InteropServices.Marshal.WRITE_METHOD(opt_value, (WRITE_TYPE)(UNDERLYING)value.Value);
       }
       try {
         $imcall;$excode
@@ -599,35 +600,35 @@ namespace std {
 
 // Convenience macros for different enum underlying types
 %define %optional_enum_int8(TYPE)
-%optional_enum(TYPE, sbyte, 1, ReadByte, WriteByte)
+%optional_enum(TYPE, sbyte, 1, ReadByte, WriteByte, sbyte)
 %enddef
 
 %define %optional_enum_uint8(TYPE)
-%optional_enum(TYPE, byte, 1, ReadByte, WriteByte)
+%optional_enum(TYPE, byte, 1, ReadByte, WriteByte, byte)
 %enddef
 
 %define %optional_enum_int16(TYPE)
-%optional_enum(TYPE, short, 2, ReadInt16, WriteInt16)
+%optional_enum(TYPE, short, 2, ReadInt16, WriteInt16, short)
 %enddef
 
 %define %optional_enum_uint16(TYPE)
-%optional_enum(TYPE, ushort, 2, ReadInt16, WriteInt16)
+%optional_enum(TYPE, ushort, 2, ReadInt16, WriteInt16, short)
 %enddef
 
 %define %optional_enum_int32(TYPE)
-%optional_enum(TYPE, int, 4, ReadInt32, WriteInt32)
+%optional_enum(TYPE, int, 4, ReadInt32, WriteInt32, int)
 %enddef
 
 %define %optional_enum_uint32(TYPE)
-%optional_enum(TYPE, uint, 4, ReadInt32, WriteInt32)
+%optional_enum(TYPE, uint, 4, ReadInt32, WriteInt32, int)
 %enddef
 
 %define %optional_enum_int64(TYPE)
-%optional_enum(TYPE, long, 8, ReadInt64, WriteInt64)
+%optional_enum(TYPE, long, 8, ReadInt64, WriteInt64, long)
 %enddef
 
 %define %optional_enum_uint64(TYPE)
-%optional_enum(TYPE, ulong, 8, ReadInt64, WriteInt64)
+%optional_enum(TYPE, ulong, 8, ReadInt64, WriteInt64, long)
 %enddef
 
 
