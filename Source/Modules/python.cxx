@@ -731,21 +731,26 @@ public:
 	 */
         Printv(default_import_code, "# Import the low-level C/C++ module\n", NULL);
         Printv(default_import_code, "if getattr(globals().get(\"__spec__\"), \"parent\", None) or __package__ or \".\" in __name__:\n", NULL);
-        Printv(default_import_code, tab4, "from . import ", module, "\n", NULL);
+        Printv(default_import_code, "    from . import ", module, "\n", NULL);
         Printv(default_import_code, "else:\n", NULL);
-        Printv(default_import_code, tab4, "import ", module, "\n", NULL);
+        Printv(default_import_code, "    import ", module, "\n", NULL);
       } else {
         Printv(default_import_code, "# Pull in all the attributes from the low-level C/C++ module\n", NULL);
         Printv(default_import_code, "if getattr(globals().get(\"__spec__\"), \"parent\", None) or __package__ or \".\" in __name__:\n", NULL);
-        Printv(default_import_code, tab4, "from .", module, " import *\n", NULL);
+        Printv(default_import_code, "    from .", module, " import *\n", NULL);
         Printv(default_import_code, "else:\n", NULL);
-        Printv(default_import_code, tab4, "from ", module, " import *\n", NULL);
+        Printv(default_import_code, "    from ", module, " import *\n", NULL);
       }
 
       if (!builtin) {
 	/* Need builtins to qualify names like Exception that might also be
 	   defined in this module (try both Python 3 and Python 2 names) */
-	Printv(f_shadow, "try:\n", tab4, "import builtins as __builtin__\n", "except ImportError:\n", tab4, "import __builtin__\n", NULL);
+        Printv(f_shadow,
+               "try:\n",
+               "    import builtins as __builtin__\n",
+               "except ImportError:\n",
+               "    import __builtin__\n",
+               NULL);
       }
 
       if (!builtin && fastproxy) {
@@ -755,48 +760,50 @@ public:
       }
 
       if (!builtin) {
-	Printv(f_shadow, "\n",
-	       "def _swig_repr(self):\n",
-	       tab4, "try:\n",
-	       tab4, tab4, "strthis = \"proxy of \" + self.this.__repr__()\n",
-	       tab4, "except __builtin__.Exception:\n",
-	       tab4, tab4, "strthis = \"\"\n",
-	       tab4, "return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
+        Printv(f_shadow,
+               "\n",
+               "def _swig_repr(self):\n",
+               "    try:\n",
+               "        strthis = \"proxy of \" + self.this.__repr__()\n",
+               "    except __builtin__.Exception:\n",
+               "        strthis = \"\"\n",
+               "    return \"<%s.%s; %s >\" % (self.__class__.__module__, self.__class__.__name__, strthis,)\n\n", NIL);
 
-	Printv(f_shadow, "\n",
-	       "def _swig_setattr_nondynamic_instance_variable(set):\n",
-	       tab4, "def set_instance_attr(self, name, value):\n",
-	       tab4, tab4, "if name == \"this\":\n",
-	       tab4, tab4, tab4, "set(self, name, value)\n",
-	       tab4, tab4, "elif name == \"thisown\":\n",
-	       tab4, tab4, tab4, "self.this.own(value)\n",
-	       tab4, tab4, "elif hasattr(self, name) and isinstance(getattr(type(self), name), property):\n",
-	       tab4, tab4, tab4, "set(self, name, value)\n",
-	       tab4, tab4, "else:\n",
-	       tab4, tab4, tab4, "raise AttributeError(\"You cannot add instance attributes to %s\" % self)\n",
-	       tab4, "return set_instance_attr\n\n", NIL);
+        Printv(f_shadow,
+               "\n",
+               "def _swig_setattr_nondynamic_instance_variable(set):\n",
+               "    def set_instance_attr(self, name, value):\n",
+               "        if name == \"this\":\n",
+               "            set(self, name, value)\n",
+               "        elif name == \"thisown\":\n",
+               "            self.this.own(value)\n",
+               "        elif hasattr(self, name) and isinstance(getattr(type(self), name), property):\n",
+               "            set(self, name, value)\n",
+               "        else:\n",
+               "            raise AttributeError(\"You cannot add instance attributes to %s\" % self)\n",
+               "    return set_instance_attr\n\n", NIL);
 
-	Printv(f_shadow, "\n",
-	       "def _swig_setattr_nondynamic_class_variable(set):\n",
-	       tab4, "def set_class_attr(cls, name, value):\n",
-	       tab4, tab4, "if hasattr(cls, name) and not isinstance(getattr(cls, name), property):\n",
-	       tab4, tab4, tab4, "set(cls, name, value)\n",
-	       tab4, tab4, "else:\n",
-	       tab4, tab4, tab4, "raise AttributeError(\"You cannot add class attributes to %s\" % cls)\n",
-	       tab4, "return set_class_attr\n\n", NIL);
+        Printv(f_shadow, "\n",
+               "def _swig_setattr_nondynamic_class_variable(set):\n",
+               "    def set_class_attr(cls, name, value):\n",
+               "        if hasattr(cls, name) and not isinstance(getattr(cls, name), property):\n",
+               "            set(cls, name, value)\n",
+               "        else:\n",
+               "            raise AttributeError(\"You cannot add class attributes to %s\" % cls)\n",
+               "    return set_class_attr\n\n", NIL);
 
-	Printv(f_shadow, "\n",
-	       "def _swig_add_metaclass(metaclass):\n",
-	       tab4, "\"\"\"Class decorator for adding a metaclass to a SWIG wrapped class - a slimmed down version of six.add_metaclass\"\"\"\n",
-	       tab4, "def wrapper(cls):\n",
-	       tab4, tab4, "return metaclass(cls.__name__, cls.__bases__, cls.__dict__.copy())\n",
-	       tab4, "return wrapper\n\n", NIL);
+        Printv(f_shadow, "\n",
+               "def _swig_add_metaclass(metaclass):\n",
+               "    \"\"\"Class decorator for adding a metaclass to a SWIG wrapped class - a slimmed down version of six.add_metaclass\"\"\"\n",
+               "    def wrapper(cls):\n",
+               "        return metaclass(cls.__name__, cls.__bases__, cls.__dict__.copy())\n",
+               "    return wrapper\n\n", NIL);
 
-	Printv(f_shadow, "\n",
-	       "class _SwigNonDynamicMeta(type):\n",
-	       tab4, "\"\"\"Meta class to enforce nondynamic attributes (no new attributes) for a class\"\"\"\n",
-	       tab4, "__setattr__ = _swig_setattr_nondynamic_class_variable(type.__setattr__)\n",
-	       "\n", NIL);
+        Printv(f_shadow, "\n",
+               "class _SwigNonDynamicMeta(type):\n",
+               "    \"\"\"Meta class to enforce nondynamic attributes (no new attributes) for a class\"\"\"\n",
+               "    __setattr__ = _swig_setattr_nondynamic_class_variable(type.__setattr__)\n",
+               "\n", NIL);
 
 	Printv(f_shadow, "\n", NIL);
 
@@ -5151,7 +5158,6 @@ public:
 		Insert(callParms, 0, "_self, ");
 		Printv(pass_self, tab8, NIL);
 		Printf(pass_self, "if self.__class__ == %s:\n", classname);
-		//Printv(pass_self, tab8, tab4, "args = (None,) + args\n", tab8, "else:\n", tab8, tab4, "args = (self,) + args\n", NIL);
 		Printv(pass_self, tab8, tab4, "_self = None\n", tab8, "else:\n", tab8, tab4, "_self = self\n", NIL);
 	      }
 

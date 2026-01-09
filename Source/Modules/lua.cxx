@@ -82,7 +82,8 @@ extern "C" {
  most of the default options are handled by SWIG
  you can add new ones here
  (though for now I have not bothered)
-NEW LANGUAGE NOTE:END ************************************************/static const char *usage = "\
+NEW LANGUAGE NOTE:END ************************************************/
+static const char *usage = "\
 Lua Options (available with -lua)\n\
      -elua           - Generates LTR compatible wrappers for smaller devices running elua\n\
      -eluac          - LTR compatible wrappers in \"crass compress\" mode for elua\n\
@@ -1445,11 +1446,12 @@ public:
       assert(constructor_name);
       String *constructor_proxy_name = NewStringf("_proxy_%s", constructor_name);
       Printv(f_wrappers, "static int ", constructor_proxy_name, "(lua_State *L) {\n", NIL);
-      Printv(f_wrappers,
-	     tab4, "assert(lua_istable(L,1));\n",
-	     tab4, "lua_pushcfunction(L,", constructor_name, ");\n",
-	     tab4, "assert(!lua_isnil(L,-1));\n",
-	     tab4, "lua_replace(L,1); /* replace our table with real constructor */\n", tab4, "lua_call(L,lua_gettop(L)-1,1);\n", tab4, "return 1;\n}\n", NIL);
+      Printv(f_wrappers, "    assert(lua_istable(L,1));\n", NIL);
+      Printv(f_wrappers, "    lua_pushcfunction(L,", constructor_name, ");\n", NIL);
+      Printv(f_wrappers, "    assert(!lua_isnil(L,-1));\n", NIL);
+      Printv(f_wrappers, "    lua_replace(L,1); /* replace our table with real constructor */\n", NIL);
+      Printv(f_wrappers, "    lua_call(L,lua_gettop(L)-1,1);\n", NIL);
+      Printv(f_wrappers, "    return 1;\n}\n", NIL);
       Delete(constructor_name);
       constructor_name = constructor_proxy_name;
       if (elua_ltr) {
@@ -2034,7 +2036,7 @@ public:
     String *const_tab = Getattr(carrays_hash, "constants");
     String *const_tab_name = Getattr(carrays_hash, "constants:name");
     if (elua_ltr || eluac_ltr)
-      Printv(const_tab, tab4, "{LNILKEY, LNILVAL}\n", "};\n", NIL);
+      Printv(const_tab, "    {LNILKEY, LNILVAL}\n", "};\n", NIL);
     else
       Printf(const_tab, "    {0,0,0,0,0,0}\n};\n");
 

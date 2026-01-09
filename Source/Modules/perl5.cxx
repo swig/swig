@@ -444,9 +444,13 @@ public:
 
     Printv(magic,
            "#ifdef __cplusplus\nextern \"C\" {\n#endif\n\n",
-	   "#define MAGIC_CLASS\n",
-	   "SWIGCLASS_STATIC int swig_magic_readonly(pTHX_ SV *SWIGUNUSEDPARM(sv), MAGIC *SWIGUNUSEDPARM(mg)) {\n",
-	   tab4, "MAGIC_PPERL\n", tab4, "croak(\"Value is read-only.\");\n", tab4, "return 0;\n", "}\n", NIL);
+           "#define MAGIC_CLASS\n",
+           "SWIGCLASS_STATIC int swig_magic_readonly(pTHX_ SV *SWIGUNUSEDPARM(sv), MAGIC *SWIGUNUSEDPARM(mg)) {\n",
+           "  MAGIC_PPERL\n",
+           "  croak(\"Value is read-only.\");\n",
+           "  return 0;\n",
+           "}\n",
+           NIL);
 
     Printf(f_wrappers, "#ifdef __cplusplus\nextern \"C\" {\n#endif\n");
 
@@ -542,7 +546,12 @@ public:
 
 	/* Write out the TIE method */
 
-	Printv(base, "sub TIEHASH {\n", tab4, "my ($classname,$obj) = @_;\n", tab4, "return bless $obj, $classname;\n", "}\n\n", NIL);
+        Printv(base,
+               "sub TIEHASH {\n",
+               "    my ($classname,$obj) = @_;\n",
+               "    return bless $obj, $classname;\n",
+               "}\n\n",
+               NIL);
 
 	/* Output a CLEAR method.   This is just a place-holder, but by providing it we
 	 * can make declarations such as
@@ -560,18 +569,30 @@ public:
 	/* Output a FETCH method.  This is actually common to all classes */
 	Printv(base,
 	       "sub FETCH {\n",
-	       tab4, "my ($self,$field) = @_;\n", tab4, "my $member_func = \"swig_${field}_get\";\n", tab4, "$self->$member_func();\n", "}\n\n", NIL);
+               "    my ($self,$field) = @_;\n",
+               "    my $member_func = \"swig_${field}_get\";\n",
+               "    $self->$member_func();\n",
+               "}\n\n",
+               NIL);
 
 	/* Output a STORE method.   This is also common to all classes (might move to base class) */
 
 	Printv(base,
 	       "sub STORE {\n",
-	       tab4, "my ($self,$field,$newval) = @_;\n",
-	       tab4, "my $member_func = \"swig_${field}_set\";\n", tab4, "$self->$member_func($newval);\n", "}\n\n", NIL);
+               "    my ($self,$field,$newval) = @_;\n",
+               "    my $member_func = \"swig_${field}_set\";\n",
+               "    $self->$member_func($newval);\n",
+               "}\n\n",
+               NIL);
 
 	/* Output a 'this' method */
 
-	Printv(base, "sub this {\n", tab4, "my $ptr = shift;\n", tab4, "return tied(%$ptr);\n", "}\n\n", NIL);
+        Printv(base,
+               "sub this {\n",
+               "    my $ptr = shift;\n",
+               "    return tied(%$ptr);\n",
+               "}\n\n",
+               NIL);
 
 	Printf(f_pm, "%s", base);
       }
@@ -976,7 +997,7 @@ public:
     if (assignable) {
       Setattr(n, "wrap:name", set_name);
       Printf(setf->def, "SWIGCLASS_STATIC int %s(pTHX_ SV* sv, MAGIC * SWIGUNUSEDPARM(mg)) {\n", set_name);
-      Printv(setf->code, tab4, "MAGIC_PPERL\n", NIL);
+      Printv(setf->code, "  MAGIC_PPERL\n", NIL);
 
       /* Check for a few typemaps */
       tm = Swig_typemap_lookup("varin", n, name, 0);
@@ -1000,7 +1021,7 @@ public:
     Setattr(n, "wrap:name", get_name);
     int addfail = 0;
     Printf(getf->def, "SWIGCLASS_STATIC int %s(pTHX_ SV *sv, MAGIC *SWIGUNUSEDPARM(mg)) {\n", get_name);
-    Printv(getf->code, tab4, "MAGIC_PPERL\n", NIL);
+    Printv(getf->code, "  MAGIC_PPERL\n", NIL);
 
     if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
       Replaceall(tm, "$result", "sv");
@@ -1459,12 +1480,18 @@ public:
 	director_disown = NewString("");
       }
       Printv(pm,
-	     "sub DISOWN {\n",
-	     tab4, "my $self = shift;\n",
-	     director_disown,
-	     tab4, "my $ptr = tied(%$self);\n",
-	     tab4, "delete $OWNER{$ptr};\n",
-	     "}\n\n", "sub ACQUIRE {\n", tab4, "my $self = shift;\n", tab4, "my $ptr = tied(%$self);\n", tab4, "$OWNER{$ptr} = 1;\n", "}\n\n", NIL);
+             "sub DISOWN {\n",
+             "    my $self = shift;\n",
+             director_disown,
+             "    my $ptr = tied(%$self);\n",
+             "    delete $OWNER{$ptr};\n",
+             "}\n\n",
+             "sub ACQUIRE {\n",
+             "    my $self = shift;\n",
+             "    my $ptr = tied(%$self);\n",
+             "    $OWNER{$ptr} = 1;\n",
+             "}\n\n",
+             NIL);
       Delete(director_disown);
 
       /* Only output the following methods if a class has member data */
@@ -1505,11 +1532,30 @@ public:
 	member_func = 0;
 	Delete(get_attr);
 
-	Printv(pm, "sub FETCH {\n", tab4, "my ($self,$field) = @_;\n", tab4, "my $member_func = \"swig_${field}_get\";\n", tab4,
-	       "if (not $self->can($member_func)) {\n", tab8, "my $h = ", cmodule, "::", mrename, "($self);\n", tab8, "return $h->{$field} if $h;\n",
-	       tab4, "}\n", tab4, "return $self->$member_func;\n", "}\n", "\n", "sub STORE {\n", tab4, "my ($self,$field,$newval) = @_;\n", tab4,
-	       "my $member_func = \"swig_${field}_set\";\n", tab4, "if (not $self->can($member_func)) {\n", tab8, "my $h = ", cmodule, "::", mrename,
-	       "($self);\n", tab8, "return $h->{$field} = $newval if $h;\n", tab4, "}\n", tab4, "return $self->$member_func($newval);\n", "}\n", NIL);
+        Printv(pm,
+               "sub FETCH {\n",
+               "    my ($self,$field) = @_;\n",
+               "    my $member_func = \"swig_${field}_get\";\n",
+               "    if (not $self->can($member_func)) {\n", NIL);
+        Printv(pm, "        my $h = ", cmodule, "::", mrename, "($self);\n", NIL);
+        Printv(pm, 
+               "        return $h->{$field} if $h;\n",
+               "    }\n",
+               "    return $self->$member_func;\n",
+               "}\n",
+               "\n",
+               "sub STORE {\n",
+               "    my ($self,$field,$newval) = @_;\n",
+               "    my $member_func = \"swig_${field}_set\";\n",
+               "    if (not $self->can($member_func)) {\n",
+               NIL);
+        Printv(pm, "        my $h = ", cmodule, "::", mrename, "($self);\n", NIL);
+        Printv(pm,
+               "        return $h->{$field} = $newval if $h;\n",
+               "    }\n",
+               "    return $self->$member_func($newval);\n",
+               "}\n",
+               NIL);
 
 	Delete(mrename);
       }
@@ -1710,8 +1756,8 @@ public:
 
 	const char *pkg = getCurrentClass() && Swig_directorclass(getCurrentClass())? "$_[0]" : "shift";
 	Printv(pcode,
-	       tab4, "my $pkg = ", pkg, ";\n",
-	       tab4, "my $self = ", cmodule, "::", Swig_name_construct(NSPACE_TODO, symname), "(@_);\n", tab4, "bless $self, $pkg if defined($self);\n", "}\n\n", NIL);
+	       "    my $pkg = ", pkg, ";\n",
+	       "    my $self = ", cmodule, "::", Swig_name_construct(NSPACE_TODO, symname), "(@_);\n", "    bless $self, $pkg if defined($self);\n", "}\n\n", NIL);
 
 	have_constructor = 1;
       }
@@ -1736,14 +1782,20 @@ public:
 	Delete(plaction);
 	Printv(pcode, plcode, NIL);
       } else {
-	Printv(pcode,
-	       "sub DESTROY {\n",
-	       tab4, "return unless $_[0]->isa('HASH');\n",
-	       tab4, "my $self = tied(%{$_[0]});\n",
-	       tab4, "return unless defined $self;\n",
-	       tab4, "delete $ITERATORS{$self};\n",
-	       tab4, "if (exists $OWNER{$self}) {\n",
-	       tab8, cmodule, "::", Swig_name_destroy(NSPACE_TODO, symname), "($self);\n", tab8, "delete $OWNER{$self};\n", tab4, "}\n}\n\n", NIL);
+        Printv(pcode,
+               "sub DESTROY {\n",
+               "    return unless $_[0]->isa('HASH');\n",
+               "    my $self = tied(%{$_[0]});\n",
+               "    return unless defined $self;\n",
+               "    delete $ITERATORS{$self};\n",
+               "    if (exists $OWNER{$self}) {\n",
+               NIL);
+        Printv(pcode, tab8, cmodule, "::", Swig_name_destroy(NSPACE_TODO, symname), NIL);
+        Printv(pcode,
+               "($self);\n",
+               "        delete $OWNER{$self};\n",
+               "    }\n}\n\n",
+               NIL);
 	have_destructor = 1;
       }
     }
@@ -2479,10 +2531,22 @@ public:
     SwigType_add_pointer(ptype);
     String *mangle = SwigType_manglestr(ptype);
 
-    Printv(body, tab4, "dSP;\n", tab4, "SV *self = SWIG_NewPointerObj(SWIG_as_voidptr(this), SWIGTYPE", mangle, ", SWIG_SHADOW);\n", tab4, "\n", tab4,
-	   "sv_bless(self, gv_stashpv(swig_get_class(), 0));\n", tab4, "ENTER;\n", tab4, "SAVETMPS;\n", tab4, "PUSHMARK(SP);\n", tab4,
-	   "XPUSHs(self);\n", tab4, "XPUSHs(&PL_sv_yes);\n", tab4, "PUTBACK;\n", tab4, "call_method(\"DESTROY\", G_EVAL | G_VOID);\n", tab4,
-	   "FREETMPS;\n", tab4, "LEAVE;\n", NIL);
+    Printv(body,
+           "  dSP;\n",
+           "  SV *self = SWIG_NewPointerObj(SWIG_as_voidptr(this), SWIGTYPE", mangle, ", SWIG_SHADOW);\n",
+           NIL);
+    Printv(body, "    \n",
+           "  sv_bless(self, gv_stashpv(swig_get_class(), 0));\n",
+           "  ENTER;\n",
+           "  SAVETMPS;\n",
+           "  PUSHMARK(SP);\n",
+           "  XPUSHs(self);\n",
+           "  XPUSHs(&PL_sv_yes);\n",
+           "  PUTBACK;\n",
+           "  call_method(\"DESTROY\", G_EVAL | G_VOID);\n",
+           "  FREETMPS;\n",
+           "  LEAVE;\n",
+           NIL);
 
     Delete(mangle);
     Delete(ptype);
