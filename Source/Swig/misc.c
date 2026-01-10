@@ -22,7 +22,10 @@
 #ifdef _WIN32
 #include <direct.h>
 #ifndef S_ISDIR
+/* Formatting changed/corrected in clang-format-17 */
+/* clang-format off */
 #define S_ISDIR(mode) (((mode) & S_IFDIR) == S_IFDIR)
+/* clang-format on */
 #endif
 #endif
 
