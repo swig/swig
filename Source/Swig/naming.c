@@ -555,12 +555,6 @@ DOH *Swig_name_object_get(Hash *namehash, String *prefix, String *name, SwigType
   if (!namehash)
     return 0;
 
-  /* DB: This removed to more tightly control feature/name matching */
-  /*  if ((decl) && (SwigType_isqualifier(decl))) {
-     ncdecl = strchr(Char(decl),'.');
-     ncdecl++;
-     }
-   */
 #ifdef SWIG_DEBUG
   Printf(stdout, "Swig_name_object_get:  '%s' '%s', '%s'\n", prefix, name, decl);
 #endif
