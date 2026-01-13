@@ -221,6 +221,7 @@ SWIGRUNTIME JSValue _wrap_SwigObject_toString(JSContext *ctx, JSValueConst this_
   /* detect if this is the prototype */
   if(JS_GetClassID(this_val) == SWIG_QuickJS_swig_prototype_class_class_definition.class_id) {
     v = JS_GetPropertyStr(ctx, this_val, ".of.");
+    if(JS_IsException(v)) { return v; }
     s = JS_ToCString(ctx, v);
     snprintf(buffer, 128, "prototype of %s", s);
     JS_FreeCString(ctx, s);
@@ -364,7 +365,7 @@ SWIGRUNTIME int SWIG_QuickJS_ConvertPtr(JSContext *ctx, JSValueConst val, void**
         JSAtom atom = JS_NewAtom(ctx, pClsDef->class_name);
         if(atom != JS_ATOM_NULL) {
           found = JS_HasProperty(ctx, base_map, atom);
-          if(found == -1} { return SWIG_ERROR; } /* exception */
+          if(found == -1) { return SWIG_ERROR; } /* exception */
           JS_FreeAtom(ctx, atom);
         }
       }
@@ -722,6 +723,11 @@ unsigned int SWIG_QuickJS_ArrayLength(JSContext *ctx, JSValue arr)
   assert(JS_IsArray(ctx, arr));
 
   idx_val = JS_GetPropertyStr(ctx, arr, "length");
+  if(JS_IsException(idx_val)) {
+    /* clear the exception and returns 0 */
+    JS_FreeValue(ctx, JS_GetException(ctx));
+    return 0;
+  }
   if(JS_ToInt32(ctx, &idx, idx_val)) return 0;
   assert(idx>=0);
   JS_FreeValue(ctx, idx_val);
