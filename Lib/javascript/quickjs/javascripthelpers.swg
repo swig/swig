@@ -457,15 +457,17 @@ SWIGINTERN JSValueConst SWIG_QuickJS_baseRegistryClassLookup(JSContext *ctx, con
   JSValueConst base_registry;
   JSAtom atom;
   JSValueConst jsresult = JS_UNDEFINED;
+  int r;
 
   base_registry = SWIG_QuickJS_getBaseRegistry(ctx);
   if(JS_IsException(base_registry)) { return base_registry; }
 
   atom = JS_NewAtom(ctx, name);
-  if (atom == JS_ATOM_NULL) {
-    return JS_EXCEPTION;
+  if (atom == JS_ATOM_NULL) { return JS_EXCEPTION; }
   }
-  if(JS_HasProperty(ctx, base_registry, atom)) {
+  r = JS_HasProperty(ctx, base_registry, atom) 
+  if(r == -1) { return JS_EXCEPTION; }
+  if(r) {
     jsresult = JS_GetProperty(ctx, base_registry, atom);
   }
   JS_FreeAtom(ctx, atom);
@@ -824,8 +826,7 @@ SWIGINTERN int SWIG_QuickJS_registerClass(JSContext *ctx,
     def.finalizer = SwigObject_delete;
   }
 
-  /* Create the classID and the class object */
-  clsDef->class_id = 0;
+  /* Initialize the classID and the class object */
   if(JS_NewClassID(&(clsDef->class_id)) == JS_INVALID_CLASS_ID) { return -1; }
   if(JS_NewClass(JS_GetRuntime(ctx), clsDef->class_id, &def)) { return -1; }
 
