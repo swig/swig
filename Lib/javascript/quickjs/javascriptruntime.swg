@@ -22,9 +22,9 @@
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG>0)
 /* additional check with 'magic' field in structures: */
 #define SWIGRUN_DEBUG_TYPECHECK 0x01
-/* trace events like throw exceptiopn: */
+/* trace events like throw exception: */
 #define SWIGRUN_DEBUG_TRACE     0x02
-/* trace all Ptr objects actions: NewPtr, ConvertPtr and delete: */
+/* trace all Ptr object actions: NewPtr, ConvertPtr and Delete: */
 #define SWIGRUN_DEBUG_PTRTRACE  0x04
 #define SWIGRUN_DEBUG_BASES     0x80
 /* behind 0xff; debug flags barely needed */

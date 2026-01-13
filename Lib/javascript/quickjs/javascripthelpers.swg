@@ -464,8 +464,8 @@ SWIGINTERN JSValueConst SWIG_QuickJS_baseRegistryClassLookup(JSContext *ctx, con
 
   atom = JS_NewAtom(ctx, name);
   if (atom == JS_ATOM_NULL) { return JS_EXCEPTION; }
-  }
-  r = JS_HasProperty(ctx, base_registry, atom) 
+
+  r = JS_HasProperty(ctx, base_registry, atom);
   if(r == -1) { return JS_EXCEPTION; }
   if(r) {
     jsresult = JS_GetProperty(ctx, base_registry, atom);
