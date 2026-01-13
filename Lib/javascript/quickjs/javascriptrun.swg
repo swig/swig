@@ -364,6 +364,7 @@ SWIGRUNTIME int SWIG_QuickJS_ConvertPtr(JSContext *ctx, JSValueConst val, void**
         JSAtom atom = JS_NewAtom(ctx, pClsDef->class_name);
         if(atom != JS_ATOM_NULL) {
           found = JS_HasProperty(ctx, base_map, atom);
+          if(found == -1} { return SWIG_ERROR; } /* exception */
           JS_FreeAtom(ctx, atom);
         }
       }
