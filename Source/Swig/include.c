@@ -181,7 +181,7 @@ static FILE *Swig_open_file(const_String_or_char_ptr name, int sysfile, int use_
       Printf(filename, "%s%s", Getitem(spath, i), cname);
       f = fopen(Char(filename), "r");
       if (f)
-	break;
+        break;
     }
     Delete(spath);
   }

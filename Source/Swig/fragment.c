@@ -46,7 +46,7 @@ void Swig_fragment_register(Node *fragment) {
       Delete(mangle);
       Delete(rtype);
       if (debug)
-	Printf(stdout, "register fragment %s %s\n", name, type);
+        Printf(stdout, "register fragment %s %s\n", name, type);
     }
     if (!fragments) {
       fragments = NewHash();
@@ -57,7 +57,7 @@ void Swig_fragment_register(Node *fragment) {
       Hash *kwargs = Getattr(fragment, "kwargs");
       Setmeta(ccode, "section", section);
       if (kwargs) {
-	Setmeta(ccode, "kwargs", kwargs);
+        Setmeta(ccode, "kwargs", kwargs);
       }
       Setfile(ccode, Getfile(fragment));
       Setline(ccode, Getline(fragment));
@@ -65,7 +65,7 @@ void Swig_fragment_register(Node *fragment) {
       Swig_cparse_replace_descriptor(ccode);
       Setattr(fragments, name, ccode);
       if (debug)
-	Printf(stdout, "registering fragment %s %s\n", name, section);
+        Printf(stdout, "registering fragment %s %s\n", name, section);
       Delete(section);
       Delete(ccode);
     }
@@ -130,45 +130,45 @@ void Swig_fragment_emit(Node *n) {
       String *section = Getmeta(code, "section");
       Hash *nn = Getmeta(code, "kwargs");
       if (!looking_fragments)
-	looking_fragments = NewHash();
+        looking_fragments = NewHash();
       Setattr(looking_fragments, name, "1");
       while (nn) {
-	if (Equal(Getattr(nn, "name"), "fragment")) {
-	  if (debug)
-	    Printf(stdout, "emitting fragment %s %s\n", nn, type);
-	  Setfile(nn, Getfile(n));
-	  Setline(nn, Getline(n));
-	  Swig_fragment_emit(nn);
-	}
-	nn = nextSibling(nn);
+        if (Equal(Getattr(nn, "name"), "fragment")) {
+          if (debug)
+            Printf(stdout, "emitting fragment %s %s\n", nn, type);
+          Setfile(nn, Getfile(n));
+          Setline(nn, Getline(n));
+          Swig_fragment_emit(nn);
+        }
+        nn = nextSibling(nn);
       }
       if (section) {
-	File *f = Swig_filebyname(section);
-	if (!f) {
-	  Swig_error(Getfile(code), Getline(code), "Bad section '%s' in %%fragment declaration for code fragment '%s'\n", section, name);
-	} else {
-	  if (debug)
-	    Printf(stdout, "emitting subfragment %s %s\n", name, section);
-	  if (debug)
-	    Printf(f, "/* begin fragment %s */\n", name);
-	  Printf(f, "%s\n", code);
-	  if (debug)
-	    Printf(f, "/* end fragment %s */\n\n", name);
-	  Setattr(fragments, name, "ignore");
-	  Delattr(looking_fragments, name);
-	}
+        File *f = Swig_filebyname(section);
+        if (!f) {
+          Swig_error(Getfile(code), Getline(code), "Bad section '%s' in %%fragment declaration for code fragment '%s'\n", section, name);
+        } else {
+          if (debug)
+            Printf(stdout, "emitting subfragment %s %s\n", name, section);
+          if (debug)
+            Printf(f, "/* begin fragment %s */\n", name);
+          Printf(f, "%s\n", code);
+          if (debug)
+            Printf(f, "/* end fragment %s */\n\n", name);
+          Setattr(fragments, name, "ignore");
+          Delattr(looking_fragments, name);
+        }
       }
     } else if (!code && type) {
       SwigType *rtype = SwigType_typedef_resolve_all(type);
       if (!Equal(type, rtype)) {
-	String *name = Copy(Getattr(n, "value"));
-	String *mangle = Swig_name_mangle_type(type);
-	Append(name, mangle);
-	Setfile(name, Getfile(n));
-	Setline(name, Getline(n));
-	Swig_fragment_emit(name);
-	Delete(mangle);
-	Delete(name);
+        String *name = Copy(Getattr(n, "value"));
+        String *mangle = Swig_name_mangle_type(type);
+        Append(name, mangle);
+        Setfile(name, Getfile(n));
+        Setline(name, Getline(n));
+        Swig_fragment_emit(name);
+        Delete(mangle);
+        Delete(name);
       }
       Delete(rtype);
     }
@@ -180,7 +180,7 @@ void Swig_fragment_emit(Node *n) {
     if (tok) {
       pc = char_index(tok, ',');
       if (pc)
-	*pc = 0;
+        *pc = 0;
     }
     Delete(name);
   }

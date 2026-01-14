@@ -127,112 +127,112 @@ public:
     // Look for certain command line options
     for (i = 1; i < argc; i++) {
       if (argv[i]) {
-	if (strcmp(argv[i], "-help") == 0) {
-	  fputs(usage1, stdout);
-	  fputs(usage2, stdout);
-	} else if (strcmp(argv[i], "-prefix") == 0) {
-	  if (argv[i + 1]) {
-	    prefix = NewString(argv[i + 1]);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if (strcmp(argv[i], "-package") == 0) {
-	  if (argv[i + 1]) {
-	    package = NewString(argv[i + 1]);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if (strcmp(argv[i], "-Linkage") == 0 || strcmp(argv[i], "-linkage") == 0) {
-	  if (argv[i + 1]) {
-	    if (0 == strcmp(argv[i + 1], "hobbit"))
-	      linkage = GUILE_LSTYLE_HOBBIT;
-	    else if (0 == strcmp(argv[i + 1], "simple"))
-	      linkage = GUILE_LSTYLE_SIMPLE;
-	    else if (0 == strcmp(argv[i + 1], "passive"))
-	      linkage = GUILE_LSTYLE_PASSIVE;
-	    else if (0 == strcmp(argv[i + 1], "module"))
-	      linkage = GUILE_LSTYLE_MODULE;
-	    else
-	      Swig_arg_error();
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if (strcmp(argv[i], "-procdoc") == 0) {
-	  if (argv[i + 1]) {
-	    procdoc = NewFile(argv[i + 1], "w", SWIG_output_files());
-	    if (!procdoc) {
-	      FileErrorDisplay(argv[i + 1]);
-	      Exit(EXIT_FAILURE);
-	    }
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if (strcmp(argv[i], "-procdocformat") == 0) {
-	  if (strcmp(argv[i + 1], "guile-1.4") == 0)
-	    docformat = GUILE_1_4;
-	  else if (strcmp(argv[i + 1], "plain") == 0)
-	    docformat = PLAIN;
-	  else if (strcmp(argv[i + 1], "texinfo") == 0)
-	    docformat = TEXINFO;
-	  else
-	    Swig_arg_error();
-	  Swig_mark_arg(i);
-	  Swig_mark_arg(i + 1);
-	  i++;
-	} else if (strcmp(argv[i], "-emit-setters") == 0 || strcmp(argv[i], "-emitsetters") == 0) {
-	  emit_setters = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-only-setters") == 0 || strcmp(argv[i], "-onlysetters") == 0) {
-	  emit_setters = 1;
-	  only_setters = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-emit-slot-accessors") == 0 || strcmp(argv[i], "-emitslotaccessors") == 0) {
-	  emit_slot_accessors = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-scmstub") == 0) {
-	  scmstub = true;
-	  Swig_mark_arg(i);
-	} else if ((strcmp(argv[i], "-shadow") == 0) || ((strcmp(argv[i], "-proxy") == 0))) {
-	  goops = true;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-primsuffix") == 0) {
-	  if (argv[i + 1]) {
-	    primsuffix = NewString(argv[i + 1]);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if (strcmp(argv[i], "-goopsprefix") == 0) {
-	  if (argv[i + 1]) {
-	    goopsprefix = NewString(argv[i + 1]);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if (strcmp(argv[i], "-useclassprefix") == 0) {
-	  useclassprefix = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-exportprimitive") == 0) {
-	  exportprimitive = 1;
-	  // should use Swig_warning() here?
-	  Swig_mark_arg(i);
-	}
+        if (strcmp(argv[i], "-help") == 0) {
+          fputs(usage1, stdout);
+          fputs(usage2, stdout);
+        } else if (strcmp(argv[i], "-prefix") == 0) {
+          if (argv[i + 1]) {
+            prefix = NewString(argv[i + 1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if (strcmp(argv[i], "-package") == 0) {
+          if (argv[i + 1]) {
+            package = NewString(argv[i + 1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if (strcmp(argv[i], "-Linkage") == 0 || strcmp(argv[i], "-linkage") == 0) {
+          if (argv[i + 1]) {
+            if (0 == strcmp(argv[i + 1], "hobbit"))
+              linkage = GUILE_LSTYLE_HOBBIT;
+            else if (0 == strcmp(argv[i + 1], "simple"))
+              linkage = GUILE_LSTYLE_SIMPLE;
+            else if (0 == strcmp(argv[i + 1], "passive"))
+              linkage = GUILE_LSTYLE_PASSIVE;
+            else if (0 == strcmp(argv[i + 1], "module"))
+              linkage = GUILE_LSTYLE_MODULE;
+            else
+              Swig_arg_error();
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if (strcmp(argv[i], "-procdoc") == 0) {
+          if (argv[i + 1]) {
+            procdoc = NewFile(argv[i + 1], "w", SWIG_output_files());
+            if (!procdoc) {
+              FileErrorDisplay(argv[i + 1]);
+              Exit(EXIT_FAILURE);
+            }
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if (strcmp(argv[i], "-procdocformat") == 0) {
+          if (strcmp(argv[i + 1], "guile-1.4") == 0)
+            docformat = GUILE_1_4;
+          else if (strcmp(argv[i + 1], "plain") == 0)
+            docformat = PLAIN;
+          else if (strcmp(argv[i + 1], "texinfo") == 0)
+            docformat = TEXINFO;
+          else
+            Swig_arg_error();
+          Swig_mark_arg(i);
+          Swig_mark_arg(i + 1);
+          i++;
+        } else if (strcmp(argv[i], "-emit-setters") == 0 || strcmp(argv[i], "-emitsetters") == 0) {
+          emit_setters = 1;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-only-setters") == 0 || strcmp(argv[i], "-onlysetters") == 0) {
+          emit_setters = 1;
+          only_setters = 1;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-emit-slot-accessors") == 0 || strcmp(argv[i], "-emitslotaccessors") == 0) {
+          emit_slot_accessors = 1;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-scmstub") == 0) {
+          scmstub = true;
+          Swig_mark_arg(i);
+        } else if ((strcmp(argv[i], "-shadow") == 0) || ((strcmp(argv[i], "-proxy") == 0))) {
+          goops = true;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-primsuffix") == 0) {
+          if (argv[i + 1]) {
+            primsuffix = NewString(argv[i + 1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if (strcmp(argv[i], "-goopsprefix") == 0) {
+          if (argv[i + 1]) {
+            goopsprefix = NewString(argv[i + 1]);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if (strcmp(argv[i], "-useclassprefix") == 0) {
+          useclassprefix = 1;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-exportprimitive") == 0) {
+          exportprimitive = 1;
+          // should use Swig_warning() here?
+          Swig_mark_arg(i);
+        }
       }
     }
 
@@ -243,8 +243,8 @@ public:
     //goops support can only be enabled if passive or module linkage is used
     if (goops) {
       if (linkage != GUILE_LSTYLE_PASSIVE && linkage != GUILE_LSTYLE_MODULE) {
-	Printf(stderr, "guile: GOOPS support requires passive or module linkage\n");
-	Exit(EXIT_FAILURE);
+        Printf(stderr, "guile: GOOPS support requires passive or module linkage\n");
+        Exit(EXIT_FAILURE);
       }
     }
 
@@ -265,7 +265,7 @@ public:
     if (prefix) {
       const char *px = Char(prefix);
       if (px[Len(prefix) - 1] != '_')
-	Printf(prefix, "_");
+        Printf(prefix, "_");
     }
 
     /* Add a symbol for this module */
@@ -356,9 +356,9 @@ public:
       Printv(module_name, "swig", NIL);
     else {
       if (package)
-	Printf(module_name, "%s/%s", package, module);
+        Printf(module_name, "%s/%s", package, module);
       else
-	Printv(module_name, module, NIL);
+        Printv(module_name, module, NIL);
     }
     emit_linkage(module_name);
 
@@ -419,19 +419,19 @@ public:
       Printf(f_init, "static void SWIG_init_helper(void *data)\n");
       Printf(f_init, "{\n    SWIG_init();\n");
       if (Len(exported_symbols) > 0)
-	Printf(f_init, "    scm_c_export(%sNULL);", exported_symbols);
+        Printf(f_init, "    scm_c_export(%sNULL);", exported_symbols);
       Printf(f_init, "\n}\n\n");
 
       Printf(f_init, "SCM\n%s (void)\n{\n", module_func);
       {
-	String *mod = NewString(module_name);
-	if (goops)
-	  Printv(mod, "-", primsuffix, NIL);
-	Replaceall(mod, "/", " ");
-	Printf(f_init, "    scm_c_define_module(\"%s\",\n", mod);
-	Printf(f_init, "      SWIG_init_helper, NULL);\n");
-	Printf(f_init, "    return SCM_UNSPECIFIED;\n");
-	Delete(mod);
+        String *mod = NewString(module_name);
+        if (goops)
+          Printv(mod, "-", primsuffix, NIL);
+        Replaceall(mod, "/", " ");
+        Printf(f_init, "    scm_c_define_module(\"%s\",\n", mod);
+        Printf(f_init, "      SWIG_init_helper, NULL);\n");
+        Printf(f_init, "    return SCM_UNSPECIFIED;\n");
+        Delete(mod);
       }
       Printf(f_init, "}\n");
       break;
@@ -441,11 +441,11 @@ public:
       Insert(module_func, 0, "scm_init_");
       Printf(f_init, "SCM\n%s (void)\n{\n", module_func);
       {
-	String *mod = NewString(module_name);
-	Replaceall(mod, "/", " ");
-	Printf(f_init, "    scm_register_module_xxx (\"%s\", (void *) SWIG_init);\n", mod);
-	Printf(f_init, "    return SCM_UNSPECIFIED;\n");
-	Delete(mod);
+        String *mod = NewString(module_name);
+        Replaceall(mod, "/", " ");
+        Printf(f_init, "    scm_register_module_xxx (\"%s\", (void *) SWIG_init);\n", mod);
+        Printf(f_init, "    return SCM_UNSPECIFIED;\n");
+        Delete(mod);
       }
       Printf(f_init, "}\n");
       break;
@@ -458,36 +458,36 @@ public:
       /* Emit Scheme stub if requested */
       String *primitive_name = NewString(module_name);
       if (goops)
-	Printv(primitive_name, "-", primsuffix, NIL);
+        Printv(primitive_name, "-", primsuffix, NIL);
 
       String *mod = NewString(primitive_name);
       Replaceall(mod, "/", " ");
 
       String *fname = NewStringf("%s%s.scm",
-				 SWIG_output_directory(),
-				 primitive_name);
+                                 SWIG_output_directory(),
+                                 primitive_name);
       Delete(primitive_name);
       File *scmstubfile = NewFile(fname, "w", SWIG_output_files());
       if (!scmstubfile) {
-	FileErrorDisplay(fname);
-	Exit(EXIT_FAILURE);
+        FileErrorDisplay(fname);
+        Exit(EXIT_FAILURE);
       }
       Delete(fname);
 
       Swig_banner_target_lang(scmstubfile, ";;;");
       Printf(scmstubfile, "\n");
       if (linkage == GUILE_LSTYLE_SIMPLE || linkage == GUILE_LSTYLE_PASSIVE)
-	Printf(scmstubfile, "(define-module (%s))\n\n", mod);
+        Printf(scmstubfile, "(define-module (%s))\n\n", mod);
       Delete(mod);
       Printf(scmstubfile, "%s", scmtext);
       if ((linkage == GUILE_LSTYLE_SIMPLE || linkage == GUILE_LSTYLE_PASSIVE)
-	  && Len(exported_symbols) > 0) {
-	String *ex = NewString(exported_symbols);
-	Replaceall(ex, ", ", "\n        ");
-	Replaceall(ex, "\"", "");
-	Chop(ex);
-	Printf(scmstubfile, "\n(export %s)\n", ex);
-	Delete(ex);
+          && Len(exported_symbols) > 0) {
+        String *ex = NewString(exported_symbols);
+        Replaceall(ex, ", ", "\n        ");
+        Replaceall(ex, "\"", "");
+        Chop(ex);
+        Printf(scmstubfile, "\n(export %s)\n", ex);
+        Delete(ex);
       }
       Delete(scmstubfile);
     }
@@ -497,11 +497,11 @@ public:
       Replaceall(mod, "/", " ");
 
       String *fname = NewStringf("%s%s.scm", SWIG_output_directory(),
-				 module_name);
+                                 module_name);
       File *goopsfile = NewFile(fname, "w", SWIG_output_files());
       if (!goopsfile) {
-	FileErrorDisplay(fname);
-	Exit(EXIT_FAILURE);
+        FileErrorDisplay(fname);
+        Exit(EXIT_FAILURE);
       }
       Delete(fname);
       Swig_banner_target_lang(goopsfile, ";;;");
@@ -510,16 +510,16 @@ public:
       Printf(goopsfile, "%s\n", goopstext);
       Printf(goopsfile, "(use-modules (oop goops) (Swig common))\n");
       if (primRenamer) {
-	Printf(goopsfile, "(use-modules ((%s-%s) :renamer (symbol-prefix-proc 'primitive:)))\n", mod, primsuffix);
+        Printf(goopsfile, "(use-modules ((%s-%s) :renamer (symbol-prefix-proc 'primitive:)))\n", mod, primsuffix);
       }
       Printf(goopsfile, "%s\n(export %s)", goopscode, goopsexport);
       if (exportprimitive) {
-	String *ex = NewString(exported_symbols);
-	Replaceall(ex, ", ", "\n        ");
-	Replaceall(ex, "\"", "");
-	Chop(ex);
-	Printf(goopsfile, "\n(export %s)", ex);
-	Delete(ex);
+        String *ex = NewString(exported_symbols);
+        Replaceall(ex, ", ", "\n        ");
+        Replaceall(ex, "\"", "");
+        Chop(ex);
+        Printf(goopsfile, "\n(export %s)", ex);
+        Delete(ex);
       }
       Delete(mod);
       Delete(goopsfile);
@@ -551,21 +551,21 @@ public:
       Printv(procdoc, "\f\n", NIL);
       Printv(procdoc, "(", signature, ")\n", NIL);
       if (signature2)
-	Printv(procdoc, "(", signature2, ")\n", NIL);
+        Printv(procdoc, "(", signature2, ")\n", NIL);
       Printv(procdoc, doc, "\n", NIL);
       break;
     case PLAIN:
       Printv(procdoc, "\f", proc_name, "\n\n", NIL);
       Printv(procdoc, "(", signature, ")\n", NIL);
       if (signature2)
-	Printv(procdoc, "(", signature2, ")\n", NIL);
+        Printv(procdoc, "(", signature2, ")\n", NIL);
       Printv(procdoc, doc, "\n\n", NIL);
       break;
     case TEXINFO:
       Printv(procdoc, "\f", proc_name, "\n", NIL);
       Printv(procdoc, "@deffn primitive ", signature, "\n", NIL);
       if (signature2)
-	Printv(procdoc, "@deffnx primitive ", signature2, "\n", NIL);
+        Printv(procdoc, "@deffnx primitive ", signature2, "\n", NIL);
       Printv(procdoc, doc, "\n", NIL);
       Printv(procdoc, "@end deffn\n\n", NIL);
       break;
@@ -574,7 +574,7 @@ public:
 
   /* returns false if the typemap is an empty string */
   bool handle_documentation_typemap(String *output,
-				    const String *maybe_delimiter, Parm *p, const String *typemap, const String *default_doc, const String *name = NULL) {
+                                    const String *maybe_delimiter, Parm *p, const String *typemap, const String *default_doc, const String *name = NULL) {
     String *tmp = NewString("");
     String *tm;
     if (!(tm = Getattr(p, typemap))) {
@@ -642,7 +642,7 @@ public:
     } else {
       if (!addSymbol(iname, n)) {
         DelWrapper(f);
-	return SWIG_ERROR; 
+        return SWIG_ERROR; 
       }
     }
     if (overname) {
@@ -683,7 +683,7 @@ public:
     for (i = 0, p = l; i < numargs; i++) {
 
       while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-	p = Getattr(p, "tmap:in:next");
+        p = Getattr(p, "tmap:in:next");
       }
 
       SwigType *pt = Getattr(p, "type");
@@ -691,73 +691,73 @@ public:
 
       // Produce names of source and target
       if (args_passed_as_array)
-	sprintf(source, "argv[%d]", i);
+        sprintf(source, "argv[%d]", i);
       else
-	sprintf(source, "s_%d", i);
+        sprintf(source, "s_%d", i);
 
       if (!args_passed_as_array) {
-	if (i != 0)
-	  Printf(f->def, ", ");
-	Printf(f->def, "SCM s_%d", i);
+        if (i != 0)
+          Printf(f->def, ", ");
+        Printf(f->def, "SCM s_%d", i);
       }
       if (opt_p) {
-	Printf(f->code, "    if (%s != SCM_UNDEFINED) {\n", source);
+        Printf(f->code, "    if (%s != SCM_UNDEFINED) {\n", source);
       }
       if ((tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$input", source);
-	Setattr(p, "emit:input", source);
-	Printv(f->code, tm, "\n", NIL);
+        Replaceall(tm, "$input", source);
+        Setattr(p, "emit:input", source);
+        Printv(f->code, tm, "\n", NIL);
 
-	SwigType *pb = SwigType_typedef_resolve_all(SwigType_base(pt));
-	SwigType *pn = Getattr(p, "name");
-	String *argname;
-	scheme_argnum++;
-	if (pn && !Getattr(scheme_arg_names, pn))
-	  argname = pn;
-	else {
-	  /* Anonymous arg or re-used argument name -- choose a name that cannot clash */
-	  argname = NewStringf("%%arg%d", scheme_argnum);
-	}
+        SwigType *pb = SwigType_typedef_resolve_all(SwigType_base(pt));
+        SwigType *pn = Getattr(p, "name");
+        String *argname;
+        scheme_argnum++;
+        if (pn && !Getattr(scheme_arg_names, pn))
+          argname = pn;
+        else {
+          /* Anonymous arg or re-used argument name -- choose a name that cannot clash */
+          argname = NewStringf("%%arg%d", scheme_argnum);
+        }
 
-	if (procdoc) {
-	  if (i == numreq) {
-	    /* First optional argument */
-	    Printf(signature, " #:optional");
-	  }
-	  /* Add to signature (arglist) */
-	  handle_documentation_typemap(signature, " ", p, "tmap:in:arglist", "$name", argname);
-	  /* Document the type of the arg in the documentation body */
-	  handle_documentation_typemap(doc_body, ", ", p, "tmap:in:doc", "$NAME is of type <$type>", argname);
-	}
+        if (procdoc) {
+          if (i == numreq) {
+            /* First optional argument */
+            Printf(signature, " #:optional");
+          }
+          /* Add to signature (arglist) */
+          handle_documentation_typemap(signature, " ", p, "tmap:in:arglist", "$name", argname);
+          /* Document the type of the arg in the documentation body */
+          handle_documentation_typemap(doc_body, ", ", p, "tmap:in:doc", "$NAME is of type <$type>", argname);
+        }
 
-	if (goops) {
-	  if (i < numreq) {
-	    if (strcmp("void", Char(pt)) != 0) {
-	      Node *class_node = Swig_symbol_clookup_check(pb, Getattr(n, "sym:symtab"), has_classname);
-	      String *goopsclassname = !class_node ? NULL : Getattr(class_node, "guile:goopsclassname");
-	      /* do input conversion */
-	      if (goopsclassname) {
-		Printv(method_signature, " (", argname, " ", goopsclassname, ")", NIL);
-		any_specialized_arg = true;
-	      } else {
-		Printv(method_signature, " ", argname, NIL);
-	      }
-	      Printv(primitive_args, " ", argname, NIL);
-	      Setattr(scheme_arg_names, argname, p);
-	    }
-	  }
-	}
+        if (goops) {
+          if (i < numreq) {
+            if (strcmp("void", Char(pt)) != 0) {
+              Node *class_node = Swig_symbol_clookup_check(pb, Getattr(n, "sym:symtab"), has_classname);
+              String *goopsclassname = !class_node ? NULL : Getattr(class_node, "guile:goopsclassname");
+              /* do input conversion */
+              if (goopsclassname) {
+                Printv(method_signature, " (", argname, " ", goopsclassname, ")", NIL);
+                any_specialized_arg = true;
+              } else {
+                Printv(method_signature, " ", argname, NIL);
+              }
+              Printv(primitive_args, " ", argname, NIL);
+              Setattr(scheme_arg_names, argname, p);
+            }
+          }
+        }
 
-	if (!pn) {
-	  Delete(argname);
-	}
-	p = Getattr(p, "tmap:in:next");
+        if (!pn) {
+          Delete(argname);
+        }
+        p = Getattr(p, "tmap:in:next");
       } else {
-	throw_unhandled_guile_type_error(pt);
-	p = nextSibling(p);
+        throw_unhandled_guile_type_error(pt);
+        p = nextSibling(p);
       }
       if (opt_p)
-	Printf(f->code, "    }\n");
+        Printf(f->code, "    }\n");
     }
     if (Len(doc_body) > 0)
       Printf(doc_body, ".\n");
@@ -765,10 +765,10 @@ public:
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Printv(f->code, tm, "\n", NIL);
-	p = Getattr(p, "tmap:check:next");
+        Printv(f->code, tm, "\n", NIL);
+        p = Getattr(p, "tmap:check:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
     /* Pass output arguments back to the caller. */
@@ -777,30 +777,30 @@ public:
     String *returns_argout = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
-	Replaceall(tm, "$input", Getattr(p, "emit:input"));
-	Printv(outarg, tm, "\n", NIL);
-	if (procdoc) {
-	  if (handle_documentation_typemap(returns_argout, ", ", p, "tmap:argout:doc", "$NAME (of type $type)")) {
-	    /* A documentation typemap that is not the empty string
-	       indicates that a value is returned to Scheme. */
-	    num_results++;
-	  }
-	}
-	p = Getattr(p, "tmap:argout:next");
+        Replaceall(tm, "$arg", Getattr(p, "emit:input"));
+        Replaceall(tm, "$input", Getattr(p, "emit:input"));
+        Printv(outarg, tm, "\n", NIL);
+        if (procdoc) {
+          if (handle_documentation_typemap(returns_argout, ", ", p, "tmap:argout:doc", "$NAME (of type $type)")) {
+            /* A documentation typemap that is not the empty string
+               indicates that a value is returned to Scheme. */
+            num_results++;
+          }
+        }
+        p = Getattr(p, "tmap:argout:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
 
     /* Insert cleanup code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
-	Replaceall(tm, "$input", Getattr(p, "emit:input"));
-	Printv(cleanup, tm, "\n", NIL);
-	p = Getattr(p, "tmap:freearg:next");
+        Replaceall(tm, "$input", Getattr(p, "emit:input"));
+        Printv(cleanup, tm, "\n", NIL);
+        p = Getattr(p, "tmap:freearg:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
 
@@ -827,9 +827,9 @@ public:
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {
       Replaceall(tm, "$result", "gswig_result");
       if (GetFlag(n, "feature:new"))
-	Replaceall(tm, "$owner", "1");
+        Replaceall(tm, "$owner", "1");
       else
-	Replaceall(tm, "$owner", "0");
+        Replaceall(tm, "$owner", "0");
       Printv(f->code, tm, "\n", NIL);
     } else {
       throw_unhandled_guile_type_error(returntype);
@@ -840,9 +840,9 @@ public:
     if ((tm = Getattr(n, "tmap:out:doc"))) {
       Printv(returns, tm, NIL);
       if (Len(tm) > 0)
-	num_results = 1;
+        num_results = 1;
       else
-	num_results = 0;
+        num_results = 0;
     } else {
       String *s = SwigType_str(returntype, 0);
       Chop(s);
@@ -863,7 +863,7 @@ public:
 
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-	Printv(f->code, tm, "\n", NIL);
+        Printv(f->code, tm, "\n", NIL);
       }
     }
     // Free any memory allocated by the function being wrapped..
@@ -890,89 +890,89 @@ public:
 
     if (!Getattr(n, "sym:overloaded")) {
       if (numargs > 10) {
-	/* "The total number of these arguments should match the actual number
-	 * of arguments to fcn, but may not exceed 10" says:
-	 * https://www.gnu.org/software/guile/manual/html_node/Primitive-Procedures.html
-	 * We handle this case by passing all the arguments as "rest".
-	 */
-	int i;
-	/* Build a wrapper wrapper */
-	Printv(f_wrappers, "static SCM\n", wname, "_rest (SCM rest)\n", NIL);
-	Printv(f_wrappers, "{\n", NIL);
-	Printf(f_wrappers, "SCM arg[%d];\n", numargs);
-	Printf(f_wrappers, "SWIG_Guile_GetArgs (arg, rest, %d, %d, \"%s\");\n", numreq, numargs - numreq, proc_name);
-	Printv(f_wrappers, "return ", wname, "(", NIL);
-	Printv(f_wrappers, "arg[0]", NIL);
-	for (i = 1; i < numargs; i++)
-	  Printf(f_wrappers, ", arg[%d]", i);
-	Printv(f_wrappers, ");\n", NIL);
-	Printv(f_wrappers, "}\n", NIL);
-	/* Register it */
-	Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, 0, 1, (swig_guile_proc) %s_rest);\n", proc_name, wname);
+        /* "The total number of these arguments should match the actual number
+         * of arguments to fcn, but may not exceed 10" says:
+         * https://www.gnu.org/software/guile/manual/html_node/Primitive-Procedures.html
+         * We handle this case by passing all the arguments as "rest".
+         */
+        int i;
+        /* Build a wrapper wrapper */
+        Printv(f_wrappers, "static SCM\n", wname, "_rest (SCM rest)\n", NIL);
+        Printv(f_wrappers, "{\n", NIL);
+        Printf(f_wrappers, "SCM arg[%d];\n", numargs);
+        Printf(f_wrappers, "SWIG_Guile_GetArgs (arg, rest, %d, %d, \"%s\");\n", numreq, numargs - numreq, proc_name);
+        Printv(f_wrappers, "return ", wname, "(", NIL);
+        Printv(f_wrappers, "arg[0]", NIL);
+        for (i = 1; i < numargs; i++)
+          Printf(f_wrappers, ", arg[%d]", i);
+        Printv(f_wrappers, ");\n", NIL);
+        Printv(f_wrappers, "}\n", NIL);
+        /* Register it */
+        Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, 0, 1, (swig_guile_proc) %s_rest);\n", proc_name, wname);
       } else if (emit_setters && struct_member && strlen(Char(proc_name)) > 3) {
-	int len = Len(proc_name);
-	const char *pc = Char(proc_name);
-	/* MEMBER-set and MEMBER-get functions. */
-	int is_setter = (pc[len - 3] == 's');
-	if (is_setter) {
-	  Printf(f_init, "SCM setter = ");
-	  struct_member = 2;	/* have a setter */
-	} else
-	  Printf(f_init, "SCM getter = ");
-	/* GOOPS support uses the MEMBER-set and MEMBER-get functions,
-	   so ignore only_setters in this case. */
-	if (only_setters && !goops)
-	  Printf(f_init, "scm_c_make_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n", proc_name, numreq, numargs - numreq, wname);
-	else
-	  Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n", proc_name, numreq, numargs - numreq, wname);
+        int len = Len(proc_name);
+        const char *pc = Char(proc_name);
+        /* MEMBER-set and MEMBER-get functions. */
+        int is_setter = (pc[len - 3] == 's');
+        if (is_setter) {
+          Printf(f_init, "SCM setter = ");
+          struct_member = 2;	/* have a setter */
+        } else
+          Printf(f_init, "SCM getter = ");
+        /* GOOPS support uses the MEMBER-set and MEMBER-get functions,
+           so ignore only_setters in this case. */
+        if (only_setters && !goops)
+          Printf(f_init, "scm_c_make_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n", proc_name, numreq, numargs - numreq, wname);
+        else
+          Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n", proc_name, numreq, numargs - numreq, wname);
 
-	if (!is_setter) {
-	  /* Strip off "-get" */
-	  if (struct_member == 2) {
-	    /* There was a setter, so create a procedure with setter */
-	    Printf(f_init, "scm_c_define");
-	    Printf(f_init, "(\"%.*s\", " "scm_make_procedure_with_setter(getter, setter));\n", pc, len - 4);
-	  } else {
-	    /* There was no setter, so make an alias to the getter */
-	    Printf(f_init, "scm_c_define");
-	    Printf(f_init, "(\"%.*s\", getter);\n", pc, len - 4);
-	  }
-	  Printf(exported_symbols, "\"%.*s\", ", pc, len - 4);
-	}
+        if (!is_setter) {
+          /* Strip off "-get" */
+          if (struct_member == 2) {
+            /* There was a setter, so create a procedure with setter */
+            Printf(f_init, "scm_c_define");
+            Printf(f_init, "(\"%.*s\", " "scm_make_procedure_with_setter(getter, setter));\n", pc, len - 4);
+          } else {
+            /* There was no setter, so make an alias to the getter */
+            Printf(f_init, "scm_c_define");
+            Printf(f_init, "(\"%.*s\", getter);\n", pc, len - 4);
+          }
+          Printf(exported_symbols, "\"%.*s\", ", pc, len - 4);
+        }
       } else {
-	/* Register the function */
-	if (exporting_destructor) {
-	  Printf(f_init, "((swig_guile_clientdata *)(SWIGTYPE%s->clientdata))->destroy = (guile_destructor) %s;\n", swigtype_ptr, wname);
-	  //Printf(f_init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) %s);\n", swigtype_ptr, wname);
-	}
-	Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n", proc_name, numreq, numargs - numreq, wname);
+        /* Register the function */
+        if (exporting_destructor) {
+          Printf(f_init, "((swig_guile_clientdata *)(SWIGTYPE%s->clientdata))->destroy = (guile_destructor) %s;\n", swigtype_ptr, wname);
+          //Printf(f_init, "SWIG_TypeClientData(SWIGTYPE%s, (void *) %s);\n", swigtype_ptr, wname);
+        }
+        Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n", proc_name, numreq, numargs - numreq, wname);
       }
     } else {			/* overloaded function; don't export the single methods */
       if (!Getattr(n, "sym:nextSibling")) {
-	/* Emit overloading dispatch function */
+        /* Emit overloading dispatch function */
 
-	int maxargs;
-	bool check_emitted = false;
-	String *dispatch = Swig_overload_dispatch(n, "return %s(argc,argv);", &maxargs, &check_emitted);
+        int maxargs;
+        bool check_emitted = false;
+        String *dispatch = Swig_overload_dispatch(n, "return %s(argc,argv);", &maxargs, &check_emitted);
 
-	/* Generate a dispatch wrapper for all overloaded functions */
+        /* Generate a dispatch wrapper for all overloaded functions */
 
-	Wrapper *df = NewWrapper();
-	String *dname = Swig_name_wrapper(iname);
+        Wrapper *df = NewWrapper();
+        String *dname = Swig_name_wrapper(iname);
 
-	Printv(df->def, "static SCM\n", dname, "(SCM rest)\n{\n", NIL);
-	Printf(df->code, "#define FUNC_NAME \"%s\"\n", proc_name);
-	Printf(df->code, "SCM argv[%d];\n", maxargs);
-	Printf(df->code, "int argc = SWIG_Guile_GetArgs (argv, rest, %d, %d, \"%s\");\n", 0, maxargs, proc_name);
-	Printv(df->code, dispatch, "\n", NIL);
-	Printf(df->code, "scm_misc_error(\"%s\", \"No matching method for generic function `%s'\", SCM_EOL);\n", proc_name, iname);
-	Printf(df->code, "#undef FUNC_NAME\n");
-	Printv(df->code, "}\n", NIL);
-	Wrapper_print(df, f_wrappers);
-	Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, 0, 1, (swig_guile_proc) %s);\n", proc_name, dname);
-	DelWrapper(df);
-	Delete(dispatch);
-	Delete(dname);
+        Printv(df->def, "static SCM\n", dname, "(SCM rest)\n{\n", NIL);
+        Printf(df->code, "#define FUNC_NAME \"%s\"\n", proc_name);
+        Printf(df->code, "SCM argv[%d];\n", maxargs);
+        Printf(df->code, "int argc = SWIG_Guile_GetArgs (argv, rest, %d, %d, \"%s\");\n", 0, maxargs, proc_name);
+        Printv(df->code, dispatch, "\n", NIL);
+        Printf(df->code, "scm_misc_error(\"%s\", \"No matching method for generic function `%s'\", SCM_EOL);\n", proc_name, iname);
+        Printf(df->code, "#undef FUNC_NAME\n");
+        Printv(df->code, "}\n", NIL);
+        Wrapper_print(df, f_wrappers);
+        Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, 0, 1, (swig_guile_proc) %s);\n", proc_name, dname);
+        DelWrapper(df);
+        Delete(dispatch);
+        Delete(dname);
       }
     }
     Printf(exported_symbols, "\"%s\", ", proc_name);
@@ -982,35 +982,35 @@ public:
       String *method_def = NewString("");
       String *goops_name;
       if (in_class)
-	goops_name = NewString(memberfunction_name);
+        goops_name = NewString(memberfunction_name);
       else
-	goops_name = goopsNameMapping(proc_name, "");
+        goops_name = goopsNameMapping(proc_name, "");
       String *primitive_name = NewString("");
       if (primRenamer)
-	Printv(primitive_name, "primitive:", proc_name, NIL);
+        Printv(primitive_name, "primitive:", proc_name, NIL);
       else
-	Printv(primitive_name, proc_name, NIL);
+        Printv(primitive_name, proc_name, NIL);
       Replaceall(method_signature, "_", "-");
       Replaceall(primitive_args, "_", "-");
       if (!any_specialized_arg) {
-	/* If there would not be any specialized argument in
-	   the method declaration, we simply re-export the
-	   function.  This is a performance optimization. */
-	Printv(method_def, "(define ", goops_name, " ", primitive_name, ")\n", NIL);
+        /* If there would not be any specialized argument in
+           the method declaration, we simply re-export the
+           function.  This is a performance optimization. */
+        Printv(method_def, "(define ", goops_name, " ", primitive_name, ")\n", NIL);
       } else if (numreq == numargs) {
-	Printv(method_def, "(define-method (", goops_name, method_signature, ")\n", NIL);
-	Printv(method_def, "  (", primitive_name, primitive_args, "))\n", NIL);
+        Printv(method_def, "(define-method (", goops_name, method_signature, ")\n", NIL);
+        Printv(method_def, "  (", primitive_name, primitive_args, "))\n", NIL);
       } else {
-	/* Handle optional args. For the rest argument, use a name
-	   that cannot clash. */
-	Printv(method_def, "(define-method (", goops_name, method_signature, " . %args)\n", NIL);
-	Printv(method_def, "  (apply ", primitive_name, primitive_args, " %args))\n", NIL);
+        /* Handle optional args. For the rest argument, use a name
+           that cannot clash. */
+        Printv(method_def, "(define-method (", goops_name, method_signature, " . %args)\n", NIL);
+        Printv(method_def, "  (apply ", primitive_name, primitive_args, " %args))\n", NIL);
       }
       if (in_class) {
-	/* Defer method definition till end of class definition. */
-	Printv(goops_class_methods, method_def, NIL);
+        /* Defer method definition till end of class definition. */
+        Printv(goops_class_methods, method_def, NIL);
       } else {
-	Printv(goopscode, method_def, NIL);
+        Printv(goopscode, method_def, NIL);
       }
       Printf(goopsexport, "%s ", goops_name);
       Delete(primitive_name);
@@ -1021,23 +1021,23 @@ public:
     if (procdoc) {
       String *returns_text = NewString("");
       if (num_results == 0)
-	Printv(returns_text, return_nothing_doc, NIL);
+        Printv(returns_text, return_nothing_doc, NIL);
       else if (num_results == 1)
-	Printv(returns_text, return_one_doc, NIL);
+        Printv(returns_text, return_one_doc, NIL);
       else
-	Printv(returns_text, return_multi_doc, NIL);
+        Printv(returns_text, return_multi_doc, NIL);
       /* Substitute documentation variables */
       static const char *numbers[] = { "zero", "one", "two", "three",
-	"four", "five", "six", "seven",
-	"eight", "nine", "ten", "eleven",
-	"twelve"
+        "four", "five", "six", "seven",
+        "eight", "nine", "ten", "eleven",
+        "twelve"
       };
       if (num_results <= 12)
-	Replaceall(returns_text, "$num_values", numbers[num_results]);
+        Replaceall(returns_text, "$num_values", numbers[num_results]);
       else {
-	String *num_results_str = NewStringf("%d", num_results);
-	Replaceall(returns_text, "$num_values", num_results_str);
-	Delete(num_results_str);
+        String *num_results_str = NewStringf("%d", num_results);
+        Replaceall(returns_text, "$num_values", num_results_str);
+        Delete(num_results_str);
       }
       Replaceall(returns_text, "$values", returns);
       Printf(doc_body, "\n%s", returns_text);
@@ -1106,34 +1106,34 @@ public:
       Wrapper_add_local(f, "gswig_result", "SCM gswig_result");
 
       if (assignable) {
-	/* Check for a setting of the variable value */
-	Printf(f->code, "if (s_0 != SCM_UNDEFINED) {\n");
-	if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
-	  Replaceall(tm, "$input", "s_0");
-	  /* Printv(f->code,tm,"\n",NIL); */
-	  emit_action_code(n, f->code, tm);
-	} else {
-	  // The fake variable constantWrapper() creates is immutable.
-	  assert(!GetFlag(n, "guile:reallywrappingaconstant"));
-	  throw_unhandled_guile_type_error(t);
-	}
-	Printf(f->code, "}\n");
+        /* Check for a setting of the variable value */
+        Printf(f->code, "if (s_0 != SCM_UNDEFINED) {\n");
+        if ((tm = Swig_typemap_lookup("varin", n, name, 0))) {
+          Replaceall(tm, "$input", "s_0");
+          /* Printv(f->code,tm,"\n",NIL); */
+          emit_action_code(n, f->code, tm);
+        } else {
+          // The fake variable constantWrapper() creates is immutable.
+          assert(!GetFlag(n, "guile:reallywrappingaconstant"));
+          throw_unhandled_guile_type_error(t);
+        }
+        Printf(f->code, "}\n");
       }
       // Now return the value of the variable (regardless
       // of evaluating or setting)
 
       if ((tm = Swig_typemap_lookup("varout", n, name, 0))) {
-	Replaceall(tm, "$result", "gswig_result");
-	/* Printv(f->code,tm,"\n",NIL); */
-	emit_action_code(n, f->code, tm);
+        Replaceall(tm, "$result", "gswig_result");
+        /* Printv(f->code,tm,"\n",NIL); */
+        emit_action_code(n, f->code, tm);
       } else {
-	if (GetFlag(n, "guile:reallywrappingaconstant")) {
-	  Delete(var_name);
-	  Delete(proc_name);
-	  DelWrapper(f);
-	  return SWIG_ERROR;
-	}
-	throw_unhandled_guile_type_error(t);
+        if (GetFlag(n, "guile:reallywrappingaconstant")) {
+          Delete(var_name);
+          Delete(proc_name);
+          DelWrapper(f);
+          return SWIG_ERROR;
+        }
+        throw_unhandled_guile_type_error(t);
       }
       Printf(f->code, "\nreturn gswig_result;\n");
       Printf(f->code, "#undef FUNC_NAME\n");
@@ -1144,112 +1144,112 @@ public:
       // Now add symbol to the Guile interpreter
 
       if (!emit_setters || !assignable) {
-	/* Read-only variables become a simple procedure returning the
-	   value; read-write variables become a simple procedure with
-	   an optional argument. */
+        /* Read-only variables become a simple procedure returning the
+           value; read-write variables become a simple procedure with
+           an optional argument. */
 
-	if (!goops && GetFlag(n, "feature:constasvar")) {
-	  /* need to export this function as a variable instead of a procedure */
-	  if (scmstub) {
-	    /* export the function in the wrapper, and (set!) it in scmstub */
-	    Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n", proc_name, assignable, var_name);
-	    Printf(scmtext, "(set! %s (%s))\n", proc_name, proc_name);
-	  } else {
-	    /* export the variable directly */
-	    Printf(f_init, "scm_c_define(\"%s\", %s(SCM_UNDEFINED));\n", proc_name, var_name);
-	  }
+        if (!goops && GetFlag(n, "feature:constasvar")) {
+          /* need to export this function as a variable instead of a procedure */
+          if (scmstub) {
+            /* export the function in the wrapper, and (set!) it in scmstub */
+            Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n", proc_name, assignable, var_name);
+            Printf(scmtext, "(set! %s (%s))\n", proc_name, proc_name);
+          } else {
+            /* export the variable directly */
+            Printf(f_init, "scm_c_define(\"%s\", %s(SCM_UNDEFINED));\n", proc_name, var_name);
+          }
 
-	} else {
-	  /* Export the function as normal */
-	  Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n", proc_name, assignable, var_name);
-	}
+        } else {
+          /* Export the function as normal */
+          Printf(f_init, "scm_c_define_gsubr(\"%s\", 0, %d, 0, (swig_guile_proc) %s);\n", proc_name, assignable, var_name);
+        }
 
       } else {
-	/* Read/write variables become a procedure with setter. */
-	Printf(f_init, "{ SCM p = scm_c_define_gsubr(\"%s\", 0, 1, 0, (swig_guile_proc) %s);\n", proc_name, var_name);
-	Printf(f_init, "scm_c_define");
-	Printf(f_init, "(\"%s\", " "scm_make_procedure_with_setter(p, p)); }\n", proc_name);
+        /* Read/write variables become a procedure with setter. */
+        Printf(f_init, "{ SCM p = scm_c_define_gsubr(\"%s\", 0, 1, 0, (swig_guile_proc) %s);\n", proc_name, var_name);
+        Printf(f_init, "scm_c_define");
+        Printf(f_init, "(\"%s\", " "scm_make_procedure_with_setter(p, p)); }\n", proc_name);
       }
       Printf(exported_symbols, "\"%s\", ", proc_name);
 
       // export wrapper into goops file
       if (!in_class) {		// only if the variable is not part of a class
-	String *class_name = SwigType_typedef_resolve_all(SwigType_base(t));
-	String *goops_name = goopsNameMapping(proc_name, "");
-	String *primitive_name = NewString("");
-	if (primRenamer)
-	  Printv(primitive_name, "primitive:", NIL);
-	Printv(primitive_name, proc_name, NIL);
-	/* Simply re-export the procedure */
-	if ((!emit_setters || !assignable)
-	    && GetFlag(n, "feature:constasvar")) {
-	  Printv(goopscode, "(define ", goops_name, " (", primitive_name, "))\n", NIL);
-	} else {
-	  Printv(goopscode, "(define ", goops_name, " ", primitive_name, ")\n", NIL);
-	}
-	Printf(goopsexport, "%s ", goops_name);
-	Delete(primitive_name);
-	Delete(class_name);
-	Delete(goops_name);
+        String *class_name = SwigType_typedef_resolve_all(SwigType_base(t));
+        String *goops_name = goopsNameMapping(proc_name, "");
+        String *primitive_name = NewString("");
+        if (primRenamer)
+          Printv(primitive_name, "primitive:", NIL);
+        Printv(primitive_name, proc_name, NIL);
+        /* Simply re-export the procedure */
+        if ((!emit_setters || !assignable)
+            && GetFlag(n, "feature:constasvar")) {
+          Printv(goopscode, "(define ", goops_name, " (", primitive_name, "))\n", NIL);
+        } else {
+          Printv(goopscode, "(define ", goops_name, " ", primitive_name, ")\n", NIL);
+        }
+        Printf(goopsexport, "%s ", goops_name);
+        Delete(primitive_name);
+        Delete(class_name);
+        Delete(goops_name);
       }
 
       if (procdoc) {
-	/* Compute documentation */
-	String *signature = NewString("");
-	String *signature2 = NULL;
-	String *doc = NewString("");
+        /* Compute documentation */
+        String *signature = NewString("");
+        String *signature2 = NULL;
+        String *doc = NewString("");
 
-	if (!assignable) {
-	  Printv(signature, proc_name, NIL);
-	  if (GetFlag(n, "feature:constasvar")) {
-	    Printv(doc, "Is constant ", NIL);
-	  } else {
-	    Printv(doc, "Returns constant ", NIL);
-	  }
-	  if ((tm = Getattr(n, "tmap:varout:doc"))) {
-	    Printv(doc, tm, NIL);
-	  } else {
-	    String *s = SwigType_str(t, 0);
-	    Chop(s);
-	    Printf(doc, "<%s>", s);
-	    Delete(s);
-	  }
-	} else if (emit_setters) {
-	  Printv(signature, proc_name, NIL);
-	  signature2 = NewString("");
-	  Printv(signature2, "set! (", proc_name, ") ", NIL);
-	  handle_documentation_typemap(signature2, NIL, n, "tmap:varin:arglist", "new-value");
-	  Printv(doc, "Get or set the value of the C variable, \n", NIL);
-	  Printv(doc, "which is of type ", NIL);
-	  handle_documentation_typemap(doc, NIL, n, "tmap:varout:doc", "$1_type");
-	  Printv(doc, ".");
-	} else {
-	  Printv(signature, proc_name, " #:optional ", NIL);
-	  if ((tm = Getattr(n, "tmap:varin:doc"))) {
-	    Printv(signature, tm, NIL);
-	  } else {
-	    String *s = SwigType_str(t, 0);
-	    Chop(s);
-	    Printf(signature, "new-value <%s>", s);
-	    Delete(s);
-	  }
+        if (!assignable) {
+          Printv(signature, proc_name, NIL);
+          if (GetFlag(n, "feature:constasvar")) {
+            Printv(doc, "Is constant ", NIL);
+          } else {
+            Printv(doc, "Returns constant ", NIL);
+          }
+          if ((tm = Getattr(n, "tmap:varout:doc"))) {
+            Printv(doc, tm, NIL);
+          } else {
+            String *s = SwigType_str(t, 0);
+            Chop(s);
+            Printf(doc, "<%s>", s);
+            Delete(s);
+          }
+        } else if (emit_setters) {
+          Printv(signature, proc_name, NIL);
+          signature2 = NewString("");
+          Printv(signature2, "set! (", proc_name, ") ", NIL);
+          handle_documentation_typemap(signature2, NIL, n, "tmap:varin:arglist", "new-value");
+          Printv(doc, "Get or set the value of the C variable, \n", NIL);
+          Printv(doc, "which is of type ", NIL);
+          handle_documentation_typemap(doc, NIL, n, "tmap:varout:doc", "$1_type");
+          Printv(doc, ".");
+        } else {
+          Printv(signature, proc_name, " #:optional ", NIL);
+          if ((tm = Getattr(n, "tmap:varin:doc"))) {
+            Printv(signature, tm, NIL);
+          } else {
+            String *s = SwigType_str(t, 0);
+            Chop(s);
+            Printf(signature, "new-value <%s>", s);
+            Delete(s);
+          }
 
-	  Printv(doc, "If NEW-VALUE is provided, " "set C variable to this value.\n", NIL);
-	  Printv(doc, "Returns variable value ", NIL);
-	  if ((tm = Getattr(n, "tmap:varout:doc"))) {
-	    Printv(doc, tm, NIL);
-	  } else {
-	    String *s = SwigType_str(t, 0);
-	    Chop(s);
-	    Printf(doc, "<%s>", s);
-	    Delete(s);
-	  }
-	}
-	write_doc(proc_name, signature, doc, signature2);
-	Delete(signature);
-	if (signature2)
-	  Delete(signature2);
-	Delete(doc);
+          Printv(doc, "If NEW-VALUE is provided, " "set C variable to this value.\n", NIL);
+          Printv(doc, "Returns variable value ", NIL);
+          if ((tm = Getattr(n, "tmap:varout:doc"))) {
+            Printv(doc, tm, NIL);
+          } else {
+            String *s = SwigType_str(t, 0);
+            Chop(s);
+            Printf(doc, "<%s>", s);
+            Delete(s);
+          }
+        }
+        write_doc(proc_name, signature, doc, signature2);
+        Delete(signature);
+        if (signature2)
+          Delete(signature2);
+        Delete(doc);
       }
     }
     Delete(var_name);
@@ -1313,12 +1313,12 @@ public:
       Setattr(nn, "type", nctype);
       SetFlag(nn, "feature:immutable");
       if (constasvar) {
-	SetFlag(nn, "feature:constasvar");
+        SetFlag(nn, "feature:constasvar");
       }
       SetFlag(nn, "guile:reallywrappingaconstant");
       if (variableWrapper(nn) == SWIG_ERROR) {
-	Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
-	result = SWIG_NOWRAP;
+        Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value.\n");
+        result = SWIG_NOWRAP;
       }
 
       Delete(nn);
@@ -1365,11 +1365,11 @@ public:
     if (baselist && Len(baselist)) {
       Iterator i = First(baselist);
       while (i.item) {
-	Printv(base_class, Getattr(i.item, "sym:name"), NIL);
-	i = Next(i);
-	if (i.item) {
-	  Printf(base_class, "> <");
-	}
+        Printv(base_class, Getattr(i.item, "sym:name"), NIL);
+        i = Next(i);
+        if (i.item) {
+          Printf(base_class, "> <");
+        }
       }
     }
     Printf(base_class, ">");
@@ -1499,9 +1499,9 @@ public:
     }
     if (emit_slot_accessors) {
       if (GetFlag(n, "feature:immutable")) {
-	Printv(goopscode, "\n   #:getter ", goops_name, NIL);
+        Printv(goopscode, "\n   #:getter ", goops_name, NIL);
       } else {
-	Printv(goopscode, "\n   #:accessor ", goops_name, NIL);
+        Printv(goopscode, "\n   #:accessor ", goops_name, NIL);
       }
       Printf(goopsexport, "%s ", goops_name);
     }
@@ -1542,15 +1542,15 @@ public:
 
 #     define store_pragma(PRAGMANAME)			\
         if (Strcmp(cmd, #PRAGMANAME) == 0) {		\
-	  if (PRAGMANAME) Delete(PRAGMANAME);		\
-	  PRAGMANAME = value ? NewString(value) : NULL;	\
-	}
+          if (PRAGMANAME) Delete(PRAGMANAME);		\
+          PRAGMANAME = value ? NewString(value) : NULL;	\
+        }
 
       if (Strcmp(lang, "guile") == 0) {
-	store_pragma(beforereturn)
-	    store_pragma(return_nothing_doc)
-	    store_pragma(return_one_doc)
-	    store_pragma(return_multi_doc);
+        store_pragma(beforereturn)
+            store_pragma(return_nothing_doc)
+            store_pragma(return_one_doc)
+            store_pragma(return_multi_doc);
 #     undef store_pragma
       }
     }
@@ -1571,19 +1571,19 @@ public:
     if (Strcmp(class_name, "") == 0) {
       // not part of a class, so no class name to prefix
       if (goopsprefix) {
-	Printf(n, "%s%s", goopsprefix, name);
+        Printf(n, "%s%s", goopsprefix, name);
       } else {
-	Printf(n, "%s", name);
+        Printf(n, "%s", name);
       }
     } else {
       if (useclassprefix) {
-	Printf(n, "%s-%s", class_name, name);
+        Printf(n, "%s-%s", class_name, name);
       } else {
-	if (goopsprefix) {
-	  Printf(n, "%s%s", goopsprefix, name);
-	} else {
-	  Printf(n, "%s", name);
-	}
+        if (goopsprefix) {
+          Printf(n, "%s%s", goopsprefix, name);
+        } else {
+          Printf(n, "%s", name);
+        }
       }
     }
     return n;
@@ -1602,24 +1602,24 @@ public:
     /* <identifier> --> <initial> <subsequent>* | <peculiar identifier> */
     /* <initial> --> <letter> | <special initial> */
     if (!(isalpha(*c) || (*c == '!') || (*c == '$') || (*c == '%')
-	  || (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
-	  || (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
-	  || (*c == '^') || (*c == '_') || (*c == '~'))) {
+          || (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
+          || (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
+          || (*c == '^') || (*c == '_') || (*c == '~'))) {
       /* <peculiar identifier> --> + | - | ... */
       if ((strcmp(c, "+") == 0)
-	  || strcmp(c, "-") == 0 || strcmp(c, "...") == 0)
-	return 1;
+          || strcmp(c, "-") == 0 || strcmp(c, "...") == 0)
+        return 1;
       else
-	return 0;
+        return 0;
     }
     /* <subsequent> --> <initial> | <digit> | <special subsequent> */
     while (*c) {
       if (!(isalnum(*c) || (*c == '!') || (*c == '$') || (*c == '%')
-	    || (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
-	    || (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
-	    || (*c == '^') || (*c == '_') || (*c == '~') || (*c == '+')
-	    || (*c == '-') || (*c == '.') || (*c == '@')))
-	return 0;
+            || (*c == '&') || (*c == '*') || (*c == '/') || (*c == ':')
+            || (*c == '<') || (*c == '=') || (*c == '>') || (*c == '?')
+            || (*c == '^') || (*c == '_') || (*c == '~') || (*c == '+')
+            || (*c == '-') || (*c == '.') || (*c == '@')))
+        return 0;
       c++;
     }
     return 1;

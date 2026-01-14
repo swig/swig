@@ -127,295 +127,295 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
     switch (state) {
     case 0:			/* Ordinary text */
       if (*p != '%') {
-	Putc(*p, so);
-	nbytes++;
+        Putc(*p, so);
+        nbytes++;
       } else {
-	fmt = newformat;
-	widthval = 0;
-	precval = 0;
-	*(fmt++) = *p;
-	encoder[0] = 0;
-	state = 10;
+        fmt = newformat;
+        widthval = 0;
+        precval = 0;
+        *(fmt++) = *p;
+        encoder[0] = 0;
+        state = 10;
       }
       break;
     case 10:			/* Look for a width and precision */
       if (isdigit((int) *p) && (*p != '0')) {
-	w = temp;
-	*(w++) = *p;
-	*(fmt++) = *p;
-	state = 20;
+        w = temp;
+        *(w++) = *p;
+        *(fmt++) = *p;
+        state = 20;
       } else if (strchr(fmt_codes, *p)) {
-	/* Got one of the formatting codes */
-	p--;
-	state = 100;
+        /* Got one of the formatting codes */
+        p--;
+        state = 100;
       } else if (*p == '*') {
-	/* Width field is specified in the format list */
-	widthval = va_arg(ap, int);
-	sprintf(temp, "%d", widthval);
-	for (w = temp; *w; w++) {
-	  *(fmt++) = *w;
-	}
-	state = 30;
+        /* Width field is specified in the format list */
+        widthval = va_arg(ap, int);
+        sprintf(temp, "%d", widthval);
+        for (w = temp; *w; w++) {
+          *(fmt++) = *w;
+        }
+        state = 30;
       } else if (*p == '%') {
-	Putc(*p, so);
-	fmt = newformat;
-	nbytes++;
-	state = 0;
+        Putc(*p, so);
+        fmt = newformat;
+        nbytes++;
+        state = 0;
       } else if (*p == '(') {
-	++plevel;
-	ec = encoder;
-	state = 60;
+        ++plevel;
+        ec = encoder;
+        state = 60;
       } else {
-	*(fmt++) = *p;
+        *(fmt++) = *p;
       }
       break;
 
     case 20:			/* Hmmm. At the start of a width field */
       if (isdigit((int) *p)) {
-	*(w++) = *p;
-	*(fmt++) = *p;
+        *(w++) = *p;
+        *(fmt++) = *p;
       } else if (strchr(fmt_codes, *p)) {
-	/* Got one of the formatting codes */
-	/* Figure out width */
-	*w = 0;
-	widthval = atoi(temp);
-	p--;
-	state = 100;
+        /* Got one of the formatting codes */
+        /* Figure out width */
+        *w = 0;
+        widthval = atoi(temp);
+        p--;
+        state = 100;
       } else if (*p == '.') {
-	*w = 0;
-	widthval = atoi(temp);
-	w = temp;
-	*(fmt++) = *p;
-	state = 40;
+        *w = 0;
+        widthval = atoi(temp);
+        w = temp;
+        *(fmt++) = *p;
+        state = 40;
       } else {
-	/* ??? */
-	*w = 0;
-	widthval = atoi(temp);
-	state = 50;
+        /* ??? */
+        *w = 0;
+        widthval = atoi(temp);
+        state = 50;
       }
       break;
 
     case 30:			/* Parsed a width from an argument.  Look for a . */
       if (*p == '.') {
-	w = temp;
-	*(fmt++) = *p;
-	state = 40;
+        w = temp;
+        *(fmt++) = *p;
+        state = 40;
       } else if (strchr(fmt_codes, *p)) {
-	/* Got one of the formatting codes */
-	/* Figure out width */
-	p--;
-	state = 100;
+        /* Got one of the formatting codes */
+        /* Figure out width */
+        p--;
+        state = 100;
       } else {
-	/* hmmm. Something else. */
-	state = 50;
+        /* hmmm. Something else. */
+        state = 50;
       }
       break;
 
     case 40:
       /* Start of precision expected */
       if (isdigit((int) *p) && (*p != '0')) {
-	*(fmt++) = *p;
-	*(w++) = *p;
-	state = 41;
+        *(fmt++) = *p;
+        *(w++) = *p;
+        state = 41;
       } else if (*p == '*') {
-	/* Precision field is specified in the format list */
-	precval = va_arg(ap, int);
-	sprintf(temp, "%d", precval);
-	for (w = temp; *w; w++) {
-	  *(fmt++) = *w;
-	}
-	state = 50;
+        /* Precision field is specified in the format list */
+        precval = va_arg(ap, int);
+        sprintf(temp, "%d", precval);
+        for (w = temp; *w; w++) {
+          *(fmt++) = *w;
+        }
+        state = 50;
       } else if (strchr(fmt_codes, *p)) {
-	p--;
-	state = 100;
+        p--;
+        state = 100;
       } else {
-	*(fmt++) = *p;
-	state = 50;
+        *(fmt++) = *p;
+        state = 50;
       }
       break;
     case 41:
       if (isdigit((int) *p)) {
-	*(fmt++) = *p;
-	*(w++) = *p;
+        *(fmt++) = *p;
+        *(w++) = *p;
       } else if (strchr(fmt_codes, *p)) {
-	/* Got one of the formatting codes */
-	/* Figure out width */
-	*w = 0;
-	precval = atoi(temp);
-	p--;
-	state = 100;
+        /* Got one of the formatting codes */
+        /* Figure out width */
+        *w = 0;
+        precval = atoi(temp);
+        p--;
+        state = 100;
       } else {
-	*w = 0;
-	precval = atoi(temp);
-	*(fmt++) = *p;
-	state = 50;
+        *w = 0;
+        precval = atoi(temp);
+        *(fmt++) = *p;
+        state = 50;
       }
       break;
       /* Hang out, wait for format specifier */
     case 50:
       if (strchr(fmt_codes, *p)) {
-	p--;
-	state = 100;
+        p--;
+        state = 100;
       } else {
-	*(fmt++) = *p;
+        *(fmt++) = *p;
       }
       break;
 
       /* Got an encoding header */
     case 60:
       if (*p == '(') {
-	++plevel;
-	*ec = *p;
-	ec++;
+        ++plevel;
+        *ec = *p;
+        ec++;
       } else if (*p == ')') {
-	--plevel;
-	if (plevel <= 0) {
-	  *ec = 0;
-	  state = 10;
-	} else {
-	  *ec = *p;
-	  ec++;
-	}
+        --plevel;
+        if (plevel <= 0) {
+          *ec = 0;
+          state = 10;
+        } else {
+          *ec = *p;
+          ec++;
+        }
       } else {
-	*ec = *p;
-	ec++;
+        *ec = *p;
+        ec++;
       }
       break;
     case 100:
       /* Got a formatting code */
       if (widthval < precval)
-	maxwidth = precval;
+        maxwidth = precval;
       else
-	maxwidth = widthval;
+        maxwidth = widthval;
       if ((*p == 's') || (*p == 'S')) {	/* Null-Terminated string */
-	DOH *doh;
-	DOH *Sval;
-	DOH *enc = 0;
-	doh = va_arg(ap, DOH *);
-	if (DohCheck(doh)) {
-	  /* Is a DOH object. */
-	  if (DohIsString(doh)) {
-	    Sval = doh;
-	  } else {
-	    Sval = Str(doh);
-	  }
-	  if (strlen(encoder)) {
-	    enc = encode(encoder, Sval);
-	    maxwidth = maxwidth + (int)strlen(newformat) + Len(enc);
-	  } else {
-	    maxwidth = maxwidth + (int)strlen(newformat) + Len(Sval);
-	  }
-	  *(fmt++) = 's';
-	  *fmt = 0;
-	  if ((maxwidth + 1) < OBUFLEN) {
-	    stemp = obuffer;
-	  } else {
-	    stemp = (char *) DohMalloc(maxwidth + 1);
-	  }
-	  if (enc) {
-	    nbytes += sprintf(stemp, newformat, Data(enc));
-	  } else {
-	    nbytes += sprintf(stemp, newformat, Data(Sval));
-	  }
-	  if (Writen(so, stemp, (int)strlen(stemp)) < 0)
-	    return -1;
-	  if ((DOH *) Sval != doh) {
-	    Delete(Sval);
-	  }
-	  if (enc)
-	    Delete(enc);
-	  if (*p == 'S') {
-	    Delete(doh);
-	  }
-	  if (stemp != obuffer) {
-	    DohFree(stemp);
-	  }
-	} else {
-	  if (!doh)
-	    doh = (char *) "";
+        DOH *doh;
+        DOH *Sval;
+        DOH *enc = 0;
+        doh = va_arg(ap, DOH *);
+        if (DohCheck(doh)) {
+          /* Is a DOH object. */
+          if (DohIsString(doh)) {
+            Sval = doh;
+          } else {
+            Sval = Str(doh);
+          }
+          if (strlen(encoder)) {
+            enc = encode(encoder, Sval);
+            maxwidth = maxwidth + (int)strlen(newformat) + Len(enc);
+          } else {
+            maxwidth = maxwidth + (int)strlen(newformat) + Len(Sval);
+          }
+          *(fmt++) = 's';
+          *fmt = 0;
+          if ((maxwidth + 1) < OBUFLEN) {
+            stemp = obuffer;
+          } else {
+            stemp = (char *) DohMalloc(maxwidth + 1);
+          }
+          if (enc) {
+            nbytes += sprintf(stemp, newformat, Data(enc));
+          } else {
+            nbytes += sprintf(stemp, newformat, Data(Sval));
+          }
+          if (Writen(so, stemp, (int)strlen(stemp)) < 0)
+            return -1;
+          if ((DOH *) Sval != doh) {
+            Delete(Sval);
+          }
+          if (enc)
+            Delete(enc);
+          if (*p == 'S') {
+            Delete(doh);
+          }
+          if (stemp != obuffer) {
+            DohFree(stemp);
+          }
+        } else {
+          if (!doh)
+            doh = (char *) "";
 
-	  if (strlen(encoder)) {
-	    DOH *s = NewString(doh);
-	    Seek(s, 0, SEEK_SET);
-	    enc = encode(encoder, s);
-	    Delete(s);
-	    doh = Char(enc);
-	  } else {
-	    enc = 0;
-	  }
-	  maxwidth = maxwidth + (int)strlen(newformat) + (int)strlen((char *) doh);
-	  *(fmt++) = 's';
-	  *fmt = 0;
-	  if ((maxwidth + 1) < OBUFLEN) {
-	    stemp = obuffer;
-	  } else {
-	    stemp = (char *) DohMalloc(maxwidth + 1);
-	  }
-	  nbytes += sprintf(stemp, newformat, doh);
-	  if (Writen(so, stemp, (int)strlen(stemp)) < 0)
-	    return -1;
-	  if (stemp != obuffer) {
-	    DohFree(stemp);
-	  }
-	  if (enc)
-	    Delete(enc);
-	}
+          if (strlen(encoder)) {
+            DOH *s = NewString(doh);
+            Seek(s, 0, SEEK_SET);
+            enc = encode(encoder, s);
+            Delete(s);
+            doh = Char(enc);
+          } else {
+            enc = 0;
+          }
+          maxwidth = maxwidth + (int)strlen(newformat) + (int)strlen((char *) doh);
+          *(fmt++) = 's';
+          *fmt = 0;
+          if ((maxwidth + 1) < OBUFLEN) {
+            stemp = obuffer;
+          } else {
+            stemp = (char *) DohMalloc(maxwidth + 1);
+          }
+          nbytes += sprintf(stemp, newformat, doh);
+          if (Writen(so, stemp, (int)strlen(stemp)) < 0)
+            return -1;
+          if (stemp != obuffer) {
+            DohFree(stemp);
+          }
+          if (enc)
+            Delete(enc);
+        }
       } else {
-	*(fmt++) = *p;
-	*fmt = 0;
-	maxwidth = maxwidth + (int)strlen(newformat) + 64;
+        *(fmt++) = *p;
+        *fmt = 0;
+        maxwidth = maxwidth + (int)strlen(newformat) + 64;
 
-	/* Only allocate a buffer if it is too big to fit.  Shouldn't have to do
-	   this very often */
+        /* Only allocate a buffer if it is too big to fit.  Shouldn't have to do
+           this very often */
 
-	if (maxwidth < OBUFLEN)
-	  stemp = obuffer;
-	else
-	  stemp = (char *) DohMalloc(maxwidth + 1);
-	switch (*p) {
-	case 'd':
-	case 'i':
-	case 'o':
-	case 'u':
-	case 'x':
-	case 'X':
-	  if (p[-1] == 'l') {
-	    if (p[-2] == 'l') {
-	      long long llvalue = va_arg(ap, long long);
-	      nbytes += sprintf(stemp, newformat, llvalue);
-	      break;
-	    }
-	    long lvalue = va_arg(ap, long);
-	    nbytes += sprintf(stemp, newformat, lvalue);
-	    break;
-	  }
-	  /* FALLTHRU */
-	case 'c': {
-	  int ivalue = va_arg(ap, int);
-	  nbytes += sprintf(stemp, newformat, ivalue);
-	  break;
-	}
-	case 'f':
-	case 'g':
-	case 'e':
-	case 'E':
-	case 'G': {
-	  double dvalue = va_arg(ap, double);
-	  nbytes += sprintf(stemp, newformat, dvalue);
-	  break;
-	}
-	case 'p': {
-	  void *pvalue = va_arg(ap, void *);
-	  nbytes += sprintf(stemp, newformat, pvalue);
-	  break;
-	}
-	default:
-	  break;
-	}
-	if (Writen(so, stemp, (int)strlen(stemp)) < 0)
-	  return -1;
-	if (stemp != obuffer)
-	  DohFree(stemp);
+        if (maxwidth < OBUFLEN)
+          stemp = obuffer;
+        else
+          stemp = (char *) DohMalloc(maxwidth + 1);
+        switch (*p) {
+        case 'd':
+        case 'i':
+        case 'o':
+        case 'u':
+        case 'x':
+        case 'X':
+          if (p[-1] == 'l') {
+            if (p[-2] == 'l') {
+              long long llvalue = va_arg(ap, long long);
+              nbytes += sprintf(stemp, newformat, llvalue);
+              break;
+            }
+            long lvalue = va_arg(ap, long);
+            nbytes += sprintf(stemp, newformat, lvalue);
+            break;
+          }
+          /* FALLTHRU */
+        case 'c': {
+          int ivalue = va_arg(ap, int);
+          nbytes += sprintf(stemp, newformat, ivalue);
+          break;
+        }
+        case 'f':
+        case 'g':
+        case 'e':
+        case 'E':
+        case 'G': {
+          double dvalue = va_arg(ap, double);
+          nbytes += sprintf(stemp, newformat, dvalue);
+          break;
+        }
+        case 'p': {
+          void *pvalue = va_arg(ap, void *);
+          nbytes += sprintf(stemp, newformat, pvalue);
+          break;
+        }
+        default:
+          break;
+        }
+        if (Writen(so, stemp, (int)strlen(stemp)) < 0)
+          return -1;
+        if (stemp != obuffer)
+          DohFree(stemp);
       }
       state = 0;
       break;
@@ -494,13 +494,13 @@ int DohCopyto(DOH *in, DOH *out) {
       nwrite = ret;
       cw = buffer;
       while (nwrite) {
-	wret = Write(out, cw, nwrite);
-	if (wret < 0) {
-	  nbytes = -1;
-	  break;
-	}
-	nwrite = nwrite - wret;
-	cw += wret;
+        wret = Write(out, cw, nwrite);
+        if (wret < 0) {
+          nbytes = -1;
+          break;
+        }
+        nwrite = nwrite - wret;
+        cw += wret;
       }
       nbytes += ret;
     } else {
@@ -537,10 +537,10 @@ DOH *DohSplit(DOH *in, char ch, int nsplits) {
     if (c != EOF) {
       Putc(c, str);
       while (1) {
-	c = Getc(in);
-	if ((c == EOF) || ((c == ch) && (nsplits != 0)))
-	  break;
-	Putc(c, str);
+        c = Getc(in);
+        if ((c == EOF) || ((c == ch) && (nsplits != 0)))
+          break;
+        Putc(c, str);
       }
       nsplits--;
     }
@@ -594,8 +594,8 @@ DOH *DohReadline(DOH *in) {
   while (1) {
     if (Read(in, &c, 1) < 0) {
       if (n == 0) {
-	Delete(s);
-	s = 0;
+        Delete(s);
+        s = 0;
       }
       break;
     }

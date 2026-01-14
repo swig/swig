@@ -94,11 +94,11 @@ void Swig_warning(int wnum, const_String_or_char_ptr filename, int line, const c
     sprintf(temp, "%d", wnum);
     while (*f != '\0' && (c = strstr(f, temp))) {
       if (*(c - 1) == '-') {
-	wrn = 0;		/* Warning disabled */
+        wrn = 0;		/* Warning disabled */
         break;
       }
       if (*(c - 1) == '+') {
-	wrn = 1;		/* Warning enabled */
+        wrn = 1;		/* Warning enabled */
         break;
       }
       f += strlen(temp);
@@ -203,19 +203,19 @@ void Swig_warnfilter(const_String_or_char_ptr wlist, int add) {
       /* Even if c is a digit, the rest of the string might not be, eg in the case of typemap 
        * warnings (a bit odd really), eg: %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) */
       if (add) {
-	Insert(filter, 0, c);
-	if (isdigit((int) *c)) {
-	  Insert(filter, 0, "-");
-	}
+        Insert(filter, 0, c);
+        if (isdigit((int) *c)) {
+          Insert(filter, 0, "-");
+        }
       } else {
-	char *temp = (char *)Malloc(sizeof(char)*strlen(c) + 2);
-	if (isdigit((int) *c)) {
-	  sprintf(temp, "-%s", c);
-	} else {
-	  strcpy(temp, c);
-	}
-	Replace(filter, temp, "", DOH_REPLACE_FIRST);
-	Free(temp);
+        char *temp = (char *)Malloc(sizeof(char)*strlen(c) + 2);
+        if (isdigit((int) *c)) {
+          sprintf(temp, "-%s", c);
+        } else {
+          strcpy(temp, c);
+        }
+        Replace(filter, temp, "", DOH_REPLACE_FIRST);
+        Free(temp);
       }
     }
     c = strtok(NULL, ", ");

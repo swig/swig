@@ -109,23 +109,23 @@ public:
     /* Manage command line arguments */
     for (int argIndex = 1; argIndex < argc; argIndex++) {
       if (argv[argIndex] != NULL) {
-	if (strcmp(argv[argIndex], "-help") == 0) {
-	  Printf(stdout, "%s", usage);
-	} else if (strcmp(argv[argIndex], "-builder") == 0) {
-	  Swig_mark_arg(argIndex);
-	  generateBuilder = true;
-	  createLoader = false;
-	} else if (strcmp(argv[argIndex], "-buildersources") == 0) {
-	  if (argv[argIndex + 1] != NULL) {
-	    Swig_mark_arg(argIndex);
-	    char *sourceFile = strtok(argv[argIndex + 1], ",");
-	    while (sourceFile != NULL) {
-	      Insert(sourceFileList, Len(sourceFileList), sourceFile);
-	      sourceFile = strtok(NULL, ",");
-	    }
-	    Swig_mark_arg(argIndex + 1);
-	  }
-	} else if (strcmp(argv[argIndex], "-buildercflags") == 0) {
+        if (strcmp(argv[argIndex], "-help") == 0) {
+          Printf(stdout, "%s", usage);
+        } else if (strcmp(argv[argIndex], "-builder") == 0) {
+          Swig_mark_arg(argIndex);
+          generateBuilder = true;
+          createLoader = false;
+        } else if (strcmp(argv[argIndex], "-buildersources") == 0) {
+          if (argv[argIndex + 1] != NULL) {
+            Swig_mark_arg(argIndex);
+            char *sourceFile = strtok(argv[argIndex + 1], ",");
+            while (sourceFile != NULL) {
+              Insert(sourceFileList, Len(sourceFileList), sourceFile);
+              sourceFile = strtok(NULL, ",");
+            }
+            Swig_mark_arg(argIndex + 1);
+          }
+        } else if (strcmp(argv[argIndex], "-buildercflags") == 0) {
           Swig_mark_arg(argIndex);
           if (argv[argIndex + 1] != NULL) {
             Insert(cflags, Len(cflags), argv[argIndex + 1]);
@@ -396,34 +396,34 @@ public:
     for (paramIndex = 0, param = functionParamsList; paramIndex < maxInputArguments; ++paramIndex) {
       // Ignore parameter if the typemap specifies numinputs=0
       while (checkAttribute(param, "tmap:in:numinputs", "0")) {
-	param = Getattr(param, "tmap:in:next");
+        param = Getattr(param, "tmap:in:next");
       }
 
       SwigType *paramType = Getattr(param, "type");
       String *paramTypemap = Getattr(param, "tmap:in");
 
       if (paramTypemap) {
-	// Replace $input by the position on Scilab stack
-	String *source = NewString("");
-	Printf(source, "%d", paramIndex + 1);
-	Setattr(param, "emit:input", source);
-	Replaceall(paramTypemap, "$input", Getattr(param, "emit:input"));
+        // Replace $input by the position on Scilab stack
+        String *source = NewString("");
+        Printf(source, "%d", paramIndex + 1);
+        Setattr(param, "emit:input", source);
+        Replaceall(paramTypemap, "$input", Getattr(param, "emit:input"));
 
-	if (Getattr(param, "wrap:disown") || (Getattr(param, "tmap:in:disown"))) {
-	  Replaceall(paramTypemap, "$disown", "SWIG_POINTER_DISOWN");
-	} else {
-	  Replaceall(paramTypemap, "$disown", "0");
-	}
+        if (Getattr(param, "wrap:disown") || (Getattr(param, "tmap:in:disown"))) {
+          Replaceall(paramTypemap, "$disown", "SWIG_POINTER_DISOWN");
+        } else {
+          Replaceall(paramTypemap, "$disown", "0");
+        }
 
-	if (paramIndex >= minInputArguments) {	/* Optional input argument management */
-	  Printf(wrapper->code, "if (SWIG_NbInputArgument(pvApiCtx) > %d) {\n%s\n}\n", paramIndex, paramTypemap);
-	} else {
-	  Printf(wrapper->code, "%s\n", paramTypemap);
-	}
-	param = Getattr(param, "tmap:in:next");
+        if (paramIndex >= minInputArguments) {	/* Optional input argument management */
+          Printf(wrapper->code, "if (SWIG_NbInputArgument(pvApiCtx) > %d) {\n%s\n}\n", paramIndex, paramTypemap);
+        } else {
+          Printf(wrapper->code, "%s\n", paramTypemap);
+        }
+        param = Getattr(param, "tmap:in:next");
       } else {
-	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(paramType, 0));
-	break;
+        Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(paramType, 0));
+        break;
       }
     }
 
@@ -443,57 +443,57 @@ public:
     if (functionReturnTypemap) {
       // Result is actually the position of output value on stack
       if (Len(functionReturnTypemap) > 0) {
-	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", 1);
+        Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", 1);
       }
       Replaceall(functionReturnTypemap, "$result", "1");
 
       if (GetFlag(node, "feature:new")) {
-	Replaceall(functionReturnTypemap, "$owner", "1");
+        Replaceall(functionReturnTypemap, "$owner", "1");
       } else {
-	Replaceall(functionReturnTypemap, "$owner", "0");
+        Replaceall(functionReturnTypemap, "$owner", "0");
       }
 
       Printf(wrapper->code, "%s\n", functionReturnTypemap);
 
       /* If the typemap is not empty, the function return one more argument than the typemaps gives */
       if (Len(functionReturnTypemap) > 0) {
-	minOutputArguments++;
-	maxOutputArguments++;
+        minOutputArguments++;
+        maxOutputArguments++;
       }
       Delete(functionReturnTypemap);
 
     } else {
       Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(functionReturnType, 0),
-		   functionName);
+                   functionName);
     }
 
     /* Write typemaps(out) */
     for (param = functionParamsList; param;) {
       String *paramTypemap = Getattr(param, "tmap:argout");
       if (paramTypemap) {
-	minOutputArguments++;
-	maxOutputArguments++;
-	Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", minOutputArguments);
-	String *result = NewString("");
-	Printf(result, "%d", minOutputArguments);
-	Replaceall(paramTypemap, "$result", result);
-	Printf(wrapper->code, "%s\n", paramTypemap);
-	Delete(paramTypemap);
-	param = Getattr(param, "tmap:argout:next");
+        minOutputArguments++;
+        maxOutputArguments++;
+        Printf(wrapper->code, "SWIG_Scilab_SetOutputPosition(%d);\n", minOutputArguments);
+        String *result = NewString("");
+        Printf(result, "%d", minOutputArguments);
+        Replaceall(paramTypemap, "$result", result);
+        Printf(wrapper->code, "%s\n", paramTypemap);
+        Delete(paramTypemap);
+        param = Getattr(param, "tmap:argout:next");
       } else {
-	param = nextSibling(param);
+        param = nextSibling(param);
       }
     }
     /* Add cleanup code */
     for (param = functionParamsList; param;) {
       String *tm;
       if ((tm = Getattr(param, "tmap:freearg"))) {
-	if (tm && (Len(tm) != 0)) {
-	  Printf(wrapper->code, "%s\n", tm);
-	}
-	param = Getattr(param, "tmap:freearg:next");
+        if (tm && (Len(tm) != 0)) {
+          Printf(wrapper->code, "%s\n", tm);
+        }
+        param = Getattr(param, "tmap:freearg:next");
       } else {
-	param = nextSibling(param);
+        param = nextSibling(param);
       }
     }
 
@@ -660,9 +660,9 @@ public:
 
       String *varinTypemap = Swig_typemap_lookup("varin", node, origVariableName, 0);
       if (varinTypemap != NULL) {
-	Replaceall(varinTypemap, "$input", "1");
-	emit_action_code(node, setFunctionWrapper->code, varinTypemap);
-	Delete(varinTypemap);
+        Replaceall(varinTypemap, "$input", "1");
+        emit_action_code(node, setFunctionWrapper->code, varinTypemap);
+        Delete(varinTypemap);
       }
       Append(setFunctionWrapper->code, "return SWIG_OK;\n");
       Append(setFunctionWrapper->code, "}\n");
@@ -697,22 +697,22 @@ public:
       bool isEnum = (Cmp(nodeType(node), "enumitem") == 0);
 
       if (isConstant || isEnum) {
-	if (isEnum) {
-	  Setattr(node, "type", "double");
-	  constantValue = Getattr(node, "value");
-	}
+        if (isEnum) {
+          Setattr(node, "type", "double");
+          constantValue = Getattr(node, "value");
+        }
 
-	constantTypemap = Swig_typemap_lookup("scilabconstcode", node, nodeName, 0);
-	if (constantTypemap != NULL) {
+        constantTypemap = Swig_typemap_lookup("scilabconstcode", node, nodeName, 0);
+        if (constantTypemap != NULL) {
 
-	  Setattr(node, "wrap:name", constantName);
-	  Replaceall(constantTypemap, "$result", constantName);
-	  Replaceall(constantTypemap, "$value", constantValue);
+          Setattr(node, "wrap:name", constantName);
+          Replaceall(constantTypemap, "$result", constantName);
+          Replaceall(constantTypemap, "$value", constantValue);
 
-	  emit_action_code(node, variablesCode, constantTypemap);
-	  Delete(constantTypemap);
-	  return SWIG_OK;
-	}
+          emit_action_code(node, variablesCode, constantTypemap);
+          Delete(constantTypemap);
+          return SWIG_OK;
+        }
       }
     }
 
@@ -779,22 +779,22 @@ public:
       // First enum value ?
       String *firstenumitem = Getattr(node, "firstenumitem");
       if (firstenumitem) {
-	if (enumValue) {
-	  // Value is in 'enumvalue'
-	  iPreviousEnumValue = atoi(Char(enumValue));
-	} else if (enumValueEx) {
-	  // Or value is in 'enumValueEx'
-	  iPreviousEnumValue = atoi(Char(enumValueEx));
+        if (enumValue) {
+          // Value is in 'enumvalue'
+          iPreviousEnumValue = atoi(Char(enumValue));
+        } else if (enumValueEx) {
+          // Or value is in 'enumValueEx'
+          iPreviousEnumValue = atoi(Char(enumValueEx));
 
-	  enumValue = NewString("");
-	  Printf(enumValue, "%d", iPreviousEnumValue);
-	  Setattr(node, "enumvalue", enumValue);
-	}
+          enumValue = NewString("");
+          Printf(enumValue, "%d", iPreviousEnumValue);
+          Setattr(node, "enumvalue", enumValue);
+        }
       } else if (!enumValue && enumValueEx) {
-	// Value is not specified, set it by incrementing last value
-	enumValue = NewString("");
-	Printf(enumValue, "%d", ++iPreviousEnumValue);
-	Setattr(node, "enumvalue", enumValue);
+        // Value is not specified, set it by incrementing last value
+        enumValue = NewString("");
+        Printf(enumValue, "%d", ++iPreviousEnumValue);
+        Setattr(node, "enumvalue", enumValue);
       }
       // Enums in Scilab are mapped to double
       Setattr(node, "type", "double");
@@ -877,12 +877,12 @@ public:
 
     if (Len(ldflags) > 0) {
       for (int i = 0; i < Len(ldflags); i++) {
-	String *ldflag = Getitem(ldflags, i);
-	if (i == 0) {
-	  Printf(builderCode, "ldflags = \"%s\";\n", ldflag);
-	} else {
-	  Printf(builderCode, "ldflags = ldflags + \" %s\";\n", ldflag);
-	}
+        String *ldflag = Getitem(ldflags, i);
+        if (i == 0) {
+          Printf(builderCode, "ldflags = \"%s\";\n", ldflag);
+        } else {
+          Printf(builderCode, "ldflags = ldflags + \" %s\";\n", ldflag);
+        }
       }
     } else {
       Printf(builderCode, "ldflags = \"\";\n");
@@ -899,9 +899,9 @@ public:
     for (int i = 0; i < Len(sourceFileList); i++) {
       String *sourceFile = Getitem(sourceFileList, i);
       if (i == 0) {
-	Printf(builderCode, "files = \"%s\";\n", sourceFile);
+        Printf(builderCode, "files = \"%s\";\n", sourceFile);
       } else {
-	Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
+        Printf(builderCode, "files($ + 1) = \"%s\";\n", sourceFile);
       }
     }
 

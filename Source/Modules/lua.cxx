@@ -219,27 +219,27 @@ public:
     /* Look for certain command line options */
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
-	if (strcmp(argv[i], "-help") == 0) {	// usage flags
-	  fputs(usage, stdout);
-	} else if (strcmp(argv[i], "-nomoduleglobal") == 0) {
-	  nomoduleglobal = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-elua") == 0) {
-	  elua_ltr = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-eluac") == 0) {
-	  eluac_ltr = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-no-old-metatable-bindings") == 0) {
-	  Swig_mark_arg(i);
-	  old_metatable_bindings = 0;
-	} else if (strcmp(argv[i], "-squash-bases") == 0) {
-	  Swig_mark_arg(i);
-	  squash_bases = 1;
-	} else if (strcmp(argv[i], "-elua-emulate") == 0) {
-	  Swig_mark_arg(i);
-	  elua_emulate = 1;
-	}
+        if (strcmp(argv[i], "-help") == 0) {	// usage flags
+          fputs(usage, stdout);
+        } else if (strcmp(argv[i], "-nomoduleglobal") == 0) {
+          nomoduleglobal = 1;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-elua") == 0) {
+          elua_ltr = 1;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-eluac") == 0) {
+          eluac_ltr = 1;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-no-old-metatable-bindings") == 0) {
+          Swig_mark_arg(i);
+          old_metatable_bindings = 0;
+        } else if (strcmp(argv[i], "-squash-bases") == 0) {
+          Swig_mark_arg(i);
+          squash_bases = 1;
+        } else if (strcmp(argv[i], "-elua-emulate") == 0) {
+          Swig_mark_arg(i);
+          elua_emulate = 1;
+        }
       }
     }
 
@@ -342,10 +342,10 @@ public:
     if (mod) {
       Node *options = Getattr(mod, "options");
       if (options && Getattr(options, "directors")) {
-	allow_directors();
-	if (Getattr(options, "dirprot")) {
-	  allow_dirprot();
-	}
+        allow_directors();
+        if (Getattr(options, "dirprot")) {
+          allow_dirprot();
+        }
       }
     }
 
@@ -498,9 +498,9 @@ public:
     } else {
       assert(!current[NO_CPP]);
       if (current[STATIC_FUNC] || current[MEMBER_FUNC]) {
-	mrename = Swig_name_member(getNSpace(), getClassPrefix(), symname);
+        mrename = Swig_name_member(getNSpace(), getClassPrefix(), symname);
       } else {
-	mrename = symname;
+        mrename = symname;
       }
     }
     wrapname = Swig_name_wrapper(mrename);
@@ -528,9 +528,9 @@ public:
       String *metatable_tab = Getattr(nspaceHash, "metatable");
       assert(metatable_tab);
       if (elua_ltr)
-	Printv(metatable_tab, tab4, "{LSTRKEY(\"", lua_name, "\")", ", LFUNCVAL(", wname, ")", "},\n", NIL);
+        Printv(metatable_tab, tab4, "{LSTRKEY(\"", lua_name, "\")", ", LFUNCVAL(", wname, ")", "},\n", NIL);
       else
-	Printv(metatable_tab, tab4, "{ \"", lua_name, "\", ", wname, "},\n", NIL);
+        Printv(metatable_tab, tab4, "{ \"", lua_name, "\", ", wname, "},\n", NIL);
     }
   }
 
@@ -553,7 +553,7 @@ public:
       overname = Getattr(n, "sym:overname");
     } else {
       if (!luaAddSymbol(lua_name, n)) {
-	return SWIG_ERROR;
+        return SWIG_ERROR;
       }
     }
 
@@ -571,7 +571,7 @@ public:
     }
     if (current[CONSTRUCTOR]) {
       if (constructor_name != 0)
-	Delete(constructor_name);
+        Delete(constructor_name);
       constructor_name = Copy(wname);
     }
 
@@ -655,54 +655,54 @@ public:
     for (i = 0, p = l; i < num_arguments; i++) {
 
       while (checkAttribute(p, "tmap:in:numinputs", "0")) {
-	p = Getattr(p, "tmap:in:next");
+        p = Getattr(p, "tmap:in:next");
       }
 
       SwigType *pt = Getattr(p, "type");
       /* Look for an input typemap */
       sprintf(source, "%d", i + 1);
       if ((tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$input", source);
-	Setattr(p, "emit:input", source);
-	if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
-	  Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
-	} else {
-	  Replaceall(tm, "$disown", "0");
-	}
-	/* NEW LANGUAGE NOTE:***********************************************
-	   look for a 'checkfn' typemap
-	   this an additional parameter added to the in typemap
-	   if found the type will be tested for
-	   this will result in code either in the
-	   argument_check or argument_parse string
-	   NEW LANGUAGE NOTE:END *********************************************** */
-	if ((checkfn = Getattr(p, "tmap:in:checkfn"))) {
-	  if (i < num_required) {
-	    Printf(argument_check, "if(!%s(L,%s))", checkfn, source);
-	  } else {
-	    Printf(argument_check, "if(lua_gettop(L)>=%s && !%s(L,%s))", source, checkfn, source);
-	  }
-	  Printf(argument_check, " SWIG_fail_arg(\"%s\",%s,\"%s\");\n", Swig_name_str(n), source, SwigType_str(pt, 0));
-	}
-	/* NEW LANGUAGE NOTE:***********************************************
-	   lua states the number of arguments passed to a function using the fn
-	   lua_gettop()
-	   we can use this to deal with default arguments
-	   NEW LANGUAGE NOTE:END *********************************************** */
-	if (i < num_required) {
-	  Printf(argument_parse, "%s\n", tm);
-	} else {
-	  Printf(argument_parse, "if(lua_gettop(L)>=%s){%s}\n", source, tm);
-	}
-	p = Getattr(p, "tmap:in:next");
-	continue;
+        Replaceall(tm, "$input", source);
+        Setattr(p, "emit:input", source);
+        if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
+          Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
+        } else {
+          Replaceall(tm, "$disown", "0");
+        }
+        /* NEW LANGUAGE NOTE:***********************************************
+           look for a 'checkfn' typemap
+           this an additional parameter added to the in typemap
+           if found the type will be tested for
+           this will result in code either in the
+           argument_check or argument_parse string
+           NEW LANGUAGE NOTE:END *********************************************** */
+        if ((checkfn = Getattr(p, "tmap:in:checkfn"))) {
+          if (i < num_required) {
+            Printf(argument_check, "if(!%s(L,%s))", checkfn, source);
+          } else {
+            Printf(argument_check, "if(lua_gettop(L)>=%s && !%s(L,%s))", source, checkfn, source);
+          }
+          Printf(argument_check, " SWIG_fail_arg(\"%s\",%s,\"%s\");\n", Swig_name_str(n), source, SwigType_str(pt, 0));
+        }
+        /* NEW LANGUAGE NOTE:***********************************************
+           lua states the number of arguments passed to a function using the fn
+           lua_gettop()
+           we can use this to deal with default arguments
+           NEW LANGUAGE NOTE:END *********************************************** */
+        if (i < num_required) {
+          Printf(argument_parse, "%s\n", tm);
+        } else {
+          Printf(argument_parse, "if(lua_gettop(L)>=%s){%s}\n", source, tm);
+        }
+        p = Getattr(p, "tmap:in:next");
+        continue;
       } else {
-	/* NEW LANGUAGE NOTE:***********************************************
-	   // why is this code not called when I don't have a typemap?
-	   // instead of giving a warning, no code is generated
-	   NEW LANGUAGE NOTE:END *********************************************** */
-	Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
-	break;
+        /* NEW LANGUAGE NOTE:***********************************************
+           // why is this code not called when I don't have a typemap?
+           // instead of giving a warning, no code is generated
+           NEW LANGUAGE NOTE:END *********************************************** */
+        Swig_warning(WARN_TYPEMAP_IN_UNDEF, input_file, line_number, "Unable to use type %s as a function argument.\n", SwigType_str(pt, 0));
+        break;
       }
     }
 
@@ -718,18 +718,18 @@ public:
     /* Check for trailing varargs */
     if (varargs) {
       if (p && (tm = Getattr(p, "tmap:in"))) {
-	Replaceall(tm, "$input", "varargs");
-	Printv(f->code, tm, "\n", NIL);
+        Replaceall(tm, "$input", "varargs");
+        Printv(f->code, tm, "\n", NIL);
       }
     }
 
     /* Insert constraint checking code */
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Printv(f->code, tm, "\n", NIL);
-	p = Getattr(p, "tmap:check:next");
+        Printv(f->code, tm, "\n", NIL);
+        p = Getattr(p, "tmap:check:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
 
@@ -737,10 +737,10 @@ public:
     String *cleanup = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
-	Printv(cleanup, tm, "\n", NIL);
-	p = Getattr(p, "tmap:freearg:next");
+        Printv(cleanup, tm, "\n", NIL);
+        p = Getattr(p, "tmap:freearg:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
 
@@ -748,19 +748,19 @@ public:
     String *outarg = NewString("");
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	//          // managing the number of returning variables
-	//        if (numoutputs=Getattr(p,"tmap:argout:numoutputs")){
-	//                      int i=GetInt(p,"tmap:argout:numoutputs");
-	//                      printf("got argout:numoutputs of %d\n",i);
-	//                      returnval+=GetInt(p,"tmap:argout:numoutputs");
-	//        }
-	//        else returnval++;
-	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
-	Replaceall(tm, "$input", Getattr(p, "emit:input"));
-	Printv(outarg, tm, "\n", NIL);
-	p = Getattr(p, "tmap:argout:next");
+        //          // managing the number of returning variables
+        //        if (numoutputs=Getattr(p,"tmap:argout:numoutputs")){
+        //                      int i=GetInt(p,"tmap:argout:numoutputs");
+        //                      printf("got argout:numoutputs of %d\n",i);
+        //                      returnval+=GetInt(p,"tmap:argout:numoutputs");
+        //        }
+        //        else returnval++;
+        Replaceall(tm, "$arg", Getattr(p, "emit:input"));
+        Replaceall(tm, "$input", Getattr(p, "emit:input"));
+        Printv(outarg, tm, "\n", NIL);
+        p = Getattr(p, "tmap:argout:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
 
@@ -788,9 +788,9 @@ public:
       //      }
       //        else returnval++;
       if (GetFlag(n, "feature:new")) {
-	Replaceall(tm, "$owner", "1");
+        Replaceall(tm, "$owner", "1");
       } else {
-	Replaceall(tm, "$owner", "0");
+        Replaceall(tm, "$owner", "0");
       }
       Printf(f->code, "%s\n", tm);
       //      returnval++;
@@ -819,7 +819,7 @@ public:
     /* Look to see if there is any newfree cleanup code */
     if (GetFlag(n, "feature:new")) {
       if ((tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0))) {
-	Printf(f->code, "%s\n", tm);
+        Printf(f->code, "%s\n", tm);
       }
     }
 
@@ -871,7 +871,7 @@ public:
     int result = SWIG_OK;
     if (Getattr(n, "sym:overloaded")) {
       if (!Getattr(n, "sym:nextSibling")) {
-	result = dispatchFunction(n);
+        result = dispatchFunction(n);
       }
     }
 
@@ -929,7 +929,7 @@ public:
     if (maxargs > 0 && check_emitted) {
       Printf(tmp, "int argv[%d]={1", maxargs + 1);
       for (int i = 1; i <= maxargs; i++) {
-	Printf(tmp, ",%d", i + 1);
+        Printf(tmp, ",%d", i + 1);
       }
       Printf(tmp, "}");
       Wrapper_add_local(f, "argv", tmp);
@@ -949,7 +949,7 @@ public:
       Delete(fulldecl);
     } while ((sibl = Getattr(sibl, "sym:nextSibling")));
     Printf(f->code, "SWIG_Lua_pusherrstring(L,\"Wrong arguments for overloaded function '%s'\\n\"\n"
-	   "\"  Possible C/C++ prototypes are:\\n\"%s);\n", symname, protoTypes);
+           "\"  Possible C/C++ prototypes are:\\n\"%s);\n", symname, protoTypes);
     Delete(protoTypes);
 
     Printf(f->code, "lua_error(L);return 0;\n");
@@ -961,7 +961,7 @@ public:
 
     if (current[CONSTRUCTOR]) {
       if (constructor_name != 0)
-	Delete(constructor_name);
+        Delete(constructor_name);
       constructor_name = Copy(wname);
     }
 
@@ -998,21 +998,21 @@ public:
       // Global variable
       getName = Swig_name_get(getNSpace(), symname);
       if (assignable)
-	setName = Swig_name_set(getNSpace(), symname);
+        setName = Swig_name_set(getNSpace(), symname);
     } else {
       assert(!current[NO_CPP]);
       if (current[STATIC_VAR]) {
-	mrename = Swig_name_member(getNSpace(), getClassPrefix(), symname);
-	getName = Swig_name_get(0, mrename);
-	if (assignable)
-	  setName = Swig_name_set(0, mrename);
+        mrename = Swig_name_member(getNSpace(), getClassPrefix(), symname);
+        getName = Swig_name_get(0, mrename);
+        if (assignable)
+          setName = Swig_name_set(0, mrename);
       } else if (current[MEMBER_VAR]) {
-	mrename = Swig_name_member(0, getClassPrefix(), symname);
-	getName = Swig_name_get(getNSpace(), mrename);
-	if (assignable)
-	  setName = Swig_name_set(getNSpace(), mrename);
+        mrename = Swig_name_member(0, getClassPrefix(), symname);
+        getName = Swig_name_get(getNSpace(), mrename);
+        if (assignable)
+          setName = Swig_name_set(getNSpace(), mrename);
       } else {
-	assert(false);
+        assert(false);
       }
     }
 
@@ -1158,33 +1158,33 @@ public:
       // Don't do anything for enums in C mode - they are already
       // wrapped correctly
       if (CPlusPlus || !current[ENUM_CONST]) {
-	lua_name_v2 = Swig_name_member(0, proxy_class_name, lua_name);
-	iname_v2 = Swig_name_member(0, proxy_class_name, iname);
-	n_v2 = Copy(n);
-	if (!luaAddSymbol(iname_v2, n, getNSpace())) {
-	  Swig_restore(n);
-	  return SWIG_ERROR;
-	}
+        lua_name_v2 = Swig_name_member(0, proxy_class_name, lua_name);
+        iname_v2 = Swig_name_member(0, proxy_class_name, iname);
+        n_v2 = Copy(n);
+        if (!luaAddSymbol(iname_v2, n, getNSpace())) {
+          Swig_restore(n);
+          return SWIG_ERROR;
+        }
 
-	Setattr(n_v2, "sym:name", lua_name_v2);
-	tm_v2 = Swig_typemap_lookup("consttab", n_v2, name, 0);
-	if (tm_v2) {
-	  Replaceall(tm_v2, "$value", value);
-	  Replaceall(tm_v2, "$nsname", nsname);
-	  registerConstant(getNSpace(), tm_v2);
-	} else {
-	  tm_v2 = Swig_typemap_lookup("constcode", n_v2, name, 0);
-	  if (!tm_v2) {
-	    // This can't be.
-	    assert(false);
-	    Swig_restore(n);
-	    return SWIG_ERROR;
-	  }
-	  Replaceall(tm_v2, "$value", value);
-	  Replaceall(tm_v2, "$nsname", nsname);
-	  Printf(f_init, "%s\n", tm_v2);
-	}
-	Delete(n_v2);
+        Setattr(n_v2, "sym:name", lua_name_v2);
+        tm_v2 = Swig_typemap_lookup("consttab", n_v2, name, 0);
+        if (tm_v2) {
+          Replaceall(tm_v2, "$value", value);
+          Replaceall(tm_v2, "$nsname", nsname);
+          registerConstant(getNSpace(), tm_v2);
+        } else {
+          tm_v2 = Swig_typemap_lookup("constcode", n_v2, name, 0);
+          if (!tm_v2) {
+            // This can't be.
+            assert(false);
+            Swig_restore(n);
+            return SWIG_ERROR;
+          }
+          Replaceall(tm_v2, "$value", value);
+          Replaceall(tm_v2, "$nsname", nsname);
+          Printf(f_init, "%s\n", tm_v2);
+        }
+        Delete(n_v2);
       }
     }
 
@@ -1427,14 +1427,14 @@ public:
       destructor_name = NewStringf("swig_delete_%s", mangled_full_proxy_class_name);
       Printv(f_wrappers, "static void ", destructor_name, "(void *obj) {\n", NIL);
       if (destructor_action) {
-	Printv(f_wrappers, SwigType_str(rt, "arg1"), " = (", SwigType_str(rt, 0), ") obj;\n", NIL);
-	Printv(f_wrappers, destructor_action, "\n", NIL);
+        Printv(f_wrappers, SwigType_str(rt, "arg1"), " = (", SwigType_str(rt, 0), ") obj;\n", NIL);
+        Printv(f_wrappers, destructor_action, "\n", NIL);
       } else {
-	if (CPlusPlus) {
-	  Printv(f_wrappers, "    delete (", SwigType_str(rt, 0), ") obj;\n", NIL);
-	} else {
-	  Printv(f_wrappers, "    free((char *) obj);\n", NIL);
-	}
+        if (CPlusPlus) {
+          Printv(f_wrappers, "    delete (", SwigType_str(rt, 0), ") obj;\n", NIL);
+        } else {
+          Printv(f_wrappers, "    free((char *) obj);\n", NIL);
+        }
       }
       Printf(f_wrappers, "}\n");
     }
@@ -1455,20 +1455,20 @@ public:
       Delete(constructor_name);
       constructor_name = constructor_proxy_name;
       if (elua_ltr) {
-	String *static_cls_metatable_tab = Getattr(static_cls, "metatable");
-	assert(static_cls_metatable_tab);
-	Printf(static_cls_metatable_tab, "    {LSTRKEY(\"__call\"), LFUNCVAL(%s)},\n", constructor_name);
+        String *static_cls_metatable_tab = Getattr(static_cls, "metatable");
+        assert(static_cls_metatable_tab);
+        Printf(static_cls_metatable_tab, "    {LSTRKEY(\"__call\"), LFUNCVAL(%s)},\n", constructor_name);
       } else if (eluac_ltr) {
-	String *ns_methods_tab = Getattr(nspaceHash, "methods");
-	assert(ns_methods_tab);
-	Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "new_", proxy_class_name, "\")", ", LFUNCVAL(", constructor_name, ")", "},\n", NIL);
+        String *ns_methods_tab = Getattr(nspaceHash, "methods");
+        assert(ns_methods_tab);
+        Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "new_", proxy_class_name, "\")", ", LFUNCVAL(", constructor_name, ")", "},\n", NIL);
       }
     }
     if (have_destructor) {
       if (eluac_ltr) {
-	String *ns_methods_tab = Getattr(nspaceHash, "methods");
-	assert(ns_methods_tab);
-	Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_full_proxy_class_name, "\")", ", LFUNCVAL(", destructor_name, ")", "},\n", NIL);
+        String *ns_methods_tab = Getattr(nspaceHash, "methods");
+        assert(ns_methods_tab);
+        Printv(ns_methods_tab, tab4, "{LSTRKEY(\"", "free_", mangled_full_proxy_class_name, "\")", ", LFUNCVAL(", destructor_name, ")", "},\n", NIL);
       }
     }
 
@@ -1493,16 +1493,16 @@ public:
       Iterator b;
       b = First(baselist);
       while (b.item) {
-	String *bname = Getattr(b.item, "name");
-	if ((!bname) || GetFlag(b.item, "feature:ignore") || (!Getattr(b.item, "module"))) {
-	  b = Next(b);
-	  continue;
-	}
-	// stores a null pointer & the name
-	Printf(base_class, "0,");
-	Printf(base_class_names, "\"%s *\",", SwigType_namestr(bname));
+        String *bname = Getattr(b.item, "name");
+        if ((!bname) || GetFlag(b.item, "feature:ignore") || (!Getattr(b.item, "module"))) {
+          b = Next(b);
+          continue;
+        }
+        // stores a null pointer & the name
+        Printf(base_class, "0,");
+        Printf(base_class_names, "\"%s *\",", SwigType_namestr(bname));
 
-	b = Next(b);
+        b = Next(b);
       }
     }
     // First, print class static part
@@ -1521,7 +1521,7 @@ public:
     Delete(base_class_names);
 
     Printv(f_wrappers, "static swig_lua_class _wrap_class_", mangled_full_proxy_class_name, " = { \"", proxy_class_name, "\", \"", full_proxy_class_name,
-	   "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
+           "\", &SWIGTYPE", SwigType_manglestr(t), ",", NIL);
 
     if (have_constructor) {
       Printv(f_wrappers, constructor_name, NIL);
@@ -1727,21 +1727,21 @@ public:
     if (result == SWIG_OK) {
       // This will add static member variable to the class namespace with name ClassName_VarName
       if (old_metatable_bindings && old_compatible_names) {
-	Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
-	String *lua_name = Getattr(n, "lua:name");
-	// Although this function uses Swig_name_member, it actually generates the Lua name,
-	// not the C++ name. This is because an earlier version used such a scheme for static function
-	// name generation and we have to maintain backward compatibility.
-	String *v2_name = Swig_name_member(NIL, proxy_class_name, lua_name);
-	if (!GetFlag(n, "wrappedasconstant")) {
-	  Setattr(n, "lua:name", v2_name);
-	  // Registering static var in the class parent nspace
-	  registerVariable(n, true, getNSpace());
-	}
-	// If static member variable was wrapped as a constant, then
-	// constant wrapper has already performed all actions necessary for old_metatable_bindings
-	Delete(v2_name);
-	Swig_restore(n);
+        Swig_save("lua_staticmembervariableHandler", n, "lua:name", NIL);
+        String *lua_name = Getattr(n, "lua:name");
+        // Although this function uses Swig_name_member, it actually generates the Lua name,
+        // not the C++ name. This is because an earlier version used such a scheme for static function
+        // name generation and we have to maintain backward compatibility.
+        String *v2_name = Swig_name_member(NIL, proxy_class_name, lua_name);
+        if (!GetFlag(n, "wrappedasconstant")) {
+          Setattr(n, "lua:name", v2_name);
+          // Registering static var in the class parent nspace
+          registerVariable(n, true, getNSpace());
+        }
+        // If static member variable was wrapped as a constant, then
+        // constant wrapper has already performed all actions necessary for old_metatable_bindings
+        Delete(v2_name);
+        Swig_restore(n);
       }
     }
     current[STATIC_VAR] = false;
@@ -1771,10 +1771,10 @@ public:
     for (int i = 0; filenames[i] != 0; i++) {
       sfile = Swig_include_sys(filenames[i]);
       if (!sfile) {
-	Printf(stderr, "*** Unable to open '%s'\n", filenames[i]);
+        Printf(stderr, "*** Unable to open '%s'\n", filenames[i]);
       } else {
-	Append(s, sfile);
-	Delete(sfile);
+        Append(s, sfile);
+        Delete(sfile);
       }
     }
 
@@ -1961,9 +1961,9 @@ public:
       String *metatable_tab_name = NewStringf("swig_%s_meta", mangled_name);
       String *metatable_tab_decl = NewString("");
       if (elua_ltr)		// In this case const array holds rotable with namespace constants
-	Printf(metatable_tab, "const LUA_REG_TYPE ");
+        Printf(metatable_tab, "const LUA_REG_TYPE ");
       else
-	Printf(metatable_tab, "static swig_lua_method ");
+        Printf(metatable_tab, "static swig_lua_method ");
       Printv(metatable_tab, metatable_tab_name, "[]", NIL);
       Printv(metatable_tab_decl, metatable_tab, ";", NIL);
       Printv(metatable_tab, " = {\n", NIL);
@@ -1982,17 +1982,17 @@ public:
       int len = Len(components);
       String *name = Copy(Getitem(components, len - 1));
       for (int i = 0; i < len - 1; i++) {
-	if (i > 0)
-	  Printv(parent_path, NSPACE_SEPARATOR, NIL);
-	String *item = Getitem(components, i);
-	Printv(parent_path, item, NIL);
+        if (i > 0)
+          Printv(parent_path, NSPACE_SEPARATOR, NIL);
+        String *item = Getitem(components, i);
+        Printv(parent_path, item, NIL);
       }
       Hash *parent = getCArraysHash(parent_path, true);
       String *namespaces_tab = Getattr(parent, "namespaces");
       Printv(namespaces_tab, "&", cname, ",\n", NIL);
       if (elua_ltr || eluac_ltr) {
-	String *methods_tab = Getattr(parent, "methods");
-	Printv(methods_tab, tab4, "{LSTRKEY(\"", name, "\")", ", LROVAL(", methods_tab_name, ")", "},\n", NIL);
+        String *methods_tab = Getattr(parent, "methods");
+        Printv(methods_tab, tab4, "{LSTRKEY(\"", name, "\")", ", LROVAL(", methods_tab_name, ")", "},\n", NIL);
       }
       Setattr(carrays_hash, "name", name);
 
@@ -2059,9 +2059,9 @@ public:
     String *metatable_tab_name = Getattr(carrays_hash, "metatable:name");
     if (elua_ltr || eluac_ltr) {
       if (old_metatable_bindings)
-	Printv(methods_tab, tab4, "{LSTRKEY(\"const\"), LROVAL(", const_tab_name, ")},\n", NIL);
+        Printv(methods_tab, tab4, "{LSTRKEY(\"const\"), LROVAL(", const_tab_name, ")},\n", NIL);
       if (elua_ltr) {
-	Printv(methods_tab, tab4, "{LSTRKEY(\"__metatable\"), LROVAL(", metatable_tab_name, ")},\n", NIL);
+        Printv(methods_tab, tab4, "{LSTRKEY(\"__metatable\"), LROVAL(", metatable_tab_name, ")},\n", NIL);
       }
 
       Printv(methods_tab, tab4, "{LSTRKEY(\"__disown\"), LFUNCVAL(SWIG_Lua_class_disown)},\n", NIL);
@@ -2105,43 +2105,43 @@ public:
       String *metatable_tab = Getattr(carrays_hash, "metatable");
       assert(metatable_tab);
       if (elua_ltr) {
-	String *get_tab_name = Getattr(carrays_hash, "get:name");
-	String *set_tab_name = Getattr(carrays_hash, "set:name");
+        String *get_tab_name = Getattr(carrays_hash, "get:name");
+        String *set_tab_name = Getattr(carrays_hash, "set:name");
 
-	if (GetFlag(carrays_hash, "lua:class_instance")) {
-	  Printv(metatable_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_class_get)},\n", NIL);
-	  Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_class_set)},\n", NIL);
-	} else {
-	  Printv(metatable_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_namespace_get)},\n", NIL);
-	  Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_namespace_set)},\n", NIL);
-	}
+        if (GetFlag(carrays_hash, "lua:class_instance")) {
+          Printv(metatable_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_class_get)},\n", NIL);
+          Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_class_set)},\n", NIL);
+        } else {
+          Printv(metatable_tab, tab4, "{LSTRKEY(\"__index\"), LFUNCVAL(SWIG_Lua_namespace_get)},\n", NIL);
+          Printv(metatable_tab, tab4, "{LSTRKEY(\"__newindex\"), LFUNCVAL(SWIG_Lua_namespace_set)},\n", NIL);
+        }
 
-	Printv(metatable_tab, tab4, "{LSTRKEY(\"__gc\"), LFUNCVAL(SWIG_Lua_class_destruct)},\n", NIL);
-	Printv(metatable_tab, tab4, "{LSTRKEY(\".get\"), LROVAL(", get_tab_name, ")},\n", NIL);
-	Printv(metatable_tab, tab4, "{LSTRKEY(\".set\"), LROVAL(", set_tab_name, ")},\n", NIL);
-	Printv(metatable_tab, tab4, "{LSTRKEY(\".fn\"), LROVAL(", Getattr(carrays_hash, "methods:name"), ")},\n", NIL);
+        Printv(metatable_tab, tab4, "{LSTRKEY(\"__gc\"), LFUNCVAL(SWIG_Lua_class_destruct)},\n", NIL);
+        Printv(metatable_tab, tab4, "{LSTRKEY(\".get\"), LROVAL(", get_tab_name, ")},\n", NIL);
+        Printv(metatable_tab, tab4, "{LSTRKEY(\".set\"), LROVAL(", set_tab_name, ")},\n", NIL);
+        Printv(metatable_tab, tab4, "{LSTRKEY(\".fn\"), LROVAL(", Getattr(carrays_hash, "methods:name"), ")},\n", NIL);
 
-	if (GetFlag(carrays_hash, "lua:class_instance")) {
-	  String *static_cls = Getattr(carrays_hash, "lua:class_instance:static_hash");
-	  assert(static_cls);
-	  // static_cls is swig_lua_namespace. This structure can't be used with eLua(LTR)
-	  // Instead a structure describing its methods is used
-	  String *static_cls_cname = Getattr(static_cls, "methods:name");
-	  assert(static_cls_cname);
-	  Printv(metatable_tab, tab4, "{LSTRKEY(\".static\"), LROVAL(", static_cls_cname, ")},\n", NIL);
-	  // Put forward declaration of this array
-	  Printv(output, "extern ", Getattr(static_cls, "methods:decl"), "\n", NIL);
-	} else if (GetFlag(carrays_hash, "lua:class_static")) {
-	  Hash *instance_cls = Getattr(carrays_hash, "lua:class_static:instance_hash");
-	  assert(instance_cls);
-	  String *instance_cls_metatable_name = Getattr(instance_cls, "metatable:name");
-	  assert(instance_cls_metatable_name);
-	  Printv(metatable_tab, tab4, "{LSTRKEY(\".instance\"), LROVAL(", instance_cls_metatable_name, ")},\n", NIL);
-	}
+        if (GetFlag(carrays_hash, "lua:class_instance")) {
+          String *static_cls = Getattr(carrays_hash, "lua:class_instance:static_hash");
+          assert(static_cls);
+          // static_cls is swig_lua_namespace. This structure can't be used with eLua(LTR)
+          // Instead a structure describing its methods is used
+          String *static_cls_cname = Getattr(static_cls, "methods:name");
+          assert(static_cls_cname);
+          Printv(metatable_tab, tab4, "{LSTRKEY(\".static\"), LROVAL(", static_cls_cname, ")},\n", NIL);
+          // Put forward declaration of this array
+          Printv(output, "extern ", Getattr(static_cls, "methods:decl"), "\n", NIL);
+        } else if (GetFlag(carrays_hash, "lua:class_static")) {
+          Hash *instance_cls = Getattr(carrays_hash, "lua:class_static:instance_hash");
+          assert(instance_cls);
+          String *instance_cls_metatable_name = Getattr(instance_cls, "metatable:name");
+          assert(instance_cls_metatable_name);
+          Printv(metatable_tab, tab4, "{LSTRKEY(\".instance\"), LROVAL(", instance_cls_metatable_name, ")},\n", NIL);
+        }
 
-	Printv(metatable_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
+        Printv(metatable_tab, tab4, "{LNILKEY, LNILVAL}\n};\n", NIL);
       } else {
-	Printf(metatable_tab, "    {0,0}\n};\n");
+        Printf(metatable_tab, "    {0,0}\n};\n");
       }
 
       Printv(output, metatable_tab, NIL);
@@ -2172,11 +2172,11 @@ public:
     while (ki.key) {
       assert(ki.item);
       if (Getattr(ki.item, "sym:scope")) {
-	// We have a pseudo symbol. Lets get actual scope for this pseudo symbol
-	Hash *carrays_hash = rawGetCArraysHash(ki.key);
-	assert(carrays_hash);
-	if (GetFlag(carrays_hash, "lua:closed") == 0)
-	  Append(to_close, ki.key);
+        // We have a pseudo symbol. Lets get actual scope for this pseudo symbol
+        Hash *carrays_hash = rawGetCArraysHash(ki.key);
+        assert(carrays_hash);
+        if (GetFlag(carrays_hash, "lua:closed") == 0)
+          Append(to_close, ki.key);
       }
       ki = Next(ki);
     }
@@ -2188,9 +2188,9 @@ public:
       Hash *carrays_hash = rawGetCArraysHash(key);
       String *name = 0;		// name - name of the namespace as it should be visible in Lua
       if (Len(key) == 0)	// This is global module
-	name = module;
+        name = module;
       else
-	name = Getattr(carrays_hash, "name");
+        name = Getattr(carrays_hash, "name");
       assert(name);
       printCArraysDefinition(key, name, dataOutput);
     }
@@ -2224,11 +2224,11 @@ public:
     bool has_namespaces = GetFlag(carrays_hash, "lua:no_namespaces") == 0;
 
     Printv(output, "{\n",
-	   tab4, "\"", name, "\",\n",
-	   tab4, methods_tab_name, ",\n",
-	   tab4, attr_tab_name, ",\n",
-	   tab4, const_tab_name, ",\n",
-	   tab4, (has_classes) ? classes_tab_name : null_string, ",\n", tab4, (has_namespaces) ? namespaces_tab_name : null_string, "\n};\n", NIL);
+           tab4, "\"", name, "\",\n",
+           tab4, methods_tab_name, ",\n",
+           tab4, attr_tab_name, ",\n",
+           tab4, const_tab_name, ",\n",
+           tab4, (has_classes) ? classes_tab_name : null_string, ",\n", tab4, (has_namespaces) ? namespaces_tab_name : null_string, "\n};\n", NIL);
     Delete(null_string);
   }
 
@@ -2256,12 +2256,12 @@ public:
       // If inside class, then either class static namespace or class fully qualified name is used
       assert(!current[NO_CPP]);
       if (current[STATIC_FUNC] || current[STATIC_VAR] || current[STATIC_CONST]) {
-	scope = class_static_nspace;
+        scope = class_static_nspace;
       } else if (current[MEMBER_VAR] || current[CONSTRUCTOR] || current[DESTRUCTOR]
-		 || current[MEMBER_FUNC]) {
-	scope = full_proxy_class_name;
+                 || current[MEMBER_FUNC]) {
+        scope = full_proxy_class_name;
       } else {			// Friend functions are handled this way
-	scope = class_static_nspace;
+        scope = class_static_nspace;
       }
       assert(scope);
     }
@@ -2396,24 +2396,24 @@ public:
     if (!Getattr(n, "defaultargs")) {
       /* Constructor wrapper */
       {
-	Wrapper *w = NewWrapper();
-	String *call;
-	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, classname, parms, 0);
-	call = Swig_csuperclass_call(0, basetype, superparms);
-	Printf(w->def, "%s::%s: %s, Swig::Director(L) {\n", classname, target, call);
-	Append(w->def, "}\n");
-	Delete(target);
-	Wrapper_print(w, f_directors);
-	Delete(call);
-	DelWrapper(w);
+        Wrapper *w = NewWrapper();
+        String *call;
+        String *basetype = Getattr(parent, "classtype");
+        String *target = Swig_method_decl(0, decl, classname, parms, 0);
+        call = Swig_csuperclass_call(0, basetype, superparms);
+        Printf(w->def, "%s::%s: %s, Swig::Director(L) {\n", classname, target, call);
+        Append(w->def, "}\n");
+        Delete(target);
+        Wrapper_print(w, f_directors);
+        Delete(call);
+        DelWrapper(w);
       }
 
       /* Constructor header declaration */
       {
-	String *target = Swig_method_decl(0, decl, classname, parms, 1);
-	Printf(f_directors_h, "    %s;\n", target);
-	Delete(target);
+        String *target = Swig_method_decl(0, decl, classname, parms, 1);
+        Printf(f_directors_h, "    %s;\n", target);
+        Delete(target);
       }
     }
 
@@ -2477,7 +2477,7 @@ public:
 
     if (Cmp(storage, "virtual") == 0) {
       if (Cmp(value, "0") == 0) {
-	pure_virtual = true;
+        pure_virtual = true;
       }
     }
 
@@ -2514,18 +2514,18 @@ public:
       Append(declaration, " throw(");
 
       if (throw_parm_list)
-	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+        Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
-	if (Getattr(p, "tmap:throws")) {
-	  if (gencomma++) {
-	    Append(w->def, ", ");
-	    Append(declaration, ", ");
-	  }
-	  String *str = SwigType_str(Getattr(p, "type"), 0);
-	  Append(w->def, str);
-	  Append(declaration, str);
-	  Delete(str);
-	}
+        if (Getattr(p, "tmap:throws")) {
+          if (gencomma++) {
+            Append(w->def, ", ");
+            Append(declaration, ", ");
+          }
+          String *str = SwigType_str(Getattr(p, "type"), 0);
+          Append(w->def, str);
+          Append(declaration, str);
+          Delete(str);
+        }
       }
 
       Append(w->def, ")");
@@ -2538,30 +2538,30 @@ public:
     /* declare method return value */
     if (!is_void && (!ignored_method || pure_virtual)) {
       if (!SwigType_isclass(returntype)) {
-	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
-	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
-	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
-	  Delete(construct_result);
-	} else {
-	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
-	}
+        if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+          String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+          Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+          Delete(construct_result);
+        } else {
+          Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
+        }
       } else {
-	String *cres = SwigType_lstr(returntype, "c_result");
-	Printf(w->code, "%s;\n", cres);
-	Delete(cres);
+        String *cres = SwigType_lstr(returntype, "c_result");
+        Printf(w->code, "%s;\n", cres);
+        Delete(cres);
       }
     }
 
     if (ignored_method) {
       if (!pure_virtual) {
-	if (!is_void)
-	  Printf(w->code, "return ");
-	String *super_call = Swig_method_call(super, l);
-	Printf(w->code, "%s;\n", super_call);
-	Delete(super_call);
+        if (!is_void)
+          Printf(w->code, "return ");
+        String *super_call = Swig_method_call(super, l);
+        Printf(w->code, "%s;\n", super_call);
+        Delete(super_call);
       } else {
-	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
-	       SwigType_namestr(name));
+        Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
+               SwigType_namestr(name));
       }
     } else {
       /* attach typemaps to arguments (C++ -> Lua) */
@@ -2578,7 +2578,7 @@ public:
 
       int outputs = 0;
       if (!is_void)
-	outputs++;
+        outputs++;
 
       /* Get lua state */
       Printf(w->code, "lua_State *L = swig_get_lua_state();\n");
@@ -2613,19 +2613,19 @@ public:
       Printf(w->code, "  lua_pop(L, 1); /* pop placeholder */\n");
       Printf(w->code, "  lua_settop(L, top);\n");
       if (pure_virtual) {
-	Printf(w->code, "  Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
-	       SwigType_namestr(name));
+        Printf(w->code, "  Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
+               SwigType_namestr(name));
       } else {
-	// Call parent method instead
-	if (!is_void) {
-	  Printf(w->code, "  return ");
-	}
-	String *super_call = Swig_method_call(super, l);
-	Printf(w->code, "%s;\n", super_call);
-	Delete(super_call);
-	if (is_void) {
-	  Printf(w->code, "  return;\n");
-	}
+        // Call parent method instead
+        if (!is_void) {
+          Printf(w->code, "  return ");
+        }
+        String *super_call = Swig_method_call(super, l);
+        Printf(w->code, "%s;\n", super_call);
+        Delete(super_call);
+        if (is_void) {
+          Printf(w->code, "  return;\n");
+        }
       }
       Printf(w->code, "}\n");
 
@@ -2637,70 +2637,70 @@ public:
       int nargs = 0;
       p = l;
       while (p) {
-	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
-	  p = Getattr(p, "tmap:in:next");
-	  continue;
-	}
+        if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+          p = Getattr(p, "tmap:in:next");
+          continue;
+        }
 
-	if (Getattr(p, "tmap:directorargout") != 0)
-	  outputs++;
+        if (Getattr(p, "tmap:directorargout") != 0)
+          outputs++;
 
-	String *ptype = Getattr(p, "type");
+        String *ptype = Getattr(p, "type");
 
-	if ((tm = Getattr(p, "tmap:directorin")) != 0) {
-	  sprintf(source, "obj%d", idx++);
-	  Replaceall(tm, "$input", source);
-	  Replaceall(tm, "$owner", "0");
-	  Printv(wrap_args, tm, "\n", NIL);
-	  nargs++;
-	  p = Getattr(p, "tmap:directorin:next");
-	  continue;
-	} else if (Cmp(ptype, "void")) {
-	  Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
-		       "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0),
-		       SwigType_namestr(c_classname), SwigType_namestr(name));
-	  status = SWIG_NOWRAP;
-	  break;
-	}
-	p = nextSibling(p);
+        if ((tm = Getattr(p, "tmap:directorin")) != 0) {
+          sprintf(source, "obj%d", idx++);
+          Replaceall(tm, "$input", source);
+          Replaceall(tm, "$owner", "0");
+          Printv(wrap_args, tm, "\n", NIL);
+          nargs++;
+          p = Getattr(p, "tmap:directorin:next");
+          continue;
+        } else if (Cmp(ptype, "void")) {
+          Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
+                       "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0),
+                       SwigType_namestr(c_classname), SwigType_namestr(name));
+          status = SWIG_NOWRAP;
+          break;
+        }
+        p = nextSibling(p);
       }
 
       if (status == SWIG_OK) {
-	/* wrap complex arguments to Lua objects */
-	Printv(w->code, wrap_args, NIL);
+        /* wrap complex arguments to Lua objects */
+        Printv(w->code, wrap_args, NIL);
 
-	/* Mark that we're entering an upcall to prevent infinite recursion */
-	Printf(w->code, "swig_begin_upcall();\n");
+        /* Mark that we're entering an upcall to prevent infinite recursion */
+        Printf(w->code, "swig_begin_upcall();\n");
 
-	/* Call the Lua method */
-	Printf(w->code, "int pcall_result = lua_pcall(L, %d, %d, 0);\n", nargs + 1, is_void ? 0 : 1);
-	Printf(w->code, "swig_end_upcall();\n");
-	Printf(w->code, "if (pcall_result != 0) {\n");
-	Printf(w->code, "  std::string err = \"Error calling %s: \";\n", symname);
-	Printf(w->code, "  err += lua_tostring(L, -1);\n");
-	Printf(w->code, "  lua_settop(L, top);\n");
-	Printf(w->code, "  Swig::DirectorMethodException::raise(err.c_str());\n");
-	Printf(w->code, "}\n");
+        /* Call the Lua method */
+        Printf(w->code, "int pcall_result = lua_pcall(L, %d, %d, 0);\n", nargs + 1, is_void ? 0 : 1);
+        Printf(w->code, "swig_end_upcall();\n");
+        Printf(w->code, "if (pcall_result != 0) {\n");
+        Printf(w->code, "  std::string err = \"Error calling %s: \";\n", symname);
+        Printf(w->code, "  err += lua_tostring(L, -1);\n");
+        Printf(w->code, "  lua_settop(L, top);\n");
+        Printf(w->code, "  Swig::DirectorMethodException::raise(err.c_str());\n");
+        Printf(w->code, "}\n");
 
-	/* marshal return value */
-	if (!is_void) {
-	  /* Create a variable to hold the Lua stack index for $input */
-	  Printf(w->code, "int SWIG_lua_result = lua_gettop(L);\n");
-	  tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
-	  if (tm != 0) {
-	    Replaceall(tm, "$input", "SWIG_lua_result");
-	    Replaceall(tm, "$result", "c_result");
-	    Printf(w->code, "%s\n", tm);
-	    Delete(tm);
-	  } else {
-	    Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number, "Unable to use return type %s in director method %s::%s (skipping method).\n",
-			 SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
-	    status = SWIG_ERROR;
-	  }
-	}
+        /* marshal return value */
+        if (!is_void) {
+          /* Create a variable to hold the Lua stack index for $input */
+          Printf(w->code, "int SWIG_lua_result = lua_gettop(L);\n");
+          tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
+          if (tm != 0) {
+            Replaceall(tm, "$input", "SWIG_lua_result");
+            Replaceall(tm, "$result", "c_result");
+            Printf(w->code, "%s\n", tm);
+            Delete(tm);
+          } else {
+            Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number, "Unable to use return type %s in director method %s::%s (skipping method).\n",
+                         SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+            status = SWIG_ERROR;
+          }
+        }
 
-	/* Clean up Lua stack */
-	Printf(w->code, "lua_settop(L, top);\n");
+        /* Clean up Lua stack */
+        Printf(w->code, "lua_settop(L, top);\n");
       }
 
       Delete(arglist);
@@ -2708,13 +2708,13 @@ public:
 
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	String *rettype = SwigType_str(returntype, 0);
-	if (!SwigType_isreference(returntype)) {
-	  Printf(w->code, "return (%s) c_result;\n", rettype);
-	} else {
-	  Printf(w->code, "return (%s) *c_result;\n", rettype);
-	}
-	Delete(rettype);
+        String *rettype = SwigType_str(returntype, 0);
+        if (!SwigType_isreference(returntype)) {
+          Printf(w->code, "return (%s) c_result;\n", rettype);
+        } else {
+          Printf(w->code, "return (%s) *c_result;\n", rettype);
+        }
+        Delete(rettype);
       }
     }
 
@@ -2728,7 +2728,7 @@ public:
       Replaceall(inline_extra_method, name, extra_method_name);
       Replaceall(inline_extra_method, ";\n", " {\n      ");
       if (!is_void)
-	Printf(inline_extra_method, "return ");
+        Printf(inline_extra_method, "return ");
       String *methodcall = Swig_method_call(super, l);
       Printv(inline_extra_method, methodcall, ";\n    }\n", NIL);
       Delete(methodcall);
@@ -2738,10 +2738,10 @@ public:
     /* emit the director method */
     if (status == SWIG_OK) {
       if (!Getattr(n, "defaultargs")) {
-	Replaceall(w->code, "$symname", symname);
-	Wrapper_print(w, f_directors);
-	Printv(f_directors_h, declaration, NIL);
-	Printv(f_directors_h, inline_extra_method, NIL);
+        Replaceall(w->code, "$symname", symname);
+        Wrapper_print(w, f_directors);
+        Printv(f_directors_h, declaration, NIL);
+        Printv(f_directors_h, inline_extra_method, NIL);
       }
     }
 

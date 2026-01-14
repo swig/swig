@@ -32,12 +32,12 @@ void Swig_cparse_replace_descriptor(String *s) {
     int level = 0;
     while (*c) {
       if (*c == '(')
-	level++;
+        level++;
       if (*c == ')') {
-	level--;
-	if (level == 0) {
-	  break;
-	}
+        level--;
+        if (level == 0) {
+          break;
+        }
       }
       *d = *c;
       d++;
@@ -83,10 +83,10 @@ SwigType *Swig_cparse_smartptr(Node *n) {
     if (smartptr) {
       SwigType *cpt = Swig_cparse_type(smartptr);
       if (cpt) {
-	smart = SwigType_typedef_resolve_all(cpt);
-	Delete(cpt);
+        smart = SwigType_typedef_resolve_all(cpt);
+        Delete(cpt);
       } else {
-	Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, SwigType_namestr(Getattr(n, "name")));
+        Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, SwigType_namestr(Getattr(n, "name")));
       }
     }
     return smart;

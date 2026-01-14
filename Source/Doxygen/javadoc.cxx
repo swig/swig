@@ -774,7 +774,7 @@ std::string JavaDocConverter::indentAndInsertAsterisks(const string &doc) {
   if (nonspaceEndIdx != string::npos) {
     if (translatedStr[nonspaceEndIdx] != '\n') {
       if (!singleLineComment)
-	translatedStr += '\n';
+        translatedStr += '\n';
     } else {
       // remove trailing spaces
       translatedStr = translatedStr.substr(0, nonspaceEndIdx + 1);

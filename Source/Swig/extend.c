@@ -45,15 +45,15 @@ void Swig_extend_merge(Node *cls, Node *am) {
     if (Strcmp(nodeType(n),"constructor") == 0) {
       symname = Getattr(n,"sym:name");
       if (symname) {
-	if (Strcmp(symname,Getattr(n,"name")) == 0) {
-	  /* If the name and the sym:name of a constructor are the same,
+        if (Strcmp(symname,Getattr(n,"name")) == 0) {
+          /* If the name and the sym:name of a constructor are the same,
              then it hasn't been renamed.  However---the name of the class
              itself might have been renamed so we need to do a consistency
              check here */
-	  if (Getattr(cls,"sym:name")) {
-	    Setattr(n,"sym:name", Getattr(cls,"sym:name"));
-	  }
-	}
+          if (Getattr(cls,"sym:name")) {
+            Setattr(n,"sym:name", Getattr(cls,"sym:name"));
+          }
+        }
       } 
     }
 
@@ -65,23 +65,23 @@ void Swig_extend_merge(Node *cls, Node *am) {
       Swig_symbol_remove(n);
       c = Swig_symbol_add(symname,n);
       if (c != n) {
-	/* Conflict with previous definition.  Nuke previous definition */
-	String *e = NewStringEmpty();
-	String *en = NewStringEmpty();
-	String *ec = NewStringEmpty();
-	Printf(ec, "Redefinition of identifier '%s' by %%extend ignored,", symname);
-	Printf(en, "%%extend definition of '%s'.", symname);
-	SWIG_WARN_NODE_BEGIN(n);
-	Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
-	Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
-	SWIG_WARN_NODE_END(n);
-	Printf(e, "%s:%d:%s\n%s:%d:%s\n", Getfile(c), Getline(c), ec, Getfile(n),Getline(n),en);
-	Setattr(c, "error", e);
-	Delete(e);
-	Delete(en);
-	Delete(ec);
-	Swig_symbol_remove(c);                /* Remove class definition */
-	Swig_symbol_add(symname, n);          /* Insert extend definition */
+        /* Conflict with previous definition.  Nuke previous definition */
+        String *e = NewStringEmpty();
+        String *en = NewStringEmpty();
+        String *ec = NewStringEmpty();
+        Printf(ec, "Redefinition of identifier '%s' by %%extend ignored,", symname);
+        Printf(en, "%%extend definition of '%s'.", symname);
+        SWIG_WARN_NODE_BEGIN(n);
+        Swig_warning(WARN_PARSE_REDEFINED, Getfile(c), Getline(c), "%s\n", ec);
+        Swig_warning(WARN_PARSE_REDEFINED, Getfile(n), Getline(n), "%s\n", en);
+        SWIG_WARN_NODE_END(n);
+        Printf(e, "%s:%d:%s\n%s:%d:%s\n", Getfile(c), Getline(c), ec, Getfile(n),Getline(n),en);
+        Setattr(c, "error", e);
+        Delete(e);
+        Delete(en);
+        Delete(ec);
+        Swig_symbol_remove(c);                /* Remove class definition */
+        Swig_symbol_add(symname, n);          /* Insert extend definition */
       }
     }
     n = nextSibling(n);

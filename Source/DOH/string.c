@@ -152,17 +152,17 @@ static int String_equal(DOH *so1, DOH *so2) {
     int i = mlen;
     for (; i; --i) {
       if (*(c1++) != *(c2++))
-	return 0;
+        return 0;
       if (*(c1++) != *(c2++))
-	return 0;
+        return 0;
       if (*(c1++) != *(c2++))
-	return 0;
+        return 0;
       if (*(c1++) != *(c2++))
-	return 0;
+        return 0;
     }
     for (i = len - (mlen << 2); i; --i) {
       if (*(c1++) != *(c2++))
-	return 0;
+        return 0;
     }
     return 1;
 #else
@@ -247,7 +247,7 @@ static void DohString_append(DOH *so, const DOHString_or_char *str) {
     tc += sp;
     for (; i; --i) {
       if (*(tc++) == '\n')
-	s->line++;
+        s->line++;
     }
     s->sp = oldlen + l;
   }
@@ -313,7 +313,7 @@ static int String_insert(DOH *so, int pos, DOH *str) {
 
     for (i = 0; i < len; i++) {
       if (data[i] == '\n')
-	s->line++;
+        s->line++;
     }
     s->sp += len;
   }
@@ -376,7 +376,7 @@ static int String_delslice(DOH *so, int sindex, int eindex) {
     }
     for (i = sindex; i < end; i++) {
       if (s->str[i] == '\n')
-	s->line--;
+        s->line--;
     }
     assert(s->sp >= 0);
   }
@@ -475,7 +475,7 @@ static int String_seek(DOH *so, long offset, int whence) {
     while (sp != nsp) {
       int prev = sp + inc;
       if (prev >= 0 && prev <= len && tc[prev] == '\n')
-	s->line += inc;
+        s->line += inc;
       sp += inc;
     }
 #else
@@ -483,13 +483,13 @@ static int String_seek(DOH *so, long offset, int whence) {
     char *tc = s->str;
     if (inc > 0) {
       while (sp != nsp) {
-	if (tc[++sp] == '\n')
-	  ++s->line;
+        if (tc[++sp] == '\n')
+          ++s->line;
       }
     } else {
       while (sp != nsp) {
-	if (tc[--sp] == '\n')
-	  --s->line;
+        if (tc[--sp] == '\n')
+          --s->line;
       }
     }
 #endif
@@ -583,8 +583,8 @@ static char *end_quote(char *s) {
     if (nl && (nl < q)) {
       /* A new line appears before the end of the string */
       if (*(nl - 1) == '\\') {
-	s = nl + 1;
-	continue;
+        s = nl + 1;
+        continue;
       }
       /* String was terminated by a newline.  Wing it */
       return qs;
@@ -729,20 +729,20 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
       noquote = 0;		/* Well, no quotes to worry about. Oh well */
     } else {
       while (q && (q < s)) {
-	/* First match was found inside a quote.  Try to find another match */
-	q2 = end_quote(q);
-	if (!q2) {
-	  return 0;
-	}
-	if (q2 > s) {
-	  /* Find next match */
-	  s = (*match) (base, q2 + 1, token, tokenlen);
-	}
-	if (!s)
-	  return 0;		/* Oh well, no matches */
-	q = strpbrk(q2 + 1, "\"\'");
-	if (!q)
-	  noquote = 0;		/* No more quotes */
+        /* First match was found inside a quote.  Try to find another match */
+        q2 = end_quote(q);
+        if (!q2) {
+          return 0;
+        }
+        if (q2 > s) {
+          /* Find next match */
+          s = (*match) (base, q2 + 1, token, tokenlen);
+        }
+        if (!s)
+          return 0;		/* Oh well, no matches */
+        q = strpbrk(q2 + 1, "\"\'");
+        if (!q)
+          noquote = 0;		/* No more quotes */
       }
     }
   }
@@ -754,20 +754,20 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
       nocomment = 0;		/* Well, no comments to worry about. Oh well */
     } else {
       while (q && (q < s)) {
-	/* First match was found inside a comment.  Try to find another match */
-	q2 = end_comment(q);
-	if (!q2) {
-	  return 0;
-	}
-	if (q2 > s) {
-	  /* Find next match */
-	  s = (*match) (base, q2 + 1, token, tokenlen);
-	}
-	if (!s)
-	  return 0;		/* Oh well, no matches */
-	q = strstr(q2 + 1, "/*");
-	if (!q)
-	  nocomment = 0;		/* No more comments */
+        /* First match was found inside a comment.  Try to find another match */
+        q2 = end_comment(q);
+        if (!q2) {
+          return 0;
+        }
+        if (q2 > s) {
+          /* Find next match */
+          s = (*match) (base, q2 + 1, token, tokenlen);
+        }
+        if (!s)
+          return 0;		/* Oh well, no matches */
+        q = strstr(q2 + 1, "/*");
+        if (!q)
+          nocomment = 0;		/* No more comments */
       }
     }
   }
@@ -784,72 +784,72 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
     t = s;			/* Target of memory copies */
     while (ic && s) {
       if (replen) {
-	memcpy(t, rep, replen);
-	t += replen;
+        memcpy(t, rep, replen);
+        t += replen;
       }
       rcount++;
       expand += delta;
       /* Find the next location */
       s += tokenlen;
       if (ic == 1)
-	break;
+        break;
       c = (*match) (base, s, token, tokenlen);
 
       if (noquote) {
-	q = strpbrk(s, "\"\'");
-	if (!q) {
-	  noquote = 0;
-	} else {
-	  while (q && (q < c)) {
-	    /* First match was found inside a quote.  Try to find another match */
-	    q2 = end_quote(q);
-	    if (!q2) {
-	      c = 0;
-	      break;
-	    }
-	    if (q2 > c)
-	      c = (*match) (base, q2 + 1, token, tokenlen);
-	    if (!c)
-	      break;
-	    q = strpbrk(q2 + 1, "\"\'");
-	    if (!q)
-	      noquote = 0;	/* No more quotes */
-	  }
-	}
+        q = strpbrk(s, "\"\'");
+        if (!q) {
+          noquote = 0;
+        } else {
+          while (q && (q < c)) {
+            /* First match was found inside a quote.  Try to find another match */
+            q2 = end_quote(q);
+            if (!q2) {
+              c = 0;
+              break;
+            }
+            if (q2 > c)
+              c = (*match) (base, q2 + 1, token, tokenlen);
+            if (!c)
+              break;
+            q = strpbrk(q2 + 1, "\"\'");
+            if (!q)
+              noquote = 0;	/* No more quotes */
+          }
+        }
       }
       if (nocomment) {
-	q = strstr(s, "/*");
-	if (!q) {
-	  nocomment = 0;
-	} else {
-	  while (q && (q < c)) {
-	    /* First match was found inside a comment.  Try to find another match */
-	    q2 = end_comment(q);
-	    if (!q2) {
-	      c = 0;
-	      break;
-	    }
-	    if (q2 > c)
-	      c = (*match) (base, q2 + 1, token, tokenlen);
-	    if (!c)
-	      break;
-	    q = strstr(q2 + 1, "/*");
-	    if (!q)
-	      nocomment = 0;	/* No more comments */
-	  }
-	}
+        q = strstr(s, "/*");
+        if (!q) {
+          nocomment = 0;
+        } else {
+          while (q && (q < c)) {
+            /* First match was found inside a comment.  Try to find another match */
+            q2 = end_comment(q);
+            if (!q2) {
+              c = 0;
+              break;
+            }
+            if (q2 > c)
+              c = (*match) (base, q2 + 1, token, tokenlen);
+            if (!c)
+              break;
+            q = strstr(q2 + 1, "/*");
+            if (!q)
+              nocomment = 0;	/* No more comments */
+          }
+        }
       }
       if (delta) {
-	if (c) {
-	  memmove(t, s, c - s);
-	  t += (c - s);
-	} else {
-	  memmove(t, s, (str->str + str->len) - s + 1);
-	}
+        if (c) {
+          memmove(t, s, c - s);
+          t += (c - s);
+        } else {
+          memmove(t, s, (str->str + str->len) - s + 1);
+        }
       } else {
-	if (c) {
-	  t += (c - s);
-	}
+        if (c) {
+          t += (c - s);
+        }
       }
       s = c;
       ic--;
@@ -874,57 +874,57 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
     s += tokenlen;
     while (ic && (c = (*match) (base, s, token, tokenlen))) {
       if (noquote) {
-	q = strpbrk(s, "\"\'");
-	if (!q) {
-	  break;
-	} else {
-	  while (q && (q < c)) {
-	    /* First match was found inside a quote.  Try to find another match */
-	    q2 = end_quote(q);
-	    if (!q2) {
-	      c = 0;
-	      break;
-	    }
-	    if (q2 > c) {
-	      c = (*match) (base, q2 + 1, token, tokenlen);
-	      if (!c)
-		break;
-	    }
-	    q = strpbrk(q2 + 1, "\"\'");
-	    if (!q)
-	      noquote = 0;
-	  }
-	}
+        q = strpbrk(s, "\"\'");
+        if (!q) {
+          break;
+        } else {
+          while (q && (q < c)) {
+            /* First match was found inside a quote.  Try to find another match */
+            q2 = end_quote(q);
+            if (!q2) {
+              c = 0;
+              break;
+            }
+            if (q2 > c) {
+              c = (*match) (base, q2 + 1, token, tokenlen);
+              if (!c)
+                break;
+            }
+            q = strpbrk(q2 + 1, "\"\'");
+            if (!q)
+              noquote = 0;
+          }
+        }
       }
       if (nocomment) {
-	q = strstr(s, "/*");
-	if (!q) {
-	  break;
-	} else {
-	  while (q && (q < c)) {
-	    /* First match was found inside a comment.  Try to find another match */
-	    q2 = end_comment(q);
-	    if (!q2) {
-	      c = 0;
-	      break;
-	    }
-	    if (q2 > c) {
-	      c = (*match) (base, q2 + 1, token, tokenlen);
-	      if (!c)
-		break;
-	    }
-	    q = strstr(q2 + 1, "/*");
-	    if (!q)
-	      nocomment = 0;
-	  }
-	}
+        q = strstr(s, "/*");
+        if (!q) {
+          break;
+        } else {
+          while (q && (q < c)) {
+            /* First match was found inside a comment.  Try to find another match */
+            q2 = end_comment(q);
+            if (!q2) {
+              c = 0;
+              break;
+            }
+            if (q2 > c) {
+              c = (*match) (base, q2 + 1, token, tokenlen);
+              if (!c)
+                break;
+            }
+            q = strstr(q2 + 1, "/*");
+            if (!q)
+              nocomment = 0;
+          }
+        }
       }
       if (c) {
-	rcount++;
-	ic--;
-	s = c + tokenlen;
+        rcount++;
+        ic--;
+        s = c + tokenlen;
       } else {
-	break;
+        break;
       }
     }
 
@@ -948,56 +948,56 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
       s += tokenlen;
       c = (*match) (base, s, token, tokenlen);
       if (noquote) {
-	q = strpbrk(s, "\"\'");
-	if (!q) {
-	  noquote = 0;
-	} else {
-	  while (q && (q < c)) {
-	    /* First match was found inside a quote.  Try to find another match */
-	    q2 = end_quote(q);
-	    if (!q2) {
-	      c = 0;
-	      break;
-	    }
-	    if (q2 > c) {
-	      c = (*match) (base, q2 + 1, token, tokenlen);
-	      if (!c)
-		break;
-	    }
-	    q = strpbrk(q2 + 1, "\"\'");
-	    if (!q)
-	      noquote = 0;	/* No more quotes */
-	  }
-	}
+        q = strpbrk(s, "\"\'");
+        if (!q) {
+          noquote = 0;
+        } else {
+          while (q && (q < c)) {
+            /* First match was found inside a quote.  Try to find another match */
+            q2 = end_quote(q);
+            if (!q2) {
+              c = 0;
+              break;
+            }
+            if (q2 > c) {
+              c = (*match) (base, q2 + 1, token, tokenlen);
+              if (!c)
+                break;
+            }
+            q = strpbrk(q2 + 1, "\"\'");
+            if (!q)
+              noquote = 0;	/* No more quotes */
+          }
+        }
       }
       if (nocomment) {
-	q = strstr(s, "/*");
-	if (!q) {
-	  nocomment = 0;
-	} else {
-	  while (q && (q < c)) {
-	    /* First match was found inside a comment.  Try to find another match */
-	    q2 = end_comment(q);
-	    if (!q2) {
-	      c = 0;
-	      break;
-	    }
-	    if (q2 > c) {
-	      c = (*match) (base, q2 + 1, token, tokenlen);
-	      if (!c)
-		break;
-	    }
-	    q = strstr(q2 + 1, "/*");
-	    if (!q)
-	      nocomment = 0;	/* No more comments */
-	  }
-	}
+        q = strstr(s, "/*");
+        if (!q) {
+          nocomment = 0;
+        } else {
+          while (q && (q < c)) {
+            /* First match was found inside a comment.  Try to find another match */
+            q2 = end_comment(q);
+            if (!q2) {
+              c = 0;
+              break;
+            }
+            if (q2 > c) {
+              c = (*match) (base, q2 + 1, token, tokenlen);
+              if (!c)
+                break;
+            }
+            q = strstr(q2 + 1, "/*");
+            if (!q)
+              nocomment = 0;	/* No more comments */
+          }
+        }
       }
       if (i < (rcount - 1)) {
-	memcpy(t, s, c - s);
-	t += (c - s);
+        memcpy(t, s, c - s);
+        t += (c - s);
       } else {
-	memcpy(t, s, (str->str + str->len) - s + 1);
+        memcpy(t, s, (str->str + str->len) - s + 1);
       }
       s = c;
     }
@@ -1050,7 +1050,7 @@ static void String_chop(DOH *so) {
     if (str->sp >= str->len) {
       str->sp--;
       if (*c == '\n')
-	str->line--;
+        str->line--;
     }
     str->len--;
     c--;

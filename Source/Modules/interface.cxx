@@ -33,25 +33,25 @@ static List *collect_interface_methods(Node *n) {
     for (Iterator base = First(bases); base.item; base = Next(base)) {
       Node *cls = base.item;
       if (cls == n)
-	continue;
+        continue;
       for (Node *child = firstChild(cls); child; child = nextSibling(child)) {
-	if (Cmp(nodeType(child), "cdecl") == 0) {
-	  if (GetFlag(child, "feature:ignore") || Getattr(child, "interface:owner"))
-	    continue; // skip methods propagated to bases
-	  if (!checkAttribute(child, "kind", "function"))
-	    continue;
-	  if (checkAttribute(child, "storage", "static"))
-	    continue; // accept virtual methods, non-virtual methods too... mmm??. Warn that the interface class has something that is not a virtual method?
-	  Node *nn = copyNode(child);
-	  Setattr(nn, "interface:owner", cls);
-	  ParmList *parms = CopyParmList(Getattr(child, "parms"));
-	  Setattr(nn, "parms", parms);
-	  Delete(parms);
-	  ParmList *throw_parm_list = Getattr(child, "throws");
-	  if (throw_parm_list)
-	    Setattr(nn, "throws", CopyParmList(throw_parm_list));
-	  Append(methods, nn);
-	}
+        if (Cmp(nodeType(child), "cdecl") == 0) {
+          if (GetFlag(child, "feature:ignore") || Getattr(child, "interface:owner"))
+            continue; // skip methods propagated to bases
+          if (!checkAttribute(child, "kind", "function"))
+            continue;
+          if (checkAttribute(child, "storage", "static"))
+            continue; // accept virtual methods, non-virtual methods too... mmm??. Warn that the interface class has something that is not a virtual method?
+          Node *nn = copyNode(child);
+          Setattr(nn, "interface:owner", cls);
+          ParmList *parms = CopyParmList(Getattr(child, "parms"));
+          Setattr(nn, "parms", parms);
+          Delete(parms);
+          ParmList *throw_parm_list = Getattr(child, "throws");
+          if (throw_parm_list)
+            Setattr(nn, "throws", CopyParmList(throw_parm_list));
+          Append(methods, nn);
+        }
       }
     }
   }
@@ -71,8 +71,8 @@ static void collect_interface_bases(List *bases, Node *n) {
   if (List *baselist = Getattr(n, "bases")) {
     for (Iterator base = First(baselist); base.item; base = Next(base)) {
       if (!GetFlag(base.item, "feature:ignore")) {
-	if (GetFlag(base.item, "feature:interface"))
-	  collect_interface_bases(bases, base.item);
+        if (GetFlag(base.item, "feature:interface"))
+          collect_interface_bases(bases, base.item);
       }
     }
   }
@@ -94,12 +94,12 @@ static void collect_interface_base_classes(Node *n) {
     // check all bases are also interfaces
     if (List *baselist = Getattr(n, "bases")) {
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
-	if (!GetFlag(base.item, "feature:ignore")) {
-	  if (!GetFlag(base.item, "feature:interface")) {
-	    Swig_error(Getfile(n), Getline(n), "Base class '%s' of '%s' is not similarly marked as an interface.\n", SwigType_namestr(Getattr(base.item, "name")), SwigType_namestr(Getattr(n, "name")));
-	    Exit(EXIT_FAILURE);
-	  }
-	}
+        if (!GetFlag(base.item, "feature:ignore")) {
+          if (!GetFlag(base.item, "feature:interface")) {
+            Swig_error(Getfile(n), Getline(n), "Base class '%s' of '%s' is not similarly marked as an interface.\n", SwigType_namestr(Getattr(base.item, "name")), SwigType_namestr(Getattr(n, "name")));
+            Exit(EXIT_FAILURE);
+          }
+        }
       }
     }
   }
@@ -149,50 +149,50 @@ void Swig_interface_propagate_methods(Node *n) {
     bool is_interface = GetFlag(n, "feature:interface") ? true : false;
     for (Iterator mi = First(methods); mi.item; mi = Next(mi)) {
       if (!is_interface && GetFlag(mi.item, "abstract"))
-	continue;
+        continue;
       String *this_decl = Getattr(mi.item, "decl");
       String *this_decl_resolved = SwigType_typedef_resolve_all(this_decl);
       bool identically_overloaded_method = false; // true when a base class' method is implemented in n
       if (SwigType_isfunction(this_decl_resolved)) {
-	String *name = Getattr(mi.item, "name");
-	for (Node *child = firstChild(n); child; child = nextSibling(child)) {
-	  if (Getattr(child, "interface:owner"))
-	    break; // at the end of the list are newly appended methods
-	  if (Cmp(nodeType(child), "cdecl") == 0) {
-	    if (checkAttribute(child, "name", name)) {
-	      String *decl = SwigType_typedef_resolve_all(Getattr(child, "decl"));
-	      identically_overloaded_method = Strcmp(decl, this_decl_resolved) == 0;
-	      Delete(decl);
-	      if (identically_overloaded_method)
-		break;
-	    }
-	  }
-	}
+        String *name = Getattr(mi.item, "name");
+        for (Node *child = firstChild(n); child; child = nextSibling(child)) {
+          if (Getattr(child, "interface:owner"))
+            break; // at the end of the list are newly appended methods
+          if (Cmp(nodeType(child), "cdecl") == 0) {
+            if (checkAttribute(child, "name", name)) {
+              String *decl = SwigType_typedef_resolve_all(Getattr(child, "decl"));
+              identically_overloaded_method = Strcmp(decl, this_decl_resolved) == 0;
+              Delete(decl);
+              if (identically_overloaded_method)
+                break;
+            }
+          }
+        }
       }
       Delete(this_decl_resolved);
       if (!identically_overloaded_method) {
-	// Add method copied from base class to this derived class
-	Node *cn = mi.item;
-	Delattr(cn, "sym:overname");
-	String *prefix = Getattr(n, "name");
-	String *name = Getattr(cn, "name");
-	String *decl = Getattr(cn, "decl");
-	String *oldname = Getattr(cn, "sym:name");
+        // Add method copied from base class to this derived class
+        Node *cn = mi.item;
+        Delattr(cn, "sym:overname");
+        String *prefix = Getattr(n, "name");
+        String *name = Getattr(cn, "name");
+        String *decl = Getattr(cn, "decl");
+        String *oldname = Getattr(cn, "sym:name");
 
-	String *symname = Swig_name_make(cn, prefix, name, decl, oldname);
-	if (Strcmp(symname, "$ignore") != 0) {
-	  Symtab *oldscope = Swig_symbol_setscope(Getattr(n, "symtab"));
-	  Node *on = Swig_symbol_add(symname, cn);
-	  (void)on;
-	  assert(on == cn);
+        String *symname = Swig_name_make(cn, prefix, name, decl, oldname);
+        if (Strcmp(symname, "$ignore") != 0) {
+          Symtab *oldscope = Swig_symbol_setscope(Getattr(n, "symtab"));
+          Node *on = Swig_symbol_add(symname, cn);
+          (void)on;
+          assert(on == cn);
 
-	  // Features from the copied base class method are already present, now add in features specific to the added method in the derived class
-	  Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(0), name, decl, cn);
-	  Swig_symbol_setscope(oldscope);
-	  appendChild(n, cn);
-	}
+          // Features from the copied base class method are already present, now add in features specific to the added method in the derived class
+          Swig_features_get(Swig_cparse_features(), Swig_symbol_qualifiedscopename(0), name, decl, cn);
+          Swig_symbol_setscope(oldscope);
+          appendChild(n, cn);
+        }
       } else {
-	Delete(mi.item);
+        Delete(mi.item);
       }
     }
     Delete(methods);

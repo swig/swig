@@ -47,20 +47,20 @@ extern "C" {
        return 0;
     while (n) {
       if (Strcmp(nodeType(n), "cdecl") == 0) {
-	decl = Getattr(n, "decl");
-	if (SwigType_isfunction(decl)) {
-	  SwigType *decl1 = SwigType_typedef_resolve_all(decl);
-	  SwigType *decl2 = SwigType_pop_function(decl1);
-	  if (Strcmp(decl2, search_decl) == 0) {
-	    if (!GetFlag(n, "abstract")) {
-	      Delete(decl1);
-	      Delete(decl2);
-	      return n;
-	    }
-	  }
-	  Delete(decl1);
-	  Delete(decl2);
-	}
+        decl = Getattr(n, "decl");
+        if (SwigType_isfunction(decl)) {
+          SwigType *decl1 = SwigType_typedef_resolve_all(decl);
+          SwigType *decl2 = SwigType_pop_function(decl1);
+          if (Strcmp(decl2, search_decl) == 0) {
+            if (!GetFlag(n, "abstract")) {
+              Delete(decl1);
+              Delete(decl2);
+              return n;
+            }
+          }
+          Delete(decl1);
+          Delete(decl2);
+        }
       }
       n = Getattr(n, "csym:nextSibling");
     }
@@ -93,34 +93,34 @@ class Allocate:public Dispatcher {
       Node *b = Getitem(bases, i);
       Node *base = firstChild(b);
       while (base) {
-	if (Strcmp(nodeType(base), "extend") == 0) {
-	  // Loop through all the %extend methods
-	  Node *extend = firstChild(base);
-	  while (extend) {
-	    if (function_is_defined_in_bases_seek(n, b, extend, this_decl, name, this_type, resolved_decl)) {
-	      Delete(resolved_decl);
-	      return 1;
-	    }
-	    extend = nextSibling(extend);
-	  }
-	} else if (Strcmp(nodeType(base), "using") == 0) {
-	  // Loop through all the using declaration methods
-	  Node *usingdecl = firstChild(base);
-	  while (usingdecl) {
-	    if (function_is_defined_in_bases_seek(n, b, usingdecl, this_decl, name, this_type, resolved_decl)) {
-	      Delete(resolved_decl);
-	      return 1;
-	    }
-	    usingdecl = nextSibling(usingdecl);
-	  }
-	} else {
-	  // normal methods
-	  if (function_is_defined_in_bases_seek(n, b, base, this_decl, name, this_type, resolved_decl)) {
-	    Delete(resolved_decl);
-	    return 1;
-	  }
-	}
-	base = nextSibling(base);
+        if (Strcmp(nodeType(base), "extend") == 0) {
+          // Loop through all the %extend methods
+          Node *extend = firstChild(base);
+          while (extend) {
+            if (function_is_defined_in_bases_seek(n, b, extend, this_decl, name, this_type, resolved_decl)) {
+              Delete(resolved_decl);
+              return 1;
+            }
+            extend = nextSibling(extend);
+          }
+        } else if (Strcmp(nodeType(base), "using") == 0) {
+          // Loop through all the using declaration methods
+          Node *usingdecl = firstChild(base);
+          while (usingdecl) {
+            if (function_is_defined_in_bases_seek(n, b, usingdecl, this_decl, name, this_type, resolved_decl)) {
+              Delete(resolved_decl);
+              return 1;
+            }
+            usingdecl = nextSibling(usingdecl);
+          }
+        } else {
+          // normal methods
+          if (function_is_defined_in_bases_seek(n, b, base, this_decl, name, this_type, resolved_decl)) {
+            Delete(resolved_decl);
+            return 1;
+          }
+        }
+        base = nextSibling(base);
       }
     }
     Delete(resolved_decl);
@@ -128,7 +128,7 @@ class Allocate:public Dispatcher {
     for (int j = 0; j < Len(bases); j++) {
       Node *b = Getitem(bases, j);
       if (function_is_defined_in_bases(n, Getattr(b, "allbases")))
-	return 1;
+        return 1;
     }
     return 0;
   }
@@ -140,117 +140,117 @@ class Allocate:public Dispatcher {
     SwigType *base_type = Getattr(base, "type");
     if (base_decl && base_type) {
       if (checkAttribute(base, "name", name) && !GetFlag(b, "feature:ignore") /* whole class is ignored */ ) {
-	if (SwigType_isfunction(resolved_decl) && SwigType_isfunction(base_decl)) {
-	  // We have found a method that has the same name as one in a base class
-	  bool covariant_returntype = false;
-	  bool returntype_match = Strcmp(base_type, this_type) == 0 ? true : false;
-	  bool decl_match = Strcmp(base_decl, this_decl) == 0 ? true : false;
-	  if (returntype_match && decl_match) {
-	    // Exact match - we have found a method with identical signature
-	    // No typedef resolution was done, but skipping it speeds things up slightly
-	  } else {
-	    // Either we have:
-	    //  1) matching methods but are one of them uses a different typedef (return type or parameter) to the one in base class' method
-	    //  2) matching polymorphic methods with covariant return type
-	    //  3) a non-matching method (ie an overloaded method of some sort)
-	    //  4) a matching method which is not polymorphic, ie it hides the base class' method
+        if (SwigType_isfunction(resolved_decl) && SwigType_isfunction(base_decl)) {
+          // We have found a method that has the same name as one in a base class
+          bool covariant_returntype = false;
+          bool returntype_match = Strcmp(base_type, this_type) == 0 ? true : false;
+          bool decl_match = Strcmp(base_decl, this_decl) == 0 ? true : false;
+          if (returntype_match && decl_match) {
+            // Exact match - we have found a method with identical signature
+            // No typedef resolution was done, but skipping it speeds things up slightly
+          } else {
+            // Either we have:
+            //  1) matching methods but are one of them uses a different typedef (return type or parameter) to the one in base class' method
+            //  2) matching polymorphic methods with covariant return type
+            //  3) a non-matching method (ie an overloaded method of some sort)
+            //  4) a matching method which is not polymorphic, ie it hides the base class' method
 
-	    // Check if fully resolved return types match (including
-	    // covariant return types)
-	    if (!returntype_match) {
-	      String *this_returntype = function_return_type(n);
-	      String *base_returntype = function_return_type(base);
-	      returntype_match = Strcmp(this_returntype, base_returntype) == 0 ? true : false;
-	      if (!returntype_match) {
-		covariant_returntype = SwigType_issubtype(this_returntype, base_returntype) ? true : false;
-		returntype_match = covariant_returntype;
-	      }
-	      Delete(this_returntype);
-	      Delete(base_returntype);
-	    }
-	    // The return types must match at this point, for the whole method to match
-	    if (returntype_match && !decl_match) {
-	      // Now need to check the parameter list
-	      // First do an inexpensive parameter count
-	      ParmList *this_parms = Getattr(n, "parms");
-	      ParmList *base_parms = Getattr(base, "parms");
-	      if (ParmList_len(this_parms) == ParmList_len(base_parms)) {
-		// Number of parameters are the same, now check that all the parameters match
-		SwigType *base_fn = NewString("");
-		SwigType *this_fn = NewString("");
-		SwigType_add_function(base_fn, base_parms);
-		SwigType_add_function(this_fn, this_parms);
-		base_fn = SwigType_typedef_resolve_all(base_fn);
-		this_fn = SwigType_typedef_resolve_all(this_fn);
-		if (Strcmp(base_fn, this_fn) == 0) {
-		  // Finally check that the qualifiers match
-		  int base_qualifier = SwigType_isqualifier(resolved_decl);
-		  int this_qualifier = SwigType_isqualifier(base_decl);
-		  if (base_qualifier == this_qualifier) {
-		    decl_match = true;
-		  }
-		}
-		Delete(base_fn);
-		Delete(this_fn);
-	      }
-	    }
-	  }
-	  //Printf(stderr,"look %s %s %d %d\n",base_decl, this_decl, returntype_match, decl_match);
+            // Check if fully resolved return types match (including
+            // covariant return types)
+            if (!returntype_match) {
+              String *this_returntype = function_return_type(n);
+              String *base_returntype = function_return_type(base);
+              returntype_match = Strcmp(this_returntype, base_returntype) == 0 ? true : false;
+              if (!returntype_match) {
+                covariant_returntype = SwigType_issubtype(this_returntype, base_returntype) ? true : false;
+                returntype_match = covariant_returntype;
+              }
+              Delete(this_returntype);
+              Delete(base_returntype);
+            }
+            // The return types must match at this point, for the whole method to match
+            if (returntype_match && !decl_match) {
+              // Now need to check the parameter list
+              // First do an inexpensive parameter count
+              ParmList *this_parms = Getattr(n, "parms");
+              ParmList *base_parms = Getattr(base, "parms");
+              if (ParmList_len(this_parms) == ParmList_len(base_parms)) {
+                // Number of parameters are the same, now check that all the parameters match
+                SwigType *base_fn = NewString("");
+                SwigType *this_fn = NewString("");
+                SwigType_add_function(base_fn, base_parms);
+                SwigType_add_function(this_fn, this_parms);
+                base_fn = SwigType_typedef_resolve_all(base_fn);
+                this_fn = SwigType_typedef_resolve_all(this_fn);
+                if (Strcmp(base_fn, this_fn) == 0) {
+                  // Finally check that the qualifiers match
+                  int base_qualifier = SwigType_isqualifier(resolved_decl);
+                  int this_qualifier = SwigType_isqualifier(base_decl);
+                  if (base_qualifier == this_qualifier) {
+                    decl_match = true;
+                  }
+                }
+                Delete(base_fn);
+                Delete(this_fn);
+              }
+            }
+          }
+          //Printf(stderr,"look %s %s %d %d\n",base_decl, this_decl, returntype_match, decl_match);
 
-	  if (decl_match && returntype_match) {
-	    // Found an identical method in the base class
-	    bool this_wrapping_protected_members = is_member_director(n) ? true : false;	// This should really check for dirprot rather than just being a director method
-	    bool base_wrapping_protected_members = is_member_director(base) ? true : false;	// This should really check for dirprot rather than just being a director method
-	    bool both_have_public_access = is_public(n) && is_public(base);
-	    bool both_have_protected_access = (is_protected(n) && this_wrapping_protected_members) && (is_protected(base) && base_wrapping_protected_members);
-	    bool both_have_private_access = is_private(n) && is_private(base);
-	    if (checkAttribute(base, "storage", "virtual")) {
-	      // Found a polymorphic method.
-	      // Mark the polymorphic method, in case the virtual keyword was not used.
-	      Setattr(n, "storage", "virtual");
-	      if (!GetFlag(b, "feature:interface")) { // interface implementation neither hides nor overrides
-		if (both_have_public_access || both_have_protected_access) {
-		  if (!is_non_public_base(inclass, b))
-		    Setattr(n, "override", base);	// Note C# definition of override, ie access must be the same
-		}
-		else if (!both_have_private_access) {
-		  // Different access
-		  if (this_wrapping_protected_members || base_wrapping_protected_members)
-		    if (!is_non_public_base(inclass, b))
-		      Setattr(n, "hides", base);	// Note C# definition of hiding, ie hidden if access is different
-		}
-	      }
-	      // Try and find the most base's covariant return type
-	      SwigType *most_base_covariant_type = Getattr(base, "covariant");
-	      if (!most_base_covariant_type && covariant_returntype)
-		most_base_covariant_type = function_return_type(base, false);
+          if (decl_match && returntype_match) {
+            // Found an identical method in the base class
+            bool this_wrapping_protected_members = is_member_director(n) ? true : false;	// This should really check for dirprot rather than just being a director method
+            bool base_wrapping_protected_members = is_member_director(base) ? true : false;	// This should really check for dirprot rather than just being a director method
+            bool both_have_public_access = is_public(n) && is_public(base);
+            bool both_have_protected_access = (is_protected(n) && this_wrapping_protected_members) && (is_protected(base) && base_wrapping_protected_members);
+            bool both_have_private_access = is_private(n) && is_private(base);
+            if (checkAttribute(base, "storage", "virtual")) {
+              // Found a polymorphic method.
+              // Mark the polymorphic method, in case the virtual keyword was not used.
+              Setattr(n, "storage", "virtual");
+              if (!GetFlag(b, "feature:interface")) { // interface implementation neither hides nor overrides
+                if (both_have_public_access || both_have_protected_access) {
+                  if (!is_non_public_base(inclass, b))
+                    Setattr(n, "override", base);	// Note C# definition of override, ie access must be the same
+                }
+                else if (!both_have_private_access) {
+                  // Different access
+                  if (this_wrapping_protected_members || base_wrapping_protected_members)
+                    if (!is_non_public_base(inclass, b))
+                      Setattr(n, "hides", base);	// Note C# definition of hiding, ie hidden if access is different
+                }
+              }
+              // Try and find the most base's covariant return type
+              SwigType *most_base_covariant_type = Getattr(base, "covariant");
+              if (!most_base_covariant_type && covariant_returntype)
+                most_base_covariant_type = function_return_type(base, false);
 
-	      if (!most_base_covariant_type) {
-		// Eliminate the derived virtual method.
-		if (virtual_elimination_mode && !is_member_director(n))
-		  if (both_have_public_access)
-		    if (!is_non_public_base(inclass, b))
-		      if (!Swig_symbol_isoverloaded(n)) {
-			// Don't eliminate if an overloaded method as this hides the method
-			// in the scripting languages: the dispatch function will hide the base method if ignored.
-			SetFlag(n, "feature:ignore");
-			SetFlag(n, "fvirtual:ignore");
-		      }
-	      } else {
-		// Some languages need to know about covariant return types
-		Setattr(n, "covariant", most_base_covariant_type);
-	      }
+              if (!most_base_covariant_type) {
+                // Eliminate the derived virtual method.
+                if (virtual_elimination_mode && !is_member_director(n))
+                  if (both_have_public_access)
+                    if (!is_non_public_base(inclass, b))
+                      if (!Swig_symbol_isoverloaded(n)) {
+                        // Don't eliminate if an overloaded method as this hides the method
+                        // in the scripting languages: the dispatch function will hide the base method if ignored.
+                        SetFlag(n, "feature:ignore");
+                        SetFlag(n, "fvirtual:ignore");
+                      }
+              } else {
+                // Some languages need to know about covariant return types
+                Setattr(n, "covariant", most_base_covariant_type);
+              }
 
-	    } else {
-	      // Found an identical method in the base class, but it is not polymorphic.
-	      if (both_have_public_access || both_have_protected_access)
-		if (!is_non_public_base(inclass, b))
-		  Setattr(n, "hides", base);
-	    }
-	    if (both_have_public_access || both_have_protected_access)
-	      return 1;
-	  }
-	}
+            } else {
+              // Found an identical method in the base class, but it is not polymorphic.
+              if (both_have_public_access || both_have_protected_access)
+                if (!is_non_public_base(inclass, b))
+                  Setattr(n, "hides", base);
+            }
+            if (both_have_public_access || both_have_protected_access)
+              return 1;
+          }
+        }
       }
     }
     return 0;
@@ -263,17 +263,17 @@ class Allocate:public Dispatcher {
     Node *bases = Getattr(n, "privatebases");
     if (bases) {
       for (int i = 0; i < Len(bases); i++) {
-	Node *base = Getitem(bases, i);
-	if (base == b)
-	  non_public_base = true;
+        Node *base = Getitem(bases, i);
+        if (base == b)
+          non_public_base = true;
       }
     }
     bases = Getattr(n, "protectedbases");
     if (bases) {
       for (int i = 0; i < Len(bases); i++) {
-	Node *base = Getitem(bases, i);
-	if (base == b)
-	  non_public_base = true;
+        Node *base = Getitem(bases, i);
+        if (base == b)
+          non_public_base = true;
       }
     }
     return non_public_base;
@@ -310,10 +310,10 @@ class Allocate:public Dispatcher {
     {
       int old_mode = virtual_elimination_mode;
       if (is_member_director(classnode, member))
-	virtual_elimination_mode = 0;
+        virtual_elimination_mode = 0;
 
       if (function_is_defined_in_bases(member, bases)) {
-	defined = 1;
+        defined = 1;
       }
 
       virtual_elimination_mode = old_mode;
@@ -344,44 +344,44 @@ class Allocate:public Dispatcher {
       int dabstract = 0;
       int len = Len(abstracts);
       for (int i = 0; i < len; i++) {
-	Node *nn = Getitem(abstracts, i);
-	String *name = Getattr(nn, "name");
-	if (!name)
-	  continue;
-	if (Strchr(name, '~'))
-	  continue;		/* Don't care about destructors */
-	String *base_decl = Getattr(nn, "decl");
-	if (base_decl)
-	  base_decl = SwigType_typedef_resolve_all(base_decl);
-	if (SwigType_isfunction(base_decl))
-	  search_decl = SwigType_pop_function(base_decl);
-	Node *dn = Swig_symbol_clookup_local_check(name, 0, check_implemented);
-	Delete(search_decl);
-	Delete(base_decl);
+        Node *nn = Getitem(abstracts, i);
+        String *name = Getattr(nn, "name");
+        if (!name)
+          continue;
+        if (Strchr(name, '~'))
+          continue;		/* Don't care about destructors */
+        String *base_decl = Getattr(nn, "decl");
+        if (base_decl)
+          base_decl = SwigType_typedef_resolve_all(base_decl);
+        if (SwigType_isfunction(base_decl))
+          search_decl = SwigType_pop_function(base_decl);
+        Node *dn = Swig_symbol_clookup_local_check(name, 0, check_implemented);
+        Delete(search_decl);
+        Delete(base_decl);
 
-	if (!dn) {
-	  List *nabstracts = Getattr(n, "abstracts");
-	  if (!nabstracts) {
-	    nabstracts = NewList();
-	    Setattr(n, "abstracts", nabstracts);
-	    Delete(nabstracts);
-	  }
-	  Append(nabstracts, nn);
-	  if (!Getattr(n, "abstracts:firstnode")) {
-	    Setattr(n, "abstracts:firstnode", nn);
-	  }
-	  dabstract = base != n;
-	}
+        if (!dn) {
+          List *nabstracts = Getattr(n, "abstracts");
+          if (!nabstracts) {
+            nabstracts = NewList();
+            Setattr(n, "abstracts", nabstracts);
+            Delete(nabstracts);
+          }
+          Append(nabstracts, nn);
+          if (!Getattr(n, "abstracts:firstnode")) {
+            Setattr(n, "abstracts:firstnode", nn);
+          }
+          dabstract = base != n;
+        }
       }
       if (dabstract)
-	return 1;
+        return 1;
     }
     List *bases = Getattr(base, "allbases");
     if (!bases)
       return 0;
     for (int i = 0; i < Len(bases); i++) {
       if (is_abstract_inherit(n, Getitem(bases, i))) {
-	return 1;
+        return 1;
       }
     }
     return 0;
@@ -399,68 +399,68 @@ class Allocate:public Dispatcher {
 
     while (c) {
       if (Getattr(c, "error") || GetFlag(c, "feature:ignore")) {
-	c = nextSibling(c);
-	continue;
+        c = nextSibling(c);
+        continue;
       }
       if (!isconst && (Strcmp(nodeType(c), "extend") == 0)) {
-	methods = smart_pointer_methods(c, methods, isconst, Getattr(cls, "name"));
+        methods = smart_pointer_methods(c, methods, isconst, Getattr(cls, "name"));
       } else if (Strcmp(nodeType(c), "cdecl") == 0) {
-	if (!GetFlag(c, "feature:ignore")) {
-	  String *storage = Getattr(c, "storage");
-	  if (!((Cmp(storage, "typedef") == 0))
-	      && !Strstr(storage, "friend")) {
-	    String *name = Getattr(c, "name");
-	    String *symname = Getattr(c, "sym:name");
-	    Node *e = Swig_symbol_clookup_local(name, 0);
-	    if (e && is_public(e) && !GetFlag(e, "feature:ignore") && (Cmp(symname, Getattr(e, "sym:name")) == 0)) {
-	      Swig_warning(WARN_LANG_DEREF_SHADOW, Getfile(e), Getline(e), "Declaration of '%s' shadows declaration accessible via operator->(),\n", name);
-	      Swig_warning(WARN_LANG_DEREF_SHADOW, Getfile(c), Getline(c), "previous declaration of '%s'.\n", name);
-	    } else {
-	      /* Make sure node with same name doesn't already exist */
-	      int k;
-	      int match = 0;
-	      for (k = 0; k < Len(methods); k++) {
-		e = Getitem(methods, k);
-		if (Cmp(symname, Getattr(e, "sym:name")) == 0) {
-		  match = 1;
-		  break;
-		}
-		if (!Getattr(e, "sym:name") && (Cmp(name, Getattr(e, "name")) == 0)) {
-		  match = 1;
-		  break;
-		}
-	      }
-	      if (!match) {
-		Node *cc = c;
-		while (cc) {
-		  Node *cp = cc;
-		  if (classname) {
-		    Setattr(cp, "extendsmartclassname", classname);
-		  }
-		  Setattr(cp, "allocate:smartpointeraccess", "1");
-		  /* If constant, we have to be careful */
-		  if (isconst) {
-		    SwigType *decl = Getattr(cp, "decl");
-		    if (decl) {
-		      if (SwigType_isfunction(decl)) {	/* If method, we only add if it's a const method */
-			if (SwigType_isconst(decl)) {
-			  Append(methods, cp);
-			}
-		      } else {
-			Append(methods, cp);
-		      }
-		    } else {
-		      Append(methods, cp);
-		    }
-		  } else {
-		    Append(methods, cp);
-		  }
-		  cc = Getattr(cc, "sym:nextSibling");
-		}
-	      }
-	    }
-	  }
-	}
+        if (!GetFlag(c, "feature:ignore")) {
+          String *storage = Getattr(c, "storage");
+          if (!((Cmp(storage, "typedef") == 0))
+              && !Strstr(storage, "friend")) {
+            String *name = Getattr(c, "name");
+            String *symname = Getattr(c, "sym:name");
+            Node *e = Swig_symbol_clookup_local(name, 0);
+            if (e && is_public(e) && !GetFlag(e, "feature:ignore") && (Cmp(symname, Getattr(e, "sym:name")) == 0)) {
+              Swig_warning(WARN_LANG_DEREF_SHADOW, Getfile(e), Getline(e), "Declaration of '%s' shadows declaration accessible via operator->(),\n", name);
+              Swig_warning(WARN_LANG_DEREF_SHADOW, Getfile(c), Getline(c), "previous declaration of '%s'.\n", name);
+            } else {
+              /* Make sure node with same name doesn't already exist */
+              int k;
+              int match = 0;
+              for (k = 0; k < Len(methods); k++) {
+                e = Getitem(methods, k);
+                if (Cmp(symname, Getattr(e, "sym:name")) == 0) {
+                  match = 1;
+                  break;
+                }
+                if (!Getattr(e, "sym:name") && (Cmp(name, Getattr(e, "name")) == 0)) {
+                  match = 1;
+                  break;
+                }
+              }
+              if (!match) {
+                Node *cc = c;
+                while (cc) {
+                  Node *cp = cc;
+                  if (classname) {
+                    Setattr(cp, "extendsmartclassname", classname);
+                  }
+                  Setattr(cp, "allocate:smartpointeraccess", "1");
+                  /* If constant, we have to be careful */
+                  if (isconst) {
+                    SwigType *decl = Getattr(cp, "decl");
+                    if (decl) {
+                      if (SwigType_isfunction(decl)) {	/* If method, we only add if it's a const method */
+                        if (SwigType_isconst(decl)) {
+                          Append(methods, cp);
+                        }
+                      } else {
+                        Append(methods, cp);
+                      }
+                    } else {
+                      Append(methods, cp);
+                    }
+                  } else {
+                    Append(methods, cp);
+                  }
+                  cc = Getattr(cc, "sym:nextSibling");
+                }
+              }
+            }
+          }
+        }
       }
 
       c = nextSibling(c);
@@ -470,18 +470,18 @@ class Allocate:public Dispatcher {
       Node *bases = Getattr(cls, "bases");
       int k;
       for (k = 0; k < Len(bases); k++) {
-	smart_pointer_methods(Getitem(bases, k), methods, isconst);
+        smart_pointer_methods(Getitem(bases, k), methods, isconst);
       }
     }
     /* Remove protected/private members */
     {
       for (int i = 0; i < Len(methods);) {
-	Node *n = Getitem(methods, i);
-	if (!is_public(n)) {
-	  Delitem(methods, i);
-	  continue;
-	}
-	i++;
+        Node *n = Getitem(methods, i);
+        if (!is_public(n)) {
+          Delitem(methods, i);
+          continue;
+        }
+        i++;
       }
     }
     return methods;
@@ -492,13 +492,13 @@ class Allocate:public Dispatcher {
       SwigType *ty = Getattr(p, "type");
       SwigType *t = SwigType_typedef_resolve_all(ty);
       if (SwigType_isreference(t) || SwigType_ispointer(t) || SwigType_isarray(t)) {
-	Delete(SwigType_pop(t));
+        Delete(SwigType_pop(t));
       }
       Node *c = Swig_symbol_clookup(t, 0);
       if (c) {
-	if (!GetFlag(c, "feature:exceptionclass")) {
-	  SetFlag(c, "feature:exceptionclass");
-	}
+        if (!GetFlag(c, "feature:exceptionclass")) {
+          SetFlag(c, "feature:exceptionclass");
+        }
       }
       p = nextSibling(p);
       Delete(t);
@@ -523,16 +523,16 @@ class Allocate:public Dispatcher {
     if (scatchlist) {
       catchlist = Swig_cparse_parms(scatchlist, n);
       if (catchlist) {
-	Setattr(n, "catchlist", catchlist);
-	mark_exception_classes(catchlist);
-	Delete(catchlist);
+        Setattr(n, "catchlist", catchlist);
+        mark_exception_classes(catchlist);
+        Delete(catchlist);
       }
     }
     ParmList *throws = Getattr(n, "throws");
     if (throws) {
       /* if there is no explicit catchlist, we catch everything in the throws list */
       if (!catchlist) {
-	Setattr(n, "catchlist", throws);
+        Setattr(n, "catchlist", throws);
       }
       mark_exception_classes(throws);
     }
@@ -555,8 +555,8 @@ class Allocate:public Dispatcher {
     while (over) {
       String *odecl = Getattr(over, "decl");
       if (Cmp(decl, odecl) == 0) {
-	match = 1;
-	break;
+        match = 1;
+        break;
       }
       over = Getattr(over, "sym:nextSibling");
     }
@@ -603,21 +603,21 @@ class Allocate:public Dispatcher {
       Setattr(nn, "parms", parms);
       Delete(parms);
       if (Getattr(n, "feature:extend")) {
-	String *ucode = is_void ? NewStringf("{ self->%s(", Getattr(n, "uname")) : NewStringf("{ return self->%s(", Getattr(n, "uname"));
+        String *ucode = is_void ? NewStringf("{ self->%s(", Getattr(n, "uname")) : NewStringf("{ return self->%s(", Getattr(n, "uname"));
 
-	for (ParmList *p = parms; p;) {
-	  Append(ucode, Getattr(p, "name"));
-	  p = nextSibling(p);
-	  if (p)
-	    Append(ucode, ",");
-	}
-	Append(ucode, "); }");
-	Setattr(nn, "code", ucode);
-	Delete(ucode);
+        for (ParmList *p = parms; p;) {
+          Append(ucode, Getattr(p, "name"));
+          p = nextSibling(p);
+          if (p)
+            Append(ucode, ",");
+        }
+        Append(ucode, "); }");
+        Setattr(nn, "code", ucode);
+        Delete(ucode);
       }
       ParmList *throw_parm_list = Getattr(c, "throws");
       if (throw_parm_list)
-	Setattr(nn, "throws", CopyParmList(throw_parm_list));
+        Setattr(nn, "throws", CopyParmList(throw_parm_list));
     } else {
       Delete(nn);
       nn = 0;
@@ -642,35 +642,35 @@ class Allocate:public Dispatcher {
     }
 
     if (!(Swig_storage_isstatic(c)
-	  || checkAttribute(c, "storage", "typedef")
-	  || Strstr(Getattr(c, "storage"), "friend")
-	  || (Getattr(c, "feature:extend") && !Getattr(c, "code"))
-	  || GetFlag(c, "feature:ignore"))) {
+          || checkAttribute(c, "storage", "typedef")
+          || Strstr(Getattr(c, "storage"), "friend")
+          || (Getattr(c, "feature:extend") && !Getattr(c, "code"))
+          || GetFlag(c, "feature:ignore"))) {
 
       String *symname = Getattr(n, "sym:name");
       String *csymname = Getattr(c, "sym:name");
       Node *parent = parentNode(n);
       bool using_inherited_constructor_symname_okay = Equal(nodeType(c), "constructor") && Equal(symname, Getattr(parent, "sym:name"));
       if (!csymname || Equal(csymname, symname) || using_inherited_constructor_symname_okay) {
-	Node *nn = clone_member_for_using_declaration(c, n);
-	if (nn) {
-	  ccount++;
-	  if (!last_unodes) {
-	    last_unodes = nn;
-	    unodes = nn;
-	  } else {
-	    Setattr(nn, "previousSibling", last_unodes);
-	    Setattr(last_unodes, "nextSibling", nn);
-	    Setattr(nn, "sym:previousSibling", last_unodes);
-	    Setattr(last_unodes, "sym:nextSibling", nn);
-	    Setattr(nn, "sym:overloaded", unodes);
-	    Setattr(unodes, "sym:overloaded", unodes);
-	    last_unodes = nn;
-	  }
-	}
+        Node *nn = clone_member_for_using_declaration(c, n);
+        if (nn) {
+          ccount++;
+          if (!last_unodes) {
+            last_unodes = nn;
+            unodes = nn;
+          } else {
+            Setattr(nn, "previousSibling", last_unodes);
+            Setattr(last_unodes, "nextSibling", nn);
+            Setattr(nn, "sym:previousSibling", last_unodes);
+            Setattr(last_unodes, "sym:nextSibling", nn);
+            Setattr(nn, "sym:overloaded", unodes);
+            Setattr(unodes, "sym:overloaded", unodes);
+            last_unodes = nn;
+          }
+        }
       } else {
-	Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(n), Getline(n), "Using declaration %s, with name '%s', is not actually using\n", SwigType_namestr(Getattr(n, "uname")), symname);
-	Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(c), Getline(c), "the method from %s, with name '%s', as the names are different.\n", Swig_name_decl(c), csymname);
+        Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(n), Getline(n), "Using declaration %s, with name '%s', is not actually using\n", SwigType_namestr(Getattr(n, "uname")), symname);
+        Swig_warning(WARN_LANG_USING_NAME_DIFFERENT, Getfile(c), Getline(c), "the method from %s, with name '%s', as the names are different.\n", Swig_name_decl(c), csymname);
       }
     }
     if (GetFlag(c, "fvirtual:ignore")) {
@@ -683,11 +683,11 @@ class Allocate:public Dispatcher {
     if (SwigType_type(type) == T_USER) {
       Node *cn = Swig_symbol_clookup(type, 0);
       if (cn) {
-	if ((Strcmp(nodeType(cn), "class") == 0)) {
-	  if (Getattr(cn, "allocate:noassign")) {
-	    assignable = false;
-	  }
-	}
+        if ((Strcmp(nodeType(cn), "class") == 0)) {
+          if (Getattr(cn, "allocate:noassign")) {
+            assignable = false;
+          }
+        }
       }
     } else if (SwigType_isarray(type)) {
       SwigType *array_type = SwigType_array_type(type);
@@ -775,10 +775,10 @@ Allocate():
     {
       List *bases = Getattr(n, "bases");
       if (bases) {
-	for (int i = 0; i < Len(bases); i++) {
-	  Node *b = Getitem(bases, i);
-	  classDeclaration(b);
-	}
+        for (int i = 0; i < Len(bases); i++) {
+          Node *b = Getitem(bases, i);
+          classDeclaration(b);
+        }
       }
     }
     inclass = n;
@@ -796,20 +796,20 @@ Allocate():
        a base class */
     if (!Getattr(n, "abstracts") && is_abstract_inherit(n)) {
       if (((Getattr(n, "allocate:public_constructor") || (!GetFlag(n, "feature:nodefault") && !Getattr(n, "allocate:has_constructor"))))) {
-	if (!GetFlag(n, "feature:notabstract")) {
-	  Node *na = Getattr(n, "abstracts:firstnode");
-	  if (na) {
-	    Swig_warning(WARN_TYPE_ABSTRACT, Getfile(n), Getline(n),
-			 "Class '%s' might be abstract, " "no constructors generated,\n", SwigType_namestr(Getattr(n, "name")));
-	    Swig_warning(WARN_TYPE_ABSTRACT, Getfile(na), Getline(na), "Method %s might not be implemented.\n", Swig_name_decl(na));
-	    if (!Getattr(n, "abstracts")) {
-	      List *abstracts = NewList();
-	      Append(abstracts, na);
-	      Setattr(n, "abstracts", abstracts);
-	      Delete(abstracts);
-	    }
-	  }
-	}
+        if (!GetFlag(n, "feature:notabstract")) {
+          Node *na = Getattr(n, "abstracts:firstnode");
+          if (na) {
+            Swig_warning(WARN_TYPE_ABSTRACT, Getfile(n), Getline(n),
+                         "Class '%s' might be abstract, " "no constructors generated,\n", SwigType_namestr(Getattr(n, "name")));
+            Swig_warning(WARN_TYPE_ABSTRACT, Getfile(na), Getline(na), "Method %s might not be implemented.\n", Swig_name_decl(na));
+            if (!Getattr(n, "abstracts")) {
+              List *abstracts = NewList();
+              Append(abstracts, na);
+              Setattr(n, "abstracts", abstracts);
+              Delete(abstracts);
+            }
+          }
+        }
       }
     }
 
@@ -817,67 +817,67 @@ Allocate():
       /* No constructor is defined.  We need to check a few things */
       /* If class is abstract.  No default constructor. Sorry */
       if (Getattr(n, "abstracts")) {
-	Delattr(n, "allocate:default_constructor");
+        Delattr(n, "allocate:default_constructor");
       }
       if (!Getattr(n, "allocate:default_constructor")) {
-	// No default constructor if either the default constructor or copy constructor is declared as deleted
-	if (!GetFlag(n, "allocate:deleted_default_constructor") && !GetFlag(n, "allocate:deleted_copy_constructor")) {
-	  /* Check base classes */
-	  List *bases = Getattr(n, "allbases");
-	  int allows_default = 1;
+        // No default constructor if either the default constructor or copy constructor is declared as deleted
+        if (!GetFlag(n, "allocate:deleted_default_constructor") && !GetFlag(n, "allocate:deleted_copy_constructor")) {
+          /* Check base classes */
+          List *bases = Getattr(n, "allbases");
+          int allows_default = 1;
 
-	  for (int i = 0; i < Len(bases); i++) {
-	    Node *n = Getitem(bases, i);
-	    /* If base class does not allow default constructor, we don't allow it either */
-	    if (!Getattr(n, "allocate:default_constructor") && (!Getattr(n, "allocate:default_base_constructor"))) {
-	      allows_default = 0;
-	    }
-	    /* not constructible if base destructor is deleted */
-	    if (Getattr(n, "allocate:deleted_default_destructor")) {
-	      allows_default = 0;
-	    }
-	  }
-	  if (allows_default) {
-	    Setattr(n, "allocate:default_constructor", "1");
-	  }
-	}
+          for (int i = 0; i < Len(bases); i++) {
+            Node *n = Getitem(bases, i);
+            /* If base class does not allow default constructor, we don't allow it either */
+            if (!Getattr(n, "allocate:default_constructor") && (!Getattr(n, "allocate:default_base_constructor"))) {
+              allows_default = 0;
+            }
+            /* not constructible if base destructor is deleted */
+            if (Getattr(n, "allocate:deleted_default_destructor")) {
+              allows_default = 0;
+            }
+          }
+          if (allows_default) {
+            Setattr(n, "allocate:default_constructor", "1");
+          }
+        }
       }
     }
 
     if (!Getattr(n, "allocate:has_copy_constructor")) {
       if (Getattr(n, "abstracts")) {
-	Delattr(n, "allocate:copy_constructor");
-	Delattr(n, "allocate:copy_constructor_non_const");
+        Delattr(n, "allocate:copy_constructor");
+        Delattr(n, "allocate:copy_constructor_non_const");
       }
       if (!Getattr(n, "allocate:copy_constructor")) {
-	// No copy constructor if the copy constructor is declared as deleted
-	if (!GetFlag(n, "allocate:deleted_copy_constructor")) {
-	  /* Check base classes */
-	  List *bases = Getattr(n, "allbases");
-	  int allows_copy = 1;
-	  int must_be_copy_non_const = 0;
+        // No copy constructor if the copy constructor is declared as deleted
+        if (!GetFlag(n, "allocate:deleted_copy_constructor")) {
+          /* Check base classes */
+          List *bases = Getattr(n, "allbases");
+          int allows_copy = 1;
+          int must_be_copy_non_const = 0;
 
-	  for (int i = 0; i < Len(bases); i++) {
-	    Node *n = Getitem(bases, i);
-	    /* If base class does not allow copy constructor, we don't allow it either */
-	    if (!Getattr(n, "allocate:copy_constructor") && (!Getattr(n, "allocate:copy_base_constructor"))) {
-	      allows_copy = 0;
-	    }
-	    /* not constructible if base destructor is deleted */
-	    if (Getattr(n, "allocate:deleted_default_destructor")) {
-	      allows_copy = 0;
-	    }
-	    if (Getattr(n, "allocate:copy_constructor_non_const") || (Getattr(n, "allocate:copy_base_constructor_non_const"))) {
-	      must_be_copy_non_const = 1;
-	    }
-	  }
-	  if (allows_copy) {
-	    Setattr(n, "allocate:copy_constructor", "1");
-	  }
-	  if (must_be_copy_non_const) {
-	    Setattr(n, "allocate:copy_constructor_non_const", "1");
-	  }
-	}
+          for (int i = 0; i < Len(bases); i++) {
+            Node *n = Getitem(bases, i);
+            /* If base class does not allow copy constructor, we don't allow it either */
+            if (!Getattr(n, "allocate:copy_constructor") && (!Getattr(n, "allocate:copy_base_constructor"))) {
+              allows_copy = 0;
+            }
+            /* not constructible if base destructor is deleted */
+            if (Getattr(n, "allocate:deleted_default_destructor")) {
+              allows_copy = 0;
+            }
+            if (Getattr(n, "allocate:copy_constructor_non_const") || (Getattr(n, "allocate:copy_base_constructor_non_const"))) {
+              must_be_copy_non_const = 1;
+            }
+          }
+          if (allows_copy) {
+            Setattr(n, "allocate:copy_constructor", "1");
+          }
+          if (must_be_copy_non_const) {
+            Setattr(n, "allocate:copy_constructor_non_const", "1");
+          }
+        }
       }
     }
 
@@ -885,20 +885,20 @@ Allocate():
       /* No destructor was defined */
       /* No destructor if the destructor is declared as deleted */
       if (!GetFlag(n, "allocate:deleted_default_destructor")) {
-	/* Check base classes */
-	List *bases = Getattr(n, "allbases");
-	int allows_destruct = 1;
+        /* Check base classes */
+        List *bases = Getattr(n, "allbases");
+        int allows_destruct = 1;
 
-	for (int i = 0; i < Len(bases); i++) {
-	  Node *n = Getitem(bases, i);
-	  /* If base class does not allow default destructor, we don't allow it either */
-	  if (!Getattr(n, "allocate:default_destructor") && (!Getattr(n, "allocate:default_base_destructor"))) {
-	    allows_destruct = 0;
-	  }
-	}
-	if (allows_destruct) {
-	  Setattr(n, "allocate:default_destructor", "1");
-	}
+        for (int i = 0; i < Len(bases); i++) {
+          Node *n = Getitem(bases, i);
+          /* If base class does not allow default destructor, we don't allow it either */
+          if (!Getattr(n, "allocate:default_destructor") && (!Getattr(n, "allocate:default_base_destructor"))) {
+            allows_destruct = 0;
+          }
+        }
+        if (allows_destruct) {
+          Setattr(n, "allocate:default_destructor", "1");
+        }
       }
     }
 
@@ -908,18 +908,18 @@ Allocate():
       int allows_assign = 1;
 
       for (int i = 0; i < Len(bases); i++) {
-	Node *n = Getitem(bases, i);
-	/* If base class does not allow assignment, we don't allow it either */
-	if (Getattr(n, "allocate:noassign")) {
-	  allows_assign = 0;
-	}
+        Node *n = Getitem(bases, i);
+        /* If base class does not allow assignment, we don't allow it either */
+        if (Getattr(n, "allocate:noassign")) {
+          allows_assign = 0;
+        }
       }
       /* If any member variables are non assignable, this class is also non assignable by default */
       if (GetFlag(n, "allocate:has_nonassignable")) {
-	allows_assign = 0;
+        allows_assign = 0;
       }
       if (!allows_assign) {
-	Setattr(n, "allocate:noassign", "1");
+        Setattr(n, "allocate:noassign", "1");
       }
     }
 
@@ -929,14 +929,14 @@ Allocate():
       int allows_new = 1;
 
       for (int i = 0; i < Len(bases); i++) {
-	Node *n = Getitem(bases, i);
-	/* If base class does not allow new operator, we don't allow it either */
-	if (Getattr(n, "allocate:has_new")) {
-	  allows_new = !Getattr(n, "allocate:nonew");
-	}
+        Node *n = Getitem(bases, i);
+        /* If base class does not allow new operator, we don't allow it either */
+        if (Getattr(n, "allocate:has_new")) {
+          allows_new = !Getattr(n, "allocate:nonew");
+        }
       }
       if (!allows_new) {
-	Setattr(n, "allocate:nonew", "1");
+        Setattr(n, "allocate:nonew", "1");
       }
     }
 
@@ -944,16 +944,16 @@ Allocate():
     if (!Getattr(n, "allocate:smartpointer")) {
       Node *sp = Swig_symbol_clookup("operator ->", 0);
       if (sp) {
-	/* Look for parent */
-	Node *p = parentNode(sp);
-	if (Strcmp(nodeType(p), "extend") == 0) {
-	  p = parentNode(p);
-	}
-	if (Strcmp(nodeType(p), "class") == 0) {
-	  if (GetFlag(p, "feature:ignore")) {
-	    Setattr(n, "allocate:smartpointer", Getattr(p, "allocate:smartpointer"));
-	  }
-	}
+        /* Look for parent */
+        Node *p = parentNode(sp);
+        if (Strcmp(nodeType(p), "extend") == 0) {
+          p = parentNode(p);
+        }
+        if (Strcmp(nodeType(p), "class") == 0) {
+          if (GetFlag(p, "feature:ignore")) {
+            Setattr(n, "allocate:smartpointer", Getattr(p, "allocate:smartpointer"));
+          }
+        }
       }
     }
 
@@ -967,31 +967,31 @@ Allocate():
     if (!ImportMode && !GetFlag(n, "feature:ignore")) {
       int dir = 0;
       if (Swig_directors_enabled()) {
-	int ndir = GetFlag(n, "feature:director");
-	int nndir = GetFlag(n, "feature:nodirector");
-	/* 'nodirector' has precedence over 'director' */
-	dir = (ndir || nndir) ? (ndir && !nndir) : 0;
+        int ndir = GetFlag(n, "feature:director");
+        int nndir = GetFlag(n, "feature:nodirector");
+        /* 'nodirector' has precedence over 'director' */
+        dir = (ndir || nndir) ? (ndir && !nndir) : 0;
       }
       int abstract = !dir && abstractClassTest(n);
       int odefault = !GetFlag(n, "feature:nodefault");
 
       /* default constructor */
       if (!abstract && !GetFlag(n, "feature:nodefaultctor") && odefault) {
-	if (!Getattr(n, "allocate:has_constructor") && Getattr(n, "allocate:default_constructor")) {
-	  addDefaultConstructor(n);
-	}
+        if (!Getattr(n, "allocate:has_constructor") && Getattr(n, "allocate:default_constructor")) {
+          addDefaultConstructor(n);
+        }
       }
       /* copy constructor */
       if (CPlusPlus && !abstract && GetFlag(n, "feature:copyctor")) {
-	if (!Getattr(n, "allocate:has_copy_constructor") && Getattr(n, "allocate:copy_constructor")) {
-	  addCopyConstructor(n);
-	}
+        if (!Getattr(n, "allocate:has_copy_constructor") && Getattr(n, "allocate:copy_constructor")) {
+          addCopyConstructor(n);
+        }
       }
       /* default destructor */
       if (!GetFlag(n, "feature:nodefaultdtor") && odefault) {
-	if (!Getattr(n, "allocate:has_destructor") && Getattr(n, "allocate:default_destructor")) {
-	  addDestructor(n);
-	}
+        if (!Getattr(n, "allocate:has_destructor") && Getattr(n, "allocate:default_destructor")) {
+          addDestructor(n);
+        }
       }
     }
 
@@ -1013,158 +1013,158 @@ Allocate():
       /* using id */
       Symtab *stab = Getattr(n, "sym:symtab");
       if (stab) {
-	String *uname = Getattr(n, "uname");
-	ns = Swig_symbol_clookup(uname, stab);
-	if (!ns && SwigType_istemplate(uname)) {
-	  String *tmp = Swig_symbol_template_deftype(uname, 0);
-	  if (!Equal(tmp, uname)) {
-	    ns = Swig_symbol_clookup(tmp, stab);
-	  }
-	  Delete(tmp);
-	}
+        String *uname = Getattr(n, "uname");
+        ns = Swig_symbol_clookup(uname, stab);
+        if (!ns && SwigType_istemplate(uname)) {
+          String *tmp = Swig_symbol_template_deftype(uname, 0);
+          if (!Equal(tmp, uname)) {
+            ns = Swig_symbol_clookup(tmp, stab);
+          }
+          Delete(tmp);
+        }
       } else {
-	ns = 0;
+        ns = 0;
       }
       if (!ns) {
-	if (is_public(n)) {
-	  Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(n), Getline(n), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(n, "uname")));
-	}
+        if (is_public(n)) {
+          Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(n), Getline(n), "Nothing known about '%s'.\n", SwigType_namestr(Getattr(n, "uname")));
+        }
       } else if (Equal(nodeType(ns), "constructor") && !GetFlag(n, "usingctor")) {
-	Swig_warning(WARN_PARSE_USING_CONSTRUCTOR, Getfile(n), Getline(n), "Using declaration '%s' for inheriting constructors uses base '%s' which is not an immediate base of '%s'.\n", SwigType_namestr(Getattr(n, "uname")), SwigType_namestr(Getattr(ns, "name")), SwigType_namestr(Getattr(parentNode(n), "name")));
+        Swig_warning(WARN_PARSE_USING_CONSTRUCTOR, Getfile(n), Getline(n), "Using declaration '%s' for inheriting constructors uses base '%s' which is not an immediate base of '%s'.\n", SwigType_namestr(Getattr(n, "uname")), SwigType_namestr(Getattr(ns, "name")), SwigType_namestr(Getattr(parentNode(n), "name")));
       } else {
-	if (inclass && Getattr(n, "sym:name")) {
-	  {
-	    String *ntype = nodeType(ns);
-	    if (Equal(ntype, "cdecl") || Equal(ntype, "constructor") || Equal(ntype, "template") || Equal(ntype, "using")) {
-	      /* Add a new class member to the parse tree (copy it from the base class member pointed to by the using declaration in node n) */
-	      Node *c = ns;
-	      Node *unodes = 0, *last_unodes = 0;
-	      int ccount = 0;
+        if (inclass && Getattr(n, "sym:name")) {
+          {
+            String *ntype = nodeType(ns);
+            if (Equal(ntype, "cdecl") || Equal(ntype, "constructor") || Equal(ntype, "template") || Equal(ntype, "using")) {
+              /* Add a new class member to the parse tree (copy it from the base class member pointed to by the using declaration in node n) */
+              Node *c = ns;
+              Node *unodes = 0, *last_unodes = 0;
+              int ccount = 0;
 
-	      while (c) {
-		String *cnodetype = nodeType(c);
-		if (Equal(cnodetype, "cdecl")) {
-		  add_member_for_using_declaration(c, n, ccount, unodes, last_unodes);
-		} else if (Equal(cnodetype, "constructor")) {
-		  add_member_for_using_declaration(c, n, ccount, unodes, last_unodes);
-		} else if (Equal(cnodetype, "template")) {
-		  // A templated member (in a non-template class or in a template class that where the member has a separate template declaration)
-		  // Find the template instantiations in the using declaration (base class)
-		  for (Node *member = ns; member; member = nextSibling(member)) {
-		    /* Constructors have already been handled, only add member functions
-		     * This adds an implicit template instantiation and is a bit unusual as SWIG requires explicit %template for other template instantiations.
-		     * However, of note, is that there is no valid C++ syntax for a template instantiation to introduce a name via a using declaration...
-		     *
-		     *   struct Base { template <typename T> void template_method(T, T) {} };
-		     *   struct Derived : Base { using Base::template_method; };
-		     *   %template()   Base::template_method<int>;              // SWIG template instantiation
-		     *   template void Base::template_method<int>(int, int);    // C++ template instantiation
-		     *   template void Derived::template_method<int>(int, int); // Not valid C++
-		    */
-		    if (Getattr(member, "template") == ns && checkAttribute(ns, "templatetype", "cdecl")) {
-		      if (!GetFlag(member, "feature:ignore") && !Getattr(member, "error")) {
-			add_member_for_using_declaration(member, n, ccount, unodes, last_unodes);
-		      }
-		    }
-		  }
-		} else if (Equal(cnodetype, "using")) {
-		  for (Node *member = firstChild(c); member; member = nextSibling(member)) {
-		    add_member_for_using_declaration(member, n, ccount, unodes, last_unodes);
-		  }
-		}
-		c = Getattr(c, "csym:nextSibling");
-	      }
-	      if (unodes) {
-		set_firstChild(n, unodes);
-		if (ccount > 1) {
-		  if (!Getattr(n, "sym:overloaded")) {
-		    Setattr(n, "sym:overloaded", n);
-		    Setattr(n, "sym:overname", "_SWIG_0");
-		  }
-		}
-	      }
+              while (c) {
+                String *cnodetype = nodeType(c);
+                if (Equal(cnodetype, "cdecl")) {
+                  add_member_for_using_declaration(c, n, ccount, unodes, last_unodes);
+                } else if (Equal(cnodetype, "constructor")) {
+                  add_member_for_using_declaration(c, n, ccount, unodes, last_unodes);
+                } else if (Equal(cnodetype, "template")) {
+                  // A templated member (in a non-template class or in a template class that where the member has a separate template declaration)
+                  // Find the template instantiations in the using declaration (base class)
+                  for (Node *member = ns; member; member = nextSibling(member)) {
+                    /* Constructors have already been handled, only add member functions
+                     * This adds an implicit template instantiation and is a bit unusual as SWIG requires explicit %template for other template instantiations.
+                     * However, of note, is that there is no valid C++ syntax for a template instantiation to introduce a name via a using declaration...
+                     *
+                     *   struct Base { template <typename T> void template_method(T, T) {} };
+                     *   struct Derived : Base { using Base::template_method; };
+                     *   %template()   Base::template_method<int>;              // SWIG template instantiation
+                     *   template void Base::template_method<int>(int, int);    // C++ template instantiation
+                     *   template void Derived::template_method<int>(int, int); // Not valid C++
+                    */
+                    if (Getattr(member, "template") == ns && checkAttribute(ns, "templatetype", "cdecl")) {
+                      if (!GetFlag(member, "feature:ignore") && !Getattr(member, "error")) {
+                        add_member_for_using_declaration(member, n, ccount, unodes, last_unodes);
+                      }
+                    }
+                  }
+                } else if (Equal(cnodetype, "using")) {
+                  for (Node *member = firstChild(c); member; member = nextSibling(member)) {
+                    add_member_for_using_declaration(member, n, ccount, unodes, last_unodes);
+                  }
+                }
+                c = Getattr(c, "csym:nextSibling");
+              }
+              if (unodes) {
+                set_firstChild(n, unodes);
+                if (ccount > 1) {
+                  if (!Getattr(n, "sym:overloaded")) {
+                    Setattr(n, "sym:overloaded", n);
+                    Setattr(n, "sym:overname", "_SWIG_0");
+                  }
+                }
+              }
 
-	      /* Hack the parse tree symbol table for overloaded methods. Replace the "using" node with the
-	       * list of overloaded methods we have just added in as child nodes to the "using" node.
-	       * The node will still exist, it is just the symbol table linked list of overloaded methods
-	       * which is hacked. */
-	      if (Getattr(n, "sym:overloaded")) {
-		int cnt = 0;
-		Node *ps = Getattr(n, "sym:previousSibling");
-		Node *ns = Getattr(n, "sym:nextSibling");
-		Node *fc = firstChild(n);
-		Node *firstoverloaded = Getattr(n, "sym:overloaded");
+              /* Hack the parse tree symbol table for overloaded methods. Replace the "using" node with the
+               * list of overloaded methods we have just added in as child nodes to the "using" node.
+               * The node will still exist, it is just the symbol table linked list of overloaded methods
+               * which is hacked. */
+              if (Getattr(n, "sym:overloaded")) {
+                int cnt = 0;
+                Node *ps = Getattr(n, "sym:previousSibling");
+                Node *ns = Getattr(n, "sym:nextSibling");
+                Node *fc = firstChild(n);
+                Node *firstoverloaded = Getattr(n, "sym:overloaded");
 #ifdef DEBUG_OVERLOADED
-		show_overloaded(firstoverloaded);
+                show_overloaded(firstoverloaded);
 #endif
 
-		if (firstoverloaded == n) {
-		  // This 'using' node we are cutting out was the first node in the overloaded list. 
-		  // Change the first node in the list
-		  Delattr(firstoverloaded, "sym:overloaded");
-		  firstoverloaded = fc ? fc : ns;
+                if (firstoverloaded == n) {
+                  // This 'using' node we are cutting out was the first node in the overloaded list. 
+                  // Change the first node in the list
+                  Delattr(firstoverloaded, "sym:overloaded");
+                  firstoverloaded = fc ? fc : ns;
 
-		  // Correct all the sibling overloaded methods (before adding in new methods)
-		  Node *nnn = ns;
-		  while (nnn) {
-		    Setattr(nnn, "sym:overloaded", firstoverloaded);
-		    nnn = Getattr(nnn, "sym:nextSibling");
-		  }
-		}
+                  // Correct all the sibling overloaded methods (before adding in new methods)
+                  Node *nnn = ns;
+                  while (nnn) {
+                    Setattr(nnn, "sym:overloaded", firstoverloaded);
+                    nnn = Getattr(nnn, "sym:nextSibling");
+                  }
+                }
 
-		if (!fc) {
-		  // Remove from overloaded list ('using' node does not actually end up adding in any methods)
-		  if (ps) {
-		    Setattr(ps, "sym:nextSibling", ns);
-		  }
-		  if (ns) {
-		    Setattr(ns, "sym:previousSibling", ps);
-		  }
-		} else {
-		  // The 'using' node results in methods being added in - slot in these methods here
-		  Node *pp = fc;
-		  while (pp) {
-		    Node *ppn = Getattr(pp, "sym:nextSibling");
-		    Setattr(pp, "sym:overloaded", firstoverloaded);
-		    Setattr(pp, "sym:overname", NewStringf("%s_%d", Getattr(n, "sym:overname"), cnt++));
-		    if (ppn)
-		      pp = ppn;
-		    else
-		      break;
-		  }
-		  if (ps) {
-		    Setattr(ps, "sym:nextSibling", fc);
-		    Setattr(fc, "sym:previousSibling", ps);
-		  }
-		  if (ns) {
-		    Setattr(ns, "sym:previousSibling", pp);
-		    Setattr(pp, "sym:nextSibling", ns);
-		  }
-		}
-		Delattr(n, "sym:previousSibling");
-		Delattr(n, "sym:nextSibling");
-		Delattr(n, "sym:overloaded");
-		Delattr(n, "sym:overname");
-		clean_overloaded(firstoverloaded);
+                if (!fc) {
+                  // Remove from overloaded list ('using' node does not actually end up adding in any methods)
+                  if (ps) {
+                    Setattr(ps, "sym:nextSibling", ns);
+                  }
+                  if (ns) {
+                    Setattr(ns, "sym:previousSibling", ps);
+                  }
+                } else {
+                  // The 'using' node results in methods being added in - slot in these methods here
+                  Node *pp = fc;
+                  while (pp) {
+                    Node *ppn = Getattr(pp, "sym:nextSibling");
+                    Setattr(pp, "sym:overloaded", firstoverloaded);
+                    Setattr(pp, "sym:overname", NewStringf("%s_%d", Getattr(n, "sym:overname"), cnt++));
+                    if (ppn)
+                      pp = ppn;
+                    else
+                      break;
+                  }
+                  if (ps) {
+                    Setattr(ps, "sym:nextSibling", fc);
+                    Setattr(fc, "sym:previousSibling", ps);
+                  }
+                  if (ns) {
+                    Setattr(ns, "sym:previousSibling", pp);
+                    Setattr(pp, "sym:nextSibling", ns);
+                  }
+                }
+                Delattr(n, "sym:previousSibling");
+                Delattr(n, "sym:nextSibling");
+                Delattr(n, "sym:overloaded");
+                Delattr(n, "sym:overname");
+                clean_overloaded(firstoverloaded);
 #ifdef DEBUG_OVERLOADED
-		show_overloaded(firstoverloaded);
+                show_overloaded(firstoverloaded);
 #endif
-	      }
-	    }
-	  }
-	}
+              }
+            }
+          }
+        }
       }
 
       Node *c = 0;
       for (c = firstChild(n); c; c = nextSibling(c)) {
-	if (Equal(nodeType(c), "cdecl")) {
-	  process_exceptions(c);
+        if (Equal(nodeType(c), "cdecl")) {
+          process_exceptions(c);
 
-	  if (inclass)
-	    class_member_is_defined_in_bases(c, inclass);
-	} else if (Equal(nodeType(c), "constructor")) {
-	  constructorDeclaration(c);
-	}
+          if (inclass)
+            class_member_is_defined_in_bases(c, inclass);
+        } else if (Equal(nodeType(c), "constructor")) {
+          constructorDeclaration(c);
+        }
       }
     }
 
@@ -1184,104 +1184,104 @@ Allocate():
 
       int is_static = Swig_storage_isstatic(n);
       if (is_static) {
-	Setattr(n, "cplus:staticbase", inclass);
+        Setattr(n, "cplus:staticbase", inclass);
       }
 
       if (Cmp(Getattr(n, "kind"), "variable") == 0) {
         /* Check member variable to determine whether assignment is valid */
-	bool is_reference;
-	bool is_const;
-	bool assignable = is_assignable(n, is_reference, is_const);
-	if (!assignable || is_const) {
-	  SetFlag(n, "feature:immutable");
-	}
-	if (!is_static) {
-	  if (!assignable || is_reference || is_const)
-	    SetFlag(inclass, "allocate:has_nonassignable"); // The class has a variable that cannot be assigned to
-	}
+        bool is_reference;
+        bool is_const;
+        bool assignable = is_assignable(n, is_reference, is_const);
+        if (!assignable || is_const) {
+          SetFlag(n, "feature:immutable");
+        }
+        if (!is_static) {
+          if (!assignable || is_reference || is_const)
+            SetFlag(inclass, "allocate:has_nonassignable"); // The class has a variable that cannot be assigned to
+        }
       }
 
       String *name = Getattr(n, "name");
       if (cplus_mode != PUBLIC) {
-	if (Strcmp(name, "operator =") == 0) {
-	  /* Look for a private assignment operator */
-	  if (!GetFlag(n, "deleted"))
-	    Setattr(inclass, "allocate:has_assign", "1");
-	  Setattr(inclass, "allocate:noassign", "1");
-	} else if (Strcmp(name, "operator new") == 0) {
-	  /* Look for a private new operator */
-	  if (!GetFlag(n, "deleted"))
-	    Setattr(inclass, "allocate:has_new", "1");
-	  Setattr(inclass, "allocate:nonew", "1");
-	}
+        if (Strcmp(name, "operator =") == 0) {
+          /* Look for a private assignment operator */
+          if (!GetFlag(n, "deleted"))
+            Setattr(inclass, "allocate:has_assign", "1");
+          Setattr(inclass, "allocate:noassign", "1");
+        } else if (Strcmp(name, "operator new") == 0) {
+          /* Look for a private new operator */
+          if (!GetFlag(n, "deleted"))
+            Setattr(inclass, "allocate:has_new", "1");
+          Setattr(inclass, "allocate:nonew", "1");
+        }
       } else {
-	if (Strcmp(name, "operator =") == 0) {
-	  if (!GetFlag(n, "deleted"))
-	    Setattr(inclass, "allocate:has_assign", "1");
-	  else
-	    Setattr(inclass, "allocate:noassign", "1");
-	} else if (Strcmp(name, "operator new") == 0) {
-	  if (!GetFlag(n, "deleted"))
-	    Setattr(inclass, "allocate:has_new", "1");
-	  else
-	    Setattr(inclass, "allocate:nonew", "1");
-	}
-	/* Look for smart pointer operator */
-	if ((Strcmp(name, "operator ->") == 0) && (!GetFlag(n, "feature:ignore"))) {
-	  /* Look for version with no parameters */
-	  Node *sn = n;
-	  while (sn) {
-	    if (!Getattr(sn, "parms")) {
-	      SwigType *type = SwigType_typedef_resolve_all(Getattr(sn, "type"));
-	      SwigType_push(type, Getattr(sn, "decl"));
-	      Delete(SwigType_pop_function(type));
-	      SwigType *base = SwigType_base(type);
-	      Node *sc = Swig_symbol_clookup(base, 0);
-	      if ((sc) && (Strcmp(nodeType(sc), "class") == 0)) {
-		if (SwigType_check_decl(type, "p.")) {
-		  /* Need to check if type is a const pointer */
-		  int isconst = 0;
-		  Delete(SwigType_pop(type));
-		  if (SwigType_isconst(type)) {
-		    isconst = !Getattr(inclass, "allocate:smartpointermutable");
-		    Setattr(inclass, "allocate:smartpointerconst", "1");
-		  }
-		  else {
-		    Setattr(inclass, "allocate:smartpointermutable", "1");
-		  }
-		  List *methods = smart_pointer_methods(sc, 0, isconst);
-		  Setattr(inclass, "allocate:smartpointer", methods);
-		  Setattr(inclass, "allocate:smartpointerpointeeclassname", Getattr(sc, "name"));
-		} else {
-		  /* Hmmm.  The return value is not a pointer.  If the type is a value
-		     or reference.  We're going to chase it to see if another operator->()
-		     can be found */
-		  if ((SwigType_check_decl(type, "")) || (SwigType_check_decl(type, "r."))) {
-		    Node *nn = Swig_symbol_clookup("operator ->", Getattr(sc, "symtab"));
-		    if (nn) {
-		      Delete(base);
-		      Delete(type);
-		      sn = nn;
-		      continue;
-		    }
-		  }
-		}
-	      }
-	      Delete(base);
-	      Delete(type);
-	      break;
-	    }
-	  }
-	}
+        if (Strcmp(name, "operator =") == 0) {
+          if (!GetFlag(n, "deleted"))
+            Setattr(inclass, "allocate:has_assign", "1");
+          else
+            Setattr(inclass, "allocate:noassign", "1");
+        } else if (Strcmp(name, "operator new") == 0) {
+          if (!GetFlag(n, "deleted"))
+            Setattr(inclass, "allocate:has_new", "1");
+          else
+            Setattr(inclass, "allocate:nonew", "1");
+        }
+        /* Look for smart pointer operator */
+        if ((Strcmp(name, "operator ->") == 0) && (!GetFlag(n, "feature:ignore"))) {
+          /* Look for version with no parameters */
+          Node *sn = n;
+          while (sn) {
+            if (!Getattr(sn, "parms")) {
+              SwigType *type = SwigType_typedef_resolve_all(Getattr(sn, "type"));
+              SwigType_push(type, Getattr(sn, "decl"));
+              Delete(SwigType_pop_function(type));
+              SwigType *base = SwigType_base(type);
+              Node *sc = Swig_symbol_clookup(base, 0);
+              if ((sc) && (Strcmp(nodeType(sc), "class") == 0)) {
+                if (SwigType_check_decl(type, "p.")) {
+                  /* Need to check if type is a const pointer */
+                  int isconst = 0;
+                  Delete(SwigType_pop(type));
+                  if (SwigType_isconst(type)) {
+                    isconst = !Getattr(inclass, "allocate:smartpointermutable");
+                    Setattr(inclass, "allocate:smartpointerconst", "1");
+                  }
+                  else {
+                    Setattr(inclass, "allocate:smartpointermutable", "1");
+                  }
+                  List *methods = smart_pointer_methods(sc, 0, isconst);
+                  Setattr(inclass, "allocate:smartpointer", methods);
+                  Setattr(inclass, "allocate:smartpointerpointeeclassname", Getattr(sc, "name"));
+                } else {
+                  /* Hmmm.  The return value is not a pointer.  If the type is a value
+                     or reference.  We're going to chase it to see if another operator->()
+                     can be found */
+                  if ((SwigType_check_decl(type, "")) || (SwigType_check_decl(type, "r."))) {
+                    Node *nn = Swig_symbol_clookup("operator ->", Getattr(sc, "symtab"));
+                    if (nn) {
+                      Delete(base);
+                      Delete(type);
+                      sn = nn;
+                      continue;
+                    }
+                  }
+                }
+              }
+              Delete(base);
+              Delete(type);
+              break;
+            }
+          }
+        }
       }
     } else {
       if (Cmp(Getattr(n, "kind"), "variable") == 0) {
-	bool is_reference;
-	bool is_const;
-	bool assignable = is_assignable(n, is_reference, is_const);
-	if (!assignable || is_const) {
-	  SetFlag(n, "feature:immutable");
-	}
+        bool is_reference;
+        bool is_const;
+        bool assignable = is_assignable(n, is_reference, is_const);
+        if (!assignable || is_const) {
+          SetFlag(n, "feature:immutable");
+        }
       }
     }
     return SWIG_OK;
@@ -1308,27 +1308,27 @@ Allocate():
 
     if (!deleted_constructor) {
       if (!extendmode) {
-	if (default_constructor) {
-	  /* Class does define a default constructor */
-	  /* However, we had better see where it is defined */
-	  if (access_mode == PUBLIC) {
-	    Setattr(inclass, "allocate:default_constructor", "1");
-	  } else if (access_mode == PROTECTED) {
-	    Setattr(inclass, "allocate:default_base_constructor", "1");
-	  }
-	}
-	/* Class defines some kind of constructor. May or may not be public */
-	Setattr(inclass, "allocate:has_constructor", "1");
-	if (access_mode == PUBLIC) {
-	  Setattr(inclass, "allocate:public_constructor", "1");
-	}
+        if (default_constructor) {
+          /* Class does define a default constructor */
+          /* However, we had better see where it is defined */
+          if (access_mode == PUBLIC) {
+            Setattr(inclass, "allocate:default_constructor", "1");
+          } else if (access_mode == PROTECTED) {
+            Setattr(inclass, "allocate:default_base_constructor", "1");
+          }
+        }
+        /* Class defines some kind of constructor. May or may not be public */
+        Setattr(inclass, "allocate:has_constructor", "1");
+        if (access_mode == PUBLIC) {
+          Setattr(inclass, "allocate:public_constructor", "1");
+        }
       } else {
-	Setattr(inclass, "allocate:has_constructor", "1");
-	Setattr(inclass, "allocate:public_constructor", "1");
+        Setattr(inclass, "allocate:has_constructor", "1");
+        Setattr(inclass, "allocate:public_constructor", "1");
       }
     } else {
       if (default_constructor && !extendmode)
-	SetFlag(inclass, "allocate:deleted_default_constructor");
+        SetFlag(inclass, "allocate:deleted_default_constructor");
     }
 
     /* See if this is a copy constructor */
@@ -1341,57 +1341,57 @@ Allocate():
       String *cc = SwigType_typedef_resolve_all(tn);
       SwigType *rt = SwigType_typedef_resolve_all(Getattr(parms, "type"));
       if (SwigType_istemplate(type)) {
-	String *tmp = Swig_symbol_template_deftype(cc, 0);
-	Delete(cc);
-	cc = tmp;
-	tmp = Swig_symbol_template_deftype(rt, 0);
-	Delete(rt);
-	rt = tmp;
+        String *tmp = Swig_symbol_template_deftype(cc, 0);
+        Delete(cc);
+        cc = tmp;
+        tmp = Swig_symbol_template_deftype(rt, 0);
+        Delete(rt);
+        rt = tmp;
       }
       if (Strcmp(cc, rt) == 0) {
-	copy_constructor = 1;
+        copy_constructor = 1;
       } else {
-	Delete(cc);
-	cc = NewStringf("r.%s", Getattr(inclass, "name"));
-	if (Strcmp(cc, Getattr(parms, "type")) == 0) {
-	  copy_constructor = 1;
-	  copy_constructor_non_const = 1;
-	} else {
-	  Delete(cc);
-	  cc = NewStringf("p.%s", Getattr(inclass, "name"));
-	  String *ty = SwigType_strip_qualifiers(Getattr(parms, "type"));
-	  if (Strcmp(cc, ty) == 0) {
-	    copy_constructor = 1;
-	  }
-	  Delete(ty);
-	}
+        Delete(cc);
+        cc = NewStringf("r.%s", Getattr(inclass, "name"));
+        if (Strcmp(cc, Getattr(parms, "type")) == 0) {
+          copy_constructor = 1;
+          copy_constructor_non_const = 1;
+        } else {
+          Delete(cc);
+          cc = NewStringf("p.%s", Getattr(inclass, "name"));
+          String *ty = SwigType_strip_qualifiers(Getattr(parms, "type"));
+          if (Strcmp(cc, ty) == 0) {
+            copy_constructor = 1;
+          }
+          Delete(ty);
+        }
       }
       Delete(cc);
       Delete(rt);
       Delete(tn);
 
       if (copy_constructor) {
-	if (!deleted_constructor) {
-	  Setattr(n, "copy_constructor", "1");
-	  Setattr(inclass, "allocate:has_copy_constructor", "1");
-	  if (access_mode == PUBLIC) {
-	    Setattr(inclass, "allocate:copy_constructor", "1");
-	  } else if (access_mode == PROTECTED) {
-	    Setattr(inclass, "allocate:copy_base_constructor", "1");
-	  }
-	  if (copy_constructor_non_const) {
-	    Setattr(n, "copy_constructor_non_const", "1");
-	    Setattr(inclass, "allocate:has_copy_constructor_non_const", "1");
-	    if (access_mode == PUBLIC) {
-	      Setattr(inclass, "allocate:copy_constructor_non_const", "1");
-	    } else if (access_mode == PROTECTED) {
-	      Setattr(inclass, "allocate:copy_base_constructor_non_const", "1");
-	    }
-	  }
-	} else {
-	  if (!extendmode)
-	    SetFlag(inclass, "allocate:deleted_copy_constructor");
-	}
+        if (!deleted_constructor) {
+          Setattr(n, "copy_constructor", "1");
+          Setattr(inclass, "allocate:has_copy_constructor", "1");
+          if (access_mode == PUBLIC) {
+            Setattr(inclass, "allocate:copy_constructor", "1");
+          } else if (access_mode == PROTECTED) {
+            Setattr(inclass, "allocate:copy_base_constructor", "1");
+          }
+          if (copy_constructor_non_const) {
+            Setattr(n, "copy_constructor_non_const", "1");
+            Setattr(inclass, "allocate:has_copy_constructor_non_const", "1");
+            if (access_mode == PUBLIC) {
+              Setattr(inclass, "allocate:copy_constructor_non_const", "1");
+            } else if (access_mode == PROTECTED) {
+              Setattr(inclass, "allocate:copy_base_constructor_non_const", "1");
+            }
+          }
+        } else {
+          if (!extendmode)
+            SetFlag(inclass, "allocate:deleted_copy_constructor");
+        }
       }
     }
     return SWIG_OK;
@@ -1404,21 +1404,21 @@ Allocate():
 
     if (!GetFlag(n, "deleted")) {
       if (!extendmode) {
-	Setattr(inclass, "allocate:has_destructor", "1");
-	if (cplus_mode == PUBLIC) {
-	  Setattr(inclass, "allocate:default_destructor", "1");
-	} else if (cplus_mode == PROTECTED) {
-	  Setattr(inclass, "allocate:default_base_destructor", "1");
-	} else if (cplus_mode == PRIVATE) {
-	  Setattr(inclass, "allocate:private_destructor", "1");
-	}
+        Setattr(inclass, "allocate:has_destructor", "1");
+        if (cplus_mode == PUBLIC) {
+          Setattr(inclass, "allocate:default_destructor", "1");
+        } else if (cplus_mode == PROTECTED) {
+          Setattr(inclass, "allocate:default_base_destructor", "1");
+        } else if (cplus_mode == PRIVATE) {
+          Setattr(inclass, "allocate:private_destructor", "1");
+        }
       } else {
-	Setattr(inclass, "allocate:has_destructor", "1");
-	Setattr(inclass, "allocate:default_destructor", "1");
+        Setattr(inclass, "allocate:has_destructor", "1");
+        Setattr(inclass, "allocate:default_destructor", "1");
       }
     } else {
       if (!extendmode)
-	SetFlag(inclass, "allocate:deleted_default_destructor");
+        SetFlag(inclass, "allocate:deleted_default_destructor");
     }
 
     return SWIG_OK;
@@ -1447,14 +1447,14 @@ static void addCopyConstructor(Node *n) {
     Node *c;
     for (c = firstChild(n); c; c = nextSibling(c)) {
       if (Equal(nodeType(c), "constructor")) {
-	String *csname = Getattr(c, "sym:name");
-	String *clast = Swig_scopename_last(Getattr(c, "name"));
-	if (Equal(csname, clast)) {
-	  oldname = csname;
-	  Delete(clast);
-	  break;
-	}
-	Delete(clast);
+        String *csname = Getattr(c, "sym:name");
+        String *clast = Swig_scopename_last(Getattr(c, "name"));
+        if (Equal(csname, clast)) {
+          oldname = csname;
+          Delete(clast);
+          break;
+        }
+        Delete(clast);
       }
     }
   }
@@ -1575,14 +1575,14 @@ static void addDestructor(Node *n) {
       // For example: typedef struct X {} XX; %extend X { ~XX() {...} }
       // Don't add another destructor if a nonstandard one has been declared
       if (!nonstandard_destructor) {
-	Node *access = NewHash();
-	set_nodeType(access, "access");
-	Setattr(access, "kind", "public");
-	appendChild(n, access);
-	appendChild(n, cn);
-	Setattr(n, "has_destructor", "1");
-	Setattr(n, "allocate:has_destructor", "1");
-	Delete(access);
+        Node *access = NewHash();
+        set_nodeType(access, "access");
+        Setattr(access, "kind", "public");
+        appendChild(n, access);
+        appendChild(n, cn);
+        Setattr(n, "has_destructor", "1");
+        Setattr(n, "allocate:has_destructor", "1");
+        Delete(access);
       }
     }
     Delete(possible_nonstandard_symname);

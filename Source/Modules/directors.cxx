@@ -116,11 +116,11 @@ String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms) {
       SwigType *rpt = SwigType_typedef_resolve_all(pt);
       String *pname = Getattr(p, "name");
       if (comma)
-	Append(func, ",");
+        Append(func, ",");
       if (SwigType_isrvalue_reference(rpt))
-	Printv(func, "std::move(", pname, ")", NIL);
+        Printv(func, "std::move(", pname, ")", NIL);
       else
-	Printv(func, pname, NIL);
+        Printv(func, pname, NIL);
       Delete(rpt);
       comma = 1;
     }

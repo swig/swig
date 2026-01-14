@@ -80,32 +80,32 @@ void Wrapper_pretty_print(String *str, File *f) {
     if (c == '\"') {
       Putc(c, ts);
       while ((c = Getc(str)) != EOF) {
-	if (c == '\\') {
-	  Putc(c, ts);
-	  c = Getc(str);
-	}
-	Putc(c, ts);
-	if (c == '\"')
-	  break;
+        if (c == '\\') {
+          Putc(c, ts);
+          c = Getc(str);
+        }
+        Putc(c, ts);
+        if (c == '\"')
+          break;
       }
       empty = 0;
     } else if (c == '\'') {
       Putc(c, ts);
       while ((c = Getc(str)) != EOF) {
-	if (c == '\\') {
-	  Putc(c, ts);
-	  c = Getc(str);
-	}
-	Putc(c, ts);
-	if (c == '\'')
-	  break;
+        if (c == '\\') {
+          Putc(c, ts);
+          c = Getc(str);
+        }
+        Putc(c, ts);
+        if (c == '\'')
+          break;
       }
       empty = 0;
     } else if (c == ':') {
       Putc(c, ts);
       if ((c = Getc(str)) == '\n') {
-	if (!empty && !strchr(Char(ts), '?'))
-	  label = 1;
+        if (!empty && !strchr(Char(ts), '?'))
+          label = 1;
       }
       Ungetc(c, str);
     } else if (c == '(') {
@@ -120,24 +120,24 @@ void Wrapper_pretty_print(String *str, File *f) {
       Putc(c, ts);
       Putc('\n', ts);
       for (i = 0; i < level; i++)
-	Putc(' ', f);
+        Putc(' ', f);
       Printf(f, "%s", ts);
       Clear(ts);
       level += indent;
       while ((c = Getc(str)) != EOF) {
-	if (!isspace(c)) {
-	  Ungetc(c, str);
-	  break;
-	}
+        if (!isspace(c)) {
+          Ungetc(c, str);
+          break;
+        }
       }
       empty = 0;
     } else if (c == '}') {
       if (!empty) {
-	Putc('\n', ts);
-	for (i = 0; i < level; i++)
-	  Putc(' ', f);
-	Printf(f, "%s", ts);
-	Clear(ts);
+        Putc('\n', ts);
+        for (i = 0; i < level; i++)
+          Putc(' ', f);
+        Printf(f, "%s", ts);
+        Clear(ts);
       }
       level -= indent;
       Putc(c, ts);
@@ -146,16 +146,16 @@ void Wrapper_pretty_print(String *str, File *f) {
       Putc(c, ts);
       empty = 0;
       if (!empty) {
-	int slevel = level;
-	if (label && (slevel >= indent))
-	  slevel -= indent;
-	if ((Char(ts))[0] != '#') {
-	  for (i = 0; i < slevel; i++)
-	    Putc(' ', f);
-	}
-	Printf(f, "%s", ts);
-	for (i = 0; i < plevel; i++)
-	  Putc(' ', f);
+        int slevel = level;
+        if (label && (slevel >= indent))
+          slevel -= indent;
+        if ((Char(ts))[0] != '#') {
+          for (i = 0; i < slevel; i++)
+            Putc(' ', f);
+        }
+        Printf(f, "%s", ts);
+        for (i = 0; i < plevel; i++)
+          Putc(' ', f);
       }
       Clear(ts);
       label = 0;
@@ -165,35 +165,35 @@ void Wrapper_pretty_print(String *str, File *f) {
       Putc(c, ts);
       c = Getc(str);
       if (c != EOF) {
-	Putc(c, ts);
-	if (c == '/') {		/* C++ comment */
-	  while ((c = Getc(str)) != EOF) {
-	    if (c == '\n') {
-	      Ungetc(c, str);
-	      break;
-	    }
-	    Putc(c, ts);
-	  }
-	} else if (c == '*') {	/* C comment */
-	  int endstar = 0;
-	  while ((c = Getc(str)) != EOF) {
-	    if (endstar && c == '/') {	/* end of C comment */
-	      Putc(c, ts);
-	      break;
-	    }
-	    endstar = (c == '*');
-	    Putc(c, ts);
-	    if (c == '\n') {	/* multi-line C comment. Could be improved slightly. */
-	      for (i = 0; i < level; i++)
-		Putc(' ', ts);
-	    }
-	  }
-	}
+        Putc(c, ts);
+        if (c == '/') {		/* C++ comment */
+          while ((c = Getc(str)) != EOF) {
+            if (c == '\n') {
+              Ungetc(c, str);
+              break;
+            }
+            Putc(c, ts);
+          }
+        } else if (c == '*') {	/* C comment */
+          int endstar = 0;
+          while ((c = Getc(str)) != EOF) {
+            if (endstar && c == '/') {	/* end of C comment */
+              Putc(c, ts);
+              break;
+            }
+            endstar = (c == '*');
+            Putc(c, ts);
+            if (c == '\n') {	/* multi-line C comment. Could be improved slightly. */
+              for (i = 0; i < level; i++)
+                Putc(' ', ts);
+            }
+          }
+        }
       }
     } else {
       if (!empty || !isspace(c)) {
-	Putc(c, ts);
-	empty = 0;
+        Putc(c, ts);
+        empty = 0;
       }
     }
   }
@@ -226,63 +226,63 @@ void Wrapper_compact_print(String *str, File *f) {
       empty = 0;
       Putc(c, ts);
       while ((c = Getc(str)) != EOF) {
-	if (c == '\\') {
-	  Putc(c, ts);
-	  c = Getc(str);
-	}
-	Putc(c, ts);
-	if (c == '\"')
-	  break;
+        if (c == '\\') {
+          Putc(c, ts);
+          c = Getc(str);
+        }
+        Putc(c, ts);
+        if (c == '\"')
+          break;
       }
     } else if (c == '\'') {	/* string 2 */
       empty = 0;
       Putc(c, ts);
       while ((c = Getc(str)) != EOF) {
-	if (c == '\\') {
-	  Putc(c, ts);
-	  c = Getc(str);
-	}
-	Putc(c, ts);
-	if (c == '\'')
-	  break;
+        if (c == '\\') {
+          Putc(c, ts);
+          c = Getc(str);
+        }
+        Putc(c, ts);
+        if (c == '\'')
+          break;
       }
     } else if (c == '{') {	/* start of {...} */
       empty = 0;
       Putc(c, ts);
       if (Len(tf) == 0) {
-	for (i = 0; i < level; i++)
-	  Putc(' ', tf);
+        for (i = 0; i < level; i++)
+          Putc(' ', tf);
       } else if ((Len(tf) + Len(ts)) < Max_line_size) {
-	Putc(' ', tf);
+        Putc(' ', tf);
       } else {
-	Putc('\n', tf);
-	Printf(f, "%s", tf);
-	Clear(tf);
-	for (i = 0; i < level; i++)
-	  Putc(' ', tf);
+        Putc('\n', tf);
+        Printf(f, "%s", tf);
+        Clear(tf);
+        for (i = 0; i < level; i++)
+          Putc(' ', tf);
       }
       Append(tf, ts);
       Clear(ts);
       level += indent;
       while ((c = Getc(str)) != EOF) {
-	if (!isspace(c)) {
-	  Ungetc(c, str);
-	  break;
-	}
+        if (!isspace(c)) {
+          Ungetc(c, str);
+          break;
+        }
       }
     } else if (c == '}') {	/* end of {...} */
       empty = 0;
       if (Len(tf) == 0) {
-	for (i = 0; i < level; i++)
-	  Putc(' ', tf);
+        for (i = 0; i < level; i++)
+          Putc(' ', tf);
       } else if ((Len(tf) + Len(ts)) < Max_line_size) {
-	Putc(' ', tf);
+        Putc(' ', tf);
       } else {
-	Putc('\n', tf);
-	Printf(f, "%s", tf);
-	Clear(tf);
-	for (i = 0; i < level; i++)
-	  Putc(' ', tf);
+        Putc('\n', tf);
+        Printf(f, "%s", tf);
+        Clear(tf);
+        for (i = 0; i < level; i++)
+          Putc(' ', tf);
       }
       Append(tf, ts);
       Putc(c, tf);
@@ -290,28 +290,28 @@ void Wrapper_compact_print(String *str, File *f) {
       level -= indent;
     } else if (c == '\n') {	/* line end */
       while ((c = Getc(str)) != EOF) {
-	if (!isspace(c))
-	  break;
+        if (!isspace(c))
+          break;
       }
       if (c == '#') {
-	Putc('\n', ts);
+        Putc('\n', ts);
       } else if (c == '}') {
-	Putc(' ', ts);
+        Putc(' ', ts);
       } else if ((c != EOF) || (Len(ts) != 0)) {
-	if (Len(tf) == 0) {
-	  for (i = 0; i < level; i++)
-	    Putc(' ', tf);
-	} else if ((Len(tf) + Len(ts)) < Max_line_size) {
-	  Putc(' ', tf);
-	} else {
-	  Putc('\n', tf);
-	  Printf(f, "%s", tf);
-	  Clear(tf);
-	  for (i = 0; i < level; i++)
-	    Putc(' ', tf);
-	}
-	Append(tf, ts);
-	Clear(ts);
+        if (Len(tf) == 0) {
+          for (i = 0; i < level; i++)
+            Putc(' ', tf);
+        } else if ((Len(tf) + Len(ts)) < Max_line_size) {
+          Putc(' ', tf);
+        } else {
+          Putc('\n', tf);
+          Printf(f, "%s", tf);
+          Clear(tf);
+          for (i = 0; i < level; i++)
+            Putc(' ', tf);
+        }
+        Append(tf, ts);
+        Clear(ts);
       }
       Ungetc(c, str);
 
@@ -320,53 +320,53 @@ void Wrapper_compact_print(String *str, File *f) {
       empty = 0;
       c = Getc(str);
       if (c != EOF) {
-	if (c == '/') {		/* C++ comment */
-	  while ((c = Getc(str)) != EOF) {
-	    if (c == '\n') {
-	      Ungetc(c, str);
-	      break;
-	    }
-	  }
-	} else if (c == '*') {	/* C comment */
-	  int endstar = 0;
-	  while ((c = Getc(str)) != EOF) {
-	    if (endstar && c == '/') {	/* end of C comment */
-	      break;
-	    }
-	    endstar = (c == '*');
-	  }
-	} else {
-	  Putc('/', ts);
-	  Putc(c, ts);
-	}
+        if (c == '/') {		/* C++ comment */
+          while ((c = Getc(str)) != EOF) {
+            if (c == '\n') {
+              Ungetc(c, str);
+              break;
+            }
+          }
+        } else if (c == '*') {	/* C comment */
+          int endstar = 0;
+          while ((c = Getc(str)) != EOF) {
+            if (endstar && c == '/') {	/* end of C comment */
+              break;
+            }
+            endstar = (c == '*');
+          }
+        } else {
+          Putc('/', ts);
+          Putc(c, ts);
+        }
       }
     } else if (c == '#') {	/* Preprocessor line */
       Putc('#', ts);
       while ((c = Getc(str)) != EOF) {
-	Putc(c, ts);
-	if (c == '\\') {	/* Continued line of the same PP */
-	  c = Getc(str);
-	  if (c == '\n')
-	    Putc(c, ts);
-	  else
-	    Ungetc(c, str);
-	} else if (c == '\n')
-	  break;
+        Putc(c, ts);
+        if (c == '\\') {	/* Continued line of the same PP */
+          c = Getc(str);
+          if (c == '\n')
+            Putc(c, ts);
+          else
+            Ungetc(c, str);
+        } else if (c == '\n')
+          break;
       }
       if (!empty) {
-	Append(tf, "\n");
+        Append(tf, "\n");
       }
       Append(tf, ts);
       Printf(f, "%s", tf);
       Clear(tf);
       Clear(ts);
       for (i = 0; i < level; i++)
-	Putc(' ', tf);
+        Putc(' ', tf);
       empty = 1;
     } else {
       if (!empty || !isspace(c)) {
-	Putc(c, ts);
-	empty = 0;
+        Putc(c, ts);
+        empty = 0;
       }
     }
   }
