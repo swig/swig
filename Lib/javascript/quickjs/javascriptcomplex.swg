@@ -21,7 +21,7 @@ SWIG_From_dec(Type)(Type c)
 {
   JSValue r;
   r = JS_NewArray(ctx);
-  if(!JS_IsException(r)) {
+  if (!JS_IsException(r)) {
     JS_SetPropertyUint32(ctx, r, 0, SWIG_From(double)(Real(c)));
     JS_SetPropertyUint32(ctx, r, 1, SWIG_From(double)(Imag(c)));
   }
@@ -33,7 +33,7 @@ SWIG_From_dec(Type)(Type c)
 /* the double case */
 %define %swig_cplxdbl_conv(Type, Constructor, Real, Imag)
 %fragment(SWIG_AsVal_frag(Type),"header",
-	  fragment=SWIG_AsVal_frag(double))
+    fragment=SWIG_AsVal_frag(double))
 {
 SWIGINTERN int
 SWIG_AsVal_dec(Type) (JSValue o, Type* val)
@@ -42,27 +42,27 @@ SWIG_AsVal_dec(Type) (JSValue o, Type* val)
     JSValue js_re, js_im;
     double re, im;
     int res;
-    
+
     res = 0;
 
     js_re = JS_GetPropertyUint32(ctx, o, 0);
-    if(JS_IsException(js_re))
+    if (JS_IsException(js_re))
       return SWIG_TypeError;
 
     js_im = JS_GetPropertyUint32(ctx, o, 1);
-    if(JS_IsException(js_im))
+    if (JS_IsException(js_im))
       return SWIG_TypeError;
 
     res = SWIG_AsVal(double)(js_re, &re);
-    if(!SWIG_IsOK(res)) {
+    if (!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
-    
+
     res = SWIG_AsVal(double)(js_im, &im);
-    if(!SWIG_IsOK(res)) {
+    if (!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
-    
+
     if (val) *val = Constructor(re, im);
     return SWIG_OK;
   } else {
@@ -90,24 +90,24 @@ SWIG_AsVal_dec(Type)(JSValue o, Type *val)
     JSValue js_re, js_im;
     double re, im;
     int res;
-    
+
     res = 0;
 
     js_re = JS_GetPropertyUint32(ctx, o, 0);
-    if(JS_IsException(js_re)) 
+    if (JS_IsException(js_re))
       return SWIG_TypeError;
 
     js_im = JS_GetPropertyUint32(ctx, o, 1);
-    if(JS_IsException(js_im))
+    if (JS_IsException(js_im))
       return SWIG_TypeError;
 
     res = SWIG_AsVal(double)(js_re, &re);
-    if(!SWIG_IsOK(res)) {
+    if (!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
-    
+
     res = SWIG_AsVal(double)(js_im, &im);
-    if(!SWIG_IsOK(res)) {
+    if (!SWIG_IsOK(res)) {
       return SWIG_TypeError;
     }
 
@@ -117,7 +117,7 @@ SWIG_AsVal_dec(Type)(JSValue o, Type *val)
       return SWIG_OK;
     } else {
       return SWIG_OverflowError;
-    }    
+    }
   } else {
     float re;
     int res = SWIG_AddCast(SWIG_AsVal(float)(o, &re));

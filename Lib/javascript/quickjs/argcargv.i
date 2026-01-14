@@ -8,7 +8,7 @@ SWIGINTERN int SWIG_AsVal_string(JSContext *ctx, JSValue obj, const char** str)
   if (!JS_IsString(obj)) {
     return SWIG_TypeError;
   }
-  if(str) {
+  if (str) {
     *str = JS_ToCString(ctx, obj);
   }
   return SWIG_OK;
@@ -19,12 +19,12 @@ SWIGINTERN int SWIG_AsVal_string(JSContext *ctx, JSValue obj, const char** str)
   int i, len;
   size_t arraysize;
   JSValue array;
-  
+
   if (!JS_IsArray(ctx, $input)) {
     SWIG_exception_fail(SWIG_ERROR, "not array");
   }
   array = $input;
-  
+
   len = SWIG_QuickJS_ArrayLength(ctx, array);
   arraysize = (len+1)*sizeof($*2_ltype);
   $1 = len;
