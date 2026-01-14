@@ -40,7 +40,7 @@ SWIGRUNTIME void SWIG_QuickJS_exception(JSContext *ctx, int code, const char* ms
 #define SWIG_QUICKJS_EXCEPTION_MSG_MAX_LEN 600
 
 SWIGINTERN void SWIG_QuickJS_strcat(void *s, const char *v, long unsigned len) {
-  if(v && len>=1 && (strlen((const char *)s)+len<SWIG_QUICKJS_VALUE_MAX_LEN)) strncat((char*)s, v, len);
+  if (v && len>=1 && (strlen((const char *)s)+len<SWIG_QUICKJS_VALUE_MAX_LEN)) strncat((char*)s, v, len);
 }
 
 const char *SWIG_QuickJS_ValueStr(JSContext *ctx, JSValueConst this_val)
@@ -59,21 +59,21 @@ const char *SWIG_QuickJS_ValueStr(JSContext *ctx, JSValueConst this_val)
   static char val[SWIG_QUICKJS_VALUE_MAX_LEN] = "";
 
   JS_PrintValue(ctx, SWIG_QuickJS_strcat, val, this_val, NULL);
-  if(JS_IsObject(this_val)) {
+  if (JS_IsObject(this_val)) {
     has_prop = true;
     obj = JS_DupValue(ctx, this_val);
-  } else if(JS_IsException(this_val)) {
+  } else if (JS_IsException(this_val)) {
     has_prop = true;
     // this clears the exception: dup the error object and throw it again
     obj = JS_GetException(ctx);
     JS_Throw(ctx, JS_DupValue(ctx,obj));
   }
 
-  if(has_prop) {
+  if (has_prop) {
     /* get the own properties of the value */
     r = JS_GetOwnPropertyNames(ctx, &prop_names, &prop_num, obj, JS_GPN_STRING_MASK);
-    if(r >= 0) {
-      for(j=0; j<(int)prop_num; j++) {
+    if (r >= 0) {
+      for ( j = 0; j < (int)prop_num; j++) {
         prop_value = JS_GetProperty(ctx, obj, prop_names[j].atom);
         JS_PrintValue(ctx, SWIG_QuickJS_strcat, val, prop_value, NULL);
         JS_FreeValue(ctx, prop_value);
@@ -157,11 +157,11 @@ SWIGRUNTIME JSValue _wrap_SwigObject_disown(JSContext *ctx, JSValueConst this_va
 {
   SwigObjectData *swig_object;
 
-  if(argc!=0) {
+  if (argc != 0) {
     SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for SwigObject_disown.");
   }
 
-  if(SWIG_QuickJS_IsSwigObject(ctx, this_val) <= 0) {
+  if (SWIG_QuickJS_IsSwigObject(ctx, this_val) <= 0) {
     return JS_ThrowTypeError(ctx, "SWIGObject_disown");
   }
 
@@ -183,14 +183,14 @@ SWIGRUNTIME JSValue _wrap_SwigObject_equals(JSContext *ctx, JSValueConst this_va
   bool result;
   SwigObjectData *swig_object, *swig_object2;
 
-  if(argc!=1) {
+  if (argc != 1) {
     SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for SwigObject_equals.");
   }
 
-  if(SWIG_QuickJS_IsSwigObject(ctx, this_val) <= 0) {
+  if (SWIG_QuickJS_IsSwigObject(ctx, this_val) <= 0) {
     return JS_ThrowTypeError(ctx, "SwigObject_equals (lv)");
   }
-  if(SWIG_QuickJS_IsSwigObject(ctx, argv[0]) <= 0) {
+  if (SWIG_QuickJS_IsSwigObject(ctx, argv[0]) <= 0) {
     return JS_ThrowTypeError(ctx, "SwigObject_equals (rv)");
   }
 
@@ -214,14 +214,14 @@ SWIGRUNTIME JSValue _wrap_SwigObject_toString(JSContext *ctx, JSValueConst this_
   JSValueConst v;
   const char *s;
 
-  if(argc!=0) {
+  if (argc != 0) {
     SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for SwigObject_toString.");
   }
 
   /* detect if this is the prototype */
-  if(JS_GetClassID(this_val) == SWIG_QuickJS_swig_prototype_class_class_definition.class_id) {
+  if (JS_GetClassID(this_val) == SWIG_QuickJS_swig_prototype_class_class_definition.class_id) {
     v = JS_GetPropertyStr(ctx, this_val, ".of.");
-    if(JS_IsException(v)) { return v; }
+    if (JS_IsException(v)) { return v; }
     s = JS_ToCString(ctx, v);
     snprintf(buffer, 128, "prototype of %s", s);
     JS_FreeCString(ctx, s);
@@ -230,7 +230,7 @@ SWIGRUNTIME JSValue _wrap_SwigObject_toString(JSContext *ctx, JSValueConst this_
   }
 
   swig_object = (SwigObjectData *)JS_GetOpaque(this_val, JS_GetClassID(this_val));
-  if(swig_object->type) {
+  if (swig_object->type) {
     snprintf(buffer, 128, "%s at %p", SWIG_TypeName(swig_object->type), swig_object->ptr);
   } else {
     snprintf(buffer, 128, "pointer %p", swig_object->ptr);
@@ -296,7 +296,7 @@ SWIGRUNTIME int SWIG_QuickJS_IsSwigObject(JSContext *ctx, JSValueConst this_val)
 
   if (JS_IsObject(this_val)) {
     proto = JS_GetPrototype(ctx, this_val);
-    if(JS_IsException(proto)) return -1;
+    if (JS_IsException(proto)) { return -1; }
     result = (JS_GetClassID(proto) == SWIG_QuickJS_swig_prototype_class_class_definition.class_id);
     JS_FreeValue(ctx, proto);
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)
@@ -316,12 +316,12 @@ SWIGRUNTIME int SWIG_QuickJS_ConvertPtr(JSContext *ctx, JSValueConst val, void**
   SwigObjectData *swig_object;
 
   /* special case: JavaScript null => C NULL pointer */
-  if(JS_IsNull(val)) {
-    if(ptr) *ptr=0;
+  if (JS_IsNull(val)) {
+    if (ptr) *ptr=0;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
 
-  if(SWIG_QuickJS_IsSwigObject(ctx, val) <= 0) {
+  if (SWIG_QuickJS_IsSwigObject(ctx, val) <= 0) {
     return SWIG_ERROR;
   }
 
@@ -349,11 +349,11 @@ SWIGRUNTIME int SWIG_QuickJS_ConvertPtr(JSContext *ctx, JSValueConst val, void**
       SWIG_QuickJS_ClassDefinition *pClsDef = (SWIG_QuickJS_ClassDefinition*)(type->clientdata);
       JSValueConst base_map = SWIG_QuickJS_baseRegistryClassLookup(ctx, clsDef->class_name);
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)
-      if(clsDef->magic != SWIG_PROTOTYPE_CLASS_MAGIC) {
+      if (clsDef->magic != SWIG_PROTOTYPE_CLASS_MAGIC) {
         printf("SWIG_QuickJS_ConvertPtr: Warning: not a class %s\n", swig_object->type->str);
         return SWIG_ERROR;
       }
-      if(pClsDef->magic != SWIG_PROTOTYPE_CLASS_MAGIC) {
+      if (pClsDef->magic != SWIG_PROTOTYPE_CLASS_MAGIC) {
         printf("SWIG_QuickJS_ConvertPtr: Warning: not a class %s\n", type->str);
         return SWIG_ERROR;
       }
@@ -361,16 +361,16 @@ SWIGRUNTIME int SWIG_QuickJS_ConvertPtr(JSContext *ctx, JSValueConst val, void**
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_BASES)
       printf("SWIG_QuickJS_ConvertPtr: check source %s to target %s\n", clsDef->class_name, pClsDef->class_name);
 #endif
-      if(JS_IsObject(base_map)) {
+      if (JS_IsObject(base_map)) {
         JSAtom atom = JS_NewAtom(ctx, pClsDef->class_name);
-        if(atom != JS_ATOM_NULL) {
+        if (atom != JS_ATOM_NULL) {
           found = JS_HasProperty(ctx, base_map, atom);
-          if(found == -1) { return SWIG_ERROR; } /* exception */
+          if (found == -1) { return SWIG_ERROR; } /* exception */
           JS_FreeAtom(ctx, atom);
         }
       }
       JS_FreeValue(ctx, base_map);
-      if(!found) {
+      if (!found) {
         return SWIG_ERROR;
       }
       *ptr = swig_object->ptr;
@@ -418,7 +418,7 @@ SWIGRUNTIME JSValue SWIG_QuickJS_NewPointerObj(JSContext *ctx, void *ptr, swig_t
 
   /* initialize the JS instance */
   SWIG_QuickJS_ClassDefinition *def = NULL;
-  if(type && type->clientdata) {
+  if (type && type->clientdata) {
     def = (SWIG_QuickJS_ClassDefinition*)type->clientdata;
     result = JS_NewObjectClass(ctx, def->class_id);
   } else {
@@ -468,7 +468,7 @@ SWIGRUNTIME JSValue _wrap_SwigPackedData_toString(JSContext *ctx, JSValueConst t
 {
   char buffer[128];
 
-  if(SWIG_QuickJS_IsPackedData(this_val) <= 0) {
+  if (SWIG_QuickJS_IsPackedData(this_val) <= 0) {
     return JS_ThrowTypeError(ctx, "SWIGPackedData_toString");
   }
   SwigPackedData *packed_data = (SwigPackedData *)JS_GetOpaque(this_val, JS_GetClassID(this_val));
@@ -492,7 +492,7 @@ SWIGRUNTIME void SwigPackedData_delete(JSRuntime *rt, JSValue this_val)
 {
   SwigPackedData* packed_data;
 
-  if(SWIG_QuickJS_IsPackedData(this_val) <= 0) {
+  if (SWIG_QuickJS_IsPackedData(this_val) <= 0) {
     printf("SwigPackedData_delete: Error - not a packed data\n");
     return;
   }
@@ -524,8 +524,8 @@ SWIGRUNTIME swig_type_info* Swig_QuickJS_UnpackData(JSContext *ctx, JSValue val,
 {
   if (SWIG_QuickJS_IsPackedData(val)) {
     SwigPackedData *sobj = (SwigPackedData *) JS_GetOpaque(val, SWIG_QuickJS_packed_data_class_definition.class_id);;
-    if (sobj->size != size) return 0;
-    if (!ptr) return 0;
+    if (sobj->size != size) { return 0; }
+    if (!ptr) { return 0; }
     memcpy(ptr, sobj->data, size);
     return sobj->type;
   } else {
@@ -537,12 +537,12 @@ SWIGRUNTIME
 int SWIG_QuickJS_ConvertPacked(JSContext *ctx, JSValue val, void *ptr, size_t sz, swig_type_info *ty)
 {
   swig_type_info *to = Swig_QuickJS_UnpackData(ctx, val, ptr, sz);
-  if (!to) return SWIG_ERROR;
+  if (!to) { return SWIG_ERROR; }
   if (ty) {
     if (to != ty) {
       /* check type cast */
       swig_cast_info *tc = SWIG_TypeCheck(to->name,ty);
-      if (!tc) return SWIG_ERROR;
+      if (!tc) { return SWIG_ERROR; }
     }
   }
   return SWIG_OK;
@@ -602,7 +602,7 @@ static JSClassID SWIG_QuickJS_namespace_info_class_id = 0;
 /* A function to get the pointer of a wrapped object */
 int SWIG_QuickJS_getptr(JSContext *ctx, void **ptr, JSValueConst this_val)
 {
-  if(ptr == NULL) {
+  if (ptr == NULL) {
     return -1;
   }
   if (SWIG_QuickJS_IsSwigObject(ctx, this_val) <= 0) {
@@ -628,14 +628,14 @@ const char *SWIG_QuickJS_typename(JSContext *ctx, JSValueConst this_val)
 
   if (SWIG_QuickJS_IsSwigObject(ctx, this_val)) {
     swig_object = (SwigObjectData *)JS_GetOpaque(this_val, JS_GetClassID(this_val));
-    if(swig_object->type) {
+    if (swig_object->type) {
       str = SWIG_TypePrettyName(swig_object->type);
     } else {
       str = "pointer";
     }
   }
 
-  if(str) return str;
+  if (str) { return str; }
 
   tag = JS_VALUE_GET_NORM_TAG(this_val);
 
@@ -675,7 +675,7 @@ const char *SWIG_QuickJS_typename(JSContext *ctx, JSValueConst this_val)
       str = "bytecode";
       break;
   case JS_TAG_OBJECT:
-      if(JS_IsError(ctx, this_val)) str = "error";
+      if (JS_IsError(ctx, this_val)) str = "error";
       else if (JS_IsArray(ctx, this_val)) str = "array";
       else if (JS_IsFunction(ctx, this_val)) str = "function";
       else str = "object";
@@ -723,12 +723,12 @@ unsigned int SWIG_QuickJS_ArrayLength(JSContext *ctx, JSValue arr)
   assert(JS_IsArray(ctx, arr));
 
   idx_val = JS_GetPropertyStr(ctx, arr, "length");
-  if(JS_IsException(idx_val)) {
+  if (JS_IsException(idx_val)) {
     /* clear the exception and returns 0 */
     JS_FreeValue(ctx, JS_GetException(ctx));
     return 0;
   }
-  if(JS_ToInt32(ctx, &idx, idx_val)) return 0;
+  if (JS_ToInt32(ctx, &idx, idx_val)) { return 0; }
   assert(idx>=0);
   JS_FreeValue(ctx, idx_val);
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_ARRAYLEN)
@@ -753,16 +753,16 @@ JSValue SWIG_QuickJS_AppendOutput(JSContext *ctx, JSValue result, JSValue obj)
   JSValue r;
   int z;
   int idx;
-  
-  if(JS_IsException(result)) return result;
-  
-  if(JS_IsException(obj)) {
+
+  if (JS_IsException(result)) { return result; }
+
+  if (JS_IsException(obj)) {
     r = obj;
-    if(JS_IsArray(ctx, result)) {
+    if (JS_IsArray(ctx, result)) {
       JS_FreeValue(ctx, result);
     }
   } else {
-    if(JS_IsUndefined(result)) {
+    if (JS_IsUndefined(result)) {
       r = JS_NewArray(ctx);
       idx = 0;
     } else if (JS_IsArray(ctx, result)) {
@@ -770,9 +770,9 @@ JSValue SWIG_QuickJS_AppendOutput(JSContext *ctx, JSValue result, JSValue obj)
       idx = SWIG_QuickJS_ArrayLength(ctx, r);
     } else {
       r = JS_NewArray(ctx);
-      if(JS_IsException(r)) return r;
+      if (JS_IsException(r)) { return r; }
       z = JS_SetPropertyUint32(ctx,r,0,result);
-      if(z == -1) {
+      if (z == -1) {
         JS_FreeValue(ctx, r);
         return JS_EXCEPTION;
       }
@@ -780,7 +780,7 @@ JSValue SWIG_QuickJS_AppendOutput(JSContext *ctx, JSValue result, JSValue obj)
     }
 
     z = JS_SetPropertyUint32(ctx,r,(uint32_t)idx,obj);
-    if(z == -1) {
+    if (z == -1) {
       JS_FreeValue(ctx, r);
       return JS_EXCEPTION;
     }

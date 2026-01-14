@@ -5,7 +5,7 @@
 SWIGINTERN int
 SWIG_QuickJS_AsCharPtrAndSize(JSContext *ctx, JSValueConst val, char** cptr, size_t* psize, int *alloc)
 {
-  if(JS_IsString(val)) {
+  if (JS_IsString(val)) {
     size_t len;
     const char *str;
     str = JS_ToCStringLen2(ctx, &len, val, 0);
@@ -13,19 +13,19 @@ SWIG_QuickJS_AsCharPtrAndSize(JSContext *ctx, JSValueConst val, char** cptr, siz
     char* cstr = (char*) %new_array(len, char);
     memcpy(cstr, str, len);
     JS_FreeCString(ctx, str);
-    
-    if(alloc) *alloc = SWIG_NEWOBJ;
-    if(psize) *psize = len;
-    if(cptr) *cptr = cstr;
+
+    if (alloc) *alloc = SWIG_NEWOBJ;
+    if (psize) *psize = len;
+    if (cptr) *cptr = cstr;
 
     return SWIG_OK;
-  
+
   } else if (JS_IsNull(val)) {
     if (cptr) *cptr = 0;
     return SWIG_OK;
-  
+
   } else {
-    if(JS_IsObject(val)) {
+    if (JS_IsObject(val)) {
       // try if the object is a wrapped char[]
       swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
       if (pchar_descriptor) {
@@ -53,13 +53,13 @@ SWIG_QuickJS_FromCharPtrAndSize(JSContext *ctx, const char* carray, size_t size)
     if (size > INT_MAX) {
       // TODO: handle extra long strings?
       return JS_UNDEFINED;
-    
+
     } else {
       JSValue result;
-      if(size < 2) {
+      if (size < 2) {
         char c[2];
         size_t i;
-        for(i=0;i<size;++i) {
+        for (i = 0; i < size; ++i) {
           c[i] = carray[i];
         }
         c[size] = 0;
@@ -76,15 +76,15 @@ SWIG_QuickJS_FromCharPtrAndSize(JSContext *ctx, const char* carray, size_t size)
 }
 
 %define %_typemap2_string(StringCode, CharCode,
-			 WarningLeakMsg,
-			 Char, CharName,
-			 SWIG_AsCharPtrAndSize,
-			 SWIG_FromCharPtrAndSize,
-			 SWIG_CharPtrLen,
+       WarningLeakMsg,
+       Char, CharName,
+       SWIG_AsCharPtrAndSize,
+       SWIG_FromCharPtrAndSize,
+       SWIG_CharPtrLen,
        SWIG_CharBufLen,
-			 SWIG_NewCopyCharArray,
-			 SWIG_DeleteCharArray,
-			 FragLimits, CHAR_MIN, CHAR_MAX)
+       SWIG_NewCopyCharArray,
+       SWIG_DeleteCharArray,
+       FragLimits, CHAR_MIN, CHAR_MAX)
 
 %fragment("SWIG_From"#CharName"Ptr","header",fragment=#SWIG_FromCharPtrAndSize) {
 SWIGINTERNINLINE SWIG_Object

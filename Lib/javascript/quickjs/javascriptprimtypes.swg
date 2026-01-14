@@ -18,13 +18,13 @@ SWIGINTERN
 int SWIG_AsVal_dec(bool)(JSValue obj, bool *val)
 {
   int v;
-  if(!JS_IsBool(obj)) {
+  if (!JS_IsBool(obj)) {
     return SWIG_ERROR;
   }
   v = JS_ToBool(ctx, obj);
-  if(v < 0)
+  if (v < 0)
     return SWIG_ERROR;
-  if(val) *val = (bool)v;
+  if (val) *val = (bool)v;
   return SWIG_OK;
 }
 }
@@ -65,15 +65,15 @@ SWIG_AsVal_dec(long)(JSValueConst obj, long* val)
   }
 %#else
   int32_t v;
-  if(!JS_IsNumber(obj)) {
+  if (!JS_IsNumber(obj)) {
     return SWIG_TypeError;
   }
 %#endif
-  if(val) {
+  if (val) {
 %#if defined(LLONG_MAX) && (LONG_WIDTH == LLONG_WIDTH)
-    if(JS_ToInt64Ext(ctx, &v, obj))
+    if (JS_ToInt64Ext(ctx, &v, obj))
 %#else
-    if(JS_ToInt32(ctx, &v, obj))
+    if (JS_ToInt32(ctx, &v, obj))
 %#endif
       return SWIG_ERROR;
     *val = (long)v;
@@ -110,19 +110,19 @@ SWIG_AsVal_dec(unsigned long)(JSValueConst obj, unsigned long *val)
   }
 %#else
   uint32_t v;
-  if(!JS_IsNumber(obj)) {
+  if (!JS_IsNumber(obj)) {
     return SWIG_TypeError;
   }
 %#endif
 
-  if(val) {
+  if (val) {
 %#if defined(LLONG_MAX) && (LONG_WIDTH == LLONG_WIDTH)
-    if(JS_ToInt64Ext(ctx, &v, obj))
+    if (JS_ToInt64Ext(ctx, &v, obj))
       return SWIG_ERROR;
-    if(v<0)
+    if (v<0)
       return SWIG_OverflowError;
 %#else
-    if(JS_ToUint32(ctx, &v, obj))
+    if (JS_ToUint32(ctx, &v, obj))
       return SWIG_ERROR;
 %#endif
     *val = (unsigned long)v;
@@ -159,7 +159,7 @@ SWIG_AsVal_dec(long long)(JSValueConst obj, long long* val)
   if (!(JS_IsNumber(obj) || JS_IsBigInt(ctx,obj))) {
     return SWIG_TypeError;
   }
-  if(val) {
+  if (val) {
     if (JS_ToInt64Ext(ctx, &v, obj))
       return SWIG_ERROR;
     *val = (long long)v;
@@ -173,8 +173,8 @@ SWIG_AsVal_dec(long long)(JSValueConst obj, long long* val)
 // Note: these are copied from 'unsigned long' and probably need fixing
 
 %fragment(SWIG_From_frag(unsigned long long),"header",
-	  fragment=SWIG_From_frag(long long),
-	  fragment="SWIG_LongLongAvailable") {
+    fragment=SWIG_From_frag(long long),
+    fragment="SWIG_LongLongAvailable") {
 %#ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN JSValue
 SWIG_From_dec(unsigned long long)(unsigned long long value)
@@ -197,14 +197,14 @@ SWIG_AsVal_dec(unsigned long long)(JSValueConst obj, unsigned long long *val)
     return SWIG_TypeError;
   }
 
-  if(JS_ToInt64Ext(ctx, &longVal, obj))
+  if (JS_ToInt64Ext(ctx, &longVal, obj))
     return SWIG_ERROR;
 
-  if(longVal < 0) {
+  if (longVal < 0) {
       return SWIG_OverflowError;
   }
 
-  if(val) *val = (unsigned long long)longVal;
+  if (val) *val = (unsigned long long)longVal;
 
   return SWIG_OK;
 }
@@ -225,11 +225,11 @@ SWIG_From_dec(double) (double val)
 SWIGINTERN int
 SWIG_AsVal_dec(double)(JSValueConst obj, double *val)
 {
-  if(!JS_IsNumber(obj)) {
+  if (!JS_IsNumber(obj)) {
     return SWIG_TypeError;
   }
-  if(val)
-    if(JS_ToFloat64(ctx, val, obj))
+  if (val)
+    if (JS_ToFloat64(ctx, val, obj))
       return SWIG_ERROR;
 
   return SWIG_OK;
