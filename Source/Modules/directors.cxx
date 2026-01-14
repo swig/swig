@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -195,14 +195,14 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
  * Swig_director_emit_dynamic_cast()
  *
  * In order to call protected virtual director methods from the target language, we need
- * to add an extra dynamic_cast to call the public C++ wrapper in the director class. 
+ * to add an extra dynamic_cast to call the public C++ wrapper in the director class.
  * Also for non-static protected members when the allprotected option is on.
  * ----------------------------------------------------------------------------- */
 
 void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
   // TODO: why is the storage element removed in staticmemberfunctionHandler ??
-  if ((!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) || 
-      (is_non_virtual_protected_access(n) && !(Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage") || 
+  if ((!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) ||
+      (is_non_virtual_protected_access(n) && !(Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage") ||
                                                Swig_storage_isstatic(n))
                                           && !Equal(nodeType(n), "constructor"))) {
     Node *parent = Getattr(n, "parentNode");

@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -1027,7 +1027,7 @@ static String *expand_macro(String *name, List *args, String *line_file) {
         Replace(ns, temp, rep, DOH_REPLACE_ANY);
       }
 
-      /* Non-standard mangle expansions.  
+      /* Non-standard mangle expansions.
          The #@Name is replaced by mangle_arg(Name). */
       if (strchr(Char(ns), '\004')) {
         String *marg = Swig_name_mangle_string(arg);

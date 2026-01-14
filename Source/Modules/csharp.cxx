@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -189,7 +189,7 @@ public:
    * Return NULL if not otherwise the proxy class name, fully qualified with
    * a namespace if the nspace feature is used.
    * ----------------------------------------------------------------------------- */
-  
+
    String *getProxyName(SwigType *t) {
      String *proxyname = NULL;
      if (proxy_flag) {
@@ -320,12 +320,12 @@ public:
     if (optionsnode) {
       if (Getattr(optionsnode, "imclassname"))
         imclass_name = Copy(Getattr(optionsnode, "imclassname"));
-      /* check if directors are enabled for this module.  note: this 
+      /* check if directors are enabled for this module.  note: this
        * is a "master" switch, without which no director code will be
        * emitted.  %feature("director") statements are also required
        * to enable directors for individual classes or methods.
        *
-       * use %module(directors="1") modulename at the start of the 
+       * use %module(directors="1") modulename at the start of the
        * interface file to enable director generation.
        */
       if (Getattr(optionsnode, "directors")) {
@@ -817,7 +817,7 @@ public:
 
     /*
        The rest of this function deals with generating the intermediary class wrapper function (that wraps
-       a c/c++ function) and generating the PInvoke c code. Each C# wrapper function has a 
+       a c/c++ function) and generating the PInvoke c code. Each C# wrapper function has a
        matching PInvoke c function call.
      */
 
@@ -1101,7 +1101,7 @@ public:
       moduleClassFunctionHandler(n);
     }
 
-    /* 
+    /*
      * Generate the proxy class properties for public member variables.
      * Not for enums and constants.
      */
@@ -1162,7 +1162,7 @@ public:
 
     return ret;
   }
-  
+
   String *getCurrentScopeName(String *nspace) {
     String *scope = 0;
     if (nspace || getCurrentClass()) {
@@ -2438,11 +2438,11 @@ public:
   /* -----------------------------------------------------------------------------
    * proxyClassFunctionHandler()
    *
-   * Function called for creating a C# wrapper function around a c++ function in the 
+   * Function called for creating a C# wrapper function around a c++ function in the
    * proxy class. Used for both static and non-static C++ class functions.
    * C++ class static functions map to C# static functions.
-   * Two extra attributes in the Node must be available. These are "proxyfuncname" - 
-   * the name of the C# class proxy function, which in turn will call "imfuncname" - 
+   * Two extra attributes in the Node must be available. These are "proxyfuncname" -
+   * the name of the C# class proxy function, which in turn will call "imfuncname" -
    * the intermediary (PInvoke) function name in the intermediary class.
    * ----------------------------------------------------------------------------- */
 
@@ -2689,7 +2689,7 @@ public:
         Replaceall(tm, "$owner", "false");
       substituteClassname(t, tm);
 
-      // For director methods: generate code to selectively make a normal polymorphic call or 
+      // For director methods: generate code to selectively make a normal polymorphic call or
       // an explicit method call - needed to prevent infinite recursion calls in director methods.
       Node *explicit_n = Getattr(n, "explicitcallnode");
       if (explicit_n) {
@@ -3531,7 +3531,7 @@ public:
   /* -----------------------------------------------------------------------------
    * substituteClassname()
    *
-   * Substitute the special variable $csclassname with the proxy class name for classes/structs/unions 
+   * Substitute the special variable $csclassname with the proxy class name for classes/structs/unions
    * that SWIG knows about. Also substitutes enums with enum name.
    * Otherwise use the $descriptor name for the C# class name. Note that the $&csclassname substitution
    * is the same as a $&descriptor substitution, ie one pointer added to descriptor name.
@@ -3732,7 +3732,7 @@ public:
    * tmap_method - typemap method name
    * type - typemap type to lookup
    * warning - warning number to issue if no typemaps found
-   * typemap_attributes - the typemap attributes are attached to this node and will 
+   * typemap_attributes - the typemap attributes are attached to this node and will
    *   also be used for temporary storage if non null
    * return is never NULL, unlike Swig_typemap_lookup()
    * ----------------------------------------------------------------------------- */
@@ -3971,7 +3971,7 @@ public:
   /* ---------------------------------------------------------------
    * classDirectorMethod()
    *
-   * Emit a virtual director method to pass a method call on to the 
+   * Emit a virtual director method to pass a method call on to the
    * underlying C# object.
    *
    * --------------------------------------------------------------- */
@@ -4102,7 +4102,7 @@ public:
         Delete(jretval_decl);
       }
     } else {
-      Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s for use in %s::%s (skipping director method)\n", 
+      Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s for use in %s::%s (skipping director method)\n",
           SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
       output_director = false;
     }
@@ -4260,12 +4260,12 @@ public:
                 Swig_warning(WARN_CSHARP_TYPEMAP_CSWTYPE_UNDEF, input_file, line_number, "No cstype typemap defined for %s\n", SwigType_str(pt, 0));
               }
             } else {
-              Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number, "No csdirectorin typemap defined for %s for use in %s::%s (skipping director method)\n", 
+              Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number, "No csdirectorin typemap defined for %s for use in %s::%s (skipping director method)\n",
                   SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
               output_director = false;
             }
           } else {
-            Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s for use in %s::%s (skipping director method)\n", 
+            Swig_warning(WARN_CSHARP_TYPEMAP_CSTYPE_UNDEF, input_file, line_number, "No imtype typemap defined for %s for use in %s::%s (skipping director method)\n",
                 SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
             output_director = false;
           }
@@ -4274,13 +4274,13 @@ public:
 
         } else {
           Swig_warning(WARN_CSHARP_TYPEMAP_CSDIRECTORIN_UNDEF, input_file, line_number,
-                       "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n", 
+                       "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n",
                        SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
           p = nextSibling(p);
           output_director = false;
         }
       } else {
-        Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s for use in %s::%s (skipping director method)\n", 
+        Swig_warning(WARN_CSHARP_TYPEMAP_CTYPE_UNDEF, input_file, line_number, "No ctype typemap defined for %s for use in %s::%s (skipping director method)\n",
             SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
         output_director = false;
         p = nextSibling(p);
@@ -4386,7 +4386,7 @@ public:
           Printf(w->code, "%s\n", tm);
         } else {
           Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-                       "Unable to use return type %s used in %s::%s (skipping director method)\n", 
+                       "Unable to use return type %s used in %s::%s (skipping director method)\n",
                        SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
           output_director = false;
         }
@@ -4731,7 +4731,7 @@ public:
    * Generate the director class's declaration
    * e.g. "class SwigDirector_myclass : public myclass, public Swig::Director {"
    *--------------------------------------------------------------------*/
- 
+
   void directorDeclaration(Node *n) {
 
     String *base = Getattr(n, "classtype");

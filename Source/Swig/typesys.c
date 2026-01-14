@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -9,7 +9,7 @@
  * typesys.c
  *
  * SWIG type system management.   These functions are used to manage
- * the C++ type system including typenames, typedef, type scopes, 
+ * the C++ type system including typenames, typedef, type scopes,
  * inheritance, and namespaces.   Generation of support code for the
  * run-time type checker is also handled here.
  * ----------------------------------------------------------------------------- */
@@ -22,7 +22,7 @@
  *
  * The purpose of this module is to manage type names and scoping issues related
  * to the C++ type system.   The primary use is tracking typenames through typedef
- * and inheritance. 
+ * and inheritance.
  *
  * New typenames are introduced by typedef, class, and enum declarations.
  * Each type is declared in a scope.  This is either the global scope, a
@@ -36,7 +36,7 @@
  *    typedef int A;       // Typename A, in scope Bar::
  *  }
  *
- * To manage scopes, the type system is constructed as a tree of hash tables.  Each 
+ * To manage scopes, the type system is constructed as a tree of hash tables.  Each
  * hash table contains the following attributes:
  *
  *    "name"            -  Scope name
@@ -45,9 +45,9 @@
  *                         For a given key in the typetab table, the value is a fully
  *                         qualified name if not pointing to itself.
  *    "symtab"          -  Hash table of symbols defined in a scope
- *    "inherit"         -  List of inherited scopes       
+ *    "inherit"         -  List of inherited scopes
  *    "parent"          -  Parent scope
- * 
+ *
  * The contents of these tables can be viewed for debugging using the -debug-typedef
  * option which calls SwigType_print_scope().
  *
@@ -85,7 +85,7 @@
  *
  * typetab in scope '' contains:
  *      "S" : "N::S"
- * 
+ *
  * and typetab in scope 'N' contains:
  *      "SS" : "NN::SS"
  *      "S" : "S"
@@ -109,7 +109,7 @@
  *      "Integer" : "int"
  * and scope 'Bar' inherits from 'Foo' but is empty (observe that blah is not a scope or typedef)
  *
- * The argument type of Bar::blah will be set to Foo::Integer.   
+ * The argument type of Bar::blah will be set to Foo::Integer.
  *
  *
  * The scope-inheritance mechanism is used to manage C++ using directives.
@@ -140,9 +140,9 @@
  *      namespace F = Foo;
  *
  * In this case, F is defined as a scope that "inherits" from Foo.  Internally,
- * F will merely be an empty scope that points to Foo.  SWIG will never 
+ * F will merely be an empty scope that points to Foo.  SWIG will never
  * place new type information into a namespace alias---attempts to do so
- * will generate a warning message (in the parser) and will place information into 
+ * will generate a warning message (in the parser) and will place information into
  * Foo instead.
  *
  *----------------------------------------------------------------------------- */
@@ -154,7 +154,7 @@ static Typetab *global_scope = 0;	/* The global scope                           
 static Hash *scopes = 0;	/* Hash table containing fully qualified scopes */
 
 /* Performance optimization */
-#define SWIG_TYPEDEF_RESOLVE_CACHE 
+#define SWIG_TYPEDEF_RESOLVE_CACHE
 static Hash *typedef_resolve_cache = 0;
 static Hash *typedef_all_cache = 0;
 static Hash *typedef_qualified_cache = 0;
@@ -163,15 +163,15 @@ static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix);
 
 /* common attribute keys, to avoid calling find_key all the times */
 
-/* 
+/*
    Enable this one if your language fully support SwigValueWrapper<T>.
-   
+
    Leaving at '0' keeps the old swig behavior, which is not
    always safe, but is well known.
 
    Setting at '1' activates the new scheme, which is always safe but
    it requires all the typemaps to be ready for that.
-  
+
 */
 static int value_wrapper_mode = 0;
 int Swig_value_wrapper_mode(int mode) {
@@ -210,8 +210,8 @@ void SwigType_typesystem_init(void) {
 /* -----------------------------------------------------------------------------
  * SwigType_typedef()
  *
- * Defines a new typedef in the current scope. Returns -1 if the type name is 
- * already defined.  
+ * Defines a new typedef in the current scope. Returns -1 if the type name is
+ * already defined.
  * ----------------------------------------------------------------------------- */
 
 int SwigType_typedef(const SwigType *type, const_String_or_char_ptr name) {
@@ -242,7 +242,7 @@ int SwigType_typedef(const SwigType *type, const_String_or_char_ptr name) {
 /* -----------------------------------------------------------------------------
  * SwigType_typedef_class()
  *
- * Defines a class in the current scope. 
+ * Defines a class in the current scope.
  * ----------------------------------------------------------------------------- */
 
 int SwigType_typedef_class(const_String_or_char_ptr name) {
@@ -555,7 +555,7 @@ static Typetab *SwigType_find_scope(Typetab *s, const SwigType *nameprefix) {
   return 0;
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * typedef_resolve()
  *
  * Resolves a typedef and returns a new type string.  Returns 0 if there is no
@@ -611,7 +611,7 @@ static SwigType *_typedef_resolve(Typetab *s, String *base, int look_parent) {
   return type;
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * template_parameters_resolve()
  *
  * For use with templates only. Attempts to resolve one template parameter.
@@ -667,7 +667,7 @@ static SwigType *typedef_resolve(Typetab *s, String *base) {
 }
 
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * SwigType_typedef_resolve()
  *
  * Given a type declaration, this function looks to reduce/resolve the type via a
@@ -1256,7 +1256,7 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
   return result;
 }
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * SwigType_istypedef()
  *
  * Checks a typename to see if it is a typedef.
@@ -1594,7 +1594,7 @@ SwigType *SwigType_alttype(const SwigType *t, int local_tmap) {
  * modules to actually call this function--it is not done automatically.
  *
  * Type tracking is managed through two separate hash tables.  The hash 'r_mangled'
- * is mapping between mangled type names (used in the target language) and 
+ * is mapping between mangled type names (used in the target language) and
  * fully-resolved C datatypes used in the source input.   The second hash 'r_resolved'
  * is the inverse mapping that maps fully-resolved C datatypes to all of the mangled
  * names in the scripting languages.  For example, consider the following set of

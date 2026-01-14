@@ -138,7 +138,7 @@ protected:
   void handleTagParam(DoxygenEntity &tag, std::string &translatedComment, std::string &arg);
 
   /*
-   * Writes link for \ref tag. 
+   * Writes link for \ref tag.
    */
   void handleTagRef(DoxygenEntity &tag, std::string &translatedComment, std::string &);
 

@@ -74,7 +74,7 @@ public:
   string getFirstLineIndent() const {
     return string(m_firstLineIndent, ' ');
   }
- 
+
   ~IndentGuard() {
     if (!m_initialized)
       return;
@@ -161,7 +161,7 @@ static string padCodeAndVerbatimBlocks(const string &docString) {
 
   // Initialize to false because there is no previous line yet
   bool lastLineWasNonBlank = false;
-  
+
   for (string line; std::getline(iss, line); result += line) {
     if (!result.empty()) {
       // Terminate the previous line
@@ -710,12 +710,12 @@ void PyDocConverter::handleTagParam(DoxygenEntity &tag, std::string &translatedC
   std::string suffix;
   if (commandOpt.size() > 0)
     suffix = ", " + commandOpt;
-  
+
   // If the parameter has a default value, flag it as optional in the
   // generated type definition.  Particularly helpful when the python
   // call is generated with *args, **kwargs.
   if (paramValue.size() > 0)
-    suffix += ", optional";  
+    suffix += ", optional";
 
   if (!paramType.empty()) {
     translatedComment += ":type " + paramName + ": " + paramType + suffix + "\n";

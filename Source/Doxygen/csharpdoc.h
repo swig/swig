@@ -172,7 +172,7 @@ protected:
   void handleTagReturn(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 
   /*
-   * Writes text for \ref tag. 
+   * Writes text for \ref tag.
    */
   void handleTagRef(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg);
 

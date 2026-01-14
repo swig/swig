@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -73,10 +73,10 @@ static void mark_implicitconv_function(Overloaded& onode) {
  * Swig_overload_rank()
  *
  * This function takes an overloaded declaration and creates a list that ranks
- * all overloaded methods in an order that can be used to generate a dispatch 
+ * all overloaded methods in an order that can be used to generate a dispatch
  * function.
  * Slight difference in the way this function is used by scripting languages and
- * statically typed languages. The script languages call this method via 
+ * statically typed languages. The script languages call this method via
  * Swig_overload_dispatch() - where wrappers for all overloaded methods are generated,
  * however sometimes the code can never be executed. The non-scripting languages
  * call this method via Swig_overload_check() for each overloaded method in order
@@ -238,9 +238,9 @@ List *Swig_overload_rank(Node *n, bool script_lang_wrapping) {
             String *decl1 = Getattr(nodes[i].n, "decl");
             String *decl2 = Getattr(nodes[j].n, "decl");
             if (decl1 && decl2) {
-              /* Remove ref-qualifiers. Note that rvalue ref-qualifiers are already ignored and 
+              /* Remove ref-qualifiers. Note that rvalue ref-qualifiers are already ignored and
                * it is illegal to overload a function with and without ref-qualifiers. So with
-               * all the combinations of ref-qualifiers and cv-qualifiers, we just detect 
+               * all the combinations of ref-qualifiers and cv-qualifiers, we just detect
                * the cv-qualifier (const) overloading. */
               String *d1 = Copy(decl1);
               String *d2 = Copy(decl2);

@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -180,7 +180,7 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
     }
   }
 
-  /* 
+  /*
    * An equivalent type can be used in the typecheck typemap for SWIG to detect the overloading of equivalent
    * target language types. This is primarily for the smartptr feature, where a pointer and a smart pointer
    * are seen as equivalent types in the target language.
@@ -351,7 +351,7 @@ bool emit_isvarargs_function(Node *n) {
  * void emit_mark_vararg_parms()
  *
  * Marks the vararg parameters which are to be ignored.
- * Vararg parameters are marked as ignored if there is no 'in' varargs (...) 
+ * Vararg parameters are marked as ignored if there is no 'in' varargs (...)
  * typemap.
  * ----------------------------------------------------------------------------- */
 
@@ -412,7 +412,7 @@ int emit_action_code(Node *n, String *wrappercode, String *eaction) {
 /* -----------------------------------------------------------------------------
  * int emit_action()
  *
- * Emits the call to the wrapped function. 
+ * Emits the call to the wrapped function.
  * Adds in exception specification exception handling and %exception code.
  * ----------------------------------------------------------------------------- */
 String *emit_action(Node *n) {

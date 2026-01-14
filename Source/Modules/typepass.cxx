@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -176,7 +176,7 @@ class TypePass:private Dispatcher {
           String *sname = bname;
           String *tname = 0;
 
-          /* Try to locate the base class.   We look in the symbol table and we chase 
+          /* Try to locate the base class.   We look in the symbol table and we chase
              typedef declarations to get to the base class if necessary */
           Symtab *st = Getattr(cls, "sym:symtab");
 
@@ -607,7 +607,7 @@ class TypePass:private Dispatcher {
     }
 
     /* Inherit type definitions into the class */
-    if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") && 
+    if (name && !(GetFlag(n, "nested") && !checkAttribute(n, "access", "public") &&
       (GetFlag(n, "feature:flatnested") || Language::instance()->nestedClassesSupport() == Language::NCS_None))) {
       cplus_inherit_types(n, 0, nname ? nname : (fname ? fname : name));
     }
@@ -622,7 +622,7 @@ class TypePass:private Dispatcher {
     Delete(ts);
     Setattr(n, "module", module);
 
-    // When a fully qualified templated type with default parameters is used in the parsed code, 
+    // When a fully qualified templated type with default parameters is used in the parsed code,
     // the following additional symbols and scopes are needed for successful lookups
     if (template_default_expanded) {
       Swig_symbol_alias(template_default_expanded, Getattr(n, "symtab"));

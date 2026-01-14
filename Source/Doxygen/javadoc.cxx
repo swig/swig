@@ -509,7 +509,7 @@ void JavaDocConverter::handleTagRef(DoxygenEntity &tag, std::string &translatedC
   if (!tag.entityList.size())
     return;
 
-  // we translate to link, although \page is not supported in Java, but 
+  // we translate to link, although \page is not supported in Java, but
   // reader at least knows what to look at. Also for \anchor tag on the same
   // page this link works.
   string anchor = tag.entityList.begin()->data;

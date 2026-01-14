@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -105,7 +105,7 @@ static int eluac_ltr = 0;
 static int elua_emulate = 0;
 static int squash_bases = 0;
 /* The new metatable bindings were introduced in SWIG 3.0.0.
- * old_metatable_bindings in v2: 
+ * old_metatable_bindings in v2:
  *                    1. static methods will be put into the scope their respective class
  *                    belongs to as well as into the class scope itself. (only for classes without %nspace given)
  *                    2. The layout in elua mode is somewhat different
@@ -155,7 +155,7 @@ private:
 
   // Many wrappers forward calls to each other, for example staticmembervariableHandler
   // forwards calls to variableHandler, which, in turn, makes to call to functionWrapper.
-  // In order to access information about whether it is a static member of class or just 
+  // In order to access information about whether it is a static member of class or just
   // a plain old variable, the current array is kept and used as a 'log' of the call stack.
   enum TState {
     NO_CPP,
@@ -856,7 +856,7 @@ public:
        Lua will automatically call the destructor when the object is free'd
        However: you cannot just skip this function as it will not emit
        any custom destructor (using %extend), as you need to call emit_action()
-       Therefore we go though the whole function, 
+       Therefore we go though the whole function,
        but do not write the code into the wrapper
      */
     if (!current[DESTRUCTOR]) {
@@ -1422,7 +1422,7 @@ public:
     // Register the class structure with the type checker
     //    Printf(f_init,"SWIG_TypeClientData(SWIGTYPE%s, (void *) &_wrap_class_%s);\n", SwigType_manglestr(t), mangled_full_proxy_class_name);
 
-    // emit a function to be called to delete the object 
+    // emit a function to be called to delete the object
     if (have_destructor) {
       destructor_name = NewStringf("swig_delete_%s", mangled_full_proxy_class_name);
       Printv(f_wrappers, "static void ", destructor_name, "(void *obj) {\n", NIL);
@@ -2271,7 +2271,7 @@ public:
   /* -----------------------------------------------------------------------------
    * luaAddSymbol()
    *
-   * Our implementation of addSymbol. Determines scope correctly, then 
+   * Our implementation of addSymbol. Determines scope correctly, then
    * forwards to Language::addSymbol
    * ----------------------------------------------------------------------------- */
 

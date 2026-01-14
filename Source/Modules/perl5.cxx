@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -214,16 +214,16 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int top(Node *n) {
-    /* check if directors are enabled for this module.  note: this 
+    /* check if directors are enabled for this module.  note: this
      * is a "master" switch, without which no director code will be
      * emitted.  %feature("director") statements are also required
      * to enable directors for individual classes or methods.
      *
-     * use %module(directors="1") modulename at the start of the 
+     * use %module(directors="1") modulename at the start of the
      * interface file to enable director generation.
      *
      * TODO: directors are disallowed in conjunction with many command
-     * line options.  Some of them are probably safe, but it will take 
+     * line options.  Some of them are probably safe, but it will take
      * some effort to validate each one.
      */
     {
@@ -426,7 +426,7 @@ public:
 
     Printf(f_pm, "package %s;\n", module);
 
-    /* 
+    /*
      * If the package option has been given we are placing our
      *   symbols into some other packages namespace, so we do not
      *   mess with @ISA or require for that package
@@ -524,7 +524,7 @@ public:
     }
 
     Printf(f_pm, "package %s;\n", module);
-    /* 
+    /*
      * If the package option has been given we are placing our
      *   symbols into some other packages namespace, so we do not
      *   mess with @EXPORT
@@ -538,7 +538,7 @@ public:
     if (blessed) {
 
       /*
-       * These methods will be duplicated if package 
+       * These methods will be duplicated if package
        *   has been specified, so we do not output them
        */
       if (!dest_package) {
@@ -1538,7 +1538,7 @@ public:
                "    my $member_func = \"swig_${field}_get\";\n",
                "    if (not $self->can($member_func)) {\n", NIL);
         Printv(pm, "        my $h = ", cmodule, "::", mrename, "($self);\n", NIL);
-        Printv(pm, 
+        Printv(pm,
                "        return $h->{$field} if $h;\n",
                "    }\n",
                "    return $self->$member_func;\n",
@@ -1766,7 +1766,7 @@ public:
     return SWIG_OK;
   }
 
-  /* ------------------------------------------------------------ 
+  /* ------------------------------------------------------------
    * destructorHandler()
    * ------------------------------------------------------------ */
 
@@ -1956,7 +1956,7 @@ public:
 
   /* ------------------------------------------------------------
    * insertDirective()
-   * 
+   *
    * Hook for %insert directive.
    * ------------------------------------------------------------ */
 
@@ -2170,7 +2170,7 @@ public:
     Append(w->def, " {");
     Append(declaration, ";\n");
 
-    /* declare method return value 
+    /* declare method return value
      * if the return value is a reference or const reference, a specialized typemap must
      * handle it, including declaration of c_result ($result).
      */

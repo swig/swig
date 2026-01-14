@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -8,7 +8,7 @@
  *
  * deprecate.c
  *
- * The functions in this file are SWIG core functions that are deprecated 
+ * The functions in this file are SWIG core functions that are deprecated
  * or which do not fit in nicely with everything else.  Generally this means
  * that the function and/or API needs to be changed in some future release.
  * ----------------------------------------------------------------------------- */
@@ -78,14 +78,14 @@ int ParmList_is_compactdefargs(ParmList *p) {
  * Similar to ParmList_protostr() but is also aware of hidden parameters.
  * ---------------------------------------------------------------------- */
 
-/* Discussion.  This function is used to generate error messages, but take 
+/* Discussion.  This function is used to generate error messages, but take
    into account that there might be a hidden parameter.  Although this involves
    parameter lists, it really isn't a core feature of swigparm.h or parms.c.
    This is because the "hidden" attribute of parameters is added elsewhere (cwrap.c).
 
    For now, this function is placed here because it doesn't really seem to fit in
    with the parms.c interface.
- 
+
 */
 
 String *ParmList_errorstr(ParmList *p) {

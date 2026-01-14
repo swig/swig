@@ -1213,7 +1213,7 @@ public:
 
       return smallName;
     }
-    
+
     return name;
   }
 

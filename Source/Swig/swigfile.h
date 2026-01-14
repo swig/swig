@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -18,7 +18,7 @@ extern String *Swig_last_file(void);
 extern List   *Swig_search_path(void);
 extern FILE   *Swig_include_open(const_String_or_char_ptr name);
 extern FILE   *Swig_open(const_String_or_char_ptr name);
-extern String *Swig_read_file(FILE *f); 
+extern String *Swig_read_file(FILE *f);
 extern String *Swig_include(const_String_or_char_ptr name);
 extern String *Swig_include_sys(const_String_or_char_ptr name);
 extern int     Swig_insert_file(const_String_or_char_ptr name, File *outfile);

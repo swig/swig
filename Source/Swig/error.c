@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -27,7 +27,7 @@
  * The filter string is scanned left to right and the first occurrence
  * of a warning number is used to determine printing behavior.
  *
- * The same number may appear more than once in the string.  For example, in the 
+ * The same number may appear more than once in the string.  For example, in the
  * above string, "201" appears twice.  This simply means that warning 201
  * was disabled after it was previously enabled.  This may only be temporary
  * setting--the first number may be removed later in which case the warning
@@ -200,7 +200,7 @@ void Swig_warnfilter(const_String_or_char_ptr wlist, int add) {
   c = strtok(c, ", ");
   while (c) {
     if (isdigit((int) *c) || (*c == '+') || (*c == '-')) {
-      /* Even if c is a digit, the rest of the string might not be, eg in the case of typemap 
+      /* Even if c is a digit, the rest of the string might not be, eg in the case of typemap
        * warnings (a bit odd really), eg: %warnfilter(SWIGWARN_TYPEMAP_CHARLEAK_MSG) */
       if (add) {
         Insert(filter, 0, c);
@@ -228,7 +228,7 @@ void Swig_warnall(void) {
 }
 
 
-/* ----------------------------------------------------------------------------- 
+/* -----------------------------------------------------------------------------
  * Swig_warn_count()
  *
  * Return the number of warnings

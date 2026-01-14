@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -261,9 +261,9 @@ static int yylook(void) {
     switch(tok) {
     case SWIG_TOKEN_ID:
       return ID;
-    case SWIG_TOKEN_LPAREN: 
+    case SWIG_TOKEN_LPAREN:
       return LPAREN;
-    case SWIG_TOKEN_RPAREN: 
+    case SWIG_TOKEN_RPAREN:
       return RPAREN;
     case SWIG_TOKEN_SEMI:
       return SEMI;
@@ -339,7 +339,7 @@ static int yylook(void) {
       return DSTAR;
     case SWIG_TOKEN_LTEQUALGT:
       return LESSEQUALGREATER;
-      
+
     case SWIG_TOKEN_DCOLON:
       {
         int nexttok = Scanner_token(scan);
@@ -358,7 +358,7 @@ static int yylook(void) {
         }
       }
       break;
-      
+
     case SWIG_TOKEN_ELLIPSIS:
       return ELLIPSIS;
 
@@ -377,7 +377,7 @@ static int yylook(void) {
       return RBRACKET;
 
       /* Look for multi-character sequences */
-      
+
     case SWIG_TOKEN_STRING:
       yylval.str = NewString(Scanner_text(scan));
       return STRING;
@@ -385,7 +385,7 @@ static int yylook(void) {
     case SWIG_TOKEN_WSTRING:
       yylval.str = NewString(Scanner_text(scan));
       return WSTRING;
-      
+
     case SWIG_TOKEN_CHAR:
       yylval.str = NewString(Scanner_text(scan));
       if (Len(yylval.str) == 0) {
@@ -401,46 +401,46 @@ static int yylook(void) {
       return WCHARCONST;
 
       /* Numbers */
-      
+
     case SWIG_TOKEN_INT:
       return NUM_INT;
-      
+
     case SWIG_TOKEN_UINT:
       return NUM_UNSIGNED;
-      
+
     case SWIG_TOKEN_LONG:
       return NUM_LONG;
-      
+
     case SWIG_TOKEN_ULONG:
       return NUM_ULONG;
-      
+
     case SWIG_TOKEN_LONGLONG:
       return NUM_LONGLONG;
-      
+
     case SWIG_TOKEN_ULONGLONG:
       return NUM_ULONGLONG;
-      
+
     case SWIG_TOKEN_DOUBLE:
       return NUM_DOUBLE;
 
     case SWIG_TOKEN_FLOAT:
       return NUM_FLOAT;
-      
+
     case SWIG_TOKEN_LONGDOUBLE:
       return NUM_LONGDOUBLE;
 
     case SWIG_TOKEN_BOOL:
       return NUM_BOOL;
-      
+
     case SWIG_TOKEN_POUND:
       Scanner_skip_line(scan);
       yylval.id = Swig_copy_string(Char(Scanner_text(scan)));
       return POUND;
-      
+
     case SWIG_TOKEN_CODEBLOCK:
       yylval.str = NewString(Scanner_text(scan));
       return HBLOCK;
-      
+
     case SWIG_TOKEN_COMMENT:
       {
         typedef enum {
@@ -471,10 +471,10 @@ static int yylook(void) {
                 loc = Char(cmt);
               }
             }
-            
+
             /* Check for all possible Doxygen comment start markers while ignoring
                comments starting with a row of asterisks or slashes just as
-               Doxygen itself does.  Also skip empty comment (slash-star-star-slash), 
+               Doxygen itself does.  Also skip empty comment (slash-star-star-slash),
                which causes a crash due to begin > end. */
             if (Len(cmt) > 3 && loc[0] == '/' &&
                 ((loc[1] == '/' && ((loc[2] == '/' && loc[3] != '/') || loc[2] == '!')) ||
@@ -801,7 +801,7 @@ num_common: {
                       (a) Must check for special case new[] and delete[]
 
              Error handling is somewhat tricky here.  We'll try to back out gracefully if we can.
- 
+
           */
 
           do {
@@ -827,7 +827,7 @@ num_common: {
             /* Array access operator.  The next token MUST be a RBRACKET */
             nexttok = Scanner_token(scan);
             if (nexttok != SWIG_TOKEN_RBRACKET) {
-              Swig_error(Scanner_file(scan),Scanner_line(scan),"Syntax error. Bad operator name.\n");	      
+              Swig_error(Scanner_file(scan),Scanner_line(scan),"Syntax error. Bad operator name.\n");
             } else {
               Append(s,"[]");
               yylval.str = s;
@@ -854,7 +854,7 @@ num_common: {
 
               nexttok = Scanner_token(scan);
               if (nexttok <= 0) {
-                Swig_error(Scanner_file(scan),Scanner_line(scan),"Syntax error. Bad operator name.\n");	      
+                Swig_error(Scanner_file(scan),Scanner_line(scan),"Syntax error. Bad operator name.\n");
               }
               if (nexttok == SWIG_TOKEN_LPAREN) {
                 termtoken = SWIG_TOKEN_LPAREN;
@@ -1044,9 +1044,9 @@ num_common: {
       if (strcmp(yytext, "%typemap") == 0)
         return (TYPEMAP);
       if (strcmp(yytext, "%feature") == 0) {
-        /* The rename_active indicates we don't need the information of the 
+        /* The rename_active indicates we don't need the information of the
          * following function's return type. This applied for %rename, so do
-         * %feature. 
+         * %feature.
          */
         rename_active = 1;
         return (FEATURE);

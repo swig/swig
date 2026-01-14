@@ -1,5 +1,5 @@
 /* -----------------------------------------------------------------------------
- * This file is part of SWIG, which is licensed as a whole under version 3 
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -20,7 +20,7 @@
  * Synopsis
  *
  * The purpose of this module is to provide a general purpose type representation
- * based on simple text strings. 
+ * based on simple text strings.
  *
  * General idea:
  *
@@ -38,7 +38,7 @@
  *        p.q(const).char                 char const *
  *
  * All type constructors are denoted by a trailing '.':
- * 
+ *
  *  'p.'                = Pointer (*)
  *  'r.'                = Reference (&)
  *  'z.'                = Rvalue reference (&&)
@@ -83,7 +83,7 @@
  * characters (*, [, <, etc...) in its type encoding.  One reason for this
  * is that SWIG might be extended to encode data in formats such as XML
  * where you might want to do this:
- * 
+ *
  *      <function>
  *         <type>p.p.int</type>
  *         ...
@@ -101,7 +101,7 @@
  * this pretty easy.
  *
  * Why not use a bunch of nested data structures?  Are you kidding? How
- * would that be easier to use than a few simple string operations? 
+ * would that be easier to use than a few simple string operations?
  * ----------------------------------------------------------------------------- */
 
 
@@ -814,7 +814,7 @@ String *SwigType_lstr(const SwigType *s, const_String_or_char_ptr id) {
 /* -----------------------------------------------------------------------------
  * SwigType_rcaststr()
  *
- * Produces a casting string that maps the type returned by lstr() to the real 
+ * Produces a casting string that maps the type returned by lstr() to the real
  * datatype printed by str().
  * ----------------------------------------------------------------------------- */
 
@@ -1065,8 +1065,8 @@ String *SwigType_lcaststr(const SwigType *s, const_String_or_char_ptr name) {
       typedef int Integer;
       void test2(bar<Integer *> *x);
     }
-    Mangling is more consistent and changes from 
-    _p_foo__barT_int_p_t to 
+    Mangling is more consistent and changes from
+    _p_foo__barT_int_p_t to
     _p_foo__barT_p_int_t.
 */
 static void mangle_stringcopy(String *destination, const char *source, int count) {
@@ -1485,7 +1485,7 @@ void SwigType_variadic_replace(SwigType *t, Parm *unexpanded_variadic_parm, Parm
 /* -----------------------------------------------------------------------------
  * SwigType_remove_global_scope_prefix()
  *
- * Removes the unary scope operator (::) prefix indicating global scope in all 
+ * Removes the unary scope operator (::) prefix indicating global scope in all
  * components of the type
  * ----------------------------------------------------------------------------- */
 

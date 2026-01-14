@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -642,7 +642,7 @@ public:
     } else {
       if (!addSymbol(iname, n)) {
         DelWrapper(f);
-        return SWIG_ERROR; 
+        return SWIG_ERROR;
       }
     }
     if (overname) {
@@ -1560,7 +1560,7 @@ public:
 
   /* ------------------------------------------------------------
    * goopsNameMapping()
-   * Maps the identifier from C++ to the GOOPS based * on command 
+   * Maps the identifier from C++ to the GOOPS based * on command
    * line parameters and such.
    * If class_name = "" that means the mapping is for a function or
    * variable not attached to any class.
