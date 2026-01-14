@@ -949,7 +949,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return true;
     }
 
-    virtual bool save_binary (std::ostream& os, bool& save_as_floats) {
+    virtual bool save_binary (std::ostream& os, bool save_as_floats) {
       return true;
     }
 
@@ -1237,7 +1237,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
     virtual bool load_ascii (std::istream& is)
       { return ptr->load_ascii(is); }
 
-    virtual bool save_binary (std::ostream& os, bool& save_as_floats)
+    virtual bool save_binary (std::ostream& os, bool save_as_floats)
       { return ptr->save_binary(os, save_as_floats); }
 
     virtual bool load_binary (std::istream& is, bool swap, 
@@ -1368,7 +1368,7 @@ SWIGRUNTIME void swig_acquire_ownership_obj(void *vptr, int own);
       return true;
     }
 
-    virtual bool save_binary (std::ostream& os, bool& save_as_floats) {
+    virtual bool save_binary (std::ostream& os, bool save_as_floats) {
       return true;
     }
 
