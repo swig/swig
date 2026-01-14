@@ -19,21 +19,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  extern int Preprocessor_expr(String *s, int *error);
-  extern const char *Preprocessor_expr_error(void);
-  extern Hash *Preprocessor_define(const_String_or_char_ptr str, int swigmacro);
-  extern void Preprocessor_undef(const_String_or_char_ptr name);
-  extern int Preprocessor_defined(const_String_or_char_ptr str);
-  extern void Preprocessor_init(void);
-  extern void Preprocessor_delete(void);
-  extern String *Preprocessor_parse(String *s);
-  extern void Preprocessor_include_all(int);
-  extern void Preprocessor_import_all(int);
-  extern void Preprocessor_ignore_missing(int);
-  extern void Preprocessor_error_as_warning(int);
-  extern List *Preprocessor_depend(void);
-  extern void Preprocessor_expr_init(void);
-  extern void Preprocessor_expr_delete(void);
+extern int Preprocessor_expr(String *s, int *error);
+extern const char *Preprocessor_expr_error(void);
+extern Hash *Preprocessor_define(const_String_or_char_ptr str, int swigmacro);
+extern void Preprocessor_undef(const_String_or_char_ptr name);
+extern int Preprocessor_defined(const_String_or_char_ptr str);
+extern void Preprocessor_init(void);
+extern void Preprocessor_delete(void);
+extern String *Preprocessor_parse(String *s);
+extern void Preprocessor_include_all(int);
+extern void Preprocessor_import_all(int);
+extern void Preprocessor_ignore_missing(int);
+extern void Preprocessor_error_as_warning(int);
+extern List *Preprocessor_depend(void);
+extern void Preprocessor_expr_init(void);
+extern void Preprocessor_expr_delete(void);
 
 #ifdef __cplusplus
 }

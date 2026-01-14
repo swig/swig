@@ -77,9 +77,7 @@ void clean_overloaded(Node *n) {
   Node *first = 0;
   while (nn) {
     String *ntype = nodeType(nn);
-    if ((GetFlag(nn, "feature:ignore")) ||
-        (Getattr(nn, "error")) ||
-        (Strcmp(ntype, "template") == 0) ||
+    if ((GetFlag(nn, "feature:ignore")) || (Getattr(nn, "error")) || (Strcmp(ntype, "template") == 0) ||
         ((Strcmp(ntype, "cdecl") == 0) && is_protected(nn) && !is_member_director(nn) && !is_non_virtual_protected_access(n))) {
       /* Remove from overloaded list */
       Node *ps = Getattr(nn, "sym:previousSibling");
@@ -121,7 +119,6 @@ void clean_overloaded(Node *n) {
 void Swig_set_max_hash_expand(int count) {
   SetMaxHashExpand(count);
 }
-
 
 extern "C" {
 
@@ -222,5 +219,4 @@ void Swig_print_with_location(DOH *object, int count) {
   Delete(output);
 }
 
-} // extern "C"
-
+}  // extern "C"

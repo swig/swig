@@ -21,14 +21,12 @@ XML Options (available with -xml)\n\
 static File *out = 0;
 static int xmllite = 0;
 
-
-class XML:public Language {
+class XML : public Language {
 public:
-
   int indent_level;
   long id;
 
-  XML() :indent_level(0) , id(0) {
+  XML() : indent_level(0), id(0) {
   }
 
   ~XML() {
@@ -97,13 +95,8 @@ public:
     ki = First(obj);
     while (ki.key) {
       k = ki.key;
-      if ((Cmp(k, "nodeType") == 0)
-          || (Cmp(k, "firstChild") == 0)
-          || (Cmp(k, "lastChild") == 0)
-          || (Cmp(k, "parentNode") == 0)
-          || (Cmp(k, "nextSibling") == 0)
-          || (Cmp(k, "previousSibling") == 0)
-          || (*(Char(k)) == '$')) {
+      if ((Cmp(k, "nodeType") == 0) || (Cmp(k, "firstChild") == 0) || (Cmp(k, "lastChild") == 0) || (Cmp(k, "parentNode") == 0) ||
+          (Cmp(k, "nextSibling") == 0) || (Cmp(k, "previousSibling") == 0) || (*(Char(k)) == '$')) {
         /* Do nothing */
       } else if (Cmp(k, "module") == 0) {
         Xml_print_module(Getattr(obj, k));
@@ -172,8 +165,7 @@ public:
     Printf(out, "</%s>\n", nodeType(obj));
   }
 
-
-  void Xml_print_parmlist(ParmList *p, const char* markup = "parmlist") {
+  void Xml_print_parmlist(ParmList *p, const char *markup = "parmlist") {
 
     print_indent(0);
     Printf(out, "<%s id=\"%ld\" addr=\"%p\">\n", markup, ++id, p);
@@ -240,7 +232,6 @@ public:
 
     Xml_print_hash(p, "typetab");
   }
-
 
   void Xml_print_hash(Hash *p, const char *markup) {
 

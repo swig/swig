@@ -104,7 +104,6 @@
  * would that be easier to use than a few simple string operations?
  * ----------------------------------------------------------------------------- */
 
-
 SwigType *NewSwigType(int t) {
   switch (t) {
   case T_BOOL:
@@ -141,7 +140,8 @@ SwigType *NewSwigType(int t) {
     return NewString("signed char");
   case T_UCHAR:
     return NewString("unsigned char");
-  case T_STRING: {
+  case T_STRING:
+    {
       SwigType *t = NewString("char");
       SwigType_add_qualifier(t, "const");
       SwigType_add_pointer(t);
@@ -149,11 +149,12 @@ SwigType *NewSwigType(int t) {
     }
   case T_WCHAR:
     return NewString("wchar_t");
-  case T_WSTRING: {
-    SwigType *t = NewString("wchar_t");
-    SwigType_add_pointer(t);
-    return t;
-  }
+  case T_WSTRING:
+    {
+      SwigType *t = NewString("wchar_t");
+      SwigType_add_pointer(t);
+      return t;
+    }
   case T_LONGLONG:
     return NewString("long long");
   case T_ULONGLONG:
@@ -342,11 +343,11 @@ SwigType *SwigType_default_create(const SwigType *ty) {
     numitems = Len(l);
 
     if (numitems >= 1) {
-      String *last_subtype = Getitem(l, numitems-1);
+      String *last_subtype = Getitem(l, numitems - 1);
       if (SwigType_isenum(last_subtype))
-        Setitem(l, numitems-1, NewString("enum SWIGTYPE"));
+        Setitem(l, numitems - 1, NewString("enum SWIGTYPE"));
       else
-        Setitem(l, numitems-1, NewString("SWIGTYPE"));
+        Setitem(l, numitems - 1, NewString("SWIGTYPE"));
     }
 
     for (it = First(l); it.item; it = Next(it)) {
@@ -418,15 +419,15 @@ SwigType *SwigType_default_deduce(const SwigType *t) {
 
   numitems = Len(l);
   if (numitems >= 1) {
-    String *last_subtype = Getitem(l, numitems-1);
+    String *last_subtype = Getitem(l, numitems - 1);
     int is_enum = SwigType_isenum(last_subtype);
 
-    if (numitems >=2 ) {
-      String *subtype = Getitem(l, numitems-2); /* last but one */
+    if (numitems >= 2) {
+      String *subtype = Getitem(l, numitems - 2); /* last but one */
       if (SwigType_isarray(subtype)) {
         if (is_enum) {
           /* enum deduction, enum SWIGTYPE => SWIGTYPE */
-          Setitem(l, numitems-1, NewString("SWIGTYPE"));
+          Setitem(l, numitems - 1, NewString("SWIGTYPE"));
         } else {
           /* array deduction, a(ANY). => a(). => p. */
           String *deduced_subtype = 0;
@@ -437,23 +438,23 @@ SwigType *SwigType_default_deduce(const SwigType *t) {
           } else {
             assert(0);
           }
-          Setitem(l, numitems-2, deduced_subtype);
+          Setitem(l, numitems - 2, deduced_subtype);
         }
       } else if (SwigType_ismemberpointer(subtype)) {
         /* member pointer deduction, m(CLASS). => p. */
-        Setitem(l, numitems-2, NewString("p."));
+        Setitem(l, numitems - 2, NewString("p."));
       } else if (is_enum && !SwigType_isqualifier(subtype)) {
         /* enum deduction, enum SWIGTYPE => SWIGTYPE */
-        Setitem(l, numitems-1, NewString("SWIGTYPE"));
+        Setitem(l, numitems - 1, NewString("SWIGTYPE"));
       } else {
         /* simple type deduction, eg, r.p.p. => r.p. */
         /* also function pointers eg, p.f(ANY). => p. */
-        Delitem(l, numitems-2);
+        Delitem(l, numitems - 2);
       }
     } else {
       if (is_enum) {
         /* enum deduction, enum SWIGTYPE => SWIGTYPE */
-        Setitem(l, numitems-1, NewString("SWIGTYPE"));
+        Setitem(l, numitems - 1, NewString("SWIGTYPE"));
       } else {
         /* delete the only item, we are done with deduction */
         Delitem(l, 0);
@@ -475,7 +476,6 @@ SwigType *SwigType_default_deduce(const SwigType *t) {
   Delete(l);
   return r;
 }
-
 
 /* -----------------------------------------------------------------------------
  * SwigType_namestr()
@@ -1002,7 +1002,6 @@ String *SwigType_rcaststr(const SwigType *s, const_String_or_char_ptr name) {
   return cast;
 }
 
-
 /* -----------------------------------------------------------------------------
  * SwigType_lcaststr()
  *
@@ -1221,7 +1220,7 @@ static String *manglestr_default(const SwigType *s) {
 
   c = Char(result);
   while (*c) {
-    if (!isalnum((int) *c))
+    if (!isalnum((int)*c))
       *c = '_';
     c++;
   }
@@ -1231,7 +1230,7 @@ static String *manglestr_default(const SwigType *s) {
     base = b;
   }
 
-  Replace(base, "struct ", "", DOH_REPLACE_ANY);        /* This might be problematic */
+  Replace(base, "struct ", "", DOH_REPLACE_ANY); /* This might be problematic */
   Replace(base, "class ", "", DOH_REPLACE_ANY);
   Replace(base, "union ", "", DOH_REPLACE_ANY);
   Replace(base, "enum ", "", DOH_REPLACE_ANY);
@@ -1254,7 +1253,7 @@ static String *manglestr_default(const SwigType *s) {
       *c = 'f';
     else if (*c == ')')
       *c = 'F';
-    else if (!isalnum((int) *c))
+    else if (!isalnum((int)*c))
       *c = '_';
     c++;
   }
@@ -1335,7 +1334,7 @@ void SwigType_typename_replace(SwigType *t, String *pat, String *rep) {
            */
           if (Len(e) > len) {
             String *firstPartOfType = NewStringWithSize(e, len);
-            const char* e_as_char = Char(e);
+            const char *e_as_char = Char(e);
 
             if (Equal(firstPartOfType, pat) && e_as_char[len] == '<') {
               String *repbase = SwigType_templateprefix(rep);

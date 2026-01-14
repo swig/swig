@@ -47,11 +47,11 @@ static File *f_directors_h = 0;
 static String *s_header;
 static String *s_wrappers;
 static String *s_init;
-static String *r_init;          // RINIT user code
-static String *s_shutdown;      // MSHUTDOWN user code
-static String *r_shutdown;      // RSHUTDOWN user code
+static String *r_init;      // RINIT user code
+static String *s_shutdown;  // MSHUTDOWN user code
+static String *r_shutdown;  // RSHUTDOWN user code
 static String *s_vdecl;
-static String *s_cinit;         // consttab initialization code.
+static String *s_cinit;  // consttab initialization code.
 static String *s_oinit;
 static String *s_arginfo;
 static String *s_entry;
@@ -80,7 +80,7 @@ static String *fake_class_name() {
       fake_cs_entry = NewStringf("static const zend_function_entry class_%s_functions[] = {\n", result);
     }
 
-    Printf(s_creation, "static zend_class_entry *SWIG_Php_ce_%s;\n\n",result);
+    Printf(s_creation, "static zend_class_entry *SWIG_Php_ce_%s;\n\n", result);
 
     Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s\", class_%s_functions);\n", result, result);
     Printf(s_oinit, "  SWIG_Php_ce_%s = zend_register_internal_class(&internal_ce);\n", result);
@@ -122,7 +122,7 @@ static enum {
 } wrapperType = standard;
 
 extern "C" {
-  static void (*r_prevtracefunc) (const SwigType *t, String *mangled, String *clientdata) = 0;
+static void (*r_prevtracefunc)(const SwigType *t, String *mangled, String *clientdata) = 0;
 }
 
 static void SwigPHP_emit_pointer_type_registrations() {
@@ -285,7 +285,8 @@ class PHPTypes {
         }
         String *c = Getattr(php_type_flags, i.item);
         if (c) {
-          if (Len(result) > 0) Append(result, "|");
+          if (Len(result) > 0)
+            Append(result, "|");
           Append(result, c);
         } else {
           SetFlag(classes, i.item);
@@ -312,7 +313,8 @@ class PHPTypes {
 
     List *sorted_classes = SortedKeys(classes, Strcmp);
     for (i = First(sorted_classes); i.item; i = Next(i)) {
-      if (Len(classtypes) > 0) Append(classtypes, "|");
+      if (Len(classtypes) > 0)
+        Append(classtypes, "|");
       Append(classtypes, prefix);
       Append(classtypes, i.item);
     }
@@ -326,10 +328,7 @@ class PHPTypes {
   }
 
 public:
-  PHPTypes(Node *n)
-    : merged_types(NewList()),
-      byref(NULL),
-      num_required(INT_MAX) {
+  PHPTypes(Node *n) : merged_types(NewList()), byref(NULL), num_required(INT_MAX) {
     String *php_type_feature = Getattr(n, "feature:php:type");
     php_type_flag = 0;
     if (php_type_feature != NULL) {
@@ -349,9 +348,13 @@ public:
     Delete(byref);
   }
 
-  void not_all_static() { all_overloads_static = false; }
+  void not_all_static() {
+    all_overloads_static = false;
+  }
 
-  bool get_all_static() const { return all_overloads_static; }
+  bool get_all_static() const {
+    return all_overloads_static;
+  }
 
   void adjust(int num_required_, bool php_constructor) {
     num_required = std::min(num_required, num_required_);
@@ -375,7 +378,7 @@ public:
   // Both merge_list and o_merge_list should be in sorted order.
   static void merge_type_lists(List *merge_list, List *o_merge_list);
 
-  void merge_from(const PHPTypes* o);
+  void merge_from(const PHPTypes *o);
 
   void set_byref(int key) {
     if (!byref) {
@@ -387,7 +390,7 @@ public:
     // If any overload takes a particular parameter by reference then the
     // dispatch function also needs to take that parameter by reference so
     // we can just set unconditionally here.
-    Setitem(byref, key, ""); // Just needs to be something != None.
+    Setitem(byref, key, "");  // Just needs to be something != None.
   }
 
   void emit_arginfo(DOH *item, String *key) {
@@ -405,7 +408,7 @@ public:
         String *k = NewStringf("%s%s", parent, colon_ptr);
         DOH *item = Getattr(all_phptypes, k);
         if (item) {
-          PHPTypes *p = (PHPTypes*)Data(item);
+          PHPTypes *p = (PHPTypes *)Data(item);
           if (!Getmark(item)) {
             p->emit_arginfo(item, k);
           }
@@ -739,7 +742,7 @@ public:
       for (Iterator k = First(sorted_keys); k.item; k = Next(k)) {
         DOH *val = Getattr(all_phptypes, k.item);
         if (!Getmark(val)) {
-          PHPTypes *p = (PHPTypes*)Data(val);
+          PHPTypes *p = (PHPTypes *)Data(val);
           p->emit_arginfo(val, k.item);
         }
       }
@@ -827,10 +830,7 @@ public:
       Printf(f_h, "PHP_RINIT_FUNCTION(%s);\n", module);
 
       Printf(s_init, "PHP_RINIT_FUNCTION(%s)\n{\n", module);
-      Printv(s_init,
-             "/* rinit section */\n",
-             r_init, "\n",
-             NIL);
+      Printv(s_init, "/* rinit section */\n", r_init, "\n", NIL);
 
       Printf(s_init, "  return SUCCESS;\n");
       Printf(s_init, "}\n\n");
@@ -841,12 +841,16 @@ public:
     if (Len(s_shutdown) > 0) {
       Printf(f_h, "PHP_MSHUTDOWN_FUNCTION(%s);\n", module);
 
-      Printv(s_init, "PHP_MSHUTDOWN_FUNCTION(", module, ")\n"
-                     "/* shutdown section */\n"
-                     "{\n",
-                     s_shutdown,
-                     "  return SUCCESS;\n"
-                     "}\n\n", NIL);
+      Printv(s_init,
+             "PHP_MSHUTDOWN_FUNCTION(",
+             module,
+             ")\n"
+             "/* shutdown section */\n"
+             "{\n",
+             s_shutdown,
+             "  return SUCCESS;\n"
+             "}\n\n",
+             NIL);
     }
 
     if (Len(r_shutdown) > 0) {
@@ -899,8 +903,7 @@ public:
       Dump(f_directors, f_begin);
     }
     Printv(f_begin, s_vdecl, s_wrappers, NIL);
-    Printv(f_begin, s_arginfo, "\n\n", all_cs_entry, "\n\n", s_entry,
-        " ZEND_FE_END\n};\n\n", NIL);
+    Printv(f_begin, s_arginfo, "\n\n", all_cs_entry, "\n\n", s_entry, " ZEND_FE_END\n};\n\n", NIL);
     if (fake_cs_entry) {
       Printv(f_begin, fake_cs_entry, " ZEND_FE_END\n};\n\n", NIL);
       Delete(fake_cs_entry);
@@ -952,11 +955,10 @@ public:
     ParmList *l = Getattr(n, "parms");
     if (cname && !Strstr(Getattr(n, "storage"), "friend")) {
       Printf(f_h, "static PHP_METHOD(%s%s,%s);\n", prefix, cname, fname);
-      if (wrapperType != staticmemberfn &&
-          wrapperType != staticmembervar &&
-          !Equal(fname, "__construct")) {
+      if (wrapperType != staticmemberfn && wrapperType != staticmembervar && !Equal(fname, "__construct")) {
         // Skip the first entry in the parameter list which is the this pointer.
-        if (l) l = Getattr(l, "tmap:in:next");
+        if (l)
+          l = Getattr(l, "tmap:in:next");
         // FIXME: does this throw the phptype key value off?
       }
     } else {
@@ -971,7 +973,8 @@ public:
 
     String *arginfo_id = phptypes->get_arginfo_id();
     String *s = cs_entry;
-    if (!s) s = s_entry;
+    if (!s)
+      s = s_entry;
     if (cname && !Strstr(Getattr(n, "storage"), "friend")) {
       Printf(all_cs_entry, " PHP_ME(%s%s,%s,swig_arginfo_%s,%s)\n", prefix, cname, fname, arginfo_id, modes);
     } else {
@@ -1133,10 +1136,14 @@ public:
     Printf(f->code, "\nelse if (strcmp(ZSTR_VAL(arg2),\"thisown\") == 0) {\n");
     Printf(f->code, "arg->newobject = zval_get_long(&args[1]);\n");
     if (Swig_directorclass(class_node)) {
-      Printv(f->code, "if (arg->newobject == 0) {\n",
-                      "  Swig::Director *director = SWIG_DIRECTOR_CAST((", Getattr(class_node, "classtype"), "*)(arg->ptr));\n",
-                      "  if (director) director->swig_disown();\n",
-                      "}\n", NIL);
+      Printv(f->code,
+             "if (arg->newobject == 0) {\n",
+             "  Swig::Director *director = SWIG_DIRECTOR_CAST((",
+             Getattr(class_node, "classtype"),
+             "*)(arg->ptr));\n",
+             "  if (director) director->swig_disown();\n",
+             "}\n",
+             NIL);
     }
     if (swig_base) {
       Printf(f->code, "} else {\nPHP_MN(%s%s___set)(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n", prefix, swig_base);
@@ -1149,10 +1156,9 @@ public:
     Printf(f->code, "return;\n");
     Printf(f->code, "}\n\n\n");
 
-
     Printf(f_h, "PHP_METHOD(%s%s,__get);\n", prefix, class_name);
     Printf(all_cs_entry, " PHP_ME(%s%s,__get,swig_magic_arginfo_get,ZEND_ACC_PUBLIC)\n", prefix, class_name);
-    Printf(f->code, "PHP_METHOD(%s%s,__get) {\n",prefix, class_name);
+    Printf(f->code, "PHP_METHOD(%s%s,__get) {\n", prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
     Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
@@ -1182,10 +1188,9 @@ public:
     Printf(f->code, "return;\n");
     Printf(f->code, "}\n\n\n");
 
-
     Printf(f_h, "PHP_METHOD(%s%s,__isset);\n", prefix, class_name);
     Printf(all_cs_entry, " PHP_ME(%s%s,__isset,swig_magic_arginfo_isset,ZEND_ACC_PUBLIC)\n", prefix, class_name);
-    Printf(f->code, "PHP_METHOD(%s%s,__isset) {\n",prefix, class_name);
+    Printf(f->code, "PHP_METHOD(%s%s,__isset) {\n", prefix, class_name);
 
     Printf(f->code, "  swig_object_wrapper *arg = SWIG_Z_FETCH_OBJ_P(ZEND_THIS);\n");
     Printf(f->code, "  zval args[1];\n  zend_string *arg2 = 0;\n\n");
@@ -1370,7 +1375,7 @@ public:
         key = NewStringf(":%s", wname);
       }
 
-      PHPTypes *p = (PHPTypes*)GetVoid(all_phptypes, key);
+      PHPTypes *p = (PHPTypes *)GetVoid(all_phptypes, key);
       if (p) {
         // We already have an entry so use it.
         phptypes = p;
@@ -1399,9 +1404,8 @@ public:
           Printv(f->def, "static PHP_METHOD(", prefix, class_name, ",", wname, ") {\n", NIL);
         } else {
           if (wrap_nonclass_global) {
-            Printv(f->def, "static PHP_METHOD(", fake_class_name(), ",", wname, ") {\n",
-                           "  PHP_FN(", wname, ")(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n",
-                           "}\n\n", NIL);
+            Printv(
+              f->def, "static PHP_METHOD(", fake_class_name(), ",", wname, ") {\n", "  PHP_FN(", wname, ")(INTERNAL_FUNCTION_PARAM_PASSTHRU);\n", "}\n\n", NIL);
           }
 
           if (wrap_nonclass_fake_class) {
@@ -1450,7 +1454,7 @@ public:
 
     // NOTE: possible we ignore this_ptr as a param for native constructor
 
-    if (numopt > 0) {           // membervariable wrappers do not have optional args
+    if (numopt > 0) {  // membervariable wrappers do not have optional args
       Wrapper_add_local(f, "arg_count", "int arg_count");
       Printf(f->code, "arg_count = ZEND_NUM_ARGS();\n");
       Printf(f->code, "if(arg_count<%d || arg_count>%d ||\n", num_required, num_arguments);
@@ -1501,7 +1505,8 @@ public:
       }
 
       phptypes->process_phptype(p, i + 1, "tmap:in:phptype");
-      if (GetFlag(p, "tmap:in:byref")) phptypes->set_byref(i + 1);
+      if (GetFlag(p, "tmap:in:byref"))
+        phptypes->set_byref(i + 1);
 
       String *source = NewStringf("args[%d]", i);
       Replaceall(tm, "$input", source);
@@ -1685,8 +1690,8 @@ public:
    * properties on a dummy class) so just let SWIG do its default thing and
    * wrap them as name_get() and name_set().
    */
-  //virtual int globalvariableHandler(Node *n) {
-  //}
+  // virtual int globalvariableHandler(Node *n) {
+  // }
 
   /* ------------------------------------------------------------
    * constantWrapper()
@@ -1806,9 +1811,9 @@ public:
     Printf(all_cs_entry, "static const zend_function_entry class_%s_functions[] = {\n", class_name);
 
     // namespace code to introduce namespaces into wrapper classes.
-    //if (nameSpace != NULL)
-      //Printf(s_oinit, "INIT_CLASS_ENTRY(internal_ce, \"%s\\\\%s\", class_%s_functions);\n", nameSpace, class_name, class_name);
-    //else
+    // if (nameSpace != NULL)
+    // Printf(s_oinit, "INIT_CLASS_ENTRY(internal_ce, \"%s\\\\%s\", class_%s_functions);\n", nameSpace, class_name, class_name);
+    // else
     Printf(s_oinit, "  INIT_CLASS_ENTRY(internal_ce, \"%s%s\", class_%s_functions);\n", prefix, class_name, class_name);
 
     if (shadow) {
@@ -1829,8 +1834,12 @@ public:
               /* Warn about multiple inheritance for additional base class(es) */
               String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
               String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
-              Swig_warning(WARN_PHP_MULTIPLE_INHERITANCE, input_file, line_number,
-                           "Warning for %s, base %s ignored. Multiple inheritance is not supported in PHP.\n", proxyclassname, baseclassname);
+              Swig_warning(WARN_PHP_MULTIPLE_INHERITANCE,
+                           input_file,
+                           line_number,
+                           "Warning for %s, base %s ignored. Multiple inheritance is not supported in PHP.\n",
+                           proxyclassname,
+                           baseclassname);
             }
           }
           base = Next(base);
@@ -1845,8 +1854,12 @@ public:
        */
       if (base_class) {
         String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
-        Swig_warning(WARN_PHP_MULTIPLE_INHERITANCE, input_file, line_number,
-                     "Warning for %s, base %s ignored. Multiple inheritance is not supported in PHP.\n", proxyclassname, base_class);
+        Swig_warning(WARN_PHP_MULTIPLE_INHERITANCE,
+                     input_file,
+                     line_number,
+                     "Warning for %s, base %s ignored. Multiple inheritance is not supported in PHP.\n",
+                     proxyclassname,
+                     base_class);
       }
       base_class = NewString("Exception");
     }
@@ -1861,7 +1874,9 @@ public:
     } else {
       Printf(s_oinit, "  {\n");
       Printf(s_oinit, "    swig_type_info *type_info = SWIG_MangledTypeQueryModule(swig_module.next, &swig_module, \"_p_%s\");\n", base_class);
-      Printf(s_oinit, "    SWIG_Php_ce_%s = zend_register_internal_class_ex(&internal_ce, (zend_class_entry*)(type_info ? type_info->clientdata : NULL));\n", class_name);
+      Printf(s_oinit,
+             "    SWIG_Php_ce_%s = zend_register_internal_class_ex(&internal_ce, (zend_class_entry*)(type_info ? type_info->clientdata : NULL));\n",
+             class_name);
       Printf(s_oinit, "  }\n");
     }
 
@@ -1896,11 +1911,7 @@ public:
         // variables declared in the PHP C API - these we can use at MINIT
         // time, so we special case them.  This will also be a little faster
         // than looking up by name.
-        Printv(s_header,
-               "#ifdef __cplusplus\n",
-               "extern \"C\" {\n",
-               "#endif\n",
-               NIL);
+        Printv(s_header, "#ifdef __cplusplus\n", "extern \"C\" {\n", "#endif\n", NIL);
 
         String *r_init_prefix = NewStringEmpty();
 
@@ -1911,24 +1922,36 @@ public:
           // We generate conditional code in both minit and rinit - then we or the user
           // just need to define SWIG_PHP_INTERFACE_xxx_CE (and optionally
           // SWIG_PHP_INTERFACE_xxx_HEADER) to handle interface `xxx` at minit-time.
-          Printv(s_header,
-                 "#ifdef SWIG_PHP_INTERFACE_", interface, "_HEADER\n",
-                 "# include SWIG_PHP_INTERFACE_", interface, "_HEADER\n",
-                 "#endif\n",
-                 NIL);
+          Printv(s_header, "#ifdef SWIG_PHP_INTERFACE_", interface, "_HEADER\n", "# include SWIG_PHP_INTERFACE_", interface, "_HEADER\n", "#endif\n", NIL);
           Printv(s_oinit,
-                 "#ifdef SWIG_PHP_INTERFACE_", interface, "_CE\n",
-                 "  zend_do_implement_interface(SWIG_Php_ce_", class_name, ", SWIG_PHP_INTERFACE_", interface, "_CE);\n",
+                 "#ifdef SWIG_PHP_INTERFACE_",
+                 interface,
+                 "_CE\n",
+                 "  zend_do_implement_interface(SWIG_Php_ce_",
+                 class_name,
+                 ", SWIG_PHP_INTERFACE_",
+                 interface,
+                 "_CE);\n",
                  "#endif\n",
                  NIL);
           Printv(r_init_prefix,
-                 "#ifndef SWIG_PHP_INTERFACE_", interface, "_CE\n",
+                 "#ifndef SWIG_PHP_INTERFACE_",
+                 interface,
+                 "_CE\n",
                  "  {\n",
-                 "    zend_class_entry *swig_interface_ce = zend_lookup_class(zend_string_init(\"", interface, "\", sizeof(\"", interface, "\") - 1, 0));\n",
+                 "    zend_class_entry *swig_interface_ce = zend_lookup_class(zend_string_init(\"",
+                 interface,
+                 "\", sizeof(\"",
+                 interface,
+                 "\") - 1, 0));\n",
                  "    if (swig_interface_ce)\n",
-                 "      zend_do_implement_interface(SWIG_Php_ce_", class_name, ", swig_interface_ce);\n",
+                 "      zend_do_implement_interface(SWIG_Php_ce_",
+                 class_name,
+                 ", swig_interface_ce);\n",
                  "    else\n",
-                 "      zend_throw_exception(zend_ce_error, \"Interface \\\"", interface, "\\\" not found\", 0);\n",
+                 "      zend_throw_exception(zend_ce_error, \"Interface \\\"",
+                 interface,
+                 "\\\" not found\", 0);\n",
                  "  }\n",
                  "#endif\n",
                  NIL);
@@ -1940,11 +1963,7 @@ public:
         Insert(r_init, 0, r_init_prefix);
         Delete(r_init_prefix);
 
-        Printv(s_header,
-               "#ifdef __cplusplus\n",
-               "}\n",
-               "#endif\n",
-               NIL);
+        Printv(s_header, "#ifdef __cplusplus\n", "}\n", "#endif\n", NIL);
       }
       Delete(interfaces);
     }
@@ -1976,7 +1995,9 @@ public:
         if (!emitted_common_cdestructor) {
           Printf(s_creation, "static zend_object_handlers Swig_Php_common_c_object_handlers;\n\n");
           Printf(s_creation, "static void SWIG_Php_common_c_free_obj(zend_object *object) {free(SWIG_Php_free_obj(object));}\n\n");
-          Printf(s_creation, "static zend_object *SWIG_Php_common_c_create_object(zend_class_entry *ce) {return SWIG_Php_do_create_object(ce, &Swig_Php_common_c_object_handlers);}\n");
+          Printf(s_creation,
+                 "static zend_object *SWIG_Php_common_c_create_object(zend_class_entry *ce) {return SWIG_Php_do_create_object(ce, "
+                 "&Swig_Php_common_c_object_handlers);}\n");
 
           Printf(s_oinit, "  Swig_Php_common_c_object_handlers = Swig_Php_base_object_handlers;\n");
           Printf(s_oinit, "  Swig_Php_common_c_object_handlers.free_obj = SWIG_Php_common_c_free_obj;\n");
@@ -1987,18 +2008,29 @@ public:
         Printf(s_oinit, "  SWIG_Php_ce_%s->create_object = SWIG_Php_common_c_create_object;\n", class_name);
       } else {
         Printf(s_creation, "static zend_object_handlers %s_object_handlers;\n", class_name);
-        Printf(s_creation, "static zend_object *SWIG_Php_create_object_%s(zend_class_entry *ce) {return SWIG_Php_do_create_object(ce, &%s_object_handlers);}\n", class_name, class_name);
+        Printf(s_creation,
+               "static zend_object *SWIG_Php_create_object_%s(zend_class_entry *ce) {return SWIG_Php_do_create_object(ce, &%s_object_handlers);}\n",
+               class_name,
+               class_name);
 
-        Printf(s_creation, "static void SWIG_Php_free_obj_%s(zend_object *object) {",class_name);
+        Printf(s_creation, "static void SWIG_Php_free_obj_%s(zend_object *object) {", class_name);
         String *type = Getattr(n, "classtype");
         // Special case handling the delete call generated by
         // Swig_cppdestructor_call() and generate simpler code.
         if (destructor_action && !Equal(destructor_action, "delete arg1;")) {
-          Printv(s_creation, "\n"
-                 "  ", type, " *arg1 = (" , type, " *)SWIG_Php_free_obj(object);\n"
+          Printv(s_creation,
+                 "\n"
+                 "  ",
+                 type,
+                 " *arg1 = (",
+                 type,
+                 " *)SWIG_Php_free_obj(object);\n"
                  "  if (arg1) {\n"
-                 "    ", destructor_action, "\n"
-                 "  }\n", NIL);
+                 "    ",
+                 destructor_action,
+                 "\n"
+                 "  }\n",
+                 NIL);
         } else {
           Printf(s_creation, "delete (%s *)SWIG_Php_free_obj(object);", type);
         }
@@ -2012,7 +2044,9 @@ public:
       static bool emitted_destructorless_create_object = false;
       if (!emitted_destructorless_create_object) {
         emitted_destructorless_create_object = true;
-        Printf(s_creation, "static zend_object *SWIG_Php_create_object(zend_class_entry *ce) {return SWIG_Php_do_create_object(ce, &Swig_Php_base_object_handlers);}\n", class_name);
+        Printf(s_creation,
+               "static zend_object *SWIG_Php_create_object(zend_class_entry *ce) {return SWIG_Php_do_create_object(ce, &Swig_Php_base_object_handlers);}\n",
+               class_name);
       }
 
       Printf(s_oinit, "  SWIG_Php_ce_%s->create_object = SWIG_Php_create_object;\n", class_name);
@@ -2339,7 +2373,9 @@ public:
         Printf(w->code, "%s;\n", super_call);
         Delete(super_call);
       } else {
-        Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
+        Printf(w->code,
+               "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n",
+               SwigType_namestr(c_classname),
                SwigType_namestr(name));
       }
     } else {
@@ -2384,9 +2420,13 @@ public:
           p = Getattr(p, "tmap:directorin:next");
           continue;
         } else if (Cmp(ptype, "void")) {
-          Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
-              "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(ptype, 0),
-              SwigType_namestr(c_classname), SwigType_namestr(name));
+          Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF,
+                       input_file,
+                       line_number,
+                       "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n",
+                       SwigType_str(ptype, 0),
+                       SwigType_namestr(c_classname),
+                       SwigType_namestr(name));
           status = SWIG_NOWRAP;
           break;
         }
@@ -2456,9 +2496,13 @@ public:
           Printv(w->code, tm, "\n", NIL);
           Delete(tm);
         } else {
-          Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-                       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0),
-                       SwigType_namestr(c_classname), SwigType_namestr(name));
+          Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF,
+                       input_file,
+                       line_number,
+                       "Unable to use return type %s in director method %s::%s (skipping method).\n",
+                       SwigType_str(returntype, 0),
+                       SwigType_namestr(c_classname),
+                       SwigType_namestr(name));
           status = SWIG_ERROR;
         }
       }
@@ -2534,7 +2578,7 @@ public:
     wrapperType = standard;
     return result;
   }
-};                              /* class PHP */
+}; /* class PHP */
 
 static PHP *maininstance = 0;
 
@@ -2556,7 +2600,8 @@ List *PHPTypes::process_phptype(Node *n, int key, const String_or_char *attribut
   }
 
   DOH *merge_list = Getitem(merged_types, key);
-  if (merge_list == None) return NULL;
+  if (merge_list == None)
+    return NULL;
 
   List *types = Split(phptype, '|', -1);
   String *first_type = Getitem(types, 0);
@@ -2635,7 +2680,7 @@ handled:
   }
 }
 
-void PHPTypes::merge_from(const PHPTypes* o) {
+void PHPTypes::merge_from(const PHPTypes *o) {
   num_required = std::min(num_required, o->num_required);
 
   if (o->byref) {
@@ -2646,8 +2691,7 @@ void PHPTypes::merge_from(const PHPTypes* o) {
       // Start at 1 because we only want to merge parameter types, and key 0 is
       // the return type.
       for (int key = 1; key < len; ++key) {
-        if (Getitem(byref, key) == None &&
-            Getitem(o->byref, key) != None) {
+        if (Getitem(byref, key) == None && Getitem(o->byref, key) != None) {
           Setitem(byref, key, "");
         }
       }
@@ -2661,7 +2705,8 @@ void PHPTypes::merge_from(const PHPTypes* o) {
   for (int key = 0; key < len; ++key) {
     DOH *merge_list = Getitem(merged_types, key);
     // None trumps anything else in the merge.
-    if (merge_list == None) continue;
+    if (merge_list == None)
+      continue;
     DOH *o_merge_list = Getitem(o->merged_types, key);
     if (o_merge_list == None) {
       Setitem(merged_types, key, None);
@@ -2689,7 +2734,7 @@ static void typetrace(const SwigType *ty, String *mangled, String *clientdata) {
     Setattr(raw_pointer_types, mangled, mangled);
   }
   if (r_prevtracefunc)
-    (*r_prevtracefunc) (ty, mangled, clientdata);
+    (*r_prevtracefunc)(ty, mangled, clientdata);
 }
 }
 

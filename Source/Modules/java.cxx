@@ -14,14 +14,14 @@
 #include "swigmod.h"
 #include "cparse.h"
 #include <errno.h>
-#include <limits.h>             // for INT_MAX
+#include <limits.h>  // for INT_MAX
 #include <ctype.h>
 #include "javadoc.h"
 
 /* Hash type used for upcalls from C/C++ */
 typedef DOH UpcallData;
 
-class JAVA:public Language {
+class JAVA : public Language {
   static const char *usage;
   const String *empty_string;
   const String *public_string;
@@ -38,53 +38,53 @@ class JAVA:public Language {
   File *f_directors_h;
   List *filenames_list;
 
-  bool proxy_flag;              // Flag for generating proxy classes
-  bool nopgcpp_flag;            // Flag for suppressing the premature garbage collection prevention parameter
-  bool native_function_flag;    // Flag for when wrapping a native function
-  bool enum_constant_flag;      // Flag for when wrapping an enum or constant
-  bool static_flag;             // Flag for when wrapping a static functions or member variables
-  bool variable_wrapper_flag;   // Flag for when wrapping a nonstatic member variable
-  bool wrapping_member_flag;    // Flag for when wrapping a member variable/enum/const
-  bool global_variable_flag;    // Flag for when wrapping a global variable
-  bool old_variable_names;      // Flag for old style variable names in the intermediary class
-  bool member_func_flag;        // flag set when wrapping a member function
-  bool doxygen;                 //flag for converting found doxygen to javadoc
-  bool comment_creation_chatter; //flag for getting information about where comments were created in java.cxx
+  bool proxy_flag;                // Flag for generating proxy classes
+  bool nopgcpp_flag;              // Flag for suppressing the premature garbage collection prevention parameter
+  bool native_function_flag;      // Flag for when wrapping a native function
+  bool enum_constant_flag;        // Flag for when wrapping an enum or constant
+  bool static_flag;               // Flag for when wrapping a static functions or member variables
+  bool variable_wrapper_flag;     // Flag for when wrapping a nonstatic member variable
+  bool wrapping_member_flag;      // Flag for when wrapping a member variable/enum/const
+  bool global_variable_flag;      // Flag for when wrapping a global variable
+  bool old_variable_names;        // Flag for old style variable names in the intermediary class
+  bool member_func_flag;          // flag set when wrapping a member function
+  bool doxygen;                   // flag for converting found doxygen to javadoc
+  bool comment_creation_chatter;  // flag for getting information about where comments were created in java.cxx
 
-  String *imclass_name;         // intermediary class name
-  String *module_class_name;    // module class name
-  String *constants_interface_name;     // constants interface name
-  String *imclass_class_code;   // intermediary class code
+  String *imclass_name;              // intermediary class name
+  String *module_class_name;         // module class name
+  String *constants_interface_name;  // constants interface name
+  String *imclass_class_code;        // intermediary class code
   String *proxy_class_def;
   String *proxy_class_code;
-  String *interface_class_code; // if %feature("interface") was declared for a class, here goes the interface declaration
+  String *interface_class_code;  // if %feature("interface") was declared for a class, here goes the interface declaration
   String *module_class_code;
-  String *proxy_class_name;     // proxy class name
-  String *full_proxy_class_name;// fully qualified proxy class name when using nspace feature, otherwise same as proxy_class_name
-  String *full_imclass_name;    // fully qualified intermediary class name when using nspace feature, otherwise same as imclass_name
-  String *variable_name;        //Name of a variable being wrapped
+  String *proxy_class_name;       // proxy class name
+  String *full_proxy_class_name;  // fully qualified proxy class name when using nspace feature, otherwise same as proxy_class_name
+  String *full_imclass_name;      // fully qualified intermediary class name when using nspace feature, otherwise same as imclass_name
+  String *variable_name;          // Name of a variable being wrapped
   String *proxy_class_constants_code;
   String *module_class_constants_code;
   String *common_begin_code;
   String *enum_code;
-  String *package;              // Optional package name
-  String *jnipackage;           // Package name used in the JNI code
-  String *package_path;         // Package name used internally by JNI (slashes)
-  String *imclass_imports;      //intermediary class imports from %pragma
-  String *module_imports;       //module imports from %pragma
-  String *imclass_baseclass;    //inheritance for intermediary class class from %pragma
-  String *imclass_package;      //package in which to generate the intermediary class
-  String *module_baseclass;     //inheritance for module class from %pragma
-  String *imclass_interfaces;   //interfaces for intermediary class class from %pragma
-  String *module_interfaces;    //interfaces for module class from %pragma
-  String *imclass_class_modifiers;      //class modifiers for intermediary class overridden by %pragma
-  String *module_class_modifiers;       //class modifiers for module class overridden by %pragma
-  String *constants_modifiers;  //access modifiers for constants interface overridden by %pragma
-  String *upcasts_code;         //C++ casts for inheritance hierarchies C++ code
-  String *imclass_cppcasts_code;        //C++ casts up inheritance hierarchies intermediary class code
-  String *imclass_directors;    // Intermediate class director code
-  String *destructor_call;      //C++ destructor call if any
-  String *destructor_throws_clause;     //C++ destructor throws clause if any
+  String *package;                   // Optional package name
+  String *jnipackage;                // Package name used in the JNI code
+  String *package_path;              // Package name used internally by JNI (slashes)
+  String *imclass_imports;           // intermediary class imports from %pragma
+  String *module_imports;            // module imports from %pragma
+  String *imclass_baseclass;         // inheritance for intermediary class class from %pragma
+  String *imclass_package;           // package in which to generate the intermediary class
+  String *module_baseclass;          // inheritance for module class from %pragma
+  String *imclass_interfaces;        // interfaces for intermediary class class from %pragma
+  String *module_interfaces;         // interfaces for module class from %pragma
+  String *imclass_class_modifiers;   // class modifiers for intermediary class overridden by %pragma
+  String *module_class_modifiers;    // class modifiers for module class overridden by %pragma
+  String *constants_modifiers;       // access modifiers for constants interface overridden by %pragma
+  String *upcasts_code;              // C++ casts for inheritance hierarchies C++ code
+  String *imclass_cppcasts_code;     // C++ casts up inheritance hierarchies intermediary class code
+  String *imclass_directors;         // Intermediate class director code
+  String *destructor_call;           // C++ destructor call if any
+  String *destructor_throws_clause;  // C++ destructor throws clause if any
 
   // Director method stuff:
   List *dmethods_seq;
@@ -98,77 +98,77 @@ class JAVA:public Language {
   enum EnumFeature { SimpleEnum, TypeunsafeEnum, TypesafeEnum, ProperEnum };
 
 public:
-
   /* -----------------------------------------------------------------------------
    * JAVA()
    * ----------------------------------------------------------------------------- */
 
-   JAVA():empty_string(NewString("")),
-      public_string(NewString("public")),
-      protected_string(NewString("protected")),
-      swig_types_hash(NULL),
-      f_begin(NULL),
-      f_runtime(NULL),
-      f_runtime_h(NULL),
-      f_header(NULL),
-      f_wrappers(NULL),
-      f_init(NULL),
-      f_directors(NULL),
-      f_directors_h(NULL),
-      filenames_list(NULL),
-      proxy_flag(true),
-      nopgcpp_flag(false),
-      native_function_flag(false),
-      enum_constant_flag(false),
-      static_flag(false),
-      variable_wrapper_flag(false),
-      wrapping_member_flag(false),
-      global_variable_flag(false),
-      old_variable_names(false),
-      member_func_flag(false),
-      doxygen(false),
-      comment_creation_chatter(false),
-      imclass_name(NULL),
-      module_class_name(NULL),
-      constants_interface_name(NULL),
-      imclass_class_code(NULL),
-      proxy_class_def(NULL),
-      proxy_class_code(NULL),
-      interface_class_code(NULL),
-      module_class_code(NULL),
-      proxy_class_name(NULL),
-      full_proxy_class_name(NULL),
-      full_imclass_name(NULL),
-      variable_name(NULL),
-      proxy_class_constants_code(NULL),
-      module_class_constants_code(NULL),
-      common_begin_code(NULL),
-      enum_code(NULL),
-      package(NULL),
-      jnipackage(NULL),
-      package_path(NULL),
-      imclass_imports(NULL),
-      module_imports(NULL),
-      imclass_baseclass(NULL),
-      imclass_package(NULL),
-      module_baseclass(NULL),
-      imclass_interfaces(NULL),
-      module_interfaces(NULL),
-      imclass_class_modifiers(NULL),
-      module_class_modifiers(NULL),
-      constants_modifiers(NULL),
-      upcasts_code(NULL),
-      imclass_cppcasts_code(NULL),
-      imclass_directors(NULL),
-      destructor_call(NULL),
-      destructor_throws_clause(NULL),
-      dmethods_seq(NULL),
-      dmethods_table(NULL),
-      n_dmethods(0),
-      n_directors(0),
-      first_class_dmethod(0),
-      curr_class_dmethod(0),
-      nesting_depth(0){
+  JAVA() :
+    empty_string(NewString("")),
+    public_string(NewString("public")),
+    protected_string(NewString("protected")),
+    swig_types_hash(NULL),
+    f_begin(NULL),
+    f_runtime(NULL),
+    f_runtime_h(NULL),
+    f_header(NULL),
+    f_wrappers(NULL),
+    f_init(NULL),
+    f_directors(NULL),
+    f_directors_h(NULL),
+    filenames_list(NULL),
+    proxy_flag(true),
+    nopgcpp_flag(false),
+    native_function_flag(false),
+    enum_constant_flag(false),
+    static_flag(false),
+    variable_wrapper_flag(false),
+    wrapping_member_flag(false),
+    global_variable_flag(false),
+    old_variable_names(false),
+    member_func_flag(false),
+    doxygen(false),
+    comment_creation_chatter(false),
+    imclass_name(NULL),
+    module_class_name(NULL),
+    constants_interface_name(NULL),
+    imclass_class_code(NULL),
+    proxy_class_def(NULL),
+    proxy_class_code(NULL),
+    interface_class_code(NULL),
+    module_class_code(NULL),
+    proxy_class_name(NULL),
+    full_proxy_class_name(NULL),
+    full_imclass_name(NULL),
+    variable_name(NULL),
+    proxy_class_constants_code(NULL),
+    module_class_constants_code(NULL),
+    common_begin_code(NULL),
+    enum_code(NULL),
+    package(NULL),
+    jnipackage(NULL),
+    package_path(NULL),
+    imclass_imports(NULL),
+    module_imports(NULL),
+    imclass_baseclass(NULL),
+    imclass_package(NULL),
+    module_baseclass(NULL),
+    imclass_interfaces(NULL),
+    module_interfaces(NULL),
+    imclass_class_modifiers(NULL),
+    module_class_modifiers(NULL),
+    constants_modifiers(NULL),
+    upcasts_code(NULL),
+    imclass_cppcasts_code(NULL),
+    imclass_directors(NULL),
+    destructor_call(NULL),
+    destructor_throws_clause(NULL),
+    dmethods_seq(NULL),
+    dmethods_table(NULL),
+    n_dmethods(0),
+    n_directors(0),
+    first_class_dmethod(0),
+    curr_class_dmethod(0),
+    nesting_depth(0) {
     /* for now, multiple inheritance in directors is disabled, this
        should be easy to implement though */
     director_multiple_inheritance = 0;
@@ -199,9 +199,13 @@ public:
 
     if (nspace && !package) {
       String *name = Getattr(n, "name") ? Getattr(n, "name") : NewString("<unnamed>");
-      Swig_warning(WARN_JAVA_NSPACE_WITHOUT_PACKAGE, Getfile(n), Getline(n),
-          "The nspace feature is used on '%s' without -package. "
-          "The generated code may not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.\n", SwigType_namestr(name));
+      Swig_warning(
+        WARN_JAVA_NSPACE_WITHOUT_PACKAGE,
+        Getfile(n),
+        Getline(n),
+        "The nspace feature is used on '%s' without -package. "
+        "The generated code may not compile as Java does not support types declared in a named package accessing types declared in an unnamed package.\n",
+        SwigType_namestr(name));
     }
   }
 
@@ -214,43 +218,42 @@ public:
    * the package name is handled differently (unfortunately for legacy reasons).
    * ----------------------------------------------------------------------------- */
 
-   String *getProxyName(SwigType *t, bool jnidescriptor = false) {
-     String *proxyname = NULL;
-     if (proxy_flag) {
-       Node *n = classLookup(t);
-       if (n) {
-         proxyname = Getattr(n, "proxyname");
-         if (!proxyname || jnidescriptor) {
-           String *nspace = Getattr(n, "sym:nspace");
-           String *symname = Copy(Getattr(n, "sym:name"));
-           if (symname && !GetFlag(n, "feature:flatnested")) {
-             for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
-               if (String* name = Getattr(outer_class, "sym:name")) {
-                 Push(symname, jnidescriptor ? "$" : ".");
-                 Push(symname, name);
-               }
-               else
-                 return NULL;
-             }
-           }
-           if (nspace) {
-             if (package && !jnidescriptor)
-               proxyname = NewStringf("%s.%s.%s", package, nspace, symname);
-             else
-               proxyname = NewStringf("%s.%s", nspace, symname);
-           } else {
-             proxyname = Copy(symname);
-           }
-           if (!jnidescriptor) {
-             Setattr(n, "proxyname", proxyname); // Cache it
-             Delete(proxyname);
-           }
-           Delete(symname);
-         }
-       }
-     }
-     return proxyname;
-   }
+  String *getProxyName(SwigType *t, bool jnidescriptor = false) {
+    String *proxyname = NULL;
+    if (proxy_flag) {
+      Node *n = classLookup(t);
+      if (n) {
+        proxyname = Getattr(n, "proxyname");
+        if (!proxyname || jnidescriptor) {
+          String *nspace = Getattr(n, "sym:nspace");
+          String *symname = Copy(Getattr(n, "sym:name"));
+          if (symname && !GetFlag(n, "feature:flatnested")) {
+            for (Node *outer_class = Getattr(n, "nested:outer"); outer_class; outer_class = Getattr(outer_class, "nested:outer")) {
+              if (String *name = Getattr(outer_class, "sym:name")) {
+                Push(symname, jnidescriptor ? "$" : ".");
+                Push(symname, name);
+              } else
+                return NULL;
+            }
+          }
+          if (nspace) {
+            if (package && !jnidescriptor)
+              proxyname = NewStringf("%s.%s.%s", package, nspace, symname);
+            else
+              proxyname = NewStringf("%s.%s", nspace, symname);
+          } else {
+            proxyname = Copy(symname);
+          }
+          if (!jnidescriptor) {
+            Setattr(n, "proxyname", proxyname);  // Cache it
+            Delete(proxyname);
+          }
+          Delete(symname);
+        }
+      }
+    }
+    return proxyname;
+  }
 
   /* -----------------------------------------------------------------------------
    * makeValidJniName()
@@ -680,9 +683,13 @@ public:
         String *item2_lower = Swig_string_lower(it2.item);
         if (it1.item && it2.item) {
           if (Strcmp(item1_lower, item2_lower) == 0) {
-            Swig_warning(WARN_LANG_PORTABILITY_FILENAME, input_file, line_number,
+            Swig_warning(WARN_LANG_PORTABILITY_FILENAME,
+                         input_file,
+                         line_number,
                          "Portability warning: File %s will be overwritten by %s on case insensitive filesystems such as "
-                         "Windows' FAT32 and NTFS unless the class/module name is renamed\n", it1.item, it2.item);
+                         "Windows' FAT32 and NTFS unless the class/module name is renamed\n",
+                         it1.item,
+                         it2.item);
           }
         }
         Delete(item2_lower);
@@ -1001,7 +1008,7 @@ public:
       // Get typemap for this argument
       if ((tm = Getattr(p, "tmap:in"))) {
         addThrows(n, "tmap:in", p);
-        Replaceall(tm, "$arg", arg);    /* deprecated? */
+        Replaceall(tm, "$arg", arg); /* deprecated? */
         Replaceall(tm, "$input", arg);
         Setattr(p, "emit:input", arg);
 
@@ -1025,7 +1032,7 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
         addThrows(n, "tmap:check", p);
-        Replaceall(tm, "$arg", Getattr(p, "emit:input"));       /* deprecated? */
+        Replaceall(tm, "$arg", Getattr(p, "emit:input")); /* deprecated? */
         Replaceall(tm, "$input", Getattr(p, "emit:input"));
         Printv(f->code, tm, "\n", NIL);
         p = Getattr(p, "tmap:check:next");
@@ -1038,7 +1045,7 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
         addThrows(n, "tmap:freearg", p);
-        Replaceall(tm, "$arg", Getattr(p, "emit:input"));       /* deprecated? */
+        Replaceall(tm, "$arg", Getattr(p, "emit:input")); /* deprecated? */
         Replaceall(tm, "$input", Getattr(p, "emit:input"));
         Printv(cleanup, tm, "\n", NIL);
         p = Getattr(p, "tmap:freearg:next");
@@ -1051,7 +1058,7 @@ public:
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
         addThrows(n, "tmap:argout", p);
-        Replaceall(tm, "$arg", Getattr(p, "emit:input"));       /* deprecated? */
+        Replaceall(tm, "$arg", Getattr(p, "emit:input")); /* deprecated? */
         Replaceall(tm, "$result", "jresult");
         Replaceall(tm, "$input", Getattr(p, "emit:input"));
         Printv(outarg, tm, "\n", NIL);
@@ -1095,7 +1102,8 @@ public:
         if (Len(tm))
           Printf(f->code, "\n");
       } else {
-        Swig_warning(WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), Getattr(n, "name"));
+        Swig_warning(
+          WARN_TYPEMAP_OUT_UNDEF, input_file, line_number, "Unable to use return type %s in function %s.\n", SwigType_str(returntype, 0), Getattr(n, "name"));
       }
       emit_return_variable(n, returntype, f);
     }
@@ -1170,7 +1178,7 @@ public:
         Printf(getter_setter_name, "set");
       else
         Printf(getter_setter_name, "get");
-      Putc(toupper((int) *Char(variable_name)), getter_setter_name);
+      Putc(toupper((int)*Char(variable_name)), getter_setter_name);
       Printf(getter_setter_name, "%s", Char(variable_name) + 1);
 
       Setattr(n, "proxyfuncname", getter_setter_name);
@@ -1196,7 +1204,7 @@ public:
 
   virtual int variableWrapper(Node *n) {
     variable_wrapper_flag = true;
-    Language::variableWrapper(n);       /* Default to functions */
+    Language::variableWrapper(n); /* Default to functions */
     variable_wrapper_flag = false;
     return SWIG_OK;
   }
@@ -1220,7 +1228,7 @@ public:
       scope = NewString("");
       if (nspace)
         Printf(scope, "%s", nspace);
-      if (Node* cls = getCurrentClass()) {
+      if (Node *cls = getCurrentClass()) {
         if (Node *outer = Getattr(cls, "nested:outer")) {
           String *outerClassesPrefix = Copy(Getattr(outer, "sym:name"));
           for (outer = Getattr(outer, "nested:outer"); outer != 0; outer = Getattr(outer, "nested:outer")) {
@@ -1253,11 +1261,11 @@ public:
       if (getCurrentClass() && (cplus_mode != PUBLIC))
         return SWIG_NOWRAP;
 
-      String *nspace = Getattr(n, "sym:nspace"); // NSpace/getNSpace() only works during Language::enumDeclaration call
+      String *nspace = Getattr(n, "sym:nspace");  // NSpace/getNSpace() only works during Language::enumDeclaration call
 
       enum_code = NewString("");
       String *symname = Getattr(n, "sym:name");
-      String *constants_code = (proxy_flag && is_wrapping_class())? proxy_class_constants_code : module_class_constants_code;
+      String *constants_code = (proxy_flag && is_wrapping_class()) ? proxy_class_constants_code : module_class_constants_code;
       EnumFeature enum_feature = decodeEnumFeature(n);
       String *typemap_lookup_type = Getattr(n, "name");
 
@@ -1281,10 +1289,20 @@ public:
         const String *pure_interfaces = typemapLookup(n, "javainterfaces", typemap_lookup_type, WARN_NONE);
 
         // Emit the enum
-        Printv(enum_code, typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),        // Class modifiers (enum modifiers really)
-               " ", symname, *Char(pure_baseclass) ?    // Bases
-               " extends " : "", pure_baseclass, *Char(pure_interfaces) ?       // Interfaces
-               " implements " : "", pure_interfaces, " {\n", NIL);
+        Printv(enum_code,
+               typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),  // Class modifiers (enum modifiers really)
+               " ",
+               symname,
+               *Char(pure_baseclass) ?  // Bases
+                 " extends "
+                                     : "",
+               pure_baseclass,
+               *Char(pure_interfaces) ?  // Interfaces
+                 " implements "
+                                      : "",
+               pure_interfaces,
+               " {\n",
+               NIL);
         if (proxy_flag && is_wrapping_class())
           Replaceall(enum_code, "$static ", "static ");
         else
@@ -1322,9 +1340,12 @@ public:
         // Wrap (non-anonymous) C/C++ enum within a typesafe, typeunsafe or proper Java enum
         // Finish the enum declaration
         // Typemaps are used to generate the enum definition in a similar manner to proxy classes.
-        Printv(enum_code, (enum_feature == ProperEnum) ? ";\n" : "", typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),       // main body of class
-               typemapLookup(n, "javacode", typemap_lookup_type, WARN_NONE),    // extra Java code
-               "}", NIL);
+        Printv(enum_code,
+               (enum_feature == ProperEnum) ? ";\n" : "",
+               typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),  // main body of class
+               typemapLookup(n, "javacode", typemap_lookup_type, WARN_NONE),                         // extra Java code
+               "}",
+               NIL);
 
         Replaceall(enum_code, "$javaclassname", symname);
 
@@ -1366,8 +1387,12 @@ public:
             Printf(f_enum, ";\n");
           }
 
-          Printv(f_enum, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE), // Import statements
-                 "\n", enum_code, "\n", NIL);
+          Printv(f_enum,
+                 typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE),  // Import statements
+                 "\n",
+                 enum_code,
+                 "\n",
+                 NIL);
 
           Printf(f_enum, "\n");
           Delete(f_enum);
@@ -1632,10 +1657,18 @@ public:
       if (classname_substituted_flag) {
         if (SwigType_isenum(t)) {
           // This handles wrapping of inline initialised const enum static member variables (not when wrapping enum items - ignored later on)
-          Printf(constants_code, "%s.swigToEnum(%s.%s());\n", return_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
+          Printf(constants_code,
+                 "%s.swigToEnum(%s.%s());\n",
+                 return_type,
+                 full_imclass_name ? full_imclass_name : imclass_name,
+                 Swig_name_get(getNSpace(), symname));
         } else {
           // This handles function pointers using the %constant directive
-          Printf(constants_code, "new %s(%s.%s(), false);\n", return_type, full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
+          Printf(constants_code,
+                 "new %s(%s.%s(), false);\n",
+                 return_type,
+                 full_imclass_name ? full_imclass_name : imclass_name,
+                 Swig_name_get(getNSpace(), symname));
         }
       } else {
         Printf(constants_code, "%s.%s();\n", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
@@ -1872,15 +1905,27 @@ public:
         String *bsmartnamestr = SwigType_namestr(bsmart);
 
         Printv(upcasts_code,
-            "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
-            "    jlong baseptr = 0;\n"
-            "    ", smartnamestr, " *argp1;\n"
-            "    (void)jenv;\n"
-            "    (void)jcls;\n"
-            "    argp1 = *(", smartnamestr, " **)&jarg1;\n"
-            "    *(", bsmartnamestr, " **)&baseptr = argp1 ? new ", bsmartnamestr, "(*argp1) : 0;\n"
-            "    return baseptr;\n"
-            "}\n", "\n", NIL);
+               "SWIGEXPORT jlong JNICALL ",
+               wname,
+               "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
+               "    jlong baseptr = 0;\n"
+               "    ",
+               smartnamestr,
+               " *argp1;\n"
+               "    (void)jenv;\n"
+               "    (void)jcls;\n"
+               "    argp1 = *(",
+               smartnamestr,
+               " **)&jarg1;\n"
+               "    *(",
+               bsmartnamestr,
+               " **)&baseptr = argp1 ? new ",
+               bsmartnamestr,
+               "(*argp1) : 0;\n"
+               "    return baseptr;\n"
+               "}\n",
+               "\n",
+               NIL);
 
         Delete(bsmartnamestr);
         Delete(smartnamestr);
@@ -1890,13 +1935,21 @@ public:
       String *baseclassname = SwigType_namestr(c_baseclassname);
 
       Printv(upcasts_code,
-          "SWIGEXPORT jlong JNICALL ", wname, "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
-          "    jlong baseptr = 0;\n"
-          "    (void)jenv;\n"
-          "    (void)jcls;\n"
-          "    *(", baseclassname, " **)&baseptr = *(", classname, " **)&jarg1;\n"
-          "    return baseptr;\n"
-          "}\n", "\n", NIL);
+             "SWIGEXPORT jlong JNICALL ",
+             wname,
+             "(JNIEnv *jenv, jclass jcls, jlong jarg1) {\n",
+             "    jlong baseptr = 0;\n"
+             "    (void)jenv;\n"
+             "    (void)jcls;\n"
+             "    *(",
+             baseclassname,
+             " **)&baseptr = *(",
+             classname,
+             " **)&jarg1;\n"
+             "    return baseptr;\n"
+             "}\n",
+             "\n",
+             NIL);
 
       Delete(baseclassname);
       Delete(classname);
@@ -1947,8 +2000,12 @@ public:
             } else {
               /* Warn about multiple inheritance for additional base class(es) */
               String *proxyclassname = Getattr(n, "classtypeobj");
-              Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-                  "Warning for %s, base %s ignored. Multiple inheritance is not supported in Java.\n", SwigType_namestr(proxyclassname), SwigType_namestr(baseclassname));
+              Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE,
+                           Getfile(n),
+                           Getline(n),
+                           "Warning for %s, base %s ignored. Multiple inheritance is not supported in Java.\n",
+                           SwigType_namestr(proxyclassname),
+                           SwigType_namestr(baseclassname));
             }
           }
           base = Next(base);
@@ -1970,11 +2027,18 @@ public:
       derived = false;
       baseclass = NULL;
       if (purebase_notderived)
-        Swig_error(Getfile(n), Getline(n), "The javabase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n", typemap_lookup_type);
+        Swig_error(Getfile(n),
+                   Getline(n),
+                   "The javabase typemap for proxy %s must contain just one of the 'replace' or 'notderived' attributes.\n",
+                   typemap_lookup_type);
     } else if (Len(pure_baseclass) > 0 && Len(baseclass) > 0) {
-      Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+      Swig_warning(WARN_JAVA_MULTIPLE_INHERITANCE,
+                   Getfile(n),
+                   Getline(n),
                    "Warning for %s, base %s ignored. Multiple inheritance is not supported in Java. "
-                   "Perhaps you need one of the 'replace' or 'notderived' attributes in the javabase typemap?\n", typemap_lookup_type, pure_baseclass);
+                   "Perhaps you need one of the 'replace' or 'notderived' attributes in the javabase typemap?\n",
+                   typemap_lookup_type,
+                   pure_baseclass);
     }
 
     // Pure Java interfaces
@@ -1984,8 +2048,8 @@ public:
       Append(interface_list, ", ");
     Append(interface_list, pure_interfaces);
     // Start writing the proxy class
-    if (!has_outerclass) // Import statements
-      Printv(proxy_class_def, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE),"\n", NIL);
+    if (!has_outerclass)  // Import statements
+      Printv(proxy_class_def, typemapLookup(n, "javaimports", typemap_lookup_type, WARN_NONE), "\n", NIL);
 
     // Translate and write javadoc comment if flagged
     if (doxygen && doxygenTranslator->hasDocumentation(n)) {
@@ -1997,12 +2061,19 @@ public:
     }
 
     if (has_outerclass)
-      Printv(proxy_class_def, "static ", NIL); // C++ nested classes correspond to static java classes
-    Printv(proxy_class_def, typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),      // Class modifiers
-           " $javaclassname",   // Class name and bases
-           (*Char(wanted_base)) ? " extends " : "", wanted_base, *Char(interface_list) ?        // Pure Java interfaces
-           " implements " : "", interface_list, " {", derived ? typemapLookup(n, "javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) :   // main body of class
-           typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF), // main body of class
+      Printv(proxy_class_def, "static ", NIL);  // C++ nested classes correspond to static java classes
+    Printv(proxy_class_def,
+           typemapLookup(n, "javaclassmodifiers", typemap_lookup_type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),  // Class modifiers
+           " $javaclassname",                                                                              // Class name and bases
+           (*Char(wanted_base)) ? " extends " : "",
+           wanted_base,
+           *Char(interface_list) ?  // Pure Java interfaces
+             " implements "
+                                 : "",
+           interface_list,
+           " {",
+           derived ? typemapLookup(n, "javabody_derived", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF) :  // main body of class
+             typemapLookup(n, "javabody", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),                   // main body of class
            NIL);
 
     // C++ destructor is wrapped by the delete method
@@ -2029,7 +2100,8 @@ public:
         Swig_error(Getfile(n), Getline(n), "No methodname attribute defined in javadestruct%s typemap for %s\n", (derived ? "_derived" : ""), proxy_class_name);
       }
       if (!destruct_methodmodifiers) {
-        Swig_error(Getfile(n), Getline(n), "No methodmodifiers attribute defined in javadestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
+        Swig_error(
+          Getfile(n), Getline(n), "No methodmodifiers attribute defined in javadestruct%s typemap for %s.\n", (derived ? "_derived" : ""), proxy_class_name);
       }
       if (!destruct_parameters)
         destruct_parameters = empty_string;
@@ -2085,8 +2157,10 @@ public:
     Delete(destruct);
 
     // Emit extra user code
-    Printv(proxy_class_def, typemapLookup(n, "javacode", typemap_lookup_type, WARN_NONE),       // extra Java code
-           "\n", NIL);
+    Printv(proxy_class_def,
+           typemapLookup(n, "javacode", typemap_lookup_type, WARN_NONE),  // extra Java code
+           "\n",
+           NIL);
 
     if (derived) {
       String *upcast_method_name = Swig_name_member(getNSpace(), getClassPrefix(), smart != 0 ? "SWIGSmartPtrUpcast" : "SWIGUpcast");
@@ -2118,7 +2192,7 @@ public:
     if (List *baselist = Getattr(n, "bases")) {
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
         if (GetFlag(base.item, "feature:ignore") || !GetFlag(base.item, "feature:interface"))
-          continue; // TODO: warn about skipped non-interface bases
+          continue;  // TODO: warn about skipped non-interface bases
         String *base_iname = Getattr(base.item, "interface:name");
         if (!bases)
           bases = Copy(base_iname);
@@ -2148,16 +2222,16 @@ public:
   }
 
   /* ----------------------------------------------------------------------
-  * classDeclaration()
-  * ---------------------------------------------------------------------- */
+   * classDeclaration()
+   * ---------------------------------------------------------------------- */
 
   int classDeclaration(Node *n) {
     return Language::classDeclaration(n);
   }
 
   /* ----------------------------------------------------------------------
-  * classHandler()
-  * ---------------------------------------------------------------------- */
+   * classHandler()
+   * ---------------------------------------------------------------------- */
 
   virtual int classHandler(Node *n) {
     File *f_proxy = NULL;
@@ -2254,8 +2328,7 @@ public:
             Printv(f_proxy, nspace, NIL);
           Printf(f_proxy, ";\n");
         }
-      }
-      else
+      } else
         ++nesting_depth;
 
       proxy_class_def = NewString("");
@@ -2273,7 +2346,7 @@ public:
           FileErrorDisplay(filen);
           Exit(EXIT_FAILURE);
         }
-        Append(filenames_list, filen); // file name ownership goes to the list
+        Append(filenames_list, filen);  // file name ownership goes to the list
         emitBanner(f_interface);
         emitInterfaceDeclaration(n, interface_name, interface_class_code, nspace);
         Delete(filen);
@@ -2286,7 +2359,7 @@ public:
     if (proxy_flag) {
       emitProxyClassDefAndCPPCasts(n);
 
-      String *javaclazzname = Swig_name_member(getNSpace(), getClassPrefix(), ""); // mangled full proxy class name
+      String *javaclazzname = Swig_name_member(getNSpace(), getClassPrefix(), "");  // mangled full proxy class name
 
       Replaceall(proxy_class_def, "$javaclassname", proxy_class_name);
       Replaceall(proxy_class_code, "$javaclassname", proxy_class_name);
@@ -2439,8 +2512,8 @@ public:
     bool setter_flag = false;
     String *pre_code = NewString("");
     String *post_code = NewString("");
-    bool is_interface = GetFlag(parentNode(n), "feature:interface") && !checkAttribute(n, "kind", "variable")
-      && !static_flag && Getattr(n, "interface:owner") == 0;
+    bool is_interface =
+      GetFlag(parentNode(n), "feature:interface") && !checkAttribute(n, "kind", "variable") && !static_flag && Getattr(n, "interface:owner") == 0;
 
     if (!proxy_flag)
       return;
@@ -2472,8 +2545,11 @@ public:
       substituteClassname(covariant ? covariant : t, tm);
       Printf(return_type, "%s", tm);
       if (covariant)
-        Swig_warning(WARN_JAVA_COVARIANT_RET, input_file, line_number,
-                     "Covariant return types not supported in Java. Proxy method will return %s.\n", SwigType_str(covariant, 0));
+        Swig_warning(WARN_JAVA_COVARIANT_RET,
+                     input_file,
+                     line_number,
+                     "Covariant return types not supported in Java. Proxy method will return %s.\n",
+                     SwigType_str(covariant, 0));
     } else {
       Swig_warning(WARN_JAVA_TYPEMAP_JSTYPE_UNDEF, input_file, line_number, "No jstype typemap defined for %s\n", SwigType_str(t, 0));
     }
@@ -2626,7 +2702,7 @@ public:
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
       if (is_pre_code || is_post_code) {
-        Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
+        Replaceall(tm, "\n ", "\n   ");  // add extra indentation to code in typemap
         if (is_post_code) {
           Insert(tm, 0, "\n    try ");
           Printv(tm, " finally {\n", post_code, "\n    }", NIL);
@@ -2704,7 +2780,8 @@ public:
     Parm *p;
     int i;
     String *function_code = NewString("");
-    String *helper_code = NewString(""); // Holds code for the constructor helper method generated only when the javain typemap has code in the pre or post attributes
+    String *helper_code =
+      NewString("");  // Holds code for the constructor helper method generated only when the javain typemap has code in the pre or post attributes
     String *helper_args = NewString("");
     String *pre_code = NewString("");
     String *post_code = NewString("");
@@ -2740,7 +2817,7 @@ public:
       const String *methodmods = Getattr(n, "feature:java:methodmodifiers");
       methodmods = methodmods ? methodmods : (is_public(n) ? public_string : protected_string);
 
-      tm = Getattr(n, "tmap:jtype"); // typemaps were attached earlier to the node
+      tm = Getattr(n, "tmap:jtype");  // typemaps were attached earlier to the node
       Printf(im_return_type, "%s", tm);
 
       // Translate and write javadoc comment if flagged
@@ -2861,8 +2938,7 @@ public:
       /* Insert the javaconstruct typemap, doing the replacement for $directorconnect, as needed */
       Hash *attributes = NewHash();
       String *typemap_lookup_type = Getattr(getCurrentClass(), "classtypeobj");
-      String *construct_tm = Copy(typemapLookup(n, "javaconstruct", typemap_lookup_type,
-                                                WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF, attributes));
+      String *construct_tm = Copy(typemapLookup(n, "javaconstruct", typemap_lookup_type, WARN_JAVA_TYPEMAP_JAVACONSTRUCT_UNDEF, attributes));
       if (construct_tm) {
         if (!feature_director) {
           Replaceall(construct_tm, "$directorconnect", "");
@@ -2872,7 +2948,10 @@ public:
           if (connect_attr) {
             Replaceall(construct_tm, "$directorconnect", connect_attr);
           } else {
-            Swig_warning(WARN_JAVA_NO_DIRECTORCONNECT_ATTR, input_file, line_number, "\"directorconnect\" attribute missing in %s \"javaconstruct\" typemap.\n",
+            Swig_warning(WARN_JAVA_NO_DIRECTORCONNECT_ATTR,
+                         input_file,
+                         line_number,
+                         "\"directorconnect\" attribute missing in %s \"javaconstruct\" typemap.\n",
                          Getattr(n, "name"));
             Replaceall(construct_tm, "$directorconnect", "");
           }
@@ -3053,7 +3132,7 @@ public:
         Printf(func_name, "set");
       else
         Printf(func_name, "get");
-      Putc(toupper((int) *Char(variable_name)), func_name);
+      Putc(toupper((int)*Char(variable_name)), func_name);
       Printf(func_name, "%s", Char(variable_name) + 1);
     } else {
       func_name = Copy(Getattr(n, "sym:name"));
@@ -3153,7 +3232,7 @@ public:
       bool is_pre_code = Len(pre_code) > 0;
       bool is_post_code = Len(post_code) > 0;
       if (is_pre_code || is_post_code) {
-        Replaceall(tm, "\n ", "\n   "); // add extra indentation to code in typemap
+        Replaceall(tm, "\n ", "\n   ");  // add extra indentation to code in typemap
         if (is_post_code) {
           Insert(tm, 0, "\n    try ");
           Printv(tm, " finally {\n", post_code, "\n    }", NIL);
@@ -3261,12 +3340,13 @@ public:
         // Get the enumvalue from a JNI call
         if (!getCurrentClass() || !cparse_cplusplus || !proxy_flag) {
           // Strange hack to change the name
-          Setattr(n, "name", Getattr(n, "value"));      /* for wrapping of enums in a namespace when emit_action is used */
+          Setattr(n, "name", Getattr(n, "value")); /* for wrapping of enums in a namespace when emit_action is used */
           constantWrapper(n);
           value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), symname));
         } else {
           memberconstantHandler(n);
-          value = NewStringf("%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, getEnumClassPrefix(), symname)));
+          value = NewStringf(
+            "%s.%s()", full_imclass_name ? full_imclass_name : imclass_name, Swig_name_get(getNSpace(), Swig_name_member(0, getEnumClassPrefix(), symname)));
         }
         Delete(newsymname);
       }
@@ -3311,7 +3391,7 @@ public:
             }
           }
           if (!jnidescriptor) {
-            Setattr(n, "enumname", enumname); // Cache it
+            Setattr(n, "enumname", enumname);  // Cache it
             Delete(enumname);
           }
           Delete(scopename_prefix);
@@ -3441,7 +3521,7 @@ public:
         }
       }
     } else {
-      String *classname = getProxyName(classnametype, jnidescriptor); // getProxyName() works for pointers to classes too
+      String *classname = getProxyName(classnametype, jnidescriptor);  // getProxyName() works for pointers to classes too
       if (classname) {
         replacementname = Copy(classname);
       } else {
@@ -3453,7 +3533,7 @@ public:
       }
     }
     if (jnidescriptor)
-      Replaceall(replacementname,".","/");
+      Replaceall(replacementname, ".", "/");
     Replaceall(tm, classnamespecialvariable, replacementname);
 
     Delete(replacementname);
@@ -3463,14 +3543,15 @@ public:
    * substituteInterfacenameSpecialVariable()
    * ----------------------------------------------------------------------------- */
 
-  void substituteInterfacenameSpecialVariable(SwigType *interfacenametype, String *tm, const char *interfacenamespecialvariable, bool jnidescriptor, bool qualified) {
+  void substituteInterfacenameSpecialVariable(SwigType *interfacenametype, String *tm, const char *interfacenamespecialvariable, bool jnidescriptor,
+                                              bool qualified) {
 
-    String *interfacename = getInterfaceName(interfacenametype/*, jnidescriptor*/, qualified);
+    String *interfacename = getInterfaceName(interfacenametype /*, jnidescriptor*/, qualified);
     if (interfacename) {
       String *replacementname = Copy(interfacename);
 
       if (jnidescriptor)
-        Replaceall(replacementname,".","/");
+        Replaceall(replacementname, ".", "/");
       Replaceall(tm, interfacenamespecialvariable, replacementname);
 
       Delete(replacementname);
@@ -3508,13 +3589,23 @@ public:
     const String *pure_interfaces = typemapLookup(n, "javainterfaces", type, WARN_NONE);
 
     // Emit the class
-    Printv(swigtype, typemapLookup(n, "javaimports", type, WARN_NONE),  // Import statements
-           "\n", typemapLookup(n, "javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),        // Class modifiers
-           " $javaclassname",   // Class name and bases
-           *Char(pure_baseclass) ? " extends " : "", pure_baseclass, *Char(pure_interfaces) ?   // Interfaces
-           " implements " : "", pure_interfaces, " {", typemapLookup(n, "javabody", type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),    // main body of class
-           typemapLookup(n, "javacode", type, WARN_NONE),       // extra Java code
-           "}\n", "\n", NIL);
+    Printv(swigtype,
+           typemapLookup(n, "javaimports", type, WARN_NONE),  // Import statements
+           "\n",
+           typemapLookup(n, "javaclassmodifiers", type, WARN_JAVA_TYPEMAP_CLASSMOD_UNDEF),  // Class modifiers
+           " $javaclassname",                                                               // Class name and bases
+           *Char(pure_baseclass) ? " extends " : "",
+           pure_baseclass,
+           *Char(pure_interfaces) ?  // Interfaces
+             " implements "
+                                  : "",
+           pure_interfaces,
+           " {",
+           typemapLookup(n, "javabody", type, WARN_JAVA_TYPEMAP_JAVABODY_UNDEF),  // main body of class
+           typemapLookup(n, "javacode", type, WARN_NONE),                         // extra Java code
+           "}\n",
+           "\n",
+           NIL);
 
     Replaceall(swigtype, "$javaclassname", classname);
     Replaceall(swigtype, "$module", module_class_name);
@@ -3583,8 +3674,8 @@ public:
       if (temp_classes_list && Len(temp_classes_list) > 0) {
         for (Iterator cls = First(temp_classes_list); cls.item; cls = Next(cls)) {
           String *exception_class = NewString(cls.item);
-          Replaceall(exception_class, " ", ""); // remove spaces
-          Replaceall(exception_class, "\t", "");        // remove tabs
+          Replaceall(exception_class, " ", "");   // remove spaces
+          Replaceall(exception_class, "\t", "");  // remove tabs
           if (Len(exception_class) > 0) {
             // $javaclassname substitution
             SwigType *pt = Getattr(parameter, "type");
@@ -3727,25 +3818,24 @@ public:
       char code;
       const char *method;
     } upcall_methods[] = {
-      {
-      'B', "CallStaticByteMethod"}, {
-      'C', "CallStaticCharMethod"}, {
-      'D', "CallStaticDoubleMethod"}, {
-      'F', "CallStaticFloatMethod"}, {
-      'I', "CallStaticIntMethod"}, {
-      'J', "CallStaticLongMethod"}, {
-      'L', "CallStaticObjectMethod"}, {
-      'S', "CallStaticShortMethod"}, {
-      'V', "CallStaticVoidMethod"}, {
-      'Z', "CallStaticBooleanMethod"}, {
-      '[', "CallStaticObjectMethod"}
+      {'B', "CallStaticByteMethod"   },
+      {'C', "CallStaticCharMethod"   },
+      {'D', "CallStaticDoubleMethod" },
+      {'F', "CallStaticFloatMethod"  },
+      {'I', "CallStaticIntMethod"    },
+      {'J', "CallStaticLongMethod"   },
+      {'L', "CallStaticObjectMethod" },
+      {'S', "CallStaticShortMethod"  },
+      {'V', "CallStaticVoidMethod"   },
+      {'Z', "CallStaticBooleanMethod"},
+      {'[', "CallStaticObjectMethod" }
     };
 
     char code;
     int i;
 
     code = *Char(descrip);
-    for (i = 0; i < (int) (sizeof(upcall_methods) / sizeof(upcall_methods[0])); ++i)
+    for (i = 0; i < (int)(sizeof(upcall_methods) / sizeof(upcall_methods[0])); ++i)
       if (code == upcall_methods[i].code)
         return NewString(upcall_methods[i].method);
     return NULL;
@@ -3832,13 +3922,18 @@ public:
     String *dirClassName = directorClassName(n);
     Wrapper *code_wrap;
 
-    Printf(imclass_class_code, "  public final static native void %s(%s obj, long cptr, boolean mem_own, boolean weak_global);\n",
-           swig_director_connect, full_proxy_class_name);
+    Printf(imclass_class_code,
+           "  public final static native void %s(%s obj, long cptr, boolean mem_own, boolean weak_global);\n",
+           swig_director_connect,
+           full_proxy_class_name);
 
     code_wrap = NewWrapper();
     Printf(code_wrap->def,
            "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jswig_mem_own, "
-           "jboolean jweak_global) {\n", jnipackage, jni_imclass_name, swig_director_connect_jni);
+           "jboolean jweak_global) {\n",
+           jnipackage,
+           jni_imclass_name,
+           swig_director_connect_jni);
 
     if (smartptr) {
       Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
@@ -3846,14 +3941,14 @@ public:
       Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
       Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
       Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
-    }
-    else {
+    } else {
       Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
       Printf(code_wrap->code, "  (void)jcls;\n");
       Printf(code_wrap->code, "  %s *director = static_cast<%s *>(obj);\n", dirClassName, dirClassName);
     }
 
-    Printf(code_wrap->code, "  director->swig_connect_director(jenv, jself, jenv->GetObjectClass(jself), "
+    Printf(code_wrap->code,
+           "  director->swig_connect_director(jenv, jself, jenv->GetObjectClass(jself), "
            "(jswig_mem_own == JNI_TRUE), (jweak_global == JNI_TRUE));\n");
     Printf(code_wrap->code, "}\n");
 
@@ -3867,21 +3962,24 @@ public:
     String *changeown_method_name = Swig_name_member(getNSpace(), getClassPrefix(), "change_ownership");
     String *changeown_jnimethod_name = makeValidJniName(changeown_method_name);
 
-    Printf(imclass_class_code, "  public final static native void %s(%s obj, long cptr, boolean take_or_release);\n", changeown_method_name, full_proxy_class_name);
+    Printf(
+      imclass_class_code, "  public final static native void %s(%s obj, long cptr, boolean take_or_release);\n", changeown_method_name, full_proxy_class_name);
 
     code_wrap = NewWrapper();
     Printf(code_wrap->def,
            "SWIGEXPORT void JNICALL Java_%s%s_%s(JNIEnv *jenv, jclass jcls, jobject jself, jlong objarg, jboolean jtake_or_release) {\n",
-           jnipackage, jni_imclass_name, changeown_jnimethod_name);
+           jnipackage,
+           jni_imclass_name,
+           changeown_jnimethod_name);
 
     if (smartptr) {
-        Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
-        Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
-        Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
-        Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
+      Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", smartptr, smartptr);
+      Printf(code_wrap->code, "  // Keep a local instance of the smart pointer around while we are using the raw pointer\n");
+      Printf(code_wrap->code, "  // Avoids using smart pointer specific API.\n");
+      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj->operator->());\n", dirClassName, dirClassName);
     } else {
-        Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
-        Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
+      Printf(code_wrap->code, "  %s *obj = *((%s **)&objarg);\n", norm_name, norm_name);
+      Printf(code_wrap->code, "  %s *director = dynamic_cast<%s *>(obj);\n", dirClassName, dirClassName);
     }
 
     Printf(code_wrap->code, "  (void)jcls;\n");
@@ -3951,7 +4049,7 @@ public:
    * ----------------------------------------------------------------------------- */
 
   void substitutePackagePath(String *text, Parm *p) {
-    String *pkg_path= 0;
+    String *pkg_path = 0;
 
     if (p)
       pkg_path = Swig_typemap_lookup("javapackage", p, "", 0);
@@ -4045,7 +4143,6 @@ public:
       imclass_dmethod = Swig_name_member(getNSpace(), dirclassname, overloaded_name);
     }
 
-
     qualified_return = SwigType_rcaststr(returntype, "c_result");
 
     if (!is_void && (!ignored_method || pure_virtual)) {
@@ -4112,8 +4209,7 @@ public:
     SwigType *adjustedreturntype = covariant ? covariant : returntype;
     Parm *adjustedreturntypeparm = NewParmNode(adjustedreturntype, n);
 
-    if (Swig_typemap_lookup("directorin", adjustedreturntypeparm, "", 0)
-        && (cdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
+    if (Swig_typemap_lookup("directorin", adjustedreturntypeparm, "", 0) && (cdesc = Getattr(adjustedreturntypeparm, "tmap:directorin:descriptor"))) {
 
       // Note that in the case of polymorphic (covariant) return types, the
       // method's return type is changed to be the base of the C++ return
@@ -4122,8 +4218,13 @@ public:
       Append(classret_desc, jnidesc_canon);
       Delete(jnidesc_canon);
     } else {
-      Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number, "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
-          SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+      Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF,
+                   input_file,
+                   line_number,
+                   "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
+                   SwigType_str(returntype, 0),
+                   SwigType_namestr(c_classname),
+                   SwigType_namestr(name));
       output_director = false;
     }
 
@@ -4139,8 +4240,7 @@ public:
       }
 
       String *jdesc = NULL;
-      if (Swig_typemap_lookup("directorin", tp, "", 0)
-          && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
+      if (Swig_typemap_lookup("directorin", tp, "", 0) && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
 
         // Objects marshalled passing a Java class across JNI boundary use jobject - the nouse flag indicates this
         // We need the specific Java class name instead of the generic 'Ljava/lang/Object;'
@@ -4150,16 +4250,25 @@ public:
         Append(jniret_desc, jnidesc_canon);
         Delete(jnidesc_canon);
       } else {
-        Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
+        Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF,
+                     input_file,
+                     line_number,
                      "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
-                     SwigType_str(c_ret_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+                     SwigType_str(c_ret_type, 0),
+                     SwigType_namestr(c_classname),
+                     SwigType_namestr(name));
         output_director = false;
       }
 
       Delete(tp);
     } else {
-      Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s for use in %s::%s (skipping director method)\n",
-          SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+      Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF,
+                   input_file,
+                   line_number,
+                   "No jni typemap defined for %s for use in %s::%s (skipping director method)\n",
+                   SwigType_str(returntype, 0),
+                   SwigType_namestr(c_classname),
+                   SwigType_namestr(name));
       output_director = false;
     }
 
@@ -4222,16 +4331,19 @@ public:
     Parm *tp = NewParmNode(c_classname, n);
     String *jdesc;
 
-    if ((tm = Swig_typemap_lookup("directorin", tp, "", 0))
-        && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
+    if ((tm = Swig_typemap_lookup("directorin", tp, "", 0)) && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))) {
       String *jni_canon = canonicalizeJNIDescriptor(jdesc, tp);
       Append(jnidesc, jni_canon);
       Delete(jni_canon);
       Delete(tm);
     } else {
-      Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
+      Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF,
+                   input_file,
+                   line_number,
                    "No or improper directorin typemap for type %s  for use in %s::%s (skipping director method)\n",
-                   SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+                   SwigType_str(returntype, 0),
+                   SwigType_namestr(c_classname),
+                   SwigType_namestr(name));
       output_director = false;
     }
 
@@ -4270,10 +4382,8 @@ public:
           Wrapper_add_localv(w, arg, c_decl, (!(SwigType_ispointer(pt) || SwigType_isreference(pt)) ? "" : "= 0"), NIL);
 
         /* Add input marshalling code and update JNI field descriptor */
-        if ((desc_tm = Swig_typemap_lookup("directorin", tp, "", 0))
-            && (jdesc = Getattr(tp, "tmap:directorin:descriptor"))
-            && (tm = Getattr(p, "tmap:directorin"))
-            && (cdesc = Getattr(p, "tmap:directorin:descriptor"))) {
+        if ((desc_tm = Swig_typemap_lookup("directorin", tp, "", 0)) && (jdesc = Getattr(tp, "tmap:directorin:descriptor")) &&
+            (tm = Getattr(p, "tmap:directorin")) && (cdesc = Getattr(p, "tmap:directorin:descriptor"))) {
 
           // Objects marshalled by passing a Java class across the JNI boundary use jobject as the JNI type -
           // the nouse flag indicates this. We need the specific Java class name instead of the generic 'Ljava/lang/Object;'
@@ -4316,13 +4426,23 @@ public:
               Append(classdesc, jni_canon);
               Delete(jni_canon);
             } else {
-              Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF, input_file, line_number, "No javadirectorin typemap defined for %s for use in %s::%s (skipping director method)\n",
-                  SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+              Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF,
+                           input_file,
+                           line_number,
+                           "No javadirectorin typemap defined for %s for use in %s::%s (skipping director method)\n",
+                           SwigType_str(pt, 0),
+                           SwigType_namestr(c_classname),
+                           SwigType_namestr(name));
               output_director = false;
             }
           } else {
-            Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF, input_file, line_number, "No jtype typemap defined for %s for use in %s::%s (skipping director method)\n",
-                SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+            Swig_warning(WARN_JAVA_TYPEMAP_JTYPE_UNDEF,
+                         input_file,
+                         line_number,
+                         "No jtype typemap defined for %s for use in %s::%s (skipping director method)\n",
+                         SwigType_str(pt, 0),
+                         SwigType_namestr(c_classname),
+                         SwigType_namestr(name));
             output_director = false;
           }
 
@@ -4331,24 +4451,40 @@ public:
           Delete(desc_tm);
         } else {
           if (!desc_tm) {
-            Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF, input_file, line_number,
+            Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF,
+                         input_file,
+                         line_number,
                          "No or improper directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
-                         SwigType_str(c_param_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+                         SwigType_str(c_param_type, 0),
+                         SwigType_namestr(c_classname),
+                         SwigType_namestr(name));
             p = nextSibling(p);
           } else if (!jdesc) {
-            Swig_warning(WARN_JAVA_TYPEMAP_DIRECTORIN_NODESC, input_file, line_number,
+            Swig_warning(WARN_JAVA_TYPEMAP_DIRECTORIN_NODESC,
+                         input_file,
+                         line_number,
                          "Missing JNI descriptor in directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
-                         SwigType_str(c_param_type, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+                         SwigType_str(c_param_type, 0),
+                         SwigType_namestr(c_classname),
+                         SwigType_namestr(name));
             p = Getattr(p, "tmap:directorin:next");
           } else if (!tm) {
-            Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF, input_file, line_number,
+            Swig_warning(WARN_JAVA_TYPEMAP_JAVADIRECTORIN_UNDEF,
+                         input_file,
+                         line_number,
                          "No or improper directorin typemap defined for argument %s for use in %s::%s (skipping director method)\n",
-                         SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+                         SwigType_str(pt, 0),
+                         SwigType_namestr(c_classname),
+                         SwigType_namestr(name));
             p = nextSibling(p);
           } else if (!cdesc) {
-            Swig_warning(WARN_JAVA_TYPEMAP_DIRECTORIN_NODESC, input_file, line_number,
+            Swig_warning(WARN_JAVA_TYPEMAP_DIRECTORIN_NODESC,
+                         input_file,
+                         line_number,
                          "Missing JNI descriptor in directorin typemap defined for %s for use in %s::%s (skipping director method)\n",
-                         SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+                         SwigType_str(pt, 0),
+                         SwigType_namestr(c_classname),
+                         SwigType_namestr(name));
             p = Getattr(p, "tmap:directorin:next");
           }
 
@@ -4356,8 +4492,13 @@ public:
         }
 
       } else {
-        Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF, input_file, line_number, "No jni typemap defined for %s for use in %s::%s (skipping director method)\n",
-            SwigType_str(pt, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+        Swig_warning(WARN_JAVA_TYPEMAP_JNI_UNDEF,
+                     input_file,
+                     line_number,
+                     "No jni typemap defined for %s for use in %s::%s (skipping director method)\n",
+                     SwigType_str(pt, 0),
+                     SwigType_namestr(c_classname),
+                     SwigType_namestr(name));
         output_director = false;
         p = nextSibling(p);
       }
@@ -4489,9 +4630,13 @@ public:
           Replaceall(tm, "$result", result_str);
           Printf(w->code, "%s\n", tm);
         } else {
-          Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
+          Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF,
+                       input_file,
+                       line_number,
                        "Unable to use return type %s used in %s::%s (skipping director method)\n",
-                       SwigType_str(returntype, 0), SwigType_namestr(c_classname), SwigType_namestr(name));
+                       SwigType_str(returntype, 0),
+                       SwigType_namestr(c_classname),
+                       SwigType_namestr(name));
           output_director = false;
         }
 
@@ -4517,8 +4662,10 @@ public:
 
       /* Terminate wrapper code */
       Printf(w->code, "} else {\n");
-      Printf(w->code, "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object in %s::%s \");\n",
-             SwigType_namestr(c_classname), SwigType_namestr(name));
+      Printf(w->code,
+             "SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"null upcall object in %s::%s \");\n",
+             SwigType_namestr(c_classname),
+             SwigType_namestr(name));
       Printf(w->code, "}\n");
 
       Printf(w->code, "if (swigjobj) jenv->DeleteLocalRef(swigjobj);\n");
@@ -4616,7 +4763,7 @@ public:
             Printv(directorthrowshandlers_code, directorthrows, NIL);
             Delete(directorthrows);
           } else {
-            String *t = Getattr(p,"type");
+            String *t = Getattr(p, "type");
             Swig_warning(WARN_TYPEMAP_DIRECTORTHROWS_UNDEF, Getfile(n), Getline(n), "No directorthrows typemap defined for %s\n", SwigType_str(t, 0));
           }
         }
@@ -4736,14 +4883,13 @@ public:
     return Language::classDirectorDefaultConstructor(n);
   }
 
-
   /* ------------------------------------------------------------
    * classDirectorInit()
    * ------------------------------------------------------------ */
 
   int classDirectorInit(Node *n) {
     Delete(none_comparison);
-    none_comparison = NewString("");    // not used
+    none_comparison = NewString("");  // not used
 
     Delete(director_ctor_code);
     director_ctor_code = NewString("$director_new");
@@ -4907,7 +5053,7 @@ public:
    * ------------------------------------------------------------------*/
 
   virtual int classDirectorDisown(Node *n) {
-    (void) n;
+    (void)n;
     return SWIG_OK;
   }
 
@@ -4947,7 +5093,7 @@ public:
   NestedClassSupport nestedClassesSupport() const {
     return NCS_Full;
   }
-};                              /* class JAVA */
+}; /* class JAVA */
 
 /* -----------------------------------------------------------------------------
  * swig_java()    - Instantiate module

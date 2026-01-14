@@ -25,8 +25,8 @@ struct contract {
 
 static contract Rules[] = {
   {"require:", "&&"},
-  {"ensure:", "||"},
-  {NULL, NULL}
+  {"ensure:",  "||"},
+  {NULL,       NULL}
 };
 
 /* ----------------------------------------------------------------------------
@@ -36,9 +36,10 @@ static contract Rules[] = {
  *         "wrap by contract" module.
  * ------------------------------------------------------------------------- */
 
-class Contracts:public Dispatcher {
+class Contracts : public Dispatcher {
   String *make_expression(String *s, Node *n);
   void substitute_parms(String *s, ParmList *p, int method);
+
 public:
   Hash *ContractSplit(Node *n);
   int emit_contract(Node *n, int method);
@@ -53,8 +54,8 @@ public:
   virtual int top(Node *n);
 };
 
-static int Contract_Mode = 0;   /* contract option */
-static int InClass = 0;         /* Parsing C++ or not */
+static int Contract_Mode = 0; /* contract option */
+static int InClass = 0;       /* Parsing C++ or not */
 static int InConstructor = 0;
 static Node *CurrentClass = 0;
 
@@ -146,8 +147,8 @@ static void inherit_contracts(Node *c, Node *n, Hash *contracts, Hash *messages)
       base_decl = Getattr(temp, "decl");
       if (base_decl) {
         base_decl = SwigType_typedef_resolve_all(base_decl);
-        if ((checkAttribute(temp, "storage", "virtual")) &&
-            (checkAttribute(temp, "name", name)) && (checkAttribute(temp, "type", type)) && (!Strcmp(local_decl, base_decl))) {
+        if ((checkAttribute(temp, "storage", "virtual")) && (checkAttribute(temp, "name", name)) && (checkAttribute(temp, "type", type)) &&
+            (!Strcmp(local_decl, base_decl))) {
           /* Yes, match found. */
           Hash *icontracts = Getattr(temp, "contract:rules");
           Hash *imessages = Getattr(temp, "contract:messages");

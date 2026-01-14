@@ -172,7 +172,7 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
         if (SwigType_isvarargs(Getattr(p, "type"))) {
           // Mark the head of the ParmList that it has varargs
           Setattr(l, "emit:varargs", lp);
-//Printf(stdout, "setting emit:varargs %s ... %s +++ %s\n", Getattr(l, "emit:varargs"), Getattr(l, "type"), Getattr(p, "type"));
+          // Printf(stdout, "setting emit:varargs %s ... %s +++ %s\n", Getattr(l, "emit:varargs"), Getattr(l, "type"), Getattr(p, "type"));
           break;
         }
         p = nextSibling(p);
@@ -194,13 +194,20 @@ void emit_attach_parmmaps(ParmList *l, Wrapper *f) {
         if (equivalent) {
           String *precedence = Getattr(p, "tmap:typecheck:precedence");
           if (precedence && Strcmp(precedence, "0") != 0)
-            Swig_error(Getfile(tm), Getline(tm), "The 'typecheck' typemap for %s contains an 'equivalent' attribute for a 'precedence' that is not set to SWIG_TYPECHECK_POINTER or 0.\n", SwigType_str(Getattr(p, "type"), 0));
+            Swig_error(Getfile(tm),
+                       Getline(tm),
+                       "The 'typecheck' typemap for %s contains an 'equivalent' attribute for a 'precedence' that is not set to SWIG_TYPECHECK_POINTER or 0.\n",
+                       SwigType_str(Getattr(p, "type"), 0));
           SwigType *cpt = Swig_cparse_type(equivalent);
           if (cpt) {
             Setattr(p, "equivtype", cpt);
             Delete(cpt);
           } else {
-            Swig_error(Getfile(tm), Getline(tm), "Invalid type (%s) in 'equivalent' attribute in 'typecheck' typemap for type %s.\n", equivalent, SwigType_str(Getattr(p, "type"), 0));
+            Swig_error(Getfile(tm),
+                       Getline(tm),
+                       "Invalid type (%s) in 'equivalent' attribute in 'typecheck' typemap for type %s.\n",
+                       equivalent,
+                       SwigType_str(Getattr(p, "type"), 0));
           }
         }
         p = Getattr(p, "tmap:typecheck:next");

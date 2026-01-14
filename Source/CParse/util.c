@@ -78,18 +78,18 @@ void Swig_cparse_replace_descriptor(String *s) {
  * ----------------------------------------------------------------------------- */
 
 SwigType *Swig_cparse_smartptr(Node *n) {
-    SwigType *smart = 0;
-    String *smartptr = Getattr(n, "feature:smartptr");
-    if (smartptr) {
-      SwigType *cpt = Swig_cparse_type(smartptr);
-      if (cpt) {
-        smart = SwigType_typedef_resolve_all(cpt);
-        Delete(cpt);
-      } else {
-        Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, SwigType_namestr(Getattr(n, "name")));
-      }
+  SwigType *smart = 0;
+  String *smartptr = Getattr(n, "feature:smartptr");
+  if (smartptr) {
+    SwigType *cpt = Swig_cparse_type(smartptr);
+    if (cpt) {
+      smart = SwigType_typedef_resolve_all(cpt);
+      Delete(cpt);
+    } else {
+      Swig_error(Getfile(n), Getline(n), "Invalid type (%s) in 'smartptr' feature for class %s.\n", smartptr, SwigType_namestr(Getattr(n, "name")));
     }
-    return smart;
+  }
+  return smart;
 }
 
 /* -----------------------------------------------------------------------------
@@ -100,8 +100,8 @@ SwigType *Swig_cparse_smartptr(Node *n) {
 
 Node *Swig_cparse_new_node(const_String_or_char_ptr tag) {
   Node *n = NewHash();
-  set_nodeType(n,tag);
-  Setfile(n,cparse_file);
-  Setline(n,cparse_line);
+  set_nodeType(n, tag);
+  Setfile(n, cparse_file);
+  Setline(n, cparse_line);
   return n;
 }

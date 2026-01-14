@@ -31,9 +31,9 @@ String *scanner_ccode = 0;
 static String *main_input_file = 0;
 
 /* Error reporting/location information */
-int     cparse_line = 1;
+int cparse_line = 1;
 String *cparse_file = 0;
-int     cparse_start_line = 0;
+int cparse_start_line = 0;
 
 /* C++ mode */
 int cparse_cplusplus = 0;
@@ -59,42 +59,22 @@ static int rename_active = 0;
 int scan_doxygen_comments = 0;
 
 static int isStructuralDoxygen(String *s) {
-  static const char* const structuralTags[] = {
-    "addtogroup",
-    "callgraph",
-    "callergraph",
-    "category",
-    "def",
-    "defgroup",
-    "dir",
-    "example",
-    "file",
-    "headerfile",
-    "internal",
-    "mainpage",
-    "name",
-    "nosubgrouping",
-    "overload",
-    "package",
-    "page",
-    "protocol",
-    "relates",
-    "relatesalso",
-    "showinitializer",
-    "weakgroup",
+  static const char *const structuralTags[] = {
+    "addtogroup", "callgraph", "callergraph",   "category", "def",     "defgroup", "dir",      "example", "file",        "headerfile",      "internal",
+    "mainpage",   "name",      "nosubgrouping", "overload", "package", "page",     "protocol", "relates", "relatesalso", "showinitializer", "weakgroup",
   };
 
   unsigned n;
   char *slashPointer = Strchr(s, '\\');
-  char *atPointer = Strchr(s,'@');
+  char *atPointer = Strchr(s, '@');
   if (slashPointer == NULL && atPointer == NULL)
     return 0;
-  else if(slashPointer == NULL)
+  else if (slashPointer == NULL)
     slashPointer = atPointer;
 
   slashPointer++; /* skip backslash or at sign */
 
-  for (n = 0; n < sizeof(structuralTags)/sizeof(structuralTags[0]); n++) {
+  for (n = 0; n < sizeof(structuralTags) / sizeof(structuralTags[0]); n++) {
     const size_t len = strlen(structuralTags[n]);
     if (strncmp(slashPointer, structuralTags[n], len) == 0) {
       /* Take care to avoid false positives with prefixes of other tags. */
@@ -130,7 +110,7 @@ void Swig_cparse_cplusplusout(int v) {
 
 static void scanner_init(void) {
   scan = NewScanner();
-  Scanner_idstart(scan,"%");
+  Scanner_idstart(scan, "%");
   scan_init = 1;
   scanner_ccode = NewStringEmpty();
 }
@@ -140,10 +120,11 @@ static void scanner_init(void) {
  *
  * Start reading from new file
  * ------------------------------------------------------------------------- */
-void scanner_file(DOHFile * f) {
-  if (!scan_init) scanner_init();
+void scanner_file(DOHFile *f) {
+  if (!scan_init)
+    scanner_init();
   Scanner_clear(scan);
-  Scanner_push(scan,f);
+  Scanner_push(scan, f);
 }
 
 /* ----------------------------------------------------------------------------
@@ -156,10 +137,10 @@ void scanner_file(DOHFile * f) {
 void scanner_start_inline(String *text, int line) {
   String *stext = Copy(text);
 
-  Seek(stext,0,SEEK_SET);
-  Setfile(stext,cparse_file);
-  Setline(stext,line);
-  Scanner_push(scan,stext);
+  Seek(stext, 0, SEEK_SET);
+  Setfile(stext, cparse_file);
+  Setline(stext, line);
+  Scanner_push(scan, stext);
   Delete(stext);
 }
 
@@ -176,7 +157,7 @@ int skip_balanced(int startchar, int endchar) {
   int start_line = Scanner_line(scan);
   Clear(scanner_ccode);
 
-  if (Scanner_skip_balanced(scan,startchar,endchar) < 0) {
+  if (Scanner_skip_balanced(scan, startchar, endchar) < 0) {
     Swig_error(cparse_file, start_line, "Missing '%c'. Reached end of input.\n", endchar);
     return -1;
   }
@@ -226,7 +207,7 @@ void skip_decl(void) {
       return;
     }
     if (tok == SWIG_TOKEN_LBRACE) {
-      if (Scanner_skip_balanced(scan,'{','}') < 0) {
+      if (Scanner_skip_balanced(scan, '{', '}') < 0) {
         Swig_error(cparse_file, start_line, "Missing closing brace ('}'). Reached end of input.\n");
       }
       break;
@@ -258,7 +239,7 @@ static int yylook(void) {
     cparse_line = Scanner_line(scan);
     cparse_file = Scanner_file(scan);
 
-    switch(tok) {
+    switch (tok) {
     case SWIG_TOKEN_ID:
       return ID;
     case SWIG_TOKEN_LPAREN:
@@ -348,7 +329,7 @@ static int yylook(void) {
         } else if (nexttok == SWIG_TOKEN_NOT) {
           return DCNOT;
         } else {
-          Scanner_pushtoken(scan,nexttok,Scanner_text(scan));
+          Scanner_pushtoken(scan, nexttok, Scanner_text(scan));
           if (!last_id) {
             scanner_next_token(DCOLON);
             return NONID;
@@ -443,11 +424,7 @@ static int yylook(void) {
 
     case SWIG_TOKEN_COMMENT:
       {
-        typedef enum {
-          DOX_COMMENT_PRE = -1,
-          DOX_COMMENT_NONE,
-          DOX_COMMENT_POST
-        } comment_kind_t;
+        typedef enum { DOX_COMMENT_PRE = -1, DOX_COMMENT_NONE, DOX_COMMENT_POST } comment_kind_t;
         comment_kind_t existing_comment = DOX_COMMENT_NONE;
 
         /* Concatenate or skip all consecutive comments at once. */
@@ -455,7 +432,7 @@ static int yylook(void) {
           String *cmt = Scanner_text(scan);
           String *cmt_modified = 0;
           char *loc = Char(cmt);
-          if ((strncmp(loc, "/*@SWIG", 7) == 0) && (loc[Len(cmt)-3] == '@')) {
+          if ((strncmp(loc, "/*@SWIG", 7) == 0) && (loc[Len(cmt) - 3] == '@')) {
             Scanner_locator(scan, cmt);
           }
           if (scan_doxygen_comments) { /* else just skip this node, to avoid crashes in parser module*/
@@ -524,12 +501,12 @@ static int yylook(void) {
         Scanner_pushtoken(scan, tok, Scanner_text(scan));
 
         switch (existing_comment) {
-          case DOX_COMMENT_PRE:
-            return DOXYGENSTRING;
-          case DOX_COMMENT_NONE:
-            break;
-          case DOX_COMMENT_POST:
-            return DOXYGENPOSTSTRING;
+        case DOX_COMMENT_PRE:
+          return DOXYGENSTRING;
+        case DOX_COMMENT_NONE:
+          break;
+        case DOX_COMMENT_POST:
+          return DOXYGENPOSTSTRING;
         }
       }
       break;
@@ -545,7 +522,7 @@ static int yylook(void) {
 }
 
 void scanner_set_location(String *file, int line) {
-  Scanner_set_location(scan,file,line-1);
+  Scanner_set_location(scan, file, line - 1);
 }
 
 void scanner_last_id(int x) {
@@ -651,40 +628,44 @@ int yylex(void) {
     yylval.dtype = default_dtype;
     yylval.dtype.type = T_ULONGLONG;
     goto num_common;
-num_common: {
-    yylval.dtype.val = NewString(Scanner_text(scan));
-    const char *c = Char(yylval.dtype.val);
-    if (c[0] == '0') {
-      // Convert to base 10 using strtoull().
-      unsigned long long value;
-      char *e;
-      errno = 0;
-      if (c[1] == 'b' || c[1] == 'B') {
-        /* strtoull() doesn't handle binary literal prefixes so skip the prefix
-         * and specify base 2 explicitly. */
-        value = strtoull(c + 2, &e, 2);
+num_common:
+    {
+      yylval.dtype.val = NewString(Scanner_text(scan));
+      const char *c = Char(yylval.dtype.val);
+      if (c[0] == '0') {
+        // Convert to base 10 using strtoull().
+        unsigned long long value;
+        char *e;
+        errno = 0;
+        if (c[1] == 'b' || c[1] == 'B') {
+          /* strtoull() doesn't handle binary literal prefixes so skip the prefix
+           * and specify base 2 explicitly. */
+          value = strtoull(c + 2, &e, 2);
+        } else {
+          value = strtoull(c, &e, 0);
+        }
+        if (errno != ERANGE) {
+          while (*e && strchr("ULul", *e))
+            ++e;
+        }
+        if (errno != ERANGE && *e == '\0') {
+          yylval.dtype.numval = NewStringf("%llu", value);
+        } else {
+          // Our unsigned long long isn't wide enough or this isn't an integer.
+        }
       } else {
-        value = strtoull(c, &e, 0);
+        const char *e = c;
+        while (isdigit((unsigned char)*e))
+          ++e;
+        int len = (int)(e - c);
+        while (*e && strchr("ULul", *e))
+          ++e;
+        if (*e == '\0') {
+          yylval.dtype.numval = NewStringWithSize(c, len);
+        }
       }
-      if (errno != ERANGE) {
-        while (*e && strchr("ULul", *e)) ++e;
-      }
-      if (errno != ERANGE && *e == '\0') {
-        yylval.dtype.numval = NewStringf("%llu", value);
-      } else {
-        // Our unsigned long long isn't wide enough or this isn't an integer.
-      }
-    } else {
-      const char *e = c;
-      while (isdigit((unsigned char)*e)) ++e;
-      int len = (int)(e - c);
-      while (*e && strchr("ULul", *e)) ++e;
-      if (*e == '\0') {
-        yylval.dtype.numval = NewStringWithSize(c, len);
-      }
+      return (l);
     }
-    return (l);
-  }
   case NUM_BOOL:
     yylval.dtype = default_dtype;
     yylval.dtype.type = T_BOOL;
@@ -810,16 +791,16 @@ num_common: {
 
           if (Scanner_isoperator(nexttok)) {
             /* One of the standard C/C++ symbolic operators */
-            Append(s,Scanner_text(scan));
+            Append(s, Scanner_text(scan));
             yylval.str = s;
             return OPERATOR;
           } else if (nexttok == SWIG_TOKEN_LPAREN) {
             /* Function call operator.  The next token MUST be a RPAREN */
             nexttok = Scanner_token(scan);
             if (nexttok != SWIG_TOKEN_RPAREN) {
-              Swig_error(Scanner_file(scan),Scanner_line(scan),"Syntax error. Bad operator name.\n");
+              Swig_error(Scanner_file(scan), Scanner_line(scan), "Syntax error. Bad operator name.\n");
             } else {
-              Append(s,"()");
+              Append(s, "()");
               yylval.str = s;
               return OPERATOR;
             }
@@ -827,15 +808,15 @@ num_common: {
             /* Array access operator.  The next token MUST be a RBRACKET */
             nexttok = Scanner_token(scan);
             if (nexttok != SWIG_TOKEN_RBRACKET) {
-              Swig_error(Scanner_file(scan),Scanner_line(scan),"Syntax error. Bad operator name.\n");
+              Swig_error(Scanner_file(scan), Scanner_line(scan), "Syntax error. Bad operator name.\n");
             } else {
-              Append(s,"[]");
+              Append(s, "[]");
               yylval.str = s;
               return OPERATOR;
             }
           } else if (nexttok == SWIG_TOKEN_STRING) {
             /* Operator "" or user-defined string literal ""_suffix */
-            Append(s,"\"\"");
+            Append(s, "\"\"");
             yylval.str = s;
             return OPERATOR;
           } else if (nexttok == SWIG_TOKEN_ID) {
@@ -849,12 +830,12 @@ num_common: {
             int termtoken = 0;
             const char *termvalue = 0;
 
-            Append(s,Scanner_text(scan));
+            Append(s, Scanner_text(scan));
             while (1) {
 
               nexttok = Scanner_token(scan);
               if (nexttok <= 0) {
-                Swig_error(Scanner_file(scan),Scanner_line(scan),"Syntax error. Bad operator name.\n");
+                Swig_error(Scanner_file(scan), Scanner_line(scan), "Syntax error. Bad operator name.\n");
               }
               if (nexttok == SWIG_TOKEN_LPAREN) {
                 termtoken = SWIG_TOKEN_LPAREN;
@@ -878,13 +859,13 @@ num_common: {
                 break;
               } else if (nexttok == SWIG_TOKEN_ID) {
                 if (needspace) {
-                  Append(s," ");
+                  Append(s, " ");
                 }
-                Append(s,Scanner_text(scan));
+                Append(s, Scanner_text(scan));
               } else if (nexttok == SWIG_TOKEN_ENDLINE) {
               } else if (nexttok == SWIG_TOKEN_COMMENT) {
               } else {
-                Append(s,Scanner_text(scan));
+                Append(s, Scanner_text(scan));
                 needspace = 0;
               }
             }
@@ -892,21 +873,18 @@ num_common: {
             if (!rename_active) {
               String *cs;
               char *t = Char(s) + 9;
-              if (!((strcmp(t, "new") == 0)
-                    || (strcmp(t, "delete") == 0)
-                    || (strcmp(t, "new[]") == 0)
-                    || (strcmp(t, "delete[]") == 0)
-                    )) {
+              if (!((strcmp(t, "new") == 0) || (strcmp(t, "delete") == 0) || (strcmp(t, "new[]") == 0) || (strcmp(t, "delete[]") == 0))) {
                 /*              retract(strlen(t)); */
 
                 /* The operator is a conversion operator.   In order to deal with this, we need to feed the
                    type information back into the parser.  For now this is a hack.  Needs to be cleaned up later. */
                 cs = NewString(t);
-                if (termtoken) Append(cs,termvalue);
-                Seek(cs,0,SEEK_SET);
-                Setline(cs,cparse_line);
-                Setfile(cs,cparse_file);
-                Scanner_push(scan,cs);
+                if (termtoken)
+                  Append(cs, termvalue);
+                Seek(cs, 0, SEEK_SET);
+                Setline(cs, cparse_line);
+                Setfile(cs, cparse_file);
+                Scanner_push(scan, cs);
                 Delete(cs);
                 return CONVERSIONOPERATOR;
               }
@@ -1082,10 +1060,10 @@ num_common: {
        */
       cparse_unknown_directive = NewString(yytext);
       stext = NewString(yytext + 1);
-      Seek(stext,0,SEEK_SET);
-      Setfile(stext,cparse_file);
-      Setline(stext,cparse_line);
-      Scanner_push(scan,stext);
+      Seek(stext, 0, SEEK_SET);
+      Setfile(stext, cparse_file);
+      Setline(stext, cparse_line);
+      Scanner_push(scan, stext);
       Delete(stext);
       return (MODULO);
     }

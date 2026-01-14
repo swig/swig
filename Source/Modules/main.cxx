@@ -24,19 +24,19 @@
 #include "cparse.h"
 #include <ctype.h>
 #include <errno.h>
-#include <limits.h>             // for INT_MAX
+#include <limits.h>  // for INT_MAX
 
 // Global variables
 
-static Language *lang = 0;      // Language method
+static Language *lang = 0;  // Language method
 int CPlusPlus = 0;
-int Extend = 0;                 // Extend flag
-int ForceExtern = 0;            // Force extern mode
+int Extend = 0;       // Extend flag
+int ForceExtern = 0;  // Force extern mode
 int Verbose = 0;
 int AddExtern = 0;
 int NoExcept = 0;
 extern "C" {
-  int UseWrapperSuffix = 0;     // If 1, append suffix to non-overloaded functions too.
+int UseWrapperSuffix = 0;  // If 1, append suffix to non-overloaded functions too.
 }
 
 /* Suppress warning messages for private inheritance, etc by default.
@@ -52,9 +52,9 @@ extern "C" {
 #define EXTRA_WARNINGS "309,403,405,512,321,322"
 
 extern "C" {
-  extern String *ModuleName;
-  extern int ignore_nested_classes;
-  extern int kwargs_supported;
+extern String *ModuleName;
+extern int ignore_nested_classes;
+extern int kwargs_supported;
 }
 
 /* usage string split into multiple parts otherwise string is too big for some compilers */
@@ -170,9 +170,9 @@ Arguments may also be passed in a file, separated by whitespace. For example:\n\
 \n";
 
 // Local variables
-static String *LangSubDir = 0; // Target language library subdirectory
-static String *SwigLib = 0; // Library directory
-static String *SwigLibWinUnix = 0; // Extra library directory on Windows
+static String *LangSubDir = 0;      // Target language library subdirectory
+static String *SwigLib = 0;         // Library directory
+static String *SwigLibWinUnix = 0;  // Extra library directory on Windows
 static int freeze = 0;
 static String *lang_config = 0;
 static const char *hpp_extension = "h";
@@ -208,7 +208,7 @@ static String *dependencies_file = 0;
 static String *dependencies_target = 0;
 static int external_runtime = 0;
 static String *external_runtime_name = 0;
-enum { STAGE1=1, STAGE2=2, STAGE3=4, STAGE4=8, STAGEOVERFLOW=16 };
+enum { STAGE1 = 1, STAGE2 = 2, STAGE3 = 4, STAGE4 = 8, STAGEOVERFLOW = 16 };
 static List *libfiles = 0;
 static List *all_output_files = 0;
 static const char *stdcpp_define = NULL;
@@ -227,8 +227,8 @@ static bool check_extension(String *filename) {
     return 0;
   String *extension = Swig_file_extension(name);
   const char *c = Char(extension);
-  if ((strcmp(c, ".c") == 0) ||
-      (strcmp(c, ".C") == 0) || (strcmp(c, ".cc") == 0) || (strcmp(c, ".cxx") == 0) || (strcmp(c, ".c++") == 0) || (strcmp(c, ".cpp") == 0)) {
+  if ((strcmp(c, ".c") == 0) || (strcmp(c, ".C") == 0) || (strcmp(c, ".cc") == 0) || (strcmp(c, ".cxx") == 0) || (strcmp(c, ".c++") == 0) ||
+      (strcmp(c, ".cpp") == 0)) {
     wanted = true;
   }
   Delete(extension);
@@ -252,7 +252,7 @@ static unsigned int decode_numbers_list(String *numlist) {
         // TODO: check that it is a number
         int number = atoi(Char(numstring));
         if (number > 0 && number <= 16) {
-          decoded_number |= (1 << (number-1));
+          decoded_number |= (1 << (number - 1));
         }
       }
     }
@@ -317,7 +317,6 @@ static void SWIG_setfeature(const char *cfeature, const char *cvalue) {
   Delete(fname);
   Delete(fvalue);
 }
-
 
 static void SWIG_setfeatures(const char *c) {
   char feature[64];
@@ -443,7 +442,7 @@ static void getoptions(int argc, char *argv[]) {
         Swig_mark_arg(i);
       } else if (strncmp(argv[i], "-I", 2) == 0) {
         // Add a new directory search path
-        Swig_add_directory((String_or_char*)(argv[i] + 2));
+        Swig_add_directory((String_or_char *)(argv[i] + 2));
         Swig_mark_arg(i);
       } else if (strncmp(argv[i], "-D", 2) == 0) {
         String *d = NewString(argv[i] + 2);
@@ -634,13 +633,14 @@ static void getoptions(int argc, char *argv[]) {
       } else if (strcmp(argv[i], "-version") == 0 || strcmp(argv[1], "--version") == 0) {
         fprintf(stdout, "\nSWIG Version %s\n", Swig_package_version());
         fprintf(stdout, "\nCompiled with %s [%s]\n", SWIG_CXX, SWIG_PLATFORM);
-        fprintf(stdout, "\nConfigured options: %cpcre\n",
+        fprintf(stdout,
+                "\nConfigured options: %cpcre\n",
 #ifdef HAVE_PCRE
                 '+'
 #else
                 '-'
 #endif
-            );
+        );
         fprintf(stdout, "\nPlease see %s for reporting bugs and further information\n", PACKAGE_BUGREPORT);
         Exit(EXIT_SUCCESS);
       } else if (strcmp(argv[i], "-copyright") == 0) {
@@ -895,18 +895,18 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
   // Check for SWIG_LIB environment variable
   c = getenv("SWIG_LIB");
-  if (c == (char *) 0 || *c == 0) {
+  if (c == (char *)0 || *c == 0) {
 #if defined(_WIN32)
     char buf[MAX_PATH];
     char *p;
     if (!(GetModuleFileName(0, buf, MAX_PATH) == 0 || (p = strrchr(buf, '\\')) == 0)) {
       *(p + 1) = '\0';
-      SwigLib = NewStringf("%sLib", buf); // Native windows installation path
+      SwigLib = NewStringf("%sLib", buf);  // Native windows installation path
     } else {
-      SwigLib = NewStringf(""); // Unexpected error
+      SwigLib = NewStringf("");  // Unexpected error
     }
     if (Len(SWIG_LIB_WIN_UNIX) > 0)
-      SwigLibWinUnix = NewString(SWIG_LIB_WIN_UNIX); // Unix installation path using a drive letter (for msys/mingw)
+      SwigLibWinUnix = NewString(SWIG_LIB_WIN_UNIX);  // Unix installation path using a drive letter (for msys/mingw)
 #else
     SwigLib = NewString(SWIG_LIB);
 #endif
@@ -924,7 +924,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
   if (help) {
     Printf(stdout, "\nNote: 'swig -<lang> -help' displays options for a specific target language.\n\n");
-    Exit(EXIT_SUCCESS); // Exit if we're in help mode
+    Exit(EXIT_SUCCESS);  // Exit if we're in help mode
   }
 
   // Check all of the options to make sure we're cool.
@@ -945,7 +945,8 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
   if (CPlusPlus) {
     // Default to C++98.
-    if (!stdcpp_define) stdcpp_define = "__cplusplus 199711L";
+    if (!stdcpp_define)
+      stdcpp_define = "__cplusplus 199711L";
     Preprocessor_define(stdcpp_define, 0);
   } else {
     if (stdcpp_define) {
@@ -985,9 +986,9 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
     Swig_add_directory(rl);
   }
 
-  Swig_add_directory((String *) "." SWIG_FILE_DELIMITER "swig_lib");
+  Swig_add_directory((String *)"." SWIG_FILE_DELIMITER "swig_lib");
   if (SwigLibWinUnix)
-    Swig_add_directory((String *) SwigLibWinUnix);
+    Swig_add_directory((String *)SwigLibWinUnix);
   Swig_add_directory(SwigLib);
 
   if (Verbose) {
@@ -1097,7 +1098,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
           String *outfile;
           File *f_dependencies_file = 0;
 
-          String *inputfile_filename = outcurrentdir ? Swig_file_filename(input_file): Copy(input_file);
+          String *inputfile_filename = outcurrentdir ? Swig_file_filename(input_file) : Copy(input_file);
           String *basename = Swig_file_basename(inputfile_filename);
           if (!outfile_name) {
             if (CPlusPlus || lang->cplus_runtime_mode()) {
@@ -1133,7 +1134,8 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
           for (int i = 0; i < Len(files); i++) {
             int use_file = 1;
             if (depend == 2) {
-              if ((Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) == 0) || (SwigLibWinUnix && (Strncmp(Getitem(files, i), SwigLibWinUnix, Len(SwigLibWinUnix)) == 0)))
+              if ((Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) == 0) ||
+                  (SwigLibWinUnix && (Strncmp(Getitem(files, i), SwigLibWinUnix, Len(SwigLibWinUnix)) == 0)))
                 use_file = 0;
             }
             if (use_file) {
@@ -1272,10 +1274,10 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
           Printf(stderr, "Missing input file in preprocessed output.\n");
           Exit(EXIT_FAILURE);
         }
-        Setattr(top, "infile", infile); // Note: if nopreprocess then infile is the original input file, otherwise input_file
+        Setattr(top, "infile", infile);  // Note: if nopreprocess then infile is the original input file, otherwise input_file
         Setattr(top, "inputfile", input_file);
 
-        String *infile_filename = outcurrentdir ? Swig_file_filename(infile): Copy(infile);
+        String *infile_filename = outcurrentdir ? Swig_file_filename(infile) : Copy(infile);
         String *basename = Swig_file_basename(infile_filename);
         if (!outfile_name) {
           if (CPlusPlus || lang->cplus_runtime_mode()) {
@@ -1300,16 +1302,24 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
         ForceExtern = check_extension(input_file);
 
         if (tlm->status == Experimental) {
-          Swig_warning(WARN_LANG_EXPERIMENTAL, "SWIG", 1, "Experimental target language. "
-            "Target language %s specified by %s is an experimental language. "
-            "See the 'Target Languages' section in the Introduction chapter of the SWIG documentation.\n",
-            tlm->help ? tlm->help : "", tlm->name);
+          Swig_warning(WARN_LANG_EXPERIMENTAL,
+                       "SWIG",
+                       1,
+                       "Experimental target language. "
+                       "Target language %s specified by %s is an experimental language. "
+                       "See the 'Target Languages' section in the Introduction chapter of the SWIG documentation.\n",
+                       tlm->help ? tlm->help : "",
+                       tlm->name);
         } else if (tlm->status == Deprecated) {
-          Swig_warning(WARN_LANG_DEPRECATED, "SWIG", 1, "Deprecated target language. "
-            "Target language %s specified by %s is a deprecated target language. "
-            "It will be removed in the next release of SWIG unless a new maintainer steps forward to bring it up to at least experimental status. "
-            "See the 'Target Languages' section in the Introduction chapter of the SWIG documentation.\n",
-            tlm->help ? tlm->help : "", tlm->name);
+          Swig_warning(WARN_LANG_DEPRECATED,
+                       "SWIG",
+                       1,
+                       "Deprecated target language. "
+                       "Target language %s specified by %s is a deprecated target language. "
+                       "It will be removed in the next release of SWIG unless a new maintainer steps forward to bring it up to at least experimental status. "
+                       "See the 'Target Languages' section in the Introduction chapter of the SWIG documentation.\n",
+                       tlm->help ? tlm->help : "",
+                       tlm->name);
         }
 
         lang->top(top);

@@ -70,7 +70,7 @@ Parm *CopyParm(Parm *p) {
   for (ki = First(p); ki.key; ki = Next(ki)) {
     if (DohIsString(ki.item)) {
       DOH *c = Copy(ki.item);
-      Setattr(np,ki.key,c);
+      Setattr(np, ki.key, c);
       Delete(c);
     }
   }
@@ -93,7 +93,8 @@ ParmList *CopyParmListMax(ParmList *p, int count) {
     return 0;
 
   while (p) {
-    if (count == 0) break;
+    if (count == 0)
+      break;
     np = CopyParm(p);
     if (pp) {
       set_nextSibling(pp, np);
@@ -109,7 +110,7 @@ ParmList *CopyParmListMax(ParmList *p, int count) {
 }
 
 ParmList *CopyParmList(ParmList *p) {
-  return CopyParmListMax(p,-1);
+  return CopyParmListMax(p, -1);
 }
 
 /* -----------------------------------------------------------------------------

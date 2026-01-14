@@ -37,11 +37,11 @@ static List *collect_interface_methods(Node *n) {
       for (Node *child = firstChild(cls); child; child = nextSibling(child)) {
         if (Cmp(nodeType(child), "cdecl") == 0) {
           if (GetFlag(child, "feature:ignore") || Getattr(child, "interface:owner"))
-            continue; // skip methods propagated to bases
+            continue;  // skip methods propagated to bases
           if (!checkAttribute(child, "kind", "function"))
             continue;
           if (checkAttribute(child, "storage", "static"))
-            continue; // accept virtual methods, non-virtual methods too... mmm??. Warn that the interface class has something that is not a virtual method?
+            continue;  // accept virtual methods, non-virtual methods too... mmm??. Warn that the interface class has something that is not a virtual method?
           Node *nn = copyNode(child);
           Setattr(nn, "interface:owner", cls);
           ParmList *parms = CopyParmList(Getattr(child, "parms"));
@@ -96,7 +96,11 @@ static void collect_interface_base_classes(Node *n) {
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
         if (!GetFlag(base.item, "feature:ignore")) {
           if (!GetFlag(base.item, "feature:interface")) {
-            Swig_error(Getfile(n), Getline(n), "Base class '%s' of '%s' is not similarly marked as an interface.\n", SwigType_namestr(Getattr(base.item, "name")), SwigType_namestr(Getattr(n, "name")));
+            Swig_error(Getfile(n),
+                       Getline(n),
+                       "Base class '%s' of '%s' is not similarly marked as an interface.\n",
+                       SwigType_namestr(Getattr(base.item, "name")),
+                       SwigType_namestr(Getattr(n, "name")));
             Exit(EXIT_FAILURE);
           }
         }
@@ -152,12 +156,12 @@ void Swig_interface_propagate_methods(Node *n) {
         continue;
       String *this_decl = Getattr(mi.item, "decl");
       String *this_decl_resolved = SwigType_typedef_resolve_all(this_decl);
-      bool identically_overloaded_method = false; // true when a base class' method is implemented in n
+      bool identically_overloaded_method = false;  // true when a base class' method is implemented in n
       if (SwigType_isfunction(this_decl_resolved)) {
         String *name = Getattr(mi.item, "name");
         for (Node *child = firstChild(n); child; child = nextSibling(child)) {
           if (Getattr(child, "interface:owner"))
-            break; // at the end of the list are newly appended methods
+            break;  // at the end of the list are newly appended methods
           if (Cmp(nodeType(child), "cdecl") == 0) {
             if (checkAttribute(child, "name", name)) {
               String *decl = SwigType_typedef_resolve_all(Getattr(child, "decl"));

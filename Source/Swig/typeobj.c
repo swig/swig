@@ -135,7 +135,7 @@ static int element_size(char *c) {
   while (*c) {
     if (*c == '.') {
       c++;
-      return (int) (c - s);
+      return (int)(c - s);
     } else if (*c == '(') {
       nparen = 1;
       c++;
@@ -153,7 +153,7 @@ static int element_size(char *c) {
     if (*c)
       c++;
   }
-  return (int) (c - s);
+  return (int)(c - s);
 }
 
 /* -----------------------------------------------------------------------------
@@ -265,7 +265,7 @@ String *SwigType_parm(const SwigType *t) {
     }
     c++;
   }
-  return NewStringWithSize(start, (int) (c - start));
+  return NewStringWithSize(start, (int)(c - start));
 }
 
 /* -----------------------------------------------------------------------------
@@ -330,7 +330,7 @@ List *SwigType_parmlist(const SwigType *p) {
   itemstart = c;
   while (*c) {
     if (*c == ',') {
-      size = (int) (c - itemstart);
+      size = (int)(c - itemstart);
       item = NewStringWithSize(itemstart, size);
       Append(list, item);
       Delete(item);
@@ -354,7 +354,7 @@ List *SwigType_parmlist(const SwigType *p) {
     if (*c)
       c++;
   }
-  size = (int) (c - itemstart);
+  size = (int)(c - itemstart);
   if (size > 0) {
     item = NewStringWithSize(itemstart, size);
     Append(list, item);
@@ -561,7 +561,7 @@ SwigType *SwigType_add_qualifier(SwigType *t, const_String_or_char_ptr qual) {
   if (strncmp(c, "q(", 2) == 0) {
     allq = SwigType_parm(t);
     Append(allq, " ");
-    SwigType_del_element(t);     /* delete old qualifier list from 't' */
+    SwigType_del_element(t); /* delete old qualifier list from 't' */
   } else {
     allq = NewStringEmpty();
   }
@@ -748,7 +748,6 @@ int SwigType_prefix_is_simple_1D_array(const SwigType *t) {
   return 0;
 }
 
-
 /* Remove all arrays */
 SwigType *SwigType_pop_arrays(SwigType *t) {
   String *ta;
@@ -844,7 +843,6 @@ SwigType *SwigType_array_type(const SwigType *ty) {
   }
   return t;
 }
-
 
 /* -----------------------------------------------------------------------------
  *                                    Functions
@@ -1054,7 +1052,6 @@ SwigType *SwigType_add_template(SwigType *t, ParmList *parms) {
   Append(t, ")>");
   return t;
 }
-
 
 /* -----------------------------------------------------------------------------
  * SwigType_templateprefix()
@@ -1401,4 +1398,3 @@ SwigType *SwigType_strip_single_qualifier(const SwigType *t) {
   }
   return r;
 }
-

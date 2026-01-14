@@ -24,7 +24,6 @@ static Hash *fragments = 0;
 static Hash *looking_fragments = 0;
 static int debug = 0;
 
-
 /* -----------------------------------------------------------------------------
  * Swig_fragment_register()
  *
@@ -79,8 +78,7 @@ void Swig_fragment_register(Node *fragment) {
  * Emit a fragment
  * ----------------------------------------------------------------------------- */
 
-static
-char *char_index(char *str, char c) {
+static char *char_index(char *str, char c) {
   while (*str && (c != *str))
     ++str;
   return (c == *str) ? str : 0;

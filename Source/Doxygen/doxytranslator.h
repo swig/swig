@@ -21,7 +21,6 @@
 #include <list>
 #include <string>
 
-
 /*
  * This is a base class for translator classes. It defines the basic interface
  * for translators, which convert Doxygen comments into alternative formats for

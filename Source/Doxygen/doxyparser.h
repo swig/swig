@@ -25,10 +25,8 @@
 // include options, e.g. param[in] -> param
 std::string getBaseCommand(const std::string &cmd);
 
-
 class DoxygenParser {
 private:
-
   enum DoxyCommandEnum {
     NONE = -1,
     SIMPLECOMMAND,
@@ -51,7 +49,6 @@ private:
     PLAINSTRING,
     COMMAND
   };
-
 
   /** This class contains parts of Doxygen comment as a token. */
   class Token {
@@ -78,7 +75,6 @@ private:
     }
   };
 
-
   typedef std::vector<Token> TokenList;
   typedef TokenList::const_iterator TokenListCIt;
   typedef TokenList::iterator TokenListIt;
@@ -96,7 +92,7 @@ private:
   static DoxyCommandsMap doxygenCommands;
   static std::set<std::string> doxygenSectionIndicators;
 
-  bool m_isVerbatimText; // used to handle \htmlonly and \verbatim commands
+  bool m_isVerbatimText;  // used to handle \htmlonly and \verbatim commands
   bool m_isInQuotedString;
 
   Node *m_node;
@@ -192,7 +188,7 @@ private:
    * Returns a properly formatted std::string
    * up til the command specified is encountered
    */
-  //TODO check that this behaves properly for formulas
+  // TODO check that this behaves properly for formulas
   std::string getStringTilEndCommand(const std::string &theCommand, const TokenList &tokList);
 
   /*
@@ -352,7 +348,6 @@ private:
   void processWordCommands(size_t &pos, const std::string &line);
   void processHtmlTags(size_t &pos, const std::string &line);
   void processHtmlEntities(size_t &pos, const std::string &line);
-
 
   /** Processes comment outside \htmlonly and \verbatim commands. */
   size_t processNormalComment(size_t pos, const std::string &line);

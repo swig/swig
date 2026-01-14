@@ -33,8 +33,9 @@ public:
   static const char *Level() {
     return "    ";
   }
-  // Default ctor doesn't do anything and prevents the dtor from doing anything// too and should only be used when the guard needs to be initialized// conditionally as Init() can then be called after checking some condition.// Otherwise, prefer to use the non default ctor below.
-      IndentGuard() {
+  // Default ctor doesn't do anything and prevents the dtor from doing anything// too and should only be used when the guard needs to be initialized//
+  // conditionally as Init() can then be called after checking some condition.// Otherwise, prefer to use the non default ctor below.
+  IndentGuard() {
     m_initialized = false;
   }
 
@@ -177,10 +178,7 @@ static string padCodeAndVerbatimBlocks(const string &docString) {
     if (pos == string::npos) {
       lastLineWasNonBlank = false;
     } else {
-      if (lastLineWasNonBlank &&
-          (line.compare(pos, 13, ".. code-block") == 0 ||
-           line.compare(pos, 7, ".. math") == 0 ||
-           line.compare(pos, 3, ">>>") == 0)) {
+      if (lastLineWasNonBlank && (line.compare(pos, 13, ".. code-block") == 0 || line.compare(pos, 7, ".. math") == 0 || line.compare(pos, 3, ">>>") == 0)) {
         // Must separate code or math blocks from the previous line
         result += '\n';
       }
@@ -201,9 +199,8 @@ CSharpDocConverter::TagHandlersMap::mapped_type CSharpDocConverter::make_handler
 }
 
 void CSharpDocConverter::fillStaticTables() {
-  if (tagHandlers.size()) // fill only once
+  if (tagHandlers.size())  // fill only once
     return;
-
 
   tagHandlers["a"] = make_handler(&CSharpDocConverter::handleTagWrap, "*");
   tagHandlers["b"] = make_handler(&CSharpDocConverter::handleTagWrap, "**");
@@ -361,8 +358,7 @@ void CSharpDocConverter::fillStaticTables() {
   tagHandlers["&rarr"] = make_handler(&CSharpDocConverter::handleHtmlEntity, "-->");
 }
 
-CSharpDocConverter::CSharpDocConverter(int flags):
-DoxygenTranslator(flags), m_tableLineLen(0), m_prevRowIsTH(false) {
+CSharpDocConverter::CSharpDocConverter(int flags) : DoxygenTranslator(flags), m_tableLineLen(0), m_prevRowIsTH(false) {
   fillStaticTables();
 }
 
@@ -442,7 +438,7 @@ bool CSharpDocConverter::paramExists(std::string param) {
     /* doesn't seem to work always: in some cases (especially for 'self' parameters)
      * tmap:in is present, but tmap:in:next is not and so this code skips all the parameters
      */
-    //p = Getattr(p, "tmap:in") ? Getattr(p, "tmap:in:next") : nextSibling(p);
+    // p = Getattr(p, "tmap:in") ? Getattr(p, "tmap:in:next") : nextSibling(p);
     p = nextSibling(p);
   }
 
@@ -473,7 +469,7 @@ void CSharpDocConverter::translateEntity(DoxygenEntity &doxyEntity, std::string 
   std::map<std::string, std::pair<tagHandler, std::string> >::iterator it;
   it = tagHandlers.find(getBaseCommand(doxyEntity.typeOfEntity));
   if (it != tagHandlers.end())
-    (this->*(it->second.first)) (doxyEntity, translatedComment, it->second.second);
+    (this->*(it->second.first))(doxyEntity, translatedComment, it->second.second);
 }
 
 void CSharpDocConverter::handleIgnore(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
@@ -497,7 +493,6 @@ void CSharpDocConverter::handleSummary(DoxygenEntity &tag, std::string &translat
 
   translatedComment += summary;
 
-
   translatedComment += "</summary>";
   translatedComment += "\n";
 }
@@ -511,7 +506,6 @@ void CSharpDocConverter::handleLine(DoxygenEntity &tag, std::string &translatedC
   }
   translatedComment += "</" + tagName + ">";
 }
-
 
 void CSharpDocConverter::handleNotHandled(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
 
@@ -533,7 +527,6 @@ void CSharpDocConverter::handleAddList(DoxygenEntity &tag, std::string &translat
   translatedComment += listItem;
   translatedComment += "\n";
 }
-
 
 void CSharpDocConverter::handleParagraph(DoxygenEntity &tag, std::string &translatedComment, const std::string &tagName) {
   translatedComment += "<";
@@ -560,7 +553,7 @@ void CSharpDocConverter::handleVerbatimBlock(DoxygenEntity &tag, std::string &tr
   eraseLeadingNewLine(verb);
 
   // Remove the last newline to prevent doubling the newline already present after \endverbatim
-  trimWhitespace(verb); // Needed to catch trailing newline below
+  trimWhitespace(verb);  // Needed to catch trailing newline below
   eraseTrailingSpaceNewLines(verb);
   escapeSpecificCharacters(verb);
 
@@ -777,7 +770,6 @@ void CSharpDocConverter::handleTagParam(DoxygenEntity &tag, std::string &transla
   translatedComment += "</param> \n";
 }
 
-
 void CSharpDocConverter::handleTagReturn(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
   IndentGuard indent(translatedComment, m_indent);
 
@@ -786,7 +778,6 @@ void CSharpDocConverter::handleTagReturn(DoxygenEntity &tag, std::string &transl
   eraseTrailingSpaceNewLines(translatedComment);
   translatedComment += "</returns> \n";
 }
-
 
 void CSharpDocConverter::handleTagException(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
   IndentGuard indent(translatedComment, m_indent);
@@ -806,7 +797,6 @@ void CSharpDocConverter::handleTagException(DoxygenEntity &tag, std::string &tra
 
   translatedComment += "</exception> \n";
 }
-
 
 void CSharpDocConverter::handleTagRef(DoxygenEntity &tag, std::string &translatedComment, const std::string &) {
 
@@ -828,9 +818,8 @@ void CSharpDocConverter::handleTagRef(DoxygenEntity &tag, std::string &translate
   translatedComment += "\\ref " + anchorText;
 }
 
-
 void CSharpDocConverter::handleTagWrap(DoxygenEntity &tag, std::string &translatedComment, const std::string &arg) {
-  if (tag.entityList.size()) { // do not include empty tags
+  if (tag.entityList.size()) {  // do not include empty tags
     std::string tagData = translateSubtree(tag);
     // wrap the thing, ignoring whitespace
     size_t wsPos = tagData.find_last_not_of("\n\t ");
@@ -907,7 +896,7 @@ void CSharpDocConverter::handleDoxyHtmlTag_tr(DoxygenEntity &tag, std::string &t
       translatedComment += string(m_tableLineLen, '-') + '\n';
 
       if (nlPos != string::npos) {
-        translatedComment += string (numLeadingSpaces, ' ');
+        translatedComment += string(numLeadingSpaces, ' ');
       }
       m_prevRowIsTH = false;
     }

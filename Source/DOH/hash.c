@@ -44,7 +44,7 @@ static int max_expand = 1;
 
 /* Find or create a key in the interned key table */
 static DOH *find_key(DOH *doh_c) {
-  char *c = (char *) doh_c;
+  char *c = (char *)doh_c;
   KeyValue *r, *s;
   int d = 0;
   /* OK, sure, we use a binary tree for maintaining interned
@@ -63,8 +63,8 @@ static DOH *find_key(DOH *doh_c) {
       r = r->right;
   }
   /*  fprintf(stderr,"Interning '%s'\n", c); */
-  r = (KeyValue *) DohMalloc(sizeof(KeyValue));
-  r->cstr = (char *) DohMalloc(strlen(c) + 1);
+  r = (KeyValue *)DohMalloc(sizeof(KeyValue));
+  r->cstr = (char *)DohMalloc(strlen(c) + 1);
   strcpy(r->cstr, c);
   r->sstr = NewString(c);
   DohIntern(r->sstr);
@@ -81,11 +81,11 @@ static DOH *find_key(DOH *doh_c) {
   return r->sstr;
 }
 
-#define HASH_INIT_SIZE   7
+#define HASH_INIT_SIZE 7
 
 /* Create a new hash node */
 static HashNode *NewNode(DOH *k, void *obj) {
-  HashNode *hn = (HashNode *) DohMalloc(sizeof(HashNode));
+  HashNode *hn = (HashNode *)DohMalloc(sizeof(HashNode));
   hn->key = k;
   Incref(hn->key);
   hn->object = obj;
@@ -108,7 +108,7 @@ static void DelNode(HashNode *hn) {
  * ----------------------------------------------------------------------------- */
 
 static void DelHash(DOH *ho) {
-  Hash *h = (Hash *) ObjData(ho);
+  Hash *h = (Hash *)ObjData(ho);
   HashNode *n, *next;
   int i;
 
@@ -134,7 +134,7 @@ static void DelHash(DOH *ho) {
  * ----------------------------------------------------------------------------- */
 
 static void Hash_clear(DOH *ho) {
-  Hash *h = (Hash *) ObjData(ho);
+  Hash *h = (Hash *)ObjData(ho);
   HashNode *n, *next;
   int i;
 
@@ -174,7 +174,7 @@ static void resize(Hash *h) {
     p = p + 2;
   }
 
-  table = (HashNode **) DohCalloc(newsize, sizeof(HashNode *));
+  table = (HashNode **)DohCalloc(newsize, sizeof(HashNode *));
 
   /* Walk down the old set of nodes and re-place */
   h->hashsize = newsize;
@@ -202,7 +202,7 @@ static void resize(Hash *h) {
 static int Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
   int hv;
   HashNode *n, *prev;
-  Hash *h = (Hash *) ObjData(ho);
+  Hash *h = (Hash *)ObjData(ho);
 
   if (!obj) {
     return DohDelattr(ho, k);
@@ -210,7 +210,7 @@ static int Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
   if (!DohCheck(k))
     k = find_key(k);
   if (!DohCheck(obj)) {
-    obj = NewString((char *) obj);
+    obj = NewString((char *)obj);
     Decref(obj);
   }
   hv = (Hashval(k)) % h->hashsize;
@@ -226,7 +226,7 @@ static int Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
       Delete(n->object);
       n->object = obj;
       Incref(obj);
-      return 1;                 /* Return 1 to indicate a replacement */
+      return 1; /* Return 1 to indicate a replacement */
     } else {
       prev = n;
       n = n->next;
@@ -248,28 +248,29 @@ static int Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
  *
  * Get an attribute from the hash table. Returns 0 if it doesn't exist.
  * ----------------------------------------------------------------------------- */
-typedef int (*binop) (DOH *obj1, DOH *obj2);
-
+typedef int (*binop)(DOH *obj1, DOH *obj2);
 
 static DOH *Hash_getattr(DOH *h, DOH *k) {
   DOH *obj = 0;
-  Hash *ho = (Hash *) ObjData(h);
+  Hash *ho = (Hash *)ObjData(h);
   DOH *ko = DohCheck(k) ? k : find_key(k);
   int hv = Hashval(ko) % ho->hashsize;
-  DohObjInfo *k_type = ((DohBase*)ko)->type;
+  DohObjInfo *k_type = ((DohBase *)ko)->type;
   HashNode *n = ho->hashtable[hv];
   if (k_type->doh_equal) {
     binop equal = k_type->doh_equal;
     while (n) {
       DohBase *nk = (DohBase *)n->key;
-      if ((k_type == nk->type) && equal(ko, nk)) obj = n->object;
+      if ((k_type == nk->type) && equal(ko, nk))
+        obj = n->object;
       n = n->next;
     }
   } else {
     binop cmp = k_type->doh_cmp;
     while (n) {
       DohBase *nk = (DohBase *)n->key;
-      if ((k_type == nk->type) && (cmp(ko, nk) == 0)) obj = n->object;
+      if ((k_type == nk->type) && (cmp(ko, nk) == 0))
+        obj = n->object;
       n = n->next;
     }
   }
@@ -285,7 +286,7 @@ static DOH *Hash_getattr(DOH *h, DOH *k) {
 static int Hash_delattr(DOH *ho, DOH *k) {
   HashNode *n, *prev;
   int hv;
-  Hash *h = (Hash *) ObjData(ho);
+  Hash *h = (Hash *)ObjData(ho);
 
   if (!DohCheck(k))
     k = find_key(k);
@@ -313,12 +314,12 @@ static int Hash_delattr(DOH *ho, DOH *k) {
 
 static DohIterator Hash_firstiter(DOH *ho) {
   DohIterator iter;
-  Hash *h = (Hash *) ObjData(ho);
+  Hash *h = (Hash *)ObjData(ho);
   iter.object = ho;
   iter._current = 0;
   iter.item = 0;
   iter.key = 0;
-  iter._index = 0;              /* Index in hash table */
+  iter._index = 0; /* Index in hash table */
   while ((iter._index < h->hashsize) && !h->hashtable[iter._index])
     iter._index++;
 
@@ -326,17 +327,17 @@ static DohIterator Hash_firstiter(DOH *ho) {
     return iter;
   }
   iter._current = h->hashtable[iter._index];
-  iter.item = ((HashNode *) iter._current)->object;
-  iter.key = ((HashNode *) iter._current)->key;
+  iter.item = ((HashNode *)iter._current)->object;
+  iter.key = ((HashNode *)iter._current)->key;
 
   /* Actually save the next slot in the hash.  This makes it possible to
      delete the item being iterated over without trashing the universe */
-  iter._current = ((HashNode *) iter._current)->next;
+  iter._current = ((HashNode *)iter._current)->next;
   return iter;
 }
 
 static DohIterator Hash_nextiter(DohIterator iter) {
-  Hash *h = (Hash *) ObjData(iter.object);
+  Hash *h = (Hash *)ObjData(iter.object);
   if (!iter._current) {
     iter._index++;
     while ((iter._index < h->hashsize) && !h->hashtable[iter._index]) {
@@ -350,11 +351,11 @@ static DohIterator Hash_nextiter(DohIterator iter) {
     }
     iter._current = h->hashtable[iter._index];
   }
-  iter.key = ((HashNode *) iter._current)->key;
-  iter.item = ((HashNode *) iter._current)->object;
+  iter.key = ((HashNode *)iter._current)->key;
+  iter.item = ((HashNode *)iter._current)->object;
 
   /* Store the next node to iterator on */
-  iter._current = ((HashNode *) iter._current)->next;
+  iter._current = ((HashNode *)iter._current)->next;
   return iter;
 }
 
@@ -407,7 +408,7 @@ static DOH *Hash_str(DOH *ho) {
   DOH *s;
   static int expanded = 0;
   static const char *tab = "  ";
-  Hash *h = (Hash *) ObjData(ho);
+  Hash *h = (Hash *)ObjData(ho);
 
   s = NewStringEmpty();
   if (ObjGetMark(ho)) {
@@ -454,7 +455,7 @@ static DOH *Hash_str(DOH *ho) {
  * ----------------------------------------------------------------------------- */
 
 static int Hash_len(DOH *ho) {
-  Hash *h = (Hash *) ObjData(ho);
+  Hash *h = (Hash *)ObjData(ho);
   return h->nitems;
 }
 
@@ -470,10 +471,10 @@ static DOH *CopyHash(DOH *ho) {
   DOH *nho;
 
   int i;
-  h = (Hash *) ObjData(ho);
-  nh = (Hash *) DohMalloc(sizeof(Hash));
+  h = (Hash *)ObjData(ho);
+  nh = (Hash *)DohMalloc(sizeof(Hash));
   nh->hashsize = h->hashsize;
-  nh->hashtable = (HashNode **) DohMalloc(nh->hashsize * sizeof(HashNode *));
+  nh->hashtable = (HashNode **)DohMalloc(nh->hashsize * sizeof(HashNode *));
   for (i = 0; i < nh->hashsize; i++) {
     nh->hashtable[i] = 0;
   }
@@ -494,11 +495,9 @@ static DOH *CopyHash(DOH *ho) {
   return nho;
 }
 
-
-
 static void Hash_setfile(DOH *ho, DOH *file) {
   DOH *fo;
-  Hash *h = (Hash *) ObjData(ho);
+  Hash *h = (Hash *)ObjData(ho);
 
   if (!DohCheck(file)) {
     fo = NewString(file);
@@ -511,17 +510,17 @@ static void Hash_setfile(DOH *ho, DOH *file) {
 }
 
 static DOH *Hash_getfile(DOH *ho) {
-  Hash *h = (Hash *) ObjData(ho);
+  Hash *h = (Hash *)ObjData(ho);
   return h->file;
 }
 
 static void Hash_setline(DOH *ho, int line) {
-  Hash *h = (Hash *) ObjData(ho);
+  Hash *h = (Hash *)ObjData(ho);
   h->line = line;
 }
 
 static int Hash_getline(DOH *ho) {
-  Hash *h = (Hash *) ObjData(ho);
+  Hash *h = (Hash *)ObjData(ho);
   return h->line;
 }
 
@@ -537,29 +536,29 @@ static DohHashMethods HashHashMethods = {
 };
 
 DohObjInfo DohHashType = {
-  "Hash",                       /* objname */
-  DelHash,                      /* doh_del */
-  CopyHash,                     /* doh_copy */
-  Hash_clear,                   /* doh_clear */
-  Hash_str,                     /* doh_str */
-  0,                            /* doh_data */
-  0,                            /* doh_dump */
-  Hash_len,                     /* doh_len */
-  0,                            /* doh_hash    */
-  0,                            /* doh_cmp */
-  0,                            /* doh_equal    */
-  Hash_firstiter,               /* doh_first    */
-  Hash_nextiter,                /* doh_next     */
-  Hash_setfile,                 /* doh_setfile */
-  Hash_getfile,                 /* doh_getfile */
-  Hash_setline,                 /* doh_setline */
-  Hash_getline,                 /* doh_getline */
-  &HashHashMethods,             /* doh_mapping */
-  0,                            /* doh_sequence */
-  0,                            /* doh_file */
-  0,                            /* doh_string */
-  0,                            /* doh_reserved */
-  0,                            /* clientdata */
+  "Hash",           /* objname */
+  DelHash,          /* doh_del */
+  CopyHash,         /* doh_copy */
+  Hash_clear,       /* doh_clear */
+  Hash_str,         /* doh_str */
+  0,                /* doh_data */
+  0,                /* doh_dump */
+  Hash_len,         /* doh_len */
+  0,                /* doh_hash    */
+  0,                /* doh_cmp */
+  0,                /* doh_equal    */
+  Hash_firstiter,   /* doh_first    */
+  Hash_nextiter,    /* doh_next     */
+  Hash_setfile,     /* doh_setfile */
+  Hash_getfile,     /* doh_getfile */
+  Hash_setline,     /* doh_setline */
+  Hash_getline,     /* doh_getline */
+  &HashHashMethods, /* doh_mapping */
+  0,                /* doh_sequence */
+  0,                /* doh_file */
+  0,                /* doh_string */
+  0,                /* doh_reserved */
+  0,                /* clientdata */
 };
 
 /* -----------------------------------------------------------------------------
@@ -571,9 +570,9 @@ DohObjInfo DohHashType = {
 DOH *DohNewHash(void) {
   Hash *h;
   int i;
-  h = (Hash *) DohMalloc(sizeof(Hash));
+  h = (Hash *)DohMalloc(sizeof(Hash));
   h->hashsize = HASH_INIT_SIZE;
-  h->hashtable = (HashNode **) DohMalloc(h->hashsize * sizeof(HashNode *));
+  h->hashtable = (HashNode **)DohMalloc(h->hashsize * sizeof(HashNode *));
   for (i = 0; i < h->hashsize; i++) {
     h->hashtable[i] = 0;
   }
