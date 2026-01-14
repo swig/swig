@@ -36,14 +36,14 @@ namespace std {
         %extend {
             const_reference get(int i) throw (std::out_of_range) {
                 int size = int(self->size());
-                if (i>=0 && i<size)
+                if (i >= 0 && i < size)
                     return (*self)[i];
                 else
                     throw std::out_of_range("vector index out of range");
             }
             void set(int i, const value_type& val) throw (std::out_of_range) {
                 int size = int(self->size());
-                if (i>=0 && i<size)
+                if (i >= 0 && i < size)
                     (*self)[i] = val;
                 else
                     throw std::out_of_range("vector index out of range");
@@ -77,14 +77,14 @@ namespace std {
         %extend {
             bool get(int i) throw (std::out_of_range) {
                 int size = int(self->size());
-                if (i>=0 && i<size)
+                if (i >= 0 && i < size)
                     return (*self)[i];
                 else
                     throw std::out_of_range("vector index out of range");
             }
             void set(int i, const value_type& val) throw (std::out_of_range) {
                 int size = int(self->size());
-                if (i>=0 && i<size)
+                if (i >= 0 && i < size)
                     (*self)[i] = val;
                 else
                     throw std::out_of_range("vector index out of range");

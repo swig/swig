@@ -94,9 +94,9 @@ static JSValue $jswrapper(JSContext *ctx, JSValueConst this_val, int argc, JSVal
  * ----------------------------------------------------------------------------- */
 %fragment ("js_ctor_dispatch_case", "templates")
 %{
-  if(argc >= $jsargrequired && argc <= $jsargcount) {
+  if (argc >= $jsargrequired && argc <= $jsargcount) {
     this_val = $jswrapper(ctx, this_val, argc, argv);
-    if(!JS_IsException(this_val)) {
+    if (!JS_IsException(this_val)) {
       JS_FreeValue(ctx, JS_GetException(ctx)); /* clear previous exception in the dispatch */
       return this_val;
     }
@@ -119,7 +119,7 @@ static void $jswrapper(JSRuntime *rt, JSValueConst this_val)
   printf("$jswrapper: %p (%p) (own=%d)\n", swig_object, swig_object->ptr, swig_object->own);
 #endif
 
-  if(swig_object) {
+  if (swig_object) {
     if (swig_object->own) {
       js_free_rt(rt, ($jstype)swig_object->ptr);
     }
@@ -147,7 +147,7 @@ static void $jswrapper(JSRuntime *rt, JSValueConst this_val)
   printf("$jswrapper: %p (%p) (own=%d)\n", swig_object, swig_object->ptr, swig_object->own);
 #endif
 
-  if(swig_object) {
+  if (swig_object) {
     if (swig_object->own) {
       $jstype arg1 = ($jstype)swig_object->ptr;
       ${destructor_action}
@@ -290,9 +290,9 @@ static int $jswrapper(JSContext *ctx, JSValueConst this_val, int argc, JSValueCo
  * ----------------------------------------------------------------------------- */
 %fragment ("js_function_dispatch_case", "templates")
 %{
-  if(argc >= $jsargrequired && argc <= $jsargcount) {
+  if (argc >= $jsargrequired && argc <= $jsargcount) {
      res = $jswrapper(ctx, this_val, argc, argv, &jsresult);
-     if(res == SWIG_OK) { return jsresult; }
+     if (res == SWIG_OK) { return jsresult; }
   }
 %}
 
@@ -302,7 +302,7 @@ static int $jswrapper(JSContext *ctx, JSValueConst this_val, int argc, JSValueCo
  * ----------------------------------------------------------------------------- */
 %fragment ("js_check_arg", "templates")
 %{
-  if(argc > $jsarg)%}
+  if (argc > $jsarg)%}
 
 /* -----------------------------------------------------------------------------
  * quickjs_constant_declaration:  template for a constant table entry
@@ -425,7 +425,7 @@ static const char *$jsmangledname_class_bases[] = {
  * ----------------------------------------------------------------------------- */
 %fragment ("quickjs_class_registration", "templates")
 %{
-  if(SWIG_QuickJS_registerClass(ctx,
+  if (SWIG_QuickJS_registerClass(ctx,
       $jsnspace_namespace,
       "$jsname",
       &$jsmangledname_class_definition,
@@ -464,7 +464,7 @@ static JSValue $jsmangledname_namespace = JS_UNDEFINED;
  * ----------------------------------------------------------------------------- */
 %fragment ("quickjs_nspace_definition", "templates")
 %{
-  if(SWIG_QuickJS_initializeNamespace(ctx,
+  if (SWIG_QuickJS_initializeNamespace(ctx,
     "$jsmangledname",
     &($jsmangledname_namespace),
     $jsmangledname_functions, countof($jsmangledname_functions),
@@ -482,7 +482,7 @@ static JSValue $jsmangledname_namespace = JS_UNDEFINED;
  * ----------------------------------------------------------------------------- */
 %fragment ("quickjs_nspace_registration", "templates")
 %{
-  if(JS_SetPropertyStr(ctx, $jsparent_namespace, "$jsname", $jsmangledname_namespace) == -1) {
+  if (JS_SetPropertyStr(ctx, $jsparent_namespace, "$jsname", $jsmangledname_namespace) == -1) {
     return SWIG_ERROR;
   }
 %}
