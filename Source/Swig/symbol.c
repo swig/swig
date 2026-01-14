@@ -168,11 +168,11 @@
  *
  * ----------------------------------------------------------------------------- */
 
-static Hash *current = 0;	/* The current symbol table hash */
-static Hash *ccurrent = 0;	/* The current c symbol table hash */
-static Hash *current_symtab = 0;	/* Current symbol table node */
-static Hash *symtabs = 0;	/* Hash of all symbol tables by fully-qualified name */
-static Hash *global_scope = 0;	/* Global scope */
+static Hash *current = 0;       /* The current symbol table hash */
+static Hash *ccurrent = 0;      /* The current c symbol table hash */
+static Hash *current_symtab = 0;        /* Current symbol table node */
+static Hash *symtabs = 0;       /* Hash of all symbol tables by fully-qualified name */
+static Hash *global_scope = 0;  /* Global scope */
 
 static int use_inherit = 1;
 
@@ -516,7 +516,7 @@ void Swig_symbol_inherit(Symtab *s) {
   for (i = 0; i < ilen; i++) {
     Node *n = Getitem(inherit, i);
     if (n == s)
-      return;			/* Already inherited */
+      return;                   /* Already inherited */
   }
   Append(inherit, s);
 }
@@ -840,7 +840,7 @@ static Node *symbol_add(const_String_or_char_ptr symname, Node *n) {
       /* Make sure the other node is a typedef */
       s = Getattr(other, "storage");
       if (!s || (!Equal(s, "typedef")))
-        return c;		/* No.  This is a conflict */
+        return c;               /* No.  This is a conflict */
 
       /* Hmmm.  This appears to be okay.  Make sure the symbol table refers to the allow_type node */
 
@@ -1245,7 +1245,7 @@ Node *Swig_symbol_clookup(const_String_or_char_ptr name, Symtab *n) {
     } else {
       String *uname = Getattr(s, "uname");
       Symtab *un = Getattr(s, "sym:symtab");
-      Node *ss = (!Equal(name, uname) || (un != n)) ? Swig_symbol_clookup(uname, un) : 0;	/* avoid infinity loop */
+      Node *ss = (!Equal(name, uname) || (un != n)) ? Swig_symbol_clookup(uname, un) : 0;       /* avoid infinity loop */
       if (!ss) {
         SWIG_WARN_NODE_BEGIN(s);
         Swig_warning(WARN_PARSE_USING_UNDEF, Getfile(s), Getline(s), "Nothing known about '%s'.\n", SwigType_namestr(uname));
@@ -1493,8 +1493,8 @@ void Swig_symbol_remove(Node *n) {
   Node *symprev;
   Node *symnext;
   Node *fixovername = 0;
-  symtab = Getattr(n, "sym:symtab");	/* Get symbol table object */
-  symtab = Getattr(symtab, "symtab");	/* Get actual hash table of symbols */
+  symtab = Getattr(n, "sym:symtab");    /* Get symbol table object */
+  symtab = Getattr(symtab, "symtab");   /* Get actual hash table of symbols */
   symname = Getattr(n, "sym:name");
   symprev = Getattr(n, "sym:previousSibling");
   symnext = Getattr(n, "sym:nextSibling");
@@ -1503,7 +1503,7 @@ void Swig_symbol_remove(Node *n) {
   if (symprev) {
     if (symnext) {
       Setattr(symprev, "sym:nextSibling", symnext);
-      fixovername = symprev;	/* fix as symbol to remove is somewhere in the middle of the linked list */
+      fixovername = symprev;    /* fix as symbol to remove is somewhere in the middle of the linked list */
     } else {
       Delattr(symprev, "sym:nextSibling");
     }
@@ -1511,7 +1511,7 @@ void Swig_symbol_remove(Node *n) {
     /* If no previous symbol, see if there is a next symbol */
     if (symnext) {
       Setattr(symtab, symname, symnext);
-      fixovername = symnext;	/* fix as symbol to remove is at head of linked list */
+      fixovername = symnext;    /* fix as symbol to remove is at head of linked list */
     } else {
       if (symname)
         Delattr(symtab, symname);

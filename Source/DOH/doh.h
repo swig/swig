@@ -160,11 +160,11 @@ typedef const DOHString_or_char * DOHconst_String_or_char_ptr;
 /* Iterator objects */
 
 typedef struct {
-  void *key;			/* Current key (if any)       */
-  void *item;			/* Current item               */
-  void *object;			/* Object being iterated over */
-  void *_current;		/* Internal use */
-  int _index;			/* Internal use */
+  void *key;                    /* Current key (if any)       */
+  void *item;                   /* Current item               */
+  void *object;                 /* Object being iterated over */
+  void *_current;               /* Internal use */
+  int _index;                   /* Internal use */
 } DohIterator;
 
 /* Memory management */
@@ -178,12 +178,12 @@ extern void *DohCalloc(size_t n, size_t size);
 #define DohFree free
 #endif
 
-extern int DohCheck(const DOH *ptr);	/* Check if a DOH object */
-extern void DohIntern(DOH *);	/* Intern an object      */
+extern int DohCheck(const DOH *ptr);    /* Check if a DOH object */
+extern void DohIntern(DOH *);   /* Intern an object      */
 
 /* Basic object methods.  Common to most objects */
 
-extern void DohDelete(DOH *obj);	/* Delete an object      */
+extern void DohDelete(DOH *obj);        /* Delete an object      */
 extern DOH *DohCopy(const DOH *obj);
 extern void DohClear(DOH *obj);
 extern DOHString *DohStr(const DOH *obj);
@@ -504,4 +504,4 @@ extern void DohMemoryDebug(void);
 # pragma GCC poison abort exit
 #endif
 
-#endif				/* SWIG_DOH_H */
+#endif                          /* SWIG_DOH_H */

@@ -50,11 +50,11 @@ typedef struct {
 #define  OP_UMINUS   100
 #define  OP_UPLUS    101
 
-static exprval stack[256];	/* Parsing stack       */
-static int sp = 0;		/* Stack pointer       */
-static int prec[256];		/* Precedence rules    */
-static int expr_init = 0;	/* Initialization flag */
-static const char *errmsg = 0;	/* Parsing error       */
+static exprval stack[256];      /* Parsing stack       */
+static int sp = 0;              /* Stack pointer       */
+static int prec[256];           /* Precedence rules    */
+static int expr_init = 0;       /* Initialization flag */
+static const char *errmsg = 0;  /* Parsing error       */
 
 /* Initialize the precedence table for various operators.  Low values have higher precedence */
 static void init_precedence(void) {
@@ -245,7 +245,7 @@ static int reduce_op(void) {
     }
   }
   stack[sp].op = EXPR_VALUE;
-  stack[sp].svalue = 0;		/* ensure it's not a string! */
+  stack[sp].svalue = 0;         /* ensure it's not a string! */
   return 1;
 }
 
@@ -431,7 +431,7 @@ int Preprocessor_expr(DOH *s, int *error) {
         } else {
           if (stack[sp - 1].op != EXPR_OP)
             goto syntax_error_expected_operator;
-          op = stack[sp - 1].value;	/* Previous operator */
+          op = stack[sp - 1].value;     /* Previous operator */
 
           /* Now, depending on the precedence relationship between the last operator and the current
              we will reduce or push */

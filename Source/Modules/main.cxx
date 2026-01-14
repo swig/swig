@@ -24,19 +24,19 @@
 #include "cparse.h"
 #include <ctype.h>
 #include <errno.h>
-#include <limits.h>		// for INT_MAX
+#include <limits.h>             // for INT_MAX
 
 // Global variables
 
-static Language *lang = 0;	// Language method
+static Language *lang = 0;      // Language method
 int CPlusPlus = 0;
-int Extend = 0;			// Extend flag
-int ForceExtern = 0;		// Force extern mode
+int Extend = 0;                 // Extend flag
+int ForceExtern = 0;            // Force extern mode
 int Verbose = 0;
 int AddExtern = 0;
 int NoExcept = 0;
 extern "C" {
-  int UseWrapperSuffix = 0;	// If 1, append suffix to non-overloaded functions too.
+  int UseWrapperSuffix = 0;     // If 1, append suffix to non-overloaded functions too.
 }
 
 /* Suppress warning messages for private inheritance, etc by default.
@@ -903,7 +903,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
       *(p + 1) = '\0';
       SwigLib = NewStringf("%sLib", buf); // Native windows installation path
     } else {
-      SwigLib = NewStringf("");	// Unexpected error
+      SwigLib = NewStringf(""); // Unexpected error
     }
     if (Len(SWIG_LIB_WIN_UNIX) > 0)
       SwigLibWinUnix = NewString(SWIG_LIB_WIN_UNIX); // Unix installation path using a drive letter (for msys/mingw)
@@ -924,7 +924,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 
   if (help) {
     Printf(stdout, "\nNote: 'swig -<lang> -help' displays options for a specific target language.\n\n");
-    Exit(EXIT_SUCCESS);	// Exit if we're in help mode
+    Exit(EXIT_SUCCESS); // Exit if we're in help mode
   }
 
   // Check all of the options to make sure we're cool.

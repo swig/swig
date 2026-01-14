@@ -274,7 +274,7 @@ public:
     Replaceall(initSection, "<module>", gatewayName);
 
     /* Write all to the wrapper file */
-    SwigType_emit_type_table(runtimeSection, wrappersSection);	// Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
+    SwigType_emit_type_table(runtimeSection, wrappersSection);  // Declare pointer types, ... (Ex: SWIGTYPE_p_p_double)
 
     // Gateway header source merged with wrapper source in nobuilder mode
     if (!generateBuilder) {
@@ -336,8 +336,8 @@ public:
     SwigType *functionReturnType = Getattr(node, "type");
     ParmList *functionParamsList = Getattr(node, "parms");
 
-    int paramIndex = 0;		// Used for loops over ParmsList
-    Parm *param = NULL;		// Used for loops over ParamsList
+    int paramIndex = 0;         // Used for loops over ParmsList
+    Parm *param = NULL;         // Used for loops over ParamsList
 
     /* Create the wrapper object */
     Wrapper *wrapper = NewWrapper();
@@ -415,7 +415,7 @@ public:
           Replaceall(paramTypemap, "$disown", "0");
         }
 
-        if (paramIndex >= minInputArguments) {	/* Optional input argument management */
+        if (paramIndex >= minInputArguments) {  /* Optional input argument management */
           Printf(wrapper->code, "if (SWIG_NbInputArgument(pvApiCtx) > %d) {\n%s\n}\n", paramIndex, paramTypemap);
         } else {
           Printf(wrapper->code, "%s\n", paramTypemap);
@@ -610,8 +610,8 @@ public:
   virtual int variableWrapper(Node *node) {
 
     /* Get information about variable */
-    String *origVariableName = Getattr(node, "name");	// Ex: Shape::nshapes
-    String *variableName = Getattr(node, "sym:name");	// Ex; Shape_nshapes (can be used for function names, ...)
+    String *origVariableName = Getattr(node, "name");   // Ex: Shape::nshapes
+    String *variableName = Getattr(node, "sym:name");   // Ex; Shape_nshapes (can be used for function names, ...)
     String *smallVariableName = createSmallIdentifierName(variableName, SCILAB_IDENTIFIER_NAME_CHAR_MAX - 4);
 
     /* Manage GET function */
@@ -857,7 +857,7 @@ public:
     builderCode5 = NewString("");
     builderCode6 = NewString("");
     Printf(builderCode, "mode(-1);\n");
-    Printf(builderCode, "lines(0);\n");	/* Useful for automatic tests */
+    Printf(builderCode, "lines(0);\n"); /* Useful for automatic tests */
 
     // Scilab needs to be in the build directory
     Printf(builderCode, "originaldir = pwd();\n");

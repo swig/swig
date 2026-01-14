@@ -40,8 +40,8 @@
 #  define  DEFAULT_ERROR_MSG_FORMAT EMF_STANDARD
 #endif
 static ErrorMessageFormat msg_format = DEFAULT_ERROR_MSG_FORMAT;
-static int silence = 0;		/* Silent operation */
-static String *filter = 0;	/* Warning filter */
+static int silence = 0;         /* Silent operation */
+static String *filter = 0;      /* Warning filter */
 static int warnall = 0;
 static int nwarning = 0;
 static int nerrors = 0;
@@ -94,11 +94,11 @@ void Swig_warning(int wnum, const_String_or_char_ptr filename, int line, const c
     sprintf(temp, "%d", wnum);
     while (*f != '\0' && (c = strstr(f, temp))) {
       if (*(c - 1) == '-') {
-        wrn = 0;		/* Warning disabled */
+        wrn = 0;                /* Warning disabled */
         break;
       }
       if (*(c - 1) == '+') {
-        wrn = 1;		/* Warning enabled */
+        wrn = 1;                /* Warning enabled */
         break;
       }
       f += strlen(temp);
@@ -256,7 +256,7 @@ void Swig_error_msg_format(ErrorMessageFormat format) {
   switch (format) {
   case EMF_MICROSOFT:
     fmt_line = "%s(%d) ";
-    fmt_eof = "%s(999999) ";	/* Is there a special character for EOF? Just use a large number. */
+    fmt_eof = "%s(999999) ";    /* Is there a special character for EOF? Just use a large number. */
     break;
   case EMF_STANDARD:
   default:

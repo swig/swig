@@ -660,7 +660,7 @@ static Hash *typemap_search_helper(int debug_display, Hash *tm, const String *tm
   if (tm && cqualifiedname) {
     tm1 = Getattr(tm, cqualifiedname);
     if (tm1) {
-      result = Getattr(tm1, tm_method);	/* See if there is a type - qualified name match */
+      result = Getattr(tm1, tm_method); /* See if there is a type - qualified name match */
       if (result && Getattr(result, "code"))
         goto ret_result;
       if (result)
@@ -672,7 +672,7 @@ static Hash *typemap_search_helper(int debug_display, Hash *tm, const String *tm
   if (tm && cname) {
     tm1 = Getattr(tm, cname);
     if (tm1) {
-      result = Getattr(tm1, tm_method);	/* See if there is a type - name match */
+      result = Getattr(tm1, tm_method); /* See if there is a type - name match */
       if (result && Getattr(result, "code"))
         goto ret_result;
       if (result)
@@ -682,7 +682,7 @@ static Hash *typemap_search_helper(int debug_display, Hash *tm, const String *tm
   if (debug_display)
     Printf(stdout, "  Looking for: %s\n", SwigType_str(ctype, 0));
   if (tm) {
-    result = Getattr(tm, tm_method);	/* See if there is simply a type without name match */
+    result = Getattr(tm, tm_method);    /* See if there is simply a type without name match */
     if (result && Getattr(result, "code"))
       goto ret_result;
     if (result)
@@ -1457,7 +1457,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   if (Cmp(s, "pass") == 0)
     return sdef;
 
-  s = Copy(s);			/* Make a local copy of the typemap code */
+  s = Copy(s);                  /* Make a local copy of the typemap code */
 
   /* Look in the "out" typemap for the "optimal" attribute */
   if (Cmp(cmethod, "out") == 0) {
@@ -1624,7 +1624,7 @@ static String *Swig_typemap_lookup_impl(const_String_or_char_ptr tmap_method, No
   Delete(cname);
   Delete(clname);
   Delete(mtype);
-  if (sdef) {			/* put 'ref' and 'newfree' codes together */
+  if (sdef) {                   /* put 'ref' and 'newfree' codes together */
     String *p = NewStringf("%s\n%s", sdef, s);
     Delete(s);
     Delete(sdef);
@@ -1887,7 +1887,7 @@ static void typemap_attach_parms(const_String_or_char_ptr tmap_method, ParmList 
 #ifdef SWIG_DEBUG
     Printf(stdout, "attach: %s %s %s\n", Getattr(firstp, "name"), typemap_method_name(tmap_method), s);
 #endif
-    Setattr(firstp, typemap_method_name(tmap_method), s);	/* Code object */
+    Setattr(firstp, typemap_method_name(tmap_method), s);       /* Code object */
 
     if (locals) {
       sprintf(temp, "%s:locals", cmethod);
@@ -2029,8 +2029,8 @@ void Swig_typemap_replace_embedded_typemap(String *s, Node *file_line_node) {
  * and if found will substitute in the typemap contents, making appropriate variable replacements.
  *
  * For example:
- *   $typemap(in, int)			     # simple usage matching %typemap(in) int { ... }
- *   $typemap(in, int b)		     # simple usage matching %typemap(in) int b { ... } or above %typemap
+ *   $typemap(in, int)                       # simple usage matching %typemap(in) int { ... }
+ *   $typemap(in, int b)                     # simple usage matching %typemap(in) int b { ... } or above %typemap
  *   $typemap(in, (Foo<int, bool> a, int b)) # multi-argument typemap matching %typemap(in) (Foo<int, bool> a, int b) {...}
  * ----------------------------------------------------------------------------- */
 

@@ -25,14 +25,14 @@
 extern String *input_file;
 extern int line_number;
 extern int start_line;
-extern int CPlusPlus;		// C++ mode
-extern int Extend;		// Extend mode
+extern int CPlusPlus;           // C++ mode
+extern int Extend;              // Extend mode
 extern int Verbose;
 extern int IsVirtual;
 extern int ImportMode;
-extern int NoExcept;		// -no_except option
-extern int Abstract;		// abstract base class
-extern int SmartPointer;	// smart pointer methods being emitted
+extern int NoExcept;            // -no_except option
+extern int Abstract;            // abstract base class
+extern int SmartPointer;        // smart pointer methods being emitted
 
 /* Overload "argc" and "argv" */
 extern String *argv_template_string;
@@ -100,7 +100,7 @@ public:
 protected:
   AccessMode cplus_mode;
   AccessMode accessModeFromString(String *access);
-  int abstractClassTest(Node *n);	/* Is class really abstract? */
+  int abstractClassTest(Node *n);       /* Is class really abstract? */
 };
 
 /* ----------------------------------------------------------------------------
@@ -208,8 +208,8 @@ public:
   virtual int classDirectorDisown(Node *n);
 
   /* Miscellaneous */
-  virtual int validIdentifier(String *s);	/* valid identifier? */
-  virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = "");	/* Add symbol        */
+  virtual int validIdentifier(String *s);       /* valid identifier? */
+  virtual int addSymbol(const String *s, const Node *n, const_String_or_char_ptr scope = "");   /* Add symbol        */
   virtual int addInterfaceSymbol(const String *interface_name, Node *n, const_String_or_char_ptr scope = "");
   virtual void dumpSymbols();
   virtual Node *symbolLookup(const String *s, const_String_or_char_ptr scope = ""); /* Symbol lookup */
@@ -217,10 +217,10 @@ public:
   virtual Hash* symbolScopeLookup(const_String_or_char_ptr scope);
   virtual Hash* symbolScopePseudoSymbolLookup(const_String_or_char_ptr scope);
   static Node *classLookup(const SwigType *s); /* Class lookup      */
-  static Node *enumLookup(SwigType *s);	/* Enum lookup       */
-  virtual int is_immutable(Node *n);	/* Is variable assignable? */
-  virtual String *runtimeCode();	/* returns the language specific runtime code */
-  virtual String *defaultExternalRuntimeFilename();	/* the default filename for the external runtime */
+  static Node *enumLookup(SwigType *s); /* Enum lookup       */
+  virtual int is_immutable(Node *n);    /* Is variable assignable? */
+  virtual String *runtimeCode();        /* returns the language specific runtime code */
+  virtual String *defaultExternalRuntimeFilename();     /* the default filename for the external runtime */
   virtual void replaceSpecialVariables(String *method, String *tm, Parm *parm); /* Language specific special variable substitutions for $typemap() */
 
   /* Runtime is C++ based, so extern "C" header section */

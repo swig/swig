@@ -23,11 +23,11 @@ Tcl 8 Options (available with -tcl8)\n\
      -pkgversion     - Set package version\n\
 \n";
 
-static String *cmd_tab = 0;	/* Table of command names    */
-static String *var_tab = 0;	/* Table of global variables */
-static String *const_tab = 0;	/* Constant table            */
-static String *methods_tab = 0;	/* Methods table             */
-static String *attr_tab = 0;	/* Attribute table           */
+static String *cmd_tab = 0;     /* Table of command names    */
+static String *var_tab = 0;     /* Table of global variables */
+static String *const_tab = 0;   /* Constant table            */
+static String *methods_tab = 0; /* Methods table             */
+static String *attr_tab = 0;    /* Attribute table           */
 static String *prefix = 0;
 static String *module = 0;
 static int namespace_option = 0;
@@ -259,7 +259,7 @@ public:
    * ------------------------------------------------------------ */
 
   virtual int functionWrapper(Node *n) {
-    String *name = Getattr(n, "name");	/* Like to get rid of this */
+    String *name = Getattr(n, "name");  /* Like to get rid of this */
     String *iname = Getattr(n, "sym:name");
     SwigType *returntype = Getattr(n, "type");
     ParmList *parms = Getattr(n, "parms");
@@ -515,7 +515,7 @@ public:
         Printv(df->code, dispatch, "\n", NIL);
         Node *sibl = n;
         while (Getattr(sibl, "sym:previousSibling"))
-          sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
+          sibl = Getattr(sibl, "sym:previousSibling");  // go all the way up
         String *protoTypes = NewString("");
         do {
           String *fulldecl = Swig_name_decl(sibl);

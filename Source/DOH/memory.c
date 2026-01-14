@@ -28,19 +28,19 @@
 
 static int PoolSize = DOH_POOL_SIZE;
 
-DOH *DohNone = 0;		/* The DOH None object */
+DOH *DohNone = 0;               /* The DOH None object */
 
 typedef struct pool {
-  DohBase *ptr;			/* Start of pool */
-  int len;			/* Length of pool */
-  int blen;			/* Byte length of pool */
-  int current;			/* Current position for next allocation */
-  char *pbeg;			/* Beg of pool */
-  char *pend;			/* End of pool */
-  struct pool *next;		/* Next pool */
+  DohBase *ptr;                 /* Start of pool */
+  int len;                      /* Length of pool */
+  int blen;                     /* Byte length of pool */
+  int current;                  /* Current position for next allocation */
+  char *pbeg;                   /* Beg of pool */
+  char *pend;                   /* End of pool */
+  struct pool *next;            /* Next pool */
 } Pool;
 
-static DohBase *FreeList = 0;	/* List of free objects */
+static DohBase *FreeList = 0;   /* List of free objects */
 static Pool *Pools = 0;
 static int pools_initialized = 0;
 
@@ -68,9 +68,9 @@ static void CreatePool(void) {
 static void InitPools(void) {
   if (pools_initialized)
     return;
-  CreatePool();			/* Create initial pool */
+  CreatePool();                 /* Create initial pool */
   pools_initialized = 1;
-  DohNone = NewVoid(0, 0);	/* Create the None object */
+  DohNone = NewVoid(0, 0);      /* Create the None object */
   DohIntern(DohNone);
 }
 

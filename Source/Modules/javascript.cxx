@@ -1306,7 +1306,7 @@ int JSEmitter::emitFunctionDispatcher(Node *n, bool is_member) {
   Node *sibl = n;
 
   while (Getattr(sibl, "sym:previousSibling"))
-    sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
+    sibl = Getattr(sibl, "sym:previousSibling");        // go all the way up
 
   do {
     String *siblname = Getattr(sibl, "wrap:name");

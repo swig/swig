@@ -107,54 +107,54 @@
 #define WARN_CPP14_AUTO               345
 #define WARN_CPP11_AUTO               346
 
-#define WARN_IGNORE_OPERATOR_NEW        350	/* new */
-#define WARN_IGNORE_OPERATOR_DELETE     351	/* delete */
-#define WARN_IGNORE_OPERATOR_PLUS       352	/* + */
-#define WARN_IGNORE_OPERATOR_MINUS      353	/* - */
-#define WARN_IGNORE_OPERATOR_MUL        354	/* * */
-#define WARN_IGNORE_OPERATOR_DIV        355	/* / */
-#define WARN_IGNORE_OPERATOR_MOD        356	/* % */
-#define WARN_IGNORE_OPERATOR_XOR        357	/* ^ */
-#define WARN_IGNORE_OPERATOR_AND        358	/* & */
-#define WARN_IGNORE_OPERATOR_OR         359	/* | */
-#define WARN_IGNORE_OPERATOR_NOT        360	/* ~ */
-#define WARN_IGNORE_OPERATOR_LNOT       361	/* ! */
-#define WARN_IGNORE_OPERATOR_EQ         362	/* = */
-#define WARN_IGNORE_OPERATOR_LT         363	/* < */
-#define WARN_IGNORE_OPERATOR_GT         364	/* > */
-#define WARN_IGNORE_OPERATOR_PLUSEQ     365	/* += */
-#define WARN_IGNORE_OPERATOR_MINUSEQ    366	/* -= */
-#define WARN_IGNORE_OPERATOR_MULEQ      367	/* *= */
-#define WARN_IGNORE_OPERATOR_DIVEQ      368	/* /= */
-#define WARN_IGNORE_OPERATOR_MODEQ      369	/* %= */
-#define WARN_IGNORE_OPERATOR_XOREQ      370	/* ^= */
-#define WARN_IGNORE_OPERATOR_ANDEQ      371	/* &= */
-#define WARN_IGNORE_OPERATOR_OREQ       372	/* |= */
-#define WARN_IGNORE_OPERATOR_LSHIFT     373	/* << */
-#define WARN_IGNORE_OPERATOR_RSHIFT     374	/* >> */
-#define WARN_IGNORE_OPERATOR_LSHIFTEQ   375	/* <<= */
-#define WARN_IGNORE_OPERATOR_RSHIFTEQ   376	/* >>= */
-#define WARN_IGNORE_OPERATOR_EQUALTO    377	/* == */
-#define WARN_IGNORE_OPERATOR_NOTEQUAL   378	/* != */
-#define WARN_IGNORE_OPERATOR_LTEQUAL    379	/* <= */
-#define WARN_IGNORE_OPERATOR_GTEQUAL    380	/* >= */
-#define WARN_IGNORE_OPERATOR_LAND       381	/* && */
-#define WARN_IGNORE_OPERATOR_LOR        382	/* || */
-#define WARN_IGNORE_OPERATOR_PLUSPLUS   383	/* ++ */
-#define WARN_IGNORE_OPERATOR_MINUSMINUS 384	/* -- */
-#define WARN_IGNORE_OPERATOR_COMMA      385	/* , */
-#define WARN_IGNORE_OPERATOR_ARROWSTAR  386	/* ->* */
-#define WARN_IGNORE_OPERATOR_ARROW      387	/* -> */
-#define WARN_IGNORE_OPERATOR_CALL       388	/* () */
-#define WARN_IGNORE_OPERATOR_INDEX      389	/* [] */
-#define WARN_IGNORE_OPERATOR_UPLUS      390	/* + */
-#define WARN_IGNORE_OPERATOR_UMINUS     391	/* - */
-#define WARN_IGNORE_OPERATOR_UMUL       392	/* * */
-#define WARN_IGNORE_OPERATOR_UAND       393	/* & */
-#define WARN_IGNORE_OPERATOR_NEWARR     394	/* new [] */
-#define WARN_IGNORE_OPERATOR_DELARR     395	/* delete [] */
-#define WARN_IGNORE_OPERATOR_REF        396	/* operator *() */
-#define WARN_IGNORE_OPERATOR_LTEQUALGT  397	/* <=> */
+#define WARN_IGNORE_OPERATOR_NEW        350     /* new */
+#define WARN_IGNORE_OPERATOR_DELETE     351     /* delete */
+#define WARN_IGNORE_OPERATOR_PLUS       352     /* + */
+#define WARN_IGNORE_OPERATOR_MINUS      353     /* - */
+#define WARN_IGNORE_OPERATOR_MUL        354     /* * */
+#define WARN_IGNORE_OPERATOR_DIV        355     /* / */
+#define WARN_IGNORE_OPERATOR_MOD        356     /* % */
+#define WARN_IGNORE_OPERATOR_XOR        357     /* ^ */
+#define WARN_IGNORE_OPERATOR_AND        358     /* & */
+#define WARN_IGNORE_OPERATOR_OR         359     /* | */
+#define WARN_IGNORE_OPERATOR_NOT        360     /* ~ */
+#define WARN_IGNORE_OPERATOR_LNOT       361     /* ! */
+#define WARN_IGNORE_OPERATOR_EQ         362     /* = */
+#define WARN_IGNORE_OPERATOR_LT         363     /* < */
+#define WARN_IGNORE_OPERATOR_GT         364     /* > */
+#define WARN_IGNORE_OPERATOR_PLUSEQ     365     /* += */
+#define WARN_IGNORE_OPERATOR_MINUSEQ    366     /* -= */
+#define WARN_IGNORE_OPERATOR_MULEQ      367     /* *= */
+#define WARN_IGNORE_OPERATOR_DIVEQ      368     /* /= */
+#define WARN_IGNORE_OPERATOR_MODEQ      369     /* %= */
+#define WARN_IGNORE_OPERATOR_XOREQ      370     /* ^= */
+#define WARN_IGNORE_OPERATOR_ANDEQ      371     /* &= */
+#define WARN_IGNORE_OPERATOR_OREQ       372     /* |= */
+#define WARN_IGNORE_OPERATOR_LSHIFT     373     /* << */
+#define WARN_IGNORE_OPERATOR_RSHIFT     374     /* >> */
+#define WARN_IGNORE_OPERATOR_LSHIFTEQ   375     /* <<= */
+#define WARN_IGNORE_OPERATOR_RSHIFTEQ   376     /* >>= */
+#define WARN_IGNORE_OPERATOR_EQUALTO    377     /* == */
+#define WARN_IGNORE_OPERATOR_NOTEQUAL   378     /* != */
+#define WARN_IGNORE_OPERATOR_LTEQUAL    379     /* <= */
+#define WARN_IGNORE_OPERATOR_GTEQUAL    380     /* >= */
+#define WARN_IGNORE_OPERATOR_LAND       381     /* && */
+#define WARN_IGNORE_OPERATOR_LOR        382     /* || */
+#define WARN_IGNORE_OPERATOR_PLUSPLUS   383     /* ++ */
+#define WARN_IGNORE_OPERATOR_MINUSMINUS 384     /* -- */
+#define WARN_IGNORE_OPERATOR_COMMA      385     /* , */
+#define WARN_IGNORE_OPERATOR_ARROWSTAR  386     /* ->* */
+#define WARN_IGNORE_OPERATOR_ARROW      387     /* -> */
+#define WARN_IGNORE_OPERATOR_CALL       388     /* () */
+#define WARN_IGNORE_OPERATOR_INDEX      389     /* [] */
+#define WARN_IGNORE_OPERATOR_UPLUS      390     /* + */
+#define WARN_IGNORE_OPERATOR_UMINUS     391     /* - */
+#define WARN_IGNORE_OPERATOR_UMUL       392     /* * */
+#define WARN_IGNORE_OPERATOR_UAND       393     /* & */
+#define WARN_IGNORE_OPERATOR_NEWARR     394     /* new [] */
+#define WARN_IGNORE_OPERATOR_DELARR     395     /* delete [] */
+#define WARN_IGNORE_OPERATOR_REF        396     /* operator *() */
+#define WARN_IGNORE_OPERATOR_LTEQUALGT  397     /* <=> */
 
 /* please leave 350-399 free for WARN_IGNORE_OPERATOR_* */
 
@@ -184,7 +184,7 @@
 #define WARN_TYPEMAP_TYPECHECK        467
 #define WARN_TYPEMAP_THROW            468
 #define WARN_TYPEMAP_DIRECTORIN_UNDEF  469
-#define WARN_TYPEMAP_THREAD_UNSAFE     470	/* mostly used in directorout typemaps */
+#define WARN_TYPEMAP_THREAD_UNSAFE     470      /* mostly used in directorout typemaps */
 #define WARN_TYPEMAP_DIRECTOROUT_UNDEF 471
 #define WARN_TYPEMAP_TYPECHECK_UNDEF   472
 #define WARN_TYPEMAP_DIRECTOROUT_PTR   473

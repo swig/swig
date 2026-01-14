@@ -983,7 +983,7 @@ int R::OutputClassMemberTable(Hash *tb, File *out) {
  * struct or union (or class).
  * className - the name of the struct or union (e.g. Bar for struct Bar)
  * isSet - a logical value indicating whether the method is for
- *	   modifying ($<-) or accessing ($) the member field.
+ *         modifying ($<-) or accessing ($) the member field.
  * el - a list of length  2 * # accessible member elements  + 1.
  *     The first element is the name of the class.
  *     The other pairs are  member name and the name of the R function to access it.
@@ -2412,14 +2412,14 @@ int R::classDeclaration(Node *n) {
       if (!firstItem) {
         Printf(def, ",\n");
       }
-      //	    else
+      //            else
       //XXX How can we tell if this is already done.
-      //	      SwigType_push(elType, elDecl);
+      //              SwigType_push(elType, elDecl);
 
 
       // returns ""  tp = processType(elType, c, NULL);
-      //	    Printf(stdout, "<classDeclaration> elType %p\n", elType);
-      //	    tp = getRClassNameCopyStruct(Getattr(c, "type"), 1);
+      //            Printf(stdout, "<classDeclaration> elType %p\n", elType);
+      //            tp = getRClassNameCopyStruct(Getattr(c, "type"), 1);
 
       String *elNameT = replaceInitialDash(elName);
       Printf(def, "%s%s = \"%s\"", tab8, elNameT, tp);

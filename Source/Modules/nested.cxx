@@ -66,7 +66,7 @@ static void add_symbols_c(Node *n) {
     Swig_features_get(Swig_cparse_features(), 0, name, 0, n);
     if (makename) {
       symname = make_name(n, makename, 0);
-      Delattr(n, "parser:makename");	/* temporary information, don't leave it hanging around */
+      Delattr(n, "parser:makename");    /* temporary information, don't leave it hanging around */
     } else {
       makename = name;
       symname = make_name(n, makename, 0);

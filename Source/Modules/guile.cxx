@@ -58,10 +58,10 @@ static String *prefix = NewString("gswig_");
 static char *module = 0;
 static String *package = 0;
 static enum {
-  GUILE_LSTYLE_SIMPLE,		// call `SWIG_init()'
-  GUILE_LSTYLE_PASSIVE,		// passive linking (no module code)
-  GUILE_LSTYLE_MODULE,		// native guile module linking (Guile >= 1.4.1)
-  GUILE_LSTYLE_HOBBIT		// use (hobbit4d link)
+  GUILE_LSTYLE_SIMPLE,          // call `SWIG_init()'
+  GUILE_LSTYLE_PASSIVE,         // passive linking (no module code)
+  GUILE_LSTYLE_MODULE,          // native guile module linking (Guile >= 1.4.1)
+  GUILE_LSTYLE_HOBBIT           // use (hobbit4d link)
 } linkage = GUILE_LSTYLE_SIMPLE;
 
 static File *procdoc = 0;
@@ -100,10 +100,10 @@ static String *short_class_name = 0;
 static String *goops_class_methods;
 static int in_class = 0;
 static int have_constructor = 0;
-static int useclassprefix = 0;	// -useclassprefix argument
-static String *goopsprefix = 0;	// -goopsprefix argument
-static int primRenamer = 0;	// if (use-modules ((...) :renamer ...) is exported to GOOPS file
-static int exportprimitive = 0;	// -exportprimitive argument
+static int useclassprefix = 0;  // -useclassprefix argument
+static String *goopsprefix = 0; // -goopsprefix argument
+static int primRenamer = 0;     // if (use-modules ((...) :renamer ...) is exported to GOOPS file
+static int exportprimitive = 0; // -exportprimitive argument
 static String *memberfunction_name = 0;
 
 extern "C" {
@@ -587,7 +587,7 @@ public:
     }
     const String *pn = !name ? (const String *) Getattr(p, "name") : name;
     String *pt = Getattr(p, "type");
-    Replaceall(tm, "$name", pn);	// legacy for $parmname
+    Replaceall(tm, "$name", pn);        // legacy for $parmname
     Replaceall(tm, "$type", SwigType_str(pt, 0));
     /* $NAME is like $name, but marked-up as a variable. */
     String *ARGNAME = NewString("");
@@ -916,7 +916,7 @@ public:
         int is_setter = (pc[len - 3] == 's');
         if (is_setter) {
           Printf(f_init, "SCM setter = ");
-          struct_member = 2;	/* have a setter */
+          struct_member = 2;    /* have a setter */
         } else
           Printf(f_init, "SCM getter = ");
         /* GOOPS support uses the MEMBER-set and MEMBER-get functions,
@@ -947,7 +947,7 @@ public:
         }
         Printf(f_init, "scm_c_define_gsubr(\"%s\", %d, %d, 0, (swig_guile_proc) %s);\n", proc_name, numreq, numargs - numreq, wname);
       }
-    } else {			/* overloaded function; don't export the single methods */
+    } else {                    /* overloaded function; don't export the single methods */
       if (!Getattr(n, "sym:nextSibling")) {
         /* Emit overloading dispatch function */
 
@@ -1173,7 +1173,7 @@ public:
       Printf(exported_symbols, "\"%s\", ", proc_name);
 
       // export wrapper into goops file
-      if (!in_class) {		// only if the variable is not part of a class
+      if (!in_class) {          // only if the variable is not part of a class
         String *class_name = SwigType_typedef_resolve_all(SwigType_base(t));
         String *goops_name = goopsNameMapping(proc_name, "");
         String *primitive_name = NewString("");
@@ -1540,10 +1540,10 @@ public:
       String *cmd = Getattr(n, "name");
       String *value = Getattr(n, "value");
 
-#     define store_pragma(PRAGMANAME)			\
-        if (Strcmp(cmd, #PRAGMANAME) == 0) {		\
-          if (PRAGMANAME) Delete(PRAGMANAME);		\
-          PRAGMANAME = value ? NewString(value) : NULL;	\
+#     define store_pragma(PRAGMANAME)                   \
+        if (Strcmp(cmd, #PRAGMANAME) == 0) {            \
+          if (PRAGMANAME) Delete(PRAGMANAME);           \
+          PRAGMANAME = value ? NewString(value) : NULL; \
         }
 
       if (Strcmp(lang, "guile") == 0) {

@@ -16,7 +16,7 @@
 
 #define OBUFLEN  512
 
-static DOH *encodings = 0;	/* Encoding hash */
+static DOH *encodings = 0;      /* Encoding hash */
 
 /* -----------------------------------------------------------------------------
  * Writen()
@@ -125,7 +125,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
 
   while (*p) {
     switch (state) {
-    case 0:			/* Ordinary text */
+    case 0:                     /* Ordinary text */
       if (*p != '%') {
         Putc(*p, so);
         nbytes++;
@@ -138,7 +138,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
         state = 10;
       }
       break;
-    case 10:			/* Look for a width and precision */
+    case 10:                    /* Look for a width and precision */
       if (isdigit((int) *p) && (*p != '0')) {
         w = temp;
         *(w++) = *p;
@@ -170,7 +170,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
       }
       break;
 
-    case 20:			/* Hmmm. At the start of a width field */
+    case 20:                    /* Hmmm. At the start of a width field */
       if (isdigit((int) *p)) {
         *(w++) = *p;
         *(fmt++) = *p;
@@ -195,7 +195,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
       }
       break;
 
-    case 30:			/* Parsed a width from an argument.  Look for a . */
+    case 30:                    /* Parsed a width from an argument.  Look for a . */
       if (*p == '.') {
         w = temp;
         *(fmt++) = *p;
@@ -287,7 +287,7 @@ int DohvPrintf(DOH *so, const char *format, va_list ap) {
         maxwidth = precval;
       else
         maxwidth = widthval;
-      if ((*p == 's') || (*p == 'S')) {	/* Null-Terminated string */
+      if ((*p == 's') || (*p == 'S')) { /* Null-Terminated string */
         DOH *doh;
         DOH *Sval;
         DOH *enc = 0;

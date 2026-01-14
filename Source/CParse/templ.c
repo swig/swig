@@ -936,7 +936,7 @@ static Node *template_locate(String *name, Parm *instantiated_parms, String *sym
         Swig_error(cparse_file, cparse_line, "'%s' is not defined as a template. (%s)\n", name, nodeType(n));
         Delete(tname);
         Delete(parms);
-        return 0;	  /* Found a match, but it's not a template of any kind. */
+        return 0;         /* Found a match, but it's not a template of any kind. */
       }
     }
 

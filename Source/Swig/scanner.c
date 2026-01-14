@@ -23,14 +23,14 @@ extern int cparse_cplusplus;
 extern int cparse_start_line;
 
 struct Scanner {
-  String *text;			/* Current token value */
-  List   *scanobjs;		/* Objects being scanned */
-  String *str;			/* Current object being scanned */
-  char   *idstart;		/* Optional identifier start characters */
-  int     nexttoken;		/* Next token to be returned */
-  int     start_line;		/* Starting line of certain declarations */
+  String *text;                 /* Current token value */
+  List   *scanobjs;             /* Objects being scanned */
+  String *str;                  /* Current object being scanned */
+  char   *idstart;              /* Optional identifier start characters */
+  int     nexttoken;            /* Next token to be returned */
+  int     start_line;           /* Starting line of certain declarations */
   int     line;
-  int     yylen;	        /* Length of text pushed into text */
+  int     yylen;                /* Length of text pushed into text */
   String *error;                /* Last error message (if any) */
   int     error_line;           /* Error line number */
   int     freeze_line;          /* Suspend line number updates */
@@ -546,7 +546,7 @@ static int look(Scanner *s) {
       if ((c = nextchar(s)) == EOF)
         return (0);
       if (c == '%')
-        state = 4;		/* Possibly a SWIG directive */
+        state = 4;              /* Possibly a SWIG directive */
 
       /* Look for possible identifiers or unicode/delimiter strings */
       else if ((isalpha(c)) || (c == '_') ||
@@ -612,14 +612,14 @@ static int look(Scanner *s) {
       /* Look for multi-character sequences */
 
       else if (c == '/') {
-        state = 1;		/* Comment (maybe)  */
+        state = 1;              /* Comment (maybe)  */
         s->start_line = s->line;
       }
 
       else if (c == ':')
-        state = 5;		/* maybe double colon */
+        state = 5;              /* maybe double colon */
       else if (c == '0')
-        state = 83;		/* Maybe a hex, octal or binary number */
+        state = 83;             /* Maybe a hex, octal or binary number */
       else if (c == '\"') {
         state = 2;              /* A string constant */
         s->start_line = s->line;
@@ -628,32 +628,32 @@ static int look(Scanner *s) {
       else if (c == '\'') {
         s->start_line = s->line;
         Clear(s->text);
-        state = 9;		/* A character constant */
+        state = 9;              /* A character constant */
       }
 
       else if (c == '.')
-        state = 100;		/* Maybe a number, maybe ellipsis, just a period */
+        state = 100;            /* Maybe a number, maybe ellipsis, just a period */
       else if (c == '[')
         state = 102;            /* Maybe a bracket or a double bracket */
       else if (c == ']')
         state = 103;            /* Maybe a bracket or a double bracket */
       else if (isdigit(c))
-        state = 8;		/* A numerical value */
+        state = 8;              /* A numerical value */
       else
-        state = 99;		/* An error */
+        state = 99;             /* An error */
       break;
 
-    case 1:			/*  Comment block */
+    case 1:                     /*  Comment block */
       if ((c = nextchar(s)) == EOF)
         return (0);
       if (c == '/') {
-        state = 10;		/* C++ style comment */
+        state = 10;             /* C++ style comment */
         Clear(s->text);
         Setline(s->text, Getline(s->str));
         Setfile(s->text, Getfile(s->str));
         Append(s->text, "//");
       } else if (c == '*') {
-        state = 11;		/* C style comment */
+        state = 11;             /* C style comment */
         Clear(s->text);
         Setline(s->text, Getline(s->str));
         Setfile(s->text, Getfile(s->str));
@@ -665,7 +665,7 @@ static int look(Scanner *s) {
         return SWIG_TOKEN_SLASH;
       }
       break;
-    case 10:			/* C++ style comment */
+    case 10:                    /* C++ style comment */
       if ((c = nextchar(s)) == EOF) {
         Swig_error(cparse_file, cparse_start_line, "Unterminated comment\n");
         return SWIG_TOKEN_ERROR;
@@ -677,7 +677,7 @@ static int look(Scanner *s) {
         state = 10;
       }
       break;
-    case 11:			/* C style comment block */
+    case 11:                    /* C style comment block */
       if ((c = nextchar(s)) == EOF) {
         Swig_error(cparse_file, cparse_start_line, "Unterminated comment\n");
         return SWIG_TOKEN_ERROR;
@@ -688,7 +688,7 @@ static int look(Scanner *s) {
         state = 11;
       }
       break;
-    case 12:			/* Still in C style comment */
+    case 12:                    /* Still in C style comment */
       if ((c = nextchar(s)) == EOF) {
         Swig_error(cparse_file, cparse_start_line, "Unterminated comment\n");
         return SWIG_TOKEN_ERROR;
@@ -702,7 +702,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 2:			/* Processing a string */
+    case 2:                     /* Processing a string */
       if (!str_delimiter) {
         state=20;
         break;
@@ -721,7 +721,7 @@ static int look(Scanner *s) {
 
       break;
 
-    case 20:			/* Inside the string */
+    case 20:                    /* Inside the string */
       if ((c = nextchar(s)) == EOF) {
         Swig_error(cparse_file, cparse_start_line, "Unterminated string\n");
         return SWIG_TOKEN_ERROR;
@@ -765,7 +765,7 @@ static int look(Scanner *s) {
 
       break;
 
-    case 3:			/* Maybe a not equals */
+    case 3:                     /* Maybe a not equals */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_LNOT;
       else if (c == '=')
@@ -776,7 +776,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 31:			/* AND or Logical AND or ANDEQUAL */
+    case 31:                    /* AND or Logical AND or ANDEQUAL */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_AND;
       else if (c == '&')
@@ -789,7 +789,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 32:			/* OR or Logical OR */
+    case 32:                    /* OR or Logical OR */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_OR;
       else if (c == '|')
@@ -802,7 +802,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 33:			/* EQUAL or EQUALTO */
+    case 33:                    /* EQUAL or EQUALTO */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_EQUAL;
       else if (c == '=')
@@ -813,11 +813,11 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 4:			/* A wrapper generator directive (maybe) */
+    case 4:                     /* A wrapper generator directive (maybe) */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_PERCENT;
       if (c == '{') {
-        state = 40;		/* Include block */
+        state = 40;             /* Include block */
         Clear(s->text);
         Setline(s->text, Getline(s->str));
         Setfile(s->text, Getfile(s->str));
@@ -836,7 +836,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 40:			/* Process an include block */
+    case 40:                    /* Process an include block */
       if ((c = nextchar(s)) == EOF) {
         Swig_error(cparse_file, cparse_start_line, "Unterminated block\n");
         return SWIG_TOKEN_ERROR;
@@ -844,7 +844,7 @@ static int look(Scanner *s) {
       if (c == '%')
         state = 41;
       break;
-    case 41:			/* Still processing include block */
+    case 41:                    /* Still processing include block */
       if ((c = nextchar(s)) == EOF) {
         set_error(s,s->start_line,"Unterminated code block");
         return 0;
@@ -859,7 +859,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 5:			/* Maybe a double colon */
+    case 5:                     /* Maybe a double colon */
 
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_COLON;
@@ -871,7 +871,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 50:			/* DCOLON, DCOLONSTAR */
+    case 50:                    /* DCOLON, DCOLONSTAR */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_DCOLON;
       else if (c == '*')
@@ -882,7 +882,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 60:			/* shift operators */
+    case 60:                    /* shift operators */
       if ((c = nextchar(s)) == EOF) {
         brackets_increment(s);
         return SWIG_TOKEN_LESSTHAN;
@@ -920,7 +920,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 7:			/* Identifier or true/false or unicode/custom delimiter string */
+    case 7:                     /* Identifier or true/false or unicode/custom delimiter string */
       if (c == 'R') { /* Possibly CUSTOM DELIMITER string */
         state = 72;
         break;
@@ -957,7 +957,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 70:			/* Identifier */
+    case 70:                    /* Identifier */
       if ((c = nextchar(s)) == EOF)
         state = 76;
       else if (isalnum(c) || (c == '_') || (c == '$')) {
@@ -968,7 +968,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 71:			/* Possibly u8 string/char */
+    case 71:                    /* Possibly u8 string/char */
       if ((c = nextchar(s)) == EOF) {
         state = 76;
       }
@@ -990,7 +990,7 @@ static int look(Scanner *s) {
 
       break;
 
-    case 72:			/* Possibly CUSTOM DELIMITER string */
+    case 72:                    /* Possibly CUSTOM DELIMITER string */
     case 73:
     case 74:
       if ((c = nextchar(s)) == EOF) {
@@ -1016,7 +1016,7 @@ static int look(Scanner *s) {
 
       break;
 
-    case 75:			/* Special identifier $ */
+    case 75:                    /* Special identifier $ */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_DOLLAR;
       if (isalnum(c) || (c == '_') || (c == '*') || (c == '&')) {
@@ -1028,7 +1028,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 76:			/* Identifier, true/false or alternative token */
+    case 76:                    /* Identifier, true/false or alternative token */
       if (cparse_cplusplus) {
         if (Strcmp(s->text, "true") == 0)
           return SWIG_TOKEN_BOOL;
@@ -1081,7 +1081,7 @@ static int look(Scanner *s) {
       }
     break;
 
-    case 78:			/* Processing a wide string literal*/
+    case 78:                    /* Processing a wide string literal*/
       if ((c = nextchar(s)) == EOF) {
         Swig_error(cparse_file, cparse_start_line, "Unterminated wide string\n");
         return SWIG_TOKEN_ERROR;
@@ -1095,7 +1095,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 79:			/* Processing a wide char literal */
+    case 79:                    /* Processing a wide char literal */
       if ((c = nextchar(s)) == EOF) {
         Swig_error(cparse_file, cparse_start_line, "Unterminated wide character constant\n");
         return SWIG_TOKEN_ERROR;
@@ -1109,7 +1109,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 8:			/* A numerical digit */
+    case 8:                     /* A numerical digit */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_INT;
       if (c == '.') {
@@ -1129,7 +1129,7 @@ static int look(Scanner *s) {
         return SWIG_TOKEN_INT;
       }
       break;
-    case 81:			/* A floating pointer number of some sort */
+    case 81:                    /* A floating pointer number of some sort */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_DOUBLE;
       if (isdigit(c))
@@ -1406,7 +1406,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 200:			/* PLUS, PLUSPLUS, PLUSEQUAL */
+    case 200:                   /* PLUS, PLUSPLUS, PLUSEQUAL */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_PLUS;
       else if (c == '+')
@@ -1419,7 +1419,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 210:			/* MINUS, MINUSMINUS, MINUSEQUAL, ARROW */
+    case 210:                   /* MINUS, MINUSMINUS, MINUSEQUAL, ARROW */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_MINUS;
       else if (c == '-')
@@ -1434,7 +1434,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 211:			/* ARROW, ARROWSTAR */
+    case 211:                   /* ARROW, ARROWSTAR */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_ARROW;
       else if (c == '*')
@@ -1446,7 +1446,7 @@ static int look(Scanner *s) {
       break;
 
 
-    case 220:			/* STAR, TIMESEQUAL */
+    case 220:                   /* STAR, TIMESEQUAL */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_STAR;
       else if (c == '=')
@@ -1457,7 +1457,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 230:			/* XOR, XOREQUAL */
+    case 230:                   /* XOR, XOREQUAL */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_XOR;
       else if (c == '=')
@@ -1468,7 +1468,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 240:			/* LSHIFT, LSEQUAL */
+    case 240:                   /* LSHIFT, LSEQUAL */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_LSHIFT;
       else if (c == '=')
@@ -1479,7 +1479,7 @@ static int look(Scanner *s) {
       }
       break;
 
-    case 250:			/* RSHIFT, RSEQUAL */
+    case 250:                   /* RSHIFT, RSEQUAL */
       if ((c = nextchar(s)) == EOF)
         return SWIG_TOKEN_RSHIFT;
       else if (c == '=')
