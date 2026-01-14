@@ -3288,7 +3288,7 @@ int QuickJSEmitter::dump(Node *n) {
     String *name = Getattr(entry, NAME);
     String *name_mangled = Getattr(entry, NAME_MANGLED);
 
-    if(Equal(name, moduleName)) {
+    if (Equal(name, moduleName)) {
       t_createNamespace.replace("$jsmangledname", name_mangled);
     }
   }
@@ -3345,18 +3345,18 @@ int QuickJSEmitter::emitConstant(Node *n)
 
   // For simple types, generate "direct" QuickJS constants (otherwise, use read-only variables)
   // This is different from other javascript engines, for which we always emit read-only variables
-  if(SwigType_issimple(type) ||
+  if (SwigType_issimple(type) ||
       (SwigType_isconst(type) && SwigType_isqualifier(type) && !SwigType_ispointer(type) && !SwigType_isfunctionpointer(type) && \
 	!SwigType_ismemberpointer(type) && !SwigType_isarray(type))) {
-    if(Equal(Getattr(n, "view"), "enumvalueDeclaration") || Getattr(n, "enumvalueDeclaration:name") || SwigType_isenum(type)) {
+    if (Equal(Getattr(n, "view"), "enumvalueDeclaration") || Getattr(n, "enumvalueDeclaration:name") || SwigType_isenum(type)) {
       qjs_type = "ENUM";
-    } else if(!Cmp(base, "long")  || !Cmp(base, "long long")) {
+    } else if (!Cmp(base, "long")  || !Cmp(base, "long long")) {
       qjs_type = "INT64";
-    } else if(!Cmp(base, "int")) {
+    } else if (!Cmp(base, "int")) {
       qjs_type = "INT32";
-    } else if(!Cmp(base, "unsigned int")) {
+    } else if (!Cmp(base, "unsigned int")) {
       qjs_type = "UINT32";
-    } else if(!Cmp(base, "unsigned long") || !Cmp(base, "unsigned long long") || !Cmp(base, "size_t")) {
+    } else if (!Cmp(base, "unsigned long") || !Cmp(base, "unsigned long long") || !Cmp(base, "size_t")) {
       qjs_type = "UINT64";
     } else if (!Cmp(base, "double") || !Cmp(base, "float")) {
       qjs_type = "DOUBLE";
@@ -3368,11 +3368,11 @@ int QuickJSEmitter::emitConstant(Node *n)
 	qjs_type = "STRING";
      }
   }
-  if(qjs_type == NULL && !Cmp(base, "char") && SwigType_ispointer(type)) {
+  if (qjs_type == NULL && !Cmp(base, "char") && SwigType_ispointer(type)) {
     qjs_type = "STRING";
   }
 
-  if(qjs_type == NULL) {
+  if (qjs_type == NULL) {
     // fallback to the "constant as read-only variable" mechanisem
     return JSEmitter::emitConstant(n);
   }
@@ -3499,19 +3499,19 @@ int QuickJSEmitter::exitClass(Node *n) {
   int b_num = 0;
   if (baselist) {
     Iterator base = First(baselist);
-    while(base.item) {
+    while (base.item) {
       // pass base classes that have to be ignored
       // XXX check or not if the base class is known (quickjs:mangledname) => see impact on trans-module inheritance?
       while (base.item && (GetFlag(base.item, "feature:ignore") || !Getattr(base.item, "quickjs:mangledname"))) {
 	base = Next(base);
       }
-      if(base.item) {
+      if (base.item) {
 	Printv(jsclass_inheritance, "\"", Getattr(base.item, "quickjs:mangledname"), "\", ", NIL);
 	b_num++;
 	base = Next(base);
       }
     }
-    //if(b_num > 0) { /* XXX trace for debug */
+    //if (b_num > 0) { /* XXX trace for debug */
     //  Printv(stdout, "Bases for ", state.clazz(NAME_MANGLED), ": ", jsclass_inheritance, "\n", NIL);
     //}
   }
