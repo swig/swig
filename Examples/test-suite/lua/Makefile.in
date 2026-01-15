@@ -18,12 +18,23 @@ top_builddir = @top_builddir@
 
 CPP_TEST_CASES += \
 	director_stl \
+	li_boost_shared_ptr \
+	li_boost_shared_ptr_attribute \
+	li_boost_shared_ptr_bits \
+	li_boost_shared_ptr_director \
+	li_boost_shared_ptr_template \
 	li_std_set \
 	lua_no_module_global \
 	lua_inherit_getitem  \
 	lua_lightuserdata  \
 
 CPP11_TEST_CASES += \
+	cpp11_shared_ptr_const \
+	cpp11_shared_ptr_crtp_upcast \
+	cpp11_shared_ptr_nullptr_in_containers \
+	cpp11_shared_ptr_overload \
+	cpp11_shared_ptr_template_upcast \
+	cpp11_shared_ptr_upcast \
 	cpp11_std_unordered_map \
 	cpp11_std_unordered_set \
 
