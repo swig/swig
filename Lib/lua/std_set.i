@@ -79,7 +79,7 @@ namespace std {
 
             // Get an element from the set (throws if not found)
             const T& get(const T& x) throw (std::out_of_range) {
-                typename std::set<T, C>::iterator i = self->find(x);
+                typename std::set<T, C >::iterator i = self->find(x);
                 if (i != self->end())
                     return *i;
                 else
@@ -88,7 +88,7 @@ namespace std {
 
             // __getitem__ for Lua - allows checking if element exists (returns the element if found)
             const T& __getitem__(const T& x) throw (std::out_of_range) {
-                typename std::set<T, C>::iterator i = self->find(x);
+                typename std::set<T, C >::iterator i = self->find(x);
                 if (i != self->end())
                     return *i;
                 else
@@ -106,7 +106,7 @@ namespace std {
             const T& __getitem_by_index__(unsigned int idx) throw (std::out_of_range) {
                 if (idx >= self->size())
                     throw std::out_of_range("set index out of range");
-                typename std::set<T, C>::iterator it = self->begin();
+                typename std::set<T, C >::iterator it = self->begin();
                 std::advance(it, idx);
                 return *it;
             }
