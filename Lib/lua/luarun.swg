@@ -1780,12 +1780,14 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type
   /* special case: lua nil => NULL pointer */
   if (lua_isnil(L,index))
   {
-    *ptr=0;
+    if (ptr)
+      *ptr=0;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
   if (lua_islightuserdata(L,index))
   {
-    *ptr=lua_touserdata(L,index);
+    if (ptr)
+      *ptr=lua_touserdata(L,index);
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
   usr=(swig_lua_userdata*)lua_touserdata(L,index);  /* get data */
@@ -1801,7 +1803,8 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type
     }
     if (!type)            /* special cast void*, no casting fn */
     {
-      *ptr=usr->ptr;
+      if (ptr)
+        *ptr=usr->ptr;
       ret = SWIG_OK;
     }
     else
@@ -1809,9 +1812,11 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type
       cast=SWIG_TypeCheck(usr->type->name,type); /* performs normal type checking */
       if (cast)
       {
-        int newmemory = 0;
-        *ptr=SWIG_TypeCast(cast,usr->ptr,&newmemory);
-        assert(!newmemory); /* newmemory handling not yet implemented */
+        if (ptr) {
+          int newmemory = 0;
+          *ptr=SWIG_TypeCast(cast,usr->ptr,&newmemory);
+          assert(!newmemory); /* newmemory handling not yet implemented */
+        }
         ret = SWIG_OK;
       }
     }
