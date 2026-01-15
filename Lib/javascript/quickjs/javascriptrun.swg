@@ -639,7 +639,7 @@ const char *SWIG_QuickJS_typename(JSContext *ctx, JSValueConst this_val)
 
   tag = JS_VALUE_GET_NORM_TAG(this_val);
 
-  switch(tag) {
+  switch (tag) {
   case JS_TAG_INT:
       str = "int";
       break;
