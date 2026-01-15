@@ -309,6 +309,7 @@ typedef struct {
 /* Common SWIG API */
 #define SWIG_NewPointerObj(L, ptr, type, owner)       SWIG_Lua_NewPointerObj(L, (void *)ptr, type, owner)
 #define SWIG_ConvertPtr(L,idx, ptr, type, flags)    SWIG_Lua_ConvertPtr(L,idx,ptr,type,flags)
+#define SWIG_ConvertPtrAndOwn(L,idx, ptr, type, flags, own)    SWIG_Lua_ConvertPtrAndOwn(L,idx,ptr,type,flags,own)
 #define SWIG_MustGetPtr(L,idx, type,flags, argnum,fnname)  SWIG_Lua_MustGetPtr(L,idx, type,flags, argnum,fnname)
 /* for C++ member pointers, ie, member methods */
 #define SWIG_ConvertMember(L, idx, ptr, sz, ty)       SWIG_Lua_ConvertPacked(L, idx, ptr, sz, ty)
@@ -1811,6 +1812,67 @@ SWIGRUNTIME int  SWIG_Lua_ConvertPtr(lua_State *L,int index,void **ptr,swig_type
         int newmemory = 0;
         *ptr=SWIG_TypeCast(cast,usr->ptr,&newmemory);
         assert(!newmemory); /* newmemory handling not yet implemented */
+        ret = SWIG_OK;
+      }
+    }
+    if ((ret == SWIG_OK) && (flags & SWIG_POINTER_CLEAR))
+    {
+      usr->ptr = 0;
+    }
+  }
+  return ret;
+}
+
+/* Similar to SWIG_Lua_ConvertPtr, but also returns ownership information
+   (for smart pointer support with type casting) */
+SWIGRUNTIME int SWIG_Lua_ConvertPtrAndOwn(lua_State *L, int index, void **ptr, swig_type_info *type, int flags, int *own)
+{
+  int ret = SWIG_ERROR;
+  swig_lua_userdata *usr;
+  swig_cast_info *cast;
+  if (own)
+    *own = 0;
+  /* special case: lua nil => NULL pointer */
+  if (lua_isnil(L,index))
+  {
+    if (ptr) *ptr=0;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
+  }
+  if (lua_islightuserdata(L,index))
+  {
+    if (ptr) *ptr=lua_touserdata(L,index);
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
+  }
+  usr=(swig_lua_userdata*)lua_touserdata(L,index);  /* get data */
+  if (usr)
+  {
+    if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE) && !usr->own)
+    {
+      return SWIG_ERROR_RELEASE_NOT_OWNED;
+    }
+    if (flags & SWIG_POINTER_DISOWN) /* must disown the object */
+    {
+      usr->own = 0;
+    }
+    if (!type)            /* special cast void*, no casting fn */
+    {
+      if (ptr) *ptr=usr->ptr;
+      ret = SWIG_OK;
+    }
+    else
+    {
+      cast=SWIG_TypeCheck(usr->type->name,type); /* performs normal type checking */
+      if (cast)
+      {
+        if (ptr) {
+          int newmemory = 0;
+          *ptr=SWIG_TypeCast(cast,usr->ptr,&newmemory);
+          if (newmemory == SWIG_CAST_NEW_MEMORY) {
+            assert(own); /* badly formed typemap which will lead to a memory leak - it must set and use own to delete *ptr */
+            if (own)
+              *own = *own | SWIG_CAST_NEW_MEMORY;
+          }
+        }
         ret = SWIG_OK;
       }
     }
