@@ -1516,6 +1516,15 @@ public:
     // Catch all: eg. a class with only static functions and/or variables will not have 'remembered'
     String *wrap_class_name = Swig_name_wrapper(NewStringf("class_%s", mangled_full_proxy_class_name));
     String *wrap_class = NewStringf("&%s", wrap_class_name);
+
+    // Replace storing a pointer to underlying class with a smart pointer (intended for use with non-intrusive smart pointers)
+    SwigType *smart = Getattr(n, "smart");
+    if (smart) {
+      SwigType *psmart = Copy(smart);
+      SwigType_add_pointer(psmart);
+      SwigType_remember_clientdata(psmart, wrap_class);
+      Delete(psmart);
+    }
     SwigType_remember_clientdata(t, wrap_class);
 
     String *rt = Copy(getClassType());
