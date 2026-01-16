@@ -1,0 +1,1 @@
+pp_deprecated_typedef_directive.i:4: Warning 127: %typedef directive is deprecated, use plain typedef instead
