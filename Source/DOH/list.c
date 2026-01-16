@@ -1,5 +1,5 @@
-/* ----------------------------------------------------------------------------- 
- * This file is part of SWIG, which is licensed as a whole under version 3 
+/* -----------------------------------------------------------------------------
+ * This file is part of SWIG, which is licensed as a whole under version 3
  * (or any later version) of the GNU General Public License. Some additional
  * terms also apply to certain portions of SWIG. The full details of the SWIG
  * license and copyrights can be found in the LICENSE and COPYRIGHT files
@@ -14,8 +14,8 @@
 #include "dohint.h"
 
 typedef struct List {
-  int maxitems;			/* Max size  */
-  int nitems;			/* Num items */
+  int maxitems; /* Max size  */
+  int nitems;   /* Num items */
   DOH *file;
   int line;
   DOH **items;
@@ -24,9 +24,8 @@ typedef struct List {
 extern DohObjInfo DohListType;
 
 /* Doubles amount of memory in a list */
-static
-void more(List *l) {
-  l->items = (void **) DohRealloc(l->items, l->maxitems * 2 * sizeof(void *));
+static void more(List *l) {
+  l->items = (void **)DohRealloc(l->items, l->maxitems * 2 * sizeof(void *));
   l->maxitems *= 2;
 }
 
@@ -38,11 +37,11 @@ void more(List *l) {
 static DOH *CopyList(DOH *lo) {
   List *l, *nl;
   int i;
-  l = (List *) ObjData(lo);
-  nl = (List *) DohMalloc(sizeof(List));
+  l = (List *)ObjData(lo);
+  nl = (List *)DohMalloc(sizeof(List));
   nl->nitems = l->nitems;
   nl->maxitems = l->maxitems;
-  nl->items = (void **) DohMalloc(l->maxitems * sizeof(void *));
+  nl->items = (void **)DohMalloc(l->maxitems * sizeof(void *));
   for (i = 0; i < l->nitems; i++) {
     nl->items[i] = l->items[i];
     Incref(nl->items[i]);
@@ -61,7 +60,7 @@ static DOH *CopyList(DOH *lo) {
  * ----------------------------------------------------------------------------- */
 
 static void DelList(DOH *lo) {
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   int i;
   for (i = 0; i < l->nitems; i++)
     Delete(l->items[i]);
@@ -77,7 +76,7 @@ static void DelList(DOH *lo) {
  * ----------------------------------------------------------------------------- */
 
 static void List_clear(DOH *lo) {
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   int i;
   for (i = 0; i < l->nitems; i++) {
     Delete(l->items[i]);
@@ -93,7 +92,7 @@ static void List_clear(DOH *lo) {
  * ----------------------------------------------------------------------------- */
 
 static int List_insert(DOH *lo, int pos, DOH *item) {
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   int i;
 
   if (!item)
@@ -126,7 +125,7 @@ static int List_insert(DOH *lo, int pos, DOH *item) {
  * ----------------------------------------------------------------------------- */
 
 static int List_remove(DOH *lo, int pos) {
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   int i;
   if (pos == DOH_END)
     pos = l->nitems - 1;
@@ -148,7 +147,7 @@ static int List_remove(DOH *lo, int pos) {
  * ----------------------------------------------------------------------------- */
 
 static int List_len(DOH *lo) {
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   return l->nitems;
 }
 
@@ -159,7 +158,7 @@ static int List_len(DOH *lo) {
  * ----------------------------------------------------------------------------- */
 
 static DOH *List_get(DOH *lo, int n) {
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   if (n == DOH_END)
     n = l->nitems - 1;
   if (n == DOH_BEGIN)
@@ -171,11 +170,11 @@ static DOH *List_get(DOH *lo, int n) {
 /* -----------------------------------------------------------------------------
  * List_set()
  *
- * Set the nth item in the list replacing any previous item. 
+ * Set the nth item in the list replacing any previous item.
  * ----------------------------------------------------------------------------- */
 
 static int List_set(DOH *lo, int n, DOH *val) {
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   if (!val)
     return -1;
   assert(!((n < 0) || (n >= l->nitems)));
@@ -198,7 +197,7 @@ static int List_set(DOH *lo, int n, DOH *val) {
 
 static DohIterator List_first(DOH *lo) {
   DohIterator iter;
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   iter.object = lo;
   iter._index = 0;
   iter._current = 0;
@@ -213,12 +212,12 @@ static DohIterator List_first(DOH *lo) {
 
 /* -----------------------------------------------------------------------------
  * List_next()
- * 
+ *
  * Return the next item in the list.
  * ----------------------------------------------------------------------------- */
 
 static DohIterator List_next(DohIterator iter) {
-  List *l = (List *) ObjData(iter.object);
+  List *l = (List *)ObjData(iter.object);
   iter._index = iter._index + 1;
   if (iter._index >= l->nitems) {
     iter.item = 0;
@@ -237,7 +236,7 @@ static DohIterator List_next(DohIterator iter) {
 static DOH *List_str(DOH *lo) {
   DOH *s;
   int i;
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   s = NewStringEmpty();
   if (ObjGetMark(lo)) {
     Printf(s, "List(%p)", lo);
@@ -264,7 +263,7 @@ static DOH *List_str(DOH *lo) {
 static int List_dump(DOH *lo, DOH *out) {
   int nsent = 0;
   int i, ret;
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   for (i = 0; i < l->nitems; i++) {
     ret = Dump(l->items[i], out);
     if (ret < 0)
@@ -276,7 +275,7 @@ static int List_dump(DOH *lo, DOH *out) {
 
 static void List_setfile(DOH *lo, DOH *file) {
   DOH *fo;
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
 
   if (!DohCheck(file)) {
     fo = NewString(file);
@@ -289,52 +288,48 @@ static void List_setfile(DOH *lo, DOH *file) {
 }
 
 static DOH *List_getfile(DOH *lo) {
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   return l->file;
 }
 
 static void List_setline(DOH *lo, int line) {
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   l->line = line;
 }
 
 static int List_getline(DOH *lo) {
-  List *l = (List *) ObjData(lo);
+  List *l = (List *)ObjData(lo);
   return l->line;
 }
 
 static DohListMethods ListListMethods = {
-  List_get,
-  List_set,
-  List_remove,
-  List_insert,
-  0,				/* delslice */
+  List_get, List_set, List_remove, List_insert, 0, /* delslice */
 };
 
 DohObjInfo DohListType = {
-  "List",			/* objname */
-  DelList,			/* doh_del */
-  CopyList,			/* doh_copy */
-  List_clear,			/* doh_clear */
-  List_str,			/* doh_str */
-  0,				/* doh_data */
-  List_dump,			/* doh_dump */
-  List_len,			/* doh_len */
-  0,				/* doh_hash    */
-  0,				/* doh_cmp */
-  0,				/* doh_equal    */
-  List_first,			/* doh_first    */
-  List_next,			/* doh_next     */
-  List_setfile,			/* doh_setfile */
-  List_getfile,			/* doh_getfile */
-  List_setline,			/* doh_setline */
-  List_getline,			/* doh_getline */
-  0,				/* doh_mapping */
-  &ListListMethods,		/* doh_sequence */
-  0,				/* doh_file */
-  0,				/* doh_string */
-  0,				/* doh_callable */
-  0,				/* doh_position */
+  "List",           /* objname */
+  DelList,          /* doh_del */
+  CopyList,         /* doh_copy */
+  List_clear,       /* doh_clear */
+  List_str,         /* doh_str */
+  0,                /* doh_data */
+  List_dump,        /* doh_dump */
+  List_len,         /* doh_len */
+  0,                /* doh_hash    */
+  0,                /* doh_cmp */
+  0,                /* doh_equal    */
+  List_first,       /* doh_first    */
+  List_next,        /* doh_next     */
+  List_setfile,     /* doh_setfile */
+  List_getfile,     /* doh_getfile */
+  List_setline,     /* doh_setline */
+  List_getline,     /* doh_getline */
+  0,                /* doh_mapping */
+  &ListListMethods, /* doh_sequence */
+  0,                /* doh_file */
+  0,                /* doh_string */
+  0,                /* doh_reserved */
+  0,                /* clientdata */
 };
 
 /* -----------------------------------------------------------------------------
@@ -346,23 +341,23 @@ DohObjInfo DohListType = {
 #define MAXLISTITEMS 8
 
 DOH *DohNewList(void) {
-  List *l = (List *) DohMalloc(sizeof(List));
+  List *l = (List *)DohMalloc(sizeof(List));
   l->nitems = 0;
   l->maxitems = MAXLISTITEMS;
-  l->items = (void **) DohCalloc(l->maxitems, sizeof(void *));
+  l->items = (void **)DohCalloc(l->maxitems, sizeof(void *));
   l->file = 0;
   l->line = 0;
   return DohObjMalloc(&DohListType, l);
 }
 
-static int (*List_sort_compare_func) (const DOH *, const DOH *);
+static int (*List_sort_compare_func)(const DOH *, const DOH *);
 static int List_qsort_compare(const void *a, const void *b) {
-  return List_sort_compare_func(*((DOH **) a), *((DOH **) b));
+  return List_sort_compare_func(*((DOH **)a), *((DOH **)b));
 }
 
 /* Sort a list */
-void DohSortList(DOH *lo, int (*cmp) (const DOH *, const DOH *)) {
-  List *l = (List *) ObjData(lo);
+void DohSortList(DOH *lo, int (*cmp)(const DOH *, const DOH *)) {
+  List *l = (List *)ObjData(lo);
   if (cmp) {
     List_sort_compare_func = cmp;
   } else {

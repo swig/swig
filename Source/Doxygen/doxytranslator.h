@@ -21,7 +21,6 @@
 #include <list>
 #include <string>
 
-
 /*
  * This is a base class for translator classes. It defines the basic interface
  * for translators, which convert Doxygen comments into alternative formats for
@@ -53,7 +52,7 @@ public:
   virtual ~DoxygenTranslator();
 
   /*
-   * Return the documentation for a given node formatted for the correct 
+   * Return the documentation for a given node formatted for the correct
    * documentation system.
    */
   String *getDocumentation(Node *node, const_String_or_char_ptr indentationString);
