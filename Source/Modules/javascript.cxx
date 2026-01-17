@@ -3479,10 +3479,6 @@ int QuickJSEmitter::enterClass(Node *n) {
   state.clazz(STATIC_FUNCTIONS, NewString(""));
   state.clazz(CONSTANTS, NewString(""));
 
-  Template t_class_decl = getTemplate("quickjs_class_declaration");
-  t_class_decl.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-      .pretty_print(f_wrappers);
-
   // store the mangled name, needed for inheritance
   Setattr(n, "quickjs:mangledname", state.clazz(NAME_MANGLED));
 
@@ -3490,8 +3486,6 @@ int QuickJSEmitter::enterClass(Node *n) {
 }
 
 int QuickJSEmitter::exitClass(Node *n) {
-
-  Template t_class_tables(getTemplate("quickjs_class_tables"));
 
   /* prepare registration of base class(es) (multiple inheritance) */
   String *jsclass_inheritance = NewString("");
@@ -3516,16 +3510,6 @@ int QuickJSEmitter::exitClass(Node *n) {
     //}
   }
 
-  t_class_tables.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-      .replace("$jsclassconstants", state.clazz(CONSTANTS))
-      .replace("$jsclassvariables", state.clazz(MEMBER_VARIABLES))
-      .replace("$jsclassfunctions", state.clazz(MEMBER_FUNCTIONS))
-      .replace("$jsstaticclassfunctions", state.clazz(STATIC_FUNCTIONS))
-      .replace("$jsstaticclassvariables", state.clazz(STATIC_VARIABLES))
-      .replace("$jsclassbases", jsclass_inheritance)
-      .pretty_print(f_wrappers);
-  Delete(jsclass_inheritance);
-
   /* for abstract classes add a vetoing ctor */
   if (GetFlag(state.clazz(), IS_ABSTRACT)) {
     Template t_veto_ctor(getTemplate("js_veto_ctor"));
@@ -3533,34 +3517,19 @@ int QuickJSEmitter::exitClass(Node *n) {
 	.replace("$jsname", state.clazz(NAME))
 	.pretty_print(f_wrappers);
   }
-
-  /* adds a class template statement to initializer function */
-  Template t_classtemplate(getTemplate("quickjs_class_definition"));
-
-#if 0
-  // single inheritance case
-  Node *base_class = getBaseClass(n);
-  if (base_class != NULL && Getattr(base_class, "quickjs:mangledname")) {
-    Template t_inherit(getTemplate("quickjs_class_inherit"));
-    t_inherit.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-	.replace("$jsbaseclassname", SwigType_manglestr(Getattr(base_class, "name")))
-	.replace("$jsbaseclassmangled", Getattr(base_class, "quickjs:mangledname"))
-	.pretty_print(jsclass_inheritance);
-  } else {
-    Template t_inherit(getTemplate("quickjs_class_noinherit"));
-    t_inherit.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-	.pretty_print(jsclass_inheritance);
-  }
-#endif
-  t_classtemplate.replace("$jsmangledname", state.clazz(NAME_MANGLED))
-      .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
-      .replace("$jsclass_inheritance", jsclass_inheritance)
+  
+  Template t_class_tables(getTemplate("quickjs_class_tables"));
+  t_class_tables.replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsclassconstants", state.clazz(CONSTANTS))
+      .replace("$jsclassvariables", state.clazz(MEMBER_VARIABLES))
+      .replace("$jsclassfunctions", state.clazz(MEMBER_FUNCTIONS))
+      .replace("$jsstaticclassfunctions", state.clazz(STATIC_FUNCTIONS))
+      .replace("$jsstaticclassvariables", state.clazz(STATIC_VARIABLES))
+      .replace("$jsclassbases", jsclass_inheritance)
       .replace("$jsctor", state.clazz(CTOR))
-      .replace("$jsdtor", state.clazz(DTOR))
-      .pretty_print(state.globals(INITIALIZER));
-#if 0
+      .replace("$jsdtor", state.clazz(DTOR))      
+      .pretty_print(f_wrappers);
   Delete(jsclass_inheritance);
-#endif
 
   /* Note: this makes sure that there is a swig_type added for this class */
   SwigType_remember_clientdata(state.clazz(TYPE_MANGLED), NewString("0"));
@@ -3569,6 +3538,7 @@ int QuickJSEmitter::exitClass(Node *n) {
   Template t_registerclass(getTemplate("quickjs_class_registration"));
   t_registerclass.replace("$jsname", state.clazz(NAME))
       .replace("$jsmangledname", state.clazz(NAME_MANGLED))
+      .replace("$jsmangledtype", state.clazz(TYPE_MANGLED))
       .replace("$jsnspace", Getattr(state.clazz("nspace"), NAME_MANGLED))
       .pretty_print(state.globals(INITIALIZER));
 
