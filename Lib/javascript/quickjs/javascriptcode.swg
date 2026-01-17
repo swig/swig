@@ -325,7 +325,6 @@ static int $jswrapper(JSContext *ctx, JSValueConst this_val, int argc, JSValueCo
 %fragment ("quickjs_variable_declaration", "templates")
 %{SWIG_JS_CGETSET_DEF("$jsname", $jsgetter, $jssetter),%}
 
-
 /* -----------------------------------------------------------------------------
  * quickjs_function_declaration:  template for a function table entry
  *   - $jsname:       name of the variable
@@ -336,17 +335,10 @@ static int $jswrapper(JSContext *ctx, JSValueConst this_val, int argc, JSValueCo
 %{SWIG_JS_CFUNC_DEF("$jsname", $jsargcount, $jswrapper),%}
 
 /* -----------------------------------------------------------------------------
- * quickjs_classtemplate_declaration:  template for a class declaration
- *   - $jsmangledname:      mangled class name
- * ----------------------------------------------------------------------------- */
-%fragment ("quickjs_class_declaration", "templates")
-%{
-static SWIG_QuickJS_ClassDefinition $jsmangledname_class_definition;
-%}
-
-/* -----------------------------------------------------------------------------
- * quickjs_class_tables:  template for a namespace declaration
+ * quickjs_class_tables:  template for a class declaration
  *   - $jsmangledname:            mangled class name
+ *   - $jsctor:                   constructor
+ *   - $jsdor:                    destructor
  *   - $jsstaticclassvariables:   list of static variable entries
  *   - $jsstaticclassfunctions:   list of static function entries
  *   - $jsclassconstants:         list of constant entries
@@ -370,60 +362,35 @@ static const SWIG_QuickJS_ConstantListEntry $jsmangledname_class_constants[] = {
 static const char *$jsmangledname_class_bases[] = {
   $jsclassbases
 };
-%}
-
-/* -----------------------------------------------------------------------------
- * quickjs_define_class_template:  template for defining a class template
- *   - $jsmangledname:            mangled class name
- *   - $jsmangledtype:            mangled class type
- *   - $jsctor:                   wrapper of ctor
- *   - $jsclass_inheritance:      base class information
- * ----------------------------------------------------------------------------- */
-%fragment ("quickjs_class_definition", "templates")
-%{
+static SWIG_QuickJS_ClassDefinition $jsmangledname_class_definition = {
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)
-  $jsmangledname_class_definition.magic = SWIG_PROTOTYPE_CLASS_MAGIC;
+  SWIG_PROTOTYPE_CLASS_MAGIC,
 #endif
-  $jsmangledname_class_definition.class_name = "$jsmangledname";
-  $jsmangledname_class_definition.dtor = $jsdtor;
-  $jsmangledname_class_definition.ctor = $jsctor;
+  "$jsmangledname",
+  $jsdtor,  /* dtor */
+  $jsctor,  /* ctor */
   /* actual base_prototype is computed in 'registerClass' */
-  $jsmangledname_class_definition.base_prototype = JS_UNDEFINED;
+  JS_UNDEFINED,
   /* actual class_id is computed in 'registerClass' */
-  $jsmangledname_class_definition.class_id = JS_INVALID_CLASS_ID;
+  JS_INVALID_CLASS_ID,
   /* actual prototype is computed in 'registerClass' */
-  $jsmangledname_class_definition.prototype = JS_UNDEFINED;
-  $jsmangledname_class_definition.functions = $jsmangledname_class_functions;
-  $jsmangledname_class_definition.functions_num = countof($jsmangledname_class_functions);
-  $jsmangledname_class_definition.variables = $jsmangledname_class_variables;
-  $jsmangledname_class_definition.variables_num = countof($jsmangledname_class_variables);
-  $jsmangledname_class_definition.constants = $jsmangledname_class_constants;
-  $jsmangledname_class_definition.constants_num = countof($jsmangledname_class_constants);
-  $jsmangledname_class_definition.bases = $jsmangledname_class_bases;
-  $jsmangledname_class_definition.bases_num = countof($jsmangledname_class_bases);
-
-  SWIGTYPE_$jsmangledtype->clientdata = (void*)&$jsmangledname_class_definition;
+  JS_UNDEFINED,
+  $jsmangledname_class_functions,
+  countof($jsmangledname_class_functions),
+  $jsmangledname_class_variables,
+  countof($jsmangledname_class_variables),
+  $jsmangledname_class_constants,
+  countof($jsmangledname_class_constants),
+  $jsmangledname_class_bases,
+  countof($jsmangledname_class_bases)
+};
 %}
-
-%fragment ("quickjs_class_inherit", templates)
-%{
-    if (SWIGTYPE_p$jsbaseclassname != NULL) {
-      $jsmangledname_class_definition.base_prototype = $jsbaseclassmangled_class_definition.prototype;
-    } else {
-      $jsmangledname_class_definition.base_prototype = SWIG_QuickJS_swig_object_class_definition.prototype;
-    }
-%}
-
-%fragment ("quickjs_class_noinherit", templates)
-%{
-    $jsmangledname_class_definition.base_prototype = SWIG_QuickJS_swig_object_class_definition.prototype;
-%}
-
 
 /* -----------------------------------------------------------------------------
  * quickjs_register_class:  template for registration of a class
  *   - $jsname:                   class name
  *   - $jsmangledname:            mangled class name
+ *   - $jsmangledtype:            mangled class type
  *   - $jsnspace:                 mangled name of namespace
  * ----------------------------------------------------------------------------- */
 %fragment ("quickjs_class_registration", "templates")
@@ -435,8 +402,9 @@ static const char *$jsmangledname_class_bases[] = {
       true) <= 0) {
     return SWIG_ERROR;
   }
-%}
 
+  SWIGTYPE_$jsmangledtype->clientdata = (void*)&$jsmangledname_class_definition;  
+%}
 
 /* -----------------------------------------------------------------------------
  * quickjs_nspace_declaration:  template for a namespace declaration

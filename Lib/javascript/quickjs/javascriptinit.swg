@@ -55,9 +55,6 @@ SWIG_QuickJS_GetModule(JSContext *ctx)
 #ifndef SWIG_INIT
 #define SWIG_INIT js_init_module
 #endif
-#ifndef DEFAULT_NAMESPACE
-#define DEFAULT_NAMESPACE $jsname_namespace
-#endif
 %}
 
 // Open the initializer function
@@ -193,7 +190,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 #endif
     JS_FreeValue(ctx, v);
   } else {
-    r = SWIG_QuickJS_registerClass(ctx, DEFAULT_NAMESPACE,
+    r = SWIG_QuickJS_registerClass(ctx, $jsname_namespace,
                           SWIG_QuickJS_swig_object_class_definition.class_name,
                           &SWIG_QuickJS_swig_object_class_definition,
                           false);
@@ -239,7 +236,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
 #endif
     JS_FreeValue(ctx, v);
   } else {
-    r = SWIG_QuickJS_registerClass(ctx, DEFAULT_NAMESPACE,
+    r = SWIG_QuickJS_registerClass(ctx, $jsname_namespace,
                           SWIG_QuickJS_packed_data_class_definition.class_name,
                           &SWIG_QuickJS_packed_data_class_definition,
                           false);
@@ -325,7 +322,7 @@ SWIGINTERN int SWIG_module_initialize(JSContext *ctx, JSModuleDef *m)
   /* Register namespaces */
   $jsregisternamespaces
 
-  if (JS_SetModuleExport(ctx, m, "$jsname", DEFAULT_NAMESPACE)) {
+  if (JS_SetModuleExport(ctx, m, "$jsname", $jsname_namespace)) {
     return SWIG_ERROR;
   }
   return SWIG_OK;
