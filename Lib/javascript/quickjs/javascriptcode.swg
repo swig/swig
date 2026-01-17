@@ -292,7 +292,10 @@ static int $jswrapper(JSContext *ctx, JSValueConst this_val, int argc, JSValueCo
 %{
   if (argc >= $jsargrequired && argc <= $jsargcount) {
      res = $jswrapper(ctx, this_val, argc, argv, &jsresult);
-     if (res == SWIG_OK) { return jsresult; }
+     if (res == SWIG_OK) { 
+       JS_FreeValue(ctx, JS_GetException(ctx)); /* clear previous exception in the dispatch */
+       return jsresult; 
+     }
   }
 %}
 
