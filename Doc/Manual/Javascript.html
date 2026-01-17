@@ -31,6 +31,11 @@
 <li><a href="#Javascript_gtk">GTK</a>
 </ul>
 <li><a href="#Javascript_applications_webkit">Creating Applications with node-webkit</a>
+<li><a href="#Javascript_quickjs">Creating QuickJS Extensions</a>
+<ul>
+<li><a href="#Javascript_quickjs_running">Running examples and test suite</a>
+<li><a href="#Javascript_quickjs_other">QuickJS runtime specificities</a>
+</ul>
 </ul>
 <li><a href="#Javascript_examples">Examples</a>
 <ul>
@@ -65,6 +70,7 @@ Javascript has gone beyond being a browser-based scripting language and can be u
 <li><strong>Node.js</strong> 12 or later.  SWIG can optionally generate Node-API code, which needs Node.js 12.17 or later.</li>
 <li><strong>JavascriptCore</strong> 4.0 or later.  JavascriptCore is used by Safari/Webkit</li>
 <li><a href="https://v8.dev/"><strong>v8</strong></a> 7.4 or later (we currently CI test with 7.8 and 10.2).  v8 is used by Chromium and Node.js.</li>
+<li><a href="https://bellard.org/quickjs//"><strong>QuickJS</strong></a> 2025-09-13 or later.</li>
 </ul>
 <p><a href="https://webkit.org/">WebKit</a> is a modern browser implementation available as open-source which can be embedded into an application.
 <a href="https://github.com/nwjs/nw.js">NW.jst</a> provides an app runtime which uses Google's Chromium as Web-Browser widget and node.js for javascript extensions.
@@ -86,10 +92,15 @@ Javascript has gone beyond being a browser-based scripting language and can be u
 int gcd(int x, int y);
 extern double Foo;</pre>
 </div>
-<p>To build a Javascript module, run SWIG using the <code>-javascript</code> option and a desired target engine <code>-jsc</code>, <code>-v8</code>, <code>-node</code> or <code>-napi</code>. <code>-v8</code> allows for interfacing with a raw embedded version of V8. In this case, it is up to the user to implement a binary module loading protocol. There are two generators supporting Node.js. The older generator for <code>node</code> is essentially delegating to the <code>v8</code> generator and adds some necessary preprocessor definitions. The more recent <code>-napi</code> generator produces <code>node-addon-api</code> that interfaces to Node.js through Node-API. The V8 generator is more mature, while the Node-API generator offers a number of advantages such as binary stable ABI allowing for publishing of universal binary modules on npm, Electron support and automatic multi-threading.</p>
+<p>To build a Javascript module, run SWIG using the <code>-javascript</code> option and a desired target engine <code>-jsc</code>, <code>-v8</code>, <code>-node</code>, <code>-napi</code> or  <code>-quickjs</code>. <code>-v8</code> allows for interfacing with a raw embedded version of V8. In this case, it is up to the user to implement a binary module loading protocol. There are two generators supporting Node.js. The older generator for <code>node</code> is essentially delegating to the <code>v8</code> generator and adds some necessary preprocessor definitions. The more recent <code>-napi</code> generator produces <code>node-addon-api</code> that interfaces to Node.js through Node-API. The V8 generator is more mature, while the Node-API generator offers a number of advantages such as binary stable ABI allowing for publishing of universal binary modules on npm, Electron support and automatic multi-threading.</p>
 <div class="shell">
 <pre>
 $ swig -javascript -jsc example.i</pre>
+</div>
+<p>If building a C extension for QuickJS:</p>
+<div class="shell">
+<pre>
+$ swig -javascript -quickjs example.i</pre>
 </div>
 <p>If building a C++ extension, add the -c++ option:</p>
 <div class="shell">
@@ -107,13 +118,23 @@ $ swig -c++ -javascript -v8 example.i</pre>
 <pre>
 bool example_initialize(JSGlobalContextRef context, JSObjectRef *exports)</pre>
 </div>
-<p>and for v8:</p>
+<p> for v8:</p>
 <div class="code">
 <pre>
 void example_initialize(v8::Handle&lt;v8::Object&gt; exports)</pre>
 </div>
 <p>
 <b>Note</b>: be aware that <code>v8</code> has a C++ API, and thus, the generated modules must be compiled as C++.
+</p>
+<p> and for QuickJS:</p>
+<div class="code">
+<pre>
+void js_init_module(JSContext *ctx, const char *module_name)</pre>
+</div>
+<p>
+<b>Note</b>: for QuickJS, it is assumed that a dynamic loaded object (module.so) will be generated and loaded 
+from the <code>qjs</code> executable. For a static version, the symbol <code>SWIG_INIT</code> can be defined at compile time to modify the
+name of the module main function.
 </p>
 
 <H3><a name="Javascript_running_tests_examples">28.2.2 Running Tests and Examples</a></H3>
@@ -136,12 +157,22 @@ $ sudo apt-get install libnode-dev</pre>
   <pre>
 $ sudo npm install -g node-addon-api</pre>
 </div>
+<p>Running with QuickJS requires the sources of QuickKS to be available and compiled.. This source path can be defined
+in the <code>configure</code> step. Note that it is advised to download and build QuickJS, as supported version is currently 2025-09-13
+and default version in distribution may be out of date.</p>
+<p>Note: due to differences in API, the quickjs-ng fork is not supported yet.</p>
+
+<p>For instance, in Ubuntu 24.04, theses instructions install QuickJS 2021-03-27, which is too old for this module:</p>
+<div class="shell">
+  <pre>
+$ sudo apt-get install quickjs libquickjs</pre>
+</div>
 <p>Examples can be run using</p>
 <div class="shell">
 <pre>
 $ make check-javascript-examples ENGINE=jsc</pre>
 </div>
-<p><code>ENGINE</code> can be <code>node</code>, <code>jsc</code>, <code>v8</code>, or <code>napi</code>.</p>
+<p><code>ENGINE</code> can be <code>node</code>, <code>jsc</code>, <code>v8</code>, <code>napi</code>, or <code>quickjs</code>.</p>
 <p>The test-suite can be run using</p>
 <div class="shell">
 <pre>
@@ -154,10 +185,11 @@ $ make check-javascript-test-suite ENGINE=jsc</pre>
 <p>At the moment, the Javascript generators pass all tests syntactically, i.e., the generated source code compiles. However, there are still remaining runtime issues.</p>
 
 <ul>
-    <li><p>Default optional arguments do not work for all targeted interpreters except Node-API</p></li>
+    <li><p>Default optional arguments do not work for all targeted interpreters except Node-API and QuickJS</p></li>
     <li><p>Multiple output arguments do not work for JSC</p></li>
     <li><p>C89 incompatibility: the JSC generator might still generate C89 violating code</p></li>
-    <li><p><code>long long</code> is not supported except with Node-API</p></li>
+    <li><p>C89 incompatibility: QuickJS requires C99</p></li>
+    <li><p><code>long long</code> is not supported except with Node-API and QuickJS</p></li>
     <li><p>Javascript callbacks are not supported</p></li>
     <li><p><code>instanceOf</code> does not work under JSC</p></li>
 </ul>
@@ -436,6 +468,37 @@ open new windows, and many more things.
 };</pre>
 </div>
 
+<H3><a name="Javascript_quickjs">28.3.4 Creating QuickJS Extensions</a></H3>
+
+
+<H4><a name="Javascript_quickjs_running">28.3.4.1 Running examples and test suite</a></H4>
+
+
+<ul>
+  <li>QuickJS default executable <code>qjs</code> does not provide a <code>require</code> function but only <code>import</code>. For the test suite and examples, a specific QuickJS interpretor is build in <code>Tools/javascript</code>.</li>
+</ul>
+
+<H4><a name="Javascript_quickjs_other">28.3.4.2 QuickJS runtime specificities</a></H4>
+
+
+<p>Generated modules include a global variable named <code>QuickJS</code> which is an object used as a registry (concept similar to the one in Lua). 
+<p>The instruction <code>typeof QuickJS !== "undefined"</code> allows to detect if running in the QuickJS interpreter.</p>
+
+<p>This registry includes a class registry, storing the prototypes of generated classes and supporting:</p>
+<ul>
+  <li>multiple inheritance</li>
+  <li>cross-module inheritance</li>
+</ul>
+
+<p><b>Note:</b> these inheritance mechanisms are supported by storing the names of the parent classes and resolving, at run time, the needed prototypes.
+For multiple inheritance, a <em>combined prototype</em> is created, gathering the properties of the various parents.</p>
+
+<p><code>cmalloc.i</code> typemap</p>
+<p>The typemap giving access to the low level memory allocation function (<code>malloc</code>, etc...) is, by default, making use of the <code>QuickJS</code> implementation (<code>js_malloc</code>, etc...).</p>
+<p>This allows to benefit from the memory leak detection in <code>qjs</code>. For that, it is needed to compile <code>quickjs.c</code> with the option <code>DUMP_LEAKS</code>.
+To use the standard memory allocation functions, the symbol <code>QUICKJS_USE_LIBC_MALLOC</code> can be defined when compiling the module.
+
+
 <H2><a name="Javascript_examples">28.4 Examples</a></H2>
 
 
@@ -629,7 +692,7 @@ at emitKey (readline.js:1095:12)</pre>
 <H3><a name="Javascript_source_code">28.5.1 Source Code</a></H3>
 
 
-<p>The Javascript module is implemented in <code>Source/Modules/javascript.cxx</code>. It dispatches the code generation to a <code>JSEmitter</code> instance, <code>V8Emitter</code>, <code>JSCEmitter</code> or <code>NAPIEmitter</code>. Additionally there are some helpers: <code>Template</code>, for templated code generation, and <code>JSEmitterState</code>, which is used to manage state information during AST traversal. This rough map shall make it easier to find a way through this huge source file:</p>
+<p>The Javascript module is implemented in <code>Source/Modules/javascript.cxx</code>. It dispatches the code generation to a <code>JSEmitter</code> instance, <code>V8Emitter</code>, <code>JSCEmitter</code>, <code>NAPIEmitter</code> or <code>QuickJSEmitter</code>. Additionally there are some helpers: <code>Template</code>, for templated code generation, and <code>JSEmitterState</code>, which is used to manage state information during AST traversal. This rough map shall make it easier to find a way through this huge source file:</p>
 <div class="code">
 <pre>
 // module wide defines
@@ -654,6 +717,7 @@ class JSEmitter { ... };
 JSEmitter *swig_javascript_create_JSCEmitter();
 JSEmitter *swig_javascript_create_V8Emitter();
 JSEmitter *swig_javascript_create_NAPIEmitter();
+JSEmitter *swig_javascript_create_QuickJSEmitter();
 
 // ###############################
 // # Javascript module
@@ -717,6 +781,23 @@ int V8Emitter::initialize(Node *n) { ... }
 
 JSEmitter *swig_javascript_create_V8Emitter() { ... }
 
+// ###############################
+// # QuickJSEmitter
+
+// QuickJSEmitter declaration
+
+class QuickJSEmitter: public JSEmitter { ... };
+
+// QuickJSEmitter implementation
+
+QuickJSEmitter::QuickJSEmitter() { ... }
+
+int QuickJSEmitter::initialize(Node *n) { ... }
+
+// QuickJSEmitter factory
+
+JSEmitter *swig_javascript_create_QuickJSEmitter() { ... }
+
 
 // ###############################
 // # Helper implementation (JSEmitterState, Template)
@@ -731,7 +812,7 @@ Template::Template(const String *code_) { ... }
 <H3><a name="Javascript_code_templates">28.5.2 Code Templates</a></H3>
 
 
-<p>All generated code is created on the basis of code templates. The templates for <em>JavascriptCore</em> can be found in <code>Lib/javascript/jsc/javascriptcode.swg</code>, for <em>v8</em> in <code>Lib/javascript/v8/javascriptcode.swg</code> and for <em>Node-API</em> in <code>Lib/javascript/napi/javascriptcode.swg</code>.</p>
+<p>All generated code is created on the basis of code templates. The templates for <em>JavascriptCore</em> can be found in <code>Lib/javascript/jsc/javascriptcode.swg</code>, for <em>v8</em> in <code>Lib/javascript/v8/javascriptcode.swg</code>, for <em>Node-API</em> in <code>Lib/javascript/napi/javascriptcode.swg</code> and for <em>QuickJS</em> in <code>Lib/javascript/quickjs/javascriptcode.swg</code>.</p>
 <p>To track the originating code template for generated code you can run</p>
 <div class="shell">
 <pre>

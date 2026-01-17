@@ -1,13 +1,13 @@
 var global_namespace = require("global_namespace");
 
 
-k1 = new global_namespace.Klass1();
-k2 = new global_namespace.Klass2();
-k3 = new global_namespace.Klass3();
-k4 = new global_namespace.Klass4();
-k5 = new global_namespace.Klass5();
-k6 = new global_namespace.Klass6();
-k7 = new global_namespace.Klass7();
+var k1 = new global_namespace.Klass1();
+var k2 = new global_namespace.Klass2();
+var k3 = new global_namespace.Klass3();
+var k4 = new global_namespace.Klass4();
+var k5 = new global_namespace.Klass5();
+var k6 = new global_namespace.Klass6();
+var k7 = new global_namespace.Klass7();
 
 global_namespace.KlassMethods.methodA(k1, k2, k3, k4, k5, k6, k7);
 global_namespace.KlassMethods.methodB(k1, k2, k3, k4, k5, k6, k7);
