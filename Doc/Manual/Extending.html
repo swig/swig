@@ -3616,29 +3616,108 @@ Some topics that you'll want to be sure to address include:
 
 
 <p>
-The coding guidelines for the C/C++ source code are pretty much K&amp;R C style.
-The style can be inferred from the existing code base and is
-largely dictated by the <tt>indent</tt> code beautifier tool set to K&amp;R style.
-The code can be formatted using the make targets in the Source directory.
-Below is an example of how to format the emit.cxx file:
+The coding guidelines for the C/C++ source code are defined and implemented by the <tt>clang-format</tt> tool using
+the <tt>Source/.clang-format</tt> config file.
+Interested readers should take a look at the <a href="https://clang.llvm.org/docs/ClangFormat.html">ClangFormat documentation</a>.
+</p>
+
+<p>
+The <tt>clang-format</tt> tool is searched for during the configuration of SWIG and if found
+it will automatically be used to warn about code formatting discrepancies during the build.
+The tool is invoked immediately after compilation and linking of the SWIG executable.
+There are various make target which allow a developer to invoke <tt>clang-format</tt>
+to check the code format as well as reformat the code.
+These coding style guidelines are just for the SWIG source C and C++ code.
+</p>
+
+<p>
+How the tool is used during the development/building of SWIG depends on configure time options as follows:
+</p>
+
+<table BORDER summary="clang-format configure options">
+<tr>
+  <td><b>Configure options</b></td> <td><b>Description</b></td> <td><b>Recommended for</b></td>
+</tr>
+<tr>
+  <td>./configure</td> <td>Look for clang-format and only use if found (default)</td> <td>SWIG developers if clang-format is installed, everyone else if not installed</td>
+<tr>
+<tr>
+  <td>./configure --with-clang-format</td> <td>Look for clang-format and only use if found</td> <td>SWIG developers with a standard clang-format installation</td>
+<tr>
+</tr>
+<td>./configure --with-clang-format=&lt;path&gt;</td> <td>Use explicit/renamed clang-format binary</td> <td>SWIG developers with a non-standard clang-format installation</td>
+</tr>
+<tr>
+  <td>./configure --without-clang-format</td> <td>Don't use clang-format even if installed on system</td> <td>SWIG users, non-developers and system builders</td>
+</tr>
+</table>
+
+<p>
+The version of <tt>clang-format</tt> is checked at configure time.
+It is only enabled if the version is recent enough and this is clearly stated in the output of configure.
+Version 18 was the initial minimum version given it introduced support for the required
+<tt>Source/.clang-format-ignore</tt> file.
+</p>
+
+<p>
+If <tt>clang-format</tt> is found during configure time, the make targets listed below can be used:
+</p>
+
+<table BORDER summary="make targets for formatting">
+<tr>
+  <td><b>Make target</b></td> <td><b>Example usage</b></td> <td><b>Description</b></td>
+</tr>
+<tr>
+  <td>format-review</td> <td>make format-review</td> <td>For invoking clang-format to warn about source formatting discrepancies</td>
+<tr>
+<tr>
+  <td>format-check</td> <td>make format-check</td> <td>For invoking clang-format to error out when there are source formatting discrepancies</td>
+<tr>
+<tr>
+  <td>format-inplace</td> <td>make format-inplace</td> <td>For invoking clang-format to correct source formatting - overwrites source files in-place</td>
+<tr>
+<tr>
+  <td>format</td> <td>make format</td> <td>Identical to format-inplace target</td>
+<tr>
+<tr>
+  <td></td> <td>make</td> <td>Default make target for building the swig executable and then invoking the format-review target</td>
+<tr>
+</table>
+
+<p>
+The targets are available in both the root directory and the Source subdirectory.
+The <tt>CLANG_FORMAT_OPTIONS</tt> variable can be used to add options to the <tt>clang-format</tt> invocation (the variable is empty by default).
+For example, <tt>clang-format</tt> has a <tt>--verbose</tt> option to output the name of the file it is currently working on:
 </p>
 
 <blockquote>
 <pre>
-$ cd Source
-$ make beautify-file INDENTFILE=Modules/emit.cxx
+$ make format CLANG_FORMAT_OPTIONS=--verbose
 </pre>
 </blockquote>
 
 <p>
-The tool is far from perfect as it is more of a C beautify than a C++ beautifier; sometimes the output it
-generates need fixing up.
+As mentioned, if <tt>clang-format</tt> is configured to be used during configure time, the <tt>format-review</tt> target is always invoked after the SWIG executable has been built.
+This can be temporarily avoided without rerunning configure.
+Instead set the <tt>CLANG_FORMAT</tt> variable set to nothing (it normally holds the name of the <tt>clang-format</tt> executable):
+</p>
+
+<blockquote>
+<pre>
+$ make format CLANG_FORMAT=
+</pre>
+</blockquote>
+
+<p>
+Of particular note regarding the code style is only spaces are used and indentation is 2 spaces.
+The generated C/C++ code should also follow this whitespace style as close as possible.
 </p>
 
 <p>
-Of particular note regarding the code style is indentation is set to 2 spaces and a tab is used instead of 8 spaces.
-The generated C/C++ code should also follow this style as close as possible. However, tabs
-should be avoided as unlike the SWIG developers, users will never have consistent tab settings.
+<b>Compatibility Note:</b> The clang-formatting was introduced during the development of SWIG-4.5.0.
+Prior to that the GNU <tt>indent</tt> tool was recommended for formatting.
+The switch to <tt>clang-format</tt> was made in order to gain automated, consistent and working reformatting for C++ source code.
+The SWIG code base had to undergo some subtle formatting changes as a result.
 </p>
 
 
