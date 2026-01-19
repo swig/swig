@@ -7,6 +7,20 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-01-15: olly
+	    [Octave] Octave 6 is now the oldest version we aim to support.  We
+	    haven't had any automated testing of older Octave versions since
+	    GHA dropped support for Ubuntu 20.04 on 2025-04-01.
+
+2026-01-15: jschueller
+	    [Octave] Fix save_binary prototype to be correct for Octave >= 6.
+
+2025-17-12: ysmilda
+            [Go] #3291 
+               - Add `-unique-id` and `-no-unique-id` flags to enable/disable the addition of a unique id to the generated function names.
+               - Deprecate `-cgo` flag as this doesn't do anything.
+               - Cleanup docs and help output.
+               
 2025-12-12: christophe-calmejane
             [Lua] #3295 Add director support for Lua.
 

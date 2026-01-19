@@ -18,11 +18,7 @@ SWIGINTERNINLINE octave_value
 SWIGINTERN int
 SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
 {
-%#if SWIG_OCTAVE_PREREQ(4,4,0)
   if (!ov.islogical())
-%#else
-  if (!ov.is_bool_type())
-%#endif
     return SWIG_ERROR;
   if (val)
     *val = ov.bool_value();
@@ -218,13 +214,7 @@ SWIG_AsVal_dec(bool)(const octave_value& ov, bool *val)
 SWIGINTERN int
 SWIG_AsCharPtrAndSize(octave_value ov, char** cptr, size_t* psize, int *alloc)
 {
-  if (
-%#if SWIG_OCTAVE_PREREQ(4,4,0)
-    ov.iscell()
-%#else
-    ov.is_cell()
-%#endif
-    && ov.rows() == 1 && ov.columns() == 1)
+  if (ov.iscell() && ov.rows() == 1 && ov.columns() == 1)
     ov = ov.cell_value()(0);
 
   if (ov.is_string()) {

@@ -201,7 +201,7 @@ tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 ifeq ($(ENGINE), $(filter $(ENGINE), jsc v8 quickjs))
 ifeq ($(ACTION), check)
 check-javascript-prepare:
-	@$(MAKE) $(FLAGS) -C Tools/javascript javascript
+	@$(skip-javascript) || $(MAKE) $(FLAGS) -C Tools/javascript javascript
 endif
 endif
 
