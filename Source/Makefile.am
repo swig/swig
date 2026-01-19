@@ -110,6 +110,11 @@ CParse/parser.c CParse/parser.h &: CParse/parser.y
 all-local: eswig@EXEEXT@
 	cp -f $(top_builddir)/Source/eswig@EXEEXT@ $(top_builddir)/swig@EXEEXT@
 
+# Add clang-format checking (warnings) to dependencies building the executable
+ ifneq (,$(CLANG_FORMAT)) # Note space before ifneq/endif trick to prevent automake evaluating and removing this block during configure time
+all-local: format-review
+ endif
+
 clean-local:
 	rm -f $(top_builddir)/swig@EXEEXT@
 	rm -f core @EXTRA_CLEAN@
@@ -118,36 +123,21 @@ distclean-local:
 	rm -f $(top_builddir)/Source/Include/swigconfig.h
 	rm -f $(top_builddir)/Source/Include/stamp-h1
 
-# Beautify the code.
-# Note that this works well on C code, but does some odd joining of lines for C++ code.
-# Compiling with -DNDEBUG and no optimisations will allow one to do a binary diff of the
-# swig executable as a way of checking before and after the 'beautifying'.
-# Single files can be beautified with the beautify-file target, eg: 'make beautify-file INDENTFILE=chosenfile.c'
+# Beautify / check source code format with clang-format.
+# Note files in .clang-format-ignore will be skipped even if passed to clang-format (clang-format-18 and later).
 
-SWIGTYPEDEFS=-T bool -T File -T DohObjInfo -T Parm -T Language -T List -T TargetLanguageModule -T Typetab -T ModuleFactory -T ErrorMessageFormat -T Symtab -T Hash -T Scanner -T String -T DohBase -T Node -T String_or_char -T SwigType -T Dispatcher -T Wrapper -T DohStringMethods -T DohFileMethods -T DohListMethods -T DohHashMethods -T DOH -T DohIterator -T ParmList -T FILE -T HashNode -T DOHObj_or_char -T DOHFile -T DOHString -T DOHString_or_char -T UpcallData -T DoxygenEntity -T string
-INDENTBAKSDIR=../IndentBaks
+# For warning about source formatting discrepancies
+format-review:
+	$(CLANG_FORMAT) $(CLANG_FORMAT_OPTIONS) --dry-run $(eswig_SOURCES)
 
-beautify:
-	rm -rf $(INDENTBAKSDIR)
-	mkdir $(INDENTBAKSDIR)
-	mkdir $(INDENTBAKSDIR)/CParse
-	mkdir $(INDENTBAKSDIR)/DOH
-	mkdir $(INDENTBAKSDIR)/Modules
-	mkdir $(INDENTBAKSDIR)/Preprocessor
-	mkdir $(INDENTBAKSDIR)/Swig
-	mkdir $(INDENTBAKSDIR)/Include
-	(csources=`find . -name "*.c"` && \
-	hsources=`find . -name "*.h"` && \
-	cxxsources=`find . -name "*.cxx"` && \
-	for file in $$csources $$hsources $$cxxsources; do \
-	  $(MAKE) beautify-file INDENTFILE=$$file; \
-	done; )
+# For erroring out about source formatting discrepancies
+format-check:
+	$(CLANG_FORMAT) $(CLANG_FORMAT_OPTIONS) --dry-run --Werror $(eswig_SOURCES)
 
-beautify-file:
-	test -e $(INDENTBAKSDIR) || (echo $(INDENTBAKSDIR) directory does not exist && exit 1;)
-	test -n "$(INDENTFILE)" || (echo INDENTFILE not defined && exit 1;)
-	test -e $(INDENTFILE) || (echo File does not exist: $(INDENTFILE) && exit 1;)
-	cp $(INDENTFILE) $(INDENTBAKSDIR)/$(INDENTFILE);
-	indent -kr --honour-newlines --line-length160 --indent-level2 --braces-on-func-def-line --leave-optional-blank-lines $(SWIGTYPEDEFS) $(INDENTFILE) -o $(INDENTFILE).tmp;
-	cat $(INDENTFILE).tmp | sed -e 's/const const /const /' > $(INDENTFILE);
-	rm $(INDENTFILE).tmp;
+# For correcting source formatting - overwrites source files in-place
+format-inplace:
+	$(CLANG_FORMAT) $(CLANG_FORMAT_OPTIONS) -i $(eswig_SOURCES)
+
+format: format-inplace
+
+CLANG_FORMAT_OPTIONS=
