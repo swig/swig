@@ -64,8 +64,10 @@ Also, there are a dozen or so examples in the Examples/octave directory, and hun
 
 
 <p>
-SWIG is regularly tested against the following versions of Octave: 5.2, 6.4.
-SWIG 4.2.1 has also been manually tested with 7.3, 8.4 and 9.0.
+SWIG supports Octave 6 and later.  It is regularly tested against the following
+versions of Octave: 6.4, 8.4.
+SWIG 4.2.1 has also been manually tested with 7.3 and 9.0.  SWIG 4.4.0 has
+been manually tested with 10.3.
 </p>
 
 <p>
@@ -430,9 +432,9 @@ By using the <tt>swig_this()</tt> and <tt>swig_type()</tt> functions, one can di
 
     <div class="targetlang">
       <pre>
-octave:5> swig_this(p1)
+octave:5&gt; swig_this(p1)
 ans = 162504808
-octave:6> swig_type(p1)
+octave:6&gt; swig_type(p1)
 ans = Point
 </pre></div>
 <p>
@@ -442,26 +444,26 @@ This differs from the usual pass-by-value (copy-on-write) semantics that Octave 
 
     <div class="targetlang">
       <pre>
-octave:7> a=struct('x', 4)
+octave:7&gt; a=struct('x', 4)
 a =
 {
   x =  4
 }
 
-octave:8> b=a
+octave:8&gt; b=a
 b =
 {
   x =  4
 }
 
-octave:9> b.y=4
+octave:9&gt; b.y=4
 b =
 {
   x =  4
   y =  4
 }
 
-octave:10> a
+octave:10&gt; a
 a =
 {
   x =  4
@@ -473,25 +475,25 @@ However, when dealing with wrapped objects, one gets the behavior
 
     <div class="targetlang">
       <pre>
-octave:2> a=Point(3, 5)
+octave:2&gt; a=Point(3, 5)
 a =
 
 {
   Point, ptr = 0x9afbbb0
 }
 
-octave:3> b=a
+octave:3&gt; b=a
 b =
 
 {
   Point, ptr = 0x9afbbb0
 }
 
-octave:4> b.set(2, 1);
-octave:5> b.x, b.y
+octave:4&gt; b.set(2, 1);
+octave:5&gt; b.x, b.y
 ans =  2
 ans =  1
-octave:6> a.x, a.y
+octave:6&gt; a.x, a.y
 ans =  2
 ans =  1
 </pre></div>
@@ -696,11 +698,11 @@ and then used from Octave
 </p>
 
 <div class="targetlang"><pre>
-octave:1> mul(4, 3)
+octave:1&gt; mul(4, 3)
 ans =  12
-octave:2> mul(4.2, 3.6)
+octave:2&gt; mul(4.2, 3.6)
 ans =  15.120
-octave:3> mul(3+4i, 10+2i)
+octave:3&gt; mul(3+4i, 10+2i)
 ans =  22 + 46i
 </pre></div>
 
@@ -737,12 +739,12 @@ and then used from Octave
 </p>
 
 <div class="targetlang"><pre>
-octave:2> a=sum_complex(2+3i);
-octave:3> a.add(2)
+octave:2&gt; a=sum_complex(2+3i);
+octave:3&gt; a.add(2)
 ans =
 
 (4, 3)
-octave:4> a.add(3+i)
+octave:4&gt; a.add(3+i)
 ans =
 
 (7, 4)

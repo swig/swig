@@ -57,15 +57,17 @@ jobs:
         - SWIGLANG: java
           COMPILER: gcc
           VER: 11
-        - SWIGLANG: python
-          VER: '3.9'
+# 3.9 has been removed - try with 3.14 instead?
+#       - SWIGLANG: python
+#         VER: '3.9'
         - SWIGLANG: python
           VER: '3.10'
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
           VER: '3.13'
-        - SWIGLANG: python
-          COMPILER: gcc
+# Disabled for now: At some point between 9-13 Jan 2026 the mingw python package seemed to start depending on the ucrt.
+#       - SWIGLANG: python
+#         COMPILER: gcc
         - SWIGLANG: ruby
           COMPILER: gcc
         - SWIGLANG: ruby
