@@ -1,3 +1,6 @@
+# This file format requires clang-format version 14 or later
+# SWIG requires clang-format version 18 or later for .clang-format-ignore support
+
 Language: Cpp
 BasedOnStyle: Google
 AlignArrayOfStructures: Left
