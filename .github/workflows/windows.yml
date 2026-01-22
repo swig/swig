@@ -57,14 +57,13 @@ jobs:
         - SWIGLANG: java
           COMPILER: gcc
           VER: 11
-# 3.9 has been removed - try with 3.14 instead?
-#       - SWIGLANG: python
-#         VER: '3.9'
         - SWIGLANG: python
           VER: '3.10'
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
           VER: '3.13'
+        - SWIGLANG: python
+          VER: '3.14'
         - SWIGLANG: python
           COMPILER: gcc
         - SWIGLANG: ruby
