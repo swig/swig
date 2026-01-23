@@ -2266,6 +2266,11 @@ public:
 
       if (GetFlag(n, "feature:interface")) {
         interface_class_code = NewString("");
+	if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+	  String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+	  Printv(interface_class_code, Char(doxygen_comments), NIL);
+	  Delete(doxygen_comments);
+	}
 	String *output_directory = outputDirectory(nspace);
 	String *filen = NewStringf("%s%s.java", output_directory, interface_name);
 	f_interface = NewFile(filen, "w", SWIG_output_files());
@@ -2489,6 +2494,8 @@ public:
       if (comment_creation_chatter)
 	Printf(function_code, "/* This was generated from proxyclassfunctionhandler() */\n");
       Printv(function_code, Char(doxygen_comments), NIL);
+      if (is_interface)
+	Printv(interface_class_code, "\n", Char(doxygen_comments), NIL);
       Delete(doxygen_comments);
     }
 
