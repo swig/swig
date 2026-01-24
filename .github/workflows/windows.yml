@@ -57,17 +57,15 @@ jobs:
         - SWIGLANG: java
           COMPILER: gcc
           VER: 11
-# 3.9 has been removed - try with 3.14 instead?
-#       - SWIGLANG: python
-#         VER: '3.9'
         - SWIGLANG: python
           VER: '3.10'
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
           VER: '3.13'
-# Disabled for now: At some point between 9-13 Jan 2026 the mingw python package seemed to start depending on the ucrt.
-#       - SWIGLANG: python
-#         COMPILER: gcc
+        - SWIGLANG: python
+          VER: '3.14'
+        - SWIGLANG: python
+          COMPILER: gcc
         - SWIGLANG: ruby
           COMPILER: gcc
         - SWIGLANG: ruby
@@ -146,15 +144,10 @@ jobs:
 
             case "$SWIGLANG" in
             python)
-              MORE_MSYS_PKGS+=" $mingw_variant-python"
-              # MinGW-w64 using MSVCRT runtime seems to have an issue with finding
-              # the proper STL library (iostream classes) on runtime,
-              # As a workaround we use static link.
-              # Once we switch to MinGW-w64 with UCRT runtime, the issue will be solved.
-              # See: https://www.msys2.org/docs/environments/#msvcrt-vs-ucrt
-              if [[ "$mingw_variant" = "mingw-w64-x86_64" ]]; then
-                echo "EXAMPLE_LIBS=-static-libstdc++ -static-libgcc" >> $GITHUB_ENV
-              fi
+              # Use MinGW-w64 with Universal CRT
+              mingw_variant=mingw-w64-ucrt-x86_64
+              MORE_MSYS_PKGS+=" $mingw_variant-gcc $mingw_variant-python"
+              mingw_dir=ucrt64
               ;;
             ruby)
               mingw_variant=mingw-w64-ucrt-x86_64
