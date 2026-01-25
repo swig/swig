@@ -108,7 +108,7 @@ jobs:
           systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
 
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         show-progress: false
 

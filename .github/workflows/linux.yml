@@ -17,6 +17,35 @@ permissions:
   contents: read
 
 jobs:
+  # Code format checks, see https://github.com/marketplace/actions/clang-format-github-action
+  clang-format-oldest:
+    runs-on: ubuntu-latest
+    name: clang-format 18
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          show-progress: false
+      - name: Check with clang-format
+        uses: RafikFarhad/clang-format-github-action@v4.1
+        with:
+          sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
+          style: file
+
+  clang-format-newest:
+    runs-on: ubuntu-latest
+    name: clang-format 21
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.1
+        with:
+          show-progress: false
+      - name: Check with clang-format
+        uses: RafikFarhad/clang-format-github-action@v6.0.1
+        with:
+          sources: "Source/*/*.c,Source/*/*.cxx,Source/*/*.h"
+          style: file
+
   build:
 
     # When continue-on-error is true for an individual build, that build can fail (it'll show red),
@@ -28,6 +57,8 @@ jobs:
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
     name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.PY_ABI_VER && format('abi={0}', matrix.PY_ABI_VER) }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+
+    needs: [clang-format-oldest, clang-format-newest]
 
     strategy:
       matrix:
@@ -418,7 +449,7 @@ jobs:
           cat /etc/lsb-release
 
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         show-progress: false
         submodules: recursive
@@ -550,8 +581,6 @@ jobs:
             # Stricter compile flags for examples. Various headers and SWIG generated code prevents full use of -pedantic.
             cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC)"
             cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC)"
-            # temporary to see which github jobs have clang-format installed by default
-            clang-format --version
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
             make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags" PY_ABI_VER="$PY_ABI_VER"
