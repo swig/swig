@@ -48,7 +48,7 @@ eswig_SOURCES =	CParse/cscanner.c		\
 		Doxygen/pydoc.h			\
 		Modules/allocate.cxx		\
 		Modules/contract.cxx		\
-		Modules/c.cxx		\
+		Modules/c.cxx			\
 		Modules/csharp.cxx		\
 		Modules/d.cxx			\
 		Modules/directors.cxx		\
@@ -128,15 +128,15 @@ distclean-local:
 
 # For warning about source formatting discrepancies
 format-review:
-	$(CLANG_FORMAT) $(CLANG_FORMAT_OPTIONS) --dry-run $(eswig_SOURCES)
+	(cd $(srcdir) && $(CLANG_FORMAT) $(CLANG_FORMAT_OPTIONS) --dry-run */*.c */*.cxx */*.h)
 
 # For erroring out about source formatting discrepancies
 format-check:
-	$(CLANG_FORMAT) $(CLANG_FORMAT_OPTIONS) --dry-run --Werror $(eswig_SOURCES)
+	(cd $(srcdir) && $(CLANG_FORMAT) $(CLANG_FORMAT_OPTIONS) --dry-run --Werror  */*.c */*.cxx */*.h)
 
 # For correcting source formatting - overwrites source files in-place
 format-inplace:
-	$(CLANG_FORMAT) $(CLANG_FORMAT_OPTIONS) -i $(eswig_SOURCES)
+	(cd $(srcdir) && $(CLANG_FORMAT) $(CLANG_FORMAT_OPTIONS) -i  */*.c */*.cxx */*.h)
 
 format: format-inplace
 
