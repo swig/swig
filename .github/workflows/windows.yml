@@ -139,21 +139,23 @@ jobs:
 
           if [[ "$COMPILER" = "gcc" ]]; then
             # MinGW-w64 variant to use
+            # See: https://www.msys2.org/docs/environments
+            MSYSTEM=MINGW64
+            # The matched MSYS2 packages prefix
             mingw_variant=mingw-w64-x86_64
-            mingw_dir=mingw64
 
             case "$SWIGLANG" in
             python)
               # Use MinGW-w64 with Universal CRT
+              MSYSTEM=UCRT64
               mingw_variant=mingw-w64-ucrt-x86_64
               MORE_MSYS_PKGS+=" $mingw_variant-gcc $mingw_variant-python"
-              mingw_dir=ucrt64
               ;;
             ruby)
+              # Use MinGW-w64 with Universal CRT
+              MSYSTEM=UCRT64
               mingw_variant=mingw-w64-ucrt-x86_64
               MORE_MSYS_PKGS+=" $mingw_variant-gcc"
-              # We need the MinGW-w64 using Universal CRT
-              mingw_dir=ucrt64
               if [[ -n "$VER" ]]; then
                 ruby_dir=$(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64/bin
                 RUBYDIR=$(cygpath -w $ruby_dir)
@@ -171,6 +173,8 @@ jobs:
             for n in binutils make autotools pcre2 boost; do
               MORE_MSYS_PKGS+=" $mingw_variant-$n"
             done
+            # MSYS2 active environment path prefix
+            mingw_dir="${MSYSTEM,,}"
 
             # MinGW-w64 pcre2
             echo "PCRE2_CFLAGS=-I/$mingw_dir/include -DPCRE2_STATIC" >> $GITHUB_ENV
@@ -179,8 +183,10 @@ jobs:
             echo "MORE_MSYS_PKGS=base-devel $MORE_MSYS_PKGS" >> $GITHUB_ENV
             echo "BOOST_PATH=/c/msys64/$mingw_dir" >> $GITHUB_ENV
 
-            # gcc compiler location
-            echo "MINGW_CC=/$mingw_dir/bin" >> $GITHUB_ENV
+            # Select MSYS2 active environment
+            echo "MSYSTEM=$MSYSTEM" >> $GITHUB_ENV
+            # Set MSYS2 GCC compiler location
+            echo "/$mingw_dir/bin" >> $GITHUB_PATH
           else
              # COMPILER: cccl wrapping MSVC
             curl --retry 15 -s -L https://github.com/swig/cccl/raw/cccl-1.4/cccl -o /usr/bin/cccl
@@ -242,10 +248,6 @@ jobs:
             which cl.exe
             cl.exe /? 2>&1 | head -n1
           else
-            # Use MinGW-w64 compiler
-            # We can not use GITHUB_PATH, as bash insert /usr/bin
-            export PATH="$MINGW_CC:$PATH"
-
             which gcc
             gcc --version | head -n1
             which g++
@@ -280,7 +282,6 @@ jobs:
       run: |
           if [[ "$COMPILER" = "gcc" ]]; then
             # Use MinGW-w64 compiler
-            export PATH="$MINGW_CC:$PATH"
             ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe"
           else
              # cccl wrapping MSVC
@@ -290,11 +291,6 @@ jobs:
     - name: Build
       shell: bash
       run: |
-          if [[ "$COMPILER" = "gcc" ]]; then
-            # Use MinGW-w64 compiler
-            export PATH="$MINGW_CC:$PATH"
-          fi
-
           make -s $SWIGJOBS
 
     # Test the Windows swig have a proper SWIG library path
@@ -309,10 +305,6 @@ jobs:
     - name: Test
       shell: bash
       run: |
-          if [[ "$COMPILER" = "gcc" ]]; then
-            # Use MinGW-w64 compiler
-            export PATH="$MINGW_CC:$PATH"
-          fi
           ./swig.exe -version
           make check-$SWIGLANG-version
           make check-$SWIGLANG-enabled
