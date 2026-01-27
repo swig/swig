@@ -1,10 +1,10 @@
 var template_inherit = require("template_inherit");
-a = new template_inherit.FooInt();
-b = new template_inherit.FooDouble();
-c = new template_inherit.BarInt();
-d = new template_inherit.BarDouble();
-e = new template_inherit.FooUInt();
-f = new template_inherit.BarUInt();
+var a = new template_inherit.FooInt();
+var b = new template_inherit.FooDouble();
+var c = new template_inherit.BarInt();
+var d = new template_inherit.BarDouble();
+var e = new template_inherit.FooUInt();
+var f = new template_inherit.BarUInt();
 
 if (a.blah() != "Foo") {
     throw new Error;

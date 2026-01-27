@@ -728,7 +728,7 @@ java_clean:
 # create a configuration for a new example.
 
 ROOT_DIR = @ROOT_DIR@
-JSINCLUDES = @JSCOREINC@ @JSV8INC@
+JSINCLUDES = @JSCOREINC@ @JSV8INC@ @JSQUICKJSINC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
 NODEJS = @NODEJS@
 NODEGYP = @NODEGYP@
@@ -744,12 +744,20 @@ else
 ifneq (, @JSV8ENABLED@)
     JSENGINE=v8
 else
+ifneq (, @JSQUICKJSENABLED@)
+    JSENGINE=quickjs
+else
     # Shouldn't happen, but avoid empty value if it does.
     JSENGINE=node
 endif
 endif
 endif
 endif
+endif
+
+ifneq (, @JSQUICKJSENABLED@)
+    EXTRA_CPPFLAGS=-I$(SWIG_LIB_DIR)/javascript/quickjs
+endif    
 
 # ----------------------------------------------------------------
 # Creating and building Javascript wrappers
@@ -758,10 +766,12 @@ endif
 NAPI_DIR = @NODENAPI_DIR@
 
 javascript_wrapper:
-ifneq (jsc,$(JSENGINE))
-	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
-else
+ifeq (jsc,$(JSENGINE))
 	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
+else ifeq (quickjs,$(JSENGINE))
+	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.c $(INTERFACEPATH)
+else
+	$(SWIG) -javascript $(SWIGOPT) -$(JSENGINE) -o $(INTERFACEDIR)$(TARGET)_wrap.cxx $(INTERFACEPATH)
 endif
 
 javascript_wrapper_cpp: $(SRCDIR_SRCS)
@@ -794,15 +804,18 @@ endif
 # These targets are used by the test-suite:
 
 javascript: $(SRCDIR_SRCS) javascript_custom_interpreter
-ifeq (v8, $(ENGINE))
+ifeq (v8, $(JSENGINE))
 	$(SWIG) -javascript $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
 else
 	$(SWIG) -javascript $(SWIGOPT) $(INTERFACEPATH)
 endif
-ifeq (jsc, $(ENGINE))
+ifeq (jsc, $(JSENGINE))
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
-else ifeq (v8, $(ENGINE)) # v8 must be compiled as c++
+else ifeq (quickjs, $(JSENGINE))
+	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ISRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
+	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
+else ifeq (v8, $(JSENGINE)) # v8 must be compiled as c++
 	$(CC) -c $(CCSHARED) $(CPPFLAGS) $(CFLAGS) $(ICXXSRCS) $(SRCDIR_SRCS) $(INCLUDES) $(JSINCLUDES)
 	$(LDSHARED) $(CFLAGS) $(LDFLAGS) $(OBJS) $(IOBJS) $(JSDYNAMICLINKING) $(LIBS) -o $(LIBPREFIX)$(TARGET)$(SO)
 else # node and napi must be compiled as c++
@@ -818,7 +831,6 @@ javascript_cpp: $(SRCDIR_SRCS) javascript_custom_interpreter
 # -----------------------------------------------------------------
 # Running a Javascript example
 # -----------------------------------------------------------------
-
 javascript_custom_interpreter:
 	$(MAKE) -C $(ROOT_DIR)/Tools/javascript JSENGINE='$(JSENGINE)'
 
