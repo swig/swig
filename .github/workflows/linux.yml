@@ -89,6 +89,7 @@ jobs:
           os: ubuntu-22.04 # Octave 6.4.0
           CPPSTD: c++11
         - SWIGLANG: octave
+          VER: '8.4'
           os: ubuntu-24.04 # Octave 8.4.0
           CPPSTD: c++11
         - SWIGLANG: perl5

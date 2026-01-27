@@ -81,7 +81,6 @@ case "$SWIGLANG" in
 		;;
 	"octave")
 		if [[ "$VER" ]]; then
-			$RETRY sudo add-apt-repository -y ppa:devacom/science
 			$RETRY sudo apt-get -qq update
 			$RETRY sudo apt-get -qq install "octave-dev=$VER.*"
 		else
