@@ -81,18 +81,24 @@ SWIG_AsVal_dec(long)(PyObject *obj, long* val)
     return SWIG_OK;
   } else
 %#endif
-  if (PyLong_Check(obj)) {
-    long v = PyLong_AsLong(obj);
-    if (!PyErr_Occurred()) {
+%#if PY_VERSION_HEX < 0x030a0000
+  if (PyLong_Check(obj))
+%#endif
+  {
+    int overflow;
+    long v = PyLong_AsLongAndOverflow(obj, &overflow);
+    if (overflow != 0) {
+      return SWIG_OverflowError;
+    } else if (!PyErr_Occurred()) {
       if (val) *val = v;
       return SWIG_OK;
     } else {
       PyErr_Clear();
-      return SWIG_OverflowError;
     }
   }
 %#ifdef SWIG_PYTHON_CAST_MODE
   {
+%#if PY_VERSION_HEX < 0x030a0000
     int dispatch = 0;
     long v = PyInt_AsLong(obj);
     if (!PyErr_Occurred()) {
@@ -101,7 +107,9 @@ SWIG_AsVal_dec(long)(PyObject *obj, long* val)
     } else {
       PyErr_Clear();
     }
-    if (!dispatch) {
+    if (!dispatch)
+%#endif
+    {
       double d;
       int res = SWIG_AddCast(SWIG_AsVal(double)(obj,&d));
       // Largest double not larger than LONG_MAX (not portably calculated easily)
@@ -110,8 +118,8 @@ SWIG_AsVal_dec(long)(PyObject *obj, long* val)
       const double long_max = sizeof(long) == 8 ? 0x7ffffffffffffc00LL : LONG_MAX;
       // No equivalent needed for 64-bit double(LONG_MIN) is exactly LONG_MIN
       if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, LONG_MIN, long_max)) {
-	if (val) *val = (long)(d);
-	return res;
+        if (val) *val = (long)(d);
+        return res;
       }
     }
   }
@@ -209,16 +217,27 @@ SWIGINTERN int
 SWIG_AsVal_dec(long long)(PyObject *obj, long long *val)
 {
   int res = SWIG_TypeError;
-  if (PyLong_Check(obj)) {
-    long long v = PyLong_AsLongLong(obj);
-    if (!PyErr_Occurred()) {
+%#if PY_VERSION_HEX < 0x030a0000
+  if (PyLong_Check(obj))
+%#endif
+  {
+    int overflow;
+    long long v = PyLong_AsLongLongAndOverflow(obj, &overflow);
+    if (overflow != 0) {
+      return SWIG_OverflowError;
+    } else if (!PyErr_Occurred()) {
       if (val) *val = v;
       return SWIG_OK;
     } else {
       PyErr_Clear();
-      res = SWIG_OverflowError;
     }
-  } else {
+  }
+%#if PY_VERSION_HEX < 0x030a0000
+  else
+%#else
+  if (!PyLong_Check(obj))
+%#endif
+  {
     long v;
     res = SWIG_AsVal(long)(obj,&v);
     if (SWIG_IsOK(res)) {
