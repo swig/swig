@@ -4253,7 +4253,10 @@ public:
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
 		} else if (Replace(tm, "out ", "", flags) || Replace(tm, "out\t", "", flags)) {
 		  Printf(proxy_method_types, "typeof(%s).MakeByRefType()", tm);
+		} else if (Getattr(p, "tmap:cstype:isnullablevaluetype")) {
+		  Printf(proxy_method_types, "typeof(%s)", tm);
 		} else {
+		  Replace(tm, "?", "", DOH_REPLACE_ID_END | DOH_REPLACE_NOCOMMENT);
 		  Printf(proxy_method_types, "typeof(%s)", tm);
 		}
 	      } else {
