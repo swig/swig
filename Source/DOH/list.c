@@ -303,7 +303,11 @@ static int List_getline(DOH *lo) {
 }
 
 static DohListMethods ListListMethods = {
-  List_get, List_set, List_remove, List_insert, 0, /* delslice */
+  List_get,
+  List_set,
+  List_remove,
+  List_insert,
+  0,
 };
 
 DohObjInfo DohListType = {
