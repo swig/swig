@@ -25,6 +25,7 @@ namespace std {
 %template(StringVector) std::vector<std::string>;
 
 #ifdef SWIGC
+SWIG_STD_VECTOR_ITERATOR(bool)
 SWIG_STD_VECTOR_ITERATOR(int)
 #endif
 

@@ -33,9 +33,25 @@ void test_int_vector_cxx() {
     assert( sum_modulos == 1 );
 }
 
+void test_bool_vector_cxx() {
+    li_std_vector::BoolVector bv;
+    for ( int n = 0; n < 3; ++n )
+        bv.push_back(n % 2 == 0);
+
+    assert( bv.size() == 3 );
+
+    int even_count = 0;
+    for ( auto b : bv ) {
+        if ( b )
+            ++even_count;
+    }
+    assert( even_count == 2 );
+}
+
 int main() {
     test_int_vector_c();
     test_int_vector_cxx();
+    test_bool_vector_cxx();
 
     return 0;
 }
