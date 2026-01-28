@@ -33,7 +33,7 @@ namespace std {
         void clear();
         void push_back(const value_type& x);
         %extend {
-            const_reference get(int i) throw (std::out_of_range) {
+            const_reference get(int i) const throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     return (*self)[i];
@@ -72,7 +72,7 @@ namespace std {
         void clear();
         void push_back(bool x);
         %extend {
-            bool get(int i) throw (std::out_of_range) {
+            bool get(int i) const throw (std::out_of_range) {
                 int size = int(self->size());
                 if (i>=0 && i<size)
                     return (*self)[i];
