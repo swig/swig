@@ -308,7 +308,7 @@ static DohListMethods ListListMethods = {
   List_set,
   List_remove,
   List_insert,
-  0,				/* delslice */
+  0,
 };
 
 DohObjInfo DohListType = {
