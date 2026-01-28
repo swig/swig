@@ -1,7 +1,7 @@
 #include "li_std_vector/li_std_vector_wrap.h"
 #include <assert.h>
 
-int main() {
+void test_int_vector_c() {
     size_t i;
 
     li_std_vector_IntVector* iv = li_std_vector_IntVector_new();
@@ -17,6 +17,25 @@ int main() {
     }
 
     li_std_vector_IntVector_delete(iv);
+}
+
+void test_int_vector_cxx() {
+    li_std_vector::IntVector iv;
+    for ( int n = 0; n < 3; ++n )
+        iv.push_back(n % 2);
+
+    assert( iv.size() == 3 );
+
+    int sum_modulos = 0;
+    for ( auto i : iv ) {
+        sum_modulos += i;
+    }
+    assert( sum_modulos == 1 );
+}
+
+int main() {
+    test_int_vector_c();
+    test_int_vector_cxx();
 
     return 0;
 }

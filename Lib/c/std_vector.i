@@ -11,6 +11,44 @@
 #include <stdexcept>
 %}
 
+%inline %{
+namespace swig {
+
+// Minimal iterator-like implementation just sufficient to support range-based
+// for loops.
+//
+// Note that we still provide postfix increment and operator==() for
+// consistency with prefix increment and operator!=(), even though they are not
+// needed, strictly speaking.
+template <class T>
+class vector_citer {
+public:
+    using vector = std::vector<T>;
+
+    vector_citer(const vector* v, size_t idx) : v_{v}, idx_{idx} {}
+
+    const T& operator*() const  { return v_->at(idx_); }
+
+    vector_citer& operator++() { ++idx_; return *this; }
+    vector_citer operator++(int) { vector_citer tmp = *this; ++idx_; return tmp; }
+
+    bool operator==(const vector_citer& other) const { return idx_ == other.idx_ && v_ == other.v_; }
+    bool operator!=(const vector_citer& other) const { return !(*this == other); }
+
+private:
+    const vector* v_;
+    size_t idx_;
+};
+
+} // namespace swig
+%}
+
+// Rename operators to wrap them.
+%rename(equal) swig::vector_citer::operator==;
+%rename(not_equal) swig::vector_citer::operator!=;
+%rename(pre_inc) swig::vector_citer::operator++();
+%rename(post_inc) swig::vector_citer::operator++(int);
+
 namespace std {
 
     template<class T> class vector {
@@ -47,6 +85,11 @@ namespace std {
                 else
                     throw std::out_of_range("vector index out of range");
             }
+
+            swig::vector_citer<T> begin() const { return swig::vector_citer<T>(self, 0); }
+            swig::vector_citer<T> end() const { return swig::vector_citer<T>(self, self->size()); }
+            swig::vector_citer<T> cbegin() const { return swig::vector_citer<T>(self, 0); }
+            swig::vector_citer<T> cend() const { return swig::vector_citer<T>(self, self->size()); }
         }
     };
 
@@ -89,3 +132,8 @@ namespace std {
         }
     };
 }
+
+// Macro to allow iterating over wrapped std::vector using range-based for loops.
+%define SWIG_STD_VECTOR_ITERATOR(CTYPE)
+    %template(vector_citer_ ## #@CTYPE) swig::vector_citer<CTYPE>;
+%enddef
