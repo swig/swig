@@ -117,6 +117,9 @@ if test "$enable_ccache" = yes; then
 fi
 AC_SUBST(ENABLE_CCACHE)
 
+#----------------------------------------------------------------
+# Optional packages for development
+#----------------------------------------------------------------
 
 echo ""
 echo "Checking packages required for SWIG developers."
@@ -124,6 +127,46 @@ echo "Note : None of the following packages are required for users to compile an
 echo ""
 
 AC_CHECK_PROGS([BISON], [bison], [$MISSING bison])
+
+#----------------------------------------------------------------
+# clang-format
+#----------------------------------------------------------------
+
+AC_ARG_WITH(clang-format, AS_HELP_STRING([--without-clang-format], [Disable clang-format])
+AS_HELP_STRING([--with-clang-format=path], [Set location of clang-format executable]),[with_clang_format="$withval"], [with_clang_format="yes"])
+
+# First, check for "--without-clang-format" or "--with-clang-format=no".
+if test x"$with_clang_format" = xno; then
+  AC_MSG_NOTICE([Disabling clang-format])
+  CLANG_FORMAT=
+else
+  if test "x$with_clang_format" = xyes; then
+    AC_CHECK_PROGS(CLANG_FORMAT, clang-format)
+  else
+    AC_MSG_CHECKING([clang-format])
+    CLANG_FORMAT="$with_clang_format"
+    AC_MSG_RESULT([$CLANG_FORMAT])
+  fi
+fi
+if test -n "$CLANG_FORMAT" ; then
+  AC_MSG_CHECKING([for clang-format version])
+  clang_format_version=[$($CLANG_FORMAT --version | sed -e 's/^.*version \([0-9]\+.[0-9.]*\).*$/\1/')]
+  AC_MSG_RESULT([$clang_format_version])
+  clang_format_major_version=[$(echo "$clang_format_version" | sed -e 's/^\([0-9]\+\)\(.[0-9.]*\).*$/\1/')]
+  AC_MSG_CHECKING([whether clang-format major version ($clang_format_major_version) >= required minimum version (18) and should be enabled]) # 18 is first version to support .clang-format-ignore
+  if test "$clang_format_major_version" -ge "18"; then
+    AC_MSG_RESULT([yes])
+  else
+    AC_MSG_RESULT([no])
+    CLANG_FORMAT=
+  fi
+fi
+
+AC_SUBST(CLANG_FORMAT)
+
+#----------------------------------------------------------------
+# Optional for target language examples/testing
+#----------------------------------------------------------------
 
 echo ""
 echo "Checking for installed target languages and other information in order to compile and run"
@@ -507,42 +550,6 @@ case $host in
     ;;
 esac
 AC_SUBST(SHELL_PATH_SEP)
-
-#----------------------------------------------------------------
-# clang-format
-#----------------------------------------------------------------
-
-AC_ARG_WITH(clang-format, AS_HELP_STRING([--without-clang-format], [Disable clang-format])
-AS_HELP_STRING([--with-clang-format=path], [Set location of clang-format executable]),[with_clang_format="$withval"], [with_clang_format="yes"])
-
-# First, check for "--without-clang-format" or "--with-clang-format=no".
-if test x"$with_clang_format" = xno; then
-  AC_MSG_NOTICE([Disabling clang-format])
-  CLANG_FORMAT=
-else
-  if test "x$with_clang_format" = xyes; then
-    AC_CHECK_PROGS(CLANG_FORMAT, clang-format)
-  else
-    AC_MSG_CHECKING([clang-format])
-    CLANG_FORMAT="$with_clang_format"
-    AC_MSG_RESULT([$CLANG_FORMAT])
-  fi
-fi
-if test -n "$CLANG_FORMAT" ; then
-  AC_MSG_CHECKING([for clang-format version])
-  clang_format_version=[$($CLANG_FORMAT --version | sed -e 's/^.*version \([0-9]\+.[0-9.]*\).*$/\1/')]
-  AC_MSG_RESULT([$clang_format_version])
-  clang_format_major_version=[$(echo "$clang_format_version" | sed -e 's/^\([0-9]\+\)\(.[0-9.]*\).*$/\1/')]
-  AC_MSG_CHECKING([whether clang-format major version ($clang_format_major_version) >= required minimum version (18) and should be enabled]) # 18 is first version to support .clang-format-ignore
-  if test "$clang_format_major_version" -ge "18"; then
-    AC_MSG_RESULT([yes])
-  else
-    AC_MSG_RESULT([no])
-    CLANG_FORMAT=
-  fi
-fi
-
-AC_SUBST(CLANG_FORMAT)
 
 #--------------------------------------------------------------------
 # Target languages
