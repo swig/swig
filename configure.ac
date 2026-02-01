@@ -2072,9 +2072,7 @@ else
 
       AC_MSG_CHECKING([for Python 3.x version])
 
-      # Need to do this hack since autoconf replaces __file__ with the name of the configure file
-      filehack="file__"
-      PY3VERSION=`($PYTHON3 -c "import string,operator,os.path; print(operator.getitem(os.path.split(operator.getitem(os.path.split(string.__$filehack),0)),1))") 2>/dev/null`
+      PY3VERSION=`($PYTHON3 -c "import sys;print('python%d.%d' % (sys.version_info.major, sys.version_info.minor))") 2>/dev/null`
       AC_MSG_RESULT($PY3VERSION)
 
       # Find the directory for libraries this is necessary to deal with

@@ -157,7 +157,7 @@ jobs:
               mingw_variant=mingw-w64-ucrt-x86_64
               MORE_MSYS_PKGS+=" $mingw_variant-gcc"
               if [[ -n "$VER" ]]; then
-                ruby_dir=$(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64/bin
+                ruby_dir=$(ls -d /c/hostedtoolcache/windows/Ruby/$VER.*)/x64/bin
                 RUBYDIR=$(cygpath -w $ruby_dir)
                 echo "$RUBYDIR" >> $GITHUB_PATH
               else
@@ -206,22 +206,16 @@ jobs:
             if [[ -n "$VER" ]]; then
               case "$SWIGLANG" in
               python)
-                PYTHONDIR_UNIX=$(ls -d /c/hostedtoolcache/windows/Python/$VER*)/x64
-                PYTHONDIR=$(cygpath -w $PYTHONDIR_UNIX)
+                python_dir=$(ls -d /c/hostedtoolcache/windows/Python/$VER.*)/x64
+                PYTHONDIR=$(cygpath -w $python_dir)
                 echo "$PYTHONDIR\\Script" >> $GITHUB_PATH
                 echo "$PYTHONDIR" >> $GITHUB_PATH
-                ;;
-              ruby)
-                RUBYDIR_UNIX=$(ls -d /c/hostedtoolcache/windows/Ruby/$VER*)/x64
-                RUBYDIR=$(cygpath -w $RUBYDIR_UNIX)
-                echo "$RUBYDIR\\bin" >> $GITHUB_PATH
                 ;;
               esac
             fi
           fi # COMPILER
 
-          # Java must use VER!
-          if [[ "$SWIGLANG" = "java" ]]; then
+          if [[ "$SWIGLANG" = "java" ]] && [[ -n "$VER" ]]; then
             declare -n java_path="JAVA_HOME_${VER}_X64"
             echo "JAVA_HOME=$java_path" >> $GITHUB_ENV
           fi
