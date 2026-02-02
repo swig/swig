@@ -3692,11 +3692,9 @@ The <tt>CLANG_FORMAT_OPTIONS</tt> variable can be used to add options to the cla
 For example, clang-format has a <tt>--verbose</tt> option to output the name of the file it is currently working on:
 </p>
 
-<blockquote>
-<pre>
+<div class="shell"><pre>
 $ make format CLANG_FORMAT_OPTIONS=--verbose
-</pre>
-</blockquote>
+</pre></div>
 
 <p>
 As mentioned, if clang-format is configured to be used during configure time, the <tt>format-review</tt> target is always invoked after the SWIG executable has been built.
@@ -3704,17 +3702,34 @@ This can be temporarily avoided without rerunning configure.
 Instead set the <tt>CLANG_FORMAT</tt> variable set to nothing (it normally holds the name of the clang-format executable):
 </p>
 
-<blockquote>
-<pre>
+<div class="shell"><pre>
 $ make format CLANG_FORMAT=
-</pre>
-</blockquote>
+</pre></div>
 
-<blockquote>
-<pre>
-$ make format CLANG_FORMAT=
-</pre>
-</blockquote>
+<p>
+Developers are also urged to use the SWIG pre-commit git hook script which is available in <tt>Tools/pre-commit</tt>.
+This is useful for preventing accidental commits with incorrectly formatted code.
+It invokes clang-format to validate the formatting is correct on all modified (both git staged and unstaged) files in the Source directory.
+Find the .git/hooks directory for the SWIG repository (usually in your git working directory) and copy it there, such as:
+</p>
+
+<div class="shell"><pre>
+$ cp Tools/pre-commit .git/hooks/
+</pre></div>
+
+<p>
+Modify the <tt>clang_format</tt> variable in the script if clang-format is not the name of the clang-format executable that is version 18 or later.
+Then when committing code, you'll see something like the following if the code is not formatted correctly:
+</p>
+
+<div class="shell"><pre>
+$ git commit .
+Running clang-format in git pre-commit hook to validate modified files...
+Source/Modules/java.cxx:26:30: error: code should be clang-formatted [-Wclang-format-violations]
+  const String *empty_string;
+                             ^
+Error: Fix formatting before committing, see Doc/Manual/Extending.html#Extending_coding_style_guidelines.
+</pre></div>
 
 <p>
 Of particular note regarding the code style is only spaces are used and indentation is 2 spaces.
