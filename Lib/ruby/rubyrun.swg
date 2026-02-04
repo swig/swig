@@ -67,8 +67,7 @@ extern "C" {
 typedef struct {
   VALUE klass;
   VALUE mImpl;
-  void  (*mark)(void *);
-  void  (*destroy)(void *);
+  rb_data_type_t cext_type;
   int trackObjects;
 } swig_class;
 
@@ -162,6 +161,20 @@ SWIG_Ruby_define_class(swig_type_info *type)
   free((void *) klass_name);
 }
 
+
+static const rb_data_type_t swig_type_type = {
+    .wrap_struct_name = "swig_type",
+    .function = {
+      .dmark = 0,
+      .dfree = 0,
+      .dsize = 0,
+      .dcompact = 0,
+      .reserved = 0},
+    .parent = 0,
+    .data = 0,
+    .flags = 0
+};
+
 /* Create a new pointer object */
 SWIGRUNTIME VALUE
 SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
@@ -199,10 +212,9 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     }
 
     /* Create a new Ruby object */
-    obj = Data_Wrap_Struct(sklass->klass, VOIDFUNC(sklass->mark), 
-			   ( own ? VOIDFUNC(sklass->destroy) : 
-			     (track ? VOIDFUNC(SWIG_RubyRemoveTracking) : 0 )
-			     ), ptr);
+    /* TODO: impl non-owned objs */
+    obj = TypedData_Wrap_Struct(sklass->klass, &sklass->cext_type, ptr);
+    printf("---own: %d  track: %d\n", own, track);
 
     /* If tracking is on for this class then track this object. */
     if (track) {
@@ -214,7 +226,7 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     SWIG_snprintf(klass_name, klass_len, "TYPE%s", type->name);
     klass = rb_const_get(_mSWIG, rb_intern(klass_name));
     free((void *) klass_name);
-    obj = Data_Wrap_Struct(klass, 0, 0, ptr);
+    obj = TypedData_Wrap_Struct(klass, &swig_type_type, ptr);
   }
   rb_iv_set(obj, "@__swigtype__", rb_str_new2(type->name));
 
@@ -227,7 +239,7 @@ SWIG_Ruby_NewClassInstance(VALUE klass, swig_type_info *type)
 {
   VALUE obj;
   swig_class *sklass = (swig_class *) type->clientdata;
-  obj = Data_Wrap_Struct(klass, VOIDFUNC(sklass->mark), VOIDFUNC(sklass->destroy), 0);
+  obj = TypedData_Wrap_Struct(klass, &sklass->cext_type, 0);
   rb_iv_set(obj, "@__swigtype__", rb_str_new2(type->name));
   return obj;
 }
@@ -272,10 +284,12 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
       *ptr = 0;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   } else {
-    if (TYPE(obj) != T_DATA || (TYPE(obj) == T_DATA && RTYPEDDATA_P(obj))) {
+    if (TYPE(obj) != T_DATA) {
       return SWIG_ERROR;
     }
-    Data_Get_Struct(obj, void, vptr);
+    // TODO: Use TypedData_Get_Struct and let it check the type
+    // Data_Get_Struct(obj, void, vptr);
+    vptr = DATA_PTR(obj);
   }
   
   if (own) {
@@ -398,6 +412,20 @@ SWIG_Ruby_ConvertPacked(VALUE obj, void *ptr, int sz, swig_type_info *ty) {
   return SWIG_ERROR;
 }
 
+
+static const rb_data_type_t swig_runtime_data_type = {
+    .wrap_struct_name = "swig_runtime_data" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME,
+    .function = {
+      .dmark = 0,
+      .dfree = 0,
+      .dsize = 0,
+      .dcompact = 0,
+      .reserved = 0},
+    .parent = 0,
+    .data = 0,
+    .flags = 0
+};
+
 SWIGRUNTIME swig_module_info *
 SWIG_Ruby_GetModule(void *SWIGUNUSEDPARM(clientdata))
 {
@@ -407,11 +435,12 @@ SWIG_Ruby_GetModule(void *SWIGUNUSEDPARM(clientdata))
 
  /* temporarily disable warnings, since the pointer check causes warnings with 'ruby -w' */
   rb_gv_set("VERBOSE", Qfalse);
-  
+
   /* first check if pointer already created */
   pointer = rb_gv_get("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME);
   if (pointer != Qnil) {
-    Data_Get_Struct(pointer, swig_module_info, ret);
+    /* Use RTYPEDDATA_TYPE(pointer) instead of &swig_runtime_data_type because the latter varying in every *_wrap.cxx file. */
+    TypedData_Get_Struct(pointer, swig_module_info, RTYPEDDATA_TYPE(pointer), ret);
   }
 
   /* reinstate warnings */
@@ -426,7 +455,7 @@ SWIG_Ruby_SetModule(swig_module_info *pointer)
   VALUE cl = rb_define_class("swig_runtime_data", rb_cObject);
   rb_undef_alloc_func(cl);
   /* create and store the structure pointer to a global variable */
-  swig_runtime_data_type_pointer = Data_Wrap_Struct(cl, 0, 0, pointer);
+  swig_runtime_data_type_pointer = TypedData_Wrap_Struct(cl, &swig_runtime_data_type, pointer);
   rb_define_readonly_variable("$swig_runtime_data_type_pointer" SWIG_RUNTIME_VERSION SWIG_TYPE_TABLE_NAME, &swig_runtime_data_type_pointer);
 }
 
