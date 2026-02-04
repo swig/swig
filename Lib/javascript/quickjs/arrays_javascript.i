@@ -41,12 +41,12 @@
   length = ANYLENGTH;
   $1  = ($*1_ltype *)js_malloc(ctx, sizeof($*1_ltype) * length);
 
-  // Get each element from array
+  /* Get each element from array */
   for (i = 0; i < length; i++) {
     JSValue jsvalue = JS_GetPropertyUint32(ctx, array, i);
     $*1_ltype temp;
 
-    // Get primitive value from JSObject
+    /* Get the primitive value of the JSValue */
     int res = SWIG_AsVal(CTYPE)(jsvalue, &temp);
     if (!SWIG_IsOK(res)) {
       SWIG_exception_fail(SWIG_ERROR, "Failed to convert $input to array item type");
@@ -104,12 +104,12 @@ JAVASCRIPT_ARRAYS_OUT_DECL("SWIG_OutNumber", double)
   array = $input;
   $1  = ($*1_ltype *)js_malloc(ctx, sizeof($*1_ltype) * $2);
 
-  // Get each element from array
+  /* Get each element from array */
   for (i = 0; i < $2; i++) {
     JSValue jsvalue = JS_GetPropertyUint32(ctx, array, (uint32_t)i);
     $*1_ltype temp;
 
-    // Get primitive value from JSObject
+    /* Get the primitive value of the JSValue */
     int res = SWIG_AsVal(CTYPE)(jsvalue, &temp);
     if (!SWIG_IsOK(res)) {
       SWIG_exception_fail(SWIG_ERROR, "Failed to convert $input to array item type");
