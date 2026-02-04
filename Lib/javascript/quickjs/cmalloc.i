@@ -1,12 +1,11 @@
 #ifdef QUICKJS_USE_LIBC_MALLOC
 %include <typemaps/cmalloc.swg>
 #else
-// use quickjs malloc
-/* 
+/*
  * Same functionality as typemaps/cmalloc.swg,
  * except that quickjs malloc is used (allows
  * tracking of memory leaks).
- * 
+ *
  * %malloc(TYPE [, NAME = TYPE])
  * %calloc(TYPE [, NAME = TYPE])
  * %realloc(TYPE [, NAME = TYPE])
