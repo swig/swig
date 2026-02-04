@@ -300,11 +300,13 @@ SWIGRUNTIME int SWIG_QuickJS_IsSwigObject(JSContext *ctx, JSValueConst this_val)
     result = (JS_GetClassID(proto) == SWIG_QuickJS_swig_prototype_class_class_definition.class_id);
     JS_FreeValue(ctx, proto);
 #if defined(SWIGRUN_DEBUG) && (SWIGRUN_DEBUG & SWIGRUN_DEBUG_TYPECHECK)
-    /* check the SwigObject */
-    swig_object = (SwigObjectData*)JS_GetOpaque(this_val, JS_GetClassID(this_val));
-    if (swig_object && swig_object->magic != SWIG_OBJECT_MAGIC) {
-      printf("SWIG_QuickJS_IsSwigObject: Error - classID is swig prototype but magic don't match (%p)\n", swig_object);
-      result = false;
+    if(result) {
+      /* check the SwigObject */
+      swig_object = (SwigObjectData*)JS_GetOpaque(this_val, JS_GetClassID(this_val));
+      if (swig_object && swig_object->magic != SWIG_OBJECT_MAGIC) {
+        printf("SWIG_QuickJS_IsSwigObject: Error - classID is swig prototype but magic don't match (%p)\n", swig_object);
+        result = false;
+      }
     }
 #endif
   }
