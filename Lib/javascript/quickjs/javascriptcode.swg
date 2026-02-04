@@ -291,11 +291,15 @@ static int $jswrapper(JSContext *ctx, JSValueConst this_val, int argc, JSValueCo
 %fragment ("js_function_dispatch_case", "templates")
 %{
   if (argc >= $jsargrequired && argc <= $jsargcount) {
-     res = $jswrapper(ctx, this_val, argc, argv, &jsresult);
-     if (res == SWIG_OK) { 
-       JS_FreeValue(ctx, JS_GetException(ctx)); /* clear previous exception in the dispatch */
-       return jsresult; 
-     }
+    res = $jswrapper(ctx, this_val, argc, argv, &jsresult);
+    if (res == SWIG_OK) {
+      if(!JS_IsException(jsresult)) {
+        /* clear exception that occured 'before' in the dispatch
+         * (meaning that, if the current result is an exception, keep it) */
+        JS_FreeValue(ctx, JS_GetException(ctx));
+      }
+      return jsresult;
+    }
   }
 %}
 
@@ -403,7 +407,7 @@ static SWIG_QuickJS_ClassDefinition $jsmangledname_class_definition = {
     return SWIG_ERROR;
   }
 
-  SWIGTYPE_$jsmangledtype->clientdata = (void*)&$jsmangledname_class_definition;  
+  SWIGTYPE_$jsmangledtype->clientdata = (void*)&$jsmangledname_class_definition;
 %}
 
 /* -----------------------------------------------------------------------------
