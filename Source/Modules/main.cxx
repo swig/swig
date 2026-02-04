@@ -379,6 +379,11 @@ static void SWIG_dump_runtime() {
   Swig_banner(runtime);
   Printf(runtime, "\n");
 
+  /* include guard begin */
+  Printf(runtime, "#ifndef SWIG_RUNTIME_HEADER_\n");
+  Printf(runtime, "#define SWIG_RUNTIME_HEADER_\n");
+  Printf(runtime, "\n");
+
   s = Swig_include_sys("swigcompat.swg");
   if (!s) {
     Printf(stderr, "*** Unable to open 'swigcompat.swg'\n");
@@ -426,6 +431,11 @@ static void SWIG_dump_runtime() {
     Exit(EXIT_FAILURE);
   }
   Printf(runtime, "%s", s);
+
+  /* include guard end */
+  Printf(runtime, "\n");
+  Printf(runtime, "#endif /* SWIG_RUNTIME_HEADER_ */\n");
+
   Delete(s);
 
   Delete(runtime);
