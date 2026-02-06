@@ -1,4 +1,4 @@
-name: linux-cmake
+name: macos-cmake
 
 on:
   push:
@@ -28,33 +28,37 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-22.04, ubuntu-24.04]
+        os: [macos-14, macos-26]
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
     env:
-      SWIG_INSTALL_PREFIX: '${{ github.workspace }}/install'
+      SWIG_INSTALL_PREFIX: '${{ github.workspace }}/swig.install'
 
     steps:
     - name: Machine Info
       run: |
-          echo "nproc..."
-          nproc --all
+          echo "number of logical cores logical cpu..."
+          sysctl -n hw.logicalcpu
+          echo "number of cores..."
+          sysctl -n hw.ncpu
           echo "uname..."
-          uname --all
-          echo "meminfo..."
-          cat /proc/meminfo
-          echo "lsb-release..."
-          cat /etc/lsb-release
+          uname -a
+          echo "total memory in bytes..."
+          sysctl hw.memsize
 
     - name: Checkout
       uses: actions/checkout@v4
       with:
         show-progress: false
 
+    # See Homebrew site: https://brew.sh/
     - name: Install Dependencies
       run: |
-          sudo apt install libpcre2-dev
+          brew install bison
+          # Ensure we use the newer version of bison
+          bison_dir="$(brew ls bison | grep '/bin/bison$' | head -1 | sed 's?/bison$??')"
+          echo "$bison_dir" >> $GITHUB_PATH
 
     - name: Configure
       run: |

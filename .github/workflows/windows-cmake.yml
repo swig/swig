@@ -28,16 +28,13 @@ jobs:
   cmake:
     runs-on: ${{ matrix.os }}
 
-    name: CMake VS ${{ matrix.VER }}
+    name: cmake ${{ matrix.os }}
 
     strategy:
       matrix:
-        include:
-        - VER: '17 2022'
-          os: 'windows-2025'
-
-    env:
-      BUILD_SYS: Visual Studio ${{ matrix.VER }}
+        os: [windows-2025, windows-2025-vs2026]
+      # Run all of them, as opposed to aborting when one fails
+      fail-fast: false
 
     steps:
     - name: Machine Info
@@ -82,7 +79,7 @@ jobs:
       shell: powershell
       run: |
           cmake --version
-          cmake -S . -B . -G "$env:BUILD_SYS" -A x64 `
+          cmake -S . -B . -A x64 `
           -DCMAKE_INSTALL_PREFIX="C:\Tools\swig" `
           -DCMAKE_C_FLAGS="/W3 /EHsc" `
           -DCMAKE_CXX_FLAGS="/W3 /EHsc" `
@@ -105,3 +102,4 @@ jobs:
       run: |
           cmake --install .
           C:\Tools\swig\bin\swig.exe -version
+          C:\Tools\swig\bin\swig.exe -pcreversion
