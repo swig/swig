@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-02-04: jschueller
+	    #3325 Add include guard when generating SWIG runtime header.
+
 2026-01-21: jschueller
 	    #3019 Issue deprecation warning if `%typedef` is used.  This is
 	    an undocumented directive which SWIG has treated as an alias for
