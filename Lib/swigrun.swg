@@ -476,7 +476,7 @@ SWIG_TypeClientData(swig_type_info *ti, void *clientdata) {
 
   while (head) {
     swig_cast_info *cast;
-    for (cast = head; (cast - head) <= head->value; cast++) {
+    for (cast = head; (unsigned int)(cast - head) <= head->value; cast++) {
       if (!cast->converter) {
         swig_type_info *tc = cast->type;
         if (!tc->clientdata) {

@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-02-07: wsfulton
+	    #3323 Fix -Wsign-compare warning in 32-bit builds in SWIG_TypeClientData.
+
 2026-02-04: jschueller
 	    #3325 Add include guard when generating SWIG runtime header.
 
