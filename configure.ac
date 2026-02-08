@@ -200,7 +200,7 @@ then
 			LDSHARED="ld -Bshareable"
 		fi;;
 	*-sco-sysv*) LDSHARED="\$(CC) -G -KPIC -Ki486 -belf -Wl,-Bexport";;
-	*-*-darwin*) LDSHARED="\$(CC) -bundle -undefined suppress -flat_namespace";;
+	*-*-darwin*) LDSHARED="\$(CC) -bundle -undefined dynamic_lookup -flat_namespace";;
 	*)	LDSHARED="ld";;
 	esac
 fi
@@ -226,7 +226,7 @@ then
              else TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -G -L/opt/SUNWspro/lib -lCrun -lCstd"
              fi;;
         *-*-hp*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) +z ";;
-        *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -bundle -undefined suppress -flat_namespace";;
+        *-*-darwin*) TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -bundle -undefined dynamic_lookup -flat_namespace";;
         *-*-cygwin* | *-*-mingw* | *-*-msys*)
             if test "$GCC" = yes; then
                 TRYLINKINGWITHCXX="CXXSHARED= \$(CXX) -shared "
@@ -1033,7 +1033,7 @@ if test -n "$JAVAC"; then
   JAVA_VERSION_MAJOR="1"
   if test -n "$java_version_num"; then
     dnl Until Java 8 version number was in format "1.x.y_z", starting from Java 9 it's "x.y.z".
-    JAVA_VERSION_MAJOR=[$(echo "$java_version_num" | sed -e "s/^1\.//" | sed -e "s/^\([0-9]\+\)\..*/\1/")]
+    JAVA_VERSION_MAJOR=`echo "$java_version_num" | sed 's%^1\.%%;s%\..*%%'`
   fi
   AC_MSG_RESULT([$JAVA_VERSION_MAJOR])
 
@@ -1128,7 +1128,7 @@ case $host in
         JAVACFLAGS=""
     fi ;;
 *-*-darwin*)
-        JAVADYNAMICLINKING="-dynamiclib -framework JavaVM"
+        JAVADYNAMICLINKING="-dynamiclib"
         JAVACFLAGS=""
         ;;
 *)
@@ -2588,8 +2588,8 @@ esac
 
 case $host in
 *-*-darwin*)
-    TCLLDSHARED='$(CC) -dynamiclib -undefined suppress -flat_namespace'
-    TCLCXXSHARED='$(CXX) -dynamiclib -undefined suppress -flat_namespace'
+    TCLLDSHARED='$(CC) -dynamiclib -undefined dynamic_lookup -flat_namespace'
+    TCLCXXSHARED='$(CXX) -dynamiclib -undefined dynamic_lookup -flat_namespace'
     ;;
 *)
     TCLLDSHARED='$(LDSHARED)'

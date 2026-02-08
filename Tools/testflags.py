@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
+import platform
 
 def get_cflags(language, std, compiler):
     if std == None or len(std) == 0:
         std = "gnu89"
-    c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers -Wunused-variable"
+    c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers"
+    if platform.system() != 'Darwin':
+        c_common += " -Wunused-variable"
 
     # signed to unsigned conversions warnings, type conversion
     sign_conversion_flags = " -Wconversion -Wsign-conversion"
@@ -34,6 +37,9 @@ def get_cflags(language, std, compiler):
     if compiler == "clang":
         cflags["guile"] += " -Wno-attributes" # -Wno-attributes is for clang LLVM 3.5 and bdw-gc < 7.5 used by guile
 
+    if platform.system() == 'Darwin':
+        cflags["ruby"] += " -Wno-attribute-warning -Wno-missing-field-initializers"
+
     if language not in cflags:
         raise RuntimeError("{} is not a supported language".format(language))
 
@@ -42,7 +48,10 @@ def get_cflags(language, std, compiler):
 def get_cxxflags(language, std, compiler):
     if std == None or len(std) == 0:
         std = "c++98"
-    cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers -Wunused-variable"
+    cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers"
+    if platform.system() != 'Darwin':
+        cxx_common += " -Wunused-variable"
+
     cxxflags = {
              "c":"-Werror " + cxx_common,
         "csharp":"-Werror " + cxx_common,
@@ -64,6 +73,9 @@ def get_cxxflags(language, std, compiler):
     }
     if compiler == "clang":
         cxxflags["guile"] += " -Wno-attributes" # -Wno-attributes is for clang LLVM 3.5 and bdw-gc < 7.5 used by guile
+
+    if platform.system() == 'Darwin':
+        cxxflags["ruby"] += " -Wno-attribute-warning -Wno-missing-field-initializers"
 
     if language not in cxxflags:
         raise RuntimeError("{} is not a supported language".format(language))
