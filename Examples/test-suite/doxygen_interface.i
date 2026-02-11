@@ -1,7 +1,9 @@
 %module doxygen_interface
 
+#if defined(SWIGJAVA) || defined(SWIGCSHARP)
 %include "swiginterface.i"
 %interface_impl(MyInterface)
+#endif
 
 %inline %{
 
