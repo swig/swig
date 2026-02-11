@@ -1211,7 +1211,7 @@ public:
 
       // Translate documentation comments
       if (have_docstring(n)) {
-	String *ds = docstring(n, tab0);
+	String *ds = docstring(n, "");
 	Printv(enum_code, ds, NIL);
 	Delete(ds);
       }
@@ -1940,6 +1940,13 @@ public:
       Printv(proxy_class_def, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE),	// Import statements
 	   "\n", NIL);
 
+    // Translate documentation comments
+    if (have_docstring(n)) {
+      String *ds = docstring(n, "");
+      Printv(proxy_class_def, ds, NIL);
+      Delete(ds);
+    }
+
     // Class attributes
     const String *csattributes = typemapLookup(n, "csattributes", typemap_lookup_type, WARN_NONE);
     if (csattributes && *Char(csattributes))
@@ -2145,6 +2152,13 @@ public:
 
   void emitInterfaceDeclaration(Node *n, String *interface_name, File *f_interface) {
     Printv(f_interface, typemapLookup(n, "csimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
+
+    if (have_docstring(n)) {
+      String *ds = docstring(n, "");
+      Printv(interface_class_code, ds, NIL);
+      Delete(ds);
+    }
+
     Printv(f_interface, typemapLookup(n, "csinterfacemodifiers", Getattr(n, "classtypeobj"), WARN_CSHARP_TYPEMAP_INTERFACEMODIFIERS_UNDEF), NIL);
     Printf(f_interface, " %s", interface_name);
 
@@ -2270,13 +2284,6 @@ public:
     }
 
     Language::classHandler(n);
-
-    // Translate documentation comments
-    if (have_docstring(n)) {
-      String *ds = docstring(n, tab0);
-      Printv(proxy_class_def, ds, NIL);
-      Delete(ds);
-    }
 
     if (proxy_flag) {
 
@@ -2480,6 +2487,13 @@ public:
     if (GetFlag(n, "explicitcall"))
       return;
 
+    // Translate documentation comments
+    if (have_docstring(n)) {
+      comment_code = docstring(n, tab2);
+      if (is_interface)
+        Printv(interface_class_code, "\n", comment_code, NIL);
+    }
+
     if (l) {
       if (SwigType_type(Getattr(l, "type")) == T_VOID) {
 	l = nextSibling(l);
@@ -2652,13 +2666,6 @@ public:
     if (is_interface)
       Printf(interface_class_code, ");\n");
 
-    // Translate documentation comments
-    if (have_docstring(n)) {
-      String *ds = docstring(n, tab2);
-      Printv(comment_code, ds, NIL);
-      Delete(ds);
-    }
-
     // Transform return type used in PInvoke function (in intermediary class) to type used in C# wrapper function (in proxy class)
     if ((tm = Swig_typemap_lookup("csout", n, "", 0))) {
       excodeSubstitute(n, tm, "csout", n);
@@ -2755,9 +2762,7 @@ public:
 
 	// Translate documentation comments
 	if (have_docstring(n)) {
-	  String *ds = docstring(n, tab2);
-	  Printv(proxy_class_code, ds, NIL);
-	  Delete(ds);
+	  Printv(proxy_class_code, comment_code, NIL);
 	}
 
 	// Start property declaration
@@ -2809,6 +2814,7 @@ public:
     Delete(function_code);
     Delete(return_type);
     Delete(imcall);
+    Delete(comment_code);
   }
 
   /* ----------------------------------------------------------------------
@@ -3021,9 +3027,7 @@ public:
 
       // Translate documentation comments
       if (have_docstring(n)) {
-	String *ds = docstring(n, tab2);
-	Printv(comment_code, ds, NIL);
-	Delete(ds);
+	comment_code = docstring(n, tab2);
       }
 
       Printv(proxy_class_code, comment_code, NIL);
@@ -3038,6 +3042,7 @@ public:
       Delete(attributes);
       Delete(overloaded_name);
       Delete(imcall);
+      Delete(comment_code);
     }
 
     return SWIG_OK;

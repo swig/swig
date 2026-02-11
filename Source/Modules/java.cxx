@@ -590,7 +590,7 @@ public:
 	String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
 	if (comment_creation_chatter)
 	  Printf(f_module, "/* This was generated from top() */\n");
-	Printv(f_module, Char(doxygen_comments), NIL);
+	Printv(f_module, doxygen_comments, NIL);
 	Delete(doxygen_comments);
       }
       if (Len(module_class_modifiers) > 0)
@@ -1268,7 +1268,7 @@ public:
 	  String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
 	  if (comment_creation_chatter)
 	    Printf(enum_code, "/* This was generated from enumDeclaration() */\n");
-	  Printv(enum_code, Char(doxygen_comments), NIL);
+	  Printv(enum_code, doxygen_comments, NIL);
 	  Delete(doxygen_comments);
 	}
 
@@ -1487,7 +1487,7 @@ public:
 	String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
 	if (comment_creation_chatter)
 	  Printf(enum_code, "/* This was generated from enumvalueDeclaration() */\n");
-	Printv(enum_code, Char(doxygen_comments), NIL);
+	Printv(enum_code, doxygen_comments, NIL);
 	Delete(doxygen_comments);
       }
 
@@ -1570,7 +1570,7 @@ public:
       String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
       if (comment_creation_chatter)
 	Printf(constants_code, "/* This was generated from constantWrapper() */\n");
-      Printv(constants_code, Char(doxygen_comments), NIL);
+      Printv(constants_code, doxygen_comments, NIL);
       Delete(doxygen_comments);
     }
     
@@ -1992,7 +1992,7 @@ public:
       String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
       if (comment_creation_chatter)
 	Printf(proxy_class_def, "/* This was generated from emitProxyClassDefAndCPPCasts() */\n");
-      Printv(proxy_class_def, Char(doxygen_comments), NIL);
+      Printv(proxy_class_def, doxygen_comments, NIL);
       Delete(doxygen_comments);
     }
 
@@ -2110,6 +2110,13 @@ public:
     }
 
     Printv(f_interface, typemapLookup(n, "javaimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
+
+    if (doxygen && doxygenTranslator->hasDocumentation(n)) {
+      String *doxygen_comments = doxygenTranslator->getDocumentation(n, 0);
+      Printv(f_interface, doxygen_comments, NIL);
+      Delete(doxygen_comments);
+    }
+
     Printv(f_interface, typemapLookup(n, "javainterfacemodifiers", Getattr(n, "classtypeobj"), WARN_JAVA_TYPEMAP_INTERFACEMODIFIERS_UNDEF), NIL);
     Printf(f_interface, " %s", interface_name);
 
@@ -2488,7 +2495,9 @@ public:
       String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
       if (comment_creation_chatter)
 	Printf(function_code, "/* This was generated from proxyclassfunctionhandler() */\n");
-      Printv(function_code, Char(doxygen_comments), NIL);
+      Printv(function_code, doxygen_comments, NIL);
+      if (is_interface)
+	Printv(interface_class_code, "\n", doxygen_comments, NIL);
       Delete(doxygen_comments);
     }
 
@@ -2748,7 +2757,7 @@ public:
 	String *doxygen_comments = doxygenTranslator->getDocumentation(n, "  ");
 	if (comment_creation_chatter)
 	  Printf(function_code, "/* This was generated from constructionhandler() */\n");
-	Printv(function_code, Char(doxygen_comments), NIL);
+	Printv(function_code, doxygen_comments, NIL);
 	Delete(doxygen_comments);
       }
 

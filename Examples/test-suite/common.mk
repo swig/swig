@@ -735,6 +735,7 @@ DOXYGEN_TEST_CASES += \
 	doxygen_basic_translate_style3 \
 	doxygen_code_blocks \
 	doxygen_ignore \
+	doxygen_interface \
 	doxygen_misc_constructs \
 	doxygen_nested_class \
 	doxygen_overloads \
