@@ -7,6 +7,10 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-02-11: degaus, wsfulton
+            #3327 [Java, C#] Add missing Doxygen documentation comments to code using the
+            %interface directives.
+
 2026-01-21: jschueller
 	    #3019 Issue deprecation warning if `%typedef` is used.  This is
 	    an undocumented directive which SWIG has treated as an alias for
@@ -24,7 +28,8 @@ Version 4.5.0 (in progress)
 
 2025-17-12: ysmilda
             [Go] #3291 
-               - Add `-unique-id` and `-no-unique-id` flags to enable/disable the addition of a unique id to the generated function names.
+               - Add `-unique-id` and `-no-unique-id` flags to enable/disable the addition of a
+                 unique id to the generated function names.
                - Deprecate `-cgo` flag as this doesn't do anything.
                - Cleanup docs and help output.
                

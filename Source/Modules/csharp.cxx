@@ -1211,7 +1211,7 @@ public:
 
       // Translate documentation comments
       if (have_docstring(n)) {
-	String *ds = docstring(n, tab0);
+	String *ds = docstring(n, "");
 	Printv(enum_code, ds, NIL);
 	Delete(ds);
       }
@@ -1940,6 +1940,13 @@ public:
       Printv(proxy_class_def, typemapLookup(n, "csimports", typemap_lookup_type, WARN_NONE),	// Import statements
 	   "\n", NIL);
 
+    // Translate documentation comments
+    if (have_docstring(n)) {
+      String *ds = docstring(n, "");
+      Printv(proxy_class_def, ds, NIL);
+      Delete(ds);
+    }
+
     // Class attributes
     const String *csattributes = typemapLookup(n, "csattributes", typemap_lookup_type, WARN_NONE);
     if (csattributes && *Char(csattributes))
@@ -2145,6 +2152,13 @@ public:
 
   void emitInterfaceDeclaration(Node *n, String *interface_name, File *f_interface) {
     Printv(f_interface, typemapLookup(n, "csimports", Getattr(n, "classtypeobj"), WARN_NONE), "\n", NIL);
+
+    if (have_docstring(n)) {
+      String *ds = docstring(n, "");
+      Printv(interface_class_code, ds, NIL);
+      Delete(ds);
+    }
+
     Printv(f_interface, typemapLookup(n, "csinterfacemodifiers", Getattr(n, "classtypeobj"), WARN_CSHARP_TYPEMAP_INTERFACEMODIFIERS_UNDEF), NIL);
     Printf(f_interface, " %s", interface_name);
 
@@ -2264,27 +2278,12 @@ public:
 	String *output_directory = outputDirectory(nspace);
 	f_interface = getOutputFile(output_directory, interface_name);
 	addOpenNamespace(nspace, f_interface);
-
-	// Translate documentation comments
-	if (have_docstring(n)) {
-	  String *ds = docstring(n, tab0);
-	  Printv(interface_class_code, ds, NIL);
-	  Delete(ds);
-	}
-
 	emitInterfaceDeclaration(n, interface_name, interface_class_code);
         Delete(output_directory);
       }
     }
 
     Language::classHandler(n);
-
-    // Translate documentation comments
-    if (have_docstring(n)) {
-      String *ds = docstring(n, tab0);
-      Printv(proxy_class_def, ds, NIL);
-      Delete(ds);
-    }
 
     if (proxy_flag) {
 
