@@ -21,6 +21,18 @@ permissions:
   contents: read
 
 jobs:
+  # This action build using MSYS2 environment
+  # We use two compilers C/C++:
+  # - Microsoft Visual Studio compiler.
+  # - MinGW-w64 GCC compiler with MSVCRT or UCRT C standard library.
+  # We use 2 package managers
+  # - NuGet packages are compatible with Visual Studio compiler.
+  # - MSYS2 pacman with MSYS2 packages and MING-w64 packages.
+  #
+  # We try to use already installed software on GitHub windows
+  #  and install only missed software.
+  # We use different versions of installed languages by using
+  #  proper envirounment.
   win_ci:
     # When continue-on-error is true for an individual build,
     # that build can fail (it'll show red),
@@ -34,7 +46,10 @@ jobs:
     name: >
       ${{ matrix.SWIGLANG }} ${{ matrix.VER }}
       ${{ matrix.SWIG_FEATURES }}
-      ${{ matrix.COMPILER || 'msvc' }} ${{ matrix.os }}
+      ${{ matrix.COMPILER || 'msvc' }}
+      ${{ matrix.CPPSTD }}
+      ${{ matrix.CSTD }}
+      ${{ matrix.os }}
       ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
@@ -53,6 +68,7 @@ jobs:
           VER: 21
         - SWIGLANG: java
           COMPILER: gcc
+          CSTD: gnu99
           VER: 8
         - SWIGLANG: java
           COMPILER: gcc
@@ -71,6 +87,7 @@ jobs:
         - SWIGLANG: ruby
           VER: '3.2'
           COMPILER: gcc
+          CPPSTD: c++11
         - SWIGLANG: ruby
           VER: '3.3'
           COMPILER: gcc
@@ -86,6 +103,8 @@ jobs:
       SWIGLANG: ${{ matrix.SWIGLANG }}
       VER: ${{ matrix.VER }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
+      CSTD: ${{ matrix.CSTD }}
+      CPPSTD: ${{ matrix.CPPSTD }}
       COMPILER: ${{ matrix.COMPILER }}
       OS: ${{ matrix.os }}
       INSTALL: ${{ matrix.INSTALL }}
@@ -135,6 +154,7 @@ jobs:
     - name: Prepare Environment
       shell: bash
       run: |
+          set -x
           uname --all
 
           if [[ "$COMPILER" = "gcc" ]]; then
@@ -164,9 +184,6 @@ jobs:
                 MORE_MSYS_PKGS+=" $mingw_variant-ruby"
               fi
               ;;
-            perl)
-              MORE_MSYS_PKGS+=" $mingw_variant-perl"
-              ;;
             esac
 
             # MinGW-w64 packages to install with MSYS2
@@ -188,7 +205,7 @@ jobs:
             # Set MSYS2 GCC compiler location
             echo "/$mingw_dir/bin" >> $GITHUB_PATH
           else
-             # COMPILER: cccl wrapping MSVC
+            # COMPILER: cccl wrapping MSVC
             curl --retry 15 -s -L https://github.com/swig/cccl/raw/cccl-1.4/cccl -o /usr/bin/cccl
             chmod +x /usr/bin/cccl
             /usr/bin/cccl --version
@@ -236,8 +253,7 @@ jobs:
     - name: Autoconf
       shell: bash
       run: |
-          uname --all
-
+          set -x
           if [[ -z "$COMPILER" ]]; then
             which cl.exe
             cl.exe /? 2>&1 | head -n1
@@ -248,6 +264,7 @@ jobs:
             g++ --version | head -n1
           fi
 
+          WITHLANG="$SWIGLANG"
           case "$SWIGLANG" in
           csharp)
             which csc.exe
@@ -256,16 +273,32 @@ jobs:
           python)
             which python.exe
             python -V
+            WITHLANG=python3
             ;;
           ruby)
             which ruby.exe
             ruby -v
             ;;
-          perl)
-            which perl.exe
-            perl -v | head -n3
-            ;;
           esac
+          echo "WITHLANG=$WITHLANG" >> $GITHUB_ENV
+
+          if [[ -z "$CSTD" ]]; then
+            case "$CPPSTD" in
+              c++11) CSTD=c11 ;;
+              c++14) CSTD=c11 ;;
+              c++17) CSTD=c17 ;;
+              c++20) CSTD=c17 ;;
+            esac
+            if [[ -n "$CSTD" ]]; then
+              echo "CSTD=$CSTD" >> $GITHUB_ENV
+            fi
+          fi
+          if [[ -n "$CSTD" ]]; then
+            echo "CFLAGS=$CFLAGS -std=$CSTD" >> $GITHUB_ENV
+          fi
+          if [[ -n "$CPPSTD" ]]; then
+            echo "CXXFLAGS=$CXXFLAGS -std=$CPPSTD" >> $GITHUB_ENV
+          fi
 
           make --version | head -n2
 
@@ -274,13 +307,21 @@ jobs:
     - name: Configure
       shell: bash
       run: |
-          if [[ "$COMPILER" = "gcc" ]]; then
-            # Use MinGW-w64 compiler
-            ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe"
-          else
-             # cccl wrapping MSVC
-            ./configure --disable-dependency-tracking --with-boost="$BOOST_PATH" --with-csharp-compiler="csc.exe" --disable-ccache
+          set -x
+          CONFIGOPTS+=(--disable-dependency-tracking)
+          if [[ -n "$WITHLANG" ]]; then
+            CONFIGOPTS+=(--with-boost="$BOOST_PATH")
+            CONFIGOPTS+=(--without-alllang --with-$WITHLANG)
           fi
+          if [[ $SWIGLANG = 'csharp' ]]; then
+            CONFIGOPTS+=(--with-csharp-compiler="csc.exe")
+          fi
+          if [[ -z "$COMPILER" ]]; then
+            # MSVC do not support C cache
+            CONFIGOPTS+=(--disable-ccache)
+          fi
+          echo "${CONFIGOPTS[@]}"
+          ./configure "${CONFIGOPTS[@]}"
 
     - name: Build
       shell: bash
@@ -299,6 +340,7 @@ jobs:
     - name: Test
       shell: bash
       run: |
+          set -x
           ./swig.exe -version
           make check-$SWIGLANG-version
           make check-$SWIGLANG-enabled
