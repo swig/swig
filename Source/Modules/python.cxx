@@ -106,6 +106,14 @@ enum autodoc_t {
   AUTODOC_CONST,
   AUTODOC_VAR
 };
+
+enum type_annotation_t {
+  TYPE_ANNOTATION_NONE = 0,
+  /// C/C++ type annotations ("c")
+  TYPE_ANNOTATION_C,
+  /// PEP 408 type annotations ("typing")
+  TYPE_ANNOTATION_TYPING,
+};
 }
 
 static const char *usage1 = "\
@@ -228,6 +236,15 @@ static String *getClosure(String *functype, String *wrapper, int funpack = 0) {
     }
   }
   return NULL;
+}
+
+static type_annotation_t getTypeAnnotationMode(Node *n) {
+  String *annotationType = Getattr(n, "feature:python:annotations");
+  if (Equal(annotationType, "c"))
+    return TYPE_ANNOTATION_C;
+  if (Equal(annotationType, "typing"))
+    return TYPE_ANNOTATION_TYPING;
+  return TYPE_ANNOTATION_NONE;
 }
 
 class PYTHON:public Language {
@@ -895,6 +912,8 @@ public:
 	Printv(f_shadow_py, "\n", f_shadow_begin, "\n", NIL);
 
       Printv(f_shadow_py, "\nfrom sys import version_info as _swig_python_version_info\n", NULL);
+      Printv(f_shadow_py, "if _swig_python_version_info >= (3, 5):\n", NULL);
+      Printv(f_shadow_py, "    import typing\n", NULL);
 
       if (Len(f_shadow_after_begin) > 0)
 	Printv(f_shadow_py, f_shadow_after_begin, "\n", NIL);
@@ -1750,7 +1769,9 @@ public:
    *    func_annotation: Function annotation support
    * ------------------------------------------------------------ */
 
-  String *make_autodocParmList(Node *n, bool showTypes, int arg_num = 1, bool calling = false, bool func_annotation = false) {
+  String *make_autodocParmList(
+      Node *n, bool showTypes, int arg_num = 1, bool calling = false,
+      type_annotation_t func_annotation = TYPE_ANNOTATION_NONE) {
 
     String *doc = NewString("");
     String *pdocs = 0;
@@ -1759,7 +1780,7 @@ public:
     Parm *pnext;
 
     if (calling)
-      func_annotation = false;
+      func_annotation = TYPE_ANNOTATION_NONE;
 
     addMissingParameterNames(n, plist, arg_num); // for $1_name substitutions done in Swig_typemap_attach_parms
     Swig_typemap_attach_parms("in", plist, 0);
@@ -1833,8 +1854,19 @@ public:
 	Printf(pdocs, "%s\n", pdoc);
       }
       // Write the function annotation
-      if (func_annotation)
-	Printf(doc, ": \"%s\"", type_str);
+      switch (func_annotation) {
+      case TYPE_ANNOTATION_NONE:
+        break;
+      case TYPE_ANNOTATION_C:
+        Printf(doc, ": \"%s\"", type_str);
+        break;
+      case TYPE_ANNOTATION_TYPING: {
+        String *docty =
+            Swig_typemap_lookup("pytyping", p, Swig_cresult_name(), 0);
+        if (docty)
+          Printf(doc, ": \"%s\"", docty);
+      } break;
+      }
 
       // Write default value
       if (value && !calling) {
@@ -2319,7 +2351,7 @@ public:
       return parms;
     }
 
-    bool funcanno = Equal(Getattr(n, "feature:python:annotations"), "c") ? true : false;
+    type_annotation_t funcanno = getTypeAnnotationMode(n);
     String *params = NewString("");
     String *_params = make_autodocParmList(n, false, ((in_class || has_self_for_count)? 2 : 1), is_calling, funcanno);
 
@@ -2411,6 +2443,10 @@ public:
    * of the returning type, return a empty string for Python 2.x
    * ------------------------------------------------------------ */
   String *returnTypeAnnotation(Node *n) {
+    type_annotation_t anno = getTypeAnnotationMode(n);
+    if (anno == TYPE_ANNOTATION_NONE)
+      return NewStringEmpty();
+
     String *ret = 0;
     Parm *p = Getattr(n, "parms");
     String *tm;
@@ -2418,12 +2454,25 @@ public:
      * however the result may not accurate. */
     while (p) {
       if ((tm = Getattr(p, "tmap:argout:match_type"))) {
-	tm = SwigType_str(tm, 0);
-	if (ret)
-	  Printv(ret, ", ", tm, NULL);
-	else
-	  ret = tm;
-	p = Getattr(p, "tmap:argout:next");
+        switch (anno) {
+        case TYPE_ANNOTATION_C:
+          tm = SwigType_str(tm, 0);
+          break;
+        case TYPE_ANNOTATION_TYPING:
+          tm = Swig_typemap_lookup("pytyping", n, Swig_cresult_name(), 0);
+          if (!tm)
+            // There can't be empty elements in a list, so fall back to Any.
+            tm = NewString("typing.Any");
+          break;
+        case TYPE_ANNOTATION_NONE:
+          break; // unreachable
+        }
+
+        if (ret)
+          Printv(ret, ", ", tm, NULL);
+        else
+          ret = tm;
+        p = Getattr(p, "tmap:argout:next");
       } else {
 	p = nextSibling(p);
       }
@@ -2431,12 +2480,20 @@ public:
     /* If no argout typemap, then get the returning type from
      * the function prototype. */
     if (!ret) {
-      ret = Getattr(n, "type");
-      if (ret)
-	ret = SwigType_str(ret, 0);
+      switch (anno) {
+      case TYPE_ANNOTATION_C:
+        ret = Getattr(n, "type");
+        if (ret)
+          ret = SwigType_str(ret, 0);
+        break;
+      case TYPE_ANNOTATION_TYPING:
+        ret = Swig_typemap_lookup("pytyping", n, Swig_cresult_name(), 0);
+        break;
+      case TYPE_ANNOTATION_NONE:
+        break; // unreachable
+      }
     }
-    bool funcanno = Equal(Getattr(n, "feature:python:annotations"), "c") ? true : false;
-    return (ret && funcanno) ? NewStringf(" -> \"%s\"", ret) : NewString("");
+    return ret ? NewStringf(" -> \"%s\"", ret) : NewStringEmpty();
   }
 
   /* ------------------------------------------------------------
@@ -2446,12 +2503,25 @@ public:
    * ------------------------------------------------------------ */
 
   String *variableAnnotation(Node *n) {
+    type_annotation_t anno = getTypeAnnotationMode(n);
+    if (anno == TYPE_ANNOTATION_NONE ||
+        GetFlag(n, "feature:python:annotations:novar"))
+      return NewStringEmpty();
+
     String *type = Getattr(n, "type");
-    if (type)
-      type = SwigType_str(type, 0);
-    bool anno = Equal(Getattr(n, "feature:python:annotations"), "c") ? true : false;
-    anno = GetFlag(n, "feature:python:annotations:novar") ? false : anno;
-    String *annotation = (type && anno) ? NewStringf(": \"%s\"", type) : NewString("");
+    if (type) {
+      switch (anno) {
+      case TYPE_ANNOTATION_C:
+        type = SwigType_str(type, 0);
+        break;
+      case TYPE_ANNOTATION_TYPING:
+        type = Swig_typemap_lookup("pytyping", n, "", 0);
+        break;
+      case TYPE_ANNOTATION_NONE:
+        break; // unreachable
+      }
+    }
+    String *annotation = type ? NewStringf(": \"%s\"", type) : NewString("");
     Delete(type);
     return annotation;
   }
