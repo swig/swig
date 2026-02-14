@@ -266,6 +266,7 @@
 /* please leave 720-739 free for Scilab */
 
 #define WARN_PYTHON_INDENT_MISMATCH                  740
+#define WARN_PYTHON_TYPEMAP_PYTYPING_UNDEF           741
 
 /* please leave 740-749 free for Python */
 

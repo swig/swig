@@ -140,6 +140,7 @@
 <li><a href="#Python_annotations">Python function annotations and variable annotations</a>
 <ul>
 <li><a href="#Python_annotations_c">C/C++ annotation types</a>
+<li><a href="#Python_annotations_pytyping">PEP 484 annotations</a>
 </ul>
 <li><a href="#Python_nn75">Buffer interface</a>
 <li><a href="#Python_nn76">Abstract base classes</a>
@@ -7116,6 +7117,82 @@ Prior versions required the (now removed) <tt>-py3</tt> option to generate funct
 containing C/C++ types instead of supporting <tt>%feature("python:annotations", "c")</tt>.
 Variable annotations were also added in SWIG-4.1.0.
 </p>
+
+<H4><a name="Python_annotations_pytyping">33.12.1.2 PEP 484 annotation types</a></H4>
+
+
+<p>
+The <tt>%feature("python:annotations", "pytyping")</tt> directive generates <a href="https://peps.python.org/pep-0484/">PEP 484</a> annotations. For example:
+</p>
+
+<div class="code"><pre>
+%feature("python:annotations", "pytyping") parse_name;
+float parse_name(const char *name);
+</pre></div>
+
+<p>
+The generated code then contains function annotations:
+</p>
+
+<div class="targetlang"><pre>
+def parse_name(name: "str") -&gt; "float":
+    return _example.parse_name(ri)
+</pre></div>
+
+<p>
+The same limitations as <a href="#Python_annotations_c">C/C++ annotations</a> regarding overloaded functions apply.
+</p>
+
+<p>
+The annotations use the <tt>pytyping</tt> typemap, so they can be customized:
+</p>
+
+<div class="code"><pre>
+%typemap(in) OptionalInt {
+  $1 = $input == Py_None ? OptionalInt() : OptionalInt(PyLong_AsLong($input));
+}
+%typemap(out) OptionalInt {
+  $result = $1.has_value ? PyLong_FromLong($1.value) : Py_None;
+}
+%typemap(pytyping) OptionalInt "typing.Optional[int]";
+
+struct OptionalInt {
+  OptionalInt() : has_value(false) {}
+  OptionalInt(int i) : has_value(true), value(i) {}
+  bool has_value;
+  int value;
+};
+
+OptionalInt optional_square(OptionalInt i) { /* ... */ }
+</pre></div>
+
+<p>
+The generated code now contains the <tt>Optional</tt> annotation:
+</p>
+
+<div class="targetlang"><pre>
+def optional_square(i: "typing.Optional[int]") -> "typing.Optional[int]":
+    return _example.optional_square(i)
+</pre></div>
+
+<p>
+The <a href="https://docs.python.org/3/library/typing.html">typing</a> library is imported if available (Python >= 3.5).
+</p>
+
+<p>
+If the out type differs, you can overwrite it with the <tt>out</tt> attribute:
+</p>
+
+<div class="code"><pre>
+%typemap(pytyping, out="int") MyType "int|float";
+
+MyType do_something(MyType t) { /* ... */ }
+</pre></div>
+
+<div class="targetlang"><pre>
+def do_something(t: "int|float") -> "int":
+    return _example.do_something(t)
+</pre></div>
 
 <H3><a name="Python_nn75">33.12.2 Buffer interface</a></H3>
 
