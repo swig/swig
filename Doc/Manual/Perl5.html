@@ -78,6 +78,7 @@
 <li><a href="#Perl5_nn52">Overhead and code bloat</a>
 <li><a href="#Perl5_nn53">Typemaps</a>
 </ul>
+<li><a href="#Perl5_nn54">Threads and static variables</a>
 </ul>
 </div>
 <!-- INDEX -->
@@ -3343,7 +3344,69 @@ need to be supported.
 </p>
 
 
+<H2><a name="Perl5_nn54">30.12 Threads and static variables</a></H2>
+<p>
+When using SWIG modules with <a href="https://perldoc.perl.org/threads.html">threads</a>,
+file-static variables in the generated wrapper file are automatically
+shared between all threads. If such variables are written to by any
+thread, race conditions and undefined behavior might result unless some sort of locking
+mechanism is implemented.
+</p>
 
+<p>
+Since Perl version 5.8.0 a macro framework has been available
+to allow static data to be used safely with threads, see
+<a href="https://perldoc.perl.org/perlxs.html">perlxs</a> for more information.
+</p>
 
+<p>
+To use this framework in a SWIG module, define the symbol
+<tt>SWIG_USE_MY_CXT</tt> in the <tt>header</tt> section of your
+interface file. Then define the <tt>my_cxt_t</tt> type that
+encapsulates the static data as described in <a
+href="https://perldoc.perl.org/perlxs.html">perlxs</a>, and finally
+call the macro <tt>START_MY_CXT</tt>. For example:
+</p>
+
+<div class="code">
+<pre>
+%module example
+
+%{
+
+#define SWIG_USE_MY_CXT
+typedef struct {
+    int foo;
+} my_cxt_t;
+
+START_MY_CXT
+
+void set(int n) {
+    dMY_CXT; /* declare MY_CXT as described in perlxs */
+    MY_CXT.foo = n;
+}
+
+int get() {
+    dMY_CXT;
+    return MY_CXT.foo;
+}
+%}
+
+void set(int n);
+int get();
+</pre>
+</div>
+
+<p>
+Note that the rest of the framework as described in <a
+href="https://perldoc.perl.org/perlxs.html">perlxs</a>, is added
+automatically by <tt>swig</tt>, that is
+<ul>
+<li> <tt>MY_CXT_KEY</tt> is generated based on the module name,
+<li> <tt>MY_CXT_INIT</tt> is inserted into the boot function, and
+<li> <tt>MY_CXT_CLONE</tt> is inserted into a generated <tt>CLONE</tt>
+function.
+</ul>
+<
 </body>
 </html>
