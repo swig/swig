@@ -2574,9 +2574,11 @@ public:
       Parm *p;
       char source[256];
 
+      #if 0 // warning: variable 'outputs' set but not used [-Wunused-but-set-variable]
       int outputs = 0;
       if (!is_void)
 	outputs++;
+      # endif
 
       /* Get lua state */
       Printf(w->code, "lua_State *L = swig_get_lua_state();\n");
@@ -2640,8 +2642,10 @@ public:
 	  continue;
 	}
 
+	#if 0 // warning: variable 'outputs' set but not used [-Wunused-but-set-variable]
 	if (Getattr(p, "tmap:directorargout") != 0)
 	  outputs++;
+	#endif
 
 	String *ptype = Getattr(p, "type");
 
