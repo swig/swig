@@ -43,7 +43,10 @@
 
 namespace std {
 
-template <class Key>
+template <class Key,
+	   typename _Hash = std::hash<Key>,
+	   typename _Pred = std::equal_to<Key>,
+	   typename _Alloc = std::allocator<Key>>
 class unordered_set {
 
 %typemap(javabase) std::unordered_set<Key> "java.util.AbstractSet<$typemap(jboxtype, Key)>"
