@@ -108,6 +108,7 @@ $(MULTI_CPP_TEST_CASES:=.multicpptest): extra_objects
 clean:
 	$(MAKE) -f $(top_builddir)/$(EXAMPLES)/Makefile SRCDIR='$(SRCDIR)' ocaml_clean
 	rm -f clientdata_prop_a.ml clientdata_prop_b.ml
+	rm -f import_share_a.ml import_share_b.ml import_share_c.ml
 	rm -f import_stl_a.ml import_stl_b.ml
 	rm -f imports_a.ml imports_b.ml
 	rm -f mod_a.ml mod_b.ml
