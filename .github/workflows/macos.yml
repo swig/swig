@@ -153,7 +153,7 @@ jobs:
           # Ensure we use the newer version of bison
           bison_dir="$(brew ls bison | grep '/bin/bison$' | head -1 | sed 's?/bison$??')"
           echo "$bison_dir" >> $GITHUB_PATH
-          BOOST_INC="$(brew ls boost | grep 'boost/shared_ptr.hpp' | head -1 | sed 's?/boost/shared_ptr.hpp$??')"
+          BOOST_INC="$(brew ls boost | grep 'boost/shared_ptr.hpp$' | head -1 | sed 's?/boost/shared_ptr.hpp$??')"
           # Boost header include path, for testing
           echo "BOOST_INC=$BOOST_INC" >> $GITHUB_ENV
 
@@ -164,10 +164,10 @@ jobs:
 
           if test -z "$CSTD"; then
             case "$CPPSTD" in
-            c++11) export CSTD=c11 ;;
-            c++14) export CSTD=c11 ;;
-            c++17) export CSTD=c17 ;;
-            c++20) export CSTD=c17 ;;
+            c++11) CSTD=c11 ;;
+            c++14) CSTD=c11 ;;
+            c++17) CSTD=c17 ;;
+            c++20) CSTD=c17 ;;
             esac
           fi
 
@@ -283,8 +283,6 @@ jobs:
             make $SWIGJOBS check-ccache
             make $SWIGJOBS check-errors-test-suite
           else
-            cflags="$CFLAGS"
-            cxxflags="$CXXFLAGS -I$BOOST_INC"
             # TODO: Tools/testflags.py defaults are too old
             if test -z "$CPPSTD"; then
               CPPSTD=c++14
@@ -294,8 +292,10 @@ jobs:
             fi
             # Stricter compile flags for examples.
             # Various headers and SWIG generated code prevents full use of -pedantic.
-            cflags+=" $($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC_NAME)"
-            cxxflags+=" $($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC_NAME)"
+            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC_NAME)"
+            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC_NAME)"
+            # Include for the boost headers
+            cxxflags=" -I$BOOST_INC"
             make check-$SWIGLANG-version
             make check-$SWIGLANG-enabled
             make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"

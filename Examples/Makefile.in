@@ -467,7 +467,7 @@ go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 	export CGO_CPPFLAGS; \
 	CGO_CFLAGS="$(CFLAGS)"; \
 	export CGO_CFLAGS; \
-	CGO_LDFLAGS="$(LDFLAGS) -lm"; \
+	CGO_LDFLAGS="$(LDFLAGS)"; \
 	export CGO_LDFLAGS; \
 	(cd $(GOPATHDIR)/ && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
 	stat=$$?; \

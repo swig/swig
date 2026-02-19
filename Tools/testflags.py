@@ -7,6 +7,8 @@ def get_cflags(language, std, compiler):
     c_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers"
     if platform.system() != 'Darwin':
         c_common += " -Wunused-variable"
+    else:
+        c_common += " -Wno-deprecated-declarations"
 
     # signed to unsigned conversions warnings, type conversion
     sign_conversion_flags = " -Wconversion -Wsign-conversion"
@@ -30,7 +32,7 @@ def get_cflags(language, std, compiler):
            "php":"-Werror " + c_common,
         "python":"-Werror " + c_common + sign_conversion_flags,
              "r":"-Werror " + c_common,
-          "ruby":"-Werror " + c_common,
+          "ruby":"-Werror " + c_common + " -Wno-missing-field-initializers",
         "scilab":"-Werror " + c_common + " -Wno-unused-variable",
            "tcl":"-Werror " + c_common,
     }
@@ -38,7 +40,7 @@ def get_cflags(language, std, compiler):
         cflags["guile"] += " -Wno-attributes" # -Wno-attributes is for clang LLVM 3.5 and bdw-gc < 7.5 used by guile
 
     if platform.system() == 'Darwin':
-        cflags["ruby"] += " -Wno-attribute-warning -Wno-missing-field-initializers"
+        cflags["ruby"] += " -Wno-attribute-warning"
 
     if language not in cflags:
         raise RuntimeError("{} is not a supported language".format(language))
@@ -51,6 +53,8 @@ def get_cxxflags(language, std, compiler):
     cxx_common = "-fdiagnostics-show-option -std=" + std + " -Wno-long-long -Wreturn-type -Wmissing-field-initializers"
     if platform.system() != 'Darwin':
         cxx_common += " -Wunused-variable"
+    else:
+        cxx_common += " -Wno-deprecated-declarations"
 
     cxxflags = {
              "c":"-Werror " + cxx_common,
@@ -67,7 +71,7 @@ def get_cxxflags(language, std, compiler):
            "php":"-Werror " + cxx_common,
         "python":"-Werror " + cxx_common,
              "r":"-Werror " + cxx_common,
-          "ruby":"-Werror " + cxx_common + " -Wno-deprecated-declarations", # For Ruby on MacOS Xcode 9.4 misconfiguration defining 'isfinite' to deprecated 'finite'
+          "ruby":"-Werror " + cxx_common + " -Wno-missing-field-initializers",
         "scilab":"-Werror " + cxx_common + " -Wno-unused-variable",
            "tcl":"-Werror " + cxx_common,
     }
@@ -75,7 +79,7 @@ def get_cxxflags(language, std, compiler):
         cxxflags["guile"] += " -Wno-attributes" # -Wno-attributes is for clang LLVM 3.5 and bdw-gc < 7.5 used by guile
 
     if platform.system() == 'Darwin':
-        cxxflags["ruby"] += " -Wno-attribute-warning -Wno-missing-field-initializers"
+        cxxflags["ruby"] += " -Wno-attribute-warning"
 
     if language not in cxxflags:
         raise RuntimeError("{} is not a supported language".format(language))
