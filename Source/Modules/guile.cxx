@@ -927,16 +927,18 @@ public:
 
 	if (!is_setter) {
 	  /* Strip off "-get" */
+	  String *slot_name = NewStringWithSize(pc, len - 4);
 	  if (struct_member == 2) {
 	    /* There was a setter, so create a procedure with setter */
 	    Printf(f_init, "scm_c_define");
-	    Printf(f_init, "(\"%.*s\", " "scm_make_procedure_with_setter(getter, setter));\n", pc, len - 4);
+	    Printf(f_init, "(\"%s\", " "scm_make_procedure_with_setter(getter, setter));\n", slot_name);
 	  } else {
 	    /* There was no setter, so make an alias to the getter */
 	    Printf(f_init, "scm_c_define");
-	    Printf(f_init, "(\"%.*s\", getter);\n", pc, len - 4);
+	    Printf(f_init, "(\"%s\", getter);\n", slot_name);
 	  }
-	  Printf(exported_symbols, "\"%.*s\", ", pc, len - 4);
+	  Printf(exported_symbols, "\"%s\", ", slot_name);
+	  Delete(slot_name);
 	}
       } else {
 	/* Register the function */
