@@ -269,7 +269,10 @@ SWIG_InitializeModule(SWIG_INIT_CLIENT_DATA_TYPE clientdata) {
 #ifdef SWIGRUNTIME_DEBUG
             if (ocast) printf("SWIG_InitializeModule: skip old cast %s\n", target_type->name);
 #endif
-            if (!ocast) target_type = 0;
+            if (!ocast) {
+              cast->type = target_type;
+              target_type = 0;
+            }
           }
         }
       }
