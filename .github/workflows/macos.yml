@@ -1,0 +1,315 @@
+name: macos
+
+on:
+  push:
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'Tools/CI-linux-*'
+      - 'Tools/GHA-linux-*'
+      - 'appveyor.yml'
+  pull_request:
+    branches: master
+    paths-ignore:
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'Tools/CI-linux-*'
+      - 'Tools/GHA-linux-*'
+      - 'appveyor.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    # When continue-on-error is true for an individual build,
+    # that build can fail (it'll show red),
+    # but it won't fail the overall build
+    continue-on-error: ${{ matrix.continue-on-error || false }}
+
+    # https://github.com/actions/runner-images/tree/main/images/macos
+    runs-on: ${{ matrix.os || 'macos-26' }}
+
+    # The name of the test follow the tested language
+    name: >
+      ${{ matrix.SWIGLANG || 'none' }} ${{ matrix.VER }}
+      ${{ matrix.SWIG_FEATURES }}
+      ${{ matrix.COMPILER || 'clang' }}
+      ${{ matrix.GCC }}
+      ${{ matrix.CPPSTD }}
+      ${{ matrix.CSTD }}
+      ${{ matrix.os }}
+      ${{ matrix.continue-on-error && '(can fail)' }}
+
+    strategy:
+      matrix:
+        include:
+        - SWIGLANG: ''
+          os: macos-14
+        - SWIGLANG: ''
+          COMPILER: gcc
+          GCC: 13
+          os: macos-14
+        - SWIGLANG: ''
+          COMPILER: gcc
+          GCC: 14
+        - SWIGLANG: ''
+          COMPILER: gcc
+          GCC: 15
+        - SWIGLANG: ''
+        - SWIGLANG: java
+          VER: 11
+          os: macos-15
+        - SWIGLANG: java
+          VER: 17
+          os: macos-15
+        - SWIGLANG: java
+          VER: 21
+          os: macos-15
+        - SWIGLANG: java
+          VER: 25
+        - SWIGLANG: java
+        - SWIGLANG: python
+          VER: '3.11'
+          COMPILER: gcc
+          GCC: 15
+        - SWIGLANG: python
+          VER: '3.12'
+          os: macos-15
+        - SWIGLANG: python
+          VER: '3.13'
+        - SWIGLANG: python
+          VER: '3.14'
+          os: macos-15
+        - SWIGLANG: python
+          COMPILER: gcc
+          GCC: 15
+          CSTD: gnu99
+        - SWIGLANG: python
+          os: macos-15
+        - SWIGLANG: ruby
+          VER: '3.2'
+          os: macos-15
+        - SWIGLANG: ruby
+          CPPSTD: c++11
+          VER: '3.3'
+        - SWIGLANG: ruby
+          VER: '3.3'
+        - SWIGLANG: ruby
+          VER: '3.4'
+          os: macos-15
+        - SWIGLANG: ruby
+          VER: '4.0'
+        - SWIGLANG: ruby
+        - SWIGLANG: go
+          VER: '1.23'
+        - SWIGLANG: go
+          VER: '1.24'
+          CSTD: gnu99
+        - SWIGLANG: go
+          VER: '1.25'
+        - SWIGLANG: perl5
+        - SWIGLANG: tcl
+      # Run all of them, as opposed to aborting when one fails
+      fail-fast: false
+
+    env:
+      SWIGLANG: ${{ matrix.SWIGLANG }}
+      VER: ${{ matrix.VER }}
+      SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
+      GCC: ${{ matrix.GCC }}
+      CPPSTD: ${{ matrix.CPPSTD }}
+      CSTD: ${{ matrix.CSTD }}
+
+    steps:
+    - name: Machine Info
+      run: |
+          echo "number of logical cores logical cpu..."
+          sysctl -n hw.logicalcpu
+          echo "number of cores..."
+          sysctl -n hw.ncpu
+          echo "uname..."
+          uname -a
+          echo "total memory in bytes..."
+          sysctl hw.memsize
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        show-progress: false
+
+    - name: Install CCache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ matrix.os || 'macos-26' }}-${{ matrix.COMPILER || 'clang' }}${{ matrix.GCC }}
+
+    - name: Install Dependencies
+      run: |
+          set -x
+
+          # See Homebrew site: https://brew.sh/
+          brew install boost bison automake
+          # Ensure we use the newer version of bison
+          bison_dir="$(brew ls bison | grep '/bin/bison$' | head -1 | sed 's?/bison$??')"
+          echo "$bison_dir" >> $GITHUB_PATH
+          BOOST_INC="$(brew ls boost | grep 'boost/shared_ptr.hpp$' | head -1 | sed 's?/boost/shared_ptr.hpp$??')"
+          # Boost header include path, for testing
+          echo "BOOST_INC=$BOOST_INC" >> $GITHUB_ENV
+
+          cpu_count=$(sysctl -n hw.ncpu)
+          if test $cpu_count -gt 1; then
+            echo "SWIGJOBS=-j$cpu_count" >> $GITHUB_ENV
+          fi
+
+          if test -z "$CSTD"; then
+            case "$CPPSTD" in
+            c++11) CSTD=c11 ;;
+            c++14) CSTD=c11 ;;
+            c++17) CSTD=c17 ;;
+            c++20) CSTD=c17 ;;
+            esac
+          fi
+
+          if test '${{ matrix.COMPILER }}' = 'gcc' && test -n "$GCC"; then
+            CC="gcc-$GCC"
+            CXX="g++-$GCC"
+            CC_NAME="$CC"
+            echo "CC=$CC" >> $GITHUB_ENV
+            echo "CXX=$CXX" >> $GITHUB_ENV
+            ls -la $(which $CC) $(which $CXX)
+            $CC --version
+            $CXX --version
+            if test -z "$CPPSTD"; then
+              $CXX -x c++ -dM -E - < /dev/null | grep __cplusplus
+            fi
+            if test -z "$CSTD"; then
+              $CC -dM -E - < /dev/null | grep __STDC_VERSION__
+            fi
+          else # The defualt is Clang
+            CC_NAME='clang'
+            CFLAGS+=" -Wno-deprecated-declarations"
+            CXXFLAGS+=" -Wno-deprecated-declarations"
+            ls -la $(which cc) $(which c++)
+            cc --version
+            c++ --version
+            if test -z "$CPPSTD"; then
+              c++ -x c++ -dM -E - < /dev/null | grep __cplusplus
+            fi
+            if test -z "$CSTD"; then
+              cc -dM -E - < /dev/null | grep __STDC_VERSION__
+            fi
+          fi
+          # Compiler name for Tools/testflags.py
+          echo "CC_NAME=$CC_NAME" >> $GITHUB_ENV
+
+          if test -n "$CPPSTD"; then
+            CXXFLAGS+=" -std=$CPPSTD"
+            echo "Use C++ standard $CPPSTD"
+          fi
+          if test -n "$CSTD"; then
+            echo "CSTD=$CSTD" >> $GITHUB_ENV
+            CFLAGS+=" -std=$CSTD"
+            echo "Use C++ standard $CSTD"
+          fi
+          if test -n "$CFLAGS"; then
+            echo "CFLAGS=$CFLAGS" >> $GITHUB_ENV
+          fi
+          if test -n "$CXXFLAGS"; then
+            echo "CXXFLAGS=$CXXFLAGS" >> $GITHUB_ENV
+          fi
+
+          if test -n "$SWIGLANG"; then
+            WITHLANG="$SWIGLANG"
+            if test "$SWIGLANG" = 'python'; then
+              # We only use python3
+              WITHLANG+=3
+            fi
+            echo "WITHLANG=$WITHLANG" >> $GITHUB_ENV
+            if test -n "$VER"; then
+              arc=$(arch)
+              case "$SWIGLANG" in
+              java)
+                java_path="JAVA_HOME_${VER}_$arc"
+                echo "JAVA_HOME=${!java_path}" >> $GITHUB_ENV
+                ;;
+              python)
+                echo "/Library/Frameworks/Python.framework/Versions/$VER/bin" >> $GITHUB_PATH
+                ;;
+              ruby)
+                ruby_dir="$(ls -d /Users/runner/hostedtoolcache/Ruby/$VER.*/$arc/bin)"
+                echo "$ruby_dir" >> $GITHUB_PATH
+                ;;
+              go)
+                go_dir="$(ls -d /Users/runner/hostedtoolcache/go/$VER.*/$arc/bin)"
+                echo "$go_dir" >> $GITHUB_PATH
+                ;;
+              esac
+            fi
+          fi
+
+    - name: Configure
+      run: |
+          set -x
+
+          if test -z "$CPPSTD"; then
+            CONFIGOPTS+=(--disable-cpp11-testing)
+          fi
+          if test -n "$WITHLANG"; then
+            CONFIGOPTS+=(--without-alllang --with-$WITHLANG)
+          fi
+          if test -n "$CFLAGS"; then
+            CONFIGOPTS+=(CFLAGS="$CFLAGS")
+          fi
+          if test -n "$CXXFLAGS"; then
+            CONFIGOPTS+=(CXXFLAGS="$CXXFLAGS")
+          fi
+          echo "${CONFIGOPTS[@]}"
+          ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
+
+    - name: Build
+      working-directory: build/build
+      run: |
+          set -x
+          make -s $SWIGJOBS
+          ./swig -version && ./swig -pcreversion
+
+    - name: Test
+      working-directory: build/build
+      run: |
+          set -x
+
+          if test -z "$SWIGLANG"; then
+            make $SWIGJOBS check-ccache
+            make $SWIGJOBS check-errors-test-suite
+          else
+            # TODO: Tools/testflags.py defaults are too old
+            if test -z "$CPPSTD"; then
+              CPPSTD=c++14
+            fi
+            if test -z "$CSTD"; then
+              CSTD=gnu17
+            fi
+            # Stricter compile flags for examples.
+            # Various headers and SWIG generated code prevents full use of -pedantic.
+            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=$CC_NAME)"
+            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=$CC_NAME)"
+            # Include for the boost headers
+            cxxflags=" -I$BOOST_INC"
+            make check-$SWIGLANG-version
+            make check-$SWIGLANG-enabled
+            make $SWIGJOBS check-$SWIGLANG-examples CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+            make $SWIGJOBS check-$SWIGLANG-test-suite CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+          fi
+
+    - name: Install
+      working-directory: build/build
+      run: |
+          set -x
+          if test -z "$SWIGLANG"; then make install && swig -version && ccache-swig -V; fi
+
+    - name: Clean
+      working-directory: build/build
+      run: |
+          set -x
+          make check-maintainer-clean && ../../configure
