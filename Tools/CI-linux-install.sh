@@ -38,6 +38,12 @@ case "$SWIGLANG" in
 		  $HOME/bin/gimme --list
 		fi
 		;;
+	"java")
+		if [[ -n "$VER" ]]; then
+			declare -n java_path="JAVA_HOME_${VER}_X64"
+			echo "JAVA_HOME=$java_path" >> $GITHUB_ENV
+		fi
+		;;
 	"javascript")
 		case "$ENGINE" in
 			"node"|"napi")
