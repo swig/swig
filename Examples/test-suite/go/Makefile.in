@@ -95,7 +95,7 @@ run_testcase = \
 	  export CGO_CFLAGS; \
 	  CGO_CXXFLAGS="$(CXXFLAGS)"; \
 	  export CGO_CXXFLAGS; \
-	  CGO_LDFLAGS="$(LDFLAGS) -lm"; \
+	  CGO_LDFLAGS="$(LDFLAGS)"; \
 	  export CGO_LDFLAGS; \
 	  mkdir gopath/src/swigtests 2>/dev/null || true; \
 	  mkdir gopath/src/swigtests/$* 2>/dev/null || true; \
@@ -116,7 +116,7 @@ run_testcase_cpp = \
 	  export CGO_CFLAGS; \
 	  CGO_CXXFLAGS="$(CXXFLAGS)"; \
 	  export CGO_CXXFLAGS; \
-	  CGO_LDFLAGS="$(LDFLAGS) -lm"; \
+	  CGO_LDFLAGS="$(LDFLAGS)"; \
 	  export CGO_LDFLAGS; \
 	  mkdir gopath/src/swigtests 2>/dev/null || true; \
 	  mkdir gopath/src/swigtests/$* 2>/dev/null || true; \
@@ -140,7 +140,7 @@ run_multi_testcase = \
 	  export CGO_CFLAGS; \
 	  CGO_CXXFLAGS="$(CXXFLAGS)"; \
 	  export CGO_CXXFLAGS; \
-	  CGO_LDFLAGS="$(LDFLAGS) -lm"; \
+	  CGO_LDFLAGS="$(LDFLAGS)"; \
 	  export CGO_LDFLAGS; \
 	  (cd gopath/$*/src/$* && \
 	    $(COMPILETOOL) $(GO) build `if $(GOGCC); then echo -compiler=gccgo; fi` -o ../../../../$*_runme) && \
