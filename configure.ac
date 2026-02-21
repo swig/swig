@@ -1170,6 +1170,14 @@ fi
 # Turned off due to spurious warnings in later versions of openjdk-1.8
 # JAVAFLAGS=-Xcheck:jni
 
+# Allow using 'System.loadLibrary', which is marked restricted!
+# https://docs.oracle.com/en/java/javase/25/core/restricted-methods.html
+# https://bugs.openjdk.org/browse/JDK-8317242
+if test "$JAVA_VERSION_MAJOR" -gt 21; then
+    JAVAC_OPTIONS+=" -Xlint:-restricted"
+    JAVAFLAGS+=" --enable-native-access=ALL-UNNAMED"
+fi
+
 AC_SUBST(JAVA)
 AC_SUBST(JAVAC)
 AC_SUBST(JAVAINC)

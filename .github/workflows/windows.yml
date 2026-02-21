@@ -71,12 +71,17 @@ jobs:
         - SWIGLANG: java
           VER: 21
         - SWIGLANG: java
+          VER: 25
+        - SWIGLANG: java
           COMPILER: gcc
           CSTD: gnu99
           VER: 8
         - SWIGLANG: java
           COMPILER: gcc
           VER: 11
+        - SWIGLANG: java
+          COMPILER: gcc
+          VER: 25
         - SWIGLANG: python
           VER: '3.10'
           SWIG_FEATURES: -builtin

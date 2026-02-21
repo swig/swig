@@ -312,6 +312,16 @@ jobs:
         - SWIGLANG: java
           CPPSTD: c++17
           GCC: 13
+        - SWIGLANG: java
+          VER: 8
+        - SWIGLANG: java
+          VER: 11
+        - SWIGLANG: java
+          VER: 17
+        - SWIGLANG: java
+          VER: 21
+        - SWIGLANG: java
+          VER: 25
         - SWIGLANG: javascript
           ENGINE: node
           VER: '18'
@@ -446,21 +456,8 @@ jobs:
           source $GITHUB_WORKSPACE/Tools/GHA-linux-install.sh
           echo WITHLANG="$WITHLANG" >> $GITHUB_ENV
 
-          case $(uname) in
-              Linux)
-                  cpu_count=$(nproc)
-                  ;;
-
-              Darwin)
-                  cpu_count=$(sysctl -n hw.ncpu)
-                  ;;
-
-              *)
-                  cpu_count=1
-                  ;;
-          esac
-
-          if [[ $cpu_count != 1 ]]; then
+          cpu_count=$(nproc)
+          if test $cpu_count -gt 1; then
             echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
           fi
 
@@ -492,14 +489,14 @@ jobs:
           source $GITHUB_WORKSPACE/Tools/CI-linux-environment.sh
           set -x
 
-          if [[ -z "$CSTD" ]]; then
+          if test -z "$CSTD"; then
             case "$CPPSTD" in
-              c++11) export CSTD=c11 ;;
-              c++14) export CSTD=c11 ;;
-              c++17) export CSTD=c17 ;;
-              c++20) export CSTD=c17 ;;
+              c++11) CSTD=c11 ;;
+              c++14) CSTD=c11 ;;
+              c++17) CSTD=c17 ;;
+              c++20) CSTD=c17 ;;
             esac
-            echo CSTD="$CSTD" >> $GITHUB_ENV
+            if test -n "$CSTD"; then echo "CSTD=$CSTD" >> $GITHUB_ENV; fi
           fi
           if test -z "$CPPSTD"; then CONFIGOPTS+=("--disable-cpp11-testing"); fi
           if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
