@@ -1,0 +1,176 @@
+name: cmake
+
+on:
+  push:
+    paths-ignore:
+      - '.github/workflows/linux.yml'
+      - '.github/workflows/macos.yml'
+      - '.github/workflows/windows.yml'
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'Tools/CI-linux-*'
+      - 'Tools/GHA-linux-*'
+  pull_request:
+    branches: master
+    paths-ignore:
+      - '.github/workflows/linux.yml'
+      - '.github/workflows/macos.yml'
+      - '.github/workflows/windows.yml'
+      - 'CHANGES*'
+      - 'Doc/**'
+      - 'Tools/CI-linux-*'
+      - 'Tools/GHA-linux-*'
+
+permissions:
+  contents: read
+
+jobs:
+  cmake:
+    runs-on: ${{ matrix.os }}
+
+    name: cmake ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-26]
+      # Run all of them, as opposed to aborting when one fails
+      fail-fast: false
+
+    env:
+      SWIG_INSTALL_PREFIX: '${{ github.workspace }}/swig.install'
+
+    steps:
+    - name: Machine Info
+      run: |
+          case $(uname) in
+          Linux)
+            echo "nproc..."
+            nproc --all
+            echo "uname..."
+            uname --all
+            echo "meminfo..."
+            cat /proc/meminfo
+            echo "lsb-release..."
+            cat /etc/lsb-release
+            ;;
+          Darwin)
+            echo "number of logical cores logical cpu..."
+            sysctl -n hw.logicalcpu
+            echo "number of cores..."
+            sysctl -n hw.ncpu
+            echo "uname..."
+            uname -a
+            echo "total memory in bytes..."
+            sysctl hw.memsize
+            ;;
+          esac
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        show-progress: false
+
+    - name: Install Dependencies
+      run: |
+          case $(uname) in
+          Linux)
+            sudo apt-get install libpcre2-dev
+            ;;
+          Darwin)
+            # See Homebrew site: https://brew.sh/
+            brew install bison
+            # Ensure we use the newer version of bison
+            bison_dir="$(brew ls bison | grep '/bin/bison$' | head -1 | sed 's?/bison$??')"
+            echo "$bison_dir" >> $GITHUB_PATH
+            ;;
+          esac
+
+    - name: Configure
+      run: |
+          cmake --version
+          cmake -S . -B build \
+            -DCMAKE_INSTALL_PREFIX=$SWIG_INSTALL_PREFIX \
+            -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build -j
+
+    - name: Test
+      run: ctest --test-dir build -V --output-on-failure
+
+    - name: Install
+      run: |
+          cmake --install build
+          $SWIG_INSTALL_PREFIX/bin/swig -version
+          $SWIG_INSTALL_PREFIX/bin/swig -pcreversion
+
+  windows-cmake:
+    runs-on: ${{ matrix.os }}
+
+    name: cmake ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [windows-2025, windows-2025-vs2026]
+      # Run all of them, as opposed to aborting when one fails
+      fail-fast: false
+
+    steps:
+    - name: Machine Info
+      shell: powershell
+      run: systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        show-progress: false
+
+    # The NuGet PCRE2 package is build with '/MT' to statically links the the UCRT library.
+    # See explanation on linking option:
+    # https://learn.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features
+    - name: Install NuGet Packages
+      shell: powershell
+      run: |
+          nuget install PCRE2 -OutputDirectory C:\Tools
+          nuget install Bison -OutputDirectory C:\Tools
+
+    # https://cygwin.com/cygwin-ug-net/cygpath.html
+    - name: Prepare Environment
+      shell: bash
+      run: |
+          cat << EOF >> $GITHUB_ENV
+          PCRE2_PATH=$(cygpath -w "$(ls -d /C/Tools/PCRE2*)")
+          EOF
+          BISON_PATH=$(cygpath -w "$(ls -d /C/Tools/Bison*)/bin")
+          echo "$BISON_PATH" >> $GITHUB_PATH
+
+    # Use CMAKE_MSVC_RUNTIME_LIBRARY to use static C runtimes,
+    # since NuGet PCRE2 uses static liked non-debug C runtime.
+    # Using /NODEFAULTLIB, require /NODEFAULTLIB:MSVCRT for the release configuration,
+    # and /NODEFAULTLIB:MSVCRTD for the debug configuration
+    - name: Configure
+      shell: powershell
+      run: |
+          cmake --version
+          cmake -S . -B . -A x64 `
+          -DCMAKE_INSTALL_PREFIX="C:\Tools\swig" `
+          -DCMAKE_C_FLAGS="/W3 /EHsc" `
+          -DCMAKE_CXX_FLAGS="/W3 /EHsc" `
+          -DCMAKE_MSVC_RUNTIME_LIBRARY="MultiThreaded$<$<CONFIG:Debug>:Debug>" `
+          -DPCRE2_ROOT="$env:PCRE2_PATH" `
+          -DPCRE2_USE_STATIC_LIBS=ON
+
+    - name: Build
+      shell: powershell
+      run: cmake --build . --config Release
+
+    - name: Test
+      shell: powershell
+      run: ctest --output-on-failure -V -C Release
+
+    - name: Install
+      shell: powershell
+      run: |
+          cmake --install .
+          C:\Tools\swig\bin\swig.exe -version
+          C:\Tools\swig\bin\swig.exe -pcreversion
