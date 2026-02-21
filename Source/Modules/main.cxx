@@ -172,7 +172,6 @@ Arguments may also be passed in a file, separated by whitespace. For example:\n\
 // Local variables
 static String *LangSubDir = 0; // Target language library subdirectory
 static String *SwigLib = 0; // Library directory
-static String *SwigLibWinUnix = 0; // Extra library directory on Windows
 static int freeze = 0;
 static String *lang_config = 0;
 static const char *hpp_extension = "h";
@@ -597,8 +596,6 @@ static void getoptions(int argc, char *argv[]) {
 	Swig_mark_arg(i);
       } else if (strcmp(argv[i], "-swiglib") == 0) {
 	Printf(stdout, "%s\n", SwigLib);
-	if (SwigLibWinUnix)
-	  Printf(stdout, "%s\n", SwigLibWinUnix);
 	Exit(EXIT_SUCCESS);
       } else if (strcmp(argv[i], "-o") == 0) {
 	Swig_mark_arg(i);
@@ -915,8 +912,6 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
     } else {
       SwigLib = NewStringf("");	// Unexpected error
     }
-    if (Len(SWIG_LIB_WIN_UNIX) > 0)
-      SwigLibWinUnix = NewString(SWIG_LIB_WIN_UNIX); // Unix installation path using a drive letter (for msys/mingw)
 #else
     SwigLib = NewString(SWIG_LIB);
 #endif
@@ -985,19 +980,12 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
     String *rl = NewString("");
     Printf(rl, ".%sswig_lib%s%s", SWIG_FILE_DELIMITER, SWIG_FILE_DELIMITER, LangSubDir);
     Swig_add_directory(rl);
-    if (SwigLibWinUnix) {
-      rl = NewString("");
-      Printf(rl, "%s%s%s", SwigLibWinUnix, SWIG_FILE_DELIMITER, LangSubDir);
-      Swig_add_directory(rl);
-    }
     rl = NewString("");
     Printf(rl, "%s%s%s", SwigLib, SWIG_FILE_DELIMITER, LangSubDir);
     Swig_add_directory(rl);
   }
 
   Swig_add_directory((String *) "." SWIG_FILE_DELIMITER "swig_lib");
-  if (SwigLibWinUnix)
-    Swig_add_directory((String *) SwigLibWinUnix);
   Swig_add_directory(SwigLib);
 
   if (Verbose) {
@@ -1143,7 +1131,7 @@ int SWIG_main(int argc, char *argv[], const TargetLanguageModule *tlm) {
 	  for (int i = 0; i < Len(files); i++) {
             int use_file = 1;
             if (depend == 2) {
-              if ((Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) == 0) || (SwigLibWinUnix && (Strncmp(Getitem(files, i), SwigLibWinUnix, Len(SwigLibWinUnix)) == 0)))
+              if ((Strncmp(Getitem(files, i), SwigLib, Len(SwigLib)) == 0))
                 use_file = 0;
             }
             if (use_file) {
