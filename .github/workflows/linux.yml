@@ -3,15 +3,19 @@ name: linux
 on:
   push:
     paths-ignore:
+      - '.github/workflows/macos.yml'
+      - '.github/workflows/windows-cmake.yml'
+      - '.github/workflows/windows.yml'
       - 'CHANGES*'
       - 'Doc/**'
-      - 'appveyor.yml'
   pull_request:
     branches: master
     paths-ignore:
+      - '.github/workflows/macos.yml'
+      - '.github/workflows/windows-cmake.yml'
+      - '.github/workflows/windows.yml'
       - 'CHANGES*'
       - 'Doc/**'
-      - 'appveyor.yml'
 
 permissions:
   contents: read
