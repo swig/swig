@@ -1,4 +1,4 @@
-name: windows-cmake
+name: cmake
 
 on:
   push:
@@ -32,6 +32,85 @@ jobs:
 
     strategy:
       matrix:
+        os: [ubuntu-22.04, ubuntu-24.04, macos-14, macos-26]
+      # Run all of them, as opposed to aborting when one fails
+      fail-fast: false
+
+    env:
+      SWIG_INSTALL_PREFIX: '${{ github.workspace }}/swig.install'
+
+    steps:
+    - name: Machine Info
+      run: |
+          case $(uname) in
+          Linux)
+            echo "nproc..."
+            nproc --all
+            echo "uname..."
+            uname --all
+            echo "meminfo..."
+            cat /proc/meminfo
+            echo "lsb-release..."
+            cat /etc/lsb-release
+            ;;
+          Darwin)
+            echo "number of logical cores logical cpu..."
+            sysctl -n hw.logicalcpu
+            echo "number of cores..."
+            sysctl -n hw.ncpu
+            echo "uname..."
+            uname -a
+            echo "total memory in bytes..."
+            sysctl hw.memsize
+            ;;
+          esac
+
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        show-progress: false
+
+    - name: Install Dependencies
+      run: |
+          case $(uname) in
+          Linux)
+            sudo apt-get install libpcre2-dev
+            ;;
+          Darwin)
+            # See Homebrew site: https://brew.sh/
+            brew install bison
+            # Ensure we use the newer version of bison
+            bison_dir="$(brew ls bison | grep '/bin/bison$' | head -1 | sed 's?/bison$??')"
+            echo "$bison_dir" >> $GITHUB_PATH
+            ;;
+          esac
+
+    - name: Configure
+      run: |
+          cmake --version
+          cmake -S . -B build \
+            -DCMAKE_INSTALL_PREFIX=$SWIG_INSTALL_PREFIX \
+            -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build -j
+
+    - name: Test
+      run: ctest --test-dir build -V --output-on-failure
+
+    - name: Install
+      run: |
+          cmake --install build
+          $SWIG_INSTALL_PREFIX/bin/swig -version
+          $SWIG_INSTALL_PREFIX/bin/swig -pcreversion
+
+  windows-cmake:
+    runs-on: ${{ matrix.os }}
+
+    name: cmake ${{ matrix.os }}
+
+    strategy:
+      matrix:
         os: [windows-2025, windows-2025-vs2026]
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
@@ -39,18 +118,12 @@ jobs:
     steps:
     - name: Machine Info
       shell: powershell
-      run: |
-          systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
+      run: systeminfo | findstr /B /C:"OS Name" /B /C:"OS Version"
 
     - name: Checkout
       uses: actions/checkout@v4
       with:
         show-progress: false
-
-    - name: Install CCache
-      uses: hendrikmuhs/ccache-action@v1
-      with:
-        key: ${{ matrix.os }}
 
     # The NuGet PCRE2 package is build with '/MT' to statically links the the UCRT library.
     # See explanation on linking option:
@@ -89,13 +162,11 @@ jobs:
 
     - name: Build
       shell: powershell
-      run: |
-          cmake --build . --config Release
+      run: cmake --build . --config Release
 
     - name: Test
       shell: powershell
-      run: |
-          ctest --output-on-failure -V -C Release
+      run: ctest --output-on-failure -V -C Release
 
     - name: Install
       shell: powershell
