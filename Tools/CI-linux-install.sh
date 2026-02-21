@@ -40,8 +40,8 @@ case "$SWIGLANG" in
 		;;
 	"java")
 		if [[ -n "$VER" ]]; then
-			declare -n java_path="JAVA_HOME_${VER}_X64"
-			echo "JAVA_HOME=$java_path" >> $GITHUB_ENV
+			java_path="JAVA_HOME_${VER}_X64"
+			echo "JAVA_HOME=${!java_path}" >> $GITHUB_ENV
 		fi
 		;;
 	"javascript")

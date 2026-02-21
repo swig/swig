@@ -242,8 +242,8 @@ jobs:
           fi # COMPILER
 
           if [[ "$SWIGLANG" = "java" ]] && [[ -n "$VER" ]]; then
-            declare -n java_path="JAVA_HOME_${VER}_X64"
-            echo "JAVA_HOME=$java_path" >> $GITHUB_ENV
+            java_path="JAVA_HOME_${VER}_X64"
+            echo "JAVA_HOME=${!java_path}" >> $GITHUB_ENV
           fi
 
           echo "SWIGJOBS=-j$NUMBER_OF_PROCESSORS" >> $GITHUB_ENV
