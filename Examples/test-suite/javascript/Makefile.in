@@ -46,8 +46,12 @@ else
 ifneq (, @JSV8ENABLED@)
     JSENGINE=v8
 else
+ifneq (, @JSQUICKJSENABLED@)
+    JSENGINE=quickjs
+else
     # Shouldn't happen, but avoid empty value if it does.
     JSENGINE=node
+endif
 endif
 endif
 endif

@@ -6,7 +6,7 @@ function check(flag) {
   }
 }
 
-rs = new template_default_arg_overloaded_extend.ResultSet();
+var rs = new template_default_arg_overloaded_extend.ResultSet();
 
 check(rs.go_get_method(0, new template_default_arg_overloaded_extend.SearchPoint()) == -1);
 check(rs.go_get_method(0, new template_default_arg_overloaded_extend.SearchPoint(), 100) == 100);
