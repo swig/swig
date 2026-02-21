@@ -699,6 +699,7 @@ CPP17_TEST_CASES += \
 	cpp17_map_no_default_ctor \
 	cpp17_nested_namespaces \
 	cpp17_nspace_nested_namespaces \
+	cpp17_optional \
 	cpp17_string_view \
 	cpp17_u8_char_literals \
 
