@@ -1,17 +1,42 @@
 #!/bin/bash
 # Expected to be called from elsewhere with certain variables set
 # e.g. RETRY=travis-retry SWIGLANG=python GCC=7
-set -e # exit on failure (same as -o errexit)
 
-if [[ -n "$GCC" ]]; then
-	$RETRY sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-	$RETRY sudo apt-get -qq update
-	$RETRY sudo apt-get install -qq g++-$GCC
+run_apt()
+{
+	$RETRY sudo apt-get -qq $@
+}
+add_apt_repository()
+{
+	$RETRY sudo add-apt-repository -y ppa:$1
+}
+probe_cached_tool()
+{
+	tool_path=$(ls -d /opt/hostedtoolcache/$1/$VER.*/x64/bin 2> /dev/null | head -1 || true)
+}
+
+if [[ "$compiler" = 'clang' ]]; then
+	run_apt update
+	CC="clang"
+	CXX="clang++"
+elif [[ -n "$GCC" ]]; then
+	add_apt_repository ubuntu-toolchain-r/test
+	run_apt update
+	run_apt install g++-$GCC
+	CC="gcc-$GCC"
+	CXX="g++-$GCC"
 else
-	$RETRY sudo apt-get -qq update
+	run_apt update
+	CC="gcc"
+	CXX="g++"
 fi
+update_env 'CC' "$CC"
+update_env 'CXX' "$CXX"
+ls -la $(which $CC) $(which $CXX)
+$CC --version
+$CXX --version
 
-$RETRY sudo apt-get -qq install libboost-dev libpcre3-dev
+run_apt install libboost-dev libpcre3-dev
 # Note: testflags.py needs python, but python is pre-installed
 
 WITHLANG=$SWIGLANG
@@ -19,87 +44,113 @@ WITHLANG=$SWIGLANG
 case "$SWIGLANG" in
 	"")     ;;
 	"csharp")
-		$RETRY sudo apt-get -qq install mono-devel
+		run_apt install mono-devel
 		;;
 	"d")
 		if [[ $VER =~ ^2\. ]]; then
 			$RETRY wget http://downloads.dlang.org/releases/2.x/${VER}/dmd_${VER}-0_amd64.deb
 			$RETRY sudo dpkg -i dmd_${VER}-0_amd64.deb
 		else
-			$RETRY sudo apt-get -qq install "$VER"
+			run_apt install "$VER"
 		fi
 		;;
 	"go")
 		if [[ "$VER" ]]; then
-		  mkdir -p $HOME/bin
-		  curl -sL -o $HOME/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
-		  chmod +x $HOME/bin/gimme
-		  eval "$($HOME/bin/gimme ${VER}.x)"
-		  $HOME/bin/gimme --list
+			# Check if Go is already installed on cached tools
+			probe_cached_tool 'go'
+			if [[ -n "$tool_path" ]] && [[ -d "$tool_path" ]]; then
+				update_path "$tool_path"
+			else
+				mkdir -p $HOME/bin
+				curl -sL -o $HOME/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
+				chmod +x $HOME/bin/gimme
+				eval "$($HOME/bin/gimme ${VER}.x)"
+				$HOME/bin/gimme --list
+			fi
 		fi
 		;;
 	"java")
 		if [[ -n "$VER" ]]; then
 			java_path="JAVA_HOME_${VER}_X64"
-			echo "JAVA_HOME=${!java_path}" >> $GITHUB_ENV
+			update_env 'JAVA_HOME' "${!java_path}"
 		fi
 		;;
 	"javascript")
 		case "$ENGINE" in
 			"node"|"napi")
-				$RETRY wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.10/install.sh | bash
-				export NVM_DIR="$HOME/.nvm"
-				[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
-				$RETRY nvm install ${VER}
-				nvm use ${VER}
-				if [ "$VER" == "0.10" ] || [ "$VER" == "0.12" ] || [ "$VER" == "4" ] || [ "$VER" == "6" ] ; then
-#					$RETRY sudo apt-get install -qq nodejs node-gyp
-					$RETRY npm install -g node-gyp@$VER
-				elif [ "$VER" == "8" ] ; then
-					$RETRY npm install -g node-gyp@6
-				elif [ "$VER" == "10" ] || [ "$VER" == "12" ] || [ "$VER" == "14" ]  || [ "$VER" == "16" ]; then
-					$RETRY npm install -g node-gyp@7
+				if [[ -n "$VER" ]]; then
+					if [[ "$ENGINE" = "node" ]]; then
+						# Works with node only
+						probe_cached_tool 'node'
+					fi
+					if [[ -n "$tool_path" ]] && [[ -d "$tool_path" ]]; then
+						update_path "$tool_path"
+					else
+						$RETRY wget -qO- https://raw.githubusercontent.com/creationix/nvm/v0.33.10/install.sh | bash
+						[ -s "$NVM_DIR/nvm.sh" ] && source "$NVM_DIR/nvm.sh"
+						$RETRY nvm install ${VER}
+						nvm use ${VER}
+						update_env 'USE_NVM'
+					fi
+					case "$VER" in
+						0.10|0.12|4|6)
+							# run_apt install nodejs node-gyp
+							$RETRY npm install -g node-gyp@$VER
+							;;
+						8)
+							$RETRY npm install -g node-gyp@6
+							;;
+						10|12|14|16)
+							$RETRY npm install -g node-gyp@7
+							;;
+						*)
+							$RETRY npm install -g node-gyp
+							;;
+					esac
 				else
 					$RETRY npm install -g node-gyp
 				fi
 				$RETRY npm install -g node-addon-api
 				;;
 			"jsc")
-				$RETRY sudo apt-get install -qq libjavascriptcoregtk-${VER}-dev
+				run_apt install libjavascriptcoregtk-${VER}-dev
 				;;
 			"v8")
-				$RETRY sudo apt-get install -qq libnode-dev
+				run_apt install libnode-dev
 				;;
 		esac
 		;;
 	"guile")
-		$RETRY sudo apt-get -qq install guile-${VER:-2.2}-dev
+		run_apt install guile-${VER:-2.2}-dev
 		;;
 	"lua")
 		if [[ -z "$VER" ]]; then
-			$RETRY sudo apt-get -qq install lua5.2 liblua5.2-dev
+			run_apt install lua5.2 liblua5.2-dev
 		else
-			$RETRY sudo apt-get -qq install lua${VER} liblua${VER}-dev
+			run_apt install lua${VER} liblua${VER}-dev
 		fi
 		;;
 	"ocaml")
-		$RETRY sudo apt-get -qq install ocaml camlp4
+		run_apt install ocaml camlp4
 		;;
 	"octave")
 		if [[ "$VER" ]]; then
-			$RETRY sudo apt-get -qq update
-			$RETRY sudo apt-get -qq install "octave-dev=$VER.*"
+			run_apt update
+			run_apt install "octave-dev=$VER.*"
 		else
-			$RETRY sudo apt-get -qq update
-			$RETRY sudo apt-get -qq install octave-dev
+			run_apt update
+			run_apt install octave-dev
 		fi
 		;;
 	"php")
 		if [[ "$VER" ]]; then
-			$RETRY sudo apt-get -qq remove "php*-cli" "php*-dev" # Multiple versions are pre-installed
-			$RETRY sudo add-apt-repository -y ppa:ondrej/php
-			$RETRY sudo apt-get -qq update
-			$RETRY sudo apt-get -qq install php$VER-cli php$VER-dev
+			if ! dpkg -l  'php*' | grep "^ii  php$VER" > /dev/null; then
+				# Remove installed PHP, as we need another version
+				run_apt remove "php*-cli" "php*-dev"
+				add_apt_repository ondrej/php
+				run_apt update
+				run_apt install php$VER-cli php$VER-dev
+			fi
 		fi
 		;;
 	"python")
@@ -114,69 +165,81 @@ case "$SWIGLANG" in
 			WITHLANG=${SWIGLANG}3
 		fi
 		if [[ "$VER" ]]; then
-			$RETRY sudo add-apt-repository -y ppa:deadsnakes/ppa
-			$RETRY sudo apt-get -qq update
-			case "$VER" in
-				*-dbg)
-					$RETRY sudo apt-get -qq install python${VER::-4}-dev python${VER}
-				  ;;
-				*t)
-					$RETRY sudo apt-get -qq install python${VER::-1}-dev python${VER::-1}-nogil
-				  ;;
-				*)
-					$RETRY sudo apt-get -qq install python${VER}-dev
-				;;
-			esac
-			WITHLANG=$WITHLANG=$SWIGLANG$VER
+			if [[ -z "$PY2" ]] && [[ $VER =~ ^[0-9.]+$ ]]; then
+				# Check if Python is already installed on cached tools
+			    probe_cached_tool 'Python'
+			fi
+			if [[ -n "$tool_path" ]] && [[ -d "$tool_path" ]]; then
+				update_path "$tool_path"
+			else
+				add_apt_repository deadsnakes/ppa
+				run_apt update
+				case "$VER" in
+					*-dbg)
+						run_apt install python${VER::-4}-dev python${VER}
+					  ;;
+					*t)
+						run_apt install python${VER::-1}-dev python${VER::-1}-nogil
+					  ;;
+					*)
+						run_apt install python${VER}-dev
+					;;
+				esac
+			fi
+			WITHLANG="$WITHLANG=$SWIGLANG$VER"
 		elif [[ "$PY2" ]]; then
-			$RETRY sudo apt-get install -qq python2-dev
-		else
-			$RETRY sudo apt-get install -qq python3-dev
+			run_apt install python2-dev
 		fi
 		;;
 	"r")
-		$RETRY sudo apt-get -qq install r-base
+		run_apt install r-base
 		;;
 	"ruby")
 		if [[ "$VER" ]]; then
-			case "$VER" in
-				2.5 | 2.7 | 3.0 | 3.1 | 3.2 | 3.3 )
-					# Ruby 3.1+ support is currently only rvm master (2023-04-19)
-					# YOLO
-					#
-					# Ruby 2.5, 2.7 and 3.0 work with this
-					# rvm but no longer seem to with the
-					# PPA rvm.  2.4 and 2.6 fail with either.
-					# (2025-06-18)
-					curl -sSL https://rvm.io/mpapis.asc | gpg --import -
-					curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
-					curl -sSL https://get.rvm.io | bash -s stable
-					set +x
-					source $HOME/.rvm/scripts/rvm
-					$RETRY rvm get master
-					rvm reload
-					rvm list known
-					set -x
-					;;
-				* )
-					# Install from PPA as that also contains packages needed for the build.
-					sudo apt-add-repository -y ppa:rael-gc/rvm
-					sudo apt-get update
-					sudo apt-get install rvm
-					sudo usermod -a -G rvm $USER
-					set +x
-					source /etc/profile.d/rvm.sh
-					set -x
-					;;
-			esac
-			set +x
-			$RETRY rvm install $VER
-			set -x
+			# Check if ruby is already installed on cached tools
+			probe_cached_tool 'Ruby'
+			if [[ -n "$tool_path" ]] && [[ -d "$tool_path" ]]; then
+				update_path "$tool_path"
+			else
+				case "$VER" in
+					2.5 | 2.7 | 3.0 | 3.1 | 3.2 | 3.3 )
+						# Ruby 3.1+ support is currently only rvm master (2023-04-19)
+						# YOLO
+						#
+						# Ruby 2.5, 2.7 and 3.0 work with this
+						# rvm but no longer seem to with the
+						# PPA rvm.  2.4 and 2.6 fail with either.
+						# (2025-06-18)
+						curl -sSL https://rvm.io/mpapis.asc | gpg --import -
+						curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
+						curl -sSL https://get.rvm.io | bash -s stable
+						set +x
+						source $HOME/.rvm/scripts/rvm
+						$RETRY rvm get master
+						rvm reload
+						rvm list known
+						set -x
+						;;
+					* )
+						# Install from PPA as that also contains packages needed for the build.
+						add_apt_repository rael-gc/rvm
+						run_apt -qq update
+						run_apt -qq install rvm
+						sudo usermod -a -G rvm $USER
+						set +x
+						source /etc/profile.d/rvm.sh
+						set -x
+						;;
+				esac
+				set +x
+				$RETRY rvm install $VER
+				set -x
+			fi
 		fi
 		;;
 	"scilab")
 		if [[ -z "$VER" ]]; then
-			$RETRY sudo apt-get -qq install scilab
+			run_apt install scilab
 		else
 			# Starting with version 2023.0.0 the download filename format changed.
 			case $VER in
@@ -191,8 +254,7 @@ case "$SWIGLANG" in
 		fi	
 		;;
 	"tcl")
-		$RETRY sudo apt-get -qq install tcl-dev
+		run_apt install tcl-dev
 		;;
 esac
-
-set +e # turn off exit on failure (same as +o errexit)
+update_env 'WITHLANG' "$WITHLANG"

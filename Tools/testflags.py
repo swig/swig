@@ -21,7 +21,7 @@ def get_cflags(language, std, compiler):
              "c":"-Werror " + c_common,
         "csharp":"-Werror " + c_common,
              "d":"-Werror " + c_common,
-            "go":"-Werror " + c_common + " -Wno-unused-variable",
+            "go":"-Werror " + c_common + " -Wno-unused-variable -Wno-declaration-after-statement",
          "guile":"-Werror " + c_common,
           "java":"-Werror " + c_common,
     "javascript":"-Werror " + c_common,
@@ -32,15 +32,12 @@ def get_cflags(language, std, compiler):
            "php":"-Werror " + c_common,
         "python":"-Werror " + c_common + sign_conversion_flags,
              "r":"-Werror " + c_common,
-          "ruby":"-Werror " + c_common + " -Wno-missing-field-initializers",
+          "ruby":"-Werror " + c_common + " -Wno-missing-field-initializers -Wno-deprecated-declarations  -Wno-attribute-warning",
         "scilab":"-Werror " + c_common + " -Wno-unused-variable",
            "tcl":"-Werror " + c_common,
     }
     if compiler == "clang":
         cflags["guile"] += " -Wno-attributes" # -Wno-attributes is for clang LLVM 3.5 and bdw-gc < 7.5 used by guile
-
-    if platform.system() == 'Darwin':
-        cflags["ruby"] += " -Wno-attribute-warning"
 
     if language not in cflags:
         raise RuntimeError("{} is not a supported language".format(language))
@@ -71,15 +68,12 @@ def get_cxxflags(language, std, compiler):
            "php":"-Werror " + cxx_common,
         "python":"-Werror " + cxx_common,
              "r":"-Werror " + cxx_common,
-          "ruby":"-Werror " + cxx_common + " -Wno-missing-field-initializers",
+          "ruby":"-Werror " + cxx_common + " -Wno-missing-field-initializers -Wno-deprecated-declarations  -Wno-attribute-warning",
         "scilab":"-Werror " + cxx_common + " -Wno-unused-variable",
            "tcl":"-Werror " + cxx_common,
     }
     if compiler == "clang":
         cxxflags["guile"] += " -Wno-attributes" # -Wno-attributes is for clang LLVM 3.5 and bdw-gc < 7.5 used by guile
-
-    if platform.system() == 'Darwin':
-        cxxflags["ruby"] += " -Wno-attribute-warning"
 
     if language not in cxxflags:
         raise RuntimeError("{} is not a supported language".format(language))

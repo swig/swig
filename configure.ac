@@ -1039,7 +1039,7 @@ if test -n "$JAVAC"; then
 
 # Check Java version: we require Java 9 or later for Doxygen tests.
   JAVA_SKIP_DOXYGEN_TEST_CASES=
-  if test "$JAVA_VERSION_MAJOR" -le "8"; then
+  if test $JAVA_VERSION_MAJOR -le 8; then
     JAVA_SKIP_DOXYGEN_TEST_CASES="1"
   fi
 
@@ -1173,7 +1173,7 @@ fi
 # Allow using 'System.loadLibrary', which is marked restricted!
 # https://docs.oracle.com/en/java/javase/25/core/restricted-methods.html
 # https://bugs.openjdk.org/browse/JDK-8317242
-if test "$JAVA_VERSION_MAJOR" -gt 21; then
+if test $JAVA_VERSION_MAJOR -gt 21; then
     JAVAC_OPTIONS+=" -Xlint:-restricted"
     JAVAFLAGS+=" --enable-native-access=ALL-UNNAMED"
 fi
