@@ -1832,7 +1832,7 @@ public:
 	    Wrapper_add_local(f, result_name, result_var);
 	    Printf(action, "\n%s = new %s(%s);", result_name, SwigType_namestr(smart), Swig_cresult_name());
 	  }
-	  Printf(action, "\nDATA_PTR(self) = %s;", result_name);
+	  Printf(action, "\n((struct ruby_wrapped_object *)DATA_PTR(self))->data = %s;", result_name);
 	  if (GetFlag(pn, "feature:trackobjects")) {
 	    Printf(action, "\nSWIG_RubyAddTracking(%s, self);", result_name);
 	  }
@@ -2473,9 +2473,11 @@ public:
   void handleMarkFuncDirective(Node *n) {
     String *markfunc = Getattr(n, "feature:markfunc");
     if (markfunc) {
-      Printf(klass->init, "SwigClass%s.cext_type.function.dmark = (void (*)(void *)) %s;\n", klass->name, markfunc);
+      Printf(klass->init, "SwigClass%s.mark = (void (*)(void *)) %s;\n", klass->name, markfunc);
+      Printf(klass->init, "SwigClass%s.cext_type.function.dmark = SWIG_Ruby_mark_swig_type;\n", klass->name);
     } else {
-      Printf(klass->init, "SwigClass%s.cext_type.function.dmark = 0;\n", klass->name);
+      Printf(klass->init, "SwigClass%s.mark = 0;\n", klass->name);
+      Printf(klass->init, "SwigClass%s.cext_type.function.dmark = SWIG_Ruby_mark_swig_type;\n", klass->name);
     }
   }
 
@@ -2485,10 +2487,12 @@ public:
   void handleFreeFuncDirective(Node *n) {
     String *freefunc = Getattr(n, "feature:freefunc");
     if (freefunc) {
-      Printf(klass->init, "SwigClass%s.cext_type.function.dfree = (void (*)(void *)) %s;\n", klass->name, freefunc);
+      Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
+      Printf(klass->init, "SwigClass%s.cext_type.function.dfree = SWIG_Ruby_free_swig_type;\n", klass->name);
     } else {
       if (klass->destructor_defined) {
-	Printf(klass->init, "SwigClass%s.cext_type.function.dfree = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
+	Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
+	Printf(klass->init, "SwigClass%s.cext_type.function.dfree = SWIG_Ruby_free_swig_type;\n", klass->name);
       }
     }
   }
