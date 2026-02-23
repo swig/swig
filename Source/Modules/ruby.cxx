@@ -1832,7 +1832,7 @@ public:
 	    Wrapper_add_local(f, result_name, result_var);
 	    Printf(action, "\n%s = new %s(%s);", result_name, SwigType_namestr(smart), Swig_cresult_name());
 	  }
-	  Printf(action, "\n((struct ruby_wrapped_object *)DATA_PTR(self))->data = %s;", result_name);
+	  Printf(action, "\n((struct ruby_wrapped_object *)RTYPEDDATA_GET_DATA(self))->data = %s;", result_name);
 	  if (GetFlag(pn, "feature:trackobjects")) {
 	    Printf(action, "\nSWIG_RubyAddTracking(%s, self);", result_name);
 	  }
@@ -2465,6 +2465,11 @@ public:
    */
   void handleClassName(Node *) {
     Printf(klass->init, "SwigClass%s.cext_type.wrap_struct_name = \"C++ class %s\";\n", klass->name, klass->cname);
+    Printf(klass->init, "#ifdef TYPED_DATA_EMBEDDED\n");
+    Printf(klass->init, "SwigClass%s.cext_type.flags = RUBY_TYPED_FREE_IMMEDIATELY | RUBY_TYPED_EMBEDDABLE;\n", klass->name);
+    Printf(klass->init, "#else\n");
+    Printf(klass->init, "SwigClass%s.cext_type.flags = RUBY_TYPED_FREE_IMMEDIATELY;\n", klass->name);
+    Printf(klass->init, "#endif\n");
   }
 
   /**

@@ -163,12 +163,6 @@ SWIG_Ruby_define_class(swig_type_info *type)
   free((void *) klass_name);
 }
 
-struct ruby_wrapped_object {
-  void *data;
-  void (*dmark)(void *);
-  void (*dfree)(void *);
-};
-
 static void SWIG_Ruby_mark_swig_type(void *_wrobj)
 {
   struct ruby_wrapped_object *wrobj = (struct ruby_wrapped_object *)_wrobj;
@@ -183,7 +177,9 @@ static void SWIG_Ruby_free_swig_type(void *_wrobj)
   if (wrobj->dfree) {
     wrobj->dfree(wrobj->data);
   }
+#ifndef TYPED_DATA_EMBEDDED
   free(wrobj);
+#endif
 }
 
 static const rb_data_type_t swig_type_type = {
@@ -237,13 +233,11 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     }
 
     /* Create a new Ruby object */
-    wrobj = (struct ruby_wrapped_object *) malloc(sizeof(*wrobj));
+    obj = TypedData_Make_Struct(sklass->klass, struct ruby_wrapped_object, &sklass->cext_type, wrobj);
     wrobj->data = ptr;
     wrobj->dmark = sklass->mark;
     wrobj->dfree = own ? sklass->destroy:
                   (track ? VOIDFUNC(SWIG_RubyRemoveTracking) : 0 );
-
-    obj = TypedData_Wrap_Struct(sklass->klass, &sklass->cext_type, wrobj);
 
     /* If tracking is on for this class then track this object. */
     if (track) {
@@ -256,12 +250,10 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     klass = rb_const_get(_mSWIG, rb_intern(klass_name));
     free((void *) klass_name);
 
-    wrobj = (struct ruby_wrapped_object *) malloc(sizeof(*wrobj));
+    obj = TypedData_Make_Struct(klass, struct ruby_wrapped_object, &swig_type_type, wrobj);
     wrobj->data = ptr;
     wrobj->dmark = 0;
     wrobj->dfree = 0;
-
-    obj = TypedData_Wrap_Struct(klass, &swig_type_type, wrobj);
   }
   rb_iv_set(obj, "@__swigtype__", rb_str_new2(type->name));
 
@@ -276,12 +268,11 @@ SWIG_Ruby_NewClassInstance(VALUE klass, swig_type_info *type)
   swig_class *sklass = (swig_class *) type->clientdata;
   struct ruby_wrapped_object *wrobj;
 
-  wrobj = (struct ruby_wrapped_object *) malloc(sizeof(*wrobj));
+  obj = TypedData_Make_Struct(klass, struct ruby_wrapped_object, &sklass->cext_type, wrobj);
   wrobj->data = 0;
   wrobj->dmark = sklass->mark;
   wrobj->dfree = sklass->destroy;
 
-  obj = TypedData_Wrap_Struct(klass, &sklass->cext_type, wrobj);
   rb_iv_set(obj, "@__swigtype__", rb_str_new2(type->name));
   return obj;
 }
@@ -306,7 +297,7 @@ SWIGRUNTIME swig_ruby_owntype
 SWIG_Ruby_AcquirePtr(VALUE obj, swig_ruby_owntype own) {
   swig_ruby_owntype oldown = {0, 0};
   if (RB_TYPE_P(obj, RUBY_T_DATA) && RTYPEDDATA_P(obj)) {
-    struct ruby_wrapped_object *wrobj = (struct ruby_wrapped_object *)DATA_PTR(obj);
+    struct ruby_wrapped_object *wrobj = (struct ruby_wrapped_object *)RTYPEDDATA_GET_DATA(obj);
     oldown.datafree = wrobj->dfree;
     wrobj->dfree = own.datafree;
   }
@@ -328,7 +319,7 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
       *ptr = 0;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   } else if (RB_TYPE_P(obj, RUBY_T_DATA) && RTYPEDDATA_P(obj)) {
-    wrobj = (struct ruby_wrapped_object *)DATA_PTR(obj);
+    wrobj = (struct ruby_wrapped_object *)RTYPEDDATA_GET_DATA(obj);
     vptr = wrobj->data;
   } else {
     return SWIG_ERROR;
@@ -483,7 +474,7 @@ SWIG_Ruby_GetModule(void *SWIGUNUSEDPARM(clientdata))
   if (pointer != Qnil) {
     /* Can not use TypedData_Get_Struct because swig_runtime_data_type is not global, but once per file. */
     if (!RB_TYPE_P(pointer, RUBY_T_DATA)) rb_check_typeddata(pointer, &swig_runtime_data_type);
-    ret = (swig_module_info *)DATA_PTR(pointer);
+    ret = (swig_module_info *)RTYPEDDATA_GET_DATA(pointer);
   }
 
   /* reinstate warnings */
