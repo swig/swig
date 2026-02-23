@@ -237,6 +237,7 @@ CPP_TEST_CASES += \
 	director_using_member_scopes \
 	director_void \
 	director_wombat \
+	director_minimal \
 	disown \
 	duplicate_class_name_in_ns \
 	duplicate_parm_names \
