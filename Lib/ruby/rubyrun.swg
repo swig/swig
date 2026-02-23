@@ -67,9 +67,8 @@ extern "C" {
 typedef struct {
   VALUE klass;
   VALUE mImpl;
-  void  (*mark)(void *);
-  void  (*destroy)(void *);
-  rb_data_type_t cext_type;
+  rb_data_type_t cext_type_foreign;
+  rb_data_type_t cext_type_own;
   int trackObjects;
 } swig_class;
 
@@ -163,29 +162,6 @@ SWIG_Ruby_define_class(swig_type_info *type)
   free((void *) klass_name);
 }
 
-struct ruby_wrapped_object {
-  void *data;
-  void (*dmark)(void *);
-  void (*dfree)(void *);
-};
-
-static void SWIG_Ruby_mark_swig_type(void *_wrobj)
-{
-  struct ruby_wrapped_object *wrobj = (struct ruby_wrapped_object *)_wrobj;
-  if (wrobj->dmark) {
-    wrobj->dmark(wrobj->data);
-  }
-}
-
-static void SWIG_Ruby_free_swig_type(void *_wrobj)
-{
-  struct ruby_wrapped_object *wrobj = (struct ruby_wrapped_object *)_wrobj;
-  if (wrobj->dfree) {
-    wrobj->dfree(wrobj->data);
-  }
-  free(wrobj);
-}
-
 static const rb_data_type_t swig_type_type = {
     .wrap_struct_name = "swig_type",
     .function = {
@@ -209,7 +185,6 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
   swig_class *sklass;
   VALUE klass;
   VALUE obj;
-  struct ruby_wrapped_object *wrobj;
 
   if (!ptr)
     return Qnil;
@@ -237,13 +212,7 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     }
 
     /* Create a new Ruby object */
-    wrobj = (struct ruby_wrapped_object *) malloc(sizeof(*wrobj));
-    wrobj->data = ptr;
-    wrobj->dmark = sklass->mark;
-    wrobj->dfree = own ? sklass->destroy:
-                  (track ? VOIDFUNC(SWIG_RubyRemoveTracking) : 0 );
-
-    obj = TypedData_Wrap_Struct(sklass->klass, &sklass->cext_type, wrobj);
+    obj = TypedData_Wrap_Struct(sklass->klass, own ? &sklass->cext_type_own : &sklass->cext_type_foreign, ptr);
 
     /* If tracking is on for this class then track this object. */
     if (track) {
@@ -256,12 +225,7 @@ SWIG_Ruby_NewPointerObj(void *ptr, swig_type_info *type, int flags)
     klass = rb_const_get(_mSWIG, rb_intern(klass_name));
     free((void *) klass_name);
 
-    wrobj = (struct ruby_wrapped_object *) malloc(sizeof(*wrobj));
-    wrobj->data = ptr;
-    wrobj->dmark = 0;
-    wrobj->dfree = 0;
-
-    obj = TypedData_Wrap_Struct(klass, &swig_type_type, wrobj);
+    obj = TypedData_Wrap_Struct(klass, &swig_type_type, ptr);
   }
   rb_iv_set(obj, "@__swigtype__", rb_str_new2(type->name));
 
@@ -274,14 +238,8 @@ SWIG_Ruby_NewClassInstance(VALUE klass, swig_type_info *type)
 {
   VALUE obj;
   swig_class *sklass = (swig_class *) type->clientdata;
-  struct ruby_wrapped_object *wrobj;
 
-  wrobj = (struct ruby_wrapped_object *) malloc(sizeof(*wrobj));
-  wrobj->data = 0;
-  wrobj->dmark = sklass->mark;
-  wrobj->dfree = sklass->destroy;
-
-  obj = TypedData_Wrap_Struct(klass, &sklass->cext_type, wrobj);
+  obj = TypedData_Wrap_Struct(klass, &sklass->cext_type_own, 0);
   rb_iv_set(obj, "@__swigtype__", rb_str_new2(type->name));
   return obj;
 }
@@ -296,9 +254,33 @@ SWIG_Ruby_MangleStr(VALUE obj)
   return StringValuePtr(stype);
 }
 
+struct SWIG_RTypedData {
+
+    /** The part that all ruby objects have in common. */
+    struct RBasic basic;
+
+    /** Direct reference to the slots that holds instance variables, if any **/
+    VALUE fields_obj;
+
+    /**
+     * This is a `const rb_data_type_t *const` value, with the low bits set:
+     *
+     * 1: Set if object is embedded.
+     *
+     * This field  stores various  information about how  Ruby should  handle a
+     * data.   This roughly  resembles a  Ruby level  class (apart  from method
+     * definition etc.)
+     */
+    VALUE type;
+
+    /** Pointer to the actual C level struct that you want to wrap. */
+    void *data;
+};
+
+
 /* Acquire a pointer value */
 typedef struct {
-  void (*datafree)(void *);
+  rb_data_type_t *cext_type;
   int own;
 } swig_ruby_owntype;
 
@@ -306,9 +288,10 @@ SWIGRUNTIME swig_ruby_owntype
 SWIG_Ruby_AcquirePtr(VALUE obj, swig_ruby_owntype own) {
   swig_ruby_owntype oldown = {0, 0};
   if (RB_TYPE_P(obj, RUBY_T_DATA) && RTYPEDDATA_P(obj)) {
-    struct ruby_wrapped_object *wrobj = (struct ruby_wrapped_object *)DATA_PTR(obj);
-    oldown.datafree = wrobj->dfree;
-    wrobj->dfree = own.datafree;
+    oldown.cext_type = (rb_data_type_t *)RTYPEDDATA_TYPE(obj);
+    /* TODO: This is ruby internal */
+    ((struct SWIG_RTypedData*)RTYPEDDATA(obj))->type = (RTYPEDDATA(obj)->type & ~TYPED_DATA_PTR_MASK)
+          | (VALUE)own.cext_type;
   }
   return oldown;
 }
@@ -320,7 +303,6 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
   char *c;
   swig_cast_info *tc;
   void *vptr = 0;
-  struct ruby_wrapped_object *wrobj;
 
   /* Grab the pointer */
   if (NIL_P(obj)) {
@@ -328,19 +310,18 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
       *ptr = 0;
     return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   } else if (RB_TYPE_P(obj, RUBY_T_DATA) && RTYPEDDATA_P(obj)) {
-    wrobj = (struct ruby_wrapped_object *)DATA_PTR(obj);
-    vptr = wrobj->data;
+    vptr = RTYPEDDATA_DATA(obj);
   } else {
     return SWIG_ERROR;
   }
   
   if (own) {
-    own->datafree = wrobj->dfree;
+    own->cext_type = (rb_data_type_t *)RTYPEDDATA_TYPE(obj);
     own->own = 0;
   }
     
   if (((flags & SWIG_POINTER_RELEASE) == SWIG_POINTER_RELEASE)) {
-    if (!wrobj->dfree)
+    if (!RTYPEDDATA_TYPE(obj)->function.dfree)
       return SWIG_ERROR_RELEASE_NOT_OWNED;
   }
 
@@ -350,27 +331,31 @@ SWIG_Ruby_ConvertPtrAndOwn(VALUE obj, void **ptr, swig_type_info *ty, int flags,
      longer owns the underlying C++ object.*/ 
   if (flags & SWIG_POINTER_DISOWN) {
     /* Is tracking on for this class? */
-    int track = 0;
+    const rb_data_type_t *cext_type = &swig_type_type;
     if (ty && ty->clientdata) {
       swig_class *sklass = (swig_class *) ty->clientdata;
-      track = sklass->trackObjects;
+      cext_type = &sklass->cext_type_foreign;
     }
 
-    if (track) {
-      /* We are tracking objects for this class.  Thus we change the destructor
-       * to SWIG_RubyRemoveTracking.  This allows us to
-       * remove the mapping from the C++ to Ruby object
-       * when the Ruby object is garbage collected.  If we don't
-       * do this, then it is possible we will return a reference 
-       * to a Ruby object that no longer exists thereby crashing Ruby. */
-      wrobj->dfree = SWIG_RubyRemoveTracking;
-    } else {    
-      wrobj->dfree = 0;
-    }
+    /* TODO: This is ruby internal */
+    ((struct SWIG_RTypedData*)RTYPEDDATA(obj))->type = (RTYPEDDATA(obj)->type & ~TYPED_DATA_PTR_MASK)
+          | (VALUE)cext_type;
+
+    // if (track) {
+    //   /* We are tracking objects for this class.  Thus we change the destructor
+    //    * to SWIG_RubyRemoveTracking.  This allows us to
+    //    * remove the mapping from the C++ to Ruby object
+    //    * when the Ruby object is garbage collected.  If we don't
+    //    * do this, then it is possible we will return a reference
+    //    * to a Ruby object that no longer exists thereby crashing Ruby. */
+    //   wrobj->dfree = SWIG_RubyRemoveTracking;
+    // } else {
+    //   wrobj->dfree = 0;
+    // }
   }
 
   if (flags & SWIG_POINTER_CLEAR) {
-    wrobj->data = 0;
+    DATA_PTR(obj) = 0;
   }
 
   /* Do type-checking if type info was provided */
