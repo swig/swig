@@ -3,6 +3,7 @@
 # e.g. RETRY=travis-retry SWIGLANG=python
 # Sets up environment for using various target languages
 # For Github Actions where the environment is not preserved between steps
+set -e # exit on failure (same as -o errexit)
 
 case "$SWIGLANG" in
 	"go")

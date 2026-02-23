@@ -1,32 +1,28 @@
 #!/bin/bash
 # Expected to be called from elsewhere with certain variables set
 # e.g. RETRY=travis-retry SWIGLANG=python GCC=7
+# Also provide update_env() and update_path()
+set -e # exit on failure (same as -o errexit)
 
-run_apt()
-{
-	$RETRY sudo apt-get -qq $@
-}
-add_apt_repository()
-{
-	$RETRY sudo add-apt-repository -y ppa:$1
-}
+# See list of cached tools in:
+# https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md#cached-tools
 probe_cached_tool()
 {
 	tool_path=$(ls -d /opt/hostedtoolcache/$1/$VER.*/x64/bin 2> /dev/null | head -1 || true)
 }
 
 if [[ "$compiler" = 'clang' ]]; then
-	run_apt update
+	$RETRY sudo apt-get -qq update
 	CC="clang"
 	CXX="clang++"
 elif [[ -n "$GCC" ]]; then
-	add_apt_repository ubuntu-toolchain-r/test
-	run_apt update
-	run_apt install g++-$GCC
+	$RETRY sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+	$RETRY sudo apt-get -qq update
+	$RETRY sudo apt-get -qq install g++-$GCC
 	CC="gcc-$GCC"
 	CXX="g++-$GCC"
 else
-	run_apt update
+	$RETRY sudo apt-get -qq update
 	CC="gcc"
 	CXX="g++"
 fi
@@ -36,7 +32,7 @@ ls -la $(which $CC) $(which $CXX)
 $CC --version
 $CXX --version
 
-run_apt install libboost-dev libpcre3-dev
+$RETRY sudo apt-get -qq install libboost-dev libpcre3-dev
 # Note: testflags.py needs python, but python is pre-installed
 
 WITHLANG=$SWIGLANG
@@ -44,14 +40,14 @@ WITHLANG=$SWIGLANG
 case "$SWIGLANG" in
 	"")     ;;
 	"csharp")
-		run_apt install mono-devel
+		$RETRY sudo apt-get -qq install mono-devel
 		;;
 	"d")
 		if [[ $VER =~ ^2\. ]]; then
 			$RETRY wget http://downloads.dlang.org/releases/2.x/${VER}/dmd_${VER}-0_amd64.deb
 			$RETRY sudo dpkg -i dmd_${VER}-0_amd64.deb
 		else
-			run_apt install "$VER"
+			$RETRY sudo apt-get -qq install "$VER"
 		fi
 		;;
 	"go")
@@ -94,7 +90,7 @@ case "$SWIGLANG" in
 					fi
 					case "$VER" in
 						0.10|0.12|4|6)
-							# run_apt install nodejs node-gyp
+							# $RETRY sudo apt-get -qq install nodejs node-gyp
 							$RETRY npm install -g node-gyp@$VER
 							;;
 						8)
@@ -113,43 +109,43 @@ case "$SWIGLANG" in
 				$RETRY npm install -g node-addon-api
 				;;
 			"jsc")
-				run_apt install libjavascriptcoregtk-${VER}-dev
+				$RETRY sudo apt-get -qq install libjavascriptcoregtk-${VER}-dev
 				;;
 			"v8")
-				run_apt install libnode-dev
+				$RETRY sudo apt-get -qq install libnode-dev
 				;;
 		esac
 		;;
 	"guile")
-		run_apt install guile-${VER:-2.2}-dev
+		$RETRY sudo apt-get -qq install guile-${VER:-2.2}-dev
 		;;
 	"lua")
 		if [[ -z "$VER" ]]; then
-			run_apt install lua5.2 liblua5.2-dev
+			$RETRY sudo apt-get -qq install lua5.2 liblua5.2-dev
 		else
-			run_apt install lua${VER} liblua${VER}-dev
+			$RETRY sudo apt-get -qq install lua${VER} liblua${VER}-dev
 		fi
 		;;
 	"ocaml")
-		run_apt install ocaml camlp4
+		$RETRY sudo apt-get -qq install ocaml camlp4
 		;;
 	"octave")
 		if [[ "$VER" ]]; then
-			run_apt update
-			run_apt install "octave-dev=$VER.*"
+			$RETRY sudo apt-get -qq update
+			$RETRY sudo apt-get -qq install "octave-dev=$VER.*"
 		else
-			run_apt update
-			run_apt install octave-dev
+			$RETRY sudo apt-get -qq update
+			$RETRY sudo apt-get -qq install octave-dev
 		fi
 		;;
 	"php")
 		if [[ "$VER" ]]; then
-			if ! dpkg -l  'php*' | grep "^ii  php$VER" > /dev/null; then
+			if ! dpkg -l 'php*' | grep "^ii  php$VER" > /dev/null; then
 				# Remove installed PHP, as we need another version
-				run_apt remove "php*-cli" "php*-dev"
-				add_apt_repository ondrej/php
-				run_apt update
-				run_apt install php$VER-cli php$VER-dev
+				$RETRY sudo apt-get -qq remove "php*-cli" "php*-dev"
+				$RETRY sudo add-apt-repository -y ppa:ondrej/php
+				$RETRY sudo apt-get -qq update
+				$RETRY sudo apt-get -qq install php$VER-cli php$VER-dev
 			fi
 		fi
 		;;
@@ -167,32 +163,32 @@ case "$SWIGLANG" in
 		if [[ "$VER" ]]; then
 			if [[ -z "$PY2" ]] && [[ $VER =~ ^[0-9.]+$ ]]; then
 				# Check if Python is already installed on cached tools
-			    probe_cached_tool 'Python'
+				probe_cached_tool 'Python'
 			fi
 			if [[ -n "$tool_path" ]] && [[ -d "$tool_path" ]]; then
 				update_path "$tool_path"
 			else
-				add_apt_repository deadsnakes/ppa
-				run_apt update
+				$RETRY sudo add-apt-repository -y ppa:deadsnakes/ppa
+				$RETRY sudo apt-get -qq update
 				case "$VER" in
 					*-dbg)
-						run_apt install python${VER::-4}-dev python${VER}
-					  ;;
+						$RETRY sudo apt-get -qq install python${VER::-4}-dev python${VER}
+						;;
 					*t)
-						run_apt install python${VER::-1}-dev python${VER::-1}-nogil
-					  ;;
+						$RETRY sudo apt-get -qq install python${VER::-1}-dev python${VER::-1}-nogil
+						;;
 					*)
-						run_apt install python${VER}-dev
+						$RETRY sudo apt-get -qq install python${VER}-dev
 					;;
 				esac
 			fi
 			WITHLANG="$WITHLANG=$SWIGLANG$VER"
 		elif [[ "$PY2" ]]; then
-			run_apt install python2-dev
+			$RETRY sudo apt-get -qq install python2-dev
 		fi
 		;;
 	"r")
-		run_apt install r-base
+		$RETRY sudo apt-get -qq install r-base
 		;;
 	"ruby")
 		if [[ "$VER" ]]; then
@@ -208,7 +204,7 @@ case "$SWIGLANG" in
 						#
 						# Ruby 2.5, 2.7 and 3.0 work with this
 						# rvm but no longer seem to with the
-						# PPA rvm.  2.4 and 2.6 fail with either.
+						# PPA rvm. 2.4 and 2.6 fail with either.
 						# (2025-06-18)
 						curl -sSL https://rvm.io/mpapis.asc | gpg --import -
 						curl -sSL https://rvm.io/pkuczynski.asc | gpg --import -
@@ -222,9 +218,9 @@ case "$SWIGLANG" in
 						;;
 					* )
 						# Install from PPA as that also contains packages needed for the build.
-						add_apt_repository rael-gc/rvm
-						run_apt -qq update
-						run_apt -qq install rvm
+						$RETRY sudo add-apt-repository -y ppa:rael-gc/rvm
+						$RETRY sudo apt-get -qq -qq update
+						$RETRY sudo apt-get -qq -qq install rvm
 						sudo usermod -a -G rvm $USER
 						set +x
 						source /etc/profile.d/rvm.sh
@@ -239,7 +235,7 @@ case "$SWIGLANG" in
 		;;
 	"scilab")
 		if [[ -z "$VER" ]]; then
-			run_apt install scilab
+			$RETRY sudo apt-get -qq install scilab
 		else
 			# Starting with version 2023.0.0 the download filename format changed.
 			case $VER in
@@ -251,10 +247,10 @@ case "$SWIGLANG" in
 			# $HOME/.local/bin is in PATH and writeable
 			mkdir -p "$HOME/.local"
 			tar -xf "$scilab_tarball" --strip-components=1 -C "$HOME/.local"
-		fi	
+		fi
 		;;
 	"tcl")
-		run_apt install tcl-dev
+		$RETRY sudo apt-get -qq install tcl-dev
 		;;
 esac
 update_env 'WITHLANG' "$WITHLANG"
