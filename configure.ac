@@ -191,7 +191,8 @@ then
 	*-*-linux*) LDSHARED="\$(CC) -shared";;
 	*-*-dgux*) LDSHARED="ld -G";;
 	*-*-freebsd3*) LDSHARED="\$(CC) -shared";;
-	*-*-freebsd* | *-*-openbsd*) LDSHARED="ld -Bshareable";;
+	*-*-freebsd*) LDSHARED="ld -Bshareable";;
+	*-*-openbsd*) LDSHARED="\$(CC) -shared";;
 	*-*-netbsd*)
 		if [[ "`\$(CC) -dM -E - </dev/null | grep __ELF__`" != "" ]]
 		then
