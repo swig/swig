@@ -45,7 +45,9 @@ jobs:
   # This action build using MSYS2 environment
   # We use two compilers C/C++:
   # - Microsoft Visual Studio compiler.
+  #   with default C++ standard c++20 and C standard c17
   # - MinGW-w64 GCC compiler with MSVCRT or UCRT C standard library.
+  #   with default C++ standard c++11 and C standard c11
   # We use 2 package managers
   # - NuGet packages are compatible with Visual Studio compiler.
   # - MSYS2 pacman with MSYS2 packages and MING-w64 packages.
@@ -129,7 +131,11 @@ jobs:
           CPPSTD: c++11
           MSYS2_ENV: ucrt64
         - SWIGLANG: ruby
-          VER: '3.3'
+          VER: '3.4'
+          COMPILER: gcc
+          MSYS2_ENV: ucrt64
+        - SWIGLANG: ruby
+          VER: '4.0'
           COMPILER: gcc
           MSYS2_ENV: ucrt64
         - SWIGLANG: go
@@ -197,7 +203,7 @@ jobs:
     # Set MSVC compilers path and environment variables.
     - name: Setup MSVC
       if: ${{ env.COMPILER == '' || env.SWIGLANG == 'csharp' }}
-      uses: TheMrMilchmann/setup-msvc-dev@v3
+      uses: TheMrMilchmann/setup-msvc-dev@v4
       with:
         arch: x64
 
@@ -207,14 +213,17 @@ jobs:
           set -x
           uname --all
 
+          # Convert to Unix
+          runner_toolcache="$(cygpath -u "$RUNNER_TOOL_CACHE")"
+
           if [[ "$COMPILER" = "gcc" ]]; then
             # MinGW-w64 variant to use
             # See: https://www.msys2.org/docs/environments
             MSYS2_UENV="${MSYS2_ENV^^}" # Change to uppercase
             if [[ "$MSYSTEM" != "$MSYS2_UENV" ]]; then
-                MSYSTEM="$MSYS2_UENV"
-                # Change MSYS2 active environment
-                echo "MSYSTEM=$MSYSTEM" >> $GITHUB_ENV
+              MSYSTEM="$MSYS2_UENV"
+              # Change MSYS2 active environment
+              echo "MSYSTEM=$MSYSTEM" >> $GITHUB_ENV
             fi
             case "$MSYSTEM" in
             MINGW64) # Use MinGW-w64 with old Microsoft Visual C++ Runtime
@@ -244,7 +253,7 @@ jobs:
               ;;
             ruby)
               if [[ -n "$VER" ]]; then
-                ruby_dir="$(ls -d /c/hostedtoolcache/windows/Ruby/$VER.*)/x64/bin"
+                ruby_dir="$(ls -d $runner_toolcache/Ruby/$VER.*)/x64/bin"
                 RUBYDIR="$(cygpath -w $ruby_dir)"
                 echo "$RUBYDIR" >> $GITHUB_PATH
               else
@@ -296,7 +305,7 @@ jobs:
             if [[ -n "$VER" ]]; then
               case "$SWIGLANG" in
               python)
-                python_dir="$(ls -d /c/hostedtoolcache/windows/Python/$VER.*)/x64"
+                python_dir="$(ls -d $runner_toolcache/Python/$VER.*)/x64"
                 PYTHONDIR="$(cygpath -w $python_dir)"
                 echo "$PYTHONDIR\\Script" >> $GITHUB_PATH
                 echo "$PYTHONDIR" >> $GITHUB_PATH
@@ -329,8 +338,11 @@ jobs:
           set -x
           if [[ -z "$COMPILER" ]]; then
             which cl.exe
-            cl.exe /? 2>&1 | head -n1
+            cl.exe -? 2>&1 | head -n1
           else
+            # TODO: check if mingw-w64 'isfinite()' is updated
+            # We wait for '__fpclassify(x),' => '__fpclassify((double)(x)),
+            grep -A3 '#define fpclassify(x)' '/c/mingw64/x86_64-w64-mingw32/include/math.h' || true
             which gcc
             gcc --version | head -n1
             which g++
@@ -355,23 +367,45 @@ jobs:
           esac
           echo "WITHLANG=$WITHLANG" >> $GITHUB_ENV
 
+          if [[ "$COMPILER" == "gcc" ]]; then
+            g++ -x c++ -dM -E - < /dev/null | grep __cplusplus
+            gcc -dM -E - < /dev/null | grep __STDC_VERSION__
+          else
+            echo '' > dummy.cpp
+            (cl.exe -E -Zc:__cplusplus -Zc:preprocessor -PD dummy.cpp 2> /dev/null) | grep __cplusplus
+            rm -f dummy.cpp
+          fi
+
+          if [[ -z "$CPPSTD" ]]; then
+            # Tools/testflags.py C++ default is irrelevant for MinGW and MSVC
+            if [[ "$COMPILER" == "gcc" ]] && [[ -z "$CPPSTD" ]]; then
+              CPPSTD=c++11
+            else
+              CPPSTD=c++20
+            fi
+            echo "CPPSTD=$CPPSTD" >> $GITHUB_ENV
+          fi
           if [[ -z "$CSTD" ]]; then
             case "$CPPSTD" in
               c++11) CSTD=c11 ;;
               c++14) CSTD=c11 ;;
               c++17) CSTD=c17 ;;
               c++20) CSTD=c17 ;;
+              *)
+                # Tools/testflags.py C default is irrelevant for MinGW and MSVC
+                if [[ "$COMPILER" == "gcc" ]]; then
+                  CSTD=c11
+                else
+                  CSTD=c17
+                fi
+                ;;
             esac
-            if [[ -n "$CSTD" ]]; then
-              echo "CSTD=$CSTD" >> $GITHUB_ENV
-            fi
+            echo "CSTD=$CSTD" >> $GITHUB_ENV
           fi
-          if [[ -n "$CSTD" ]]; then
-            echo "CFLAGS=$CFLAGS -std=$CSTD" >> $GITHUB_ENV
-          fi
-          if [[ -n "$CPPSTD" ]]; then
-            echo "CXXFLAGS=$CXXFLAGS -std=$CPPSTD" >> $GITHUB_ENV
-          fi
+          echo "CFLAGS=$CFLAGS -std=$CSTD" >> $GITHUB_ENV
+          echo "Use C standard $CSTD"
+          echo "CXXFLAGS=$CXXFLAGS -std=$CPPSTD" >> $GITHUB_ENV
+          echo "Use C++ standard $CPPSTD"
 
           make --version | head -n2
 
@@ -392,6 +426,12 @@ jobs:
           if [[ -z "$COMPILER" ]]; then
             # MSVC do not support C cache
             CONFIGOPTS+=(--disable-ccache)
+          fi
+          if test -n "$CFLAGS"; then
+            CONFIGOPTS+=(CFLAGS="$CFLAGS")
+          fi
+          if test -n "$CXXFLAGS"; then
+            CONFIGOPTS+=(CXXFLAGS="$CXXFLAGS")
           fi
           echo "${CONFIGOPTS[@]}"
           ./configure "${CONFIGOPTS[@]}"
@@ -433,8 +473,25 @@ jobs:
           ./swig.exe -version
           make check-$SWIGLANG-version
           make check-$SWIGLANG-enabled
-          make -k check-$SWIGLANG-examples $SWIGJOBS $CHECK_OPTIONS
-          make -k check-$SWIGLANG-test-suite $SWIGJOBS $CHECK_OPTIONS
+          if [[ "$COMPILER" = "gcc" ]]; then
+            # Stricter compile flags for examples.
+            # Various headers and SWIG generated code prevents full use of -pedantic.
+            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=gcc)"
+            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=gcc)"
+            # TODO: mingw-w64 'isfinite()' fixed at 2026-Mar-01 in mingw-w64/mingw-w64@968fed5
+            # Removed once MSYS2 updated and deployed in GitHub Windows images.
+            if [[ "$SWIGLANG" != 'go' ]] && [[ "$MSYSTEM" != 'MINGW64' ]]; then
+              cflags+=" -D'SWIG_isfinite(v)=(!isnan((v)))'"
+            fi
+          else
+            # cccl do not translate '-Wno' to MSVC 'cl.exe'
+            cflags="-Werror -std=$CSTD"
+            cxxflags="-Werror -std=$CPPSTD"
+          fi
+          # Include for the boost headers
+          cxxflags+=" -I$BOOST_PATH/include"
+          make -k check-$SWIGLANG-examples $SWIGJOBS $CHECK_OPTIONS CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+          make -k check-$SWIGLANG-test-suite $SWIGJOBS $CHECK_OPTIONS CFLAGS="$cflags" CXXFLAGS="$cxxflags"
 
     - name: Install
       if: ${{ env.INSTALL == 'true' }}
