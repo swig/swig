@@ -100,6 +100,12 @@ jobs:
         - SWIGLANG: ruby
           VER: '3.3'
           COMPILER: gcc
+        - SWIGLANG: ruby
+          VER: '3.4'
+          COMPILER: gcc
+        - SWIGLANG: ruby
+          VER: '4.0'
+          COMPILER: gcc
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -265,7 +271,7 @@ jobs:
           set -x
           if [[ -z "$COMPILER" ]]; then
             which cl.exe
-            cl.exe /? 2>&1 | head -n1
+            cl.exe -? 2>&1 | head -n1
           else
             which gcc
             gcc --version | head -n1
@@ -291,12 +297,28 @@ jobs:
           esac
           echo "WITHLANG=$WITHLANG" >> $GITHUB_ENV
 
+          if [[ "$COMPILER" == "gcc" ]]; then
+              g++ -x c++ -dM -E - < /dev/null | grep __cplusplus
+              gcc -dM -E - < /dev/null | grep __STDC_VERSION__
+          fi
+
+          if [[ "$COMPILER" == "gcc" ]] && [[ -z "$CPPSTD" ]]; then
+            # TODO: Tools/testflags.py C++ default is too old
+            CPPSTD=c++11
+            echo "CPPSTD=$CPPSTD" >> $GITHUB_ENV
+          fi
           if [[ -z "$CSTD" ]]; then
             case "$CPPSTD" in
               c++11) CSTD=c11 ;;
               c++14) CSTD=c11 ;;
               c++17) CSTD=c17 ;;
               c++20) CSTD=c17 ;;
+              *)
+                if [[ "$COMPILER" == "gcc" ]]; then
+                  # TODO: Tools/testflags.py C default is too old
+                  CSTD=c11
+                fi
+                ;;
             esac
             if [[ -n "$CSTD" ]]; then
               echo "CSTD=$CSTD" >> $GITHUB_ENV
@@ -304,9 +326,14 @@ jobs:
           fi
           if [[ -n "$CSTD" ]]; then
             echo "CFLAGS=$CFLAGS -std=$CSTD" >> $GITHUB_ENV
+            echo "Use C standard $CSTD"
           fi
           if [[ -n "$CPPSTD" ]]; then
             echo "CXXFLAGS=$CXXFLAGS -std=$CPPSTD" >> $GITHUB_ENV
+            echo "Use C++ standard $CPPSTD"
+          else
+            echo '' > dummy.cpp
+            (cl.exe -E -Zc:__cplusplus -Zc:preprocessor -PD dummy.cpp 2> /dev/null) | grep __cplusplus
           fi
 
           make --version | head -n2
@@ -328,6 +355,12 @@ jobs:
           if [[ -z "$COMPILER" ]]; then
             # MSVC do not support C cache
             CONFIGOPTS+=(--disable-ccache)
+          fi
+          if test -n "$CFLAGS"; then
+            CONFIGOPTS+=(CFLAGS="$CFLAGS")
+          fi
+          if test -n "$CXXFLAGS"; then
+            CONFIGOPTS+=(CXXFLAGS="$CXXFLAGS")
           fi
           echo "${CONFIGOPTS[@]}"
           ./configure "${CONFIGOPTS[@]}"
@@ -369,8 +402,26 @@ jobs:
           ./swig.exe -version
           make check-$SWIGLANG-version
           make check-$SWIGLANG-enabled
-          make -k check-$SWIGLANG-examples $SWIGJOBS $CHECK_OPTIONS
-          make -k check-$SWIGLANG-test-suite $SWIGJOBS $CHECK_OPTIONS
+          if [[ "$COMPILER" = "gcc" ]]; then
+            # Stricter compile flags for examples.
+            # Various headers and SWIG generated code prevents full use of -pedantic.
+            cflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cflags --std=$CSTD --compiler=gcc)"
+            cxxflags="$($GITHUB_WORKSPACE/Tools/testflags.py --language $SWIGLANG --cxxflags --std=$CPPSTD --compiler=gcc)"
+            # TODO: mingw-w64 'isfinite()' fixed at 2026-Mar-01 in mingw-w64/mingw-w64@968fed5
+            # Removed once MSYS2 updated and deployed in GitHub Windows images.
+            cflags+=" -D'SWIG_isfinite(v)=(!isnan((v)))'"
+            # Include for the boost headers
+            cxxflags+=" -I$BOOST_PATH/include"
+            make -k check-$SWIGLANG-examples $SWIGJOBS $CHECK_OPTIONS CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+            make -k check-$SWIGLANG-test-suite $SWIGJOBS $CHECK_OPTIONS CFLAGS="$cflags" CXXFLAGS="$cxxflags"
+          else
+            # cccl do not translate '-Wno' to MSVC 'cl.exe'
+            cflags="-Werror"
+            # TODO: clean MSVC C++ warnings
+            #cxxflags="-Werror -I$BOOST_PATH/include"
+            make -k check-$SWIGLANG-examples $SWIGJOBS $CHECK_OPTIONS CFLAGS="$cflags" # CXXFLAGS="$cxxflags"
+            make -k check-$SWIGLANG-test-suite $SWIGJOBS $CHECK_OPTIONS CFLAGS="$cflags" # CXXFLAGS="$cxxflags"
+          fi
 
     - name: Install
       if: ${{ env.INSTALL == 'true' }}
