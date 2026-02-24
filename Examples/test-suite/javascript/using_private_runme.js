@@ -1,6 +1,6 @@
 var using_private = require("using_private");
 
-f = new using_private.FooBar();
+var f = new using_private.FooBar();
 f.x = 3;
 
 if (f.blah(4) != 4) {

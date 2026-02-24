@@ -1,8 +1,8 @@
 var nested_workaround = require("nested_workaround");
 
-inner = new nested_workaround.Inner(5);
-outer = new nested_workaround.Outer();
-newInner = outer.doubleInnerValue(inner);
+var inner = new nested_workaround.Inner(5);
+var outer = new nested_workaround.Outer();
+var newInner = outer.doubleInnerValue(inner);
 if (newInner.getValue() != 10) {
     throw new Error;
 }

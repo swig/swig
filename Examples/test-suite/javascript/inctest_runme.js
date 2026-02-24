@@ -1,5 +1,6 @@
 var inctest = require("inctest");
 
+var a,b;
 try {
     a = new inctest.A();
 } catch (e) {

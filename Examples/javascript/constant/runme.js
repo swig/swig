@@ -12,3 +12,9 @@ console.log("fconst  = " + example.fconst  + " (should be 3.14)");
 
 console.log("EXTERN = " + example.EXTERN   + " (should be undefined)");
 console.log("FOO    = " + example.FOO      + " (should be undefined)");
+
+try {
+  example.ICONST = -12;
+} catch (e) {
+  console.log(e);
+}

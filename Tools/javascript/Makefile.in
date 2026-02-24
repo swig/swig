@@ -7,11 +7,17 @@
 #   V8 comes with one 'd8' which however does not provide a means
 #		to load extensions. Therefore, by default we use nodejs as
 #		environment.
-#   For testing native v8 and jsc extensions we provide our own
+#   QuickJS interpreter 'qjs' does not provide a suitable "require" 
+#		function.
+#   For testing native v8, jsc extensions and quickjs we provide our own
 #		interpreter (see 'Tools/javascript').
+# Note: for QuickJS, the interpreter implementation is in C, not
+#		wrapped in a C++ shell as v8 or jsc. The common shell
+#		(javascript.cxx) just 'exec()' the provided executable (quickjs).
 #
 # ----------------------------------------------------------------
 all: javascript
+
 
 CC         = @CC@
 # HACK: under Mac OS X a g++ compiled interpreter is seg-faulting when loading module libraries
@@ -28,6 +34,7 @@ JSINCLUDES = @JSCOREINC@ @JSV8INC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
 JSV8ENABLED = @JSV8ENABLED@
 JSCENABLED = @JSCENABLED@
+JSQUICKJSENABLED = @JSQUICKJSENABLED@
 
 srcdir = @srcdir@
 
@@ -47,7 +54,19 @@ JS_INTERPRETER_SRC_JSC = jsc_shell.cxx
 JS_INTERPRETER_ENABLE_JSC = -DENABLE_JSC
 endif
 
-JS_INTERPRETER_DEFINES = $(JS_INTERPRETER_ENABLE_JSC) $(JS_INTERPRETER_ENABLE_V8)
+ifeq (1, $(JSQUICKJSENABLED))
+QUICKJS = quickjs
+QJSINC = @JSQUICKJSINC@
+QJSSRC = @JSQUICKJSSRC@
+QJSLIB = @JSQUICKJSLIB@
+# Add -DMYQJS_DEBUG=1  if needed
+QJSVERSION = -DCONFIG_VERSION="\"@JSQUICKJSVERSION@\""
+JS_INTERPRETER_ENABLE_QUICKJS = -DQJSPATH="\"$(ROOT_DIR)/Tools/javascript/quickjs\""
+else 
+QUICKJS =
+endif
+
+JS_INTERPRETER_DEFINES = $(JS_INTERPRETER_ENABLE_JSC) $(JS_INTERPRETER_ENABLE_V8) $(JS_INTERPRETER_ENABLE_QUICKJS)
 JS_INTERPRETER_SRC = javascript.cxx js_shell.cxx $(JS_INTERPRETER_SRC_JSC) $(JS_INTERPRETER_SRC_V8)
 
 JS_INTERPRETER_OBJS = $(JS_INTERPRETER_SRC:.cxx=.o)
@@ -55,12 +74,17 @@ JS_INTERPRETER_OBJS = $(JS_INTERPRETER_SRC:.cxx=.o)
 %.o: $(srcdir)/%.cxx
 	$(JSCXX) $(JS_INTERPRETER_DEFINES) $(CPPFLAGS) $(CXXFLAGS) $(JSINCLUDES) -o $@ -c $<
 
-javascript: $(JS_INTERPRETER_OBJS)
-	$(JSCXX) $^ $(CXXFLAGS) $(LDFLAGS) -o javascript $(JSDYNAMICLINKING) $(LINKFLAGS)
+javascript: $(JS_INTERPRETER_OBJS) $(QUICKJS)
+	$(JSCXX)  $(CXXFLAGS) $(JS_INTERPRETER_OBJS) $(LDFLAGS) -o javascript $(JSDYNAMICLINKING) $(LINKFLAGS)
+
+ifeq (1, $(JSQUICKJSENABLED))
+$(QUICKJS): $(srcdir)/swigqjs.c
+	$(CC) -rdynamic -o $@ -g -Wall $(QJSINC) $(QJSVERSION) $< $(QJSSRC) $(QJSLIB)
+endif
 
 clean:
 	rm -f *.o
-	rm -f javascript
+	rm -f javascript quickjs
 
 distclean: clean
 	rm -f Makefile

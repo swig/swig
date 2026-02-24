@@ -1,7 +1,7 @@
 var smart_pointer_rename = require("smart_pointer_rename");
 
-f = new smart_pointer_rename.Foo();
-b = new smart_pointer_rename.Bar(f);
+var f = new smart_pointer_rename.Foo();
+var b = new smart_pointer_rename.Bar(f);
 
 if (b.test() != 3) {
     throw new Error;

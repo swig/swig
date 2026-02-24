@@ -7,7 +7,7 @@ if (default_args_c.foo43() != 43) {
   throw new Error("failed");
 }
 
-f = new default_args_c.FooStruct();
+var f = new default_args_c.FooStruct();
 f.no_arg();
 f.one_req(null);
 f.one_opt();

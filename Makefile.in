@@ -198,7 +198,7 @@ tcl_examples       :=$(shell sed '/^\#/d' $(srcdir)/Examples/tcl/check.list)
 # update this interpreter when it's already running, resulting in a "Text file
 # busy" error).  We can avoid this by ensuring we have built the custom
 # interpreter before running the tests.
-ifeq ($(ENGINE), $(filter $(ENGINE), jsc v8))
+ifeq ($(ENGINE), $(filter $(ENGINE), jsc v8 quickjs))
 ifeq ($(ACTION), check)
 check-javascript-prepare:
 	@$(skip-javascript) || $(MAKE) $(FLAGS) -C Tools/javascript javascript
@@ -450,7 +450,7 @@ install-main:
 
 lib-languages = typemaps tcl perl5 python guile java ruby php ocaml octave \
 	csharp lua r c go d javascript javascript/jsc \
-	javascript/v8 javascript/napi scilab xml
+	javascript/v8 javascript/napi javascript/quickjs scilab xml
 
 lib-modules = std
 

@@ -1377,6 +1377,75 @@ else
     esac
   fi
 
+  #----------------------------------------------------------------
+  # Look for QuickJS settings (JSQUICKJSPATH, JSQUICKJSINC, JSQUICKJSLIB, JSQUICKJSVERSION, JSQUICKJSENABLED)
+  #----------------------------------------------------------------
+
+  # check for include files
+  AC_MSG_CHECKING(for QuickJS Javascript source directory)
+  AC_ARG_WITH(jsquickjssrc, [  --with-jsquickjssrc=path     Set location of Javascript QuickJS sources directory], [JSQUICKJSPATH="$withval"], [JSQUICKJSPATH=])
+
+  JSQUICKJSINC=
+  JSQUICKJSLIB=
+  JSQUICKJSSRC=
+  JSQUICKJSVERSION=
+  JSQUICKJSENABLED=
+  JSQUICKJSNG=
+
+  if test -d "$JSQUICKJSPATH" ; then
+	# quickjs and quickjs-ng ; clear JSQUICKJSPATH (abort if quickjs.h not found)
+    if test -r "$JSQUICKJSPATH/quickjs.h" ; then
+      JSQUICKJSINC="-I$JSQUICKJSPATH -D_GNU_SOURCE -fwrapv -DJS_SHARED_LIBRARY"
+    else
+      JSQUICKJSPATH=""
+    fi
+    if test -x "$JSQUICKJSPATH/qjs" ; then
+      JSQUICKJSNG=`$JSQUICKJSPATH/qjs -h|grep QuickJS-ng` 
+    fi
+    # standard quickjs
+    if test -z "$JSQUICKJSNG" ; then
+	  if test -x "$JSQUICKJSPATH/qjs" ; then
+        JSQUICKJSVERSION=`$JSQUICKJSPATH/qjs -h|grep version|awk '{print $3}'|sed -e 's/-//g'` 
+      else
+        JSQUICKJSVERSION="UNKNOWN"
+     fi
+      if test -r "$JSQUICKJSPATH/libquickjs.a" ; then
+        JSQUICKJSLIB="-L$JSQUICKJSPATH -lquickjs -lm"
+      else
+        JSQUICKJSPATH=""  
+      fi
+      if test -r "$JSQUICKJSPATH/quickjs-libc.c" ; then
+        JSQUICKJSSRC="$JSQUICKJSPATH/quickjs-libc.c"      
+      else
+        JSQUICKJSPATH=""
+      fi    
+    else
+      # quickjs-ng
+      if test -x "$JSQUICKJSPATH/build/qjs" ; then
+        JSQUICKJSVERSION=`$JSQUICKJSPATH/build/qjs -h|grep version|awk '{print $3}'|sed -e 's/-//g'` 
+      else
+        JSQUICKJSVERSION="UNKNOWN"
+      fi    
+      # quickjs-ng (clear JSQUICKJSPATH, abort if library not found)
+      if test -r "$JSQUICKJSPATH/build/libqjs.a" ; then
+        JSQUICKJSLIB="-L$JSQUICKJSPATH/build -lqjs -lm"
+      else
+        JSQUICKJSPATH=""
+      fi
+      if test -r "$JSQUICKJSPATH/quickjs-libc.c" ; then
+        JSQUICKJSSRC="$JSQUICKJSPATH/quickjs-libc.c"      
+      else
+        JSQUICKJSPATH=""
+      fi    
+    fi
+  fi
+  
+  if test "$JSQUICKJSPATH" = "" ; then
+    AC_MSG_RESULT(not found)
+  else
+  JSQUICKJSENABLED=1
+    AC_MSG_RESULT($JSQUICKJSPATH)
+  fi
 fi
 
 AC_SUBST(JSINTERPRETERCXX)
@@ -1388,8 +1457,15 @@ AC_SUBST(JSCOREVERSION)
 AC_SUBST(JSV8INC)
 AC_SUBST(JSV8DYNAMICLINKING)
 
+AC_SUBST(JSQUICKJSPATH)
+AC_SUBST(JSQUICKJSINC)
+AC_SUBST(JSQUICKJSLIB)
+AC_SUBST(JSQUICKJSSRC)
+AC_SUBST(JSQUICKJSVERSION)
+
 AC_SUBST(JSCENABLED)
 AC_SUBST(JSV8ENABLED)
+AC_SUBST(JSQUICKJSENABLED)
 
 AC_SUBST(NODEJS)
 AC_SUBST(NODEGYP)
@@ -2664,7 +2740,7 @@ AC_SUBST(SKIP_JAVA)
 
 
 SKIP_JAVASCRIPT=
-if test -z "$JAVASCRIPT" || { test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" && test -z "$JSNAPIENABLED" ; } ; then
+if test -z "$JAVASCRIPT" || { test -z "$NODEJS" && test -z "$JSCENABLED" && test -z "$JSV8ENABLED" && test -z "$JSNAPIENABLED" && test -z "$JSQUICKJSENABLED" ; } ; then
     SKIP_JAVASCRIPT="1"
 fi
 AC_SUBST(SKIP_JAVASCRIPT)

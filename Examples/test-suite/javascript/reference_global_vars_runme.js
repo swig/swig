@@ -67,7 +67,7 @@ if (reference_global_vars.value_long_long(reference_global_vars.var_long_long) !
 }
 
 //ull = abs(0xFFFFFFF2FFFFFFF0)
-ull = 55834574864;
+var ull = 55834574864;
 reference_global_vars.var_unsigned_long_long = reference_global_vars.createref_unsigned_long_long(ull);
 if (reference_global_vars.value_unsigned_long_long(reference_global_vars.var_unsigned_long_long) != ull) {
     throw new Error;
