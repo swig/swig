@@ -73,8 +73,14 @@ jobs:
           VER: '1.20'
           CSTD: gnu11
         - SWIGLANG: go
+          VER: '1.22'
+        - SWIGLANG: go
+          VER: '1.23'
+        - SWIGLANG: go
           VER: '1.24'
           CSTD: gnu99 # Go 1.24 doesn't build with -Wdeclaration-after-statement
+        - SWIGLANG: go
+          VER: '1.25'
         - SWIGLANG: guile
         - SWIGLANG: guile
           VER: '3.0'
@@ -106,6 +112,7 @@ jobs:
         - SWIGLANG: php
           VER: '8.3'
           CPPSTD: c++11 # C++98 not supported by PHP.
+          os: ubuntu-24.04
         - SWIGLANG: php
           VER: '8.4'
           CPPSTD: c++11 # C++98 not supported by PHP.
@@ -256,7 +263,13 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
-          VER: '3.3.9' # 3.3.10 has an error: -Werror=missing-field-initializers, see https://bugs.ruby-lang.org/issues/21659
+          VER: '3.3'
+        - SWIGLANG: ruby
+          CPPSTD: c++11
+          VER: '3.4'
+        - SWIGLANG: ruby
+          CPPSTD: c++11
+          VER: '4.0'
         - SWIGLANG: ruby
           CPPSTD: c++11
         - SWIGLANG: scilab
@@ -389,6 +402,12 @@ jobs:
           GCC: 13
           os: ubuntu-22.04
         - SWIGLANG: javascript
+          ENGINE: node
+          VER: '22'
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-22.04
+        - SWIGLANG: javascript
           ENGINE: v8
           CSTD: c++14
           CPPSTD: c++14
@@ -410,6 +429,7 @@ jobs:
 
     env:
       SWIGLANG: ${{ matrix.SWIGLANG }}
+      compiler: ${{ matrix.compiler }}
       PY2: ${{ matrix.PY2 }}
       VER: ${{ matrix.VER }}
       ENGINE: ${{ matrix.ENGINE }}
@@ -450,39 +470,12 @@ jobs:
     - name: Install Dependencies
       run: |
           set -x
-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
-          echo PATH="$PATH" >> $GITHUB_ENV
-
           source $GITHUB_WORKSPACE/Tools/GHA-linux-install.sh
-          echo WITHLANG="$WITHLANG" >> $GITHUB_ENV
 
           cpu_count=$(nproc)
           if test $cpu_count -gt 1; then
             echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
           fi
-
-          if test '${{ matrix.compiler }}' = 'clang'; then
-            CC="clang"
-            CXX="clang++"
-
-            CFLAGS="$CFLAGS -fPIE"
-            CXXFLAGS="$CXXFLAGS -fPIE"
-          elif test -n "$GCC"; then
-            CC="gcc-$GCC"
-            CXX="g++-$GCC"
-          else
-            CC="gcc"
-            CXX="g++"
-          fi
-
-          export CC CXX
-
-          echo CC="$CC" >> $GITHUB_ENV
-          echo CXX="$CXX" >> $GITHUB_ENV
-
-          ls -la $(which $CC) $(which $CXX)
-          $CC --version
-          $CXX --version
 
     - name: Configure
       run: |
@@ -498,9 +491,19 @@ jobs:
             esac
             if test -n "$CSTD"; then echo "CSTD=$CSTD" >> $GITHUB_ENV; fi
           fi
-          if test -z "$CPPSTD"; then CONFIGOPTS+=("--disable-cpp11-testing"); fi
-          if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
-          if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
+          if test -n "$CPPSTD"; then
+            CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS")
+            echo "Use C++ standard $CPPSTD"
+          else
+            CONFIGOPTS+=("--disable-cpp11-testing")
+            $CXX -x c++ -dM -E - < /dev/null | grep __cplusplus
+          fi
+          if test -n "$CSTD"; then
+            CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS")
+            echo "Use C standard $CSTD"
+          else
+            $CC -dM -E - < /dev/null | grep __STDC_VERSION__
+          fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
           if test "$PY2" = "2"; then CONFIGOPTS+=(--with-python=python2 --without-python3); fi
           echo "${CONFIGOPTS[@]}"

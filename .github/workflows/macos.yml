@@ -214,7 +214,7 @@ jobs:
           if test -n "$CSTD"; then
             echo "CSTD=$CSTD" >> $GITHUB_ENV
             CFLAGS+=" -std=$CSTD"
-            echo "Use C++ standard $CSTD"
+            echo "Use C standard $CSTD"
           fi
           if test -n "$CFLAGS"; then
             echo "CFLAGS=$CFLAGS" >> $GITHUB_ENV
