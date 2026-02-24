@@ -53,9 +53,16 @@ def get_cxxflags(language, std, compiler):
     else:
         cxx_common += " -Wno-deprecated-declarations"
 
-    # not applicable for these languages as headers emit the warning
-    if language not in ["octave", "javascript"]:
-        cxx_common += " -Wextra-semi"
+    match language:
+        # not applicable for these languages as headers emit the warning
+        case "octave" | "javascript":
+            pass
+        case "ruby":
+            # New Ruby UCRT windows headers uses extra semicolons
+            if platform.system() != 'Windows':
+                cxx_common += " -Wextra-semi"
+        case _:
+            cxx_common += " -Wextra-semi"
 
     cxxflags = {
              "c":"-Werror " + cxx_common,
