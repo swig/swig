@@ -46,7 +46,9 @@ class string_view;
    $1_str = $input;
    $result = std::string_view($1_str); %}
 
-%typemap(directorin) string_view %{ $input = std::string($1).c_str(); %}
+%typemap(directorin) string_view  (std::string tmp) %{ 
+  tmp = std::string($1);
+  $input = tmp.c_str(); %}
 
 %typemap(csin) string_view "$csinput"
 %typemap(csout, excode=SWIGEXCODE) string_view {
