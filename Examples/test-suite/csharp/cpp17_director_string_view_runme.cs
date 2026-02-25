@@ -30,6 +30,8 @@ public class runme
 
     s = b.call_get(0);
     if (s != "cpp17_director_string_view_B.get: hello") throw new Exception("get(0) failed");
+
+    if (!b.call_is_hello()) throw new Exception("call_is_hello(0) failed");
   }
 }
 
@@ -42,6 +44,10 @@ class cpp17_director_string_view_B : A {
 
     public override String get(int n) {
       return "cpp17_director_string_view_B.get: " + base.get(n);
+    }
+
+    public override bool is_hello(String first) {
+      return first == "hello";
     }
 }
 
