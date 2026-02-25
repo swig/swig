@@ -40,12 +40,17 @@ struct A
   virtual int string_length(std::string_view s) const
   { return (int)s.size(); }
 
+  virtual bool is_hello(std::string_view s) const
+  {
+    return true;
+  }
 
   virtual void process_text(const char *text) const
   {
   }
 
   void call_process_func() const { process_text("hello"); }
+  bool call_is_hello() const { return is_hello("hello"); }
 
 private:
   std::vector<std::string> m_strings;

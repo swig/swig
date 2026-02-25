@@ -95,7 +95,9 @@ class string_view;
    $1_strview = $1_str;
    $result = &$1_strview; %}
 
-%typemap(directorin) const string_view & %{ $input = std::string($1).c_str(); %}
+%typemap(directorin) const string_view & (std::string tmp) %{ 
+  tmp = std::string($1);
+  $input = tmp.c_str(); %}
 
 %typemap(csvarin, excode=SWIGEXCODE2) const string_view & %{
     set {
