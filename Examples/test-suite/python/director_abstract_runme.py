@@ -51,7 +51,7 @@ if MyExample3.get_color(me3, 1, 2, 3) != 3:
 error = 1
 try:
     me1 = director_abstract.Example1()
-except:
+except Exception:
     error = 0
 if (error):
     raise RuntimeError
@@ -59,7 +59,7 @@ if (error):
 error = 1
 try:
     me2 = director_abstract.Example2()
-except:
+except Exception:
     error = 0
 if (error):
     raise RuntimeError
@@ -67,7 +67,7 @@ if (error):
 error = 1
 try:
     me3 = director_abstract.Example3_i()
-except:
+except Exception:
     error = 0
 if (error):
     raise RuntimeError
@@ -75,5 +75,5 @@ if (error):
 
 try:
     f = director_abstract.A.f
-except:
+except Exception:
     raise RuntimeError

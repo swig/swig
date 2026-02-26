@@ -52,7 +52,7 @@ def run(module_name):
     try:
         f = default_args.Foo(1)
         error = 1
-    except:
+    except Exception:
         error = 0
     if error:
         raise RuntimeError("Foo::Foo ignore is not working")
@@ -60,7 +60,7 @@ def run(module_name):
     try:
         f = default_args.Foo(1, 2)
         error = 1
-    except:
+    except Exception:
         error = 0
     if error:
         raise RuntimeError("Foo::Foo ignore is not working")
@@ -68,7 +68,7 @@ def run(module_name):
     try:
         f = default_args.Foo(1, 2, 3)
         error = 1
-    except:
+    except Exception:
         error = 0
     if error:
         raise RuntimeError("Foo::Foo ignore is not working")
@@ -76,7 +76,7 @@ def run(module_name):
     try:
         m = f.meth(1)
         error = 1
-    except:
+    except Exception:
         error = 0
     if error:
         raise RuntimeError("Foo::meth ignore is not working")
@@ -84,7 +84,7 @@ def run(module_name):
     try:
         m = f.meth(1, 2)
         error = 1
-    except:
+    except Exception:
         error = 0
     if error:
         raise RuntimeError("Foo::meth ignore is not working")
@@ -92,7 +92,7 @@ def run(module_name):
     try:
         m = f.meth(1, 2, 3)
         error = 1
-    except:
+    except Exception:
         error = 0
     if error:
         raise RuntimeError("Foo::meth ignore is not working")

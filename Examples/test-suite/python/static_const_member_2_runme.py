@@ -8,7 +8,7 @@ try:
     a = Test_int.backward_field
     a = Test_int.LeftIndex
     a = Test_int.cavity_flags
-except:
+except Exception:
     raise RuntimeError
 
 

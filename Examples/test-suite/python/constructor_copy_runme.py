@@ -12,7 +12,7 @@ f8 = Foo8()
 try:
     f81 = Foo8(f8)
     good = 0
-except:
+except Exception:
     good = 1
 
 if not good:
@@ -30,7 +30,7 @@ bd = Bard(5)
 try:
     bc = Bard(bd)
     good = 0
-except:
+except Exception:
     good = 1
 
 if not good:

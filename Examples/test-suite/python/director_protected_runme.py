@@ -34,7 +34,7 @@ try:
     if s != "Foo::pang();Bar::pong();Foo::pong();FooBar::ping();":
         raise RuntimeError
     pass
-except:
+except Exception:
     raise RuntimeError("bad FooBar::used")
 
 try:
@@ -42,7 +42,7 @@ try:
     if s != "FooBar2::pang();Bar::pong();Foo::pong();FooBar2::ping();":
         raise RuntimeError
     pass
-except:
+except Exception:
     raise RuntimeError("bad FooBar2::used")
 
 try:
@@ -50,7 +50,7 @@ try:
     if s != "Bar::pong();Foo::pong();Bar::ping();":
         raise RuntimeError
     pass
-except:
+except Exception:
     raise RuntimeError("bad Bar::pong")
 
 try:
@@ -58,7 +58,7 @@ try:
     if s != "Bar::pong();Foo::pong();Bar::ping();":
         raise RuntimeError
     pass
-except:
+except Exception:
     raise RuntimeError(" bad Foo::pong")
 
 try:
@@ -66,14 +66,14 @@ try:
     if s != "Bar::pong();Foo::pong();FooBar::ping();":
         raise RuntimeError
     pass
-except:
+except Exception:
     raise RuntimeError(" bad FooBar::pong")
 
 protected = 1
 try:
     b.ping()
     protected = 0
-except:
+except Exception:
     pass
 if not protected:
     raise RuntimeError("Foo::ping is protected")
@@ -82,7 +82,7 @@ protected = 1
 try:
     f.ping()
     protected = 0
-except:
+except Exception:
     pass
 if not protected:
     raise RuntimeError("Foo::ping is protected")
@@ -92,7 +92,7 @@ protected = 1
 try:
     f.pang()
     protected = 0
-except:
+except Exception:
     pass
 if not protected:
     raise RuntimeError("FooBar::pang is protected")
@@ -102,7 +102,7 @@ protected = 1
 try:
     b.cheer()
     protected = 0
-except:
+except Exception:
     pass
 if not protected:
     raise RuntimeError("Bar::cheer is protected")
@@ -111,7 +111,7 @@ protected = 1
 try:
     f.cheer()
     protected = 0
-except:
+except Exception:
     pass
 if not protected:
     raise RuntimeError("Foo::cheer is protected")

@@ -7,7 +7,7 @@ ok = 0
 try:
     p = calloc_int(-1)
     free_int(p)
-except:
+except Exception:
     ok = 1
 
 if ok != 1:

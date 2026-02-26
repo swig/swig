@@ -11,14 +11,14 @@ try:
     a.foo()
 except E1 as e:
     pass
-except:
+except Exception:
     raise RuntimeError("bad exception order")
 
 try:
     a.bar()
 except E2 as e:
     pass
-except:
+except Exception:
     raise RuntimeError("bad exception order")
 
 try:
@@ -32,12 +32,12 @@ try:
     a.barfoo(1)
 except E1 as e:
     pass
-except:
+except Exception:
     raise RuntimeError("bad exception order")
 
 try:
     a.barfoo(2)
 except E2 as e:
     pass
-except:
+except Exception:
     raise RuntimeError("bad exception order")

@@ -8,7 +8,7 @@ def check(nd):
     try:
         nd.notexist = 100
         passed = 0
-    except:
+    except Exception:
         passed = 1
 
     if not passed:

@@ -2,14 +2,14 @@ import inctest
 
 try:
     a = inctest.A()
-except:
+except Exception:
     raise RuntimeError("didn't find A, therefore, I didn't include 'testdir/subdir1/hello.i'")
 pass
 
 
 try:
     b = inctest.B()
-except:
+except Exception:
     raise RuntimeError("didn't find B, therefore, I didn't include 'testdir/subdir2/hello.i'")
 pass
 

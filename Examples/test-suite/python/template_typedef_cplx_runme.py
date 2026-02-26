@@ -7,7 +7,7 @@ from template_typedef_cplx import *
 try:
     d = make_Identity_double()
     a = d.this
-except:
+except Exception:
     raise RuntimeError("{} is not an instance".format(d))
 
 s = "%s" % d
@@ -17,7 +17,7 @@ if str.find(s, "ArithUnaryFunction") == -1:
 try:
     e = make_Multiplies_double_double_double_double(d, d)
     a = e.this
-except:
+except Exception:
     raise RuntimeError("{} is not an instance".format(e))
 
 s = "%s" % e
@@ -32,7 +32,7 @@ if str.find(s, "ArithUnaryFunction") == -1:
 try:
     c = make_Identity_complex()
     a = c.this
-except:
+except Exception:
     raise RuntimeError("{} is not an instance".format(c))
 
 s = "%s" % c
@@ -42,7 +42,7 @@ if str.find(s, "ArithUnaryFunction") == -1:
 try:
     f = make_Multiplies_complex_complex_complex_complex(c, c)
     a = f.this
-except:
+except Exception:
     raise RuntimeError("{} is not an instance".format(f))
 
 s = "%s" % f
@@ -56,7 +56,7 @@ if str.find(s, "ArithUnaryFunction") == -1:
 try:
     g = make_Multiplies_double_double_complex_complex(d, c)
     a = g.this
-except:
+except Exception:
     raise RuntimeError("{} is not an instance".format(g))
 
 s = "%s" % g
@@ -67,7 +67,7 @@ if str.find(s, "ArithUnaryFunction") == -1:
 try:
     h = make_Multiplies_complex_complex_double_double(c, d)
     a = h.this
-except:
+except Exception:
     raise RuntimeError("{} is not an instance".format(h))
 
 s = "%s" % h

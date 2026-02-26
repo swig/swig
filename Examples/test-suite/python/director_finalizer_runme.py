@@ -7,7 +7,7 @@ class MyFoo(Foo):
         self.orStatus(2)
         try:
             Foo.__del__(self)
-        except:
+        except Exception:
             pass
 
 

@@ -3,7 +3,7 @@ from namespace_class import *
 try:
     p = Private1()
     error = 1
-except:
+except Exception:
     error = 0
 
 if (error):
@@ -12,7 +12,7 @@ if (error):
 try:
     p = Private2()
     error = 1
-except:
+except Exception:
     error = 0
 
 if (error):

@@ -140,7 +140,7 @@ try:
     # check vector<int *> does not accept double * element
     vi = IntPtrVector((ip, dp))
     error = 1
-except:
+except Exception:
     pass
 
 if error:
@@ -161,7 +161,7 @@ try:
     # check vector<const unsigned short *> does not accept double * element
     vcs = ConstShortPtrVector((csp, dp))
     error = 1
-except:
+except Exception:
     pass
 
 if error:

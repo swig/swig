@@ -182,7 +182,7 @@ else:
         if True:
             raise RuntimeError("skip test")
         from numpy import nextafter
-    except:
+    except Exception:
         # else just disable this tests
         def nextafter(x, y):
             return None

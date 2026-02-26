@@ -7,25 +7,25 @@ c = make_Identity_reald()
 try:
     a = d.this
     a = c.this
-except:
+except Exception:
     raise RuntimeError
 
 try:
     e = make_Multiplies_float_float_float_float(d, d)
     a = e.this
-except:
+except Exception:
     raise RuntimeError("{} is not an instance".format(e))
 
 try:
     f = make_Multiplies_reald_reald_reald_reald(c, c)
     a = f.this
-except:
+except Exception:
     raise RuntimeError("{} is not an instance".format(f))
 
 try:
     g = make_Multiplies_float_float_reald_reald(d, c)
     a = g.this
-except:
+except Exception:
     raise RuntimeError("{} is not an instance".format(g))
 
 
