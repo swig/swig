@@ -174,6 +174,31 @@
         currentObject = null;
     }
   }
+
+  // A user-defined conversion operator from List<CSTYPE>
+  public static implicit operator $csclassname(global::System.Collections.Generic.List<$typemap(cstype, CTYPE)> convertInstance) {
+    var newInstance = new $csclassname();
+
+    if (newInstance.Count != convertInstance.Count) {
+      throw new global::System.ArgumentException("Sizes do not match");
+    }
+    for(int i = 0; i < convertInstance.Count; ++i) {
+      newInstance[i] = convertInstance[i];
+    }
+
+    return newInstance;
+  }
+
+  // A user-defined conversion operator to List<CSTYPE>
+  public static implicit operator global::System.Collections.Generic.List<$typemap(cstype, CTYPE)>($csclassname convertInstance) {
+    var newInstance = new global::System.Collections.Generic.List<$typemap(cstype, CTYPE)>();
+
+    foreach(var item in convertInstance) {
+      newInstance.Add(item);
+    }
+
+    return newInstance;
+  }
 %}
 
   public:
