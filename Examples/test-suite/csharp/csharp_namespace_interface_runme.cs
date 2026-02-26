@@ -1,13 +1,13 @@
 using System;
-using csharp_namespace_interface;
+using csharp_namespace_interfaceNamespace.A;
 
 public class runme
 {
   static void Main()
   {
-    A.Implementer impl = new A.Implementer();
+    Implementer impl = new Implementer();
 
-    Assert(impl, "Implemented A::B::Interface::Method");
+    Assert(impl.Method(), "Implemented A::B::Interface::Method");
   }
 
   private static void Assert(string s1, string s2)
