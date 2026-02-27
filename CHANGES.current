@@ -7,6 +7,15 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-02-27: erezgeva
+            Various improvements to Github Actions CI testing to increase coverage notably
+            with additional Windows and MacOS testing including via CMake.
+
+2026-02-27: phetdam
+            #3191 #3332 Buiding SWIG executable with CMake enhancements.
+            - Update PCRE2 find module to be compatible with upstream CMake config script.
+            - Update docs for users wishing to use CMake to build SWIG.
+
 2026-02-23: aryler
             #3304 Correct LDSHARED for OpenBSD.
 
