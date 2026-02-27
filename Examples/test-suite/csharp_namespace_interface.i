@@ -21,7 +21,7 @@ namespace A::B {
 namespace A {
   class Implementer : public A::B::Interface {
   public:
-    virtual std::string Method() override { return "Implemented A::B::Interface::Method"; }
+    virtual std::string Method() { return "Implemented A::B::Interface::Method"; }
     virtual ~Implementer() {};
   };
 }
