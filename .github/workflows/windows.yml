@@ -53,6 +53,7 @@ jobs:
       ${{ matrix.COMPILER || 'msvc' }}
       ${{ matrix.CPPSTD }}
       ${{ matrix.CSTD }}
+      ${{ matrix.MSYS2_ENV }}
       ${{ matrix.os }}
       ${{ matrix.continue-on-error && '(can fail)' }}
 
@@ -62,8 +63,13 @@ jobs:
         - SWIGLANG: csharp
           INSTALL: 'true'
         - SWIGLANG: csharp
+          os: windows-2025-vs2026
+        - SWIGLANG: csharp
           INSTALL: 'true'
           COMPILER: gcc
+        - SWIGLANG: csharp
+          COMPILER: gcc
+          MSYS2_ENV: ucrt64
         - SWIGLANG: java
           VER: 8
         - SWIGLANG: java
@@ -82,6 +88,9 @@ jobs:
         - SWIGLANG: java
           COMPILER: gcc
           VER: 25
+        - SWIGLANG: java
+          COMPILER: gcc
+          MSYS2_ENV: ucrt64
         - SWIGLANG: python
           VER: '3.10'
           SWIG_FEATURES: -builtin
@@ -91,15 +100,19 @@ jobs:
           VER: '3.14'
         - SWIGLANG: python
           COMPILER: gcc
+          MSYS2_ENV: ucrt64
         - SWIGLANG: ruby
           COMPILER: gcc
+          MSYS2_ENV: ucrt64
         - SWIGLANG: ruby
           VER: '3.2'
           COMPILER: gcc
           CPPSTD: c++11
+          MSYS2_ENV: ucrt64
         - SWIGLANG: ruby
           VER: '3.3'
           COMPILER: gcc
+          MSYS2_ENV: ucrt64
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
@@ -112,6 +125,7 @@ jobs:
       SWIGLANG: ${{ matrix.SWIGLANG }}
       VER: ${{ matrix.VER }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
+      MSYS2_ENV: ${{ matrix.MSYS2_ENV || 'mingw64' }}
       CSTD: ${{ matrix.CSTD }}
       CPPSTD: ${{ matrix.CPPSTD }}
       COMPILER: ${{ matrix.COMPILER }}
@@ -169,50 +183,59 @@ jobs:
           if [[ "$COMPILER" = "gcc" ]]; then
             # MinGW-w64 variant to use
             # See: https://www.msys2.org/docs/environments
-            MSYSTEM=MINGW64
-            # The matched MSYS2 packages prefix
-            mingw_variant=mingw-w64-x86_64
+            MSYS2_UENV="${MSYS2_ENV^^}" # Change to uppercase
+            if [[ "$MSYSTEM" != "$MSYS2_UENV" ]]; then
+                MSYSTEM="$MSYS2_UENV"
+                # Change MSYS2 active environment
+                echo "MSYSTEM=$MSYSTEM" >> $GITHUB_ENV
+            fi
+            case "$MSYSTEM" in
+            MINGW64) # Use MinGW-w64 with old Microsoft Visual C++ Runtime
+              # The matched MSYS2 packages prefix
+              mingw_variant=mingw-w64-x86_64-
+              ;;
+            UCRT64) # Use MinGW-w64 with new Microsoft Universal C Runtime
+              # The matched MSYS2 packages prefix
+              mingw_variant=mingw-w64-ucrt-x86_64-
+              ;;
+            esac
+            # The matched MSYS2 active environment path prefix
+            if [[ -z "$mingw_dir" ]]; then
+              mingw_dir="/${MSYSTEM,,}" # Change to lowecase
+            fi
+            # Note regarding 'mingw_dir':
+            #  The MSYSTEM=MSYS, which supports 'Cygwin', uses the '/usr' path prefix.
+            #  We do not use it at the moment.
 
             case "$SWIGLANG" in
             python)
-              # Use MinGW-w64 with Universal CRT
-              MSYSTEM=UCRT64
-              mingw_variant=mingw-w64-ucrt-x86_64
-              MORE_MSYS_PKGS+=" $mingw_variant-gcc $mingw_variant-python"
+              MORE_MSYS_PKGS+=" ${mingw_variant}python"
               ;;
             ruby)
-              # Use MinGW-w64 with Universal CRT
-              MSYSTEM=UCRT64
-              mingw_variant=mingw-w64-ucrt-x86_64
-              MORE_MSYS_PKGS+=" $mingw_variant-gcc"
               if [[ -n "$VER" ]]; then
-                ruby_dir=$(ls -d /c/hostedtoolcache/windows/Ruby/$VER.*)/x64/bin
-                RUBYDIR=$(cygpath -w $ruby_dir)
+                ruby_dir="$(ls -d /c/hostedtoolcache/windows/Ruby/$VER.*)/x64/bin"
+                RUBYDIR="$(cygpath -w $ruby_dir)"
                 echo "$RUBYDIR" >> $GITHUB_PATH
               else
-                MORE_MSYS_PKGS+=" $mingw_variant-ruby"
+                MORE_MSYS_PKGS+=" ${mingw_variant}ruby"
               fi
               ;;
             esac
 
             # MinGW-w64 packages to install with MSYS2
             for n in binutils make autotools pcre2 boost; do
-              MORE_MSYS_PKGS+=" $mingw_variant-$n"
+              MORE_MSYS_PKGS+=" ${mingw_variant}$n"
             done
-            # MSYS2 active environment path prefix
-            mingw_dir="${MSYSTEM,,}"
 
             # MinGW-w64 pcre2
-            echo "PCRE2_CFLAGS=-I/$mingw_dir/include -DPCRE2_STATIC" >> $GITHUB_ENV
-            echo "PCRE2_LIBS=-L/$mingw_dir/lib -lpcre2-8" >> $GITHUB_ENV
+            echo "PCRE2_CFLAGS=-I$mingw_dir/include -DPCRE2_STATIC" >> $GITHUB_ENV
+            echo "PCRE2_LIBS=-L$mingw_dir/lib -lpcre2-8" >> $GITHUB_ENV
 
             echo "MORE_MSYS_PKGS=base-devel $MORE_MSYS_PKGS" >> $GITHUB_ENV
-            echo "BOOST_PATH=/c/msys64/$mingw_dir" >> $GITHUB_ENV
+            echo "BOOST_PATH=/c/msys64$mingw_dir" >> $GITHUB_ENV
 
-            # Select MSYS2 active environment
-            echo "MSYSTEM=$MSYSTEM" >> $GITHUB_ENV
             # Set MSYS2 GCC compiler location
-            echo "/$mingw_dir/bin" >> $GITHUB_PATH
+            echo "$mingw_dir/bin" >> $GITHUB_PATH
           else
             # COMPILER: cccl wrapping MSVC
             curl --retry 15 -s -L https://github.com/swig/cccl/raw/cccl-1.4/cccl -o /usr/bin/cccl
@@ -232,8 +255,8 @@ jobs:
             if [[ -n "$VER" ]]; then
               case "$SWIGLANG" in
               python)
-                python_dir=$(ls -d /c/hostedtoolcache/windows/Python/$VER.*)/x64
-                PYTHONDIR=$(cygpath -w $python_dir)
+                python_dir="$(ls -d /c/hostedtoolcache/windows/Python/$VER.*)/x64"
+                PYTHONDIR="$(cygpath -w $python_dir)"
                 echo "$PYTHONDIR\\Script" >> $GITHUB_PATH
                 echo "$PYTHONDIR" >> $GITHUB_PATH
                 ;;
