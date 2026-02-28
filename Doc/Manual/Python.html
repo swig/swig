@@ -140,6 +140,7 @@
 <li><a href="#Python_annotations">Python function annotations and variable annotations</a>
 <ul>
 <li><a href="#Python_annotations_c">C/C++ annotation types</a>
+<li><a href="#Python_annotations_pytyping">PEP 484 annotations</a>
 </ul>
 <li><a href="#Python_nn75">Buffer interface</a>
 <li><a href="#Python_nn76">Abstract base classes</a>
@@ -7115,6 +7116,57 @@ class V(object):
 Prior versions required the (now removed) <tt>-py3</tt> option to generate function annotation support
 containing C/C++ types instead of supporting <tt>%feature("python:annotations", "c")</tt>.
 Variable annotations were also added in SWIG-4.1.0.
+</p>
+
+<H4><a name="Python_annotations_pytyping">33.12.1.2 PEP 484 annotation types</a></H4>
+
+
+<p>
+The <tt>%feature("python:annotations", "pytyping")</tt> directive generates <a href="https://peps.python.org/pep-0484/">PEP 484</a> annotations. For example:
+</p>
+
+<div class="code"><pre>
+%feature("python:annotations", "pytyping") parse_str;
+float parse_str(const char *str);
+</pre></div>
+
+<p>
+The generated code then contains function annotations:
+</p>
+
+<div class="targetlang"><pre>
+def parse_str(str: "str") -&gt; "float":
+    return _example.parse_str(ri)
+</pre></div>
+
+<p>
+The same limitations as <a href="#Python_annotations_c">C/C++ annotations</a> regarding overloaded functions apply.
+</p>
+
+<p>
+The annotations use the <tt>pytyping</tt> typemap, so they can be customized:
+</p>
+
+<div class="code"><pre>
+%typemap(pytyping) MyCallable "typing.Callable[[]]";
+struct MyCallable {
+  void operator()() {}
+};
+
+void use_callable(MyCallable c){}
+</pre></div>
+
+<p>
+The generated code now contains the <tt>Callable</tt> annotation:
+</p>
+
+<div class="targetlang"><pre>
+def use_callable(c: "typing.Callable[[]]") -> "None":
+    return _example.use_callable(c)
+</pre></div>
+
+<p>
+The <a href="https://docs.python.org/3/library/typing.html">typing</a> library is imported if available (Python >= 3.5).
 </p>
 
 <H3><a name="Python_nn75">33.12.2 Buffer interface</a></H3>
