@@ -1930,7 +1930,13 @@ private:
     Node *parent = parentNode(n);
 
     if (Getattr(parent, "unnamed")) {
-      Setattr(n, "type", NewString("int"));
+      char* tdname = GetChar(parent, "tdname");
+      if (tdname && strlen(tdname)) {
+        // Use the typedef as the typename.
+        Setattr(n, "type", tdname);
+      } else {
+        Setattr(n, "type", NewString("int"));
+      }
     } else {
       Setattr(n, "type", Getattr(parent, "enumtype"));
     }
