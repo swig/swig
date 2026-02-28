@@ -1790,16 +1790,18 @@ public:
       Node *base = it.item;
       SwigType *c_baseclassname = Getattr(base, "name");
       String *interface_name = Getattr(base, "interface:name");
+      String *qualified_interface_name = getQualifiedInterfaceName(base);
       SwigType *bsmart = Getattr(base, "smart");
       if (Len(interface_list))
 	Append(interface_list, ", ");
-      Append(interface_list, interface_name);
+      Append(interface_list, qualified_interface_name);
 
       Node *attributes = NewHash();
       String *interface_code = Copy(typemapLookup(base, "csinterfacecode", Getattr(base, "classtypeobj"), WARN_CSHARP_TYPEMAP_INTERFACECODE_UNDEF, attributes));
       String *cptr_method_name = 0;
       if (interface_code) {
         Replaceall(interface_code, "$interfacename", interface_name);
+        Replaceall(interface_code, "$csinterfacename", qualified_interface_name);
 	Printv(interface_upcasts, interface_code, NIL);
 	cptr_method_name = Copy(Getattr(attributes, "tmap:csinterfacecode:cptrmethod"));
       }
@@ -2168,7 +2170,7 @@ public:
       for (Iterator base = First(baselist); base.item; base = Next(base)) {
 	if (GetFlag(base.item, "feature:ignore") || !GetFlag(base.item, "feature:interface"))
 	  continue; // TODO: warn about skipped non-interface bases
-	String *base_iname = Getattr(base.item, "interface:name");
+	String *base_iname = getQualifiedInterfaceName( base.item );
 	if (!bases)
 	  bases = NewStringf(" : %s", base_iname);
 	else {
