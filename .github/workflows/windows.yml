@@ -5,7 +5,7 @@ on:
     paths-ignore:
       - '.github/workflows/linux.yml'
       - '.github/workflows/macos.yml'
-      - '.github/workflows/windows-cmake.yml'
+      - '.github/workflows/cmake.yml'
       - 'CHANGES*'
       - 'Doc/**'
       - 'Tools/CI-linux-*'
@@ -15,7 +15,7 @@ on:
     paths-ignore:
       - '.github/workflows/linux.yml'
       - '.github/workflows/macos.yml'
-      - '.github/workflows/windows-cmake.yml'
+      - '.github/workflows/cmake.yml'
       - 'CHANGES*'
       - 'Doc/**'
       - 'Tools/CI-linux-*'
@@ -341,8 +341,24 @@ jobs:
     - name: Test swiglib
       shell: bash
       run: |
+          echo "Output of ./swig.exe -swiglib"
+          ./swig.exe -swiglib
+          # Use first line with SWIG_LIB,
+          # ignore second line which uses SWIG_LIB_WIN_UNIX
+          win_swig_lib="$(./swig.exe -swiglib | head -1)"
+          pwd_based_lib="$(cygpath -w "$PWD/Lib")"
           # path is based on executable location
-          if ! [[ "$(./swig.exe -swiglib)" = "$(cygpath -w "$PWD")\\Lib" ]]; then
+          if ! [[ "$win_swig_lib" = "$pwd_based_lib" ]]; then
+            echo "First test fail"
+            exit 1
+          fi
+          # Ensure path change based on application path
+          mkdir other_dir
+          cp swig.exe other_dir/
+          win_swig_lib2="$(./other_dir/swig.exe -swiglib | head -1)"
+          pwd_based_lib2="$(cygpath -w "$PWD/other_dir/Lib")"
+          if ! [[ "$win_swig_lib2" = "$pwd_based_lib2" ]]; then
+            echo "Second test fail"
             exit 1
           fi
 

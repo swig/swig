@@ -4,8 +4,8 @@ on:
   push:
     paths-ignore:
       - '.github/workflows/linux.yml'
-      - '.github/workflows/windows-cmake.yml'
       - '.github/workflows/windows.yml'
+      - '.github/workflows/cmake.yml'
       - 'CHANGES*'
       - 'Doc/**'
       - 'Tools/CI-linux-*'
@@ -14,8 +14,8 @@ on:
     branches: master
     paths-ignore:
       - '.github/workflows/linux.yml'
-      - '.github/workflows/windows-cmake.yml'
       - '.github/workflows/windows.yml'
+      - '.github/workflows/cmake.yml'
       - 'CHANGES*'
       - 'Doc/**'
       - 'Tools/CI-linux-*'
@@ -214,7 +214,7 @@ jobs:
           if test -n "$CSTD"; then
             echo "CSTD=$CSTD" >> $GITHUB_ENV
             CFLAGS+=" -std=$CSTD"
-            echo "Use C++ standard $CSTD"
+            echo "Use C standard $CSTD"
           fi
           if test -n "$CFLAGS"; then
             echo "CFLAGS=$CFLAGS" >> $GITHUB_ENV

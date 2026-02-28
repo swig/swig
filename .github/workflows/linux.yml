@@ -4,16 +4,16 @@ on:
   push:
     paths-ignore:
       - '.github/workflows/macos.yml'
-      - '.github/workflows/windows-cmake.yml'
       - '.github/workflows/windows.yml'
+      - '.github/workflows/cmake.yml'
       - 'CHANGES*'
       - 'Doc/**'
   pull_request:
     branches: master
     paths-ignore:
       - '.github/workflows/macos.yml'
-      - '.github/workflows/windows-cmake.yml'
       - '.github/workflows/windows.yml'
+      - '.github/workflows/cmake.yml'
       - 'CHANGES*'
       - 'Doc/**'
 
@@ -53,7 +53,10 @@ jobs:
           os: ubuntu-22.04
         - SWIGLANG: ""
           GCC: 13
-          os: ubuntu-22.04
+          os: ubuntu-24.04
+        - SWIGLANG: ""
+          GCC: 14
+          os: ubuntu-24.04
         - SWIGLANG: ""
           compiler: clang
           os: ubuntu-22.04
@@ -73,8 +76,14 @@ jobs:
           VER: '1.20'
           CSTD: gnu11
         - SWIGLANG: go
+          VER: '1.22'
+        - SWIGLANG: go
+          VER: '1.23'
+        - SWIGLANG: go
           VER: '1.24'
           CSTD: gnu99 # Go 1.24 doesn't build with -Wdeclaration-after-statement
+        - SWIGLANG: go
+          VER: '1.25'
         - SWIGLANG: guile
         - SWIGLANG: guile
           VER: '3.0'
@@ -106,6 +115,7 @@ jobs:
         - SWIGLANG: php
           VER: '8.3'
           CPPSTD: c++11 # C++98 not supported by PHP.
+          os: ubuntu-24.04
         - SWIGLANG: php
           VER: '8.4'
           CPPSTD: c++11 # C++98 not supported by PHP.
@@ -256,7 +266,13 @@ jobs:
           CPPSTD: c++11
         - SWIGLANG: ruby
           CPPSTD: c++11
-          VER: '3.3.9' # 3.3.10 has an error: -Werror=missing-field-initializers, see https://bugs.ruby-lang.org/issues/21659
+          VER: '3.3'
+        - SWIGLANG: ruby
+          CPPSTD: c++11
+          VER: '3.4'
+        - SWIGLANG: ruby
+          CPPSTD: c++11
+          VER: '4.0'
         - SWIGLANG: ruby
           CPPSTD: c++11
         - SWIGLANG: scilab
@@ -301,17 +317,21 @@ jobs:
         - SWIGLANG: csharp
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: go
           VER: '1.20'
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
           CSTD: gnu17
         - SWIGLANG: guile
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: java
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: java
           VER: 8
         - SWIGLANG: java
@@ -327,27 +347,34 @@ jobs:
           VER: '18'
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '20'
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: lua
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: octave
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: perl5
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: php
           CPPSTD: c++17
           CSTD: gnu17
           GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: python
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: r
           CPPSTD: c++17
           GCC: 13
@@ -355,39 +382,48 @@ jobs:
         - SWIGLANG: ruby
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: scilab
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: tcl
           CPPSTD: c++17
           GCC: 13
+          os: ubuntu-24.04
         # c++20 testing (using gcc13)
         - SWIGLANG: c
           CPPSTD: c++20
           GCC: 13
-          os: ubuntu-22.04
+          os: ubuntu-24.04
         - SWIGLANG: python
           CPPSTD: c++20
           GCC: 13
-          os: ubuntu-22.04
+          os: ubuntu-24.04
         - SWIGLANG: javascript
           ENGINE: jsc
           CPPSTD: c++20
           VER: '4.1'
           GCC: 13
-          os: ubuntu-22.04
+          os: ubuntu-24.04
         - SWIGLANG: javascript
           ENGINE: napi
           VER: '22'
           CPPSTD: c++20
           GCC: 13
-          os: ubuntu-22.04
+          os: ubuntu-24.04
         - SWIGLANG: javascript
           ENGINE: node
           VER: '20'
           CPPSTD: c++20
           GCC: 13
-          os: ubuntu-22.04
+          os: ubuntu-24.04
+        - SWIGLANG: javascript
+          ENGINE: node
+          VER: '22'
+          CPPSTD: c++20
+          GCC: 13
+          os: ubuntu-24.04
         - SWIGLANG: javascript
           ENGINE: v8
           CSTD: c++14
@@ -403,13 +439,14 @@ jobs:
         - SWIGLANG: ocaml
           CPPSTD: c++17
           GCC: 13
-          os: ubuntu-22.04
+          os: ubuntu-24.04
           continue-on-error: true
       # Run all of them, as opposed to aborting when one fails
       fail-fast: false
 
     env:
       SWIGLANG: ${{ matrix.SWIGLANG }}
+      compiler: ${{ matrix.compiler }}
       PY2: ${{ matrix.PY2 }}
       VER: ${{ matrix.VER }}
       ENGINE: ${{ matrix.ENGINE }}
@@ -450,39 +487,12 @@ jobs:
     - name: Install Dependencies
       run: |
           set -x
-          export PATH="/usr/lib/ccache:/usr/local/opt/ccache/libexec:$PATH"
-          echo PATH="$PATH" >> $GITHUB_ENV
-
           source $GITHUB_WORKSPACE/Tools/GHA-linux-install.sh
-          echo WITHLANG="$WITHLANG" >> $GITHUB_ENV
 
           cpu_count=$(nproc)
           if test $cpu_count -gt 1; then
             echo SWIGJOBS=-j$cpu_count >> $GITHUB_ENV
           fi
-
-          if test '${{ matrix.compiler }}' = 'clang'; then
-            CC="clang"
-            CXX="clang++"
-
-            CFLAGS="$CFLAGS -fPIE"
-            CXXFLAGS="$CXXFLAGS -fPIE"
-          elif test -n "$GCC"; then
-            CC="gcc-$GCC"
-            CXX="g++-$GCC"
-          else
-            CC="gcc"
-            CXX="g++"
-          fi
-
-          export CC CXX
-
-          echo CC="$CC" >> $GITHUB_ENV
-          echo CXX="$CXX" >> $GITHUB_ENV
-
-          ls -la $(which $CC) $(which $CXX)
-          $CC --version
-          $CXX --version
 
     - name: Configure
       run: |
@@ -498,9 +508,19 @@ jobs:
             esac
             if test -n "$CSTD"; then echo "CSTD=$CSTD" >> $GITHUB_ENV; fi
           fi
-          if test -z "$CPPSTD"; then CONFIGOPTS+=("--disable-cpp11-testing"); fi
-          if test -n "$CPPSTD"; then CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS"); fi
-          if test -n "$CSTD"; then CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS"); fi
+          if test -n "$CPPSTD"; then
+            CONFIGOPTS+=("CXXFLAGS=-std=$CPPSTD $CXXFLAGS")
+            echo "Use C++ standard $CPPSTD"
+          else
+            CONFIGOPTS+=("--disable-cpp11-testing")
+            $CXX -x c++ -dM -E - < /dev/null | grep __cplusplus
+          fi
+          if test -n "$CSTD"; then
+            CONFIGOPTS+=("CFLAGS=-std=$CSTD $CFLAGS")
+            echo "Use C standard $CSTD"
+          else
+            $CC -dM -E - < /dev/null | grep __STDC_VERSION__
+          fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
           if test "$PY2" = "2"; then CONFIGOPTS+=(--with-python=python2 --without-python3); fi
           echo "${CONFIGOPTS[@]}"

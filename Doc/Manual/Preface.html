@@ -378,7 +378,7 @@ on OS X.
 Users of OS X should be aware that Darwin handles shared libraries and linking in
 a radically different way than most Unix systems.  In order to test SWIG and run
 the examples, SWIG configures itself to use flat namespaces and to allow undefined
-symbols (<tt>-flat_namespace -undefined suppress</tt>). This mostly closely follows the Unix
+symbols (<tt>-flat_namespace -undefined dynamic_lookup/tt>). This mostly closely follows the Unix
 model and makes it more likely that the SWIG examples will work with whatever
 installation of software you might have.  However, this is generally not the recommended
 technique for building larger extension modules.  Instead, you should utilize
