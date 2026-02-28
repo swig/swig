@@ -31,7 +31,7 @@ jobs:
 
     # By default, the name of the build is the language used and SWIG options, but matrix entries
     # can define the additional "desc" field with any additional information to include in the name.
-    name: ${{ matrix.SWIGLANG || 'none' }}${{ matrix.PY2 }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.PY_ABI_VER && format('abi={0}', matrix.PY_ABI_VER) }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
+    name: ${{ matrix.SWIGLANG || 'none' }} ${{ matrix.ENGINE}} ${{ matrix.VER }} ${{ matrix.PY_ABI_VER && format('abi={0}', matrix.PY_ABI_VER) }} ${{ matrix.SWIG_FEATURES }} ${{ (matrix.compiler || 'gcc') }}${{ matrix.GCC }} ${{ matrix.CPPSTD }} ${{ matrix.CSTD }} ${{ matrix.desc }} ${{ matrix.continue-on-error && '(can fail)' }}
 
     strategy:
       matrix:
@@ -122,8 +122,6 @@ jobs:
         - SWIGLANG: php
           VER: '8.5'
           CPPSTD: c++11 # C++98 not supported by PHP.
-        - SWIGLANG: python
-          PY2: 2
         #- SWIGLANG: python
         #  VER: '3.5'
         #  os: ubuntu-20.04 # Python < 3.7 not available for 22.04.
@@ -168,12 +166,6 @@ jobs:
         - SWIGLANG: python
           VER: '3.14'
           CSTD: gnu99
-        - SWIGLANG: python
-          PY2: 2
-          SWIG_FEATURES: -builtin
-        - SWIGLANG: python
-          PY2: 2
-          SWIG_FEATURES: -builtin -O
         - SWIGLANG: python
           SWIG_FEATURES: -builtin
         - SWIGLANG: python
@@ -447,7 +439,6 @@ jobs:
     env:
       SWIGLANG: ${{ matrix.SWIGLANG }}
       compiler: ${{ matrix.compiler }}
-      PY2: ${{ matrix.PY2 }}
       VER: ${{ matrix.VER }}
       ENGINE: ${{ matrix.ENGINE }}
       SWIG_FEATURES: ${{ matrix.SWIG_FEATURES }}
@@ -522,7 +513,6 @@ jobs:
             $CC -dM -E - < /dev/null | grep __STDC_VERSION__
           fi
           if test -n "$SWIGLANG"; then CONFIGOPTS+=(--without-alllang --with-$WITHLANG); fi
-          if test "$PY2" = "2"; then CONFIGOPTS+=(--with-python=python2 --without-python3); fi
           echo "${CONFIGOPTS[@]}"
           ./autogen.sh && mkdir -p build/build && cd build/build && ../../configure "${CONFIGOPTS[@]}"
 

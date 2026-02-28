@@ -1,4 +1,3 @@
-import sys
 from li_std_string import *
 
 def check(condition):
@@ -11,10 +10,7 @@ def check(condition):
 # Bug https://github.com/swig/swig/issues/3051.
 exceptionRaised = False
 try:
-    if sys.version_info[0:2] < (3, 0):
-        v = u"./\uDCFC.conf"
-    else:
-        v = "./\uDCFC.conf"
+    v = "./\uDCFC.conf"
     test_value(v)
 except TypeError:
     exceptionRaised = True

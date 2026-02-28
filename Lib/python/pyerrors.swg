@@ -94,11 +94,7 @@ SWIG_Python_RaiseOrModifyTypeError(const char *message)
     PyObject *newvalue;
     PyObject *type = NULL, *value = NULL, *traceback = NULL;
     PyErr_Fetch(&type, &value, &traceback);
-#if PY_VERSION_HEX >= 0x03000000
     newvalue = PyUnicode_FromFormat("%S\nAdditional information:\n%s", value, message);
-#else
-    newvalue = PyString_FromFormat("%s\nAdditional information:\n%s", PyString_AsString(value), message);
-#endif
     if (newvalue) {
       SWIG_Py_XDECREF(value);
       PyErr_Restore(type, newvalue, traceback);

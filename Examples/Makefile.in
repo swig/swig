@@ -1277,24 +1277,13 @@ php_clean:
 ##################################################################
 
 # Make sure these locate your Python installation
-ifneq (,$(PY2))
-  PYTHON_INCLUDE= $(DEFS) @PYINCLUDE@
-  PYTHON_LIB    = @PYLIB@
-  PYTHON        = @PYTHON@
-else
-  PYTHON_INCLUDE= $(DEFS) @PY3INCLUDE@
-  PYTHON_LIB    = @PY3LIB@
-  PYTHON        = @PYTHON3@
-endif
+PYTHON_INCLUDE= $(DEFS) @PY3INCLUDE@
+PYTHON_LIB    = @PY3LIB@
+PYTHON        = @PYTHON3@
 
 # Extra Python specific linking options
-ifneq (,$(PY2))
-  PYTHON_DLNK   = @PYTHONDYNAMICLINKING@
-  PYTHON_LINK   = @PYLINK@
-else
-  PYTHON_DLNK   = @PYTHON3DYNAMICLINKING@
-  PYTHON_LINK   = @PY3LINK@
-endif
+PYTHON_DLNK   = @PYTHON3DYNAMICLINKING@
+PYTHON_LINK   = @PY3LINK@
 
 # Set PY_ABI_VER to the target ABI version, such as 3.4, if wanting a stable ABI build
 PY_ABI_VER =

@@ -155,13 +155,9 @@ case "$SWIGLANG" in
 			# assertion in abi3audit 0.0.11, fixed in 0.0.12
 			pip install --user 'abi3audit>=0.0.12'
 		fi
-		if [[ "$PY2" ]]; then
-			WITHLANG=$SWIGLANG
-		else
-			WITHLANG=${SWIGLANG}3
-		fi
+		WITHLANG=${SWIGLANG}3
 		if [[ "$VER" ]]; then
-			if [[ -z "$PY2" ]] && [[ $VER =~ ^[0-9.]+$ ]]; then
+			if [[ $VER =~ ^[0-9.]+$ ]]; then
 				# Check if Python is already installed on cached tools
 				probe_cached_tool 'Python'
 			fi
@@ -183,8 +179,6 @@ case "$SWIGLANG" in
 				esac
 			fi
 			WITHLANG="$WITHLANG=$SWIGLANG$VER"
-		elif [[ "$PY2" ]]; then
-			$RETRY sudo apt-get -qq install python2-dev
 		fi
 		;;
 	"r")

@@ -2031,6 +2031,11 @@ PY3PACKAGE=
 AC_ARG_WITH(python3, AS_HELP_STRING([--without-python3], [Don't probe for Python 3.x])
 AS_HELP_STRING([--with-python3=path], [Set location of Python 3.x executable]), [PY3BIN="$withval"], [PY3BIN="$alllang_default"])
 
+# --with-python option overrides --with-python3
+if test x"${PYBIN}" != x"$alllang_default"; then
+  PY3BIN="$PYBIN"
+fi
+
 # First, check for "--without-python3" or "--with-python3=no".
 if test x"${PY3BIN}" = xno; then
   AC_MSG_NOTICE([Disabling Python 3.x probe])
