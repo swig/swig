@@ -42,7 +42,7 @@ struct A
 
   virtual bool is_hello(std::string_view s) const
   {
-    return true;
+    return false;
   }
 
   virtual void process_text(const char *text) const
