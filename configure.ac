@@ -799,20 +799,17 @@ else
   GOOPT=
   GCCGOOPT=
   GOVERSIONOPTION=
+  GOMINVER='1.20'
 
   if test -n "$GO" ; then
     GOVERSIONOPTION=version
-    go_version=$($GO $GOVERSIONOPTION | sed -e 's/go version //')
+    go_version="$($GO $GOVERSIONOPTION | sed 's%go *%%g;s%version *%%;s% .*%%')"
     AC_MSG_CHECKING([whether go version is too old])
-    case $go_version in
-    go1.[012]*)
-      AC_MSG_RESULT([yes - minimum version is 1.3])
-      GO=
-      ;;
-    *)
-      AC_MSG_RESULT([no])
-      ;;
-    esac
+    AS_VERSION_COMPARE(["$go_version"], ["$GOMINVER"],
+                   [AC_MSG_RESULT([yes - minimum version is $GOMINVER])
+                    AS_UNSET([GO])],        dnl bellow GOMINVER
+                   [AC_MSG_RESULT([no])],   dnl equal GOMINVER
+                   [AC_MSG_RESULT([no])])   dnl above GOMINVER
   fi
 
   AC_CHECK_PROGS(GCCGO, gccgo)
@@ -848,6 +845,7 @@ AC_SUBST(GO15)
 AC_SUBST(GOOPT)
 AC_SUBST(GCCGOOPT)
 AC_SUBST(GOVERSIONOPTION)
+AC_SUBST(GOMINVER)
 
 #----------------------------------------------------------------
 # Look for Guile
