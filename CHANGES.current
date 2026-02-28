@@ -7,6 +7,9 @@ the issue number to the end of the URL: https://github.com/swig/swig/issues/
 Version 4.5.0 (in progress)
 ===========================
 
+2026-02-28: ArtemKozak666
+            [C#] #3321 Fix undefined behaviour in std::string_view directorin typemap.
+
 2026-02-23: aryler
             #3304 Correct LDSHARED for OpenBSD.
 
