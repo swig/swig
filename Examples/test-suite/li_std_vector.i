@@ -24,6 +24,10 @@ namespace std {
 %template(DoubleVector) std::vector<double>;
 %template(StringVector) std::vector<std::string>;
 
+#ifdef SWIGC
+SWIG_STD_VECTOR_ITERATOR(bool)
+SWIG_STD_VECTOR_ITERATOR(int)
+#endif
 
 %inline %{
 typedef float Real;
