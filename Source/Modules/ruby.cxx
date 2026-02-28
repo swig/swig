@@ -2461,28 +2461,41 @@ public:
   }
 
   /**
+   * Set class name for better debug messages and statistics by Ruby.
+   */
+  void handleClassName(Node *) {
+    Printf(klass->init, "SwigClass%s.cext_type_own.wrap_struct_name = \"own C++ class %s\";\n", klass->name, klass->cname);
+    Printf(klass->init, "SwigClass%s.cext_type_foreign.wrap_struct_name = \"foreign C++ class %s\";\n", klass->name, klass->cname);
+  }
+
+  /**
    * Check to see if a %markfunc was specified.
    */
   void handleMarkFuncDirective(Node *n) {
     String *markfunc = Getattr(n, "feature:markfunc");
     if (markfunc) {
-      Printf(klass->init, "SwigClass%s.mark = (void (*)(void *)) %s;\n", klass->name, markfunc);
+      Printf(klass->init, "SwigClass%s.cext_type_own.function.dmark = (void (*)(void *)) %s;\n", klass->name, markfunc);
     } else {
-      Printf(klass->init, "SwigClass%s.mark = 0;\n", klass->name);
+      Printf(klass->init, "SwigClass%s.cext_type_own.function.dmark = 0;\n", klass->name);
     }
+    Printf(klass->init, "SwigClass%s.cext_type_foreign.function.dmark = 0;\n", klass->name);
   }
 
   /**
    * Check to see if a %freefunc was specified.
    */
   void handleFreeFuncDirective(Node *n) {
+    int track = GetFlag(n, "feature:trackobjects");
     String *freefunc = Getattr(n, "feature:freefunc");
     if (freefunc) {
-      Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
+      Printf(klass->init, "SwigClass%s.cext_type_own.function.dfree = (void (*)(void *)) %s;\n", klass->name, freefunc);
+    } else if (klass->destructor_defined) {
+      Printf(klass->init, "SwigClass%s.cext_type_own.function.dfree = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
+    }
+    if (track) {
+      Printf(klass->init, "SwigClass%s.cext_type_foreign.function.dfree = VOIDFUNC(SWIG_RubyRemoveTracking);\n", klass->name);
     } else {
-      if (klass->destructor_defined) {
-	Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
-      }
+      Printf(klass->init, "SwigClass%s.cext_type_foreign.function.dfree = 0;\n", klass->name);
     }
   }
 
@@ -2557,6 +2570,7 @@ public:
     Language::classHandler(n);
 
     handleBaseClasses(n);
+    handleClassName(n);
     handleMarkFuncDirective(n);
     handleFreeFuncDirective(n);
     handleTrackDirective(n);

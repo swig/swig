@@ -255,7 +255,7 @@ namespace Swig {
     }
 
     void swig_acquire_ownership_obj(void *vptr, swig_ruby_owntype own) const {
-      if (vptr && own.datafree) {
+      if (vptr && own.cext_type->function.dfree) {
 	SWIG_GUARD(swig_mutex_own);
 	swig_owner[vptr] = new GCItem_Object(own);
       }
@@ -267,7 +267,7 @@ namespace Swig {
 	SWIG_GUARD(swig_mutex_own);
 	swig_ownership_map::iterator iter = swig_owner.find(vptr);
 	if (iter != swig_owner.end()) {
-	  own.datafree = iter->second->get_own().datafree;
+	  own.cext_type = iter->second->get_own().cext_type;
 	  swig_owner.erase(iter);
 	}
       }
