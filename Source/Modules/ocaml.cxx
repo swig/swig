@@ -649,7 +649,12 @@ public:
     }
 
     // Now write code to make the function call
-    Swig_director_emit_dynamic_cast(n, f);
+    if (Swig_director_emit_dynamic_cast(n, f)) {
+      /* Add protection */
+      Append(f->code, "if(!darg) {\n");
+      Append(f->code, "  SWIG_exception(SWIG_NullReferenceError, \"'self' is not a director\");\n");
+      Append(f->code, "}\n");
+    }
     String *actioncode = emit_action(n);
 
     if ((tm = Swig_typemap_lookup_out("out", n, Swig_cresult_name(), f, actioncode))) {

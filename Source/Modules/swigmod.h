@@ -400,7 +400,7 @@ String *Swig_class_name(Node *n);
 String *Swig_method_call(const_String_or_char_ptr name, ParmList *parms);
 String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_String_or_char_ptr id, List *args, int default_args);
 String *Swig_director_declaration(Node *n);
-void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
+bool Swig_director_emit_dynamic_cast(Node *n, Wrapper *f);
 void Swig_director_parms_fixup(ParmList *parms);
 bool Swig_director_can_unwrap(Node *n);
 /* directors.cxx end */

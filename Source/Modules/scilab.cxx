@@ -432,7 +432,6 @@ public:
     Setattr(node, "wrap:name", overloadedName);
 
     /* Emit the function call */
-    Swig_director_emit_dynamic_cast(node, wrapper);
     String *functionActionCode = emit_action(node);
 
     /* Insert the return variable */

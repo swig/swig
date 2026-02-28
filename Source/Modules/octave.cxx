@@ -702,7 +702,12 @@ public:
 
     Setattr(n, "wrap:name", overname);
 
-    Swig_director_emit_dynamic_cast(n, f);
+    if (Swig_director_emit_dynamic_cast(n, f)) {
+      /* Add protection */
+      Append(f->code, "if(!darg) {\n");
+      Append(f->code, "  SWIG_exception_fail(SWIG_NullReferenceError, \"'self' is not a director\");\n");
+      Append(f->code, "}\n");
+    }
     String *actioncode = emit_action(n);
 
     Wrapper_add_local(f, "_out", "octave_value_list _out");

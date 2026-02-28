@@ -3133,11 +3133,11 @@ public:
     director_method = is_member_director(n) && !is_smart_pointer() && !destructor;
     if (director_method) {
       Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+      Append(f->code, "try {\n");
       Append(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
       if (dirprot_mode() && !is_public(n)) {
 	Printf(f->code, "if (!director || !(director->swig_get_inner(\"%s\"))) {\n", name);
-	Printf(f->code, "SWIG_SetErrorMsg(PyExc_RuntimeError,\"accessing protected member %s\");\n", name);
-	Append(f->code, "SWIG_fail;\n");
+	Printf(f->code, "  Swig::DirectorMethodException::raise(\"accessing protected member %s\");\n", name);
 	Append(f->code, "}\n");
       }
       Wrapper_add_local(f, "upcall", "bool upcall = false");
@@ -3148,11 +3148,6 @@ public:
 	const char *self_parm = builtin_self ? "self" : "obj0";
 	Printf(f->code, "upcall = (director && (director->swig_get_self()==%s));\n", self_parm);
       }
-    }
-
-    /* Emit the function call */
-    if (director_method) {
-      Append(f->code, "try {\n");
     } else {
       if (allow_thread) {
 	String *preaction = NewString("");
@@ -3167,7 +3162,13 @@ public:
 
     Setattr(n, "wrap:name", wname);
 
-    Swig_director_emit_dynamic_cast(n, f);
+    /* Emit the function call */
+    if (Swig_director_emit_dynamic_cast(n, f)) {
+      /* Add protection */
+      Append(f->code, "if(!darg) {\n");
+      Append(f->code, "  Swig::DirectorMethodException::raise(\"'self' is not a director\");\n");
+      Append(f->code, "}\n");
+    }
     String *actioncode = emit_action(n);
 
     if (director_method) {

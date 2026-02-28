@@ -1617,7 +1617,12 @@ private:
   void emitGoAction(Node *n, List *base, ParmList *parms, SwigType *result, Wrapper *f) {
     String *actioncode;
     if (!base || isStatic(n)) {
-      Swig_director_emit_dynamic_cast(n, f);
+      if (Swig_director_emit_dynamic_cast(n, f)) {
+	/* Add protection */
+	Append(f->code, "if(!darg) {\n");
+	Append(f->code, "  _swig_gopanic(\"'self' is not a director\");\n");
+	Append(f->code, "}\n");
+      }
       actioncode = emit_action(n);
     } else {
       // Call the base class method.

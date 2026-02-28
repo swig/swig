@@ -1530,7 +1530,12 @@ public:
       Printf(f->code, "upcall = (director && (director->swig_get_self()==Z_OBJ_P(ZEND_THIS)));\n");
     }
 
-    Swig_director_emit_dynamic_cast(n, f);
+    if (Swig_director_emit_dynamic_cast(n, f)) {
+      /* Add protection */
+      Append(f->code, "if(!darg) {\n");
+      Append(f->code, "  zend_throw_exception(zend_ce_type_error, \"'self' is not a director\", 0);\n");
+      Append(f->code, "}\n");
+    }
 
     /* Insert constraint checking code */
     for (p = l; p;) {
