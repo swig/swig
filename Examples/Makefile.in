@@ -42,12 +42,14 @@ else
 SRCDIR_INCLUDE = -I. -I$(SRCDIR)
 endif
 
+ROOT_DIR   = @ROOT_DIR@
 TARGET     =
 CC         = @CC@
 CXX        = @CXX@
+BOOST_CPPFLAGS = @BOOST_CPPFLAGS@
 CPPFLAGS   = $(SRCDIR_INCLUDE) $(EXTRA_CPPFLAGS)
 CFLAGS     = @PLATCFLAGS@ $(EXTRA_CFLAGS)
-CXXFLAGS   = @BOOST_CPPFLAGS@ @PLATCXXFLAGS@ $(EXTRA_CXXFLAGS)
+CXXFLAGS   = $(BOOST_CPPFLAGS) @PLATCXXFLAGS@ $(EXTRA_CXXFLAGS)
 LDFLAGS    = $(EXTRA_LDFLAGS)
 prefix     = @prefix@
 exec_prefix= @exec_prefix@
@@ -402,6 +404,8 @@ d_clean:
 #####                       Go                              ######
 ##################################################################
 
+# Use to print the commands 'go build' use during build
+# GOBUILDDBG=-x
 GO = @GO@
 GOGCC = @GOGCC@
 GCCGO = @GCCGO@
@@ -409,13 +413,14 @@ GOOPT = @GOOPT@
 GCCGOOPT = @GCCGOOPT@
 GOVERSIONOPTION = @GOVERSIONOPTION@
 GOMINVER = @GOMINVER@
+GO_CYGPATH = @GO_CYGPATH@
 
+GOBUILDARG=$(GOBUILDDBG)
 ifneq (false, $(GOGCC))
 GOSWIGARG = -gccgo
-GOBUILDARG = -compiler=gccgo
+GOBUILDARG+= -compiler=gccgo
 else
 GOSWIGARG =
-GOBUILDARG =
 endif
 
 GOSRCS = $(INTERFACE:.i=.go)
@@ -431,63 +436,65 @@ GOPATHDIR = $(GOPATHPARENTDIR)/$(INTERFACE:.i=)
 # ----------------------------------------------------------------
 
 $(GOPATHPARENTDIR)/go.mod:
-	@mkdir gopath 2>/dev/null || true
-	@mkdir gopath/$(GOMOD) 2>/dev/null || true
-	@mkdir gopath/$(GOMOD)/src 2>/dev/null || true
-	@mkdir $(GOPATHDIR) 2>/dev/null || true
-	echo "module swigtests" > $(GOPATHDIR)/go.mod
-	echo "" >> $(GOPATHDIR)/go.mod
-	echo "go $(GOMINVER)" >> $(GOPATHDIR)/go.mod
-	mv -f $(GOPATHDIR)/go.mod $(GOPATHPARENTDIR)/go.mod
+	mkdir -p "$(@D)"
+	printf "module swigtests\n\ngo $(GOMINVER)\n" > "$@"
 
 go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
+	mkdir -p "$(GOPATHDIR)"
 	$(SWIG) -go -import-prefix swigtests $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ISRCS) $(INTERFACEPATH)
-	@mkdir gopath 2>/dev/null || true
-	@mkdir gopath/$(GOMOD) 2>/dev/null || true
-	@mkdir gopath/$(GOMOD)/src 2>/dev/null || true
-	@mkdir $(GOPATHDIR) 2>/dev/null || true
 	rm -rf $(GOPATHDIR)/*
-	cp $(ISRCS) $(GOPATHDIR)/
-	if test -f $(IWRAP:.i=.h); then \
-	  cp $(IWRAP:.i=.h) $(GOPATHDIR)/; \
+	cp "$(ISRCS)" "$(GOPATHDIR)/"
+	if test -f "$(IWRAP:.i=.h)"; then \
+	  cp "$(IWRAP:.i=.h)" "$(GOPATHDIR)/"; \
 	fi
 	if test -n "$(SRCDIR_SRCS)"; then \
-	  cp $(SRCDIR_SRCS) $(GOPATHDIR)/; \
+	  cp "$(SRCDIR_SRCS)" "$(GOPATHDIR)/"; \
 	fi
-	cp $(GOSRCS) $(GOPATHDIR)/
-	@if test -f $(SRCDIR)$(RUNME).go; then \
-	  mkdir gopath/$(GOMOD)/src/runme 2>/dev/null || true; \
-	  rm -f gopath/$(GOMOD)/src/runme/*; \
+	cp $(GOSRCS) "$(GOPATHDIR)/"
+	if test -f "$(SRCDIR)$(RUNME).go"; then \
+	  mkdir -p "$(GOPATHPARENTDIR)/runme"; \
+	  rm -f $(GOPATHPARENTDIR)/runme/*; \
 	fi
-	if test -f $(SRCDIR)$(RUNME).go; then \
-	  cp $(SRCDIR)$(RUNME).go gopath/$(GOMOD)/src/runme/; \
+	if test -f "$(SRCDIR)$(RUNME).go"; then \
+	  cp "$(SRCDIR)$(RUNME).go" "$(GOPATHPARENTDIR)/runme/"; \
 	fi
 	GOPATH=`pwd`/gopath/$(GOMOD); \
-	export GOPATH; \
-	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `cd $(SRCDIR) && pwd` -I `pwd`"; \
-	export CGO_CPPFLAGS; \
-	CGO_CFLAGS="$(CFLAGS)"; \
-	export CGO_CFLAGS; \
+	includes="$(INCLUDES) -I `pwd` "; \
+	if test -n '$(SRCDIR)'; then \
+	  includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
+	fi; \
+	if test -n "$(GO_CYGPATH)"; then \
+	  n_includes=''; \
+	  for n in $${includes//-I}; do \
+	    if test -d "$$n"; then \
+	      n_includes="$$n_includes -I `$(GO_CYGPATH) -w $$n`"; \
+	    else \
+	      n_includes="$$n_includes $$n"; \
+	    fi; \
+	  done; \
+	  includes="$$n_includes"; \
+	fi; \
+	CGO_CPPFLAGS="$(CPPFLAGS) $$includes"; \
+	CGO_CFLAGS="$(CFLAGS) $$includes"; \
 	CGO_LDFLAGS="$(LDFLAGS)"; \
-	export CGO_LDFLAGS; \
-	(cd $(GOPATHDIR)/ && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
+	export GOPATH CGO_CPPFLAGS CGO_CFLAGS CGO_LDFLAGS; \
+	(cd "$(GOPATHDIR)" && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
 	stat=$$?; \
-	if test $$stat != 0; then \
+	if test $$stat -ne 0; then \
 	  exit $$stat; \
 	fi; \
 	if $(GOGCC); then \
-	  cp $(GOPATHDIR)/$(GOPACKAGE) $(GOPATHDIR)/$(GOPACKAGE:.a=.gox); \
+	  cp "$(GOPATHDIR)/$(GOPACKAGE)" "$(GOPATHDIR)/$(GOPACKAGE:.a=.gox)"; \
 	fi; \
-	if test -f $(SRCDIR)$(RUNME).go; then \
-	  mkdir gopath/$(GOMOD)/src/swigtests 2>/dev/null || true; \
-	  mkdir gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=) 2>/dev/null || true; \
-	  cp $(GOPATHDIR)/* gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=)/; \
-	  (cd gopath/$(GOMOD)/src/runme && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o runme $(RUNME).go); \
+	if test -f "$(SRCDIR)$(RUNME).go"; then \
+	  mkdir -p "$(GOPATHPARENTDIR)/swigtests/$(INTERFACE:.i=)"; \
+	  cp $(GOPATHDIR)/* "$(GOPATHPARENTDIR)/swigtests/$(INTERFACE:.i=)/"; \
+	  (cd "$(GOPATHPARENTDIR)/runme" && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o runme $(RUNME).go); \
 	  stat=$$?; \
-	  if test $$stat != 0; then \
+	  if test $$stat -ne 0; then \
 	    exit $$stat; \
 	  fi; \
-	  cp gopath/$(GOMOD)/src/runme/runme $(RUNME); \
+	  cp "$(GOPATHPARENTDIR)/runme/runme" "$(RUNME)"; \
 	fi
 
 # ----------------------------------------------------------------
@@ -495,58 +502,65 @@ go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
 # ----------------------------------------------------------------
 
 go_cpp: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
+	mkdir -p "$(GOPATHDIR)"
 	$(SWIG) -go -c++ -import-prefix swigtests $(GOOPT) $(GOSWIGARG) $(SWIGOPT) -o $(ICXXSRCS) $(INTERFACEPATH)
-	@mkdir gopath 2>/dev/null || true
-	@mkdir gopath/$(GOMOD) 2>/dev/null || true
-	@mkdir gopath/$(GOMOD)/src 2>/dev/null || true
-	@mkdir $(GOPATHDIR) 2>/dev/null || true
 	rm -rf $(GOPATHDIR)/*
-	cp $(ICXXSRCS) $(GOPATHDIR)/
-	if test -f $(IWRAP:.i=.h); then \
-	  cp $(IWRAP:.i=.h) $(GOPATHDIR)/; \
+	cp "$(ICXXSRCS)" "$(GOPATHDIR)/"
+	if test -f "$(IWRAP:.i=.h)"; then \
+	  cp "$(IWRAP:.i=.h)" "$(GOPATHDIR)/"; \
 	fi
 	if test -n "$(SRCDIR_CXXSRCS)"; then \
-	  cp $(SRCDIR_CXXSRCS) $(GOPATHDIR)/; \
+	  cp "$(SRCDIR_CXXSRCS)" "$(GOPATHDIR)/"; \
 	fi
 	if test -n "$(SRCDIR_SRCS)"; then \
-	  cp $(SRCDIR_SRCS) $(GOPATHDIR)/; \
+	  cp "$(SRCDIR_SRCS)" "$(GOPATHDIR)/"; \
 	fi
-	cp $(GOSRCS) $(GOPATHDIR)/
-	@if test -f $(SRCDIR)$(RUNME).go; then \
-	  mkdir gopath/$(GOMOD)/src/runme 2>/dev/null || true; \
-	  rm -f gopath/$(GOMOD)/src/runme/*; \
+	cp $(GOSRCS) "$(GOPATHDIR)/"
+	if test -f "$(SRCDIR)$(RUNME).go"; then \
+	  mkdir -p "$(GOPATHPARENTDIR)/runme"; \
+	  rm -f $(GOPATHPARENTDIR)/runme/*; \
 	fi
-	if test -f $(SRCDIR)$(RUNME).go; then \
-	  cp $(SRCDIR)$(RUNME).go gopath/$(GOMOD)/src/runme/; \
+	if test -f "$(SRCDIR)$(RUNME).go"; then \
+	  cp "$(SRCDIR)$(RUNME).go" "$(GOPATHPARENTDIR)/runme/"; \
 	fi
 	GOPATH=`pwd`/gopath/$(GOMOD); \
-	export GOPATH; \
-	CGO_CPPFLAGS="$(CPPFLAGS) $(INCLUDES) -I `cd $(SRCDIR) && pwd` -I `pwd`"; \
-	export CGO_CPPFLAGS; \
-	CGO_CFLAGS="$(CFLAGS)"; \
-	export CGO_CFLAGS; \
-	CGO_CXXFLAGS="$(CXXFLAGS)"; \
-	export CGO_CXXFLAGS; \
+	includes="$(INCLUDES) -I `pwd` "; \
+	if test -n '$(SRCDIR)'; then \
+	  includes="$$includes -I `cd '$(SRCDIR)' && pwd` "; \
+	fi; \
+	if test -n "$(GO_CYGPATH)"; then \
+	  n_includes=''; \
+	  includes="$$includes $(BOOST_CPPFLAGS)"; \
+	  for n in $${includes//-I}; do \
+	    if test -d "$$n"; then \
+	      n_includes="$$n_includes -I `$(GO_CYGPATH) -w $$n`"; \
+	    else \
+	      n_includes="$$n_includes $$n"; \
+	    fi; \
+	  done; \
+	  includes="$$n_includes"; \
+	fi; \
+	CGO_CPPFLAGS="$(CPPFLAGS) $$includes"; \
+	CGO_CXXFLAGS="$(CXXFLAGS) $$includes"; \
 	CGO_LDFLAGS="$(LDFLAGS)"; \
-	export CGO_LDFLAGS; \
-	(cd $(GOPATHDIR) && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
+	export GOPATH CGO_CXXFLAGS CGO_LDFLAGS; \
+	(cd "$(GOPATHDIR)" && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o $(GOPACKAGE)); \
 	stat=$$?; \
-	if test $$stat != 0; then \
+	if test $$stat -ne 0; then \
 	  exit $$stat; \
 	fi; \
 	if $(GOGCC); then \
-	  cp $(GOPATHDIR)/$(GOPACKAGE) $(GOPATHDIR)/$(GOPACKAGE:.a=.gox); \
+	  cp "$(GOPATHDIR)/$(GOPACKAGE)" "$(GOPATHDIR)/$(GOPACKAGE:.a=.gox)"; \
 	fi; \
-	if test -f $(SRCDIR)$(RUNME).go; then \
-	  mkdir gopath/$(GOMOD)/src/swigtests 2>/dev/null || true; \
-	  mkdir gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=) 2>/dev/null || true; \
-	  cp $(GOPATHDIR)/* gopath/$(GOMOD)/src/swigtests/$(INTERFACE:.i=)/; \
-	  (cd gopath/$(GOMOD)/src/runme && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o runme $(RUNME).go); \
+	if test -f "$(SRCDIR)$(RUNME).go"; then \
+	  mkdir -p "$(GOPATHPARENTDIR)/swigtests/$(INTERFACE:.i=)"; \
+	  cp $(GOPATHDIR)/* "$(GOPATHPARENTDIR)/swigtests/$(INTERFACE:.i=)/"; \
+	  (cd "$(GOPATHPARENTDIR)/runme" && $(COMPILETOOL) $(GO) build $(GOBUILDARG) -o runme $(RUNME).go); \
 	  stat=$$?; \
-	  if test $$stat != 0; then \
+	  if test $$stat -ne 0; then \
 	    exit $$stat; \
 	  fi; \
-	  cp gopath/$(GOMOD)/src/runme/runme $(RUNME); \
+	  cp "$(GOPATHPARENTDIR)/runme/runme" "$(RUNME)"; \
 	fi
 
 # -----------------------------------------------------------------
@@ -728,7 +742,6 @@ java_clean:
 # There is a common makefile, 'Examples/javascript/js_example.mk' to simplify
 # create a configuration for a new example.
 
-ROOT_DIR = @ROOT_DIR@
 JSINCLUDES = @JSCOREINC@ @JSV8INC@
 JSDYNAMICLINKING = @JSCOREDYNAMICLINKING@ @JSV8DYNAMICLINKING@
 NODEJS = @NODEJS@

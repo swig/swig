@@ -844,6 +844,12 @@ else
   GCCGOOPT=
   GOVERSIONOPTION=
   GOMINVER='1.20'
+  case $host in
+  *-*-cygwin* | *-*-mingw* | *-*-msys*)
+    AS_IF([test "$CYGPATH" != "false" ],
+        [AS_VAR_SET([GO_CYGPATH], ["$CYGPATH"])])
+    ;;
+  esac
 
   if test -n "$GO" ; then
     GOVERSIONOPTION=version
@@ -890,6 +896,7 @@ AC_SUBST(GOOPT)
 AC_SUBST(GCCGOOPT)
 AC_SUBST(GOVERSIONOPTION)
 AC_SUBST(GOMINVER)
+AC_SUBST(GO_CYGPATH)
 
 #----------------------------------------------------------------
 # Look for Guile
