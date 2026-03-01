@@ -408,6 +408,7 @@ GCCGO = @GCCGO@
 GOOPT = @GOOPT@
 GCCGOOPT = @GCCGOOPT@
 GOVERSIONOPTION = @GOVERSIONOPTION@
+GOMINVER = @GOMINVER@
 
 ifneq (false, $(GOGCC))
 GOSWIGARG = -gccgo
@@ -436,7 +437,7 @@ $(GOPATHPARENTDIR)/go.mod:
 	@mkdir $(GOPATHDIR) 2>/dev/null || true
 	echo "module swigtests" > $(GOPATHDIR)/go.mod
 	echo "" >> $(GOPATHDIR)/go.mod
-	echo "go 1.20" >> $(GOPATHDIR)/go.mod
+	echo "go $(GOMINVER)" >> $(GOPATHDIR)/go.mod
 	mv -f $(GOPATHDIR)/go.mod $(GOPATHPARENTDIR)/go.mod
 
 go: $(SRCDIR_SRCS) $(GOPATHPARENTDIR)/go.mod
