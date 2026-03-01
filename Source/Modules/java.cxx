@@ -1075,7 +1075,18 @@ public:
     // Now write code to make the function call
     if (!native_function_flag) {
 
-      Swig_director_emit_dynamic_cast(n, f);
+      if (Swig_director_emit_dynamic_cast(n, f)) {
+	/* Add protection */
+	Append(f->code, "if(!darg) {\n");
+	Append(f->code, "  if (!jenv->ExceptionCheck()) {\n");
+	Append(f->code, "    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, \"'self' is not a director\");\n");
+	Append(f->code, "  }\n");
+	if (is_void_return)
+	  Append(f->code, "  return;\n");
+	else
+	  Append(f->code, "  return jresult;\n");
+	Append(f->code, "}\n");
+      }
       String *actioncode = emit_action(n);
 
       // Handle exception classes specified in the "except" feature's "throws" attribute

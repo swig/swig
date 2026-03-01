@@ -710,6 +710,7 @@ public:
 
     /* Add director upcall check after arguments are parsed */
     if (director_method) {
+      Append(f->code, "try {\n");
       Append(f->code, "director = SWIG_DIRECTOR_CAST(arg1);\n");
       Append(f->code, "upcall = (director && director->swig_is_upcall_active());\n");
     }
@@ -767,10 +768,21 @@ public:
     Setattr(n, "wrap:name", wname);
 
     /* Emit director dynamic cast for protected/non-public member access */
-    Swig_director_emit_dynamic_cast(n, f);
+    if (Swig_director_emit_dynamic_cast(n, f)) {
+      /* Add protection */
+      Append(f->code, "if(!darg) {\n");
+      Append(f->code, "  Swig::DirectorMethodException::raise(\"'self' is not a director\");\n");
+      Append(f->code, "}\n");
+    }
 
     /* Emit the function call */
     String *actioncode = emit_action(n);
+    if (director_method) {
+      Append(actioncode, "} catch (Swig::DirectorException &e) {\n");
+      Append(actioncode, "  SWIG_Lua_pusherrstring(L, e.what());\n");
+      Append(actioncode, "  SWIG_fail;\n");
+      Append(actioncode, "}\n");
+    }
 
     /* NEW LANGUAGE NOTE:***********************************************
        FIXME:

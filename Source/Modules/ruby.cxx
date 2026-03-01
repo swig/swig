@@ -1809,6 +1809,7 @@ public:
     director_method = is_member_director(n) && !is_smart_pointer() && !destructor;
     if (director_method) {
       Wrapper_add_local(f, "director", "Swig::Director *director = 0");
+      Append(f->code, "try {\n");
       Printf(f->code, "director = dynamic_cast<Swig::Director *>(arg1);\n");
       Wrapper_add_local(f, "upcall", "bool upcall = false");
       Append(f->code, "upcall = (director && (director->swig_get_self() == self));\n");
@@ -1840,14 +1841,15 @@ public:
 	}
       }
 
-      /* Emit the function call */
-      if (director_method) {
-	Printf(f->code, "try {\n");
-      }
-
       Setattr(n, "wrap:name", wname);
 
-      Swig_director_emit_dynamic_cast(n, f);
+      /* Emit the function call */
+      if (Swig_director_emit_dynamic_cast(n, f)) {
+	/* Add protection */
+	Append(f->code, "if(!darg) {\n");
+	Append(f->code, "  Swig::DirectorMethodException::raise(rb_str_new2(\"'self' is not a director\"));\n");
+	Append(f->code, "}\n");
+      }
       String *actioncode = emit_action(n);
 
       if (director_method) {

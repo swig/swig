@@ -199,7 +199,7 @@ String *Swig_method_decl(SwigType *return_base_type, SwigType *decl, const_Strin
  * Also for non-static protected members when the allprotected option is on.
  * ----------------------------------------------------------------------------- */
 
-void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
+bool Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
   // TODO: why is the storage element removed in staticmemberfunctionHandler ??
   if ((!is_public(n) && (is_member_director(n) || GetFlag(n, "explicitcall"))) || 
       (is_non_virtual_protected_access(n) && !(Swig_storage_isstatic_custom(n, "staticmemberfunctionHandler:storage") || 
@@ -214,7 +214,9 @@ void Swig_director_emit_dynamic_cast(Node *n, Wrapper *f) {
     Printf(f->code, "darg = dynamic_cast<%s *>(arg1);\n", dirname);
     Delete(dirname);
     Delete(dirdecl);
+    return true;
   }
+  return false;
 }
 
 /* -----------------------------------------------------------------------------

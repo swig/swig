@@ -816,18 +816,21 @@ public:
 	Printf(f->code, "SWIG_exception_fail(SWIG_RuntimeError, \"accessing protected member %s\");\n", name);
 	Append(f->code, "}\n");
       }
+      Append(f->code, "try {\n");
       Wrapper_add_local(f, "upcall", "bool upcall = false");
       Printf(f->code, "upcall = director && SvSTASH(SvRV(ST(0))) == gv_stashpv(director->swig_get_class(), 0);\n");
     }
 
     /* Emit the function call */
-    if (director_method) {
-      Append(f->code, "try {\n");
+    if (Swig_director_emit_dynamic_cast(n, f)) {
+      /* Add protection */
+      Append(f->code, "if(!darg) {\n");
+      Append(f->code, "  sv_setpv(ERRSV, \"'self' is not a director\");\n");
+      Append(f->code, "  Swig::DirectorMethodException::raise(ERRSV);\n");
+      Append(f->code, "}\n");
     }
 
     /* Now write code to make the function call */
-
-    Swig_director_emit_dynamic_cast(n, f);
     String *actioncode = emit_action(n);
 
     if (director_method) {
