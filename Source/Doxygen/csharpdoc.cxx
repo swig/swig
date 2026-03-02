@@ -87,7 +87,7 @@ public:
     if (m_output->length() > lenIndentLevel) {
       const size_t start = m_output->length() - lenIndentLevel;
       if (m_output->compare(start, string::npos, Level()) == 0)
-	m_output->erase(start);
+        m_output->erase(start);
     }
   }
 
@@ -178,11 +178,11 @@ static string padCodeAndVerbatimBlocks(const string &docString) {
       lastLineWasNonBlank = false;
     } else {
       if (lastLineWasNonBlank &&
-	  (line.compare(pos, 13, ".. code-block") == 0 ||
-	   line.compare(pos, 7, ".. math") == 0 ||
-	   line.compare(pos, 3, ">>>") == 0)) {
-	// Must separate code or math blocks from the previous line
-	result += '\n';
+          (line.compare(pos, 13, ".. code-block") == 0 ||
+           line.compare(pos, 7, ".. math") == 0 ||
+           line.compare(pos, 3, ">>>") == 0)) {
+        // Must separate code or math blocks from the previous line
+        result += '\n';
       }
       lastLineWasNonBlank = true;
     }
@@ -411,7 +411,7 @@ std::string CSharpDocConverter::getParamValue(std::string param) {
     if (pname && Char(pname) == param) {
       String *pval = Getattr(p, "value");
       if (pval)
-	value = Char(pval);
+        value = Char(pval);
       break;
     }
   }
@@ -602,12 +602,12 @@ void CSharpDocConverter::handleMath(DoxygenEntity &tag, std::string &translatedC
   if (start != std::string::npos) {
     for (size_t n = start; n <= end; n++) {
       if (formula[n] == '\n') {
-	// New lines must be suppressed in inline maths and indented in the block ones.
-	if (!inlineFormula)
-	  translatedComment += formulaNL;
+        // New lines must be suppressed in inline maths and indented in the block ones.
+        if (!inlineFormula)
+          translatedComment += formulaNL;
       } else {
-	// Just copy everything else.
-	translatedComment += formula[n];
+        // Just copy everything else.
+        translatedComment += formula[n];
       }
     }
   }
@@ -895,7 +895,7 @@ void CSharpDocConverter::handleDoxyHtmlTag_tr(DoxygenEntity &tag, std::string &t
     if (nlPos != string::npos) {
       size_t startOfTableLinePos = translatedComment.find_first_not_of(" \t", nlPos + 1);
       if (startOfTableLinePos != string::npos) {
-	m_tableLineLen = translatedComment.size() - startOfTableLinePos;
+        m_tableLineLen = translatedComment.size() - startOfTableLinePos;
       }
     }
   } else {
@@ -907,7 +907,7 @@ void CSharpDocConverter::handleDoxyHtmlTag_tr(DoxygenEntity &tag, std::string &t
       translatedComment += string(m_tableLineLen, '-') + '\n';
 
       if (nlPos != string::npos) {
-	translatedComment += string (numLeadingSpaces, ' ');
+        translatedComment += string (numLeadingSpaces, ' ');
       }
       m_prevRowIsTH = false;
     }

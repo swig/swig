@@ -140,14 +140,14 @@ static int element_size(char *c) {
       nparen = 1;
       c++;
       while (*c) {
-	if (*c == '(')
-	  nparen++;
-	if (*c == ')') {
-	  nparen--;
-	  if (nparen == 0)
-	    break;
-	}
-	c++;
+        if (*c == '(')
+          nparen++;
+        if (*c == ')') {
+          nparen--;
+          if (nparen == 0)
+            break;
+        }
+        c++;
       }
     }
     if (*c)
@@ -258,7 +258,7 @@ String *SwigType_parm(const SwigType *t) {
   while (*c) {
     if (*c == ')') {
       if (nparens == 0)
-	break;
+        break;
       nparens--;
     } else if (*c == '(') {
       nparens++;
@@ -339,14 +339,14 @@ List *SwigType_parmlist(const SwigType *p) {
       int nparens = 1;
       c++;
       while (*c) {
-	if (*c == '(')
-	  nparens++;
-	if (*c == ')') {
-	  nparens--;
-	  if (nparens == 0)
-	    break;
-	}
-	c++;
+        if (*c == '(')
+          nparens++;
+        if (*c == ')') {
+          nparens--;
+          if (nparens == 0)
+            break;
+        }
+        c++;
       }
     } else if (*c == ')') {
       break;
@@ -1094,11 +1094,11 @@ String *SwigType_templatesuffix(const SwigType *t) {
       int nest = 1;
       c++;
       while ((d > c) && nest) {
-	if (*c == '<' && *(c + 1) == '(')
-	  nest++;
-	if (*c == '>' && *(c - 1) == ')')
-	  nest--;
-	c++;
+        if (*c == '<' && *(c + 1) == '(')
+          nest++;
+        if (*c == '>' && *(c - 1) == ')')
+          nest--;
+        c++;
       }
       return NewString(c);
     }
@@ -1174,11 +1174,11 @@ String *SwigType_templateargs(const SwigType *t) {
       start = c;
       c++;
       while ((d > c) && nest) {
-	if (*c == '<' && *(c + 1) == '(')
-	  nest++;
-	if (*c == '>' && *(c - 1) == ')')
-	  nest--;
-	c++;
+        if (*c == '<' && *(c + 1) == '(')
+          nest++;
+        if (*c == '>' && *(c - 1) == ')')
+          nest--;
+        c++;
       }
       return NewStringWithSize(start, (int)(c - start));
     }
@@ -1219,7 +1219,7 @@ SwigType *SwigType_base(const SwigType *t) {
   while (*c) {
     if (*c == '.') {
       if (*(c + 1)) {
-	lastop = c + 1;
+        lastop = c + 1;
       }
       c++;
       continue;
@@ -1233,14 +1233,14 @@ SwigType *SwigType_base(const SwigType *t) {
       int nparen = 1;
       c++;
       while ((*c) && (nparen > 0)) {
-	if (*c == '(')
-	  nparen++;
-	else if (*c == ')')
-	  nparen--;
-	c++;
+        if (*c == '(')
+          nparen++;
+        else if (*c == ')')
+          nparen--;
+        c++;
       }
       if (nparen)
-	break;
+        break;
       continue;
     }
     c++;
@@ -1274,11 +1274,11 @@ String *SwigType_prefix(const SwigType *t) {
       d--;
       d--;
       while ((d > c) && (nest)) {
-	if (*d == '>' && *(d - 1) == ')')
-	  nest++;
-	if (*d == '<' && *(d + 1) == '(')
-	  nest--;
-	d--;
+        if (*d == '>' && *(d - 1) == ')')
+          nest++;
+        if (*d == '<' && *(d + 1) == '(')
+          nest--;
+        d--;
       }
     }
 
@@ -1287,11 +1287,11 @@ String *SwigType_prefix(const SwigType *t) {
       int nparen = 1;
       d--;
       while ((d > c) && (nparen)) {
-	if (*d == ')')
-	  nparen++;
-	if (*d == '(')
-	  nparen--;
-	d--;
+        if (*d == ')')
+          nparen++;
+        if (*d == '(')
+          nparen--;
+        d--;
       }
     }
 
@@ -1377,13 +1377,13 @@ SwigType *SwigType_strip_single_qualifier(const SwigType *t) {
     for (item = numitems - 2; item >= 0; --item) {
       String *subtype = Getitem(l, item);
       if (SwigType_isqualifier(subtype)) {
-	Iterator it;
-	Delitem(l, item);
-	r = NewStringEmpty();
-	for (it = First(l); it.item; it = Next(it)) {
-	  Append(r, it.item);
-	}
-	break;
+        Iterator it;
+        Delitem(l, item);
+        r = NewStringEmpty();
+        for (it = First(l); it.item; it = Next(it)) {
+          Append(r, it.item);
+        }
+        break;
       }
     }
   }

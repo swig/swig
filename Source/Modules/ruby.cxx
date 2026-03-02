@@ -206,13 +206,13 @@ private:
     char *c = Char(autodoc);
     if (c) {
       if (isdigit(c[0])) {
-	dlevel = (autodoc_l) atoi(c);
+        dlevel = (autodoc_l) atoi(c);
       } else {
-	if (strcmp(c, "extended") == 0) {
-	  dlevel = EXTEND_AUTODOC;
-	} else {
-	  dlevel = STRING_AUTODOC;
-	}
+        if (strcmp(c, "extended") == 0) {
+          dlevel = EXTEND_AUTODOC;
+        } else {
+          dlevel = STRING_AUTODOC;
+        }
       }
     }
     return dlevel;
@@ -249,8 +249,8 @@ private:
     if (have_ds) {
       char *t = Char(str);
       if (*t == '{') {
-	Delitem(str, 0);
-	Delitem(str, DOH_END);
+        Delitem(str, 0);
+        Delitem(str, DOH_END);
       }
     }
 
@@ -298,9 +298,9 @@ private:
     int i = arg_offset;
     while (p) {
       if (!Getattr(p, "lname")) {
-	String *name = makeParameterName(n, p, i);
-	Setattr(p, "lname", name);
-	Delete(name);
+        String *name = makeParameterName(n, p, i);
+        Setattr(p, "lname", name);
+        Delete(name);
       }
       i++;
       p = nextSibling(p);
@@ -336,12 +336,12 @@ private:
 
       String *tm = Getattr(p, "tmap:in");
       if (tm) {
-	pnext = Getattr(p, "tmap:in:next");
-	if (checkAttribute(p, "tmap:in:numinputs", "0")) {
-	  continue;
-	}
+        pnext = Getattr(p, "tmap:in:next");
+        if (checkAttribute(p, "tmap:in:numinputs", "0")) {
+          continue;
+        }
       } else {
-	pnext = nextSibling(p);
+        pnext = nextSibling(p);
       }
 
       String *name = 0;
@@ -349,67 +349,67 @@ private:
       String *value = 0;
       String *pdoc = Getattr(p, "tmap:doc");
       if (pdoc) {
-	name = Getattr(p, "tmap:doc:name");
-	type = Getattr(p, "tmap:doc:type");
-	value = Getattr(p, "tmap:doc:value");
+        name = Getattr(p, "tmap:doc:name");
+        type = Getattr(p, "tmap:doc:type");
+        value = Getattr(p, "tmap:doc:value");
       }
 
       // Note: the generated name should be consistent with that in kwnames[]
       String *made_name = 0;
       if (!name) {
-	name = made_name = makeParameterName(n, p, arg_num);
+        name = made_name = makeParameterName(n, p, arg_num);
       }
 
       type = type ? type : Getattr(p, "type");
       value = value ? value : Getattr(p, "value");
 
       if (SwigType_isvarargs(type))
-	break;
+        break;
 
       // Skip the 'self' parameter which in ruby is implicit
       if ( Cmp(name, "self") == 0 )
-	continue;
+        continue;
 
       // Make __p parameters just p (as used in STL)
       Replace( name, "__", "", DOH_REPLACE_FIRST );
 
       if (Len(doc)) {
-	// add a comma to the previous one if any
-	Append(doc, ", ");
+        // add a comma to the previous one if any
+        Append(doc, ", ");
 
-	// Do we need to wrap a long line?
-	if ((Len(doc) - lines * maxwidth) > maxwidth) {
-	  Printf(doc, "\n%s", tab4);
-	  lines += 1;
-	}
+        // Do we need to wrap a long line?
+        if ((Len(doc) - lines * maxwidth) > maxwidth) {
+          Printf(doc, "\n%s", tab4);
+          lines += 1;
+        }
       }
 
       // Do the param type too?
       Node *nn = classLookup(Getattr(p, "type"));
       String *type_str = nn ? Copy(Getattr(nn, "sym:name")) : SwigType_str(type, 0);
       if (showTypes)
-	Printf(doc, "%s ", type_str);
+        Printf(doc, "%s ", type_str);
 
       Append(doc, name);
       if (pdoc) {
-	if (!pdocs)
-	  pdocs = NewString("Parameters:\n");
-	Printf(pdocs, "    %s.\n", pdoc);
+        if (!pdocs)
+          pdocs = NewString("Parameters:\n");
+        Printf(pdocs, "    %s.\n", pdoc);
       }
 
       if (value) {
-	String *new_value = convertValue(value, Getattr(p, "numval"), Getattr(p, "stringval"), Getattr(p, "type"));
-	if (new_value) {
-	  value = new_value;
-	} else {
-	  Node *lookup = Swig_symbol_clookup(value, 0);
-	  if (lookup)
-	    value = Getattr(lookup, "sym:name");
-	}
-	Printf(doc, "=%s", value);
+        String *new_value = convertValue(value, Getattr(p, "numval"), Getattr(p, "stringval"), Getattr(p, "type"));
+        if (new_value) {
+          value = new_value;
+        } else {
+          Node *lookup = Swig_symbol_clookup(value, 0);
+          if (lookup)
+            value = Getattr(lookup, "sym:name");
+        }
+        Printf(doc, "=%s", value);
 
-	if (new_value)
-	  Delete(new_value);
+        if (new_value)
+          Delete(new_value);
       }
       Delete(type_str);
       Delete(made_name);
@@ -448,47 +448,47 @@ private:
       class_name = Copy(class_name);
       List *baselist = Getattr(pn, "bases");
       if (baselist && Len(baselist)) {
-	Iterator base = First(baselist);
-	while (base.item && GetFlag(base.item, "feature:ignore")) {
-	  base = Next(base);
-	}
+        Iterator base = First(baselist);
+        while (base.item && GetFlag(base.item, "feature:ignore")) {
+          base = Next(base);
+        }
 
-	int count = 0;
-	for ( ;base.item; ++count) {
-	  if ( count ) Append(super_names, ", ");
-	  String *basename = Getattr(base.item, "sym:name");
+        int count = 0;
+        for ( ;base.item; ++count) {
+          if ( count ) Append(super_names, ", ");
+          String *basename = Getattr(base.item, "sym:name");
 
-	  String* basenamestr = NewString(basename);
-	  Node* parent = parentNode(base.item);
-	  while (parent)
-	  {
-	    String *parent_name = Copy( Getattr(parent, "sym:name") );
-	    if ( !parent_name ) {
-	      Node* mod = Getattr(parent, "module");
-	      if ( mod )
-		parent_name = Copy( Getattr(mod, "name") );
-	      if ( parent_name )
-		(Char(parent_name))[0] = (char)toupper((Char(parent_name))[0]);
-	    }
-	    if ( parent_name ) {
-	      Insert(basenamestr, 0, "::");
-	      Insert(basenamestr, 0, parent_name);
-	      Delete(parent_name);
-	    }
-	    parent = parentNode(parent);
-	  }
+          String* basenamestr = NewString(basename);
+          Node* parent = parentNode(base.item);
+          while (parent)
+          {
+            String *parent_name = Copy( Getattr(parent, "sym:name") );
+            if ( !parent_name ) {
+              Node* mod = Getattr(parent, "module");
+              if ( mod )
+                parent_name = Copy( Getattr(mod, "name") );
+              if ( parent_name )
+                (Char(parent_name))[0] = (char)toupper((Char(parent_name))[0]);
+            }
+            if ( parent_name ) {
+              Insert(basenamestr, 0, "::");
+              Insert(basenamestr, 0, parent_name);
+              Delete(parent_name);
+            }
+            parent = parentNode(parent);
+          }
 
-	  Append(super_names, basenamestr );
-	  Delete(basenamestr);
-	  base = Next(base);
-	}
+          Append(super_names, basenamestr );
+          Delete(basenamestr);
+          base = Next(base);
+        }
       }
     }
     String* full_name;
     if ( module ) {
       full_name = NewString(module);
       if (Len(class_name) > 0)
-       	Append(full_name, "::");
+        Append(full_name, "::");
     }
     else
       full_name = NewString("");
@@ -530,167 +530,167 @@ private:
       autodoc_l dlevel = autodoc_level(autodoc);
       switch (dlevel) {
       case NO_AUTODOC:
-	break;
+        break;
       case NAMES_AUTODOC:
-	showTypes = false;
-	break;
+        showTypes = false;
+        break;
       case TYPES_AUTODOC:
-	showTypes = true;
-	break;
+        showTypes = true;
+        break;
       case EXTEND_AUTODOC:
-	extended = 1;
-	showTypes = false;
-	break;
+        extended = 1;
+        showTypes = false;
+        break;
       case EXTEND_TYPES_AUTODOC:
-	extended = 1;
-	showTypes = true;
-	break;
+        extended = 1;
+        showTypes = true;
+        break;
       case STRING_AUTODOC:
-	skipAuto = true;
-	break;
+        skipAuto = true;
+        break;
       }
 
       SwigType *type = Getattr(n, "type");
 
       if (type) {
-	if (Strcmp(type, "void") == 0) {
-	  type_str = NULL;
-	} else {
-	  SwigType *qt = SwigType_typedef_resolve_all(type);
-	  if (SwigType_isenum(qt)) {
-	    type_str = NewString("int");
-	  } else {
-	    Node *nn = classLookup(type);
-	    type_str = nn ? Copy(Getattr(nn, "sym:name")) : SwigType_str(type, 0);
-	  }
-	}
+        if (Strcmp(type, "void") == 0) {
+          type_str = NULL;
+        } else {
+          SwigType *qt = SwigType_typedef_resolve_all(type);
+          if (SwigType_isenum(qt)) {
+            type_str = NewString("int");
+          } else {
+            Node *nn = classLookup(type);
+            type_str = nn ? Copy(Getattr(nn, "sym:name")) : SwigType_str(type, 0);
+          }
+        }
       }
 
       if (counter == 0) {
-	switch (ad_type) {
-	case AUTODOC_CLASS:
-	  Printf(doc, "  Document-class: %s", full_name);
-	  if ( Len(super_names) > 0 )
-	    Printf( doc, " < %s", super_names);
-	  Append(doc, "\n\n");
-	  break;
-	case AUTODOC_CTOR:
- 	  Printf(doc, "  Document-method: %s.new\n\n", full_name);
-	  break;
+        switch (ad_type) {
+        case AUTODOC_CLASS:
+          Printf(doc, "  Document-class: %s", full_name);
+          if ( Len(super_names) > 0 )
+            Printf( doc, " < %s", super_names);
+          Append(doc, "\n\n");
+          break;
+        case AUTODOC_CTOR:
+          Printf(doc, "  Document-method: %s.new\n\n", full_name);
+          break;
 
-	case AUTODOC_DTOR:
-	  break;
+        case AUTODOC_DTOR:
+          break;
 
-	case AUTODOC_STATICFUNC:
- 	  Printf(doc, "  Document-method: %s.%s\n\n", full_name, symname);
-	  break;
+        case AUTODOC_STATICFUNC:
+          Printf(doc, "  Document-method: %s.%s\n\n", full_name, symname);
+          break;
 
-	case AUTODOC_FUNC:
-	case AUTODOC_METHOD:
-	case AUTODOC_GETTER:
- 	  Printf(doc, "  Document-method: %s.%s\n\n", full_name, symname);
-	  break;
-	case AUTODOC_SETTER:
- 	  Printf(doc, "  Document-method: %s.%s=\n\n", full_name, symname);
-	  break;
-	case AUTODOC_NONE:
-	  break;
-	}
+        case AUTODOC_FUNC:
+        case AUTODOC_METHOD:
+        case AUTODOC_GETTER:
+          Printf(doc, "  Document-method: %s.%s\n\n", full_name, symname);
+          break;
+        case AUTODOC_SETTER:
+          Printf(doc, "  Document-method: %s.%s=\n\n", full_name, symname);
+          break;
+        case AUTODOC_NONE:
+          break;
+        }
       }
 
       if (skipAuto) {
-	if ( counter == 0 ) Printf(doc, "  call-seq:\n");
-	switch( ad_type )
-	  {
-	  case AUTODOC_STATICFUNC:
-	  case AUTODOC_FUNC:
-	  case AUTODOC_METHOD:
-	  case AUTODOC_GETTER:
-	    {
-	      String *paramList = make_autodocParmList(n, showTypes);
-	      if (Len(paramList))
-		Printf(doc, "    %s(%s)", symname, paramList);
-	      else
-		Printf(doc, "    %s", symname);
-	      if (type_str)
-		Printf(doc, " -> %s", type_str);
-	      break;
-	    }
-	  case AUTODOC_SETTER:
-	    {
-	      Printf(doc, "    %s=(x)", symname);
-	      if (type_str)
-	       	Printf(doc, " -> %s", type_str);
-	      break;
-	    }
-	  default:
-	    break;
-	  }
+        if ( counter == 0 ) Printf(doc, "  call-seq:\n");
+        switch( ad_type )
+          {
+          case AUTODOC_STATICFUNC:
+          case AUTODOC_FUNC:
+          case AUTODOC_METHOD:
+          case AUTODOC_GETTER:
+            {
+              String *paramList = make_autodocParmList(n, showTypes);
+              if (Len(paramList))
+                Printf(doc, "    %s(%s)", symname, paramList);
+              else
+                Printf(doc, "    %s", symname);
+              if (type_str)
+                Printf(doc, " -> %s", type_str);
+              break;
+            }
+          case AUTODOC_SETTER:
+            {
+              Printf(doc, "    %s=(x)", symname);
+              if (type_str)
+                Printf(doc, " -> %s", type_str);
+              break;
+            }
+          default:
+            break;
+          }
       } else {
-	switch (ad_type) {
-	case AUTODOC_CLASS:
-	  {
-	    // Only do the autodoc if there isn't a docstring for the class
-	    String *str = Getattr(n, "feature:docstring");
-	    if (counter == 0 && (str == 0 || Len(str) == 0)) {
-	      if (CPlusPlus) {
-		Printf(doc, "  Proxy of C++ %s class", full_name);
-	      } else {
-		Printf(doc, "  Proxy of C %s struct", full_name);
-	      }
-	    }
-	  }
-	  break;
-	case AUTODOC_CTOR:
-	  if (counter == 0)
-	    Printf(doc, "  call-seq:\n");
-	  if (Strcmp(class_name, symname) == 0) {
-	    String *paramList = make_autodocParmList(n, showTypes);
-	    if (Len(paramList))
-	      Printf(doc, "    %s.new(%s)", class_name, paramList);
-	    else
-	      Printf(doc, "    %s.new", class_name);
-	  } else {
-	    Printf(doc, "    %s.new(%s)", class_name, make_autodocParmList(n, showTypes));
-	  }
-	  break;
+        switch (ad_type) {
+        case AUTODOC_CLASS:
+          {
+            // Only do the autodoc if there isn't a docstring for the class
+            String *str = Getattr(n, "feature:docstring");
+            if (counter == 0 && (str == 0 || Len(str) == 0)) {
+              if (CPlusPlus) {
+                Printf(doc, "  Proxy of C++ %s class", full_name);
+              } else {
+                Printf(doc, "  Proxy of C %s struct", full_name);
+              }
+            }
+          }
+          break;
+        case AUTODOC_CTOR:
+          if (counter == 0)
+            Printf(doc, "  call-seq:\n");
+          if (Strcmp(class_name, symname) == 0) {
+            String *paramList = make_autodocParmList(n, showTypes);
+            if (Len(paramList))
+              Printf(doc, "    %s.new(%s)", class_name, paramList);
+            else
+              Printf(doc, "    %s.new", class_name);
+          } else {
+            Printf(doc, "    %s.new(%s)", class_name, make_autodocParmList(n, showTypes));
+          }
+          break;
 
-	case AUTODOC_DTOR:
-	  break;
+        case AUTODOC_DTOR:
+          break;
 
-	case AUTODOC_STATICFUNC:
-	case AUTODOC_FUNC:
-	case AUTODOC_METHOD:
-	case AUTODOC_GETTER:
-	  {
-	    if (counter == 0)
-	      Printf(doc, "  call-seq:\n");
-	    String *paramList = make_autodocParmList(n, showTypes);
-	    if (Len(paramList))
-	      Printf(doc, "    %s(%s)", symname, paramList);
-	    else
-	      Printf(doc, "    %s", symname);
-	    if (type_str)
-	      Printf(doc, " -> %s", type_str);
-	    break;
-	  }
-	case AUTODOC_SETTER:
-	  {
-	    Printf(doc, "  call-seq:\n");
-	    Printf(doc, "    %s=(x)", symname);
-	    if (type_str)
-	      Printf(doc, " -> %s", type_str);
-	    break;
-	  }
-	case AUTODOC_NONE:
-	  break;
-	}
+        case AUTODOC_STATICFUNC:
+        case AUTODOC_FUNC:
+        case AUTODOC_METHOD:
+        case AUTODOC_GETTER:
+          {
+            if (counter == 0)
+              Printf(doc, "  call-seq:\n");
+            String *paramList = make_autodocParmList(n, showTypes);
+            if (Len(paramList))
+              Printf(doc, "    %s(%s)", symname, paramList);
+            else
+              Printf(doc, "    %s", symname);
+            if (type_str)
+              Printf(doc, " -> %s", type_str);
+            break;
+          }
+        case AUTODOC_SETTER:
+          {
+            Printf(doc, "  call-seq:\n");
+            Printf(doc, "    %s=(x)", symname);
+            if (type_str)
+              Printf(doc, " -> %s", type_str);
+            break;
+          }
+        case AUTODOC_NONE:
+          break;
+        }
       }
 
       // if it's overloaded then get the next decl and loop around again
       n = Getattr(n, "sym:nextSibling");
       if (n)
-	Append(doc, "\n");
+        Append(doc, "\n");
       Delete(type_str);
     }
 
@@ -699,27 +699,27 @@ private:
       switch (ad_type) {
       case AUTODOC_CLASS:
       case AUTODOC_DTOR:
-	break;
+        break;
       case AUTODOC_CTOR:
-	Printf(doc, "Class constructor.\n");
-	break;
+        Printf(doc, "Class constructor.\n");
+        break;
       case AUTODOC_STATICFUNC:
-	Printf(doc, "A class method.\n");
-	break;
+        Printf(doc, "A class method.\n");
+        break;
       case AUTODOC_FUNC:
-	Printf(doc, "A module function.\n");
-	break;
+        Printf(doc, "A module function.\n");
+        break;
       case AUTODOC_METHOD:
-	Printf(doc, "An instance method.\n");
-	break;
+        Printf(doc, "An instance method.\n");
+        break;
       case AUTODOC_GETTER:
-	Printf(doc, "Get value of attribute.\n");
-	break;
+        Printf(doc, "Get value of attribute.\n");
+        break;
       case AUTODOC_SETTER:
-	Printf(doc, "Set new value for attribute.\n");
-	break;
+        Printf(doc, "Set new value for attribute.\n");
+        break;
       case AUTODOC_NONE:
-	break;
+        break;
       }
     }
 
@@ -733,27 +733,27 @@ private:
       case NO_AUTODOC:
       case NAMES_AUTODOC:
       case TYPES_AUTODOC:
-	extended = 0;
-	break;
+        extended = 0;
+        break;
       case STRING_AUTODOC:
-	extended = 2;
-	Replaceall( autodoc, "$class", class_name );
-	Printv(doc, autodoc, ".", NIL);
-	break;
+        extended = 2;
+        Replaceall( autodoc, "$class", class_name );
+        Printv(doc, autodoc, ".", NIL);
+        break;
       case EXTEND_AUTODOC:
       case EXTEND_TYPES_AUTODOC:
-	extended = 1;
-	break;
+        extended = 1;
+        break;
       }
 
 
       if (extended) {
-	String *pdocs = Getattr(n, "feature:pdocs");
-	if (pdocs) {
-	  Printv(doc, "\n\n", pdocs, NULL);
-	  break;
-	}
-	if ( extended == 2 ) break;
+        String *pdocs = Getattr(n, "feature:pdocs");
+        if (pdocs) {
+          Printv(doc, "\n\n", pdocs, NULL);
+          break;
+        }
+        if ( extended == 2 ) break;
       }
       n = Getattr(n, "sym:nextSibling");
     }
@@ -779,27 +779,27 @@ private:
       SwigType *resolved_type = SwigType_typedef_resolve_all(type);
       SwigType *unqualified_type = NIL;
       if (SwigType_isreference(resolved_type)) {
-	  SwigType *t = Copy(resolved_type);
-	  t = SwigType_del_reference(t);
-	  unqualified_type = SwigType_strip_qualifiers(t);
-	  Delete(t);
+          SwigType *t = Copy(resolved_type);
+          t = SwigType_del_reference(t);
+          unqualified_type = SwigType_strip_qualifiers(t);
+          Delete(t);
       } else {
-	  unqualified_type = SwigType_strip_qualifiers(resolved_type);
+          unqualified_type = SwigType_strip_qualifiers(resolved_type);
       }
       if (Equal(unqualified_type, "bool")) {
-	Delete(resolved_type);
-	Delete(unqualified_type);
-	return NewString(*Char(numval) == '0' ? "false" : "true");
+        Delete(resolved_type);
+        Delete(unqualified_type);
+        return NewString(*Char(numval) == '0' ? "false" : "true");
       }
       Delete(resolved_type);
       Delete(unqualified_type);
       if (SwigType_ispointer(type) && Equal(v, "0"))
-	return NewString("None");
+        return NewString("None");
       return Copy(v);
     }
     if (v && Len(v) > 0) {
       if (Equal(v, "NULL") || Equal(v, "nullptr"))
-	return SwigType_ispointer(type) ? NewString("nil") : NewString("0");
+        return SwigType_ispointer(type) ? NewString("nil") : NewString("0");
     }
     return 0;
   }
@@ -860,49 +860,49 @@ public:
     /* Look for certain command line options */
     for (int i = 1; i < argc; i++) {
       if (argv[i]) {
-	if (strcmp(argv[i], "-initname") == 0) {
-	  if (argv[i + 1]) {
-	    char *name = argv[i + 1];
-	    feature = NewString(name);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if (strcmp(argv[i], "-globalmodule") == 0) {
-	  useGlobalModule = true;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-minherit") == 0) {
-	  multipleInheritance = true;
-	  director_multiple_inheritance = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-autorename") == 0) {
-	  autorename = 1;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-noautorename") == 0) {
-	  autorename = 0;
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-prefix") == 0) {
-	  if (argv[i + 1]) {
-	    char *name = argv[i + 1];
-	    prefix = NewString(name);
-	    Swig_mark_arg(i);
-	    Swig_mark_arg(i + 1);
-	    i++;
-	  } else {
-	    Swig_arg_error();
-	  }
-	} else if (strcmp(argv[i], "-help") == 0) {
-	  Printf(stdout, "%s", usage);
-	} else if (strcmp(argv[i], "-cppcast") == 0) {
-	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nocppcast") == 0) {
-	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
-	  Swig_mark_arg(i);
-	  Exit(EXIT_FAILURE);
-	}
+        if (strcmp(argv[i], "-initname") == 0) {
+          if (argv[i + 1]) {
+            char *name = argv[i + 1];
+            feature = NewString(name);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if (strcmp(argv[i], "-globalmodule") == 0) {
+          useGlobalModule = true;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-minherit") == 0) {
+          multipleInheritance = true;
+          director_multiple_inheritance = 1;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-autorename") == 0) {
+          autorename = 1;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-noautorename") == 0) {
+          autorename = 0;
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-prefix") == 0) {
+          if (argv[i + 1]) {
+            char *name = argv[i + 1];
+            prefix = NewString(name);
+            Swig_mark_arg(i);
+            Swig_mark_arg(i + 1);
+            i++;
+          } else {
+            Swig_arg_error();
+          }
+        } else if (strcmp(argv[i], "-help") == 0) {
+          Printf(stdout, "%s", usage);
+        } else if (strcmp(argv[i], "-cppcast") == 0) {
+          Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-nocppcast") == 0) {
+          Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
+          Swig_mark_arg(i);
+          Exit(EXIT_FAILURE);
+        }
       }
     }
 
@@ -929,15 +929,15 @@ public:
       Iterator m;
       m = First(modules);
       while (m.item) {
-	if (Len(m.item) > 0) {
-	  if (mv != 0) {
-	    Printv(f_init, tab4, modvar, " = rb_define_module_under(", modvar, ", \"", m.item, "\");\n", NIL);
-	  } else {
-	    Printv(f_init, tab4, modvar, " = rb_define_module(\"", m.item, "\");\n", NIL);
-	    mv = NewString(modvar);
-	  }
-	}
-	m = Next(m);
+        if (Len(m.item) > 0) {
+          if (mv != 0) {
+            Printv(f_init, tab4, modvar, " = rb_define_module_under(", modvar, ", \"", m.item, "\");\n", NIL);
+          } else {
+            Printv(f_init, tab4, modvar, " = rb_define_module(\"", m.item, "\");\n", NIL);
+            mv = NewString(modvar);
+          }
+        }
+        m = Next(m);
       }
       Delete(mv);
       Delete(modules);
@@ -1009,20 +1009,20 @@ public:
     if (swigModule) {
       Node *options = Getattr(swigModule, "options");
       if (options) {
-	if (Getattr(options, "directors")) {
-	  allow_directors();
-	}
-	if (Getattr(options, "dirprot")) {
-	  allow_dirprot();
-	}
-	if (Getattr(options, "ruby_globalmodule")) {
-	  useGlobalModule = true;
-	}
-	if (Getattr(options, "ruby_minherit")) {
-	  multipleInheritance = true;
-	  director_multiple_inheritance = 1;
-	}
-	mod_docstring = Getattr(options, "docstring");
+        if (Getattr(options, "directors")) {
+          allow_directors();
+        }
+        if (Getattr(options, "dirprot")) {
+          allow_dirprot();
+        }
+        if (Getattr(options, "ruby_globalmodule")) {
+          useGlobalModule = true;
+        }
+        if (Getattr(options, "ruby_minherit")) {
+          multipleInheritance = true;
+          director_multiple_inheritance = 1;
+        }
+        mod_docstring = Getattr(options, "docstring");
       }
     }
 
@@ -1063,8 +1063,8 @@ public:
       }
       f_runtime_h = NewFile(outfile_h, "w", SWIG_output_files());
       if (!f_runtime_h) {
-	FileErrorDisplay(outfile_h);
-	Exit(EXIT_FAILURE);
+        FileErrorDisplay(outfile_h);
+        Exit(EXIT_FAILURE);
       }
     }
 
@@ -1127,9 +1127,9 @@ public:
       Printf(f_directors, " * C++ director class methods\n");
       Printf(f_directors, " * --------------------------------------------------- */\n\n");
       if (outfile_h) {
-	String *filename = Swig_file_filename(outfile_h);
-	Printf(f_directors, "#include \"%s\"\n\n", filename);
-	Delete(filename);
+        String *filename = Swig_file_filename(outfile_h);
+        Printf(f_directors, "#include \"%s\"\n\n", filename);
+        Delete(filename);
       }
 
       Delete(module_macro);
@@ -1140,7 +1140,7 @@ public:
 
     if (mod_docstring) {
       if (Len(mod_docstring)) {
-	Printf(f_header, "/*\n  Document-module: %s\n\n%s\n*/\n", module, mod_docstring);
+        Printf(f_header, "/*\n  Document-module: %s\n\n%s\n*/\n", module, mod_docstring);
       }
       Delete(mod_docstring);
       mod_docstring = NULL;
@@ -1213,26 +1213,26 @@ public:
     String *modname = Getattr(n, "module");
     if (modname) {
       if (prefix) {
-	Insert(modname, 0, prefix);
+        Insert(modname, 0, prefix);
       }
 
       List *modules = Split(modname, ':', INT_MAX);
       if (modules && Len(modules) > 0) {
-	modname = NewString("");
-	String *last = NULL;
-	Iterator m = First(modules);
-	while (m.item) {
-	  if (Len(m.item) > 0) {
-	    if (last) {
-	      Append(modname, "/");
-	    }
-	    Append(modname, m.item);
-	    last = m.item;
-	  }
-	  m = Next(m);
-	}
-	Printf(f_init, "rb_require(\"%s\");\n", modname);
-	Delete(modname);
+        modname = NewString("");
+        String *last = NULL;
+        Iterator m = First(modules);
+        while (m.item) {
+          if (Len(m.item) > 0) {
+            if (last) {
+              Append(modname, "/");
+            }
+            Append(modname, m.item);
+            last = m.item;
+          }
+          m = Next(m);
+        }
+        Printf(f_init, "rb_require(\"%s\");\n", modname);
+        Delete(modname);
       }
       Delete(modules);
     }
@@ -1253,33 +1253,33 @@ public:
       module = NewString("");
 
       if (prefix) {
-	Insert(mod_name, 0, prefix);
+        Insert(mod_name, 0, prefix);
       }
 
       /* Account for nested modules */
       List *modules = Split(mod_name, ':', INT_MAX);
       if (modules != 0 && Len(modules) > 0) {
-	String *last = 0;
-	Iterator m = First(modules);
-	while (m.item) {
-	  if (Len(m.item) > 0) {
-	    String *cap = NewString(m.item);
-	    (Char(cap))[0] = (char)toupper((Char(cap))[0]);
-	    if (last != 0) {
-	      Append(module, "::");
-	    }
-	    Append(module, cap);
-	    last = m.item;
-	  }
-	  m = Next(m);
-	}
-	if (last) {
-	  if (feature == 0) {
-	    feature = Copy(last);
-	  }
-	  (Char(last))[0] = (char)toupper((Char(last))[0]);
-	  modvar = NewStringf("m%s", last);
-	}
+        String *last = 0;
+        Iterator m = First(modules);
+        while (m.item) {
+          if (Len(m.item) > 0) {
+            String *cap = NewString(m.item);
+            (Char(cap))[0] = (char)toupper((Char(cap))[0]);
+            if (last != 0) {
+              Append(module, "::");
+            }
+            Append(module, cap);
+            last = m.item;
+          }
+          m = Next(m);
+        }
+        if (last) {
+          if (feature == 0) {
+            feature = Copy(last);
+          }
+          (Char(last))[0] = (char)toupper((Char(last))[0]);
+          modvar = NewStringf("m%s", last);
+        }
       }
       Delete(modules);
     }
@@ -1303,23 +1303,23 @@ public:
     if (aliasv) {
       List *aliases = Split(aliasv, ',', INT_MAX);
       if (aliases && Len(aliases) > 0) {
-	Iterator alias = First(aliases);
-	while (alias.item) {
-	  if (Len(alias.item) > 0) {
-	    if (current == NO_CPP) {
-	      if (useGlobalModule) {
-	        Printv(f_init, tab4, "rb_define_alias(rb_cObject, \"", alias.item, "\", \"", iname, "\");\n", NIL);
-	      } else {
-	        Printv(f_init, tab4, "rb_define_alias(rb_singleton_class(", modvar, "), \"", alias.item, "\", \"", iname, "\");\n", NIL);
-	      }
-	    } else if (multipleInheritance) {
-	      Printv(klass->init, tab4, "rb_define_alias(", klass->mImpl, ", \"", alias.item, "\", \"", iname, "\");\n", NIL);
-	    } else {
-	      Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias.item, "\", \"", iname, "\");\n", NIL);
-	    }
-	  }
-	  alias = Next(alias);
-	}
+        Iterator alias = First(aliases);
+        while (alias.item) {
+          if (Len(alias.item) > 0) {
+            if (current == NO_CPP) {
+              if (useGlobalModule) {
+                Printv(f_init, tab4, "rb_define_alias(rb_cObject, \"", alias.item, "\", \"", iname, "\");\n", NIL);
+              } else {
+                Printv(f_init, tab4, "rb_define_alias(rb_singleton_class(", modvar, "), \"", alias.item, "\", \"", iname, "\");\n", NIL);
+              }
+            } else if (multipleInheritance) {
+              Printv(klass->init, tab4, "rb_define_alias(", klass->mImpl, ", \"", alias.item, "\", \"", iname, "\");\n", NIL);
+            } else {
+              Printv(klass->init, tab4, "rb_define_alias(", klass->vname, ", \"", alias.item, "\", \"", iname, "\");\n", NIL);
+            }
+          }
+          alias = Next(alias);
+        }
       }
       Delete(aliases);
     }
@@ -1367,11 +1367,11 @@ public:
     switch (current) {
     case MEMBER_FUNC:
       {
-	if (multipleInheritance) {
-	  Printv(klass->init, tab4, rb_define_method, "(", klass->mImpl, ", \"", iname, "\", ", wname, ", -1);\n", NIL);
-	} else {
-	  Printv(klass->init, tab4, rb_define_method, "(", klass->vname, ", \"", iname, "\", ", wname, ", -1);\n", NIL);
-	}
+        if (multipleInheritance) {
+          Printv(klass->init, tab4, rb_define_method, "(", klass->mImpl, ", \"", iname, "\", ", wname, ", -1);\n", NIL);
+        } else {
+          Printv(klass->init, tab4, rb_define_method, "(", klass->vname, ", \"", iname, "\", ", wname, ", -1);\n", NIL);
+        }
       }
       break;
     case CONSTRUCTOR_ALLOCATE:
@@ -1386,18 +1386,18 @@ public:
       Append(temp, iname);
       /* Check for _set or _get at the end of the name. */
       if (Len(temp) > 4) {
-	const char *p = Char(temp) + (Len(temp) - 4);
-	if (strcmp(p, "_set") == 0) {
-	  Delslice(temp, Len(temp) - 4, DOH_END);
-	  Append(temp, "=");
-	} else if (strcmp(p, "_get") == 0) {
-	  Delslice(temp, Len(temp) - 4, DOH_END);
-	}
+        const char *p = Char(temp) + (Len(temp) - 4);
+        if (strcmp(p, "_set") == 0) {
+          Delslice(temp, Len(temp) - 4, DOH_END);
+          Append(temp, "=");
+        } else if (strcmp(p, "_get") == 0) {
+          Delslice(temp, Len(temp) - 4, DOH_END);
+        }
       }
       if (multipleInheritance) {
-	Printv(klass->init, tab4, "rb_define_method(", klass->mImpl, ", \"", temp, "\", ", wname, ", -1);\n", NIL);
+        Printv(klass->init, tab4, "rb_define_method(", klass->mImpl, ", \"", temp, "\", ", wname, ", -1);\n", NIL);
       } else {
-	Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"", temp, "\", ", wname, ", -1);\n", NIL);
+        Printv(klass->init, tab4, "rb_define_method(", klass->vname, ", \"", temp, "\", ", wname, ", -1);\n", NIL);
       }
       break;
     case STATIC_FUNC:
@@ -1405,11 +1405,11 @@ public:
       break;
     case NO_CPP:
       if (!useGlobalModule) {
-	Printv(s, tab4, "rb_define_module_function(", modvar, ", \"", iname, "\", ", wname, ", -1);\n", NIL);
-	Printv(f_init, s, NIL);
+        Printv(s, tab4, "rb_define_module_function(", modvar, ", \"", iname, "\", ", wname, ", -1);\n", NIL);
+        Printv(f_init, s, NIL);
       } else {
-	Printv(s, tab4, "rb_define_global_function(\"", iname, "\", ", wname, ", -1);\n", NIL);
-	Printv(f_init, s, NIL);
+        Printv(s, tab4, "rb_define_global_function(\"", iname, "\", ", wname, ", -1);\n", NIL);
+        Printv(f_init, s, NIL);
       }
       break;
     case DESTRUCTOR:
@@ -1443,9 +1443,9 @@ public:
       Replaceall(tm, "$symname", symname);
 
       if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
-	Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
+        Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
       } else {
-	Replaceall(tm, "$disown", "0");
+        Replaceall(tm, "$disown", "0");
       }
 
       Setattr(p, "emit:input", Copy(source));
@@ -1506,26 +1506,26 @@ public:
 
       /* First argument is a special case */
       if (i == 0) {
-	Printv(source, (start == 0) ? "argv[0]" : "self", NIL);
+        Printv(source, (start == 0) ? "argv[0]" : "self", NIL);
       } else {
-	Printf(source, "argv[%d]", i - start);
+        Printf(source, "argv[%d]", i - start);
       }
 
       if (i >= (numreq)) {	/* Check if parsing an optional argument */
-	Printf(f->code, "    if (argc > %d) {\n", i - start);
+        Printf(f->code, "    if (argc > %d) {\n", i - start);
       }
 
       /* Record argument name for keyword argument handling */
       if (Len(pn)) {
-	Printf(kwargs, "\"%s\",", pn);
+        Printf(kwargs, "\"%s\",", pn);
       } else {
-	Printf(kwargs, "\"arg%d\",", i + 1);
+        Printf(kwargs, "\"arg%d\",", i + 1);
       }
 
       /* Look for an input typemap */
       p = applyInputTypemap(p, source, f, Getattr(n, "name"));
       if (i >= numreq) {
-	Printf(f->code, "}\n");
+        Printf(f->code, "}\n");
       }
     }
 
@@ -1539,13 +1539,13 @@ public:
     /* Trailing varargs */
     if (varargs) {
       if (p && (tm = Getattr(p, "tmap:in"))) {
-	Clear(source);
-	Printf(source, "argv[%d]", i - start);
-	Replaceall(tm, "$input", source);
-	Setattr(p, "emit:input", Copy(source));
-	Printf(f->code, "if (argc > %d) {\n", i - start);
-	Printv(f->code, tm, "\n", NIL);
-	Printf(f->code, "}\n");
+        Clear(source);
+        Printf(source, "argv[%d]", i - start);
+        Replaceall(tm, "$input", source);
+        Setattr(p, "emit:input", Copy(source));
+        Printf(f->code, "if (argc > %d) {\n", i - start);
+        Printv(f->code, tm, "\n", NIL);
+        Printf(f->code, "}\n");
       }
     }
 
@@ -1565,10 +1565,10 @@ public:
     String *tm;
     for (p = l; p;) {
       if ((tm = Getattr(p, "tmap:check"))) {
-	Printv(f->code, tm, "\n", NIL);
-	p = Getattr(p, "tmap:check:next");
+        Printv(f->code, tm, "\n", NIL);
+        p = Getattr(p, "tmap:check:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
   }
@@ -1585,12 +1585,12 @@ public:
     String *tm;
     for (Parm *p = l; p;) {
       if ((tm = Getattr(p, "tmap:freearg"))) {
-	if (Len(tm) != 0) {
-	  Printv(cleanup, tm, "\n", NIL);
-	}
-	p = Getattr(p, "tmap:freearg:next");
+        if (Len(tm) != 0) {
+          Printv(cleanup, tm, "\n", NIL);
+        }
+        p = Getattr(p, "tmap:freearg:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
   }
@@ -1607,15 +1607,15 @@ public:
     String *tm;
     for (Parm *p = l; p;) {
       if ((tm = Getattr(p, "tmap:argout"))) {
-	Replaceall(tm, "$result", "vresult");
-	Replaceall(tm, "$arg", Getattr(p, "emit:input"));
-	Replaceall(tm, "$input", Getattr(p, "emit:input"));
+        Replaceall(tm, "$result", "vresult");
+        Replaceall(tm, "$arg", Getattr(p, "emit:input"));
+        Replaceall(tm, "$input", Getattr(p, "emit:input"));
 
-	Printv(outarg, tm, "\n", NIL);
-	need_result += 1;
-	p = Getattr(p, "tmap:argout:next");
+        Printv(outarg, tm, "\n", NIL);
+        need_result += 1;
+        p = Getattr(p, "tmap:argout:next");
       } else {
-	p = nextSibling(p);
+        p = nextSibling(p);
       }
     }
   }
@@ -1642,7 +1642,7 @@ public:
     char *c = Char(s);
     while (*c) {
       if (!(isalnum(*c) || (*c == '_') || (*c == '?') || (*c == '!') || (*c == '=')))
-	return 0;
+        return 0;
       c++;
     }
     return 1;
@@ -1687,7 +1687,7 @@ public:
       overname = Getattr(n, "sym:overname");
     } else {
       if (!addSymbol(symname, n))
-	return SWIG_ERROR;
+        return SWIG_ERROR;
     }
 
     String *cleanup = NewString("");
@@ -1743,25 +1743,25 @@ public:
     } else if (current == CONSTRUCTOR_INITIALIZE) {
       Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
-	Printf(f->code, "if ((argc < %d) || (argc > %d)) ", numreq - start, numarg - start);
+        Printf(f->code, "if ((argc < %d) || (argc > %d)) ", numreq - start, numarg - start);
       } else {
-	Printf(f->code, "if (argc < %d) ", numreq - start);
+        Printf(f->code, "if (argc < %d) ", numreq - start);
       }
       Printf(f->code, "{rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc); SWIG_fail;}\n", numreq - start);
     } else {
 
       if ( current == NO_CPP )
-	{
-	  String* docs = docstring(n, AUTODOC_FUNC);
-	  Printf(f_wrappers, "%s", docs);
-	  Delete(docs);
-	}
+        {
+          String* docs = docstring(n, AUTODOC_FUNC);
+          Printf(f_wrappers, "%s", docs);
+          Delete(docs);
+        }
 
       Printv(f->def, "SWIGINTERN VALUE\n", wname, "(int argc, VALUE *argv, VALUE self) {", NIL);
       if (!varargs) {
-	Printf(f->code, "if ((argc < %d) || (argc > %d)) ", numreq - start, numarg - start);
+        Printf(f->code, "if ((argc < %d) || (argc > %d)) ", numreq - start, numarg - start);
       } else {
-	Printf(f->code, "if (argc < %d) ", numreq - start);
+        Printf(f->code, "if (argc < %d) ", numreq - start);
       }
       Printf(f->code, "{rb_raise(rb_eArgError, \"wrong # of arguments(%%d for %d)\",argc); SWIG_fail;}\n", numreq - start);
     }
@@ -1817,32 +1817,32 @@ public:
     /* Now write code to make the function call */
     if (current != CONSTRUCTOR_ALLOCATE) {
       if (current == CONSTRUCTOR_INITIALIZE) {
-	Node *pn = Swig_methodclass(n);
-	String *symname = Getattr(pn, "sym:name");
-	String *action = Getattr(n, "wrap:action");
-	if (Swig_directors_enabled()) {
-	  String *classname = NewStringf("const char *classname SWIGUNUSED = \"%s::%s\"", module, symname);
-	  Wrapper_add_local(f, "classname", classname);
-	}
-	if (action) {
-	  SwigType *smart = Getattr(pn, "smart");
-	  String *result_name = NewStringf("%s%s", smart ? "smart" : "", Swig_cresult_name());
-	  if (smart) {
-	    String *result_var = NewStringf("%s *%s = 0", SwigType_namestr(smart), result_name);
-	    Wrapper_add_local(f, result_name, result_var);
-	    Printf(action, "\n%s = new %s(%s);", result_name, SwigType_namestr(smart), Swig_cresult_name());
-	  }
-	  Printf(action, "\nDATA_PTR(self) = %s;", result_name);
-	  if (GetFlag(pn, "feature:trackobjects")) {
-	    Printf(action, "\nSWIG_RubyAddTracking(%s, self);", result_name);
-	  }
-	  Delete(result_name);
-	}
+        Node *pn = Swig_methodclass(n);
+        String *symname = Getattr(pn, "sym:name");
+        String *action = Getattr(n, "wrap:action");
+        if (Swig_directors_enabled()) {
+          String *classname = NewStringf("const char *classname SWIGUNUSED = \"%s::%s\"", module, symname);
+          Wrapper_add_local(f, "classname", classname);
+        }
+        if (action) {
+          SwigType *smart = Getattr(pn, "smart");
+          String *result_name = NewStringf("%s%s", smart ? "smart" : "", Swig_cresult_name());
+          if (smart) {
+            String *result_var = NewStringf("%s *%s = 0", SwigType_namestr(smart), result_name);
+            Wrapper_add_local(f, result_name, result_var);
+            Printf(action, "\n%s = new %s(%s);", result_name, SwigType_namestr(smart), Swig_cresult_name());
+          }
+          Printf(action, "\nDATA_PTR(self) = %s;", result_name);
+          if (GetFlag(pn, "feature:trackobjects")) {
+            Printf(action, "\nSWIG_RubyAddTracking(%s, self);", result_name);
+          }
+          Delete(result_name);
+        }
       }
 
       /* Emit the function call */
       if (director_method) {
-	Printf(f->code, "try {\n");
+        Printf(f->code, "try {\n");
       }
 
       Setattr(n, "wrap:name", wname);
@@ -1851,10 +1851,10 @@ public:
       String *actioncode = emit_action(n);
 
       if (director_method) {
-	Printf(actioncode, "} catch (Swig::DirectorException& e) {\n");
-	Printf(actioncode, "  rb_exc_raise(e.getError());\n");
-	Printf(actioncode, "  SWIG_fail;\n");
-	Printf(actioncode, "}\n");
+        Printf(actioncode, "} catch (Swig::DirectorException& e) {\n");
+        Printf(actioncode, "  rb_exc_raise(e.getError());\n");
+        Printf(actioncode, "  SWIG_fail;\n");
+        Printf(actioncode, "}\n");
       }
 
       /* Return value if necessary */
@@ -1906,7 +1906,7 @@ public:
       SwigType *smart = Getattr(pn, "smart");
       SwigType *psmart = smart ? Copy(smart) : 0;
       if (psmart)
-	SwigType_add_pointer(psmart);
+        SwigType_add_pointer(psmart);
       SwigType *classtype = psmart ? psmart : returntype;
       need_result = 1;
       Printf(f->code, "VALUE vresult = SWIG_NewClassInstance(self, SWIGTYPE%s);\n", Char(SwigType_manglestr(classtype)));
@@ -1919,16 +1919,16 @@ public:
     }
     else
       {
-	if ( need_result > 1 ) {
-	  if ( SwigType_type(returntype) == T_VOID )
-	    Printf(f->code, "vresult = rb_ary_new();\n");
-	  else
-	    {
-	      Printf(f->code, "if (vresult == Qnil) vresult = rb_ary_new();\n");
-	      Printf(f->code, "else vresult = SWIG_Ruby_AppendOutput( "
-		     "rb_ary_new(), vresult);\n");
-	    }
-	}
+        if ( need_result > 1 ) {
+          if ( SwigType_type(returntype) == T_VOID )
+            Printf(f->code, "vresult = rb_ary_new();\n");
+          else
+            {
+              Printf(f->code, "if (vresult == Qnil) vresult = rb_ary_new();\n");
+              Printf(f->code, "else vresult = SWIG_Ruby_AppendOutput( "
+                     "rb_ary_new(), vresult);\n");
+            }
+        }
       }
 
     /* Dump argument output code; */
@@ -1945,8 +1945,8 @@ public:
     if (current != CONSTRUCTOR_ALLOCATE && GetFlag(n, "feature:new")) {
       tm = Swig_typemap_lookup("newfree", n, Swig_cresult_name(), 0);
       if (tm) {
-	Printv(f->code, tm, "\n", NIL);
-	Delete(tm);
+        Printv(f->code, tm, "\n", NIL);
+        Delete(tm);
       }
     }
 
@@ -1959,9 +1959,9 @@ public:
 
     if (director_method) {
       if ((tm = Swig_typemap_lookup("directorfree", n, Swig_cresult_name(), 0))) {
-	Replaceall(tm, "$input", Swig_cresult_name());
-	Replaceall(tm, "$result", "vresult");
-	Printf(f->code, "%s\n", tm);
+        Replaceall(tm, "$input", Swig_cresult_name());
+        Replaceall(tm, "$result", "vresult");
+        Printf(f->code, "%s\n", tm);
       }
     }
 
@@ -1969,28 +1969,28 @@ public:
     /* Wrap things up (in a manner of speaking) */
     if (need_result) {
       if (current == CONSTRUCTOR_ALLOCATE) {
-	Printv(f->code, tab4, "return vresult;\n", NIL);
+        Printv(f->code, tab4, "return vresult;\n", NIL);
       } else if (current == CONSTRUCTOR_INITIALIZE) {
-	Printv(f->code, tab4, "return self;\n", NIL);
-	Printv(f->code, "fail:\n", NIL);
-	if (need_cleanup) {
-	  Printv(f->code, cleanup, NIL);
-	}
-	Printv(f->code, tab4, "return Qnil;\n", NIL);
+        Printv(f->code, tab4, "return self;\n", NIL);
+        Printv(f->code, "fail:\n", NIL);
+        if (need_cleanup) {
+          Printv(f->code, cleanup, NIL);
+        }
+        Printv(f->code, tab4, "return Qnil;\n", NIL);
       } else {
-	Wrapper_add_local(f, "vresult", "VALUE vresult = Qnil");
-	Printv(f->code, tab4, "return vresult;\n", NIL);
-	Printv(f->code, "fail:\n", NIL);
-	if (need_cleanup) {
-	  Printv(f->code, cleanup, NIL);
-	}
-	Printv(f->code, tab4, "return Qnil;\n", NIL);
+        Wrapper_add_local(f, "vresult", "VALUE vresult = Qnil");
+        Printv(f->code, tab4, "return vresult;\n", NIL);
+        Printv(f->code, "fail:\n", NIL);
+        if (need_cleanup) {
+          Printv(f->code, cleanup, NIL);
+        }
+        Printv(f->code, tab4, "return Qnil;\n", NIL);
       }
     } else {
       Printv(f->code, tab4, "return Qnil;\n", NIL);
       Printv(f->code, "fail:\n", NIL);
       if (need_cleanup) {
-	Printv(f->code, cleanup, NIL);
+        Printv(f->code, cleanup, NIL);
       }
       Printv(f->code, tab4, "return Qnil;\n", NIL);
     }
@@ -2014,10 +2014,10 @@ public:
       create_command(n, symname);
     } else {
       if (current == CONSTRUCTOR_ALLOCATE) {
-	create_command(n, symname);
+        create_command(n, symname);
       } else {
-	if (!Getattr(n, "sym:nextSibling"))
-	  dispatchFunction(n);
+        if (!Getattr(n, "sym:nextSibling"))
+          dispatchFunction(n);
       }
     }
 
@@ -2101,7 +2101,7 @@ public:
       // just working around a problem elsewhere though.
       Node *parent_node = parentNode(sibl);
       if (parent_node)
-	Printv( methodName, Getattr(parent_node,"sym:name"), ".", NIL );
+        Printv( methodName, Getattr(parent_node,"sym:name"), ".", NIL );
     }
     Append( methodName, Getattr(sibl,"sym:name" ) );
     if ( isCtor ) Append( methodName, ".new" ); 
@@ -2111,27 +2111,27 @@ public:
     do {
       Append( protoTypes, "\n\"    ");
       if (!isCtor && !Equal(siblNodeType, "using")) {
-	SwigType *type = SwigType_str(Getattr(sibl, "type"), NULL);
-	Printv(protoTypes, type, " ", NIL);
-	Delete(type);
+        SwigType *type = SwigType_str(Getattr(sibl, "type"), NULL);
+        Printv(protoTypes, type, " ", NIL);
+        Delete(type);
       }
       Printv(protoTypes, methodName, NIL );
       Parm* p = Getattr(sibl, "wrap:parms");
       if (p && (current == MEMBER_FUNC || current == MEMBER_VAR || 
-		ctor_director) )
-	p = nextSibling(p); // skip self
+                ctor_director) )
+        p = nextSibling(p); // skip self
       Append( protoTypes, "(" );
       while(p)
-	{
- 	  Append( protoTypes, SwigType_str(Getattr(p,"type"), Getattr(p,"name")) );
-	  if ( ( p = nextSibling(p)) ) Append(protoTypes, ", ");
-	}
+        {
+          Append( protoTypes, SwigType_str(Getattr(p,"type"), Getattr(p,"name")) );
+          if ( ( p = nextSibling(p)) ) Append(protoTypes, ", ");
+        }
       Append( protoTypes, ")\\n\"" );
     } while ((sibl = Getattr(sibl, "sym:nextSibling")));
 
     Append(f->code, "fail:\n");
     Printf(f->code, "Ruby_Format_OverloadedError( argc, %d, \"%s\", %s);\n", 
-	   maxargs, methodName, protoTypes);
+           maxargs, methodName, protoTypes);
     Append(f->code, "\nreturn Qnil;\n");
 
     Delete(methodName);
@@ -2219,11 +2219,11 @@ public:
       }
       tm = Swig_typemap_lookup("varin", n, name, 0);
       if (tm) {
-	Replaceall(tm, "$input", "_val");
-	/* Printv(setf->code,tm,"\n",NIL); */
-	emit_action_code(n, setf->code, tm);
+        Replaceall(tm, "$input", "_val");
+        /* Printv(setf->code,tm,"\n",NIL); */
+        emit_action_code(n, setf->code, tm);
       } else {
-	Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s\n", SwigType_str(t, 0));
+        Swig_warning(WARN_TYPEMAP_VARIN_UNDEF, input_file, line_number, "Unable to set variable of type %s\n", SwigType_str(t, 0));
       }
       if (use_virtual_var) {
         Printf(setf->code, "fail:\n");
@@ -2250,7 +2250,7 @@ public:
       /* C++ class variable */
       Printv(s, tab4, "rb_define_singleton_method(", klass->vname, ", \"", klass->strip(iname), "\", ", getfname, ", 0);\n", NIL);
       if (assignable) {
-	Printv(s, tab4, "rb_define_singleton_method(", klass->vname, ", \"", klass->strip(iname), "=\", ", setfname, ", 1);\n", NIL);
+        Printv(s, tab4, "rb_define_singleton_method(", klass->vname, ", \"", klass->strip(iname), "=\", ", setfname, ", 1);\n", NIL);
       }
       Printv(klass->init, s, NIL);
       break;
@@ -2259,12 +2259,12 @@ public:
       /* wrapped in Ruby module attribute */
       assert(current == NO_CPP);
       if (!useGlobalModule) {
-	Printv(s, tab4, "rb_define_singleton_method(", modvar, ", \"", iname, "\", ", getfname, ", 0);\n", NIL);
-	if (assignable) {
-	  Printv(s, tab4, "rb_define_singleton_method(", modvar, ", \"", iname, "=\", ", setfname, ", 1);\n", NIL);
-	}
+        Printv(s, tab4, "rb_define_singleton_method(", modvar, ", \"", iname, "\", ", getfname, ", 0);\n", NIL);
+        if (assignable) {
+          Printv(s, tab4, "rb_define_singleton_method(", modvar, ", \"", iname, "=\", ", setfname, ", 1);\n", NIL);
+        }
       } else {
-	Printv(s, tab4, "rb_define_virtual_variable(\"$", iname, "\", ", getfname, ", ", setfname, ");\n", NIL);
+        Printv(s, tab4, "rb_define_virtual_variable(\"$", iname, "\", ", getfname, ", ", setfname, ");\n", NIL);
       }
       Printv(f_init, s, NIL);
       Delete(s);
@@ -2333,20 +2333,20 @@ public:
       Replaceall(tm, "$symname", iname);
       Replaceall(tm, "$value", value);
       if (current == CLASS_CONST) {
-	if (multipleInheritance) {
-	  Replaceall(tm, "$module", klass->mImpl);
-	  Printv(klass->init, tm, "\n", NIL);
-	} else {
-	  Replaceall(tm, "$module", klass->vname);
-	  Printv(klass->init, tm, "\n", NIL);
-	}
+        if (multipleInheritance) {
+          Replaceall(tm, "$module", klass->mImpl);
+          Printv(klass->init, tm, "\n", NIL);
+        } else {
+          Replaceall(tm, "$module", klass->vname);
+          Printv(klass->init, tm, "\n", NIL);
+        }
       } else {
-	if (!useGlobalModule) {
-	  Replaceall(tm, "$module", modvar);
-	} else {
-	  Replaceall(tm, "$module", "rb_cObject");
-	}
-	Printf(f_init, "%s\n", tm);
+        if (!useGlobalModule) {
+          Replaceall(tm, "$module", modvar);
+        } else {
+          Replaceall(tm, "$module", "rb_cObject");
+        }
+        Printf(f_init, "%s\n", tm);
       }
     } else {
       Swig_warning(WARN_TYPEMAP_CONST_UNDEF, input_file, line_number, "Unsupported constant value %s = %s\n", SwigType_str(type, 0), value);
@@ -2370,12 +2370,12 @@ public:
       String *namestr = SwigType_namestr(name);
       klass = RCLASS(classes, Char(namestr));
       if (!klass) {
-	klass = new RClass();
-	String *valid_name = NewString(symname ? symname : namestr);
-	validate_const_name(Char(valid_name), "class");
-	klass->set_name(namestr, symname, valid_name);
-	SET_RCLASS(classes, Char(namestr), klass);
-	Delete(valid_name);
+        klass = new RClass();
+        String *valid_name = NewString(symname ? symname : namestr);
+        validate_const_name(Char(valid_name), "class");
+        klass->set_name(namestr, symname, valid_name);
+        SET_RCLASS(classes, Char(namestr), klass);
+        Delete(valid_name);
       }
       Delete(namestr);
     }
@@ -2390,13 +2390,13 @@ public:
     if (mixin) {
       List *modules = Split(mixin, ',', INT_MAX);
       if (modules && Len(modules) > 0) {
-	Iterator mod = First(modules);
-	while (mod.item) {
-	  if (Len(mod.item) > 0) {
-	    Printf(klass->init, "rb_include_module(%s, rb_eval_string(\"%s\"));\n", klass->vname, mod.item);
-	  }
-	  mod = Next(mod);
-	}
+        Iterator mod = First(modules);
+        while (mod.item) {
+          if (Len(mod.item) > 0) {
+            Printf(klass->init, "rb_include_module(%s, rb_eval_string(\"%s\"));\n", klass->vname, mod.item);
+          }
+          mod = Next(mod);
+        }
       }
       Delete(modules);
     }
@@ -2407,55 +2407,55 @@ public:
     if (baselist && Len(baselist)) {
       Iterator base = First(baselist);
       while (base.item && GetFlag(base.item, "feature:ignore")) {
-	base = Next(base);
+        base = Next(base);
       }
       while (base.item) {
-	String *basename = Getattr(base.item, "name");
-	String *basenamestr = SwigType_namestr(basename);
-	RClass *super = RCLASS(classes, Char(basenamestr));
-	Delete(basenamestr);
-	if (super) {
-	  SwigType *btype = NewString(basename);
-	  SwigType_add_pointer(btype);
-	  SwigType_remember(btype);
-	  SwigType *smart = Getattr(base.item, "smart");
-	  SwigType *psmart = smart ? Copy(smart) : 0;
-	  if (psmart) {
-	    SwigType_add_pointer(psmart);
-	    SwigType_remember(psmart);
-	  }
-	  String *bmangle = SwigType_manglestr(psmart ? psmart : btype);
-	  if (multipleInheritance) {
-	    Insert(bmangle, 0, "((swig_class *) SWIGTYPE");
-	    Append(bmangle, "->clientdata)->mImpl");
-	    Printv(klass->init, "rb_include_module(", klass->mImpl, ", ", bmangle, ");\n", NIL);
-	  } else {
-	    Insert(bmangle, 0, "((swig_class *) SWIGTYPE");
-	    Append(bmangle, "->clientdata)->klass");
-	    Replaceall(klass->init, "$super", bmangle);
-	  }
-	  Delete(bmangle);
-	  Delete(psmart);
-	  Delete(btype);
-	}
-	base = Next(base);
-	while (base.item && GetFlag(base.item, "feature:ignore")) {
-	  base = Next(base);
-	}
-	if (!multipleInheritance) {
-	  /* Warn about multiple inheritance for additional base class(es) */
-	  while (base.item) {
-	    if (GetFlag(base.item, "feature:ignore")) {
-	      base = Next(base);
-	      continue;
-	    }
-	    String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
-	    String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
-	    Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
-			 "Warning for %s, base %s ignored. Multiple inheritance is not supported in Ruby.\n", proxyclassname, baseclassname);
-	    base = Next(base);
-	  }
-	}
+        String *basename = Getattr(base.item, "name");
+        String *basenamestr = SwigType_namestr(basename);
+        RClass *super = RCLASS(classes, Char(basenamestr));
+        Delete(basenamestr);
+        if (super) {
+          SwigType *btype = NewString(basename);
+          SwigType_add_pointer(btype);
+          SwigType_remember(btype);
+          SwigType *smart = Getattr(base.item, "smart");
+          SwigType *psmart = smart ? Copy(smart) : 0;
+          if (psmart) {
+            SwigType_add_pointer(psmart);
+            SwigType_remember(psmart);
+          }
+          String *bmangle = SwigType_manglestr(psmart ? psmart : btype);
+          if (multipleInheritance) {
+            Insert(bmangle, 0, "((swig_class *) SWIGTYPE");
+            Append(bmangle, "->clientdata)->mImpl");
+            Printv(klass->init, "rb_include_module(", klass->mImpl, ", ", bmangle, ");\n", NIL);
+          } else {
+            Insert(bmangle, 0, "((swig_class *) SWIGTYPE");
+            Append(bmangle, "->clientdata)->klass");
+            Replaceall(klass->init, "$super", bmangle);
+          }
+          Delete(bmangle);
+          Delete(psmart);
+          Delete(btype);
+        }
+        base = Next(base);
+        while (base.item && GetFlag(base.item, "feature:ignore")) {
+          base = Next(base);
+        }
+        if (!multipleInheritance) {
+          /* Warn about multiple inheritance for additional base class(es) */
+          while (base.item) {
+            if (GetFlag(base.item, "feature:ignore")) {
+              base = Next(base);
+              continue;
+            }
+            String *proxyclassname = SwigType_str(Getattr(n, "classtypeobj"), 0);
+            String *baseclassname = SwigType_str(Getattr(base.item, "name"), 0);
+            Swig_warning(WARN_RUBY_MULTIPLE_INHERITANCE, Getfile(n), Getline(n),
+                         "Warning for %s, base %s ignored. Multiple inheritance is not supported in Ruby.\n", proxyclassname, baseclassname);
+            base = Next(base);
+          }
+        }
       }
     }
   }
@@ -2481,7 +2481,7 @@ public:
       Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) %s;\n", klass->name, freefunc);
     } else {
       if (klass->destructor_defined) {
-	Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
+        Printf(klass->init, "SwigClass%s.destroy = (void (*)(void *)) free_%s;\n", klass->name, klass->mname);
       }
     }
   }
@@ -2526,7 +2526,7 @@ public:
       Printv(klass->init, klass->vname, " = rb_define_class_under(", modvar, ", \"", klass->name, "\", $super);\n", NIL);
     } else {
       Printv(klass->init, klass->vname, " = rb_define_class(\"", klass->name, 
-	     "\", $super);\n", NIL);
+             "\", $super);\n", NIL);
     }
 
     if (multipleInheritance) {
@@ -2628,9 +2628,9 @@ public:
     if (cname)
       cname[0] = (char)toupper(cname[0]);
     Printv(director_prot_ctor_code,
-	   "if ($comparison) { /* subclassed */\n",
-	   "  $director_new\n",
-	   "} else {\n", "  rb_raise(rb_eNameError,\"accessing abstract class or protected constructor\");\n", "  return Qnil;\n", "}\n", NIL);
+           "if ($comparison) { /* subclassed */\n",
+           "  $director_new\n",
+           "} else {\n", "  rb_raise(rb_eNameError,\"accessing abstract class or protected constructor\");\n", "  return Qnil;\n", "}\n", NIL);
     Delete(director_ctor_code);
     director_ctor_code = NewString("");
     Printv(director_ctor_code, "if ($comparison) { /* subclassed */\n", "  $director_new\n", "} else {\n", "  $nondirector_new\n", "}\n", NIL);
@@ -2669,7 +2669,7 @@ public:
       Delete(name);
       Setattr(self, "lname", "Qnil");
       if (parms)
-	set_nextSibling(self, parms);
+        set_nextSibling(self, parms);
       Setattr(n, "parms", self);
       Delete(self);
     }
@@ -2736,20 +2736,20 @@ public:
     if (Extend) {
       String *wrap = Getattr(n, "wrap:code");
       if (wrap) {
-	Printv(f_wrappers, wrap, NIL);
+        Printv(f_wrappers, wrap, NIL);
       }
       /*    Printv(freebody, Swig_name_destroy(name), "(", pname0, ")", NIL); */
       Printv(freebody, Getattr(n, "wrap:action"), "\n", NIL);
     } else {
       String *action = Getattr(n, "wrap:action");
       if (action) {
-	Printv(freebody, action, "\n", NIL);
+        Printv(freebody, action, "\n", NIL);
       } else {
-	/* In the case swig emits no destroy function. */
-	if (CPlusPlus)
-	  Printf(freebody, "delete %s;\n", pname0);
-	else
-	  Printf(freebody, "free((char*) %s);\n", pname0);
+        /* In the case swig emits no destroy function. */
+        if (CPlusPlus)
+          Printf(freebody, "delete %s;\n", pname0);
+        else
+          Printf(freebody, "free((char*) %s);\n", pname0);
       }
     }
 
@@ -2887,23 +2887,23 @@ public:
     if (!Getattr(n, "defaultargs")) {
       /* constructor */
       {
-	Wrapper *w = NewWrapper();
-	String *call;
-	String *basetype = Getattr(parent, "classtype");
-	String *target = Swig_method_decl(0, decl, classname, parms, 0);
-	call = Swig_csuperclass_call(0, basetype, superparms);
-	Printf(w->def, "%s::%s: %s, Swig::Director(self) { }", classname, target, call);
-	Delete(target);
-	Wrapper_print(w, f_directors);
-	Delete(call);
-	DelWrapper(w);
+        Wrapper *w = NewWrapper();
+        String *call;
+        String *basetype = Getattr(parent, "classtype");
+        String *target = Swig_method_decl(0, decl, classname, parms, 0);
+        call = Swig_csuperclass_call(0, basetype, superparms);
+        Printf(w->def, "%s::%s: %s, Swig::Director(self) { }", classname, target, call);
+        Delete(target);
+        Wrapper_print(w, f_directors);
+        Delete(call);
+        DelWrapper(w);
       }
 
       /* constructor header */
       {
-	String *target = Swig_method_decl(0, decl, classname, parms, 1);
-	Printf(f_directors_h, "    %s;\n", target);
-	Delete(target);
+        String *target = Swig_method_decl(0, decl, classname, parms, 1);
+        Printf(f_directors_h, "    %s;\n", target);
+        Delete(target);
       }
     }
 
@@ -2958,27 +2958,27 @@ public:
     if ((tm != 0) && (Len(tm) > 0) && (Strcmp(tm, "1") != 0)) {
       // Declare a global to hold the depth count
       if (!Getattr(n, "sym:nextSibling")) {
-	Printf(body->def, "static int %s = 0;\n", depthCountName);
+        Printf(body->def, "static int %s = 0;\n", depthCountName);
 
-	// Function body
-	Printf(body->def, "VALUE %s(VALUE data) {\n", bodyName);
-	Wrapper_add_localv(body, "args", "Swig::body_args *", "args", "= reinterpret_cast<Swig::body_args *>(data)", NIL);
-	Wrapper_add_localv(body, Swig_cresult_name(), "VALUE", Swig_cresult_name(), "= Qnil", NIL);
-	Printf(body->code, "%s++;\n", depthCountName);
-	Printv(body->code, Swig_cresult_name(), " = rb_funcall2(args->recv, args->id, args->argc, args->argv);\n", NIL);
-	Printf(body->code, "%s--;\n", depthCountName);
-	Printv(body->code, "return ", Swig_cresult_name(), ";\n", NIL);
-	Printv(body->code, "}", NIL);
+        // Function body
+        Printf(body->def, "VALUE %s(VALUE data) {\n", bodyName);
+        Wrapper_add_localv(body, "args", "Swig::body_args *", "args", "= reinterpret_cast<Swig::body_args *>(data)", NIL);
+        Wrapper_add_localv(body, Swig_cresult_name(), "VALUE", Swig_cresult_name(), "= Qnil", NIL);
+        Printf(body->code, "%s++;\n", depthCountName);
+        Printv(body->code, Swig_cresult_name(), " = rb_funcall2(args->recv, args->id, args->argc, args->argv);\n", NIL);
+        Printf(body->code, "%s--;\n", depthCountName);
+        Printv(body->code, "return ", Swig_cresult_name(), ";\n", NIL);
+        Printv(body->code, "}", NIL);
 
-	// Exception handler
-	Printf(rescue->def, "VALUE %s(VALUE args, VALUE error) {\n", rescueName);
-	Replaceall(tm, "$error", "error");
-	Printf(rescue->code, "%s--;\n", depthCountName);
-	Printf(rescue->code, "if (%s == 0) ", depthCountName);
-	Printv(rescue->code, Str(tm), "\n", NIL);
-	Printv(rescue->code, "rb_exc_raise(error);\n", NIL);
-	Printv(rescue->code, "return Qnil;\n", NIL);
-	Printv(rescue->code, "}", NIL);
+        // Exception handler
+        Printf(rescue->def, "VALUE %s(VALUE args, VALUE error) {\n", rescueName);
+        Replaceall(tm, "$error", "error");
+        Printf(rescue->code, "%s--;\n", depthCountName);
+        Printf(rescue->code, "if (%s == 0) ", depthCountName);
+        Printv(rescue->code, Str(tm), "\n", NIL);
+        Printv(rescue->code, "rb_exc_raise(error);\n", NIL);
+        Printv(rescue->code, "return Qnil;\n", NIL);
+        Printv(rescue->code, "}", NIL);
       }
 
       // Main code
@@ -2988,12 +2988,12 @@ public:
       Printf(w->code, "args.id = rb_intern(\"%s\");\n", methodName);
       Printf(w->code, "args.argc = %d;\n", argc);
       if (argc > 0) {
-	Printf(w->code, "args.argv = new VALUE[%d];\n", argc);
-	for (int i = 0; i < argc; i++) {
-	  Printf(w->code, "args.argv[%d] = obj%d;\n", i, i);
-	}
+        Printf(w->code, "args.argv = new VALUE[%d];\n", argc);
+        for (int i = 0; i < argc; i++) {
+          Printf(w->code, "args.argv[%d] = obj%d;\n", i, i);
+        }
       } else {
-	Printv(w->code, "args.argv = 0;\n", NIL);
+        Printv(w->code, "args.argv = 0;\n", NIL);
       }
       Printf(w->code, "%s = rb_protect(PROTECTFUNC(%s), reinterpret_cast<VALUE>(&args), &status);\n", Swig_cresult_name(), bodyName);
       if ( initstack ) Printf(w->code, "SWIG_RELEASE_STACK;\n");
@@ -3002,16 +3002,16 @@ public:
       Printf(w->code, "%s(reinterpret_cast<VALUE>(&args), lastErr);\n", rescueName);
       Printf(w->code, "}\n");
       if (argc > 0) {
-	Printv(w->code, "delete [] args.argv;\n", NIL);
+        Printv(w->code, "delete [] args.argv;\n", NIL);
       }
       // Dump wrapper code
       Wrapper_print(body, f_directors_helpers);
       Wrapper_print(rescue, f_directors_helpers);
     } else {
       if (argc > 0) {
-	Printf(w->code, "%s = rb_funcall(swig_get_self(), rb_intern(\"%s\"), %d%s);\n", Swig_cresult_name(), methodName, argc, args);
+        Printf(w->code, "%s = rb_funcall(swig_get_self(), rb_intern(\"%s\"), %d%s);\n", Swig_cresult_name(), methodName, argc, args);
       } else {
-	Printf(w->code, "%s = rb_funcall(swig_get_self(), rb_intern(\"%s\"), 0, Qnil);\n", Swig_cresult_name(), methodName);
+        Printf(w->code, "%s = rb_funcall(swig_get_self(), rb_intern(\"%s\"), 0, Qnil);\n", Swig_cresult_name(), methodName);
       }
       if ( initstack ) Printf(w->code, "SWIG_RELEASE_STACK;\n");
     }
@@ -3050,7 +3050,7 @@ public:
 
     if (Cmp(storage, "virtual") == 0) {
       if (Cmp(value, "0") == 0) {
-	pure_virtual = true;
+        pure_virtual = true;
       }
     }
     String *overnametmp = NewString(Getattr(n, "sym:name"));
@@ -3091,17 +3091,17 @@ public:
       Append(declaration, " throw(");
 
       if (throw_parm_list)
-	Swig_typemap_attach_parms("throws", throw_parm_list, 0);
+        Swig_typemap_attach_parms("throws", throw_parm_list, 0);
       for (p = throw_parm_list; p; p = nextSibling(p)) {
-	if (Getattr(p, "tmap:throws")) {
-	  if (gencomma++) {
-	    Append(w->def, ", ");
-	    Append(declaration, ", ");
-	  }
+        if (Getattr(p, "tmap:throws")) {
+          if (gencomma++) {
+            Append(w->def, ", ");
+            Append(declaration, ", ");
+          }
 
-	  Printf(w->def, "%s", SwigType_str(Getattr(p, "type"), 0));
-	  Printf(declaration, "%s", SwigType_str(Getattr(p, "type"), 0));
-	}
+          Printf(w->def, "%s", SwigType_str(Getattr(p, "type"), 0));
+          Printf(declaration, "%s", SwigType_str(Getattr(p, "type"), 0));
+        }
       }
 
       Append(w->def, ")");
@@ -3121,30 +3121,30 @@ public:
      */
     if (!is_void && (!ignored_method || pure_virtual)) {
       if (!SwigType_isclass(returntype)) {
-	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
-	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
-	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
-	  Delete(construct_result);
-	} else {
-	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
-	}
+        if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+          String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+          Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+          Delete(construct_result);
+        } else {
+          Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
+        }
       } else {
-	String *cres = SwigType_lstr(returntype, "c_result");
-	Printf(w->code, "%s;\n", cres);
-	Delete(cres);
+        String *cres = SwigType_lstr(returntype, "c_result");
+        Printf(w->code, "%s;\n", cres);
+        Delete(cres);
       }
     }
 
     if (ignored_method) {
       if (!pure_virtual) {
-	if (!is_void)
-	  Printf(w->code, "return ");
-	String *super_call = Swig_method_call(super, l);
-	Printf(w->code, "%s;\n", super_call);
-	Delete(super_call);
+        if (!is_void)
+          Printf(w->code, "return ");
+        String *super_call = Swig_method_call(super, l);
+        Printf(w->code, "%s;\n", super_call);
+        Delete(super_call);
       } else {
-	Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
-	       SwigType_namestr(name));
+        Printf(w->code, "Swig::DirectorPureVirtualException::raise(\"Attempted to invoke pure virtual method %s::%s\");\n", SwigType_namestr(c_classname),
+               SwigType_namestr(name));
       }
     } else {
       /* attach typemaps to arguments (C/C++ -> Ruby) */
@@ -3160,103 +3160,103 @@ public:
 
       int outputs = 0;
       if (!is_void && !asvoid)
-	outputs++;
+        outputs++;
 
       /* build argument list and type conversion string */
       idx = 0; p = l;
       while ( p ) {
-	if (Getattr(p, "tmap:directorargout") != 0)
-	  outputs++;
+        if (Getattr(p, "tmap:directorargout") != 0)
+          outputs++;
 
-	if ( checkAttribute( p, "tmap:in:numinputs", "0") ) {
-	  p = Getattr(p, "tmap:in:next");
-	  continue;
-	}
+        if ( checkAttribute( p, "tmap:in:numinputs", "0") ) {
+          p = Getattr(p, "tmap:in:next");
+          continue;
+        }
 
-	String *parameterName = Getattr(p, "name");
-	String *parameterType = Getattr(p, "type");
+        String *parameterName = Getattr(p, "name");
+        String *parameterType = Getattr(p, "type");
 
-	Putc(',', arglist);
-	if ((tm = Getattr(p, "tmap:directorin")) != 0) {
-	  sprintf(source, "obj%d", idx++);
-	  String *input = NewString(source);
-	  Setattr(p, "emit:directorinput", input);
-	  Replaceall(tm, "$input", input);
-	  Replaceall(tm, "$owner", "0");
-	  Delete(input);
-	  Printv(wrap_args, tm, "\n", NIL);
-	  Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
-	  Printv(arglist, source, NIL);
-	  p = Getattr(p, "tmap:directorin:next");
-	  continue;
-	} else if (Cmp(parameterType, "void")) {
-	  /**
-	   * Special handling for pointers to other C++ director classes.
-	   * Ideally this would be left to a typemap, but there is currently no
-	   * way to selectively apply the dynamic_cast<> to classes that have
-	   * directors.  In other words, the type "SwigDirector_$1_lname" only exists
-	   * for classes with directors.  We avoid the problem here by checking
-	   * module.wrap::directormap, but it's not clear how to get a typemap to
-	   * do something similar.  Perhaps a new default typemap (in addition
-	   * to SWIGTYPE) called DIRECTORTYPE?
-	   */
-	  if (SwigType_ispointer(parameterType) || SwigType_isreference(parameterType)) {
-	    Node *modname = Getattr(parent, "module");
-	    Node *target = Swig_directormap(modname, parameterType);
-	    sprintf(source, "obj%d", idx++);
-	    String *nonconst = 0;
-	    /* strip pointer/reference --- should move to Swig/stype.c */
-	    String *nptype = NewString(Char(parameterType) + 2);
-	    /* name as pointer */
-	    String *ppname = Copy(parameterName);
-	    if (SwigType_isreference(parameterType)) {
-	      Insert(ppname, 0, "&");
-	    }
-	    /* if necessary, cast away const since Ruby doesn't support it! */
-	    if (SwigType_isconst(nptype)) {
-	      nonconst = NewStringf("nc_tmp_%s", parameterName);
-	      String *nonconst_i = NewStringf("= const_cast< %s >(%s)", SwigType_lstr(parameterType, 0), ppname);
-	      Wrapper_add_localv(w, nonconst, SwigType_lstr(parameterType, 0), nonconst, nonconst_i, NIL);
-	      Delete(nonconst_i);
-	      Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
-			   "Target language argument '%s' discards const in director method %s::%s.\n", SwigType_str(parameterType, parameterName),
-			   SwigType_namestr(c_classname), SwigType_namestr(name));
-	    } else {
-	      nonconst = Copy(ppname);
-	    }
-	    Delete(nptype);
-	    Delete(ppname);
-	    String *mangle = SwigType_manglestr(parameterType);
-	    if (target) {
-	      String *director = NewStringf("director_%s", mangle);
-	      Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
-	      Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
-	      Printf(wrap_args, "%s = dynamic_cast<Swig::Director *>(%s);\n", director, nonconst);
-	      Printf(wrap_args, "if (!%s) {\n", director);
-	      Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
-	      Printf(wrap_args, "} else {\n");
-	      Printf(wrap_args, "%s = %s->swig_get_self();\n", source, director);
-	      Printf(wrap_args, "}\n");
-	      Delete(director);
-	      Printv(arglist, source, NIL);
-	    } else {
-	      Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
-	      Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
-	      //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
-	      //       source, nonconst, base);
-	      Printv(arglist, source, NIL);
-	    }
-	    Delete(mangle);
-	    Delete(nonconst);
-	  } else {
-	    Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
-			 "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(parameterType, 0),
-			 SwigType_namestr(c_classname), SwigType_namestr(name));
-	    status = SWIG_NOWRAP;
-	    break;
-	  }
-	}
-	p = nextSibling(p);
+        Putc(',', arglist);
+        if ((tm = Getattr(p, "tmap:directorin")) != 0) {
+          sprintf(source, "obj%d", idx++);
+          String *input = NewString(source);
+          Setattr(p, "emit:directorinput", input);
+          Replaceall(tm, "$input", input);
+          Replaceall(tm, "$owner", "0");
+          Delete(input);
+          Printv(wrap_args, tm, "\n", NIL);
+          Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
+          Printv(arglist, source, NIL);
+          p = Getattr(p, "tmap:directorin:next");
+          continue;
+        } else if (Cmp(parameterType, "void")) {
+          /**
+           * Special handling for pointers to other C++ director classes.
+           * Ideally this would be left to a typemap, but there is currently no
+           * way to selectively apply the dynamic_cast<> to classes that have
+           * directors.  In other words, the type "SwigDirector_$1_lname" only exists
+           * for classes with directors.  We avoid the problem here by checking
+           * module.wrap::directormap, but it's not clear how to get a typemap to
+           * do something similar.  Perhaps a new default typemap (in addition
+           * to SWIGTYPE) called DIRECTORTYPE?
+           */
+          if (SwigType_ispointer(parameterType) || SwigType_isreference(parameterType)) {
+            Node *modname = Getattr(parent, "module");
+            Node *target = Swig_directormap(modname, parameterType);
+            sprintf(source, "obj%d", idx++);
+            String *nonconst = 0;
+            /* strip pointer/reference --- should move to Swig/stype.c */
+            String *nptype = NewString(Char(parameterType) + 2);
+            /* name as pointer */
+            String *ppname = Copy(parameterName);
+            if (SwigType_isreference(parameterType)) {
+              Insert(ppname, 0, "&");
+            }
+            /* if necessary, cast away const since Ruby doesn't support it! */
+            if (SwigType_isconst(nptype)) {
+              nonconst = NewStringf("nc_tmp_%s", parameterName);
+              String *nonconst_i = NewStringf("= const_cast< %s >(%s)", SwigType_lstr(parameterType, 0), ppname);
+              Wrapper_add_localv(w, nonconst, SwigType_lstr(parameterType, 0), nonconst, nonconst_i, NIL);
+              Delete(nonconst_i);
+              Swig_warning(WARN_LANG_DISCARD_CONST, input_file, line_number,
+                           "Target language argument '%s' discards const in director method %s::%s.\n", SwigType_str(parameterType, parameterName),
+                           SwigType_namestr(c_classname), SwigType_namestr(name));
+            } else {
+              nonconst = Copy(ppname);
+            }
+            Delete(nptype);
+            Delete(ppname);
+            String *mangle = SwigType_manglestr(parameterType);
+            if (target) {
+              String *director = NewStringf("director_%s", mangle);
+              Wrapper_add_localv(w, director, "Swig::Director *", director, "= 0", NIL);
+              Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
+              Printf(wrap_args, "%s = dynamic_cast<Swig::Director *>(%s);\n", director, nonconst);
+              Printf(wrap_args, "if (!%s) {\n", director);
+              Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
+              Printf(wrap_args, "} else {\n");
+              Printf(wrap_args, "%s = %s->swig_get_self();\n", source, director);
+              Printf(wrap_args, "}\n");
+              Delete(director);
+              Printv(arglist, source, NIL);
+            } else {
+              Wrapper_add_localv(w, source, "VALUE", source, "= Qnil", NIL);
+              Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE%s, 0);\n", source, nonconst, mangle);
+              //Printf(wrap_args, "%s = SWIG_NewPointerObj(%s, SWIGTYPE_p_%s, 0);\n", 
+              //       source, nonconst, base);
+              Printv(arglist, source, NIL);
+            }
+            Delete(mangle);
+            Delete(nonconst);
+          } else {
+            Swig_warning(WARN_TYPEMAP_DIRECTORIN_UNDEF, input_file, line_number,
+                         "Unable to use type %s as a function argument in director method %s::%s (skipping method).\n", SwigType_str(parameterType, 0),
+                         SwigType_namestr(c_classname), SwigType_namestr(name));
+            status = SWIG_NOWRAP;
+            break;
+          }
+        }
+        p = nextSibling(p);
       }
 
       /* declare Ruby return value */
@@ -3282,55 +3282,55 @@ public:
       String *outarg = NewString("");
 
       if (outputs > 1) {
-	Wrapper_add_local(w, "output", "VALUE output");
-	Printf(w->code, "if (TYPE(%s) != T_ARRAY) {\n", Swig_cresult_name());
-	Printf(w->code, "Ruby_DirectorTypeMismatchException(\"Ruby method failed to return an array.\");\n");
-	Printf(w->code, "}\n");
+        Wrapper_add_local(w, "output", "VALUE output");
+        Printf(w->code, "if (TYPE(%s) != T_ARRAY) {\n", Swig_cresult_name());
+        Printf(w->code, "Ruby_DirectorTypeMismatchException(\"Ruby method failed to return an array.\");\n");
+        Printf(w->code, "}\n");
       }
 
       idx = 0;
 
       /* Marshal return value */
       if (!is_void) {
-	tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
-	if (tm != 0) {
-	  if (outputs > 1 && !asvoid ) {
-	    Printf(w->code, "output = rb_ary_entry(%s, %d);\n", Swig_cresult_name(), idx++);
-	    Replaceall(tm, "$input", "output");
-	  } else {
-	    Replaceall(tm, "$input", Swig_cresult_name());
-	  }
-	  /* TODO check this */
-	  if (Getattr(n, "wrap:disown")) {
-	    Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
-	  } else {
-	    Replaceall(tm, "$disown", "0");
-	  }
-	  Replaceall(tm, "$result", "c_result");
-	  Printv(w->code, tm, "\n", NIL);
-	} else {
-	  Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
-		       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0),
-		       SwigType_namestr(c_classname), SwigType_namestr(name));
-	  status = SWIG_ERROR;
-	}
+        tm = Swig_typemap_lookup("directorout", n, Swig_cresult_name(), w);
+        if (tm != 0) {
+          if (outputs > 1 && !asvoid ) {
+            Printf(w->code, "output = rb_ary_entry(%s, %d);\n", Swig_cresult_name(), idx++);
+            Replaceall(tm, "$input", "output");
+          } else {
+            Replaceall(tm, "$input", Swig_cresult_name());
+          }
+          /* TODO check this */
+          if (Getattr(n, "wrap:disown")) {
+            Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
+          } else {
+            Replaceall(tm, "$disown", "0");
+          }
+          Replaceall(tm, "$result", "c_result");
+          Printv(w->code, tm, "\n", NIL);
+        } else {
+          Swig_warning(WARN_TYPEMAP_DIRECTOROUT_UNDEF, input_file, line_number,
+                       "Unable to use return type %s in director method %s::%s (skipping method).\n", SwigType_str(returntype, 0),
+                       SwigType_namestr(c_classname), SwigType_namestr(name));
+          status = SWIG_ERROR;
+        }
       }
 
       /* Marshal outputs */
       for (p = l; p;) {
-	if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
-	  if (outputs > 1) {
-	    Printf(w->code, "output = rb_ary_entry(%s, %d);\n", Swig_cresult_name(), idx++);
-	    Replaceall(tm, "$result", "output");
-	  } else {
-	    Replaceall(tm, "$result", Swig_cresult_name());
-	  }
-	  Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
-	  Printv(w->code, tm, "\n", NIL);
-	  p = Getattr(p, "tmap:directorargout:next");
-	} else {
-	  p = nextSibling(p);
-	}
+        if ((tm = Getattr(p, "tmap:directorargout")) != 0) {
+          if (outputs > 1) {
+            Printf(w->code, "output = rb_ary_entry(%s, %d);\n", Swig_cresult_name(), idx++);
+            Replaceall(tm, "$result", "output");
+          } else {
+            Replaceall(tm, "$result", Swig_cresult_name());
+          }
+          Replaceall(tm, "$input", Getattr(p, "emit:directorinput"));
+          Printv(w->code, tm, "\n", NIL);
+          p = Getattr(p, "tmap:directorargout:next");
+        } else {
+          p = nextSibling(p);
+        }
       }
 
       Delete(arglist);
@@ -3341,13 +3341,13 @@ public:
     /* any existing helper functions to handle this? */
     if (!is_void) {
       if (!(ignored_method && !pure_virtual)) {
-	String *rettype = SwigType_str(returntype, 0);
-	if (!SwigType_isreference(returntype)) {
-	  Printf(w->code, "return (%s) c_result;\n", rettype);
-	} else {
-	  Printf(w->code, "return (%s) *c_result;\n", rettype);
-	}
-	Delete(rettype);
+        String *rettype = SwigType_str(returntype, 0);
+        if (!SwigType_isreference(returntype)) {
+          Printf(w->code, "return (%s) c_result;\n", rettype);
+        } else {
+          Printf(w->code, "return (%s) *c_result;\n", rettype);
+        }
+        Delete(rettype);
       }
     }
 
@@ -3361,7 +3361,7 @@ public:
       Replaceall(inline_extra_method, name, extra_method_name);
       Replaceall(inline_extra_method, ";\n", " {\n      ");
       if (!is_void)
-	Printf(inline_extra_method, "return ");
+        Printf(inline_extra_method, "return ");
       String *methodcall = Swig_method_call(super, l);
       Printv(inline_extra_method, methodcall, ";\n    }\n", NIL);
       Delete(methodcall);
@@ -3372,10 +3372,10 @@ public:
     if (status == SWIG_OK) {
       Replaceall(w->code, "$isvoid", is_void ? "1" : "0");
       if (!Getattr(n, "defaultargs")) {
-	Replaceall(w->code, "$symname", symname);
-	Wrapper_print(w, f_directors);
-	Printv(f_directors_h, declaration, NIL);
-	Printv(f_directors_h, inline_extra_method, NIL);
+        Replaceall(w->code, "$symname", symname);
+        Wrapper_print(w, f_directors);
+        Printv(f_directors_h, declaration, NIL);
+        Printv(f_directors_h, inline_extra_method, NIL);
       }
     }
 

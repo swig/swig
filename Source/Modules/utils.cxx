@@ -78,17 +78,17 @@ void clean_overloaded(Node *n) {
   while (nn) {
     String *ntype = nodeType(nn);
     if ((GetFlag(nn, "feature:ignore")) ||
-	(Getattr(nn, "error")) ||
-	(Strcmp(ntype, "template") == 0) ||
-	((Strcmp(ntype, "cdecl") == 0) && is_protected(nn) && !is_member_director(nn) && !is_non_virtual_protected_access(n))) {
+        (Getattr(nn, "error")) ||
+        (Strcmp(ntype, "template") == 0) ||
+        ((Strcmp(ntype, "cdecl") == 0) && is_protected(nn) && !is_member_director(nn) && !is_non_virtual_protected_access(n))) {
       /* Remove from overloaded list */
       Node *ps = Getattr(nn, "sym:previousSibling");
       Node *ns = Getattr(nn, "sym:nextSibling");
       if (ps) {
-	Setattr(ps, "sym:nextSibling", ns);
+        Setattr(ps, "sym:nextSibling", ns);
       }
       if (ns) {
-	Setattr(ns, "sym:previousSibling", ps);
+        Setattr(ns, "sym:previousSibling", ps);
       }
       Delattr(nn, "sym:previousSibling");
       Delattr(nn, "sym:nextSibling");
@@ -98,7 +98,7 @@ void clean_overloaded(Node *n) {
       continue;
     } else {
       if (!first)
-	first = nn;
+        first = nn;
       Setattr(nn, "sym:overloaded", first);
     }
     nn = Getattr(nn, "sym:nextSibling");

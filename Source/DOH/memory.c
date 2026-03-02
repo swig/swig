@@ -194,15 +194,15 @@ void DohMemoryDebug(void) {
     int nused = 0, nfree = 0;
     for (i = 0; i < p->len; i++) {
       if (p->ptr[i].refcount <= 0)
-	nfree++;
+        nfree++;
       else {
-	nused++;
-	if (p->ptr[i].type == &DohStringType)
-	  numstring++;
-	else if (p->ptr[i].type == &DohListType)
-	  numlist++;
-	else if (p->ptr[i].type == &DohHashType)
-	  numhash++;
+        nused++;
+        if (p->ptr[i].type == &DohStringType)
+          numstring++;
+        else if (p->ptr[i].type == &DohListType)
+          numlist++;
+        else if (p->ptr[i].type == &DohHashType)
+          numhash++;
       }
     }
     printf("    Pool %8p: size = %10d. used = %10d. free = %10d\n", (void *) p, p->len, nused, nfree);
@@ -224,9 +224,9 @@ void DohMemoryDebug(void) {
     int i;
     for (i = 0; i < p->len; i++) {
       if (p->ptr[i].refcount > 0) {
-	if (p->ptr[i].type == &DohStringType) {
-	  Printf(stdout, "%s\n", p->ptr + i);
-	}
+        if (p->ptr[i].type == &DohStringType) {
+          Printf(stdout, "%s\n", p->ptr + i);
+        }
       }
     }
     p = p->next;

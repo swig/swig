@@ -173,11 +173,11 @@ static string padCodeAndVerbatimBlocks(const string &docString) {
       lastLineWasNonBlank = false;
     } else {
       if (lastLineWasNonBlank &&
-	  (line.compare(pos, 13, ".. code-block") == 0 ||
-	   line.compare(pos, 7, ".. math") == 0 ||
-	   line.compare(pos, 3, ">>>") == 0)) {
-	// Must separate code or math blocks from the previous line
-	result += '\n';
+          (line.compare(pos, 13, ".. code-block") == 0 ||
+           line.compare(pos, 7, ".. math") == 0 ||
+           line.compare(pos, 3, ">>>") == 0)) {
+        // Must separate code or math blocks from the previous line
+        result += '\n';
       }
       lastLineWasNonBlank = true;
     }
@@ -452,7 +452,7 @@ std::string PyDocConverter::getParamValue(std::string param) {
     if (pname && Char(pname) == param) {
       String *pval = Getattr(p, "value");
       if (pval)
-	value = Char(pval);
+        value = Char(pval);
       break;
     }
   }

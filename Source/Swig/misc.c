@@ -222,12 +222,12 @@ String *Swig_new_subdirectory(String *basedirectory, String *subdirectory) {
       result = mkdir(Char(dir), 0777);
 #endif
       if (result != 0 && errno != EEXIST) {
-	error = NewStringf("Cannot create directory %s: %s", dir, strerror(errno));
-	break;
+        error = NewStringf("Cannot create directory %s: %s", dir, strerror(errno));
+        break;
       }
       if (!is_directory(dir)) {
-	error = NewStringf("Cannot create directory %s: it may already exist but not be a directory", dir);
-	break;
+        error = NewStringf("Cannot create directory %s: it may already exist but not be a directory", dir);
+        break;
       }
       Printf(dir, SWIG_FILE_DELIMITER);
     }
@@ -392,10 +392,10 @@ String *Swig_string_escape(String *s) {
       int next_c = Getc(s);
       assert(c >= 0);
       if (next_c >= '0' && next_c < '8') {
-	/* We need to emit 3 octal digits. */
-	Printf(ns, "\\%03o", c);
+        /* We need to emit 3 octal digits. */
+        Printf(ns, "\\%03o", c);
       } else {
-	Printf(ns, "\\%o", c);
+        Printf(ns, "\\%o", c);
       }
       c = next_c;
       continue;
@@ -741,17 +741,17 @@ void Swig_scopename_split(const String *s, String **rprefix, String **rlast) {
       c += 2;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -796,17 +796,17 @@ String *Swig_scopename_prefix(const String *s) {
       c += 2;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -845,17 +845,17 @@ String *Swig_scopename_last(const String *s) {
       cc = c;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -890,17 +890,17 @@ String *Swig_scopename_first(const String *s) {
       break;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -936,17 +936,17 @@ String *Swig_scopename_suffix(const String *s) {
       break;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -1029,17 +1029,17 @@ int Swig_scopename_check(const String *s) {
       return 1;
     } else {
       if (*c == '<') {
-	int level = 1;
-	c++;
-	while (*c && level) {
-	  if (*c == '<')
-	    level++;
-	  if (*c == '>')
-	    level--;
-	  c++;
-	}
+        int level = 1;
+        c++;
+        while (*c && level) {
+          if (*c == '<')
+            level++;
+          if (*c == '>')
+            level--;
+          c++;
+        }
       } else {
-	c++;
+        c++;
       }
     }
   }
@@ -1111,7 +1111,7 @@ static String *Swig_string_rstrip(String *s) {
       String *suffix = NewStringf(fmt, cs+1);
       int suffix_len = Len(suffix);
       if (0 == Strncmp(cs+len-suffix_len, suffix, suffix_len)) {
-	int copy_len = len-suffix_len-(int)(ce+1-cs);
+        int copy_len = len-suffix_len-(int)(ce+1-cs);
         ns = NewStringWithSize(ce+1, copy_len);
       } else {
         ns = NewString(ce+1);
@@ -1258,41 +1258,41 @@ static String *replace_captures(int num_captures, const char *input, String *sub
     } else if (isdigit((unsigned char)*p)) {
       int group = *p++ - '0';
       if (group < num_captures) {
-	int l = (int)captures[group*2], r = (int)captures[group*2 + 1];
-	if (l != -1) {
-	  copy_with_maybe_case_conversion(result, input + l, r - l, &convertCase, convertNextOnly);
-	}
+        int l = (int)captures[group*2], r = (int)captures[group*2 + 1];
+        if (l != -1) {
+          copy_with_maybe_case_conversion(result, input + l, r - l, &convertCase, convertNextOnly);
+        }
       } else {
-	Swig_error("SWIG", Getline(s), "PCRE capture replacement failed while matching \"%s\" using \"%s\" - request for group %d is greater than the number of captures %d.\n",
-	    Char(pattern), input, group, num_captures-1);
+        Swig_error("SWIG", Getline(s), "PCRE capture replacement failed while matching \"%s\" using \"%s\" - request for group %d is greater than the number of captures %d.\n",
+            Char(pattern), input, group, num_captures-1);
       }
     } else {
-	/* Handle Perl-like case conversion escapes. */
-	switch (*p) {
-	case 'u':
-	  convertCase = 1;
-	  convertNextOnly = 1;
-	  break;
-	case 'U':
-	  convertCase = 1;
-	  convertNextOnly = 0;
-	  break;
-	case 'l':
-	  convertCase = -1;
-	  convertNextOnly = 1;
-	  break;
-	case 'L':
-	  convertCase = -1;
-	  convertNextOnly = 0;
-	  break;
-	case 'E':
-	  convertCase = 0;
-	  break;
-	default:
-	  Swig_error("SWIG", Getline(s), "Unrecognized escape character '%c' in the replacement string \"%s\".\n",
-	      *p, Char(subst));
-	}
-	p++;
+        /* Handle Perl-like case conversion escapes. */
+        switch (*p) {
+        case 'u':
+          convertCase = 1;
+          convertNextOnly = 1;
+          break;
+        case 'U':
+          convertCase = 1;
+          convertNextOnly = 0;
+          break;
+        case 'l':
+          convertCase = -1;
+          convertNextOnly = 1;
+          break;
+        case 'L':
+          convertCase = -1;
+          convertNextOnly = 0;
+          break;
+        case 'E':
+          convertCase = 0;
+          break;
+        default:
+          Swig_error("SWIG", Getline(s), "Unrecognized escape character '%c' in the replacement string \"%s\".\n",
+              *p, Char(subst));
+        }
+        p++;
     }
   }
 
@@ -1336,7 +1336,7 @@ static String *Swig_string_regex(String *s) {
       res = replace_captures(rc, input, subst, captures, pattern, s);
     } else if (rc != PCRE2_ERROR_NOMATCH) {
       Swig_error("SWIG", Getline(s), "PCRE execution failed: error %d while matching \"%s\" using \"%s\".\n",
-	rc, Char(pattern), input);
+        rc, Char(pattern), input);
       Exit(EXIT_FAILURE);
     }
   }
@@ -1398,8 +1398,8 @@ Node *Swig_item_in_list(List *list, const DOH *item) {
     Iterator it;
     for (it = First(list); it.item; it = Next(it)) {
       if (DohCmp(item, it.item) == 0) {
-	found_item = it.item;
-	break;
+        found_item = it.item;
+        break;
       }
     }
   }

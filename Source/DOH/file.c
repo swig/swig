@@ -84,8 +84,8 @@ void DohCloseAllOpenFiles(void) {
     (void)check;
     if (f->closeondel) {
       if (f->filep) {
-	check = fclose(f->filep);
-	assert(check == 0);
+        check = fclose(f->filep);
+        assert(check == 0);
       }
       f->closeondel = 0;
       f->filep = 0;

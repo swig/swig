@@ -317,8 +317,8 @@ DoxygenParser::TokenListCIt DoxygenParser::getEndOfParagraph(const TokenList &to
     // could contain empty lines that would appear to be paragraph
     // ends:
     if (endOfParagraph->m_tokenType == COMMAND &&
-	(endOfParagraph->m_tokenString == "code" ||
-	 endOfParagraph->m_tokenString == "verbatim")) {
+        (endOfParagraph->m_tokenString == "code" ||
+         endOfParagraph->m_tokenString == "verbatim")) {
       const string theCommand = endOfParagraph->m_tokenString;
       endOfParagraph = getEndCommand("end" + theCommand, tokList);
       endOfParagraph++; // Move after the end command

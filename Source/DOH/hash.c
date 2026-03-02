@@ -220,8 +220,8 @@ static int Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
     if (Cmp(n->key, k) == 0) {
       /* Node already exists.  Just replace its contents */
       if (n->object == obj) {
-	/* Whoa. Same object.  Do nothing */
-	return 1;
+        /* Whoa. Same object.  Do nothing */
+        return 1;
       }
       Delete(n->object);
       n->object = obj;
@@ -297,9 +297,9 @@ static int Hash_delattr(DOH *ho, DOH *k) {
       /* Found it, kill it */
 
       if (prev) {
-	prev->next = n->next;
+        prev->next = n->next;
       } else {
-	h->hashtable[hv] = n->next;
+        h->hashtable[hv] = n->next;
       }
       DelNode(n);
       h->nitems--;
@@ -420,8 +420,8 @@ static DOH *Hash_str(DOH *ho) {
     for (i = 0; i < h->hashsize; i++) {
       n = h->hashtable[i];
       while (n) {
-	Putc('.', s);
-	n = n->next;
+        Putc('.', s);
+        n = n->next;
       }
     }
     Putc('}', s);
@@ -433,7 +433,7 @@ static DOH *Hash_str(DOH *ho) {
     n = h->hashtable[i];
     while (n) {
       for (j = 0; j < expanded + 1; j++)
-	Printf(s, tab);
+        Printf(s, tab);
       expanded += 1;
       Printf(s, "'%s' : %s, \n", n->key, n->object);
       expanded -= 1;

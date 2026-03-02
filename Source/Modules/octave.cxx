@@ -113,13 +113,13 @@ public:
           } else {
             Swig_arg_error();
           }
-	} else if (strcmp(argv[i], "-cppcast") == 0) {
-	  Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
-	  Swig_mark_arg(i);
-	} else if (strcmp(argv[i], "-nocppcast") == 0) {
-	  Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
-	  Swig_mark_arg(i);
-	  Exit(EXIT_FAILURE);
+        } else if (strcmp(argv[i], "-cppcast") == 0) {
+          Printf(stderr, "Deprecated command line option: %s. This option is now always on.\n", argv[i]);
+          Swig_mark_arg(i);
+        } else if (strcmp(argv[i], "-nocppcast") == 0) {
+          Printf(stderr, "Deprecated command line option: %s. This option is no longer supported.\n", argv[i]);
+          Swig_mark_arg(i);
+          Exit(EXIT_FAILURE);
         }
       }
     }
@@ -422,9 +422,9 @@ public:
     int i = arg_offset;
     while (p) {
       if (!Getattr(p, "lname")) {
-	String *name = makeParameterName(n, p, i);
-	Setattr(p, "lname", name);
-	Delete(name);
+        String *name = makeParameterName(n, p, i);
+        Setattr(p, "lname", name);
+        Delete(name);
       }
       i++;
       p = nextSibling(p);
@@ -467,7 +467,7 @@ public:
 
       String *made_name = 0;
       if (!name) {
-	name = made_name = makeParameterName(n, p, arg_num);
+        name = made_name = makeParameterName(n, p, arg_num);
       }
 
       type = type ? type : Getattr(p, "type");
@@ -522,7 +522,7 @@ public:
     }
     if (numval) {
       if (SwigType_type(t) == T_BOOL) {
-	return NewString(*Char(numval) == '0' ? "false" : "true");
+        return NewString(*Char(numval) == '0' ? "false" : "true");
       }
       return numval;
     }
@@ -800,7 +800,7 @@ public:
     if (maxargs > 0 && check_emitted) {
       Printf(tmp, "octave_value_ref argv[%d]={", maxargs);
       for (int j = 0; j < maxargs; ++j)
-	Printf(tmp, "%soctave_value_ref(args,%d)", j ? "," : " ", j);
+        Printf(tmp, "%soctave_value_ref(args,%d)", j ? "," : " ", j);
       Printf(tmp, "}");
       Wrapper_add_local(f, "argv", tmp);
     }
@@ -1355,17 +1355,17 @@ public:
     // handle it, including declaration of c_result ($result).
     if (!is_void && (!ignored_method || pure_virtual)) {
       if (!SwigType_isclass(returntype)) {
-	if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
-	  String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
-	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
-	  Delete(construct_result);
-	} else {
-	  Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
-	}
+        if (!(SwigType_ispointer(returntype) || SwigType_isreference(returntype))) {
+          String *construct_result = NewStringf("= SwigValueInit< %s >()", SwigType_lstr(returntype, 0));
+          Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), construct_result, NIL);
+          Delete(construct_result);
+        } else {
+          Wrapper_add_localv(w, "c_result", SwigType_lstr(returntype, "c_result"), "= 0", NIL);
+        }
       } else {
-	String *cres = SwigType_lstr(returntype, "c_result");
-	Printf(w->code, "%s;\n", cres);
-	Delete(cres);
+        String *cres = SwigType_lstr(returntype, "c_result");
+        Printf(w->code, "%s;\n", cres);
+        Delete(cres);
       }
     }
 

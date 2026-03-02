@@ -38,7 +38,7 @@ void DohDelete(DOH *obj) {
       (objinfo->doh_del) (b);
     } else {
       if (b->data)
-	DohFree(b->data);
+        DohFree(b->data);
     }
     DohObjFree(b);
   }
@@ -228,11 +228,11 @@ int DohEqual(const DOH *obj1, const DOH *obj2) {
     if (DohCheck(b1)) {
       b1info = b1->type;
       if (DohCheck(b2)) {
-	b2info = b2->type;
+        b2info = b2->type;
       } else {
-	int len = (b1info->doh_len) (b1);
-	char *cobj = (char *) obj2;
-	return len == (int) strlen(cobj) ? (memcmp(RawData(b1), cobj, len) == 0) : 0;
+        int len = (b1info->doh_len) (b1);
+        char *cobj = (char *) obj2;
+        return len == (int) strlen(cobj) ? (memcmp(RawData(b1), cobj, len) == 0) : 0;
       }
     } else if (DohCheck(b2)) {
       int len = (b2->type->doh_len) (b2);
