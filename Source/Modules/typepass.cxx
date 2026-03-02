@@ -159,7 +159,7 @@ class TypePass:private Dispatcher {
   void cplus_inherit_types_impl(Node *first, Node *cls, String *clsname, const char *bases, const char *baselist, int ispublic, String *cast = 0) {
 
     if (first == cls)
-      return;			/* The Marcelo check */
+      return;                   /* The Marcelo check */
     if (!cls)
       cls = first;
     List *alist = 0;
@@ -1017,7 +1017,7 @@ class TypePass:private Dispatcher {
 
     // Make up an enumvalue if one was not specified in the parsed code (not designed to be used on enum items and %ignore - enumvalue will be set instead)
     if (!GetFlag(n, "feature:ignore")) {
-      if (Getattr(n, "_last") && !Getattr(n, "enumvalue")) {	// Only the first enum item has _last set (Note: first non-ignored enum item has firstenumitem set)
+      if (Getattr(n, "_last") && !Getattr(n, "enumvalue")) {    // Only the first enum item has _last set (Note: first non-ignored enum item has firstenumitem set)
         Setattr(n, "enumvalueex", "0");
       }
       if (next && !Getattr(next, "enumvalue")) {

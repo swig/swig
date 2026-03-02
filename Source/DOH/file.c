@@ -247,29 +247,29 @@ static DohFileMethods FileFileMethods = {
 };
 
 static DohObjInfo DohFileType = {
-  "DohFile",			/* objname      */
-  DelFile,			/* doh_del      */
-  0,				/* doh_copy     */
-  0,				/* doh_clear    */
-  0,				/* doh_str      */
-  0,				/* doh_data     */
-  0,				/* doh_dump     */
-  0,				/* doh_len      */
-  0,				/* doh_hash     */
-  0,				/* doh_cmp      */
-  0,				/* doh_equal    */
-  0,				/* doh_first    */
-  0,				/* doh_next     */
-  0,				/* doh_setfile  */
-  0,				/* doh_getfile  */
-  0,				/* doh_setline  */
-  0,				/* doh_getline  */
-  0,				/* doh_mapping  */
-  0,				/* doh_sequence */
-  &FileFileMethods,		/* doh_file     */
-  0,				/* doh_string   */
-  0,				/* doh_reserved */
-  0,				/* clientdata */
+  "DohFile",                    /* objname      */
+  DelFile,                      /* doh_del      */
+  0,                            /* doh_copy     */
+  0,                            /* doh_clear    */
+  0,                            /* doh_str      */
+  0,                            /* doh_data     */
+  0,                            /* doh_dump     */
+  0,                            /* doh_len      */
+  0,                            /* doh_hash     */
+  0,                            /* doh_cmp      */
+  0,                            /* doh_equal    */
+  0,                            /* doh_first    */
+  0,                            /* doh_next     */
+  0,                            /* doh_setfile  */
+  0,                            /* doh_getfile  */
+  0,                            /* doh_setline  */
+  0,                            /* doh_getline  */
+  0,                            /* doh_mapping  */
+  0,                            /* doh_sequence */
+  &FileFileMethods,             /* doh_file     */
+  0,                            /* doh_string   */
+  0,                            /* doh_reserved */
+  0,                            /* clientdata */
 };
 
 /* -----------------------------------------------------------------------------

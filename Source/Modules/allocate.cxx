@@ -29,7 +29,7 @@
 #include "swigmod.h"
 #include "cparse.h"
 
-static int virtual_elimination_mode = 0;	/* set to 0 on default */
+static int virtual_elimination_mode = 0;        /* set to 0 on default */
 
 /* Set virtual_elimination_mode */
 void Wrapper_virtual_elimination_mode_set(int flag) {
@@ -40,7 +40,7 @@ void Wrapper_virtual_elimination_mode_set(int flag) {
    This is a major hack. Sorry.  */
 
 extern "C" {
-  static String *search_decl = 0;	/* Declarator being searched */
+  static String *search_decl = 0;       /* Declarator being searched */
   static Node *check_implemented(Node *n) {
     String *decl;
     if (!n)
@@ -199,8 +199,8 @@ class Allocate:public Dispatcher {
 
           if (decl_match && returntype_match) {
             // Found an identical method in the base class
-            bool this_wrapping_protected_members = is_member_director(n) ? true : false;	// This should really check for dirprot rather than just being a director method
-            bool base_wrapping_protected_members = is_member_director(base) ? true : false;	// This should really check for dirprot rather than just being a director method
+            bool this_wrapping_protected_members = is_member_director(n) ? true : false;        // This should really check for dirprot rather than just being a director method
+            bool base_wrapping_protected_members = is_member_director(base) ? true : false;     // This should really check for dirprot rather than just being a director method
             bool both_have_public_access = is_public(n) && is_public(base);
             bool both_have_protected_access = (is_protected(n) && this_wrapping_protected_members) && (is_protected(base) && base_wrapping_protected_members);
             bool both_have_private_access = is_private(n) && is_private(base);
@@ -211,13 +211,13 @@ class Allocate:public Dispatcher {
               if (!GetFlag(b, "feature:interface")) { // interface implementation neither hides nor overrides
                 if (both_have_public_access || both_have_protected_access) {
                   if (!is_non_public_base(inclass, b))
-                    Setattr(n, "override", base);	// Note C# definition of override, ie access must be the same
+                    Setattr(n, "override", base);       // Note C# definition of override, ie access must be the same
                 }
                 else if (!both_have_private_access) {
                   // Different access
                   if (this_wrapping_protected_members || base_wrapping_protected_members)
                     if (!is_non_public_base(inclass, b))
-                      Setattr(n, "hides", base);	// Note C# definition of hiding, ie hidden if access is different
+                      Setattr(n, "hides", base);        // Note C# definition of hiding, ie hidden if access is different
                 }
               }
               // Try and find the most base's covariant return type
@@ -300,7 +300,7 @@ class Allocate:public Dispatcher {
 
   /* Checks if a class member is the same as inherited from the class bases */
   int class_member_is_defined_in_bases(Node *member, Node *classnode) {
-    Node *bases;		/* bases is the closest ancestors of classnode */
+    Node *bases;                /* bases is the closest ancestors of classnode */
     int defined = 0;
 
     bases = Getattr(classnode, "allbases");
@@ -333,7 +333,7 @@ class Allocate:public Dispatcher {
       return 0;
     if (!base) {
       /* Root node */
-      Symtab *stab = Getattr(n, "symtab");	/* Get symbol table for node */
+      Symtab *stab = Getattr(n, "symtab");      /* Get symbol table for node */
       Symtab *oldtab = Swig_symbol_setscope(stab);
       int ret = is_abstract_inherit(n, n, 1);
       Swig_symbol_setscope(oldtab);
@@ -349,7 +349,7 @@ class Allocate:public Dispatcher {
         if (!name)
           continue;
         if (Strchr(name, '~'))
-          continue;		/* Don't care about destructors */
+          continue;             /* Don't care about destructors */
         String *base_decl = Getattr(nn, "decl");
         if (base_decl)
           base_decl = SwigType_typedef_resolve_all(base_decl);
@@ -442,7 +442,7 @@ class Allocate:public Dispatcher {
                   if (isconst) {
                     SwigType *decl = Getattr(cp, "decl");
                     if (decl) {
-                      if (SwigType_isfunction(decl)) {	/* If method, we only add if it's a const method */
+                      if (SwigType_isfunction(decl)) {  /* If method, we only add if it's a const method */
                         if (SwigType_isconst(decl)) {
                           Append(methods, cp);
                         }

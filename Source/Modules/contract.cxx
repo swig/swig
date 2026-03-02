@@ -53,8 +53,8 @@ public:
   virtual int top(Node *n);
 };
 
-static int Contract_Mode = 0;	/* contract option */
-static int InClass = 0;		/* Parsing C++ or not */
+static int Contract_Mode = 0;   /* contract option */
+static int InClass = 0;         /* Parsing C++ or not */
 static int InConstructor = 0;
 static Node *CurrentClass = 0;
 

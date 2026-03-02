@@ -19,11 +19,11 @@ extern DohObjInfo DohStringType;
 typedef struct String {
   DOH *file;
   int line;
-  int maxsize;			/* Max size allocated */
-  int len;			/* Current length     */
-  int hashkey;			/* Hash key value     */
-  int sp;			/* Current position   */
-  char *str;			/* String data        */
+  int maxsize;                  /* Max size allocated */
+  int len;                      /* Current length     */
+  int hashkey;                  /* Hash key value     */
+  int sp;                       /* Current position   */
+  char *str;                    /* String data        */
 } String;
 
 /* -----------------------------------------------------------------------------
@@ -689,8 +689,8 @@ static char *match_number_end(char *base, char *s, char *token, int tokenlen) {
  * ----------------------------------------------------------------------------- */
 
 static int replace_simple(String *str, char *token, char *rep, int flags, int count, char *(*match) (char *, char *, char *, int)) {
-  int tokenlen;			/* Length of the token */
-  int replen;			/* Length of the replacement */
+  int tokenlen;                 /* Length of the token */
+  int replen;                   /* Length of the replacement */
   int delta, expand = 0;
   int ic;
   int rcount = 0;
@@ -710,7 +710,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
   s = (*match) (base, base, token, tokenlen);
 
   if (!s)
-    return 0;			/* No matches.  Who cares */
+    return 0;                   /* No matches.  Who cares */
 
   str->hashkey = -1;
 
@@ -726,7 +726,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
   if (noquote) {
     q = strpbrk(base, "\"\'");
     if (!q) {
-      noquote = 0;		/* Well, no quotes to worry about. Oh well */
+      noquote = 0;              /* Well, no quotes to worry about. Oh well */
     } else {
       while (q && (q < s)) {
         /* First match was found inside a quote.  Try to find another match */
@@ -739,10 +739,10 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
           s = (*match) (base, q2 + 1, token, tokenlen);
         }
         if (!s)
-          return 0;		/* Oh well, no matches */
+          return 0;             /* Oh well, no matches */
         q = strpbrk(q2 + 1, "\"\'");
         if (!q)
-          noquote = 0;		/* No more quotes */
+          noquote = 0;          /* No more quotes */
       }
     }
   }
@@ -751,7 +751,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
   if (nocomment) {
     q = strstr(base, "/*");
     if (!q) {
-      nocomment = 0;		/* Well, no comments to worry about. Oh well */
+      nocomment = 0;            /* Well, no comments to worry about. Oh well */
     } else {
       while (q && (q < s)) {
         /* First match was found inside a comment.  Try to find another match */
@@ -764,10 +764,10 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
           s = (*match) (base, q2 + 1, token, tokenlen);
         }
         if (!s)
-          return 0;		/* Oh well, no matches */
+          return 0;             /* Oh well, no matches */
         q = strstr(q2 + 1, "/*");
         if (!q)
-          nocomment = 0;		/* No more comments */
+          nocomment = 0;                /* No more comments */
       }
     }
   }
@@ -781,7 +781,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
     /* String is either shrinking or staying the same size */
     /* In this case, we do the replacement in place without memory reallocation */
     ic = count;
-    t = s;			/* Target of memory copies */
+    t = s;                      /* Target of memory copies */
     while (ic && s) {
       if (replen) {
         memcpy(t, rep, replen);
@@ -813,7 +813,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
               break;
             q = strpbrk(q2 + 1, "\"\'");
             if (!q)
-              noquote = 0;	/* No more quotes */
+              noquote = 0;      /* No more quotes */
           }
         }
       }
@@ -835,7 +835,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
               break;
             q = strstr(q2 + 1, "/*");
             if (!q)
-              nocomment = 0;	/* No more comments */
+              nocomment = 0;    /* No more comments */
           }
         }
       }
@@ -860,7 +860,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
     str->len += expand;
     str->str[str->len] = 0;
     if (str->sp >= str->len)
-      str->sp += expand;	/* Fix the end of file pointer */
+      str->sp += expand;        /* Fix the end of file pointer */
     return rcount;
   }
   /* The string is expanding as a result of the replacement */
@@ -928,7 +928,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
       }
     }
 
-    expand = delta * rcount;	/* Total amount of expansion for the replacement */
+    expand = delta * rcount;    /* Total amount of expansion for the replacement */
     newsize = str->maxsize;
     while ((str->len + expand) >= newsize)
       newsize *= 2;
@@ -966,7 +966,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
             }
             q = strpbrk(q2 + 1, "\"\'");
             if (!q)
-              noquote = 0;	/* No more quotes */
+              noquote = 0;      /* No more quotes */
           }
         }
       }
@@ -989,7 +989,7 @@ static int replace_simple(String *str, char *token, char *rep, int flags, int co
             }
             q = strstr(q2 + 1, "/*");
             if (!q)
-              nocomment = 0;	/* No more comments */
+              nocomment = 0;    /* No more comments */
           }
         }
       }
@@ -1090,11 +1090,11 @@ static int String_getline(DOH *so) {
 }
 
 static DohListMethods StringListMethods = {
-  0,				/* doh_getitem */
-  0,				/* doh_setitem */
-  String_delitem,		/* doh_delitem */
-  String_insert,		/* doh_insitem */
-  String_delslice,		/* doh_delslice */
+  0,                            /* doh_getitem */
+  0,                            /* doh_setitem */
+  String_delitem,               /* doh_delitem */
+  String_insert,                /* doh_insitem */
+  String_delslice,              /* doh_delslice */
 };
 
 static DohFileMethods StringFileMethods = {
@@ -1113,29 +1113,29 @@ static DohStringMethods StringStringMethods = {
 };
 
 DohObjInfo DohStringType = {
-  "String",			/* objname */
-  DelString,			/* doh_del */
-  CopyString,			/* doh_copy */
-  String_clear,			/* doh_clear */
-  String_str,			/* doh_str */
-  String_data,			/* doh_data */
-  String_dump,			/* doh_dump */
-  String_len,	    	        /* doh_len */
-  String_hash,			/* doh_hash    */
-  String_cmp,			/* doh_cmp */
-  String_equal,	    	        /* doh_equal */
-  0,				/* doh_first    */
-  0,				/* doh_next     */
-  String_setfile,		/* doh_setfile */
-  String_getfile,		/* doh_getfile */
-  String_setline,		/* doh_setline */
-  String_getline,		/* doh_getline */
-  0,				/* doh_mapping */
-  &StringListMethods,		/* doh_sequence */
-  &StringFileMethods,		/* doh_file */
-  &StringStringMethods,		/* doh_string */
-  0,				/* doh_reserved */
-  0,				/* clientdata */
+  "String",                     /* objname */
+  DelString,                    /* doh_del */
+  CopyString,                   /* doh_copy */
+  String_clear,                 /* doh_clear */
+  String_str,                   /* doh_str */
+  String_data,                  /* doh_data */
+  String_dump,                  /* doh_dump */
+  String_len,                   /* doh_len */
+  String_hash,                  /* doh_hash    */
+  String_cmp,                   /* doh_cmp */
+  String_equal,                 /* doh_equal */
+  0,                            /* doh_first    */
+  0,                            /* doh_next     */
+  String_setfile,               /* doh_setfile */
+  String_getfile,               /* doh_getfile */
+  String_setline,               /* doh_setline */
+  String_getline,               /* doh_getline */
+  0,                            /* doh_mapping */
+  &StringListMethods,           /* doh_sequence */
+  &StringFileMethods,           /* doh_file */
+  &StringStringMethods,         /* doh_string */
+  0,                            /* doh_reserved */
+  0,                            /* clientdata */
 };
 
 

@@ -147,11 +147,11 @@
  *
  *----------------------------------------------------------------------------- */
 
-static Typetab *current_scope = 0;	/* Current type scope                           */
-static Hash *current_typetab = 0;	/* Current type table                           */
-static Hash *current_symtab = 0;	/* Current symbol table                         */
-static Typetab *global_scope = 0;	/* The global scope                             */
-static Hash *scopes = 0;	/* Hash table containing fully qualified scopes */
+static Typetab *current_scope = 0;      /* Current type scope                           */
+static Hash *current_typetab = 0;       /* Current type table                           */
+static Hash *current_symtab = 0;        /* Current symbol table                         */
+static Typetab *global_scope = 0;       /* The global scope                             */
+static Hash *scopes = 0;        /* Hash table containing fully qualified scopes */
 
 /* Performance optimization */
 #define SWIG_TYPEDEF_RESOLVE_CACHE
@@ -197,7 +197,7 @@ void SwigType_typesystem_init(void) {
   current_scope = NewHash();
   global_scope = current_scope;
 
-  Setattr(current_scope, "name", "");	/* No name for global scope */
+  Setattr(current_scope, "name", "");   /* No name for global scope */
   current_typetab = NewHash();
   Setattr(current_scope, "typetab", current_typetab);
 
@@ -217,8 +217,8 @@ void SwigType_typesystem_init(void) {
 int SwigType_typedef(const SwigType *type, const_String_or_char_ptr name) {
   /* Printf(stdout, "typedef %s %s\n", type, name); */
   if (Getattr(current_typetab, name))
-    return -1;			/* Already defined */
-  if (Strcmp(type, name) == 0) {	/* Can't typedef a name to itself */
+    return -1;                  /* Already defined */
+  if (Strcmp(type, name) == 0) {        /* Can't typedef a name to itself */
     return 0;
   }
 
@@ -249,7 +249,7 @@ int SwigType_typedef_class(const_String_or_char_ptr name) {
   String *cname;
   /*  Printf(stdout,"class : '%s'\n", name); */
   if (Getattr(current_typetab, name))
-    return -1;			/* Already defined */
+    return -1;                  /* Already defined */
   cname = NewString(name);
   Setmeta(cname, "class", "1");
   Setattr(current_typetab, cname, cname);
@@ -1155,7 +1155,7 @@ SwigType *SwigType_typedef_qualified(const SwigType *t) {
         while ((p = pi.item)) {
           /* TODO: the logic here should be synchronised with that in symbol_template_qualify() in symbol.c */
           String *qt = SwigType_typedef_qualified(p);
-          if (Equal(qt, p)) {	/*  && (!Swig_scopename_check(qt))) */
+          if (Equal(qt, p)) {   /*  && (!Swig_scopename_check(qt))) */
             /* No change in value.  It is entirely possible that the parameter is an integer value.
                If there is a symbol table associated with this scope, we're going to check for this */
 
@@ -1294,7 +1294,7 @@ int SwigType_typedef_using(const_String_or_char_ptr name) {
   /* Printf(stdout, "using %s\n", name); */
 
   if (!Swig_scopename_check(name))
-    return -1;			/* Not properly qualified */
+    return -1;                  /* Not properly qualified */
   base = Swig_scopename_last(name);
 
   /* See if the base is already defined in this scope */
@@ -1624,12 +1624,12 @@ SwigType *SwigType_alttype(const SwigType *t, int local_tmap) {
  * compute the transitive closure.
  * ----------------------------------------------------------------------------- */
 
-static Hash *r_mangled = 0;	/* Hash mapping mangled types to fully resolved types */
-static Hash *r_resolved = 0;	/* Hash mapping resolved types to mangled types       */
-static Hash *r_ltype = 0;	/* Hash mapping mangled names to their local c type   */
-static Hash *r_clientdata = 0;	/* Hash mapping resolved types to client data         */
-static Hash *r_mangleddata = 0;	/* Hash mapping mangled types to client data         */
-static Hash *r_remembered = 0;	/* Hash of types we remembered already */
+static Hash *r_mangled = 0;     /* Hash mapping mangled types to fully resolved types */
+static Hash *r_resolved = 0;    /* Hash mapping resolved types to mangled types       */
+static Hash *r_ltype = 0;       /* Hash mapping mangled names to their local c type   */
+static Hash *r_clientdata = 0;  /* Hash mapping resolved types to client data         */
+static Hash *r_mangleddata = 0; /* Hash mapping mangled types to client data         */
+static Hash *r_remembered = 0;  /* Hash of types we remembered already */
 
 static void (*r_tracefunc) (const SwigType *t, String *mangled, String *clientdata) = 0;
 
@@ -1672,7 +1672,7 @@ void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr cl
   Delete(tkey);
   Delete(cd);
 
-  mt = SwigType_manglestr(t);	/* Create mangled string */
+  mt = SwigType_manglestr(t);   /* Create mangled string */
 
   if (r_tracefunc) {
     (*r_tracefunc) (t, mt, (String *) clientdata);
@@ -1692,7 +1692,7 @@ void SwigType_remember_clientdata(const SwigType *t, const_String_or_char_ptr cl
   Setattr(lthash, lt, "1");
   Delete(lt);
 
-  fr = SwigType_typedef_resolve_all(t);	/* Create fully resolved type */
+  fr = SwigType_typedef_resolve_all(t); /* Create fully resolved type */
   qr = SwigType_typedef_qualified(fr);
   Delete(fr);
 
@@ -1787,7 +1787,7 @@ static List *SwigType_equivalent_mangle(String *ms, Hash *checked, Hash *found) 
     ch = NewHash();
   }
   if (Getattr(ch, ms))
-    goto check_exit;		/* Already checked this type */
+    goto check_exit;            /* Already checked this type */
   Setattr(h, ms, "1");
   Setattr(ch, ms, "1");
   mh = Getattr(r_mangled, ms);

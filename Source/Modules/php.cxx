@@ -47,11 +47,11 @@ static File *f_directors_h = 0;
 static String *s_header;
 static String *s_wrappers;
 static String *s_init;
-static String *r_init;		// RINIT user code
-static String *s_shutdown;	// MSHUTDOWN user code
-static String *r_shutdown;	// RSHUTDOWN user code
+static String *r_init;          // RINIT user code
+static String *s_shutdown;      // MSHUTDOWN user code
+static String *r_shutdown;      // RSHUTDOWN user code
 static String *s_vdecl;
-static String *s_cinit;		// consttab initialization code.
+static String *s_cinit;         // consttab initialization code.
 static String *s_oinit;
 static String *s_arginfo;
 static String *s_entry;
@@ -1450,7 +1450,7 @@ public:
 
     // NOTE: possible we ignore this_ptr as a param for native constructor
 
-    if (numopt > 0) {		// membervariable wrappers do not have optional args
+    if (numopt > 0) {           // membervariable wrappers do not have optional args
       Wrapper_add_local(f, "arg_count", "int arg_count");
       Printf(f->code, "arg_count = ZEND_NUM_ARGS();\n");
       Printf(f->code, "if(arg_count<%d || arg_count>%d ||\n", num_required, num_arguments);
@@ -2534,7 +2534,7 @@ public:
     wrapperType = standard;
     return result;
   }
-};				/* class PHP */
+};                              /* class PHP */
 
 static PHP *maininstance = 0;
 

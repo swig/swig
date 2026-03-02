@@ -14,8 +14,8 @@
 #include "dohint.h"
 
 typedef struct List {
-  int maxitems;			/* Max size  */
-  int nitems;			/* Num items */
+  int maxitems;                 /* Max size  */
+  int nitems;                   /* Num items */
   DOH *file;
   int line;
   DOH **items;
@@ -312,29 +312,29 @@ static DohListMethods ListListMethods = {
 };
 
 DohObjInfo DohListType = {
-  "List",			/* objname */
-  DelList,			/* doh_del */
-  CopyList,			/* doh_copy */
-  List_clear,			/* doh_clear */
-  List_str,			/* doh_str */
-  0,				/* doh_data */
-  List_dump,			/* doh_dump */
-  List_len,			/* doh_len */
-  0,				/* doh_hash    */
-  0,				/* doh_cmp */
-  0,				/* doh_equal    */
-  List_first,			/* doh_first    */
-  List_next,			/* doh_next     */
-  List_setfile,			/* doh_setfile */
-  List_getfile,			/* doh_getfile */
-  List_setline,			/* doh_setline */
-  List_getline,			/* doh_getline */
-  0,				/* doh_mapping */
-  &ListListMethods,		/* doh_sequence */
-  0,				/* doh_file */
-  0,				/* doh_string */
-  0,				/* doh_reserved */
-  0,				/* clientdata */
+  "List",                       /* objname */
+  DelList,                      /* doh_del */
+  CopyList,                     /* doh_copy */
+  List_clear,                   /* doh_clear */
+  List_str,                     /* doh_str */
+  0,                            /* doh_data */
+  List_dump,                    /* doh_dump */
+  List_len,                     /* doh_len */
+  0,                            /* doh_hash    */
+  0,                            /* doh_cmp */
+  0,                            /* doh_equal    */
+  List_first,                   /* doh_first    */
+  List_next,                    /* doh_next     */
+  List_setfile,                 /* doh_setfile */
+  List_getfile,                 /* doh_getfile */
+  List_setline,                 /* doh_setline */
+  List_getline,                 /* doh_getline */
+  0,                            /* doh_mapping */
+  &ListListMethods,             /* doh_sequence */
+  0,                            /* doh_file */
+  0,                            /* doh_string */
+  0,                            /* doh_reserved */
+  0,                            /* clientdata */
 };
 
 /* -----------------------------------------------------------------------------

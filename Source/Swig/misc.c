@@ -278,7 +278,7 @@ void Swig_filename_correct(String *filename) {
 String *Swig_filename_escape(String *filename) {
   String *adjusted_filename = Copy(filename);
   Swig_filename_correct(adjusted_filename);
-#if defined(_WIN32)		/* Note not on Cygwin else filename is displayed with double '/' */
+#if defined(_WIN32)             /* Note not on Cygwin else filename is displayed with double '/' */
   Replaceall(adjusted_filename, "\\", "\\\\");
 #endif
   return adjusted_filename;

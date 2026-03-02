@@ -15,7 +15,7 @@
 #include "cparse.h"
 #include <ctype.h>
 #include <string.h>
-#include <limits.h>		/* for INT_MAX */
+#include <limits.h>             /* for INT_MAX */
 
 #define SWIG_PROTECTED_TARGET_METHODS 1
 
@@ -24,9 +24,9 @@ private:
   String *temp;
 
 public:
-  String *name;			/* class name (renamed) */
-  String *cname;		/* original C class/struct name */
-  String *mname;		/* Mangled name */
+  String *name;                 /* class name (renamed) */
+  String *cname;                /* original C class/struct name */
+  String *mname;                /* Mangled name */
 
   /**
    * The C variable name used in the SWIG-generated wrapper code to refer to
@@ -154,9 +154,9 @@ private:
   String *feature;
   String *prefix;
   int current;
-  Hash *classes;		/* key=cname val=RClass */
-  RClass *klass;		/* Currently processing class */
-  Hash *special_methods;	/* Python style special method name table */
+  Hash *classes;                /* key=cname val=RClass */
+  RClass *klass;                /* Currently processing class */
+  Hash *special_methods;        /* Python style special method name table */
 
   File *f_directors;
   File *f_directors_h;
@@ -190,12 +190,12 @@ private:
    * ------------------------------------------------------------ */
 
   enum autodoc_l {
-    NO_AUTODOC = -2,		// no autodoc
-    STRING_AUTODOC = -1,	// use provided string
-    NAMES_AUTODOC = 0,		// only parameter names
-    TYPES_AUTODOC = 1,		// parameter names and types
-    EXTEND_AUTODOC = 2,		// extended documentation and parameter names
-    EXTEND_TYPES_AUTODOC = 3	// extended documentation and parameter types + names
+    NO_AUTODOC = -2,            // no autodoc
+    STRING_AUTODOC = -1,        // use provided string
+    NAMES_AUTODOC = 0,          // only parameter names
+    TYPES_AUTODOC = 1,          // parameter names and types
+    EXTEND_AUTODOC = 2,         // extended documentation and parameter names
+    EXTEND_TYPES_AUTODOC = 3    // extended documentation and parameter types + names
   };
 
   autodoc_t last_mode;
@@ -262,11 +262,11 @@ private:
     if (have_auto || have_ds)
       doc = NewString("/*");
 
-    if (have_auto && have_ds) {	// Both autodoc and docstring are present
+    if (have_auto && have_ds) { // Both autodoc and docstring are present
       Printv(doc, "\n", autodoc, "\n", str, "\n", NIL);
-    } else if (!have_auto && have_ds) {	// only docstring
+    } else if (!have_auto && have_ds) { // only docstring
       Printv(doc, str, NIL);
-    } else if (have_auto && !have_ds) {	// only autodoc
+    } else if (have_auto && !have_ds) { // only autodoc
       Printv(doc, "\n", autodoc, "\n", NIL);
     } else {
       doc = NewString("");
@@ -1416,7 +1416,7 @@ public:
     case CLASS_CONST:
     case STATIC_VAR:
     default:
-      assert(false);		// Should not have gotten here for these types
+      assert(false);            // Should not have gotten here for these types
     }
 
     defineAliases(n, iname);
@@ -1511,7 +1511,7 @@ public:
         Printf(source, "argv[%d]", i - start);
       }
 
-      if (i >= (numreq)) {	/* Check if parsing an optional argument */
+      if (i >= (numreq)) {      /* Check if parsing an optional argument */
         Printf(f->code, "    if (argc > %d) {\n", i - start);
       }
 
@@ -2085,7 +2085,7 @@ public:
     Node *sibl = n;
 
     while (Getattr(sibl, "sym:previousSibling"))
-      sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
+      sibl = Getattr(sibl, "sym:previousSibling");      // go all the way up
 
     // Constructors will be treated specially
     String *siblNodeType = Getattr(sibl, "nodeType");
@@ -2509,7 +2509,7 @@ public:
 
     String *name = Getattr(n, "name");
     String *symname = Getattr(n, "sym:name");
-    String *namestr = SwigType_namestr(name);	// does template expansion
+    String *namestr = SwigType_namestr(name);   // does template expansion
 
     klass = RCLASS(classes, Char(namestr));
     assert(klass != 0);
@@ -3450,7 +3450,7 @@ public:
     // kwargs support isn't actually implemented, but changing to return false may break something now as it turns on compactdefaultargs
     return true;
   }
-};				/* class RUBY */
+};                              /* class RUBY */
 
 /* -----------------------------------------------------------------------------
  * swig_ruby()    - Instantiate module

@@ -21,16 +21,16 @@
 #include "preprocessor.h"
 #include <ctype.h>
 
-static Hash *cpp = 0;		/* C preprocessor data */
-static int include_all = 0;	/* Follow all includes */
+static Hash *cpp = 0;           /* C preprocessor data */
+static int include_all = 0;     /* Follow all includes */
 static int ignore_missing = 0;
-static int import_all = 0;	/* Follow all includes, but as %import statements */
-static int imported_depth = 0;	/* Depth of %imported files */
-static int single_include = 1;	/* Only include each file once */
+static int import_all = 0;      /* Follow all includes, but as %import statements */
+static int imported_depth = 0;  /* Depth of %imported files */
+static int single_include = 1;  /* Only include each file once */
 static Hash *included_files = 0;
 static List *dependencies = 0;
 static Scanner *id_scan = 0;
-static int error_as_warning = 0;	/* Understand the cpp #error directive as a special #warning */
+static int error_as_warning = 0;        /* Understand the cpp #error directive as a special #warning */
 static int expand_defined_operator = 0;
 static int macro_level = 0;
 static int macro_start_line = 0;
@@ -230,7 +230,7 @@ void Preprocessor_init(void) {
   s = NewHash();
   Setattr(cpp, kpp_symbols, s);
   Delete(s);
-  Preprocessor_expr_init();	/* Initialize the expression evaluator */
+  Preprocessor_expr_init();     /* Initialize the expression evaluator */
   included_files = NewHash();
 
   id_scan = NewScanner();
@@ -629,7 +629,7 @@ static List *find_args(String *s, int ismacro, String *macro_name) {
   /* Okay.  This appears to be a macro so we will start isolating arguments */
   while (c != EOF) {
     if (isspace(c)) {
-      skip_whitespace(s, 0);	/* Skip leading whitespace */
+      skip_whitespace(s, 0);    /* Skip leading whitespace */
       c = Getc(s);
     }
     str = NewStringEmpty();
@@ -930,9 +930,9 @@ static String *expand_macro(String *name, List *args, String *line_file) {
     for (i = 0; i < l; i++) {
       DOH *arg, *aname;
       String *reparg;
-      arg = Getitem(args, i);	/* Get an argument value */
+      arg = Getitem(args, i);   /* Get an argument value */
       reparg = Preprocessor_replace(arg, NULL);
-      aname = Getitem(margs, i);	/* Get macro argument name */
+      aname = Getitem(margs, i);        /* Get macro argument name */
       if (strchr(Char(ns), '\001')) {
         /* Try to replace a quoted version of the argument */
         Clear(temp);
@@ -1047,14 +1047,14 @@ static String *expand_macro(String *name, List *args, String *line_file) {
       }
 
       /*      Replace(ns, aname, arg, DOH_REPLACE_ID); */
-      Replace(ns, aname, reparg, DOH_REPLACE_ID);	/* Replace expanded args */
-      Replace(ns, "\003", arg, DOH_REPLACE_ANY);	/* Replace unexpanded arg */
+      Replace(ns, aname, reparg, DOH_REPLACE_ID);       /* Replace expanded args */
+      Replace(ns, "\003", arg, DOH_REPLACE_ANY);        /* Replace unexpanded arg */
       Delete(reparg);
     }
   }
-  Replace(ns, "\002", "", DOH_REPLACE_ANY);	/* Get rid of concatenation tokens */
-  Replace(ns, "\001", "#", DOH_REPLACE_ANY);	/* Put # back (non-standard C) */
-  Replace(ns, "\004", "#@", DOH_REPLACE_ANY);	/* Put # back (non-standard C) */
+  Replace(ns, "\002", "", DOH_REPLACE_ANY);     /* Get rid of concatenation tokens */
+  Replace(ns, "\001", "#", DOH_REPLACE_ANY);    /* Put # back (non-standard C) */
+  Replace(ns, "\004", "#@", DOH_REPLACE_ANY);   /* Put # back (non-standard C) */
 
   /* Expand this macro even further */
   Setattr(macro, kpp_expanded, "1");
@@ -1169,7 +1169,7 @@ static DOH *Preprocessor_replace(DOH *s, DOH *line_file) {
         state = 4;
       }
       break;
-    case 4:			/* An identifier */
+    case 4:                     /* An identifier */
       if (isidchar(c)) {
         Putc(c, id);
         state = 4;
@@ -1473,7 +1473,7 @@ static void pop_imported(void) {
  * ----------------------------------------------------------------------------- */
 
 String *Preprocessor_parse(String *s) {
-  String *ns;			/* New string containing the preprocessed text */
+  String *ns;                   /* New string containing the preprocessed text */
   String *chunk, *decl;
   Hash *symbols;
   String *id = 0, *value = 0, *comment = 0;
@@ -1491,7 +1491,7 @@ String *Preprocessor_parse(String *s) {
   /* Blow away all carriage returns */
   Replace(s, "\015", "", DOH_REPLACE_ANY);
 
-  ns = NewStringEmpty();	/* Return result */
+  ns = NewStringEmpty();        /* Return result */
 
   decl = NewStringEmpty();
   id = NewStringEmpty();
@@ -1505,7 +1505,7 @@ String *Preprocessor_parse(String *s) {
   state = 0;
   while ((c = Getc(s)) != EOF) {
     switch (state) {
-    case 0:			/* Initial state - in first column */
+    case 0:                     /* Initial state - in first column */
       /* Look for C preprocessor directives.   Otherwise, go directly to state 1 */
       if (c == '#') {
         copy_location(s, chunk);
@@ -1520,7 +1520,7 @@ String *Preprocessor_parse(String *s) {
         Ungetc(c, s);
       }
       break;
-    case 1: {			/* Non-preprocessor directive */
+    case 1: {                   /* Non-preprocessor directive */
       /* Look for SWIG directives */
 state1:
       if (c == '%') {
@@ -1541,11 +1541,11 @@ state1:
           Swig_error(Getfile(s), start_line, "Unterminated character constant\n");
         }
       } else if (c == '/')
-        state = 30;		/* Comment */
+        state = 30;             /* Comment */
       break;
     }
 
-    case 30:			/* Possibly a comment string of some sort */
+    case 30:                    /* Possibly a comment string of some sort */
       start_line = Getline(s);
       if (c == '/')
         state = 31;
@@ -1575,7 +1575,7 @@ state1:
         state = 32;
       break;
 
-    case 40:			/* Start of a C preprocessor directive */
+    case 40:                    /* Start of a C preprocessor directive */
       if (c == '\n') {
         Putc('\n', chunk);
         state = 0;
@@ -1590,7 +1590,7 @@ state1:
       }
       break;
 
-    case 41:			/* Build up the name of the preprocessor directive */
+    case 41:                    /* Build up the name of the preprocessor directive */
       if ((isspace(c) || (!isidchar(c)))) {
         Clear(value);
         Clear(comment);
@@ -1610,7 +1610,7 @@ state1:
       Putc(c, id);
       break;
 
-    case 42:			/* Strip any leading space after the preprocessor directive (before preprocessor value) */
+    case 42:                    /* Strip any leading space after the preprocessor directive (before preprocessor value) */
       if (isspace(c)) {
         if (c == '\n') {
           Ungetc(c, s);

@@ -1015,9 +1015,9 @@ public:
    *  #  base       other         tail
    * --  ----       -----         ----
    *  1  "Foo"      "Foo.Bar" ->  "Bar"
-   *  2	 "Foo"      "Foo."    ->  ""
-   *  3	 "Foo"      "FooB.ar" ->  NULL
-   *  4	 "Foo.Bar"  "Foo.Bar" ->  ""
+   *  2  "Foo"      "Foo."    ->  ""
+   *  3  "Foo"      "FooB.ar" ->  NULL
+   *  4  "Foo.Bar"  "Foo.Bar" ->  ""
    *  5  "Foo.Bar"  "Foo"     ->  NULL
    *  6  "Foo.Bar"  "Foo.Gez" ->  NULL
    *
@@ -1047,9 +1047,9 @@ public:
    *
    * Return a string containing python code to import module.
    *
-   * 	pkg     package name or the module being imported
-   * 	mod     module name of the module being imported
-   * 	pfx     optional prefix to module name
+   *    pkg     package name or the module being imported
+   *    mod     module name of the module being imported
+   *    pfx     optional prefix to module name
    *
    * NOTE: keep this function consistent with abs_import_name_string().
    * ------------------------------------------------------------ */
@@ -1071,10 +1071,10 @@ public:
    * Return a string containing python code to import module that
    * is potentially within a package.
    *
-   * 	mainpkg	package name of the module which imports the other module
-   * 	pkg     package name or the module being imported
-   * 	mod     module name of the module being imported
-   * 	pfx     optional prefix to module name
+   *    mainpkg package name of the module which imports the other module
+   *    pkg     package name or the module being imported
+   *    mod     module name of the module being imported
+   *    pfx     optional prefix to module name
    *
    * NOTE: keep this function consistent with rel_import_name_string().
    * ------------------------------------------------------------ */
@@ -1489,12 +1489,12 @@ public:
    * ------------------------------------------------------------ */
 
   enum autodoc_l {
-    NO_AUTODOC = -2,		// no autodoc
-    STRING_AUTODOC = -1,	// use provided string
-    NAMES_AUTODOC = 0,		// only parameter names
-    TYPES_AUTODOC = 1,		// parameter names and types
-    EXTEND_AUTODOC = 2,		// extended documentation and parameter names
-    EXTEND_TYPES_AUTODOC = 3	// extended documentation and parameter types + names
+    NO_AUTODOC = -2,            // no autodoc
+    STRING_AUTODOC = -1,        // use provided string
+    NAMES_AUTODOC = 0,          // only parameter names
+    TYPES_AUTODOC = 1,          // parameter names and types
+    EXTEND_AUTODOC = 2,         // extended documentation and parameter names
+    EXTEND_TYPES_AUTODOC = 3    // extended documentation and parameter types + names
   };
 
 
@@ -2680,7 +2680,7 @@ public:
     } else {
       Node *sibl = n;
       while (Getattr(sibl, "sym:previousSibling"))
-        sibl = Getattr(sibl, "sym:previousSibling");	// go all the way up
+        sibl = Getattr(sibl, "sym:previousSibling");    // go all the way up
       String *protoTypes = NewString("");
       do {
         String *fulldecl = Swig_name_decl(sibl);
@@ -2952,7 +2952,7 @@ public:
       if (parse_from_tuple) {
         Printf(arglist, ", ");
         if (i == num_required)
-          Putc('|', parse_args);	/* Optional argument separator */
+          Putc('|', parse_args);        /* Optional argument separator */
       }
 
       /* Keyword argument handling */
@@ -2974,7 +2974,7 @@ public:
             Replaceall(tm, "$self", "obj0");
           }
           Replaceall(tm, "$input", source);
-          Setattr(p, "emit:input", source);	/* Save the location of the object */
+          Setattr(p, "emit:input", source);     /* Save the location of the object */
 
           if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
             Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
@@ -3943,7 +3943,7 @@ public:
         Delete(rname);
       } else {
         String *symname = Getattr(n, "sym:name");
-        String *mrename = Swig_name_disown(NSPACE_TODO, symname);	//Getattr(n, "name"));
+        String *mrename = Swig_name_disown(NSPACE_TODO, symname);       //Getattr(n, "name"));
         Printv(f_shadow, tab4, "def __disown__(self):\n", NIL);
         Printv(f_shadow, tab8, "self.this.disown()\n", NIL);
         Printv(f_shadow, tab8, module, ".", mrename, "(self)\n", NIL);
@@ -4905,7 +4905,7 @@ public:
       Swig_save("builtin_memberfunc", n, "python:argcount", NIL);
 
     /* Create the default member function */
-    oldshadow = shadow;		/* Disable shadowing when wrapping member functions */
+    oldshadow = shadow;         /* Disable shadowing when wrapping member functions */
     if (shadow)
       shadow = shadow | PYSHADOW_MEMBER;
     Language::memberfunctionHandler(n);

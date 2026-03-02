@@ -1231,7 +1231,7 @@ static String *manglestr_default(const SwigType *s) {
     base = b;
   }
 
-  Replace(base, "struct ", "", DOH_REPLACE_ANY);	/* This might be problematic */
+  Replace(base, "struct ", "", DOH_REPLACE_ANY);        /* This might be problematic */
   Replace(base, "class ", "", DOH_REPLACE_ANY);
   Replace(base, "union ", "", DOH_REPLACE_ANY);
   Replace(base, "enum ", "", DOH_REPLACE_ANY);

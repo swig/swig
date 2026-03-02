@@ -3099,7 +3099,7 @@ public:
     Printv(sect_wrappers_decl, "#define ", name, " ", value, "\n", NIL);
     return SWIG_OK;
   }
-};				/* class C */
+};                              /* class C */
 
 /* -----------------------------------------------------------------------------
  * swig_c()    - Instantiate module

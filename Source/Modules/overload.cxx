@@ -23,11 +23,11 @@ String *argc_template_string;
 
 namespace {
 struct Overloaded {
-  Node *n;			/* Node                               */
-  int argc;			/* Argument count                     */
-  ParmList *parms;		/* Parameters used for overload check */
-  int error;			/* Ambiguity error                    */
-  bool implicitconv_function;	/* For ordering implicitconv functions*/
+  Node *n;                      /* Node                               */
+  int argc;                     /* Argument count                     */
+  ParmList *parms;              /* Parameters used for overload check */
+  int error;                    /* Ambiguity error                    */
+  bool implicitconv_function;   /* For ordering implicitconv functions*/
 };
 }
 
@@ -591,7 +591,7 @@ String *Swig_overload_dispatch_cast(Node *n, const_String_or_char_ptr fmt, int *
     Printf(sw, Char(lfmt), Getattr(ni, "wrap:name"));
     Printf(sw, "\n");
 
-    Printf(f, "}\n");		/* braces closes "if" for this method */
+    Printf(f, "}\n");           /* braces closes "if" for this method */
     if (fn)
       Printf(f, "check_%d:\n\n", fn);
 
@@ -765,7 +765,7 @@ static String *overload_dispatch_fast(Node *n, const_String_or_char_ptr fmt, int
     String *lfmt = ReplaceFormat(!emitcheck && fmt_fastdispatch ? fmt_fastdispatch : fmt, num_arguments);
     Printf(f, Char(lfmt), Getattr(ni, "wrap:name"));
 
-    Printf(f, "}\n");		/* braces closes "if" for this method */
+    Printf(f, "}\n");           /* braces closes "if" for this method */
     if (fn)
       Printf(f, "check_%d:\n\n", fn);
 
@@ -862,7 +862,7 @@ String *Swig_overload_dispatch(Node *n, const_String_or_char_ptr fmt, int *maxar
     /* close braces */
     for ( /* empty */ ; num_braces > 0; num_braces--)
       Printf(f, "}\n");
-    Printf(f, "}\n");		/* braces closes "if" for this method */
+    Printf(f, "}\n");           /* braces closes "if" for this method */
     if (implicitconvtypecheckoff)
       Delattr(ni, "implicitconvtypecheckoff");
   }

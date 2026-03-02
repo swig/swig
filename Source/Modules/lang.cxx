@@ -61,13 +61,13 @@ extern "C" {
 
 /* Some status variables used during parsing */
 static int InClass = 0; /* Parsing C++ or not */
-static String *ClassName = 0;	/* This is the real name of the current class */
+static String *ClassName = 0;   /* This is the real name of the current class */
 static String *EnumClassName = 0; /* Enum class name */
-static String *ClassPrefix = 0;	/* Class prefix */
+static String *ClassPrefix = 0; /* Class prefix */
 static String *EnumClassPrefix = 0; /* Prefix for strongly typed enums (including ClassPrefix) */
-static String *NSpace = 0;	/* Namespace for the nspace feature */
-static String *ClassType = 0;	/* Fully qualified type name to use */
-static String *DirectorClassName = 0;	/* Director name of the current class */
+static String *NSpace = 0;      /* Namespace for the nspace feature */
+static String *ClassType = 0;   /* Fully qualified type name to use */
+static String *DirectorClassName = 0;   /* Director name of the current class */
 int Abstract = 0;
 int ImportMode = 0;
 int IsVirtual = 0;
@@ -680,7 +680,7 @@ int Language::insertDirective(Node *n) {
     String *code = Getattr(n, "code");
     String *section = Getattr(n, "section");
     File *f = 0;
-    if (!section) {		/* %{ ... %} */
+    if (!section) {             /* %{ ... %} */
       f = Swig_filebyname("header");
     } else {
       f = Swig_filebyname(section);
@@ -1735,7 +1735,7 @@ int Language::enumvalueDeclaration(Node *n) {
   }
 
   if (!CurrentClass || !cparse_cplusplus) {
-    Setattr(n, "name", tmpValue);	/* for wrapping of enums in a namespace when emit_action is used */
+    Setattr(n, "name", tmpValue);       /* for wrapping of enums in a namespace when emit_action is used */
     constantWrapper(n);
   } else {
     memberconstantHandler(n);
@@ -3229,10 +3229,10 @@ Node *Language::classLookup(const SwigType *s) {
       /* Found a match.  Look at the prefix.  We only allow
          the cases where we want a proxy class for the particular type */
       bool acceptable_prefix =
-        (Len(prefix) == 0) ||			      // simple type (pass by value)
-        (Strcmp(prefix, "p.") == 0) ||		      // pointer
-        (Strcmp(prefix, "r.") == 0) ||		      // reference
-        (Strcmp(prefix, "z.") == 0) ||		      // rvalue reference
+        (Len(prefix) == 0) ||                         // simple type (pass by value)
+        (Strcmp(prefix, "p.") == 0) ||                // pointer
+        (Strcmp(prefix, "r.") == 0) ||                // reference
+        (Strcmp(prefix, "z.") == 0) ||                // rvalue reference
         SwigType_prefix_is_simple_1D_array(prefix);   // Simple 1D array (not arrays of pointers/references)
       // Also accept pointer by const reference, not non-const pointer reference
       if (!acceptable_prefix && (Strcmp(prefix, "r.p.") == 0)) {
@@ -3315,7 +3315,7 @@ Node *Language::enumLookup(SwigType *s) {
     }
     if (n) {
       /* Found a match.  Look at the prefix.  We only allow simple types. */
-      if (Len(prefix) == 0) {	/* Simple type */
+      if (Len(prefix) == 0) {   /* Simple type */
         if (!enumtypes)
           enumtypes = NewHash();
         Setattr(enumtypes, Copy(s), n);
@@ -3670,7 +3670,7 @@ int Dispatcher::abstractClassTest(Node *n) {
   Printf(stderr, "testing %s %d %d\n", Getattr(n, "name"), labs, Len(allbases));
 #endif
   if (!labs)
-    return 0;			/*strange, but need to be fixed */
+    return 0;                   /*strange, but need to be fixed */
   if (abstracts && !Swig_directors_enabled())
     return 1;
   if (!GetFlag(n, "feature:director"))

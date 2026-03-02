@@ -5696,7 +5696,7 @@ private:
     return Str(suffix + 1);
   }
 
-};				/* class GO */
+};                              /* class GO */
 
 /* -----------------------------------------------------------------------------
  * swig_go()    - Instantiate module

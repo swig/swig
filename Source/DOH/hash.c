@@ -226,7 +226,7 @@ static int Hash_setattr(DOH *ho, DOH *k, DOH *obj) {
       Delete(n->object);
       n->object = obj;
       Incref(obj);
-      return 1;			/* Return 1 to indicate a replacement */
+      return 1;                 /* Return 1 to indicate a replacement */
     } else {
       prev = n;
       n = n->next;
@@ -318,7 +318,7 @@ static DohIterator Hash_firstiter(DOH *ho) {
   iter._current = 0;
   iter.item = 0;
   iter.key = 0;
-  iter._index = 0;		/* Index in hash table */
+  iter._index = 0;              /* Index in hash table */
   while ((iter._index < h->hashsize) && !h->hashtable[iter._index])
     iter._index++;
 
@@ -537,29 +537,29 @@ static DohHashMethods HashHashMethods = {
 };
 
 DohObjInfo DohHashType = {
-  "Hash",			/* objname */
-  DelHash,			/* doh_del */
-  CopyHash,			/* doh_copy */
-  Hash_clear,			/* doh_clear */
-  Hash_str,			/* doh_str */
-  0,				/* doh_data */
-  0,				/* doh_dump */
-  Hash_len,			/* doh_len */
-  0,				/* doh_hash    */
-  0,				/* doh_cmp */
-  0,				/* doh_equal    */
-  Hash_firstiter,		/* doh_first    */
-  Hash_nextiter,		/* doh_next     */
-  Hash_setfile,			/* doh_setfile */
-  Hash_getfile,			/* doh_getfile */
-  Hash_setline,			/* doh_setline */
-  Hash_getline,			/* doh_getline */
-  &HashHashMethods,		/* doh_mapping */
-  0,				/* doh_sequence */
-  0,				/* doh_file */
-  0,				/* doh_string */
-  0,				/* doh_reserved */
-  0,				/* clientdata */
+  "Hash",                       /* objname */
+  DelHash,                      /* doh_del */
+  CopyHash,                     /* doh_copy */
+  Hash_clear,                   /* doh_clear */
+  Hash_str,                     /* doh_str */
+  0,                            /* doh_data */
+  0,                            /* doh_dump */
+  Hash_len,                     /* doh_len */
+  0,                            /* doh_hash    */
+  0,                            /* doh_cmp */
+  0,                            /* doh_equal    */
+  Hash_firstiter,               /* doh_first    */
+  Hash_nextiter,                /* doh_next     */
+  Hash_setfile,                 /* doh_setfile */
+  Hash_getfile,                 /* doh_getfile */
+  Hash_setline,                 /* doh_setline */
+  Hash_getline,                 /* doh_getline */
+  &HashHashMethods,             /* doh_mapping */
+  0,                            /* doh_sequence */
+  0,                            /* doh_file */
+  0,                            /* doh_string */
+  0,                            /* doh_reserved */
+  0,                            /* clientdata */
 };
 
 /* -----------------------------------------------------------------------------

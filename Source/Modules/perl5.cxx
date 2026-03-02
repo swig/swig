@@ -82,8 +82,8 @@ static File *f_directors = 0;
 static File *f_directors_h = 0;
 static File *f_init = 0;
 static File *f_pm = 0;
-static String *pm;		/* Package initialization code */
-static String *magic;		/* Magic variable wrappers     */
+static String *pm;              /* Package initialization code */
+static String *magic;           /* Magic variable wrappers     */
 
 static int staticoption = 0;
 
@@ -92,26 +92,26 @@ static int          verbose = 0;
 
 /* The following variables are used to manage Perl5 classes */
 
-static int blessed = 1;		/* Enable object oriented features */
-static int do_constants = 0;	/* Constant wrapping */
-static List *classlist = 0;	/* List of classes */
+static int blessed = 1;         /* Enable object oriented features */
+static int do_constants = 0;    /* Constant wrapping */
+static List *classlist = 0;     /* List of classes */
 static int have_constructor = 0;
 static int have_destructor = 0;
 static int have_data_members = 0;
-static String *class_name = 0;	/* Name of the class (what Perl thinks it is) */
-static String *real_classname = 0;	/* Real name of C/C++ class */
+static String *class_name = 0;  /* Name of the class (what Perl thinks it is) */
+static String *real_classname = 0;      /* Real name of C/C++ class */
 static String *fullclassname = 0;
 
-static String *pcode = 0;	/* Perl code associated with each class */
+static String *pcode = 0;       /* Perl code associated with each class */
                                                   /* static  String   *blessedmembers = 0;     *//* Member data associated with each class */
-static int member_func = 0;	/* Set to 1 when wrapping a member function */
-static String *func_stubs = 0;	/* Function stubs */
-static String *const_stubs = 0;	/* Constant stubs */
+static int member_func = 0;     /* Set to 1 when wrapping a member function */
+static String *func_stubs = 0;  /* Function stubs */
+static String *const_stubs = 0; /* Constant stubs */
 static Node *const_stubs_enum_class = 0; /* Node for enum class if we're currently generating one */
-static String *var_stubs = 0;	/* Variable stubs */
-static String *exported = 0;	/* Exported symbols */
+static String *var_stubs = 0;   /* Variable stubs */
+static String *exported = 0;    /* Exported symbols */
 static String *pragma_include = 0;
-static String *additional_perl_code = 0;	/* Additional Perl code from %perlcode %{ ... %} */
+static String *additional_perl_code = 0;        /* Additional Perl code from %perlcode %{ ... %} */
 static Hash *operators = 0;
 static int have_operators = 0;
 
@@ -481,7 +481,7 @@ public:
         if (pname) {
           SwigType *type = Getattr(cls.item, "classtypeobj");
           if (!type)
-            continue;		/* If unnamed class, no type will be found */
+            continue;           /* If unnamed class, no type will be found */
           type = Copy(type);
 
           SwigType_add_pointer(type);
@@ -702,7 +702,7 @@ public:
       Append(wname, overname);
     }
     Setattr(n, "wrap:name", wname);
-    Printv(f->def, "XS(", wname, ") {\n", "{\n",	/* scope to destroy C++ objects before croaking */
+    Printv(f->def, "XS(", wname, ") {\n", "{\n",        /* scope to destroy C++ objects before croaking */
            NIL);
 
     emit_parameter_variables(l, f);
@@ -743,7 +743,7 @@ public:
       }
       if ((tm = Getattr(p, "tmap:in"))) {
         Replaceall(tm, "$input", source);
-        Setattr(p, "emit:input", source);	/* Save input location */
+        Setattr(p, "emit:input", source);       /* Save input location */
 
         if (Getattr(p, "wrap:disown") || (Getattr(p, "tmap:in:disown"))) {
           Replaceall(tm, "$disown", "SWIG_POINTER_DISOWN");
@@ -1377,8 +1377,8 @@ public:
             Printv(pm, tab4, "\"!=\" => sub { $_[0]->__ne__($_[1])},\n",NIL);
             // there are no tests for this in operator_overload_runme.pl
             // it is likely to be broken
-            //	  } else if (strstr(name, "__assign__")) {
-            //	    Printv(pm, tab4, "\"=\" => sub { $_[0]->__assign__($_[1])},\n",NIL);
+            //    } else if (strstr(name, "__assign__")) {
+            //      Printv(pm, tab4, "\"=\" => sub { $_[0]->__assign__($_[1])},\n",NIL);
           } else if (strstr(name, "__str__")) {
             Printv(pm, tab4, "'\"\"' => sub { $_[0]->__str__()},\n",NIL);
           } else if (strstr(name, "__plusplus__")) {
@@ -1400,13 +1400,13 @@ public:
             Printv(pm, tab4, "\"%\" => sub { $_[0]->__mod__($_[1])},\n",NIL);
             // there are no tests for this in operator_overload_runme.pl
             // it is likely to be broken
-            //	  } else if (strstr(name, "__and__")) {
-            //	    Printv(pm, tab4, "\"&\" => sub { $_[0]->__and__($_[1])},\n",NIL);
+            //    } else if (strstr(name, "__and__")) {
+            //      Printv(pm, tab4, "\"&\" => sub { $_[0]->__and__($_[1])},\n",NIL);
 
             // there are no tests for this in operator_overload_runme.pl
             // it is likely to be broken
-            //	  } else if (strstr(name, "__or__")) {
-            //	    Printv(pm, tab4, "\"|\" => sub { $_[0]->__or__($_[1])},\n",NIL);
+            //    } else if (strstr(name, "__or__")) {
+            //      Printv(pm, tab4, "\"|\" => sub { $_[0]->__or__($_[1])},\n",NIL);
           } else if (strstr(name, "__gt__")) {
             Printv(pm, tab4, "\">\" => sub { $_[0]->__gt__($_[1])},\n",NIL);
           } else if (strstr(name, "__ge__")) {

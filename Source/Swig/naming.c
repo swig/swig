@@ -1219,7 +1219,7 @@ static void name_nameobj_add(Hash *name_hash, List *name_list, String *prefix, S
     }
   }
 
-  if (!nname || !Len(nname) || Getattr(nameobj, "fullname") ||	/* any of these options trigger a 'list' nameobj */
+  if (!nname || !Len(nname) || Getattr(nameobj, "fullname") ||  /* any of these options trigger a 'list' nameobj */
       Getattr(nameobj, "sourcefmt") || Getattr(nameobj, "matchlist") || Getattr(nameobj, "regextarget")) {
     if (decl)
       Setattr(nameobj, "decl", decl);
@@ -1538,7 +1538,7 @@ void Swig_name_rename_add(String *prefix, String *name, SwigType *decl, Hash *ne
 
         /* Create new declaration - with the last parameter removed */
         SwigType *newdecl = Copy(decl);
-        Delete(SwigType_pop_function(newdecl));	/* remove the old parameter list from newdecl */
+        Delete(SwigType_pop_function(newdecl)); /* remove the old parameter list from newdecl */
         SwigType_add_function(newdecl, newparms);
         if (constqualifier)
           SwigType_add_qualifier(newdecl, "const");

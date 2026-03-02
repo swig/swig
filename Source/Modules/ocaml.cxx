@@ -1239,7 +1239,7 @@ public:
     if (const_enum && qtype && symname && !Getattr(seen_enumvalues, symname)) {
       Setattr(seen_enumvalues, symname, "true");
       SetFlag(n, "feature:immutable");
-      Setattr(n, "feature:enumvalue", "1");	// this does not appear to be used
+      Setattr(n, "feature:enumvalue", "1");     // this does not appear to be used
 
       Setattr(n, "qualified:name", SwigType_namestr(qtype));
 
